@@ -62,6 +62,7 @@ module.exports = {
     dest.connectors = src.connectors;
     dest.lastHeartBeat = src.lastHeartBeat;
     dest.lastReboot = src.lastReboot;
+    dest.meterIntervalSecs = src.meterIntervalSecs; 
   },
 
   updateConfiguration(src, dest) {

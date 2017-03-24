@@ -159,6 +159,14 @@ class ChargingStation {
     this._model.connectors = connectors;
   }
 
+  getMeterIntervalSecs() {
+    return this._model.meterIntervalSecs;
+  }
+
+  setMeterIntervalSecs(meterIntervalSecs) {
+    this._model.meterIntervalSecs = meterIntervalSecs;
+  }
+
   getLastReboot() {
     return this._model.lastReboot;
   }
@@ -203,8 +211,50 @@ class ChargingStation {
     connectors[statusNotification.connectorId-1].status = statusNotification.status;
     this.setConnectors(connectors);
 
-    // Save
-    this.save();
+    // Compute the power of the connector
+    var that = this;
+    this.getConfiguration().then(function(configuration) {
+      var meterValueSampleInterval = 0;
+      var voltageRerefence = 0;
+      var current = 0;
+      var chargerConsumption = 0;
+      var nbPhase = 0;
+
+      // Search for params
+      for (var i = 0; i < configuration.configuration.length; i++) {
+        // Check
+        switch (configuration.configuration[i].key) {
+          // Meter interval
+          case "metervaluesampleinterval":
+            // Get the meter interval
+            meterValueSampleInterval = parseInt(configuration.configuration[i].value);
+            break;
+
+          // Voltage
+          case "voltagererefence":
+            // Get the meter interval
+            voltageRerefence = parseInt(configuration.configuration[i].value);
+            break;
+
+          // Current
+          case "currentpb" + statusNotification.connectorId:
+            // Get the meter interval
+            current = parseInt(configuration.configuration[i].value);
+            break;
+
+          // Nb Phase
+          case "nbphase":
+            // Get the meter interval
+            nbPhase = parseInt(configuration.configuration[i].value);
+            break;
+        }
+      }
+      // Compute it
+      connectors[statusNotification.connectorId-1].power = Math.floor(voltageRerefence * current * Math.sqrt(nbPhase));
+
+      // Save
+      that.save();
+    });
     // --------------------------------------------------------------
 
     // Save Status Notif
@@ -304,6 +354,26 @@ class ChargingStation {
     // Set the charger ID
     configuration.chargeBoxIdentity = this.getChargeBoxIdentity();
     configuration.timestamp = new Date();
+
+    // Set the meter value interval to the charging station
+    var meterIntervalSecs = 0;
+    for (var i = 0; i < configuration.configuration.length; i++) {
+      // Check
+      switch (configuration.configuration[i].key) {
+        // Meter interval
+        case "metervaluesampleinterval":
+          // Get the meter interval
+          meterIntervalSecs = parseInt(configuration.configuration[i].value);
+          break;
+      }
+      // Found?
+      if(meterIntervalSecs) {
+        break;
+      }
+    }
+    // Set
+    this.setMeterIntervalSecs(meterIntervalSecs);
+    this.save();
 
     // Save it
     return global.storage.saveConfiguration(configuration);

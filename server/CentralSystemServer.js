@@ -25,9 +25,9 @@ class CentralSystemServer {
 
   handleBootNotification(args, headers, req) {
     // Set the endpoint
-    args.endpoint = headers.From.Address || 'Unknown';
+    args.endpoint = headers.From.Address;
     // Set the ChargeBox ID
-    args.chargeBoxIdentity = headers.chargeBoxIdentity || 'Unknown';
+    args.chargeBoxIdentity = headers.chargeBoxIdentity;
     // Set the default Heart Beat
     args.lastReboot = new Date().toISOString();
     args.lastHeartBeat = args.lastReboot;

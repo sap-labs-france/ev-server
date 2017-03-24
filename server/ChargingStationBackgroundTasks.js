@@ -20,30 +20,27 @@ module.exports = {
         chargingStations.forEach(function(chargingStation) {
           // For each connector
           chargingStation.getConnectors().forEach(function(connector) {
-            // Get Config Value
-            chargingStation.getConfigurationParamValue("metervaluesampleinterval").then(function(meterValueSampleInterval) {
-              // The last 20secs
-              var date = new Date();
-              date.setSeconds(date.getSeconds() - (meterValueSampleInterval * 2));
+            // Set the date to the last 20secs
+            var date = new Date();
+            date.setSeconds(date.getSeconds() - (chargingStation.getMeterIntervalSecs() * 2));
 
-              // Get the consumption for each connector
-              chargingStation.getConsumptions(connector.connectorId, null, date).then(function(consumption) {
-                let currentConsumption = 0;
+            // Get the consumption for each connector
+            chargingStation.getConsumptions(connector.connectorId, null, date).then(function(consumption) {
+              let currentConsumption = 0;
 
-                // Value provided?
-                if (consumption.values.length !== 0) {
-                  // Yes
-                  currentConsumption = Math.floor((consumption.values[0].value / 21000) * 100);
-                }
+              // Value provided?
+              if (consumption.values.length !== 0) {
+                // Yes
+                currentConsumption = Math.floor((consumption.values[0].value / connector.power) * 100);
+              }
 
-                // Changed?
-                if (connector.currentConsumption !== currentConsumption) {
-                  // Set consumption
-                  connector.currentConsumption = currentConsumption;
-                  // Save
-                  chargingStation.save();
-                }
-              });
+              // Changed?
+              if (connector.currentConsumption !== currentConsumption) {
+                // Set consumption
+                connector.currentConsumption = currentConsumption;
+                // Save
+                chargingStation.save();
+              }
             });
           });
         });

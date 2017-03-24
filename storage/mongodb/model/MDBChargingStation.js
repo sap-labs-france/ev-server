@@ -10,6 +10,7 @@ module.exports = mongoose.model('ChargingStation',{
   iccid: String,
   imsi: String,
   meterType: String,
+  meterIntervalSecs: Number,
   meterSerialNumber: String,
   endpoint: String,
   ocppVersion: String,
