@@ -1,0 +1,20 @@
+{
+  "CentralSystems": [
+    {
+      "implementation": "soap",
+      "port": 8000
+    }
+  ],
+  "Storages":[
+    {
+      "implementation": "mongodb",
+      "host": "localhost",
+      "port": 27017,
+      "schema": "evcharger",
+      "leading" : true
+    }
+  ],
+  "ChargingStation" : {
+    "heartbeatInterval": 60
+  }
+}
