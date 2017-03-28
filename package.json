@@ -17,9 +17,10 @@
     "strong-soap": "^1.2.0",
     "xml-formatter": "^1.0.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node start"
   },
   "author": "",
   "license": "ISC"

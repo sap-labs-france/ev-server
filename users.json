@@ -1,0 +1,509 @@
+[
+  {
+    "Name": "BERNARD Christophe",
+    "TagID": "DA1D7C05",
+    "Mail": "christophe.bernard@sap.com",
+    "Phone": "+33 492286272",
+    "Mobile Phone": "+33 622254136",
+    "Badge number": 311494,
+    "I number": "I060301",
+    "Cost Center": 175030453,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "BMWI3",
+        "Plate": "EJ-082-GB"
+      }
+    ]
+  },
+  {
+    "Name": "CONTINI Antje",
+    "TagID": "AD1A6A4B",
+    "Mail": "antje.contini@sap.com",
+    "Phone": "+33 492286281",
+    "Mobile Phone": 0,
+    "Badge number": 580613,
+    "I number": "I034241",
+    "Cost Center": 175030651,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+      "Brand": "Renault Zoe",
+      "Plate": "DT-232-BX"
+      }
+    ]
+  },
+  {
+    "Name": "COPPIETERS Kris",
+    "TagID": "4CF70F02",
+    "Mail": "kris.coppieters@sap.com",
+    "Phone": "+33 492286428",
+    "Mobile Phone": "+33 646384554",
+    "Badge number": 400904,
+    "I number": "I037819",
+    "Cost Center": 175030821,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Renault Zoe",
+        "Plate": ""
+      }
+    ]
+  },
+  {
+    "Name": "DANGREMONT Cedric",
+    "TagID": "CC211002",
+    "Mail": "cedric.dangremont@sap.com",
+    "Phone": "+33 492286289",
+    "Mobile Phone": "+33 623170313",
+    "Badge number": 400434,
+    "I number": "I066523",
+    "Cost Center": 175030651,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Nissan Leaf",
+        "Plate": "EG-185-MM"
+      }
+    ]
+  },
+  {
+    "Name": "DE PARSEVAL Marie",
+    "TagID": "BC7E0A02",
+    "Mail": "marie.de.parseval@sap.com",
+    "Phone": "+33 492286224",
+    "Mobile Phone": "+33 619903905",
+    "Badge number": 400714,
+    "I number": "I310950",
+    "Cost Center": 175000601,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Renault Zoe",
+        "Plate": ""
+      }
+    ]
+  },
+  {
+    "Name": "DELORME Marjolaine",
+    "TagID": "",
+    "Mail": "marjolaine.delorme@sap.com",
+    "Phone": "+33 492286421",
+    "Mobile Phone": "+33 609185041",
+    "Badge number": "",
+    "I number": "I035684",
+    "Contract": "Company Car",
+    "Cost Center": 175030452,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+      "Brand": "Renault Zoe",
+      "Plate": ""
+      }
+    ]
+  },
+  {
+    "Name": "DERIES Jean-Yves",
+    "TagID": "CB68F17E",
+    "Mail": "jean-yves.deries@sap.com",
+    "Phone": "+33 492286317",
+    "Mobile Phone": 0,
+    "Badge number": 285283,
+    "I number": "I022469",
+    "Cost Center": 175030651,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Renault Zoe",
+        "Plate": "DT-082-BX"
+      }
+    ]
+  },
+  {
+    "Name": "DESPLECHIN Agnes",
+    "TagID": "0CD30F02",
+    "Mail": "agnes.desplechin@sap.com",
+    "Phone": "+33 492286220",
+    "Mobile Phone": "+33 609185042",
+    "Badge number": 400404,
+    "I number": "I042828",
+    "Contract": "Company Car",
+    "Cost Center": 175000621,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+      "Brand": "Renault Zoe",
+      "Plate": "EF-309-NX"
+      }
+    ]
+  },
+  {
+    "Name": "EICKHOFF Lea",
+    "TagID": "AD186F3B",
+    "Mail": "lea.eickhoff@sap.com",
+    "Phone": "+33 492286331",
+    "Mobile Phone": 0,
+    "Badge number": 590393,
+    "I number": "I061771",
+    "Contract": "Company Car",
+    "Cost Center": 175003041,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Renault Zoe",
+        "Plate": ""
+      }
+    ]
+  },
+  {
+    "Name": "FICATIER Olivier",
+    "TagID": "",
+    "Mail": "olivier.ficatier@sap.com",
+    "Phone": "+33 492286301",
+    "Mobile Phone": "+33 618117279",
+    "Badge number": "",
+    "I number": "I023401",
+    "Cost Center": 175030453,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+      "Brand": "Renault Zoe",
+      "Plate": "DT-390-BX"
+      }
+    ]
+  },
+  {
+    "Name": "FONTAINE Sandra",
+    "TagID": "AD1792DB",
+    "Mail": "sandra.fontaine@sap.com",
+    "Phone": "+33 492286328",
+    "Mobile Phone": "+33 628816791",
+    "Badge number": 590923,
+    "I number": "I051650",
+    "Contract": "Company Car",
+    "Cost Center": 175740007,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+      "Brand": "Renault Twizy",
+      "Plate": "EB-880-RJ"
+      }
+    ]
+  },
+  {
+    "Name": "GARCIA Christophe",
+    "TagID": "ACB99E16",
+    "Mail": "christophe.garcia@sap.com",
+    "Phone": "+33 492286306",
+    "Mobile Phone": "+33 614421570",
+    "Badge number": 585234,
+    "I number": "I301826",
+    "Cost Center": 175030200,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Renault Zoe",
+        "Plate": ""
+      }
+    ]
+  },
+  {
+    "Name": "GIMENO Stephane",
+    "TagID": "BC670B02",
+    "Mail": "stephane.gimeno@sap.com",
+    "Phone": "+33 492286413",
+    "Mobile Phone": "+33 609808335",
+    "Badge number": 400304,
+    "I number": "I027960",
+    "Cost Center": 175030604,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Renault Zoe",
+        "Plate": "DV-631-DR"
+      }
+    ]
+  },
+  {
+    "Name": "GRAILLE Fabien",
+    "TagID": "AD1AB2AB",
+    "Mail": "fabien.graille@sap.com",
+    "Phone": "+33 492286408",
+    "Mobile Phone": "+33 625958262",
+    "Badge number": 590133,
+    "I number": "I028336",
+    "Cost Center": "",
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Tesla model S",
+        "Plate": ""
+      }
+    ]
+  },
+  {
+    "Name": "KLAUSMEIER Hanno",
+    "TagID": "A682C26F",
+    "Mail": "hanno.klausmeier@sap.com",
+    "Phone": "+33 492286228",
+    "Mobile Phone": "+33 609185023",
+    "Badge number": "",
+    "I number": "I042055",
+    "Cost Center": 175000602,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Nissan Leaf",
+        "Plate": "DZ-817-LE"
+      }
+    ]
+  },
+  {
+    "Name": "MEOLA Jean-Philippe",
+    "TagID": "7CA70C02",
+    "Mail": "jean-philippe.meola@sap.com",
+    "Phone": "+33 492286378",
+    "Mobile Phone": 0,
+    "Badge number": "",
+    "I number": "I042987",
+    "Cost Center": 175030602,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Kia Soul",
+        "Plate": "EB-607-YN"
+      }
+    ]
+  },
+  {
+    "Name": "NIEL Xavier",
+    "TagID": "AC1CC50D",
+    "Mail": "xavier.niel@sap.com",
+    "Phone": "+33 146178327",
+    "Mobile Phone": "+33 689797708",
+    "Badge number": 98303,
+    "I number": "I070891",
+    "Cost Center": 175030453,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+      "Brand": "Tesla model S",
+      "Plate": ""
+      }
+    ]
+  },
+  {
+    "Name": "OHLINGER Petra",
+    "TagID": "",
+    "Mail": "petra.ohlinger@sap.com",
+    "Phone": "+33 492286258",
+    "Mobile Phone": "+33 620452469",
+    "Badge number": "",
+    "I number": "I024666",
+    "Cost Center": 175022248,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+      "Brand": "Renault Zoe",
+      "Plate": ""
+      }
+    ]
+  },
+  {
+    "Name": "OZON Frederic",
+    "TagID": "6C610A02",
+    "Mail": "frederic.ozon@sap.com",
+    "Phone": "+33 492286388",
+    "Mobile Phone": "+33 621268964",
+    "Badge number": 400794,
+    "I number": "I016118",
+    "Cost Center": 175030200,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Tesla model S",
+        "Plate": "EC-931-VD"
+      }
+    ]
+  },
+  {
+    "Name": "PERNICE Florent",
+    "TagID": "",
+    "Mail": "florent.pernice@sap.com",
+    "Phone": "+33 492286350",
+    "Mobile Phone": "+33 683776138",
+    "Badge number": "",
+    "I number": "I023388",
+    "Cost Center": 175030670,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+      "Brand": "Renault Zoe",
+      "Plate": ""
+      }
+    ]
+  },
+  {
+    "Name": "PFLAUM Torsten",
+    "TagID": "A609C4B1",
+    "Mail": "torsten.pflaum@sap.com",
+    "Phone": "+33 492286440",
+    "Mobile Phone": "+33 628475298",
+    "Badge number": "",
+    "I number": "I023365",
+    "Cost Center": 175030086,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Tesla model S",
+        "Plate": "EA-903-LQ"
+      }
+    ]
+  },
+  {
+    "Name": "POLAT Ebru",
+    "TagID": "3652A36F",
+    "Mail": "ebru.polat@sap.com",
+    "Phone": "+33 492286475",
+    "Mobile Phone": "+33 675629651",
+    "Badge number": "",
+    "I number": "I028593",
+    "Cost Center": 175030602,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Kia Soul",
+        "Plate": "EB-607-YN"
+      }
+    ]
+  },
+  {
+    "Name": "Pool Car 36 mois",
+    "TagID": "A3EF1397",
+    "Mail": "marie.de.parseval@sap.com",
+    "Phone": "+33 492286224",
+    "Mobile Phone": "+33 619903905",
+    "Badge number": "",
+    "I number": "I310950",
+    "Cost Center": 175000601,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Renault Zoe",
+        "Plate": "DT-952-BW"
+      }
+    ]
+  },
+  {
+    "Name": "Pool Car 52 mois",
+    "TagID": "",
+    "Brand": "Tesla model S",
+    "Plate": "EA-051-WA",
+    "Mail": "marie.de.parseval@sap.com",
+    "Phone": "+33 492286224",
+    "Mobile Phone": "+33 619903905",
+    "Badge number": "",
+    "I number": "I310951",
+    "Cost Center": 175000601,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Tesla model S",
+        "Plate": "EA-051-WA"
+      }
+    ]
+  },
+  {
+    "Name": "Pool Car 52 mois",
+    "TagID": "",
+    "Mail": "marie.de.parseval@sap.com",
+    "Phone": "+33 492286224",
+    "Mobile Phone": "+33 619903905",
+    "Badge number": "",
+    "I number": "I310952",
+    "Contract": "Pool Car",
+    "Cost Center": 175000601,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Tesla model S",
+        "Plate": ""
+      }
+    ]
+  },
+  {
+    "Name": "SACCO Pierre",
+    "TagID": "",
+    "Mail": "pierre.sacco@sap.com",
+    "Phone": "+33 492286369",
+    "Mobile Phone": "+33 619335424",
+    "Badge number": "",
+    "I number": "I043945",
+    "Contract": "Company Car",
+    "Cost Center": 175000601,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Ampera E",
+        "Plate": ""
+      }
+    ]
+  },
+  {
+    "Name": "SCHAUB Thomas",
+    "TagID": "CB7D6C3E",
+    "Mail": "thomas.schaub@sap.com",
+    "Phone": "+33 492286236",
+    "Mobile Phone": 0,
+    "Badge number": 225303,
+    "I number": "I019531",
+    "Cost Center": 175030670,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Renault Zoe",
+        "Plate": "DT-057-CG"
+      }
+    ]
+  },
+  {
+    "Name": "SCHOLTEN Simone",
+    "TagID": "AD15E70B",
+    "Mail": "simone.scholten@sap.com",
+    "Phone": "+33 492286308",
+    "Mobile Phone": "+33 611187912",
+    "Badge number": 628583,
+    "I number": "D036209",
+    "Contract": "Company Car",
+    "Cost Center": 175302500,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Renault Zoe",
+        "Plate": ""
+      }
+    ]
+  },
+  {
+    "Name": "SCOTT Christelle",
+    "TagID": "",
+    "Mail": "christelle.scott@sap.com",
+    "Phone": "+33 492286323",
+    "Mobile Phone": 0,
+    "Badge number": "",
+    "I number": "I019965",
+    "Contract": "Private",
+    "Cost Center": 175030602,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Renault Zoe",
+        "Plate": "EB-781-QY"
+      }
+    ]
+  },
+  {
+    "Name": "SERME Gabriel",
+    "TagID": "AD17FFCB",
+    "Mail": "gabriel.serme@sap.com",
+    "Phone": "+33 492286395",
+    "Mobile Phone": "+33 666993542",
+    "Badge number": 590143,
+    "I number": "I055098",
+    "Contract": "Company Car",
+    "Cost Center": 175030670,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Nissan Leaf",
+        "Plate": "EG-103-MF"
+      }
+    ]
+  },
+  {
+    "Name": "ZID Ahmed",
+    "TagID": "2C6B1002",
+    "Mail": "a.zid@sap.com",
+    "Phone": "+33 492286368",
+    "Mobile Phone": "+33 612306068",
+    "Badge number": 400754,
+    "I number": "I079667",
+    "Cost Center": 175404030,
+    "Location": "Mougins",
+    "ElectricVehicules": [{
+        "Brand": "Renault Zoe",
+        "Plate": "EF-496-AE"
+      }
+    ]
+  }
+]
