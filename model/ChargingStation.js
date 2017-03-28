@@ -214,7 +214,7 @@ class ChargingStation {
     // Compute the power of the connector
     var that = this;
     this.getConfiguration().then(function(configuration) {
-      var meterValueSampleInterval = 0;
+      var meterIntervalSecs = 0;
       var voltageRerefence = 0;
       var current = 0;
       var chargerConsumption = 0;
@@ -225,9 +225,9 @@ class ChargingStation {
         // Check
         switch (configuration.configuration[i].key) {
           // Meter interval
-          case "metervaluesampleinterval":
+          case "meterIntervalSecs":
             // Get the meter interval
-            meterValueSampleInterval = parseInt(configuration.configuration[i].value);
+            meterIntervalSecs = parseInt(configuration.configuration[i].value);
             break;
 
           // Voltage
@@ -273,6 +273,7 @@ class ChargingStation {
     // Create model
     var newMeterValues = {};
     var newMeterValue = {};
+    var meterIntervalSecs = parseInt(this.getMeterIntervalSecs());
 
     // Init
     newMeterValues.values = [];
@@ -280,18 +281,14 @@ class ChargingStation {
     // Set the charger ID
     newMeterValues.chargeBoxIdentity = this.getChargeBoxIdentity();
 
-    // Check if OCPP 1.2
+    // Check if OCPP 1.6
     if (meterValues.meterValue) {
       // Set it to 'values'
       meterValues.values = meterValues.meterValue;
     }
-    // Check if OCPP 1.6
-    if (!Array.isArray(meterValues.values)) {
-      meterValues.values = [meterValues.values];
-    }
 
     // For each value
-    meterValues.values.forEach(function(value) {
+    meterValues.values.forEach(function(value, index) {
       // Set the ID
       newMeterValue.chargeBoxIdentity = newMeterValues.chargeBoxIdentity;
       newMeterValue.connectorId = meterValues.connectorId;
@@ -306,7 +303,7 @@ class ChargingStation {
         value.value = value.sampledValue;
       }
 
-      // Value provided?
+      // Values provided?
       if (value.value) {
         // Array?
         if (Array.isArray(value.value)) {
@@ -323,7 +320,7 @@ class ChargingStation {
               // Push the whole structure
               parsedValues.push(valueStuct);
             }
-          })
+          });
           newMeterValue.values = parsedValues;
         } else {
           // OCCP1.2: Set the values
@@ -361,7 +358,7 @@ class ChargingStation {
       // Check
       switch (configuration.configuration[i].key) {
         // Meter interval
-        case "metervaluesampleinterval":
+        case "meterIntervalSecs":
           // Get the meter interval
           meterIntervalSecs = parseInt(configuration.configuration[i].value);
           break;
@@ -481,120 +478,133 @@ class ChargingStation {
 
   getConsumptions(connectorId, transactionId, startDateTime, endDateTime) {
     var that = this;
-    // Get the sample interval
-    return this.getConfigurationParamValue("metervaluesampleinterval").then(function(meterValueSampleInterval) {
-      // Convert to an int
-      meterValueSampleInterval = parseInt(meterValueSampleInterval);
+    var invalidNbrOfMetrics = 0;
+    var totalNbrOfMetrics = 0;
 
-      // Define start date default
-      if (!startDateTime) {
-        startDateTime = new Date(new Date().toDateString()).toISOString(); // Current day
+    // Convert to an int
+    var meterIntervalSecs = parseInt(this.getMeterIntervalSecs());
+
+    // Define start date default
+    if (!startDateTime) {
+      startDateTime = new Date(new Date().toDateString()).toISOString(); // Current day
+    }
+    // Adjust the start time to get the last 2 meter values
+    var startDateTimeAdjusted = new Date(new Date(startDateTime) - (meterIntervalSecs * 2 * 1000)).toISOString();
+
+    // Define end date default
+    if (!endDateTime) {
+      endDateTime = new Date().toISOString(); // Current day
+    }
+
+    // Build the request
+    return global.storage.getMeterValues(
+        that.getChargeBoxIdentity(),
+        connectorId,
+        transactionId,
+        startDateTimeAdjusted,
+        endDateTime).then(function(meterValues) {
+      // Parse the results
+      var sampleMultiplier = 3600 / meterIntervalSecs;
+      var initialValue = 0; // Should be retrieved from the StartTransaction (MeterStart)
+      var chargingStationConsumption = {};
+      chargingStationConsumption.values = [];
+      chargingStationConsumption.totalConsumption = 0;
+      chargingStationConsumption.chargeBoxIdentity = that.getChargeBoxIdentity();
+      if (connectorId) {
+        chargingStationConsumption.connectorId = connectorId;
       }
-      // Adjust the start time to get the last 2 meter values
-      var startDateTimeAdjusted = new Date(new Date(startDateTime) - (meterValueSampleInterval * 2 * 1000)).toISOString();
-
-      // Define end date default
-      if (!endDateTime) {
-        endDateTime = new Date().toISOString(); // Current day
+      if (startDateTime) {
+        chargingStationConsumption.startDateTime = startDateTime;
+      }
+      if (endDateTime) {
+        chargingStationConsumption.endDateTime = endDateTime;
       }
 
-      // Build the request
-      return global.storage.getMeterValues(
-          that.getChargeBoxIdentity(),
-          connectorId,
-          transactionId,
-          startDateTimeAdjusted,
-          endDateTime).then(function(meterValues) {
-        // Parse the results
-        var sampleMultiplier = 3600 / meterValueSampleInterval;
-        var initialValue = 0; // Should be retrieved from the StartTransaction (MeterStart)
-        var chargingStationConsumption = {};
-        chargingStationConsumption.values = [];
-        chargingStationConsumption.totalConsumption = 0;
-        chargingStationConsumption.chargeBoxIdentity = that.getChargeBoxIdentity();
-        if (connectorId) {
-          chargingStationConsumption.connectorId = connectorId;
-        }
-        if (startDateTime) {
-          chargingStationConsumption.startDateTime = startDateTime;
-        }
-        if (endDateTime) {
-          chargingStationConsumption.endDateTime = endDateTime;
-        }
+      // Init var
+      var lastValue = 0;
+      var lastTimeStamp;
+      var lastTimeInterval = 0;
+      var startingDate = new Date(startDateTime);
+      var firstValue = false;
 
-        // Init var
-        var lastValue = 0;
-        var lastTimeStamp;
-        var lastTimeInterval = 0;
-        var startingDate = new Date(startDateTime);
-        var firstValue = false;
-
-        // Build the model
-        meterValues.forEach(function(meterValue) {
-          // Avoid twice the same time stamp
-          if (!lastTimeStamp || lastTimeStamp != meterValue.timestamp) {
-            // Log
-            if (lastTimeStamp) {
-              // Get the diff according the last timestamp
-              lastTimeInterval = ((meterValue.timestamp - lastTimeStamp) / 1000);
-              // Check
-              if (lastTimeInterval !== meterValueSampleInterval) {
-                // Don't take into account this value
-                if (meterValue.values.length > 0) {
-                  // Keep the last one
-                  lastValue = meterValue.values[meterValue.values.length-1];
-                  // Keep last timestamp
-                  lastTimeStamp = meterValue.timestamp;
+      // Build the model
+      meterValues.forEach(function(meterValue) {
+        // Browse values
+        meterValue.values.forEach(function(value) {
+          // Filter on consumption value
+          if (value.attributes && value.attributes.measurand && value.attributes.measurand === "Energy.Active.Import.Register") {
+            // Avoid twice the same timestamp
+            if (!lastTimeStamp || lastTimeStamp.toISOString() !== meterValue.timestamp.toISOString()) {
+              // Log
+              if (lastTimeStamp) {
+                // Get the diff according the last timestamp
+                lastTimeInterval = ((meterValue.timestamp - lastTimeStamp) / 1000);
+                // Check
+                if (lastTimeInterval !== meterIntervalSecs) {
+                  invalidNbrOfMetrics++;
+                  // console.log(
+                  //   "INVALID INTERVAL: EVSE: " + that.getChargeBoxIdentity() +
+                  //   ", ConnectorID: " + connectorId +
+                  //   ", Current Date: " + meterValue.timestamp +
+                  //   ", Last Date: " + lastTimeStamp +
+                  //   ", Time Interval: " + lastTimeInterval +
+                  //   ", meterLength: " + meterValue.values.length);
+                  // Don't take into account this value
+                  if (meterValue.values.length > 0) {
+                    // Keep the last one
+                    lastValue = meterValue.values[meterValue.values.length-1];
+                    // Keep last timestamp
+                    lastTimeStamp = meterValue.timestamp;
+                  }
+                  // Continue
+                  return;
                 }
-                // Continue
-                return;
               }
             }
 
-            // Browse values
-            meterValue.values.forEach(function(value) {
-              // Filter on consumption value
-              if(value.attributes && value.attributes.measurand && value.attributes.measurand === "Energy.Active.Import.Register") {
-                // First init
-                if (!firstValue) {
-                  // Keep
-                  lastValue = value.value;
-                  firstValue = true;
+            // First init
+            if (!firstValue) {
+              // Keep
+              lastValue = value.value;
+              firstValue = true;
 
-                  // Calculate the consumption with the last value provided
-                } else {
-                  // Last value is > ?
-                  if (lastValue > value.value) {
-                    // Yes: reinit it (the value has started over from 0)
-                    lastValue = 0;
-                  }
-
-                  // Start to return the value after the requested date
-                  if (meterValue.timestamp >= startingDate) {
-                    // compute
-                    var consumption = (value.value - lastValue) * sampleMultiplier;
-                    if (consumption > 0) {
-                      // Counting
-                      chargingStationConsumption.totalConsumption += value.value - lastValue;
-                      // Set the consumption
-                      chargingStationConsumption.values.push({date: meterValue.timestamp, value: consumption });
-                    }
-                  }
-
-                  // Set Last Value
-                  lastValue = value.value;
-                }
+              // Calculate the consumption with the last value provided
+            } else {
+              // Last value is > ?
+              if (lastValue > value.value) {
+                // Yes: reinit it (the value has started over from 0)
+                lastValue = 0;
               }
-            });
+
+              // Start to return the value after the requested date
+              if (meterValue.timestamp >= startingDate) {
+                totalNbrOfMetrics++;
+
+                // compute
+                var consumption = (value.value - lastValue) * sampleMultiplier;
+                // if (consumption > 0) {
+                  // Counting
+                  chargingStationConsumption.totalConsumption += value.value - lastValue;
+                  // Set the consumption
+                  chargingStationConsumption.values.push({date: meterValue.timestamp, value: consumption });
+                // }
+              }
+
+              // Set Last Value
+              lastValue = value.value;
+            }
+            // Keep last timestamp
+            lastTimeStamp = meterValue.timestamp;
           }
-
-          // Keep last timestamp
-          lastTimeStamp = meterValue.timestamp;
         });
-
-        // Return the result
-        return chargingStationConsumption;
       });
+
+      console.log("Total nbr of metrics: " + totalNbrOfMetrics);
+      console.log("Total of invalid metrics: " + invalidNbrOfMetrics +
+        " (" + (invalidNbrOfMetrics?Math.ceil(invalidNbrOfMetrics/totalNbrOfMetrics):0) + "%)");
+
+      // Return the result
+      return chargingStationConsumption;
     });
   }
 }
