@@ -1,4 +1,5 @@
 var ChargingStation = require('../model/ChargingStation');
+var User = require('../model/User');
 var Utils = require('../utils/Utils');
 
 module.exports = {
@@ -9,6 +10,9 @@ module.exports = {
 
     // Compute current consumption
     module.exports.computeChargingStationsConsumption();
+
+    // Upload Users
+    module.exports.uploadUsers();
   },
 
   computeChargingStationsConsumption: function() {
@@ -102,5 +106,34 @@ module.exports = {
         });
       });
     }
+  },
+
+  uploadUsers() {
+    // Get from the file system
+    var users = Utils.getUsers();
+    // Process them
+    for (var i = 0; i < users.users.length; i++) {
+      // Check & Save
+      module.exports.checkAndSaveUser(users.users[i]);
+    };
+  },
+
+  checkAndSaveUser(user) {
+    if (!user.tagID) {
+      console.log("User " + user.name + " has no Tag ID and cannot be saved");
+      return;
+    }
+
+    // Get user
+    global.storage.getUserByTagID(user.tagID).then(function(userDB) {
+      // Found
+      if (!userDB) {
+        // No: Create
+        var newUser = new User(user);
+
+        // Save
+        newUser.save();
+      }
+    });
   }
 };

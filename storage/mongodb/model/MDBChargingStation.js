@@ -1,5 +1,12 @@
 var mongoose = require('mongoose');
 
+// var Connector = new mongoose.Schema({
+//   connectorId: Number,
+//   currentConsumption: Number,
+//   status: String,
+//   power: Number
+// });
+
 module.exports = mongoose.model('ChargingStation',{
   chargeBoxIdentity: String,
   chargePointVendor: String,

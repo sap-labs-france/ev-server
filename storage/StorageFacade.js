@@ -199,6 +199,27 @@ class StorageFacade extends Storage {
     // Delegate
     return _leadingStorage.saveConfiguration(configuration);
   }
+
+  getUsers() {
+    // Delegate
+    return _leadingStorage.getUsers();
+  }
+
+  getUserByTagID(tagID) {
+    // Delegate
+    return _leadingStorage.getUserByTagID(tagID);
+  }
+
+  saveUser(user) {
+    // Delegate
+    _storages.forEach(function(storage) {
+      // Trigger Save for other DB
+      storage.saveUser(user);
+    });
+
+    // Delegate
+    return _leadingStorage.saveUser(user);
+  }
 }
 
 module.exports=StorageFacade;

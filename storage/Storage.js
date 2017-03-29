@@ -5,16 +5,25 @@ class Storage {
     }
   }
 
-  saveChargingStation(chargingStation) {
+  getUsers() {
   }
 
-  saveBootNotification(bootNotification) {
+  getUserByTagID(tagID) {
+  }
+
+  saveUser(user) {
+  }
+
+  getChargingStations() {
   }
 
   getChargingStation(chargeBoxIdentity) {
   }
 
-  getChargingStations() {
+  saveChargingStation(chargingStation) {
+  }
+
+  saveBootNotification(bootNotification) {
   }
 
   saveStatusNotification(statusNotification) {

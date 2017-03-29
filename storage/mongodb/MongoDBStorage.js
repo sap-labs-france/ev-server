@@ -1,6 +1,7 @@
 var mongoose = require('mongoose');
 var Promise = require('promise');
 var MDBConfiguration = require('./model/MDBConfiguration');
+var MDBUser = require('./model/MDBUser');
 var MDBFirmwareStatusNotification = require('./model/MDBFirmwareStatusNotification');
 var MDBDiagnosticsStatusNotification = require('./model/MDBDiagnosticsStatusNotification');
 var MDBChargingStation = require('./model/MDBChargingStation');
@@ -11,6 +12,7 @@ var MDBMeterValue = require('./model/MDBMeterValue');
 var MDBStartTransaction = require('./model/MDBStartTransaction');
 var MDBStopTransaction = require('./model/MDBStopTransaction');
 var MDBDataTransfer = require('./model/MDBDataTransfer');
+var User = require('../../model/User');
 var ChargingStation = require('../../model/ChargingStation');
 var Utils = require('../../utils/Utils');
 var Storage = require('../Storage');
@@ -528,7 +530,7 @@ class MongoDBStorage extends Storage {
                 if (err) {
                     console.log(`MongoDB: Error when updating Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
                 } else {
-                  console.log(`MongoDB: Charging Station ${chargingStation.getChargeBoxIdentity()} updated with success`);
+                    console.log(`MongoDB: Charging Station ${chargingStation.getChargeBoxIdentity()} updated with success`);
                 }
             });
         }
@@ -550,7 +552,7 @@ class MongoDBStorage extends Storage {
 
             return chargingStation;
         }).catch(function(err) {
-          console.log(`MongoDB: Error in reading the chargin station ${chargeBoxIdentity}: ${err.message}`);
+          console.log(`MongoDB: Error in reading the Charging Station ${chargeBoxIdentity}: ${err.message}`);
         });
     }
 
@@ -576,26 +578,120 @@ class MongoDBStorage extends Storage {
     }
 
     _getChargingStationMongoDB(chargeBoxIdentity) {
-        // Get the Charging Station
-        return new Promise(function(fulfill, reject) {
-            // Exec request
-            MDBChargingStation.find({"chargeBoxIdentity": chargeBoxIdentity},
-              function(err, chargingStationsMongoDB) {
-                var chargingStationMongoDB = null;
+      // Get the Charging Station
+      return new Promise(function(fulfill, reject) {
+          // Exec request
+          MDBChargingStation.find({"chargeBoxIdentity": chargeBoxIdentity},
+            function(err, chargingStationsMongoDB) {
+              var chargingStationMongoDB = null;
+              if (err) {
+                  reject(err);
+              } else {
+                  // Check
+                  if (chargingStationsMongoDB.length > 0) {
+                      chargingStationMongoDB = chargingStationsMongoDB[0];
+                  } else {
+                    console.log(`Charging Station ${chargeBoxIdentity} does not exist!`);
+                  }
+                  // Ok
+                  fulfill(chargingStationMongoDB);
+              }
+          });
+      });
+    }
+
+    getUsers() {
+      // Get the Charging Station
+      return new Promise(function(fulfill, reject) {
+          // Exec request
+          MDBUser.find({}).sort( {name: 1} ).exec(function(err, usersMongoDB) {
+              var users = [];
+
+              if (err) {
+                  reject(err);
+              } else {
+                  // Create
+                  usersMongoDB.forEach(function(userMongoDB) {
+                    users.push(new User(userMongoDB));
+                  });
+                  // Ok
+                  fulfill(users);
+              }
+          });
+      });
+    }
+
+    saveUser(user) {
+      // Get
+      return this._getUserByTagIDMongoDB(user.getTagID()).then(function(userMongoDB) {
+        // Found?
+        if (!userMongoDB) {
+            // No: Create it
+            var newUserMongoDB = new MDBUser(user.getModel());
+
+            // Create new
+            newUserMongoDB.save(function(err, results) {
                 if (err) {
-                    reject(err);
+                    console.log(`MongoDB: Error when creating User  ${user.getName()}: ${err.message}`);
                 } else {
-                    // Check
-                    if (chargingStationsMongoDB.length > 0) {
-                        chargingStationMongoDB = chargingStationsMongoDB[0];
-                    } else {
-                      console.log(`Charging Station ${chargeBoxIdentity} does not exist!`);
-                    }
-                    // Ok
-                    fulfill(chargingStationMongoDB);
+                  console.log(`MongoDB: User ${user.getName()} created with success`);
                 }
             });
-        });
+        } else {
+            // Set data
+            Utils.updateUser(user.getModel(), userMongoDB);
+
+            // No: Update it
+            userMongoDB.save(function(err, results) {
+                if (err) {
+                    console.log(`MongoDB: Error when updating User ${user.getName()}: ${err.message}`);
+                } else {
+                  console.log(`MongoDB: User ${user.getName()} updated with success`);
+                }
+            });
+        }
+      }).catch(function(err) {
+        console.log(`MongoDB: Error in reading the User ${user.getName()}: ${err.message}`);
+      });
+    }
+
+    getUserByTagID(tagID) {
+      // Get
+      return this._getUserByTagIDMongoDB(tagID).then(function(userMongoDB) {
+          var user = null;
+
+          // Found
+          if (userMongoDB != null) {
+            user = new User(userMongoDB);
+          }
+
+          return user;
+      }).catch(function(err) {
+        console.log(`MongoDB: Error in reading the User with Tag ID ${tagID}: ${err.message}`);
+      });
+    }
+
+    _getUserByTagIDMongoDB(tagID) {
+      // Get the Charging Station
+      return new Promise(function(fulfill, reject) {
+          // Exec request
+          MDBUser.find({"tagID": tagID},
+            function(err, usersMongoDB) {
+              var userMongoDB = null;
+              if (err) {
+                  reject(err);
+              } else {
+                  // Check
+                  if (usersMongoDB.length > 0) {
+                      userMongoDB = usersMongoDB[0];
+                  } else {
+                    console.log(`User with Tag ID ${tagID} does not exist!`);
+                  }
+                  // Ok
+                  fulfill(userMongoDB);
+              }
+          });
+      });
     }
 }
 

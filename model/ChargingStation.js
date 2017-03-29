@@ -309,16 +309,16 @@ class ChargingStation {
         if (Array.isArray(value.value)) {
           // OCPP 1.5 & 1.6: Set the values
           var parsedValues = [];
-          value.value.forEach(function(valueStuct) {
-            if (typeof valueStuct != 'object') {
+          value.value.forEach(function(valueJson) {
+            if (typeof valueJson != 'object') {
               // OCPP 1.5: Simple Type
-              parsedValues.push({"value": parseInt(valueStuct)});
+              parsedValues.push({"value": parseInt(valueJson)});
             } else {
               // OCPP 1.6: Structure
               // Convert to an int
-              valueStuct.value = parseInt(valueStuct.value);
+              valueJson.value = parseInt(valueJson.value);
               // Push the whole structure
-              parsedValues.push(valueStuct);
+              parsedValues.push(valueJson);
             }
           });
           newMeterValue.values = parsedValues;
@@ -599,9 +599,11 @@ class ChargingStation {
         });
       });
 
-      console.log("Total nbr of metrics: " + totalNbrOfMetrics);
-      console.log("Total of invalid metrics: " + invalidNbrOfMetrics +
+      if (totalNbrOfMetrics) {
+        console.log("Total nbr of metrics: " + totalNbrOfMetrics);
+        console.log("Total of invalid metrics: " + invalidNbrOfMetrics +
         " (" + (invalidNbrOfMetrics?Math.ceil(invalidNbrOfMetrics/totalNbrOfMetrics):0) + "%)");
+      }
 
       // Return the result
       return chargingStationConsumption;

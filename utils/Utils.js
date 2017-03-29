@@ -23,6 +23,12 @@ module.exports = {
     return JSON.parse(fs.readFileSync(path.join(__dirname,"../config.json"), "UTF-8"));
   },
 
+  // Read the user file
+  getUsers() {
+    // Read conf
+    return JSON.parse(fs.readFileSync(path.join(__dirname,"../users.json"), "UTF-8"));
+  },
+
   // Central System config
   getCentralSystemsConfig() {
     // Read conf
@@ -62,7 +68,7 @@ module.exports = {
     dest.connectors = src.connectors;
     dest.lastHeartBeat = src.lastHeartBeat;
     dest.lastReboot = src.lastReboot;
-    dest.meterIntervalSecs = src.meterIntervalSecs; 
+    dest.meterIntervalSecs = src.meterIntervalSecs;
   },
 
   updateConfiguration(src, dest) {
@@ -91,5 +97,23 @@ module.exports = {
     dest.transactionId = src.transactionId;
     dest.timestamp = src.timestamp;
     dest.values = src.values;
+  },
+
+  updateUser(src, dest) {
+    // Set it
+    dest.name = src.name;
+    dest.tagID = src.tagID;
+    dest.email = src.email;
+    dest.phone = src.phone;
+    dest.mobile = src.mobile;
+    dest.badgeNumber = src.badgeNumber;
+    dest.iNumber = src.iNumber;
+    dest.costCenter = src.costCenter;
+    dest.location = src.location;
+    dest.createdBy = src.createdBy;
+    dest.createdOn = src.createdOn;
+    dest.lastChangedBy = src.lastChangedBy;
+    dest.lastChangedOn = src.lastChangedOn;
+    dest.electricVehicules = src.electricVehicules;
   }
 }

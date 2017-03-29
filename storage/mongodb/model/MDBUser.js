@@ -10,9 +10,5 @@ module.exports = mongoose.model('User',{
   iNumber: String,
   costCenter: Number,
   location: String,
-  status: String,
-  createdBy: String,
-  createdOn: Date,
-  lastChangedBy: String,
-  lastChangedOn: Date
+  electricVehicules: []
 });
