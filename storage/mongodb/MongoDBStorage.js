@@ -623,7 +623,7 @@ class MongoDBStorage extends Storage {
 
     saveUser(user) {
       // Get
-      return this._getUserByTagIDMongoDB(user.getTagID()).then(function(userMongoDB) {
+      return this._getUserByTagIdMongoDB(user.getTagID()).then(function(userMongoDB) {
         // Found?
         if (!userMongoDB) {
             // No: Create it
@@ -655,9 +655,9 @@ class MongoDBStorage extends Storage {
       });
     }
 
-    getUserByTagID(tagID) {
+    getUserByTagId(tagID) {
       // Get
-      return this._getUserByTagIDMongoDB(tagID).then(function(userMongoDB) {
+      return this._getUserByTagIdMongoDB(tagID).then(function(userMongoDB) {
           var user = null;
 
           // Found
@@ -671,7 +671,7 @@ class MongoDBStorage extends Storage {
       });
     }
 
-    _getUserByTagIDMongoDB(tagID) {
+    _getUserByTagIdMongoDB(tagID) {
       // Get the Charging Station
       return new Promise(function(fulfill, reject) {
           // Exec request

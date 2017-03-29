@@ -125,7 +125,7 @@ module.exports = {
     }
 
     // Get user
-    global.storage.getUserByTagID(user.tagID).then(function(userDB) {
+    global.storage.getUserByTagId(user.tagID).then(function(userDB) {
       // Found
       if (!userDB) {
         // No: Create

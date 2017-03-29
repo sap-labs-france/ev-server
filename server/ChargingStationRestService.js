@@ -48,7 +48,7 @@ module.exports = function(req, res, next) {
             chargingStationsJSon.push(chargingStation.getModel());
           });
 
-          // Return the error
+          // Return
           res.json(chargingStationsJSon);
           next();
         });
@@ -57,15 +57,46 @@ module.exports = function(req, res, next) {
       // Get one charging station
       case "ChargingStation":
         global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
-          var chargingStationsJSon = [];
+          var chargingStationJSon = {};
 
           if (chargingStation) {
             // Set the model
-            chargingStationsJSon = chargingStation.getModel();
+            chargingStationJSon = chargingStation.getModel();
           }
 
-          // Return the error
-          res.json(chargingStationsJSon);
+          // Return
+          res.json(chargingStationJSon);
+          next();
+        });
+        break;
+
+      // Get all the users
+      case "Users":
+        global.storage.getUsers().then(function(users) {
+          var usersJSon = [];
+          users.forEach(function(user) {
+            // Set the model
+            usersJSon.push(user.getModel());
+          });
+
+          // Return
+          res.json(usersJSon);
+          next();
+        });
+        break;
+
+      // Get the user
+      case "UserByTagId":
+        global.storage.getUserByTagId(req.query.TagId).then(function(user) {
+          var userJSon = {};
+
+          if (user) {
+            // Set the model
+            userJSon = user.getModel();
+          }
+
+          // Return
+          res.json(userJSon);
           next();
         });
         break;
