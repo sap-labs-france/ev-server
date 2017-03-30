@@ -9,7 +9,9 @@ module.exports = { /* Services */
         console.log("Authorize OCPP V 1.2\n");
 
         // Handle
-        return global.centralSystemSoap.handleAuthorize(args, headers, req);
+        global.centralSystemSoap.handleAuthorize(args, headers, req).then(function(result) {
+          callback(result);
+        });
 
         /*
           args = {
@@ -39,7 +41,10 @@ module.exports = { /* Services */
         console.log("StartTransaction OCPP V 1.2\n");
 
         // Handle
-        return global.centralSystemSoap.handleStartTransaction(args, headers, req);
+        global.centralSystemSoap.handleStartTransaction(args, headers, req).then(function(result) {
+          callback(result);
+        });
+
         /*
           args = {
                  connectorId of type s:int
@@ -72,7 +77,10 @@ module.exports = { /* Services */
         console.log("StopTransaction OCPP V 1.2\n");
 
         // Handle
-        return global.centralSystemSoap.handleStopTransaction(args, headers, req);
+        global.centralSystemSoap.handleStopTransaction(args, headers, req).then(function(result) {
+          callback(result);
+        });
+
         /*
           args = {
                  transactionId of type s:int
@@ -104,7 +112,9 @@ module.exports = { /* Services */
         console.log("Heartbeat OCPP V 1.2\n");
 
         // Handle
-        return global.centralSystemSoap.handleHeartBeat(args, headers, req);
+        global.centralSystemSoap.handleHeartBeat(args, headers, req).then(function(result) {
+          callback(result);
+        });
 
         /*
           args = {
@@ -127,7 +137,10 @@ module.exports = { /* Services */
         console.log("MeterValues OCPP V 1.2\n");
 
         // Handle
-        return global.centralSystemSoap.handleMeterValues(args, headers, req);
+        global.centralSystemSoap.handleMeterValues(args, headers, req).then(function(result) {
+          callback(result);
+        });
+
 
         /*
           args = {
@@ -159,7 +172,9 @@ module.exports = { /* Services */
         args.ocppVersion = '1.2';
 
         // Handle
-        return global.centralSystemSoap.handleBootNotification(args, headers, req);
+        global.centralSystemSoap.handleBootNotification(args, headers, req).then(function(result) {
+          callback(result);
+        });
 
         /*
           args = {
@@ -191,7 +206,9 @@ module.exports = { /* Services */
         console.log("StatusNotification OCPP V 1.2\n");
 
         // Handle
-        return global.centralSystemSoap.handleStatusNotification(args, headers, req);
+        global.centralSystemSoap.handleStatusNotification(args, headers, req).then(function(result) {
+          callback(result);
+        });
 
         /*
           args = {
@@ -216,7 +233,10 @@ module.exports = { /* Services */
         console.log("FirmwareStatusNotification OCPP V 1.2\n");
 
         // Handle
-        return global.centralSystemSoap.handleFirmwareStatusNotification(args, headers, req);
+        global.centralSystemSoap.handleFirmwareStatusNotification(args, headers, req).then(function(result) {
+          callback(result);
+        });
+
         /*
           args = {
                  status of type FirmwareStatus|s:string|Downloaded,DownloadFailed,InstallationFailed,Installed
@@ -238,7 +258,10 @@ module.exports = { /* Services */
         console.log("DiagnosticsStatusNotification OCPP V 1.2\n");
 
         // Handle
-        return global.centralSystemSoap.handleDiagnosticsStatusNotification(args, headers, req);
+        global.centralSystemSoap.handleDiagnosticsStatusNotification(args, headers, req).then(function(result) {
+          callback(result);
+        });
+
         /*
           args = {
                  status of type DiagnosticsStatus|s:string|Uploaded,UploadFailed
@@ -255,7 +278,6 @@ module.exports = { /* Services */
 
         }; */
       }
-
     }
   }
 };

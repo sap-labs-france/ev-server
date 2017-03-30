@@ -12,7 +12,7 @@ module.exports = {
     module.exports.computeChargingStationsConsumption();
 
     // Upload Users
-    module.exports.uploadUsers();
+    // module.exports.uploadUsers();
   },
 
   computeChargingStationsConsumption: function() {
@@ -42,9 +42,10 @@ module.exports = {
               if (connector.currentConsumption !== currentConsumption) {
                 // Set consumption
                 connector.currentConsumption = currentConsumption;
-                // Save
-                chargingStation.save();
               }
+
+              // Save
+              chargingStation.save();
             });
           });
         });

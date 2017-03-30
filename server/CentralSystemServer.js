@@ -35,142 +35,167 @@ class CentralSystemServer {
 
     // Save Charging Station
     var chargingStation = new ChargingStation(args);
-    chargingStation.save().then(function() {
-      // Save Boot Notification
-      chargingStation.saveBootNotification(args);
-
+    // Save
+    return chargingStation.save().then(function() {
+      // Save the Boot Notification
+      return chargingStation.saveBootNotification(args);
+    // Get the Configuration from the Station
+    }).then(function() {
       // Get the Charging Station Config
-      chargingStation.requestConfiguration().then(function(configuration) {
-        // Save it
-        chargingStation.saveConfiguration(configuration);
+      return chargingStation.requestConfiguration().then(function(configuration) {
+        return configuration;
       });
+    // Save the config
+    }).then(function(configuration) {
+      // Save it
+      return chargingStation.saveConfiguration(configuration);
+      // Return the result
+    }).then(function() {
+      // Return the result
+      // OCPP 1.6
+      if (args.ocppVersion === "1.6") {
+        return {
+          "bootNotificationResponse": {
+            "status": 'Accepted',
+            "currentTime": new Date().toISOString(),
+            "interval": _chargingStationConfig.heartbeatInterval
+          }
+        }
+        // OCPP 1.2 && 1.5
+      } else {
+        return {
+          "bootNotificationResponse": {
+            "status": 'Accepted',
+            "currentTime": new Date().toISOString(),
+            "heartbeatInterval": _chargingStationConfig.heartbeatInterval
+          }
+        }
+      };
     });
-
-    // OCPP 1.6
-    if (args.ocppVersion === "1.6") {
-      return {
-        "bootNotificationResponse": {
-          "status": 'Accepted',
-          "currentTime": new Date().toISOString(),
-          "interval": _chargingStationConfig.heartbeatInterval
-        }
-      }
-      // OCPP 1.2 && 1.5
-    } else {
-      return {
-        "bootNotificationResponse": {
-          "status": 'Accepted',
-          "currentTime": new Date().toISOString(),
-          "heartbeatInterval": _chargingStationConfig.heartbeatInterval
-        }
-      }
-    };
   }
 
   handleHeartBeat(args, headers, req) {
     var heartBeat = new Date();
 
     // Get the charging station
-    global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
+    return global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
       // Found?
       if (chargingStation) {
         // Set Heartbeat
         chargingStation.setLastHeartBeat(heartBeat);
         // Save
-        chargingStation.save();
+        return chargingStation.save();
+      } else {
+        // Nothing to return
+        return Promise.resolve();
       }
+    }).then(function() {
+      return {
+        "heartbeatResponse": {
+          "currentTime": heartBeat.toISOString()
+        }
+      };
     });
-
-    return {
-      "heartbeatResponse": {
-        "currentTime": heartBeat.toISOString()
-      }
-    };
   }
 
   handleStatusNotification(args, headers, req) {
     // Get the charging station
-    global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
+    return global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
       // Found?
       if (chargingStation) {
         // Save
-        chargingStation.saveStatusNotification(args);
+        return chargingStation.saveStatusNotification(args);
+      } else {
+        // Nothing to return
+        return Promise.resolve();
       }
+    }).then(function() {
+      return {
+        "statusNotificationResponse": {
+        }
+      };
     });
-
-    return {
-      "statusNotificationResponse": {
-      }
-    }
   }
 
   handleMeterValues(args, headers, req) {
     // Get the charging station
-    global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
+    return global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
       // Found?
       if (chargingStation) {
         // Save
-        chargingStation.saveMeterValues(args);
+        return chargingStation.saveMeterValues(args);
+      } else {
+        // Nothing to return
+        return Promise.resolve();
       }
+    }).then(function() {
+      return {
+        "meterValuesResponse": {
+        }
+      };
     });
-
-    return {
-      "meterValuesResponse": {
-      }
-    }
   }
 
   handleAuthorize(args, headers, req) {
     // Get the charging station
-    global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
+    return global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
       // Found?
       if (chargingStation) {
         // Save
-        chargingStation.saveAuthorize(args);
+        return chargingStation.saveAuthorize(args);
+      } else {
+        // Nothing to return
+        return Promise.resolve();
       }
-    });
-
-    return {
-      "authorizeResponse": {
-        "idTagInfo": {
-          "status": "Accepted"
-          //          "expiryDate": "",
-          //          "parentIdTag": ""
+    }).then(function() {
+      return {
+        "authorizeResponse": {
+          "idTagInfo": {
+            "status": "Accepted"
+            //          "expiryDate": "",
+            //          "parentIdTag": ""
+          }
         }
-      }
-    }
+      };
+    });
   }
 
   handleDiagnosticsStatusNotification(args, headers, req) {
     // Get the charging station
-    global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
+    return global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
       // Found?
       if (chargingStation) {
         // Save
-        chargingStation.saveDiagnosticsStatusNotification(args);
+        return chargingStation.saveDiagnosticsStatusNotification(args);
+      } else {
+        // Nothing to return
+        return Promise.resolve();
       }
+    }).then(function() {
+      return {
+        "diagnosticsStatusNotificationResponse": {
+        }
+      };
     });
-
-    return {
-      "diagnosticsStatusNotificationResponse": {
-      }
-    }
   }
 
   handleFirmwareStatusNotification(args, headers, req) {
     // Get the charging station
-    global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
+    return global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
       // Found?
       if (chargingStation) {
         // Save
-        chargingStation.saveFirmwareStatusNotification(args);
+        return chargingStation.saveFirmwareStatusNotification(args);
+      } else {
+        // Nothing to return
+        return Promise.resolve();
       }
+    }).then(function() {
+      return {
+        "firmwareStatusNotificationResponse": {
+        }
+      };
     });
-
-    return {
-      "firmwareStatusNotificationResponse": {
-      }
-    }
 }
 
   handleStartTransaction(args, headers, req) {
@@ -178,63 +203,72 @@ class CentralSystemServer {
     args.transactionId = Utils.getRandomInt();
 
     // Get the charging station
-    global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
+    return global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
       // Found?
       if (chargingStation) {
         // Save
-        chargingStation.saveStartTransaction(args);
+        return chargingStation.saveStartTransaction(args);
+      } else {
+        // Nothing to return
+        return Promise.resolve();
       }
-    });
-
-    return {
-      "startTransactionResponse": {
-        "transactionId": args.transactionId,
-        "idTagInfo": {
-          "status": "Accepted"
-//          "expiryDate": "",
-//          "parentIdTag": ""
+    }).then(function() {
+      return {
+        "startTransactionResponse": {
+          "transactionId": args.transactionId,
+          "idTagInfo": {
+            "status": "Accepted"
+  //          "expiryDate": "",
+  //          "parentIdTag": ""
+          }
         }
-      }
-    }
+      };
+    });
   }
 
   handleDataTransfer(args, headers, req) {
     // Get the charging station
-    global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
+    return global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
       // Found?
       if (chargingStation) {
         // Save
-        chargingStation.saveDataTransfer(args);
+        return chargingStation.saveDataTransfer(args);
+      } else {
+        // Nothing to return
+        return Promise.resolve();
+      }
+    }).then(function() {
+      return {
+        "dataTransferResponse": {
+          "status": "Accepted"
+  //        "data": ""
+        }
       }
     });
-
-    return {
-      "dataTransferResponse": {
-        "status": "Accepted"
-//        "data": ""
-      }
-    }
   }
 
   handleStopTransaction(args, headers, req) {
     // Get the charging station
-    global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
+    return global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
       // Found?
       if (chargingStation) {
         // Save
-        chargingStation.saveStopTransaction(args);
+        return chargingStation.saveStopTransaction(args);
+      } else {
+        // Nothing to return
+        return Promise.resolve();
       }
-    });
-
-    return {
-      "stopTransactionResponse": {
-        "idTagInfo": {
-          "status": "Accepted"
-//          "expiryDate": "",
-//          "parentIdTag": "",
+    }).then(function() {
+      return {
+        "stopTransactionResponse": {
+          "idTagInfo": {
+            "status": "Accepted"
+  //          "expiryDate": "",
+  //          "parentIdTag": "",
+          }
         }
-      }
-    }
+      };
+    });
   }
 }
 

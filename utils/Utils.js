@@ -115,5 +115,15 @@ module.exports = {
     dest.lastChangedBy = src.lastChangedBy;
     dest.lastChangedOn = src.lastChangedOn;
     dest.electricVehicules = src.electricVehicules;
+  },
+
+  updateStartTransaction(src, dest) {
+    // Set it
+    dest.chargeBoxIdentity = src.chargeBoxIdentity;
+    dest.connectorId = src.connectorId;
+    dest.transactionId = src.transactionId;
+    dest.idTag = src.idTag;
+    dest.timestamp = src.timestamp;
+    dest.meterStart = src.meterStart;
   }
 }

@@ -213,52 +213,48 @@ class ChargingStation {
 
     // Compute the power of the connector
     var that = this;
-    this.getConfiguration().then(function(configuration) {
-      var meterIntervalSecs = 0;
-      var voltageRerefence = 0;
-      var current = 0;
-      var chargerConsumption = 0;
-      var nbPhase = 0;
+    // Use a function to pass the connector`
+    return (function(connector) {
+      // Get the configuration
+      return that.getConfiguration().then(function(configuration) {
+        var voltageRerefence = 0;
+        var current = 0;
+        var chargerConsumption = 0;
+        var nbPhase = 0;
 
-      // Search for params
-      for (var i = 0; i < configuration.configuration.length; i++) {
-        // Check
-        switch (configuration.configuration[i].key) {
-          // Meter interval
-          case "meterIntervalSecs":
-            // Get the meter interval
-            meterIntervalSecs = parseInt(configuration.configuration[i].value);
-            break;
+        // Search for params
+        for (var i = 0; i < configuration.configuration.length; i++) {
+          // Check
+          switch (configuration.configuration[i].key) {
+            // Voltage
+            case "voltagererefence":
+              // Get the meter interval
+              voltageRerefence = parseInt(configuration.configuration[i].value);
+              break;
 
-          // Voltage
-          case "voltagererefence":
-            // Get the meter interval
-            voltageRerefence = parseInt(configuration.configuration[i].value);
-            break;
+            // Current
+            case "currentpb" + statusNotification.connectorId:
+              // Get the meter interval
+              current = parseInt(configuration.configuration[i].value);
+              break;
 
-          // Current
-          case "currentpb" + statusNotification.connectorId:
-            // Get the meter interval
-            current = parseInt(configuration.configuration[i].value);
-            break;
-
-          // Nb Phase
-          case "nbphase":
-            // Get the meter interval
-            nbPhase = parseInt(configuration.configuration[i].value);
-            break;
+            // Nb Phase
+            case "nbphase":
+              // Get the meter interval
+              nbPhase = parseInt(configuration.configuration[i].value);
+              break;
+          }
         }
-      }
-      // Compute it
-      connectors[statusNotification.connectorId-1].power = Math.floor(voltageRerefence * current * Math.sqrt(nbPhase));
+        // Compute it
+        connector.power = Math.floor(voltageRerefence * current * Math.sqrt(nbPhase));
 
-      // Save
-      that.save();
-    });
-    // --------------------------------------------------------------
-
-    // Save Status Notif
-    return global.storage.saveStatusNotification(statusNotification);
+        // Save
+        return that.save();
+      }).then(function() {
+        // Save Status Notif
+        return global.storage.saveStatusNotification(statusNotification);
+      });
+    })(connectors[statusNotification.connectorId-1]);
   }
 
   saveBootNotification(bootNotification) {
@@ -341,10 +337,10 @@ class ChargingStation {
     // Update the Heartbeat
     this.setLastHeartBeat(new Date());
     // Save
-    this.save();
-
-    // Save it
-    return global.storage.saveMeterValues(newMeterValues);
+    return this.save().then(function() {
+      // Save it
+      return global.storage.saveMeterValues(newMeterValues);
+    });
   }
 
   saveConfiguration(configuration) {
@@ -354,13 +350,13 @@ class ChargingStation {
 
     // Set the meter value interval to the charging station
     var meterIntervalSecs = 0;
-    for (var i = 0; i < configuration.configuration.length; i++) {
+    for (var i = 0; i < configuration.configurationKey.length; i++) {
       // Check
-      switch (configuration.configuration[i].key) {
+      switch (configuration.configurationKey[i].key) {
         // Meter interval
-        case "meterIntervalSecs":
+        case "metervaluesampleinterval":
           // Get the meter interval
-          meterIntervalSecs = parseInt(configuration.configuration[i].value);
+          meterIntervalSecs = parseInt(configuration.configurationKey[i].value);
           break;
       }
       // Found?
@@ -370,10 +366,11 @@ class ChargingStation {
     }
     // Set
     this.setMeterIntervalSecs(meterIntervalSecs);
-    this.save();
-
-    // Save it
-    return global.storage.saveConfiguration(configuration);
+    // Save
+    return this.save().then(function() {
+      // Save config
+      return global.storage.saveConfiguration(configuration);
+    });
   }
 
   saveStartTransaction(transaction) {

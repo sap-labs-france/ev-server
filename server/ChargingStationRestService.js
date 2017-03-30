@@ -101,6 +101,26 @@ module.exports = function(req, res, next) {
         });
         break;
 
+      // Get the transactions
+      case "Transactions":
+        global.storage.getTransactions(
+            req.query.ChargeBoxIdentity,
+            req.query.ConnectorId,
+            req.query.StartDateTime,
+            req.query.EndDateTime).then(function(transactions) {
+          var transactionsJSon = [];
+
+          transactions.forEach(function(transaction) {
+            // Set the model
+            transactionsJSon.push(transaction);
+          });
+
+          // Return
+          res.json(transactionsJSon);
+          next();
+        });
+        break;
+
       // Get all the Status Notifications
       case "StatusNotifications":
         // Charging Station found?

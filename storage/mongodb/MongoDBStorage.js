@@ -471,40 +471,6 @@ class MongoDBStorage extends Storage {
       });
     }
 
-    saveUser(user) {
-      // // Get
-      // return this._getUserMongoDB(user.getChargeBoxIdentity()).then(function(chargingStationMongoDB) {
-      //   // Found?
-      //   if (!chargingStationMongoDB) {
-      //       // No: Create it
-      //       var newChargingStationMongoDB = new MDBChargingStation(chargingStation.getModel());
-      //
-      //       // Create new
-      //       newChargingStationMongoDB.save(function(err, results) {
-      //           if (err) {
-      //               console.log(`MongoDB: Error when creating Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
-      //               throw err;
-      //           }
-      //           console.log(`MongoDB: Charging Station ${chargingStation.getChargeBoxIdentity()} created with success`);
-      //       });
-      //   } else {
-      //       // Set data
-      //       Utils.updateChargingStationObject(chargingStation.getModel(), chargingStationMongoDB);
-      //
-      //       // No: Update it
-      //       chargingStationMongoDB.save(function(err, results) {
-      //           if (err) {
-      //               console.log(`MongoDB: Error when updating Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
-      //               throw err;
-      //           }
-      //           console.log(`MongoDB: Charging Station ${chargingStation.getChargeBoxIdentity()} updated with success`);
-      //       });
-      //   }
-      // }).catch(function(err) {
-      //   console.log(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
-      // });
-    }
-
     saveChargingStation(chargingStation) {
       // Get
       return this._getChargingStationMongoDB(chargingStation.getChargeBoxIdentity()).then(function(chargingStationMongoDB) {
@@ -652,6 +618,77 @@ class MongoDBStorage extends Storage {
         }
       }).catch(function(err) {
         console.log(`MongoDB: Error in reading the User ${user.getName()}: ${err.message}`);
+      });
+    }
+
+    getTransactions(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
+      var that = this;
+
+      // Get the Charging Station
+      return new Promise(function(fulfill, reject) {
+          // Build filter
+          var filter = {};
+          if (chargeBoxIdentity) {
+            filter.chargeBoxIdentity = chargeBoxIdentity;
+          }
+          if (connectorId) {
+            filter.connectorId = connectorId;
+          }
+          if (startDateTime || endDateTime) {
+            filter.timestamp = {};
+          }
+          if (startDateTime) {
+            filter.timestamp["$gte"] = new Date(startDateTime);
+          }
+          if (endDateTime) {
+            filter.timestamp["$lte"] = new Date(endDateTime);
+          }
+
+          // Get the Start Transaction
+          MDBStartTransaction.find(filter).sort( {timestamp: -1} ).exec(function(err, transactionsMongoDB) {
+              var transactions = [];
+
+              if (err) {
+                  reject(err);
+              } else {
+                  // Create
+                  transactionsMongoDB.forEach(function(transactionMongoDB) {
+                    var transaction = {};
+                    // Set
+                    Utils.updateStartTransaction(transactionMongoDB, transaction);
+                    // Add
+                    transactions.push(transaction);
+                  });
+                  // Ok
+                  return transactions;
+              }
+          // Get the Users
+          }).then(function(transactions) {
+            var userPromises = [];
+
+            // Get the user for each transaction
+            for (var i = 0; i < transactions.length; i++) {
+              // Call in a function to pass the index in the Promise
+              (function(transaction) {
+                // Get the user
+                userPromises.push(
+                  // Get the user
+                  that.getUserByTagId(transaction.idTag).then(function(user) {
+                    // Set
+                    if(user) {
+                      // Set the User
+                      transaction.user = user.getModel();
+                    }
+                    return transaction;
+                  })
+                );
+              })(transactions[i]);
+            }
+
+            Promise.all(userPromises).then(function(transactions) {
+              fullfill(transactions);
+            });
+          });
       });
     }
 

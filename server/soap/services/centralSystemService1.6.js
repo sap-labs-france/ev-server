@@ -9,7 +9,10 @@ module.exports = { /* Services */
         console.log("Authorize OCPP V 1.6\n");
 
         // Handle
-        return global.centralSystemSoap.handleAuthorize(args, headers, req);
+        global.centralSystemSoap.handleAuthorize(args, headers, req).then(function(result) {
+          callback(result);
+        });
+
         /*
           args = {
                  idTag of type IdToken|s:string|maxLength
@@ -41,7 +44,9 @@ module.exports = { /* Services */
         args.ocppVersion = '1.6';
 
         // Handle
-        return global.centralSystemSoap.handleBootNotification(args, headers, req);
+        global.centralSystemSoap.handleBootNotification(args, headers, req).then(function(result) {
+          callback(result);
+        });
 
         /*
           args = {
@@ -73,7 +78,10 @@ module.exports = { /* Services */
         console.log("DataTransfer OCPP V 1.6\n");
 
         // Handle
-        return global.centralSystemSoap.handleDataTransfer(args, headers, req);
+        global.centralSystemSoap.handleDataTransfer(args, headers, req).then(function(result) {
+          callback(result);
+        });
+
         /*
           args = {
                  vendorId of type CiString255Type|s:string|maxLength
@@ -99,7 +107,10 @@ module.exports = { /* Services */
         console.log("DiagnosticsStatusNotification OCPP V 1.6\n");
 
         // Handle
-        return global.centralSystemSoap.handleDiagnosticsStatusNotification(args, headers, req);
+        global.centralSystemSoap.handleDiagnosticsStatusNotification(args, headers, req).then(function(result) {
+          callback(result);
+        });
+
         /*
           args = {
                  status of type DiagnosticsStatus|s:string|Idle,Uploaded,UploadFailed,Uploading
@@ -121,7 +132,10 @@ module.exports = { /* Services */
         console.log("FirmwareStatusNotification OCPP V 1.6\n");
 
         // Handle
-        return global.centralSystemSoap.handleFirmwareStatusNotification(args, headers, req);
+        global.centralSystemSoap.handleFirmwareStatusNotification(args, headers, req).then(function(result) {
+          callback(result);
+        });
+
         /*
           args = {
                  status of type FirmwareStatus|s:string|Downloaded,DownloadFailed,Downloading,Idle,InstallationFailed,Installed,Installing
@@ -143,7 +157,9 @@ module.exports = { /* Services */
         console.log("Heartbeat OCPP V 1.6\n");
 
         // Handle
-        return global.centralSystemSoap.handleHeartBeat(args, headers, req);
+        global.centralSystemSoap.handleHeartBeat(args, headers, req).then(function(result) {
+          callback(result);
+        });
 
         /*
           args = {
@@ -166,7 +182,9 @@ module.exports = { /* Services */
         console.log("MeterValues OCPP V 1.6\n");
 
         // Handle
-        return global.centralSystemSoap.handleMeterValues(args, headers, req);
+        global.centralSystemSoap.handleMeterValues(args, headers, req).then(function(result) {
+          callback(result);
+        });
 
         /*
           args = {
@@ -206,7 +224,10 @@ module.exports = { /* Services */
         console.log("StartTransaction OCPP V 1.6\n");
 
         // Handle
-        return global.centralSystemSoap.handleStartTransaction(args, headers, req);
+        global.centralSystemSoap.handleStartTransaction(args, headers, req).then(function(result) {
+          callback(result);
+        });
+
         /*
           args = {
                  connectorId of type s:int
@@ -240,7 +261,10 @@ module.exports = { /* Services */
         console.log("StatusNotification OCPP V 1.6\n");
 
         // Handle
-        return global.centralSystemSoap.handleStatusNotification(args, headers, req);
+        global.centralSystemSoap.handleStatusNotification(args, headers, req).then(function(result) {
+          callback(result);
+        });
+
         /*
           args = {
                  connectorId of type s:int
@@ -268,7 +292,10 @@ module.exports = { /* Services */
         console.log("StopTransaction OCPP V 1.6\n");
 
         // Handle
-        return global.centralSystemSoap.handleStopTransaction(args, headers, req);
+        global.centralSystemSoap.handleStopTransaction(args, headers, req).then(function(result) {
+          callback(result);
+        });
+
         /*
           args = {
                  transactionId of type s:int
@@ -312,7 +339,6 @@ module.exports = { /* Services */
 
         }; */
       }
-
     }
   }
 };

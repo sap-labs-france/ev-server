@@ -205,6 +205,11 @@ class StorageFacade extends Storage {
     return _leadingStorage.getUsers();
   }
 
+  getTransactions(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
+    // Delegate
+    return _leadingStorage.getTransactions(chargeBoxIdentity, connectorId, startDateTime, endDateTime);
+  }
+
   getUserByTagId(tagID) {
     // Delegate
     return _leadingStorage.getUserByTagId(tagID);

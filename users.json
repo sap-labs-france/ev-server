@@ -277,22 +277,6 @@
       ]
     },
     {
-      "name": "OHLINGER Petra",
-      "tagID": "",
-      "email": "petra.ohlinger@sap.com",
-      "phone": "+33 492286258",
-      "mobile": "+33 620452469",
-      "badgeNumber": "",
-      "iNumber": "I024666",
-      "costCenter": 175022248,
-      "location": "Mougins",
-      "electricVehicules": [{
-        "brand": "Renault Zoe",
-        "plate": ""
-        }
-      ]
-    },
-    {
       "name": "OZON Frederic",
       "tagID": "6C610A02",
       "email": "frederic.ozon@sap.com",
@@ -369,58 +353,6 @@
       "electricVehicules": [{
           "brand": "Renault Zoe",
           "plate": "DT-952-BW"
-        }
-      ]
-    },
-    {
-      "name": "Pool Car 52 mois",
-      "tagID": "",
-      "brand": "Tesla model S",
-      "plate": "EA-051-WA",
-      "email": "marie.de.parseval@sap.com",
-      "phone": "+33 492286224",
-      "mobile": "+33 619903905",
-      "badgeNumber": "",
-      "iNumber": "I310951",
-      "costCenter": 175000601,
-      "location": "Mougins",
-      "electricVehicules": [{
-          "brand": "Tesla model S",
-          "plate": "EA-051-WA"
-        }
-      ]
-    },
-    {
-      "name": "Pool Car 52 mois",
-      "tagID": "",
-      "email": "marie.de.parseval@sap.com",
-      "phone": "+33 492286224",
-      "mobile": "+33 619903905",
-      "badgeNumber": "",
-      "iNumber": "I310952",
-      "Contract": "Pool Car",
-      "costCenter": 175000601,
-      "location": "Mougins",
-      "electricVehicules": [{
-          "brand": "Tesla model S",
-          "plate": ""
-        }
-      ]
-    },
-    {
-      "name": "SACCO Pierre",
-      "tagID": "",
-      "email": "pierre.sacco@sap.com",
-      "phone": "+33 492286369",
-      "mobile": "+33 619335424",
-      "badgeNumber": "",
-      "iNumber": "I043945",
-      "Contract": "Company Car",
-      "costCenter": 175000601,
-      "location": "Mougins",
-      "electricVehicules": [{
-          "brand": "Ampera E",
-          "plate": ""
         }
       ]
     },

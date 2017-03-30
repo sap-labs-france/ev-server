@@ -41,6 +41,9 @@ class Storage {
   getMeterValues(chargeBoxIdentity, connectorId, transactionId, startDateTime, endDateTime) {
   }
 
+  getTransactions(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
+  }
+
   saveStartTransaction(startTransaction) {
   }
 
