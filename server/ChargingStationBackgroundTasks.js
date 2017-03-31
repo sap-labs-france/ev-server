@@ -5,108 +5,131 @@ var Utils = require('../utils/Utils');
 module.exports = {
   // Execute all tasks
   executeAllBackgroundTasks: function() {
-    // Clean up status
-    module.exports.checkChargingStationsStatus();
-
-    // Compute current consumption
-    module.exports.computeChargingStationsConsumption();
-
-    // Upload Users
-    // module.exports.uploadUsers();
+    // Handle task related to Charging Stations
+    return module.exports.checkChargingStations();
   },
 
-  computeChargingStationsConsumption: function() {
-    // Check DB
-    if (global.storage) {
-      // Get all the charging stations
-      global.storage.getChargingStations().then(function(chargingStations) {
-        // Handle each charging stations
-        chargingStations.forEach(function(chargingStation) {
-          // For each connector
-          chargingStation.getConnectors().forEach(function(connector) {
-            // Set the date to the last 20secs
-            var date = new Date();
-            date.setSeconds(date.getSeconds() - (chargingStation.getMeterIntervalSecs() * 2));
+  checkChargingStations() {
+    // Create a promise
+    return new Promise(function(fulfill, reject) {
+      var promises = [];
+      // Check DB
+      if (global.storage) {
+        // Get all the charging stations
+        global.storage.getChargingStations().then(function(chargingStations) {
+          // Charging Station
+          chargingStations.forEach(function(chargingStation) {
+            // Compute current consumption
+            promises.push(module.exports.computeChargingStationsConsumption(chargingStation).then(function() {
+                // Chain
+                return module.exports.checkChargingStationsStatus(chargingStation);
+              }).then(function() {
+                // Save
+                return chargingStation.save();
+            }));
+          });
 
-            // Get the consumption for each connector
-            chargingStation.getConsumptions(connector.connectorId, null, date).then(function(consumption) {
-              let currentConsumption = 0;
-
-              // Value provided?
-              if (consumption.values.length !== 0) {
-                // Yes
-                currentConsumption = Math.floor((consumption.values[0].value / connector.power) * 100);
-              }
-
-              // Changed?
-              if (connector.currentConsumption !== currentConsumption) {
-                // Set consumption
-                connector.currentConsumption = currentConsumption;
-              }
-
-              // Save
-              chargingStation.save();
-            });
+          // Wait
+          Promise.all(promises).then(function() {
+            fulfill();
           });
         });
-      });
-    }
+      } else {
+        // Nothing to do
+        fulfill();
+      }
+    });
   },
 
-  checkChargingStationsStatus: function() {
-    var chargingStationConfig = Utils.getChargingStationConfig();
+  computeChargingStationsConsumption: function(chargingStation) {
+    // Create a promise
+    return new Promise(function(fulfill, reject) {
+      var promises = [];
+      // Get Connectors
+      var connectors = chargingStation.getConnectors();
 
-    // Check DB
-    if (global.storage) {
-      // Get all the charging stations
-      global.storage.getChargingStations().then(function(chargingStations) {
-        var currentDate = new Date();
+      // Connection
+      connectors.forEach(function(connector) {
+        // Set the date to the last 20secs
+        var date = new Date();
+        date.setSeconds(date.getSeconds() - (chargingStation.getMeterIntervalSecs() * 2));
 
-        chargingStations.forEach(function(chargingStation) {
-          // Check how hold the heartbeat is
-          var dateHeartBeatCeil = new Date(chargingStation.getLastHeartBeat());
-          // Set a value in the future
-          dateHeartBeatCeil.setSeconds(
-              chargingStation.getLastHeartBeat().getSeconds() + chargingStationConfig.heartbeatInterval * 2);
+        // Get the consumption for each connector
+        promises.push(chargingStation.getConsumptions(connector.connectorId, null, date).then(function(consumption) {
+          let currentConsumption = 0;
 
-          // Check status with last heartbeatInterval
-          var chargerChanged = false;
-          var connectors = chargingStation.getConnectors();
-          // Not longer any heartbeat?
-          if (dateHeartBeatCeil < currentDate) {
-            // Reset Status
-            connectors.forEach(function(connector) {
-              // Check
-              if (connector.status !== 'Unknown') {
-                // Reset status
-                connector.status = 'Unknown';
-                chargerChanged = true;
-              }
-            });
-
-            // Update Charger?
-            if (chargerChanged) {
-              // Update
-              chargingStation.save();
-            }
-          } else {
-            // Check if the status is correct
-            connectors.forEach(function(connector) {
-              // Get the last status for the connector
-              chargingStation.getLastStatusNotification(connector.connectorId).then(function(lastStatus) {
-                // Check
-                if (lastStatus.status && connector.status !== lastStatus.status) {
-                  // Reset status
-                  connector.status = lastStatus.status;
-                  // Save
-                  chargingStation.save();
-                }
-              });
-            });
+          // Value provided?
+          if (consumption.values.length !== 0) {
+            // Yes
+            currentConsumption = Math.floor((consumption.values[0].value / connector.power) * 100);
           }
-        });
+
+          // Changed?
+          if (connector.currentConsumption !== currentConsumption) {
+            // Set consumption
+            connector.currentConsumption = currentConsumption;
+          }
+
+          // Nothing to do
+          return Promise.resolve();
+        }));
       });
-    }
+
+      // Wait
+      Promise.all(promises).then(function() {
+        fulfill();
+      });
+    });
+  },
+
+  checkChargingStationsStatus: function(chargingStation) {
+    // Create a promise
+    return new Promise(function(fulfill, reject) {
+      var promises = [];
+
+      // Get Connectors
+      var connectors = chargingStation.getConnectors();
+
+      // Connection
+      connectors.forEach(function(connector) {
+        // Get config
+        var chargingStationConfig = Utils.getChargingStationConfig();
+        var currentDate = new Date();
+        var dateHeartBeatCeil = new Date(chargingStation.getLastHeartBeat());
+
+        // Set a value in the future
+        dateHeartBeatCeil.setSeconds(
+          chargingStation.getLastHeartBeat().getSeconds() +
+          (chargingStationConfig.heartbeatInterval * 2));
+
+        // Not longer any heartbeat?
+        if (dateHeartBeatCeil < currentDate) {
+          // Check
+          if (connector.status !== 'Unknown') {
+            // Reset status
+            connector.status = 'Unknown';
+          }
+          // Nothing to do
+          return Promise.resolve();
+        } else {
+          // Refresh with the last status for the connector
+          promises.push(chargingStation.getLastStatusNotification(connector.connectorId).then(function(lastStatus) {
+            // Check
+            if (lastStatus.status && connector.status !== lastStatus.status) {
+              // Reset status
+              connector.status = lastStatus.status;
+            }
+            // Nothing to do
+            return Promise.resolve();
+          }));
+        };
+      });
+
+      // Wait
+      Promise.all(promises).then(function() {
+        fulfill();
+      });
+    });
   },
 
   uploadUsers() {

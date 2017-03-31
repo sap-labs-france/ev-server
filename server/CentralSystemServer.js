@@ -12,7 +12,7 @@ class CentralSystemServer {
     }
 
     // Check the charging station status...
-    setInterval(ChargingStationBackgroundTasks.executeAllBackgroundTasks, 15000);
+    setInterval(ChargingStationBackgroundTasks.executeAllBackgroundTasks, 15 * 1000);
 
     // Keep params
     _serverConfig = serverConfig;
