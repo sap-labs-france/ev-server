@@ -268,7 +268,6 @@ class ChargingStation {
   saveMeterValues(meterValues) {
     // Create model
     var newMeterValues = {};
-    var newMeterValue = {};
     var meterIntervalSecs = parseInt(this.getMeterIntervalSecs());
 
     // Init
@@ -285,6 +284,8 @@ class ChargingStation {
 
     // For each value
     meterValues.values.forEach(function(value, index) {
+      var newMeterValue = {};
+
       // Set the ID
       newMeterValue.chargeBoxIdentity = newMeterValues.chargeBoxIdentity;
       newMeterValue.connectorId = meterValues.connectorId;
@@ -334,12 +335,12 @@ class ChargingStation {
       newMeterValues.values.push(newMeterValue);
     });
 
-    // Update the Heartbeat
-    this.setLastHeartBeat(new Date());
-    // Save
-    return this.save().then(function() {
-      // Save it
-      return global.storage.saveMeterValues(newMeterValues);
+    // Save it
+    return global.storage.saveMeterValues(newMeterValues).then(function() {
+      // Update the Heartbeat
+      this.setLastHeartBeat(new Date());
+      // Save
+      return this.save();
     });
   }
 
