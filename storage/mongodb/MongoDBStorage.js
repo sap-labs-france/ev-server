@@ -557,7 +557,7 @@ class MongoDBStorage extends Storage {
                   if (chargingStationsMongoDB.length > 0) {
                       chargingStationMongoDB = chargingStationsMongoDB[0];
                   } else {
-                    console.log(`Charging Station ${chargeBoxIdentity} does not exist!`);
+                    console.log(`MongoDB: Charging Station ${chargeBoxIdentity} does not exist`);
                   }
                   // Ok
                   fulfill(chargingStationMongoDB);
@@ -722,7 +722,7 @@ class MongoDBStorage extends Storage {
                   if (usersMongoDB.length > 0) {
                       userMongoDB = usersMongoDB[0];
                   } else {
-                    console.log(`User with Tag ID ${tagID} does not exist!`);
+                    console.log(`MongoDB: User with Tag ID ${tagID} does not exist!`);
                   }
                   // Ok
                   fulfill(userMongoDB);

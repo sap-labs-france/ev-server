@@ -202,7 +202,7 @@ class ChargingStation {
       // Check if former connector can be set
       if (!connectors[i]) {
         // Init
-        connectors[i] = { connectorId: i+1, currentConsumption: 0, status: 'Unknown' };
+        connectors[i] = { connectorId: i+1, currentConsumption: 0, status: 'Unknown', power: 0 };
       }
     }
 
