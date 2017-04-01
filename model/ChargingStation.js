@@ -269,6 +269,7 @@ class ChargingStation {
     // Create model
     var newMeterValues = {};
     var meterIntervalSecs = parseInt(this.getMeterIntervalSecs());
+    var that = this;
 
     // Init
     newMeterValues.values = [];
@@ -338,9 +339,9 @@ class ChargingStation {
     // Save it
     return global.storage.saveMeterValues(newMeterValues).then(function() {
       // Update the Heartbeat
-      this.setLastHeartBeat(new Date());
+      that.setLastHeartBeat(new Date());
       // Save
-      return this.save();
+      return that.save();
     });
   }
 
@@ -385,6 +386,7 @@ class ChargingStation {
   saveDataTransfer(dataTransfer) {
     // Set the charger ID
     dataTransfer.chargeBoxIdentity = this.getChargeBoxIdentity();
+    dataTransfer.timestamp = new Date();
 
     // Save it
     return global.storage.saveDataTransfer(dataTransfer);

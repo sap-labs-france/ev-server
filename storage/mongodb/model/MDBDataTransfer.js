@@ -5,5 +5,6 @@ module.exports = mongoose.model('DataTransfer',{
   chargeBoxID: {type: mongoose.Schema.ObjectId, ref: 'ChargingStation'},
   vendorId: String,
   messageId: String,
+  timestamp: Date,
   data: String
 });

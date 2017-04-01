@@ -67,11 +67,11 @@ class MongoDBStorage extends Storage {
     }
 
     getConfiguration(chargeBoxIdentity, configDate) {
-      if (!configDate) {
-        configDate = new Date();
-      }
       // Get the Config
       return new Promise(function(fulfill, reject) {
+          if (!configDate) {
+            configDate = new Date();
+          }
           // Exec request
           MDBConfiguration.find({"chargeBoxIdentity": chargeBoxIdentity, timestamp: { $lte: configDate } })
             .limit(1).sort({timestamp: -1}).exec(function(err, configurationMongoDB) {
@@ -443,6 +443,8 @@ class MongoDBStorage extends Storage {
       // Get
       return this._getChargingStationMongoDB(meterValues.chargeBoxIdentity).then(function(chargingStationMongoDB) {
         if (chargingStationMongoDB) {
+          var promises = [];
+
           // For each value
           meterValues.values.forEach(function(meterValue) {
             // Create model
@@ -452,17 +454,29 @@ class MongoDBStorage extends Storage {
             meterValueMongoDB.chargeBoxID = chargingStationMongoDB._id;
 
             // Create new
-            meterValueMongoDB.save(function(err, results) {
-                if (err) {
-                  console.log(`MongoDB: Error when saving Meter Value of ${meterValues.chargeBoxIdentity}: ${err.message}`);
-                } else {
-                  console.log(`MongoDB: Meter Value of ${meterValues.chargeBoxIdentity} created with success`);
-                }
-            });
+            promises.push(
+              new Promise(function(resolve, reject) {
+                // Save
+                meterValueMongoDB.save(function(err, results) {
+                  if (err) {
+                    console.log(`MongoDB: Error when saving Meter Value of ${meterValues.chargeBoxIdentity}: ${err.message}`);
+                    console.log("Save Meter: KO");
+                    reject(err);
+                  } else {
+                    console.log(`MongoDB: Meter Value of ${meterValues.chargeBoxIdentity} created with success`);
+                    console.log("Save Meter: OK");
+                    resolve();
+                  }
+                });
+              })
+            );
           });
 
-          return new Promise();
-
+          Promise.all(promises).then(function() {
+            console.log("End of All Save Meter");
+            // Nothing to do
+            return Promise.resolve();
+          });
         } else {
           console.log(`MongoDB: Charging Station ${meterValues.chargeBoxIdentity} not found: Cannot add Meter Value`);
         }

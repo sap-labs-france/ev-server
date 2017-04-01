@@ -149,6 +149,7 @@ module.exports = { /* Services */
 
         // Handle
         global.centralSystemSoap.handleMeterValues(args, headers, req).then(function(result) {
+          console.log("MeterValues Call Back");
           callback(result);
         });
 
