@@ -460,11 +460,9 @@ class MongoDBStorage extends Storage {
                 meterValueMongoDB.save(function(err, results) {
                   if (err) {
                     console.log(`MongoDB: Error when saving Meter Value of ${meterValues.chargeBoxIdentity}: ${err.message}`);
-                    console.log("Save Meter: KO");
                     reject(err);
                   } else {
                     console.log(`MongoDB: Meter Value of ${meterValues.chargeBoxIdentity} created with success`);
-                    console.log("Save Meter: OK");
                     resolve();
                   }
                 });
@@ -473,7 +471,6 @@ class MongoDBStorage extends Storage {
           });
 
           Promise.all(promises).then(function() {
-            console.log("End of All Save Meter");
             // Nothing to do
             return Promise.resolve();
           });
