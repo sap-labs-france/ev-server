@@ -282,6 +282,11 @@ class ChargingStation {
       // Set it to 'values'
       meterValues.values = meterValues.meterValue;
     }
+    // Only one value?
+    if (!Array.isArray(meterValues.values)) {
+      // Make it an array
+      meterValues.values = [meterValues.values];
+    }
 
     // For each value
     meterValues.values.forEach(function(value, index) {
