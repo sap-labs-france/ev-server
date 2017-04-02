@@ -1,7 +1,10 @@
 var fs = require('fs');
 var path = require('path');
 
+var _config;
+
 module.exports = {
+
   // Get the process params
   getParam: function(paramName) {
   	var index = process.argv.indexOf(paramName);
@@ -20,7 +23,10 @@ module.exports = {
   // Read the config file
   getConfig() {
     // Read conf
-    return JSON.parse(fs.readFileSync(path.join(__dirname,"../config.json"), "UTF-8"));
+    if (!_config) {
+      _config = JSON.parse(fs.readFileSync(path.join(__dirname,"../config.json"), "UTF-8"));
+    }
+    return _config;
   },
 
   // Read the user file

@@ -19,13 +19,21 @@ module.exports = {
         global.storage.getChargingStations().then(function(chargingStations) {
           // Charging Station
           chargingStations.forEach(function(chargingStation) {
+            var chargingStationUpdated = false;
             // Compute current consumption
-            promises.push(module.exports.computeChargingStationsConsumption(chargingStation).then(function() {
-                // Chain
+            promises.push(module.exports.computeChargingStationsConsumption(chargingStation).then(function(updated) {
+                // Update
+                chargingStationUpdated = chargingStationUpdated || updated;
+                // Update the status
                 return module.exports.checkChargingStationsStatus(chargingStation);
-              }).then(function() {
-                // Save
-                return chargingStation.save();
+              }).then(function(updated) {
+                // Update
+                chargingStationUpdated = chargingStationUpdated || updated;
+                // Updated?
+                if (chargingStationUpdated) {
+                  // Save
+                  return chargingStation.save();
+                }
             }));
           });
 
@@ -45,6 +53,8 @@ module.exports = {
     // Create a promise
     return new Promise(function(fulfill, reject) {
       var promises = [];
+      var chargingStationUpdated = false;
+
       // Get Connectors
       var connectors = chargingStation.getConnectors();
 
@@ -68,6 +78,8 @@ module.exports = {
           if (connector.currentConsumption !== currentConsumption) {
             // Set consumption
             connector.currentConsumption = currentConsumption;
+            // Update
+            chargingStationUpdated = true;
           }
 
           // Nothing to do
@@ -77,7 +89,7 @@ module.exports = {
 
       // Wait
       Promise.all(promises).then(function() {
-        fulfill();
+        fulfill(chargingStationUpdated);
       });
     });
   },
@@ -86,6 +98,7 @@ module.exports = {
     // Create a promise
     return new Promise(function(fulfill, reject) {
       var promises = [];
+      var chargingStationUpdated = false;
 
       // Get Connectors
       var connectors = chargingStation.getConnectors();
@@ -108,6 +121,8 @@ module.exports = {
           if (connector.status !== 'Unknown') {
             // Reset status
             connector.status = 'Unknown';
+            // Update
+            chargingStationUpdated = true;
           }
           // Nothing to do
           return Promise.resolve();
@@ -118,6 +133,8 @@ module.exports = {
             if (lastStatus.status && connector.status !== lastStatus.status) {
               // Reset status
               connector.status = lastStatus.status;
+              // Update
+              chargingStationUpdated = true;
             }
             // Nothing to do
             return Promise.resolve();
@@ -127,7 +144,7 @@ module.exports = {
 
       // Wait
       Promise.all(promises).then(function() {
-        fulfill();
+        fulfill(chargingStationUpdated);
       });
     });
   },
