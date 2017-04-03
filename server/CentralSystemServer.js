@@ -35,22 +35,23 @@ class CentralSystemServer {
 
     // Save Charging Station
     var chargingStation = new ChargingStation(args);
+
     // Save
-    return chargingStation.save().then(function() {
+    return chargingStation.save().then(() => {
       // Save the Boot Notification
       return chargingStation.saveBootNotification(args);
     // Get the Configuration from the Station
-    }).then(function() {
+    }).then(() => {
       // Get the Charging Station Config
-      return chargingStation.requestConfiguration().then(function(configuration) {
+      return chargingStation.requestConfiguration().then((configuration) => {
         return configuration;
       });
     // Save the config
-    }).then(function(configuration) {
+    }).then((configuration) => {
       // Save it
       return chargingStation.saveConfiguration(configuration);
-      // Return the result
-    }).then(function() {
+    // Return the result
+    }).then(() => {
       // Return the result
       // OCPP 1.6
       if (args.ocppVersion === "1.6") {
@@ -69,6 +70,14 @@ class CentralSystemServer {
             "currentTime": new Date().toISOString(),
             "heartbeatInterval": _chargingStationConfig.heartbeatInterval
           }
+        };
+      }
+    }, (err) => {
+      return {
+        "bootNotificationResponse": {
+          "status": 'Rejected',
+          "currentTime": new Date().toISOString(),
+          "heartbeatInterval": _chargingStationConfig.heartbeatInterval
         }
       };
     });
@@ -78,7 +87,7 @@ class CentralSystemServer {
     var heartBeat = new Date();
 
     // Get the charging station
-    return global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
+    return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
       // Found?
       if (chargingStation) {
         // Set Heartbeat
@@ -89,7 +98,7 @@ class CentralSystemServer {
         // Nothing to return
         return Promise.resolve();
       }
-    }).then(function() {
+    }).then(() => {
       return {
         "heartbeatResponse": {
           "currentTime": heartBeat.toISOString()
@@ -100,7 +109,7 @@ class CentralSystemServer {
 
   handleStatusNotification(args, headers, req) {
     // Get the charging station
-    return global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
+    return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
       // Found?
       if (chargingStation) {
         // Save
@@ -109,7 +118,12 @@ class CentralSystemServer {
         // Nothing to return
         return Promise.resolve();
       }
-    }).then(function() {
+    }).then(() => {
+      return {
+        "statusNotificationResponse": {
+        }
+      };
+    }, (err) => {
       return {
         "statusNotificationResponse": {
         }
@@ -119,7 +133,7 @@ class CentralSystemServer {
 
   handleMeterValues(args, headers, req) {
     // Get the charging station
-    return global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
+    return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
       // Found?
       if (chargingStation) {
         // Save
@@ -128,7 +142,12 @@ class CentralSystemServer {
         // Nothing to return
         return Promise.resolve();
       }
-    }).then(function() {
+    }).then(() => {
+      return {
+        "meterValuesResponse": {
+        }
+      };
+    }, (err) => {
       return {
         "meterValuesResponse": {
         }
@@ -138,7 +157,7 @@ class CentralSystemServer {
 
   handleAuthorize(args, headers, req) {
     // Get the charging station
-    return global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
+    return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
       // Found?
       if (chargingStation) {
         // Save
@@ -147,11 +166,21 @@ class CentralSystemServer {
         // Nothing to return
         return Promise.resolve();
       }
-    }).then(function() {
+    }).then(() => {
       return {
         "authorizeResponse": {
           "idTagInfo": {
             "status": "Accepted"
+            //          "expiryDate": "",
+            //          "parentIdTag": ""
+          }
+        }
+      };
+    }, (err) => {
+      return {
+        "authorizeResponse": {
+          "idTagInfo": {
+            "status": "Invalid"
             //          "expiryDate": "",
             //          "parentIdTag": ""
           }
@@ -162,7 +191,7 @@ class CentralSystemServer {
 
   handleDiagnosticsStatusNotification(args, headers, req) {
     // Get the charging station
-    return global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
+    return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
       // Found?
       if (chargingStation) {
         // Save
@@ -171,7 +200,12 @@ class CentralSystemServer {
         // Nothing to return
         return Promise.resolve();
       }
-    }).then(function() {
+    }).then(() => {
+      return {
+        "diagnosticsStatusNotificationResponse": {
+        }
+      };
+    }, (err) => {
       return {
         "diagnosticsStatusNotificationResponse": {
         }
@@ -181,7 +215,7 @@ class CentralSystemServer {
 
   handleFirmwareStatusNotification(args, headers, req) {
     // Get the charging station
-    return global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
+    return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
       // Found?
       if (chargingStation) {
         // Save
@@ -190,7 +224,12 @@ class CentralSystemServer {
         // Nothing to return
         return Promise.resolve();
       }
-    }).then(function() {
+    }).then(() => {
+      return {
+        "firmwareStatusNotificationResponse": {
+        }
+      };
+    }, (err) => {
       return {
         "firmwareStatusNotificationResponse": {
         }
@@ -203,7 +242,7 @@ class CentralSystemServer {
     args.transactionId = Utils.getRandomInt();
 
     // Get the charging station
-    return global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
+    return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
       // Found?
       if (chargingStation) {
         // Save
@@ -212,7 +251,7 @@ class CentralSystemServer {
         // Nothing to return
         return Promise.resolve();
       }
-    }).then(function() {
+    }).then(() => {
       return {
         "startTransactionResponse": {
           "transactionId": args.transactionId,
@@ -223,12 +262,23 @@ class CentralSystemServer {
           }
         }
       };
+    }, (err) => {
+      return {
+        "startTransactionResponse": {
+          "transactionId": args.transactionId,
+          "idTagInfo": {
+            "status": "Invalid"
+  //          "expiryDate": "",
+  //          "parentIdTag": ""
+          }
+        }
+      };
     });
   }
 
   handleDataTransfer(args, headers, req) {
     // Get the charging station
-    return global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
+    return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
       // Found?
       if (chargingStation) {
         // Save
@@ -237,11 +287,17 @@ class CentralSystemServer {
         // Nothing to return
         return Promise.resolve();
       }
-    }).then(function() {
+    }).then(() => {
       return {
         "dataTransferResponse": {
           "status": "Accepted"
   //        "data": ""
+        }
+      }
+    }, (err) => {
+      return {
+        "dataTransferResponse": {
+          "status": "Rejected"
         }
       }
     });
@@ -249,7 +305,7 @@ class CentralSystemServer {
 
   handleStopTransaction(args, headers, req) {
     // Get the charging station
-    return global.storage.getChargingStation(headers.chargeBoxIdentity).then(function(chargingStation) {
+    return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
       // Found?
       if (chargingStation) {
         // Save
@@ -258,11 +314,23 @@ class CentralSystemServer {
         // Nothing to return
         return Promise.resolve();
       }
-    }).then(function() {
+    }).then(() => {
+      // Success
       return {
         "stopTransactionResponse": {
           "idTagInfo": {
             "status": "Accepted"
+  //          "expiryDate": "",
+  //          "parentIdTag": "",
+          }
+        }
+      };
+    }, (err) => {
+      // Error
+      return {
+        "stopTransactionResponse": {
+          "idTagInfo": {
+            "status": "Invalid"
   //          "expiryDate": "",
   //          "parentIdTag": "",
           }

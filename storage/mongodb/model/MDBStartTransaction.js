@@ -6,6 +6,7 @@ module.exports = mongoose.model('StartTransaction',{
   connectorId: Number,
   transactionId: Number,
   idTag: String,
+  userID: {type: mongoose.Schema.ObjectId, ref: 'User'},
   timestamp: Date,
   meterStart: Number
 });

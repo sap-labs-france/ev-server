@@ -160,20 +160,20 @@ module.exports = {
   },
 
   checkAndSaveUser(user) {
-    if (!user.tagID) {
-      console.log("User " + user.name + " has no Tag ID and cannot be saved");
-      return;
-    }
-
     // Get user
-    global.storage.getUserByTagId(user.tagID).then(function(userDB) {
+    global.storage.getUserByTagId(user.tagID).then((userDB) => {
       // Found
       if (!userDB) {
         // No: Create
         var newUser = new User(user);
-
         // Save
-        newUser.save();
+        newUser.save().then(() => {
+          // Ok
+          console.log("User saved");
+        }, (err) => {
+          // Ko
+          console.log(err);
+        });
       }
     });
   }
