@@ -38,9 +38,9 @@ module.exports = {
           });
 
           // Wait
-          Promise.all(promises).then(function() {
+          //Promise.all(promises).then(function() {
             fulfill();
-          });
+          //});
         });
       } else {
         // Nothing to do
@@ -88,9 +88,10 @@ module.exports = {
       });
 
       // Wait
-      Promise.all(promises).then(function() {
-        fulfill(chargingStationUpdated);
-      });
+      fulfill(true);
+//      Promise.all(promises).then(function() {
+//        fulfill(chargingStationUpdated);
+//      });
     });
   },
 
@@ -143,9 +144,10 @@ module.exports = {
       });
 
       // Wait
-      Promise.all(promises).then(function() {
-        fulfill(chargingStationUpdated);
-      });
+      //Promise.all(promises).then(function() {
+      //  fulfill(chargingStationUpdated);
+      //});
+      fulfill(true);
     });
   },
 

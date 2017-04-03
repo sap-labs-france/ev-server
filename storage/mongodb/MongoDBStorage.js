@@ -576,8 +576,8 @@ class MongoDBStorage extends Storage {
             rejectSave(`MongoDB: Charging Station ${meterValues.chargeBoxIdentity} not found: Cannot add Meter Value`);
           }
         }).catch((err) => {
-          console.log(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
-          rejectSave(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
+          console.log(`MongoDB: Error in reading the Charging Station ${meterValues.chargeBoxIdentity}: ${err.message}`);
+          rejectSave(`MongoDB: Error in reading the Charging Station ${meterValues.chargeBoxIdentity}: ${err.message}`);
         });
       });
     }
