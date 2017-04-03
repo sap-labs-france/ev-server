@@ -267,7 +267,7 @@ class CentralSystemServer {
         "startTransactionResponse": {
           "transactionId": args.transactionId,
           "idTagInfo": {
-            "status": "Invalid"
+            "status": "Accepted"
   //          "expiryDate": "",
   //          "parentIdTag": ""
           }
@@ -297,7 +297,7 @@ class CentralSystemServer {
     }, (err) => {
       return {
         "dataTransferResponse": {
-          "status": "Rejected"
+          "status": "Accepted"
         }
       }
     });
@@ -330,7 +330,7 @@ class CentralSystemServer {
       return {
         "stopTransactionResponse": {
           "idTagInfo": {
-            "status": "Invalid"
+            "status": "Accepted"
   //          "expiryDate": "",
   //          "parentIdTag": "",
           }
