@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
-var Promise = require('promise');
 var MDBConfiguration = require('./model/MDBConfiguration');
 var MDBUser = require('./model/MDBUser');
+var MDBLog = require('./model/MDBLog');
 var MDBFirmwareStatusNotification = require('./model/MDBFirmwareStatusNotification');
 var MDBDiagnosticsStatusNotification = require('./model/MDBDiagnosticsStatusNotification');
 var MDBChargingStation = require('./model/MDBChargingStation');
@@ -16,6 +16,7 @@ var User = require('../../model/User');
 var ChargingStation = require('../../model/ChargingStation');
 var Utils = require('../../utils/Utils');
 var Storage = require('../Storage');
+var Logging = require('../../utils/Logging');
 
 class MongoDBStorage extends Storage {
     constructor(dbConfig) {
@@ -24,16 +25,18 @@ class MongoDBStorage extends Storage {
         // Keep local
         this.dbConfig = dbConfig;
 
-        // Ovverride deprecated promise
-        mongoose.Promise = Promise;
-
         // Connect
+        mongoose.Promise = global.Promise;
         mongoose.connect(`mongodb://${dbConfig.host}:${dbConfig.port}/${dbConfig.schema}`, function(err, db) {
           if (err) {
-            console.log(`MongoDB: Error when connecting: ${err.message}`);
+            console.log(`MongoDB: Error when connecting: ${err.toString()}`);
             return;
           }
           console.log(`MongoDB: Connected to ${dbConfig.host}:${dbConfig.port}, Schema ${dbConfig.schema}`);
+          // Log
+          Logging.logInfo({
+            source: "Central Server", module: "MongoDBStorage", method: "constructor",
+            message: `Connected to ${dbConfig.host}:${dbConfig.port}, Schema ${dbConfig.schema}` });
         });
     }
 
@@ -61,6 +64,57 @@ class MongoDBStorage extends Storage {
           }
           // No config
           fulfill(value);
+        }).catch((err) => {
+          // Log
+          Logging.logError({
+            source: "CS", module: "MongoDBStorage", method: "getConfigurationParamValue",
+            message: `Error in reading, from the Charge Box ${chargeBoxIdentity}, the Configuration value ${paramName}: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject();
+        });
+      });
+    }
+
+    getLogging(numberOfLogging) {
+      // Get the Config
+      return new Promise((fulfill, reject) => {
+        if (!numberOfLogging) {
+          numberOfLogging = 100;
+        }
+        // Exec request
+        MDBLog.find({})
+            .sort({timestamp: -1}).limit(numberOfLogging)
+            .exec((err, loggingsMongoDB) => {
+
+          if (err) {
+            // Log
+            Logging.logError({
+              source: "Central Server", module: "MongoDBStorage", method: "getLogging",
+              message: `Error in reading the Logs: ${err.toString()}`,
+              detailedMessages: err.stack });
+            reject();
+          } else {
+            var loggings = [];
+
+            loggingsMongoDB.forEach(function(loggingMongoDB) {
+              var logging = {};
+              // Set
+              Utils.updateLoggingObject(loggingMongoDB, logging);
+
+              // Set the model
+              loggings.push(logging);
+            });
+
+            // Ok
+            fulfill(loggings);
+          }
+        }).catch((err) => {
+          // Log
+          Logging.logError({
+            source: "Central Server", module: "MongoDBStorage", method: "getLogging",
+            message: `Error in reading the Logs: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject();
         });
       });
     }
@@ -68,26 +122,38 @@ class MongoDBStorage extends Storage {
     getConfiguration(chargeBoxIdentity, configDate) {
       // Get the Config
       return new Promise((fulfill, reject) => {
-          if (!configDate) {
-            configDate = new Date();
-          }
-          // Exec request
-          MDBConfiguration.find({"chargeBoxIdentity": chargeBoxIdentity, timestamp: { $lte: configDate } })
-            .limit(1).sort({timestamp: -1})
+        if (!configDate) {
+          configDate = new Date();
+        }
+        // Exec request
+        MDBConfiguration.find({"chargeBoxIdentity": chargeBoxIdentity, timestamp: { $lte: configDate } })
+            .sort({timestamp: -1}).limit(1)
             .exec((err, configurationMongoDB) => {
-              var configuration = {};
+          var configuration = {};
 
-              if (err) {
-                reject(err);
-              } else {
-                if (configurationMongoDB[0]) {
-                  // Set values
-                  Utils.updateConfiguration(configurationMongoDB[0], configuration);
-                }
-                // Ok
-                fulfill(configuration);
-              }
-          });
+          if (err) {
+            // Log
+            Logging.logError({
+              source: chargeBoxIdentity, module: "MongoDBStorage", method: "getConfiguration",
+              message: `Error in reading, from the Charge Box ${chargeBoxIdentity}, the Configuration list: ${err.toString()}`,
+              detailedMessages: err.stack });
+            reject();
+          } else {
+            if (configurationMongoDB[0]) {
+              // Set values
+              Utils.updateConfiguration(configurationMongoDB[0], configuration);
+            }
+            // Ok
+            fulfill(configuration);
+          }
+        }).catch((err) => {
+          // Log
+          Logging.logError({
+            source: chargeBoxIdentity, module: "MongoDBStorage", method: "getConfiguration",
+            message: `Error in reading, from the Charge Box ${chargeBoxIdentity}, the Configuration list: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject();
+        });
       });
     }
 
@@ -103,23 +169,35 @@ class MongoDBStorage extends Storage {
         }
         // Exec request
         MDBStatusNotification.find(filter)
-          .sort({timestamp: 1}).exec((err, statusNotificationsMongoDB) => {
-            var statusNotifications = [];
+            .sort({timestamp: 1}).exec((err, statusNotificationsMongoDB) => {
+          var statusNotifications = [];
 
-            if (err) {
-              reject(err);
-            } else {
-              // Create
-              statusNotificationsMongoDB.forEach((statusNotificationMongoDB) => {
-                var statusNotification = {};
-                // Set values
-                Utils.updateStatusNotification(statusNotificationMongoDB, statusNotification);
-                // Add
-                statusNotifications.push(statusNotification);
-              });
-              // Ok
-              fulfill(statusNotifications);
-            }
+          if (err) {
+            // Log
+            Logging.logError({
+              source: chargeBoxIdentity, module: "MongoDBStorage", method: "getStatusNotifications",
+              message: `Error in getting, from the Charge Box ${chargeBoxIdentity} Connector ID ${connectorId}, the Status Notification: ${err.toString()}`,
+              detailedMessages: err.stack });
+            reject();
+          } else {
+            // Create
+            statusNotificationsMongoDB.forEach((statusNotificationMongoDB) => {
+              var statusNotification = {};
+              // Set values
+              Utils.updateStatusNotification(statusNotificationMongoDB, statusNotification);
+              // Add
+              statusNotifications.push(statusNotification);
+            });
+            // Ok
+            fulfill(statusNotifications);
+          }
+        }).catch((err) => {
+          // Log
+          Logging.logError({
+            source: chargeBoxIdentity, module: "MongoDBStorage", method: "getStatusNotifications",
+            message: `Error in getting, from the Charge Box ${chargeBoxIdentity} Connector ID ${connectorId}, the Status Notification: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject();
         });
       });
     }
@@ -140,7 +218,12 @@ class MongoDBStorage extends Storage {
             .sort({timestamp: -1}).limit(1)
             .exec((err, statusNotificationsMongoDB) => {
               if (err) {
-                reject(err);
+                // Log
+                Logging.logError({
+                  source: `${chargeBoxIdentity} - ${connectorId}`, module: "MongoDBStorage", method: "getLastStatusNotification",
+                  message: `Error in getting, from the Charge Box ${chargeBoxIdentity} Connector ID ${connectorId}, the Last Status Notification: ${err.toString()}`,
+                  detailedMessages: err.stack });
+                reject();
               } else {
                 // At least one
                 if (statusNotificationsMongoDB[0]) {
@@ -150,6 +233,13 @@ class MongoDBStorage extends Storage {
                 // Ok
                 fulfill(statusNotification);
               }
+          }).catch((err) => {
+            // Log
+            Logging.logError({
+              source: `${chargeBoxIdentity} - ${connectorId}`, module: "MongoDBStorage", method: "getLastStatusNotification",
+              message: `Error in getting, from the Charge Box ${chargeBoxIdentity} Connector ID ${connectorId}, the Last Status Notification: ${err.toString()}`,
+              detailedMessages: err.stack });
+            reject();
           });
         } else {
           // Ok
@@ -185,7 +275,12 @@ class MongoDBStorage extends Storage {
           var meterValues = [];
 
           if (err) {
-            reject(err);
+            // Log
+            Logging.logError({
+              source: `${chargeBoxIdentity} - ${connectorId}`, module: "MongoDBStorage", method: "getMeterValues",
+              message: `Error in getting, from the Charge Box ${chargeBoxIdentity} Connector ID ${connectorId}, the Meter Values: ${err.toString()}`,
+              detailedMessages: err.stack });
+            reject();
           } else {
             // Create
             meterValuesMongoDB.forEach((meterValueMongoDB) => {
@@ -198,6 +293,13 @@ class MongoDBStorage extends Storage {
             // Ok
             fulfill(meterValues);
           }
+        }).catch((err) => {
+          // Log
+          Logging.logError({
+            source: `${chargeBoxIdentity} - ${connectorId}`, module: "MongoDBStorage", method: "getMeterValues",
+            message: `Error in getting, from the Charge Box ${chargeBoxIdentity} Connector ID ${connectorId}, the Meter Values: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject();
         });
       });
     }
@@ -218,16 +320,28 @@ class MongoDBStorage extends Storage {
           // Create new
           return bootNotificationMongoDB.save((err, results) => {
             if (err) {
-              console.log(`MongoDB: Error when creating Boot Notication of ${bootNotification.chargeBoxIdentity}: ${err.message}`);
-              reject(`MongoDB: Error when creating Boot Notication of ${bootNotification.chargeBoxIdentity}: ${err.message}`);
+              // Log
+              Logging.logError({
+                source: bootNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveBootNotification",
+                message: `Error when creating Boot Notification of ${bootNotification.chargeBoxIdentity}: ${err.toString()}`,
+                detailedMessages: err.stack });
+              reject();
             } else {
-              console.log(`MongoDB: Boot Notication of ${bootNotification.chargeBoxIdentity} created with success`);
-              fulfill(`MongoDB: Boot Notication of ${bootNotification.chargeBoxIdentity} created with success`);
+              // Log
+              Logging.logInfo({
+                source: bootNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveBootNotification",
+                message: `Boot Notification of ${bootNotification.chargeBoxIdentity} created with success`,
+                detailedMessages: JSON.stringify(bootNotification) });
+              fulfill();
             }
           });
         }).catch((err) => {
-          console.log(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
-          reject(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
+          // Log
+          Logging.logError({
+            source: bootNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveBootNotification",
+            message: `Error when creating Boot Notication of ${bootNotification.chargeBoxIdentity}: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject();
         });
       });
     }
@@ -247,20 +361,34 @@ class MongoDBStorage extends Storage {
             // Create new
             dataTransferMongoDB.save((err, results) => {
               if (err) {
-                console.log(`MongoDB: Error when creating Data Transfer of ${dataTransfer.chargeBoxIdentity}: ${err.message}`);
-                reject(`MongoDB: Error when creating Data Transfer of ${dataTransfer.chargeBoxIdentity}: ${err.message}`);
+                // Log
+                Logging.logError({
+                  source: dataTransfer.chargeBoxIdentity, module: "MongoDBStorage", method: "saveDataTransfer",
+                  message: `Error when creating Data Transfer of ${dataTransfer.chargeBoxIdentity}: ${err.toString()}`,
+                  detailedMessages: err.stack });
+                reject();
               } else {
-                console.log(`MongoDB: Data Transfer of ${dataTransfer.chargeBoxIdentity} created with success`);
-                fulfill(`MongoDB: Data Transfer of ${dataTransfer.chargeBoxIdentity} created with success`);
+                // Log
+                Logging.logInfo({
+                  source: dataTransfer.chargeBoxIdentity, module: "MongoDBStorage", method: "saveDataTransfer",
+                  message: `Data Transfer of ${dataTransfer.chargeBoxIdentity} created with success`,
+                  detailedMessages: JSON.stringify(dataTransfer) });
+                fulfill();
               }
             });
           } else {
-            console.log(`MongoDB: Charging Station ${dataTransfer.chargeBoxIdentity} not found: Cannot add Data Transfer`);
-            reject(`MongoDB: Charging Station ${dataTransfer.chargeBoxIdentity} not found: Cannot add Data Transfer`);
+            // Log
+            Logging.logError({
+              source: dataTransfer.chargeBoxIdentity, module: "MongoDBStorage", method: "saveDataTransfer",
+              message: `Charging Station ${dataTransfer.chargeBoxIdentity} not found: Cannot add Data Transfer` });
+            reject();
           }
         }).catch((err) => {
-          console.log(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
-          reject(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
+          // Log
+          Logging.logError({
+            source: dataTransfer.chargeBoxIdentity, module: "MongoDBStorage", method: "saveDataTransfer",
+            message: `Error when creating Data Transfer of ${dataTransfer.chargeBoxIdentity}: ${err.toString()}`,
+            detailedMessages: err.stack });
         });
       });
     }
@@ -282,20 +410,35 @@ class MongoDBStorage extends Storage {
             // Create new
             configurationMongoDB.save((err, results) => {
               if (err) {
-                console.log(`MongoDB: Error when creating the Configuration of ${configurationMongoDB.chargeBoxIdentity}: ${err.message}`);
-                reject(`MongoDB: Error when creating the Configuration of ${configurationMongoDB.chargeBoxIdentity}: ${err.message}`);
+                // Log
+                Logging.logError({
+                  source: configuration.chargeBoxIdentity, module: "MongoDBStorage", method: "saveConfiguration",
+                  message: `Error when creating the Configuration of ${configurationMongoDB.chargeBoxIdentity}: ${err.toString()}`,
+                  detailedMessages: err.stack });
+                reject();
               } else {
-                console.log(`MongoDB: Configuration of ${configurationMongoDB.chargeBoxIdentity} created with success`);
-                fulfill(`MongoDB: Configuration of ${configurationMongoDB.chargeBoxIdentity} created with success`);
+                // Log
+                Logging.logInfo({
+                  source: configuration.chargeBoxIdentity, module: "MongoDBStorage", method: "saveConfiguration",
+                  message: `Configuration of ${configurationMongoDB.chargeBoxIdentity} created with success`,
+                  detailedMessages: JSON.stringify(configuration) });
+                fulfill();
               }
             });
           } else {
-            console.log(`MongoDB: Charging Station ${configurationMongoDB.chargeBoxIdentity} not found: Cannot save Configuration`);
-            reject(`MongoDB: Charging Station ${configurationMongoDB.chargeBoxIdentity} not found: Cannot save Configuration`);
+            // Log
+            Logging.logError({
+              source: configuration.chargeBoxIdentity, module: "MongoDBStorage", method: "saveConfiguration",
+              message: `Charging Station ${configurationMongoDB.chargeBoxIdentity} not found: Cannot save Configuration` });
+            reject();
           }
         }).catch((err) => {
-          console.log(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
-          reject(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
+          // Log
+          Logging.logError({
+            source: configuration.chargeBoxIdentity, module: "MongoDBStorage", method: "saveConfiguration",
+            message: `Error when creating the Configuration of ${configurationMongoDB.chargeBoxIdentity}: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject();
         });
       });
     }
@@ -316,17 +459,35 @@ class MongoDBStorage extends Storage {
             // Create new
             statusNotificationMongoDB.save((err, results) => {
               if (err) {
-                console.log(`MongoDB: Error when creating Status Notification of ${statusNotification.chargeBoxIdentity}: ${err.message}`);
-                reject(`MongoDB: Error when creating Status Notification of ${statusNotification.chargeBoxIdentity}: ${err.message}`);
+                // Log
+                Logging.logError({
+                  source: statusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveStatusNotification",
+                  message: `Error when creating Status Notification of ${statusNotification.chargeBoxIdentity}: ${err.toString()}`,
+                  detailedMessages: err.stack });
+                reject();
               } else {
-                console.log(`MongoDB: Status Notification of ${statusNotification.chargeBoxIdentity} created with success`);
-                fulfill(`MongoDB: Status Notification of ${statusNotification.chargeBoxIdentity} created with success`);
+                // Log
+                Logging.logInfo({
+                  source: statusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveStatusNotification",
+                  message: `Status Notification of ${statusNotification.chargeBoxIdentity} created with success`,
+                  detailedMessages: JSON.stringify(statusNotification) });
+                fulfill();
               }
             });
           } else {
-            console.log(`MongoDB: Charging Station ${statusNotification.chargeBoxIdentity} not found: Cannot add Status Notification`);
-            reject(`MongoDB: Charging Station ${statusNotification.chargeBoxIdentity} not found: Cannot add Status Notification`);
+            // Log
+            Logging.logError({
+              source: statusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveStatusNotification",
+              message: `Charging Station ${statusNotification.chargeBoxIdentity} not found: Cannot add Status Notification` });
+            reject();
           }
+        }).catch((err) => {
+          // Log
+          Logging.logError({
+            source: statusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveStatusNotification",
+            message: `Error when creating the Status Notification of ${statusNotification.chargeBoxIdentity}: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject();
         });
       });
     }
@@ -347,20 +508,35 @@ class MongoDBStorage extends Storage {
             // Create new
             diagnosticsStatusNotificationMongoDB.save((err, results) => {
               if (err) {
-                console.log(`MongoDB: Error when creating an Diagnostics Status Notification request of ${diagnosticsStatusNotification.chargeBoxIdentity}: ${err.message}`);
-                reject(`MongoDB: Error when creating an Diagnostics Status Notification request of ${diagnosticsStatusNotification.chargeBoxIdentity}: ${err.message}`);
+                // Log
+                Logging.logError({
+                  source: diagnosticsStatusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveDiagnosticsStatusNotification",
+                  message: `Error when creating an Diagnostics Status Notification request of ${diagnosticsStatusNotification.chargeBoxIdentity}: ${err.toString()}`,
+                  detailedMessages: err.stack });
+                reject();
               } else {
-                console.log(`MongoDB: Diagnostics Status Notification request of ${diagnosticsStatusNotification.chargeBoxIdentity} created with success`);
-                fulfill(`MongoDB: Diagnostics Status Notification request of ${diagnosticsStatusNotification.chargeBoxIdentity} created with success`);
+                // Log
+                Logging.logInfo({
+                  source: diagnosticsStatusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveDiagnosticsStatusNotification",
+                  message: `Diagnostics Status Notification request of ${diagnosticsStatusNotification.chargeBoxIdentity} created with success`,
+                  detailedMessages: JSON.stringify(diagnosticsStatusNotification) });
+                fulfill();
               }
             });
           } else {
-            console.log(`MongoDB: Charging Station ${diagnosticsStatusNotification.chargeBoxIdentity} not found: Cannot create Diagnostics Status Notification request`);
-            reject(`MongoDB: Charging Station ${diagnosticsStatusNotification.chargeBoxIdentity} not found: Cannot create Diagnostics Status Notification request`);
+            // Log
+            Logging.logError({
+              source: diagnosticsStatusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveDiagnosticsStatusNotification",
+              message: `Charging Station ${diagnosticsStatusNotification.chargeBoxIdentity} not found: Cannot create Diagnostics Status Notification request` });
+            reject();
           }
         }).catch((err) => {
-          console.log(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
-          reject(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
+          // Log
+          Logging.logError({
+            source: diagnosticsStatusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveDiagnosticsStatusNotification",
+            message: `Error when creating an Diagnostics Status Notification request of ${diagnosticsStatusNotification.chargeBoxIdentity}: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject();
         });
       });
     }
@@ -381,21 +557,53 @@ class MongoDBStorage extends Storage {
             // Create new
             return firmwareStatusNotificationMongoDB.save((err, results) => {
               if (err) {
-                console.log(`MongoDB: Error when creating an Firmware Status Notification request of ${firmwareStatusNotification.chargeBoxIdentity}: ${err.message}`);
-                reject(`MongoDB: Error when creating an Firmware Status Notification request of ${firmwareStatusNotification.chargeBoxIdentity}: ${err.message}`);
+                // Log
+                Logging.logError({
+                  source: firmwareStatusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveFirmwareStatusNotification",
+                  message: `Error when creating an Firmware Status Notification request of ${firmwareStatusNotification.chargeBoxIdentity}: ${err.toString()}`,
+                  detailedMessages: err.stack });
+                reject();
               } else {
-                console.log(`MongoDB: Firmware Status Notification request of ${firmwareStatusNotification.chargeBoxIdentity} created with success`);
-                fulfill(`MongoDB: Firmware Status Notification request of ${firmwareStatusNotification.chargeBoxIdentity} created with success`);
+                // Log
+                Logging.logInfo({
+                  source: firmwareStatusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveFirmwareStatusNotification",
+                  message: `Firmware Status Notification request of ${firmwareStatusNotification.chargeBoxIdentity} created with success`,
+                  detailedMessages: JSON.stringify(firmwareStatusNotification) });
+                fulfill();
               }
             });
           } else {
-            console.log(`MongoDB: Charging Station ${firmwareStatusNotification.chargeBoxIdentity} not found: Cannot create Firmware Status Notification request`);
-            reject(`MongoDB: Charging Station ${firmwareStatusNotification.chargeBoxIdentity} not found: Cannot create Firmware Status Notification request`);
+            // Log
+            Logging.logError({
+              source: firmwareStatusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveFirmwareStatusNotification",
+              message: `Charging Station ${firmwareStatusNotification.chargeBoxIdentity} not found: Cannot create Firmware Status Notification request` });
+            reject();
           }
         }).catch((err) => {
-          console.log(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
-          reject(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
+          // Log
+          Logging.logError({
+            source: firmwareStatusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveFirmwareStatusNotification",
+            message: `Error when creating an Firmware Status Notification request of ${firmwareStatusNotification.chargeBoxIdentity}: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject();
         });
+      });
+    }
+
+    log(log) {
+      // Check Array
+      if (log.detailedMessages && !Array.isArray(log.detailedMessages)){
+        log.detailedMessages = [log.detailedMessages];
+      }
+
+      // Create model
+      var logMongoDB = new MDBLog(log);
+
+      // Save
+      return logMongoDB.save((err, results) => {
+        if (err) {
+          console.log(`MongoDB: Error when creating a Log: ${err.toString()}`);
+        }
       });
     }
 
@@ -418,25 +626,43 @@ class MongoDBStorage extends Storage {
                 // Create new
                 return authorizeMongoDB.save((err, results) => {
                   if (err) {
-                    console.log(`MongoDB: Error when creating an Authorize request of ${authorize.chargeBoxIdentity}: ${err.message}`);
-                    reject(`MongoDB: Error when creating an Authorize request of ${authorize.chargeBoxIdentity}: ${err.message}`);
+                    // Log
+                    Logging.logError({
+                      source: `${authorize.chargeBoxIdentity} - ${authorize.idTag}`, module: "MongoDBStorage", method: "saveAuthorize",
+                      message: `Error when creating an Authorize request of ${authorize.chargeBoxIdentity} for ID Tag ${authorize.idTag}: ${err.toString()}`,
+                      detailedMessages: err.stack });
+                    reject();
                   } else {
-                    console.log(`MongoDB: Authorize request of ${authorize.chargeBoxIdentity} created with success`);
-                    fulfill(`MongoDB: Authorize request of ${authorize.chargeBoxIdentity} created with success`);
+                    // Log
+                    Logging.logInfo({
+                      source: `${authorize.chargeBoxIdentity} - ${authorize.idTag}`, module: "MongoDBStorage", method: "saveAuthorize",
+                      message: `Authorize request of ${authorize.chargeBoxIdentity} created with success for User ${userMongoDB.name} with ID Tad ${authorize.idTag}`,
+                      detailedMessages: JSON.stringify(authorize) });
+                    fulfill();
                   }
                 });
               } else {
-                console.log(`MongoDB: User with Tag ID ${authorize.idTag} not found: Cannot create Authorize request`);
-                reject(`MongoDB: User with Tag ID ${authorize.idTag} not found: Cannot create Authorize request`);
+                // Log
+                Logging.logError({
+                  source: `${authorize.chargeBoxIdentity} - ${authorize.idTag}`, module: "MongoDBStorage", method: "saveAuthorize",
+                  message: `User with Tag ID ${authorize.idTag} not found: Cannot create Authorize request` });
+                reject();
               }
             });
           } else {
-            console.log(`MongoDB: Charging Station ${authorize.chargeBoxIdentity} not found: Cannot create Authorize request`);
-            reject(`MongoDB: Charging Station ${authorize.chargeBoxIdentity} not found: Cannot create Authorize request`);
+            // Log
+            Logging.logError({
+              source: `${authorize.chargeBoxIdentity} - ${authorize.idTag}`, module: "MongoDBStorage", method: "saveAuthorize",
+              message: `Charging Station ${authorize.chargeBoxIdentity} not found: Cannot create Authorize request` });
+            reject();
           }
         }).catch((err) => {
-          console.log(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
-          reject(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
+          // Log
+          Logging.logError({
+            source: `${authorize.chargeBoxIdentity} - ${authorize.idTag}`, module: "MongoDBStorage", method: "saveAuthorize",
+            message: `Error when creating an Authorize request for ${authorize.chargeBoxIdentity}: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject();
         });
       });
     }
@@ -462,25 +688,43 @@ class MongoDBStorage extends Storage {
                 // Create new
                 startTransactionMongoDB.save((err, results) => {
                   if (err) {
-                    console.log(`MongoDB: Error when creating Start Transaction of ${startTransaction.chargeBoxIdentity}: ${err.message}`);
-                    reject(`MongoDB: Error when creating Start Transaction of ${startTransaction.chargeBoxIdentity}: ${err.message}`)
+                    // Log
+                    Logging.logError({
+                      source: `${startTransaction.chargeBoxIdentity} - ${startTransaction.idTag}`, module: "MongoDBStorage", method: "saveStartTransaction",
+                      message: `Error when creating Start Transaction of ${startTransaction.chargeBoxIdentity}: ${err.toString()}`,
+                      detailedMessages: err.stack });
+                    reject();
                   } else {
-                    console.log(`MongoDB: Start Transaction of ${startTransaction.chargeBoxIdentity} created with success`);
+                    // Log
+                    Logging.logInfo({
+                      source: `${startTransaction.chargeBoxIdentity} - ${startTransaction.idTag}`, module: "MongoDBStorage", method: "saveStartTransaction",
+                      message: `Start Transaction of ${startTransaction.chargeBoxIdentity} created with success`,
+                      detailedMessages: JSON.stringify(startTransaction) });
                     fulfill();
                   }
                 });
               } else {
-                console.log(`MongoDB: User with Tag ID ${startTransaction.idTag} not found: Cannot create Start Transaction`);
-                reject(`MongoDB: User with Tag ID ${startTransaction.idTag} not found: Cannot create Start Transaction`);
+                // Log
+                Logging.logError({
+                  source: `${startTransaction.chargeBoxIdentity} - ${startTransaction.idTag}`, module: "MongoDBStorage", method: "saveStartTransaction",
+                  message: `User with Tag ID ${startTransaction.idTag} not found: Cannot create Start Transaction` });
+                reject();
               }
             });
           } else {
-            console.log(`MongoDB: Charging Station ${startTransaction.chargeBoxIdentity} not found: Cannot create Start Transaction`);
-            reject(`MongoDB: Charging Station ${startTransaction.chargeBoxIdentity} not found: Cannot create Start Transaction`);
+            // Log
+            Logging.logError({
+              source: `${startTransaction.chargeBoxIdentity} - ${startTransaction.idTag}`, module: "MongoDBStorage", method: "saveStartTransaction",
+              message: `Charging Station ${startTransaction.chargeBoxIdentity} not found: Cannot create Start Transaction` });
+            reject();
           }
         }).catch((err) => {
-          console.log(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
-          reject(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
+          // Log
+          Logging.logError({
+            source: `${startTransaction.chargeBoxIdentity} - ${startTransaction.idTag}`, module: "MongoDBStorage", method: "saveStartTransaction",
+            message: `Error when creating Start Transaction of ${startTransaction.chargeBoxIdentity}: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject();
         });
       });
     }
@@ -505,25 +749,43 @@ class MongoDBStorage extends Storage {
                 // Create new
                 stopTransactionMongoDB.save((err, results) => {
                   if (err) {
-                    console.log(`MongoDB: Error when creating Stop Transaction of ${stopTransaction.chargeBoxIdentity}: ${err.message}`);
-                    reject(`MongoDB: Error when creating Stop Transaction of ${stopTransaction.chargeBoxIdentity}: ${err.message}`);
+                    // Log
+                    Logging.logError({
+                      source: `${stopTransaction.chargeBoxIdentity} - ${stopTransaction.idTag}`, module: "MongoDBStorage", method: "saveStopTransaction",
+                      message: `Error when creating Stop Transaction of ${stopTransaction.chargeBoxIdentity}: ${err.toString()}`,
+                      detailedMessages: err.stack });
+                    reject();
                   } else {
-                    console.log(`MongoDB: Stop Transaction of ${stopTransaction.chargeBoxIdentity} created with success`);
-                    fulfill(`MongoDB: Stop Transaction of ${stopTransaction.chargeBoxIdentity} created with success`);
+                    // Log
+                    Logging.logInfo({
+                      source: `${stopTransaction.chargeBoxIdentity} - ${stopTransaction.idTag}`, module: "MongoDBStorage", method: "saveStartTransaction",
+                      message: `Stop Transaction of ${stopTransaction.chargeBoxIdentity} created with success`,
+                      detailedMessages: JSON.stringify(stopTransaction) });
+                    fulfill();
                   }
                 });
               } else {
-                console.log(`MongoDB: User ${stopTransaction.idTag} not found: Cannot create Stop Transaction`);
-                reject(`MongoDB: User ${stopTransaction.idTag} not found: Cannot create Stop Transaction`);
+                // Log
+                Logging.logError({
+                  source: `${stopTransaction.chargeBoxIdentity} - ${stopTransaction.idTag}`, module: "MongoDBStorage", method: "saveStartTransaction",
+                  message: `User ${stopTransaction.idTag} not found: Cannot create Stop Transaction` });
+                reject();
               }
             });
           } else {
-            console.log(`MongoDB: Charging Station ${stopTransaction.chargeBoxIdentity} not found: Cannot create Stop Transaction`);
-            reject(`MongoDB: Charging Station ${stopTransaction.chargeBoxIdentity} not found: Cannot create Stop Transaction`);
+            // Log
+            Logging.logError({
+              source: `${stopTransaction.chargeBoxIdentity} - ${stopTransaction.idTag}`, module: "MongoDBStorage", method: "saveStartTransaction",
+              message: `Charging Station ${stopTransaction.chargeBoxIdentity} not found: Cannot create Stop Transaction` });
+            reject();
           }
         }).catch((err) => {
-          console.log(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
-          reject(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
+          // Log
+          Logging.logError({
+            source: `${stopTransaction.chargeBoxIdentity} - ${stopTransaction.idTag}`, module: "MongoDBStorage", method: "saveStopTransaction",
+            message: `Error when creating Stop Transaction of ${stopTransaction.chargeBoxIdentity}: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject();
         });
       });
     }
@@ -552,10 +814,18 @@ class MongoDBStorage extends Storage {
                   // Save
                   meterValueMongoDB.save((err, results) => {
                     if (err) {
-                      console.log(`MongoDB: Error when saving Meter Value of ${meterValues.chargeBoxIdentity}: ${err.message}`);
-                      reject(`MongoDB: Error when saving Meter Value of ${meterValues.chargeBoxIdentity}: ${err.message}`);
+                      // Log
+                      Logging.logError({
+                        source: meterValues.chargeBoxIdentity, module: "MongoDBStorage", method: "saveMeterValues",
+                        message: `Error when saving Meter Value of ${meterValues.chargeBoxIdentity}: ${err.toString()}`,
+                        detailedMessages: err.stack });
+                      reject();
                     } else {
-                      console.log(`MongoDB: Meter Value of ${meterValues.chargeBoxIdentity} created with success`);
+                      // Log
+                      Logging.logInfo({
+                        source: meterValues.chargeBoxIdentity, module: "MongoDBStorage", method: "saveMeterValues",
+                        message: `Save Meter of ${stopTransaction.chargeBoxIdentity} created with success`,
+                        detailedMessages: JSON.stringify(meterValue) });
                       fulfill();
                     }
                   });
@@ -568,16 +838,28 @@ class MongoDBStorage extends Storage {
               // Nothing to do
               fulfillSave();
             }, then((err) => {
+              // Log
+              Logging.logError({
+                source: meterValues.chargeBoxIdentity, module: "MongoDBStorage", method: "saveMeterValues",
+                message: `Error in reading the Charging Station ${meterValues.chargeBoxIdentity}: ${err.toString()}`,
+                detailedMessages: err.stack });
               // Err
-              rejectSave(err);
+              rejectSave();
             }));
           } else {
-            console.log(`MongoDB: Charging Station ${meterValues.chargeBoxIdentity} not found: Cannot add Meter Value`);
-            rejectSave(`MongoDB: Charging Station ${meterValues.chargeBoxIdentity} not found: Cannot add Meter Value`);
+            // Log
+            Logging.logError({
+              source: meterValues.chargeBoxIdentity, module: "MongoDBStorage", method: "saveMeterValues",
+              message: `Charging Station ${meterValues.chargeBoxIdentity} not found: Cannot add Meter Value`});
+            rejectSave();
           }
         }).catch((err) => {
-          console.log(`MongoDB: Error in reading the Charging Station ${meterValues.chargeBoxIdentity}: ${err.message}`);
-          rejectSave(`MongoDB: Error in reading the Charging Station ${meterValues.chargeBoxIdentity}: ${err.message}`);
+          // Log
+          Logging.logError({
+            source: meterValues.chargeBoxIdentity, module: "MongoDBStorage", method: "saveMeterValues",
+            message: `Error when saving Meter Value of ${meterValues.chargeBoxIdentity}: ${err.toString()}`,
+            detailedMessages: err.stack });
+          rejectSave();
         });
       });
     }
@@ -595,11 +877,19 @@ class MongoDBStorage extends Storage {
             // Create new
             newChargingStationMongoDB.save((err, results) => {
               if (err) {
-                console.log(`MongoDB: Error when creating Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
-                reject(`MongoDB: Error when creating Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
+                // Log
+                Logging.logError({
+                  source: chargingStation.getChargeBoxIdentity(), module: "MongoDBStorage", method: "saveChargingStation",
+                  message: `Error when creating Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
+                  detailedMessages: err.stack });
+                reject();
               } else {
-                console.log(`MongoDB: Charging Station ${chargingStation.getChargeBoxIdentity()} created with success`);
-                fulfill(`MongoDB: Charging Station ${chargingStation.getChargeBoxIdentity()} created with success`);
+                // Log
+                Logging.logInfo({
+                  source: chargingStation.getChargeBoxIdentity(), module: "MongoDBStorage", method: "saveChargingStation",
+                  message: `Charging Station ${chargingStation.getChargeBoxIdentity()} created with success`,
+                  detailedMessages: JSON.stringify(chargingStation) });
+                fulfill();
               }
             });
           } else {
@@ -609,17 +899,29 @@ class MongoDBStorage extends Storage {
             // No: Update it
             chargingStationMongoDB.save((err, results) => {
               if (err) {
-                console.log(`MongoDB: Error when updating Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
-                reject(`MongoDB: Error when updating Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
+                // Log
+                Logging.logError({
+                  source: chargingStation.getChargeBoxIdentity(), module: "MongoDBStorage", method: "saveChargingStation",
+                  message: `Error when updating Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
+                  detailedMessages: err.stack });
+                reject();
               } else {
-                console.log(`MongoDB: Charging Station ${chargingStation.getChargeBoxIdentity()} updated with success`);
-                fulfill(`MongoDB: Charging Station ${chargingStation.getChargeBoxIdentity()} updated with success`);
+                // Log
+                Logging.logInfo({
+                  source: chargingStation.getChargeBoxIdentity(), module: "MongoDBStorage", method: "saveChargingStation",
+                  message: `Charging Station ${chargingStation.getChargeBoxIdentity()} updated with success`,
+                  detailedMessages: JSON.stringify(chargingStation)});
+                fulfill();
               }
             });
           }
         }).catch((err) => {
-          console.log(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
-          reject(`MongoDB: Error in reading the Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.message}`);
+          // Log
+          Logging.logError({
+            source: chargingStation.getChargeBoxIdentity(), module: "MongoDBStorage", method: "saveChargingStation",
+            message: `Error when updating Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject();
         });
       });
     }
@@ -632,7 +934,12 @@ class MongoDBStorage extends Storage {
           var chargingStations = [];
 
           if (err) {
-            reject(err);
+            // Log
+            Logging.logError({
+              source: "Central Server", module: "MongoDBStorage", method: "getChargingStations",
+              message: `Error when reading the Charging Stations: ${err.toString()}`,
+              detailedMessages: err.stack });
+            reject();
           } else {
             // Create
             chargingStationsMongoDB.forEach((chargingStationMongoDB) => {
@@ -641,6 +948,13 @@ class MongoDBStorage extends Storage {
             // Ok
             fulfill(chargingStations);
           }
+        }).catch((err) => {
+          // Log
+          Logging.logError({
+            source: "Central Server", module: "MongoDBStorage", method: "getChargingStations",
+            message: `Error when reading the Charging Stations: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject();
         });
       });
     }
@@ -658,7 +972,12 @@ class MongoDBStorage extends Storage {
 
         return chargingStation;
       }).catch((err) => {
-        console.log(`MongoDB: Error in reading the Charging Station ${chargeBoxIdentity}: ${err.message}`);
+        // Log
+        Logging.logError({
+          source: chargeBoxIdentity, module: "MongoDBStorage", method: "getChargingStations",
+          message: `Error in reading the Charging Station ${chargeBoxIdentity}: ${err.toString()}`,
+          detailedMessages: err.stack });
+        reject();
       });
     }
 
@@ -669,20 +988,32 @@ class MongoDBStorage extends Storage {
         MDBChargingStation.find({"chargeBoxIdentity": chargeBoxIdentity}, (err, chargingStationsMongoDB) => {
           var chargingStationMongoDB = null;
           if (err) {
-            reject(err);
+            // Log
+            Logging.logError({
+              source: chargeBoxIdentity, module: "MongoDBStorage", method: "_getChargingStationMongoDB",
+              message: `Error in reading the Charging Station ${chargeBoxIdentity}: ${err.toString()}`,
+              detailedMessages: err.stack });
+            reject();
           } else {
             // Check
             if (chargingStationsMongoDB.length > 0) {
               chargingStationMongoDB = chargingStationsMongoDB[0];
             } else {
-              console.log(`MongoDB: Charging Station ${chargeBoxIdentity} does not exist`);
+              // Log
+              Logging.logWarning({
+                source: chargeBoxIdentity, module: "MongoDBStorage", method: "_getChargingStationMongoDB",
+                message: `Charging Station ${chargeBoxIdentity} does not exist` });
             }
             // Ok
             fulfill(chargingStationMongoDB);
           }
         }).catch((err) => {
-          console.log(`MongoDB: Error in reading the Charing Station ${chargeBoxIdentity}: ${err.message}`);
-          reject(`MongoDB: Error in reading the User ${chargeBoxIdentity}: ${err.message}`);
+          // Log
+          Logging.logError({
+            source: chargeBoxIdentity, module: "MongoDBStorage", method: "_getChargingStationMongoDB",
+            message: `Error in reading the Charging Station ${chargeBoxIdentity}: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject();
         });
       });
     }
@@ -705,8 +1036,12 @@ class MongoDBStorage extends Storage {
             fulfill(users);
           }
         }).catch((err) => {
-          console.log(`MongoDB: Error in reading the Users: ${err.message}`);
-          reject(`MongoDB: Error in reading the Users: ${err.message}`);
+          // Log
+          Logging.logError({
+            source: "Central Server", module: "MongoDBStorage", method: "getUsers",
+            message: `Error in reading the Users: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject();
         });
       });
     }
@@ -715,8 +1050,11 @@ class MongoDBStorage extends Storage {
       return new Promise((fulfill, reject) => {
         // Check
         if (!user.getTagID()) {
-          console.log("User has no Tag ID and cannot be created or updated");
-          reject("User has no Tag ID and cannot be created or updated");
+          // Log
+          Logging.logError({
+            source: `NoTagID - ${user.getName()}`, module: "MongoDBStorage", method: "saveUser",
+            message: `Error in saving the User: User has no Tag ID and cannot be created or updated` });
+          reject();
         } else {
           // Get
           this._getUserByTagIdMongoDB(user.getTagID()).then((userMongoDB) => {
@@ -728,11 +1066,19 @@ class MongoDBStorage extends Storage {
               // Create new
               newUserMongoDB.save((err, results) => {
                 if (err) {
-                  console.log(`MongoDB: Error when creating User  ${user.getName()}: ${err.message}`);
-                  reject(`MongoDB: Error when creating User  ${user.getName()}: ${err.message}`);
+                  // Log
+                  Logging.logError({
+                    source: `${user.getTagID()} - ${user.getName()}`, module: "MongoDBStorage", method: "saveUser",
+                    message: `Error when creating User  ${user.getName()}: ${err.toString()}`,
+                    detailedMessages: err.stack });
+                  reject();
                 } else {
-                  console.log(`MongoDB: User ${user.getName()} created with success`);
-                  fulfill(`MongoDB: User ${user.getName()} created with success`);
+                  // Log
+                  Logging.logInfo({
+                    source: `${user.getTagID()} - ${user.getName()}`, module: "MongoDBStorage", method: "saveUser",
+                    message: `User ${user.getName()} created with success`,
+                    detailedMessages: JSON.stringify(user) });
+                  fulfill();
                 }
               });
             } else {
@@ -742,17 +1088,29 @@ class MongoDBStorage extends Storage {
               // No: Update it
               userMongoDB.save((err, results) => {
                 if (err) {
-                  console.log(`MongoDB: Error when updating User ${user.getName()}: ${err.message}`);
-                  reject(`MongoDB: Error when updating User ${user.getName()}: ${err.message}`)
+                  // Log
+                  Logging.logError({
+                    source: `${user.getTagID()} - ${user.getName()}`, module: "MongoDBStorage", method: "saveUser",
+                    message: `Error when updating User ${user.getName()}: ${err.toString()}`,
+                    detailedMessages: err.stack });
+                  reject();
                 } else {
-                  console.log(`MongoDB: User ${user.getName()} updated with success`);
-                  fulfill(`MongoDB: User ${user.getName()} updated with success`);
+                  // Log
+                  Logging.logInfo({
+                    source: `${user.getTagID()} - ${user.getName()}`, module: "MongoDBStorage", method: "saveUser",
+                    message: `User ${user.getName()} updated with success`,
+                    detailedMessages: JSON.stringify(user) });
+                  fulfill();
                 }
               });
             }
           }).catch((err) => {
-            console.log(`MongoDB: Error in reading the User ${user.getName()}: ${err.message}`);
-            reject(`MongoDB: Error in reading the User ${user.getName()}: ${err.message}`);
+            // Log
+            Logging.logError({
+              source: `${user.getTagID()} - ${user.getName()}`, module: "MongoDBStorage", method: "saveUser",
+              message: `Error when creating User  ${user.getName()}: ${err.toString()}`,
+              detailedMessages: err.stack });
+            reject();
           });
         }
       });
@@ -840,8 +1198,12 @@ class MongoDBStorage extends Storage {
 
           fulfill(user);
         }).catch((err) => {
-          console.log(`MongoDB: Error in reading the User with Tag ID ${tagID}: ${err.message}`);
-          reject(`MongoDB: Error in reading the User with Tag ID ${tagID}: ${err.message}`);
+          // Log
+          Logging.logError({
+            source: tagID, module: "MongoDBStorage", method: "getUserByTagId",
+            message: `Error in reading the User with Tag ID ${tagID}: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject();
         });
       });
     }
@@ -853,17 +1215,32 @@ class MongoDBStorage extends Storage {
         MDBUser.find({"tagID": tagID}, (err, usersMongoDB) => {
           var userMongoDB = null;
           if (err) {
+            // Log
+            Logging.logError({
+              source: tagID, module: "MongoDBStorage", method: "_getUserByTagIdMongoDB",
+              message: `Error in getting the User with Tag ID ${tagID}: ${err.toString()}`,
+              detailedMessages: err.stack });
             reject(err);
           } else {
             // Check
             if (usersMongoDB.length > 0) {
-                userMongoDB = usersMongoDB[0];
+              userMongoDB = usersMongoDB[0];
             } else {
-              console.log(`MongoDB: User with Tag ID ${tagID} does not exist!`);
+              Logging.logWarning({
+                source: tagID, module: "MongoDBStorage", method: "getUserByTagId",
+                message: `User with Tag ID ${tagID} does not exist!` });
+              console.log();
             }
             // Ok
             fulfill(userMongoDB);
           }
+        }).catch((err) => {
+          // Log
+          Logging.logError({
+            source: tagID, module: "MongoDBStorage", method: "_getUserByTagIdMongoDB",
+            message: `Error in getting the User with Tag ID ${tagID}: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject();
         });
       });
     }

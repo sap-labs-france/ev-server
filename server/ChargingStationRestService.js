@@ -39,6 +39,15 @@ module.exports = function(req, res, next) {
     var action = /^\/\w*/g.exec(req.url)[0].substring(1);
     // Check Action
     switch (action) {
+      // Get the Logging
+      case "Logging":
+        global.storage.getLogging(100).then(function(loggings) {
+          // Return
+          res.json(loggings);
+          next();
+        });
+        break;
+
       // Get all the charging stations
       case "ChargingStations":
         global.storage.getChargingStations().then(function(chargingStations) {
@@ -47,7 +56,6 @@ module.exports = function(req, res, next) {
             // Set the model
             chargingStationsJSon.push(chargingStation.getModel());
           });
-
           // Return
           res.json(chargingStationsJSon);
           next();
@@ -58,12 +66,10 @@ module.exports = function(req, res, next) {
       case "ChargingStation":
         global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
           var chargingStationJSon = {};
-
           if (chargingStation) {
             // Set the model
             chargingStationJSon = chargingStation.getModel();
           }
-
           // Return
           res.json(chargingStationJSon);
           next();
@@ -78,7 +84,6 @@ module.exports = function(req, res, next) {
             // Set the model
             usersJSon.push(user.getModel());
           });
-
           // Return
           res.json(usersJSon);
           next();
@@ -89,12 +94,10 @@ module.exports = function(req, res, next) {
       case "UserByTagId":
         global.storage.getUserByTagId(req.query.TagId).then(function(user) {
           var userJSon = {};
-
           if (user) {
             // Set the model
             userJSon = user.getModel();
           }
-
           // Return
           res.json(userJSon);
           next();
@@ -108,15 +111,8 @@ module.exports = function(req, res, next) {
             req.query.ConnectorId,
             req.query.StartDateTime,
             req.query.EndDateTime).then(function(transactions) {
-          var transactionsJSon = [];
-
-          transactions.forEach(function(transaction) {
-            // Set the model
-            transactionsJSon.push(transaction);
-          });
-
           // Return
-          res.json(transactionsJSon);
+          res.json(transactions);
           next();
         });
         break;
@@ -125,13 +121,12 @@ module.exports = function(req, res, next) {
       case "StatusNotifications":
         // Charging Station found?
         if (req.query.ChargeBoxIdentity) {
-          // Get the Charging Station`
+          // Charging Station Provided?
           global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
-            let statusNotifications = {};
-
+            let statusNotifications = [];
             // Found
             if (chargingStation) {
-              // Get the Status
+              // Yes: Get the Status
               chargingStation.getStatusNotifications(req.query.ConnectorId).then(function(statusNotifications) {
                 // Return the result
                 res.json(statusNotifications);
@@ -152,33 +147,26 @@ module.exports = function(req, res, next) {
         }
         break;
 
-      // Get all the Status Notifications
+      // Get the last Status Notifications
       case "LastStatusNotifications":
         // Charging Station found?
         if (req.query.ChargeBoxIdentity) {
           // Get the Charging Station`
           global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
             let statusNotifications = {};
-
             // Found
             if (chargingStation) {
               // Get the Status
-              chargingStation.getStatusNotifications(req.query.ConnectorId).then(function(statusNotifications) {
+              chargingStation.getLastStatusNotification(req.query.ConnectorId).then(function(statusNotification) {
                 // Return the result
-                res.json(statusNotifications);
+                res.json(statusNotification);
                 next();
               });
             } else {
               // Return the result
-              res.json(statusNotifications);
+              res.json(statusNotification);
               next();
             }
-          });
-        } else {
-          global.storage.getStatusNotifications().then(function(statusNotifications) {
-            // Return the result
-            res.json(statusNotifications);
-            next();
           });
         }
         break;
@@ -187,7 +175,7 @@ module.exports = function(req, res, next) {
       case "ChargingStationConsumption":
         // Get the Charging Station`
         global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
-          let consumptions = {};
+          let consumptions = [];
 
           // Found
           if (chargingStation) {
@@ -241,6 +229,10 @@ module.exports = function(req, res, next) {
 
       // Unknown Action
       default:
+        // Log
+        Logging.logError({
+          source: "CS", module: "ChargingStationRestService", method: "N/A",
+          message: `Action '${action}' does not exist` });
         res.json({error: `Action '${action}' does not exist`});
         next();
     }

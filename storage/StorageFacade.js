@@ -210,6 +210,11 @@ class StorageFacade extends Storage {
     return _leadingStorage.getTransactions(chargeBoxIdentity, connectorId, startDateTime, endDateTime);
   }
 
+  getLogging(numberOfLogging) {
+    // Delegate
+    return _leadingStorage.getLogging(numberOfLogging);
+  }
+
   getUserByTagId(tagID) {
     // Delegate
     return _leadingStorage.getUserByTagId(tagID);
@@ -224,6 +229,11 @@ class StorageFacade extends Storage {
 
     // Delegate
     return _leadingStorage.saveUser(user);
+  }
+
+  log(log) {
+    // Delegate
+    return _leadingStorage.log(log);
   }
 }
 

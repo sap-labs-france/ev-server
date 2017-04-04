@@ -123,6 +123,18 @@ module.exports = {
     dest.electricVehicules = src.electricVehicules;
   },
 
+  updateLoggingObject(src, dest) {
+    // Set it
+    dest.level = src.level;
+    dest.source = src.source;
+    dest.module = src.module;
+    dest.method = src.method;
+    dest.timestamp = src.timestamp;
+    dest.action = src.action;
+    dest.message = src.message;
+    dest.detailedMessages = src.detailedMessages;
+  },
+
   updateStartTransaction(src, dest) {
     // Set it
     dest.chargeBoxIdentity = src.chargeBoxIdentity;

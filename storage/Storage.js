@@ -5,6 +5,12 @@ class Storage {
     }
   }
 
+  getLogging(numberOfLogging) {
+  }
+
+  log(log) {
+  }
+
   getUsers() {
   }
 

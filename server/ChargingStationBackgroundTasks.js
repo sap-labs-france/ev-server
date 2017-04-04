@@ -1,6 +1,7 @@
 var ChargingStation = require('../model/ChargingStation');
 var User = require('../model/User');
 var Utils = require('../utils/Utils');
+var Logging = require('../utils/Logging');
 
 module.exports = {
   // Execute all tasks
@@ -11,47 +12,49 @@ module.exports = {
 
   checkChargingStations() {
     // Create a promise
-    return new Promise(function(fulfill, reject) {
+    return new Promise((fulfill, reject) => {
       var promises = [];
-      // Check DB
-      if (global.storage) {
-        // Get all the charging stations
-        global.storage.getChargingStations().then(function(chargingStations) {
-          // Charging Station
-          chargingStations.forEach(function(chargingStation) {
-            var chargingStationUpdated = false;
-            // Compute current consumption
-            promises.push(module.exports.computeChargingStationsConsumption(chargingStation).then(function(updated) {
-                // Update
-                chargingStationUpdated = chargingStationUpdated || updated;
-                // Update the status
-                return module.exports.checkChargingStationsStatus(chargingStation);
-              }).then(function(updated) {
-                // Update
-                chargingStationUpdated = chargingStationUpdated || updated;
-                // Updated?
-                if (chargingStationUpdated) {
-                  // Save
-                  return chargingStation.save();
-                }
-            }));
-          });
 
-          // Wait
-          //Promise.all(promises).then(function() {
-            fulfill();
-          //});
+      // Get all the charging stations
+      global.storage.getChargingStations().then((chargingStations) => {
+        // Charging Station
+        chargingStations.forEach((chargingStation) => {
+          var chargingStationUpdated = false;
+          // Compute current consumption
+          promises.push(module.exports.computeChargingStationsConsumption(chargingStation).then((updated) => {
+            // Update
+            chargingStationUpdated = chargingStationUpdated || updated;
+            // Update the status
+            return module.exports.checkChargingStationsStatus(chargingStation);
+          }).then((updated) => {
+            // Update
+            chargingStationUpdated = chargingStationUpdated || updated;
+            // Updated?
+            if (chargingStationUpdated) {
+              // Save
+              return chargingStation.save();
+            }
+          }));
         });
-      } else {
-        // Nothing to do
-        fulfill();
-      }
+
+        // Wait
+        Promise.all(promises).then(() => {
+          fulfill();
+        });
+      }).catch((err) => {
+        // Log
+        Logging.logError({
+          source: "CS", module: "ChargingStationBackgroundTasks", method: "checkChargingStations",
+          message: `Cannot check the Charging Stations: ${err.toString()}`,
+          detailedMessages: err.stack });
+        reject();
+      });
     });
   },
 
   computeChargingStationsConsumption: function(chargingStation) {
     // Create a promise
-    return new Promise(function(fulfill, reject) {
+    return new Promise((fulfill, reject) => {
       var promises = [];
       var chargingStationUpdated = false;
 
@@ -59,13 +62,13 @@ module.exports = {
       var connectors = chargingStation.getConnectors();
 
       // Connection
-      connectors.forEach(function(connector) {
+      connectors.forEach((connector) => {
         // Set the date to the last 20secs
         var date = new Date();
         date.setSeconds(date.getSeconds() - (chargingStation.getMeterIntervalSecs() * 2));
 
         // Get the consumption for each connector
-        promises.push(chargingStation.getConsumptions(connector.connectorId, null, date).then(function(consumption) {
+        promises.push(chargingStation.getConsumptions(connector.connectorId, null, date).then((consumption) => {
           let currentConsumption = 0;
 
           // Value provided?
@@ -88,16 +91,15 @@ module.exports = {
       });
 
       // Wait
-      fulfill(true);
-//      Promise.all(promises).then(function() {
-//        fulfill(chargingStationUpdated);
-//      });
+     Promise.all(promises).then(() => {
+       fulfill(chargingStationUpdated);
+     });
     });
   },
 
   checkChargingStationsStatus: function(chargingStation) {
     // Create a promise
-    return new Promise(function(fulfill, reject) {
+    return new Promise((fulfill, reject) => {
       var promises = [];
       var chargingStationUpdated = false;
 
@@ -105,7 +107,7 @@ module.exports = {
       var connectors = chargingStation.getConnectors();
 
       // Connection
-      connectors.forEach(function(connector) {
+      connectors.forEach((connector) => {
         // Get config
         var chargingStationConfig = Utils.getChargingStationConfig();
         var currentDate = new Date();
@@ -129,7 +131,7 @@ module.exports = {
           return Promise.resolve();
         } else {
           // Refresh with the last status for the connector
-          promises.push(chargingStation.getLastStatusNotification(connector.connectorId).then(function(lastStatus) {
+          promises.push(chargingStation.getLastStatusNotification(connector.connectorId).then((lastStatus) => {
             // Check
             if (lastStatus.status && connector.status !== lastStatus.status) {
               // Reset status
@@ -144,10 +146,9 @@ module.exports = {
       });
 
       // Wait
-      //Promise.all(promises).then(function() {
-      //  fulfill(chargingStationUpdated);
-      //});
-      fulfill(true);
+      Promise.all(promises).then(() => {
+        fulfill(chargingStationUpdated);
+      });
     });
   },
 
@@ -170,11 +171,13 @@ module.exports = {
         var newUser = new User(user);
         // Save
         newUser.save().then(() => {
-          // Ok
-          console.log("User saved");
+          // Nothing to do
         }, (err) => {
-          // Ko
-          console.log(err);
+          // Log
+          Logging.logError({
+            source: "CS", module: "ChargingStationBackgroundTasks", method: "checkAndSaveUser",
+            message: `Error when saving the User ${user.tagID}: ${err.toString()}`,
+            detailedMessages: err.stack });
         });
       }
     });

@@ -1,6 +1,22 @@
 {
   "users": [
     {
+      "name" : "SEILER Gerald",
+      "tagID" : "0CC39E16",
+      "email" : "gerald.seiler@sap.com",
+      "phone" : "",
+      "mobile" : "",
+      "badgeNumber" : 9999999,
+      "iNumber" : "I301832",
+      "costCenter" : 0,
+      "location" : "Mougins",
+      "electricVehicules" : [{
+          "plate" : "DT-952-BW",
+          "brand" : "Renault Zoe"
+        }
+      ],
+    },
+    {
       "name": "BERNARD Christophe",
       "tagID": "DA1D7C05",
       "email": "christophe.bernard@sap.com",

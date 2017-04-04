@@ -104,6 +104,12 @@ class CentralSystemServer {
           "currentTime": heartBeat.toISOString()
         }
       };
+    }, (err) => {
+      return {
+        "heartbeatResponse": {
+          "currentTime": heartBeat.toISOString()
+        }
+      };
     });
   }
 
@@ -267,7 +273,7 @@ class CentralSystemServer {
         "startTransactionResponse": {
           "transactionId": args.transactionId,
           "idTagInfo": {
-            "status": "Accepted"
+            "status": "Invalid"
   //          "expiryDate": "",
   //          "parentIdTag": ""
           }
@@ -297,7 +303,7 @@ class CentralSystemServer {
     }, (err) => {
       return {
         "dataTransferResponse": {
-          "status": "Accepted"
+          "status": "Rejected"
         }
       }
     });
@@ -330,7 +336,7 @@ class CentralSystemServer {
       return {
         "stopTransactionResponse": {
           "idTagInfo": {
-            "status": "Accepted"
+            "status": "Invalid"
   //          "expiryDate": "",
   //          "parentIdTag": "",
           }

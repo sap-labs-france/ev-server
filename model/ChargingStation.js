@@ -1,6 +1,7 @@
 var Utils = require('../utils/Utils');
 var SoapChargingStationClient = require('../client/soap/SoapChargingStationClient');
 var Promise = require('promise');
+var Logging = require('../utils/Logging');
 
 class ChargingStation {
   constructor(chargingStation) {
@@ -212,45 +213,55 @@ class ChargingStation {
     this.setConnectors(connectors);
 
     // Compute the power of the connector
-    var that = this;
     // Use a function to pass the connector`
-    return (function(connector) {
+    return ((connector) => {
       // Get the configuration
-      return that.getConfiguration().then(function(configuration) {
+      return this.getConfiguration().then((configuration) => {
         var voltageRerefence = 0;
         var current = 0;
         var chargerConsumption = 0;
         var nbPhase = 0;
 
-        // Search for params
-        for (var i = 0; i < configuration.configuration.length; i++) {
-          // Check
-          switch (configuration.configuration[i].key) {
-            // Voltage
-            case "voltagererefence":
-              // Get the meter interval
-              voltageRerefence = parseInt(configuration.configuration[i].value);
-              break;
+        if (configuration.configuration) {
+          // Search for params
+          for (var i = 0; i < configuration.configuration.length; i++) {
+            // Check
+            switch (configuration.configuration[i].key) {
+              // Voltage
+              case "voltagererefence":
+                // Get the meter interval
+                voltageRerefence = parseInt(configuration.configuration[i].value);
+                break;
 
-            // Current
-            case "currentpb" + statusNotification.connectorId:
-              // Get the meter interval
-              current = parseInt(configuration.configuration[i].value);
-              break;
+              // Current
+              case "currentpb" + statusNotification.connectorId:
+                // Get the meter interval
+                current = parseInt(configuration.configuration[i].value);
+                break;
 
-            // Nb Phase
-            case "nbphase":
-              // Get the meter interval
-              nbPhase = parseInt(configuration.configuration[i].value);
-              break;
+              // Nb Phase
+              case "nbphase":
+                // Get the meter interval
+                nbPhase = parseInt(configuration.configuration[i].value);
+                break;
+            }
           }
-        }
-        // Compute it
-        connector.power = Math.floor(voltageRerefence * current * Math.sqrt(nbPhase));
 
-        // Save
-        return that.save();
-      }).then(function() {
+          // Compute it
+          connector.power = Math.floor(voltageRerefence * current * Math.sqrt(nbPhase));
+
+          // Save
+          return this.save();
+        } else {
+          // Log
+          Logging.logError({
+            source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "saveStatusNotification",
+            message: `No Configuration founf for Charge Box ${this.getChargeBoxIdentity()}` });
+
+          return Promise.resolve();
+        }
+
+      }).then(() => {
         // Save Status Notif
         return global.storage.saveStatusNotification(statusNotification);
       });
