@@ -39,6 +39,32 @@ class Logging {
     // Log
     global.storage.log(log);
   }
+
+  // Log
+  static logReceivedAction(module, chargeBoxIdentity, action, args, headers) {
+    // Log
+    Logging.logDebug({
+      source: chargeBoxIdentity, module: module, method: action,
+      message: `>> ${action} >> Received`,
+      detailedMessages: {
+        "args": JSON.stringify(args),
+        "headers": JSON.stringify(headers)
+      }
+    });
+  }
+
+  // Log
+  static logReturnedAction(module, chargeBoxIdentity, action, result) {
+    // Log
+    Logging.logDebug({
+      source: chargeBoxIdentity, module: module, method: action,
+      message: `<< ${action} << Returned`,
+      detailedMessages: {
+        "result": JSON.stringify(result)
+      }
+    });
+  }
+
 }
 
 module.exports=Logging;

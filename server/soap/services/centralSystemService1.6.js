@@ -1,15 +1,18 @@
+var Logging = require('../../../utils/Logging');
+
+var _moduleName = "centralSystemService1.6";
+
 module.exports = { /* Services */
-
   CentralSystemService: { /* Ports */
-
     CentralSystemServiceSoap12: { /* Methods */
-
       Authorize: function(args, callback, headers, req) {
         // Log
-        console.log("Authorize OCPP V 1.6\n");
-
+        Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "Authorize", args, headers);
         // Handle
         global.centralSystemSoap.handleAuthorize(args, headers, req).then(function(result) {
+          // Log
+          Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "Authorize", result);
+          // Answer
           callback(result);
         });
 
@@ -37,14 +40,14 @@ module.exports = { /* Services */
         }; */
       },
       BootNotification: function(args, callback, headers, req) {
-        // Log
-        console.log("BootNotification OCPP V 1.6\n");
-
         // Add OCPP Version
         args.ocppVersion = '1.6';
-
+        // Log
+        Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "BootNotification", args, headers);
         // Handle
         global.centralSystemSoap.handleBootNotification(args, headers, req).then(function(result) {
+          // Log
+          Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "BootNotification", result);
           callback(result);
         });
 
@@ -75,10 +78,11 @@ module.exports = { /* Services */
       },
       DataTransfer: function(args, callback, headers, req) {
         // Log
-        console.log("DataTransfer OCPP V 1.6\n");
-
+        Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "DataTransfer", args, headers);
         // Handle
         global.centralSystemSoap.handleDataTransfer(args, headers, req).then(function(result) {
+          // Log
+          Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "DataTransfer", result);
           callback(result);
         });
 
@@ -104,10 +108,11 @@ module.exports = { /* Services */
       },
       DiagnosticsStatusNotification: function(args, callback, headers, req) {
         // Log
-        console.log("DiagnosticsStatusNotification OCPP V 1.6\n");
-
+        Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", args, headers);
         // Handle
         global.centralSystemSoap.handleDiagnosticsStatusNotification(args, headers, req).then(function(result) {
+          // Log
+          Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", result);
           callback(result);
         });
 
@@ -129,10 +134,11 @@ module.exports = { /* Services */
       },
       FirmwareStatusNotification: function(args, callback, headers, req) {
         // Log
-        console.log("FirmwareStatusNotification OCPP V 1.6\n");
-
+        Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "FirmwareStatusNotification", args, headers);
         // Handle
         global.centralSystemSoap.handleFirmwareStatusNotification(args, headers, req).then(function(result) {
+          // Log
+          Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "FirmwareStatusNotification", result);
           callback(result);
         });
 
@@ -154,10 +160,11 @@ module.exports = { /* Services */
       },
       Heartbeat: function(args, callback, headers, req) {
         // Log
-        console.log("Heartbeat OCPP V 1.6\n");
-
+        Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "Heartbeat", args, headers);
         // Handle
         global.centralSystemSoap.handleHeartBeat(args, headers, req).then(function(result) {
+          // Log
+          Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "Heartbeat", result);
           callback(result);
         });
 
@@ -179,10 +186,11 @@ module.exports = { /* Services */
       },
       MeterValues: function(args, callback, headers, req) {
         // Log
-        console.log("MeterValues OCPP V 1.6\n");
-
+        Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "MeterValues", args, headers);
         // Handle
         global.centralSystemSoap.handleMeterValues(args, headers, req).then(function(result) {
+          // Log
+          Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "MeterValues", result);
           callback(result);
         });
 
@@ -221,10 +229,11 @@ module.exports = { /* Services */
       },
       StartTransaction: function(args, callback, headers, req) {
         // Log
-        console.log("StartTransaction OCPP V 1.6\n");
-
+        Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StartTransaction", args, headers);
         // Handle
         global.centralSystemSoap.handleStartTransaction(args, headers, req).then(function(result) {
+          // Log
+          Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StartTransaction", result);
           callback(result);
         });
 
@@ -258,10 +267,11 @@ module.exports = { /* Services */
       },
       StatusNotification: function(args, callback, headers, req) {
         // Log
-        console.log("StatusNotification OCPP V 1.6\n");
-
+        Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StatusNotification", args, headers);
         // Handle
         global.centralSystemSoap.handleStatusNotification(args, headers, req).then(function(result) {
+          // Log
+          Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StatusNotification", result);
           callback(result);
         });
 
@@ -289,10 +299,11 @@ module.exports = { /* Services */
       },
       StopTransaction: function(args, callback, headers, req) {
         // Log
-        console.log("StopTransaction OCPP V 1.6\n");
-
+        Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StopTransaction", args, headers);
         // Handle
         global.centralSystemSoap.handleStopTransaction(args, headers, req).then(function(result) {
+          // Log
+          Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StopTransaction", result);
           callback(result);
         });
 
