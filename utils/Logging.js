@@ -31,13 +31,18 @@ class Logging {
     Logging._log(log);
   }
 
+  // Get Logs
+  static getLogs(numberOfLogging) {
+    return global.storage.getLogs(numberOfLogging);
+  }
+
   // Log
   static _log(log) {
     // Log
     log.timestamp = new Date();
 
     // Log
-    global.storage.log(log);
+    global.storage.saveLog(log);
   }
 
   // Log
@@ -49,6 +54,18 @@ class Logging {
       detailedMessages: {
         "args": JSON.stringify(args),
         "headers": JSON.stringify(headers)
+      }
+    });
+  }
+
+  // Log
+  static logSendAction(module, chargeBoxIdentity, action, args) {
+    // Log
+    Logging.logDebug({
+      source: chargeBoxIdentity, module: module, method: action,
+      message: `>> ${action} >> Sent`,
+      detailedMessages: {
+        "args": JSON.stringify(args)
       }
     });
   }

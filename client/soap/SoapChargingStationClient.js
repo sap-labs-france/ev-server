@@ -2,19 +2,20 @@ var ChargingStationClient = require('../ChargingStationClient');
 var soap = require('strong-soap').soap;
 var path = require('path');
 var Promise = require('promise');
+var Logging = require('../../utils/Logging');
 
 let _client = null;
 let _chargingStation;
+var _moduleName = "SoapChargingStationClient";
 
 class SoapChargingStationClient extends ChargingStationClient {
   constructor(chargingStation) {
     super();
-    var that = this;
 
     _chargingStation = chargingStation;
 
     // Get the Charging Station
-    return new Promise(function(fulfill, reject) {
+    return new Promise((fulfill, reject) => {
       var chargingStationWdsl = null;
 
       // Read the WSDL client files
@@ -30,6 +31,10 @@ class SoapChargingStationClient extends ChargingStationClient {
           chargingStationWdsl = path.join(__dirname, '/wsdl/OCPP_ChargePointService1.6.wsdl');
           break;
         default:
+          // Log
+          Logging.logError({
+            source: "Central Server", module: "SoapChargingStationClient", method: "constructor",
+            message: `OCPP version ${_chargingStation.getOcppVersion()} not supported` });
           reject(`OCPP version ${_chargingStation.getOcppVersion()} not supported`);
       }
 
@@ -37,23 +42,25 @@ class SoapChargingStationClient extends ChargingStationClient {
       var options = {};
 
       // Create client
-      soap.createClient(chargingStationWdsl, options, function(err, client) {
+      soap.createClient(chargingStationWdsl, options, (err, client) => {
         if (err) {
+          // Log
+          Logging.logError({
+            source: tagID, module: "SoapChargingStationClient", method: "constructor",
+            message: `Error when creating SOAP client for chaging station with ID ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
+            detailedMessages: err.stack });
           reject(`Error when creating SOAP client for chaging station with ID ${_chargingStation.getChargeBoxIdentity()}: ${err.message}`);
         } else {
           // Keep
           _client = client;
-
-          // Log
-          _client.on("request", function(request) {
-            console.log(request);
-          });
-
+          // // Log
+          // _client.on("request", (request) => {
+          //   console.log(request);
+          // });
           // Set endpoint
           _client.setEndpoint(_chargingStation.getEndPoint());
-
           // Ok
-          fulfill(that);
+          fulfill(this);
         }
       });
     });
@@ -73,19 +80,26 @@ class SoapChargingStationClient extends ChargingStationClient {
   }
 
   reset(args) {
-    var that = this;
-
     // Get the Charging Station
-    return new Promise(function(fulfill, reject) {
+    return new Promise((fulfill, reject) => {
       // Init SOAP Headers with the action
-      that.initSoapHeaders("Reset");
+      this.initSoapHeaders("Reset");
+
+      // Log
+      Logging.logSendAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "Reboot", args);
 
       // Execute
       _client.Reset({resetRequest: args}, function(err, result, envelope) {
         if(err) {
-          reject(`Reset - Error: ${err.message}`);
-          //res.json(`{error: ${err.message}}`);
+          // Log
+          Logging.logError({
+            source: _chargingStation.getChargeBoxIdentity(), module: "SoapChargingStationClient", method: "reset",
+            message: `Error when trying to Reboot the station ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject(err);
         } else {
+          // Log
+          Logging.logReturnedAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "Reboot", result);
           fulfill(result);
         }
       });
@@ -93,19 +107,27 @@ class SoapChargingStationClient extends ChargingStationClient {
   }
 
   getConfiguration(args) {
-    var that = this;
-
     // Get the Charging Station
-    return new Promise(function(fulfill, reject) {
+    return new Promise((fulfill, reject) => {
       // Init SOAP Headers with the action
-      that.initSoapHeaders("GetConfiguration");
+      this.initSoapHeaders("GetConfiguration");
+
+      // Log
+      Logging.logSendAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "GetConfiguration", args);
 
       // Execute
-      _client.GetConfiguration({getConfigurationRequest:(args?args:'')}, function(err, result, envelope) {
+      _client.GetConfiguration({getConfigurationRequest:(args?args:'')}, (err, result, envelope) => {
         if(err) {
-          reject(`GetConfiguration - Error: ${err.message}`);
+          // Log
+          Logging.logError({
+            source: _chargingStation.getChargeBoxIdentity(), module: "SoapChargingStationClient", method: "getConfiguration",
+            message: `Error when trying to get the Configuration of the station ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject(err);
           //res.json(`{error: ${err.message}}`);
         } else {
+          // Log
+          Logging.logReturnedAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "getConfiguration", result);
           fulfill(result);
         }
       });

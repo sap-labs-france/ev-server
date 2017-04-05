@@ -94,9 +94,6 @@ class CentralSystemServer {
         chargingStation.setLastHeartBeat(heartBeat);
         // Save
         return chargingStation.save();
-      } else {
-        // Nothing to return
-        return Promise.resolve();
       }
     }).then(() => {
       return {
@@ -120,9 +117,6 @@ class CentralSystemServer {
       if (chargingStation) {
         // Save
         return chargingStation.saveStatusNotification(args);
-      } else {
-        // Nothing to return
-        return Promise.resolve();
       }
     }).then(() => {
       return {
@@ -144,9 +138,6 @@ class CentralSystemServer {
       if (chargingStation) {
         // Save
         return chargingStation.saveMeterValues(args);
-      } else {
-        // Nothing to return
-        return Promise.resolve();
       }
     }).then(() => {
       return {
@@ -168,9 +159,6 @@ class CentralSystemServer {
       if (chargingStation) {
         // Save
         return chargingStation.saveAuthorize(args);
-      } else {
-        // Nothing to return
-        return Promise.resolve();
       }
     }).then(() => {
       return {
@@ -202,9 +190,6 @@ class CentralSystemServer {
       if (chargingStation) {
         // Save
         return chargingStation.saveDiagnosticsStatusNotification(args);
-      } else {
-        // Nothing to return
-        return Promise.resolve();
       }
     }).then(() => {
       return {
@@ -226,9 +211,6 @@ class CentralSystemServer {
       if (chargingStation) {
         // Save
         return chargingStation.saveFirmwareStatusNotification(args);
-      } else {
-        // Nothing to return
-        return Promise.resolve();
       }
     }).then(() => {
       return {
@@ -253,9 +235,6 @@ class CentralSystemServer {
       if (chargingStation) {
         // Save
         return chargingStation.saveStartTransaction(args);
-      } else {
-        // Nothing to return
-        return Promise.resolve();
       }
     }).then(() => {
       return {
@@ -289,9 +268,6 @@ class CentralSystemServer {
       if (chargingStation) {
         // Save
         return chargingStation.saveDataTransfer(args);
-      } else {
-        // Nothing to return
-        return Promise.resolve();
       }
     }).then(() => {
       return {
@@ -316,9 +292,6 @@ class CentralSystemServer {
       if (chargingStation) {
         // Save
         return chargingStation.saveStopTransaction(args);
-      } else {
-        // Nothing to return
-        return Promise.resolve();
       }
     }).then(() => {
       // Success

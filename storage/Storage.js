@@ -5,10 +5,10 @@ class Storage {
     }
   }
 
-  getLogging(numberOfLogging) {
+  getLogs(numberOfLogging) {
   }
 
-  log(log) {
+  saveLog(log) {
   }
 
   getUsers() {

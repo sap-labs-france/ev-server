@@ -29,6 +29,10 @@ class ChargingStation {
 
       // Not Exists!
       default:
+        // Log
+        Logging.logError({
+          source: "Central Server", module: "ChargingStation", method: "handleAction",
+          message: `Action does not exist: ${action}` });
         throw new Error(`Action does not exist: ${action}`);
     }
   }
@@ -256,7 +260,7 @@ class ChargingStation {
           // Log
           Logging.logError({
             source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "saveStatusNotification",
-            message: `No Configuration founf for Charge Box ${this.getChargeBoxIdentity()}` });
+            message: `No Configuration found for Charge Box ${this.getChargeBoxIdentity()}` });
 
           return Promise.resolve();
         }
@@ -558,13 +562,6 @@ class ChargingStation {
                 // Check
                 if (lastTimeInterval !== meterIntervalSecs) {
                   invalidNbrOfMetrics++;
-                  // console.log(
-                  //   "INVALID INTERVAL: EVSE: " + that.getChargeBoxIdentity() +
-                  //   ", ConnectorID: " + connectorId +
-                  //   ", Current Date: " + meterValue.timestamp +
-                  //   ", Last Date: " + lastTimeStamp +
-                  //   ", Time Interval: " + lastTimeInterval +
-                  //   ", meterLength: " + meterValue.values.length);
                   // Don't take into account this value
                   if (meterValue.values.length > 0) {
                     // Keep the last one
@@ -595,15 +592,12 @@ class ChargingStation {
               // Start to return the value after the requested date
               if (meterValue.timestamp >= startingDate) {
                 totalNbrOfMetrics++;
-
                 // compute
                 var consumption = (value.value - lastValue) * sampleMultiplier;
-                // if (consumption > 0) {
-                  // Counting
-                  chargingStationConsumption.totalConsumption += value.value - lastValue;
-                  // Set the consumption
-                  chargingStationConsumption.values.push({date: meterValue.timestamp, value: consumption });
-                // }
+                // Counting
+                chargingStationConsumption.totalConsumption += value.value - lastValue;
+                // Set the consumption
+                chargingStationConsumption.values.push({date: meterValue.timestamp, value: consumption });
               }
 
               // Set Last Value
@@ -616,9 +610,10 @@ class ChargingStation {
       });
 
       if (totalNbrOfMetrics) {
-        console.log("Total nbr of metrics: " + totalNbrOfMetrics);
-        console.log("Total of invalid metrics: " + invalidNbrOfMetrics +
-        " (" + (invalidNbrOfMetrics?Math.ceil(invalidNbrOfMetrics/totalNbrOfMetrics):0) + "%)");
+        // Log
+        Logging.logDebug({
+          source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "getConsumptions",
+          message: 'Nbr of metrics: ${totalNbrOfMetrics}, invalid ones: ${invalidNbrOfMetrics} (${(invalidNbrOfMetrics?Math.ceil(invalidNbrOfMetrics/totalNbrOfMetrics):0)}%)' });
       }
 
       // Return the result

@@ -1,3 +1,4 @@
+var Logging = require('../../utils/Logging');
 var ChargingStation = require('../../model/ChargingStation');
 var centralSystemService12 = require('./services/centralSystemService1.2');
 var centralSystemService15 = require('./services/centralSystemService1.5');
@@ -57,40 +58,20 @@ class SoapCentralSystemServer extends CentralSystemServer {
       // Create Soap Servers
       // OCPP 1.2 -----------------------------------------
       var soapServer12 = soap.listen(httpServer, '/OCPP12', centralSystemService12, centralSystemWsdl12);
-      // Catch Events
-      soapServer12.on("request", function(request, methodName) {
-        console.log(`Received OCPP 1.2 request:\n${request}\n${methodName}`);
-      });
-      soapServer12.log = function(type, data) {
-        console.log(`OCPP 1.2 Log: ${type}\n${(type === "received"?xmlformatter(data):data)}`);
-      };
-      // --------------------------------------------------
 
       // OCPP 1.5 -----------------------------------------
       var soapServer15 = soap.listen(httpServer, '/OCPP15', centralSystemService15, centralSystemWsdl15);
-      // Catch Events
-      soapServer15.on("request", function(request, methodName) {
-        console.log(`Received OCPP 1.5 request:\n${request}\n${methodName}`);
-      });
-      soapServer15.log = function(type, data) {
-        console.log(`OCPP 1.5 Log: ${type}\n${(type === "received"?xmlformatter(data):data)}`);
-      };
-      // --------------------------------------------------
 
       // OCPP 1.6 -----------------------------------------
       var soapServer16 = soap.listen(httpServer, '/OCPP16', centralSystemService16, centralSystemWsdl16);
-      // Catch Events
-      soapServer16.on("request", function(request, methodName) {
-        console.log(`Received OCPP 1.6 request:\n${request}\n${methodName}`);
-      });
-      soapServer16.log = function(type, data) {
-        console.log(`OCPP 1.6 Log: ${type}\n${(type === "received"?xmlformatter(data):data)}`);
-      };
-      // --------------------------------------------------
 
       // Listen
       httpServer.listen(_serverConfig.port, function(req, res) {
-        console.log(`SOAP Server started on port ${_serverConfig.port}`);
+        // Log
+        Logging.logInfo({
+          source: "Central Server", module: "SoapCentralSystemServer", method: "start",
+          message: `Central Server started on 'localhost:${_serverConfig.port}'` });
+        console.log(`Central Server started on 'localhost:${_serverConfig.port}'`);
       });
     }
 }

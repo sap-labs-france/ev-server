@@ -108,6 +108,7 @@ module.exports = {
   updateUser(src, dest) {
     // Set it
     dest.name = src.name;
+    dest.firstName = src.firstName;
     dest.tagID = src.tagID;
     dest.email = src.email;
     dest.phone = src.phone;
@@ -120,6 +121,7 @@ module.exports = {
     dest.createdOn = src.createdOn;
     dest.lastChangedBy = src.lastChangedBy;
     dest.lastChangedOn = src.lastChangedOn;
+    dest.status = src.status;
     dest.electricVehicules = src.electricVehicules;
   },
 

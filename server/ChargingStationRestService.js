@@ -1,4 +1,5 @@
 var Utils = require('../utils/Utils');
+var Logging = require('../utils/Logging');
 
 module.exports = function(req, res, next) {
   console.log(`/client/api: ${req.method} request for '${req.url}' - ${JSON.stringify(req.body)}`);
@@ -41,7 +42,7 @@ module.exports = function(req, res, next) {
     switch (action) {
       // Get the Logging
       case "Logging":
-        global.storage.getLogging(100).then(function(loggings) {
+        Logging.getLogs(100).then(function(loggings) {
           // Return
           res.json(loggings);
           next();
@@ -231,7 +232,7 @@ module.exports = function(req, res, next) {
       default:
         // Log
         Logging.logError({
-          source: "CS", module: "ChargingStationRestService", method: "N/A",
+          source: "Central Server", module: "ChargingStationRestService", method: "N/A",
           message: `Action '${action}' does not exist` });
         res.json({error: `Action '${action}' does not exist`});
         next();

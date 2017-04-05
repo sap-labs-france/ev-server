@@ -35,7 +35,7 @@ class StorageFacade extends Storage {
 
   saveChargingStation(chargingStation) {
     // Delegate
-    _storages.forEach(function(storage) {
+    _storages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveChargingStation(chargingStation);
     });
@@ -61,7 +61,7 @@ class StorageFacade extends Storage {
 
   saveStatusNotification(statusNotification) {
     // Delegate
-    _storages.forEach(function(storage) {
+    _storages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveStatusNotification(statusNotification);
     });
@@ -87,7 +87,7 @@ class StorageFacade extends Storage {
 
   saveFirmwareStatusNotification(firmwareStatusNotification){
     // Delegate
-    _storages.forEach(function(storage) {
+    _storages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveFirmwareStatusNotification(firmwareStatusNotification);
     });
@@ -98,7 +98,7 @@ class StorageFacade extends Storage {
 
   saveDiagnosticsStatusNotification(diagnosticsStatusNotification) {
     // Delegate
-    _storages.forEach(function(storage) {
+    _storages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveDiagnosticsStatusNotification(diagnosticsStatusNotification);
     });
@@ -109,7 +109,7 @@ class StorageFacade extends Storage {
 
   saveUser(user) {
     // Delegate
-    _storages.forEach(function(storage) {
+    _storages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveUser(user);
     });
@@ -120,7 +120,7 @@ class StorageFacade extends Storage {
 
   saveAuthorize(authorize) {
     // Delegate
-    _storages.forEach(function(storage) {
+    _storages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveAuthorize(authorize);
     });
@@ -131,7 +131,7 @@ class StorageFacade extends Storage {
 
   saveMeterValues(meterValues) {
     // Delegate
-    _storages.forEach(function(storage) {
+    _storages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveMeterValues(meterValues);
     });
@@ -142,7 +142,7 @@ class StorageFacade extends Storage {
 
   saveStartTransaction(startTransaction) {
     // Delegate
-    _storages.forEach(function(storage) {
+    _storages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveStartTransaction(startTransaction);
     });
@@ -153,7 +153,7 @@ class StorageFacade extends Storage {
 
   saveStopTransaction(stopTransaction) {
     // Delegate
-    _storages.forEach(function(storage) {
+    _storages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveStopTransaction(stopTransaction);
     });
@@ -164,7 +164,7 @@ class StorageFacade extends Storage {
 
   saveBootNotification(bootNotification) {
     // Delegate
-    _storages.forEach(function(storage) {
+    _storages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveBootNotification(bootNotification);
     });
@@ -175,7 +175,7 @@ class StorageFacade extends Storage {
 
   saveDataTransfer(dataTransfer) {
     // Delegate
-    _storages.forEach(function(storage) {
+    _storages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveDataTransfer(dataTransfer);
     });
@@ -191,7 +191,7 @@ class StorageFacade extends Storage {
 
   saveConfiguration(configuration) {
     // Delegate
-    _storages.forEach(function(storage) {
+    _storages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveConfiguration(configuration);
     });
@@ -210,9 +210,9 @@ class StorageFacade extends Storage {
     return _leadingStorage.getTransactions(chargeBoxIdentity, connectorId, startDateTime, endDateTime);
   }
 
-  getLogging(numberOfLogging) {
+  getLogs(numberOfLogging) {
     // Delegate
-    return _leadingStorage.getLogging(numberOfLogging);
+    return _leadingStorage.getLogs(numberOfLogging);
   }
 
   getUserByTagId(tagID) {
@@ -222,7 +222,7 @@ class StorageFacade extends Storage {
 
   saveUser(user) {
     // Delegate
-    _storages.forEach(function(storage) {
+    _storages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveUser(user);
     });
@@ -231,9 +231,15 @@ class StorageFacade extends Storage {
     return _leadingStorage.saveUser(user);
   }
 
-  log(log) {
+  saveLog(log) {
     // Delegate
-    return _leadingStorage.log(log);
+    _storages.forEach((storage) => {
+      // Trigger Save for other DB
+      storage.saveLog(log);
+    });
+
+    // Delegate
+    return _leadingStorage.saveLog(log);
   }
 }
 

@@ -6,6 +6,9 @@ var Logging = require('../utils/Logging');
 module.exports = {
   // Execute all tasks
   executeAllBackgroundTasks: function() {
+    // Upload initial users
+    // module.exports.uploadUsers();
+
     // Handle task related to Charging Stations
     return module.exports.checkChargingStations();
   },
@@ -13,15 +16,13 @@ module.exports = {
   checkChargingStations() {
     // Create a promise
     return new Promise((fulfill, reject) => {
-      var promises = [];
-
-      // Get all the charging stations
+    // Get all the charging stations
       global.storage.getChargingStations().then((chargingStations) => {
-        // Charging Station
-        chargingStations.forEach((chargingStation) => {
+        // Wait
+        Promise.all(chargingStations.map(chargingStation => {
           var chargingStationUpdated = false;
           // Compute current consumption
-          promises.push(module.exports.computeChargingStationsConsumption(chargingStation).then((updated) => {
+          return module.exports.computeChargingStationsConsumption(chargingStation).then((updated) => {
             // Update
             chargingStationUpdated = chargingStationUpdated || updated;
             // Update the status
@@ -34,11 +35,8 @@ module.exports = {
               // Save
               return chargingStation.save();
             }
-          }));
-        });
-
-        // Wait
-        Promise.all(promises).then(() => {
+          });
+        })).then(() => {
           fulfill();
         });
       }).catch((err) => {
@@ -47,7 +45,7 @@ module.exports = {
           source: "CS", module: "ChargingStationBackgroundTasks", method: "checkChargingStations",
           message: `Cannot check the Charging Stations: ${err.toString()}`,
           detailedMessages: err.stack });
-        reject();
+        reject(err);
       });
     });
   },
@@ -74,11 +72,15 @@ module.exports = {
           // Value provided?
           if (consumption.values.length !== 0) {
             // Yes
-            currentConsumption = Math.floor((consumption.values[0].value / connector.power) * 100);
+            currentConsumption = consumption.values[0].value;
           }
 
           // Changed?
           if (connector.currentConsumption !== currentConsumption) {
+            // Log
+            Logging.logInfo({
+              source: "Central Server", module: "ChargingStationBackgroundTasks", method: "computeChargingStationsConsumption",
+              message: `Charging Station ${chargingStation.getChargeBoxIdentity()} consumption changed from ${connector.currentConsumption} to ${currentConsumption}` });
             // Set consumption
             connector.currentConsumption = currentConsumption;
             // Update
@@ -122,6 +124,10 @@ module.exports = {
         if (dateHeartBeatCeil < currentDate) {
           // Check
           if (connector.status !== 'Unknown') {
+            // Log
+            Logging.logInfo({
+              source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkChargingStationsStatus",
+              message: `Charging Station ${chargingStation.getChargeBoxIdentity()} Status changed from '${connector.status}' to 'Unknown'` });
             // Reset status
             connector.status = 'Unknown';
             // Update
@@ -134,6 +140,10 @@ module.exports = {
           promises.push(chargingStation.getLastStatusNotification(connector.connectorId).then((lastStatus) => {
             // Check
             if (lastStatus.status && connector.status !== lastStatus.status) {
+              // Log
+              Logging.logInfo({
+                source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkChargingStationsStatus",
+                message: `Charging Station ${chargingStation.getChargeBoxIdentity()} Status changed from '${connector.status}' to '${lastStatus.status}'` });
               // Reset status
               connector.status = lastStatus.status;
               // Update
@@ -167,18 +177,8 @@ module.exports = {
     global.storage.getUserByTagId(user.tagID).then((userDB) => {
       // Found
       if (!userDB) {
-        // No: Create
-        var newUser = new User(user);
         // Save
-        newUser.save().then(() => {
-          // Nothing to do
-        }, (err) => {
-          // Log
-          Logging.logError({
-            source: "CS", module: "ChargingStationBackgroundTasks", method: "checkAndSaveUser",
-            message: `Error when saving the User ${user.tagID}: ${err.toString()}`,
-            detailedMessages: err.stack });
-        });
+        new User(user).save();
       }
     });
   }

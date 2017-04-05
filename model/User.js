@@ -22,6 +22,14 @@ class User {
     this._model.name = name;
   }
 
+  getLastName() {
+    return this._model.lastName;
+  }
+
+  setLastName(lastName) {
+    this._model.lastName = lastName;
+  }
+
   getTagID() {
     return this._model.tagID;
   }
@@ -87,12 +95,7 @@ class User {
   }
 
   save() {
-    if (!this.getTagID()) {
-      console.log("User " + this.getName() + " has no Tag ID and cannot be saved");
-      return new Promise();
-    } else {
-      return global.storage.saveUser(this);
-    }
+    return global.storage.saveUser(this);
   }
 }
 
