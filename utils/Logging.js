@@ -41,6 +41,21 @@ class Logging {
     // Log
     log.timestamp = new Date();
 
+    // Check Array
+    if (log.detailedMessages && !Array.isArray(log.detailedMessages)){
+      // Handle update of array
+      log.detailedMessages = [log.detailedMessages];
+
+      // Convert JSon to String
+      for (let i = 0; i < log.detailedMessages.length; i++) {
+        // Check
+        if (typeof log.detailedMessages[i] === 'object') {
+          // Init
+          log.detailedMessages[i] = JSON.stringify(log.detailedMessages[i]);
+        }
+      }
+    }
+
     // Log
     global.storage.saveLog(log);
   }

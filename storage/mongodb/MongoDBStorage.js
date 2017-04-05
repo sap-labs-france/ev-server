@@ -508,11 +508,6 @@ class MongoDBStorage extends Storage {
   }
 
   saveLog(log) {
-    // Check Array
-    if (log.detailedMessages && !Array.isArray(log.detailedMessages)){
-      log.detailedMessages = [log.detailedMessages];
-    }
-
     // Create model
     var logMongoDB = new MDBLog(log);
 

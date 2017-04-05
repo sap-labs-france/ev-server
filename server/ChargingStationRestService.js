@@ -42,7 +42,7 @@ module.exports = function(req, res, next) {
     switch (action) {
       // Get the Logging
       case "Logging":
-        Logging.getLogs(100).then(function(loggings) {
+        Logging.getLogs(200).then(function(loggings) {
           // Return
           res.json(loggings);
           next();
