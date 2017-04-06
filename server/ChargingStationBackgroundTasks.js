@@ -42,7 +42,7 @@ module.exports = {
       }).catch((err) => {
         // Log
         Logging.logError({
-          source: "CS", module: "ChargingStationBackgroundTasks", method: "checkChargingStations",
+          source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkChargingStations",
           message: `Cannot check the Charging Stations: ${err.toString()}`,
           detailedMessages: err.stack });
         reject(err);

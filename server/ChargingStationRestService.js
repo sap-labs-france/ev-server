@@ -1,6 +1,17 @@
 var Utils = require('../utils/Utils');
 var Logging = require('../utils/Logging');
 
+// Log issues
+var logActionErrorMessage = function(action, err, res, next) {
+  Logging.logError({
+    source: "Central Server", module: "ChargingStationRestService", method: "N/A",
+    action: action,
+    message: `Unexpected Error: ${err.toString()}`,
+    detailedMessages: err.stack });
+  res.json({error: `Unexpected Error: ${err.toString()}`});
+  next();
+}
+
 module.exports = function(req, res, next) {
   // Action on ChargeBox
   if (req.method === "POST") {
@@ -23,12 +34,7 @@ module.exports = function(req, res, next) {
 
     }).catch(function(err) {
       // Log
-      Logging.logError({
-        source: "Central Server", module: "ChargingStationRestService", method: "N/A",
-        message: `Exception when trying to retrieve the Charging Station with ID ${req.body.chargeBoxIdentity}`,
-        detailedMessages: err.stack });
-      res.json({});
-      next();
+      logActionErrorMessage(action, err, res, next);
     });
 
     // Get data
@@ -56,6 +62,9 @@ module.exports = function(req, res, next) {
           // Return
           res.json(chargingStationsJSon);
           next();
+        }).catch((err) => {
+          // Log
+          logActionErrorMessage(action, err, res, next);
         });
         break;
 
@@ -70,6 +79,9 @@ module.exports = function(req, res, next) {
           // Return
           res.json(chargingStationJSon);
           next();
+        }).catch((err) => {
+          // Log
+          logActionErrorMessage(action, err, res, next);
         });
         break;
 
@@ -84,6 +96,9 @@ module.exports = function(req, res, next) {
           // Return
           res.json(usersJSon);
           next();
+        }).catch((err) => {
+          // Log
+          logActionErrorMessage(action, err, res, next);
         });
         break;
 
@@ -98,6 +113,9 @@ module.exports = function(req, res, next) {
           // Return
           res.json(userJSon);
           next();
+        }).catch((err) => {
+          // Log
+          logActionErrorMessage(action, err, res, next);
         });
         break;
 
@@ -111,6 +129,9 @@ module.exports = function(req, res, next) {
           // Return
           res.json(transactions);
           next();
+        }).catch((err) => {
+          // Log
+          logActionErrorMessage(action, err, res, next);
         });
         break;
 
@@ -134,6 +155,9 @@ module.exports = function(req, res, next) {
               res.json(statusNotifications);
               next();
             }
+          }).catch((err) => {
+            // Log
+            logActionErrorMessage(action, err, res, next);
           });
         } else {
           global.storage.getStatusNotifications().then(function(statusNotifications) {
@@ -164,6 +188,9 @@ module.exports = function(req, res, next) {
               res.json(statusNotification);
               next();
             }
+          }).catch((err) => {
+            // Log
+            logActionErrorMessage(action, err, res, next);
           });
         }
         break;
@@ -192,6 +219,9 @@ module.exports = function(req, res, next) {
             res.json(consumptions);
             next();
           }
+        }).catch((err) => {
+          // Log
+          logActionErrorMessage(action, err, res, next);
         });
         break;
 
@@ -214,6 +244,9 @@ module.exports = function(req, res, next) {
             res.json(configuration);
             next();
           }
+        }).catch((err) => {
+          // Log
+          logActionErrorMessage(action, err, res, next);
         });
         break;
 

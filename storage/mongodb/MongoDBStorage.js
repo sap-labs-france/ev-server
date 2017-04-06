@@ -851,10 +851,7 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getChargingStations(action) {
-    // Check
-    action = action || "Unknown";
-
+  getChargingStations() {
     // Exec request
     return MDBChargingStation.find({}).sort( {chargeBoxIdentity: 1} ).exec().then((chargingStationsMongoDB) => {
       var chargingStations = [];
@@ -864,22 +861,6 @@ class MongoDBStorage extends Storage {
       });
       // Ok
       return chargingStations;
-    }, (err) => {
-      // Log
-      Logging.logError({
-        source: "Central Server", module: "MongoDBStorage", method: "getChargingStations",
-        action: action,
-        message: `Error when reading the Charging Stations: ${err.toString()}`,
-        detailedMessages: err.stack });
-      return Promise.reject(err);
-    }).catch((err) => {
-      // Log
-      Logging.logError({
-        source: "Central Server", module: "MongoDBStorage", method: "getChargingStations",
-        action: action,
-        message: `Error when reading the Charging Stations: ${err.toString()}`,
-        detailedMessages: err.stack });
-      return Promise.reject(err);
     });
   }
 
