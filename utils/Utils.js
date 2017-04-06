@@ -75,6 +75,16 @@ module.exports = {
     dest.lastHeartBeat = src.lastHeartBeat;
     dest.lastReboot = src.lastReboot;
     dest.meterIntervalSecs = src.meterIntervalSecs;
+    dest.connectors.forEach(connector => {
+      // Set on the fly
+      if(connector.power) {
+        // Compute
+        connector.currentConsumptionPercent = Math.ceil((connector.currentConsumption / connector.power) * 100);
+      } else {
+        // Init
+        connector.currentConsumptionPercent = 0;
+      }
+    });
   },
 
   updateConfiguration(src, dest) {
