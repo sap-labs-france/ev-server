@@ -71,10 +71,13 @@ module.exports = {
     dest.meterSerialNumber = src.meterSerialNumber;
     dest.endpoint = src.endpoint;
     dest.ocppVersion = src.ocppVersion;
-    dest.connectors = src.connectors;
     dest.lastHeartBeat = src.lastHeartBeat;
     dest.lastReboot = src.lastReboot;
     dest.meterIntervalSecs = src.meterIntervalSecs;
+    dest.connectors = src.connectors;
+    if (!dest.connectors) {
+      dest.connectors = [];
+    }
     dest.connectors.forEach(connector => {
       // Set on the fly
       if(connector.power) {

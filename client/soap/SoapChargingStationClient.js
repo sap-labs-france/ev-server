@@ -86,7 +86,7 @@ class SoapChargingStationClient extends ChargingStationClient {
       this.initSoapHeaders("Reset");
 
       // Log
-      Logging.logSendAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "Reboot", args);
+      Logging.logSendAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "Reset", args);
 
       // Execute
       _client.Reset({resetRequest: args}, function(err, result, envelope) {
@@ -99,7 +99,7 @@ class SoapChargingStationClient extends ChargingStationClient {
           reject(err);
         } else {
           // Log
-          Logging.logReturnedAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "Reboot", result);
+          Logging.logReturnedAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "Reset", result);
           fulfill(result);
         }
       });
@@ -127,7 +127,7 @@ class SoapChargingStationClient extends ChargingStationClient {
           //res.json(`{error: ${err.message}}`);
         } else {
           // Log
-          Logging.logReturnedAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "getConfiguration", result);
+          Logging.logReturnedAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "GetConfiguration", result);
           fulfill(result);
         }
       });

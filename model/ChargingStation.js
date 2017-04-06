@@ -257,7 +257,8 @@ class ChargingStation {
           // Save
           return this.save();
         } else {
-          return Promise.resolve();
+          // Log
+          return Promise.reject(new Error(`Cannot retrieve the Configuration of ${this.getChargeBoxIdentity()}`));
         }
 
       }).then(() => {
@@ -279,7 +280,6 @@ class ChargingStation {
     // Create model
     var newMeterValues = {};
     var meterIntervalSecs = parseInt(this.getMeterIntervalSecs());
-    var that = this;
 
     // Init
     newMeterValues.values = [];
@@ -353,10 +353,17 @@ class ChargingStation {
 
     // Save it
     return global.storage.saveMeterValues(newMeterValues).then(() => {
+      // Log
+      Logging.logInfo({
+        source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "saveMeterValues",
+        action: "MeterValues",
+        message: `Meter Values saved successfully`,
+        detailedMessages: newMeterValues });
+
       // Update the Heartbeat
-      that.setLastHeartBeat(new Date());
+      this.setLastHeartBeat(new Date());
       // Save
-      return that.save();
+      return this.save();
     });
   }
 
@@ -393,9 +400,16 @@ class ChargingStation {
   saveStartTransaction(transaction) {
     // Set the charger ID
     transaction.chargeBoxIdentity = this.getChargeBoxIdentity();
-
-    // Save it
-    return global.storage.saveStartTransaction(transaction);
+    // Get User
+    return global.storage.getUserByTagId(transaction.idTag).then((user) => {
+      // Found?
+      if (user) {
+        // Save it
+        return global.storage.saveStartTransaction(transaction);
+      } else {
+        return Promise.reject( new Error(`User with Tag ID ${transaction.idTag} not found`) );
+      }
+    });
   }
 
   saveDataTransfer(dataTransfer) {
@@ -430,16 +444,31 @@ class ChargingStation {
     authorize.chargeBoxIdentity = this.getChargeBoxIdentity();
     authorize.timestamp = new Date();
 
-    // Save it
-    return global.storage.saveAuthorize(authorize);
+    // Get User
+    return global.storage.getUserByTagId(authorize.idTag).then((user) => {
+      // Found?
+      if (user) {
+        // Save it
+        return global.storage.saveAuthorize(authorize);
+      } else {
+        return Promise.reject( new Error(`User with Tag ID ${authorize.idTag} not found`) );
+      }
+    });
   }
 
   saveStopTransaction(stopTransaction) {
     // Set the charger ID
     stopTransaction.chargeBoxIdentity = this.getChargeBoxIdentity();
-
-    // Save it
-    return global.storage.saveStopTransaction(stopTransaction);
+    // Get User
+    return global.storage.getUserByTagId(stopTransaction.idTag).then((user) => {
+      // Found?
+      if (user) {
+        // Save it
+        return global.storage.saveStopTransaction(stopTransaction);
+      } else {
+        return Promise.reject( new Error(`User with Tag ID ${stopTransaction.idTag} not found`) );
+      }
+    });
   }
 
   // Restart the server
