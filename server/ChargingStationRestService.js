@@ -2,8 +2,6 @@ var Utils = require('../utils/Utils');
 var Logging = require('../utils/Logging');
 
 module.exports = function(req, res, next) {
-  console.log(`/client/api: ${req.method} request for '${req.url}' - ${JSON.stringify(req.body)}`);
-
   // Action on ChargeBox
   if (req.method === "POST") {
     // Yes: Get the Charging station
@@ -21,17 +19,15 @@ module.exports = function(req, res, next) {
     }).then(function(result) {
       // Return the result
       res.json(result);
-      console.log(result);
       next();
 
     }).catch(function(err) {
-      // Return the error
-      if (err.message) {
-        res.json({error: err.message});
-      } else {
-        res.json({error: err});
-      }
-      console.log(err);
+      // Log
+      Logging.logError({
+        source: "Central Server", module: "ChargingStationRestService", method: "N/A",
+        message: `Exception when trying to retrieve the Charging Station with ID ${req.body.chargeBoxIdentity}`,
+        detailedMessages: err.stack });
+      res.json({});
       next();
     });
 
