@@ -613,7 +613,7 @@ class ChargingStation {
         // Log
         Logging.logDebug({
           source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "getConsumptions",
-          message: 'Nbr of metrics: ${totalNbrOfMetrics}, invalid ones: ${invalidNbrOfMetrics} (${(invalidNbrOfMetrics?Math.ceil(invalidNbrOfMetrics/totalNbrOfMetrics):0)}%)' });
+          message: `Number of metrics retrieved to compute the consumption: ${totalNbrOfMetrics}, invalid ones: ${invalidNbrOfMetrics} (${(invalidNbrOfMetrics?Math.ceil(invalidNbrOfMetrics/totalNbrOfMetrics):0)}%)` });
       }
 
       // Return the result
