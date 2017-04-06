@@ -220,7 +220,7 @@ class ChargingStation {
     // Use a function to pass the connector`
     return ((connector) => {
       // Get the configuration
-      return this.getConfiguration().then((configuration) => {
+      return this.getConfiguration("StatusNotification").then((configuration) => {
         var voltageRerefence = 0;
         var current = 0;
         var chargerConsumption = 0;
@@ -257,11 +257,6 @@ class ChargingStation {
           // Save
           return this.save();
         } else {
-          // Log
-          Logging.logError({
-            source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "saveStatusNotification",
-            message: `No Configuration found for Charge Box ${this.getChargeBoxIdentity()}` });
-
           return Promise.resolve();
         }
 

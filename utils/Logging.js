@@ -56,7 +56,8 @@ class Logging {
     // Log
     Logging.logDebug({
       source: chargeBoxIdentity, module: module, method: action,
-      message: `>> ${action} >> Received`,
+      message: `>> OCPP Request Received`,
+      action: action,
       detailedMessages: {
         "args": JSON.stringify(args),
         "headers": JSON.stringify(headers)
@@ -69,7 +70,8 @@ class Logging {
     // Log
     Logging.logDebug({
       source: chargeBoxIdentity, module: module, method: action,
-      message: `>> ${action} >> Sent`,
+      message: `<< OCPP Request Sent`,
+      action: action,
       detailedMessages: {
         "args": JSON.stringify(args)
       }
@@ -81,7 +83,8 @@ class Logging {
     // Log
     Logging.logDebug({
       source: chargeBoxIdentity, module: module, method: action,
-      message: `<< ${action} << Returned`,
+      message: `<< OCPP Request Returned`,
+      action: action,
       detailedMessages: {
         "result": JSON.stringify(result)
       }

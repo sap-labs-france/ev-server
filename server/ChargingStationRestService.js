@@ -38,7 +38,7 @@ module.exports = function(req, res, next) {
     switch (action) {
       // Get the Logging
       case "Logging":
-        Logging.getLogs(200).then(function(loggings) {
+        Logging.getLogs(100).then(function(loggings) {
           // Return
           res.json(loggings);
           next();
@@ -47,7 +47,7 @@ module.exports = function(req, res, next) {
 
       // Get all the charging stations
       case "ChargingStations":
-        global.storage.getChargingStations().then(function(chargingStations) {
+        global.storage.getChargingStations("RestService").then(function(chargingStations) {
           var chargingStationsJSon = [];
           chargingStations.forEach(function(chargingStation) {
             // Set the model

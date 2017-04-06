@@ -40,9 +40,12 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getConfigurationParamValue(chargeBoxIdentity, paramName, configDate) {
+  getConfigurationParamValue(chargeBoxIdentity, paramName, configDate, action) {
+    // Check
+    action = action || "Unknown";
+
     // Get the config
-    return this.getConfiguration(chargeBoxIdentity, configDate).then((configuration) => {
+    return this.getConfiguration(chargeBoxIdentity, configDate, action).then((configuration) => {
       var value = null;
       if (configuration) {
         // Get the value
@@ -58,11 +61,22 @@ class MongoDBStorage extends Storage {
             return true;
           }
         });
+
+        if (!value) {
+          // Log
+          Logging.logWarning({
+            source: chargeBoxIdentity, module: "MongoDBStorage", method: "getConfigurationParamValue",
+            action: action,
+            message: `Cannot find a Value &{value} for the Param ${paramName} in the configuration` });
+        }
       }
+
+      return value;
     }, (err) => {
       // Log
       Logging.logError({
         source: "CS", module: "MongoDBStorage", method: "getConfigurationParamValue",
+        action: action,
         message: `Error in reading, from the Charge Box ${chargeBoxIdentity}, the Configuration value ${paramName}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -70,6 +84,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: "CS", module: "MongoDBStorage", method: "getConfigurationParamValue",
+        action: action,
         message: `Error in reading, from the Charge Box ${chargeBoxIdentity}, the Configuration value ${paramName}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -77,7 +92,7 @@ class MongoDBStorage extends Storage {
   }
 
   getLogs(numberOfLogging) {
-    if (!numberOfLogging) {
+    if (!numberOfLogging || isNaN(numberOfLogging)) {
       numberOfLogging = 100;
     }
     // Exec request
@@ -109,7 +124,10 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getConfiguration(chargeBoxIdentity, configDate) {
+  getConfiguration(chargeBoxIdentity, configDate, action) {
+    // Check
+    action = action || "Unknown";
+
     if (!configDate) {
       configDate = new Date();
     }
@@ -120,6 +138,12 @@ class MongoDBStorage extends Storage {
       if (configurationMongoDB[0]) {
         // Set values
         Utils.updateConfiguration(configurationMongoDB[0], configuration);
+      } else {
+        // Log
+        Logging.logError({
+          source: chargeBoxIdentity, module: "MongoDBStorage", method: "getConfiguration",
+          action: action,
+          message: `No Configuration found for Charging Station ${chargeBoxIdentity}` });
       }
       // Ok
       return configuration;
@@ -127,6 +151,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: chargeBoxIdentity, module: "MongoDBStorage", method: "getConfiguration",
+        action: action,
         message: `Error in reading, from the Charge Box ${chargeBoxIdentity}, the Configuration list: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -134,13 +159,17 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: chargeBoxIdentity, module: "MongoDBStorage", method: "getConfiguration",
+        action: action,
         message: `Error in reading, from the Charge Box ${chargeBoxIdentity}, the Configuration list: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
     });
   }
 
-  getStatusNotifications(chargeBoxIdentity, connectorId) {
+  getStatusNotifications(chargeBoxIdentity, connectorId, action) {
+    // Check
+    action = action || "Unknown";
+
     var filter = {};
     if (chargeBoxIdentity) {
       filter.chargeBoxIdentity = chargeBoxIdentity;
@@ -165,6 +194,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: chargeBoxIdentity, module: "MongoDBStorage", method: "getStatusNotifications",
+        action: action,
         message: `Error in getting, from the Charge Box ${chargeBoxIdentity} Connector ID ${connectorId}, the Status Notification: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -172,13 +202,17 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: chargeBoxIdentity, module: "MongoDBStorage", method: "getStatusNotifications",
+        action: action,
         message: `Error in getting, from the Charge Box ${chargeBoxIdentity} Connector ID ${connectorId}, the Status Notification: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
     });
   }
 
-  getLastStatusNotification(chargeBoxIdentity, connectorId) {
+  getLastStatusNotification(chargeBoxIdentity, connectorId, action) {
+    // Check
+    action = action || "Unknown";
+
     // Get the Status Notification
     var filter = {};
     var statusNotification = {};
@@ -201,6 +235,7 @@ class MongoDBStorage extends Storage {
         // Log
         Logging.logError({
           source: `${chargeBoxIdentity} - ${connectorId}`, module: "MongoDBStorage", method: "getLastStatusNotification",
+          action: action,
           message: `Error in getting, from the Charge Box ${chargeBoxIdentity} Connector ID ${connectorId}, the Last Status Notification: ${err.toString()}`,
           detailedMessages: err.stack });
         return Promise.reject(err);
@@ -208,6 +243,7 @@ class MongoDBStorage extends Storage {
         // Log
         Logging.logError({
           source: `${chargeBoxIdentity} - ${connectorId}`, module: "MongoDBStorage", method: "getLastStatusNotification",
+          action: action,
           message: `Error in getting, from the Charge Box ${chargeBoxIdentity} Connector ID ${connectorId}, the Last Status Notification: ${err.toString()}`,
           detailedMessages: err.stack });
         return Promise.reject(err);
@@ -218,7 +254,10 @@ class MongoDBStorage extends Storage {
     }
   }
 
-  getMeterValues(chargeBoxIdentity, connectorId, transactionId, startDateTime, endDateTime) {
+  getMeterValues(chargeBoxIdentity, connectorId, transactionId, startDateTime, endDateTime, action) {
+    // Check
+    action = action || "Unknown";
+
     // Build filter
     var filter = {};
     // Mandatory filters
@@ -255,6 +294,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: `${chargeBoxIdentity} - ${connectorId}`, module: "MongoDBStorage", method: "getMeterValues",
+        action: action,
         message: `Error in getting, from the Charge Box ${chargeBoxIdentity} Connector ID ${connectorId}, the Meter Values: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -262,6 +302,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: `${chargeBoxIdentity} - ${connectorId}`, module: "MongoDBStorage", method: "getMeterValues",
+        action: action,
         message: `Error in getting, from the Charge Box ${chargeBoxIdentity} Connector ID ${connectorId}, the Meter Values: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -270,7 +311,7 @@ class MongoDBStorage extends Storage {
 
   saveBootNotification(bootNotification) {
     // Get
-    return this._getChargingStationMongoDB(bootNotification.chargeBoxIdentity).then((chargingStationMongoDB) => {
+    return this._getChargingStationMongoDB(bootNotification.chargeBoxIdentity, "BootNotification").then((chargingStationMongoDB) => {
       // Create model
       var bootNotificationMongoDB = new MDBBootNotification(bootNotification);
       if (chargingStationMongoDB) {
@@ -282,6 +323,7 @@ class MongoDBStorage extends Storage {
         // Log
         Logging.logInfo({
           source: bootNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveBootNotification",
+          action: "BootNotification",
           message: `Boot Notification of ${bootNotification.chargeBoxIdentity} created with success`,
           detailedMessages: JSON.stringify(bootNotification) });
       });
@@ -289,6 +331,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: bootNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveBootNotification",
+        action: "BootNotification",
         message: `Error when creating Boot Notication of ${bootNotification.chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -296,6 +339,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: bootNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveBootNotification",
+        action: "BootNotification",
         message: `Error when creating Boot Notication of ${bootNotification.chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -304,7 +348,7 @@ class MongoDBStorage extends Storage {
 
   saveDataTransfer(dataTransfer) {
     // Get
-    return this._getChargingStationMongoDB(dataTransfer.chargeBoxIdentity).then((chargingStationMongoDB) => {
+    return this._getChargingStationMongoDB(dataTransfer.chargeBoxIdentity, "DataTransfer").then((chargingStationMongoDB) => {
       if (chargingStationMongoDB) {
         // Create model
         var dataTransferMongoDB = new MDBDataTransfer(dataTransfer);
@@ -315,6 +359,7 @@ class MongoDBStorage extends Storage {
           // Log
           Logging.logInfo({
             source: dataTransfer.chargeBoxIdentity, module: "MongoDBStorage", method: "saveDataTransfer",
+            action: "DataTransfer",
             message: `Data Transfer of ${dataTransfer.chargeBoxIdentity} created with success`,
             detailedMessages: JSON.stringify(dataTransfer) });
         });
@@ -322,6 +367,7 @@ class MongoDBStorage extends Storage {
         // Log
         Logging.logError({
           source: dataTransfer.chargeBoxIdentity, module: "MongoDBStorage", method: "saveDataTransfer",
+          action: "DataTransfer",
           message: `Charging Station ${dataTransfer.chargeBoxIdentity} not found: Cannot add Data Transfer` });
         return Promise.reject();
       }
@@ -329,6 +375,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: dataTransfer.chargeBoxIdentity, module: "MongoDBStorage", method: "saveDataTransfer",
+        action: "DataTransfer",
         message: `Error when creating Data Transfer of ${dataTransfer.chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -336,6 +383,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: dataTransfer.chargeBoxIdentity, module: "MongoDBStorage", method: "saveDataTransfer",
+        action: "DataTransfer",
         message: `Error when creating Data Transfer of ${dataTransfer.chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -344,7 +392,7 @@ class MongoDBStorage extends Storage {
 
   saveConfiguration(configuration) {
     // Get
-    return this._getChargingStationMongoDB(configuration.chargeBoxIdentity).then((chargingStationMongoDB) => {
+    return this._getChargingStationMongoDB(configuration.chargeBoxIdentity, "Configuration").then((chargingStationMongoDB) => {
       // Found?
       if (chargingStationMongoDB) {
         // Create model
@@ -357,6 +405,7 @@ class MongoDBStorage extends Storage {
           // Log
           Logging.logInfo({
             source: configuration.chargeBoxIdentity, module: "MongoDBStorage", method: "saveConfiguration",
+            action: "Configuration",
             message: `Configuration of ${configurationMongoDB.chargeBoxIdentity} created with success`,
             detailedMessages: JSON.stringify(configuration) });
         });
@@ -364,6 +413,7 @@ class MongoDBStorage extends Storage {
         // Log
         Logging.logError({
           source: configuration.chargeBoxIdentity, module: "MongoDBStorage", method: "saveConfiguration",
+          action: "Configuration",
           message: `Charging Station ${configurationMongoDB.chargeBoxIdentity} not found: Cannot save Configuration` });
         return Promise.reject();
       }
@@ -371,6 +421,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: configuration.chargeBoxIdentity, module: "MongoDBStorage", method: "saveConfiguration",
+        action: "Configuration",
         message: `Error when creating the Configuration of ${configurationMongoDB.chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -378,6 +429,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: configuration.chargeBoxIdentity, module: "MongoDBStorage", method: "saveConfiguration",
+        action: "Configuration",
         message: `Error when creating the Configuration of ${configurationMongoDB.chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -386,7 +438,7 @@ class MongoDBStorage extends Storage {
 
   saveStatusNotification(statusNotification) {
     // Get
-    return this._getChargingStationMongoDB(statusNotification.chargeBoxIdentity).then((chargingStationMongoDB) => {
+    return this._getChargingStationMongoDB(statusNotification.chargeBoxIdentity, "StatusNotification").then((chargingStationMongoDB) => {
       // Found?
       if (chargingStationMongoDB) {
         // Create model
@@ -398,6 +450,7 @@ class MongoDBStorage extends Storage {
           // Log
           Logging.logInfo({
             source: statusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveStatusNotification",
+            action: "StatusNotification",
             message: `Status Notification of ${statusNotification.chargeBoxIdentity} created with success`,
             detailedMessages: JSON.stringify(statusNotification) });
         });
@@ -405,6 +458,7 @@ class MongoDBStorage extends Storage {
         // Log
         Logging.logError({
           source: statusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveStatusNotification",
+          action: "StatusNotification",
           message: `Charging Station ${statusNotification.chargeBoxIdentity} not found: Cannot add Status Notification` });
         return Promise.reject();
       }
@@ -412,6 +466,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: statusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveStatusNotification",
+        action: "StatusNotification",
         message: `Error when creating the Status Notification of ${statusNotification.chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -419,6 +474,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: statusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveStatusNotification",
+        action: "StatusNotification",
         message: `Error when creating the Status Notification of ${statusNotification.chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -427,7 +483,7 @@ class MongoDBStorage extends Storage {
 
   saveDiagnosticsStatusNotification(diagnosticsStatusNotification) {
     // Get
-    return this._getChargingStationMongoDB(diagnosticsStatusNotification.chargeBoxIdentity).then((chargingStationMongoDB) => {
+    return this._getChargingStationMongoDB(diagnosticsStatusNotification.chargeBoxIdentity, "DiagnosticsStatusNotification").then((chargingStationMongoDB) => {
       // Found?
       if (chargingStationMongoDB) {
         // Create model
@@ -439,6 +495,7 @@ class MongoDBStorage extends Storage {
           // Log
           Logging.logInfo({
             source: diagnosticsStatusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveDiagnosticsStatusNotification",
+            action: "DiagnosticsStatusNotification",
             message: `Diagnostics Status Notification request of ${diagnosticsStatusNotification.chargeBoxIdentity} created with success`,
             detailedMessages: JSON.stringify(diagnosticsStatusNotification) });
         });
@@ -446,6 +503,7 @@ class MongoDBStorage extends Storage {
         // Log
         Logging.logError({
           source: diagnosticsStatusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveDiagnosticsStatusNotification",
+          action: "DiagnosticsStatusNotification",
           message: `Charging Station ${diagnosticsStatusNotification.chargeBoxIdentity} not found: Cannot create Diagnostics Status Notification request` });
         return Promise.reject();
       }
@@ -453,6 +511,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: diagnosticsStatusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveDiagnosticsStatusNotification",
+        action: "DiagnosticsStatusNotification",
         message: `Error when creating an Diagnostics Status Notification request of ${diagnosticsStatusNotification.chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -460,6 +519,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: diagnosticsStatusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveDiagnosticsStatusNotification",
+        action: "DiagnosticsStatusNotification",
         message: `Error when creating an Diagnostics Status Notification request of ${diagnosticsStatusNotification.chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -468,7 +528,7 @@ class MongoDBStorage extends Storage {
 
   saveFirmwareStatusNotification(firmwareStatusNotification) {
     // Get
-    return this._getChargingStationMongoDB(firmwareStatusNotification.chargeBoxIdentity).then((chargingStationMongoDB) => {
+    return this._getChargingStationMongoDB(firmwareStatusNotification.chargeBoxIdentity, "FirmwareStatusNotification").then((chargingStationMongoDB) => {
       // Found?
       if (chargingStationMongoDB) {
         // Create model
@@ -480,6 +540,7 @@ class MongoDBStorage extends Storage {
           // Log
           Logging.logInfo({
             source: firmwareStatusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveFirmwareStatusNotification",
+            action: "FirmwareStatusNotification",
             message: `Firmware Status Notification request of ${firmwareStatusNotification.chargeBoxIdentity} created with success`,
             detailedMessages: JSON.stringify(firmwareStatusNotification) });
         });
@@ -487,6 +548,7 @@ class MongoDBStorage extends Storage {
         // Log
         Logging.logError({
           source: firmwareStatusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveFirmwareStatusNotification",
+          action: "FirmwareStatusNotification",
           message: `Charging Station ${firmwareStatusNotification.chargeBoxIdentity} not found: Cannot create Firmware Status Notification request` });
         return Promise.reject();
       }
@@ -494,6 +556,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: firmwareStatusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveFirmwareStatusNotification",
+        action: "FirmwareStatusNotification",
         message: `Error when creating an Firmware Status Notification request of ${firmwareStatusNotification.chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -501,6 +564,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: firmwareStatusNotification.chargeBoxIdentity, module: "MongoDBStorage", method: "saveFirmwareStatusNotification",
+        action: "FirmwareStatusNotification",
         message: `Error when creating an Firmware Status Notification request of ${firmwareStatusNotification.chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -521,10 +585,10 @@ class MongoDBStorage extends Storage {
 
   saveAuthorize(authorize) {
     // Get
-    return this._getChargingStationMongoDB(authorize.chargeBoxIdentity).then((chargingStationMongoDB) => {
+    return this._getChargingStationMongoDB(authorize.chargeBoxIdentity, "Authorize").then((chargingStationMongoDB) => {
       if (chargingStationMongoDB) {
         // Get User
-        return this._getUserByTagIdMongoDB(authorize.idTag).then((userMongoDB) => {
+        return this._getUserByTagIdMongoDB(authorize.idTag, "Authorize").then((userMongoDB) => {
           // Found?
           if (userMongoDB) {
             // Create model
@@ -536,6 +600,7 @@ class MongoDBStorage extends Storage {
               // Log
               Logging.logInfo({
                 source: `${authorize.chargeBoxIdentity} - ${authorize.idTag}`, module: "MongoDBStorage", method: "saveAuthorize",
+                action: "Authorize",
                 message: `Authorize request of ${authorize.chargeBoxIdentity} created with success for User ${userMongoDB.name} with ID Tag ${authorize.idTag}`,
                 detailedMessages: JSON.stringify(authorize) });
             });
@@ -543,6 +608,7 @@ class MongoDBStorage extends Storage {
             // Log
             Logging.logError({
               source: `${authorize.chargeBoxIdentity} - ${authorize.idTag}`, module: "MongoDBStorage", method: "saveAuthorize",
+              action: "Authorize",
               message: `User with Tag ID ${authorize.idTag} not found: Cannot create Authorize request` });
             return Promise.reject();
           }
@@ -551,6 +617,7 @@ class MongoDBStorage extends Storage {
         // Log
         Logging.logError({
           source: `${authorize.chargeBoxIdentity} - ${authorize.idTag}`, module: "MongoDBStorage", method: "saveAuthorize",
+          action: "Authorize",
           message: `Charging Station ${authorize.chargeBoxIdentity} not found: Cannot create Authorize request` });
         return Promise.reject();
       }
@@ -558,6 +625,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: `${authorize.chargeBoxIdentity} - ${authorize.idTag}`, module: "MongoDBStorage", method: "saveAuthorize",
+        action: "Authorize",
         message: `Error when creating an Authorize request for ${authorize.chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -565,6 +633,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: `${authorize.chargeBoxIdentity} - ${authorize.idTag}`, module: "MongoDBStorage", method: "saveAuthorize",
+        action: "Authorize",
         message: `Error when creating an Authorize request for ${authorize.chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -573,11 +642,11 @@ class MongoDBStorage extends Storage {
 
   saveStartTransaction(startTransaction) {
     // Get
-    return this._getChargingStationMongoDB(startTransaction.chargeBoxIdentity).then((chargingStationMongoDB) => {
+    return this._getChargingStationMongoDB(startTransaction.chargeBoxIdentity, "StartTransaction").then((chargingStationMongoDB) => {
       // Found?
       if (chargingStationMongoDB) {
         // Get User
-        return this._getUserByTagIdMongoDB(startTransaction.idTag).then((userMongoDB) => {
+        return this._getUserByTagIdMongoDB(startTransaction.idTag, "StartTransaction").then((userMongoDB) => {
           // Found?
           if (userMongoDB) {
             // Create model
@@ -590,6 +659,7 @@ class MongoDBStorage extends Storage {
               // Log
               Logging.logInfo({
                 source: `${startTransaction.chargeBoxIdentity} - ${startTransaction.idTag}`, module: "MongoDBStorage", method: "saveStartTransaction",
+                action: "StartTransaction",
                 message: `Start Transaction created with success on ${startTransaction.chargeBoxIdentity} for User ${userMongoDB.name} with ID Tag ${startTransaction.idTag}`,
                 detailedMessages: JSON.stringify(startTransaction) });
             });
@@ -597,6 +667,7 @@ class MongoDBStorage extends Storage {
             // Log
             Logging.logError({
               source: `${startTransaction.chargeBoxIdentity} - ${startTransaction.idTag}`, module: "MongoDBStorage", method: "saveStartTransaction",
+              action: "StartTransaction",
               message: `User with Tag ID ${startTransaction.idTag} not found: Cannot create Start Transaction` });
             return Promise.reject();
           }
@@ -605,6 +676,7 @@ class MongoDBStorage extends Storage {
         // Log
         Logging.logError({
           source: `${startTransaction.chargeBoxIdentity} - ${startTransaction.idTag}`, module: "MongoDBStorage", method: "saveStartTransaction",
+          action: "StartTransaction",
           message: `Charging Station ${startTransaction.chargeBoxIdentity} not found: Cannot create Start Transaction` });
         return Promise.reject();
       }
@@ -612,6 +684,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: `${startTransaction.chargeBoxIdentity} - ${startTransaction.idTag}`, module: "MongoDBStorage", method: "saveStartTransaction",
+        action: "StartTransaction",
         message: `Error when creating Start Transaction of ${startTransaction.chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -619,6 +692,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: `${startTransaction.chargeBoxIdentity} - ${startTransaction.idTag}`, module: "MongoDBStorage", method: "saveStartTransaction",
+        action: "StartTransaction",
         message: `Error when creating Start Transaction of ${startTransaction.chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -627,11 +701,11 @@ class MongoDBStorage extends Storage {
 
   saveStopTransaction(stopTransaction) {
     // Get
-    return this._getChargingStationMongoDB(stopTransaction.chargeBoxIdentity).then((chargingStationMongoDB) => {
+    return this._getChargingStationMongoDB(stopTransaction.chargeBoxIdentity, "StopTransaction").then((chargingStationMongoDB) => {
       // Found?
       if (chargingStationMongoDB) {
         // Get User
-        return this._getUserByTagIdMongoDB(stopTransaction.idTag).then((userMongoDB) => {
+        return this._getUserByTagIdMongoDB(stopTransaction.idTag, "StopTransaction").then((userMongoDB) => {
           // Found?
           if (userMongoDB) {
             // Create model
@@ -643,6 +717,7 @@ class MongoDBStorage extends Storage {
               // Log
               Logging.logInfo({
                 source: `${stopTransaction.chargeBoxIdentity} - ${stopTransaction.idTag}`, module: "MongoDBStorage", method: "saveStartTransaction",
+                action: "StopTransaction",
                 message: `Stop Transaction created with success on ${stopTransaction.chargeBoxIdentity} for User ${userMongoDB.name} with ID Tag ${stopTransaction.idTag}`,
                 detailedMessages: JSON.stringify(stopTransaction) });
             });
@@ -650,6 +725,7 @@ class MongoDBStorage extends Storage {
             // Log
             Logging.logError({
               source: `${stopTransaction.chargeBoxIdentity} - ${stopTransaction.idTag}`, module: "MongoDBStorage", method: "saveStartTransaction",
+              action: "StopTransaction",
               message: `User ${stopTransaction.idTag} not found: Cannot create Stop Transaction` });
             return Promise.reject();
           }
@@ -658,6 +734,7 @@ class MongoDBStorage extends Storage {
         // Log
         Logging.logError({
           source: `${stopTransaction.chargeBoxIdentity} - ${stopTransaction.idTag}`, module: "MongoDBStorage", method: "saveStartTransaction",
+          action: "StopTransaction",
           message: `Charging Station ${stopTransaction.chargeBoxIdentity} not found: Cannot create Stop Transaction` });
         return Promise.reject();
       }
@@ -665,6 +742,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: `${stopTransaction.chargeBoxIdentity} - ${stopTransaction.idTag}`, module: "MongoDBStorage", method: "saveStopTransaction",
+        action: "StopTransaction",
         message: `Error when creating Stop Transaction of ${stopTransaction.chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -672,6 +750,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: `${stopTransaction.chargeBoxIdentity} - ${stopTransaction.idTag}`, module: "MongoDBStorage", method: "saveStopTransaction",
+        action: "StopTransaction",
         message: `Error when creating Stop Transaction of ${stopTransaction.chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -680,7 +759,7 @@ class MongoDBStorage extends Storage {
 
   saveMeterValues(meterValues) {
     // Get
-    return this._getChargingStationMongoDB(meterValues.chargeBoxIdentity).then((chargingStationMongoDB) => {
+    return this._getChargingStationMongoDB(meterValues.chargeBoxIdentity, "MeterValues").then((chargingStationMongoDB) => {
       // Found?
       if (chargingStationMongoDB) {
         // Save all
@@ -696,6 +775,7 @@ class MongoDBStorage extends Storage {
               // Log
               Logging.logInfo({
                 source: meterValues.chargeBoxIdentity, module: "MongoDBStorage", method: "saveMeterValues",
+                action: "MeterValues",
                 message: `Save Meter of ${meterValues.chargeBoxIdentity} created with success`,
                 detailedMessages: JSON.stringify(meterValue) });
             });
@@ -706,6 +786,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: meterValues.chargeBoxIdentity, module: "MongoDBStorage", method: "saveMeterValues",
+        action: "MeterValues",
         message: `Error when saving Meter Value of ${meterValues.chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -713,15 +794,18 @@ class MongoDBStorage extends Storage {
        // Log
        Logging.logError({
          source: meterValues.chargeBoxIdentity, module: "MongoDBStorage", method: "saveMeterValues",
+         action: "MeterValues",
          message: `Error when saving Meter Value of ${meterValues.chargeBoxIdentity}: ${err.toString()}`,
          detailedMessages: err.stack });
        return Promise.reject(err);
     });
   }
 
-  saveChargingStation(chargingStation) {
+  saveChargingStation(chargingStation, action) {
+    // Check
+    action = action || "Unknown";
     // Get
-    return this._getChargingStationMongoDB(chargingStation.getChargeBoxIdentity()).then((chargingStationMongoDB) => {
+    return this._getChargingStationMongoDB(chargingStation.getChargeBoxIdentity(), action).then((chargingStationMongoDB) => {
       // Found?
       if (!chargingStationMongoDB) {
         // No: Create it
@@ -731,6 +815,7 @@ class MongoDBStorage extends Storage {
           // Log
           Logging.logInfo({
             source: chargingStation.getChargeBoxIdentity(), module: "MongoDBStorage", method: "saveChargingStation",
+            action: action,
             message: `Charging Station ${chargingStation.getChargeBoxIdentity()} created with success`,
             detailedMessages: JSON.stringify(chargingStation) });
         });
@@ -742,6 +827,7 @@ class MongoDBStorage extends Storage {
           // Log
           Logging.logInfo({
             source: chargingStation.getChargeBoxIdentity(), module: "MongoDBStorage", method: "saveChargingStation",
+            action: action,
             message: `Charging Station ${chargingStation.getChargeBoxIdentity()} updated with success`,
             detailedMessages: JSON.stringify(chargingStation)});
         });
@@ -750,6 +836,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: chargingStation.getChargeBoxIdentity(), module: "MongoDBStorage", method: "saveChargingStation",
+        action: action,
         message: `Error when saving Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -757,13 +844,17 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: chargingStation.getChargeBoxIdentity(), module: "MongoDBStorage", method: "saveChargingStation",
+        action: action,
         message: `Error when saving Charging Station ${chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
     });
   }
 
-  getChargingStations() {
+  getChargingStations(action) {
+    // Check
+    action = action || "Unknown";
+
     // Exec request
     return MDBChargingStation.find({}).sort( {chargeBoxIdentity: 1} ).exec().then((chargingStationsMongoDB) => {
       var chargingStations = [];
@@ -777,6 +868,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: "Central Server", module: "MongoDBStorage", method: "getChargingStations",
+        action: action,
         message: `Error when reading the Charging Stations: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -784,15 +876,19 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: "Central Server", module: "MongoDBStorage", method: "getChargingStations",
+        action: action,
         message: `Error when reading the Charging Stations: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
     });
   }
 
-  getChargingStation(chargeBoxIdentity) {
+  getChargingStation(chargeBoxIdentity, action) {
+    // Check
+    action = action || "Unknown";
+
     // Get
-    return this._getChargingStationMongoDB(chargeBoxIdentity).then((chargingStationMongoDB) => {
+    return this._getChargingStationMongoDB(chargeBoxIdentity, action).then((chargingStationMongoDB) => {
       var chargingStation = null;
       // Found
       if (chargingStationMongoDB != null) {
@@ -804,6 +900,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: chargeBoxIdentity, module: "MongoDBStorage", method: "getChargingStations",
+        action: action,
         message: `Error in reading the Charging Station ${chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -811,13 +908,17 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: chargeBoxIdentity, module: "MongoDBStorage", method: "getChargingStations",
+        action: action,
         message: `Error in reading the Charging Station ${chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
     });
   }
 
-  _getChargingStationMongoDB(chargeBoxIdentity) {
+  _getChargingStationMongoDB(chargeBoxIdentity, action) {
+    // Check
+    action = action || "Unknown";
+
     // Exec request
     return MDBChargingStation.find({"chargeBoxIdentity": chargeBoxIdentity}).then(chargingStationsMongoDB => {
       var chargingStationMongoDB = null;
@@ -828,6 +929,7 @@ class MongoDBStorage extends Storage {
         // Log
         Logging.logWarning({
           source: chargeBoxIdentity, module: "MongoDBStorage", method: "_getChargingStationMongoDB",
+          action: action,
           message: `Charging Station ${chargeBoxIdentity} does not exist` });
       }
       // Ok
@@ -836,6 +938,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: chargeBoxIdentity, module: "MongoDBStorage", method: "_getChargingStationMongoDB",
+        action: action,
         message: `Error in reading the Charging Station ${chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -843,13 +946,17 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: chargeBoxIdentity, module: "MongoDBStorage", method: "_getChargingStationMongoDB",
+        action: action,
         message: `Error in reading the Charging Station ${chargeBoxIdentity}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
     });
   }
 
-  getUsers() {
+  getUsers(action) {
+    // Check
+    action = action || "Unknown";
+
     // Exec request
     return MDBUser.find({}).sort( {name: 1} ).exec().then((usersMongoDB) => {
       var users = [];
@@ -863,6 +970,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: "Central Server", module: "MongoDBStorage", method: "getUsers",
+        action: action,
         message: `Error in reading the Users: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -871,23 +979,28 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: "Central Server", module: "MongoDBStorage", method: "getUsers",
+        action: action,
         message: `Error in reading the Users: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
     });
   }
 
-  saveUser(user) {
+  saveUser(user, action) {
+    // Check
+    action = action || "Unknown";
+
     // Check
     if (!user.getTagID()) {
       // Log
       Logging.logError({
         source: `NoTagID - ${user.getName()}`, module: "MongoDBStorage", method: "saveUser",
+        action: action,
         message: `Error in saving the User: User has no Tag ID and cannot be created or updated` });
       return Promise.reject({message: "Error in saving the User: User has no Tag ID and cannot be created or updated"});
     }
     // Get User
-    return this._getUserByTagIdMongoDB(user.getTagID()).then((userMongoDB) => {
+    return this._getUserByTagIdMongoDB(user.getTagID(), action).then((userMongoDB) => {
       // Found?
       if (!userMongoDB) {
         // No: Create it
@@ -897,6 +1010,7 @@ class MongoDBStorage extends Storage {
           // Log
           Logging.logInfo({
             source: `${user.getTagID()} - ${user.getName()}`, module: "MongoDBStorage", method: "saveUser",
+            action: action,
             message: `User ${user.getName()} created with success`,
             detailedMessages: JSON.stringify(user) });
         });
@@ -909,6 +1023,7 @@ class MongoDBStorage extends Storage {
           // Log
           Logging.logInfo({
             source: `${user.getTagID()} - ${user.getName()}`, module: "MongoDBStorage", method: "saveUser",
+            action: action,
             message: `User ${user.getName()} updated with success`,
             detailedMessages: JSON.stringify(user) });
         });
@@ -917,6 +1032,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: `${user.getTagID()} - ${user.getName()}`, module: "MongoDBStorage", method: "saveUser",
+        action: action,
         message: `Error when updating User ${user.getName()}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -925,13 +1041,16 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: `${user.getTagID()} - ${user.getName()}`, module: "MongoDBStorage", method: "saveUser",
+        action: action,
         message: `Error when creating User  ${user.getName()}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
     });
   }
 
-  getTransactions(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
+  getTransactions(chargeBoxIdentity, connectorId, startDateTime, endDateTime, action) {
+    // Check
+    action = action || "Unknown";
     // // Get the Charging Station
     // return new Promise((resolve, reject) => {
     //     // Build filter
@@ -1000,9 +1119,12 @@ class MongoDBStorage extends Storage {
     // });
   }
 
-  getUserByTagId(tagID) {
+  getUserByTagId(tagID, action) {
+    // Check
+    action = action || "Unknown";
+
     // Get
-    return this._getUserByTagIdMongoDB(tagID).then((userMongoDB) => {
+    return this._getUserByTagIdMongoDB(tagID, action).then((userMongoDB) => {
       var user = null;
       // Found
       if (userMongoDB != null) {
@@ -1013,13 +1135,17 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: tagID, module: "MongoDBStorage", method: "getUserByTagId",
+        action: action,
         message: `Error in reading the User with Tag ID ${tagID}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
     });
   }
 
-  _getUserByTagIdMongoDB(tagID) {
+  _getUserByTagIdMongoDB(tagID, action) {
+    // Check
+    action = action || "Unknown";
+
     // Exec request
     return MDBUser.find({"tagID": tagID}).then((usersMongoDB) => {
       var userMongoDB = null;
@@ -1028,7 +1154,8 @@ class MongoDBStorage extends Storage {
         userMongoDB = usersMongoDB[0];
       } else {
         Logging.logWarning({
-          source: tagID, module: "MongoDBStorage", method: "getUserByTagId",
+          source: tagID, module: "MongoDBStorage", method: "_getUserByTagIdMongoDB",
+          action: action,
           message: `User with Tag ID ${tagID} does not exist!` });
       }
       // Ok
@@ -1037,6 +1164,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: tagID, module: "MongoDBStorage", method: "_getUserByTagIdMongoDB",
+        action: action,
         message: `Error in getting the User with Tag ID ${tagID}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
@@ -1044,6 +1172,7 @@ class MongoDBStorage extends Storage {
       // Log
       Logging.logError({
         source: tagID, module: "MongoDBStorage", method: "_getUserByTagIdMongoDB",
+        action: action,
         message: `Error in getting the User with Tag ID ${tagID}: ${err.toString()}`,
         detailedMessages: err.stack });
       return Promise.reject(err);
