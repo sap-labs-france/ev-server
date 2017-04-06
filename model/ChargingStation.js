@@ -139,7 +139,7 @@ class ChargingStation {
     // Already created?
     if (!this._chargingStationClient) {
       // Init client
-      return new SoapChargingStationClient(this).then(function(soapClient) {
+      return new SoapChargingStationClient(this).then((soapClient) => {
         that._chargingStationClient = soapClient;
         return that._chargingStationClient;
       });
@@ -304,7 +304,7 @@ class ChargingStation {
     }
 
     // For each value
-    meterValues.values.forEach(function(value, index) {
+    meterValues.values.forEach((value, index) => {
       var newMeterValue = {};
 
       // Set the ID
@@ -327,7 +327,7 @@ class ChargingStation {
         if (Array.isArray(value.value)) {
           // OCPP 1.5 & 1.6: Set the values
           var parsedValues = [];
-          value.value.forEach(function(valueJson) {
+          value.value.forEach((valueJson) => {
             if (typeof valueJson != 'object') {
               // OCPP 1.5: Simple Type
               parsedValues.push({"value": parseInt(valueJson)});
@@ -357,7 +357,7 @@ class ChargingStation {
     });
 
     // Save it
-    return global.storage.saveMeterValues(newMeterValues).then(function() {
+    return global.storage.saveMeterValues(newMeterValues).then(() => {
       // Update the Heartbeat
       that.setLastHeartBeat(new Date());
       // Save
@@ -389,7 +389,7 @@ class ChargingStation {
     // Set
     this.setMeterIntervalSecs(meterIntervalSecs);
     // Save
-    return this.save().then(function() {
+    return this.save().then(() => {
       // Save config
       return global.storage.saveConfiguration(configuration);
     });
@@ -450,7 +450,7 @@ class ChargingStation {
   // Restart the server
   requestReset(args) {
     // Get the client
-    return this.getChargingStationClient().then(function(chargingStationClient) {
+    return this.getChargingStationClient().then((chargingStationClient) => {
       // Restart
       return chargingStationClient.reset(args);
     });
@@ -459,7 +459,7 @@ class ChargingStation {
   // Get the configuration for the EVSE
   requestConfiguration(configParamNames) {
     // Get the client
-    return this.getChargingStationClient().then(function(chargingStationClient) {
+    return this.getChargingStationClient().then((chargingStationClient) => {
       // Get config
       return chargingStationClient.getConfiguration(configParamNames);
     });
@@ -467,31 +467,31 @@ class ChargingStation {
 
   // Get the configuration for the EVSE
   getConfiguration() {
-    return global.storage.getConfiguration(this.getChargeBoxIdentity()).then(function(configuration) {
+    return global.storage.getConfiguration(this.getChargeBoxIdentity()).then((configuration) => {
       return configuration;
     });
   }
 
   getStatusNotifications(connectorId) {
-    return global.storage.getStatusNotifications(this.getChargeBoxIdentity(), connectorId).then(function(statusNotifications) {
+    return global.storage.getStatusNotifications(this.getChargeBoxIdentity(), connectorId).then((statusNotifications) => {
       return statusNotifications;
     });
   }
 
   getLastStatusNotification(connectorId) {
-    return global.storage.getLastStatusNotification(this.getChargeBoxIdentity(), connectorId).then(function(statusNotification) {
+    return global.storage.getLastStatusNotification(this.getChargeBoxIdentity(), connectorId).then((statusNotification) => {
       return statusNotification;
     });
   }
 
   getConfiguration() {
-    return global.storage.getConfiguration(this.getChargeBoxIdentity()).then(function(configuration) {
+    return global.storage.getConfiguration(this.getChargeBoxIdentity()).then((configuration) => {
       return configuration;
     });
   }
 
   getConfigurationParamValue(paramName) {
-    return global.storage.getConfigurationParamValue(this.getChargeBoxIdentity(), paramName).then(function(paramValue) {
+    return global.storage.getConfigurationParamValue(this.getChargeBoxIdentity(), paramName).then((paramValue) => {
       return paramValue;
     });
   }
@@ -522,7 +522,7 @@ class ChargingStation {
         connectorId,
         transactionId,
         startDateTimeAdjusted,
-        endDateTime).then(function(meterValues) {
+        endDateTime).then((meterValues) => {
       // Parse the results
       var sampleMultiplier = 3600 / meterIntervalSecs;
       var initialValue = 0; // Should be retrieved from the StartTransaction (MeterStart)
@@ -548,9 +548,9 @@ class ChargingStation {
       var firstValue = false;
 
       // Build the model
-      meterValues.forEach(function(meterValue) {
+      meterValues.forEach((meterValue) => {
         // Browse values
-        meterValue.values.forEach(function(value) {
+        meterValue.values.forEach((value) => {
           // Filter on consumption value
           if (value.attributes && value.attributes.measurand && value.attributes.measurand === "Energy.Active.Import.Register") {
             // Avoid twice the same timestamp
