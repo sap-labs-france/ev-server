@@ -76,8 +76,7 @@ class CentralSystemServer {
         Logging.logInfo({
           source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleBootNotification",
           action: "BootNotification",
-          message: `Charging Station Configuration saved successfully`,
-          detailedMessages: configuration });
+          message: `Charging Station Configuration saved successfully` });
 
         // Return the result
         // OCPP 1.6
