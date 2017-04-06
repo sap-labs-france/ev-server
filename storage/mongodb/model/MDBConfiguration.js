@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 
 module.exports = mongoose.model('Configuration',{
   chargeBoxIdentity: String,
-  chargeBoxID: {type: mongoose.Schema.ObjectId, ref: 'ChargingStation'},
+  chargeBoxID: {type: String, ref: 'ChargingStation'},
   timestamp: Date,
   configuration: []
 });

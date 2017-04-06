@@ -8,6 +8,7 @@ var mongoose = require('mongoose');
 // });
 
 module.exports = mongoose.model('ChargingStation',{
+  _id: String,
   chargeBoxIdentity: String,
   chargePointVendor: String,
   chargePointModel: String,

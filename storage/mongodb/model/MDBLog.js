@@ -9,6 +9,6 @@ module.exports = mongoose.model('Log',{
   action: String,
   message: String,
   detailedMessages: [],
-  userID: {type: mongoose.Schema.ObjectId, ref: 'User'},
-  chargeBoxID: {type: mongoose.Schema.ObjectId, ref: 'ChargingStation'}
+  userID: {type: String, ref: 'User'},
+  chargeBoxID: {type: String, ref: 'ChargingStation'}
 });

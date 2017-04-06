@@ -186,92 +186,57 @@ class MongoDBStorage extends Storage {
   }
 
   saveBootNotification(bootNotification) {
-    // Get
-    return this._getChargingStationMongoDB(bootNotification.chargeBoxIdentity, "BootNotification").then((chargingStationMongoDB) => {
-      // Create model
-      var bootNotificationMongoDB = new MDBBootNotification(bootNotification);
-      if (chargingStationMongoDB) {
-        // Set the ID
-        bootNotificationMongoDB.chargeBoxID = chargingStationMongoDB._id;
-      }
-      // Create new
-      return bootNotificationMongoDB.save();
-    });
+    // Create model
+    var bootNotificationMongoDB = new MDBBootNotification(bootNotification);
+    bootNotificationMongoDB.chargeBoxID = bootNotification.chargeBoxIdentity;
+    // Create new
+    return bootNotificationMongoDB.save();
   }
 
   saveDataTransfer(dataTransfer) {
-    // Get
-    return this._getChargingStationMongoDB(dataTransfer.chargeBoxIdentity, "DataTransfer").then((chargingStationMongoDB) => {
-      if (chargingStationMongoDB) {
-        // Create model
-        var dataTransferMongoDB = new MDBDataTransfer(dataTransfer);
-        // Set the ID
-        dataTransferMongoDB.chargeBoxID = chargingStationMongoDB._id;
-        // Create new
-        return dataTransferMongoDB.save();
-      }
-    });
+    // Create model
+    var dataTransferMongoDB = new MDBDataTransfer(dataTransfer);
+    // Set the ID
+    dataTransferMongoDB.chargeBoxID = dataTransfer.chargeBoxIdentity;
+    // Create new
+    return dataTransferMongoDB.save();
   }
 
   saveConfiguration(configuration) {
-    // Get
-    return this._getChargingStationMongoDB(configuration.chargeBoxIdentity, "Configuration").then((chargingStationMongoDB) => {
-      // Found?
-      if (chargingStationMongoDB) {
-        // Create model
-        var configurationMongoDB = new MDBConfiguration(configuration);
-        // Set the ID
-        configurationMongoDB.chargeBoxID = chargingStationMongoDB._id;
-        configurationMongoDB.configuration = configuration.configurationKey;
-        // Create new
-        return configurationMongoDB.save();
-      }
-    });
+    // Create model
+    var configurationMongoDB = new MDBConfiguration(configuration);
+    // Set the ID
+    configurationMongoDB.chargeBoxID = configuration.chargeBoxIdentity;
+    configurationMongoDB.configuration = configuration.configurationKey;
+    // Create new
+    return configurationMongoDB.save();
   }
 
   saveStatusNotification(statusNotification) {
-    // Get
-    return this._getChargingStationMongoDB(statusNotification.chargeBoxIdentity, "StatusNotification").then((chargingStationMongoDB) => {
-      // Found?
-      if (chargingStationMongoDB) {
-        // Create model
-        var statusNotificationMongoDB = new MDBStatusNotification(statusNotification);
-        // Set the ID
-        statusNotificationMongoDB.chargeBoxID = chargingStationMongoDB._id;
-        // Create new
-        return statusNotificationMongoDB.save();
-      }
-    });
+    // Create model
+    var statusNotificationMongoDB = new MDBStatusNotification(statusNotification);
+    // Set the ID
+    statusNotificationMongoDB.chargeBoxID = statusNotification.chargeBoxIdentity;
+    // Create new
+    return statusNotificationMongoDB.save();
   }
 
   saveDiagnosticsStatusNotification(diagnosticsStatusNotification) {
-    // Get
-    return this._getChargingStationMongoDB(diagnosticsStatusNotification.chargeBoxIdentity, "DiagnosticsStatusNotification").then((chargingStationMongoDB) => {
-      // Found?
-      if (chargingStationMongoDB) {
-        // Create model
-        var diagnosticsStatusNotificationMongoDB = new MDBDiagnosticsStatusNotification(diagnosticsStatusNotification);
-        // Set the ID
-        diagnosticsStatusNotificationMongoDB.chargeBoxID = chargingStationMongoDB._id;
-        // Create new
-        return diagnosticsStatusNotificationMongoDB.save();
-      }
-    });
+    // Create model
+    var diagnosticsStatusNotificationMongoDB = new MDBDiagnosticsStatusNotification(diagnosticsStatusNotification);
+    // Set the ID
+    diagnosticsStatusNotificationMongoDB.chargeBoxID = diagnosticsStatusNotification.chargeBoxIdentity;
+    // Create new
+    return diagnosticsStatusNotificationMongoDB.save();
   }
 
   saveFirmwareStatusNotification(firmwareStatusNotification) {
-    // Get
-    return this._getChargingStationMongoDB(firmwareStatusNotification.chargeBoxIdentity, "FirmwareStatusNotification").then((chargingStationMongoDB) => {
-      // Found?
-      if (chargingStationMongoDB) {
-        // Create model
-        var firmwareStatusNotificationMongoDB = new MDBFirmwareStatusNotification(firmwareStatusNotification);
-        // Set the ID
-        firmwareStatusNotificationMongoDB.chargeBoxID = chargingStationMongoDB._id;
-        // Create new
-        return firmwareStatusNotificationMongoDB.save();
-      }
-    });
+    // Create model
+    var firmwareStatusNotificationMongoDB = new MDBFirmwareStatusNotification(firmwareStatusNotification);
+    // Set the ID
+    firmwareStatusNotificationMongoDB.chargeBoxID = firmwareStatusNotification.chargeBoxIdentity;
+    // Create new
+    return firmwareStatusNotificationMongoDB.save();
   }
 
   saveLog(log) {
@@ -289,72 +254,41 @@ class MongoDBStorage extends Storage {
   saveAuthorize(authorize) {
     // Create model
     var authorizeMongoDB = new MDBAuthorize(authorize);
+    authorizeMongoDB.chargeBoxID = authorize.chargeBoxIdentity;
     // Create new
     return authorizeMongoDB.save();
   }
 
   saveStartTransaction(startTransaction) {
-    // Get
-    return this._getChargingStationMongoDB(startTransaction.chargeBoxIdentity, "StartTransaction").then((chargingStationMongoDB) => {
-      // Found?
-      if (chargingStationMongoDB) {
-        // Get User
-        return this._getUserByTagIdMongoDB(startTransaction.idTag, "StartTransaction").then((userMongoDB) => {
-          // Found?
-          if (userMongoDB) {
-            // Create model
-            var startTransactionMongoDB = new MDBStartTransaction(startTransaction);
-            // Set the IDs
-            startTransactionMongoDB.chargeBoxID = chargingStationMongoDB._id;
-            startTransactionMongoDB.userID = userMongoDB._id;
-            // Create new
-            return startTransactionMongoDB.save();
-          }
-        });
-      }
-    });
+    // Create model
+    var startTransactionMongoDB = new MDBStartTransaction(startTransaction);
+    // Set the IDs
+    startTransactionMongoDB.chargeBoxID = startTransaction.chargeBoxIdentity;
+    startTransactionMongoDB.userID = startTransaction.idTag;
+    // Create new
+    return startTransactionMongoDB.save();
   }
 
   saveStopTransaction(stopTransaction) {
-    // Get
-    return this._getChargingStationMongoDB(stopTransaction.chargeBoxIdentity, "StopTransaction").then((chargingStationMongoDB) => {
-      // Found?
-      if (chargingStationMongoDB) {
-        // Get User
-        return this._getUserByTagIdMongoDB(stopTransaction.idTag, "StopTransaction").then((userMongoDB) => {
-          // Found?
-          if (userMongoDB) {
-            // Create model
-            var stopTransactionMongoDB = new MDBStopTransaction(stopTransaction);
-            // Set the ID
-            stopTransactionMongoDB.chargeBoxID = chargingStationMongoDB._id;
-            // Create new
-            return stopTransactionMongoDB.save();
-          }
-        });
-      }
-    });
+    // Create model
+    var stopTransactionMongoDB = new MDBStopTransaction(stopTransaction);
+    // Set the ID
+    stopTransactionMongoDB.chargeBoxID = stopTransaction.chargeBoxIdentity;
+    stopTransactionMongoDB.userID = stopTransaction.idTag;
+    // Create new
+    return stopTransactionMongoDB.save();
   }
 
   saveMeterValues(meterValues) {
-    // Get
-    return this._getChargingStationMongoDB(meterValues.chargeBoxIdentity, "MeterValues").then((chargingStationMongoDB) => {
-      // Found?
-      if (chargingStationMongoDB) {
-        // Save all
-        Promise.all(meterValues.values.map(meterValue => {
-          // Create
-          return new Promise((resolve, reject) => {
-            // Create model
-            var meterValueMongoDB = new MDBMeterValue(meterValue);
-            // Set the ID
-            meterValueMongoDB.chargeBoxID = chargingStationMongoDB._id;
-            // Save
-            return meterValueMongoDB.save();
-          });
-        }));
-      }
-    });
+    // Save all
+    return Promise.all(meterValues.values.map(meterValue => {
+      // Create model
+      var meterValueMongoDB = new MDBMeterValue(meterValue);
+      // Set the ID
+      meterValueMongoDB.chargeBoxID = meterValues.chargeBoxIdentity;
+      // Save
+      return meterValueMongoDB.save();
+    }));
   }
 
   saveChargingStation(chargingStation) {
@@ -364,6 +298,7 @@ class MongoDBStorage extends Storage {
       if (!chargingStationMongoDB) {
         // No: Create it
         var newChargingStationMongoDB = new MDBChargingStation(chargingStation.getModel());
+        newChargingStationMongoDB._id = chargingStation.getChargeBoxIdentity();
         // Create new
         return newChargingStationMongoDB.save();
       } else {
@@ -377,7 +312,7 @@ class MongoDBStorage extends Storage {
 
   getChargingStations() {
     // Exec request
-    return MDBChargingStation.find({}).sort( {chargeBoxIdentity: 1} ).exec().then((chargingStationsMongoDB) => {
+    return MDBChargingStation.find({}).sort( {_id: 1} ).exec().then((chargingStationsMongoDB) => {
       var chargingStations = [];
       // Create
       chargingStationsMongoDB.forEach((chargingStationMongoDB) => {
@@ -403,7 +338,7 @@ class MongoDBStorage extends Storage {
 
   _getChargingStationMongoDB(chargeBoxIdentity) {
     // Exec request
-    return MDBChargingStation.find({"chargeBoxIdentity": chargeBoxIdentity}).then(chargingStationsMongoDB => {
+    return MDBChargingStation.find({"_id": chargeBoxIdentity}).then(chargingStationsMongoDB => {
       var chargingStationMongoDB = null;
       // Check
       if (chargingStationsMongoDB.length > 0) {
@@ -430,6 +365,7 @@ class MongoDBStorage extends Storage {
   saveUser(user) {
     // Check
     if (!user.getTagID()) {
+      // ID ,ust be provided!
       return Promise.reject( new Error("Error in saving the User: User has no Tag ID and cannot be created or updated") );
     } else {
       // Get User
@@ -438,6 +374,7 @@ class MongoDBStorage extends Storage {
         if (!userMongoDB) {
           // No: Create it
           var newUserMongoDB = new MDBUser(user.getModel());
+          newUserMongoDB._id = user.getTagID();
           // Create new
           return newUserMongoDB.save();
         } else {
@@ -534,7 +471,7 @@ class MongoDBStorage extends Storage {
 
   _getUserByTagIdMongoDB(tagID) {
     // Exec request
-    return MDBUser.find({"tagID": tagID}).then((usersMongoDB) => {
+    return MDBUser.find({"_id": tagID}).then((usersMongoDB) => {
       var userMongoDB = null;
       // Check
       if (usersMongoDB.length > 0) {

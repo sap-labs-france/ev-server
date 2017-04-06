@@ -1,8 +1,7 @@
 var mongoose = require('mongoose');
 
 module.exports = mongoose.model('MeterValue',{
-  chargeBoxIdentity: String,
-  chargeBoxID: {type: mongoose.Schema.ObjectId, ref: 'ChargingStation'},
+  chargeBoxID: {type: String, ref: 'ChargingStation'},
   connectorId: Number,
   transactionId: Number,
   timestamp: Date,
