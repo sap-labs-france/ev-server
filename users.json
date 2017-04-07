@@ -15,6 +15,19 @@
 			"plate": "DT-952-BW"
 		}]
 	}, {
+		"name": "FABIANO",
+		"firstName": "Serge",
+		"tagID": "66BDC46F",
+		"email": "serge.fabiano@sap.com",
+		"phone": "+33 492286307",
+		"mobile": "",
+		"badgeNumber": 0,
+		"iNumber": "I030367",
+		"costCenter": 0,
+		"location": "Mougins",
+    "status": "A",
+		"electricVehicules": []
+	}, {
 		"name": "BERNARD",
 		"firstName": "Christophe",
 		"tagID": "DA1D7C05",
