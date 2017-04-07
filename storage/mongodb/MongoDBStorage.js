@@ -102,7 +102,7 @@ class MongoDBStorage extends Storage {
   getStatusNotifications(chargeBoxIdentity, connectorId) {
     var filter = {};
     if (chargeBoxIdentity) {
-      filter.chargeBoxIdentity = chargeBoxIdentity;
+      filter.chargeBoxID = chargeBoxIdentity;
     }
     if (connectorId) {
       filter.connectorId = connectorId;
@@ -130,7 +130,7 @@ class MongoDBStorage extends Storage {
 
     // Must be provided
     if(chargeBoxIdentity && connectorId) {
-      filter.chargeBoxIdentity = chargeBoxIdentity;
+      filter.chargeBoxID = chargeBoxIdentity;
       filter.connectorId = connectorId;
 
       // Exec request
@@ -153,7 +153,7 @@ class MongoDBStorage extends Storage {
     // Build filter
     var filter = {};
     // Mandatory filters
-    filter.chargeBoxIdentity = chargeBoxIdentity;
+    filter.chargeBoxID = chargeBoxIdentity;
     filter.connectorId = connectorId;
 
     if (transactionId) {

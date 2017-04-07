@@ -134,14 +134,12 @@ class ChargingStation {
   }
 
   getChargingStationClient() {
-    var that = this;
-
     // Already created?
     if (!this._chargingStationClient) {
       // Init client
       return new SoapChargingStationClient(this).then((soapClient) => {
-        that._chargingStationClient = soapClient;
-        return that._chargingStationClient;
+        this._chargingStationClient = soapClient;
+        return this._chargingStationClient;
       });
     } else {
       return Promise.resolve(this._chargingStationClient);
@@ -351,19 +349,26 @@ class ChargingStation {
       newMeterValues.values.push(newMeterValue);
     });
 
-    // Save it
-    return global.storage.saveMeterValues(newMeterValues).then(() => {
+    // Update the Heartbeat
+    this.setLastHeartBeat(new Date());
+    // Save
+    return this.save().then(() => {
       // Log
       Logging.logInfo({
         source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "saveMeterValues",
         action: "MeterValues",
-        message: `Meter Values saved successfully`,
-        detailedMessages: newMeterValues });
+        message: `Charging Station ${this.getChargeBoxIdentity()} saved successfully`,
+        detailedMessages: this.getModel() });
 
-      // Update the Heartbeat
-      this.setLastHeartBeat(new Date());
-      // Save
-      return this.save();
+      // Save it
+      return global.storage.saveMeterValues(newMeterValues).then(() => {
+        // Log
+        Logging.logInfo({
+          source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "saveMeterValues",
+          action: "MeterValues",
+          message: `Meter Values saved successfully`,
+          detailedMessages: newMeterValues });
+        });
     });
   }
 
@@ -521,7 +526,6 @@ class ChargingStation {
   }
 
   getConsumptions(connectorId, transactionId, startDateTime, endDateTime) {
-    var that = this;
     var invalidNbrOfMetrics = 0;
     var totalNbrOfMetrics = 0;
 
@@ -542,7 +546,7 @@ class ChargingStation {
 
     // Build the request
     return global.storage.getMeterValues(
-        that.getChargeBoxIdentity(),
+        this.getChargeBoxIdentity(),
         connectorId,
         transactionId,
         startDateTimeAdjusted,
@@ -553,7 +557,7 @@ class ChargingStation {
       var chargingStationConsumption = {};
       chargingStationConsumption.values = [];
       chargingStationConsumption.totalConsumption = 0;
-      chargingStationConsumption.chargeBoxIdentity = that.getChargeBoxIdentity();
+      chargingStationConsumption.chargeBoxIdentity = this.getChargeBoxIdentity();
       if (connectorId) {
         chargingStationConsumption.connectorId = connectorId;
       }
