@@ -22,12 +22,16 @@ class User {
     this._model.name = name;
   }
 
-  getLastName() {
-    return this._model.lastName;
+  getFirstName() {
+    return this._model.firstName;
   }
 
-  setLastName(lastName) {
-    this._model.lastName = lastName;
+  setFirstName(firstName) {
+    this._model.firstName = firstName;
+  }
+
+  getFullName() {
+    return this.getName() + " " + this.getFirstName(); 
   }
 
   getTagID() {

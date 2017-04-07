@@ -73,7 +73,7 @@ module.exports = {
     dest.ocppVersion = src.ocppVersion;
     dest.lastHeartBeat = src.lastHeartBeat;
     dest.lastReboot = src.lastReboot;
-    dest.meterIntervalSecs = src.meterIntervalSecs;
+    dest.meterIntervalSecs = src.meterIntervalSecs || 0;
     dest.connectors = src.connectors;
     if (!dest.connectors) {
       dest.connectors = [];

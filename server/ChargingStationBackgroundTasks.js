@@ -177,8 +177,14 @@ module.exports = {
     global.storage.getUserByTagId(user.tagID).then((userDB) => {
       // Found
       if (!userDB) {
+        var userNew = new User(user);
         // Save
-        new User(user).save();
+        userNew.save().then(() => {
+          Logging.logInfo({
+            source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkAndSaveUser",
+            message: `User ${userNew.getFullName()} with IdTag ${userNew.getTagID()} saved successfully`,
+            detailedMessages: user});
+        });
       }
     });
   }

@@ -291,103 +291,6 @@ class MongoDBStorage extends Storage {
     }));
   }
 
-  saveChargingStation(chargingStation) {
-    // Get
-    return this._getChargingStationMongoDB(chargingStation.getChargeBoxIdentity()).then((chargingStationMongoDB) => {
-      // Found?
-      if (!chargingStationMongoDB) {
-        // No: Create it
-        var newChargingStationMongoDB = new MDBChargingStation(chargingStation.getModel());
-        newChargingStationMongoDB._id = chargingStation.getChargeBoxIdentity();
-        // Create new
-        return newChargingStationMongoDB.save();
-      } else {
-        // Set data
-        Utils.updateChargingStationObject(chargingStation.getModel(), chargingStationMongoDB);
-        // No: Update it
-        return chargingStationMongoDB.save();
-      }
-    });
-  }
-
-  getChargingStations() {
-    // Exec request
-    return MDBChargingStation.find({}).sort( {_id: 1} ).exec().then((chargingStationsMongoDB) => {
-      var chargingStations = [];
-      // Create
-      chargingStationsMongoDB.forEach((chargingStationMongoDB) => {
-        chargingStations.push(new ChargingStation(chargingStationMongoDB));
-      });
-      // Ok
-      return chargingStations;
-    });
-  }
-
-  getChargingStation(chargeBoxIdentity) {
-    // Get
-    return this._getChargingStationMongoDB(chargeBoxIdentity).then((chargingStationMongoDB) => {
-      var chargingStation = null;
-      // Found
-      if (chargingStationMongoDB != null) {
-        // Create
-        chargingStation = new ChargingStation(chargingStationMongoDB);
-      }
-      return chargingStation;
-    });
-  }
-
-  _getChargingStationMongoDB(chargeBoxIdentity) {
-    // Exec request
-    return MDBChargingStation.find({"_id": chargeBoxIdentity}).then(chargingStationsMongoDB => {
-      var chargingStationMongoDB = null;
-      // Check
-      if (chargingStationsMongoDB.length > 0) {
-        chargingStationMongoDB = chargingStationsMongoDB[0];
-      }
-      // Ok
-      return chargingStationMongoDB;
-    });
-  }
-
-  getUsers() {
-    // Exec request
-    return MDBUser.find({}).sort( {name: 1} ).exec().then((usersMongoDB) => {
-      var users = [];
-      // Create
-      usersMongoDB.forEach((userMongoDB) => {
-        users.push(new User(userMongoDB));
-      });
-      // Ok
-      return users;
-    });
-  }
-
-  saveUser(user) {
-    // Check
-    if (!user.getTagID()) {
-      // ID ,ust be provided!
-      return Promise.reject( new Error("Error in saving the User: User has no Tag ID and cannot be created or updated") );
-    } else {
-      // Get User
-      return this._getUserByTagIdMongoDB(user.getTagID()).then((userMongoDB) => {
-        // Found?
-        if (!userMongoDB) {
-          // No: Create it
-          var newUserMongoDB = new MDBUser(user.getModel());
-          newUserMongoDB._id = user.getTagID();
-          // Create new
-          return newUserMongoDB.save();
-        } else {
-          // Set data
-          Utils.updateUser(user.getModel(), userMongoDB);
-
-          // No: Update it
-          return userMongoDB.save();
-        }
-      });
-    }
-  }
-
   getTransactions(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
     // // Get the Charging Station
     // return new Promise((resolve, reject) => {
@@ -457,28 +360,77 @@ class MongoDBStorage extends Storage {
     // });
   }
 
-  getUserByTagId(tagID) {
+  saveChargingStation(chargingStation) {
     // Get
-    return this._getUserByTagIdMongoDB(tagID).then((userMongoDB) => {
-      var user = null;
-      // Found
-      if (userMongoDB != null) {
-        user = new User(userMongoDB);
-      }
-      return user;
+    return MDBChargingStation.findOneAndUpdate(
+      {"_id": chargingStation.getChargeBoxIdentity()},
+      chargingStation.getModel(),
+      {new: true, upsert: true});
+  }
+
+  getChargingStations() {
+    // Exec request
+    return MDBChargingStation.find({}).sort( {_id: 1} ).exec().then((chargingStationsMongoDB) => {
+      var chargingStations = [];
+      // Create
+      chargingStationsMongoDB.forEach((chargingStationMongoDB) => {
+        chargingStations.push(new ChargingStation(chargingStationMongoDB));
+      });
+      // Ok
+      return chargingStations;
     });
   }
 
-  _getUserByTagIdMongoDB(tagID) {
+  getChargingStation(chargeBoxIdentity) {
+    // Exec request
+    return MDBChargingStation.find({"_id": chargeBoxIdentity}).then(chargingStationMongoDB => {
+      var chargingStation = null;
+      // Found
+      if (chargingStationMongoDB.length > 0) {
+        // Create
+        chargingStation = new ChargingStation(chargingStationMongoDB[0]);
+      }
+      return chargingStation;
+    });
+  }
+
+  getUsers() {
+    // Exec request
+    return MDBUser.find({}).sort( {name: 1} ).exec().then((usersMongoDB) => {
+      var users = [];
+      // Create
+      usersMongoDB.forEach((userMongoDB) => {
+        users.push(new User(userMongoDB));
+      });
+      // Ok
+      return users;
+    });
+  }
+
+  saveUser(user) {
+    // Check
+    if (!user.getTagID()) {
+      // ID ,ust be provided!
+      return Promise.reject( new Error("Error in saving the User: User has no Tag ID and cannot be created or updated") );
+    } else {
+      // Get
+      return MDBUser.findOneAndUpdate(
+        {"_id": user.getTagID()},
+        user.getModel(),
+        {new: true, upsert: true});
+    }
+  }
+
+  getUserByTagId(tagID) {
     // Exec request
     return MDBUser.find({"_id": tagID}).then((usersMongoDB) => {
-      var userMongoDB = null;
+      var user = null;
       // Check
       if (usersMongoDB.length > 0) {
-        userMongoDB = usersMongoDB[0];
+        user = new User(usersMongoDB[0]);
       }
       // Ok
-      return userMongoDB;
+      return user;
     });
   }
 }
