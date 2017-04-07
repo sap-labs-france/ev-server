@@ -182,7 +182,7 @@ module.exports = {
         userNew.save().then(() => {
           Logging.logInfo({
             source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkAndSaveUser",
-            message: `User ${userNew.getFullName()} with IdTag ${userNew.getTagID()} saved successfully`,
+            message: `User ${userNew.getFullName()} with IdTag ${userNew.getTagID()} has been saved successfully`,
             detailedMessages: user});
         });
       }

@@ -45,6 +45,8 @@ class Logging {
     if (log.detailedMessages && !Array.isArray(log.detailedMessages)){
       // Handle update of array
       log.detailedMessages = [log.detailedMessages];
+      // Format
+      log.detailedMessages = Logging._format(log.detailedMessages);
     }
 
     // Log
@@ -91,6 +93,30 @@ class Logging {
     });
   }
 
+  static _format(detailedMessage) {
+    // JSON?
+    if (typeof detailedMessage === "object") {
+      // Check that every detailedMessages is parsed
+      return Logging._format(JSON.stringify(detailedMessage));
+      // String?
+    } else if (typeof detailedMessage === "string") {
+      var parsedDetailedMessage;
+      try {
+        // Clean the JSon String
+        parsedDetailedMessage = detailedMessage.replace(/\\"/g, '"').replace(/"{/g, '{').replace(/}"/g, '}');
+        // Try to parse it
+        parsedDetailedMessage = JSON.stringify(JSON.parse(parsedDetailedMessage));
+      } catch(err) {
+        // Err: Apply default formatting
+        parsedDetailedMessage = detailedMessage;
+      }
+      // Replace
+      return parsedDetailedMessage;
+    } else {
+      // Unknown
+      return detailedMessage;
+    }
+  }
 }
 
 module.exports=Logging;
