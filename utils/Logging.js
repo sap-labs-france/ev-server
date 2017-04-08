@@ -100,15 +100,17 @@ class Logging {
       return Logging._format(JSON.stringify(detailedMessage));
       // String?
     } else if (typeof detailedMessage === "string") {
-      var parsedDetailedMessage;
+      var parsedDetailedMessage = detailedMessage.replace(/\\"/g, '"').replace(/"{/g, '{').replace(/}"/g, '}');;
       try {
-        // Clean the JSon String
-        parsedDetailedMessage = detailedMessage.replace(/\\"/g, '"').replace(/"{/g, '{').replace(/}"/g, '}');
         // Try to parse it
         parsedDetailedMessage = JSON.stringify(JSON.parse(parsedDetailedMessage));
       } catch(err) {
-        // Err: Apply default formatting
-        parsedDetailedMessage = detailedMessage;
+        // Nothing to log
+        // Log
+        Logging.logWarning({
+          source: "Central Server", module: "Logging", method: "_format",
+          message: `Error when formatting a Log: '${err.toString()}'`,
+          detailedMessage: err.stack });
       }
       // Replace
       return parsedDetailedMessage;
