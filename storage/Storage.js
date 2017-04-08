@@ -14,7 +14,7 @@ class Storage {
   getUsers() {
   }
 
-  getUserByTagId(tagID) {
+  getUser(tagID) {
   }
 
   saveUser(user) {

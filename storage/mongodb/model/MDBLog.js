@@ -1,11 +1,11 @@
 var mongoose = require('mongoose');
 
 module.exports = mongoose.model('Log',{
+  timestamp: Date,
   level: String,
   source: String,
   module: String,
   method: String,
-  timestamp: Date,
   action: String,
   message: String,
   detailedMessages: [],

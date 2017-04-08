@@ -82,26 +82,23 @@ module.exports = {
 
   updateConfiguration(src, dest) {
     // Set it
-    dest.chargeBoxIdentity = src.chargeBoxIdentity;
     dest.timestamp = src.timestamp;
     dest.configuration = src.configuration;
   },
 
   updateStatusNotification(src, dest) {
     // Set it
-    dest.chargeBoxIdentity = src.chargeBoxIdentity;
     dest.connectorId = src.connectorId;
+    dest.timestamp = src.timestamp;
     dest.status = src.status;
     dest.errorCode = src.errorCode;
     dest.info = src.info;
-    dest.timestamp = src.timestamp;
     dest.vendorId = src.vendorId;
     dest.vendorErrorCode = src.vendorErrorCode;
   },
 
   updateMeterValue(src, dest) {
     // Set it
-    dest.chargeBoxIdentity = src.chargeBoxIdentity;
     dest.connectorId = src.connectorId;
     dest.transactionId = src.transactionId;
     dest.timestamp = src.timestamp;
@@ -142,11 +139,9 @@ module.exports = {
 
   updateStartTransaction(src, dest) {
     // Set it
-    dest.chargeBoxIdentity = src.chargeBoxIdentity;
     dest.connectorId = src.connectorId;
-    dest.transactionId = src.transactionId;
-    dest.idTag = src.idTag;
     dest.timestamp = src.timestamp;
+    dest.transactionId = src.transactionId;
     dest.meterStart = src.meterStart;
   }
 }

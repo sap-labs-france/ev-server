@@ -349,26 +349,14 @@ class ChargingStation {
       newMeterValues.values.push(newMeterValue);
     });
 
-    // Update the Heartbeat
-    this.setLastHeartBeat(new Date());
-    // Save
-    return this.save().then(() => {
+    // Save it
+    return global.storage.saveMeterValues(newMeterValues).then(() => {
       // Log
       Logging.logInfo({
         source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "saveMeterValues",
         action: "MeterValues",
-        message: `Charging Station ${this.getChargeBoxIdentity()} saved successfully`,
-        detailedMessages: this.getModel() });
-
-      // Save it
-      return global.storage.saveMeterValues(newMeterValues).then(() => {
-        // Log
-        Logging.logInfo({
-          source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "saveMeterValues",
-          action: "MeterValues",
-          message: `Meter Values saved successfully`,
-          detailedMessages: newMeterValues });
-        });
+        message: `Meter Values saved successfully`,
+        detailedMessages: newMeterValues });
     });
   }
 
@@ -406,7 +394,7 @@ class ChargingStation {
     // Set the charger ID
     transaction.chargeBoxIdentity = this.getChargeBoxIdentity();
     // Get User
-    return global.storage.getUserByTagId(transaction.idTag).then((user) => {
+    return global.storage.getUser(transaction.idTag).then((user) => {
       // Found?
       if (user) {
         // Save it
@@ -450,7 +438,7 @@ class ChargingStation {
     authorize.timestamp = new Date();
 
     // Get User
-    return global.storage.getUserByTagId(authorize.idTag).then((user) => {
+    return global.storage.getUser(authorize.idTag).then((user) => {
       // Found?
       if (user) {
         // Save it
@@ -465,7 +453,7 @@ class ChargingStation {
     // Set the charger ID
     stopTransaction.chargeBoxIdentity = this.getChargeBoxIdentity();
     // Get User
-    return global.storage.getUserByTagId(stopTransaction.idTag).then((user) => {
+    return global.storage.getUser(stopTransaction.idTag).then((user) => {
       // Found?
       if (user) {
         // Save it

@@ -1,11 +1,11 @@
 var mongoose = require('mongoose');
 
 module.exports = mongoose.model('StartTransaction',{
+  _id: String,
   chargeBoxID: {type: String, ref: 'ChargingStation'},
-  userID: {type: String, ref: 'User'},
   connectorId: Number,
-  transactionId: Number,
-  idTag: String,
   timestamp: Date,
+  userID: {type: String, ref: 'User'},
+  transactionId: Number,
   meterStart: Number
 });

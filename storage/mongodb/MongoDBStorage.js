@@ -17,6 +17,7 @@ var ChargingStation = require('../../model/ChargingStation');
 var Utils = require('../../utils/Utils');
 var Storage = require('../Storage');
 var Logging = require('../../utils/Logging');
+var crypto = require('crypto');
 
 class MongoDBStorage extends Storage {
   constructor(dbConfig) {
@@ -87,7 +88,7 @@ class MongoDBStorage extends Storage {
       configDate = new Date();
     }
     // Exec request
-    return MDBConfiguration.find({"chargeBoxIdentity": chargeBoxIdentity, timestamp: { $lte: configDate } })
+    return MDBConfiguration.find({"chargeBoxID": chargeBoxIdentity, timestamp: { $lte: configDate } })
         .sort({timestamp: -1}).limit(1).exec().then((configurationMongoDB) => {
       var configuration = {};
       if (configurationMongoDB[0]) {
@@ -188,6 +189,10 @@ class MongoDBStorage extends Storage {
   saveBootNotification(bootNotification) {
     // Create model
     var bootNotificationMongoDB = new MDBBootNotification(bootNotification);
+    // Set the ID
+    bootNotificationMongoDB._id = crypto.createHash('md5')
+      .update(`${bootNotification.chargeBoxIdentity}~${bootNotification.timestamp}`)
+      .digest("hex");
     bootNotificationMongoDB.chargeBoxID = bootNotification.chargeBoxIdentity;
     // Create new
     return bootNotificationMongoDB.save();
@@ -196,6 +201,10 @@ class MongoDBStorage extends Storage {
   saveDataTransfer(dataTransfer) {
     // Create model
     var dataTransferMongoDB = new MDBDataTransfer(dataTransfer);
+    // Set the ID
+    dataTransferMongoDB._id = crypto.createHash('md5')
+      .update(`${dataTransfer.chargeBoxIdentity}~${dataTransfer.timestamp}`)
+      .digest("hex");
     // Set the ID
     dataTransferMongoDB.chargeBoxID = dataTransfer.chargeBoxIdentity;
     // Create new
@@ -206,6 +215,9 @@ class MongoDBStorage extends Storage {
     // Create model
     var configurationMongoDB = new MDBConfiguration(configuration);
     // Set the ID
+    configurationMongoDB._id = crypto.createHash('md5')
+      .update(`${configuration.chargeBoxIdentity}~${configuration.timestamp}`)
+      .digest("hex");
     configurationMongoDB.chargeBoxID = configuration.chargeBoxIdentity;
     configurationMongoDB.configuration = configuration.configurationKey;
     // Create new
@@ -216,6 +228,9 @@ class MongoDBStorage extends Storage {
     // Create model
     var statusNotificationMongoDB = new MDBStatusNotification(statusNotification);
     // Set the ID
+    statusNotificationMongoDB._id = crypto.createHash('md5')
+      .update(`${statusNotification.chargeBoxIdentity}~${statusNotification.connectorId}~${statusNotification.timestamp}`)
+      .digest("hex");
     statusNotificationMongoDB.chargeBoxID = statusNotification.chargeBoxIdentity;
     // Create new
     return statusNotificationMongoDB.save();
@@ -225,6 +240,9 @@ class MongoDBStorage extends Storage {
     // Create model
     var diagnosticsStatusNotificationMongoDB = new MDBDiagnosticsStatusNotification(diagnosticsStatusNotification);
     // Set the ID
+    diagnosticsStatusNotificationMongoDB._id = crypto.createHash('md5')
+      .update(`${diagnosticsStatusNotification.chargeBoxIdentity}~${diagnosticsStatusNotification.timestamp.toISOString()}`)
+      .digest("hex");
     diagnosticsStatusNotificationMongoDB.chargeBoxID = diagnosticsStatusNotification.chargeBoxIdentity;
     // Create new
     return diagnosticsStatusNotificationMongoDB.save();
@@ -233,6 +251,10 @@ class MongoDBStorage extends Storage {
   saveFirmwareStatusNotification(firmwareStatusNotification) {
     // Create model
     var firmwareStatusNotificationMongoDB = new MDBFirmwareStatusNotification(firmwareStatusNotification);
+    // Set the ID
+    firmwareStatusNotificationMongoDB._id = crypto.createHash('md5')
+      .update(`${firmwareStatusNotification.chargeBoxIdentity}~${firmwareStatusNotification.timestamp.toISOString()}`)
+      .digest("hex");
     // Set the ID
     firmwareStatusNotificationMongoDB.chargeBoxID = firmwareStatusNotification.chargeBoxIdentity;
     // Create new
@@ -254,6 +276,10 @@ class MongoDBStorage extends Storage {
   saveAuthorize(authorize) {
     // Create model
     var authorizeMongoDB = new MDBAuthorize(authorize);
+    // Set the ID
+    authorizeMongoDB._id = crypto.createHash('md5')
+      .update(`${authorize.chargeBoxIdentity}~${authorize.timestamp.toISOString()}`)
+      .digest("hex");
     authorizeMongoDB.chargeBoxID = authorize.chargeBoxIdentity;
     // Create new
     return authorizeMongoDB.save();
@@ -262,7 +288,10 @@ class MongoDBStorage extends Storage {
   saveStartTransaction(startTransaction) {
     // Create model
     var startTransactionMongoDB = new MDBStartTransaction(startTransaction);
-    // Set the IDs
+    // Set the ID
+    startTransactionMongoDB._id = crypto.createHash('md5')
+      .update(`${startTransaction.chargeBoxIdentity}~${startTransaction.connectorId}~${startTransaction.timestamp}`)
+      .digest("hex");
     startTransactionMongoDB.chargeBoxID = startTransaction.chargeBoxIdentity;
     startTransactionMongoDB.userID = startTransaction.idTag;
     // Create new
@@ -272,6 +301,10 @@ class MongoDBStorage extends Storage {
   saveStopTransaction(stopTransaction) {
     // Create model
     var stopTransactionMongoDB = new MDBStopTransaction(stopTransaction);
+    // Set the ID
+    stopTransactionMongoDB._id = crypto.createHash('md5')
+      .update(`${stopTransaction.chargeBoxIdentity}~${stopTransaction.connectorId}~${stopTransaction.timestamp}`)
+      .digest("hex");
     // Set the ID
     stopTransactionMongoDB.chargeBoxID = stopTransaction.chargeBoxIdentity;
     stopTransactionMongoDB.userID = stopTransaction.idTag;
@@ -285,6 +318,9 @@ class MongoDBStorage extends Storage {
       // Create model
       var meterValueMongoDB = new MDBMeterValue(meterValue);
       // Set the ID
+      meterValueMongoDB._id = crypto.createHash('md5')
+        .update(`${meterValue.chargeBoxIdentity}~${meterValue.connectorId}~${meterValue.timestamp}`)
+        .digest("hex");
       meterValueMongoDB.chargeBoxID = meterValues.chargeBoxIdentity;
       // Save
       return meterValueMongoDB.save();
@@ -341,7 +377,7 @@ class MongoDBStorage extends Storage {
     //           // Get the user
     //           userPromises.push(
     //             // Get the user
-    //             this.getUserByTagId(transaction.idTag).then((user) => {
+    //             this.getUser(transaction.idTag).then((user) => {
     //               // Set
     //               if(user) {
     //                 // Set the User
@@ -383,12 +419,12 @@ class MongoDBStorage extends Storage {
 
   getChargingStation(chargeBoxIdentity) {
     // Exec request
-    return MDBChargingStation.find({"_id": chargeBoxIdentity}).then(chargingStationMongoDB => {
+    return MDBChargingStation.findById({"_id": chargeBoxIdentity}).then(chargingStationMongoDB => {
       var chargingStation = null;
       // Found
-      if (chargingStationMongoDB.length > 0) {
+      if (chargingStationMongoDB) {
         // Create
-        chargingStation = new ChargingStation(chargingStationMongoDB[0]);
+        chargingStation = new ChargingStation(chargingStationMongoDB);
       }
       return chargingStation;
     });
@@ -421,13 +457,13 @@ class MongoDBStorage extends Storage {
     }
   }
 
-  getUserByTagId(tagID) {
+  getUser(tagID) {
     // Exec request
-    return MDBUser.find({"_id": tagID}).then((usersMongoDB) => {
+    return MDBUser.findById({"_id": tagID}).then((userMongoDB) => {
       var user = null;
       // Check
-      if (usersMongoDB.length > 0) {
-        user = new User(usersMongoDB[0]);
+      if (userMongoDB) {
+        user = new User(userMongoDB);
       }
       // Ok
       return user;

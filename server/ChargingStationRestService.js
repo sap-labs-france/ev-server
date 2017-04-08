@@ -104,7 +104,7 @@ module.exports = function(req, res, next) {
 
       // Get the user
       case "UserByTagId":
-        global.storage.getUserByTagId(req.query.TagId).then(function(user) {
+        global.storage.getUser(req.query.TagId).then(function(user) {
           var userJSon = {};
           if (user) {
             // Set the model

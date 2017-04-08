@@ -25,11 +25,6 @@ module.exports = {
           return module.exports.computeChargingStationsConsumption(chargingStation).then((updated) => {
             // Update
             chargingStationUpdated = chargingStationUpdated || updated;
-            // Update the status
-            return module.exports.checkChargingStationsStatus(chargingStation);
-          }).then((updated) => {
-            // Update
-            chargingStationUpdated = chargingStationUpdated || updated;
             // Updated?
             if (chargingStationUpdated) {
               // Save
@@ -99,69 +94,6 @@ module.exports = {
     });
   },
 
-  checkChargingStationsStatus: function(chargingStation) {
-    // Create a promise
-    return new Promise((fulfill, reject) => {
-      var promises = [];
-      var chargingStationUpdated = false;
-
-      // Get Connectors
-      var connectors = chargingStation.getConnectors();
-
-      // Connection
-      connectors.forEach((connector) => {
-        // Get config
-        var chargingStationConfig = Utils.getChargingStationConfig();
-        var currentDate = new Date();
-        var dateHeartBeatCeil = new Date(chargingStation.getLastHeartBeat());
-
-        // Set a value in the future
-        dateHeartBeatCeil.setSeconds(
-          chargingStation.getLastHeartBeat().getSeconds() +
-          (chargingStationConfig.heartbeatInterval * 2));
-
-        // Not longer any heartbeat?
-        if (dateHeartBeatCeil < currentDate) {
-          // Check
-          if (connector.status !== 'Unknown') {
-            // Log
-            Logging.logInfo({
-              source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkChargingStationsStatus",
-              message: `Charging Station ${chargingStation.getChargeBoxIdentity()} Status changed from '${connector.status}' to 'Unknown'` });
-            // Reset status
-            connector.status = 'Unknown';
-            // Update
-            chargingStationUpdated = true;
-          }
-          // Nothing to do
-          return Promise.resolve();
-        } else {
-          // Refresh with the last status for the connector
-          promises.push(chargingStation.getLastStatusNotification(connector.connectorId).then((lastStatus) => {
-            // Check
-            if (lastStatus.status && connector.status !== lastStatus.status) {
-              // Log
-              Logging.logInfo({
-                source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkChargingStationsStatus",
-                message: `Charging Station ${chargingStation.getChargeBoxIdentity()} Status changed from '${connector.status}' to '${lastStatus.status}'` });
-              // Reset status
-              connector.status = lastStatus.status;
-              // Update
-              chargingStationUpdated = true;
-            }
-            // Nothing to do
-            return Promise.resolve();
-          }));
-        };
-      });
-
-      // Wait
-      Promise.all(promises).then(() => {
-        fulfill(chargingStationUpdated);
-      });
-    });
-  },
-
   uploadUsers() {
     // Get from the file system
     var users = Utils.getUsers();
@@ -174,7 +106,7 @@ module.exports = {
 
   checkAndSaveUser(user) {
     // Get user
-    global.storage.getUserByTagId(user.tagID).then((userDB) => {
+    global.storage.getUser(user.tagID).then((userDB) => {
       // Found
       if (!userDB) {
         var userNew = new User(user);

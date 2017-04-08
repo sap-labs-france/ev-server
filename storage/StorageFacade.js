@@ -215,9 +215,9 @@ class StorageFacade extends Storage {
     return _leadingStorage.getLogs(numberOfLogging);
   }
 
-  getUserByTagId(tagID) {
+  getUser(tagID) {
     // Delegate
-    return _leadingStorage.getUserByTagId(tagID);
+    return _leadingStorage.getUser(tagID);
   }
 
   saveUser(user) {

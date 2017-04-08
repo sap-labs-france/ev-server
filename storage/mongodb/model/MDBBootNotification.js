@@ -1,7 +1,9 @@
 var mongoose = require('mongoose');
 
 module.exports = mongoose.model('BootNotification',{
+  _id: String,
   chargeBoxIdentity: String,
+  timestamp: Date,
   chargeBoxID: {type: String, ref: 'ChargingStation'},
   chargePointVendor: String,
   chargePointModel: String,
@@ -13,6 +15,5 @@ module.exports = mongoose.model('BootNotification',{
   meterType: String,
   meterSerialNumber: String,
   endpoint: String,
-  ocppVersion: String,
-  timestamp: Date
+  ocppVersion: String
 });
