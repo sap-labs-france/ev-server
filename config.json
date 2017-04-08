@@ -10,7 +10,7 @@
       "implementation": "mongodb",
       "host": "localhost",
       "port": 27017,
-      "schema": "evcharger",
+      "schema": "evse",
       "leading" : true
     }
   ],
