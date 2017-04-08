@@ -61,8 +61,8 @@ class Logging {
       message: `>> OCPP Request Received`,
       action: action,
       detailedMessages: {
-        "args": JSON.stringify(args),
-        "headers": JSON.stringify(headers)
+        "args": args,
+        "headers": headers
       }
     });
   }
@@ -75,7 +75,7 @@ class Logging {
       message: `<< OCPP Request Sent`,
       action: action,
       detailedMessages: {
-        "args": JSON.stringify(args)
+        "args": args
       }
     });
   }
@@ -88,7 +88,7 @@ class Logging {
       message: `<< OCPP Request Returned`,
       action: action,
       detailedMessages: {
-        "result": JSON.stringify(result)
+        "result": result
       }
     });
   }
@@ -100,12 +100,11 @@ class Logging {
       return Logging._format(JSON.stringify(detailedMessage));
       // String?
     } else if (typeof detailedMessage === "string") {
-      var parsedDetailedMessage = detailedMessage.replace(/\\"/g, '"').replace(/"{/g, '{').replace(/}"/g, '}');;
+      var parsedDetailedMessage = detailedMessage.replace(/\\"/g, '"').replace(/"{/g, '{').replace(/}"/g, '}');
       try {
         // Try to parse it
         parsedDetailedMessage = JSON.stringify(JSON.parse(parsedDetailedMessage));
       } catch(err) {
-        // Nothing to log
         // Log
         Logging.logWarning({
           source: "Central Server", module: "Logging", method: "_format",
