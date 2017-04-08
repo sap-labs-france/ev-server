@@ -203,7 +203,7 @@ class MongoDBStorage extends Storage {
     var dataTransferMongoDB = new MDBDataTransfer(dataTransfer);
     // Set the ID
     dataTransferMongoDB._id = crypto.createHash('md5')
-      .update(`${dataTransfer.chargeBoxIdentity}~${dataTransfer.timestamp}`)
+      .update(`${dataTransfer.chargeBoxIdentity}~${dataTransfer.data}~${dataTransfer.timestamp}`)
       .digest("hex");
     // Set the ID
     dataTransferMongoDB.chargeBoxID = dataTransfer.chargeBoxIdentity;
