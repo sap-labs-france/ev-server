@@ -102,7 +102,8 @@ module.exports = {
     dest.connectorId = src.connectorId;
     dest.transactionId = src.transactionId;
     dest.timestamp = src.timestamp;
-    dest.values = src.values;
+    dest.value = src.value;
+    dest.attribute = src.attribute;
   },
 
   updateUser(src, dest) {
