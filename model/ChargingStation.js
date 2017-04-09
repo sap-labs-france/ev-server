@@ -316,33 +316,13 @@ class ChargingStation {
 
       // Values provided?
       if (value.value) {
-        // Array?
-        if (Array.isArray(value.value)) {
-          // OCPP 1.5 & 1.6: Set the values
-          var parsedValues = [];
-          value.value.forEach((valueJson) => {
-            if (typeof valueJson != 'object') {
-              // OCPP 1.5: Simple Type
-              parsedValues.push({"value": parseInt(valueJson)});
-            } else {
-              // OCPP 1.6: Structure
-              // Convert to an int
-              valueJson.value = parseInt(valueJson.value);
-              // Push the whole structure
-              parsedValues.push(valueJson);
-            }
-          });
-          newMeterValue.values = parsedValues;
+        // OCCP1.2: Set the values
+        if(value.value.$value) {
+          // Set
+          newMeterValue.value = value.value.$value;
+          newMeterValue.attribute = value.value.attributes;
         } else {
-          // OCCP1.2: Set the values
-          if(value.value.$value) {
-            newMeterValue.values = [{
-              "value": parseInt(value.value.$value),
-              "attributes" : value.value.attributes
-            }];
-          } else {
-            newMeterValue.values = [{"value": parseInt(value.value)}];
-          }
+          newMeterValue.value = parseInt(value.value);
         }
       }
       // Add
@@ -565,64 +545,58 @@ class ChargingStation {
 
       // Build the model
       meterValues.forEach((meterValue) => {
-        // Browse values
-        meterValue.values.forEach((value) => {
-          // Filter on consumption value
-          if (value.attributes && value.attributes.measurand && value.attributes.measurand === "Energy.Active.Import.Register") {
-            // Avoid twice the same timestamp
-            if (!lastTimeStamp || lastTimeStamp.toISOString() !== meterValue.timestamp.toISOString()) {
-              // Log
-              if (lastTimeStamp) {
-                // Get the diff according the last timestamp
-                lastTimeInterval = ((meterValue.timestamp - lastTimeStamp) / 1000);
-                // Check
-                if (lastTimeInterval !== meterIntervalSecs) {
-                  invalidNbrOfMetrics++;
-                  // Don't take into account this value
-                  if (meterValue.values.length > 0) {
-                    // Keep the last one
-                    lastValue = meterValue.values[meterValue.values.length-1];
-                    // Keep last timestamp
-                    lastTimeStamp = meterValue.timestamp;
-                  }
-                  // Continue
-                  return;
-                }
+        // Filter on consumption value
+        if (meterValue.attribute && meterValue.attribute.measurand && meterValue.attribute.measurand === "Energy.Active.Import.Register") {
+          // Avoid twice the same timestamp
+          if (!lastTimeStamp || lastTimeStamp.toISOString() !== meterValue.timestamp.toISOString()) {
+            // Log
+            if (lastTimeStamp) {
+              // Get the diff according the last timestamp
+              lastTimeInterval = ((meterValue.timestamp - lastTimeStamp) / 1000);
+              // Check
+              if (lastTimeInterval !== meterIntervalSecs) {
+                invalidNbrOfMetrics++;
+                // Keep the last one
+                lastValue = meterValue.value;
+                // Keep last timestamp
+                lastTimeStamp = meterValue.timestamp;
+                // Continue
+                return;
               }
             }
-
-            // First init
-            if (!firstValue) {
-              // Keep
-              lastValue = value.value;
-              firstValue = true;
-
-              // Calculate the consumption with the last value provided
-            } else {
-              // Last value is > ?
-              if (lastValue > value.value) {
-                // Yes: reinit it (the value has started over from 0)
-                lastValue = 0;
-              }
-
-              // Start to return the value after the requested date
-              if (meterValue.timestamp >= startingDate) {
-                totalNbrOfMetrics++;
-                // compute
-                var consumption = (value.value - lastValue) * sampleMultiplier;
-                // Counting
-                chargingStationConsumption.totalConsumption += value.value - lastValue;
-                // Set the consumption
-                chargingStationConsumption.values.push({date: meterValue.timestamp, value: consumption });
-              }
-
-              // Set Last Value
-              lastValue = value.value;
-            }
-            // Keep last timestamp
-            lastTimeStamp = meterValue.timestamp;
           }
-        });
+
+          // First init
+          if (!firstValue) {
+            // Keep
+            lastValue = meterValue.value;
+            firstValue = true;
+
+            // Calculate the consumption with the last value provided
+          } else {
+            // Last value is > ?
+            if (lastValue > meterValue.value) {
+              // Yes: reinit it (the value has started over from 0)
+              lastValue = 0;
+            }
+
+            // Start to return the value after the requested date
+            if (meterValue.timestamp >= startingDate) {
+              totalNbrOfMetrics++;
+              // compute
+              var consumption = (meterValue.value - lastValue) * sampleMultiplier;
+              // Counting
+              chargingStationConsumption.totalConsumption += meterValue.value - lastValue;
+              // Set the consumption
+              chargingStationConsumption.values.push({date: meterValue.timestamp, value: consumption });
+            }
+
+            // Set Last Value
+            lastValue = meterValue.value;
+          }
+          // Keep last timestamp
+          lastTimeStamp = meterValue.timestamp;
+        }
       });
 
       if (totalNbrOfMetrics) {

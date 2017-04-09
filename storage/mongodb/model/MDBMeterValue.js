@@ -8,16 +8,12 @@ const Attribute = new mongoose.Schema({
   unit: String
 });
 
-const Value = new mongoose.Schema({
-  value: Number,
-  attributes: Attribute
-});
-
 module.exports = mongoose.model('MeterValue', {
   _id: String,
   chargeBoxID: {type: String, ref: 'ChargingStation'},
   connectorId: Number,
   timestamp: Date,
   transactionId: Number,
-  values: []
+  value: Number,
+  attribute: Attribute
 });

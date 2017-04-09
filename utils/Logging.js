@@ -109,7 +109,7 @@ class Logging {
         Logging.logWarning({
           source: "Central Server", module: "Logging", method: "_format",
           message: `Error when formatting a Log: '${err.toString()}'`,
-          detailedMessage: err.stack });
+          detailedMessage: parsedDetailedMessage });
       }
       // Replace
       return parsedDetailedMessage;

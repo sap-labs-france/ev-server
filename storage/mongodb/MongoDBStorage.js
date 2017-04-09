@@ -318,8 +318,9 @@ class MongoDBStorage extends Storage {
       // Create model
       var meterValueMongoDB = new MDBMeterValue(meterValue);
       // Set the ID
+      console.log(`${meterValue.chargeBoxIdentity}~${meterValue.connectorId}~${meterValue.timestamp}~${meterValues.value}`);
       meterValueMongoDB._id = crypto.createHash('md5')
-        .update(`${meterValue.chargeBoxIdentity}~${meterValue.connectorId}~${meterValue.timestamp}`)
+        .update(`${meterValue.chargeBoxIdentity}~${meterValue.connectorId}~${meterValue.timestamp}~${meterValues.value}`)
         .digest("hex");
       meterValueMongoDB.chargeBoxID = meterValues.chargeBoxIdentity;
       // Save
