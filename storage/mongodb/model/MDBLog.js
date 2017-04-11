@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
 
 module.exports = mongoose.model('Log',{
-  timestamp: Date,
+  timestamp: { type: Date, index: true },
   level: String,
   source: String,
   module: String,

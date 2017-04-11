@@ -96,8 +96,16 @@ class Logging {
   static _format(detailedMessage) {
     // JSON?
     if (typeof detailedMessage === "object") {
-      // Check that every detailedMessages is parsed
-      return Logging._format(JSON.stringify(detailedMessage));
+      try {
+        // Check that every detailedMessages is parsed
+        return Logging._format(JSON.stringify(detailedMessage));
+      } catch(err) {
+        // Log
+        Logging.logWarning({
+          source: "Central Server", module: "Logging", method: "_format",
+          message: `Error when formatting a Log (stringify): '${err.toString()}'`,
+          detailedMessages: parsedDetailedMessage });
+      }
       // String?
     } else if (typeof detailedMessage === "string") {
       var parsedDetailedMessage = detailedMessage.replace(/\\"/g, '"').replace(/"{/g, '{').replace(/}"/g, '}');
@@ -108,7 +116,7 @@ class Logging {
         // Log
         Logging.logWarning({
           source: "Central Server", module: "Logging", method: "_format",
-          message: `Error when formatting a Log: '${err.toString()}'`,
+          message: `Error when formatting a Log (parse): '${err.toString()}'`,
           detailedMessages: parsedDetailedMessage });
       }
       // Replace
