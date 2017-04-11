@@ -31,7 +31,7 @@ class User {
   }
 
   getFullName() {
-    return this.getName() + " " + this.getFirstName(); 
+    return this.getName() + " " + this.getFirstName();
   }
 
   getTagID() {
@@ -40,6 +40,14 @@ class User {
 
   setTagID(tagID) {
     this._model.tagID = tagID;
+  }
+
+  getImage() {
+    return this._model.image;
+  }
+
+  setImage(image) {
+    this._model.image = image;
   }
 
   getEMail() {
@@ -58,14 +66,6 @@ class User {
     this._model.phone = phone;
   }
 
-  getBadgeNumber() {
-    return this._model.badgeNumber;
-  }
-
-  setBadgeNumber(phone) {
-    this._model.badgeNumber = badgeNumber;
-  }
-
   getINumber() {
     return this._model.iNumber;
   }
@@ -82,20 +82,44 @@ class User {
     this._model.costCenter = costCenter;
   }
 
-  getLocation() {
-    return this._model.location;
+  getStatus() {
+    return this._model.status;
   }
 
-  setLocation(location) {
-    this._model.location = location;
+  setStatus(status) {
+    this._model.status = status;
   }
 
-  getElectricVehicules()  {
-    return this._model.electricVehicules;
+  getCreatedBy() {
+    return this._model.createdBy;
   }
 
-  setElectricVehicules(electricVehicules)  {
-    this._model.electricVehicules = electricVehicules;
+  setCreatedBy(createdBy) {
+    this._model.createdBy = createdBy;
+  }
+
+  getCreatedOn() {
+    return this._model.createdOn;
+  }
+
+  setCreatedOn(createdOn) {
+    this._model.createdOn = createdOn;
+  }
+
+  getLastChangedBy() {
+    return this._model.lastChangedBy;
+  }
+
+  setLastChangedBy(lastChangedBy) {
+    this._model.lastChangedBy = lastChangedBy;
+  }
+
+  getLastChangedOn() {
+    return this._model.lastChangedOn;
+  }
+
+  setLastChangedOn(lastChangedOn) {
+    this._model.lastChangedOn = lastChangedOn;
   }
 
   save() {

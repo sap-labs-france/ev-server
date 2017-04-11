@@ -1,17 +1,29 @@
 var mongoose = require('mongoose');
 
+const Address = new mongoose.Schema({
+  address1: String,
+  address2: String,
+  addressPostalCode: String,
+  addressLocality: String,
+  addressRegion: String,
+  addressCountry: String
+});
+
 module.exports = mongoose.model('User',{
-  _id: String, 
+  _id: String,
   name: String,
   firstName: String,
+  image: String,
   tagID: String,
   email: String,
   phone: String,
   mobile: String,
-  badgeNumber: Number,
   iNumber: String,
   costCenter: Number,
-  location: String,
   status: String,
-  electricVehicules: []
+  addresses: [],
+  createdBy: String,
+  createdOn: Date,
+  lastChangedBy: String,
+  lastChangedOn: Date
 });

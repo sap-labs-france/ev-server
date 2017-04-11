@@ -110,20 +110,25 @@ module.exports = {
     // Set it
     dest.name = src.name;
     dest.firstName = src.firstName;
+    dest.image = src.image;
     dest.tagID = src.tagID;
     dest.email = src.email;
     dest.phone = src.phone;
     dest.mobile = src.mobile;
-    dest.badgeNumber = src.badgeNumber;
     dest.iNumber = src.iNumber;
     dest.costCenter = src.costCenter;
-    dest.location = src.location;
+    dest.status = src.status;
     dest.createdBy = src.createdBy;
     dest.createdOn = src.createdOn;
     dest.lastChangedBy = src.lastChangedBy;
     dest.lastChangedOn = src.lastChangedOn;
-    dest.status = src.status;
-    dest.electricVehicules = src.electricVehicules;
+    if (!dest.createdBy) {
+      // Set default user
+      dest.createdBy = "Central Server";
+      dest.createdOn = new Date();
+      dest.lastChangedBy = dest.createdBy;
+      dest.lastChangedOn = dest.createdOn;
+    }
   },
 
   updateLoggingObject(src, dest) {

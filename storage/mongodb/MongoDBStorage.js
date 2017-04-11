@@ -433,7 +433,7 @@ class MongoDBStorage extends Storage {
 
   getUsers() {
     // Exec request
-    return MDBUser.find({}).sort( {name: 1} ).exec().then((usersMongoDB) => {
+    return MDBUser.find({}).sort( {name: 1, firstName: 1} ).exec().then((usersMongoDB) => {
       var users = [];
       // Create
       usersMongoDB.forEach((userMongoDB) => {

@@ -6,14 +6,9 @@
 		"email": "gerald.seiler@sap.com",
 		"phone": "",
 		"mobile": "",
-		"badgeNumber": 9999999,
 		"iNumber": "I301832",
-		"costCenter": 0,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": [{
-			"plate": "DT-952-BW"
-		}]
+		"costCenter": 175030200,
+		"status": "Active"
 	}, {
 		"name": "FABIANO",
 		"firstName": "Serge",
@@ -21,12 +16,9 @@
 		"email": "serge.fabiano@sap.com",
 		"phone": "+33 492286307",
 		"mobile": "",
-		"badgeNumber": 0,
 		"iNumber": "I030367",
-		"costCenter": 0,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": []
+		"costCenter": 175030602,
+		"status": "Active"
 	}, {
 		"name": "BERNARD",
 		"firstName": "Christophe",
@@ -34,14 +26,9 @@
 		"email": "christophe.bernard@sap.com",
 		"phone": "+33 492286272",
 		"mobile": "+33 622254136",
-		"badgeNumber": 311494,
 		"iNumber": "I060301",
 		"costCenter": 175030453,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": [{
-			"plate": "EJ-082-GB"
-		}]
+		"status": "Active"
 	}, {
 		"name": "CONTINI",
 		"firstName": "Antje",
@@ -49,14 +36,9 @@
 		"email": "antje.contini@sap.com",
 		"phone": "+33 492286281",
 		"mobile": 0,
-		"badgeNumber": 580613,
 		"iNumber": "I034241",
 		"costCenter": 175030651,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": [{
-			"plate": "DT-232-BX"
-		}]
+		"status": "Active"
 	}, {
 		"name": "COPPIETERS",
 		"firstName": "Kris",
@@ -64,12 +46,9 @@
 		"email": "kris.coppieters@sap.com",
 		"phone": "+33 492286428",
 		"mobile": "+33 646384554",
-		"badgeNumber": 400904,
 		"iNumber": "I037819",
 		"costCenter": 175030821,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": []
+		"status": "Active"
 	}, {
 		"name": "DANGREMONT",
 		"firstName": "Cedric",
@@ -77,14 +56,9 @@
 		"email": "cedric.dangremont@sap.com",
 		"phone": "+33 492286289",
 		"mobile": "+33 623170313",
-		"badgeNumber": 400434,
 		"iNumber": "I066523",
 		"costCenter": 175030651,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": [{
-			"plate": "EG-185-MM"
-		}]
+		"status": "Active"
 	}, {
 		"name": "DELORME",
 		"firstName": "Marjolaine",
@@ -92,13 +66,10 @@
 		"email": "marjolaine.delorme@sap.com",
 		"phone": "+33 492286421",
 		"mobile": "+33 609185041",
-		"badgeNumber": "",
 		"iNumber": "I035684",
 		"Contract": "Company Car",
 		"costCenter": 175030452,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": []
+		"status": "Active"
 	}, {
 		"name": "DERIES",
 		"firstName": "Jean-Yves",
@@ -106,14 +77,9 @@
 		"email": "jean-yves.deries@sap.com",
 		"phone": "+33 492286317",
 		"mobile": 0,
-		"badgeNumber": 285283,
 		"iNumber": "I022469",
 		"costCenter": 175030651,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": [{
-			"plate": "DT-082-BX"
-		}]
+		"status": "Active"
 	}, {
 		"name": "DESPLECHIN",
 		"firstName": "Agnes",
@@ -121,15 +87,10 @@
 		"email": "agnes.desplechin@sap.com",
 		"phone": "+33 492286220",
 		"mobile": "+33 609185042",
-		"badgeNumber": 400404,
 		"iNumber": "I042828",
 		"Contract": "Company Car",
 		"costCenter": 175000621,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": [{
-			"plate": "EF-309-NX"
-		}]
+		"status": "Active"
 	}, {
 		"name": "EICKHOFF",
 		"firstName": "Lea",
@@ -137,13 +98,10 @@
 		"email": "lea.eickhoff@sap.com",
 		"phone": "+33 492286331",
 		"mobile": 0,
-		"badgeNumber": 590393,
 		"iNumber": "I061771",
 		"Contract": "Company Car",
 		"costCenter": 175003041,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": []
+		"status": "Active"
 	}, {
 		"name": "FICATIER",
 		"firstName": "Olivier",
@@ -151,14 +109,9 @@
 		"email": "olivier.ficatier@sap.com",
 		"phone": "+33 492286301",
 		"mobile": "+33 618117279",
-		"badgeNumber": "",
 		"iNumber": "I023401",
 		"costCenter": 175030453,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": [{
-			"plate": "DT-390-BX"
-		}]
+		"status": "Active"
 	}, {
 		"name": "FONTAINE",
 		"firstName": "Sandra",
@@ -166,15 +119,10 @@
 		"email": "sandra.fontaine@sap.com",
 		"phone": "+33 492286328",
 		"mobile": "+33 628816791",
-		"badgeNumber": 590923,
 		"iNumber": "I051650",
 		"Contract": "Company Car",
 		"costCenter": 175740007,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": [{
-			"plate": "EB-880-RJ"
-		}]
+		"status": "Active"
 	}, {
 		"name": "GARCIA",
 		"firstName": "Christophe",
@@ -182,12 +130,9 @@
 		"email": "christophe.garcia@sap.com",
 		"phone": "+33 492286306",
 		"mobile": "+33 614421570",
-		"badgeNumber": 585234,
 		"iNumber": "I301826",
 		"costCenter": 175030200,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": []
+		"status": "Active"
 	}, {
 		"name": "GIMENO",
 		"firstName": "Stephane",
@@ -195,14 +140,9 @@
 		"email": "stephane.gimeno@sap.com",
 		"phone": "+33 492286413",
 		"mobile": "+33 609808335",
-		"badgeNumber": 400304,
 		"iNumber": "I027960",
 		"costCenter": 175030604,
-		"location": "Mougins",
-    "status": "A",
-    "electricVehicules": [{
-			"plate": "DV-631-DR"
-		}]
+		"status": "Active"
 	}, {
 		"name": "GRAILLE",
 		"firstName": "Fabien",
@@ -210,11 +150,9 @@
 		"email": "fabien.graille@sap.com",
 		"phone": "+33 492286408",
 		"mobile": "+33 625958262",
-		"badgeNumber": 590133,
 		"iNumber": "I028336",
 		"costCenter": "",
-		"location": "Mougins",
-		"electricVehicules": []
+		"status": "Active"
 	}, {
 		"name": "KLAUSMEIER",
 		"firstName": "Hanno",
@@ -222,14 +160,9 @@
 		"email": "hanno.klausmeier@sap.com",
 		"phone": "+33 492286228",
 		"mobile": "+33 609185023",
-		"badgeNumber": "",
 		"iNumber": "I042055",
 		"costCenter": 175000602,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": [{
-			"plate": "DZ-817-LE"
-		}]
+		"status": "Active"
 	}, {
 		"name": "MEOLA",
 		"firstName": "Jean-Philippe",
@@ -237,14 +170,9 @@
 		"email": "jean-philippe.meola@sap.com",
 		"phone": "+33 492286378",
 		"mobile": 0,
-		"badgeNumber": "",
 		"iNumber": "I042987",
 		"costCenter": 175030602,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": [{
-			"plate": "EB-607-YN"
-		}]
+		"status": "Active"
 	}, {
 		"name": "NIEL",
 		"firstName": "Xavier",
@@ -252,12 +180,9 @@
 		"email": "xavier.niel@sap.com",
 		"phone": "+33 146178327",
 		"mobile": "+33 689797708",
-		"badgeNumber": 98303,
 		"iNumber": "I070891",
 		"costCenter": 175030453,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": []
+		"status": "Active"
 	}, {
 		"name": "OZON",
 		"firstName": "Frederic",
@@ -265,14 +190,9 @@
 		"email": "frederic.ozon@sap.com",
 		"phone": "+33 492286388",
 		"mobile": "+33 621268964",
-		"badgeNumber": 400794,
 		"iNumber": "I016118",
 		"costCenter": 175030200,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": [{
-			"plate": "EC-931-VD"
-		}]
+		"status": "Active"
 	}, {
 		"name": "PERNICE",
 		"firstName": "Florent",
@@ -280,12 +200,9 @@
 		"email": "florent.pernice@sap.com",
 		"phone": "+33 492286350",
 		"mobile": "+33 683776138",
-		"badgeNumber": "",
 		"iNumber": "I023388",
 		"costCenter": 175030670,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": []
+		"status": "Active"
 	}, {
 		"name": "PFLAUM",
 		"firstName": "Torsten",
@@ -293,14 +210,9 @@
 		"email": "torsten.pflaum@sap.com",
 		"phone": "+33 492286440",
 		"mobile": "+33 628475298",
-		"badgeNumber": "",
 		"iNumber": "I023365",
 		"costCenter": 175030086,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": [{
-			"plate": "EA-903-LQ"
-		}]
+		"status": "Active"
 	}, {
 		"name": "POLAT",
 		"firstName": "Ebru",
@@ -308,14 +220,9 @@
 		"email": "ebru.polat@sap.com",
 		"phone": "+33 492286475",
 		"mobile": "+33 675629651",
-		"badgeNumber": "",
 		"iNumber": "I028593",
 		"costCenter": 175030602,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": [{
-			"plate": "EB-607-YN"
-		}]
+		"status": "Active"
 	}, {
 		"name": "SCHAUB",
 		"firstName": "Thomas",
@@ -323,14 +230,9 @@
 		"email": "thomas.schaub@sap.com",
 		"phone": "+33 492286236",
 		"mobile": 0,
-		"badgeNumber": 225303,
 		"iNumber": "I019531",
 		"costCenter": 175030670,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": [{
-			"plate": "DT-057-CG"
-		}]
+		"status": "Active"
 	}, {
 		"name": "SCHOLTEN",
 		"firstName": "Simone",
@@ -338,13 +240,10 @@
 		"email": "simone.scholten@sap.com",
 		"phone": "+33 492286308",
 		"mobile": "+33 611187912",
-		"badgeNumber": 628583,
 		"iNumber": "D036209",
 		"Contract": "Company Car",
 		"costCenter": 175302500,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": []
+		"status": "Active"
 	}, {
 		"name": "SCOTT",
 		"firstName": "Christelle",
@@ -352,15 +251,10 @@
 		"email": "christelle.scott@sap.com",
 		"phone": "+33 492286323",
 		"mobile": 0,
-		"badgeNumber": "",
 		"iNumber": "I019965",
 		"Contract": "Private",
 		"costCenter": 175030602,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": [{
-			"plate": "EB-781-QY"
-		}]
+		"status": "Active"
 	}, {
 		"name": "SERME",
 		"firstName": "Gabriel",
@@ -368,15 +262,10 @@
 		"email": "gabriel.serme@sap.com",
 		"phone": "+33 492286395",
 		"mobile": "+33 666993542",
-		"badgeNumber": 590143,
 		"iNumber": "I055098",
 		"Contract": "Company Car",
 		"costCenter": 175030670,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": [{
-			"plate": "EG-103-MF"
-		}]
+		"status": "Active"
 	}, {
 		"name": "ZID",
 		"firstName": "Ahmed",
@@ -384,13 +273,8 @@
 		"email": "a.zid@sap.com",
 		"phone": "+33 492286368",
 		"mobile": "+33 612306068",
-		"badgeNumber": 400754,
 		"iNumber": "I079667",
 		"costCenter": 175404030,
-		"location": "Mougins",
-    "status": "A",
-		"electricVehicules": [{
-			"plate": "EF-496-AE"
-		}]
+		"status": "Active"
 	}]
 }
