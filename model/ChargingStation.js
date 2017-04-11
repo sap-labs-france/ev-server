@@ -432,16 +432,8 @@ class ChargingStation {
   saveStopTransaction(stopTransaction) {
     // Set the charger ID
     stopTransaction.chargeBoxIdentity = this.getChargeBoxIdentity();
-    // Get User
-    return global.storage.getUser(stopTransaction.idTag).then((user) => {
-      // Found?
-      if (user) {
-        // Save it
-        return global.storage.saveStopTransaction(stopTransaction);
-      } else {
-        return Promise.reject( new Error(`User with Tag ID ${stopTransaction.idTag} not found`) );
-      }
-    });
+    // Save it
+    return global.storage.saveStopTransaction(stopTransaction);
   }
 
   // Restart the server

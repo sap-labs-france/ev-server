@@ -307,7 +307,7 @@ class MongoDBStorage extends Storage {
       .digest("hex");
     // Set the ID
     stopTransactionMongoDB.chargeBoxID = stopTransaction.chargeBoxIdentity;
-    stopTransactionMongoDB.userID = stopTransaction.idTag;
+    // stopTransactionMongoDB.userID = stopTransaction.idTag;
     // Create new
     return stopTransactionMongoDB.save();
   }
