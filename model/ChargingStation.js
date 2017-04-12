@@ -541,17 +541,20 @@ class ChargingStation {
         if (meterValue.attribute && meterValue.attribute.measurand && meterValue.attribute.measurand === "Energy.Active.Import.Register") {
           // Avoid twice the same timestamp
           if (!lastTimeStamp || lastTimeStamp.toISOString() !== meterValue.timestamp.toISOString()) {
-            // Log
+            // Timestamp + Value provided
             if (lastTimeStamp) {
               // Get the diff according the last timestamp
               lastTimeInterval = ((meterValue.timestamp - lastTimeStamp) / 1000);
               // Check
               if (lastTimeInterval !== meterIntervalSecs) {
-                invalidNbrOfMetrics++;
-                // Keep the last one
-                lastValue = meterValue.value;
-                // Keep last timestamp
-                lastTimeStamp = meterValue.timestamp;
+                // Value <> 0?
+                if(meterValue.value) {
+                  invalidNbrOfMetrics++;
+                  // Keep the last one
+                  lastValue = meterValue.value;
+                  // Keep last timestamp
+                  lastTimeStamp = meterValue.timestamp;
+                }
                 // Continue
                 return;
               }
