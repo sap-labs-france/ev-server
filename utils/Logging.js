@@ -45,6 +45,8 @@ class Logging {
     if (log.detailedMessages && !Array.isArray(log.detailedMessages)){
       // Handle update of array
       log.detailedMessages = [log.detailedMessages];
+      // Format
+      log.detailedMessages = Logging._format(log.detailedMessages);
     }
 
     // Log
@@ -89,6 +91,22 @@ class Logging {
         "result": result
       }
     });
+  }
+
+  static _format(detailedMessage) {
+    // JSON?
+    if (typeof detailedMessage === "object") {
+      try {
+        // Check that every detailedMessages is parsed
+        return JSON.stringify(detailedMessage);
+      } catch(err) {
+        // Log
+        Logging.logWarning({
+          source: "Central Server", module: "Logging", method: "_format",
+          message: `Error when formatting a Log (stringify): '${err.toString()}'`,
+          detailedMessages: parsedDetailedMessage });
+      }
+    }
   }
 }
 
