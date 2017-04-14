@@ -103,7 +103,7 @@ module.exports = function(req, res, next) {
         break;
 
       // Get the user
-      case "UserByTagId":
+      case "User":
         global.storage.getUser(req.query.TagId).then(function(user) {
           var userJSon = {};
           if (user) {
@@ -208,7 +208,7 @@ module.exports = function(req, res, next) {
                 req.query.ConnectorId,
                 req.query.TransactionId,
                 req.query.StartDateTime,
-                req.query.EndtDateTime).then(function(consumptions) {
+                req.query.EndDateTime).then(function(consumptions) {
 
               // Return the result
               res.json(consumptions);
