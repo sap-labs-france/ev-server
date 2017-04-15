@@ -7,7 +7,7 @@ module.exports = {
   // Execute all tasks
   executeAllBackgroundTasks: function() {
     // Upload initial users
-    module.exports.uploadUsers();
+    // module.exports.uploadUsers();
 
     // Handle task related to Charging Stations
     return module.exports.checkChargingStations();
