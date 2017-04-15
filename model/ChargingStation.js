@@ -2,6 +2,8 @@ var Utils = require('../utils/Utils');
 var SoapChargingStationClient = require('../client/soap/SoapChargingStationClient');
 var Promise = require('promise');
 var Logging = require('../utils/Logging');
+var User = require('./User');
+var UserConstants = require('../constants/UserConstants');
 
 class ChargingStation {
   constructor(chargingStation) {
@@ -373,16 +375,9 @@ class ChargingStation {
   saveStartTransaction(transaction) {
     // Set the charger ID
     transaction.chargeBoxIdentity = this.getChargeBoxIdentity();
-    // Get User
-    return global.storage.getUser(transaction.idTag).then((user) => {
-      // Found?
-      if (user) {
-        // Save it
-        return global.storage.saveStartTransaction(transaction);
-      } else {
-        return Promise.reject( new Error(`User with Tag ID ${transaction.idTag} not found`) );
-      }
-    });
+
+    // Execute
+    return this.checkIfUserIsAuthorized(transaction, global.storage.saveStartTransaction);
   }
 
   saveDataTransfer(dataTransfer) {
@@ -417,14 +412,42 @@ class ChargingStation {
     authorize.chargeBoxIdentity = this.getChargeBoxIdentity();
     authorize.timestamp = new Date();
 
+    // Execute
+    return this.checkIfUserIsAuthorized(authorize, global.storage.saveAuthorize);
+  }
+
+  checkIfUserIsAuthorized(request, saveFunction) {
     // Get User
-    return global.storage.getUser(authorize.idTag).then((user) => {
+    return global.storage.getUserByTagId(request.idTag).then((user) => {
       // Found?
       if (user) {
-        // Save it
-        return global.storage.saveAuthorize(authorize);
+        // Check status
+        if (user.getStatus() !== UserConstants.USER_ACTIVE) {
+          // Reject but save ok
+          return Promise.reject( new Error(`User ${user.getFullName()} with TagID ${request.idTag} is not Active`) );
+        } else {
+          // Save it
+          request.user = user;
+          return saveFunction(request);
+        }
       } else {
-        return Promise.reject( new Error(`User with Tag ID ${authorize.idTag} not found`) );
+        // Create an empty user
+        var user = new User({
+          name: "DOE",
+          firstName: "John",
+          status: UserConstants.USER_PENDING,
+          email: request.idTag + "@space.mountain.fr",
+          tagIDs: [request.idTag]
+        });
+
+        // Save the user
+        return user.save().then(() => {
+          // Reject but save ok
+          return Promise.reject( new Error(`User with Tag ID ${request.idTag} not found but saved as inactive user (John DOE)`) );
+        }, (err) => {
+          // Reject, cannot save
+          return Promise.reject( new Error(`User with Tag ID ${request.idTag} not found and cannot be created: ${err.toString()}`) );
+        });
       }
     });
   }
@@ -432,8 +455,15 @@ class ChargingStation {
   saveStopTransaction(stopTransaction) {
     // Set the charger ID
     stopTransaction.chargeBoxIdentity = this.getChargeBoxIdentity();
-    // Save it
-    return global.storage.saveStopTransaction(stopTransaction);
+
+    // User Provided?
+    if (stopTransaction.idTag) {
+      // Save it with the user
+      return this.checkIfUserIsAuthorized(stopTransaction, global.storage.saveStopTransaction);
+    } else {
+      // Save it without the User
+      return global.storage.saveStopTransaction(stopTransaction);
+    }
   }
 
   // Restart the server

@@ -2,279 +2,279 @@
 	"users": [{
 		"name": "SEILER",
 		"firstName": "Gerald",
-		"tagID": "0CC39E16",
+		"tagIDs": ["0CC39E16"],
 		"email": "gerald.seiler@sap.com",
 		"phone": "",
 		"mobile": "",
 		"iNumber": "I301832",
-		"costCenter": 175030200,
-		"status": "Active"
+		"costCenter": "175030200",
+		"status": "A"
 	}, {
 		"name": "FABIANO",
 		"firstName": "Serge",
-		"tagID": "66BDC46F",
+		"tagIDs": ["66BDC46F"],
 		"email": "serge.fabiano@sap.com",
 		"phone": "+33 492286307",
 		"mobile": "",
 		"iNumber": "I030367",
-		"costCenter": 175030602,
-		"status": "Active"
+		"costCenter": "175030602",
+		"status": "A"
 	}, {
 		"name": "BERNARD",
 		"firstName": "Christophe",
-		"tagID": "DA1D7C05",
+		"tagIDs": ["DA1D7C05"],
 		"email": "christophe.bernard@sap.com",
 		"phone": "+33 492286272",
 		"mobile": "+33 622254136",
 		"iNumber": "I060301",
-		"costCenter": 175030453,
-		"status": "Active"
+		"costCenter": "175030453",
+		"status": "A"
 	}, {
 		"name": "CONTINI",
 		"firstName": "Antje",
-		"tagID": "AD1A6A4B",
+		"tagIDs": ["AD1A6A4B"],
 		"email": "antje.contini@sap.com",
 		"phone": "+33 492286281",
-		"mobile": 0,
+		"mobile": "",
 		"iNumber": "I034241",
-		"costCenter": 175030651,
-		"status": "Active"
+		"costCenter": "175030651",
+		"status": "A"
 	}, {
 		"name": "COPPIETERS",
 		"firstName": "Kris",
-		"tagID": "4CF70F02",
+		"tagIDs": ["4CF70F02"],
 		"email": "kris.coppieters@sap.com",
 		"phone": "+33 492286428",
 		"mobile": "+33 646384554",
 		"iNumber": "I037819",
-		"costCenter": 175030821,
-		"status": "Active"
+		"costCenter": "175030821",
+		"status": "A"
 	}, {
 		"name": "DANGREMONT",
 		"firstName": "Cedric",
-		"tagID": "CC211002",
+		"tagIDs": ["CC211002"],
 		"email": "cedric.dangremont@sap.com",
 		"phone": "+33 492286289",
 		"mobile": "+33 623170313",
 		"iNumber": "I066523",
-		"costCenter": 175030651,
-		"status": "Active"
+		"costCenter": "175030651",
+		"status": "A"
 	}, {
 		"name": "DELORME",
 		"firstName": "Marjolaine",
-		"tagID": "123456",
+		"tagIDs": ["123456"],
 		"email": "marjolaine.delorme@sap.com",
 		"phone": "+33 492286421",
 		"mobile": "+33 609185041",
 		"iNumber": "I035684",
 		"Contract": "Company Car",
-		"costCenter": 175030452,
-		"status": "Active"
+		"costCenter": "175030452",
+		"status": "A"
 	}, {
 		"name": "DERIES",
 		"firstName": "Jean-Yves",
-		"tagID": "CB68F17E",
+		"tagIDs": ["CB68F17E"],
 		"email": "jean-yves.deries@sap.com",
 		"phone": "+33 492286317",
-		"mobile": 0,
+		"mobile": "",
 		"iNumber": "I022469",
-		"costCenter": 175030651,
-		"status": "Active"
+		"costCenter": "175030651",
+		"status": "A"
 	}, {
 		"name": "DESPLECHIN",
 		"firstName": "Agnes",
-		"tagID": "0CD30F02",
+		"tagIDs": ["0CD30F02"],
 		"email": "agnes.desplechin@sap.com",
 		"phone": "+33 492286220",
 		"mobile": "+33 609185042",
 		"iNumber": "I042828",
 		"Contract": "Company Car",
-		"costCenter": 175000621,
-		"status": "Active"
+		"costCenter": "175000621",
+		"status": "A"
 	}, {
 		"name": "EICKHOFF",
 		"firstName": "Lea",
-		"tagID": "AD186F3B",
+		"tagIDs": ["AD186F3B"],
 		"email": "lea.eickhoff@sap.com",
 		"phone": "+33 492286331",
-		"mobile": 0,
+		"mobile": "",
 		"iNumber": "I061771",
 		"Contract": "Company Car",
-		"costCenter": 175003041,
-		"status": "Active"
+		"costCenter": "175003041",
+		"status": "A"
 	}, {
 		"name": "FICATIER",
 		"firstName": "Olivier",
-		"tagID": "468468",
+		"tagIDs": ["468468"],
 		"email": "olivier.ficatier@sap.com",
 		"phone": "+33 492286301",
 		"mobile": "+33 618117279",
 		"iNumber": "I023401",
-		"costCenter": 175030453,
-		"status": "Active"
+		"costCenter": "175030453",
+		"status": "A"
 	}, {
 		"name": "FONTAINE",
 		"firstName": "Sandra",
-		"tagID": "AD1792DB",
+		"tagIDs": ["AD1792DB"],
 		"email": "sandra.fontaine@sap.com",
 		"phone": "+33 492286328",
 		"mobile": "+33 628816791",
 		"iNumber": "I051650",
 		"Contract": "Company Car",
-		"costCenter": 175740007,
-		"status": "Active"
+		"costCenter": "175740007",
+		"status": "A"
 	}, {
 		"name": "GARCIA",
 		"firstName": "Christophe",
-		"tagID": "ACB99E16",
+		"tagIDs": ["ACB99E16"],
 		"email": "christophe.garcia@sap.com",
 		"phone": "+33 492286306",
 		"mobile": "+33 614421570",
 		"iNumber": "I301826",
-		"costCenter": 175030200,
-		"status": "Active"
+		"costCenter": "175030200",
+		"status": "A"
 	}, {
 		"name": "GIMENO",
 		"firstName": "Stephane",
-		"tagID": "BC670B02",
+		"tagIDs": ["BC670B02"],
 		"email": "stephane.gimeno@sap.com",
 		"phone": "+33 492286413",
 		"mobile": "+33 609808335",
 		"iNumber": "I027960",
-		"costCenter": 175030604,
-		"status": "Active"
+		"costCenter": "175030604",
+		"status": "A"
 	}, {
 		"name": "GRAILLE",
 		"firstName": "Fabien",
-		"tagID": "AD1AB2AB",
+		"tagIDs": ["AD1AB2AB"],
 		"email": "fabien.graille@sap.com",
 		"phone": "+33 492286408",
 		"mobile": "+33 625958262",
 		"iNumber": "I028336",
 		"costCenter": "",
-		"status": "Active"
+		"status": "A"
 	}, {
 		"name": "KLAUSMEIER",
 		"firstName": "Hanno",
-		"tagID": "A682C26F",
+		"tagIDs": ["A682C26F"],
 		"email": "hanno.klausmeier@sap.com",
 		"phone": "+33 492286228",
 		"mobile": "+33 609185023",
 		"iNumber": "I042055",
-		"costCenter": 175000602,
-		"status": "Active"
+		"costCenter": "175000602",
+		"status": "A"
 	}, {
 		"name": "MEOLA",
 		"firstName": "Jean-Philippe",
-		"tagID": "7CA70C02",
+		"tagIDs": ["7CA70C02"],
 		"email": "jean-philippe.meola@sap.com",
 		"phone": "+33 492286378",
-		"mobile": 0,
+		"mobile": "",
 		"iNumber": "I042987",
-		"costCenter": 175030602,
-		"status": "Active"
+		"costCenter": "175030602",
+		"status": "A"
 	}, {
 		"name": "NIEL",
 		"firstName": "Xavier",
-		"tagID": "AC1CC50D",
+		"tagIDs": ["AC1CC50D"],
 		"email": "xavier.niel@sap.com",
 		"phone": "+33 146178327",
 		"mobile": "+33 689797708",
 		"iNumber": "I070891",
-		"costCenter": 175030453,
-		"status": "Active"
+		"costCenter": "175030453",
+		"status": "A"
 	}, {
 		"name": "OZON",
 		"firstName": "Frederic",
-		"tagID": "6C610A02",
+		"tagIDs": ["6C610A02"],
 		"email": "frederic.ozon@sap.com",
 		"phone": "+33 492286388",
 		"mobile": "+33 621268964",
 		"iNumber": "I016118",
-		"costCenter": 175030200,
-		"status": "Active"
+		"costCenter": "175030200",
+		"status": "A"
 	}, {
 		"name": "PERNICE",
 		"firstName": "Florent",
-		"tagID": "56464654",
+		"tagIDs": ["56464654"],
 		"email": "florent.pernice@sap.com",
 		"phone": "+33 492286350",
 		"mobile": "+33 683776138",
 		"iNumber": "I023388",
-		"costCenter": 175030670,
-		"status": "Active"
+		"costCenter": "175030670",
+		"status": "A"
 	}, {
 		"name": "PFLAUM",
 		"firstName": "Torsten",
-		"tagID": "A609C4B1",
+		"tagIDs": ["A609C4B1"],
 		"email": "torsten.pflaum@sap.com",
 		"phone": "+33 492286440",
 		"mobile": "+33 628475298",
 		"iNumber": "I023365",
-		"costCenter": 175030086,
-		"status": "Active"
+		"costCenter": "175030086",
+		"status": "A"
 	}, {
 		"name": "POLAT",
 		"firstName": "Ebru",
-		"tagID": "3652A36F",
+		"tagIDs": ["3652A36F"],
 		"email": "ebru.polat@sap.com",
 		"phone": "+33 492286475",
 		"mobile": "+33 675629651",
 		"iNumber": "I028593",
-		"costCenter": 175030602,
-		"status": "Active"
+		"costCenter": "175030602",
+		"status": "A"
 	}, {
 		"name": "SCHAUB",
 		"firstName": "Thomas",
-		"tagID": "CB7D6C3E",
+		"tagIDs": ["CB7D6C3E"],
 		"email": "thomas.schaub@sap.com",
 		"phone": "+33 492286236",
-		"mobile": 0,
+		"mobile": "",
 		"iNumber": "I019531",
-		"costCenter": 175030670,
-		"status": "Active"
+		"costCenter": "175030670",
+		"status": "A"
 	}, {
 		"name": "SCHOLTEN",
 		"firstName": "Simone",
-		"tagID": "AD15E70B",
+		"tagIDs": ["AD15E70B"],
 		"email": "simone.scholten@sap.com",
 		"phone": "+33 492286308",
 		"mobile": "+33 611187912",
 		"iNumber": "D036209",
 		"Contract": "Company Car",
-		"costCenter": 175302500,
-		"status": "Active"
+		"costCenter": "175302500",
+		"status": "A"
 	}, {
 		"name": "SCOTT",
 		"firstName": "Christelle",
-		"tagID": "0987991",
+		"tagIDs": ["0987991"],
 		"email": "christelle.scott@sap.com",
 		"phone": "+33 492286323",
-		"mobile": 0,
+		"mobile": "",
 		"iNumber": "I019965",
 		"Contract": "Private",
-		"costCenter": 175030602,
-		"status": "Active"
+		"costCenter": "175030602",
+		"status": "A"
 	}, {
 		"name": "SERME",
 		"firstName": "Gabriel",
-		"tagID": "CBFF17AD",
+		"tagIDs": ["CBFF17AD"],
 		"email": "gabriel.serme@sap.com",
 		"phone": "+33 492286395",
 		"mobile": "+33 666993542",
 		"iNumber": "I055098",
 		"Contract": "Company Car",
-		"costCenter": 175030670,
-		"status": "Active"
+		"costCenter": "175030670",
+		"status": "A"
 	}, {
 		"name": "ZID",
 		"firstName": "Ahmed",
-		"tagID": "2C6B1002",
+		"tagIDs": ["2C6B1002"],
 		"email": "a.zid@sap.com",
 		"phone": "+33 492286368",
 		"mobile": "+33 612306068",
 		"iNumber": "I079667",
-		"costCenter": 175404030,
-		"status": "Active"
+		"costCenter": "175404030",
+		"status": "A"
 	}]
 }

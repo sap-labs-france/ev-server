@@ -1,6 +1,7 @@
 var mongoose = require('mongoose');
 var MDBConfiguration = require('./model/MDBConfiguration');
 var MDBUser = require('./model/MDBUser');
+var MDBTag = require('./model/MDBTag');
 var MDBLog = require('./model/MDBLog');
 var MDBFirmwareStatusNotification = require('./model/MDBFirmwareStatusNotification');
 var MDBDiagnosticsStatusNotification = require('./model/MDBDiagnosticsStatusNotification');
@@ -280,7 +281,9 @@ class MongoDBStorage extends Storage {
     authorizeMongoDB._id = crypto.createHash('md5')
       .update(`${authorize.chargeBoxIdentity}~${authorize.timestamp.toISOString()}`)
       .digest("hex");
+    authorizeMongoDB.userID = authorize.user.getID();
     authorizeMongoDB.chargeBoxID = authorize.chargeBoxIdentity;
+    authorizeMongoDB.tagID = authorize.idTag;
     // Create new
     return authorizeMongoDB.save();
   }
@@ -292,8 +295,9 @@ class MongoDBStorage extends Storage {
     startTransactionMongoDB._id = crypto.createHash('md5')
       .update(`${startTransaction.chargeBoxIdentity}~${startTransaction.connectorId}~${startTransaction.timestamp}`)
       .digest("hex");
+    startTransactionMongoDB.userID = startTransaction.user.getID();
+    startTransactionMongoDB.tagID = startTransaction.idTag;
     startTransactionMongoDB.chargeBoxID = startTransaction.chargeBoxIdentity;
-    startTransactionMongoDB.userID = startTransaction.idTag;
     // Create new
     return startTransactionMongoDB.save();
   }
@@ -307,7 +311,12 @@ class MongoDBStorage extends Storage {
       .digest("hex");
     // Set the ID
     stopTransactionMongoDB.chargeBoxID = stopTransaction.chargeBoxIdentity;
-    // stopTransactionMongoDB.userID = stopTransaction.idTag;
+    if(stopTransaction.idTag) {
+      stopTransactionMongoDB.tagID = stopTransaction.idTag;
+    }
+    if(stopTransaction.idTag) {
+      stopTransactionMongoDB.userID = stopTransaction.user.getID();
+    }
     // Create new
     return stopTransactionMongoDB.save();
   }
@@ -378,7 +387,7 @@ class MongoDBStorage extends Storage {
     //           // Get the user
     //           userPromises.push(
     //             // Get the user
-    //             this.getUser(transaction.idTag).then((user) => {
+    //             this.getUserByTagId(transaction.idTag).then((user) => {
     //               // Set
     //               if(user) {
     //                 // Set the User
@@ -433,38 +442,88 @@ class MongoDBStorage extends Storage {
 
   getUsers() {
     // Exec request
-    return MDBUser.find({}).sort( {name: 1, firstName: 1} ).exec().then((usersMongoDB) => {
-      var users = [];
-      // Create
-      usersMongoDB.forEach((userMongoDB) => {
-        users.push(new User(userMongoDB));
+    return MDBTag.find({}).exec().then((tagsMongoDB) => {
+      // Exec request
+      return MDBUser.find({}).sort( {name: 1, firstName: 1} ).exec().then((usersMongoDB) => {
+        var users = [];
+        // Create
+        usersMongoDB.forEach((userMongoDB) => {
+          // Create
+          var user = new User(userMongoDB);
+          // Get TagIDs
+          var tags = tagsMongoDB.filter((tag) => {
+            // Find a match
+            return tag.userID.equals(userMongoDB._id);
+          }).map((tag) => {
+            return tag._id;
+          });
+          // Set
+          user.setTagIDs(tags);
+          // Add
+          users.push(user);
+        });
+        // Ok
+        return users;
       });
-      // Ok
-      return users;
     });
   }
 
   saveUser(user) {
     // Check
-    if (!user.getTagID()) {
+    if (!user.getEMail()) {
       // ID ,ust be provided!
-      return Promise.reject( new Error("Error in saving the User: User has no Tag ID and cannot be created or updated") );
+      return Promise.reject( new Error("Error in saving the User: User has no Email and cannot be created or updated") );
     } else {
       // Get
-      return MDBUser.findOneAndUpdate(
-        {"_id": user.getTagID()},
-        user.getModel(),
-        {new: true, upsert: true});
+      return MDBUser.findOneAndUpdate({
+          "email": user.getEMail()},
+          user.getModel(), {
+            new: true,
+            upsert: true
+          }).then((userMongoDB) => {
+            // Update the badges
+            // First delete them
+            return MDBTag.remove({ "userID" : userMongoDB._id }).then(() => {
+              // Add tags
+              user.getTagIDs().forEach((tag) => {
+                // Update/Insert Tag
+                return MDBTag.findOneAndUpdate({
+                    "_id": tag
+                  },{
+                    "_id": tag,
+                    "userID": userMongoDB._id
+                  },{
+                    new: true,
+                    upsert: true
+                  }).then((newTag) => {
+                    // Create with success
+                  });                // Add TagIds
+              });
+            })
+          });
     }
   }
 
-  getUser(tagID) {
+  getUserByEmail(email) {
     // Exec request
-    return MDBUser.findById({"_id": tagID}).then((userMongoDB) => {
+    return MDBUser.findOne({"email": email}).then((userMongoDB) => {
       var user = null;
       // Check
       if (userMongoDB) {
         user = new User(userMongoDB);
+      }
+      // Ok
+      return user;
+    });
+  }
+
+  getUserByTagId(tagID) {
+    // Exec request
+    return MDBTag.findById(tagID).populate("userID").exec().then((tagMongoDB) => {
+      var user = null;
+      // Check
+      if (tagMongoDB && tagMongoDB.userID) {
+        user = new User(tagMongoDB.userID);
       }
       // Ok
       return user;

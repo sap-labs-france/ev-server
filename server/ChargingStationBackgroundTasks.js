@@ -106,7 +106,7 @@ module.exports = {
 
   checkAndSaveUser(user) {
     // Get user
-    global.storage.getUser(user.tagID).then((userDB) => {
+    global.storage.getUserByEmail(user.email).then((userDB) => {
       // Found
       if (!userDB) {
         var userNew = new User(user);
@@ -114,7 +114,7 @@ module.exports = {
         userNew.save().then(() => {
           Logging.logInfo({
             source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkAndSaveUser",
-            message: `User ${userNew.getFullName()} with IdTag ${userNew.getTagID()} has been saved successfully`,
+            message: `User ${userNew.getFullName()} with Email ${userNew.getEMail()} has been saved successfully`,
             detailedMessages: user});
         });
       }

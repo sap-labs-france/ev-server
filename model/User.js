@@ -14,6 +14,10 @@ class User {
     return this._model;
   }
 
+  getID() {
+    return this._model.id;
+  }
+
   getName() {
     return this._model.name;
   }
@@ -31,15 +35,15 @@ class User {
   }
 
   getFullName() {
-    return this.getName() + " " + this.getFirstName();
+    return (this.getFirstName()?this.getFirstName() + " ":"") + this.getName();
   }
 
-  getTagID() {
-    return this._model.tagID;
+  getTagIDs() {
+    return this._model.tagIDs;
   }
 
-  setTagID(tagID) {
-    this._model.tagID = tagID;
+  setTagIDs(tagIDs) {
+    this._model.tagIDs = tagIDs;
   }
 
   getImage() {

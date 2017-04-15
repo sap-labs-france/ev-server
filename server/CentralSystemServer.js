@@ -350,6 +350,9 @@ class CentralSystemServer {
       if (chargingStation) {
         // Save
         return chargingStation.saveStartTransaction(args);
+      } else {
+        // Reject but save ok
+        return Promise.reject( new Error(`Transaction rejected: Charging Station  ${headers.chargeBoxIdentity} does not exist`) );
       }
     }).then(() => {
       // Log

@@ -108,10 +108,10 @@ module.exports = {
 
   updateUser(src, dest) {
     // Set it
+    dest.id = src.id;
     dest.name = src.name;
     dest.firstName = src.firstName;
     dest.image = src.image;
-    dest.tagID = src.tagID;
     dest.email = src.email;
     dest.phone = src.phone;
     dest.mobile = src.mobile;
@@ -122,6 +122,7 @@ module.exports = {
     dest.createdOn = src.createdOn;
     dest.lastChangedBy = src.lastChangedBy;
     dest.lastChangedOn = src.lastChangedOn;
+    dest.tagIDs = src.tagIDs;
     if (!dest.createdBy) {
       // Set default user
       dest.createdBy = "Central Server";

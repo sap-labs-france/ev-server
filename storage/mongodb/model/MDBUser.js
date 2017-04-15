@@ -10,16 +10,14 @@ const Address = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('User',{
-  _id: String,
   name: String,
   firstName: String,
   image: String,
-  tagID: String,
   email: String,
   phone: String,
   mobile: String,
   iNumber: String,
-  costCenter: Number,
+  costCenter: String,
   status: String,
   addresses: [],
   createdBy: String,

@@ -14,7 +14,10 @@ class Storage {
   getUsers() {
   }
 
-  getUser(tagID) {
+  getUserByTagId(tagID) {
+  }
+
+  getUserByEmail(email) {
   }
 
   saveUser(user) {
