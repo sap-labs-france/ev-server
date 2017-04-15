@@ -10,6 +10,16 @@
 		"costCenter": "175030200",
 		"status": "A"
 	}, {
+	  "name": "Visitor",
+	  "firstName": "",
+	  "tagIDs": ["6B0918AD","4CAA9414","048F9F7B","2B5D19AD","D6C106D0","D62706D0","EBE819AD","C41F1821","3BC317AD","6A08BAE6","2E566CCB","363306D0","6E6869CB","BC9E9714","FAFABDE6","E6EA04D0","640D1821","DA15BEE6","DB081BAD","1B1A1BAD","3E7B6ECB","0A8CBBE6","168A05D0","5E806BCB","2E5769CB","BB9019AD","DB9419AD","1ECF6CCB","1A21BDE6","FED86CCB","C69505D0","6E666CCB","3BF616AD","5E886DCB"],
+	  "email": "visitor@sap.com",
+	  "phone": "",
+	  "mobile": "",
+	  "iNumber": "",
+	  "costCenter": "",
+	  "status": "A"
+	}, {
 		"name": "FABIANO",
 		"firstName": "Serge",
 		"tagIDs": ["66BDC46F"],
