@@ -230,7 +230,7 @@ class MongoDBStorage extends Storage {
     var statusNotificationMongoDB = new MDBStatusNotification(statusNotification);
     // Set the ID
     statusNotificationMongoDB._id = crypto.createHash('md5')
-      .update(`${statusNotification.chargeBoxIdentity}~${statusNotification.connectorId}~${statusNotification.timestamp}`)
+      .update(`${statusNotification.chargeBoxIdentity}~${statusNotification.connectorId}~${statusNotification.status}~${statusNotification.timestamp}`)
       .digest("hex");
     statusNotificationMongoDB.chargeBoxID = statusNotification.chargeBoxIdentity;
     // Create new
