@@ -20,7 +20,13 @@ class Storage {
   getUserByEmail(email) {
   }
 
+  getUser(id) {
+  }
+
   saveUser(user) {
+  }
+
+  deleteUser(id) {
   }
 
   getChargingStations() {

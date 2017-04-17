@@ -225,6 +225,22 @@ class StorageFacade extends Storage {
     return _leadingStorage.getUserByTagId(tagID);
   }
 
+  getUser(id) {
+    // Delegate
+    return _leadingStorage.getUser(id);
+  }
+
+  deleteUser(id) {
+    // Delegate
+    _storages.forEach((storage) => {
+      // Trigger Save for other DB
+      storage.deleteUser(id);
+    });
+
+    // Delegate
+    return _leadingStorage.deleteUser(id);
+  }
+
   saveUser(user) {
     // Delegate
     _storages.forEach((storage) => {

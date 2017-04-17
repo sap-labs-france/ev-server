@@ -476,31 +476,31 @@ class MongoDBStorage extends Storage {
     } else {
       // Get
       return MDBUser.findOneAndUpdate({
-          "email": user.getEMail()},
-          user.getModel(), {
-            new: true,
-            upsert: true
-          }).then((userMongoDB) => {
-            // Update the badges
-            // First delete them
-            return MDBTag.remove({ "userID" : userMongoDB._id }).then(() => {
-              // Add tags
-              user.getTagIDs().forEach((tag) => {
-                // Update/Insert Tag
-                return MDBTag.findOneAndUpdate({
-                    "_id": tag
-                  },{
-                    "_id": tag,
-                    "userID": userMongoDB._id
-                  },{
-                    new: true,
-                    upsert: true
-                  }).then((newTag) => {
-                    // Create with success
-                  });                // Add TagIds
-              });
-            })
+        "email": user.getEMail()},
+        user.getModel(), {
+          new: true,
+          upsert: true
+        }).then((userMongoDB) => {
+          // Update the badges
+          // First delete them
+          return MDBTag.remove({ "userID" : userMongoDB._id }).then(() => {
+            // Add tags
+            user.getTagIDs().forEach((tag) => {
+              // Update/Insert Tag
+              return MDBTag.findOneAndUpdate({
+                  "_id": tag
+                },{
+                  "_id": tag,
+                  "userID": userMongoDB._id
+                },{
+                  new: true,
+                  upsert: true
+                }).then((newTag) => {
+                  // Create with success
+                });                // Add TagIds
+            });
           });
+        });
     }
   }
 
@@ -510,11 +510,28 @@ class MongoDBStorage extends Storage {
       var user = null;
       // Check
       if (userMongoDB) {
+        // Create
         user = new User(userMongoDB);
+        // Get the Tags
+        return MDBTag.find({"userID": userMongoDB.id}).exec().then((tagsMongoDB) => {
+          // Check
+          if (tagsMongoDB) {
+            // Get the Tags
+            var tags = tagsMongoDB.map((tagMongoDB) => { return tagMongoDB.id });
+            // Get IDs`
+            user.setTagIDs(tags);
+          }
+          return user;
+        });
+      } else {
+        // Ok
+        return user;
       }
-      // Ok
-      return user;
     });
+  }
+
+  deleteUser(id) {
+    return MDBUser.remove({ "_id" : id });
   }
 
   getUserByTagId(tagID) {
@@ -527,6 +544,31 @@ class MongoDBStorage extends Storage {
       }
       // Ok
       return user;
+    });
+  }
+
+  getUser(id) {
+    // Exec request
+    return MDBUser.findById(id).exec().then((userMongoDB) => {
+      var user = null;
+      // Check
+      if (userMongoDB) {
+        user = new User(userMongoDB);
+        // Get the Tags
+        return MDBTag.find({"userID": userMongoDB.id}).exec().then((tagsMongoDB) => {
+          // Check
+          if (tagsMongoDB) {
+            // Get the Tags
+            var tags = tagsMongoDB.map((tagMongoDB) => { return tagMongoDB.id });
+            // Get IDs`
+            user.setTagIDs(tags);
+          }
+          return user;
+        });
+      } else {
+        // Ok
+        return user;
+      }
     });
   }
 }

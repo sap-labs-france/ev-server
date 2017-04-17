@@ -1,8 +1,10 @@
 var Utils = require('../utils/Utils');
 var Logging = require('../utils/Logging');
+var Users = require('../utils/Users');
+var User = require('../model/User');
 
 // Log issues
-var logActionErrorMessage = function(action, err, res, next) {
+var logActionUnexpectedErrorMessageAndSendResponse = function(action, err, req, res, next) {
   Logging.logError({
     source: "Central Server", module: "ChargingStationRestService", method: "N/A",
     action: action,
@@ -12,34 +14,154 @@ var logActionErrorMessage = function(action, err, res, next) {
   next();
 }
 
+// Log issues
+var logActionErrorMessageAndSendResponse = function(message, req, res, next) {
+  Logging.logError({
+    source: "Central Server", module: "ChargingStationRestService", method: "N/A",
+    message: message,
+    detailedMessages: [{
+        "stack": new Error().stack,
+        "request": req.body}] });
+  res.json({error: message});
+  next();
+}
+
 module.exports = function(req, res, next) {
-  // Action on ChargeBox
-  if (req.method === "POST") {
-    // Yes: Get the Charging station
-    global.storage.getChargingStation(req.body.chargeBoxIdentity).then(function(chargingStation) {
-      // Found?
-      if (chargingStation) {
-        // Execute it
-        return chargingStation.handleAction(req.body.action, req.body.args);
-      } else {
-         // Charging station not found
-         res.json(`{error: Charging station not found with ID ${req.body.chargeBoxIdentity}}`);
-         next();
+  // Parse the action
+  var action = /^\/\w*/g.exec(req.url)[0].substring(1);
+
+  // Check Context
+  switch (req.method) {
+    // Create Request
+    case "POST":
+      // Check Context
+      switch (action) {
+        // Charge Box
+        case "Reset":
+          // Get the Charging Station
+          if (req.body.chargeBoxIdentity) {
+            // Get the Charging station
+            global.storage.getChargingStation(req.body.chargeBoxIdentity).then(function(chargingStation) {
+              // Found?
+              if (chargingStation) {
+                // Execute it
+                return chargingStation.handleAction(action, req.body.args);
+              } else {
+                // Charging station not found
+                logActionErrorMessageAndSendResponse(`Charging Station not found with ID ${req.body.chargeBoxIdentity}`, req, res, next);
+              }
+            }).then(function(result) {
+              // Return the result
+              res.json(result);
+              next();
+
+            }).catch(function(err) {
+              // Log
+              logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            });
+          } else {
+            // Log
+            logActionErrorMessageAndSendResponse(`The Charging Station's ID must be provided`, req, res, next);
+          }
+          break;
+
+        // Create User
+        case "CreateUser":
+          // Check Mandatory fields
+          if(!req.body.name) {
+            logActionErrorMessageAndSendResponse(`The user's last name is mandatory`, req, res, next);
+            return;
+          }
+          if(!req.body.firstName) {
+            logActionErrorMessageAndSendResponse(`The user's first name is mandatory`, req, res, next);
+            return;
+          }
+          if(!req.body.email) {
+            logActionErrorMessageAndSendResponse(`The user's email is mandatory`, req, res, next);
+            return;
+          }
+          if(!req.body.status) {
+            logActionErrorMessageAndSendResponse(`The user's status is mandatory`, req, res, next);
+            return;
+          }
+          // Check format
+          if (!Users.isUserNameValid(req.body.name)) {
+            logActionErrorMessageAndSendResponse(`The user's last name ${req.body.name} is not valid`, req, res, next);
+            return;
+          }
+          if (!Users.isUserNameValid(req.body.firstName)) {
+            logActionErrorMessageAndSendResponse(`The user's first name ${req.body.firstName} is not valid`, req, res, next);
+            return;
+          }
+          if (!Users.isUserEmailValid(req.body.email)) {
+            logActionErrorMessageAndSendResponse(`The user's email ${req.body.email} is not valid`, req, res, next);
+            return;
+          }
+          if (req.body.phone && !Users.isPhoneValid(req.body.phone)) {
+            logActionErrorMessageAndSendResponse(`The user's phone ${req.body.phone} is not valid`, req, res, next);
+            return;
+          }
+          if (req.body.mobile && !Users.isPhoneValid(req.body.mobile)) {
+            logActionErrorMessageAndSendResponse(`The user's mobile ${req.body.mobile} is not valid`, req, res, next);
+            return;
+          }
+          if (req.body.iNumber && !Users.isINumberValid(req.body.iNumber)) {
+            logActionErrorMessageAndSendResponse(`The user's I-Number ${req.body.iNumber} is not valid`, req, res, next);
+            return;
+          }
+          if (req.body.tagIDs) {
+            // Check
+            if (!Users.isTagIDValid(req.body.tagIDs)) {
+              logActionErrorMessageAndSendResponse(`The user's tags ${req.body.tagIDs} is/are not valid`, req, res, next);
+              return;
+            }
+            // Check
+            if (!Array.isArray(req.body.tagIDs)) {
+              // Split
+              req.body.tagIDs = req.body.tagIDs.split(',');
+            }
+          }
+          // Check email
+          global.storage.getUserByEmail(req.body.email).then(function(user) {
+            if (user) {
+              logActionErrorMessageAndSendResponse(`The user's email ${req.body.tagIDs} is already taken`, req, res, next);
+              return;
+            }
+
+            // Check Badge ID
+            var newUser = new User(req.body);
+            // Save
+            newUser.save().then(() => {
+              Logging.logInfo({
+                source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkAndSaveUser",
+                message: `User ${newUser.getFullName()} with email ${newUser.getEMail()} has been created successfully`,
+                detailedMessages: user});
+            });
+            res.json({status: `Success`});
+            next();
+
+          }).catch((err) => {
+            // Log
+            logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+          });
+          break;
+
+        // Unknown Context
+        default:
+          // Action provided
+          if (!action) {
+            // Log
+            logActionErrorMessageAndSendResponse(`No Action has been provided`, req, res, next);
+          } else {
+            // Log
+            logActionErrorMessageAndSendResponse(`The Action '${action}' does not exist`, req, res, next);
+          }
+          next();
       }
+      break;
 
-    }).then(function(result) {
-      // Return the result
-      res.json(result);
-      next();
-
-    }).catch(function(err) {
-      // Log
-      logActionErrorMessage(action, err, res, next);
-    });
-
-    // Get data
-  } else if (req.method === "GET") {
-    var action = /^\/\w*/g.exec(req.url)[0].substring(1);
+  // Get Request
+  case "GET":
     // Check Action
     switch (action) {
       // Get the Logging
@@ -64,7 +186,7 @@ module.exports = function(req, res, next) {
           next();
         }).catch((err) => {
           // Log
-          logActionErrorMessage(action, err, res, next);
+          logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
         });
         break;
 
@@ -81,7 +203,7 @@ module.exports = function(req, res, next) {
           next();
         }).catch((err) => {
           // Log
-          logActionErrorMessage(action, err, res, next);
+          logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
         });
         break;
 
@@ -98,12 +220,12 @@ module.exports = function(req, res, next) {
           next();
         }).catch((err) => {
           // Log
-          logActionErrorMessage(action, err, res, next);
+          logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
         });
         break;
 
       // Get the user
-      case "User":
+      case "UserByEmail":
         global.storage.getUserByEmail(req.query.Email).then(function(user) {
           var userJSon = {};
           if (user) {
@@ -115,7 +237,24 @@ module.exports = function(req, res, next) {
           next();
         }).catch((err) => {
           // Log
-          logActionErrorMessage(action, err, res, next);
+          logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+        });
+        break;
+
+      // Get the user
+      case "User":
+        global.storage.getUser(req.query.ID).then(function(user) {
+          var userJSon = {};
+          if (user) {
+            // Set the model
+            userJSon = user.getModel();
+          }
+          // Return
+          res.json(userJSon);
+          next();
+        }).catch((err) => {
+          // Log
+          logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
         });
         break;
 
@@ -132,7 +271,7 @@ module.exports = function(req, res, next) {
           next();
         }).catch((err) => {
           // Log
-          logActionErrorMessage(action, err, res, next);
+          logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
         });
         break;
 
@@ -148,7 +287,7 @@ module.exports = function(req, res, next) {
           next();
         }).catch((err) => {
           // Log
-          logActionErrorMessage(action, err, res, next);
+          logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
         });
         break;
 
@@ -174,7 +313,7 @@ module.exports = function(req, res, next) {
             }
           }).catch((err) => {
             // Log
-            logActionErrorMessage(action, err, res, next);
+            logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
           });
         } else {
           global.storage.getStatusNotifications().then(function(statusNotifications) {
@@ -207,7 +346,7 @@ module.exports = function(req, res, next) {
             }
           }).catch((err) => {
             // Log
-            logActionErrorMessage(action, err, res, next);
+            logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
           });
         }
         break;
@@ -238,7 +377,7 @@ module.exports = function(req, res, next) {
           }
         }).catch((err) => {
           // Log
-          logActionErrorMessage(action, err, res, next);
+          logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
         });
         break;
 
@@ -263,7 +402,7 @@ module.exports = function(req, res, next) {
           }
         }).catch((err) => {
           // Log
-          logActionErrorMessage(action, err, res, next);
+          logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
         });
         break;
 
@@ -276,12 +415,176 @@ module.exports = function(req, res, next) {
 
       // Unknown Action
       default:
-        // Log
-        Logging.logError({
-          source: "Central Server", module: "ChargingStationRestService", method: "N/A",
-          message: `Action '${action}' does not exist` });
-        res.json({error: `Action '${action}' does not exist`});
-        next();
+        // Action provided
+        if (!action) {
+          // Log
+          logActionErrorMessageAndSendResponse(`No Action has been provided`, req, res, next);
+        } else {
+          // Log
+          logActionErrorMessageAndSendResponse(`The Action '${action}' does not exist`, req, res, next);
+        }
     }
+    break;
+
+  // Update Request
+  case "PUT":
+    // Check
+    switch (action) {
+      // User
+      case "UpdateUser":
+        // Check Mandatory fields
+        if(!req.body.id) {
+          logActionErrorMessageAndSendResponse(`The user's ID is mandatory`, req, res, next);
+          return;
+        }
+        if(!req.body.name) {
+          logActionErrorMessageAndSendResponse(`The user's last name is mandatory`, req, res, next);
+          return;
+        }
+        if(!req.body.firstName) {
+          logActionErrorMessageAndSendResponse(`The user's first name is mandatory`, req, res, next);
+          return;
+        }
+        if(!req.body.email) {
+          logActionErrorMessageAndSendResponse(`The user's email is mandatory`, req, res, next);
+          return;
+        }
+        if(!req.body.status) {
+          logActionErrorMessageAndSendResponse(`The user's status is mandatory`, req, res, next);
+          return;
+        }
+        // Check format
+        if (!Users.isUserNameValid(req.body.name)) {
+          logActionErrorMessageAndSendResponse(`The user's last name ${req.body.name} is not valid`, req, res, next);
+          return;
+        }
+        if (!Users.isUserNameValid(req.body.firstName)) {
+          logActionErrorMessageAndSendResponse(`The user's first name ${req.body.firstName} is not valid`, req, res, next);
+          return;
+        }
+        if (!Users.isUserEmailValid(req.body.email)) {
+          logActionErrorMessageAndSendResponse(`The user's email ${req.body.email} is not valid`, req, res, next);
+          return;
+        }
+        if (req.body.phone && !Users.isPhoneValid(req.body.phone)) {
+          logActionErrorMessageAndSendResponse(`The user's phone ${req.body.phone} is not valid`, req, res, next);
+          return;
+        }
+        if (req.body.mobile && !Users.isPhoneValid(req.body.mobile)) {
+          logActionErrorMessageAndSendResponse(`The user's mobile ${req.body.mobile} is not valid`, req, res, next);
+          return;
+        }
+        if (req.body.iNumber && !Users.isINumberValid(req.body.iNumber)) {
+          logActionErrorMessageAndSendResponse(`The user's I-Number ${req.body.iNumber} is not valid`, req, res, next);
+          return;
+        }
+        if (req.body.tagIDs) {
+          // Check
+          if (!Users.isTagIDValid(req.body.tagIDs)) {
+            logActionErrorMessageAndSendResponse(`The user's tags ${req.body.tagIDs} is/are not valid`, req, res, next);
+            return;
+          }
+          // Check
+          if (!Array.isArray(req.body.tagIDs)) {
+            // Split
+            req.body.tagIDs = req.body.tagIDs.split(',');
+          }
+        } else {
+          // Default
+          req.body.tagIDs = [];
+        }
+        // Check email
+        global.storage.getUser(req.body.id).then(function(user) {
+          if (!user) {
+            logActionErrorMessageAndSendResponse(`The user with ID ${req.body.id} does not exist anymore`, req, res, next);
+            return;
+          }
+
+          // Update
+          Utils.updateUser(req.body, user.getModel());
+
+          // Update
+          user.save().then(() => {
+            Logging.logInfo({
+              source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkAndSaveUser",
+              message: `User ${user.getFullName()} with Email ${user.getEMail()} has been updated successfully`,
+              detailedMessages: user});
+          });
+          res.json({status: `Success`});
+          next();
+
+        }).catch((err) => {
+          // Log
+          logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+        });
+        break;
+
+        // Not found
+      default:
+        // Action provided
+        if (!action) {
+          // Log
+          logActionErrorMessageAndSendResponse(`No Action has been provided`, req, res, next);
+        } else {
+          // Log
+          logActionErrorMessageAndSendResponse(`The Action '${action}' does not exist`, req, res, next);
+        }
+        break;
+    }
+    break;
+
+    // Delete Request
+    case "DELETE":
+      // Check
+      switch (action) {
+        // User
+        case "DeleteUser":
+          // Check Mandatory fields
+          if(!req.query.ID) {
+            logActionErrorMessageAndSendResponse(`The user's ID must be provided`, req, res, next);
+            return;
+          }
+
+          // Check email
+          global.storage.getUser(req.query.ID).then(function(user) {
+            if (!user) {
+              logActionErrorMessageAndSendResponse(`The user with ID ${req.body.id} does not exist anymore`, req, res, next);
+              return;
+            }
+            // Delete
+            global.storage.deleteUser(req.query.ID).then(() => {
+              // Log
+              Logging.logInfo({
+                source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkAndSaveUser",
+                message: `User ${user.getFullName()} with Email ${user.getEMail()} has been deleted successfully`,
+                detailedMessages: user});
+              // Ok
+              res.json({status: `Success`});
+              next();
+            });
+          }).catch((err) => {
+            // Log
+            logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+          });
+          break;
+
+          // Not found
+        default:
+          // Action provided
+          if (!action) {
+            // Log
+            logActionErrorMessageAndSendResponse(`No Action has been provided`, req, res, next);
+          } else {
+            // Log
+            logActionErrorMessageAndSendResponse(`The Action '${action}' does not exist`, req, res, next);
+          }
+          break;
+      }
+      break;
+
+  default:
+    // Log
+    logActionErrorMessageAndSendResponse(`Ussuported request method ${req.method}`, req, res, next);
+    break;
   }
 };

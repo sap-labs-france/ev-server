@@ -109,12 +109,12 @@ module.exports = {
     global.storage.getUserByEmail(user.email).then((userDB) => {
       // Found
       if (!userDB) {
-        var userNew = new User(user);
+        var newUser = new User(user);
         // Save
-        userNew.save().then(() => {
+        newUser.save().then(() => {
           Logging.logInfo({
             source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkAndSaveUser",
-            message: `User ${userNew.getFullName()} with Email ${userNew.getEMail()} has been saved successfully`,
+            message: `User ${newUser.getFullName()} with Email ${newUser.getEMail()} has been saved successfully`,
             detailedMessages: user});
         });
       }
