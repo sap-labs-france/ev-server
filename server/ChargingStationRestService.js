@@ -26,6 +26,72 @@ var logActionErrorMessageAndSendResponse = function(message, req, res, next) {
   next();
 }
 
+var checkIfUserValid = function(req, res, next) {
+  // Update mode?
+  if(req.method === "PUT" && !req.body.id) {
+    logActionErrorMessageAndSendResponse(`The user's ID is mandatory`, req, res, next);
+    return false;
+  }
+  if(!req.body.name) {
+    logActionErrorMessageAndSendResponse(`The user's last name is mandatory`, req, res, next);
+    return false;
+  }
+  if(!req.body.firstName) {
+    logActionErrorMessageAndSendResponse(`The user's first name is mandatory`, req, res, next);
+    return false;
+  }
+  if(!req.body.email) {
+    logActionErrorMessageAndSendResponse(`The user's email is mandatory`, req, res, next);
+    return false;
+  }
+  if(!req.body.status) {
+    logActionErrorMessageAndSendResponse(`The user's status is mandatory`, req, res, next);
+    return false;
+  }
+  // Check format
+  if (!Users.isUserNameValid(req.body.name)) {
+    logActionErrorMessageAndSendResponse(`The user's last name ${req.body.name} is not valid`, req, res, next);
+    return false;
+  }
+  if (!Users.isUserNameValid(req.body.firstName)) {
+    logActionErrorMessageAndSendResponse(`The user's first name ${req.body.firstName} is not valid`, req, res, next);
+    return false;
+  }
+  if (!Users.isUserEmailValid(req.body.email)) {
+    logActionErrorMessageAndSendResponse(`The user's email ${req.body.email} is not valid`, req, res, next);
+    return false;
+  }
+  if (req.body.phone && !Users.isPhoneValid(req.body.phone)) {
+    logActionErrorMessageAndSendResponse(`The user's phone ${req.body.phone} is not valid`, req, res, next);
+    return false;
+  }
+  if (req.body.mobile && !Users.isPhoneValid(req.body.mobile)) {
+    logActionErrorMessageAndSendResponse(`The user's mobile ${req.body.mobile} is not valid`, req, res, next);
+    return false;
+  }
+  if (req.body.iNumber && !Users.isINumberValid(req.body.iNumber)) {
+    logActionErrorMessageAndSendResponse(`The user's I-Number ${req.body.iNumber} is not valid`, req, res, next);
+    return false;
+  }
+  if (req.body.tagIDs) {
+    // Check
+    if (!Users.isTagIDValid(req.body.tagIDs)) {
+      logActionErrorMessageAndSendResponse(`The user's tags ${req.body.tagIDs} is/are not valid`, req, res, next);
+      return false;
+    }
+    // Check
+    if (!Array.isArray(req.body.tagIDs)) {
+      // Split
+      req.body.tagIDs = req.body.tagIDs.split(',');
+    }
+  } else {
+    // Default
+    req.body.tagIDs = [];
+  }
+  // Ok
+  return true;
+}
+
 module.exports = function(req, res, next) {
   // Parse the action
   var action = /^\/\w*/g.exec(req.url)[0].substring(1);
@@ -68,82 +134,31 @@ module.exports = function(req, res, next) {
         // Create User
         case "CreateUser":
           // Check Mandatory fields
-          if(!req.body.name) {
-            logActionErrorMessageAndSendResponse(`The user's last name is mandatory`, req, res, next);
-            return;
-          }
-          if(!req.body.firstName) {
-            logActionErrorMessageAndSendResponse(`The user's first name is mandatory`, req, res, next);
-            return;
-          }
-          if(!req.body.email) {
-            logActionErrorMessageAndSendResponse(`The user's email is mandatory`, req, res, next);
-            return;
-          }
-          if(!req.body.status) {
-            logActionErrorMessageAndSendResponse(`The user's status is mandatory`, req, res, next);
-            return;
-          }
-          // Check format
-          if (!Users.isUserNameValid(req.body.name)) {
-            logActionErrorMessageAndSendResponse(`The user's last name ${req.body.name} is not valid`, req, res, next);
-            return;
-          }
-          if (!Users.isUserNameValid(req.body.firstName)) {
-            logActionErrorMessageAndSendResponse(`The user's first name ${req.body.firstName} is not valid`, req, res, next);
-            return;
-          }
-          if (!Users.isUserEmailValid(req.body.email)) {
-            logActionErrorMessageAndSendResponse(`The user's email ${req.body.email} is not valid`, req, res, next);
-            return;
-          }
-          if (req.body.phone && !Users.isPhoneValid(req.body.phone)) {
-            logActionErrorMessageAndSendResponse(`The user's phone ${req.body.phone} is not valid`, req, res, next);
-            return;
-          }
-          if (req.body.mobile && !Users.isPhoneValid(req.body.mobile)) {
-            logActionErrorMessageAndSendResponse(`The user's mobile ${req.body.mobile} is not valid`, req, res, next);
-            return;
-          }
-          if (req.body.iNumber && !Users.isINumberValid(req.body.iNumber)) {
-            logActionErrorMessageAndSendResponse(`The user's I-Number ${req.body.iNumber} is not valid`, req, res, next);
-            return;
-          }
-          if (req.body.tagIDs) {
-            // Check
-            if (!Users.isTagIDValid(req.body.tagIDs)) {
-              logActionErrorMessageAndSendResponse(`The user's tags ${req.body.tagIDs} is/are not valid`, req, res, next);
-              return;
-            }
-            // Check
-            if (!Array.isArray(req.body.tagIDs)) {
-              // Split
-              req.body.tagIDs = req.body.tagIDs.split(',');
-            }
-          }
-          // Check email
-          global.storage.getUserByEmail(req.body.email).then(function(user) {
-            if (user) {
-              logActionErrorMessageAndSendResponse(`The user's email ${req.body.tagIDs} is already taken`, req, res, next);
-              return;
-            }
+          if (checkIfUserValid(req, res, next)) {
+            // Check email
+            global.storage.getUserByEmail(req.body.email).then(function(user) {
+              if (user) {
+                logActionErrorMessageAndSendResponse(`The user's email ${req.body.tagIDs} is already taken`, req, res, next);
+                return;
+              }
 
-            // Check Badge ID
-            var newUser = new User(req.body);
-            // Save
-            newUser.save().then(() => {
-              Logging.logInfo({
-                source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkAndSaveUser",
-                message: `User ${newUser.getFullName()} with email ${newUser.getEMail()} has been created successfully`,
-                detailedMessages: user});
+              // Check Badge ID
+              var newUser = new User(req.body);
+              // Save
+              newUser.save().then(() => {
+                Logging.logInfo({
+                  source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkAndSaveUser",
+                  message: `User ${newUser.getFullName()} with email ${newUser.getEMail()} has been created successfully`,
+                  detailedMessages: user});
+              });
+              res.json({status: `Success`});
+              next();
+
+            }).catch((err) => {
+              // Log
+              logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
             });
-            res.json({status: `Success`});
-            next();
-
-          }).catch((err) => {
-            // Log
-            logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-          });
+          }
           break;
 
         // Unknown Context
@@ -433,90 +448,32 @@ module.exports = function(req, res, next) {
       // User
       case "UpdateUser":
         // Check Mandatory fields
-        if(!req.body.id) {
-          logActionErrorMessageAndSendResponse(`The user's ID is mandatory`, req, res, next);
-          return;
-        }
-        if(!req.body.name) {
-          logActionErrorMessageAndSendResponse(`The user's last name is mandatory`, req, res, next);
-          return;
-        }
-        if(!req.body.firstName) {
-          logActionErrorMessageAndSendResponse(`The user's first name is mandatory`, req, res, next);
-          return;
-        }
-        if(!req.body.email) {
-          logActionErrorMessageAndSendResponse(`The user's email is mandatory`, req, res, next);
-          return;
-        }
-        if(!req.body.status) {
-          logActionErrorMessageAndSendResponse(`The user's status is mandatory`, req, res, next);
-          return;
-        }
-        // Check format
-        if (!Users.isUserNameValid(req.body.name)) {
-          logActionErrorMessageAndSendResponse(`The user's last name ${req.body.name} is not valid`, req, res, next);
-          return;
-        }
-        if (!Users.isUserNameValid(req.body.firstName)) {
-          logActionErrorMessageAndSendResponse(`The user's first name ${req.body.firstName} is not valid`, req, res, next);
-          return;
-        }
-        if (!Users.isUserEmailValid(req.body.email)) {
-          logActionErrorMessageAndSendResponse(`The user's email ${req.body.email} is not valid`, req, res, next);
-          return;
-        }
-        if (req.body.phone && !Users.isPhoneValid(req.body.phone)) {
-          logActionErrorMessageAndSendResponse(`The user's phone ${req.body.phone} is not valid`, req, res, next);
-          return;
-        }
-        if (req.body.mobile && !Users.isPhoneValid(req.body.mobile)) {
-          logActionErrorMessageAndSendResponse(`The user's mobile ${req.body.mobile} is not valid`, req, res, next);
-          return;
-        }
-        if (req.body.iNumber && !Users.isINumberValid(req.body.iNumber)) {
-          logActionErrorMessageAndSendResponse(`The user's I-Number ${req.body.iNumber} is not valid`, req, res, next);
-          return;
-        }
-        if (req.body.tagIDs) {
-          // Check
-          if (!Users.isTagIDValid(req.body.tagIDs)) {
-            logActionErrorMessageAndSendResponse(`The user's tags ${req.body.tagIDs} is/are not valid`, req, res, next);
-            return;
-          }
-          // Check
-          if (!Array.isArray(req.body.tagIDs)) {
-            // Split
-            req.body.tagIDs = req.body.tagIDs.split(',');
-          }
-        } else {
-          // Default
-          req.body.tagIDs = [];
-        }
-        // Check email
-        global.storage.getUser(req.body.id).then(function(user) {
-          if (!user) {
-            logActionErrorMessageAndSendResponse(`The user with ID ${req.body.id} does not exist anymore`, req, res, next);
-            return;
-          }
+        if (checkIfUserValid(req, res, next)) {
+          // Check email
+          global.storage.getUser(req.body.id).then(function(user) {
+            if (!user) {
+              logActionErrorMessageAndSendResponse(`The user with ID ${req.body.id} does not exist anymore`, req, res, next);
+              return;
+            }
 
-          // Update
-          Utils.updateUser(req.body, user.getModel());
+            // Update
+            Utils.updateUser(req.body, user.getModel());
 
-          // Update
-          user.save().then(() => {
-            Logging.logInfo({
-              source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkAndSaveUser",
-              message: `User ${user.getFullName()} with Email ${user.getEMail()} has been updated successfully`,
-              detailedMessages: user});
+            // Update
+            user.save().then(() => {
+              Logging.logInfo({
+                source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkAndSaveUser",
+                message: `User ${user.getFullName()} with Email ${user.getEMail()} has been updated successfully`,
+                detailedMessages: user});
+            });
+            res.json({status: `Success`});
+            next();
+
+          }).catch((err) => {
+            // Log
+            logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
           });
-          res.json({status: `Success`});
-          next();
-
-        }).catch((err) => {
-          // Log
-          logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-        });
+        }
         break;
 
         // Not found
@@ -544,7 +501,6 @@ module.exports = function(req, res, next) {
             logActionErrorMessageAndSendResponse(`The user's ID must be provided`, req, res, next);
             return;
           }
-
           // Check email
           global.storage.getUser(req.query.ID).then(function(user) {
             if (!user) {

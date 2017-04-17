@@ -547,7 +547,22 @@ class MongoDBStorage extends Storage {
     });
   }
 
+  checkIfMongoDBIDIsValid(id) {
+      // Check ID
+    if (/^[0-9a-fA-F]{24}$/.test(id)) {
+      // Valid
+      return true;
+    }
+    return false;
+  }
+
   getUser(id) {
+    // Check
+    if (!this.checkIfMongoDBIDIsValid(id)) {
+      // Return empty user
+      return Promise.resolve();
+    }
+
     // Exec request
     return MDBUser.findById(id).exec().then((userMongoDB) => {
       var user = null;

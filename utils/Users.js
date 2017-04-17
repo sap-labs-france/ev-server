@@ -20,7 +20,7 @@ module.exports = {
    },
 
    isPhoneValid(phone) {
-     return /^\+([0-9] ?){6,14}[0-9]$/.test(phone);
+     return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
    },
 
    isINumberValid(iNumber) {
