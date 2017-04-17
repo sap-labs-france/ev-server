@@ -213,7 +213,9 @@ class ChargingStation {
 
     // Set the status
     connectors[statusNotification.connectorId-1].connectorId = statusNotification.connectorId;
+    // Error Code?
     connectors[statusNotification.connectorId-1].status = statusNotification.status;
+    connectors[statusNotification.connectorId-1].errorCode = statusNotification.errorCode;
     this.setConnectors(connectors);
 
     // Compute the power of the connector

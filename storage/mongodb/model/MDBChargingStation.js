@@ -4,6 +4,7 @@ const Connector = new mongoose.Schema({
   connectorId: Number,
   currentConsumption: Number,
   status: String,
+  errorCode: String,
   power: Number
 });
 
