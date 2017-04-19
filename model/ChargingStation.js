@@ -610,15 +610,13 @@ class ChargingStation {
             // Start to return the value after the requested date
             if (meterValue.timestamp >= startingDate) {
               // Don't send empty value
-              if(meterValue.value > 0) {
-                totalNbrOfMetrics++;
-                // compute
-                var consumption = (meterValue.value - lastValue) * sampleMultiplier;
-                // Counting
-                chargingStationConsumption.totalConsumption += meterValue.value - lastValue;
-                // Set the consumption
-                chargingStationConsumption.values.push({date: meterValue.timestamp, value: consumption });
-              }
+              totalNbrOfMetrics++;
+              // compute
+              var consumption = (meterValue.value - lastValue) * sampleMultiplier;
+              // Counting
+              chargingStationConsumption.totalConsumption += meterValue.value - lastValue;
+              // Set the consumption
+              chargingStationConsumption.values.push({date: meterValue.timestamp, value: consumption });
             }
 
             // Set Last Value
