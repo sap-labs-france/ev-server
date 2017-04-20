@@ -10,6 +10,7 @@
     "express": "^4.14.1",
     "http": "^0.0.0",
     "install": "^0.8.6",
+    "moment": "^2.18.1",
     "mongoose": "^4.8.1",
     "node-pre-gyp": "^0.6.33",
     "promise": "^7.1.1",
@@ -17,8 +18,7 @@
     "strong-soap": "^1.2.0",
     "xml-formatter": "^1.0.1"
   },
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "scripts": {
     "start": "node start"
   },

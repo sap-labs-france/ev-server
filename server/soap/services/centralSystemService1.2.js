@@ -143,10 +143,12 @@ module.exports = { /* Services */
         Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "MeterValues", args, headers);
         // Handle
         global.centralSystemSoap.handleMeterValues(args, headers, req).then(function(result) {
-          // Log
-          Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "MeterValues", result);
-          callback(result);
         });
+
+        // return immediately: issue with timestamp on charging station
+        // Log
+        Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "MeterValues", result);
+        callback(result);
 
         /*
           args = {

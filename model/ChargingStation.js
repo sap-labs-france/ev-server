@@ -4,6 +4,7 @@ var Promise = require('promise');
 var Logging = require('../utils/Logging');
 var User = require('./User');
 var Users = require('../utils/Users');
+var moment = require('moment');
 
 class ChargingStation {
   constructor(chargingStation) {
@@ -523,6 +524,7 @@ class ChargingStation {
 
     // Convert to an int
     var meterIntervalSecs = parseInt(this.getMeterIntervalSecs());
+    var startingDate = new Date(startDateTime);
 
     // Define start date default
     if (!startDateTime) {
@@ -561,69 +563,94 @@ class ChargingStation {
       }
 
       // Init var
-      var lastValue = 0;
-      var lastTimeStamp;
-      var lastTimeInterval = 0;
-      var startingDate = new Date(startDateTime);
+      var lastMeterValue;
       var firstValue = false;
 
       // Build the model
       meterValues.forEach((meterValue) => {
+        // Get the stored values
+        let size = chargingStationConsumption.values.length;
+
         // Filter on consumption value
         if (meterValue.attribute && meterValue.attribute.measurand && meterValue.attribute.measurand === "Energy.Active.Import.Register") {
-          // Avoid twice the same timestamp
-          if (!lastTimeStamp || lastTimeStamp.toISOString() !== meterValue.timestamp.toISOString()) {
-            // Timestamp + Value provided
-            if (lastTimeStamp) {
-              // Get the diff according the last timestamp
-              lastTimeInterval = ((meterValue.timestamp - lastTimeStamp) / 1000);
-              // Check
-              if (lastTimeInterval !== meterIntervalSecs) {
-                // Value <> 0?
-                if(meterValue.value) {
-                  invalidNbrOfMetrics++;
-                  // Keep the last one
-                  lastValue = meterValue.value;
-                  // Keep last timestamp
-                  lastTimeStamp = meterValue.timestamp;
-                }
-                // Continue
-                return;
+          // Get the moment
+          let currentTimestamp = moment(meterValue.timestamp);
+
+          // Filter values not in the interval!
+          if (size > 0) {
+            // Get the diff
+            var diffSecs = currentTimestamp.diff(chargingStationConsumption.values[size-1].date, "seconds");
+            // Check
+            if (diffSecs !== meterIntervalSecs) {
+              // Value <> 0?
+              if(meterValue.value) {
+                // Yes: count it as error
+                invalidNbrOfMetrics++;
+                // Keep the last one
+                lastMeterValue = meterValue;
               }
+              // Continue
+              return;
             }
           }
 
           // First init
           if (!firstValue) {
             // Keep
-            lastValue = meterValue.value;
+            lastMeterValue = meterValue;
             firstValue = true;
 
             // Calculate the consumption with the last value provided
           } else {
             // Last value is > ?
-            if (lastValue > meterValue.value) {
+            if (lastMeterValue.value > meterValue.value) {
               // Yes: reinit it (the value has started over from 0)
-              lastValue = 0;
+              lastMeterValue.value = 0;
             }
 
             // Start to return the value after the requested date
-            if (meterValue.timestamp >= startingDate) {
-              // Don't send empty value
-              totalNbrOfMetrics++;
-              // compute
-              var consumption = (meterValue.value - lastValue) * sampleMultiplier;
-              // Counting
-              chargingStationConsumption.totalConsumption += meterValue.value - lastValue;
-              // Set the consumption
-              chargingStationConsumption.values.push({date: meterValue.timestamp, value: consumption });
+            if (currentTimestamp.isSameOrAfter(startingDate) ) {
+              // Check if it will be added
+              let addValue = true;
+              // Check graph values
+              if (size > 0) {
+                // Current value is 0 and previous is 0
+                if (meterValue.value == 0 && chargingStationConsumption.values[size-1].value == 0) {
+                  // Do not add
+                  addValue = false;
+                // Current value > 0 and n-1 = 0 and n-2 > 0
+                } else if (size > 1 && meterValue.value !== 0 &&
+                    chargingStationConsumption.values[size-1].value == 0 &&
+                    chargingStationConsumption.values[size-2].value !== 0) {
+                  // Check if in the same timeframe
+                  if (currentTimestamp.diff(chargingStationConsumption.values[size-2].date, "seconds") <= (meterIntervalSecs * 2)) {
+                      // Remove the last one
+                      chargingStationConsumption.values.length = size - 1;
+                  }
+                // Current value is positive and n-1 is 0: add 0 before the nez graph is drawn
+                } else if (meterValue.value > 0 && chargingStationConsumption.values[size-1].value == 0) {
+                  // Check the timeframe: should be just before
+                  if (currentTimestamp.diff(chargingStationConsumption.values[size-1].date, "seconds") > meterIntervalSecs) {
+                      // Add a 0 just before
+                      chargingStationConsumption.values.push({date: currentTimestamp.clone().substract(meterIntervalSecs, "seconds").toDate(), value: 0 });
+                  }
+                }
+              }
+              // Add it?
+              if (addValue) {
+                // Don't send empty value
+                totalNbrOfMetrics++;
+                // compute
+                var consumption = (meterValue.value - lastMeterValue.value) * sampleMultiplier;
+                // Counting
+                chargingStationConsumption.totalConsumption += meterValue.value - lastMeterValue.value;
+                // Set the consumption
+                chargingStationConsumption.values.push({date: meterValue.timestamp, value: consumption });
+              }
             }
-
             // Set Last Value
-            lastValue = meterValue.value;
+            lastMeterValue = meterValue;
           }
-          // Keep last timestamp
-          lastTimeStamp = meterValue.timestamp;
         }
       });
 
