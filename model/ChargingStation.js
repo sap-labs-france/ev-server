@@ -24,6 +24,12 @@ class ChargingStation {
         return this.requestReset(args);
         break;
 
+      // Clear cache
+      case "ClearCache":
+        // Reboot
+        return this.requestClearCache(args);
+        break;
+
       // Configuration
       case "GetConfiguration":
         // Reboot
@@ -469,12 +475,21 @@ class ChargingStation {
     }
   }
 
-  // Restart the server
+  // Restart the charger
   requestReset(args) {
     // Get the client
     return this.getChargingStationClient().then((chargingStationClient) => {
       // Restart
       return chargingStationClient.reset(args);
+    });
+  }
+
+  // Clear the cache
+  requestClearCache(args) {
+    // Get the client
+    return this.getChargingStationClient().then((chargingStationClient) => {
+      // Restart
+      return chargingStationClient.clearCache(args);
     });
   }
 

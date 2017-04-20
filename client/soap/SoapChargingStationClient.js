@@ -106,6 +106,33 @@ class SoapChargingStationClient extends ChargingStationClient {
     });
   }
 
+  clearCache(args) {
+    // Get the Charging Station
+    return new Promise((fulfill, reject) => {
+      // Init SOAP Headers with the action
+      this.initSoapHeaders("ClearCache");
+
+      // Log
+      Logging.logSendAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "ClearCache", args);
+
+      // Execute
+      _client.ClearCache({clearCacheRequest: {}}, function(err, result, envelope) {
+        if(err) {
+          // Log
+          Logging.logError({
+            source: _chargingStation.getChargeBoxIdentity(), module: "SoapChargingStationClient", method: "clearCache",
+            message: `Error when trying to Clear the Cache of the station ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
+            detailedMessages: err.stack });
+          reject(err);
+        } else {
+          // Log
+          Logging.logReturnedAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "ClearCache", result);
+          fulfill(result);
+        }
+      });
+    });
+  }
+
   getConfiguration(args) {
     // Get the Charging Station
     return new Promise((fulfill, reject) => {

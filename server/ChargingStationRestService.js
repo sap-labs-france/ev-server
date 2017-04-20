@@ -95,7 +95,6 @@ var checkIfUserValid = function(req, res, next) {
 module.exports = function(req, res, next) {
   // Parse the action
   var action = /^\/\w*/g.exec(req.url)[0].substring(1);
-
   // Check Context
   switch (req.method) {
     // Create Request
@@ -103,6 +102,8 @@ module.exports = function(req, res, next) {
       // Check Context
       switch (action) {
         // Charge Box
+        case "ClearCache":
+        case "GetConfiguration":
         case "Reset":
           // Get the Charging Station
           if (req.body.chargeBoxIdentity) {

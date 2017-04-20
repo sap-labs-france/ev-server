@@ -10,6 +10,10 @@ class ChargingStationClient {
   reset(args) {
   }
 
+  // Clear the cache
+  clearCache(args) {
+  }
+
   getConfiguration(args) {
   }
 }
