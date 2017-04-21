@@ -533,20 +533,25 @@ class ChargingStation {
     });
   }
 
+  getLastConsumption(connectorId, transactionId) {
+    // Get the consumption
+    return this.getConsumptions(connectorId, transactionId, new Date().toISOString());
+  }
+
   getConsumptions(connectorId, transactionId, startDateTime, endDateTime) {
     var invalidNbrOfMetrics = 0;
     var totalNbrOfMetrics = 0;
 
     // Convert to an int
     var meterIntervalSecs = parseInt(this.getMeterIntervalSecs());
-    var startingDate = new Date(startDateTime);
 
     // Define start date default
     if (!startDateTime) {
-      startDateTime = new Date(new Date().toDateString()).toISOString(); // Current day
+      // Curent date
+      startDateTime = new Date().toISOString(); // Current day
     }
     // Adjust the start time to get the last 2 meter values
-    var startDateTimeAdjusted = new Date(new Date(startDateTime) - (meterIntervalSecs * 2 * 1000)).toISOString();
+    var startDateTimeAdjusted = moment(startDateTime).clone().subtract(meterIntervalSecs, "seconds").toDate().toISOString();
 
     // Define end date default
     if (!endDateTime) {
@@ -582,9 +587,9 @@ class ChargingStation {
       var firstValue = false;
 
       // Build the model
-      meterValues.forEach((meterValue) => {
+      meterValues.forEach((meterValue, meterValueIndex) => {
         // Get the stored values
-        let size = chargingStationConsumption.values.length;
+        let numberOfReturnedMeters = chargingStationConsumption.values.length;
 
         // Filter on consumption value
         if (meterValue.attribute && meterValue.attribute.measurand && meterValue.attribute.measurand === "Energy.Active.Import.Register") {
@@ -592,11 +597,11 @@ class ChargingStation {
           let currentTimestamp = moment(meterValue.timestamp);
 
           // Filter values not in the interval!
-          if (size > 0) {
+          if (numberOfReturnedMeters > 0) {
             // Get the diff
-            var diffSecs = currentTimestamp.diff(chargingStationConsumption.values[size-1].date, "seconds");
+            var diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, "seconds");
             // Check
-            if (diffSecs !== meterIntervalSecs) {
+            if (diffSecs < meterIntervalSecs) {
               // Value <> 0?
               if(meterValue.value) {
                 // Yes: count it as error
@@ -624,43 +629,47 @@ class ChargingStation {
             }
 
             // Start to return the value after the requested date
-            if (currentTimestamp.isSameOrAfter(startingDate) ) {
+            if (currentTimestamp.isSameOrAfter(startDateTime) ) {
+              // compute
+              var currentConsumption = (meterValue.value - lastMeterValue.value) * sampleMultiplier;
               // Check if it will be added
               let addValue = true;
-              // Check graph values
-              if (size > 0) {
+              // Check graph values: at least one returned value and not the last meter value
+              if ((numberOfReturnedMeters > 0) && (meterValueIndex !== meterValues.length-1)) {
                 // Current value is 0 and previous is 0
-                if (meterValue.value == 0 && chargingStationConsumption.values[size-1].value == 0) {
+                if (currentConsumption == 0 && chargingStationConsumption.values[numberOfReturnedMeters-1].value == 0) {
                   // Do not add
                   addValue = false;
-                // Current value > 0 and n-1 = 0 and n-2 > 0
-                } else if (size > 1 && meterValue.value !== 0 &&
-                    chargingStationConsumption.values[size-1].value == 0 &&
-                    chargingStationConsumption.values[size-2].value !== 0) {
-                  // Check if in the same timeframe
-                  if (currentTimestamp.diff(chargingStationConsumption.values[size-2].date, "seconds") <= (meterIntervalSecs * 2)) {
-                      // Remove the last one
-                      chargingStationConsumption.values.length = size - 1;
+                // Current value is positive and n-1 is 0: add 0 before the end graph is drawn
+                } else if (currentConsumption > 0 && chargingStationConsumption.values[numberOfReturnedMeters-1].value == 0) {
+                  // Check the timeframe: should be just before: if not add one
+                  if (currentTimestamp.diff(chargingStationConsumption.values[numberOfReturnedMeters-1].date, "seconds") > meterIntervalSecs) {
+                    // Add a 0 just before
+                    chargingStationConsumption.values.push({date: currentTimestamp.clone().subtract(meterIntervalSecs, "seconds").toDate(), value: 0 });
                   }
-                // Current value is positive and n-1 is 0: add 0 before the nez graph is drawn
-                } else if (meterValue.value > 0 && chargingStationConsumption.values[size-1].value == 0) {
-                  // Check the timeframe: should be just before
-                  if (currentTimestamp.diff(chargingStationConsumption.values[size-1].date, "seconds") > meterIntervalSecs) {
-                      // Add a 0 just before
-                      chargingStationConsumption.values.push({date: currentTimestamp.clone().substract(meterIntervalSecs, "seconds").toDate(), value: 0 });
-                  }
+                // Return one value every 'n' time intervals
+                } else if (currentTimestamp.diff(chargingStationConsumption.values[numberOfReturnedMeters-1].date, "seconds") < (meterIntervalSecs * 10)) {
+                  // Do not add
+                  addValue = false;
                 }
+                // // Current value > 0 and n-1 = 0 and n-2 > 0
+                // } else if (numberOfReturnedMeters > 1 && meterValue.value !== 0 &&
+                //     chargingStationConsumption.values[numberOfReturnedMeters-1].value == 0 &&
+                //     chargingStationConsumption.values[numberOfReturnedMeters-2].value !== 0) {
+                //   // Check if in the same timeframe
+                //   if (currentTimestamp.diff(chargingStationConsumption.values[numberOfReturnedMeters-2].date, "seconds") <= (meterIntervalSecs * 2)) {
+                //       // Remove the last one
+                //       chargingStationConsumption.values.length = numberOfReturnedMeters - 1;
+                //   }
               }
               // Add it?
               if (addValue) {
                 // Don't send empty value
                 totalNbrOfMetrics++;
-                // compute
-                var consumption = (meterValue.value - lastMeterValue.value) * sampleMultiplier;
                 // Counting
                 chargingStationConsumption.totalConsumption += meterValue.value - lastMeterValue.value;
                 // Set the consumption
-                chargingStationConsumption.values.push({date: meterValue.timestamp, value: consumption });
+                chargingStationConsumption.values.push({date: meterValue.timestamp, value: currentConsumption });
               }
             }
             // Set Last Value

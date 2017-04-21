@@ -56,16 +56,17 @@ module.exports = {
 
       // Connection
       connectors.forEach((connector) => {
-        // Set the date to the last 20secs
-        var date = new Date();
-        date.setSeconds(date.getSeconds() - (chargingStation.getMeterIntervalSecs() * 2));
-
         // Get the consumption for each connector
-        promises.push(chargingStation.getConsumptions(connector.connectorId, null, date).then((consumption) => {
+        promises.push(chargingStation.getLastConsumption(connector.connectorId).then((consumption) => {
           let currentConsumption = 0;
+          console.log("chargingStation: " + chargingStation.getChargeBoxIdentity() +
+            ", connector: " + connector.connectorId +
+            ", nbr cons: " + consumption.values.length +
+            ", value: " + (consumption.values.length > 0?consumption.values[0].value:"n/a"));
 
           // Value provided?
-          if (consumption.values.length !== 0) {
+          if (consumption.values.length > 0) {
+            console.log("Nbr consumption: " + consumption.values.length + ", value: " + consumption.values[0].value);
             // Yes
             currentConsumption = consumption.values[0].value;
           }
