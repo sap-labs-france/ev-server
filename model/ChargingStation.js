@@ -442,10 +442,10 @@ class ChargingStation {
       } else {
         // Create an empty user
         var user = new User({
-          name: "DOE",
-          firstName: "John",
+          name: "Absent",
+          firstName: "Temporarily",
           status: Users.USER_PENDING,
-          email: request.idTag + "@space.mountain.fr",
+          email: request.idTag + "@twilight.zone.fr",
           tagIDs: [request.idTag]
         });
 
