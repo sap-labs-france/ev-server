@@ -535,7 +535,8 @@ class ChargingStation {
 
   getLastConsumption(connectorId, transactionId) {
     // Get the consumption
-    return this.getConsumptions(connectorId, transactionId, new Date().toISOString());
+    return this.getConsumptions(connectorId, transactionId,
+       moment().clone().subtract(parseInt(this.getMeterIntervalSecs())*10, "seconds").toDate().toISOString());
   }
 
   getConsumptions(connectorId, transactionId, startDateTime, endDateTime) {
@@ -590,7 +591,6 @@ class ChargingStation {
       meterValues.forEach((meterValue, meterValueIndex) => {
         // Get the stored values
         let numberOfReturnedMeters = chargingStationConsumption.values.length;
-
         // Filter on consumption value
         if (meterValue.attribute && meterValue.attribute.measurand && meterValue.attribute.measurand === "Energy.Active.Import.Register") {
           // Get the moment

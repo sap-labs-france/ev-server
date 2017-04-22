@@ -66,9 +66,9 @@ module.exports = {
 
           // Value provided?
           if (consumption.values.length > 0) {
-            console.log("Nbr consumption: " + consumption.values.length + ", value: " + consumption.values[0].value);
+            console.log("Nbr consumption: " + consumption.values.length + ", value: " + JSON.stringify(consumption.values));
             // Yes
-            currentConsumption = consumption.values[0].value;
+            currentConsumption = consumption.values[consumption.values.length-1].value;
           }
 
           // Changed?

@@ -8,9 +8,10 @@ var logActionUnexpectedErrorMessageAndSendResponse = function(action, err, req, 
   Logging.logError({
     source: "Central Server", module: "ChargingStationRestService", method: "N/A",
     action: action,
-    message: `Unexpected Error: ${err.toString()}`,
+    message: `${err.toString()}`,
     detailedMessages: err.stack });
-  res.json({error: `Unexpected Error: ${err.toString()}`});
+  // res.json({error: `${err.toString()}`});
+  res.status(500).send(`${err.toString()}`);
   next();
 }
 
@@ -22,7 +23,8 @@ var logActionErrorMessageAndSendResponse = function(message, req, res, next) {
     detailedMessages: [{
         "stack": new Error().stack,
         "request": req.body}] });
-  res.json({error: message});
+  // res.json({error: message});
+  res.status(500).send(message);
   next();
 }
 
@@ -115,7 +117,7 @@ module.exports = function(req, res, next) {
                 return chargingStation.handleAction(action, req.body.args);
               } else {
                 // Charging station not found
-                logActionErrorMessageAndSendResponse(`Charging Station not found with ID ${req.body.chargeBoxIdentity}`, req, res, next);
+                logActionErrorMessageAndSendResponse(`Charging Station with ID ${req.body.chargeBoxIdentity} does not exist`, req, res, next);
               }
             }).then(function(result) {
               // Return the result
@@ -209,14 +211,14 @@ module.exports = function(req, res, next) {
       // Get one charging station
       case "ChargingStation":
         global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
-          var chargingStationJSon = {};
           if (chargingStation) {
-            // Set the model
-            chargingStationJSon = chargingStation.getModel();
+            // Return
+            res.json(chargingStation.getModel());
+            next();
+          } else {
+            // Log
+            return Promise.reject(new Error(`Charging Station ${req.query.ChargeBoxIdentity} does not exist`));
           }
-          // Return
-          res.json(chargingStationJSon);
-          next();
         }).catch((err) => {
           // Log
           logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
@@ -243,14 +245,14 @@ module.exports = function(req, res, next) {
       // Get the user
       case "UserByEmail":
         global.storage.getUserByEmail(req.query.Email).then(function(user) {
-          var userJSon = {};
           if (user) {
-            // Set the model
-            userJSon = user.getModel();
+            // Return
+            res.json(user.getModel());
+            next();
+          } else {
+            // Log
+            return Promise.reject(new Error(`User with email ${req.query.Email} does not exist`));
           }
-          // Return
-          res.json(userJSon);
-          next();
         }).catch((err) => {
           // Log
           logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
@@ -260,14 +262,14 @@ module.exports = function(req, res, next) {
       // Get the user
       case "User":
         global.storage.getUser(req.query.ID).then(function(user) {
-          var userJSon = {};
           if (user) {
-            // Set the model
-            userJSon = user.getModel();
+            // Return
+            res.json(user.getModel());
+            next();
+          } else {
+            // Log
+            return Promise.reject(new Error(`User with ID ${req.query.ID} does not exist`));
           }
-          // Return
-          res.json(userJSon);
-          next();
         }).catch((err) => {
           // Log
           logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
@@ -277,14 +279,14 @@ module.exports = function(req, res, next) {
       // Get the user
       case "UserByTagId":
         global.storage.getUserByTagId(req.query.TagId).then(function(user) {
-          var userJSon = {};
           if (user) {
-            // Set the model
-            userJSon = user.getModel();
+            // Return
+            res.json(user.getModel());
+            next();
+          } else {
+            // Log
+            return Promise.reject(new Error(`User with tag ID ${req.query.TagId} does not exist`));
           }
-          // Return
-          res.json(userJSon);
-          next();
         }).catch((err) => {
           // Log
           logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
@@ -293,14 +295,22 @@ module.exports = function(req, res, next) {
 
       // Get the transactions
       case "Transactions":
-        global.storage.getTransactions(
-            req.query.ChargeBoxIdentity,
-            req.query.ConnectorId,
-            req.query.StartDateTime,
-            req.query.EndDateTime).then(function(transactions) {
-          // Return
-          res.json(transactions);
-          next();
+        global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
+          var chargingStationJSon = {};
+          if (chargingStation) {
+            // Set the model
+            chargingStationJSon = chargingStation.getTransactions(
+              req.query.ConnectorId,
+              req.query.StartDateTime,
+              req.query.EndDateTime).then((transactions) => {
+                // Return
+                res.json(transactions);
+                next();
+              });
+          } else {
+            // Log
+            return Promise.reject(new Error(`Charging Station ${req.query.ChargeBoxIdentity} does not exist`));
+          }
         }).catch((err) => {
           // Log
           logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
@@ -323,9 +333,8 @@ module.exports = function(req, res, next) {
                 next();
               });
             } else {
-              // Return the result
-              res.json(statusNotifications);
-              next();
+              // Log
+              return Promise.reject(new Error(`Charging Station ${req.query.ChargeBoxIdentity} does not exist`));
             }
           }).catch((err) => {
             // Log
@@ -336,6 +345,9 @@ module.exports = function(req, res, next) {
             // Return the result
             res.json(statusNotifications);
             next();
+          }).catch((err) => {
+            // Log
+            logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
           });
         }
         break;
@@ -347,18 +359,23 @@ module.exports = function(req, res, next) {
           // Get the Charging Station`
           global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
             let statusNotifications = {};
-            // Found
+            // Found?
             if (chargingStation) {
               // Get the Status
               chargingStation.getLastStatusNotification(req.query.ConnectorId).then(function(statusNotification) {
-                // Return the result
-                res.json(statusNotification);
-                next();
+                // Found?
+                if (statusNotification) {
+                  // Return the result
+                  res.json(statusNotification);
+                  next();
+                } else {
+                  // Log
+                  return Promise.reject(new Error(`Status for Charging Station ${req.query.ChargeBoxIdentity} with Connector ID ${req.query.ConnectorId} does not exist`));
+                }
               });
             } else {
-              // Return the result
-              res.json(statusNotification);
-              next();
+              // Log
+              return Promise.reject(new Error(`Charging Station ${req.query.ChargeBoxIdentity} does not exist`));
             }
           }).catch((err) => {
             // Log
@@ -387,9 +404,8 @@ module.exports = function(req, res, next) {
               next();
             });
           } else {
-            // Return the result
-            res.json(consumptions);
-            next();
+            // Log
+            return Promise.reject(new Error(`Charging Station ${req.query.ChargeBoxIdentity} does not exist`));
           }
         }).catch((err) => {
           // Log
@@ -412,9 +428,8 @@ module.exports = function(req, res, next) {
               next();
             });
           } else {
-            // Return the result
-            res.json(configuration);
-            next();
+            // Log
+            return Promise.reject(new Error(`Charging Station ${req.query.ChargeBoxIdentity} does not exist`));
           }
         }).catch((err) => {
           // Log
