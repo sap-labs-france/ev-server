@@ -12,7 +12,7 @@ module.exports = mongoose.model('MeterValue', {
   _id: String,
   chargeBoxID: {type: String, ref: 'ChargingStation'},
   connectorId: Number,
-  timestamp: Date,
+  timestamp: { type: Date, index: true },
   transactionId: Number,
   value: Number,
   attribute: Attribute

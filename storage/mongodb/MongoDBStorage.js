@@ -151,16 +151,13 @@ class MongoDBStorage extends Storage {
     }
   }
 
-  getMeterValues(chargeBoxIdentity, connectorId, transactionId, startDateTime, endDateTime) {
+  getMeterValues(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
     // Build filter
     var filter = {};
     // Mandatory filters
     filter.chargeBoxID = chargeBoxIdentity;
     filter.connectorId = connectorId;
 
-    if (transactionId) {
-      filter.transactionId = transactionId;
-    }
     if (startDateTime || endDateTime) {
       filter.timestamp = {};
     }
@@ -267,11 +264,7 @@ class MongoDBStorage extends Storage {
     var logMongoDB = new MDBLog(log);
 
     // Save
-    return logMongoDB.save((err, results) => {
-      if (err) {
-        console.log(`MongoDB: Error when creating a Log: ${err.toString()}`);
-      }
-    });
+    return logMongoDB.save();
   }
 
   saveAuthorize(authorize) {
@@ -338,72 +331,57 @@ class MongoDBStorage extends Storage {
   }
 
   getTransactions(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
-    // // Get the Charging Station
-    // return new Promise((resolve, reject) => {
-    //     // Build filter
-    //     var filter = {};
-    //     if (chargeBoxIdentity) {
-    //       filter.chargeBoxIdentity = chargeBoxIdentity;
-    //     }
-    //     if (connectorId) {
-    //       filter.connectorId = connectorId;
-    //     }
-    //     if (startDateTime || endDateTime) {
-    //       filter.timestamp = {};
-    //     }
-    //     if (startDateTime) {
-    //       filter.timestamp["$gte"] = new Date(startDateTime);
-    //     }
-    //     if (endDateTime) {
-    //       filter.timestamp["$lte"] = new Date(endDateTime);
-    //     }
-    //
-    //     // Get the Start Transaction
-    //     MDBStartTransaction.find(filter).sort( {timestamp: -1} ).exec((err, transactionsMongoDB) => {
-    //         var transactions = [];
-    //
-    //         if (err) {
-    //             reject(err);
-    //         } else {
-    //             // Create
-    //             transactionsMongoDB.forEach((transactionMongoDB) => {
-    //               var transaction = {};
-    //               // Set
-    //               Utils.updateStartTransaction(transactionMongoDB, transaction);
-    //               // Add
-    //               transactions.push(transaction);
-    //             });
-    //             // Ok
-    //             resolve(transactions);
-    //         }
-    //     // Get the Users
-    //   }).then((transactions) => {
-    //       var userPromises = [];
-    //
-    //       // Get the user for each transaction
-    //       for (var i = 0; i < transactions.length; i++) {
-    //         // Call in a function to pass the index in the Promise
-    //         ((transaction) => {
-    //           // Get the user
-    //           userPromises.push(
-    //             // Get the user
-    //             this.getUserByTagId(transaction.idTag).then((user) => {
-    //               // Set
-    //               if(user) {
-    //                 // Set the User
-    //                 transaction.user = user.getModel();
-    //               }
-    //               return transaction;
-    //             })
-    //           );
-    //         })(transactions[i]);
-    //       }
-    //
-    //       Promise.all(userPromises).then((transactions) => {
-    //         fullfill(transactions);
-    //       });
-    //     });
-    // });
+    // Build filter
+    var filter = {};
+    if (chargeBoxIdentity) {
+      filter.chargeBoxID = chargeBoxIdentity;
+    }
+    if (connectorId) {
+      filter.connectorId = parseInt(connectorId);
+    }
+    if (startDateTime || endDateTime) {
+      filter.timestamp = {};
+    }
+    if (startDateTime) {
+      filter.timestamp["$gte"] = new Date(startDateTime);
+    }
+    if (endDateTime) {
+      filter.timestamp["$lte"] = new Date(endDateTime);
+    }
+
+    // Get the Start Transaction
+    return MDBStartTransaction.find(filter).populate("userID").sort( {timestamp: -1} ).exec().then((startTransactionsMongoDB) => {
+      var transactions = [];
+      // Create
+      startTransactionsMongoDB.forEach((startTransactionMongoDB) => {
+        var transaction = {};
+        // Set
+        transaction.start = {};
+        Utils.updateStartTransaction(startTransactionMongoDB, transaction.start);
+        // Add
+        transactions.push(transaction);
+      });
+      // Ok
+      return transactions;
+      // Get the Users
+    }).then((transactions) => {
+      // Wait
+      return Promise.all(transactions.map(transaction => {
+        // Get stop transaction
+        return MDBStopTransaction.findOne({"transactionId" : transaction.start.transactionId}).then((stopTransactionMongoDB) => {
+          // Set
+          transaction.stop = {};
+
+          // Found?
+          if (stopTransactionMongoDB) {
+            Utils.updateStopTransaction(stopTransactionMongoDB, transaction.stop);
+          }
+
+          // Ok
+          return transaction;
+        });
+      }));
+    });
   }
 
   saveChargingStation(chargingStation) {

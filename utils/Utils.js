@@ -146,9 +146,38 @@ module.exports = {
 
   updateStartTransaction(src, dest) {
     // Set it
+    dest.chargeBoxID = src.chargeBoxID;
+    // Check User
+    if (src.userID && src.userID.name) {
+      // User populated: Set only important fields
+      dest.userID = {};
+      dest.userID.name = src.userID.name;
+      dest.userID.firstName = src.userID.firstName;
+    } else {
+      dest.userID = src.userID;
+    }
     dest.connectorId = src.connectorId;
     dest.timestamp = src.timestamp;
     dest.transactionId = src.transactionId;
     dest.meterStart = src.meterStart;
+  },
+
+  updateStopTransaction(src, dest) {
+    // Set it
+    dest.chargeBoxID = src.chargeBoxID;
+    // Check User
+    if (src.userID && src.userID.name) {
+      // User populated: Set only important fields
+      dest.userID = {};
+      dest.userID.name = src.userID.name;
+      dest.userID.firstName = src.userID.firstName;
+    } else {
+      dest.userID = src.userID;
+    }
+    dest.transactionId = src.transactionId;
+    dest.timestamp = src.timestamp;
+    dest.connectorId = src.connectorId;
+    dest.meterStop = src.meterStop;
+    dest.transactionData = src.transactionData;
   }
 }

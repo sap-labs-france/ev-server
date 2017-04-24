@@ -533,13 +533,19 @@ class ChargingStation {
     });
   }
 
-  getLastConsumption(connectorId, transactionId) {
+  getTransactions(connectorId, startDateTime, endDateTime) {
     // Get the consumption
-    return this.getConsumptions(connectorId, transactionId,
-       moment().clone().subtract(parseInt(this.getMeterIntervalSecs())*10, "seconds").toDate().toISOString());
+    return global.storage.getTransactions(this.getChargeBoxIdentity(), connectorId, startDateTime, endDateTime);
   }
 
-  getConsumptions(connectorId, transactionId, startDateTime, endDateTime) {
+  getLastConsumption(connectorId) {
+    // Get the consumption
+    return this.getConsumptions(
+      connectorId,
+      moment().clone().subtract(parseInt(this.getMeterIntervalSecs())*10, "seconds").toDate().toISOString());
+  }
+
+  getConsumptions(connectorId, startDateTime, endDateTime) {
     var invalidNbrOfMetrics = 0;
     var totalNbrOfMetrics = 0;
 
@@ -563,7 +569,6 @@ class ChargingStation {
     return global.storage.getMeterValues(
         this.getChargeBoxIdentity(),
         connectorId,
-        transactionId,
         startDateTimeAdjusted,
         endDateTime).then((meterValues) => {
       // Parse the results

@@ -107,31 +107,32 @@ module.exports = function(req, res, next) {
         case "ClearCache":
         case "GetConfiguration":
         case "Reset":
-          // Get the Charging Station
-          if (req.body.chargeBoxIdentity) {
-            // Get the Charging station
-            global.storage.getChargingStation(req.body.chargeBoxIdentity).then(function(chargingStation) {
-              // Found?
-              if (chargingStation) {
-                // Execute it
-                return chargingStation.handleAction(action, req.body.args);
-              } else {
-                // Charging station not found
-                logActionErrorMessageAndSendResponse(`Charging Station with ID ${req.body.chargeBoxIdentity} does not exist`, req, res, next);
-              }
-            }).then(function(result) {
-              // Return the result
-              res.json(result);
-              next();
-
-            }).catch(function(err) {
-              // Log
-              logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-            });
-          } else {
-            // Log
-            logActionErrorMessageAndSendResponse(`The Charging Station's ID must be provided`, req, res, next);
+          // Charge Box is mandatory
+          if(!req.query.ChargeBoxIdentity) {
+            logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
+            break;
           }
+
+          // Get the Charging Station
+          // Get the Charging station
+          global.storage.getChargingStation(req.body.chargeBoxIdentity).then(function(chargingStation) {
+            // Found?
+            if (chargingStation) {
+              // Execute it
+              return chargingStation.handleAction(action, req.body.args);
+            } else {
+              // Charging station not found
+              logActionErrorMessageAndSendResponse(`Charging Station with ID ${req.body.chargeBoxIdentity} does not exist`, req, res, next);
+            }
+          }).then(function(result) {
+            // Return the result
+            res.json(result);
+            next();
+
+          }).catch(function(err) {
+            // Log
+            logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+          });
           break;
 
         // Create User
@@ -210,6 +211,13 @@ module.exports = function(req, res, next) {
 
       // Get one charging station
       case "ChargingStation":
+        // Charge Box is mandatory
+        if(!req.query.ChargeBoxIdentity) {
+          logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
+          break;
+        }
+
+        // Get it
         global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
           if (chargingStation) {
             // Return
@@ -295,8 +303,14 @@ module.exports = function(req, res, next) {
 
       // Get the transactions
       case "Transactions":
+        // Charge Box is mandatory
+        if(!req.query.ChargeBoxIdentity) {
+          logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
+          break;
+        }
+
+        // Get Charge Box
         global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
-          var chargingStationJSon = {};
           if (chargingStation) {
             // Set the model
             chargingStationJSon = chargingStation.getTransactions(
@@ -386,6 +400,12 @@ module.exports = function(req, res, next) {
 
       // Get Charging Consumption
       case "ChargingStationConsumption":
+        // Charge Box is mandatory
+        if(!req.query.ChargeBoxIdentity) {
+          logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
+          break;
+        }
+
         // Get the Charging Station`
         global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
           let consumptions = [];
@@ -395,7 +415,6 @@ module.exports = function(req, res, next) {
             // Get the Consumption
             chargingStation.getConsumptions(
                 req.query.ConnectorId,
-                req.query.TransactionId,
                 req.query.StartDateTime,
                 req.query.EndDateTime).then(function(consumptions) {
 
@@ -415,6 +434,12 @@ module.exports = function(req, res, next) {
 
       // Get Charging Consumption
       case "ChargingStationConfiguration":
+        // Charge Box is mandatory
+        if(!req.query.ChargeBoxIdentity) {
+          logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
+          break;
+        }
+
         // Get the Charging Station`
         global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
           let configuration = {};
