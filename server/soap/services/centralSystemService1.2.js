@@ -144,12 +144,12 @@ module.exports = { /* Services */
 
         // Handle
         global.centralSystemSoap.handleMeterValues(args, headers, req).then(function(result) {
+          // Return the result async
+          Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "MeterValues", result);
+          callback(result);
         });
 
-        // Return the result async
-        Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "MeterValues", result);
-        callback(result);
-        
+
         /*
           args = {
                  connectorId of type s:int
