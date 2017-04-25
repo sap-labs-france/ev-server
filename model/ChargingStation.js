@@ -576,14 +576,14 @@ class ChargingStation {
     // Define start date default
     if (!startDateTime) {
       // Curent date
-      startDateTime = new Date().toISOString(); // Current day
+      startDateTime = new Date(); // Current day
     }
     // Adjust the start time to get the last 2 meter values
     var startDateTimeAdjusted = moment(startDateTime).clone().subtract(meterIntervalSecs, "seconds").toDate().toISOString();
 
     // Define end date default
     if (!endDateTime) {
-      endDateTime = new Date().toISOString(); // Current day
+      endDateTime = new Date(); // Current day
     }
 
     // Build the request
