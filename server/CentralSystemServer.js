@@ -196,9 +196,7 @@ class CentralSystemServer {
 
   handleMeterValues(args, headers, req) {
     // Get the charging station
-    // Save Asynch
-    // return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
-    global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
+    return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
       // Found?
       if (chargingStation) {
         // Save
@@ -222,9 +220,6 @@ class CentralSystemServer {
         }
       };
     });
-
-    // Immediately returns!
-    return Promise.fulfill({"meterValuesResponse": {}});
   }
 
   handleAuthorize(args, headers, req) {
