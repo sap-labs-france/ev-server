@@ -49,6 +49,11 @@ class StorageFacade extends Storage {
     return _leadingStorage.getMeterValues(chargeBoxIdentity, connectorId, startDateTime, endDateTime);
   }
 
+  getLastMeterValuesFromTransaction(chargeBoxIdentity, connectorId, transactionId, limit) {
+    // Delegate
+    return _leadingStorage.getLastMeterValuesFromTransaction(chargeBoxIdentity, connectorId, transactionId, limit);
+  }
+
   getChargingStation(chargeBoxIdentity) {
     // Delegate
     return _leadingStorage.getChargingStation(chargeBoxIdentity);

@@ -56,6 +56,9 @@ class Storage {
   getMeterValues(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
   }
 
+  getLastMeterValuesFromTransaction(chargeBoxIdentity, connectorId, transactionId, limit) {
+  }
+
   getLastTransaction(chargeBoxIdentity, connectorId) {
   }
 
