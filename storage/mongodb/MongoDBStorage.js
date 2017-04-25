@@ -91,9 +91,10 @@ class MongoDBStorage extends Storage {
     // Exec request
     return MDBConfiguration.find({"chargeBoxID": chargeBoxIdentity, timestamp: { $lte: configDate } })
         .sort({timestamp: -1}).limit(1).exec().then((configurationMongoDB) => {
-      var configuration = {};
-      if (configurationMongoDB[0]) {
+      var configuration = null;
+      if (configurationMongoDB && configurationMongoDB[0]) {
         // Set values
+        configuration = {};
         Utils.updateConfiguration(configurationMongoDB[0], configuration);
       }
       // Ok
@@ -128,27 +129,20 @@ class MongoDBStorage extends Storage {
   getLastStatusNotification(chargeBoxIdentity, connectorId) {
     // Get the Status Notification
     var filter = {};
-    var statusNotification = {};
-
-    // Must be provided
-    if(chargeBoxIdentity && connectorId) {
-      filter.chargeBoxID = chargeBoxIdentity;
-      filter.connectorId = connectorId;
-
-      // Exec request
-      return MDBStatusNotification.find(filter).sort({timestamp: -1}).limit(1).exec().then((statusNotificationsMongoDB) => {
-        // At least one
-        if (statusNotificationsMongoDB[0]) {
-          // Set values
-          Utils.updateStatusNotification(statusNotificationsMongoDB[0], statusNotification);
-        }
-        // Ok
-        return statusNotification;
-      });
-    } else {
+    filter.chargeBoxID = chargeBoxIdentity;
+    filter.connectorId = connectorId;
+    // Exec request
+    return MDBStatusNotification.find(filter).sort({timestamp: -1}).limit(1).exec().then((statusNotificationsMongoDB) => {
+      var statusNotification = null;
+      // At least one
+      if (statusNotificationsMongoDB[0]) {
+        statusNotification = {};
+        // Set values
+        Utils.updateStatusNotification(statusNotificationsMongoDB[0], statusNotification);
+      }
       // Ok
       return statusNotification;
-    }
+    });
   }
 
   getMeterValues(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
@@ -354,8 +348,8 @@ class MongoDBStorage extends Storage {
       var transactions = [];
       // Create
       startTransactionsMongoDB.forEach((startTransactionMongoDB) => {
-        var transaction = {};
         // Set
+        var transaction = {};
         transaction.start = {};
         Utils.updateStartTransaction(startTransactionMongoDB, transaction.start);
         // Add
@@ -363,24 +357,65 @@ class MongoDBStorage extends Storage {
       });
       // Ok
       return transactions;
-      // Get the Users
+      // Get the Stop Transaction
     }).then((transactions) => {
       // Wait
       return Promise.all(transactions.map(transaction => {
         // Get stop transaction
         return MDBStopTransaction.findOne({"transactionId" : transaction.start.transactionId}).then((stopTransactionMongoDB) => {
-          // Set
-          transaction.stop = {};
-
           // Found?
           if (stopTransactionMongoDB) {
+            // Set
+            transaction.stop = {};
             Utils.updateStopTransaction(stopTransactionMongoDB, transaction.stop);
           }
-
           // Ok
           return transaction;
         });
       }));
+    });
+  }
+
+  getLastTransaction(chargeBoxIdentity, connectorId) {
+    // Build filter
+    var filter = {};
+    if (chargeBoxIdentity) {
+      filter.chargeBoxID = chargeBoxIdentity;
+    }
+    if (connectorId) {
+      filter.connectorId = parseInt(connectorId);
+    }
+
+    // Get the Start Transaction
+    return MDBStartTransaction.findOne(filter).populate("userID").sort( {timestamp: -1} ).exec().then((startTransactionMongoDB) => {
+      var transaction = null;
+      if (startTransactionMongoDB) {
+        // Set
+        transaction = {};
+        transaction.start = {};
+        Utils.updateStartTransaction(startTransactionMongoDB, transaction.start);
+      }
+      // Ok
+      return transaction;
+      // Get the Stop Transaction
+    }).then((transaction) => {
+      // Found?
+      if (transaction) {
+        // Get stop transaction
+        return MDBStopTransaction.findOne({"transactionId" : transaction.start.transactionId}).then((stopTransactionMongoDB) => {
+          // Found?
+          if (stopTransactionMongoDB) {
+            // Set
+            transaction.stop = {};
+            Utils.updateStopTransaction(stopTransactionMongoDB, transaction.stop);
+          }
+          // Ok
+          return transaction;
+        });
+      } else {
+        // Ok
+        return transaction;
+      }
     });
   }
 

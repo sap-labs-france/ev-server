@@ -61,16 +61,12 @@ module.exports = {
           let currentConsumption = 0;
           console.log("chargingStation: " + chargingStation.getChargeBoxIdentity() +
             ", connector: " + connector.connectorId +
-            ", nbr cons: " + consumption.values.length +
-            ", value: " + (consumption.values.length > 0?consumption.values[0].value:"n/a"));
-
+            ", value: " + (consumption?consumption.value:"n/a"));
           // Value provided?
-          if (consumption.values.length > 0) {
-            console.log("Nbr consumption: " + consumption.values.length + ", value: " + JSON.stringify(consumption.values));
+          if (consumption) {
             // Yes
-            currentConsumption = consumption.values[consumption.values.length-1].value;
+            currentConsumption = consumption.value;
           }
-
           // Changed?
           if (connector.currentConsumption !== currentConsumption) {
             // Log

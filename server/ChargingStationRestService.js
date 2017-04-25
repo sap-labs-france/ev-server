@@ -252,6 +252,12 @@ module.exports = function(req, res, next) {
 
       // Get the user
       case "UserByEmail":
+        // User mandatory
+        if(!req.query.Email) {
+          logActionErrorMessageAndSendResponse(`The User's email is mandatory`, req, res, next);
+          break;
+        }
+        // Get
         global.storage.getUserByEmail(req.query.Email).then(function(user) {
           if (user) {
             // Return
@@ -269,6 +275,11 @@ module.exports = function(req, res, next) {
 
       // Get the user
       case "User":
+        // User mandatory
+        if(!req.query.ID) {
+          logActionErrorMessageAndSendResponse(`The User's ID is mandatory`, req, res, next);
+          break;
+        }
         global.storage.getUser(req.query.ID).then(function(user) {
           if (user) {
             // Return
@@ -286,6 +297,12 @@ module.exports = function(req, res, next) {
 
       // Get the user
       case "UserByTagId":
+        // User mandatory
+        if(!req.query.TagId) {
+          logActionErrorMessageAndSendResponse(`The User's Tag ID is mandatory`, req, res, next);
+          break;
+        }
+        // Set
         global.storage.getUserByTagId(req.query.TagId).then(function(user) {
           if (user) {
             // Return
@@ -308,15 +325,18 @@ module.exports = function(req, res, next) {
           logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
           break;
         }
+        // Connector Id is mandatory
+        if(!req.query.ConnectorId) {
+          logActionErrorMessageAndSendResponse(`The Connector ID is mandatory`, req, res, next);
+          break;
+        }
 
         // Get Charge Box
         global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
           if (chargingStation) {
             // Set the model
-            chargingStationJSon = chargingStation.getTransactions(
-              req.query.ConnectorId,
-              req.query.StartDateTime,
-              req.query.EndDateTime).then((transactions) => {
+            chargingStation.getTransactions(req.query.ConnectorId,
+              req.query.StartDateTime, req.query.EndDateTime).then((transactions) => {
                 // Return
                 res.json(transactions);
                 next();
@@ -331,71 +351,102 @@ module.exports = function(req, res, next) {
         });
         break;
 
+      // Get the last transaction
+      case "LastTransaction":
+        // Charge Box is mandatory
+        if(!req.query.ChargeBoxIdentity) {
+          logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
+          break;
+        }
+        // Connector Id is mandatory
+        if(!req.query.ConnectorId) {
+          logActionErrorMessageAndSendResponse(`The Connector ID is mandatory`, req, res, next);
+          break;
+        }
+
+        // Get Charge Box
+        global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
+          if (chargingStation) {
+            // Set the model
+            chargingStation.getLastTransaction(req.query.ConnectorId).then((transaction) => {
+              // Return
+              res.json(transaction);
+              next();
+            });
+          } else {
+            // Log
+            return Promise.reject(new Error(`Charging Station ${req.query.ChargeBoxIdentity} does not exist`));
+          }
+        }).catch((err) => {
+          // Log
+          logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+        });
+        break;
+
       // Get all the Status Notifications
       case "StatusNotifications":
-        // Charging Station found?
-        if (req.query.ChargeBoxIdentity) {
-          // Charging Station Provided?
-          global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
-            let statusNotifications = [];
-            // Found
-            if (chargingStation) {
-              // Yes: Get the Status
-              chargingStation.getStatusNotifications(req.query.ConnectorId).then(function(statusNotifications) {
-                // Return the result
-                res.json(statusNotifications);
-                next();
-              });
-            } else {
-              // Log
-              return Promise.reject(new Error(`Charging Station ${req.query.ChargeBoxIdentity} does not exist`));
-            }
-          }).catch((err) => {
-            // Log
-            logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-          });
-        } else {
-          global.storage.getStatusNotifications().then(function(statusNotifications) {
-            // Return the result
-            res.json(statusNotifications);
-            next();
-          }).catch((err) => {
-            // Log
-            logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-          });
+        // Charge Box is mandatory
+        if(!req.query.ChargeBoxIdentity) {
+          logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
+          break;
         }
+        // Charging Station Provided?
+        global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
+          let statusNotifications = [];
+          // Found
+          if (chargingStation) {
+            // Yes: Get the Status
+            chargingStation.getStatusNotifications(req.query.ConnectorId).then(function(statusNotifications) {
+              // Return the result
+              res.json(statusNotifications);
+              next();
+            });
+          } else {
+            // Log
+            return Promise.reject(new Error(`Charging Station ${req.query.ChargeBoxIdentity} does not exist`));
+          }
+        }).catch((err) => {
+          // Log
+          logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+        });
         break;
 
       // Get the last Status Notifications
-      case "LastStatusNotifications":
-        // Charging Station found?
-        if (req.query.ChargeBoxIdentity) {
-          // Get the Charging Station`
-          global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
-            let statusNotifications = {};
-            // Found?
-            if (chargingStation) {
-              // Get the Status
-              chargingStation.getLastStatusNotification(req.query.ConnectorId).then(function(statusNotification) {
-                // Found?
-                if (statusNotification) {
-                  // Return the result
-                  res.json(statusNotification);
-                  next();
-                } else {
-                  // Log
-                  return Promise.reject(new Error(`Status for Charging Station ${req.query.ChargeBoxIdentity} with Connector ID ${req.query.ConnectorId} does not exist`));
-                }
-              });
-            } else {
-              // Log
-              return Promise.reject(new Error(`Charging Station ${req.query.ChargeBoxIdentity} does not exist`));
-            }
-          }).catch((err) => {
-            // Log
-            logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-          });
+      case "LastStatusNotification":
+        // Charge Box is mandatory
+        if(!req.query.ChargeBoxIdentity) {
+          logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
+          break;
         }
+        if(!req.query.ConnectorId) {
+          logActionErrorMessageAndSendResponse(`The Connector ID is mandatory`, req, res, next);
+          break;
+        }
+        // Get the Charging Station`
+        global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
+          let statusNotifications = {};
+          // Found?
+          if (chargingStation) {
+            // Get the Status
+            chargingStation.getLastStatusNotification(req.query.ConnectorId).then(function(statusNotification) {
+              // Found?
+              if (statusNotification) {
+                // Return the result
+                res.json(statusNotification);
+                next();
+              } else {
+                // Log
+                return Promise.reject(new Error(`Status for Charging Station ${req.query.ChargeBoxIdentity} with Connector ID ${req.query.ConnectorId} does not exist`));
+              }
+            });
+          } else {
+            // Log
+            return Promise.reject(new Error(`Charging Station ${req.query.ChargeBoxIdentity} does not exist`));
+          }
+        }).catch((err) => {
+          // Log
+          logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+        });
         break;
 
       // Get Charging Consumption

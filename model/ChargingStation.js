@@ -538,11 +538,32 @@ class ChargingStation {
     return global.storage.getTransactions(this.getChargeBoxIdentity(), connectorId, startDateTime, endDateTime);
   }
 
-  getLastConsumption(connectorId) {
+  getLastTransaction(connectorId) {
     // Get the consumption
-    return this.getConsumptions(
-      connectorId,
-      moment().clone().subtract(parseInt(this.getMeterIntervalSecs())*10, "seconds").toDate().toISOString());
+    return global.storage.getLastTransaction(this.getChargeBoxIdentity(), connectorId);
+  }
+
+  getLastConsumption(connectorId) {
+    var consumption = null;
+    // Get the last tranasction first
+    return this.getLastTransaction(connectorId).then((transaction) => {
+      // Found?
+      if (transaction && !transaction.stop) {
+        // Get the consumption
+        return this.getConsumptions(connectorId, transaction.start.timestamp).then((consumptions) => {
+          if (consumptions && consumptions.values) {
+            // Return the last one
+            return consumptions.values[consumptions.values.length - 1];
+          } else {
+            // None
+            return consumption;
+          }
+        });
+      } else {
+        // None
+        return consumption;
+      }
+    });
   }
 
   getConsumptions(connectorId, startDateTime, endDateTime) {
