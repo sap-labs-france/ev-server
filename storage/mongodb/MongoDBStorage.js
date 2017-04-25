@@ -323,7 +323,7 @@ class MongoDBStorage extends Storage {
         .digest("hex");
       meterValueMongoDB.chargeBoxID = meterValues.chargeBoxIdentity;
       // Save
-      meterValueMongoDB.save();
+      return meterValueMongoDB.save();
       // meterValueMongoDB.save().then(() =>{
       //   // Nothing to do
       // }, (err) => {
