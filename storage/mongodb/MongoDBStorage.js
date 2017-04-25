@@ -309,7 +309,7 @@ class MongoDBStorage extends Storage {
   }
 
   saveMeterValues(meterValues) {
-    console.log(`MeterValues: ${newMeterValues.chargeBoxIdentity} - ${newMeterValues.connectorId} - Nbr: ${meterValues.values.length}`);
+    console.log(`MeterValues: ${meterValues.chargeBoxIdentity} - ${meterValues.connectorId} - Nbr: ${meterValues.values.length}`);
 
     // Save all
     return Promise.all(meterValues.values.map(meterValue => {
