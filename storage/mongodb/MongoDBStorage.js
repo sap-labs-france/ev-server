@@ -309,8 +309,11 @@ class MongoDBStorage extends Storage {
   }
 
   saveMeterValues(meterValues) {
+    console.log("MeterValues Nbr: " + meterValues.values.length);
+
     // Save all
     return Promise.all(meterValues.values.map(meterValue => {
+      console.log(meterValue);
       // Create model
       var meterValueMongoDB = new MDBMeterValue(meterValue);
       // Set the ID
