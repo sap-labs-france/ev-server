@@ -320,18 +320,19 @@ class MongoDBStorage extends Storage {
         .digest("hex");
       meterValueMongoDB.chargeBoxID = meterValues.chargeBoxIdentity;
       // Save
-      meterValueMongoDB.save().then(() =>{
-        // Nothing to do
-      }, (err) => {
-        // Log and Continue
-        Logging.logError({
-          source: "Central Server", module: "MongoDBStorage", method: "saveMeterValues",
-          action: action,
-          message: `${err.toString()}`,
-          detailedMessages: err.stack });
-        // Continue
-        return;
-      });
+      meterValueMongoDB.save();
+      // meterValueMongoDB.save().then(() =>{
+      //   // Nothing to do
+      // }, (err) => {
+      //   // Log and Continue
+      //   Logging.logError({
+      //     source: "Central Server", module: "MongoDBStorage", method: "saveMeterValues",
+      //     action: action,
+      //     message: `${err.toString()}`,
+      //     detailedMessages: err.stack });
+      //   // Continue
+      //   return;
+      // });
     }));
   }
 
