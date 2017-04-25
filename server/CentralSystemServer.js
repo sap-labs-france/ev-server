@@ -144,7 +144,7 @@ class CentralSystemServer {
       };
     }).catch((err) => {
       // Log
-      Logging.logError({
+      Logging.logWarning({
         source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleHeartBeat",
         action: "HeartBeat",
         message: `Error when processing the Heart Beat: ${err.toString()}`,
@@ -180,7 +180,7 @@ class CentralSystemServer {
       };
     }).catch((err) => {
       // Log
-      Logging.logError({
+      Logging.logWarning({
         source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStatusNotification",
         action: "StatusNotification",
         message: err.toString(),
@@ -209,7 +209,7 @@ class CentralSystemServer {
       };
     }).catch((err) => {
       // Log
-      Logging.logError({
+      Logging.logWarning({
         source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleMeterValues",
         action: "MeterValues",
         message: `Error when processing the Meter Values: ${err.toString()}`,
@@ -292,7 +292,7 @@ class CentralSystemServer {
       };
     }).catch((err) => {
       // Log
-      Logging.logError({
+      Logging.logWarning({
         source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleDiagnosticsStatusNotification",
         action: "DiagnosticsStatusNotification",
         message: err.toString(),
@@ -327,7 +327,7 @@ class CentralSystemServer {
       };
     }).catch((err) => {
       // Log
-      Logging.logError({
+      Logging.logWarning({
         source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleFirmwareStatusNotification",
         action: "FirmwareStatusNotification",
         message: err.toString(),

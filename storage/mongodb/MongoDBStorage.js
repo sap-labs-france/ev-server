@@ -309,11 +309,8 @@ class MongoDBStorage extends Storage {
   }
 
   saveMeterValues(meterValues) {
-    console.log(`MeterValues: ${meterValues.chargeBoxIdentity} - ${meterValues.connectorId} - Nbr: ${meterValues.values.length}`);
-
     // Save all
     return Promise.all(meterValues.values.map(meterValue => {
-      console.log(`MeterValue: ${meterValue.value} - ${meterValue.timestamp}`);
       // Create model
       var meterValueMongoDB = new MDBMeterValue(meterValue);
       // Set the ID
@@ -472,7 +469,7 @@ class MongoDBStorage extends Storage {
     // Exec request
     return MDBTag.find({}).exec().then((tagsMongoDB) => {
       // Exec request
-      return MDBUser.find({}).sort( {name: 1, firstName: 1} ).exec().then((usersMongoDB) => {
+      return MDBUser.find({}).sort( {status: -1, name: 1, firstName: 1} ).exec().then((usersMongoDB) => {
         var users = [];
         // Create
         usersMongoDB.forEach((userMongoDB) => {
