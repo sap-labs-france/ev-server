@@ -313,11 +313,6 @@ class MongoDBStorage extends Storage {
     return Promise.all(meterValues.values.map(meterValue => {
       // Create model
       var meterValueMongoDB = new MDBMeterValue(meterValue);
-      // Set the ID
-      var attribute = JSON.stringify(meterValue.attribute);
-      meterValueMongoDB._id = crypto.createHash('md5')
-        .update(`${meterValue.chargeBoxIdentity}~${meterValue.connectorId}~${meterValue.timestamp}~${meterValue.value}~${attribute}`)
-        .digest("hex");
       meterValueMongoDB.chargeBoxID = meterValues.chargeBoxIdentity;
       // Save
       return meterValueMongoDB.save();

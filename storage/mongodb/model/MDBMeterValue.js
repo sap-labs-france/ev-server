@@ -9,7 +9,6 @@ const Attribute = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('MeterValue', {
-  _id: String,
   chargeBoxID: {type: String, ref: 'ChargingStation'},
   connectorId: Number,
   timestamp: { type: Date, index: true },
