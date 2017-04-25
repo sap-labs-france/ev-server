@@ -627,7 +627,7 @@ class ChargingStation {
             // Get the diff
             var diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, "seconds");
             // Check
-            if (diffSecs < meterIntervalSecs) {
+            if ((diffSecs != 0) && (diffSecs < meterIntervalSecs)) {
               // Value <> 0?
               if(meterValue.value) {
                 // Yes: count it as error
@@ -674,7 +674,7 @@ class ChargingStation {
                     chargingStationConsumption.values.push({date: currentTimestamp.clone().subtract(meterIntervalSecs, "seconds").toDate(), value: 0 });
                   }
                 // Return one value every 'n' time intervals
-                } else if (currentTimestamp.diff(chargingStationConsumption.values[numberOfReturnedMeters-1].date, "seconds") < (meterIntervalSecs * 10)) {
+                } else if (currentTimestamp.diff(chargingStationConsumption.values[numberOfReturnedMeters-1].date, "seconds") < (meterIntervalSecs * 5)) {
                   // Do not add
                   addValue = false;
                 }
@@ -708,7 +708,7 @@ class ChargingStation {
         // Log
         Logging.logDebug({
           source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "getConsumptions",
-          message: `Number of metrics retrieved to compute the consumption: ${totalNbrOfMetrics}, invalid ones: ${invalidNbrOfMetrics} (${(invalidNbrOfMetrics?Math.ceil(invalidNbrOfMetrics/totalNbrOfMetrics):0)}%)` });
+          message: `Consumption - Total Metrics: ${meterValues.length}, Relevant : ${totalNbrOfMetrics}, Invalid: ${invalidNbrOfMetrics} (${(invalidNbrOfMetrics?Math.ceil(invalidNbrOfMetrics/totalNbrOfMetrics):0)}%)` });
       }
 
       // Return the result
