@@ -108,7 +108,7 @@ module.exports = function(req, res, next) {
         case "GetConfiguration":
         case "Reset":
           // Charge Box is mandatory
-          if(!req.query.ChargeBoxIdentity) {
+          if(!req.body.chargeBoxIdentity) {
             logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
             break;
           }
