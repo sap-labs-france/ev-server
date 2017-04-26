@@ -213,7 +213,6 @@ class MongoDBStorage extends Storage {
           return 0;
         }
       });
-      console.log(meterValues);
       // Ok
       return meterValues;
     });

@@ -15,25 +15,32 @@ class ChargingStation {
     Utils.updateChargingStationObject(chargingStation, this._model);
   }
 
-  handleAction(action, args) {
+  handleAction(action, params) {
     // Handle Client Requests
     switch (action) {
       // Reset
       case "Reset":
-        // Reboot
-        return this.requestReset(args);
+        return this.requestReset(params.type);
         break;
 
       // Clear cache
       case "ClearCache":
-        // Reboot
-        return this.requestClearCache(args);
+        return this.requestClearCache();
         break;
 
       // Configuration
       case "GetConfiguration":
-        // Reboot
-        return this.requestConfiguration(args);
+        return this.requestConfiguration(params.keys);
+        break;
+
+      // Unlock Connector
+      case "UnlockConnector":
+        return this.requestUnlockConnector(params.connectorId);
+        break;
+
+      // Stop Transaction
+      case "StopTransaction":
+        return this.requestStopTransaction(params.transactionId);
         break;
 
       // Not Exists!
@@ -476,20 +483,29 @@ class ChargingStation {
   }
 
   // Restart the charger
-  requestReset(args) {
+  requestReset(type) {
     // Get the client
     return this.getChargingStationClient().then((chargingStationClient) => {
       // Restart
-      return chargingStationClient.reset(args);
+      return chargingStationClient.reset(type);
+    });
+  }
+
+  // Stop Transaction
+  requestStopTransaction(params) {
+    // Get the client
+    return this.getChargingStationClient().then((chargingStationClient) => {
+      // Restart
+      return chargingStationClient.stopTransaction(params);
     });
   }
 
   // Clear the cache
-  requestClearCache(args) {
+  requestClearCache() {
     // Get the client
     return this.getChargingStationClient().then((chargingStationClient) => {
       // Restart
-      return chargingStationClient.clearCache(args);
+      return chargingStationClient.clearCache();
     });
   }
 
@@ -499,6 +515,15 @@ class ChargingStation {
     return this.getChargingStationClient().then((chargingStationClient) => {
       // Get config
       return chargingStationClient.getConfiguration(configParamNames);
+    });
+  }
+
+  // Unlock connector
+  requestUnlockConnector(params) {
+    // Get the client
+    return this.getChargingStationClient().then((chargingStationClient) => {
+      // Get config
+      return chargingStationClient.unlockConnector(params);
     });
   }
 

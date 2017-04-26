@@ -72,11 +72,9 @@ class Logging {
     // Log
     Logging.logDebug({
       source: chargeBoxIdentity, module: module, method: action,
-      message: `<< OCPP Request Sent`,
+      message: `>> OCPP Request Sent`,
       action: action,
-      detailedMessages: {
-        "args": args
-      }
+      detailedMessages: args
     });
   }
 

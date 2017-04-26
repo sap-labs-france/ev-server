@@ -59,9 +59,6 @@ module.exports = {
         // Get the consumption for each connector
         promises.push(chargingStation.getLastConsumption(connector.connectorId).then((consumption) => {
           let currentConsumption = 0;
-          console.log("chargingStation: " + chargingStation.getChargeBoxIdentity() +
-            ", connector: " + connector.connectorId +
-            ", value: " + (consumption?consumption.value:"n/a"));
           // Value provided?
           if (consumption) {
             // Yes

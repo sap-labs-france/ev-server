@@ -79,49 +79,119 @@ class SoapChargingStationClient extends ChargingStationClient {
     _client.addSoapHeader(`<a:From xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>http://localhost:8080</a:Address></a:From>`);
   }
 
-  reset(args) {
+  stopTransaction(transactionId) {
+    return new Promise((fulfill, reject) => {
+      // Init SOAP Headers with the action
+      this.initSoapHeaders("RemoteStopTransaction");
+
+      // Convert
+      transactionId = parseInt(transactionId);
+
+      // Log
+      Logging.logSendAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "RemoteStopTransaction", transactionId);
+
+      // Execute
+      _client.RemoteStopTransaction({
+            "remoteStopTransactionRequest": {
+              "transactionId": transactionId
+          }
+        }, (err, result, envelope) => {
+          if(err) {
+            // Log
+            Logging.logError({
+              source: _chargingStation.getChargeBoxIdentity(), module: "SoapChargingStationClient", method: "stopTransaction",
+              message: `Error when trying to stop the transaction ID ${transactionId} of the station ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
+              detailedMessages: err.stack });
+            reject(err);
+          } else {
+            // Log
+            Logging.logReturnedAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "RemoteStopTransaction", result);
+            fulfill(result);
+          }
+        });
+    });
+  }
+
+  unlockConnector(connectorId) {
+    return new Promise((fulfill, reject) => {
+      // Init SOAP Headers with the action
+      this.initSoapHeaders("UnlockConnector");
+
+      // Convert
+      connectorId = parseInt(connectorId);
+
+      // Log
+      Logging.logSendAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "UnlockConnector", connectorId);
+
+      // Execute
+      _client.UnlockConnector({
+            "unlockConnectorRequest": {
+              "connectorId": connectorId
+          }
+        }, (err, result, envelope) => {
+          if(err) {
+            // Log
+            Logging.logError({
+              source: _chargingStation.getChargeBoxIdentity(), module: "SoapChargingStationClient", method: "unlockConnector",
+              message: `Error when trying to unlock the connector ${connectorId} of the station ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
+              detailedMessages: err.stack });
+            reject(err);
+          } else {
+            // Log
+            Logging.logReturnedAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "UnlockConnector", result);
+            fulfill(result);
+          }
+        });
+    });
+  }
+
+  reset(type) {
     // Get the Charging Station
     return new Promise((fulfill, reject) => {
       // Init SOAP Headers with the action
       this.initSoapHeaders("Reset");
 
       // Log
-      Logging.logSendAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "Reset", args);
+      Logging.logSendAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "Reset", type);
 
       // Execute
-      _client.Reset({resetRequest: args}, function(err, result, envelope) {
-        if(err) {
-          // Log
-          Logging.logError({
-            source: _chargingStation.getChargeBoxIdentity(), module: "SoapChargingStationClient", method: "reset",
-            message: `Error when trying to Reboot the station ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
-            detailedMessages: err.stack });
-          reject(err);
-        } else {
-          // Log
-          Logging.logReturnedAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "Reset", result);
-          fulfill(result);
-        }
+      _client.Reset({
+          "resetRequest": {
+            "type": type
+          }
+        }, (err, result, envelope) => {
+          if(err) {
+            // Log
+            Logging.logError({
+              source: _chargingStation.getChargeBoxIdentity(), module: "SoapChargingStationClient", method: "reset",
+              message: `Error when trying to reboot the station ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
+              detailedMessages: err.stack });
+            reject(err);
+          } else {
+            // Log
+            Logging.logReturnedAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "Reset", result);
+            fulfill(result);
+          }
       });
     });
   }
 
-  clearCache(args) {
+  clearCache() {
     // Get the Charging Station
     return new Promise((fulfill, reject) => {
       // Init SOAP Headers with the action
       this.initSoapHeaders("ClearCache");
 
       // Log
-      Logging.logSendAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "ClearCache", args);
+      Logging.logSendAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "ClearCache", {});
 
       // Execute
-      _client.ClearCache({clearCacheRequest: {}}, function(err, result, envelope) {
+      _client.ClearCache({clearCacheRequest: {}}, (err, result, envelope) => {
         if(err) {
           // Log
           Logging.logError({
             source: _chargingStation.getChargeBoxIdentity(), module: "SoapChargingStationClient", method: "clearCache",
-            message: `Error when trying to Clear the Cache of the station ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
+            message: `Error when trying to clear the cache of the station ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
             detailedMessages: err.stack });
           reject(err);
         } else {
@@ -133,22 +203,33 @@ class SoapChargingStationClient extends ChargingStationClient {
     });
   }
 
-  getConfiguration(args) {
+  getConfiguration(keys) {
     // Get the Charging Station
     return new Promise((fulfill, reject) => {
       // Init SOAP Headers with the action
       this.initSoapHeaders("GetConfiguration");
 
       // Log
-      Logging.logSendAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "GetConfiguration", args);
+      Logging.logSendAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "GetConfiguration", keys);
+
+      // Set request
+      let request = {
+        "getConfigurationRequest": {}
+      };
+
+      // Key provided?
+      if(keys) {
+        // Set the keys
+        request.getConfigurationRequest.key = keys;
+      }
 
       // Execute
-      _client.GetConfiguration({getConfigurationRequest:(args?args:'')}, (err, result, envelope) => {
+      _client.GetConfiguration(request, (err, result, envelope) => {
         if(err) {
           // Log
           Logging.logError({
             source: _chargingStation.getChargeBoxIdentity(), module: "SoapChargingStationClient", method: "getConfiguration",
-            message: `Error when trying to get the Configuration of the station ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
+            message: `Error when trying to get the configuration of the station ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
             detailedMessages: err.stack });
           reject(err);
           //res.json(`{error: ${err.message}}`);

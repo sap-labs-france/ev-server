@@ -6,15 +6,19 @@ class ChargingStationClient {
     }
   }
 
-  // Restart the server
-  reset(args) {
+  reset(type) {
   }
 
-  // Clear the cache
-  clearCache(args) {
+  clearCache() {
   }
 
-  getConfiguration(args) {
+  getConfiguration(keys) {
+  }
+
+  stopTransaction(transactionId) {
+  }
+
+  unlockConnector(connectorId) {
   }
 }
 

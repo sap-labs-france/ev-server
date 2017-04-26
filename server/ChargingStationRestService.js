@@ -106,14 +106,14 @@ module.exports = function(req, res, next) {
         // Charge Box
         case "ClearCache":
         case "GetConfiguration":
+        case "StopTransaction":
+        case "UnlockConnector":
         case "Reset":
           // Charge Box is mandatory
           if(!req.body.chargeBoxIdentity) {
             logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
             break;
           }
-
-          // Get the Charging Station
           // Get the Charging station
           global.storage.getChargingStation(req.body.chargeBoxIdentity).then(function(chargingStation) {
             // Found?
