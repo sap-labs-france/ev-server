@@ -19,6 +19,7 @@ var Utils = require('../../utils/Utils');
 var Storage = require('../Storage');
 var Logging = require('../../utils/Logging');
 var crypto = require('crypto');
+var moment = require('moment');
 
 class MongoDBStorage extends Storage {
   constructor(dbConfig) {
@@ -189,7 +190,7 @@ class MongoDBStorage extends Storage {
     }
 
     // Exec request
-    return MDBMeterValue.find(filter).sort( {timestamp: 1} ).limit(limit).exec().then((meterValuesMongoDB) => {
+    return MDBMeterValue.find(filter).sort( {timestamp: -1} ).limit(limit).exec().then((meterValuesMongoDB) => {
       var meterValues = [];
       // Create
       meterValuesMongoDB.forEach((meterValueMongoDB) => {
@@ -199,6 +200,20 @@ class MongoDBStorage extends Storage {
         // Add
         meterValues.push(meterValue);
       });
+      // Resort them back
+      meterValues.sort((val1, val2) => {
+        var date1 = moment(val1.timestamp);
+        var date2 = moment(val2.timestamp);
+        // Check
+        if (date1.isBefore(date2)) {
+          return -1;
+        } else if (date1.isAfter(date2)) {
+          return 1;
+        } else {
+          return 0;
+        }
+      });
+      console.log(meterValues);
       // Ok
       return meterValues;
     });
@@ -347,18 +362,6 @@ class MongoDBStorage extends Storage {
       meterValueMongoDB.chargeBoxID = meterValues.chargeBoxIdentity;
       // Save
       return meterValueMongoDB.save();
-      // meterValueMongoDB.save().then(() =>{
-      //   // Nothing to do
-      // }, (err) => {
-      //   // Log and Continue
-      //   Logging.logError({
-      //     source: "Central Server", module: "MongoDBStorage", method: "saveMeterValues",
-      //     action: action,
-      //     message: `${err.toString()}`,
-      //     detailedMessages: err.stack });
-      //   // Continue
-      //   return;
-      // });
     }));
   }
 
@@ -400,7 +403,7 @@ class MongoDBStorage extends Storage {
       // Wait
       return Promise.all(transactions.map(transaction => {
         // Get stop transaction
-        return MDBStopTransaction.findOne({"transactionId" : transaction.start.transactionId}).then((stopTransactionMongoDB) => {
+        return MDBStopTransaction.findOne({"transactionId" : transaction.start.transactionId}).populate("userID").exec().then((stopTransactionMongoDB) => {
           // Found?
           if (stopTransactionMongoDB) {
             // Set

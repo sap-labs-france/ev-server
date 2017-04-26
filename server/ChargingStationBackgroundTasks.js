@@ -10,7 +10,7 @@ module.exports = {
     // module.exports.uploadUsers();
 
     // Handle task related to Charging Stations
-    // return module.exports.checkChargingStations();
+    return module.exports.checkChargingStations();
   },
 
   checkChargingStations() {

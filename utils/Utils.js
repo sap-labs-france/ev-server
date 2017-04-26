@@ -151,6 +151,7 @@ module.exports = {
     if (src.userID && src.userID.name) {
       // User populated: Set only important fields
       dest.userID = {};
+      dest.userID.id = src.userID.id;
       dest.userID.name = src.userID.name;
       dest.userID.firstName = src.userID.firstName;
     } else {
@@ -169,6 +170,7 @@ module.exports = {
     if (src.userID && src.userID.name) {
       // User populated: Set only important fields
       dest.userID = {};
+      dest.userID.id = src.userID.id;
       dest.userID.name = src.userID.name;
       dest.userID.firstName = src.userID.firstName;
     } else {
