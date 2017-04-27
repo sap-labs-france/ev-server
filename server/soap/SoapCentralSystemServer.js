@@ -13,7 +13,7 @@ var express = require('express')();
 var cors = require('cors');
 var bodyParser = require("body-parser");
 var CentralSystemServer = require('../CentralSystemServer');
-
+var helmet = require('helmet');
 require('body-parser-xml')(bodyParser);
 
 let _serverConfig;
@@ -40,6 +40,9 @@ class SoapCentralSystemServer extends CentralSystemServer {
 
       // Cross origin headers
       express.use(cors());
+
+      // Secure the application
+      express.use(helmet());
 
       // Receive REST request to trigger action to the charging station remotely (reboot...)
       express.use('/client/api', ChargingStationRestService);
