@@ -251,17 +251,6 @@ class StorageFacade extends Storage {
     return _leadingStorage.deleteUser(id);
   }
 
-  saveUser(user) {
-    // Delegate
-    _storages.forEach((storage) => {
-      // Trigger Save for other DB
-      storage.saveUser(user);
-    });
-
-    // Delegate
-    return _leadingStorage.saveUser(user);
-  }
-
   saveLog(log) {
     // Delegate
     _storages.forEach((storage) => {

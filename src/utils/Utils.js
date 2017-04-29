@@ -182,4 +182,4 @@ module.exports = {
     dest.meterStop = src.meterStop;
     dest.transactionData = src.transactionData;
   }
-}
+};

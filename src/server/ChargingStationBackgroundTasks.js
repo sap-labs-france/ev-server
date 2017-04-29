@@ -95,7 +95,7 @@ module.exports = {
     for (var i = 0; i < users.users.length; i++) {
       // Check & Save
       module.exports.checkAndSaveUser(users.users[i]);
-    };
+    }
   },
 
   checkAndSaveUser(user) {

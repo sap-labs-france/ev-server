@@ -77,9 +77,6 @@ class Storage {
   saveDiagnosticsStatusNotification(diagnosticsStatusNotification) {
   }
 
-  saveUser(user) {
-  }
-
   saveFirmwareStatusNotification(firmwareStatusNotification) {
   }
 

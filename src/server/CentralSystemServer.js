@@ -38,7 +38,7 @@ class CentralSystemServer {
     return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
       if (!chargingStation) {
         // Save Charging Station
-        var chargingStation = new ChargingStation(args);
+        chargingStation = new ChargingStation(args);
       }
 
       // Save Charging Station
@@ -87,7 +87,7 @@ class CentralSystemServer {
               "currentTime": new Date().toISOString(),
               "interval": _chargingStationConfig.heartbeatInterval
             }
-          }
+          };
           // OCPP 1.2 && 1.5
         } else {
           return {
@@ -231,7 +231,7 @@ class CentralSystemServer {
         return chargingStation.saveAuthorize(args);
       } else {
         // Error
-        return Promise.reject(new Error(`Charging Station ${headers.chargeBoxIdentity} does not exist`))
+        return Promise.reject(new Error(`Charging Station ${headers.chargeBoxIdentity} does not exist`));
       }
     }).then(() => {
       // Log
@@ -414,7 +414,7 @@ class CentralSystemServer {
           "status": "Accepted"
   //        "data": ""
         }
-      }
+      };
     }).catch((err) => {
       // Log
       Logging.logError({
@@ -427,7 +427,7 @@ class CentralSystemServer {
         "dataTransferResponse": {
           "status": "Rejected"
         }
-      }
+      };
     });
   }
 

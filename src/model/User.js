@@ -1,5 +1,4 @@
 var Utils = require('../utils/Utils');
-var Promise = require('promise');
 
 class User {
   constructor(user) {

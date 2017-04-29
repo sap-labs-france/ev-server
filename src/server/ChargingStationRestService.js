@@ -13,7 +13,7 @@ var logActionUnexpectedErrorMessageAndSendResponse = function(action, err, req, 
   // res.json({error: `${err.toString()}`});
   res.status(500).send(`${err.toString()}`);
   next();
-}
+};
 
 // Log issues
 var logActionErrorMessageAndSendResponse = function(message, req, res, next) {
@@ -26,7 +26,7 @@ var logActionErrorMessageAndSendResponse = function(message, req, res, next) {
   // res.json({error: message});
   res.status(500).send(message);
   next();
-}
+};
 
 var checkIfUserValid = function(req, res, next) {
   // Update mode?
@@ -92,7 +92,7 @@ var checkIfUserValid = function(req, res, next) {
   }
   // Ok
   return true;
-}
+};
 
 module.exports = function(req, res, next) {
   // Parse the action

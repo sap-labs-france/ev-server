@@ -26,4 +26,4 @@ module.exports = {
    isINumberValid(iNumber) {
      return /^[A-Z]{1}[0-9]{6}$/.test(iNumber);
    }
-}
+};

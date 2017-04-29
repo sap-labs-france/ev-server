@@ -1,6 +1,5 @@
 var Utils = require('../utils/Utils');
 var SoapChargingStationClient = require('../client/soap/SoapChargingStationClient');
-var Promise = require('promise');
 var Logging = require('../utils/Logging');
 var User = require('./User');
 var Users = require('../utils/Users');
@@ -21,27 +20,22 @@ class ChargingStation {
       // Reset
       case "Reset":
         return this.requestReset(params.type);
-        break;
 
       // Clear cache
       case "ClearCache":
         return this.requestClearCache();
-        break;
 
       // Configuration
       case "GetConfiguration":
         return this.requestConfiguration(params.keys);
-        break;
 
       // Unlock Connector
       case "UnlockConnector":
         return this.requestUnlockConnector(params.connectorId);
-        break;
 
       // Stop Transaction
       case "StopTransaction":
         return this.requestStopTransaction(params.transactionId);
-        break;
 
       // Not Exists!
       default:
@@ -448,7 +442,7 @@ class ChargingStation {
         }
       } else {
         // Create an empty user
-        var user = new User({
+        var newUser = new User({
           name: "Unknown",
           firstName: "User",
           status: Users.USER_PENDING,
@@ -457,7 +451,7 @@ class ChargingStation {
         });
 
         // Save the user
-        return user.save().then(() => {
+        return newUser.save().then(() => {
           // Reject but save ok
           return Promise.reject( new Error(`User with Tag ID ${request.idTag} not found but saved as inactive user (John DOE)`) );
         }, (err) => {
@@ -524,13 +518,6 @@ class ChargingStation {
     return this.getChargingStationClient().then((chargingStationClient) => {
       // Get config
       return chargingStationClient.unlockConnector(params);
-    });
-  }
-
-  // Get the configuration for the EVSE
-  getConfiguration() {
-    return global.storage.getConfiguration(this.getChargeBoxIdentity()).then((configuration) => {
-      return configuration;
     });
   }
 
@@ -659,7 +646,7 @@ class ChargingStation {
           // Get the diff
           var diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, "seconds");
           // Check
-          if ((diffSecs != 0) && (diffSecs < meterIntervalSecs)) {
+          if ((diffSecs !== 0) && (diffSecs < meterIntervalSecs)) {
             // Value <> 0?
             if(meterValue.value) {
               // Yes: count it as error
@@ -695,11 +682,11 @@ class ChargingStation {
             // Check graph values: at least one returned value and not the last meter value
             if ((numberOfReturnedMeters > 0) && (meterValueIndex !== meterValues.length-1)) {
               // Current value is 0 and previous is 0
-              if (currentConsumption == 0 && chargingStationConsumption.values[numberOfReturnedMeters-1].value == 0) {
+              if (currentConsumption === 0 && chargingStationConsumption.values[numberOfReturnedMeters-1].value === 0) {
                 // Do not add
                 addValue = false;
               // Current value is positive and n-1 is 0: add 0 before the end graph is drawn
-              } else if (currentConsumption > 0 && chargingStationConsumption.values[numberOfReturnedMeters-1].value == 0) {
+              } else if (currentConsumption > 0 && chargingStationConsumption.values[numberOfReturnedMeters-1].value === 0) {
                 // Check the timeframe: should be just before: if not add one
                 if (currentTimestamp.diff(chargingStationConsumption.values[numberOfReturnedMeters-1].date, "seconds") > meterIntervalSecs) {
                   // Add a 0 just before
