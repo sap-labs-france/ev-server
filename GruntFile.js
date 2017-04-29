@@ -2,7 +2,7 @@ module.exports = function(grunt) {
 
 	grunt.initConfig({
 		jshint: {
-			files: ["*.js", "client/*.js", "model/*.js", "server/*.js", "storage/*.js", "utils/*.js"],
+			files: ["src/**/*.js"],
 			options: {
 				esnext: true,
 				globals: {
@@ -60,9 +60,10 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-obfuscator');
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-contrib-clean');
+	grunt.loadNpmTasks('grunt-contrib-uglify');
 
 	grunt.registerTask("obfuscate", ["clean","obfuscator"]);
-	grunt.registerTask("jshint", ["jshint"]);
+	grunt.registerTask("qa", ["jshint"]);
 
-  grunt.registerTask("default", ["jshint","clean","obfuscator"]);
+  grunt.registerTask("default", ["qa","obfuscate"]);
 };

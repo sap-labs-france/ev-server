@@ -156,10 +156,10 @@ class MongoDBStorage extends Storage {
       filter.timestamp = {};
     }
     if (startDateTime) {
-      filter.timestamp["$gte"] = new Date(startDateTime);
+      filter.timestamp.$gte = new Date(startDateTime);
     }
     if (endDateTime) {
-      filter.timestamp["$lte"] = new Date(endDateTime);
+      filter.timestamp.$lte = new Date(endDateTime);
     }
 
     // Exec request
@@ -377,10 +377,10 @@ class MongoDBStorage extends Storage {
       filter.timestamp = {};
     }
     if (startDateTime) {
-      filter.timestamp["$gte"] = new Date(startDateTime);
+      filter.timestamp.$gte = new Date(startDateTime);
     }
     if (endDateTime) {
-      filter.timestamp["$lte"] = new Date(endDateTime);
+      filter.timestamp.$lte = new Date(endDateTime);
     }
 
     // Get the Start Transaction
@@ -570,7 +570,7 @@ class MongoDBStorage extends Storage {
           // Check
           if (tagsMongoDB) {
             // Get the Tags
-            var tags = tagsMongoDB.map((tagMongoDB) => { return tagMongoDB.id });
+            var tags = tagsMongoDB.map((tagMongoDB) => { return tagMongoDB.id; });
             // Get IDs`
             user.setTagIDs(tags);
           }
@@ -627,7 +627,7 @@ class MongoDBStorage extends Storage {
           // Check
           if (tagsMongoDB) {
             // Get the Tags
-            var tags = tagsMongoDB.map((tagMongoDB) => { return tagMongoDB.id });
+            var tags = tagsMongoDB.map((tagMongoDB) => { return tagMongoDB.id; });
             // Get IDs`
             user.setTagIDs(tags);
           }

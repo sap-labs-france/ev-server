@@ -1,7 +1,6 @@
 var ChargingStationClient = require('../ChargingStationClient');
 var soap = require('strong-soap').soap;
 var path = require('path');
-var Promise = require('promise');
 var Logging = require('../../utils/Logging');
 
 let _client = null;
