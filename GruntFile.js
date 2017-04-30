@@ -53,6 +53,32 @@ module.exports = function(grunt) {
 						{expand: true, cwd: 'src/', src: ['**/*.json','**/*.wsdl'], dest: 'dist/'}
 					],
 				},
+			},
+			uglify: {
+				files: ["src/**/*.js"],
+				options: {
+					beautify: false, //prod
+	        output: {
+	          comments: false
+	        },
+	        mangle: {
+	          screw_ie8: true
+	        }, //prod
+	        compress: {
+	          screw_ie8: true,
+	          warnings: false,
+	          conditionals: true,
+	          unused: true,
+	          comparisons: true,
+	          sequences: true,
+	          dead_code: true,
+	          evaluate: true,
+	          if_return: true,
+	          join_vars: true,
+	          negate_iife: false // we need this for lazy v8
+	        },
+	        comments: false //prod
+				}
 			}
 	});
 
@@ -62,8 +88,8 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 
-	grunt.registerTask("obfuscate", ["clean","obfuscator"]);
+	grunt.registerTask("build:prod", ["clean","uglify"]);
 	grunt.registerTask("qa", ["jshint"]);
 
-  grunt.registerTask("default", ["qa","obfuscate"]);
+  grunt.registerTask("default", ["qa"]);
 };

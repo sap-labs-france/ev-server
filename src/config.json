@@ -14,6 +14,14 @@
       "leading" : true
     }
   ],
+  "Email": {
+    "smtp" : {
+      "host": "185.16.220.10",
+      "user": "",
+      "password": "",
+      "ssl": false
+    }
+  },
   "ChargingStation" : {
     "heartbeatInterval": 60
   }

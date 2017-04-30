@@ -1,4 +1,3 @@
-
 class ChargingStationClient {
   constructor() {
     if (new.target === ChargingStationClient) {
