@@ -142,7 +142,7 @@ module.exports = function(req, res, next) {
             // Check email
             global.storage.getUserByEmail(req.body.email).then(function(user) {
               if (user) {
-                logActionErrorMessageAndSendResponse(`The user's email ${req.body.tagIDs} is already taken`, req, res, next);
+                logActionErrorMessageAndSendResponse(`The email ${req.body.tagIDs} already exists`, req, res, next);
                 return;
               }
 
@@ -220,13 +220,11 @@ module.exports = function(req, res, next) {
         // Get it
         global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
           if (chargingStation) {
-            // Return
             res.json(chargingStation.getModel());
-            next();
           } else {
-            // Log
-            return Promise.reject(new Error(`Charging Station ${req.query.ChargeBoxIdentity} does not exist`));
+            res.json({});
           }
+          next();
         }).catch((err) => {
           // Log
           logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
@@ -260,13 +258,11 @@ module.exports = function(req, res, next) {
         // Get
         global.storage.getUserByEmail(req.query.Email).then(function(user) {
           if (user) {
-            // Return
             res.json(user.getModel());
-            next();
           } else {
-            // Log
-            return Promise.reject(new Error(`User with email ${req.query.Email} does not exist`));
+            res.json({});
           }
+          next();
         }).catch((err) => {
           // Log
           logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
@@ -282,13 +278,11 @@ module.exports = function(req, res, next) {
         }
         global.storage.getUser(req.query.ID).then(function(user) {
           if (user) {
-            // Return
             res.json(user.getModel());
-            next();
           } else {
-            // Log
-            return Promise.reject(new Error(`User with ID ${req.query.ID} does not exist`));
+            res.json({});
           }
+          next();
         }).catch((err) => {
           // Log
           logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
@@ -305,13 +299,11 @@ module.exports = function(req, res, next) {
         // Set
         global.storage.getUserByTagId(req.query.TagId).then(function(user) {
           if (user) {
-            // Return
             res.json(user.getModel());
-            next();
           } else {
-            // Log
-            return Promise.reject(new Error(`User with tag ID ${req.query.TagId} does not exist`));
+            res.json({});
           }
+          next();
         }).catch((err) => {
           // Log
           logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
