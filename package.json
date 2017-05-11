@@ -6,15 +6,20 @@
   "dependencies": {
     "body-parser": "^1.16.1",
     "body-parser-xml": "^1.1.0",
+    "cookie-parser": "^1.4.3",
     "cors": "^2.8.1",
     "emailjs": "^1.0.8",
     "express": "^4.14.1",
+    "express-session": "^1.15.2",
     "helmet": "^3.5.0",
     "http": "^0.0.0",
     "install": "^0.8.6",
     "moment": "^2.18.1",
     "mongoose": "^4.8.1",
     "node-pre-gyp": "^0.6.33",
+    "passport": "^0.3.2",
+    "passport-jwt": "^2.2.1",
+    "passport-local": "^1.0.0",
     "promise": "^7.1.1",
     "soap": "^0.18.0",
     "strong-soap": "^1.2.0",
@@ -26,8 +31,7 @@
     "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-jshint": "^1.1.0",
     "grunt-contrib-obfuscator": "^3.0.0",
-    "grunt-contrib-uglify": "^2.3.0",
-    "javascript-obfuscator": "^0.9.3"
+    "grunt-contrib-uglify": "^2.3.0"
   },
   "scripts": {
     "postinstall": "bower install && grunt build",
