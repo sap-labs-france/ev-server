@@ -5,26 +5,16 @@ var Logging = require('../utils/Logging');
 var bodyParser = require("body-parser");
 require('body-parser-xml')(bodyParser);
 var cors = require('cors');
-var cookieParser = require('cookie-parser')()
 var helmet = require('helmet');
 var passport = require('passport');
+var jwt = require('jsonwebtoken');
 var JwtStrategy = require('passport-jwt').Strategy;
 var ExtractJwt = require('passport-jwt').ExtractJwt;
-var LocalStrategy = require('passport-local').Strategy;
 var ChargingStationRestService = require('./ChargingStationRestService');
-var expressSession = require('express-session')({
-    secret: 's3A92797boeiBhxQDM1GInRith',
-    resave: false,
-    saveUninitialized: true,
-    cookie: { httpOnly: true, maxAge: 2419200000 },
-    secure: true })
+var morgan = require('morgan');
 
 let _serverConfig;
 let _chargingStationConfig;
-
-const allowedOrigins = [
-  'http://localhost:8080',
-  'http://37.71.38.82:8080'];
 
 class CentralSystemServer {
   constructor(serverConfig, chargingStationConfig, express) {
@@ -40,100 +30,68 @@ class CentralSystemServer {
     express.use(bodyParser.urlencoded({ extended: false }));
     express.use(bodyParser.xml());
 
+    // log to console
+    express.use(morgan('dev'));
+
     // Cross origin headers
-    // express.use(cors());
-
-    // Cookies
-    express.use(cookieParser);
-
-    // Use session
-    express.use(expressSession);
+    express.use(cors());
 
     // Secure the application
     express.use(helmet());
 
-    // Authentication
-    passport.use(new LocalStrategy({usernameField: 'email', session: true},
-      function(email, password, done) {
-        // Check email
-        global.storage.getUserByEmail(email).then(function(user) {
-          if (user) {
-            return done(null, user.getModel());
-          } else {
-            return done(null, false);
-          }
-          next();
-        }).catch((err) => {
-          // Log
-          return done(err, false);
-        });
-      }
-    ));
-    // // Init JWT auth
-    // var opts = {};
-    // opts.secretOrKey = 'secret';
-    // opts.jwtFromRequest = ExtractJwt.fromAuthHeader();
-    // // opts.issuer = 'evse-dashboard';
-    // // opts.audience = 'yoursite.net';
-    // passport.use(new JwtStrategy(opts, function(jwtPayload, done) {
-    //   // Check the user
-    //   global.storage.getUser(jwtPayload.sub).then(function(user) {
-    //     if (user) {
-    //       return done(null, user.getModel());
-    //     } else {
-    //       return done(null, false);
-    //     }
-    //     next();
-    //   }).catch((err) => {
-    //     // Log
-    //     return done(err, false);
-    //   });
-    // }));
+    // Init JWT auth options
+    var jwtOptions = {
+      secretOrKey: 's3A92797boeiBhxQDM1GInRith',
+      jwtFromRequest: ExtractJwt.fromAuthHeader()
+      // issuer: 'evse-dashboard',
+      // audience: 'evse-dashboard'
+    };
 
-    passport.serializeUser(function(user, done) {
-      done(null, user.id);
-    });
-
-    passport.deserializeUser(function(id, done) {
+    // Use
+    passport.use(new JwtStrategy(jwtOptions, function(jwtPayload, done) {
+      console.log(jwtPayload);
       // Check email
-      global.storage.getUser(id).then(function(user) {
+      global.storage.getUser(jwtPayload.id).then(function(user) {
         if (user) {
           return done(null, user.getModel());
         } else {
-          return done(null, null);
+          return done(null, false);
         }
         next();
       }).catch((err) => {
         // Log
-        return done(err, null);
+        return done(err, false);
       });
-    });
+    }));
 
     // Authentication
     express.use(passport.initialize());
-    express.use(passport.session());
-
-    // Cross Origin
-    express.use((request, response, next) => {
-      var origin = request.headers.origin;
-      if (allowedOrigins.indexOf(origin) > -1) {
-        response.setHeader('Access-Control-Allow-Origin', origin);
-      }
-      response.setHeader('Access-Control-Allow-Headers', 'Content-Type,X-Requested-With');
-      response.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,HEAD,DELETE,OPTIONS');
-      response.setHeader('Access-Control-Allow-Credentials', true);
-      // Check
-      if (request.method === "OPTIONS") {
-        response.end();
-      } else {
-        next();
-      }
-    });
 
     // Login
-    express.post('/auth/login', passport.authenticate('local', {}),
-      function(req, res) {
-        res.status(200).send({});
+    express.post('/auth/login', function(req, res, next) {
+      // Check email
+      global.storage.getUserByEmail(req.body.email).then(function(user) {
+        // Found?
+        if (user) {
+          // Yes: build payload
+          var payload = {
+              id: user.getID()
+          };
+          // Build token
+          var token = jwt.sign(payload, jwtOptions.secretOrKey, {
+            expiresIn: 3600 // in seconds
+          });
+          // Return it
+          res.json({ token: token });
+        } else {
+          // User not found
+          res.sendStatus(401);
+        }
+        next();
+      }).catch((err) => {
+        // Error
+        res.sendStatus(500);
+      });
     });
 
     // Logout
@@ -146,7 +104,7 @@ class CentralSystemServer {
     });
 
     // Receive REST request to trigger action to the charging station remotely (reboot...)
-    express.use('/client/api', this.isAuthenticated, ChargingStationRestService);
+    express.use('/client/api', passport.authenticate('jwt', { session: false }), ChargingStationRestService);
 
     // Ping
     express.get('/ping', function(req, res) {
@@ -158,16 +116,9 @@ class CentralSystemServer {
     _chargingStationConfig = chargingStationConfig;
   }
 
-  isAuthenticated(req, res, next) {
-    if (!req.isAuthenticated()) {
-      res.status(401).send();
-    } else {
-      next();
-    }
-  }
-
   // Start the server (to be defined in sub-classes)
   start() {
+    // Done in the subclass
   }
 
   handleBootNotification(args, headers, req) {
