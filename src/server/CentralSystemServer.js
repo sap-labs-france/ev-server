@@ -2,12 +2,32 @@ var ChargingStation = require('../model/ChargingStation');
 var Utils = require('../utils/Utils');
 var ChargingStationBackgroundTasks = require('./ChargingStationBackgroundTasks');
 var Logging = require('../utils/Logging');
+var bodyParser = require("body-parser");
+require('body-parser-xml')(bodyParser);
+var cors = require('cors');
+var cookieParser = require('cookie-parser')()
+var helmet = require('helmet');
+var passport = require('passport');
+var JwtStrategy = require('passport-jwt').Strategy;
+var ExtractJwt = require('passport-jwt').ExtractJwt;
+var LocalStrategy = require('passport-local').Strategy;
+var ChargingStationRestService = require('./ChargingStationRestService');
+var expressSession = require('express-session')({
+    secret: 's3A92797boeiBhxQDM1GInRith',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { httpOnly: true, maxAge: 2419200000 },
+    secure: true })
 
 let _serverConfig;
 let _chargingStationConfig;
 
+const allowedOrigins = [
+  'http://localhost:8080',
+  'http://37.71.38.82:8080'];
+
 class CentralSystemServer {
-  constructor(serverConfig, chargingStationConfig) {
+  constructor(serverConfig, chargingStationConfig, express) {
     if (new.target === CentralSystemServer) {
       throw new TypeError("Cannot construct CentralSystemServer instances directly");
     }
@@ -15,9 +35,135 @@ class CentralSystemServer {
     // Check the charging station status...
     setInterval(ChargingStationBackgroundTasks.executeAllBackgroundTasks, 15 * 1000);
 
+    // Body parser
+    express.use(bodyParser.json());
+    express.use(bodyParser.urlencoded({ extended: false }));
+    express.use(bodyParser.xml());
+
+    // Cross origin headers
+    // express.use(cors());
+
+    // Cookies
+    express.use(cookieParser);
+
+    // Use session
+    express.use(expressSession);
+
+    // Secure the application
+    express.use(helmet());
+
+    // Authentication
+    passport.use(new LocalStrategy({usernameField: 'email', session: true},
+      function(email, password, done) {
+        // Check email
+        global.storage.getUserByEmail(email).then(function(user) {
+          if (user) {
+            return done(null, user.getModel());
+          } else {
+            return done(null, false);
+          }
+          next();
+        }).catch((err) => {
+          // Log
+          return done(err, false);
+        });
+      }
+    ));
+    // // Init JWT auth
+    // var opts = {};
+    // opts.secretOrKey = 'secret';
+    // opts.jwtFromRequest = ExtractJwt.fromAuthHeader();
+    // // opts.issuer = 'evse-dashboard';
+    // // opts.audience = 'yoursite.net';
+    // passport.use(new JwtStrategy(opts, function(jwtPayload, done) {
+    //   // Check the user
+    //   global.storage.getUser(jwtPayload.sub).then(function(user) {
+    //     if (user) {
+    //       return done(null, user.getModel());
+    //     } else {
+    //       return done(null, false);
+    //     }
+    //     next();
+    //   }).catch((err) => {
+    //     // Log
+    //     return done(err, false);
+    //   });
+    // }));
+
+    passport.serializeUser(function(user, done) {
+      done(null, user.id);
+    });
+
+    passport.deserializeUser(function(id, done) {
+      // Check email
+      global.storage.getUser(id).then(function(user) {
+        if (user) {
+          return done(null, user.getModel());
+        } else {
+          return done(null, null);
+        }
+        next();
+      }).catch((err) => {
+        // Log
+        return done(err, null);
+      });
+    });
+
+    // Authentication
+    express.use(passport.initialize());
+    express.use(passport.session());
+
+    // Cross Origin
+    express.use((request, response, next) => {
+      var origin = request.headers.origin;
+      if (allowedOrigins.indexOf(origin) > -1) {
+        response.setHeader('Access-Control-Allow-Origin', origin);
+      }
+      response.setHeader('Access-Control-Allow-Headers', 'Content-Type,X-Requested-With');
+      response.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,HEAD,DELETE,OPTIONS');
+      response.setHeader('Access-Control-Allow-Credentials', true);
+      // Check
+      if (request.method === "OPTIONS") {
+        response.end();
+      } else {
+        next();
+      }
+    });
+
+    // Login
+    express.post('/auth/login', passport.authenticate('local', {}),
+      function(req, res) {
+        res.status(200).send({});
+    });
+
+    // Logout
+    express.get('/auth/logout',
+      function(req, res) {
+        // Get rid of the session token. Then call `logout`; it does no harm.
+        req.logout();
+        req.session.destroy();
+        res.status(200).send({});
+    });
+
+    // Receive REST request to trigger action to the charging station remotely (reboot...)
+    express.use('/client/api', this.isAuthenticated, ChargingStationRestService);
+
+    // Ping
+    express.get('/ping', function(req, res) {
+      res.status(200).send({});
+    });
+
     // Keep params
     _serverConfig = serverConfig;
     _chargingStationConfig = chargingStationConfig;
+  }
+
+  isAuthenticated(req, res, next) {
+    if (!req.isAuthenticated()) {
+      res.status(401).send();
+    } else {
+      next();
+    }
   }
 
   // Start the server (to be defined in sub-classes)
