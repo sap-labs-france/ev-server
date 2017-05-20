@@ -60,7 +60,7 @@ module.exports = {
           case "Reset":
             // Charge Box is mandatory
             if(!req.body.chargeBoxIdentity) {
-              Utils.logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
+              Logging.logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
               break;
             }
             // Get the Charging station
@@ -71,7 +71,7 @@ module.exports = {
                 return chargingStation.handleAction(action, req.body.args);
               } else {
                 // Charging station not found
-                Utils.logActionErrorMessageAndSendResponse(`Charging Station with ID ${req.body.chargeBoxIdentity} does not exist`, req, res, next);
+                Logging.logActionErrorMessageAndSendResponse(`Charging Station with ID ${req.body.chargeBoxIdentity} does not exist`, req, res, next);
               }
             }).then(function(result) {
               // Return the result
@@ -80,7 +80,7 @@ module.exports = {
 
             }).catch(function(err) {
               // Log
-              Utils.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+              Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
             });
             break;
 
@@ -91,11 +91,11 @@ module.exports = {
               // Check email
               global.storage.getUserByEmail(req.body.email).then(function(user) {
                 if (user) {
-                  Utils.logActionErrorMessageAndSendResponse(`The email ${req.body.tagIDs} already exists`, req, res, next);
+                  Logging.logActionErrorMessageAndSendResponse(`The email ${req.body.tagIDs} already exists`, req, res, next);
                   return;
                 }
 
-                // Check Badge ID
+                // Create user
                 var newUser = new User(req.body);
                 // Save
                 newUser.save().then(() => {
@@ -109,7 +109,7 @@ module.exports = {
 
               }).catch((err) => {
                 // Log
-                Utils.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+                Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
               });
             }
             break;
@@ -119,10 +119,10 @@ module.exports = {
             // Action provided
             if (!action) {
               // Log
-              Utils.logActionErrorMessageAndSendResponse(`No Action has been provided`, req, res, next);
+              Logging.logActionErrorMessageAndSendResponse(`No Action has been provided`, req, res, next);
             } else {
               // Log
-              Utils.logActionErrorMessageAndSendResponse(`The Action '${action}' does not exist`, req, res, next);
+              Logging.logActionErrorMessageAndSendResponse(`The Action '${action}' does not exist`, req, res, next);
             }
             next();
         }
@@ -154,7 +154,7 @@ module.exports = {
             next();
           }).catch((err) => {
             // Log
-            Utils.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -162,7 +162,7 @@ module.exports = {
         case "ChargingStation":
           // Charge Box is mandatory
           if(!req.query.ChargeBoxIdentity) {
-            Utils.logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
+            Logging.logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
             break;
           }
 
@@ -176,7 +176,7 @@ module.exports = {
             next();
           }).catch((err) => {
             // Log
-            Utils.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -195,7 +195,7 @@ module.exports = {
             next();
           }).catch((err) => {
             // Log
-            Utils.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -203,7 +203,7 @@ module.exports = {
         case "UserByEmail":
           // User mandatory
           if(!req.query.Email) {
-            Utils.logActionErrorMessageAndSendResponse(`The User's email is mandatory`, req, res, next);
+            Logging.logActionErrorMessageAndSendResponse(`The User's email is mandatory`, req, res, next);
             break;
           }
           // Get
@@ -219,7 +219,7 @@ module.exports = {
             next();
           }).catch((err) => {
             // Log
-            Utils.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -227,7 +227,7 @@ module.exports = {
         case "User":
           // User mandatory
           if(!req.query.ID) {
-            Utils.logActionErrorMessageAndSendResponse(`The User's ID is mandatory`, req, res, next);
+            Logging.logActionErrorMessageAndSendResponse(`The User's ID is mandatory`, req, res, next);
             break;
           }
           global.storage.getUser(req.query.ID).then(function(user) {
@@ -242,7 +242,7 @@ module.exports = {
             next();
           }).catch((err) => {
             // Log
-            Utils.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -250,7 +250,7 @@ module.exports = {
         case "UserByTagId":
           // User mandatory
           if(!req.query.TagId) {
-            Utils.logActionErrorMessageAndSendResponse(`The User's Tag ID is mandatory`, req, res, next);
+            Logging.logActionErrorMessageAndSendResponse(`The User's Tag ID is mandatory`, req, res, next);
             break;
           }
           // Set
@@ -266,7 +266,7 @@ module.exports = {
             next();
           }).catch((err) => {
             // Log
-            Utils.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -274,12 +274,12 @@ module.exports = {
         case "Transactions":
           // Charge Box is mandatory
           if(!req.query.ChargeBoxIdentity) {
-            Utils.logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
+            Logging.logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
             break;
           }
           // Connector Id is mandatory
           if(!req.query.ConnectorId) {
-            Utils.logActionErrorMessageAndSendResponse(`The Connector ID is mandatory`, req, res, next);
+            Logging.logActionErrorMessageAndSendResponse(`The Connector ID is mandatory`, req, res, next);
             break;
           }
 
@@ -299,7 +299,7 @@ module.exports = {
             }
           }).catch((err) => {
             // Log
-            Utils.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -307,12 +307,12 @@ module.exports = {
         case "LastTransaction":
           // Charge Box is mandatory
           if(!req.query.ChargeBoxIdentity) {
-            Utils.logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
+            Logging.logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
             break;
           }
           // Connector Id is mandatory
           if(!req.query.ConnectorId) {
-            Utils.logActionErrorMessageAndSendResponse(`The Connector ID is mandatory`, req, res, next);
+            Logging.logActionErrorMessageAndSendResponse(`The Connector ID is mandatory`, req, res, next);
             break;
           }
 
@@ -331,7 +331,7 @@ module.exports = {
             }
           }).catch((err) => {
             // Log
-            Utils.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -339,7 +339,7 @@ module.exports = {
         case "StatusNotifications":
           // Charge Box is mandatory
           if(!req.query.ChargeBoxIdentity) {
-            Utils.logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
+            Logging.logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
             break;
           }
           // Charging Station Provided?
@@ -359,7 +359,7 @@ module.exports = {
             }
           }).catch((err) => {
             // Log
-            Utils.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -367,11 +367,11 @@ module.exports = {
         case "LastStatusNotification":
           // Charge Box is mandatory
           if(!req.query.ChargeBoxIdentity) {
-            Utils.logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
+            Logging.logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
             break;
           }
           if(!req.query.ConnectorId) {
-            Utils.logActionErrorMessageAndSendResponse(`The Connector ID is mandatory`, req, res, next);
+            Logging.logActionErrorMessageAndSendResponse(`The Connector ID is mandatory`, req, res, next);
             break;
           }
           // Get the Charging Station`
@@ -397,7 +397,7 @@ module.exports = {
             }
           }).catch((err) => {
             // Log
-            Utils.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -405,7 +405,7 @@ module.exports = {
         case "ChargingStationConsumption":
           // Charge Box is mandatory
           if(!req.query.ChargeBoxIdentity) {
-            Utils.logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
+            Logging.logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
             break;
           }
 
@@ -431,7 +431,7 @@ module.exports = {
             }
           }).catch((err) => {
             // Log
-            Utils.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -439,7 +439,7 @@ module.exports = {
         case "ChargingStationConfiguration":
           // Charge Box is mandatory
           if(!req.query.ChargeBoxIdentity) {
-            Utils.logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
+            Logging.logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
             break;
           }
 
@@ -461,7 +461,7 @@ module.exports = {
             }
           }).catch((err) => {
             // Log
-            Utils.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -477,10 +477,10 @@ module.exports = {
           // Action provided
           if (!action) {
             // Log
-            Utils.logActionErrorMessageAndSendResponse(`No Action has been provided`, req, res, next);
+            Logging.logActionErrorMessageAndSendResponse(`No Action has been provided`, req, res, next);
           } else {
             // Log
-            Utils.logActionErrorMessageAndSendResponse(`The Action '${action}' does not exist`, req, res, next);
+            Logging.logActionErrorMessageAndSendResponse(`The Action '${action}' does not exist`, req, res, next);
           }
       }
       break;
@@ -496,7 +496,7 @@ module.exports = {
             // Check email
             global.storage.getUser(req.body.id).then(function(user) {
               if (!user) {
-                Utils.logActionErrorMessageAndSendResponse(`The user with ID ${req.body.id} does not exist anymore`, req, res, next);
+                Logging.logActionErrorMessageAndSendResponse(`The user with ID ${req.body.id} does not exist anymore`, req, res, next);
                 return;
               }
 
@@ -515,7 +515,7 @@ module.exports = {
 
             }).catch((err) => {
               // Log
-              Utils.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+              Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
             });
           }
           break;
@@ -525,7 +525,7 @@ module.exports = {
           // Get user
           global.storage.getUser(req.user.id).then(function(user) {
             if (!user) {
-              Utils.logActionErrorMessageAndSendResponse(`The user with ID ${req.user.id} does not exist anymore`, req, res, next);
+              Logging.logActionErrorMessageAndSendResponse(`The user with ID ${req.user.id} does not exist anymore`, req, res, next);
               return;
             }
 
@@ -546,7 +546,7 @@ module.exports = {
 
           }).catch((err) => {
             // Log
-            Utils.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -555,10 +555,10 @@ module.exports = {
           // Action provided
           if (!action) {
             // Log
-            Utils.logActionErrorMessageAndSendResponse(`No Action has been provided`, req, res, next);
+            Logging.logActionErrorMessageAndSendResponse(`No Action has been provided`, req, res, next);
           } else {
             // Log
-            Utils.logActionErrorMessageAndSendResponse(`The Action '${action}' does not exist`, req, res, next);
+            Logging.logActionErrorMessageAndSendResponse(`The Action '${action}' does not exist`, req, res, next);
           }
           break;
       }
@@ -572,13 +572,13 @@ module.exports = {
           case "DeleteUser":
             // Check Mandatory fields
             if(!req.query.ID) {
-              Utils.logActionErrorMessageAndSendResponse(`The user's ID must be provided`, req, res, next);
+              Logging.logActionErrorMessageAndSendResponse(`The user's ID must be provided`, req, res, next);
               return;
             }
             // Check email
             global.storage.getUser(req.query.ID).then(function(user) {
               if (!user) {
-                Utils.logActionErrorMessageAndSendResponse(`The user with ID ${req.body.id} does not exist anymore`, req, res, next);
+                Logging.logActionErrorMessageAndSendResponse(`The user with ID ${req.body.id} does not exist anymore`, req, res, next);
                 return;
               }
               // Delete
@@ -594,7 +594,7 @@ module.exports = {
               });
             }).catch((err) => {
               // Log
-              Utils.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+              Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
             });
             break;
 
@@ -603,10 +603,10 @@ module.exports = {
             // Action provided
             if (!action) {
               // Log
-              Utils.logActionErrorMessageAndSendResponse(`No Action has been provided`, req, res, next);
+              Logging.logActionErrorMessageAndSendResponse(`No Action has been provided`, req, res, next);
             } else {
               // Log
-              Utils.logActionErrorMessageAndSendResponse(`The Action '${action}' does not exist`, req, res, next);
+              Logging.logActionErrorMessageAndSendResponse(`The Action '${action}' does not exist`, req, res, next);
             }
             break;
         }
@@ -614,7 +614,7 @@ module.exports = {
 
     default:
       // Log
-      Utils.logActionErrorMessageAndSendResponse(`Ussuported request method ${req.method}`, req, res, next);
+      Logging.logActionErrorMessageAndSendResponse(`Ussuported request method ${req.method}`, req, res, next);
       break;
     }
   }
