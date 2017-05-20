@@ -1,29 +1,27 @@
 var ChargingStation = require('../model/ChargingStation');
 var Utils = require('../utils/Utils');
-var ChargingStationBackgroundTasks = require('./ChargingStationBackgroundTasks');
+var ServerBackgroundTasks = require('./ServerBackgroundTasks');
 var Logging = require('../utils/Logging');
 var bodyParser = require("body-parser");
 require('body-parser-xml')(bodyParser);
 var cors = require('cors');
 var helmet = require('helmet');
-var passport = require('passport');
-var jwt = require('jsonwebtoken');
-var JwtStrategy = require('passport-jwt').Strategy;
-var ExtractJwt = require('passport-jwt').ExtractJwt;
-var ChargingStationRestService = require('./ChargingStationRestService');
+var ServerRestService = require('./ServerRestService');
 var morgan = require('morgan');
+var ServerRestAuthentication = require('./ServerRestAuthentication');
 
 let _serverConfig;
 let _chargingStationConfig;
 
 class CentralSystemServer {
   constructor(serverConfig, chargingStationConfig, express) {
+    // Check
     if (new.target === CentralSystemServer) {
       throw new TypeError("Cannot construct CentralSystemServer instances directly");
     }
 
     // Check the charging station status...
-    setInterval(ChargingStationBackgroundTasks.executeAllBackgroundTasks, 15 * 1000);
+    setInterval(ServerBackgroundTasks.executeAllBackgroundTasks, 15 * 1000);
 
     // Body parser
     express.use(bodyParser.json());
@@ -39,77 +37,17 @@ class CentralSystemServer {
     // Secure the application
     express.use(helmet());
 
-    // Init JWT auth options
-    var jwtOptions = {
-      secretOrKey: 's3A92797boeiBhxQDM1GInRith',
-      jwtFromRequest: ExtractJwt.fromAuthHeader()
-      // issuer: 'evse-dashboard',
-      // audience: 'evse-dashboard'
-    };
-
-    // Use
-    passport.use(new JwtStrategy(jwtOptions, function(jwtPayload, done) {
-      console.log(jwtPayload);
-      // Check email
-      global.storage.getUser(jwtPayload.id).then(function(user) {
-        if (user) {
-          return done(null, user.getModel());
-        } else {
-          return done(null, false);
-        }
-        next();
-      }).catch((err) => {
-        // Log
-        return done(err, false);
-      });
-    }));
-
     // Authentication
-    express.use(passport.initialize());
+    express.use(ServerRestAuthentication.initialize());
 
-    // Login
-    express.post('/auth/login', function(req, res, next) {
-      // Check email
-      global.storage.getUserByEmail(req.body.email).then(function(user) {
-        // Found?
-        if (user) {
-          // Yes: build payload
-          var payload = {
-              id: user.getID()
-          };
-          // Build token
-          var token = jwt.sign(payload, jwtOptions.secretOrKey, {
-            expiresIn: 3600 // in seconds
-          });
-          // Return it
-          res.json({ token: token });
-        } else {
-          // User not found
-          res.sendStatus(401);
-        }
-        next();
-      }).catch((err) => {
-        // Error
-        res.sendStatus(500);
-      });
-    });
+    // Auth services
+    express.use('/auth', ServerRestAuthentication.authService);
 
-    // Logout
-    express.get('/auth/logout',
-      function(req, res) {
-        // Get rid of the session token. Then call `logout`; it does no harm.
-        req.logout();
-        req.session.destroy();
-        res.status(200).send({});
-    });
+    // Secured API
+    express.use('/client/api', ServerRestAuthentication.authenticate(), ServerRestService.restServiceSecured);
 
-    // Receive REST request to trigger action to the charging station remotely (reboot...)
-    express.use('/client/api', passport.authenticate('jwt', { session: false }), ChargingStationRestService);
-
-    // Ping
-    express.get('/ping', function(req, res) {
-      res.status(200).send({});
-    });
+    // Util API
+    express.use('/client/util', ServerRestService.restServiceUtil);
 
     // Keep params
     _serverConfig = serverConfig;

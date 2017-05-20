@@ -17,27 +17,47 @@ class EMail {
   }
 
   sendTextEmail(emailData) {
-    this._server.send({
-       text:    emailData.text,
-       from:    emailData.from,
-       to:      emailData.to,
-       cc:      emailData.cc,
-       subject: emailData.subject
-    }, (err, message) => {
-      console.log("err: " + err);
-      console.log("message: " + JSON.stringify(message));
+    // In promise
+    return new Promise((fulfill, reject) => {
+      // Call
+      this._server.send({
+         text:    emailData.text,
+         from:    emailData.from,
+         to:      emailData.to,
+         cc:      emailData.cc,
+         subject: emailData.subject
+      }, (err, message) => {
+        console.log(err);
+        console.log(message);
+        // Error Handling
+        if (err) {
+          reject(err);
+        } else {
+          fulfill(message);
+        }
+      });
     });
   }
 
   sendHTMLEmail(emailData) {
-    this._server.send({
-       text:    emailData.text,
-       from:    emailData.from,
-       to:      emailData.to,
-       cc:      emailData.cc,
-       subject: emailData.subject,
-       attachment: emailData.attachment
-    }, (err, message) => {
+    // In promise
+    return new Promise((fulfill, reject) => {
+      // Call
+      this._server.send({
+         text:    emailData.text,
+         from:    emailData.from,
+         to:      emailData.to,
+         cc:      emailData.cc,
+         subject: emailData.subject,
+         attachment: emailData.attachment
+      }, (err, message) => {
+        // Error Handling
+        if (err) {
+          reject(err);
+        } else {
+          fulfill(message);
+        }
+      });
     });
   }
 }

@@ -25,6 +25,22 @@ class User {
     this._model.name = name;
   }
 
+  getPassword() {
+    return this._model.password;
+  }
+
+  setPassword(password) {
+    this._model.password = password;
+  }
+
+  getRole() {
+    return this._model.role;
+  }
+
+  setRole(role) {
+    this._model.role = role;
+  }
+
   getFirstName() {
     return this._model.firstName;
   }

@@ -64,6 +64,11 @@ class StorageFacade extends Storage {
     return _leadingStorage.getChargingStations();
   }
 
+  getUserByEmailPassword(email, password) {
+    // Delegate
+    return _leadingStorage.getUserByEmailPassword(email, password);
+  }
+
   saveStatusNotification(statusNotification) {
     // Delegate
     _storages.forEach((storage) => {

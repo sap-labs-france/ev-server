@@ -20,6 +20,9 @@ class Storage {
   getUserByEmail(email) {
   }
 
+  getUserByEmailPassword(email, password) {
+  }
+
   getUser(id) {
   }
 

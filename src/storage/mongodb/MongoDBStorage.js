@@ -24,10 +24,8 @@ var moment = require('moment');
 class MongoDBStorage extends Storage {
   constructor(dbConfig) {
     super(dbConfig);
-
     // Keep local
     this.dbConfig = dbConfig;
-
     // Connect
     mongoose.Promise = global.Promise;
     mongoose.connect(`mongodb://${dbConfig.host}:${dbConfig.port}/${dbConfig.schema}`, function(err, db) {
@@ -522,15 +520,20 @@ class MongoDBStorage extends Storage {
   }
 
   saveUser(user) {
-    // Check
-    if (!user.getEMail()) {
+    // Check if ID or email is provided
+    if (!user.getID() && !user.getEMail()) {
       // ID ,ust be provided!
-      return Promise.reject( new Error("Error in saving the User: User has no Email and cannot be created or updated") );
+      return Promise.reject( new Error("Error in saving the User: User has no ID or Email and cannot be created or updated") );
     } else {
+      var userFilter = {};
+      // Build Request
+      if (user.getID()) {
+        userFilter._id = user.getID();
+      } else {
+        userFilter.email = user.getEMail();
+      }
       // Get
-      return MDBUser.findOneAndUpdate({
-        "email": user.getEMail()},
-        user.getModel(), {
+      return MDBUser.findOneAndUpdate(userFilter, user.getModel(), {
           new: true,
           upsert: true
         }).then((userMongoDB) => {
@@ -557,34 +560,31 @@ class MongoDBStorage extends Storage {
     }
   }
 
-  getUserByEmail(email) {
+  getUser(id) {
+    // Check
+    if (!this.checkIfMongoDBIDIsValid(id)) {
+      // Return empty user
+      return Promise.resolve();
+    }
+
     // Exec request
-    return MDBUser.findOne({"email": email}).then((userMongoDB) => {
-      var user = null;
-      // Check
-      if (userMongoDB) {
-        // Create
-        user = new User(userMongoDB);
-        // Get the Tags
-        return MDBTag.find({"userID": userMongoDB.id}).exec().then((tagsMongoDB) => {
-          // Check
-          if (tagsMongoDB) {
-            // Get the Tags
-            var tags = tagsMongoDB.map((tagMongoDB) => { return tagMongoDB.id; });
-            // Get IDs`
-            user.setTagIDs(tags);
-          }
-          return user;
-        });
-      } else {
-        // Ok
-        return user;
-      }
+    return MDBUser.findById(id).exec().then((userMongoDB) => {
+      return this.createUser(userMongoDB);
     });
   }
 
-  deleteUser(id) {
-    return MDBUser.remove({ "_id" : id });
+  getUserByEmailPassword(email, password) {
+    // Exec request
+    return MDBUser.findOne({"email": email, "password": password}).then((userMongoDB) => {
+      return this.createUser(userMongoDB);
+    });
+  }
+
+  getUserByEmail(email) {
+    // Exec request
+    return MDBUser.findOne({"email": email}).then((userMongoDB) => {
+      return this.createUser(userMongoDB);
+    });
   }
 
   getUserByTagId(tagID) {
@@ -600,6 +600,33 @@ class MongoDBStorage extends Storage {
     });
   }
 
+  createUser(userMongoDB) {
+    var user = null;
+    // Check
+    if (userMongoDB) {
+      // Create
+      user = new User(userMongoDB);
+      // Get the Tags
+      return MDBTag.find({"userID": userMongoDB.id}).exec().then((tagsMongoDB) => {
+        // Check
+        if (tagsMongoDB) {
+          // Get the Tags
+          var tags = tagsMongoDB.map((tagMongoDB) => { return tagMongoDB.id; });
+          // Get IDs`
+          user.setTagIDs(tags);
+        }
+        return user;
+      });
+    } else {
+      // Ok
+      return user;
+    }
+  }
+
+  deleteUser(id) {
+    return MDBUser.remove({ "_id" : id });
+  }
+
   checkIfMongoDBIDIsValid(id) {
       // Check ID
     if (/^[0-9a-fA-F]{24}$/.test(id)) {
@@ -607,37 +634,6 @@ class MongoDBStorage extends Storage {
       return true;
     }
     return false;
-  }
-
-  getUser(id) {
-    // Check
-    if (!this.checkIfMongoDBIDIsValid(id)) {
-      // Return empty user
-      return Promise.resolve();
-    }
-
-    // Exec request
-    return MDBUser.findById(id).exec().then((userMongoDB) => {
-      var user = null;
-      // Check
-      if (userMongoDB) {
-        user = new User(userMongoDB);
-        // Get the Tags
-        return MDBTag.find({"userID": userMongoDB.id}).exec().then((tagsMongoDB) => {
-          // Check
-          if (tagsMongoDB) {
-            // Get the Tags
-            var tags = tagsMongoDB.map((tagMongoDB) => { return tagMongoDB.id; });
-            // Get IDs`
-            user.setTagIDs(tags);
-          }
-          return user;
-        });
-      } else {
-        // Ok
-        return user;
-      }
-    });
   }
 }
 

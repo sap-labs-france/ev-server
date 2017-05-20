@@ -22,6 +22,7 @@
     "passport": "^0.3.2",
     "passport-jwt": "^2.2.1",
     "passport-local": "^1.0.0",
+    "password-generator": "^2.1.0",
     "promise": "^7.1.1",
     "soap": "^0.18.0",
     "strong-soap": "^1.2.0",

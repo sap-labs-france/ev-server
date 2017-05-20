@@ -432,7 +432,7 @@ class ChargingStation {
       // Found?
       if (user) {
         // Check status
-        if (user.getStatus() !== Users.USER_ACTIVE) {
+        if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
           // Reject but save ok
           return Promise.reject( new Error(`User ${user.getFullName()} with TagID ${request.idTag} is not Active`) );
         } else {
@@ -445,7 +445,7 @@ class ChargingStation {
         var newUser = new User({
           name: "Unknown",
           firstName: "User",
-          status: Users.USER_PENDING,
+          status: Users.USER_STATUS_PENDING,
           email: request.idTag + "@sap.com",
           tagIDs: [request.idTag]
         });

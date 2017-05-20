@@ -1,5 +1,6 @@
 var fs = require('fs');
 var path = require('path');
+var Users = require('./Users');
 
 var _config;
 
@@ -119,6 +120,7 @@ module.exports = {
     dest.firstName = src.firstName;
     dest.image = src.image;
     dest.email = src.email;
+    dest.role = src.role;
     dest.phone = src.phone;
     dest.mobile = src.mobile;
     dest.iNumber = src.iNumber;
@@ -129,12 +131,28 @@ module.exports = {
     dest.lastChangedBy = src.lastChangedBy;
     dest.lastChangedOn = src.lastChangedOn;
     dest.tagIDs = src.tagIDs;
+    // No user?
     if (!dest.createdBy) {
       // Set default user
       dest.createdBy = "Central Server";
       dest.createdOn = new Date();
       dest.lastChangedBy = dest.createdBy;
       dest.lastChangedOn = dest.createdOn;
+    }
+    // Check the password
+    if (src.password && src.password.length > 0) {
+      // Password can be overridden
+      dest.password = src.password;
+    }
+    // Check the role
+    if (src.role && src.role.length > 0) {
+      // Role can be overridden
+      dest.role = src.role;
+    }
+    // Check default role value
+    if (!dest.role) {
+      // Default
+      dest.role = Users.USER_ROLE_BASIC;
     }
   },
 

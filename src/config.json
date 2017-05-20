@@ -16,9 +16,10 @@
   ],
   "Email": {
     "smtp" : {
-      "host": "185.16.220.10",
-      "user": "",
-      "password": "",
+      "host": "37.71.38.82",
+      "host2": "185.16.220.10",
+      "user": "slfr",
+      "password": "Welc0me!",
       "ssl": false
     }
   },

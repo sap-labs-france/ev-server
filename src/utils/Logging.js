@@ -106,6 +106,29 @@ class Logging {
       }
     }
   }
+
+  // Log issues
+  static logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next) {
+    Logging.logError({
+      source: "Central Server", module: "ChargingStationRestService", method: "N/A",
+      action: action,
+      message: `${err.toString()}`,
+      detailedMessages: err.stack });
+    res.status(500).send(`${err.toString()}`);
+    next();
+  };
+
+  // Log issues
+  static logActionErrorMessageAndSendResponse(message, req, res, next) {
+    Logging.logError({
+      source: "Central Server", module: "ChargingStationRestService", method: "N/A",
+      message: message,
+      detailedMessages: [{
+          "stack": new Error().stack,
+          "request": req.body}] });
+    res.status(500).send(message);
+    next();
+  };
 }
 
 module.exports=Logging;
