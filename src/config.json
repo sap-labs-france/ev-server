@@ -15,12 +15,16 @@
     }
   ],
   "Email": {
+    "from": "evse.dashboard.noreply@sap.com",
+    "bcc": "serge.fabiano@sap.com",
     "smtp" : {
-      "host": "37.71.38.82",
-      "host2": "185.16.220.10",
-      "user": "slfr",
-      "password": "Welc0me!",
-      "ssl": false
+      "host": "185.16.220.10",
+      "user": "",
+      "password": "",
+      "hostSAP": "37.71.38.82",
+      "userSAP": "slfr",
+      "passwordSAP": "Welc0me!",
+      "secure": false
     }
   },
   "ChargingStation" : {

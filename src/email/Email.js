@@ -1,61 +1,43 @@
-var email = require("emailjs/email");
 var Utils = require('../utils/Utils');
+const nodemailer = require('nodemailer');
 
-//  https://www.npmjs.com/package/emailjs
+// https://nodemailer.com/smtp/
 class EMail {
   constructor() {
     // Email
-    var emailConfig = Utils.getEmailConfig();
+    this._emailConfig = Utils.getEmailConfig();
 
-    // Create the server
-    this._server 	= email.server.connect({
-      user:     emailConfig.smtp.user,
-      password: emailConfig.smtp.password,
-      host:     emailConfig.smtp.host,
-      ssl:      emailConfig.smtp.ssl
+    // create reusable transporter object using the default SMTP transport
+    this._transporter = nodemailer.createTransport({
+      host: this._emailConfig.smtp.host,
+      secure: this._emailConfig.smtp.secure,
+      auth: {
+        user: this._emailConfig.smtp.user,
+        pass: this._emailConfig.smtp.password
+      }
     });
   }
 
-  sendTextEmail(emailData) {
+  sendEmail(email) {
     // In promise
     return new Promise((fulfill, reject) => {
       // Call
-      this._server.send({
-         text:    emailData.text,
-         from:    emailData.from,
-         to:      emailData.to,
-         cc:      emailData.cc,
-         subject: emailData.subject
-      }, (err, message) => {
+      this._transporter.sendMail({
+         from: (!email.from?this._emailConfig.from:email.from),
+         to: email.to,
+         cc: email.cc,
+         bcc: (!email.cc?this._emailConfig.bcc:email.cc),
+         subject: email.subject,
+         text: email.text,
+         html: email.html
+      }, (err, info) => {
         console.log(err);
-        console.log(message);
+        console.log(info);
         // Error Handling
         if (err) {
           reject(err);
         } else {
-          fulfill(message);
-        }
-      });
-    });
-  }
-
-  sendHTMLEmail(emailData) {
-    // In promise
-    return new Promise((fulfill, reject) => {
-      // Call
-      this._server.send({
-         text:    emailData.text,
-         from:    emailData.from,
-         to:      emailData.to,
-         cc:      emailData.cc,
-         subject: emailData.subject,
-         attachment: emailData.attachment
-      }, (err, message) => {
-        // Error Handling
-        if (err) {
-          reject(err);
-        } else {
-          fulfill(message);
+          fulfill(info);
         }
       });
     });

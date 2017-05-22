@@ -116,11 +116,21 @@ module.exports = {
                   // Save the user
                   user.save().then(() => {
                     // Send the email
-                    new EMail().sendTextEmail({
-                        text: "Text",
-                        from: "evse.dashboard@sap.com",
+                    new EMail().sendEmail({
                         to: req.body.email,
-                        subject: "EVSE - Your passord has been reset"
+                        subject: "EVSE - Your passord has been reset",
+                        text: `HTML content`,
+                        html:
+                          `
+                            Hi ${user.getFirstName()},
+
+                            Your password to access the EVSE-Dashboard has been reset successfully!
+
+                            Your new password is: <bold>${newPassword}</bold>
+
+                            Best Regards,
+                            EVSE Admin.
+                          `
                       }).then((message) => {
 
                         Logging.logInfo({
