@@ -19,6 +19,7 @@
     "bcc": "serge.fabiano@sap.com",
     "smtp" : {
       "host": "185.16.220.10",
+      "port": 25,
       "user": "",
       "password": "",
       "hostSAP": "37.71.38.82",

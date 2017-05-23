@@ -7,15 +7,24 @@ class EMail {
     // Email
     this._emailConfig = Utils.getEmailConfig();
 
-    // create reusable transporter object using the default SMTP transport
-    this._transporter = nodemailer.createTransport({
+    // Set
+    let nodeMailerParams = {
       host: this._emailConfig.smtp.host,
-      secure: this._emailConfig.smtp.secure,
-      auth: {
+      port: this._emailConfig.smtp.port,
+      secure: this._emailConfig.smtp.secure
+    };
+  
+    // Credentials provided?    
+    if (this._emailConfig.smtp.user) {
+      // Add
+      nodeMailerParams.auth = {
         user: this._emailConfig.smtp.user,
         pass: this._emailConfig.smtp.password
-      }
-    });
+      };
+    }
+
+    // create reusable transporter object using the default SMTP transport
+    this._transporter = nodemailer.createTransport(nodeMailerParams);
   }
 
   sendEmail(email) {
