@@ -25,7 +25,7 @@ module.exports = {
    PWD_UPPERCASE_RE: /([A-Z])/g,
    PWD_LOWERCASE_RE: /([a-z])/g,
    PWD_NUMBER_RE: /([\d])/g,
-   PWD_SPECIAL_CHAR_RE: /([!@#\$%\^&\*\.\?\-])/g,
+   PWD_SPECIAL_CHAR_RE: /([!#\$%\^&\*\.\?\-])/g,
 
    isPasswordStrongEnough(password) {
      var uc = password.match(this.PWD_UPPERCASE_RE);
@@ -43,7 +43,7 @@ module.exports = {
      var password = "";
      var randomLength = Math.floor(Math.random() * (this.PWD_MAX_LENGTH - this.PWD_MIN_LENGTH)) + this.PWD_MIN_LENGTH;
      while (!this.isPasswordStrongEnough(password)) {
-       password = passwordGenerator(randomLength, false, /[\w\d!@#\$%\^&\*\.\?\-]/);
+       password = passwordGenerator(randomLength, false, /[\w\d!#\$%\^&\*\.\?\-]/);
      }
      return password;
    },
@@ -51,7 +51,7 @@ module.exports = {
    // Check password
    isPasswordValid(password) {
      // Check
-     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*\.\?\-])(?=.{8,})/.test(password);
+     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#\$%\^&\*\.\?\-])(?=.{8,})/.test(password);
    },
 
    // Hash password

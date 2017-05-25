@@ -48,6 +48,12 @@ module.exports = {
     return this.getConfig().Email;
   },
 
+  // Locale config
+  getLocalesConfig() {
+    // Read conf
+    return this.getConfig().Locales;
+  },
+
   // Central System config
   getStoragesConfig() {
     // Read conf
@@ -62,6 +68,10 @@ module.exports = {
 
   getRandomInt() {
     return Math.floor((Math.random() * 1000000000) + 1);
+  },
+
+  buildEvseURL(request) {
+    return request.headers.origin;
   },
 
   updateChargingStationObject(src, dest) {

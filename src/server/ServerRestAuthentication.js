@@ -6,6 +6,7 @@ var Users = require('../utils/Users');
 var EMail = require('../email/EMail');
 var Logging = require('../utils/Logging');
 var User = require('../model/User');
+var Utils = require('../utils/Utils');
 
 // Init JWT auth options
 var jwtOptions = {
@@ -87,14 +88,32 @@ module.exports = {
                   newUser.setPassword(Users.hashPassword(newUser.getPassword()));
                   // Save
                   newUser.save().then(() => {
-                    Logging.logInfo({
-                      source: "Central Server", module: "ServerRestAuthentication", method: "registeruser",
-                      message: `User ${newUser.getFullName()} with email ${newUser.getEMail()} has been created successfully`,
-                      detailedMessages: user});
-                  });
-                  res.json({status: `Success`});
-                  next();
-
+                    // Send the email
+                    EMail.sendRegisteredUserEmail({
+                          "user": newUser.getModel(),
+                          "evseDashboardURL" : Utils.buildEvseURL(req)
+                        }, req.locale).then(
+                      message => {
+                        // Success
+                        Logging.logInfo({
+                          source: "Central Server", module: "ServerRestAuthentication", method: "registeruser",
+                          message: `User ${newUser.getFullName()} with email ${newUser.getEMail()} has been registered successfully`,
+                          detailedMessages: newUser});
+                        // Ok
+                        res.json({status: `Success`});
+                        next();
+                      },
+                      error => {
+                        // Error
+                        Logging.logError({
+                          source: "Central Server", module: "CentralSystemServer", method: "N/A",
+                          action: "RegisterUser",
+                          message: `${error.toString()}`,
+                          detailedMessages: error.stack });
+                        res.json({error: error.toString()});
+                        next();
+                      });
+                    });
                 }).catch((err) => {
                   // Log
                   Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
@@ -105,44 +124,34 @@ module.exports = {
             // Reset password
             case "reset":
               // Generate a new password
-              global.storage.getUserByEmail(req.body.email).then(function(user) {
+              global.storage.getUserByEmail(req.body.email).then((user) => {
                 // Found?
                 if (user) {
                   // Yes: Generate new password
                   let newPassword = Users.generatePassword();
-                  console.log(newPassword);
                   // Hash it
                   user.setPassword(Users.hashPassword(newPassword));
                   // Save the user
                   user.save().then(() => {
                     // Send the email
-                    new EMail().sendEmail({
-                        to: req.body.email,
-                        subject: "EVSE - Your passord has been reset",
-                        text: `HTML content`,
-                        html:
-                          `
-                            Hi ${user.getFirstName()},
-
-                            Your password to access the EVSE-Dashboard has been reset successfully!
-
-                            Your new password is: <bold>${newPassword}</bold>
-
-                            Best Regards,
-                            EVSE Admin.
-                          `
-                      }).then((message) => {
-
+                    EMail.sendResetPasswordEmail({
+                      "user": user.getModel(),
+                      "newPassword": newPassword,
+                      "evseDashboardURL" : Utils.buildEvseURL(req)
+                    }, req.locale).then(
+                      message => {
+                        // Success
                         Logging.logInfo({
                           source: "Central Server", module: "CentralSystemServer", method: "N/A",
                           action: "ResetPassword",
-                          message: `Reset password done for user with email ${req.body.email}`,
+                          message: `Password has been reset for user with email ${user.getEMail()}`,
                           detailedMessages: message });
                         // Ok
                         res.json({status: `Success`});
                         next();
-                      }, error => {
-                        // Ok
+                      },
+                      error => {
+                        // Error
                         Logging.logError({
                           source: "Central Server", module: "CentralSystemServer", method: "N/A",
                           action: "ResetPassword",

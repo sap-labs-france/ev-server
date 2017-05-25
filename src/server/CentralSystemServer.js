@@ -8,6 +8,7 @@ var cors = require('cors');
 var helmet = require('helmet');
 var ServerRestService = require('./ServerRestService');
 var morgan = require('morgan');
+var locale = require('locale');
 var ServerRestAuthentication = require('./ServerRestAuthentication');
 
 let _serverConfig;
@@ -27,6 +28,9 @@ class CentralSystemServer {
     express.use(bodyParser.json());
     express.use(bodyParser.urlencoded({ extended: false }));
     express.use(bodyParser.xml());
+
+    // Use
+    express.use(locale(Utils.getLocalesConfig().supported));
 
     // log to console
     express.use(morgan('dev'));
