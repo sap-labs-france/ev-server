@@ -24,7 +24,7 @@
       "requireTLS": true,
       "type": "login",
       "user": "fabianoserge@gmail.com",
-      "password": "sdf.1sdf.2",
+      "password": "",
       "debug": false
     }
   },
