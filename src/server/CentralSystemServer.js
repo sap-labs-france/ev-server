@@ -25,8 +25,8 @@ class CentralSystemServer {
     setInterval(ServerBackgroundTasks.executeAllBackgroundTasks, 15 * 1000);
 
     // Body parser
-    express.use(bodyParser.json());
-    express.use(bodyParser.urlencoded({ extended: false }));
+    express.use(bodyParser.json({limit: '5mb'}));
+    express.use(bodyParser.urlencoded({ extended: false, limit: '5mb' }));
     express.use(bodyParser.xml());
 
     // Use
