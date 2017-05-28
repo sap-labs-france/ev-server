@@ -6,8 +6,10 @@ var fs = require('fs');
 var soap = require('strong-soap').soap;
 var path = require('path');
 var http = require('http');
+var https = require('https');
 var express = require('express')();
 var CentralSystemServer = require('../CentralSystemServer');
+var fs = require('fs');
 
 let _serverConfig;
 let _chargingStationConfig;
@@ -27,8 +29,21 @@ class SoapCentralSystemServer extends CentralSystemServer {
       Listen to external command to send request to charging stations
     */
     start() {
+      var server;
+
       // Create the HTTP server
-      var httpServer = http.createServer(express);
+      if (_serverConfig.protocol === "https") {
+        // Create the options
+        const options = {
+          key: fs.readFileSync(_serverConfig["ssl-key"]),
+          cert: fs.readFileSync(_serverConfig["ssl-cert"])
+        };
+        // Https server
+        server = https.createServer(options, express);
+      } else {
+        // Http server
+        server = http.createServer(express);
+      }
 
       // Read the WSDL files
       var centralSystemWsdl12 = fs.readFileSync(
@@ -40,19 +55,19 @@ class SoapCentralSystemServer extends CentralSystemServer {
 
       // Create Soap Servers
       // OCPP 1.2 -----------------------------------------
-      var soapServer12 = soap.listen(httpServer, '/OCPP12', centralSystemService12, centralSystemWsdl12);
+      var soapServer12 = soap.listen(server, '/OCPP12', centralSystemService12, centralSystemWsdl12);
       // OCPP 1.5 -----------------------------------------
-      var soapServer15 = soap.listen(httpServer, '/OCPP15', centralSystemService15, centralSystemWsdl15);
+      var soapServer15 = soap.listen(server, '/OCPP15', centralSystemService15, centralSystemWsdl15);
       // OCPP 1.6 -----------------------------------------
-      var soapServer16 = soap.listen(httpServer, '/OCPP16', centralSystemService16, centralSystemWsdl16);
+      var soapServer16 = soap.listen(server, '/OCPP16', centralSystemService16, centralSystemWsdl16);
 
       // Listen
-      httpServer.listen(_serverConfig.port, function(req, res) {
+      server.listen(_serverConfig.port, function(req, res) {
         // Log
         Logging.logInfo({
           source: "Central Server", module: "SoapCentralSystemServer", method: "start",
-          message: `Central Server started on 'localhost:${_serverConfig.port}'` });
-        console.log(`Central Server started on 'localhost:${_serverConfig.port}'`);
+          message: `Central Server started on '${_serverConfig.protocol}://localhost:${_serverConfig.port}'` });
+        console.log(`Central Server started on '${_serverConfig.protocol}://localhost:${_serverConfig.port}'`);
       });
     }
 }

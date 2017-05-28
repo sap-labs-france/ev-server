@@ -1,8 +1,11 @@
 {
   "CentralSystems": [
     {
+      "protocol": "https",
+      "port": 8000,
       "implementation": "soap",
-      "port": 8000
+      "ssl-key": "ssl/64933587-localhost.key",
+      "ssl-cert": "ssl/64933587-localhost.cert"
     }
   ],
   "Storages":[
@@ -24,7 +27,7 @@
       "requireTLS": true,
       "type": "login",
       "user": "fabianoserge@gmail.com",
-      "password": "",
+      "password": "sdf.1sdf.2",
       "debug": false
     }
   },
