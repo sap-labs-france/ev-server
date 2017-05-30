@@ -18,18 +18,18 @@
     }
   ],
   "Email": {
-    "from": "evse.dashboard@sap.com",
-    "bcc": "serge.fabiano@sap.com",
-    "smtp" : {
-      "host": "smtp.gmail.com",
-      "port": 465,
-      "secure": true,
-      "requireTLS": true,
-      "type": "login",
-      "user": "fabianoserge@gmail.com",
-      "password": "sdf.1sdf.2",
-      "debug": false
-    }
+     "from": "evse.adm.noreply@gmail.com",
+     "bcc": "gerald.seiler@sap.com, serge.fabiano@sap.com",
+     "smtp" : {
+       "host": "smtp.gmail.com",
+       "port": 465,
+       "secure": true,
+       "requireTLS": true,
+       "type": "login",
+       "user": "evse.adm.noreply",
+       "password": "Welc0me!",
+       "debug": true
+     }
   },
   "ChargingStation" : {
     "heartbeatInterval": 60

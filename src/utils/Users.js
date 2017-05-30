@@ -1,5 +1,6 @@
 var crypto = require('crypto');
 var passwordGenerator = require("password-generator");
+var Logging = require('./Logging');
 
 module.exports = {
    // Statuses
@@ -84,59 +85,59 @@ module.exports = {
    checkIfUserValid(req, res, next) {
      // Update mode?
      if(req.method === "PUT" && !req.body.id) {
-       Utils.logActionErrorMessageAndSendResponse(`The user's ID is mandatory`, req, res, next);
+       Logging.logActionErrorMessageAndSendResponse(`The user's ID is mandatory`, req, res, next);
        return false;
      }
      if(!req.body.name) {
-       Utils.logActionErrorMessageAndSendResponse(`The user's last name is mandatory`, req, res, next);
+       Logging.logActionErrorMessageAndSendResponse(`The user's last name is mandatory`, req, res, next);
        return false;
      }
      if(!req.body.firstName) {
-       Utils.logActionErrorMessageAndSendResponse(`The user's first name is mandatory`, req, res, next);
+       Logging.logActionErrorMessageAndSendResponse(`The user's first name is mandatory`, req, res, next);
        return false;
      }
      if(!req.body.email) {
-       Utils.logActionErrorMessageAndSendResponse(`The user's email is mandatory`, req, res, next);
+       Logging.logActionErrorMessageAndSendResponse(`The user's email is mandatory`, req, res, next);
        return false;
      }
      if(!req.body.status) {
-       Utils.logActionErrorMessageAndSendResponse(`The user's status is mandatory`, req, res, next);
+       Logging.logActionErrorMessageAndSendResponse(`The user's status is mandatory`, req, res, next);
        return false;
      }
      // Check password id provided
      if (req.body.password && !this.isPasswordValid(req.body.password)) {
-       Utils.logActionErrorMessageAndSendResponse(`The user's password ${req.body.password} is not valid`, req, res, next);
+       Logging.logActionErrorMessageAndSendResponse(`The user's password ${req.body.password} is not valid`, req, res, next);
        return false;
      }
      // Check format
      if (!this.isUserNameValid(req.body.name)) {
-       Utils.logActionErrorMessageAndSendResponse(`The user's last name ${req.body.name} is not valid`, req, res, next);
+       Logging.logActionErrorMessageAndSendResponse(`The user's last name ${req.body.name} is not valid`, req, res, next);
        return false;
      }
      if (!this.isUserNameValid(req.body.firstName)) {
-       Utils.logActionErrorMessageAndSendResponse(`The user's first name ${req.body.firstName} is not valid`, req, res, next);
+       Logging.logActionErrorMessageAndSendResponse(`The user's first name ${req.body.firstName} is not valid`, req, res, next);
        return false;
      }
      if (!this.isUserEmailValid(req.body.email)) {
-       Utils.logActionErrorMessageAndSendResponse(`The user's email ${req.body.email} is not valid`, req, res, next);
+       Logging.logActionErrorMessageAndSendResponse(`The user's email ${req.body.email} is not valid`, req, res, next);
        return false;
      }
      if (req.body.phone && !this.isPhoneValid(req.body.phone)) {
-       Utils.logActionErrorMessageAndSendResponse(`The user's phone ${req.body.phone} is not valid`, req, res, next);
+       Logging.logActionErrorMessageAndSendResponse(`The user's phone ${req.body.phone} is not valid`, req, res, next);
        return false;
      }
      if (req.body.mobile && !this.isPhoneValid(req.body.mobile)) {
-       Utils.logActionErrorMessageAndSendResponse(`The user's mobile ${req.body.mobile} is not valid`, req, res, next);
+       Logging.logActionErrorMessageAndSendResponse(`The user's mobile ${req.body.mobile} is not valid`, req, res, next);
        return false;
      }
      if (req.body.iNumber && !this.isINumberValid(req.body.iNumber)) {
-       Utils.logActionErrorMessageAndSendResponse(`The user's I-Number ${req.body.iNumber} is not valid`, req, res, next);
+       Logging.logActionErrorMessageAndSendResponse(`The user's I-Number ${req.body.iNumber} is not valid`, req, res, next);
        return false;
      }
      if (req.body.tagIDs) {
        // Check
        if (!this.isTagIDValid(req.body.tagIDs)) {
-         Utils.logActionErrorMessageAndSendResponse(`The user's tags ${req.body.tagIDs} is/are not valid`, req, res, next);
+         Logging.logActionErrorMessageAndSendResponse(`The user's tags ${req.body.tagIDs} is/are not valid`, req, res, next);
          return false;
        }
        // Check
