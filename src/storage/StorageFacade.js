@@ -2,28 +2,22 @@ var MongoDBStorage = require('./mongodb/MongoDBStorage');
 var Utils = require('../utils/Utils');
 var Storage = require('./Storage');
 
-let _storages = [];
-let _leadingStorage;
-
-class StorageFacade extends Storage {
-  constructor(dbConfig) {
-    super(dbConfig);
-
-    // Read conf
-    var storageConfigs = Utils.getStoragesConfig();
-    var that = this;
-
-    // Instanciate
-    storageConfigs.forEach(function(storageConfig) {
+class StorageFacade {
+  // Create the database connection
+  constructor(storageConfigs) {
+    // Init
+    global.alternateStorages = [];
+    // Instanciate storages
+    storageConfigs.forEach((storageConfig) => {
       // Check implementation
       switch (storageConfig.implementation) {
         // SOAP
         case 'mongodb':
           var mongoDB = new MongoDBStorage(storageConfig);
           if (storageConfig.leading) {
-            _leadingStorage = mongoDB;
+            global.leadingStorage = mongoDB;
           } else {
-            _storages.push(mongoDB);
+            global.alternateStorages.push(mongoDB);
           }
           break;
 
@@ -33,238 +27,252 @@ class StorageFacade extends Storage {
     });
   }
 
+  start() {
+    // Create central storage facade access
+    global.storage = this;
+
+    // Start others async
+    global.alternateStorages.forEach((storage) => {
+      // Trigger Save for other DB
+      storage.start();
+    });
+
+    // Start the leading storage
+    return global.leadingStorage.start();
+  }
+
   saveChargingStation(chargingStation) {
     // Delegate
-    _storages.forEach((storage) => {
+    global.alternateStorages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveChargingStation(chargingStation);
     });
 
     // Save in main DB
-    return _leadingStorage.saveChargingStation(chargingStation);
+    return global.leadingStorage.saveChargingStation(chargingStation);
   }
 
   getMeterValues(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
     // Delegate
-    return _leadingStorage.getMeterValues(chargeBoxIdentity, connectorId, startDateTime, endDateTime);
+    return global.leadingStorage.getMeterValues(chargeBoxIdentity, connectorId, startDateTime, endDateTime);
   }
 
   getLastMeterValuesFromTransaction(chargeBoxIdentity, connectorId, transactionId, limit) {
     // Delegate
-    return _leadingStorage.getLastMeterValuesFromTransaction(chargeBoxIdentity, connectorId, transactionId, limit);
+    return global.leadingStorage.getLastMeterValuesFromTransaction(chargeBoxIdentity, connectorId, transactionId, limit);
   }
 
   getChargingStation(chargeBoxIdentity) {
     // Delegate
-    return _leadingStorage.getChargingStation(chargeBoxIdentity);
+    return global.leadingStorage.getChargingStation(chargeBoxIdentity);
   }
 
   getChargingStations() {
     // Delegate
-    return _leadingStorage.getChargingStations();
+    return global.leadingStorage.getChargingStations();
   }
 
   getUserByEmailPassword(email, password) {
     // Delegate
-    return _leadingStorage.getUserByEmailPassword(email, password);
+    return global.leadingStorage.getUserByEmailPassword(email, password);
   }
 
   saveStatusNotification(statusNotification) {
     // Delegate
-    _storages.forEach((storage) => {
+    global.alternateStorages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveStatusNotification(statusNotification);
     });
 
     // Delegate
-    return _leadingStorage.saveStatusNotification(statusNotification);
+    return global.leadingStorage.saveStatusNotification(statusNotification);
   }
 
   getStatusNotifications(chargeBoxIdentity, connectorId) {
     // Delegate
-    return _leadingStorage.getStatusNotifications(chargeBoxIdentity, connectorId);
+    return global.leadingStorage.getStatusNotifications(chargeBoxIdentity, connectorId);
   }
 
   getLastStatusNotification(chargeBoxIdentity, connectorId) {
     // Delegate
-    return _leadingStorage.getLastStatusNotification(chargeBoxIdentity, connectorId);
+    return global.leadingStorage.getLastStatusNotification(chargeBoxIdentity, connectorId);
   }
 
   getConfigurationParamValue(chargeBoxIdentity, paramName) {
     // Delegate
-    return _leadingStorage.getConfigurationParamValue(chargeBoxIdentity, paramName);
+    return global.leadingStorage.getConfigurationParamValue(chargeBoxIdentity, paramName);
   }
 
   saveFirmwareStatusNotification(firmwareStatusNotification){
     // Delegate
-    _storages.forEach((storage) => {
+    global.alternateStorages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveFirmwareStatusNotification(firmwareStatusNotification);
     });
 
     // Delegate
-    return _leadingStorage.saveFirmwareStatusNotification(firmwareStatusNotification);
+    return global.leadingStorage.saveFirmwareStatusNotification(firmwareStatusNotification);
   }
 
   saveDiagnosticsStatusNotification(diagnosticsStatusNotification) {
     // Delegate
-    _storages.forEach((storage) => {
+    global.alternateStorages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveDiagnosticsStatusNotification(diagnosticsStatusNotification);
     });
 
     // Delegate
-    return _leadingStorage.saveDiagnosticsStatusNotification(diagnosticsStatusNotification);
+    return global.leadingStorage.saveDiagnosticsStatusNotification(diagnosticsStatusNotification);
   }
 
   saveUser(user) {
     // Delegate
-    _storages.forEach((storage) => {
+    global.alternateStorages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveUser(user);
     });
 
     // Delegate
-    return _leadingStorage.saveUser(user);
+    return global.leadingStorage.saveUser(user);
   }
 
   saveAuthorize(authorize) {
     // Delegate
-    _storages.forEach((storage) => {
+    global.alternateStorages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveAuthorize(authorize);
     });
 
     // Delegate
-    return _leadingStorage.saveAuthorize(authorize);
+    return global.leadingStorage.saveAuthorize(authorize);
   }
 
   saveMeterValues(meterValues) {
     // Delegate
-    _storages.forEach((storage) => {
+    global.alternateStorages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveMeterValues(meterValues);
     });
 
     // Delegate
-    return _leadingStorage.saveMeterValues(meterValues);
+    return global.leadingStorage.saveMeterValues(meterValues);
   }
 
   saveStartTransaction(startTransaction) {
     // Delegate
-    _storages.forEach((storage) => {
+    global.alternateStorages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveStartTransaction(startTransaction);
     });
 
     // Delegate
-    return _leadingStorage.saveStartTransaction(startTransaction);
+    return global.leadingStorage.saveStartTransaction(startTransaction);
   }
 
   saveStopTransaction(stopTransaction) {
     // Delegate
-    _storages.forEach((storage) => {
+    global.alternateStorages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveStopTransaction(stopTransaction);
     });
 
     // Delegate
-    return _leadingStorage.saveStopTransaction(stopTransaction);
+    return global.leadingStorage.saveStopTransaction(stopTransaction);
   }
 
   saveBootNotification(bootNotification) {
     // Delegate
-    _storages.forEach((storage) => {
+    global.alternateStorages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveBootNotification(bootNotification);
     });
 
     // Delegate
-    return _leadingStorage.saveBootNotification(bootNotification);
+    return global.leadingStorage.saveBootNotification(bootNotification);
   }
 
   saveDataTransfer(dataTransfer) {
     // Delegate
-    _storages.forEach((storage) => {
+    global.alternateStorages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveDataTransfer(dataTransfer);
     });
 
     // Delegate
-    return _leadingStorage.saveDataTransfer(dataTransfer);
+    return global.leadingStorage.saveDataTransfer(dataTransfer);
   }
 
   getConfiguration(chargeBoxIdentity) {
     // Delegate
-    return _leadingStorage.getConfiguration(chargeBoxIdentity);
+    return global.leadingStorage.getConfiguration(chargeBoxIdentity);
   }
 
   saveConfiguration(configuration) {
     // Delegate
-    _storages.forEach((storage) => {
+    global.alternateStorages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveConfiguration(configuration);
     });
 
     // Delegate
-    return _leadingStorage.saveConfiguration(configuration);
+    return global.leadingStorage.saveConfiguration(configuration);
   }
 
   getUsers() {
     // Delegate
-    return _leadingStorage.getUsers();
+    return global.leadingStorage.getUsers();
   }
 
   getTransactions(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
     // Delegate
-    return _leadingStorage.getTransactions(chargeBoxIdentity, connectorId, startDateTime, endDateTime);
+    return global.leadingStorage.getTransactions(chargeBoxIdentity, connectorId, startDateTime, endDateTime);
   }
 
   getLastTransaction(chargeBoxIdentity, connectorId) {
     // Delegate
-    return _leadingStorage.getLastTransaction(chargeBoxIdentity, connectorId);
+    return global.leadingStorage.getLastTransaction(chargeBoxIdentity, connectorId);
   }
 
   getLogs(numberOfLogging) {
     // Delegate
-    return _leadingStorage.getLogs(numberOfLogging);
+    return global.leadingStorage.getLogs(numberOfLogging);
   }
 
   getUserByEmail(email) {
     // Delegate
-    return _leadingStorage.getUserByEmail(email);
+    return global.leadingStorage.getUserByEmail(email);
   }
 
   getUserByTagId(tagID) {
     // Delegate
-    return _leadingStorage.getUserByTagId(tagID);
+    return global.leadingStorage.getUserByTagId(tagID);
   }
 
   getUser(id) {
     // Delegate
-    return _leadingStorage.getUser(id);
+    return global.leadingStorage.getUser(id);
   }
 
   deleteUser(id) {
     // Delegate
-    _storages.forEach((storage) => {
+    global.alternateStorages.forEach((storage) => {
       // Trigger Save for other DB
       storage.deleteUser(id);
     });
 
     // Delegate
-    return _leadingStorage.deleteUser(id);
+    return global.leadingStorage.deleteUser(id);
   }
 
   saveLog(log) {
     // Delegate
-    _storages.forEach((storage) => {
+    global.alternateStorages.forEach((storage) => {
       // Trigger Save for other DB
       storage.saveLog(log);
     });
 
     // Delegate
-    return _leadingStorage.saveLog(log);
+    return global.leadingStorage.saveLog(log);
   }
 }
 

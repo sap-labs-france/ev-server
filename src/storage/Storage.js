@@ -5,6 +5,10 @@ class Storage {
     }
   }
 
+  start() {
+    // Started in sub-classes
+  }
+
   getLogs(numberOfLogging) {
   }
 

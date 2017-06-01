@@ -11,16 +11,16 @@ var express = require('express')();
 var CentralSystemServer = require('../CentralSystemServer');
 var fs = require('fs');
 
-let _serverConfig;
+let _centralSystemConfig;
 let _chargingStationConfig;
 
 class SoapCentralSystemServer extends CentralSystemServer {
-    constructor(serverConfig, chargingStationConfig) {
+    constructor(centralSystemConfig, chargingStationConfig) {
       // Call parent
-      super(serverConfig, chargingStationConfig, express);
+      super(centralSystemConfig, chargingStationConfig, express);
 
       // Keep local
-      _serverConfig = serverConfig;
+      _centralSystemConfig = centralSystemConfig;
       _chargingStationConfig = chargingStationConfig;
     }
 
@@ -29,14 +29,18 @@ class SoapCentralSystemServer extends CentralSystemServer {
       Listen to external command to send request to charging stations
     */
     start() {
+      // Create the server
       var server;
 
+      // Make it global for SOAP Services
+      global.centralSystemSoap = this;
+
       // Create the HTTP server
-      if (_serverConfig.protocol === "https") {
+      if (_centralSystemConfig.protocol === "https") {
         // Create the options
         const options = {
-          key: fs.readFileSync(_serverConfig["ssl-key"]),
-          cert: fs.readFileSync(_serverConfig["ssl-cert"])
+          key: fs.readFileSync(_centralSystemConfig["ssl-key"]),
+          cert: fs.readFileSync(_centralSystemConfig["ssl-cert"])
         };
         // Https server
         server = https.createServer(options, express);
@@ -62,12 +66,12 @@ class SoapCentralSystemServer extends CentralSystemServer {
       var soapServer16 = soap.listen(server, '/OCPP16', centralSystemService16, centralSystemWsdl16);
 
       // Listen
-      server.listen(_serverConfig.port, function(req, res) {
+      server.listen(_centralSystemConfig.port, function(req, res) {
         // Log
         Logging.logInfo({
           source: "Central Server", module: "SoapCentralSystemServer", method: "start",
-          message: `Central Server started on '${_serverConfig.protocol}://localhost:${_serverConfig.port}'` });
-        console.log(`Central Server started on '${_serverConfig.protocol}://localhost:${_serverConfig.port}'`);
+          message: `Central Server started on '${_centralSystemConfig.protocol}://localhost:${_centralSystemConfig.port}'` });
+        console.log(`Central Server started on '${_centralSystemConfig.protocol}://localhost:${_centralSystemConfig.port}'`);
       });
     }
 }

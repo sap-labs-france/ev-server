@@ -11,26 +11,21 @@ var morgan = require('morgan');
 var locale = require('locale');
 var ServerRestAuthentication = require('./ServerRestAuthentication');
 
-let _serverConfig;
+let _centralSystemConfig;
 let _chargingStationConfig;
 
 class CentralSystemServer {
-  constructor(serverConfig, chargingStationConfig, express) {
+  // Common constructor for Central System Server
+  constructor(centralSystemConfig, chargingStationConfig, express) {
     // Check
     if (new.target === CentralSystemServer) {
       throw new TypeError("Cannot construct CentralSystemServer instances directly");
     }
 
-    // Check the charging station status...
-    setInterval(ServerBackgroundTasks.executeAllBackgroundTasks, 15 * 1000);
-
     // Body parser
-    express.use(bodyParser.json({limit: '5mb'}));
-    express.use(bodyParser.urlencoded({ extended: false, limit: '5mb' }));
+    express.use(bodyParser.json());
+    express.use(bodyParser.urlencoded({ extended: false }));
     express.use(bodyParser.xml());
-
-    // Use
-    express.use(locale(Utils.getLocalesConfig().supported));
 
     // log to console
     express.use(morgan('dev'));
@@ -41,20 +36,8 @@ class CentralSystemServer {
     // Secure the application
     express.use(helmet());
 
-    // Authentication
-    express.use(ServerRestAuthentication.initialize());
-
-    // Auth services
-    express.use('/auth', ServerRestAuthentication.authService);
-
-    // Secured API
-    express.use('/client/api', ServerRestAuthentication.authenticate(), ServerRestService.restServiceSecured);
-
-    // Util API
-    express.use('/client/util', ServerRestService.restServiceUtil);
-
     // Keep params
-    _serverConfig = serverConfig;
+    _centralSystemConfig = centralSystemConfig;
     _chargingStationConfig = chargingStationConfig;
   }
 

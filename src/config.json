@@ -1,18 +1,24 @@
 {
   "CentralSystems": [
     {
-      "protocol": "https",
-      "port": 8000,
       "implementation": "soap",
-      "ssl-key": "ssl/64933587-localhost.key",
-      "ssl-cert": "ssl/64933587-localhost.cert"
+      "protocol": "http",
+      "port": 8000
     }
   ],
-  "Storages":[
+  "CentralSystemRestService": {
+    "protocol": "https",
+    "port": 8888,
+    "ssl-key": "ssl/64933587-localhost.key",
+    "ssl-cert": "ssl/64933587-localhost.cert"
+  },
+  "Storages": [
     {
       "implementation": "mongodb",
       "host": "localhost",
       "port": 27017,
+      "user": "evse-user",
+      "password": "",
       "schema": "evse",
       "leading" : true
     }
@@ -27,7 +33,7 @@
        "requireTLS": true,
        "type": "login",
        "user": "evse.adm.noreply",
-       "password": "Welc0me!",
+       "password": "",
        "debug": true
      }
   },

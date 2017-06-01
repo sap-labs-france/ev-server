@@ -42,6 +42,12 @@ module.exports = {
     return this.getConfig().CentralSystems;
   },
 
+  // Central System REST config
+  getCentralSystemRestServiceConfig() {
+    // Read conf
+    return this.getConfig().CentralSystemRestService;
+  },
+
   // Email config
   getEmailConfig() {
     // Read conf

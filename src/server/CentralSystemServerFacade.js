@@ -1,42 +1,47 @@
 var SoapCentralSystemServer = require('./soap/SoapCentralSystemServer');
-var StorageFacade = require('../storage/StorageFacade');
+var CentralSystemRestServer = require('./CentralSystemRestServer');
 
-let _serversConfig;
-let _centralSystems = [];
+let _centralSystemsConfig;
+let _centralSystemRestConfig;
+let _centralSystemServers = [];
+let _centralSystemRestServer;
 
 class CentralSystemServerFacade {
-  constructor(serversConfig, chargingStationConfig) {
+  // Build Central System Servers
+  constructor(centralSystemsConfig, centralSystemRestConfig, chargingStationConfig) {
     // Read conf
-    _serversConfig = serversConfig;
+    _centralSystemsConfig = centralSystemsConfig;
+    _centralSystemRestConfig = centralSystemRestConfig;
 
     // Instanciate central servers
-    _serversConfig.forEach(function(centralServerConfig) {
+    _centralSystemsConfig.forEach(function(centralServerConfig) {
       // Check implementation
       switch (centralServerConfig.implementation) {
-        // SOAP 
+        // SOAP
         case 'soap':
           // Create implementation
           var soapCentralSystemServer = new SoapCentralSystemServer(centralServerConfig, chargingStationConfig);
           // Add
-          _centralSystems.push(soapCentralSystemServer);
-          // Make it global for SOAP Services
-          global.centralSystemSoap = soapCentralSystemServer;
+          _centralSystemServers.push(soapCentralSystemServer);
           break;
         default:
           console.log('Central System Server implementation not found!');
       }
     });
+
+    // Instantiate the Rest Server
+    _centralSystemRestServer = new CentralSystemRestServer(centralSystemRestConfig);
   }
 
   // Start the server
   start() {
-    // Create the storage
-    global.storage = new StorageFacade();
-
-    // Start the Servers
-    _centralSystems.forEach(function(centralSystem) {
-      centralSystem.start();
+    // Start all the Central Service Servers
+    _centralSystemServers.forEach(function(centralSystemServer) {
+      centralSystemServer.start();
     });
+
+    // Start the Central Service Rest server
+    _centralSystemRestServer.start();
   }
 }
 
