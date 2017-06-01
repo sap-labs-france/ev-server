@@ -153,3 +153,9 @@ npm start:prod:dist:ssl
 ```
 npm start
 ```
+
+## TAM Model
+![TAM Model](./tam-model.png)
+
+## TAM Description
+![TAM Model](./tam-model-descr.png)
