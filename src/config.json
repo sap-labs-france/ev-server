@@ -3,11 +3,13 @@
     {
       "implementation": "soap",
       "protocol": "http",
+      "host": "localhost",
       "port": 8000
     }
   ],
   "CentralSystemRestService": {
     "protocol": "https",
+    "host": "localhost",
     "port": 8888,
     "ssl-key": "ssl/64933587-localhost.key",
     "ssl-cert": "ssl/64933587-localhost.cert"
@@ -18,7 +20,7 @@
       "host": "localhost",
       "port": 27017,
       "user": "evse-user",
-      "password": "",
+      "password": "B3zLQd7gUBcswe44Y",
       "schema": "evse",
       "leading" : true
     }
@@ -33,7 +35,7 @@
        "requireTLS": true,
        "type": "login",
        "user": "evse.adm.noreply",
-       "password": "",
+       "password": "Welc0me!",
        "debug": true
      }
   },

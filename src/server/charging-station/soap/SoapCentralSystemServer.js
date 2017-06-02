@@ -1,4 +1,4 @@
-var Logging = require('../../utils/Logging');
+var Logging = require('../../../utils/Logging');
 var centralSystemService12 = require('./services/centralSystemService1.2');
 var centralSystemService15 = require('./services/centralSystemService1.5');
 var centralSystemService16 = require('./services/centralSystemService1.6');
@@ -66,12 +66,12 @@ class SoapCentralSystemServer extends CentralSystemServer {
       var soapServer16 = soap.listen(server, '/OCPP16', centralSystemService16, centralSystemWsdl16);
 
       // Listen
-      server.listen(_centralSystemConfig.port, function(req, res) {
+      server.listen(_centralSystemConfig.port, _centralSystemConfig.host, () => {
         // Log
         Logging.logInfo({
           source: "Central Server", module: "SoapCentralSystemServer", method: "start",
-          message: `Central Server started on '${_centralSystemConfig.protocol}://localhost:${_centralSystemConfig.port}'` });
-        console.log(`Central Server started on '${_centralSystemConfig.protocol}://localhost:${_centralSystemConfig.port}'`);
+          message: `Central System Server (Charging Stations) started on '${_centralSystemConfig.protocol}://${_centralSystemConfig.host}:${_centralSystemConfig.port}'` });
+        console.log(`Central System Server (Charging Stations) started on '${_centralSystemConfig.protocol}://${_centralSystemConfig.host}:${_centralSystemConfig.port}'`);
       });
     }
 }

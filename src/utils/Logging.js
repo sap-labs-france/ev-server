@@ -114,7 +114,7 @@ class Logging {
       action: action,
       message: `${err.toString()}`,
       detailedMessages: err.stack });
-    res.status(500).send(`${err.toString()}`);
+    res.status(500).send(`{"message": ${err.toString()}}`);
     next();
   };
 
@@ -126,8 +126,15 @@ class Logging {
       detailedMessages: [{
           "stack": new Error().stack,
           "request": req.body}] });
-    res.status(500).send(message);
+    res.status(500).send({"message": message});
     next();
+  };
+
+  // Log issues
+  static logActionUnauthorizedMessageAndSendResponse(entity, action, req, res, next) {
+    // Log
+    Logging.logActionErrorMessageAndSendResponse(
+      `User ${req.user.firstName} ${req.user.name} with Role ID '${req.user.role}' is not authorised to perform '${action}' on '${entity}'`, req, res, next);
   };
 }
 

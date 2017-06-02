@@ -1,12 +1,13 @@
-var SoapCentralSystemServer = require('./soap/SoapCentralSystemServer');
-var CentralSystemRestServer = require('./CentralSystemRestServer');
+var SoapCentralSystemServer = require('./charging-station/soap/SoapCentralSystemServer');
+var CentralServerRestServer = require('./front-end/CentralServerRestServer');
+var CentralServerBackgroundTasks = require('./CentralServerBackgroundTasks');
 
 let _centralSystemsConfig;
 let _centralSystemRestConfig;
 let _centralSystemServers = [];
-let _centralSystemRestServer;
+let _centralServerRestServer;
 
-class CentralSystemServerFacade {
+class CentralServerFacade {
   // Build Central System Servers
   constructor(centralSystemsConfig, centralSystemRestConfig, chargingStationConfig) {
     // Read conf
@@ -30,7 +31,7 @@ class CentralSystemServerFacade {
     });
 
     // Instantiate the Rest Server
-    _centralSystemRestServer = new CentralSystemRestServer(centralSystemRestConfig);
+    _centralServerRestServer = new CentralServerRestServer(centralSystemRestConfig);
   }
 
   // Start the server
@@ -41,8 +42,11 @@ class CentralSystemServerFacade {
     });
 
     // Start the Central Service Rest server
-    _centralSystemRestServer.start();
+    _centralServerRestServer.start();
+
+    // Check the charging station status...
+    setInterval(CentralServerBackgroundTasks.executeAllBackgroundTasks, 15 * 1000);
   }
 }
 
-module.exports = CentralSystemServerFacade;
+module.exports = CentralServerFacade;

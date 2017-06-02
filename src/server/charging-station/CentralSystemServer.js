@@ -1,15 +1,12 @@
-var ChargingStation = require('../model/ChargingStation');
-var Utils = require('../utils/Utils');
-var ServerBackgroundTasks = require('./ServerBackgroundTasks');
-var Logging = require('../utils/Logging');
+var ChargingStation = require('../../model/ChargingStation');
+var Utils = require('../../utils/Utils');
+var Logging = require('../../utils/Logging');
 var bodyParser = require("body-parser");
 require('body-parser-xml')(bodyParser);
 var cors = require('cors');
 var helmet = require('helmet');
-var ServerRestService = require('./ServerRestService');
 var morgan = require('morgan');
 var locale = require('locale');
-var ServerRestAuthentication = require('./ServerRestAuthentication');
 
 let _centralSystemConfig;
 let _chargingStationConfig;

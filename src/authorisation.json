@@ -1,0 +1,42 @@
+[
+  {
+    "id": "A",
+    "name": "Admin",
+    "auths": [
+      {
+        "AuthObject": "User",
+        "AuthFieldValue": {
+          "UserID": ["*"],
+          "Action": ["Create","Update","Read","Delete"]
+        }
+      },
+      {
+        "AuthObject": "ChargingStation",
+        "AuthFieldValue":{
+          "UserID": ["*"],
+          "Action": ["Reboot", "ClearCache", "StopTransaction", "UnlockConnector"]
+        }
+      }
+    ]
+  },
+  {
+    "id": "B",
+    "name": "Basic",
+    "auths": [
+      {
+        "AuthObject": "User",
+        "AuthFieldValue": {
+          "UserID": ["{{user.id}}"],
+          "Action": ["Update","Read"]
+        }
+      },
+      {
+        "AuthObject": "ChargingStation",
+        "AuthFieldValue": {
+          "UserID": ["{{user.id}}"],
+          "Action": ["StopTransaction", "UnlockConnector"]
+        }
+      }
+    ]
+  }
+]

@@ -37,7 +37,7 @@ class MongoDBStorage extends Storage {
     return new Promise((fulfill, reject) => {
       // Connect
       mongoose.connect(`mongodb://${_dbConfig.host}:${_dbConfig.port}/${_dbConfig.schema}`,
-          {"user": _dbConfig.user, "pass": _dbConfig.password}, (err, db) => {
+          {"user": _dbConfig.user, "pass": _dbConfig.password}, (err) => {
         if (err) {
           console.log(`MongoDB: Error when connecting: ${err.toString()}`);
           reject(err);
@@ -45,8 +45,8 @@ class MongoDBStorage extends Storage {
           // Log
           Logging.logInfo({
             source: "Central Server", module: "MongoDBStorage", method: "constructor",
-            message: `Connected to MongoDB on '${_dbConfig.host}:${_dbConfig.port}' and using schema '${_dbConfig.schema}'` });
-            console.log(`Connected to MongoDB on '${_dbConfig.host}:${_dbConfig.port}' and using schema '${_dbConfig.schema}'`);
+            message: `Connected to MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}' and using schema '${_dbConfig.schema}'` });
+            console.log(`Connected to MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}' and using schema '${_dbConfig.schema}'`);
           // Ok
           fulfill();
         }

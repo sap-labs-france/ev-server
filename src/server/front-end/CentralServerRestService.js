@@ -1,7 +1,8 @@
-var Utils = require('../utils/Utils');
-var Logging = require('../utils/Logging');
-const Users = require('../utils/Users');
-var User = require('../model/User');
+var Utils = require('../../utils/Utils');
+var Logging = require('../../utils/Logging');
+const Users = require('../../utils/Users');
+var User = require('../../model/User');
+var RestAuth = require('./CentralServerRestAuthorisation');
 
 module.exports = {
   // Util Service
@@ -86,6 +87,13 @@ module.exports = {
 
           // Create User
           case "CreateUser":
+            // Check auth
+            if (!RestAuth.canCreateUser(req.user)) {
+              // Not Authorized!
+              Logging.logActionUnauthorizedMessageAndSendResponse(
+                RestAuth.ENTITY_USER, RestAuth.ACTION_CREATE, req, res, next);
+              return;
+            }
             // Check Mandatory fields
             if (Users.checkIfUserValid(req, res, next)) {
               // Check email
@@ -165,7 +173,6 @@ module.exports = {
             Logging.logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
             break;
           }
-
           // Get it
           global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
             if (chargingStation) {
@@ -185,10 +192,14 @@ module.exports = {
           global.storage.getUsers().then(function(users) {
             var usersJSon = [];
             users.forEach(function(user) {
-              // Clear password
-              user.setPassword("");
-              // Set the model
-              usersJSon.push(user.getModel());
+              // Check auth
+              if (RestAuth.canReadUser(req.user, user.getModel())) {
+                // Yes: add user
+                // Clear password
+                user.setPassword("");
+                // Set the model
+                usersJSon.push(user.getModel());
+              }
             });
             // Return
             res.json(usersJSon);
@@ -209,6 +220,13 @@ module.exports = {
           // Get
           global.storage.getUserByEmail(req.query.Email).then(function(user) {
             if (user) {
+              // Check auth
+              if (!RestAuth.canReadUser(req.user, user.getModel())) {
+                // Not Authorized!
+                Logging.logActionUnauthorizedMessageAndSendResponse(
+                  RestAuth.ENTITY_USER, RestAuth.ACTION_READ, req, res, next);
+                return;
+              }
               // Clear password
               user.setPassword("");
               // Set
@@ -232,6 +250,13 @@ module.exports = {
           }
           global.storage.getUser(req.query.ID).then(function(user) {
             if (user) {
+              // Check auth
+              if (!RestAuth.canReadUser(req.user, user.getModel())) {
+                // Not Authorized!
+                Logging.logActionUnauthorizedMessageAndSendResponse(
+                  RestAuth.ENTITY_USER, RestAuth.ACTION_READ, req, res, next);
+                return;
+              }
               // Clear password
               user.setPassword("");
               // Set the user
@@ -256,6 +281,13 @@ module.exports = {
           // Set
           global.storage.getUserByTagId(req.query.TagId).then(function(user) {
             if (user) {
+              // Check auth
+              if (!RestAuth.canReadUser(req.user, user.getModel())) {
+                // Not Authorized!
+                Logging.logActionUnauthorizedMessageAndSendResponse(
+                  RestAuth.ENTITY_USER, RestAuth.ACTION_READ, req, res, next);
+                return;
+              }
               // Clear password
               user.setPassword("");
               // Set data
@@ -500,6 +532,14 @@ module.exports = {
                 return;
               }
 
+              // Check auth
+              if (!RestAuth.canUpdateUser(req.user, user.getModel())) {
+                // Not Authorized!
+                Logging.logActionUnauthorizedMessageAndSendResponse(
+                  RestAuth.ENTITY_USER, RestAuth.ACTION_UPDATE, req, res, next);
+                return;
+              }
+
               // Update
               Utils.updateUser(req.body, user.getModel());
 
@@ -579,6 +619,13 @@ module.exports = {
             global.storage.getUser(req.query.ID).then(function(user) {
               if (!user) {
                 Logging.logActionErrorMessageAndSendResponse(`The user with ID ${req.body.id} does not exist anymore`, req, res, next);
+                return;
+              }
+              // Check auth
+              if (!RestAuth.canDeleteUser(req.user, user.getModel())) {
+                // Not Authorized!
+                Logging.logActionUnauthorizedMessageAndSendResponse(
+                  RestAuth.ENTITY_USER, RestAuth.ACTION_DELETE, req, res, next);
                 return;
               }
               // Delete

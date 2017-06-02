@@ -20,6 +20,8 @@
     "moment": "^2.18.1",
     "mongoose": "^4.8.1",
     "morgan": "^1.8.1",
+    "mustache": "^2.3.0",
+    "node-authorization": "^1.0.5",
     "node-pre-gyp": "^0.6.33",
     "node-sass": "^4.5.3",
     "nodemailer": "^4.0.1",

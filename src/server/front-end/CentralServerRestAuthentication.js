@@ -2,11 +2,13 @@ var passport = require('passport');
 var JwtStrategy = require('passport-jwt').Strategy;
 var ExtractJwt = require('passport-jwt').ExtractJwt;
 var jwt = require('jsonwebtoken');
-var Users = require('../utils/Users');
-var EMail = require('../email/EMail');
-var Logging = require('../utils/Logging');
-var User = require('../model/User');
-var Utils = require('../utils/Utils');
+var Users = require('../../utils/Users');
+var EMail = require('../../email/EMail');
+var Logging = require('../../utils/Logging');
+var User = require('../../model/User');
+var Utils = require('../../utils/Utils');
+var compileProfile = require('node-authorization').profileCompiler;
+var Mustache = require('mustache');
 
 // Init JWT auth options
 var jwtOptions = {
@@ -47,12 +49,19 @@ module.exports = {
             global.storage.getUserByEmailPassword(req.body.email, Users.hashPassword(req.body.password)).then(function(user) {
               // Found?
               if (user) {
+                // Get authorisation
+                let userRole = Utils.getAuthorizationFromRoleID(user.getRole());
+                // Parse the auth and replace values
+                var parsedAuths = Mustache.render(JSON.stringify(userRole.auths), {"user": user.getModel()});
+                // Compile auths of the role
+                var compiledAuths = compileProfile(JSON.parse(parsedAuths));
                 // Yes: build payload
                 var payload = {
                     id: user.getID(),
                     name: user.getName(),
                     firstName: user.getFirstName(),
-                    role: user.getRole()
+                    role: user.getRole(),
+                    auths: compiledAuths
                 };
                 // Build token
                 var token = jwt.sign(payload, jwtOptions.secretOrKey, {

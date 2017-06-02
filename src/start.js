@@ -1,4 +1,4 @@
-var CentralSystemServerFacade = require('./server/CentralSystemServerFacade');
+var CentralServerFacade = require('./server/CentralServerFacade');
 var StorageFacade = require('./storage/StorageFacade');
 var Utils = require('./utils/Utils');
 
@@ -9,7 +9,7 @@ var database = new StorageFacade(
 // Start
 database.start().then(() => {
   // Create the server
-  var server = new CentralSystemServerFacade(
+  var server = new CentralServerFacade(
     Utils.getCentralSystemsConfig(),
     Utils.getCentralSystemRestServiceConfig(),
     Utils.getChargingStationConfig());
@@ -18,5 +18,5 @@ database.start().then(() => {
   server.start();
 },
 (err) => {
-  console.log("Cannot start the Central Service servers: no database is running!");
+  console.log("Cannot start the Central Server: No Database is running!");
 })

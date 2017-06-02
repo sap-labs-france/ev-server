@@ -3,6 +3,7 @@ var path = require('path');
 var Users = require('./Users');
 
 var _config;
+var _authorisation;
 
 module.exports = {
 
@@ -28,6 +29,25 @@ module.exports = {
       _config = JSON.parse(fs.readFileSync(path.join(__dirname,"../config.json"), "UTF-8"));
     }
     return _config;
+  },
+
+  // Read the config file
+  getAuthorizations() {
+    // Read conf
+    if (!_authorisation) {
+      _authorisation = JSON.parse(fs.readFileSync(path.join(__dirname,"../authorisation.json"), "UTF-8"));
+    }
+    return _authorisation;
+  },
+
+  // Read the config file
+  getAuthorizationFromRoleID(roleID) {
+    // Filter
+    let matchingAuthorisation = this.getAuthorizations().filter((authorisation) => {
+      return authorisation.id === roleID;
+    });
+    // Only one role
+    return (matchingAuthorisation.length > 0 ? matchingAuthorisation[0] : []);
   },
 
   // Read the user file
