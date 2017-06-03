@@ -37,7 +37,7 @@ module.exports = {
       }).catch((err) => {
         // Log
         Logging.logError({
-          source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkChargingStations",
+          userFullName: "System", source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkChargingStations",
           message: `Cannot check the Charging Stations: ${err.toString()}`,
           detailedMessages: err.stack });
         reject(err);
@@ -68,7 +68,7 @@ module.exports = {
           if (connector.currentConsumption !== currentConsumption) {
             // Log
             Logging.logInfo({
-              source: "Central Server", module: "ChargingStationBackgroundTasks", method: "computeChargingStationsConsumption",
+              userFullName: "System", source: "Central Server", module: "ChargingStationBackgroundTasks", method: "computeChargingStationsConsumption",
               message: `Charging Station ${chargingStation.getChargeBoxIdentity()} consumption changed from ${connector.currentConsumption} to ${currentConsumption}` });
             // Set consumption
             connector.currentConsumption = currentConsumption;
@@ -107,7 +107,7 @@ module.exports = {
         // Save
         newUser.save().then(() => {
           Logging.logInfo({
-            source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkAndSaveUser",
+            userFullName: "System", source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkAndSaveUser",
             message: `User ${newUser.getFullName()} with Email ${newUser.getEMail()} has been saved successfully`,
             detailedMessages: user});
         });

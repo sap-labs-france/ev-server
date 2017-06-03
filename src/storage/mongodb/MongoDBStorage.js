@@ -44,7 +44,7 @@ class MongoDBStorage extends Storage {
         } else {
           // Log
           Logging.logInfo({
-            source: "Central Server", module: "MongoDBStorage", method: "constructor",
+            userFullName: "System", source: "Central Server", module: "MongoDBStorage", method: "constructor",
             message: `Connected to MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}' and using schema '${_dbConfig.schema}'` });
             console.log(`Connected to MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}' and using schema '${_dbConfig.schema}'`);
           // Ok

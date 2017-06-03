@@ -6,15 +6,20 @@
       {
         "AuthObject": "User",
         "AuthFieldValue": {
-          "UserID": ["*"],
+          "UserID": "*",
           "Action": ["Create","Update","Read","Delete"]
         }
       },
       {
         "AuthObject": "ChargingStation",
-        "AuthFieldValue":{
-          "UserID": ["*"],
-          "Action": ["Reboot", "ClearCache", "StopTransaction", "UnlockConnector"]
+        "AuthFieldValue": {
+          "Action": ["Read", "Reset", "ClearCache", "GetConfiguration", "StopTransaction", "UnlockConnector"]
+        }
+      },
+      {
+        "AuthObject": "Logging",
+        "AuthFieldValue": {
+          "Action": ["Read"]
         }
       }
     ]
@@ -33,8 +38,13 @@
       {
         "AuthObject": "ChargingStation",
         "AuthFieldValue": {
-          "UserID": ["{{user.id}}"],
-          "Action": ["StopTransaction", "UnlockConnector"]
+          "Action": []
+        }
+      },
+      {
+        "AuthObject": "Logging",
+        "AuthFieldValue": {
+          "Action": []
         }
       }
     ]

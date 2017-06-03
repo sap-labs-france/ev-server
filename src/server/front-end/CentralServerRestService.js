@@ -65,9 +65,19 @@ module.exports = {
               break;
             }
             // Get the Charging station
-            global.storage.getChargingStation(req.body.chargeBoxIdentity).then(function(chargingStation) {
+            global.storage.getChargingStation(req.body.chargeBoxIdentity).then((chargingStation) => {
               // Found?
               if (chargingStation) {
+                // Check auth
+                if (!RestAuth.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action)) {
+                  // Not Authorized!
+                  Logging.logActionUnauthorizedMessageAndSendResponse(
+                    RestAuth.ENTITY_CHARGING_STATION, action, req, res, next);
+                  return;
+                }
+                Logging.logInfo({
+                  user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
+                  message: `Execute action '${action}' on Charging Station '${req.body.chargeBoxIdentity}'`});
                 // Execute it
                 return chargingStation.handleAction(action, req.body.args);
               } else {
@@ -108,7 +118,7 @@ module.exports = {
                 // Save
                 newUser.save().then(() => {
                   Logging.logInfo({
-                    source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkAndSaveUser",
+                    user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
                     message: `User ${newUser.getFullName()} with email ${newUser.getEMail()} has been created successfully`,
                     detailedMessages: user});
                 });
@@ -142,6 +152,14 @@ module.exports = {
       switch (action) {
         // Get the Logging
         case "Logging":
+          // Check auth
+          if (!RestAuth.canReadLogging(req.user)) {
+            // Not Authorized!
+            Logging.logActionUnauthorizedMessageAndSendResponse(
+              RestAuth.ENTITY_LOGGING, RestAuth.ACTION_READ, req, res, next);
+            return;
+          }
+          // Get logs
           Logging.getLogs(100).then(function(loggings) {
             // Return
             res.json(loggings);
@@ -154,8 +172,11 @@ module.exports = {
           global.storage.getChargingStations("RestService").then(function(chargingStations) {
             var chargingStationsJSon = [];
             chargingStations.forEach(function(chargingStation) {
-              // Set the model
-              chargingStationsJSon.push(chargingStation.getModel());
+              // Check auth
+              if (RestAuth.canReadChargingStation(req.user, chargingStation.getModel())) {
+                // Set the model
+                chargingStationsJSon.push(chargingStation.getModel());
+              }
             });
             // Return
             res.json(chargingStationsJSon);
@@ -176,6 +197,13 @@ module.exports = {
           // Get it
           global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
             if (chargingStation) {
+              // Check auth
+              if (!RestAuth.canReadChargingStation(req.user, chargingStation.getModel())) {
+                // Not Authorized!
+                Logging.logActionUnauthorizedMessageAndSendResponse(
+                  RestAuth.ENTITY_CHARGING_STATION, RestAuth.ACTION_READ, req, res, next);
+                return;
+              }
               res.json(chargingStation.getModel());
             } else {
               res.json({});
@@ -195,8 +223,9 @@ module.exports = {
               // Check auth
               if (RestAuth.canReadUser(req.user, user.getModel())) {
                 // Yes: add user
-                // Clear password
+                // Clear Sensitive Data
                 user.setPassword("");
+                user.setRole("");
                 // Set the model
                 usersJSon.push(user.getModel());
               }
@@ -227,8 +256,9 @@ module.exports = {
                   RestAuth.ENTITY_USER, RestAuth.ACTION_READ, req, res, next);
                 return;
               }
-              // Clear password
+              // Clear Sensitive Data
               user.setPassword("");
+              user.setRole("");
               // Set
               res.json(user.getModel());
             } else {
@@ -257,8 +287,9 @@ module.exports = {
                   RestAuth.ENTITY_USER, RestAuth.ACTION_READ, req, res, next);
                 return;
               }
-              // Clear password
+              // Clear Sensitive Data
               user.setPassword("");
+              user.setRole("");
               // Set the user
               res.json(user.getModel());
             } else {
@@ -288,8 +319,9 @@ module.exports = {
                   RestAuth.ENTITY_USER, RestAuth.ACTION_READ, req, res, next);
                 return;
               }
-              // Clear password
+              // Clear Sensitive Data
               user.setPassword("");
+              user.setRole("");
               // Set data
               res.json(user.getModel());
             } else {
@@ -318,6 +350,13 @@ module.exports = {
           // Get Charge Box
           global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
             if (chargingStation) {
+              // Check auth
+              if (!RestAuth.canReadChargingStation(req.user, chargingStation.getModel())) {
+                // Not Authorized!
+                Logging.logActionUnauthorizedMessageAndSendResponse(
+                  RestAuth.ENTITY_CHARGING_STATION, RestAuth.ACTION_READ, req, res, next);
+                return;
+              }
               // Set the model
               chargingStation.getTransactions(req.query.ConnectorId,
                 req.query.StartDateTime, req.query.EndDateTime).then((transactions) => {
@@ -351,6 +390,13 @@ module.exports = {
           // Get Charge Box
           global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
             if (chargingStation) {
+              // Check auth
+              if (!RestAuth.canReadChargingStation(req.user, chargingStation.getModel())) {
+                // Not Authorized!
+                Logging.logActionUnauthorizedMessageAndSendResponse(
+                  RestAuth.ENTITY_CHARGING_STATION, RestAuth.ACTION_READ, req, res, next);
+                return;
+              }
               // Set the model
               chargingStation.getLastTransaction(req.query.ConnectorId).then((transaction) => {
                 // Return
@@ -379,6 +425,13 @@ module.exports = {
             let statusNotifications = [];
             // Found
             if (chargingStation) {
+              // Check auth
+              if (!RestAuth.canReadChargingStation(req.user, chargingStation.getModel())) {
+                // Not Authorized!
+                Logging.logActionUnauthorizedMessageAndSendResponse(
+                  RestAuth.ENTITY_CHARGING_STATION, RestAuth.ACTION_READ, req, res, next);
+                return;
+              }
               // Yes: Get the Status
               chargingStation.getStatusNotifications(req.query.ConnectorId).then(function(statusNotifications) {
                 // Return the result
@@ -411,6 +464,13 @@ module.exports = {
             let statusNotifications = {};
             // Found?
             if (chargingStation) {
+              // Check auth
+              if (!RestAuth.canReadChargingStation(req.user, chargingStation.getModel())) {
+                // Not Authorized!
+                Logging.logActionUnauthorizedMessageAndSendResponse(
+                  RestAuth.ENTITY_CHARGING_STATION, RestAuth.ACTION_READ, req, res, next);
+                return;
+              }
               // Get the Status
               chargingStation.getLastStatusNotification(req.query.ConnectorId).then(function(statusNotification) {
                 // Found?
@@ -440,13 +500,19 @@ module.exports = {
             Logging.logActionErrorMessageAndSendResponse(`The Charging Station ID is mandatory`, req, res, next);
             break;
           }
-
           // Get the Charging Station`
           global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
             let consumptions = [];
 
             // Found
             if (chargingStation) {
+              // Check auth
+              if (!RestAuth.canReadChargingStation(req.user, chargingStation.getModel())) {
+                // Not Authorized!
+                Logging.logActionUnauthorizedMessageAndSendResponse(
+                  RestAuth.ENTITY_CHARGING_STATION, RestAuth.ACTION_READ, req, res, next);
+                return;
+              }
               // Get the Consumption
               chargingStation.getConsumptions(
                   req.query.ConnectorId,
@@ -478,9 +544,15 @@ module.exports = {
           // Get the Charging Station`
           global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
             let configuration = {};
-
             // Found
             if (chargingStation) {
+              // Check auth
+              if (!RestAuth.canReadChargingStation(req.user, chargingStation.getModel())) {
+                // Not Authorized!
+                Logging.logActionUnauthorizedMessageAndSendResponse(
+                  RestAuth.ENTITY_CHARGING_STATION, RestAuth.ACTION_READ, req, res, next);
+                return;
+              }
               // Get the Config
               chargingStation.getConfiguration().then(function(configuration) {
                 // Return the result
@@ -495,13 +567,6 @@ module.exports = {
             // Log
             Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
           });
-          break;
-
-        // Get the Settings
-        case "Settings":
-          // Return the result
-          res.json(Utils.getConfig());
-          next();
           break;
 
         // Unknown Action
@@ -540,13 +605,23 @@ module.exports = {
                 return;
               }
 
+              // Check if Role is provided
+              if (req.body.role && req.body.role !== req.user.role && req.user.role !== "A") {
+                // Role provided and not an Admin
+                Logging.logError({
+                  user: req.user, source: "Central Server", module: "CentralServerRestService", method: "UpdateUser",
+                  message: `User ${req.user.firstName} ${req.user.name} tries to update his role to '${req.body.role}' without having the Admin priviledge ('${req.user.role}')` });
+                // Ovverride it
+                req.body.role = req.user.role;
+              }
+
               // Update
               Utils.updateUser(req.body, user.getModel());
 
               // Update
               user.save().then(() => {
                 Logging.logInfo({
-                  source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkAndSaveUser",
+                  user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
                   message: `User ${user.getFullName()} with Email ${user.getEMail()} has been updated successfully`,
                   detailedMessages: user});
               });
@@ -569,16 +644,23 @@ module.exports = {
               return;
             }
 
+            // Check auth
+            if (!RestAuth.canUpdateUser(req.user, user.getModel())) {
+              // Not Authorized!
+              Logging.logActionUnauthorizedMessageAndSendResponse(
+                RestAuth.ENTITY_USER, RestAuth.ACTION_UPDATE, req, res, next);
+              return;
+            }
+
             // Hash the pass
             let passwordHashed = Users.hashPassword(req.body.password);
-
             // Update the password
             user.setPassword(passwordHashed);
 
             // Save
             user.save().then(() => {
               Logging.logInfo({
-                source: "Central Server", module: "ChargingStationBackgroundTasks", method: "ChangeUserPassword",
+                user: req.user, source: "Central Server", module: "CentralServerRestService", method: "ChangeUserPassword",
                 message: `The password of the User ${user.getFullName()} has been updated successfully`});
             });
             res.json({status: `Success`});
@@ -632,7 +714,7 @@ module.exports = {
               global.storage.deleteUser(req.query.ID).then(() => {
                 // Log
                 Logging.logInfo({
-                  source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkAndSaveUser",
+                  user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
                   message: `User ${user.getFullName()} with Email ${user.getEMail()} has been deleted successfully`,
                   detailedMessages: user});
                 // Ok

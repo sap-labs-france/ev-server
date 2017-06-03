@@ -201,6 +201,7 @@ module.exports = {
     dest.timestamp = src.timestamp;
     dest.action = src.action;
     dest.message = src.message;
+    dest.userFullName = src.userFullName;
     dest.detailedMessages = src.detailedMessages;
   },
 

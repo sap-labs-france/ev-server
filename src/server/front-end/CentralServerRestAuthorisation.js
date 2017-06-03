@@ -5,11 +5,34 @@ var Authorization = require('node-authorization').Authorization;
 module.exports = {
   ENTITY_USER: "User",
   ENTITY_CHARGING_STATION: "ChargingStation",
+  ENTITY_LOGGING: "Logging",
 
   ACTION_CREATE: "Create",
   ACTION_READ  : "Read",
   ACTION_UPDATE: "Update",
   ACTION_DELETE: "Delete",
+  ACTION_REBOOT: "Reboot",
+  ACTION_CLEAR_CACHE: "ClearCache",
+  ACTION_STOP_TRANSACTION: "StopTransaction",
+  ACTION_UNLOCK_CONNECTOR: "UnlockConnector",
+
+  canReadLogging(loggedUser, chargingStation, action) {
+    // Check
+    return this.canPerformAction(loggedUser, this.ENTITY_LOGGING,
+      { "Action": this.ACTION_READ });
+  },
+
+  canPerformActionOnChargingStation(loggedUser, chargingStation, action) {
+    // Check
+    return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATION,
+      { "Action": action });
+  },
+
+  canReadChargingStation(loggedUser, chargingStation) {
+    // Check
+    return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATION,
+      { "Action": this.ACTION_READ });
+  },
 
   canCreateUser(loggedUser) {
     // Check

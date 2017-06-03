@@ -105,7 +105,7 @@ module.exports = {
                       message => {
                         // Success
                         Logging.logInfo({
-                          source: "Central Server", module: "ServerRestAuthentication", method: "registeruser",
+                          userFullName: "System", source: "Central Server", module: "CentralServerRestAuthentication", method: "registeruser",
                           message: `User ${newUser.getFullName()} with email ${newUser.getEMail()} has been registered successfully`,
                           detailedMessages: newUser});
                         // Ok
@@ -115,7 +115,7 @@ module.exports = {
                       error => {
                         // Error
                         Logging.logError({
-                          source: "Central Server", module: "CentralSystemServer", method: "N/A",
+                          userFullName: "System", source: "Central Server", module: "CentralServerRestAuthentication", method: "N/A",
                           action: "RegisterUser",
                           message: `${error.toString()}`,
                           detailedMessages: error.stack });
@@ -151,7 +151,7 @@ module.exports = {
                       message => {
                         // Success
                         Logging.logInfo({
-                          source: "Central Server", module: "CentralSystemServer", method: "N/A",
+                          user: req.user, source: "Central Server", module: "CentralServerRestAuthentication", method: "N/A",
                           action: "ResetPassword",
                           message: `Password has been reset for user with email ${user.getEMail()}`,
                           detailedMessages: message });
@@ -162,7 +162,7 @@ module.exports = {
                       error => {
                         // Error
                         Logging.logError({
-                          source: "Central Server", module: "CentralSystemServer", method: "N/A",
+                          user: req.user, source: "Central Server", module: "CentralServerRestAuthentication", method: "N/A",
                           action: "ResetPassword",
                           message: `${error.toString()}`,
                           detailedMessages: error.stack });

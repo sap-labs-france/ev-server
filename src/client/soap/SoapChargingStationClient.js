@@ -32,7 +32,7 @@ class SoapChargingStationClient extends ChargingStationClient {
         default:
           // Log
           Logging.logError({
-            source: "Central Server", module: "SoapChargingStationClient", method: "constructor",
+            userFullName: "System", source: "Central Server", module: "SoapChargingStationClient", method: "constructor",
             message: `OCPP version ${_chargingStation.getOcppVersion()} not supported` });
           reject(`OCPP version ${_chargingStation.getOcppVersion()} not supported`);
       }
@@ -45,7 +45,7 @@ class SoapChargingStationClient extends ChargingStationClient {
         if (err) {
           // Log
           Logging.logError({
-            source: tagID, module: "SoapChargingStationClient", method: "constructor",
+            userFullName: "System", source: tagID, module: "SoapChargingStationClient", method: "constructor",
             message: `Error when creating SOAP client for chaging station with ID ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
             detailedMessages: err.stack });
           reject(`Error when creating SOAP client for chaging station with ID ${_chargingStation.getChargeBoxIdentity()}: ${err.message}`);

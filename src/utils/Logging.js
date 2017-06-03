@@ -41,6 +41,12 @@ class Logging {
     // Log
     log.timestamp = new Date();
 
+    // Set User
+    if (log.user) {
+      log.userID = log.user.id;
+      log.userFullName = log.user.firstName + " " + log.user.name;
+    }
+
     // Check Array
     if (log.detailedMessages && !Array.isArray(log.detailedMessages)){
       // Handle update of array
@@ -71,7 +77,7 @@ class Logging {
   static logSendAction(module, chargeBoxIdentity, action, args) {
     // Log
     Logging.logDebug({
-      source: chargeBoxIdentity, module: module, method: action,
+      userFullName: "System", source: chargeBoxIdentity, module: module, method: action,
       message: `>> OCPP Request Sent`,
       action: action,
       detailedMessages: args
@@ -82,7 +88,7 @@ class Logging {
   static logReturnedAction(module, chargeBoxIdentity, action, result) {
     // Log
     Logging.logDebug({
-      source: chargeBoxIdentity, module: module, method: action,
+      userFullName: "System", source: chargeBoxIdentity, module: module, method: action,
       message: `<< OCPP Request Returned`,
       action: action,
       detailedMessages: {
@@ -110,7 +116,8 @@ class Logging {
   // Log issues
   static logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next) {
     Logging.logError({
-      source: "Central Server", module: "ChargingStationRestService", method: "N/A",
+      userID: req.user.id, userFullName: `${req.user.firstName} ${req.user.name}`,
+      source: "Central Server", module: "RestServer", method: "N/A",
       action: action,
       message: `${err.toString()}`,
       detailedMessages: err.stack });
@@ -121,7 +128,8 @@ class Logging {
   // Log issues
   static logActionErrorMessageAndSendResponse(message, req, res, next) {
     Logging.logError({
-      source: "Central Server", module: "ChargingStationRestService", method: "N/A",
+      userID: req.user.id, userFullName: `${req.user.firstName} ${req.user.name}`,
+      source: "Central Server", module: "RestServer", method: "N/A",
       message: message,
       detailedMessages: [{
           "stack": new Error().stack,
