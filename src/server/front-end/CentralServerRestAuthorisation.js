@@ -3,6 +3,9 @@ var Utils = require('../../utils/Utils');
 var Authorization = require('node-authorization').Authorization;
 
 module.exports = {
+  ROLE_ADMIN: "A",
+  ROLE_BASIC: "B",
+
   ENTITY_USER: "User",
   ENTITY_USERS: "Users",
   ENTITY_CHARGING_STATION: "ChargingStation",
@@ -14,10 +17,11 @@ module.exports = {
   ACTION_UPDATE: "Update",
   ACTION_DELETE: "Delete",
   ACTION_LIST: "List",
-  ACTION_REBOOT: "Reboot",
+  ACTION_RESET: "Reset",
   ACTION_CLEAR_CACHE: "ClearCache",
   ACTION_STOP_TRANSACTION: "StopTransaction",
   ACTION_UNLOCK_CONNECTOR: "UnlockConnector",
+  ACTION_GET_CONFIGURATION: "GetConfiguration",
 
   canListLogging(loggedUser) {
     // Check
@@ -25,16 +29,16 @@ module.exports = {
       { "Action": this.ACTION_LIST });
   },
 
-  canPerformActionOnChargingStation(loggedUser, chargingStation, action) {
-    // Check
-    return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATION,
-      { "Action": action });
-  },
-
   canListChargingStations(loggedUser) {
     // Check
     return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATIONS,
       { "Action": this.ACTION_LIST });
+  },
+
+  canPerformActionOnChargingStation(loggedUser, chargingStation, action) {
+    // Check
+    return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATION,
+      { "Action": action });
   },
 
   canReadChargingStation(loggedUser, chargingStation) {
@@ -49,16 +53,16 @@ module.exports = {
       { "Action": this.ACTION_LIST });
   },
 
-  canCreateUser(loggedUser) {
-    // Check
-    return this.canPerformAction(loggedUser, this.ENTITY_USER,
-      { "Action": this.ACTION_CREATE });
-  },
-
   canReadUser(loggedUser, user) {
     // Check
     return this.canPerformAction(loggedUser, this.ENTITY_USER,
       { "Action": this.ACTION_READ, "UserID": user.id });
+  },
+
+  canCreateUser(loggedUser) {
+    // Check
+    return this.canPerformAction(loggedUser, this.ENTITY_USER,
+      { "Action": this.ACTION_CREATE });
   },
 
   canUpdateUser(loggedUser, user) {
@@ -81,10 +85,8 @@ module.exports = {
     // Check
     if(auth.check(entity, fieldNamesValues)) {
       // Authorized!
-      console.log("GRANTED");
       return true;
     } else {
-      console.log("NOT GRANTED");
       return false;
     }
   }

@@ -56,13 +56,13 @@
       {
         "AuthObject": "ChargingStations",
         "AuthFieldValue": {
-          "Action": []
+          "Action": ["List"]
         }
       },
       {
         "AuthObject": "ChargingStation",
         "AuthFieldValue": {
-          "Action": []
+          "Action": ["Read"]
         }
       },
       {
