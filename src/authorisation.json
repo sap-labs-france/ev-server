@@ -4,10 +4,22 @@
     "name": "Admin",
     "auths": [
       {
+        "AuthObject": "Users",
+        "AuthFieldValue": {
+          "Action": ["List"]
+        }
+      },
+      {
         "AuthObject": "User",
         "AuthFieldValue": {
           "UserID": "*",
           "Action": ["Create","Update","Read","Delete"]
+        }
+      },
+      {
+        "AuthObject": "ChargingStations",
+        "AuthFieldValue": {
+          "Action": ["List"]
         }
       },
       {
@@ -19,7 +31,7 @@
       {
         "AuthObject": "Logging",
         "AuthFieldValue": {
-          "Action": ["Read"]
+          "Action": ["List"]
         }
       }
     ]
@@ -29,10 +41,22 @@
     "name": "Basic",
     "auths": [
       {
+        "AuthObject": "Users",
+        "AuthFieldValue": {
+          "Action": []
+        }
+      },
+      {
         "AuthObject": "User",
         "AuthFieldValue": {
           "UserID": ["{{user.id}}"],
           "Action": ["Update","Read"]
+        }
+      },
+      {
+        "AuthObject": "ChargingStations",
+        "AuthFieldValue": {
+          "Action": []
         }
       },
       {

@@ -153,10 +153,10 @@ module.exports = {
         // Get the Logging
         case "Logging":
           // Check auth
-          if (!RestAuth.canReadLogging(req.user)) {
+          if (!RestAuth.canListLogging(req.user)) {
             // Not Authorized!
             Logging.logActionUnauthorizedMessageAndSendResponse(
-              RestAuth.ENTITY_LOGGING, RestAuth.ACTION_READ, req, res, next);
+              RestAuth.ENTITY_LOGGING, RestAuth.ACTION_LIST, req, res, next);
             return;
           }
           // Get logs
@@ -169,6 +169,13 @@ module.exports = {
 
         // Get all the charging stations
         case "ChargingStations":
+          // Check auth
+          if (!RestAuth.canListChargingStations(req.user)) {
+            // Not Authorized!
+            Logging.logActionUnauthorizedMessageAndSendResponse(
+              RestAuth.ENTITY_CHARGING_STATIONS, RestAuth.ACTION_LIST, req, res, next);
+            return;
+          }
           global.storage.getChargingStations("RestService").then(function(chargingStations) {
             var chargingStationsJSon = [];
             chargingStations.forEach(function(chargingStation) {
@@ -217,6 +224,13 @@ module.exports = {
 
         // Get all the users
         case "Users":
+          // Check auth
+          if (!RestAuth.canListUsers(req.user)) {
+            // Not Authorized!
+            Logging.logActionUnauthorizedMessageAndSendResponse(
+              RestAuth.ENTITY_USERS, RestAuth.ACTION_LIST, req, res, next);
+            return;
+          }
           global.storage.getUsers().then(function(users) {
             var usersJSon = [];
             users.forEach(function(user) {
