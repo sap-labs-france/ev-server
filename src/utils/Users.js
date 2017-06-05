@@ -92,10 +92,6 @@ module.exports = {
        Logging.logActionErrorMessageAndSendResponse(`The user's last name is mandatory`, req, res, next);
        return false;
      }
-     if(!req.body.firstName) {
-       Logging.logActionErrorMessageAndSendResponse(`The user's first name is mandatory`, req, res, next);
-       return false;
-     }
      if(!req.body.email) {
        Logging.logActionErrorMessageAndSendResponse(`The user's email is mandatory`, req, res, next);
        return false;

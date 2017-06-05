@@ -6,7 +6,6 @@ var _config;
 var _authorisation;
 
 module.exports = {
-
   // Get the process params
   getParam: function(paramName) {
   	var index = process.argv.indexOf(paramName);
@@ -50,10 +49,16 @@ module.exports = {
     return (matchingAuthorisation.length > 0 ? matchingAuthorisation[0] : []);
   },
 
-  // Read the user file
+  // Read the user from file
   getUsers() {
     // Read conf
-    return JSON.parse(fs.readFileSync(path.join(__dirname,"../users.json"), "UTF-8"));
+    return JSON.parse(fs.readFileSync(path.join(__dirname, "../users.json"), "UTF-8"));
+  },
+
+  // Save the users in file
+  saveUsers(users) {
+    // Save
+    fs.writeFileSync(path.join(__dirname, "../users-sav.json"), JSON.stringify(users, null, ' '), 'UTF-8');
   },
 
   // Central System config
@@ -156,7 +161,6 @@ module.exports = {
     dest.firstName = src.firstName;
     dest.image = src.image;
     dest.email = src.email;
-    dest.role = src.role;
     dest.phone = src.phone;
     dest.mobile = src.mobile;
     dest.iNumber = src.iNumber;

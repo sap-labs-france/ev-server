@@ -77,6 +77,10 @@ module.exports = {
       { "Action": this.ACTION_DELETE, "UserID": user.id });
   },
 
+  isAdmin(loggedUser) {
+    return loggedUser.role === this.ROLE_ADMIN;
+  },
+
   canPerformAction(loggedUser, entity, fieldNamesValues) {
     // Create Auth
     var auth = new Authorization(loggedUser.role, loggedUser.auths);

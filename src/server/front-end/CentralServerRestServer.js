@@ -73,8 +73,8 @@ class CentralSystemRestServer {
       // Log
       Logging.logInfo({
         userFullName: "System", source: "Central Server", module: "CentralServerRestServer", method: "start",
-        message: `Central Rest Server (Front-End) started on '${_centralSystemRestConfig.protocol}://${_centralSystemRestConfig.host}:${_centralSystemRestConfig.port}'` });
-      console.log(`Central Rest Server (Front-End) started on '${_centralSystemRestConfig.protocol}://${_centralSystemRestConfig.host}:${_centralSystemRestConfig.port}'`);
+        message: `Central Rest Server (Front-End) started on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'` });
+      console.log(`Central Rest Server (Front-End) started on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'`);
     });
   }
 }

@@ -239,7 +239,11 @@ module.exports = {
                 // Yes: add user
                 // Clear Sensitive Data
                 user.setPassword("");
-                user.setRole("");
+                // Must be admin to get the user/pass
+                if (!RestAuth.isAdmin(req.user)) {
+                  // Clear role
+                  user.setRole("");
+                }
                 // Set the model
                 usersJSon.push(user.getModel());
               }
@@ -272,7 +276,11 @@ module.exports = {
               }
               // Clear Sensitive Data
               user.setPassword("");
-              user.setRole("");
+              // Must be admin to get the user/pass
+              if (!RestAuth.isAdmin(req.user)) {
+                // Clear role
+                user.setRole("");
+              }
               // Set
               res.json(user.getModel());
             } else {
@@ -303,7 +311,11 @@ module.exports = {
               }
               // Clear Sensitive Data
               user.setPassword("");
-              user.setRole("");
+              // Must be admin to get the user/pass
+              if (!RestAuth.isAdmin(req.user)) {
+                // Clear role
+                user.setRole("");
+              }
               // Set the user
               res.json(user.getModel());
             } else {
@@ -335,7 +347,11 @@ module.exports = {
               }
               // Clear Sensitive Data
               user.setPassword("");
-              user.setRole("");
+              // Must be admin to get the user/pass
+              if (!RestAuth.isAdmin(req.user)) {
+                // Clear role
+                user.setRole("");
+              }
               // Set data
               res.json(user.getModel());
             } else {
@@ -624,7 +640,7 @@ module.exports = {
                 // Role provided and not an Admin
                 Logging.logError({
                   user: req.user, source: "Central Server", module: "CentralServerRestService", method: "UpdateUser",
-                  message: `User ${req.user.firstName} ${req.user.name} tries to update his role to '${req.body.role}' without having the Admin priviledge ('${req.user.role}')` });
+                  message: `User ${req.user.firstName} ${req.user.name} tries to update his role to '${req.body.role}' without having the Admin priviledge (current role: '${req.user.role}')` });
                 // Ovverride it
                 req.body.role = req.user.role;
               }

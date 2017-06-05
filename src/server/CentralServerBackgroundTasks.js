@@ -9,6 +9,9 @@ module.exports = {
     // Upload initial users
     module.exports.uploadUsers();
 
+    // Upload initial users
+    //module.exports.saveUsers();
+
     // Handle task related to Charging Stations
     return module.exports.checkChargingStations();
   },
@@ -89,12 +92,14 @@ module.exports = {
   },
 
   uploadUsers() {
+    // Log
+    console.log("UPDLOAD USERS");
     // Get from the file system
     var users = Utils.getUsers();
     // Process them
-    for (var i = 0; i < users.users.length; i++) {
+    for (var i = 0; i < users.length; i++) {
       // Check & Save
-      module.exports.checkAndSaveUser(users.users[i]);
+      module.exports.checkAndSaveUser(users[i]);
     }
   },
 
@@ -112,6 +117,23 @@ module.exports = {
             detailedMessages: user});
         });
       }
+    });
+  },
+
+  saveUsers() {
+    // Log
+    console.log("SAVE USERS");
+    // Get the users
+    global.storage.getUsers().then(function(users) {
+      let savedUsers = [];
+      for (var i = 0; i < users.length; i++) {
+        savedUsers.push(users[i].getModel());
+      }
+      // Save
+      Utils.saveUsers(savedUsers);
+    }).catch((err) => {
+      // Log
+      console.log(err);
     });
   }
 };

@@ -70,8 +70,8 @@ class SoapCentralSystemServer extends CentralSystemServer {
         // Log
         Logging.logInfo({
           userFullName: "System", source: "Central Server", module: "SoapCentralSystemServer", method: "start",
-          message: `Central System Server (Charging Stations) started on '${_centralSystemConfig.protocol}://${_centralSystemConfig.host}:${_centralSystemConfig.port}'` });
-        console.log(`Central System Server (Charging Stations) started on '${_centralSystemConfig.protocol}://${_centralSystemConfig.host}:${_centralSystemConfig.port}'`);
+          message: `Central System Server (Charging Stations) started on '${_centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'` });
+        console.log(`Central System Server (Charging Stations) started on '${_centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`);
       });
     }
 }
