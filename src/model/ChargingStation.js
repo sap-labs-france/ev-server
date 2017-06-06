@@ -236,7 +236,7 @@ class ChargingStation {
         var chargerConsumption = 0;
         var nbPhase = 0;
 
-        if (configuration.configuration) {
+        if (configuration && configuration.configuration) {
           // Search for params
           for (var i = 0; i < configuration.configuration.length; i++) {
             // Check

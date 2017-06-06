@@ -64,18 +64,16 @@ class CentralSystemServer {
       return chargingStation.save().then(() => {
         // Log
         Logging.logInfo({
-          source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleBootNotification",
-          action: "BootNotification",
-          message: `Charging Station saved successfully`,
+          userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleBootNotification",
+          action: "BootNotification", message: `Charging Station saved successfully`,
           detailedMessages: chargingStation.getModel() });
         // Save the Boot Notification
         return chargingStation.saveBootNotification(args);
       }).then(() => {
         // Log
         Logging.logInfo({
-          source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleBootNotification",
-          action: "BootNotification",
-          message: `Boot Notification saved successfully`,
+          userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleBootNotification",
+          action: "BootNotification", message: `Boot Notification saved successfully`,
           detailedMessages: args });
 
         // Get the Charging Station Config
@@ -93,9 +91,8 @@ class CentralSystemServer {
       }).then(() => {
         // Log
         Logging.logInfo({
-          source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleBootNotification",
-          action: "BootNotification",
-          message: `Charging Station Configuration saved successfully` });
+          userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleBootNotification",
+          action: "BootNotification", message: `Charging Station Configuration saved successfully` });
 
         // Return the result
         // OCPP 1.6
@@ -120,9 +117,8 @@ class CentralSystemServer {
       }).catch((err) => {
         // Log
         Logging.logError({
-          source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleBootNotification",
-          action: "BootNotification",
-          message: err.toString(),
+          userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleBootNotification",
+          action: "BootNotification", message: err.toString(),
           detailedMessages: err.stack });
         // Reject
         return {
@@ -149,9 +145,8 @@ class CentralSystemServer {
         return chargingStation.save().then(()=> {
           // Log
           Logging.logInfo({
-            source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleHeartBeat",
-            action: "HeartBeat",
-            message: `HeartBeat saved successfully`,
+            userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleHeartBeat",
+            action: "HeartBeat", message: `HeartBeat saved successfully`,
             detailedMessages: heartBeat });
         });
       }
@@ -163,10 +158,9 @@ class CentralSystemServer {
       };
     }).catch((err) => {
       // Log
-      Logging.logWarning({
-        source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleHeartBeat",
-        action: "HeartBeat",
-        message: `Error when processing the Heart Beat: ${err.toString()}`,
+      Logging.logError({
+        userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleHeartBeat",
+        action: "HeartBeat", message: `Error when processing the Heart Beat: ${err.toString()}`,
         detailedMessages: err.stack });
       // Send the response
       return {
@@ -188,9 +182,8 @@ class CentralSystemServer {
     }).then(() => {
       // Log
       Logging.logInfo({
-        source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStatusNotification",
-        action: "StatusNotification",
-        message: `Status Notification saved successfully`,
+        userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStatusNotification",
+        action: "StatusNotification", message: `Status Notification saved successfully`,
         detailedMessages: args });
 
       return {
@@ -199,10 +192,9 @@ class CentralSystemServer {
       };
     }).catch((err) => {
       // Log
-      Logging.logWarning({
-        source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStatusNotification",
-        action: "StatusNotification",
-        message: err.toString(),
+      Logging.logError({
+        userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStatusNotification",
+        action: "StatusNotification", message: err.toString(),
         detailedMessages: err.stack });
 
       // Return
@@ -228,10 +220,9 @@ class CentralSystemServer {
       };
     }).catch((err) => {
       // Log
-      Logging.logWarning({
-        source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleMeterValues",
-        action: "MeterValues",
-        message: `Error when processing the Meter Values: ${err.toString()}`,
+      Logging.logError({
+        userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleMeterValues",
+        action: "MeterValues", message: `Error when processing the Meter Values: ${err.toString()}`,
         detailedMessages: err.stack });
       // Response
       return {
@@ -255,9 +246,8 @@ class CentralSystemServer {
     }).then(() => {
       // Log
       Logging.logInfo({
-        source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleAuthorize",
-        action: "Authorize",
-        message: `Authorize saved successfully`,
+        userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleAuthorize",
+        action: "Authorize", message: `Authorize saved successfully`,
         detailedMessages: args });
 
       return {
@@ -272,9 +262,8 @@ class CentralSystemServer {
     }).catch((err) => {
       // Log
       Logging.logError({
-        source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleAuthorize",
-        action: "Authorize",
-        message: err.toString(),
+        userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleAuthorize",
+        action: "Authorize", message: err.toString(),
         detailedMessages: err.stack });
 
       return {
@@ -300,9 +289,8 @@ class CentralSystemServer {
     }).then(() => {
       // Log
       Logging.logInfo({
-        source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleDiagnosticsStatusNotification",
-        action: "DiagnosticsStatusNotification",
-        message: `Diagnostics Status Notification saved successfully`,
+        userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleDiagnosticsStatusNotification",
+        action: "DiagnosticsStatusNotification", message: `Diagnostics Status Notification saved successfully`,
         detailedMessages: args });
 
       return {
@@ -311,10 +299,9 @@ class CentralSystemServer {
       };
     }).catch((err) => {
       // Log
-      Logging.logWarning({
-        source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleDiagnosticsStatusNotification",
-        action: "DiagnosticsStatusNotification",
-        message: err.toString(),
+      Logging.logError({
+        userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleDiagnosticsStatusNotification",
+        action: "DiagnosticsStatusNotification", message: err.toString(),
         detailedMessages: err.stack });
 
       return {
@@ -335,9 +322,8 @@ class CentralSystemServer {
     }).then(() => {
       // Log
       Logging.logInfo({
-        source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleFirmwareStatusNotification",
-        action: "FirmwareStatusNotification",
-        message: `Firmware Status Notification saved successfully`,
+        userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleFirmwareStatusNotification",
+        action: "FirmwareStatusNotification", message: `Firmware Status Notification saved successfully`,
         detailedMessages: args });
 
       return {
@@ -346,10 +332,9 @@ class CentralSystemServer {
       };
     }).catch((err) => {
       // Log
-      Logging.logWarning({
-        source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleFirmwareStatusNotification",
-        action: "FirmwareStatusNotification",
-        message: err.toString(),
+      Logging.logError({
+        userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleFirmwareStatusNotification",
+        action: "FirmwareStatusNotification", message: err.toString(),
         detailedMessages: err.stack });
 
       return {
@@ -376,9 +361,8 @@ class CentralSystemServer {
     }).then(() => {
       // Log
       Logging.logInfo({
-        source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStartTransaction",
-        action: "StartTransaction",
-        message: `Start Transaction saved successfully`,
+        userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStartTransaction",
+        action: "StartTransaction", message: `Start Transaction saved successfully`,
         detailedMessages: args });
 
       return {
@@ -394,9 +378,8 @@ class CentralSystemServer {
     }).catch((err) => {
       // Log
       Logging.logError({
-        source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStartTransaction",
-        action: "StartTransaction",
-        message: err.toString(),
+        userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStartTransaction",
+        action: "StartTransaction", message: err.toString(),
         detailedMessages: err.stack });
 
       return {
@@ -423,9 +406,8 @@ class CentralSystemServer {
     }).then(() => {
       // Log
       Logging.logInfo({
-        source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleDataTransfer",
-        action: "DataTransfer",
-        message: `Data Transfer saved successfully`,
+        userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleDataTransfer",
+        action: "DataTransfer", message: `Data Transfer saved successfully`,
         detailedMessages: args });
 
       return {
@@ -437,9 +419,8 @@ class CentralSystemServer {
     }).catch((err) => {
       // Log
       Logging.logError({
-        source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleDataTransfer",
-        action: "DataTransfer",
-        message: err.toString(),
+        userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleDataTransfer",
+        action: "DataTransfer", message: err.toString(),
         detailedMessages: err.stack });
 
       return {
@@ -461,9 +442,8 @@ class CentralSystemServer {
     }).then(() => {
       // Log
       Logging.logInfo({
-        source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStopTransaction",
-        action: "StopTransaction",
-        message: `Stop Transaction saved successfully`,
+        userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStopTransaction",
+        action: "StopTransaction", message: `Stop Transaction saved successfully`,
         detailedMessages: args });
 
       // Success
@@ -479,9 +459,8 @@ class CentralSystemServer {
     }).catch((err) => {
       // Log
       Logging.logError({
-        source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStopTransaction",
-        action: "Stop Transaction",
-        message: err.toString(),
+        userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStopTransaction",
+        action: "Stop Transaction", message: err.toString(),
         detailedMessages: err.stack });
 
       // Error

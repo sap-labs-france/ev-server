@@ -63,7 +63,7 @@ class Logging {
   static logReceivedAction(module, chargeBoxIdentity, action, args, headers) {
     // Log
     Logging.logDebug({
-      source: chargeBoxIdentity, module: module, method: action,
+      userFullName: "System", source: chargeBoxIdentity, module: module, method: action,
       message: `>> OCPP Request Received`,
       action: action,
       detailedMessages: {
