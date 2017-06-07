@@ -1,8 +1,9 @@
+var CentralRestServerAuthorization = require('./CentralRestServerAuthorization');
 var Utils = require('../../utils/Utils');
+var Database = require('../../utils/Database');
 var Logging = require('../../utils/Logging');
 const Users = require('../../utils/Users');
 var User = require('../../model/User');
-var RestAuth = require('./CentralServerRestAuthorisation');
 
 module.exports = {
   // Util Service
@@ -69,10 +70,10 @@ module.exports = {
               // Found?
               if (chargingStation) {
                 // Check auth
-                if (!RestAuth.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action)) {
+                if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action)) {
                   // Not Authorized!
                   Logging.logActionUnauthorizedMessageAndSendResponse(
-                    RestAuth.ENTITY_CHARGING_STATION, action, req, res, next);
+                    CentralRestServerAuthorization.ENTITY_CHARGING_STATION, action, req, res, next);
                   return;
                 }
                 Logging.logInfo({
@@ -98,10 +99,10 @@ module.exports = {
           // Create User
           case "CreateUser":
             // Check auth
-            if (!RestAuth.canCreateUser(req.user)) {
+            if (!CentralRestServerAuthorization.canCreateUser(req.user)) {
               // Not Authorized!
               Logging.logActionUnauthorizedMessageAndSendResponse(
-                RestAuth.ENTITY_USER, RestAuth.ACTION_CREATE, req, res, next);
+                CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_CREATE, req, res, next);
               return;
             }
             // Check Mandatory fields
@@ -153,10 +154,10 @@ module.exports = {
         // Get the Logging
         case "Logging":
           // Check auth
-          if (!RestAuth.canListLogging(req.user)) {
+          if (!CentralRestServerAuthorization.canListLogging(req.user)) {
             // Not Authorized!
             Logging.logActionUnauthorizedMessageAndSendResponse(
-              RestAuth.ENTITY_LOGGING, RestAuth.ACTION_LIST, req, res, next);
+              CentralRestServerAuthorization.ENTITY_LOGGING, CentralRestServerAuthorization.ACTION_LIST, req, res, next);
             return;
           }
           // Get logs
@@ -170,17 +171,17 @@ module.exports = {
         // Get all the charging stations
         case "ChargingStations":
           // Check auth
-          if (!RestAuth.canListChargingStations(req.user)) {
+          if (!CentralRestServerAuthorization.canListChargingStations(req.user)) {
             // Not Authorized!
             Logging.logActionUnauthorizedMessageAndSendResponse(
-              RestAuth.ENTITY_CHARGING_STATIONS, RestAuth.ACTION_LIST, req, res, next);
+              CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS, CentralRestServerAuthorization.ACTION_LIST, req, res, next);
             return;
           }
           global.storage.getChargingStations("RestService").then(function(chargingStations) {
             var chargingStationsJSon = [];
             chargingStations.forEach(function(chargingStation) {
               // Check auth
-              if (RestAuth.canReadChargingStation(req.user, chargingStation.getModel())) {
+              if (CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
                 // Set the model
                 chargingStationsJSon.push(chargingStation.getModel());
               }
@@ -205,10 +206,10 @@ module.exports = {
           global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
             if (chargingStation) {
               // Check auth
-              if (!RestAuth.canReadChargingStation(req.user, chargingStation.getModel())) {
+              if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  RestAuth.ENTITY_CHARGING_STATION, RestAuth.ACTION_READ, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, req, res, next);
                 return;
               }
               res.json(chargingStation.getModel());
@@ -225,22 +226,22 @@ module.exports = {
         // Get all the users
         case "Users":
           // Check auth
-          if (!RestAuth.canListUsers(req.user)) {
+          if (!CentralRestServerAuthorization.canListUsers(req.user)) {
             // Not Authorized!
             Logging.logActionUnauthorizedMessageAndSendResponse(
-              RestAuth.ENTITY_USERS, RestAuth.ACTION_LIST, req, res, next);
+              CentralRestServerAuthorization.ENTITY_USERS, CentralRestServerAuthorization.ACTION_LIST, req, res, next);
             return;
           }
           global.storage.getUsers().then(function(users) {
             var usersJSon = [];
             users.forEach(function(user) {
               // Check auth
-              if (RestAuth.canReadUser(req.user, user.getModel())) {
+              if (CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
                 // Yes: add user
                 // Clear Sensitive Data
                 user.setPassword("");
                 // Must be admin to get the user/pass
-                if (!RestAuth.isAdmin(req.user)) {
+                if (!CentralRestServerAuthorization.isAdmin(req.user)) {
                   // Clear role
                   user.setRole("");
                 }
@@ -268,16 +269,16 @@ module.exports = {
           global.storage.getUserByEmail(req.query.Email).then(function(user) {
             if (user) {
               // Check auth
-              if (!RestAuth.canReadUser(req.user, user.getModel())) {
+              if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  RestAuth.ENTITY_USER, RestAuth.ACTION_READ, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res, next);
                 return;
               }
               // Clear Sensitive Data
               user.setPassword("");
               // Must be admin to get the user/pass
-              if (!RestAuth.isAdmin(req.user)) {
+              if (!CentralRestServerAuthorization.isAdmin(req.user)) {
                 // Clear role
                 user.setRole("");
               }
@@ -303,16 +304,16 @@ module.exports = {
           global.storage.getUser(req.query.ID).then(function(user) {
             if (user) {
               // Check auth
-              if (!RestAuth.canReadUser(req.user, user.getModel())) {
+              if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  RestAuth.ENTITY_USER, RestAuth.ACTION_READ, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res, next);
                 return;
               }
               // Clear Sensitive Data
               user.setPassword("");
               // Must be admin to get the user/pass
-              if (!RestAuth.isAdmin(req.user)) {
+              if (!CentralRestServerAuthorization.isAdmin(req.user)) {
                 // Clear role
                 user.setRole("");
               }
@@ -339,16 +340,16 @@ module.exports = {
           global.storage.getUserByTagId(req.query.TagId).then(function(user) {
             if (user) {
               // Check auth
-              if (!RestAuth.canReadUser(req.user, user.getModel())) {
+              if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  RestAuth.ENTITY_USER, RestAuth.ACTION_READ, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res, next);
                 return;
               }
               // Clear Sensitive Data
               user.setPassword("");
               // Must be admin to get the user/pass
-              if (!RestAuth.isAdmin(req.user)) {
+              if (!CentralRestServerAuthorization.isAdmin(req.user)) {
                 // Clear role
                 user.setRole("");
               }
@@ -381,10 +382,10 @@ module.exports = {
           global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
             if (chargingStation) {
               // Check auth
-              if (!RestAuth.canReadChargingStation(req.user, chargingStation.getModel())) {
+              if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  RestAuth.ENTITY_CHARGING_STATION, RestAuth.ACTION_READ, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, req, res, next);
                 return;
               }
               // Set the model
@@ -421,10 +422,10 @@ module.exports = {
           global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
             if (chargingStation) {
               // Check auth
-              if (!RestAuth.canReadChargingStation(req.user, chargingStation.getModel())) {
+              if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  RestAuth.ENTITY_CHARGING_STATION, RestAuth.ACTION_READ, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, req, res, next);
                 return;
               }
               // Set the model
@@ -456,10 +457,10 @@ module.exports = {
             // Found
             if (chargingStation) {
               // Check auth
-              if (!RestAuth.canReadChargingStation(req.user, chargingStation.getModel())) {
+              if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  RestAuth.ENTITY_CHARGING_STATION, RestAuth.ACTION_READ, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, req, res, next);
                 return;
               }
               // Yes: Get the Status
@@ -495,10 +496,10 @@ module.exports = {
             // Found?
             if (chargingStation) {
               // Check auth
-              if (!RestAuth.canReadChargingStation(req.user, chargingStation.getModel())) {
+              if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  RestAuth.ENTITY_CHARGING_STATION, RestAuth.ACTION_READ, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, req, res, next);
                 return;
               }
               // Get the Status
@@ -537,10 +538,10 @@ module.exports = {
             // Found
             if (chargingStation) {
               // Check auth
-              if (!RestAuth.canReadChargingStation(req.user, chargingStation.getModel())) {
+              if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  RestAuth.ENTITY_CHARGING_STATION, RestAuth.ACTION_READ, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, req, res, next);
                 return;
               }
               // Get the Consumption
@@ -577,10 +578,10 @@ module.exports = {
             // Found
             if (chargingStation) {
               // Check auth
-              if (!RestAuth.canReadChargingStation(req.user, chargingStation.getModel())) {
+              if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  RestAuth.ENTITY_CHARGING_STATION, RestAuth.ACTION_READ, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, req, res, next);
                 return;
               }
               // Get the Config
@@ -628,10 +629,10 @@ module.exports = {
               }
 
               // Check auth
-              if (!RestAuth.canUpdateUser(req.user, user.getModel())) {
+              if (!CentralRestServerAuthorization.canUpdateUser(req.user, user.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  RestAuth.ENTITY_USER, RestAuth.ACTION_UPDATE, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_UPDATE, req, res, next);
                 return;
               }
 
@@ -675,10 +676,10 @@ module.exports = {
             }
 
             // Check auth
-            if (!RestAuth.canUpdateUser(req.user, user.getModel())) {
+            if (!CentralRestServerAuthorization.canUpdateUser(req.user, user.getModel())) {
               // Not Authorized!
               Logging.logActionUnauthorizedMessageAndSendResponse(
-                RestAuth.ENTITY_USER, RestAuth.ACTION_UPDATE, req, res, next);
+                CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_UPDATE, req, res, next);
               return;
             }
 
@@ -734,10 +735,10 @@ module.exports = {
                 return;
               }
               // Check auth
-              if (!RestAuth.canDeleteUser(req.user, user.getModel())) {
+              if (!CentralRestServerAuthorization.canDeleteUser(req.user, user.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  RestAuth.ENTITY_USER, RestAuth.ACTION_DELETE, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_DELETE, req, res, next);
                 return;
               }
               // Delete

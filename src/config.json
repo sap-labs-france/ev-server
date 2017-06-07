@@ -13,19 +13,16 @@
     "port": 8888,
     "ssl-key": "ssl/64933587-localhost.key",
     "ssl-cert": "ssl/64933587-localhost.cert",
-    "debug": true
+    "debug": false
   },
-  "Storages": [
-    {
-      "implementation": "mongodb",
-      "host": "localhost",
-      "port": 27017,
-      "user": "evse-user",
-      "password": "B3zLQd7gUBcswe44Y",
-      "schema": "evse",
-      "leading" : true
-    }
-  ],
+  "Storage": {
+    "implementation": "mongodb",
+    "host": "localhost",
+    "port": 27017,
+    "user": "evse-user",
+    "password": "B3zLQd7gUBcswe44Y",
+    "schema": "evse"
+  },
   "Email": {
      "from": "evse.adm.noreply@gmail.com",
      "bcc": "gerald.seiler@sap.com, serge.fabiano@sap.com",

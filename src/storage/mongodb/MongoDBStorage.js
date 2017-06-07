@@ -23,6 +23,7 @@ var crypto = require('crypto');
 var moment = require('moment');
 
 let _dbConfig;
+let _centralRestServer;
 
 class MongoDBStorage extends Storage {
   // Create database access
@@ -53,6 +54,11 @@ class MongoDBStorage extends Storage {
         }
       });
     });
+  }
+
+  setCentralRestServer(centralRestServer) {
+    // Set
+    _centralRestServer = centralRestServer;
   }
 
   getConfigurationParamValue(chargeBoxIdentity, paramName, configDate) {
@@ -551,6 +557,8 @@ class MongoDBStorage extends Storage {
           new: true,
           upsert: true
         }).then((userMongoDB) => {
+          // Notify
+          (!user.getID()?_centralRestServer.notifyUserCreated(userMongoDB):_centralRestServer.notifyUserUpdated(userMongoDB));
           // Update the badges
           // First delete them
           return MDBTag.remove({ "userID" : userMongoDB._id }).then(() => {
@@ -566,7 +574,7 @@ class MongoDBStorage extends Storage {
                   new: true,
                   upsert: true
                 }).then((newTag) => {
-                  // Create with success
+                  // Created with success
                 });                // Add TagIds
             });
           });

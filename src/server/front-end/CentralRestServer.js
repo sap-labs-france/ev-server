@@ -1,6 +1,7 @@
 var ChargingStation = require('../../model/ChargingStation');
-var CentralServerRestAuthentication = require('./CentralServerRestAuthentication');
-var CentralServerRestService = require('./CentralServerRestService');
+var CentralRestServerAuthentication = require('./CentralRestServerAuthentication');
+var CentralRestServerAuthorization = require('./CentralRestServerAuthorization');
+var CentralRestServerService = require('./CentralRestServerService');
 var Utils = require('../../utils/Utils');
 var Configuration = require('../../utils/Configuration');
 var Logging = require('../../utils/Logging');
@@ -16,6 +17,7 @@ var https = require('https');
 var fs = require('fs');
 
 let _centralSystemRestConfig;
+let _io;
 
 class CentralSystemRestServer {
   // Create the rest server
@@ -40,16 +42,16 @@ class CentralSystemRestServer {
     express.use(helmet());
 
     // Authentication
-    express.use(CentralServerRestAuthentication.initialize());
+    express.use(CentralRestServerAuthentication.initialize());
 
     // Auth services
-    express.use('/auth', CentralServerRestAuthentication.authService);
+    express.use('/auth', CentralRestServerAuthentication.authService);
 
     // Secured API
-    express.use('/client/api', CentralServerRestAuthentication.authenticate(), CentralServerRestService.restServiceSecured);
+    express.use('/client/api', CentralRestServerAuthentication.authenticate(), CentralRestServerService.restServiceSecured);
 
     // Util API
-    express.use('/client/util', CentralServerRestService.restServiceUtil);
+    express.use('/client/util', CentralRestServerService.restServiceUtil);
 
     // Keep params
     _centralSystemRestConfig = centralSystemRestConfig;
@@ -73,13 +75,16 @@ class CentralSystemRestServer {
     }
 
     // Init Socket IO
-    let socketIO = require("socket.io")(server);
+    _io = require("socket.io")(server);
 
-    // Handle connection
-    socketIO.on("connection", (socket) =>{
+    // Handle Socket IO connection
+    _io.on("connection", (socket) => {
       console.log("CONNECTION SOCKET IO DONE");
 
-      socket.emit("message", "Welcome to EVSE-Server");
+      // Handle Socket IO connection
+      socket.on("disconnect", () =>{
+        console.log("DISCONNET SOCKET");
+      });
     });
 
     // Listen
@@ -90,6 +95,27 @@ class CentralSystemRestServer {
         message: `Central Rest Server (Front-End) started on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'` });
       console.log(`Central Rest Server (Front-End) started on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'`);
     });
+  }
+
+  notifyUserUpdated(user) {
+    // Notify
+    this.notifyAllWebSocketClients(CentralRestServerAuthorization.ENTITY_USER, {
+      "action": CentralRestServerAuthorization.ACTION_UPDATE,
+      "id": user.id
+    });
+  }
+
+  notifyUserCreated(user) {
+    // Notify
+    this.notifyAllWebSocketClients(CentralRestServerAuthorization.ENTITY_USER, {
+      "action": CentralRestServerAuthorization.ACTION_CREATE,
+      "id": user.id
+    });
+  }
+
+  notifyAllWebSocketClients(entity, entityDetails) {
+    // Notify all
+    _io.sockets.emit(entity, entityDetails);
   }
 }
 

@@ -43,10 +43,10 @@ module.exports = {
     return this.getConfig().Locales;
   },
 
-  // Central System config
-  getStoragesConfig() {
+  // DB config
+  getStorageConfig() {
     // Read conf
-    return this.getConfig().Storages;
+    return this.getConfig().Storage;
   },
 
   // Central System config

@@ -6,7 +6,9 @@ class Storage {
   }
 
   start() {
-    // Started in sub-classes
+  }
+
+  setCentralRestServer(centralRestServer) {
   }
 
   getLogs(numberOfLogging) {
