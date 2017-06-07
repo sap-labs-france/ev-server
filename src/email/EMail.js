@@ -1,4 +1,4 @@
-var Utils = require('../utils/Utils');
+var Configuration = require('../utils/Configuration');
 var nodemailer = require('nodemailer');
 var path = require('path');
 var EmailTemplate = require('email-templates').EmailTemplate;
@@ -7,7 +7,7 @@ var EmailTemplate = require('email-templates').EmailTemplate;
 class EMail {
   constructor() {
     // Email
-    this._emailConfig = Utils.getEmailConfig();
+    this._emailConfig = Configuration.getEmailConfig();
 
     // Set
     let nodeMailerParams = {
@@ -63,7 +63,7 @@ class EMail {
       EMail._sendEmail('registered-user', data, locale, fulfill, reject);
     });
   }
-  
+
   static sendResetPasswordEmail(data, locale) {
     // Create a promise
     return new Promise((fulfill, reject) => {

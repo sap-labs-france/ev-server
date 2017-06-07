@@ -3,6 +3,7 @@ var SoapChargingStationClient = require('../client/soap/SoapChargingStationClien
 var Logging = require('../utils/Logging');
 var User = require('./User');
 var Users = require('../utils/Users');
+var Database = require('../utils/Database');
 var moment = require('moment');
 
 class ChargingStation {
@@ -11,7 +12,7 @@ class ChargingStation {
     this._model = {};
 
     // Set it
-    Utils.updateChargingStationObject(chargingStation, this._model);
+    Database.updateChargingStationObject(chargingStation, this._model);
   }
 
   handleAction(action, params) {

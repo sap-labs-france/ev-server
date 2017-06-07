@@ -1,18 +1,18 @@
 var CentralServerFacade = require('./server/CentralServerFacade');
 var StorageFacade = require('./storage/StorageFacade');
-var Utils = require('./utils/Utils');
+var Configuration = require('./utils/Configuration');
 
 // Start the connection to the Database
 var database = new StorageFacade(
-  Utils.getStoragesConfig());
+  Configuration.getStoragesConfig());
 
 // Start
 database.start().then(() => {
   // Create the server
   var server = new CentralServerFacade(
-    Utils.getCentralSystemsConfig(),
-    Utils.getCentralSystemRestServiceConfig(),
-    Utils.getChargingStationConfig());
+    Configuration.getCentralSystemsConfig(),
+    Configuration.getCentralSystemRestServiceConfig(),
+    Configuration.getChargingStationConfig());
 
   // Start
   server.start();

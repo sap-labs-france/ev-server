@@ -1,4 +1,4 @@
-var Utils = require('../utils/Utils');
+var Database = require('../utils/Database');
 
 class User {
   constructor(user) {
@@ -6,7 +6,7 @@ class User {
     this._model = {};
 
     // Set it
-    Utils.updateUser(user, this._model);
+    Database.updateUser(user, this._model);
   }
 
   getModel() {

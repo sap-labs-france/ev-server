@@ -7,6 +7,7 @@ var EMail = require('../../email/EMail');
 var Logging = require('../../utils/Logging');
 var User = require('../../model/User');
 var Utils = require('../../utils/Utils');
+var Authorization = require('../../utils/Authorization');
 var compileProfile = require('node-authorization').profileCompiler;
 var Mustache = require('mustache');
 
@@ -50,7 +51,7 @@ module.exports = {
               // Found?
               if (user) {
                 // Get authorisation
-                let userRole = Utils.getAuthorizationFromRoleID(user.getRole());
+                let userRole = Authorization.getAuthorizationFromRoleID(user.getRole());
                 // Parse the auth and replace values
                 var parsedAuths = Mustache.render(JSON.stringify(userRole.auths), {"user": user.getModel()});
                 // Compile auths of the role
@@ -88,7 +89,7 @@ module.exports = {
                 // Check email
                 global.storage.getUserByEmail(req.body.email).then(function(user) {
                   if (user) {
-                    Logging.logActionErrorMessageAndSendResponse(`The email ${req.body.tagIDs} already exists`, req, res, next);
+                    Logging.logActionErrorMessageAndSendResponse(action, `The email ${req.body.tagIDs} already exists`, req, res, next);
                     return;
                   }
                   // Create the user
@@ -106,7 +107,7 @@ module.exports = {
                         // Success
                         Logging.logInfo({
                           userFullName: "System", source: "Central Server", module: "CentralServerRestAuthentication", method: "registeruser",
-                          message: `User ${newUser.getFullName()} with email ${newUser.getEMail()} has been registered successfully`,
+                          action: "RegisterUser", message: `User ${newUser.getFullName()} with email ${newUser.getEMail()} has been registered successfully`,
                           detailedMessages: newUser});
                         // Ok
                         res.json({status: `Success`});
@@ -116,8 +117,7 @@ module.exports = {
                         // Error
                         Logging.logError({
                           userFullName: "System", source: "Central Server", module: "CentralServerRestAuthentication", method: "N/A",
-                          action: "RegisterUser",
-                          message: `${error.toString()}`,
+                          action: "RegisterUser", message: `${error.toString()}`,
                           detailedMessages: error.stack });
                         res.json({error: error.toString()});
                         next();
@@ -152,8 +152,7 @@ module.exports = {
                         // Success
                         Logging.logInfo({
                           user: req.user, source: "Central Server", module: "CentralServerRestAuthentication", method: "N/A",
-                          action: "ResetPassword",
-                          message: `Password has been reset for user with email ${user.getEMail()}`,
+                          action: "ResetPassword", message: `Password has been reset for user with email ${user.getEMail()}`,
                           detailedMessages: message });
                         // Ok
                         res.json({status: `Success`});
@@ -163,8 +162,7 @@ module.exports = {
                         // Error
                         Logging.logError({
                           user: req.user, source: "Central Server", module: "CentralServerRestAuthentication", method: "N/A",
-                          action: "ResetPassword",
-                          message: `${error.toString()}`,
+                          action: "ResetPassword", message: `${error.toString()}`,
                           detailedMessages: error.stack });
                         res.json({error: error.toString()});
                         next();
@@ -186,10 +184,10 @@ module.exports = {
             // Action provided
             if (!action) {
               // Log
-              Logging.logActionErrorMessageAndSendResponse(`No Action has been provided`, req, res, next);
+              Logging.logActionErrorMessageAndSendResponse("N/A", `No Action has been provided`, req, res, next);
             } else {
               // Log
-              Logging.logActionErrorMessageAndSendResponse(`The Action '${action}' does not exist`, req, res, next);
+              Logging.logActionErrorMessageAndSendResponse("N/A", `The Action '${action}' does not exist`, req, res, next);
             }
             next();
         }

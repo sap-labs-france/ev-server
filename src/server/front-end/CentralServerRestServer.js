@@ -2,6 +2,7 @@ var ChargingStation = require('../../model/ChargingStation');
 var CentralServerRestAuthentication = require('./CentralServerRestAuthentication');
 var CentralServerRestService = require('./CentralServerRestService');
 var Utils = require('../../utils/Utils');
+var Configuration = require('../../utils/Configuration');
 var Logging = require('../../utils/Logging');
 var bodyParser = require("body-parser");
 require('body-parser-xml')(bodyParser);
@@ -25,10 +26,12 @@ class CentralSystemRestServer {
     express.use(bodyParser.xml());
 
     // Use
-    express.use(locale(Utils.getLocalesConfig().supported));
+    express.use(locale(Configuration.getLocalesConfig().supported));
 
     // log to console
-    express.use(morgan('dev'));
+    if (centralSystemRestConfig.debug) {
+      express.use(morgan('dev'));
+    }
 
     // Cross origin headers
     express.use(cors());
@@ -68,11 +71,22 @@ class CentralSystemRestServer {
       // Http server
       server = http.createServer(express);
     }
+
+    // Init Socket IO
+    let socketIO = require("socket.io")(server);
+
+    // Handle connection
+    socketIO.on("connection", (socket) =>{
+      console.log("CONNECTION SOCKET IO DONE");
+
+      socket.emit("message", "Welcome to EVSE-Server");
+    });
+
     // Listen
     server.listen(_centralSystemRestConfig.port, _centralSystemRestConfig.host, () => {
       // Log
       Logging.logInfo({
-        userFullName: "System", source: "Central Server", module: "CentralServerRestServer", method: "start",
+        userFullName: "System", source: "Central Server", module: "CentralServerRestServer", method: "start", action: "Startup",
         message: `Central Rest Server (Front-End) started on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'` });
       console.log(`Central Rest Server (Front-End) started on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'`);
     });

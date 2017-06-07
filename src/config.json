@@ -12,7 +12,8 @@
     "host": "localhost",
     "port": 8888,
     "ssl-key": "ssl/64933587-localhost.key",
-    "ssl-cert": "ssl/64933587-localhost.cert"
+    "ssl-cert": "ssl/64933587-localhost.cert",
+    "debug": true
   },
   "Storages": [
     {
@@ -38,6 +39,9 @@
        "password": "Welc0me!",
        "debug": true
      }
+  },
+  "Authorization": {
+    "debug": false
   },
   "ChargingStation" : {
     "heartbeatInterval": 60

@@ -1,6 +1,8 @@
 var Logging = require('../../utils/Logging');
-var Utils = require('../../utils/Utils');
+var Configuration = require('../../utils/Configuration');
 var Authorization = require('node-authorization').Authorization;
+
+let _configuration;
 
 module.exports = {
   ROLE_ADMIN: "A",
@@ -81,11 +83,22 @@ module.exports = {
     return loggedUser.role === this.ROLE_ADMIN;
   },
 
+  getConfiguration() {
+    if(!_configuration) {
+      // Load it
+      _configuration = Configuration.getAuthorizationConfig();
+    }
+    return _configuration;
+  },
+
   canPerformAction(loggedUser, entity, fieldNamesValues) {
+    // Set debug mode?
+    if (this.getConfiguration().debug) {
+      // Switch on traces
+      Authorization.switchTraceOn();
+    }
     // Create Auth
     var auth = new Authorization(loggedUser.role, loggedUser.auths);
-    // Switch on traces
-    Authorization.switchTraceOn();
     // Check
     if(auth.check(entity, fieldNamesValues)) {
       // Authorized!

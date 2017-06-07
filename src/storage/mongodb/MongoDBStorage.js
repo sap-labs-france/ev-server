@@ -16,6 +16,7 @@ var MDBDataTransfer = require('./model/MDBDataTransfer');
 var User = require('../../model/User');
 var ChargingStation = require('../../model/ChargingStation');
 var Utils = require('../../utils/Utils');
+var Database = require('../../utils/Database');
 var Storage = require('../Storage');
 var Logging = require('../../utils/Logging');
 var crypto = require('crypto');
@@ -44,7 +45,7 @@ class MongoDBStorage extends Storage {
         } else {
           // Log
           Logging.logInfo({
-            userFullName: "System", source: "Central Server", module: "MongoDBStorage", method: "constructor",
+            userFullName: "System", source: "Central Server", module: "MongoDBStorage", method: "start", action: "Startup",
             message: `Connected to MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}' and using schema '${_dbConfig.schema}'` });
             console.log(`Connected to MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}' and using schema '${_dbConfig.schema}'`);
           // Ok
@@ -87,7 +88,7 @@ class MongoDBStorage extends Storage {
       loggingsMongoDB.forEach(function(loggingMongoDB) {
         var logging = {};
         // Set
-        Utils.updateLoggingObject(loggingMongoDB, logging);
+        Database.updateLoggingObject(loggingMongoDB, logging);
         // Set the model
         loggings.push(logging);
       });
@@ -107,7 +108,7 @@ class MongoDBStorage extends Storage {
       if (configurationMongoDB && configurationMongoDB[0]) {
         // Set values
         configuration = {};
-        Utils.updateConfiguration(configurationMongoDB[0], configuration);
+        Database.updateConfiguration(configurationMongoDB[0], configuration);
       }
       // Ok
       return configuration;
@@ -129,7 +130,7 @@ class MongoDBStorage extends Storage {
       statusNotificationsMongoDB.forEach((statusNotificationMongoDB) => {
         var statusNotification = {};
         // Set values
-        Utils.updateStatusNotification(statusNotificationMongoDB, statusNotification);
+        Database.updateStatusNotification(statusNotificationMongoDB, statusNotification);
         // Add
         statusNotifications.push(statusNotification);
       });
@@ -150,7 +151,7 @@ class MongoDBStorage extends Storage {
       if (statusNotificationsMongoDB[0]) {
         statusNotification = {};
         // Set values
-        Utils.updateStatusNotification(statusNotificationsMongoDB[0], statusNotification);
+        Database.updateStatusNotification(statusNotificationsMongoDB[0], statusNotification);
       }
       // Ok
       return statusNotification;
@@ -180,7 +181,7 @@ class MongoDBStorage extends Storage {
       meterValuesMongoDB.forEach((meterValueMongoDB) => {
         var meterValue = {};
         // Set values
-        Utils.updateMeterValue(meterValueMongoDB, meterValue);
+        Database.updateMeterValue(meterValueMongoDB, meterValue);
         // Add
         meterValues.push(meterValue);
       });
@@ -207,7 +208,7 @@ class MongoDBStorage extends Storage {
       meterValuesMongoDB.forEach((meterValueMongoDB) => {
         var meterValue = {};
         // Set values
-        Utils.updateMeterValue(meterValueMongoDB, meterValue);
+        Database.updateMeterValue(meterValueMongoDB, meterValue);
         // Add
         meterValues.push(meterValue);
       });
@@ -402,7 +403,7 @@ class MongoDBStorage extends Storage {
         // Set
         var transaction = {};
         transaction.start = {};
-        Utils.updateStartTransaction(startTransactionMongoDB, transaction.start);
+        Database.updateStartTransaction(startTransactionMongoDB, transaction.start);
         // Add
         transactions.push(transaction);
       });
@@ -418,7 +419,7 @@ class MongoDBStorage extends Storage {
           if (stopTransactionMongoDB) {
             // Set
             transaction.stop = {};
-            Utils.updateStopTransaction(stopTransactionMongoDB, transaction.stop);
+            Database.updateStopTransaction(stopTransactionMongoDB, transaction.stop);
           }
           // Ok
           return transaction;
@@ -444,7 +445,7 @@ class MongoDBStorage extends Storage {
         // Set
         transaction = {};
         transaction.start = {};
-        Utils.updateStartTransaction(startTransactionMongoDB, transaction.start);
+        Database.updateStartTransaction(startTransactionMongoDB, transaction.start);
       }
       // Ok
       return transaction;
@@ -458,7 +459,7 @@ class MongoDBStorage extends Storage {
           if (stopTransactionMongoDB) {
             // Set
             transaction.stop = {};
-            Utils.updateStopTransaction(stopTransactionMongoDB, transaction.stop);
+            Database.updateStopTransaction(stopTransactionMongoDB, transaction.stop);
           }
           // Ok
           return transaction;

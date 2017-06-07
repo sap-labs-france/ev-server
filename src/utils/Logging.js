@@ -118,19 +118,18 @@ class Logging {
     Logging.logError({
       userID: req.user.id, userFullName: `${req.user.firstName} ${req.user.name}`,
       source: "Central Server", module: "RestServer", method: "N/A",
-      action: action,
-      message: `${err.toString()}`,
+      action: action, message: `${err.toString()}`,
       detailedMessages: err.stack });
     res.status(500).send(`{"message": ${err.toString()}}`);
     next();
   };
 
   // Log issues
-  static logActionErrorMessageAndSendResponse(message, req, res, next) {
+  static logActionErrorMessageAndSendResponse(action, message, req, res, next) {
     Logging.logError({
       userID: req.user.id, userFullName: `${req.user.firstName} ${req.user.name}`,
       source: "Central Server", module: "RestServer", method: "N/A",
-      message: message,
+      action: action, message: message,
       detailedMessages: [{
           "stack": new Error().stack,
           "request": req.body}] });
@@ -141,7 +140,7 @@ class Logging {
   // Log issues
   static logActionUnauthorizedMessageAndSendResponse(entity, action, req, res, next) {
     // Log
-    Logging.logActionErrorMessageAndSendResponse(
+    Logging.logActionErrorMessageAndSendResponse(action,
       `User ${req.user.firstName} ${req.user.name} with Role ID '${req.user.role}' is not authorised to perform '${action}' on '${entity}'`, req, res, next);
   };
 }
