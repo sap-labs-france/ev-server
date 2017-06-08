@@ -121,6 +121,13 @@ class CentralSystemRestServer {
     });
   }
 
+  notifyLoggingCreated() {
+    // Notify
+    this.notifyAllWebSocketClients(CentralRestServerAuthorization.ENTITY_LOGGING, {
+      "action": CentralRestServerAuthorization.ACTION_CREATE
+    });
+  }
+
   notifyAllWebSocketClients(entity, entityDetails) {
     // Notify all
     _io.sockets.emit(entity, entityDetails);
