@@ -316,7 +316,10 @@ class MongoDBStorage extends Storage {
     var logMongoDB = new MDBLog(log);
 
     // Save
-    return logMongoDB.save();
+    return logMongoDB.save(() => {
+      // Notify Change
+      _centralRestServer.notifyLoggingCreated();
+    });
   }
 
   saveAuthorize(authorize) {
