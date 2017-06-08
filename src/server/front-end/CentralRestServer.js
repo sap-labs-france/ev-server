@@ -113,6 +113,14 @@ class CentralSystemRestServer {
     });
   }
 
+  notifyUserDeleted(user) {
+    // Notify
+    this.notifyAllWebSocketClients(CentralRestServerAuthorization.ENTITY_USER, {
+      "action": CentralRestServerAuthorization.ACTION_DELETE,
+      "id": user.id
+    });
+  }
+
   notifyAllWebSocketClients(entity, entityDetails) {
     // Notify all
     _io.sockets.emit(entity, entityDetails);

@@ -48,12 +48,15 @@ global.storage.start().then(() => {
   // Start the Central Rest System (Front-end REST service)
   // Read the config
   let centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
-  // Create the server
-  let centralRestServer = new CentralRestServer(centralSystemRestConfig);
-  // Set to database for Web Socket Notifications
-  global.storage.setCentralRestServer(centralRestServer);
-  // Start it
-  centralRestServer.start();
+  // Provided?
+  if (centralSystemRestConfig) {
+    // Create the server
+    let centralRestServer = new CentralRestServer(centralSystemRestConfig);
+    // Set to database for Web Socket Notifications
+    global.storage.setCentralRestServer(centralRestServer);
+    // Start it
+    centralRestServer.start();
+  }
 
   // Start background task
   setInterval(CentralServerBackgroundTasks.executeAllBackgroundTasks, 15 * 1000);

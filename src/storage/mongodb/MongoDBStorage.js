@@ -557,7 +557,7 @@ class MongoDBStorage extends Storage {
           new: true,
           upsert: true
         }).then((userMongoDB) => {
-          // Notify
+          // Notify Change
           (!user.getID()?_centralRestServer.notifyUserCreated(userMongoDB):_centralRestServer.notifyUserUpdated(userMongoDB));
           // Update the badges
           // First delete them
@@ -584,28 +584,28 @@ class MongoDBStorage extends Storage {
 
   getUser(id) {
     // Check
-    if (!this.checkIfMongoDBIDIsValid(id)) {
+    if (!this._checkIfMongoDBIDIsValid(id)) {
       // Return empty user
       return Promise.resolve();
     }
 
     // Exec request
     return MDBUser.findById(id).exec().then((userMongoDB) => {
-      return this.createUser(userMongoDB);
+      return this._createUser(userMongoDB);
     });
   }
 
   getUserByEmailPassword(email, password) {
     // Exec request
     return MDBUser.findOne({"email": email, "password": password}).then((userMongoDB) => {
-      return this.createUser(userMongoDB);
+      return this._createUser(userMongoDB);
     });
   }
 
   getUserByEmail(email) {
     // Exec request
     return MDBUser.findOne({"email": email}).then((userMongoDB) => {
-      return this.createUser(userMongoDB);
+      return this._createUser(userMongoDB);
     });
   }
 
@@ -622,7 +622,7 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  createUser(userMongoDB) {
+  _createUser(userMongoDB) {
     var user = null;
     // Check
     if (userMongoDB) {
@@ -646,10 +646,13 @@ class MongoDBStorage extends Storage {
   }
 
   deleteUser(id) {
-    return MDBUser.remove({ "_id" : id });
+    return MDBUser.remove({ "_id" : id }).then((userMongoDB) => {
+      // Notify Change
+      _centralRestServer.notifyUserDeleted({"id": id});
+    });
   }
 
-  checkIfMongoDBIDIsValid(id) {
+  _checkIfMongoDBIDIsValid(id) {
       // Check ID
     if (/^[0-9a-fA-F]{24}$/.test(id)) {
       // Valid
