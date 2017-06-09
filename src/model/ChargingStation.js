@@ -48,6 +48,10 @@ class ChargingStation {
     }
   }
 
+  getID() {
+    return this._model.id;
+  }
+
   getChargePointVendor() {
     return this._model.chargePointVendor;
   }

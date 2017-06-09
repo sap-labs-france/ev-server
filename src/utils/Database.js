@@ -5,6 +5,7 @@ var Users = require('./Users');
 module.exports = {
   updateChargingStationObject(src, dest) {
     // Set it
+    dest.id = src.id;
     dest.chargeBoxIdentity = src.chargeBoxIdentity;
     dest.chargePointSerialNumber = src.chargePointSerialNumber;
     dest.chargePointModel = src.chargePointModel;

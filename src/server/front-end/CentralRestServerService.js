@@ -55,11 +55,13 @@ module.exports = {
         // Check Context
         switch (action) {
           // Charge Box
-          case "ClearCache":
-          case "GetConfiguration":
-          case "StopTransaction":
-          case "UnlockConnector":
-          case "Reset":
+          case "ChargingStationClearCache":
+          case "ChargingStationGetConfiguration":
+          case "ChargingStationStopTransaction":
+          case "ChargingStationUnlockConnector":
+          case "ChargingStationReset":
+            // Keep the action
+            action = action.slice(15);
             // Charge Box is mandatory
             if(!req.body.chargeBoxIdentity) {
               Logging.logActionErrorMessageAndSendResponse(action, `The Charging Station ID is mandatory`, req, res, next);
@@ -97,7 +99,7 @@ module.exports = {
             break;
 
           // Create User
-          case "CreateUser":
+          case "UserCreate":
             // Check auth
             if (!CentralRestServerAuthorization.canCreateUser(req.user)) {
               // Not Authorized!
@@ -152,7 +154,7 @@ module.exports = {
       // Check Action
       switch (action) {
         // Get the Logging
-        case "Logging":
+        case "Loggings":
           // Check auth
           if (!CentralRestServerAuthorization.canListLogging(req.user)) {
             // Not Authorized!
@@ -366,7 +368,7 @@ module.exports = {
           break;
 
         // Get the transactions
-        case "Transactions":
+        case "ChargingStationTransactions":
           // Charge Box is mandatory
           if(!req.query.ChargeBoxIdentity) {
             Logging.logActionErrorMessageAndSendResponse(action, `The Charging Station ID is mandatory`, req, res, next);
@@ -406,7 +408,7 @@ module.exports = {
           break;
 
         // Get the last transaction
-        case "LastTransaction":
+        case "ChargingStationLastTransaction":
           // Charge Box is mandatory
           if(!req.query.ChargeBoxIdentity) {
             Logging.logActionErrorMessageAndSendResponse(action, `The Charging Station ID is mandatory`, req, res, next);
@@ -445,7 +447,7 @@ module.exports = {
           break;
 
         // Get all the Status Notifications
-        case "StatusNotifications":
+        case "ChargingStationStatusNotifications":
           // Charge Box is mandatory
           if(!req.query.ChargeBoxIdentity) {
             Logging.logActionErrorMessageAndSendResponse(action, `The Charging Station ID is mandatory`, req, res, next);
@@ -480,7 +482,7 @@ module.exports = {
           break;
 
         // Get the last Status Notifications
-        case "LastStatusNotification":
+        case "ChargingStationLastStatusNotification":
           // Charge Box is mandatory
           if(!req.query.ChargeBoxIdentity) {
             Logging.logActionErrorMessageAndSendResponse(action, `The Charging Station ID is mandatory`, req, res, next);
@@ -618,7 +620,7 @@ module.exports = {
       // Check
       switch (action) {
         // User
-        case "UpdateUser":
+        case "UserUpdate":
           // Check Mandatory fields
           if (Users.checkIfUserValid(req, res, next)) {
             // Check email
@@ -667,7 +669,7 @@ module.exports = {
           break;
 
         // User
-        case "ChangeUserPassword":
+        case "UserChangePassword":
           // Get user
           global.storage.getUser(req.user.id).then(function(user) {
             if (!user) {
@@ -722,14 +724,14 @@ module.exports = {
         // Check
         switch (action) {
           // User
-          case "DeleteUser":
+          case "UserDelete":
             // Check Mandatory fields
             if(!req.query.ID) {
               Logging.logActionErrorMessageAndSendResponse(action, `The user's ID must be provided`, req, res, next);
               return;
             }
             // Check email
-            global.storage.getUser(req.query.ID).then(function(user) {
+            global.storage.getUser(req.query.ID).then((user) => {
               if (!user) {
                 Logging.logActionErrorMessageAndSendResponse(action, `The user with ID ${req.body.id} does not exist anymore`, req, res, next);
                 return;
@@ -747,6 +749,43 @@ module.exports = {
                 Logging.logInfo({
                   user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
                   message: `User ${user.getFullName()} with Email ${user.getEMail()} has been deleted successfully`,
+                  detailedMessages: user});
+                // Ok
+                res.json({status: `Success`});
+                next();
+              });
+            }).catch((err) => {
+              // Log
+              Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            });
+            break;
+
+          // Charging station
+          case "ChargingStationDelete":
+            // Check Mandatory fields
+            if(!req.query.ID) {
+              Logging.logActionErrorMessageAndSendResponse(action, `The charging station's ID must be provided`, req, res, next);
+              return;
+            }
+            // Check email
+            global.storage.getChargingStation(req.query.ID).then((chargingStation) => {
+              if (!chargingStation) {
+                Logging.logActionErrorMessageAndSendResponse(action, `The charging station with ID ${req.body.id} does not exist anymore`, req, res, next);
+                return;
+              }
+              // Check auth
+              if (!CentralRestServerAuthorization.canDeleteChargingStation(req.user, chargingStation.getModel())) {
+                // Not Authorized!
+                Logging.logActionUnauthorizedMessageAndSendResponse(
+                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_DELETE, req, res, next);
+                return;
+              }
+              // Delete
+              global.storage.deleteChargingStation(req.query.ID).then(() => {
+                // Log
+                Logging.logInfo({
+                  user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
+                  message: `Charging Station ${chargingStation.getChargeBoxIdentity()} has been deleted successfully`,
                   detailedMessages: user});
                 // Ok
                 res.json({status: `Success`});

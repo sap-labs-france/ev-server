@@ -79,6 +79,12 @@ module.exports = {
       { "Action": this.ACTION_DELETE, "UserID": user.id });
   },
 
+  canDeleteChargingStation(loggedUser, chargingStation) {
+    // Check
+    return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATION,
+      { "Action": this.ACTION_DELETE });
+  },
+
   isAdmin(loggedUser) {
     return loggedUser.role === this.ROLE_ADMIN;
   },

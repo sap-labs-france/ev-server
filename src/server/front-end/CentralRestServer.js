@@ -79,11 +79,9 @@ class CentralSystemRestServer {
 
     // Handle Socket IO connection
     _io.on("connection", (socket) => {
-      console.log("CONNECTION SOCKET IO DONE");
-
       // Handle Socket IO connection
       socket.on("disconnect", () =>{
-        console.log("DISCONNET SOCKET");
+        // Nothing to do
       });
     });
 
@@ -118,6 +116,30 @@ class CentralSystemRestServer {
     this.notifyAllWebSocketClients(CentralRestServerAuthorization.ENTITY_USER, {
       "action": CentralRestServerAuthorization.ACTION_DELETE,
       "id": user.id
+    });
+  }
+
+  notifyChargingStationUpdated(chargingStation) {
+    // Notify
+    this.notifyAllWebSocketClients(CentralRestServerAuthorization.ENTITY_CHARGING_STATION, {
+      "action": CentralRestServerAuthorization.ACTION_UPDATE,
+      "id": chargingStation.id
+    });
+  }
+
+  notifyChargingStationCreated(chargingStation) {
+    // Notify
+    this.notifyAllWebSocketClients(CentralRestServerAuthorization.ENTITY_CHARGING_STATION, {
+      "action": CentralRestServerAuthorization.ACTION_CREATE,
+      "id": chargingStation.id
+    });
+  }
+
+  notifyChargingStationDeleted(chargingStation) {
+    // Notify
+    this.notifyAllWebSocketClients(CentralRestServerAuthorization.ENTITY_CHARGING_STATION, {
+      "action": CentralRestServerAuthorization.ACTION_DELETE,
+      "id": chargingStation.id
     });
   }
 
