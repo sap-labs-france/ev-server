@@ -245,7 +245,10 @@ class MongoDBStorage extends Storage {
       .digest("hex");
     bootNotificationMongoDB.chargeBoxID = bootNotification.chargeBoxIdentity;
     // Create new
-    return bootNotificationMongoDB.save(); // No need to notify the user
+    return bootNotificationMongoDB.save().then(() => {
+      // Notify
+      _centralRestServer.notifyChargingStationUpdated({"id" : bootNotification.chargeBoxIdentity})
+    })
   }
 
   saveDataTransfer(dataTransfer) {
@@ -274,7 +277,10 @@ class MongoDBStorage extends Storage {
     configurationMongoDB.chargeBoxID = configuration.chargeBoxIdentity;
     configurationMongoDB.configuration = configuration.configurationKey;
     // Create new
-    return configurationMongoDB.save(); // No need to notify the user
+    return configurationMongoDB.save().then(() => {
+      // Notify
+      _centralRestServer.notifyChargingStationUpdated({"id" : configuration.chargeBoxIdentity})
+    });
   }
 
   saveStatusNotification(statusNotification) {
@@ -286,7 +292,10 @@ class MongoDBStorage extends Storage {
       .digest("hex");
     statusNotificationMongoDB.chargeBoxID = statusNotification.chargeBoxIdentity;
     // Create new
-    return statusNotificationMongoDB.save();  // No need to notify the user
+    return statusNotificationMongoDB.save().then(() => {
+      // Notify
+      _centralRestServer.notifyChargingStationUpdated({"id" : statusNotification.chargeBoxIdentity})
+    });
   }
 
   saveDiagnosticsStatusNotification(diagnosticsStatusNotification) {
