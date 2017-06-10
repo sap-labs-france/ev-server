@@ -101,7 +101,7 @@ class CentralSystemServer {
             "bootNotificationResponse": {
               "status": 'Accepted',
               "currentTime": new Date().toISOString(),
-              "interval": _chargingStationConfig.heartbeatInterval
+              "interval": _chargingStationConfig.heartbeatIntervalSecs
             }
           };
           // OCPP 1.2 && 1.5
@@ -110,7 +110,7 @@ class CentralSystemServer {
             "bootNotificationResponse": {
               "status": 'Accepted',
               "currentTime": new Date().toISOString(),
-              "heartbeatInterval": _chargingStationConfig.heartbeatInterval
+              "heartbeatInterval": _chargingStationConfig.heartbeatIntervalSecs
             }
           };
         }
@@ -125,7 +125,7 @@ class CentralSystemServer {
           "bootNotificationResponse": {
             "status": 'Rejected',
             "currentTime": new Date().toISOString(),
-            "heartbeatInterval": _chargingStationConfig.heartbeatInterval
+            "heartbeatInterval": _chargingStationConfig.heartbeatIntervalSecs
           }
         };
       });

@@ -72,5 +72,42 @@
         }
       }
     ]
+  },
+  {
+    "id": "D",
+    "name": "Demo",
+    "auths": [
+      {
+        "AuthObject": "Users",
+        "AuthFieldValue": {
+          "Action": []
+        }
+      },
+      {
+        "AuthObject": "User",
+        "AuthFieldValue": {
+          "UserID": [],
+          "Action": []
+        }
+      },
+      {
+        "AuthObject": "ChargingStations",
+        "AuthFieldValue": {
+          "Action": ["List"]
+        }
+      },
+      {
+        "AuthObject": "ChargingStation",
+        "AuthFieldValue": {
+          "Action": ["Read"]
+        }
+      },
+      {
+        "AuthObject": "Logging",
+        "AuthFieldValue": {
+          "Action": []
+        }
+      }
+    ]
   }
 ]

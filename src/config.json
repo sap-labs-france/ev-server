@@ -41,7 +41,7 @@
     "debug": false
   },
   "ChargingStation" : {
-    "heartbeatInterval": 60
+    "heartbeatIntervalSecs": 60
   },
   "Locales" : {
     "default": "en_US",

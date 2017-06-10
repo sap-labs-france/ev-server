@@ -7,6 +7,7 @@ let _configuration;
 module.exports = {
   ROLE_ADMIN: "A",
   ROLE_BASIC: "B",
+  ROLE_DEMO: "D",
 
   ENTITY_USER: "User",
   ENTITY_USERS: "Users",

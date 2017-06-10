@@ -65,9 +65,18 @@ module.exports = {
                     auths: compiledAuths
                 };
                 // Build token
-                var token = jwt.sign(payload, jwtOptions.secretOrKey, {
-                  expiresIn: 12*3600 // 12h
-                });
+                // Demo?
+                if (user.getRole() === 'D') {
+                  // Yes
+                  var token = jwt.sign(payload, jwtOptions.secretOrKey, {
+                    expiresIn: 12*30*24*3600 // 1 year
+                  });
+                } else {
+                  // No
+                  var token = jwt.sign(payload, jwtOptions.secretOrKey, {
+                    expiresIn: 12*3600 // 12h
+                  });
+                }
                 // Return it
                 res.json({ token: token });
               } else {
