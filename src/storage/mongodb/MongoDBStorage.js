@@ -247,7 +247,7 @@ class MongoDBStorage extends Storage {
     // Create new
     return bootNotificationMongoDB.save().then(() => {
       // Notify
-      _centralRestServer.notifyChargingStationUpdated({"id" : bootNotification.chargeBoxIdentity})
+      _centralRestServer.notifyChargingStationUpdated({"id" : bootNotification.chargeBoxIdentity});
     })
   }
 
@@ -263,7 +263,7 @@ class MongoDBStorage extends Storage {
     // Create new
     return dataTransferMongoDB.save().then(() => {
       // Notify
-      _centralRestServer.notifyChargingStationUpdated({"id" : dataTransfer.chargeBoxIdentity})
+      _centralRestServer.notifyChargingStationUpdated({"id" : dataTransfer.chargeBoxIdentity});
     });
   }
 
@@ -279,7 +279,7 @@ class MongoDBStorage extends Storage {
     // Create new
     return configurationMongoDB.save().then(() => {
       // Notify
-      _centralRestServer.notifyChargingStationUpdated({"id" : configuration.chargeBoxIdentity})
+      _centralRestServer.notifyChargingStationUpdated({"id" : configuration.chargeBoxIdentity});
     });
   }
 
@@ -294,7 +294,7 @@ class MongoDBStorage extends Storage {
     // Create new
     return statusNotificationMongoDB.save().then(() => {
       // Notify
-      _centralRestServer.notifyChargingStationUpdated({"id" : statusNotification.chargeBoxIdentity})
+      _centralRestServer.notifyChargingStationUpdated({"id" : statusNotification.chargeBoxIdentity});
     });
   }
 
@@ -309,7 +309,7 @@ class MongoDBStorage extends Storage {
     // Create new
     return diagnosticsStatusNotificationMongoDB.save(() => {
       // Notify
-      _centralRestServer.notifyChargingStationUpdated({"id" : diagnosticsStatusNotification.chargeBoxIdentity})
+      _centralRestServer.notifyChargingStationUpdated({"id" : diagnosticsStatusNotification.chargeBoxIdentity});
     });
   }
 
@@ -325,7 +325,7 @@ class MongoDBStorage extends Storage {
     // Create new
     return firmwareStatusNotificationMongoDB.save().then(() => {
       // Notify
-      _centralRestServer.notifyChargingStationUpdated({"id" : firmwareStatusNotification.chargeBoxIdentity})
+      _centralRestServer.notifyChargingStationUpdated({"id" : firmwareStatusNotification.chargeBoxIdentity});
     });
   }
 
@@ -353,7 +353,7 @@ class MongoDBStorage extends Storage {
     // Create new
     return authorizeMongoDB.save().then(() => {
       // Notify
-      _centralRestServer.notifyChargingStationUpdated({"id" : authorize.chargeBoxIdentity})
+      _centralRestServer.notifyChargingStationUpdated({"id" : authorize.chargeBoxIdentity});
     });
   }
 
@@ -370,7 +370,7 @@ class MongoDBStorage extends Storage {
     // Create new
     return startTransactionMongoDB.save().then(() => {
       // Notify
-      _centralRestServer.notifyChargingStationUpdated({"id" : startTransaction.chargeBoxIdentity})
+      _centralRestServer.notifyChargingStationUpdated({"id" : startTransaction.chargeBoxIdentity});
     });
   }
 
@@ -392,7 +392,7 @@ class MongoDBStorage extends Storage {
     // Create new
     return stopTransactionMongoDB.save().then(() => {
       // Notify
-      _centralRestServer.notifyChargingStationUpdated({"id" : stopTransaction.chargeBoxIdentity})
+      _centralRestServer.notifyChargingStationUpdated({"id" : stopTransaction.chargeBoxIdentity});
     });
   }
 
@@ -410,7 +410,7 @@ class MongoDBStorage extends Storage {
       // Save
       return meterValueMongoDB.save().then(() => {
         // Notify
-        _centralRestServer.notifyChargingStationUpdated({"id" : meterValues.chargeBoxIdentity})
+        _centralRestServer.notifyChargingStationUpdated({"id" : meterValues.chargeBoxIdentity});
       });
     }));
   }
