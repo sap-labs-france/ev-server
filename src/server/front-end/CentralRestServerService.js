@@ -679,43 +679,6 @@ module.exports = {
           }
           break;
 
-        // User
-        case "UserChangePassword":
-          // Get user
-          global.storage.getUser(req.user.id).then(function(user) {
-            if (!user) {
-              Logging.logActionErrorMessageAndSendResponse(action, `The user with ID ${req.user.id} does not exist anymore`, req, res, next);
-              return;
-            }
-
-            // Check auth
-            if (!CentralRestServerAuthorization.canUpdateUser(req.user, user.getModel())) {
-              // Not Authorized!
-              Logging.logActionUnauthorizedMessageAndSendResponse(
-                CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_UPDATE, req, res, next);
-              return;
-            }
-
-            // Hash the pass
-            let passwordHashed = Users.hashPassword(req.body.password);
-            // Update the password
-            user.setPassword(passwordHashed);
-
-            // Save
-            user.save().then(() => {
-              Logging.logInfo({
-                user: req.user, source: "Central Server", module: "CentralServerRestService", method: "ChangeUserPassword",
-                message: `The password of the User ${user.getFullName()} has been updated successfully`});
-            });
-            res.json({status: `Success`});
-            next();
-
-          }).catch((err) => {
-            // Log
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-          });
-          break;
-
           // Not found
         default:
           // Action provided
