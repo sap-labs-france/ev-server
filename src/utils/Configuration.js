@@ -37,6 +37,12 @@ module.exports = {
     return this.getConfig().Email;
   },
 
+  // Advanced config
+  getAdvancedConfig() {
+    // Read conf
+    return this.getConfig().Advanced;
+  },
+
   // Locale config
   getLocalesConfig() {
     // Read conf

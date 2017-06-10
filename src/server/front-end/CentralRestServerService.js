@@ -651,6 +651,17 @@ module.exports = {
               // Update
               Database.updateUser(req.body, user.getModel());
 
+              // Check the password
+              if (req.body.passwords.password && req.body.passwords.password.length > 0) {
+                console.log("SET PASSWORD");
+                // Hash the pass
+                let passwordHashed = Users.hashPassword(req.body.passwords.password);
+                // Update the password
+                user.setPassword(passwordHashed);
+              } else {
+                console.log("NOT SET PASSWORD");
+              }
+
               // Update
               user.save().then(() => {
                 Logging.logInfo({

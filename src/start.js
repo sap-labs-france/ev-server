@@ -58,8 +58,11 @@ global.storage.start().then(() => {
     centralRestServer.start();
   }
 
+  // Get advanced config
+  let advancedConfig = Configuration.getAdvancedConfig();
+
   // Start background task
-  setInterval(CentralServerBackgroundTasks.executeAllBackgroundTasks, 15 * 1000);
+  setInterval(CentralServerBackgroundTasks.executeAllBackgroundTasks, advancedConfig.backgroundTasksIntervalSecs * 1000);
 },
 (err) => {
   console.log("Cannot start the Central Server: No Database is running!");
