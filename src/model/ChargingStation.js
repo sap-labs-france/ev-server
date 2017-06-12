@@ -391,8 +391,14 @@ class ChargingStation {
     // Set the charger ID
     transaction.chargeBoxIdentity = this.getChargeBoxIdentity();
 
-    // Execute
-    return this.checkIfUserIsAuthorized(transaction, global.storage.saveStartTransaction);
+    // Check if already exists
+    if (!transaction.id) {
+      // No: Check user and save
+      return this.checkIfUserIsAuthorized(transaction, global.storage.saveStartTransaction);
+    } else {
+      // Yes: save it
+      return global.storage.saveStartTransaction(transaction);
+    }
   }
 
   saveDataTransfer(dataTransfer) {

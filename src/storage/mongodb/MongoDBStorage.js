@@ -358,20 +358,25 @@ class MongoDBStorage extends Storage {
   }
 
   saveStartTransaction(startTransaction) {
-    // Create model
-    var startTransactionMongoDB = new MDBStartTransaction(startTransaction);
-    // Set the ID
-    startTransactionMongoDB._id = crypto.createHash('md5')
-      .update(`${startTransaction.chargeBoxIdentity}~${startTransaction.connectorId}~${startTransaction.timestamp}`)
-      .digest("hex");
-    startTransactionMongoDB.userID = startTransaction.user.getID();
-    startTransactionMongoDB.tagID = startTransaction.idTag;
-    startTransactionMongoDB.chargeBoxID = startTransaction.chargeBoxIdentity;
-    // Create new
-    return startTransactionMongoDB.save().then(() => {
-      // Notify
-      _centralRestServer.notifyChargingStationUpdated({"id" : startTransaction.chargeBoxIdentity});
-    });
+    // Already created?
+    if (!startTransaction.id) {
+      // No: Set a new ID
+      startTransaction.id = crypto.createHash('md5')
+        .update(`${startTransaction.chargeBoxIdentity}~${startTransaction.connectorId}~${startTransaction.timestamp}`)
+        .digest("hex");
+      startTransaction.userID = startTransaction.user.getID();
+      startTransaction.tagID = startTransaction.idTag;
+      startTransaction.chargeBoxID = startTransaction.chargeBoxIdentity;
+    }
+
+    // Get
+    return MDBStartTransaction.findOneAndUpdate({"_id": startTransaction.id}, startTransaction, {
+        new: true,
+        upsert: true
+      }).then((startTransactionMongoDB) => {
+        // Notify
+        _centralRestServer.notifyChargingStationUpdated({"id" : startTransaction.chargeBoxIdentity});
+      });
   }
 
   saveStopTransaction(stopTransaction) {

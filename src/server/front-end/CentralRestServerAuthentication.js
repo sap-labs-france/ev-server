@@ -7,13 +7,16 @@ var EMail = require('../../email/EMail');
 var Logging = require('../../utils/Logging');
 var User = require('../../model/User');
 var Utils = require('../../utils/Utils');
+var Configuration = require('../../utils/Configuration');
 var Authorization = require('../../utils/Authorization');
 var compileProfile = require('node-authorization').profileCompiler;
 var Mustache = require('mustache');
 
+let _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
+
 // Init JWT auth options
 var jwtOptions = {
-  secretOrKey: 's3A92797boeiBhxQDM1GInRith',
+  secretOrKey: _centralSystemRestConfig.userTokenKey,
   jwtFromRequest: ExtractJwt.fromAuthHeader()
   // issuer: 'evse-dashboard',
   // audience: 'evse-dashboard'
@@ -65,16 +68,16 @@ module.exports = {
                     auths: compiledAuths
                 };
                 // Build token
-                // Demo?
+                // Role Demo?
                 if (user.getRole() === 'D') {
                   // Yes
                   var token = jwt.sign(payload, jwtOptions.secretOrKey, {
-                    expiresIn: 12*30*24*3600 // 1 year
+                    expiresIn: _centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600
                   });
                 } else {
                   // No
                   var token = jwt.sign(payload, jwtOptions.secretOrKey, {
-                    expiresIn: 12*3600 // 12h
+                    expiresIn: _centralSystemRestConfig.userTokenLifetimeHours * 3600
                   });
                 }
                 // Return it
@@ -110,7 +113,7 @@ module.exports = {
                     // Send the email
                     EMail.sendRegisteredUserEmail({
                           "user": newUser.getModel(),
-                          "evseDashboardURL" : Utils.buildEvseURL(req)
+                          "evseDashboardURL" : Utils.buildEvseURL()
                         }, req.locale).then(
                       message => {
                         // Success
@@ -155,7 +158,7 @@ module.exports = {
                     EMail.sendResetPasswordEmail({
                       "user": user.getModel(),
                       "newPassword": newPassword,
-                      "evseDashboardURL" : Utils.buildEvseURL(req)
+                      "evseDashboardURL" : Utils.buildEvseURL()
                     }, req.locale).then(
                       message => {
                         // Success

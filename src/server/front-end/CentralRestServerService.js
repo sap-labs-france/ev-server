@@ -118,6 +118,14 @@ module.exports = {
 
                 // Create user
                 var newUser = new User(req.body);
+
+                // Set the locale
+                newUser.setLocale(req.locale);
+
+                // Update timestamp
+                newUser.setCreatedBy(`${req.user.name} ${req.user.firstName}`);
+                newUser.setCreatedOn(new Date());
+
                 // Save
                 newUser.save().then(() => {
                   Logging.logInfo({
@@ -240,6 +248,8 @@ module.exports = {
               // Check auth
               if (CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
                 // Yes: add user
+                // Clear image
+                user.image = "";
                 // Clear Sensitive Data
                 user.setPassword("");
                 // Must be admin to get the user/pass
@@ -651,17 +661,20 @@ module.exports = {
               // Update
               Database.updateUser(req.body, user.getModel());
 
+              // Set the locale
+              user.setLocale(req.locale);
+
+              // Update timestamp
+              user.setLastChangedBy(`${req.user.name} ${req.user.firstName}`);
+              user.setLastChangedOn(new Date());
+
               // Check the password
               if (req.body.passwords.password && req.body.passwords.password.length > 0) {
-                console.log("SET PASSWORD");
                 // Hash the pass
                 let passwordHashed = Users.hashPassword(req.body.passwords.password);
                 // Update the password
                 user.setPassword(passwordHashed);
-              } else {
-                console.log("NOT SET PASSWORD");
               }
-
               // Update
               user.save().then(() => {
                 Logging.logInfo({

@@ -59,6 +59,7 @@ module.exports = {
     dest.name = src.name;
     dest.firstName = src.firstName;
     dest.image = src.image;
+    dest.locale = src.locale;
     dest.email = src.email;
     dest.phone = src.phone;
     dest.mobile = src.mobile;
@@ -75,8 +76,6 @@ module.exports = {
       // Set default user
       dest.createdBy = "Central Server";
       dest.createdOn = new Date();
-      dest.lastChangedBy = dest.createdBy;
-      dest.lastChangedOn = dest.createdOn;
     }
     // Check the password
     if (src.password && src.password.length > 0) {
@@ -110,6 +109,7 @@ module.exports = {
 
   updateStartTransaction(src, dest) {
     // Set it
+    dest.id = src.id;
     dest.chargeBoxID = src.chargeBoxID;
     // Check User
     if (src.userID && src.userID.name) {
@@ -118,17 +118,22 @@ module.exports = {
       dest.userID.id = src.userID.id;
       dest.userID.name = src.userID.name;
       dest.userID.firstName = src.userID.firstName;
+      dest.userID.locale = src.userID.locale;
+      dest.userID.email = src.userID.email;
     } else {
       dest.userID = src.userID;
     }
     dest.connectorId = src.connectorId;
     dest.timestamp = src.timestamp;
+    dest.tagID = src.tagID;
     dest.transactionId = src.transactionId;
     dest.meterStart = src.meterStart;
+    dest.notifBeforeEndOfChargeSent = src.notifBeforeEndOfChargeSent;
   },
 
   updateStopTransaction(src, dest) {
     // Set it
+    dest.id = src.id;
     dest.chargeBoxID = src.chargeBoxID;
     // Check User
     if (src.userID && src.userID.name) {
@@ -137,11 +142,14 @@ module.exports = {
       dest.userID.id = src.userID.id;
       dest.userID.name = src.userID.name;
       dest.userID.firstName = src.userID.firstName;
+      dest.userID.locale = src.userID.locale;
+      dest.userID.email = src.userID.email;
     } else {
       dest.userID = src.userID;
     }
     dest.transactionId = src.transactionId;
     dest.timestamp = src.timestamp;
+    dest.tagID = src.tagID;
     dest.connectorId = src.connectorId;
     dest.meterStop = src.meterStop;
     dest.transactionData = src.transactionData;

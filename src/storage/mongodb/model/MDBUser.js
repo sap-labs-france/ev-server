@@ -22,6 +22,7 @@ module.exports = mongoose.model('User',{
   costCenter: String,
   status: String,
   addresses: [],
+  locale: String,
   createdBy: String,
   createdOn: Date,
   lastChangedBy: String,

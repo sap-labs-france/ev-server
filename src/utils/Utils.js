@@ -1,8 +1,9 @@
 var fs = require('fs');
 var path = require('path');
 var Users = require('./Users');
+var Configuration = require('./Configuration');
 
-var _authorisation;
+let _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 
 module.exports = {
   // Read the user from file
@@ -14,14 +15,22 @@ module.exports = {
   // Save the users in file
   saveUsers(users) {
     // Save
-    fs.writeFileSync(path.join(__dirname, "../users-sav.json"), JSON.stringify(users, null, ' '), 'UTF-8');
+    fs.writeFileSync(path.join(__dirname, `../users-sav-${new Date().getMilliseconds()}.json`), JSON.stringify(users, null, ' '), 'UTF-8');
   },
 
   getRandomInt() {
     return Math.floor((Math.random() * 1000000000) + 1);
   },
 
-  buildEvseURL(request) {
-    return request.headers.origin;
+  buildEvseURL() {
+    return _centralSystemFrontEndConfig.protocol + "://" +
+      _centralSystemFrontEndConfig.host + ":" +
+      _centralSystemFrontEndConfig.port;
+  },
+
+  buildEvseChargingStationURL(chargingStation) {
+    let _evseBaseURL = this.buildEvseURL();
+    // Add : https://localhost:8080/#/pages/chargers/charger/REE001
+    return _evseBaseURL + "/#/pages/chargers/charger/" + chargingStation.getChargeBoxIdentity();
   }
 };
