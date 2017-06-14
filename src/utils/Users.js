@@ -52,7 +52,7 @@ module.exports = {
    // Check password
    isPasswordValid(password) {
      // Check
-     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#\$%\^&\*\.\?\-])(?=.{8,})/.test(password);
+     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/"'\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
    },
 
    // Hash password
