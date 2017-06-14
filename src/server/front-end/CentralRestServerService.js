@@ -171,7 +171,7 @@ module.exports = {
             return;
           }
           // Get logs
-          Logging.getLogs(100).then(function(loggings) {
+          Logging.getLogs(req.query.Search, 100).then((loggings) => {
             // Return
             res.json(loggings);
             next();
@@ -187,7 +187,7 @@ module.exports = {
               CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS, CentralRestServerAuthorization.ACTION_LIST, req, res, next);
             return;
           }
-          global.storage.getChargingStations("RestService").then(function(chargingStations) {
+          global.storage.getChargingStations(req.query.Search, 100).then((chargingStations) => {
             var chargingStationsJSon = [];
             chargingStations.forEach(function(chargingStation) {
               // Check auth
@@ -213,7 +213,7 @@ module.exports = {
             break;
           }
           // Get it
-          global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
+          global.storage.getChargingStation(req.query.ChargeBoxIdentity).then((chargingStation) => {
             if (chargingStation) {
               // Check auth
               if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
@@ -242,7 +242,7 @@ module.exports = {
               CentralRestServerAuthorization.ENTITY_USERS, CentralRestServerAuthorization.ACTION_LIST, req, res, next);
             return;
           }
-          global.storage.getUsers().then(function(users) {
+          global.storage.getUsers(req.query.Search, 100).then(function(users) {
             var usersJSon = [];
             users.forEach(function(user) {
               // Check auth

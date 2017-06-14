@@ -84,12 +84,26 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getLogs(numberOfLogging) {
+  getLogs(searchValue, numberOfLogging) {
     if (!numberOfLogging || isNaN(numberOfLogging)) {
       numberOfLogging = 100;
     }
+    // Set the filters
+    let filters = {};
+    // Source?
+    if (searchValue) {
+      // Build filter
+      filters["$or"] = [
+        { "source" : { $regex : `.*${searchValue}.*` } },
+        { "message" : { $regex : `.*${searchValue}.*` } },
+        { "action" : { $regex : `.*${searchValue}.*` } },
+        { "userFullName" : { $regex : `.*${searchValue}.*` } }
+        // { "module" : { $regex : `.*${searchValue}.*` } },
+        // { "method" : { $regex : `.*${searchValue}.*` } },
+      ];
+    }
     // Exec request
-    return MDBLog.find({}).sort({timestamp: -1}).limit(numberOfLogging).exec().then((loggingsMongoDB) => {
+    return MDBLog.find(filters).sort({timestamp: -1}).limit(numberOfLogging).exec().then((loggingsMongoDB) => {
       var loggings = [];
       loggingsMongoDB.forEach(function(loggingMongoDB) {
         var logging = {};
@@ -533,9 +547,21 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getChargingStations() {
+  getChargingStations(searchValue, numberOfUser) {
+    if (!numberOfUser || isNaN(numberOfUser)) {
+      numberOfUser = 100;
+    }
+    // Set the filters
+    let filters = {};
+    // Source?
+    if (searchValue) {
+      // Build filter
+      filters["$or"] = [
+        { "chargeBoxIdentity" : { $regex : `.*${searchValue}.*` } }
+      ];
+    }
     // Exec request
-    return MDBChargingStation.find({}).sort( {_id: 1} ).exec().then((chargingStationsMongoDB) => {
+    return MDBChargingStation.find(filters).sort( {_id: 1} ).exec().then((chargingStationsMongoDB) => {
       var chargingStations = [];
       // Create
       chargingStationsMongoDB.forEach((chargingStationMongoDB) => {
@@ -559,11 +585,26 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getUsers() {
+  getUsers(searchValue, numberOfUser) {
+    if (!numberOfUser || isNaN(numberOfUser)) {
+      numberOfUser = 100;
+    }
+    // Set the filters
+    let filters = {};
+    // Source?
+    if (searchValue) {
+      // Build filter
+      filters["$or"] = [
+        { "name" : { $regex : `.*${searchValue}.*` } },
+        { "firstName" : { $regex : `.*${searchValue}.*` } },
+        { "email" : { $regex : `.*${searchValue}.*` } },
+        { "role" : { $regex : `.*${searchValue}.*` } }
+      ];
+    }
     // Exec request
     return MDBTag.find({}).exec().then((tagsMongoDB) => {
       // Exec request
-      return MDBUser.find({}).sort( {status: -1, name: 1, firstName: 1} ).exec().then((usersMongoDB) => {
+      return MDBUser.find(filters).sort( {status: -1, name: 1, firstName: 1} ).limit(numberOfUser).exec().then((usersMongoDB) => {
         var users = [];
         // Create
         usersMongoDB.forEach((userMongoDB) => {
