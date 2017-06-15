@@ -18,7 +18,7 @@ module.exports = {
     // module.exports.saveUsers();
 
     // Handle task related to Charging Stations
-    return module.exports.checkChargingStations();
+    // return module.exports.checkChargingStations();
   },
 
   checkChargingStations() {
@@ -32,20 +32,14 @@ module.exports = {
           // Compute current consumption
           return module.exports.computeChargingStationsConsumption(chargingStation).then((updated) => {
             // Update
-            console.log("computeChargingStationsConsumption: " + updated);
-            // Update
             chargingStationUpdated = chargingStationUpdated || updated;
             // Check Notifications
             return module.exports.checkAndSendEndOfChargeNotification(chargingStation);
           }).then((updated) => {
             // Update
-            console.log("checkAndSendEndOfChargeNotification: " + updated);
-            // Update
             chargingStationUpdated = chargingStationUpdated || updated;
             // Updated?
             if (chargingStationUpdated) {
-              // Update
-              console.log("SAVE CHARGING STATION");
               // Save
               return chargingStation.save();
             }
@@ -69,6 +63,14 @@ module.exports = {
     return new Promise((fulfill, reject) => {
       var promises = [];
       var chargingStationUpdated = false;
+
+      // Check
+      if (!_configChargingStation.notifBeforeEndOfChargeEnabled) {
+        // Bypass
+        fulfill(false);
+        return;
+      }
+
       // Get Connectors
       var connectors = chargingStation.getConnectors();
       // Connection

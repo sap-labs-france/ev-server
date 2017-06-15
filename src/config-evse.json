@@ -49,13 +49,15 @@
   },
   "ChargingStation" : {
     "heartbeatIntervalSecs": 60,
-    "notifBeforeEndOfChargePercent": 10
+    "notifBeforeEndOfChargePercent": 10,
+    "notifBeforeEndOfChargeEnabled": false
   },
   "Locales" : {
     "default": "en_US",
     "supported": ["en_US", "fr_FR"]
   },
   "Advanced" : {
-    "backgroundTasksIntervalSecs": 60
+    "backgroundTasksIntervalSecs": 60,
+    "chargeCurveMeterIntervalSecs": 240
   }
 }
