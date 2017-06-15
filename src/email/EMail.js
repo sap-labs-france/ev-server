@@ -72,6 +72,22 @@ class EMail {
     });
   }
 
+  static sendNotifyBeforeEndOfChargeEmail(data, locale) {
+    // Create a promise
+    return new Promise((fulfill, reject) => {
+      // Send it
+      EMail._sendEmail('notify-before-end-of-charge', data, locale, fulfill, reject);
+    });
+  }
+
+  static sendNotifyEndOfChargeEmail(data, locale) {
+    // Create a promise
+    return new Promise((fulfill, reject) => {
+      // Send it
+      EMail._sendEmail('notify-end-of-charge', data, locale, fulfill, reject);
+    });
+  }
+
   static _sendEmail(templateName, data, locale, fulfill, reject) {
     // Create email
     var email = new EMail();

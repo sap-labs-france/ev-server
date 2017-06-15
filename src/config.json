@@ -13,14 +13,23 @@
     "port": 8888,
     "ssl-key": "ssl/64933587-localhost.key",
     "ssl-cert": "ssl/64933587-localhost.cert",
+    "userTokenKey": "s3A92797boeiBhxQDM1GInRith",
+    "userTokenLifetimeHours": 12,
+    "userDemoTokenLifetimeDays": 365,
     "debug": true
+  },
+  "CentralSystemFrontEnd": {
+    "protocol": "https",
+    "host": "localhost",
+    "port": 8080
   },
   "Storage": {
     "implementation": "mongodb",
     "host": "localhost",
     "port": 27017,
     "user": "evse-user",
-    "password": "B3zLQd7gUBcswe44Y",
+    "-password": "B3zLQd7gUBcswe44Y",
+    "password": "$ss#iD$Tr*uv$L$M*tD$P#ss$S#l$B#t#rd",
     "schema": "evse"
   },
   "Email": {
@@ -34,20 +43,24 @@
        "type": "login",
        "user": "evse.adm.noreply",
        "password": "Welc0me!",
-       "debug": true
+       "debug": false
      }
   },
   "Authorization": {
     "debug": false
   },
   "ChargingStation" : {
-    "heartbeatIntervalSecs": 60
+    "heartbeatIntervalSecs": 60,
+    "notifBeforeEndOfChargePercent": 10,
+    "notifBeforeEndOfChargeEnabled": false
+
   },
   "Locales" : {
     "default": "en_US",
     "supported": ["en_US", "fr_FR"]
   },
   "Advanced" : {
-    "backgroundTasksIntervalSecs": 60
+    "backgroundTasksIntervalSecs": 60,
+    "chargeCurveMeterIntervalSecs": 240
   }
 }

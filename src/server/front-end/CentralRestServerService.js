@@ -118,6 +118,14 @@ module.exports = {
 
                 // Create user
                 var newUser = new User(req.body);
+
+                // Set the locale
+                newUser.setLocale(req.locale);
+
+                // Update timestamp
+                newUser.setCreatedBy(`${req.user.name} ${req.user.firstName}`);
+                newUser.setCreatedOn(new Date());
+
                 // Save
                 newUser.save().then(() => {
                   Logging.logInfo({
@@ -163,7 +171,7 @@ module.exports = {
             return;
           }
           // Get logs
-          Logging.getLogs(100).then(function(loggings) {
+          Logging.getLogs(req.query.Search, 100).then((loggings) => {
             // Return
             res.json(loggings);
             next();
@@ -179,7 +187,7 @@ module.exports = {
               CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS, CentralRestServerAuthorization.ACTION_LIST, req, res, next);
             return;
           }
-          global.storage.getChargingStations("RestService").then(function(chargingStations) {
+          global.storage.getChargingStations(req.query.Search, 100).then((chargingStations) => {
             var chargingStationsJSon = [];
             chargingStations.forEach(function(chargingStation) {
               // Check auth
@@ -205,7 +213,7 @@ module.exports = {
             break;
           }
           // Get it
-          global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
+          global.storage.getChargingStation(req.query.ChargeBoxIdentity).then((chargingStation) => {
             if (chargingStation) {
               // Check auth
               if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
@@ -234,12 +242,14 @@ module.exports = {
               CentralRestServerAuthorization.ENTITY_USERS, CentralRestServerAuthorization.ACTION_LIST, req, res, next);
             return;
           }
-          global.storage.getUsers().then(function(users) {
+          global.storage.getUsers(req.query.Search, 100).then(function(users) {
             var usersJSon = [];
             users.forEach(function(user) {
               // Check auth
               if (CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
                 // Yes: add user
+                // Clear image
+                user.image = "";
                 // Clear Sensitive Data
                 user.setPassword("");
                 // Must be admin to get the user/pass
@@ -651,17 +661,20 @@ module.exports = {
               // Update
               Database.updateUser(req.body, user.getModel());
 
+              // Set the locale
+              user.setLocale(req.locale);
+
+              // Update timestamp
+              user.setLastChangedBy(`${req.user.name} ${req.user.firstName}`);
+              user.setLastChangedOn(new Date());
+
               // Check the password
               if (req.body.passwords.password && req.body.passwords.password.length > 0) {
-                console.log("SET PASSWORD");
                 // Hash the pass
                 let passwordHashed = Users.hashPassword(req.body.passwords.password);
                 // Update the password
                 user.setPassword(passwordHashed);
-              } else {
-                console.log("NOT SET PASSWORD");
               }
-
               // Update
               user.save().then(() => {
                 Logging.logInfo({

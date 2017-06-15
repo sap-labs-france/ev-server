@@ -33,6 +33,14 @@ class User {
     this._model.password = password;
   }
 
+  getLocale() {
+    return this._model.locale;
+  }
+
+  setLocale(locale) {
+    this._model.locale = locale;
+  }
+
   getRole() {
     return this._model.role;
   }

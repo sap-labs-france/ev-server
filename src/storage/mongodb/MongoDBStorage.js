@@ -84,12 +84,26 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getLogs(numberOfLogging) {
+  getLogs(searchValue, numberOfLogging) {
     if (!numberOfLogging || isNaN(numberOfLogging)) {
       numberOfLogging = 100;
     }
+    // Set the filters
+    let filters = {};
+    // Source?
+    if (searchValue) {
+      // Build filter
+      filters["$or"] = [
+        { "source" : { $regex : `.*${searchValue}.*` } },
+        { "message" : { $regex : `.*${searchValue}.*` } },
+        { "action" : { $regex : `.*${searchValue}.*` } },
+        { "userFullName" : { $regex : `.*${searchValue}.*` } }
+        // { "module" : { $regex : `.*${searchValue}.*` } },
+        // { "method" : { $regex : `.*${searchValue}.*` } },
+      ];
+    }
     // Exec request
-    return MDBLog.find({}).sort({timestamp: -1}).limit(numberOfLogging).exec().then((loggingsMongoDB) => {
+    return MDBLog.find(filters).sort({timestamp: -1}).limit(numberOfLogging).exec().then((loggingsMongoDB) => {
       var loggings = [];
       loggingsMongoDB.forEach(function(loggingMongoDB) {
         var logging = {};
@@ -358,20 +372,25 @@ class MongoDBStorage extends Storage {
   }
 
   saveStartTransaction(startTransaction) {
-    // Create model
-    var startTransactionMongoDB = new MDBStartTransaction(startTransaction);
-    // Set the ID
-    startTransactionMongoDB._id = crypto.createHash('md5')
-      .update(`${startTransaction.chargeBoxIdentity}~${startTransaction.connectorId}~${startTransaction.timestamp}`)
-      .digest("hex");
-    startTransactionMongoDB.userID = startTransaction.user.getID();
-    startTransactionMongoDB.tagID = startTransaction.idTag;
-    startTransactionMongoDB.chargeBoxID = startTransaction.chargeBoxIdentity;
-    // Create new
-    return startTransactionMongoDB.save().then(() => {
-      // Notify
-      _centralRestServer.notifyChargingStationUpdated({"id" : startTransaction.chargeBoxIdentity});
-    });
+    // Already created?
+    if (!startTransaction.id) {
+      // No: Set a new ID
+      startTransaction.id = crypto.createHash('md5')
+        .update(`${startTransaction.chargeBoxIdentity}~${startTransaction.connectorId}~${startTransaction.timestamp}`)
+        .digest("hex");
+      startTransaction.userID = startTransaction.user.getID();
+      startTransaction.tagID = startTransaction.idTag;
+      startTransaction.chargeBoxID = startTransaction.chargeBoxIdentity;
+    }
+
+    // Get
+    return MDBStartTransaction.findOneAndUpdate({"_id": startTransaction.id}, startTransaction, {
+        new: true,
+        upsert: true
+      }).then((startTransactionMongoDB) => {
+        // Notify
+        _centralRestServer.notifyChargingStationUpdated({"id" : startTransaction.chargeBoxIdentity});
+      });
   }
 
   saveStopTransaction(stopTransaction) {
@@ -528,9 +547,21 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getChargingStations() {
+  getChargingStations(searchValue, numberOfUser) {
+    if (!numberOfUser || isNaN(numberOfUser)) {
+      numberOfUser = 100;
+    }
+    // Set the filters
+    let filters = {};
+    // Source?
+    if (searchValue) {
+      // Build filter
+      filters["$or"] = [
+        { "chargeBoxIdentity" : { $regex : `.*${searchValue}.*` } }
+      ];
+    }
     // Exec request
-    return MDBChargingStation.find({}).sort( {_id: 1} ).exec().then((chargingStationsMongoDB) => {
+    return MDBChargingStation.find(filters).sort( {_id: 1} ).exec().then((chargingStationsMongoDB) => {
       var chargingStations = [];
       // Create
       chargingStationsMongoDB.forEach((chargingStationMongoDB) => {
@@ -554,11 +585,26 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getUsers() {
+  getUsers(searchValue, numberOfUser) {
+    if (!numberOfUser || isNaN(numberOfUser)) {
+      numberOfUser = 100;
+    }
+    // Set the filters
+    let filters = {};
+    // Source?
+    if (searchValue) {
+      // Build filter
+      filters["$or"] = [
+        { "name" : { $regex : `.*${searchValue}.*` } },
+        { "firstName" : { $regex : `.*${searchValue}.*` } },
+        { "email" : { $regex : `.*${searchValue}.*` } },
+        { "role" : { $regex : `.*${searchValue}.*` } }
+      ];
+    }
     // Exec request
     return MDBTag.find({}).exec().then((tagsMongoDB) => {
       // Exec request
-      return MDBUser.find({}).sort( {status: -1, name: 1, firstName: 1} ).exec().then((usersMongoDB) => {
+      return MDBUser.find(filters).sort( {status: -1, name: 1, firstName: 1} ).limit(numberOfUser).exec().then((usersMongoDB) => {
         var users = [];
         // Create
         usersMongoDB.forEach((userMongoDB) => {

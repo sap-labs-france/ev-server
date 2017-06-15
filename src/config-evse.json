@@ -13,7 +13,14 @@
     "port": 8888,
     "ssl-key": "ssl/67268197-37.71.38.82.key",
     "ssl-cert": "ssl/67268197-37.71.38.82.cert",
+    "userTokenLifetimeHours": 12,
+    "userDemoTokenLifetimeDays": 365,
     "debug": true
+  },
+  "CentralSystemFrontEnd": {
+    "protocol": "https",
+    "host": "37.71.38.82",
+    "port": 3000
   },
   "Storage": {
     "implementation": "mongodb",
@@ -34,20 +41,23 @@
        "type": "login",
        "user": "evse.adm.noreply",
        "password": "Welc0me!",
-       "debug": true
+       "debug": false
      }
   },
   "Authorization": {
     "debug": false
   },
   "ChargingStation" : {
-    "heartbeatIntervalSecs": 60
+    "heartbeatIntervalSecs": 60,
+    "notifBeforeEndOfChargePercent": 10,
+    "notifBeforeEndOfChargeEnabled": false
   },
   "Locales" : {
     "default": "en_US",
     "supported": ["en_US", "fr_FR"]
   },
   "Advanced" : {
-    "backgroundTasksIntervalSecs": 60
+    "backgroundTasksIntervalSecs": 60,
+    "chargeCurveMeterIntervalSecs": 240
   }
 }
