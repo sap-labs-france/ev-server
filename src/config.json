@@ -53,7 +53,6 @@
     "heartbeatIntervalSecs": 60,
     "notifBeforeEndOfChargePercent": 10,
     "notifBeforeEndOfChargeEnabled": false
-
   },
   "Locales" : {
     "default": "en_US",

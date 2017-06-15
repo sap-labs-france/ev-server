@@ -13,6 +13,7 @@
     "port": 8888,
     "ssl-key": "ssl/67268197-37.71.38.82.key",
     "ssl-cert": "ssl/67268197-37.71.38.82.cert",
+    "userTokenKey": "s3A92797boeiBhxQDM1GInRith",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
     "debug": true
