@@ -18,7 +18,7 @@ module.exports = {
     // module.exports.saveUsers();
 
     // Handle task related to Charging Stations
-    // return module.exports.checkChargingStations();
+    return module.exports.checkChargingStations();
   },
 
   checkChargingStations() {
