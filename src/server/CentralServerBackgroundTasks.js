@@ -64,13 +64,6 @@ module.exports = {
       var promises = [];
       var chargingStationUpdated = false;
 
-      // Check
-      if (!_configChargingStation.notifBeforeEndOfChargeEnabled) {
-        // Bypass
-        fulfill(false);
-        return;
-      }
-
       // Get Connectors
       var connectors = chargingStation.getConnectors();
       // Connection
@@ -110,6 +103,12 @@ module.exports = {
     return new Promise((fulfill, reject) => {
       var promises = [];
       var chargingStationUpdated = false;
+      // Check
+      if (!_configChargingStation.notifBeforeEndOfChargeEnabled) {
+        // Bypass
+        fulfill(false);
+        return;
+      }
       // Get Connectors
       var connectors = chargingStation.getConnectors();
       // Connection
