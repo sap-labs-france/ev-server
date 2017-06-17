@@ -84,16 +84,32 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getLogs(searchValue, numberOfLogging) {
-    if (!numberOfLogging || isNaN(numberOfLogging)) {
-      numberOfLogging = 100;
+  getLogs(dateFrom, searchValue, numberOfLogs) {
+    // Not provided?
+    if (!numberOfLogs || isNaN(numberOfLogs)) {
+      // Default
+      numberOfLogs = 50;
     }
+    // Limit Exceeded?
+    if(numberOfLogs > 500) {
+      numberOfLogs = 500;
+    }
+    if (typeof numberOfLogs == "string" ) {
+      numberOfLogs = parseInt(numberOfLogs);
+    }
+
     // Set the filters
-    let filters = {};
+    let filter = {};
+    // Date from provided?
+    if (dateFrom) {
+      // Yes, add in filter
+      filter.timestamp = {};
+      filter.timestamp.$gte = new Date(dateFrom);
+    }
     // Source?
     if (searchValue) {
       // Build filter
-      filters["$or"] = [
+      filter["$or"] = [
         { "source" : { $regex : `.*${searchValue}.*` } },
         { "message" : { $regex : `.*${searchValue}.*` } },
         { "action" : { $regex : `.*${searchValue}.*` } },
@@ -103,7 +119,7 @@ class MongoDBStorage extends Storage {
       ];
     }
     // Exec request
-    return MDBLog.find(filters).sort({timestamp: -1}).limit(numberOfLogging).exec().then((loggingsMongoDB) => {
+    return MDBLog.find(filter).sort({timestamp: -1}).limit(numberOfLogs).exec().then((loggingsMongoDB) => {
       var loggings = [];
       loggingsMongoDB.forEach(function(loggingMongoDB) {
         var logging = {};

@@ -171,7 +171,7 @@ module.exports = {
             return;
           }
           // Get logs
-          Logging.getLogs(req.query.Search, 100).then((loggings) => {
+          Logging.getLogs(req.query.DateFrom, req.query.Search, req.query.NumberOfLogs).then((loggings) => {
             // Return
             res.json(loggings);
             next();
