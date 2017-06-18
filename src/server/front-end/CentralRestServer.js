@@ -18,6 +18,7 @@ var fs = require('fs');
 
 let _centralSystemRestConfig;
 let _io;
+let _currentNotifications = [];
 
 class CentralSystemRestServer {
   // Create the rest server
@@ -55,6 +56,17 @@ class CentralSystemRestServer {
 
     // Keep params
     _centralSystemRestConfig = centralSystemRestConfig;
+
+    // Check and send notif
+    setInterval(() => {
+      // Send
+      for (var i = _currentNotifications.length-1; i >= 0; i--) {
+        // send
+        this.notifyAllWebSocketClients(_currentNotifications[i]);
+        // Remove
+        _currentNotifications.splice(i, 1);
+      }
+    }, _centralSystemRestConfig.webSocketNotificationIntervalSecs * 1000);
   }
 
   // Start the server (to be defined in sub-classes)
@@ -96,63 +108,120 @@ class CentralSystemRestServer {
   }
 
   notifyUserUpdated(user) {
-    // Notify
-    this.notifyAllWebSocketClients(CentralRestServerAuthorization.ENTITY_USER, {
+    // Add in buffer
+    this.addNotificationInBuffer({
+      "entity": CentralRestServerAuthorization.ENTITY_USER,
       "action": CentralRestServerAuthorization.ACTION_UPDATE,
       "id": user.id
+    });
+    // Add in buffer
+    this.addNotificationInBuffer({
+      "entity": CentralRestServerAuthorization.ENTITY_USERS
     });
   }
 
   notifyUserCreated(user) {
-    // Notify
-    this.notifyAllWebSocketClients(CentralRestServerAuthorization.ENTITY_USER, {
+    // Add in buffer
+    this.addNotificationInBuffer({
+      "entity": CentralRestServerAuthorization.ENTITY_USER,
       "action": CentralRestServerAuthorization.ACTION_CREATE,
       "id": user.id
+    });
+    // Add in buffer
+    this.addNotificationInBuffer({
+      "entity": CentralRestServerAuthorization.ENTITY_USERS
     });
   }
 
   notifyUserDeleted(user) {
-    // Notify
-    this.notifyAllWebSocketClients(CentralRestServerAuthorization.ENTITY_USER, {
+    // Add in buffer
+    this.addNotificationInBuffer({
+      "entity": CentralRestServerAuthorization.ENTITY_USER,
       "action": CentralRestServerAuthorization.ACTION_DELETE,
       "id": user.id
+    });
+    // Add in buffer
+    this.addNotificationInBuffer({
+      "entity": CentralRestServerAuthorization.ENTITY_USERS
     });
   }
 
   notifyChargingStationUpdated(chargingStation) {
-    // Notify
-    this.notifyAllWebSocketClients(CentralRestServerAuthorization.ENTITY_CHARGING_STATION, {
+    // Add in buffer
+    this.addNotificationInBuffer({
+      "entity": CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
       "action": CentralRestServerAuthorization.ACTION_UPDATE,
       "id": chargingStation.id
+    });
+    // Add in buffer
+    this.addNotificationInBuffer({
+      "entity": CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS
     });
   }
 
   notifyChargingStationCreated(chargingStation) {
-    // Notify
-    this.notifyAllWebSocketClients(CentralRestServerAuthorization.ENTITY_CHARGING_STATION, {
+    // Add in buffer
+    this.addNotificationInBuffer({
+      "entity": CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
       "action": CentralRestServerAuthorization.ACTION_CREATE,
       "id": chargingStation.id
+    });
+    // Add in buffer
+    this.addNotificationInBuffer({
+      "entity": CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS
     });
   }
 
   notifyChargingStationDeleted(chargingStation) {
-    // Notify
-    this.notifyAllWebSocketClients(CentralRestServerAuthorization.ENTITY_CHARGING_STATION, {
+    // Add in buffer
+    this.addNotificationInBuffer({
+      "entity": CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
       "action": CentralRestServerAuthorization.ACTION_DELETE,
       "id": chargingStation.id
+    });
+    // Add in buffer
+    this.addNotificationInBuffer({
+      "entity": CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS
     });
   }
 
   notifyLoggingCreated() {
-    // Notify
-    this.notifyAllWebSocketClients(CentralRestServerAuthorization.ENTITY_LOGGING, {
-      "action": CentralRestServerAuthorization.ACTION_CREATE
+    // Add in buffer
+    this.addNotificationInBuffer({
+      "entity": CentralRestServerAuthorization.ENTITY_LOGGING,
+      "action": CentralRestServerAuthorization.ACTION_CREATE,
     });
   }
 
-  notifyAllWebSocketClients(entity, entityDetails) {
-    // Notify all
-    _io.sockets.emit(entity, entityDetails);
+  addNotificationInBuffer(notification) {
+    let dups = false;
+    // Add in buffer
+    for (var i = 0; i < _currentNotifications.length; i++) {
+      if (_currentNotifications[i].entity === notification.entity &&
+          _currentNotifications[i].action === notification.action &&
+          _currentNotifications[i].id === notification.id) {
+        dups = true;
+      }
+    }
+    // Found dups?
+    if (!dups) {
+      // No: Add it
+      _currentNotifications.push(notification);
+    }
+  }
+
+  notifyAllWebSocketClients(notification) {
+    // Action?
+    if (notification.action) {
+      // Notify all with action
+      _io.sockets.emit(notification.entity, {
+        "action": notification.action,
+        "id": notification.id
+      });
+    } else {
+      // Notify all without action
+      _io.sockets.emit(notification.entity, {});
+    }
   }
 }
 

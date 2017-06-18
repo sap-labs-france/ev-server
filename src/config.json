@@ -16,6 +16,7 @@
     "userTokenKey": "s3A92797boeiBhxQDM1GInRith",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
+    "webSocketNotificationIntervalSecs": 5,
     "debug": true
   },
   "CentralSystemFrontEnd": {
