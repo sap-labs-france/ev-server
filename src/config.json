@@ -29,7 +29,6 @@
     "host": "localhost",
     "port": 27017,
     "user": "evse-user",
-    "-password": "B3zLQd7gUBcswe44Y",
     "password": "$ss#iD$Tr*uv$L$M*tD$P#ss$S#l$B#t#rd",
     "schema": "evse"
   },

@@ -688,7 +688,7 @@ class ChargingStation {
           }
 
           // Last Meter and Current Meter not equal to 0
-          if (meterValue.value != 0 || lastMeterValue.value != 0) {
+          if (meterValue.value !== 0 || lastMeterValue.value !== 0) {
             // Start to return the value after the requested date
             if (!chargingStationConsumption.startDateTime ||
                 currentTimestamp.isSameOrAfter(chargingStationConsumption.startDateTime) ) {

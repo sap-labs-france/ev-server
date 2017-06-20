@@ -119,7 +119,7 @@ class MongoDBStorage extends Storage {
       ];
     }
     // Exec request
-    return MDBLog.find(filter).sort({timestamp: -1}).limit(numberOfLogs).exec().then((loggingsMongoDB) => {
+    return MDBLog.find(filter).sort({timestamp: 1}).limit(numberOfLogs).exec().then((loggingsMongoDB) => {
       var loggings = [];
       loggingsMongoDB.forEach(function(loggingMongoDB) {
         var logging = {};

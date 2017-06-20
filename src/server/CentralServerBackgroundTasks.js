@@ -157,7 +157,7 @@ module.exports = {
                 });
 
             // Charge ended?
-            } else if (percentConsumption == 0) {
+          } else if (percentConsumption === 0) {
               // Yes: Stop the transaction
               chargingStation.requestStopTransaction(lastTransaction.start.transactionId).then((result) => {
                 // Ok?
