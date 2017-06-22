@@ -61,9 +61,9 @@ class MongoDBStorage extends Storage {
     _centralRestServer = centralRestServer;
   }
 
-  getConfigurationParamValue(chargeBoxIdentity, paramName, configDate) {
+  getConfigurationParamValue(chargeBoxIdentity, paramName) {
     // Get the config
-    return this.getConfiguration(chargeBoxIdentity, configDate).then((configuration) => {
+    return this.getConfiguration(chargeBoxIdentity).then((configuration) => {
       var value = null;
       if (configuration) {
         // Get the value
@@ -133,18 +133,14 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getConfiguration(chargeBoxIdentity, configDate) {
-    if (!configDate) {
-      configDate = new Date();
-    }
+  getConfiguration(chargeBoxIdentity) {
     // Exec request
-    return MDBConfiguration.find({"chargeBoxID": chargeBoxIdentity, timestamp: { $lte: configDate } })
-        .sort({timestamp: -1}).limit(1).exec().then((configurationMongoDB) => {
+    return MDBConfiguration.findById({"_id": chargeBoxIdentity }).then((configurationMongoDB) => {
       var configuration = null;
-      if (configurationMongoDB && configurationMongoDB[0]) {
+      if (configurationMongoDB) {
         // Set values
         configuration = {};
-        Database.updateConfiguration(configurationMongoDB[0], configuration);
+        Database.updateConfiguration(configurationMongoDB, configuration);
       }
       // Ok
       return configuration;
@@ -299,17 +295,20 @@ class MongoDBStorage extends Storage {
 
   saveConfiguration(configuration) {
     // Create model
-    var configurationMongoDB = new MDBConfiguration(configuration);
+    var configurationMongoDB = {};
     // Set the ID
-    configurationMongoDB._id = crypto.createHash('md5')
-      .update(`${configuration.chargeBoxIdentity}~${configuration.timestamp}`)
-      .digest("hex");
+    configurationMongoDB._id = configuration.chargeBoxIdentity;
     configurationMongoDB.chargeBoxID = configuration.chargeBoxIdentity;
     configurationMongoDB.configuration = configuration.configurationKey;
-    // Create new
-    return configurationMongoDB.save().then(() => {
-      // Notify
-      _centralRestServer.notifyChargingStationUpdated({"id" : configuration.chargeBoxIdentity});
+    configurationMongoDB.timestamp = configuration.timestamp;
+
+    // Get
+    return MDBConfiguration.findOneAndUpdate(
+      {"_id": configuration.chargeBoxIdentity},
+      configurationMongoDB,
+      {new: true, upsert: true}).then((chargingStationMongoDB) => {
+        // Notify
+        _centralRestServer.notifyChargingStationUpdated({"id" : configuration.chargeBoxIdentity});
     });
   }
 

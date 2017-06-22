@@ -34,7 +34,7 @@
   },
   "Email": {
      "from": "evse.adm.noreply@gmail.com",
-     "bcc": "gerald.seiler@sap.com, serge.fabiano@sap.com",
+     "bcc": "serge.fabiano@sap.com",
      "smtp" : {
        "host": "smtp.gmail.com",
        "port": 465,

@@ -242,7 +242,7 @@ class ChargingStation {
     // Use a function to pass the connector`
     return ((connector) => {
       // Get the configuration
-      return this.getConfiguration("StatusNotification").then((configuration) => {
+      return this.getConfiguration().then((configuration) => {
         var voltageRerefence = 0;
         var current = 0;
         var chargerConsumption = 0;

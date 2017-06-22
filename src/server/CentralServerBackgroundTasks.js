@@ -114,47 +114,44 @@ module.exports = {
             // Yes: Compute percent
             var percentConsumption = (connector.currentConsumption * 100) / connector.power;
             // Check
-            if (!lastTransaction.start.notifBeforeEndOfChargeSent &&
+            if (_configChargingStation.notifBeforeEndOfChargeEnabled &&
+                !lastTransaction.start.notifBeforeEndOfChargeSent &&
                 percentConsumption <= _configChargingStation.notifBeforeEndOfChargePercent) {
-              // Check if enabled
-              if (_configChargingStation.notifBeforeEndOfChargeEnabled) {
-                // Send the email
-                EMail.sendNotifyBeforeEndOfChargeEmail({
-                      "user": lastTransaction.start.userID,
-                      "evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(chargingStation)
-                    }, lastTransaction.start.userID.locale).then(
-                  message => {
-                    // Set notif sent
-                    // Keep user
-                    let user = {};
-                    user.firstName = lastTransaction.start.userID.firstName;
-                    user.name = lastTransaction.start.userID.name;
-                    user.email = lastTransaction.start.userID.email;
-                    // Set
-                    lastTransaction.start.userID = lastTransaction.start.userID.id;
-                    lastTransaction.start.notifBeforeEndOfChargeSent = true;
-                    // Save Start Transaction
-                    chargingStation.saveStartTransaction(lastTransaction.start).then(() => {
-                      // Success
-                      Logging.logInfo({
-                        userFullName: "System", source: "Central Server", module: "CentralServerBackgroundTasks", method: "checkAndSendEndOfChargeNotification",
-                        action: "NotifyBeforeEndOfCharge", message: `User ${user.firstName} ${user.name} with email ${user.email} has been notified successfully about before the end of charge`,
-                        detailedMessages: lastTransaction});
-                      // Nothing to do
-                      return Promise.resolve();
-                    });
-                  },
-                  error => {
-                    // Error
-                    Logging.logError({
+              // Send the email
+              EMail.sendNotifyBeforeEndOfChargeEmail({
+                    "user": lastTransaction.start.userID,
+                    "evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(chargingStation)
+                  }, lastTransaction.start.userID.locale).then(
+                message => {
+                  // Set notif sent
+                  // Keep user
+                  let user = {};
+                  user.firstName = lastTransaction.start.userID.firstName;
+                  user.name = lastTransaction.start.userID.name;
+                  user.email = lastTransaction.start.userID.email;
+                  // Set
+                  lastTransaction.start.userID = lastTransaction.start.userID.id;
+                  lastTransaction.start.notifBeforeEndOfChargeSent = true;
+                  // Save Start Transaction
+                  chargingStation.saveStartTransaction(lastTransaction.start).then(() => {
+                    // Success
+                    Logging.logInfo({
                       userFullName: "System", source: "Central Server", module: "CentralServerBackgroundTasks", method: "checkAndSendEndOfChargeNotification",
-                      action: "NotifyBeforeEndOfCharge", message: `${error.toString()}`,
-                      detailedMessages: error.stack });
+                      action: "NotifyBeforeEndOfCharge", message: `User ${user.firstName} ${user.name} with email ${user.email} has been notified successfully about before the end of charge`,
+                      detailedMessages: lastTransaction});
+                    // Nothing to do
+                    return Promise.resolve();
                   });
-                }
-
-            // Charge ended?
-          } else if (percentConsumption === 0) {
+                },
+                error => {
+                  // Error
+                  Logging.logError({
+                    userFullName: "System", source: "Central Server", module: "CentralServerBackgroundTasks", method: "checkAndSendEndOfChargeNotification",
+                    action: "NotifyBeforeEndOfCharge", message: `${error.toString()}`,
+                    detailedMessages: error.stack });
+                });
+          // Charge ended?
+          } else if (_configChargingStation.notifEndOfChargeEnabled && percentConsumption === 0) {
             // Check if enabled
             if (_configChargingStation.notifEndOfChargeEnabled) {
               // Yes: Stop the transaction
