@@ -241,6 +241,38 @@ class SoapChargingStationClient extends ChargingStationClient {
     });
   }
 
+  changeConfiguration(key, value) {
+    console.log(`changeConfiguration ${key}=${value}`);
+    return new Promise((fulfill, reject) => {
+      // Init SOAP Headers with the action
+      this.initSoapHeaders("ChangeConfiguration");
+
+      // Log
+      Logging.logSendAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "ChangeConfiguration", {"key": key, "value": value});
+
+      // Execute
+      _client.ChangeConfiguration({
+            "changeConfigurationRequest": {
+              "key": key,
+              "value": value
+          }
+        }, (err, result, envelope) => {
+          if(err) {
+            // Log
+            Logging.logError({
+              source: _chargingStation.getChargeBoxIdentity(), module: "SoapChargingStationClient", method: "changeConfiguration",
+              message: `Error when trying to change the configuration parameter '${key}' with value '${value}' of the station ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
+              detailedMessages: err.stack });
+            reject(err);
+          } else {
+            // Log
+            Logging.logReturnedAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "ChangeConfiguration", result);
+            fulfill(result);
+          }
+        });
+    });
+  }
+
   getChargingStation() {
     return _chargingStation;
   }

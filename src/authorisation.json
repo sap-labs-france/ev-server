@@ -25,7 +25,7 @@
       {
         "AuthObject": "ChargingStation",
         "AuthFieldValue": {
-          "Action": ["Create", "Read", "Update", "Delete", "Reset", "ClearCache", "GetConfiguration", "StopTransaction", "UnlockConnector"]
+          "Action": ["Create", "Read", "Update", "Delete", "Reset", "ClearCache", "GetConfiguration", "ChangeConfiguration", "StopTransaction", "UnlockConnector"]
         }
       },
       {

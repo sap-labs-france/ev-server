@@ -14,6 +14,9 @@ class ChargingStationClient {
   getConfiguration(keys) {
   }
 
+  changeConfiguration(key, value) {
+  }
+
   stopTransaction(transactionId) {
   }
 

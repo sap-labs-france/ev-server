@@ -29,9 +29,13 @@ class ChargingStation {
       case "ClearCache":
         return this.requestClearCache();
 
-      // Configuration
+      // Get Configuration
       case "GetConfiguration":
-        return this.requestConfiguration(params.keys);
+        return this.requestGetConfiguration(params.keys);
+
+      // Set Configuration
+      case "ChangeConfiguration":
+        return this.requestChangeConfiguration(params.key, params.value);
 
       // Unlock Connector
       case "UnlockConnector":
@@ -518,11 +522,20 @@ class ChargingStation {
   }
 
   // Get the configuration for the EVSE
-  requestConfiguration(configParamNames) {
+  requestGetConfiguration(configParamNames) {
     // Get the client
     return this.getChargingStationClient().then((chargingStationClient) => {
       // Get config
       return chargingStationClient.getConfiguration(configParamNames);
+    });
+  }
+
+  // Get the configuration for the EVSE
+  requestChangeConfiguration(key, value) {
+    // Get the client
+    return this.getChargingStationClient().then((chargingStationClient) => {
+      // Get config
+      return chargingStationClient.changeConfiguration(key, value);
     });
   }
 

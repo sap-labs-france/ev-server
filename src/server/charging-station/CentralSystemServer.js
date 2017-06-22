@@ -77,7 +77,7 @@ class CentralSystemServer {
           detailedMessages: args });
 
         // Get the Charging Station Config
-        return chargingStation.requestConfiguration();
+        return chargingStation.requestGetConfiguration();
       // Save the config
       }).then((configuration) => {
         // Save it

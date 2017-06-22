@@ -57,6 +57,7 @@ module.exports = {
           // Charge Box
           case "ChargingStationClearCache":
           case "ChargingStationGetConfiguration":
+          case "ChargingStationChangeConfiguration":
           case "ChargingStationStopTransaction":
           case "ChargingStationUnlockConnector":
           case "ChargingStationReset":
@@ -91,7 +92,6 @@ module.exports = {
               // Return the result
               res.json(result);
               next();
-
             }).catch(function(err) {
               // Log
               Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);

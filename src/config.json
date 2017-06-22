@@ -17,7 +17,7 @@
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
     "webSocketNotificationIntervalSecs": 5,
-    "debug": true
+    "debug": false
   },
   "CentralSystemFrontEnd": {
     "protocol": "https",
@@ -51,8 +51,10 @@
   },
   "ChargingStation" : {
     "heartbeatIntervalSecs": 60,
-    "notifBeforeEndOfChargePercent": 10,
-    "notifBeforeEndOfChargeEnabled": false
+    "notifBeforeEndOfChargePercent": 50,
+    "notifBeforeEndOfChargeEnabled": false,
+    "notifEndOfChargePercent": 0,
+    "notifEndOfChargeEnabled": true
   },
   "Locales" : {
     "default": "en_US",

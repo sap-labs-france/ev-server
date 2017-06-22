@@ -17,7 +17,7 @@
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
     "webSocketNotificationIntervalSecs": 5,
-    "debug": true
+    "debug": false
   },
   "CentralSystemFrontEnd": {
     "protocol": "https",
@@ -26,7 +26,7 @@
   },
   "Storage": {
     "implementation": "mongodb",
-    "host": "37.71.38.82",
+    "host": "127.0.0.1",
     "port": 27017,
     "user": "evse-user",
     "password": "$ss#iD$Tr*uv$L$M*tD$P#ss$S#l$B#t#rd",
@@ -52,7 +52,9 @@
   "ChargingStation" : {
     "heartbeatIntervalSecs": 60,
     "notifBeforeEndOfChargePercent": 10,
-    "notifBeforeEndOfChargeEnabled": false
+    "notifBeforeEndOfChargeEnabled": false,
+    "notifEndOfChargePercent": 0,
+    "notifEndOfChargeEnabled": true
   },
   "Locales" : {
     "default": "en_US",
