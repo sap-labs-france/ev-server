@@ -51,6 +51,7 @@
   },
   "ChargingStation" : {
     "heartbeatIntervalSecs": 60,
+    "checkEndOfChargeNotificationAfterMin": 5,
     "notifBeforeEndOfChargePercent": 50,
     "notifBeforeEndOfChargeEnabled": false,
     "notifEndOfChargePercent": 0,
@@ -61,7 +62,7 @@
     "supported": ["en_US", "fr_FR"]
   },
   "Advanced" : {
-    "backgroundTasksIntervalSecs": 60,
+    "backgroundTasksIntervalSecs": 10,
     "chargeCurveMeterIntervalSecs": 240
   }
 }

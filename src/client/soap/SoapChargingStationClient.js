@@ -242,7 +242,6 @@ class SoapChargingStationClient extends ChargingStationClient {
   }
 
   changeConfiguration(key, value) {
-    console.log(`changeConfiguration ${key}=${value}`);
     return new Promise((fulfill, reject) => {
       // Init SOAP Headers with the action
       this.initSoapHeaders("ChangeConfiguration");

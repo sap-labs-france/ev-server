@@ -52,6 +52,7 @@
   "ChargingStation" : {
     "heartbeatIntervalSecs": 60,
     "notifBeforeEndOfChargePercent": 10,
+    "checkEndOfChargeNotificationAfterMin": 5,
     "notifBeforeEndOfChargeEnabled": false,
     "notifEndOfChargePercent": 0,
     "notifEndOfChargeEnabled": true

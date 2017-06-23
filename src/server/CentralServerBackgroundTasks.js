@@ -5,6 +5,7 @@ var Logging = require('../utils/Logging');
 var Configuration = require('../utils/Configuration');
 var Mustache = require('mustache');
 var EMail = require('../email/EMail');
+var moment = require('moment');
 
 _configChargingStation = Configuration.getChargingStationConfig();
 
@@ -110,13 +111,16 @@ module.exports = {
         // Get the consumption for each connector
         promises.push(chargingStation.getLastTransaction(connector.connectorId).then((lastTransaction) => {
           // Transaction In Progress?
-          if (lastTransaction && !lastTransaction.stop) {
+          if (lastTransaction && !lastTransaction.stop && // Transaction must not be stopped
+            moment(lastTransaction.start.timestamp).add(
+              _configChargingStation.checkEndOfChargeNotificationAfterMin, "minutes").isBefore(moment())) {  // Do not check before 5 mins
+            console.log("Yes: Send email?");
             // Yes: Compute percent
             var percentConsumption = (connector.currentConsumption * 100) / connector.power;
             // Check
-            if (_configChargingStation.notifBeforeEndOfChargeEnabled &&
-                !lastTransaction.start.notifBeforeEndOfChargeSent &&
-                percentConsumption <= _configChargingStation.notifBeforeEndOfChargePercent) {
+            if (_configChargingStation.notifBeforeEndOfChargeEnabled && // notif Before End Of Charge Enabled?
+                !lastTransaction.start.notifBeforeEndOfChargeSent && // Notif already sent ?
+                percentConsumption <= _configChargingStation.notifBeforeEndOfChargePercent) {  // Under a certain percentage
               // Send the email
               EMail.sendNotifyBeforeEndOfChargeEmail({
                     "user": lastTransaction.start.userID,
