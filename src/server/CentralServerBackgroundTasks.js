@@ -114,7 +114,6 @@ module.exports = {
           if (lastTransaction && !lastTransaction.stop && // Transaction must not be stopped
             moment(lastTransaction.start.timestamp).add(
               _configChargingStation.checkEndOfChargeNotificationAfterMin, "minutes").isBefore(moment())) {  // Do not check before 5 mins
-            console.log("Yes: Send email?");
             // Yes: Compute percent
             var percentConsumption = (connector.currentConsumption * 100) / connector.power;
             // Check
@@ -155,54 +154,69 @@ module.exports = {
                     detailedMessages: error.stack });
                 });
           // Charge ended?
-          } else if (_configChargingStation.notifEndOfChargeEnabled && percentConsumption === 0) {
+          } else if (!lastTransaction.start.notifEndOfChargeSent &&
+              _configChargingStation.notifEndOfChargeEnabled &&
+              percentConsumption === 0) {
             // Check if enabled
             if (_configChargingStation.notifEndOfChargeEnabled) {
-              // Yes: Stop the transaction
-              chargingStation.requestStopTransaction(lastTransaction.start.transactionId).then((result) => {
-                // Ok?
-                if (result && result.status === "Accepted") {
-                  // Unlock the connector
-                  chargingStation.requestUnlockConnector(connector.connectorId).then((result) => {
-                    // Ok?
-                    if (result && result.status === "Accepted") {
-                      // Send EMail notification
-                      EMail.sendNotifyEndOfChargeEmail({
-                            "user": lastTransaction.start.userID,
-                            "evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(chargingStation)
-                          }, lastTransaction.start.userID.locale).then(
-                        message => {
-                          // Success
-                          Logging.logInfo({
-                            userFullName: "System", source: "Central Server", module: "CentralServerBackgroundTasks", method: "checkAndSendEndOfChargeNotification",
-                            action: "NotifyEndOfCharge", message: `User ${lastTransaction.start.userID.firstName} ${lastTransaction.start.userID.name} with email ${lastTransaction.start.userID.email} has been notified successfully about the end of charge`,
-                            detailedMessages: lastTransaction});
-                          // Nothing to do
-                          return Promise.resolve();
-                        },
-                        error => {
-                          // Error
-                          Logging.logError({
-                            userFullName: "System", source: "Central Server", module: "CentralServerBackgroundTasks", method: "checkAndSendEndOfChargeNotification",
-                            action: "NotifyEndOfCharge", message: `${error.toString()}`,
-                            detailedMessages: error.stack });
-                        });
-                    } else {
-                      // Cannot unlock the connector
-                      Logging.logError({
-                        userFullName: "System", source: "Central Server", module: "CentralServerBackgroundTasks", method: "checkAndSendEndOfChargeNotification",
-                        action: "NotifyEndOfCharge", message: `Cannot unlock the connector '${connector.connectorId}' of the Charging Station '${chargingStation.getChargeBoxIdentity()}'`,
-                        detailedMessages: lastTransaction});
-                    }
-                  });
-                } else {
-                  // Cannot stop the transaction
+              // Send EMail notification
+              EMail.sendNotifyEndOfChargeEmail({
+                    "user": lastTransaction.start.userID,
+                    "evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(chargingStation),
+                    "notifStopTransactionAndUnlockConnector": _configChargingStation.notifStopTransactionAndUnlockConnector
+                  }, lastTransaction.start.userID.locale).then(
+                message => {
+                  // Success
+                  Logging.logInfo({
+                    userFullName: "System", source: "Central Server", module: "CentralServerBackgroundTasks", method: "checkAndSendEndOfChargeNotification",
+                    action: "NotifyEndOfCharge", message: `User ${lastTransaction.start.userID.firstName} ${lastTransaction.start.userID.name} with email ${lastTransaction.start.userID.email} has been notified successfully about the end of charge`,
+                    detailedMessages: lastTransaction});
+
+                    // Set notif sent
+                    lastTransaction.start.userID = lastTransaction.start.userID.id;
+                    lastTransaction.start.notifEndOfChargeSent = true;
+                    // Save Start Transaction
+                    chargingStation.saveStartTransaction(lastTransaction.start).then(() => {
+                      // Stop Transaction and Unlock Connector?
+                      if (_configChargingStation.notifStopTransactionAndUnlockConnector) {
+                        // Yes: Stop the transaction
+                        chargingStation.requestStopTransaction(lastTransaction.start.transactionId).then((result) => {
+                          // Ok?
+                          if (result && result.status === "Accepted") {
+                            // Unlock the connector
+                            chargingStation.requestUnlockConnector(connector.connectorId).then((result) => {
+                              // Ok?
+                              if (result && result.status === "Accepted") {
+                                // Nothing to do
+                                return Promise.resolve();
+                              } else {
+                                // Cannot unlock the connector
+                                Logging.logError({
+                                  userFullName: "System", source: "Central Server", module: "CentralServerBackgroundTasks", method: "checkAndSendEndOfChargeNotification",
+                                  action: "NotifyEndOfCharge", message: `Cannot unlock the connector '${connector.connectorId}' of the Charging Station '${chargingStation.getChargeBoxIdentity()}'`,
+                                  detailedMessages: lastTransaction});
+                                }
+                              });
+                          } else {
+                            // Cannot stop the transaction
+                            Logging.logError({
+                              userFullName: "System", source: "Central Server", module: "CentralServerBackgroundTasks", method: "checkAndSendEndOfChargeNotification",
+                              action: "NotifyEndOfCharge", message: `Cannot stop the transaction of the Charging Station '${chargingStation.getChargeBoxIdentity()}'`,
+                              detailedMessages: lastTransaction});
+                            }
+                          });
+                       }
+                     });
+                  // Nothing to do
+                  return Promise.resolve();
+                },
+                error => {
+                  // Error
                   Logging.logError({
                     userFullName: "System", source: "Central Server", module: "CentralServerBackgroundTasks", method: "checkAndSendEndOfChargeNotification",
-                    action: "NotifyEndOfCharge", message: `Cannot stop the transaction of the Charging Station '${chargingStation.getChargeBoxIdentity()}'`,
-                    detailedMessages: lastTransaction});
-                }
-              });
+                    action: "NotifyEndOfCharge", message: `${error.toString()}`,
+                    detailedMessages: error.stack });
+                });
             }
           }
         }

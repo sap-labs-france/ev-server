@@ -73,6 +73,7 @@ class EMail {
   }
 
   static sendNotifyBeforeEndOfChargeEmail(data, locale) {
+    data.user.email = "";
     // Create a promise
     return new Promise((fulfill, reject) => {
       // Send it
@@ -81,6 +82,7 @@ class EMail {
   }
 
   static sendNotifyEndOfChargeEmail(data, locale) {
+    data.user.email = "";
     // Create a promise
     return new Promise((fulfill, reject) => {
       // Send it

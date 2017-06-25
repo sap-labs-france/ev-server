@@ -51,11 +51,12 @@
   },
   "ChargingStation" : {
     "heartbeatIntervalSecs": 60,
-    "notifBeforeEndOfChargePercent": 10,
     "checkEndOfChargeNotificationAfterMin": 5,
+    "notifBeforeEndOfChargePercent": 10,
     "notifBeforeEndOfChargeEnabled": false,
     "notifEndOfChargePercent": 0,
-    "notifEndOfChargeEnabled": true
+    "notifEndOfChargeEnabled": true,
+    "notifStopTransactionAndUnlockConnector": false
   },
   "Locales" : {
     "default": "en_US",

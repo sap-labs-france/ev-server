@@ -309,6 +309,8 @@ class MongoDBStorage extends Storage {
       {new: true, upsert: true}).then((chargingStationMongoDB) => {
         // Notify
         _centralRestServer.notifyChargingStationUpdated({"id" : configuration.chargeBoxIdentity});
+        // Return
+        return chargingStationMongoDB;
     });
   }
 

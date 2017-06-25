@@ -55,14 +55,15 @@
     "notifBeforeEndOfChargePercent": 50,
     "notifBeforeEndOfChargeEnabled": false,
     "notifEndOfChargePercent": 0,
-    "notifEndOfChargeEnabled": true
+    "notifEndOfChargeEnabled": true,
+    "notifStopTransactionAndUnlockConnector": false
   },
   "Locales" : {
     "default": "en_US",
     "supported": ["en_US", "fr_FR"]
   },
   "Advanced" : {
-    "backgroundTasksIntervalSecs": 10,
+    "backgroundTasksIntervalSecs": 60,
     "chargeCurveMeterIntervalSecs": 240
   }
 }

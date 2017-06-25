@@ -129,6 +129,7 @@ module.exports = {
     dest.transactionId = src.transactionId;
     dest.meterStart = src.meterStart;
     dest.notifBeforeEndOfChargeSent = src.notifBeforeEndOfChargeSent;
+    dest.notifEndOfChargeSent = src.notifEndOfChargeSent;
   },
 
   updateStopTransaction(src, dest) {
