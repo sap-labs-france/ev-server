@@ -116,7 +116,9 @@ module.exports = {
               _configChargingStation.checkEndOfChargeNotificationAfterMin, "minutes").isBefore(moment())) {  // Do not check before 5 mins
             // Yes: Compute percent
             var percentConsumption = (connector.currentConsumption * 100) / connector.power;
-            // Check
+            // --------------------------------------------------------------------
+            // Notification BEFORE end of charge ----------------------------------
+            // --------------------------------------------------------------------
             if (_configChargingStation.notifBeforeEndOfChargeEnabled && // notif Before End Of Charge Enabled?
                 !lastTransaction.start.notifBeforeEndOfChargeSent && // Notif already sent ?
                 percentConsumption <= _configChargingStation.notifBeforeEndOfChargePercent) {  // Under a certain percentage
@@ -153,7 +155,9 @@ module.exports = {
                     action: "NotifyBeforeEndOfCharge", message: `${error.toString()}`,
                     detailedMessages: error.stack });
                 });
-          // Charge ended?
+          // --------------------------------------------------------------------
+          // Notification END of charge -----------------------------------------
+          // --------------------------------------------------------------------
           } else if (!lastTransaction.start.notifEndOfChargeSent &&
               _configChargingStation.notifEndOfChargeEnabled &&
               percentConsumption === 0) {

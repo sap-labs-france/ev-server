@@ -109,7 +109,7 @@ class MongoDBStorage extends Storage {
     // Source?
     if (searchValue) {
       // Build filter
-      filter["$or"] = [
+      filter.$or = [
         { "source" : { $regex : `.*${searchValue}.*` } },
         { "message" : { $regex : `.*${searchValue}.*` } },
         { "action" : { $regex : `.*${searchValue}.*` } },
@@ -274,7 +274,7 @@ class MongoDBStorage extends Storage {
     return bootNotificationMongoDB.save().then(() => {
       // Notify
       _centralRestServer.notifyChargingStationUpdated({"id" : bootNotification.chargeBoxIdentity});
-    })
+    });
   }
 
   saveDataTransfer(dataTransfer) {
@@ -553,7 +553,11 @@ class MongoDBStorage extends Storage {
       chargingStation.getModel(),
       {new: true, upsert: true}).then((chargingStationMongoDB) => {
         // Notify Change
-        (!chargingStation.getID()?_centralRestServer.notifyChargingStationCreated(chargingStationMongoDB):_centralRestServer.notifyChargingStationUpdated(chargingStationMongoDB));
+        if (!chargingStation.getID()) {
+          _centralRestServer.notifyChargingStationCreated(chargingStationMongoDB);
+        } else {
+          _centralRestServer.notifyChargingStationUpdated(chargingStationMongoDB);
+        }
     });
   }
 
@@ -573,7 +577,7 @@ class MongoDBStorage extends Storage {
     // Source?
     if (searchValue) {
       // Build filter
-      filters["$or"] = [
+      filters.$or = [
         { "chargeBoxIdentity" : { $regex : `.*${searchValue}.*` } }
       ];
     }
@@ -611,7 +615,7 @@ class MongoDBStorage extends Storage {
     // Source?
     if (searchValue) {
       // Build filter
-      filters["$or"] = [
+      filters.$or = [
         { "name" : { $regex : `.*${searchValue}.*` } },
         { "firstName" : { $regex : `.*${searchValue}.*` } },
         { "email" : { $regex : `.*${searchValue}.*` } },
@@ -664,7 +668,11 @@ class MongoDBStorage extends Storage {
           upsert: true
         }).then((userMongoDB) => {
           // Notify Change
-          (!user.getID()?_centralRestServer.notifyUserCreated(userMongoDB):_centralRestServer.notifyUserUpdated(userMongoDB));
+          if (!user.getID()) {
+            _centralRestServer.notifyUserCreated(userMongoDB);
+          } else {
+            _centralRestServer.notifyUserUpdated(userMongoDB);
+          }
           // Update the badges
           // First delete them
           return MDBTag.remove({ "userID" : userMongoDB._id }).then(() => {

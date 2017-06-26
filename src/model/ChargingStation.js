@@ -74,7 +74,7 @@ class ChargingStation {
       default:
         // Log
         Logging.logError({
-          source: "Central Server", module: "ChargingStation", method: "handleAction",
+          user: "System", source: "Central Server", module: "ChargingStation", method: "handleAction",
           message: `Action does not exist: ${action}` });
         throw new Error(`Action does not exist: ${action}`);
     }
@@ -382,9 +382,8 @@ class ChargingStation {
     return global.storage.saveMeterValues(newMeterValues).then(() => {
       // Log
       Logging.logInfo({
-        source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "saveMeterValues",
-        action: "MeterValues",
-        message: `Meter Values saved successfully`,
+        user: "System", source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "saveMeterValues",
+        action: "MeterValues", message: `Meter Values saved successfully`,
         detailedMessages: newMeterValues });
     });
   }
@@ -616,7 +615,7 @@ class ChargingStation {
         // Get the last meter values
         return global.storage.getLastMeterValuesFromTransaction(
             this.getChargeBoxIdentity(), connectorId,
-            transaction.start.transactionId, 2).then((meterValues) => {
+            transaction.start.transactionId, 10).then((meterValues) => {
           // Build the header
           var chargingStationConsumption = {};
           chargingStationConsumption.values = [];
@@ -628,7 +627,7 @@ class ChargingStation {
           // Compute consumption
           var consumptions = this._buildConsumption(chargingStationConsumption, meterValues);
           if (consumptions && consumptions.values) {
-            // Return the last one
+            // Default: return last value
             return consumptions.values[consumptions.values.length - 1];
           } else {
             // None
@@ -786,7 +785,7 @@ class ChargingStation {
     if (totalNbrOfMetrics) {
       // Log
       Logging.logDebug({
-        source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "getConsumptions",
+        user: "System", source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "getConsumptions",
         message: `Consumption - Total Metrics: ${meterValues.length}, Relevant : ${totalNbrOfMetrics}, Invalid: ${invalidNbrOfMetrics} (${(invalidNbrOfMetrics?Math.ceil(invalidNbrOfMetrics/totalNbrOfMetrics):0)}%)` });
     }
 
