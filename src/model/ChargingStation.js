@@ -612,10 +612,10 @@ class ChargingStation {
     return this.getLastTransaction(connectorId).then((transaction) => {
       // Found?
       if (transaction && !transaction.stop) {
-        // Get the last meter values
+        // Get the last 5 meter values
         return global.storage.getLastMeterValuesFromTransaction(
             this.getChargeBoxIdentity(), connectorId,
-            transaction.start.transactionId, 10).then((meterValues) => {
+            transaction.start.transactionId, 5).then((meterValues) => {
           // Build the header
           var chargingStationConsumption = {};
           chargingStationConsumption.values = [];
