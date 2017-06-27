@@ -62,7 +62,7 @@ class Storage {
   saveMeterValues(meterValues) {
   }
 
-  getMeterValues(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
+  getMeterValuesFromDateTimeRange(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
   }
 
   getLastMeterValuesFromTransaction(chargeBoxIdentity, connectorId, transactionId, limit) {

@@ -537,7 +537,7 @@ module.exports = {
           break;
 
         // Get Charging Consumption
-        case "ChargingStationConsumption":
+        case "ChargingStationConsumptionFromDateTimeRange":
           // Charge Box is mandatory
           if(!req.query.ChargeBoxIdentity) {
             Logging.logActionErrorMessageAndSendResponse(action, `The Charging Station ID is mandatory`, req, res, next);
@@ -557,11 +557,11 @@ module.exports = {
                 return;
               }
               // Get the Consumption
-              chargingStation.getConsumptions(
+              chargingStation.getConsumptionsFromDateTimeRange(
                   req.query.ConnectorId,
                   req.query.StartDateTime,
-                  req.query.EndDateTime).then(function(consumptions) {
-
+                  req.query.EndDateTime,
+                  false).then(function(consumptions) {
                 // Return the result
                 res.json(consumptions);
                 next();
@@ -577,6 +577,46 @@ module.exports = {
           break;
 
         // Get Charging Consumption
+        case "ChargingStationConsumptionFromTransaction":
+          // Charge Box is mandatory
+          if(!req.query.ChargeBoxIdentity) {
+            Logging.logActionErrorMessageAndSendResponse(action, `The Charging Station ID is mandatory`, req, res, next);
+            break;
+          }
+          // Get the Charging Station`
+          global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
+            let consumptions = [];
+
+            // Found
+            if (chargingStation) {
+              // Check auth
+              if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
+                // Not Authorized!
+                Logging.logActionUnauthorizedMessageAndSendResponse(
+                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                return;
+              }
+              // Get the Consumption
+              chargingStation.getConsumptionsFromTransaction(
+                  req.query.ConnectorId,
+                  req.query.TransactionId,
+                  true).then(function(consumptions) {
+
+                // Return the result
+                res.json(consumptions);
+                next();
+              });
+            } else {
+              // Log
+              return Promise.reject(new Error(`Charging Station ${req.query.ChargeBoxIdentity} does not exist`));
+            }
+          }).catch((err) => {
+            // Log
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+          });
+          break;
+
+        // Get Charging Configuration
         case "ChargingStationConfiguration":
           // Charge Box is mandatory
           if(!req.query.ChargeBoxIdentity) {

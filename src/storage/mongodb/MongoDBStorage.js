@@ -190,7 +190,7 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getMeterValues(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
+  getMeterValuesFromDateTimeRange(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
     // Build filter
     var filter = {};
     // Mandatory filters
@@ -205,6 +205,30 @@ class MongoDBStorage extends Storage {
     if (endDateTime) {
       filter.timestamp.$lte = new Date(endDateTime);
     }
+
+    // Exec request
+    return MDBMeterValue.find(filter).sort( {timestamp: 1} ).exec().then((meterValuesMongoDB) => {
+      var meterValues = [];
+      // Create
+      meterValuesMongoDB.forEach((meterValueMongoDB) => {
+        var meterValue = {};
+        // Set values
+        Database.updateMeterValue(meterValueMongoDB, meterValue);
+        // Add
+        meterValues.push(meterValue);
+      });
+      // Ok
+      return meterValues;
+    });
+  }
+
+  getMeterValuesFromTransaction(chargeBoxIdentity, connectorId, transactionId) {
+    // Build filter
+    var filter = {};
+    // Mandatory filters
+    filter.chargeBoxID = chargeBoxIdentity;
+    filter.connectorId = connectorId;
+    filter.transactionId = transactionId;
 
     // Exec request
     return MDBMeterValue.find(filter).sort( {timestamp: 1} ).exec().then((meterValuesMongoDB) => {

@@ -2,7 +2,7 @@
   <body>
     Bonjour <%= user.firstName %> <%= user.name %>,</br>
     </br>
-    Votre véhicule électrique est maintenant complètement chargé !</br>
+    Votre véhicule électrique, connecté sur la borne <%= chargingStationId %> (connecteur <%= connectorId %>), est maintenant complètement chargé !</br>
     </br>
     <% if (notifStopTransactionAndUnlockConnector) { %>
       La transaction a été automatiquement stoppée et le connecteur dévérouillé !</br>

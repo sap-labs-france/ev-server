@@ -123,6 +123,8 @@ module.exports = {
               // Send the email
               EMail.sendNotifyBeforeEndOfChargeEmail({
                     "user": lastTransaction.start.userID,
+                    "chargingStationId": chargingStation.getChargeBoxIdentity(),
+                    "connectorId": connector.connectorId,
                     "evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(chargingStation)
                   }, lastTransaction.start.userID.locale).then(
                 message => {
@@ -164,6 +166,8 @@ module.exports = {
               // Send EMail notification
               EMail.sendNotifyEndOfChargeEmail({
                     "user": lastTransaction.start.userID,
+                    "chargingStationId": chargingStation.getChargeBoxIdentity(),
+                    "connectorId": connector.connectorId,
                     "evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(chargingStation),
                     "notifStopTransactionAndUnlockConnector": _configChargingStation.notifStopTransactionAndUnlockConnector
                   }, lastTransaction.start.userID.locale).then(

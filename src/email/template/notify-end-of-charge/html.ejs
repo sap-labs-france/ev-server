@@ -2,7 +2,7 @@
   <body>
     Hi <%= user.firstName %> <%= user.name %>,</br>
     </br>
-    Your electric vehicule is now fully charged!</br>
+    Your electric vehicule, connected to the charging station <%= chargingStationId %> (connector <%= connectorId %>), is now fully charged!</br>
     </br>
     <% if (notifStopTransactionAndUnlockConnector) { %>
       The transaction has been automatically stopped and the connector unlocked!</br>
