@@ -652,7 +652,7 @@ class ChargingStation {
     var consumption = null;
     // Read the transaction
     // Get the last tranasction first
-    return this.getLastTransaction(connectorId).then((transaction) => {
+    return global.storage.getTransaction(transactionId).then((transaction) => {
       // Found?
       if (transaction) {
         // Get the last 5 meter values

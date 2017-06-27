@@ -475,6 +475,34 @@ class MongoDBStorage extends Storage {
     }));
   }
 
+  getTransaction(transactionId) {
+    // Get the Start Transaction
+    return MDBStartTransaction.findOne({"transactionId": transactionId}).populate("userID").exec().then((startTransactionMongoDB) => {
+      // Set
+      var transaction = {};
+      if (startTransactionMongoDB) {
+        // Set data
+        transaction.start = {};
+        Database.updateStartTransaction(startTransactionMongoDB, transaction.start);
+      }
+      // Ok
+      return transaction;
+      // Get the Stop Transaction
+    }).then((transaction) => {
+      // Get stop transaction
+      return MDBStopTransaction.findOne({"transactionId" : transaction.start.transactionId}).populate("userID").exec().then((stopTransactionMongoDB) => {
+        // Found?
+        if (stopTransactionMongoDB) {
+          // Set
+          transaction.stop = {};
+          Database.updateStopTransaction(stopTransactionMongoDB, transaction.stop);
+        }
+        // Ok
+        return transaction;
+      });
+    });
+  }
+
   getTransactions(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
     // Build filter
     var filter = {};

@@ -74,6 +74,9 @@ class Storage {
   getTransactions(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
   }
 
+  getTransaction(transactionId) {
+  }
+
   saveStartTransaction(startTransaction) {
   }
 
