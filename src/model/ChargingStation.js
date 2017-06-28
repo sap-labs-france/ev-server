@@ -626,11 +626,12 @@ class ChargingStation {
 
           // Compute consumption
           var consumptions = this._buildConsumption(chargingStationConsumption, meterValues, null, false);
-          // Debug
-          Logging.logDebug({
-            userFullName: "System", source: chargingStationConsumption.chargeBoxIdentity,
-            module: "ChargingStation", method: "getLastConsumption",
-            message: `${chargingStationConsumption.chargeBoxIdentity} - ${chargingStationConsumption.connectorId} - values: ${(consumptions.values?JSON.stringify(consumptions.values):"")}` });
+
+          // // Debug
+          // Logging.logDebug({
+          //   userFullName: "System", source: chargingStationConsumption.chargeBoxIdentity,
+          //   module: "ChargingStation", method: "getLastConsumption",
+          //   message: `${chargingStationConsumption.chargeBoxIdentity} - ${chargingStationConsumption.connectorId} - values: ${(consumptions.values?JSON.stringify(consumptions.values):"")}` });
 
           // Check
           if (consumptions && consumptions.values) {

@@ -2,15 +2,16 @@
   <body>
     Hi <%= user.firstName %> <%= user.name %>,</br>
     </br>
-    Your electric vehicule, connected to the charging station <%= chargingStationId %> (connector <%= connectorId %>), is now fully charged!</br>
+    Your electric vehicle which is connected to the charging station <%= chargingStationId %> is fully charged!</br>
     </br>
     <% if (notifStopTransactionAndUnlockConnector) { %>
-      The transaction has been automatically stopped and the connector unlocked!</br>
+      The transaction has been automatically stopped and the connector unlocked.</br>
+      </br>
+    <% } else { %>
+      You can now stop the transaction and unlock the connector.</br>
       </br>
     <% } %>
-    You can now free the car park.</br>
-    </br>
-    You can check the status here: <a href="<%= evseDashboardChargingStationURL %>">EVSE Dashboard</a></br>
+    You can check the status here: <a href="<%= evseDashboardChargingStationURL %>"><%= chargingStationId %> - Connector <%= connectorId %></a></br>
     </br>
     Best Regards,</br>
     EVSE Admin.

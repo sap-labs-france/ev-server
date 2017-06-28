@@ -125,7 +125,7 @@ module.exports = {
                     "user": lastTransaction.start.userID,
                     "chargingStationId": chargingStation.getChargeBoxIdentity(),
                     "connectorId": connector.connectorId,
-                    "evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(chargingStation)
+                    "evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(chargingStation, connector.connectorId, lastTransaction.start.transactionId)
                   }, lastTransaction.start.userID.locale).then(
                 message => {
                   // Set notif sent
@@ -168,7 +168,7 @@ module.exports = {
                     "user": lastTransaction.start.userID,
                     "chargingStationId": chargingStation.getChargeBoxIdentity(),
                     "connectorId": connector.connectorId,
-                    "evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(chargingStation),
+                    "evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(chargingStation, connector.connectorId, lastTransaction.start.transactionId),
                     "notifStopTransactionAndUnlockConnector": _configChargingStation.notifStopTransactionAndUnlockConnector
                   }, lastTransaction.start.userID.locale).then(
                 message => {

@@ -417,6 +417,30 @@ module.exports = {
           });
           break;
 
+        // Get the transaction
+        case "ChargingStationTransaction":
+          // Charge Box is mandatory
+          if(!req.query.TransactionId) {
+            Logging.logActionErrorMessageAndSendResponse(action, `The Transaction ID is mandatory`, req, res, next);
+            break;
+          }
+
+          // Set the model
+          global.storage.getTransaction(req.query.TransactionId).then((transaction) => {
+            if (transaction) {
+              // Return
+              res.json(transaction);
+              next();
+            } else {
+              // Log
+              return Promise.reject(new Error(`Transaction ${req.query.TransactionId} does not exist`));
+            }
+          }).catch((err) => {
+            // Log
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+          });
+          break;
+
         // Get the last transaction
         case "ChargingStationLastTransaction":
           // Charge Box is mandatory
@@ -583,6 +607,17 @@ module.exports = {
             Logging.logActionErrorMessageAndSendResponse(action, `The Charging Station ID is mandatory`, req, res, next);
             break;
           }
+          // Connector Id is mandatory
+          if(!req.query.ConnectorId) {
+            Logging.logActionErrorMessageAndSendResponse(action, `The Connector ID is mandatory`, req, res, next);
+            break;
+          }
+          // Transaction Id is mandatory
+          if(!req.query.TransactionId) {
+            Logging.logActionErrorMessageAndSendResponse(action, `The Transaction ID is mandatory`, req, res, next);
+            break;
+          }
+
           // Get the Charging Station`
           global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
             let consumptions = [];

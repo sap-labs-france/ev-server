@@ -2,15 +2,16 @@
   <body>
     Bonjour <%= user.firstName %> <%= user.name %>,</br>
     </br>
-    Votre véhicule électrique, connecté sur la borne <%= chargingStationId %> (connecteur <%= connectorId %>), est maintenant complètement chargé !</br>
+    Votre véhicule électrique qui est connecté sur la borne <%= chargingStationId %> a terminé sa charge !</br>
     </br>
     <% if (notifStopTransactionAndUnlockConnector) { %>
-      La transaction a été automatiquement stoppée et le connecteur dévérouillé !</br>
+      La transaction a été automatiquement stoppée et le connecteur dévérouillé.</br>
+      </br>
+    <% } else { %>
+      Vous pouvez dès maintenant stopper la transaction et devérouiller le connecteur.</br>
       </br>
     <% } %>
-    Vous pouvez dès à présent libérer la place de parking.</br>
-    </br>
-    Vous pouvez des à présent vérifier son état : <a href="<%= evseDashboardChargingStationURL %>">EVSE Dashboard</a></br>
+    Vous pouvez verifier son statut içi : <a href="<%= evseDashboardChargingStationURL %>"><%= chargingStationId %> - Connecteur <%= connectorId %></a></br>
     </br>
     Cordialement,</br>
     EVSE Admin.

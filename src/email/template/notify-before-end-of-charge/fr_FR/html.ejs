@@ -2,9 +2,9 @@
   <body>
     Bonjour <%= user.firstName %> <%= user.name %>,</br>
     </br>
-    La charge de votre véhicule électrique, connecté sur la borne <%= chargingStationId %> (connecteur <%= connectorId %>), va bientôt se terminer !</br>
+    La charge de votre véhicule électrique, connecté sur la borne <%= chargingStationId %>, va bientôt se terminer !</br>
     </br>
-    Vous pouvez des à présent vérifier son état : <a href="<%= evseDashboardChargingStationURL %>">EVSE Dashboard</a></br>
+    Vous pouvez des à présent vérifier son état içi : <a href="<%= evseDashboardChargingStationURL %>"><%= chargingStationId %> - Connector <%= connectorId %></a></br>
     </br>
     Cordialement,</br>
     EVSE Admin.
