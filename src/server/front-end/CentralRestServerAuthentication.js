@@ -68,15 +68,16 @@ module.exports = {
                     auths: compiledAuths
                 };
                 // Build token
+                var token;
                 // Role Demo?
                 if (user.getRole() === 'D') {
                   // Yes
-                  var token = jwt.sign(payload, jwtOptions.secretOrKey, {
+                  token = jwt.sign(payload, jwtOptions.secretOrKey, {
                     expiresIn: _centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600
                   });
                 } else {
                   // No
-                  var token = jwt.sign(payload, jwtOptions.secretOrKey, {
+                  token = jwt.sign(payload, jwtOptions.secretOrKey, {
                     expiresIn: _centralSystemRestConfig.userTokenLifetimeHours * 3600
                   });
                 }

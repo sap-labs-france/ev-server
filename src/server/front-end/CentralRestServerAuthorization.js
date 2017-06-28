@@ -114,4 +114,4 @@ module.exports = {
       return false;
     }
   }
-}
+};
