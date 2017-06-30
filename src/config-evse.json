@@ -64,6 +64,6 @@
   },
   "Advanced" : {
     "backgroundTasksIntervalSecs": 60,
-    "chargeCurveMeterIntervalSecs": 120
+    "chargeCurveMeterIntervalSecs": 60
   }
 }
