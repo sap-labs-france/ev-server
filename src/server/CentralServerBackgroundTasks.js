@@ -70,19 +70,19 @@ module.exports = {
       // Connection
       connectors.forEach((connector) => {
         // Get the consumption for each connector
-        promises.push(chargingStation.getLastAverageConsumption(connector.connectorId, 5).then((consumption) => {
+        promises.push(chargingStation.getLastAverageConsumption(connector.connectorId, 2).then((consumption) => {
           let currentConsumption = 0;
           // Value provided?
           if (consumption) {
             // Yes
-            currentConsumption = consumption.value;
+            currentConsumption = consumption;
           }
           // Changed?
           if (connector.currentConsumption !== currentConsumption) {
             // Log
             Logging.logInfo({
               userFullName: "System", source: "Central Server", module: "ChargingStationBackgroundTasks", method: "computeChargingStationsConsumption",
-              message: `Charging Station ${chargingStation.getChargeBoxIdentity()} consumption changed from ${connector.currentConsumption} to ${currentConsumption}` });
+              message: `Charging Station ${chargingStation.getChargeBoxIdentity()} - Connector ${connector.connectorId} consumption changed from ${connector.currentConsumption} to ${currentConsumption}` });
             // Set consumption
             connector.currentConsumption = currentConsumption;
             // Update
