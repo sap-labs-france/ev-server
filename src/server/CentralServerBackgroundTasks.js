@@ -70,7 +70,7 @@ module.exports = {
       // Connection
       connectors.forEach((connector) => {
         // Get the consumption for each connector
-        promises.push(chargingStation.getLastConsumption(connector.connectorId).then((consumption) => {
+        promises.push(chargingStation.getLastAverageConsumption(connector.connectorId, 5).then((consumption) => {
           let currentConsumption = 0;
           // Value provided?
           if (consumption) {
