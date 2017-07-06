@@ -122,7 +122,7 @@ class Logging {
       detailedMessages: err.stack });
     res.status(500).send(`{"message": ${err.toString()}}`);
     next();
-  };
+  }
 
   // Log issues
   static logActionErrorMessageAndSendResponse(action, message, req, res, next) {
@@ -135,14 +135,14 @@ class Logging {
           "request": req.body}] });
     res.status(500).send({"message": message});
     next();
-  };
+  }
 
   // Log issues
   static logActionUnauthorizedMessageAndSendResponse(entity, action, req, res, next) {
     // Log
     Logging.logActionErrorMessageAndSendResponse(action,
       `User ${req.user.firstName} ${req.user.name} with Role ID '${req.user.role}' is not authorised to perform '${action}' on '${entity}'`, req, res, next);
-  };
+  }
 }
 
 module.exports=Logging;

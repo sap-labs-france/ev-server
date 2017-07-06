@@ -54,6 +54,74 @@ module.exports = {
       case "POST":
         // Check Context
         switch (action) {
+          case "ChargingStationSetMaxIntensitySocket":
+            // Charge Box is mandatory
+            if(!req.body.chargeBoxIdentity) {
+              Logging.logActionErrorMessageAndSendResponse(action, `The Charging Station ID is mandatory`, req, res, next);
+              break;
+            }
+            // Get the Charging station
+            global.storage.getChargingStation(req.body.chargeBoxIdentity).then((chargingStation) => {
+              // Found?
+              if (chargingStation) {
+                // Check auth
+                if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), "ChangeConfiguration")) {
+                  // Not Authorized!
+                  Logging.logActionUnauthorizedMessageAndSendResponse(
+                    CentralRestServerAuthorization.ENTITY_CHARGING_STATION, action, req, res, next);
+                  return;
+                }
+                // Get the configuration
+                // Get the Config
+                return chargingStation.getConfiguration().then((chargerConfiguration) => {
+                  // Check
+                  if (chargerConfiguration) {
+                    let maxIntensitySocketMax = null;
+                    // Fill current params
+                    for (let i = 0; i < chargerConfiguration.configuration.length; i++) {
+                      // Max Intensity?
+                      if (chargerConfiguration.configuration[i].key.startsWith("currentpb")) {
+                        // Set
+                        maxIntensitySocketMax = Number(chargerConfiguration.configuration[i].value);
+                      }
+                    }
+                    if (maxIntensitySocketMax) {
+                      // Check
+                      if (req.body.args.maxIntensity && req.body.args.maxIntensity >= 0 && req.body.args.maxIntensity <= maxIntensitySocketMax) {
+                        // Log
+                        Logging.logInfo({
+                          user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
+                          message: `Change Max Instensity Socket of Charging Station '${req.body.chargeBoxIdentity}' to ${req.body.args.maxIntensity}`});
+
+                          // Change the config
+                          return chargingStation.requestChangeConfiguration('maxintensitysocket', req.body.args.maxIntensity);
+                      } else {
+                        // Invalid value
+                        Logging.logActionErrorMessageAndSendResponse(action, `Invalid value for param max intensity socket '${req.body.maxIntensity}' for Charging Station ${req.body.chargeBoxIdentity}`, req, res, next);
+                      }
+                    } else {
+                      // Charging station not found
+                      Logging.logActionErrorMessageAndSendResponse(action, `Cannot retrieve the max intensity socket from the configuration of the Charging Station ${req.body.chargeBoxIdentity}`, req, res, next);
+                    }
+                  } else {
+                    // Charging station not found
+                    Logging.logActionErrorMessageAndSendResponse(action, `Cannot retrieve the configuration of the Charging Station ${req.body.chargeBoxIdentity}`, req, res, next);
+                  }
+                });
+              } else {
+                // Charging station not found
+                Logging.logActionErrorMessageAndSendResponse(action, `Charging Station with ID ${req.body.chargeBoxIdentity} does not exist`, req, res, next);
+              }
+            }).then(function(result) {
+              // Return the result
+              res.json(result);
+              next();
+            }).catch(function(err) {
+              // Log
+              Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            });
+            break;
+
           // Charge Box
           case "ChargingStationClearCache":
           case "ChargingStationGetConfiguration":
@@ -79,6 +147,7 @@ module.exports = {
                     CentralRestServerAuthorization.ENTITY_CHARGING_STATION, action, req, res, next);
                   return;
                 }
+                // Log
                 Logging.logInfo({
                   user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
                   message: `Execute action '${action}' on Charging Station '${req.body.chargeBoxIdentity}'`});

@@ -35,33 +35,8 @@ class ChargingStation {
 
       // Set Configuration
       case "ChangeConfiguration":
-        return this.requestChangeConfiguration(params.key, params.value).then((result) => {
-          // Request the new Configuration?
-          if (result.status === "Accepted") {
-            // Get the Charging Station Config
-            return this.requestGetConfiguration();
-          } else {
-            // Log
-            return Promise.reject(new Error(`Cannot set the configuration param ${params.key} with value ${params.value} to ${headers.chargeBoxIdentity}`));
-          }
-        // Save the config
-        }).then((configuration) => {
-          // Save it
-          if (configuration) {
-            // Save
-            return this.saveConfiguration(configuration).then((config) => {
-              // Ok ?
-              if (config) {
-                // Return the first result
-                return {"status": "Accepted"};
-              }
-            });
-          } else {
-            // Log
-            return Promise.reject(new Error(`Cannot retrieve the Configuration of ${headers.chargeBoxIdentity}`));
-          }
-        });
-
+        // Change the config
+        return this.requestChangeConfiguration(params.key, params.value);
       // Unlock Connector
       case "UnlockConnector":
         return this.requestUnlockConnector(params.connectorId);
@@ -560,6 +535,31 @@ class ChargingStation {
     return this.getChargingStationClient().then((chargingStationClient) => {
       // Get config
       return chargingStationClient.changeConfiguration(key, value);
+    // Result
+    }).then((result) => {
+      // Request the new Configuration?
+      if (result.status === "Accepted") {
+        // Get the Charging Station Config
+        return this.requestGetConfiguration();
+      } else {
+        // Log
+        return Promise.reject(new Error(`Cannot set the configuration param ${key} with value ${value} to ${this.getChargeBoxIdentity()}`));
+      }
+    }).then((configuration) => {
+      // Save it
+      if (configuration) {
+        // Save
+        return this.saveConfiguration(configuration).then((config) => {
+          // Ok ?
+          if (config) {
+            // Return the first result
+            return {"status": "Accepted"};
+          }
+        });
+      } else {
+        // Log
+        return Promise.reject(new Error(`Cannot retrieve the Configuration of ${this.getChargeBoxIdentity()}`));
+      }
     });
   }
 
