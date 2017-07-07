@@ -90,7 +90,7 @@ module.exports = {
                       if (req.body.args.maxIntensity && req.body.args.maxIntensity >= 0 && req.body.args.maxIntensity <= maxIntensitySocketMax) {
                         // Log
                         Logging.logInfo({
-                          user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
+                          user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured", action: action,
                           message: `Change Max Instensity Socket of Charging Station '${req.body.chargeBoxIdentity}' to ${req.body.args.maxIntensity}`});
 
                           // Change the config
@@ -149,7 +149,7 @@ module.exports = {
                 }
                 // Log
                 Logging.logInfo({
-                  user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
+                  user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",  action: action,
                   message: `Execute action '${action}' on Charging Station '${req.body.chargeBoxIdentity}'`});
                 // Execute it
                 return chargingStation.handleAction(action, req.body.args);
@@ -200,7 +200,7 @@ module.exports = {
                   Logging.logInfo({
                     user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
                     message: `User ${newUser.getFullName()} with email ${newUser.getEMail()} has been created successfully`,
-                    detailedMessages: user});
+                    action: action, detailedMessages: user});
                 });
                 res.json({status: `Success`});
                 next();
@@ -824,7 +824,7 @@ module.exports = {
                 Logging.logInfo({
                   user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
                   message: `User ${user.getFullName()} with Email ${user.getEMail()} has been updated successfully`,
-                  detailedMessages: user});
+                  action: action, detailedMessages: user});
               });
               res.json({status: `Success`});
               next();
@@ -880,7 +880,7 @@ module.exports = {
                 Logging.logInfo({
                   user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
                   message: `User ${user.getFullName()} with Email ${user.getEMail()} has been deleted successfully`,
-                  detailedMessages: user});
+                  action: action, detailedMessages: user});
                 // Ok
                 res.json({status: `Success`});
                 next();
@@ -917,7 +917,7 @@ module.exports = {
                 Logging.logInfo({
                   user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
                   message: `Charging Station ${chargingStation.getChargeBoxIdentity()} has been deleted successfully`,
-                  detailedMessages: user});
+                  action: action, detailedMessages: chargingStation});
                 // Ok
                 res.json({status: `Success`});
                 next();

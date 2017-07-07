@@ -207,7 +207,7 @@ class MongoDBStorage extends Storage {
     }
 
     // Exec request
-    return MDBMeterValue.find(filter).sort( {timestamp: 1} ).exec().then((meterValuesMongoDB) => {
+    return MDBMeterValue.find(filter).sort( {timestamp: 1, value: -1} ).exec().then((meterValuesMongoDB) => {
       var meterValues = [];
       // Create
       meterValuesMongoDB.forEach((meterValueMongoDB) => {
@@ -231,7 +231,7 @@ class MongoDBStorage extends Storage {
     filter.transactionId = transactionId;
 
     // Exec request
-    return MDBMeterValue.find(filter).sort( {timestamp: 1} ).exec().then((meterValuesMongoDB) => {
+    return MDBMeterValue.find(filter).sort( {timestamp: 1, value: -1} ).exec().then((meterValuesMongoDB) => {
       var meterValues = [];
       // Create
       meterValuesMongoDB.forEach((meterValueMongoDB) => {
@@ -258,7 +258,7 @@ class MongoDBStorage extends Storage {
     }
 
     // Exec request
-    return MDBMeterValue.find(filter).sort( {timestamp: -1} ).limit(limit).exec().then((meterValuesMongoDB) => {
+    return MDBMeterValue.find(filter).sort( {timestamp: -1, value: -1} ).limit(limit).exec().then((meterValuesMongoDB) => {
       var meterValues = [];
       // Create
       meterValuesMongoDB.forEach((meterValueMongoDB) => {

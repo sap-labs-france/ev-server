@@ -63,7 +63,7 @@
     "supported": ["en_US", "fr_FR"]
   },
   "Advanced" : {
-    "backgroundTasksIntervalSecs": 60,
+    "backgroundTasksIntervalSecs": 120,
     "chargeCurveMeterIntervalSecs": 60
   }
 }

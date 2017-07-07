@@ -723,9 +723,11 @@ class ChargingStation {
     var sampleMultiplier = 3600 / meterIntervalSecs;
     var lastMeterValue;
     var firstMeterValueSet = false;
-
     // Build the model
     meterValues.forEach((meterValue, meterValueIndex) => {
+      // console.log("--------------------------------------------------------");
+      // console.log(meterValues);
+      // console.log("--------------------------------------------------------");
       // Get the stored values
       let numberOfReturnedMeters = chargingStationConsumption.values.length;
 
