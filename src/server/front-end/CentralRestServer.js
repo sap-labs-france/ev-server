@@ -24,8 +24,8 @@ class CentralSystemRestServer {
   // Create the rest server
   constructor(centralSystemRestConfig) {
     // Body parser
-    express.use(bodyParser.json({limit: '5mb'}));
-    express.use(bodyParser.urlencoded({ extended: false, limit: '5mb' }));
+    express.use(bodyParser.json({limit: '1mb'}));
+    express.use(bodyParser.urlencoded({ extended: false, limit: '1mb' }));
     express.use(bodyParser.xml());
 
     // Use
@@ -75,10 +75,24 @@ class CentralSystemRestServer {
     // Create the HTTP server
     if (_centralSystemRestConfig.protocol === "https") {
       // Create the options
-      const options = {
+    var options = {
         key: fs.readFileSync(_centralSystemRestConfig["ssl-key"]),
         cert: fs.readFileSync(_centralSystemRestConfig["ssl-cert"])
       };
+      // Intermediate cert?
+      if (_centralSystemRestConfig["ssl-ca"]) {
+        // Array?
+        if (Array.isArray(_centralSystemRestConfig["ssl-ca"])) {
+          options.ca = [];
+          // Add all
+          for (var i = 0; i < _centralSystemRestConfig["ssl-ca"].length; i++) {
+            options.ca.push(fs.readFileSync(_centralSystemRestConfig["ssl-ca"][i]));
+          }
+        } else {
+          // Add one
+          options.ca = fs.readFileSync(_centralSystemRestConfig["ssl-ca"]);
+        }
+      }
       // Https server
       server = https.createServer(options, express);
     } else {
