@@ -260,7 +260,7 @@ class ChargingStation {
                 break;
 
               // Current
-              case "currentpb" + statusNotification.connectorId:
+              case "currentpb1":
                 // Get the meter interval
                 current = parseInt(configuration.configuration[i].value);
                 break;
