@@ -607,7 +607,7 @@ class ChargingStation {
   }
 
   getLastAverageConsumption(connectorId, numberOfMeters=1) {
-    var avgConsumption = null;
+    var avgConsumption = 0;
     // Get the last tranasction first
     return this.getLastTransaction(connectorId).then((transaction) => {
       // Found?
@@ -629,7 +629,6 @@ class ChargingStation {
 
           // Check
           if (consumptions && consumptions.values) {
-            avgConsumption = 0;
             // Compute the averages
             for (var i = 0; i < consumptions.values.length; i++) {
               avgConsumption += consumptions.values[i].value;
@@ -648,7 +647,7 @@ class ChargingStation {
         });
       } else {
         // None
-        return null;
+        return avgConsumption;
       }
     });
   }

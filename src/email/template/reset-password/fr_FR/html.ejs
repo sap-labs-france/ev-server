@@ -1,6 +1,6 @@
 <html>
   <body>
-    Bonjour <%= user.firstName %>,</br>
+    Bonjour <%= (user.firstName?user.firstName:user.name) %>,</br>
     </br>
     Votre mot de passe pour accéder au <a href="<%= evseDashboardURL %>">EVSE Dashboard</a> a été réinitialisé avec succès !</br>
     </br>

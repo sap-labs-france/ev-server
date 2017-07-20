@@ -66,4 +66,4 @@ global.storage.start().then(() => {
 },
 (err) => {
   console.log("Cannot start the Central Server: No Database is running!");
-})
+});

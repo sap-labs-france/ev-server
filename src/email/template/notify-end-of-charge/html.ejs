@@ -1,6 +1,6 @@
 <html>
   <body>
-    Hi <%= user.firstName %>,</br>
+    Hi <%= (user.firstName?user.firstName:user.name) %>,</br>
     </br>
     Your electric vehicle which is connected to the charging station <%= chargingStationId %> is fully charged!</br>
     </br>

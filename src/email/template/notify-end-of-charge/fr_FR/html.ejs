@@ -1,6 +1,6 @@
 <html>
   <body>
-    Bonjour <%= user.firstName %>,</br>
+    Bonjour <%= (user.firstName?user.firstName:user.name) %>,</br>
     </br>
     Votre véhicule électrique qui est connecté sur la borne <%= chargingStationId %> a terminé sa charge !</br>
     </br>
