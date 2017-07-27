@@ -1,0 +1,70 @@
+{
+  "CentralSystems": [
+    {
+      "implementation": "soap",
+      "protocol": "http",
+      "host": "localhost",
+      "port": 8000
+    }
+  ],
+  "CentralSystemRestService": {
+    "protocol": "https",
+    "host": "localhost",
+    "port": 443,
+    "ssl-key": "ssl/localhost.key",
+    "ssl-cert": "ssl/localhost.cert",
+    "ssl-ca": [],
+    "userTokenKey": "s3A92797boeiBhxQDM1GInRith",
+    "userTokenLifetimeHours": 12,
+    "userDemoTokenLifetimeDays": 365,
+    "webSocketNotificationIntervalSecs": 5,
+    "debug": false
+  },
+  "CentralSystemFrontEnd": {
+    "protocol": "https",
+    "host": "localhost",
+    "port": 443
+  },
+  "Storage": {
+    "implementation": "mongodb",
+    "host": "localhost",
+    "port": 27017,
+    "user": "evse-user",
+    "password": "",
+    "schema": "evse"
+  },
+  "Email": {
+     "from": "admin.noreply@evse.com",
+     "bcc": "",
+     "smtp" : {
+       "host": "smtp.gmail.com",
+       "port": 465,
+       "secure": true,
+       "requireTLS": true,
+       "type": "login",
+       "user": "",
+       "password": "",
+       "debug": false
+     }
+  },
+  "Authorization": {
+    "debug": false
+  },
+  "ChargingStation" : {
+    "heartbeatIntervalSecs": 60,
+    "checkEndOfChargeNotificationAfterMin": 5,
+    "notifBeforeEndOfChargePercent": 50,
+    "notifBeforeEndOfChargeEnabled": false,
+    "notifEndOfChargePercent": 0,
+    "notifEndOfChargeEnabled": true,
+    "notifStopTransactionAndUnlockConnector": false
+  },
+  "Locales" : {
+    "default": "en_US",
+    "supported": ["en_US", "fr_FR"]
+  },
+  "Advanced" : {
+    "backgroundTasksIntervalSecs": 120,
+    "chargeCurveMeterIntervalSecs": 60
+  }
+}

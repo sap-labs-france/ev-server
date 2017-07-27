@@ -1,0 +1,50 @@
+[
+ {
+  "name": "Admin",
+  "firstName": "",
+  "email": "",
+  "phone": "",
+  "mobile": "",
+  "iNumber": "",
+  "costCenter": "",
+  "status": "A",
+  "tagIDs": [],
+  "role": "A"
+ },
+ {
+  "name": "User",
+  "firstName": "",
+  "email": "",
+  "phone": "",
+  "mobile": "",
+  "iNumber": "",
+  "costCenter": "",
+  "status": "A",
+  "tagIDs": [],
+  "role": "U"
+ },
+ {
+  "name": "Corporate",
+  "firstName": "",
+  "email": "",
+  "phone": "",
+  "mobile": "",
+  "iNumber": "",
+  "costCenter": "",
+  "status": "A",
+  "tagIDs": [],
+  "role": "C"
+ },
+ {
+  "name": "Demo",
+  "firstName": "",
+  "email": "",
+  "phone": "",
+  "mobile": "",
+  "iNumber": "",
+  "costCenter": "",
+  "status": "A",
+  "tagIDs": [],
+  "role": "D"
+ }
+]

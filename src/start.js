@@ -1,5 +1,6 @@
 var MongoDBStorage = require('./storage/mongodb/MongoDBStorage');
 var Configuration = require('./utils/Configuration');
+var Utils = require('./utils/Utils');
 var SoapCentralSystemServer = require('./server/charging-station/soap/SoapCentralSystemServer');
 var CentralRestServer = require('./server/front-end/CentralRestServer');
 var CentralServerBackgroundTasks = require('./server/CentralServerBackgroundTasks');
@@ -26,6 +27,7 @@ global.storage.start().then(() => {
   // Create the Central Systems (Charging Stations) ------------------
   let centralSystemsConfig = Configuration.getCentralSystemsConfig();
   let chargingStationConfig = Configuration.getChargingStationConfig();
+  let advancedConfig = Configuration.getAdvancedConfig();
 
   // Instanciate central servers
   centralSystemsConfig.forEach((centralSystemConfig) => {
@@ -57,9 +59,6 @@ global.storage.start().then(() => {
     // Start it
     centralRestServer.start();
   }
-
-  // Get advanced config
-  let advancedConfig = Configuration.getAdvancedConfig();
 
   // Start background task
   setInterval(CentralServerBackgroundTasks.executeAllBackgroundTasks, advancedConfig.backgroundTasksIntervalSecs * 1000);

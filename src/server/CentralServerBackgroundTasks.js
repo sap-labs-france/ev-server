@@ -12,14 +12,24 @@ _configChargingStation = Configuration.getChargingStationConfig();
 module.exports = {
   // Execute all tasks
   executeAllBackgroundTasks: function() {
-    // Upload initial users
-    // module.exports.uploadUsers();
-
-    // Upload initial users
-    // module.exports.saveUsers();
-
+    // Import users
+    module.exports.importUsers();
+    
     // Handle task related to Charging Stations
     return module.exports.checkChargingStations();
+  },
+
+  importUsers() {
+    try {
+      // Import users
+      Utils.importUsers();
+    } catch (err) {
+      // Log
+      Logging.logError({
+        userFullName: "System", source: "Central Server", module: "ChargingStationBackgroundTasks", method: "importUsers",
+        message: `Cannot import users: ${err.toString()}`,
+        detailedMessages: err.stack });
+    }
   },
 
   checkChargingStations() {
@@ -237,49 +247,4 @@ module.exports = {
      });
     });
   },
-
-  uploadUsers() {
-    // Log
-    console.log("Users Uploaded!");
-    // Get from the file system
-    var users = Utils.getUsers();
-    // Process them
-    for (var i = 0; i < users.length; i++) {
-      // Check & Save
-      module.exports.checkAndSaveUser(users[i]);
-    }
-  },
-
-  checkAndSaveUser(user) {
-    // Get user
-    global.storage.getUserByEmail(user.email).then((userDB) => {
-      // Found
-      if (!userDB) {
-        var newUser = new User(user);
-        // Save
-        newUser.save().then(() => {
-          Logging.logInfo({
-            userFullName: "System", source: "Central Server", module: "ChargingStationBackgroundTasks", method: "checkAndSaveUser",
-            message: `User ${newUser.getFullName()} with Email ${newUser.getEMail()} has been saved successfully`,
-            detailedMessages: user});
-        });
-      }
-    });
-  },
-
-  saveUsers() {
-    console.log("Users Saved!");
-    // Get the users
-    global.storage.getUsers().then(function(users) {
-      let savedUsers = [];
-      for (var i = 0; i < users.length; i++) {
-        savedUsers.push(users[i].getModel());
-      }
-      // Save
-      Utils.saveUsers(savedUsers);
-    }).catch((err) => {
-      // Log
-      console.log(err);
-    });
-  }
 };

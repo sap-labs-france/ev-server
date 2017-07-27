@@ -54,6 +54,34 @@ module.exports = function(grunt) {
 					],
 				},
 			},
+			obfuscator: {
+				options: {
+	        // global options for the obfuscator
+					compact: true,
+					controlFlowFlattening: true,
+					controlFlowFlatteningThreshold: 0.75,
+					deadCodeInjection: true,
+					deadCodeInjectionThreshold: 0.4,
+					debugProtection: false,
+					debugProtectionInterval: false,
+					disableConsoleOutput: true,
+					mangle: false,
+					rotateStringArray: true,
+					selfDefending: true,
+					stringArray: true,
+					stringArrayEncoding: 'base64',
+					stringArrayThreshold: 0.75,
+					unicodeEscapeSequence: false
+		    },
+		    task1: {
+		        options: {
+		            // options for each sub task
+		        },
+		        files: {
+		        	'dist/output.js': ["src/**/*.js"]
+		        }
+		    }
+			},
 			uglify: {
 				files: ["src/**/*.js"],
 				options: {
@@ -88,7 +116,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 
-	grunt.registerTask("build:prod", ["clean","uglify"]);
+	grunt.registerTask("build:prod", ["clean","obfuscator"]);
 	grunt.registerTask("qa", ["jshint"]);
 
   grunt.registerTask("default", ["qa"]);
