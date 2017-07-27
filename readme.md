@@ -4,12 +4,12 @@
 
 This application server (NodeJs) collects and stores the data (MongoDB) received from the Charging Stations via the OCPP protocol and exposes a REST service to an Angular front-end dashboard application ([EVSE-Dashboard](https://github.com/LucasBrazi06/ev-dashboard)).
 
-The application offers:
-* Display the charging stations, their status and delivered power in real time.
-* User managements
+The application:
+* Displays of the charging stations, their status and their delivered power in real time.
+* User management (create, update, delete, authorize, change role...)
 * Charging station charging curve real time
-* Actions on charging stations: Reboot, Clear Cache, Stop Transaction, Unlock Connector
-* Energy control: lower the enegy delivered by the charging station
+* Actions on charging stations: Reboot, Clear Cache, Stop Transaction, Unlock Connector...
+* Energy control: Set the maximum energy delivered by the charging station
 
 **Live demo here** [Smart EVSE](https://smart-evse.com/)
 
@@ -17,14 +17,13 @@ The application offers:
 * Install NodeJS: https://nodejs.org/
 * Install MongoDB: https://www.mongodb.com/
 * Clone this GitHub project
-* Run **npm install** in the **ev-serveur** directory
+* Run **npm install** in the **ev-server** directory
 * Follow the setup below
 
 ## The Database
 
 #### Start MongoDB
 
-Start MongoDB:
 ```
 mongod --port 27017 --dbpath /data/evse
 ```
@@ -33,8 +32,9 @@ mongod --port 27017 --dbpath /data/evse
 
 This user will be used to connect to the database as an administrator with tools like MongoDB shell or RoboMongo:
 
-```json
-Admin User
+In MongoDB shell, run the following command:
+
+```
   use admin
   db.createUser({
     user: "evse-admin",
@@ -57,8 +57,8 @@ Admin User
 
 This user will be used by the application server to read/write data in MongoDB:
 
-```json
-use evse
+```
+  use evse
   db.createUser({
     user: "evse-user",
     pwd: "YourPassword",
@@ -76,57 +76,55 @@ This will restart MongoDB and will accept only authenticated connections from no
 mongod --auth --port 27017 --dbpath /data/evse
 ```
 
-Now your database is ready to use.
-
+Now your database is ready to be used.
 
 ## The Application Server
 
 The application server consits of:
-	- **Central Service Server**: A server that communicates with the charging stations
-	- **Central Service REST Server**: A REST server that communicates with front-end Angular dashboard
+* **Central Service Server**: A server that communicates with the charging stations
+* **Central Service REST Server**: A REST server that communicates with front-end Angular dashboard
 
-You can install only one application server that will handle both or install serveral CSS and CSRS independantly to better scale.
 
 ### The Central Service Server (CSS)
 
 This application server will listen to the charging station and store their data to the database.
+
 It can also communicate with the charging stations (reboot, stop a transaction...)
-The communication used by this application server is the OCPP (Open Charge Point Protocol) in version 1.2, 1.5 and 1.6.
-Other protocols, like the ISO 15118, may also be supported.
+
+The communication used by this application server is the OCPP protocol (Open Charge Point Protocol) in version 1.2, 1.5 and 1.6.
+
+Other protocols, like the ISO 15118, may also be supported in the future.
 
 #### Configuration
 
-The server configuration is stored in the **config.json** file.
+The server configuration is stored in the **config.json** file in the **src** directory.
 
-There is a template provided named **config-template.json**.
+There is a template already provided named **config-template.json**.
+
 Rename it to **config.json**.
 
-#### Listen to Charging Station
+#### Listen to the Charging Stations
 
-Set below the OCPP implementation (only soap is supported) and the protocol, host and the port to which you want the server to listen:
+Set the protocol, host and the port which you want the server to listen to (only OCPP SOAP implementation is supported):
 
 ```
   "CentralSystems": [
     {
       "implementation": "soap",
       "protocol": "http",
-   	  "host": "localhost",
+      "host": "localhost",
       "port": 8000
     }
   ]
 ```
-There can be several central systems with different protocols but today only http protocol is supported, there is no possibility to encrypt the communication.
-
-Keep this information and it will be used to configure the charging station afterwards.
+There can be several central systems with different protocols but today only http protocol is supported, thus there is no possibility to encrypt the communication between the server and the charging stations for the time being.
 
 
 ### The Central Service REST Server (CSRS)
 
-The server also exposes a set of REST services to serve the front-end Angular application.
+The server also exposes a set of REST services to serve the front-end [Angular Dashboard](https://github.com/LucasBrazi06/ev-dashboard).
 
 This application displays the charging stations with their statuses, charging curves, user management...
-
-You can find more details here: [ev-dashboard](https://github.com/LucasBrazi06/ev-dashboard)
 
 To set the end point, fill the following information in the **config.json** file
 
@@ -185,9 +183,7 @@ In the **config.json** file, set the database connection info
 
 ### Front-End
 
-When the user will be notified by email for instance, a link to the front-end application will be built based on the configuration below.
-
-In the **config.json** file edit the following info:
+When the user will be notified (by email for instance), a link to the front-end application will be built based on the configuration below:
 
 ```
   "CentralSystemFrontEnd": {
@@ -199,9 +195,9 @@ In the **config.json** file edit the following info:
 
 ### Notifications
 
-The user will receive a notification when, for instance, his vehicule will be charged.
+The user will receive a notification when, for instance, his vehicule will be fully charged.
 
-Only Email notification is implemented today.
+Only notification via emails is implemented today.
 
 #### Email Notification
 
@@ -231,7 +227,7 @@ In the **config.json** file edit the following info:
 
 The authentication is done via user login/password and the server will deliver a token that will expire after a certain period of time.
 
-Then there are no session or cookies send around and this will allow to scale easily.
+Then there are neither session nor cookies sent around and this will allow to scale easily.
 
 The token key is provided is the **config.json** file:
 
@@ -245,9 +241,9 @@ The token key is provided is the **config.json** file:
   }
 ```
 
-You can set your own key to encode it (userTokenKey) and change its lifetime (12 hours by default.)
+You can set your own key to encode it in key **userTokenKey** and change its lifetime in **userTokenLifetimeHours** (12 hours by default.)
 
-The demo users can have a longer lifetime for demo purposes (365 days by default)
+The Demo users can have a longer lifetime for demo purposes with key **userDemoTokenLifetimeDays** (365 days by default)
 
 
 #### Authorization
@@ -255,14 +251,14 @@ The demo users can have a longer lifetime for demo purposes (365 days by default
 The users can have differents roles:
 * Admin (**A**) : Can do everything (manage users, stop transactions...)
 * Basic (**B**): Default role for user (see its transactions...)
-* Corporate (**C**): Read-Only view but can see sensitive information like users...
-* Demo (**D**): Read-only view of the dashboard (users are hidden...)
+* Corporate (**C**): Read-Only view but can see sensitive information like users' names...
+* Demo (**D**): Read-only view of the dashboard (sensitive information are hidden...)
 
-#### Import Users (once)
+#### Import initial Users in database
 
 First time you launch the dashoard, the database will be empty.
 
-Edit the **user-template.json** file and enter at least an Admin user:
+Edit the **user-template.json** file and enter at least an Admin user (role = "A":
 
 ```
  {
@@ -281,20 +277,20 @@ Edit the **user-template.json** file and enter at least an Admin user:
 
 Only the **email** and the **name** are mandatory and must not exist in the database.
 
-Once done, rename the file to **user.json** and when you will start the server, you will get your user imported.
+Once done, rename the file to **user.json** and when you will start the server, you will get your user imported and the file will be renamed to **user-imported.json**.
 
-Once done, you can ask from the dashboard to init the password which you will receive by email.
+You can repeat the process with new users.
+
+Once done, you can get your password using the dashboard (you will receive it by email.)
 
 
 ### Notifications
 
-The user will receive a notification when, for instance, his vehicule will be charged.
-
-Only Email notification is implemented today.
+The user will receive a notification when, for instance, his vehicule will be fully charged.
 
 #### Email Notification
 
-In the **config.json** file edit the following info:
+In the **config.json**, set the following info:
 
 ```
   "Email": {
@@ -336,19 +332,19 @@ Here are the charging station parameters:
 * **notifBeforeEndOfChargeEnabled**: Enable the intermediate notification
 * **notifEndOfChargePercent**: The threshold for the end of charge (% of the energy delivered by the charging station)
 * **notifEndOfChargeEnabled**: Enable the end of charge notification
-* **notifStopTransactionAndUnlockConnector**: Enable the auto stop transaction and unlock of the connector
+* **notifStopTransactionAndUnlockConnector**: Enable the stop transaction and unlock of the connector when the charge will be finished
 
 ### Internationalization
 
-Here the locale parameters:
+Here are the default delivered locales:
 
 ```
  "Locales": {
-  "default": "en_US",
-  "supported": [
-   "en_US",
-   "fr_FR"
-  ]
+ 	"default": "en_US",
+    "supported": [
+      "en_US",
+      "fr_FR"
+    ]
  },
 ```
 
@@ -358,32 +354,32 @@ Here is the advanced configuration:
 
 ```
  "Advanced": {
-  "backgroundTasksIntervalSecs": 120,
-  "chargeCurveMeterIntervalSecs": 60
+ 	"backgroundTasksIntervalSecs": 120,
+    "chargeCurveMeterIntervalSecs": 60
  }
 ```
 
-* **backgroundTasksIntervalSecs**: Background tasks taht will update the status of the charging station, send notifications, do housekeeping...
-* **chargeCurveMeterIntervalSecs**: The interval between two points in the charging curve
+* **backgroundTasksIntervalSecs**: Interval used by the background tasks that will do some actions like: updating the status of the charging stations, check and send notifications, import the initial users...
+* **chargeCurveMeterIntervalSecs**: The interval between two points in the charging curve displayed in the Dashboard
 
 ## The Charging Stations
 
 Each charging station vendor has its own configuration interface, so I'll just describe in general terms what's to be setup on those:
 
-* You must configure the server URL to point to this server
-* Check the charging station ID usually called *ChargingStationIdentity*. This is important as this will be the key in the database.
-* Set the charging station default public URL to a reachable URL so the server can use it to trigger action on it (avoid using *localhost*)
+* Set this server URL in the charging station's interface
+* Rename the charging station ID if necessary: this will be the key (use Company-Town-Number)
+* Set the charging station endpoint public URL to a reachable URL so the server can use it to trigger action on it (avoid using *localhost*)
 
 Tested and supported Charging Station:
 
 * **Schneider Electric**
-	* Type: Accelerated Charger
-	* Power: 2 connectors AC of 22 kW
-	* Connector Type 2
-	* Product Id: 501FE25
-	* Reference: EV.2S22P44R
-	* OCPP Version: 1.5
-	* Firmware: 2.7.4.17
+	* **Type**: Accelerated Charger
+	* **Power**: 2 connectors AC of 22 kW
+	* **Connector**: Type 2
+	* **Product Id**: 501FE25
+	* **Reference**: EV.2S22P44R
+	* **OCPP Version**: 1.5
+	* **Firmware**: 2.7.4.17
 
 
 ## Start the Central Service Server (CSS)
@@ -401,11 +397,7 @@ npm start
 npm start:dev
 ```
 
-
 ## Architecture
 
 ### TAM Model
 ![TAM Model](./tam-model.png)
-
-### TAM Description
-![TAM Model](./tam-model-descr.png)
