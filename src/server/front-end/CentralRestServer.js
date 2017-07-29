@@ -11,10 +11,12 @@ var cors = require('cors');
 var helmet = require('helmet');
 var morgan = require('morgan');
 var locale = require('locale');
-var express = require('express')();
+var express = require('express');
+var app = require('express')();
 var http = require('http');
 var https = require('https');
 var fs = require('fs');
+var path = require('path');
 
 let _centralSystemRestConfig;
 let _io;
@@ -24,35 +26,54 @@ class CentralSystemRestServer {
   // Create the rest server
   constructor(centralSystemRestConfig) {
     // Body parser
-    express.use(bodyParser.json({limit: '1mb'}));
-    express.use(bodyParser.urlencoded({ extended: false, limit: '1mb' }));
-    express.use(bodyParser.xml());
+    app.use(bodyParser.json({limit: '1mb'}));
+    app.use(bodyParser.urlencoded({ extended: false, limit: '1mb' }));
+    app.use(bodyParser.xml());
 
     // Use
-    express.use(locale(Configuration.getLocalesConfig().supported));
+    app.use(locale(Configuration.getLocalesConfig().supported));
 
     // log to console
     if (centralSystemRestConfig.debug) {
-      express.use(morgan('dev'));
+      app.use(morgan('dev'));
     }
 
     // Cross origin headers
-    express.use(cors());
+    app.use(cors());
 
     // Secure the application
-    express.use(helmet());
+    app.use(helmet());
 
     // Authentication
-    express.use(CentralRestServerAuthentication.initialize());
+    app.use(CentralRestServerAuthentication.initialize());
 
     // Auth services
-    express.use('/auth', CentralRestServerAuthentication.authService);
+    app.use('/client/auth', CentralRestServerAuthentication.authService);
 
     // Secured API
-    express.use('/client/api', CentralRestServerAuthentication.authenticate(), CentralRestServerService.restServiceSecured);
+    app.use('/client/api', CentralRestServerAuthentication.authenticate(), CentralRestServerService.restServiceSecured);
 
     // Util API
-    express.use('/client/util', CentralRestServerService.restServiceUtil);
+    app.use('/client/util', CentralRestServerService.restServiceUtil);
+
+    // Check if the front-end has to be served also
+    let frontEndPath = Configuration.getCentralSystemFrontEndConfig().distPath;
+    // Server it?
+    if (frontEndPath) {
+      // Serve all the static files of the front-end
+      app.get(/^\/(?!client\/)(.+)$/, function(req, res, next) {
+        // Filter to not handle other server requests
+        if(!res.headersSent) {
+          // Not already processed: serve the file
+          res.sendFile( path.join(__dirname, frontEndPath, req.params[0]) );
+        }
+      });
+      // Default, serve the index.html
+      app.get('/', function(req, res, next) {
+        // Return the index.html
+        res.sendFile(path.join(__dirname, frontEndPath, 'index.html'));
+      });
+    }
 
     // Keep params
     _centralSystemRestConfig = centralSystemRestConfig;
@@ -94,10 +115,10 @@ class CentralSystemRestServer {
         }
       }
       // Https server
-      server = https.createServer(options, express);
+      server = https.createServer(options, app);
     } else {
       // Http server
-      server = http.createServer(express);
+      server = http.createServer(app);
     }
 
     // Init Socket IO

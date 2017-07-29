@@ -38,8 +38,8 @@ class MongoDBStorage extends Storage {
   start() {
     return new Promise((fulfill, reject) => {
       // Connect
-      mongoose.connect(`mongodb://${_dbConfig.host}:${_dbConfig.port}/${_dbConfig.schema}`,
-          {"user": _dbConfig.user, "pass": _dbConfig.password}, (err) => {
+      mongoose.connect(`mongodb://${_dbConfig.user}:${_dbConfig.password}@${_dbConfig.host}:${_dbConfig.port}/${_dbConfig.schema}`,
+          {"useMongoClient": true}, (err) => {
         if (err) {
           console.log(`MongoDB: Error when connecting: ${err.toString()}`);
           reject(err);

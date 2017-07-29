@@ -23,7 +23,8 @@
   "CentralSystemFrontEnd": {
     "protocol": "https",
     "host": "localhost",
-    "port": 443
+    "port": 443,
+    "distPath": "../../../dist/ev-dashboard"
   },
   "Storage": {
     "implementation": "mongodb",

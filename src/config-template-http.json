@@ -20,7 +20,8 @@
   "CentralSystemFrontEnd": {
     "protocol": "http",
     "host": "localhost",
-    "port": 80
+    "port": 80,
+    "distPath": "../../../dist/ev-dashboard"
   },
   "Storage": {
     "implementation": "mongodb",
