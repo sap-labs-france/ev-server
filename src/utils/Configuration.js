@@ -1,25 +1,12 @@
 var fs = require('fs');
 var path = require('path');
 const Utils = require('./Utils');
-
-var _config;
+const _config = require('../config.json');
 
 module.exports = {
   // Read the config file
   getConfig() {
-    // Read conf
-    if (!_config) {
-      _config = JSON.parse(fs.readFileSync(path.join(__dirname,"../config.json"), "UTF-8"));
-    }
     return _config;
-  },
-
-  // Read the config file
-  saveConfig(config) {
-    // Save
-    fs.writeFileSync(path.join(__dirname, `../config.json`), JSON.stringify(config, null, ' '), 'UTF-8');
-    // Clear config
-    _config = null;
   },
 
   // Central System config

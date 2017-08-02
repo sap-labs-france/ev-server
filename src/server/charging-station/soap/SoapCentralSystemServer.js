@@ -1,15 +1,17 @@
-var Logging = require('../../../utils/Logging');
-var centralSystemService12 = require('./services/centralSystemService1.2');
-var centralSystemService15 = require('./services/centralSystemService1.5');
-var centralSystemService16 = require('./services/centralSystemService1.6');
-var fs = require('fs');
-var soap = require('strong-soap').soap;
-var path = require('path');
-var http = require('http');
-var https = require('https');
-var express = require('express')();
-var CentralSystemServer = require('../CentralSystemServer');
-var fs = require('fs');
+const Logging = require('../../../utils/Logging');
+const centralSystemService12 = require('./services/centralSystemService1.2');
+const centralSystemService12Wsdl = require('./wsdl/OCPP_CentralSystemService1.2.wsdl');
+const centralSystemService15 = require('./services/centralSystemService1.5');
+const centralSystemService15Wsdl = require('./wsdl/OCPP_CentralSystemService1.5.wsdl');
+const centralSystemService16 = require('./services/centralSystemService1.6');
+const centralSystemService16Wsdl = require('./wsdl/OCPP_CentralSystemService1.6.wsdl');
+const fs = require('fs');
+const soap = require('strong-soap').soap;
+const path = require('path');
+const http = require('http');
+const https = require('https');
+const express = require('express')();
+const CentralSystemServer = require('../CentralSystemServer');
 
 let _centralSystemConfig;
 let _chargingStationConfig;
@@ -49,21 +51,13 @@ class SoapCentralSystemServer extends CentralSystemServer {
         server = http.createServer(express);
       }
 
-      // Read the WSDL files
-      var centralSystemWsdl12 = fs.readFileSync(
-        path.join(__dirname, '/wsdl/OCPP_CentralSystemService1.2.wsdl'), 'UTF-8');
-      var centralSystemWsdl15 = fs.readFileSync(
-        path.join(__dirname, '/wsdl/OCPP_CentralSystemService1.5.wsdl'), 'UTF-8');
-      var centralSystemWsdl16 = fs.readFileSync(
-        path.join(__dirname, '/wsdl/OCPP_CentralSystemService1.6.wsdl'), 'UTF-8');
-
       // Create Soap Servers
       // OCPP 1.2 -----------------------------------------
-      var soapServer12 = soap.listen(server, '/OCPP12', centralSystemService12, centralSystemWsdl12);
+      var soapServer12 = soap.listen(server, '/OCPP12', centralSystemService12, centralSystemService12Wsdl);
       // OCPP 1.5 -----------------------------------------
-      var soapServer15 = soap.listen(server, '/OCPP15', centralSystemService15, centralSystemWsdl15);
+      var soapServer15 = soap.listen(server, '/OCPP15', centralSystemService15, centralSystemService15Wsdl);
       // OCPP 1.6 -----------------------------------------
-      var soapServer16 = soap.listen(server, '/OCPP16', centralSystemService16, centralSystemWsdl16);
+      var soapServer16 = soap.listen(server, '/OCPP16', centralSystemService16, centralSystemService16Wsdl);
 
       // Listen
       server.listen(_centralSystemConfig.port, _centralSystemConfig.host, () => {
