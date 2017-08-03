@@ -49,9 +49,9 @@
   },
   "scripts": {
     "start": "node src/start",
-    "start:dev": "node-devtools --watch=2 src/start.js",
-    "start:prod": "node dist/bundle.js",
-    "build": "webpack --env.env=dev",
+    "start:dev": "nodemon src/start.js",
+    "start:prod": "node dist/start.js",
+    "build": "npm run build:dev",
     "build:dev": "webpack  --watch --env.env=dev",
     "build:prod": "webpack --env.env=prod"
   },
