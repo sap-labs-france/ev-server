@@ -24,7 +24,7 @@
     "protocol": "https",
     "host": "localhost",
     "port": 443,
-    "distPath": "../dist/ev-dashboard"
+    "distPath": "../dist/front-end"
   },
   "Storage": {
     "implementation": "mongodb",

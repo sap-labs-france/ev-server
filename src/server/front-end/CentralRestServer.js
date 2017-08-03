@@ -64,7 +64,6 @@ class CentralSystemRestServer {
       app.get(/^\/(?!client\/)(.+)$/, function(req, res, next) {
         // Filter to not handle other server requests
         if(!res.headersSent) {
-          console.log(path.join(__dirname, frontEndPath, req.params[0]));
           // Not already processed: serve the file
           res.sendFile(path.join(__dirname, frontEndPath, req.params[0]));
         }
@@ -72,7 +71,6 @@ class CentralSystemRestServer {
       // Default, serve the index.html
       app.get('/', function(req, res, next) {
         // Return the index.html
-        console.log(path.join(__dirname, frontEndPath, 'index.html'));
         res.sendFile(path.join(__dirname, frontEndPath, 'index.html'));
       });
     }
