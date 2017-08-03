@@ -1,12 +1,12 @@
-var ChargingStation = require('../../model/ChargingStation');
-var Utils = require('../../utils/Utils');
-var Logging = require('../../utils/Logging');
-var bodyParser = require("body-parser");
+const ChargingStation = require('../../model/ChargingStation');
+const Utils = require('../../utils/Utils');
+const Logging = require('../../utils/Logging');
+const bodyParser = require("body-parser");
 require('body-parser-xml')(bodyParser);
-var cors = require('cors');
-var helmet = require('helmet');
-var morgan = require('morgan');
-var locale = require('locale');
+const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const locale = require('locale');
 
 let _centralSystemConfig;
 let _chargingStationConfig;

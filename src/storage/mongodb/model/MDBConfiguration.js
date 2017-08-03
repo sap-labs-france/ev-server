@@ -1,4 +1,4 @@
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 const Configuration = new mongoose.Schema({
   key: String,

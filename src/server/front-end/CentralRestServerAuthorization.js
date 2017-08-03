@@ -1,6 +1,6 @@
-var Logging = require('../../utils/Logging');
-var Configuration = require('../../utils/Configuration');
-var Authorization = require('node-authorization').Authorization;
+const Logging = require('../../utils/Logging');
+const Configuration = require('../../utils/Configuration');
+const Authorization = require('node-authorization').Authorization;
 
 let _configuration;
 

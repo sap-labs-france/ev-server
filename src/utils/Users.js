@@ -1,6 +1,6 @@
-var crypto = require('crypto');
-var passwordGenerator = require("password-generator");
-var Logging = require('./Logging');
+const crypto = require('crypto');
+const passwordGenerator = require("password-generator");
+const Logging = require('./Logging');
 
 module.exports = {
    // Statuses

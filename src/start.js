@@ -1,9 +1,9 @@
-var MongoDBStorage = require('./storage/mongodb/MongoDBStorage');
-var Configuration = require('./utils/Configuration');
-var Utils = require('./utils/Utils');
-var SoapCentralSystemServer = require('./server/charging-station/soap/SoapCentralSystemServer');
-var CentralRestServer = require('./server/front-end/CentralRestServer');
-var CentralServerBackgroundTasks = require('./server/CentralServerBackgroundTasks');
+const MongoDBStorage = require('./storage/mongodb/MongoDBStorage');
+const Configuration = require('./utils/Configuration');
+const Utils = require('./utils/Utils');
+const SoapCentralSystemServer = require('./server/charging-station/soap/SoapCentralSystemServer');
+const CentralRestServer = require('./server/front-end/CentralRestServer');
+const CentralServerBackgroundTasks = require('./server/CentralServerBackgroundTasks');
 
 // Start the connection to the Database
 let storageConfig = Configuration.getStorageConfig();

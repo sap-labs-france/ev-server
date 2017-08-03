@@ -1,6 +1,6 @@
-var fs = require('fs');
-var path = require('path');
-var Users = require('./Users');
+const fs = require('fs');
+const path = require('path');
+const Users = require('./Users');
 
 module.exports = {
   updateChargingStationObject(src, dest) {

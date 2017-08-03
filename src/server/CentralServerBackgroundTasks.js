@@ -1,11 +1,10 @@
-var ChargingStation = require('../model/ChargingStation');
-var User = require('../model/User');
-var Utils = require('../utils/Utils');
-var Logging = require('../utils/Logging');
-var Configuration = require('../utils/Configuration');
-var Mustache = require('mustache');
-var EMail = require('../email/EMail');
-var moment = require('moment');
+const ChargingStation = require('../model/ChargingStation');
+const User = require('../model/User');
+const Utils = require('../utils/Utils');
+const Logging = require('../utils/Logging');
+const Configuration = require('../utils/Configuration');
+const EMail = require('../email/EMail');
+const moment = require('moment');
 
 _configChargingStation = Configuration.getChargingStationConfig();
 
@@ -14,7 +13,7 @@ module.exports = {
   executeAllBackgroundTasks: function() {
     // Import users
     module.exports.importUsers();
-    
+
     // Handle task related to Charging Stations
     return module.exports.checkChargingStations();
   },

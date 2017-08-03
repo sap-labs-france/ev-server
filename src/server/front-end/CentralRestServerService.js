@@ -1,9 +1,9 @@
-var CentralRestServerAuthorization = require('./CentralRestServerAuthorization');
-var Utils = require('../../utils/Utils');
-var Database = require('../../utils/Database');
-var Logging = require('../../utils/Logging');
+const CentralRestServerAuthorization = require('./CentralRestServerAuthorization');
+const Utils = require('../../utils/Utils');
+const Database = require('../../utils/Database');
+const Logging = require('../../utils/Logging');
 const Users = require('../../utils/Users');
-var User = require('../../model/User');
+const User = require('../../model/User');
 
 module.exports = {
   // Util Service

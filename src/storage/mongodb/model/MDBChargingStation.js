@@ -1,4 +1,4 @@
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 const Connector = new mongoose.Schema({
   connectorId: Number,

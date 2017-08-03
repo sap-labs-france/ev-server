@@ -1,4 +1,4 @@
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 const Attribute = new mongoose.Schema({
   context: String,

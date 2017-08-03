@@ -1,57 +1,54 @@
-var Configuration = require('../utils/Configuration');
-var nodemailer = require('nodemailer');
-var path = require('path');
-var EmailTemplate = require('email-templates').EmailTemplate;
+const Configuration = require('../utils/Configuration');
+const nodemailer = require('nodemailer');
+const path = require('path');
+const email = require("emailjs");
+const ejs = require('ejs');
+const resetPasswordTemplate = require('./template/reset-password.js');
+const registeredUserTemplate = require('./template/registered-user.js');
+const notifyEndOfChargeTemplate = require('./template/notify-end-of-charge.js');
+const notifyBeforeEndOfChargeTemplate = require('./template/notify-before-end-of-charge.js');
+
+// Email
+_emailConfig = Configuration.getEmailConfig();
 
 // https://nodemailer.com/smtp/
 class EMail {
   constructor() {
-    // Email
-    this._emailConfig = Configuration.getEmailConfig();
-
-    // Set
-    let nodeMailerParams = {
-      host: this._emailConfig.smtp.host,
-      port: this._emailConfig.smtp.port,
-      secure: this._emailConfig.smtp.secure,
-      requireTLS: this._emailConfig.smtp.requireTLS,
-      type: this._emailConfig.smtp.type,
-      logger: this._emailConfig.smtp.debug,
-      debug: this._emailConfig.smtp.debug
-    };
-
-    // Credentials provided?
-    if (this._emailConfig.smtp.user) {
-      // Add
-      nodeMailerParams.auth = {
-        user: this._emailConfig.smtp.user,
-        pass: this._emailConfig.smtp.password
-      };
-    }
-
-    // create reusable transporter object using the default SMTP transport
-    this._transporter = nodemailer.createTransport(nodeMailerParams);
+    // Connect to the server
+    this.server = email.server.connect({
+      user: _emailConfig.smtp.user,
+      password: _emailConfig.smtp.password,
+      host: _emailConfig.smtp.host,
+      port: _emailConfig.smtp.port,
+      tls: _emailConfig.smtp.requireTLS,
+      ssl: _emailConfig.smtp.secure
+    });
   }
 
   sendEmail(email) {
     // In promise
     return new Promise((fulfill, reject) => {
-      // Call
-      this._transporter.sendMail({
-          from: (!email.from?this._emailConfig.from:email.from),
-          to: email.to,
-          cc: email.cc,
-          bcc: (!email.bcc?this._emailConfig.bcc:""),
-          subject: email.subject,
-          text: email.text,
-          html: email.html
-        }, (err, info) => {
-          // Error Handling
-          if (err) {
-            reject(err);
-          } else {
-            fulfill(info);
-          }
+      // Create the message
+      var message	= {
+        from:  (!email.from?_emailConfig.from:email.from),
+        to: email.to,
+        cc: email.cc,
+        bcc: (!email.bcc?_emailConfig.bcc:""),
+        subject: email.subject,
+        text: email.text,
+        attachment: [
+          { data: email.html, alternative:true }
+        ]
+      };
+
+      // send the message and get a callback with an error or details of the message that was sent
+      this.server.send(message, (err, message) => {
+        // Error Handling
+        if (err) {
+          reject(err);
+        } else {
+          fulfill(message);
+        }
       });
     });
   }
@@ -90,32 +87,54 @@ class EMail {
 
   static _sendEmail(templateName, data, locale, fulfill, reject) {
     // Create email
-    var email = new EMail();
+    let email = new EMail();
+    let emailTemplate;
     // Get the template dir
-    var templateDir = path.join(__dirname, 'template', templateName);
-    // Parse the email template
-    var registeredUserTemplate = new EmailTemplate(templateDir);
-    // Render the email
-    registeredUserTemplate.render(data, locale,
-      (error, templateParsedResult) => {
-        // Error in parsing the template?
-        if (error) {
-          reject(error);
-        } else {
-          // Send the email
-          email.sendEmail({
-            to: data.user.email,
-            subject: templateParsedResult.subject,
-            text: `HTML content`,
-            html: templateParsedResult.html
-          }).then((message) => {
-            // Ok
-            fulfill(message);
-          }, error => {
-            reject(error);
-          });
-        }
-      });
+    switch (templateName) {
+      // Reset password
+      case 'reset-password':
+        emailTemplate = resetPasswordTemplate;
+        break;
+      // Registered user
+      case 'registered-user':
+        emailTemplate = registeredUserTemplate;
+        break;
+      // Before End of charge
+      case 'notify-before-end-of-charge':
+        emailTemplate = notifyBeforeEndOfChargeTemplate;
+        break;
+      // End of charge
+      case 'notify-end-of-charge':
+        emailTemplate = notifyEndOfChargeTemplate;
+        break;
+    }
+    // Template found?
+    if (!emailTemplate) {
+      // No
+      reject(new Error(`No template found for ${templateName}`));
+      return;
+    }
+    // Check for localized template?
+    if (emailTemplate[locale]) {
+      // Set the localized template
+      emailTemplate = emailTemplate[locale];
+    }
+    // Render the subject
+    let subject = ejs.render(emailTemplate.subject, data);
+    // Render the HTML
+    let html = ejs.render(emailTemplate.html, data);
+    // Send the email
+    email.sendEmail({
+      to: data.user.email,
+      subject: subject,
+      text: html,
+      html: html
+    }).then((message) => {
+      // Ok
+      fulfill(message);
+    }, error => {
+      reject(error);
+    });
   }
 }
 

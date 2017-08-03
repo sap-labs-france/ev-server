@@ -8,7 +8,7 @@
     "body-parser-xml": "^1.1.0",
     "cookie-parser": "^1.4.3",
     "cors": "^2.8.1",
-    "email-templates": "^2.5.6",
+    "emailjs": "^1.0.11",
     "express": "^4.14.1",
     "express-session": "^1.15.2",
     "helmet": "^3.5.0",
@@ -37,10 +37,15 @@
     "xml-formatter": "^1.0.1"
   },
   "devDependencies": {
+    "copy-webpack-plugin": "^4.0.1",
     "json-loader": "^0.5.7",
+    "node-sass": "^4.5.3",
+    "sass-loader": "^6.0.6",
+    "uglifyjs-webpack-plugin": "^1.0.0-beta.2",
     "webpack": "^3.4.1",
     "webpack-merge": "^4.1.0",
-    "webpack-node-externals": "^1.6.0"
+    "webpack-node-externals": "^1.6.0",
+    "webpack-obfuscator": "^0.10.2"
   },
   "scripts": {
     "start": "node src/start",

@@ -21,7 +21,7 @@
     "protocol": "http",
     "host": "localhost",
     "port": 80,
-    "distPath": "../../../dist/ev-dashboard"
+    "distPath": "../dist/ev-dashboard"
   },
   "Storage": {
     "implementation": "mongodb",
@@ -39,10 +39,8 @@
        "port": 465,
        "secure": true,
        "requireTLS": true,
-       "type": "login",
        "user": "",
-       "password": "",
-       "debug": false
+       "password": ""
      }
   },
   "Authorization": {

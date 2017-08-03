@@ -1,9 +1,9 @@
-var fs = require('fs');
-var path = require('path');
-var Users = require('./Users');
-var User = require('../model/User');
-var Configuration = require('./Configuration');
-var Logging = require('./Logging');
+const fs = require('fs');
+const path = require('path');
+const Users = require('./Users');
+const User = require('../model/User');
+const Configuration = require('./Configuration');
+const Logging = require('./Logging');
 
 let _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 let _userFilename = path.join(__dirname, "../../users.json");
