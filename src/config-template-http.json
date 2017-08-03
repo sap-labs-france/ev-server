@@ -21,7 +21,7 @@
     "protocol": "http",
     "host": "localhost",
     "port": 80,
-    "distPath": "../dist/front-end"
+    "distPath": "../../../dist/front-end"
   },
   "Storage": {
     "implementation": "mongodb",
