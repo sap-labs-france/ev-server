@@ -57,21 +57,21 @@ class CentralSystemRestServer {
     app.use('/client/util', CentralRestServerService.restServiceUtil);
 
     // Check if the front-end has to be served also
-    let frontEndPath = Configuration.getCentralSystemFrontEndConfig().distPath;
+    let centralSystemConfig = Configuration.getCentralSystemFrontEndConfig();
     // Server it?
-    if (frontEndPath) {
+    if (centralSystemConfig.distEnabled) {
       // Serve all the static files of the front-end
       app.get(/^\/(?!client\/)(.+)$/, function(req, res, next) {
         // Filter to not handle other server requests
         if(!res.headersSent) {
           // Not already processed: serve the file
-          res.sendFile(path.join(__dirname, frontEndPath, req.params[0]));
+          res.sendFile(path.join(__dirname, centralSystemConfig.distPath, req.params[0]));
         }
       });
       // Default, serve the index.html
       app.get('/', function(req, res, next) {
         // Return the index.html
-        res.sendFile(path.join(__dirname, frontEndPath, 'index.html'));
+        res.sendFile(path.join(__dirname, centralSystemConfig.distPath, 'index.html'));
       });
     }
 

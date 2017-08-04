@@ -8,7 +8,7 @@ const moment = require('moment');
 
 _configChargingStation = Configuration.getChargingStationConfig();
 
-module.exports = {
+module.exports = { 
   // Execute all tasks
   executeAllBackgroundTasks: function() {
     // Import users

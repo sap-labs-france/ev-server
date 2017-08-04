@@ -1,4 +1,7 @@
 const ChargingStation = require('../../model/ChargingStation');
+const chargePointService12Wsdl = require('../../client/soap/wsdl/OCPP_ChargePointService1.2.wsdl');
+const chargePointService15Wsdl = require('../../client/soap/wsdl/OCPP_ChargePointService1.5.wsdl');
+const chargePointService16Wsdl = require('../../client/soap/wsdl/OCPP_ChargePointService1.6.wsdl');
 const Utils = require('../../utils/Utils');
 const Logging = require('../../utils/Logging');
 const bodyParser = require("body-parser");
@@ -13,25 +16,47 @@ let _chargingStationConfig;
 
 class CentralSystemServer {
   // Common constructor for Central System Server
-  constructor(centralSystemConfig, chargingStationConfig, express) {
+  constructor(centralSystemConfig, chargingStationConfig, app) {
     // Check
     if (new.target === CentralSystemServer) {
       throw new TypeError("Cannot construct CentralSystemServer instances directly");
     }
 
     // Body parser
-    express.use(bodyParser.json());
-    express.use(bodyParser.urlencoded({ extended: false }));
-    express.use(bodyParser.xml());
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ extended: false }));
+    app.use(bodyParser.xml());
 
     // log to console
-    express.use(morgan('dev'));
+    app.use(morgan('dev'));
 
     // Cross origin headers
-    express.use(cors());
+    app.use(cors());
 
     // Secure the application
-    express.use(helmet());
+    app.use(helmet());
+
+    // Default, serve the index.html
+    app.get(/^\/wsdl(.+)$/, function(req, res, next) {
+      // WDSL file?
+      switch (req.params["0"]) {
+        // Charge Point WSDL 1.2
+        case '/OCPP_ChargePointService1.2.wsdl':
+          res.send(chargePointService12Wsdl);
+          break;
+        // Charge Point WSDL 1.5
+        case '/OCPP_ChargePointService1.5.wsdl':
+          res.send(chargePointService15Wsdl);
+          break;
+        // Charge Point WSDL 1.6
+        case '/OCPP_ChargePointService1.6.wsdl':
+          res.send(chargePointService16Wsdl);
+          break;
+        // Unknown
+        default:
+          res.status(500).send(`${req.params["0"]} does not exist!`);
+      }
+    });
 
     // Keep params
     _centralSystemConfig = centralSystemConfig;

@@ -2,16 +2,24 @@ var ChargingStationClient = require('../ChargingStationClient');
 var soap = require('strong-soap').soap;
 var path = require('path');
 var Logging = require('../../utils/Logging');
+var Configuration = require('../../utils/Configuration');
 
 let _client = null;
 let _chargingStation;
-var _moduleName = "SoapChargingStationClient";
+let _moduleName = "SoapChargingStationClient";
+let _centralSystemsConfig = Configuration.getCentralSystemsConfig();
 
 class SoapChargingStationClient extends ChargingStationClient {
   constructor(chargingStation) {
     super();
 
+    // Keep config
     _chargingStation = chargingStation;
+
+    // Get the first central system for wsdl
+    let baseWSDLURL = _centralSystemsConfig[0].protocol + '://' +
+      _centralSystemsConfig[0].host + ":" +
+      _centralSystemsConfig[0].port;
 
     // Get the Charging Station
     return new Promise((fulfill, reject) => {
@@ -21,13 +29,13 @@ class SoapChargingStationClient extends ChargingStationClient {
       switch(_chargingStation.getOcppVersion()) {
         // OCPP V1.2
         case "1.2":
-          chargingStationWdsl = path.join(__dirname, '/wsdl/OCPP_ChargePointService1.2.wsdl');
+          chargingStationWdsl = baseWSDLURL + '/wsdl/OCPP_ChargePointService1.2.wsdl';
           break;
         case "1.5":
-          chargingStationWdsl = path.join(__dirname, '/wsdl/OCPP_ChargePointService1.5.wsdl');
+          chargingStationWdsl = baseWSDLURL + '/wsdl/OCPP_ChargePointService1.5.wsdl';
           break;
         case "1.6":
-          chargingStationWdsl = path.join(__dirname, '/wsdl/OCPP_ChargePointService1.6.wsdl');
+          chargingStationWdsl = baseWSDLURL + '/wsdl/OCPP_ChargePointService1.6.wsdl';
           break;
         default:
           // Log
@@ -39,13 +47,13 @@ class SoapChargingStationClient extends ChargingStationClient {
 
       // Client' options
       var options = {};
-
+      console.log(chargingStationWdsl);
       // Create client
       soap.createClient(chargingStationWdsl, options, (err, client) => {
         if (err) {
           // Log
           Logging.logError({
-            userFullName: "System", source: tagID, module: "SoapChargingStationClient", method: "constructor",
+            userFullName: "System", source: "Central Server", module: "SoapChargingStationClient", method: "constructor",
             message: `Error when creating SOAP client for chaging station with ID ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
             detailedMessages: err.stack });
           reject(`Error when creating SOAP client for chaging station with ID ${_chargingStation.getChargeBoxIdentity()}: ${err.message}`);
