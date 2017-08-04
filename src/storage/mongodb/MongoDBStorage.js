@@ -84,7 +84,7 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getLogs(dateFrom, searchValue, numberOfLogs) {
+  getLogs(dateFrom, chargingStation, searchValue, numberOfLogs, sortDate) {
     // Not provided?
     if (!numberOfLogs || isNaN(numberOfLogs)) {
       // Default
@@ -106,20 +106,31 @@ class MongoDBStorage extends Storage {
       filter.timestamp = {};
       filter.timestamp.$gte = new Date(dateFrom);
     }
+    // Charging Station
+    if (chargingStation) {
+      // Yes, add in filter
+      filter.source = chargingStation;
+    }
     // Source?
     if (searchValue) {
       // Build filter
       filter.$or = [
-        { "source" : { $regex : `.*${searchValue}.*` } },
         { "message" : { $regex : `.*${searchValue}.*` } },
         { "action" : { $regex : `.*${searchValue}.*` } },
         { "userFullName" : { $regex : `.*${searchValue}.*` } }
-        // { "module" : { $regex : `.*${searchValue}.*` } },
-        // { "method" : { $regex : `.*${searchValue}.*` } },
       ];
     }
+    // Set the sort
+    let sort = {};
+    // Set timestamp
+    if (sortDate) {
+      sort.timestamp = sortDate;
+    } else {
+      // default
+      sort.timestamp = -1;
+    }
     // Exec request
-    return MDBLog.find(filter).sort({timestamp: 1}).limit(numberOfLogs).exec().then((loggingsMongoDB) => {
+    return MDBLog.find(filter).sort(sort).limit(numberOfLogs).exec().then((loggingsMongoDB) => {
       var loggings = [];
       loggingsMongoDB.forEach(function(loggingMongoDB) {
         var logging = {};

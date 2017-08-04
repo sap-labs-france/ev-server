@@ -11,7 +11,7 @@ class Storage {
   setCentralRestServer(centralRestServer) {
   }
 
-  getLogs(numberOfLogging) {
+  getLogs(dateFrom, chargingStation, searchValue, numberOfLogs) {
   }
 
   saveLog(log) {

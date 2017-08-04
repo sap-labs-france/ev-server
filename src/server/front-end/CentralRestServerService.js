@@ -240,7 +240,8 @@ module.exports = {
             return;
           }
           // Get logs
-          Logging.getLogs(req.query.DateFrom, req.query.Search, req.query.NumberOfLogs).then((loggings) => {
+          Logging.getLogs(req.query.DateFrom, req.query.ChargingStation,
+              req.query.Search, req.query.NumberOfLogs, req.query.SortDate).then((loggings) => {
             // Return
             res.json(loggings);
             next();

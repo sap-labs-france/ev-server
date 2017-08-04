@@ -32,8 +32,8 @@ class Logging {
   }
 
   // Get Logs
-  static getLogs(dateFrom, searchValue, numberOfLogs) {
-    return global.storage.getLogs(dateFrom, searchValue, numberOfLogs);
+  static getLogs(dateFrom, chargingStation, searchValue, numberOfLogs, sortDate) {
+    return global.storage.getLogs(dateFrom, chargingStation, searchValue, numberOfLogs, sortDate);
   }
 
   // Log
