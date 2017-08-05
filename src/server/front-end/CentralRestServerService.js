@@ -479,8 +479,8 @@ module.exports = {
                       // Demo user?
                       if (!CentralRestServerAuthorization.isDemo(req.user)) {
                         // No: Not Authorized!
-                        Logging.logActionUnauthorizedMessageAndSendResponse(
-                          CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                        Logging.logActionUnauthorizedMessage(
+                          CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res);
                         return false;
                       }
                       // Hide
@@ -494,8 +494,8 @@ module.exports = {
                       // Demo user?
                       if (!CentralRestServerAuthorization.isDemo(req.user)) {
                         // No: Not Authorized!
-                        Logging.logActionUnauthorizedMessageAndSendResponse(
-                          CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                        Logging.logActionUnauthorizedMessage(
+                          CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res);
                         return false;
                       }
                       // Clear the user

@@ -126,6 +126,15 @@ class Logging {
 
   // Log issues
   static logActionErrorMessageAndSendResponse(action, message, req, res, next) {
+    // Log
+    Logging.logActionErrorMessage(action, message, req, res);
+    // Send error
+    res.status(500).send({"message": message});
+    next();
+  }
+
+  // Log issues
+  static logActionErrorMessage(action, message, req, res) {
     Logging.logError({
       userID: req.user.id, userFullName: `${req.user.firstName} ${req.user.name}`,
       source: "Central Server", module: "RestServer", method: "N/A",
@@ -133,8 +142,13 @@ class Logging {
       detailedMessages: [{
           "stack": new Error().stack,
           "request": req.body}] });
-    res.status(500).send({"message": message});
-    next();
+  }
+
+  // Log issues
+  static logActionUnauthorizedMessage(entity, action, req, res) {
+    // Log
+    Logging.logActionErrorMessage(action,
+      `User ${req.user.firstName} ${req.user.name} with Role ID '${req.user.role}' is not authorised to perform '${action}' on '${entity}'`, req, res);
   }
 
   // Log issues
