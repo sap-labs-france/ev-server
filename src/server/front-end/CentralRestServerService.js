@@ -184,17 +184,15 @@ module.exports = {
                   Logging.logActionErrorMessageAndSendResponse(action, `The email ${req.body.tagIDs} already exists`, req, res, next);
                   return;
                 }
-
                 // Create user
                 var newUser = new User(req.body);
-
                 // Set the locale
                 newUser.setLocale(req.locale);
-
                 // Update timestamp
                 newUser.setCreatedBy(`${req.user.name} ${req.user.firstName}`);
                 newUser.setCreatedOn(new Date());
-
+                // Set the password
+                newUser.setPassword(Users.hashPassword(req.body.passwords.password));
                 // Save
                 newUser.save().then(() => {
                   Logging.logInfo({
