@@ -249,10 +249,20 @@ The Demo users can have a longer lifetime for demo purposes with key **userDemoT
 #### Authorization
 
 The users can have differents roles:
-* Admin (**A**) : Can do everything (manage users, stop transactions...)
-* Basic (**B**): Default role for user (see its transactions...)
-* Corporate (**C**): Read-Only view but can see sensitive information like users' names...
-* Demo (**D**): Read-only view of the dashboard (sensitive information are hidden...)
+* Admin (**A**)
+* Basic (**B**)
+* Corporate (**C**)
+* Demo (**D**)
+
+##### Authorisation Matrix
+
+|                  |                                                       Admin                                                       |                   User                  | Corporate |      Demo     |
+|------------------|:-----------------------------------------------------------------------------------------------------------------:|:---------------------------------------:|:---------:|:-------------:|
+| Users            |                                                        List                                                       |                    -                    |     -     |       -       |
+| User             |                                        Create, Read, Update, Delete, Logout                                       | Read, Update (Only logged user), Logout |    Read   | (user hidden) |
+| ChargingStations |                                                        List                                                       |                   List                  |    List   |      List     |
+| ChargingStation  | Read, Update, Delete, Reset, ClearCache,  GetConfiguration, ChangeConfiguration, StopTransaction, UnlockConnector |                   Read                  |    Read   |      Read     |
+| Logging          |                                                        List                                                       |                    -                    |     -     |               |
 
 #### Import initial Users in database
 
@@ -386,13 +396,40 @@ Tested and supported Charging Station:
 
 ### Production Mode
 
-Start the application server with the command below:
+Build the application:
 
 ```
-npm start
+npm run build:prod
+```
+
+Start the application:
+
+```
+npm start:prod
+```
+
+Make sure you set the NODE_ENV variable before:
+
+```
+export NODE_ENV=production
+```
+
+Or in Windows:
+
+```
+SET NODE_ENV=production
 ```
 
 ### Development Mode
+
+Build the application (it will watch any changes and rebuild it on the fly):
+
+```
+npm run build:dev
+```
+
+In another console, start the application (restarts if any changes is detected):
+
 ```
 npm start:dev
 ```

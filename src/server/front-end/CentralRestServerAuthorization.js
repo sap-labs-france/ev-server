@@ -8,6 +8,7 @@ module.exports = {
   ROLE_ADMIN: "A",
   ROLE_BASIC: "B",
   ROLE_DEMO: "D",
+  ROLE_CORPORATE: "C",
 
   ENTITY_USER: "User",
   ENTITY_USERS: "Users",
@@ -19,6 +20,7 @@ module.exports = {
   ACTION_READ  : "Read",
   ACTION_UPDATE: "Update",
   ACTION_DELETE: "Delete",
+  ACTION_LOGOUT: "Logout",
   ACTION_LIST: "List",
   ACTION_RESET: "Reset",
   ACTION_CLEAR_CACHE: "ClearCache",
@@ -62,6 +64,12 @@ module.exports = {
       { "Action": this.ACTION_READ, "UserID": user.id });
   },
 
+  canLogoutUser(loggedUser, user) {
+    // Check
+    return this.canPerformAction(loggedUser, this.ENTITY_USER,
+      { "Action": this.ACTION_LOGOUT, "UserID": user.id });
+  },
+
   canCreateUser(loggedUser) {
     // Check
     return this.canPerformAction(loggedUser, this.ENTITY_USER,
@@ -88,6 +96,18 @@ module.exports = {
 
   isAdmin(loggedUser) {
     return loggedUser.role === this.ROLE_ADMIN;
+  },
+
+  isUser(loggedUser) {
+    return loggedUser.role === this.ROLE_USER;
+  },
+
+  isCorporate(loggedUser) {
+    return loggedUser.role === this.ROLE_CORPORATE;
+  },
+
+  isDemo(loggedUser) {
+    return loggedUser.role === this.ROLE_DEMO;
   },
 
   getConfiguration() {

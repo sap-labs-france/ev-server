@@ -459,7 +459,6 @@ module.exports = {
             Logging.logActionErrorMessageAndSendResponse(action, `The Connector ID is mandatory`, req, res, next);
             break;
           }
-
           // Get Charge Box
           global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
             if (chargingStation) {
@@ -473,8 +472,42 @@ module.exports = {
               // Set the model
               chargingStation.getTransactions(req.query.ConnectorId,
                 req.query.StartDateTime, req.query.EndDateTime).then((transactions) => {
+                  // Loop Over
+                  var transactionsAuthorized = transactions.filter((transaction) => {
+                    // Check auth
+                    if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.start.userID)) {
+                      // Demo user?
+                      if (!CentralRestServerAuthorization.isDemo(req.user)) {
+                        // No: Not Authorized!
+                        Logging.logActionUnauthorizedMessageAndSendResponse(
+                          CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                        return false;
+                      }
+                      // Hide
+                      transaction.start.userID = {};
+                      transaction.start.userID.name = "####";
+                      transaction.start.userID.firstName = "####";
+                    }
+                    // Check auth
+                    if (transaction.stop && transaction.stop.userID &&
+                       !CentralRestServerAuthorization.canReadUser(req.user, transaction.stop.userID)) {
+                      // Demo user?
+                      if (!CentralRestServerAuthorization.isDemo(req.user)) {
+                        // No: Not Authorized!
+                        Logging.logActionUnauthorizedMessageAndSendResponse(
+                          CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                        return false;
+                      }
+                      // Clear the user
+                      transaction.stop.userID = {};
+                      transaction.stop.userID.name = "####";
+                      transaction.stop.userID.firstName = "####";
+                    }
+                    // Ok
+                    return true;
+                  });
                   // Return
-                  res.json(transactions);
+                  res.json(transactionsAuthorized);
                   next();
                 });
             } else {
@@ -494,135 +527,46 @@ module.exports = {
             Logging.logActionErrorMessageAndSendResponse(action, `The Transaction ID is mandatory`, req, res, next);
             break;
           }
-
-          // Set the model
+          // Get Transaction
           global.storage.getTransaction(req.query.TransactionId).then((transaction) => {
             if (transaction) {
+              // Check auth
+              if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.start.userID)) {
+                // Demo user?
+                if (!CentralRestServerAuthorization.isDemo(req.user)) {
+                  // No: Not Authorized!
+                  Logging.logActionUnauthorizedMessageAndSendResponse(
+                    CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                  return;
+                } else {
+                  // Clear the user
+                  transaction.start.userID = {};
+                  transaction.start.userID.name = "####";
+                  transaction.start.userID.firstName = "####";
+                }
+              }
+              // Check auth
+              if (transaction.stop && transaction.stop.userID &&
+                 !CentralRestServerAuthorization.canReadUser(req.user, transaction.stop.userID)) {
+               // Demo user?
+               if (!CentralRestServerAuthorization.isDemo(req.user)) {
+                 // No: Not Authorized!
+                 Logging.logActionUnauthorizedMessageAndSendResponse(
+                   CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                return;
+               } else {
+                  // Clear the user
+                  transaction.stop.userID = {};
+                  transaction.stop.userID.name = "####";
+                  transaction.stop.userID.firstName = "####";
+                }
+              }
               // Return
               res.json(transaction);
               next();
             } else {
               // Log
               return Promise.reject(new Error(`Transaction ${req.query.TransactionId} does not exist`));
-            }
-          }).catch((err) => {
-            // Log
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-          });
-          break;
-
-        // Get the last transaction
-        case "ChargingStationLastTransaction":
-          // Charge Box is mandatory
-          if(!req.query.ChargeBoxIdentity) {
-            Logging.logActionErrorMessageAndSendResponse(action, `The Charging Station ID is mandatory`, req, res, next);
-            break;
-          }
-          // Connector Id is mandatory
-          if(!req.query.ConnectorId) {
-            Logging.logActionErrorMessageAndSendResponse(action, `The Connector ID is mandatory`, req, res, next);
-            break;
-          }
-
-          // Get Charge Box
-          global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
-            if (chargingStation) {
-              // Check auth
-              if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
-                // Not Authorized!
-                Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, req, res, next);
-                return;
-              }
-              // Set the model
-              chargingStation.getLastTransaction(req.query.ConnectorId).then((transaction) => {
-                // Return
-                res.json(transaction);
-                next();
-              });
-            } else {
-              // Log
-              return Promise.reject(new Error(`Charging Station ${req.query.ChargeBoxIdentity} does not exist`));
-            }
-          }).catch((err) => {
-            // Log
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-          });
-          break;
-
-        // Get all the Status Notifications
-        case "ChargingStationStatusNotifications":
-          // Charge Box is mandatory
-          if(!req.query.ChargeBoxIdentity) {
-            Logging.logActionErrorMessageAndSendResponse(action, `The Charging Station ID is mandatory`, req, res, next);
-            break;
-          }
-          // Charging Station Provided?
-          global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
-            let statusNotifications = [];
-            // Found
-            if (chargingStation) {
-              // Check auth
-              if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
-                // Not Authorized!
-                Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, req, res, next);
-                return;
-              }
-              // Yes: Get the Status
-              chargingStation.getStatusNotifications(req.query.ConnectorId).then(function(statusNotifications) {
-                // Return the result
-                res.json(statusNotifications);
-                next();
-              });
-            } else {
-              // Log
-              return Promise.reject(new Error(`Charging Station ${req.query.ChargeBoxIdentity} does not exist`));
-            }
-          }).catch((err) => {
-            // Log
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-          });
-          break;
-
-        // Get the last Status Notifications
-        case "ChargingStationLastStatusNotification":
-          // Charge Box is mandatory
-          if(!req.query.ChargeBoxIdentity) {
-            Logging.logActionErrorMessageAndSendResponse(action, `The Charging Station ID is mandatory`, req, res, next);
-            break;
-          }
-          if(!req.query.ConnectorId) {
-            Logging.logActionErrorMessageAndSendResponse(action, `The Connector ID is mandatory`, req, res, next);
-            break;
-          }
-          // Get the Charging Station`
-          global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
-            let statusNotifications = {};
-            // Found?
-            if (chargingStation) {
-              // Check auth
-              if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
-                // Not Authorized!
-                Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, req, res, next);
-                return;
-              }
-              // Get the Status
-              chargingStation.getLastStatusNotification(req.query.ConnectorId).then(function(statusNotification) {
-                // Found?
-                if (statusNotification) {
-                  // Return the result
-                  res.json(statusNotification);
-                  next();
-                } else {
-                  // Log
-                  return Promise.reject(new Error(`Status for Charging Station ${req.query.ChargeBoxIdentity} with Connector ID ${req.query.ConnectorId} does not exist`));
-                }
-              });
-            } else {
-              // Log
-              return Promise.reject(new Error(`Charging Station ${req.query.ChargeBoxIdentity} does not exist`));
             }
           }).catch((err) => {
             // Log
@@ -687,11 +631,9 @@ module.exports = {
             Logging.logActionErrorMessageAndSendResponse(action, `The Transaction ID is mandatory`, req, res, next);
             break;
           }
-
           // Get the Charging Station`
           global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
             let consumptions = [];
-
             // Found
             if (chargingStation) {
               // Check auth
@@ -701,15 +643,54 @@ module.exports = {
                   CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, req, res, next);
                 return;
               }
-              // Get the Consumption
-              chargingStation.getConsumptionsFromTransaction(
-                  req.query.ConnectorId,
-                  req.query.TransactionId,
-                  true).then(function(consumptions) {
+              // Get Transaction
+              global.storage.getTransaction(req.query.TransactionId).then((transaction) => {
+                if (transaction) {
+                  // Check auth
+                  if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.start.userID)) {
+                    // Demo user?
+                    if (!CentralRestServerAuthorization.isDemo(req.user)) {
+                      // No: Not Authorized!
+                      Logging.logActionUnauthorizedMessageAndSendResponse(
+                        CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                      return;
+                    } else {
+                      // Clear the user
+                      transaction.start.userID = {};
+                      transaction.start.userID.name = "####";
+                      transaction.start.userID.firstName = "####";
+                    }
+                  }
+                  // Check auth
+                  if (transaction.stop && transaction.stop.userID &&
+                     !CentralRestServerAuthorization.canReadUser(req.user, transaction.stop.userID)) {
+                   // Demo user?
+                   if (!CentralRestServerAuthorization.isDemo(req.user)) {
+                     // No: Not Authorized!
+                     Logging.logActionUnauthorizedMessageAndSendResponse(
+                       CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                     return;
+                   } else {
+                      // Clear the user
+                      transaction.stop.userID = {};
+                      transaction.stop.userID.name = "####";
+                      transaction.stop.userID.firstName = "####";
+                    }
+                  }
 
-                // Return the result
-                res.json(consumptions);
-                next();
+                  // Get the Consumption
+                  chargingStation.getConsumptionsFromTransaction(
+                      req.query.ConnectorId,
+                      req.query.TransactionId,
+                      true).then(function(consumptions) {
+                    // Return the result
+                    res.json(consumptions);
+                    next();
+                  });
+                } else {
+                  // Log
+                  return Promise.reject(new Error(`Transaction ${req.query.TransactionId} does not exist`));
+                }
               });
             } else {
               // Log
@@ -728,7 +709,6 @@ module.exports = {
             Logging.logActionErrorMessageAndSendResponse(action, `The Charging Station ID is mandatory`, req, res, next);
             break;
           }
-
           // Get the Charging Station`
           global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
             let configuration = {};
@@ -784,7 +764,6 @@ module.exports = {
                 Logging.logActionErrorMessageAndSendResponse(action, `The user with ID ${req.body.id} does not exist anymore`, req, res, next);
                 return;
               }
-
               // Check auth
               if (!CentralRestServerAuthorization.canUpdateUser(req.user, user.getModel())) {
                 // Not Authorized!
@@ -792,7 +771,6 @@ module.exports = {
                   CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_UPDATE, req, res, next);
                 return;
               }
-
               // Check if Role is provided
               if (req.body.role && req.body.role !== req.user.role && req.user.role !== "A") {
                 // Role provided and not an Admin
@@ -802,17 +780,13 @@ module.exports = {
                 // Ovverride it
                 req.body.role = req.user.role;
               }
-
               // Update
               Database.updateUser(req.body, user.getModel());
-
               // Set the locale
               user.setLocale(req.locale);
-
               // Update timestamp
               user.setLastChangedBy(`${req.user.name} ${req.user.firstName}`);
               user.setLastChangedOn(new Date());
-
               // Check the password
               if (req.body.passwords.password && req.body.passwords.password.length > 0) {
                 // Hash the pass
@@ -829,7 +803,6 @@ module.exports = {
               });
               res.json({status: `Success`});
               next();
-
             }).catch((err) => {
               // Log
               Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);

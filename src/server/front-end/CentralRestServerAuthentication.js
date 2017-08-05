@@ -11,6 +11,7 @@ const Configuration = require('../../utils/Configuration');
 const Authorization = require('../../utils/Authorization');
 const compileProfile = require('node-authorization').profileCompiler;
 const Mustache = require('mustache');
+const CentralRestServerAuthorization = require('./CentralRestServerAuthorization');
 
 let _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 
@@ -70,7 +71,8 @@ module.exports = {
                 // Build token
                 var token;
                 // Role Demo?
-                if (user.getRole() === 'D') {
+                if (CentralRestServerAuthorization.isDemo(user.getModel()) ||
+                    CentralRestServerAuthorization.isCorporate(user.getModel())) {
                   // Yes
                   token = jwt.sign(payload, jwtOptions.secretOrKey, {
                     expiresIn: _centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600

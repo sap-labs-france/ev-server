@@ -716,57 +716,34 @@ class ChargingStation {
   // Method to build the consumption
   _buildConsumption(chargingStationConsumption, meterValues, transaction, optimizeNbrOfValues) {
     // Init
-    var meterIntervalSecs = parseInt(this.getMeterIntervalSecs());
-    var invalidNbrOfMetrics = 0;
-    var totalNbrOfMetrics = 0;
-    var sampleMultiplier = 3600 / meterIntervalSecs;
-    var lastMeterValue;
-    var firstMeterValueSet = false;
+    let totalNbrOfMetrics = 0;
+    let lastMeterValue;
+    let firstMeterValueSet = false;
     // Build the model
     meterValues.forEach((meterValue, meterValueIndex) => {
-      // console.log("--------------------------------------------------------");
-      // console.log(meterValues);
-      // console.log("--------------------------------------------------------");
       // Get the stored values
       let numberOfReturnedMeters = chargingStationConsumption.values.length;
 
       // Filter on consumption value
-      if (meterValue.attribute && meterValue.attribute.measurand && meterValue.attribute.measurand === "Energy.Active.Import.Register") {
+      if (meterValue.attribute && meterValue.attribute.measurand &&
+          meterValue.attribute.measurand === "Energy.Active.Import.Register") {
         // Get the moment
         let currentTimestamp = moment(meterValue.timestamp);
-        // Filter values not in the interval!
-        if (numberOfReturnedMeters > 0) {
-          // Get the diff
-          var diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, "seconds");
-          // Check
-          if ((diffSecs !== 0) && (diffSecs < meterIntervalSecs)) {
-            // Yes: count it as error
-            invalidNbrOfMetrics++;
-            // Value <> 0?
-            if(meterValue.value) {
-              // Keep the last one
-              lastMeterValue = meterValue;
-            }
-            // Continue
-            return;
-          }
-        }
-
-        // Check
-        if (!firstMeterValueSet && transaction) {
-          // Set the first value
-          firstMeterValueSet = true;
-          // Set
-          lastMeterValue = {};
-          lastMeterValue.value = transaction.start.meterStart;
-          lastMeterValue.timestamp = new Date(transaction.start.timestamp);
-        }
-
-        // First init?
+        // First value?
         if (!firstMeterValueSet) {
-          // Set
+          // Yes: Transaction provided?
+          if (transaction) {
+            // Yes: Set
+            lastMeterValue = {};
+            lastMeterValue.value = transaction.start.meterStart;
+            lastMeterValue.timestamp = new Date(transaction.start.timestamp);
+          } else {
+            // No: Keep the first value
+            lastMeterValue = meterValue;
+          }
+          // Ok
           firstMeterValueSet = true;
-          lastMeterValue = meterValue;
+
         // Calculate the consumption with the last value provided
         } else {
           // Last value is > ?
@@ -775,17 +752,25 @@ class ChargingStation {
             lastMeterValue.value = 0;
           }
 
-          // Last Meter and Current Meter not equal to 0
-          if (meterValue.value !== 0 || lastMeterValue.value !== 0) {
+          // Value provided?
+          if (meterValue.value > 0) {
+            // Get the moment
+            let currentTimestamp = moment(meterValue.timestamp);
+            // Check if it will be added
+            let addValue = false;
             // Start to return the value after the requested date
             if (!chargingStationConsumption.startDateTime ||
                 currentTimestamp.isAfter(chargingStationConsumption.startDateTime) ) {
-              // compute
-              var currentConsumption = (meterValue.value - lastMeterValue.value) * sampleMultiplier;
-              // Check if it will be added
-              let addValue = true;
+              // Set default
+              addValue = true;
               // Count
               totalNbrOfMetrics++;
+              // Get the diff
+              var diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, "seconds");
+              // Sample multiplier
+              let sampleMultiplier = 3600 / diffSecs;
+              // compute
+              let currentConsumption = (meterValue.value - lastMeterValue.value) * sampleMultiplier;
               // At least one value returned
               if (numberOfReturnedMeters > 0) {
                 // Consumption?
@@ -793,12 +778,12 @@ class ChargingStation {
                   // 0..123 -> Current value is positive and n-1 is 0: add 0 before the end graph is drawn
                   if (chargingStationConsumption.values[numberOfReturnedMeters-1].value === 0) {
                     // Check the timeframe: should be just before: if not add one
-                    if (currentTimestamp.diff(chargingStationConsumption.values[numberOfReturnedMeters-1].date, "seconds") > meterIntervalSecs) {
+                    if (currentTimestamp.diff(chargingStationConsumption.values[numberOfReturnedMeters-1].date, "seconds") > diffSecs) {
                       // Add a 0 just before
-                      chargingStationConsumption.values.push({date: currentTimestamp.clone().subtract(meterIntervalSecs, "seconds").toDate(), value: 0 });
+                      chargingStationConsumption.values.push({date: currentTimestamp.clone().subtract(diffSecs, "seconds").toDate(), value: 0 });
                     }
                   // Return one value every 'n' time intervals
-                  } else if (optimizeNbrOfValues && currentTimestamp.diff(chargingStationConsumption.values[numberOfReturnedMeters-1].date, "seconds") < _configAdvanced.chargeCurveMeterIntervalSecs) {
+                  } else if (optimizeNbrOfValues && currentTimestamp.diff(chargingStationConsumption.values[numberOfReturnedMeters-1].date, "seconds") < _configAdvanced.chargeCurveTimeFrameSecsPoint) {
                     // Do not add
                     addValue = false;
                   }
@@ -836,7 +821,7 @@ class ChargingStation {
       // Log
       Logging.logDebug({
         userFullName: "System", source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "getConsumptionsFromDateTimeRange",
-        message: `Consumption - ${meterValues.length} metrics, ${totalNbrOfMetrics} relevant, ${chargingStationConsumption.values.length} returned, ${invalidNbrOfMetrics} invalid (${(invalidNbrOfMetrics?Math.ceil(invalidNbrOfMetrics/totalNbrOfMetrics):0)}%)` });
+        message: `Consumption - ${meterValues.length} metrics, ${totalNbrOfMetrics} relevant, ${chargingStationConsumption.values.length} returned` });
     }
     // Return the result
     return chargingStationConsumption;
