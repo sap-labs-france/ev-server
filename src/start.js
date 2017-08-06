@@ -4,6 +4,7 @@ const Utils = require('./utils/Utils');
 const SoapCentralSystemServer = require('./server/charging-station/soap/SoapCentralSystemServer');
 const CentralRestServer = require('./server/front-end/CentralRestServer');
 const CentralServerBackgroundTasks = require('./server/CentralServerBackgroundTasks');
+require('source-map-support').install();
 
 // Start the connection to the Database
 let storageConfig = Configuration.getStorageConfig();
