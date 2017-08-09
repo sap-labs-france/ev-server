@@ -45,6 +45,11 @@
        "password": ""
      }
   },
+  "Notification": {
+    "Email": {
+      "enabled": true
+    }
+  },
   "Authorization": {
     "debug": false
   },
