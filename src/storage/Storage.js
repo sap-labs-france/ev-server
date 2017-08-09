@@ -16,6 +16,9 @@ class Storage {
   getLogs(dateFrom, level, chargingStation, searchValue, numberOfLogs, sortDate) {
   }
 
+  deleteLogs(deleteUpToDate) {
+  }
+
   saveLog(log) {
   }
 

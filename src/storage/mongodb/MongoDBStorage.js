@@ -166,6 +166,20 @@ class MongoDBStorage extends Storage {
     });
   }
 
+  deleteLogs(deleteUpToDate) {
+    // Build filter
+    var filter = {};
+    // Date provided
+    if (deleteUpToDate) {
+      filter.timestamp = {};
+      filter.timestamp.$lte = new Date(deleteUpToDate);
+    }
+    return MDBLog.remove(filter).then(() => {
+      // Notify Change
+      _centralRestServer.notifyLoggingDeleted();
+    });
+  }
+
   getConfiguration(chargeBoxIdentity) {
     // Exec request
     return MDBConfiguration.findById({"_id": chargeBoxIdentity }).then((configurationMDB) => {
@@ -238,7 +252,6 @@ class MongoDBStorage extends Storage {
     if (endDateTime) {
       filter.timestamp.$lte = new Date(endDateTime);
     }
-
     // Exec request
     return MDBMeterValue.find(filter).sort( {timestamp: 1, value: -1} ).exec().then((meterValuesMDB) => {
       var meterValues = [];
@@ -442,7 +455,6 @@ class MongoDBStorage extends Storage {
   saveLog(log) {
     // Create model
     var logMDB = new MDBLog(log);
-
     // Save
     return logMDB.save().then(() => {
       // Notify Change

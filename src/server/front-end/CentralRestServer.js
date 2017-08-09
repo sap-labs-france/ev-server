@@ -229,6 +229,14 @@ class CentralSystemRestServer {
     });
   }
 
+  notifyLoggingDeleted() {
+    // Add in buffer
+    this.addNotificationInBuffer({
+      "entity": CentralRestServerAuthorization.ENTITY_LOGGING,
+      "action": CentralRestServerAuthorization.ACTION_DELETE,
+    });
+  }
+
   addNotificationInBuffer(notification) {
     let dups = false;
     // Add in buffer

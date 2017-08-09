@@ -39,6 +39,11 @@ class Logging {
     return global.storage.getLogs(dateFrom, level, chargingStation, searchValue, numberOfLogs, sortDate);
   }
 
+  // Delete
+  static deleteLogs(deleteUpToDate) {
+    return global.storage.deleteLogs(deleteUpToDate);
+  }
+
   // Log
   static _log(log) {
     // Log

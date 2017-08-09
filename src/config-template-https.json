@@ -87,7 +87,7 @@
       },
       {
         "name": "loggingDatabaseTableCleanup",
-        "active": false,
+        "active": true,
         "periodicity": "* * * * 0"
       }
     ]
