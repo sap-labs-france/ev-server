@@ -4,6 +4,7 @@ const Database = require('../../utils/Database');
 const Logging = require('../../utils/Logging');
 const Users = require('../../utils/Users');
 const User = require('../../model/User');
+const moment = require('moment');
 require('source-map-support').install();
 
 module.exports = {
@@ -588,46 +589,6 @@ module.exports = {
           break;
 
         // Get Charging Consumption
-        case "ChargingStationConsumptionFromDateTimeRange":
-          // Charge Box is mandatory
-          if(!req.query.ChargeBoxIdentity) {
-            Logging.logActionErrorMessageAndSendResponse(action, `The Charging Station ID is mandatory`, req, res, next);
-            break;
-          }
-          // Get the Charging Station`
-          global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
-            let consumptions = [];
-
-            // Found
-            if (chargingStation) {
-              // Check auth
-              if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
-                // Not Authorized!
-                Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, req, res, next);
-                return;
-              }
-              // Get the Consumption
-              chargingStation.getConsumptionsFromDateTimeRange(
-                  req.query.ConnectorId,
-                  req.query.StartDateTime,
-                  req.query.EndDateTime,
-                  false).then(function(consumptions) {
-                // Return the result
-                res.json(consumptions);
-                next();
-              });
-            } else {
-              // Log
-              return Promise.reject(new Error(`Charging Station ${req.query.ChargeBoxIdentity} does not exist`));
-            }
-          }).catch((err) => {
-            // Log
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-          });
-          break;
-
-        // Get Charging Consumption
         case "ChargingStationConsumptionFromTransaction":
           // Charge Box is mandatory
           if(!req.query.ChargeBoxIdentity) {
@@ -644,6 +605,7 @@ module.exports = {
             Logging.logActionErrorMessageAndSendResponse(action, `The Transaction ID is mandatory`, req, res, next);
             break;
           }
+
           // Get the Charging Station`
           global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
             let consumptions = [];
@@ -659,6 +621,36 @@ module.exports = {
               // Get Transaction
               global.storage.getTransaction(req.query.TransactionId).then((transaction) => {
                 if (transaction) {
+                  // Check dates
+                  if (req.query.StartDateTime) {
+                    // Check date is in the transaction
+                    if (moment(req.query.StartDateTime).isBefore(moment(transaction.start.timestamp))) {
+                      Logging.logActionErrorMessageAndSendResponse(action, `The requested Start Date ${req.query.StartDateTime} is before the transaction ID ${req.query.TransactionId} Start Date ${transaction.start.timestamp}`, req, res, next);
+                      return;
+                    }
+                    // Check date is in the transaction
+                    if (transaction.stop && moment(req.query.StartDateTime).isAfter(moment(transaction.stop.timestamp))) {
+                      Logging.logActionErrorMessageAndSendResponse(action, `The requested Start Date ${req.query.StartDateTime} is after the transaction ID ${req.query.TransactionId} Stop Date ${transaction.stop.timestamp}`, req, res, next);
+                      return;
+                    }
+                  }
+                  if (req.query.EndDateTime) {
+                    // Check date is in the transaction
+                    if (moment(req.query.EndDateTime).isBefore(moment(req.query.StartDateTime))) {
+                      Logging.logActionErrorMessageAndSendResponse(action, `The requested End Date ${req.query.EndDateTime} is before the requested Start Date ${req.query.StartDateTime}`, req, res, next);
+                      return;
+                    }
+                    // Check date is in the transaction
+                    if (moment(req.query.EndDateTime).isBefore(moment(transaction.start.timestamp))) {
+                      Logging.logActionErrorMessageAndSendResponse(action, `The requested End Date ${req.query.EndDateTime} is before the transaction ID ${req.query.TransactionId} Start Date ${transaction.start.timestamp}`, req, res, next);
+                      return;
+                    }
+                    // Check date is in the transaction
+                    if (transaction.stop && moment(req.query.EndDateTime).isAfter(moment(transaction.stop.timestamp))) {
+                      Logging.logActionErrorMessageAndSendResponse(action, `The requested End Date ${req.query.EndDateTime} is after the transaction ID ${req.query.TransactionId} End Date ${transaction.stop.timestamp}`, req, res, next);
+                      return;
+                    }
+                  }
                   // Check auth
                   if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.start.userID)) {
                     // Demo user?
@@ -690,16 +682,29 @@ module.exports = {
                       transaction.stop.userID.firstName = "####";
                     }
                   }
-
-                  // Get the Consumption
-                  chargingStation.getConsumptionsFromTransaction(
-                      req.query.ConnectorId,
-                      req.query.TransactionId,
-                      true).then(function(consumptions) {
-                    // Return the result
-                    res.json(consumptions);
-                    next();
-                  });
+                  // Dates provided?
+                  if(!req.query.StartDateTime && !req.query.EndDateTime) {
+                    // No: Get the Consumption from the transaction
+                    chargingStation.getConsumptionsFromTransaction(
+                        req.query.ConnectorId,
+                        req.query.TransactionId,
+                        true).then(function(consumptions) {
+                      // Return the result
+                      res.json(consumptions);
+                      next();
+                    });
+                  } else {
+                    // Yes: Get the Consumption from dates within the trasaction
+                    chargingStation.getConsumptionsFromDateTimeRange(
+                        req.query.ConnectorId,
+                        req.query.StartDateTime,
+                        req.query.EndDateTime,
+                        false).then(function(consumptions) {
+                      // Return the result
+                      res.json(consumptions);
+                      next();
+                    });
+                  }
                 } else {
                   // Log
                   return Promise.reject(new Error(`Transaction ${req.query.TransactionId} does not exist`));
