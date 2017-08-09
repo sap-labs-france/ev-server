@@ -1,6 +1,7 @@
 const Logging = require('../../utils/Logging');
 const Configuration = require('../../utils/Configuration');
 const Authorization = require('node-authorization').Authorization;
+require('source-map-support').install();
 
 let _configuration;
 

@@ -9,7 +9,5 @@ module.exports = mongoose.model('StartTransaction',{
   timestamp: Date,
   reservationId: Number,
   transactionId: Number,
-  meterStart: Number,
-  notifBeforeEndOfChargeSent: Boolean,
-  notifEndOfChargeSent: Boolean
+  meterStart: Number
 });

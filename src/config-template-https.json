@@ -37,6 +37,7 @@
   },
   "Email": {
      "from": "admin.noreply@evse.com",
+     "admins": [],
      "bcc": "",
      "smtp" : {
        "host": "smtp.gmail.com",
@@ -64,7 +65,31 @@
     "supported": ["en_US", "fr_FR"]
   },
   "Advanced" : {
-    "backgroundTasksIntervalSecs": 120,
     "chargeCurveTimeFrameSecsPoint": 60
+  },
+  "Scheduler" : {
+    "active" : true,
+    "tasks": [
+      {
+        "name": "chargingStationsConsumption",
+        "active": true,
+        "periodicity": "*/1 * * * *"
+      },
+      {
+        "name": "importUsers",
+        "active": true,
+        "periodicity": "*/1 * * * *"
+      },
+      {
+        "name": "endOfChargeNotification",
+        "active": true,
+        "periodicity": "*/5 * * * *"
+      },
+      {
+        "name": "loggingDatabaseTableCleanup",
+        "active": false,
+        "periodicity": "* * * * 0"
+      }
+    ]
   }
 }

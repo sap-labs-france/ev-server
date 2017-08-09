@@ -10,7 +10,6 @@ const Connector = new mongoose.Schema({
 
 module.exports = mongoose.model('ChargingStation',{
   _id: String,
-  chargeBoxIdentity: String,
   chargePointVendor: String,
   chargePointModel: String,
   chargePointSerialNumber: String,
@@ -19,7 +18,6 @@ module.exports = mongoose.model('ChargingStation',{
   iccid: String,
   imsi: String,
   meterType: String,
-  meterIntervalSecs: Number,
   meterSerialNumber: String,
   endpoint: String,
   ocppVersion: String,

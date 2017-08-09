@@ -3,7 +3,7 @@ const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const jwt = require('jsonwebtoken');
 const Users = require('../../utils/Users');
-const EMail = require('../../email/EMail');
+const NotificationHandler = require('../../notification/NotificationHandler');
 const Logging = require('../../utils/Logging');
 const User = require('../../model/User');
 const Utils = require('../../utils/Utils');
@@ -12,6 +12,7 @@ const Authorization = require('../../utils/Authorization');
 const compileProfile = require('node-authorization').profileCompiler;
 const Mustache = require('mustache');
 const CentralRestServerAuthorization = require('./CentralRestServerAuthorization');
+require('source-map-support').install();
 
 let _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 
@@ -91,9 +92,8 @@ module.exports = {
               }
               next();
             }).catch((err) => {
-              // Error
-              res.sendStatus(500);
-              next();
+              // Log error
+              Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
             });
             break;
 
@@ -104,7 +104,7 @@ module.exports = {
                 // Check email
                 global.storage.getUserByEmail(req.body.email).then(function(user) {
                   if (user) {
-                    Logging.logActionErrorMessageAndSendResponse(action, `The email ${req.body.tagIDs} already exists`, req, res, next);
+                    Logging.logActionErrorMessageAndSendResponse(action, `The email ${req.body.email} already exists`, req, res, next);
                     return;
                   }
                   // Create the user
@@ -113,31 +113,22 @@ module.exports = {
                   newUser.setPassword(Users.hashPassword(newUser.getPassword()));
                   // Save
                   newUser.save().then(() => {
-                    // Send the email
-                    EMail.sendRegisteredUserEmail({
-                          "user": newUser.getModel(),
-                          "evseDashboardURL" : Utils.buildEvseURL()
-                        }, req.locale).then(
-                      message => {
-                        // Success
-                        Logging.logInfo({
-                          userFullName: "System", source: "Central Server", module: "CentralServerRestAuthentication", method: "registeruser",
-                          action: "RegisterUser", message: `User ${newUser.getFullName()} with email ${newUser.getEMail()} has been registered successfully`,
-                          detailedMessages: newUser});
-                        // Ok
-                        res.json({status: `Success`});
-                        next();
+                    // Send notification
+                    NotificationHandler.sendNewRegisteredUser(
+                      Utils.generateID(),
+                      newUser.getModel(),
+                      {
+                        "user": newUser.getModel(),
+                        "evseDashboardURL" : Utils.buildEvseURL()
                       },
-                      error => {
-                        // Error
-                        Logging.logError({
-                          userFullName: "System", source: "Central Server", module: "CentralServerRestAuthentication", method: "N/A",
-                          action: "RegisterUser", message: `${error.toString()}`,
-                          detailedMessages: error.stack });
-                        res.json({error: error.toString()});
-                        next();
-                      });
-                    });
+                      req.locale);
+                    // Ok
+                    res.json({status: `Success`});
+                    next();
+                  }).catch((err) => {
+                    // Log error
+                    Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+                  });
                 }).catch((err) => {
                   // Log
                   Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
@@ -157,41 +148,30 @@ module.exports = {
                   user.setPassword(Users.hashPassword(newPassword));
                   // Save the user
                   user.save().then(() => {
-                    // Send the email
-                    EMail.sendResetPasswordEmail({
-                      "user": user.getModel(),
-                      "newPassword": newPassword,
-                      "evseDashboardURL" : Utils.buildEvseURL()
-                    }, req.locale).then(
-                      message => {
-                        // Success
-                        Logging.logInfo({
-                          user: req.user, source: "Central Server", module: "CentralServerRestAuthentication", method: "N/A",
-                          action: "ResetPassword", message: `Password has been reset for user with email ${user.getEMail()}`,
-                          detailedMessages: message });
-                        // Ok
-                        res.json({status: `Success`});
-                        next();
+                    // Send notification
+                    NotificationHandler.sendResetPassword(
+                      Utils.generateID(),
+                      user.getModel(),
+                      {
+                        "user": user.getModel(),
+                        "newPassword": newPassword,
+                        "evseDashboardURL" : Utils.buildEvseURL()
                       },
-                      error => {
-                        // Error
-                        Logging.logError({
-                          user: req.user, source: "Central Server", module: "CentralServerRestAuthentication", method: "N/A",
-                          action: "ResetPassword", message: `${error.toString()}`,
-                          detailedMessages: error.stack });
-                        res.json({error: error.toString()});
-                        next();
-                      });
+                      req.locale);
+                    // Ok
+                    res.json({status: `Success`});
+                    next();
+                  }).catch((err) => {
+                    // Log error
+                    Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
                   });
                 } else {
-                  // User not found
-                  res.status(500).send(`User with email ${req.body.email} does not exist`);
-                  next();
+                  // Log error
+                  Logging.logActionErrorMessageAndSendResponse(action, `User with email ${req.body.email} does not exist`, req, res, next);
                 }
               }).catch((err) => {
-                // User not found
-                res.status(500).send(`${err.toString()}`);
-                next();
+                // Log error
+                Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
               });
               break;
 

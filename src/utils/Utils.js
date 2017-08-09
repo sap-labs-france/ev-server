@@ -4,6 +4,7 @@ const Users = require('./Users');
 const User = require('../model/User');
 const Configuration = require('./Configuration');
 const Logging = require('./Logging');
+require('source-map-support').install();
 
 let _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 let _userFilename = path.join(__dirname, "../../users.json");
@@ -20,6 +21,21 @@ module.exports = {
     }
     // Read conf
     return (users?JSON.parse(users):null);
+  },
+
+  generateID() {
+    return new Date().getTime();
+  },
+
+  buildUserFullName(user) {
+    if (!user) {
+      return "Unknown";
+    }
+    // First name?
+    if (!user.firstName) {
+      return user.name;
+    }
+    return `${user.firstName} ${user.name}`;
   },
 
   // Save the users in file

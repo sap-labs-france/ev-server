@@ -1,3 +1,6 @@
+require('source-map-support').install();
+const Utils = require('./Utils');
+
 class Logging {
   // Log Debug
   static logDebug(log) {
@@ -32,8 +35,8 @@ class Logging {
   }
 
   // Get Logs
-  static getLogs(dateFrom, chargingStation, searchValue, numberOfLogs, sortDate) {
-    return global.storage.getLogs(dateFrom, chargingStation, searchValue, numberOfLogs, sortDate);
+  static getLogs(dateFrom, level, chargingStation, searchValue, numberOfLogs, sortDate) {
+    return global.storage.getLogs(dateFrom, level, chargingStation, searchValue, numberOfLogs, sortDate);
   }
 
   // Log
@@ -116,12 +119,21 @@ class Logging {
   // Log issues
   static logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next) {
     Logging.logError({
-      userID: req.user.id, userFullName: `${req.user.firstName} ${req.user.name}`,
+      userID: (req.user?req.user.id:null), userFullName: Utils.buildUserFullName(req.user),
       source: "Central Server", module: "RestServer", method: "N/A",
       action: action, message: `${err.toString()}`,
       detailedMessages: err.stack });
     res.status(500).send(`{"message": ${err.toString()}}`);
     next();
+  }
+
+  // Log issues
+  static logUnexpectedErrorMessage(action, module, method, err) {
+    Logging.logError({
+      "userFullName": "System",
+      "source": "Central Server", "module": module, "method": method,
+      "action": action, "message": `${err.toString()}`,
+      "detailedMessages": err.stack });
   }
 
   // Log issues
@@ -136,7 +148,7 @@ class Logging {
   // Log issues
   static logActionErrorMessage(action, message, req, res) {
     Logging.logError({
-      userID: req.user.id, userFullName: `${req.user.firstName} ${req.user.name}`,
+      userID: (req.user?req.user.id:null), userFullName: Utils.buildUserFullName(req.user),
       source: "Central Server", module: "RestServer", method: "N/A",
       action: action, message: message,
       detailedMessages: [{
@@ -148,14 +160,14 @@ class Logging {
   static logActionUnauthorizedMessage(entity, action, req, res) {
     // Log
     Logging.logActionErrorMessage(action,
-      `User ${req.user.firstName} ${req.user.name} with Role ID '${req.user.role}' is not authorised to perform '${action}' on '${entity}'`, req, res);
+      `User ${Utils.buildUserFullName(req.user)} with Role ID '${req.user.role}' is not authorised to perform '${action}' on '${entity}'`, req, res);
   }
 
   // Log issues
   static logActionUnauthorizedMessageAndSendResponse(entity, action, req, res, next) {
     // Log
     Logging.logActionErrorMessageAndSendResponse(action,
-      `User ${req.user.firstName} ${req.user.name} with Role ID '${req.user.role}' is not authorised to perform '${action}' on '${entity}'`, req, res, next);
+      `User ${Utils.buildUserFullName(req.user)} with Role ID '${req.user.role}' is not authorised to perform '${action}' on '${entity}'`, req, res, next);
   }
 }
 

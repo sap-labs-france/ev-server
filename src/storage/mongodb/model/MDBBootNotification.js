@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 
 module.exports = mongoose.model('BootNotification',{
   _id: String,
-  chargeBoxIdentity: String,
   timestamp: Date,
   chargeBoxID: {type: String, ref: 'ChargingStation'},
   chargePointVendor: String,

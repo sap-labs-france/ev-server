@@ -12,6 +12,7 @@ const http = require('http');
 const https = require('https');
 const express = require('express')();
 const CentralSystemServer = require('../CentralSystemServer');
+require('source-map-support').install();
 
 let _centralSystemConfig;
 let _chargingStationConfig;

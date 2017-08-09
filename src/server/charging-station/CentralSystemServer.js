@@ -10,6 +10,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const locale = require('locale');
+require('source-map-support').install();
 
 let _centralSystemConfig;
 let _chargingStationConfig;
@@ -72,7 +73,7 @@ class CentralSystemServer {
     // Set the endpoint
     args.endpoint = headers.From.Address;
     // Set the ChargeBox ID
-    args.chargeBoxIdentity = headers.chargeBoxIdentity;
+    args.chargeBoxID = headers.chargeBoxIdentity;
     // Set the default Heart Beat
     args.lastReboot = new Date().toISOString();
     args.lastHeartBeat = args.lastReboot;

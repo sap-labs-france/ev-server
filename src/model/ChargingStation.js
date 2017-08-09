@@ -184,14 +184,6 @@ class ChargingStation {
     this._model.connectors = connectors;
   }
 
-  getMeterIntervalSecs() {
-    return this._model.meterIntervalSecs;
-  }
-
-  setMeterIntervalSecs(meterIntervalSecs) {
-    this._model.meterIntervalSecs = meterIntervalSecs;
-  }
-
   getLastReboot() {
     return this._model.lastReboot;
   }
@@ -216,7 +208,7 @@ class ChargingStation {
 
   saveStatusNotification(statusNotification) {
     // Set the Station ID
-    statusNotification.chargeBoxIdentity = this.getChargeBoxIdentity();
+    statusNotification.chargeBoxID = this.getChargeBoxIdentity();
 
     // Update the connector -----------------------------------------
     // Get the connectors
@@ -292,7 +284,7 @@ class ChargingStation {
 
   saveBootNotification(bootNotification) {
     // Set the Station ID
-    bootNotification.chargeBoxIdentity = this.getChargeBoxIdentity();
+    bootNotification.chargeBoxID = this.getChargeBoxIdentity();
 
     // Save Boot Notification
     return global.storage.saveBootNotification(bootNotification);
@@ -301,14 +293,10 @@ class ChargingStation {
   saveMeterValues(meterValues) {
     // Create model
     var newMeterValues = {};
-    var meterIntervalSecs = parseInt(this.getMeterIntervalSecs());
-
     // Init
     newMeterValues.values = [];
-
     // Set the charger ID
-    newMeterValues.chargeBoxIdentity = this.getChargeBoxIdentity();
-
+    newMeterValues.chargeBoxID = this.getChargeBoxIdentity();
     // Check if OCPP 1.6
     if (meterValues.meterValue) {
       // Set it to 'values'
@@ -319,13 +307,11 @@ class ChargingStation {
       // Make it an array
       meterValues.values = [meterValues.values];
     }
-
     // For each value
     meterValues.values.forEach((value, index) => {
       var newMeterValue = {};
-
       // Set the ID
-      newMeterValue.chargeBoxIdentity = newMeterValues.chargeBoxIdentity;
+      newMeterValue.chargeBoxID = newMeterValues.chargeBoxID;
       newMeterValue.connectorId = meterValues.connectorId;
       if (meterValues.transactionId) {
         newMeterValue.transactionId = meterValues.transactionId;
@@ -365,37 +351,16 @@ class ChargingStation {
 
   saveConfiguration(configuration) {
     // Set the charger ID
-    configuration.chargeBoxIdentity = this.getChargeBoxIdentity();
+    configuration.chargeBoxID = this.getChargeBoxIdentity();
     configuration.timestamp = new Date();
 
-    // Set the meter value interval to the charging station
-    var meterIntervalSecs = 0;
-    for (var i = 0; i < configuration.configurationKey.length; i++) {
-      // Check
-      switch (configuration.configurationKey[i].key) {
-        // Meter interval
-        case "metervaluesampleinterval":
-          // Get the meter interval
-          meterIntervalSecs = parseInt(configuration.configurationKey[i].value);
-          break;
-      }
-      // Found?
-      if(meterIntervalSecs) {
-        break;
-      }
-    }
-    // Set
-    this.setMeterIntervalSecs(meterIntervalSecs);
-    // Save
-    return this.save().then(() => {
-      // Save config
-      return global.storage.saveConfiguration(configuration);
-    });
+    // Save config
+    return global.storage.saveConfiguration(configuration);
   }
 
   saveStartTransaction(transaction) {
     // Set the charger ID
-    transaction.chargeBoxIdentity = this.getChargeBoxIdentity();
+    transaction.chargeBoxID = this.getChargeBoxIdentity();
 
     // Check if already exists
     if (!transaction.id) {
@@ -409,7 +374,7 @@ class ChargingStation {
 
   saveDataTransfer(dataTransfer) {
     // Set the charger ID
-    dataTransfer.chargeBoxIdentity = this.getChargeBoxIdentity();
+    dataTransfer.chargeBoxID = this.getChargeBoxIdentity();
     dataTransfer.timestamp = new Date();
 
     // Save it
@@ -418,7 +383,7 @@ class ChargingStation {
 
   saveDiagnosticsStatusNotification(diagnosticsStatusNotification) {
     // Set the charger ID
-    diagnosticsStatusNotification.chargeBoxIdentity = this.getChargeBoxIdentity();
+    diagnosticsStatusNotification.chargeBoxID = this.getChargeBoxIdentity();
     diagnosticsStatusNotification.timestamp = new Date();
 
     // Save it
@@ -427,7 +392,7 @@ class ChargingStation {
 
   saveFirmwareStatusNotification(firmwareStatusNotification) {
     // Set the charger ID
-    firmwareStatusNotification.chargeBoxIdentity = this.getChargeBoxIdentity();
+    firmwareStatusNotification.chargeBoxID = this.getChargeBoxIdentity();
     firmwareStatusNotification.timestamp = new Date();
 
     // Save it
@@ -436,7 +401,7 @@ class ChargingStation {
 
   saveAuthorize(authorize) {
     // Set the charger ID
-    authorize.chargeBoxIdentity = this.getChargeBoxIdentity();
+    authorize.chargeBoxID = this.getChargeBoxIdentity();
     authorize.timestamp = new Date();
 
     // Execute
@@ -481,7 +446,7 @@ class ChargingStation {
 
   saveStopTransaction(stopTransaction) {
     // Set the charger ID
-    stopTransaction.chargeBoxIdentity = this.getChargeBoxIdentity();
+    stopTransaction.chargeBoxID = this.getChargeBoxIdentity();
 
     // User Provided?
     if (stopTransaction.idTag) {
@@ -606,6 +571,10 @@ class ChargingStation {
     return global.storage.getLastTransaction(this.getChargeBoxIdentity(), connectorId);
   }
 
+  getLastConsumption(connectorId) {
+    return this.getLastAverageConsumption(connectorId, 1);
+  }
+
   getLastAverageConsumption(connectorId, numberOfMeters=1) {
     var avgConsumption = 0;
     // Get the last tranasction first
@@ -620,12 +589,12 @@ class ChargingStation {
           var chargingStationConsumption = {};
           chargingStationConsumption.values = [];
           chargingStationConsumption.totalConsumption = 0;
-          chargingStationConsumption.chargeBoxIdentity = this.getChargeBoxIdentity();
+          chargingStationConsumption.chargeBoxID = this.getChargeBoxIdentity();
           chargingStationConsumption.connectorId = connectorId;
           chargingStationConsumption.transactionId = transaction.start.transactionId;
 
           // Compute consumption
-          var consumptions = this._buildConsumption(chargingStationConsumption, meterValues, null, false);
+          var consumptions = this.buildConsumption(chargingStationConsumption, meterValues, null, false);
 
           // Check
           if (consumptions && consumptions.values) {
@@ -637,11 +606,14 @@ class ChargingStation {
             avgConsumption /= consumptions.values.length;
           }
 
+          // Round
+          avgConsumption = Math.round(avgConsumption);
+
           // Debug
           Logging.logDebug({
-            userFullName: "System", source: chargingStationConsumption.chargeBoxIdentity,
-            module: "ChargingStation", method: "getLastAverageConsumption",
-            message: `${chargingStationConsumption.chargeBoxIdentity} - ${chargingStationConsumption.connectorId} - values: ${(consumptions.values?JSON.stringify(consumptions.values):"")} - avg: ${avgConsumption}` });
+            userFullName: "System", source: chargingStationConsumption.chargeBoxID,
+            module: "ChargingStation", method: "getLastAverageConsumption", action: "AverageConsumption",
+            message: `${chargingStationConsumption.chargeBoxID} - ${chargingStationConsumption.connectorId} - values: ${(consumptions.values?JSON.stringify(consumptions.values):"")} - avg: ${avgConsumption}` });
 
           return avgConsumption;
         });
@@ -666,12 +638,12 @@ class ChargingStation {
           var chargingStationConsumption = {};
           chargingStationConsumption.values = [];
           chargingStationConsumption.totalConsumption = 0;
-          chargingStationConsumption.chargeBoxIdentity = this.getChargeBoxIdentity();
+          chargingStationConsumption.chargeBoxID = this.getChargeBoxIdentity();
           chargingStationConsumption.connectorId = connectorId;
           chargingStationConsumption.transactionId = transaction.start.transactionId;
 
           // Compute consumption
-          return this._buildConsumption(chargingStationConsumption, meterValues, transaction, optimizeNbrOfValues);
+          return this.buildConsumption(chargingStationConsumption, meterValues, transaction, optimizeNbrOfValues);
         });
       } else {
         // None
@@ -681,25 +653,21 @@ class ChargingStation {
   }
 
   getConsumptionsFromDateTimeRange(connectorId, startDateTime, endDateTime, optimizeNbrOfValues) {
-    // Adjust the start time to get the last meter interval
-    var startDateTimeAdjusted = moment((startDateTime?startDateTime:null)).clone().subtract(
-        parseInt(this.getMeterIntervalSecs()), "seconds").toDate().toISOString();
     // Define end date default
     if (!endDateTime) {
       endDateTime = new Date().toISOString(); // Current day
     }
-
     // Build the request
     return global.storage.getMeterValuesFromDateTimeRange(
         this.getChargeBoxIdentity(),
         connectorId,
-        startDateTimeAdjusted,
+        startDateTime,
         endDateTime).then((meterValues) => {
       // Build the header
       var chargingStationConsumption = {};
       chargingStationConsumption.values = [];
       chargingStationConsumption.totalConsumption = 0;
-      chargingStationConsumption.chargeBoxIdentity = this.getChargeBoxIdentity();
+      chargingStationConsumption.chargeBoxID = this.getChargeBoxIdentity();
       chargingStationConsumption.connectorId = connectorId;
       if (startDateTime) {
         chargingStationConsumption.startDateTime = startDateTime;
@@ -709,12 +677,12 @@ class ChargingStation {
       }
 
       // Compute consumption
-      return this._buildConsumption(chargingStationConsumption, meterValues, null, optimizeNbrOfValues);
+      return this.buildConsumption(chargingStationConsumption, meterValues, null, optimizeNbrOfValues);
     });
   }
 
   // Method to build the consumption
-  _buildConsumption(chargingStationConsumption, meterValues, transaction, optimizeNbrOfValues) {
+  buildConsumption(chargingStationConsumption, meterValues, transaction, optimizeNbrOfValues) {
     // Init
     let totalNbrOfMetrics = 0;
     let lastMeterValue;
@@ -788,8 +756,9 @@ class ChargingStation {
                     addValue = false;
                   }
                 } else {
-                  // Check if last consumption was 0 too!
-                  if (chargingStationConsumption.values[numberOfReturnedMeters-1].value === 0) {
+                  // Check if last but one consumption was 0 and not the last meter value
+                  if ((chargingStationConsumption.values[numberOfReturnedMeters-1].value === 0) &&
+                      (meterValueIndex !== meterValues.length-1)) {
                     // Do not add
                     addValue = false;
                   }
@@ -803,7 +772,7 @@ class ChargingStation {
                 chargingStationConsumption.values.push({date: meterValue.timestamp, value: currentConsumption });
               }
               // Debug
-              // console.log(`Date: ${meterValue.timestamp.toISOString()}, Last Meter: ${lastMeterValue.value}, Meter: ${meterValue.value}, Conso: ${currentConsumption}, Cumulated: ${chargingStationConsumption.totalConsumption}`);
+              //console.log(`Date: ${meterValue.timestamp.toISOString()}, Last Meter: ${lastMeterValue.value}, Meter: ${meterValue.value}, Conso: ${currentConsumption}, Cumulated: ${chargingStationConsumption.totalConsumption}`);
             }
           } else {
             // Last one is 0, set it to 0
@@ -820,7 +789,8 @@ class ChargingStation {
     if (totalNbrOfMetrics) {
       // Log
       Logging.logDebug({
-        userFullName: "System", source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "getConsumptionsFromDateTimeRange",
+        userFullName: "System", source: this.getChargeBoxIdentity(), module: "ChargingStation",
+        method: "getConsumptionsFromDateTimeRange", action:"buildConsumption",
         message: `Consumption - ${meterValues.length} metrics, ${totalNbrOfMetrics} relevant, ${chargingStationConsumption.values.length} returned` });
     }
     // Return the result

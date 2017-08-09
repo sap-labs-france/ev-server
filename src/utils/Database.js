@@ -1,12 +1,13 @@
 const fs = require('fs');
 const path = require('path');
 const Users = require('./Users');
+require('source-map-support').install();
 
 module.exports = {
   updateChargingStationObject(src, dest) {
     // Set it
     dest.id = src.id;
-    dest.chargeBoxIdentity = src.chargeBoxIdentity;
+    dest.chargeBoxIdentity = src.id;
     dest.chargePointSerialNumber = src.chargePointSerialNumber;
     dest.chargePointModel = src.chargePointModel;
     dest.chargeBoxSerialNumber = src.chargeBoxSerialNumber;
@@ -20,7 +21,6 @@ module.exports = {
     dest.ocppVersion = src.ocppVersion;
     dest.lastHeartBeat = src.lastHeartBeat;
     dest.lastReboot = src.lastReboot;
-    dest.meterIntervalSecs = src.meterIntervalSecs || 0;
     dest.connectors = src.connectors;
     if (!dest.connectors) {
       dest.connectors = [];
@@ -42,6 +42,16 @@ module.exports = {
     dest.info = src.info;
     dest.vendorId = src.vendorId;
     dest.vendorErrorCode = src.vendorErrorCode;
+  },
+
+  updateNotification(src, dest) {
+    // Set it
+    dest.timestamp = src.timestamp;
+    dest.channel = src.channel;
+    dest.sourceId = src.sourceId;
+    dest.sourceDescr = src.sourceDescr;
+    dest.userID = src.userID;
+    dest.chargeBoxID = src.chargeBoxID;
   },
 
   updateMeterValue(src, dest) {
@@ -128,8 +138,6 @@ module.exports = {
     dest.tagID = src.tagID;
     dest.transactionId = src.transactionId;
     dest.meterStart = src.meterStart;
-    dest.notifBeforeEndOfChargeSent = src.notifBeforeEndOfChargeSent;
-    dest.notifEndOfChargeSent = src.notifEndOfChargeSent;
   },
 
   updateStopTransaction(src, dest) {

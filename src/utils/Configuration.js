@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const Utils = require('./Utils');
 const _config = require('../config.json');
+require('source-map-support').install();
 
 module.exports = {
   // Read the config file
@@ -9,10 +10,22 @@ module.exports = {
     return _config;
   },
 
+  // Scheduler config
+  getSchedulerConfig() {
+    // Read conf
+    return this.getConfig().Scheduler;
+  },
+
   // Central System config
   getCentralSystemsConfig() {
     // Read conf
     return this.getConfig().CentralSystems;
+  },
+
+  // Notification config
+  getNotificationConfig() {
+    // Read conf
+    return this.getConfig().Notification;
   },
 
   // Authorization config

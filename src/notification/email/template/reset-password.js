@@ -6,7 +6,7 @@ module.exports.html = `
       </br>
       Your password to access the <a href="<%= evseDashboardURL %>">EVSE Dashboard</a> has been reset successfully!</br>
       </br>
-      Your new password is: <span class="password"><%= newPassword %></span></br>
+      Your new password is: <span style="bold"><%= newPassword %></span></br>
       </br>
       Best Regards,</br>
       EVSE Admin.

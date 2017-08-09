@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const _authorisation = require('../authorisation.json');
+require('source-map-support').install();
 
 module.exports = {
   getAuthorizations() {

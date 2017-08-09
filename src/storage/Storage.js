@@ -1,3 +1,5 @@
+require('source-map-support').install();
+
 class Storage {
   constructor(dbConfig) {
     if (new.target === Storage) {
@@ -11,7 +13,7 @@ class Storage {
   setCentralRestServer(centralRestServer) {
   }
 
-  getLogs(dateFrom, chargingStation, searchValue, numberOfLogs) {
+  getLogs(dateFrom, level, chargingStation, searchValue, numberOfLogs, sortDate) {
   }
 
   saveLog(log) {

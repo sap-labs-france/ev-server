@@ -17,6 +17,7 @@ const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+require('source-map-support').install();
 
 let _centralSystemRestConfig;
 let _io;

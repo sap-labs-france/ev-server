@@ -4,6 +4,7 @@ const Database = require('../../utils/Database');
 const Logging = require('../../utils/Logging');
 const Users = require('../../utils/Users');
 const User = require('../../model/User');
+require('source-map-support').install();
 
 module.exports = {
   // Util Service
@@ -35,9 +36,8 @@ module.exports = {
               }
               next();
             }).catch((err) => {
-              // Error
-              res.status(500).send(`${err.toString()}`);
-              next();
+              // Log error
+              Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
             });
             break;
         }
@@ -107,6 +107,9 @@ module.exports = {
                     // Charging station not found
                     Logging.logActionErrorMessageAndSendResponse(action, `Cannot retrieve the configuration of the Charging Station ${req.body.chargeBoxIdentity}`, req, res, next);
                   }
+                }).catch((err) => {
+                  // Log error
+                  Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
                 });
               } else {
                 // Charging station not found
@@ -199,10 +202,13 @@ module.exports = {
                     user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
                     message: `User ${newUser.getFullName()} with email ${newUser.getEMail()} has been created successfully`,
                     action: action, detailedMessages: user});
-                });
-                res.json({status: `Success`});
-                next();
 
+                    res.json({status: `Success`});
+                    next();
+                }).catch((err) => {
+                  // Log error
+                  Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+                });
               }).catch((err) => {
                 // Log
                 Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
@@ -238,11 +244,14 @@ module.exports = {
             return;
           }
           // Get logs
-          Logging.getLogs(req.query.DateFrom, req.query.ChargingStation,
+          Logging.getLogs(req.query.DateFrom, req.query.Level, req.query.ChargingStation,
               req.query.Search, req.query.NumberOfLogs, req.query.SortDate).then((loggings) => {
             // Return
             res.json(loggings);
             next();
+          }).catch((err) => {
+            // Log error
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -470,43 +479,49 @@ module.exports = {
               // Set the model
               chargingStation.getTransactions(req.query.ConnectorId,
                 req.query.StartDateTime, req.query.EndDateTime).then((transactions) => {
-                  // Loop Over
-                  var transactionsAuthorized = transactions.filter((transaction) => {
-                    // Check auth
-                    if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.start.userID)) {
-                      // Demo user?
-                      if (!CentralRestServerAuthorization.isDemo(req.user)) {
-                        // No: Not Authorized!
-                        Logging.logActionUnauthorizedMessage(
-                          CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res);
-                        return false;
+                  var transactionsAuthorized;
+                  if (transactions) {
+                    // Loop Over
+                    transactionsAuthorized = transactions.filter((transaction) => {
+                      // Check auth
+                      if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.start.userID)) {
+                        // Demo user?
+                        if (!CentralRestServerAuthorization.isDemo(req.user)) {
+                          // No: Not Authorized!
+                          Logging.logActionUnauthorizedMessage(
+                            CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res);
+                          return false;
+                        }
+                        // Hide
+                        transaction.start.userID = {};
+                        transaction.start.userID.name = "####";
+                        transaction.start.userID.firstName = "####";
                       }
-                      // Hide
-                      transaction.start.userID = {};
-                      transaction.start.userID.name = "####";
-                      transaction.start.userID.firstName = "####";
-                    }
-                    // Check auth
-                    if (transaction.stop && transaction.stop.userID &&
-                       !CentralRestServerAuthorization.canReadUser(req.user, transaction.stop.userID)) {
-                      // Demo user?
-                      if (!CentralRestServerAuthorization.isDemo(req.user)) {
-                        // No: Not Authorized!
-                        Logging.logActionUnauthorizedMessage(
-                          CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res);
-                        return false;
+                      // Check auth
+                      if (transaction.stop && transaction.stop.userID &&
+                         !CentralRestServerAuthorization.canReadUser(req.user, transaction.stop.userID)) {
+                        // Demo user?
+                        if (!CentralRestServerAuthorization.isDemo(req.user)) {
+                          // No: Not Authorized!
+                          Logging.logActionUnauthorizedMessage(
+                            CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res);
+                          return false;
+                        }
+                        // Clear the user
+                        transaction.stop.userID = {};
+                        transaction.stop.userID.name = "####";
+                        transaction.stop.userID.firstName = "####";
                       }
-                      // Clear the user
-                      transaction.stop.userID = {};
-                      transaction.stop.userID.name = "####";
-                      transaction.stop.userID.firstName = "####";
-                    }
-                    // Ok
-                    return true;
-                  });
+                      // Ok
+                      return true;
+                    });
+                  }
                   // Return
                   res.json(transactionsAuthorized);
                   next();
+                }).catch((err) => {
+                  // Log error
+                  Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
                 });
             } else {
               // Log
@@ -689,6 +704,9 @@ module.exports = {
                   // Log
                   return Promise.reject(new Error(`Transaction ${req.query.TransactionId} does not exist`));
                 }
+              }).catch((err) => {
+                // Log error
+                Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
               });
             } else {
               // Log
@@ -798,9 +816,13 @@ module.exports = {
                   user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
                   message: `User ${user.getFullName()} with Email ${user.getEMail()} has been updated successfully`,
                   action: action, detailedMessages: user});
+                // Ok
+                res.json({status: `Success`});
+                next();
+              }).catch((err) => {
+                // Log error
+                Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
               });
-              res.json({status: `Success`});
-              next();
             }).catch((err) => {
               // Log
               Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
@@ -856,6 +878,9 @@ module.exports = {
                 // Ok
                 res.json({status: `Success`});
                 next();
+              }).catch((err) => {
+                // Log error
+                Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
               });
             }).catch((err) => {
               // Log
@@ -893,6 +918,9 @@ module.exports = {
                 // Ok
                 res.json({status: `Success`});
                 next();
+              }).catch((err) => {
+                // Log error
+                Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
               });
             }).catch((err) => {
               // Log

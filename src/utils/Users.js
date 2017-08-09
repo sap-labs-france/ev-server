@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const passwordGenerator = require("password-generator");
 const Logging = require('./Logging');
+require('source-map-support').install();
 
 module.exports = {
    // Statuses

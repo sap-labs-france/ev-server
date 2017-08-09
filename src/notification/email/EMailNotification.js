@@ -1,4 +1,4 @@
-const Configuration = require('../utils/Configuration');
+const Configuration = require('../../utils/Configuration');
 const nodemailer = require('nodemailer');
 const path = require('path');
 const email = require("emailjs");
@@ -7,12 +7,13 @@ const resetPasswordTemplate = require('./template/reset-password.js');
 const registeredUserTemplate = require('./template/registered-user.js');
 const notifyEndOfChargeTemplate = require('./template/notify-end-of-charge.js');
 const notifyBeforeEndOfChargeTemplate = require('./template/notify-before-end-of-charge.js');
+require('source-map-support').install();
 
 // Email
 _emailConfig = Configuration.getEmailConfig();
 
 // https://nodemailer.com/smtp/
-class EMail {
+class EMailNotification {
   constructor() {
     // Connect to the server
     this.server = email.server.connect({
@@ -26,6 +27,15 @@ class EMail {
   }
 
   sendEmail(email) {
+    // Add Admins in BCC
+    if (_emailConfig.admins && _emailConfig.admins.length > 0) {
+      // Add
+      if (!email.bcc) {
+        email.bcc = _emailConfig.admins.join(',');
+      } else {
+        email.bcc += ',' + _emailConfig.admins.join(',');
+      }
+    }
     // In promise
     return new Promise((fulfill, reject) => {
       // Create the message
@@ -33,61 +43,62 @@ class EMail {
         from:  (!email.from?_emailConfig.from:email.from),
         to: email.to,
         cc: email.cc,
-        bcc: (!email.bcc?_emailConfig.bcc:""),
+        bcc: email.bcc,
         subject: email.subject,
-        text: email.text,
+        // text: email.text,
         attachment: [
           { data: email.html, alternative:true }
         ]
       };
 
-      // send the message and get a callback with an error or details of the message that was sent
-      this.server.send(message, (err, message) => {
-        // Error Handling
-        if (err) {
-          reject(err);
-        } else {
-          fulfill(message);
-        }
-      });
+      console.log(message);
+      fulfill(message);
+      // // send the message and get a callback with an error or details of the message that was sent
+      // this.server.send(message, (err, message) => {
+      //   // Error Handling
+      //   if (err) {
+      //     reject(err);
+      //   } else {
+      //     fulfill(message);
+      //   }
+      // });
     });
   }
 
-  static sendRegisteredUserEmail(data, locale) {
+  sendNewRegisteredUser(data, locale) {
     // Create a promise
     return new Promise((fulfill, reject) => {
       // Send it
-      EMail._sendEmail('registered-user', data, locale, fulfill, reject);
+      this._sendEmail('registered-user', data, locale, fulfill, reject);
     });
   }
 
-  static sendResetPasswordEmail(data, locale) {
+  sendResetPassword(data, locale) {
     // Create a promise
     return new Promise((fulfill, reject) => {
       // Send it
-      EMail._sendEmail('reset-password', data, locale, fulfill, reject);
+      this._sendEmail('reset-password', data, locale, fulfill, reject);
     });
   }
 
-  static sendNotifyBeforeEndOfChargeEmail(data, locale) {
+  sendBeforeEndOfCharge(data, locale) {
     // Create a promise
     return new Promise((fulfill, reject) => {
       // Send it
-      EMail._sendEmail('notify-before-end-of-charge', data, locale, fulfill, reject);
+      this._sendEmail('notify-before-end-of-charge', data, locale, fulfill, reject);
     });
   }
 
-  static sendNotifyEndOfChargeEmail(data, locale) {
+  sendEndOfCharge(data, locale) {
     // Create a promise
     return new Promise((fulfill, reject) => {
       // Send it
-      EMail._sendEmail('notify-end-of-charge', data, locale, fulfill, reject);
+      this._sendEmail('notify-end-of-charge', data, locale, fulfill, reject);
     });
   }
 
-  static _sendEmail(templateName, data, locale, fulfill, reject) {
+  _sendEmail(templateName, data, locale, fulfill, reject) {
     // Create email
-    let email = new EMail();
     let emailTemplate;
     // Get the template dir
     switch (templateName) {
@@ -124,7 +135,7 @@ class EMail {
     // Render the HTML
     let html = ejs.render(emailTemplate.html, data);
     // Send the email
-    email.sendEmail({
+    this.sendEmail({
       to: data.user.email,
       subject: subject,
       text: html,
@@ -138,4 +149,4 @@ class EMail {
   }
 }
 
-module.exports = EMail;
+module.exports = EMailNotification;

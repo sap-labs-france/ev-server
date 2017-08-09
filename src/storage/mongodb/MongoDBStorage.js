@@ -11,6 +11,7 @@ const MDBBootNotification = require('./model/MDBBootNotification');
 const MDBStatusNotification = require('./model/MDBStatusNotification');
 const MDBMeterValue = require('./model/MDBMeterValue');
 const MDBStartTransaction = require('./model/MDBStartTransaction');
+const MDBNotification = require('./model/MDBNotification');
 const MDBStopTransaction = require('./model/MDBStopTransaction');
 const MDBDataTransfer = require('./model/MDBDataTransfer');
 const User = require('../../model/User');
@@ -21,6 +22,7 @@ const Storage = require('../Storage');
 const Logging = require('../../utils/Logging');
 const crypto = require('crypto');
 const moment = require('moment');
+require('source-map-support').install();
 
 let _dbConfig;
 let _centralRestServer;
@@ -84,7 +86,7 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getLogs(dateFrom, chargingStation, searchValue, numberOfLogs, sortDate) {
+  getLogs(dateFrom, level, chargingStation, searchValue, numberOfLogs, sortDate) {
     // Not provided?
     if (!numberOfLogs || isNaN(numberOfLogs)) {
       // Default
@@ -105,6 +107,26 @@ class MongoDBStorage extends Storage {
       // Yes, add in filter
       filter.timestamp = {};
       filter.timestamp.$gte = new Date(dateFrom);
+    }
+    // Log level
+    switch (level) {
+      // Error
+      case "E":
+        // Build filter
+        filter.level = 'E';
+        break;
+      // Warning
+      case "W":
+        filter.level = { $in : ['E','W'] };
+        break;
+      // Info
+      case "I":
+        filter.level = { $in : ['E','W','I'] };
+        break;
+      // Debug
+      case "D":
+        // No filter
+        break;
     }
     // Charging Station
     if (chargingStation) {
@@ -130,12 +152,12 @@ class MongoDBStorage extends Storage {
       sort.timestamp = -1;
     }
     // Exec request
-    return MDBLog.find(filter).sort(sort).limit(numberOfLogs).exec().then((loggingsMongoDB) => {
+    return MDBLog.find(filter).sort(sort).limit(numberOfLogs).exec().then((loggingsMDB) => {
       var loggings = [];
-      loggingsMongoDB.forEach(function(loggingMongoDB) {
+      loggingsMDB.forEach(function(loggingMDB) {
         var logging = {};
         // Set
-        Database.updateLoggingObject(loggingMongoDB, logging);
+        Database.updateLoggingObject(loggingMDB, logging);
         // Set the model
         loggings.push(logging);
       });
@@ -146,12 +168,12 @@ class MongoDBStorage extends Storage {
 
   getConfiguration(chargeBoxIdentity) {
     // Exec request
-    return MDBConfiguration.findById({"_id": chargeBoxIdentity }).then((configurationMongoDB) => {
+    return MDBConfiguration.findById({"_id": chargeBoxIdentity }).then((configurationMDB) => {
       var configuration = null;
-      if (configurationMongoDB) {
+      if (configurationMDB) {
         // Set values
         configuration = {};
-        Database.updateConfiguration(configurationMongoDB, configuration);
+        Database.updateConfiguration(configurationMDB, configuration);
       }
       // Ok
       return configuration;
@@ -167,13 +189,13 @@ class MongoDBStorage extends Storage {
       filter.connectorId = connectorId;
     }
     // Exec request
-    return MDBStatusNotification.find(filter).sort({timestamp: 1}).exec().then((statusNotificationsMongoDB) => {
+    return MDBStatusNotification.find(filter).sort({timestamp: 1}).exec().then((statusNotificationsMDB) => {
       var statusNotifications = [];
       // Create
-      statusNotificationsMongoDB.forEach((statusNotificationMongoDB) => {
+      statusNotificationsMDB.forEach((statusNotificationMDB) => {
         var statusNotification = {};
         // Set values
-        Database.updateStatusNotification(statusNotificationMongoDB, statusNotification);
+        Database.updateStatusNotification(statusNotificationMDB, statusNotification);
         // Add
         statusNotifications.push(statusNotification);
       });
@@ -188,13 +210,13 @@ class MongoDBStorage extends Storage {
     filter.chargeBoxID = chargeBoxIdentity;
     filter.connectorId = connectorId;
     // Exec request
-    return MDBStatusNotification.find(filter).sort({timestamp: -1}).limit(1).exec().then((statusNotificationsMongoDB) => {
+    return MDBStatusNotification.find(filter).sort({timestamp: -1}).limit(1).exec().then((statusNotificationsMDB) => {
       var statusNotification = null;
       // At least one
-      if (statusNotificationsMongoDB[0]) {
+      if (statusNotificationsMDB[0]) {
         statusNotification = {};
         // Set values
-        Database.updateStatusNotification(statusNotificationsMongoDB[0], statusNotification);
+        Database.updateStatusNotification(statusNotificationsMDB[0], statusNotification);
       }
       // Ok
       return statusNotification;
@@ -218,13 +240,13 @@ class MongoDBStorage extends Storage {
     }
 
     // Exec request
-    return MDBMeterValue.find(filter).sort( {timestamp: 1, value: -1} ).exec().then((meterValuesMongoDB) => {
+    return MDBMeterValue.find(filter).sort( {timestamp: 1, value: -1} ).exec().then((meterValuesMDB) => {
       var meterValues = [];
       // Create
-      meterValuesMongoDB.forEach((meterValueMongoDB) => {
+      meterValuesMDB.forEach((meterValueMDB) => {
         var meterValue = {};
         // Set values
-        Database.updateMeterValue(meterValueMongoDB, meterValue);
+        Database.updateMeterValue(meterValueMDB, meterValue);
         // Add
         meterValues.push(meterValue);
       });
@@ -242,13 +264,13 @@ class MongoDBStorage extends Storage {
     filter.transactionId = transactionId;
 
     // Exec request
-    return MDBMeterValue.find(filter).sort( {timestamp: 1, value: -1} ).exec().then((meterValuesMongoDB) => {
+    return MDBMeterValue.find(filter).sort( {timestamp: 1, value: -1} ).exec().then((meterValuesMDB) => {
       var meterValues = [];
       // Create
-      meterValuesMongoDB.forEach((meterValueMongoDB) => {
+      meterValuesMDB.forEach((meterValueMDB) => {
         var meterValue = {};
         // Set values
-        Database.updateMeterValue(meterValueMongoDB, meterValue);
+        Database.updateMeterValue(meterValueMDB, meterValue);
         // Add
         meterValues.push(meterValue);
       });
@@ -269,13 +291,13 @@ class MongoDBStorage extends Storage {
     }
 
     // Exec request
-    return MDBMeterValue.find(filter).sort( {timestamp: -1, value: -1} ).limit(limit).exec().then((meterValuesMongoDB) => {
+    return MDBMeterValue.find(filter).sort( {timestamp: -1, value: -1} ).limit(limit).exec().then((meterValuesMDB) => {
       var meterValues = [];
       // Create
-      meterValuesMongoDB.forEach((meterValueMongoDB) => {
+      meterValuesMDB.forEach((meterValueMDB) => {
         var meterValue = {};
         // Set values
-        Database.updateMeterValue(meterValueMongoDB, meterValue);
+        Database.updateMeterValue(meterValueMDB, meterValue);
         // Add
         meterValues.push(meterValue);
       });
@@ -299,108 +321,130 @@ class MongoDBStorage extends Storage {
 
   saveBootNotification(bootNotification) {
     // Create model
-    var bootNotificationMongoDB = new MDBBootNotification(bootNotification);
+    var bootNotificationMDB = new MDBBootNotification(bootNotification);
     // Set the ID
-    bootNotificationMongoDB._id = crypto.createHash('md5')
-      .update(`${bootNotification.chargeBoxIdentity}~${bootNotification.timestamp}`)
+    bootNotificationMDB._id = crypto.createHash('md5')
+      .update(`${bootNotification.chargeBoxID}~${bootNotification.timestamp}`)
       .digest("hex");
-    bootNotificationMongoDB.chargeBoxID = bootNotification.chargeBoxIdentity;
     // Create new
-    return bootNotificationMongoDB.save().then(() => {
+    return bootNotificationMDB.save().then(() => {
       // Notify
-      _centralRestServer.notifyChargingStationUpdated({"id" : bootNotification.chargeBoxIdentity});
+      _centralRestServer.notifyChargingStationUpdated({"id" : bootNotification.chargeBoxID});
+    });
+  }
+
+  saveNotification(notification) {
+    // Create model
+    var notificationMDB = new MDBNotification(notification);
+    // Set the ID
+    notificationMDB._id = crypto.createHash('md5')
+      .update(`${notification.sourceId}~${notification.channel}`)
+      .digest("hex");
+    // Create new
+    return notificationMDB.save().then(() => {
+      // Nothing
+    });
+  }
+
+  getNotifications(sourceId) {
+    // Exec request
+    return MDBNotification.find({"sourceId": sourceId}).exec().then((notificationsMDB) => {
+      var notifications = [];
+      // Create
+      notificationsMDB.forEach((notificationMDB) => {
+        var notification = {};
+        // Set values
+        Database.updateNotification(notificationMDB, notification);
+        // Add
+        notifications.push(notification);
+      });
+      // Ok
+      return notifications;
     });
   }
 
   saveDataTransfer(dataTransfer) {
     // Create model
-    var dataTransferMongoDB = new MDBDataTransfer(dataTransfer);
+    var dataTransferMDB = new MDBDataTransfer(dataTransfer);
     // Set the ID
-    dataTransferMongoDB._id = crypto.createHash('md5')
-      .update(`${dataTransfer.chargeBoxIdentity}~${dataTransfer.data}~${dataTransfer.timestamp}`)
+    dataTransferMDB._id = crypto.createHash('md5')
+      .update(`${dataTransfer.chargeBoxID}~${dataTransfer.data}~${dataTransfer.timestamp}`)
       .digest("hex");
-    // Set the ID
-    dataTransferMongoDB.chargeBoxID = dataTransfer.chargeBoxIdentity;
     // Create new
-    return dataTransferMongoDB.save().then(() => {
+    return dataTransferMDB.save().then(() => {
       // Notify
-      _centralRestServer.notifyChargingStationUpdated({"id" : dataTransfer.chargeBoxIdentity});
+      _centralRestServer.notifyChargingStationUpdated({"id" : dataTransfer.chargeBoxID});
     });
   }
 
   saveConfiguration(configuration) {
     // Create model
-    var configurationMongoDB = {};
+    var configurationMDB = {};
     // Set the ID
-    configurationMongoDB._id = configuration.chargeBoxIdentity;
-    configurationMongoDB.chargeBoxID = configuration.chargeBoxIdentity;
-    configurationMongoDB.configuration = configuration.configurationKey;
-    configurationMongoDB.timestamp = configuration.timestamp;
+    configurationMDB._id = configuration.chargeBoxID;
+    configurationMDB.configuration = configuration.configurationKey;
+    configurationMDB.timestamp = configuration.timestamp;
 
     // Get
     return MDBConfiguration.findOneAndUpdate(
-      {"_id": configuration.chargeBoxIdentity},
-      configurationMongoDB,
-      {new: true, upsert: true}).then((chargingStationMongoDB) => {
+      {"_id": configuration.chargeBoxID},
+      configurationMDB,
+      {new: true, upsert: true}).then((chargingStationMDB) => {
         // Notify
-        _centralRestServer.notifyChargingStationUpdated({"id" : configuration.chargeBoxIdentity});
+        _centralRestServer.notifyChargingStationUpdated({"id" : configuration.chargeBoxID});
         // Return
-        return chargingStationMongoDB;
+        return chargingStationMDB;
     });
   }
 
   saveStatusNotification(statusNotification) {
     // Create model
-    var statusNotificationMongoDB = new MDBStatusNotification(statusNotification);
+    var statusNotificationMDB = new MDBStatusNotification(statusNotification);
     // Set the ID
-    statusNotificationMongoDB._id = crypto.createHash('md5')
-      .update(`${statusNotification.chargeBoxIdentity}~${statusNotification.connectorId}~${statusNotification.status}~${statusNotification.timestamp}`)
+    statusNotificationMDB._id = crypto.createHash('md5')
+      .update(`${statusNotification.chargeBoxID}~${statusNotification.connectorId}~${statusNotification.status}~${statusNotification.timestamp}`)
       .digest("hex");
-    statusNotificationMongoDB.chargeBoxID = statusNotification.chargeBoxIdentity;
     // Create new
-    return statusNotificationMongoDB.save().then(() => {
+    return statusNotificationMDB.save().then(() => {
       // Notify
-      _centralRestServer.notifyChargingStationUpdated({"id" : statusNotification.chargeBoxIdentity});
+      _centralRestServer.notifyChargingStationUpdated({"id" : statusNotification.chargeBoxID});
     });
   }
 
   saveDiagnosticsStatusNotification(diagnosticsStatusNotification) {
     // Create model
-    var diagnosticsStatusNotificationMongoDB = new MDBDiagnosticsStatusNotification(diagnosticsStatusNotification);
+    var diagnosticsstatusNotificationMDB = new MDBDiagnosticsStatusNotification(diagnosticsStatusNotification);
     // Set the ID
-    diagnosticsStatusNotificationMongoDB._id = crypto.createHash('md5')
-      .update(`${diagnosticsStatusNotification.chargeBoxIdentity}~${diagnosticsStatusNotification.timestamp.toISOString()}`)
+    diagnosticsstatusNotificationMDB._id = crypto.createHash('md5')
+      .update(`${diagnosticsStatusNotification.chargeBoxID}~${diagnosticsStatusNotification.timestamp.toISOString()}`)
       .digest("hex");
-    diagnosticsStatusNotificationMongoDB.chargeBoxID = diagnosticsStatusNotification.chargeBoxIdentity;
     // Create new
-    return diagnosticsStatusNotificationMongoDB.save(() => {
+    return diagnosticsstatusNotificationMDB.save(() => {
       // Notify
-      _centralRestServer.notifyChargingStationUpdated({"id" : diagnosticsStatusNotification.chargeBoxIdentity});
+      _centralRestServer.notifyChargingStationUpdated({"id" : diagnosticsStatusNotification.chargeBoxID});
     });
   }
 
   saveFirmwareStatusNotification(firmwareStatusNotification) {
     // Create model
-    var firmwareStatusNotificationMongoDB = new MDBFirmwareStatusNotification(firmwareStatusNotification);
+    var firmwarestatusNotificationMDB = new MDBFirmwareStatusNotification(firmwareStatusNotification);
     // Set the ID
-    firmwareStatusNotificationMongoDB._id = crypto.createHash('md5')
-      .update(`${firmwareStatusNotification.chargeBoxIdentity}~${firmwareStatusNotification.timestamp.toISOString()}`)
+    firmwarestatusNotificationMDB._id = crypto.createHash('md5')
+      .update(`${firmwareStatusNotification.chargeBoxID}~${firmwareStatusNotification.timestamp.toISOString()}`)
       .digest("hex");
-    // Set the ID
-    firmwareStatusNotificationMongoDB.chargeBoxID = firmwareStatusNotification.chargeBoxIdentity;
     // Create new
-    return firmwareStatusNotificationMongoDB.save().then(() => {
+    return firmwarestatusNotificationMDB.save().then(() => {
       // Notify
-      _centralRestServer.notifyChargingStationUpdated({"id" : firmwareStatusNotification.chargeBoxIdentity});
+      _centralRestServer.notifyChargingStationUpdated({"id" : firmwareStatusNotification.chargeBoxID});
     });
   }
 
   saveLog(log) {
     // Create model
-    var logMongoDB = new MDBLog(log);
+    var logMDB = new MDBLog(log);
 
     // Save
-    return logMongoDB.save().then(() => {
+    return logMDB.save().then(() => {
       // Notify Change
       _centralRestServer.notifyLoggingCreated();
     });
@@ -408,18 +452,17 @@ class MongoDBStorage extends Storage {
 
   saveAuthorize(authorize) {
     // Create model
-    var authorizeMongoDB = new MDBAuthorize(authorize);
+    var authorizeMDB = new MDBAuthorize(authorize);
     // Set the ID
-    authorizeMongoDB._id = crypto.createHash('md5')
-      .update(`${authorize.chargeBoxIdentity}~${authorize.timestamp.toISOString()}`)
+    authorizeMDB._id = crypto.createHash('md5')
+      .update(`${authorize.chargeBoxID}~${authorize.timestamp.toISOString()}`)
       .digest("hex");
-    authorizeMongoDB.userID = authorize.user.getID();
-    authorizeMongoDB.chargeBoxID = authorize.chargeBoxIdentity;
-    authorizeMongoDB.tagID = authorize.idTag;
+    authorizeMDB.userID = authorize.user.getID();
+    authorizeMDB.tagID = authorize.idTag;
     // Create new
-    return authorizeMongoDB.save().then(() => {
+    return authorizeMDB.save().then(() => {
       // Notify
-      _centralRestServer.notifyChargingStationUpdated({"id" : authorize.chargeBoxIdentity});
+      _centralRestServer.notifyChargingStationUpdated({"id" : authorize.chargeBoxID});
     });
   }
 
@@ -428,42 +471,40 @@ class MongoDBStorage extends Storage {
     if (!startTransaction.id) {
       // No: Set a new ID
       startTransaction.id = crypto.createHash('md5')
-        .update(`${startTransaction.chargeBoxIdentity}~${startTransaction.connectorId}~${startTransaction.timestamp}`)
+        .update(`${startTransaction.chargeBoxID}~${startTransaction.connectorId}~${startTransaction.timestamp}`)
         .digest("hex");
       startTransaction.userID = startTransaction.user.getID();
       startTransaction.tagID = startTransaction.idTag;
-      startTransaction.chargeBoxID = startTransaction.chargeBoxIdentity;
     }
 
     // Get
     return MDBStartTransaction.findOneAndUpdate({"_id": startTransaction.id}, startTransaction, {
         new: true,
         upsert: true
-      }).then((startTransactionMongoDB) => {
+      }).then((startTransactionMDB) => {
         // Notify
-        _centralRestServer.notifyChargingStationUpdated({"id" : startTransaction.chargeBoxIdentity});
+        _centralRestServer.notifyChargingStationUpdated({"id" : startTransaction.chargeBoxID});
       });
   }
 
   saveStopTransaction(stopTransaction) {
     // Create model
-    var stopTransactionMongoDB = new MDBStopTransaction(stopTransaction);
+    var stopTransactionMDB = new MDBStopTransaction(stopTransaction);
     // Set the ID
-    stopTransactionMongoDB._id = crypto.createHash('md5')
-      .update(`${stopTransaction.chargeBoxIdentity}~${stopTransaction.connectorId}~${stopTransaction.timestamp}`)
+    stopTransactionMDB._id = crypto.createHash('md5')
+      .update(`${stopTransaction.chargeBoxID}~${stopTransaction.connectorId}~${stopTransaction.timestamp}`)
       .digest("hex");
     // Set the ID
-    stopTransactionMongoDB.chargeBoxID = stopTransaction.chargeBoxIdentity;
     if(stopTransaction.idTag) {
-      stopTransactionMongoDB.tagID = stopTransaction.idTag;
+      stopTransactionMDB.tagID = stopTransaction.idTag;
     }
     if(stopTransaction.idTag) {
-      stopTransactionMongoDB.userID = stopTransaction.user.getID();
+      stopTransactionMDB.userID = stopTransaction.user.getID();
     }
     // Create new
-    return stopTransactionMongoDB.save().then(() => {
+    return stopTransactionMDB.save().then(() => {
       // Notify
-      _centralRestServer.notifyChargingStationUpdated({"id" : stopTransaction.chargeBoxIdentity});
+      _centralRestServer.notifyChargingStationUpdated({"id" : stopTransaction.chargeBoxID});
     });
   }
 
@@ -471,42 +512,41 @@ class MongoDBStorage extends Storage {
     // Save all
     return Promise.all(meterValues.values.map(meterValue => {
       // Create model
-      var meterValueMongoDB = new MDBMeterValue(meterValue);
+      var meterValueMDB = new MDBMeterValue(meterValue);
       // Set the ID
       var attribute = JSON.stringify(meterValue.attribute);
-      meterValueMongoDB._id = crypto.createHash('md5')
-        .update(`${meterValue.chargeBoxIdentity}~${meterValue.connectorId}~${meterValue.timestamp}~${meterValue.value}~${attribute}`)
+      meterValueMDB._id = crypto.createHash('md5')
+        .update(`${meterValue.chargeBoxID}~${meterValue.connectorId}~${meterValue.timestamp}~${meterValue.value}~${attribute}`)
         .digest("hex");
-      meterValueMongoDB.chargeBoxID = meterValues.chargeBoxIdentity;
       // Save
-      return meterValueMongoDB.save().then(() => {
+      return meterValueMDB.save().then(() => {
         // Notify
-        _centralRestServer.notifyChargingStationUpdated({"id" : meterValues.chargeBoxIdentity});
+        _centralRestServer.notifyChargingStationUpdated({"id" : meterValues.chargeBoxID});
       });
     }));
   }
 
   getTransaction(transactionId) {
     // Get the Start Transaction
-    return MDBStartTransaction.findOne({"transactionId": transactionId}).populate("userID").exec().then((startTransactionMongoDB) => {
+    return MDBStartTransaction.findOne({"transactionId": transactionId}).populate("userID").exec().then((startTransactionMDB) => {
       // Set
       var transaction = {};
-      if (startTransactionMongoDB) {
+      if (startTransactionMDB) {
         // Set data
         transaction.start = {};
-        Database.updateStartTransaction(startTransactionMongoDB, transaction.start);
+        Database.updateStartTransaction(startTransactionMDB, transaction.start);
       }
       // Ok
       return transaction;
       // Get the Stop Transaction
     }).then((transaction) => {
       // Get stop transaction
-      return MDBStopTransaction.findOne({"transactionId" : transaction.start.transactionId}).populate("userID").exec().then((stopTransactionMongoDB) => {
+      return MDBStopTransaction.findOne({"transactionId" : transaction.start.transactionId}).populate("userID").exec().then((stopTransactionMDB) => {
         // Found?
-        if (stopTransactionMongoDB) {
+        if (stopTransactionMDB) {
           // Set
           transaction.stop = {};
-          Database.updateStopTransaction(stopTransactionMongoDB, transaction.stop);
+          Database.updateStopTransaction(stopTransactionMDB, transaction.stop);
         }
         // Ok
         return transaction;
@@ -534,14 +574,14 @@ class MongoDBStorage extends Storage {
     }
 
     // Get the Start Transaction
-    return MDBStartTransaction.find(filter).populate("userID").sort( {timestamp: -1} ).exec().then((startTransactionsMongoDB) => {
+    return MDBStartTransaction.find(filter).populate("userID").sort( {timestamp: -1} ).exec().then((startTransactionsMDB) => {
       var transactions = [];
       // Create
-      startTransactionsMongoDB.forEach((startTransactionMongoDB) => {
+      startTransactionsMDB.forEach((startTransactionMDB) => {
         // Set
         var transaction = {};
         transaction.start = {};
-        Database.updateStartTransaction(startTransactionMongoDB, transaction.start);
+        Database.updateStartTransaction(startTransactionMDB, transaction.start);
         // Add
         transactions.push(transaction);
       });
@@ -552,12 +592,12 @@ class MongoDBStorage extends Storage {
       // Wait
       return Promise.all(transactions.map(transaction => {
         // Get stop transaction
-        return MDBStopTransaction.findOne({"transactionId" : transaction.start.transactionId}).populate("userID").exec().then((stopTransactionMongoDB) => {
+        return MDBStopTransaction.findOne({"transactionId" : transaction.start.transactionId}).populate("userID").exec().then((stopTransactionMDB) => {
           // Found?
-          if (stopTransactionMongoDB) {
+          if (stopTransactionMDB) {
             // Set
             transaction.stop = {};
-            Database.updateStopTransaction(stopTransactionMongoDB, transaction.stop);
+            Database.updateStopTransaction(stopTransactionMDB, transaction.stop);
           }
           // Ok
           return transaction;
@@ -577,13 +617,13 @@ class MongoDBStorage extends Storage {
     }
 
     // Get the Start Transaction
-    return MDBStartTransaction.findOne(filter).populate("userID").sort( {timestamp: -1} ).exec().then((startTransactionMongoDB) => {
+    return MDBStartTransaction.findOne(filter).populate("userID").sort( {timestamp: -1} ).exec().then((startTransactionMDB) => {
       var transaction = null;
-      if (startTransactionMongoDB) {
+      if (startTransactionMDB) {
         // Set
         transaction = {};
         transaction.start = {};
-        Database.updateStartTransaction(startTransactionMongoDB, transaction.start);
+        Database.updateStartTransaction(startTransactionMDB, transaction.start);
       }
       // Ok
       return transaction;
@@ -592,12 +632,12 @@ class MongoDBStorage extends Storage {
       // Found?
       if (transaction) {
         // Get stop transaction
-        return MDBStopTransaction.findOne({"transactionId" : transaction.start.transactionId}).then((stopTransactionMongoDB) => {
+        return MDBStopTransaction.findOne({"transactionId" : transaction.start.transactionId}).then((stopTransactionMDB) => {
           // Found?
-          if (stopTransactionMongoDB) {
+          if (stopTransactionMDB) {
             // Set
             transaction.stop = {};
-            Database.updateStopTransaction(stopTransactionMongoDB, transaction.stop);
+            Database.updateStopTransaction(stopTransactionMDB, transaction.stop);
           }
           // Ok
           return transaction;
@@ -614,18 +654,18 @@ class MongoDBStorage extends Storage {
     return MDBChargingStation.findOneAndUpdate(
       {"_id": chargingStation.getChargeBoxIdentity()},
       chargingStation.getModel(),
-      {new: true, upsert: true}).then((chargingStationMongoDB) => {
+      {new: true, upsert: true}).then((chargingStationMDB) => {
         // Notify Change
         if (!chargingStation.getID()) {
-          _centralRestServer.notifyChargingStationCreated(chargingStationMongoDB);
+          _centralRestServer.notifyChargingStationCreated(chargingStationMDB);
         } else {
-          _centralRestServer.notifyChargingStationUpdated(chargingStationMongoDB);
+          _centralRestServer.notifyChargingStationUpdated(chargingStationMDB);
         }
     });
   }
 
   deleteChargingStation(id) {
-    return MDBChargingStation.remove({ "_id" : id }).then((charingStationMongoDB) => {
+    return MDBChargingStation.remove({ "_id" : id }).then((charingStationMDB) => {
       // Notify Change
       _centralRestServer.notifyChargingStationDeleted({"id": id});
     });
@@ -645,11 +685,11 @@ class MongoDBStorage extends Storage {
       ];
     }
     // Exec request
-    return MDBChargingStation.find(filters).sort( {_id: 1} ).exec().then((chargingStationsMongoDB) => {
+    return MDBChargingStation.find(filters).sort( {_id: 1} ).exec().then((chargingStationsMDB) => {
       var chargingStations = [];
       // Create
-      chargingStationsMongoDB.forEach((chargingStationMongoDB) => {
-        chargingStations.push(new ChargingStation(chargingStationMongoDB));
+      chargingStationsMDB.forEach((chargingStationMDB) => {
+        chargingStations.push(new ChargingStation(chargingStationMDB));
       });
       // Ok
       return chargingStations;
@@ -658,12 +698,12 @@ class MongoDBStorage extends Storage {
 
   getChargingStation(chargeBoxIdentity) {
     // Exec request
-    return MDBChargingStation.findById({"_id": chargeBoxIdentity}).then(chargingStationMongoDB => {
+    return MDBChargingStation.findById({"_id": chargeBoxIdentity}).then(chargingStationMDB => {
       var chargingStation = null;
       // Found
-      if (chargingStationMongoDB) {
+      if (chargingStationMDB) {
         // Create
-        chargingStation = new ChargingStation(chargingStationMongoDB);
+        chargingStation = new ChargingStation(chargingStationMDB);
       }
       return chargingStation;
     });
@@ -686,18 +726,18 @@ class MongoDBStorage extends Storage {
       ];
     }
     // Exec request
-    return MDBTag.find({}).exec().then((tagsMongoDB) => {
+    return MDBTag.find({}).exec().then((tagsMDB) => {
       // Exec request
-      return MDBUser.find(filters).sort( {status: -1, name: 1, firstName: 1} ).limit(numberOfUser).exec().then((usersMongoDB) => {
+      return MDBUser.find(filters).sort( {status: -1, name: 1, firstName: 1} ).limit(numberOfUser).exec().then((usersMDB) => {
         var users = [];
         // Create
-        usersMongoDB.forEach((userMongoDB) => {
+        usersMDB.forEach((userMDB) => {
           // Create
-          var user = new User(userMongoDB);
+          var user = new User(userMDB);
           // Get TagIDs
-          var tags = tagsMongoDB.filter((tag) => {
+          var tags = tagsMDB.filter((tag) => {
             // Find a match
-            return tag.userID.equals(userMongoDB._id);
+            return tag.userID.equals(userMDB._id);
           }).map((tag) => {
             return tag._id;
           });
@@ -729,16 +769,16 @@ class MongoDBStorage extends Storage {
       return MDBUser.findOneAndUpdate(userFilter, user.getModel(), {
           new: true,
           upsert: true
-        }).then((userMongoDB) => {
+        }).then((userMDB) => {
           // Notify Change
           if (!user.getID()) {
-            _centralRestServer.notifyUserCreated(userMongoDB);
+            _centralRestServer.notifyUserCreated(userMDB);
           } else {
-            _centralRestServer.notifyUserUpdated(userMongoDB);
+            _centralRestServer.notifyUserUpdated(userMDB);
           }
           // Update the badges
           // First delete them
-          return MDBTag.remove({ "userID" : userMongoDB._id }).then(() => {
+          return MDBTag.remove({ "userID" : userMDB._id }).then(() => {
             // Add tags
             user.getTagIDs().forEach((tag) => {
               // Update/Insert Tag
@@ -746,7 +786,7 @@ class MongoDBStorage extends Storage {
                   "_id": tag
                 },{
                   "_id": tag,
-                  "userID": userMongoDB._id
+                  "userID": userMDB._id
                 },{
                   new: true,
                   upsert: true
@@ -767,50 +807,50 @@ class MongoDBStorage extends Storage {
     }
 
     // Exec request
-    return MDBUser.findById(id).exec().then((userMongoDB) => {
-      return this._createUser(userMongoDB);
+    return MDBUser.findById(id).exec().then((userMDB) => {
+      return this._createUser(userMDB);
     });
   }
 
   getUserByEmailPassword(email, password) {
     // Exec request
-    return MDBUser.findOne({"email": email, "password": password}).then((userMongoDB) => {
-      return this._createUser(userMongoDB);
+    return MDBUser.findOne({"email": email, "password": password}).then((userMDB) => {
+      return this._createUser(userMDB);
     });
   }
 
   getUserByEmail(email) {
     // Exec request
-    return MDBUser.findOne({"email": email}).then((userMongoDB) => {
-      return this._createUser(userMongoDB);
+    return MDBUser.findOne({"email": email}).then((userMDB) => {
+      return this._createUser(userMDB);
     });
   }
 
   getUserByTagId(tagID) {
     // Exec request
-    return MDBTag.findById(tagID).populate("userID").exec().then((tagMongoDB) => {
+    return MDBTag.findById(tagID).populate("userID").exec().then((tagMDB) => {
       var user = null;
       // Check
-      if (tagMongoDB && tagMongoDB.userID) {
-        user = new User(tagMongoDB.userID);
+      if (tagMDB && tagMDB.userID) {
+        user = new User(tagMDB.userID);
       }
       // Ok
       return user;
     });
   }
 
-  _createUser(userMongoDB) {
+  _createUser(userMDB) {
     var user = null;
     // Check
-    if (userMongoDB) {
+    if (userMDB) {
       // Create
-      user = new User(userMongoDB);
+      user = new User(userMDB);
       // Get the Tags
-      return MDBTag.find({"userID": userMongoDB.id}).exec().then((tagsMongoDB) => {
+      return MDBTag.find({"userID": userMDB.id}).exec().then((tagsMDB) => {
         // Check
-        if (tagsMongoDB) {
+        if (tagsMDB) {
           // Get the Tags
-          var tags = tagsMongoDB.map((tagMongoDB) => { return tagMongoDB.id; });
+          var tags = tagsMDB.map((tagMDB) => { return tagMDB.id; });
           // Get IDs`
           user.setTagIDs(tags);
         }
@@ -823,7 +863,7 @@ class MongoDBStorage extends Storage {
   }
 
   deleteUser(id) {
-    return MDBUser.remove({ "_id" : id }).then((userMongoDB) => {
+    return MDBUser.remove({ "_id" : id }).then((userMDB) => {
       // Notify Change
       _centralRestServer.notifyUserDeleted({"id": id});
     });
