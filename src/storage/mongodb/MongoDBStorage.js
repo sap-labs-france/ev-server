@@ -22,6 +22,7 @@ const Storage = require('../Storage');
 const Logging = require('../../utils/Logging');
 const crypto = require('crypto');
 const moment = require('moment');
+const ObjectId = mongoose.Types.ObjectId;
 require('source-map-support').install();
 
 let _dbConfig;
@@ -566,55 +567,88 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getTransactions(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
+  getTransactionsFromUser(userId, onlyActive) {
     // Build filter
-    var filter = {};
+    var $match = {};
+    if (userId) {
+      $match.userID = new ObjectId(userId);
+    }
+    // Active transactions?
+    if (onlyActive) {
+      // Yes: Get only active ones
+      return MDBStartTransaction.aggregate(
+        { $match },
+      	{ $lookup: { from: "stoptransactions", localField: "transactionId", foreignField: "transactionId", as: "stopTransaction"} },
+      	{ $match: { "stopTransaction": { $eq: [] } }},
+        { $unwind : { path:"$stopTransaction", preserveNullAndEmptyArrays: true }}
+      ).then(transactionsMDB => {
+        // Set
+        var transactions = [];
+        // Create
+        transactionsMDB.forEach((transactionMDB) => {
+          // Set
+          var transaction = {};
+          transaction.start = {};
+          Database.updateStartTransaction(transactionMDB, transaction.start);
+          // Add
+          transactions.push(transaction);
+        });
+        return transactions;
+      });
+    } else {
+      // return them all
+      return this.getTransactions($match);
+    }
+  }
+
+  getTransactionsFromChargingStation(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
+    // Build filter
+    var $match = {};
     if (chargeBoxIdentity) {
-      filter.chargeBoxID = chargeBoxIdentity;
+      $match.chargeBoxID = chargeBoxIdentity;
     }
     if (connectorId) {
-      filter.connectorId = parseInt(connectorId);
+      $match.connectorId = parseInt(connectorId);
     }
     if (startDateTime || endDateTime) {
-      filter.timestamp = {};
+      $match.timestamp = {};
     }
     if (startDateTime) {
-      filter.timestamp.$gte = new Date(startDateTime);
+      $match.timestamp.$gte = new Date(startDateTime);
     }
     if (endDateTime) {
-      filter.timestamp.$lte = new Date(endDateTime);
+      $match.timestamp.$lte = new Date(endDateTime);
     }
+    // Get the transactions
+    return this.getTransactions($match);
+  }
 
-    // Get the Start Transaction
-    return MDBStartTransaction.find(filter).populate("userID").sort( {timestamp: -1} ).exec().then((startTransactionsMDB) => {
+  getTransactions($match) {
+    // Yes
+    return MDBStartTransaction.aggregate(
+      { $match },
+      { $sort : { "timestamp": -1 } },
+      { $lookup: { from: "stoptransactions", localField: "transactionId", foreignField: "transactionId", as: "stopTransaction"} },
+      { $lookup: { from: "users", localField: "userID", foreignField: "_id", as: "userID"} },
+      { $unwind : { path:"$stopTransaction", preserveNullAndEmptyArrays: true } },
+      { $unwind : { path:"$userID", preserveNullAndEmptyArrays: true } }
+    ).then(transactionsMDB => {
+      // Set
       var transactions = [];
       // Create
-      startTransactionsMDB.forEach((startTransactionMDB) => {
+      transactionsMDB.forEach((transactionMDB) => {
         // Set
         var transaction = {};
         transaction.start = {};
-        Database.updateStartTransaction(startTransactionMDB, transaction.start);
+        Database.updateStartTransaction(transactionMDB, transaction.start);
+        if (transactionMDB.stopTransaction) {
+          transaction.stop = {};
+          Database.updateStopTransaction(transactionMDB.stopTransaction, transaction.stop);
+        }
         // Add
         transactions.push(transaction);
       });
-      // Ok
       return transactions;
-      // Get the Stop Transaction
-    }).then((transactions) => {
-      // Wait
-      return Promise.all(transactions.map(transaction => {
-        // Get stop transaction
-        return MDBStopTransaction.findOne({"transactionId" : transaction.start.transactionId}).populate("userID").exec().then((stopTransactionMDB) => {
-          // Found?
-          if (stopTransactionMDB) {
-            // Set
-            transaction.stop = {};
-            Database.updateStopTransaction(stopTransactionMDB, transaction.stop);
-          }
-          // Ok
-          return transaction;
-        });
-      }));
     });
   }
 

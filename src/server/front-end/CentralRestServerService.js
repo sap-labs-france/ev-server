@@ -456,6 +456,33 @@ module.exports = {
           break;
 
         // Get the transactions
+        case "UserActiveTransactions":
+          // Check email
+          global.storage.getUser(req.query.ID).then(function(user) {
+            if (!user) {
+              Logging.logActionErrorMessageAndSendResponse(action, `The user with ID ${req.body.id} does not exist`, req, res, next);
+              return;
+            }
+            // Check auth
+            if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
+              // Not Authorized!
+              Logging.logActionUnauthorizedMessageAndSendResponse(
+                CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+              return;
+            }
+            // Get the user's transactions
+            user.getTransactions(req.query.Active).then(transactions => {
+              // Return
+              res.json(transactions);
+              next();
+            });
+          }).catch((err) => {
+            // Log
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+          });
+          break;
+
+        // Get the transactions
         case "ChargingStationTransactions":
           // Charge Box is mandatory
           if(!req.query.ChargeBoxIdentity) {
@@ -488,9 +515,6 @@ module.exports = {
                       if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.start.userID)) {
                         // Demo user?
                         if (!CentralRestServerAuthorization.isDemo(req.user)) {
-                          // No: Not Authorized!
-                          Logging.logActionUnauthorizedMessage(
-                            CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res);
                           return false;
                         }
                         // Hide
@@ -503,9 +527,6 @@ module.exports = {
                          !CentralRestServerAuthorization.canReadUser(req.user, transaction.stop.userID)) {
                         // Demo user?
                         if (!CentralRestServerAuthorization.isDemo(req.user)) {
-                          // No: Not Authorized!
-                          Logging.logActionUnauthorizedMessage(
-                            CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res);
                           return false;
                         }
                         // Clear the user

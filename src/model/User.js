@@ -149,6 +149,11 @@ class User {
     this._model.lastChangedOn = lastChangedOn;
   }
 
+  getTransactions(onlyActive) {
+    // Get the consumption
+    return global.storage.getTransactionsFromUser(this.getID(), onlyActive);
+  }
+
   save() {
     return global.storage.saveUser(this);
   }
