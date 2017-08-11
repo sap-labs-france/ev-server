@@ -73,7 +73,7 @@ class CentralSystemServer {
     // Set the endpoint
     args.endpoint = headers.From.Address;
     // Set the ChargeBox ID
-    args.chargeBoxID = headers.chargeBoxIdentity;
+    args.id = headers.chargeBoxIdentity;
     // Set the default Heart Beat
     args.lastReboot = new Date().toISOString();
     args.lastHeartBeat = args.lastReboot;
