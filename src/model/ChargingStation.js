@@ -1,11 +1,12 @@
-var Utils = require('../utils/Utils');
-var SoapChargingStationClient = require('../client/soap/SoapChargingStationClient');
-var Logging = require('../utils/Logging');
-var User = require('./User');
-var Users = require('../utils/Users');
-var Database = require('../utils/Database');
-var moment = require('moment');
-var Configuration = require('../utils/Configuration');
+const Utils = require('../utils/Utils');
+const SoapChargingStationClient = require('../client/soap/SoapChargingStationClient');
+const Logging = require('../utils/Logging');
+const User = require('./User');
+const Users = require('../utils/Users');
+const Database = require('../utils/Database');
+const moment = require('moment');
+const Configuration = require('../utils/Configuration');
+const NotificationHandler = require('../notification/NotificationHandler');
 
 _configAdvanced = Configuration.getAdvancedConfig();
 
@@ -13,9 +14,8 @@ class ChargingStation {
   constructor(chargingStation) {
     // Init model
     this._model = {};
-
     // Set it
-    Database.updateChargingStationObject(chargingStation, this._model);
+    Database.updateChargingStation(chargingStation, this._model);
   }
 
   handleAction(action, params) {
@@ -433,7 +433,17 @@ class ChargingStation {
         });
 
         // Save the user
-        return newUser.save().then(() => {
+        return newUser.save().then((user) => {
+          // Send Notification
+          NotificationHandler.sendUnknownUserBadged(
+            Utils.generateID(),
+            this.getModel(),
+            {
+              "chargingStationId": this.getChargeBoxIdentity(),
+              "badgeId": request.idTag,
+              "evseDashboardUserURL" : Utils.buildEvseUserURL(user)
+            }
+          );
           // Reject but save ok
           return Promise.reject( new Error(`User with Tag ID ${request.idTag} not found but saved as inactive user (John DOE)`) );
         }, (err) => {

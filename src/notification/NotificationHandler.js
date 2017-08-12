@@ -13,6 +13,7 @@ const SOURCE_CHARGING_STATION_STATUS_ERROR = "NotifyChargingStationStatusError";
 const SOURCE_END_OF_CHARGE = "NotifyEndOfCharge";
 const SOURCE_RESET_PASSWORD = "NotifyResetPassword";
 const SOURCE_NEW_REGISTERED_USER = "NotifyNewRegisteredUser";
+const SOURCE_UNKNOWN_USER_BADGED = "NotifyUnknownUserBadged";
 
 class NotificationHandler {
   static saveNotification(channel, sourceId, sourceDescr, user, chargingStation, details) {
@@ -144,6 +145,20 @@ class NotificationHandler {
       }).catch(error => {
         // Log error
         Logging.logUnexpectedErrorMessage(SOURCE_CHARGING_STATION_STATUS_ERROR, "NotificationHandler", "sendChargingStationStatusError", error);
+      });
+    }
+  }
+
+  static sendUnknownUserBadged(sourceId, chargingStation, sourceData) {
+    // Email enabled?
+    if (_notificationConfig.Email.enabled) {
+      // Send email
+      _email.sendUnknownUserBadged(sourceData, Utils.getDefaultLocale()).then(message => {
+        // Save notif
+        NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_UNKNOWN_USER_BADGED, null, chargingStation, message);
+      }).catch(error => {
+        // Log error
+        Logging.logUnexpectedErrorMessage(SOURCE_UNKNOWN_USER_BADGED, "NotificationHandler", "sendUnknownUserBadged", error);
       });
     }
   }

@@ -703,12 +703,14 @@ class MongoDBStorage extends Storage {
       {"_id": chargingStation.getChargeBoxIdentity()},
       chargingStation.getModel(),
       {new: true, upsert: true}).then((chargingStationMDB) => {
+        var newChargingStation = new ChargingStation(chargingStationMDB);
         // Notify Change
         if (!chargingStation.getID()) {
-          _centralRestServer.notifyChargingStationCreated(chargingStationMDB);
+          _centralRestServer.notifyChargingStationCreated(newChargingStation.getModel());
         } else {
-          _centralRestServer.notifyChargingStationUpdated(chargingStationMDB);
+          _centralRestServer.notifyChargingStationUpdated(newChargingStation.getModel());
         }
+        return newChargingStation;
     });
   }
 
@@ -818,15 +820,16 @@ class MongoDBStorage extends Storage {
           new: true,
           upsert: true
         }).then((userMDB) => {
+          var newUser = new User(userMDB);
           // Notify Change
           if (!user.getID()) {
-            _centralRestServer.notifyUserCreated(userMDB);
+            _centralRestServer.notifyUserCreated(newUser.getModel());
           } else {
-            _centralRestServer.notifyUserUpdated(userMDB);
+            _centralRestServer.notifyUserUpdated(newUser.getModel());
           }
           // Update the badges
           // First delete them
-          return MDBTag.remove({ "userID" : userMDB._id }).then(() => {
+          MDBTag.remove({ "userID" : userMDB._id }).then(() => {
             // Add tags
             user.getTagIDs().forEach((tag) => {
               // Update/Insert Tag
@@ -843,6 +846,7 @@ class MongoDBStorage extends Storage {
                 });                // Add TagIds
             });
           });
+          return newUser;
         });
     }
   }

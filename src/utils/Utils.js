@@ -58,6 +58,12 @@ module.exports = {
     return "en_US";
   },
 
+  buildEvseUserURL(user) {
+    let _evseBaseURL = this.buildEvseURL();
+    // Add : https://localhost:8080/#/pages/chargers/charger/REE001
+    return _evseBaseURL + "/#/pages/users/user/" + user.getID();
+  },
+
   buildEvseChargingStationURL(chargingStation, connectorId) {
     let _evseBaseURL = this.buildEvseURL();
     // Add : https://localhost:8080/#/pages/chargers/charger/REE001

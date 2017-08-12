@@ -8,6 +8,8 @@ const registeredUserTemplate = require('./template/registered-user.js');
 const notifyEndOfChargeTemplate = require('./template/notify-end-of-charge.js');
 const notifyBeforeEndOfChargeTemplate = require('./template/notify-before-end-of-charge.js');
 const chargingStationStatusError = require('./template/charging-station-status-error.js');
+const unknownUserBadged = require('./template/unknown-user-badged');
+
 require('source-map-support').install();
 
 // Email
@@ -104,6 +106,14 @@ class EMailNotification {
     });
   }
 
+  sendUnknownUserBadged(data, locale) {
+    // Create a promise
+    return new Promise((fulfill, reject) => {
+      // Send it
+      this._sendEmail('unknown-user-badged', data, locale, fulfill, reject);
+    });
+  }
+
   _sendEmail(templateName, data, locale, fulfill, reject) {
     // Create email
     let emailTemplate;
@@ -129,6 +139,9 @@ class EMailNotification {
       case 'charging-station-status-error':
         emailTemplate = chargingStationStatusError;
         break;
+      case 'unknown-user-badged':
+        emailTemplate = unknownUserBadged;
+        break;
     }
     // Template found?
     if (!emailTemplate) {
@@ -145,6 +158,8 @@ class EMailNotification {
     let subject = ejs.render(emailTemplate.subject, data);
     // Render the HTML
     let html = ejs.render(emailTemplate.html, data);
+    // console.log(subject);
+    // console.log(html);
     // Send the email
     this.sendEmail({
       to: (data.user?data.user.email:null),

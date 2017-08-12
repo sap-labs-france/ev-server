@@ -1,4 +1,4 @@
-module.exports.subject = "EVSE - <%= chargingStationId %> - Connector <%= connectorId %> - Status in error";
+module.exports.subject = "EVSE - <%= chargingStationId %> - Connector <%= connectorId %> - <%= error %>";
 module.exports.html = `
   <html>
     <body>
@@ -15,7 +15,7 @@ module.exports.html = `
 `;
 
 module.exports.fr_FR = {};
-module.exports.fr_FR.subject = "EVSE - <%= chargingStationId %> - Connecteur <%= connectorId %> - Statut en erreur";
+module.exports.fr_FR.subject = "EVSE - <%= chargingStationId %> - Connecteur <%= connectorId %> - <%= error %>";
 module.exports.fr_FR.html = `
   <html>
     <body>

@@ -4,7 +4,7 @@ const Users = require('./Users');
 require('source-map-support').install();
 
 module.exports = {
-  updateChargingStationObject(src, dest) {
+  updateChargingStation(src, dest) {
     // Set it
     dest.id = src.id;
     dest.chargeBoxIdentity = src.id;
