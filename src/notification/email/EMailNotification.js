@@ -7,6 +7,7 @@ const resetPasswordTemplate = require('./template/reset-password.js');
 const registeredUserTemplate = require('./template/registered-user.js');
 const notifyEndOfChargeTemplate = require('./template/notify-end-of-charge.js');
 const notifyBeforeEndOfChargeTemplate = require('./template/notify-before-end-of-charge.js');
+const chargingStationStatusError = require('./template/charging-station-status-error.js');
 require('source-map-support').install();
 
 // Email
@@ -95,6 +96,14 @@ class EMailNotification {
     });
   }
 
+  sendChargingStationStatusError(data, locale) {
+    // Create a promise
+    return new Promise((fulfill, reject) => {
+      // Send it
+      this._sendEmail('charging-station-status-error', data, locale, fulfill, reject);
+    });
+  }
+
   _sendEmail(templateName, data, locale, fulfill, reject) {
     // Create email
     let emailTemplate;
@@ -116,6 +125,10 @@ class EMailNotification {
       case 'notify-end-of-charge':
         emailTemplate = notifyEndOfChargeTemplate;
         break;
+      // Charging Station Status Error
+      case 'charging-station-status-error':
+        emailTemplate = chargingStationStatusError;
+        break;
     }
     // Template found?
     if (!emailTemplate) {
@@ -134,7 +147,7 @@ class EMailNotification {
     let html = ejs.render(emailTemplate.html, data);
     // Send the email
     this.sendEmail({
-      to: data.user.email,
+      to: (data.user?data.user.email:null),
       subject: subject,
       text: html,
       html: html

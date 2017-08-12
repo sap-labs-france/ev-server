@@ -10,6 +10,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const locale = require('locale');
+const NotificationHandler = require('../../notification/NotificationHandler');
 require('source-map-support').install();
 
 let _centralSystemConfig;
@@ -202,6 +203,24 @@ class CentralSystemServer {
     return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
       // Found?
       if (chargingStation) {
+        // Check if error
+        if (args.status === "Faulted" || args.status === "Unavailable") {
+          // Log
+          Logging.logError({
+            userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStatusNotification",
+            action: "StatusNotification", message: `The Charging Station ${headers.chargeBoxIdentity} has reported an error on connector ${args.connectorId}: ${args.status} - ${args.errorCode}` });
+          // Send Notification 
+          NotificationHandler.sendChargingStationStatusError(
+            Utils.generateID(),
+            chargingStation.getModel(),
+            {
+              "chargingStationId": chargingStation.getChargeBoxIdentity(),
+              "connectorId": args.connectorId,
+              "error": `${args.status} - ${args.errorCode}`,
+              "evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(chargingStation, args.connectorId)
+            }
+          );
+        }
         // Save
         return chargingStation.saveStatusNotification(args);
       }

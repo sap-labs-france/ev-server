@@ -9,6 +9,7 @@ _email = new EMailNotification();
 
 const CHANNEL_EMAIL = "email";
 const SOURCE_BEFORE_END_OF_CHARGE = "NotifyBeforeEndOfCharge";
+const SOURCE_CHARGING_STATION_STATUS_ERROR = "NotifyChargingStationStatusError";
 const SOURCE_END_OF_CHARGE = "NotifyEndOfCharge";
 const SOURCE_RESET_PASSWORD = "NotifyResetPassword";
 const SOURCE_NEW_REGISTERED_USER = "NotifyNewRegisteredUser";
@@ -21,17 +22,26 @@ class NotificationHandler {
       channel: channel,
       sourceId: sourceId,
       sourceDescr: sourceDescr,
-      userID: user.id,
+      userID: (user?user.id:null),
       chargeBoxID: (chargingStation?chargingStation.id:null)
     }).then(() => {
       // Success
-      Logging.logInfo({
-        userFullName: "System", source: "Central Server", module: "Notification", method: "saveNotification",
-        action: sourceDescr, message: `User ${Utils.buildUserFullName(user)} has been notified successfully`,
-        detailedMessages: details});
-    }).catch((err) => {
+      if (user) {
+        // User
+        Logging.logInfo({
+          userFullName: "System", source: "Central Server", module: "Notification", method: "saveNotification",
+          action: sourceDescr, message: `User ${Utils.buildUserFullName(user)} has been notified successfully`,
+          detailedMessages: details});
+      } else {
+        // Admin
+        Logging.logInfo({
+          userFullName: "System", source: "Central Server", module: "Notification", method: "saveNotification",
+          action: sourceDescr, message: `Admin users have been notified successfully`,
+          detailedMessages: details});
+      }
+    }).catch((error) => {
       // Log error
-      Logging.logUnexpectedErrorMessage("SaveNotification", "NotificationHandler", "saveNotification", err);
+      Logging.logUnexpectedErrorMessage("SaveNotification", "NotificationHandler", "saveNotification", error);
     });
   }
 
@@ -44,9 +54,9 @@ class NotificationHandler {
       });
       // return
       return notificationsFiltered.length > 0;
-    }).catch((err) => {
+    }).catch((error) => {
       // Log error
-      Logging.logUnexpectedErrorMessage("HasNotification", "NotificationHandler", "hasNotifiedSource", err);
+      Logging.logUnexpectedErrorMessage("HasNotification", "NotificationHandler", "hasNotifiedSource", error);
     });
   }
 
@@ -63,13 +73,13 @@ class NotificationHandler {
             NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_BEFORE_END_OF_CHARGE, user, chargingStationId, message);
           }).catch(error => {
             // Log error
-            Logging.logUnexpectedErrorMessage(SOURCE_BEFORE_END_OF_CHARGE, "NotificationHandler", "sendBeforeEndOfCharge", err);
+            Logging.logUnexpectedErrorMessage(SOURCE_BEFORE_END_OF_CHARGE, "NotificationHandler", "sendBeforeEndOfCharge", error);
           });
         }
       }
-    }).catch((err) => {
+    }).catch((error) => {
       // Log error
-      Logging.logUnexpectedErrorMessage(SOURCE_BEFORE_END_OF_CHARGE, "NotificationHandler", "sendBeforeEndOfCharge", err);
+      Logging.logUnexpectedErrorMessage(SOURCE_BEFORE_END_OF_CHARGE, "NotificationHandler", "sendBeforeEndOfCharge", error);
     });
   }
 
@@ -86,13 +96,13 @@ class NotificationHandler {
             NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_END_OF_CHARGE, user, chargingStation, message);
           }).catch(error => {
             // Log error
-            Logging.logUnexpectedErrorMessage(SOURCE_END_OF_CHARGE, "NotificationHandler", "sendEndOfCharge", err);
+            Logging.logUnexpectedErrorMessage(SOURCE_END_OF_CHARGE, "NotificationHandler", "sendEndOfCharge", error);
           });
         }
       }
     }).catch((err) => {
       // Log error
-      Logging.logUnexpectedErrorMessage(SOURCE_END_OF_CHARGE, "NotificationHandler", "sendEndOfCharge", err);
+      Logging.logUnexpectedErrorMessage(SOURCE_END_OF_CHARGE, "NotificationHandler", "sendEndOfCharge", error);
     });
   }
 
@@ -105,12 +115,12 @@ class NotificationHandler {
         NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_RESET_PASSWORD, user, null, message);
       }).catch(error => {
         // Log error
-        Logging.logUnexpectedErrorMessage(SOURCE_RESET_PASSWORD, "NotificationHandler", "sendResetPassword", err);
+        Logging.logUnexpectedErrorMessage(SOURCE_RESET_PASSWORD, "NotificationHandler", "sendResetPassword", error);
       });
     }
   }
 
-  static sendNewRegisteredUser() {
+  static sendNewRegisteredUser(sourceId, user, sourceData, locale) {
     // Email enabled?
     if (_notificationConfig.Email.enabled) {
       // Send email
@@ -119,7 +129,21 @@ class NotificationHandler {
         NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_NEW_REGISTERED_USER, user, null, message);
       }).catch(error => {
         // Log error
-        Logging.logUnexpectedErrorMessage(SOURCE_NEW_REGISTERED_USER, "NotificationHandler", "sendNewRegisteredUser", err);
+        Logging.logUnexpectedErrorMessage(SOURCE_NEW_REGISTERED_USER, "NotificationHandler", "sendNewRegisteredUser", error);
+      });
+    }
+  }
+
+  static sendChargingStationStatusError(sourceId, chargingStation, sourceData) {
+    // Email enabled?
+    if (_notificationConfig.Email.enabled) {
+      // Send email
+      _email.sendChargingStationStatusError(sourceData, Utils.getDefaultLocale()).then(message => {
+        // Save notif
+        NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_CHARGING_STATION_STATUS_ERROR, null, chargingStation, message);
+      }).catch(error => {
+        // Log error
+        Logging.logUnexpectedErrorMessage(SOURCE_CHARGING_STATION_STATUS_ERROR, "NotificationHandler", "sendChargingStationStatusError", error);
       });
     }
   }
