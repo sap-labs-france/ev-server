@@ -175,9 +175,11 @@ class MongoDBStorage extends Storage {
       filter.timestamp = {};
       filter.timestamp.$lte = new Date(deleteUpToDate);
     }
-    return MDBLog.remove(filter).then(() => {
+    return MDBLog.remove(filter).then((result) => {
       // Notify Change
       _centralRestServer.notifyLoggingDeleted();
+      // Return the result
+      return result.result;
     });
   }
 
