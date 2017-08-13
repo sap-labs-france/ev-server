@@ -55,6 +55,10 @@ module.exports = {
             global.storage.getUserByEmailPassword(req.body.email, Users.hashPassword(req.body.password)).then(function(user) {
               // Found?
               if (user) {
+                // Log it
+                Logging.logInfo({
+                  user: user.getModel(), source: "Central Server", module: "CentralServerAuthentication", method: "authService", action: action,
+                  message: `User ${Utils.buildUserFullName(user.getModel())} logged in successfully`});
                 // Get authorisation
                 let userRole = Authorization.getAuthorizationFromRoleID(user.getRole());
                 // Parse the auth and replace values
@@ -87,6 +91,10 @@ module.exports = {
                 // Return it
                 res.json({ token: token });
               } else {
+                // Log it
+                Logging.logError({
+                  userFullName: "Unknown", source: "Central Server", module: "CentralServerAuthentication", method: "authService", action: action,
+                  message: `User with email '${req.body.email}' tried to log in without success`});
                 // User not found
                 res.sendStatus(401);
               }
