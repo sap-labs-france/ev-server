@@ -47,7 +47,6 @@ class SoapChargingStationClient extends ChargingStationClient {
 
       // Client' options
       var options = {};
-      console.log(chargingStationWdsl);
       // Create client
       soap.createClient(chargingStationWdsl, options, (err, client) => {
         if (err) {
