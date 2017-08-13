@@ -361,7 +361,6 @@ class ChargingStation {
   saveStartTransaction(transaction) {
     // Set the charger ID
     transaction.chargeBoxID = this.getChargeBoxIdentity();
-
     // Check if already exists
     if (!transaction.id) {
       // No: Check user and save
@@ -420,6 +419,24 @@ class ChargingStation {
         } else {
           // Save it
           request.user = user;
+          // Check function
+          if (saveFunction.name === "saveStartTransaction") {
+            // Notify user
+            NotificationHandler.sendTransactionStarted(
+              request.transactionId,
+              user.getModel(),
+              this.getModel(),
+              {
+                "user": user.getModel(),
+                "chargingStationId": this.getChargeBoxIdentity(),
+                "connectorId": request.connectorId,
+                "evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(this, request.connectorId)
+              },
+              user.getLocale()
+            );
+          }
+
+          // Execute the function
           return saveFunction(request);
         }
       } else {

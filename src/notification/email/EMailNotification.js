@@ -8,6 +8,7 @@ const registeredUserTemplate = require('./template/registered-user.js');
 const notifyEndOfChargeTemplate = require('./template/notify-end-of-charge.js');
 const notifyBeforeEndOfChargeTemplate = require('./template/notify-before-end-of-charge.js');
 const chargingStationStatusError = require('./template/charging-station-status-error.js');
+const transactionStarted = require('./template/transaction-started');
 const unknownUserBadged = require('./template/unknown-user-badged');
 
 require('source-map-support').install();
@@ -114,6 +115,14 @@ class EMailNotification {
     });
   }
 
+  sendTransactionStarted(data, locale) {
+    // Create a promise
+    return new Promise((fulfill, reject) => {
+      // Send it
+      this._sendEmail('transaction-started', data, locale, fulfill, reject);
+    });
+  }
+
   _sendEmail(templateName, data, locale, fulfill, reject) {
     // Create email
     let emailTemplate;
@@ -141,6 +150,9 @@ class EMailNotification {
         break;
       case 'unknown-user-badged':
         emailTemplate = unknownUserBadged;
+        break;
+      case 'transaction-started':
+        emailTemplate = transactionStarted;
         break;
     }
     // Template found?
