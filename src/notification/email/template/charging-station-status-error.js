@@ -6,7 +6,7 @@ module.exports.html = `
       </br>
       The charging station <%= chargingStationId %> has reported a status error on the connector <%= connectorId %>: <b><%= error %></b></br>
       </br>
-      You can check the status here: <a href="<%= evseDashboardChargingStationURL %>"><%= chargingStationId %> - Connector <%= connectorId %></a></br>
+      You can check its status here: <a href="<%= evseDashboardChargingStationURL %>"><%= chargingStationId %> - Connector <%= connectorId %></a></br>
       </br>
       Best Regards,</br>
       EVSE Admin.
