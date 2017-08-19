@@ -5,6 +5,8 @@ const Logging = require('../../utils/Logging');
 const Users = require('../../utils/Users');
 const User = require('../../model/User');
 const moment = require('moment');
+const SecurityRestObjectFiltering = require('./SecurityRestObjectFiltering');
+
 require('source-map-support').install();
 
 module.exports = {
@@ -274,6 +276,8 @@ module.exports = {
                 chargingStationsJSon.push(chargingStation.getModel());
               }
             });
+            // Filter
+            chargingStationsJSon = SecurityRestObjectFiltering.filterChargingStations(chargingStationsJSon, req.user);
             // Return
             res.json(chargingStationsJSon);
             next();
@@ -300,6 +304,9 @@ module.exports = {
                   CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, req, res, next);
                 return;
               }
+              // Filter
+              SecurityRestObjectFiltering.filterChargingStation(chargingStation.getModel(), req.user);
+              // Return               
               res.json(chargingStation.getModel());
             } else {
               res.json({});

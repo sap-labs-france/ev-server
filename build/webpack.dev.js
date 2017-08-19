@@ -1,5 +1,7 @@
 const config = {
-  devtool: "source-map"
+  devtool: "source-map",
+  plugins: [
+  ]
 };
 
 module.exports = config;
