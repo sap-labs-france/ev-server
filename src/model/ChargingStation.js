@@ -474,15 +474,26 @@ class ChargingStation {
   saveStopTransaction(stopTransaction) {
     // Set the charger ID
     stopTransaction.chargeBoxID = this.getChargeBoxIdentity();
-
-    // User Provided?
-    if (stopTransaction.idTag) {
-      // Save it with the user
-      return this.checkIfUserIsAuthorized(stopTransaction, global.storage.saveStopTransaction);
-    } else {
-      // Save it without the User
-      return global.storage.saveStopTransaction(stopTransaction);
-    }
+    // Get the tranasction first (to get the connector id)
+    return global.storage.getTransaction(stopTransaction.transactionId).then((transaction) => {
+      if (transaction) {
+        // Compute consumption (optimization)
+        return this.getConsumptionsFromTransaction(transaction.connectorId, stopTransaction.transactionId, true);
+      } else {
+        throw new Error(`The Transaction ID '${stopTransaction.transactionId}' does not exist`);
+      }
+    }).then((consumption) => {
+      // Set the total consumption (optimization)
+      stopTransaction.totalConsumption = consumption.totalConsumption;
+      // User Provided?
+      if (stopTransaction.idTag) {
+        // Save it with the user
+        return this.checkIfUserIsAuthorized(stopTransaction, global.storage.saveStopTransaction);
+      } else {
+        // Save it without the User
+        return global.storage.saveStopTransaction(stopTransaction);
+      }
+    });
   }
 
   // Restart the charger
@@ -590,7 +601,11 @@ class ChargingStation {
 
   getTransactions(connectorId, startDateTime, endDateTime) {
     // Get the consumption
-    return global.storage.getTransactionsFromChargingStation(this.getChargeBoxIdentity(), connectorId, startDateTime, endDateTime);
+    return global.storage.getTransactions(
+      {"chargeBoxIdentity" : this.getChargeBoxIdentity(),
+       "connectorId": connectorId,
+       "startDateTime": startDateTime,
+       "endDateTime" : endDateTime});
   }
 
   getLastTransaction(connectorId) {
@@ -611,14 +626,14 @@ class ChargingStation {
         // Get the last 5 meter values
         return global.storage.getLastMeterValuesFromTransaction(
             this.getChargeBoxIdentity(), connectorId,
-            transaction.start.transactionId, numberOfMeters+1).then((meterValues) => {
+            transaction.transactionId, numberOfMeters+1).then((meterValues) => {
           // Build the header
           var chargingStationConsumption = {};
           chargingStationConsumption.values = [];
           chargingStationConsumption.totalConsumption = 0;
           chargingStationConsumption.chargeBoxID = this.getChargeBoxIdentity();
           chargingStationConsumption.connectorId = connectorId;
-          chargingStationConsumption.transactionId = transaction.start.transactionId;
+          chargingStationConsumption.transactionId = transaction.transactionId;
 
           // Compute consumption
           var consumptions = this.buildConsumption(chargingStationConsumption, meterValues, null, false);
@@ -653,21 +668,21 @@ class ChargingStation {
 
   getConsumptionsFromTransaction(connectorId, transactionId, optimizeNbrOfValues) {
     // Read the transaction
-    // Get the last tranasction first
+    // Get the last transaction first
     return global.storage.getTransaction(transactionId).then((transaction) => {
       // Found?
       if (transaction) {
         // Get the last 5 meter values
         return global.storage.getMeterValuesFromTransaction(
             this.getChargeBoxIdentity(), connectorId,
-            transaction.start.transactionId).then((meterValues) => {
+            transaction.transactionId).then((meterValues) => {
           // Build the header
           var chargingStationConsumption = {};
           chargingStationConsumption.values = [];
           chargingStationConsumption.totalConsumption = 0;
           chargingStationConsumption.chargeBoxID = this.getChargeBoxIdentity();
           chargingStationConsumption.connectorId = connectorId;
-          chargingStationConsumption.transactionId = transaction.start.transactionId;
+          chargingStationConsumption.transactionId = transaction.transactionId;
 
           // Compute consumption
           return this.buildConsumption(chargingStationConsumption, meterValues, transaction, optimizeNbrOfValues);
@@ -714,6 +729,15 @@ class ChargingStation {
     let totalNbrOfMetrics = 0;
     let lastMeterValue;
     let firstMeterValueSet = false;
+    if (meterValues && meterValues.length > 0 && transaction && transaction.stop) {
+      // Set last meter value
+      let lastMeterValueFromTransaction = {};
+      Database.updateMeterValue(meterValues[meterValues.length-1], lastMeterValueFromTransaction);
+      lastMeterValueFromTransaction.timestamp = transaction.stop.timestamp;
+      lastMeterValueFromTransaction.value = transaction.stop.meterStop;
+      // Append
+      meterValues.push(lastMeterValueFromTransaction);
+    }
     // Build the model
     meterValues.forEach((meterValue, meterValueIndex) => {
       // Get the stored values
@@ -730,8 +754,8 @@ class ChargingStation {
           if (transaction) {
             // Yes: Set
             lastMeterValue = {};
-            lastMeterValue.value = transaction.start.meterStart;
-            lastMeterValue.timestamp = new Date(transaction.start.timestamp);
+            lastMeterValue.value = transaction.meterStart;
+            lastMeterValue.timestamp = new Date(transaction.timestamp);
           } else {
             // No: Keep the first value
             lastMeterValue = meterValue;

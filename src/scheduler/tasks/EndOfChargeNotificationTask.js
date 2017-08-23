@@ -25,7 +25,7 @@ class EndOfChargeNotificationTask {
               chargingStation.getLastTransaction(connector.connectorId).then((lastTransaction) => {
                 // Transaction In Progress?
                 if (lastTransaction && !lastTransaction.stop && // Transaction must not be stopped
-                  moment(lastTransaction.start.timestamp).add( // Check after 5 mins (start transaction date + 5 mins)
+                  moment(lastTransaction.timestamp).add( // Check after 5 mins (start transaction date + 5 mins)
                     _configChargingStation.checkEndOfChargeNotificationAfterMin, "minutes").isBefore(moment())) {
                   // --------------------------------------------------------------------
                   // Notification BEFORE end of charge ----------------------------------
@@ -34,16 +34,16 @@ class EndOfChargeNotificationTask {
                       consumption <= _configChargingStation.notifBeforeEndOfChargePercent) {  // Under a certain percentage
                     // Send Notification
                     NotificationHandler.sendBeforeEndOfCharge(
-                      lastTransaction.start.transactionId + "-BEOF",
-                      lastTransaction.start.userID,
+                      lastTransaction.transactionId + "-BEOF",
+                      lastTransaction.userID,
                       chargingStation.getModel(),
                       {
-                        "user": lastTransaction.start.userID,
+                        "user": lastTransaction.userID,
                         "chargingStationId": chargingStation.getChargeBoxIdentity(),
                         "connectorId": connector.connectorId,
-                        "evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(chargingStation, connector.connectorId, lastTransaction.start.transactionId)
+                        "evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(chargingStation, connector.connectorId, lastTransaction.transactionId)
                       },
-                      lastTransaction.start.userID.locale);
+                      lastTransaction.userID.locale);
                   }
 
                   // --------------------------------------------------------------------
@@ -52,22 +52,22 @@ class EndOfChargeNotificationTask {
                   if (_configChargingStation.notifEndOfChargeEnabled && consumption === 0) {
                     // Send Notification
                     NotificationHandler.sendEndOfCharge(
-                      lastTransaction.start.transactionId + "-EOF",
-                      lastTransaction.start.userID,
+                      lastTransaction.transactionId + "-EOF",
+                      lastTransaction.userID,
                       chargingStation.getModel(),
                       {
-                        "user": lastTransaction.start.userID,
+                        "user": lastTransaction.userID,
                         "chargingStationId": chargingStation.getChargeBoxIdentity(),
                         "connectorId": connector.connectorId,
-                        "evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(chargingStation, connector.connectorId, lastTransaction.start.transactionId),
+                        "evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(chargingStation, connector.connectorId, lastTransaction.transactionId),
                         "notifStopTransactionAndUnlockConnector": _configChargingStation.notifStopTransactionAndUnlockConnector
                       },
-                      lastTransaction.start.userID.locale);
+                      lastTransaction.userID.locale);
 
                     // Stop Transaction and Unlock Connector?
                     if (_configChargingStation.notifStopTransactionAndUnlockConnector) {
                       // Yes: Stop the transaction
-                      chargingStation.requestStopTransaction(lastTransaction.start.transactionId).then((result) => {
+                      chargingStation.requestStopTransaction(lastTransaction.transactionId).then((result) => {
                         // Ok?
                         if (result && result.status === "Accepted") {
                           // Unlock the connector

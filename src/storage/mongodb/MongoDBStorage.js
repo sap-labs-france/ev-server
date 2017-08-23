@@ -10,9 +10,10 @@ const MDBAuthorize = require('./model/MDBAuthorize');
 const MDBBootNotification = require('./model/MDBBootNotification');
 const MDBStatusNotification = require('./model/MDBStatusNotification');
 const MDBMeterValue = require('./model/MDBMeterValue');
+const MDBTransaction = require('./model/MDBTransaction');
 const MDBStartTransaction = require('./model/MDBStartTransaction');
-const MDBNotification = require('./model/MDBNotification');
 const MDBStopTransaction = require('./model/MDBStopTransaction');
+const MDBNotification = require('./model/MDBNotification');
 const MDBDataTransfer = require('./model/MDBDataTransfer');
 const User = require('../../model/User');
 const ChargingStation = require('../../model/ChargingStation');
@@ -485,15 +486,13 @@ class MongoDBStorage extends Storage {
     // Already created?
     if (!startTransaction.id) {
       // No: Set a new ID
-      startTransaction.id = crypto.createHash('md5')
-        .update(`${startTransaction.chargeBoxID}~${startTransaction.connectorId}~${startTransaction.timestamp}`)
-        .digest("hex");
+      startTransaction.id = startTransaction.transactionId;
       startTransaction.userID = startTransaction.user.getID();
       startTransaction.tagID = startTransaction.idTag;
     }
 
     // Get
-    return MDBStartTransaction.findOneAndUpdate({"_id": startTransaction.id}, startTransaction, {
+    return MDBTransaction.findOneAndUpdate({"_id": startTransaction.id}, startTransaction, {
         new: true,
         upsert: true
       }).then((startTransactionMDB) => {
@@ -503,23 +502,20 @@ class MongoDBStorage extends Storage {
   }
 
   saveStopTransaction(stopTransaction) {
-    // Create model
-    var stopTransactionMDB = new MDBStopTransaction(stopTransaction);
-    // Set the ID
-    stopTransactionMDB._id = crypto.createHash('md5')
-      .update(`${stopTransaction.chargeBoxID}~${stopTransaction.connectorId}~${stopTransaction.timestamp}`)
-      .digest("hex");
-    // Set the ID
-    if(stopTransaction.idTag) {
-      stopTransactionMDB.tagID = stopTransaction.idTag;
-    }
-    if(stopTransaction.idTag) {
-      stopTransactionMDB.userID = stopTransaction.user.getID();
-    }
-    // Create new
-    return stopTransactionMDB.save().then(() => {
-      // Notify
-      _centralRestServer.notifyChargingStationUpdated({"id" : stopTransaction.chargeBoxID});
+    // Get the Start Transaction
+    return MDBTransaction.findById({"_id": stopTransaction.transactionId}).then((transactionMDB) => {
+      // Create model
+      transactionMDB.stop = stopTransaction;
+      // Set the User data
+      if(stopTransaction.idTag) {
+        transactionMDB.stop.tagID = stopTransaction.idTag;
+        transactionMDB.stop.userID = stopTransaction.user.getID();
+      }
+      // Create new
+      return transactionMDB.save().then(() => {
+        // Notify
+        _centralRestServer.notifyChargingStationUpdated({"id" : stopTransaction.chargeBoxID});
+      });
     });
   }
 
@@ -541,116 +537,67 @@ class MongoDBStorage extends Storage {
     }));
   }
 
-  getTransaction(transactionId) {
-    // Get the Start Transaction
-    return MDBStartTransaction.findOne({"transactionId": transactionId}).populate("userID").exec().then((startTransactionMDB) => {
-      // Set
-      var transaction = {};
-      if (startTransactionMDB) {
-        // Set data
-        transaction.start = {};
-        Database.updateStartTransaction(startTransactionMDB, transaction.start);
-      }
-      // Ok
-      return transaction;
-      // Get the Stop Transaction
-    }).then((transaction) => {
-      // Get stop transaction
-      return MDBStopTransaction.findOne({"transactionId" : transaction.start.transactionId}).populate("userID").exec().then((stopTransactionMDB) => {
-        // Found?
-        if (stopTransactionMDB) {
-          // Set
-          transaction.stop = {};
-          Database.updateStopTransaction(stopTransactionMDB, transaction.stop);
-        }
-        // Ok
-        return transaction;
-      });
-    });
-  }
-
-  getTransactionsFromUser(userId, onlyActive) {
+  getTransactions(filter, onlyActive=false) {
     // Build filter
     var $match = {};
-    if (userId) {
-      $match.userID = new ObjectId(userId);
+    // User
+    if (filter.userId) {
+      $match.userID = new ObjectId(filter.userId);
+    }
+    // Charge Box
+    if (filter.chargeBoxIdentity) {
+      $match.chargeBoxID = filter.chargeBoxIdentity;
+    }
+    // Connector
+    if (filter.connectorId) {
+      $match.connectorId = parseInt(filter.connectorId);
+    }
+    // Date provided?
+    if (filter.startDateTime || filter.endDateTime) {
+      $match.timestamp = {};
+    }
+    // Start date
+    if (filter.startDateTime) {
+      $match.timestamp.$gte = new Date(filter.startDateTime);
+    }
+    // End date
+    if (filter.endDateTime) {
+      $match.timestamp.$lte = new Date(filter.endDateTime);
     }
     // Active transactions?
     if (onlyActive) {
-      // Yes: Get only active ones
-      return MDBStartTransaction.aggregate(
-        { $match },
-      	{ $lookup: { from: "stoptransactions", localField: "transactionId", foreignField: "transactionId", as: "stopTransaction"} },
-      	{ $match: { "stopTransaction": { $eq: [] } }},
-        { $unwind : { path:"$stopTransaction", preserveNullAndEmptyArrays: true }}
-      ).then(transactionsMDB => {
-        // Set
-        var transactions = [];
-        // Create
-        transactionsMDB.forEach((transactionMDB) => {
-          // Set
-          var transaction = {};
-          transaction.start = {};
-          Database.updateStartTransaction(transactionMDB, transaction.start);
-          // Add
-          transactions.push(transaction);
-        });
-        return transactions;
-      });
-    } else {
-      // return them all
-      return this.getTransactions($match);
+      // Add a filter
+      $match.stop = null;
     }
-  }
-
-  getTransactionsFromChargingStation(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
-    // Build filter
-    var $match = {};
-    if (chargeBoxIdentity) {
-      $match.chargeBoxID = chargeBoxIdentity;
-    }
-    if (connectorId) {
-      $match.connectorId = parseInt(connectorId);
-    }
-    if (startDateTime || endDateTime) {
-      $match.timestamp = {};
-    }
-    if (startDateTime) {
-      $match.timestamp.$gte = new Date(startDateTime);
-    }
-    if (endDateTime) {
-      $match.timestamp.$lte = new Date(endDateTime);
-    }
-    // Get the transactions
-    return this.getTransactions($match);
-  }
-
-  getTransactions($match) {
-    // Yes
-    return MDBStartTransaction.aggregate(
-      { $match },
-      { $sort : { "timestamp": -1 } },
-      { $lookup: { from: "stoptransactions", localField: "transactionId", foreignField: "transactionId", as: "stopTransaction"} },
-      { $lookup: { from: "users", localField: "userID", foreignField: "_id", as: "userID"} },
-      { $unwind : { path:"$stopTransaction", preserveNullAndEmptyArrays: true } },
-      { $unwind : { path:"$userID", preserveNullAndEmptyArrays: true } }
-    ).then(transactionsMDB => {
+    // Yes: Get only active ones
+    return MDBTransaction.find($match).populate("userID").populate("chargeBoxID").sort({timestamp:-1}).exec().then(transactionsMDB => {
       // Set
       var transactions = [];
       // Create
       transactionsMDB.forEach((transactionMDB) => {
         // Set
         var transaction = {};
-        transaction.start = {};
-        Database.updateStartTransaction(transactionMDB, transaction.start);
-        if (transactionMDB.stopTransaction) {
-          transaction.stop = {};
-          Database.updateStopTransaction(transactionMDB.stopTransaction, transaction.stop);
-        }
+        Database.updateTransaction(transactionMDB, transaction);
         // Add
         transactions.push(transaction);
       });
       return transactions;
+    });
+  }
+
+  getTransaction(transactionId) {
+    // Get the Start Transaction
+    return MDBTransaction.findById({"_id": transactionId}).populate("userID").populate("chargeBoxID").exec().then((transactionMDB) => {
+      // Set
+      var transaction = null;
+      // Found?
+      if (transactionMDB) {
+        // Set data
+        transaction = {};
+        Database.updateTransaction(transactionMDB, transaction);
+      }
+      // Ok
+      return transaction;
     });
   }
 
@@ -665,35 +612,16 @@ class MongoDBStorage extends Storage {
     }
 
     // Get the Start Transaction
-    return MDBStartTransaction.findOne(filter).populate("userID").sort( {timestamp: -1} ).exec().then((startTransactionMDB) => {
+    return MDBTransaction.findOne(filter).populate("userID").sort({timestamp:-1}).exec().then((transactionMDB) => {
       var transaction = null;
-      if (startTransactionMDB) {
+      // Found?
+      if (transactionMDB) {
         // Set
         transaction = {};
-        transaction.start = {};
-        Database.updateStartTransaction(startTransactionMDB, transaction.start);
+        Database.updateTransaction(transactionMDB, transaction);
       }
       // Ok
       return transaction;
-      // Get the Stop Transaction
-    }).then((transaction) => {
-      // Found?
-      if (transaction) {
-        // Get stop transaction
-        return MDBStopTransaction.findOne({"transactionId" : transaction.start.transactionId}).then((stopTransactionMDB) => {
-          // Found?
-          if (stopTransactionMDB) {
-            // Set
-            transaction.stop = {};
-            Database.updateStopTransaction(stopTransactionMDB, transaction.stop);
-          }
-          // Ok
-          return transaction;
-        });
-      } else {
-        // Ok
-        return transaction;
-      }
     });
   }
 

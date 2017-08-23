@@ -6,6 +6,7 @@ module.exports = mongoose.model('StopTransaction',{
   tagID: {type: String, ref: 'Tag'},
   userID: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
   transactionId: Number,
+  totalConsumption: Number,
   timestamp: Date,
   meterStop: Number,
   reason : String,

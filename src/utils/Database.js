@@ -6,7 +6,7 @@ require('source-map-support').install();
 module.exports = {
   updateChargingStation(src, dest) {
     // Set it
-    dest.id = src.id;
+    dest.id = src._id;
     dest.chargeBoxIdentity = src.id;
     dest.chargePointSerialNumber = src.chargePointSerialNumber;
     dest.chargePointModel = src.chargePointModel;
@@ -29,12 +29,14 @@ module.exports = {
 
   updateConfiguration(src, dest) {
     // Set it
+    dest.id = src._id;
     dest.timestamp = src.timestamp;
     dest.configuration = src.configuration;
   },
 
   updateStatusNotification(src, dest) {
     // Set it
+    dest.id = src._id;
     dest.connectorId = src.connectorId;
     dest.timestamp = src.timestamp;
     dest.status = src.status;
@@ -46,6 +48,7 @@ module.exports = {
 
   updateNotification(src, dest) {
     // Set it
+    dest.id = src._id;
     dest.timestamp = src.timestamp;
     dest.channel = src.channel;
     dest.sourceId = src.sourceId;
@@ -56,6 +59,7 @@ module.exports = {
 
   updateMeterValue(src, dest) {
     // Set it
+    dest.id = src._id;
     dest.connectorId = src.connectorId;
     dest.transactionId = src.transactionId;
     dest.timestamp = src.timestamp;
@@ -65,7 +69,7 @@ module.exports = {
 
   updateUser(src, dest) {
     // Set it
-    dest.id = src.id;
+    dest.id = src._id;
     dest.name = src.name;
     dest.firstName = src.firstName;
     dest.image = src.image;
@@ -105,7 +109,8 @@ module.exports = {
   },
 
   updateLoggingObject(src, dest) {
-    // Set it
+    // Set
+    dest.id = src._id;
     dest.level = src.level;
     dest.source = src.source;
     dest.module = src.module;
@@ -117,15 +122,25 @@ module.exports = {
     dest.detailedMessages = src.detailedMessages;
   },
 
-  updateStartTransaction(src, dest) {
-    // Set it
-    dest.id = src.id;
-    dest.chargeBoxID = src.chargeBoxID;
+  updateTransaction(src, dest) {
+    // Set ID
+    dest.id = src._id;
+    dest.transactionId = src._id;
     // Check User
-    if (src.userID && src.userID.name) {
+    if (src.chargeBoxID && src.chargeBoxID._id) {
+      // CB populated: Set only important fields
+      dest.chargeBoxID = {};
+      dest.chargeBoxID.id = src.chargeBoxID._id;
+      dest.chargeBoxID.chargeBoxIdentity = src.chargeBoxID._id;
+      dest.chargeBoxID.connectors = src.chargeBoxID.connectors;
+    } else {
+      dest.chargeBoxID = src.chargeBoxID;
+    }
+    // Check User
+    if (src.userID && src.userID._id) {
       // User populated: Set only important fields
       dest.userID = {};
-      dest.userID.id = src.userID.id;
+      dest.userID.id = src.userID._id;
       dest.userID.name = src.userID.name;
       dest.userID.firstName = src.userID.firstName;
       dest.userID.locale = src.userID.locale;
@@ -136,31 +151,33 @@ module.exports = {
     dest.connectorId = src.connectorId;
     dest.timestamp = src.timestamp;
     dest.tagID = src.tagID;
-    dest.transactionId = src.transactionId;
     dest.meterStart = src.meterStart;
+    // Stop?
+    if (src.stop) {
+      dest.stop = {};
+      // Check User
+      if (src.stop.userID && src.stop.userID._id) {
+        // User populated: Set only important fields
+        dest.stop.userID = {};
+        dest.stop.userID.id = src.stop.userID._id;
+        dest.stop.userID.name = src.stop.userID.name;
+        dest.stop.userID.firstName = src.stop.userID.firstName;
+        dest.stop.userID.locale = src.stop.userID.locale;
+        dest.stop.userID.email = src.stop.userID.email;
+      } else {
+        dest.stop.userID = src.stop.userID;
+      }
+      dest.stop.timestamp = src.stop.timestamp;
+      dest.stop.tagID = src.stop.tagID;
+      dest.stop.meterStop = src.stop.meterStop;
+      dest.stop.transactionData = src.stop.transactionData;
+      dest.stop.totalConsumption = src.stop.totalConsumption;
+    }
+  },
+
+  updateStartTransaction(src, dest) {
   },
 
   updateStopTransaction(src, dest) {
-    // Set it
-    dest.id = src.id;
-    dest.chargeBoxID = src.chargeBoxID;
-    // Check User
-    if (src.userID && src.userID.name) {
-      // User populated: Set only important fields
-      dest.userID = {};
-      dest.userID.id = src.userID.id;
-      dest.userID.name = src.userID.name;
-      dest.userID.firstName = src.userID.firstName;
-      dest.userID.locale = src.userID.locale;
-      dest.userID.email = src.userID.email;
-    } else {
-      dest.userID = src.userID;
-    }
-    dest.transactionId = src.transactionId;
-    dest.timestamp = src.timestamp;
-    dest.tagID = src.tagID;
-    dest.connectorId = src.connectorId;
-    dest.meterStop = src.meterStop;
-    dest.transactionData = src.transactionData;
   }
 };

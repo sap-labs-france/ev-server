@@ -118,11 +118,11 @@ module.exports = {
                 // Charging station not found
                 Logging.logActionErrorMessageAndSendResponse(action, `Charging Station with ID ${req.body.chargeBoxIdentity} does not exist`, req, res, next);
               }
-            }).then(function(result) {
+            }).then((result) => {
               // Return the result
               res.json(result);
               next();
-            }).catch(function(err) {
+            }).catch((err) => {
               // Log
               Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
             });
@@ -163,11 +163,11 @@ module.exports = {
                 // Charging station not found
                 Logging.logActionErrorMessageAndSendResponse(action, `Charging Station with ID ${req.body.chargeBoxIdentity} does not exist`, req, res, next);
               }
-            }).then(function(result) {
+            }).then((result) => {
               // Return the result
               res.json(result);
               next();
-            }).catch(function(err) {
+            }).catch((err) => {
               // Log
               Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
             });
@@ -185,7 +185,7 @@ module.exports = {
             // Check Mandatory fields
             if (Users.checkIfUserValid(req, res, next)) {
               // Check email
-              global.storage.getUserByEmail(req.body.email).then(function(user) {
+              global.storage.getUserByEmail(req.body.email).then((user) => {
                 if (user) {
                   Logging.logActionErrorMessageAndSendResponse(action, `The email ${req.body.tagIDs} already exists`, req, res, next);
                   return;
@@ -269,7 +269,7 @@ module.exports = {
           }
           global.storage.getChargingStations(req.query.Search, 100).then((chargingStations) => {
             var chargingStationsJSon = [];
-            chargingStations.forEach(function(chargingStation) {
+            chargingStations.forEach((chargingStation) => {
               // Check auth
               if (CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
                 // Set the model
@@ -306,7 +306,7 @@ module.exports = {
               }
               // Filter
               SecurityRestObjectFiltering.filterChargingStation(chargingStation.getModel(), req.user);
-              // Return               
+              // Return
               res.json(chargingStation.getModel());
             } else {
               res.json({});
@@ -327,9 +327,9 @@ module.exports = {
               CentralRestServerAuthorization.ENTITY_USERS, CentralRestServerAuthorization.ACTION_LIST, req, res, next);
             return;
           }
-          global.storage.getUsers(req.query.Search, 100).then(function(users) {
+          global.storage.getUsers(req.query.Search, 100).then((users) => {
             var usersJSon = [];
-            users.forEach(function(user) {
+            users.forEach((user) => {
               // Check auth
               if (CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
                 // Yes: add user
@@ -363,7 +363,7 @@ module.exports = {
             break;
           }
           // Get
-          global.storage.getUserByEmail(req.query.Email).then(function(user) {
+          global.storage.getUserByEmail(req.query.Email).then((user) => {
             if (user) {
               // Check auth
               if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
@@ -398,7 +398,7 @@ module.exports = {
             Logging.logActionErrorMessageAndSendResponse(action, `The User's ID is mandatory`, req, res, next);
             break;
           }
-          global.storage.getUser(req.query.ID).then(function(user) {
+          global.storage.getUser(req.query.ID).then((user) => {
             if (user) {
               // Check auth
               if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
@@ -434,7 +434,7 @@ module.exports = {
             break;
           }
           // Set
-          global.storage.getUserByTagId(req.query.TagId).then(function(user) {
+          global.storage.getUserByTagId(req.query.TagId).then((user) => {
             if (user) {
               // Check auth
               if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
@@ -465,7 +465,7 @@ module.exports = {
         // Get the transactions
         case "UserActiveTransactions":
           // Check email
-          global.storage.getUser(req.query.ID).then(function(user) {
+          global.storage.getUser(req.query.ID).then((user) => {
             if (!user) {
               Logging.logActionErrorMessageAndSendResponse(action, `The user with ID ${req.body.id} does not exist`, req, res, next);
               return;
@@ -489,6 +489,25 @@ module.exports = {
           });
           break;
 
+        // Get the active transactions
+        case "ActiveTransactions":
+          // Check email
+          global.storage.getTransactions({}, true).then((transactions) => {
+            // filters
+            transactions = transactions.filter((transaction) => {
+              // Check
+              return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
+                CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBoxID);
+            });
+            // Return
+            res.json(transactions);
+            next();
+          }).catch((err) => {
+            // Log
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+          });
+          break;
+
         // Get the transactions
         case "ChargingStationTransactions":
           // Charge Box is mandatory
@@ -502,7 +521,7 @@ module.exports = {
             break;
           }
           // Get Charge Box
-          global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
+          global.storage.getChargingStation(req.query.ChargeBoxIdentity).then((chargingStation) => {
             if (chargingStation) {
               // Check auth
               if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
@@ -519,15 +538,15 @@ module.exports = {
                     // Loop Over
                     transactionsAuthorized = transactions.filter((transaction) => {
                       // Check auth
-                      if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.start.userID)) {
+                      if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.userID)) {
                         // Demo user?
                         if (!CentralRestServerAuthorization.isDemo(req.user)) {
                           return false;
                         }
                         // Hide
-                        transaction.start.userID = {};
-                        transaction.start.userID.name = "####";
-                        transaction.start.userID.firstName = "####";
+                        transaction.userID = {};
+                        transaction.userID.name = "####";
+                        transaction.userID.firstName = "####";
                       }
                       // Check auth
                       if (transaction.stop && transaction.stop.userID &&
@@ -563,7 +582,7 @@ module.exports = {
           break;
 
         // Get the transaction
-        case "ChargingStationTransaction":
+        case "Transaction":
           // Charge Box is mandatory
           if(!req.query.TransactionId) {
             Logging.logActionErrorMessageAndSendResponse(action, `The Transaction ID is mandatory`, req, res, next);
@@ -573,7 +592,7 @@ module.exports = {
           global.storage.getTransaction(req.query.TransactionId).then((transaction) => {
             if (transaction) {
               // Check auth
-              if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.start.userID)) {
+              if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.userID)) {
                 // Demo user?
                 if (!CentralRestServerAuthorization.isDemo(req.user)) {
                   // No: Not Authorized!
@@ -582,9 +601,9 @@ module.exports = {
                   return;
                 } else {
                   // Clear the user
-                  transaction.start.userID = {};
-                  transaction.start.userID.name = "####";
-                  transaction.start.userID.firstName = "####";
+                  transaction.userID = {};
+                  transaction.userID.name = "####";
+                  transaction.userID.firstName = "####";
                 }
               }
               // Check auth
@@ -635,7 +654,7 @@ module.exports = {
           }
 
           // Get the Charging Station`
-          global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
+          global.storage.getChargingStation(req.query.ChargeBoxIdentity).then((chargingStation) => {
             let consumptions = [];
             // Found
             if (chargingStation) {
@@ -652,8 +671,8 @@ module.exports = {
                   // Check dates
                   if (req.query.StartDateTime) {
                     // Check date is in the transaction
-                    if (moment(req.query.StartDateTime).isBefore(moment(transaction.start.timestamp))) {
-                      Logging.logActionErrorMessageAndSendResponse(action, `The requested Start Date ${req.query.StartDateTime} is before the transaction ID ${req.query.TransactionId} Start Date ${transaction.start.timestamp}`, req, res, next);
+                    if (moment(req.query.StartDateTime).isBefore(moment(transaction.timestamp))) {
+                      Logging.logActionErrorMessageAndSendResponse(action, `The requested Start Date ${req.query.StartDateTime} is before the transaction ID ${req.query.TransactionId} Start Date ${transaction.timestamp}`, req, res, next);
                       return;
                     }
                     // Check date is in the transaction
@@ -669,8 +688,8 @@ module.exports = {
                       return;
                     }
                     // Check date is in the transaction
-                    if (moment(req.query.EndDateTime).isBefore(moment(transaction.start.timestamp))) {
-                      Logging.logActionErrorMessageAndSendResponse(action, `The requested End Date ${req.query.EndDateTime} is before the transaction ID ${req.query.TransactionId} Start Date ${transaction.start.timestamp}`, req, res, next);
+                    if (moment(req.query.EndDateTime).isBefore(moment(transaction.timestamp))) {
+                      Logging.logActionErrorMessageAndSendResponse(action, `The requested End Date ${req.query.EndDateTime} is before the transaction ID ${req.query.TransactionId} Start Date ${transaction.timestamp}`, req, res, next);
                       return;
                     }
                     // Check date is in the transaction
@@ -680,7 +699,7 @@ module.exports = {
                     }
                   }
                   // Check auth
-                  if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.start.userID)) {
+                  if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.userID)) {
                     // Demo user?
                     if (!CentralRestServerAuthorization.isDemo(req.user)) {
                       // No: Not Authorized!
@@ -689,9 +708,9 @@ module.exports = {
                       return;
                     } else {
                       // Clear the user
-                      transaction.start.userID = {};
-                      transaction.start.userID.name = "####";
-                      transaction.start.userID.firstName = "####";
+                      transaction.userID = {};
+                      transaction.userID.name = "####";
+                      transaction.userID.firstName = "####";
                     }
                   }
                   // Check auth
@@ -716,7 +735,7 @@ module.exports = {
                     chargingStation.getConsumptionsFromTransaction(
                         req.query.ConnectorId,
                         req.query.TransactionId,
-                        true).then(function(consumptions) {
+                        true).then((consumptions) => {
                       // Return the result
                       res.json(consumptions);
                       next();
@@ -727,7 +746,7 @@ module.exports = {
                         req.query.ConnectorId,
                         req.query.StartDateTime,
                         req.query.EndDateTime,
-                        false).then(function(consumptions) {
+                        false).then((consumptions) => {
                       // Return the result
                       res.json(consumptions);
                       next();
@@ -759,7 +778,7 @@ module.exports = {
             break;
           }
           // Get the Charging Station`
-          global.storage.getChargingStation(req.query.ChargeBoxIdentity).then(function(chargingStation) {
+          global.storage.getChargingStation(req.query.ChargeBoxIdentity).then((chargingStation) => {
             let configuration = {};
             // Found
             if (chargingStation) {
@@ -771,7 +790,7 @@ module.exports = {
                 return;
               }
               // Get the Config
-              chargingStation.getConfiguration().then(function(configuration) {
+              chargingStation.getConfiguration().then((configuration) => {
                 // Return the result
                 res.json(configuration);
                 next();
@@ -808,7 +827,7 @@ module.exports = {
           // Check Mandatory fields
           if (Users.checkIfUserValid(req, res, next)) {
             // Check email
-            global.storage.getUser(req.body.id).then(function(user) {
+            global.storage.getUser(req.body.id).then((user) => {
               if (!user) {
                 Logging.logActionErrorMessageAndSendResponse(action, `The user with ID ${req.body.id} does not exist anymore`, req, res, next);
                 return;

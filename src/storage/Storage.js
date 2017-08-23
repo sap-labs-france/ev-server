@@ -76,10 +76,7 @@ class Storage {
   getLastTransaction(chargeBoxIdentity, connectorId) {
   }
 
-  getTransactionsFromChargingStation(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
-  }
-
-  getTransactionsFromUser(userId, onlyActive) {
+  getTransactions(filter, onlyActive) {
   }
 
   getTransaction(transactionId) {

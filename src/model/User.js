@@ -151,7 +151,7 @@ class User {
 
   getTransactions(onlyActive) {
     // Get the consumption
-    return global.storage.getTransactionsFromUser(this.getID(), onlyActive);
+    return global.storage.getTransactions({"userId" : this.getID()}, onlyActive);
   }
 
   save() {
