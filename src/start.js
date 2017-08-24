@@ -78,7 +78,6 @@ global.storage.start().then(() => {
     // Start the Scheduler
     // -------------------------------------------------------------------------
     SchedulerHandler.init();
-
   }).catch((error) => {
     // Log
     Logging.logError({
