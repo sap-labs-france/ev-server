@@ -6,6 +6,7 @@ const MDBLog = require('./model/MDBLog');
 const MDBFirmwareStatusNotification = require('./model/MDBFirmwareStatusNotification');
 const MDBDiagnosticsStatusNotification = require('./model/MDBDiagnosticsStatusNotification');
 const MDBChargingStation = require('./model/MDBChargingStation');
+const MDBMigration = require('./model/MDBMigration');
 const MDBAuthorize = require('./model/MDBAuthorize');
 const MDBBootNotification = require('./model/MDBBootNotification');
 const MDBStatusNotification = require('./model/MDBStatusNotification');
@@ -24,6 +25,7 @@ const Logging = require('../../utils/Logging');
 const crypto = require('crypto');
 const moment = require('moment');
 const ObjectId = mongoose.Types.ObjectId;
+
 require('source-map-support').install();
 
 let _dbConfig;
@@ -52,7 +54,7 @@ class MongoDBStorage extends Storage {
           Logging.logInfo({
             userFullName: "System", source: "Central Server", module: "MongoDBStorage", method: "start", action: "Startup",
             message: `Connected to MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}' and using schema '${_dbConfig.schema}'` });
-            console.log(`Connected to MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}' and using schema '${_dbConfig.schema}'`);
+          console.log(`Connected to MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}' and using schema '${_dbConfig.schema}'`);
           // Ok
           fulfill();
         }
@@ -461,8 +463,11 @@ class MongoDBStorage extends Storage {
     var logMDB = new MDBLog(log);
     // Save
     return logMDB.save().then(() => {
-      // Notify Change
-      _centralRestServer.notifyLoggingCreated();
+      // Available?
+      if (_centralRestServer) {
+        // Notify Change
+        _centralRestServer.notifyLoggingCreated();
+      }
     });
   }
 
@@ -517,6 +522,32 @@ class MongoDBStorage extends Storage {
         _centralRestServer.notifyChargingStationUpdated({"id" : stopTransaction.chargeBoxID});
       });
     });
+  }
+
+  getMigrations() {
+    // Exec request
+    return MDBMigration.find({}).exec().then((migrationsMDB) => {
+      var migrations = [];
+      // Create
+      migrationsMDB.forEach((migrationMDB) => {
+        var migration = {};
+        // Set values
+        Database.updateMigration(migrationMDB, migration);
+        // Add
+        migrations.push(migration);
+      });
+      // Ok
+      return migrations;
+    });
+  }
+
+  saveMigration(migration) {
+    // Create model
+    var migrationMDB = new MDBMigration(migration);
+    // Set the ID
+    migrationMDB._id = migration.name + "~" + migration.version;
+    // Create new
+    return migrationMDB.save();
   }
 
   saveMeterValues(meterValues) {

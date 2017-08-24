@@ -26,6 +26,14 @@ module.exports = {
       dest.connectors = [];
     }
   },
+  
+  updateMigration(src, dest) {
+    // Set it
+    dest.id = src._id;
+    dest.timestamp = src.timestamp;
+    dest.name = src.name;
+    dest.version = src.version;
+  },
 
   updateConfiguration(src, dest) {
     // Set it

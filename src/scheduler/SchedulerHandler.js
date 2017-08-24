@@ -8,7 +8,7 @@ const ImportUsersTask = require('./tasks/ImportUsersTask');
 
 _schedulerConfig = Configuration.getSchedulerConfig();
 
-class Scheduler {
+class SchedulerHandler {
   static init() {
     // Active?
     if (_schedulerConfig.active) {
@@ -33,7 +33,8 @@ class Scheduler {
         switch (task.name) {
           // Consumption of charging station
           case "chargingStationsConsumption":
-            cron.schedule(task.periodicity, ChargingStationConsumptionTask.run);
+            let chargingStationConsumptionTask = new ChargingStationConsumptionTask();
+            cron.schedule(task.periodicity, chargingStationConsumptionTask.run);
             Logging.logInfo({
               userFullName: "System", source: "Central Server", module: "Scheduler",
               method: "init", action: "Initialization",
@@ -42,7 +43,8 @@ class Scheduler {
 
           // Check for importing users
           case "importUsers":
-            cron.schedule(task.periodicity, ImportUsersTask.run);
+            let importUsersTask = new ImportUsersTask();
+            cron.schedule(task.periodicity, importUsersTask.run);
             Logging.logInfo({
               userFullName: "System", source: "Central Server", module: "Scheduler",
               method: "init", action: "Initialization",
@@ -51,7 +53,8 @@ class Scheduler {
 
           // End of charge notif
           case "endOfChargeNotification":
-            cron.schedule(task.periodicity, EndOfChargeNotificationTask.run);
+            let endOfChargeNotificationTask = new EndOfChargeNotificationTask();
+            cron.schedule(task.periodicity, endOfChargeNotificationTask.run);
             Logging.logInfo({
               userFullName: "System", source: "Central Server", module: "Scheduler",
               method: "init", action: "Initialization",
@@ -60,7 +63,8 @@ class Scheduler {
 
           // Cleanup of logging table
           case "loggingDatabaseTableCleanup":
-            cron.schedule(task.periodicity, LoggingDatabaseTableCleanupTask.run);
+            let loggingDatabaseTableCleanupTask = new LoggingDatabaseTableCleanupTask();
+            cron.schedule(task.periodicity, loggingDatabaseTableCleanupTask.run);
             Logging.logInfo({
               userFullName: "System", source: "Central Server", module: "Scheduler",
               method: "init", action: "Initialization",
@@ -86,4 +90,4 @@ class Scheduler {
   }
 }
 
-module.exports=Scheduler;
+module.exports=SchedulerHandler;

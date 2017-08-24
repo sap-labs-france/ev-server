@@ -10,6 +10,7 @@ const notifyBeforeEndOfChargeTemplate = require('./template/notify-before-end-of
 const chargingStationStatusError = require('./template/charging-station-status-error.js');
 const transactionStarted = require('./template/transaction-started');
 const unknownUserBadged = require('./template/unknown-user-badged');
+const NotificationTask = require('../NotificationTask');
 
 require('source-map-support').install();
 
@@ -17,8 +18,9 @@ require('source-map-support').install();
 _emailConfig = Configuration.getEmailConfig();
 
 // https://nodemailer.com/smtp/
-class EMailNotification {
+class EMailNotificationTask extends NotificationTask {
   constructor() {
+    super();
     // Connect to the server
     this.server = email.server.connect({
       user: _emailConfig.smtp.user,
@@ -30,48 +32,11 @@ class EMailNotification {
     });
   }
 
-  sendEmail(email) {
-    // Add Admins in BCC
-    if (_emailConfig.admins && _emailConfig.admins.length > 0) {
-      // Add
-      if (!email.bcc) {
-        email.bcc = _emailConfig.admins.join(',');
-      } else {
-        email.bcc += ',' + _emailConfig.admins.join(',');
-      }
-    }
-    // In promise
-    return new Promise((fulfill, reject) => {
-      // Create the message
-      var message	= {
-        from:  (!email.from?_emailConfig.from:email.from),
-        to: email.to,
-        cc: email.cc,
-        bcc: email.bcc,
-        subject: email.subject,
-        // text: email.text,
-        attachment: [
-          { data: email.html, alternative:true }
-        ]
-      };
-
-      // send the message and get a callback with an error or details of the message that was sent
-      this.server.send(message, (err, message) => {
-        // Error Handling
-        if (err) {
-          reject(err);
-        } else {
-          fulfill(message);
-        }
-      });
-    });
-  }
-
   sendNewRegisteredUser(data, locale) {
     // Create a promise
     return new Promise((fulfill, reject) => {
       // Send it
-      this._sendEmail('registered-user', data, locale, fulfill, reject);
+      this._prepareAndSendEmail('registered-user', data, locale, fulfill, reject);
     });
   }
 
@@ -79,7 +44,7 @@ class EMailNotification {
     // Create a promise
     return new Promise((fulfill, reject) => {
       // Send it
-      this._sendEmail('reset-password', data, locale, fulfill, reject);
+      this._prepareAndSendEmail('reset-password', data, locale, fulfill, reject);
     });
   }
 
@@ -87,7 +52,7 @@ class EMailNotification {
     // Create a promise
     return new Promise((fulfill, reject) => {
       // Send it
-      this._sendEmail('notify-before-end-of-charge', data, locale, fulfill, reject);
+      this._prepareAndSendEmail('notify-before-end-of-charge', data, locale, fulfill, reject);
     });
   }
 
@@ -95,7 +60,7 @@ class EMailNotification {
     // Create a promise
     return new Promise((fulfill, reject) => {
       // Send it
-      this._sendEmail('notify-end-of-charge', data, locale, fulfill, reject);
+      this._prepareAndSendEmail('notify-end-of-charge', data, locale, fulfill, reject);
     });
   }
 
@@ -103,7 +68,7 @@ class EMailNotification {
     // Create a promise
     return new Promise((fulfill, reject) => {
       // Send it
-      this._sendEmail('charging-station-status-error', data, locale, fulfill, reject);
+      this._prepareAndSendEmail('charging-station-status-error', data, locale, fulfill, reject);
     });
   }
 
@@ -111,7 +76,7 @@ class EMailNotification {
     // Create a promise
     return new Promise((fulfill, reject) => {
       // Send it
-      this._sendEmail('unknown-user-badged', data, locale, fulfill, reject);
+      this._prepareAndSendEmail('unknown-user-badged', data, locale, fulfill, reject);
     });
   }
 
@@ -119,11 +84,11 @@ class EMailNotification {
     // Create a promise
     return new Promise((fulfill, reject) => {
       // Send it
-      this._sendEmail('transaction-started', data, locale, fulfill, reject);
+      this._prepareAndSendEmail('transaction-started', data, locale, fulfill, reject);
     });
   }
 
-  _sendEmail(templateName, data, locale, fulfill, reject) {
+  _prepareAndSendEmail(templateName, data, locale, fulfill, reject) {
     // Create email
     let emailTemplate;
     // Get the template dir
@@ -185,6 +150,43 @@ class EMailNotification {
       reject(error);
     });
   }
+
+  sendEmail(email) {
+    // Add Admins in BCC
+    if (_emailConfig.admins && _emailConfig.admins.length > 0) {
+      // Add
+      if (!email.bcc) {
+        email.bcc = _emailConfig.admins.join(',');
+      } else {
+        email.bcc += ',' + _emailConfig.admins.join(',');
+      }
+    }
+    // In promise
+    return new Promise((fulfill, reject) => {
+      // Create the message
+      var message	= {
+        from:  (!email.from?_emailConfig.from:email.from),
+        to: email.to,
+        cc: email.cc,
+        bcc: email.bcc,
+        subject: email.subject,
+        // text: email.text,
+        attachment: [
+          { data: email.html, alternative:true }
+        ]
+      };
+
+      // send the message and get a callback with an error or details of the message that was sent
+      this.server.send(message, (err, message) => {
+        // Error Handling
+        if (err) {
+          reject(err);
+        } else {
+          fulfill(message);
+        }
+      });
+    });
+  }
 }
 
-module.exports = EMailNotification;
+module.exports = EMailNotificationTask;

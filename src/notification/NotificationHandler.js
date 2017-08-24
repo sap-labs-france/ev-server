@@ -1,11 +1,11 @@
 const Configuration = require('../utils/Configuration');
-const EMailNotification = require('./email/EMailNotification');
+const EMailNotificationTask = require('./email/EMailNotificationTask');
 const Utils = require('../utils/Utils');
 const Logging = require('../utils/Logging');
 require('source-map-support').install();
 
 _notificationConfig = Configuration.getNotificationConfig();
-_email = new EMailNotification();
+_email = new EMailNotificationTask();
 
 const CHANNEL_EMAIL = "email";
 const SOURCE_BEFORE_END_OF_CHARGE = "NotifyBeforeEndOfCharge";
