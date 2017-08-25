@@ -22,27 +22,48 @@ class ChargingStationConsumptionTask extends SchedulerTask {
       chargingStations.forEach(chargingStation => {
         // Connector
         chargingStation.getConnectors().forEach((connector) => {
-          // Get the consumption of the connector
-          chargingStation.getLastConsumption(connector.connectorId).then((consumption) => {
-            // console.log(
-            //   chargingStation.getChargeBoxIdentity() + "-" + connector.connectorId + ": " +
-            //   connector.currentConsumption + " - Found: " + consumption);
-            let currentConsumption = 0;
-            // Value provided?
-            if (consumption) {
-              currentConsumption = consumption;
-            }
-            // Changed?
-            if (connector.currentConsumption !== currentConsumption) {
-              // Log
-              Logging.logInfo({
-                userFullName: "System", source: "Central Server", module: "ChargingStationBackgroundTasks",
-                method: "computeChargingStationsConsumption", action: "ChargingStationConsumption",
-                message: `Charging Station ${chargingStation.getChargeBoxIdentity()} - Connector ${connector.connectorId} consumption changed from ${connector.currentConsumption} to ${currentConsumption}` });
-              // Set consumption
-              connector.currentConsumption = currentConsumption;
-              // Save
-              chargingStation.save();
+          // Get the last tranasction first
+          return chargingStation.getLastTransaction(connector.connectorId).then((transaction) => {
+            // Found?
+            if (transaction && !transaction.stop) {
+              // Get the consumption
+              chargingStation.getConsumptionsFromTransaction(connector.connectorId, transaction.transactionId, true).then((consumption) => {
+                let currentConsumption = 0;
+                let totalConsumption = 0;
+                // Check
+                if (consumption) {
+                  currentConsumption = (consumption.values.length > 0?consumption.values[consumption.values.length-1].value:0);
+                  totalConsumption = consumption.totalConsumption;
+                }
+                // Changed?
+                if (connector.currentConsumption !== currentConsumption || connector.totalConsumption !== totalConsumption) {
+                  // Set consumption
+                  connector.currentConsumption = currentConsumption;
+                  connector.totalConsumption = totalConsumption;
+                  // console.log(`${chargingStation.getChargeBoxIdentity()}-${connector.connectorId}-${currentConsumption}-${totalConsumption}` );
+                  // Log
+                  Logging.logInfo({
+                    userFullName: "System", source: "Central Server", module: "ChargingStationConsumptionTask",
+                    method: "run", action: "ChargingStationConsumption",
+                    message: `${chargingStation.getChargeBoxIdentity()} - ${connector.connectorId} - Consumption changed: ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });              // console.log(`${chargingStation.getChargeBoxIdentity()}-${connector.connectorId}-No Transaction` );
+                    // Save
+                    chargingStation.save();
+                }
+              });
+            } else {
+              // Check
+              if (connector.currentConsumption !== 0 || connector.totalConsumption !== 0) {
+                // Set consumption
+                connector.currentConsumption = 0;
+                connector.totalConsumption = 0;
+                // Log
+                Logging.logInfo({
+                  userFullName: "System", source: "Central Server", module: "ChargingStationConsumptionTask",
+                  method: "run", action: "ChargingStationConsumption",
+                  message: `${chargingStation.getChargeBoxIdentity()} - ${connector.connectorId} - Consumption changed: ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });              // console.log(`${chargingStation.getChargeBoxIdentity()}-${connector.connectorId}-No Transaction` );
+                // Save
+                chargingStation.save();
+              }
             }
           });
         });

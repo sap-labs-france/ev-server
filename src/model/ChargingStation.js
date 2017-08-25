@@ -613,10 +613,6 @@ class ChargingStation {
     return global.storage.getLastTransaction(this.getChargeBoxIdentity(), connectorId);
   }
 
-  getLastConsumption(connectorId) {
-    return this.getLastAverageConsumption(connectorId, 1);
-  }
-
   getLastAverageConsumption(connectorId, numberOfMeters=1) {
     var avgConsumption = 0;
     // Get the last tranasction first
@@ -634,10 +630,8 @@ class ChargingStation {
           chargingStationConsumption.chargeBoxID = this.getChargeBoxIdentity();
           chargingStationConsumption.connectorId = connectorId;
           chargingStationConsumption.transactionId = transaction.transactionId;
-
           // Compute consumption
           var consumptions = this.buildConsumption(chargingStationConsumption, meterValues, null, false);
-
           // Check
           if (consumptions && consumptions.values) {
             // Compute the averages
@@ -647,16 +641,13 @@ class ChargingStation {
             // Avg
             avgConsumption /= consumptions.values.length;
           }
-
           // Round
           avgConsumption = Math.round(avgConsumption);
-
           // Debug
           Logging.logDebug({
             userFullName: "System", source: chargingStationConsumption.chargeBoxID,
             module: "ChargingStation", method: "getLastAverageConsumption", action: "AverageConsumption",
             message: `${chargingStationConsumption.chargeBoxID} - ${chargingStationConsumption.connectorId} - values: ${(consumptions.values?JSON.stringify(consumptions.values):"")} - avg: ${avgConsumption}` });
-
           return avgConsumption;
         });
       } else {
@@ -841,7 +832,7 @@ class ChargingStation {
       // Log
       Logging.logDebug({
         userFullName: "System", source: this.getChargeBoxIdentity(), module: "ChargingStation",
-        method: "getConsumptionsFromDateTimeRange", action:"buildConsumption",
+        method: "buildConsumption", action:"BuildConsumption",
         message: `Consumption - ${meterValues.length} metrics, ${totalNbrOfMetrics} relevant, ${chargingStationConsumption.values.length} returned` });
     }
     // Return the result
