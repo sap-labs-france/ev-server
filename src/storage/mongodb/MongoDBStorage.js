@@ -678,10 +678,7 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getChargingStations(searchValue, numberOfUser) {
-    if (!numberOfUser || isNaN(numberOfUser)) {
-      numberOfUser = 100;
-    }
+  getChargingStations(searchValue) {
     // Set the filters
     let filters = {};
     // Source?

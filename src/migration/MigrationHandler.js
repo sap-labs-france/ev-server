@@ -28,7 +28,6 @@ class MigrationHandler {
             message: `Migration task ${migrateStartStopTransactionTask.getName()} version ${migrateStartStopTransactionTask.getVersion()} is running` });
           // Yes: Migrate
           promises.push(migrateStartStopTransactionTask.migrate().then(result => {
-            console.log("Task has run");
             let migration = {};
             migration.name = migrateStartStopTransactionTask.getName();
             migration.version = migrateStartStopTransactionTask.getVersion();
