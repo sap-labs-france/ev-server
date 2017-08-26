@@ -290,6 +290,60 @@ class ChargingStation {
     return global.storage.saveBootNotification(bootNotification);
   }
 
+  updateChargingStationConsumption(transactionId) {
+    console.log("updateChargingStationConsumption");
+    // Get the last tranasction first
+    return this.getTransaction(transactionId).then((transaction) => {
+      console.log(transaction);
+      // Get connectorId
+      let connector = this.getConnectors()[transaction.connectorId-1];
+      console.log(connector);
+      // Found?
+      if (transaction && !transaction.stop) {
+        // Get the consumption
+        this.getConsumptionsFromTransaction(transaction, true).then((consumption) => {
+          console.log(consumption);
+          let currentConsumption = 0;
+          let totalConsumption = 0;
+          // Check
+          if (consumption) {
+            currentConsumption = (consumption.values.length > 0?consumption.values[consumption.values.length-1].value:0);
+            totalConsumption = consumption.totalConsumption;
+          }
+          // Changed?
+          if (connector.currentConsumption !== currentConsumption || connector.totalConsumption !== totalConsumption) {
+            // Set consumption
+            connector.currentConsumption = currentConsumption;
+            connector.totalConsumption = totalConsumption;
+            console.log(`${this.getChargeBoxIdentity()}-${connector.connectorId}-${currentConsumption}-${totalConsumption}` );
+            // Log
+            Logging.logInfo({
+              userFullName: "System", source: "Central Server", module: "ChargingStationConsumptionTask",
+              method: "run", action: "ChargingStationConsumption",
+              message: `${this.getChargeBoxIdentity()} - ${connector.connectorId} - Consumption changed: ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });              // console.log(`${chargingStation.getChargeBoxIdentity()}-${connector.connectorId}-No Transaction` );
+            // Save
+            this.save();
+          }
+        });
+      } else {
+        // Check
+        if (connector.currentConsumption !== 0 || connector.totalConsumption !== 0) {
+          // Set consumption
+          connector.currentConsumption = 0;
+          connector.totalConsumption = 0;
+          console.log(`${this.getChargeBoxIdentity()}-${connector.connectorId}-${currentConsumption}-${totalConsumption}` );
+          // Log
+          Logging.logInfo({
+            userFullName: "System", source: "Central Server", module: "ChargingStationConsumptionTask",
+            method: "run", action: "ChargingStationConsumption",
+            message: `${this.getChargeBoxIdentity()} - ${connector.connectorId} - Consumption changed: ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });              // console.log(`${chargingStation.getChargeBoxIdentity()}-${connector.connectorId}-No Transaction` );
+          // Save
+          this.save();
+        }
+      }
+    });
+  }
+
   saveMeterValues(meterValues) {
     // Create model
     var newMeterValues = {};
@@ -341,11 +395,15 @@ class ChargingStation {
 
     // Save it
     return global.storage.saveMeterValues(newMeterValues).then(() => {
+      console.log(newMeterValues);
       // Log
       Logging.logInfo({
         userFullName: "System", source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "saveMeterValues",
         action: "MeterValues", message: `Meter Values saved successfully`,
         detailedMessages: newMeterValues });
+
+      // Update Charging Station Consumption
+      this.updateChargingStationConsumption(meterValues.transactionId);
     });
   }
 
@@ -471,14 +529,24 @@ class ChargingStation {
     });
   }
 
+  getTransaction(transactionId) {
+    // Get the tranasction first (to get the connector id)
+    return global.storage.getTransaction(transactionId);
+  }
+
   saveStopTransaction(stopTransaction) {
     // Set the charger ID
     stopTransaction.chargeBoxID = this.getChargeBoxIdentity();
     // Get the tranasction first (to get the connector id)
-    return global.storage.getTransaction(stopTransaction.transactionId).then((transaction) => {
+    return this.getTransaction(stopTransaction.transactionId).then((transaction) => {
       if (transaction) {
-        // Compute consumption (optimization)
-        return this.getConsumptionsFromTransaction(transaction.connectorId, stopTransaction.transactionId, true);
+        // Init the charging station
+        this.getConnectors()[transaction.connectorId-1].currentConsumption = 0;
+        this.getConnectors()[transaction.connectorId-1].totalConsumption = 0;
+        // Save it
+        this.save();
+        // Compute total consumption (optimization)
+        return this.getConsumptionsFromTransaction(transaction, true);
       } else {
         throw new Error(`The Transaction ID '${stopTransaction.transactionId}' does not exist`);
       }
@@ -657,31 +725,21 @@ class ChargingStation {
     });
   }
 
-  getConsumptionsFromTransaction(connectorId, transactionId, optimizeNbrOfValues) {
-    // Read the transaction
-    // Get the last transaction first
-    return global.storage.getTransaction(transactionId).then((transaction) => {
-      // Found?
-      if (transaction) {
-        // Get the last 5 meter values
-        return global.storage.getMeterValuesFromTransaction(
-            this.getChargeBoxIdentity(), connectorId,
-            transaction.transactionId).then((meterValues) => {
-          // Build the header
-          var chargingStationConsumption = {};
-          chargingStationConsumption.values = [];
-          chargingStationConsumption.totalConsumption = 0;
-          chargingStationConsumption.chargeBoxID = this.getChargeBoxIdentity();
-          chargingStationConsumption.connectorId = connectorId;
-          chargingStationConsumption.transactionId = transaction.transactionId;
+  getConsumptionsFromTransaction(transaction, optimizeNbrOfValues) {
+    // Get the last 5 meter values
+    return global.storage.getMeterValuesFromTransaction(
+        this.getChargeBoxIdentity(), transaction.connectorId,
+        transaction.transactionId).then((meterValues) => {
+      // Build the header
+      var chargingStationConsumption = {};
+      chargingStationConsumption.values = [];
+      chargingStationConsumption.totalConsumption = 0;
+      chargingStationConsumption.chargeBoxID = this.getChargeBoxIdentity();
+      chargingStationConsumption.connectorId = transaction.connectorId;
+      chargingStationConsumption.transactionId = transaction.transactionId;
 
-          // Compute consumption
-          return this.buildConsumption(chargingStationConsumption, meterValues, transaction, optimizeNbrOfValues);
-        });
-      } else {
-        // None
-        return null;
-      }
+      // Compute consumption
+      return this.buildConsumption(chargingStationConsumption, meterValues, transaction, optimizeNbrOfValues);
     });
   }
 
@@ -720,14 +778,34 @@ class ChargingStation {
     let totalNbrOfMetrics = 0;
     let lastMeterValue;
     let firstMeterValueSet = false;
-    if (meterValues && meterValues.length > 0 && transaction && transaction.stop) {
+    // Set first value from transaction
+    if (meterValues && meterValues.length > 0 && transaction) {
       // Set last meter value
-      let lastMeterValueFromTransaction = {};
-      Database.updateMeterValue(meterValues[meterValues.length-1], lastMeterValueFromTransaction);
-      lastMeterValueFromTransaction.timestamp = transaction.stop.timestamp;
-      lastMeterValueFromTransaction.value = transaction.stop.meterStop;
+      let meterValueFromTransaction = {
+        id: '666',
+        connectorId: transaction.connectorId,
+        transactionId: transaction.transactionId,
+        timestamp: transaction.timestamp,
+        value: transaction.meterStart,
+        attribute: {
+          unit: 'Wh',
+          location: 'Outlet',
+          measurand: 'Energy.Active.Import.Register',
+          format: 'Raw',
+          context: 'Sample.Periodic'
+        }
+      };
       // Append
-      meterValues.push(lastMeterValueFromTransaction);
+      meterValues.splice(0, 0, meterValueFromTransaction);
+
+      // Set last value from transaction
+      if (transaction.stop) {
+        // Set last meter value
+        meterValueFromTransaction.timestamp = transaction.stop.timestamp;
+        meterValueFromTransaction.value = transaction.stop.meterStop;
+        // Append
+        meterValues.push(meterValueFromTransaction);
+      }
     }
     // Build the model
     meterValues.forEach((meterValue, meterValueIndex) => {
@@ -741,16 +819,8 @@ class ChargingStation {
         let currentTimestamp = moment(meterValue.timestamp);
         // First value?
         if (!firstMeterValueSet) {
-          // Yes: Transaction provided?
-          if (transaction) {
-            // Yes: Set
-            lastMeterValue = {};
-            lastMeterValue.value = transaction.meterStart;
-            lastMeterValue.timestamp = new Date(transaction.timestamp);
-          } else {
-            // No: Keep the first value
-            lastMeterValue = meterValue;
-          }
+          // No: Keep the first value
+          lastMeterValue = meterValue;
           // Ok
           firstMeterValueSet = true;
 

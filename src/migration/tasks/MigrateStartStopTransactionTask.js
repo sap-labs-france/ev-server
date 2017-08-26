@@ -79,8 +79,10 @@ class MigrateStartStopTransactionTask extends MigrationTask {
                 if (chargingStationFiltered.length > 0) {
                   // Yes: use it
                   let chargingStation = chargingStationFiltered[0];
+                  let transaction = {};
+                  Database.updateTransaction(newTransactionMDB, transaction);
                   // Compute consumption
-                  chargingStation.getConsumptionsFromTransaction(newTransactionMDB.connectorId, newTransactionMDB._id, true).then((consumption) => {
+                  chargingStation.getConsumptionsFromTransaction(transaction, true).then((consumption) => {
                     // Set the total consumption (optimization)
                     newTransactionMDB.stop.totalConsumption = consumption.totalConsumption;
                     // Save the consumption

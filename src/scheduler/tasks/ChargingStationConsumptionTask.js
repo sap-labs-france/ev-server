@@ -27,7 +27,7 @@ class ChargingStationConsumptionTask extends SchedulerTask {
             // Found?
             if (transaction && !transaction.stop) {
               // Get the consumption
-              chargingStation.getConsumptionsFromTransaction(connector.connectorId, transaction.transactionId, true).then((consumption) => {
+              chargingStation.getConsumptionsFromTransaction(transaction, true).then((consumption) => {
                 let currentConsumption = 0;
                 let totalConsumption = 0;
                 // Check

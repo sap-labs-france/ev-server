@@ -637,37 +637,28 @@ module.exports = {
 
         // Get Charging Consumption
         case "ChargingStationConsumptionFromTransaction":
-          // Charge Box is mandatory
-          if(!req.query.ChargeBoxIdentity) {
-            Logging.logActionErrorMessageAndSendResponse(action, `The Charging Station ID is mandatory`, req, res, next);
-            break;
-          }
-          // Connector Id is mandatory
-          if(!req.query.ConnectorId) {
-            Logging.logActionErrorMessageAndSendResponse(action, `The Connector ID is mandatory`, req, res, next);
-            break;
-          }
           // Transaction Id is mandatory
           if(!req.query.TransactionId) {
             Logging.logActionErrorMessageAndSendResponse(action, `The Transaction ID is mandatory`, req, res, next);
             break;
           }
 
-          // Get the Charging Station`
-          global.storage.getChargingStation(req.query.ChargeBoxIdentity).then((chargingStation) => {
-            let consumptions = [];
-            // Found
-            if (chargingStation) {
-              // Check auth
-              if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
-                // Not Authorized!
-                Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, req, res, next);
-                return;
-              }
-              // Get Transaction
-              global.storage.getTransaction(req.query.TransactionId).then((transaction) => {
-                if (transaction) {
+          // Get Transaction
+          global.storage.getTransaction(req.query.TransactionId).then((transaction) => {
+            if (transaction) {
+              // Get the Charging Station
+              global.storage.getChargingStation(transaction.chargeBoxID.chargeBoxIdentity).then((chargingStation) => {
+                let consumptions = [];
+                // Found
+                if (chargingStation) {
+                  // Check auth
+                  if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
+                    // Not Authorized!
+                    Logging.logActionUnauthorizedMessageAndSendResponse(
+                      CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                    return;
+                  }
+
                   // Check dates
                   if (req.query.StartDateTime) {
                     // Check date is in the transaction
@@ -733,9 +724,7 @@ module.exports = {
                   if(!req.query.StartDateTime && !req.query.EndDateTime) {
                     // No: Get the Consumption from the transaction
                     chargingStation.getConsumptionsFromTransaction(
-                        req.query.ConnectorId,
-                        req.query.TransactionId,
-                        true).then((consumptions) => {
+                        transaction, true).then((consumptions) => {
                       // Return the result
                       res.json(consumptions);
                       next();
@@ -743,7 +732,7 @@ module.exports = {
                   } else {
                     // Yes: Get the Consumption from dates within the trasaction
                     chargingStation.getConsumptionsFromDateTimeRange(
-                        req.query.ConnectorId,
+                        transaction.connectorId,
                         req.query.StartDateTime,
                         req.query.EndDateTime,
                         false).then((consumptions) => {
@@ -754,18 +743,18 @@ module.exports = {
                   }
                 } else {
                   // Log
-                  return Promise.reject(new Error(`Transaction ${req.query.TransactionId} does not exist`));
+                  return Promise.reject(new Error(`Charging Station ${transaction.ChargeBoxIdentity} does not exist`));
                 }
               }).catch((err) => {
-                // Log error
+                // Log
                 Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
               });
             } else {
               // Log
-              return Promise.reject(new Error(`Charging Station ${req.query.ChargeBoxIdentity} does not exist`));
+              return Promise.reject(new Error(`Transaction ${req.query.TransactionId} does not exist`));
             }
           }).catch((err) => {
-            // Log
+            // Log error
             Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
           });
           break;
