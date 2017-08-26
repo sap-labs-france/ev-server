@@ -4,9 +4,7 @@ module.exports.html = `
     <body>
       Hi Admins,</br>
       </br>
-      The charging station <%= chargingStationId %> has reported a status error on the connector <%= connectorId %>: <b><%= error %></b></br>
-      </br>
-      You can check its status here: <a href="<%= evseDashboardChargingStationURL %>"><%= chargingStationId %> - Connector <%= connectorId %></a></br>
+      Error in Charging Station <a href="<%= evseDashboardChargingStationURL %>"><%= chargingStationId %> - Connector <%= connectorId %></a>: <b><%= error %></b></br>
       </br>
       Best Regards,</br>
       EVSE Admin.
@@ -21,9 +19,7 @@ module.exports.fr_FR.html = `
     <body>
     Hi Admins,</br>
       </br>
-      La borne <%= chargingStationId %> a reporté une erreur de statut sur le connecteur <%= connectorId %>: <b><%= error %></b></br>
-      </br>
-      Vous pouvez verifier son statut içi : <a href="<%= evseDashboardChargingStationURL %>"><%= chargingStationId %> - Connecteur <%= connectorId %></a></br>
+      Erreur sur La borne <a href="<%= evseDashboardChargingStationURL %>"><%= chargingStationId %> - Connector <%= connectorId %></a>: <b><%= error %></b></br>
       </br>
       Cordialement,</br>
       EVSE Admin.
