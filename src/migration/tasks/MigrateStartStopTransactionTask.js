@@ -2,6 +2,7 @@ const MigrationTask = require('../MigrationTask');
 const MDBTransaction = require('../../storage/mongodb/model/MDBTransaction');
 const mongoose = require('mongoose');
 const Logging = require('../../utils/Logging');
+const Database = require('../../utils/Database');
 
 let MDBStartTransaction = mongoose.model('StartTransaction',{
   _id: String,
@@ -69,27 +70,30 @@ class MigrateStartStopTransactionTask extends MigrationTask {
               }
 
               // Save first
-              newTransactionMDB.save().then(() => {
+              promises.push(newTransactionMDB.save().then(() => {
                 // Compute consumption (optimization)
-                // Retrieve Charging Station
-                let chargingStationFiltered = chargingStations.filter((chargingStation) => {
-                  return chargingStation.getID() === newTransactionMDB.chargeBoxID;
-                });
-                // Found?
-                if (chargingStationFiltered.length > 0) {
-                  // Yes: use it
-                  let chargingStation = chargingStationFiltered[0];
-                  let transaction = {};
-                  Database.updateTransaction(newTransactionMDB, transaction);
-                  // Compute consumption
-                  chargingStation.getConsumptionsFromTransaction(transaction, true).then((consumption) => {
-                    // Set the total consumption (optimization)
-                    newTransactionMDB.stop.totalConsumption = consumption.totalConsumption;
-                    // Save the consumption
-                    promises.push(newTransactionMDB.save());
+                // Stop
+                if(transactionMDB.stop) {
+                  // Retrieve Charging Station
+                  let chargingStationFiltered = chargingStations.filter((chargingStation) => {
+                    return chargingStation.getID() === newTransactionMDB.chargeBoxID;
                   });
+                  // Found?
+                  if (chargingStationFiltered.length > 0) {
+                    // Yes: use it
+                    let chargingStation = chargingStationFiltered[0];
+                    let transaction = {};
+                    Database.updateTransaction(newTransactionMDB, transaction);
+                    // Compute consumption
+                    chargingStation.getConsumptionsFromTransaction(transaction, true).then((consumption) => {
+                      // Set the total consumption (optimization)
+                      newTransactionMDB.stop.totalConsumption = consumption.totalConsumption;
+                      // Save the consumption
+                      promises.push(newTransactionMDB.save());
+                    });
+                  }
                 }
-              });
+              }));
             });
             // Wait
             Promise.all(promises).then((results) => {
