@@ -291,18 +291,14 @@ class ChargingStation {
   }
 
   updateChargingStationConsumption(transactionId) {
-    console.log("updateChargingStationConsumption");
     // Get the last tranasction first
     return this.getTransaction(transactionId).then((transaction) => {
-      console.log(transaction);
       // Get connectorId
       let connector = this.getConnectors()[transaction.connectorId-1];
-      console.log(connector);
       // Found?
       if (transaction && !transaction.stop) {
         // Get the consumption
         this.getConsumptionsFromTransaction(transaction, true).then((consumption) => {
-          console.log(consumption);
           let currentConsumption = 0;
           let totalConsumption = 0;
           // Check
@@ -315,12 +311,11 @@ class ChargingStation {
             // Set consumption
             connector.currentConsumption = currentConsumption;
             connector.totalConsumption = totalConsumption;
-            console.log(`${this.getChargeBoxIdentity()}-${connector.connectorId}-${currentConsumption}-${totalConsumption}` );
             // Log
             Logging.logInfo({
               userFullName: "System", source: "Central Server", module: "ChargingStationConsumptionTask",
               method: "run", action: "ChargingStationConsumption",
-              message: `${this.getChargeBoxIdentity()} - ${connector.connectorId} - Consumption changed: ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });              // console.log(`${chargingStation.getChargeBoxIdentity()}-${connector.connectorId}-No Transaction` );
+              message: `${this.getChargeBoxIdentity()} - ${connector.connectorId} - Consumption changed: ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
             // Save
             this.save();
           }
@@ -331,12 +326,11 @@ class ChargingStation {
           // Set consumption
           connector.currentConsumption = 0;
           connector.totalConsumption = 0;
-          console.log(`${this.getChargeBoxIdentity()}-${connector.connectorId}-${currentConsumption}-${totalConsumption}` );
           // Log
           Logging.logInfo({
             userFullName: "System", source: "Central Server", module: "ChargingStationConsumptionTask",
             method: "run", action: "ChargingStationConsumption",
-            message: `${this.getChargeBoxIdentity()} - ${connector.connectorId} - Consumption changed: ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });              // console.log(`${chargingStation.getChargeBoxIdentity()}-${connector.connectorId}-No Transaction` );
+            message: `${this.getChargeBoxIdentity()} - ${connector.connectorId} - Consumption changed: ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
           // Save
           this.save();
         }
@@ -395,7 +389,6 @@ class ChargingStation {
 
     // Save it
     return global.storage.saveMeterValues(newMeterValues).then(() => {
-      console.log(newMeterValues);
       // Log
       Logging.logInfo({
         userFullName: "System", source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "saveMeterValues",
@@ -699,7 +692,6 @@ class ChargingStation {
         // Compute consumption
         var consumptions = this.buildConsumption(chargingStationConsumption, meterValues, transaction, false);
         // Check
-        console.log(consumptions);
         if (consumptions && consumptions.values && consumptions.values.length > 0) {
           // Compute the averages
           for (var i = 0; i < consumptions.values.length; i++) {
