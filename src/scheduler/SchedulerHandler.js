@@ -1,10 +1,8 @@
 const Configuration = require('../utils/Configuration');
 const cron = require('node-cron');
 const Logging = require('../utils/Logging');
-const ChargingStationConsumptionTask = require('./tasks/ChargingStationConsumptionTask');
 const EndOfChargeNotificationTask = require('./tasks/EndOfChargeNotificationTask');
 const LoggingDatabaseTableCleanupTask = require('./tasks/LoggingDatabaseTableCleanupTask');
-const ImportUsersTask = require('./tasks/ImportUsersTask');
 
 _schedulerConfig = Configuration.getSchedulerConfig();
 
@@ -31,26 +29,6 @@ class SchedulerHandler {
         }
         // Tasks
         switch (task.name) {
-          // Consumption of charging station
-          case "chargingStationsConsumption":
-            let chargingStationConsumptionTask = new ChargingStationConsumptionTask();
-            cron.schedule(task.periodicity, chargingStationConsumptionTask.run);
-            Logging.logInfo({
-              userFullName: "System", source: "Central Server", module: "Scheduler",
-              method: "init", action: "Initialization",
-              message: `The task '${task.name}' has been scheduled with periodicity ''${task.periodicity}'` });
-            break;
-
-          // Check for importing users
-          case "importUsers":
-            let importUsersTask = new ImportUsersTask();
-            cron.schedule(task.periodicity, importUsersTask.run);
-            Logging.logInfo({
-              userFullName: "System", source: "Central Server", module: "Scheduler",
-              method: "init", action: "Initialization",
-              message: `The task '${task.name}' has been scheduled with periodicity ''${task.periodicity}'` });
-            break;
-
           // End of charge notif
           case "endOfChargeNotification":
             let endOfChargeNotificationTask = new EndOfChargeNotificationTask();
