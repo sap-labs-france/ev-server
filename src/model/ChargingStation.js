@@ -681,48 +681,47 @@ class ChargingStation {
     return global.storage.getLastTransaction(this.getChargeBoxIdentity(), connectorId);
   }
 
-  getLastAverageConsumption(connectorId, numberOfMeters=1) {
+  getLastAverageConsumptionFromTransaction(transaction, numberOfMeters=1) {
     let avgConsumption = 0;
-    // Get the last tranasction first
-    return this.getLastTransaction(connectorId).then((transaction) => {
-      // Found?
-      if (transaction && !transaction.stop) {
-        // Get the last 5 meter values
-        return global.storage.getLastMeterValuesFromTransaction(
-            this.getChargeBoxIdentity(), connectorId,
-            transaction.transactionId, numberOfMeters+1).then((meterValues) => {
-          // Build the header
-          var chargingStationConsumption = {};
-          chargingStationConsumption.values = [];
-          chargingStationConsumption.totalConsumption = 0;
-          chargingStationConsumption.chargeBoxID = this.getChargeBoxIdentity();
-          chargingStationConsumption.connectorId = connectorId;
-          chargingStationConsumption.transactionId = transaction.transactionId;
-          // Compute consumption
-          var consumptions = this.buildConsumption(chargingStationConsumption, meterValues, null, false);
-          // Check
-          if (consumptions && consumptions.values) {
-            // Compute the averages
-            for (var i = 0; i < consumptions.values.length; i++) {
-              avgConsumption += consumptions.values[i].value;
-            }
-            // Avg
-            avgConsumption /= consumptions.values.length;
-            // Round
-            avgConsumption = Math.round(avgConsumption);
+    // Found?
+    if (transaction && !transaction.stop) {
+      // Get the last 5 meter values
+      return global.storage.getLastMeterValuesFromTransaction(
+          this.getChargeBoxIdentity(), transaction.connectorId,
+          transaction.transactionId, numberOfMeters).then((meterValues) => {
+        // Build the header
+        var chargingStationConsumption = {};
+        chargingStationConsumption.values = [];
+        chargingStationConsumption.totalConsumption = 0;
+        chargingStationConsumption.chargeBoxID = this.getChargeBoxIdentity();
+        chargingStationConsumption.connectorId = transaction.connectorId;
+        chargingStationConsumption.transactionId = transaction.transactionId;
+        // Compute consumption
+        var consumptions = this.buildConsumption(chargingStationConsumption, meterValues, transaction, false);
+        // Check
+        console.log(consumptions);
+        if (consumptions && consumptions.values && consumptions.values.length > 0) {
+          // Compute the averages
+          for (var i = 0; i < consumptions.values.length; i++) {
+            avgConsumption += consumptions.values[i].value;
           }
-          // Debug
-          Logging.logDebug({
-            userFullName: "System", source: chargingStationConsumption.chargeBoxID,
-            module: "ChargingStation", method: "getLastAverageConsumption", action: "AverageConsumption",
-            message: `${chargingStationConsumption.chargeBoxID} - ${chargingStationConsumption.connectorId} - values: ${(consumptions.values?JSON.stringify(consumptions.values):"")} - avg: ${avgConsumption}` });
-          return avgConsumption;
-        });
-      } else {
-        // None
+          // Avg
+          avgConsumption /= consumptions.values.length;
+          // Round
+          avgConsumption = Math.round(avgConsumption);
+        }
+        // Debug
+        Logging.logDebug({
+          userFullName: "System", source: chargingStationConsumption.chargeBoxID,
+          module: "ChargingStation", method: "getLastAverageConsumptionFromTransaction", action: "AverageConsumption",
+          message: `${chargingStationConsumption.chargeBoxID} - ${chargingStationConsumption.connectorId} - values: ${(consumptions.values?JSON.stringify(consumptions.values):"")} - avg: ${avgConsumption}` });
+        // Return
         return avgConsumption;
-      }
-    });
+      });
+    } else {
+      // None
+      return Promise.resolve(avgConsumption);
+    }
   }
 
   getConsumptionsFromTransaction(transaction, optimizeNbrOfValues) {

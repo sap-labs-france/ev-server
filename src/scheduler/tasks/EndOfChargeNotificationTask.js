@@ -24,16 +24,16 @@ class EndOfChargeNotificationTask extends SchedulerTask {
       chargingStations.forEach(chargingStation => {
         // Connector
         chargingStation.getConnectors().forEach((connector) => {
-          // Get the consumption of the connector
-          chargingStation.getLastAverageConsumption(connector.connectorId, 2).then((consumption) => {
-            // Get the consumption for each connector
-            chargingStation.getLastTransaction(connector.connectorId).then((lastTransaction) => {
-              // Transaction In Progress?
-              if (lastTransaction && !lastTransaction.stop && // Transaction must not be stopped
+          // Get the consumption for each connector
+          chargingStation.getLastTransaction(connector.connectorId).then((lastTransaction) => {
+            // Transaction In Progress?
+            if (lastTransaction && !lastTransaction.stop && // Transaction must not be stopped
                 moment(lastTransaction.timestamp).add( // Check after 5 mins (start transaction date + 5 mins)
-                  _configChargingStation.checkEndOfChargeNotificationAfterMin, "minutes").isBefore(moment())) {
+                _configChargingStation.checkEndOfChargeNotificationAfterMin, "minutes").isBefore(moment())) {
+              // Get the consumption of the connector
+              chargingStation.getLastAverageConsumptionFromTransaction(lastTransaction, 2).then((consumption) => {
                 // --------------------------------------------------------------------
-                // Notification BEFORE end of charge ----------------------------------
+                // Notification BEFORE end of charge
                 // --------------------------------------------------------------------
                 if (_configChargingStation.notifBeforeEndOfChargeEnabled && // notif Before End Of Charge Enabled?
                     consumption <= _configChargingStation.notifBeforeEndOfChargePercent) {  // Under a certain percentage
@@ -52,7 +52,7 @@ class EndOfChargeNotificationTask extends SchedulerTask {
                 }
 
                 // --------------------------------------------------------------------
-                // Notification END of charge -----------------------------------------
+                // Notification END of charge
                 // --------------------------------------------------------------------
                 if (_configChargingStation.notifEndOfChargeEnabled && consumption === 0) {
                   // Send Notification
@@ -99,8 +99,8 @@ class EndOfChargeNotificationTask extends SchedulerTask {
                     });
                   }
                 }
-              }
-            });
+              });
+            }
           });
         });
       });
