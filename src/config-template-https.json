@@ -76,16 +76,6 @@
     "active" : true,
     "tasks": [
       {
-        "name": "chargingStationsConsumption",
-        "active": true,
-        "periodicity": "*/1 * * * *"
-      },
-      {
-        "name": "importUsers",
-        "active": true,
-        "periodicity": "*/1 * * * *"
-      },
-      {
         "name": "endOfChargeNotification",
         "active": true,
         "periodicity": "*/5 * * * *"
