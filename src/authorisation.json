@@ -123,8 +123,8 @@
       {
         "AuthObject": "User",
         "AuthFieldValue": {
-          "UserID": "",
-          "Action": []
+          "UserID": ["{{user.id}}"],
+          "Action": ["Read"]
         }
       },
       {

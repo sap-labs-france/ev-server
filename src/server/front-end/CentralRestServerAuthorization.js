@@ -62,7 +62,7 @@ module.exports = {
   canReadUser(loggedUser, user) {
     // Check
     return this.canPerformAction(loggedUser, this.ENTITY_USER,
-      { "Action": this.ACTION_READ, "UserID": user.id });
+      { "Action": this.ACTION_READ, "UserID": user.id.toString() });
   },
 
   canLogoutUser(loggedUser, user) {
@@ -121,7 +121,7 @@ module.exports = {
 
   canPerformAction(loggedUser, entity, fieldNamesValues) {
     // Set debug mode?
-    if (this.getConfiguration().debug) {
+    if (this.getConfiguration().debug || true) {
       // Switch on traces
       Authorization.switchTraceOn();
     }

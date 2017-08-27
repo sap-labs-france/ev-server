@@ -162,17 +162,17 @@ class Logging {
   }
 
   // Log issues
-  static logActionUnauthorizedMessage(entity, action, req, res) {
+  static logActionUnauthorizedMessage(entity, action, value, req, res) {
     // Log
     Logging.logActionErrorMessage(action,
-      `User ${Utils.buildUserFullName(req.user)} with Role ID '${req.user.role}' is not authorised to perform '${action}' on '${entity}'`, req, res);
+      `User ${Utils.buildUserFullName(req.user)} with Role '${req.user.role}' is not authorised to perform '${action}' on ${entity} ${(value?"'"+value+"'":"")}`, req, res);
   }
 
   // Log issues
-  static logActionUnauthorizedMessageAndSendResponse(entity, action, req, res, next) {
+  static logActionUnauthorizedMessageAndSendResponse(entity, action, value, req, res, next) {
     // Log
     Logging.logActionErrorMessageAndSendResponse(action,
-      `User ${Utils.buildUserFullName(req.user)} with Role ID '${req.user.role}' is not authorised to perform '${action}' on '${entity}'`, req, res, next);
+      `User ${Utils.buildUserFullName(req.user)} with Role '${req.user.role}' is not authorised to perform '${action}' on ${entity} ${(value?"'"+value+"'":"")}`, req, res, next);
   }
 }
 

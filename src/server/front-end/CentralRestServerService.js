@@ -71,7 +71,7 @@ module.exports = {
                 if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), "ChangeConfiguration")) {
                   // Not Authorized!
                   Logging.logActionUnauthorizedMessageAndSendResponse(
-                    CentralRestServerAuthorization.ENTITY_CHARGING_STATION, action, req, res, next);
+                    CentralRestServerAuthorization.ENTITY_CHARGING_STATION, action, chargingStation.getChargeBoxIdentity(), req, res, next);
                   return;
                 }
                 // Get the configuration
@@ -150,7 +150,7 @@ module.exports = {
                 if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action)) {
                   // Not Authorized!
                   Logging.logActionUnauthorizedMessageAndSendResponse(
-                    CentralRestServerAuthorization.ENTITY_CHARGING_STATION, action, req, res, next);
+                    CentralRestServerAuthorization.ENTITY_CHARGING_STATION, action, chargingStation.getChargeBoxIdentity(), req, res, next);
                   return;
                 }
                 // Log
@@ -179,7 +179,7 @@ module.exports = {
             if (!CentralRestServerAuthorization.canCreateUser(req.user)) {
               // Not Authorized!
               Logging.logActionUnauthorizedMessageAndSendResponse(
-                CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_CREATE, req, res, next);
+                CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_CREATE, null, req, res, next);
               return;
             }
             // Check Mandatory fields
@@ -243,7 +243,7 @@ module.exports = {
           if (!CentralRestServerAuthorization.canListLogging(req.user)) {
             // Not Authorized!
             Logging.logActionUnauthorizedMessageAndSendResponse(
-              CentralRestServerAuthorization.ENTITY_LOGGING, CentralRestServerAuthorization.ACTION_LIST, req, res, next);
+              CentralRestServerAuthorization.ENTITY_LOGGING, CentralRestServerAuthorization.ACTION_LIST, null, req, res, next);
             return;
           }
           // Get logs
@@ -264,7 +264,7 @@ module.exports = {
           if (!CentralRestServerAuthorization.canListChargingStations(req.user)) {
             // Not Authorized!
             Logging.logActionUnauthorizedMessageAndSendResponse(
-              CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS, CentralRestServerAuthorization.ACTION_LIST, req, res, next);
+              CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS, CentralRestServerAuthorization.ACTION_LIST, null, req, res, next);
             return;
           }
           global.storage.getChargingStations(req.query.Search, 100).then((chargingStations) => {
@@ -301,7 +301,7 @@ module.exports = {
               if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, chargingStation.getChargeBoxIdentity(), req, res, next);
                 return;
               }
               // Filter
@@ -324,7 +324,7 @@ module.exports = {
           if (!CentralRestServerAuthorization.canListUsers(req.user)) {
             // Not Authorized!
             Logging.logActionUnauthorizedMessageAndSendResponse(
-              CentralRestServerAuthorization.ENTITY_USERS, CentralRestServerAuthorization.ACTION_LIST, req, res, next);
+              CentralRestServerAuthorization.ENTITY_USERS, CentralRestServerAuthorization.ACTION_LIST, null, req, res, next);
             return;
           }
           global.storage.getUsers(req.query.Search, 100).then((users) => {
@@ -369,7 +369,7 @@ module.exports = {
               if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, Utils.buildUserFullName(user.getModel()), req, res, next);
                 return;
               }
               // Clear Sensitive Data
@@ -404,7 +404,7 @@ module.exports = {
               if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, Utils.buildUserFullName(user.getModel()), req, res, next);
                 return;
               }
               // Clear Sensitive Data
@@ -440,7 +440,7 @@ module.exports = {
               if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, Utils.buildUserFullName(user.getModel()), req, res, next);
                 return;
               }
               // Clear Sensitive Data
@@ -474,11 +474,11 @@ module.exports = {
             if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
               // Not Authorized!
               Logging.logActionUnauthorizedMessageAndSendResponse(
-                CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, Utils.buildUserFullName(user.getModel()), req, res, next);
               return;
             }
-            // Get the user's transactions
-            user.getTransactions(req.query.Active).then(transactions => {
+            // Get the user's active transactions
+            user.getTransactions(true).then(transactions => {
               // Return
               res.json(transactions);
               next();
@@ -527,7 +527,7 @@ module.exports = {
               if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, chargingStation.getChargeBoxIdentity(), req, res, next);
                 return;
               }
               // Set the model
@@ -597,7 +597,7 @@ module.exports = {
                 if (!CentralRestServerAuthorization.isDemo(req.user)) {
                   // No: Not Authorized!
                   Logging.logActionUnauthorizedMessageAndSendResponse(
-                    CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                    CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, Utils.buildUserFullName(transaction.userID), req, res, next);
                   return;
                 } else {
                   // Clear the user
@@ -613,7 +613,7 @@ module.exports = {
                if (!CentralRestServerAuthorization.isDemo(req.user)) {
                  // No: Not Authorized!
                  Logging.logActionUnauthorizedMessageAndSendResponse(
-                   CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                   CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, Utils.buildUserFullName(transaction.stop.userID), req, res, next);
                 return;
                } else {
                   // Clear the user
@@ -655,7 +655,7 @@ module.exports = {
                   if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
                     // Not Authorized!
                     Logging.logActionUnauthorizedMessageAndSendResponse(
-                      CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                      CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, chargingStation.getChargeBoxIdentity(), req, res, next);
                     return;
                   }
 
@@ -695,7 +695,7 @@ module.exports = {
                     if (!CentralRestServerAuthorization.isDemo(req.user)) {
                       // No: Not Authorized!
                       Logging.logActionUnauthorizedMessageAndSendResponse(
-                        CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                        CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, Utils.buildUserFullName(transaction.userID), req, res, next);
                       return;
                     } else {
                       // Clear the user
@@ -711,7 +711,7 @@ module.exports = {
                    if (!CentralRestServerAuthorization.isDemo(req.user)) {
                      // No: Not Authorized!
                      Logging.logActionUnauthorizedMessageAndSendResponse(
-                       CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                       CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, Utils.buildUserFullName(transaction.stop.userID), req, res, next);
                      return;
                    } else {
                       // Clear the user
@@ -775,7 +775,7 @@ module.exports = {
               if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, chargingStation.getChargeBoxIdentity(), req, res, next);
                 return;
               }
               // Get the Config
@@ -825,7 +825,7 @@ module.exports = {
               if (!CentralRestServerAuthorization.canUpdateUser(req.user, user.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_UPDATE, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_UPDATE, Utils.buildUserFullName(user.getModel()), req, res, next);
                 return;
               }
               // Check if Role is provided
@@ -906,7 +906,7 @@ module.exports = {
               if (!CentralRestServerAuthorization.canDeleteUser(req.user, user.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_DELETE, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_DELETE, Utils.buildUserFullName(user.getModel()), req, res, next);
                 return;
               }
               // Delete
@@ -946,7 +946,7 @@ module.exports = {
               if (!CentralRestServerAuthorization.canDeleteChargingStation(req.user, chargingStation.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_DELETE, req, res, next);
+                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_DELETE, chargingStation.getChargeBoxIdentity(), req, res, next);
                 return;
               }
               // Delete
