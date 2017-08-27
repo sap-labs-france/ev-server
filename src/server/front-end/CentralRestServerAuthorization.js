@@ -121,7 +121,7 @@ module.exports = {
 
   canPerformAction(loggedUser, entity, fieldNamesValues) {
     // Set debug mode?
-    if (this.getConfiguration().debug || true) {
+    if (this.getConfiguration().debug) {
       // Switch on traces
       Authorization.switchTraceOn();
     }
