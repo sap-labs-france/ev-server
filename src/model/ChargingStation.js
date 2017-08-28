@@ -9,6 +9,7 @@ const Configuration = require('../utils/Configuration');
 const NotificationHandler = require('../notification/NotificationHandler');
 
 _configAdvanced = Configuration.getAdvancedConfig();
+_configChargingStation = Configuration.getChargingStationConfig();
 
 class ChargingStation {
   constructor(chargingStation) {
@@ -292,50 +293,121 @@ class ChargingStation {
 
   updateChargingStationConsumption(transactionId) {
     // Get the last tranasction first
-    return this.getTransaction(transactionId).then((transaction) => {
-      // Get connectorId
-      let connector = this.getConnectors()[transaction.connectorId-1];
+    this.getTransaction(transactionId).then((transaction) => {
       // Found?
-      if (transaction && !transaction.stop) {
-        // Get the consumption
-        this.getConsumptionsFromTransaction(transaction, true).then((consumption) => {
-          let currentConsumption = 0;
-          let totalConsumption = 0;
+      if (transaction) {
+        // Get connectorId
+        let connector = this.getConnectors()[transaction.connectorId-1];
+        // Found?
+        if (!transaction.stop) {
+          // Get the consumption
+          this.getConsumptionsFromTransaction(transaction, false).then((consumption) => {
+            let currentConsumption = 0;
+            let totalConsumption = 0;
+            // Check
+            if (consumption) {
+              currentConsumption = (consumption.values.length > 0?consumption.values[consumption.values.length-1].value:0);
+              totalConsumption = consumption.totalConsumption;
+            }
+            // Changed?
+            if (connector.currentConsumption !== currentConsumption || connector.totalConsumption !== totalConsumption) {
+              // Set consumption
+              connector.currentConsumption = currentConsumption;
+              connector.totalConsumption = totalConsumption;
+              // Log
+              Logging.logInfo({
+                userFullName: "System", source: "Central Server", module: "ChargingStation",
+                method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
+                message: `${this.getChargeBoxIdentity()} - ${connector.connectorId} - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
+              // Save
+              this.save();
+            }
+            // Handle End Of charge
+            this.handleNotificationEndOfCharge(transaction, consumption);
+          });
+        } else {
           // Check
-          if (consumption) {
-            currentConsumption = (consumption.values.length > 0?consumption.values[consumption.values.length-1].value:0);
-            totalConsumption = consumption.totalConsumption;
-          }
-          // Changed?
-          if (connector.currentConsumption !== currentConsumption || connector.totalConsumption !== totalConsumption) {
+          if (connector.currentConsumption !== 0 || connector.totalConsumption !== 0) {
             // Set consumption
-            connector.currentConsumption = currentConsumption;
-            connector.totalConsumption = totalConsumption;
+            connector.currentConsumption = 0;
+            connector.totalConsumption = 0;
             // Log
             Logging.logInfo({
-              userFullName: "System", source: "Central Server", module: "ChargingStationConsumptionTask",
-              method: "run", action: "ChargingStationConsumption",
-              message: `${this.getChargeBoxIdentity()} - ${connector.connectorId} - Consumption changed: ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
+              userFullName: "System", source: "Central Server", module: "ChargingStation",
+              method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
+              message: `${this.getChargeBoxIdentity()} - ${connector.connectorId} - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
             // Save
             this.save();
           }
-        });
-      } else {
-        // Check
-        if (connector.currentConsumption !== 0 || connector.totalConsumption !== 0) {
-          // Set consumption
-          connector.currentConsumption = 0;
-          connector.totalConsumption = 0;
-          // Log
-          Logging.logInfo({
-            userFullName: "System", source: "Central Server", module: "ChargingStationConsumptionTask",
-            method: "run", action: "ChargingStationConsumption",
-            message: `${this.getChargeBoxIdentity()} - ${connector.connectorId} - Consumption changed: ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
-          // Save
-          this.save();
         }
+      } else {
+        // Log
+        Logging.logError({
+          userFullName: "System", source: "Central Server", module: "ChargingStation",
+          method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
+          message: `${this.getChargeBoxIdentity()} - Transaction ID '${transactionId}' not found` });
       }
     });
+  }
+
+  handleNotificationEndOfCharge(transaction, consumption) {
+    // Transaction in progress?
+    if (transaction && !transaction.stop) {
+      // Has consumption?
+      if (consumption && consumption.values && consumption.values.length > 1) {
+        // Compute avg of last two values
+        let avgConsumption = (consumption.values[consumption.values.length-1].value +
+          consumption.values[consumption.values.length-2].value) / 2;
+        // --------------------------------------------------------------------
+        // Notification END of charge
+        // --------------------------------------------------------------------
+        if (_configChargingStation.notifEndOfChargeEnabled && avgConsumption === 0) {
+          // Send Notification
+          NotificationHandler.sendEndOfCharge(
+            transaction.transactionId + "-EOF",
+            transaction.userID,
+            this.getModel(),
+            {
+              "user": transaction.userID,
+              "chargingStationId": this.getChargeBoxIdentity(),
+              "connectorId": transaction.connectorId,
+              "evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.transactionId),
+              "notifStopTransactionAndUnlockConnector": _configChargingStation.notifStopTransactionAndUnlockConnector
+            },
+            transaction.userID.locale);
+
+          // Stop Transaction and Unlock Connector?
+          if (_configChargingStation.notifStopTransactionAndUnlockConnector) {
+            // Yes: Stop the transaction
+            this.requestStopTransaction(transaction.transactionId).then((result) => {
+              // Ok?
+              if (result && result.status === "Accepted") {
+                // Unlock the connector
+                this.requestUnlockConnector(transaction.connectorId).then((result) => {
+                  // Ok?
+                  if (result && result.status === "Accepted") {
+                    // Nothing to do
+                    return Promise.resolve();
+                  } else {
+                    // Cannot unlock the connector
+                    Logging.logError({
+                      userFullName: "System", source: "Central Server", module: "ChargingStation", method: "handleNotificationEndOfCharge",
+                      action: "NotifyEndOfCharge", message: `Cannot unlock the connector '${transaction.connectorId}' of the Charging Station '${this.getChargeBoxIdentity()}'`,
+                      detailedMessages: transaction});
+                    }
+                  });
+              } else {
+                // Cannot stop the transaction
+                Logging.logError({
+                  userFullName: "System", source: "Central Server", module: "ChargingStation", method: "handleNotificationEndOfCharge",
+                  action: "NotifyEndOfCharge", message: `Cannot stop the transaction of the Charging Station '${this.getChargeBoxIdentity()}'`,
+                  detailedMessages: transaction});
+              }
+            });
+          }
+        }
+      }
+    }
   }
 
   saveMeterValues(meterValues) {
@@ -817,14 +889,13 @@ class ChargingStation {
 
         // Calculate the consumption with the last value provided
         } else {
-          // Last value is > ?
-          if (lastMeterValue.value > meterValue.value) {
-            // Yes: reinit it (the value has started over from 0)
-            lastMeterValue.value = 0;
-          }
-
           // Value provided?
-          if (meterValue.value > 0) {
+          if (meterValue.value > 0 || lastMeterValue.value > 0) {
+            // Last value is > ?
+            if (lastMeterValue.value > meterValue.value) {
+              // Yes: reinit it (the value has started over from 0)
+              lastMeterValue.value = 0;
+            }
             // Get the moment
             let currentTimestamp = moment(meterValue.timestamp);
             // Check if it will be added
@@ -860,7 +931,7 @@ class ChargingStation {
                   }
                 } else {
                   // Check if last but one consumption was 0 and not the last meter value
-                  if ((chargingStationConsumption.values[numberOfReturnedMeters-1].value === 0) &&
+                  if (optimizeNbrOfValues && (chargingStationConsumption.values[numberOfReturnedMeters-1].value === 0) &&
                       (meterValueIndex !== meterValues.length-1)) {
                     // Do not add
                     addValue = false;
@@ -879,7 +950,7 @@ class ChargingStation {
             }
           } else {
             // Last one is 0, set it to 0
-            if (meterValueIndex === meterValues.length-1) {
+            if (!optimizeNbrOfValues || meterValueIndex === meterValues.length-1) {
               // Add a 0 just before
               chargingStationConsumption.values.push({date: currentTimestamp.toDate(), value: 0 });
             }

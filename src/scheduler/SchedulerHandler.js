@@ -1,7 +1,6 @@
 const Configuration = require('../utils/Configuration');
 const cron = require('node-cron');
 const Logging = require('../utils/Logging');
-const EndOfChargeNotificationTask = require('./tasks/EndOfChargeNotificationTask');
 const LoggingDatabaseTableCleanupTask = require('./tasks/LoggingDatabaseTableCleanupTask');
 
 _schedulerConfig = Configuration.getSchedulerConfig();
@@ -29,16 +28,6 @@ class SchedulerHandler {
         }
         // Tasks
         switch (task.name) {
-          // End of charge notif
-          case "endOfChargeNotification":
-            let endOfChargeNotificationTask = new EndOfChargeNotificationTask();
-            cron.schedule(task.periodicity, endOfChargeNotificationTask.run);
-            Logging.logInfo({
-              userFullName: "System", source: "Central Server", module: "Scheduler",
-              method: "init", action: "Initialization",
-              message: `The task '${task.name}' has been scheduled with periodicity ''${task.periodicity}'` });
-            break;
-
           // Cleanup of logging table
           case "loggingDatabaseTableCleanup":
             let loggingDatabaseTableCleanupTask = new LoggingDatabaseTableCleanupTask();
