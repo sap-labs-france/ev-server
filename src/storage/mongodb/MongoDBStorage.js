@@ -630,30 +630,6 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getLastTransaction(chargeBoxIdentity, connectorId) {
-    // Build filter
-    var filter = {};
-    if (chargeBoxIdentity) {
-      filter.chargeBoxID = chargeBoxIdentity;
-    }
-    if (connectorId) {
-      filter.connectorId = parseInt(connectorId);
-    }
-
-    // Get the Start Transaction
-    return MDBTransaction.findOne(filter).populate("userID").sort({timestamp:-1}).exec().then((transactionMDB) => {
-      var transaction = null;
-      // Found?
-      if (transactionMDB) {
-        // Set
-        transaction = {};
-        Database.updateTransaction(transactionMDB, transaction);
-      }
-      // Ok
-      return transaction;
-    });
-  }
-
   saveChargingStation(chargingStation) {
     // Get
     return MDBChargingStation.findOneAndUpdate(
