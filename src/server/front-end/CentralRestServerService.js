@@ -662,30 +662,19 @@ module.exports = {
                   // Check dates
                   if (req.query.StartDateTime) {
                     // Check date is in the transaction
-                    if (moment(req.query.StartDateTime).isBefore(moment(transaction.timestamp))) {
+                    console.log(moment(req.query.StartDateTime).isSame(moment(transaction.timestamp)));
+                    console.log(moment(req.query.StartDateTime).toDate().toISOString());
+                    console.log(moment(transaction.timestamp).toDate().toISOString());
+                    if (!moment(req.query.StartDateTime).isSame(moment(transaction.timestamp)) &&
+                        moment(req.query.StartDateTime).isBefore(moment(transaction.timestamp))) {
                       Logging.logActionErrorMessageAndSendResponse(action, `The requested Start Date ${req.query.StartDateTime} is before the transaction ID ${req.query.TransactionId} Start Date ${transaction.timestamp}`, req, res, next);
                       return;
                     }
                     // Check date is in the transaction
-                    if (transaction.stop && moment(req.query.StartDateTime).isAfter(moment(transaction.stop.timestamp))) {
+                    if (transaction.stop &&
+                        !moment(req.query.StartDateTime).isSame(moment(transaction.stop.timestamp)) &&
+                        moment(req.query.StartDateTime).isAfter(moment(transaction.stop.timestamp))) {
                       Logging.logActionErrorMessageAndSendResponse(action, `The requested Start Date ${req.query.StartDateTime} is after the transaction ID ${req.query.TransactionId} Stop Date ${transaction.stop.timestamp}`, req, res, next);
-                      return;
-                    }
-                  }
-                  if (req.query.EndDateTime) {
-                    // Check date is in the transaction
-                    if (moment(req.query.EndDateTime).isBefore(moment(req.query.StartDateTime))) {
-                      Logging.logActionErrorMessageAndSendResponse(action, `The requested End Date ${req.query.EndDateTime} is before the requested Start Date ${req.query.StartDateTime}`, req, res, next);
-                      return;
-                    }
-                    // Check date is in the transaction
-                    if (moment(req.query.EndDateTime).isBefore(moment(transaction.timestamp))) {
-                      Logging.logActionErrorMessageAndSendResponse(action, `The requested End Date ${req.query.EndDateTime} is before the transaction ID ${req.query.TransactionId} Start Date ${transaction.timestamp}`, req, res, next);
-                      return;
-                    }
-                    // Check date is in the transaction
-                    if (transaction.stop && moment(req.query.EndDateTime).isAfter(moment(transaction.stop.timestamp))) {
-                      Logging.logActionErrorMessageAndSendResponse(action, `The requested End Date ${req.query.EndDateTime} is after the transaction ID ${req.query.TransactionId} End Date ${transaction.stop.timestamp}`, req, res, next);
                       return;
                     }
                   }
@@ -732,10 +721,7 @@ module.exports = {
                   } else {
                     // Yes: Get the Consumption from dates within the trasaction
                     chargingStation.getConsumptionsFromDateTimeRange(
-                        transaction.connectorId,
-                        req.query.StartDateTime,
-                        req.query.EndDateTime,
-                        false).then((consumptions) => {
+                        transaction, req.query.StartDateTime).then((consumptions) => {
                       // Return the result
                       res.json(consumptions);
                       next();

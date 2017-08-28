@@ -241,43 +241,10 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getMeterValuesFromDateTimeRange(chargeBoxIdentity, connectorId, startDateTime, endDateTime) {
+  getMeterValuesFromTransaction(transactionId) {
     // Build filter
     var filter = {};
     // Mandatory filters
-    filter.chargeBoxID = chargeBoxIdentity;
-    filter.connectorId = connectorId;
-    if (startDateTime || endDateTime) {
-      filter.timestamp = {};
-    }
-    if (startDateTime) {
-      filter.timestamp.$gte = new Date(startDateTime);
-    }
-    if (endDateTime) {
-      filter.timestamp.$lte = new Date(endDateTime);
-    }
-    // Exec request
-    return MDBMeterValue.find(filter).sort( {timestamp: 1, value: -1} ).exec().then((meterValuesMDB) => {
-      var meterValues = [];
-      // Create
-      meterValuesMDB.forEach((meterValueMDB) => {
-        var meterValue = {};
-        // Set values
-        Database.updateMeterValue(meterValueMDB, meterValue);
-        // Add
-        meterValues.push(meterValue);
-      });
-      // Ok
-      return meterValues;
-    });
-  }
-
-  getMeterValuesFromTransaction(chargeBoxIdentity, connectorId, transactionId) {
-    // Build filter
-    var filter = {};
-    // Mandatory filters
-    filter.chargeBoxID = chargeBoxIdentity;
-    filter.connectorId = connectorId;
     filter.transactionId = transactionId;
 
     // Exec request

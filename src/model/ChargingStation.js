@@ -351,7 +351,6 @@ class ChargingStation {
   }
 
   handleNotificationEndOfCharge(transaction, consumption) {
-    console.log(consumption);
     // Transaction in progress?
     if (transaction && !transaction.stop) {
       // Has consumption?
@@ -359,7 +358,6 @@ class ChargingStation {
         // Compute avg of last two values
         let avgConsumption = (consumption.values[consumption.values.length-1].value +
           consumption.values[consumption.values.length-2].value) / 2;
-          console.log(avgConsumption);
         // --------------------------------------------------------------------
         // Notification END of charge
         // --------------------------------------------------------------------
@@ -749,7 +747,6 @@ class ChargingStation {
   getConsumptionsFromTransaction(transaction, optimizeNbrOfValues) {
     // Get the last 5 meter values
     return global.storage.getMeterValuesFromTransaction(
-        this.getChargeBoxIdentity(), transaction.connectorId,
         transaction.transactionId).then((meterValues) => {
       // Build the header
       var chargingStationConsumption = {};
@@ -763,32 +760,20 @@ class ChargingStation {
     });
   }
 
-  getConsumptionsFromDateTimeRange(connectorId, startDateTime, endDateTime, optimizeNbrOfValues) {
-    // Define end date default
-    if (!endDateTime) {
-      endDateTime = new Date().toISOString(); // Current day
-    }
-    // Build the request
-    return global.storage.getMeterValuesFromDateTimeRange(
-        this.getChargeBoxIdentity(),
-        connectorId,
-        startDateTime,
-        endDateTime).then((meterValues) => {
-      // Build the header
-      var chargingStationConsumption = {};
-      chargingStationConsumption.values = [];
-      chargingStationConsumption.totalConsumption = 0;
-      chargingStationConsumption.chargeBoxID = this.getChargeBoxIdentity();
-      chargingStationConsumption.connectorId = connectorId;
-      if (startDateTime) {
-        chargingStationConsumption.startDateTime = startDateTime;
+  getConsumptionsFromDateTimeRange(transaction, startDateTime) {
+    // Get all from the transaction (not optimized)
+    return this.getConsumptionsFromTransaction(transaction, false).then((consumptions) => {
+      // Found?
+      if (consumptions && consumptions.values) {
+        // Start date
+        let startDateMoment = moment(startDateTime);
+        // Filter value per date
+        consumptions.values = consumptions.values.filter((consumption) => {
+          // Filter
+          return moment(consumption.date).isAfter(startDateMoment);
+        });
       }
-      if (endDateTime) {
-        chargingStationConsumption.endDateTime = endDateTime;
-      }
-
-      // Compute consumption
-      return this.buildConsumption(chargingStationConsumption, meterValues, null, optimizeNbrOfValues);
+      return consumptions;
     });
   }
 
