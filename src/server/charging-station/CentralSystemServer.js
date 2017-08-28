@@ -85,6 +85,9 @@ class CentralSystemServer {
       if (!chargingStation) {
         // Save Charging Station
         chargingStation = new ChargingStation(args);
+      } else {
+        // Update data
+        Database.updateChargingStation(args, chargingStation.getModel());
       }
 
       // Save Charging Station
@@ -209,7 +212,7 @@ class CentralSystemServer {
           Logging.logError({
             userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStatusNotification",
             action: "StatusNotification", message: `The Charging Station ${headers.chargeBoxIdentity} has reported an error on connector ${args.connectorId}: ${args.status} - ${args.errorCode}` });
-          // Send Notification 
+          // Send Notification
           NotificationHandler.sendChargingStationStatusError(
             Utils.generateID(),
             chargingStation.getModel(),

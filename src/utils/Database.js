@@ -6,7 +6,9 @@ require('source-map-support').install();
 module.exports = {
   updateChargingStation(src, dest) {
     // Set it
-    dest.id = src._id;
+    if (src._id) {
+      dest.id = src._id;
+    }
     dest.chargeBoxIdentity = src.id;
     dest.chargePointSerialNumber = src.chargePointSerialNumber;
     dest.chargePointModel = src.chargePointModel;
@@ -26,10 +28,12 @@ module.exports = {
       dest.connectors = [];
     }
   },
-  
+
   updateMigration(src, dest) {
     // Set it
-    dest.id = src._id;
+    if (src._id) {
+      dest.id = src._id;
+    }
     dest.timestamp = src.timestamp;
     dest.name = src.name;
     dest.version = src.version;
@@ -37,14 +41,18 @@ module.exports = {
 
   updateConfiguration(src, dest) {
     // Set it
-    dest.id = src._id;
+    if (src._id) {
+      dest.id = src._id;
+    }
     dest.timestamp = src.timestamp;
     dest.configuration = src.configuration;
   },
 
   updateStatusNotification(src, dest) {
     // Set it
-    dest.id = src._id;
+    if (src._id) {
+      dest.id = src._id;
+    }
     dest.connectorId = src.connectorId;
     dest.timestamp = src.timestamp;
     dest.status = src.status;
@@ -56,7 +64,9 @@ module.exports = {
 
   updateNotification(src, dest) {
     // Set it
-    dest.id = src._id;
+    if (src._id) {
+      dest.id = src._id;
+    }
     dest.timestamp = src.timestamp;
     dest.channel = src.channel;
     dest.sourceId = src.sourceId;
@@ -67,7 +77,9 @@ module.exports = {
 
   updateMeterValue(src, dest) {
     // Set it
-    dest.id = src._id;
+    if (src._id) {
+      dest.id = src._id;
+    }
     dest.connectorId = src.connectorId;
     dest.transactionId = src.transactionId;
     dest.timestamp = src.timestamp;
@@ -77,7 +89,9 @@ module.exports = {
 
   updateUser(src, dest) {
     // Set it
-    dest.id = src._id;
+    if (src._id) {
+      dest.id = src._id;
+    }
     dest.name = src.name;
     dest.firstName = src.firstName;
     dest.image = src.image;
@@ -118,7 +132,9 @@ module.exports = {
 
   updateLoggingObject(src, dest) {
     // Set
-    dest.id = src._id;
+    if (src._id) {
+      dest.id = src._id;
+    }
     dest.level = src.level;
     dest.source = src.source;
     dest.module = src.module;
@@ -132,7 +148,9 @@ module.exports = {
 
   updateTransaction(src, dest) {
     // Set ID
-    dest.id = src._id;
+    if (src._id) {
+      dest.id = src._id;
+    }
     dest.transactionId = src._id;
     // Check User
     if (src.chargeBoxID && src.chargeBoxID._id) {
@@ -182,10 +200,4 @@ module.exports = {
       dest.stop.totalConsumption = src.stop.totalConsumption;
     }
   },
-
-  updateStartTransaction(src, dest) {
-  },
-
-  updateStopTransaction(src, dest) {
-  }
 };

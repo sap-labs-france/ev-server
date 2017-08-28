@@ -351,6 +351,7 @@ class ChargingStation {
   }
 
   handleNotificationEndOfCharge(transaction, consumption) {
+    console.log(consumption);
     // Transaction in progress?
     if (transaction && !transaction.stop) {
       // Has consumption?
@@ -358,6 +359,7 @@ class ChargingStation {
         // Compute avg of last two values
         let avgConsumption = (consumption.values[consumption.values.length-1].value +
           consumption.values[consumption.values.length-2].value) / 2;
+          console.log(avgConsumption);
         // --------------------------------------------------------------------
         // Notification END of charge
         // --------------------------------------------------------------------
@@ -371,6 +373,9 @@ class ChargingStation {
               "user": transaction.userID,
               "chargingStationId": this.getChargeBoxIdentity(),
               "connectorId": transaction.connectorId,
+              "totalConsumption": (this.getConnectors()[transaction.connectorId-1].totalConsumption/1000).toLocaleString(
+                (transaction.userID.locale?transaction.userID.locale.replace('_','-'):Utils.getDefaultLocale().replace('_','-')),
+                  {minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
               "evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.transactionId),
               "notifStopTransactionAndUnlockConnector": _configChargingStation.notifStopTransactionAndUnlockConnector
             },

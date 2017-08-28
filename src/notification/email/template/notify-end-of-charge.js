@@ -12,6 +12,8 @@ module.exports.html = `
         You can now stop the transaction and unlock the connector.</br>
       <% } %>
       </br>
+      The total consumption is: <b><%= totalConsumption %> kW.h</b>.</br>
+      </br>
       Best Regards,</br>
       EVSE Admin.
     </body>
@@ -32,6 +34,8 @@ module.exports.fr_FR.html = `
       <% } else { %>
         Vous pouvez dès maintenant stopper la transaction et devérouiller le connecteur.</br>
       <% } %>
+      </br>
+      La consommation totale est de : <b><%= totalConsumption %> kW.h</b>.</br>
       </br>
       Cordialement,</br>
       EVSE Admin.
