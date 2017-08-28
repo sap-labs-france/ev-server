@@ -800,7 +800,6 @@ class ChargingStation {
       chargingStationConsumption.chargeBoxID = this.getChargeBoxIdentity();
       chargingStationConsumption.connectorId = transaction.connectorId;
       chargingStationConsumption.transactionId = transaction.transactionId;
-
       // Compute consumption
       return this.buildConsumption(chargingStationConsumption, meterValues, transaction, optimizeNbrOfValues);
     });
@@ -844,7 +843,7 @@ class ChargingStation {
     // Set first value from transaction
     if (meterValues && meterValues.length > 0 && transaction) {
       // Set last meter value
-      let meterValueFromTransaction = {
+      let meterValueFromTransactionStart = {
         id: '666',
         connectorId: transaction.connectorId,
         transactionId: transaction.transactionId,
@@ -859,15 +858,27 @@ class ChargingStation {
         }
       };
       // Append
-      meterValues.splice(0, 0, meterValueFromTransaction);
+      meterValues.splice(0, 0, meterValueFromTransactionStart);
 
       // Set last value from transaction
       if (transaction.stop) {
         // Set last meter value
-        meterValueFromTransaction.timestamp = transaction.stop.timestamp;
-        meterValueFromTransaction.value = transaction.stop.meterStop;
+        let meterValueFromTransactionStop = {
+          id: '6969',
+          connectorId: transaction.connectorId,
+          transactionId: transaction.transactionId,
+          timestamp: transaction.stop.timestamp,
+          value: transaction.stop.meterStop,
+          attribute: {
+            unit: 'Wh',
+            location: 'Outlet',
+            measurand: 'Energy.Active.Import.Register',
+            format: 'Raw',
+            context: 'Sample.Periodic'
+          }
+        };
         // Append
-        meterValues.push(meterValueFromTransaction);
+        meterValues.push(meterValueFromTransactionStop);
       }
     }
     // Build the model
