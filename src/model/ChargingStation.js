@@ -553,7 +553,7 @@ class ChargingStation {
                 "user": user.getModel(),
                 "chargingStationId": this.getChargeBoxIdentity(),
                 "connectorId": request.connectorId,
-                "evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(this, request.connectorId)
+                "evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, request.connectorId, request.transactionId)
               },
               user.getLocale()
             );
