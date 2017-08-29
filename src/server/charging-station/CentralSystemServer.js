@@ -207,7 +207,7 @@ class CentralSystemServer {
       // Found?
       if (chargingStation) {
         // Check if error
-        if (args.status === "Faulted" || args.status === "Unavailable") {
+        if (args.status === "Faulted") {
           // Log
           Logging.logError({
             userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStatusNotification",
