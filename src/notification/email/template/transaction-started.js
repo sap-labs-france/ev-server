@@ -1,4 +1,4 @@
-module.exports.subject = "EVSE - Your electric vehicle is successfully connected";
+module.exports.subject = "EVSE - Your vehicle is successfully connected to <%= chargingStationId %>";
 module.exports.html = `
   <html>
     <body>
@@ -13,7 +13,7 @@ module.exports.html = `
 `;
 
 module.exports.fr_FR = {};
-module.exports.fr_FR.subject = "EVSE - Votre véhicule électrique est connecté";
+module.exports.fr_FR.subject = "EVSE - Votre véhicule est correctement connecté sur <%= chargingStationId %>";
 module.exports.fr_FR.html = `
   <html>
     <body>

@@ -662,9 +662,6 @@ module.exports = {
                   // Check dates
                   if (req.query.StartDateTime) {
                     // Check date is in the transaction
-                    console.log(moment(req.query.StartDateTime).isSame(moment(transaction.timestamp)));
-                    console.log(moment(req.query.StartDateTime).toDate().toISOString());
-                    console.log(moment(transaction.timestamp).toDate().toISOString());
                     if (!moment(req.query.StartDateTime).isSame(moment(transaction.timestamp)) &&
                         moment(req.query.StartDateTime).isBefore(moment(transaction.timestamp))) {
                       Logging.logActionErrorMessageAndSendResponse(action, `The requested Start Date ${req.query.StartDateTime} is before the transaction ID ${req.query.TransactionId} Start Date ${transaction.timestamp}`, req, res, next);

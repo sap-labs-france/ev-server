@@ -1,4 +1,4 @@
-module.exports.subject = "EVSE - Your electric vehicule has finished charging";
+module.exports.subject = "EVSE - Your vehicule has finished charging on <%= chargingStationId %>";
 module.exports.html = `
   <html>
     <body>
@@ -21,7 +21,7 @@ module.exports.html = `
 `;
 
 module.exports.fr_FR = {};
-module.exports.fr_FR.subject = "EVSE - La charge de votre véhicule électrique est terminée";
+module.exports.fr_FR.subject = "EVSE - La charge de votre véhicule est terminée sur la borne <%= chargingStationId %>";
 module.exports.fr_FR.html = `
   <html>
     <body>
