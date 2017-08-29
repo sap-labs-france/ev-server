@@ -67,9 +67,6 @@ class Storage {
   saveMeterValues(meterValues) {
   }
 
-  getLastMeterValuesFromTransaction(chargeBoxIdentity, connectorId, transactionId, limit) {
-  }
-
   getTransactions(filter, onlyActive) {
   }
 

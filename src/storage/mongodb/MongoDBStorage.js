@@ -263,46 +263,6 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getLastMeterValuesFromTransaction(chargeBoxIdentity, connectorId, transactionId, limit) {
-    // Build filter
-    var filter = {};
-    // Mandatory filters
-    filter.chargeBoxID = chargeBoxIdentity;
-    filter.connectorId = connectorId;
-    filter.transactionId = transactionId;
-    if (!limit) {
-      limit = 0; // Get them all
-    }
-
-    // Exec request
-    return MDBMeterValue.find(filter).sort( {timestamp: -1, value: -1} ).limit(limit).exec().then((meterValuesMDB) => {
-      var meterValues = [];
-      // Create
-      meterValuesMDB.forEach((meterValueMDB) => {
-        var meterValue = {};
-        // Set values
-        Database.updateMeterValue(meterValueMDB, meterValue);
-        // Add
-        meterValues.push(meterValue);
-      });
-      // Resort them back
-      meterValues.sort((val1, val2) => {
-        var date1 = moment(val1.timestamp);
-        var date2 = moment(val2.timestamp);
-        // Check
-        if (date1.isBefore(date2)) {
-          return -1;
-        } else if (date1.isAfter(date2)) {
-          return 1;
-        } else {
-          return 0;
-        }
-      });
-      // Ok
-      return meterValues;
-    });
-  }
-
   saveBootNotification(bootNotification) {
     // Create model
     var bootNotificationMDB = new MDBBootNotification(bootNotification);
