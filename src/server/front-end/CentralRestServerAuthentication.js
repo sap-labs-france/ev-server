@@ -52,7 +52,7 @@ module.exports = {
           // Login
           case "login":
             // Check email
-            global.storage.getUserByEmailPassword(req.body.email, Users.hashPassword(req.body.password)).then(function(user) {
+            global.storage.getUserByEmailPassword(req.body.email, Users.hashPassword(req.body.password)).then((user) => {
               // Found?
               if (user) {
                 // Log it
@@ -71,6 +71,7 @@ module.exports = {
                     name: user.getName(),
                     firstName: user.getFirstName(),
                     role: user.getRole(),
+                    status: user.getStatus(),
                     auths: compiledAuths
                 };
                 // Build token

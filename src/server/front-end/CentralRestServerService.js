@@ -842,9 +842,18 @@ module.exports = {
                 // Role provided and not an Admin
                 Logging.logError({
                   user: req.user, source: "Central Server", module: "CentralServerRestService", method: "UpdateUser",
-                  message: `User ${req.user.firstName} ${req.user.name} tries to update his role to '${req.body.role}' without having the Admin priviledge (current role: '${req.user.role}')` });
+                  message: `User ${req.user.firstName} ${req.user.name} with ID '${req.user.id}' tries to update his role to '${req.body.role}' without having the Admin priviledge (current role: '${req.user.role}')` });
                 // Ovverride it
                 req.body.role = req.user.role;
+              }
+              // Check if Role is provided
+              if (req.body.status && req.body.status !== req.user.status && req.user.role !== "A") {
+                // Role provided and not an Admin
+                Logging.logError({
+                  user: req.user, source: "Central Server", module: "CentralServerRestService", method: "UpdateUser",
+                  message: `User ${req.user.firstName} ${req.user.name} with ID '${req.user.id}' tries to update his status to '${req.body.status}' without having the Admin priviledge (current role: '${req.user.role}')` });
+                // Ovverride it
+                req.body.status = req.user.status;
               }
               // Update
               Database.updateUser(req.body, user.getModel());
@@ -864,7 +873,7 @@ module.exports = {
               user.save().then(() => {
                 Logging.logInfo({
                   user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
-                  message: `User ${user.getFullName()} with Email ${user.getEMail()} has been updated successfully`,
+                  message: `User ${user.getFullName()} with Email ${user.getEMail()} and ID '${req.user.id}' has been updated successfully`,
                   action: action, detailedMessages: user});
                 // Ok
                 res.json({status: `Success`});
@@ -923,7 +932,7 @@ module.exports = {
                 // Log
                 Logging.logInfo({
                   user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
-                  message: `User ${user.getFullName()} with Email ${user.getEMail()} has been deleted successfully`,
+                  message: `User ${user.getFullName()} with Email ${user.getEMail()} and ID '${user.getID()}' has been deleted successfully`,
                   action: action, detailedMessages: user});
                 // Ok
                 res.json({status: `Success`});
