@@ -479,6 +479,15 @@ module.exports = {
             }
             // Get the user's active transactions
             user.getTransactions(true).then(transactions => {
+              // Clean images
+              transactions.forEach((transaction) => {
+                if (transaction.userID) {
+                  transaction.userID.image = null;
+                }
+                if (transaction.stop && transaction.stop.userID) {
+                  transaction.stop.userID.image = null;
+                }
+              });
               // Return
               res.json(transactions);
               next();
@@ -498,6 +507,15 @@ module.exports = {
               // Check
               return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
                 CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBoxID);
+            });
+            // Clean images
+            transactions.forEach((transaction) => {
+              if (transaction.userID) {
+                transaction.userID.image = null;
+              }
+              if (transaction.stop && transaction.stop.userID) {
+                transaction.stop.userID.image = null;
+              }
             });
             // Return
             res.json(transactions);
@@ -564,6 +582,15 @@ module.exports = {
                       return true;
                     });
                   }
+                  // Clean images
+                  transactionsAuthorized.forEach((transactionAuthorized) => {
+                    if (transactionAuthorized.userID) {
+                      transactionAuthorized.userID.image = null;
+                    }
+                    if (transactionAuthorized.stop && transactionAuthorized.stop.userID) {
+                      transactionAuthorized.stop.userID.image = null;
+                    }
+                  });
                   // Return
                   res.json(transactionsAuthorized);
                   next();
@@ -642,7 +669,6 @@ module.exports = {
             Logging.logActionErrorMessageAndSendResponse(action, `The Transaction ID is mandatory`, req, res, next);
             break;
           }
-
           // Get Transaction
           global.storage.getTransaction(req.query.TransactionId).then((transaction) => {
             if (transaction) {

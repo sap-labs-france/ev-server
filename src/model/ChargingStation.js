@@ -752,9 +752,14 @@ class ChargingStation {
       var chargingStationConsumption = {};
       chargingStationConsumption.values = [];
       chargingStationConsumption.totalConsumption = 0;
-      chargingStationConsumption.chargeBoxID = this.getChargeBoxIdentity();
+      chargingStationConsumption.chargeBoxIdentity = this.getChargeBoxIdentity();
       chargingStationConsumption.connectorId = transaction.connectorId;
       chargingStationConsumption.transactionId = transaction.transactionId;
+      chargingStationConsumption.userID = transaction.userID;
+      if (transaction.stop && transaction.stop.userID) {
+        chargingStationConsumption.stop = {};
+        chargingStationConsumption.stop.userID = transaction.stop.userID;
+      }
       // Compute consumption
       return this.buildConsumption(chargingStationConsumption, meterValues, transaction, optimizeNbrOfValues);
     });

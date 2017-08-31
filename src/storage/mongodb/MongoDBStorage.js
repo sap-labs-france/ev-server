@@ -526,7 +526,8 @@ class MongoDBStorage extends Storage {
       $match.stop = null;
     }
     // Yes: Get only active ones
-    return MDBTransaction.find($match).populate("userID").populate("chargeBoxID").sort({timestamp:-1}).exec().then(transactionsMDB => {
+    return MDBTransaction.find($match).populate("userID").populate("chargeBoxID").populate("stop.userID")
+        .sort({timestamp:-1}).exec().then(transactionsMDB => {
       // Set
       var transactions = [];
       // Create
@@ -543,7 +544,8 @@ class MongoDBStorage extends Storage {
 
   getTransaction(transactionId) {
     // Get the Start Transaction
-    return MDBTransaction.findById({"_id": transactionId}).populate("userID").populate("chargeBoxID").exec().then((transactionMDB) => {
+    return MDBTransaction.findById({"_id": transactionId}).populate("userID").populate("chargeBoxID")
+        .populate("stop.userID").exec().then((transactionMDB) => {
       // Set
       var transaction = null;
       // Found?
