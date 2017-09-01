@@ -26,7 +26,6 @@ var jwtOptions = {
 
 // Use
 passport.use(new JwtStrategy(jwtOptions, (jwtPayload, done) => {
-  console.log(jwtPayload);
   // Return the token decoded right away
   return done(null, jwtPayload);
 }));
