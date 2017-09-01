@@ -111,7 +111,7 @@ module.exports = {
               // Check Mandatory fields
               if (Users.checkIfUserValid(req, res, next)) {
                 // Check email
-                global.storage.getUserByEmail(req.body.email).then(function(user) {
+                global.storage.getUserByEmail(req.body.email).then((user) => {
                   if (user) {
                     Logging.logActionErrorMessageAndSendResponse(action, `The email ${req.body.email} already exists`, req, res, next);
                     return;
@@ -119,6 +119,8 @@ module.exports = {
                   // Create the user
                   var newUser = new User(req.body);
                   // Hash the password
+                  newUser.setStatus(Users.USER_STATUS_PENDING);
+                  newUser.setRole(Users.USER_ROLE_BASIC);
                   newUser.setPassword(Users.hashPassword(newUser.getPassword()));
                   // Save
                   newUser.save().then(() => {

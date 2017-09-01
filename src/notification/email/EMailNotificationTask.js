@@ -4,7 +4,7 @@ const path = require('path');
 const email = require("emailjs");
 const ejs = require('ejs');
 const resetPasswordTemplate = require('./template/reset-password.js');
-const registeredUserTemplate = require('./template/registered-user.js');
+const newRegisteredUserTemplate = require('./template/new-registered-user.js');
 const notifyEndOfChargeTemplate = require('./template/notify-end-of-charge.js');
 const notifyBeforeEndOfChargeTemplate = require('./template/notify-before-end-of-charge.js');
 const chargingStationStatusError = require('./template/charging-station-status-error.js');
@@ -36,7 +36,7 @@ class EMailNotificationTask extends NotificationTask {
     // Create a promise
     return new Promise((fulfill, reject) => {
       // Send it
-      this._prepareAndSendEmail('registered-user', data, locale, fulfill, reject);
+      this._prepareAndSendEmail('new-registered-user', data, locale, fulfill, reject);
     });
   }
 
@@ -98,8 +98,8 @@ class EMailNotificationTask extends NotificationTask {
         emailTemplate = resetPasswordTemplate;
         break;
       // Registered user
-      case 'registered-user':
-        emailTemplate = registeredUserTemplate;
+      case 'new-registered-user':
+        emailTemplate = newRegisteredUserTemplate;
         break;
       // Before End of charge
       case 'notify-before-end-of-charge':

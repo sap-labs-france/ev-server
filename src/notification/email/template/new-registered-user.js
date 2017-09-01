@@ -8,6 +8,8 @@ module.exports.html = `
       </br>
       Your account has been created successfully.</br>
       </br>
+      An administrator will verify and activate it.</br>
+      </br>
       Best Regards,</br>
       EVSE Admin.
     </body>
@@ -24,6 +26,8 @@ module.exports.fr_FR.html = `
       Bienvenue dans l'<a href="<%= evseDashboardURL %>">EVSE Dashboard</a> !</br>
       </br>
       Votre compte a été créé avec succès.</br>
+      </br>
+      Un administrateur va le vérifier et l'activer.</br>
       </br>
       Cordialement,</br>
       EVSE Admin.
