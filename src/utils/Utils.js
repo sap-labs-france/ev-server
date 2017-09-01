@@ -35,7 +35,7 @@ module.exports = {
     if (!user.firstName) {
       return user.name;
     }
-    return `${user.firstName} ${user.name}`;
+    return `${user.firstName} ${user.name} (${user.id})`;
   },
 
   // Save the users in file

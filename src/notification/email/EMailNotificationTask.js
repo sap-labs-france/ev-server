@@ -5,8 +5,9 @@ const email = require("emailjs");
 const ejs = require('ejs');
 const resetPasswordTemplate = require('./template/reset-password.js');
 const newRegisteredUserTemplate = require('./template/new-registered-user.js');
-const notifyEndOfChargeTemplate = require('./template/notify-end-of-charge.js');
-const notifyBeforeEndOfChargeTemplate = require('./template/notify-before-end-of-charge.js');
+const userAccountStatusChanged = require('./template/user-account-status-changed.js');
+const endOfChargeTemplate = require('./template/end-of-charge.js');
+const beforeEndOfChargeTemplate = require('./template/before-end-of-charge.js');
 const chargingStationStatusError = require('./template/charging-station-status-error.js');
 const transactionStarted = require('./template/transaction-started');
 const unknownUserBadged = require('./template/unknown-user-badged');
@@ -52,7 +53,7 @@ class EMailNotificationTask extends NotificationTask {
     // Create a promise
     return new Promise((fulfill, reject) => {
       // Send it
-      this._prepareAndSendEmail('notify-before-end-of-charge', data, locale, fulfill, reject);
+      this._prepareAndSendEmail('before-end-of-charge', data, locale, fulfill, reject);
     });
   }
 
@@ -60,7 +61,7 @@ class EMailNotificationTask extends NotificationTask {
     // Create a promise
     return new Promise((fulfill, reject) => {
       // Send it
-      this._prepareAndSendEmail('notify-end-of-charge', data, locale, fulfill, reject);
+      this._prepareAndSendEmail('end-of-charge', data, locale, fulfill, reject);
     });
   }
 
@@ -69,6 +70,14 @@ class EMailNotificationTask extends NotificationTask {
     return new Promise((fulfill, reject) => {
       // Send it
       this._prepareAndSendEmail('charging-station-status-error', data, locale, fulfill, reject);
+    });
+  }
+
+  sendUserAccountStatusChanged(data, locale) {
+    // Create a promise
+    return new Promise((fulfill, reject) => {
+      // Send it
+      this._prepareAndSendEmail('user-account-status-changed', data, locale, fulfill, reject);
     });
   }
 
@@ -102,12 +111,12 @@ class EMailNotificationTask extends NotificationTask {
         emailTemplate = newRegisteredUserTemplate;
         break;
       // Before End of charge
-      case 'notify-before-end-of-charge':
-        emailTemplate = notifyBeforeEndOfChargeTemplate;
+      case 'before-end-of-charge':
+        emailTemplate = beforeEndOfChargeTemplate;
         break;
       // End of charge
-      case 'notify-end-of-charge':
-        emailTemplate = notifyEndOfChargeTemplate;
+      case 'end-of-charge':
+        emailTemplate = endOfChargeTemplate;
         break;
       // Charging Station Status Error
       case 'charging-station-status-error':
@@ -118,6 +127,9 @@ class EMailNotificationTask extends NotificationTask {
         break;
       case 'transaction-started':
         emailTemplate = transactionStarted;
+        break;
+      case 'user-account-status-changed':
+        emailTemplate = userAccountStatusChanged;
         break;
     }
     // Template found?

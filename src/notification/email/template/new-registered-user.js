@@ -8,7 +8,7 @@ module.exports.html = `
       </br>
       Your account has been created successfully.</br>
       </br>
-      An administrator will verify and activate it.</br>
+      An administrator will verify your account and activate it.</br>
       </br>
       Best Regards,</br>
       EVSE Admin.
@@ -27,7 +27,7 @@ module.exports.fr_FR.html = `
       </br>
       Votre compte a été créé avec succès.</br>
       </br>
-      Un administrateur va le vérifier et l'activer.</br>
+      Un administrateur va vérifier votre compte et l'activer.</br>
       </br>
       Cordialement,</br>
       EVSE Admin.

@@ -122,6 +122,7 @@ module.exports = {
                   newUser.setStatus(Users.USER_STATUS_PENDING);
                   newUser.setRole(Users.USER_ROLE_BASIC);
                   newUser.setPassword(Users.hashPassword(newUser.getPassword()));
+                  console.log(newUser.getModel());
                   // Save
                   newUser.save().then(() => {
                     // Send notification

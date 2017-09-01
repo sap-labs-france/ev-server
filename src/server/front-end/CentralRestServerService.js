@@ -1,11 +1,12 @@
-const CentralRestServerAuthorization = require('./CentralRestServerAuthorization');
 const Utils = require('../../utils/Utils');
 const Database = require('../../utils/Database');
 const Logging = require('../../utils/Logging');
 const Users = require('../../utils/Users');
 const User = require('../../model/User');
 const moment = require('moment');
+const CentralRestServerAuthorization = require('./CentralRestServerAuthorization');
 const SecurityRestObjectFiltering = require('./SecurityRestObjectFiltering');
+const NotificationHandler = require('../../notification/NotificationHandler');
 
 require('source-map-support').install();
 
@@ -822,6 +823,7 @@ module.exports = {
       switch (action) {
         // User
         case "UserUpdate":
+          let statusHasChanged=false;
           // Check Mandatory fields
           if (Users.checkIfUserValid(req, res, next)) {
             // Check email
@@ -837,23 +839,29 @@ module.exports = {
                   CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_UPDATE, Utils.buildUserFullName(user.getModel()), req, res, next);
                 return;
               }
-              // Check if Role is provided
-              if (req.body.role && req.body.role !== req.user.role && req.user.role !== "A") {
+              // Check if Role is provided and has been changed
+              if (req.body.role && req.body.role !== user.getRole() && req.user.role !== Users.USER_ROLE_ADMIN) {
                 // Role provided and not an Admin
                 Logging.logError({
                   user: req.user, source: "Central Server", module: "CentralServerRestService", method: "UpdateUser",
-                  message: `User ${req.user.firstName} ${req.user.name} with ID '${req.user.id}' tries to update his role to '${req.body.role}' without having the Admin priviledge (current role: '${req.user.role}')` });
-                // Ovverride it
-                req.body.role = req.user.role;
+                  message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to change the role of the user ${Utils.buildUserFullName(user.getModel())} to '${req.body.role}' without having the Admin priviledge` });
+                // Override it
+                req.body.role = user.getRole();
               }
               // Check if Role is provided
-              if (req.body.status && req.body.status !== req.user.status && req.user.role !== "A") {
-                // Role provided and not an Admin
-                Logging.logError({
-                  user: req.user, source: "Central Server", module: "CentralServerRestService", method: "UpdateUser",
-                  message: `User ${req.user.firstName} ${req.user.name} with ID '${req.user.id}' tries to update his status to '${req.body.status}' without having the Admin priviledge (current role: '${req.user.role}')` });
-                // Ovverride it
-                req.body.status = req.user.status;
+              if (req.body.status && req.body.status !== user.getStatus()) {
+                // Right to change?
+                if (req.user.role !== Users.USER_ROLE_ADMIN) {
+                  // Role provided and not an Admin
+                  Logging.logError({
+                    user: req.user, source: "Central Server", module: "CentralServerRestService", method: "UpdateUser",
+                    message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to update the status of the user ${Utils.buildUserFullName(user.getModel())} to '${req.body.status}' without having the Admin priviledge` });
+                  // Ovverride it
+                  req.body.status = user.getStatus();
+                } else {
+                  // Status changed
+                  statusHasChanged = true;
+                }
               }
               // Update
               Database.updateUser(req.body, user.getModel());
@@ -871,10 +879,23 @@ module.exports = {
               }
               // Update
               user.save().then(() => {
+                // Log
                 Logging.logInfo({
                   user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
                   message: `User ${user.getFullName()} with Email ${user.getEMail()} and ID '${req.user.id}' has been updated successfully`,
                   action: action, detailedMessages: user});
+                // Notify
+                if (statusHasChanged) {
+                  // Send notification
+                  NotificationHandler.sendUserAccountStatusChanged(
+                    Utils.generateID(),
+                    user.getModel(),
+                    {
+                      "user": user.getModel(),
+                      "evseDashboardURL" : Utils.buildEvseURL()
+                    },
+                    req.locale);
+                }
                 // Ok
                 res.json({status: `Success`});
                 next();

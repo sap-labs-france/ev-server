@@ -12,6 +12,7 @@ const SOURCE_BEFORE_END_OF_CHARGE = "NotifyBeforeEndOfCharge";
 const SOURCE_CHARGING_STATION_STATUS_ERROR = "NotifyChargingStationStatusError";
 const SOURCE_END_OF_CHARGE = "NotifyEndOfCharge";
 const SOURCE_RESET_PASSWORD = "NotifyResetPassword";
+const SOURCE_USER_ACCOUNT_STATUS_CHANGED = "NotifyUserAccountStatusChanged";
 const SOURCE_NEW_REGISTERED_USER = "NotifyNewRegisteredUser";
 const SOURCE_UNKNOWN_USER_BADGED = "NotifyUnknownUserBadged";
 const SOURCE_TRANSACTION_STARTED = "NotifyTransactionStarted";
@@ -118,6 +119,20 @@ class NotificationHandler {
       }).catch(error => {
         // Log error
         Logging.logUnexpectedErrorMessage(SOURCE_RESET_PASSWORD, "NotificationHandler", "sendResetPassword", error);
+      });
+    }
+  }
+
+  static sendUserAccountStatusChanged(sourceId, user, sourceData, locale) {
+    // Email enabled?
+    if (_notificationConfig.Email.enabled) {
+      // Send email
+      _email.sendUserAccountStatusChanged(sourceData, locale).then(message => {
+        // Save notif
+        NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_USER_ACCOUNT_STATUS_CHANGED, user, null, message);
+      }).catch(error => {
+        // Log error
+        Logging.logUnexpectedErrorMessage(SOURCE_USER_ACCOUNT_STATUS_CHANGED, "NotificationHandler", "sendUserAccountStatusChanged", error);
       });
     }
   }
