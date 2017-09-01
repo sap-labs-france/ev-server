@@ -18,14 +18,15 @@ let _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig()
 
 // Init JWT auth options
 var jwtOptions = {
-  secretOrKey: _centralSystemRestConfig.userTokenKey,
-  jwtFromRequest: ExtractJwt.fromAuthHeader()
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey: _centralSystemRestConfig.userTokenKey
   // issuer: 'evse-dashboard',
   // audience: 'evse-dashboard'
 };
 
 // Use
-passport.use(new JwtStrategy(jwtOptions, function(jwtPayload, done) {
+passport.use(new JwtStrategy(jwtOptions, (jwtPayload, done) => {
+  console.log(jwtPayload);
   // Return the token decoded right away
   return done(null, jwtPayload);
 }));

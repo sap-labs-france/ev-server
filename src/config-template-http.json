@@ -11,7 +11,7 @@
     "protocol": "http",
     "host": "localhost",
     "port": 80,
-    "userTokenKey": "s3A92797boeiBhxQDM1GInRith",
+    "userTokenKey": "YourSecretKey",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
     "webSocketNotificationIntervalSecs": 5,

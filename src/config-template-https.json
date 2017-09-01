@@ -14,7 +14,7 @@
     "ssl-key": "ssl/localhost.key",
     "ssl-cert": "ssl/localhost.cert",
     "ssl-ca": [],
-    "userTokenKey": "s3A92797boeiBhxQDM1GInRith",
+    "userTokenKey": "YourSecretKey",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
     "webSocketNotificationIntervalSecs": 5,
