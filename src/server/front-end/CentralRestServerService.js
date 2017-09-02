@@ -308,41 +308,36 @@ module.exports = {
                 // Handle
                 var chargingStationsJSon = [];
                 chargingStations.forEach((chargingStation) => {
+                  // Reaquest active but no active transaction?
                   // Check auth
                   if (CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
-                    // Active Transaction?
-                    if (activeTransactions && activeTransactions.length > 0) {
-                      // Check
-                      let connectors = chargingStation.getConnectors();
-                      // Yes: Check Active Transaction
-                      activeTransactions.forEach(activeTransaction => {
-                        // Find a match
-                        if (chargingStation.getChargeBoxIdentity() === activeTransaction.chargeBoxID.chargeBoxIdentity ) {
-                          // Set
-                          connectors[activeTransaction.connectorId.valueOf()-1].activeForUser = true;
+                    // Check
+                    let connectors = chargingStation.getConnectors();
+                    // Yes: Check Active Transaction
+                    activeTransactions.forEach(activeTransaction => {
+                      // Find a match
+                      if (chargingStation.getChargeBoxIdentity() === activeTransaction.chargeBoxID.chargeBoxIdentity ) {
+                        // Set
+                        connectors[activeTransaction.connectorId.valueOf()-1].activeForUser = true;
+                      }
+                    });
+                    // Check the connector?
+                    if (req.query.OnlyActive === "true") {
+                      // Remove the connector
+                      for (let j = connectors.length-1; j >= 0; j--) {
+                        // Not active?
+                        if (!connectors[j].activeForUser) {
+                          // Remove
+                          connectors.splice(j, 1);
                         }
-                      });
-                      // Check the connector?
-                      if (req.query.OnlyActive === "true") {
-                        // Remove the connector
-                        for (let j = connectors.length-1; j >= 0; j--) {
-                          // Not active?
-                          if (!connectors[j].activeForUser) {
-                            // Remove
-                            connectors.splice(j, 1);
-                          }
-                        }
-                        // Stil some connectors?
-                        if (connectors.length > 0) {
-                          // Add
-                          chargingStationsJSon.push(chargingStation.getModel());
-                        }
-                      } else {
+                      }
+                      // Stil some connectors?
+                      if (connectors.length > 0) {
                         // Add
                         chargingStationsJSon.push(chargingStation.getModel());
                       }
                     } else {
-                      // Push all
+                      // Add
                       chargingStationsJSon.push(chargingStation.getModel());
                     }
                   }
