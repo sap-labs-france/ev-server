@@ -147,19 +147,43 @@ module.exports = {
             global.storage.getChargingStation(req.body.chargeBoxIdentity).then((chargingStation) => {
               // Found?
               if (chargingStation) {
-                // Check auth
-                if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action)) {
-                  // Not Authorized!
-                  Logging.logActionUnauthorizedMessageAndSendResponse(
-                    CentralRestServerAuthorization.ENTITY_CHARGING_STATION, action, chargingStation.getChargeBoxIdentity(), req, res, next);
-                  return;
+                if (action === "StopTransaction") {
+                  // Get Transaction
+                  global.storage.getTransaction(req.body.args.transactionId).then((transaction) => {
+                    if (transaction) {
+                      // Check auth
+                      if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action, transaction.userID)) {
+                        // Not Authorized!
+                        Logging.logActionUnauthorizedMessageAndSendResponse(
+                          CentralRestServerAuthorization.ENTITY_CHARGING_STATION, action, chargingStation.getChargeBoxIdentity(), req, res, next);
+                        return;
+                      }
+                      // Log
+                      Logging.logInfo({
+                        user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",  action: action,
+                        message: `Execute action '${action}' on Charging Station '${req.body.chargeBoxIdentity}'`});
+                      // Execute it
+                      return chargingStation.handleAction(action, req.body.args);
+                    } else {
+                      // Log
+                      return Promise.reject(new Error(`Transaction ${req.query.TransactionId} does not exist`));
+                    }
+                  });
+                } else {
+                  // Check auth
+                  if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action)) {
+                    // Not Authorized!
+                    Logging.logActionUnauthorizedMessageAndSendResponse(
+                      CentralRestServerAuthorization.ENTITY_CHARGING_STATION, action, chargingStation.getChargeBoxIdentity(), req, res, next);
+                    return;
+                  }
+                  // Log
+                  Logging.logInfo({
+                    user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",  action: action,
+                    message: `Execute action '${action}' on Charging Station '${req.body.chargeBoxIdentity}'`});
+                  // Execute it
+                  return chargingStation.handleAction(action, req.body.args);
                 }
-                // Log
-                Logging.logInfo({
-                  user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",  action: action,
-                  message: `Execute action '${action}' on Charging Station '${req.body.chargeBoxIdentity}'`});
-                // Execute it
-                return chargingStation.handleAction(action, req.body.args);
               } else {
                 // Charging station not found
                 Logging.logActionErrorMessageAndSendResponse(action, `Charging Station with ID ${req.body.chargeBoxIdentity} does not exist`, req, res, next);

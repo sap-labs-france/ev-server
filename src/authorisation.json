@@ -25,6 +25,7 @@
       {
         "AuthObject": "ChargingStation",
         "AuthFieldValue": {
+          "UserID": "*",
           "Action": ["Create", "Read", "Update", "Delete", "Reset", "ClearCache", "GetConfiguration", "ChangeConfiguration", "StopTransaction", "UnlockConnector"]
         }
       },
@@ -62,7 +63,8 @@
       {
         "AuthObject": "ChargingStation",
         "AuthFieldValue": {
-          "Action": ["Read"]
+          "UserID": ["{{user.id}}"],
+          "Action": ["Read", "StopTransaction", "UnlockConnector"]
         }
       },
       {
@@ -99,7 +101,8 @@
       {
         "AuthObject": "ChargingStation",
         "AuthFieldValue": {
-          "Action": ["Read"]
+          "UserID": "*",
+          "Action": ["Read", "StopTransaction", "UnlockConnector"]
         }
       },
       {
@@ -136,6 +139,7 @@
       {
         "AuthObject": "ChargingStation",
         "AuthFieldValue": {
+          "UserID": "*",
           "Action": ["Read"]
         }
       },

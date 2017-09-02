@@ -41,10 +41,15 @@ module.exports = {
       { "Action": this.ACTION_LIST });
   },
 
-  canPerformActionOnChargingStation(loggedUser, chargingStation, action) {
+  canPerformActionOnChargingStation(loggedUser, chargingStation, action, user=null) {
     // Check
-    return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATION,
-      { "Action": action });
+    if (user) {
+      return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATION,
+        { "Action": action, "UserID": user.id });
+    } else {
+      return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATION,
+        { "Action": action });
+    }
   },
 
   canReadChargingStation(loggedUser, chargingStation) {
