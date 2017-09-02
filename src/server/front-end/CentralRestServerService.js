@@ -830,7 +830,6 @@ module.exports = {
           if (Users.checkIfUserValid(req, res, next)) {
             // Check email
             global.storage.getUser(req.body.id).then((user) => {
-              console.log(user.getModel());
               if (!user) {
                 Logging.logActionErrorMessageAndSendResponse(action, `The user with ID ${req.body.id} does not exist anymore`, req, res, next);
                 return;
@@ -880,7 +879,6 @@ module.exports = {
                 // Update the password
                 user.setPassword(passwordHashed);
               }
-              console.log(user.getModel());
               // Update
               user.save().then(() => {
                 // Log
