@@ -333,9 +333,11 @@ module.exports = {
             users.forEach((user) => {
               // Check auth
               if (CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
-                // Yes: add user
-                // Clear image
-                user.image = "";
+                // Clear image?
+                if (req.query.WithPicture === "false") {
+                  // No
+                  user.setImage(null);
+                }
                 // Clear Sensitive Data
                 user.setPassword("");
                 // Must be admin to get the user/pass
