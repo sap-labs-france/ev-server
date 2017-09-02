@@ -295,20 +295,65 @@ module.exports = {
               CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS, CentralRestServerAuthorization.ACTION_LIST, null, req, res, next);
             return;
           }
+          // Get the charging stations
           global.storage.getChargingStations(req.query.Search, 100).then((chargingStations) => {
-            var chargingStationsJSon = [];
-            chargingStations.forEach((chargingStation) => {
-              // Check auth
-              if (CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
-                // Set the model
-                chargingStationsJSon.push(chargingStation.getModel());
+            // Check email
+            global.storage.getUser(req.user.id).then((user) => {
+              if (!user) {
+                Logging.logActionErrorMessageAndSendResponse(action, `The user with ID ${req.body.id} does not exist`, req, res, next);
+                return;
               }
+              // Get the user's active transactions
+              user.getTransactions(true).then(activeTransactions => {
+                // Handle
+                var chargingStationsJSon = [];
+                chargingStations.forEach((chargingStation) => {
+                  // Check auth
+                  if (CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
+                    // Active Transaction?
+                    if (activeTransactions && activeTransactions.length > 0) {
+                      // Check
+                      let connectors = chargingStation.getConnectors();
+                      // Yes: Check Active Transaction
+                      activeTransactions.forEach(activeTransaction => {
+                        // Find a match
+                        if (chargingStation.getChargeBoxIdentity() === activeTransaction.chargeBoxID.chargeBoxIdentity ) {
+                          // Set
+                          connectors[activeTransaction.connectorId.valueOf()-1].activeForUser = true;
+                        }
+                      });
+                      // Check the connector?
+                      if (req.query.OnlyActive === "true") {
+                        // Remove the connector
+                        for (let j = connectors.length-1; j >= 0; j--) {
+                          // Not active?
+                          if (!connectors[j].activeForUser) {
+                            // Remove
+                            connectors.splice(j, 1);
+                          }
+                        }
+                        // Stil some connectors?
+                        if (connectors.length > 0) {
+                          // Add
+                          chargingStationsJSon.push(chargingStation.getModel());
+                        }
+                      } else {
+                        // Add
+                        chargingStationsJSon.push(chargingStation.getModel());
+                      }
+                    } else {
+                      // Push all
+                      chargingStationsJSon.push(chargingStation.getModel());
+                    }
+                  }
+                });
+                // Filter
+                chargingStationsJSon = SecurityRestObjectFiltering.filterChargingStations(chargingStationsJSon, req.user);
+                // Return
+                res.json(chargingStationsJSon);
+                next();
+              });
             });
-            // Filter
-            chargingStationsJSon = SecurityRestObjectFiltering.filterChargingStations(chargingStationsJSon, req.user);
-            // Return
-            res.json(chargingStationsJSon);
-            next();
           }).catch((err) => {
             // Log
             Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
