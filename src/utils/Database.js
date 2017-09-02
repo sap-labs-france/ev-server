@@ -102,31 +102,20 @@ module.exports = {
     dest.iNumber = src.iNumber;
     dest.costCenter = src.costCenter;
     dest.status = src.status;
-    dest.createdBy = src.createdBy;
-    dest.createdOn = src.createdOn;
-    dest.lastChangedBy = src.lastChangedBy;
-    dest.lastChangedOn = src.lastChangedOn;
-    dest.tagIDs = src.tagIDs;
-    // No user?
-    if (!dest.createdBy) {
-      // Set default user
-      dest.createdBy = "Central Server";
-      dest.createdOn = new Date();
+    if (src.createdBy && src.createdOn) {
+      dest.createdBy = src.createdBy;
+      dest.createdOn = src.createdOn;
     }
+    if (src.lastChangedBy && src.lastChangedOn) {
+      dest.lastChangedBy = src.lastChangedBy;
+      dest.lastChangedOn = src.lastChangedOn;
+    }
+    dest.tagIDs = src.tagIDs;
+    dest.role = src.role;
     // Check the password
     if (src.password && src.password.length > 0) {
       // Password can be overridden
       dest.password = src.password;
-    }
-    // Check the role
-    if (src.role && src.role.length > 0) {
-      // Role can be overridden
-      dest.role = src.role;
-    }
-    // Check default role value
-    if (!dest.role) {
-      // Default
-      dest.role = Users.USER_ROLE_BASIC;
     }
   },
 

@@ -142,11 +142,11 @@ class Logging {
   }
 
   // Log issues
-  static logActionErrorMessageAndSendResponse(action, message, req, res, next) {
+  static logActionErrorMessageAndSendResponse(action, message, req, res, next, errorCode=500) {
     // Log
     Logging.logActionErrorMessage(action, message, req, res);
     // Send error
-    res.status(500).send({"message": message});
+    res.status(errorCode).send({"message": message});
     next();
   }
 

@@ -828,6 +828,7 @@ module.exports = {
           if (Users.checkIfUserValid(req, res, next)) {
             // Check email
             global.storage.getUser(req.body.id).then((user) => {
+              console.log(user.getModel());
               if (!user) {
                 Logging.logActionErrorMessageAndSendResponse(action, `The user with ID ${req.body.id} does not exist anymore`, req, res, next);
                 return;
@@ -868,7 +869,7 @@ module.exports = {
               // Set the locale
               user.setLocale(req.locale);
               // Update timestamp
-              user.setLastChangedBy(`${req.user.name} ${req.user.firstName}`);
+              user.setLastChangedBy(`${Utils.buildUserFullName(req.user)}`);
               user.setLastChangedOn(new Date());
               // Check the password
               if (req.body.passwords.password && req.body.passwords.password.length > 0) {
@@ -877,6 +878,7 @@ module.exports = {
                 // Update the password
                 user.setPassword(passwordHashed);
               }
+              console.log(user.getModel());
               // Update
               user.save().then(() => {
                 // Log

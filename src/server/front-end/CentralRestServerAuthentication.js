@@ -55,6 +55,10 @@ module.exports = {
             global.storage.getUserByEmailPassword(req.body.email, Users.hashPassword(req.body.password)).then((user) => {
               // Found?
               if (user) {
+                if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
+                  Logging.logActionErrorMessageAndSendResponse(action, `Your account is not yet active`, req, res, next, 550);
+                  return;
+                }
                 // Log it
                 Logging.logInfo({
                   user: user.getModel(), source: "Central Server", module: "CentralServerAuthentication", method: "authService", action: action,
@@ -122,7 +126,8 @@ module.exports = {
                   newUser.setStatus(Users.USER_STATUS_PENDING);
                   newUser.setRole(Users.USER_ROLE_BASIC);
                   newUser.setPassword(Users.hashPassword(newUser.getPassword()));
-                  console.log(newUser.getModel());
+                  newUser.setCreatedBy("Central Server");
+                  newUser.setCreatedOn(new Date());
                   // Save
                   newUser.save().then(() => {
                     // Send notification
