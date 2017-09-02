@@ -147,10 +147,13 @@ module.exports = {
             global.storage.getChargingStation(req.body.chargeBoxIdentity).then((chargingStation) => {
               // Found?
               if (chargingStation) {
-                if (action === "StopTransaction") {
+                if (action === "StopTransaction" ||
+                    action === "UnlockConnector") {
                   // Get Transaction
                   global.storage.getTransaction(req.body.args.transactionId).then((transaction) => {
                     if (transaction) {
+                      // Add connector ID
+                      req.body.args.connectorId = transaction.connectorId;
                       // Check auth
                       if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action, transaction.userID)) {
                         // Not Authorized!
