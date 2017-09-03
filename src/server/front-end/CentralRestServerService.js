@@ -532,52 +532,6 @@ module.exports = {
           });
           break;
 
-        // Get the transactions
-        case "UserActiveTransactions":
-          // User mandatory
-          if(!req.query.ID) {
-            Logging.logActionErrorMessageAndSendResponse(action, `The User's ID is mandatory`, req, res, next);
-            break;
-          }
-          // Check param
-          if(!req.query.WithPicture) {
-            // Default
-            req.query.WithPicture="false";
-          }
-          // Check email
-          global.storage.getUser(req.query.ID).then((user) => {
-            if (!user) {
-              Logging.logActionErrorMessageAndSendResponse(action, `The user with ID ${req.body.id} does not exist`, req, res, next);
-              return;
-            }
-            // Check auth
-            if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
-              // Not Authorized!
-              Logging.logActionUnauthorizedMessageAndSendResponse(
-                CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, Utils.buildUserFullName(user.getModel()), req, res, next);
-              return;
-            }
-            // Get the user's active transactions
-            user.getTransactions(true).then(transactions => {
-              // Clean images
-              transactions.forEach((transaction) => {
-                if (transaction.userID && req.query.WithPicture === "false") {
-                  transaction.userID.image = null;
-                }
-                if (transaction.stop && transaction.stop.userID && req.query.WithPicture === "false") {
-                  transaction.stop.userID.image = null;
-                }
-              });
-              // Return
-              res.json(transactions);
-              next();
-            });
-          }).catch((err) => {
-            // Log
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-          });
-          break;
-
         // Get the active transactions
         case "ActiveTransactions":
           // Check param
