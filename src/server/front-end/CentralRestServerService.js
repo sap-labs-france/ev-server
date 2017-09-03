@@ -534,6 +534,16 @@ module.exports = {
 
         // Get the transactions
         case "UserActiveTransactions":
+          // User mandatory
+          if(!req.query.ID) {
+            Logging.logActionErrorMessageAndSendResponse(action, `The User's ID is mandatory`, req, res, next);
+            break;
+          }
+          // Check param
+          if(!req.query.WithPicture) {
+            // Default
+            req.query.WithPicture="false";
+          }
           // Check email
           global.storage.getUser(req.query.ID).then((user) => {
             if (!user) {
@@ -551,10 +561,10 @@ module.exports = {
             user.getTransactions(true).then(transactions => {
               // Clean images
               transactions.forEach((transaction) => {
-                if (transaction.userID) {
+                if (transaction.userID && req.query.WithPicture === "false") {
                   transaction.userID.image = null;
                 }
-                if (transaction.stop && transaction.stop.userID) {
+                if (transaction.stop && transaction.stop.userID && req.query.WithPicture === "false") {
                   transaction.stop.userID.image = null;
                 }
               });
@@ -570,6 +580,11 @@ module.exports = {
 
         // Get the active transactions
         case "ActiveTransactions":
+          // Check param
+          if(!req.query.WithPicture) {
+            // Default
+            req.query.WithPicture="false";
+          }
           // Check email
           global.storage.getTransactions({}, true).then((transactions) => {
             // filters
@@ -580,10 +595,10 @@ module.exports = {
             });
             // Clean images
             transactions.forEach((transaction) => {
-              if (transaction.userID) {
+              if (transaction.userID && req.query.WithPicture === "false") {
                 transaction.userID.image = null;
               }
-              if (transaction.stop && transaction.stop.userID) {
+              if (transaction.stop && transaction.stop.userID && req.query.WithPicture === "false") {
                 transaction.stop.userID.image = null;
               }
             });
