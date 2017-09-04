@@ -574,7 +574,7 @@ class ChargingStation {
           email: request.idTag + "@sap.com",
           tagIDs: [request.idTag],
           createdBy: "System",
-          createdOn: new Date()
+          createdOn: new Date().toISOString()
         });
 
         // Save the user
