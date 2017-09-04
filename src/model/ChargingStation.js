@@ -547,7 +547,7 @@ class ChargingStation {
           request.user = user;
           // Check function
           if (saveFunction.name === "saveStartTransaction") {
-            // Notify user
+            // Notify
             NotificationHandler.sendTransactionStarted(
               request.transactionId,
               user.getModel(),
@@ -572,7 +572,9 @@ class ChargingStation {
           firstName: "User",
           status: Users.USER_STATUS_PENDING,
           email: request.idTag + "@sap.com",
-          tagIDs: [request.idTag]
+          tagIDs: [request.idTag],
+          createdBy: "System",
+          createdOn: new Date()
         });
 
         // Save the user
