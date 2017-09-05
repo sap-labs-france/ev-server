@@ -110,6 +110,7 @@ module.exports = {
       dest.lastChangedBy = src.lastChangedBy;
       dest.lastChangedOn = src.lastChangedOn;
     }
+    dest.deleted = src.deleted;
     dest.tagIDs = src.tagIDs;
     dest.role = src.role;
     // Check the password

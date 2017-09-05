@@ -493,7 +493,7 @@ class MongoDBStorage extends Storage {
     }));
   }
 
-  getTransactions(filter, onlyActive=false) {
+  getTransactions(filter) {
     // Build filter
     var $match = {};
     // User
@@ -520,16 +520,32 @@ class MongoDBStorage extends Storage {
     if (filter.endDateTime) {
       $match.timestamp.$lte = new Date(filter.endDateTime);
     }
-    // Active transactions?
-    if (onlyActive) {
-      // Add a filter
-      $match.stop = null;
+    // Check stop tr
+    if (filter.stop) {
+      $match.stop = filter.stop;
     }
     // Yes: Get only active ones
     return MDBTransaction.find($match).populate("userID").populate("chargeBoxID").populate("stop.userID")
         .sort({timestamp:-1}).exec().then(transactionsMDB => {
       // Set
       var transactions = [];
+      transactionsMDB = transactionsMDB.filter((transactionMDB) => {
+        // User not found?
+        if (!transactionMDB.userID) {
+          Logging.logError({
+            user: "System", source: "Central Server", module: "MongoDBStorage", method: "getTransactions",
+            message: `Transaction ID '${transactionsMDB._id}': User does not exist` });
+          return false;
+        }
+        // Charge Box not found?
+        if (!transactionMDB.chargeBoxID) {
+          Logging.logError({
+            user: "System", source: "Central Server", module: "MongoDBStorage", method: "getTransactions",
+            message: `Transaction ID '${transactionsMDB._id}': Charging Station does not exist` });
+          return false;
+        }
+        return true;
+      });
       // Create
       transactionsMDB.forEach((transactionMDB) => {
         // Set
@@ -623,7 +639,12 @@ class MongoDBStorage extends Storage {
       numberOfUser = 100;
     }
     // Set the filters
-    let filters = {};
+    let filters = {
+      $or: [
+        {deleted:{$exists:false}},
+        {deleted:false}
+      ]
+    };
     // Source?
     if (searchValue) {
       // Build filter
@@ -719,21 +740,36 @@ class MongoDBStorage extends Storage {
 
     // Exec request
     return MDBUser.findById(id).exec().then((userMDB) => {
-      return this._createUser(userMDB);
+      // Check deleted
+      if (userMDB && userMDB.deleted) {
+        // Return empty user
+        return Promise.resolve();
+      } else {
+        // Ok
+        return this._createUser(userMDB);
+      }
     });
   }
 
   getUserByEmailPassword(email, password) {
-    // Exec request
-    return MDBUser.findOne({"email": email, "password": password}).then((userMDB) => {
-      return this._createUser(userMDB);
-    });
+    return this._getUser({"email": email, "password": password});
   }
 
   getUserByEmail(email) {
+    return this._getUser({"email": email});
+  }
+
+  _getUser(filter) {
     // Exec request
-    return MDBUser.findOne({"email": email}).then((userMDB) => {
-      return this._createUser(userMDB);
+    return MDBUser.findOne(filter).then((userMDB) => {
+      // Check deleted
+      if (userMDB && userMDB.deleted) {
+        // Return empty user
+        return Promise.resolve();
+      } else {
+        // Ok
+        return this._createUser(userMDB);
+      }
     });
   }
 
@@ -743,7 +779,14 @@ class MongoDBStorage extends Storage {
       var user = null;
       // Check
       if (tagMDB && tagMDB.userID) {
-        user = new User(tagMDB.userID);
+        // Check deleted
+        if (userMDB && userMDB.deleted) {
+          // Return empty user
+          return Promise.resolve();
+        } else {
+          // Ok
+          user = new User(tagMDB.userID);
+        }
       }
       // Ok
       return user;
@@ -771,13 +814,6 @@ class MongoDBStorage extends Storage {
       // Ok
       return user;
     }
-  }
-
-  deleteUser(id) {
-    return MDBUser.remove({ "_id" : id }).then((userMDB) => {
-      // Notify Change
-      _centralRestServer.notifyUserDeleted({"id": id});
-    });
   }
 
   _checkIfMongoDBIDIsValid(id) {

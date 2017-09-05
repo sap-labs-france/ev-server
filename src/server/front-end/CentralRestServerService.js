@@ -304,7 +304,7 @@ module.exports = {
                 return;
               }
               // Get the user's active transactions
-              user.getTransactions(true).then(activeTransactions => {
+              user.getTransactions({stop: {$exists: false}}).then(activeTransactions => {
                 // Handle
                 var chargingStationsJSon = [];
                 chargingStations.forEach((chargingStation) => {
@@ -532,15 +532,45 @@ module.exports = {
           });
           break;
 
+        // Get the completed transactions
+        case "CompletedTransactions":
+          // Check param
+          if(!req.query.WithPicture) {
+            req.query.WithPicture="false";
+          }
+          // Check email
+          global.storage.getTransactions({stop: {$exists: true}}).then((transactions) => {
+            // filters
+            transactions = transactions.filter((transaction) => {
+              return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
+                CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBoxID);
+            });
+            // Clean images
+            transactions.forEach((transaction) => {
+              if (transaction.userID && req.query.WithPicture === "false") {
+                transaction.userID.image = null;
+              }
+              if (transaction.stop && transaction.stop.userID && req.query.WithPicture === "false") {
+                transaction.stop.userID.image = null;
+              }
+            });
+            // Return
+            res.json(transactions);
+            next();
+          }).catch((err) => {
+            // Log
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+          });
+          break;
+
         // Get the active transactions
         case "ActiveTransactions":
           // Check param
           if(!req.query.WithPicture) {
-            // Default
             req.query.WithPicture="false";
           }
           // Check email
-          global.storage.getTransactions({}, true).then((transactions) => {
+          global.storage.getTransactions({stop: {$exists: false}}).then((transactions) => {
             // filters
             transactions = transactions.filter((transaction) => {
               // Check
@@ -987,7 +1017,7 @@ module.exports = {
                 return;
               }
               // Delete
-              global.storage.deleteUser(req.query.ID).then(() => {
+              user.delete().then(() => {
                 // Log
                 Logging.logInfo({
                   user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",

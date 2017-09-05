@@ -740,7 +740,7 @@ class ChargingStation {
   getTransactions(connectorId, startDateTime, endDateTime) {
     // Get the consumption
     return global.storage.getTransactions(
-      {"chargeBoxIdentity" : this.getChargeBoxIdentity(),
+      {"chargeBoxIdentity": this.getChargeBoxIdentity(),
        "connectorId": connectorId,
        "startDateTime": startDateTime,
        "endDateTime" : endDateTime});

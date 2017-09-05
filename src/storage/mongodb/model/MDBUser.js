@@ -23,6 +23,7 @@ module.exports = mongoose.model('User',{
   status: String,
   addresses: [],
   locale: String,
+  deleted: Boolean,
   createdBy: String,
   createdOn: Date,
   lastChangedBy: String,

@@ -149,6 +149,14 @@ class User {
     this._model.lastChangedOn = lastChangedOn;
   }
 
+  setDeleted(deleted) {
+    this._model.deleted = deleted;
+  }
+
+  isDeleted() {
+    return this._model.deleted;
+  }
+
   getTransactions(onlyActive) {
     // Get the consumption
     return global.storage.getTransactions({"userId" : this.getID()}, onlyActive);
@@ -156,6 +164,13 @@ class User {
 
   save() {
     return global.storage.saveUser(this);
+  }
+
+  delete() {
+    // Set deleted
+    this.setDeleted(true);
+    // Delete
+    return this.save();
   }
 }
 
