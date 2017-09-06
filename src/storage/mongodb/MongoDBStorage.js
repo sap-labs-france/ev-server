@@ -529,23 +529,8 @@ class MongoDBStorage extends Storage {
         .sort({timestamp:-1}).exec().then(transactionsMDB => {
       // Set
       var transactions = [];
-      transactionsMDB = transactionsMDB.filter((transactionMDB) => {
-        // User not found?
-        if (!transactionMDB.userID) {
-          Logging.logError({
-            user: "System", source: "Central Server", module: "MongoDBStorage", method: "getTransactions",
-            message: `Transaction ID '${transactionsMDB._id}': User does not exist` });
-          return false;
-        }
-        // Charge Box not found?
-        if (!transactionMDB.chargeBoxID) {
-          Logging.logError({
-            user: "System", source: "Central Server", module: "MongoDBStorage", method: "getTransactions",
-            message: `Transaction ID '${transactionsMDB._id}': Charging Station does not exist` });
-          return false;
-        }
-        return true;
-      });
+      // Filter
+      transactionsMDB = this._filterTransactions(transactionsMDB);
       // Create
       transactionsMDB.forEach((transactionMDB) => {
         // Set
@@ -555,6 +540,27 @@ class MongoDBStorage extends Storage {
         transactions.push(transaction);
       });
       return transactions;
+    });
+  }
+
+  _filterTransactions(transactionsMDB) {
+    // Check User and ChargeBox
+    return transactionsMDB.filter((transactionMDB) => {
+      // User not found?
+      if (!transactionMDB.userID) {
+        Logging.logError({
+          userFullName: "System", source: "Central Server", module: "MongoDBStorage", method: "getTransactions",
+          message: `Transaction ID '${transactionMDB.id}': User does not exist` });
+        return false;
+      }
+      // Charge Box not found?
+      if (!transactionMDB.chargeBoxID) {
+        Logging.logError({
+          userFullName: "System", source: "Central Server", module: "MongoDBStorage", method: "getTransactions",
+          message: `Transaction ID '${transactionMDB.id}': Charging Station does not exist` });
+        return false;
+      }
+      return true;
     });
   }
 
