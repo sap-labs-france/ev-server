@@ -534,12 +534,20 @@ module.exports = {
 
         // Get the completed transactions
         case "CompletedTransactions":
+          let filter = {stop: {$exists: true}};
           // Check param
           if(!req.query.WithPicture) {
             req.query.WithPicture="false";
           }
+          // Date
+          if (req.query.StartDateTime) {
+            filter.startDateTime = req.query.StartDateTime;
+          }
+          if (req.query.EndDateTime) {
+            filter.endDateTime = req.query.EndDateTime;
+          }
           // Check email
-          global.storage.getTransactions({stop: {$exists: true}}).then((transactions) => {
+          global.storage.getTransactions(filter).then((transactions) => {
             // filters
             transactions = transactions.filter((transaction) => {
               return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
