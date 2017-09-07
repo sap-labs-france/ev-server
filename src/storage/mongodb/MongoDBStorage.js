@@ -612,7 +612,7 @@ class MongoDBStorage extends Storage {
     if (searchValue) {
       // Build filter
       filters.$or = [
-        { "chargeBoxIdentity" : { $regex : `.*${searchValue}.*` } }
+        { "_id" : { $regex : `.*${searchValue}.*` } }
       ];
     }
     // Exec request
