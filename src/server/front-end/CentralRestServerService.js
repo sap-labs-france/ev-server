@@ -602,27 +602,30 @@ module.exports = {
             // Group Them By Month
             let monthStats = [];
             let monthStat;
-            transactions.forEach((transaction) => {
+            // Browse in reverse order
+            for (var i = transactions.length-1; i >= 0; i--) {
               // First Init
               if (!monthStat) {
                 monthStat = {};
-                monthStat.month = moment(transaction.timestamp).month();
+                monthStat.month = moment(transactions[i].timestamp).month();
               }
               // Month changed?
-              if (monthStat.month != moment(transaction.timestamp).month()) {
+              if (monthStat.month != moment(transactions[i].timestamp).month()) {
                 // Add
                 monthStats.push(monthStat);
                 // Reset
                 monthStat = {};
-                monthStat.month = moment(transaction.timestamp).month();
+                monthStat.month = moment(transactions[i].timestamp).month();
               }
               // Set consumption
-              if (!monthStat[transaction.chargeBoxID.chargeBoxIdentity]) {
-                monthStat[transaction.chargeBoxID.chargeBoxIdentity] = transaction.stop.totalConsumption;
+              if (!monthStat[transactions[i].chargeBoxID.chargeBoxIdentity]) {
+                // Add conso in kW.h
+                monthStat[transactions[i].chargeBoxID.chargeBoxIdentity] = transactions[i].stop.totalConsumption / 1000;
               } else {
-                monthStat[transaction.chargeBoxID.chargeBoxIdentity] += transaction.stop.totalConsumption;
+                // Add conso in kW.h
+                monthStat[transactions[i].chargeBoxID.chargeBoxIdentity] += transactions[i].stop.totalConsumption / 1000;
               }
-            });
+            }
             // Return
             res.json(monthStats);
             next();
