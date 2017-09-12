@@ -590,7 +590,7 @@ class ChargingStation {
             }
           );
           // Reject but save ok
-          return Promise.reject( new Error(`User with Tag ID ${request.idTag} not found but saved as inactive user (John DOE)`) );
+          return Promise.reject( new Error(`User with Tag ID ${request.idTag} not found but saved as inactive user`) );
         }, (err) => {
           // Reject, cannot save
           return Promise.reject( new Error(`User with Tag ID ${request.idTag} not found and cannot be created: ${err.toString()}`) );
