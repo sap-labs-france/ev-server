@@ -784,12 +784,12 @@ class MongoDBStorage extends Storage {
     return MDBTag.findById(tagID).populate("userID").exec().then((tagMDB) => {
       var user = null;
       // Check
-      if (tagMDB && tagMDB.userID && tagMDB.userID.deleted) {
-        // Return empty user
-        return Promise.resolve();
-      } else {
+      if (tagMDB && tagMDB.userID && !tagMDB.userID.deleted) {
         // Ok
         user = new User(tagMDB.userID);
+      } else {
+        // Return empty user
+        return Promise.resolve();
       }
       // Ok
       return user;

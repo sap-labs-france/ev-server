@@ -50,6 +50,7 @@ module.exports = {
   },
 
   restServiceSecured(req, res, next) {
+    let filter;
     // Parse the action
     var action = /^\/\w*/g.exec(req.url)[0].substring(1);
     // Check Context
@@ -534,7 +535,7 @@ module.exports = {
 
         // Get the completed transactions
         case "CompletedTransactions":
-          let filter = {stop: {$exists: true}};
+          filter = {stop: {$exists: true}};
           // Check param
           if(!req.query.WithPicture) {
             req.query.WithPicture="false";
@@ -564,6 +565,66 @@ module.exports = {
             });
             // Return
             res.json(transactions);
+            next();
+          }).catch((err) => {
+            // Log
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+          });
+          break;
+
+        // Get the completed transactions
+        case "TransactionStatistics":
+          filter = {stop: {$exists: true}};
+          // Date
+          if (req.query.Year) {
+            filter.startDateTime = moment().year(req.query.Year).startOf('year').toDate().toISOString();
+            filter.endDateTime = moment().year(req.query.Year).endOf('year').toDate().toISOString();
+          } else {
+            filter.startDateTime = moment().startOf('year').toDate().toISOString();
+            filter.endDateTime = moment().endOf('year').toDate().toISOString();
+          }
+          // Check email
+          global.storage.getTransactions(filter).then((transactions) => {
+            // filters
+            transactions = transactions.filter((transaction) => {
+              return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
+                CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBoxID);
+            });
+            // Clean images
+            transactions.forEach((transaction) => {
+              if (transaction.userID && req.query.WithPicture === "false") {
+                transaction.userID.image = null;
+              }
+              if (transaction.stop && transaction.stop.userID && req.query.WithPicture === "false") {
+                transaction.stop.userID.image = null;
+              }
+            });
+            // Group Them By Month
+            let monthStats = [];
+            let monthStat;
+            transactions.forEach((transaction) => {
+              // First Init
+              if (!monthStat) {
+                monthStat = {};
+                monthStat.month = moment(transaction.timestamp).month();
+              }
+              // Month changed?
+              if (monthStat.month != moment(transaction.timestamp).month()) {
+                // Add
+                monthStats.push(monthStat);
+                // Reset
+                monthStat = {};
+                monthStat.month = moment(transaction.timestamp).month();
+              }
+              // Set consumption
+              if (!monthStat[transaction.chargeBoxID.chargeBoxIdentity]) {
+                monthStat[transaction.chargeBoxID.chargeBoxIdentity] = transaction.stop.totalConsumption;
+              } else {
+                monthStat[transaction.chargeBoxID.chargeBoxIdentity] += transaction.stop.totalConsumption;
+              }
+            });
+            // Return
+            res.json(monthStats);
             next();
           }).catch((err) => {
             // Log

@@ -69,6 +69,13 @@ class User {
     this._model.tagIDs = tagIDs;
   }
 
+  addTagID(tagID) {
+    if (!this._model.tagIDs) {
+      this._model.tagIDs = [];
+    }
+    this._model.tagIDs.push(tagID);
+  }
+
   getImage() {
     return this._model.image;
   }
