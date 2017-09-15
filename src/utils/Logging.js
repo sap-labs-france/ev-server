@@ -115,7 +115,7 @@ class Logging {
         // Log
         Logging.logWarning({
           source: "Central Server", module: "Logging", method: "_format",
-          message: `Error when formatting a Log (stringify): '${err.toString()}'`,
+          message: `Error when formatting a Log (stringify): '${err.message}'`,
           detailedMessages: parsedDetailedMessage });
       }
     }
@@ -126,18 +126,18 @@ class Logging {
     Logging.logError({
       userID: (req.user?req.user.id:null), userFullName: Utils.buildUserFullName(req.user),
       source: "Central Server", module: "RestServer", method: "N/A",
-      action: action, message: `${err.toString()}`,
+      action: action, message: `${err.message}`,
       detailedMessages: err.stack });
-    res.status(500).send(`{"message": ${err.toString()}}`);
+    res.status(500).send(`{"message": ${err.message}}`);
     next();
   }
 
   // Log issues
-  static logUnexpectedErrorMessage(action, module, method, err) {
+  static logUnexpectedErrorMessage(action, module, method, err, source="Central Server") {
     Logging.logError({
       "userFullName": "System",
-      "source": "Central Server", "module": module, "method": method,
-      "action": action, "message": `${err.toString()}`,
+      "source": source, "module": module, "method": method,
+      "action": action, "message": `${err.message}`,
       "detailedMessages": err.stack });
   }
 

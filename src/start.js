@@ -1,6 +1,6 @@
 const MongoDBStorage = require('./storage/mongodb/MongoDBStorage');
 const Configuration = require('./utils/Configuration');
-const Utils = require('./utils/Utils');
+const Users = require('./utils/Users');
 const SoapCentralSystemServer = require('./server/charging-station/soap/SoapCentralSystemServer');
 const CentralRestServer = require('./server/front-end/CentralRestServer');
 const SchedulerHandler = require('./scheduler/SchedulerHandler');
@@ -39,7 +39,7 @@ global.storage.start().then(() => {
     // ---------------------------------------------------------------------------
     try {
       // Import users
-      Utils.importUsers();
+      Users.importUsers();
     } catch (err) {
       // Log
       Logging.logError({

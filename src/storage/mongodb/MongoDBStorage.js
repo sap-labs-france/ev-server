@@ -584,12 +584,12 @@ class MongoDBStorage extends Storage {
   saveChargingStation(chargingStation) {
     // Get
     return MDBChargingStation.findOneAndUpdate(
-      {"_id": chargingStation.getChargeBoxIdentity()},
-      chargingStation.getModel(),
+      {"_id": chargingStation.chargeBoxIdentity},
+      chargingStation,
       {new: true, upsert: true}).then((chargingStationMDB) => {
         var newChargingStation = new ChargingStation(chargingStationMDB);
         // Notify Change
-        if (!chargingStation.getID()) {
+        if (!chargingStation.id) {
           _centralRestServer.notifyChargingStationCreated(newChargingStation.getModel());
         } else {
           _centralRestServer.notifyChargingStationUpdated(newChargingStation.getModel());
@@ -690,25 +690,25 @@ class MongoDBStorage extends Storage {
 
   saveUser(user) {
     // Check if ID or email is provided
-    if (!user.getID() && !user.getEMail()) {
+    if (!user.id && !user.email) {
       // ID ,ust be provided!
       return Promise.reject( new Error("Error in saving the User: User has no ID or Email and cannot be created or updated") );
     } else {
       var userFilter = {};
       // Build Request
-      if (user.getID()) {
-        userFilter._id = user.getID();
+      if (user.id) {
+        userFilter._id = user.id;
       } else {
-        userFilter.email = user.getEMail();
+        userFilter.email = user.email;
       }
       // Get
-      return MDBUser.findOneAndUpdate(userFilter, user.getModel(), {
+      return MDBUser.findOneAndUpdate(userFilter, user, {
           new: true,
           upsert: true
         }).then((userMDB) => {
           var newUser = new User(userMDB);
           // Notify Change
-          if (!user.getID()) {
+          if (!user.id) {
             _centralRestServer.notifyUserCreated(newUser.getModel());
           } else {
             _centralRestServer.notifyUserUpdated(newUser.getModel());
@@ -717,7 +717,7 @@ class MongoDBStorage extends Storage {
           // First delete them
           MDBTag.remove({ "userID" : userMDB._id }).then(() => {
             // Add tags
-            user.getTagIDs().forEach((tag) => {
+            user.tagIDs.forEach((tag) => {
               // Update/Insert Tag
               return MDBTag.findOneAndUpdate({
                   "_id": tag

@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const Utils = require('./Utils');
 const _config = require('../config.json');
 require('source-map-support').install();
 

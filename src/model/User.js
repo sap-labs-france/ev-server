@@ -175,7 +175,7 @@ class User {
   }
 
   save() {
-    return global.storage.saveUser(this);
+    return global.storage.saveUser(this.getModel());
   }
 
   delete() {

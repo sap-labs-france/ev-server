@@ -76,11 +76,6 @@
     "active" : true,
     "tasks": [
       {
-        "name": "endOfChargeNotification",
-        "active": true,
-        "periodicity": "*/5 * * * *"
-      },
-      {
         "name": "loggingDatabaseTableCleanup",
         "active": true,
         "periodicity": "* * * * 0"

@@ -14,10 +14,10 @@ The application:
 **Live demo here** [Smart EVSE](https://smart-evse.com/)
 
 ## Installation
-* Install NodeJS: https://nodejs.org/
+* Install NodeJS: https://nodejs.org/ (install the LTS version)
 * Install MongoDB: https://www.mongodb.com/
 * Clone this GitHub project
-* Run **npm install** in the **ev-server** directory
+* Run **npm install** in the **ev-server** directory (use sudo in Linux)
 * Follow the setup below
 
 ## The Database
@@ -99,9 +99,11 @@ Other protocols, like the ISO 15118, may also be supported in the future.
 
 The server configuration is stored in the **config.json** file in the **src** directory.
 
-There is a template already provided named **config-template.json**.
+There are two templates already provided named **config-template-http.json** for HTTP and **config-template-https.json** for HTTPS.
 
-Rename it to **config.json**.
+Choose one according the protocol and rename it to **config.json**.
+
+In the next chapters, you will set relevant config data.
 
 #### Listen to the Charging Stations
 
