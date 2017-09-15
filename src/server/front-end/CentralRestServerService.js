@@ -548,7 +548,7 @@ module.exports = {
             filter.endDateTime = req.query.EndDateTime;
           }
           // Check email
-          global.storage.getTransactions(filter).then((transactions) => {
+          global.storage.getTransactions(req.query.Search, filter).then((transactions) => {
             // filters
             transactions = transactions.filter((transaction) => {
               return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
@@ -683,11 +683,11 @@ module.exports = {
             // Set Usage
             if (!monthStat[transactions[i].chargeBoxID.chargeBoxIdentity]) {
               // Add Usage in Hours
-              monthStat[transactions[i].chargeBoxID.chargeBoxIdentity] = 
+              monthStat[transactions[i].chargeBoxID.chargeBoxIdentity] =
                 (new Date(transactions[i].stop.timestamp).getTime() - new Date(transactions[i].timestamp).getTime()) / (3600 * 1000);
             } else {
               // Add Usage in Hours
-              monthStat[transactions[i].chargeBoxID.chargeBoxIdentity] += 
+              monthStat[transactions[i].chargeBoxID.chargeBoxIdentity] +=
                 (new Date(transactions[i].stop.timestamp).getTime() - new Date(transactions[i].timestamp).getTime()) / (3600 * 1000);
             }
           }

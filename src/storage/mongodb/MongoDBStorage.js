@@ -493,7 +493,7 @@ class MongoDBStorage extends Storage {
     }));
   }
 
-  getTransactions(filter) {
+  getTransactions(searchValue, filter) {
     // Build filter
     var $match = {};
     // User
@@ -530,7 +530,7 @@ class MongoDBStorage extends Storage {
       // Set
       var transactions = [];
       // Filter
-      transactionsMDB = this._filterTransactions(transactionsMDB);
+      transactionsMDB = this._filterTransactions(transactionsMDB, searchValue);
       // Create
       transactionsMDB.forEach((transactionMDB) => {
         // Set
@@ -543,7 +543,8 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  _filterTransactions(transactionsMDB) {
+  _filterTransactions(transactionsMDB, searchValue) {
+    let regexp = new RegExp(searchValue);
     // Check User and ChargeBox
     return transactionsMDB.filter((transactionMDB) => {
       // User not found?
@@ -560,6 +561,14 @@ class MongoDBStorage extends Storage {
           message: `Transaction ID '${transactionMDB.id}': Charging Station does not exist` });
         return false;
       }
+      // Filter?
+      if (searchValue) {
+        // Yes
+        return regexp.test(transactionMDB.chargeBoxID.id.toString()) ||
+          regexp.test(transactionMDB.userID.name.toString()) ||
+          regexp.test(transactionMDB.userID.firstName.toString());
+      }
+      // Default ok
       return true;
     });
   }
