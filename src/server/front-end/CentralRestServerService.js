@@ -25,25 +25,6 @@ module.exports = {
           case "ping":
             res.sendStatus(200);
             break;
-
-          // Check email
-          case "checkemail":
-            // Check email
-            global.storage.getUserByEmail(req.query.EMail).then((user) => {
-              // Found?
-              if (user) {
-                // Ok
-                res.json({exist: true});
-              } else {
-                // Ok
-                res.json({exist: false});
-              }
-              next();
-            }).catch((err) => {
-              // Log error
-              Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-            });
-            break;
         }
         break;
     }
@@ -294,27 +275,23 @@ module.exports = {
             // Not Authorized!
             Logging.logActionUnauthorizedMessageAndSendResponse(
               CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS, CentralRestServerAuthorization.ACTION_LIST, null, req, res, next);
+            next();
             return;
           }
           // Get the charging stations
           global.storage.getChargingStations(req.query.Search, 100).then((chargingStations) => {
-            // Check email
+            // Get logged user
             global.storage.getUser(req.user.id).then((user) => {
-              if (!user) {
-                Logging.logActionErrorMessageAndSendResponse(action, `The user with ID ${req.body.id} does not exist`, req, res, next);
-                return;
-              }
-              // Get the user's active transactions
-              user.getTransactions({stop: {$exists: false}}).then(activeTransactions => {
-                // Handle
-                var chargingStationsJSon = [];
-                chargingStations.forEach((chargingStation) => {
-                  // Reaquest active but no active transaction?
-                  // Check auth
-                  if (CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
+              // Check
+              if (user) {
+                // Get the user's active transactions
+                user.getTransactions({stop: {$exists: false}}).then(activeTransactions => {
+                  // Handle
+                  var chargingStationsJSon = [];
+                  chargingStations.forEach((chargingStation) => {
                     // Check
                     let connectors = chargingStation.getConnectors();
-                    // Yes: Check Active Transaction
+                    // Set charging station active?
                     activeTransactions.forEach(activeTransaction => {
                       // Find a match
                       if (chargingStation.getChargeBoxIdentity() === activeTransaction.chargeBoxID.chargeBoxIdentity ) {
@@ -341,16 +318,18 @@ module.exports = {
                       // Add
                       chargingStationsJSon.push(chargingStation.getModel());
                     }
-                  }
+                  });
+                  // Return
+                  res.json(
+                    // Filter
+                    SecurityRestObjectFiltering.filterChargingStations(
+                      chargingStationsJSon, req.user)
+                  );
+                  next();
                 });
-                // Return
-                res.json(
-                  // Filter
-                  SecurityRestObjectFiltering.filterChargingStations(
-                    chargingStationsJSon, req.user)
-                );
-                next();
-              });
+              } else {
+                Logging.logActionErrorMessageAndSendResponse(action, `The user with ID ${req.body.id} does not exist`, req, res, next);
+              }
             });
           }).catch((err) => {
             // Log
@@ -363,22 +342,16 @@ module.exports = {
           // Charge Box is mandatory
           if(!req.query.ChargeBoxIdentity) {
             Logging.logActionErrorMessageAndSendResponse(action, `The Charging Station ID is mandatory`, req, res, next);
-            break;
+            return;
           }
           // Get it
           global.storage.getChargingStation(req.query.ChargeBoxIdentity).then((chargingStation) => {
             if (chargingStation) {
-              // Check auth
-              if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
-                // Not Authorized!
-                Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, chargingStation.getChargeBoxIdentity(), req, res, next);
-                return;
-              }
               // Return
               res.json(
                 // Filter
-                SecurityRestObjectFiltering.filterChargingStation(chargingStation.getModel(), req.user)
+                SecurityRestObjectFiltering.filterChargingStation(
+                  chargingStation.getModel(), req.user)
               );
             } else {
               res.json({});
@@ -399,65 +372,25 @@ module.exports = {
               CentralRestServerAuthorization.ENTITY_USERS, CentralRestServerAuthorization.ACTION_LIST, null, req, res, next);
             return;
           }
+          // Check param
+          if(req.query.WithPicture) {
+            req.query.WithPicture = (req.query.WithPicture === "true");
+          } else {
+            req.query.WithPicture = false;
+          }
+          // Get users
           global.storage.getUsers(req.query.Search, 100).then((users) => {
             var usersJSon = [];
             users.forEach((user) => {
-              // Check auth
-              if (CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
-                // Clear image?
-                if (req.query.WithPicture === "false") {
-                  // No
-                  user.setImage(null);
-                }
-                // Clear Sensitive Data
-                user.setPassword("");
-                // Must be admin to get the user/pass
-                if (!CentralRestServerAuthorization.isAdmin(req.user)) {
-                  // Clear role
-                  user.setRole("");
-                }
-                // Set the model
-                usersJSon.push(user.getModel());
-              }
+              // Set the model
+              usersJSon.push(user.getModel());
             });
             // Return
-            res.json(usersJSon);
-            next();
-          }).catch((err) => {
-            // Log
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-          });
-          break;
-
-        // Get the user
-        case "UserByEmail":
-          // User mandatory
-          if(!req.query.Email) {
-            Logging.logActionErrorMessageAndSendResponse(action, `The User's email is mandatory`, req, res, next);
-            break;
-          }
-          // Get
-          global.storage.getUserByEmail(req.query.Email).then((user) => {
-            if (user) {
-              // Check auth
-              if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
-                // Not Authorized!
-                Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, Utils.buildUserFullName(user.getModel()), req, res, next);
-                return;
-              }
-              // Clear Sensitive Data
-              user.setPassword("");
-              // Must be admin to get the user/pass
-              if (!CentralRestServerAuthorization.isAdmin(req.user)) {
-                // Clear role
-                user.setRole("");
-              }
-              // Set
-              res.json(user.getModel());
-            } else {
-              res.json({});
-            }
+            res.json(
+              // Filter
+              SecurityRestObjectFiltering.filterUsers(
+                usersJSon, req.user, req.query.WithPicture)
+            );
             next();
           }).catch((err) => {
             // Log
@@ -470,62 +403,17 @@ module.exports = {
           // User mandatory
           if(!req.query.ID) {
             Logging.logActionErrorMessageAndSendResponse(action, `The User's ID is mandatory`, req, res, next);
-            break;
+            return;
           }
+          // Get the user
           global.storage.getUser(req.query.ID).then((user) => {
             if (user) {
-              // Check auth
-              if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
-                // Not Authorized!
-                Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, Utils.buildUserFullName(user.getModel()), req, res, next);
-                return;
-              }
-              // Clear Sensitive Data
-              user.setPassword("");
-              // Must be admin to get the user/pass
-              if (!CentralRestServerAuthorization.isAdmin(req.user)) {
-                // Clear role
-                user.setRole("");
-              }
               // Set the user
-              res.json(user.getModel());
-            } else {
-              res.json({});
-            }
-            next();
-          }).catch((err) => {
-            // Log
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-          });
-          break;
-
-        // Get the user
-        case "UserByTagId":
-          // User mandatory
-          if(!req.query.TagId) {
-            Logging.logActionErrorMessageAndSendResponse(action, `The User's Tag ID is mandatory`, req, res, next);
-            break;
-          }
-          // Set
-          global.storage.getUserByTagId(req.query.TagId).then((user) => {
-            if (user) {
-              // Check auth
-              if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
-                // Not Authorized!
-                Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, Utils.buildUserFullName(user.getModel()), req, res, next);
-                return;
-              }
-              // Clear Sensitive Data
-              user.setPassword("");
-              // Must be admin to get the user/pass
-              if (!CentralRestServerAuthorization.isAdmin(req.user)) {
-                // Clear role
-                user.setRole("");
-              }
-              // Set data
-              res.json(user.getModel());
+              res.json(
+                // Filter
+                SecurityRestObjectFiltering.filterUser(
+                  user.getModel(), req.user, true)
+              );
             } else {
               res.json({});
             }
@@ -540,8 +428,10 @@ module.exports = {
         case "CompletedTransactions":
           filter = {stop: {$exists: true}};
           // Check param
-          if(!req.query.WithPicture) {
-            req.query.WithPicture="false";
+          if(req.query.WithPicture) {
+            req.query.WithPicture = (req.query.WithPicture === "true");
+          } else {
+            req.query.WithPicture = false;
           }
           // Date
           if (req.query.StartDateTime) {
@@ -552,25 +442,11 @@ module.exports = {
           }
           // Check email
           global.storage.getTransactions(req.query.Search, filter).then((transactions) => {
-            // filters
-            transactions = transactions.filter((transaction) => {
-              return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
-                CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBoxID);
-            });
-            // Clean images
-            transactions.forEach((transaction) => {
-              if (transaction.userID && req.query.WithPicture === "false") {
-                transaction.userID.image = null;
-              }
-              if (transaction.stop && transaction.stop.userID && req.query.WithPicture === "false") {
-                transaction.stop.userID.image = null;
-              }
-            });
             // Return
             res.json(
               // Filter
               SecurityRestObjectFiltering.filterTransactions(
-                transactions, req.user)
+                transactions, req.user, req.query.WithPicture)
             );
             next();
           }).catch((err) => {
@@ -710,31 +586,18 @@ module.exports = {
         // Get the active transactions
         case "ActiveTransactions":
           // Check param
-          if(!req.query.WithPicture) {
-            req.query.WithPicture="false";
+          if(req.query.WithPicture) {
+            req.query.WithPicture = (req.query.WithPicture === "true");
+          } else {
+            req.query.WithPicture = false;
           }
           // Check email
           global.storage.getTransactions(null, {stop: {$exists: false}}).then((transactions) => {
-            // filters
-            transactions = transactions.filter((transaction) => {
-              // Check
-              return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
-                CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBoxID);
-            });
-            // Clean images
-            transactions.forEach((transaction) => {
-              if (transaction.userID && req.query.WithPicture === "false") {
-                transaction.userID.image = null;
-              }
-              if (transaction.stop && transaction.stop.userID && req.query.WithPicture === "false") {
-                transaction.stop.userID.image = null;
-              }
-            });
             // Return
             res.json(
               // Filter
               SecurityRestObjectFiltering.filterTransactions(
-                transactions, req.user)
+                transactions, req.user, req.query.WithPicture, true)
             );
             next();
           }).catch((err) => {
@@ -758,61 +621,14 @@ module.exports = {
           // Get Charge Box
           global.storage.getChargingStation(req.query.ChargeBoxIdentity).then((chargingStation) => {
             if (chargingStation) {
-              // Check auth
-              if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
-                // Not Authorized!
-                Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, chargingStation.getChargeBoxIdentity(), req, res, next);
-                return;
-              }
               // Set the model
               chargingStation.getTransactions(req.query.ConnectorId,
                 req.query.StartDateTime, req.query.EndDateTime).then((transactions) => {
-                  var transactionsAuthorized;
-                  if (transactions) {
-                    // Loop Over
-                    transactionsAuthorized = transactions.filter((transaction) => {
-                      // Check auth
-                      if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.userID)) {
-                        // Demo user?
-                        if (!CentralRestServerAuthorization.isDemo(req.user)) {
-                          return false;
-                        }
-                        // Hide
-                        transaction.userID = {};
-                        transaction.userID.name = "####";
-                        transaction.userID.firstName = "####";
-                      }
-                      // Check auth
-                      if (transaction.stop && transaction.stop.userID &&
-                         !CentralRestServerAuthorization.canReadUser(req.user, transaction.stop.userID)) {
-                        // Demo user?
-                        if (!CentralRestServerAuthorization.isDemo(req.user)) {
-                          return false;
-                        }
-                        // Clear the user
-                        transaction.stop.userID = {};
-                        transaction.stop.userID.name = "####";
-                        transaction.stop.userID.firstName = "####";
-                      }
-                      // Ok
-                      return true;
-                    });
-                  }
-                  // Clean images
-                  transactionsAuthorized.forEach((transactionAuthorized) => {
-                    if (transactionAuthorized.userID) {
-                      transactionAuthorized.userID.image = null;
-                    }
-                    if (transactionAuthorized.stop && transactionAuthorized.stop.userID) {
-                      transactionAuthorized.stop.userID.image = null;
-                    }
-                  });
                   // Return
                   res.json(
                     // Filter
                     SecurityRestObjectFiltering.filterTransactions(
-                      transactionsAuthorized, req.user)
+                      transactions, req.user, false, true)
                   );
                   next();
                 }).catch((err) => {
@@ -834,47 +650,16 @@ module.exports = {
           // Charge Box is mandatory
           if(!req.query.TransactionId) {
             Logging.logActionErrorMessageAndSendResponse(action, `The Transaction ID is mandatory`, req, res, next);
-            break;
+            return;
           }
           // Get Transaction
           global.storage.getTransaction(req.query.TransactionId).then((transaction) => {
             if (transaction) {
-              // Check auth
-              if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.userID)) {
-                // Demo user?
-                if (!CentralRestServerAuthorization.isDemo(req.user)) {
-                  // No: Not Authorized!
-                  Logging.logActionUnauthorizedMessageAndSendResponse(
-                    CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, Utils.buildUserFullName(transaction.userID), req, res, next);
-                  return;
-                } else {
-                  // Clear the user
-                  transaction.userID = {};
-                  transaction.userID.name = "####";
-                  transaction.userID.firstName = "####";
-                }
-              }
-              // Check auth
-              if (transaction.stop && transaction.stop.userID &&
-                 !CentralRestServerAuthorization.canReadUser(req.user, transaction.stop.userID)) {
-               // Demo user?
-               if (!CentralRestServerAuthorization.isDemo(req.user)) {
-                 // No: Not Authorized!
-                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                   CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, Utils.buildUserFullName(transaction.stop.userID), req, res, next);
-                return;
-               } else {
-                  // Clear the user
-                  transaction.stop.userID = {};
-                  transaction.stop.userID.name = "####";
-                  transaction.stop.userID.firstName = "####";
-                }
-              }
               // Return
               res.json(
                 // Filter
-                SecurityRestObjectFiltering.filterTransactions(
-                  transaction, req.user)
+                SecurityRestObjectFiltering.filterTransaction(
+                  transaction, req.user, true)
               );
               next();
             } else {
@@ -892,7 +677,7 @@ module.exports = {
           // Transaction Id is mandatory
           if(!req.query.TransactionId) {
             Logging.logActionErrorMessageAndSendResponse(action, `The Transaction ID is mandatory`, req, res, next);
-            break;
+            return;
           }
           // Get Transaction
           global.storage.getTransaction(req.query.TransactionId).then((transaction) => {

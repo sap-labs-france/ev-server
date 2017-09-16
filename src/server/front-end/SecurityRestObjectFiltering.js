@@ -3,74 +3,154 @@ const CentralRestServerAuthorization = require('./CentralRestServerAuthorization
 require('source-map-support').install();
 
 class SecurityRestObjectFiltering {
-  // Charging Station
-  static filterChargingStation(chargingStation, user) {
-    let filteredChargingStation;
-    // Admin?
-    if (CentralRestServerAuthorization.isAdmin(user)) {
-      // Yes: set all params
-      filteredChargingStation = chargingStation;
-    } else {
-      // Set only necessary info
-      filteredChargingStation = {};
-      filteredChargingStation.id = chargingStation.id;
-      filteredChargingStation.chargeBoxIdentity = chargingStation.chargeBoxIdentity;
-      filteredChargingStation.connectors = chargingStation.connectors;
-      filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
+  // User
+  static filterUser(user, loggedUser, withPicture=false) {
+    let filteredUser;
+
+    // Check auth
+    if (CentralRestServerAuthorization.canReadUser(loggedUser, user)) {
+      // Admin?
+      if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+        // Yes: set all params
+        filteredUser = user;
+        filteredUser.password = "";
+      } else {
+        // Set only necessary info
+        filteredUser = {};
+        filteredUser.id = user.id;
+        filteredUser.name = user.name;
+        filteredUser.firstName = user.firstName;
+        filteredUser.email = user.email;
+        if (withPicture) {
+          filteredUser.image = user.image;
+        }
+        filteredUser.locale = user.locale;
+        // filteredUser. = user.;
+        // filteredUser. = user.;
+      }
     }
+
+    return filteredUser;
+  }
+
+  static filterUsers(users, loggedUser, withPicture=false) {
+    let filteredUsers = [];
+    users.forEach(user => {
+      // Filter
+      let filteredUser = this.filterUser(user, loggedUser);
+      // Ok?
+      if (filteredUser) {
+        // Add
+        filteredUsers.push(filteredUser);
+      }
+    });
+    return filteredUsers;
+  }
+
+  // Charging Station
+  static filterChargingStation(chargingStation, loggedUser) {
+    let filteredChargingStation;
+
+    // Check auth
+    if (CentralRestServerAuthorization.canReadChargingStation(loggedUser, chargingStation)) {
+      // Admin?
+      if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+        // Yes: set all params
+        filteredChargingStation = chargingStation;
+      } else {
+        // Set only necessary info
+        filteredChargingStation = {};
+        filteredChargingStation.id = chargingStation.id;
+        filteredChargingStation.chargeBoxIdentity = chargingStation.chargeBoxIdentity;
+        filteredChargingStation.connectors = chargingStation.connectors;
+        filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
+      }
+    }
+
     return filteredChargingStation;
   }
 
-  static filterChargingStations(chargingStations, user) {
+  static filterChargingStations(chargingStations, loggedUser) {
     let filteredChargingStations = [];
     chargingStations.forEach(chargingStation => {
       // Filter
-      filteredChargingStations.push(this.filterChargingStation(chargingStation, user));
+      let filteredChargingStation = this.filterChargingStation(chargingStation, loggedUser);
+      // Ok?
+      if (filteredChargingStation) {
+        // Add
+        filteredChargingStations.push(filteredChargingStation);
+      }
     });
     return filteredChargingStations;
   }
 
   // Transaction
-  static filterTransaction(transaction, user) {
+  static filterTransaction(transaction, loggedUser, withPicture=false, withConnector=false) {
     let filteredTransaction;
 
-    // Set only necessary info
-    filteredTransaction = {};
-    filteredTransaction.id = transaction.id;
-    filteredTransaction.transactionId = transaction.transactionId;
-    filteredTransaction.connectorId = transaction.connectorId;
-    filteredTransaction.timestamp = transaction.timestamp;
-    // User
-    filteredTransaction.userID = {};
-    filteredTransaction.userID.id = transaction.userID.id;
-    filteredTransaction.userID.name = transaction.userID.name;
-    filteredTransaction.userID.firstName = transaction.userID.firstName;
-    // Transaction Stop
-    if (transaction.stop) {
-      filteredTransaction.stop = {};
-      filteredTransaction.stop.timestamp = transaction.stop.timestamp;
-      filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
-      // Stop User
-      if (transaction.stop.userID) {
-        filteredTransaction.stop.userID = {};
-        filteredTransaction.stop.userID.id = transaction.stop.userID.id;
-        filteredTransaction.stop.userID.name = transaction.stop.userID.name;
-        filteredTransaction.stop.userID.firstName = transaction.stop.userID.firstName;
+    // Check auth
+    if (CentralRestServerAuthorization.canReadUser(loggedUser, transaction.userID) &&
+        CentralRestServerAuthorization.canReadChargingStation(loggedUser, transaction.chargeBoxID)) {
+      // Set only necessary info
+      filteredTransaction = {};
+      filteredTransaction.id = transaction.id;
+      filteredTransaction.transactionId = transaction.transactionId;
+      filteredTransaction.connectorId = transaction.connectorId;
+      filteredTransaction.timestamp = transaction.timestamp;
+      // User
+      filteredTransaction.userID = {};
+      // Demo user?
+      if (CentralRestServerAuthorization.isDemo(loggedUser)) {
+        filteredTransaction.userID.name = "####";
+        filteredTransaction.userID.firstName = "####";
+      } else {
+        filteredTransaction.userID.name = transaction.userID.name;
+        filteredTransaction.userID.firstName = transaction.userID.firstName;
+        if (withPicture) {
+          filteredTransaction.userID.image = transaction.userID.image;
+        }
+      }
+      // Transaction Stop
+      if (transaction.stop) {
+        filteredTransaction.stop = {};
+        filteredTransaction.stop.timestamp = transaction.stop.timestamp;
+        filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
+        // Stop User
+        if (transaction.stop.userID) {
+          // Can read user that stopped the transaction?
+          if (CentralRestServerAuthorization.canReadUser(loggedUser, transaction.stop.userID)) {
+            filteredTransaction.stop.userID = {};
+            filteredTransaction.stop.userID.name = transaction.stop.userID.name;
+            filteredTransaction.stop.userID.firstName = transaction.stop.userID.firstName;
+            if (withPicture) {
+              filteredTransaction.stop.userID.image = transaction.stop.userID.image;
+            }
+          }
+        }
+      }
+      // Charging Station
+      filteredTransaction.chargeBoxID = {};
+      filteredTransaction.chargeBoxID.id = transaction.chargeBoxID.id;
+      filteredTransaction.chargeBoxID.chargeBoxIdentity = transaction.chargeBoxID.chargeBoxIdentity;
+      if (withConnector) {
+        filteredTransaction.chargeBoxID.connectors = [];
+        filteredTransaction.chargeBoxID.connectors[transaction.connectorId-1] = transaction.chargeBoxID.connectors[transaction.connectorId-1];
       }
     }
-    // Charging Station
-    filteredTransaction.chargeBoxID = {};
-    filteredTransaction.chargeBoxID.id = transaction.chargeBoxID.id;
-    filteredTransaction.chargeBoxID.chargeBoxIdentity = transaction.chargeBoxID.chargeBoxIdentity;
 
     return filteredTransaction;
   }
 
-  static filterTransactions(transactions, user) {
+  static filterTransactions(transactions, loggedUser, withPicture=false, withConnector=false) {
     let filteredTransactions = [];
     transactions.forEach(transaction => {
       // Filter
-      filteredTransactions.push(this.filterTransaction(transaction, user));
+      let filteredTransaction = this.filterTransaction(transaction, loggedUser, withPicture, withConnector);
+      // Ok?
+      if (filteredTransaction) {
+        // Add
+        filteredTransactions.push(filteredTransaction);
+      }
     });
     return filteredTransactions;
   }
