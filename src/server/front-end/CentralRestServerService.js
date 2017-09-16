@@ -343,10 +343,12 @@ module.exports = {
                     }
                   }
                 });
-                // Filter
-                chargingStationsJSon = SecurityRestObjectFiltering.filterChargingStations(chargingStationsJSon, req.user);
                 // Return
-                res.json(chargingStationsJSon);
+                res.json(
+                  // Filter
+                  SecurityRestObjectFiltering.filterChargingStations(
+                    chargingStationsJSon, req.user)
+                );
                 next();
               });
             });
@@ -373,10 +375,11 @@ module.exports = {
                   CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, chargingStation.getChargeBoxIdentity(), req, res, next);
                 return;
               }
-              // Filter
-              SecurityRestObjectFiltering.filterChargingStation(chargingStation.getModel(), req.user);
               // Return
-              res.json(chargingStation.getModel());
+              res.json(
+                // Filter
+                SecurityRestObjectFiltering.filterChargingStation(chargingStation.getModel(), req.user)
+              );
             } else {
               res.json({});
             }
@@ -564,7 +567,11 @@ module.exports = {
               }
             });
             // Return
-            res.json(transactions);
+            res.json(
+              // Filter
+              SecurityRestObjectFiltering.filterTransactions(
+                transactions, req.user)
+            );
             next();
           }).catch((err) => {
             // Log
@@ -584,7 +591,7 @@ module.exports = {
             filter.endDateTime = moment().endOf('year').toDate().toISOString();
           }
           // Check email
-          global.storage.getTransactions(filter).then((transactions) => {
+          global.storage.getTransactions(null, filter).then((transactions) => {
             // filters
             transactions = transactions.filter((transaction) => {
               return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
@@ -647,7 +654,7 @@ module.exports = {
           filter.endDateTime = moment().endOf('year').toDate().toISOString();
         }
         // Check email
-        global.storage.getTransactions(filter).then((transactions) => {
+        global.storage.getTransactions(null, filter).then((transactions) => {
           // filters
           transactions = transactions.filter((transaction) => {
             return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
@@ -707,7 +714,7 @@ module.exports = {
             req.query.WithPicture="false";
           }
           // Check email
-          global.storage.getTransactions({stop: {$exists: false}}).then((transactions) => {
+          global.storage.getTransactions(null, {stop: {$exists: false}}).then((transactions) => {
             // filters
             transactions = transactions.filter((transaction) => {
               // Check
@@ -724,7 +731,11 @@ module.exports = {
               }
             });
             // Return
-            res.json(transactions);
+            res.json(
+              // Filter
+              SecurityRestObjectFiltering.filterTransactions(
+                transactions, req.user)
+            );
             next();
           }).catch((err) => {
             // Log
@@ -798,7 +809,11 @@ module.exports = {
                     }
                   });
                   // Return
-                  res.json(transactionsAuthorized);
+                  res.json(
+                    // Filter
+                    SecurityRestObjectFiltering.filterTransactions(
+                      transactionsAuthorized, req.user)
+                  );
                   next();
                 }).catch((err) => {
                   // Log error
@@ -856,7 +871,11 @@ module.exports = {
                 }
               }
               // Return
-              res.json(transaction);
+              res.json(
+                // Filter
+                SecurityRestObjectFiltering.filterTransactions(
+                  transaction, req.user)
+              );
               next();
             } else {
               // Log

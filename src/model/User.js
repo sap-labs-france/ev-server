@@ -171,7 +171,7 @@ class User {
     // Set the user ID
     filter.userId = this.getID();
     // Get the consumption
-    return global.storage.getTransactions(filter);
+    return global.storage.getTransactions(null, filter);
   }
 
   save() {

@@ -67,7 +67,7 @@ class Storage {
   saveMeterValues(meterValues) {
   }
 
-  getTransactions(search, filter) {
+  getTransactions(searchValue, filter) {
   }
 
   getTransaction(transactionId) {
