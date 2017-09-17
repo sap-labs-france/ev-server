@@ -456,7 +456,7 @@ module.exports = {
           break;
 
         // Get the consumption statistics
-        case "ConsumptionStatistics":
+        case "ChargingStationConsumptionStatistics":
           filter = {stop: {$exists: true}};
           // Date
           if (req.query.Year) {
@@ -472,15 +472,6 @@ module.exports = {
             transactions = transactions.filter((transaction) => {
               return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
                 CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBoxID);
-            });
-            // Clean images
-            transactions.forEach((transaction) => {
-              if (transaction.userID && req.query.WithPicture === "false") {
-                transaction.userID.image = null;
-              }
-              if (transaction.stop && transaction.stop.userID && req.query.WithPicture === "false") {
-                transaction.stop.userID.image = null;
-              }
             });
             // Group Them By Month
             let monthStats = [];
@@ -519,7 +510,7 @@ module.exports = {
           break;
 
       // Get the consumption statistics
-      case "UsageStatistics":
+      case "ChargingStationUsageStatistics":
         filter = {stop: {$exists: true}};
         // Date
         if (req.query.Year) {
@@ -535,15 +526,6 @@ module.exports = {
           transactions = transactions.filter((transaction) => {
             return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
               CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBoxID);
-          });
-          // Clean images
-          transactions.forEach((transaction) => {
-            if (transaction.userID && req.query.WithPicture === "false") {
-              transaction.userID.image = null;
-            }
-            if (transaction.stop && transaction.stop.userID && req.query.WithPicture === "false") {
-              transaction.stop.userID.image = null;
-            }
           });
           // Group Them By Month
           let monthStats = [];
@@ -583,28 +565,83 @@ module.exports = {
         });
         break;
 
-        // Get the active transactions
-        case "ActiveTransactions":
-          // Check param
-          if(req.query.WithPicture) {
-            req.query.WithPicture = (req.query.WithPicture === "true");
-          } else {
-            req.query.WithPicture = false;
-          }
-          // Check email
-          global.storage.getTransactions(null, {stop: {$exists: false}}).then((transactions) => {
-            // Return
-            res.json(
-              // Filter
-              SecurityRestObjectFiltering.filterTransactions(
-                transactions, req.user, req.query.WithPicture, true)
-            );
-            next();
-          }).catch((err) => {
-            // Log
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+      // Get the consumption statistics
+      case "UserConsumptionStatistics":
+        filter = {stop: {$exists: true}};
+        // Date
+        if (req.query.Year) {
+          filter.startDateTime = moment().year(req.query.Year).startOf('year').toDate().toISOString();
+          filter.endDateTime = moment().year(req.query.Year).endOf('year').toDate().toISOString();
+        } else {
+          filter.startDateTime = moment().startOf('year').toDate().toISOString();
+          filter.endDateTime = moment().endOf('year').toDate().toISOString();
+        }
+        // Check email
+        global.storage.getTransactions(null, filter).then((transactions) => {
+          // filters
+          transactions = transactions.filter((transaction) => {
+            return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
+              CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBoxID);
           });
-          break;
+          // Group Them By Month
+          let monthStats = [];
+          let monthStat;
+          // Browse in reverse order
+          for (var i = transactions.length-1; i >= 0; i--) {
+            // First Init
+            if (!monthStat) {
+              monthStat = {};
+              monthStat.month = moment(transactions[i].timestamp).month();
+            }
+            // Month changed?
+            if (monthStat.month != moment(transactions[i].timestamp).month()) {
+              // Add
+              monthStats.push(monthStat);
+              // Reset
+              monthStat = {};
+              monthStat.month = moment(transactions[i].timestamp).month();
+            }
+            // Set consumption
+            let userName = Utils.buildUserFullName(transactions[i].userID, false);
+            if (!monthStat[userName]) {
+              // Add conso in kW.h
+              monthStat[userName] = transactions[i].stop.totalConsumption / 1000;
+            } else {
+              // Add conso in kW.h
+              monthStat[userName] += transactions[i].stop.totalConsumption / 1000;
+            }
+          }
+          // Return
+          res.json(monthStats);
+          next();
+        }).catch((err) => {
+          // Log
+          Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+        });
+        break;
+
+      // Get the active transactions
+      case "ActiveTransactions":
+        // Check param
+        if(req.query.WithPicture) {
+          req.query.WithPicture = (req.query.WithPicture === "true");
+        } else {
+          req.query.WithPicture = false;
+        }
+        // Check email
+        global.storage.getTransactions(null, {stop: {$exists: false}}).then((transactions) => {
+          // Return
+          res.json(
+            // Filter
+            SecurityRestObjectFiltering.filterTransactions(
+              transactions, req.user, req.query.WithPicture, true)
+          );
+          next();
+        }).catch((err) => {
+          // Log
+          Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+        });
+        break;
 
         // Get the transactions
         case "ChargingStationTransactions":

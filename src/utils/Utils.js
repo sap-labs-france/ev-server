@@ -9,7 +9,7 @@ module.exports = {
     return new Date().getTime();
   },
 
-  buildUserFullName(user) {
+  buildUserFullName(user, withID=true) {
     if (!user) {
       return "Unknown";
     }
@@ -17,7 +17,12 @@ module.exports = {
     if (!user.firstName) {
       return user.name;
     }
-    return `${user.firstName} ${user.name} (${user.id})`;
+    // Set the ID?
+    if (withID) {
+      return `${user.firstName} ${user.name} (${user.id})`;
+    } else {
+      return `${user.firstName} ${user.name}`;
+    }
   },
 
   // Save the users in file
