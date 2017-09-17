@@ -197,7 +197,7 @@ module.exports = {
               // Check email
               global.storage.getUserByEmail(req.body.email).then((user) => {
                 if (user) {
-                  Logging.logActionErrorMessageAndSendResponse(action, `The email ${req.body.tagIDs} already exists`, req, res, next);
+                  Logging.logActionErrorMessageAndSendResponse(action, `The email ${req.body.tagIDs} already exists`, req, res, next, 510);
                   return;
                 }
                 // Create user
@@ -838,79 +838,89 @@ module.exports = {
             // Check email
             global.storage.getUser(req.body.id).then((user) => {
               if (!user) {
-                Logging.logActionErrorMessageAndSendResponse(action, `The user with ID ${req.body.id} does not exist anymore`, req, res, next);
+                Logging.logActionErrorMessageAndSendResponse(
+                  action, `The user with ID ${req.body.id} does not exist anymore`, req, res, next, 550);
                 return;
               }
-              // Check auth
-              if (!CentralRestServerAuthorization.canUpdateUser(req.user, user.getModel())) {
-                // Not Authorized!
-                Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_UPDATE, Utils.buildUserFullName(user.getModel()), req, res, next);
-                return;
-              }
-              // Check if Role is provided and has been changed
-              if (req.body.role && req.body.role !== user.getRole() && req.user.role !== Users.USER_ROLE_ADMIN) {
-                // Role provided and not an Admin
-                Logging.logError({
-                  user: req.user, source: "Central Server", module: "CentralServerRestService", method: "UpdateUser",
-                  message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to change the role of the user ${Utils.buildUserFullName(user.getModel())} to '${req.body.role}' without having the Admin priviledge` });
-                // Override it
-                req.body.role = user.getRole();
-              }
-              // Check if Role is provided
-              if (req.body.status && req.body.status !== user.getStatus()) {
-                // Right to change?
-                if (req.user.role !== Users.USER_ROLE_ADMIN) {
+
+              // Check email
+              global.storage.getUserByEmail(req.body.email).then((userWithEmail) => {
+                if (userWithEmail) {
+                  Logging.logActionErrorMessageAndSendResponse(
+                    action, `The email ${req.body.email} already exists`, req, res, next, 510);
+                  return;
+                }
+                // Check auth
+                if (!CentralRestServerAuthorization.canUpdateUser(req.user, user.getModel())) {
+                  // Not Authorized!
+                  Logging.logActionUnauthorizedMessageAndSendResponse(
+                    CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_UPDATE, Utils.buildUserFullName(user.getModel()), req, res, next);
+                  return;
+                }
+                // Check if Role is provided and has been changed
+                if (req.body.role && req.body.role !== user.getRole() && req.user.role !== Users.USER_ROLE_ADMIN) {
                   // Role provided and not an Admin
                   Logging.logError({
                     user: req.user, source: "Central Server", module: "CentralServerRestService", method: "UpdateUser",
-                    message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to update the status of the user ${Utils.buildUserFullName(user.getModel())} to '${req.body.status}' without having the Admin priviledge` });
-                  // Ovverride it
-                  req.body.status = user.getStatus();
-                } else {
-                  // Status changed
-                  statusHasChanged = true;
+                    message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to change the role of the user ${Utils.buildUserFullName(user.getModel())} to '${req.body.role}' without having the Admin priviledge` });
+                  // Override it
+                  req.body.role = user.getRole();
                 }
-              }
-              // Update
-              Database.updateUser(req.body, user.getModel());
-              // Set the locale
-              user.setLocale(req.locale);
-              // Update timestamp
-              user.setLastChangedBy(`${Utils.buildUserFullName(req.user)}`);
-              user.setLastChangedOn(new Date());
-              // Check the password
-              if (req.body.passwords.password && req.body.passwords.password.length > 0) {
-                // Hash the pass
-                let passwordHashed = Users.hashPassword(req.body.passwords.password);
-                // Update the password
-                user.setPassword(passwordHashed);
-              }
-              // Update
-              user.save().then(() => {
-                // Log
-                Logging.logInfo({
-                  user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
-                  message: `User ${user.getFullName()} with Email ${user.getEMail()} and ID '${req.user.id}' has been updated successfully`,
-                  action: action, detailedMessages: user});
-                // Notify
-                if (statusHasChanged) {
-                  // Send notification
-                  NotificationHandler.sendUserAccountStatusChanged(
-                    Utils.generateID(),
-                    user.getModel(),
-                    {
-                      "user": user.getModel(),
-                      "evseDashboardURL" : Utils.buildEvseURL()
-                    },
-                    req.locale);
+                // Check if Role is provided
+                if (req.body.status && req.body.status !== user.getStatus()) {
+                  // Right to change?
+                  if (req.user.role !== Users.USER_ROLE_ADMIN) {
+                    // Role provided and not an Admin
+                    Logging.logError({
+                      user: req.user, source: "Central Server", module: "CentralServerRestService", method: "UpdateUser",
+                      message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to update the status of the user ${Utils.buildUserFullName(user.getModel())} to '${req.body.status}' without having the Admin priviledge` });
+                    // Ovverride it
+                    req.body.status = user.getStatus();
+                  } else {
+                    // Status changed
+                    statusHasChanged = true;
+                  }
                 }
-                // Ok
-                res.json({status: `Success`});
-                next();
-              }).catch((err) => {
-                // Log error
-                Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+                // Update
+                Database.updateUser(req.body, user.getModel());
+                // Set the locale
+                user.setLocale(req.locale);
+                // Update timestamp
+                user.setLastChangedBy(`${Utils.buildUserFullName(req.user)}`);
+                user.setLastChangedOn(new Date());
+                // Check the password
+                if (req.body.passwords.password && req.body.passwords.password.length > 0) {
+                  // Hash the pass
+                  let passwordHashed = Users.hashPassword(req.body.passwords.password);
+                  // Update the password
+                  user.setPassword(passwordHashed);
+                }
+                // Update
+                user.save().then(() => {
+                  // Log
+                  Logging.logInfo({
+                    user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
+                    message: `User ${user.getFullName()} with Email ${user.getEMail()} and ID '${req.user.id}' has been updated successfully`,
+                    action: action, detailedMessages: user});
+                  // Notify
+                  if (statusHasChanged) {
+                    // Send notification
+                    NotificationHandler.sendUserAccountStatusChanged(
+                      Utils.generateID(),
+                      user.getModel(),
+                      {
+                        "user": user.getModel(),
+                        "evseDashboardURL" : Utils.buildEvseURL()
+                      },
+                      req.locale);
+                  }
+                  // Ok
+                  res.json({status: `Success`});
+                  next();
+                }).catch((err) => {
+                  // Log error
+                  Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+                });
               });
             }).catch((err) => {
               // Log

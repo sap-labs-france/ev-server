@@ -117,7 +117,8 @@ module.exports = {
                 // Check email
                 global.storage.getUserByEmail(req.body.email).then((user) => {
                   if (user) {
-                    Logging.logActionErrorMessageAndSendResponse(action, `The email ${req.body.email} already exists`, req, res, next);
+                    Logging.logActionErrorMessageAndSendResponse(
+                      action, `The email ${req.body.email} already exists`, req, res, next, 510);
                     return;
                   }
                   // Create the user
