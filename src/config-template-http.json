@@ -21,7 +21,7 @@
     "protocol": "http",
     "host": "localhost",
     "port": 80,
-    "distEnabled": true,
+    "distEnabled": false,
     "distPath": "../dist/front-end"
   },
   "Storage": {
