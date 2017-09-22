@@ -266,11 +266,11 @@ The users can have differents roles:
 | ChargingStation  | Read, Update, Delete, Reset, ClearCache,  GetConfiguration, ChangeConfiguration, StopTransaction, UnlockConnector |                   Read                  |    Read   |      Read     |
 | Logging          |                                                        List                                                       |                    -                    |     -     |               |
 
-#### Import initial Users in database
+#### Import initial EVSE Users in database
 
-First time you launch the dashoard, the database will be empty.
+First time you launch the dashoard, the database will be empty then you need at least one user to be able to log on.
 
-Edit the **user-template.json** file and enter at least an Admin user (role = "A":
+Edit the **user-template.json** file in the root directory and enter at least an Admin user with role = "A".
 
 ```
  {
@@ -287,13 +287,17 @@ Edit the **user-template.json** file and enter at least an Admin user (role = "A
  },
 ```
 
-Only the **email** and the **name** are mandatory and must not exist in the database.
+Only the **email** and the **name** are mandatory and should not exist in the database.
 
-Once done, rename the file to **user.json** and when you will start the server, you will get your user imported and the file will be renamed to **user-imported.json**.
+The email is used for unicity in the user's collection.
 
-You can repeat the process with new users.
+Once done, rename the file to **user.json** and start the server (npm start.)
 
-Once done, you can get your password using the dashboard (you will receive it by email.)
+You will get your users imported and the file will be renamed to **user-imported.json**.
+
+You can repeat the process several times (only new users will be imported.)
+
+Once done, you can initialize your password using the dashboard's retreive password feature in the log on screen (you will receive it by email.)
 
 
 ### Notifications
