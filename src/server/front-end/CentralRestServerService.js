@@ -987,10 +987,9 @@ module.exports = {
                   action, `The user with ID ${req.body.id} does not exist anymore`, req, res, next, 550);
                 return;
               }
-
               // Check email
               global.storage.getUserByEmail(req.body.email).then((userWithEmail) => {
-                if (userWithEmail) {
+                if (userWithEmail && user.getID() !== userWithEmail.getID()) {
                   Logging.logActionErrorMessageAndSendResponse(
                     action, `The email ${req.body.email} already exists`, req, res, next, 510);
                   return;
