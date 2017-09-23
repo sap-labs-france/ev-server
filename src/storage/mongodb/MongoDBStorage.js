@@ -13,6 +13,7 @@ const MDBStatusNotification = require('./model/MDBStatusNotification');
 const MDBMeterValue = require('./model/MDBMeterValue');
 const MDBTransaction = require('./model/MDBTransaction');
 const MDBNotification = require('./model/MDBNotification');
+const MDBPricing = require('./model/MDBPricing');
 const MDBDataTransfer = require('./model/MDBDataTransfer');
 const User = require('../../model/User');
 const ChargingStation = require('../../model/ChargingStation');
@@ -220,6 +221,30 @@ class MongoDBStorage extends Storage {
       // Ok
       return statusNotifications;
     });
+  }
+
+  getPricing() {
+    // Exec request
+    return MDBPricing.findOne({}).then((pricingMDB) => {
+      var pricing;
+      if (pricingMDB) {
+        // Set
+        pricing = {};
+        Database.updatePricing(pricingMDB, pricing);
+      }
+      // Ok
+      return pricing;
+    });
+  }
+
+  savePricing(pricing) {
+    // Get
+    return MDBPricing.findOneAndUpdate({}, pricing, {
+        new: true,
+        upsert: true
+      }).then((pricingMDB) => {
+        return pricingMDB;
+      });
   }
 
   getLastStatusNotification(chargeBoxIdentity, connectorId) {

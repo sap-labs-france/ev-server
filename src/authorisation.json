@@ -34,6 +34,12 @@
         "AuthFieldValue": {
           "Action": ["List"]
         }
+      },
+      {
+        "AuthObject": "Pricing",
+        "AuthFieldValue": {
+          "Action": ["Read", "Update"]
+        }
       }
     ]
   },
@@ -69,6 +75,12 @@
       },
       {
         "AuthObject": "Logging",
+        "AuthFieldValue": {
+          "Action": []
+        }
+      },
+      {
+        "AuthObject": "Pricing",
         "AuthFieldValue": {
           "Action": []
         }
@@ -110,6 +122,12 @@
         "AuthFieldValue": {
           "Action": []
         }
+      },
+      {
+        "AuthObject": "Pricing",
+        "AuthFieldValue": {
+          "Action": []
+        }
       }
     ]
   },
@@ -145,6 +163,12 @@
       },
       {
         "AuthObject": "Logging",
+        "AuthFieldValue": {
+          "Action": []
+        }
+      },
+      {
+        "AuthObject": "Pricing",
         "AuthFieldValue": {
           "Action": []
         }

@@ -40,6 +40,7 @@ module.exports = {
       case "POST":
         // Check Context
         switch (action) {
+          // Change max intensity
           case "ChargingStationSetMaxIntensitySocket":
             // Charge Box is mandatory
             if(!req.body.chargeBoxIdentity) {
@@ -247,6 +248,27 @@ module.exports = {
     case "GET":
       // Check Action
       switch (action) {
+        // Change Pricing
+        case "Pricing":
+          // Check auth
+          if (!CentralRestServerAuthorization.canReadPricing(req.user)) {
+            // Not Authorized!
+            Logging.logActionUnauthorizedMessageAndSendResponse(
+              CentralRestServerAuthorization.ENTITY_PRICING, action, null, req, res, next);
+            break;
+          }
+          // Get the Pricing
+          global.storage.getPricing().then((pricing) => {
+            // Return
+            if (pricing) {
+              res.json(pricing);
+            } else {
+              res.json({});
+            }
+            next();
+          });
+          break;
+
         // Get the Logging
         case "Loggings":
           // Check auth
@@ -925,6 +947,34 @@ module.exports = {
     case "PUT":
       // Check
       switch (action) {
+        // Change Pricing
+        case "PricingUpdate":
+          // Check auth
+          if (!CentralRestServerAuthorization.canUpdatePricing(req.user)) {
+            // Not Authorized!
+            Logging.logActionUnauthorizedMessageAndSendResponse(
+              CentralRestServerAuthorization.ENTITY_PRICING, action, null, req, res, next);
+            break;
+          }
+          // Check
+          if (!req.body.priceKWH || isNaN(req.body.priceKWH)) {
+            Logging.logActionErrorMessageAndSendResponse(
+              action, `The price ${req.body.id} has not a correct format`, req, res, next);
+          }
+          // Update
+          let pricing = {};
+          Database.updatePricing(req.body, pricing);
+          // Get
+          global.storage.savePricing(pricing).then((pricingMDB) => {
+            // Ok
+            res.json({status: `Success`});
+            next();
+          }).catch((err) => {
+            // Log
+            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+          });
+          break;
+
         // User
         case "UserUpdate":
           let statusHasChanged=false;

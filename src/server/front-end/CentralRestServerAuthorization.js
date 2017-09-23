@@ -16,6 +16,7 @@ module.exports = {
   ENTITY_CHARGING_STATION: "ChargingStation",
   ENTITY_CHARGING_STATIONS: "ChargingStations",
   ENTITY_LOGGING: "Logging",
+  ENTITY_PRICING: "Pricing",
 
   ACTION_CREATE: "Create",
   ACTION_READ  : "Read",
@@ -92,6 +93,18 @@ module.exports = {
     // Check
     return this.canPerformAction(loggedUser, this.ENTITY_USER,
       { "Action": this.ACTION_DELETE, "UserID": user.id });
+  },
+
+  canReadPricing(loggedUser) {
+    // Check
+    return this.canPerformAction(loggedUser, this.ENTITY_PRICING,
+      { "Action": this.ACTION_READ });
+  },
+
+  canUpdatePricing(loggedUser) {
+    // Check
+    return this.canPerformAction(loggedUser, this.ENTITY_PRICING,
+      { "Action": this.ACTION_UPDATE });
   },
 
   canDeleteChargingStation(loggedUser, chargingStation) {

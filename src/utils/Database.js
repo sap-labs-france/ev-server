@@ -29,6 +29,16 @@ module.exports = {
     }
   },
 
+  updatePricing(src, dest) {
+    // Set it
+    if (src.id) {
+      dest.id = src.id;
+    }
+    dest.timestamp = src.timestamp;
+    dest.priceKWH = src.priceKWH;
+    dest.unit = src.unit;
+  },
+
   updateMigration(src, dest) {
     // Set it
     if (src.id) {
