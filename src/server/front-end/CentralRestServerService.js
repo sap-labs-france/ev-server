@@ -964,6 +964,8 @@ module.exports = {
           // Update
           let pricing = {};
           Database.updatePricing(req.body, pricing);
+          // Set timestamp
+          pricing.timestamp = new Date();
           // Get
           global.storage.savePricing(pricing).then((pricingMDB) => {
             // Ok

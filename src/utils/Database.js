@@ -36,7 +36,7 @@ module.exports = {
     }
     dest.timestamp = src.timestamp;
     dest.priceKWH = src.priceKWH;
-    dest.unit = src.unit;
+    dest.priceUnit = src.priceUnit;
   },
 
   updateMigration(src, dest) {
