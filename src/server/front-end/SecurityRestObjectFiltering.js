@@ -115,6 +115,11 @@ class SecurityRestObjectFiltering {
         filteredTransaction.stop = {};
         filteredTransaction.stop.timestamp = transaction.stop.timestamp;
         filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
+        // Admin?
+        if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+          filteredTransaction.stop.price = transaction.stop.price;
+          filteredTransaction.stop.priceUnit = transaction.stop.priceUnit;
+        }
         // Stop User
         if (transaction.stop.userID) {
           // Can read user that stopped the transaction?

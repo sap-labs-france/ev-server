@@ -462,15 +462,27 @@ module.exports = {
           if (req.query.EndDateTime) {
             filter.endDateTime = req.query.EndDateTime;
           }
-          // Check email
-          global.storage.getTransactions(req.query.Search, filter).then((transactions) => {
-            // Return
-            res.json(
-              // Filter
-              SecurityRestObjectFiltering.filterTransactions(
-                transactions, req.user, req.query.WithPicture)
-            );
-            next();
+          // Read the pricing
+          global.storage.getPricing().then((pricing) => {
+            // Check email
+            global.storage.getTransactions(req.query.Search, filter).then((transactions) => {
+              // Found?``
+              if (transactions && pricing) {
+                // List the transactions
+                transactions.forEach((transaction) => {
+                  // Compute the price
+                  transaction.stop.price = (transaction.stop.totalConsumption / 1000) * pricing.priceKWH;
+                  transaction.stop.priceUnit = pricing.priceUnit;
+                });
+              }
+              // Return
+              res.json(
+                // Filter
+                SecurityRestObjectFiltering.filterTransactions(
+                  transactions, req.user, req.query.WithPicture)
+              );
+              next();
+            });
           }).catch((err) => {
             // Log
             Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
