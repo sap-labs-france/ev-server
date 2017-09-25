@@ -534,6 +534,10 @@ module.exports = {
                 monthStat[transactions[i].chargeBoxID.chargeBoxIdentity] += transactions[i].stop.totalConsumption / 1000;
               }
             }
+            // Add the last month statistics
+            if (monthStat) {
+              monthStats.push(monthStat);
+            }
             // Return
             res.json(monthStats);
             next();
@@ -590,6 +594,10 @@ module.exports = {
                 (new Date(transactions[i].stop.timestamp).getTime() - new Date(transactions[i].timestamp).getTime()) / (3600 * 1000);
             }
           }
+          // Add the last month statistics
+          if (monthStat) {
+            monthStats.push(monthStat);
+          }
           // Return
           res.json(monthStats);
           next();
@@ -644,6 +652,10 @@ module.exports = {
               // Add conso in kW.h
               monthStat[userName] += transactions[i].stop.totalConsumption / 1000;
             }
+          }
+          // Add the last month statistics
+          if (monthStat) {
+            monthStats.push(monthStat);
           }
           // Return
           res.json(monthStats);
@@ -702,6 +714,10 @@ module.exports = {
               monthStat[userName] +=
                 (new Date(transactions[i].stop.timestamp).getTime() - new Date(transactions[i].timestamp).getTime()) / (3600 * 1000);
             }
+          }
+          // Add the last month statistics
+          if (monthStat) {
+            monthStats.push(monthStat);
           }
           // Return
           res.json(monthStats);
