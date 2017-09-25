@@ -8,7 +8,7 @@ class MigrationHandler {
       // Log
       Logging.logInfo({
         userFullName: "System", source: "BootStrap", module: "start", method: "-", action: "Migrate",
-        message: `Migration has started to run` });
+        message: `Migration has been initialized with success` });
       // Get the Migration
       global.storage.getMigrations().then((migrations) => {
         let promises = [];
@@ -26,9 +26,20 @@ class MigrationHandler {
         //   message: `Migration task ${migrateStartStopTransactionTask.getName()} version ${migrateStartStopTransactionTask.getVersion()} has already been run` });
         // Wait
         Promise.all(promises).then((results) => {
+          // Log
+          Logging.logInfo({
+            userFullName: "System", source: "BootStrap", module: "start", method: "-", action: "Migrate",
+            message: `Migration has ended with success`,
+            detailedMessages: results });
           // Ok
           fulfill(results);
+
         }).catch((error) => {
+          // Log
+          Logging.logError({
+            userFullName: "System", source: "BootStrap", module: "start", method: "-", action: "Migrate",
+            message: `Migration has ended with errors: ${error.toString()}`,
+            detailedMessages: error });
           // Error
           reject(error);
         });
