@@ -310,7 +310,8 @@ class ChargingStation {
               totalConsumption = consumption.totalConsumption;
             }
             // Changed?
-            if (connector.currentConsumption !== currentConsumption || connector.totalConsumption !== totalConsumption) {
+            if (connector.currentConsumption !== currentConsumption ||
+                connector.totalConsumption !== totalConsumption) {
               // Set consumption
               connector.currentConsumption = currentConsumption;
               connector.totalConsumption = totalConsumption;
@@ -319,9 +320,10 @@ class ChargingStation {
                 userFullName: "System", source: "Central Server", module: "ChargingStation",
                 method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
                 message: `${this.getChargeBoxIdentity()} - ${connector.connectorId} - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
-              // Save
-              this.save();
             }
+            this.setLastHeartBeat(new Date());
+            // Save
+            this.save();
             // Handle End Of charge
             this.handleNotificationEndOfCharge(transaction, consumption);
           });
