@@ -752,20 +752,29 @@ class ChargingStation {
     // Get the last 5 meter values
     return global.storage.getMeterValuesFromTransaction(
         transaction.transactionId).then((meterValues) => {
-      // Build the header
-      var chargingStationConsumption = {};
-      chargingStationConsumption.values = [];
-      chargingStationConsumption.totalConsumption = 0;
-      chargingStationConsumption.chargeBoxIdentity = this.getChargeBoxIdentity();
-      chargingStationConsumption.connectorId = transaction.connectorId;
-      chargingStationConsumption.transactionId = transaction.transactionId;
-      chargingStationConsumption.userID = transaction.userID;
-      if (transaction.stop && transaction.stop.userID) {
-        chargingStationConsumption.stop = {};
-        chargingStationConsumption.stop.userID = transaction.stop.userID;
-      }
-      // Compute consumption
-      return this.buildConsumption(chargingStationConsumption, meterValues, transaction, optimizeNbrOfValues);
+      // Read the pricing
+      return global.storage.getPricing().then((pricing) => {
+        // Build the header
+        var chargingStationConsumption = {};
+        if (pricing) {
+          chargingStationConsumption.priceUnit = pricing.priceUnit;
+          chargingStationConsumption.totalPrice = 0;
+        }
+        chargingStationConsumption.values = [];
+        chargingStationConsumption.totalConsumption = 0;
+        chargingStationConsumption.chargeBoxIdentity = this.getChargeBoxIdentity();
+        chargingStationConsumption.connectorId = transaction.connectorId;
+        chargingStationConsumption.transactionId = transaction.transactionId;
+        chargingStationConsumption.userID = transaction.userID;
+        if (transaction.stop && transaction.stop.userID) {
+          chargingStationConsumption.stop = {};
+          chargingStationConsumption.stop.userID = transaction.stop.userID;
+        }
+        // Compute consumption
+        let consumptions = this.buildConsumption(chargingStationConsumption, meterValues, transaction, pricing, optimizeNbrOfValues);
+
+        return consumptions;
+      });
     });
   }
 
@@ -787,7 +796,7 @@ class ChargingStation {
   }
 
   // Method to build the consumption
-  buildConsumption(chargingStationConsumption, meterValues, transaction, optimizeNbrOfValues) {
+  buildConsumption(chargingStationConsumption, meterValues, transaction, pricing, optimizeNbrOfValues) {
     // Init
     let totalNbrOfMetrics = 0;
     let lastMeterValue;
@@ -849,7 +858,6 @@ class ChargingStation {
           lastMeterValue = meterValue;
           // Ok
           firstMeterValueSet = true;
-
         // Calculate the consumption with the last value provided
         } else {
           // Value provided?
@@ -902,11 +910,26 @@ class ChargingStation {
                 }
               }
               // Counting
-              chargingStationConsumption.totalConsumption += meterValue.value - lastMeterValue.value;
+              let consumptionWh = meterValue.value - lastMeterValue.value;
+              chargingStationConsumption.totalConsumption += consumptionWh;
+              // Compute the price
+              if (pricing) {
+                chargingStationConsumption.totalPrice += (consumptionWh/1000) * pricing.priceKWH;
+              }
               // Add it?
               if (addValue) {
+                // Create
+                let consumption = {
+                  date: meterValue.timestamp,
+                  value: currentConsumption,
+                  cumulated: chargingStationConsumption.totalConsumption };
+                // Compute the price
+                if (pricing) {
+                  // Set the consumption with price
+                  consumption.price = (consumptionWh/1000) * pricing.priceKWH;
+                }
                 // Set the consumption
-                chargingStationConsumption.values.push({date: meterValue.timestamp, value: currentConsumption });
+                chargingStationConsumption.values.push(consumption);
               }
               // Debug
               //console.log(`Date: ${meterValue.timestamp.toISOString()}, Last Meter: ${lastMeterValue.value}, Meter: ${meterValue.value}, Conso: ${currentConsumption}, Cumulated: ${chargingStationConsumption.totalConsumption}`);

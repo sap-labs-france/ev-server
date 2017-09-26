@@ -3,6 +3,42 @@ const CentralRestServerAuthorization = require('./CentralRestServerAuthorization
 require('source-map-support').install();
 
 class SecurityRestObjectFiltering {
+
+  static filterConsumptionsFromTransaction(consumption, loggedUser, withPicture) {
+    let filteredConsumption = {};
+
+    // Set
+    filteredConsumption.chargeBoxIdentity = consumption.chargeBoxIdentity;
+    filteredConsumption.connectorId = consumption.connectorId;
+    // Admin?
+    if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+      filteredConsumption.priceUnit = consumption.priceUnit;
+      filteredConsumption.totalPrice = consumption.totalPrice;
+    }
+    filteredConsumption.totalConsumption = consumption.totalConsumption;
+    filteredConsumption.transactionId = consumption.transactionId;
+    filteredConsumption.userID =
+      SecurityRestObjectFiltering.filterUserInTransaction(
+        consumption.userID, loggedUser, withPicture);
+    // Admin?
+    if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+      // Set them all
+      filteredConsumption.values = consumption.values;
+    } else {
+      // Clean
+      filteredConsumption.values = [];
+      consumption.values.forEach((value) => {
+        // Set
+        filteredConsumption.values.push({
+          date: value.date,
+          value: value.value,
+          cumulated: value.cumulated });
+      });
+    }
+
+    return filteredConsumption;
+  }
+
   // Pricing
   static filterPricing(pricing, loggedUser) {
     let filteredPricing = {};
@@ -35,8 +71,6 @@ class SecurityRestObjectFiltering {
           filteredUser.image = user.image;
         }
         filteredUser.locale = user.locale;
-        // filteredUser. = user.;
-        // filteredUser. = user.;
       }
     }
 

@@ -843,7 +843,6 @@ module.exports = {
                       CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, chargingStation.getChargeBoxIdentity(), req, res, next);
                     return;
                   }
-
                   // Check dates
                   if (req.query.StartDateTime) {
                     // Check date is in the transaction
@@ -860,22 +859,17 @@ module.exports = {
                       return;
                     }
                   }
-                  // Filter user
-                  transaction.userID = SecurityRestObjectFiltering.filterUserInTransaction(
-                    transaction.userID, req.user, true);
-                  // Check auth
-                  if (transaction.stop && transaction.stop.userID) {
-                    // Filter user
-                    transaction.stop.userID = SecurityRestObjectFiltering.filterUserInTransaction(
-                      transaction.stop.userID, req.user, true);
-                  }
                   // Dates provided?
                   if(!req.query.StartDateTime && !req.query.EndDateTime) {
                     // No: Get the Consumption from the transaction
                     chargingStation.getConsumptionsFromTransaction(
                         transaction, true).then((consumptions) => {
                       // Return the result
-                      res.json(consumptions);
+                      res.json(
+                        // Filter
+                        SecurityRestObjectFiltering.filterConsumptionsFromTransaction(
+                          consumptions, req.user, true)
+                      );
                       next();
                     });
                   } else {
@@ -883,7 +877,11 @@ module.exports = {
                     chargingStation.getConsumptionsFromDateTimeRange(
                         transaction, req.query.StartDateTime).then((consumptions) => {
                       // Return the result
-                      res.json(consumptions);
+                      res.json(
+                        // Filter
+                        SecurityRestObjectFiltering.filterConsumptionsFromTransaction(
+                          consumptions, req.user, true)
+                      );
                       next();
                     });
                   }
