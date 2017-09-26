@@ -3,10 +3,20 @@ const CentralRestServerAuthorization = require('./CentralRestServerAuthorization
 require('source-map-support').install();
 
 class SecurityRestObjectFiltering {
+  // Pricing
+  static filterPricing(pricing, loggedUser) {
+    let filteredPricing = {};
+    // Set
+    filteredPricing.timestamp = pricing.timestamp;
+    filteredPricing.priceKWH = pricing.priceKWH;
+    filteredPricing.priceUnit = pricing.priceUnit;
+    // Return
+    return filteredPricing;
+  }
+
   // User
   static filterUser(user, loggedUser, withPicture=false) {
     let filteredUser;
-
     // Check auth
     if (CentralRestServerAuthorization.canReadUser(loggedUser, user)) {
       // Admin?

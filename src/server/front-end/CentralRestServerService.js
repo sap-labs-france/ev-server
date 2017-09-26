@@ -261,7 +261,11 @@ module.exports = {
           global.storage.getPricing().then((pricing) => {
             // Return
             if (pricing) {
-              res.json(pricing);
+              res.json(
+                // Filter
+                SecurityRestObjectFiltering.filterPricing(
+                  pricing, req.user)
+              );
             } else {
               res.json({});
             }
