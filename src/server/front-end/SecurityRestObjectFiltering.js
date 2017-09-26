@@ -97,19 +97,10 @@ class SecurityRestObjectFiltering {
       filteredTransaction.transactionId = transaction.transactionId;
       filteredTransaction.connectorId = transaction.connectorId;
       filteredTransaction.timestamp = transaction.timestamp;
-      // User
-      filteredTransaction.userID = {};
-      // Demo user?
-      if (CentralRestServerAuthorization.isDemo(loggedUser)) {
-        filteredTransaction.userID.name = "####";
-        filteredTransaction.userID.firstName = "####";
-      } else {
-        filteredTransaction.userID.name = transaction.userID.name;
-        filteredTransaction.userID.firstName = transaction.userID.firstName;
-        if (withPicture) {
-          filteredTransaction.userID.image = transaction.userID.image;
-        }
-      }
+      // Filter user
+      filteredTransaction.userID =
+        SecurityRestObjectFiltering.filterUserInTransaction(
+          transaction.userID, loggedUser, withPicture);
       // Transaction Stop
       if (transaction.stop) {
         filteredTransaction.stop = {};
@@ -122,15 +113,10 @@ class SecurityRestObjectFiltering {
         }
         // Stop User
         if (transaction.stop.userID) {
-          // Can read user that stopped the transaction?
-          if (CentralRestServerAuthorization.canReadUser(loggedUser, transaction.stop.userID)) {
-            filteredTransaction.stop.userID = {};
-            filteredTransaction.stop.userID.name = transaction.stop.userID.name;
-            filteredTransaction.stop.userID.firstName = transaction.stop.userID.firstName;
-            if (withPicture) {
-              filteredTransaction.stop.userID.image = transaction.stop.userID.image;
-            }
-          }
+          // Filter user
+          filteredTransaction.stop.userID =
+            SecurityRestObjectFiltering.filterUserInTransaction(
+              transaction.stop.userID, loggedUser, withPicture);
         }
       }
       // Charging Station
@@ -144,6 +130,25 @@ class SecurityRestObjectFiltering {
     }
 
     return filteredTransaction;
+  }
+
+  static filterUserInTransaction(user, loggedUser, withPicture) {
+    let userID = {};
+    // Check auth
+    if (CentralRestServerAuthorization.canReadUser(loggedUser, user)) {
+      // Demo user?
+      if (CentralRestServerAuthorization.isDemo(loggedUser)) {
+        userID.name = "####";
+        userID.firstName = "####";
+      } else {
+        userID.name = user.name;
+        userID.firstName = user.firstName;
+        if (withPicture) {
+          userID.image = user.image;
+        }
+      }
+    }
+    return userID;
   }
 
   static filterTransactions(transactions, loggedUser, withPicture=false, withConnector=false) {

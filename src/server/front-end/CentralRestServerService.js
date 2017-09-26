@@ -856,36 +856,14 @@ module.exports = {
                       return;
                     }
                   }
+                  // Filter user
+                  transaction.userID = SecurityRestObjectFiltering.filterUserInTransaction(
+                    transaction.userID, req.user, true);
                   // Check auth
-                  if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.userID)) {
-                    // Demo user?
-                    if (!CentralRestServerAuthorization.isDemo(req.user)) {
-                      // No: Not Authorized!
-                      Logging.logActionUnauthorizedMessageAndSendResponse(
-                        CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, Utils.buildUserFullName(transaction.userID), req, res, next);
-                      return;
-                    } else {
-                      // Clear the user
-                      transaction.userID = {};
-                      transaction.userID.name = "####";
-                      transaction.userID.firstName = "####";
-                    }
-                  }
-                  // Check auth
-                  if (transaction.stop && transaction.stop.userID &&
-                     !CentralRestServerAuthorization.canReadUser(req.user, transaction.stop.userID)) {
-                   // Demo user?
-                   if (!CentralRestServerAuthorization.isDemo(req.user)) {
-                     // No: Not Authorized!
-                     Logging.logActionUnauthorizedMessageAndSendResponse(
-                       CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_READ, Utils.buildUserFullName(transaction.stop.userID), req, res, next);
-                     return;
-                   } else {
-                      // Clear the user
-                      transaction.stop.userID = {};
-                      transaction.stop.userID.name = "####";
-                      transaction.stop.userID.firstName = "####";
-                    }
+                  if (transaction.stop && transaction.stop.userID) {
+                    // Filter user
+                    transaction.stop.userID = SecurityRestObjectFiltering.filterUserInTransaction(
+                      transaction.stop.userID, req.user, true);
                   }
                   // Dates provided?
                   if(!req.query.StartDateTime && !req.query.EndDateTime) {
