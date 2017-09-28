@@ -125,18 +125,18 @@ module.exports = {
             // Register User
             case "registeruser":
               // // Filter
-              // filteredRequest = SecurityRestObjectFiltering.filterLoginRequest(req.body);
+              filteredRequest = SecurityRestObjectFiltering.filterRegisterUserRequest(req.body);
               // Check Mandatory fields
-              if (Users.checkIfUserValid("RegisterUser", req, res, next)) {
+              if (Users.checkIfUserValid("RegisterUser", filteredRequest, req, res, next)) {
                 // Check email
-                global.storage.getUserByEmail(req.body.email).then((user) => {
+                global.storage.getUserByEmail(filteredRequest.email).then((user) => {
                   if (user) {
                     Logging.logActionErrorMessageAndSendResponse(
-                      action, `The email ${req.body.email} already exists`, req, res, next, 510);
+                      action, `The email ${filteredRequest.email} already exists`, req, res, next, 510);
                     return;
                   }
                   // Create the user
-                  var newUser = new User(req.body);
+                  var newUser = new User(filteredRequest);
                   // Hash the password
                   newUser.setStatus(Users.USER_STATUS_PENDING);
                   newUser.setRole(Users.USER_ROLE_BASIC);

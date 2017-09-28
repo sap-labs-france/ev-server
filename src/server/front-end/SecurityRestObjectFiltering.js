@@ -4,7 +4,7 @@ const Users = require('../../utils/Users');
 require('source-map-support').install();
 
 class SecurityRestObjectFiltering {
-  // static filterLoginRequest(request, loggedUser) {
+  // static filterRegisterUserRequest(request, loggedUser) {
   //   let filteredRequest = {};
   //   // Set
   //   filteredRequest. = request.;
@@ -12,6 +12,17 @@ class SecurityRestObjectFiltering {
   //   filteredRequest. = request.;
   //   return filteredRequest;
   // }
+
+  static filterRegisterUserRequest(request, loggedUser) {
+    let filteredRequest = {};
+    // Set
+    filteredRequest.name = request.name;
+    filteredRequest.firstName = request.firstName;
+    filteredRequest.email = request.email;
+    filteredRequest.password = request.password;
+    filteredRequest.status = Users.USER_STATUS_PENDING;
+    return filteredRequest;
+  }
 
   static filterLoginRequest(request) {
     let filteredRequest = {};
