@@ -1,10 +1,204 @@
 const CentralRestServerAuthorization = require('./CentralRestServerAuthorization');
+const Users = require('../../utils/Users');
 
 require('source-map-support').install();
 
 class SecurityRestObjectFiltering {
+  // static filterChargingStationDeleteRequest(request, loggedUser) {
+  //   let filteredRequest = {};
+  //   // Set
+  //   filteredRequest. = request.;
+  //   filteredRequest. = request.;
+  //   filteredRequest. = request.;
+  //   return filteredRequest;
+  // }
 
-  static filterConsumptionsFromTransaction(consumption, loggedUser, withPicture) {
+  static filterChargingStationDeleteRequest(request, loggedUser) {
+    let filteredRequest = {};
+    // Set
+    filteredRequest.ID = request.ID;
+    return filteredRequest;
+  }
+
+  static filterUserDeleteRequest(request, loggedUser) {
+    let filteredRequest = {};
+    // Set
+    filteredRequest.ID = request.ID;
+    return filteredRequest;
+  }
+
+  static filterPricingUpdateRequest(request, loggedUser) {
+    let filteredRequest = {};
+    // Set
+    filteredRequest.priceKWH = request.priceKWH;
+    filteredRequest.priceUnit = request.priceUnit;
+    return filteredRequest;
+  }
+
+  static filterChargingStationConfigurationRequest(request, loggedUser) {
+    let filteredRequest = {};
+    // Set
+    filteredRequest.ChargeBoxIdentity = request.ChargeBoxIdentity;
+    return filteredRequest;
+  }
+
+  static filterChargingStationConsumptionFromTransactionRequest(request, loggedUser) {
+    let filteredRequest = {};
+    // Set
+    filteredRequest.TransactionId = request.TransactionId;
+    filteredRequest.StartDateTime = request.StartDateTime;
+    filteredRequest.EndDateTime = request.EndDateTime;
+    return filteredRequest;
+  }
+
+  static filterTransactionRequest(request, loggedUser) {
+    let filteredRequest = {};
+    // Set
+    filteredRequest.TransactionId = request.TransactionId;
+    return filteredRequest;
+  }
+
+  static filterChargingStationTransactionsRequest(request, loggedUser) {
+    let filteredRequest = {};
+    // Set
+    filteredRequest.ChargeBoxIdentity = request.ChargeBoxIdentity;
+    filteredRequest.ConnectorId = request.ConnectorId;
+    filteredRequest.StartDateTime = request.StartDateTime;
+    filteredRequest.EndDateTime = request.EndDateTime;
+    return filteredRequest;
+  }
+
+  static filterWithPicture(filteredRequest, withPicture) {
+    // Set
+    filteredRequest.WithPicture = withPicture;
+    // Check boolean
+    if(filteredRequest.WithPicture) {
+      filteredRequest.WithPicture = (filteredRequest.WithPicture === "true");
+    } else {
+      filteredRequest.WithPicture = false;
+    }
+  }
+
+  static filterActiveTransactionsRequest(request, loggedUser) {
+    let filteredRequest = {};
+    // Handle picture
+    SecurityRestObjectFiltering.filterWithPicture(filteredRequest, request.WithPicture);
+    // Set
+    // filteredRequest. = request.;
+    // filteredRequest. = request.;
+    // filteredRequest. = request.;
+    return filteredRequest;
+  }
+
+  static filterUserStatisticsRequest(request, loggedUser) {
+    let filteredRequest = {};
+    // Set
+    filteredRequest.Year = request.Year;
+    return filteredRequest;
+  }
+
+  static filterChargingStationStatisticsRequest(request, loggedUser) {
+    let filteredRequest = {};
+    // Set
+    filteredRequest.Year = request.Year;
+    return filteredRequest;
+  }
+
+  static filterCompletedTransactionsRequest(request, loggedUser) {
+    let filteredRequest = {};
+    // Handle picture
+    SecurityRestObjectFiltering.filterWithPicture(filteredRequest, request.WithPicture);
+    filteredRequest.StartDateTime = request.StartDateTime;
+    filteredRequest.EndDateTime = request.EndDateTime;
+    filteredRequest.Search = request.Search;
+    return filteredRequest;
+  }
+
+  static filterUserRequest(request, loggedUser) {
+    let filteredRequest = {};
+    // Set
+    filteredRequest.ID = request.ID;
+    return filteredRequest;
+  }
+
+  static filterUsersRequest(request, loggedUser) {
+    let filteredRequest = {};
+    // Handle picture
+    SecurityRestObjectFiltering.filterWithPicture(filteredRequest, request.WithPicture);
+    return filteredRequest;
+  }
+
+  static filterChargingStationRequest(request, loggedUser) {
+    let filteredRequest = {};
+    filteredRequest.ChargeBoxIdentity = request.ChargeBoxIdentity;
+    return filteredRequest;
+  }
+
+  static filterChargingStationsRequest(request, loggedUser) {
+    let filteredRequest = {};
+    filteredRequest.Search = request.Search;
+    filteredRequest.OnlyActive = request.OnlyActive;
+    return filteredRequest;
+  }
+
+  static filterLoggingsRequest(request, loggedUser) {
+    let filteredRequest = {};
+    // Get logs
+    filteredRequest.DateFrom = request.DateFrom;
+    filteredRequest.Level = request.Level;
+    filteredRequest.ChargingStation = request.ChargingStation;
+    filteredRequest.Search = request.Search;
+    filteredRequest.NumberOfLogs = request.NumberOfLogs;
+    filteredRequest.SortDate = request.SortDate;
+    return filteredRequest;
+  }
+
+  static filterUserCreateRequest(request, loggedUser) {
+    let filteredRequest = {};
+    filteredRequest.costCenter = request.costCenter;
+    filteredRequest.email = request.email;
+    filteredRequest.firstName = request.firstName;
+    filteredRequest.iNumber = request.iNumber;
+    filteredRequest.id = request.id;
+    filteredRequest.image = request.image;
+    filteredRequest.mobile = request.mobile;
+    filteredRequest.name = request.name;
+    if (request.passwords) {
+      filteredRequest.password = request.passwords.password;
+    }
+    filteredRequest.phone = request.phone;
+    // Admin?
+    if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+      // Ok to set the role
+      filteredRequest.role = request.role;
+      filteredRequest.status = request.status;
+    } else {
+      // Ko to set the role
+      filteredRequest.role = Users.USER_ROLE_BASIC;
+      filteredRequest.status = Users.USER_STATUS_INACTIVE;
+    }
+    filteredRequest.tagIDs = request.tagIDs;
+    return filteredRequest;
+  }
+
+  static filterChargingStationActionRequest(request, action, loggedUser) {
+    let filteredRequest = {};
+    // Check
+    filteredRequest.chargeBoxIdentity = request.chargeBoxIdentity;
+    // Do not check action?
+    filteredRequest.args =  request.args;
+    return filteredRequest;
+  }
+
+  static filterChargingStationSetMaxIntensitySocketRequest(request, loggedUser) {
+    let filteredRequest = {};
+    // Check
+    filteredRequest.chargeBoxIdentity = request.chargeBoxIdentity;
+    filteredRequest.maxIntensity =  request.args.maxIntensity;
+    return filteredRequest;
+  }
+
+  static filterConsumptionsFromTransactionResponse(consumption, loggedUser, withPicture) {
     let filteredConsumption = {};
 
     // Set
@@ -18,7 +212,7 @@ class SecurityRestObjectFiltering {
     filteredConsumption.totalConsumption = consumption.totalConsumption;
     filteredConsumption.transactionId = consumption.transactionId;
     filteredConsumption.userID =
-      SecurityRestObjectFiltering.filterUserInTransaction(
+      SecurityRestObjectFiltering.filterUserInTransactionResponse(
         consumption.userID, loggedUser, withPicture);
     // Admin?
     if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
@@ -40,7 +234,7 @@ class SecurityRestObjectFiltering {
   }
 
   // Pricing
-  static filterPricing(pricing, loggedUser) {
+  static filterPricingResponse(pricing, loggedUser) {
     let filteredPricing = {};
     // Set
     filteredPricing.timestamp = pricing.timestamp;
@@ -51,37 +245,50 @@ class SecurityRestObjectFiltering {
   }
 
   // User
-  static filterUser(user, loggedUser, withPicture=false) {
-    let filteredUser;
+  static filterUserResponse(user, loggedUser, withPicture=false) {
+    let filteredUser={};
     // Check auth
     if (CentralRestServerAuthorization.canReadUser(loggedUser, user)) {
       // Admin?
       if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
-        // Yes: set all params
-        filteredUser = user;
-        filteredUser.password = "";
+        filteredUser.id = user.id;
+        filteredUser.name = user.name;
+        filteredUser.firstName = user.firstName;
+        filteredUser.locale = user.locale;
+        filteredUser.email = user.email;
+        filteredUser.phone = user.phone;
+        filteredUser.mobile = user.mobile;
+        filteredUser.iNumber = user.iNumber;
+        filteredUser.costCenter = user.costCenter;
+        filteredUser.status = user.status;
+        filteredUser.createdBy = user.createdBy;
+        filteredUser.createdOn = user.createdOn;
+        filteredUser.tagIDs = user.tagIDs;
+        filteredUser.role = user.role;
+        if (withPicture) {
+          filteredUser.image = user.image;
+        }
       } else {
         // Set only necessary info
-        filteredUser = {};
         filteredUser.id = user.id;
         filteredUser.name = user.name;
         filteredUser.firstName = user.firstName;
         filteredUser.email = user.email;
+        filteredUser.locale = user.locale;
         if (withPicture) {
           filteredUser.image = user.image;
         }
-        filteredUser.locale = user.locale;
       }
     }
 
     return filteredUser;
   }
 
-  static filterUsers(users, loggedUser, withPicture=false) {
+  static filterUsersResponse(users, loggedUser, withPicture=false) {
     let filteredUsers = [];
     users.forEach(user => {
       // Filter
-      let filteredUser = this.filterUser(user, loggedUser);
+      let filteredUser = this.filterUserResponse(user, loggedUser, withPicture);
       // Ok?
       if (filteredUser) {
         // Add
@@ -92,7 +299,7 @@ class SecurityRestObjectFiltering {
   }
 
   // Charging Station
-  static filterChargingStation(chargingStation, loggedUser) {
+  static filterChargingStationResponse(chargingStation, loggedUser) {
     let filteredChargingStation;
 
     // Check auth
@@ -114,11 +321,11 @@ class SecurityRestObjectFiltering {
     return filteredChargingStation;
   }
 
-  static filterChargingStations(chargingStations, loggedUser) {
+  static filterChargingStationsResponse(chargingStations, loggedUser) {
     let filteredChargingStations = [];
     chargingStations.forEach(chargingStation => {
       // Filter
-      let filteredChargingStation = this.filterChargingStation(chargingStation, loggedUser);
+      let filteredChargingStation = this.filterChargingStationResponse(chargingStation, loggedUser);
       // Ok?
       if (filteredChargingStation) {
         // Add
@@ -129,7 +336,7 @@ class SecurityRestObjectFiltering {
   }
 
   // Transaction
-  static filterTransaction(transaction, loggedUser, withPicture=false, withConnector=false) {
+  static filterTransactionResponse(transaction, loggedUser, withPicture=false, withConnector=false) {
     let filteredTransaction;
 
     // Check auth
@@ -143,7 +350,7 @@ class SecurityRestObjectFiltering {
       filteredTransaction.timestamp = transaction.timestamp;
       // Filter user
       filteredTransaction.userID =
-        SecurityRestObjectFiltering.filterUserInTransaction(
+        SecurityRestObjectFiltering.filterUserInTransactionResponse(
           transaction.userID, loggedUser, withPicture);
       // Transaction Stop
       if (transaction.stop) {
@@ -159,7 +366,7 @@ class SecurityRestObjectFiltering {
         if (transaction.stop.userID) {
           // Filter user
           filteredTransaction.stop.userID =
-            SecurityRestObjectFiltering.filterUserInTransaction(
+            SecurityRestObjectFiltering.filterUserInTransactionResponse(
               transaction.stop.userID, loggedUser, withPicture);
         }
       }
@@ -176,7 +383,7 @@ class SecurityRestObjectFiltering {
     return filteredTransaction;
   }
 
-  static filterUserInTransaction(user, loggedUser, withPicture) {
+  static filterUserInTransactionResponse(user, loggedUser, withPicture) {
     let userID = {};
     // Check auth
     if (CentralRestServerAuthorization.canReadUser(loggedUser, user)) {
@@ -195,11 +402,11 @@ class SecurityRestObjectFiltering {
     return userID;
   }
 
-  static filterTransactions(transactions, loggedUser, withPicture=false, withConnector=false) {
+  static filterTransactionsResponse(transactions, loggedUser, withPicture=false, withConnector=false) {
     let filteredTransactions = [];
     transactions.forEach(transaction => {
       // Filter
-      let filteredTransaction = this.filterTransaction(transaction, loggedUser, withPicture, withConnector);
+      let filteredTransaction = this.filterTransactionResponse(transaction, loggedUser, withPicture, withConnector);
       // Ok?
       if (filteredTransaction) {
         // Add

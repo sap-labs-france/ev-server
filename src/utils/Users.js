@@ -61,9 +61,28 @@ module.exports = {
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/"'\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
   },
 
-  // Hash password
+  // Hash password (use secHashPassword, more secure)
   hashPassword(password) {
     return crypto.createHash('sha256').update(password).digest('hex');
+  },
+
+  // Generates random string of characters i.e salt
+  secGenerateRandomString(length) {
+    return crypto.randomBytes(Math.ceil(length/2))
+      .toString('hex')  /** convert to hexadecimal format */
+      .slice(0,length); /** return required number of characters */
+  },
+
+  // Hash password with sha512
+  secHashPassword(password) {
+    let salt = genRandomString(16);
+    var hash = crypto.createHmac('sha512', salt); /** Hashing algorithm sha512 */
+    hash.update(password);
+    var value = hash.digest('hex');
+    return {
+      salt: salt,
+      passwordHash: value
+    };
   },
 
   // Check name
@@ -88,68 +107,68 @@ module.exports = {
     return /^[A-Z]{1}[0-9]{6}$/.test(iNumber);
   },
 
-  checkIfUserValid(req, res, next) {
+  checkIfUserValid(filteredRequest, req, res, next) {
     // Update mode?
-    if(req.method === "PUT" && !req.body.id) {
+    if(req.method === "PUT" && !filteredRequest.id) {
       Logging.logActionErrorMessageAndSendResponse(`The user's ID is mandatory`, req, res, next);
       return false;
     }
-    if(!req.body.name) {
+    if(!filteredRequest.name) {
       Logging.logActionErrorMessageAndSendResponse(`The user's last name is mandatory`, req, res, next);
       return false;
     }
-    if(!req.body.email) {
+    if(!filteredRequest.email) {
       Logging.logActionErrorMessageAndSendResponse(`The user's email is mandatory`, req, res, next);
       return false;
     }
-    if(!req.body.status) {
+    if(!filteredRequest.status) {
       Logging.logActionErrorMessageAndSendResponse(`The user's status is mandatory`, req, res, next);
       return false;
     }
     // Check password id provided
-    if (req.body.password && !this.isPasswordValid(req.body.password)) {
-      Logging.logActionErrorMessageAndSendResponse(`The user's password ${req.body.password} is not valid`, req, res, next);
+    if (filteredRequest.password && !this.isPasswordValid(filteredRequest.password)) {
+      Logging.logActionErrorMessageAndSendResponse(`The user's password ${filteredRequest.password} is not valid`, req, res, next);
       return false;
     }
     // Check format
-    if (!this.isUserNameValid(req.body.name)) {
-      Logging.logActionErrorMessageAndSendResponse(`The user's last name ${req.body.name} is not valid`, req, res, next);
+    if (!this.isUserNameValid(filteredRequest.name)) {
+      Logging.logActionErrorMessageAndSendResponse(`The user's last name ${filteredRequest.name} is not valid`, req, res, next);
       return false;
     }
-    if (!this.isUserNameValid(req.body.firstName)) {
-      Logging.logActionErrorMessageAndSendResponse(`The user's first name ${req.body.firstName} is not valid`, req, res, next);
+    if (!this.isUserNameValid(filteredRequest.firstName)) {
+      Logging.logActionErrorMessageAndSendResponse(`The user's first name ${filteredRequest.firstName} is not valid`, req, res, next);
       return false;
     }
-    if (!this.isUserEmailValid(req.body.email)) {
-      Logging.logActionErrorMessageAndSendResponse(`The user's email ${req.body.email} is not valid`, req, res, next);
+    if (!this.isUserEmailValid(filteredRequest.email)) {
+      Logging.logActionErrorMessageAndSendResponse(`The user's email ${filteredRequest.email} is not valid`, req, res, next);
       return false;
     }
-    if (req.body.phone && !this.isPhoneValid(req.body.phone)) {
-      Logging.logActionErrorMessageAndSendResponse(`The user's phone ${req.body.phone} is not valid`, req, res, next);
+    if (filteredRequest.phone && !this.isPhoneValid(filteredRequest.phone)) {
+      Logging.logActionErrorMessageAndSendResponse(`The user's phone ${filteredRequest.phone} is not valid`, req, res, next);
       return false;
     }
-    if (req.body.mobile && !this.isPhoneValid(req.body.mobile)) {
-      Logging.logActionErrorMessageAndSendResponse(`The user's mobile ${req.body.mobile} is not valid`, req, res, next);
+    if (filteredRequest.mobile && !this.isPhoneValid(filteredRequest.mobile)) {
+      Logging.logActionErrorMessageAndSendResponse(`The user's mobile ${filteredRequest.mobile} is not valid`, req, res, next);
       return false;
     }
-    if (req.body.iNumber && !this.isINumberValid(req.body.iNumber)) {
-      Logging.logActionErrorMessageAndSendResponse(`The user's I-Number ${req.body.iNumber} is not valid`, req, res, next);
+    if (filteredRequest.iNumber && !this.isINumberValid(filteredRequest.iNumber)) {
+      Logging.logActionErrorMessageAndSendResponse(`The user's I-Number ${filteredRequest.iNumber} is not valid`, req, res, next);
       return false;
     }
-    if (req.body.tagIDs) {
+    if (filteredRequest.tagIDs) {
       // Check
-      if (!this.isTagIDValid(req.body.tagIDs)) {
-        Logging.logActionErrorMessageAndSendResponse(`The user's tags ${req.body.tagIDs} is/are not valid`, req, res, next);
+      if (!this.isTagIDValid(filteredRequest.tagIDs)) {
+        Logging.logActionErrorMessageAndSendResponse(`The user's tags ${filteredRequest.tagIDs} is/are not valid`, req, res, next);
         return false;
       }
       // Check
-      if (!Array.isArray(req.body.tagIDs)) {
+      if (!Array.isArray(filteredRequest.tagIDs)) {
         // Split
-        req.body.tagIDs = req.body.tagIDs.split(',');
+        filteredRequest.tagIDs = filteredRequest.tagIDs.split(',');
       }
     } else {
       // Default
-      req.body.tagIDs = [];
+      filteredRequest.tagIDs = [];
     }
     // Ok
     return true;
