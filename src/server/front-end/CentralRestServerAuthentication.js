@@ -12,6 +12,7 @@ const Authorization = require('../../utils/Authorization');
 const compileProfile = require('node-authorization').profileCompiler;
 const Mustache = require('mustache');
 const CentralRestServerAuthorization = require('./CentralRestServerAuthorization');
+const SecurityRestObjectFiltering = require('./SecurityRestObjectFiltering');
 require('source-map-support').install();
 
 let _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
@@ -51,8 +52,19 @@ module.exports = {
         switch (action) {
           // Login
           case "login":
+            // Filter
+            filteredRequest = SecurityRestObjectFiltering.filterLoginRequest(req.body);
+            // Check
+            if (!filteredRequest.email) {
+              Logging.logActionErrorMessageAndSendResponse(action, `The email is mandatory`, req, res, next);
+              return;
+            }
+            if (!filteredRequest.password) {
+              Logging.logActionErrorMessageAndSendResponse(action, `The password is mandatory`, req, res, next);
+              return;
+            }
             // Check email
-            global.storage.getUserByEmailPassword(req.body.email, Users.hashPassword(req.body.password)).then((user) => {
+            global.storage.getUserByEmailPassword(filteredRequest.email, Users.hashPassword(filteredRequest.password)).then((user) => {
               // Found?
               if (user) {
                 if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
@@ -99,7 +111,7 @@ module.exports = {
                 // Log it
                 Logging.logError({
                   userFullName: "Unknown", source: "Central Server", module: "CentralServerAuthentication", method: "authService", action: action,
-                  message: `User with email '${req.body.email}' tried to log in without success`});
+                  message: `User with email '${filteredRequest.email}' tried to log in without success`});
                 // User not found
                 res.sendStatus(401);
               }
@@ -112,8 +124,10 @@ module.exports = {
 
             // Register User
             case "registeruser":
+              // // Filter
+              // filteredRequest = SecurityRestObjectFiltering.filterLoginRequest(req.body);
               // Check Mandatory fields
-              if (Users.checkIfUserValid(req, res, next)) {
+              if (Users.checkIfUserValid("RegisterUser", req, res, next)) {
                 // Check email
                 global.storage.getUserByEmail(req.body.email).then((user) => {
                   if (user) {

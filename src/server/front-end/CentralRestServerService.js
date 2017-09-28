@@ -157,7 +157,7 @@ module.exports = {
                       return chargingStation.handleAction(action, filteredRequest.args);
                     } else {
                       // Log
-                      return Promise.reject(new Error(`Transaction ${req.query.TransactionId} does not exist`));
+                      return Promise.reject(new Error(`Transaction ${filteredRequest.TransactionId} does not exist`));
                     }
                   });
                 } else {
@@ -201,7 +201,7 @@ module.exports = {
             // Filter
             filteredRequest = SecurityRestObjectFiltering.filterUserCreateRequest( req.body, req.user );
             // Check Mandatory fields
-            if (Users.checkIfUserValid(filteredRequest, req, res, next)) {
+            if (Users.checkIfUserValid("UserCreate", filteredRequest, req, res, next)) {
               // Check email
               global.storage.getUserByEmail(filteredRequest.email).then((user) => {
                 if (user) {
@@ -375,13 +375,13 @@ module.exports = {
 
         // Get one charging station
         case "ChargingStation":
+          // Filter
+          filteredRequest = SecurityRestObjectFiltering.filterChargingStationRequest(req.query, req.user);
           // Charge Box is mandatory
-          if(!req.query.ChargeBoxIdentity) {
+          if(!filteredRequest.ChargeBoxIdentity) {
             Logging.logActionErrorMessageAndSendResponse(action, `The Charging Station ID is mandatory`, req, res, next);
             return;
           }
-          // Filter
-          filteredRequest = SecurityRestObjectFiltering.filterChargingStationRequest(req.query, req.user);
           // Get it
           global.storage.getChargingStation(filteredRequest.ChargeBoxIdentity).then((chargingStation) => {
             if (chargingStation) {
@@ -434,13 +434,13 @@ module.exports = {
 
         // Get the user
         case "User":
+          // Filter
+          filteredRequest = SecurityRestObjectFiltering.filterUserRequest(req.query, req.user);
           // User mandatory
-          if(!req.query.ID) {
+          if(!filteredRequest.ID) {
             Logging.logActionErrorMessageAndSendResponse(action, `The User's ID is mandatory`, req, res, next);
             return;
           }
-          // Filter
-          filteredRequest = SecurityRestObjectFiltering.filterUserRequest(req.query, req.user);
           // Get the user
           global.storage.getUser(filteredRequest.ID).then((user) => {
             if (user) {
@@ -767,18 +767,18 @@ module.exports = {
 
         // Get the transactions
         case "ChargingStationTransactions":
+          // Filter
+          filteredRequest = SecurityRestObjectFiltering.filterChargingStationTransactionsRequest(req.query, req.user);
           // Charge Box is mandatory
-          if(!req.query.ChargeBoxIdentity) {
+          if(!filteredRequest.ChargeBoxIdentity) {
             Logging.logActionErrorMessageAndSendResponse(action, `The Charging Station ID is mandatory`, req, res, next);
             break;
           }
           // Connector Id is mandatory
-          if(!req.query.ConnectorId) {
+          if(!filteredRequest.ConnectorId) {
             Logging.logActionErrorMessageAndSendResponse(action, `The Connector ID is mandatory`, req, res, next);
             break;
           }
-          // Filter
-          filteredRequest = SecurityRestObjectFiltering.filterChargingStationTransactionsRequest(req.query, req.user);
           // Get Charge Box
           global.storage.getChargingStation(filteredRequest.ChargeBoxIdentity).then((chargingStation) => {
             if (chargingStation) {
@@ -808,13 +808,13 @@ module.exports = {
 
         // Get the transaction
         case "Transaction":
+          // Filter
+          filteredRequest = SecurityRestObjectFiltering.filterTransactionRequest(req.query, req.user);
           // Charge Box is mandatory
-          if(!req.query.TransactionId) {
+          if(!filteredRequest.TransactionId) {
             Logging.logActionErrorMessageAndSendResponse(action, `The Transaction ID is mandatory`, req, res, next);
             return;
           }
-          // Filter
-          filteredRequest = SecurityRestObjectFiltering.filterTransactionRequest(req.query, req.user);
           // Get Transaction
           global.storage.getTransaction(filteredRequest.TransactionId).then((transaction) => {
             if (transaction) {
@@ -837,13 +837,13 @@ module.exports = {
 
         // Get Charging Consumption
         case "ChargingStationConsumptionFromTransaction":
+          // Filter
+          filteredRequest = SecurityRestObjectFiltering.filterChargingStationConsumptionFromTransactionRequest(req.query, req.user);
           // Transaction Id is mandatory
-          if(!req.query.TransactionId) {
+          if(!filteredRequest.TransactionId) {
             Logging.logActionErrorMessageAndSendResponse(action, `The Transaction ID is mandatory`, req, res, next);
             return;
           }
-          // Filter
-          filteredRequest = SecurityRestObjectFiltering.filterChargingStationConsumptionFromTransactionRequest(req.query, req.user);
           // Get Transaction
           global.storage.getTransaction(filteredRequest.TransactionId).then((transaction) => {
             if (transaction) {
@@ -921,13 +921,13 @@ module.exports = {
 
         // Get Charging Configuration
         case "ChargingStationConfiguration":
+          // Filter
+          filteredRequest = SecurityRestObjectFiltering.filterChargingStationConfigurationRequest(req.query, req.user);
           // Charge Box is mandatory
-          if(!req.query.ChargeBoxIdentity) {
+          if(!filteredRequest.ChargeBoxIdentity) {
             Logging.logActionErrorMessageAndSendResponse(action, `The Charging Station ID is mandatory`, req, res, next);
             break;
           }
-          // Filter
-          filteredRequest = SecurityRestObjectFiltering.filterChargingStationConfigurationRequest(req.query, req.user);
           // Get the Charging Station`
           global.storage.getChargingStation(filteredRequest.ChargeBoxIdentity).then((chargingStation) => {
             let configuration = {};
@@ -1011,7 +1011,8 @@ module.exports = {
           // Filter
           filteredRequest = SecurityRestObjectFiltering.filterUserCreateRequest( req.body, req.user );
           // Check Mandatory fields
-          if (Users.checkIfUserValid(filteredRequest, req, res, next)) {
+          // (res?console.log(true):console.log(false));
+          if (Users.checkIfUserValid("UserUpdate", filteredRequest, req, res, next)) {
             // Check email
             global.storage.getUser(filteredRequest.id).then((user) => {
               if (!user) {
@@ -1125,13 +1126,13 @@ module.exports = {
         switch (action) {
           // User
           case "UserDelete":
+            // Filter
+            filteredRequest = SecurityRestObjectFiltering.filterUserDeleteRequest(req.query, req.user);
             // Check Mandatory fields
-            if(!req.query.ID) {
+            if(!filteredRequest.ID) {
               Logging.logActionErrorMessageAndSendResponse(action, `The user's ID must be provided`, req, res, next);
               return;
             }
-            // Filter
-            filteredRequest = SecurityRestObjectFiltering.filterUserDeleteRequest(req.query, req.user);
             // Check email
             global.storage.getUser(filteredRequest.ID).then((user) => {
               if (!user) {
@@ -1167,13 +1168,13 @@ module.exports = {
 
           // Charging station
           case "ChargingStationDelete":
+            // Filter
+            filteredRequest = SecurityRestObjectFiltering.filterChargingStationDeleteRequest(req.query, req.user);
             // Check Mandatory fields
-            if(!req.query.ID) {
+            if(!filteredRequest.ID) {
               Logging.logActionErrorMessageAndSendResponse(action, `The charging station's ID must be provided`, req, res, next);
               return;
             }
-            // Filter
-            filteredRequest = SecurityRestObjectFiltering.filterChargingStationDeleteRequest(req.query, req.user);
             // Check email
             global.storage.getChargingStation(filteredRequest.ID).then((chargingStation) => {
               if (!chargingStation) {
