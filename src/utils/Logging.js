@@ -128,7 +128,7 @@ class Logging {
       source: "Central Server", module: "RestServer", method: "N/A",
       action: action, message: `${err.message}`,
       detailedMessages: err.stack });
-    res.status(500).send(`{"message": ${err.message}}`);
+    res.status(500).send({"message": Utils.hideShowMessage(err.message)});
     next();
   }
 
@@ -146,7 +146,7 @@ class Logging {
     // Log
     Logging.logActionErrorMessage(action, message, req, res);
     // Send error
-    res.status(errorCode).send({"message": message});
+    res.status(errorCode).send({"message": Utils.hideShowMessage(message)});
     next();
   }
 

@@ -64,4 +64,18 @@ module.exports = {
     return _evseBaseURL + "/#/pages/chargers/charger/" + chargingStation.getChargeBoxIdentity() +
     "/connector/" + connectorId + "/transaction/" + transactionId;
   },
+
+  isServerInProductionMode() {
+    var env = process.env.NODE_ENV || 'dev';
+    return (env !== "dev");
+  },
+
+  hideShowMessage(message) {
+    // Check Prod
+    if (this.isServerInProductionMode()) {
+      return "Error logged at server side ;)";
+    } else {
+      return message;
+    }
+  }
 };
