@@ -73,7 +73,7 @@ module.exports = {
   hideShowMessage(message) {
     // Check Prod
     if (this.isServerInProductionMode()) {
-      return "Error logged at server side ;)";
+      return "An unexpected server error occurred. Check the server's logs!";
     } else {
       return message;
     }

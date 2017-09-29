@@ -22,7 +22,7 @@ class Storage {
   saveLog(log) {
   }
 
-  getUsers() {
+  getUsers(searchValue, numberOfUser, WithPicture) {
   }
 
   getUserByTagId(tagID) {

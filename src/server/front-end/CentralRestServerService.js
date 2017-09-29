@@ -2,6 +2,7 @@ const Utils = require('../../utils/Utils');
 const Database = require('../../utils/Database');
 const Logging = require('../../utils/Logging');
 const Users = require('../../utils/Users');
+const ChargingStations = require('../../utils/ChargingStations');
 const User = require('../../model/User');
 const moment = require('moment');
 const CentralRestServerAuthorization = require('./CentralRestServerAuthorization');
@@ -321,7 +322,7 @@ module.exports = {
               // Check
               if (user) {
                 // Get the user's active transactions
-                user.getTransactions({stop: {$exists: false}}).then(activeTransactions => {
+                user.getTransactions({stop: {$exists: false}}, Users.WITH_NO_IMAGE).then(activeTransactions => {
                   // Handle
                   var chargingStationsJSon = [];
                   chargingStations.forEach((chargingStation) => {
@@ -413,7 +414,7 @@ module.exports = {
           // Filter
           filteredRequest = SecurityRestObjectFiltering.filterUsersRequest(req.query, req.user);
           // Get users
-          global.storage.getUsers(filteredRequest.Search, 100).then((users) => {
+          global.storage.getUsers(filteredRequest.Search, 100, filteredRequest.WithPicture).then((users) => {
             var usersJSon = [];
             users.forEach((user) => {
               // Set the model
@@ -423,7 +424,7 @@ module.exports = {
             res.json(
               // Filter
               SecurityRestObjectFiltering.filterUsersResponse(
-                usersJSon, req.user, filteredRequest.WithPicture)
+                usersJSon, req.user)
             );
             next();
           }).catch((err) => {
@@ -448,7 +449,7 @@ module.exports = {
               res.json(
                 // Filter
                 SecurityRestObjectFiltering.filterUserResponse(
-                  user.getModel(), req.user, true)
+                  user.getModel(), req.user)
               );
             } else {
               res.json({});
@@ -475,7 +476,7 @@ module.exports = {
           // Read the pricing
           global.storage.getPricing().then((pricing) => {
             // Check email
-            global.storage.getTransactions(filteredRequest.Search, filter).then((transactions) => {
+            global.storage.getTransactions(filteredRequest.Search, filter, filteredRequest.WithPicture).then((transactions) => {
               // Found?``
               if (transactions && pricing) {
                 // List the transactions
@@ -489,7 +490,7 @@ module.exports = {
               res.json(
                 // Filter
                 SecurityRestObjectFiltering.filterTransactionsResponse(
-                  transactions, req.user, filteredRequest.WithPicture)
+                  transactions, req.user, ChargingStations.WITHOUT_CONNECTORS)
               );
               next();
             });
@@ -513,7 +514,7 @@ module.exports = {
             filter.endDateTime = moment().endOf('year').toDate().toISOString();
           }
           // Check email
-          global.storage.getTransactions(null, filter).then((transactions) => {
+          global.storage.getTransactions(null, filter, Users.WITH_NO_IMAGE).then((transactions) => {
             // filters
             transactions = transactions.filter((transaction) => {
               return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
@@ -573,7 +574,7 @@ module.exports = {
           filter.endDateTime = moment().endOf('year').toDate().toISOString();
         }
         // Check email
-        global.storage.getTransactions(null, filter).then((transactions) => {
+        global.storage.getTransactions(null, filter, Users.WITH_NO_IMAGE).then((transactions) => {
           // filters
           transactions = transactions.filter((transaction) => {
             return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
@@ -635,7 +636,7 @@ module.exports = {
           filter.endDateTime = moment().endOf('year').toDate().toISOString();
         }
         // Check email
-        global.storage.getTransactions(null, filter).then((transactions) => {
+        global.storage.getTransactions(null, filter, Users.WITH_NO_IMAGE).then((transactions) => {
           // filters
           transactions = transactions.filter((transaction) => {
             return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
@@ -696,7 +697,7 @@ module.exports = {
           filter.endDateTime = moment().endOf('year').toDate().toISOString();
         }
         // Check email
-        global.storage.getTransactions(null, filter).then((transactions) => {
+        global.storage.getTransactions(null, filter, Users.WITH_NO_IMAGE).then((transactions) => {
           // filters
           transactions = transactions.filter((transaction) => {
             return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
@@ -751,12 +752,12 @@ module.exports = {
         // Filter
         filteredRequest = SecurityRestObjectFiltering.filterActiveTransactionsRequest(req.query, req.user);
         // Check email
-        global.storage.getTransactions(null, {stop: {$exists: false}}).then((transactions) => {
+        global.storage.getTransactions(null, {stop: {$exists: false}}, filteredRequest.WithPicture).then((transactions) => {
           // Return
           res.json(
             // Filter
             SecurityRestObjectFiltering.filterTransactionsResponse(
-              transactions, req.user, filteredRequest.WithPicture, true)
+              transactions, req.user, ChargingStations.WITH_CONNECTORS)
           );
           next();
         }).catch((err) => {
@@ -784,12 +785,13 @@ module.exports = {
             if (chargingStation) {
               // Set the model
               chargingStation.getTransactions(filteredRequest.ConnectorId,
-                filteredRequest.StartDateTime, filteredRequest.EndDateTime).then((transactions) => {
+                filteredRequest.StartDateTime, filteredRequest.EndDateTime,
+                Users.WITH_NO_IMAGE).then((transactions) => {
                   // Return
                   res.json(
                     // Filter
                     SecurityRestObjectFiltering.filterTransactionsResponse(
-                      transactions, req.user, false, true)
+                      transactions, req.user, ChargingStations.WITH_CONNECTORS)
                   );
                   next();
                 }).catch((err) => {
@@ -822,7 +824,7 @@ module.exports = {
               res.json(
                 // Filter
                 SecurityRestObjectFiltering.filterTransactionResponse(
-                  transaction, req.user, true, true)
+                  transaction, req.user, true)
               );
               next();
             } else {
@@ -884,7 +886,7 @@ module.exports = {
                       res.json(
                         // Filter
                         SecurityRestObjectFiltering.filterConsumptionsFromTransactionResponse(
-                          consumptions, req.user, true)
+                          consumptions, req.user)
                       );
                       next();
                     });

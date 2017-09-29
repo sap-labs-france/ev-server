@@ -164,14 +164,14 @@ class User {
     return this._model.deleted;
   }
 
-  getTransactions(filter) {
+  getTransactions(filter, withImage) {
     if (!filter) {
       filter = {};
     }
     // Set the user ID
     filter.userId = this.getID();
     // Get the consumption
-    return global.storage.getTransactions(null, filter);
+    return global.storage.getTransactions(null, filter, withImage);
   }
 
   save() {

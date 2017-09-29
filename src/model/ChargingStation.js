@@ -739,13 +739,13 @@ class ChargingStation {
     });
   }
 
-  getTransactions(connectorId, startDateTime, endDateTime) {
+  getTransactions(connectorId, startDateTime, endDateTime, withImage) {
     // Get the consumption
     return global.storage.getTransactions(null,
       {"chargeBoxIdentity": this.getChargeBoxIdentity(),
        "connectorId": connectorId,
        "startDateTime": startDateTime,
-       "endDateTime" : endDateTime});
+       "endDateTime" : endDateTime}, withImage);
   }
 
   getConsumptionsFromTransaction(transaction, optimizeNbrOfValues) {

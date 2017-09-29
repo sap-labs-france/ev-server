@@ -127,6 +127,8 @@ module.exports = {
     if (src.password && src.password.length > 0) {
       // Password can be overridden
       dest.password = src.password;
+      dest.passwordWrongNbrTrials = (!src.passwordWrongNbrTrials?0:src.passwordWrongNbrTrials);
+      dest.passwordBlockedUntil = src.passwordBlockedUntil;
     }
   },
 

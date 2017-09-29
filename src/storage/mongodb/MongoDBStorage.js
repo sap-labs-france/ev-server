@@ -518,7 +518,7 @@ class MongoDBStorage extends Storage {
     }));
   }
 
-  getTransactions(searchValue, filter) {
+  getTransactions(searchValue, filter, withPicture=false) {
     // Build filter
     var $match = {};
     // User
@@ -550,7 +550,8 @@ class MongoDBStorage extends Storage {
       $match.stop = filter.stop;
     }
     // Yes: Get only active ones
-    return MDBTransaction.find($match).populate("userID").populate("chargeBoxID").populate("stop.userID")
+    return MDBTransaction.find($match).populate("userID", (withPicture?{}:{image:0}))
+        .populate("chargeBoxID").populate("stop.userID")
         .sort({timestamp:-1}).exec().then(transactionsMDB => {
       // Set
       var transactions = [];
@@ -674,7 +675,7 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getUsers(searchValue, numberOfUser) {
+  getUsers(searchValue, numberOfUser, withPicture=false) {
     if (!numberOfUser || isNaN(numberOfUser)) {
       numberOfUser = 100;
     }
@@ -698,7 +699,7 @@ class MongoDBStorage extends Storage {
     // Exec request
     return MDBTag.find({}).exec().then((tagsMDB) => {
       // Exec request
-      return MDBUser.find(filters).sort( {status: -1, name: 1, firstName: 1} ).limit(numberOfUser).exec().then((usersMDB) => {
+      return MDBUser.find(filters, (withPicture?{}:{image:0})).sort( {status: -1, name: 1, firstName: 1} ).limit(numberOfUser).exec().then((usersMDB) => {
         var users = [];
         // Create
         usersMDB.forEach((userMDB) => {

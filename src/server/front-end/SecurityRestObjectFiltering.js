@@ -220,7 +220,7 @@ class SecurityRestObjectFiltering {
     return filteredRequest;
   }
 
-  static filterConsumptionsFromTransactionResponse(consumption, loggedUser, withPicture) {
+  static filterConsumptionsFromTransactionResponse(consumption, loggedUser) {
     let filteredConsumption = {};
 
     // Set
@@ -235,7 +235,7 @@ class SecurityRestObjectFiltering {
     filteredConsumption.transactionId = consumption.transactionId;
     filteredConsumption.userID =
       SecurityRestObjectFiltering.filterUserInTransactionResponse(
-        consumption.userID, loggedUser, withPicture);
+        consumption.userID, loggedUser);
     // Admin?
     if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
       // Set them all
@@ -267,7 +267,7 @@ class SecurityRestObjectFiltering {
   }
 
   // User
-  static filterUserResponse(user, loggedUser, withPicture=false) {
+  static filterUserResponse(user, loggedUser) {
     let filteredUser={};
     // Check auth
     if (CentralRestServerAuthorization.canReadUser(loggedUser, user)) {
@@ -287,7 +287,7 @@ class SecurityRestObjectFiltering {
         filteredUser.createdOn = user.createdOn;
         filteredUser.tagIDs = user.tagIDs;
         filteredUser.role = user.role;
-        if (withPicture) {
+        if (user.image) {
           filteredUser.image = user.image;
         }
       } else {
@@ -297,7 +297,7 @@ class SecurityRestObjectFiltering {
         filteredUser.firstName = user.firstName;
         filteredUser.email = user.email;
         filteredUser.locale = user.locale;
-        if (withPicture) {
+        if (user.image) {
           filteredUser.image = user.image;
         }
       }
@@ -306,11 +306,11 @@ class SecurityRestObjectFiltering {
     return filteredUser;
   }
 
-  static filterUsersResponse(users, loggedUser, withPicture=false) {
+  static filterUsersResponse(users, loggedUser) {
     let filteredUsers = [];
     users.forEach(user => {
       // Filter
-      let filteredUser = this.filterUserResponse(user, loggedUser, withPicture);
+      let filteredUser = this.filterUserResponse(user, loggedUser);
       // Ok?
       if (filteredUser) {
         // Add
@@ -358,7 +358,7 @@ class SecurityRestObjectFiltering {
   }
 
   // Transaction
-  static filterTransactionResponse(transaction, loggedUser, withPicture=false, withConnector=false) {
+  static filterTransactionResponse(transaction, loggedUser, withConnector=false) {
     let filteredTransaction;
 
     // Check auth
@@ -373,7 +373,7 @@ class SecurityRestObjectFiltering {
       // Filter user
       filteredTransaction.userID =
         SecurityRestObjectFiltering.filterUserInTransactionResponse(
-          transaction.userID, loggedUser, withPicture);
+          transaction.userID, loggedUser);
       // Transaction Stop
       if (transaction.stop) {
         filteredTransaction.stop = {};
@@ -389,7 +389,7 @@ class SecurityRestObjectFiltering {
           // Filter user
           filteredTransaction.stop.userID =
             SecurityRestObjectFiltering.filterUserInTransactionResponse(
-              transaction.stop.userID, loggedUser, withPicture);
+              transaction.stop.userID, loggedUser);
         }
       }
       // Charging Station
@@ -405,7 +405,7 @@ class SecurityRestObjectFiltering {
     return filteredTransaction;
   }
 
-  static filterUserInTransactionResponse(user, loggedUser, withPicture) {
+  static filterUserInTransactionResponse(user, loggedUser) {
     let userID = {};
     // Check auth
     if (CentralRestServerAuthorization.canReadUser(loggedUser, user)) {
@@ -416,7 +416,7 @@ class SecurityRestObjectFiltering {
       } else {
         userID.name = user.name;
         userID.firstName = user.firstName;
-        if (withPicture) {
+        if (user.image) {
           userID.image = user.image;
         }
       }
@@ -424,11 +424,11 @@ class SecurityRestObjectFiltering {
     return userID;
   }
 
-  static filterTransactionsResponse(transactions, loggedUser, withPicture=false, withConnector=false) {
+  static filterTransactionsResponse(transactions, loggedUser, withConnector=false) {
     let filteredTransactions = [];
     transactions.forEach(transaction => {
       // Filter
-      let filteredTransaction = this.filterTransactionResponse(transaction, loggedUser, withPicture, withConnector);
+      let filteredTransaction = this.filterTransactionResponse(transaction, loggedUser, withConnector);
       // Ok?
       if (filteredTransaction) {
         // Add
