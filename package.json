@@ -20,6 +20,7 @@
     "jsonwebtoken": "^7.4.3",
     "locale": "^0.1.0",
     "moment": "^2.18.1",
+    "mongo-sanitize": "^1.0.0",
     "mongoose": "^4.11.9",
     "morgan": "^1.8.2",
     "mustache": "^2.3.0",

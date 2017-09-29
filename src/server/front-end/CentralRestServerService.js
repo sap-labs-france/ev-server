@@ -1009,7 +1009,7 @@ module.exports = {
         case "UserUpdate":
           let statusHasChanged=false;
           // Filter
-          filteredRequest = SecurityRestObjectFiltering.filterUserCreateRequest( req.body, req.user );
+          filteredRequest = SecurityRestObjectFiltering.filterUserUpdateRequest( req.body, req.user );
           // Check Mandatory fields
           // (res?console.log(true):console.log(false));
           if (Users.checkIfUserValid("UserUpdate", filteredRequest, req, res, next)) {

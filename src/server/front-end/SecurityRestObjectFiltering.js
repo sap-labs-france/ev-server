@@ -1,5 +1,6 @@
 const CentralRestServerAuthorization = require('./CentralRestServerAuthorization');
 const Users = require('../../utils/Users');
+const sanitize = require('mongo-sanitize');
 
 require('source-map-support').install();
 
@@ -172,13 +173,19 @@ class SecurityRestObjectFiltering {
     return filteredRequest;
   }
 
+  static filterUserUpdateRequest(request, loggedUser) {
+    // Set
+    let filteredRequest = SecurityRestObjectFiltering.filterUserCreateRequest(request, loggedUser);
+    filteredRequest.id = sanitize(request.id);
+    return filteredRequest;
+  }
+
   static filterUserCreateRequest(request, loggedUser) {
     let filteredRequest = {};
     filteredRequest.costCenter = request.costCenter;
     filteredRequest.email = request.email;
     filteredRequest.firstName = request.firstName;
     filteredRequest.iNumber = request.iNumber;
-    filteredRequest.id = request.id;
     filteredRequest.image = request.image;
     filteredRequest.mobile = request.mobile;
     filteredRequest.name = request.name;
