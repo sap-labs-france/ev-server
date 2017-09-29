@@ -5,22 +5,13 @@ const sanitize = require('mongo-sanitize');
 require('source-map-support').install();
 
 class SecurityRestObjectFiltering {
-  // static filterRegisterUserRequest(request, loggedUser) {
-  //   let filteredRequest = {};
-  //   // Set
-  //   filteredRequest. = request.;
-  //   filteredRequest. = request.;
-  //   filteredRequest. = request.;
-  //   return filteredRequest;
-  // }
-
   static filterRegisterUserRequest(request, loggedUser) {
     let filteredRequest = {};
     // Set
-    filteredRequest.name = request.name;
-    filteredRequest.firstName = request.firstName;
-    filteredRequest.email = request.email;
-    filteredRequest.password = request.password;
+    filteredRequest.name = sanitize(request.name);
+    filteredRequest.firstName = sanitize(request.firstName);
+    filteredRequest.email = sanitize(request.email);
+    filteredRequest.password = sanitize(request.password);
     filteredRequest.status = Users.USER_STATUS_PENDING;
     return filteredRequest;
   }
@@ -28,63 +19,63 @@ class SecurityRestObjectFiltering {
   static filterLoginRequest(request) {
     let filteredRequest = {};
     // Set
-    filteredRequest.email = request.email;
-    filteredRequest.password = request.password;
+    filteredRequest.email = sanitize(request.email);
+    filteredRequest.password = sanitize(request.password);
     return filteredRequest;
   }
 
   static filterChargingStationDeleteRequest(request, loggedUser) {
     let filteredRequest = {};
     // Set
-    filteredRequest.ID = request.ID;
+    filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
   static filterUserDeleteRequest(request, loggedUser) {
     let filteredRequest = {};
     // Set
-    filteredRequest.ID = request.ID;
+    filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
   static filterPricingUpdateRequest(request, loggedUser) {
     let filteredRequest = {};
     // Set
-    filteredRequest.priceKWH = request.priceKWH;
-    filteredRequest.priceUnit = request.priceUnit;
+    filteredRequest.priceKWH = sanitize(request.priceKWH);
+    filteredRequest.priceUnit = sanitize(request.priceUnit);
     return filteredRequest;
   }
 
   static filterChargingStationConfigurationRequest(request, loggedUser) {
     let filteredRequest = {};
     // Set
-    filteredRequest.ChargeBoxIdentity = request.ChargeBoxIdentity;
+    filteredRequest.ChargeBoxIdentity = sanitize(request.ChargeBoxIdentity);
     return filteredRequest;
   }
 
   static filterChargingStationConsumptionFromTransactionRequest(request, loggedUser) {
     let filteredRequest = {};
     // Set
-    filteredRequest.TransactionId = request.TransactionId;
-    filteredRequest.StartDateTime = request.StartDateTime;
-    filteredRequest.EndDateTime = request.EndDateTime;
+    filteredRequest.TransactionId = sanitize(request.TransactionId);
+    filteredRequest.StartDateTime = sanitize(request.StartDateTime);
+    filteredRequest.EndDateTime = sanitize(request.EndDateTime);
     return filteredRequest;
   }
 
   static filterTransactionRequest(request, loggedUser) {
     let filteredRequest = {};
     // Set
-    filteredRequest.TransactionId = request.TransactionId;
+    filteredRequest.TransactionId = sanitize(request.TransactionId);
     return filteredRequest;
   }
 
   static filterChargingStationTransactionsRequest(request, loggedUser) {
     let filteredRequest = {};
     // Set
-    filteredRequest.ChargeBoxIdentity = request.ChargeBoxIdentity;
-    filteredRequest.ConnectorId = request.ConnectorId;
-    filteredRequest.StartDateTime = request.StartDateTime;
-    filteredRequest.EndDateTime = request.EndDateTime;
+    filteredRequest.ChargeBoxIdentity = sanitize(request.ChargeBoxIdentity);
+    filteredRequest.ConnectorId = sanitize(request.ConnectorId);
+    filteredRequest.StartDateTime = sanitize(request.StartDateTime);
+    filteredRequest.EndDateTime = sanitize(request.EndDateTime);
     return filteredRequest;
   }
 
@@ -103,24 +94,20 @@ class SecurityRestObjectFiltering {
     let filteredRequest = {};
     // Handle picture
     SecurityRestObjectFiltering.filterWithPicture(filteredRequest, request.WithPicture);
-    // Set
-    // filteredRequest. = request.;
-    // filteredRequest. = request.;
-    // filteredRequest. = request.;
     return filteredRequest;
   }
 
   static filterUserStatisticsRequest(request, loggedUser) {
     let filteredRequest = {};
     // Set
-    filteredRequest.Year = request.Year;
+    filteredRequest.Year = sanitize(request.Year);
     return filteredRequest;
   }
 
   static filterChargingStationStatisticsRequest(request, loggedUser) {
     let filteredRequest = {};
     // Set
-    filteredRequest.Year = request.Year;
+    filteredRequest.Year = sanitize(request.Year);
     return filteredRequest;
   }
 
@@ -128,16 +115,16 @@ class SecurityRestObjectFiltering {
     let filteredRequest = {};
     // Handle picture
     SecurityRestObjectFiltering.filterWithPicture(filteredRequest, request.WithPicture);
-    filteredRequest.StartDateTime = request.StartDateTime;
-    filteredRequest.EndDateTime = request.EndDateTime;
-    filteredRequest.Search = request.Search;
+    filteredRequest.StartDateTime = sanitize(request.StartDateTime);
+    filteredRequest.EndDateTime = sanitize(request.EndDateTime);
+    filteredRequest.Search = sanitize(request.Search);
     return filteredRequest;
   }
 
   static filterUserRequest(request, loggedUser) {
     let filteredRequest = {};
     // Set
-    filteredRequest.ID = request.ID;
+    filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
@@ -150,26 +137,26 @@ class SecurityRestObjectFiltering {
 
   static filterChargingStationRequest(request, loggedUser) {
     let filteredRequest = {};
-    filteredRequest.ChargeBoxIdentity = request.ChargeBoxIdentity;
+    filteredRequest.ChargeBoxIdentity = sanitize(request.ChargeBoxIdentity);
     return filteredRequest;
   }
 
   static filterChargingStationsRequest(request, loggedUser) {
     let filteredRequest = {};
-    filteredRequest.Search = request.Search;
-    filteredRequest.OnlyActive = request.OnlyActive;
+    filteredRequest.Search = sanitize(request.Search);
+    filteredRequest.OnlyActive = sanitize(request.OnlyActive);
     return filteredRequest;
   }
 
   static filterLoggingsRequest(request, loggedUser) {
     let filteredRequest = {};
     // Get logs
-    filteredRequest.DateFrom = request.DateFrom;
-    filteredRequest.Level = request.Level;
-    filteredRequest.ChargingStation = request.ChargingStation;
-    filteredRequest.Search = request.Search;
-    filteredRequest.NumberOfLogs = request.NumberOfLogs;
-    filteredRequest.SortDate = request.SortDate;
+    filteredRequest.DateFrom = sanitize(request.DateFrom);
+    filteredRequest.Level = sanitize(request.Level);
+    filteredRequest.ChargingStation = sanitize(request.ChargingStation);
+    filteredRequest.Search = sanitize(request.Search);
+    filteredRequest.NumberOfLogs = sanitize(request.NumberOfLogs);
+    filteredRequest.SortDate = sanitize(request.SortDate);
     return filteredRequest;
   }
 
@@ -182,35 +169,36 @@ class SecurityRestObjectFiltering {
 
   static filterUserCreateRequest(request, loggedUser) {
     let filteredRequest = {};
-    filteredRequest.costCenter = request.costCenter;
-    filteredRequest.email = request.email;
-    filteredRequest.firstName = request.firstName;
-    filteredRequest.iNumber = request.iNumber;
-    filteredRequest.image = request.image;
-    filteredRequest.mobile = request.mobile;
-    filteredRequest.name = request.name;
+    filteredRequest.costCenter = sanitize(request.costCenter);
+    filteredRequest.email = sanitize(request.email);
+    filteredRequest.firstName = sanitize(request.firstName);
+    filteredRequest.iNumber = sanitize(request.iNumber);
+    filteredRequest.image = sanitize(request.image);
+    filteredRequest.mobile = sanitize(request.mobile);
+    filteredRequest.name = sanitize(request.name);
     if (request.passwords) {
-      filteredRequest.password = request.passwords.password;
+      filteredRequest.password = sanitize(request.passwords.password);
     }
-    filteredRequest.phone = request.phone;
+    filteredRequest.phone = sanitize(request.phone);
     // Admin?
     if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
       // Ok to set the role
-      filteredRequest.role = request.role;
-      filteredRequest.status = request.status;
-    } else {
+      filteredRequest.role = sanitize(request.role);
+      filteredRequest.status = sanitize(request.status);
+    }
+    if (!filteredRequest.role) {
       // Ko to set the role
       filteredRequest.role = Users.USER_ROLE_BASIC;
       filteredRequest.status = Users.USER_STATUS_INACTIVE;
     }
-    filteredRequest.tagIDs = request.tagIDs;
+    filteredRequest.tagIDs = sanitize(request.tagIDs);
     return filteredRequest;
   }
 
   static filterChargingStationActionRequest(request, action, loggedUser) {
     let filteredRequest = {};
     // Check
-    filteredRequest.chargeBoxIdentity = request.chargeBoxIdentity;
+    filteredRequest.chargeBoxIdentity = sanitize(request.chargeBoxIdentity);
     // Do not check action?
     filteredRequest.args =  request.args;
     return filteredRequest;
@@ -219,8 +207,8 @@ class SecurityRestObjectFiltering {
   static filterChargingStationSetMaxIntensitySocketRequest(request, loggedUser) {
     let filteredRequest = {};
     // Check
-    filteredRequest.chargeBoxIdentity = request.chargeBoxIdentity;
-    filteredRequest.maxIntensity =  request.args.maxIntensity;
+    filteredRequest.chargeBoxIdentity = sanitize(request.chargeBoxIdentity);
+    filteredRequest.maxIntensity =  sanitize(request.args.maxIntensity);
     return filteredRequest;
   }
 
