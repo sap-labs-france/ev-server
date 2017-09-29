@@ -37,6 +37,9 @@ module.exports = {
   WITH_IMAGE: true,
   WITH_NO_IMAGE: false,
 
+  WITH_ID: true,
+  WITHOUT_ID: false,
+
   isPasswordStrongEnough(password) {
     var uc = password.match(this.PWD_UPPERCASE_RE);
     var lc = password.match(this.PWD_LOWERCASE_RE);

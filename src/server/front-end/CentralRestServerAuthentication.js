@@ -84,10 +84,7 @@ module.exports = {
                 // Yes: build payload
                 var payload = {
                     id: user.getID(),
-                    name: user.getName(),
-                    firstName: user.getFirstName(),
                     role: user.getRole(),
-                    status: user.getStatus(),
                     auths: compiledAuths
                 };
                 // Build token

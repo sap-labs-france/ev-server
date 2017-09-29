@@ -203,37 +203,41 @@ module.exports = {
             filteredRequest = SecurityRestObjectFiltering.filterUserCreateRequest( req.body, req.user );
             // Check Mandatory fields
             if (Users.checkIfUserValid("UserCreate", filteredRequest, req, res, next)) {
-              // Check email
-              global.storage.getUserByEmail(filteredRequest.email).then((user) => {
-                if (user) {
-                  Logging.logActionErrorMessageAndSendResponse(action, `The email ${filteredRequest.tagIDs} already exists`, req, res, next, 510);
-                  return;
-                }
-                // Create user
-                var newUser = new User(filteredRequest);
-                // Set the locale
-                newUser.setLocale(req.locale);
-                // Update timestamp
-                newUser.setCreatedBy(`${req.user.name} ${req.user.firstName}`);
-                newUser.setCreatedOn(new Date());
-                // Set the password
-                newUser.setPassword(Users.hashPassword(filteredRequest.password));
-                // Save
-                newUser.save().then(() => {
-                  Logging.logInfo({
-                    user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
-                    message: `User ${newUser.getFullName()} with email ${newUser.getEMail()} has been created successfully`,
-                    action: action, detailedMessages: user});
+              // Get logged user
+              global.storage.getUser(req.user.id).then((loggedUser) => {
+                // Check email
+                global.storage.getUserByEmail(filteredRequest.email).then((user) => {
+                  if (user) {
+                    Logging.logActionErrorMessageAndSendResponse(action, `The email ${filteredRequest.tagIDs} already exists`, req, res, next, 510);
+                    return;
+                  }
+                  // Create user
+                  var newUser = new User(filteredRequest);
+                  // Set the locale
+                  newUser.setLocale(req.locale);
+                  // Update timestamp
+                  console.log(Utils.buildUserFullName(loggedUser.getModel(), Users.WITHOUT_ID));
+                  newUser.setCreatedBy(Utils.buildUserFullName(loggedUser.getModel(), Users.WITHOUT_ID));
+                  newUser.setCreatedOn(new Date());
+                  // Set the password
+                  newUser.setPassword(Users.hashPassword(filteredRequest.password));
+                  // Save
+                  newUser.save().then(() => {
+                    Logging.logInfo({
+                      user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
+                      message: `User ${newUser.getFullName()} with email ${newUser.getEMail()} has been created successfully`,
+                      action: action, detailedMessages: user});
 
-                    res.json({status: `Success`});
-                    next();
+                      res.json({status: `Success`});
+                      next();
+                  }).catch((err) => {
+                    // Log error
+                    Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+                  });
                 }).catch((err) => {
-                  // Log error
+                  // Log
                   Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
                 });
-              }).catch((err) => {
-                // Log
-                Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
               });
             }
             break;
