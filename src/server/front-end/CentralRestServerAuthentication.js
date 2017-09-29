@@ -124,7 +124,7 @@ module.exports = {
 
             // Register User
             case "registeruser":
-              // // Filter
+              // Filter
               filteredRequest = SecurityRestObjectFiltering.filterRegisterUserRequest(req.body);
               // Check Mandatory fields
               if (Users.checkIfUserValid("RegisterUser", filteredRequest, req, res, next)) {
@@ -170,8 +170,10 @@ module.exports = {
 
             // Reset password
             case "reset":
+              // Filter
+              filteredRequest = SecurityRestObjectFiltering.filterResetPasswordRequest(req.body);
               // Generate a new password
-              global.storage.getUserByEmail(req.body.email).then((user) => {
+              global.storage.getUserByEmail(filteredRequest.email).then((user) => {
                 // Found?
                 if (user) {
                   // Yes: Generate new password
@@ -199,7 +201,7 @@ module.exports = {
                   });
                 } else {
                   // Log error
-                  Logging.logActionErrorMessageAndSendResponse(action, `User with email ${req.body.email} does not exist`, req, res, next);
+                  Logging.logActionErrorMessageAndSendResponse(action, `User with email ${filteredRequest.email} does not exist`, req, res, next);
                 }
               }).catch((err) => {
                 // Log error

@@ -5,6 +5,14 @@ const sanitize = require('mongo-sanitize');
 require('source-map-support').install();
 
 class SecurityRestObjectFiltering {
+
+  static filterResetPasswordRequest(request, loggedUser) {
+    let filteredRequest = {};
+    // Set
+    filteredRequest.email = sanitize(request.email);
+    return filteredRequest;
+  }
+
   static filterRegisterUserRequest(request, loggedUser) {
     let filteredRequest = {};
     // Set
