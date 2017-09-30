@@ -14,6 +14,7 @@ const Mustache = require('mustache');
 const CentralRestServerAuthorization = require('./CentralRestServerAuthorization');
 const SecurityRestObjectFiltering = require('./SecurityRestObjectFiltering');
 const moment = require('moment');
+const https = require('https');
 require('source-map-support').install();
 
 let _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
@@ -114,46 +115,72 @@ module.exports = {
           case "registeruser":
             // Filter
             filteredRequest = SecurityRestObjectFiltering.filterRegisterUserRequest(req.body);
-            // Check Mandatory fields
-            if (Users.checkIfUserValid("RegisterUser", filteredRequest, req, res, next)) {
-              // Check email
-              global.storage.getUserByEmail(filteredRequest.email).then((user) => {
-                if (user) {
-                  Logging.logActionErrorMessageAndSendResponse(
-                    action, `The email ${filteredRequest.email} already exists`, req, res, next, 510);
+            // Check
+            if (!filteredRequest.captcha) {
+              Logging.logActionErrorMessageAndSendResponse(action, `The captcha is mandatory`, req, res, next);
+              return;
+            }
+            // Check captcha
+            https.get({
+              "host": "www.google.com",
+              "method": "GET",
+              "path": `/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`
+            }, (responseGoogle) => {
+              console.log("responseGoogle");
+              // Gather data
+              responseGoogle.on('data', function (responseGoogleData) {
+                console.log("responseGoogleData");
+                // Check
+                let responseGoogleDataJSon = JSON.parse(responseGoogleData);
+                if (!responseGoogleDataJSon.success) {
+                  Logging.logActionErrorMessageAndSendResponse(action, `The captcha is invalid`, req, res, next);
                   return;
                 }
-                // Create the user
-                var newUser = new User(filteredRequest);
-                // Hash the password
-                newUser.setStatus(Users.USER_STATUS_PENDING);
-                newUser.setRole(Users.USER_ROLE_BASIC);
-                newUser.setPassword(Users.hashPassword(newUser.getPassword()));
-                newUser.setCreatedBy("Central Server");
-                newUser.setCreatedOn(new Date());
-                // Save
-                newUser.save().then(() => {
-                  // Send notification
-                  NotificationHandler.sendNewRegisteredUser(
-                    Utils.generateID(),
-                    newUser.getModel(),
-                    {
-                      "user": newUser.getModel(),
-                      "evseDashboardURL" : Utils.buildEvseURL()
-                    },
-                    req.locale);
-                  // Ok
-                  res.json({status: `Success`});
-                  next();
-                }).catch((err) => {
-                  // Log error
-                  Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-                });
-              }).catch((err) => {
-                // Log
-                Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+                // Check Mandatory fields
+                if (Users.checkIfUserValid("RegisterUser", filteredRequest, req, res, next)) {
+                  // Check email
+                  global.storage.getUserByEmail(filteredRequest.email).then((user) => {
+                    if (user) {
+                      Logging.logActionErrorMessageAndSendResponse(
+                        action, `The email ${filteredRequest.email} already exists`, req, res, next, 510);
+                      return;
+                    }
+                    // Create the user
+                    var newUser = new User(filteredRequest);
+                    // Set data
+                    newUser.setStatus(Users.USER_STATUS_PENDING);
+                    newUser.setRole(Users.USER_ROLE_BASIC);
+                    newUser.setPassword(Users.hashPassword(newUser.getPassword()));
+                    newUser.setCreatedBy("Central Server");
+                    newUser.setCreatedOn(new Date());
+                    // Save
+                    newUser.save().then(() => {
+                      // Send notification
+                      NotificationHandler.sendNewRegisteredUser(
+                        Utils.generateID(),
+                        newUser.getModel(),
+                        {
+                          "user": newUser.getModel(),
+                          "evseDashboardURL" : Utils.buildEvseURL()
+                        },
+                        req.locale);
+                      // Ok
+                      res.json({status: `Success`});
+                      next();
+                    }).catch((err) => {
+                      // Log error
+                      Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+                    });
+                  }).catch((err) => {
+                    // Log
+                    Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+                  });
+                }
               });
-            }
+            }).on("error", (err) => {
+              // Log
+              Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            });
             break;
 
           // Reset password

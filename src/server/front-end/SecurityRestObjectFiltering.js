@@ -19,7 +19,8 @@ class SecurityRestObjectFiltering {
     filteredRequest.name = sanitize(request.name);
     filteredRequest.firstName = sanitize(request.firstName);
     filteredRequest.email = sanitize(request.email);
-    filteredRequest.password = sanitize(request.password);
+    filteredRequest.password = sanitize(request.passwords.password);
+    filteredRequest.captcha = sanitize(request.captcha);
     filteredRequest.status = Users.USER_STATUS_PENDING;
     return filteredRequest;
   }
