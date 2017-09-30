@@ -15,6 +15,7 @@ module.exports = {
   USER_STATUS_DELETED: "D",
   USER_STATUS_INACTIVE: "I",
   USER_STATUS_BLOCKED: "B",
+  USER_STATUS_LOCKED: "L",
 
   // Roles
   USER_ROLE_BASIC: "B",
