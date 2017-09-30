@@ -126,10 +126,8 @@ module.exports = {
               "method": "GET",
               "path": `/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`
             }, (responseGoogle) => {
-              console.log("responseGoogle");
               // Gather data
-              responseGoogle.on('data', function (responseGoogleData) {
-                console.log("responseGoogleData");
+              responseGoogle.on('data', (responseGoogleData) => {
                 // Check
                 let responseGoogleDataJSon = JSON.parse(responseGoogleData);
                 if (!responseGoogleDataJSon.success) {
@@ -187,39 +185,63 @@ module.exports = {
           case "reset":
             // Filter
             filteredRequest = SecurityRestObjectFiltering.filterResetPasswordRequest(req.body);
-            // Generate a new password
-            global.storage.getUserByEmail(filteredRequest.email).then((user) => {
-              // Found?
-              if (user) {
-                // Yes: Generate new password
-                let newPassword = Users.generatePassword();
-                // Hash it
-                user.setPassword(Users.hashPassword(newPassword));
-                // Save the user
-                user.save().then(() => {
-                  // Send notification
-                  NotificationHandler.sendResetPassword(
-                    Utils.generateID(),
-                    user.getModel(),
-                    {
-                      "user": user.getModel(),
-                      "newPassword": newPassword,
-                      "evseDashboardURL" : Utils.buildEvseURL()
-                    },
-                    req.locale);
-                  // Ok
-                  res.json({status: `Success`});
-                  next();
+            // Check
+            if (!filteredRequest.captcha) {
+              Logging.logActionErrorMessageAndSendResponse(action, `The captcha is mandatory`, req, res, next);
+              return;
+            }
+            // Check captcha
+            https.get({
+              "host": "www.google.com",
+              "method": "GET",
+              "path": `/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`
+            }, (responseGoogle) => {
+              // Gather data
+              responseGoogle.on('data', (responseGoogleData) => {
+                // Check
+                let responseGoogleDataJSon = JSON.parse(responseGoogleData);
+                if (!responseGoogleDataJSon.success) {
+                  Logging.logActionErrorMessageAndSendResponse(action, `The captcha is invalid`, req, res, next);
+                  return;
+                }
+                // Generate a new password
+                global.storage.getUserByEmail(filteredRequest.email).then((user) => {
+                  // Found?
+                  if (user) {
+                    // Yes: Generate new password
+                    let newPassword = Users.generatePassword();
+                    // Hash it
+                    user.setPassword(Users.hashPassword(newPassword));
+                    // Save the user
+                    user.save().then(() => {
+                      // Send notification
+                      NotificationHandler.sendResetPassword(
+                        Utils.generateID(),
+                        user.getModel(),
+                        {
+                          "user": user.getModel(),
+                          "newPassword": newPassword,
+                          "evseDashboardURL" : Utils.buildEvseURL()
+                        },
+                        req.locale);
+                      // Ok
+                      res.json({status: `Success`});
+                      next();
+                    }).catch((err) => {
+                      // Log error
+                      Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+                    });
+                  } else {
+                    // Log error
+                    Logging.logActionErrorMessageAndSendResponse(action, `User with email ${filteredRequest.email} does not exist`, req, res, next);
+                  }
                 }).catch((err) => {
                   // Log error
                   Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
                 });
-              } else {
-                // Log error
-                Logging.logActionErrorMessageAndSendResponse(action, `User with email ${filteredRequest.email} does not exist`, req, res, next);
-              }
-            }).catch((err) => {
-              // Log error
+              });
+            }).on("error", (err) => {
+              // Log
               Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
             });
             break;

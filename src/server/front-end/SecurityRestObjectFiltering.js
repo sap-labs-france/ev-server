@@ -10,6 +10,7 @@ class SecurityRestObjectFiltering {
     let filteredRequest = {};
     // Set
     filteredRequest.email = sanitize(request.email);
+    filteredRequest.captcha = sanitize(request.captcha);
     return filteredRequest;
   }
 
