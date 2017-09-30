@@ -13,6 +13,7 @@ const compileProfile = require('node-authorization').profileCompiler;
 const Mustache = require('mustache');
 const CentralRestServerAuthorization = require('./CentralRestServerAuthorization');
 const SecurityRestObjectFiltering = require('./SecurityRestObjectFiltering');
+const moment = require('moment');
 require('source-map-support').install();
 
 let _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
@@ -64,147 +65,131 @@ module.exports = {
               return;
             }
             // Check email
-            global.storage.getUserByEmailPassword(filteredRequest.email, Users.hashPassword(filteredRequest.password)).then((user) => {
-              // Found?
-              if (user) {
-                if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
-                  Logging.logActionErrorMessageAndSendResponse(action, `Your account is not yet active`, req, res, next, 550);
-                  return;
-                }
-                // Log it
-                Logging.logInfo({
-                  user: user.getModel(), source: "Central Server", module: "CentralServerAuthentication", method: "authService", action: action,
-                  message: `User ${Utils.buildUserFullName(user.getModel())} logged in successfully`});
-                // Get authorisation
-                let userRole = Authorization.getAuthorizationFromRoleID(user.getRole());
-                // Parse the auth and replace values
-                var parsedAuths = Mustache.render(JSON.stringify(userRole.auths), {"user": user.getModel()});
-                // Compile auths of the role
-                var compiledAuths = compileProfile(JSON.parse(parsedAuths));
-                // Yes: build payload
-                var payload = {
-                    id: user.getID(),
-                    role: user.getRole(),
-                    auths: compiledAuths
-                };
-                // Build token
-                var token;
-                // Role Demo?
-                if (CentralRestServerAuthorization.isDemo(user.getModel()) ||
-                    CentralRestServerAuthorization.isCorporate(user.getModel())) {
-                  // Yes
-                  token = jwt.sign(payload, jwtOptions.secretOrKey, {
-                    expiresIn: _centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600
+            global.storage.getUserByEmail(filteredRequest.email).then((user) => {
+              // Check if the number of trial is reached
+              if (user.getPasswordWrongNbrTrials() >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
+                // Check date
+                if (moment(user.getPasswordBlockedUntil()).isBefore(moment())) {
+                  // Log it
+                  Logging.logInfo({
+                    userFullName: "Unknown", source: "Central Server", module: "CentralServerAuthentication", method: "authService", action: action,
+                    message: `User '${Utils.buildUserFullName(user.getModel())}' has been unlocked and can try to login again`});
+                  // Reinit pass
+                  // Save & Check
+                  user.setPasswordWrongNbrTrials(0);
+                  user.setStatus(Users.USER_STATUS_ACTIVE);
+                  // Save
+                  user.save().then(() => {
+                    // Check user
+                    module.exports.checkUserLogin(action, user, filteredRequest, req, res, next);
                   });
                 } else {
-                  // No
-                  token = jwt.sign(payload, jwtOptions.secretOrKey, {
-                    expiresIn: _centralSystemRestConfig.userTokenLifetimeHours * 3600
-                  });
+                  // Block
+                  // Log it
+                  Logging.logError({
+                    userFullName: "Unknown", source: "Central Server", module: "CentralServerAuthentication", method: "authService", action: action,
+                    message: `User '${Utils.buildUserFullName(user.getModel())}' try to login but his account is locked`});
+                  // Return data
+                  res.status(450).send({"message": Utils.hideShowMessage("User is locked: too many attempt")});
+                  next();
                 }
-                // Return it
-                res.json({ token: token });
               } else {
-                // Log it
-                Logging.logError({
-                  userFullName: "Unknown", source: "Central Server", module: "CentralServerAuthentication", method: "authService", action: action,
-                  message: `User with email '${filteredRequest.email}' tried to log in without success`});
-                // User not found
-                res.sendStatus(401);
+                console.log("Check user");
+                // Nbr Login OK: Check user
+                module.exports.checkUserLogin(action, user, filteredRequest, req, res, next);
               }
-              next();
             }).catch((err) => {
               // Log error
               Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
             });
             break;
 
-            // Register User
-            case "registeruser":
-              // Filter
-              filteredRequest = SecurityRestObjectFiltering.filterRegisterUserRequest(req.body);
-              // Check Mandatory fields
-              if (Users.checkIfUserValid("RegisterUser", filteredRequest, req, res, next)) {
-                // Check email
-                global.storage.getUserByEmail(filteredRequest.email).then((user) => {
-                  if (user) {
-                    Logging.logActionErrorMessageAndSendResponse(
-                      action, `The email ${filteredRequest.email} already exists`, req, res, next, 510);
-                    return;
-                  }
-                  // Create the user
-                  var newUser = new User(filteredRequest);
-                  // Hash the password
-                  newUser.setStatus(Users.USER_STATUS_PENDING);
-                  newUser.setRole(Users.USER_ROLE_BASIC);
-                  newUser.setPassword(Users.hashPassword(newUser.getPassword()));
-                  newUser.setCreatedBy("Central Server");
-                  newUser.setCreatedOn(new Date());
-                  // Save
-                  newUser.save().then(() => {
-                    // Send notification
-                    NotificationHandler.sendNewRegisteredUser(
-                      Utils.generateID(),
-                      newUser.getModel(),
-                      {
-                        "user": newUser.getModel(),
-                        "evseDashboardURL" : Utils.buildEvseURL()
-                      },
-                      req.locale);
-                    // Ok
-                    res.json({status: `Success`});
-                    next();
-                  }).catch((err) => {
-                    // Log error
-                    Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-                  });
+          // Register User
+          case "registeruser":
+            // Filter
+            filteredRequest = SecurityRestObjectFiltering.filterRegisterUserRequest(req.body);
+            // Check Mandatory fields
+            if (Users.checkIfUserValid("RegisterUser", filteredRequest, req, res, next)) {
+              // Check email
+              global.storage.getUserByEmail(filteredRequest.email).then((user) => {
+                if (user) {
+                  Logging.logActionErrorMessageAndSendResponse(
+                    action, `The email ${filteredRequest.email} already exists`, req, res, next, 510);
+                  return;
+                }
+                // Create the user
+                var newUser = new User(filteredRequest);
+                // Hash the password
+                newUser.setStatus(Users.USER_STATUS_PENDING);
+                newUser.setRole(Users.USER_ROLE_BASIC);
+                newUser.setPassword(Users.hashPassword(newUser.getPassword()));
+                newUser.setCreatedBy("Central Server");
+                newUser.setCreatedOn(new Date());
+                // Save
+                newUser.save().then(() => {
+                  // Send notification
+                  NotificationHandler.sendNewRegisteredUser(
+                    Utils.generateID(),
+                    newUser.getModel(),
+                    {
+                      "user": newUser.getModel(),
+                      "evseDashboardURL" : Utils.buildEvseURL()
+                    },
+                    req.locale);
+                  // Ok
+                  res.json({status: `Success`});
+                  next();
                 }).catch((err) => {
-                  // Log
+                  // Log error
                   Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
                 });
-              }
-              break;
-
-            // Reset password
-            case "reset":
-              // Filter
-              filteredRequest = SecurityRestObjectFiltering.filterResetPasswordRequest(req.body);
-              // Generate a new password
-              global.storage.getUserByEmail(filteredRequest.email).then((user) => {
-                // Found?
-                if (user) {
-                  // Yes: Generate new password
-                  let newPassword = Users.generatePassword();
-                  // Hash it
-                  user.setPassword(Users.hashPassword(newPassword));
-                  // Save the user
-                  user.save().then(() => {
-                    // Send notification
-                    NotificationHandler.sendResetPassword(
-                      Utils.generateID(),
-                      user.getModel(),
-                      {
-                        "user": user.getModel(),
-                        "newPassword": newPassword,
-                        "evseDashboardURL" : Utils.buildEvseURL()
-                      },
-                      req.locale);
-                    // Ok
-                    res.json({status: `Success`});
-                    next();
-                  }).catch((err) => {
-                    // Log error
-                    Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-                  });
-                } else {
-                  // Log error
-                  Logging.logActionErrorMessageAndSendResponse(action, `User with email ${filteredRequest.email} does not exist`, req, res, next);
-                }
               }).catch((err) => {
-                // Log error
+                // Log
                 Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
               });
-              break;
+            }
+            break;
+
+          // Reset password
+          case "reset":
+            // Filter
+            filteredRequest = SecurityRestObjectFiltering.filterResetPasswordRequest(req.body);
+            // Generate a new password
+            global.storage.getUserByEmail(filteredRequest.email).then((user) => {
+              // Found?
+              if (user) {
+                // Yes: Generate new password
+                let newPassword = Users.generatePassword();
+                // Hash it
+                user.setPassword(Users.hashPassword(newPassword));
+                // Save the user
+                user.save().then(() => {
+                  // Send notification
+                  NotificationHandler.sendResetPassword(
+                    Utils.generateID(),
+                    user.getModel(),
+                    {
+                      "user": user.getModel(),
+                      "newPassword": newPassword,
+                      "evseDashboardURL" : Utils.buildEvseURL()
+                    },
+                    req.locale);
+                  // Ok
+                  res.json({status: `Success`});
+                  next();
+                }).catch((err) => {
+                  // Log error
+                  Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+                });
+              } else {
+                // Log error
+                Logging.logActionErrorMessageAndSendResponse(action, `User with email ${filteredRequest.email} does not exist`, req, res, next);
+              }
+            }).catch((err) => {
+              // Log error
+              Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            });
+            break;
 
           default:
             // Action provided
@@ -229,6 +214,94 @@ module.exports = {
             res.status(200).send({});
             break;
         }
+    }
+  },
+  checkUserLogin(action, user, filteredRequest, req, res, next) {
+    // Found and password ok?
+    if (user && user.getPassword() === Users.hashPassword(filteredRequest.password)) {
+      // Reset wrong number of trial
+      if (user.getPasswordWrongNbrTrials() > 0) {
+        // Reset
+        user.setPasswordWrongNbrTrials(0);
+        // Save
+        user.save();
+      }
+      // Check if the account is active
+      if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
+        Logging.logActionErrorMessageAndSendResponse(action, `Your account is not yet active`, req, res, next, 550);
+        return;
+      }
+      // Log it
+      Logging.logInfo({
+        user: user.getModel(), source: "Central Server", module: "CentralServerAuthentication", method: "authService", action: action,
+        message: `User ${Utils.buildUserFullName(user.getModel())} logged in successfully`});
+      // Get authorisation
+      let userRole = Authorization.getAuthorizationFromRoleID(user.getRole());
+      // Parse the auth and replace values
+      var parsedAuths = Mustache.render(JSON.stringify(userRole.auths), {"user": user.getModel()});
+      // Compile auths of the role
+      var compiledAuths = compileProfile(JSON.parse(parsedAuths));
+      // Yes: build payload
+      var payload = {
+          id: user.getID(),
+          role: user.getRole(),
+          auths: compiledAuths
+      };
+      // Build token
+      var token;
+      // Role Demo?
+      if (CentralRestServerAuthorization.isDemo(user.getModel()) ||
+          CentralRestServerAuthorization.isCorporate(user.getModel())) {
+        // Yes
+        token = jwt.sign(payload, jwtOptions.secretOrKey, {
+          expiresIn: _centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600
+        });
+      } else {
+        // No
+        token = jwt.sign(payload, jwtOptions.secretOrKey, {
+          expiresIn: _centralSystemRestConfig.userTokenLifetimeHours * 3600
+        });
+      }
+      // Return it
+      res.json({ token: token });
+    } else {
+      // User has been found?
+      if (user) {
+        // Add wrong trial + 1
+        user.setPasswordWrongNbrTrials(user.getPasswordWrongNbrTrials() + 1);
+        // Check if the number of trial is reached
+        if (user.getPasswordWrongNbrTrials() >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
+          // Log it
+          Logging.logError({
+            userFullName: "Unknown", source: "Central Server", module: "CentralServerAuthentication", method: "authService", action: action,
+            message: `User '${Utils.buildUserFullName(user.getModel())}' is locked for ${_centralSystemRestConfig.passwordBlockedWaitTimeMin} mins: too many failed attempts (${_centralSystemRestConfig.passwordWrongNumberOfTrial})`});
+          // Yes: Set the account blocked and set the blocked date
+          user.setStatus(Users.USER_STATUS_BLOCKED);
+          // Set unblocking date
+          user.setPasswordBlockedUntil(
+            moment().add(_centralSystemRestConfig.passwordBlockedWaitTimeMin, "m").toDate()
+          );
+        } else {
+          // Log it
+          Logging.logError({
+            userFullName: "Unknown", source: "Central Server", module: "CentralServerAuthentication", method: "authService", action: action,
+            message: `User '${Utils.buildUserFullName(user.getModel())}' tried to log in without success, ${_centralSystemRestConfig.passwordWrongNumberOfTrial - user.getPasswordWrongNbrTrials()} trial(s) remaining`});
+        }
+        // save
+        user.save().then(() => {
+          // User not found
+          res.sendStatus(401);
+          next();
+        });
+      } else {
+        // Log it
+        Logging.logError({
+          userFullName: "Unknown", source: "Central Server", module: "CentralServerAuthentication", method: "authService", action: action,
+          message: `Unknown user tried to log in with email '${filteredRequest.email}'`});
+        // User not found
+        res.sendStatus(401);
+        next();
+      }
     }
   }
 };

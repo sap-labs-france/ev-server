@@ -33,6 +33,22 @@ class User {
     this._model.password = password;
   }
 
+  getPasswordWrongNbrTrials() {
+    return this._model.passwordWrongNbrTrials;
+  }
+
+  setPasswordWrongNbrTrials(passwordWrongNbrTrials) {
+    this._model.passwordWrongNbrTrials = passwordWrongNbrTrials;
+  }
+
+  getPasswordBlockedUntil() {
+    return this._model.passwordBlockedUntil;
+  }
+
+  setPasswordBlockedUntil(passwordBlockedUntil) {
+    this._model.passwordBlockedUntil = passwordBlockedUntil;
+  }
+
   getLocale() {
     return this._model.locale;
   }

@@ -724,6 +724,7 @@ class MongoDBStorage extends Storage {
   }
 
   saveUser(user) {
+    console.log(user);
     // Check if ID or email is provided
     if (!user.id && !user.email) {
       // ID ,ust be provided!
@@ -792,17 +793,9 @@ class MongoDBStorage extends Storage {
     });
   }
 
-  getUserByEmailPassword(email, password) {
-    return this._getUser({"email": email, "password": password});
-  }
-
   getUserByEmail(email) {
-    return this._getUser({"email": email});
-  }
-
-  _getUser(filter) {
     // Exec request
-    return MDBUser.findOne(filter).then((userMDB) => {
+    return MDBUser.findOne({"email": email}, {image:0}).then((userMDB) => {
       // Check deleted
       if (userMDB && userMDB.deleted) {
         // Return empty user
