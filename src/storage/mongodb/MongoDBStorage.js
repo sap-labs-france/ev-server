@@ -169,6 +169,19 @@ class MongoDBStorage extends Storage {
     });
   }
 
+  saveLog(log) {
+    // Create model
+    var logMDB = new MDBLog(log);
+    // Save
+    return logMDB.save().then(() => {
+      // Available?
+      if (_centralRestServer) {
+        // Notify Change
+        _centralRestServer.notifyLoggingCreated();
+      }
+    });
+  }
+
   deleteLogs(deleteUpToDate) {
     // Build filter
     var filter = {};
@@ -405,19 +418,6 @@ class MongoDBStorage extends Storage {
     return firmwarestatusNotificationMDB.save().then(() => {
       // Notify
       _centralRestServer.notifyChargingStationUpdated({"id" : firmwareStatusNotification.chargeBoxID});
-    });
-  }
-
-  saveLog(log) {
-    // Create model
-    var logMDB = new MDBLog(log);
-    // Save
-    return logMDB.save().then(() => {
-      // Available?
-      if (_centralRestServer) {
-        // Notify Change
-        _centralRestServer.notifyLoggingCreated();
-      }
     });
   }
 

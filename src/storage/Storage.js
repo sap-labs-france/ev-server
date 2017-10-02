@@ -13,73 +13,52 @@ class Storage {
   setCentralRestServer(centralRestServer) {
   }
 
-  getLogs(dateFrom, level, chargingStation, searchValue, numberOfLogs, sortDate) {
+  getConfigurationParamValue(chargeBoxIdentity, paramName) {
   }
 
-  deleteLogs(deleteUpToDate) {
+  getLogs(dateFrom, level, chargingStation, searchValue, numberOfLogs, sortDate) {
   }
 
   saveLog(log) {
   }
 
-  getUsers(searchValue, numberOfUser, WithPicture) {
+  deleteLogs(deleteUpToDate) {
   }
 
-  getUserByTagId(tagID) {
-  }
-
-  getUserByEmail(email) {
-  }
-
-  getUserByEmailPassword(email, password) {
-  }
-
-  getUser(id) {
-  }
-
-  saveUser(user) {
-  }
-
-  deleteUser(id) {
-  }
-
-  getChargingStations() {
-  }
-
-  getChargingStation(chargeBoxIdentity) {
-  }
-
-  saveChargingStation(chargingStation) {
-  }
-
-  saveBootNotification(bootNotification) {
-  }
-
-  saveStatusNotification(statusNotification) {
+  getConfiguration(chargeBoxIdentity) {
   }
 
   getStatusNotifications(chargeBoxIdentity, connectorId) {
   }
 
+  getPricing() {
+  }
+
+  savePricing(pricing) {
+  }
+
   getLastStatusNotification(chargeBoxIdentity, connectorId) {
   }
 
-  saveMeterValues(meterValues) {
+  getMeterValuesFromTransaction(transactionId) {
   }
 
-  getTransactions(searchValue, filter) {
+  saveBootNotification(bootNotification) {
   }
 
-  getTransaction(transactionId) {
+  saveNotification(notification) {
   }
 
-  saveStartTransaction(startTransaction) {
-  }
-
-  saveStopTransaction(stopTransaction) {
+  getNotifications(sourceId) {
   }
 
   saveDataTransfer(dataTransfer) {
+  }
+
+  saveConfiguration(configuration) {
+  }
+
+  saveStatusNotification(statusNotification) {
   }
 
   saveDiagnosticsStatusNotification(diagnosticsStatusNotification) {
@@ -91,13 +70,52 @@ class Storage {
   saveAuthorize(authorize) {
   }
 
-  getConfiguration(chargeBoxIdentity) {
+  saveStartTransaction(startTransaction) {
   }
 
-  getConfigurationParamValue(chargeBoxIdentity, paramName) {
+  saveStopTransaction(stopTransaction) {
   }
 
-  saveConfiguration(configuration) {
+  getMigrations() {
+  }
+
+  saveMigration(migration) {
+  }
+
+  saveMeterValues(meterValues) {
+  }
+
+  getTransactions(searchValue, filter, withPicture=false) {
+  }
+
+  getTransaction(transactionId) {
+  }
+
+  saveChargingStation(chargingStation) {
+  }
+
+  deleteChargingStation(id) {
+  }
+
+  getChargingStations(searchValue) {
+  }
+
+  getChargingStation(chargeBoxIdentity) {
+  }
+
+  getUsers(searchValue, numberOfUser, withPicture=false) {
+  }
+
+  saveUser(user) {
+  }
+
+  getUser(id) {
+  }
+
+  getUserByEmail(email) {
+  }
+
+  getUserByTagId(tagID) {
   }
 }
 
