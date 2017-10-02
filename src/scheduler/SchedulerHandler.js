@@ -31,7 +31,7 @@ class SchedulerHandler {
           // Cleanup of logging table
           case "loggingDatabaseTableCleanup":
             let loggingDatabaseTableCleanupTask = new LoggingDatabaseTableCleanupTask();
-            cron.schedule(task.periodicity, loggingDatabaseTableCleanupTask.run);
+            cron.schedule(task.periodicity, loggingDatabaseTableCleanupTask.run.bind(this, task.config));
             Logging.logInfo({
               userFullName: "System", source: "Central Server", module: "Scheduler",
               method: "init", action: "Initialization",

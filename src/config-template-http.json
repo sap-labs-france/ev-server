@@ -78,7 +78,10 @@
       {
         "name": "loggingDatabaseTableCleanup",
         "active": true,
-        "periodicity": "* * * * 0"
+        "periodicity": "0 0 * * 1",
+        "config": {
+          "retentionPeriodWeeks": 4
+        }
       }
     ]
   }
