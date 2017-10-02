@@ -39,6 +39,7 @@
     "socket.io": "^2.0.3",
     "source-map-support": "^0.4.16",
     "strong-soap": "^1.2.6",
+    "uuid": "^3.1.0",
     "xml-formatter": "^1.0.1"
   },
   "devDependencies": {

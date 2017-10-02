@@ -17,6 +17,7 @@ module.exports = mongoose.model('User',{
   password: String,
   passwordWrongNbrTrials: Number,
   passwordBlockedUntil: Date,
+  passwordResetHash: String,
   role: String,
   phone: String,
   mobile: String,

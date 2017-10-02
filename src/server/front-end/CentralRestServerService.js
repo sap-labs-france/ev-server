@@ -216,7 +216,6 @@ module.exports = {
                   // Set the locale
                   newUser.setLocale(req.locale);
                   // Update timestamp
-                  console.log(Utils.buildUserFullName(loggedUser.getModel(), Users.WITHOUT_ID));
                   newUser.setCreatedBy(Utils.buildUserFullName(loggedUser.getModel(), Users.WITHOUT_ID));
                   newUser.setCreatedOn(new Date());
                   // Set the password

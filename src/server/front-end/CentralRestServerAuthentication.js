@@ -15,6 +15,7 @@ const CentralRestServerAuthorization = require('./CentralRestServerAuthorization
 const SecurityRestObjectFiltering = require('./SecurityRestObjectFiltering');
 const moment = require('moment');
 const https = require('https');
+const uuidV4 = require('uuid/v4');
 require('source-map-support').install();
 
 let _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
@@ -185,65 +186,113 @@ module.exports = {
           case "reset":
             // Filter
             filteredRequest = SecurityRestObjectFiltering.filterResetPasswordRequest(req.body);
-            // Check
-            if (!filteredRequest.captcha) {
-              Logging.logActionErrorMessageAndSendResponse(action, `The captcha is mandatory`, req, res, next);
-              return;
-            }
-            // Check captcha
-            https.get({
-              "host": "www.google.com",
-              "method": "GET",
-              "path": `/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`
-            }, (responseGoogle) => {
-              // Gather data
-              responseGoogle.on('data', (responseGoogleData) => {
-                // Check
-                let responseGoogleDataJSon = JSON.parse(responseGoogleData);
-                if (!responseGoogleDataJSon.success) {
-                  Logging.logActionErrorMessageAndSendResponse(action, `The captcha is invalid`, req, res, next);
-                  return;
-                }
-                // Generate a new password
-                global.storage.getUserByEmail(filteredRequest.email).then((user) => {
-                  // Found?
-                  if (user) {
-                    // Yes: Generate new password
-                    let newPassword = Users.generatePassword();
-                    // Hash it
-                    user.setPassword(Users.hashPassword(newPassword));
-                    // Save the user
-                    user.save().then(() => {
-                      // Send notification
-                      NotificationHandler.sendResetPassword(
-                        Utils.generateID(),
-                        user.getModel(),
-                        {
-                          "user": user.getModel(),
-                          "newPassword": newPassword,
-                          "evseDashboardURL" : Utils.buildEvseURL()
-                        },
-                        req.locale);
-                      // Ok
-                      res.json({status: `Success`});
-                      next();
-                    }).catch((err) => {
-                      // Log error
-                      Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-                    });
-                  } else {
-                    // Log error
-                    Logging.logActionErrorMessageAndSendResponse(action, `User with email ${filteredRequest.email} does not exist`, req, res, next);
+            // Check hash
+            if (!filteredRequest.hash) {
+              // No hash: Send email with init pass hash link
+              if (!filteredRequest.captcha) {
+                Logging.logActionErrorMessageAndSendResponse(action, `The captcha is mandatory`, req, res, next);
+                return;
+              }
+              // Check captcha
+              https.get({
+                "host": "www.google.com",
+                "method": "GET",
+                "path": `/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`
+              }, (responseGoogle) => {
+                // Gather data
+                responseGoogle.on('data', (responseGoogleData) => {
+                  // Check
+                  let responseGoogleDataJSon = JSON.parse(responseGoogleData);
+                  if (!responseGoogleDataJSon.success) {
+                    Logging.logActionErrorMessageAndSendResponse(action, `The captcha is invalid`, req, res, next);
+                    return;
                   }
-                }).catch((err) => {
-                  // Log error
-                  Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+                  // Generate a new password
+                  global.storage.getUserByEmail(filteredRequest.email).then((user) => {
+                    // Found?
+                    if (user) {
+                      // Yes: Generate new password
+                      let hash = uuidV4();
+                      // Hash it
+                      user.setPasswordResetHash(hash);
+                      // Save the user
+                      user.save().then(() => {
+                        // Send notification
+                        NotificationHandler.sendResetPassword(
+                          Utils.generateID(),
+                          user.getModel(),
+                          {
+                            "user": user.getModel(),
+                            "hash": hash,
+                            "email": user.getEMail(),
+                            "evseDashboardURL" : Utils.buildEvseURL()
+                          },
+                          req.locale);
+                        // Ok
+                        res.json({status: `Success`});
+                        next();
+                      }).catch((err) => {
+                        // Log error
+                        Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+                      });
+                    } else {
+                      // Log error
+                      Logging.logActionErrorMessageAndSendResponse(action, `User with email ${filteredRequest.email} does not exist`, req, res, next);
+                    }
+                  }).catch((err) => {
+                    // Log error
+                    Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+                  });
                 });
+              }).on("error", (err) => {
+                // Log
+                Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
               });
-            }).on("error", (err) => {
-              // Log
-              Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-            });
+            } else {
+              // Send email
+              global.storage.getUserByEmail(filteredRequest.email).then((user) => {
+                // Found?
+                if (user) {
+                  // Check the hash from the db
+                  if (!user.getPasswordResetHash() || filteredRequest.hash !== user.getPasswordResetHash()) {
+                    Logging.logActionErrorMessageAndSendResponse(action, `The user's hash do not match`, req, res, next, 535);
+                    return;
+                  }
+                  // Hash is ok: clear it
+                  user.setPasswordResetHash(null);
+                  // Generate new password
+                  let newPassword = Users.generatePassword();
+                  // Hash it
+                  user.setPassword(Users.hashPassword(newPassword));
+                  // Save the user
+                  user.save().then(() => {
+                    // Send notification
+                    NotificationHandler.sendResetPassword(
+                      Utils.generateID(),
+                      user.getModel(),
+                      {
+                        "user": user.getModel(),
+                        "hash": null,
+                        "newPassword": newPassword,
+                        "evseDashboardURL" : Utils.buildEvseURL()
+                      },
+                      req.locale);
+                    // Ok
+                    res.json({status: `Success`});
+                    next();
+                  }).catch((err) => {
+                    // Log error
+                    Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+                  });
+                } else {
+                  // Log error
+                  Logging.logActionErrorMessageAndSendResponse(action, `User with email ${filteredRequest.email} does not exist`, req, res, next);
+                }
+              }).catch((err) => {
+                // Log error
+                Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+              });
+            }
             break;
 
           default:

@@ -724,7 +724,6 @@ class MongoDBStorage extends Storage {
   }
 
   saveUser(user) {
-    console.log(user);
     // Check if ID or email is provided
     if (!user.id && !user.email) {
       // ID ,ust be provided!

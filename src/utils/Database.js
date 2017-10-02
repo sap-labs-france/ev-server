@@ -123,13 +123,11 @@ module.exports = {
     dest.deleted = src.deleted;
     dest.tagIDs = src.tagIDs;
     dest.role = src.role;
-    // Check the password
-    if (src.password && src.password.length > 0) {
-      // Password can be overridden
-      dest.password = src.password;
-      dest.passwordWrongNbrTrials = (!src.passwordWrongNbrTrials?0:src.passwordWrongNbrTrials);
-      dest.passwordBlockedUntil = (!src.passwordBlockedUntil?"":src.passwordBlockedUntil);
-    }
+    // Password can be overridden
+    dest.password = src.password;
+    dest.passwordWrongNbrTrials = (!src.passwordWrongNbrTrials?0:src.passwordWrongNbrTrials);
+    dest.passwordBlockedUntil = (!src.passwordBlockedUntil?"":src.passwordBlockedUntil);
+    dest.passwordResetHash = src.passwordResetHash;
   },
 
   updateLoggingObject(src, dest) {

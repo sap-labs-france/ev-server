@@ -33,6 +33,14 @@ class User {
     this._model.password = password;
   }
 
+  getPasswordResetHash() {
+    return this._model.passwordResetHash;
+  }
+
+  setPasswordResetHash(passwordResetHash) {
+    this._model.passwordResetHash = passwordResetHash;
+  }
+
   getPasswordWrongNbrTrials() {
     return this._model.passwordWrongNbrTrials;
   }

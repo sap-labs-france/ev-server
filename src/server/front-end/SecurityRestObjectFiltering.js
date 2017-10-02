@@ -11,6 +11,7 @@ class SecurityRestObjectFiltering {
     // Set
     filteredRequest.email = sanitize(request.email);
     filteredRequest.captcha = sanitize(request.captcha);
+    filteredRequest.hash = sanitize(request.hash);
     return filteredRequest;
   }
 
