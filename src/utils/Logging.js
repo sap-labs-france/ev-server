@@ -1,5 +1,6 @@
 require('source-map-support').install();
 const Utils = require('./Utils');
+const AppError = require('./AppError');
 
 class Logging {
   // Log Debug
@@ -141,6 +142,17 @@ class Logging {
       "detailedMessages": err.stack });
   }
 
+  // Log with error code
+  static logActionExceptionMessageAndSendResponse(action, exception, req, res, next) {
+    if (exception instanceof AppError) {
+      // Log with error code
+      Logging.logActionErrorMessageAndSendResponse(action, exception.message, req, res, next, exception.errorCode);
+    } else {
+      // Log Unexpected
+      Logging.logActionUnexpectedErrorMessageAndSendResponse(action, exception.message, req, res, next);
+    }
+  }
+
   // Log issues
   static logActionErrorMessageAndSendResponse(action, message, req, res, next, errorCode=500) {
     // Log
@@ -152,13 +164,17 @@ class Logging {
 
   // Log issues
   static logActionErrorMessage(action, message, req, res) {
+    // Clear password
+    if (action==="login" && req.body.password) {
+      req.body.password = "####";
+    }
     Logging.logError({
       userID: (req.user?req.user.id:null), userFullName: Utils.buildUserFullName(req.user),
       source: "Central Server", module: "RestServer", method: "N/A",
       action: action, message: message,
       detailedMessages: [{
-          "stack": new Error().stack,
-          "request": req.body}] });
+        "stack": new Error().stack,
+        "request": req.body}] });
   }
 
   // Log issues

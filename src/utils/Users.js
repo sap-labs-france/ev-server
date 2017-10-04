@@ -3,6 +3,7 @@ const path = require('path');
 const crypto = require('crypto');
 const passwordGenerator = require("password-generator");
 const Logging = require('./Logging');
+const bcrypt = require('bcrypt');
 require('source-map-support').install();
 
 let _userFilename = path.join(__dirname, "../../users.json");
@@ -68,28 +69,40 @@ module.exports = {
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/"'\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
   },
 
-  // Hash password (use secHashPassword, more secure)
+  // Hash password (old version kept for compatibility reason)
   hashPassword(password) {
     return crypto.createHash('sha256').update(password).digest('hex');
   },
 
-  // Generates random string of characters i.e salt
-  secGenerateRandomString(length) {
-    return crypto.randomBytes(Math.ceil(length/2))
-      .toString('hex')  /** convert to hexadecimal format */
-      .slice(0,length); /** return required number of characters */
+  hashPasswordBcrypt(password) {
+    return new Promise((fulfill, reject) => {
+      // Generate a salt with 15 rounds
+      bcrypt.genSalt(10, (err, salt) => {
+        // Hash
+        bcrypt.hash(password, salt, (err, hash) => {
+          // Error?
+          if(err) {
+            reject(err);
+          } else {
+            fulfill(hash);
+          }
+        });
+      });
+    });
   },
 
-  // Hash password with sha512
-  secHashPassword(password) {
-    let salt = genRandomString(16);
-    var hash = crypto.createHmac('sha512', salt); /** Hashing algorithm sha512 */
-    hash.update(password);
-    var value = hash.digest('hex');
-    return {
-      salt: salt,
-      passwordHash: value
-    };
+  checkPasswordBCrypt(password, hash) {
+    return new Promise((fulfill, reject) => {
+      // Compare
+      bcrypt.compare(password, hash, (err, match) => {
+        // Error?
+        if(err) {
+          reject(err);
+        } else {
+          fulfill(match);
+        }
+      });
+    });
   },
 
   // Check name

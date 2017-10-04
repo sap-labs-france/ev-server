@@ -5,6 +5,7 @@
   "main": "src/start.js",
   "dependencies": {
     "babel-polyfill": "^6.26.0",
+    "bcrypt": "^1.0.3",
     "body-parser": "^1.17.2",
     "body-parser-xml": "^1.1.0",
     "cookie-parser": "^1.4.3",

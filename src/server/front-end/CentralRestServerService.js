@@ -2,6 +2,7 @@ const Utils = require('../../utils/Utils');
 const Database = require('../../utils/Database');
 const Logging = require('../../utils/Logging');
 const Users = require('../../utils/Users');
+const AppError = require('../../utils/AppError');
 const ChargingStations = require('../../utils/ChargingStations');
 const User = require('../../model/User');
 const moment = require('moment');
@@ -203,40 +204,46 @@ module.exports = {
             filteredRequest = SecurityRestObjectFiltering.filterUserCreateRequest( req.body, req.user );
             // Check Mandatory fields
             if (Users.checkIfUserValid("UserCreate", filteredRequest, req, res, next)) {
-              // Get logged user
+              let loggedUserGeneral;
+              // Get the logged user
               global.storage.getUser(req.user.id).then((loggedUser) => {
-                // Check email
-                global.storage.getUserByEmail(filteredRequest.email).then((user) => {
-                  if (user) {
-                    Logging.logActionErrorMessageAndSendResponse(action, `The email ${filteredRequest.tagIDs} already exists`, req, res, next, 510);
-                    return;
-                  }
-                  // Create user
-                  var newUser = new User(filteredRequest);
-                  // Set the locale
-                  newUser.setLocale(req.locale);
-                  // Update timestamp
-                  newUser.setCreatedBy(Utils.buildUserFullName(loggedUser.getModel(), Users.WITHOUT_ID));
-                  newUser.setCreatedOn(new Date());
-                  // Set the password
-                  newUser.setPassword(Users.hashPassword(filteredRequest.password));
-                  // Save
-                  newUser.save().then(() => {
-                    Logging.logInfo({
-                      user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
-                      message: `User ${newUser.getFullName()} with email ${newUser.getEMail()} has been created successfully`,
-                      action: action, detailedMessages: user});
-
-                      res.json({status: `Success`});
-                      next();
-                  }).catch((err) => {
-                    // Log error
-                    Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-                  });
-                }).catch((err) => {
-                  // Log
-                  Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-                });
+                console.log(loggedUser);
+                // Set
+                loggedUserGeneral = loggedUser;
+                // Get the email
+                return global.storage.getUserByEmail(filteredRequest.email);
+              }).then((foundUser) => {
+                if (foundUser) {
+                  throw new AppError(`The email ${filteredRequest.email} already exists`, 510);
+                }
+                // Generate a hash for the given password
+                return Users.hashPasswordBcrypt(filteredRequest.password);
+              }).then((newPasswordHashed) => {
+                // Create user
+                var newUser = new User(filteredRequest);
+                // Set the locale
+                newUser.setLocale(req.locale);
+                // Update timestamp
+                newUser.setCreatedBy(Utils.buildUserFullName(loggedUserGeneral.getModel(), Users.WITHOUT_ID));
+                newUser.setCreatedOn(new Date());
+                // Set the password
+                if (filteredRequest.password) {
+                  // Generate a hash
+                  newUser.setPassword(newPasswordHashed);
+                }
+                // Save
+                return newUser.save();
+              }).then((createdUser) => {
+                Logging.logInfo({
+                  user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
+                  message: `User ${createdUser.getFullName()} with email ${createdUser.getEMail()} has been created successfully`,
+                  action: action, detailedMessages: createdUser});
+                // Ok
+                res.json({status: `Success`});
+                next();
+              }).catch((err) => {
+                // Log error
+                Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
               });
             }
             break;
@@ -1018,95 +1025,94 @@ module.exports = {
           // Check Mandatory fields
           // (res?console.log(true):console.log(false));
           if (Users.checkIfUserValid("UserUpdate", filteredRequest, req, res, next)) {
+            let userWithId;
             // Check email
             global.storage.getUser(filteredRequest.id).then((user) => {
               if (!user) {
-                Logging.logActionErrorMessageAndSendResponse(
-                  action, `The user with ID ${filteredRequest.id} does not exist anymore`, req, res, next, 550);
+                throw new AppError(`The user with ID ${filteredRequest.id} does not exist anymore`, 550);
+              }
+              // Keep
+              userWithId = user;
+              return user;
+            }).then((user) => {
+              // Check email
+              return global.storage.getUserByEmail(filteredRequest.email);
+            }).then((userWithEmail) => {
+              if (userWithEmail && userWithId.getID() !== userWithEmail.getID()) {
+                throw new AppError(`The email ${filteredRequest.email} already exists`, 510);
+              }
+              // Generate a password
+              return Users.hashPasswordBcrypt(filteredRequest.password);
+            }).then((newPasswordHashed) => {
+              // Check auth
+              if (!CentralRestServerAuthorization.canUpdateUser(req.user, userWithId.getModel())) {
+                // Not Authorized!
+                Logging.logActionUnauthorizedMessageAndSendResponse(
+                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_UPDATE, Utils.buildUserFullName(userWithId.getModel()), req, res, next);
                 return;
               }
-              // Check email
-              global.storage.getUserByEmail(filteredRequest.email).then((userWithEmail) => {
-                if (userWithEmail && user.getID() !== userWithEmail.getID()) {
-                  Logging.logActionErrorMessageAndSendResponse(
-                    action, `The email ${filteredRequest.email} already exists`, req, res, next, 510);
-                  return;
-                }
-                // Check auth
-                if (!CentralRestServerAuthorization.canUpdateUser(req.user, user.getModel())) {
-                  // Not Authorized!
-                  Logging.logActionUnauthorizedMessageAndSendResponse(
-                    CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_UPDATE, Utils.buildUserFullName(user.getModel()), req, res, next);
-                  return;
-                }
-                // Check if Role is provided and has been changed
-                if (filteredRequest.role && filteredRequest.role !== user.getRole() && req.user.role !== Users.USER_ROLE_ADMIN) {
+              // Check if Role is provided and has been changed
+              if (filteredRequest.role && filteredRequest.role !== userWithId.getRole() && req.user.role !== Users.USER_ROLE_ADMIN) {
+                // Role provided and not an Admin
+                Logging.logError({
+                  user: req.user, source: "Central Server", module: "CentralServerRestService", method: "UpdateUser",
+                  message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to change the role of the user ${Utils.buildUserFullName(userWithId.getModel())} to '${filteredRequest.role}' without having the Admin priviledge` });
+                // Override it
+                filteredRequest.role = userWithId.getRole();
+              }
+              // Check if Role is provided
+              if (filteredRequest.status && filteredRequest.status !== userWithId.getStatus()) {
+                // Right to change?
+                if (req.user.role !== Users.USER_ROLE_ADMIN) {
                   // Role provided and not an Admin
                   Logging.logError({
                     user: req.user, source: "Central Server", module: "CentralServerRestService", method: "UpdateUser",
-                    message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to change the role of the user ${Utils.buildUserFullName(user.getModel())} to '${filteredRequest.role}' without having the Admin priviledge` });
-                  // Override it
-                  filteredRequest.role = user.getRole();
+                    message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to update the status of the user ${Utils.buildUserFullName(userWithId.getModel())} to '${filteredRequest.status}' without having the Admin priviledge` });
+                  // Ovverride it
+                  filteredRequest.status = userWithId.getStatus();
+                } else {
+                  // Status changed
+                  statusHasChanged = true;
                 }
-                // Check if Role is provided
-                if (filteredRequest.status && filteredRequest.status !== user.getStatus()) {
-                  // Right to change?
-                  if (req.user.role !== Users.USER_ROLE_ADMIN) {
-                    // Role provided and not an Admin
-                    Logging.logError({
-                      user: req.user, source: "Central Server", module: "CentralServerRestService", method: "UpdateUser",
-                      message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to update the status of the user ${Utils.buildUserFullName(user.getModel())} to '${filteredRequest.status}' without having the Admin priviledge` });
-                    // Ovverride it
-                    filteredRequest.status = user.getStatus();
-                  } else {
-                    // Status changed
-                    statusHasChanged = true;
-                  }
-                }
-                // Update
-                Database.updateUser(filteredRequest, user.getModel());
-                // Set the locale
-                user.setLocale(req.locale);
-                // Update timestamp
-                user.setLastChangedBy(`${Utils.buildUserFullName(req.user)}`);
-                user.setLastChangedOn(new Date());
-                // Check the password
-                if (filteredRequest.password && filteredRequest.password.length > 0) {
-                  // Hash the pass
-                  let passwordHashed = Users.hashPassword(filteredRequest.password);
-                  // Update the password
-                  user.setPassword(passwordHashed);
-                }
-                // Update
-                user.save().then(() => {
-                  // Log
-                  Logging.logInfo({
-                    user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
-                    message: `User ${user.getFullName()} with Email ${user.getEMail()} and ID '${req.user.id}' has been updated successfully`,
-                    action: action, detailedMessages: user});
-                  // Notify
-                  if (statusHasChanged) {
-                    // Send notification
-                    NotificationHandler.sendUserAccountStatusChanged(
-                      Utils.generateID(),
-                      user.getModel(),
-                      {
-                        "user": user.getModel(),
-                        "evseDashboardURL" : Utils.buildEvseURL()
-                      },
-                      req.locale);
-                  }
-                  // Ok
-                  res.json({status: `Success`});
-                  next();
-                }).catch((err) => {
-                  // Log error
-                  Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-                });
-              });
+              }
+              // Update
+              Database.updateUser(filteredRequest, userWithId.getModel());
+              // Set the locale
+              userWithId.setLocale(req.locale);
+              // Update timestamp
+              userWithId.setLastChangedBy(`${Utils.buildUserFullName(req.user)}`);
+              userWithId.setLastChangedOn(new Date());
+              // Check the password
+              if (filteredRequest.password && filteredRequest.password.length > 0) {
+                // Update the password
+                userWithId.setPassword(newPasswordHashed);
+              }
+              // Update
+              return userWithId.save();
+            }).then((updatedUser) => {
+              // Log
+              Logging.logInfo({
+                user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
+                message: `User ${updatedUser.getFullName()} with Email ${updatedUser.getEMail()} and ID '${req.user.id}' has been updated successfully`,
+                action: action, detailedMessages: updatedUser});
+              // Notify
+              if (statusHasChanged) {
+                // Send notification
+                NotificationHandler.sendUserAccountStatusChanged(
+                  Utils.generateGUID(),
+                  updatedUser.getModel(),
+                  {
+                    "user": updatedUser.getModel(),
+                    "evseDashboardURL" : Utils.buildEvseURL()
+                  },
+                  req.locale);
+              }
+              // Ok
+              res.json({status: `Success`});
+              next();
             }).catch((err) => {
               // Log
-              Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+              Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
             });
           }
           break;

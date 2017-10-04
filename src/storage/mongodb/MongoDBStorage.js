@@ -305,7 +305,7 @@ class MongoDBStorage extends Storage {
     // Create model
     var bootNotificationMDB = new MDBBootNotification(bootNotification);
     // Set the ID
-    bootNotificationMDB._id = crypto.createHash('md5')
+    bootNotificationMDB._id = crypto.createHash('sha256')
       .update(`${bootNotification.chargeBoxID}~${bootNotification.timestamp}`)
       .digest("hex");
     // Create new
@@ -319,7 +319,7 @@ class MongoDBStorage extends Storage {
     // Create model
     var notificationMDB = new MDBNotification(notification);
     // Set the ID
-    notificationMDB._id = crypto.createHash('md5')
+    notificationMDB._id = crypto.createHash('sha256')
       .update(`${notification.sourceId}~${notification.channel}`)
       .digest("hex");
     // Create new
@@ -349,7 +349,7 @@ class MongoDBStorage extends Storage {
     // Create model
     var dataTransferMDB = new MDBDataTransfer(dataTransfer);
     // Set the ID
-    dataTransferMDB._id = crypto.createHash('md5')
+    dataTransferMDB._id = crypto.createHash('sha256')
       .update(`${dataTransfer.chargeBoxID}~${dataTransfer.data}~${dataTransfer.timestamp}`)
       .digest("hex");
     // Create new
@@ -383,7 +383,7 @@ class MongoDBStorage extends Storage {
     // Create model
     var statusNotificationMDB = new MDBStatusNotification(statusNotification);
     // Set the ID
-    statusNotificationMDB._id = crypto.createHash('md5')
+    statusNotificationMDB._id = crypto.createHash('sha256')
       .update(`${statusNotification.chargeBoxID}~${statusNotification.connectorId}~${statusNotification.status}~${statusNotification.timestamp}`)
       .digest("hex");
     // Create new
@@ -397,7 +397,7 @@ class MongoDBStorage extends Storage {
     // Create model
     var diagnosticsstatusNotificationMDB = new MDBDiagnosticsStatusNotification(diagnosticsStatusNotification);
     // Set the ID
-    diagnosticsstatusNotificationMDB._id = crypto.createHash('md5')
+    diagnosticsstatusNotificationMDB._id = crypto.createHash('sha256')
       .update(`${diagnosticsStatusNotification.chargeBoxID}~${diagnosticsStatusNotification.timestamp.toISOString()}`)
       .digest("hex");
     // Create new
@@ -411,7 +411,7 @@ class MongoDBStorage extends Storage {
     // Create model
     var firmwarestatusNotificationMDB = new MDBFirmwareStatusNotification(firmwareStatusNotification);
     // Set the ID
-    firmwarestatusNotificationMDB._id = crypto.createHash('md5')
+    firmwarestatusNotificationMDB._id = crypto.createHash('sha256')
       .update(`${firmwareStatusNotification.chargeBoxID}~${firmwareStatusNotification.timestamp.toISOString()}`)
       .digest("hex");
     // Create new
@@ -425,7 +425,7 @@ class MongoDBStorage extends Storage {
     // Create model
     var authorizeMDB = new MDBAuthorize(authorize);
     // Set the ID
-    authorizeMDB._id = crypto.createHash('md5')
+    authorizeMDB._id = crypto.createHash('sha256')
       .update(`${authorize.chargeBoxID}~${authorize.timestamp.toISOString()}`)
       .digest("hex");
     authorizeMDB.userID = authorize.user.getID();
@@ -507,7 +507,7 @@ class MongoDBStorage extends Storage {
       var meterValueMDB = new MDBMeterValue(meterValue);
       // Set the ID
       var attribute = JSON.stringify(meterValue.attribute);
-      meterValueMDB._id = crypto.createHash('md5')
+      meterValueMDB._id = crypto.createHash('sha256')
         .update(`${meterValue.chargeBoxID}~${meterValue.connectorId}~${meterValue.timestamp}~${meterValue.value}~${attribute}`)
         .digest("hex");
       // Save

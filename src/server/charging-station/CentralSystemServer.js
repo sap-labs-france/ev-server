@@ -219,7 +219,7 @@ class CentralSystemServer {
             action: "StatusNotification", message: `The Charging Station ${headers.chargeBoxIdentity} has reported an error on connector ${args.connectorId}: ${args.status} - ${args.errorCode}` });
           // Send Notification
           NotificationHandler.sendChargingStationStatusError(
-            Utils.generateID(),
+            Utils.generateGUID(),
             chargingStation.getModel(),
             {
               "chargingStationId": chargingStation.getChargeBoxIdentity(),

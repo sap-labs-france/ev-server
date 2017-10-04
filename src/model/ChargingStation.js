@@ -583,7 +583,7 @@ class ChargingStation {
         return newUser.save().then((user) => {
           // Send Notification
           NotificationHandler.sendUnknownUserBadged(
-            Utils.generateID(),
+            Utils.generateGUID(),
             this.getModel(),
             {
               "chargingStationId": this.getChargeBoxIdentity(),

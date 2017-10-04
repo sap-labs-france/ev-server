@@ -1,12 +1,13 @@
 const Configuration = require('./Configuration');
 const Logging = require('./Logging');
+const uuidV4 = require('uuid/v4');
 require('source-map-support').install();
 
 let _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 
 module.exports = {
-  generateID() {
-    return new Date().getTime();
+  generateGUID() {
+    return uuidV4();
   },
 
   buildUserFullName(user, withID=true) {

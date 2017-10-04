@@ -124,10 +124,12 @@ module.exports = {
     dest.tagIDs = src.tagIDs;
     dest.role = src.role;
     // Password can be overridden
-    dest.password = src.password;
-    dest.passwordWrongNbrTrials = (!src.passwordWrongNbrTrials?0:src.passwordWrongNbrTrials);
-    dest.passwordBlockedUntil = (!src.passwordBlockedUntil?"":src.passwordBlockedUntil);
-    dest.passwordResetHash = src.passwordResetHash;
+    if (src.password) {
+      dest.password = src.password;
+      dest.passwordWrongNbrTrials = (!src.passwordWrongNbrTrials?0:src.passwordWrongNbrTrials);
+      dest.passwordBlockedUntil = (!src.passwordBlockedUntil?"":src.passwordBlockedUntil);
+      dest.passwordResetHash = src.passwordResetHash;
+    }
   },
 
   updateLoggingObject(src, dest) {
