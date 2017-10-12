@@ -19,7 +19,7 @@ module.exports.fr_FR.html = `
     <body>
       Bonjour <%= (user.firstName?user.firstName:user.name) %>,</br>
       </br>
-      Votre véhicule électrique est bien connecté sur la borne <a href="<%= evseDashboardChargingStationURL %>"><%= chargingStationId %></a>.</br>
+      Votre véhicule électrique est correctement connecté sur la borne <a href="<%= evseDashboardChargingStationURL %>"><%= chargingStationId %></a>.</br>
       </br>
       Cordialement,</br>
       EVSE Admin.
