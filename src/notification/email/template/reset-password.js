@@ -5,7 +5,7 @@ module.exports.html = `
       Hi <%= (user.firstName?user.firstName:user.name) %>,</br>
       </br>
       <% if (hash) { %>
-        Your have just requested a new password.</br>
+        You have just requested a new password.</br>
         </br>
         Click on this link to reset your password and receive a new one: <a href="<%= evseDashboardURL + "/#/reset-password?hash=" + hash + "&email=" + email %>">EVSE Dashboard</a></br>
         </br>
