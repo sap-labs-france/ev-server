@@ -259,7 +259,7 @@ module.exports = {
                 }
                 // Check the hash from the db
                 if (!user.getPasswordResetHash() || filteredRequest.hash !== user.getPasswordResetHash()) {
-                  throw new AppError(`The user's hash do not match`, 535);
+                  throw new AppError(`The user's hash '${user.getPasswordResetHash()}' do not match`, 535);
                 }
                 // Set the hashed password
                 user.setPassword(newHashedPassword);

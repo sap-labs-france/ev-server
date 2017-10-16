@@ -142,7 +142,7 @@ class Logging {
       "detailedMessages": err.stack });
   }
 
-  // Log with error code
+  // Used to log exception in catch(...) only
   static logActionExceptionMessageAndSendResponse(action, exception, req, res, next) {
     if (exception instanceof AppError) {
       // Log with error code
@@ -153,7 +153,7 @@ class Logging {
     }
   }
 
-  // Log issues
+  // Used to check URL params (not in catch)
   static logActionErrorMessageAndSendResponse(action, message, req, res, next, errorCode=500) {
     // Log
     Logging.logActionErrorMessage(action, message, req, res);
