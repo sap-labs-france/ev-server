@@ -128,8 +128,8 @@ module.exports = {
       dest.password = src.password;
       dest.passwordWrongNbrTrials = (!src.passwordWrongNbrTrials?0:src.passwordWrongNbrTrials);
       dest.passwordBlockedUntil = (!src.passwordBlockedUntil?"":src.passwordBlockedUntil);
-      dest.passwordResetHash = src.passwordResetHash;
     }
+    dest.passwordResetHash = src.passwordResetHash;
   },
 
   updateLoggingObject(src, dest) {
