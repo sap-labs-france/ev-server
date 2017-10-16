@@ -142,6 +142,7 @@ class SecurityRestObjectFiltering {
   static filterUsersRequest(request, loggedUser) {
     let filteredRequest = {};
     // Handle picture
+    filteredRequest.Search = request.Search;
     SecurityRestObjectFiltering.filterWithPicture(filteredRequest, request.WithPicture);
     return filteredRequest;
   }
