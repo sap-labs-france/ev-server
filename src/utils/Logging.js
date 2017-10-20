@@ -1,6 +1,7 @@
-require('source-map-support').install();
 const Utils = require('./Utils');
 const AppError = require('./AppError');
+const AppAuthError = require('./AppAuthError');
+require('source-map-support').install();
 
 class Logging {
   // Log Debug
@@ -145,8 +146,11 @@ class Logging {
   // Used to log exception in catch(...) only
   static logActionExceptionMessageAndSendResponse(action, exception, req, res, next) {
     if (exception instanceof AppError) {
-      // Log with error code
+      // Log Error
       Logging.logActionErrorMessageAndSendResponse(action, exception.message, req, res, next, exception.errorCode);
+    } else if (exception instanceof AppAuthError) {
+      // Log Auth Error
+      Logging.logActionUnauthorizedMessageAndSendResponse(action, exception.entity, exception.value, req, res, next);
     } else {
       // Log Unexpected
       Logging.logActionUnexpectedErrorMessageAndSendResponse(action, exception.message, req, res, next);
@@ -178,17 +182,17 @@ class Logging {
   }
 
   // Log issues
-  static logActionUnauthorizedMessage(entity, action, value, req, res) {
+  static logActionUnauthorizedMessage(action, entity, value, req, res) {
     // Log
     Logging.logActionErrorMessage(action,
       `User ${Utils.buildUserFullName(req.user)} with Role '${req.user.role}' and ID '${req.user.id}' is not authorised to perform '${action}' on ${entity} ${(value?"'"+value+"'":"")}`, req, res);
   }
 
   // Log issues
-  static logActionUnauthorizedMessageAndSendResponse(entity, action, value, req, res, next) {
+  static logActionUnauthorizedMessageAndSendResponse(action, entity, value, req, res, next) {
     // Log
     Logging.logActionErrorMessageAndSendResponse(action,
-      `User ${Utils.buildUserFullName(req.user)} with Role '${req.user.role}' and ID '${req.user.id}' is not authorised to perform '${action}' on ${entity} ${(value?"'"+value+"'":"")}`, req, res, next);
+      `Not authorised to perform '${action}' on ${entity} ${(value?"'"+value+"'":"")} (Role='${req.user.role}')`, req, res, next);
   }
 }
 

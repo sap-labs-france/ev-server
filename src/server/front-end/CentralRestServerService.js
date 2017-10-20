@@ -3,6 +3,7 @@ const Database = require('../../utils/Database');
 const Logging = require('../../utils/Logging');
 const Users = require('../../utils/Users');
 const AppError = require('../../utils/AppError');
+const AppAuthError = require('../../utils/AppAuthError');
 const ChargingStations = require('../../utils/ChargingStations');
 const User = require('../../model/User');
 const moment = require('moment');
@@ -45,67 +46,60 @@ module.exports = {
         switch (action) {
           // Change max intensity
           case "ChargingStationSetMaxIntensitySocket":
+            let foundChargingStation;
             // Filter
             filteredRequest = SecurityRestObjectFiltering.filterChargingStationSetMaxIntensitySocketRequest( req.body, req.user );
             // Charge Box is mandatory
             if(!filteredRequest.chargeBoxIdentity) {
               Logging.logActionErrorMessageAndSendResponse(action, `The Charging Station ID is mandatory`, req, res, next);
-              break;
             }
             // Get the Charging station
             global.storage.getChargingStation(filteredRequest.chargeBoxIdentity).then((chargingStation) => {
+              // Set
+              foundChargingStation = chargingStation;
               // Found?
-              if (chargingStation) {
-                // Check auth
-                if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), "ChangeConfiguration")) {
-                  // Not Authorized!
-                  Logging.logActionUnauthorizedMessageAndSendResponse(
-                    CentralRestServerAuthorization.ENTITY_CHARGING_STATION, action, chargingStation.getChargeBoxIdentity(), req, res, next);
-                  return;
-                }
-                // Get the configuration
-                // Get the Config
-                return chargingStation.getConfiguration().then((chargerConfiguration) => {
-                  // Check
-                  if (chargerConfiguration) {
-                    let maxIntensitySocketMax = null;
-                    // Fill current params
-                    for (let i = 0; i < chargerConfiguration.configuration.length; i++) {
-                      // Max Intensity?
-                      if (chargerConfiguration.configuration[i].key.startsWith("currentpb")) {
-                        // Set
-                        maxIntensitySocketMax = Number(chargerConfiguration.configuration[i].value);
-                      }
-                    }
-                    if (maxIntensitySocketMax) {
-                      // Check
-                      if (filteredRequest.maxIntensity && filteredRequest.maxIntensity >= 0 && filteredRequest.maxIntensity <= maxIntensitySocketMax) {
-                        // Log
-                        Logging.logInfo({
-                          user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured", action: action,
-                          message: `Change Max Instensity Socket of Charging Station '${filteredRequest.chargeBoxIdentity}' to ${filteredRequest.maxIntensity}`});
+              if (!chargingStation) {
+                // Not Found!
+                throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`);
+              }
+              // Check auth
+              if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), "ChangeConfiguration")) {
+                // Not Authorized!
+                throw new AppAuthError(req.user, action, CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity());
+              }
+              // Get the Config
+              return chargingStation.getConfiguration();
+            }).then((chargerConfiguration) => {
+              // Check
+              if (!chargerConfiguration) {
+                // Not Found!
+                throw new AppError(`Cannot retrieve the configuration of the Charging Station ${filteredRequest.chargeBoxIdentity}`);
+              }
 
-                          // Change the config
-                          return chargingStation.requestChangeConfiguration('maxintensitysocket', filteredRequest.maxIntensity);
-                      } else {
-                        // Invalid value
-                        Logging.logActionErrorMessageAndSendResponse(action, `Invalid value for param max intensity socket '${filteredRequest.maxIntensity}' for Charging Station ${filteredRequest.chargeBoxIdentity}`, req, res, next);
-                      }
-                    } else {
-                      // Charging station not found
-                      Logging.logActionErrorMessageAndSendResponse(action, `Cannot retrieve the max intensity socket from the configuration of the Charging Station ${filteredRequest.chargeBoxIdentity}`, req, res, next);
-                    }
-                  } else {
-                    // Charging station not found
-                    Logging.logActionErrorMessageAndSendResponse(action, `Cannot retrieve the configuration of the Charging Station ${filteredRequest.chargeBoxIdentity}`, req, res, next);
-                  }
-                }).catch((err) => {
-                  // Log error
-                  Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-                });
+              let maxIntensitySocketMax = null;
+              // Fill current params
+              for (let i = 0; i < chargerConfiguration.configuration.length; i++) {
+                // Max Intensity?
+                if (chargerConfiguration.configuration[i].key.startsWith("currentpb")) {
+                  // Set
+                  maxIntensitySocketMax = Number(chargerConfiguration.configuration[i].value);
+                }
+              }
+              if (!maxIntensitySocketMax) {
+                // Not Found!
+                throw new AppError(`Cannot retrieve the max intensity socket from the configuration of the Charging Station ${filteredRequest.chargeBoxIdentity}`);
+              }
+              // Check
+              if (filteredRequest.maxIntensity && filteredRequest.maxIntensity >= 0 && filteredRequest.maxIntensity <= maxIntensitySocketMax) {
+                // Log
+                Logging.logInfo({
+                  user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured", action: action,
+                  message: `Change Max Instensity Socket of Charging Station '${filteredRequest.chargeBoxIdentity}' to ${filteredRequest.maxIntensity}`});
+                // Change the config
+                return foundChargingStation.requestChangeConfiguration('maxintensitysocket', filteredRequest.maxIntensity);
               } else {
-                // Charging station not found
-                Logging.logActionErrorMessageAndSendResponse(action, `Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`, req, res, next);
+                // Invalid value
+                throw new AppError(`Invalid value for param max intensity socket '${filteredRequest.maxIntensity}' for Charging Station ${filteredRequest.chargeBoxIdentity}`);
               }
             }).then((result) => {
               // Return the result
@@ -113,7 +107,7 @@ module.exports = {
               next();
             }).catch((err) => {
               // Log
-              Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+              Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
             });
             break;
 
@@ -148,7 +142,7 @@ module.exports = {
                       if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action, transaction.userID)) {
                         // Not Authorized!
                         Logging.logActionUnauthorizedMessageAndSendResponse(
-                          CentralRestServerAuthorization.ENTITY_CHARGING_STATION, action, chargingStation.getChargeBoxIdentity(), req, res, next);
+                          action, CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(), req, res, next);
                         return;
                       }
                       // Log
@@ -167,7 +161,7 @@ module.exports = {
                   if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action)) {
                     // Not Authorized!
                     Logging.logActionUnauthorizedMessageAndSendResponse(
-                      CentralRestServerAuthorization.ENTITY_CHARGING_STATION, action, chargingStation.getChargeBoxIdentity(), req, res, next);
+                      action, CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(), req, res, next);
                     return;
                   }
                   // Log
@@ -197,7 +191,7 @@ module.exports = {
             if (!CentralRestServerAuthorization.canCreateUser(req.user)) {
               // Not Authorized!
               Logging.logActionUnauthorizedMessageAndSendResponse(
-                CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_CREATE, null, req, res, next);
+                CentralRestServerAuthorization.ACTION_CREATE, CentralRestServerAuthorization.ENTITY_USER, null, req, res, next);
               return;
             }
             // Filter
@@ -207,7 +201,6 @@ module.exports = {
               let loggedUserGeneral;
               // Get the logged user
               global.storage.getUser(req.user.id).then((loggedUser) => {
-                console.log(loggedUser);
                 // Set
                 loggedUserGeneral = loggedUser;
                 // Get the email
@@ -272,7 +265,7 @@ module.exports = {
           if (!CentralRestServerAuthorization.canReadPricing(req.user)) {
             // Not Authorized!
             Logging.logActionUnauthorizedMessageAndSendResponse(
-              CentralRestServerAuthorization.ENTITY_PRICING, action, null, req, res, next);
+              action, CentralRestServerAuthorization.ENTITY_PRICING, null, req, res, next);
             break;
           }
           // Get the Pricing
@@ -297,7 +290,7 @@ module.exports = {
           if (!CentralRestServerAuthorization.canListLogging(req.user)) {
             // Not Authorized!
             Logging.logActionUnauthorizedMessageAndSendResponse(
-              CentralRestServerAuthorization.ENTITY_LOGGING, CentralRestServerAuthorization.ACTION_LIST, null, req, res, next);
+              CentralRestServerAuthorization.ACTION_LIST, CentralRestServerAuthorization.ENTITY_LOGGING, null, req, res, next);
             return;
           }
           // Filter
@@ -320,7 +313,7 @@ module.exports = {
           if (!CentralRestServerAuthorization.canListChargingStations(req.user)) {
             // Not Authorized!
             Logging.logActionUnauthorizedMessageAndSendResponse(
-              CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS, CentralRestServerAuthorization.ACTION_LIST, null, req, res, next);
+              CentralRestServerAuthorization.ACTION_LIST, CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS, null, req, res, next);
             return;
           }
           // Filter
@@ -418,7 +411,7 @@ module.exports = {
           if (!CentralRestServerAuthorization.canListUsers(req.user)) {
             // Not Authorized!
             Logging.logActionUnauthorizedMessageAndSendResponse(
-              CentralRestServerAuthorization.ENTITY_USERS, CentralRestServerAuthorization.ACTION_LIST, null, req, res, next);
+              CentralRestServerAuthorization.ACTION_LIST, CentralRestServerAuthorization.ENTITY_USERS, null, req, res, next);
             return;
           }
           // Filter
@@ -868,7 +861,7 @@ module.exports = {
                   if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
                     // Not Authorized!
                     Logging.logActionUnauthorizedMessageAndSendResponse(
-                      CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, chargingStation.getChargeBoxIdentity(), req, res, next);
+                      CentralRestServerAuthorization.ACTION_READ, CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(), req, res, next);
                     return;
                   }
                   // Check dates
@@ -949,7 +942,7 @@ module.exports = {
               if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_READ, chargingStation.getChargeBoxIdentity(), req, res, next);
+                  CentralRestServerAuthorization.ACTION_READ, CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(), req, res, next);
                 return;
               }
               // Get the Config
@@ -991,7 +984,7 @@ module.exports = {
           if (!CentralRestServerAuthorization.canUpdatePricing(req.user)) {
             // Not Authorized!
             Logging.logActionUnauthorizedMessageAndSendResponse(
-              CentralRestServerAuthorization.ENTITY_PRICING, action, null, req, res, next);
+              action, CentralRestServerAuthorization.ENTITY_PRICING, null, req, res, next);
             break;
           }
           // Filter
@@ -1023,7 +1016,6 @@ module.exports = {
           // Filter
           filteredRequest = SecurityRestObjectFiltering.filterUserUpdateRequest( req.body, req.user );
           // Check Mandatory fields
-          // (res?console.log(true):console.log(false));
           if (Users.checkIfUserValid("UserUpdate", filteredRequest, req, res, next)) {
             let userWithId;
             // Check email
@@ -1048,7 +1040,7 @@ module.exports = {
               if (!CentralRestServerAuthorization.canUpdateUser(req.user, userWithId.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_UPDATE, Utils.buildUserFullName(userWithId.getModel()), req, res, next);
+                  CentralRestServerAuthorization.ACTION_UPDATE, CentralRestServerAuthorization.ENTITY_USER, Utils.buildUserFullName(userWithId.getModel()), req, res, next);
                 return;
               }
               // Check if Role is provided and has been changed
@@ -1154,7 +1146,7 @@ module.exports = {
               if (!CentralRestServerAuthorization.canDeleteUser(req.user, user.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_USER, CentralRestServerAuthorization.ACTION_DELETE, Utils.buildUserFullName(user.getModel()), req, res, next);
+                  CentralRestServerAuthorization.ACTION_DELETE, CentralRestServerAuthorization.ENTITY_USER, Utils.buildUserFullName(user.getModel()), req, res, next);
                 return;
               }
               // Delete
@@ -1196,7 +1188,7 @@ module.exports = {
               if (!CentralRestServerAuthorization.canDeleteChargingStation(req.user, chargingStation.getModel())) {
                 // Not Authorized!
                 Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, CentralRestServerAuthorization.ACTION_DELETE, chargingStation.getChargeBoxIdentity(), req, res, next);
+                  CentralRestServerAuthorization.ACTION_DELETE, CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(), req, res, next);
                 return;
               }
               // Delete

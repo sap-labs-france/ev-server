@@ -345,6 +345,8 @@ module.exports = {
           var payload = {
               id: user.getID(),
               role: user.getRole(),
+              name: user.getName(),
+              firstName: user.getFirstName(),
               auths: compiledAuths
           };
           // Build token
