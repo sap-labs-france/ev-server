@@ -46,7 +46,7 @@ module.exports = {
         switch (action) {
           // Change max intensity
           case "ChargingStationSetMaxIntensitySocket":
-            let foundChargingStation;
+            let chargingStation;
             // Filter
             filteredRequest = SecurityRestObjectFiltering.filterChargingStationSetMaxIntensitySocketRequest( req.body, req.user );
             // Charge Box is mandatory
@@ -55,9 +55,9 @@ module.exports = {
                 action, new Error(`The Charging Station ID is mandatory`), req, res, next);
             }
             // Get the Charging station
-            global.storage.getChargingStation(filteredRequest.chargeBoxIdentity).then((chargingStation) => {
+            global.storage.getChargingStation(filteredRequest.chargeBoxIdentity).then((foundChargingStation) => {
               // Set
-              foundChargingStation = chargingStation;
+              chargingStation = foundChargingStation;
               // Found?
               if (!chargingStation) {
                 // Not Found!
@@ -97,7 +97,7 @@ module.exports = {
                   user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured", action: action,
                   message: `Change Max Instensity Socket of Charging Station '${filteredRequest.chargeBoxIdentity}' to ${filteredRequest.maxIntensity}`});
                 // Change the config
-                return foundChargingStation.requestChangeConfiguration('maxintensitysocket', filteredRequest.maxIntensity);
+                return chargingStation.requestChangeConfiguration('maxintensitysocket', filteredRequest.maxIntensity);
               } else {
                 // Invalid value
                 throw new AppError(`Invalid value for param max intensity socket '${filteredRequest.maxIntensity}' for Charging Station ${filteredRequest.chargeBoxIdentity}`);
@@ -246,10 +246,12 @@ module.exports = {
             // Action provided
             if (!action) {
               // Log
-              Logging.logActionExceptionMessageAndSendResponse("N/A", new Error(`No Action has been provided`), req, res, next);
+              Logging.logActionExceptionMessageAndSendResponse(
+                "N/A", new Error(`No Action has been provided`), req, res, next);
             } else {
               // Log
-              Logging.logActionExceptionMessageAndSendResponse("N/A", new Error(`The Action '${action}' does not exist`), req, res, next);
+              Logging.logActionExceptionMessageAndSendResponse(
+                "N/A", new Error(`The Action '${action}' does not exist`), req, res, next);
             }
         }
         break;
@@ -320,11 +322,11 @@ module.exports = {
           }
           // Filter
           filteredRequest = SecurityRestObjectFiltering.filterChargingStationsRequest(req.query, req.user);
-          let foundChargingStations;
-          // Get the charging stations
-          global.storage.getChargingStations(filteredRequest.Search, 100).then((chargingStations) => {
+          let chargingStations;
+          // Get the charging stfoundChargingStationsations
+          global.storage.getChargingStations(filteredRequest.Search, 100).then((foundChargingStations) => {
             // Set
-            foundChargingStations = chargingStations;
+            chargingStations = foundChargingStations;
             // Get logged user
             return global.storage.getUser(req.user.id);
           }).then((user) => {
@@ -338,7 +340,7 @@ module.exports = {
           }).then((activeTransactions) => {
             // Handle
             var chargingStationsJSon = [];
-            foundChargingStations.forEach((chargingStation) => {
+            chargingStations.forEach((chargingStation) => {
               // Check
               let connectors = chargingStation.getConnectors();
               // Set charging station active?
@@ -483,20 +485,20 @@ module.exports = {
             filter.endDateTime = filteredRequest.EndDateTime;
           }
           // Read the pricing
-          let foundPricing;
-          global.storage.getPricing().then((pricing) => {
+          let pricing;
+          global.storage.getPricing().then((foundPricing) => {
             // Set
-            foundPricing = pricing;
+            pricing = foundPricing;
             // Check email
             return global.storage.getTransactions(filteredRequest.Search, filter, filteredRequest.WithPicture);
           }).then((transactions) => {
             // Found?``
-            if (transactions && foundPricing) {
+            if (transactions && pricing) {
               // List the transactions
               transactions.forEach((transaction) => {
                 // Compute the price
-                transaction.stop.price = (transaction.stop.totalConsumption / 1000) * foundPricing.priceKWH;
-                transaction.stop.priceUnit = foundPricing.priceUnit;
+                transaction.stop.price = (transaction.stop.totalConsumption / 1000) * pricing.priceKWH;
+                transaction.stop.priceUnit = pricing.priceUnit;
               });
             }
             // Return
@@ -852,81 +854,80 @@ module.exports = {
           filteredRequest = SecurityRestObjectFiltering.filterChargingStationConsumptionFromTransactionRequest(req.query, req.user);
           // Transaction Id is mandatory
           if(!filteredRequest.TransactionId) {
-            Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The Transaction ID is mandatory`), req, res, next);
+            Logging.logActionExceptionMessageAndSendResponse(
+              action, new Error(`The Transaction ID is mandatory`), req, res, next);
             return;
           }
           // Get Transaction
-          global.storage.getTransaction(filteredRequest.TransactionId).then((transaction) => {
-            if (transaction) {
-              // Get the Charging Station
-              global.storage.getChargingStation(transaction.chargeBoxID.chargeBoxIdentity).then((chargingStation) => {
-                let consumptions = [];
-                // Found
-                if (chargingStation) {
-                  // Check auth
-                  if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
-                    // Not Authorized!
-                    Logging.logActionUnauthorizedMessageAndSendResponse(
-                      CentralRestServerAuthorization.ACTION_READ, CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(), req, res, next);
-                    return;
-                  }
-                  // Check dates
-                  if (filteredRequest.StartDateTime) {
-                    // Check date is in the transaction
-                    if (!moment(filteredRequest.StartDateTime).isSame(moment(transaction.timestamp)) &&
-                        moment(filteredRequest.StartDateTime).isBefore(moment(transaction.timestamp))) {
-                      Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The requested Start Date ${filteredRequest.StartDateTime} is before the transaction ID ${filteredRequest.TransactionId} Start Date ${transaction.timestamp}`), req, res, next);
-                      return;
-                    }
-                    // Check date is in the transaction
-                    if (transaction.stop &&
-                        !moment(filteredRequest.StartDateTime).isSame(moment(transaction.stop.timestamp)) &&
-                        moment(filteredRequest.StartDateTime).isAfter(moment(transaction.stop.timestamp))) {
-                      Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The requested Start Date ${filteredRequest.StartDateTime} is after the transaction ID ${filteredRequest.TransactionId} Stop Date ${transaction.stop.timestamp}`), req, res, next);
-                      return;
-                    }
-                  }
-                  // Dates provided?
-                  if(!filteredRequest.StartDateTime && !filteredRequest.EndDateTime) {
-                    // No: Get the Consumption from the transaction
-                    chargingStation.getConsumptionsFromTransaction(
-                        transaction, true).then((consumptions) => {
-                      // Return the result
-                      res.json(
-                        // Filter
-                        SecurityRestObjectFiltering.filterConsumptionsFromTransactionResponse(
-                          consumptions, req.user)
-                      );
-                      next();
-                    });
-                  } else {
-                    // Yes: Get the Consumption from dates within the trasaction
-                    chargingStation.getConsumptionsFromDateTimeRange(
-                        transaction, filteredRequest.StartDateTime).then((consumptions) => {
-                      // Return the result
-                      res.json(
-                        // Filter
-                        SecurityRestObjectFiltering.filterConsumptionsFromTransactionResponse(
-                          consumptions, req.user, true)
-                      );
-                      next();
-                    });
-                  }
-                } else {
-                  // Log
-                  return Promise.reject(new Error(`Charging Station ${transaction.ChargeBoxIdentity} does not exist`));
-                }
-              }).catch((err) => {
-                // Log
-                Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+          let transaction;
+          global.storage.getTransaction(filteredRequest.TransactionId).then((foundTransaction) => {
+            transaction = foundTransaction;
+            // Found?
+            if (!transaction) {
+              // Not Found!
+              throw new AppError(`Transaction ${filteredRequest.TransactionId} does not exist`);
+            }
+            // Get the Charging Station
+            return global.storage.getChargingStation(transaction.chargeBoxID.chargeBoxIdentity);
+          }).then((chargingStation) => {
+            let consumptions = [];
+            // Found?
+            if (!chargingStation) {
+              // Not Found!
+              throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`);
+            }
+            // Check auth
+            if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
+              // Not Authorized!
+              throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ, CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity());
+            }
+            // Check dates
+            if (filteredRequest.StartDateTime) {
+              // Check date is in the transaction
+              if (!moment(filteredRequest.StartDateTime).isSame(moment(transaction.timestamp)) &&
+                  moment(filteredRequest.StartDateTime).isBefore(moment(transaction.timestamp))) {
+                Logging.logActionExceptionMessageAndSendResponse(
+                  action, new Error(`The requested Start Date ${filteredRequest.StartDateTime} is before the transaction ID ${filteredRequest.TransactionId} Start Date ${transaction.timestamp}`), req, res, next);
+                return;
+              }
+              // Check date is in the transaction
+              if (transaction.stop &&
+                  !moment(filteredRequest.StartDateTime).isSame(moment(transaction.stop.timestamp)) &&
+                  moment(filteredRequest.StartDateTime).isAfter(moment(transaction.stop.timestamp))) {
+                Logging.logActionExceptionMessageAndSendResponse(
+                  action, new Error(`The requested Start Date ${filteredRequest.StartDateTime} is after the transaction ID ${filteredRequest.TransactionId} Stop Date ${transaction.stop.timestamp}`), req, res, next);
+                return;
+              }
+            }
+            // Dates provided?
+            if(!filteredRequest.StartDateTime && !filteredRequest.EndDateTime) {
+              // No: Get the Consumption from the transaction
+              chargingStation.getConsumptionsFromTransaction(
+                  transaction, true).then((consumptions) => {
+                // Return the result
+                res.json(
+                  // Filter
+                  SecurityRestObjectFiltering.filterConsumptionsFromTransactionResponse(
+                    consumptions, req.user)
+                );
+                next();
               });
             } else {
-              // Log
-              return Promise.reject(new Error(`Transaction ${filteredRequest.TransactionId} does not exist`));
+              // Yes: Get the Consumption from dates within the trasaction
+              chargingStation.getConsumptionsFromDateTimeRange(
+                  transaction, filteredRequest.StartDateTime).then((consumptions) => {
+                // Return the result
+                res.json(
+                  // Filter
+                  SecurityRestObjectFiltering.filterConsumptionsFromTransactionResponse(
+                    consumptions, req.user, true)
+                );
+                next();
+              });
             }
           }).catch((err) => {
-            // Log error
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            // Log
+            Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -936,34 +937,33 @@ module.exports = {
           filteredRequest = SecurityRestObjectFiltering.filterChargingStationConfigurationRequest(req.query, req.user);
           // Charge Box is mandatory
           if(!filteredRequest.ChargeBoxIdentity) {
-            Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The Charging Station ID is mandatory`), req, res, next);
-            break;
+            Logging.logActionExceptionMessageAndSendResponse(
+              action, new Error(`The Charging Station ID is mandatory`), req, res, next);
+            return;
           }
           // Get the Charging Station`
           global.storage.getChargingStation(filteredRequest.ChargeBoxIdentity).then((chargingStation) => {
             let configuration = {};
-            // Found
-            if (chargingStation) {
-              // Check auth
-              if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
-                // Not Authorized!
-                Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ACTION_READ, CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(), req, res, next);
-                return;
-              }
-              // Get the Config
-              chargingStation.getConfiguration().then((configuration) => {
-                // Return the result
-                res.json(configuration);
-                next();
-              });
-            } else {
-              // Log
-              return Promise.reject(new Error(`Charging Station ${filteredRequest.ChargeBoxIdentity} does not exist`));
+            // Found?
+            if (!chargingStation) {
+              // Not Found!
+              throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`);
             }
+            // Check auth
+            if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
+              // Not Authorized!
+              throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
+                CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity());
+            }
+            // Get the Config
+            chargingStation.getConfiguration().then((configuration) => {
+              // Return the result
+              res.json(configuration);
+              next();
+            });
           }).catch((err) => {
             // Log
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -972,10 +972,12 @@ module.exports = {
           // Action provided
           if (!action) {
             // Log
-            Logging.logActionExceptionMessageAndSendResponse("N/A", new Error(`No Action has been provided`), req, res, next);
+            Logging.logActionExceptionMessageAndSendResponse(
+              "N/A", new Error(`No Action has been provided`), req, res, next);
           } else {
             // Log
-            Logging.logActionExceptionMessageAndSendResponse("N/A", new Error(`The Action '${action}' does not exist`), req, res, next);
+            Logging.logActionExceptionMessageAndSendResponse(
+              "N/A", new Error(`The Action '${action}' does not exist`), req, res, next);
           }
       }
       break;
@@ -991,7 +993,7 @@ module.exports = {
             // Not Authorized!
             Logging.logActionUnauthorizedMessageAndSendResponse(
               action, CentralRestServerAuthorization.ENTITY_PRICING, null, req, res, next);
-            break;
+            return;
           }
           // Filter
           filteredRequest = SecurityRestObjectFiltering.filterPricingUpdateRequest(req.body, req.user);
@@ -999,6 +1001,7 @@ module.exports = {
           if (!filteredRequest.priceKWH || isNaN(filteredRequest.priceKWH)) {
             Logging.logActionExceptionMessageAndSendResponse(
               action, new Error(`The price ${filteredRequest.priceKWH} has not a correct format`), req, res, next);
+            return;
           }
           // Update
           let pricing = {};
@@ -1012,7 +1015,7 @@ module.exports = {
             next();
           }).catch((err) => {
             // Log
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -1120,10 +1123,12 @@ module.exports = {
           // Action provided
           if (!action) {
             // Log
-            Logging.logActionExceptionMessageAndSendResponse(action, new Error(`No Action has been provided`), req, res, next);
+            Logging.logActionExceptionMessageAndSendResponse(
+              action, new Error(`No Action has been provided`), req, res, next);
           } else {
             // Log
-            Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The Action '${action}' does not exist`), req, res, next);
+            Logging.logActionExceptionMessageAndSendResponse(
+              action, new Error(`The Action '${action}' does not exist`), req, res, next);
           }
           break;
       }
@@ -1143,35 +1148,32 @@ module.exports = {
               return;
             }
             // Check email
-            global.storage.getUser(filteredRequest.ID).then((user) => {
+            let user;
+            global.storage.getUser(filteredRequest.ID).then((foundUser) => {
+              user = foundUser;
               if (!user) {
-                Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The user with ID ${filteredRequest.id} does not exist anymore`), req, res, next);
-                return;
+                throw new AppError(`The user with ID ${filteredRequest.id} does not exist anymore`);
               }
               // Check auth
               if (!CentralRestServerAuthorization.canDeleteUser(req.user, user.getModel())) {
                 // Not Authorized!
-                Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ACTION_DELETE, CentralRestServerAuthorization.ENTITY_USER, Utils.buildUserFullName(user.getModel()), req, res, next);
-                return;
+                throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
+                  CentralRestServerAuthorization.ENTITY_USER, chargingStation.getChargeBoxIdentity());
               }
               // Delete
-              user.delete().then(() => {
-                // Log
-                Logging.logInfo({
-                  user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
-                  message: `User ${user.getFullName()} with Email ${user.getEMail()} and ID '${user.getID()}' has been deleted successfully`,
-                  action: action, detailedMessages: user});
-                // Ok
-                res.json({status: `Success`});
-                next();
-              }).catch((err) => {
-                // Log error
-                Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-              });
+              return user.delete();
+            }).then(() => {
+              // Log
+              Logging.logInfo({
+                user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
+                message: `User ${user.getFullName()} with Email ${user.getEMail()} and ID '${user.getID()}' has been deleted successfully`,
+                action: action, detailedMessages: user});
+              // Ok
+              res.json({status: `Success`});
+              next();
             }).catch((err) => {
               // Log
-              Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+              Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
             });
             break;
 
@@ -1185,35 +1187,34 @@ module.exports = {
               return;
             }
             // Check email
-            global.storage.getChargingStation(filteredRequest.ID).then((chargingStation) => {
+            let chargingStation;
+            global.storage.getChargingStation(filteredRequest.ID).then((foundChargingStation) => {
+              chargingStation = foundChargingStation;
+              // Found?
               if (!chargingStation) {
-                Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The charging station with ID ${filteredRequest.id} does not exist anymore`), req, res, next);
-                return;
+                // Not Found!
+                throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`);
               }
               // Check auth
               if (!CentralRestServerAuthorization.canDeleteChargingStation(req.user, chargingStation.getModel())) {
                 // Not Authorized!
-                Logging.logActionUnauthorizedMessageAndSendResponse(
-                  CentralRestServerAuthorization.ACTION_DELETE, CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(), req, res, next);
-                return;
+                throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
+                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity());
               }
               // Delete
-              global.storage.deleteChargingStation(filteredRequest.ID).then(() => {
-                // Log
-                Logging.logInfo({
-                  user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
-                  message: `Charging Station ${chargingStation.getChargeBoxIdentity()} has been deleted successfully`,
-                  action: action, detailedMessages: chargingStation});
-                // Ok
-                res.json({status: `Success`});
-                next();
-              }).catch((err) => {
-                // Log error
-                Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-              });
+              return global.storage.deleteChargingStation(filteredRequest.ID);
+            }).then(() => {
+              // Log
+              Logging.logInfo({
+                user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
+                message: `Charging Station ${chargingStation.getChargeBoxIdentity()} has been deleted successfully`,
+                action: action, detailedMessages: chargingStation});
+              // Ok
+              res.json({status: `Success`});
+              next();
             }).catch((err) => {
               // Log
-              Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+              Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
             });
             break;
 
@@ -1222,10 +1223,12 @@ module.exports = {
             // Action provided
             if (!action) {
               // Log
-              Logging.logActionExceptionMessageAndSendResponse("N/A", new Error(`No Action has been provided`), req, res, next);
+              Logging.logActionExceptionMessageAndSendResponse(
+                "N/A", new Error(`No Action has been provided`), req, res, next);
             } else {
               // Log
-              Logging.logActionExceptionMessageAndSendResponse("N/A", new Error(`The Action '${action}' does not exist`), req, res, next);
+              Logging.logActionExceptionMessageAndSendResponse(
+                "N/A", new Error(`The Action '${action}' does not exist`), req, res, next);
             }
             break;
         }
@@ -1233,7 +1236,8 @@ module.exports = {
 
     default:
       // Log
-      Logging.logActionExceptionMessageAndSendResponse("N/A", new Error(`Ussuported request method ${req.method}`), req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(
+        "N/A", new Error(`Ussuported request method ${req.method}`), req, res, next);
       break;
     }
   }
