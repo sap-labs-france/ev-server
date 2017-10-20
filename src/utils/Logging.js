@@ -125,17 +125,14 @@ class Logging {
 
   // Log issues
   static logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next) {
-    Logging.logError({
-      userID: (req.user?req.user.id:null), userFullName: Utils.buildUserFullName(req.user),
-      source: "Central Server", module: "RestServer", method: "N/A",
-      action: action, message: `${err.message}`,
-      detailedMessages: err.stack });
+    Logging.logUnexpectedErrorMessage(
+      action, "RestServer", "N/A", err, "Central Server", (req.user?req.user.id:null));
     res.status(500).send({"message": Utils.hideShowMessage(err.message)});
     next();
   }
 
   // Log issues
-  static logUnexpectedErrorMessage(action, module, method, err, source="Central Server") {
+  static logUnexpectedErrorMessage(action, module, method, err, source="Central Server", user="System") {
     Logging.logError({
       "userFullName": "System",
       "source": source, "module": module, "method": method,
@@ -147,27 +144,36 @@ class Logging {
   static logActionExceptionMessageAndSendResponse(action, exception, req, res, next) {
     if (exception instanceof AppError) {
       // Log Error
-      Logging.logActionErrorMessageAndSendResponse(action, exception.message, req, res, next, exception.errorCode);
+      Logging.logActionExceptionMessageAndSendResponse(
+        action, exception, req, res, next, exception.errorCode);
     } else if (exception instanceof AppAuthError) {
       // Log Auth Error
-      Logging.logActionUnauthorizedMessageAndSendResponse(action, exception.entity, exception.value, req, res, next);
+      Logging.logActionUnauthorizedMessageAndSendResponse(
+        action, exception.entity, exception.value, req, res, next, exception.errorCode);
     } else {
       // Log Unexpected
-      Logging.logActionUnexpectedErrorMessageAndSendResponse(action, exception.message, req, res, next);
+      Logging.logActionUnexpectedErrorMessageAndSendResponse(
+        action, exception.message, req, res, next);
     }
+  }
+
+  // Used to check URL params (not in catch)
+  static logActionExceptionMessageAndSendResponse(action, exception, req, res, next, errorCode=500) {
+    // Log
+    Logging.logActionExceptionMessage(action, exception, req, res);
+    // Send error
+    res.status(errorCode).send({"message": Utils.hideShowMessage(exception.message)});
+    next();
   }
 
   // Used to check URL params (not in catch)
   static logActionErrorMessageAndSendResponse(action, message, req, res, next, errorCode=500) {
     // Log
-    Logging.logActionErrorMessage(action, message, req, res);
-    // Send error
-    res.status(errorCode).send({"message": Utils.hideShowMessage(message)});
-    next();
+    Logging.logActionExceptionMessageAndSendResponse(action, new Error(message), req, res, next, errorCode);
   }
 
   // Log issues
-  static logActionErrorMessage(action, message, req, res) {
+  static logActionExceptionMessage(action, exception, req, res) {
     // Clear password
     if (action==="login" && req.body.password) {
       req.body.password = "####";
@@ -175,9 +181,9 @@ class Logging {
     Logging.logError({
       userID: (req.user?req.user.id:null), userFullName: Utils.buildUserFullName(req.user),
       source: "Central Server", module: "RestServer", method: "N/A",
-      action: action, message: message,
+      action: action, message: exception.message,
       detailedMessages: [{
-        "stack": new Error().stack,
+        "stack": exception.stack,
         "request": req.body}] });
   }
 
