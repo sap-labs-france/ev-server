@@ -152,8 +152,8 @@ class Logging {
         action, exception.entity, exception.value, req, res, next, exception.errorCode);
     } else {
       // Log Unexpected
-      Logging.logActionUnexpectedErrorMessageAndSendResponse(
-        action, exception.message, req, res, next);
+      Logging._logActionExceptionMessageAndSendResponse(
+        action, exception, req, res, next);
     }
   }
 
@@ -191,7 +191,7 @@ class Logging {
   // Log issues
   static logActionUnauthorizedMessageAndSendResponse(action, entity, value, req, res, next) {
     // Log
-    Logging.logActionExceptionMessageAndSendResponse(action,
+    Logging._logActionExceptionMessageAndSendResponse(action,
       new Error(`Not authorised to perform '${action}' on ${entity} ${(value?"'"+value+"'":"")} (Role='${req.user.role}')`), req, res, next);
   }
 }
