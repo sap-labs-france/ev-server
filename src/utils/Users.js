@@ -130,55 +130,55 @@ module.exports = {
   checkIfUserValid(action, filteredRequest, req, res, next) {
     // Update mode?
     if(req.method === "PUT" && !filteredRequest.id) {
-      Logging.logActionErrorMessageAndSendResponse(action, `The user's ID is mandatory`, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The user's ID is mandatory`), req, res, next);
       return false;
     }
     if(!filteredRequest.name) {
-      Logging.logActionErrorMessageAndSendResponse(action, `The user's last name is mandatory`, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The user's last name is mandatory`), req, res, next);
       return false;
     }
     if(!filteredRequest.email) {
-      Logging.logActionErrorMessageAndSendResponse(action, `The user's email is mandatory`, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The user's email is mandatory`), req, res, next);
       return false;
     }
     if(!filteredRequest.status) {
-      Logging.logActionErrorMessageAndSendResponse(action, `The user's status is mandatory`, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The user's status is mandatory`), req, res, next);
       return false;
     }
     // Check password id provided
     if (filteredRequest.password && !this.isPasswordValid(filteredRequest.password)) {
-      Logging.logActionErrorMessageAndSendResponse(action, `The user's password is not valid`, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The user's password is not valid`), req, res, next);
       return false;
     }
     // Check format
     if (!this.isUserNameValid(filteredRequest.name)) {
-      Logging.logActionErrorMessageAndSendResponse(action, `The user's last name ${filteredRequest.name} is not valid`, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The user's last name ${filteredRequest.name} is not valid`), req, res, next);
       return false;
     }
     if (!this.isUserNameValid(filteredRequest.firstName)) {
-      Logging.logActionErrorMessageAndSendResponse(action, `The user's first name ${filteredRequest.firstName} is not valid`, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The user's first name ${filteredRequest.firstName} is not valid`), req, res, next);
       return false;
     }
     if (!this.isUserEmailValid(filteredRequest.email)) {
-      Logging.logActionErrorMessageAndSendResponse(action, `The user's email ${filteredRequest.email} is not valid`, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The user's email ${filteredRequest.email} is not valid`), req, res, next);
       return false;
     }
     if (filteredRequest.phone && !this.isPhoneValid(filteredRequest.phone)) {
-      Logging.logActionErrorMessageAndSendResponse(action, `The user's phone ${filteredRequest.phone} is not valid`, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The user's phone ${filteredRequest.phone} is not valid`), req, res, next);
       return false;
     }
     if (filteredRequest.mobile && !this.isPhoneValid(filteredRequest.mobile)) {
-      Logging.logActionErrorMessageAndSendResponse(action, `The user's mobile ${filteredRequest.mobile} is not valid`, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The user's mobile ${filteredRequest.mobile} is not valid`), req, res, next);
       return false;
     }
     if (filteredRequest.iNumber && !this.isINumberValid(filteredRequest.iNumber)) {
-      Logging.logActionErrorMessageAndSendResponse(action, `The user's I-Number ${filteredRequest.iNumber} is not valid`, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The user's I-Number ${filteredRequest.iNumber} is not valid`), req, res, next);
       return false;
     }
     if (filteredRequest.tagIDs) {
       // Check
       if (!this.isTagIDValid(filteredRequest.tagIDs)) {
-        Logging.logActionErrorMessageAndSendResponse(action, `The user's tags ${filteredRequest.tagIDs} is/are not valid`, req, res, next);
+        Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The user's tags ${filteredRequest.tagIDs} is/are not valid`), req, res, next);
         return false;
       }
       // Check

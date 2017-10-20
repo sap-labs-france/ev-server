@@ -60,11 +60,11 @@ module.exports = {
             filteredRequest = SecurityRestObjectFiltering.filterLoginRequest(req.body);
             // Check
             if (!filteredRequest.email) {
-              Logging.logActionErrorMessageAndSendResponse(action, `The email is mandatory`, req, res, next);
+              Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The email is mandatory`), req, res, next);
               return;
             }
             if (!filteredRequest.password) {
-              Logging.logActionErrorMessageAndSendResponse(action, `The password is mandatory`, req, res, next);
+              Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The password is mandatory`), req, res, next);
               return;
             }
             // Check email
@@ -119,7 +119,7 @@ module.exports = {
             filteredRequest = SecurityRestObjectFiltering.filterRegisterUserRequest(req.body);
             // Check
             if (!filteredRequest.captcha) {
-              Logging.logActionErrorMessageAndSendResponse(action, `The captcha is mandatory`, req, res, next);
+              Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The captcha is mandatory`), req, res, next);
               return;
             }
             // Check captcha
@@ -133,7 +133,7 @@ module.exports = {
                 // Check
                 let responseGoogleDataJSon = JSON.parse(responseGoogleData);
                 if (!responseGoogleDataJSon.success) {
-                  Logging.logActionErrorMessageAndSendResponse(action, `The captcha is invalid`, req, res, next);
+                  Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The captcha is invalid`), req, res, next);
                   return;
                 }
                 // Check Mandatory fields
@@ -189,7 +189,7 @@ module.exports = {
             if (!filteredRequest.hash) {
               // No hash: Send email with init pass hash link
               if (!filteredRequest.captcha) {
-                Logging.logActionErrorMessageAndSendResponse(action, `The captcha is mandatory`, req, res, next);
+                Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The captcha is mandatory`), req, res, next);
                 return;
               }
               // Check captcha
@@ -203,7 +203,7 @@ module.exports = {
                   // Check
                   let responseGoogleDataJSon = JSON.parse(responseGoogleData);
                   if (!responseGoogleDataJSon.success) {
-                    Logging.logActionErrorMessageAndSendResponse(action, `The captcha is invalid`, req, res, next);
+                    Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The captcha is invalid`), req, res, next);
                     return;
                   }
                   // Yes: Generate new password
@@ -293,10 +293,10 @@ module.exports = {
             // Action provided
             if (!action) {
               // Log
-              Logging.logActionErrorMessageAndSendResponse("N/A", `No Action has been provided`, req, res, next);
+              Logging.logActionExceptionMessageAndSendResponse("N/A", new Error(`No Action has been provided`), req, res, next);
             } else {
               // Log
-              Logging.logActionErrorMessageAndSendResponse("N/A", `The Action '${action}' does not exist`, req, res, next);
+              Logging.logActionExceptionMessageAndSendResponse("N/A", new Error(`The Action '${action}' does not exist`), req, res, next);
             }
             next();
         }
@@ -319,7 +319,7 @@ module.exports = {
     if (user) {
       // Check if the account is active
       if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
-        Logging.logActionErrorMessageAndSendResponse(action, `Your account ${user.getEMail()} is not yet active`, req, res, next, 550);
+        Logging.logActionExceptionMessageAndSendResponse(action, new Error(`Your account ${user.getEMail()} is not yet active`), req, res, next, 550);
         return;
       }
       // Check password

@@ -144,7 +144,7 @@ class Logging {
   static logActionExceptionMessageAndSendResponse(action, exception, req, res, next) {
     if (exception instanceof AppError) {
       // Log Error
-      Logging.logActionExceptionMessageAndSendResponse(
+      Logging._logActionExceptionMessageAndSendResponse(
         action, exception, req, res, next, exception.errorCode);
     } else if (exception instanceof AppAuthError) {
       // Log Auth Error
@@ -158,18 +158,12 @@ class Logging {
   }
 
   // Used to check URL params (not in catch)
-  static logActionExceptionMessageAndSendResponse(action, exception, req, res, next, errorCode=500) {
+  static _logActionExceptionMessageAndSendResponse(action, exception, req, res, next, errorCode=500) {
     // Log
     Logging.logActionExceptionMessage(action, exception, req, res);
     // Send error
     res.status(errorCode).send({"message": Utils.hideShowMessage(exception.message)});
     next();
-  }
-
-  // Used to check URL params (not in catch)
-  static logActionErrorMessageAndSendResponse(action, message, req, res, next, errorCode=500) {
-    // Log
-    Logging.logActionExceptionMessageAndSendResponse(action, new Error(message), req, res, next, errorCode);
   }
 
   // Log issues
@@ -197,8 +191,8 @@ class Logging {
   // Log issues
   static logActionUnauthorizedMessageAndSendResponse(action, entity, value, req, res, next) {
     // Log
-    Logging.logActionErrorMessageAndSendResponse(action,
-      `Not authorised to perform '${action}' on ${entity} ${(value?"'"+value+"'":"")} (Role='${req.user.role}')`, req, res, next);
+    Logging.logActionExceptionMessageAndSendResponse(action,
+      new Error(`Not authorised to perform '${action}' on ${entity} ${(value?"'"+value+"'":"")} (Role='${req.user.role}')`), req, res, next);
   }
 }
 
