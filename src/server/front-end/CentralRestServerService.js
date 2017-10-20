@@ -125,7 +125,8 @@ module.exports = {
             filteredRequest = SecurityRestObjectFiltering.filterChargingStationActionRequest( req.body, action, req.user );
             // Charge Box is mandatory
             if(!filteredRequest.chargeBoxIdentity) {
-              Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The Charging Station ID is mandatory`), req, res, next);
+              Logging.logActionExceptionMessageAndSendResponse(
+                action, new Error(`The Charging Station ID is mandatory`), req, res, next);
               break;
             }
             // Get the Charging station
@@ -234,8 +235,8 @@ module.exports = {
                 res.json({status: `Success`});
                 next();
               }).catch((err) => {
-                // Log error
-                Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+                // Log
+                Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
               });
             }
             break;
@@ -250,7 +251,6 @@ module.exports = {
               // Log
               Logging.logActionExceptionMessageAndSendResponse("N/A", new Error(`The Action '${action}' does not exist`), req, res, next);
             }
-            next();
         }
         break;
 
@@ -265,7 +265,7 @@ module.exports = {
             // Not Authorized!
             Logging.logActionUnauthorizedMessageAndSendResponse(
               action, CentralRestServerAuthorization.ENTITY_PRICING, null, req, res, next);
-            break;
+            return;
           }
           // Get the Pricing
           global.storage.getPricing().then((pricing) => {
@@ -280,6 +280,9 @@ module.exports = {
               res.json({});
             }
             next();
+          }).catch((err) => {
+            // Log
+            Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -301,8 +304,8 @@ module.exports = {
             res.json(loggings);
             next();
           }).catch((err) => {
-            // Log error
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            // Log
+            Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -317,62 +320,65 @@ module.exports = {
           }
           // Filter
           filteredRequest = SecurityRestObjectFiltering.filterChargingStationsRequest(req.query, req.user);
+          let foundChargingStations;
           // Get the charging stations
           global.storage.getChargingStations(filteredRequest.Search, 100).then((chargingStations) => {
+            // Set
+            foundChargingStations = chargingStations;
             // Get logged user
-            global.storage.getUser(req.user.id).then((user) => {
+            return global.storage.getUser(req.user.id);
+          }).then((user) => {
+            // Check
+            if (!user) {
+              // Not Found!
+              throw new AppError(`The user with ID ${filteredRequest.id} does not exist`);
+            }
+            // Get the user's active transactions
+            return user.getTransactions({stop: {$exists: false}}, Users.WITH_NO_IMAGE);
+          }).then((activeTransactions) => {
+            // Handle
+            var chargingStationsJSon = [];
+            foundChargingStations.forEach((chargingStation) => {
               // Check
-              if (user) {
-                // Get the user's active transactions
-                user.getTransactions({stop: {$exists: false}}, Users.WITH_NO_IMAGE).then(activeTransactions => {
-                  // Handle
-                  var chargingStationsJSon = [];
-                  chargingStations.forEach((chargingStation) => {
-                    // Check
-                    let connectors = chargingStation.getConnectors();
-                    // Set charging station active?
-                    activeTransactions.forEach(activeTransaction => {
-                      // Find a match
-                      if (chargingStation.getChargeBoxIdentity() === activeTransaction.chargeBoxID.chargeBoxIdentity ) {
-                        // Set
-                        connectors[activeTransaction.connectorId.valueOf()-1].activeForUser = true;
-                      }
-                    });
-                    // Check the connector?
-                    if (filteredRequest.OnlyActive === "true") {
-                      // Remove the connector
-                      for (let j = connectors.length-1; j >= 0; j--) {
-                        // Not active?
-                        if (!connectors[j].activeForUser) {
-                          // Remove
-                          connectors.splice(j, 1);
-                        }
-                      }
-                      // Stil some connectors?
-                      if (connectors.length > 0) {
-                        // Add
-                        chargingStationsJSon.push(chargingStation.getModel());
-                      }
-                    } else {
-                      // Add
-                      chargingStationsJSon.push(chargingStation.getModel());
-                    }
-                  });
-                  // Return
-                  res.json(
-                    // Filter
-                    SecurityRestObjectFiltering.filterChargingStationsResponse(
-                      chargingStationsJSon, req.user)
-                  );
-                  next();
-                });
+              let connectors = chargingStation.getConnectors();
+              // Set charging station active?
+              activeTransactions.forEach(activeTransaction => {
+                // Find a match
+                if (chargingStation.getChargeBoxIdentity() === activeTransaction.chargeBoxID.chargeBoxIdentity ) {
+                  // Set
+                  connectors[activeTransaction.connectorId.valueOf()-1].activeForUser = true;
+                }
+              });
+              // Check the connector?
+              if (filteredRequest.OnlyActive === "true") {
+                // Remove the connector
+                for (let j = connectors.length-1; j >= 0; j--) {
+                  // Not active?
+                  if (!connectors[j].activeForUser) {
+                    // Remove
+                    connectors.splice(j, 1);
+                  }
+                }
+                // Stil some connectors?
+                if (connectors.length > 0) {
+                  // Add
+                  chargingStationsJSon.push(chargingStation.getModel());
+                }
               } else {
-                Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The user with ID ${filteredRequest.id} does not exist`), req, res, next);
+                // Add
+                chargingStationsJSon.push(chargingStation.getModel());
               }
             });
+            // Return
+            res.json(
+              // Filter
+              SecurityRestObjectFiltering.filterChargingStationsResponse(
+                chargingStationsJSon, req.user)
+              );
+              next();
           }).catch((err) => {
             // Log
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -382,7 +388,8 @@ module.exports = {
           filteredRequest = SecurityRestObjectFiltering.filterChargingStationRequest(req.query, req.user);
           // Charge Box is mandatory
           if(!filteredRequest.ChargeBoxIdentity) {
-            Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The Charging Station ID is mandatory`), req, res, next);
+            Logging.logActionExceptionMessageAndSendResponse(
+              action, new Error(`The Charging Station ID is mandatory`), req, res, next);
             return;
           }
           // Get it
@@ -400,7 +407,7 @@ module.exports = {
             next();
           }).catch((err) => {
             // Log
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -431,7 +438,7 @@ module.exports = {
             next();
           }).catch((err) => {
             // Log
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -459,7 +466,7 @@ module.exports = {
             next();
           }).catch((err) => {
             // Log
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -476,29 +483,32 @@ module.exports = {
             filter.endDateTime = filteredRequest.EndDateTime;
           }
           // Read the pricing
+          let foundPricing;
           global.storage.getPricing().then((pricing) => {
+            // Set
+            foundPricing = pricing;
             // Check email
-            global.storage.getTransactions(filteredRequest.Search, filter, filteredRequest.WithPicture).then((transactions) => {
-              // Found?``
-              if (transactions && pricing) {
-                // List the transactions
-                transactions.forEach((transaction) => {
-                  // Compute the price
-                  transaction.stop.price = (transaction.stop.totalConsumption / 1000) * pricing.priceKWH;
-                  transaction.stop.priceUnit = pricing.priceUnit;
-                });
-              }
-              // Return
-              res.json(
-                // Filter
-                SecurityRestObjectFiltering.filterTransactionsResponse(
-                  transactions, req.user, ChargingStations.WITHOUT_CONNECTORS)
-              );
-              next();
-            });
+            return global.storage.getTransactions(filteredRequest.Search, filter, filteredRequest.WithPicture);
+          }).then((transactions) => {
+            // Found?``
+            if (transactions && foundPricing) {
+              // List the transactions
+              transactions.forEach((transaction) => {
+                // Compute the price
+                transaction.stop.price = (transaction.stop.totalConsumption / 1000) * foundPricing.priceKWH;
+                transaction.stop.priceUnit = foundPricing.priceUnit;
+              });
+            }
+            // Return
+            res.json(
+              // Filter
+              SecurityRestObjectFiltering.filterTransactionsResponse(
+                transactions, req.user, ChargingStations.WITHOUT_CONNECTORS)
+            );
+            next();
           }).catch((err) => {
             // Log
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -558,7 +568,7 @@ module.exports = {
             next();
           }).catch((err) => {
             // Log
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -620,7 +630,7 @@ module.exports = {
           next();
         }).catch((err) => {
           // Log
-          Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+          Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
         });
         break;
 
@@ -681,7 +691,7 @@ module.exports = {
           next();
         }).catch((err) => {
           // Log
-          Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+          Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
         });
         break;
 
@@ -745,7 +755,7 @@ module.exports = {
           next();
         }).catch((err) => {
           // Log
-          Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+          Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
         });
         break;
 
@@ -764,7 +774,7 @@ module.exports = {
           next();
         }).catch((err) => {
           // Log
-          Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+          Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
         });
         break;
 
@@ -784,29 +794,26 @@ module.exports = {
           }
           // Get Charge Box
           global.storage.getChargingStation(filteredRequest.ChargeBoxIdentity).then((chargingStation) => {
-            if (chargingStation) {
-              // Set the model
-              chargingStation.getTransactions(filteredRequest.ConnectorId,
-                filteredRequest.StartDateTime, filteredRequest.EndDateTime,
-                Users.WITH_NO_IMAGE).then((transactions) => {
-                  // Return
-                  res.json(
-                    // Filter
-                    SecurityRestObjectFiltering.filterTransactionsResponse(
-                      transactions, req.user, ChargingStations.WITH_CONNECTORS)
-                  );
-                  next();
-                }).catch((err) => {
-                  // Log error
-                  Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
-                });
-            } else {
-              // Log
-              return Promise.reject(new Error(`Charging Station ${filteredRequest.ChargeBoxIdentity} does not exist`));
+            // Found?
+            if (!chargingStation) {
+              // Not Found!
+              throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`);
             }
+            // Set the model
+            return chargingStation.getTransactions(filteredRequest.ConnectorId,
+                filteredRequest.StartDateTime, filteredRequest.EndDateTime,
+                Users.WITH_NO_IMAGE);
+          }).then((transactions) => {
+            // Return
+            res.json(
+              // Filter
+              SecurityRestObjectFiltering.filterTransactionsResponse(
+                transactions, req.user, ChargingStations.WITH_CONNECTORS)
+            );
+            next();
           }).catch((err) => {
             // Log
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
@@ -821,21 +828,21 @@ module.exports = {
           }
           // Get Transaction
           global.storage.getTransaction(filteredRequest.TransactionId).then((transaction) => {
-            if (transaction) {
-              // Return
-              res.json(
-                // Filter
-                SecurityRestObjectFiltering.filterTransactionResponse(
-                  transaction, req.user, true)
-              );
-              next();
-            } else {
-              // Log
-              return Promise.reject(new Error(`Transaction ${filteredRequest.TransactionId} does not exist`));
+            // Found?
+            if (!transaction) {
+              // Not Found!
+              throw new AppError(`Transaction ${filteredRequest.TransactionId} does not exist`);
             }
+            // Return
+            res.json(
+              // Filter
+              SecurityRestObjectFiltering.filterTransactionResponse(
+                transaction, req.user, true)
+            );
+            next();
           }).catch((err) => {
             // Log
-            Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+            Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
           });
           break;
 
