@@ -1,4 +1,4 @@
-const Utils = require('./Utils');
+const Utils = require('../utils/Utils');
 
 class AppAuthError extends Error {
   constructor(user, action, entity, value, errorCode=500) {

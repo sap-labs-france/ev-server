@@ -7,7 +7,7 @@ const NotificationHandler = require('../../notification/NotificationHandler');
 const Logging = require('../../utils/Logging');
 const User = require('../../model/User');
 const Utils = require('../../utils/Utils');
-const AppError = require('../../utils/AppError');
+const AppError = require('../../exception/AppError');
 const Configuration = require('../../utils/Configuration');
 const Authorization = require('../../utils/Authorization');
 const compileProfile = require('node-authorization').profileCompiler;
@@ -177,7 +177,7 @@ module.exports = {
               });
             }).on("error", (err) => {
               // Log
-              Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+              Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
             });
             break;
 
@@ -240,7 +240,7 @@ module.exports = {
                 });
               }).on("error", (err) => {
                 // Log
-                Logging.logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next);
+                Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
               });
             } else {
               // Create the password

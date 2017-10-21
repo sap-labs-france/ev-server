@@ -1,6 +1,6 @@
 const Utils = require('./Utils');
-const AppError = require('./AppError');
-const AppAuthError = require('./AppAuthError');
+const AppError = require('../exception/AppError');
+const AppAuthError = require('../exception/AppAuthError');
 require('source-map-support').install();
 
 class Logging {
@@ -123,23 +123,6 @@ class Logging {
     }
   }
 
-  // Log issues
-  static logActionUnexpectedErrorMessageAndSendResponse(action, err, req, res, next) {
-    Logging.logUnexpectedErrorMessage(
-      action, "RestServer", "N/A", err, "Central Server", (req.user?req.user.id:null));
-    res.status(500).send({"message": Utils.hideShowMessage(err.message)});
-    next();
-  }
-
-  // Log issues
-  static logUnexpectedErrorMessage(action, module, method, err, source="Central Server", user="System") {
-    Logging.logError({
-      "userFullName": "System",
-      "source": source, "module": module, "method": method,
-      "action": action, "message": `${err.message}`,
-      "detailedMessages": err.stack });
-  }
-
   // Used to log exception in catch(...) only
   static logActionExceptionMessageAndSendResponse(action, exception, req, res, next) {
     if (exception instanceof AppError) {
@@ -159,33 +142,29 @@ class Logging {
 
   // Used to check URL params (not in catch)
   static _logActionExceptionMessageAndSendResponse(action, exception, req, res, next, errorCode=500) {
-    // Log
-    Logging.logActionExceptionMessage(action, exception, req, res);
+    // Clear password
+    if (action==="login" && req.body.password) {
+      req.body.password = "####";
+    }
+    Logging.logError({
+      userID: ((req && req.user)?req.user.id:null), userFullName: Utils.buildUserFullName(req.user),
+      source: source, module: module, method: "N/A",
+      action: action, message: exception.message,
+      detailedMessages: [{
+        "stack": exception.stack,
+        "request": req.body}] });
     // Send error
     res.status(errorCode).send({"message": Utils.hideShowMessage(exception.message)});
     next();
   }
 
   // Log issues
-  static logActionExceptionMessage(action, exception, req, res) {
-    // Clear password
-    if (action==="login" && req.body.password) {
-      req.body.password = "####";
-    }
+  static logUnexpectedErrorMessage(action, module, method, err, source="Central Server", user="System") {
     Logging.logError({
-      userID: (req.user?req.user.id:null), userFullName: Utils.buildUserFullName(req.user),
-      source: "Central Server", module: "RestServer", method: "N/A",
-      action: action, message: exception.message,
-      detailedMessages: [{
-        "stack": exception.stack,
-        "request": req.body}] });
-  }
-
-  // Log issues
-  static logActionUnauthorizedMessage(action, entity, value, req, res) {
-    // Log
-    Logging.logActionErrorMessage(action,
-      `User ${Utils.buildUserFullName(req.user)} with Role '${req.user.role}' and ID '${req.user.id}' is not authorised to perform '${action}' on ${entity} ${(value?"'"+value+"'":"")}`, req, res);
+      "userFullName": "System",
+      "source": source, "module": module, "method": method,
+      "action": action, "message": `${err.message}`,
+      "detailedMessages": err.stack });
   }
 
   // Log issues
