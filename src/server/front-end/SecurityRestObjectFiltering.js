@@ -287,8 +287,8 @@ class SecurityRestObjectFiltering {
         filteredUser.iNumber = user.iNumber;
         filteredUser.costCenter = user.costCenter;
         filteredUser.status = user.status;
-        filteredUser.createdBy = user.createdBy;
         filteredUser.createdOn = user.createdOn;
+        filteredUser.lastChangedOn = user.lastChangedOn;
         filteredUser.tagIDs = user.tagIDs;
         filteredUser.role = user.role;
         if (user.image) {
