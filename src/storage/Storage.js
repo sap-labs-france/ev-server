@@ -109,6 +109,9 @@ class Storage {
   saveUser(user) {
   }
 
+  deleteUser(id) {
+  }
+
   getUser(id) {
   }
 

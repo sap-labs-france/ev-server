@@ -634,9 +634,20 @@ class MongoDBStorage extends Storage {
   }
 
   deleteChargingStation(id) {
-    return MDBChargingStation.remove({ "_id" : id }).then((charingStationMDB) => {
+    return MDBChargingStation.remove({ "_id" : id }).then((result) => {
       // Notify Change
       _centralRestServer.notifyChargingStationDeleted({"id": id});
+      // Return the result
+      return result.result;
+    });
+  }
+
+  deleteUser(id) {
+    return MDBUser.remove({ "_id" : id }).then((result) => {
+      // Notify Change
+      _centralRestServer.notifyUserDeleted({"id": id});
+      // Return the result
+      return result.result;
     });
   }
 

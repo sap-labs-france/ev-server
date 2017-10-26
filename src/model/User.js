@@ -203,10 +203,22 @@ class User {
   }
 
   delete() {
-    // Set deleted
-    this.setDeleted(true);
-    // Delete
-    return this.save();
+    // Check if the user has a transaction
+    return this.getTransactions().then((transactions) => {
+      console.log(transactions.length);
+      if (transactions && transactions.length > 0) {
+        console.log("Delete logically");
+        // Delete logically
+        // Set deleted
+        this.setDeleted(true);
+        // Delete
+        return this.save();
+      } else {
+        console.log("Delete physically");
+        // Delete physically
+        return global.storage.deleteUser(this.getID());
+      }
+    })
   }
 }
 
