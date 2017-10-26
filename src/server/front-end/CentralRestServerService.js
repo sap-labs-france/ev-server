@@ -425,8 +425,9 @@ module.exports = {
           // Filter
           filteredRequest = SecurityRestObjectFiltering.filterUsersRequest(req.query, req.user);
           // Get users
-          global.storage.getUsers(filteredRequest.Search, 100, filteredRequest.WithPicture).then((users) => {
+          global.storage.getUsers(filteredRequest.Search, 200, filteredRequest.WithPicture).then((users) => {
             var usersJSon = [];
+            console.log(users.length);
             users.forEach((user) => {
               // Set the model
               usersJSon.push(user.getModel());

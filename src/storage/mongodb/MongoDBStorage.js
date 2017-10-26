@@ -677,29 +677,37 @@ class MongoDBStorage extends Storage {
 
   getUsers(searchValue, numberOfUser, withPicture=false) {
     if (!numberOfUser || isNaN(numberOfUser)) {
-      numberOfUser = 100;
+      numberOfUser = 200;
     }
     // Set the filters
     let filters = {
-      $or: [
-        {deleted:{$exists:false}},
-        {deleted:false}
+      "$and": [
+        {
+          "$or": [
+            { "deleted": { $exists:false } },
+            { deleted: false }
+          ]
+        }
       ]
     };
     // Source?
     if (searchValue) {
       // Build filter
-      filters.$or = [
-        { "name" : { $regex : `.*${searchValue}.*` } },
-        { "firstName" : { $regex : `.*${searchValue}.*` } },
-        { "email" : { $regex : `.*${searchValue}.*` } },
-        { "role" : { $regex : `.*${searchValue}.*` } }
-      ];
+      filters.$and.push({
+        "$or": [
+          { "name" : { $regex : `.*${searchValue}.*` } },
+          { "firstName" : { $regex : `.*${searchValue}.*` } },
+          { "email" : { $regex : `.*${searchValue}.*` } },
+          { "role" : { $regex : `.*${searchValue}.*` } }
+        ]
+      });
     }
     // Exec request
     return MDBTag.find({}).exec().then((tagsMDB) => {
       // Exec request
       return MDBUser.find(filters, (withPicture?{}:{image:0})).sort( {status: -1, name: 1, firstName: 1} ).limit(numberOfUser).exec().then((usersMDB) => {
+        console.log(filters);
+        console.log(usersMDB.length);
         var users = [];
         // Create
         usersMDB.forEach((userMDB) => {
