@@ -427,7 +427,6 @@ module.exports = {
           // Get users
           global.storage.getUsers(filteredRequest.Search, 200, filteredRequest.WithPicture).then((users) => {
             var usersJSon = [];
-            console.log(users.length);
             users.forEach((user) => {
               // Set the model
               usersJSon.push(user.getModel());

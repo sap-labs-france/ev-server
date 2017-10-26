@@ -706,8 +706,6 @@ class MongoDBStorage extends Storage {
     return MDBTag.find({}).exec().then((tagsMDB) => {
       // Exec request
       return MDBUser.find(filters, (withPicture?{}:{image:0})).sort( {status: -1, name: 1, firstName: 1} ).limit(numberOfUser).exec().then((usersMDB) => {
-        console.log(filters);
-        console.log(usersMDB.length);
         var users = [];
         // Create
         usersMDB.forEach((userMDB) => {
