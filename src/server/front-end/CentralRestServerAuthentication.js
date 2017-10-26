@@ -69,6 +69,9 @@ module.exports = {
             }
             // Check email
             global.storage.getUserByEmail(filteredRequest.email).then((user) => {
+              if (!user) {
+                throw new AppError(`The user with email ${filteredRequest.email} does not exist`, 500, "CentralRestServerAuthentication", "authService");
+              }
               // Check if the number of trials is reached
               if (user.getPasswordWrongNbrTrials() >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
                 // Check if the user is still locked
@@ -141,7 +144,7 @@ module.exports = {
                   // Check email
                   global.storage.getUserByEmail(filteredRequest.email).then((user) => {
                     if (user) {
-                      throw new AppError(`The email ${filteredRequest.email} already exists`, 510);
+                      throw new AppError(`The email ${filteredRequest.email} already exists`, 510, "CentralRestServerAuthentication", "authService");
                     }
                     // Generate a password
                     return Users.hashPasswordBcrypt(filteredRequest.password);
@@ -212,7 +215,7 @@ module.exports = {
                   global.storage.getUserByEmail(filteredRequest.email).then((user) => {
                     // Found?
                     if (!user) {
-                      throw new AppError(`User with email ${filteredRequest.email} does not exist`, 545);
+                      throw new AppError(`User with email ${filteredRequest.email} does not exist`, 545, "CentralRestServerAuthentication", "authService");
                     }
                     // Hash it
                     user.setPasswordResetHash(resetHash);
@@ -255,11 +258,11 @@ module.exports = {
               }).then((user) => {
                 // Found?
                 if (!user) {
-                  throw new AppError(`User with email ${filteredRequest.email} does not exist`, 545);
+                  throw new AppError(`User with email ${filteredRequest.email} does not exist`, 545, "CentralRestServerAuthentication", "authService");
                 }
                 // Check the hash from the db
                 if (!user.getPasswordResetHash() || filteredRequest.hash !== user.getPasswordResetHash()) {
-                  throw new AppError(`The user's hash '${user.getPasswordResetHash()}' do not match`, 535);
+                  throw new AppError(`The user's hash '${user.getPasswordResetHash()}' do not match`, 535, "CentralRestServerAuthentication", "authService");
                 }
                 // Set the hashed password
                 user.setPassword(newHashedPassword);

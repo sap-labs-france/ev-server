@@ -148,7 +148,7 @@ class Logging {
     }
     Logging.logError({
       userID: ((req && req.user)?req.user.id:null), userFullName: Utils.buildUserFullName(req.user),
-      source: source, module: module, method: "N/A",
+      source: "Central Server", module: exception.module, method: exception.method,
       action: action, message: exception.message,
       detailedMessages: [{
         "stack": exception.stack,

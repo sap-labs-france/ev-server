@@ -61,12 +61,15 @@ module.exports = {
               // Found?
               if (!chargingStation) {
                 // Not Found!
-                throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`);
+                throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
+                  500, "CentralRestServerService", "restServiceSecured");
               }
               // Check auth
               if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), "ChangeConfiguration")) {
                 // Not Authorized!
-                throw new AppAuthError(req.user, action, CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity());
+                throw new AppAuthError(req.user, action,
+                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(),
+                  500, "CentralRestServerService", "restServiceSecured");
               }
               // Get the Config
               return chargingStation.getConfiguration();
@@ -74,7 +77,8 @@ module.exports = {
               // Check
               if (!chargerConfiguration) {
                 // Not Found!
-                throw new AppError(`Cannot retrieve the configuration of the Charging Station ${filteredRequest.chargeBoxIdentity}`);
+                throw new AppError(`Cannot retrieve the configuration of the Charging Station ${filteredRequest.chargeBoxIdentity}`,
+                  500, "CentralRestServerService", "restServiceSecured");
               }
 
               let maxIntensitySocketMax = null;
@@ -88,7 +92,8 @@ module.exports = {
               }
               if (!maxIntensitySocketMax) {
                 // Not Found!
-                throw new AppError(`Cannot retrieve the max intensity socket from the configuration of the Charging Station ${filteredRequest.chargeBoxIdentity}`);
+                throw new AppError(`Cannot retrieve the max intensity socket from the configuration of the Charging Station ${filteredRequest.chargeBoxIdentity}`,
+                  500, "CentralRestServerService", "restServiceSecured");
               }
               // Check
               if (filteredRequest.maxIntensity && filteredRequest.maxIntensity >= 0 && filteredRequest.maxIntensity <= maxIntensitySocketMax) {
@@ -100,7 +105,8 @@ module.exports = {
                 return chargingStation.requestChangeConfiguration('maxintensitysocket', filteredRequest.maxIntensity);
               } else {
                 // Invalid value
-                throw new AppError(`Invalid value for param max intensity socket '${filteredRequest.maxIntensity}' for Charging Station ${filteredRequest.chargeBoxIdentity}`);
+                throw new AppError(`Invalid value for param max intensity socket '${filteredRequest.maxIntensity}' for Charging Station ${filteredRequest.chargeBoxIdentity}`,
+                  500, "CentralRestServerService", "restServiceSecured");
               }
             }).then((result) => {
               // Return the result
@@ -134,7 +140,8 @@ module.exports = {
               // Found?
               if (!chargingStation) {
                 // Not Found!
-                throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`);
+                throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
+                  500, "CentralRestServerService", "restServiceSecured");
               }
               if (action === "StopTransaction" ||
                   action === "UnlockConnector") {
@@ -146,12 +153,14 @@ module.exports = {
                     // Check auth
                     if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action, transaction.userID)) {
                       // Not Authorized!
-                      throw new AppAuthError(req.user, action, CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity());
+                      throw new AppAuthError(req.user, action,
+                        CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(),
+                        500, "CentralRestServerService", "restServiceSecured");
                     }
                     // Log
                     Logging.logInfo({
                       user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",  action: action,
-                      message: `Execute action '${action}' on Charging Station '${filteredRequest.chargeBoxIdentity}'`});
+                      message: `Execute action '${action}' on Charging Station '${filteredRequest.AppAuthErrorchargeBoxIdentity}'`});
                     // Execute it
                     return chargingStation.handleAction(action, filteredRequest.args);
                   } else {
@@ -166,7 +175,9 @@ module.exports = {
                 // Check auth
                 if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action)) {
                   // Not Authorized!
-                  throw new AppAuthError(req.user, action, CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity());
+                  throw new AppAuthError(req.user, action,
+                    CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(),
+                    500, "CentralRestServerService", "restServiceSecured");
                 }
                 // Log
                 Logging.logInfo({
@@ -207,7 +218,8 @@ module.exports = {
                 return global.storage.getUserByEmail(filteredRequest.email);
               }).then((foundUser) => {
                 if (foundUser) {
-                  throw new AppError(`The email ${filteredRequest.email} already exists`, 510);
+                  throw new AppError(`The email ${filteredRequest.email} already exists`,
+                    510, "CentralRestServerService", "restServiceSecured");
                 }
                 // Generate a hash for the given password
                 return Users.hashPasswordBcrypt(filteredRequest.password);
@@ -333,7 +345,8 @@ module.exports = {
             // Check
             if (!user) {
               // Not Found!
-              throw new AppError(`The user with ID ${filteredRequest.id} does not exist`);
+              throw new AppError(`The user with ID ${filteredRequest.id} does not exist`,
+                500, "CentralRestServerService", "restServiceSecured");
             }
             // Get the user's active transactions
             return user.getTransactions({stop: {$exists: false}}, Users.WITH_NO_IMAGE);
@@ -799,7 +812,8 @@ module.exports = {
             // Found?
             if (!chargingStation) {
               // Not Found!
-              throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`);
+              throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
+                500, "CentralRestServerService", "restServiceSecured");
             }
             // Set the model
             return chargingStation.getTransactions(filteredRequest.ConnectorId,
@@ -833,7 +847,8 @@ module.exports = {
             // Found?
             if (!transaction) {
               // Not Found!
-              throw new AppError(`Transaction ${filteredRequest.TransactionId} does not exist`);
+              throw new AppError(`Transaction ${filteredRequest.TransactionId} does not exist`,
+                500, "CentralRestServerService", "restServiceSecured");
             }
             // Return
             res.json(
@@ -865,7 +880,8 @@ module.exports = {
             // Found?
             if (!transaction) {
               // Not Found!
-              throw new AppError(`Transaction ${filteredRequest.TransactionId} does not exist`);
+              throw new AppError(`Transaction ${filteredRequest.TransactionId} does not exist`,
+                500, "CentralRestServerService", "restServiceSecured");
             }
             // Get the Charging Station
             return global.storage.getChargingStation(transaction.chargeBoxID.chargeBoxIdentity);
@@ -874,12 +890,14 @@ module.exports = {
             // Found?
             if (!chargingStation) {
               // Not Found!
-              throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`);
+              throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
+                500, "CentralRestServerService", "restServiceSecured");
             }
             // Check auth
             if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
               // Not Authorized!
-              throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ, CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity());
+              throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ, CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
+                chargingStation.getChargeBoxIdentity(), 500, "CentralRestServerService", "restServiceSecured");
             }
             // Check dates
             if (filteredRequest.StartDateTime) {
@@ -947,13 +965,15 @@ module.exports = {
             // Found?
             if (!chargingStation) {
               // Not Found!
-              throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`);
+              throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
+                500, "CentralRestServerService", "restServiceSecured");
             }
             // Check auth
             if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
               // Not Authorized!
               throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
-                CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity());
+                CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(),
+                500, "CentralRestServerService", "restServiceSecured");
             }
             // Get the Config
             chargingStation.getConfiguration().then((configuration) => {
@@ -1030,7 +1050,8 @@ module.exports = {
             // Check email
             global.storage.getUser(filteredRequest.id).then((user) => {
               if (!user) {
-                throw new AppError(`The user with ID ${filteredRequest.id} does not exist anymore`, 550);
+                throw new AppError(`The user with ID ${filteredRequest.id} does not exist anymore`,
+                  550, "CentralRestServerService", "restServiceSecured");
               }
               // Keep
               userWithId = user;
@@ -1040,7 +1061,8 @@ module.exports = {
               return global.storage.getUserByEmail(filteredRequest.email);
             }).then((userWithEmail) => {
               if (userWithEmail && userWithId.getID() !== userWithEmail.getID()) {
-                throw new AppError(`The email ${filteredRequest.email} already exists`, 510);
+                throw new AppError(`The email ${filteredRequest.email} already exists`,
+                  510, "CentralRestServerService", "restServiceSecured");
               }
               // Generate a password
               return Users.hashPasswordBcrypt(filteredRequest.password);
@@ -1152,13 +1174,15 @@ module.exports = {
             global.storage.getUser(filteredRequest.ID).then((foundUser) => {
               user = foundUser;
               if (!user) {
-                throw new AppError(`The user with ID ${filteredRequest.id} does not exist anymore`);
+                throw new AppError(`The user with ID ${filteredRequest.id} does not exist anymore`,
+                  500, "CentralRestServerService", "restServiceSecured");
               }
-              // Check auth
+              // Check authchargingStation
               if (!CentralRestServerAuthorization.canDeleteUser(req.user, user.getModel())) {
                 // Not Authorized!
                 throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
-                  CentralRestServerAuthorization.ENTITY_USER, chargingStation.getChargeBoxIdentity());
+                  CentralRestServerAuthorization.ENTITY_USER, user.getID(),
+                  500, "CentralRestServerService", "restServiceSecured");
               }
               // Delete
               return user.delete();
@@ -1193,13 +1217,15 @@ module.exports = {
               // Found?
               if (!chargingStation) {
                 // Not Found!
-                throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`);
+                throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
+                  500, "CentralRestServerService", "restServiceSecured");
               }
               // Check auth
               if (!CentralRestServerAuthorization.canDeleteChargingStation(req.user, chargingStation.getModel())) {
                 // Not Authorized!
                 throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
-                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity());
+                  CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(),
+                  500, "CentralRestServerService", "restServiceSecured");
               }
               // Delete
               return global.storage.deleteChargingStation(filteredRequest.ID);
