@@ -547,25 +547,25 @@ class ChargingStation {
         } else {
           // Save it
           request.user = user;
-          // Check function
-          if (saveFunction.name === "saveStartTransaction") {
-            // Notify
-            NotificationHandler.sendTransactionStarted(
-              request.transactionId,
-              user.getModel(),
-              this.getModel(),
-              {
-                "user": user.getModel(),
-                "chargingStationId": this.getChargeBoxIdentity(),
-                "connectorId": request.connectorId,
-                "evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, request.connectorId, request.transactionId)
-              },
-              user.getLocale()
-            );
-          }
-
           // Execute the function
-          return saveFunction(request);
+          return saveFunction(request).then(() => {
+            // Check function
+            if (saveFunction.name === "saveStartTransaction") {
+              // Notify
+              NotificationHandler.sendTransactionStarted(
+                request.transactionId,
+                user.getModel(),
+                this.getModel(),
+                {
+                  "user": user.getModel(),
+                  "chargingStationId": this.getChargeBoxIdentity(),
+                  "connectorId": request.connectorId,
+                  "evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, request.connectorId, request.transactionId)
+                },
+                user.getLocale()
+              );
+            }
+          });
         }
       } else {
         // Create an empty user

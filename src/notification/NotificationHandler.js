@@ -18,7 +18,7 @@ const SOURCE_UNKNOWN_USER_BADGED = "NotifyUnknownUserBadged";
 const SOURCE_TRANSACTION_STARTED = "NotifyTransactionStarted";
 
 class NotificationHandler {
-  static saveNotification(channel, sourceId, sourceDescr, user, chargingStation, details) {
+  static saveNotification(channel, sourceId, sourceDescr, user, chargingStation, details="") {
     // Save it
     return global.storage.saveNotification({
       timestamp: new Date(),
@@ -44,7 +44,8 @@ class NotificationHandler {
       }
     }).catch((error) => {
       // Log error
-      Logging.logUnexpectedErrorMessage("SaveNotification", "NotificationHandler", "saveNotification", error);
+      Logging.logUnexpectedErrorMessage("SaveNotification", "NotificationHandler",
+        "saveNotification", error);
     });
   }
 
@@ -59,137 +60,174 @@ class NotificationHandler {
       return notificationsFiltered.length > 0;
     }).catch((error) => {
       // Log error
-      Logging.logUnexpectedErrorMessage("HasNotification", "NotificationHandler", "hasNotifiedSource", error);
+      Logging.logUnexpectedErrorMessage("HasNotification", "NotificationHandler",
+        "hasNotifiedSource", error);
     });
   }
 
   static sendBeforeEndOfCharge(sourceId, user, chargingStation, sourceData, locale) {
     // Check notification
-    NotificationHandler.hasNotifiedSource(sourceId).then(hasBeenNotified => {
+    return NotificationHandler.hasNotifiedSource(sourceId).then(hasBeenNotified => {
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
         if (_notificationConfig.Email.enabled) {
-          // Send email
-          _email.sendBeforeEndOfCharge(sourceData, locale).then(message => {
-            // Save notif
-            NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_BEFORE_END_OF_CHARGE, user, chargingStationId, message);
+          // Save notif
+          NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_BEFORE_END_OF_CHARGE,
+              user, chargingStationId).then(() => {
+            // Send email
+            _email.sendBeforeEndOfCharge(sourceData, locale);
           }).catch(error => {
             // Log error
-            Logging.logUnexpectedErrorMessage(SOURCE_BEFORE_END_OF_CHARGE, "NotificationHandler", "sendBeforeEndOfCharge", error);
+            Logging.logUnexpectedErrorMessage(SOURCE_BEFORE_END_OF_CHARGE,
+              "NotificationHandler", "sendBeforeEndOfCharge", error);
           });
         }
       }
     }).catch((error) => {
       // Log error
-      Logging.logUnexpectedErrorMessage(SOURCE_BEFORE_END_OF_CHARGE, "NotificationHandler", "sendBeforeEndOfCharge", error);
+      Logging.logUnexpectedErrorMessage(SOURCE_BEFORE_END_OF_CHARGE,
+        "NotificationHandler", "sendBeforeEndOfCharge", error);
     });
   }
 
   static sendEndOfCharge(sourceId, user, chargingStation, sourceData, locale) {
     // Check notification
-    NotificationHandler.hasNotifiedSource(sourceId).then(hasBeenNotified => {
+    return NotificationHandler.hasNotifiedSource(sourceId).then(hasBeenNotified => {
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
         if (_notificationConfig.Email.enabled) {
-          // Send email
-          _email.sendEndOfCharge(sourceData, locale).then(message => {
-            // Save notif
-            NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_END_OF_CHARGE, user, chargingStation, message);
+          // Save notif
+          NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_END_OF_CHARGE,
+              user, chargingStation).then(() => {
+            // Send email
+            _email.sendEndOfCharge(sourceData, locale);
           }).catch(error => {
             // Log error
-            Logging.logUnexpectedErrorMessage(SOURCE_END_OF_CHARGE, "NotificationHandler", "sendEndOfCharge", error);
+            Logging.logUnexpectedErrorMessage(SOURCE_END_OF_CHARGE, "NotificationHandler",
+              "sendEndOfCharge", error);
           });
         }
       }
     }).catch((err) => {
       // Log error
-      Logging.logUnexpectedErrorMessage(SOURCE_END_OF_CHARGE, "NotificationHandler", "sendEndOfCharge", error);
+      Logging.logUnexpectedErrorMessage(SOURCE_END_OF_CHARGE, "NotificationHandler",
+        "sendEndOfCharge", error);
     });
   }
 
   static sendResetPassword(sourceId, user, sourceData, locale) {
     // Email enabled?
     if (_notificationConfig.Email.enabled) {
-      // Send email
-      _email.sendResetPassword(sourceData, locale).then(message => {
-        // Save notif
-        NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_RESET_PASSWORD, user, null, message);
+      // Save notif
+      NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_RESET_PASSWORD,
+          user, null).then(() => {
+        // Send email
+        _email.sendResetPassword(sourceData, locale);
       }).catch(error => {
         // Log error
-        Logging.logUnexpectedErrorMessage(SOURCE_RESET_PASSWORD, "NotificationHandler", "sendResetPassword", error);
+        Logging.logUnexpectedErrorMessage(SOURCE_RESET_PASSWORD, "NotificationHandler",
+          "sendResetPassword", error);
       });
+      return Promise.resolve();
+    } else {
+      return Promise.resolve();
     }
   }
 
   static sendUserAccountStatusChanged(sourceId, user, sourceData, locale) {
     // Email enabled?
     if (_notificationConfig.Email.enabled) {
-      // Send email
-      _email.sendUserAccountStatusChanged(sourceData, locale).then(message => {
-        // Save notif
-        NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_USER_ACCOUNT_STATUS_CHANGED, user, null, message);
+      // Save notif
+      NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+          SOURCE_USER_ACCOUNT_STATUS_CHANGED, user, null).then(() => {
+        // Send email
+        _email.sendUserAccountStatusChanged(sourceData, locale);
       }).catch(error => {
         // Log error
-        Logging.logUnexpectedErrorMessage(SOURCE_USER_ACCOUNT_STATUS_CHANGED, "NotificationHandler", "sendUserAccountStatusChanged", error);
+        Logging.logUnexpectedErrorMessage(SOURCE_USER_ACCOUNT_STATUS_CHANGED,
+          "NotificationHandler", "sendUserAccountStatusChanged", error);
       });
+      return Promise.resolve();
+    } else {
+      return Promise.resolve();
     }
   }
 
   static sendNewRegisteredUser(sourceId, user, sourceData, locale) {
     // Email enabled?
     if (_notificationConfig.Email.enabled) {
-      // Send email
-      _email.sendNewRegisteredUser(sourceData, locale).then(message => {
-        // Save notif
-        NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_NEW_REGISTERED_USER, user, null, message);
+      // Save notif
+      NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+          SOURCE_NEW_REGISTERED_USER, user, null).then(() => {
+        // Send email
+        _email.sendNewRegisteredUser(sourceData, locale);
       }).catch(error => {
         // Log error
-        Logging.logUnexpectedErrorMessage(SOURCE_NEW_REGISTERED_USER, "NotificationHandler", "sendNewRegisteredUser", error);
+        Logging.logUnexpectedErrorMessage(SOURCE_NEW_REGISTERED_USER,
+          "NotificationHandler", "sendNewRegisteredUser", error);
       });
+      return Promise.resolve();
+    } else {
+      return Promise.resolve();
     }
   }
 
   static sendChargingStationStatusError(sourceId, chargingStation, sourceData) {
     // Email enabled?
     if (_notificationConfig.Email.enabled) {
-      // Send email
-      _email.sendChargingStationStatusError(sourceData, Utils.getDefaultLocale()).then(message => {
-        // Save notif
-        NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_CHARGING_STATION_STATUS_ERROR, null, chargingStation, message);
+      // Save notif
+      NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+          SOURCE_CHARGING_STATION_STATUS_ERROR, null, chargingStation).then(() => {
+        // Send email
+        _email.sendChargingStationStatusError(sourceData, Utils.getDefaultLocale());
       }).catch(error => {
         // Log error
-        Logging.logUnexpectedErrorMessage(SOURCE_CHARGING_STATION_STATUS_ERROR, "NotificationHandler", "sendChargingStationStatusError", error);
+        Logging.logUnexpectedErrorMessage(SOURCE_CHARGING_STATION_STATUS_ERROR,
+          "NotificationHandler", "sendChargingStationStatusError", error);
       });
+      return Promise.resolve();
+    } else {
+      return Promise.resolve();
     }
   }
 
   static sendUnknownUserBadged(sourceId, chargingStation, sourceData) {
     // Email enabled?
     if (_notificationConfig.Email.enabled) {
-      // Send email
-      _email.sendUnknownUserBadged(sourceData, Utils.getDefaultLocale()).then(message => {
-        // Save notif
-        NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_UNKNOWN_USER_BADGED, null, chargingStation, message);
+      // Save notif
+      NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+          SOURCE_UNKNOWN_USER_BADGED, null, chargingStation).then(() => {
+        // Send email
+        _email.sendUnknownUserBadged(sourceData, Utils.getDefaultLocale());
       }).catch(error => {
         // Log error
-        Logging.logUnexpectedErrorMessage(SOURCE_UNKNOWN_USER_BADGED, "NotificationHandler", "sendUnknownUserBadged", error);
+        Logging.logUnexpectedErrorMessage(SOURCE_UNKNOWN_USER_BADGED,
+          "NotificationHandler", "sendUnknownUserBadged", error);
       });
+      return Promise.resolve();
+    } else {
+      return Promise.resolve();
     }
   }
 
   static sendTransactionStarted(sourceId, user, chargingStation, sourceData, locale) {
     // Email enabled?
     if (_notificationConfig.Email.enabled) {
-      // Send email
-      _email.sendTransactionStarted(sourceData, locale).then(message => {
-        // Save notif
-        NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_TRANSACTION_STARTED, user, chargingStation, message);
+      // Save notif
+      NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+          SOURCE_TRANSACTION_STARTED, user, chargingStation).then(() => {
+        // Send email
+        _email.sendTransactionStarted(sourceData, locale);
       }).catch(error => {
         // Log error
-        Logging.logUnexpectedErrorMessage(SOURCE_TRANSACTION_STARTED, "NotificationHandler", "sendTransactionStarted", error);
+        Logging.logUnexpectedErrorMessage(SOURCE_TRANSACTION_STARTED,
+          "NotificationHandler", "sendTransactionStarted", error);
       });
+      return Promise.resolve();
+    } else {
+      return Promise.resolve();
     }
   }
 }
