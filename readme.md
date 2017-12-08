@@ -411,7 +411,7 @@ npm run build:prod
 Start the application:
 
 ```
-npm start:prod
+npm run start:prod
 ```
 
 Make sure you set the NODE_ENV variable before:
@@ -437,7 +437,7 @@ npm run build:dev
 In another console, start the application (restarts if any changes is detected):
 
 ```
-npm start:dev
+npm run start:dev
 ```
 
 ## Architecture
