@@ -1,125 +1,125 @@
 require('source-map-support').install();
 
 class Storage {
-  constructor(dbConfig) {
-    if (new.target === Storage) {
-      throw new TypeError("Cannot construct Storage instances directly");
-    }
-  }
+	constructor(dbConfig) {
+		if (new.target === Storage) {
+			throw new TypeError("Cannot construct Storage instances directly");
+		}
+	}
 
-  start() {
-  }
+	start() {
+	}
 
-  setCentralRestServer(centralRestServer) {
-  }
+	setCentralRestServer(centralRestServer) {
+	}
 
-  getConfigurationParamValue(chargeBoxIdentity, paramName) {
-  }
+	getConfigurationParamValue(chargeBoxIdentity, paramName) {
+	}
 
-  getLogs(dateFrom, level, chargingStation, searchValue, numberOfLogs, sortDate) {
-  }
+	getLogs(dateFrom, level, chargingStation, searchValue, numberOfLogs, sortDate) {
+	}
 
-  saveLog(log) {
-  }
+	saveLog(log) {
+	}
 
-  deleteLogs(deleteUpToDate) {
-  }
+	deleteLogs(deleteUpToDate) {
+	}
 
-  getConfiguration(chargeBoxIdentity) {
-  }
+	getConfiguration(chargeBoxIdentity) {
+	}
 
-  getStatusNotifications(chargeBoxIdentity, connectorId) {
-  }
+	getStatusNotifications(chargeBoxIdentity, connectorId) {
+	}
 
-  getPricing() {
-  }
+	getPricing() {
+	}
 
-  savePricing(pricing) {
-  }
+	savePricing(pricing) {
+	}
 
-  getLastStatusNotification(chargeBoxIdentity, connectorId) {
-  }
+	getLastStatusNotification(chargeBoxIdentity, connectorId) {
+	}
 
-  getMeterValuesFromTransaction(transactionId) {
-  }
+	getMeterValuesFromTransaction(transactionId) {
+	}
 
-  saveBootNotification(bootNotification) {
-  }
+	saveBootNotification(bootNotification) {
+	}
 
-  saveNotification(notification) {
-  }
+	saveNotification(notification) {
+	}
 
-  getNotifications(sourceId) {
-  }
+	getNotifications(sourceId) {
+	}
 
-  saveDataTransfer(dataTransfer) {
-  }
+	saveDataTransfer(dataTransfer) {
+	}
 
-  saveConfiguration(configuration) {
-  }
+	saveConfiguration(configuration) {
+	}
 
-  saveStatusNotification(statusNotification) {
-  }
+	saveStatusNotification(statusNotification) {
+	}
 
-  saveDiagnosticsStatusNotification(diagnosticsStatusNotification) {
-  }
+	saveDiagnosticsStatusNotification(diagnosticsStatusNotification) {
+	}
 
-  saveFirmwareStatusNotification(firmwareStatusNotification) {
-  }
+	saveFirmwareStatusNotification(firmwareStatusNotification) {
+	}
 
-  saveAuthorize(authorize) {
-  }
+	saveAuthorize(authorize) {
+	}
 
-  saveStartTransaction(startTransaction) {
-  }
+	saveStartTransaction(startTransaction) {
+	}
 
-  saveStopTransaction(stopTransaction) {
-  }
+	saveStopTransaction(stopTransaction) {
+	}
 
-  getMigrations() {
-  }
+	getMigrations() {
+	}
 
-  saveMigration(migration) {
-  }
+	saveMigration(migration) {
+	}
 
-  saveMeterValues(meterValues) {
-  }
+	saveMeterValues(meterValues) {
+	}
 
-  getTransactions(searchValue, filter, withPicture=false) {
-  }
+	getTransactions(searchValue, filter, withPicture=false) {
+	}
 
-  getTransaction(transactionId) {
-  }
+	getTransaction(transactionId) {
+	}
 
-  saveChargingStation(chargingStation) {
-  }
+	saveChargingStation(chargingStation) {
+	}
 
-  deleteChargingStation(id) {
-  }
+	deleteChargingStation(id) {
+	}
 
-  getChargingStations(searchValue) {
-  }
+	getChargingStations(searchValue) {
+	}
 
-  getChargingStation(chargeBoxIdentity) {
-  }
+	getChargingStation(chargeBoxIdentity) {
+	}
 
-  getUsers(searchValue, numberOfUser, withPicture=false) {
-  }
+	getUsers(searchValue, numberOfUser, withPicture=false) {
+	}
 
-  saveUser(user) {
-  }
+	saveUser(user) {
+	}
 
-  deleteUser(id) {
-  }
+	deleteUser(id) {
+	}
 
-  getUser(id) {
-  }
+	getUser(id) {
+	}
 
-  getUserByEmail(email) {
-  }
+	getUserByEmail(email) {
+	}
 
-  getUserByTagId(tagID) {
-  }
+	getUserByTagId(tagID) {
+	}
 }
 
 module.exports=Storage;

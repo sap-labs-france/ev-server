@@ -18,57 +18,57 @@ let _centralSystemConfig;
 let _chargingStationConfig;
 
 class SoapCentralSystemServer extends CentralSystemServer {
-    constructor(centralSystemConfig, chargingStationConfig) {
-      // Call parent
-      super(centralSystemConfig, chargingStationConfig, express);
+		constructor(centralSystemConfig, chargingStationConfig) {
+			// Call parent
+			super(centralSystemConfig, chargingStationConfig, express);
 
-      // Keep local
-      _centralSystemConfig = centralSystemConfig;
-      _chargingStationConfig = chargingStationConfig;
-    }
+			// Keep local
+			_centralSystemConfig = centralSystemConfig;
+			_chargingStationConfig = chargingStationConfig;
+		}
 
-    /*
-      Start the server and listen to all SOAP OCCP versions
-      Listen to external command to send request to charging stations
-    */
-    start() {
-      // Create the server
-      var server;
+		/*
+			Start the server and listen to all SOAP OCCP versions
+			Listen to external command to send request to charging stations
+		*/
+		start() {
+			// Create the server
+			var server;
 
-      // Make it global for SOAP Services
-      global.centralSystemSoap = this;
+			// Make it global for SOAP Services
+			global.centralSystemSoap = this;
 
-      // Create the HTTP server
-      if (_centralSystemConfig.protocol === "https") {
-        // Create the options
-        const options = {
-          key: fs.readFileSync(_centralSystemConfig["ssl-key"]),
-          cert: fs.readFileSync(_centralSystemConfig["ssl-cert"])
-        };
-        // Https server
-        server = https.createServer(options, express);
-      } else {
-        // Http server
-        server = http.createServer(express);
-      }
+			// Create the HTTP server
+			if (_centralSystemConfig.protocol === "https") {
+				// Create the options
+				const options = {
+					key: fs.readFileSync(_centralSystemConfig["ssl-key"]),
+					cert: fs.readFileSync(_centralSystemConfig["ssl-cert"])
+				};
+				// Https server
+				server = https.createServer(options, express);
+			} else {
+				// Http server
+				server = http.createServer(express);
+			}
 
-      // Create Soap Servers
-      // OCPP 1.2 -----------------------------------------
-      var soapServer12 = soap.listen(server, '/OCPP12', centralSystemService12, centralSystemService12Wsdl);
-      // OCPP 1.5 -----------------------------------------
-      var soapServer15 = soap.listen(server, '/OCPP15', centralSystemService15, centralSystemService15Wsdl);
-      // OCPP 1.6 -----------------------------------------
-      var soapServer16 = soap.listen(server, '/OCPP16', centralSystemService16, centralSystemService16Wsdl);
+			// Create Soap Servers
+			// OCPP 1.2 -----------------------------------------
+			var soapServer12 = soap.listen(server, '/OCPP12', centralSystemService12, centralSystemService12Wsdl);
+			// OCPP 1.5 -----------------------------------------
+			var soapServer15 = soap.listen(server, '/OCPP15', centralSystemService15, centralSystemService15Wsdl);
+			// OCPP 1.6 -----------------------------------------
+			var soapServer16 = soap.listen(server, '/OCPP16', centralSystemService16, centralSystemService16Wsdl);
 
-      // Listen
-      server.listen(_centralSystemConfig.port, _centralSystemConfig.host, () => {
-        // Log
-        Logging.logInfo({
-          userFullName: "System", source: "Central Server", module: "SoapCentralSystemServer", method: "start", action: "Startup",
-          message: `Central System Server (Charging Stations) started on '${_centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'` });
-        console.log(`Central System Server (Charging Stations) started on '${_centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`);
-      });
-    }
+			// Listen
+			server.listen(_centralSystemConfig.port, _centralSystemConfig.host, () => {
+				// Log
+				Logging.logInfo({
+					userFullName: "System", source: "Central Server", module: "SoapCentralSystemServer", method: "start", action: "Startup",
+					message: `Central System Server (Charging Stations) started on '${_centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'` });
+				console.log(`Central System Server (Charging Stations) started on '${_centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`);
+			});
+		}
 }
 
 module.exports = SoapCentralSystemServer;

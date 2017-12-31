@@ -1,6 +1,6 @@
 
 class SchedulerTask {
-  run(config) {
-  }
+	run(config) {
+	}
 }
 module.exports=SchedulerTask;

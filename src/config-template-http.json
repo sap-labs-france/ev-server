@@ -1,88 +1,88 @@
 {
-  "CentralSystems": [
-    {
-      "implementation": "soap",
-      "protocol": "http",
-      "host": "localhost",
-      "port": 8000
-    }
-  ],
-  "CentralSystemRestService": {
-    "protocol": "http",
-    "host": "localhost",
-    "port": 80,
-    "userTokenKey": "YourSecretKey",
-    "userTokenLifetimeHours": 12,
-    "userDemoTokenLifetimeDays": 365,
-    "webSocketNotificationIntervalSecs": 5,
-    "passwordWrongNumberOfTrial": 3,
-    "passwordBlockedWaitTimeMin": 5,
-    "captchaSecretKey": "YourCaptchaSecretKey",
-    "debug": false
-  },
-  "CentralSystemFrontEnd": {
-    "protocol": "http",
-    "host": "localhost",
-    "port": 80,
-    "distEnabled": false,
-    "distPath": "../dist/front-end"
-  },
-  "Storage": {
-    "implementation": "mongodb",
-    "host": "localhost",
-    "port": 27017,
-    "user": "evse-user",
-    "password": "",
-    "schema": "evse"
-  },
-  "Email": {
-     "from": "admin.noreply@evse.com",
-     "admins": [],
-     "bcc": "",
-     "smtp" : {
-       "host": "smtp.gmail.com",
-       "port": 465,
-       "secure": true,
-       "requireTLS": false,
-       "user": "",
-       "password": ""
-     }
-  },
-  "Notification": {
-    "Email": {
-      "enabled": true
-    }
-  },
-  "Authorization": {
-    "debug": false
-  },
-  "ChargingStation" : {
-    "heartbeatIntervalSecs": 60,
-    "checkEndOfChargeNotificationAfterMin": 5,
-    "notifBeforeEndOfChargePercent": 50,
-    "notifBeforeEndOfChargeEnabled": false,
-    "notifEndOfChargePercent": 0,
-    "notifEndOfChargeEnabled": true,
-    "notifStopTransactionAndUnlockConnector": false
-  },
-  "Locales" : {
-    "default": "en_US",
-    "supported": ["en_US", "fr_FR"]
-  },
-  "Advanced" : {
-    "chargeCurveTimeFrameSecsPoint": 60
-  },
-  "Scheduler" : {
-    "active" : true,
-    "tasks": [
-      {
-        "name": "loggingDatabaseTableCleanup",
-        "active": true,
-        "periodicity": "0 0 * * 1",
-        "config": {
-          "retentionPeriodWeeks": 4
-        }
-      }
-    ]
-  }
+	"CentralSystems": [
+		{
+			"implementation": "soap",
+			"protocol": "http",
+			"host": "localhost",
+			"port": 8000
+		}
+	],
+	"CentralSystemRestService": {
+		"protocol": "http",
+		"host": "localhost",
+		"port": 80,
+		"userTokenKey": "YourSecretKey",
+		"userTokenLifetimeHours": 12,
+		"userDemoTokenLifetimeDays": 365,
+		"webSocketNotificationIntervalSecs": 5,
+		"passwordWrongNumberOfTrial": 3,
+		"passwordBlockedWaitTimeMin": 5,
+		"captchaSecretKey": "YourCaptchaSecretKey",
+		"debug": false
+	},
+	"CentralSystemFrontEnd": {
+		"protocol": "http",
+		"host": "localhost",
+		"port": 80,
+		"distEnabled": false,
+		"distPath": "../dist/front-end"
+	},
+	"Storage": {
+		"implementation": "mongodb",
+		"host": "localhost",
+		"port": 27017,
+		"user": "evse-user",
+		"password": "",
+		"schema": "evse"
+	},
+	"Email": {
+		 "from": "admin.noreply@evse.com",
+		 "admins": [],
+		 "bcc": "",
+		 "smtp" : {
+			 "host": "smtp.gmail.com",
+			 "port": 465,
+			 "secure": true,
+			 "requireTLS": false,
+			 "user": "",
+			 "password": ""
+		 }
+	},
+	"Notification": {
+		"Email": {
+			"enabled": true
+		}
+	},
+	"Authorization": {
+		"debug": false
+	},
+	"ChargingStation" : {
+		"heartbeatIntervalSecs": 60,
+		"checkEndOfChargeNotificationAfterMin": 5,
+		"notifBeforeEndOfChargePercent": 50,
+		"notifBeforeEndOfChargeEnabled": false,
+		"notifEndOfChargePercent": 0,
+		"notifEndOfChargeEnabled": true,
+		"notifStopTransactionAndUnlockConnector": false
+	},
+	"Locales" : {
+		"default": "en_US",
+		"supported": ["en_US", "fr_FR"]
+	},
+	"Advanced" : {
+		"chargeCurveTimeFrameSecsPoint": 60
+	},
+	"Scheduler" : {
+		"active" : true,
+		"tasks": [
+			{
+				"name": "loggingDatabaseTableCleanup",
+				"active": true,
+				"periodicity": "0 0 * * 1",
+				"config": {
+					"retentionPeriodWeeks": 4
+				}
+			}
+		]
+	}
 }

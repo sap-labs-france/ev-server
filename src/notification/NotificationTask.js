@@ -1,25 +1,25 @@
 
 class NotificationTask {
-  sendNewRegisteredUser(data, locale) {
-  }
+	sendNewRegisteredUser(data, locale) {
+	}
 
-  sendResetPassword(data, locale) {
-  }
+	sendResetPassword(data, locale) {
+	}
 
-  sendBeforeEndOfCharge(data, locale) {
-  }
+	sendBeforeEndOfCharge(data, locale) {
+	}
 
-  sendEndOfCharge(data, locale) {
-  }
+	sendEndOfCharge(data, locale) {
+	}
 
-  sendChargingStationStatusError(data, locale) {
-  }
+	sendChargingStationStatusError(data, locale) {
+	}
 
-  sendUnknownUserBadged(data, locale) {
-  }
+	sendUnknownUserBadged(data, locale) {
+	}
 
-  sendTransactionStarted(data, locale) {
-  }
+	sendTransactionStarted(data, locale) {
+	}
 }
 
 module.exports = NotificationTask;

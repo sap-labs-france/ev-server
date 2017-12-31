@@ -14,94 +14,94 @@ let storageConfig = Configuration.getStorageConfig();
 
 // Check implementation
 switch (storageConfig.implementation) {
-  // MongoDB?
-  case 'mongodb':
-    // Create MongoDB
-    var mongoDB = new MongoDBStorage(storageConfig);
-    // Set global var
-    global.storage = mongoDB;
-    break;
+	// MongoDB?
+	case 'mongodb':
+			// Create MongoDB
+		var mongoDB = new MongoDBStorage(storageConfig);
+		// Set global var
+		global.storage = mongoDB;
+		break;
 
-  default:
-    console.log(`Storage Server implementation '${storageConfig.implementation}' not supported!`);
+	default:
+		console.log(`Storage Server implementation '${storageConfig.implementation}' not supported!`);
 }
 
 // -----------------------------------------------------------------------------
 // Start the DB
 // -----------------------------------------------------------------------------
 global.storage.start().then(() => {
-  // ---------------------------------------------------------------------------
-  // Check and trigger migration
-  // ---------------------------------------------------------------------------
-  MigrationHandler.migrate().then((results) => {
-    // ---------------------------------------------------------------------------
-    // Import Users
-    // ---------------------------------------------------------------------------
-    try {
-      // Import users
-      Users.importUsers();
-    } catch (err) {
-      // Log
-      Logging.logError({
-        userFullName: "System", source: "Central Server", module: "ImportUsersTask",
-        method: "run", message: `Cannot import users: ${err.toString()}`,
-        detailedMessages: err.stack });
-    }
+	// ---------------------------------------------------------------------------
+	// Check and trigger migration
+	// ---------------------------------------------------------------------------
+	MigrationHandler.migrate().then((results) => {
+		// ---------------------------------------------------------------------------
+		// Import Users
+		// ---------------------------------------------------------------------------
+		try {
+			// Import users
+			Users.importUsers();
+		} catch (err) {
+			// Log
+			Logging.logError({
+				userFullName: "System", source: "Central Server", module: "ImportUsersTask",
+				method: "run", message: `Cannot import users: ${err.toString()}`,
+				detailedMessages: err.stack });
+		}
 
-    // -------------------------------------------------------------------------
-    // Create the Central Systems (Charging Stations)
-    // -------------------------------------------------------------------------
-    let centralSystemsConfig = Configuration.getCentralSystemsConfig();
-    let chargingStationConfig = Configuration.getChargingStationConfig();
-    let advancedConfig = Configuration.getAdvancedConfig();
+		// -------------------------------------------------------------------------
+		// Create the Central Systems (Charging Stations)
+		// -------------------------------------------------------------------------
+		let centralSystemsConfig = Configuration.getCentralSystemsConfig();
+		let chargingStationConfig = Configuration.getChargingStationConfig();
+		let advancedConfig = Configuration.getAdvancedConfig();
 
-    // -------------------------------------------------------------------------
-    // Start the Central Rest System (Front-end REST service)
-    // -------------------------------------------------------------------------
-    let centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
-    // Provided?
-    if (centralSystemRestConfig) {
-      // Create the server
-      let centralRestServer = new CentralRestServer(centralSystemRestConfig);
-      // Set to database for Web Socket Notifications
-      global.storage.setCentralRestServer(centralRestServer);
-      // Start it
-      centralRestServer.start();
-    }
+		// -------------------------------------------------------------------------
+		// Start the Central Rest System (Front-end REST service)
+		// -------------------------------------------------------------------------
+		let centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
+		// Provided?
+		if (centralSystemRestConfig) {
+			// Create the server
+			let centralRestServer = new CentralRestServer(centralSystemRestConfig);
+			// Set to database for Web Socket Notifications
+			global.storage.setCentralRestServer(centralRestServer);
+			// Start it
+			centralRestServer.start();
+		}
 
-    // -------------------------------------------------------------------------
-    // Instanciate central servers
-    // -------------------------------------------------------------------------
-    centralSystemsConfig.forEach((centralSystemConfig) => {
-      let centralSystemServer;
-      // Check implementation
-      switch (centralSystemConfig.implementation) {
-        // SOAP
-        case 'soap':
-          // Create implementation
-          centralSystemServer = new SoapCentralSystemServer(centralSystemConfig, chargingStationConfig);
-          // Start
-          centralSystemServer.start();
-          break;
-        default:
-          console.log(`Central System Server implementation '${centralSystemConfig.implementation}' not found!`);
-      }
-    });
+		// -------------------------------------------------------------------------
+		// Instanciate central servers
+		// -------------------------------------------------------------------------
+		centralSystemsConfig.forEach((centralSystemConfig) => {
+			let centralSystemServer;
+			// Check implementation
+			switch (centralSystemConfig.implementation) {
+				// SOAP
+				case 'soap':
+					// Create implementation
+					centralSystemServer = new SoapCentralSystemServer(centralSystemConfig, chargingStationConfig);
+					// Start
+					centralSystemServer.start();
+					break;
+				default:
+					console.log(`Central System Server implementation '${centralSystemConfig.implementation}' not found!`);
+			}
+		});
 
-    // -------------------------------------------------------------------------
-    // Start the Scheduler
-    // -------------------------------------------------------------------------
-    SchedulerHandler.init();
-  }).catch((error) => {
-    // Log
-    Logging.logError({
-      userFullName: "System", source: "BootStrap", module: "start", method: "-", action: "Migrate",
-      message: `Error occurred during the migration: ${error.toString()}` });
-  });
+		// -------------------------------------------------------------------------
+		// Start the Scheduler
+		// -------------------------------------------------------------------------
+		SchedulerHandler.init();
+	}).catch((error) => {
+		// Log
+		Logging.logError({
+			userFullName: "System", source: "BootStrap", module: "start", method: "-", action: "Migrate",
+			message: `Error occurred during the migration: ${error.toString()}` });
+	});
 }, (error) => {
-  // Log
-  Logging.logError({
-    userFullName: "System", source: "BootStrap", module: "start", method: "-", action: "StartDatabase",
-    message: `Cannot start MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}': ${error.toString()}` });
-  console.log(`Cannot start MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}': ${error.toString()}`);
+	// Log
+	Logging.logError({
+		userFullName: "System", source: "BootStrap", module: "start", method: "-", action: "StartDatabase",
+		message: `Cannot start MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}': ${error.toString()}` });
+	console.log(`Cannot start MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}': ${error.toString()}`);
 });

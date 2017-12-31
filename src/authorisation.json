@@ -1,178 +1,178 @@
 [
-  {
-    "id": "A",
-    "name": "Admin",
-    "auths": [
-      {
-        "AuthObject": "Users",
-        "AuthFieldValue": {
-          "Action": ["List"]
-        }
-      },
-      {
-        "AuthObject": "User",
-        "AuthFieldValue": {
-          "UserID": "*",
-          "Action": ["Create", "Read", "Update", "Delete","Logout"]
-        }
-      },
-      {
-        "AuthObject": "ChargingStations",
-        "AuthFieldValue": {
-          "Action": ["List"]
-        }
-      },
-      {
-        "AuthObject": "ChargingStation",
-        "AuthFieldValue": {
-          "UserID": "*",
-          "Action": ["Create", "Read", "Update", "Delete", "Reset", "ClearCache", "GetConfiguration", "ChangeConfiguration", "StopTransaction", "UnlockConnector"]
-        }
-      },
-      {
-        "AuthObject": "Logging",
-        "AuthFieldValue": {
-          "Action": ["List"]
-        }
-      },
-      {
-        "AuthObject": "Pricing",
-        "AuthFieldValue": {
-          "Action": ["Read", "Update"]
-        }
-      }
-    ]
-  },
-  {
-    "id": "B",
-    "name": "Basic",
-    "auths": [
-      {
-        "AuthObject": "Users",
-        "AuthFieldValue": {
-          "Action": []
-        }
-      },
-      {
-        "AuthObject": "User",
-        "AuthFieldValue": {
-          "UserID": ["{{user.id}}"],
-          "Action": ["Update","Read","Logout"]
-        }
-      },
-      {
-        "AuthObject": "ChargingStations",
-        "AuthFieldValue": {
-          "Action": ["List"]
-        }
-      },
-      {
-        "AuthObject": "ChargingStation",
-        "AuthFieldValue": {
-          "UserID": ["{{user.id}}"],
-          "Action": ["Read", "StopTransaction", "UnlockConnector"]
-        }
-      },
-      {
-        "AuthObject": "Logging",
-        "AuthFieldValue": {
-          "Action": []
-        }
-      },
-      {
-        "AuthObject": "Pricing",
-        "AuthFieldValue": {
-          "Action": []
-        }
-      }
-    ]
-  },
-  {
-    "id": "C",
-    "name": "Corporate",
-    "auths": [
-      {
-        "AuthObject": "Users",
-        "AuthFieldValue": {
-          "Action": []
-        }
-      },
-      {
-        "AuthObject": "User",
-        "AuthFieldValue": {
-          "UserID": "*",
-          "Action": ["Read"]
-        }
-      },
-      {
-        "AuthObject": "ChargingStations",
-        "AuthFieldValue": {
-          "Action": ["List"]
-        }
-      },
-      {
-        "AuthObject": "ChargingStation",
-        "AuthFieldValue": {
-          "UserID": "*",
-          "Action": ["Read", "StopTransaction", "UnlockConnector"]
-        }
-      },
-      {
-        "AuthObject": "Logging",
-        "AuthFieldValue": {
-          "Action": []
-        }
-      },
-      {
-        "AuthObject": "Pricing",
-        "AuthFieldValue": {
-          "Action": []
-        }
-      }
-    ]
-  },
-  {
-    "id": "D",
-    "name": "Demo",
-    "auths": [
-      {
-        "AuthObject": "Users",
-        "AuthFieldValue": {
-          "Action": []
-        }
-      },
-      {
-        "AuthObject": "User",
-        "AuthFieldValue": {
-          "UserID": "*",
-          "Action": ["Read"]
-        }
-      },
-      {
-        "AuthObject": "ChargingStations",
-        "AuthFieldValue": {
-          "Action": ["List"]
-        }
-      },
-      {
-        "AuthObject": "ChargingStation",
-        "AuthFieldValue": {
-          "UserID": "*",
-          "Action": ["Read"]
-        }
-      },
-      {
-        "AuthObject": "Logging",
-        "AuthFieldValue": {
-          "Action": []
-        }
-      },
-      {
-        "AuthObject": "Pricing",
-        "AuthFieldValue": {
-          "Action": []
-        }
-      }
-    ]
-  }
+	{
+		"id": "A",
+		"name": "Admin",
+		"auths": [
+			{
+				"AuthObject": "Users",
+				"AuthFieldValue": {
+					"Action": ["List"]
+				}
+			},
+			{
+				"AuthObject": "User",
+				"AuthFieldValue": {
+					"UserID": "*",
+					"Action": ["Create", "Read", "Update", "Delete","Logout"]
+				}
+			},
+			{
+				"AuthObject": "ChargingStations",
+				"AuthFieldValue": {
+					"Action": ["List"]
+				}
+			},
+			{
+				"AuthObject": "ChargingStation",
+				"AuthFieldValue": {
+					"UserID": "*",
+					"Action": ["Create", "Read", "Update", "Delete", "Reset", "ClearCache", "GetConfiguration", "ChangeConfiguration", "StopTransaction", "UnlockConnector"]
+				}
+			},
+			{
+				"AuthObject": "Logging",
+				"AuthFieldValue": {
+					"Action": ["List"]
+				}
+			},
+			{
+				"AuthObject": "Pricing",
+				"AuthFieldValue": {
+					"Action": ["Read", "Update"]
+				}
+			}
+		]
+	},
+	{
+		"id": "B",
+		"name": "Basic",
+		"auths": [
+			{
+				"AuthObject": "Users",
+				"AuthFieldValue": {
+					"Action": []
+				}
+			},
+			{
+				"AuthObject": "User",
+				"AuthFieldValue": {
+					"UserID": ["{{user.id}}"],
+					"Action": ["Update","Read","Logout"]
+				}
+			},
+			{
+				"AuthObject": "ChargingStations",
+				"AuthFieldValue": {
+					"Action": ["List"]
+				}
+			},
+			{
+				"AuthObject": "ChargingStation",
+				"AuthFieldValue": {
+					"UserID": ["{{user.id}}"],
+					"Action": ["Read", "StopTransaction", "UnlockConnector"]
+				}
+			},
+			{
+				"AuthObject": "Logging",
+				"AuthFieldValue": {
+					"Action": []
+				}
+			},
+			{
+				"AuthObject": "Pricing",
+				"AuthFieldValue": {
+					"Action": []
+				}
+			}
+		]
+	},
+	{
+		"id": "C",
+		"name": "Corporate",
+		"auths": [
+			{
+				"AuthObject": "Users",
+				"AuthFieldValue": {
+					"Action": []
+				}
+			},
+			{
+				"AuthObject": "User",
+				"AuthFieldValue": {
+					"UserID": "*",
+					"Action": ["Read"]
+				}
+			},
+			{
+				"AuthObject": "ChargingStations",
+				"AuthFieldValue": {
+					"Action": ["List"]
+				}
+			},
+			{
+				"AuthObject": "ChargingStation",
+				"AuthFieldValue": {
+					"UserID": "*",
+					"Action": ["Read", "StopTransaction", "UnlockConnector"]
+				}
+			},
+			{
+				"AuthObject": "Logging",
+				"AuthFieldValue": {
+					"Action": []
+				}
+			},
+			{
+				"AuthObject": "Pricing",
+				"AuthFieldValue": {
+					"Action": []
+				}
+			}
+		]
+	},
+	{
+		"id": "D",
+		"name": "Demo",
+		"auths": [
+			{
+				"AuthObject": "Users",
+				"AuthFieldValue": {
+					"Action": []
+				}
+			},
+			{
+				"AuthObject": "User",
+				"AuthFieldValue": {
+					"UserID": "*",
+					"Action": ["Read"]
+				}
+			},
+			{
+				"AuthObject": "ChargingStations",
+				"AuthFieldValue": {
+					"Action": ["List"]
+				}
+			},
+			{
+				"AuthObject": "ChargingStation",
+				"AuthFieldValue": {
+					"UserID": "*",
+					"Action": ["Read"]
+				}
+			},
+			{
+				"AuthObject": "Logging",
+				"AuthFieldValue": {
+					"Action": []
+				}
+			},
+			{
+				"AuthObject": "Pricing",
+				"AuthFieldValue": {
+					"Action": []
+				}
+			}
+		]
+	}
 ]

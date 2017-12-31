@@ -1,27 +1,27 @@
 class ChargingStationClient {
-  constructor() {
-    if (new.target === ChargingStationClient) {
-      throw new TypeError("Cannot construct ChargingStationClient instances directly");
-    }
-  }
+	constructor() {
+		if (new.target === ChargingStationClient) {
+			throw new TypeError("Cannot construct ChargingStationClient instances directly");
+		}
+	}
 
-  reset(type) {
-  }
+	reset(type) {
+	}
 
-  clearCache() {
-  }
+	clearCache() {
+	}
 
-  getConfiguration(keys) {
-  }
+	getConfiguration(keys) {
+	}
 
-  changeConfiguration(key, value) {
-  }
+	changeConfiguration(key, value) {
+	}
 
-  stopTransaction(transactionId) {
-  }
+	stopTransaction(transactionId) {
+	}
 
-  unlockConnector(connectorId) {
-  }
+	unlockConnector(connectorId) {
+	}
 }
 
 module.exports = ChargingStationClient;
