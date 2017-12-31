@@ -776,10 +776,17 @@ module.exports = {
 
 			// Get the active transactions
 			case "ActiveTransactions":
+				filter = { stop: { $exists: false } };
 				// Filter
 				filteredRequest = SecurityRestObjectFiltering.filterActiveTransactionsRequest(req.query, req.user);
+				if (filteredRequest.ChargeBoxIdentity) {
+					filter.chargeBoxIdentity = filteredRequest.ChargeBoxIdentity;
+				}
+				if (filteredRequest.ConnectorId) {
+					filter.connectorId = filteredRequest.ConnectorId;
+				}
 				// Check email
-				global.storage.getTransactions(null, {stop: {$exists: false}}, filteredRequest.WithPicture).then((transactions) => {
+				global.storage.getTransactions(null, filter, filteredRequest.WithPicture).then((transactions) => {
 					// Return
 					res.json(
 						// Filter
