@@ -6,6 +6,7 @@ const MDBBootNotification = require('../model/MDBBootNotification');
 const MDBDataTransfer = require('../model/MDBDataTransfer');
 const MDBDiagnosticsStatusNotification = require('../model/MDBDiagnosticsStatusNotification');
 const MDBFirmwareStatusNotification = require('../model/MDBFirmwareStatusNotification');
+const MDBChargingStation = require('../model/MDBChargingStation');
 const MDBAuthorize = require('../model/MDBAuthorize');
 const ChargingStation = require('../../../model/ChargingStation');
 const crypto = require('crypto');

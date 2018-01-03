@@ -2,6 +2,7 @@ const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const MDBMeterValue = require('../model/MDBMeterValue');
 const MDBTransaction = require('../model/MDBTransaction');
+const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const crypto = require('crypto');
 
