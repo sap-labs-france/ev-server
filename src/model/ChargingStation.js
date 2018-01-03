@@ -267,7 +267,14 @@ class ChargingStation {
 					}
 
 					// Compute it
-					connector.power = Math.floor(voltageRerefence * current * Math.sqrt(nbPhase));
+					if (voltageRerefence && current && nbPhase) {
+						// One Phase?
+						if (nbPhase == 1) {
+							connector.power = Math.floor(230 * current);
+						} else {
+							connector.power = Math.floor(380 * current * Math.sqrt(nbPhase));
+						}
+					}
 
 					// Save
 					return this.save();
