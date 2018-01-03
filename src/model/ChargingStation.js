@@ -272,7 +272,7 @@ class ChargingStation {
 						if (nbPhase == 1) {
 							connector.power = Math.floor(230 * current);
 						} else {
-							connector.power = Math.floor(380 * current * Math.sqrt(nbPhase));
+							connector.power = Math.floor(400 * current * Math.sqrt(nbPhase));
 						}
 					}
 
