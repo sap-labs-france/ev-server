@@ -105,7 +105,6 @@ class CentralSystemServer {
 					userFullName: "System", source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleBootNotification",
 					action: "BootNotification", message: `Boot Notification saved successfully`,
 					detailedMessages: args });
-
 				// Get the Charging Station Config
 				return chargingStation.requestGetConfiguration();
 			// Save the config
