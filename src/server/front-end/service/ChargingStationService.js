@@ -188,7 +188,7 @@ class ChargingStationService {
 
 	static handleAction(action, req, res, next) {
 		// Filter
-		filteredRequest = SecurityRestObjectFiltering.filterChargingStationActionRequest( req.body, action, req.user );
+		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationActionRequest( req.body, action, req.user );
 		// Charge Box is mandatory
 		if(!filteredRequest.chargeBoxIdentity) {
 			Logging.logActionExceptionMessageAndSendResponse(
