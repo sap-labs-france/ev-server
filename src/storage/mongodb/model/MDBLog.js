@@ -4,6 +4,7 @@ module.exports = mongoose.model('Log',{
 	timestamp: { type: Date, index: true },
 	level: String,
 	source: String,
+	type: String,
 	module: String,
 	method: String,
 	action: String,

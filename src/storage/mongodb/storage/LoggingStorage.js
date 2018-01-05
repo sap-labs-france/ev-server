@@ -41,7 +41,7 @@ class LoggingStorage {
 		});
 	}
 
-	static handleGetLogs(dateFrom, level, chargingStation, searchValue, numberOfLogs, sortDate) {
+	static handleGetLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs, sortDate) {
 		// Not provided?
 		if (!numberOfLogs || isNaN(numberOfLogs)) {
 			// Default
@@ -54,7 +54,6 @@ class LoggingStorage {
 		if (typeof numberOfLogs == "string" ) {
 			numberOfLogs = parseInt(numberOfLogs);
 		}
-
 		// Set the filters
 		let filter = {};
 		// Date from provided?
@@ -88,6 +87,11 @@ class LoggingStorage {
 			// Yes, add in filter
 			filter.source = chargingStation;
 		}
+		// Type
+		if (type) {
+			// Yes, add in filter
+			filter.type = type;
+		}
 		// Source?
 		if (searchValue) {
 			// Build filter
@@ -106,6 +110,7 @@ class LoggingStorage {
 			// default
 			sort.timestamp = -1;
 		}
+		console.log(filter);
 		// Exec request
 		return MDBLog.find(filter).sort(sort).limit(numberOfLogs).exec().then((loggingsMDB) => {
 			var loggings = [];

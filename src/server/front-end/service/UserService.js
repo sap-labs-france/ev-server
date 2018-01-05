@@ -23,14 +23,14 @@ class UserService {
 			user = foundUser;
 			if (!user) {
 				throw new AppError(`The user with ID ${filteredRequest.id} does not exist anymore`,
-					500, "CentralRestServerService", "restServiceSecured");
+					500, "UserService", "restServiceSecured");
 			}
 			// Check authchargingStation
 			if (!CentralRestServerAuthorization.canDeleteUser(req.user, user.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
 					CentralRestServerAuthorization.ENTITY_USER, user.getID(),
-					500, "CentralRestServerService", "restServiceSecured");
+					500, "UserService", "restServiceSecured");
 			}
 			// Delete
 			return user.delete();
@@ -60,7 +60,7 @@ class UserService {
 			global.storage.getUser(filteredRequest.id).then((user) => {
 				if (!user) {
 					throw new AppError(`The user with ID ${filteredRequest.id} does not exist anymore`,
-						550, "CentralRestServerService", "restServiceSecured");
+						550, "UserService", "restServiceSecured");
 				}
 				// Keep
 				userWithId = user;
@@ -71,7 +71,7 @@ class UserService {
 			}).then((userWithEmail) => {
 				if (userWithEmail && userWithId.getID() !== userWithEmail.getID()) {
 					throw new AppError(`The email ${filteredRequest.email} already exists`,
-						510, "CentralRestServerService", "restServiceSecured");
+						510, "UserService", "restServiceSecured");
 				}
 				// Generate a password
 				return Users.hashPasswordBcrypt(filteredRequest.password);
@@ -228,7 +228,7 @@ class UserService {
 			}).then((foundUser) => {
 				if (foundUser) {
 					throw new AppError(`The email ${filteredRequest.email} already exists`,
-						510, "CentralRestServerService", "restServiceSecured");
+						510, "UserService", "restServiceSecured");
 				}
 				// Generate a hash for the given password
 				return Users.hashPasswordBcrypt(filteredRequest.password);

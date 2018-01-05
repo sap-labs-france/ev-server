@@ -8,6 +8,12 @@ const Database = require('../../../utils/Database');
 
 class PricingService {
 	static handleGetPricing(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "PricingService",
+			method: "handleGetPricing",
+			message: `Read Pricing`
+		});
 		// Check auth
 		if (!CentralRestServerAuthorization.canReadPricing(req.user)) {
 			// Not Authorized!
@@ -35,6 +41,13 @@ class PricingService {
 	}
 
 	static handleUpdatePricing(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "PricingService",
+			method: "handleGetPricing",
+			message: `Update Pricing to ${req.body.priceKWH} ${req.body.priceUnit}`,
+			detailedMessages: req.body
+		});
 		// Check auth
 		if (!CentralRestServerAuthorization.canUpdatePricing(req.user)) {
 			// Not Authorized!

@@ -7,6 +7,13 @@ const Users = require('../../../utils/Users');
 
 class ChargingStationService {
 	static handleGetChargingStationConfiguration(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "ChargingStationService",
+			method: "handleGetChargingStationConfiguration",
+			message: `Get Configuration of '${req.query.ChargeBoxIdentity}'`,
+			detailedMessages: req.query
+		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationConfigurationRequest(req.query, req.user);
 		// Charge Box is mandatory
@@ -22,14 +29,14 @@ class ChargingStationService {
 			if (!chargingStation) {
 				// Not Found!
 				throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
-					500, "CentralRestServerService", "restServiceSecured");
+					500, "ChargingStationService", "restServiceSecured");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
 					CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(),
-					500, "CentralRestServerService", "restServiceSecured");
+					500, "ChargingStationService", "restServiceSecured");
 			}
 			// Get the Config
 			chargingStation.getConfiguration().then((configuration) => {
@@ -44,6 +51,13 @@ class ChargingStationService {
 	}
 
 	static handleDeleteChargingStation(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "ChargingStationService",
+			method: "handleDeleteChargingStation",
+			message: `Delete '${req.query.ChargeBoxIdentity}'`,
+			detailedMessages: req.query
+		});
 		// Filter
 		let chargingStation;
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationDeleteRequest(req.query, req.user);
@@ -59,14 +73,14 @@ class ChargingStationService {
 			if (!chargingStation) {
 				// Not Found!
 				throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
-					500, "CentralRestServerService", "restServiceSecured");
+					500, "ChargingStationService", "restServiceSecured");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canDeleteChargingStation(req.user, chargingStation.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
 					CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(),
-					500, "CentralRestServerService", "restServiceSecured");
+					500, "ChargingStationService", "restServiceSecured");
 			}
 			// Delete
 			return global.storage.deleteChargingStation(filteredRequest.ID);
@@ -86,6 +100,13 @@ class ChargingStationService {
 	}
 
 	static handleGetChargingStation(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "ChargingStationService",
+			method: "handleGetChargingStation",
+			message: `Read '${req.query.ChargeBoxIdentity}'`,
+			detailedMessages: req.query
+		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationRequest(req.query, req.user);
 		// Charge Box is mandatory
@@ -114,6 +135,13 @@ class ChargingStationService {
 	}
 
 	static handleGetChargingStations(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "ChargingStationService",
+			method: "handleGetChargingStations",
+			message: `Read All Charging Stations`,
+			detailedMessages: req.query
+		});
 		// Check auth
 		if (!CentralRestServerAuthorization.canListChargingStations(req.user)) {
 			// Not Authorized!
@@ -135,7 +163,7 @@ class ChargingStationService {
 			if (!user) {
 				// Not Found!
 				throw new AppError(`The user with ID ${filteredRequest.id} does not exist`,
-					500, "CentralRestServerService", "restServiceSecured");
+					500, "ChargingStationService", "restServiceSecured");
 			}
 			// Get the user's active transactions
 			return user.getTransactions({stop: {$exists: false}}, Users.WITH_NO_IMAGE);
@@ -187,6 +215,13 @@ class ChargingStationService {
 	}
 
 	static handleAction(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "ChargingStationService",
+			method: "handleAction",
+			message: `Execute Action '${action}' on '${req.body.chargeBoxIdentity}'`,
+			detailedMessages: req.body
+		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationActionRequest( req.body, action, req.user );
 		// Charge Box is mandatory
@@ -201,7 +236,7 @@ class ChargingStationService {
 			if (!chargingStation) {
 				// Not Found!
 				throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
-					500, "CentralRestServerService", "restServiceSecured");
+					500, "ChargingStationService", "restServiceSecured");
 			}
 			if (action === "StopTransaction" ||
 					action === "UnlockConnector") {
@@ -215,12 +250,8 @@ class ChargingStationService {
 							// Not Authorized!
 							throw new AppAuthError(req.user, action,
 								CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(),
-								500, "CentralRestServerService", "restServiceSecured");
+								500, "ChargingStationService", "restServiceSecured");
 						}
-						// Log
-						Logging.logInfo({
-							user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",  action: action,
-							message: `Execute action '${action}' on Charging Station '${filteredRequest.AppAuthErrorchargeBoxIdentity}'`});
 						// Execute it
 						return chargingStation.handleAction(action, filteredRequest.args);
 					} else {
@@ -237,12 +268,8 @@ class ChargingStationService {
 					// Not Authorized!
 					throw new AppAuthError(req.user, action,
 						CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(),
-						500, "CentralRestServerService", "restServiceSecured");
+						500, "ChargingStationService", "restServiceSecured");
 				}
-				// Log
-				Logging.logInfo({
-					user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",  action: action,
-					message: `Execute action '${action}' on Charging Station '${filteredRequest.chargeBoxIdentity}'`});
 				// Execute it
 				return chargingStation.handleAction(action, filteredRequest.args);
 			}
@@ -259,6 +286,13 @@ class ChargingStationService {
 	static handleActionSetMaxIntensitySocket(action, req, res, next) {
 		let chargingStation;
 
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "ChargingStationService",
+			method: "handleActionSetMaxIntensitySocket",
+			message: `Execute Action '${action}' on '${req.body.chargeBoxIdentity}'`,
+			detailedMessages: req.body
+		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationSetMaxIntensitySocketRequest( req.body, req.user );
 		// Charge Box is mandatory
@@ -274,14 +308,14 @@ class ChargingStationService {
 			if (!chargingStation) {
 				// Not Found!
 				throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
-					500, "CentralRestServerService", "restServiceSecured");
+					500, "ChargingStationService", "restServiceSecured");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), "ChangeConfiguration")) {
 				// Not Authorized!
 				throw new AppAuthError(req.user, action,
 					CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(),
-					500, "CentralRestServerService", "restServiceSecured");
+					500, "ChargingStationService", "restServiceSecured");
 			}
 			// Get the Config
 			return chargingStation.getConfiguration();
@@ -290,7 +324,7 @@ class ChargingStationService {
 			if (!chargerConfiguration) {
 				// Not Found!
 				throw new AppError(`Cannot retrieve the configuration of the Charging Station ${filteredRequest.chargeBoxIdentity}`,
-					500, "CentralRestServerService", "restServiceSecured");
+					500, "ChargingStationService", "restServiceSecured");
 			}
 
 			let maxIntensitySocketMax = null;
@@ -305,7 +339,7 @@ class ChargingStationService {
 			if (!maxIntensitySocketMax) {
 				// Not Found!
 				throw new AppError(`Cannot retrieve the max intensity socket from the configuration of the Charging Station ${filteredRequest.chargeBoxIdentity}`,
-					500, "CentralRestServerService", "restServiceSecured");
+					500, "ChargingStationService", "restServiceSecured");
 			}
 			// Check
 			if (filteredRequest.maxIntensity && filteredRequest.maxIntensity >= 0 && filteredRequest.maxIntensity <= maxIntensitySocketMax) {
@@ -318,7 +352,7 @@ class ChargingStationService {
 			} else {
 				// Invalid value
 				throw new AppError(`Invalid value for param max intensity socket '${filteredRequest.maxIntensity}' for Charging Station ${filteredRequest.chargeBoxIdentity}`,
-					500, "CentralRestServerService", "restServiceSecured");
+					500, "ChargingStationService", "restServiceSecured");
 			}
 		}).then((result) => {
 			// Return the result

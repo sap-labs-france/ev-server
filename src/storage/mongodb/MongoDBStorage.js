@@ -56,9 +56,9 @@ class MongoDBStorage extends Storage {
 		return ChargingStationStorage.handleGetConfigurationParamValue(chargeBoxIdentity, paramName);
 	}
 
-	getLogs(dateFrom, level, chargingStation, searchValue, numberOfLogs, sortDate) {
+	getLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs, sortDate) {
 		// Delegate
-		return LoggingStorage.handleGetLogs(dateFrom, level, chargingStation, searchValue, numberOfLogs, sortDate);
+		return LoggingStorage.handleGetLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs, sortDate);
 	}
 
 	saveLog(log) {

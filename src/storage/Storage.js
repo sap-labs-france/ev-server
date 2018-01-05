@@ -16,7 +16,7 @@ class Storage {
 	getConfigurationParamValue(chargeBoxIdentity, paramName) {
 	}
 
-	getLogs(dateFrom, level, chargingStation, searchValue, numberOfLogs, sortDate) {
+	getLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs, sortDate) {
 	}
 
 	saveLog(log) {

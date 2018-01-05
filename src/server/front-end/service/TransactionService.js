@@ -25,7 +25,7 @@ class TransactionService {
 			if (!transaction) {
 				// Not Found!
 				throw new AppError(`Transaction ${filteredRequest.TransactionId} does not exist`,
-					500, "CentralRestServerService", "restServiceSecured");
+					500, "TransactionService", "restServiceSecured");
 			}
 			// Get the Charging Station
 			return global.storage.getChargingStation(transaction.chargeBoxID.chargeBoxIdentity);
@@ -35,13 +35,13 @@ class TransactionService {
 			if (!chargingStation) {
 				// Not Found!
 				throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
-					500, "CentralRestServerService", "restServiceSecured");
+					500, "TransactionService", "restServiceSecured");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ, CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
-					chargingStation.getChargeBoxIdentity(), 500, "CentralRestServerService", "restServiceSecured");
+					chargingStation.getChargeBoxIdentity(), 500, "TransactionService", "restServiceSecured");
 			}
 			// Check dates
 			if (filteredRequest.StartDateTime) {
@@ -107,7 +107,7 @@ class TransactionService {
 			if (!transaction) {
 				// Not Found!
 				throw new AppError(`Transaction ${filteredRequest.TransactionId} does not exist`,
-					500, "CentralRestServerService", "restServiceSecured");
+					500, "TransactionService", "restServiceSecured");
 			}
 			// Return
 			res.json(
@@ -141,7 +141,7 @@ class TransactionService {
 			if (!chargingStation) {
 				// Not Found!
 				throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
-					500, "CentralRestServerService", "restServiceSecured");
+					500, "TransactionService", "restServiceSecured");
 			}
 			// Set the model
 			return chargingStation.getTransactions(filteredRequest.ConnectorId,

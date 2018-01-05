@@ -170,7 +170,36 @@ class SecurityRestObjectFiltering {
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.NumberOfLogs = sanitize(request.NumberOfLogs);
 		filteredRequest.SortDate = sanitize(request.SortDate);
+		filteredRequest.Type = sanitize(request.Type);
 		return filteredRequest;
+	}
+
+	static filterLoggingResponse(logging, loggedUser) {
+		let filteredLogging = {};
+
+		filteredLogging.level = logging.level;
+		filteredLogging.timestamp = logging.timestamp;
+		filteredLogging.type = logging.type;
+		filteredLogging.source = logging.source;
+		filteredLogging.userFullName = logging.userFullName;
+		filteredLogging.action = logging.action;
+		filteredLogging.message = logging.message;
+		filteredLogging.detailedMessages = logging.detailedMessages;
+		return filteredLogging;
+	}
+
+	static filterLoggingsResponse(loggings, loggedUser) {
+		let filteredLoggings = [];
+		loggings.forEach(logging => {
+			// Filter
+			let filteredLogging = this.filterLoggingResponse(logging, loggedUser);
+			// Ok?
+			if (filteredLogging) {
+				// Add
+				filteredLoggings.push(filteredLogging);
+			}
+		});
+		return filteredLoggings;
 	}
 
 	static filterUserUpdateRequest(request, loggedUser) {
@@ -240,7 +269,7 @@ class SecurityRestObjectFiltering {
 		filteredConsumption.transactionId = consumption.transactionId;
 		filteredConsumption.userID =
 			SecurityRestObjectFiltering.filterUserInTransactionResponse(
-			consumption.userID, loggedUser);
+				consumption.userID, loggedUser);
 		// Admin?
 		if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
 			// Set them all
@@ -249,11 +278,11 @@ class SecurityRestObjectFiltering {
 			// Clean
 			filteredConsumption.values = [];
 			consumption.values.forEach((value) => {
-			// Set
-			filteredConsumption.values.push({
-				date: value.date,
-				value: value.value,
-				cumulated: value.cumulated });
+				// Set
+				filteredConsumption.values.push({
+					date: value.date,
+					value: value.value,
+					cumulated: value.cumulated });
 			});
 		}
 
@@ -278,33 +307,33 @@ class SecurityRestObjectFiltering {
 		if (CentralRestServerAuthorization.canReadUser(loggedUser, user)) {
 			// Admin?
 			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
-			filteredUser.id = user.id;
-			filteredUser.name = user.name;
-			filteredUser.firstName = user.firstName;
-			filteredUser.locale = user.locale;
-			filteredUser.email = user.email;
-			filteredUser.phone = user.phone;
-			filteredUser.mobile = user.mobile;
-			filteredUser.iNumber = user.iNumber;
-			filteredUser.costCenter = user.costCenter;
-			filteredUser.status = user.status;
-			filteredUser.createdOn = user.createdOn;
-			filteredUser.lastChangedOn = user.lastChangedOn;
-			filteredUser.tagIDs = user.tagIDs;
-			filteredUser.role = user.role;
-			if (user.image) {
-				filteredUser.image = user.image;
-			}
+				filteredUser.id = user.id;
+				filteredUser.name = user.name;
+				filteredUser.firstName = user.firstName;
+				filteredUser.locale = user.locale;
+				filteredUser.email = user.email;
+				filteredUser.phone = user.phone;
+				filteredUser.mobile = user.mobile;
+				filteredUser.iNumber = user.iNumber;
+				filteredUser.costCenter = user.costCenter;
+				filteredUser.status = user.status;
+				filteredUser.createdOn = user.createdOn;
+				filteredUser.lastChangedOn = user.lastChangedOn;
+				filteredUser.tagIDs = user.tagIDs;
+				filteredUser.role = user.role;
+				if (user.image) {
+					filteredUser.image = user.image;
+				}
 			} else {
-			// Set only necessary info
-			filteredUser.id = user.id;
-			filteredUser.name = user.name;
-			filteredUser.firstName = user.firstName;
-			filteredUser.email = user.email;
-			filteredUser.locale = user.locale;
-			if (user.image) {
-				filteredUser.image = user.image;
-			}
+				// Set only necessary info
+				filteredUser.id = user.id;
+				filteredUser.name = user.name;
+				filteredUser.firstName = user.firstName;
+				filteredUser.email = user.email;
+				filteredUser.locale = user.locale;
+				if (user.image) {
+					filteredUser.image = user.image;
+				}
 			}
 		}
 
@@ -318,8 +347,8 @@ class SecurityRestObjectFiltering {
 			let filteredUser = this.filterUserResponse(user, loggedUser);
 			// Ok?
 			if (filteredUser) {
-			// Add
-			filteredUsers.push(filteredUser);
+				// Add
+				filteredUsers.push(filteredUser);
 			}
 		});
 		return filteredUsers;
@@ -333,18 +362,17 @@ class SecurityRestObjectFiltering {
 		if (CentralRestServerAuthorization.canReadChargingStation(loggedUser, chargingStation)) {
 			// Admin?
 			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
-			// Yes: set all params
-			filteredChargingStation = chargingStation;
+				// Yes: set all params
+				filteredChargingStation = chargingStation;
 			} else {
-			// Set only necessary info
-			filteredChargingStation = {};
-			filteredChargingStation.id = chargingStation.id;
-			filteredChargingStation.chargeBoxIdentity = chargingStation.chargeBoxIdentity;
-			filteredChargingStation.connectors = chargingStation.connectors;
-			filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
+				// Set only necessary info
+				filteredChargingStation = {};
+				filteredChargingStation.id = chargingStation.id;
+				filteredChargingStation.chargeBoxIdentity = chargingStation.chargeBoxIdentity;
+				filteredChargingStation.connectors = chargingStation.connectors;
+				filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
 			}
 		}
-
 		return filteredChargingStation;
 	}
 
@@ -355,8 +383,8 @@ class SecurityRestObjectFiltering {
 			let filteredChargingStation = this.filterChargingStationResponse(chargingStation, loggedUser);
 			// Ok?
 			if (filteredChargingStation) {
-			// Add
-			filteredChargingStations.push(filteredChargingStation);
+				// Add
+				filteredChargingStations.push(filteredChargingStation);
 			}
 		});
 		return filteredChargingStations;
@@ -381,29 +409,29 @@ class SecurityRestObjectFiltering {
 				transaction.userID, loggedUser);
 			// Transaction Stop
 			if (transaction.stop) {
-			filteredTransaction.stop = {};
-			filteredTransaction.stop.timestamp = transaction.stop.timestamp;
-			filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
-			// Admin?
-			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
-				filteredTransaction.stop.price = transaction.stop.price;
-				filteredTransaction.stop.priceUnit = transaction.stop.priceUnit;
-			}
-			// Stop User
-			if (transaction.stop.userID) {
-				// Filter user
-				filteredTransaction.stop.userID =
-				SecurityRestObjectFiltering.filterUserInTransactionResponse(
-					transaction.stop.userID, loggedUser);
-			}
+				filteredTransaction.stop = {};
+				filteredTransaction.stop.timestamp = transaction.stop.timestamp;
+				filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
+				// Admin?
+				if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+					filteredTransaction.stop.price = transaction.stop.price;
+					filteredTransaction.stop.priceUnit = transaction.stop.priceUnit;
+				}
+				// Stop User
+				if (transaction.stop.userID) {
+					// Filter user
+					filteredTransaction.stop.userID =
+						SecurityRestObjectFiltering.filterUserInTransactionResponse(
+							transaction.stop.userID, loggedUser);
+				}
 			}
 			// Charging Station
 			filteredTransaction.chargeBoxID = {};
 			filteredTransaction.chargeBoxID.id = transaction.chargeBoxID.id;
 			filteredTransaction.chargeBoxID.chargeBoxIdentity = transaction.chargeBoxID.chargeBoxIdentity;
 			if (withConnector) {
-			filteredTransaction.chargeBoxID.connectors = [];
-			filteredTransaction.chargeBoxID.connectors[transaction.connectorId-1] = transaction.chargeBoxID.connectors[transaction.connectorId-1];
+				filteredTransaction.chargeBoxID.connectors = [];
+				filteredTransaction.chargeBoxID.connectors[transaction.connectorId-1] = transaction.chargeBoxID.connectors[transaction.connectorId-1];
 			}
 		}
 
@@ -416,14 +444,14 @@ class SecurityRestObjectFiltering {
 		if (CentralRestServerAuthorization.canReadUser(loggedUser, user)) {
 			// Demo user?
 			if (CentralRestServerAuthorization.isDemo(loggedUser)) {
-			userID.name = "####";
-			userID.firstName = "####";
+				userID.name = "####";
+				userID.firstName = "####";
 			} else {
-			userID.name = user.name;
-			userID.firstName = user.firstName;
-			if (user.image) {
-				userID.image = user.image;
-			}
+				userID.name = user.name;
+				userID.firstName = user.firstName;
+				if (user.image) {
+					userID.image = user.image;
+				}
 			}
 		}
 		return userID;
@@ -436,8 +464,8 @@ class SecurityRestObjectFiltering {
 			let filteredTransaction = this.filterTransactionResponse(transaction, loggedUser, withConnector);
 			// Ok?
 			if (filteredTransaction) {
-			// Add
-			filteredTransactions.push(filteredTransaction);
+				// Add
+				filteredTransactions.push(filteredTransaction);
 			}
 		});
 		return filteredTransactions;

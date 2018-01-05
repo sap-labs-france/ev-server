@@ -139,6 +139,7 @@ module.exports = {
 		}
 		dest.level = src.level;
 		dest.source = src.source;
+		dest.type = src.type;
 		dest.module = src.module;
 		dest.method = src.method;
 		dest.timestamp = src.timestamp;

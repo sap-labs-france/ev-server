@@ -3,19 +3,39 @@ const AppError = require('../exception/AppError');
 const AppAuthError = require('../exception/AppAuthError');
 require('source-map-support').install();
 
+let LoggingLevel = {
+	"INFO": 'I',
+	"DEBUG": 'D',
+	"WARNING": 'W',
+	"ERROR": 'E'
+}
+
+let LoggingType = {
+	"SECURITY": 'S',
+	"REGULAR": 'R'
+}
+
 class Logging {
 	// Log Debug
 	static logDebug(log) {
 		// Log
-		log.level = 'D';
+		log.level = LoggingLevel.DEBUG;
 		// Log it
 		Logging._log(log);
 	}
 
 	// Log Info
+	static logSecurityInfo(log) {
+		// Set
+		log.type = LoggingType.SECURITY;
+		// Log it
+		Logging.logInfo(log);
+	}
+
+	// Log Info
 	static logInfo(log) {
 		// Log
-		log.level = 'I';
+		log.level = LoggingLevel.INFO;
 		// Log it
 		Logging._log(log);
 	}
@@ -23,7 +43,7 @@ class Logging {
 	// Log Warning
 	static logWarning(log) {
 		// Log
-		log.level = 'W';
+		log.level = LoggingLevel.WARNING;
 		// Log it
 		Logging._log(log);
 	}
@@ -31,7 +51,7 @@ class Logging {
 	// Log Error
 	static logError(log) {
 		// Log
-		log.level = 'E';
+		log.level = LoggingLevel.ERROR;
 		// Log it
 		Logging._log(log);
 	}
@@ -44,29 +64,6 @@ class Logging {
 	// Delete
 	static deleteLogs(deleteUpToDate) {
 		return global.storage.deleteLogs(deleteUpToDate);
-	}
-
-	// Log
-	static _log(log) {
-		// Log
-		log.timestamp = new Date();
-
-		// Set User
-		if (log.user) {
-			log.userID = log.user.id;
-			log.userFullName = log.user.firstName + " " + log.user.name;
-		}
-
-		// Check Array
-		if (log.detailedMessages && !Array.isArray(log.detailedMessages)){
-			// Handle update of array
-			log.detailedMessages = [log.detailedMessages];
-			// Format
-			log.detailedMessages = Logging._format(log.detailedMessages);
-		}
-
-		// Log
-		global.storage.saveLog(log);
 	}
 
 	// Log
@@ -107,22 +104,6 @@ class Logging {
 		});
 	}
 
-	static _format(detailedMessage) {
-		// JSON?
-		if (typeof detailedMessage === "object") {
-			try {
-				// Check that every detailedMessages is parsed
-				return JSON.stringify(detailedMessage);
-			} catch(err) {
-				// Log
-				Logging.logWarning({
-					source: "Central Server", module: "Logging", method: "_format",
-					message: `Error when formatting a Log (stringify): '${err.message}'`,
-					detailedMessages: parsedDetailedMessage });
-			}
-		}
-	}
-
 	// Used to log exception in catch(...) only
 	static logActionExceptionMessageAndSendResponse(action, exception, req, res, next) {
 		if (exception instanceof AppError) {
@@ -140,24 +121,6 @@ class Logging {
 		}
 	}
 
-	// Used to check URL params (not in catch)
-	static _logActionExceptionMessageAndSendResponse(action, exception, req, res, next, errorCode=500) {
-		// Clear password
-		if (action==="login" && req.body.password) {
-			req.body.password = "####";
-		}
-		Logging.logError({
-			userID: ((req && req.user)?req.user.id:null), userFullName: Utils.buildUserFullName(req.user),
-			source: "Central Server", module: exception.module, method: exception.method,
-			action: action, message: exception.message,
-			detailedMessages: [{
-				"stack": exception.stack,
-				"request": req.body}] });
-		// Send error
-		res.status(errorCode).send({"message": Utils.hideShowMessage(exception.message)});
-		next();
-	}
-
 	// Log issues
 	static logUnexpectedErrorMessage(action, module, method, err, source="Central Server", user="System") {
 		Logging.logError({
@@ -172,6 +135,73 @@ class Logging {
 		// Log
 		Logging._logActionExceptionMessageAndSendResponse(action,
 			new Error(`Not authorised to perform '${action}' on ${entity} ${(value?"'"+value+"'":"")} (Role='${req.user.role}')`), req, res, next);
+	}
+
+	// Used to check URL params (not in catch)
+	static _logActionExceptionMessageAndSendResponse(action, exception, req, res, next, errorCode=500) {
+		// Clear password
+		if (action==="login" && req.body.password) {
+			req.body.password = "####";
+		}
+		Logging.logError({
+			userID: ((req && req.user)?req.user.id:null), userFullName: Utils.buildUserFullName(req.user, false),
+			source: "Central Server", module: exception.module, method: exception.method,
+			action: action, message: exception.message,
+			detailedMessages: [{
+				"stack": exception.stack,
+				"request": req.body}] });
+		// Send error
+		res.status(errorCode).send({"message": Utils.hideShowMessage(exception.message)});
+		next();
+	}
+
+	static _format(detailedMessage) {
+		// JSON?
+		if (typeof detailedMessage === "object") {
+			try {
+				// Check that every detailedMessages is parsed
+				return JSON.stringify(detailedMessage);
+			} catch(err) {
+				// Log
+				Logging.logWarning({
+					source: "Central Server", module: "Logging", method: "_format",
+					message: `Error when formatting a Log (stringify): '${err.message}'`,
+					detailedMessages: detailedMessage });
+			}
+		}
+	}
+
+	// Log
+	static _log(log) {
+		// Log
+		log.timestamp = new Date();
+
+		// Source
+		if (!log.source) {
+			log.source = "Central Server";
+		}
+
+		// Set User
+		if (log.user) {
+			log.userID = log.user.id;
+			log.userFullName = Utils.buildUserFullName(log.user, false);
+		}
+
+		// Check Array
+		if (log.detailedMessages && !Array.isArray(log.detailedMessages)){
+			// Handle update of array
+			log.detailedMessages = [log.detailedMessages];
+			// Format
+			log.detailedMessages = Logging._format(log.detailedMessages);
+		}
+
+		// Check Type
+		if (!log.type) {
+			log.type = LoggingType.REGULAR;
+		}
+
+		// Log
+		global.storage.saveLog(log);
 	}
 }
 
