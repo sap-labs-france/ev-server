@@ -13,7 +13,10 @@ class LoggingStorage {
 	static handleDeleteLogs(deleteUpToDate) {
 		// Build filter
 		var filter = {};
-		// Date provided
+		// Do Not Delete Security Logs
+		filter.type = {};
+		filter.type.$ne = 'S';
+		// Date provided?
 		if (deleteUpToDate) {
 			filter.timestamp = {};
 			filter.timestamp.$lte = new Date(deleteUpToDate);
