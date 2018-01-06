@@ -6,6 +6,7 @@ const AppAuthError = require('../../../exception/AppAuthError');
 const Utils = require('../../../utils/Utils');
 const ChargingStations = require('../../../utils/ChargingStations');
 const Users = require('../../../utils/Users');
+const moment = require('moment');
 
 class TransactionService {
 	static handleGetChargingStationConsumptionFromTransaction(action, req, res, next) {
