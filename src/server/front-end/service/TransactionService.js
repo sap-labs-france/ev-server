@@ -13,7 +13,7 @@ class TransactionService {
 			user: req.user, action: action,
 			module: "TransactionService",
 			method: "handleGetChargingStationConsumptionFromTransaction",
-			message: `Read Consumption from Charging Station '${req.query.ChargeBoxIdentity}'`,
+			message: `Read Consumption from Transaction ID '${req.query.TransactionId}'`,
 			detailedMessages: req.query
 		});
 		// Filter
@@ -141,7 +141,7 @@ class TransactionService {
 			user: req.user, action: action,
 			module: "TransactionService",
 			method: "handleGetChargingStationTransactions",
-			message: `Read Transactions from Charging Station '${req.query.ChargeBoxIdentity}'`,
+			message: `Read Transactions from Charging Station '${req.query.ChargeBoxIdentity}'-'${req.query.ConnectorId}'`,
 			detailedMessages: req.query
 		});
 		// Filter

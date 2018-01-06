@@ -208,7 +208,7 @@ module.exports = {
 			fs.renameSync(_userFilename, _userFilenameImported);
 			// Imported
 			Logging.logInfo({
-				userFullName: "System", source: "Central Server", action: "ImportUser",
+				action: "ImportUser",
 				module: "ChargingStationBackgroundTasks", method: "importUsers",
 				message: `Users have been imported`,
 				detailedMessages: users});
@@ -235,21 +235,21 @@ module.exports = {
 				global.storage.saveUser(user).then((newUser) => {
 					console.log(`User Import: User with email '${user.email}' has been created with success`);
 					Logging.logInfo({
-						userFullName: "System", action: "ImportUser", source: "Central Server", module: "Users", method: "importUsers",
+						action: "ImportUser", module: "Users", method: "importUsers",
 						message: `User ${newUser.getFullName()} with email '${newUser.getEMail()}' has been imported successfully`,
 						detailedMessages: user});
 				}).catch((err) => {
 					console.log(`User Import: Failed to import user with email '${user.email}': ${err.toString()}`);
 					// Log
 					Logging.logError({
-						userFullName: "System", action: "ImportUser", source: "Central Server", module: "Users", method: "importUsers",
+						action: "ImportUser", module: "Users", method: "importUsers",
 						message: `Cannot import user with email '${user.email}': ${err.toString()}`,
 						detailedMessages: [user, err.stack] });
 				});
 			} else {
 				console.log(`User Import: User with email '${user.email}' already exists`);
 				Logging.logInfo({
-					userFullName: "System", action: "ImportUser", source: "Central Server", module: "Users", method: "importUsers",
+					action: "ImportUser", module: "Users", method: "importUsers",
 					message: `User with email '${user.email}' already exists`,
 					detailedMessages: user});
 			}

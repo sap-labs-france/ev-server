@@ -164,14 +164,14 @@ class TransactionStorage {
 			// User not found?
 			if (!transactionMDB.userID) {
 				Logging.logError({
-					userFullName: "System", source: "Central Server", module: "MongoDBStorage", method: "getTransactions",
+					module: "MongoDBStorage", method: "getTransactions",
 					message: `Transaction ID '${transactionMDB.id}': User does not exist` });
 				return false;
 			}
 			// Charge Box not found?
 			if (!transactionMDB.chargeBoxID) {
 				Logging.logError({
-					userFullName: "System", source: "Central Server", module: "MongoDBStorage", method: "getTransactions",
+					module: "MongoDBStorage", method: "getTransactions",
 					message: `Transaction ID '${transactionMDB.id}': Charging Station does not exist` });
 				return false;
 			}

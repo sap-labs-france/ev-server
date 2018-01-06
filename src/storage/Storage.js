@@ -25,6 +25,10 @@ class Storage {
 	deleteLogs(deleteUpToDate) {
 	}
 
+	deleteSecurityLogs(deleteUpToDate) {
+	}
+
+
 	getConfiguration(chargeBoxIdentity) {
 	}
 

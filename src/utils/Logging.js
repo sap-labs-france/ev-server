@@ -48,6 +48,14 @@ class Logging {
 		Logging._log(log);
 	}
 
+	// Log Info
+	static logSecurityError(log) {
+		// Set
+		log.type = LoggingType.SECURITY;
+		// Log it
+		Logging.logError(log);
+	}
+
 	// Log Error
 	static logError(log) {
 		// Log
@@ -66,11 +74,16 @@ class Logging {
 		return global.storage.deleteLogs(deleteUpToDate);
 	}
 
+	// Delete
+	static deleteSecurityLogs(deleteUpToDate) {
+		return global.storage.deleteSecurityLogs(deleteUpToDate);
+	}
+
 	// Log
 	static logReceivedAction(module, chargeBoxIdentity, action, args, headers) {
 		// Log
 		Logging.logDebug({
-			userFullName: "System", source: chargeBoxIdentity, module: module, method: action,
+			source: chargeBoxIdentity, module: module, method: action,
 			message: `>> OCPP Request Received`,
 			action: action,
 			detailedMessages: {
@@ -84,7 +97,7 @@ class Logging {
 	static logSendAction(module, chargeBoxIdentity, action, args) {
 		// Log
 		Logging.logDebug({
-			userFullName: "System", source: chargeBoxIdentity, module: module, method: action,
+			source: chargeBoxIdentity, module: module, method: action,
 			message: `>> OCPP Request Sent`,
 			action: action,
 			detailedMessages: args
@@ -95,7 +108,7 @@ class Logging {
 	static logReturnedAction(module, chargeBoxIdentity, action, result) {
 		// Log
 		Logging.logDebug({
-			userFullName: "System", source: chargeBoxIdentity, module: module, method: action,
+			source: chargeBoxIdentity, module: module, method: action,
 			message: `<< OCPP Request Returned`,
 			action: action,
 			detailedMessages: {
@@ -122,9 +135,9 @@ class Logging {
 	}
 
 	// Log issues
-	static logUnexpectedErrorMessage(action, module, method, err, source="Central Server", user="System") {
-		Logging.logError({
-			"userFullName": "System",
+	static logUnexpectedErrorMessage(action, module, method, err, source, userFullName) {
+		Logging.logSecurityError({
+			"userFullName": userFullName,
 			"source": source, "module": module, "method": method,
 			"action": action, "message": `${err.message}`,
 			"detailedMessages": err.stack });
@@ -143,9 +156,9 @@ class Logging {
 		if (action==="login" && req.body.password) {
 			req.body.password = "####";
 		}
-		Logging.logError({
+		Logging.logSecurityError({
 			userID: ((req && req.user)?req.user.id:null), userFullName: Utils.buildUserFullName(req.user, false),
-			source: "Central Server", module: exception.module, method: exception.method,
+			module: exception.module, method: exception.method,
 			action: action, message: exception.message,
 			detailedMessages: [{
 				"stack": exception.stack,
@@ -164,7 +177,7 @@ class Logging {
 			} catch(err) {
 				// Log
 				Logging.logWarning({
-					source: "Central Server", module: "Logging", method: "_format",
+					module: "Logging", method: "_format",
 					message: `Error when formatting a Log (stringify): '${err.message}'`,
 					detailedMessages: detailedMessage });
 			}
@@ -185,6 +198,8 @@ class Logging {
 		if (log.user) {
 			log.userID = log.user.id;
 			log.userFullName = Utils.buildUserFullName(log.user, false);
+		} else if (!log.userFullName) {
+			log.userFullName = "System";
 		}
 
 		// Check Array

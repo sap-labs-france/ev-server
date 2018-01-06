@@ -3,7 +3,7 @@ const Configuration = require('./utils/Configuration');
 const Users = require('./utils/Users');
 const SoapCentralSystemServer = require('./server/charging-station/soap/SoapCentralSystemServer');
 const CentralRestServer = require('./server/front-end/CentralRestServer');
-const SchedulerHandler = require('./scheduler/SchedulerHandler');
+const SchedulerManager = require('./scheduler/SchedulerManager');
 const MigrationHandler = require('./migration/MigrationHandler');
 const Logging = require('./utils/Logging');
 
@@ -43,7 +43,7 @@ global.storage.start().then(() => {
 		} catch (err) {
 			// Log
 			Logging.logError({
-				userFullName: "System", source: "Central Server", module: "ImportUsersTask",
+				module: "ImportUsersTask",
 				method: "run", message: `Cannot import users: ${err.toString()}`,
 				detailedMessages: err.stack });
 		}
@@ -91,17 +91,17 @@ global.storage.start().then(() => {
 		// -------------------------------------------------------------------------
 		// Start the Scheduler
 		// -------------------------------------------------------------------------
-		SchedulerHandler.init();
+		SchedulerManager.init();
 	}).catch((error) => {
 		// Log
 		Logging.logError({
-			userFullName: "System", source: "BootStrap", module: "start", method: "-", action: "Migrate",
+			source: "BootStrap", module: "start", method: "-", action: "Migrate",
 			message: `Error occurred during the migration: ${error.toString()}` });
 	});
 }, (error) => {
 	// Log
 	Logging.logError({
-		userFullName: "System", source: "BootStrap", module: "start", method: "-", action: "StartDatabase",
+		source: "BootStrap", module: "start", method: "-", action: "StartDatabase",
 		message: `Cannot start MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}': ${error.toString()}` });
 	console.log(`Cannot start MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}': ${error.toString()}`);
 });

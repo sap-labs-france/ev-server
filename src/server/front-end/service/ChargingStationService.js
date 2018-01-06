@@ -11,7 +11,7 @@ class ChargingStationService {
 			user: req.user, action: action,
 			module: "ChargingStationService",
 			method: "handleGetChargingStationConfiguration",
-			message: `Get Configuration of '${req.query.ChargeBoxIdentity}'`,
+			message: `Get Configuration from '${req.query.ChargeBoxIdentity}'`,
 			detailedMessages: req.query
 		});
 		// Filter
@@ -87,7 +87,7 @@ class ChargingStationService {
 		}).then(() => {
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
+				user: req.user, module: "CentralServerRestService", method: "restServiceSecured",
 				message: `Charging Station '${chargingStation.getChargeBoxIdentity()}' has been deleted successfully`,
 				action: action, detailedMessages: chargingStation});
 			// Ok
@@ -330,7 +330,7 @@ class ChargingStationService {
 			// Check
 			if (!chargerConfiguration) {
 				// Not Found!
-				throw new AppError(`Cannot retrieve the configuration of the Charging Station ${filteredRequest.chargeBoxIdentity}`,
+				throw new AppError(`Cannot retrieve the configuration from the Charging Station ${filteredRequest.chargeBoxIdentity}`,
 					500, "ChargingStationService", "restServiceSecured");
 			}
 
@@ -345,15 +345,15 @@ class ChargingStationService {
 			}
 			if (!maxIntensitySocketMax) {
 				// Not Found!
-				throw new AppError(`Cannot retrieve the max intensity socket from the configuration of the Charging Station ${filteredRequest.chargeBoxIdentity}`,
+				throw new AppError(`Cannot retrieve the max intensity socket from the configuration from the Charging Station ${filteredRequest.chargeBoxIdentity}`,
 					500, "ChargingStationService", "restServiceSecured");
 			}
 			// Check
 			if (filteredRequest.maxIntensity && filteredRequest.maxIntensity >= 0 && filteredRequest.maxIntensity <= maxIntensitySocketMax) {
 				// Log
 				Logging.logSecurityInfo({
-					user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured", action: action,
-					message: `Change Max Instensity Socket of Charging Station '${filteredRequest.chargeBoxIdentity}' has been set to '${filteredRequest.maxIntensity}'`});
+					user: req.user, module: "CentralServerRestService", method: "restServiceSecured", action: action,
+					message: `Change Max Instensity Socket from Charging Station '${filteredRequest.chargeBoxIdentity}' has been set to '${filteredRequest.maxIntensity}'`});
 				// Change the config
 				return chargingStation.requestChangeConfiguration('maxintensitysocket', filteredRequest.maxIntensity);
 			} else {

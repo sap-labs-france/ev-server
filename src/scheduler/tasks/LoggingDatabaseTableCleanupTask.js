@@ -10,7 +10,7 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 
 	run(config) {
 		Logging.logInfo({
-			userFullName: "System", source: "Central Server", module: "LoggingDatabaseTableCleanupTask",
+			module: "LoggingDatabaseTableCleanupTask",
 			method: "run", action: "LogsCleanup",
 			message: `The task 'loggingDatabaseTableCleanupTask' is being run` });
 
@@ -21,17 +21,50 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 			// Ok?
 			if (result.ok === 1) {
 				// Ok
-				Logging.logInfo({
-					userFullName: "System", source: "Central Server", module: "LoggingDatabaseTableCleanupTask",
+				Logging.logSecurityInfo({
+					module: "LoggingDatabaseTableCleanupTask",
 					method: "run", action: "LogsCleanup",
-					message: `${result.n} Log(s) have been deleted up to date ${deleteUpToDate}` });
+					message: `${result.n} Log(s) have been deleted before '${moment(deleteUpToDate).format("DD/MM/YYYY h:mm A")}'`
+				});
 			} else {
 				// Error
 				Logging.logError({
-					userFullName: "System", source: "Central Server", module: "LoggingDatabaseTableCleanupTask",
+					module: "LoggingDatabaseTableCleanupTask",
 					method: "run", action: "LogsCleanup",
-					message: `An error occurred when deleting Logs up to date ${deleteUpToDate}` });
+					message: `An error occurred when deleting Logs before '${moment(deleteUpToDate).format("DD/MM/YYYY h:mm A")}'`,
+					detailedMessages: result
+				});
 			}
+		}).catch((error) => {
+			// Log error
+			Logging.logUnexpectedErrorMessage("LogsCleanup", "LoggingDatabaseTableCleanupTask",
+				"run", error);
+		});
+		// Delete date
+		let securityDeleteUpToDate = moment().subtract(config.securityRetentionPeriodWeeks, "w").startOf("week").toDate().toISOString();
+		// Delete Security Logs
+		Logging.deleteSecurityLogs(securityDeleteUpToDate).then(result => {
+			// Ok?
+			if (result.ok === 1) {
+				// Ok
+				Logging.logSecurityInfo({
+					module: "LoggingDatabaseTableCleanupTask",
+					method: "run", action: "LogsCleanup",
+					message: `${result.n} Security Log(s) have been deleted before '${moment(securityDeleteUpToDate).format("DD/MM/YYYY h:mm A")}'`
+				});
+			} else {
+				// Error
+				Logging.logSecurityError({
+					module: "LoggingDatabaseTableCleanupTask",
+					method: "run", action: "LogsCleanup",
+					message: `An error occurred when deleting Security Logs before '${moment(securityDeleteUpToDate).format("DD/MM/YYYY h:mm A")}'`,
+				 	detailedMessages: result
+				});
+			}
+		}).catch((error) => {
+			// Log error
+			Logging.logUnexpectedErrorMessage("LogsCleanup", "LoggingDatabaseTableCleanupTask",
+				"run", error);
 		});
 	}
 }

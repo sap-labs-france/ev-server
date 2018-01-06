@@ -44,7 +44,7 @@ class UserService {
 		}).then(() => {
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
+				user: req.user, module: "CentralServerRestService", method: "restServiceSecured",
 				message: `User '${user.getFullName()}' with Email '${user.getEMail()}' and ID '${user.getID()}' has been deleted successfully`,
 				action: action, detailedMessages: user});
 			// Ok
@@ -101,7 +101,7 @@ class UserService {
 				if (filteredRequest.role && filteredRequest.role !== userWithId.getRole() && req.user.role !== Users.USER_ROLE_ADMIN) {
 					// Role provided and not an Admin
 					Logging.logError({
-						user: req.user, source: "Central Server", module: "CentralServerRestService", method: "UpdateUser",
+						user: req.user, module: "CentralServerRestService", method: "UpdateUser",
 						message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to change the role of the user ${Utils.buildUserFullName(userWithId.getModel())} to '${filteredRequest.role}' without having the Admin priviledge` });
 					// Override it
 					filteredRequest.role = userWithId.getRole();
@@ -112,7 +112,7 @@ class UserService {
 					if (req.user.role !== Users.USER_ROLE_ADMIN) {
 						// Role provided and not an Admin
 						Logging.logError({
-							user: req.user, source: "Central Server", module: "CentralServerRestService", method: "UpdateUser",
+							user: req.user, module: "CentralServerRestService", method: "UpdateUser",
 							message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to update the status of the user ${Utils.buildUserFullName(userWithId.getModel())} to '${filteredRequest.status}' without having the Admin priviledge` });
 						// Ovverride it
 						filteredRequest.status = userWithId.getStatus();
@@ -138,7 +138,7 @@ class UserService {
 			}).then((updatedUser) => {
 				// Log
 				Logging.logSecurityInfo({
-					user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
+					user: req.user, module: "CentralServerRestService", method: "restServiceSecured",
 					message: `User '${updatedUser.getFullName()}' with Email '${updatedUser.getEMail()}' and ID '${req.user.id}' has been updated successfully`,
 					action: action, detailedMessages: updatedUser});
 				// Notify
@@ -181,6 +181,13 @@ class UserService {
 		// Get the user
 		global.storage.getUser(filteredRequest.ID).then((user) => {
 			if (user) {
+				Logging.logSecurityInfo({
+					user: req.user, action: action,
+					module: "UserService",
+					method: "handleGetUser",
+					message: `User Read is '${Utils.buildUserFullName(req.user)}'`,
+					detailedMessages: req.user
+				});
 				// Set the user
 				res.json(
 					// Filter
@@ -238,8 +245,7 @@ class UserService {
 			user: req.user, action: action,
 			module: "UserService",
 			method: "handleCreateUser",
-			message: `Create User '${Utils.buildUserFullName(req.body, false)}' with Email '${req.body.email}'`,
-			detailedMessages: req.body
+			message: `Create User '${Utils.buildUserFullName(req.body, false)}' with Email '${req.body.email}'`
 		});
 		// Check auth
 		if (!CentralRestServerAuthorization.canCreateUser(req.user)) {
@@ -283,7 +289,7 @@ class UserService {
 				return newUser.save();
 			}).then((createdUser) => {
 				Logging.logSecurityInfo({
-					user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
+					user: req.user, module: "CentralServerRestService", method: "restServiceSecured",
 					message: `User '${createdUser.getFullName()}' with email '${createdUser.getEMail()}' has been created successfully`,
 					action: action, detailedMessages: createdUser});
 				// Ok

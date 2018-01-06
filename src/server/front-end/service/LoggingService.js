@@ -7,12 +7,6 @@ const Utils = require('../../../utils/Utils');
 
 class LoggingService {
 	static handleGetLoggings(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "LoggingService",
-			method: "handleGetLoggings",
-			message: `Read All Logs`
-		});
 		// Check auth
 		if (!CentralRestServerAuthorization.canListLogging(req.user)) {
 			// Not Authorized!

@@ -83,7 +83,8 @@
 				"active": true,
 				"periodicity": "0 0 * * 1",
 				"config": {
-					"retentionPeriodWeeks": 4
+					"retentionPeriodWeeks": 4,
+					"securityRetentionPeriodWeeks": 12
 				}
 			}
 		]

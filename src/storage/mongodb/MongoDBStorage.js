@@ -33,7 +33,7 @@ class MongoDBStorage extends Storage {
 				} else {
 					// Log
 					Logging.logInfo({
-						userFullName: "System", source: "Central Server", module: "MongoDBStorage", method: "start", action: "Startup",
+						module: "MongoDBStorage", method: "start", action: "Startup",
 						message: `Connected to MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}' and using schema '${_dbConfig.schema}'` });
 					// Ok
 					fulfill();
@@ -69,6 +69,11 @@ class MongoDBStorage extends Storage {
 	deleteLogs(deleteUpToDate) {
 		// Delegate
 		return LoggingStorage.handleDeleteLogs(deleteUpToDate);
+	}
+
+	deleteSecurityLogs(deleteUpToDate) {
+		// Delegate
+		return LoggingStorage.handleDeleteSecurityLogs(deleteUpToDate);
 	}
 
 	getConfiguration(chargeBoxIdentity) {

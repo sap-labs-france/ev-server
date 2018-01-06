@@ -31,6 +31,27 @@ class LoggingStorage {
 		});
 	}
 
+	static handleDeleteSecurityLogs(deleteUpToDate) {
+		// Build filter
+		var filter = {};
+		// Delete Only Security Logs
+		filter.type = {};
+		filter.type.$eq = 'S';
+		// Date provided?
+		if (deleteUpToDate) {
+			filter.timestamp = {};
+			filter.timestamp.$lte = new Date(deleteUpToDate);
+		} else {
+			return;
+		}
+		return MDBLog.remove(filter).then((result) => {
+			// Notify Change
+			_centralRestServer.notifyLoggingDeleted();
+			// Return the result
+			return result.result;
+		});
+	}
+
 	static handleSaveLog(log) {
 		// Create model
 		var logMDB = new MDBLog(log);
@@ -113,7 +134,6 @@ class LoggingStorage {
 			// default
 			sort.timestamp = -1;
 		}
-		console.log(filter);
 		// Exec request
 		return MDBLog.find(filter).sort(sort).limit(numberOfLogs).exec().then((loggingsMDB) => {
 			var loggings = [];

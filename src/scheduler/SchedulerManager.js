@@ -5,13 +5,13 @@ const LoggingDatabaseTableCleanupTask = require('./tasks/LoggingDatabaseTableCle
 
 _schedulerConfig = Configuration.getSchedulerConfig();
 
-class SchedulerHandler {
+class SchedulerManager {
 	static init() {
 		// Active?
 		if (_schedulerConfig.active) {
 			// Log
 			Logging.logInfo({
-				userFullName: "System", source: "Central Server", module: "Scheduler",
+				module: "Scheduler",
 				method: "init", action: "Initialization",
 				message: `The Scheduler is active` });
 			// Yes: init
@@ -20,7 +20,7 @@ class SchedulerHandler {
 				if (!task.active) {
 					// Log
 					Logging.logError({
-						userFullName: "System", source: "Central Server", module: "Scheduler",
+						module: "Scheduler",
 						method: "init", action: "Initialization",
 						message: `The task '${task.name}' is inactive` });
 					// No
@@ -33,7 +33,7 @@ class SchedulerHandler {
 						let loggingDatabaseTableCleanupTask = new LoggingDatabaseTableCleanupTask();
 						cron.schedule(task.periodicity, loggingDatabaseTableCleanupTask.run.bind(this, task.config));
 						Logging.logInfo({
-							userFullName: "System", source: "Central Server", module: "Scheduler",
+							module: "Scheduler",
 							method: "init", action: "Initialization",
 							message: `The task '${task.name}' has been scheduled with periodicity ''${task.periodicity}'` });
 						break;
@@ -42,7 +42,7 @@ class SchedulerHandler {
 					default:
 						// Log
 						Logging.logError({
-							userFullName: "System", source: "Central Server", module: "Scheduler",
+							module: "Scheduler",
 							method: "init", action: "Initialization",
 							message: `The task '${task.name}' is unknown` });
 				}
@@ -50,11 +50,11 @@ class SchedulerHandler {
 		} else {
 			// Log
 			Logging.logError({
-				userFullName: "System", source: "Central Server", module: "Scheduler",
+				module: "Scheduler",
 				method: "init", action: "Initialization",
 				message: `The Scheduler is inactive` });
 		}
 	}
 }
 
-module.exports=SchedulerHandler;
+module.exports=SchedulerManager;

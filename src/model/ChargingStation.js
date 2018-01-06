@@ -50,7 +50,7 @@ class ChargingStation {
 			default:
 				// Log
 				Logging.logError({
-					userFullName: "System", source: "Central Server", module: "ChargingStation", method: "handleAction",
+					module: "ChargingStation", method: "handleAction",
 					message: `Action does not exist: ${action}` });
 				throw new Error(`Action does not exist: ${action}`);
 		}
@@ -324,7 +324,7 @@ class ChargingStation {
 							connector.totalConsumption = totalConsumption;
 							// Log
 							Logging.logInfo({
-								userFullName: "System", source: "Central Server", module: "ChargingStation",
+								module: "ChargingStation",
 								method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
 								message: `${this.getChargeBoxIdentity()} - ${connector.connectorId} - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
 						}
@@ -342,7 +342,7 @@ class ChargingStation {
 						connector.totalConsumption = 0;
 						// Log
 						Logging.logInfo({
-							userFullName: "System", source: "Central Server", module: "ChargingStation",
+							module: "ChargingStation",
 							method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
 							message: `${this.getChargeBoxIdentity()} - ${connector.connectorId} - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
 						// Save
@@ -352,7 +352,7 @@ class ChargingStation {
 			} else {
 				// Log
 				Logging.logError({
-					userFullName: "System", source: "Central Server", module: "ChargingStation",
+					module: "ChargingStation",
 					method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
 					message: `${this.getChargeBoxIdentity()} - Transaction ID '${transactionId}' not found` });
 			}
@@ -403,7 +403,7 @@ class ChargingStation {
 									} else {
 										// Cannot unlock the connector
 										Logging.logError({
-											userFullName: "System", source: "Central Server", module: "ChargingStation", method: "handleNotificationEndOfCharge",
+											module: "ChargingStation", method: "handleNotificationEndOfCharge",
 											action: "NotifyEndOfCharge", message: `Cannot unlock the connector '${transaction.connectorId}' of the Charging Station '${this.getChargeBoxIdentity()}'`,
 											detailedMessages: transaction});
 										}
@@ -411,7 +411,7 @@ class ChargingStation {
 							} else {
 								// Cannot stop the transaction
 								Logging.logError({
-									userFullName: "System", source: "Central Server", module: "ChargingStation", method: "handleNotificationEndOfCharge",
+									module: "ChargingStation", method: "handleNotificationEndOfCharge",
 									action: "NotifyEndOfCharge", message: `Cannot stop the transaction of the Charging Station '${this.getChargeBoxIdentity()}'`,
 									detailedMessages: transaction});
 							}
@@ -475,7 +475,7 @@ class ChargingStation {
 		return global.storage.saveMeterValues(newMeterValues).then(() => {
 			// Log
 			Logging.logInfo({
-				userFullName: "System", source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "saveMeterValues",
+				source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "saveMeterValues",
 				action: "MeterValues", message: `Meter Values saved successfully`,
 				detailedMessages: newMeterValues });
 
@@ -956,7 +956,7 @@ class ChargingStation {
 		if (totalNbrOfMetrics) {
 			// Log
 			Logging.logDebug({
-				userFullName: "System", source: this.getChargeBoxIdentity(), module: "ChargingStation",
+				source: this.getChargeBoxIdentity(), module: "ChargingStation",
 				method: "buildConsumption", action:"BuildConsumption",
 				message: `Consumption - ${meterValues.length} metrics, ${totalNbrOfMetrics} relevant, ${chargingStationConsumption.values.length} returned` });
 		}
