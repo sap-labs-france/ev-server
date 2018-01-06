@@ -18,7 +18,7 @@ const SOURCE_UNKNOWN_USER_BADGED = "NotifyUnknownUserBadged";
 const SOURCE_TRANSACTION_STARTED = "NotifyTransactionStarted";
 
 class NotificationHandler {
-	static saveNotification(channel, sourceId, sourceDescr, user, chargingStation, details="") {
+	static saveNotification(channel, sourceId, sourceDescr, user, chargingStation) {
 		// Save it
 		return global.storage.saveNotification({
 			timestamp: new Date(),
@@ -33,14 +33,14 @@ class NotificationHandler {
 				// User
 				Logging.logInfo({
 					module: "Notification", method: "saveNotification",
-					action: sourceDescr, message: `User ${Utils.buildUserFullName(user)} has been notified successfully`,
-					detailedMessages: details});
+					action: sourceDescr, message: `User ${Utils.buildUserFullName(user)} has been notified successfully`
+				});
 			} else {
 				// Admin
 				Logging.logInfo({
 					module: "Notification", method: "saveNotification",
-					action: sourceDescr, message: `Admin users have been notified successfully`,
-					detailedMessages: details});
+					action: sourceDescr, message: `Admin users have been notified successfully`
+				});
 			}
 		}).catch((error) => {
 			// Log error

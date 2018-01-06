@@ -185,7 +185,7 @@ class UserService {
 					user: req.user, action: action,
 					module: "UserService",
 					method: "handleGetUser",
-					message: `User Read is '${Utils.buildUserFullName(req.user)}'`,
+					message: `Read User '${Utils.buildUserFullName(req.user)}'`,
 					detailedMessages: req.user
 				});
 				// Set the user

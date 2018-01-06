@@ -3,16 +3,52 @@ const CentralRestServerAuthorization = require('../CentralRestServerAuthorizatio
 const Logging = require('../../../utils/Logging');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
+const User = require('../../../model/User');
 const Users = require('../../../utils/Users');
+const Utils = require('../../../utils/Utils');
+const Configuration = require('../../../utils/Configuration');
+const Authorization = require('../../../utils/Authorization');
+const NotificationHandler = require('../../../notification/NotificationHandler');
+const compileProfile = require('node-authorization').profileCompiler;
+const passport = require('passport');
+const JwtStrategy = require('passport-jwt').Strategy;
+const ExtractJwt = require('passport-jwt').ExtractJwt;
+const jwt = require('jsonwebtoken');
+const Mustache = require('mustache');
+const moment = require('moment');
+const https = require('https');
+
+let _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
+
+// Init JWT auth options
+let jwtOptions = {
+	jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+	secretOrKey: _centralSystemRestConfig.userTokenKey
+	// issuer: 'evse-dashboard',
+	// audience: 'evse-dashboard'
+};
+
+// Use
+passport.use(new JwtStrategy(jwtOptions, (jwtPayload, done) => {
+	// Return the token decoded right away
+	return done(null, jwtPayload);
+}));
 
 class AuthService {
+	static initialize() {
+		return passport.initialize();
+	}
+
+	static authenticate() {
+		return passport.authenticate('jwt', { session: false });
+	}
+
 	static handleLogIn(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
 			module: "AuthService",
 			method: "handleLogIn",
-			message: `User Logs in with Email '${req.body.email}'`,
-			detailedMessages: req.body
+			message: `User Logs In with Email '${req.body.email}'`
 		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterLoginRequest(req.body);
@@ -113,7 +149,7 @@ class AuthService {
 						return Users.hashPasswordBcrypt(filteredRequest.password);
 					}).then((newPasswordHashed) => {
 						// Create the user
-						var newUser = new User(filteredRequest);
+						let newUser = new User(filteredRequest);
 						// Set data
 						newUser.setStatus(Users.USER_STATUS_PENDING);
 						newUser.setRole(Users.USER_ROLE_BASIC);
@@ -202,8 +238,7 @@ class AuthService {
 							user: req.user, action: action,
 							module: "AuthService",
 							method: "handleUserPasswordReset",
-							message: `User with Email '${req.body.email}' will receive an email to reset his password`,
-							detailedMessages: req.body
+							message: `User with Email '${req.body.email}' will receive an email to reset his password`
 						});
 						// Send notification
 						NotificationHandler.sendResetPassword(
@@ -318,11 +353,11 @@ class AuthService {
 					// Get authorisation
 					let userRole = Authorization.getAuthorizationFromRoleID(user.getRole());
 					// Parse the auth and replace values
-					var parsedAuths = Mustache.render(JSON.stringify(userRole.auths), {"user": user.getModel()});
+					let parsedAuths = Mustache.render(JSON.stringify(userRole.auths), {"user": user.getModel()});
 					// Compile auths of the role
-					var compiledAuths = compileProfile(JSON.parse(parsedAuths));
+					let compiledAuths = compileProfile(JSON.parse(parsedAuths));
 					// Yes: build payload
-					var payload = {
+					let payload = {
 							id: user.getID(),
 							role: user.getRole(),
 							name: user.getName(),
@@ -330,7 +365,7 @@ class AuthService {
 							auths: compiledAuths
 					};
 					// Build token
-					var token;
+					let token;
 					// Role Demo?
 					if (CentralRestServerAuthorization.isDemo(user.getModel()) ||
 							CentralRestServerAuthorization.isCorporate(user.getModel())) {
