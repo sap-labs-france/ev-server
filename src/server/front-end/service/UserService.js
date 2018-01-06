@@ -10,6 +10,13 @@ const Database = require('../../../utils/Database');
 
 class UserService {
 	static handleDeleteUser(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "UserService",
+			method: "handleDeleteUser",
+			message: `Delete User with ID '${req.query.ID}'`,
+			detailedMessages: req.query
+		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterUserDeleteRequest(req.query, req.user);
 		// Check Mandatory fields
@@ -36,9 +43,9 @@ class UserService {
 			return user.delete();
 		}).then(() => {
 			// Log
-			Logging.logInfo({
+			Logging.logSecurityInfo({
 				user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
-				message: `User ${user.getFullName()} with Email ${user.getEMail()} and ID '${user.getID()}' has been deleted successfully`,
+				message: `User '${user.getFullName()}' with Email '${user.getEMail()}' and ID '${user.getID()}' has been deleted successfully`,
 				action: action, detailedMessages: user});
 			// Ok
 			res.json({status: `Success`});
@@ -50,6 +57,13 @@ class UserService {
 	}
 
 	static handleUpdateUser(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "UserService",
+			method: "handleUpdateUser",
+			message: `Update User '${Utils.buildUserFullName(req.body, false)}' (ID '${req.body.id}')`,
+			detailedMessages: req.body
+		});
 		let statusHasChanged=false;
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterUserUpdateRequest( req.body, req.user );
@@ -123,9 +137,9 @@ class UserService {
 				return userWithId.save();
 			}).then((updatedUser) => {
 				// Log
-				Logging.logInfo({
+				Logging.logSecurityInfo({
 					user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
-					message: `User ${updatedUser.getFullName()} with Email ${updatedUser.getEMail()} and ID '${req.user.id}' has been updated successfully`,
+					message: `User '${updatedUser.getFullName()}' with Email '${updatedUser.getEMail()}' and ID '${req.user.id}' has been updated successfully`,
 					action: action, detailedMessages: updatedUser});
 				// Notify
 				if (statusHasChanged) {
@@ -150,6 +164,13 @@ class UserService {
 	}
 
 	static handleGetUser(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "UserService",
+			method: "handleGetUser",
+			message: `Read User ID '${req.query.ID}'`,
+			detailedMessages: req.query
+		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterUserRequest(req.query, req.user);
 		// User mandatory
@@ -177,6 +198,12 @@ class UserService {
 	}
 
 	static handleGetUsers(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "UserService",
+			method: "handleGetUsers",
+			message: `Read All Users`
+		});
 		// Check auth
 		if (!CentralRestServerAuthorization.canListUsers(req.user)) {
 			// Not Authorized!
@@ -207,6 +234,13 @@ class UserService {
 	}
 
 	static handleCreateUser(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "UserService",
+			method: "handleCreateUser",
+			message: `Create User '${Utils.buildUserFullName(req.body, false)}' with Email '${req.body.email}'`,
+			detailedMessages: req.body
+		});
 		// Check auth
 		if (!CentralRestServerAuthorization.canCreateUser(req.user)) {
 			// Not Authorized!
@@ -248,9 +282,9 @@ class UserService {
 				// Save
 				return newUser.save();
 			}).then((createdUser) => {
-				Logging.logInfo({
+				Logging.logSecurityInfo({
 					user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
-					message: `User ${createdUser.getFullName()} with email ${createdUser.getEMail()} has been created successfully`,
+					message: `User '${createdUser.getFullName()}' with email '${createdUser.getEMail()}' has been created successfully`,
 					action: action, detailedMessages: createdUser});
 				// Ok
 				res.json({status: `Success`});

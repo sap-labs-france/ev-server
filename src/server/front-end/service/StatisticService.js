@@ -9,6 +9,12 @@ const Users = require('../../../utils/Users');
 
 class StatisticService {
 	static handleUserUsageStatistics(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "StatisticService",
+			method: "handleUserUsageStatistics",
+			message: `Read User Usage Statistics`
+		});
 		let filter = {stop: {$exists: true}};
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterUserStatisticsRequest(req.query, req.user);
@@ -72,6 +78,12 @@ class StatisticService {
 	}
 
 	static handleGetUserConsumptionStatistics(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "StatisticService",
+			method: "handleGetUserConsumptionStatistics",
+			message: `Read User Consumption Statistics`
+		});
 		let filter = {stop: {$exists: true}};
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterUserStatisticsRequest(req.query, req.user);
@@ -132,6 +144,12 @@ class StatisticService {
 	}
 
 	static handleGetChargingStationUsageStatistics(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "StatisticService",
+			method: "handleGetChargingStationUsageStatistics",
+			message: `Read Charging Station Usage Statistics`
+		});
 		let filter = {stop: {$exists: true}};
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationStatisticsRequest(req.query, req.user);
@@ -193,6 +211,12 @@ class StatisticService {
 	}
 
 	static handleGetChargingStationConsumptionStatistics(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "StatisticService",
+			method: "handleGetChargingStationConsumptionStatistics",
+			message: `Read Charging Station Consumption Statistics`
+		});
 		let filter = {stop: {$exists: true}};
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationStatisticsRequest(req.query, req.user);

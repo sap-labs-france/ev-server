@@ -55,7 +55,7 @@ class ChargingStationService {
 			user: req.user, action: action,
 			module: "ChargingStationService",
 			method: "handleDeleteChargingStation",
-			message: `Delete '${req.query.ChargeBoxIdentity}'`,
+			message: `Delete Charging Station '${req.query.ID}'`,
 			detailedMessages: req.query
 		});
 		// Filter
@@ -86,9 +86,9 @@ class ChargingStationService {
 			return global.storage.deleteChargingStation(filteredRequest.ID);
 		}).then(() => {
 			// Log
-			Logging.logInfo({
+			Logging.logSecurityInfo({
 				user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured",
-				message: `Charging Station ${chargingStation.getChargeBoxIdentity()} has been deleted successfully`,
+				message: `Charging Station '${chargingStation.getChargeBoxIdentity()}' has been deleted successfully`,
 				action: action, detailedMessages: chargingStation});
 			// Ok
 			res.json({status: `Success`});
@@ -104,7 +104,7 @@ class ChargingStationService {
 			user: req.user, action: action,
 			module: "ChargingStationService",
 			method: "handleGetChargingStation",
-			message: `Read '${req.query.ChargeBoxIdentity}'`,
+			message: `Read Charging Station '${req.query.ChargeBoxIdentity}'`,
 			detailedMessages: req.query
 		});
 		// Filter
@@ -219,7 +219,7 @@ class ChargingStationService {
 			user: req.user, action: action,
 			module: "ChargingStationService",
 			method: "handleAction",
-			message: `Execute Action '${action}' on '${req.body.chargeBoxIdentity}'`,
+			message: `Execute Action '${action}' on Charging Station '${req.body.chargeBoxIdentity}'`,
 			detailedMessages: req.body
 		});
 		// Filter
@@ -274,6 +274,13 @@ class ChargingStationService {
 				return chargingStation.handleAction(action, filteredRequest.args);
 			}
 		}).then((result) => {
+			Logging.logSecurityInfo({
+				user: req.user, action: action,
+				module: "ChargingStationService",
+				method: "handleAction",
+				message: `Action '${action}' has been executed on Charging Station '${req.body.chargeBoxIdentity}'`,
+				detailedMessages: result
+			});
 			// Return the result
 			res.json(result);
 			next();
@@ -290,7 +297,7 @@ class ChargingStationService {
 			user: req.user, action: action,
 			module: "ChargingStationService",
 			method: "handleActionSetMaxIntensitySocket",
-			message: `Execute Action '${action}' on '${req.body.chargeBoxIdentity}'`,
+			message: `Execute Action '${action}' on Charging Station '${req.body.chargeBoxIdentity}'`,
 			detailedMessages: req.body
 		});
 		// Filter
@@ -344,9 +351,9 @@ class ChargingStationService {
 			// Check
 			if (filteredRequest.maxIntensity && filteredRequest.maxIntensity >= 0 && filteredRequest.maxIntensity <= maxIntensitySocketMax) {
 				// Log
-				Logging.logInfo({
+				Logging.logSecurityInfo({
 					user: req.user, source: "Central Server", module: "CentralServerRestService", method: "restServiceSecured", action: action,
-					message: `Change Max Instensity Socket of Charging Station '${filteredRequest.chargeBoxIdentity}' to ${filteredRequest.maxIntensity}`});
+					message: `Change Max Instensity Socket of Charging Station '${filteredRequest.chargeBoxIdentity}' has been set to '${filteredRequest.maxIntensity}'`});
 				// Change the config
 				return chargingStation.requestChangeConfiguration('maxintensitysocket', filteredRequest.maxIntensity);
 			} else {

@@ -9,6 +9,13 @@ const Users = require('../../../utils/Users');
 
 class TransactionService {
 	static handleGetChargingStationConsumptionFromTransaction(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "TransactionService",
+			method: "handleGetChargingStationConsumptionFromTransaction",
+			message: `Read Consumption from Charging Station '${req.query.ChargeBoxIdentity}'`,
+			detailedMessages: req.query
+		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationConsumptionFromTransactionRequest(req.query, req.user);
 		// Transaction Id is mandatory
@@ -94,6 +101,13 @@ class TransactionService {
 	}
 
 	static handleGetTransaction(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "TransactionService",
+			method: "handleGetTransaction",
+			message: `Read Transaction ID '${req.query.TransactionId}'`,
+			detailedMessages: req.query
+		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterTransactionRequest(req.query, req.user);
 		// Charge Box is mandatory
@@ -123,6 +137,13 @@ class TransactionService {
 	}
 
 	static handleGetChargingStationTransactions(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "TransactionService",
+			method: "handleGetChargingStationTransactions",
+			message: `Read Transactions from Charging Station '${req.query.ChargeBoxIdentity}'`,
+			detailedMessages: req.query
+		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationTransactionsRequest(req.query, req.user);
 		// Charge Box is mandatory
@@ -162,6 +183,13 @@ class TransactionService {
 	}
 
 	static handleGetActiveTransactions(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "TransactionService",
+			method: "handleGetActiveTransactions",
+			message: `Read Active Transactions`,
+			detailedMessages: req.query
+		});
 		let filter = { stop: { $exists: false } };
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterActiveTransactionsRequest(req.query, req.user);
@@ -187,6 +215,13 @@ class TransactionService {
 	}
 
 	static handleGetCompletedTransactions(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "TransactionService",
+			method: "handleGetCompletedTransactions",
+			message: `Read Completed Transactions`,
+			detailedMessages: req.query
+		});
 		let pricing;
 		let filter = {stop: {$exists: true}};
 		// Filter

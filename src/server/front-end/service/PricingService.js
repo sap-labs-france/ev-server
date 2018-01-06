@@ -44,8 +44,8 @@ class PricingService {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
 			module: "PricingService",
-			method: "handleGetPricing",
-			message: `Update Pricing to ${req.body.priceKWH} ${req.body.priceUnit}`,
+			method: "handleUpdatePricing",
+			message: `Update Pricing to '${req.body.priceKWH} ${req.body.priceUnit}'`,
 			detailedMessages: req.body
 		});
 		// Check auth
@@ -70,6 +70,13 @@ class PricingService {
 		pricing.timestamp = new Date();
 		// Get
 		global.storage.savePricing(pricing).then((pricingMDB) => {
+			Logging.logSecurityInfo({
+				user: req.user, action: action,
+				module: "PricingService",
+				method: "handleUpdatePricing",
+				message: `Pricing has been updated to '${req.body.priceKWH} ${req.body.priceUnit}'`,
+				detailedMessages: req.body
+			});
 			// Ok
 			res.json({status: `Success`});
 			next();
