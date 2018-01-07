@@ -14,7 +14,7 @@ class SecurityRestObjectFiltering {
 		return filteredRequest;
 	}
 
-	static filterSoftStopTransaction(request, loggedUser) {
+	static filterTransactionSoftStop(request, loggedUser) {
 		let filteredRequest = {};
 		// Set
 		filteredRequest.transactionId = request.transactionId;
@@ -418,7 +418,7 @@ class SecurityRestObjectFiltering {
 			if (transaction.stop) {
 				filteredTransaction.stop = {};
 				filteredTransaction.stop.timestamp = transaction.stop.timestamp;
-				filteredTransaction.stop.totalConsfilterTransactionResponseumption = transaction.stop.totalConsumption;
+				filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
 				// Admin?
 				if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
 					filteredTransaction.stop.price = transaction.stop.price;

@@ -196,9 +196,9 @@ module.exports = {
 					break;
 
 				// Transaction
-				case "SoftStopTransaction":
+				case "TransactionSoftStop":
 					// Delegate
-					TransactionService.handleSoftStopTransaction(action, req, res, next);
+					TransactionService.handleTransactionSoftStop(action, req, res, next);
 					break;
 
 				// Not found
