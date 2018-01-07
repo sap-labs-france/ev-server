@@ -61,6 +61,8 @@ class TransactionStorage {
 			// Set the User data
 			if(stopTransaction.idTag) {
 				transactionMDB.stop.tagID = stopTransaction.idTag;
+			}
+			if(stopTransaction.user) {
 				transactionMDB.stop.userID = stopTransaction.user.getID();
 			}
 			// Create new

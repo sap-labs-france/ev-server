@@ -195,7 +195,13 @@ module.exports = {
 					UserService.handleUpdateUser(action, req, res, next);
 					break;
 
-					// Not found
+				// Transaction
+				case "SoftStopTransaction":
+					// Delegate
+					TransactionService.handleSoftStopTransaction(action, req, res, next);
+					break;
+
+				// Not found
 				default:
 					// Delegate
 					UtilsService.handleUnknownAction(action, req, res, next);

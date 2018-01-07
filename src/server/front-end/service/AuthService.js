@@ -64,7 +64,8 @@ class AuthService {
 		// Check email
 		global.storage.getUserByEmail(filteredRequest.email).then((user) => {
 			if (!user) {
-				throw new AppError(`The user with email ${filteredRequest.email} does not exist`, 500, "CentralRestServerAuthentication", "authService");
+				throw new AppError(`The user with email ${filteredRequest.email} does not exist`, 500,
+					"AuthService", "handleLogIn");
 			}
 			// Check if the number of trials is reached
 			if (user.getPasswordWrongNbrTrials() >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
@@ -143,7 +144,8 @@ class AuthService {
 					// Check email
 					global.storage.getUserByEmail(filteredRequest.email).then((user) => {
 						if (user) {
-							throw new AppError(`The email ${filteredRequest.email} already exists`, 510, "CentralRestServerAuthentication", "authService");
+							throw new AppError(`The email ${filteredRequest.email} already exists`, 510,
+								"AuthService", "handleRegisterUser");
 						}
 						// Generate a password
 						return Users.hashPasswordBcrypt(filteredRequest.password);
@@ -227,7 +229,8 @@ class AuthService {
 					global.storage.getUserByEmail(filteredRequest.email).then((user) => {
 						// Found?
 						if (!user) {
-							throw new AppError(`User with email ${filteredRequest.email} does not exist`, 545, "CentralRestServerAuthentication", "authService");
+							throw new AppError(`User with email ${filteredRequest.email} does not exist`, 545,
+								"AuthService", "handleUserPasswordReset");
 						}
 						// Hash it
 						user.setPasswordResetHash(resetHash);
@@ -276,11 +279,13 @@ class AuthService {
 			}).then((user) => {
 				// Found?
 				if (!user) {
-					throw new AppError(`User with email ${filteredRequest.email} does not exist`, 545, "CentralRestServerAuthentication", "authService");
+					throw new AppError(`User with email ${filteredRequest.email} does not exist`, 545,
+						"AuthService", "handleUserPasswordReset");
 				}
 				// Check the hash from the db
 				if (!user.getPasswordResetHash() || filteredRequest.hash !== user.getPasswordResetHash()) {
-					throw new AppError(`The user's hash '${user.getPasswordResetHash()}' do not match`, 535, "CentralRestServerAuthentication", "authService");
+					throw new AppError(`The user's hash '${user.getPasswordResetHash()}' do not match`, 535,
+						"AuthService", "handleUserPasswordReset");
 				}
 				// Set the hashed password
 				user.setPassword(newHashedPassword);

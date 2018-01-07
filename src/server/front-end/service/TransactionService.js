@@ -9,6 +9,89 @@ const Users = require('../../../utils/Users');
 const moment = require('moment');
 
 class TransactionService {
+
+	static handleSoftStopTransaction(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "TransactionService",
+			method: "handleGetSoftStopTransaction",
+			message: `Soft Stop Transaction ID '${req.body.transactionId}'`,
+			detailedMessages: req.body
+		});
+		// Filter
+		let filteredRequest = SecurityRestObjectFiltering.filterSoftStopTransaction(req.body, req.user);
+		// Transaction Id is mandatory
+		if(!filteredRequest.transactionId) {
+			Logging.logActionExceptionMessageAndSendResponse(
+				action, new Error(`The Transaction ID is mandatory`), req, res, next);
+			return;
+		}
+		// Get Transaction
+		let transaction;
+		let chargingStation;
+		global.storage.getTransaction(filteredRequest.transactionId).then((foundTransaction) => {
+			transaction = foundTransaction;
+			// Found?
+			if (!transaction) {
+				// Not Found!
+				throw new AppError(`Transaction ${filteredRequest.transactionId} does not exist`,
+					500, "TransactionService", "handleSoftStopTransaction");
+			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.userID)) {
+				// Not Authorized!
+				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
+					CentralRestServerAuthorization.ENTITY_USER,
+					transaction.userID, 500, "TransactionService", "handleSoftStopTransaction");
+			}
+			// Get the Charging Station
+			return global.storage.getChargingStation(transaction.chargeBoxID.chargeBoxIdentity);
+		}).then((foundChargingStation) => {
+			chargingStation = foundChargingStation;
+			// Found?
+			if (!chargingStation) {
+				// Not Found!
+				throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
+					500, "TransactionService", "handleSoftStopTransaction");
+			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
+				// Not Authorized!
+				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ, CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
+					chargingStation.getChargeBoxIdentity(), 500, "TransactionService", "handleSoftStopTransaction");
+			}
+			// Get logged user
+			return global.storage.getUser(req.user.id);
+		}).then((user) => {
+			// Check
+			if (!user) {
+				// Not Found!
+				throw new AppError(`The user with ID ${req.user.id} does not exist`,
+					500, "TransactionService", "handleSoftStopTransaction");
+			}
+			// Stop Transaction
+			let stopTransaction = {};
+			stopTransaction.transactionId = transaction.transactionId;
+			stopTransaction.userID = req.user.id;
+			stopTransaction.timestamp = new Date().toISOString();
+			stopTransaction.meterStop = 0;
+			// Save
+			chargingStation.saveStopTransaction(stopTransaction).then(() => {
+				// Log
+				Logging.logSecurityInfo({
+					user: req.user, module: "TransactionService", method: "handleSoftStopTransaction",
+					message: `User '${Utils.buildUserFullName(user.getModel())}' has stopped transaction on Charging Station '${transaction.chargeBoxID.chargeBoxIdentity}'-'${transaction.connectorId}' used by User '${Utils.buildUserFullName(transaction.userID)}' successfully`,
+					action: action, detailedMessages: user});
+				// Ok
+				res.json({status: `Success`});
+				next();
+			});
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
 	static handleGetChargingStationConsumptionFromTransaction(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
@@ -33,7 +116,14 @@ class TransactionService {
 			if (!transaction) {
 				// Not Found!
 				throw new AppError(`Transaction ${filteredRequest.TransactionId} does not exist`,
-					500, "TransactionService", "restServiceSecured");
+					500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
+			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.userID)) {
+				// Not Authorized!
+				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
+					CentralRestServerAuthorization.ENTITY_USER,
+					transaction.userID, 500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
 			}
 			// Get the Charging Station
 			return global.storage.getChargingStation(transaction.chargeBoxID.chargeBoxIdentity);
@@ -43,13 +133,13 @@ class TransactionService {
 			if (!chargingStation) {
 				// Not Found!
 				throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
-					500, "TransactionService", "restServiceSecured");
+					500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ, CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
-					chargingStation.getChargeBoxIdentity(), 500, "TransactionService", "restServiceSecured");
+					chargingStation.getChargeBoxIdentity(), 500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
 			}
 			// Check dates
 			if (filteredRequest.StartDateTime) {
@@ -122,7 +212,14 @@ class TransactionService {
 			if (!transaction) {
 				// Not Found!
 				throw new AppError(`Transaction ${filteredRequest.TransactionId} does not exist`,
-					500, "TransactionService", "restServiceSecured");
+					500, "TransactionService", "handleGetTransaction");
+			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.userID)) {
+				// Not Authorized!
+				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
+					CentralRestServerAuthorization.ENTITY_USER,
+					transaction.userID, 500, "TransactionService", "handleGetTransaction");
 			}
 			// Return
 			res.json(
@@ -163,12 +260,19 @@ class TransactionService {
 			if (!chargingStation) {
 				// Not Found!
 				throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
-					500, "TransactionService", "restServiceSecured");
+					500, "TransactionService", "handleGetChargingStationTransactions");
+			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
+				// Not Authorized!
+				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
+					CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(),
+					500, "TransactionService", "handleGetChargingStationTransactions");
 			}
 			// Set the model
 			return chargingStation.getTransactions(filteredRequest.ConnectorId,
-					filteredRequest.StartDateTime, filteredRequest.EndDateTime,
-					Users.WITH_NO_IMAGE);
+				filteredRequest.StartDateTime, filteredRequest.EndDateTime,
+				Users.WITH_NO_IMAGE);
 		}).then((transactions) => {
 			// Return
 			res.json(

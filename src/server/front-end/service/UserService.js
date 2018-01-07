@@ -30,22 +30,22 @@ class UserService {
 			user = foundUser;
 			if (!user) {
 				throw new AppError(`The user with ID ${filteredRequest.id} does not exist anymore`,
-					500, "UserService", "restServiceSecured");
+					500, "UserService", "handleDeleteUser");
 			}
 			// Check authchargingStation
 			if (!CentralRestServerAuthorization.canDeleteUser(req.user, user.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
 					CentralRestServerAuthorization.ENTITY_USER, user.getID(),
-					500, "UserService", "restServiceSecured");
+					500, "UserService", "handleDeleteUser");
 			}
 			// Delete
 			return user.delete();
 		}).then(() => {
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "CentralServerRestService", method: "restServiceSecured",
-				message: `User '${user.getFullName()}' with Email '${user.getEMail()}' and ID '${user.getID()}' has been deleted successfully`,
+				user: req.user, module: "UserService", method: "handleDeleteUser",
+				message: `User '${Utils.buildUserFullName(user.getModel())}' with Email '${user.getEMail()}' has been deleted successfully`,
 				action: action, detailedMessages: user});
 			// Ok
 			res.json({status: `Success`});
@@ -74,7 +74,7 @@ class UserService {
 			global.storage.getUser(filteredRequest.id).then((user) => {
 				if (!user) {
 					throw new AppError(`The user with ID ${filteredRequest.id} does not exist anymore`,
-						550, "UserService", "restServiceSecured");
+						550, "UserService", "handleUpdateUser");
 				}
 				// Keep
 				userWithId = user;
@@ -85,7 +85,7 @@ class UserService {
 			}).then((userWithEmail) => {
 				if (userWithEmail && userWithId.getID() !== userWithEmail.getID()) {
 					throw new AppError(`The email ${filteredRequest.email} already exists`,
-						510, "UserService", "restServiceSecured");
+						510, "UserService", "handleUpdateUser");
 				}
 				// Generate a password
 				return Users.hashPasswordBcrypt(filteredRequest.password);
@@ -101,7 +101,7 @@ class UserService {
 				if (filteredRequest.role && filteredRequest.role !== userWithId.getRole() && req.user.role !== Users.USER_ROLE_ADMIN) {
 					// Role provided and not an Admin
 					Logging.logError({
-						user: req.user, module: "CentralServerRestService", method: "UpdateUser",
+						user: req.user, module: "UserService", method: "UpdateUser",
 						message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to change the role of the user ${Utils.buildUserFullName(userWithId.getModel())} to '${filteredRequest.role}' without having the Admin priviledge` });
 					// Override it
 					filteredRequest.role = userWithId.getRole();
@@ -112,7 +112,7 @@ class UserService {
 					if (req.user.role !== Users.USER_ROLE_ADMIN) {
 						// Role provided and not an Admin
 						Logging.logError({
-							user: req.user, module: "CentralServerRestService", method: "UpdateUser",
+							user: req.user, module: "UserService", method: "UpdateUser",
 							message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to update the status of the user ${Utils.buildUserFullName(userWithId.getModel())} to '${filteredRequest.status}' without having the Admin priviledge` });
 						// Ovverride it
 						filteredRequest.status = userWithId.getStatus();
@@ -138,8 +138,8 @@ class UserService {
 			}).then((updatedUser) => {
 				// Log
 				Logging.logSecurityInfo({
-					user: req.user, module: "CentralServerRestService", method: "restServiceSecured",
-					message: `User '${updatedUser.getFullName()}' with Email '${updatedUser.getEMail()}' and ID '${req.user.id}' has been updated successfully`,
+					user: req.user, module: "UserService", method: "handleUpdateUser",
+					message: `User '${Utils.buildUserFullName(updatedUser.getModel())}' with Email '${updatedUser.getEMail()}' has been updated successfully`,
 					action: action, detailedMessages: updatedUser});
 				// Notify
 				if (statusHasChanged) {
@@ -268,7 +268,7 @@ class UserService {
 			}).then((foundUser) => {
 				if (foundUser) {
 					throw new AppError(`The email ${filteredRequest.email} already exists`,
-						510, "UserService", "restServiceSecured");
+						510, "UserService", "handleCreateUser");
 				}
 				// Generate a hash for the given password
 				return Users.hashPasswordBcrypt(filteredRequest.password);
@@ -289,8 +289,8 @@ class UserService {
 				return newUser.save();
 			}).then((createdUser) => {
 				Logging.logSecurityInfo({
-					user: req.user, module: "CentralServerRestService", method: "restServiceSecured",
-					message: `User '${createdUser.getFullName()}' with email '${createdUser.getEMail()}' has been created successfully`,
+					user: req.user, module: "UserService", method: "handleCreateUser",
+					message: `User '${Utils.buildUserFullName(createdUser.getModel())}' with email '${createdUser.getEMail()}' has been created successfully`,
 					action: action, detailedMessages: createdUser});
 				// Ok
 				res.json({status: `Success`});

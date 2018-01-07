@@ -81,8 +81,8 @@ class User {
 		this._model.firstName = firstName;
 	}
 
-	getFullName() {
-		return (this.getFirstName()?this.getFirstName() + " ":"") + this.getName();
+	getFullName(withID=false) {
+		return Utils.buildUserFullName(this.getModel(), withID)
 	}
 
 	getTagIDs() {

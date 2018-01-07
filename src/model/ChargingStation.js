@@ -550,7 +550,8 @@ class ChargingStation {
 				// Check status
 				if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
 					// Reject but save ok
-					return Promise.reject( new Error(`User ${user.getFullName()} with TagID ${request.idTag} is not Active`) );
+					return Promise.reject( new Error(
+						`User ${Utils.buildUserFullName(user.getModel())} with TagID ${request.idTag} is not Active`) );
 				} else {
 					// Save it
 					request.user = user;
@@ -616,7 +617,7 @@ class ChargingStation {
 	saveStopTransaction(stopTransaction) {
 		// Set the charger ID
 		stopTransaction.chargeBoxID = this.getChargeBoxIdentity();
-		// Get the tranasction first (to get the connector id)
+		// Get the transaction first (to get the connector id)
 		return this.getTransaction(stopTransaction.transactionId).then((transaction) => {
 			if (transaction) {
 				// Init the charging station

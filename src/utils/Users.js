@@ -236,7 +236,7 @@ module.exports = {
 					console.log(`User Import: User with email '${user.email}' has been created with success`);
 					Logging.logInfo({
 						action: "ImportUser", module: "Users", method: "importUsers",
-						message: `User ${newUser.getFullName()} with email '${newUser.getEMail()}' has been imported successfully`,
+						message: `User ${Utils.buildUserFullName(newUser.getModel())} with email '${newUser.getEMail()}' has been imported successfully`,
 						detailedMessages: user});
 				}).catch((err) => {
 					console.log(`User Import: Failed to import user with email '${user.email}': ${err.toString()}`);

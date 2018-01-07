@@ -14,6 +14,13 @@ class SecurityRestObjectFiltering {
 		return filteredRequest;
 	}
 
+	static filterSoftStopTransaction(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.transactionId = request.transactionId;
+		return filteredRequest;
+	}
+
 	static filterRegisterUserRequest(request, loggedUser) {
 		let filteredRequest = {};
 		// Set
@@ -405,13 +412,13 @@ class SecurityRestObjectFiltering {
 			filteredTransaction.timestamp = transaction.timestamp;
 			// Filter user
 			filteredTransaction.userID =
-			SecurityRestObjectFiltering.filterUserInTransactionResponse(
-				transaction.userID, loggedUser);
+				SecurityRestObjectFiltering.filterUserInTransactionResponse(
+					transaction.userID, loggedUser);
 			// Transaction Stop
 			if (transaction.stop) {
 				filteredTransaction.stop = {};
 				filteredTransaction.stop.timestamp = transaction.stop.timestamp;
-				filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
+				filteredTransaction.stop.totalConsfilterTransactionResponseumption = transaction.stop.totalConsumption;
 				// Admin?
 				if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
 					filteredTransaction.stop.price = transaction.stop.price;
