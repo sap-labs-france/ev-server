@@ -11,10 +11,12 @@ module.exports = {
 	ROLE_DEMO: "D",
 	ROLE_CORPORATE: "C",
 
-	ENTITY_USER: "User",
 	ENTITY_USERS: "Users",
-	ENTITY_CHARGING_STATION: "ChargingStation",
+	ENTITY_USER: "User",
 	ENTITY_CHARGING_STATIONS: "ChargingStations",
+	ENTITY_CHARGING_STATION: "ChargingStation",
+	ENTITY_TRANSACTIONS: "Transactions",
+	ENTITY_TRANSACTION: "Transaction",
 	ENTITY_LOGGING: "Logging",
 	ENTITY_PRICING: "Pricing",
 
@@ -34,6 +36,30 @@ module.exports = {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_LOGGING,
 			{ "Action": this.ACTION_LIST });
+	},
+
+	canListTransactions(loggedUser) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_TRANSACTIONS,
+			{ "Action": this.ACTION_LIST });
+	},
+
+	canReadTransaction(loggedUser, transaction) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_TRANSACTION,
+			{ "Action": this.ACTION_READ });
+	},
+
+	canUpdateTransaction(loggedUser, transaction) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_TRANSACTION,
+			{ "Action": this.ACTION_UPDATE });
+	},
+
+	canDeleteTransaction(loggedUser, transaction) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_TRANSACTION,
+			{ "Action": this.ACTION_DELETE });
 	},
 
 	canListChargingStations(loggedUser) {
