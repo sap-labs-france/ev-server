@@ -473,12 +473,6 @@ class ChargingStation {
 
 		// Save it
 		return global.storage.saveMeterValues(newMeterValues).then(() => {
-			// Log
-			Logging.logInfo({
-				source: this.getChargeBoxIdentity(), module: "ChargingStation", method: "saveMeterValues",
-				action: "MeterValues", message: `Meter Values saved successfully`,
-				detailedMessages: newMeterValues });
-
 			// Update Charging Station Consumption
 			this.updateChargingStationConsumption(meterValues.transactionId);
 		});
