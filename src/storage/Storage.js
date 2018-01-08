@@ -80,6 +80,9 @@ class Storage {
 	saveStopTransaction(stopTransaction) {
 	}
 
+	deleteTransaction(id) {
+	}
+
 	getMigrations() {
 	}
 

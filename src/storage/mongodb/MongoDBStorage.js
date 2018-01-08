@@ -106,6 +106,11 @@ class MongoDBStorage extends Storage {
 		return TransactionStorage.handleGetMeterValuesFromTransaction(transactionId);
 	}
 
+	deleteTransaction(id) {
+		// Delegate
+		return TransactionStorage.handleDeleteTransaction(id);
+	}
+
 	saveBootNotification(bootNotification) {
 		// Delegate
 		return ChargingStationStorage.handleSaveBootNotification(bootNotification);

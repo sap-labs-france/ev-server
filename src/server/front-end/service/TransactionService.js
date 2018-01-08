@@ -9,6 +9,81 @@ const Users = require('../../../utils/Users');
 const moment = require('moment');
 
 class TransactionService {
+	static handleDeleteTransaction(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "TransactionService",
+			method: "handleDeleteTransaction",
+			message: `Delete Transaction ID '${req.query.ID}'`,
+			detailedMessages: req.query
+		});
+		// Filter
+		let filteredRequest = SecurityRestObjectFiltering.filterTransactionDelete(req.query, req.user);
+		// Transaction Id is mandatory
+		if(!filteredRequest.ID) {
+			Logging.logActionExceptionMessageAndSendResponse(
+				action, new Error(`The Transaction ID is mandatory`), req, res, next);
+			return;
+		}
+		// Get Transaction
+		let transaction;
+		let chargingStation;
+		global.storage.getTransaction(filteredRequest.ID).then((foundTransaction) => {
+			transaction = foundTransaction;
+			// Found?
+			if (!transaction) {
+				// Not Found!
+				throw new AppError(`Transaction ${filteredRequest.ID} does not exist`,
+					500, "TransactionService", "handleDeleteTransaction");
+			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.userID)) {
+				// Not Authorized!
+				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
+					CentralRestServerAuthorization.ENTITY_USER,
+					transaction.userID, 500, "TransactionService", "handleDeleteTransaction");
+			}
+			// Get the Charging Station
+			return global.storage.getChargingStation(transaction.chargeBoxID.chargeBoxIdentity);
+		}).then((foundChargingStation) => {
+			chargingStation = foundChargingStation;
+			// Found?
+			if (!chargingStation) {
+				// Not Found!
+				throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
+					500, "TransactionService", "handleDeleteTransaction");
+			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
+				// Not Authorized!
+				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ, CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
+					chargingStation.getChargeBoxIdentity(), 500, "TransactionService", "handleDeleteTransaction");
+			}
+			// Get logged user
+			return global.storage.getUser(req.user.id);
+		}).then((user) => {
+			// Check
+			if (!user) {
+				// Not Found!
+				throw new AppError(`The user with ID ${req.user.id} does not exist`,
+					500, "TransactionService", "handleDeleteTransaction");
+			}
+			// Delete Transaction
+			chargingStation.deleteTransaction(filteredRequest.ID).then(() => {
+				// Log
+				Logging.logSecurityInfo({
+					user: req.user, module: "TransactionService", method: "handleDeleteTransaction",
+					message: `Transaction ID ${filteredRequest.ID} started by '${Utils.buildUserFullName(user.getModel())}' on '${transaction.chargeBoxID.chargeBoxIdentity}'-'${transaction.connectorId}' has been deleted successfully`,
+					action: action, detailedMessages: user});
+				// Ok
+				res.json({status: `Success`});
+				next();
+			});
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
 
 	static handleTransactionSoftStop(action, req, res, next) {
 		Logging.logSecurityInfo({
@@ -80,7 +155,7 @@ class TransactionService {
 				// Log
 				Logging.logSecurityInfo({
 					user: req.user, module: "TransactionService", method: "handleTransactionSoftStop",
-					message: `User '${Utils.buildUserFullName(user.getModel())}' has stopped transaction on Charging Station '${transaction.chargeBoxID.chargeBoxIdentity}'-'${transaction.connectorId}' used by User '${Utils.buildUserFullName(transaction.userID)}' successfully`,
+					message: `Transaction ID '${transaction.transactionId}' started by '${Utils.buildUserFullName(transaction.userID)}' on '${transaction.chargeBoxID.chargeBoxIdentity}'-'${transaction.connectorId}' has been stopped successfully`,
 					action: action, detailedMessages: user});
 				// Ok
 				res.json({status: `Success`});

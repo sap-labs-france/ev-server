@@ -13,6 +13,19 @@ class TransactionStorage {
 		_centralRestServer = centralRestServer;
 	}
 
+	static handleDeleteTransaction(id) {
+		let result;
+		return MDBTransaction.remove({ "_id" : id }).then((resultTransaction) => {
+			result = resultTransaction;
+			// Exec request
+			return MDBMeterValue.remove({ "transactionId" : id });
+		}).then((resultMeterValue) => {
+			// // Notify Change
+			// _centralRestServer.notifyTransactionDeleted({"id": id});
+			return result.result;
+		});
+	}
+
 	static handleGetMeterValuesFromTransaction(transactionId) {
 		// Build filter
 		let filter = {};

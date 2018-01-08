@@ -493,6 +493,11 @@ class ChargingStation {
 		return global.storage.saveConfiguration(configuration);
 	}
 
+	deleteTransaction(id) {
+		// Yes: save it
+		return global.storage.deleteTransaction(id);
+	}
+
 	saveStartTransaction(transaction) {
 		// Set the charger ID
 		transaction.chargeBoxID = this.getChargeBoxIdentity();

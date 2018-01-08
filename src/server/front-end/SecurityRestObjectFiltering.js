@@ -14,10 +14,17 @@ class SecurityRestObjectFiltering {
 		return filteredRequest;
 	}
 
+	static filterTransactionDelete(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.ID = sanitize(request.ID);
+		return filteredRequest;
+	}
+
 	static filterTransactionSoftStop(request, loggedUser) {
 		let filteredRequest = {};
 		// Set
-		filteredRequest.transactionId = request.transactionId;
+		filteredRequest.transactionId = sanitize(request.transactionId);
 		return filteredRequest;
 	}
 

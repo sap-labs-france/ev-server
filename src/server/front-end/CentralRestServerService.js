@@ -224,7 +224,13 @@ module.exports = {
 						ChargingStationService.handleDeleteChargingStation(action, req, res, next);
 						break;
 
-						// Not found
+					// Transaction
+					case "TransactionDelete":
+						// Delegate
+						TransactionService.handleDeleteTransaction(action, req, res, next);
+						break;
+
+					// Not found
 					default:
 						// Delegate
 						UtilsService.handleUnknownAction(action, req, res, next);
