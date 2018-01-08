@@ -146,7 +146,8 @@ class ChargingStationService {
 		if (!CentralRestServerAuthorization.canListChargingStations(req.user)) {
 			// Not Authorized!
 			Logging.logActionUnauthorizedMessageAndSendResponse(
-				CentralRestServerAuthorization.ACTION_LIST, CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS, null, req, res, next);
+				CentralRestServerAuthorization.ACTION_LIST, CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS,
+				null, req, res, next);
 			return;
 		}
 		// Filter

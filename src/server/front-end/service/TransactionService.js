@@ -17,6 +17,13 @@ class TransactionService {
 			message: `Delete Transaction ID '${req.query.ID}'`,
 			detailedMessages: req.query
 		});
+		// Check auth
+		if (!CentralRestServerAuthorization.canDeleteTransaction(req.user, req.query.ID)) {
+			// Not Authorized!
+			throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
+				CentralRestServerAuthorization.ENTITY_TRANSACTION,
+				req.query.ID, 500, "TransactionService", "handleDeleteTransaction");
+		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterTransactionDelete(req.query, req.user);
 		// Transaction Id is mandatory
@@ -93,6 +100,13 @@ class TransactionService {
 			message: `Soft Stop Transaction ID '${req.body.transactionId}'`,
 			detailedMessages: req.body
 		});
+		// Check auth
+		if (!CentralRestServerAuthorization.canUpdateTransaction(req.user, req.body.transactionId)) {
+			// Not Authorized!
+			throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_UPDATE,
+				CentralRestServerAuthorization.ENTITY_TRANSACTION,
+				req.body.transactionId, 500, "TransactionService", "handleTransactionSoftStop");
+		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterTransactionSoftStop(req.body, req.user);
 		// Transaction Id is mandatory
@@ -175,6 +189,13 @@ class TransactionService {
 			message: `Read Consumption from Transaction ID '${req.query.TransactionId}'`,
 			detailedMessages: req.query
 		});
+		// Check auth
+		if (!CentralRestServerAuthorization.canReadTransaction(req.user, req.query.TransactionId)) {
+			// Not Authorized!
+			throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
+				CentralRestServerAuthorization.ENTITY_TRANSACTION,
+				req.query.TransactionId, 500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
+		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationConsumptionFromTransactionRequest(req.query, req.user);
 		// Transaction Id is mandatory
@@ -274,6 +295,13 @@ class TransactionService {
 			message: `Read Transaction ID '${req.query.TransactionId}'`,
 			detailedMessages: req.query
 		});
+		// Check auth
+		if (!CentralRestServerAuthorization.canReadTransaction(req.user, req.query.TransactionId)) {
+			// Not Authorized!
+			throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
+				CentralRestServerAuthorization.ENTITY_TRANSACTION,
+				req.query.TransactionId, 500, "TransactionService", "handleGetTransaction");
+		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterTransactionRequest(req.query, req.user);
 		// Charge Box is mandatory
@@ -317,6 +345,13 @@ class TransactionService {
 			message: `Read Transactions from Charging Station '${req.query.ChargeBoxIdentity}'-'${req.query.ConnectorId}'`,
 			detailedMessages: req.query
 		});
+		// Check auth
+		if (!CentralRestServerAuthorization.canListTransactions(req.user)) {
+			// Not Authorized!
+			throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_LIST,
+				CentralRestServerAuthorization.ENTITY_TRANSACTION,
+				null, 500, "TransactionService", "handleGetChargingStationTransactions");
+		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationTransactionsRequest(req.query, req.user);
 		// Charge Box is mandatory
@@ -370,6 +405,13 @@ class TransactionService {
 			message: `Read Active Transactions`,
 			detailedMessages: req.query
 		});
+		// Check auth
+		if (!CentralRestServerAuthorization.canListTransactions(req.user)) {
+			// Not Authorized!
+			throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_LIST,
+				CentralRestServerAuthorization.ENTITY_TRANSACTION,
+				null, 500, "TransactionService", "handleGetActiveTransactions");
+		}
 		let filter = { stop: { $exists: false } };
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterActiveTransactionsRequest(req.query, req.user);
@@ -402,6 +444,13 @@ class TransactionService {
 			message: `Read Completed Transactions`,
 			detailedMessages: req.query
 		});
+		// Check auth
+		if (!CentralRestServerAuthorization.canListTransactions(req.user)) {
+			// Not Authorized!
+			throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_LIST,
+				CentralRestServerAuthorization.ENTITY_TRANSACTION,
+				null, 500, "TransactionService", "handleGetCompletedTransactions");
+		}
 		let pricing;
 		let filter = {stop: {$exists: true}};
 		// Filter
