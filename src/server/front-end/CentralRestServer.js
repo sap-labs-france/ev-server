@@ -182,6 +182,45 @@ class CentralSystemRestServer {
 		});
 	}
 
+	notifyTransactionUpdated(transactionId) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_TRANSACTION,
+			"action": CentralRestServerAuthorization.ACTION_UPDATE,
+			"id": transactionId
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_TRANSACTIONS
+		});
+	}
+
+	notifyTransactionCreated(transactionId) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_TRANSACTION,
+			"action": CentralRestServerAuthorization.ACTION_CREATE,
+			"id": transactionId
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_TRANSACTIONS
+		});
+	}
+
+	notifyTransactionDeleted(transactionId) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_TRANSACTION,
+			"action": CentralRestServerAuthorization.ACTION_DELETE,
+			"id": transactionId
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_TRANSACTIONS
+		});
+	}
+
 	notifyChargingStationUpdated(chargingStation) {
 		// Add in buffer
 		this.addNotificationInBuffer({
