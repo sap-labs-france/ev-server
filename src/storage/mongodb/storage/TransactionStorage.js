@@ -63,8 +63,6 @@ class TransactionStorage {
 			}).then((startTransactionMDB) => {
 				// Notify
 				_centralRestServer.notifyTransactionCreated({"id": startTransaction.id});
-				// Notify
-				_centralRestServer.notifyChargingStationUpdated({"id" : startTransaction.chargeBoxID});
 			});
 	}
 
@@ -84,8 +82,6 @@ class TransactionStorage {
 			return transactionMDB.save().then(() => {
 				// Notify
 				_centralRestServer.notifyTransactionUpdated({"id": stopTransaction.transactionId});
-				// Notify
-				_centralRestServer.notifyChargingStationUpdated({"id" : stopTransaction.chargeBoxID});
 			});
 		});
 	}
@@ -104,8 +100,6 @@ class TransactionStorage {
 			return meterValueMDB.save().then(() => {
 				// Notify
 				_centralRestServer.notifyTransactionUpdated({"id": meterValues.transactionId});
-				// Notify
-				_centralRestServer.notifyChargingStationUpdated({"id" : meterValues.chargeBoxID});
 			});
 		}));
 	}

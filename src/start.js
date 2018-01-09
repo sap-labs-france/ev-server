@@ -30,6 +30,12 @@ switch (storageConfig.implementation) {
 // Start the DB
 // -----------------------------------------------------------------------------
 global.storage.start().then(() => {
+	// Log
+	Logging.logInfo({
+		module: "Bootstrap", method: "start", action: "Startup",
+		message: `Connected successfully to '${storageConfig.implementation}' on '${storageConfig.host}:${storageConfig.port}', schema '${storageConfig.schema}', user '${storageConfig.user}'` });
+	console.log(`Connected successfully to '${storageConfig.implementation}' on '${storageConfig.host}:${storageConfig.port}', schema '${storageConfig.schema}',  user '${storageConfig.user}'`);
+
 	// ---------------------------------------------------------------------------
 	// Check and trigger migration
 	// ---------------------------------------------------------------------------
