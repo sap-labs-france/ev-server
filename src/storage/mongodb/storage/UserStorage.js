@@ -31,7 +31,7 @@ class UserStorage {
 
 	static handleGetUserByEmail(email) {
 		// Exec request
-		return MDBUser.findOne({"email": email}, {image:0}).then((userMDB) => {
+		return MDBUser.findOne({"email": email}).then((userMDB) => {
 			// Check deleted
 			if (userMDB && userMDB.deleted) {
 				// Return empty user
