@@ -15,7 +15,6 @@ class TransactionStorage {
 
 	static handleDeleteTransaction(transaction) {
 		let result;
-		console.log(transaction);
 		return MDBTransaction.remove({ "_id" : transaction.id }).then((resultTransaction) => {
 			result = resultTransaction;
 			// Exec request

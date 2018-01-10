@@ -299,7 +299,7 @@ class ChargingStation {
 
 	updateChargingStationConsumption(transactionId) {
 		// Get the last tranasction first
-		this.getTransaction(transactionId).then((transaction) => {
+		return this.getTransaction(transactionId).then((transaction) => {
 			// Found?
 			if (transaction) {
 				// Get connectorId
@@ -307,7 +307,7 @@ class ChargingStation {
 				// Found?
 				if (!transaction.stop) {
 					// Get the consumption
-					this.getConsumptionsFromTransaction(transaction, false).then((consumption) => {
+					return this.getConsumptionsFromTransaction(transaction, false).then((consumption) => {
 						let currentConsumption = 0;
 						let totalConsumption = 0;
 						// Check
@@ -328,10 +328,10 @@ class ChargingStation {
 								message: `${this.getChargeBoxIdentity()} - ${connector.connectorId} - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
 						}
 						this.setLastHeartBeat(new Date());
-						// Save
-						this.save();
 						// Handle End Of charge
 						this.handleNotificationEndOfCharge(transaction, consumption);
+						// Save
+						return this.save();
 					});
 				} else {
 					// Check
@@ -345,7 +345,7 @@ class ChargingStation {
 							method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
 							message: `${this.getChargeBoxIdentity()} - ${connector.connectorId} - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
 						// Save
-						this.save();
+						return this.save();
 					}
 				}
 			} else {
@@ -470,10 +470,10 @@ class ChargingStation {
 			newMeterValues.values.push(newMeterValue);
 		});
 
-		// Save it
-		return global.storage.saveMeterValues(newMeterValues).then(() => {
-			// Update Charging Station Consumption
-			this.updateChargingStationConsumption(meterValues.transactionId);
+		// Update Charging Station Consumption
+		return this.updateChargingStationConsumption(meterValues.transactionId).then(() => {
+			// Save Meter Values
+			return global.storage.saveMeterValues(newMeterValues);
 		});
 	}
 

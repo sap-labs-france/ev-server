@@ -183,7 +183,6 @@ class CentralSystemRestServer {
 	}
 
 	notifyTransactionUpdated(transactionData) {
-		console.log(transactionData);
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_TRANSACTION,
@@ -282,9 +281,15 @@ class CentralSystemRestServer {
 		// Add in buffer
 		for (var i = 0; i < _currentNotifications.length; i++) {
 			if (_currentNotifications[i].entity === notification.entity &&
-					_currentNotifications[i].action === notification.action &&
-					_currentNotifications[i].data.id === notification.data.id) {
-				dups = true;
+					_currentNotifications[i].action === notification.action) {
+
+				if (_currentNotifications[i].data &&
+					_currentNotifications[i].data.id === notification.data.id &&
+					_currentNotifications[i].data.type === notification.data.type) {
+					dups = true;
+				} else {
+					dups = true;
+				}
 			}
 		}
 		// Found dups?
