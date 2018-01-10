@@ -84,9 +84,19 @@ class UserStorage {
 					let newUser = new User(userMDB);
 					// Notify Change
 					if (!user.id) {
-						_centralRestServer.notifyUserCreated(newUser.getModel());
+						_centralRestServer.notifyUserCreated(
+							{
+								"id": newUser.getID(),
+								"type": "User"
+							}
+						);
 					} else {
-						_centralRestServer.notifyUserUpdated(newUser.getModel());
+						_centralRestServer.notifyUserUpdated(
+							{
+								"id": newUser.getID(),
+								"type": "User"
+							}
+						);
 					}
 					// Update the badges
 					// First delete them
@@ -169,7 +179,12 @@ class UserStorage {
 	static handleDeleteUser(id) {
 		return MDBUser.remove({ "_id" : id }).then((result) => {
 			// Notify Change
-			_centralRestServer.notifyUserDeleted({"id": id});
+			_centralRestServer.notifyUserDeleted(
+				{
+					"id": id,
+					"type": "User"
+				}
+			);
 			// Return the result
 			return result.result;
 		});

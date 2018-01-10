@@ -62,9 +62,19 @@ class ChargingStationStorage {
 				let newChargingStation = new ChargingStation(chargingStationMDB);
 				// Notify Change
 				if (!chargingStation.id) {
-					_centralRestServer.notifyChargingStationCreated(newChargingStation.getModel());
+					_centralRestServer.notifyChargingStationCreated(
+						{
+							"id" : newChargingStation.id,
+							"type": "ChargingStation"
+						}
+					);
 				} else {
-					_centralRestServer.notifyChargingStationUpdated(newChargingStation.getModel());
+					_centralRestServer.notifyChargingStationUpdated(
+						{
+							"id" : chargingStation.id,
+							"type": "ChargingStation"
+						}
+					);
 				}
 				return newChargingStation;
 		});
@@ -73,7 +83,12 @@ class ChargingStationStorage {
 	static handleDeleteChargingStation(id) {
 		return MDBChargingStation.remove({ "_id" : id }).then((result) => {
 			// Notify Change
-			_centralRestServer.notifyChargingStationDeleted({"id": id});
+			_centralRestServer.notifyChargingStationDeleted(
+				{
+					"id": id,
+					"type": "ChargingStation"
+				}
+			);
 			// Return the result
 			return result.result;
 		});
@@ -90,8 +105,7 @@ class ChargingStationStorage {
 		authorizeMDB.tagID = authorize.idTag;
 		// Create new
 		return authorizeMDB.save().then(() => {
-			// Notify
-			_centralRestServer.notifyChargingStationUpdated({"id" : authorize.chargeBoxID});
+			// No notification
 		});
 	}
 
@@ -109,7 +123,12 @@ class ChargingStationStorage {
 			configurationMDB,
 			{new: true, upsert: true}).then((chargingStationMDB) => {
 				// Notify
-				_centralRestServer.notifyChargingStationUpdated({"id" : configuration.chargeBoxID});
+				_centralRestServer.notifyChargingStationUpdated(
+					{
+						"id" : configuration.chargeBoxID,
+						"type": "Configuration"
+					}
+				);
 				// Return
 				return chargingStationMDB;
 		});
@@ -124,8 +143,7 @@ class ChargingStationStorage {
 			.digest("hex");
 		// Create new
 		return dataTransferMDB.save().then(() => {
-			// Notify
-			_centralRestServer.notifyChargingStationUpdated({"id" : dataTransfer.chargeBoxID});
+			// No notification
 		});
 	}
 
@@ -138,8 +156,7 @@ class ChargingStationStorage {
 			.digest("hex");
 		// Create new
 		return bootNotificationMDB.save().then(() => {
-			// Notify
-			_centralRestServer.notifyChargingStationUpdated({"id" : bootNotification.chargeBoxID});
+			// No Notification
 		});
 	}
 
@@ -152,8 +169,7 @@ class ChargingStationStorage {
 			.digest("hex");
 		// Create new
 		return diagnosticsstatusNotificationMDB.save(() => {
-			// Notify
-			_centralRestServer.notifyChargingStationUpdated({"id" : diagnosticsStatusNotification.chargeBoxID});
+			// No Notification
 		});
 	}
 
@@ -166,8 +182,7 @@ class ChargingStationStorage {
 			.digest("hex");
 		// Create new
 		return firmwarestatusNotificationMDB.save().then(() => {
-			// Notify
-			_centralRestServer.notifyChargingStationUpdated({"id" : firmwareStatusNotification.chargeBoxID});
+			// No Notification
 		});
 	}
 
@@ -181,7 +196,13 @@ class ChargingStationStorage {
 		// Create new
 		return statusNotificationMDB.save().then(() => {
 			// Notify
-			_centralRestServer.notifyChargingStationUpdated({"id" : statusNotification.chargeBoxID});
+			_centralRestServer.notifyChargingStationUpdated(
+				{
+					"id": statusNotification.chargeBoxID,
+					"connectorId": statusNotification.connectorId,
+					"type": "Status"
+				}
+			);
 		});
 	}
 

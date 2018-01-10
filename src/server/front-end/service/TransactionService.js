@@ -35,7 +35,7 @@ class TransactionService {
 		// Get Transaction
 		let transaction;
 		let chargingStation;
-		global.storage.getTransaction(filteredRequest.ID).then((foundTransaction) => {
+		global.storage.getTransaction(filteredRequest.ID, Users.WITH_NO_IMAGE).then((foundTransaction) => {
 			transaction = foundTransaction;
 			// Found?
 			if (!transaction) {
@@ -76,7 +76,7 @@ class TransactionService {
 					500, "TransactionService", "handleDeleteTransaction");
 			}
 			// Delete Transaction
-			chargingStation.deleteTransaction(filteredRequest.ID).then(() => {
+			chargingStation.deleteTransaction(transaction).then(() => {
 				// Log
 				Logging.logSecurityInfo({
 					user: req.user, module: "TransactionService", method: "handleDeleteTransaction",

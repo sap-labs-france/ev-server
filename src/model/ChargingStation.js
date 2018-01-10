@@ -276,16 +276,15 @@ class ChargingStation {
 						}
 					}
 
-					// Save
-					return this.save();
+					// Save Status Notif
+					return global.storage.saveStatusNotification(statusNotification);
 				} else {
 					// Log
 					return Promise.reject(new Error(`Cannot retrieve the Configuration of ${this.getChargeBoxIdentity()}`));
 				}
-
 			}).then(() => {
-				// Save Status Notif
-				return global.storage.saveStatusNotification(statusNotification);
+				// Save
+				return this.save();
 			});
 		})(connectors[statusNotification.connectorId-1]);
 	}
@@ -487,9 +486,9 @@ class ChargingStation {
 		return global.storage.saveConfiguration(configuration);
 	}
 
-	deleteTransaction(id) {
+	deleteTransaction(transaction) {
 		// Yes: save it
-		return global.storage.deleteTransaction(id);
+		return global.storage.deleteTransaction(transaction);
 	}
 
 	saveStartTransaction(transaction) {

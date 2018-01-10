@@ -80,7 +80,7 @@ class Storage {
 	saveStopTransaction(stopTransaction) {
 	}
 
-	deleteTransaction(id) {
+	deleteTransaction(transaction) {
 	}
 
 	getMigrations() {
@@ -95,7 +95,7 @@ class Storage {
 	getTransactions(searchValue, filter, withPicture=false) {
 	}
 
-	getTransaction(transactionId) {
+	getTransaction(transactionId, withPicture=true) {
 	}
 
 	saveChargingStation(chargingStation) {

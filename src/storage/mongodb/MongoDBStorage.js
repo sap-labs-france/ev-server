@@ -106,9 +106,9 @@ class MongoDBStorage extends Storage {
 		return TransactionStorage.handleGetMeterValuesFromTransaction(transactionId);
 	}
 
-	deleteTransaction(id) {
+	deleteTransaction(transaction) {
 		// Delegate
-		return TransactionStorage.handleDeleteTransaction(id);
+		return TransactionStorage.handleDeleteTransaction(transaction);
 	}
 
 	saveBootNotification(bootNotification) {
@@ -186,9 +186,9 @@ class MongoDBStorage extends Storage {
 		return TransactionStorage.handleGetTransactions(searchValue, filter, withPicture);
 	}
 
-	getTransaction(transactionId) {
+	getTransaction(transactionId, withPicture=true) {
 		// Delegate
-		return TransactionStorage.handleGetTransaction(transactionId);
+		return TransactionStorage.handleGetTransaction(transactionId, withPicture);
 	}
 
 	saveChargingStation(chargingStation) {

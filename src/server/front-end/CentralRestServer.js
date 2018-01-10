@@ -143,12 +143,12 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyUserUpdated(user) {
+	notifyUserUpdated(userData) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_USER,
 			"action": CentralRestServerAuthorization.ACTION_UPDATE,
-			"id": user.id
+			"data": userData
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -156,12 +156,12 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyUserCreated(user) {
+	notifyUserCreated(userData) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_USER,
 			"action": CentralRestServerAuthorization.ACTION_CREATE,
-			"id": user.id
+			"data": userData
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -169,12 +169,12 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyUserDeleted(user) {
+	notifyUserDeleted(userData) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_USER,
 			"action": CentralRestServerAuthorization.ACTION_DELETE,
-			"id": user.id
+			"data": userData
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -182,12 +182,13 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyTransactionUpdated(transactionId) {
+	notifyTransactionUpdated(transactionData) {
+		console.log(transactionData);
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_TRANSACTION,
 			"action": CentralRestServerAuthorization.ACTION_UPDATE,
-			"id": transactionId
+			"data": transactionData
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -195,12 +196,12 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyTransactionCreated(transactionId) {
+	notifyTransactionCreated(transactionData) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_TRANSACTION,
 			"action": CentralRestServerAuthorization.ACTION_CREATE,
-			"id": transactionId
+			"data": transactionData
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -208,12 +209,12 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyTransactionDeleted(transactionId) {
+	notifyTransactionDeleted(transactionData) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_TRANSACTION,
 			"action": CentralRestServerAuthorization.ACTION_DELETE,
-			"id": transactionId
+			"data": transactionData
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -221,12 +222,12 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyChargingStationUpdated(chargingStation) {
+	notifyChargingStationUpdated(chargingStationData) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
 			"action": CentralRestServerAuthorization.ACTION_UPDATE,
-			"id": chargingStation.id
+			"data": chargingStationData
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -234,12 +235,12 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyChargingStationCreated(chargingStation) {
+	notifyChargingStationCreated(chargingStationData) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
 			"action": CentralRestServerAuthorization.ACTION_CREATE,
-			"id": chargingStation.id
+			"data": chargingStationData
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -247,12 +248,12 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyChargingStationDeleted(chargingStation) {
+	notifyChargingStationDeleted(chargingStationData) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
 			"action": CentralRestServerAuthorization.ACTION_DELETE,
-			"id": chargingStation.id
+			"data": chargingStationData
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -294,17 +295,7 @@ class CentralSystemRestServer {
 	}
 
 	notifyAllWebSocketClients(notification) {
-		// Action?
-		if (notification.action) {
-			// Notify all with action
-			_io.sockets.emit(notification.entity, {
-				"action": notification.action,
-				"id": notification.id
-			});
-		} else {
-			// Notify all without action
-			_io.sockets.emit(notification.entity, {});
-		}
+		_io.sockets.emit(notification.entity, notification);
 	}
 }
 

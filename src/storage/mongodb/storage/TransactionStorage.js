@@ -13,15 +13,23 @@ class TransactionStorage {
 		_centralRestServer = centralRestServer;
 	}
 
-	static handleDeleteTransaction(id) {
+	static handleDeleteTransaction(transaction) {
 		let result;
-		return MDBTransaction.remove({ "_id" : id }).then((resultTransaction) => {
+		console.log(transaction);
+		return MDBTransaction.remove({ "_id" : transaction.id }).then((resultTransaction) => {
 			result = resultTransaction;
 			// Exec request
-			return MDBMeterValue.remove({ "transactionId" : id });
+			return MDBMeterValue.remove({ "transactionId" : transaction.id });
 		}).then((resultMeterValue) => {
 			// Notify Change
-			_centralRestServer.notifyTransactionDeleted({"id": id});
+			_centralRestServer.notifyTransactionDeleted(
+				{
+					"id": transaction.id,
+					"connectorId": transaction.connectorId,
+					"chargeBoxIdentity": transaction.chargeBoxID.id,
+					"type": "Transaction"
+				}
+			);
 			return result.result;
 		});
 	}
@@ -62,7 +70,14 @@ class TransactionStorage {
 				upsert: true
 			}).then((startTransactionMDB) => {
 				// Notify
-				_centralRestServer.notifyTransactionCreated({"id": startTransaction.id});
+				_centralRestServer.notifyTransactionCreated(
+					{
+						"id": startTransaction.id,
+						"connectorId": startTransaction.connectorId,
+						"chargeBoxIdentity": startTransaction.chargeBoxID,
+						"type": "Transaction"
+					}
+				);
 			});
 	}
 
@@ -81,7 +96,12 @@ class TransactionStorage {
 			// Create new
 			return transactionMDB.save().then(() => {
 				// Notify
-				_centralRestServer.notifyTransactionUpdated({"id": stopTransaction.transactionId});
+				_centralRestServer.notifyTransactionUpdated(
+					{
+						"id": stopTransaction.transactionId,
+						"type": "Stop"
+					}
+				);
 			});
 		});
 	}
@@ -99,7 +119,12 @@ class TransactionStorage {
 			// Save
 			return meterValueMDB.save().then(() => {
 				// Notify
-				_centralRestServer.notifyTransactionUpdated({"id": meterValues.transactionId});
+				_centralRestServer.notifyTransactionUpdated(
+					{
+						"id": meterValues.values[0].transactionId,
+						"type": "MeterValues"
+					}
+				);
 			});
 		}));
 	}
@@ -155,9 +180,9 @@ class TransactionStorage {
 		});
 	}
 
-	static handleGetTransaction(transactionId) {
+	static handleGetTransaction(transactionId, withPicture) {
 		// Get the Start Transaction
-		return MDBTransaction.findById({"_id": transactionId}).populate("userID").populate("chargeBoxID")
+		return MDBTransaction.findById({"_id": transactionId}).populate("userID", (withPicture?{}:{image:0})).populate("chargeBoxID")
 				.populate("stop.userID").exec().then((transactionMDB) => {
 			// Set
 			let transaction = null;
