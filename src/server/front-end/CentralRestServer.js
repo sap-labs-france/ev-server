@@ -283,7 +283,7 @@ class CentralSystemRestServer {
 		for (var i = 0; i < _currentNotifications.length; i++) {
 			if (_currentNotifications[i].entity === notification.entity &&
 					_currentNotifications[i].action === notification.action &&
-					_currentNotifications[i].id === notification.id) {
+					_currentNotifications[i].data.id === notification.data.id) {
 				dups = true;
 			}
 		}
