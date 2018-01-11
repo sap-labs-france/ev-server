@@ -142,10 +142,10 @@ class UserStorage {
 			// Build filter
 			filters.$and.push({
 				"$or": [
-					{ "name" : { $regex : `.*${searchValue}.*` } },
-					{ "firstName" : { $regex : `.*${searchValue}.*` } },
-					{ "email" : { $regex : `.*${searchValue}.*` } },
-					{ "role" : { $regex : `.*${searchValue}.*` } }
+					{ "name" : { $regex : searchValue, $options: 'i' } },
+					{ "firstName" : { $regex : searchValue, $options: 'i' } },
+					{ "email" : { $regex : searchValue, $options: 'i' } },
+					{ "role" : { $regex : searchValue, $options: 'i' } }
 				]
 			});
 		}

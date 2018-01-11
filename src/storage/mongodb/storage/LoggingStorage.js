@@ -120,9 +120,9 @@ class LoggingStorage {
 		if (searchValue) {
 			// Build filter
 			filter.$or = [
-				{ "message" : { $regex : `.*${searchValue}.*` } },
-				{ "action" : { $regex : `.*${searchValue}.*` } },
-				{ "userFullName" : { $regex : `.*${searchValue}.*` } }
+				{ "message" : { $regex : searchValue, $options: 'i' } },
+				{ "action" : { $regex : searchValue, $options: 'i' } },
+				{ "userFullName" : { $regex : searchValue, $options: 'i' } }
 			];
 		}
 		// Set the sort

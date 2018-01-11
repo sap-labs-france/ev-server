@@ -38,7 +38,7 @@ class ChargingStationStorage {
 		if (searchValue) {
 			// Build filter
 			filters.$or = [
-				{ "_id" : { $regex : `.*${searchValue}.*` } }
+				{ "_id" : { $regex : searchValue, $options: 'i' } }
 			];
 		}
 		// Exec request
