@@ -407,14 +407,14 @@ class TransactionService {
 			message: `Get Transaction's Years`
 		});
 		// Get Transactions
-		global.storage.getTransactions().then((transactions) => {
+		global.storage.getTransactionYears().then((transactionsYears) => {
 			let result = {};
-			// if (!transactions) {
+			if (transactionsYears) {
 				result.years = [];
-				result.years.push(new Date().getYear());
-			// }
+				result.years.push(new Date().getFullYear());
+			}
 			// Return
-			res.json(result);
+			res.json(transactionsYears);
 			next();
 		}).catch((err) => {
 			// Log

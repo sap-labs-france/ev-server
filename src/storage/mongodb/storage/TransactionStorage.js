@@ -128,6 +128,25 @@ class TransactionStorage {
 		}));
 	}
 
+	static handleGetTransactionYears() {
+		// Yes: Get only active ones
+		return MDBTransaction.findOne({})
+				.sort({timestamp:1})
+				.limit(1)
+				.exec().then(firstTransactionMDB => {
+			if (!firstTransactionMDB) {
+				return null;
+			}
+			let transactionYears = [];
+			// Push the rest of the years up to now
+			for (var i = new Date(firstTransactionMDB.timestamp).getFullYear(); i <= new Date().getFullYear(); i++) {
+				// Add
+				transactionYears.push(i);
+			}
+			return transactionYears;
+		});
+	}
+
 	static handleGetTransactions(searchValue, filter, withPicture) {
 		// Build filter
 		let $match = {};

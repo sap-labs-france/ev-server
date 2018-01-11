@@ -80,6 +80,9 @@ class Storage {
 	saveStopTransaction(stopTransaction) {
 	}
 
+	getTransactionYears() {
+	}
+
 	deleteTransaction(transaction) {
 	}
 

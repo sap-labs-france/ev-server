@@ -83,6 +83,10 @@ class MongoDBStorage extends Storage {
 		return ChargingStationStorage.handleGetConfiguration(chargeBoxIdentity);
 	}
 
+	getTransactionYears() {
+		return TransactionStorage.handleGetTransactionYears();
+	}
+
 	getPricing() {
 		// Delegate
 		return PricingStorage.handleGetPricing();
