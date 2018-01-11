@@ -96,7 +96,7 @@ class TransactionService {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
 			module: "TransactionService",
-			method: "handleGetTransactionSoftStop",
+			method: "handleTransactionSoftStop",
 			message: `Soft Stop Transaction ID '${req.body.transactionId}'`,
 			detailedMessages: req.body
 		});
@@ -380,8 +380,10 @@ class TransactionService {
 					500, "TransactionService", "handleGetChargingStationTransactions");
 			}
 			// Set the model
-			return chargingStation.getTransactions(filteredRequest.ConnectorId,
-				filteredRequest.StartDateTime, filteredRequest.EndDateTime,
+			return chargingStation.getTransactions(
+				filteredRequest.ConnectorId,
+				filteredRequest.StartDateTime,
+				filteredRequest.EndDateTime,
 				Users.WITH_NO_IMAGE);
 		}).then((transactions) => {
 			// Return
@@ -467,7 +469,10 @@ class TransactionService {
 			// Set
 			pricing = foundPricing;
 			// Check email
-			return global.storage.getTransactions(filteredRequest.Search, filter, filteredRequest.WithPicture);
+			return global.storage.getTransactions(
+				filteredRequest.Search,
+				filter,
+				filteredRequest.WithPicture);
 		}).then((transactions) => {
 			// Found?``
 			if (transactions && pricing) {

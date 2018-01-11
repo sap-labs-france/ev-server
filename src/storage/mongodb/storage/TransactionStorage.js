@@ -200,7 +200,7 @@ class TransactionStorage {
 	}
 
 	static _filterTransactions(transactionsMDB, searchValue) {
-		let regexp = new RegExp(searchValue);
+		let regexp = new RegExp(searchValue, 'i');
 		// Check User and ChargeBox
 		return transactionsMDB.filter((transactionMDB) => {
 			// User not found?
@@ -219,7 +219,7 @@ class TransactionStorage {
 			}
 			// Filter?
 			if (searchValue) {
-				// Yes
+				// Yes { $regex : searchValue, $options: 'i' }
 				return regexp.test(transactionMDB.chargeBoxID.id.toString()) ||
 					regexp.test(transactionMDB.userID.name.toString()) ||
 					regexp.test(transactionMDB.userID.firstName.toString());
