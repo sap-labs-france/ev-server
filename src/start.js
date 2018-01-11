@@ -17,7 +17,7 @@ switch (storageConfig.implementation) {
 	// MongoDB?
 	case 'mongodb':
 			// Create MongoDB
-		var mongoDB = new MongoDBStorage(storageConfig);
+		let mongoDB = new MongoDBStorage(storageConfig);
 		// Set global var
 		global.storage = mongoDB;
 		break;

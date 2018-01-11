@@ -152,7 +152,11 @@ class UserStorage {
 		// Exec request
 		return MDBTag.find({}).exec().then((tagsMDB) => {
 			// Exec request
-			return MDBUser.find(filters, (withPicture?{}:{image:0})).sort( {status: -1, name: 1, firstName: 1} ).limit(numberOfUser).exec().then((usersMDB) => {
+
+			return MDBUser.find(filters, (withPicture?{}:{image:0}))
+					.sort( {status: -1, name: 1, firstName: 1} )
+					.collation({ locale: 'en_US', caseLevel: true })
+					.limit(numberOfUser).exec().then((usersMDB) => {
 				let users = [];
 				// Create
 				usersMDB.forEach((userMDB) => {

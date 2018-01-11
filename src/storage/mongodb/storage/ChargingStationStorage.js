@@ -42,7 +42,10 @@ class ChargingStationStorage {
 			];
 		}
 		// Exec request
-		return MDBChargingStation.find(filters).sort( {_id: 1} ).exec().then((chargingStationsMDB) => {
+		return MDBChargingStation.find(filters)
+				.sort( {_id: 1} )
+				.collation({ locale: 'en_US', caseLevel: true })
+				.exec().then((chargingStationsMDB) => {
 			let chargingStations = [];
 			// Create
 			chargingStationsMDB.forEach((chargingStationMDB) => {
@@ -212,7 +215,9 @@ class ChargingStationStorage {
 		filter.chargeBoxID = chargeBoxIdentity;
 		filter.connectorId = connectorId;
 		// Exec request
-		return MDBStatusNotification.find(filter).sort({timestamp: -1}).limit(1).exec().then((statusNotificationsMDB) => {
+		return MDBStatusNotification.find(filter)
+				.sort({timestamp: -1})
+				.limit(1).exec().then((statusNotificationsMDB) => {
 			let statusNotification = null;
 			// At least one
 			if (statusNotificationsMDB[0]) {
@@ -234,7 +239,9 @@ class ChargingStationStorage {
 			filter.connectorId = connectorId;
 		}
 		// Exec request
-		return MDBStatusNotification.find(filter).sort({timestamp: 1}).exec().then((statusNotificationsMDB) => {
+		return MDBStatusNotification.find(filter)
+				.sort({timestamp: 1})
+				.exec().then((statusNotificationsMDB) => {
 			let statusNotifications = [];
 			// Create
 			statusNotificationsMDB.forEach((statusNotificationMDB) => {

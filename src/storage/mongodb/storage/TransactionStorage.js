@@ -160,9 +160,12 @@ class TransactionStorage {
 			$match.stop = filter.stop;
 		}
 		// Yes: Get only active ones
-		return MDBTransaction.find($match).populate("userID", (withPicture?{}:{image:0}))
-				.populate("chargeBoxID").populate("stop.userID")
-				.sort({timestamp:-1}).exec().then(transactionsMDB => {
+		return MDBTransaction.find($match)
+				.populate("userID", (withPicture?{}:{image:0}))
+				.populate("chargeBoxID")
+				.populate("stop.userID")
+				.sort({timestamp:-1})
+				.exec().then(transactionsMDB => {
 			// Set
 			let transactions = [];
 			// Filter

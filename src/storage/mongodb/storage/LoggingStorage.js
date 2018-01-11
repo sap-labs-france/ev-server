@@ -135,7 +135,10 @@ class LoggingStorage {
 			sort.timestamp = -1;
 		}
 		// Exec request
-		return MDBLog.find(filter).sort(sort).limit(numberOfLogs).exec().then((loggingsMDB) => {
+		return MDBLog.find(filter)
+				.sort(sort)
+				.limit(numberOfLogs)
+				.exec().then((loggingsMDB) => {
 			var loggings = [];
 			loggingsMDB.forEach(function(loggingMDB) {
 				var logging = {};

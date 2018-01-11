@@ -31,6 +31,8 @@ class MongoDBStorage extends Storage {
 				if (err) {
 					reject(err);
 				} else {
+					// Set compatibility for collation
+					mongoose.connection.db.admin().command( { setFeatureCompatibilityVersion: "3.4" } );
 					// Log
 					Logging.logInfo({
 						module: "MongoDBStorage", method: "start", action: "Startup",
