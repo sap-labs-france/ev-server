@@ -113,9 +113,15 @@ module.exports = {
 					break;
 
 				// Get the completed transactions
-				case "CompletedTransactions":
+				case "TransactionsCompleted":
 					// Delegate
-					TransactionService.handleGetCompletedTransactions(action, req, res, next);
+					TransactionService.handleGetTransactionsCompleted(action, req, res, next);
+					break;
+
+				// Get the transaction's years
+				case "TransactionYears":
+					// Delegate
+					TransactionService.handleGetTransactionYears(action, req, res, next);
 					break;
 
 				// Get the consumption statistics
@@ -143,9 +149,9 @@ module.exports = {
 					break;
 
 				// Get the active transactions
-				case "ActiveTransactions":
+				case "TransactionsActive":
 					// Delegate
-					TransactionService.handleGetActiveTransactions(action, req, res, next);
+					TransactionService.handleGetTransactionsActive(action, req, res, next);
 					break;
 
 				// Get the transactions

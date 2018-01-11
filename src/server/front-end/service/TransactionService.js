@@ -399,11 +399,34 @@ class TransactionService {
 		});
 	}
 
-	static handleGetActiveTransactions(action, req, res, next) {
+	static handleGetTransactionYears(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
 			module: "TransactionService",
-			method: "handleGetActiveTransactions",
+			method: "handleGetTransactionYears",
+			message: `Get Transaction's Years`
+		});
+		// Get Transactions
+		global.storage.getTransactions().then((transactions) => {
+			let result = {};
+			// if (!transactions) {
+				result.years = [];
+				result.years.push(new Date().getYear());
+			// }
+			// Return
+			res.json(result);
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
+	static handleGetTransactionsActive(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "TransactionService",
+			method: "handleGetTransactionsActive",
 			message: `Read Active Transactions`,
 			detailedMessages: req.query
 		});
@@ -412,18 +435,18 @@ class TransactionService {
 			// Not Authorized!
 			throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_TRANSACTION,
-				null, 500, "TransactionService", "handleGetActiveTransactions");
+				null, 500, "TransactionService", "handleGetTransactionsActive");
 		}
 		let filter = { stop: { $exists: false } };
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterActiveTransactionsRequest(req.query, req.user);
+		let filteredRequest = SecurityRestObjectFiltering.filterTransactionsActiveRequest(req.query, req.user);
 		if (filteredRequest.ChargeBoxIdentity) {
 			filter.chargeBoxIdentity = filteredRequest.ChargeBoxIdentity;
 		}
 		if (filteredRequest.ConnectorId) {
 			filter.connectorId = filteredRequest.ConnectorId;
 		}
-		// Check email
+		// Get Transactions
 		global.storage.getTransactions(null, filter, filteredRequest.WithPicture).then((transactions) => {
 			// Return
 			res.json(
@@ -438,11 +461,11 @@ class TransactionService {
 		});
 	}
 
-	static handleGetCompletedTransactions(action, req, res, next) {
+	static handleGetTransactionsCompleted(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
 			module: "TransactionService",
-			method: "handleGetCompletedTransactions",
+			method: "handleGetTransactionsCompleted",
 			message: `Read Completed Transactions`,
 			detailedMessages: req.query
 		});
@@ -451,12 +474,12 @@ class TransactionService {
 			// Not Authorized!
 			throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_TRANSACTION,
-				null, 500, "TransactionService", "handleGetCompletedTransactions");
+				null, 500, "TransactionService", "handleGetTransactionsCompleted");
 		}
 		let pricing;
 		let filter = {stop: {$exists: true}};
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterCompletedTransactionsRequest(req.query, req.user);
+		let filteredRequest = SecurityRestObjectFiltering.filterTransactionsCompletedRequest(req.query, req.user);
 		// Date
 		if (filteredRequest.StartDateTime) {
 			filter.startDateTime = filteredRequest.StartDateTime;

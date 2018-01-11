@@ -114,7 +114,7 @@ class SecurityRestObjectFiltering {
 		}
 	}
 
-	static filterActiveTransactionsRequest(request, loggedUser) {
+	static filterTransactionsActiveRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.ChargeBoxIdentity = sanitize(request.ChargeBoxIdentity);
 		filteredRequest.ConnectorId = sanitize(request.ConnectorId);
@@ -137,7 +137,7 @@ class SecurityRestObjectFiltering {
 		return filteredRequest;
 	}
 
-	static filterCompletedTransactionsRequest(request, loggedUser) {
+	static filterTransactionsCompletedRequest(request, loggedUser) {
 		let filteredRequest = {};
 		// Handle picture
 		SecurityRestObjectFiltering.filterWithPicture(filteredRequest, request.WithPicture);
