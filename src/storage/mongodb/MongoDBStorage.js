@@ -53,6 +53,11 @@ class MongoDBStorage extends Storage {
 		UserStorage.setCentralRestServer(centralRestServer);
 	}
 
+	getEndUserLicenseAgreement(language="en") {
+		// Delegate
+		return UserStorage.handleGetEndUserLicenseAgreement(language);
+	}
+
 	getConfigurationParamValue(chargeBoxIdentity, paramName) {
 		// Delegate
 		return ChargingStationStorage.handleGetConfigurationParamValue(chargeBoxIdentity, paramName);

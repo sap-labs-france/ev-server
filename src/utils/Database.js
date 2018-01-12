@@ -29,6 +29,27 @@ module.exports = {
 		}
 	},
 
+	updateEula(src, dest) {
+		// Set it
+		if (src.id) {
+			dest.id = src.id;
+		}
+		dest.timestamp = src.timestamp;
+		dest.version = src.version;
+		dest.language = src.language;
+		dest.text = src.text;
+	},
+
+	updatePricing(src, dest) {
+		// Set it
+		if (src.id) {
+			dest.id = src.id;
+		}
+		dest.timestamp = src.timestamp;
+		dest.priceKWH = src.priceKWH;
+		dest.priceUnit = src.priceUnit;
+	},
+
 	updatePricing(src, dest) {
 		// Set it
 		if (src.id) {

@@ -1,7 +1,9 @@
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
+const Configuration = require('../../../utils/Configuration');
 const MDBUser = require('../model/MDBUser');
 const MDBTag = require('../model/MDBTag');
+const MDBEula = require('../model/MDBEula');
 const User = require('../../../model/User');
 const crypto = require('crypto');
 
@@ -10,6 +12,33 @@ let _centralRestServer;
 class UserStorage {
 	static setCentralRestServer(centralRestServer) {
 		_centralRestServer = centralRestServer;
+	}
+
+	static handleGetEndUserLicenseAgreement(language) {
+		let languageFound = false;
+		if (!language) {
+			language = "en";
+		}
+		let supportLanguages = Configuration.getLocalesConfig().supported;
+		supportLanguages.forEach(supportLanguage => {
+			if (language == supportLanguage.substring(0, 2)) {
+				languageFound = true;
+			}
+		});
+		if (!languageFound) {
+			language = "en";
+		}
+		return MDBEula.findOne({"language":language})
+				.sort({"version": -1})
+				.then((eulaMDB) => {
+			let eula = null;
+			// Set
+			if (eulaMDB) {
+				eula = {};
+				Database.updateEula(eulaMDB, eula);
+			}
+			return eula;
+		});
 	}
 
 	static handleGetUserByTagId(tagID) {

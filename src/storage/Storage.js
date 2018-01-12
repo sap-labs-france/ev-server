@@ -10,6 +10,9 @@ class Storage {
 	start() {
 	}
 
+	getEndUserLicenseAgreement(language="en") {
+	}
+
 	setCentralRestServer(centralRestServer) {
 	}
 

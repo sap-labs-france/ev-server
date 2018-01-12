@@ -14,6 +14,13 @@ class SecurityRestObjectFiltering {
 		return filteredRequest;
 	}
 
+	static filterEndUserLicenseAgreementRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.Language = sanitize(request.Language);
+		return filteredRequest;
+	}
+
 	static filterTransactionDelete(request, loggedUser) {
 		let filteredRequest = {};
 		// Set

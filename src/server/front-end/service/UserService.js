@@ -9,6 +9,23 @@ const Utils = require('../../../utils/Utils');
 const Database = require('../../../utils/Database');
 
 class UserService {
+	static handleGetEndUserLicenseAgreement(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "UserService",
+			method: "handleGetEndUserLicenseAgreement",
+			message: `Get End User License Agreement`,
+			detailedMessages: req.query
+		});
+		// Filter
+		let filteredRequest = SecurityRestObjectFiltering.filterEndUserLicenseAgreementRequest(req.query, req.user);
+		// Get it
+		global.storage.getEndUserLicenseAgreement(filteredRequest.Language).then((endUserLicenseAgreement) => {
+			res.json(endUserLicenseAgreement);
+			next();
+		});
+	}
+
 	static handleDeleteUser(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
