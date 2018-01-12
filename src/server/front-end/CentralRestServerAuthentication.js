@@ -1,4 +1,5 @@
 const AuthService = require('./service/AuthService');
+const UserService = require('./service/UserService');
 const UtilsService = require('./service/UtilsService');
 
 require('source-map-support').install();
@@ -55,6 +56,13 @@ module.exports = {
 						// Delegate
 						AuthService.handleUserLogOut(action, req, res, next);
 						break;
+
+					// End-user license agreement
+					case "EndUserLicenseAgreement":
+						// Delegate
+						UserService.handleGetEndUserLicenseAgreement(action, req, res, next);
+						break;
+
 					default:
 						// Delegate
 						UtilsService.handleUnknownAction(action, req, res, next);

@@ -168,7 +168,7 @@ class UserService {
 							"user": updatedUser.getModel(),
 							"evseDashboardURL" : Utils.buildEvseURL()
 						},
-						req.locale);
+						updatedUser.getLocale());
 				}
 				// Ok
 				res.json({status: `Success`});

@@ -9,6 +9,30 @@ class User {
 		Database.updateUser(user, this._model);
 	}
 
+	setEulaAcceptedHash(eulaAcceptedHash) {
+		this._model.eulaAcceptedHash = eulaAcceptedHash;
+	}
+
+	getEulaAcceptedHash() {
+		return this._model.eulaAcceptedHash;
+	}
+
+	setEulaAcceptedVersion(eulaAcceptedVersion) {
+		this._model.eulaAcceptedVersion = eulaAcceptedVersion;
+	}
+
+	getEulaAcceptedVersion() {
+		return this._model.eulaAcceptedVersion;
+	}
+
+	setEulaAcceptedOn(eulaAcceptedOn) {
+		this._model.eulaAcceptedOn = eulaAcceptedOn;
+	}
+
+	getEulaAcceptedOn() {
+		return this._model.eulaAcceptedOn;
+	}
+
 	getModel() {
 		return this._model;
 	}
@@ -58,7 +82,11 @@ class User {
 	}
 
 	getLocale() {
-		return this._model.locale;
+		return (this._model.locale?this._model.locale:"en_US");
+	}
+
+	getLanguage() {
+		return this._model.locale.substring(0,2);
 	}
 
 	setLocale(locale) {

@@ -38,6 +38,7 @@ module.exports = {
 		dest.version = src.version;
 		dest.language = src.language;
 		dest.text = src.text;
+		dest.hash = src.hash;
 	},
 
 	updatePricing(src, dest) {
@@ -133,6 +134,9 @@ module.exports = {
 		dest.iNumber = src.iNumber;
 		dest.costCenter = src.costCenter;
 		dest.status = src.status;
+		dest.eulaAcceptedOn = src.eulaAcceptedOn;
+		dest.eulaAcceptedVersion = src.eulaAcceptedVersion;
+		dest.eulaAcceptedHash = src.eulaAcceptedHash;
 		if (src.createdBy && src.createdOn) {
 			dest.createdBy = src.createdBy;
 			dest.createdOn = src.createdOn;

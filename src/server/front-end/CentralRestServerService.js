@@ -178,12 +178,6 @@ module.exports = {
 					ChargingStationService.handleGetChargingStationConfiguration(action, req, res, next);
 					break;
 
-				// End-user license agreement
-				case "EndUserLicenseAgreement":
-					// Delegate
-					UserService.handleGetEndUserLicenseAgreement(action, req, res, next);
-					break;
-
 				// Unknown Action
 				default:
 					// Delegate

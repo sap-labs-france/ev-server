@@ -1,6 +1,7 @@
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const Configuration = require('../../../utils/Configuration');
+const Users = require('../../../utils/Users');
 const MDBUser = require('../model/MDBUser');
 const MDBTag = require('../model/MDBTag');
 const MDBEula = require('../model/MDBEula');
@@ -36,6 +37,21 @@ class UserStorage {
 			if (eulaMDB) {
 				eula = {};
 				Database.updateEula(eulaMDB, eula);
+			}
+			// Not Found?
+			if (!eula || !eula.text) {
+				// Create Default
+				eula = {};
+				eula.timestamp = new Date();
+				eula.language = "en";
+				eula.version = 1;
+				eula.text = Users.getDefaultEulaEn();
+				eula.hash = crypto.createHash('sha256')
+					.update(`${eula.text}`)
+					.digest("hex");
+				// Create
+				let newEula = new MDBEula(eula);
+				newEula.save();
 			}
 			return eula;
 		});

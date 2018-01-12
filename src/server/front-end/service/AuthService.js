@@ -62,7 +62,7 @@ class AuthService {
 			return;
 		}
 		if (!filteredRequest.acceptEula) {
-			Logging.logActionExceptionMessageAndSendResponse(action, 
+			Logging.logActionExceptionMessageAndSendResponse(action,
 				new AppError(`The End-user License Agreement is mandatory`, 520, "AuthService", "handleLogIn"), req, res, next);
 			return;
 		}
@@ -181,7 +181,7 @@ class AuthService {
 								"user": newUser.getModel(),
 								"evseDashboardURL" : Utils.buildEvseURL()
 							},
-							req.locale);
+							newUser.getLocale());
 						// Ok
 						res.json({status: `Success`});
 						next();
@@ -258,7 +258,7 @@ class AuthService {
 								"email": savedUser.getEMail(),
 								"evseDashboardURL" : Utils.buildEvseURL()
 							},
-							req.locale);
+							savedUser.getLocale());
 						// Ok
 						res.json({status: `Success`});
 						next();
@@ -316,7 +316,7 @@ class AuthService {
 						"newPassword": newPassword,
 						"evseDashboardURL" : Utils.buildEvseURL()
 					},
-					req.locale);
+					newUser.getLocale());
 				// Ok
 				res.json({status: `Success`});
 				next();
@@ -352,45 +352,52 @@ class AuthService {
 				// Check new and old version of hashing the password
 				if (match || (user.getPassword() === Users.hashPassword(filteredRequest.password))) {
 					// Password OK
-					// Reset wrong number of trial
-					user.setPasswordWrongNbrTrials(0);
-					// Save
-					user.save();
-					// Log it
-					Logging.logSecurityInfo({
-						user: user.getModel(), module: "AuthService", method: "checkUserLogin", action: action,
-						message: `User '${Utils.buildUserFullName(user.getModel())}' logged in successfully`});
-					// Get authorisation
-					let userRole = Authorization.getAuthorizationFromRoleID(user.getRole());
-					// Parse the auth and replace values
-					let parsedAuths = Mustache.render(JSON.stringify(userRole.auths), {"user": user.getModel()});
-					// Compile auths of the role
-					let compiledAuths = compileProfile(JSON.parse(parsedAuths));
-					// Yes: build payload
-					let payload = {
-							id: user.getID(),
-							role: user.getRole(),
-							name: user.getName(),
-							firstName: user.getFirstName(),
-							auths: compiledAuths
-					};
-					// Build token
-					let token;
-					// Role Demo?
-					if (CentralRestServerAuthorization.isDemo(user.getModel()) ||
-							CentralRestServerAuthorization.isCorporate(user.getModel())) {
-						// Yes
-						token = jwt.sign(payload, jwtOptions.secretOrKey, {
-							expiresIn: _centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600
-						});
-					} else {
-						// No
-						token = jwt.sign(payload, jwtOptions.secretOrKey, {
-							expiresIn: _centralSystemRestConfig.userTokenLifetimeHours * 3600
-						});
-					}
-					// Return it
-					res.json({ token: token });
+					// Read Eula
+					global.storage.getEndUserLicenseAgreement(user.getLanguage()).then((endUserLicenseAgreement) => {
+						// Set Eula Info
+						user.setEulaAcceptedOn(new Date());
+						user.setEulaAcceptedVersion(endUserLicenseAgreement.version);
+						user.setEulaAcceptedHash(endUserLicenseAgreement.hash);
+						// Reset wrong number of trial
+						user.setPasswordWrongNbrTrials(0);
+						// Save
+						user.save();
+						// Log it
+						Logging.logSecurityInfo({
+							user: user.getModel(), module: "AuthService", method: "checkUserLogin", action: action,
+							message: `User '${Utils.buildUserFullName(user.getModel())}' logged in successfully`});
+						// Get authorisation
+						let userRole = Authorization.getAuthorizationFromRoleID(user.getRole());
+						// Parse the auth and replace values
+						let parsedAuths = Mustache.render(JSON.stringify(userRole.auths), {"user": user.getModel()});
+						// Compile auths of the role
+						let compiledAuths = compileProfile(JSON.parse(parsedAuths));
+						// Yes: build payload
+						let payload = {
+								id: user.getID(),
+								role: user.getRole(),
+								name: user.getName(),
+								firstName: user.getFirstName(),
+								auths: compiledAuths
+						};
+						// Build token
+						let token;
+						// Role Demo?
+						if (CentralRestServerAuthorization.isDemo(user.getModel()) ||
+								CentralRestServerAuthorization.isCorporate(user.getModel())) {
+							// Yes
+							token = jwt.sign(payload, jwtOptions.secretOrKey, {
+								expiresIn: _centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600
+							});
+						} else {
+							// No
+							token = jwt.sign(payload, jwtOptions.secretOrKey, {
+								expiresIn: _centralSystemRestConfig.userTokenLifetimeHours * 3600
+							});
+						}
+						// Return it
+						res.json({ token: token });
+					});
 				} else {
 					// Wrong Password
 					// Add wrong trial + 1
