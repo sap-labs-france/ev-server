@@ -61,6 +61,11 @@ class AuthService {
 			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The password is mandatory`), req, res, next);
 			return;
 		}
+		if (!filteredRequest.acceptEula) {
+			Logging.logActionExceptionMessageAndSendResponse(action, 
+				new AppError(`The End-user License Agreement is mandatory`, 520, "AuthService", "handleLogIn"), req, res, next);
+			return;
+		}
 		// Check email
 		global.storage.getUserByEmail(filteredRequest.email).then((user) => {
 			if (!user) {
