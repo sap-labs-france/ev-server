@@ -21,7 +21,11 @@ class UserService {
 		let filteredRequest = SecurityRestObjectFiltering.filterEndUserLicenseAgreementRequest(req.query, req.user);
 		// Get it
 		global.storage.getEndUserLicenseAgreement(filteredRequest.Language).then((endUserLicenseAgreement) => {
-			res.json(endUserLicenseAgreement);
+			res.json(
+				// Filter
+				SecurityRestObjectFiltering.filterEndUserLicenseAgreementResponse(
+					endUserLicenseAgreement, req.user)
+			);
 			next();
 		});
 	}

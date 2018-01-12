@@ -197,6 +197,13 @@ class SecurityRestObjectFiltering {
 		return filteredRequest;
 	}
 
+	static filterEndUserLicenseAgreementResponse(endUserLicenseAgreement, loggedUser) {
+		let filteredEndUserLicenseAgreement = {};
+		// Set
+		filteredEndUserLicenseAgreement.text = sanitize(endUserLicenseAgreement.text);
+		return filteredEndUserLicenseAgreement;
+	}
+
 	static filterLoggingResponse(logging, loggedUser) {
 		let filteredLogging = {};
 
