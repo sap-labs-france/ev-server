@@ -39,7 +39,6 @@ class UserStorage {
 			let eula = null;
 			// Set
 			if (!eulaMDB) {
-				console.log("LANG not found: Create EULA");
 				// Create Default
 				eula = {};
 				eula.timestamp = new Date();
@@ -61,7 +60,6 @@ class UserStorage {
 					.update(currentEula)
 					.digest("hex");
 				if (currentEulaHash != eulaMDB.hash) {
-					console.log("HASH DIFF: Create new version");
 					// New Version
 					eula = {};
 					eula.timestamp = new Date();
@@ -78,7 +76,6 @@ class UserStorage {
 					// Save
 					newEula.save();
 				} else {
-					console.log("HASH OK: return version");
 					// Ok: Transfer
 					eula = {};
 					Database.updateEula(eulaMDB, eula);

@@ -202,6 +202,12 @@ class MongoDBStorage extends Storage {
 		return TransactionStorage.handleGetTransaction(transactionId, withPicture);
 	}
 
+	saveChargingStationConnector(chargingStation, connectorId) {
+		// Delegate
+		return ChargingStationStorage.handleSaveChargingStationConnector(
+			chargingStation, connectorId);
+	}
+
 	saveChargingStation(chargingStation) {
 		// Delegate
 		return ChargingStationStorage.handleSaveChargingStation(chargingStation);

@@ -275,7 +275,6 @@ class ChargingStation {
 							connector.power = Math.floor(400 * current * Math.sqrt(nbPhase));
 						}
 					}
-
 					// Save Status Notif
 					return global.storage.saveStatusNotification(statusNotification);
 				} else {
@@ -283,8 +282,9 @@ class ChargingStation {
 					return Promise.reject(new Error(`Cannot retrieve the Configuration of ${this.getChargeBoxIdentity()}`));
 				}
 			}).then(() => {
-				// Save
-				return this.save();
+				// Save Status
+				return global.storage.saveChargingStationConnector(
+					this.getModel(), statusNotification.connectorId);
 			});
 		})(connectors[statusNotification.connectorId-1]);
 	}

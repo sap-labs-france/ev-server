@@ -56,8 +56,27 @@ class ChargingStationStorage {
 		});
 	}
 
+	static handleSaveChargingStationConnector(chargingStation, connectorId) {
+		let update = {};
+		update["connectors." + (connectorId-1)] = chargingStation.connectors[connectorId-1];
+		// Update
+		return MDBChargingStation.findOneAndUpdate(
+				{ "_id": chargingStation.id },
+				update).then((chargingStationMDB) => {
+			let newChargingStation = new ChargingStation(chargingStationMDB);
+			_centralRestServer.notifyChargingStationUpdated(
+				{
+					"id" : chargingStation.id,
+					"connectorId": connectorId,
+					"type": "Status"
+				}
+			);
+			return newChargingStation;
+		});
+	}
+
 	static handleSaveChargingStation(chargingStation) {
-		// Get
+		// Update
 		return MDBChargingStation.findOneAndUpdate(
 			{"_id": chargingStation.chargeBoxIdentity},
 			chargingStation,

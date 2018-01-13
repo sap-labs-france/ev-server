@@ -378,6 +378,8 @@ class AuthService {
 								role: user.getRole(),
 								name: user.getName(),
 								firstName: user.getFirstName(),
+								locale: user.getLocale(),
+								language: user.getLanguage(),
 								auths: compiledAuths
 						};
 						// Build token
