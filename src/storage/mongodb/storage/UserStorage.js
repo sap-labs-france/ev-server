@@ -15,12 +15,13 @@ class UserStorage {
 		_centralRestServer = centralRestServer;
 	}
 
-	static handleGetEndUserLicenseAgreement(language) {
+	static handleGetEndUserLicenseAgreement(language="en") {
 		let languageFound = false;
-		if (!language) {
-			language = "en";
-		}
+		let currentEula;
+		let currentEulaHash;
+		let newEula;
 		let supportLanguages = Configuration.getLocalesConfig().supported;
+
 		supportLanguages.forEach(supportLanguage => {
 			if (language == supportLanguage.substring(0, 2)) {
 				languageFound = true;
@@ -29,29 +30,59 @@ class UserStorage {
 		if (!languageFound) {
 			language = "en";
 		}
+		// Get current eula
+		currentEula = Users.getEndUserLicenseAgreement(language);
+		// Read DB
 		return MDBEula.findOne({"language":language})
 				.sort({"version": -1})
 				.then((eulaMDB) => {
 			let eula = null;
 			// Set
-			if (eulaMDB) {
-				eula = {};
-				Database.updateEula(eulaMDB, eula);
-			}
-			// Not Found?
-			if (!eula || !eula.text) {
+			if (!eulaMDB) {
+				console.log("LANG not found: Create EULA");
 				// Create Default
 				eula = {};
 				eula.timestamp = new Date();
-				eula.language = "en";
+				eula.language = language;
 				eula.version = 1;
-				eula.text = Users.getDefaultEulaEn();
+				eula.text = currentEula;
 				eula.hash = crypto.createHash('sha256')
-					.update(`${eula.text}`)
+					.update(currentEula)
 					.digest("hex");
 				// Create
-				let newEula = new MDBEula(eula);
+				newEula = new MDBEula(eula);
+				// Transfer
+				Database.updateEula(newEula, eula);
+				// Save
 				newEula.save();
+			} else {
+				// Check if eula has changed
+				currentEulaHash = crypto.createHash('sha256')
+					.update(currentEula)
+					.digest("hex");
+				if (currentEulaHash != eulaMDB.hash) {
+					console.log("HASH DIFF: Create new version");
+					// New Version
+					eula = {};
+					eula.timestamp = new Date();
+					eula.language = eulaMDB.language;
+					eula.version = eulaMDB.version + 1;
+					eula.text = currentEula;
+					eula.hash = crypto.createHash('sha256')
+						.update(currentEula)
+						.digest("hex");
+					// Create
+					newEula = new MDBEula(eula);
+					// Transfer
+					Database.updateEula(newEula, eula);
+					// Save
+					newEula.save();
+				} else {
+					console.log("HASH OK: return version");
+					// Ok: Transfer
+					eula = {};
+					Database.updateEula(eulaMDB, eula);
+				}
 			}
 			return eula;
 		});

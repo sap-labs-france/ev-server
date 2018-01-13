@@ -144,8 +144,6 @@ class UserService {
 				}
 				// Update
 				Database.updateUser(filteredRequest, userWithId.getModel());
-				// Set the locale
-				userWithId.setLocale(req.locale);
 				// Update timestamp
 				userWithId.setLastChangedBy(`${Utils.buildUserFullName(req.user)}`);
 				userWithId.setLastChangedOn(new Date());

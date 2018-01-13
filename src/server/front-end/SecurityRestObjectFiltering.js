@@ -248,6 +248,7 @@ class SecurityRestObjectFiltering {
 		filteredRequest.image = sanitize(request.image);
 		filteredRequest.mobile = sanitize(request.mobile);
 		filteredRequest.name = sanitize(request.name);
+		filteredRequest.locale = sanitize(request.locale);
 		if (request.passwords) {
 			filteredRequest.password = sanitize(request.passwords.password);
 		}
@@ -348,6 +349,8 @@ class SecurityRestObjectFiltering {
 				filteredUser.costCenter = user.costCenter;
 				filteredUser.status = user.status;
 				filteredUser.createdOn = user.createdOn;
+				filteredUser.eulaAcceptedOn = user.eulaAcceptedOn;
+				filteredUser.eulaAcceptedVersion = user.eulaAcceptedVersion;
 				filteredUser.lastChangedOn = user.lastChangedOn;
 				filteredUser.tagIDs = user.tagIDs;
 				filteredUser.role = user.role;

@@ -134,9 +134,11 @@ module.exports = {
 		dest.iNumber = src.iNumber;
 		dest.costCenter = src.costCenter;
 		dest.status = src.status;
-		dest.eulaAcceptedOn = src.eulaAcceptedOn;
-		dest.eulaAcceptedVersion = src.eulaAcceptedVersion;
-		dest.eulaAcceptedHash = src.eulaAcceptedHash;
+		if (src.eulaAcceptedOn && src.eulaAcceptedVersion && src.eulaAcceptedHash) {
+			dest.eulaAcceptedOn = src.eulaAcceptedOn;
+			dest.eulaAcceptedVersion = src.eulaAcceptedVersion;
+			dest.eulaAcceptedHash = src.eulaAcceptedHash;
+		}
 		if (src.createdBy && src.createdOn) {
 			dest.createdBy = src.createdBy;
 			dest.createdOn = src.createdOn;
