@@ -54,23 +54,29 @@ class AuthService {
 		let filteredRequest = SecurityRestObjectFiltering.filterLoginRequest(req.body);
 		// Check
 		if (!filteredRequest.email) {
-			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The email is mandatory`), req, res, next);
+			Logging.logActionExceptionMessageAndSendResponse(action,
+				new Error(`The email is mandatory`), req, res, next);
 			return;
 		}
 		if (!filteredRequest.password) {
-			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The password is mandatory`), req, res, next);
+			Logging.logActionExceptionMessageAndSendResponse(action,
+				new Error(`The password is mandatory`), req, res, next);
 			return;
 		}
 		if (!filteredRequest.acceptEula) {
 			Logging.logActionExceptionMessageAndSendResponse(action,
-				new AppError(`The End-user License Agreement is mandatory`, 520, "AuthService", "handleLogIn"), req, res, next);
+				new AppError(
+					`The End-user License Agreement is mandatory`,
+					520, "AuthService", "handleLogIn"),
+				req, res, next);
 			return;
 		}
 		// Check email
 		global.storage.getUserByEmail(filteredRequest.email).then((user) => {
 			if (!user) {
-				throw new AppError(`The user with email ${filteredRequest.email} does not exist`, 500,
-					"AuthService", "handleLogIn");
+				throw new AppError(
+					`The user with email ${filteredRequest.email} does not exist`,
+					500, "AuthService", "handleLogIn");
 			}
 			// Check if the number of trials is reached
 			if (user.getPasswordWrongNbrTrials() >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
@@ -127,7 +133,8 @@ class AuthService {
 		let filteredRequest = SecurityRestObjectFiltering.filterRegisterUserRequest(req.body);
 		// Check
 		if (!filteredRequest.captcha) {
-			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The captcha is mandatory`), req, res, next);
+			Logging.logActionExceptionMessageAndSendResponse(action,
+				new Error(`The captcha is mandatory`), req, res, next);
 			return;
 		}
 		// Check captcha
@@ -141,7 +148,8 @@ class AuthService {
 				// Check
 				let responseGoogleDataJSon = JSON.parse(responseGoogleData);
 				if (!responseGoogleDataJSon.success) {
-					Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The captcha is invalid`), req, res, next);
+					Logging.logActionExceptionMessageAndSendResponse(action,
+						new Error(`The captcha is invalid`), req, res, next);
 					return;
 				}
 				// Check Mandatory fields
@@ -161,6 +169,7 @@ class AuthService {
 						newUser.setStatus(Users.USER_STATUS_PENDING);
 						newUser.setRole(Users.USER_ROLE_BASIC);
 						newUser.setPassword(newPasswordHashed);
+						newUser.setLocale(req.locale);
 						newUser.setCreatedBy("System");
 						newUser.setCreatedOn(new Date());
 						// Save
@@ -211,7 +220,8 @@ class AuthService {
 		if (!filteredRequest.hash) {
 			// No hash: Send email with init pass hash link
 			if (!filteredRequest.captcha) {
-				Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The captcha is mandatory`), req, res, next);
+				Logging.logActionExceptionMessageAndSendResponse(action,
+					new Error(`The captcha is mandatory`), req, res, next);
 				return;
 			}
 			// Check captcha
@@ -225,7 +235,8 @@ class AuthService {
 					// Check
 					let responseGoogleDataJSon = JSON.parse(responseGoogleData);
 					if (!responseGoogleDataJSon.success) {
-						Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The captcha is invalid`), req, res, next);
+						Logging.logActionExceptionMessageAndSendResponse(action,
+							new Error(`The captcha is invalid`), req, res, next);
 						return;
 					}
 					// Yes: Generate new password
@@ -344,7 +355,12 @@ class AuthService {
 		if (user) {
 			// Check if the account is active
 			if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
-				Logging.logActionExceptionMessageAndSendResponse(action, new Error(`Your account ${user.getEMail()} is not yet active`), req, res, next, 550);
+				Logging.logActionExceptionMessageAndSendResponse(
+					action,
+					new AppError(
+						`Your account ${user.getEMail()} is not yet active`,
+						550, "AuthService", "checkUserLogin"),
+					req, res, next);
 				return;
 			}
 			// Check password

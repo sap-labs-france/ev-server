@@ -1,5 +1,6 @@
 const SecurityRestObjectFiltering = require('../SecurityRestObjectFiltering');
 const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
+const NotificationHandler = require('../../../notification/NotificationHandler');
 const Logging = require('../../../utils/Logging');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');

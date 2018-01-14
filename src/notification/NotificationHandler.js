@@ -32,14 +32,14 @@ class NotificationHandler {
 			if (user) {
 				// User
 				Logging.logInfo({
-					module: "Notification", method: "saveNotification",
-					action: sourceDescr, message: `User ${Utils.buildUserFullName(user)} has been notified successfully`
+					module: "Notification", method: "saveNotification", action: sourceDescr,
+					message: `User ${Utils.buildUserFullName(user)} is being notified`
 				});
 			} else {
 				// Admin
 				Logging.logInfo({
 					module: "Notification", method: "saveNotification",
-					action: sourceDescr, message: `Admin users have been notified successfully`
+					action: sourceDescr, message: `Admin users is being notified`
 				});
 			}
 		}).catch((error) => {

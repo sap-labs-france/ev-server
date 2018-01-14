@@ -1,4 +1,6 @@
 const Configuration = require('../../utils/Configuration');
+const Logging = require('../../utils/Logging');
+const Utils = require('../../utils/Utils');
 const nodemailer = require('nodemailer');
 const path = require('path');
 const email = require("emailjs");
@@ -147,8 +149,6 @@ class EMailNotificationTask extends NotificationTask {
 		let subject = ejs.render(emailTemplate.subject, data);
 		// Render the HTML
 		let html = ejs.render(emailTemplate.html, data);
-		// console.log(subject);
-		// console.log(html);
 		// Send the email
 		this.sendEmail({
 			to: (data.user?data.user.email:null),
@@ -156,9 +156,18 @@ class EMailNotificationTask extends NotificationTask {
 			text: html,
 			html: html
 		}).then((message) => {
+			// User
+			Logging.logInfo({
+				module: "EMailNotificationTask", method: "_prepareAndSendEmail", action: "SendEmail",
+				message: `Email has been sent to User ${Utils.buildUserFullName(data.user)} successfully`,
+				detailedMessages: {
+					"subject": subject,
+					"body": html
+				}
+			});
 			// Ok
 			fulfill(message);
-		}, error => {
+		}, (error) => {
 			reject(error);
 		});
 	}
