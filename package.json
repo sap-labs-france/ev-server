@@ -61,7 +61,7 @@
 		"start": "node src/start",
 		"start:dev:debug": "node --inspect --debug-brk src/start.js",
 		"start:dev": "nodemon -w dist dist/start.js",
-		"start:prod": "node dist/start.js",
+		"start:prod": "NODE_ENV=production node dist/start.js",
 		"build": "npm run build:dev",
 		"build:dev": "webpack --watch --env.env=dev",
 		"build:prod": "webpack --env.env=prod"

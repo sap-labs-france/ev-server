@@ -12,6 +12,9 @@ require('source-map-support').install();
 // Start the connection to the Database
 let storageConfig = Configuration.getStorageConfig();
 
+let nodejs_env = process.env.NODE_ENV || 'dev';
+console.log(`NodeJS is started in '${nodejs_env}' mode`);
+
 // Check implementation
 switch (storageConfig.implementation) {
 	// MongoDB?
