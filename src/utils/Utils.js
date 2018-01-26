@@ -93,7 +93,6 @@ module.exports = {
 		if (typeof recordLimit == "string" ) {
 			recordLimit = parseInt(recordLimit);
 		}
-		console.log(recordLimit);
 		return recordLimit;
 	}
 };

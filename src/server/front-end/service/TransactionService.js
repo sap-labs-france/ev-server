@@ -487,6 +487,9 @@ class TransactionService {
 		if (filteredRequest.EndDateTime) {
 			filter.endDateTime = filteredRequest.EndDateTime;
 		}
+		if (filteredRequest.UserID) {
+			filter.userId = filteredRequest.UserID;
+		}
 		// Read the pricing
 		global.storage.getPricing().then((foundPricing) => {
 			// Set

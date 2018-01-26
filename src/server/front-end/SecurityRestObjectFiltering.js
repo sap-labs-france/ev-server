@@ -153,6 +153,9 @@ class SecurityRestObjectFiltering {
 		filteredRequest.StartDateTime = sanitize(request.StartDateTime);
 		filteredRequest.EndDateTime = sanitize(request.EndDateTime);
 		filteredRequest.Search = sanitize(request.Search);
+		if (request.UserID) {
+			filteredRequest.UserID = sanitize(request.UserID);
+		}
 		SecurityRestObjectFiltering.filterLimit(request, filteredRequest);
 		return filteredRequest;
 	}
