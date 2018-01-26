@@ -18,7 +18,7 @@ class LoggingService {
 		let filteredRequest = SecurityRestObjectFiltering.filterLoggingsRequest(req.query, req.user);
 		// Get logs
 		Logging.getLogs(filteredRequest.DateFrom, filteredRequest.Level, filteredRequest.Type, filteredRequest.ChargingStation,
-				filteredRequest.Search, filteredRequest.NumberOfLogs, filteredRequest.SortDate).then((loggings) => {
+				filteredRequest.Search, filteredRequest.Limit, filteredRequest.SortDate).then((loggings) => {
 			// Return
 			res.json(
 				SecurityRestObjectFiltering.filterLoggingsResponse(

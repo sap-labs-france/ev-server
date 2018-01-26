@@ -78,5 +78,22 @@ module.exports = {
 		} else {
 			return message;
 		}
+	},
+
+	checkRecordLimit(recordLimit) {
+		// Not provided?
+		if (!recordLimit || isNaN(recordLimit)) {
+			// Default
+			recordLimit = 50;
+		}
+		// Limit Exceeded?
+		if(recordLimit > 500) {
+			recordLimit = 500;
+		}
+		if (typeof recordLimit == "string" ) {
+			recordLimit = parseInt(recordLimit);
+		}
+		console.log(recordLimit);
+		return recordLimit;
 	}
 };

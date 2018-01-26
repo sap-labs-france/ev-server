@@ -153,7 +153,24 @@ class SecurityRestObjectFiltering {
 		filteredRequest.StartDateTime = sanitize(request.StartDateTime);
 		filteredRequest.EndDateTime = sanitize(request.EndDateTime);
 		filteredRequest.Search = sanitize(request.Search);
+		SecurityRestObjectFiltering.filterLimit(request, filteredRequest);
 		return filteredRequest;
+	}
+
+	static filterLimit(request, filteredRequest) {
+		// Exist?
+		if (!request.Limit) {
+			// Default
+			filteredRequest.Limit = 100;
+		} else {
+			// Parse
+			filteredRequest.Limit = parseInt(sanitize(request.Limit));
+			if (isNaN(filteredRequest.Limit)) {
+				filteredRequest.Limit = 100;
+			} else if (filteredRequest.Limit > 500) {
+				filteredRequest.Limit = 500;
+			}
+		}
 	}
 
 	static filterUserRequest(request, loggedUser) {
@@ -191,9 +208,9 @@ class SecurityRestObjectFiltering {
 		filteredRequest.Level = sanitize(request.Level);
 		filteredRequest.ChargingStation = sanitize(request.ChargingStation);
 		filteredRequest.Search = sanitize(request.Search);
-		filteredRequest.NumberOfLogs = sanitize(request.NumberOfLogs);
 		filteredRequest.SortDate = sanitize(request.SortDate);
 		filteredRequest.Type = sanitize(request.Type);
+		SecurityRestObjectFiltering.filterLimit(request, filteredRequest);
 		return filteredRequest;
 	}
 
@@ -214,6 +231,8 @@ class SecurityRestObjectFiltering {
 		filteredLogging.userFullName = logging.userFullName;
 		filteredLogging.action = logging.action;
 		filteredLogging.message = logging.message;
+		filteredLogging.module = logging.module;
+		filteredLogging.method = logging.method;
 		filteredLogging.detailedMessages = logging.detailedMessages;
 		return filteredLogging;
 	}

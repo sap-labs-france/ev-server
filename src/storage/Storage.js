@@ -98,7 +98,7 @@ class Storage {
 	saveMeterValues(meterValues) {
 	}
 
-	getTransactions(searchValue=null, filter={}, withPicture=false) {
+	getTransactions(searchValue=null, filter={}, withPicture=false, numberOfTransactions=500) {
 	}
 
 	getTransaction(transactionId, withPicture=true) {

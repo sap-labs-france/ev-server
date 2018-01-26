@@ -495,7 +495,8 @@ class TransactionService {
 			return global.storage.getTransactions(
 				filteredRequest.Search,
 				filter,
-				filteredRequest.WithPicture);
+				filteredRequest.WithPicture,
+				filteredRequest.Limit);
 		}).then((transactions) => {
 			// Found?``
 			if (transactions && pricing) {

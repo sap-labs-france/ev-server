@@ -1,5 +1,6 @@
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
+const Utils = require('../../../utils/Utils');
 const MDBMeterValue = require('../model/MDBMeterValue');
 const MDBTransaction = require('../model/MDBTransaction');
 const mongoose = require('mongoose');
@@ -147,7 +148,7 @@ class TransactionStorage {
 		});
 	}
 
-	static handleGetTransactions(searchValue, filter, withPicture) {
+	static handleGetTransactions(searchValue, filter, withPicture, numberOfTransactions) {
 		// Build filter
 		let $match = {};
 		// User
@@ -178,8 +179,11 @@ class TransactionStorage {
 		if (filter.stop) {
 			$match.stop = filter.stop;
 		}
+		// Check Limit
+		numberOfTransactions = Utils.checkRecordLimit(numberOfTransactions);
 		// Yes: Get only active ones
 		return MDBTransaction.find($match)
+				.limit(numberOfTransactions)
 				.populate("userID", (withPicture?{}:{image:0}))
 				.populate("chargeBoxID")
 				.populate("stop.userID")

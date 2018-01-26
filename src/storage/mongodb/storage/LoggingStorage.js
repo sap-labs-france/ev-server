@@ -1,4 +1,5 @@
 const Logging = require('../../../utils/Logging');
+const Utils = require('../../../utils/Utils');
 const Database = require('../../../utils/Database');
 const MDBLog = require('../model/MDBLog');
 const crypto = require('crypto');
@@ -66,18 +67,8 @@ class LoggingStorage {
 	}
 
 	static handleGetLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs, sortDate) {
-		// Not provided?
-		if (!numberOfLogs || isNaN(numberOfLogs)) {
-			// Default
-			numberOfLogs = 50;
-		}
-		// Limit Exceeded?
-		if(numberOfLogs > 500) {
-			numberOfLogs = 500;
-		}
-		if (typeof numberOfLogs == "string" ) {
-			numberOfLogs = parseInt(numberOfLogs);
-		}
+		// Check Limit
+		numberOfLogs = Utils.checkRecordLimit(numberOfLogs);
 		// Set the filters
 		let filter = {};
 		// Date from provided?
@@ -136,8 +127,8 @@ class LoggingStorage {
 		}
 		// Exec request
 		return MDBLog.find(filter)
-				.sort(sort)
 				.limit(numberOfLogs)
+				.sort(sort)
 				.exec().then((loggingsMDB) => {
 			var loggings = [];
 			loggingsMDB.forEach(function(loggingMDB) {
