@@ -81,17 +81,17 @@ module.exports = {
 	},
 
 	checkRecordLimit(recordLimit) {
+		if (typeof recordLimit == "string" ) {
+			recordLimit = parseInt(recordLimit);
+		}
 		// Not provided?
-		if (!recordLimit || isNaN(recordLimit)) {
+		if (isNaN(recordLimit) || recordLimit < 0) {
 			// Default
-			recordLimit = 50;
+			recordLimit = 100;
 		}
 		// Limit Exceeded?
 		if(recordLimit > 500) {
 			recordLimit = 500;
-		}
-		if (typeof recordLimit == "string" ) {
-			recordLimit = parseInt(recordLimit);
 		}
 		return recordLimit;
 	}

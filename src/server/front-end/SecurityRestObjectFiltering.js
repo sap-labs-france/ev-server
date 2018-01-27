@@ -170,8 +170,9 @@ class SecurityRestObjectFiltering {
 			filteredRequest.Limit = parseInt(sanitize(request.Limit));
 			if (isNaN(filteredRequest.Limit)) {
 				filteredRequest.Limit = 100;
-			} else if (filteredRequest.Limit > 500) {
-				filteredRequest.Limit = 500;
+			// Negative limit?
+			} else if (filteredRequest.Limit < 0) {
+				filteredRequest.Limit = 100;
 			}
 		}
 	}
