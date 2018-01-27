@@ -27,7 +27,7 @@ class StatisticService {
 			filter.endDateTime = moment().endOf('year').toDate().toISOString();
 		}
 		// Check email
-		global.storage.getTransactions(null, filter, Users.WITH_NO_IMAGE).then((transactions) => {
+		global.storage.getTransactions(null, filter, Users.WITH_NO_IMAGE, 0).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
@@ -96,7 +96,7 @@ class StatisticService {
 			filter.endDateTime = moment().endOf('year').toDate().toISOString();
 		}
 		// Check email
-		global.storage.getTransactions(null, filter, Users.WITH_NO_IMAGE).then((transactions) => {
+		global.storage.getTransactions(null, filter, Users.WITH_NO_IMAGE, 0).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
@@ -162,7 +162,7 @@ class StatisticService {
 			filter.endDateTime = moment().endOf('year').toDate().toISOString();
 		}
 		// Check email
-		global.storage.getTransactions(null, filter, Users.WITH_NO_IMAGE).then((transactions) => {
+		global.storage.getTransactions(null, filter, Users.WITH_NO_IMAGE, 0).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
@@ -229,7 +229,7 @@ class StatisticService {
 			filter.endDateTime = moment().endOf('year').toDate().toISOString();
 		}
 		// Check email
-		global.storage.getTransactions(null, filter, Users.WITH_NO_IMAGE).then((transactions) => {
+		global.storage.getTransactions(null, filter, Users.WITH_NO_IMAGE, 0).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
