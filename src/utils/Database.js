@@ -159,6 +159,27 @@ module.exports = {
 		dest.passwordResetHash = src.passwordResetHash;
 	},
 
+	updateSite(src, dest) {
+		// Set it
+		if (src.id) {
+			dest.id = src.id;
+		}
+		dest.name = src.name;
+		dest.address = src.address;
+		dest.image = src.image;
+		dest.gps = src.gps;
+		dest.companyID = src.companyID;
+		if (src.createdBy && src.createdOn) {
+			dest.createdBy = src.createdBy;
+			dest.createdOn = src.createdOn;
+		}
+		if (src.lastChangedBy && src.lastChangedOn) {
+			dest.lastChangedBy = src.lastChangedBy;
+			dest.lastChangedOn = src.lastChangedOn;
+		}
+		dest.deleted = src.deleted;
+	},
+
 	updateLoggingObject(src, dest) {
 		// Set
 		if (src.id) {

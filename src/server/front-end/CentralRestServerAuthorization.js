@@ -13,6 +13,8 @@ module.exports = {
 
 	ENTITY_USERS: "Users",
 	ENTITY_USER: "User",
+	ENTITY_SITES: "Sites",
+	ENTITY_SITE: "Site",
 	ENTITY_CHARGING_STATIONS: "ChargingStations",
 	ENTITY_CHARGING_STATION: "ChargingStation",
 	ENTITY_TRANSACTIONS: "Transactions",
@@ -119,6 +121,36 @@ module.exports = {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_USER,
 			{ "Action": this.ACTION_DELETE, "UserID": user.id });
+	},
+
+	canListSites(loggedUser) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_SITES,
+			{ "Action": this.ACTION_LIST });
+	},
+
+	canReadSite(loggedUser, site) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_SITE,
+			{ "Action": this.ACTION_READ });
+	},
+
+	canCreateSite(loggedUser) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_SITE,
+			{ "Action": this.ACTION_CREATE });
+	},
+
+	canUpdateSite(loggedUser, site) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_SITE,
+			{ "Action": this.ACTION_UPDATE, "SiteID": site.id });
+	},
+
+	canDeleteSite(loggedUser, site) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_SITE,
+			{ "Action": this.ACTION_DELETE, "SiteID": site.id });
 	},
 
 	canReadPricing(loggedUser) {

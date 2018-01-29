@@ -16,6 +16,7 @@ module.exports = mongoose.model('ChargingStation',{
 	chargePointSerialNumber: String,
 	chargeBoxSerialNumber: String,
 	firmwareVersion: String,
+	gps: String,
 	iccid: String,
 	imsi: String,
 	meterType: String,
@@ -24,5 +25,7 @@ module.exports = mongoose.model('ChargingStation',{
 	ocppVersion: String,
 	lastReboot: Date,
 	lastHeartBeat: Date,
-	connectors: []
+	deleted: Boolean,
+	connectors: [],
+	siteAreaID: {type: mongoose.Schema.Types.ObjectId, ref: 'SiteArea'}
 });

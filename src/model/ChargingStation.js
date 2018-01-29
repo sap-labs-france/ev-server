@@ -486,9 +486,33 @@ class ChargingStation {
 		return global.storage.saveConfiguration(configuration);
 	}
 
+	setDeleted(deleted) {
+		this._model.deleted = deleted;
+	}
+
+	isDeleted() {
+		return this._model.deleted;
+	}
+
 	deleteTransaction(transaction) {
 		// Yes: save it
 		return global.storage.deleteTransaction(transaction);
+	}
+
+	delete() {
+		// Check if the user has a transaction
+		return this.hasAtLeastOneTransaction().then((result) => {
+			if (result) {
+				// Delete logically
+				// Set deleted
+				this.setDeleted(true);
+				// Delete
+				return this.save();
+			} else {
+				// Delete physically
+				return global.storage.deleteChargingStation(this.getID());
+			}
+		})
 	}
 
 	saveStartTransaction(transaction) {
@@ -743,6 +767,15 @@ class ChargingStation {
 		return global.storage.getConfigurationParamValue(this.getChargeBoxIdentity(), paramName).then((paramValue) => {
 			return paramValue;
 		});
+	}
+
+	hasAtLeastOneTransaction() {
+		// Get the consumption
+		return global.storage.getTransactions(null,
+				{"chargeBoxIdentity": this.getChargeBoxIdentity()},
+				false, 1).then((transactions) => {
+			return (transactions && transactions.length > 0 ? true : false);
+		});;
 	}
 
 	getTransactions(connectorId, startDateTime, endDateTime, withImage) {

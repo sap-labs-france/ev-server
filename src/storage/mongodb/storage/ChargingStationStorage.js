@@ -1,4 +1,5 @@
 const Logging = require('../../../utils/Logging');
+const Constants = require('../../../utils/Constants');
 const Database = require('../../../utils/Database');
 const MDBConfiguration = require('../model/MDBConfiguration');
 const MDBStatusNotification = require('../model/MDBStatusNotification');
@@ -33,7 +34,16 @@ class ChargingStationStorage {
 
 	static handleGetChargingStations(searchValue) {
 		// Set the filters
-		let filters = {};
+		let filters = {
+			"$and": [
+				{
+					"$or": [
+						{ "deleted": { $exists:false } },
+						{ deleted: false }
+					]
+				}
+			]
+		};
 		// Source?
 		if (searchValue) {
 			// Build filter
@@ -44,7 +54,7 @@ class ChargingStationStorage {
 		// Exec request
 		return MDBChargingStation.find(filters)
 				.sort( {_id: 1} )
-				.collation({ locale: 'en_US', caseLevel: true })
+				.collation({ locale: Constants.APPLICATION_LOCALE, caseLevel: true })
 				.exec().then((chargingStationsMDB) => {
 			let chargingStations = [];
 			// Create
@@ -68,7 +78,7 @@ class ChargingStationStorage {
 				{
 					"id" : chargingStation.id,
 					"connectorId": connectorId,
-					"type": "Status"
+					"type": Constants.NOTIF_ENTITY_CHARGING_STATION_STATUS
 				}
 			);
 			return newChargingStation;
@@ -87,14 +97,14 @@ class ChargingStationStorage {
 					_centralRestServer.notifyChargingStationCreated(
 						{
 							"id" : newChargingStation.id,
-							"type": "ChargingStation"
+							"type": Constants.NOTIF_ENTITY_CHARGING_STATION
 						}
 					);
 				} else {
 					_centralRestServer.notifyChargingStationUpdated(
 						{
 							"id" : chargingStation.id,
-							"type": "ChargingStation"
+							"type": Constants.NOTIF_ENTITY_CHARGING_STATION
 						}
 					);
 				}
@@ -108,7 +118,7 @@ class ChargingStationStorage {
 			_centralRestServer.notifyChargingStationDeleted(
 				{
 					"id": id,
-					"type": "ChargingStation"
+					"type": Constants.NOTIF_ENTITY_CHARGING_STATION
 				}
 			);
 			// Return the result
@@ -148,7 +158,7 @@ class ChargingStationStorage {
 				_centralRestServer.notifyChargingStationUpdated(
 					{
 						"id" : configuration.chargeBoxID,
-						"type": "Configuration"
+						"type": Constants.NOTIF_ENTITY_CHARGING_STATION_CONFIG
 					}
 				);
 				// Return
@@ -222,7 +232,7 @@ class ChargingStationStorage {
 				{
 					"id": statusNotification.chargeBoxID,
 					"connectorId": statusNotification.connectorId,
-					"type": "Status"
+					"type": Constants.NOTIF_ENTITY_CHARGING_STATION_STATUS
 				}
 			);
 		});

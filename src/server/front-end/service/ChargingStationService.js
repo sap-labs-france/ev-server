@@ -83,7 +83,7 @@ class ChargingStationService {
 					500, "ChargingStationService", "handleDeleteChargingStation");
 			}
 			// Delete
-			return global.storage.deleteChargingStation(filteredRequest.ID);
+			return chargingStation.delete();
 		}).then(() => {
 			// Log
 			Logging.logSecurityInfo({

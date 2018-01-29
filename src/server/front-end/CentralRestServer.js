@@ -5,6 +5,7 @@ const CentralRestServerService = require('./CentralRestServerService');
 const Utils = require('../../utils/Utils');
 const Configuration = require('../../utils/Configuration');
 const Logging = require('../../utils/Logging');
+const Constants = require('../../utils/Constants');
 const bodyParser = require("body-parser");
 require('body-parser-xml')(bodyParser);
 const cors = require('cors');
@@ -78,17 +79,6 @@ class CentralSystemRestServer {
 
 		// Keep params
 		_centralSystemRestConfig = centralSystemRestConfig;
-
-		// Check and send notif
-		setInterval(() => {
-			// Send
-			for (var i = _currentNotifications.length-1; i >= 0; i--) {
-				// send
-				this.notifyAllWebSocketClients(_currentNotifications[i]);
-				// Remove
-				_currentNotifications.splice(i, 1);
-			}
-		}, _centralSystemRestConfig.webSocketNotificationIntervalSecs * 1000);
 	}
 
 	// Start the server (to be defined in sub-classes)
@@ -135,6 +125,17 @@ class CentralSystemRestServer {
 
 		// Listen
 		server.listen(_centralSystemRestConfig.port, _centralSystemRestConfig.host, () => {
+			// Check and send notif
+			setInterval(() => {
+				// Send
+				for (var i = _currentNotifications.length-1; i >= 0; i--) {
+					// send
+					this.notifyAllWebSocketClients(_currentNotifications[i]);
+					// Remove
+					_currentNotifications.splice(i, 1);
+				}
+			}, _centralSystemRestConfig.webSocketNotificationIntervalSecs * 1000);
+
 			// Log
 			Logging.logInfo({
 				module: "CentralServerRestServer", method: "start", action: "Startup",
@@ -179,6 +180,45 @@ class CentralSystemRestServer {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_USERS
+		});
+	}
+
+	notifySiteCreated(userData) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_SITE,
+			"action": CentralRestServerAuthorization.ACTION_CREATE,
+			"data": userData
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_SITES
+		});
+	}
+
+	notifySiteUpdated(userData) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_SITE,
+			"action": CentralRestServerAuthorization.ACTION_UPDATE,
+			"data": userData
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_SITES
+		});
+	}
+
+	notifySiteDeleted(userData) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_SITE,
+			"action": CentralRestServerAuthorization.ACTION_DELETE,
+			"data": userData
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_SITES
 		});
 	}
 

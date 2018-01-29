@@ -1,7 +1,9 @@
+const Constants = require('../../../utils/Constants');
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const Configuration = require('../../../utils/Configuration');
 const Users = require('../../../utils/Users');
+const Utils = require('../../../utils/Utils');
 const MDBUser = require('../model/MDBUser');
 const MDBTag = require('../model/MDBTag');
 const MDBEula = require('../model/MDBEula');
@@ -117,19 +119,10 @@ class UserStorage {
 	}
 
 	static handleGetUser(id) {
-		// Check
-		if (!UserStorage._checkIfMongoDBIDIsValid(id)) {
-			// Return empty user
-			return Promise.resolve();
-		}
-
 		// Exec request
 		return MDBUser.findById(id).exec().then((userMDB) => {
 			// Check deleted
-			if (userMDB && userMDB.deleted) {
-				// Return empty user
-				return Promise.resolve();
-			} else {
+			if (userMDB) {
 				// Ok
 				return UserStorage._createUser(userMDB);
 			}
@@ -160,14 +153,14 @@ class UserStorage {
 						_centralRestServer.notifyUserCreated(
 							{
 								"id": newUser.getID(),
-								"type": "User"
+								"type": Constants.NOTIF_ENTITY_USER
 							}
 						);
 					} else {
 						_centralRestServer.notifyUserUpdated(
 							{
 								"id": newUser.getID(),
-								"type": "User"
+								"type": Constants.NOTIF_ENTITY_USER
 							}
 						);
 					}
@@ -195,10 +188,7 @@ class UserStorage {
 		}
 	}
 
-	static handleGetUsers(searchValue, numberOfUser, withPicture) {
-		if (!numberOfUser || isNaN(numberOfUser)) {
-			numberOfUser = 200;
-		}
+	static handleGetUsers(searchValue, numberOfUsers, withPicture) {
 		// Set the filters
 		let filters = {
 			"$and": [
@@ -210,6 +200,8 @@ class UserStorage {
 				}
 			]
 		};
+		// Check Limit
+		numberOfUsers = Utils.checkRecordLimit(numberOfUsers);
 		// Source?
 		if (searchValue) {
 			// Build filter
@@ -228,8 +220,8 @@ class UserStorage {
 
 			return MDBUser.find(filters, (withPicture?{}:{image:0}))
 					.sort( {status: -1, name: 1, firstName: 1} )
-					.collation({ locale: 'en_US', caseLevel: true })
-					.limit(numberOfUser).exec().then((usersMDB) => {
+					.collation({ locale: Constants.APPLICATION_LOCALE, caseLevel: true })
+					.limit(numberOfUsers).exec().then((usersMDB) => {
 				let users = [];
 				// Create
 				usersMDB.forEach((userMDB) => {
@@ -259,7 +251,7 @@ class UserStorage {
 			_centralRestServer.notifyUserDeleted(
 				{
 					"id": id,
-					"type": "User"
+					"type": Constants.NOTIF_ENTITY_USER
 				}
 			);
 			// Return the result
@@ -288,15 +280,6 @@ class UserStorage {
 			// Ok
 			return user;
 		}
-	}
-
-	static _checkIfMongoDBIDIsValid(id) {
-			// Check ID
-		if (/^[0-9a-fA-F]{24}$/.test(id)) {
-			// Valid
-			return true;
-		}
-		return false;
 	}
 }
 

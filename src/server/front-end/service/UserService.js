@@ -43,7 +43,8 @@ class UserService {
 		let filteredRequest = SecurityRestObjectFiltering.filterUserDeleteRequest(req.query, req.user);
 		// Check Mandatory fields
 		if(!filteredRequest.ID) {
-			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The user's ID must be provided`), req, res, next);
+			Logging.logActionExceptionMessageAndSendResponse(
+				action, new Error(`The user's ID must be provided`), req, res, next);
 			return;
 		}
 		// Check email
@@ -66,7 +67,7 @@ class UserService {
 		}).then(() => {
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "UserService", method: "handleDeleteUser",
+				user: req.user, module: "UserService", method: "DeletehandleDeleteUser",
 				message: `User '${Utils.buildUserFullName(user.getModel())}' with Email '${user.getEMail()}' has been deleted successfully`,
 				action: action, detailedMessages: user});
 			// Ok
@@ -116,7 +117,9 @@ class UserService {
 				if (!CentralRestServerAuthorization.canUpdateUser(req.user, userWithId.getModel())) {
 					// Not Authorized!
 					Logging.logActionUnauthorizedMessageAndSendResponse(
-						CentralRestServerAuthorization.ACTION_UPDATE, CentralRestServerAuthorization.ENTITY_USER, Utils.buildUserFullName(userWithId.getModel()), req, res, next);
+						CentralRestServerAuthorization.ACTION_UPDATE,
+						CentralRestServerAuthorization.ENTITY_USER,
+						Utils.buildUserFullName(userWithId.getModel()), req, res, next);
 					return;
 				}
 				// Check if Role is provided and has been changed

@@ -1,6 +1,7 @@
 const Logging = require('../../utils/Logging');
 const ChargingStationService = require('./service/ChargingStationService');
 const UserService = require('./service/UserService');
+const SiteService = require('./service/SiteService');
 const PricingService = require('./service/PricingService');
 const UtilsService = require('./service/UtilsService');
 const LoggingService = require('./service/LoggingService');
@@ -65,6 +66,12 @@ module.exports = {
 						UserService.handleCreateUser(action, req, res, next);
 						break;
 
+					// Create Site
+					case "SiteCreate":
+						// Delegate
+						SiteService.handleCreateSite(action, req, res, next);
+						break;
+
 					// Unknown Context
 					default:
 						// Delegate
@@ -72,147 +79,165 @@ module.exports = {
 				}
 				break;
 
-		// Get Request
-		case "GET":
-			// Check Action
-			switch (action) {
-				// Get Pricing
-				case "Pricing":
-					// Delegate
-					PricingService.handleGetPricing(action, req, res, next);
-					break;
+			// Get Request
+			case "GET":
+				// Check Action
+				switch (action) {
+					// Get Pricing
+					case "Pricing":
+						// Delegate
+						PricingService.handleGetPricing(action, req, res, next);
+						break;
 
-				// Get the Logging
-				case "Loggings":
-					// Delegate
-					LoggingService.handleGetLoggings(action, req, res, next);
-					break;
+					// Get the Logging
+					case "Loggings":
+						// Delegate
+						LoggingService.handleGetLoggings(action, req, res, next);
+						break;
 
-				// Get all the charging stations
-				case "ChargingStations":
-					// Delegate
-					ChargingStationService.handleGetChargingStations(action, req, res, next);
-					break;
+					// Get all the charging stations
+					case "ChargingStations":
+						// Delegate
+						ChargingStationService.handleGetChargingStations(action, req, res, next);
+						break;
 
-				// Get one charging station
-				case "ChargingStation":
-					// Delegate
-					ChargingStationService.handleGetChargingStation(action, req, res, next);
-					break;
+					// Get one charging station
+					case "ChargingStation":
+						// Delegate
+						ChargingStationService.handleGetChargingStation(action, req, res, next);
+						break;
 
-				// Get all the users
-				case "Users":
-					// Delegate
-					UserService.handleGetUsers(action, req, res, next);
-					break;
+					// Get all the sites
+					case "Sites":
+						// Delegate
+						SiteService.handleGetSites(action, req, res, next);
+						break;
 
-				// Get the user
-				case "User":
-					// Delegate
-					UserService.handleGetUser(action, req, res, next);
-					break;
+					// Get one site
+					case "Site":
+						// Delegate
+						SiteService.handleGetSite(action, req, res, next);
+						break;
 
-				// Get the completed transactions
-				case "TransactionsCompleted":
-					// Delegate
-					TransactionService.handleGetTransactionsCompleted(action, req, res, next);
-					break;
+					// Get all the users
+					case "Users":
+						// Delegate
+						UserService.handleGetUsers(action, req, res, next);
+						break;
 
-				// Get the transaction's years
-				case "TransactionYears":
-					// Delegate
-					TransactionService.handleGetTransactionYears(action, req, res, next);
-					break;
+					// Get the user
+					case "User":
+						// Delegate
+						UserService.handleGetUser(action, req, res, next);
+						break;
 
-				// Get the consumption statistics
-				case "ChargingStationConsumptionStatistics":
-					// Delegate
-					StatisticService.handleGetChargingStationConsumptionStatistics(action, req, res, next);
-					break;
+					// Get the completed transactions
+					case "TransactionsCompleted":
+						// Delegate
+						TransactionService.handleGetTransactionsCompleted(action, req, res, next);
+						break;
 
-				// Get the consumption statistics
-				case "ChargingStationUsageStatistics":
-					// Delegate
-					StatisticService.handleGetChargingStationUsageStatistics(action, req, res, next);
-					break;
+					// Get the transaction's years
+					case "TransactionYears":
+						// Delegate
+						TransactionService.handleGetTransactionYears(action, req, res, next);
+						break;
 
-				// Get the consumption statistics
-				case "UserConsumptionStatistics":
-					// Delegate
-					StatisticService.handleGetUserConsumptionStatistics(action, req, res, next);
-					break;
+					// Get the consumption statistics
+					case "ChargingStationConsumptionStatistics":
+						// Delegate
+						StatisticService.handleGetChargingStationConsumptionStatistics(action, req, res, next);
+						break;
 
-				// Get the usage statistics
-				case "UserUsageStatistics":
-					// Delegate
-					StatisticService.handleUserUsageStatistics(action, req, res, next);
-					break;
+					// Get the consumption statistics
+					case "ChargingStationUsageStatistics":
+						// Delegate
+						StatisticService.handleGetChargingStationUsageStatistics(action, req, res, next);
+						break;
 
-				// Get the active transactions
-				case "TransactionsActive":
-					// Delegate
-					TransactionService.handleGetTransactionsActive(action, req, res, next);
-					break;
+					// Get the consumption statistics
+					case "UserConsumptionStatistics":
+						// Delegate
+						StatisticService.handleGetUserConsumptionStatistics(action, req, res, next);
+						break;
 
-				// Get the transactions
-				case "ChargingStationTransactions":
-					// Delegate
-					TransactionService.handleGetChargingStationTransactions(action, req, res, next);
-					break;
+					// Get the usage statistics
+					case "UserUsageStatistics":
+						// Delegate
+						StatisticService.handleUserUsageStatistics(action, req, res, next);
+						break;
 
-				// Get the transaction
-				case "Transaction":
-					// Delegate
-					TransactionService.handleGetTransaction(action, req, res, next);
-					break;
+					// Get the active transactions
+					case "TransactionsActive":
+						// Delegate
+						TransactionService.handleGetTransactionsActive(action, req, res, next);
+						break;
 
-				// Get Charging Consumption
-				case "ChargingStationConsumptionFromTransaction":
-					// Delegate
-					TransactionService.handleGetChargingStationConsumptionFromTransaction(action, req, res, next);
-					break;
+					// Get the transactions
+					case "ChargingStationTransactions":
+						// Delegate
+						TransactionService.handleGetChargingStationTransactions(action, req, res, next);
+						break;
 
-				// Get Charging Configuration
-				case "ChargingStationConfiguration":
-					// Delegate
-					ChargingStationService.handleGetChargingStationConfiguration(action, req, res, next);
-					break;
+					// Get the transaction
+					case "Transaction":
+						// Delegate
+						TransactionService.handleGetTransaction(action, req, res, next);
+						break;
 
-				// Unknown Action
-				default:
-					// Delegate
-					UtilsService.handleUnknownAction(action, req, res, next);
-			}
-			break;
+					// Get Charging Consumption
+					case "ChargingStationConsumptionFromTransaction":
+						// Delegate
+						TransactionService.handleGetChargingStationConsumptionFromTransaction(action, req, res, next);
+						break;
 
-		// Update Request
-		case "PUT":
-			// Check
-			switch (action) {
-				// Change Pricing
-				case "PricingUpdate":
-					// Delegate
-					PricingService.handleUpdatePricing(action, req, res, next);
-					break;
+					// Get Charging Configuration
+					case "ChargingStationConfiguration":
+						// Delegate
+						ChargingStationService.handleGetChargingStationConfiguration(action, req, res, next);
+						break;
 
-				// User
-				case "UserUpdate":
-					// Delegate
-					UserService.handleUpdateUser(action, req, res, next);
-					break;
+					// Unknown Action
+					default:
+						// Delegate
+						UtilsService.handleUnknownAction(action, req, res, next);
+				}
+				break;
 
-				// Transaction
-				case "TransactionSoftStop":
-					// Delegate
-					TransactionService.handleTransactionSoftStop(action, req, res, next);
-					break;
+			// Update Request
+			case "PUT":
+				// Check
+				switch (action) {
+					// Change Pricing
+					case "PricingUpdate":
+						// Delegate
+						PricingService.handleUpdatePricing(action, req, res, next);
+						break;
 
-				// Not found
-				default:
-					// Delegate
-					UtilsService.handleUnknownAction(action, req, res, next);
-			}
-			break;
+					// User
+					case "UserUpdate":
+						// Delegate
+						UserService.handleUpdateUser(action, req, res, next);
+						break;
+
+					// Site
+					case "SiteUpdate":
+						// Delegate
+						SiteService.handleUpdateSite(action, req, res, next);
+						break;
+
+					// Transaction
+					case "TransactionSoftStop":
+						// Delegate
+						TransactionService.handleTransactionSoftStop(action, req, res, next);
+						break;
+
+					// Not found
+					default:
+						// Delegate
+						UtilsService.handleUnknownAction(action, req, res, next);
+				}
+				break;
 
 			// Delete Request
 			case "DELETE":
@@ -222,6 +247,12 @@ module.exports = {
 					case "UserDelete":
 						// Delegate
 						UserService.handleDeleteUser(action, req, res, next);
+						break;
+
+					// Site
+					case "SiteDelete":
+						// Delegate
+						SiteService.handleDeleteSite(action, req, res, next);
 						break;
 
 					// Charging station
@@ -243,11 +274,11 @@ module.exports = {
 				}
 				break;
 
-		default:
-			// Log
-			Logging.logActionExceptionMessageAndSendResponse(
-				"N/A", new Error(`Ussuported request method ${req.method}`), req, res, next);
-			break;
+			default:
+				// Log
+				Logging.logActionExceptionMessageAndSendResponse(
+					"N/A", new Error(`Ussuported request method ${req.method}`), req, res, next);
+				break;
 		}
 	}
 };

@@ -1,3 +1,4 @@
+const Constants = require('../../../utils/Constants');
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const Utils = require('../../../utils/Utils');
@@ -27,7 +28,7 @@ class TransactionStorage {
 					"id": transaction.id,
 					"connectorId": transaction.connectorId,
 					"chargeBoxIdentity": transaction.chargeBoxID.id,
-					"type": "Transaction"
+					"type": Constants.NOTIF_ENTITY_TRANSACTION
 				}
 			);
 			return result.result;
@@ -75,7 +76,7 @@ class TransactionStorage {
 						"id": startTransaction.id,
 						"connectorId": startTransaction.connectorId,
 						"chargeBoxIdentity": startTransaction.chargeBoxID,
-						"type": "Transaction"
+						"type": Constants.NOTIF_ENTITY_TRANSACTION
 					}
 				);
 			});
@@ -99,7 +100,7 @@ class TransactionStorage {
 				_centralRestServer.notifyTransactionUpdated(
 					{
 						"id": stopTransaction.transactionId,
-						"type": "Stop"
+						"type": Constants.NOTIF_ENTITY_TRANSACTION_STOP
 					}
 				);
 			});
@@ -122,7 +123,7 @@ class TransactionStorage {
 				_centralRestServer.notifyTransactionUpdated(
 					{
 						"id": meterValues.values[0].transactionId,
-						"type": "MeterValues"
+						"type": Constants.NOTIF_ENTITY_TRANSACTION_METER_VALUES
 					}
 				);
 			});

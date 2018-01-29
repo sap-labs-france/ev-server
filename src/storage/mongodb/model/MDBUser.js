@@ -1,13 +1,5 @@
 const mongoose = require('mongoose');
-
-const Address = new mongoose.Schema({
-	address1: String,
-	address2: String,
-	addressPostalCode: String,
-	addressLocality: String,
-	addressRegion: String,
-	addressCountry: String
-});
+const commons = require('./MDBCommons');
 
 module.exports = mongoose.model('User',{
 	name: String,
@@ -27,7 +19,7 @@ module.exports = mongoose.model('User',{
 	iNumber: String,
 	costCenter: String,
 	status: String,
-	addresses: [],
+	address: commons.Address,
 	locale: String,
 	deleted: Boolean,
 	createdBy: String,

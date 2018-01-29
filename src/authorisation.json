@@ -17,6 +17,19 @@
 				}
 			},
 			{
+				"AuthObject": "Sites",
+				"AuthFieldValue": {
+					"Action": ["List"]
+				}
+			},
+			{
+				"AuthObject": "Site",
+				"AuthFieldValue": {
+					"SiteID": "*",
+					"Action": ["Create", "Read", "Update", "Delete"]
+				}
+			},
+			{
 				"AuthObject": "ChargingStations",
 				"AuthFieldValue": {
 					"Action": ["List"]
@@ -71,6 +84,19 @@
 				"AuthFieldValue": {
 					"UserID": ["{{user.id}}"],
 					"Action": ["Update","Read","Logout"]
+				}
+			},
+			{
+				"AuthObject": "Sites",
+				"AuthFieldValue": {
+					"Action": []
+				}
+			},
+			{
+				"AuthObject": "Site",
+				"AuthFieldValue": {
+					"UserID": "*",
+					"Action": ["Read"]
 				}
 			},
 			{
@@ -131,6 +157,19 @@
 				}
 			},
 			{
+				"AuthObject": "Sites",
+				"AuthFieldValue": {
+					"Action": []
+				}
+			},
+			{
+				"AuthObject": "Site",
+				"AuthFieldValue": {
+					"UserID": "*",
+					"Action": ["Read"]
+				}
+			},
+			{
 				"AuthObject": "ChargingStations",
 				"AuthFieldValue": {
 					"Action": ["List"]
@@ -182,6 +221,19 @@
 			},
 			{
 				"AuthObject": "User",
+				"AuthFieldValue": {
+					"UserID": "*",
+					"Action": ["Read"]
+				}
+			},
+			{
+				"AuthObject": "Sites",
+				"AuthFieldValue": {
+					"Action": []
+				}
+			},
+			{
+				"AuthObject": "Site",
 				"AuthFieldValue": {
 					"UserID": "*",
 					"Action": ["Read"]

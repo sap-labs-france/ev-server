@@ -31,7 +31,6 @@ class Storage {
 	deleteSecurityLogs(deleteUpToDate) {
 	}
 
-
 	getConfiguration(chargeBoxIdentity) {
 	}
 
@@ -129,6 +128,18 @@ class Storage {
 	}
 
 	getUser(id) {
+	}
+
+	getSites(searchValue, numberOfSite, withPicture=false) {
+	}
+
+	saveSite(site) {
+	}
+
+	deleteSite(id) {
+	}
+
+	getSite(id) {
 	}
 
 	getUserByEmail(email) {

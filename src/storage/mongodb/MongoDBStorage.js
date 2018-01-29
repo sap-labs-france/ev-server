@@ -7,6 +7,7 @@ const PricingStorage = require('./storage/PricingStorage');
 const TransactionStorage = require('./storage/TransactionStorage');
 const NotificationStorage = require('./storage/NotificationStorage');
 const UserStorage = require('./storage/UserStorage');
+const SiteStorage = require('./storage/SiteStorage');
 const MigrationStorage = require('./storage/MigrationStorage');
 
 require('source-map-support').install();
@@ -49,6 +50,7 @@ class MongoDBStorage extends Storage {
 		PricingStorage.setCentralRestServer(centralRestServer);
 		TransactionStorage.setCentralRestServer(centralRestServer);
 		UserStorage.setCentralRestServer(centralRestServer);
+		SiteStorage.setCentralRestServer(centralRestServer);
 	}
 
 	getEndUserLicenseAgreement(language="en") {
@@ -216,11 +218,6 @@ class MongoDBStorage extends Storage {
 		return ChargingStationStorage.handleDeleteChargingStation(id);
 	}
 
-	deleteUser(id) {
-		// Delegate
-		return UserStorage.handleDeleteUser(id);
-	}
-
 	getChargingStations(searchValue) {
 		// Delegate
 		return ChargingStationStorage.handleGetChargingStations(searchValue);
@@ -246,6 +243,11 @@ class MongoDBStorage extends Storage {
 		return UserStorage.handleGetUser(id);
 	}
 
+	deleteUser(id) {
+		// Delegate
+		return UserStorage.handleDeleteUser(id);
+	}
+
 	getUserByEmail(email) {
 		// Delegate
 		return UserStorage.handleGetUserByEmail(email);
@@ -254,6 +256,26 @@ class MongoDBStorage extends Storage {
 	getUserByTagId(tagID) {
 		// Delegate
 		return UserStorage.handleGetUserByTagId(tagID);
+	}
+
+	getSites(searchValue, numberOfSite, withPicture=false) {
+		// Delegate
+		return SiteStorage.handleGetSites(searchValue, numberOfSite, withPicture);
+	}
+
+	saveSite(site) {
+		// Delegate
+		return SiteStorage.handleSaveSite(site);
+	}
+
+	deleteSite(id) {
+		// Delegate
+		return SiteStorage.handleDeleteSite(id);
+	}
+
+	getSite(id) {
+		// Delegate
+		return SiteStorage.handleGetSite(id);
 	}
 }
 

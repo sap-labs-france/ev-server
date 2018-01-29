@@ -60,6 +60,7 @@ global.storage.start().then(() => {
 		// -------------------------------------------------------------------------
 		// Create the Central Systems (Charging Stations)
 		// -------------------------------------------------------------------------
+		let centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 		let centralSystemsConfig = Configuration.getCentralSystemsConfig();
 		let chargingStationConfig = Configuration.getChargingStationConfig();
 		let advancedConfig = Configuration.getAdvancedConfig();
@@ -67,7 +68,6 @@ global.storage.start().then(() => {
 		// -------------------------------------------------------------------------
 		// Start the Central Rest System (Front-end REST service)
 		// -------------------------------------------------------------------------
-		let centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 		// Provided?
 		if (centralSystemRestConfig) {
 			// Create the server

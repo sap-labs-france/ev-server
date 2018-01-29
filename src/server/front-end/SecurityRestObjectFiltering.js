@@ -64,6 +64,13 @@ class SecurityRestObjectFiltering {
 		return filteredRequest;
 	}
 
+	static filterSiteDeleteRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.ID = sanitize(request.ID);
+		return filteredRequest;
+	}
+
 	static filterUserDeleteRequest(request, loggedUser) {
 		let filteredRequest = {};
 		// Set
@@ -198,6 +205,18 @@ class SecurityRestObjectFiltering {
 		return filteredRequest;
 	}
 
+	static filterSiteRequest(request, loggedUser) {
+		let filteredRequest = {};
+		filteredRequest.ID = sanitize(request.ID);
+		return filteredRequest;
+	}
+
+	static filterSitesRequest(request, loggedUser) {
+		let filteredRequest = {};
+		filteredRequest.Search = sanitize(request.Search);
+		return filteredRequest;
+	}
+
 	static filterChargingStationsRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
@@ -258,6 +277,13 @@ class SecurityRestObjectFiltering {
 	static filterUserUpdateRequest(request, loggedUser) {
 		// Set
 		let filteredRequest = SecurityRestObjectFiltering.filterUserCreateRequest(request, loggedUser);
+		filteredRequest.id = sanitize(request.id);
+		return filteredRequest;
+	}
+
+	static filterSiteUpdateRequest(request, loggedUser) {
+		// Set
+		let filteredRequest = SecurityRestObjectFiltering.filterSiteCreateRequest(request, loggedUser);
 		filteredRequest.id = sanitize(request.id);
 		return filteredRequest;
 	}
@@ -432,6 +458,43 @@ class SecurityRestObjectFiltering {
 		return filteredChargingStation;
 	}
 
+	static filterSiteCreateRequest(request, loggedUser) {
+		let filteredRequest = {};
+		filteredRequest.name = sanitize(request.name);
+		filteredRequest.address = sanitize(request.address);
+		filteredRequest.image = sanitize(request.image);
+		filteredRequest.gps = sanitize(request.gps);
+		filteredRequest.companyID = sanitize(request.companyID);
+		return filteredRequest;
+	}
+
+	static filterSiteResponse(site, loggedUser) {
+		let filteredSite;
+
+		// Check auth
+		if (CentralRestServerAuthorization.canReadSite(loggedUser, site)) {
+			// Admin?
+			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+				// Yes: set all params
+				filteredSite = site;
+			} else {
+				// Set only necessary info
+				filteredSite = {};
+				filteredSite.id = site.id;
+				filteredSite.name = site.name;
+				filteredSite.address = site.address;
+				filteredSite.image = site.image;
+				filteredSite.gps = site.gps;
+				filteredSite.createdBy = site.createdBy;
+				filteredSite.createdOn = site.createdOn;
+				filteredSite.lastChangedBy = site.lastChangedBy;
+				filteredSite.lastChangedOn = site.lastChangedOn;
+				filteredSite.companyID = site.companyID;
+			}
+		}
+		return filteredSite;
+	}
+
 	static filterChargingStationsResponse(chargingStations, loggedUser) {
 		let filteredChargingStations = [];
 		chargingStations.forEach(chargingStation => {
@@ -444,6 +507,20 @@ class SecurityRestObjectFiltering {
 			}
 		});
 		return filteredChargingStations;
+	}
+
+	static filterSitesResponse(sites, loggedUser) {
+		let filteredSites = [];
+		sites.forEach(site => {
+			// Filter
+			let filteredSite = this.filterSiteResponse(site, loggedUser);
+			// Ok?
+			if (filteredSite) {
+				// Add
+				filteredSites.push(filteredSite);
+			}
+		});
+		return filteredSites;
 	}
 
 	// Transaction

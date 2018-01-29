@@ -89,6 +89,8 @@ class CentralSystemServer {
 			} else {
 				// Update data
 				Database.updateChargingStation(args, chargingStation.getModel());
+				// Back again
+				chargingStation.setDeleted(false);
 			}
 			// Save Charging Station
 			return chargingStation.save().then(() => {
