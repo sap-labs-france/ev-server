@@ -89,13 +89,13 @@
 			{
 				"AuthObject": "Sites",
 				"AuthFieldValue": {
-					"Action": []
+					"Action": ["List"]
 				}
 			},
 			{
 				"AuthObject": "Site",
 				"AuthFieldValue": {
-					"UserID": "*",
+					"SiteID": "*",
 					"Action": ["Read"]
 				}
 			},
@@ -159,13 +159,13 @@
 			{
 				"AuthObject": "Sites",
 				"AuthFieldValue": {
-					"Action": []
+					"Action": ["List"]
 				}
 			},
 			{
 				"AuthObject": "Site",
 				"AuthFieldValue": {
-					"UserID": "*",
+					"SiteID": "*",
 					"Action": ["Read"]
 				}
 			},
@@ -229,13 +229,13 @@
 			{
 				"AuthObject": "Sites",
 				"AuthFieldValue": {
-					"Action": []
+					"Action": ["List"]
 				}
 			},
 			{
 				"AuthObject": "Site",
 				"AuthFieldValue": {
-					"UserID": "*",
+					"SiteID": "*",
 					"Action": ["Read"]
 				}
 			},
