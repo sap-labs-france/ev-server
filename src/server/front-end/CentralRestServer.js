@@ -87,10 +87,12 @@ class CentralSystemRestServer {
 		// Create the HTTP server
 		if (_centralSystemRestConfig.protocol === "https") {
 			// Create the options
+			console.log("OK");
 			var options = {
 				key: fs.readFileSync(_centralSystemRestConfig["ssl-key"]),
 				cert: fs.readFileSync(_centralSystemRestConfig["ssl-cert"])
 			};
+			console.log(options);
 			// Intermediate cert?
 			if (_centralSystemRestConfig["ssl-ca"]) {
 				// Array?
