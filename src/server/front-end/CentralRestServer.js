@@ -108,8 +108,11 @@ class CentralSystemRestServer {
 				}
 			}
 			console.log("OK");
+			console.log(options);
+			console.log(JSON.stringify(options, null, 2));
 			// Https server
 			server = https.createServer(options, app);
+			console.log("OKOK");
 		} else {
 			// Http server
 			server = http.createServer(app);
