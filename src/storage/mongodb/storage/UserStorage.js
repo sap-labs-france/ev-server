@@ -248,7 +248,7 @@ class UserStorage {
 		aggregation.push({
 			$sort: { status: -1, name: 1, firstName: 1 }
 		});
-
+		// Execute
 		return MDBUser.aggregate(aggregation)
 				.exec().then((usersMDB) => {
 			let users = [];
@@ -268,7 +268,7 @@ class UserStorage {
 	}
 
 	static handleDeleteUser(id) {
-		return MDBUser.remove({ "_id" : id }).then((result) => {
+		return MDBUser.findByIdAndRemove( id ).then((result) => {
 			// Notify Change
 			_centralRestServer.notifyUserDeleted(
 				{

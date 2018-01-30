@@ -6,9 +6,11 @@ const Utils = require('../../../utils/Utils');
 const Configuration = require('../../../utils/Configuration');
 const MDBSite = require('../model/MDBSite');
 const MDBSiteArea = require('../model/MDBSiteArea');
+const MDBChargingStation = require('../model/MDBChargingStation');
 const Site = require('../../../model/Site');
 const SiteArea = require('../../../model/SiteArea');
 const crypto = require('crypto');
+const ObjectId = mongoose.Types.ObjectId;
 
 let _centralRestServer;
 
@@ -18,16 +20,35 @@ class SiteStorage {
 	}
 
 	static handleGetSite(id) {
-		// Exec request
-		return MDBSite.findById(id).exec().then((siteMDB) => {
-			// Check deleted
-			if (siteMDB && siteMDB.deleted) {
-				// Return empty site
-				return Promise.resolve();
-			} else {
-				// Ok
-				return SiteStorage._createSite(siteMDB);
+		// Create Aggregation
+		let aggregation = [];
+		// Filters
+		aggregation.push({
+			$match: { _id: ObjectId(id) }
+		});
+		// Add SiteAreas
+		aggregation.push({
+			$lookup: {
+				from: "siteareas",
+				localField: "_id",
+				foreignField: "siteID",
+				as: "siteAreas"
 			}
+		});
+		// Exexute
+		return MDBSite.aggregate(aggregation)
+				.exec().then((sitesMDB) => {
+			let site = null;
+			// Create
+			if (sitesMDB && sitesMDB.length > 0) {
+				// Create
+				site = new Site(sitesMDB[0]);
+				// Set
+				site.setSiteAreas(sitesMDB[0].siteAreas.map((siteArea) => {
+					return new SiteArea(siteArea);
+				}));
+			}
+			return site;
 		});
 	}
 
@@ -42,7 +63,7 @@ class SiteStorage {
 			if (site.id) {
 				siteFilter._id = site.id;
 			} else {
-				siteFilter._id = mongoose.Types.ObjectId();
+				siteFilter._id = ObjectId();
 			}
 			// Get
 			return MDBSite.findOneAndUpdate(siteFilter, site, {
@@ -82,7 +103,7 @@ class SiteStorage {
 			if (siteArea.id) {
 				siteAreaFilter._id = siteArea.id;
 			} else {
-				siteAreaFilter._id = mongoose.Types.ObjectId();
+				siteAreaFilter._id = ObjectId();
 			}
 			// Get
 			return MDBSiteArea.findOneAndUpdate(siteAreaFilter, siteArea, {
@@ -174,47 +195,34 @@ class SiteStorage {
 			});
 			return sites;
 		});
-		// // Exec request
-		// return MDBSite.find(filters, (withPicture?{}:{image:0}))
-		// 		.sort( {name: 1} )
-		// 		.collation({ locale: Constants.APPLICATION_LOCALE, caseLevel: true })
-		// 		.limit(numberOfSites)
-		// 		.exec().then((sitesMDB) => {
-		// 	let sites = [];
-		// 	// Create
-		// 	sitesMDB.forEach((siteMDB) => {
-		// 		// Create
-		// 		let site = new Site(siteMDB);
-		// 		// Add
-		// 		sites.push(site);
-		// 	});
-		// 	// Ok
-		// 	return sites;
-		// });
 	}
 
 	static handleDeleteSite(id) {
-		return MDBSite.remove({ "_id" : id }).then((result) => {
-			// Notify Change
-			_centralRestServer.notifySiteDeleted(
-				{
-					"id": id,
-					"type": Constants.NOTIF_ENTITY_SITE
-				}
-			);
-			// Return the result
-			return result.result;
+		return SiteStorage.handleGetSite(id).then((site) => {
+			let siteAreas = site.getSiteAreas();
+			// Get the areas
+			siteAreas.forEach((siteArea) => {
+				// Remove Charging Station's Site Area
+				MDBChargingStation.update(
+					{ siteAreaID: ObjectId(siteArea.getID()) },
+					{ $set: { siteAreaID: null } });
+				console.log(siteArea.getID());
+				// Remove Site Area
+				// MDBSiteArea.findByIdAndRemove(siteArea.getID());
+			});
+			// Remove Site
+			// return MDBSite.findByIdAndRemove(id).then((result) => {
+			// 	// Notify Change
+			// 	_centralRestServer.notifySiteDeleted(
+			// 		{
+			// 			"id": id,
+			// 			"type": Constants.NOTIF_ENTITY_SITE
+			// 		}
+			// 	);
+			// 	// Return the result
+			// 	return result.result;
+			// });
 		});
-	}
-
-	static _createSite(siteMDB) {
-		let site = null;
-		// Check
-		if (siteMDB) {
-			// Create
-			site = new Site(siteMDB);
-		}
-		return site;
 	}
 }
 

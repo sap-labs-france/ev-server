@@ -70,8 +70,8 @@ class ChargingStationStorage {
 		let update = {};
 		update["connectors." + (connectorId-1)] = chargingStation.connectors[connectorId-1];
 		// Update
-		return MDBChargingStation.findOneAndUpdate(
-				{ "_id": chargingStation.id },
+		return MDBChargingStation.findByIdAndUpdate(
+				chargingStation.id,
 				update).then((chargingStationMDB) => {
 			let newChargingStation = new ChargingStation(chargingStationMDB);
 			_centralRestServer.notifyChargingStationUpdated(
@@ -113,7 +113,7 @@ class ChargingStationStorage {
 	}
 
 	static handleDeleteChargingStation(id) {
-		return MDBChargingStation.remove({ "_id" : id }).then((result) => {
+		return MDBChargingStation.findByIdAndRemove( id ).then((result) => {
 			// Notify Change
 			_centralRestServer.notifyChargingStationDeleted(
 				{
