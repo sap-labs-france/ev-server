@@ -4,11 +4,18 @@ const Users = require('./Users');
 require('source-map-support').install();
 
 module.exports = {
-	updateChargingStation(src, dest) {
+	updateID(src, dest) {
 		// Set it
 		if (src.id) {
 			dest.id = src.id;
 		}
+		if (!dest.id && src._id) {
+			dest.id = src._id;
+		}
+	},
+
+	updateChargingStation(src, dest) {
+		this.updateID(src, dest);
 		dest.chargeBoxIdentity = src.id;
 		dest.chargePointSerialNumber = src.chargePointSerialNumber;
 		dest.chargePointModel = src.chargePointModel;
@@ -30,10 +37,7 @@ module.exports = {
 	},
 
 	updateEula(src, dest) {
-		// Set it
-		if (src.id) {
-			dest.id = src.id;
-		}
+		this.updateID(src, dest);
 		dest.timestamp = src.timestamp;
 		dest.version = src.version;
 		dest.language = src.language;
@@ -42,49 +46,34 @@ module.exports = {
 	},
 
 	updatePricing(src, dest) {
-		// Set it
-		if (src.id) {
-			dest.id = src.id;
-		}
+		this.updateID(src, dest);
 		dest.timestamp = src.timestamp;
 		dest.priceKWH = src.priceKWH;
 		dest.priceUnit = src.priceUnit;
 	},
 
 	updatePricing(src, dest) {
-		// Set it
-		if (src.id) {
-			dest.id = src.id;
-		}
+		this.updateID(src, dest);
 		dest.timestamp = src.timestamp;
 		dest.priceKWH = src.priceKWH;
 		dest.priceUnit = src.priceUnit;
 	},
 
 	updateMigration(src, dest) {
-		// Set it
-		if (src.id) {
-			dest.id = src.id;
-		}
+		this.updateID(src, dest);
 		dest.timestamp = src.timestamp;
 		dest.name = src.name;
 		dest.version = src.version;
 	},
 
 	updateConfiguration(src, dest) {
-		// Set it
-		if (src.id) {
-			dest.id = src.id;
-		}
+		this.updateID(src, dest);
 		dest.timestamp = src.timestamp;
 		dest.configuration = src.configuration;
 	},
 
 	updateStatusNotification(src, dest) {
-		// Set it
-		if (src.id) {
-			dest.id = src.id;
-		}
+		this.updateID(src, dest);
 		dest.connectorId = src.connectorId;
 		dest.timestamp = src.timestamp;
 		dest.status = src.status;
@@ -95,10 +84,7 @@ module.exports = {
 	},
 
 	updateNotification(src, dest) {
-		// Set it
-		if (src.id) {
-			dest.id = src.id;
-		}
+		this.updateID(src, dest);
 		dest.timestamp = src.timestamp;
 		dest.channel = src.channel;
 		dest.sourceId = src.sourceId;
@@ -108,10 +94,7 @@ module.exports = {
 	},
 
 	updateMeterValue(src, dest) {
-		// Set it
-		if (src.id) {
-			dest.id = src.id;
-		}
+		this.updateID(src, dest);
 		dest.connectorId = src.connectorId;
 		dest.transactionId = src.transactionId;
 		dest.timestamp = src.timestamp;
@@ -120,10 +103,7 @@ module.exports = {
 	},
 
 	updateUser(src, dest) {
-		// Set it
-		if (src.id) {
-			dest.id = src.id;
-		}
+		this.updateID(src, dest);
 		dest.name = src.name;
 		dest.firstName = src.firstName;
 		dest.image = src.image;
@@ -160,10 +140,7 @@ module.exports = {
 	},
 
 	updateSite(src, dest) {
-		// Set it
-		if (src.id) {
-			dest.id = src.id;
-		}
+		this.updateID(src, dest);
 		dest.name = src.name;
 		dest.address = src.address;
 		dest.image = src.image;
@@ -177,14 +154,18 @@ module.exports = {
 			dest.lastChangedBy = src.lastChangedBy;
 			dest.lastChangedOn = src.lastChangedOn;
 		}
-		dest.deleted = src.deleted;
+	},
+
+	updateSiteArea(src, dest) {
+		this.updateID(src, dest);
+		dest.name = src.name;
+		dest.image = src.image;
+		dest.gps = src.gps;
+		dest.siteID = src.siteID;
 	},
 
 	updateLoggingObject(src, dest) {
-		// Set
-		if (src.id) {
-			dest.id = src.id;
-		}
+		this.updateID(src, dest);
 		dest.level = src.level;
 		dest.source = src.source;
 		dest.type = src.type;
@@ -198,10 +179,7 @@ module.exports = {
 	},
 
 	updateTransaction(src, dest) {
-		// Set ID
-		if (src.id) {
-			dest.id = src.id;
-		}
+		this.updateID(src, dest);
 		dest.transactionId = src.id;
 		// Check User
 		if (src.chargeBoxID && src.chargeBoxID.id) {

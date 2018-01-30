@@ -1,6 +1,7 @@
 const SecurityRestObjectFiltering = require('../SecurityRestObjectFiltering');
 const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
 const Logging = require('../../../utils/Logging');
+const Constants = require('../../../utils/Constants');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Users = require('../../../utils/Users');
@@ -146,7 +147,8 @@ class ChargingStationService {
 		if (!CentralRestServerAuthorization.canListChargingStations(req.user)) {
 			// Not Authorized!
 			Logging.logActionUnauthorizedMessageAndSendResponse(
-				CentralRestServerAuthorization.ACTION_LIST, CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS,
+				CentralRestServerAuthorization.ACTION_LIST,
+				CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS,
 				null, req, res, next);
 			return;
 		}
@@ -154,7 +156,7 @@ class ChargingStationService {
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationsRequest(req.query, req.user);
 		let chargingStations;
 		// Get the charging stfoundChargingStationsations
-		global.storage.getChargingStations(filteredRequest.Search, 100).then((foundChargingStations) => {
+		global.storage.getChargingStations(filteredRequest.Search, Constants.NO_LIMIT).then((foundChargingStations) => {
 			// Set
 			chargingStations = foundChargingStations;
 			// Get logged user

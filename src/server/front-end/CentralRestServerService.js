@@ -72,6 +72,12 @@ module.exports = {
 						SiteService.handleCreateSite(action, req, res, next);
 						break;
 
+					// Create Site Area
+					case "SiteAreaCreate":
+						// Delegate
+						SiteService.handleCreateSiteArea(action, req, res, next);
+						break;
+
 					// Unknown Context
 					default:
 						// Delegate

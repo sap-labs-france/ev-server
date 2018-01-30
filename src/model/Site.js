@@ -1,4 +1,5 @@
-var Database = require('../utils/Database');
+const Database = require('../utils/Database');
+const SiteArea = require('./SiteArea');
 
 class Site {
 	constructor(site) {
@@ -89,12 +90,23 @@ class Site {
 		this._model.lastChangedOn = lastChangedOn;
 	}
 
-	setDeleted(deleted) {
-		this._model.deleted = deleted;
+	getSiteAreas() {
+		return this._model.siteAreas.map((siteArea) => {
+			return new SiteArea(siteArea);
+		});
 	}
 
-	isDeleted() {
-		return this._model.deleted;
+	setSiteAreas(siteAreas) {
+		this._model.siteAreas = siteAreas.map((siteArea) => {
+			return siteArea.getModel();
+		});
+	}
+
+	addSiteArea(siteArea) {
+		if (!this._model.siteAreas) {
+			this._model.siteAreas = [];
+		}
+		this._model.siteAreas.push(siteArea.getModel());
 	}
 
 	save() {

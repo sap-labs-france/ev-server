@@ -142,6 +142,9 @@ class Storage {
 	getSite(id) {
 	}
 
+	saveSiteArea(siteArea) {
+	}
+
 	getUserByEmail(email) {
 	}
 

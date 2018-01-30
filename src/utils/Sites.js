@@ -15,5 +15,23 @@ module.exports = {
 		}
 		// Ok
 		return true;
+	},
+
+	checkIfSiteAreaValid(action, filteredRequest, req, res, next) {
+		// Update mode?
+		if(req.method === "PUT" && !filteredRequest.id) {
+			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The site area's ID is mandatory`), req, res, next);
+			return false;
+		}
+		if(!filteredRequest.name) {
+			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The site area's name is mandatory`), req, res, next);
+			return false;
+		}
+		if(!filteredRequest.siteID) {
+			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The site ID is mandatory for the site area`), req, res, next);
+			return false;
+		}
+		// Ok
+		return true;
 	}
 };

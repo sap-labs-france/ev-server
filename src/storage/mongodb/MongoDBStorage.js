@@ -268,6 +268,11 @@ class MongoDBStorage extends Storage {
 		return SiteStorage.handleSaveSite(site);
 	}
 
+	saveSiteArea(siteArea) {
+		// Delegate
+		return SiteStorage.handleSaveSiteArea(siteArea);
+	}
+
 	deleteSite(id) {
 		// Delegate
 		return SiteStorage.handleDeleteSite(id);

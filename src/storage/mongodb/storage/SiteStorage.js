@@ -7,6 +7,7 @@ const Configuration = require('../../../utils/Configuration');
 const MDBSite = require('../model/MDBSite');
 const MDBSiteArea = require('../model/MDBSiteArea');
 const Site = require('../../../model/Site');
+const SiteArea = require('../../../model/SiteArea');
 const crypto = require('crypto');
 
 let _centralRestServer;
@@ -34,7 +35,7 @@ class SiteStorage {
 		// Check if ID/Name is provided
 		if (!site.id && !site.name) {
 			// ID must be provided!
-			return Promise.reject( new Error("Error in saving the Site: Site has no ID or Name and cannot be created or updated") );
+			return Promise.reject( new Error("Error in saving the Site: Site has no ID and no Name and cannot be created or updated") );
 		} else {
 			let siteFilter = {};
 			// Build Request
@@ -70,6 +71,46 @@ class SiteStorage {
 		}
 	}
 
+	static handleSaveSiteArea(siteArea) {
+		// Check if ID/Name is provided
+		if (!siteArea.id && !siteArea.name) {
+			// ID must be provided!
+			return Promise.reject( new Error("Error in saving the Site: Site has no ID and no Name and cannot be created or updated") );
+		} else {
+			let siteAreaFilter = {};
+			// Build Request
+			if (siteArea.id) {
+				siteAreaFilter._id = siteArea.id;
+			} else {
+				siteAreaFilter._id = mongoose.Types.ObjectId();
+			}
+			// Get
+			return MDBSiteArea.findOneAndUpdate(siteAreaFilter, siteArea, {
+					new: true,
+					upsert: true
+				}).then((siteAreaMDB) => {
+					let newSiteArea = new SiteArea(siteAreaMDB);
+					// Notify Change
+					if (!siteArea.id) {
+						_centralRestServer.notifySiteCreated(
+							{
+								"id": newSiteArea.getSiteID(),
+								"type": Constants.NOTIF_ENTITY_SITE
+							}
+						);
+					} else {
+						_centralRestServer.notifySiteUpdated(
+							{
+								"id": newSiteArea.getSiteID(),
+								"type": Constants.NOTIF_ENTITY_SITE
+							}
+						);
+					}
+					return newSiteArea;
+				});
+		}
+	}
+
 	static handleGetSites(searchValue, numberOfSites, withPicture) {
 		// Check Limit
 		numberOfSites = Utils.checkRecordLimit(numberOfSites);
@@ -93,22 +134,63 @@ class SiteStorage {
 				]
 			});
 		}
-		// Exec request
-		return MDBSite.find(filters, (withPicture?{}:{image:0}))
-				.sort( {name: 1} )
-				.collation({ locale: Constants.APPLICATION_LOCALE, caseLevel: true })
-				.limit(numberOfSites).exec().then((sitesMDB) => {
+		// Create Aggregation
+		let aggregation = [];
+		// Filters
+		if (filters) {
+			aggregation.push({
+				$match: filters
+			});
+		}
+		// Limit
+		if (numberOfSites > 0) {
+			aggregation.push({
+				$limit: numberOfSites
+			});
+		}
+		// Add SiteAreas
+		aggregation.push({
+			$lookup: {
+				from: "siteareas",
+				localField: "_id",
+				foreignField: "siteID",
+				as: "siteAreas"
+			}
+		});
+		// Exexute
+		return MDBSite.aggregate(aggregation)
+				.exec().then((sitesMDB) => {
 			let sites = [];
 			// Create
 			sitesMDB.forEach((siteMDB) => {
 				// Create
 				let site = new Site(siteMDB);
+				// Set
+				site.setSiteAreas(siteMDB.siteAreas.map((siteArea) => {
+					return new SiteArea(siteArea);
+				}));
 				// Add
 				sites.push(site);
 			});
-			// Ok
 			return sites;
 		});
+		// // Exec request
+		// return MDBSite.find(filters, (withPicture?{}:{image:0}))
+		// 		.sort( {name: 1} )
+		// 		.collation({ locale: Constants.APPLICATION_LOCALE, caseLevel: true })
+		// 		.limit(numberOfSites)
+		// 		.exec().then((sitesMDB) => {
+		// 	let sites = [];
+		// 	// Create
+		// 	sitesMDB.forEach((siteMDB) => {
+		// 		// Create
+		// 		let site = new Site(siteMDB);
+		// 		// Add
+		// 		sites.push(site);
+		// 	});
+		// 	// Ok
+		// 	return sites;
+		// });
 	}
 
 	static handleDeleteSite(id) {

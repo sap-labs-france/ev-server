@@ -468,6 +468,15 @@ class SecurityRestObjectFiltering {
 		return filteredRequest;
 	}
 
+	static filterSiteAreaCreateRequest(request, loggedUser) {
+		let filteredRequest = {};
+		filteredRequest.name = sanitize(request.name);
+		filteredRequest.image = sanitize(request.image);
+		filteredRequest.gps = sanitize(request.gps);
+		filteredRequest.siteID = sanitize(request.siteID);
+		return filteredRequest;
+	}
+
 	static filterSiteResponse(site, loggedUser) {
 		let filteredSite;
 
@@ -482,13 +491,9 @@ class SecurityRestObjectFiltering {
 				filteredSite = {};
 				filteredSite.id = site.id;
 				filteredSite.name = site.name;
-				filteredSite.address = site.address;
 				filteredSite.image = site.image;
 				filteredSite.gps = site.gps;
-				filteredSite.createdBy = site.createdBy;
-				filteredSite.createdOn = site.createdOn;
-				filteredSite.lastChangedBy = site.lastChangedBy;
-				filteredSite.lastChangedOn = site.lastChangedOn;
+				filteredSite.siteAreas = site.siteAreas;
 				filteredSite.companyID = site.companyID;
 			}
 		}

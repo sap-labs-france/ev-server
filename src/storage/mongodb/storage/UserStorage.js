@@ -132,8 +132,8 @@ class UserStorage {
 	static handleSaveUser(user) {
 		// Check if ID or email is provided
 		if (!user.id && !user.email) {
-			// ID ,ust be provided!
-			return Promise.reject( new Error("Error in saving the User: User has no ID or Email and cannot be created or updated") );
+			// ID must be provided!
+			return Promise.reject( new Error("Error in saving the User: User has no ID and no Email and cannot be created or updated") );
 		} else {
 			let userFilter = {};
 			// Build Request
@@ -209,39 +209,61 @@ class UserStorage {
 				"$or": [
 					{ "name" : { $regex : searchValue, $options: 'i' } },
 					{ "firstName" : { $regex : searchValue, $options: 'i' } },
-					{ "email" : { $regex : searchValue, $options: 'i' } },
-					{ "role" : { $regex : searchValue, $options: 'i' } }
+					{ "email" : { $regex : searchValue, $options: 'i' } }
 				]
 			});
 		}
-		// Exec request
-		return MDBTag.find({}).exec().then((tagsMDB) => {
-			// Exec request
-
-			return MDBUser.find(filters, (withPicture?{}:{image:0}))
-					.sort( {status: -1, name: 1, firstName: 1} )
-					.collation({ locale: Constants.APPLICATION_LOCALE, caseLevel: true })
-					.limit(numberOfUsers).exec().then((usersMDB) => {
-				let users = [];
-				// Create
-				usersMDB.forEach((userMDB) => {
-					// Create
-					let user = new User(userMDB);
-					// Get TagIDs
-					let tags = tagsMDB.filter((tag) => {
-						// Find a match
-						return tag.userID.equals(userMDB._id);
-					}).map((tag) => {
-						return tag._id;
-					});
-					// Set
-					user.setTagIDs(tags);
-					// Add
-					users.push(user);
-				});
-				// Ok
-				return users;
+		// Create Aggregation
+		let aggregation = [];
+		// Picture?
+		if (!withPicture) {
+			aggregation.push({
+				$project: {
+					image: 0
+				}
 			});
+		}
+		// Filters
+		if (filters) {
+			aggregation.push({
+				$match: filters
+			});
+		}
+		// Limit
+		if (numberOfUsers > 0) {
+			aggregation.push({
+				$limit: numberOfUsers
+			});
+		}
+		// Add TagIDs
+		aggregation.push({
+			$lookup: {
+				from: "tags",
+				localField: "_id",
+				foreignField: "userID",
+				as: "tags"
+			}
+		});
+		// Sort
+		aggregation.push({
+			$sort: { status: -1, name: 1, firstName: 1 }
+		});
+
+		return MDBUser.aggregate(aggregation)
+				.exec().then((usersMDB) => {
+			let users = [];
+			// Create
+			usersMDB.forEach((userMDB) => {
+				// Create
+				let user = new User(userMDB);
+				// Set
+				user.setTagIDs(userMDB.tags.map((tag) => {
+					return tag._id
+				}));
+				// Add
+				users.push(user);
+			});
+			return users;
 		});
 	}
 

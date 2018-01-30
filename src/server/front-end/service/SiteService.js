@@ -5,11 +5,51 @@ const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Sites = require('../../../utils/Sites');
+const Constants = require('../../../utils/Constants');
 const Utils = require('../../../utils/Utils');
 const Users = require('../../../utils/Users');
 const Site = require('../../../model/Site');
+const SiteArea = require('../../../model/SiteArea');
 
 class SiteService {
+	static handleCreateSiteArea(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "SiteService",
+			method: "handleCreateSiteArea",
+			message: `Create Site Area '${req.body.name}'`,
+			detailedMessages: req.body
+		});
+		// Check auth
+		if (!CentralRestServerAuthorization.canCreateSite(req.user)) {
+			// Not Authorized!
+			Logging.logActionUnauthorizedMessageAndSendResponse(
+				CentralRestServerAuthorization.ACTION_CREATE,
+				CentralRestServerAuthorization.ENTITY_SITE, null, req, res, next);
+			return;
+		}
+		// Filter
+		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreaCreateRequest( req.body, req.user );
+		// Check Mandatory fields
+		if (Sites.checkIfSiteAreaValid("SiteAreaCreate", filteredRequest, req, res, next)) {
+			// Create site area
+			let newSiteArea = new SiteArea(filteredRequest);
+			// Save
+			return newSiteArea.save().then((createdSiteArea) => {
+				Logging.logSecurityInfo({
+					user: req.user, module: "SiteService", method: "handleCreateSiteArea",
+					message: `Site Area '${createdSiteArea.getName()}' has been created successfully`,
+					action: action, detailedMessages: createdSiteArea});
+				// Ok
+				res.json({status: `Success`});
+				next();
+			}).catch((err) => {
+				// Log
+				Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+			});
+		}
+	}
+
 	static handleDeleteSite(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
@@ -116,8 +156,8 @@ class SiteService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterSitesRequest(req.query, req.user);
 		// Get the sites
-		global.storage.getSites(filteredRequest.Search, 100).then((sites) => {
-			var sitesJSon = [];
+		global.storage.getSites(filteredRequest.Search, Constants.NO_LIMIT).then((sites) => {
+			let sitesJSon = [];
 			sites.forEach((site) => {
 				// Set the model
 				sitesJSon.push(site.getModel());
@@ -158,7 +198,7 @@ class SiteService {
 			// Get the logged user
 			global.storage.getUser(req.user.id).then((loggedUser) => {
 				// Create site
-				var newSite = new Site(filteredRequest);
+				let newSite = new Site(filteredRequest);
 				// Update timestamp
 				newSite.setCreatedBy(Utils.buildUserFullName(loggedUser.getModel(), Users.WITHOUT_ID));
 				newSite.setCreatedOn(new Date());

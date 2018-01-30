@@ -2,6 +2,7 @@ const SecurityRestObjectFiltering = require('../SecurityRestObjectFiltering');
 const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
 const NotificationHandler = require('../../../notification/NotificationHandler');
 const Logging = require('../../../utils/Logging');
+const Constants = require('../../../utils/Constants');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Users = require('../../../utils/Users');
@@ -238,13 +239,14 @@ class UserService {
 		if (!CentralRestServerAuthorization.canListUsers(req.user)) {
 			// Not Authorized!
 			Logging.logActionUnauthorizedMessageAndSendResponse(
-				CentralRestServerAuthorization.ACTION_LIST, CentralRestServerAuthorization.ENTITY_USERS, null, req, res, next);
+				CentralRestServerAuthorization.ACTION_LIST,
+				CentralRestServerAuthorization.ENTITY_USERS, null, req, res, next);
 			return;
 		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterUsersRequest(req.query, req.user);
 		// Get users
-		global.storage.getUsers(filteredRequest.Search, 200, filteredRequest.WithPicture).then((users) => {
+		global.storage.getUsers(filteredRequest.Search, Constants.NO_LIMIT, filteredRequest.WithPicture).then((users) => {
 			var usersJSon = [];
 			users.forEach((user) => {
 				// Set the model
