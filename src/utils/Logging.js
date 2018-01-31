@@ -1,4 +1,5 @@
 const Utils = require('./Utils');
+const Constants = require('./Constants');
 const AppError = require('../exception/AppError');
 const AppAuthError = require('../exception/AppAuthError');
 require('source-map-support').install();
@@ -191,7 +192,7 @@ class Logging {
 
 		// Source
 		if (!log.source) {
-			log.source = "Central Server";
+			log.source = Constants.CENTRAL_SERVER;
 		}
 
 		// Set User

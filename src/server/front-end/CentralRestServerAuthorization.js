@@ -87,6 +87,12 @@ module.exports = {
 			{ "Action": this.ACTION_READ });
 	},
 
+	canUpdateChargingStation(loggedUser, chargingStation) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATION,
+			{ "Action": this.ACTION_UPDATE });
+	},
+
 	canListUsers(loggedUser) {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_USERS,

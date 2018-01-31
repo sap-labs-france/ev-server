@@ -281,6 +281,15 @@ class SecurityRestObjectFiltering {
 		return filteredRequest;
 	}
 
+	static filterChargingStationUpdateRequest(request, loggedUser) {
+		// Set
+		let filteredRequest = {};
+		filteredRequest.id = sanitize(request.id);
+		filteredRequest.endpoint = sanitize(request.endpoint); // http://192.168.0.118:8080/
+		filteredRequest.siteAreaID = sanitize(request.siteAreaID);
+		return filteredRequest;
+	}
+
 	static filterSiteUpdateRequest(request, loggedUser) {
 		// Set
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteCreateRequest(request, loggedUser);
@@ -397,9 +406,11 @@ class SecurityRestObjectFiltering {
 				filteredUser.iNumber = user.iNumber;
 				filteredUser.costCenter = user.costCenter;
 				filteredUser.status = user.status;
-				filteredUser.createdOn = user.createdOn;
 				filteredUser.eulaAcceptedOn = user.eulaAcceptedOn;
 				filteredUser.eulaAcceptedVersion = user.eulaAcceptedVersion;
+				filteredUser.createdBy = user.createdBy;
+				filteredUser.createdOn = user.createdOn;
+				filteredUser.lastChangedBy = user.lastChangedBy;
 				filteredUser.lastChangedOn = user.lastChangedOn;
 				filteredUser.tagIDs = user.tagIDs;
 				filteredUser.role = user.role;

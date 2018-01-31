@@ -5,8 +5,72 @@ const Constants = require('../../../utils/Constants');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Users = require('../../../utils/Users');
+const ChargingStations = require('../../../utils/ChargingStations');
+const Database = require('../../../utils/Database');
+const Utils = require('../../../utils/Utils');
+const SiteArea = require('../../../model/SiteArea');
 
 class ChargingStationService {
+
+	static handleUpdateChargingStation(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "ChargingStationService",
+			method: "handleUpdateChargingStation",
+			message: `Update Charging Station '${req.body.id}'`,
+			detailedMessages: req.body
+		});
+		// Filter
+		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationUpdateRequest( req.body, req.user );
+		// Check Mandatory fields
+		if (ChargingStations.checkIfChargingStationValid(action, filteredRequest, req, res, next)) {
+			let siteWithId;
+			// Check email
+			global.storage.getChargingStation(filteredRequest.id).then((chargingStation) => {
+				if (!chargingStation) {
+					throw new AppError(`The Charging Station with ID ${filteredRequest.id} does not exist anymore`,
+						550, "ChargingStationService", "handleUpdateChargingStation");
+				}
+				// Check auth
+				if (!CentralRestServerAuthorization.canUpdateChargingStation(req.user, chargingStation.getModel())) {
+					// Not Authorized!
+					Logging.logActionUnauthorizedMessageAndSendResponse(
+						CentralRestServerAuthorization.ACTION_UPDATE,
+						CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
+						site.getChargeBoxIdentity(), req, res, next);
+					return;
+				}
+				// Update
+				if (filteredRequest.siteAreaID) {
+					chargingStation.setSiteArea(new SiteArea({
+						"id": filteredRequest.siteAreaID
+					}));
+				}
+				if (filteredRequest.endpoint) {
+					chargingStation.setEndPoint(filteredRequest.endpoint);
+				}
+				// Update timestamp
+				chargingStation.setLastChangedBy(`${Utils.buildUserFullName(req.user)}`);
+				chargingStation.setLastChangedOn(new Date());
+				console.log(chargingStation);
+				// Update
+				return chargingStation.save();
+			}).then((updatedChargingStation) => {
+				// Log
+				Logging.logSecurityInfo({
+					user: req.user, module: "ChargingStationService", method: "handleUpdateChargingStation",
+					message: `Charging Station '${updatedChargingStation.getID()}' has been updated successfully`,
+					action: action, detailedMessages: updatedChargingStation});
+				// Ok
+				res.json({status: `Success`});
+				next();
+			}).catch((err) => {
+				// Log
+				Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+			});
+		}
+	}
+
 	static handleGetChargingStationConfiguration(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,

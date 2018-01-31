@@ -31,6 +31,14 @@ module.exports = {
 		dest.lastHeartBeat = src.lastHeartBeat;
 		dest.lastReboot = src.lastReboot;
 		dest.connectors = src.connectors;
+		if (src.createdBy && src.createdOn) {
+			dest.createdBy = src.createdBy;
+			dest.createdOn = src.createdOn;
+		}
+		if (src.lastChangedBy && src.lastChangedOn) {
+			dest.lastChangedBy = src.lastChangedBy;
+			dest.lastChangedOn = src.lastChangedOn;
+		}
 		if (!dest.connectors) {
 			dest.connectors = [];
 		}

@@ -95,6 +95,14 @@ class ChargingStationStorage {
 	}
 
 	static handleSaveChargingStation(chargingStation) {
+		// Check Site Area
+		if (chargingStation.siteArea && chargingStation.siteArea.id) {
+			// Set the ID
+			chargingStation.siteAreaID = chargingStation.siteArea.id;
+		} else {
+			// Set it to null
+			chargingStation.siteAreaID = null;
+		}
 		// Update
 		return MDBChargingStation.findOneAndUpdate(
 			{"_id": chargingStation.chargeBoxIdentity},

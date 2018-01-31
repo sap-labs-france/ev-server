@@ -11,6 +11,7 @@ const Utils = require('../../../utils/Utils');
 const Database = require('../../../utils/Database');
 
 class UserService {
+
 	static handleGetEndUserLicenseAgreement(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
@@ -92,7 +93,7 @@ class UserService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterUserUpdateRequest( req.body, req.user );
 		// Check Mandatory fields
-		if (Users.checkIfUserValid("UserUpdate", filteredRequest, req, res, next)) {
+		if (Users.checkIfUserValid(action, filteredRequest, req, res, next)) {
 			let userWithId;
 			// Check email
 			global.storage.getUser(filteredRequest.id).then((user) => {
@@ -282,7 +283,7 @@ class UserService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterUserCreateRequest( req.body, req.user );
 		// Check Mandatory fields
-		if (Users.checkIfUserValid("UserCreate", filteredRequest, req, res, next)) {
+		if (Users.checkIfUserValid(action, filteredRequest, req, res, next)) {
 			let loggedUserGeneral;
 			// Get the logged user
 			global.storage.getUser(req.user.id).then((loggedUser) => {

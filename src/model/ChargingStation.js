@@ -140,6 +140,38 @@ class ChargingStation {
 		this._model.meterSerialNumber = meterSerialNumber;
 	}
 
+	getCreatedBy() {
+		return this._model.createdBy;
+	}
+
+	setCreatedBy(createdBy) {
+		this._model.createdBy = createdBy;
+	}
+
+	getCreatedOn() {
+		return this._model.createdOn;
+	}
+
+	setCreatedOn(createdOn) {
+		this._model.createdOn = createdOn;
+	}
+
+	getLastChangedBy() {
+		return this._model.lastChangedBy;
+	}
+
+	setLastChangedBy(lastChangedBy) {
+		this._model.lastChangedBy = lastChangedBy;
+	}
+
+	getLastChangedOn() {
+		return this._model.lastChangedOn;
+	}
+
+	setLastChangedOn(lastChangedOn) {
+		this._model.lastChangedOn = lastChangedOn;
+	}
+
 	getEndPoint() {
 		return this._model.endpoint;
 	}

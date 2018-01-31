@@ -3,6 +3,7 @@ const chargePointService12Wsdl = require('../../client/soap/wsdl/OCPP_ChargePoin
 const chargePointService15Wsdl = require('../../client/soap/wsdl/OCPP_ChargePointService1.5.wsdl');
 const chargePointService16Wsdl = require('../../client/soap/wsdl/OCPP_ChargePointService1.6.wsdl');
 const Utils = require('../../utils/Utils');
+const Constants = require('../../utils/Constants');
 const Logging = require('../../utils/Logging');
 const Database = require('../../utils/Database');
 const bodyParser = require("body-parser");
@@ -86,6 +87,9 @@ class CentralSystemServer {
 			if (!chargingStation) {
 				// Save Charging Station
 				chargingStation = new ChargingStation(args);
+				// Update timestamp
+				chargingStation.setCreatedBy(Constants.CENTRAL_SERVER);
+				chargingStation.setCreatedOn(new Date());
 			} else {
 				// Update data
 				Database.updateChargingStation(args, chargingStation.getModel());

@@ -226,6 +226,12 @@ module.exports = {
 						UserService.handleUpdateUser(action, req, res, next);
 						break;
 
+					// User
+					case "ChargingStationUpdate":
+						// Delegate
+						ChargingStationService.handleUpdateChargingStation(action, req, res, next);
+						break;
+
 					// Site
 					case "SiteUpdate":
 						// Delegate

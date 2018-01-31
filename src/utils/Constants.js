@@ -13,5 +13,7 @@ module.exports = {
 
 	APPLICATION_LOCALE: "en_US",
 
-	NO_LIMIT: 0
+	NO_LIMIT: 0,
+
+	CENTRAL_SERVER: "Central Server"
 };

@@ -26,6 +26,10 @@ module.exports = mongoose.model('ChargingStation',{
 	lastReboot: Date,
 	lastHeartBeat: Date,
 	deleted: Boolean,
+	createdBy: String,
+	createdOn: Date,
+	lastChangedBy: String,
+	lastChangedOn: Date,
 	connectors: [],
 	siteAreaID: {type: mongoose.Schema.Types.ObjectId, ref: 'SiteArea'}
 });

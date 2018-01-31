@@ -12,6 +12,7 @@ const Site = require('../../../model/Site');
 const SiteArea = require('../../../model/SiteArea');
 
 class SiteService {
+
 	static handleCreateSiteArea(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
@@ -194,7 +195,7 @@ class SiteService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteCreateRequest( req.body, req.user );
 		// Check Mandatory fields
-		if (Sites.checkIfSiteValid("SiteCreate", filteredRequest, req, res, next)) {
+		if (Sites.checkIfSiteValid(action, filteredRequest, req, res, next)) {
 			// Get the logged user
 			global.storage.getUser(req.user.id).then((loggedUser) => {
 				// Create site
@@ -230,12 +231,12 @@ class SiteService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteUpdateRequest( req.body, req.user );
 		// Check Mandatory fields
-		if (Sites.checkIfSiteValid("SiteUpdate", filteredRequest, req, res, next)) {
+		if (Sites.checkIfSiteValid(action, filteredRequest, req, res, next)) {
 			let siteWithId;
 			// Check email
 			global.storage.getSite(filteredRequest.id).then((site) => {
 				if (!site) {
-					throw new AppError(`The site with ID ${filteredRequest.id} does not exist anymore`,
+					throw new AppError(`The Site with ID ${filteredRequest.id} does not exist anymore`,
 						550, "SiteService", "handleUpdateSite");
 				}
 				// Check auth
