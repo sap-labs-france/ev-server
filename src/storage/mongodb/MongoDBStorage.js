@@ -264,6 +264,11 @@ class MongoDBStorage extends Storage {
 		return UserStorage.handleGetUserByTagId(tagID);
 	}
 
+	getCompanies(searchValue, numberOfCompanies, withLogo=false) {
+		// Delegate
+		return SiteStorage.handleGetCompanies(searchValue, numberOfCompanies, withLogo);
+	}
+
 	getSites(searchValue, numberOfSite, withPicture=false) {
 		// Delegate
 		return SiteStorage.handleGetSites(searchValue, numberOfSite, withPicture);

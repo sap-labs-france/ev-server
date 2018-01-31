@@ -119,6 +119,12 @@ module.exports = {
 						ChargingStationService.handleGetChargingStation(action, req, res, next);
 						break;
 
+					// Get all the companies
+					case "Companies":
+						// Delegate
+						SiteService.handleGetCompanies(action, req, res, next);
+						break;
+
 					// Get all the sites
 					case "Sites":
 						// Delegate

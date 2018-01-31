@@ -133,6 +133,9 @@ class Storage {
 	getUser(id) {
 	}
 
+	getCompanies(searchValue, numberOfCompanies, withLogo=false) {
+	}
+
 	saveCompany(company) {
 	}
 

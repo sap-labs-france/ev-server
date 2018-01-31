@@ -188,20 +188,55 @@ class SiteStorage {
 		}
 	}
 
+	// Delegate
+	static handleGetCompanies(searchValue, numberOfCompanies, withLogo) {
+		// Check Limit
+		numberOfCompanies = Utils.checkRecordLimit(numberOfCompanies);
+		// Set the filters
+		let filters = {};
+		// Source?
+		if (searchValue) {
+			// Build filter
+			filters.$and.push({
+				"$or": [
+					{ "name" : { $regex : searchValue, $options: 'i' } }
+				]
+			});
+		}
+		// Create Aggregation
+		let aggregation = [];
+		// Filters
+		if (filters) {
+			aggregation.push({
+				$match: filters
+			});
+		}
+		// Limit
+		if (numberOfCompanies > 0) {
+			aggregation.push({
+				$limit: numberOfCompanies
+			});
+		}
+		// Execute
+		return MDBCompany.aggregate(aggregation)
+				.exec().then((companiesMDB) => {
+			let companies = [];
+			// Create
+			companiesMDB.forEach((companyMDB) => {
+				// Create
+				let company = new Company(companyMDB);
+				// Add
+				companies.push(company);
+			});
+			return companies;
+		});
+	}
+
 	static handleGetSites(searchValue, numberOfSites, withPicture) {
 		// Check Limit
 		numberOfSites = Utils.checkRecordLimit(numberOfSites);
 		// Set the filters
-		let filters = {
-			"$and": [
-				{
-					"$or": [
-						{ "deleted": { $exists:false } },
-						{ deleted: false }
-					]
-				}
-			]
-		};
+		let filters = {};
 		// Source?
 		if (searchValue) {
 			// Build filter

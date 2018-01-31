@@ -218,6 +218,12 @@ class SecurityRestObjectFiltering {
 		return filteredRequest;
 	}
 
+	static filterCompaniesRequest(request, loggedUser) {
+		let filteredRequest = {};
+		filteredRequest.Search = sanitize(request.Search);
+		return filteredRequest;
+	}
+
 	static filterSitesRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
@@ -505,6 +511,27 @@ class SecurityRestObjectFiltering {
 		return filteredRequest;
 	}
 
+	static filterCompanyResponse(company, loggedUser) {
+		let filteredCompany;
+
+		// Check auth
+		if (CentralRestServerAuthorization.canReadCompany(loggedUser, company)) {
+			// Admin?
+			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+				// Yes: set all params
+				filteredCompany = company;
+			} else {
+				// Set only necessary info
+				filteredCompany = {};
+				filteredCompany.id = company.id;
+				filteredCompany.name = company.name;
+				filteredCompany.image = company.image;
+				filteredCompany.gps = company.gps;
+			}
+		}
+		return filteredCompany;
+	}
+
 	static filterSiteResponse(site, loggedUser) {
 		let filteredSite;
 
@@ -540,6 +567,20 @@ class SecurityRestObjectFiltering {
 			}
 		});
 		return filteredChargingStations;
+	}
+
+	static filterCompaniesResponse(companies, loggedUser) {
+		let filteredCompanies = [];
+		companies.forEach(company => {
+			// Filter
+			let filteredCompany = this.filterCompanyResponse(company, loggedUser);
+			// Ok?
+			if (filteredCompany) {
+				// Add
+				filteredCompanies.push(filteredCompany);
+			}
+		});
+		return filteredCompanies;
 	}
 
 	static filterSitesResponse(sites, loggedUser) {

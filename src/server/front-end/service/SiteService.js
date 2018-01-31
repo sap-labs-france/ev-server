@@ -191,6 +191,45 @@ class SiteService {
 		});
 	}
 
+	static handleGetCompanies(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "SiteService",
+			method: "handleGetCompanies",
+			message: `Read All Companies`,
+			detailedMessages: req.query
+		});
+		// Check auth
+		if (!CentralRestServerAuthorization.canListCompanies(req.user)) {
+			// Not Authorized!
+			Logging.logActionUnauthorizedMessageAndSendResponse(
+				CentralRestServerAuthorization.ACTION_LIST,
+				CentralRestServerAuthorization.ENTITY_COMPANIES,
+				null, req, res, next);
+			return;
+		}
+		// Filter
+		let filteredRequest = SecurityRestObjectFiltering.filterCompaniesRequest(req.query, req.user);
+		// Get the companies
+		global.storage.getCompanies(filteredRequest.Search, Constants.NO_LIMIT).then((companies) => {
+			let companiesJSon = [];
+			companies.forEach((company) => {
+				// Set the model
+				companiesJSon.push(company.getModel());
+			});
+			// Return
+			res.json(
+				// Filter
+				SecurityRestObjectFiltering.filterCompaniesResponse(
+					companiesJSon, req.user)
+			);
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
 	static handleGetSites(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
