@@ -208,6 +208,12 @@ class MongoDBStorage extends Storage {
 			chargingStation, connectorId);
 	}
 
+	saveChargingStationHeartBeat(chargingStation) {
+		// Delegate
+		return ChargingStationStorage.handleSaveChargingStationHeartBeat(
+			chargingStation);
+	}
+
 	saveChargingStation(chargingStation) {
 		// Delegate
 		return ChargingStationStorage.handleSaveChargingStation(chargingStation);

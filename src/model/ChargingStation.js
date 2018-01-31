@@ -247,6 +247,11 @@ class ChargingStation {
 		return global.storage.saveChargingStation(this.getModel());
 	}
 
+	saveHeartBeat() {
+		// Save
+		return global.storage.saveChargingStationHeartBeat(this.getModel());
+	}
+
 	saveStatusNotification(statusNotification) {
 		// Set the Station ID
 		statusNotification.chargeBoxID = this.getChargeBoxIdentity();

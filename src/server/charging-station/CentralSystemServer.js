@@ -174,7 +174,7 @@ class CentralSystemServer {
 				// Set Heartbeat
 				chargingStation.setLastHeartBeat(heartBeat);
 				// Save
-				return chargingStation.save().then(()=> {
+				return chargingStation.saveHeartBeat().then(()=> {
 					// Log
 					Logging.logDebug({
 						source: headers.chargeBoxIdentity,

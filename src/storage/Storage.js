@@ -109,6 +109,9 @@ class Storage {
 	saveChargingStationConnector(chargingStation, connectorId) {
 	}
 
+	saveChargingStationHeartBeat(chargingStation) {
+	}
+
 	deleteChargingStation(id) {
 	}
 

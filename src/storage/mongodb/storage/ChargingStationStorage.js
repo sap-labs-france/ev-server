@@ -75,25 +75,6 @@ class ChargingStationStorage {
 		});
 	}
 
-	static handleSaveChargingStationConnector(chargingStation, connectorId) {
-		let update = {};
-		update["connectors." + (connectorId-1)] = chargingStation.connectors[connectorId-1];
-		// Update
-		return MDBChargingStation.findByIdAndUpdate(
-				chargingStation.id,
-				update).then((chargingStationMDB) => {
-			let newChargingStation = new ChargingStation(chargingStationMDB);
-			_centralRestServer.notifyChargingStationUpdated(
-				{
-					"id" : chargingStation.id,
-					"connectorId": connectorId,
-					"type": Constants.NOTIF_ENTITY_CHARGING_STATION_STATUS
-				}
-			);
-			return newChargingStation;
-		});
-	}
-
 	static handleSaveChargingStation(chargingStation) {
 		// Check Site Area
 		if (chargingStation.siteArea && chargingStation.siteArea.id) {
@@ -126,6 +107,43 @@ class ChargingStationStorage {
 					);
 				}
 				return newChargingStation;
+		});
+	}
+
+	static handleSaveChargingStationConnector(chargingStation, connectorId) {
+		let update = {};
+		update["connectors." + (connectorId-1)] = chargingStation.connectors[connectorId-1];
+		// Update
+		return MDBChargingStation.findByIdAndUpdate(
+				chargingStation.id,
+				update).then((chargingStationMDB) => {
+			let newChargingStation = new ChargingStation(chargingStationMDB);
+			_centralRestServer.notifyChargingStationUpdated(
+				{
+					"id" : chargingStation.id,
+					"connectorId": connectorId,
+					"type": Constants.NOTIF_ENTITY_CHARGING_STATION_STATUS
+				}
+			);
+			return newChargingStation;
+		});
+	}
+
+	static handleSaveChargingStationHeartBeat(chargingStation) {
+		let update = {};
+		update["lastHeartBeat"] = chargingStation.lastHeartBeat;
+		// Update
+		return MDBChargingStation.findByIdAndUpdate(
+				chargingStation.id,
+				update).then((chargingStationMDB) => {
+			let newChargingStation = new ChargingStation(chargingStationMDB);
+			_centralRestServer.notifyChargingStationUpdated(
+				{
+					"id" : chargingStation.id,
+					"type": Constants.NOTIF_ENTITY_CHARGING_STATION
+				}
+			);
+			return newChargingStation;
 		});
 	}
 
