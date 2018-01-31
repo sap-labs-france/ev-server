@@ -10,6 +10,7 @@ const MDBFirmwareStatusNotification = require('../model/MDBFirmwareStatusNotific
 const MDBChargingStation = require('../model/MDBChargingStation');
 const MDBAuthorize = require('../model/MDBAuthorize');
 const ChargingStation = require('../../../model/ChargingStation');
+const SiteArea = require('../../../model/SiteArea');
 const crypto = require('crypto');
 
 let _centralRestServer;
@@ -21,12 +22,20 @@ class ChargingStationStorage {
 
 	static handleGetChargingStation(chargeBoxIdentity) {
 		// Exec request
-		return MDBChargingStation.findById({"_id": chargeBoxIdentity}).then(chargingStationMDB => {
+		return MDBChargingStation.findById({"_id": chargeBoxIdentity})
+				.populate("siteAreaID", { image:0 })
+				.then(chargingStationMDB => {
 			let chargingStation = null;
 			// Found
 			if (chargingStationMDB) {
 				// Create
 				chargingStation = new ChargingStation(chargingStationMDB);
+				// Set Site Area
+				if (chargingStationMDB.siteAreaID) {
+					chargingStation.setSiteArea(
+						new SiteArea(chargingStationMDB.siteAreaID));
+				}
+
 			}
 			return chargingStation;
 		});

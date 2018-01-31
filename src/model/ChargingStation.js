@@ -60,6 +60,14 @@ class ChargingStation {
 		return this._model.id;
 	}
 
+	setSiteArea(siteArea) {
+		this._model.siteArea = siteArea.getModel();
+	}
+
+	getSiteArea() {
+		return SiteArea(this._model.siteArea);
+	}
+
 	getChargePointVendor() {
 		return this._model.chargePointVendor;
 	}
