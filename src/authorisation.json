@@ -17,6 +17,19 @@
 				}
 			},
 			{
+				"AuthObject": "Companies",
+				"AuthFieldValue": {
+					"Action": ["List"]
+				}
+			},
+			{
+				"AuthObject": "Company",
+				"AuthFieldValue": {
+					"CompanyID": "*",
+					"Action": ["Create", "Read", "Update", "Delete"]
+				}
+			},
+			{
 				"AuthObject": "Sites",
 				"AuthFieldValue": {
 					"Action": ["List"]
@@ -84,6 +97,19 @@
 				"AuthFieldValue": {
 					"UserID": ["{{user.id}}"],
 					"Action": ["Update","Read","Logout"]
+				}
+			},
+			{
+				"AuthObject": "Companies",
+				"AuthFieldValue": {
+					"Action": ["List"]
+				}
+			},
+			{
+				"AuthObject": "Company",
+				"AuthFieldValue": {
+					"CompanyID": "*",
+					"Action": ["Read"]
 				}
 			},
 			{
@@ -157,6 +183,19 @@
 				}
 			},
 			{
+				"AuthObject": "Companies",
+				"AuthFieldValue": {
+					"Action": ["List"]
+				}
+			},
+			{
+				"AuthObject": "Company",
+				"AuthFieldValue": {
+					"CompanyID": "*",
+					"Action": ["Read"]
+				}
+			},
+			{
 				"AuthObject": "Sites",
 				"AuthFieldValue": {
 					"Action": ["List"]
@@ -223,6 +262,19 @@
 				"AuthObject": "User",
 				"AuthFieldValue": {
 					"UserID": "*",
+					"Action": ["Read"]
+				}
+			},
+			{
+				"AuthObject": "Companies",
+				"AuthFieldValue": {
+					"Action": ["List"]
+				}
+			},
+			{
+				"AuthObject": "Company",
+				"AuthFieldValue": {
+					"CompanyID": "*",
 					"Action": ["Read"]
 				}
 			},

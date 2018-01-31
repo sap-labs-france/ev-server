@@ -487,6 +487,15 @@ class SecurityRestObjectFiltering {
 		return filteredRequest;
 	}
 
+	static filterCompanyCreateRequest(request, loggedUser) {
+		let filteredRequest = {};
+		filteredRequest.name = sanitize(request.name);
+		filteredRequest.logo = sanitize(request.logo);
+		filteredRequest.address = sanitize(request.address);
+		filteredRequest.gps = sanitize(request.gps);
+		return filteredRequest;
+	}
+
 	static filterSiteAreaCreateRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.name = sanitize(request.name);

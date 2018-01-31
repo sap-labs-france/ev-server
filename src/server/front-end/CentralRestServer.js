@@ -144,12 +144,12 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyUserUpdated(userData) {
+	notifyUserUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_USER,
 			"action": CentralRestServerAuthorization.ACTION_UPDATE,
-			"data": userData
+			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -157,12 +157,12 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyUserCreated(userData) {
+	notifyUserCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_USER,
 			"action": CentralRestServerAuthorization.ACTION_CREATE,
-			"data": userData
+			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -170,12 +170,12 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyUserDeleted(userData) {
+	notifyUserDeleted(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_USER,
 			"action": CentralRestServerAuthorization.ACTION_DELETE,
-			"data": userData
+			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -183,12 +183,12 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifySiteCreated(userData) {
+	notifySiteCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_SITE,
 			"action": CentralRestServerAuthorization.ACTION_CREATE,
-			"data": userData
+			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -196,12 +196,12 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifySiteUpdated(userData) {
+	notifySiteUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_SITE,
 			"action": CentralRestServerAuthorization.ACTION_UPDATE,
-			"data": userData
+			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -209,12 +209,12 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifySiteDeleted(userData) {
+	notifySiteDeleted(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_SITE,
 			"action": CentralRestServerAuthorization.ACTION_DELETE,
-			"data": userData
+			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -222,12 +222,51 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyTransactionUpdated(transactionData) {
+	notifyCompanyCreated(data) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_COMPANY,
+			"action": CentralRestServerAuthorization.ACTION_CREATE,
+			"data": data
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_COMPANIES
+		});
+	}
+
+	notifyCompanyUpdated(data) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_COMPANY,
+			"action": CentralRestServerAuthorization.ACTION_UPDATE,
+			"data": data
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_COMPANIES
+		});
+	}
+
+	notifyCompanyDeleted(data) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_COMPANY,
+			"action": CentralRestServerAuthorization.ACTION_DELETE,
+			"data": data
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_COMPANIES
+		});
+	}
+
+	notifyTransactionUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_TRANSACTION,
 			"action": CentralRestServerAuthorization.ACTION_UPDATE,
-			"data": transactionData
+			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -235,12 +274,12 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyTransactionCreated(transactionData) {
+	notifyTransactionCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_TRANSACTION,
 			"action": CentralRestServerAuthorization.ACTION_CREATE,
-			"data": transactionData
+			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -248,12 +287,12 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyTransactionDeleted(transactionData) {
+	notifyTransactionDeleted(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_TRANSACTION,
 			"action": CentralRestServerAuthorization.ACTION_DELETE,
-			"data": transactionData
+			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -261,12 +300,12 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyChargingStationUpdated(chargingStationData) {
+	notifyChargingStationUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
 			"action": CentralRestServerAuthorization.ACTION_UPDATE,
-			"data": chargingStationData
+			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -274,12 +313,12 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyChargingStationCreated(chargingStationData) {
+	notifyChargingStationCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
 			"action": CentralRestServerAuthorization.ACTION_CREATE,
-			"data": chargingStationData
+			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -287,12 +326,12 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyChargingStationDeleted(chargingStationData) {
+	notifyChargingStationDeleted(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
 			"action": CentralRestServerAuthorization.ACTION_DELETE,
-			"data": chargingStationData
+			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({

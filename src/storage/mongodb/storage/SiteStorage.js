@@ -4,9 +4,11 @@ const Constants = require('../../../utils/Constants');
 const Database = require('../../../utils/Database');
 const Utils = require('../../../utils/Utils');
 const Configuration = require('../../../utils/Configuration');
+const MDBCompany = require('../model/MDBCompany');
 const MDBSite = require('../model/MDBSite');
 const MDBSiteArea = require('../model/MDBSiteArea');
 const MDBChargingStation = require('../model/MDBChargingStation');
+const Company = require('../../../model/Company');
 const Site = require('../../../model/Site');
 const SiteArea = require('../../../model/SiteArea');
 const crypto = require('crypto');
@@ -101,6 +103,47 @@ class SiteStorage {
 						);
 					}
 					return newSite;
+				});
+		}
+	}
+
+	static handleSaveCompany(company) {
+		// Check if ID/Name is provided
+		if (!company.id && !company.name) {
+			// ID must be provided!
+			return Promise.reject( new Error(
+				"Error in saving the Company: Company has no ID and no Name and cannot be created or updated") );
+		} else {
+			let companyFilter = {};
+			// Build Request
+			if (company.id) {
+				companyFilter._id = company.id;
+			} else {
+				companyFilter._id = ObjectId();
+			}
+			// Get
+			return MDBCompany.findOneAndUpdate(companyFilter, company, {
+					new: true,
+					upsert: true
+				}).then((companyMDB) => {
+					let newCompany = new Company(companyMDB);
+					// Notify Change
+					if (!company.id) {
+						_centralRestServer.notifyCompanyCreated(
+							{
+								"id": newCompany.getID(),
+								"type": Constants.NOTIF_ENTITY_COMPANY
+							}
+						);
+					} else {
+						_centralRestServer.notifyCompanyUpdated(
+							{
+								"id": newCompany.getID(),
+								"type": Constants.NOTIF_ENTITY_COMPANY
+							}
+						);
+					}
+					return newCompany;
 				});
 		}
 	}

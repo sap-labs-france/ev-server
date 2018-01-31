@@ -8,6 +8,7 @@ const Sites = require('../../../utils/Sites');
 const Constants = require('../../../utils/Constants');
 const Utils = require('../../../utils/Utils');
 const Users = require('../../../utils/Users');
+const Company = require('../../../model/Company');
 const Site = require('../../../model/Site');
 const SiteArea = require('../../../model/SiteArea');
 
@@ -262,6 +263,50 @@ class SiteService {
 					user: req.user, module: "SiteService", method: "handleCreateSite",
 					message: `Site '${createdSite.getName()}' has been created successfully`,
 					action: action, detailedMessages: createdSite});
+				// Ok
+				res.json({status: `Success`});
+				next();
+			}).catch((err) => {
+				// Log
+				Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+			});
+		}
+	}
+
+	static handleCreateCompany(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "SiteService",
+			method: "handleCreateCompany",
+			message: `Create Company '${req.body.name}'`,
+			detailedMessages: req.body
+		});
+		// Check auth
+		if (!CentralRestServerAuthorization.canCreateCompany(req.user)) {
+			// Not Authorized!
+			Logging.logActionUnauthorizedMessageAndSendResponse(
+				CentralRestServerAuthorization.ACTION_CREATE,
+				CentralRestServerAuthorization.ENTITY_COMPANY, null, req, res, next);
+			return;
+		}
+		// Filter
+		let filteredRequest = SecurityRestObjectFiltering.filterCompanyCreateRequest( req.body, req.user );
+		// Check Mandatory fields
+		if (Sites.checkIfCompanyValid(action, filteredRequest, req, res, next)) {
+			// Get the logged user
+			global.storage.getUser(req.user.id).then((loggedUser) => {
+				// Create
+				let newCompany = new Company(filteredRequest);
+				// Update timestamp
+				newCompany.setCreatedBy(Utils.buildUserFullName(loggedUser.getModel(), Users.WITHOUT_ID));
+				newCompany.setCreatedOn(new Date());
+				// Save
+				return newCompany.save();
+			}).then((createdCompany) => {
+				Logging.logSecurityInfo({
+					user: req.user, module: "SiteService", method: "handleCreateCompany",
+					message: `Company '${createdCompany.getName()}' has been created successfully`,
+					action: action, detailedMessages: createdCompany});
 				// Ok
 				res.json({status: `Success`});
 				next();

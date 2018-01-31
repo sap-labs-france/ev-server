@@ -66,6 +66,12 @@ module.exports = {
 						UserService.handleCreateUser(action, req, res, next);
 						break;
 
+					// Create Company
+					case "CompanyCreate":
+						// Delegate
+						SiteService.handleCreateCompany(action, req, res, next);
+						break;
+
 					// Create Site
 					case "SiteCreate":
 						// Delegate

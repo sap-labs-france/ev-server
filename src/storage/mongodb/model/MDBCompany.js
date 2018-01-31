@@ -3,8 +3,9 @@ const commons = require('./MDBCommons');
 
 module.exports = mongoose.model('Company',{
 	name: String,
-	logo: String,
 	address: commons.Address,
+	logo: String,
+	gps: String,
 	createdBy: String,
 	createdOn: Date,
 	lastChangedBy: String,

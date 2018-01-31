@@ -13,6 +13,8 @@ module.exports = {
 
 	ENTITY_USERS: "Users",
 	ENTITY_USER: "User",
+	ENTITY_COMPANIES: "Companies",
+	ENTITY_COMPANY: "Company",
 	ENTITY_SITES: "Sites",
 	ENTITY_SITE: "Site",
 	ENTITY_CHARGING_STATIONS: "ChargingStations",
@@ -157,6 +159,36 @@ module.exports = {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_SITE,
 			{ "Action": this.ACTION_DELETE, "SiteID": site.id });
+	},
+
+	canListCompanies(loggedUser) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_COMPANIES,
+			{ "Action": this.ACTION_LIST });
+	},
+
+	canReadCompany(loggedUser, company) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_COMPANY,
+			{ "Action": this.ACTION_READ });
+	},
+
+	canCreateCompany(loggedUser) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_COMPANY,
+			{ "Action": this.ACTION_CREATE });
+	},
+
+	canUpdateCompany(loggedUser, company) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_COMPANY,
+			{ "Action": this.ACTION_UPDATE, "CompanyID": company.id });
+	},
+
+	canDeleteCompany(loggedUser, company) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_COMPANY,
+			{ "Action": this.ACTION_DELETE, "CompanyID": company.id });
 	},
 
 	canReadPricing(loggedUser) {

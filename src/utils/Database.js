@@ -164,6 +164,22 @@ module.exports = {
 		}
 	},
 
+	updateCompany(src, dest) {
+		this.updateID(src, dest);
+		dest.name = src.name;
+		dest.address = src.address;
+		dest.logo = src.logo;
+		dest.gps = src.gps;
+		if (src.createdBy && src.createdOn) {
+			dest.createdBy = src.createdBy;
+			dest.createdOn = src.createdOn;
+		}
+		if (src.lastChangedBy && src.lastChangedOn) {
+			dest.lastChangedBy = src.lastChangedBy;
+			dest.lastChangedOn = src.lastChangedOn;
+		}
+	},
+
 	updateSiteArea(src, dest) {
 		this.updateID(src, dest);
 		dest.name = src.name;
