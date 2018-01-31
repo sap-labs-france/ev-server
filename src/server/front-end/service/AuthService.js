@@ -75,7 +75,7 @@ class AuthService {
 		global.storage.getUserByEmail(filteredRequest.email).then((user) => {
 			if (!user) {
 				throw new AppError(
-					`The user with email ${filteredRequest.email} does not exist`,
+					`The user with email '${filteredRequest.email}' does not exist`,
 					500, "AuthService", "handleLogIn");
 			}
 			// Check if the number of trials is reached
@@ -157,7 +157,7 @@ class AuthService {
 					// Check email
 					global.storage.getUserByEmail(filteredRequest.email).then((user) => {
 						if (user) {
-							throw new AppError(`The email ${filteredRequest.email} already exists`, 510,
+							throw new AppError(`The email '${filteredRequest.email}' already exists`, 510,
 								"AuthService", "handleRegisterUser");
 						}
 						// Generate a password
@@ -245,7 +245,7 @@ class AuthService {
 					global.storage.getUserByEmail(filteredRequest.email).then((user) => {
 						// Found?
 						if (!user) {
-							throw new AppError(`User with email ${filteredRequest.email} does not exist`, 545,
+							throw new AppError(`User with email '${filteredRequest.email}' does not exist`, 545,
 								"AuthService", "handleUserPasswordReset");
 						}
 						// Hash it
@@ -295,7 +295,7 @@ class AuthService {
 			}).then((user) => {
 				// Found?
 				if (!user) {
-					throw new AppError(`User with email ${filteredRequest.email} does not exist`, 545,
+					throw new AppError(`User with email '${filteredRequest.email}' does not exist`, 545,
 						"AuthService", "handleUserPasswordReset");
 				}
 				// Check the hash from the db
@@ -358,7 +358,7 @@ class AuthService {
 				Logging.logActionExceptionMessageAndSendResponse(
 					action,
 					new AppError(
-						`Your account ${user.getEMail()} is not yet active`,
+						`Your account '${user.getEMail()}' is not yet active`,
 						550, "AuthService", "checkUserLogin"),
 					req, res, next);
 				return;

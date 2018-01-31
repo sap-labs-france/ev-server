@@ -52,6 +52,19 @@ class SiteStorage {
 		});
 	}
 
+	static handleGetSiteArea(id) {
+		// Execute
+		return MDBSiteArea.findById(id).exec().then((siteAreaMDB) => {
+			let siteArea = null;
+			// Create
+			if (siteAreaMDB) {
+				// Create
+				siteArea = new SiteArea(siteAreaMDB);
+			}
+			return siteArea;
+		});
+	}
+
 	static handleSaveSite(site) {
 		// Check if ID/Name is provided
 		if (!site.id && !site.name) {
@@ -202,20 +215,13 @@ class SiteStorage {
 			let siteAreas = site.getSiteAreas();
 			// Get the areas
 			siteAreas.forEach((siteArea) => {
-				// Remove Charging Station's Site Area
-				MDBChargingStation.update(
-					{ siteAreaID: siteArea.getID() },
-					{ $set: { siteAreaID: null } }
-				).then((result) => {
-					// Nothing to do but promise has to be kept to make the update work!
-				});
-				// Remove Site Area
-				MDBSiteArea.findByIdAndRemove(siteArea.getID()
-				).then((result) => {
+				//	Delete Site Area
+				SiteStorage.handleDeleteSiteArea(siteArea.getID())
+						.then((result) => {
 					// Nothing to do but promise has to be kept to make the update work!
 				});
 			});
-			// Remove Site
+			// Remove the Site
 			return MDBSite.findByIdAndRemove(id).then((result) => {
 				// Notify Change
 				_centralRestServer.notifySiteDeleted(
@@ -228,6 +234,18 @@ class SiteStorage {
 				return result.result;
 			});
 		});
+	}
+
+	static handleDeleteSiteArea(id) {
+		// Remove Charging Station's Site Area
+		MDBChargingStation.update(
+			{ siteAreaID: id },
+			{ $set: { siteAreaID: null } }
+		).then((result) => {
+			// Nothing to do but promise has to be kept to make the update work!
+		});
+		// Remove Site Area
+		return MDBSiteArea.findByIdAndRemove(id);
 	}
 }
 

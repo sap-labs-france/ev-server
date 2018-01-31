@@ -28,7 +28,7 @@ class ChargingStationService {
 			// Check email
 			global.storage.getChargingStation(filteredRequest.id).then((chargingStation) => {
 				if (!chargingStation) {
-					throw new AppError(`The Charging Station with ID ${filteredRequest.id} does not exist anymore`,
+					throw new AppError(`The Charging Station with ID '${filteredRequest.id}' does not exist anymore`,
 						550, "ChargingStationService", "handleUpdateChargingStation");
 				}
 				// Check auth
@@ -93,7 +93,7 @@ class ChargingStationService {
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
-				throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
+				throw new AppError(`Charging Station with ID '${filteredRequest.chargeBoxIdentity}' does not exist`,
 					500, "ChargingStationService", "handleGetChargingStationConfiguration");
 			}
 			// Check auth
@@ -137,7 +137,7 @@ class ChargingStationService {
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
-				throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
+				throw new AppError(`Charging Station with ID '${filteredRequest.chargeBoxIdentity}' does not exist`,
 					500, "ChargingStationService", "handleDeleteChargingStation");
 			}
 			// Check auth
@@ -229,7 +229,7 @@ class ChargingStationService {
 			// Check
 			if (!user) {
 				// Not Found!
-				throw new AppError(`The user with ID ${filteredRequest.id} does not exist`,
+				throw new AppError(`The user with ID '${filteredRequest.id}' does not exist`,
 					500, "ChargingStationService", "handleGetChargingStations");
 			}
 			// Get the user's active transactions
@@ -302,7 +302,7 @@ class ChargingStationService {
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
-				throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
+				throw new AppError(`Charging Station with ID '${filteredRequest.chargeBoxIdentity}' does not exist`,
 					500, "ChargingStationService", "handleAction");
 			}
 			if (action === "StopTransaction" ||
@@ -381,7 +381,7 @@ class ChargingStationService {
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
-				throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
+				throw new AppError(`Charging Station with ID '${filteredRequest.chargeBoxIdentity}' does not exist`,
 					500, "ChargingStationService", "handleActionSetMaxIntensitySocket");
 			}
 			// Check auth
@@ -397,7 +397,7 @@ class ChargingStationService {
 			// Check
 			if (!chargerConfiguration) {
 				// Not Found!
-				throw new AppError(`Cannot retrieve the configuration from the Charging Station ${filteredRequest.chargeBoxIdentity}`,
+				throw new AppError(`Cannot retrieve the configuration from the Charging Station '${filteredRequest.chargeBoxIdentity}'`,
 					500, "ChargingStationService", "handleActionSetMaxIntensitySocket");
 			}
 
@@ -412,7 +412,7 @@ class ChargingStationService {
 			}
 			if (!maxIntensitySocketMax) {
 				// Not Found!
-				throw new AppError(`Cannot retrieve the max intensity socket from the configuration from the Charging Station ${filteredRequest.chargeBoxIdentity}`,
+				throw new AppError(`Cannot retrieve the max intensity socket from the configuration from the Charging Station '${filteredRequest.chargeBoxIdentity}'`,
 					500, "ChargingStationService", "handleActionSetMaxIntensitySocket");
 			}
 			// Check

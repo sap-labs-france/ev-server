@@ -75,7 +75,7 @@ class SiteService {
 			// Found?
 			if (!site) {
 				// Not Found!
-				throw new AppError(`Site with ID ${filteredRequest.ID} does not exist`,
+				throw new AppError(`Site with ID '${filteredRequest.ID}' does not exist`,
 					500, "SiteService", "handleDeleteSite");
 			}
 			// Check auth
@@ -93,6 +93,58 @@ class SiteService {
 				user: req.user, module: "SiteService", method: "handleDeleteSite",
 				message: `Site '${site.getName()}' has been deleted successfully`,
 				action: action, detailedMessages: site});
+			// Ok
+			res.json({status: `Success`});
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
+	static handleDeleteSiteArea(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "SiteService",
+			method: "handleDeleteSiteArea",
+			message: `Delete Site Area '${req.query.ID}'`,
+			detailedMessages: req.query
+		});
+		// Filter
+		let siteArea;
+		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreaDeleteRequest(
+			req.query, req.user);
+		// Check Mandatory fields
+		if(!filteredRequest.ID) {
+			Logging.logActionExceptionMessageAndSendResponse(
+				action, new Error(`The Site Area's ID must be provided`), req, res, next);
+			return;
+		}
+		// Get
+		global.storage.getSiteArea(filteredRequest.ID).then((foundSiteArea) => {
+			siteArea = foundSiteArea;
+			// Found?
+			if (!siteArea) {
+				// Not Found!
+				throw new AppError(`Site Area with ID '${filteredRequest.ID}' does not exist`,
+					500, "SiteService", "handleDeleteSiteArea");
+			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canDeleteSite(req.user,
+					{ "id": siteArea.getSiteID() })) {
+				// Not Authorized!
+				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
+					CentralRestServerAuthorization.ENTITY_SITE, siteArea.getSiteID(),
+					500, "SiteService", "handleDeleteSiteArea");
+			}
+			// Delete
+			return siteArea.delete();
+		}).then(() => {
+			// Log
+			Logging.logSecurityInfo({
+				user: req.user, module: "SiteService", method: "handleDeleteSiteArea",
+				message: `Site Area '${siteArea.getName()}' has been deleted successfully`,
+				action: action, detailedMessages: siteArea});
 			// Ok
 			res.json({status: `Success`});
 			next();
@@ -236,7 +288,7 @@ class SiteService {
 			// Check email
 			global.storage.getSite(filteredRequest.id).then((site) => {
 				if (!site) {
-					throw new AppError(`The Site with ID ${filteredRequest.id} does not exist anymore`,
+					throw new AppError(`The Site with ID '${filteredRequest.id}' does not exist anymore`,
 						550, "SiteService", "handleUpdateSite");
 				}
 				// Check auth

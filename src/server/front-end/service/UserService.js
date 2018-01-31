@@ -54,7 +54,7 @@ class UserService {
 		global.storage.getUser(filteredRequest.ID).then((foundUser) => {
 			user = foundUser;
 			if (!user) {
-				throw new AppError(`The user with ID ${filteredRequest.id} does not exist anymore`,
+				throw new AppError(`The user with ID '${filteredRequest.id}' does not exist anymore`,
 					500, "UserService", "handleDeleteUser");
 			}
 			// Check authchargingStation
@@ -98,7 +98,7 @@ class UserService {
 			// Check email
 			global.storage.getUser(filteredRequest.id).then((user) => {
 				if (!user) {
-					throw new AppError(`The user with ID ${filteredRequest.id} does not exist anymore`,
+					throw new AppError(`The user with ID '${filteredRequest.id}' does not exist anymore`,
 						550, "UserService", "handleUpdateUser");
 				}
 				// Keep
@@ -109,7 +109,7 @@ class UserService {
 				return global.storage.getUserByEmail(filteredRequest.email);
 			}).then((userWithEmail) => {
 				if (userWithEmail && userWithId.getID() !== userWithEmail.getID()) {
-					throw new AppError(`The email ${filteredRequest.email} already exists`,
+					throw new AppError(`The email '${filteredRequest.email}' already exists`,
 						510, "UserService", "handleUpdateUser");
 				}
 				// Generate a password
@@ -293,7 +293,7 @@ class UserService {
 				return global.storage.getUserByEmail(filteredRequest.email);
 			}).then((foundUser) => {
 				if (foundUser) {
-					throw new AppError(`The email ${filteredRequest.email} already exists`,
+					throw new AppError(`The email '${filteredRequest.email}' already exists`,
 						510, "UserService", "handleCreateUser");
 				}
 				// Generate a hash for the given password

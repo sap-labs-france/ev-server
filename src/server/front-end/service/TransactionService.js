@@ -40,7 +40,7 @@ class TransactionService {
 			// Found?
 			if (!transaction) {
 				// Not Found!
-				throw new AppError(`Transaction ${filteredRequest.ID} does not exist`,
+				throw new AppError(`Transaction '${filteredRequest.ID}' does not exist`,
 					500, "TransactionService", "handleDeleteTransaction");
 			}
 			// Check auth
@@ -72,7 +72,7 @@ class TransactionService {
 			// Check
 			if (!user) {
 				// Not Found!
-				throw new AppError(`The user with ID ${req.user.id} does not exist`,
+				throw new AppError(`The user with ID '${req.user.id}' does not exist`,
 					500, "TransactionService", "handleDeleteTransaction");
 			}
 			// Delete Transaction
@@ -123,7 +123,7 @@ class TransactionService {
 			// Found?
 			if (!transaction) {
 				// Not Found!
-				throw new AppError(`Transaction ${filteredRequest.transactionId} does not exist`,
+				throw new AppError(`Transaction '${filteredRequest.transactionId}' does not exist`,
 					500, "TransactionService", "handleTransactionSoftStop");
 			}
 			// Check auth
@@ -140,7 +140,7 @@ class TransactionService {
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
-				throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
+				throw new AppError(`Charging Station with ID '${filteredRequest.chargeBoxIdentity}' does not exist`,
 					500, "TransactionService", "handleTransactionSoftStop");
 			}
 			// Check auth
@@ -155,7 +155,7 @@ class TransactionService {
 			// Check
 			if (!user) {
 				// Not Found!
-				throw new AppError(`The user with ID ${req.user.id} does not exist`,
+				throw new AppError(`The user with ID '${req.user.id}' does not exist`,
 					500, "TransactionService", "handleTransactionSoftStop");
 			}
 			// Stop Transaction
@@ -211,7 +211,7 @@ class TransactionService {
 			// Found?
 			if (!transaction) {
 				// Not Found!
-				throw new AppError(`Transaction ${filteredRequest.TransactionId} does not exist`,
+				throw new AppError(`Transaction '${filteredRequest.TransactionId}' does not exist`,
 					500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
 			}
 			// Check auth
@@ -228,7 +228,7 @@ class TransactionService {
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
-				throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
+				throw new AppError(`Charging Station with ID '${filteredRequest.chargeBoxIdentity}' does not exist`,
 					500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
 			}
 			// Check auth
@@ -314,7 +314,7 @@ class TransactionService {
 			// Found?
 			if (!transaction) {
 				// Not Found!
-				throw new AppError(`Transaction ${filteredRequest.TransactionId} does not exist`,
+				throw new AppError(`Transaction '${filteredRequest.TransactionId}' does not exist`,
 					500, "TransactionService", "handleGetTransaction");
 			}
 			// Check auth
@@ -369,7 +369,7 @@ class TransactionService {
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
-				throw new AppError(`Charging Station with ID ${filteredRequest.chargeBoxIdentity} does not exist`,
+				throw new AppError(`Charging Station with ID '${filteredRequest.chargeBoxIdentity}' does not exist`,
 					500, "TransactionService", "handleGetChargingStationTransactions");
 			}
 			// Check auth

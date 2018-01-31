@@ -267,6 +267,12 @@ module.exports = {
 						SiteService.handleDeleteSite(action, req, res, next);
 						break;
 
+					// Site Area
+					case "SiteAreaDelete":
+						// Delegate
+						SiteService.handleDeleteSiteArea(action, req, res, next);
+						break;
+
 					// Charging station
 					case "ChargingStationDelete":
 						// Delegate
