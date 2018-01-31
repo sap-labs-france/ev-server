@@ -87,12 +87,10 @@ class CentralSystemRestServer {
 		// Create the HTTP server
 		if (_centralSystemRestConfig.protocol === "https") {
 			// Create the options
-			console.log("OK");
 			var options = {
 				key: fs.readFileSync(_centralSystemRestConfig["ssl-key"]),
 				cert: fs.readFileSync(_centralSystemRestConfig["ssl-cert"])
 			};
-			console.log(options);
 			// Intermediate cert?
 			if (_centralSystemRestConfig["ssl-ca"]) {
 				// Array?
@@ -107,20 +105,16 @@ class CentralSystemRestServer {
 					options.ca = fs.readFileSync(_centralSystemRestConfig["ssl-ca"]);
 				}
 			}
-			console.log(options);
 			// Https server
 			server = https.createServer(options, app);
-			console.log("OKOK");
 		} else {
 			// Http server
 			server = http.createServer(app);
 		}
 
-		console.log("OK2");
 		// Init Socket IO
 		_io = require("socket.io")(server);
 
-		console.log("OK3");
 		// Handle Socket IO connection
 		_io.on("connection", (socket) => {
 			// Handle Socket IO connection
@@ -129,10 +123,8 @@ class CentralSystemRestServer {
 			});
 		});
 
-		console.log("OK4");
 		// Listen
 		server.listen(_centralSystemRestConfig.port, _centralSystemRestConfig.host, () => {
-			console.log("OK5");
 			// Check and send notif
 			setInterval(() => {
 				// Send
@@ -144,7 +136,6 @@ class CentralSystemRestServer {
 				}
 			}, _centralSystemRestConfig.webSocketNotificationIntervalSecs * 1000);
 
-			console.log("OK6");
 			// Log
 			Logging.logInfo({
 				module: "CentralServerRestServer", method: "start", action: "Startup",

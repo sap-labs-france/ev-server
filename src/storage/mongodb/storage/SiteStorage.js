@@ -204,24 +204,29 @@ class SiteStorage {
 			siteAreas.forEach((siteArea) => {
 				// Remove Charging Station's Site Area
 				MDBChargingStation.update(
-					{ siteAreaID: ObjectId(siteArea.getID()) },
-					{ $set: { siteAreaID: null } });
-				console.log(siteArea.getID());
+					{ siteAreaID: siteArea.getID() },
+					{ $set: { siteAreaID: null } }
+				).then((result) => {
+					// Nothing to do but promise has to be kept to make the update work!
+				});
 				// Remove Site Area
-				// MDBSiteArea.findByIdAndRemove(siteArea.getID());
+				MDBSiteArea.findByIdAndRemove(siteArea.getID()
+				).then((result) => {
+					// Nothing to do but promise has to be kept to make the update work!
+				});
 			});
 			// Remove Site
-			// return MDBSite.findByIdAndRemove(id).then((result) => {
-			// 	// Notify Change
-			// 	_centralRestServer.notifySiteDeleted(
-			// 		{
-			// 			"id": id,
-			// 			"type": Constants.NOTIF_ENTITY_SITE
-			// 		}
-			// 	);
-			// 	// Return the result
-			// 	return result.result;
-			// });
+			return MDBSite.findByIdAndRemove(id).then((result) => {
+				// Notify Change
+				_centralRestServer.notifySiteDeleted(
+					{
+						"id": id,
+						"type": Constants.NOTIF_ENTITY_SITE
+					}
+				);
+				// Return the result
+				return result.result;
+			});
 		});
 	}
 }
