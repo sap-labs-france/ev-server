@@ -3,6 +3,7 @@ config
 users.json
 users-imported.json
 src/config.json
+package-lock.json
 
 # Logs
 logs
