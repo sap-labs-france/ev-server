@@ -125,6 +125,12 @@ module.exports = {
 						SiteService.handleGetCompanies(action, req, res, next);
 						break;
 
+					// Get one company
+					case "Company":
+						// Delegate
+						SiteService.handleGetCompany(action, req, res, next);
+						break;
+
 					// Get all the sites
 					case "Sites":
 						// Delegate

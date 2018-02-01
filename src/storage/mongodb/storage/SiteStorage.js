@@ -21,6 +21,19 @@ class SiteStorage {
 		_centralRestServer = centralRestServer;
 	}
 
+	static handleGetCompany(id) {
+		// Exec request
+		return MDBCompany.findById(id).exec().then((companyMDB) => {
+			let company = null;
+			// Check
+			if (companyMDB) {
+				// Create
+				company = new Company(companyMDB);
+			}
+			return company;
+		});
+	}
+
 	static handleGetSite(id) {
 		// Create Aggregation
 		let aggregation = [];

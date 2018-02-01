@@ -269,6 +269,11 @@ class MongoDBStorage extends Storage {
 		return SiteStorage.handleGetCompanies(searchValue, numberOfCompanies, withLogo);
 	}
 
+	getCompany(id) {
+		// Delegate
+		return SiteStorage.handleGetCompany(id);
+	}
+
 	getSites(searchValue, numberOfSite, withPicture=false) {
 		// Delegate
 		return SiteStorage.handleGetSites(searchValue, numberOfSite, withPicture);

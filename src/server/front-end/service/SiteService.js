@@ -174,12 +174,46 @@ class SiteService {
 		// Get it
 		global.storage.getSite(filteredRequest.ID).then((site) => {
 			if (site) {
-				console.log(site);
 				// Return
 				res.json(
 					// Filter
 					SecurityRestObjectFiltering.filterSiteResponse(
 						site.getModel(), req.user)
+				);
+			} else {
+				res.json({});
+			}
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
+	static handleGetCompany(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "SiteService",
+			method: "handleGetCompany",
+			message: `Read Company '${req.query.ID}'`,
+			detailedMessages: req.query
+		});
+		// Filter
+		let filteredRequest = SecurityRestObjectFiltering.filterCompanyRequest(req.query, req.user);
+		// Charge Box is mandatory
+		if(!filteredRequest.ID) {
+			Logging.logActionExceptionMessageAndSendResponse(
+				action, new Error(`The Company ID is mandatory`), req, res, next);
+			return;
+		}
+		// Get it
+		global.storage.getCompany(filteredRequest.ID).then((company) => {
+			if (company) {
+				// Return
+				res.json(
+					// Filter
+					SecurityRestObjectFiltering.filterCompanyResponse(
+						company.getModel(), req.user)
 				);
 			} else {
 				res.json({});
