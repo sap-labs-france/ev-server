@@ -322,7 +322,6 @@ class SiteStorage {
 			company.getSites().then((sites) => {
 				// Delete
 				sites.forEach((site) => {
-					console.log(site);
 					//	Delete Site
 					SiteStorage.handleDeleteSite(site.getID())
 							.then((result) => {

@@ -52,7 +52,6 @@ class ChargingStationService {
 				// Update timestamp
 				chargingStation.setLastChangedBy(`${Utils.buildUserFullName(req.user)}`);
 				chargingStation.setLastChangedOn(new Date());
-				console.log(chargingStation);
 				// Update
 				return chargingStation.save();
 			}).then((updatedChargingStation) => {
