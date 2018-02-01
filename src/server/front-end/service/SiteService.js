@@ -390,6 +390,57 @@ class SiteService {
 		}
 	}
 
+	static handleUpdateCompany(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "SiteService",
+			method: "handleUpdateCompany",
+			message: `Update Company '${req.body.name}' (ID '${req.body.id}')`,
+			detailedMessages: req.body
+		});
+		// Filter
+		let filteredRequest = SecurityRestObjectFiltering.filterCompanyUpdateRequest( req.body, req.user );
+		// Check Mandatory fields
+		if (Sites.checkIfCompanyValid(action, filteredRequest, req, res, next)) {
+			let companyWithId;
+			// Check email
+			global.storage.getCompany(filteredRequest.id).then((company) => {
+				if (!company) {
+					throw new AppError(`The Company with ID '${filteredRequest.id}' does not exist anymore`,
+						550, "SiteService", "handleUpdateCompany");
+				}
+				// Check auth
+				if (!CentralRestServerAuthorization.canUpdateCompany(req.user, company.getModel())) {
+					// Not Authorized!
+					Logging.logActionUnauthorizedMessageAndSendResponse(
+						CentralRestServerAuthorization.ACTION_UPDATE,
+						CentralRestServerAuthorization.ENTITY_COMPANY,
+						company.getName(), req, res, next);
+					return;
+				}
+				// Update
+				Database.updateCompany(filteredRequest, company.getModel());
+				// Update timestamp
+				company.setLastChangedBy(`${Utils.buildUserFullName(req.user)}`);
+				company.setLastChangedOn(new Date());
+				// Update
+				return company.save();
+			}).then((updatedCompany) => {
+				// Log
+				Logging.logSecurityInfo({
+					user: req.user, module: "SiteService", method: "handleUpdateCompany",
+					message: `Company '${updatedCompany.getName()}' has been updated successfully`,
+					action: action, detailedMessages: updatedCompany});
+				// Ok
+				res.json({status: `Success`});
+				next();
+			}).catch((err) => {
+				// Log
+				Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+			});
+		}
+	}
+
 	static handleUpdateSite(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,

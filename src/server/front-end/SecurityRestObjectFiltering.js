@@ -309,6 +309,13 @@ class SecurityRestObjectFiltering {
 		return filteredRequest;
 	}
 
+	static filterCompanyUpdateRequest(request, loggedUser) {
+		// Set
+		let filteredRequest = SecurityRestObjectFiltering.filterCompanyCreateRequest(request, loggedUser);
+		filteredRequest.id = sanitize(request.id);
+		return filteredRequest;
+	}
+
 	static filterSiteUpdateRequest(request, loggedUser) {
 		// Set
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteCreateRequest(request, loggedUser);

@@ -256,6 +256,12 @@ module.exports = {
 						SiteService.handleUpdateSite(action, req, res, next);
 						break;
 
+					// Company
+					case "CompanyUpdate":
+						// Delegate
+						SiteService.handleUpdateCompany(action, req, res, next);
+						break;
+
 					// Transaction
 					case "TransactionSoftStop":
 						// Delegate
