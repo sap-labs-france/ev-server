@@ -142,6 +142,12 @@ class Storage {
 	saveCompany(company) {
 	}
 
+	deleteCompany(id) {
+	}
+
+	getSitesFromCompany(companyID) {
+	}
+
 	getSites(searchValue, numberOfSite, withPicture=false) {
 	}
 

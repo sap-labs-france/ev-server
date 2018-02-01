@@ -301,6 +301,50 @@ class SiteStorage {
 		});
 	}
 
+	static handleGetSitesFromCompany(companyID) {
+		// Exec request
+		return MDBSite.find({"companyID": companyID}).then((sitesMDB) => {
+			let sites = [];
+			// Create
+			sitesMDB.forEach((siteMDB) => {
+				// Create
+				let site = new Site(siteMDB);
+				// Add
+				sites.push(site);
+			});
+			return sites;
+		});
+	}
+
+	static handleDeleteCompany(id) {
+		return SiteStorage.handleGetCompany(id).then((company) => {
+			// Get the sites
+			company.getSites().then((sites) => {
+				// Delete
+				sites.forEach((site) => {
+					console.log(site);
+					//	Delete Site
+					SiteStorage.handleDeleteSite(site.getID())
+							.then((result) => {
+						// Nothing to do but promise has to be kept to make the update work!
+					});
+				});
+			});
+			// Remove the Company
+			return MDBCompany.findByIdAndRemove(id).then((result) => {
+				// Notify Change
+				_centralRestServer.notifyCompanyDeleted(
+					{
+						"id": id,
+						"type": Constants.NOTIF_ENTITY_COMPANY
+					}
+				);
+				// Return the result
+				return result.result;
+			});
+		});
+	}
+
 	static handleDeleteSite(id) {
 		return SiteStorage.handleGetSite(id).then((site) => {
 			let siteAreas = site.getSiteAreas();

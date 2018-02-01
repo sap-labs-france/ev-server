@@ -52,6 +52,57 @@ class SiteService {
 		}
 	}
 
+	static handleDeleteCompany(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "SiteService",
+			method: "handleDeleteCompany",
+			message: `Delete Company '${req.query.ID}'`,
+			detailedMessages: req.query
+		});
+		// Filter
+		let company;
+		let filteredRequest = SecurityRestObjectFiltering.filterCompanyDeleteRequest(
+			req.query, req.user);
+		// Check Mandatory fields
+		if(!filteredRequest.ID) {
+			Logging.logActionExceptionMessageAndSendResponse(
+				action, new Error(`The Company's ID must be provided`), req, res, next);
+			return;
+		}
+		// Get
+		global.storage.getCompany(filteredRequest.ID).then((foundCompany) => {
+			company = foundCompany;
+			// Found?
+			if (!company) {
+				// Not Found!
+				throw new AppError(`Company with ID '${filteredRequest.ID}' does not exist`,
+					500, "SiteService", "handleDeleteCompany");
+			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canDeleteCompany(req.user, company.getModel())) {
+				// Not Authorized!
+				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
+					CentralRestServerAuthorization.ENTITY_COMPANY, company.getID(),
+					500, "SiteService", "handleDeleteCompany");
+			}
+			// Delete
+			return company.delete();
+		}).then(() => {
+			// Log
+			Logging.logSecurityInfo({
+				user: req.user, module: "SiteService", method: "handleDeleteCompany",
+				message: `Company '${company.getName()}' has been deleted successfully`,
+				action: action, detailedMessages: company});
+			// Ok
+			res.json({status: `Success`});
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
 	static handleDeleteSite(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
@@ -83,7 +134,7 @@ class SiteService {
 			if (!CentralRestServerAuthorization.canDeleteSite(req.user, site.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
-					CentralRestServerAuthorization.SiteENTITY_SITE, site.getID(),
+					CentralRestServerAuthorization.ENTITY_SITE, site.getID(),
 					500, "SiteService", "handleDeleteSite");
 			}
 			// Delete

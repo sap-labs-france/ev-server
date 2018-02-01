@@ -82,22 +82,7 @@ class Company {
 	}
 
 	getSites() {
-		return this._model.sites.map((site) => {
-			return new Site(site);
-		});
-	}
-
-	setSites(sites) {
-		this._model.sites = sites.map((site) => {
-			return site.getModel();
-		});
-	}
-
-	addSite(site) {
-		if (!this._model.sites) {
-			this._model.sites = [];
-		}
-		this._model.sites.push(site.getModel());
+		return global.storage.getSitesFromCompany(this.getID());
 	}
 
 	save() {

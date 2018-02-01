@@ -285,6 +285,12 @@ module.exports = {
 						UserService.handleDeleteUser(action, req, res, next);
 						break;
 
+					// Company
+					case "CompanyDelete":
+						// Delegate
+						SiteService.handleDeleteCompany(action, req, res, next);
+						break;
+
 					// Site
 					case "SiteDelete":
 						// Delegate

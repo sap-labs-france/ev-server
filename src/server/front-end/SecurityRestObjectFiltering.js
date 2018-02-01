@@ -71,6 +71,13 @@ class SecurityRestObjectFiltering {
 		return filteredRequest;
 	}
 
+	static filterCompanyDeleteRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.ID = sanitize(request.ID);
+		return filteredRequest;
+	}
+
 	static filterSiteAreaDeleteRequest(request, loggedUser) {
 		let filteredRequest = {};
 		// Set
