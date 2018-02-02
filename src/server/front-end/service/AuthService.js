@@ -169,7 +169,7 @@ class AuthService {
 						newUser.setStatus(Users.USER_STATUS_PENDING);
 						newUser.setRole(Users.USER_ROLE_BASIC);
 						newUser.setPassword(newPasswordHashed);
-						newUser.setLocale(req.locale);
+						newUser.setLocale(req.locale.substring(0,5));
 						newUser.setCreatedBy("System");
 						newUser.setCreatedOn(new Date());
 						// Save

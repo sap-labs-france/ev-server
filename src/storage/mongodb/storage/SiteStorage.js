@@ -210,6 +210,7 @@ class SiteStorage {
 		// Source?
 		if (searchValue) {
 			// Build filter
+			filters.$and = [];
 			filters.$and.push({
 				"$or": [
 					{ "name" : { $regex : searchValue, $options: 'i' } }

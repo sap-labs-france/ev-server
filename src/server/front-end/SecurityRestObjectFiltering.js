@@ -350,11 +350,6 @@ class SecurityRestObjectFiltering {
 			filteredRequest.role = sanitize(request.role);
 			filteredRequest.status = sanitize(request.status);
 		}
-		if (!filteredRequest.role) {
-			// Ko to set the role
-			filteredRequest.role = Users.USER_ROLE_BASIC;
-			filteredRequest.status = Users.USER_STATUS_INACTIVE;
-		}
 		filteredRequest.tagIDs = sanitize(request.tagIDs);
 		return filteredRequest;
 	}

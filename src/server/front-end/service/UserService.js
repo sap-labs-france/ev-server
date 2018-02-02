@@ -94,7 +94,7 @@ class UserService {
 		let filteredRequest = SecurityRestObjectFiltering.filterUserUpdateRequest( req.body, req.user );
 		// Check Mandatory fields
 		if (Users.checkIfUserValid(action, filteredRequest, req, res, next)) {
-			let userWithId;
+			let currentUserInDB;
 			// Check email
 			global.storage.getUser(filteredRequest.id).then((user) => {
 				if (!user) {
@@ -102,64 +102,74 @@ class UserService {
 						550, "UserService", "handleUpdateUser");
 				}
 				// Keep
-				userWithId = user;
-				return user;
-			}).then((user) => {
+				currentUserInDB = user;
+			}).then(() => {
 				// Check email
 				return global.storage.getUserByEmail(filteredRequest.email);
 			}).then((userWithEmail) => {
-				if (userWithEmail && userWithId.getID() !== userWithEmail.getID()) {
+				// Check if EMail is already taken
+				if (userWithEmail && currentUserInDB.getID() !== userWithEmail.getID()) {
+					// Yes!
 					throw new AppError(`The email '${filteredRequest.email}' already exists`,
 						510, "UserService", "handleUpdateUser");
 				}
-				// Generate a password
+				// Generate the password hash
 				return Users.hashPasswordBcrypt(filteredRequest.password);
 			}).then((newPasswordHashed) => {
 				// Check auth
-				if (!CentralRestServerAuthorization.canUpdateUser(req.user, userWithId.getModel())) {
+				if (!CentralRestServerAuthorization.canUpdateUser(req.user, currentUserInDB.getModel())) {
 					// Not Authorized!
 					Logging.logActionUnauthorizedMessageAndSendResponse(
 						CentralRestServerAuthorization.ACTION_UPDATE,
 						CentralRestServerAuthorization.ENTITY_USER,
-						Utils.buildUserFullName(userWithId.getModel()), req, res, next);
+						Utils.buildUserFullName(currentUserInDB.getModel()), req, res, next);
 					return;
 				}
 				// Check if Role is provided and has been changed
-				if (filteredRequest.role && filteredRequest.role !== userWithId.getRole() && req.user.role !== Users.USER_ROLE_ADMIN) {
+				console.log("UserRequest");
+				console.log(filteredRequest);
+				console.log("UserDB");
+				console.log(currentUserInDB.getModel());
+				if (filteredRequest.role &&
+						filteredRequest.role !== currentUserInDB.getRole() &&
+						req.user.role !== Users.USER_ROLE_ADMIN) {
+					console.log("ROLE CHANGED");
 					// Role provided and not an Admin
 					Logging.logError({
 						user: req.user, module: "UserService", method: "UpdateUser",
-						message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to change the role of the user ${Utils.buildUserFullName(userWithId.getModel())} to '${filteredRequest.role}' without having the Admin priviledge` });
+						message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to change the role of the user ${Utils.buildUserFullName(currentUserInDB.getModel())} to '${filteredRequest.role}' without having the Admin priviledge` });
 					// Override it
-					filteredRequest.role = userWithId.getRole();
+					filteredRequest.role = currentUserInDB.getRole();
 				}
-				// Check if Role is provided
-				if (filteredRequest.status && filteredRequest.status !== userWithId.getStatus()) {
+				// Check if Status has been changed
+				if (filteredRequest.status &&
+						filteredRequest.status !== currentUserInDB.getStatus()) {
 					// Right to change?
 					if (req.user.role !== Users.USER_ROLE_ADMIN) {
+						console.log("STATUS CHANGED");
 						// Role provided and not an Admin
 						Logging.logError({
 							user: req.user, module: "UserService", method: "UpdateUser",
-							message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to update the status of the user ${Utils.buildUserFullName(userWithId.getModel())} to '${filteredRequest.status}' without having the Admin priviledge` });
+							message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to update the status of the user ${Utils.buildUserFullName(currentUserInDB.getModel())} to '${filteredRequest.status}' without having the Admin priviledge` });
 						// Ovverride it
-						filteredRequest.status = userWithId.getStatus();
+						filteredRequest.status = currentUserInDB.getStatus();
 					} else {
 						// Status changed
 						statusHasChanged = true;
 					}
 				}
 				// Update
-				Database.updateUser(filteredRequest, userWithId.getModel());
+				Database.updateUser(filteredRequest, currentUserInDB.getModel());
 				// Update timestamp
-				userWithId.setLastChangedBy(`${Utils.buildUserFullName(req.user)}`);
-				userWithId.setLastChangedOn(new Date());
+				currentUserInDB.setLastChangedBy(`${Utils.buildUserFullName(req.user)}`);
+				currentUserInDB.setLastChangedOn(new Date());
 				// Check the password
 				if (filteredRequest.password && filteredRequest.password.length > 0) {
 					// Update the password
-					userWithId.setPassword(newPasswordHashed);
+					currentUserInDB.setPassword(newPasswordHashed);
 				}
 				// Update
-				return userWithId.save();
+				return currentUserInDB.save();
 			}).then((updatedUser) => {
 				// Log
 				Logging.logSecurityInfo({
@@ -277,11 +287,17 @@ class UserService {
 		if (!CentralRestServerAuthorization.canCreateUser(req.user)) {
 			// Not Authorized!
 			Logging.logActionUnauthorizedMessageAndSendResponse(
-				CentralRestServerAuthorization.ACTION_CREATE, CentralRestServerAuthorization.ENTITY_USER, null, req, res, next);
+				CentralRestServerAuthorization.ACTION_CREATE,
+				CentralRestServerAuthorization.ENTITY_USER, null, req, res, next);
 			return;
 		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterUserCreateRequest( req.body, req.user );
+		if (!filteredRequest.role) {
+			// Set to default role
+			filteredRequest.role = Users.USER_ROLE_BASIC;
+			filteredRequest.status = Users.USER_STATUS_INACTIVE;
+		}
 		// Check Mandatory fields
 		if (Users.checkIfUserValid(action, filteredRequest, req, res, next)) {
 			let loggedUserGeneral;
@@ -301,8 +317,6 @@ class UserService {
 			}).then((newPasswordHashed) => {
 				// Create user
 				var newUser = new User(filteredRequest);
-				// Set the locale
-				newUser.setLocale(req.locale);
 				// Update timestamp
 				newUser.setCreatedBy(Utils.buildUserFullName(loggedUserGeneral.getModel(), Users.WITHOUT_ID));
 				newUser.setCreatedOn(new Date());

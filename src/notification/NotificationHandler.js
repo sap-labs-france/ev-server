@@ -1,5 +1,6 @@
 const Configuration = require('../utils/Configuration');
 const EMailNotificationTask = require('./email/EMailNotificationTask');
+const Users = require('../utils/Users');
 const Utils = require('../utils/Utils');
 const Logging = require('../utils/Logging');
 require('source-map-support').install();
@@ -181,7 +182,7 @@ class NotificationHandler {
 			NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
 					SOURCE_CHARGING_STATION_STATUS_ERROR, null, chargingStation).then(() => {
 				// Send email
-				_email.sendChargingStationStatusError(sourceData, Utils.getDefaultLocale());
+				_email.sendChargingStationStatusError(sourceData, Users.DEFAULT_LOCALE);
 			}).catch(error => {
 				// Log error
 				Logging.logUnexpectedErrorMessage(SOURCE_CHARGING_STATION_STATUS_ERROR,
@@ -200,7 +201,7 @@ class NotificationHandler {
 			NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
 					SOURCE_UNKNOWN_USER_BADGED, null, chargingStation).then(() => {
 				// Send email
-				_email.sendUnknownUserBadged(sourceData, Utils.getDefaultLocale());
+				_email.sendUnknownUserBadged(sourceData, Users.DEFAULT_LOCALE);
 			}).catch(error => {
 				// Log error
 				Logging.logUnexpectedErrorMessage(SOURCE_UNKNOWN_USER_BADGED,

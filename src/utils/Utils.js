@@ -42,10 +42,6 @@ module.exports = {
 			_centralSystemFrontEndConfig.port;
 	},
 
-	getDefaultLocale() {
-		return "en_US";
-	},
-
 	buildEvseUserURL(user) {
 		let _evseBaseURL = this.buildEvseURL();
 		// Add : https://localhost:8080/#/pages/chargers/charger/REE001

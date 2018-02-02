@@ -3,6 +3,7 @@ const SoapChargingStationClient = require('../client/soap/SoapChargingStationCli
 const Logging = require('../utils/Logging');
 const User = require('./User');
 const Users = require('../utils/Users');
+const Constants = require('../utils/Constants');
 const Database = require('../utils/Database');
 const moment = require('moment');
 const Configuration = require('../utils/Configuration');
@@ -425,7 +426,7 @@ class ChargingStation {
 							"chargingStationId": this.getChargeBoxIdentity(),
 							"connectorId": transaction.connectorId,
 							"totalConsumption": (this.getConnectors()[transaction.connectorId-1].totalConsumption/1000).toLocaleString(
-								(transaction.userID.locale?transaction.userID.locale.replace('_','-'):Utils.getDefaultLocale().replace('_','-')),
+								(transaction.userID.locale?transaction.userID.locale.replace('_','-'):Users.DEFAULT_LOCALE.replace('_','-')),
 									{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
 							"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.transactionId),
 							"notifStopTransactionAndUnlockConnector": _configChargingStation.notifStopTransactionAndUnlockConnector
@@ -648,9 +649,10 @@ class ChargingStation {
 					name: "Unknown",
 					firstName: "User",
 					status: Users.USER_STATUS_PENDING,
+					role: Users.USER_ROLE_BASIC,
 					email: request.idTag + "@sap.com",
 					tagIDs: [request.idTag],
-					createdBy: "System",
+					createdBy: Constants.CENTRAL_SERVER,
 					createdOn: new Date().toISOString()
 				});
 

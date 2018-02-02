@@ -1,4 +1,5 @@
 var Database = require('../utils/Database');
+var Users = require('../utils/Users');
 
 class User {
 	constructor(user) {
@@ -82,11 +83,11 @@ class User {
 	}
 
 	getLocale() {
-		return (this._model.locale?this._model.locale:"en_US");
+		return (this._model.locale ? this._model.locale : Users.DEFAULT_LOCALE);
 	}
 
 	getLanguage() {
-		return this._model.locale.substring(0,2);
+		return this.getLocale().substring(0,2);
 	}
 
 	setLocale(locale) {

@@ -44,6 +44,8 @@ module.exports = {
 	WITH_ID: true,
 	WITHOUT_ID: false,
 
+	DEFAULT_LOCALE: "en_US",
+
 	isPasswordStrongEnough(password) {
 		var uc = password.match(this.PWD_UPPERCASE_RE);
 		var lc = password.match(this.PWD_LOWERCASE_RE);
@@ -141,10 +143,6 @@ module.exports = {
 		}
 		if(!filteredRequest.email) {
 			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The User Email is mandatory`), req, res, next);
-			return false;
-		}
-		if(!filteredRequest.status) {
-			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The User Status is mandatory`), req, res, next);
 			return false;
 		}
 		// Check password id provided

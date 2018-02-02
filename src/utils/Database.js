@@ -115,13 +115,17 @@ module.exports = {
 		dest.name = src.name;
 		dest.firstName = src.firstName;
 		dest.image = src.image;
-		dest.locale = src.locale;
 		dest.email = src.email;
 		dest.phone = src.phone;
 		dest.mobile = src.mobile;
 		dest.iNumber = src.iNumber;
 		dest.costCenter = src.costCenter;
-		dest.status = src.status;
+		if (src.status) {
+			dest.status = src.status;
+		}
+		if (src.locale) {
+			dest.locale = src.locale;
+		}
 		if (src.eulaAcceptedOn && src.eulaAcceptedVersion && src.eulaAcceptedHash) {
 			dest.eulaAcceptedOn = src.eulaAcceptedOn;
 			dest.eulaAcceptedVersion = src.eulaAcceptedVersion;
@@ -137,8 +141,9 @@ module.exports = {
 		}
 		dest.deleted = src.deleted;
 		dest.tagIDs = src.tagIDs;
-		dest.role = src.role;
-		// Password can be overridden
+		if (src.role) {
+			dest.role = src.role;
+		}
 		if (src.password) {
 			dest.password = src.password;
 			dest.passwordWrongNbrTrials = (!src.passwordWrongNbrTrials?0:src.passwordWrongNbrTrials);
