@@ -174,7 +174,6 @@ module.exports = {
 		dest.name = src.name;
 		dest.address = src.address;
 		dest.logo = src.logo;
-		dest.gps = src.gps;
 		if (src.createdBy && src.createdOn) {
 			dest.createdBy = src.createdBy;
 			dest.createdOn = src.createdOn;
@@ -189,7 +188,6 @@ module.exports = {
 		this.updateID(src, dest);
 		dest.name = src.name;
 		dest.image = src.image;
-		dest.gps = src.gps;
 		dest.siteID = src.siteID;
 	},
 

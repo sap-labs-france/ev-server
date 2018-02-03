@@ -41,14 +41,6 @@ class Company {
 		return this._model.logo;
 	}
 
-	setGps(gps) {
-		this._model.gps = gps;
-	}
-
-	getGps() {
-		return this._model.gps;
-	}
-
 	getCreatedBy() {
 		return this._model.createdBy;
 	}

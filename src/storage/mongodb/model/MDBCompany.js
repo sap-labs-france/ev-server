@@ -5,7 +5,6 @@ module.exports = mongoose.model('Company',{
 	name: String,
 	address: commons.Address,
 	logo: String,
-	gps: String,
 	createdBy: String,
 	createdOn: Date,
 	lastChangedBy: String,

@@ -519,7 +519,6 @@ class SecurityRestObjectFiltering {
 		filteredRequest.address.city = sanitize(request.address.city);
 		filteredRequest.address.region = sanitize(request.address.region);
 		filteredRequest.address.country = sanitize(request.address.country);
-		filteredRequest.gps = sanitize(request.gps);
 		return filteredRequest;
 	}
 
@@ -527,7 +526,6 @@ class SecurityRestObjectFiltering {
 		let filteredRequest = {};
 		filteredRequest.name = sanitize(request.name);
 		filteredRequest.image = sanitize(request.image);
-		filteredRequest.gps = sanitize(request.gps);
 		filteredRequest.siteID = sanitize(request.siteID);
 		return filteredRequest;
 	}
@@ -546,8 +544,7 @@ class SecurityRestObjectFiltering {
 				filteredCompany = {};
 				filteredCompany.id = company.id;
 				filteredCompany.name = company.name;
-				filteredCompany.image = company.image;
-				filteredCompany.gps = company.gps;
+				filteredCompany.logo = company.logo;
 			}
 		}
 		return filteredCompany;

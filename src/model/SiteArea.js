@@ -33,14 +33,6 @@ class SiteArea {
 		return this._model.image;
 	}
 
-	setGps(gps) {
-		this._model.gps = gps;
-	}
-
-	getGps() {
-		return this._model.gps;
-	}
-
 	setSiteID(siteID) {
 		this._model.siteID = siteID;
 	}
