@@ -397,7 +397,7 @@ class SiteService {
 				// Create site
 				let newSite = new Site(filteredRequest);
 				// Update timestamp
-				newSite.setCreatedBy(Utils.buildUserFullName(loggedUser.getModel(), Users.WITHOUT_ID));
+				newSite.setCreatedBy(Utils.buildUserFullName(loggedUser.getModel()));
 				newSite.setCreatedOn(new Date());
 				// Save
 				return newSite.save();
@@ -441,7 +441,7 @@ class SiteService {
 				// Create
 				let newCompany = new Company(filteredRequest);
 				// Update timestamp
-				newCompany.setCreatedBy(Utils.buildUserFullName(loggedUser.getModel(), Users.WITHOUT_ID));
+				newCompany.setCreatedBy(Utils.buildUserFullName(loggedUser.getModel()));
 				newCompany.setCreatedOn(new Date());
 				// Save
 				return newCompany.save();
@@ -491,7 +491,7 @@ class SiteService {
 				// Update
 				Database.updateCompany(filteredRequest, company.getModel());
 				// Update timestamp
-				company.setLastChangedBy(`${Utils.buildUserFullName(req.user)}`);
+				company.setLastChangedBy(Utils.buildUserFullName(req.user));
 				company.setLastChangedOn(new Date());
 				// Update
 				return company.save();

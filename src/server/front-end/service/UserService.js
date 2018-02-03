@@ -155,7 +155,7 @@ class UserService {
 				// Update
 				Database.updateUser(filteredRequest, currentUserInDB.getModel());
 				// Update timestamp
-				currentUserInDB.setLastChangedBy(`${Utils.buildUserFullName(req.user)}`);
+				currentUserInDB.setLastChangedBy(Utils.buildUserFullName(req.user));
 				currentUserInDB.setLastChangedOn(new Date());
 				// Check the password
 				if (filteredRequest.password && filteredRequest.password.length > 0) {
@@ -312,7 +312,7 @@ class UserService {
 				// Create user
 				var newUser = new User(filteredRequest);
 				// Update timestamp
-				newUser.setCreatedBy(Utils.buildUserFullName(loggedUserGeneral.getModel(), Users.WITHOUT_ID));
+				newUser.setCreatedBy(Utils.buildUserFullName(loggedUserGeneral.getModel()));
 				newUser.setCreatedOn(new Date());
 				// Set the password
 				if (filteredRequest.password) {

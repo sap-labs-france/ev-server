@@ -17,7 +17,7 @@
 		"userTokenKey": "YourSecretKey",
 		"userTokenLifetimeHours": 12,
 		"userDemoTokenLifetimeDays": 365,
-		"webSocketNotificationIntervalSecs": 5,
+		"webSocketNotificationIntervalSecs": 2,
 		"passwordWrongNumberOfTrial": 3,
 		"passwordBlockedWaitTimeMin": 5,
 		"captchaSecretKey": "YourCaptchaSecretKey",
