@@ -36,8 +36,17 @@ class SiteService {
 		if (Sites.checkIfSiteAreaValid("SiteAreaCreate", filteredRequest, req, res, next)) {
 			// Create site area
 			let newSiteArea = new SiteArea(filteredRequest);
-			// Save
-			return newSiteArea.save().then((createdSiteArea) => {
+			// Check Site
+			global.storage.getSite(filteredRequest.siteID).then((site) => {
+				// Found?
+				if (!site) {
+					// Not Found!
+					throw new AppError(`The Site ID '${filteredRequest.siteID}' does not exist`,
+						500, "SiteService", "handleCreateSiteArea");
+				}
+				// Save
+				return newSiteArea.save();
+			}).then((createdSiteArea) => {
 				Logging.logSecurityInfo({
 					user: req.user, module: "SiteService", method: "handleCreateSiteArea",
 					message: `Site Area '${createdSiteArea.getName()}' has been created successfully`,
@@ -373,8 +382,18 @@ class SiteService {
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteCreateRequest( req.body, req.user );
 		// Check Mandatory fields
 		if (Sites.checkIfSiteValid(action, filteredRequest, req, res, next)) {
-			// Get the logged user
-			global.storage.getUser(req.user.id).then((loggedUser) => {
+			// Check Company
+			global.storage.getCompany(filteredRequest.companyID).then((company) => {
+				// Found?
+				if (!company) {
+					// Not Found!
+					throw new AppError(`The Company ID '${filteredRequest.companyID}' does not exist`,
+						500, "SiteService", "handleCreateSite");
+				}
+				// Get the logged user
+				return global.storage.getUser(req.user.id);
+			// Logged User
+			}).then((loggedUser) => {
 				// Create site
 				let newSite = new Site(filteredRequest);
 				// Update timestamp

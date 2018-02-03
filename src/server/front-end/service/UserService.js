@@ -126,14 +126,9 @@ class UserService {
 					return;
 				}
 				// Check if Role is provided and has been changed
-				console.log("UserRequest");
-				console.log(filteredRequest);
-				console.log("UserDB");
-				console.log(currentUserInDB.getModel());
 				if (filteredRequest.role &&
 						filteredRequest.role !== currentUserInDB.getRole() &&
 						req.user.role !== Users.USER_ROLE_ADMIN) {
-					console.log("ROLE CHANGED");
 					// Role provided and not an Admin
 					Logging.logError({
 						user: req.user, module: "UserService", method: "UpdateUser",
@@ -146,7 +141,6 @@ class UserService {
 						filteredRequest.status !== currentUserInDB.getStatus()) {
 					// Right to change?
 					if (req.user.role !== Users.USER_ROLE_ADMIN) {
-						console.log("STATUS CHANGED");
 						// Role provided and not an Admin
 						Logging.logError({
 							user: req.user, module: "UserService", method: "UpdateUser",

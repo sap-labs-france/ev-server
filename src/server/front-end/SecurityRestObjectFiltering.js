@@ -512,7 +512,13 @@ class SecurityRestObjectFiltering {
 		let filteredRequest = {};
 		filteredRequest.name = sanitize(request.name);
 		filteredRequest.logo = sanitize(request.logo);
-		filteredRequest.address = sanitize(request.address);
+		filteredRequest.address = {};
+		filteredRequest.address.address1 = sanitize(request.address.address1);
+		filteredRequest.address.address2 = sanitize(request.address.address2);
+		filteredRequest.address.postalCode = sanitize(request.address.postalCode);
+		filteredRequest.address.city = sanitize(request.address.city);
+		filteredRequest.address.region = sanitize(request.address.region);
+		filteredRequest.address.country = sanitize(request.address.country);
 		filteredRequest.gps = sanitize(request.gps);
 		return filteredRequest;
 	}
