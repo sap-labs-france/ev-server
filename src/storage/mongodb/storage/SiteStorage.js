@@ -213,7 +213,9 @@ class SiteStorage {
 			filters.$and = [];
 			filters.$and.push({
 				"$or": [
-					{ "name" : { $regex : searchValue, $options: 'i' } }
+					{ "name" : { $regex : searchValue, $options: 'i' } },
+					{ "address.city" : { $regex : searchValue, $options: 'i' } },
+					{ "address.country" : { $regex : searchValue, $options: 'i' } }
 				]
 			});
 		}
@@ -256,7 +258,9 @@ class SiteStorage {
 			// Build filter
 			filters.$and.push({
 				"$or": [
-					{ "name" : { $regex : searchValue, $options: 'i' } }
+					{ "name" : { $regex : searchValue, $options: 'i' } },
+					{ "address.city" : { $regex : searchValue, $options: 'i' } },
+					{ "address.country" : { $regex : searchValue, $options: 'i' } }
 				]
 			});
 		}
