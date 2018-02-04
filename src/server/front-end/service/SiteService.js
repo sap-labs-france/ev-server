@@ -305,7 +305,7 @@ class SiteService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterCompaniesRequest(req.query, req.user);
 		// Get the companies
-		global.storage.getCompanies(filteredRequest.Search, Constants.NO_LIMIT).then((companies) => {
+		global.storage.getCompanies(filteredRequest.Search, Constants.NO_LIMIT, filteredRequest.WithLogo).then((companies) => {
 			let companiesJSon = [];
 			companies.forEach((company) => {
 				// Set the model
@@ -343,7 +343,7 @@ class SiteService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterSitesRequest(req.query, req.user);
 		// Get the sites
-		global.storage.getSites(filteredRequest.Search, Constants.NO_LIMIT).then((sites) => {
+		global.storage.getSites(filteredRequest.Search, Constants.NO_LIMIT, filteredRequest.WithPicture).then((sites) => {
 			let sitesJSon = [];
 			sites.forEach((site) => {
 				// Set the model

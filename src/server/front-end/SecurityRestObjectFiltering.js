@@ -234,12 +234,14 @@ class SecurityRestObjectFiltering {
 	static filterCompaniesRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
+		filteredRequest.WithLogo = sanitize(request.WithLogo);
 		return filteredRequest;
 	}
 
 	static filterSitesRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
+		SecurityRestObjectFiltering.filterWithPicture(filteredRequest, request.WithPicture);
 		return filteredRequest;
 	}
 
@@ -552,6 +554,7 @@ class SecurityRestObjectFiltering {
 
 	static filterSiteResponse(site, loggedUser) {
 		let filteredSite;
+		let company = {}
 
 		// Check auth
 		if (CentralRestServerAuthorization.canReadSite(loggedUser, site)) {
@@ -567,8 +570,12 @@ class SecurityRestObjectFiltering {
 				filteredSite.image = site.image;
 				filteredSite.gps = site.gps;
 				filteredSite.siteAreas = site.siteAreas;
-				filteredSite.companyID = site.companyID;
 			}
+			if (site.companyID) {
+				company.id = site.companyID._id;
+				company.name = site.companyID.name;
+			}
+			site.companyID = company;
 		}
 		return filteredSite;
 	}

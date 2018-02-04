@@ -50,6 +50,19 @@ class SiteStorage {
 				as: "siteAreas"
 			}
 		});
+		// Add Company
+		aggregation.push({
+			$lookup: {
+				from: "companies",
+				localField: "companyID",
+				foreignField: "_id",
+				as: "companyID"
+			}
+		});
+		// Single Record
+		aggregation.push({
+			$unwind: "$companyID"
+		});
 		// Exexute
 		return MDBSite.aggregate(aggregation)
 				.exec().then((sitesMDB) => {
@@ -221,6 +234,14 @@ class SiteStorage {
 		}
 		// Create Aggregation
 		let aggregation = [];
+		// Picture?
+		if (!withLogo) {
+			aggregation.push({
+				$project: {
+					logo: 0
+				}
+			});
+		}
 		// Filters
 		if (filters) {
 			aggregation.push({
@@ -256,6 +277,7 @@ class SiteStorage {
 		// Source?
 		if (searchValue) {
 			// Build filter
+			filters.$and = [];
 			filters.$and.push({
 				"$or": [
 					{ "name" : { $regex : searchValue, $options: 'i' } },
@@ -266,6 +288,14 @@ class SiteStorage {
 		}
 		// Create Aggregation
 		let aggregation = [];
+		// Picture?
+		if (!withPicture) {
+			aggregation.push({
+				$project: {
+					image: 0
+				}
+			});
+		}
 		// Filters
 		if (filters) {
 			aggregation.push({
@@ -286,6 +316,19 @@ class SiteStorage {
 				foreignField: "siteID",
 				as: "siteAreas"
 			}
+		});
+		// Add Company
+		aggregation.push({
+			$lookup: {
+				from: "companies",
+				localField: "companyID",
+				foreignField: "_id",
+				as: "companyID"
+			}
+		});
+		// Single Record
+		aggregation.push({
+			$unwind: "$companyID"
 		});
 		// Exexute
 		return MDBSite.aggregate(aggregation)
