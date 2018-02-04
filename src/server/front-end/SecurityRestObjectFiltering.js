@@ -519,8 +519,12 @@ class SecurityRestObjectFiltering {
 		filteredRequest.address.address2 = sanitize(request.address.address2);
 		filteredRequest.address.postalCode = sanitize(request.address.postalCode);
 		filteredRequest.address.city = sanitize(request.address.city);
+		filteredRequest.address.department = sanitize(request.address.department);
 		filteredRequest.address.region = sanitize(request.address.region);
 		filteredRequest.address.country = sanitize(request.address.country);
+		filteredRequest.address.latitude = sanitize(request.address.latitude);
+		filteredRequest.address.longitude = sanitize(request.address.longitude);
+		filteredRequest.address.place_id = sanitize(request.address.place_id);
 		return filteredRequest;
 	}
 

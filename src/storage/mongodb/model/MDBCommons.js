@@ -5,8 +5,12 @@ const address = new mongoose.Schema({
 	address2: String,
 	postalCode: String,
 	city: String,
+	department: String,
 	region: String,
-	country: String
+	country: String,
+	latitude: Number,
+	longitude: Number,
+	place_id: String
 });
 
 module.exports = {
