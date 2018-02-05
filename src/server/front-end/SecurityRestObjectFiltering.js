@@ -503,28 +503,35 @@ class SecurityRestObjectFiltering {
 	static filterSiteCreateRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.name = sanitize(request.name);
-		filteredRequest.address = sanitize(request.address);
+		filteredRequest.address = SecurityRestObjectFiltering.filterAddressRequest(request.address, loggedUser);
 		filteredRequest.image = sanitize(request.image);
 		filteredRequest.gps = sanitize(request.gps);
 		filteredRequest.companyID = sanitize(request.companyID);
 		return filteredRequest;
 	}
 
+	static filterAddressRequest(address, loggedUser) {
+		let filteredAddress = {};
+		if (filteredAddress) {
+			filteredAddress.address1 = sanitize(address.address1);
+			filteredAddress.address2 = sanitize(address.address2);
+			filteredAddress.postalCode = sanitize(address.postalCode);
+			filteredAddress.city = sanitize(address.city);
+			filteredAddress.department = sanitize(address.department);
+			filteredAddress.region = sanitize(address.region);
+			filteredAddress.country = sanitize(address.country);
+			filteredAddress.latitude = sanitize(address.latitude);
+			filteredAddress.longitude = sanitize(address.longitude);
+			filteredAddress.placeID = sanitize(address.placeID);
+		}
+		return filteredAddress;
+	}
+
 	static filterCompanyCreateRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.name = sanitize(request.name);
+		filteredRequest.address = SecurityRestObjectFiltering.filterAddressRequest(request.address, loggedUser);
 		filteredRequest.logo = sanitize(request.logo);
-		filteredRequest.address = {};
-		filteredRequest.address.address1 = sanitize(request.address.address1);
-		filteredRequest.address.address2 = sanitize(request.address.address2);
-		filteredRequest.address.postalCode = sanitize(request.address.postalCode);
-		filteredRequest.address.city = sanitize(request.address.city);
-		filteredRequest.address.department = sanitize(request.address.department);
-		filteredRequest.address.region = sanitize(request.address.region);
-		filteredRequest.address.country = sanitize(request.address.country);
-		filteredRequest.address.latitude = sanitize(request.address.latitude);
-		filteredRequest.address.longitude = sanitize(request.address.longitude);
-		filteredRequest.address.place_id = sanitize(request.address.place_id);
 		return filteredRequest;
 	}
 
@@ -545,6 +552,7 @@ class SecurityRestObjectFiltering {
 			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
 				// Yes: set all params
 				filteredCompany = company;
+				filteredCompany.address = SecurityRestObjectFiltering.filterAddressRequest(company.address, loggedUser);
 			} else {
 				// Set only necessary info
 				filteredCompany = {};
@@ -566,6 +574,7 @@ class SecurityRestObjectFiltering {
 			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
 				// Yes: set all params
 				filteredSite = site;
+				filteredSite.address = SecurityRestObjectFiltering.filterAddressRequest(site.address, loggedUser);
 			} else {
 				// Set only necessary info
 				filteredSite = {};
