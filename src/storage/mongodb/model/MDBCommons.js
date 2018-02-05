@@ -9,8 +9,7 @@ const address = new mongoose.Schema({
 	region: String,
 	country: String,
 	latitude: Number,
-	longitude: Number,
-	placeID: String
+	longitude: Number
 });
 
 module.exports = {

@@ -522,7 +522,6 @@ class SecurityRestObjectFiltering {
 			filteredAddress.country = sanitize(address.country);
 			filteredAddress.latitude = sanitize(address.latitude);
 			filteredAddress.longitude = sanitize(address.longitude);
-			filteredAddress.placeID = sanitize(address.placeID);
 		}
 		return filteredAddress;
 	}
