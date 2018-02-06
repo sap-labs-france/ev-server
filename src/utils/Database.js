@@ -120,6 +120,7 @@ module.exports = {
 		dest.mobile = src.mobile;
 		dest.iNumber = src.iNumber;
 		dest.costCenter = src.costCenter;
+		dest.address = src.address;
 		if (src.status) {
 			dest.status = src.status;
 		}

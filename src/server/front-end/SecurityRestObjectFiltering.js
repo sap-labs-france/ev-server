@@ -342,7 +342,8 @@ class SecurityRestObjectFiltering {
 		filteredRequest.mobile = sanitize(request.mobile);
 		filteredRequest.name = sanitize(request.name);
 		filteredRequest.locale = sanitize(request.locale);
-		if (request.passwords) {
+		filteredRequest.address = SecurityRestObjectFiltering.filterAddressRequest(request.address, loggedUser);
+	if (request.passwords) {
 			filteredRequest.password = sanitize(request.passwords.password);
 		}
 		filteredRequest.phone = sanitize(request.phone);
@@ -447,6 +448,7 @@ class SecurityRestObjectFiltering {
 				if (user.image) {
 					filteredUser.image = user.image;
 				}
+				filteredUser.address = SecurityRestObjectFiltering.filterAddressRequest(user.address, loggedUser);
 			} else {
 				// Set only necessary info
 				filteredUser.id = user.id;
@@ -512,7 +514,7 @@ class SecurityRestObjectFiltering {
 
 	static filterAddressRequest(address, loggedUser) {
 		let filteredAddress = {};
-		if (filteredAddress) {
+		if (address) {
 			filteredAddress.address1 = sanitize(address.address1);
 			filteredAddress.address2 = sanitize(address.address2);
 			filteredAddress.postalCode = sanitize(address.postalCode);
