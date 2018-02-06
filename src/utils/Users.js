@@ -46,6 +46,8 @@ module.exports = {
 
 	DEFAULT_LOCALE: "en_US",
 
+	ANONIMIZED_VALUE: "####",
+
 	isPasswordStrongEnough(password) {
 		var uc = password.match(this.PWD_UPPERCASE_RE);
 		var lc = password.match(this.PWD_LOWERCASE_RE);

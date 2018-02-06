@@ -153,6 +153,14 @@ class User {
 		this._model.phone = phone;
 	}
 
+	getMobile() {
+		return this._model.mobile;
+	}
+
+	setMobile(mobile) {
+		this._model.mobile = mobile;
+	}
+
 	getINumber() {
 		return this._model.iNumber;
 	}
@@ -238,6 +246,16 @@ class User {
 				// Delete logically
 				// Set deleted
 				this.setDeleted(true);
+				// Anonymize user
+				this.setStatus(Users.USER_STATUS_DELETED);
+				this.setName(Users.ANONIMIZED_VALUE);
+				this.setFirstName(Users.ANONIMIZED_VALUE);
+				this.setEMail(Users.ANONIMIZED_VALUE);
+				this.setPhone(Users.ANONIMIZED_VALUE);
+				this.setMobile(Users.ANONIMIZED_VALUE);
+				this.setImage(Users.ANONIMIZED_VALUE);
+				this.setINumber(Users.ANONIMIZED_VALUE);
+				this.setCostCenter(Users.ANONIMIZED_VALUE);
 				// Delete
 				return this.save();
 			} else {
