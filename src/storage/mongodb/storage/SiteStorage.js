@@ -56,12 +56,12 @@ class SiteStorage {
 				from: "companies",
 				localField: "companyID",
 				foreignField: "_id",
-				as: "companyID"
+				as: "company"
 			}
 		});
 		// Single Record
 		aggregation.push({
-			$unwind: "$companyID"
+			$unwind: "$company"
 		});
 		// Exexute
 		return MDBSite.aggregate(aggregation)
@@ -195,17 +195,17 @@ class SiteStorage {
 					let newSiteArea = new SiteArea(siteAreaMDB);
 					// Notify Change
 					if (!siteArea.id) {
-						_centralRestServer.notifySiteCreated(
+						_centralRestServer.notifySiteAreaCreated(
 							{
-								"id": newSiteArea.getSiteID(),
-								"type": Constants.NOTIF_ENTITY_SITE
+								"id": newSiteArea.getID(),
+								"type": Constants.NOTIF_ENTITY_SITE_AREA
 							}
 						);
 					} else {
 						_centralRestServer.notifySiteUpdated(
 							{
-								"id": newSiteArea.getSiteID(),
-								"type": Constants.NOTIF_ENTITY_SITE
+								"id": newSiteArea.getID(),
+								"type": Constants.NOTIF_ENTITY_SITE_AREA
 							}
 						);
 					}
@@ -215,7 +215,7 @@ class SiteStorage {
 	}
 
 	// Delegate
-	static handleGetCompanies(searchValue, numberOfCompanies, withLogo) {
+	static handleGetCompanies(searchValue, withSites, withLogo, numberOfCompanies) {
 		// Check Limit
 		numberOfCompanies = Utils.checkRecordLimit(numberOfCompanies);
 		// Set the filters
@@ -254,6 +254,25 @@ class SiteStorage {
 				$limit: numberOfCompanies
 			});
 		}
+		// Add Sites
+		if(withSites) {
+			aggregation.push({
+				$lookup: {
+					from: "sites",
+					localField: "_id",
+					foreignField: "companyID",
+					as: "sites"
+				}
+			});
+		}
+		// Picture?
+		if (!withLogo) {
+			aggregation.push({
+				$project: {
+					"sites.image": 0
+				}
+			});
+		}
 		// Execute
 		return MDBCompany.aggregate(aggregation)
 				.exec().then((companiesMDB) => {
@@ -262,6 +281,12 @@ class SiteStorage {
 			companiesMDB.forEach((companyMDB) => {
 				// Create
 				let company = new Company(companyMDB);
+				// Set site
+				if (companyMDB.sites) {
+					company.setSites(companyMDB.sites.map((site) => {
+						return new Site(site);
+					}));
+				}
 				// Add
 				companies.push(company);
 			});
@@ -269,7 +294,7 @@ class SiteStorage {
 		});
 	}
 
-	static handleGetSites(searchValue, numberOfSites, withPicture) {
+	static handleGetSites(searchValue, withSiteAreas, withPicture, numberOfSites) {
 		// Check Limit
 		numberOfSites = Utils.checkRecordLimit(numberOfSites);
 		// Set the filters
@@ -309,26 +334,36 @@ class SiteStorage {
 			});
 		}
 		// Add SiteAreas
-		aggregation.push({
-			$lookup: {
-				from: "siteareas",
-				localField: "_id",
-				foreignField: "siteID",
-				as: "siteAreas"
-			}
-		});
+		if (withSiteAreas) {
+			aggregation.push({
+				$lookup: {
+					from: "siteareas",
+					localField: "_id",
+					foreignField: "siteID",
+					as: "siteAreas"
+				}
+			});
+		}
 		// Add Company
 		aggregation.push({
 			$lookup: {
 				from: "companies",
 				localField: "companyID",
 				foreignField: "_id",
-				as: "companyID"
+				as: "company"
 			}
 		});
+		// Picture?
+		if (!withPicture) {
+			aggregation.push({
+				$project: {
+					"company.logo": 0
+				}
+			});
+		}
 		// Single Record
 		aggregation.push({
-			$unwind: "$companyID"
+			$unwind: "$company"
 		});
 		// Exexute
 		return MDBSite.aggregate(aggregation)
@@ -338,14 +373,102 @@ class SiteStorage {
 			sitesMDB.forEach((siteMDB) => {
 				// Create
 				let site = new Site(siteMDB);
+				// Set Site Areas
+				if (siteMDB.siteAreas) {
+					site.setSiteAreas(siteMDB.siteAreas.map((siteArea) => {
+						return new SiteArea(siteArea);
+					}));
+				}
+				// Set Company
+				site.setCompany(new Company(siteMDB.company));
+				// Add
+				sites.push(site);
+			});
+			return sites;
+		});
+	}
+
+	static handleGetSiteAreas(searchValue, numberOfSiteAreas, withPicture) {
+		// Check Limit
+		numberOfSiteAreas = Utils.checkRecordLimit(numberOfSiteAreas);
+		// Set the filters
+		let filters = {};
+		// Source?
+		if (searchValue) {
+			// Build filter
+			filters.$and = [];
+			filters.$and.push({
+				"$or": [
+					{ "name" : { $regex : searchValue, $options: 'i' } }
+				]
+			});
+		}
+		// Create Aggregation
+		let aggregation = [];
+		// Picture?
+		if (!withPicture) {
+			aggregation.push({
+				$project: {
+					image: 0
+				}
+			});
+		}
+		// Filters
+		if (filters) {
+			aggregation.push({
+				$match: filters
+			});
+		}
+		// Limit
+		if (numberOfSiteAreas > 0) {
+			aggregation.push({
+				$limit: numberOfSiteAreas
+			});
+		}
+		// Add Sites
+		aggregation.push({
+			$lookup: {
+				from: "sites",
+				localField: "siteID",
+				foreignField: "_id",
+				as: "siteID"
+			}
+		});
+		// Single Record
+		aggregation.push({
+			$unwind: "$siteID"
+		});
+		// Exexute
+		return MDBSiteArea.aggregate(aggregation)
+				.exec().then((siteAreasMDB) => {
+			let siteAreas = [];
+			// Create
+			siteAreasMDB.forEach((siteAreaMDB) => {
+				// Create
+				let siteArea = new SiteArea(siteAreaMDB);
 				// Set
-				site.setSiteAreas(siteMDB.siteAreas.map((siteArea) => {
+				siteArea.setSite(siteMDB.siteAreas.map((siteArea) => {
 					return new SiteArea(siteArea);
 				}));
 				// Add
 				sites.push(site);
 			});
 			return sites;
+		});
+	}
+
+	static getSiteAreasFromSite(siteID) {
+		// Exec request
+		return MDBSiteArea.find({"siteID": siteID}).then((siteAreasMDB) => {
+			let siteAreas = [];
+			// Create
+			siteAreasMDB.forEach((siteAreaMDB) => {
+				// Create
+				let siteArea = new Site(siteAreaMDB);
+				// Add
+				sites.push(siteArea);
+			});
+			return siteAreas;
 		});
 	}
 
@@ -427,7 +550,17 @@ class SiteStorage {
 			// Nothing to do but promise has to be kept to make the update work!
 		});
 		// Remove Site Area
-		return MDBSiteArea.findByIdAndRemove(id);
+		return MDBSiteArea.findByIdAndRemove(id).then((result) => {
+			// Notify Change
+			_centralRestServer.notifySiteAreaDeleted(
+				{
+					"id": id,
+					"type": Constants.NOTIF_ENTITY_SITE_AREA
+				}
+			);
+			// Return the result
+			return result.result;
+		});
 	}
 }
 

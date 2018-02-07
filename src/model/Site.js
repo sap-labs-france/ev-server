@@ -50,14 +50,6 @@ class Site {
 		return this._model.gps;
 	}
 
-	setCompanyID(companyID) {
-		this._model.companyID = companyID;
-	}
-
-	getCompanyID() {
-		return this._model.companyID;
-	}
-
 	getCreatedBy() {
 		return this._model.createdBy;
 	}
@@ -90,23 +82,46 @@ class Site {
 		this._model.lastChangedOn = lastChangedOn;
 	}
 
+	getCompany() {
+		if (this._model.company) {
+			return Promise.resolve(new Company(this._model.company));
+		} else if (this._model.companyID){
+			// Get from DB
+			return global.storage.getCompany(this._model.companyID).then((company) => {
+				// Keep it
+				this.setCompany(company);
+				return company;
+			});
+		} else {
+			return Promise.resolve(null);
+		}
+	}
+
+	setCompany(company) {
+		if (company) {
+			this._model.company = company.getModel();
+		}
+	}
+
 	getSiteAreas() {
-		return this._model.siteAreas.map((siteArea) => {
-			return new SiteArea(siteArea);
-		});
+		if (this._model.sites) {
+			return Promise.resolve(this._model.siteAreas.map((siteArea) => {
+				return new SiteArea(siteArea);
+			}));
+		} else {
+			// Get from DB
+			return global.storage.getSiteAreasFromSite(this.getID()).then((siteAreas) => {
+				// Keep it
+				this.setSiteAreas(siteAreas);
+				return siteAreas;
+			});
+		}
 	}
 
 	setSiteAreas(siteAreas) {
 		this._model.siteAreas = siteAreas.map((siteArea) => {
 			return siteArea.getModel();
 		});
-	}
-
-	addSiteArea(siteArea) {
-		if (!this._model.siteAreas) {
-			this._model.siteAreas = [];
-		}
-		this._model.siteAreas.push(siteArea.getModel());
 	}
 
 	save() {

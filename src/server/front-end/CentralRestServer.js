@@ -222,6 +222,45 @@ class CentralSystemRestServer {
 		});
 	}
 
+	notifySiteAreaCreated(data) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_SITE_AREA,
+			"action": CentralRestServerAuthorization.ACTION_CREATE,
+			"data": data
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_SITE_AREAS
+		});
+	}
+
+	notifySiteAreaUpdated(data) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_SITE_AREA,
+			"action": CentralRestServerAuthorization.ACTION_UPDATE,
+			"data": data
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_SITE_AREAS
+		});
+	}
+
+	notifySiteAreaDeleted(data) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_SITE_AREA,
+			"action": CentralRestServerAuthorization.ACTION_DELETE,
+			"data": data
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_SITE_AREAS
+		});
+	}
+	
 	notifyCompanyCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({

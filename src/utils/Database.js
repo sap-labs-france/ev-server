@@ -120,7 +120,8 @@ module.exports = {
 		dest.mobile = src.mobile;
 		dest.iNumber = src.iNumber;
 		dest.costCenter = src.costCenter;
-		dest.address = src.address;
+		dest.address = {};
+		this.updateAddress(src.address, dest.address)
 		if (src.status) {
 			dest.status = src.status;
 		}
@@ -156,9 +157,9 @@ module.exports = {
 	updateSite(src, dest) {
 		this.updateID(src, dest);
 		dest.name = src.name;
-		dest.address = src.address;
+		dest.address = {};
+		this.updateAddress(src.address, dest.address)
 		dest.image = src.image;
-		dest.gps = src.gps;
 		dest.companyID = src.companyID;
 		if (src.createdBy && src.createdOn) {
 			dest.createdBy = src.createdBy;
@@ -173,7 +174,8 @@ module.exports = {
 	updateCompany(src, dest) {
 		this.updateID(src, dest);
 		dest.name = src.name;
-		dest.address = src.address;
+		dest.address = {};
+		this.updateAddress(src.address, dest.address)
 		dest.logo = src.logo;
 		if (src.createdBy && src.createdOn) {
 			dest.createdBy = src.createdBy;
@@ -182,6 +184,20 @@ module.exports = {
 		if (src.lastChangedBy && src.lastChangedOn) {
 			dest.lastChangedBy = src.lastChangedBy;
 			dest.lastChangedOn = src.lastChangedOn;
+		}
+	},
+
+	updateAddress(src, dest) {
+		if (src) {
+			dest.address1 = src.address1;
+			dest.address2 = src.address2;
+			dest.postalCode = src.postalCode;
+			dest.city = src.city;
+			dest.department = src.department;
+			dest.region = src.region;
+			dest.country = src.country;
+			dest.latitude = src.latitude;
+			dest.longitude = src.longitude;
 		}
 	},
 

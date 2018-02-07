@@ -33,12 +33,25 @@ class SiteArea {
 		return this._model.image;
 	}
 
-	setSiteID(siteID) {
-		this._model.siteID = siteID;
+	getSite() {
+		if (this._model.site) {
+			return Promise.resolve(new Site(this._model.site));
+		} else if (this._model.siteID){
+			// Get from DB
+			return global.storage.getSite(this._model.siteID).then((site) => {
+				// Keep it
+				this.setSite(site);
+				return site;
+			});
+		} else {
+			return Promise.resolve(null);
+		}
 	}
 
-	getSiteID() {
-		return this._model.siteID;
+	setSite(site) {
+		if (site) {
+			this._model.site = site.getModel();
+		}
 	}
 
 	save() {

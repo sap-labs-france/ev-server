@@ -133,7 +133,7 @@ class Storage {
 	getUser(id) {
 	}
 
-	getCompanies(searchValue, numberOfCompanies, withLogo=false) {
+	getCompanies(searchValue, withSites=false, withLogo=false, numberOfCompanies) {
 	}
 
 	getCompany(id) {
@@ -148,7 +148,7 @@ class Storage {
 	getSitesFromCompany(companyID) {
 	}
 
-	getSites(searchValue, numberOfSite, withPicture=false) {
+	getSites(searchValue, withSiteAreas=false, withPicture=false, numberOfSite) {
 	}
 
 	saveSite(site) {
@@ -158,6 +158,12 @@ class Storage {
 	}
 
 	getSite(id) {
+	}
+
+	getSiteAreasFromSite(siteID) {
+	}
+
+	getSiteAreas(searchValue, numberOfSiteArea, withPicture=false) {
 	}
 
 	getSiteArea(id) {

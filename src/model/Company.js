@@ -74,7 +74,24 @@ class Company {
 	}
 
 	getSites() {
-		return global.storage.getSitesFromCompany(this.getID());
+		if (this._model.sites) {
+			return Promise.resolve(this._model.sites.map((site) => {
+				return new Site(site);
+			}));
+		} else {
+			// Get from DB
+			return global.storage.getSitesFromCompany(this.getID()).then((sites) => {
+				// Keep it
+				this.setSites(sites);
+				return sites;
+			});
+		}
+	}
+
+	setSites(sites) {
+		this._model.sites = sites.map((site) => {
+			return site.getModel();
+		});
 	}
 
 	save() {

@@ -264,9 +264,9 @@ class MongoDBStorage extends Storage {
 		return UserStorage.handleGetUserByTagId(tagID);
 	}
 
-	getCompanies(searchValue, numberOfCompanies, withLogo=false) {
+	getCompanies(searchValue, withSites=false, withLogo=false, numberOfCompanies) {
 		// Delegate
-		return SiteStorage.handleGetCompanies(searchValue, numberOfCompanies, withLogo);
+		return SiteStorage.handleGetCompanies(searchValue, withSites, withLogo, numberOfCompanies);
 	}
 
 	getCompany(id) {
@@ -284,9 +284,9 @@ class MongoDBStorage extends Storage {
 		return SiteStorage.handleGetSitesFromCompany(companyID);
 	}
 
-	getSites(searchValue, numberOfSite, withPicture=false) {
+	getSites(searchValue, withSiteAreas=false, withPicture=false, numberOfSite) {
 		// Delegate
-		return SiteStorage.handleGetSites(searchValue, numberOfSite, withPicture);
+		return SiteStorage.handleGetSites(searchValue, withSiteAreas, withPicture, numberOfSite);
 	}
 
 	saveCompany(company) {
@@ -297,6 +297,11 @@ class MongoDBStorage extends Storage {
 	saveSite(site) {
 		// Delegate
 		return SiteStorage.handleSaveSite(site);
+	}
+
+	getSiteAreas(searchValue, numberOfSiteArea, withPicture=false) {
+		// Delegate
+		return SiteStorage.handleGetSiteAreas(searchValue, numberOfSiteArea, withPicture);
 	}
 
 	saveSiteArea(siteArea) {

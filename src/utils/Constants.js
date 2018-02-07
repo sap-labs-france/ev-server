@@ -3,6 +3,7 @@ require('source-map-support').install();
 module.exports = {
 	// Statuses
 	NOTIF_ENTITY_SITE: "Site",
+	NOTIF_ENTITY_SITE_AREA: "SiteArea",
 	NOTIF_ENTITY_COMPANY: "Company",
 	NOTIF_ENTITY_CHARGING_STATION: "ChargingStation",
 	NOTIF_ENTITY_CHARGING_STATION_STATUS: "Status",

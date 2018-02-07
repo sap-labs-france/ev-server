@@ -17,6 +17,8 @@ module.exports = {
 	ENTITY_COMPANY: "Company",
 	ENTITY_SITES: "Sites",
 	ENTITY_SITE: "Site",
+	ENTITY_SITE_AREAS: "SiteAreas",
+	ENTITY_SITE_AREA: "SiteArea",
 	ENTITY_CHARGING_STATIONS: "ChargingStations",
 	ENTITY_CHARGING_STATION: "ChargingStation",
 	ENTITY_TRANSACTIONS: "Transactions",
@@ -159,6 +161,36 @@ module.exports = {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_SITE,
 			{ "Action": this.ACTION_DELETE, "SiteID": site.id });
+	},
+
+	canListSiteAreas(loggedUser) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_SITE_AREAS,
+			{ "Action": this.ACTION_LIST });
+	},
+
+	canReadSiteArea(loggedUser, siteArea) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_SITE_AREA,
+			{ "Action": this.ACTION_READ });
+	},
+
+	canCreateSiteArea(loggedUser) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_SITE_AREA,
+			{ "Action": this.ACTION_CREATE });
+	},
+
+	canUpdateSiteArea(loggedUser, siteArea) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_SITE_AREA,
+			{ "Action": this.ACTION_UPDATE, "SiteAreaID": siteArea.id });
+	},
+
+	canDeleteSiteArea(loggedUser, siteArea) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_SITE_AREA,
+			{ "Action": this.ACTION_DELETE, "SiteAreaID": siteArea.id });
 	},
 
 	canListCompanies(loggedUser) {

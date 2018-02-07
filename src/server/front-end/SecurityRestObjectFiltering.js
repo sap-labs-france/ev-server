@@ -133,23 +133,20 @@ class SecurityRestObjectFiltering {
 		return filteredRequest;
 	}
 
-	static filterWithPicture(filteredRequest, withPicture) {
-		// Set
-		filteredRequest.WithPicture = withPicture;
+	static filterBoolean(value) {
+		let result = false;
 		// Check boolean
-		if(filteredRequest.WithPicture) {
-			filteredRequest.WithPicture = (filteredRequest.WithPicture === "true");
-		} else {
-			filteredRequest.WithPicture = false;
+		if(value) {
+			result = (value === "true");
 		}
+		return result;
 	}
 
 	static filterTransactionsActiveRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.ChargeBoxIdentity = sanitize(request.ChargeBoxIdentity);
 		filteredRequest.ConnectorId = sanitize(request.ConnectorId);
-		// Handle picture
-		SecurityRestObjectFiltering.filterWithPicture(filteredRequest, request.WithPicture);
+		filteredRequest.WithPicture = SecurityRestObjectFiltering.filterBoolean(request.WithPicture);
 		return filteredRequest;
 	}
 
@@ -170,7 +167,7 @@ class SecurityRestObjectFiltering {
 	static filterTransactionsCompletedRequest(request, loggedUser) {
 		let filteredRequest = {};
 		// Handle picture
-		SecurityRestObjectFiltering.filterWithPicture(filteredRequest, request.WithPicture);
+		filteredRequest.WithPicture = SecurityRestObjectFiltering.filterBoolean(request.WithPicture);
 		filteredRequest.StartDateTime = sanitize(request.StartDateTime);
 		filteredRequest.EndDateTime = sanitize(request.EndDateTime);
 		filteredRequest.Search = sanitize(request.Search);
@@ -209,7 +206,7 @@ class SecurityRestObjectFiltering {
 		let filteredRequest = {};
 		// Handle picture
 		filteredRequest.Search = request.Search;
-		SecurityRestObjectFiltering.filterWithPicture(filteredRequest, request.WithPicture);
+		filteredRequest.WithPicture = SecurityRestObjectFiltering.filterBoolean(request.WithPicture);
 		return filteredRequest;
 	}
 
@@ -234,14 +231,23 @@ class SecurityRestObjectFiltering {
 	static filterCompaniesRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
-		filteredRequest.WithLogo = sanitize(request.WithLogo);
+		filteredRequest.WithLogo = SecurityRestObjectFiltering.filterBoolean(sanitize(request.WithLogo));
+		filteredRequest.WithSites = SecurityRestObjectFiltering.filterBoolean(sanitize(request.WithSites));
 		return filteredRequest;
 	}
 
 	static filterSitesRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
-		SecurityRestObjectFiltering.filterWithPicture(filteredRequest, request.WithPicture);
+		filteredRequest.WithPicture = SecurityRestObjectFiltering.filterBoolean(request.WithPicture);
+		filteredRequest.WithSiteAreas = SecurityRestObjectFiltering.filterBoolean(sanitize(request.WithSiteAreas));
+		return filteredRequest;
+	}
+
+	static filterSiteAreasRequest(request, loggedUser) {
+		let filteredRequest = {};
+		filteredRequest.Search = sanitize(request.Search);
+		filteredRequest.WithPicture = SecurityRestObjectFiltering.filterBoolean(request.WithPicture);
 		return filteredRequest;
 	}
 
@@ -561,13 +567,17 @@ class SecurityRestObjectFiltering {
 				filteredCompany.name = company.name;
 				filteredCompany.logo = company.logo;
 			}
+			if (company.sites) {
+				filteredCompany.sites = company.sites.map((site) => {
+					return SecurityRestObjectFiltering.filterSiteResponse(site, loggedUser);
+				})
+			}
 		}
 		return filteredCompany;
 	}
 
 	static filterSiteResponse(site, loggedUser) {
 		let filteredSite;
-		let company = {}
 
 		// Check auth
 		if (CentralRestServerAuthorization.canReadSite(loggedUser, site)) {
@@ -584,14 +594,45 @@ class SecurityRestObjectFiltering {
 				filteredSite.image = site.image;
 				filteredSite.gps = site.gps;
 				filteredSite.siteAreas = site.siteAreas;
+				if (site.company) {
+					filteredSite.company = {};
+					filteredSite.company.id = site.company.id;
+					filteredSite.company.name = site.company.name;
+				}
 			}
-			if (site.companyID) {
-				company.id = site.companyID._id;
-				company.name = site.companyID.name;
-			}
-			site.companyID = company;
 		}
 		return filteredSite;
+	}
+
+	static filterSiteAreaResponse(siteArea, loggedUser) {
+		let filteredSiteArea;
+		let site = {}
+
+		// Check auth
+		if (CentralRestServerAuthorization.canReadSiteArea(loggedUser, siteArea)) {
+			// Admin?
+			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+				// Yes: set all params
+				filteredSiteArea = siteArea;
+			} else {
+				// Set only necessary info
+				filteredSiteArea = {};
+				filteredSiteArea.id = siteArea.id;
+				filteredSiteArea.name = siteArea.name;
+				filteredSiteArea.image = siteArea.image;
+			}
+			if (siteArea.siteID) {
+				site.id = siteArea.siteID._id;
+				site.name = siteArea.siteID.name;
+				if (siteArea.siteID.address) {
+					site.address = {};
+					site.address.city = siteArea.siteID.address.city;
+					site.address.country = siteArea.siteID.address.country;
+				}
+			}
+			site.siteID = site;
+		}
+		return filteredSiteArea;
 	}
 
 	static filterChargingStationsResponse(chargingStations, loggedUser) {
@@ -634,6 +675,20 @@ class SecurityRestObjectFiltering {
 			}
 		});
 		return filteredSites;
+	}
+
+	static filterSiteAreasResponse(siteAreas, loggedUser) {
+		let filteredSiteAreas = [];
+		siteAreas.forEach(siteArea => {
+			// Filter
+			let filteredSiteArea = this.filterSiteAreaResponse(siteArea, loggedUser);
+			// Ok?
+			if (filteredSiteArea) {
+				// Add
+				filteredSiteAreas.push(filteredSiteArea);
+			}
+		});
+		return filteredSiteAreas;
 	}
 
 	// Transaction

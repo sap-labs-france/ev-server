@@ -43,6 +43,19 @@
 				}
 			},
 			{
+				"AuthObject": "SiteAreas",
+				"AuthFieldValue": {
+					"Action": ["List"]
+				}
+			},
+			{
+				"AuthObject": "SiteArea",
+				"AuthFieldValue": {
+					"SiteAreaID": "*",
+					"Action": ["Create", "Read", "Update", "Delete"]
+				}
+			},
+			{
 				"AuthObject": "ChargingStations",
 				"AuthFieldValue": {
 					"Action": ["List"]
@@ -122,6 +135,19 @@
 				"AuthObject": "Site",
 				"AuthFieldValue": {
 					"SiteID": "*",
+					"Action": ["Read"]
+				}
+			},
+			{
+				"AuthObject": "SiteAreas",
+				"AuthFieldValue": {
+					"Action": ["List"]
+				}
+			},
+			{
+				"AuthObject": "SiteArea",
+				"AuthFieldValue": {
+					"SiteAreaID": "*",
 					"Action": ["Read"]
 				}
 			},
@@ -209,6 +235,19 @@
 				}
 			},
 			{
+				"AuthObject": "SiteAreas",
+				"AuthFieldValue": {
+					"Action": ["List"]
+				}
+			},
+			{
+				"AuthObject": "SiteArea",
+				"AuthFieldValue": {
+					"SiteAreaID": "*",
+					"Action": ["Read"]
+				}
+			},
+			{
 				"AuthObject": "ChargingStations",
 				"AuthFieldValue": {
 					"Action": ["List"]
@@ -288,6 +327,19 @@
 				"AuthObject": "Site",
 				"AuthFieldValue": {
 					"SiteID": "*",
+					"Action": ["Read"]
+				}
+			},
+			{
+				"AuthObject": "SiteAreas",
+				"AuthFieldValue": {
+					"Action": ["List"]
+				}
+			},
+			{
+				"AuthObject": "SiteArea",
+				"AuthFieldValue": {
+					"SiteAreaID": "*",
 					"Action": ["Read"]
 				}
 			},

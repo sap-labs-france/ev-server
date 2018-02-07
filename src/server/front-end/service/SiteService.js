@@ -27,7 +27,7 @@ class SiteService {
 			// Not Authorized!
 			Logging.logActionUnauthorizedMessageAndSendResponse(
 				CentralRestServerAuthorization.ACTION_CREATE,
-				CentralRestServerAuthorization.ENTITY_SITE, null, req, res, next);
+				CentralRestServerAuthorization.ENTITY_SITE_AREA, null, req, res, next);
 			return;
 		}
 		// Filter
@@ -163,6 +163,44 @@ class SiteService {
 		});
 	}
 
+	static handleGetSiteAreas(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "SiteService",
+			method: "handleGetSiteAreas",
+			message: `Read All Site Areas`,
+			detailedMessages: req.query
+		});
+		// Check auth
+		if (!CentralRestServerAuthorization.canListSiteAreas(req.user)) {
+			// Not Authorized!
+			Logging.logActionUnauthorizedMessageAndSendResponse(
+				CentralRestServerAuthorization.ACTION_LIST,
+				CentralRestServerAuthorization.ENTITY_SITE_AREAS, null, req, res, next);
+			return;
+		}
+		// Filter
+		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreasRequest(req.query, req.user);
+		// Get the sites
+		global.storage.getSiteAreas(filteredRequest.Search, Constants.NO_LIMIT, filteredRequest.WithPicture).then((siteAreas) => {
+			let siteAreasJSon = [];
+			siteAreas.forEach((siteArea) => {
+				// Set the model
+				siteAreasJSon.push(siteArea.getModel());
+			});
+			// Return
+			res.json(
+				// Filter
+				SecurityRestObjectFiltering.filterSitesAreaResponse(
+					siteAreasJSon, req.user)
+			);
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
 	static handleDeleteSiteArea(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
@@ -191,11 +229,11 @@ class SiteService {
 					500, "SiteService", "handleDeleteSiteArea");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canDeleteSite(req.user,
-					{ "id": siteArea.getSiteID() })) {
+			if (!CentralRestServerAuthorization.canDeleteSiteArea(req.user,
+					{ "id": siteArea.getID() })) {
 				// Not Authorized!
 				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
-					CentralRestServerAuthorization.ENTITY_SITE, siteArea.getSiteID(),
+					CentralRestServerAuthorization.ENTITY_SITE_AREA, siteArea.getID(),
 					500, "SiteService", "handleDeleteSiteArea");
 			}
 			// Delete
@@ -305,7 +343,8 @@ class SiteService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterCompaniesRequest(req.query, req.user);
 		// Get the companies
-		global.storage.getCompanies(filteredRequest.Search, Constants.NO_LIMIT, filteredRequest.WithLogo).then((companies) => {
+		global.storage.getCompanies(filteredRequest.Search, filteredRequest.WithSites,
+				filteredRequest.WithLogo, Constants.NO_LIMIT).then((companies) => {
 			let companiesJSon = [];
 			companies.forEach((company) => {
 				// Set the model
@@ -343,7 +382,8 @@ class SiteService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterSitesRequest(req.query, req.user);
 		// Get the sites
-		global.storage.getSites(filteredRequest.Search, Constants.NO_LIMIT, filteredRequest.WithPicture).then((sites) => {
+		global.storage.getSites(filteredRequest.Search, filteredRequest.WithSiteAreas,
+				filteredRequest.WithPicture, Constants.NO_LIMIT).then((sites) => {
 			let sitesJSon = [];
 			sites.forEach((site) => {
 				// Set the model
