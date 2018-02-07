@@ -71,10 +71,12 @@ class SiteStorage {
 			if (sitesMDB && sitesMDB.length > 0) {
 				// Create
 				site = new Site(sitesMDB[0]);
-				// Set
+				// Set Site Areas
 				site.setSiteAreas(sitesMDB[0].siteAreas.map((siteArea) => {
 					return new SiteArea(siteArea);
 				}));
+				// Set Company
+				site.setCompany(new Company(sitesMDB[0].company));
 			}
 			return site;
 		});

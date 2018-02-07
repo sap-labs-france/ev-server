@@ -228,6 +228,12 @@ class SecurityRestObjectFiltering {
 		return filteredRequest;
 	}
 
+	static filterSiteAreaRequest(request, loggedUser) {
+		let filteredRequest = {};
+		filteredRequest.ID = sanitize(request.ID);
+		return filteredRequest;
+	}
+
 	static filterCompaniesRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);

@@ -288,6 +288,41 @@ class SiteService {
 		});
 	}
 
+	static handleGetSiteArea(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "SiteService",
+			method: "handleGetSiteArea",
+			message: `Read Site Area '${req.query.ID}'`,
+			detailedMessages: req.query
+		});
+		// Filter
+		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreaRequest(req.query, req.user);
+		// Charge Box is mandatory
+		if(!filteredRequest.ID) {
+			Logging.logActionExceptionMessageAndSendResponse(
+				action, new Error(`The Site Area ID is mandatory`), req, res, next);
+			return;
+		}
+		// Get it
+		global.storage.getSiteArea(filteredRequest.ID).then((siteArea) => {
+			if (siteArea) {
+				// Return
+				res.json(
+					// Filter
+					SecurityRestObjectFiltering.filterSiteAreaResponse(
+						siteArea.getModel(), req.user)
+				);
+			} else {
+				res.json({});
+			}
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
 	static handleGetCompany(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,

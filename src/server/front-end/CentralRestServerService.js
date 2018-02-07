@@ -149,6 +149,12 @@ module.exports = {
 						SiteService.handleGetSiteAreas(action, req, res, next);
 						break;
 
+					// Get all the site areas
+					case "SiteArea":
+						// Delegate
+						SiteService.handleGetSiteArea(action, req, res, next);
+						break;
+
 					// Get all the users
 					case "Users":
 						// Delegate
