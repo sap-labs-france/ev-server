@@ -19,7 +19,7 @@ class Storage {
 	getConfigurationParamValue(chargeBoxIdentity, paramName) {
 	}
 
-	getLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs, sortDate) {
+	getLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs=500, sortDate) {
 	}
 
 	saveLog(log) {
@@ -121,7 +121,7 @@ class Storage {
 	getChargingStation(chargeBoxIdentity) {
 	}
 
-	getUsers(searchValue, numberOfUser, withPicture=false) {
+	getUsers(searchValue, withPicture=false, numberOfUser=500) {
 	}
 
 	saveUser(user) {
@@ -133,7 +133,7 @@ class Storage {
 	getUser(id) {
 	}
 
-	getCompanies(searchValue, withSites=false, withLogo=false, numberOfCompanies) {
+	getCompanies(searchValue, withSites=false, withLogo=false, numberOfCompanies=500) {
 	}
 
 	getCompany(id) {
@@ -148,7 +148,7 @@ class Storage {
 	getSitesFromCompany(companyID) {
 	}
 
-	getSites(searchValue, withSiteAreas=false, withPicture=false, numberOfSite) {
+	getSites(searchValue, withSiteAreas=false, withPicture=false, numberOfSite=500) {
 	}
 
 	saveSite(site) {
@@ -163,7 +163,7 @@ class Storage {
 	getSiteAreasFromSite(siteID) {
 	}
 
-	getSiteAreas(searchValue, numberOfSiteArea, withPicture=false) {
+	getSiteAreas(searchValue, withPicture=false, numberOfSiteArea=500) {
 	}
 
 	getSiteArea(id) {

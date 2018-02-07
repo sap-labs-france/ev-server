@@ -189,7 +189,7 @@ class UserStorage {
 		}
 	}
 
-	static handleGetUsers(searchValue, numberOfUsers, withPicture) {
+	static handleGetUsers(searchValue, withPicture, numberOfUsers) {
 		// Set the filters
 		let filters = {
 			"$and": [

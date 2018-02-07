@@ -63,7 +63,7 @@ class MongoDBStorage extends Storage {
 		return ChargingStationStorage.handleGetConfigurationParamValue(chargeBoxIdentity, paramName);
 	}
 
-	getLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs, sortDate) {
+	getLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs=500, sortDate) {
 		// Delegate
 		return LoggingStorage.handleGetLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs, sortDate);
 	}
@@ -234,9 +234,9 @@ class MongoDBStorage extends Storage {
 		return ChargingStationStorage.handleGetChargingStation(chargeBoxIdentity);
 	}
 
-	getUsers(searchValue, numberOfUser, withPicture=false) {
+	getUsers(searchValue, withPicture=false, numberOfUser=500) {
 		// Delegate
-		return UserStorage.handleGetUsers(searchValue, numberOfUser, withPicture);
+		return UserStorage.handleGetUsers(searchValue, withPicture, numberOfUser);
 	}
 
 	saveUser(user) {
@@ -264,7 +264,7 @@ class MongoDBStorage extends Storage {
 		return UserStorage.handleGetUserByTagId(tagID);
 	}
 
-	getCompanies(searchValue, withSites=false, withLogo=false, numberOfCompanies) {
+	getCompanies(searchValue, withSites=false, withLogo=false, numberOfCompanies=500) {
 		// Delegate
 		return SiteStorage.handleGetCompanies(searchValue, withSites, withLogo, numberOfCompanies);
 	}
@@ -284,7 +284,7 @@ class MongoDBStorage extends Storage {
 		return SiteStorage.handleGetSitesFromCompany(companyID);
 	}
 
-	getSites(searchValue, withSiteAreas=false, withPicture=false, numberOfSite) {
+	getSites(searchValue, withSiteAreas=false, withPicture=false, numberOfSite=500) {
 		// Delegate
 		return SiteStorage.handleGetSites(searchValue, withSiteAreas, withPicture, numberOfSite);
 	}
@@ -299,9 +299,9 @@ class MongoDBStorage extends Storage {
 		return SiteStorage.handleSaveSite(site);
 	}
 
-	getSiteAreas(searchValue, numberOfSiteArea, withPicture=false) {
+	getSiteAreas(searchValue, withPicture=false, numberOfSiteArea=500) {
 		// Delegate
-		return SiteStorage.handleGetSiteAreas(searchValue, numberOfSiteArea, withPicture);
+		return SiteStorage.handleGetSiteAreas(searchValue, withPicture, numberOfSiteArea);
 	}
 
 	saveSiteArea(siteArea) {

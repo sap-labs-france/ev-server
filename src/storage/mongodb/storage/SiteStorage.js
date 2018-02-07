@@ -388,7 +388,7 @@ class SiteStorage {
 		});
 	}
 
-	static handleGetSiteAreas(searchValue, numberOfSiteAreas, withPicture) {
+	static handleGetSiteAreas(searchValue, withPicture, numberOfSiteAreas) {
 		// Check Limit
 		numberOfSiteAreas = Utils.checkRecordLimit(numberOfSiteAreas);
 		// Set the filters
