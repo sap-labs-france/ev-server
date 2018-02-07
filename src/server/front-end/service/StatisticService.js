@@ -28,8 +28,8 @@ class StatisticService {
 		global.storage.getTransactions(null, filter, Users.WITH_NO_IMAGE, 0).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
-				return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
-					CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBoxID);
+				return CentralRestServerAuthorization.canReadUser(req.user, transaction.user) &&
+					CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBox);
 			});
 			// Group Them By Month
 			let monthStats = [];
@@ -51,7 +51,7 @@ class StatisticService {
 				}
 
 				// Set Usage
-				let userName = Utils.buildUserFullName(transactions[i].userID, false);
+				let userName = Utils.buildUserFullName(transactions[i].user, false);
 				if (!monthStat[userName]) {
 					// Add Usage in Hours
 					monthStat[userName] =
@@ -97,8 +97,8 @@ class StatisticService {
 		global.storage.getTransactions(null, filter, Users.WITH_NO_IMAGE, 0).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
-				return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
-					CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBoxID);
+				return CentralRestServerAuthorization.canReadUser(req.user, transaction.user) &&
+					CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBox);
 			});
 			// Group Them By Month
 			let monthStats = [];
@@ -119,7 +119,7 @@ class StatisticService {
 					monthStat.month = moment(transactions[i].timestamp).month();
 				}
 				// Set consumption
-				let userName = Utils.buildUserFullName(transactions[i].userID, false);
+				let userName = Utils.buildUserFullName(transactions[i].user, false);
 				if (!monthStat[userName]) {
 					// Add conso in kW.h
 					monthStat[userName] = transactions[i].stop.totalConsumption / 1000;
@@ -163,8 +163,8 @@ class StatisticService {
 		global.storage.getTransactions(null, filter, Users.WITH_NO_IMAGE, 0).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
-				return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
-					CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBoxID);
+				return CentralRestServerAuthorization.canReadUser(req.user, transaction.user) &&
+					CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBox);
 			});
 			// Group Them By Month
 			let monthStats = [];
@@ -185,13 +185,13 @@ class StatisticService {
 					monthStat.month = moment(transactions[i].timestamp).month();
 				}
 				// Set Usage
-				if (!monthStat[transactions[i].chargeBoxID.chargeBoxIdentity]) {
+				if (!monthStat[transactions[i].chargeBox.chargeBoxIdentity]) {
 					// Add Usage in Hours
-					monthStat[transactions[i].chargeBoxID.chargeBoxIdentity] =
+					monthStat[transactions[i].chargeBox.chargeBoxIdentity] =
 						(new Date(transactions[i].stop.timestamp).getTime() - new Date(transactions[i].timestamp).getTime()) / (3600 * 1000);
 				} else {
 					// Add Usage in Hours
-					monthStat[transactions[i].chargeBoxID.chargeBoxIdentity] +=
+					monthStat[transactions[i].chargeBox.chargeBoxIdentity] +=
 						(new Date(transactions[i].stop.timestamp).getTime() - new Date(transactions[i].timestamp).getTime()) / (3600 * 1000);
 				}
 			}
@@ -230,8 +230,8 @@ class StatisticService {
 		global.storage.getTransactions(null, filter, Users.WITH_NO_IMAGE, 0).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
-				return CentralRestServerAuthorization.canReadUser(req.user, transaction.userID) &&
-					CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBoxID);
+				return CentralRestServerAuthorization.canReadUser(req.user, transaction.user) &&
+					CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBox);
 			});
 			// Group Them By Month
 			let monthStats = [];
@@ -252,12 +252,12 @@ class StatisticService {
 					monthStat.month = moment(transactions[i].timestamp).month();
 				}
 				// Set consumption
-				if (!monthStat[transactions[i].chargeBoxID.chargeBoxIdentity]) {
+				if (!monthStat[transactions[i].chargeBox.chargeBoxIdentity]) {
 					// Add conso in kW.h
-					monthStat[transactions[i].chargeBoxID.chargeBoxIdentity] = transactions[i].stop.totalConsumption / 1000;
+					monthStat[transactions[i].chargeBox.chargeBoxIdentity] = transactions[i].stop.totalConsumption / 1000;
 				} else {
 					// Add conso in kW.h
-					monthStat[transactions[i].chargeBoxID.chargeBoxIdentity] += transactions[i].stop.totalConsumption / 1000;
+					monthStat[transactions[i].chargeBox.chargeBoxIdentity] += transactions[i].stop.totalConsumption / 1000;
 				}
 			}
 			// Add the last month statistics

@@ -242,7 +242,7 @@ class ChargingStationService {
 				// Set charging station active?
 				activeTransactions.forEach(activeTransaction => {
 					// Find a match
-					if (chargingStation.getChargeBoxIdentity() === activeTransaction.chargeBoxID.chargeBoxIdentity ) {
+					if (chargingStation.getChargeBoxIdentity() === activeTransaction.chargeBox.chargeBoxIdentity ) {
 						// Set
 						connectors[activeTransaction.connectorId.valueOf()-1].activeForUser = true;
 					}
@@ -312,7 +312,7 @@ class ChargingStationService {
 						// Add connector ID
 						filteredRequest.args.connectorId = transaction.connectorId;
 						// Check auth
-						if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action, transaction.userID)) {
+						if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action, transaction.user)) {
 							// Not Authorized!
 							throw new AppAuthError(req.user, action,
 								CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(),

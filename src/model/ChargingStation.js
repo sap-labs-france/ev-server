@@ -419,19 +419,19 @@ class ChargingStation {
 					// Send Notification
 					NotificationHandler.sendEndOfCharge(
 						transaction.transactionId + "-EOF",
-						transaction.userID,
+						transaction.user,
 						this.getModel(),
 						{
-							"user": transaction.userID,
+							"user": transaction.user,
 							"chargingStationId": this.getChargeBoxIdentity(),
 							"connectorId": transaction.connectorId,
 							"totalConsumption": (this.getConnectors()[transaction.connectorId-1].totalConsumption/1000).toLocaleString(
-								(transaction.userID.locale?transaction.userID.locale.replace('_','-'):Users.DEFAULT_LOCALE.replace('_','-')),
+								(transaction.user.locale?transaction.user.locale.replace('_','-'):Users.DEFAULT_LOCALE.replace('_','-')),
 									{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
 							"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.transactionId),
 							"notifStopTransactionAndUnlockConnector": _configChargingStation.notifStopTransactionAndUnlockConnector
 						},
-						transaction.userID.locale);
+						transaction.user.locale);
 
 					// Stop Transaction and Unlock Connector?
 					if (_configChargingStation.notifStopTransactionAndUnlockConnector) {
@@ -851,10 +851,10 @@ class ChargingStation {
 				chargingStationConsumption.chargeBoxIdentity = this.getChargeBoxIdentity();
 				chargingStationConsumption.connectorId = transaction.connectorId;
 				chargingStationConsumption.transactionId = transaction.transactionId;
-				chargingStationConsumption.userID = transaction.userID;
-				if (transaction.stop && transaction.stop.userID) {
+				chargingStationConsumption.user = transaction.user;
+				if (transaction.stop && transaction.stop.user) {
 					chargingStationConsumption.stop = {};
-					chargingStationConsumption.stop.userID = transaction.stop.userID;
+					chargingStationConsumption.stop.user = transaction.stop.user;
 				}
 				// Compute consumption
 				let consumptions = this.buildConsumption(chargingStationConsumption, meterValues, transaction, pricing, optimizeNbrOfValues);

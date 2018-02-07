@@ -89,7 +89,8 @@ class UserStorage {
 
 	static handleGetUserByTagId(tagID) {
 		// Exec request
-		return MDBTag.findById(tagID).populate("userID").exec().then((tagMDB) => {
+		return MDBTag.findById(tagID)
+				.populate("userID").exec().then((tagMDB) => {
 			let user = null;
 			// Check
 			if (tagMDB && tagMDB.userID && !tagMDB.userID.deleted) {

@@ -393,9 +393,9 @@ class SecurityRestObjectFiltering {
 		}
 		filteredConsumption.totalConsumption = consumption.totalConsumption;
 		filteredConsumption.transactionId = consumption.transactionId;
-		filteredConsumption.userID =
+		filteredConsumption.user =
 			SecurityRestObjectFiltering.filterUserInTransactionResponse(
-				consumption.userID, loggedUser);
+				consumption.user, loggedUser);
 		// Admin?
 		if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
 			// Set them all
@@ -696,8 +696,8 @@ class SecurityRestObjectFiltering {
 		let filteredTransaction;
 
 		// Check auth
-		if (CentralRestServerAuthorization.canReadUser(loggedUser, transaction.userID) &&
-			CentralRestServerAuthorization.canReadChargingStation(loggedUser, transaction.chargeBoxID)) {
+		if (CentralRestServerAuthorization.canReadUser(loggedUser, transaction.user) &&
+			CentralRestServerAuthorization.canReadChargingStation(loggedUser, transaction.chargeBox)) {
 			// Set only necessary info
 			filteredTransaction = {};
 			filteredTransaction.id = transaction.id;
@@ -705,9 +705,9 @@ class SecurityRestObjectFiltering {
 			filteredTransaction.connectorId = transaction.connectorId;
 			filteredTransaction.timestamp = transaction.timestamp;
 			// Filter user
-			filteredTransaction.userID =
+			filteredTransaction.user =
 				SecurityRestObjectFiltering.filterUserInTransactionResponse(
-					transaction.userID, loggedUser);
+					transaction.user, loggedUser);
 			// Transaction Stop
 			if (transaction.stop) {
 				filteredTransaction.stop = {};
@@ -719,20 +719,20 @@ class SecurityRestObjectFiltering {
 					filteredTransaction.stop.priceUnit = transaction.stop.priceUnit;
 				}
 				// Stop User
-				if (transaction.stop.userID) {
+				if (transaction.stop.user) {
 					// Filter user
-					filteredTransaction.stop.userID =
+					filteredTransaction.stop.user =
 						SecurityRestObjectFiltering.filterUserInTransactionResponse(
-							transaction.stop.userID, loggedUser);
+							transaction.stop.user, loggedUser);
 				}
 			}
 			// Charging Station
-			filteredTransaction.chargeBoxID = {};
-			filteredTransaction.chargeBoxID.id = transaction.chargeBoxID.id;
-			filteredTransaction.chargeBoxID.chargeBoxIdentity = transaction.chargeBoxID.chargeBoxIdentity;
+			filteredTransaction.chargeBox = {};
+			filteredTransaction.chargeBox.id = transaction.chargeBox.id;
+			filteredTransaction.chargeBox.chargeBoxIdentity = transaction.chargeBox.chargeBoxIdentity;
 			if (withConnector) {
-				filteredTransaction.chargeBoxID.connectors = [];
-				filteredTransaction.chargeBoxID.connectors[transaction.connectorId-1] = transaction.chargeBoxID.connectors[transaction.connectorId-1];
+				filteredTransaction.chargeBox.connectors = [];
+				filteredTransaction.chargeBox.connectors[transaction.connectorId-1] = transaction.chargeBox.connectors[transaction.connectorId-1];
 			}
 		}
 

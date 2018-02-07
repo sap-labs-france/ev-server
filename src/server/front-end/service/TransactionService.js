@@ -44,14 +44,14 @@ class TransactionService {
 					500, "TransactionService", "handleDeleteTransaction");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.userID)) {
+			if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
 				// Not Authorized!
 				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
 					CentralRestServerAuthorization.ENTITY_USER,
-					transaction.userID, 500, "TransactionService", "handleDeleteTransaction");
+					transaction.user, 500, "TransactionService", "handleDeleteTransaction");
 			}
 			// Get the Charging Station
-			return global.storage.getChargingStation(transaction.chargeBoxID.chargeBoxIdentity);
+			return global.storage.getChargingStation(transaction.chargeBox.chargeBoxIdentity);
 		}).then((foundChargingStation) => {
 			chargingStation = foundChargingStation;
 			// Found?
@@ -80,7 +80,7 @@ class TransactionService {
 				// Log
 				Logging.logSecurityInfo({
 					user: req.user, module: "TransactionService", method: "handleDeleteTransaction",
-					message: `Transaction ID ${filteredRequest.ID} started by '${Utils.buildUserFullName(user.getModel())}' on '${transaction.chargeBoxID.chargeBoxIdentity}'-'${transaction.connectorId}' has been deleted successfully`,
+					message: `Transaction ID ${filteredRequest.ID} started by '${Utils.buildUserFullName(user.getModel())}' on '${transaction.chargeBox.chargeBoxIdentity}'-'${transaction.connectorId}' has been deleted successfully`,
 					action: action, detailedMessages: user});
 				// Ok
 				res.json({status: `Success`});
@@ -127,14 +127,14 @@ class TransactionService {
 					500, "TransactionService", "handleTransactionSoftStop");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.userID)) {
+			if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
 				// Not Authorized!
 				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
 					CentralRestServerAuthorization.ENTITY_USER,
-					transaction.userID, 500, "TransactionService", "handleTransactionSoftStop");
+					transaction.user, 500, "TransactionService", "handleTransactionSoftStop");
 			}
 			// Get the Charging Station
-			return global.storage.getChargingStation(transaction.chargeBoxID.chargeBoxIdentity);
+			return global.storage.getChargingStation(transaction.chargeBox.chargeBoxIdentity);
 		}).then((foundChargingStation) => {
 			chargingStation = foundChargingStation;
 			// Found?
@@ -161,7 +161,7 @@ class TransactionService {
 			// Stop Transaction
 			let stopTransaction = {};
 			stopTransaction.transactionId = transaction.transactionId;
-			stopTransaction.userID = req.user.id;
+			stopTransaction.user = req.user.id;
 			stopTransaction.timestamp = new Date().toISOString();
 			stopTransaction.meterStop = 0;
 			// Save
@@ -169,7 +169,7 @@ class TransactionService {
 				// Log
 				Logging.logSecurityInfo({
 					user: req.user, module: "TransactionService", method: "handleTransactionSoftStop",
-					message: `Transaction ID '${transaction.transactionId}' started by '${Utils.buildUserFullName(transaction.userID)}' on '${transaction.chargeBoxID.chargeBoxIdentity}'-'${transaction.connectorId}' has been stopped successfully`,
+					message: `Transaction ID '${transaction.transactionId}' started by '${Utils.buildUserFullName(transaction.user)}' on '${transaction.chargeBox.chargeBoxIdentity}'-'${transaction.connectorId}' has been stopped successfully`,
 					action: action, detailedMessages: user});
 				// Ok
 				res.json({status: `Success`});
@@ -215,14 +215,14 @@ class TransactionService {
 					500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.userID)) {
+			if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
 				// Not Authorized!
 				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
 					CentralRestServerAuthorization.ENTITY_USER,
-					transaction.userID, 500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
+					transaction.user, 500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
 			}
 			// Get the Charging Station
-			return global.storage.getChargingStation(transaction.chargeBoxID.chargeBoxIdentity);
+			return global.storage.getChargingStation(transaction.chargeBox.chargeBoxIdentity);
 		}).then((chargingStation) => {
 			let consumptions = [];
 			// Found?
@@ -318,11 +318,11 @@ class TransactionService {
 					500, "TransactionService", "handleGetTransaction");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.userID)) {
+			if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
 				// Not Authorized!
 				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
 					CentralRestServerAuthorization.ENTITY_USER,
-					transaction.userID, 500, "TransactionService", "handleGetTransaction");
+					transaction.user, 500, "TransactionService", "handleGetTransaction");
 			}
 			// Return
 			res.json(

@@ -431,12 +431,12 @@ class SiteStorage {
 				from: "sites",
 				localField: "siteID",
 				foreignField: "_id",
-				as: "siteID"
+				as: "site"
 			}
 		});
 		// Single Record
 		aggregation.push({
-			$unwind: "$siteID"
+			$unwind: "$site"
 		});
 		// Exexute
 		return MDBSiteArea.aggregate(aggregation)
@@ -447,9 +447,7 @@ class SiteStorage {
 				// Create
 				let siteArea = new SiteArea(siteAreaMDB);
 				// Set
-				siteArea.setSite(siteMDB.siteAreas.map((siteArea) => {
-					return new SiteArea(siteArea);
-				}));
+				siteArea.setSite(new Site(siteAreaMDB.site));
 				// Add
 				sites.push(site);
 			});

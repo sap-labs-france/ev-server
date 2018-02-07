@@ -208,7 +208,9 @@ class TransactionStorage {
 
 	static handleGetTransaction(transactionId, withPicture) {
 		// Get the Start Transaction
-		return MDBTransaction.findById({"_id": transactionId}).populate("userID", (withPicture?{}:{image:0})).populate("chargeBoxID")
+		return MDBTransaction.findById({"_id": transactionId})
+				.populate("userID", (withPicture?{}:{image:0}))
+				.populate("chargeBoxID")
 				.populate("stop.userID").exec().then((transactionMDB) => {
 			// Set
 			let transaction = null;
