@@ -434,6 +434,14 @@ class SiteStorage {
 				as: "site"
 			}
 		});
+		// Picture?
+		if (!withPicture) {
+			aggregation.push({
+				$project: {
+					"site.image": 0
+				}
+			});
+		}
 		// Single Record
 		aggregation.push({
 			$unwind: "$site"
@@ -449,9 +457,9 @@ class SiteStorage {
 				// Set
 				siteArea.setSite(new Site(siteAreaMDB.site));
 				// Add
-				sites.push(site);
+				siteAreas.push(siteArea);
 			});
-			return sites;
+			return siteAreas;
 		});
 	}
 

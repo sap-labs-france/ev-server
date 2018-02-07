@@ -191,7 +191,7 @@ class SiteService {
 			// Return
 			res.json(
 				// Filter
-				SecurityRestObjectFiltering.filterSitesAreaResponse(
+				SecurityRestObjectFiltering.filterSiteAreasResponse(
 					siteAreasJSon, req.user)
 			);
 			next();
