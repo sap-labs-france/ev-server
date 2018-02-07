@@ -251,7 +251,7 @@ class UserService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterUsersRequest(req.query, req.user);
 		// Get users
-		global.storage.getUsers(filteredRequest.Search, Constants.NO_LIMIT, filteredRequest.WithPicture).then((users) => {
+		global.storage.getUsers(filteredRequest.Search, filteredRequest.WithPicture, Constants.NO_LIMIT).then((users) => {
 			var usersJSon = [];
 			users.forEach((user) => {
 				// Set the model

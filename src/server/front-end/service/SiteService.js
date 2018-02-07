@@ -182,7 +182,7 @@ class SiteService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreasRequest(req.query, req.user);
 		// Get the sites
-		global.storage.getSiteAreas(filteredRequest.Search, Constants.NO_LIMIT, filteredRequest.WithPicture).then((siteAreas) => {
+		global.storage.getSiteAreas(filteredRequest.Search, filteredRequest.WithPicture, Constants.NO_LIMIT).then((siteAreas) => {
 			let siteAreasJSon = [];
 			siteAreas.forEach((siteArea) => {
 				// Set the model
@@ -375,8 +375,8 @@ class SiteService {
 		if (!CentralRestServerAuthorization.canListSites(req.user)) {
 			// Not Authorized!
 			Logging.logActionUnauthorizedMessageAndSendResponse(
-				CentralRestServerAuthorization.ACTION_LIST, CentralRestServerAuthorization.ENTITY_SITES,
-				null, req, res, next);
+				CentralRestServerAuthorization.ACTION_LIST,
+				CentralRestServerAuthorization.ENTITY_SITES, null, req, res, next);
 			return;
 		}
 		// Filter
