@@ -636,6 +636,54 @@ class SiteService {
 			});
 		}
 	}
+
+	static handleUpdateSiteArea(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "SiteService",
+			method: "handleUpdateSiteArea",
+			message: `Update Site Area '${req.body.name}' (ID '${req.body.id}')`,
+			detailedMessages: req.body
+		});
+		// Filter
+		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreaUpdateRequest( req.body, req.user );
+		// Check Mandatory fields
+		if (Sites.checkIfSiteAreaValid(action, filteredRequest, req, res, next)) {
+			let siteAreaWithId;
+			// Check email
+			global.storage.getSiteArea(filteredRequest.id).then((siteArea) => {
+				if (!siteArea) {
+					throw new AppError(`The Site Area with ID '${filteredRequest.id}' does not exist anymore`,
+						550, "SiteService", "handleUpdateSiteArea");
+				}
+				// Check auth
+				if (!CentralRestServerAuthorization.canUpdateSiteArea(req.user, siteArea.getModel())) {
+					// Not Authorized!
+					Logging.logActionUnauthorizedMessageAndSendResponse(
+						CentralRestServerAuthorization.ACTION_UPDATE,
+						CentralRestServerAuthorization.ENTITY_SITE_AREA,
+						siteArea.getName(), req, res, next);
+					return;
+				}
+				// Update
+				Database.updateSiteArea(filteredRequest, siteArea.getModel());
+				// Update
+				return siteArea.save();
+			}).then((updatedSiteArea) => {
+				// Log
+				Logging.logSecurityInfo({
+					user: req.user, module: "SiteService", method: "handleUpdateSiteArea",
+					message: `Site Area '${updatedSiteArea.getName()}' has been updated successfully`,
+					action: action, detailedMessages: updatedSiteArea});
+				// Ok
+				res.json({status: `Success`});
+				next();
+			}).catch((err) => {
+				// Log
+				Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+			});
+		}
+	}
 }
 
 module.exports = SiteService;

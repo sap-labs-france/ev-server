@@ -436,6 +436,13 @@ class SiteStorage {
 				as: "site"
 			}
 		});
+		// Sort
+		aggregation.push({
+			$sort: {
+				"site.name": 1,
+				"name": 1
+			}
+		});
 		// Picture?
 		if (!withPicture) {
 			aggregation.push({

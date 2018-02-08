@@ -344,6 +344,13 @@ class SecurityRestObjectFiltering {
 		return filteredRequest;
 	}
 
+	static filterSiteAreaUpdateRequest(request, loggedUser) {
+		// Set
+		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreaCreateRequest(request, loggedUser);
+		filteredRequest.id = sanitize(request.id);
+		return filteredRequest;
+	}
+
 	static filterUserCreateRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.costCenter = sanitize(request.costCenter);

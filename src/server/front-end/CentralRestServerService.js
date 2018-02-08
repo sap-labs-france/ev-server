@@ -268,6 +268,12 @@ module.exports = {
 						SiteService.handleUpdateSite(action, req, res, next);
 						break;
 
+					// Site Area
+					case "SiteAreaUpdate":
+						// Delegate
+						SiteService.handleUpdateSiteArea(action, req, res, next);
+						break;
+
 					// Company
 					case "CompanyUpdate":
 						// Delegate
