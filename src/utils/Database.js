@@ -30,6 +30,9 @@ module.exports = {
 		dest.ocppVersion = src.ocppVersion;
 		dest.lastHeartBeat = src.lastHeartBeat;
 		dest.lastReboot = src.lastReboot;
+		if (src.siteAreaID) {
+			dest.siteAreaID = src.siteAreaID._id;
+		}
 		dest.connectors = src.connectors;
 		if (src.createdBy && src.createdOn) {
 			dest.createdBy = src.createdBy;

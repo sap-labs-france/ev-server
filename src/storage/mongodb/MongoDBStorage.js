@@ -214,6 +214,12 @@ class MongoDBStorage extends Storage {
 			chargingStation);
 	}
 
+	saveChargingStationSiteArea(chargingStation) {
+		// Delegate
+		return ChargingStationStorage.handleSaveChargingStationSiteArea(
+			chargingStation);
+	}
+
 	saveChargingStation(chargingStation) {
 		// Delegate
 		return ChargingStationStorage.handleSaveChargingStation(chargingStation);
@@ -224,9 +230,9 @@ class MongoDBStorage extends Storage {
 		return ChargingStationStorage.handleDeleteChargingStation(id);
 	}
 
-	getChargingStations(searchValue) {
+	getChargingStations(searchValue, siteAreaID, onlyWithNoSiteArea=false, numberOfChargingStation=500) {
 		// Delegate
-		return ChargingStationStorage.handleGetChargingStations(searchValue);
+		return ChargingStationStorage.handleGetChargingStations(searchValue, siteAreaID, onlyWithNoSiteArea, numberOfChargingStation);
 	}
 
 	getChargingStation(chargeBoxIdentity) {
@@ -324,9 +330,9 @@ class MongoDBStorage extends Storage {
 		return SiteStorage.handleGetSite(id);
 	}
 
-	getSiteArea(id) {
+	getSiteArea(id, withChargingStations=false, withSite=false) {
 		// Delegate
-		return SiteStorage.handleGetSiteArea(id);
+		return SiteStorage.handleGetSiteArea(id, withChargingStations, withSite);
 	}
 }
 

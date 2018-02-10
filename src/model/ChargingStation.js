@@ -62,7 +62,11 @@ class ChargingStation {
 	}
 
 	setSiteArea(siteArea) {
-		this._model.siteArea = siteArea.getModel();
+		if (siteArea) {
+			this._model.siteArea = siteArea.getModel();
+		} else {
+			this._model.siteArea = null;
+		}
 	}
 
 	getSiteArea() {
@@ -251,6 +255,11 @@ class ChargingStation {
 	saveHeartBeat() {
 		// Save
 		return global.storage.saveChargingStationHeartBeat(this.getModel());
+	}
+
+	saveChargingStationSiteArea() {
+		// Save
+		return global.storage.saveChargingStationSiteArea(this.getModel());
 	}
 
 	saveStatusNotification(statusNotification) {
@@ -1043,6 +1052,5 @@ class ChargingStation {
 		return chargingStationConsumption;
 	}
 }
-
 
 module.exports = ChargingStation;

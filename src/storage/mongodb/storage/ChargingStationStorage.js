@@ -1,4 +1,5 @@
 const Logging = require('../../../utils/Logging');
+const Utils = require('../../../utils/Utils');
 const Constants = require('../../../utils/Constants');
 const Database = require('../../../utils/Database');
 const MDBConfiguration = require('../model/MDBConfiguration');
@@ -23,7 +24,7 @@ class ChargingStationStorage {
 	static handleGetChargingStation(chargeBoxIdentity) {
 		// Exec request
 		return MDBChargingStation.findById({"_id": chargeBoxIdentity})
-				.populate("siteAreaID", { image:0 })
+				.populate("siteAreaID", { image: 0 })
 				.then(chargingStationMDB => {
 			let chargingStation = null;
 			// Found
@@ -35,13 +36,14 @@ class ChargingStationStorage {
 					chargingStation.setSiteArea(
 						new SiteArea(chargingStationMDB.siteAreaID));
 				}
-
 			}
 			return chargingStation;
 		});
 	}
 
-	static handleGetChargingStations(searchValue) {
+	static handleGetChargingStations(searchValue, siteAreaID, onlyWithNoSiteArea, numberOfChargingStation) {
+		// Check Limit
+		numberOfChargingStation = Utils.checkRecordLimit(numberOfChargingStation);
 		// Set the filters
 		let filters = {
 			"$and": [
@@ -60,10 +62,21 @@ class ChargingStationStorage {
 				{ "_id" : { $regex : searchValue, $options: 'i' } }
 			];
 		}
+		// Source?
+		if (siteAreaID) {
+			// Build filter
+			filters.siteAreaID = siteAreaID;
+		}
+		// With no Site Area
+		if (onlyWithNoSiteArea) {
+			// Build filter
+			filters.siteAreaID = null;
+		}
 		// Exec request
 		return MDBChargingStation.find(filters)
 				.sort( {_id: 1} )
 				.collation({ locale: Constants.APPLICATION_LOCALE, caseLevel: true })
+				.limit(numberOfChargingStation)
 				.exec().then((chargingStationsMDB) => {
 			let chargingStations = [];
 			// Create
@@ -111,12 +124,12 @@ class ChargingStationStorage {
 	}
 
 	static handleSaveChargingStationConnector(chargingStation, connectorId) {
-		let update = {};
-		update["connectors." + (connectorId-1)] = chargingStation.connectors[connectorId-1];
+		let updatedFields = {};
+		updatedFields["connectors." + (connectorId-1)] = chargingStation.connectors[connectorId-1];
 		// Update
 		return MDBChargingStation.findByIdAndUpdate(
 				chargingStation.id,
-				update).then((chargingStationMDB) => {
+				updatedFields).then((chargingStationMDB) => {
 			let newChargingStation = new ChargingStation(chargingStationMDB);
 			_centralRestServer.notifyChargingStationUpdated(
 				{
@@ -130,12 +143,30 @@ class ChargingStationStorage {
 	}
 
 	static handleSaveChargingStationHeartBeat(chargingStation) {
-		let update = {};
-		update["lastHeartBeat"] = chargingStation.lastHeartBeat;
+		let updatedFields = {};
+		updatedFields["lastHeartBeat"] = chargingStation.lastHeartBeat;
 		// Update
 		return MDBChargingStation.findByIdAndUpdate(
 				chargingStation.id,
-				update).then((chargingStationMDB) => {
+				updatedFields).then((chargingStationMDB) => {
+			let newChargingStation = new ChargingStation(chargingStationMDB);
+			_centralRestServer.notifyChargingStationUpdated(
+				{
+					"id" : chargingStation.id,
+					"type": Constants.NOTIF_ENTITY_CHARGING_STATION
+				}
+			);
+			return newChargingStation;
+		});
+	}
+
+	static handleSaveChargingStationSiteArea(chargingStation) {
+		let updatedFields = {};
+		updatedFields["siteAreaID"] = (chargingStation.siteArea ? chargingStation.siteArea.id : null);
+		// Update
+		return MDBChargingStation.findByIdAndUpdate(
+				chargingStation.id,
+				updatedFields).then((chargingStationMDB) => {
 			let newChargingStation = new ChargingStation(chargingStationMDB);
 			_centralRestServer.notifyChargingStationUpdated(
 				{

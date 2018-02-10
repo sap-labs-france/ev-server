@@ -218,8 +218,10 @@ class ChargingStationService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationsRequest(req.query, req.user);
 		let chargingStations;
+		console.log(filteredRequest.OnlyWithNoSiteArea);
 		// Get the charging stfoundChargingStationsations
-		global.storage.getChargingStations(filteredRequest.Search, Constants.NO_LIMIT).then((foundChargingStations) => {
+		global.storage.getChargingStations(filteredRequest.Search, null, filteredRequest.OnlyWithNoSiteArea,
+				Constants.NO_LIMIT).then((foundChargingStations) => {
 			// Set
 			chargingStations = foundChargingStations;
 			// Get logged user

@@ -1,4 +1,5 @@
 var Database = require('../utils/Database');
+var Constants = require('../utils/Constants');
 
 class SiteArea {
 	constructor(siteArea) {
@@ -51,6 +52,8 @@ class SiteArea {
 	setSite(site) {
 		if (site) {
 			this._model.site = site.getModel();
+		} else {
+			this._model.site = null;
 		}
 	}
 
@@ -60,6 +63,27 @@ class SiteArea {
 
 	delete() {
 		return global.storage.deleteSiteArea(this.getID());
+	}
+
+	getChargingStations() {
+		if (this._model.chargingStations) {
+			return Promise.resolve(this._model.chargingStations.map((chargingStation) => {
+				return new ChargingStation(chargingStation);
+			}));
+		} else {
+			// Get from DB
+			return global.storage.getChargingStations(null, this.getID(), Constants.NO_LIMIT).then((chargingStations) => {
+				// Keep it
+				this.setChargingStations(chargingStations);
+				return chargingStations;
+			});
+		}
+	}
+
+	setChargingStations(chargingStations) {
+		this._model.chargingStations = chargingStations.map((chargingStation) => {
+			return chargingStation.getModel();
+		});
 	}
 }
 

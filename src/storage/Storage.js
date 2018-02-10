@@ -112,10 +112,13 @@ class Storage {
 	saveChargingStationHeartBeat(chargingStation) {
 	}
 
+	saveChargingStationSiteArea(chargingStation) {
+	}
+
 	deleteChargingStation(id) {
 	}
 
-	getChargingStations(searchValue) {
+	getChargingStations(searchValue, siteAreaID, onlyWithNoSiteArea, numberOfChargingStation=500) {
 	}
 
 	getChargingStation(chargeBoxIdentity) {
@@ -166,7 +169,7 @@ class Storage {
 	getSiteAreas(searchValue, withPicture=false, numberOfSiteArea=500) {
 	}
 
-	getSiteArea(id) {
+	getSiteArea(id, withChargingStations=false, withSite=false) {
 	}
 
 	saveSiteArea(siteArea) {

@@ -137,6 +137,7 @@ class SecurityRestObjectFiltering {
 		let result = false;
 		// Check boolean
 		if(value) {
+			value = sanitize(value);
 			result = (value === "true");
 		}
 		return result;
@@ -261,6 +262,7 @@ class SecurityRestObjectFiltering {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.OnlyActive = sanitize(request.OnlyActive);
+		filteredRequest.OnlyWithNoSiteArea = SecurityRestObjectFiltering.filterBoolean(request.OnlyWithNoSiteArea);
 		return filteredRequest;
 	}
 
@@ -279,14 +281,21 @@ class SecurityRestObjectFiltering {
 
 	static filterEndUserLicenseAgreementResponse(endUserLicenseAgreement, loggedUser) {
 		let filteredEndUserLicenseAgreement = {};
+
+		if (!endUserLicenseAgreement) {
+			return null;
+		}
 		// Set
-		filteredEndUserLicenseAgreement.text = sanitize(endUserLicenseAgreement.text);
+		filteredEndUserLicenseAgreement.text = endUserLicenseAgreement.text;
 		return filteredEndUserLicenseAgreement;
 	}
 
 	static filterLoggingResponse(logging, loggedUser) {
 		let filteredLogging = {};
 
+		if (!logging) {
+			return null;
+		}
 		filteredLogging.level = logging.level;
 		filteredLogging.timestamp = logging.timestamp;
 		filteredLogging.type = logging.type;
@@ -302,6 +311,10 @@ class SecurityRestObjectFiltering {
 
 	static filterLoggingsResponse(loggings, loggedUser) {
 		let filteredLoggings = [];
+
+		if (!loggings) {
+			return null;
+		}
 		loggings.forEach(logging => {
 			// Filter
 			let filteredLogging = this.filterLoggingResponse(logging, loggedUser);
@@ -348,6 +361,7 @@ class SecurityRestObjectFiltering {
 		// Set
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreaCreateRequest(request, loggedUser);
 		filteredRequest.id = sanitize(request.id);
+		filteredRequest.chargeBoxIDs = sanitize(request.chargeBoxIDs);
 		return filteredRequest;
 	}
 
@@ -396,6 +410,9 @@ class SecurityRestObjectFiltering {
 	static filterConsumptionsFromTransactionResponse(consumption, loggedUser) {
 		let filteredConsumption = {};
 
+		if (!consumption) {
+			return null;
+		}
 		// Set
 		filteredConsumption.chargeBoxIdentity = consumption.chargeBoxIdentity;
 		filteredConsumption.connectorId = consumption.connectorId;
@@ -431,6 +448,9 @@ class SecurityRestObjectFiltering {
 	// Pricing
 	static filterPricingResponse(pricing, loggedUser) {
 		let filteredPricing = {};
+		if (!pricing) {
+			return null;
+		}
 		// Set
 		filteredPricing.timestamp = pricing.timestamp;
 		filteredPricing.priceKWH = pricing.priceKWH;
@@ -442,6 +462,10 @@ class SecurityRestObjectFiltering {
 	// User
 	static filterUserResponse(user, loggedUser) {
 		let filteredUser={};
+
+		if (!user) {
+			return null;
+		}
 		// Check auth
 		if (CentralRestServerAuthorization.canReadUser(loggedUser, user)) {
 			// Admin?
@@ -486,6 +510,10 @@ class SecurityRestObjectFiltering {
 
 	static filterUsersResponse(users, loggedUser) {
 		let filteredUsers = [];
+
+		if (!users) {
+			return null;
+		}
 		users.forEach(user => {
 			// Filter
 			let filteredUser = this.filterUserResponse(user, loggedUser);
@@ -502,6 +530,9 @@ class SecurityRestObjectFiltering {
 	static filterChargingStationResponse(chargingStation, loggedUser) {
 		let filteredChargingStation;
 
+		if (!chargingStation) {
+			return null;
+		}
 		// Check auth
 		if (CentralRestServerAuthorization.canReadChargingStation(loggedUser, chargingStation)) {
 			// Admin?
@@ -566,6 +597,9 @@ class SecurityRestObjectFiltering {
 	static filterCompanyResponse(company, loggedUser) {
 		let filteredCompany;
 
+		if (!company) {
+			return null;
+		}
 		// Check auth
 		if (CentralRestServerAuthorization.canReadCompany(loggedUser, company)) {
 			// Admin?
@@ -592,6 +626,9 @@ class SecurityRestObjectFiltering {
 	static filterSiteResponse(site, loggedUser) {
 		let filteredSite;
 
+		if (!site) {
+			return null;
+		}
 		// Check auth
 		if (CentralRestServerAuthorization.canReadSite(loggedUser, site)) {
 			// Admin?
@@ -606,12 +643,13 @@ class SecurityRestObjectFiltering {
 				filteredSite.name = site.name;
 				filteredSite.image = site.image;
 				filteredSite.gps = site.gps;
-				filteredSite.siteAreas = site.siteAreas;
-				if (site.company) {
-					filteredSite.company = {};
-					filteredSite.company.id = site.company.id;
-					filteredSite.company.name = site.company.name;
-				}
+				filteredSite.companyID = site.companyID;
+			}
+			if (site.company) {
+				filteredSite.company = this.filterCompanyResponse(site.company, loggedUser);;
+			}
+			if (site.siteAreas) {
+				filteredSite.siteAreas = this.filterSiteAreasResponse(site.siteAreas, loggedUser);
 			}
 		}
 		return filteredSite;
@@ -619,8 +657,10 @@ class SecurityRestObjectFiltering {
 
 	static filterSiteAreaResponse(siteArea, loggedUser) {
 		let filteredSiteArea;
-		let site = {}
 
+		if (!siteArea) {
+			return null;
+		}
 		// Check auth
 		if (CentralRestServerAuthorization.canReadSiteArea(loggedUser, siteArea)) {
 			// Admin?
@@ -633,23 +673,34 @@ class SecurityRestObjectFiltering {
 				filteredSiteArea.id = siteArea.id;
 				filteredSiteArea.name = siteArea.name;
 				filteredSiteArea.image = siteArea.image;
+				filteredSiteArea.siteID = siteArea.siteID;
 			}
-			if (siteArea.siteID) {
-				site.id = siteArea.siteID._id;
-				site.name = siteArea.siteID.name;
-				if (siteArea.siteID.address) {
+			if (siteArea.site) {
+				let site = {};
+				site.id = siteArea.site.id;
+				site.name = siteArea.site.name;
+				if (siteArea.site.address) {
 					site.address = {};
-					site.address.city = siteArea.siteID.address.city;
-					site.address.country = siteArea.siteID.address.country;
+					site.address.city = siteArea.site.address.city;
+					site.address.country = siteArea.site.address.country;
 				}
+				filteredSiteArea.site = site;
 			}
-			site.siteID = site;
+			if (siteArea.chargingStations) {
+				filteredSiteArea.chargingStations = siteArea.chargingStations.map((chargingStation) => {
+					return { id: chargingStation.id };
+				});
+			}
 		}
 		return filteredSiteArea;
 	}
 
 	static filterChargingStationsResponse(chargingStations, loggedUser) {
 		let filteredChargingStations = [];
+
+		if (!chargingStations) {
+			return null;
+		}
 		chargingStations.forEach(chargingStation => {
 			// Filter
 			let filteredChargingStation = this.filterChargingStationResponse(chargingStation, loggedUser);
@@ -664,6 +715,10 @@ class SecurityRestObjectFiltering {
 
 	static filterCompaniesResponse(companies, loggedUser) {
 		let filteredCompanies = [];
+
+		if (!companies) {
+			return null;
+		}
 		companies.forEach(company => {
 			// Filter
 			let filteredCompany = this.filterCompanyResponse(company, loggedUser);
@@ -678,6 +733,10 @@ class SecurityRestObjectFiltering {
 
 	static filterSitesResponse(sites, loggedUser) {
 		let filteredSites = [];
+
+		if (!sites) {
+			return null;
+		}
 		sites.forEach(site => {
 			// Filter
 			let filteredSite = this.filterSiteResponse(site, loggedUser);
@@ -692,6 +751,10 @@ class SecurityRestObjectFiltering {
 
 	static filterSiteAreasResponse(siteAreas, loggedUser) {
 		let filteredSiteAreas = [];
+
+		if (!siteAreas) {
+			return null;
+		}
 		siteAreas.forEach(siteArea => {
 			// Filter
 			let filteredSiteArea = this.filterSiteAreaResponse(siteArea, loggedUser);
@@ -708,6 +771,9 @@ class SecurityRestObjectFiltering {
 	static filterTransactionResponse(transaction, loggedUser, withConnector=false) {
 		let filteredTransaction;
 
+		if (!transaction) {
+			return null;
+		}
 		// Check auth
 		if (CentralRestServerAuthorization.canReadUser(loggedUser, transaction.user) &&
 			CentralRestServerAuthorization.canReadChargingStation(loggedUser, transaction.chargeBox)) {
@@ -754,6 +820,10 @@ class SecurityRestObjectFiltering {
 
 	static filterUserInTransactionResponse(user, loggedUser) {
 		let userID = {};
+
+		if (!user) {
+			return null;
+		}
 		// Check auth
 		if (CentralRestServerAuthorization.canReadUser(loggedUser, user)) {
 			// Demo user?
@@ -773,6 +843,10 @@ class SecurityRestObjectFiltering {
 
 	static filterTransactionsResponse(transactions, loggedUser, withConnector=false) {
 		let filteredTransactions = [];
+
+		if (!transactions) {
+			return null;
+		}
 		transactions.forEach(transaction => {
 			// Filter
 			let filteredTransaction = this.filterTransactionResponse(transaction, loggedUser, withConnector);

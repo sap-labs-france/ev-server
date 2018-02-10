@@ -9,6 +9,7 @@ const MDBSite = require('../model/MDBSite');
 const MDBSiteArea = require('../model/MDBSiteArea');
 const MDBChargingStation = require('../model/MDBChargingStation');
 const Company = require('../../../model/Company');
+const ChargingStation = require('../../../model/ChargingStation');
 const Site = require('../../../model/Site');
 const SiteArea = require('../../../model/SiteArea');
 const crypto = require('crypto');
@@ -82,14 +83,57 @@ class SiteStorage {
 		});
 	}
 
-	static handleGetSiteArea(id) {
+	static handleGetSiteArea(id, withChargingStations, withSite) {
+		// Create Aggregation
+		let aggregation = [];
+		// Filters
+		aggregation.push({
+			$match: { _id: ObjectId(id) }
+		});
+		if (withChargingStations) {
+			// Add
+			aggregation.push({
+				$lookup: {
+					from: "chargingstations",
+					localField: "_id",
+					foreignField: "siteAreaID",
+					as: "chargingStations"
+				}
+			});
+		}
+		if (withSite) {
+			// Add
+			aggregation.push({
+				$lookup: {
+					from: "sites",
+					localField: "siteID",
+					foreignField: "_id",
+					as: "site"
+				}
+			});
+			// Add
+			aggregation.push({
+				$unwind: "$site"
+			});
+		}
 		// Execute
-		return MDBSiteArea.findById(id).exec().then((siteAreaMDB) => {
+		return MDBSiteArea.aggregate(aggregation)
+				.exec().then((siteAreasMDB) => {
 			let siteArea = null;
 			// Create
-			if (siteAreaMDB) {
+			if (siteAreasMDB && siteAreasMDB.length > 0) {
 				// Create
-				siteArea = new SiteArea(siteAreaMDB);
+				siteArea = new SiteArea(siteAreasMDB[0]);
+				// Set Charging Station
+				if (siteAreasMDB[0].chargingStations) {
+					siteArea.setChargingStations(siteAreasMDB[0].chargingStations.map((chargingStation) => {
+						return new ChargingStation(chargingStation);
+					}));
+				}
+				// Set Site
+				if (siteAreasMDB[0].site) {
+					siteArea.setSite(new Site(siteAreasMDB[0].site));
+				}
 			}
 			return siteArea;
 		});
@@ -345,6 +389,14 @@ class SiteStorage {
 					as: "siteAreas"
 				}
 			});
+			// Picture?
+			if (!withPicture) {
+				aggregation.push({
+					$project: {
+						"siteAreas.image": 0
+					}
+				});
+			}
 		}
 		// Add Company
 		aggregation.push({
@@ -472,7 +524,7 @@ class SiteStorage {
 		});
 	}
 
-	static getSiteAreasFromSite(siteID) {
+	static handleGetSiteAreasFromSite(siteID) {
 		// Exec request
 		return MDBSiteArea.find({"siteID": siteID}).then((siteAreasMDB) => {
 			let siteAreas = [];

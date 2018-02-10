@@ -4,7 +4,9 @@ const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
+const Companies = require('../../../utils/Companies');
 const Sites = require('../../../utils/Sites');
+const SiteAreas = require('../../../utils/SiteAreas');
 const Constants = require('../../../utils/Constants');
 const Utils = require('../../../utils/Utils');
 const Users = require('../../../utils/Users');
@@ -33,7 +35,7 @@ class SiteService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreaCreateRequest( req.body, req.user );
 		// Check Mandatory fields
-		if (Sites.checkIfSiteAreaValid("SiteAreaCreate", filteredRequest, req, res, next)) {
+		if (SiteAreas.checkIfSiteAreaValid("SiteAreaCreate", filteredRequest, req, res, next)) {
 			// Create site area
 			let newSiteArea = new SiteArea(filteredRequest);
 			// Check Site
@@ -305,7 +307,8 @@ class SiteService {
 			return;
 		}
 		// Get it
-		global.storage.getSiteArea(filteredRequest.ID).then((siteArea) => {
+		global.storage.getSiteArea(filteredRequest.ID, SiteAreas.WITH_CHARGING_STATIONS,
+				SiteAreas.WITHOUT_SITE).then((siteArea) => {
 			if (siteArea) {
 				// Return
 				res.json(
@@ -510,7 +513,7 @@ class SiteService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterCompanyCreateRequest( req.body, req.user );
 		// Check Mandatory fields
-		if (Sites.checkIfCompanyValid(action, filteredRequest, req, res, next)) {
+		if (Companies.checkIfCompanyValid(action, filteredRequest, req, res, next)) {
 			// Get the logged user
 			global.storage.getUser(req.user.id).then((loggedUser) => {
 				// Create
@@ -546,8 +549,7 @@ class SiteService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterCompanyUpdateRequest( req.body, req.user );
 		// Check Mandatory fields
-		if (Sites.checkIfCompanyValid(action, filteredRequest, req, res, next)) {
-			let companyWithId;
+		if (Companies.checkIfCompanyValid(action, filteredRequest, req, res, next)) {
 			// Check email
 			global.storage.getCompany(filteredRequest.id).then((company) => {
 				if (!company) {
@@ -648,10 +650,11 @@ class SiteService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreaUpdateRequest( req.body, req.user );
 		// Check Mandatory fields
-		if (Sites.checkIfSiteAreaValid(action, filteredRequest, req, res, next)) {
-			let siteAreaWithId;
-			// Check email
-			global.storage.getSiteArea(filteredRequest.id).then((siteArea) => {
+		if (SiteAreas.checkIfSiteAreaValid(action, filteredRequest, req, res, next)) {
+			let siteArea;
+			// Check
+			global.storage.getSiteArea(filteredRequest.id).then((foundSiteArea) => {
+				siteArea = foundSiteArea;
 				if (!siteArea) {
 					throw new AppError(`The Site Area with ID '${filteredRequest.id}' does not exist anymore`,
 						550, "SiteService", "handleUpdateSiteArea");
@@ -665,6 +668,33 @@ class SiteService {
 						siteArea.getName(), req, res, next);
 					return;
 				}
+				// Get Charging Stations
+				return siteArea.getChargingStations();
+			}).then((assignedChargingStations) => {
+				let proms = [];
+				// Clear Site Area from Existing Charging Station
+				assignedChargingStations.forEach((assignedChargingStation) => {
+					assignedChargingStation.setSiteArea(null);
+					proms.push(assignedChargingStation.saveChargingStationSiteArea());
+				});
+				return Promise.all(proms);
+			}).then((results) => {
+				let proms = [];
+				// Assign new Charging Stations
+				filteredRequest.chargeBoxIDs.forEach((chargeBoxID) => {
+					// Get it
+					proms.push(global.storage.getChargingStation(chargeBoxID));
+				});
+				return Promise.all(proms);
+			}).then((assignedChargingStations) => {
+				let proms = [];
+				// Get it
+				assignedChargingStations.forEach((assignedChargingStation) => {
+					assignedChargingStation.setSiteArea(siteArea);
+					proms.push(assignedChargingStation.saveChargingStationSiteArea());
+				});
+				return Promise.all(proms);
+			}).then((results) => {
 				// Update
 				Database.updateSiteArea(filteredRequest, siteArea.getModel());
 				// Update
