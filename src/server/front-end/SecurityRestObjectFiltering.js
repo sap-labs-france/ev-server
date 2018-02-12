@@ -488,6 +488,7 @@ class SecurityRestObjectFiltering {
 				filteredUser.lastChangedOn = user.lastChangedOn;
 				filteredUser.tagIDs = user.tagIDs;
 				filteredUser.role = user.role;
+				filteredUser.numberOfTransactions = user.numberOfTransactions;
 				if (user.image) {
 					filteredUser.image = user.image;
 				}

@@ -301,16 +301,19 @@ class SiteStorage {
 			});
 		}
 		// Add Sites
-		if(withSites) {
-			aggregation.push({
-				$lookup: {
-					from: "sites",
-					localField: "_id",
-					foreignField: "companyID",
-					as: "sites"
-				}
-			});
-		}
+		aggregation.push({
+			$lookup: {
+				from: "sites",
+				localField: "_id",
+				foreignField: "companyID",
+				as: "sites"
+			}
+		});
+		aggregation.push({
+			$addFields: {
+				"numberOfSites": { $size: "$sites" }
+			}
+		});
 		// Picture?
 		if (!withLogo) {
 			aggregation.push({
@@ -328,7 +331,7 @@ class SiteStorage {
 				// Create
 				let company = new Company(companyMDB);
 				// Set site
-				if (companyMDB.sites) {
+				if (withSites && companyMDB.sites) {
 					company.setSites(companyMDB.sites.map((site) => {
 						return new Site(site);
 					}));
@@ -380,23 +383,26 @@ class SiteStorage {
 			});
 		}
 		// Add SiteAreas
-		if (withSiteAreas) {
+		aggregation.push({
+			$lookup: {
+				from: "siteareas",
+				localField: "_id",
+				foreignField: "siteID",
+				as: "siteAreas"
+			}
+		});
+		aggregation.push({
+			$addFields: {
+				"numberOfSiteAreas": { $size: "$siteAreas" }
+			}
+		});
+		// Picture?
+		if (!withPicture) {
 			aggregation.push({
-				$lookup: {
-					from: "siteareas",
-					localField: "_id",
-					foreignField: "siteID",
-					as: "siteAreas"
+				$project: {
+					"siteAreas.image": 0
 				}
 			});
-			// Picture?
-			if (!withPicture) {
-				aggregation.push({
-					$project: {
-						"siteAreas.image": 0
-					}
-				});
-			}
 		}
 		// Add Company
 		aggregation.push({
@@ -428,7 +434,7 @@ class SiteStorage {
 				// Create
 				let site = new Site(siteMDB);
 				// Set Site Areas
-				if (siteMDB.siteAreas) {
+				if (withSiteAreas && siteMDB.siteAreas) {
 					site.setSiteAreas(siteMDB.siteAreas.map((siteArea) => {
 						return new SiteArea(siteArea);
 					}));

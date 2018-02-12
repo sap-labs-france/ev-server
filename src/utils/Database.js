@@ -131,6 +131,7 @@ module.exports = {
 		dest.mobile = src.mobile;
 		dest.iNumber = src.iNumber;
 		dest.costCenter = src.costCenter;
+		dest.numberOfTransactions = src.numberOfTransactions;
 		dest.address = {};
 		this.updateAddress(src.address, dest.address)
 		if (src.status) {
@@ -172,6 +173,7 @@ module.exports = {
 		this.updateAddress(src.address, dest.address)
 		dest.image = src.image;
 		dest.companyID = src.companyID;
+		dest.numberOfSiteAreas = src.numberOfSiteAreas;
 		if (src.createdBy && src.createdOn) {
 			dest.createdBy = src.createdBy;
 			dest.createdOn = src.createdOn;
@@ -188,6 +190,7 @@ module.exports = {
 		dest.address = {};
 		this.updateAddress(src.address, dest.address)
 		dest.logo = src.logo;
+		dest.numberOfSites = src.numberOfSites;
 		if (src.createdBy && src.createdOn) {
 			dest.createdBy = src.createdBy;
 			dest.createdOn = src.createdOn;

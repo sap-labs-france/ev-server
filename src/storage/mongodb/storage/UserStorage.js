@@ -236,6 +236,20 @@ class UserStorage {
 				$limit: numberOfUsers
 			});
 		}
+		// Add Number of Transactions
+		aggregation.push({
+			$lookup: {
+				from: 'transactions',
+				localField: '_id',
+				foreignField: 'userID',
+				as: 'transactions'
+			}
+		});
+		aggregation.push({
+			$addFields: {
+				"numberOfTransactions": { $size: "$transactions" }
+			}
+		});
 		// Add TagIDs
 		aggregation.push({
 			$lookup: {
