@@ -309,9 +309,9 @@ class MongoDBStorage extends Storage {
 		return SiteStorage.handleSaveSite(site);
 	}
 
-	getSiteAreas(searchValue, withPicture=false, numberOfSiteArea=500) {
+	getSiteAreas(searchValue, withChargeBoxes=false, withPicture=false, numberOfSiteArea=500) {
 		// Delegate
-		return SiteAreaStorage.handleGetSiteAreas(searchValue, withPicture, numberOfSiteArea);
+		return SiteAreaStorage.handleGetSiteAreas(searchValue, withChargeBoxes, withPicture, numberOfSiteArea);
 	}
 
 	saveSiteArea(siteArea) {

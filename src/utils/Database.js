@@ -219,6 +219,7 @@ module.exports = {
 		this.updateID(src, dest);
 		dest.name = src.name;
 		dest.image = src.image;
+		dest.numberOfChargeBoxes = src.numberOfChargeBoxes;
 		dest.siteID = src.siteID;
 	},
 

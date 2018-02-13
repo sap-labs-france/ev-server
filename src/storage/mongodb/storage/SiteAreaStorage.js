@@ -118,7 +118,7 @@ class SiteAreaStorage {
 		}
 	}
 
-	static handleGetSiteAreas(searchValue, withPicture, numberOfSiteAreas) {
+	static handleGetSiteAreas(searchValue, withChargeBoxes, withPicture, numberOfSiteAreas) {
 		// Check Limit
 		numberOfSiteAreas = Utils.checkRecordLimit(numberOfSiteAreas);
 		// Set the filters
@@ -164,6 +164,20 @@ class SiteAreaStorage {
 				as: "site"
 			}
 		});
+		// Add Charge Stations
+		aggregation.push({
+			$lookup: {
+				from: "chargingstations",
+				localField: "_id",
+				foreignField: "siteAreaID",
+				as: "chargeBoxes"
+			}
+		});
+		aggregation.push({
+			$addFields: {
+				"numberOfChargeBoxes": { $size: "$chargeBoxes" }
+			}
+		});
 		// Sort
 		aggregation.push({
 			$sort: {
@@ -187,15 +201,23 @@ class SiteAreaStorage {
 		return MDBSiteArea.aggregate(aggregation)
 				.exec().then((siteAreasMDB) => {
 			let siteAreas = [];
+			console.log(siteAreasMDB);
 			// Create
 			siteAreasMDB.forEach((siteAreaMDB) => {
 				// Create
 				let siteArea = new SiteArea(siteAreaMDB);
+				// Set Site Areas
+				if (withChargeBoxes && siteAreaMDB.chargeBoxes) {
+					siteArea.setChargingStations(siteAreaMDB.chargeBoxes.map((chargeBox) => {
+						return new ChargingStation(chargeBox);
+					}));
+				}
 				// Set
 				siteArea.setSite(new Site(siteAreaMDB.site));
 				// Add
 				siteAreas.push(siteArea);
 			});
+			console.log(JSON.stringify(siteAreas, null, ' '));
 			return siteAreas;
 		});
 	}

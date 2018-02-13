@@ -82,7 +82,9 @@ class SiteAreaService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreasRequest(req.query, req.user);
 		// Get the sites
-		global.storage.getSiteAreas(filteredRequest.Search, filteredRequest.WithPicture, Constants.NO_LIMIT).then((siteAreas) => {
+		global.storage.getSiteAreas(filteredRequest.Search,
+				filteredRequest.WithChargeBoxes, filteredRequest.WithPicture,
+				Constants.NO_LIMIT).then((siteAreas) => {
 			let siteAreasJSon = [];
 			siteAreas.forEach((siteArea) => {
 				// Set the model

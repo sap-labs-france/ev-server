@@ -256,6 +256,7 @@ class SecurityRestObjectFiltering {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.WithPicture = SecurityRestObjectFiltering.filterBoolean(request.WithPicture);
+		filteredRequest.WithChargeBoxes = SecurityRestObjectFiltering.filterBoolean(request.WithChargeBoxes);
 		return filteredRequest;
 	}
 

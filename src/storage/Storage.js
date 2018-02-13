@@ -166,7 +166,7 @@ class Storage {
 	getSiteAreasFromSite(siteID) {
 	}
 
-	getSiteAreas(searchValue, withPicture=false, numberOfSiteArea=500) {
+	getSiteAreas(searchValue, withChargeBoxes=false, withPicture=false, numberOfSiteArea=500) {
 	}
 
 	getSiteArea(id, withChargingStations=false, withSite=false) {
