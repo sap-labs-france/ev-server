@@ -66,23 +66,24 @@ class SiteArea {
 	}
 
 	getChargingStations() {
-		if (this._model.chargingStations) {
-			return Promise.resolve(this._model.chargingStations.map((chargingStation) => {
-				return new ChargingStation(chargingStation);
+		if (this._model.chargeBoxes) {
+			return Promise.resolve(this._model.chargeBoxes.map((chargeBox) => {
+				return new ChargingStation(chargeBox);
 			}));
 		} else {
 			// Get from DB
-			return global.storage.getChargingStations(null, this.getID(), Constants.NO_LIMIT).then((chargingStations) => {
+			return global.storage.getChargingStations(null, this.getID(),
+					Constants.NO_LIMIT).then((chargeBoxes) => {
 				// Keep it
-				this.setChargingStations(chargingStations);
-				return chargingStations;
+				this.setChargingStations(chargeBoxes);
+				return chargeBoxes;
 			});
 		}
 	}
 
-	setChargingStations(chargingStations) {
-		this._model.chargingStations = chargingStations.map((chargingStation) => {
-			return chargingStation.getModel();
+	setChargingStations(chargeBoxes) {
+		this._model.chargeBoxes = chargeBoxes.map((chargeBox) => {
+			return chargeBox.getModel();
 		});
 	}
 }

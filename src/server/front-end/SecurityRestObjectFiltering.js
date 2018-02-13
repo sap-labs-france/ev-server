@@ -248,6 +248,7 @@ class SecurityRestObjectFiltering {
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.WithPicture = SecurityRestObjectFiltering.filterBoolean(request.WithPicture);
 		filteredRequest.WithSiteAreas = SecurityRestObjectFiltering.filterBoolean(sanitize(request.WithSiteAreas));
+		filteredRequest.WithChargeBoxes = SecurityRestObjectFiltering.filterBoolean(sanitize(request.WithChargeBoxes));
 		return filteredRequest;
 	}
 
@@ -693,9 +694,9 @@ class SecurityRestObjectFiltering {
 				}
 				filteredSiteArea.site = site;
 			}
-			if (siteArea.chargingStations) {
-				filteredSiteArea.chargingStations = siteArea.chargingStations.map((chargingStation) => {
-					return { id: chargingStation.id };
+			if (siteArea.chargeBoxes) {
+				filteredSiteArea.chargeBoxes = siteArea.chargeBoxes.map((chargeBox) => {
+					return { id: chargeBox.id };
 				});
 			}
 		}

@@ -111,7 +111,7 @@ class SiteStorage {
 		}
 	}
 
-	static handleGetSites(searchValue, withSiteAreas, withPicture, numberOfSites) {
+	static handleGetSites(searchValue, withSiteAreas, withChargeBoxes, withPicture, numberOfSites) {
 		// Check Limit
 		numberOfSites = Utils.checkRecordLimit(numberOfSites);
 		// Set the filters
@@ -164,6 +164,17 @@ class SiteStorage {
 				"numberOfSiteAreas": { $size: "$siteAreas" }
 			}
 		});
+		// With Chargers?
+		if (withChargeBoxes) {
+			aggregation.push({
+				$lookup: {
+					from: "chargingstations",
+					localField: "siteAreas._id",
+					foreignField: "siteAreaID",
+					as: "chargeBoxes"
+				}
+			});
+		}
 		// Picture?
 		if (!withPicture) {
 			aggregation.push({
@@ -204,7 +215,14 @@ class SiteStorage {
 				// Set Site Areas
 				if (withSiteAreas && siteMDB.siteAreas) {
 					site.setSiteAreas(siteMDB.siteAreas.map((siteArea) => {
-						return new SiteArea(siteArea);
+						let siteAreaObj = new SiteArea(siteArea);
+						// Set Site Areas
+						if (siteMDB.chargeBoxes) {
+							siteAreaObj.setChargingStations(siteMDB.chargeBoxes.map((chargeBox) => {
+								return new ChargingStation(chargeBox);
+							}));
+						}
+						return siteAreaObj;
 					}));
 				}
 				// Set Company
