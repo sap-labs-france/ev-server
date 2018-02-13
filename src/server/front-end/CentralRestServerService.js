@@ -1,7 +1,9 @@
 const Logging = require('../../utils/Logging');
 const ChargingStationService = require('./service/ChargingStationService');
 const UserService = require('./service/UserService');
+const CompanyService = require('./service/CompanyService');
 const SiteService = require('./service/SiteService');
+const SiteAreaService = require('./service/SiteAreaService');
 const PricingService = require('./service/PricingService');
 const UtilsService = require('./service/UtilsService');
 const LoggingService = require('./service/LoggingService');
@@ -69,7 +71,7 @@ module.exports = {
 					// Create Company
 					case "CompanyCreate":
 						// Delegate
-						SiteService.handleCreateCompany(action, req, res, next);
+						CompanyService.handleCreateCompany(action, req, res, next);
 						break;
 
 					// Create Site
@@ -81,7 +83,7 @@ module.exports = {
 					// Create Site Area
 					case "SiteAreaCreate":
 						// Delegate
-						SiteService.handleCreateSiteArea(action, req, res, next);
+						SiteAreaService.handleCreateSiteArea(action, req, res, next);
 						break;
 
 					// Unknown Context
@@ -122,13 +124,13 @@ module.exports = {
 					// Get all the companies
 					case "Companies":
 						// Delegate
-						SiteService.handleGetCompanies(action, req, res, next);
+						CompanyService.handleGetCompanies(action, req, res, next);
 						break;
 
 					// Get one company
 					case "Company":
 						// Delegate
-						SiteService.handleGetCompany(action, req, res, next);
+						CompanyService.handleGetCompany(action, req, res, next);
 						break;
 
 					// Get all the sites
@@ -146,13 +148,13 @@ module.exports = {
 					// Get all the site areas
 					case "SiteAreas":
 						// Delegate
-						SiteService.handleGetSiteAreas(action, req, res, next);
+						SiteAreaService.handleGetSiteAreas(action, req, res, next);
 						break;
 
 					// Get all the site areas
 					case "SiteArea":
 						// Delegate
-						SiteService.handleGetSiteArea(action, req, res, next);
+						SiteAreaService.handleGetSiteArea(action, req, res, next);
 						break;
 
 					// Get all the users
@@ -271,13 +273,13 @@ module.exports = {
 					// Site Area
 					case "SiteAreaUpdate":
 						// Delegate
-						SiteService.handleUpdateSiteArea(action, req, res, next);
+						SiteAreaService.handleUpdateSiteArea(action, req, res, next);
 						break;
 
 					// Company
 					case "CompanyUpdate":
 						// Delegate
-						SiteService.handleUpdateCompany(action, req, res, next);
+						CompanyService.handleUpdateCompany(action, req, res, next);
 						break;
 
 					// Transaction
@@ -306,7 +308,7 @@ module.exports = {
 					// Company
 					case "CompanyDelete":
 						// Delegate
-						SiteService.handleDeleteCompany(action, req, res, next);
+						CompanyService.handleDeleteCompany(action, req, res, next);
 						break;
 
 					// Site
@@ -318,7 +320,7 @@ module.exports = {
 					// Site Area
 					case "SiteAreaDelete":
 						// Delegate
-						SiteService.handleDeleteSiteArea(action, req, res, next);
+						SiteAreaService.handleDeleteSiteArea(action, req, res, next);
 						break;
 
 					// Charging station

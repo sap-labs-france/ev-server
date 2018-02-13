@@ -7,7 +7,9 @@ const PricingStorage = require('./storage/PricingStorage');
 const TransactionStorage = require('./storage/TransactionStorage');
 const NotificationStorage = require('./storage/NotificationStorage');
 const UserStorage = require('./storage/UserStorage');
+const CompanyStorage = require('./storage/CompanyStorage');
 const SiteStorage = require('./storage/SiteStorage');
+const SiteAreaStorage = require('./storage/SiteAreaStorage');
 const MigrationStorage = require('./storage/MigrationStorage');
 
 require('source-map-support').install();
@@ -50,7 +52,9 @@ class MongoDBStorage extends Storage {
 		PricingStorage.setCentralRestServer(centralRestServer);
 		TransactionStorage.setCentralRestServer(centralRestServer);
 		UserStorage.setCentralRestServer(centralRestServer);
+		CompanyStorage.setCentralRestServer(centralRestServer);
 		SiteStorage.setCentralRestServer(centralRestServer);
+		SiteAreaStorage.setCentralRestServer(centralRestServer);
 	}
 
 	getEndUserLicenseAgreement(language="en") {
@@ -272,17 +276,17 @@ class MongoDBStorage extends Storage {
 
 	getCompanies(searchValue, withSites=false, withLogo=false, numberOfCompanies=500) {
 		// Delegate
-		return SiteStorage.handleGetCompanies(searchValue, withSites, withLogo, numberOfCompanies);
+		return CompanyStorage.handleGetCompanies(searchValue, withSites, withLogo, numberOfCompanies);
 	}
 
 	getCompany(id) {
 		// Delegate
-		return SiteStorage.handleGetCompany(id);
+		return CompanyStorage.handleGetCompany(id);
 	}
 
 	deleteCompany(id) {
 		// Delegate
-		return SiteStorage.handleDeleteCompany(id);
+		return CompanyStorage.handleDeleteCompany(id);
 	}
 
 	getSitesFromCompany(companyID) {
@@ -297,7 +301,7 @@ class MongoDBStorage extends Storage {
 
 	saveCompany(company) {
 		// Delegate
-		return SiteStorage.handleSaveCompany(company);
+		return CompanyStorage.handleSaveCompany(company);
 	}
 
 	saveSite(site) {
@@ -307,12 +311,12 @@ class MongoDBStorage extends Storage {
 
 	getSiteAreas(searchValue, withPicture=false, numberOfSiteArea=500) {
 		// Delegate
-		return SiteStorage.handleGetSiteAreas(searchValue, withPicture, numberOfSiteArea);
+		return SiteAreaStorage.handleGetSiteAreas(searchValue, withPicture, numberOfSiteArea);
 	}
 
 	saveSiteArea(siteArea) {
 		// Delegate
-		return SiteStorage.handleSaveSiteArea(siteArea);
+		return SiteAreaStorage.handleSaveSiteArea(siteArea);
 	}
 
 	deleteSite(id) {
@@ -322,7 +326,7 @@ class MongoDBStorage extends Storage {
 
 	deleteSiteArea(id) {
 		// Delegate
-		return SiteStorage.handleDeleteSiteArea(id);
+		return SiteAreaStorage.handleDeleteSiteArea(id);
 	}
 
 	getSite(id) {
@@ -332,7 +336,7 @@ class MongoDBStorage extends Storage {
 
 	getSiteArea(id, withChargingStations=false, withSite=false) {
 		// Delegate
-		return SiteStorage.handleGetSiteArea(id, withChargingStations, withSite);
+		return SiteAreaStorage.handleGetSiteArea(id, withChargingStations, withSite);
 	}
 }
 

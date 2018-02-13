@@ -1,0 +1,240 @@
+const SecurityRestObjectFiltering = require('../SecurityRestObjectFiltering');
+const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
+const Logging = require('../../../utils/Logging');
+const Database = require('../../../utils/Database');
+const AppError = require('../../../exception/AppError');
+const AppAuthError = require('../../../exception/AppAuthError');
+const Companies = require('../../../utils/Companies');
+const Sites = require('../../../utils/Sites');
+const SiteAreas = require('../../../utils/SiteAreas');
+const Constants = require('../../../utils/Constants');
+const Utils = require('../../../utils/Utils');
+const Users = require('../../../utils/Users');
+const Company = require('../../../model/Company');
+const Site = require('../../../model/Site');
+const SiteArea = require('../../../model/SiteArea');
+
+class CompanyService {
+
+	static handleDeleteCompany(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "SiteService",
+			method: "handleDeleteCompany",
+			message: `Delete Company '${req.query.ID}'`,
+			detailedMessages: req.query
+		});
+		// Filter
+		let company;
+		let filteredRequest = SecurityRestObjectFiltering.filterCompanyDeleteRequest(
+			req.query, req.user);
+		// Check Mandatory fields
+		if(!filteredRequest.ID) {
+			Logging.logActionExceptionMessageAndSendResponse(
+				action, new Error(`The Company's ID must be provided`), req, res, next);
+			return;
+		}
+		// Get
+		global.storage.getCompany(filteredRequest.ID).then((foundCompany) => {
+			company = foundCompany;
+			// Found?
+			if (!company) {
+				// Not Found!
+				throw new AppError(`Company with ID '${filteredRequest.ID}' does not exist`,
+					500, "SiteService", "handleDeleteCompany");
+			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canDeleteCompany(req.user, company.getModel())) {
+				// Not Authorized!
+				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
+					CentralRestServerAuthorization.ENTITY_COMPANY, company.getID(),
+					500, "SiteService", "handleDeleteCompany");
+			}
+			// Delete
+			return company.delete();
+		}).then(() => {
+			// Log
+			Logging.logSecurityInfo({
+				user: req.user, module: "SiteService", method: "handleDeleteCompany",
+				message: `Company '${company.getName()}' has been deleted successfully`,
+				action: action, detailedMessages: company});
+			// Ok
+			res.json({status: `Success`});
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
+	static handleGetCompany(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "SiteService",
+			method: "handleGetCompany",
+			message: `Read Company '${req.query.ID}'`,
+			detailedMessages: req.query
+		});
+		// Filter
+		let filteredRequest = SecurityRestObjectFiltering.filterCompanyRequest(req.query, req.user);
+		// Charge Box is mandatory
+		if(!filteredRequest.ID) {
+			Logging.logActionExceptionMessageAndSendResponse(
+				action, new Error(`The Company ID is mandatory`), req, res, next);
+			return;
+		}
+		// Get it
+		global.storage.getCompany(filteredRequest.ID).then((company) => {
+			if (company) {
+				// Return
+				res.json(
+					// Filter
+					SecurityRestObjectFiltering.filterCompanyResponse(
+						company.getModel(), req.user)
+				);
+			} else {
+				res.json({});
+			}
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
+	static handleGetCompanies(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "SiteService",
+			method: "handleGetCompanies",
+			message: `Read All Companies`,
+			detailedMessages: req.query
+		});
+		// Check auth
+		if (!CentralRestServerAuthorization.canListCompanies(req.user)) {
+			// Not Authorized!
+			Logging.logActionUnauthorizedMessageAndSendResponse(
+				CentralRestServerAuthorization.ACTION_LIST,
+				CentralRestServerAuthorization.ENTITY_COMPANIES,
+				null, req, res, next);
+			return;
+		}
+		// Filter
+		let filteredRequest = SecurityRestObjectFiltering.filterCompaniesRequest(req.query, req.user);
+		// Get the companies
+		global.storage.getCompanies(filteredRequest.Search, filteredRequest.WithSites,
+				filteredRequest.WithLogo, Constants.NO_LIMIT).then((companies) => {
+			let companiesJSon = [];
+			companies.forEach((company) => {
+				// Set the model
+				companiesJSon.push(company.getModel());
+			});
+			// Return
+			res.json(
+				// Filter
+				SecurityRestObjectFiltering.filterCompaniesResponse(
+					companiesJSon, req.user)
+			);
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
+	static handleCreateCompany(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "SiteService",
+			method: "handleCreateCompany",
+			message: `Create Company '${req.body.name}'`,
+			detailedMessages: req.body
+		});
+		// Check auth
+		if (!CentralRestServerAuthorization.canCreateCompany(req.user)) {
+			// Not Authorized!
+			Logging.logActionUnauthorizedMessageAndSendResponse(
+				CentralRestServerAuthorization.ACTION_CREATE,
+				CentralRestServerAuthorization.ENTITY_COMPANY, null, req, res, next);
+			return;
+		}
+		// Filter
+		let filteredRequest = SecurityRestObjectFiltering.filterCompanyCreateRequest( req.body, req.user );
+		// Check Mandatory fields
+		if (Companies.checkIfCompanyValid(action, filteredRequest, req, res, next)) {
+			// Get the logged user
+			global.storage.getUser(req.user.id).then((loggedUser) => {
+				// Create
+				let newCompany = new Company(filteredRequest);
+				// Update timestamp
+				newCompany.setCreatedBy(Utils.buildUserFullName(loggedUser.getModel()));
+				newCompany.setCreatedOn(new Date());
+				// Save
+				return newCompany.save();
+			}).then((createdCompany) => {
+				Logging.logSecurityInfo({
+					user: req.user, module: "SiteService", method: "handleCreateCompany",
+					message: `Company '${createdCompany.getName()}' has been created successfully`,
+					action: action, detailedMessages: createdCompany});
+				// Ok
+				res.json({status: `Success`});
+				next();
+			}).catch((err) => {
+				// Log
+				Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+			});
+		}
+	}
+
+	static handleUpdateCompany(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "SiteService",
+			method: "handleUpdateCompany",
+			message: `Update Company '${req.body.name}' (ID '${req.body.id}')`,
+			detailedMessages: req.body
+		});
+		// Filter
+		let filteredRequest = SecurityRestObjectFiltering.filterCompanyUpdateRequest( req.body, req.user );
+		// Check Mandatory fields
+		if (Companies.checkIfCompanyValid(action, filteredRequest, req, res, next)) {
+			// Check email
+			global.storage.getCompany(filteredRequest.id).then((company) => {
+				if (!company) {
+					throw new AppError(`The Company with ID '${filteredRequest.id}' does not exist anymore`,
+						550, "SiteService", "handleUpdateCompany");
+				}
+				// Check auth
+				if (!CentralRestServerAuthorization.canUpdateCompany(req.user, company.getModel())) {
+					// Not Authorized!
+					Logging.logActionUnauthorizedMessageAndSendResponse(
+						CentralRestServerAuthorization.ACTION_UPDATE,
+						CentralRestServerAuthorization.ENTITY_COMPANY,
+						company.getName(), req, res, next);
+					return;
+				}
+				// Update
+				Database.updateCompany(filteredRequest, company.getModel());
+				// Update timestamp
+				company.setLastChangedBy(Utils.buildUserFullName(req.user));
+				company.setLastChangedOn(new Date());
+				// Update
+				return company.save();
+			}).then((updatedCompany) => {
+				// Log
+				Logging.logSecurityInfo({
+					user: req.user, module: "SiteService", method: "handleUpdateCompany",
+					message: `Company '${updatedCompany.getName()}' has been updated successfully`,
+					action: action, detailedMessages: updatedCompany});
+				// Ok
+				res.json({status: `Success`});
+				next();
+			}).catch((err) => {
+				// Log
+				Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+			});
+		}
+	}
+}
+
+module.exports = CompanyService;

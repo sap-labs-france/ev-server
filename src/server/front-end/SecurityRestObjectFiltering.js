@@ -492,7 +492,9 @@ class SecurityRestObjectFiltering {
 				if (user.image) {
 					filteredUser.image = user.image;
 				}
-				filteredUser.address = SecurityRestObjectFiltering.filterAddressRequest(user.address, loggedUser);
+				if (user.address) {
+					filteredUser.address = SecurityRestObjectFiltering.filterAddressRequest(user.address, loggedUser);
+				}
 			} else {
 				// Set only necessary info
 				filteredUser.id = user.id;
@@ -607,13 +609,15 @@ class SecurityRestObjectFiltering {
 			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
 				// Yes: set all params
 				filteredCompany = company;
-				filteredCompany.address = SecurityRestObjectFiltering.filterAddressRequest(company.address, loggedUser);
 			} else {
 				// Set only necessary info
 				filteredCompany = {};
 				filteredCompany.id = company.id;
 				filteredCompany.name = company.name;
 				filteredCompany.logo = company.logo;
+			}
+			if (company.address) {
+				filteredCompany.address = SecurityRestObjectFiltering.filterAddressRequest(company.address, loggedUser);
 			}
 			if (company.sites) {
 				filteredCompany.sites = company.sites.map((site) => {
@@ -636,7 +640,6 @@ class SecurityRestObjectFiltering {
 			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
 				// Yes: set all params
 				filteredSite = site;
-				filteredSite.address = SecurityRestObjectFiltering.filterAddressRequest(site.address, loggedUser);
 			} else {
 				// Set only necessary info
 				filteredSite = {};
@@ -645,6 +648,9 @@ class SecurityRestObjectFiltering {
 				filteredSite.image = site.image;
 				filteredSite.gps = site.gps;
 				filteredSite.companyID = site.companyID;
+			}
+			if (site.address) {
+				filteredSite.address = SecurityRestObjectFiltering.filterAddressRequest(site.address, loggedUser);
 			}
 			if (site.company) {
 				filteredSite.company = this.filterCompanyResponse(site.company, loggedUser);;

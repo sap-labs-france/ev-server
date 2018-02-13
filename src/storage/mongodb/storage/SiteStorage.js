@@ -12,6 +12,7 @@ const Company = require('../../../model/Company');
 const ChargingStation = require('../../../model/ChargingStation');
 const Site = require('../../../model/Site');
 const SiteArea = require('../../../model/SiteArea');
+const SiteAreaStorage = require('./SiteAreaStorage');
 const crypto = require('crypto');
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -20,19 +21,6 @@ let _centralRestServer;
 class SiteStorage {
 	static setCentralRestServer(centralRestServer) {
 		_centralRestServer = centralRestServer;
-	}
-
-	static handleGetCompany(id) {
-		// Exec request
-		return MDBCompany.findById(id).exec().then((companyMDB) => {
-			let company = null;
-			// Check
-			if (companyMDB) {
-				// Create
-				company = new Company(companyMDB);
-			}
-			return company;
-		});
 	}
 
 	static handleGetSite(id) {
@@ -83,62 +71,6 @@ class SiteStorage {
 		});
 	}
 
-	static handleGetSiteArea(id, withChargingStations, withSite) {
-		// Create Aggregation
-		let aggregation = [];
-		// Filters
-		aggregation.push({
-			$match: { _id: ObjectId(id) }
-		});
-		if (withChargingStations) {
-			// Add
-			aggregation.push({
-				$lookup: {
-					from: "chargingstations",
-					localField: "_id",
-					foreignField: "siteAreaID",
-					as: "chargingStations"
-				}
-			});
-		}
-		if (withSite) {
-			// Add
-			aggregation.push({
-				$lookup: {
-					from: "sites",
-					localField: "siteID",
-					foreignField: "_id",
-					as: "site"
-				}
-			});
-			// Add
-			aggregation.push({
-				$unwind: "$site"
-			});
-		}
-		// Execute
-		return MDBSiteArea.aggregate(aggregation)
-				.exec().then((siteAreasMDB) => {
-			let siteArea = null;
-			// Create
-			if (siteAreasMDB && siteAreasMDB.length > 0) {
-				// Create
-				siteArea = new SiteArea(siteAreasMDB[0]);
-				// Set Charging Station
-				if (siteAreasMDB[0].chargingStations) {
-					siteArea.setChargingStations(siteAreasMDB[0].chargingStations.map((chargingStation) => {
-						return new ChargingStation(chargingStation);
-					}));
-				}
-				// Set Site
-				if (siteAreasMDB[0].site) {
-					siteArea.setSite(new Site(siteAreasMDB[0].site));
-				}
-			}
-			return siteArea;
-		});
-	}
-
 	static handleSaveSite(site) {
 		// Check if ID/Name is provided
 		if (!site.id && !site.name) {
@@ -177,170 +109,6 @@ class SiteStorage {
 					return newSite;
 				});
 		}
-	}
-
-	static handleSaveCompany(company) {
-		// Check if ID/Name is provided
-		if (!company.id && !company.name) {
-			// ID must be provided!
-			return Promise.reject( new Error(
-				"Error in saving the Company: Company has no ID and no Name and cannot be created or updated") );
-		} else {
-			let companyFilter = {};
-			// Build Request
-			if (company.id) {
-				companyFilter._id = company.id;
-			} else {
-				companyFilter._id = ObjectId();
-			}
-			// Get
-			return MDBCompany.findOneAndUpdate(companyFilter, company, {
-					new: true,
-					upsert: true
-				}).then((companyMDB) => {
-					let newCompany = new Company(companyMDB);
-					// Notify Change
-					if (!company.id) {
-						_centralRestServer.notifyCompanyCreated(
-							{
-								"id": newCompany.getID(),
-								"type": Constants.NOTIF_ENTITY_COMPANY
-							}
-						);
-					} else {
-						_centralRestServer.notifyCompanyUpdated(
-							{
-								"id": newCompany.getID(),
-								"type": Constants.NOTIF_ENTITY_COMPANY
-							}
-						);
-					}
-					return newCompany;
-				});
-		}
-	}
-
-	static handleSaveSiteArea(siteArea) {
-		// Check if ID/Name is provided
-		if (!siteArea.id && !siteArea.name) {
-			// ID must be provided!
-			return Promise.reject( new Error("Error in saving the Site: Site has no ID and no Name and cannot be created or updated") );
-		} else {
-			let siteAreaFilter = {};
-			// Build Request
-			if (siteArea.id) {
-				siteAreaFilter._id = siteArea.id;
-			} else {
-				siteAreaFilter._id = ObjectId();
-			}
-			// Get
-			return MDBSiteArea.findOneAndUpdate(siteAreaFilter, siteArea, {
-					new: true,
-					upsert: true
-				}).then((siteAreaMDB) => {
-					let newSiteArea = new SiteArea(siteAreaMDB);
-					// Notify Change
-					if (!siteArea.id) {
-						_centralRestServer.notifySiteAreaCreated(
-							{
-								"id": newSiteArea.getID(),
-								"type": Constants.NOTIF_ENTITY_SITE_AREA
-							}
-						);
-					} else {
-						_centralRestServer.notifySiteUpdated(
-							{
-								"id": newSiteArea.getID(),
-								"type": Constants.NOTIF_ENTITY_SITE_AREA
-							}
-						);
-					}
-					return newSiteArea;
-				});
-		}
-	}
-
-	// Delegate
-	static handleGetCompanies(searchValue, withSites, withLogo, numberOfCompanies) {
-		// Check Limit
-		numberOfCompanies = Utils.checkRecordLimit(numberOfCompanies);
-		// Set the filters
-		let filters = {};
-		// Source?
-		if (searchValue) {
-			// Build filter
-			filters.$and = [];
-			filters.$and.push({
-				"$or": [
-					{ "name" : { $regex : searchValue, $options: 'i' } },
-					{ "address.city" : { $regex : searchValue, $options: 'i' } },
-					{ "address.country" : { $regex : searchValue, $options: 'i' } }
-				]
-			});
-		}
-		// Create Aggregation
-		let aggregation = [];
-		// Picture?
-		if (!withLogo) {
-			aggregation.push({
-				$project: {
-					logo: 0
-				}
-			});
-		}
-		// Filters
-		if (filters) {
-			aggregation.push({
-				$match: filters
-			});
-		}
-		// Limit
-		if (numberOfCompanies > 0) {
-			aggregation.push({
-				$limit: numberOfCompanies
-			});
-		}
-		// Add Sites
-		aggregation.push({
-			$lookup: {
-				from: "sites",
-				localField: "_id",
-				foreignField: "companyID",
-				as: "sites"
-			}
-		});
-		aggregation.push({
-			$addFields: {
-				"numberOfSites": { $size: "$sites" }
-			}
-		});
-		// Picture?
-		if (!withLogo) {
-			aggregation.push({
-				$project: {
-					"sites.image": 0
-				}
-			});
-		}
-		// Execute
-		return MDBCompany.aggregate(aggregation)
-				.exec().then((companiesMDB) => {
-			let companies = [];
-			// Create
-			companiesMDB.forEach((companyMDB) => {
-				// Create
-				let company = new Company(companyMDB);
-				// Set site
-				if (withSites && companyMDB.sites) {
-					company.setSites(companyMDB.sites.map((site) => {
-						return new Site(site);
-					}));
-				}
-				// Add
-				companies.push(company);
-			});
-			return companies;
-		});
 	}
 
 	static handleGetSites(searchValue, withSiteAreas, withPicture, numberOfSites) {
@@ -448,103 +216,6 @@ class SiteStorage {
 		});
 	}
 
-	static handleGetSiteAreas(searchValue, withPicture, numberOfSiteAreas) {
-		// Check Limit
-		numberOfSiteAreas = Utils.checkRecordLimit(numberOfSiteAreas);
-		// Set the filters
-		let filters = {};
-		// Source?
-		if (searchValue) {
-			// Build filter
-			filters.$and = [];
-			filters.$and.push({
-				"$or": [
-					{ "name" : { $regex : searchValue, $options: 'i' } }
-				]
-			});
-		}
-		// Create Aggregation
-		let aggregation = [];
-		// Picture?
-		if (!withPicture) {
-			aggregation.push({
-				$project: {
-					image: 0
-				}
-			});
-		}
-		// Filters
-		if (filters) {
-			aggregation.push({
-				$match: filters
-			});
-		}
-		// Limit
-		if (numberOfSiteAreas > 0) {
-			aggregation.push({
-				$limit: numberOfSiteAreas
-			});
-		}
-		// Add Sites
-		aggregation.push({
-			$lookup: {
-				from: "sites",
-				localField: "siteID",
-				foreignField: "_id",
-				as: "site"
-			}
-		});
-		// Sort
-		aggregation.push({
-			$sort: {
-				"site.name": 1,
-				"name": 1
-			}
-		});
-		// Picture?
-		if (!withPicture) {
-			aggregation.push({
-				$project: {
-					"site.image": 0
-				}
-			});
-		}
-		// Single Record
-		aggregation.push({
-			$unwind: "$site"
-		});
-		// Exexute
-		return MDBSiteArea.aggregate(aggregation)
-				.exec().then((siteAreasMDB) => {
-			let siteAreas = [];
-			// Create
-			siteAreasMDB.forEach((siteAreaMDB) => {
-				// Create
-				let siteArea = new SiteArea(siteAreaMDB);
-				// Set
-				siteArea.setSite(new Site(siteAreaMDB.site));
-				// Add
-				siteAreas.push(siteArea);
-			});
-			return siteAreas;
-		});
-	}
-
-	static handleGetSiteAreasFromSite(siteID) {
-		// Exec request
-		return MDBSiteArea.find({"siteID": siteID}).then((siteAreasMDB) => {
-			let siteAreas = [];
-			// Create
-			siteAreasMDB.forEach((siteAreaMDB) => {
-				// Create
-				let siteArea = new Site(siteAreaMDB);
-				// Add
-				sites.push(siteArea);
-			});
-			return siteAreas;
-		});
-	}
-
 	static handleGetSitesFromCompany(companyID) {
 		// Exec request
 		return MDBSite.find({"companyID": companyID}).then((sitesMDB) => {
@@ -560,41 +231,13 @@ class SiteStorage {
 		});
 	}
 
-	static handleDeleteCompany(id) {
-		return SiteStorage.handleGetCompany(id).then((company) => {
-			// Get the sites
-			company.getSites().then((sites) => {
-				// Delete
-				sites.forEach((site) => {
-					//	Delete Site
-					SiteStorage.handleDeleteSite(site.getID())
-							.then((result) => {
-						// Nothing to do but promise has to be kept to make the update work!
-					});
-				});
-			});
-			// Remove the Company
-			return MDBCompany.findByIdAndRemove(id).then((result) => {
-				// Notify Change
-				_centralRestServer.notifyCompanyDeleted(
-					{
-						"id": id,
-						"type": Constants.NOTIF_ENTITY_COMPANY
-					}
-				);
-				// Return the result
-				return result.result;
-			});
-		});
-	}
-
 	static handleDeleteSite(id) {
 		return SiteStorage.handleGetSite(id).then((site) => {
 			let siteAreas = site.getSiteAreas();
 			// Get the areas
 			siteAreas.forEach((siteArea) => {
 				//	Delete Site Area
-				SiteStorage.handleDeleteSiteArea(siteArea.getID())
+				SiteAreaStorage.handleDeleteSiteArea(siteArea.getID())
 						.then((result) => {
 					// Nothing to do but promise has to be kept to make the update work!
 				});
@@ -611,28 +254,6 @@ class SiteStorage {
 				// Return the result
 				return result.result;
 			});
-		});
-	}
-
-	static handleDeleteSiteArea(id) {
-		// Remove Charging Station's Site Area
-		MDBChargingStation.update(
-			{ siteAreaID: id },
-			{ $set: { siteAreaID: null } }
-		).then((result) => {
-			// Nothing to do but promise has to be kept to make the update work!
-		});
-		// Remove Site Area
-		return MDBSiteArea.findByIdAndRemove(id).then((result) => {
-			// Notify Change
-			_centralRestServer.notifySiteAreaDeleted(
-				{
-					"id": id,
-					"type": Constants.NOTIF_ENTITY_SITE_AREA
-				}
-			);
-			// Return the result
-			return result.result;
 		});
 	}
 }
