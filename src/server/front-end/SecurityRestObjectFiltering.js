@@ -696,9 +696,8 @@ class SecurityRestObjectFiltering {
 				filteredSiteArea.site = site;
 			}
 			if (siteArea.chargeBoxes) {
-				filteredSiteArea.chargeBoxes = siteArea.chargeBoxes.map((chargeBox) => {
-					return { id: chargeBox.id };
-				});
+				filteredSiteArea.chargeBoxes = this.filterChargingStationsResponse(
+					siteArea.chargeBoxes, loggedUser );
 			}
 		}
 		return filteredSiteArea;
