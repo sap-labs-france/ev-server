@@ -218,8 +218,12 @@ class SiteStorage {
 						let siteAreaObj = new SiteArea(siteArea);
 						// Set Site Areas
 						if (siteMDB.chargeBoxes) {
-							siteAreaObj.setChargingStations(siteMDB.chargeBoxes.map((chargeBox) => {
-								return new ChargingStation(chargeBox);
+							// Filter with Site Area`
+							let chargeBoxesPerSiteArea = siteMDB.chargeBoxes.filter((chargeBox) => {
+								return chargeBox.siteAreaID.toString() == siteArea._id;
+							});
+							siteAreaObj.setChargingStations(chargeBoxesPerSiteArea.map((chargeBoxPerSiteArea) => {
+								return new ChargingStation(chargeBoxPerSiteArea);
 							}));
 						}
 						return siteAreaObj;
@@ -230,6 +234,7 @@ class SiteStorage {
 				// Add
 				sites.push(site);
 			});
+			console.log(JSON.stringify(sites, null, ' '));
 			return sites;
 		});
 	}

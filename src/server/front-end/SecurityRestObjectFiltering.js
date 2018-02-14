@@ -551,6 +551,7 @@ class SecurityRestObjectFiltering {
 				filteredChargingStation.chargeBoxIdentity = chargingStation.chargeBoxIdentity;
 				filteredChargingStation.connectors = chargingStation.connectors;
 				filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
+				filteredChargingStation.siteAreaID = chargingStation.siteAreaID;
 				filteredChargingStation.siteArea = chargingStation.siteArea;
 			}
 		}
