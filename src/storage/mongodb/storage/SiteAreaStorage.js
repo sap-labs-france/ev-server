@@ -201,7 +201,6 @@ class SiteAreaStorage {
 		return MDBSiteArea.aggregate(aggregation)
 				.exec().then((siteAreasMDB) => {
 			let siteAreas = [];
-			console.log(siteAreasMDB);
 			// Create
 			siteAreasMDB.forEach((siteAreaMDB) => {
 				// Create
@@ -217,7 +216,6 @@ class SiteAreaStorage {
 				// Add
 				siteAreas.push(siteArea);
 			});
-			console.log(JSON.stringify(siteAreas, null, ' '));
 			return siteAreas;
 		});
 	}

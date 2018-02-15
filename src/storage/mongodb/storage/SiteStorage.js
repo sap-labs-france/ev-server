@@ -234,7 +234,6 @@ class SiteStorage {
 				// Add
 				sites.push(site);
 			});
-			console.log(JSON.stringify(sites, null, ' '));
 			return sites;
 		});
 	}
