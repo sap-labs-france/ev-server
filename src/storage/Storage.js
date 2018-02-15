@@ -151,7 +151,8 @@ class Storage {
 	getSitesFromCompany(companyID) {
 	}
 
-	getSites(searchValue, withSiteAreas=false, withChargeBoxes=false, withPicture=false, numberOfSite=500) {
+	getSites(searchValue, withSiteAreas=false, withChargeBoxes=false,
+		withPicture=false, withCompanyLogo=false, numberOfSite=500) {
 	}
 
 	saveSite(site) {

@@ -122,7 +122,7 @@ class SiteService {
 		let filteredRequest = SecurityRestObjectFiltering.filterSitesRequest(req.query, req.user);
 		// Get the sites
 		global.storage.getSites(filteredRequest.Search, filteredRequest.WithSiteAreas,
-			filteredRequest.WithChargeBoxes, filteredRequest.WithPicture,
+			filteredRequest.WithChargeBoxes, filteredRequest.WithPicture, filteredRequest.WithCompanyLogo,
 				Constants.NO_LIMIT).then((sites) => {
 			let sitesJSon = [];
 			sites.forEach((site) => {

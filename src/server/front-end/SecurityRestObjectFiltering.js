@@ -249,6 +249,7 @@ class SecurityRestObjectFiltering {
 		filteredRequest.WithPicture = SecurityRestObjectFiltering.filterBoolean(request.WithPicture);
 		filteredRequest.WithSiteAreas = SecurityRestObjectFiltering.filterBoolean(sanitize(request.WithSiteAreas));
 		filteredRequest.WithChargeBoxes = SecurityRestObjectFiltering.filterBoolean(sanitize(request.WithChargeBoxes));
+		filteredRequest.WithCompanyLogo = SecurityRestObjectFiltering.filterBoolean(sanitize(request.WithCompanyLogo));
 		return filteredRequest;
 	}
 

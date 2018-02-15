@@ -111,7 +111,8 @@ class SiteStorage {
 		}
 	}
 
-	static handleGetSites(searchValue, withSiteAreas, withChargeBoxes, withPicture, numberOfSites) {
+	static handleGetSites(searchValue, withSiteAreas, withChargeBoxes,
+			withPicture, withCompanyLogo, numberOfSites) {
 		// Check Limit
 		numberOfSites = Utils.checkRecordLimit(numberOfSites);
 		// Set the filters
@@ -192,8 +193,8 @@ class SiteStorage {
 				as: "company"
 			}
 		});
-		// Picture?
-		if (!withPicture) {
+		// Logo?
+		if (!withCompanyLogo) {
 			aggregation.push({
 				$project: {
 					"company.logo": 0
