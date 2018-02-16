@@ -223,6 +223,10 @@ class SiteStorage {
 							let chargeBoxesPerSiteArea = siteMDB.chargeBoxes.filter((chargeBox) => {
 								return chargeBox.siteAreaID.toString() == siteArea._id;
 							});
+							// Sort Charging Stations
+							chargeBoxesPerSiteArea.sort((cb1, cb2) => {
+								return cb1._id.localeCompare(cb2._id);
+							});
 							siteAreaObj.setChargingStations(chargeBoxesPerSiteArea.map((chargeBoxPerSiteArea) => {
 								return new ChargingStation(chargeBoxPerSiteArea);
 							}));

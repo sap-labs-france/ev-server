@@ -65,6 +65,11 @@ class SiteAreaStorage {
 				siteArea = new SiteArea(siteAreasMDB[0]);
 				// Set Charging Station
 				if (siteAreasMDB[0].chargingStations) {
+					// Sort Charging Stations
+					siteAreasMDB[0].chargingStations.sort((cb1, cb2) => {
+						return cb1._id.localeCompare(cb2._id);
+					});
+					// Set
 					siteArea.setChargingStations(siteAreasMDB[0].chargingStations.map((chargingStation) => {
 						return new ChargingStation(chargingStation);
 					}));
