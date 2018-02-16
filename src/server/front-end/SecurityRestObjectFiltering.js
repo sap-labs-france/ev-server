@@ -264,7 +264,6 @@ class SecurityRestObjectFiltering {
 	static filterChargingStationsRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
-		filteredRequest.OnlyActive = sanitize(request.OnlyActive);
 		filteredRequest.OnlyWithNoSiteArea = SecurityRestObjectFiltering.filterBoolean(request.OnlyWithNoSiteArea);
 		return filteredRequest;
 	}

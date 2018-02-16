@@ -217,64 +217,23 @@ class ChargingStationService {
 		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationsRequest(req.query, req.user);
-		let chargingStations;
 		// Get the charging stfoundChargingStationsations
 		global.storage.getChargingStations(filteredRequest.Search, null, filteredRequest.OnlyWithNoSiteArea,
 				Constants.NO_LIMIT).then((foundChargingStations) => {
 			// Set
-			chargingStations = foundChargingStations;
-			// Get logged user
-			return global.storage.getUser(req.user.id);
-		}).then((user) => {
-			// Check
-			if (!user) {
-				// Not Found!
-				throw new AppError(`The user with ID '${filteredRequest.id}' does not exist`,
-					500, "ChargingStationService", "handleGetChargingStations");
-			}
-			// Get the user's active transactions
-			return user.getTransactions({stop: {$exists: false}}, Users.WITH_NO_IMAGE);
-		}).then((activeTransactions) => {
-			// Handle
-			var chargingStationsJSon = [];
+			let chargingStations = foundChargingStations;
+			let chargingStationsJSon = [];
 			chargingStations.forEach((chargingStation) => {
-				// Check
-				let connectors = chargingStation.getConnectors();
-				// Set charging station active?
-				activeTransactions.forEach(activeTransaction => {
-					// Find a match
-					if (chargingStation.getID() === activeTransaction.chargeBox.id ) {
-						// Set
-						connectors[activeTransaction.connectorId.valueOf()-1].activeForUser = true;
-					}
-				});
-				// Check the connector?
-				if (filteredRequest.OnlyActive === "true") {
-					// Remove the connector
-					for (let j = connectors.length-1; j >= 0; j--) {
-						// Not active?
-						if (!connectors[j].activeForUser) {
-							// Remove
-							connectors.splice(j, 1);
-						}
-					}
-					// Stil some connectors?
-					if (connectors.length > 0) {
-						// Add
-						chargingStationsJSon.push(chargingStation.getModel());
-					}
-				} else {
-					// Add
-					chargingStationsJSon.push(chargingStation.getModel());
-				}
+				// Add
+				chargingStationsJSon.push(chargingStation.getModel());
 			});
 			// Return
 			res.json(
 				// Filter
 				SecurityRestObjectFiltering.filterChargingStationsResponse(
 					chargingStationsJSon, req.user)
-				);
-				next();
+			);
+			next();
 		}).catch((err) => {
 			// Log
 			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
