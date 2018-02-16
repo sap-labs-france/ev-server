@@ -259,28 +259,30 @@ class SiteStorage {
 	}
 
 	static handleDeleteSite(id) {
-		return SiteStorage.handleGetSite(id).then((site) => {
-			let siteAreas = site.getSiteAreas();
-			// Get the areas
+		console.log("handleDeleteSite " + id);
+		// Delete Site Areas
+		SiteAreaStorage.handleGetSiteAreasFromSite(id).then((siteAreas) => {
+			// Delete
 			siteAreas.forEach((siteArea) => {
 				//	Delete Site Area
-				SiteAreaStorage.handleDeleteSiteArea(siteArea.getID())
-						.then((result) => {
+				siteArea.delete().then((result) => {
 					// Nothing to do but promise has to be kept to make the update work!
 				});
 			});
-			// Remove the Site
-			return MDBSite.findByIdAndRemove(id).then((result) => {
-				// Notify Change
-				_centralRestServer.notifySiteDeleted(
-					{
-						"id": id,
-						"type": Constants.NOTIF_ENTITY_SITE
-					}
-				);
-				// Return the result
-				return result.result;
-			});
+		});
+		// Delete Site
+		return MDBSite.findByIdAndRemove(id).then((result) => {
+			console.log("handleDeleteSiteResult Result");
+			console.log(result);
+			// Notify Change
+			_centralRestServer.notifySiteDeleted(
+				{
+					"id": id,
+					"type": Constants.NOTIF_ENTITY_SITE
+				}
+			);
+			// Return the result
+			return result.result;
 		});
 	}
 }

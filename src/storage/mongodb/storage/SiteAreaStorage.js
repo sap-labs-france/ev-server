@@ -183,13 +183,6 @@ class SiteAreaStorage {
 				"numberOfChargeBoxes": { $size: "$chargeBoxes" }
 			}
 		});
-		// Sort
-		aggregation.push({
-			$sort: {
-				"site.name": 1,
-				"name": 1
-			}
-		});
 		// Picture?
 		if (!withPicture) {
 			aggregation.push({
@@ -201,6 +194,13 @@ class SiteAreaStorage {
 		// Single Record
 		aggregation.push({
 			$unwind: "$site"
+		});
+		// Sort
+		aggregation.push({
+			$sort: {
+				"site.name": 1,
+				"name": 1
+			}
 		});
 		// Exexute
 		return MDBSiteArea.aggregate(aggregation)
@@ -241,6 +241,7 @@ class SiteAreaStorage {
 	}
 
 	static handleDeleteSiteArea(id) {
+		console.log("handleDeleteSiteArea " + id);
 		// Remove Charging Station's Site Area
 		MDBChargingStation.update(
 			{ siteAreaID: id },
@@ -250,6 +251,8 @@ class SiteAreaStorage {
 		});
 		// Remove Site Area
 		return MDBSiteArea.findByIdAndRemove(id).then((result) => {
+			console.log("handleDeleteSiteArea Result");
+			console.log(result);
 			// Notify Change
 			_centralRestServer.notifySiteAreaDeleted(
 				{

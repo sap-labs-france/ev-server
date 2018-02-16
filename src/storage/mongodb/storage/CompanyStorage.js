@@ -161,30 +161,30 @@ class CompanyStorage {
 	}
 
 	static handleDeleteCompany(id) {
-		return CompanyStorage.handleGetCompany(id).then((company) => {
-			// Get the sites
-			company.getSites().then((sites) => {
-				// Delete
-				sites.forEach((site) => {
-					//	Delete Site
-					SiteStorage.handleDeleteSite(site.getID())
-							.then((result) => {
-						// Nothing to do but promise has to be kept to make the update work!
-					});
+		console.log("handleDeleteCompany " + id);
+		// Delete Sites
+		SiteStorage.handleGetSitesFromCompany(id).then((sites) => {
+			// Delete
+			sites.forEach((site) => {
+				//	Delete Site
+				site.delete().then((result) => {
+					// Nothing to do but promise has to be kept to make the update work!
 				});
 			});
-			// Remove the Company
-			return MDBCompany.findByIdAndRemove(id).then((result) => {
-				// Notify Change
-				_centralRestServer.notifyCompanyDeleted(
-					{
-						"id": id,
-						"type": Constants.NOTIF_ENTITY_COMPANY
-					}
-				);
-				// Return the result
-				return result.result;
-			});
+		});
+		// Remove the Company
+		return MDBCompany.findByIdAndRemove(id).then((result) => {
+			console.log("handleDeleteCompany Result");
+			console.log(result);
+			// Notify Change
+			_centralRestServer.notifyCompanyDeleted(
+				{
+					"id": id,
+					"type": Constants.NOTIF_ENTITY_COMPANY
+				}
+			);
+			// Return the result
+			return result.result;
 		});
 	}
 }
