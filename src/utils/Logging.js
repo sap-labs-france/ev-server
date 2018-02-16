@@ -81,10 +81,10 @@ class Logging {
 	}
 
 	// Log
-	static logReceivedAction(module, chargeBoxIdentity, action, args, headers) {
+	static logReceivedAction(module, chargeBoxID, action, args, headers) {
 		// Log
 		Logging.logDebug({
-			source: chargeBoxIdentity, module: module, method: action,
+			source: chargeBoxID, module: module, method: action,
 			message: `>> OCPP Request Received`,
 			action: action,
 			detailedMessages: {
@@ -95,10 +95,10 @@ class Logging {
 	}
 
 	// Log
-	static logSendAction(module, chargeBoxIdentity, action, args) {
+	static logSendAction(module, chargeBoxID, action, args) {
 		// Log
 		Logging.logDebug({
-			source: chargeBoxIdentity, module: module, method: action,
+			source: chargeBoxID, module: module, method: action,
 			message: `>> OCPP Request Sent`,
 			action: action,
 			detailedMessages: args
@@ -106,10 +106,10 @@ class Logging {
 	}
 
 	// Log
-	static logReturnedAction(module, chargeBoxIdentity, action, result) {
+	static logReturnedAction(module, chargeBoxID, action, result) {
 		// Log
 		Logging.logDebug({
-			source: chargeBoxIdentity, module: module, method: action,
+			source: chargeBoxID, module: module, method: action,
 			message: `<< OCPP Request Returned`,
 			action: action,
 			detailedMessages: {

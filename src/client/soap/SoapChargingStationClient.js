@@ -53,9 +53,9 @@ class SoapChargingStationClient extends ChargingStationClient {
 					// Log
 					Logging.logError({
 						module: "SoapChargingStationClient", method: "constructor",
-						message: `Error when creating SOAP client for chaging station with ID ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
+						message: `Error when creating SOAP client for chaging station with ID ${_chargingStation.getID()}: ${err.toString()}`,
 						detailedMessages: err.stack });
-					reject(`Error when creating SOAP client for chaging station with ID ${_chargingStation.getChargeBoxIdentity()}: ${err.message}`);
+					reject(`Error when creating SOAP client for chaging station with ID ${_chargingStation.getID()}: ${err.message}`);
 				} else {
 					// Keep
 					_client = client;
@@ -77,7 +77,7 @@ class SoapChargingStationClient extends ChargingStationClient {
 		_client.clearSoapHeaders();
 
 		// Add them
-		_client.addSoapHeader(`<h:chargeBoxIdentity xmlns:h="urn://Ocpp/Cp/2012/06/">${_chargingStation.getChargeBoxIdentity()}</h:chargeBoxIdentity>`);
+		_client.addSoapHeader(`<h:chargeBoxIdentity xmlns:h="urn://Ocpp/Cp/2012/06/">${_chargingStation.getID()}</h:chargeBoxIdentity>`);
 		_client.addSoapHeader(`<a:MessageID xmlns:a="http://www.w3.org/2005/08/addressing">urn:uuid:589e13ae-1787-49f8-ab8b-4567327b23c6</a:MessageID>`);
 		_client.addSoapHeader(`<a:ReplyTo xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address></a:ReplyTo>`);
 		_client.addSoapHeader(`<a:To xmlns:a="http://www.w3.org/2005/08/addressing">${_chargingStation.getEndPoint()}</a:To>`);
@@ -94,7 +94,7 @@ class SoapChargingStationClient extends ChargingStationClient {
 			transactionId = parseInt(transactionId);
 
 			// Log
-			Logging.logSendAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "RemoteStopTransaction", transactionId);
+			Logging.logSendAction(_moduleName, _chargingStation.getID(), "RemoteStopTransaction", transactionId);
 
 			// Execute
 			_client.RemoteStopTransaction({
@@ -105,13 +105,13 @@ class SoapChargingStationClient extends ChargingStationClient {
 					if(err) {
 						// Log
 						Logging.logError({
-							source: _chargingStation.getChargeBoxIdentity(), module: "SoapChargingStationClient", method: "stopTransaction",
-							message: `Error when trying to stop the transaction ID ${transactionId} of the station ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
+							source: _chargingStation.getID(), module: "SoapChargingStationClient", method: "stopTransaction",
+							message: `Error when trying to stop the transaction ID ${transactionId} of the station ${_chargingStation.getID()}: ${err.toString()}`,
 							detailedMessages: err.stack });
 						reject(err);
 					} else {
 						// Log
-						Logging.logReturnedAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "RemoteStopTransaction", result);
+						Logging.logReturnedAction(_moduleName, _chargingStation.getID(), "RemoteStopTransaction", result);
 						fulfill(result);
 					}
 				});
@@ -127,7 +127,7 @@ class SoapChargingStationClient extends ChargingStationClient {
 			connectorId = parseInt(connectorId);
 
 			// Log
-			Logging.logSendAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "UnlockConnector", connectorId);
+			Logging.logSendAction(_moduleName, _chargingStation.getID(), "UnlockConnector", connectorId);
 
 			// Execute
 			_client.UnlockConnector({
@@ -138,13 +138,13 @@ class SoapChargingStationClient extends ChargingStationClient {
 					if(err) {
 						// Log
 						Logging.logError({
-							source: _chargingStation.getChargeBoxIdentity(), module: "SoapChargingStationClient", method: "unlockConnector",
-							message: `Error when trying to unlock the connector ${connectorId} of the station ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
+							source: _chargingStation.getID(), module: "SoapChargingStationClient", method: "unlockConnector",
+							message: `Error when trying to unlock the connector ${connectorId} of the station ${_chargingStation.getID()}: ${err.toString()}`,
 							detailedMessages: err.stack });
 						reject(err);
 					} else {
 						// Log
-						Logging.logReturnedAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "UnlockConnector", result);
+						Logging.logReturnedAction(_moduleName, _chargingStation.getID(), "UnlockConnector", result);
 						fulfill(result);
 					}
 				});
@@ -158,7 +158,7 @@ class SoapChargingStationClient extends ChargingStationClient {
 			this.initSoapHeaders("Reset");
 
 			// Log
-			Logging.logSendAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "Reset", type);
+			Logging.logSendAction(_moduleName, _chargingStation.getID(), "Reset", type);
 
 			// Execute
 			_client.Reset({
@@ -169,13 +169,13 @@ class SoapChargingStationClient extends ChargingStationClient {
 					if(err) {
 						// Log
 						Logging.logError({
-							source: _chargingStation.getChargeBoxIdentity(), module: "SoapChargingStationClient", method: "reset",
-							message: `Error when trying to reboot the station ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
+							source: _chargingStation.getID(), module: "SoapChargingStationClient", method: "reset",
+							message: `Error when trying to reboot the station ${_chargingStation.getID()}: ${err.toString()}`,
 							detailedMessages: err.stack });
 						reject(err);
 					} else {
 						// Log
-						Logging.logReturnedAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "Reset", result);
+						Logging.logReturnedAction(_moduleName, _chargingStation.getID(), "Reset", result);
 						fulfill(result);
 					}
 			});
@@ -189,20 +189,20 @@ class SoapChargingStationClient extends ChargingStationClient {
 			this.initSoapHeaders("ClearCache");
 
 			// Log
-			Logging.logSendAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "ClearCache", {});
+			Logging.logSendAction(_moduleName, _chargingStation.getID(), "ClearCache", {});
 
 			// Execute
 			_client.ClearCache({clearCacheRequest: {}}, (err, result, envelope) => {
 				if(err) {
 					// Log
 					Logging.logError({
-						source: _chargingStation.getChargeBoxIdentity(), module: "SoapChargingStationClient", method: "clearCache",
-						message: `Error when trying to clear the cache of the station ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
+						source: _chargingStation.getID(), module: "SoapChargingStationClient", method: "clearCache",
+						message: `Error when trying to clear the cache of the station ${_chargingStation.getID()}: ${err.toString()}`,
 						detailedMessages: err.stack });
 					reject(err);
 				} else {
 					// Log
-					Logging.logReturnedAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "ClearCache", result);
+					Logging.logReturnedAction(_moduleName, _chargingStation.getID(), "ClearCache", result);
 					fulfill(result);
 				}
 			});
@@ -216,7 +216,7 @@ class SoapChargingStationClient extends ChargingStationClient {
 			this.initSoapHeaders("GetConfiguration");
 
 			// Log
-			Logging.logSendAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "GetConfiguration", keys);
+			Logging.logSendAction(_moduleName, _chargingStation.getID(), "GetConfiguration", keys);
 
 			// Set request
 			let request = {
@@ -234,14 +234,14 @@ class SoapChargingStationClient extends ChargingStationClient {
 				if(err) {
 					// Log
 					Logging.logError({
-						source: _chargingStation.getChargeBoxIdentity(), module: "SoapChargingStationClient", method: "getConfiguration",
-						message: `Error when trying to get the configuration of the station ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
+						source: _chargingStation.getID(), module: "SoapChargingStationClient", method: "getConfiguration",
+						message: `Error when trying to get the configuration of the station ${_chargingStation.getID()}: ${err.toString()}`,
 						detailedMessages: err.stack });
 					reject(err);
 					//res.json(`{error: ${err.message}}`);
 				} else {
 					// Log
-					Logging.logReturnedAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "GetConfiguration", result);
+					Logging.logReturnedAction(_moduleName, _chargingStation.getID(), "GetConfiguration", result);
 					fulfill(result);
 				}
 			});
@@ -254,7 +254,7 @@ class SoapChargingStationClient extends ChargingStationClient {
 			this.initSoapHeaders("ChangeConfiguration");
 
 			// Log
-			Logging.logSendAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "ChangeConfiguration", {"key": key, "value": value});
+			Logging.logSendAction(_moduleName, _chargingStation.getID(), "ChangeConfiguration", {"key": key, "value": value});
 
 			// Execute
 			_client.ChangeConfiguration({
@@ -266,13 +266,13 @@ class SoapChargingStationClient extends ChargingStationClient {
 					if(err) {
 						// Log
 						Logging.logError({
-							source: _chargingStation.getChargeBoxIdentity(), module: "SoapChargingStationClient", method: "changeConfiguration",
-							message: `Error when trying to change the configuration parameter '${key}' with value '${value}' of the station ${_chargingStation.getChargeBoxIdentity()}: ${err.toString()}`,
+							source: _chargingStation.getID(), module: "SoapChargingStationClient", method: "changeConfiguration",
+							message: `Error when trying to change the configuration parameter '${key}' with value '${value}' of the station ${_chargingStation.getID()}: ${err.toString()}`,
 							detailedMessages: err.stack });
 						reject(err);
 					} else {
 						// Log
-						Logging.logReturnedAction(_moduleName, _chargingStation.getChargeBoxIdentity(), "ChangeConfiguration", result);
+						Logging.logReturnedAction(_moduleName, _chargingStation.getID(), "ChangeConfiguration", result);
 						fulfill(result);
 					}
 				});

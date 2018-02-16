@@ -193,14 +193,6 @@ class ChargingStation {
 		this._model.ocppVersion = ocppVersion;
 	}
 
-	getChargeBoxIdentity() {
-		return this._model.chargeBoxIdentity;
-	}
-
-	setChargeBoxIdentity(chargeBoxIdentity) {
-		this._model.chargeBoxIdentity = chargeBoxIdentity;
-	}
-
 	getChargingStationClient() {
 		// Already created?
 		if (!this._chargingStationClient) {
@@ -264,7 +256,7 @@ class ChargingStation {
 
 	saveStatusNotification(statusNotification) {
 		// Set the Station ID
-		statusNotification.chargeBoxID = this.getChargeBoxIdentity();
+		statusNotification.chargeBoxID = this.getID();
 
 		// Update the connector -----------------------------------------
 		// Get the connectors
@@ -334,7 +326,7 @@ class ChargingStation {
 					return global.storage.saveStatusNotification(statusNotification);
 				} else {
 					// Log
-					return Promise.reject(new Error(`Cannot retrieve the Configuration of ${this.getChargeBoxIdentity()}`));
+					return Promise.reject(new Error(`Cannot retrieve the Configuration of ${this.getID()}`));
 				}
 			}).then(() => {
 				// Save Status
@@ -346,7 +338,7 @@ class ChargingStation {
 
 	saveBootNotification(bootNotification) {
 		// Set the Station ID
-		bootNotification.chargeBoxID = this.getChargeBoxIdentity();
+		bootNotification.chargeBoxID = this.getID();
 
 		// Save Boot Notification
 		return global.storage.saveBootNotification(bootNotification);
@@ -380,7 +372,7 @@ class ChargingStation {
 							Logging.logInfo({
 								module: "ChargingStation",
 								method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
-								message: `${this.getChargeBoxIdentity()} - ${connector.connectorId} - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
+								message: `${this.getID()} - ${connector.connectorId} - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
 						}
 						this.setLastHeartBeat(new Date());
 						// Handle End Of charge
@@ -398,7 +390,7 @@ class ChargingStation {
 						Logging.logInfo({
 							module: "ChargingStation",
 							method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
-							message: `${this.getChargeBoxIdentity()} - ${connector.connectorId} - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
+							message: `${this.getID()} - ${connector.connectorId} - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
 						// Save
 						return this.save();
 					}
@@ -408,7 +400,7 @@ class ChargingStation {
 				Logging.logError({
 					module: "ChargingStation",
 					method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
-					message: `${this.getChargeBoxIdentity()} - Transaction ID '${transactionId}' not found` });
+					message: `${this.getID()} - Transaction ID '${transactionId}' not found` });
 			}
 		});
 	}
@@ -432,7 +424,7 @@ class ChargingStation {
 						this.getModel(),
 						{
 							"user": transaction.user,
-							"chargingStationId": this.getChargeBoxIdentity(),
+							"chargingBoxID": this.getID(),
 							"connectorId": transaction.connectorId,
 							"totalConsumption": (this.getConnectors()[transaction.connectorId-1].totalConsumption/1000).toLocaleString(
 								(transaction.user.locale?transaction.user.locale.replace('_','-'):Users.DEFAULT_LOCALE.replace('_','-')),
@@ -458,7 +450,7 @@ class ChargingStation {
 										// Cannot unlock the connector
 										Logging.logError({
 											module: "ChargingStation", method: "handleNotificationEndOfCharge",
-											action: "NotifyEndOfCharge", message: `Cannot unlock the connector '${transaction.connectorId}' of the Charging Station '${this.getChargeBoxIdentity()}'`,
+											action: "NotifyEndOfCharge", message: `Cannot unlock the connector '${transaction.connectorId}' of the Charging Station '${this.getID()}'`,
 											detailedMessages: transaction});
 										}
 									});
@@ -466,7 +458,7 @@ class ChargingStation {
 								// Cannot stop the transaction
 								Logging.logError({
 									module: "ChargingStation", method: "handleNotificationEndOfCharge",
-									action: "NotifyEndOfCharge", message: `Cannot stop the transaction of the Charging Station '${this.getChargeBoxIdentity()}'`,
+									action: "NotifyEndOfCharge", message: `Cannot stop the transaction of the Charging Station '${this.getID()}'`,
 									detailedMessages: transaction});
 							}
 						});
@@ -482,7 +474,7 @@ class ChargingStation {
 		// Init
 		newMeterValues.values = [];
 		// Set the charger ID
-		newMeterValues.chargeBoxID = this.getChargeBoxIdentity();
+		newMeterValues.chargeBoxID = this.getID();
 		// Check if OCPP 1.6
 		if (meterValues.meterValue) {
 			// Set it to 'values'
@@ -534,7 +526,7 @@ class ChargingStation {
 
 	saveConfiguration(configuration) {
 		// Set the charger ID
-		configuration.chargeBoxID = this.getChargeBoxIdentity();
+		configuration.chargeBoxID = this.getID();
 		configuration.timestamp = new Date();
 
 		// Save config
@@ -572,7 +564,7 @@ class ChargingStation {
 
 	saveStartTransaction(transaction) {
 		// Set the charger ID
-		transaction.chargeBoxID = this.getChargeBoxIdentity();
+		transaction.chargeBoxID = this.getID();
 		// Check if already exists
 		if (!transaction.id) {
 			// No: Check user and save
@@ -585,7 +577,7 @@ class ChargingStation {
 
 	saveDataTransfer(dataTransfer) {
 		// Set the charger ID
-		dataTransfer.chargeBoxID = this.getChargeBoxIdentity();
+		dataTransfer.chargeBoxID = this.getID();
 		dataTransfer.timestamp = new Date();
 
 		// Save it
@@ -594,7 +586,7 @@ class ChargingStation {
 
 	saveDiagnosticsStatusNotification(diagnosticsStatusNotification) {
 		// Set the charger ID
-		diagnosticsStatusNotification.chargeBoxID = this.getChargeBoxIdentity();
+		diagnosticsStatusNotification.chargeBoxID = this.getID();
 		diagnosticsStatusNotification.timestamp = new Date();
 
 		// Save it
@@ -603,7 +595,7 @@ class ChargingStation {
 
 	saveFirmwareStatusNotification(firmwareStatusNotification) {
 		// Set the charger ID
-		firmwareStatusNotification.chargeBoxID = this.getChargeBoxIdentity();
+		firmwareStatusNotification.chargeBoxID = this.getID();
 		firmwareStatusNotification.timestamp = new Date();
 
 		// Save it
@@ -612,7 +604,7 @@ class ChargingStation {
 
 	saveAuthorize(authorize) {
 		// Set the charger ID
-		authorize.chargeBoxID = this.getChargeBoxIdentity();
+		authorize.chargeBoxID = this.getID();
 		authorize.timestamp = new Date();
 
 		// Execute
@@ -643,7 +635,7 @@ class ChargingStation {
 								this.getModel(),
 								{
 									"user": user.getModel(),
-									"chargingStationId": this.getChargeBoxIdentity(),
+									"chargingBoxID": this.getID(),
 									"connectorId": request.connectorId,
 									"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, request.connectorId, request.transactionId)
 								},
@@ -672,7 +664,7 @@ class ChargingStation {
 						Utils.generateGUID(),
 						this.getModel(),
 						{
-							"chargingStationId": this.getChargeBoxIdentity(),
+							"chargingBoxID": this.getID(),
 							"badgeId": request.idTag,
 							"evseDashboardUserURL" : Utils.buildEvseUserURL(user)
 						}
@@ -694,7 +686,7 @@ class ChargingStation {
 
 	saveStopTransaction(stopTransaction) {
 		// Set the charger ID
-		stopTransaction.chargeBoxID = this.getChargeBoxIdentity();
+		stopTransaction.chargeBoxID = this.getID();
 		// Get the transaction first (to get the connector id)
 		return this.getTransaction(stopTransaction.transactionId).then((transaction) => {
 			if (transaction) {
@@ -772,7 +764,7 @@ class ChargingStation {
 				return this.requestGetConfiguration();
 			} else {
 				// Log
-				return Promise.reject(new Error(`Cannot set the configuration param ${key} with value ${value} to ${this.getChargeBoxIdentity()}`));
+				return Promise.reject(new Error(`Cannot set the configuration param ${key} with value ${value} to ${this.getID()}`));
 			}
 		}).then((configuration) => {
 			// Save it
@@ -787,7 +779,7 @@ class ChargingStation {
 				});
 			} else {
 				// Log
-				return Promise.reject(new Error(`Cannot retrieve the Configuration of ${this.getChargeBoxIdentity()}`));
+				return Promise.reject(new Error(`Cannot retrieve the Configuration of ${this.getID()}`));
 			}
 		});
 	}
@@ -802,25 +794,25 @@ class ChargingStation {
 	}
 
 	getStatusNotifications(connectorId) {
-		return global.storage.getStatusNotifications(this.getChargeBoxIdentity(), connectorId).then((statusNotifications) => {
+		return global.storage.getStatusNotifications(this.getID(), connectorId).then((statusNotifications) => {
 			return statusNotifications;
 		});
 	}
 
 	getLastStatusNotification(connectorId) {
-		return global.storage.getLastStatusNotification(this.getChargeBoxIdentity(), connectorId).then((statusNotification) => {
+		return global.storage.getLastStatusNotification(this.getID(), connectorId).then((statusNotification) => {
 			return statusNotification;
 		});
 	}
 
 	getConfiguration() {
-		return global.storage.getConfiguration(this.getChargeBoxIdentity()).then((configuration) => {
+		return global.storage.getConfiguration(this.getID()).then((configuration) => {
 			return configuration;
 		});
 	}
 
 	getConfigurationParamValue(paramName) {
-		return global.storage.getConfigurationParamValue(this.getChargeBoxIdentity(), paramName).then((paramValue) => {
+		return global.storage.getConfigurationParamValue(this.getID(), paramName).then((paramValue) => {
 			return paramValue;
 		});
 	}
@@ -828,7 +820,7 @@ class ChargingStation {
 	hasAtLeastOneTransaction() {
 		// Get the consumption
 		return global.storage.getTransactions(null,
-				{"chargeBoxIdentity": this.getChargeBoxIdentity()},
+				{"chargeBoxID": this.getID()},
 				false, 1).then((transactions) => {
 			return (transactions && transactions.length > 0 ? true : false);
 		});;
@@ -837,7 +829,7 @@ class ChargingStation {
 	getTransactions(connectorId, startDateTime, endDateTime, withImage) {
 		// Get the consumption
 		return global.storage.getTransactions(null,
-			{"chargeBoxIdentity": this.getChargeBoxIdentity(),
+			{"chargeBoxID": this.getID(),
 			 "connectorId": connectorId,
 			 "startDateTime": startDateTime,
 			 "endDateTime" : endDateTime}, withImage);
@@ -857,7 +849,7 @@ class ChargingStation {
 				}
 				chargingStationConsumption.values = [];
 				chargingStationConsumption.totalConsumption = 0;
-				chargingStationConsumption.chargeBoxIdentity = this.getChargeBoxIdentity();
+				chargingStationConsumption.chargeBoxID = this.getID();
 				chargingStationConsumption.connectorId = transaction.connectorId;
 				chargingStationConsumption.transactionId = transaction.transactionId;
 				chargingStationConsumption.user = transaction.user;
@@ -1044,7 +1036,7 @@ class ChargingStation {
 		if (totalNbrOfMetrics) {
 			// Log
 			Logging.logDebug({
-				source: this.getChargeBoxIdentity(), module: "ChargingStation",
+				source: this.getID(), module: "ChargingStation",
 				method: "buildConsumption", action:"BuildConsumption",
 				message: `Consumption - ${meterValues.length} metrics, ${totalNbrOfMetrics} relevant, ${chargingStationConsumption.values.length} returned` });
 		}

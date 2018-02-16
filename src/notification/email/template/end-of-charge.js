@@ -1,10 +1,10 @@
-module.exports.subject = "EVSE - Your vehicule has finished charging on <%= chargingStationId %>";
+module.exports.subject = "EVSE - Your vehicule has finished charging on <%= chargingBoxID %>";
 module.exports.html = `
 	<html>
 		<body>
 			Hi <%= (user.firstName?user.firstName:user.name) %>,</br>
 			</br>
-			Your electric vehicle, which is connected to the charging station <a href="<%= evseDashboardChargingStationURL %>"><%= chargingStationId %></a>, has finished charging.</br>
+			Your electric vehicle, which is connected to the charging station <a href="<%= evseDashboardChargingStationURL %>"><%= chargingBoxID %></a>, has finished charging.</br>
 			</br>
 			<% if (notifStopTransactionAndUnlockConnector) { %>
 				The transaction has been automatically stopped and the connector unlocked.</br>
@@ -21,13 +21,13 @@ module.exports.html = `
 `;
 
 module.exports.fr_FR = {};
-module.exports.fr_FR.subject = "EVSE - La charge de votre véhicule est terminée sur la borne <%= chargingStationId %>";
+module.exports.fr_FR.subject = "EVSE - La charge de votre véhicule est terminée sur la borne <%= chargingBoxID %>";
 module.exports.fr_FR.html = `
 	<html>
 		<body>
 			Bonjour <%= (user.firstName?user.firstName:user.name) %>,</br>
 			</br>
-			Votre véhicule électrique, qui est connecté sur la borne <a href="<%= evseDashboardChargingStationURL %>"><%= chargingStationId %></a>, a terminé sa charge.</br>
+			Votre véhicule électrique, qui est connecté sur la borne <a href="<%= evseDashboardChargingStationURL %>"><%= chargingBoxID %></a>, a terminé sa charge.</br>
 			</br>
 			<% if (notifStopTransactionAndUnlockConnector) { %>
 				La transaction a été automatiquement stoppée et le connecteur dévérouillé.</br>

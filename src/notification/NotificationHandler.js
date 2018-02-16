@@ -74,8 +74,9 @@ class NotificationHandler {
 				// Email enabled?
 				if (_notificationConfig.Email.enabled) {
 					// Save notif
-					NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_BEFORE_END_OF_CHARGE,
-							user, chargingStationId).then(() => {
+					NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+							SOURCE_BEFORE_END_OF_CHARGE,
+							user, chargingStation).then(() => {
 						// Send email
 						_email.sendBeforeEndOfCharge(sourceData, locale);
 					}).catch(error => {
@@ -100,7 +101,8 @@ class NotificationHandler {
 				// Email enabled?
 				if (_notificationConfig.Email.enabled) {
 					// Save notif
-					NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_END_OF_CHARGE,
+					NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+							SOURCE_END_OF_CHARGE,
 							user, chargingStation).then(() => {
 						// Send email
 						_email.sendEndOfCharge(sourceData, locale);

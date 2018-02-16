@@ -222,7 +222,7 @@ class CentralSystemServer {
 						Utils.generateGUID(),
 						chargingStation.getModel(),
 						{
-							"chargingStationId": chargingStation.getChargeBoxIdentity(),
+							"chargeBoxID": chargingStation.getID(),
 							"connectorId": args.connectorId,
 							"error": `${args.status} - ${args.errorCode}`,
 							"evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(chargingStation, args.connectorId)

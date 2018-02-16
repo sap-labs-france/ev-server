@@ -37,7 +37,7 @@ class ChargingStationService {
 					Logging.logActionUnauthorizedMessageAndSendResponse(
 						CentralRestServerAuthorization.ACTION_UPDATE,
 						CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
-						site.getChargeBoxIdentity(), req, res, next);
+						site.getID(), req, res, next);
 					return;
 				}
 				// Update
@@ -75,31 +75,31 @@ class ChargingStationService {
 			user: req.user, action: action,
 			module: "ChargingStationService",
 			method: "handleGetChargingStationConfiguration",
-			message: `Get Configuration from '${req.query.ChargeBoxIdentity}'`,
+			message: `Get Configuration from '${req.query.ChargeBoxID}'`,
 			detailedMessages: req.query
 		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationConfigurationRequest(req.query, req.user);
 		// Charge Box is mandatory
-		if(!filteredRequest.ChargeBoxIdentity) {
+		if(!filteredRequest.ChargeBoxID) {
 			Logging.logActionExceptionMessageAndSendResponse(
 				action, new Error(`The Charging Station ID is mandatory`), req, res, next);
 			return;
 		}
 		// Get the Charging Station`
-		global.storage.getChargingStation(filteredRequest.ChargeBoxIdentity).then((chargingStation) => {
+		global.storage.getChargingStation(filteredRequest.ChargeBoxID).then((chargingStation) => {
 			let configuration = {};
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
-				throw new AppError(`Charging Station with ID '${filteredRequest.chargeBoxIdentity}' does not exist`,
+				throw new AppError(`Charging Station with ID '${filteredRequest.ChargeBoxID}' does not exist`,
 					500, "ChargingStationService", "handleGetChargingStationConfiguration");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
-					CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(),
+					CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getID(),
 					500, "ChargingStationService", "handleGetChargingStationConfiguration");
 			}
 			// Get the Config
@@ -136,14 +136,14 @@ class ChargingStationService {
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
-				throw new AppError(`Charging Station with ID '${filteredRequest.chargeBoxIdentity}' does not exist`,
+				throw new AppError(`Charging Station with ID '${filteredRequest.ID}' does not exist`,
 					500, "ChargingStationService", "handleDeleteChargingStation");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canDeleteChargingStation(req.user, chargingStation.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
-					CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(),
+					CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getID(),
 					500, "ChargingStationService", "handleDeleteChargingStation");
 			}
 			// Delete
@@ -152,7 +152,7 @@ class ChargingStationService {
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: "ChargingStationService", method: "handleDeleteChargingStation",
-				message: `Charging Station '${chargingStation.getChargeBoxIdentity()}' has been deleted successfully`,
+				message: `Charging Station '${chargingStation.getID()}' has been deleted successfully`,
 				action: action, detailedMessages: chargingStation});
 			// Ok
 			res.json({status: `Success`});
@@ -168,19 +168,19 @@ class ChargingStationService {
 			user: req.user, action: action,
 			module: "ChargingStationService",
 			method: "handleGetChargingStation",
-			message: `Read Charging Station '${req.query.ChargeBoxIdentity}'`,
+			message: `Read Charging Station '${req.query.ID}'`,
 			detailedMessages: req.query
 		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationRequest(req.query, req.user);
 		// Charge Box is mandatory
-		if(!filteredRequest.ChargeBoxIdentity) {
+		if(!filteredRequest.ID) {
 			Logging.logActionExceptionMessageAndSendResponse(
 				action, new Error(`The Charging Station ID is mandatory`), req, res, next);
 			return;
 		}
 		// Get it
-		global.storage.getChargingStation(filteredRequest.ChargeBoxIdentity).then((chargingStation) => {
+		global.storage.getChargingStation(filteredRequest.ID).then((chargingStation) => {
 			if (chargingStation) {
 				// Return
 				res.json(
@@ -243,7 +243,7 @@ class ChargingStationService {
 				// Set charging station active?
 				activeTransactions.forEach(activeTransaction => {
 					// Find a match
-					if (chargingStation.getChargeBoxIdentity() === activeTransaction.chargeBox.chargeBoxIdentity ) {
+					if (chargingStation.getID() === activeTransaction.chargeBox.id ) {
 						// Set
 						connectors[activeTransaction.connectorId.valueOf()-1].activeForUser = true;
 					}
@@ -286,23 +286,23 @@ class ChargingStationService {
 			user: req.user, action: action,
 			module: "ChargingStationService",
 			method: "handleAction",
-			message: `Execute Action '${action}' on Charging Station '${req.body.chargeBoxIdentity}'`,
+			message: `Execute Action '${action}' on Charging Station '${req.body.chargeBoxID}'`,
 			detailedMessages: req.body
 		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationActionRequest( req.body, action, req.user );
 		// Charge Box is mandatory
-		if(!filteredRequest.chargeBoxIdentity) {
+		if(!filteredRequest.chargeBoxID) {
 			Logging.logActionExceptionMessageAndSendResponse(
 				action, new Error(`The Charging Station ID is mandatory`), req, res, next);
 			return;
 		}
 		// Get the Charging station
-		global.storage.getChargingStation(filteredRequest.chargeBoxIdentity).then((chargingStation) => {
+		global.storage.getChargingStation(filteredRequest.chargeBoxID).then((chargingStation) => {
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
-				throw new AppError(`Charging Station with ID '${filteredRequest.chargeBoxIdentity}' does not exist`,
+				throw new AppError(`Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
 					500, "ChargingStationService", "handleAction");
 			}
 			if (action === "StopTransaction" ||
@@ -316,7 +316,7 @@ class ChargingStationService {
 						if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action, transaction.user)) {
 							// Not Authorized!
 							throw new AppAuthError(req.user, action,
-								CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(),
+								CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getID(),
 								500, "ChargingStationService", "handleAction");
 						}
 						// Execute it
@@ -334,7 +334,7 @@ class ChargingStationService {
 				if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action)) {
 					// Not Authorized!
 					throw new AppAuthError(req.user, action,
-						CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(),
+						CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getID(),
 						500, "ChargingStationService", "handleAction");
 				}
 				// Execute it
@@ -345,7 +345,7 @@ class ChargingStationService {
 				user: req.user, action: action,
 				module: "ChargingStationService",
 				method: "handleAction",
-				message: `Action '${action}' has been executed on Charging Station '${req.body.chargeBoxIdentity}'`,
+				message: `Action '${action}' has been executed on Charging Station '${req.body.chargeBoxID}'`,
 				detailedMessages: result
 			});
 			// Return the result
@@ -364,31 +364,31 @@ class ChargingStationService {
 			user: req.user, action: action,
 			module: "ChargingStationService",
 			method: "handleActionSetMaxIntensitySocket",
-			message: `Execute Action '${action}' on Charging Station '${req.body.chargeBoxIdentity}'`,
+			message: `Execute Action '${action}' on Charging Station '${req.body.chargeBoxID}'`,
 			detailedMessages: req.body
 		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationSetMaxIntensitySocketRequest( req.body, req.user );
 		// Charge Box is mandatory
-		if(!filteredRequest.chargeBoxIdentity) {
+		if(!filteredRequest.chargeBoxID) {
 			Logging.logActionExceptionMessageAndSendResponse(
 				action, new Error(`The Charging Station ID is mandatory`), req, res, next);
 		}
 		// Get the Charging station
-		global.storage.getChargingStation(filteredRequest.chargeBoxIdentity).then((foundChargingStation) => {
+		global.storage.getChargingStation(filteredRequest.chargeBoxID).then((foundChargingStation) => {
 			// Set
 			chargingStation = foundChargingStation;
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
-				throw new AppError(`Charging Station with ID '${filteredRequest.chargeBoxIdentity}' does not exist`,
+				throw new AppError(`Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
 					500, "ChargingStationService", "handleActionSetMaxIntensitySocket");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), "ChangeConfiguration")) {
 				// Not Authorized!
 				throw new AppAuthError(req.user, action,
-					CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getChargeBoxIdentity(),
+					CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getID(),
 					500, "ChargingStationService", "handleActionSetMaxIntensitySocket");
 			}
 			// Get the Config
@@ -397,7 +397,7 @@ class ChargingStationService {
 			// Check
 			if (!chargerConfiguration) {
 				// Not Found!
-				throw new AppError(`Cannot retrieve the configuration from the Charging Station '${filteredRequest.chargeBoxIdentity}'`,
+				throw new AppError(`Cannot retrieve the configuration from the Charging Station '${filteredRequest.chargeBoxID}'`,
 					500, "ChargingStationService", "handleActionSetMaxIntensitySocket");
 			}
 
@@ -412,7 +412,7 @@ class ChargingStationService {
 			}
 			if (!maxIntensitySocketMax) {
 				// Not Found!
-				throw new AppError(`Cannot retrieve the max intensity socket from the configuration from the Charging Station '${filteredRequest.chargeBoxIdentity}'`,
+				throw new AppError(`Cannot retrieve the max intensity socket from the configuration from the Charging Station '${filteredRequest.chargeBoxID}'`,
 					500, "ChargingStationService", "handleActionSetMaxIntensitySocket");
 			}
 			// Check
@@ -420,12 +420,12 @@ class ChargingStationService {
 				// Log
 				Logging.logSecurityInfo({
 					user: req.user, module: "ChargingStationService", method: "handleActionSetMaxIntensitySocket", action: action,
-					message: `Change Max Instensity Socket from Charging Station '${filteredRequest.chargeBoxIdentity}' has been set to '${filteredRequest.maxIntensity}'`});
+					message: `Change Max Instensity Socket from Charging Station '${filteredRequest.chargeBoxID}' has been set to '${filteredRequest.maxIntensity}'`});
 				// Change the config
 				return chargingStation.requestChangeConfiguration('maxintensitysocket', filteredRequest.maxIntensity);
 			} else {
 				// Invalid value
-				throw new AppError(`Invalid value for param max intensity socket '${filteredRequest.maxIntensity}' for Charging Station ${filteredRequest.chargeBoxIdentity}`,
+				throw new AppError(`Invalid value for param max intensity socket '${filteredRequest.maxIntensity}' for Charging Station ${filteredRequest.chargeBoxID}`,
 					500, "ChargingStationService", "handleActionSetMaxIntensitySocket");
 			}
 		}).then((result) => {

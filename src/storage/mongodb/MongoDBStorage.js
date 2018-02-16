@@ -62,9 +62,9 @@ class MongoDBStorage extends Storage {
 		return UserStorage.handleGetEndUserLicenseAgreement(language);
 	}
 
-	getConfigurationParamValue(chargeBoxIdentity, paramName) {
+	getConfigurationParamValue(chargeBoxID, paramName) {
 		// Delegate
-		return ChargingStationStorage.handleGetConfigurationParamValue(chargeBoxIdentity, paramName);
+		return ChargingStationStorage.handleGetConfigurationParamValue(chargeBoxID, paramName);
 	}
 
 	getLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs=500, sortDate) {
@@ -87,9 +87,9 @@ class MongoDBStorage extends Storage {
 		return LoggingStorage.handleDeleteSecurityLogs(deleteUpToDate);
 	}
 
-	getConfiguration(chargeBoxIdentity) {
+	getConfiguration(chargeBoxID) {
 		// Delegate
-		return ChargingStationStorage.handleGetConfiguration(chargeBoxIdentity);
+		return ChargingStationStorage.handleGetConfiguration(chargeBoxID);
 	}
 
 	getTransactionYears() {
@@ -106,14 +106,14 @@ class MongoDBStorage extends Storage {
 		return PricingStorage.handleSavePricing(pricing);
 	}
 
-	getStatusNotifications(chargeBoxIdentity, connectorId) {
+	getStatusNotifications(chargeBoxID, connectorId) {
 		// Delegate
-		return ChargingStationStorage.handleGetStatusNotifications(chargeBoxIdentity, connectorId);
+		return ChargingStationStorage.handleGetStatusNotifications(chargeBoxID, connectorId);
 	}
 
-	getLastStatusNotification(chargeBoxIdentity, connectorId) {
+	getLastStatusNotification(chargeBoxID, connectorId) {
 		// Delegate
-		return ChargingStationStorage.handleGetLastStatusNotification(chargeBoxIdentity, connectorId);
+		return ChargingStationStorage.handleGetLastStatusNotification(chargeBoxID, connectorId);
 	}
 
 	getMeterValuesFromTransaction(transactionId) {
@@ -239,9 +239,9 @@ class MongoDBStorage extends Storage {
 		return ChargingStationStorage.handleGetChargingStations(searchValue, siteAreaID, onlyWithNoSiteArea, numberOfChargingStation);
 	}
 
-	getChargingStation(chargeBoxIdentity) {
+	getChargingStation(id) {
 		// Delegate
-		return ChargingStationStorage.handleGetChargingStation(chargeBoxIdentity);
+		return ChargingStationStorage.handleGetChargingStation(id);
 	}
 
 	getUsers(searchValue, withPicture=false, numberOfUser=500) {

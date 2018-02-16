@@ -103,7 +103,7 @@ class SecurityRestObjectFiltering {
 	static filterChargingStationConfigurationRequest(request, loggedUser) {
 		let filteredRequest = {};
 		// Set
-		filteredRequest.ChargeBoxIdentity = sanitize(request.ChargeBoxIdentity);
+		filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
 		return filteredRequest;
 	}
 
@@ -126,7 +126,7 @@ class SecurityRestObjectFiltering {
 	static filterChargingStationTransactionsRequest(request, loggedUser) {
 		let filteredRequest = {};
 		// Set
-		filteredRequest.ChargeBoxIdentity = sanitize(request.ChargeBoxIdentity);
+		filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
 		filteredRequest.ConnectorId = sanitize(request.ConnectorId);
 		filteredRequest.StartDateTime = sanitize(request.StartDateTime);
 		filteredRequest.EndDateTime = sanitize(request.EndDateTime);
@@ -145,7 +145,7 @@ class SecurityRestObjectFiltering {
 
 	static filterTransactionsActiveRequest(request, loggedUser) {
 		let filteredRequest = {};
-		filteredRequest.ChargeBoxIdentity = sanitize(request.ChargeBoxIdentity);
+		filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
 		filteredRequest.ConnectorId = sanitize(request.ConnectorId);
 		filteredRequest.WithPicture = SecurityRestObjectFiltering.filterBoolean(request.WithPicture);
 		return filteredRequest;
@@ -213,7 +213,7 @@ class SecurityRestObjectFiltering {
 
 	static filterChargingStationRequest(request, loggedUser) {
 		let filteredRequest = {};
-		filteredRequest.ChargeBoxIdentity = sanitize(request.ChargeBoxIdentity);
+		filteredRequest.ID = sanitize(request.ID);
 		return filteredRequest;
 	}
 
@@ -396,7 +396,7 @@ class SecurityRestObjectFiltering {
 	static filterChargingStationActionRequest(request, action, loggedUser) {
 		let filteredRequest = {};
 		// Check
-		filteredRequest.chargeBoxIdentity = sanitize(request.chargeBoxIdentity);
+		filteredRequest.chargeBoxID = sanitize(request.chargeBoxID);
 		// Do not check action?
 		filteredRequest.args =  request.args;
 		return filteredRequest;
@@ -405,7 +405,7 @@ class SecurityRestObjectFiltering {
 	static filterChargingStationSetMaxIntensitySocketRequest(request, loggedUser) {
 		let filteredRequest = {};
 		// Check
-		filteredRequest.chargeBoxIdentity = sanitize(request.chargeBoxIdentity);
+		filteredRequest.chargeBoxID = sanitize(request.chargeBoxID);
 		filteredRequest.maxIntensity =  sanitize(request.args.maxIntensity);
 		return filteredRequest;
 	}
@@ -417,7 +417,7 @@ class SecurityRestObjectFiltering {
 			return null;
 		}
 		// Set
-		filteredConsumption.chargeBoxIdentity = consumption.chargeBoxIdentity;
+		filteredConsumption.chargeBoxID = consumption.chargeBoxID;
 		filteredConsumption.connectorId = consumption.connectorId;
 		// Admin?
 		if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
@@ -549,7 +549,7 @@ class SecurityRestObjectFiltering {
 				// Set only necessary info
 				filteredChargingStation = {};
 				filteredChargingStation.id = chargingStation.id;
-				filteredChargingStation.chargeBoxIdentity = chargingStation.chargeBoxIdentity;
+				filteredChargingStation.chargeBoxID = chargingStation.chargeBoxID;
 				filteredChargingStation.connectors = chargingStation.connectors;
 				filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
 				filteredChargingStation.siteAreaID = chargingStation.siteAreaID;
@@ -818,7 +818,7 @@ class SecurityRestObjectFiltering {
 			// Charging Station
 			filteredTransaction.chargeBox = {};
 			filteredTransaction.chargeBox.id = transaction.chargeBox.id;
-			filteredTransaction.chargeBox.chargeBoxIdentity = transaction.chargeBox.chargeBoxIdentity;
+			filteredTransaction.chargeBox.chargeBoxID = transaction.chargeBox.chargeBoxID;
 			if (withConnector) {
 				filteredTransaction.chargeBox.connectors = [];
 				filteredTransaction.chargeBox.connectors[transaction.connectorId-1] = transaction.chargeBox.connectors[transaction.connectorId-1];

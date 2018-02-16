@@ -21,9 +21,9 @@ class ChargingStationStorage {
 		_centralRestServer = centralRestServer;
 	}
 
-	static handleGetChargingStation(chargeBoxIdentity) {
+	static handleGetChargingStation(id) {
 		// Exec request
-		return MDBChargingStation.findById({"_id": chargeBoxIdentity})
+		return MDBChargingStation.findById({"_id": id})
 				.populate("siteAreaID", { image: 0 })
 				.then(chargingStationMDB => {
 			let chargingStation = null;
@@ -99,7 +99,7 @@ class ChargingStationStorage {
 		}
 		// Update
 		return MDBChargingStation.findOneAndUpdate(
-			{"_id": chargingStation.chargeBoxIdentity},
+			{"_id": chargingStation.id},
 			chargingStation,
 			{new: true, upsert: true}).then((chargingStationMDB) => {
 				let newChargingStation = new ChargingStation(chargingStationMDB);
@@ -304,10 +304,10 @@ class ChargingStationStorage {
 		});
 	}
 
-	static handleGetLastStatusNotification(chargeBoxIdentity, connectorId) {
+	static handleGetLastStatusNotification(chargeBoxID, connectorId) {
 		// Get the Status Notification
 		let filter = {};
-		filter.chargeBoxID = chargeBoxIdentity;
+		filter.chargeBoxID = chargeBoxID;
 		filter.connectorId = connectorId;
 		// Exec request
 		return MDBStatusNotification.find(filter)
@@ -325,10 +325,10 @@ class ChargingStationStorage {
 		});
 	}
 
-	static handleGetStatusNotifications(chargeBoxIdentity, connectorId) {
+	static handleGetStatusNotifications(chargeBoxID, connectorId) {
 		let filter = {};
-		if (chargeBoxIdentity) {
-			filter.chargeBoxID = chargeBoxIdentity;
+		if (chargeBoxID) {
+			filter.chargeBoxID = chargeBoxID;
 		}
 		if (connectorId) {
 			filter.connectorId = connectorId;
@@ -351,9 +351,9 @@ class ChargingStationStorage {
 		});
 	}
 
-	static handleGetConfigurationParamValue(chargeBoxIdentity, paramName) {
+	static handleGetConfigurationParamValue(chargeBoxID, paramName) {
 		// Get the config
-		return ChargingStationStorage.getConfiguration(chargeBoxIdentity).then((configuration) => {
+		return ChargingStationStorage.getConfiguration(chargeBoxID).then((configuration) => {
 			let value = null;
 			if (configuration) {
 				// Get the value
@@ -374,9 +374,9 @@ class ChargingStationStorage {
 		});
 	}
 
-	static handleGetConfiguration(chargeBoxIdentity) {
+	static handleGetConfiguration(chargeBoxID) {
 		// Exec request
-		return MDBConfiguration.findById({"_id": chargeBoxIdentity }).then((configurationMDB) => {
+		return MDBConfiguration.findById({"_id": chargeBoxID }).then((configurationMDB) => {
 			let configuration = null;
 			if (configurationMDB) {
 				// Set values

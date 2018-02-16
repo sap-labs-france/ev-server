@@ -4,7 +4,7 @@ module.exports.html = `
 		<body>
 			Hi <%= (user.firstName?user.firstName:user.name) %>,</br>
 			</br>
-			Your electric vehicule, connected to the charging station <a href="<%= evseDashboardChargingStationURL %>"><%= chargingStationId %></a>, will be soon completely charged!</br>
+			Your electric vehicule, connected to the charging station <a href="<%= evseDashboardChargingStationURL %>"><%= chargingBoxID %></a>, will be soon completely charged!</br>
 			</br>
 			Best Regards,</br>
 			EVSE Admin.
@@ -19,7 +19,7 @@ module.exports.fr_FR.html = `
 		<body>
 			Bonjour <%= (user.firstName?user.firstName:user.name) %>,</br>
 			</br>
-			La charge de votre véhicule électrique, connecté sur la borne <a href="<%= evseDashboardChargingStationURL %>"><%= chargingStationId %></a>, va bientôt se terminer !</br>
+			La charge de votre véhicule électrique, connecté sur la borne <a href="<%= evseDashboardChargingStationURL %>"><%= chargingBoxID %></a>, va bientôt se terminer !</br>
 			</br>
 			Cordialement,</br>
 			EVSE Admin.

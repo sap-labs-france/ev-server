@@ -16,7 +16,7 @@ class Storage {
 	setCentralRestServer(centralRestServer) {
 	}
 
-	getConfigurationParamValue(chargeBoxIdentity, paramName) {
+	getConfigurationParamValue(chargeBoxID, paramName) {
 	}
 
 	getLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs=500, sortDate) {
@@ -31,10 +31,10 @@ class Storage {
 	deleteSecurityLogs(deleteUpToDate) {
 	}
 
-	getConfiguration(chargeBoxIdentity) {
+	getConfiguration(chargeBoxID) {
 	}
 
-	getStatusNotifications(chargeBoxIdentity, connectorId) {
+	getStatusNotifications(chargeBoxID, connectorId) {
 	}
 
 	getPricing() {
@@ -43,7 +43,7 @@ class Storage {
 	savePricing(pricing) {
 	}
 
-	getLastStatusNotification(chargeBoxIdentity, connectorId) {
+	getLastStatusNotification(chargeBoxID, connectorId) {
 	}
 
 	getMeterValuesFromTransaction(transactionId) {
@@ -121,7 +121,7 @@ class Storage {
 	getChargingStations(searchValue, siteAreaID, onlyWithNoSiteArea, numberOfChargingStation=500) {
 	}
 
-	getChargingStation(chargeBoxIdentity) {
+	getChargingStation(id) {
 	}
 
 	getUsers(searchValue, withPicture=false, numberOfUser=500) {

@@ -26,8 +26,8 @@ class TransactionStorage {
 			_centralRestServer.notifyTransactionDeleted(
 				{
 					"id": transaction.id,
+					"chargeBoxID": transaction.chargeBoxID.id,
 					"connectorId": transaction.connectorId,
-					"chargeBoxIdentity": transaction.chargeBoxID.id,
 					"type": Constants.NOTIF_ENTITY_TRANSACTION
 				}
 			);
@@ -74,8 +74,8 @@ class TransactionStorage {
 				_centralRestServer.notifyTransactionCreated(
 					{
 						"id": startTransaction.id,
+						"chargeBoxID": startTransaction.chargeBoxID,
 						"connectorId": startTransaction.connectorId,
-						"chargeBoxIdentity": startTransaction.chargeBoxID,
 						"type": Constants.NOTIF_ENTITY_TRANSACTION
 					}
 				);
@@ -157,8 +157,8 @@ class TransactionStorage {
 			$match.userID = new ObjectId(filter.userId);
 		}
 		// Charge Box
-		if (filter.chargeBoxIdentity) {
-			$match.chargeBoxID = filter.chargeBoxIdentity;
+		if (filter.chargeBoxID) {
+			$match.chargeBoxID = filter.chargeBoxID;
 		}
 		// Connector
 		if (filter.connectorId) {

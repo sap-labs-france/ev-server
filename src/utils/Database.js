@@ -16,7 +16,6 @@ module.exports = {
 
 	updateChargingStation(src, dest) {
 		this.updateID(src, dest);
-		dest.chargeBoxIdentity = src.id;
 		dest.chargePointSerialNumber = src.chargePointSerialNumber;
 		dest.chargePointModel = src.chargePointModel;
 		dest.chargeBoxSerialNumber = src.chargeBoxSerialNumber;
