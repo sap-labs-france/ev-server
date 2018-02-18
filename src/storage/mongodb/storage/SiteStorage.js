@@ -259,7 +259,6 @@ class SiteStorage {
 	}
 
 	static handleDeleteSite(id) {
-		console.log("handleDeleteSite " + id);
 		// Delete Site Areas
 		SiteAreaStorage.handleGetSiteAreasFromSite(id).then((siteAreas) => {
 			// Delete
@@ -272,8 +271,6 @@ class SiteStorage {
 		});
 		// Delete Site
 		return MDBSite.findByIdAndRemove(id).then((result) => {
-			console.log("handleDeleteSiteResult Result");
-			console.log(result);
 			// Notify Change
 			_centralRestServer.notifySiteDeleted(
 				{

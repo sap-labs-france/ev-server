@@ -161,7 +161,6 @@ class CompanyStorage {
 	}
 
 	static handleDeleteCompany(id) {
-		console.log("handleDeleteCompany " + id);
 		// Delete Sites
 		SiteStorage.handleGetSitesFromCompany(id).then((sites) => {
 			// Delete
@@ -174,8 +173,6 @@ class CompanyStorage {
 		});
 		// Remove the Company
 		return MDBCompany.findByIdAndRemove(id).then((result) => {
-			console.log("handleDeleteCompany Result");
-			console.log(result);
 			// Notify Change
 			_centralRestServer.notifyCompanyDeleted(
 				{

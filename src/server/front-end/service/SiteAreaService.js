@@ -49,10 +49,29 @@ class SiteAreaService {
 				// Save
 				return newSiteArea.save();
 			}).then((createdSiteArea) => {
+				newSiteArea = createdSiteArea;
+				// Get the assigned Charge Boxes
+				let proms = [];
+				// Assign new Charging Stations
+				filteredRequest.chargeBoxIDs.forEach((chargeBoxID) => {
+					// Get it
+					proms.push(global.storage.getChargingStation(chargeBoxID));
+				});
+				return Promise.all(proms);
+			}).then((assignedChargingStations) => {
+				let proms = [];
+				// Get it
+				assignedChargingStations.forEach((assignedChargingStation) => {
+					assignedChargingStation.setSiteArea(newSiteArea);
+					proms.push(assignedChargingStation.saveChargingStationSiteArea());
+				});
+				return Promise.all(proms);
+			}).then((results) => {
+				// Ok
 				Logging.logSecurityInfo({
 					user: req.user, module: "SiteService", method: "handleCreateSiteArea",
-					message: `Site Area '${createdSiteArea.getName()}' has been created successfully`,
-					action: action, detailedMessages: createdSiteArea});
+					message: `Site Area '${newSiteArea.getName()}' has been created successfully`,
+					action: action, detailedMessages: newSiteArea});
 				// Ok
 				res.json({status: `Success`});
 				next();

@@ -363,7 +363,6 @@ class SecurityRestObjectFiltering {
 		// Set
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreaCreateRequest(request, loggedUser);
 		filteredRequest.id = sanitize(request.id);
-		filteredRequest.chargeBoxIDs = sanitize(request.chargeBoxIDs);
 		return filteredRequest;
 	}
 
@@ -597,6 +596,7 @@ class SecurityRestObjectFiltering {
 		filteredRequest.name = sanitize(request.name);
 		filteredRequest.image = sanitize(request.image);
 		filteredRequest.siteID = sanitize(request.siteID);
+		filteredRequest.chargeBoxIDs = sanitize(request.chargeBoxIDs);
 		return filteredRequest;
 	}
 
