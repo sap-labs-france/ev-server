@@ -119,9 +119,10 @@ class UserStorage {
 		});
 	}
 
-	static handleGetUser(id) {
+	static handleGetUser(id, withPicture) {
 		// Exec request
-		return MDBUser.findById(id).exec().then((userMDB) => {
+		return MDBUser.findById(id, (withPicture ? '' : '-image' ))
+				.exec().then((userMDB) => {
 			// Check deleted
 			if (userMDB) {
 				// Ok

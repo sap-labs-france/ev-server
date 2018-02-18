@@ -92,10 +92,10 @@ class TransactionStorage {
 				transactionMDB.stop.tagID = stopTransaction.idTag;
 			}
 			if(stopTransaction.user) {
-				transactionMDB.stop.userID = stopTransaction.user.getID();
+				transactionMDB.stop.userID = stopTransaction.user.id;
 			}
 			// Create new
-			return transactionMDB.save().then(() => {
+			return transactionMDB.save().then((result) => {
 				// Notify
 				_centralRestServer.notifyTransactionUpdated(
 					{

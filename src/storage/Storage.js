@@ -133,7 +133,7 @@ class Storage {
 	deleteUser(id) {
 	}
 
-	getUser(id) {
+	getUser(id, withPicture=true) {
 	}
 
 	getCompanies(searchValue, withSites=false, withLogo=false, numberOfCompanies=500) {

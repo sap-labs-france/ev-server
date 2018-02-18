@@ -150,7 +150,7 @@ class TransactionService {
 					chargingStation.getID(), 500, "TransactionService", "handleTransactionSoftStop");
 			}
 			// Get logged user
-			return global.storage.getUser(req.user.id);
+			return global.storage.getUser(req.user.id, Users.WITH_NO_IMAGE);
 		}).then((user) => {
 			// Check
 			if (!user) {
