@@ -139,6 +139,10 @@ class CompanyStorage {
 				}
 			});
 		}
+		// Single Record
+		aggregation.push({
+			$sort: { name : 1 }
+		});
 		// Execute
 		return MDBCompany.aggregate(aggregation)
 				.exec().then((companiesMDB) => {
