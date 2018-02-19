@@ -111,12 +111,6 @@ class CompanyStorage {
 				$match: filters
 			});
 		}
-		// Limit
-		if (numberOfCompanies > 0) {
-			aggregation.push({
-				$limit: numberOfCompanies
-			});
-		}
 		// Add Sites
 		aggregation.push({
 			$lookup: {
@@ -143,6 +137,12 @@ class CompanyStorage {
 		aggregation.push({
 			$sort: { name : 1 }
 		});
+		// Limit
+		if (numberOfCompanies > 0) {
+			aggregation.push({
+				$limit: numberOfCompanies
+			});
+		}
 		// Execute
 		return MDBCompany.aggregate(aggregation)
 				.exec().then((companiesMDB) => {

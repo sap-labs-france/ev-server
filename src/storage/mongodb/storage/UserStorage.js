@@ -231,12 +231,6 @@ class UserStorage {
 				$match: filters
 			});
 		}
-		// Limit
-		if (numberOfUsers > 0) {
-			aggregation.push({
-				$limit: numberOfUsers
-			});
-		}
 		// Add Number of Transactions
 		aggregation.push({
 			$lookup: {
@@ -264,6 +258,12 @@ class UserStorage {
 		aggregation.push({
 			$sort: { status: -1, name: 1, firstName: 1 }
 		});
+		// Limit
+		if (numberOfUsers > 0) {
+			aggregation.push({
+				$limit: numberOfUsers
+			});
+		}
 		// Execute
 		return MDBUser.aggregate(aggregation)
 				.exec().then((usersMDB) => {

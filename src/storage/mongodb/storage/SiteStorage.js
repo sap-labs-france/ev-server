@@ -145,12 +145,6 @@ class SiteStorage {
 				$match: filters
 			});
 		}
-		// Limit
-		if (numberOfSites > 0) {
-			aggregation.push({
-				$limit: numberOfSites
-			});
-		}
 		// Add SiteAreas
 		aggregation.push({
 			$lookup: {
@@ -209,6 +203,12 @@ class SiteStorage {
 		aggregation.push({
 			$sort: { name : 1 }
 		});
+		// Limit
+		if (numberOfSites > 0) {
+			aggregation.push({
+				$limit: numberOfSites
+			});
+		}
 		// Exexute
 		return MDBSite.aggregate(aggregation)
 				.exec().then((sitesMDB) => {

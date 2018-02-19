@@ -226,12 +226,6 @@ class TransactionStorage {
 		aggregation.push({
 			$sort: { timestamp: -1 }
 		});
-		// Limit
-		if (numberOfTransactions > 0) {
-			aggregation.push({
-				$limit: numberOfTransactions
-			});
-		}
 		// Add User that started the transaction
 		aggregation.push({
 			$lookup: {
@@ -265,6 +259,12 @@ class TransactionStorage {
 					"userID.image": 0,
 					"stop.userID.image": 0
 				}
+			});
+		}
+		// Limit
+		if (numberOfTransactions > 0) {
+			aggregation.push({
+				$limit: numberOfTransactions
 			});
 		}
 		// Execute

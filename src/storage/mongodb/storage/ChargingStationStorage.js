@@ -74,9 +74,9 @@ class ChargingStationStorage {
 		}
 		// Exec request
 		return MDBChargingStation.find(filters)
-				.limit(numberOfChargingStation)
 				.collation({ locale: Constants.APPLICATION_LOCALE, caseLevel: true })
-				.sort( {_id: 1} )
+				.sort( { _id: 1 } )
+				.limit(numberOfChargingStation)
 				.exec().then((chargingStationsMDB) => {
 			let chargingStations = [];
 			// Create

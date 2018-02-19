@@ -128,8 +128,8 @@ class LoggingStorage {
 		}
 		// Exec request
 		return MDBLog.find(filter)
-				.limit(numberOfLogs)
 				.sort(sort)
+				.limit(numberOfLogs)
 				.exec().then((loggingsMDB) => {
 			var loggings = [];
 			loggingsMDB.forEach(function(loggingMDB) {
