@@ -187,7 +187,7 @@ class TransactionStorage {
 				.limit(numberOfTransactions)
 				.populate("userID", (withPicture?{}:{image:0}))
 				.populate("chargeBoxID")
-				.populate("stop.userID")
+				.populate("stop.userID", (withPicture?{}:{image:0}))
 				.sort({timestamp:-1})
 				.exec().then(transactionsMDB => {
 			// Set
