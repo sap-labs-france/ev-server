@@ -149,47 +149,127 @@ class TransactionStorage {
 		});
 	}
 
-	static handleGetTransactions(searchValue, filter, withPicture, numberOfTransactions) {
+	static handleGetTransactions(searchValue, filter, siteID, withPicture, numberOfTransactions) {
+		// Check Limit
+		numberOfTransactions = Utils.checkRecordLimit(numberOfTransactions);
 		// Build filter
-		let $match = {};
+		let match = {};
 		// User
 		if (filter.userId) {
-			$match.userID = new ObjectId(filter.userId);
+			match.userID = new ObjectId(filter.userId);
 		}
 		// Charge Box
 		if (filter.chargeBoxID) {
-			$match.chargeBoxID = filter.chargeBoxID;
+			match.chargeBoxID = filter.chargeBoxID;
 		}
 		// Connector
 		if (filter.connectorId) {
-			$match.connectorId = parseInt(filter.connectorId);
+			match.connectorId = parseInt(filter.connectorId);
 		}
 		// Date provided?
 		if (filter.startDateTime || filter.endDateTime) {
-			$match.timestamp = {};
+			match.timestamp = {};
 		}
 		// Start date
 		if (filter.startDateTime) {
-			$match.timestamp.$gte = new Date(filter.startDateTime);
+			match.timestamp.$gte = new Date(filter.startDateTime);
 		}
 		// End date
 		if (filter.endDateTime) {
-			$match.timestamp.$lte = new Date(filter.endDateTime);
+			match.timestamp.$lte = new Date(filter.endDateTime);
 		}
 		// Check stop tr
 		if (filter.stop) {
-			$match.stop = filter.stop;
+			match.stop = filter.stop;
 		}
-		// Check Limit
-		numberOfTransactions = Utils.checkRecordLimit(numberOfTransactions);
-		// Yes: Get only active ones
-		return MDBTransaction.find($match)
-				.limit(numberOfTransactions)
-				.populate("userID", (withPicture?{}:{image:0}))
-				.populate("chargeBoxID")
-				.populate("stop.userID", (withPicture?{}:{image:0}))
-				.sort({timestamp:-1})
-				.exec().then(transactionsMDB => {
+		// Create Aggregation
+		let aggregation = [];
+		// Filters
+		if (match) {
+			aggregation.push({
+				$match: match
+			});
+		}
+		// Add Charge Box
+		aggregation.push({
+			$lookup: {
+				from: 'chargingstations',
+				localField: 'chargeBoxID',
+				foreignField: '_id',
+				as: 'chargeBoxID'
+			}
+		});
+		// Single Record
+		aggregation.push({
+			$unwind: "$chargeBoxID"
+		});
+		if (siteID) {
+			// Add Site Area
+			aggregation.push({
+				$lookup: {
+					from: 'siteareas',
+					localField: 'chargeBoxID.siteAreaID',
+					foreignField: '_id',
+					as: 'siteAreaID'
+				}
+			});
+			// Single Record
+			aggregation.push({
+				$unwind: "$siteAreaID"
+			});
+			// Filter
+			aggregation.push({
+				$match: { "siteAreaID.siteID": new ObjectId(siteID) }
+			});
+		}
+		// Sort
+		aggregation.push({
+			$sort: { timestamp: -1 }
+		});
+		// Limit
+		if (numberOfTransactions > 0) {
+			aggregation.push({
+				$limit: numberOfTransactions
+			});
+		}
+		// Add User that started the transaction
+		aggregation.push({
+			$lookup: {
+				from: 'users',
+				localField: 'userID',
+				foreignField: '_id',
+				as: 'userID'
+			}
+		});
+		// Single Record
+		aggregation.push({
+			$unwind: "$userID"
+		});
+		// Add User that stopped the transaction
+		aggregation.push({
+			$lookup: {
+				from: 'users',
+				localField: 'stop.userID',
+				foreignField: '_id',
+				as: 'stop.userID'
+			}
+		});
+		// Single Record
+		aggregation.push({
+			$unwind: "$stop.userID"
+		});
+		// Picture?
+		if (!withPicture) {
+			aggregation.push({
+				$project: {
+					"userID.image": 0,
+					"stop.userID.image": 0
+				}
+			});
+		}
+		// Execute
+		return MDBTransaction.aggregate(aggregation)
+				.exec().then((transactionsMDB) => {
 			// Set
 			let transactions = [];
 			// Filter

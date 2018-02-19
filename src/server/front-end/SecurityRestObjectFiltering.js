@@ -171,6 +171,7 @@ class SecurityRestObjectFiltering {
 		filteredRequest.WithPicture = SecurityRestObjectFiltering.filterBoolean(request.WithPicture);
 		filteredRequest.StartDateTime = sanitize(request.StartDateTime);
 		filteredRequest.EndDateTime = sanitize(request.EndDateTime);
+		filteredRequest.SiteID = sanitize(request.SiteID);
 		filteredRequest.Search = sanitize(request.Search);
 		if (request.UserID) {
 			filteredRequest.UserID = sanitize(request.UserID);

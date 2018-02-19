@@ -196,9 +196,9 @@ class MongoDBStorage extends Storage {
 		return TransactionStorage.handleSaveMeterValues(meterValues);
 	}
 
-	getTransactions(searchValue=null, filter={}, withPicture=false, numberOfTransactions=500) {
+	getTransactions(searchValue=null, filter={}, siteID=null, withPicture=false, numberOfTransactions=500) {
 		// Delegate
-		return TransactionStorage.handleGetTransactions(searchValue, filter, withPicture, numberOfTransactions);
+		return TransactionStorage.handleGetTransactions(searchValue, filter, siteID, withPicture, numberOfTransactions);
 	}
 
 	getTransaction(transactionId, withPicture=true) {

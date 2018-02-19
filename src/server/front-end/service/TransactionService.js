@@ -472,7 +472,8 @@ class TransactionService {
 		// Check auth
 		if (!CentralRestServerAuthorization.canListTransactions(req.user)) {
 			// Not Authorized!
-			throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_LIST,
+			throw new AppAuthError(req.user,
+				CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_TRANSACTION,
 				null, 500, "TransactionService", "handleGetTransactionsCompleted");
 		}
@@ -498,6 +499,7 @@ class TransactionService {
 			return global.storage.getTransactions(
 				filteredRequest.Search,
 				filter,
+				filteredRequest.SiteID,
 				filteredRequest.WithPicture,
 				filteredRequest.Limit);
 		}).then((transactions) => {
