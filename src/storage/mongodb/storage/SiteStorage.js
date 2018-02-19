@@ -205,6 +205,10 @@ class SiteStorage {
 		aggregation.push({
 			$unwind: "$company"
 		});
+		// Single Record
+		aggregation.push({
+			$sort: { name : 1 }
+		});
 		// Exexute
 		return MDBSite.aggregate(aggregation)
 				.exec().then((sitesMDB) => {
