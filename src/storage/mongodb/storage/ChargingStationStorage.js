@@ -49,8 +49,8 @@ class ChargingStationStorage {
 			"$and": [
 				{
 					"$or": [
-						{ "deleted": { $exists:false } },
-						{ deleted: false }
+						{ "deleted": { $exists: false } },
+						{ "deleted": false }
 					]
 				}
 			]
