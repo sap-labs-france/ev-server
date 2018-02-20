@@ -166,26 +166,28 @@ class CompanyStorage {
 
 	static handleDeleteCompany(id) {
 		// Delete Sites
-		SiteStorage.handleGetSitesFromCompany(id).then((sites) => {
+		return SiteStorage.handleGetSitesFromCompany(id).then((sites) => {
 			// Delete
+			let proms = [];
 			sites.forEach((site) => {
 				//	Delete Site
-				site.delete().then((result) => {
-					// Nothing to do but promise has to be kept to make the update work!
-				});
+				proms.push(site.delete());
 			});
-		});
-		// Remove the Company
-		return MDBCompany.findByIdAndRemove(id).then((result) => {
-			// Notify Change
-			_centralRestServer.notifyCompanyDeleted(
-				{
-					"id": id,
-					"type": Constants.NOTIF_ENTITY_COMPANY
-				}
-			);
-			// Return the result
-			return result.result;
+			// Execute all promises
+			return Promise.all(proms);
+		}).then((results) => {
+			// Remove the Company
+			return MDBCompany.findByIdAndRemove(id).then((result) => {
+				// Notify Change
+				_centralRestServer.notifyCompanyDeleted(
+					{
+						"id": id,
+						"type": Constants.NOTIF_ENTITY_COMPANY
+					}
+				);
+				// Return the result
+				return result.result;
+			});
 		});
 	}
 }

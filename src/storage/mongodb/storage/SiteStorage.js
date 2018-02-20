@@ -264,26 +264,27 @@ class SiteStorage {
 
 	static handleDeleteSite(id) {
 		// Delete Site Areas
-		SiteAreaStorage.handleGetSiteAreasFromSite(id).then((siteAreas) => {
+		return SiteAreaStorage.handleGetSiteAreasFromSite(id).then((siteAreas) => {
 			// Delete
+			let proms = [];
 			siteAreas.forEach((siteArea) => {
 				//	Delete Site Area
-				siteArea.delete().then((result) => {
-					// Nothing to do but promise has to be kept to make the update work!
-				});
+				proms.push(siteArea.delete());
 			});
-		});
-		// Delete Site
-		return MDBSite.findByIdAndRemove(id).then((result) => {
-			// Notify Change
-			_centralRestServer.notifySiteDeleted(
-				{
-					"id": id,
-					"type": Constants.NOTIF_ENTITY_SITE
-				}
-			);
-			// Return the result
-			return result.result;
+			// Execute all promises
+			return Promise.all(proms);
+		}).then((results) => {
+			// Delete Site
+			return MDBSite.findByIdAndRemove(id).then(() => {
+				// Notify Change
+				_centralRestServer.notifySiteDeleted(
+					{
+						"id": id,
+						"type": Constants.NOTIF_ENTITY_SITE
+					}
+				);
+				return;
+			});
 		});
 	}
 }

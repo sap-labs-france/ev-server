@@ -234,7 +234,7 @@ class SiteAreaStorage {
 				// Create
 				let siteArea = new Site(siteAreaMDB);
 				// Add
-				sites.push(siteArea);
+				siteAreas.push(siteArea);
 			});
 			return siteAreas;
 		});
