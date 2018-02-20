@@ -62,7 +62,6 @@ class SiteArea {
 	}
 
 	delete() {
-		console.log("delete");
 		return global.storage.deleteSiteArea(this.getID());
 	}
 
