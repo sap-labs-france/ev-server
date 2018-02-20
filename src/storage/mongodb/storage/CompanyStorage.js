@@ -177,7 +177,7 @@ class CompanyStorage {
 			return Promise.all(proms);
 		}).then((results) => {
 			// Remove the Company
-			return MDBCompany.findByIdAndRemove(id).then((result) => {
+			return MDBCompany.findByIdAndRemove(id).then(() => {
 				// Notify Change
 				_centralRestServer.notifyCompanyDeleted(
 					{
@@ -185,8 +185,7 @@ class CompanyStorage {
 						"type": Constants.NOTIF_ENTITY_COMPANY
 					}
 				);
-				// Return the result
-				return result.result;
+				return;
 			});
 		});
 	}

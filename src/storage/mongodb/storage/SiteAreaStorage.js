@@ -242,23 +242,22 @@ class SiteAreaStorage {
 
 	static handleDeleteSiteArea(id) {
 		// Remove Charging Station's Site Area
-		MDBChargingStation.update(
+		return MDBChargingStation.update(
 			{ siteAreaID: id },
-			{ $set: { siteAreaID: null } }
+			{ $set: { siteAreaID: null } },
+		 	{ multi: true }
 		).then((result) => {
-			// Nothing to do but promise has to be kept to make the update work!
-		});
-		// Remove Site Area
-		return MDBSiteArea.findByIdAndRemove(id).then((result) => {
-			// Notify Change
-			_centralRestServer.notifySiteAreaDeleted(
-				{
-					"id": id,
-					"type": Constants.NOTIF_ENTITY_SITE_AREA
-				}
-			);
-			// Return the result
-			return result.result;
+			// Remove Site Area
+			return MDBSiteArea.findByIdAndRemove(id).then(() => {
+				// Notify Change
+				_centralRestServer.notifySiteAreaDeleted(
+					{
+						"id": id,
+						"type": Constants.NOTIF_ENTITY_SITE_AREA
+					}
+				);
+				return;
+			});
 		});
 	}
 }
