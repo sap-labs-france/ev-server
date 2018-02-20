@@ -232,7 +232,7 @@ class SiteAreaStorage {
 			// Create
 			siteAreasMDB.forEach((siteAreaMDB) => {
 				// Create
-				let siteArea = new Site(siteAreaMDB);
+				let siteArea = new SiteArea(siteAreaMDB);
 				// Add
 				siteAreas.push(siteArea);
 			});
