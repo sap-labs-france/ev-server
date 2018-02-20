@@ -224,17 +224,13 @@ class TransactionStorage {
 			});
 			// Single Record
 			aggregation.push({
-				$unwind: "$siteAreaID"
+				$unwind: { "path": "$siteAreaID", "preserveNullAndEmptyArrays": true }
 			});
 			// Filter
 			aggregation.push({
 				$match: { "siteAreaID.siteID": new ObjectId(siteID) }
 			});
 		}
-		// Sort
-		aggregation.push({
-			$sort: { timestamp: -1 }
-		});
 		// Add User that started the transaction
 		aggregation.push({
 			$lookup: {
@@ -246,7 +242,7 @@ class TransactionStorage {
 		});
 		// Single Record
 		aggregation.push({
-			$unwind: "$userID"
+			$unwind: { "path": "$userID", "preserveNullAndEmptyArrays": true }
 		});
 		// Add User that stopped the transaction
 		aggregation.push({
@@ -259,7 +255,7 @@ class TransactionStorage {
 		});
 		// Single Record
 		aggregation.push({
-			$unwind: "$stop.userID"
+			$unwind: { "path": "$stop.userID", "preserveNullAndEmptyArrays": true }
 		});
 		// Picture?
 		if (!withPicture) {
@@ -270,6 +266,10 @@ class TransactionStorage {
 				}
 			});
 		}
+		// Sort
+		aggregation.push({
+			$sort: { timestamp: -1 }
+		});
 		// Limit
 		if (numberOfTransactions > 0) {
 			aggregation.push({
