@@ -154,6 +154,15 @@ class TransactionStorage {
 		numberOfTransactions = Utils.checkRecordLimit(numberOfTransactions);
 		// Build filter
 		let match = {};
+		// Filter?
+		if (searchValue) {
+			// Build filter
+			match.$or = [
+				{ "_id" : { $regex : searchValue, $options: 'i' } },
+				{ "tagID" : { $regex : searchValue, $options: 'i' } },
+				{ "chargeBoxID" : { $regex : searchValue, $options: 'i' } }
+			];
+		}
 		// User
 		if (filter.userId) {
 			match.userID = new ObjectId(filter.userId);
@@ -272,8 +281,6 @@ class TransactionStorage {
 				.exec().then((transactionsMDB) => {
 			// Set
 			let transactions = [];
-			// Filter
-			transactionsMDB = TransactionStorage._filterTransactions(transactionsMDB, searchValue);
 			// Create
 			transactionsMDB.forEach((transactionMDB) => {
 				// Set
@@ -302,36 +309,6 @@ class TransactionStorage {
 			}
 			// Ok
 			return transaction;
-		});
-	}
-
-	static _filterTransactions(transactionsMDB, searchValue) {
-		let regexp = new RegExp(searchValue, 'i');
-		// Check User and ChargeBox
-		return transactionsMDB.filter((transactionMDB) => {
-			// User not found?
-			if (!transactionMDB.userID) {
-				Logging.logError({
-					module: "MongoDBStorage", method: "getTransactions",
-					message: `Transaction ID '${transactionMDB.id}': User does not exist` });
-				return false;
-			}
-			// Charge Box not found?
-			if (!transactionMDB.chargeBoxID) {
-				Logging.logError({
-					module: "MongoDBStorage", method: "getTransactions",
-					message: `Transaction ID '${transactionMDB.id}': Charging Station does not exist` });
-				return false;
-			}
-			// Filter?
-			if (searchValue) {
-				// Yes { $regex : searchValue, $options: 'i' }
-				return regexp.test(transactionMDB.chargeBoxID.id.toString()) ||
-					regexp.test(transactionMDB.userID.name.toString()) ||
-					regexp.test(transactionMDB.userID.firstName.toString());
-			}
-			// Default ok
-			return true;
 		});
 	}
 }
