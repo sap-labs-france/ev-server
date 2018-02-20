@@ -155,6 +155,7 @@ class SecurityRestObjectFiltering {
 		let filteredRequest = {};
 		// Set
 		filteredRequest.Year = sanitize(request.Year);
+		filteredRequest.SiteID = sanitize(request.SiteID);
 		return filteredRequest;
 	}
 
@@ -162,6 +163,7 @@ class SecurityRestObjectFiltering {
 		let filteredRequest = {};
 		// Set
 		filteredRequest.Year = sanitize(request.Year);
+		filteredRequest.SiteID = sanitize(request.SiteID);
 		return filteredRequest;
 	}
 

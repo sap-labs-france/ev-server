@@ -4,6 +4,7 @@ const Logging = require('../../../utils/Logging');
 const Utils = require('../../../utils/Utils');
 const moment = require('moment');
 const Users = require('../../../utils/Users');
+const Constants = require('../../../utils/Constants');
 
 class StatisticService {
 	static handleUserUsageStatistics(action, req, res, next) {
@@ -25,7 +26,8 @@ class StatisticService {
 			filter.endDateTime = moment().endOf('year').toDate().toISOString();
 		}
 		// Check email
-		global.storage.getTransactions(null, filter, Users.WITH_NO_IMAGE, 0).then((transactions) => {
+		global.storage.getTransactions(null, filter, filteredRequest.SiteID,
+				Users.WITH_NO_IMAGE, Constants.NO_LIMIT).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				return CentralRestServerAuthorization.canReadUser(req.user, transaction.user) &&
@@ -94,7 +96,8 @@ class StatisticService {
 			filter.endDateTime = moment().endOf('year').toDate().toISOString();
 		}
 		// Check email
-		global.storage.getTransactions(null, filter, Users.WITH_NO_IMAGE, 0).then((transactions) => {
+		global.storage.getTransactions(null, filter,
+				filteredRequest.SiteID, Users.WITH_NO_IMAGE, Constants.NO_LIMIT).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				return CentralRestServerAuthorization.canReadUser(req.user, transaction.user) &&
@@ -160,7 +163,8 @@ class StatisticService {
 			filter.endDateTime = moment().endOf('year').toDate().toISOString();
 		}
 		// Check email
-		global.storage.getTransactions(null, filter, Users.WITH_NO_IMAGE, 0).then((transactions) => {
+		global.storage.getTransactions(null, filter, filteredRequest.SiteID,
+				Users.WITH_NO_IMAGE, Constants.NO_LIMIT).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				return CentralRestServerAuthorization.canReadUser(req.user, transaction.user) &&
@@ -227,7 +231,8 @@ class StatisticService {
 			filter.endDateTime = moment().endOf('year').toDate().toISOString();
 		}
 		// Check email
-		global.storage.getTransactions(null, filter, Users.WITH_NO_IMAGE, 0).then((transactions) => {
+		global.storage.getTransactions(null, filter, filteredRequest.SiteID,
+				Users.WITH_NO_IMAGE, Constants.NO_LIMIT).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				return CentralRestServerAuthorization.canReadUser(req.user, transaction.user) &&

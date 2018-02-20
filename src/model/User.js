@@ -232,7 +232,12 @@ class User {
 		// Set the user ID
 		filter.userId = this.getID();
 		// Get the consumption
-		return global.storage.getTransactions(null, filter, withImage);
+		return global.storage.getTransactions(
+			null,
+			filter,
+			null,
+			withImage,
+			Constants.NO_LIMIT);
 	}
 
 	save() {

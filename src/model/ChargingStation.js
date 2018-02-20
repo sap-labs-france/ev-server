@@ -819,20 +819,27 @@ class ChargingStation {
 
 	hasAtLeastOneTransaction() {
 		// Get the consumption
-		return global.storage.getTransactions(null,
+		return global.storage.getTransactions(
+				null,
 				{"chargeBoxID": this.getID()},
-				false, 1).then((transactions) => {
+				null,
+				false,
+				1).then((transactions) => {
 			return (transactions && transactions.length > 0 ? true : false);
 		});;
 	}
 
 	getTransactions(connectorId, startDateTime, endDateTime, withImage) {
 		// Get the consumption
-		return global.storage.getTransactions(null,
+		return global.storage.getTransactions(
+			null,
 			{"chargeBoxID": this.getID(),
 			 "connectorId": connectorId,
 			 "startDateTime": startDateTime,
-			 "endDateTime" : endDateTime}, withImage);
+			 "endDateTime" : endDateTime},
+			null,
+			withImage,
+		 	Constants.NO_LIMIT);
 	}
 
 	getConsumptionsFromTransaction(transaction, optimizeNbrOfValues) {

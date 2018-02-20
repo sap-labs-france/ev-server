@@ -6,6 +6,7 @@ const AppAuthError = require('../../../exception/AppAuthError');
 const Utils = require('../../../utils/Utils');
 const ChargingStations = require('../../../utils/ChargingStations');
 const Users = require('../../../utils/Users');
+const Constants = require('../../../utils/Constants');
 const moment = require('moment');
 
 class TransactionService {
@@ -384,7 +385,8 @@ class TransactionService {
 				filteredRequest.ConnectorId,
 				filteredRequest.StartDateTime,
 				filteredRequest.EndDateTime,
-				Users.WITH_NO_IMAGE);
+				Users.WITH_NO_IMAGE,
+				Constants.NO_LIMIT);
 		}).then((transactions) => {
 			// Return
 			res.json(
@@ -447,7 +449,8 @@ class TransactionService {
 			filter.connectorId = filteredRequest.ConnectorId;
 		}
 		// Get Transactions
-		global.storage.getTransactions(null, filter, filteredRequest.WithPicture).then((transactions) => {
+		global.storage.getTransactions(null, filter, null,
+				filteredRequest.WithPicture, Constants.NO_LIMIT).then((transactions) => {
 			// Return
 			res.json(
 				// Filter
