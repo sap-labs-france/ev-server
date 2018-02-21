@@ -137,8 +137,16 @@ class SecurityRestObjectFiltering {
 		let result = false;
 		// Check boolean
 		if(value) {
+			// Sanitize
 			value = sanitize(value);
-			result = (value === "true");
+			// Check the type
+			if (typeof value == "boolean") {
+				// Arealdy a boolean
+				result = value;
+			} else {
+				// Convert
+				result = (value === "true");
+			}
 		}
 		return result;
 	}
@@ -241,8 +249,8 @@ class SecurityRestObjectFiltering {
 	static filterCompaniesRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
-		filteredRequest.WithLogo = SecurityRestObjectFiltering.filterBoolean(sanitize(request.WithLogo));
-		filteredRequest.WithSites = SecurityRestObjectFiltering.filterBoolean(sanitize(request.WithSites));
+		filteredRequest.WithLogo = SecurityRestObjectFiltering.filterBoolean(request.WithLogo);
+		filteredRequest.WithSites = SecurityRestObjectFiltering.filterBoolean(request.WithSites);
 		return filteredRequest;
 	}
 
@@ -250,9 +258,9 @@ class SecurityRestObjectFiltering {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.WithPicture = SecurityRestObjectFiltering.filterBoolean(request.WithPicture);
-		filteredRequest.WithSiteAreas = SecurityRestObjectFiltering.filterBoolean(sanitize(request.WithSiteAreas));
-		filteredRequest.WithChargeBoxes = SecurityRestObjectFiltering.filterBoolean(sanitize(request.WithChargeBoxes));
-		filteredRequest.WithCompanyLogo = SecurityRestObjectFiltering.filterBoolean(sanitize(request.WithCompanyLogo));
+		filteredRequest.WithSiteAreas = SecurityRestObjectFiltering.filterBoolean(request.WithSiteAreas);
+		filteredRequest.WithChargeBoxes = SecurityRestObjectFiltering.filterBoolean(request.WithChargeBoxes);
+		filteredRequest.WithCompanyLogo = SecurityRestObjectFiltering.filterBoolean(request.WithCompanyLogo);
 		return filteredRequest;
 	}
 
@@ -598,6 +606,7 @@ class SecurityRestObjectFiltering {
 		let filteredRequest = {};
 		filteredRequest.name = sanitize(request.name);
 		filteredRequest.image = sanitize(request.image);
+		filteredRequest.accessControl = SecurityRestObjectFiltering.filterBoolean(request.accessControl);
 		filteredRequest.siteID = sanitize(request.siteID);
 		filteredRequest.chargeBoxIDs = sanitize(request.chargeBoxIDs);
 		return filteredRequest;

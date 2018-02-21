@@ -26,6 +26,14 @@ class SiteArea {
 		return this._model.name;
 	}
 
+	setAccessControlEnabled(accessControl) {
+		this._model.accessControl = accessControl;
+	}
+
+	isAccessControlEnabled() {
+		return this._model.accessControl;
+	}
+
 	setImage(image) {
 		this._model.image = image;
 	}
