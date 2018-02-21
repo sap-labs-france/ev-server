@@ -221,7 +221,6 @@ class SiteAreaService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreaUpdateRequest( req.body, req.user );
 		// Check Mandatory fields
-		console.log(filteredRequest);
 		if (SiteAreas.checkIfSiteAreaValid(action, filteredRequest, req, res, next)) {
 			let siteArea;
 			// Check
@@ -269,7 +268,6 @@ class SiteAreaService {
 			}).then((results) => {
 				// Update
 				Database.updateSiteArea(filteredRequest, siteArea.getModel());
-				console.log(siteArea);
 				// Update
 				return siteArea.save();
 			}).then((updatedSiteArea) => {
