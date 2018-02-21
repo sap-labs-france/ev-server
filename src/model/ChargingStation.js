@@ -2,6 +2,7 @@ const Utils = require('../utils/Utils');
 const SoapChargingStationClient = require('../client/soap/SoapChargingStationClient');
 const Logging = require('../utils/Logging');
 const User = require('./User');
+const SiteArea = require('./SiteArea');
 const Users = require('../utils/Users');
 const Constants = require('../utils/Constants');
 const Database = require('../utils/Database');
@@ -64,13 +65,25 @@ class ChargingStation {
 	setSiteArea(siteArea) {
 		if (siteArea) {
 			this._model.siteArea = siteArea.getModel();
+			this._model.siteAreaID = siteArea.getID();
 		} else {
 			this._model.siteArea = null;
 		}
 	}
 
 	getSiteArea() {
-		return SiteArea(this._model.siteArea);
+		if (this._model.siteArea) {
+			return Promise.resolve(new SiteArea(this._model.siteArea));
+		} else if (this._model.siteAreaID){
+			// Get from DB
+			return global.storage.getSiteArea(this._model.siteAreaID).then((siteArea) => {
+				// Keep it
+				this.setSiteArea(siteArea);
+				return siteArea;
+			});
+		} else {
+			return Promise.resolve(null);
+		}
 	}
 
 	getChargePointVendor() {
@@ -254,7 +267,7 @@ class ChargingStation {
 		return global.storage.saveChargingStationSiteArea(this.getModel());
 	}
 
-	saveStatusNotification(statusNotification) {
+	handleStatusNotification(statusNotification) {
 		// Set the Station ID
 		statusNotification.chargeBoxID = this.getID();
 
@@ -336,7 +349,7 @@ class ChargingStation {
 		})(connectors[statusNotification.connectorId-1]);
 	}
 
-	saveBootNotification(bootNotification) {
+	handleBootNotification(bootNotification) {
 		// Set the Station ID
 		bootNotification.chargeBoxID = this.getID();
 
@@ -468,7 +481,7 @@ class ChargingStation {
 		}
 	}
 
-	saveMeterValues(meterValues) {
+	handleMeterValues(meterValues) {
 		// Create model
 		var newMeterValues = {};
 		// Init
@@ -562,7 +575,7 @@ class ChargingStation {
 		})
 	}
 
-	saveStartTransaction(transaction) {
+	handleStartTransaction(transaction) {
 		// Set the charger ID
 		transaction.chargeBoxID = this.getID();
 		// Check if already exists
@@ -575,7 +588,7 @@ class ChargingStation {
 		}
 	}
 
-	saveDataTransfer(dataTransfer) {
+	handleDataTransfer(dataTransfer) {
 		// Set the charger ID
 		dataTransfer.chargeBoxID = this.getID();
 		dataTransfer.timestamp = new Date();
@@ -584,7 +597,7 @@ class ChargingStation {
 		return global.storage.saveDataTransfer(dataTransfer);
 	}
 
-	saveDiagnosticsStatusNotification(diagnosticsStatusNotification) {
+	handleDiagnosticsStatusNotification(diagnosticsStatusNotification) {
 		// Set the charger ID
 		diagnosticsStatusNotification.chargeBoxID = this.getID();
 		diagnosticsStatusNotification.timestamp = new Date();
@@ -593,7 +606,7 @@ class ChargingStation {
 		return global.storage.saveDiagnosticsStatusNotification(diagnosticsStatusNotification);
 	}
 
-	saveFirmwareStatusNotification(firmwareStatusNotification) {
+	handleFirmwareStatusNotification(firmwareStatusNotification) {
 		// Set the charger ID
 		firmwareStatusNotification.chargeBoxID = this.getID();
 		firmwareStatusNotification.timestamp = new Date();
@@ -602,7 +615,7 @@ class ChargingStation {
 		return global.storage.saveFirmwareStatusNotification(firmwareStatusNotification);
 	}
 
-	saveAuthorize(authorize) {
+	handleAuthorize(authorize) {
 		// Set the charger ID
 		authorize.chargeBoxID = this.getID();
 		authorize.timestamp = new Date();
@@ -612,70 +625,78 @@ class ChargingStation {
 	}
 
 	checkIfUserIsAuthorized(request, saveFunction) {
-		// Get User
-		return global.storage.getUserByTagId(request.idTag).then((user) => {
-			// Found?
-			if (user) {
-				// Check status
-				if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
-					// Reject but save ok
-					return Promise.reject( new Error(
-						`User ${Utils.buildUserFullName(user.getModel())} with TagID ${request.idTag} is not Active`) );
+		// Check first if the site area access control is active
+		return this.getSiteArea().then((siteArea) => {
+			if (siteArea && !siteArea.isAccessControlEnabled()) {
+				// Access Control disabled
+				// Execute the function
+				return saveFunction(request);
+			}
+			// Check User
+			return global.storage.getUserByTagId(request.idTag).then((user) => {
+				// Found?
+				if (user) {
+					// Check status
+					if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
+						// Reject but save ok
+						return Promise.reject( new Error(
+							`User ${Utils.buildUserFullName(user.getModel())} with TagID ${request.idTag} is not Active`) );
+					} else {
+						// Save it
+						request.user = user;
+						// Execute the function
+						return saveFunction(request).then(() => {
+							// Check function
+							if (saveFunction.name === "saveStartTransaction") {
+								// Notify
+								NotificationHandler.sendTransactionStarted(
+									request.transactionId,
+									user.getModel(),
+									this.getModel(),
+									{
+										"user": user.getModel(),
+										"chargingBoxID": this.getID(),
+										"connectorId": request.connectorId,
+										"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, request.connectorId, request.transactionId)
+									},
+									user.getLocale()
+								);
+							}
+						});
+					}
 				} else {
-					// Save it
-					request.user = user;
-					// Execute the function
-					return saveFunction(request).then(() => {
-						// Check function
-						if (saveFunction.name === "saveStartTransaction") {
-							// Notify
-							NotificationHandler.sendTransactionStarted(
-								request.transactionId,
-								user.getModel(),
-								this.getModel(),
-								{
-									"user": user.getModel(),
-									"chargingBoxID": this.getID(),
-									"connectorId": request.connectorId,
-									"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, request.connectorId, request.transactionId)
-								},
-								user.getLocale()
-							);
-						}
+					// Create an empty user
+					var newUser = new User({
+						name: "Unknown",
+						firstName: "User",
+						status: Users.USER_STATUS_PENDING,
+						role: Users.USER_ROLE_BASIC,
+						email: request.idTag + "@sap.com",
+						tagIDs: [request.idTag],
+						createdBy: Constants.CENTRAL_SERVER,
+						createdOn: new Date().toISOString()
+					});
+
+					// Save the user
+					return newUser.save().then((user) => {
+						// Send Notification
+						NotificationHandler.sendUnknownUserBadged(
+							Utils.generateGUID(),
+							this.getModel(),
+							{
+								"chargingBoxID": this.getID(),
+								"badgeId": request.idTag,
+								"evseDashboardUserURL" : Utils.buildEvseUserURL(user)
+							}
+						);
+						// Reject but save ok
+						return Promise.reject( new Error(`User with Tag ID ${request.idTag} not found but saved as inactive user`) );
+					}, (err) => {
+						// Reject, cannot save
+						return Promise.reject( new Error(`User with Tag ID ${request.idTag} not found and cannot be created: ${err.message}`) );
 					});
 				}
-			} else {
-				// Create an empty user
-				var newUser = new User({
-					name: "Unknown",
-					firstName: "User",
-					status: Users.USER_STATUS_PENDING,
-					role: Users.USER_ROLE_BASIC,
-					email: request.idTag + "@sap.com",
-					tagIDs: [request.idTag],
-					createdBy: Constants.CENTRAL_SERVER,
-					createdOn: new Date().toISOString()
-				});
-
-				// Save the user
-				return newUser.save().then((user) => {
-					// Send Notification
-					NotificationHandler.sendUnknownUserBadged(
-						Utils.generateGUID(),
-						this.getModel(),
-						{
-							"chargingBoxID": this.getID(),
-							"badgeId": request.idTag,
-							"evseDashboardUserURL" : Utils.buildEvseUserURL(user)
-						}
-					);
-					// Reject but save ok
-					return Promise.reject( new Error(`User with Tag ID ${request.idTag} not found but saved as inactive user`) );
-				}, (err) => {
-					// Reject, cannot save
-					return Promise.reject( new Error(`User with Tag ID ${request.idTag} not found and cannot be created: ${err.message}`) );
-				});
-			}
+			});
 		});
 	}
 
@@ -684,7 +705,7 @@ class ChargingStation {
 		return global.storage.getTransaction(transactionId);
 	}
 
-	saveStopTransaction(stopTransaction) {
+	handleStopTransaction(stopTransaction) {
 		// Set the charger ID
 		stopTransaction.chargeBoxID = this.getID();
 		// Get the transaction first (to get the connector id)

@@ -100,6 +100,7 @@ class Site {
 	setCompany(company) {
 		if (company) {
 			this._model.company = company.getModel();
+			this._model.companyID = company.getID();
 		} else {
 			this._model.company = null;
 		}

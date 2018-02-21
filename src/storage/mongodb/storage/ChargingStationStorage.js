@@ -199,7 +199,9 @@ class ChargingStationStorage {
 		authorizeMDB._id = crypto.createHash('sha256')
 			.update(`${authorize.chargeBoxID}~${authorize.timestamp.toISOString()}`)
 			.digest("hex");
-		authorizeMDB.userID = authorize.user.getID();
+		if (authorize.user) {
+			authorizeMDB.userID = authorize.user.getID();
+		}
 		authorizeMDB.tagID = authorize.idTag;
 		// Create new
 		return authorizeMDB.save().then(() => {

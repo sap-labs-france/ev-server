@@ -99,7 +99,7 @@ class CentralSystemServer {
 			// Save Charging Station
 			return chargingStation.save().then(() => {
 				// Save the Boot Notification
-				return chargingStation.saveBootNotification(args);
+				return chargingStation.handleBootNotification(args);
 			}).then(() => {
 				// Log
 				Logging.logInfo({
@@ -230,7 +230,7 @@ class CentralSystemServer {
 					);
 				}
 				// Save
-				return chargingStation.saveStatusNotification(args);
+				return chargingStation.handleStatusNotification(args);
 			}
 		}).then(() => {
 			// Log
@@ -265,7 +265,7 @@ class CentralSystemServer {
 			// Found?
 			if (chargingStation) {
 				// Save
-				return chargingStation.saveMeterValues(args);
+				return chargingStation.handleMeterValues(args);
 			}
 		}).then(() => {
 			// Log
@@ -299,17 +299,25 @@ class CentralSystemServer {
 			// Found?
 			if (chargingStation) {
 				// Save
-				return chargingStation.saveAuthorize(args);
+				return chargingStation.handleAuthorize(args);
 			} else {
 				// Error
 				return Promise.reject(new Error(`Charging Station ${headers.chargeBoxIdentity} does not exist`));
 			}
 		}).then(() => {
-			// Log
-			Logging.logInfo({
-				source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleAuthorize",
-				action: "Authorize", message: `User '${Utils.buildUserFullName(args.user._model)}' has been authorized to use the Charging Station`,
-				detailedMessages: args });
+			if (args.user) {
+				// Log
+				Logging.logInfo({
+					source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleAuthorize",
+					action: "Authorize", message: `User '${Utils.buildUserFullName(args.user._model)}' has been authorized to use the Charging Station`,
+					detailedMessages: args });
+			} else {
+				// Log
+				Logging.logInfo({
+					source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleAuthorize",
+					action: "Authorize", message: `User has been authorized to use the Charging Station (access control disabled)`,
+					detailedMessages: args });
+			}
 
 			return {
 				"authorizeResponse": {
@@ -346,7 +354,7 @@ class CentralSystemServer {
 			// Found?
 			if (chargingStation) {
 				// Save
-				return chargingStation.saveDiagnosticsStatusNotification(args);
+				return chargingStation.handleDiagnosticsStatusNotification(args);
 			}
 		}).then(() => {
 			// Log
@@ -380,7 +388,7 @@ class CentralSystemServer {
 			// Found?
 			if (chargingStation) {
 				// Save
-				return chargingStation.saveFirmwareStatusNotification(args);
+				return chargingStation.handleFirmwareStatusNotification(args);
 			}
 		}).then(() => {
 			// Log
@@ -416,7 +424,7 @@ class CentralSystemServer {
 			// Found?
 			if (chargingStation) {
 				// Save
-				return chargingStation.saveStartTransaction(args);
+				return chargingStation.handleStartTransaction(args);
 			} else {
 				// Reject but save ok
 				return Promise.reject( new Error(`Transaction rejected: Charging Station  ${headers.chargeBoxIdentity} does not exist`) );
@@ -465,7 +473,7 @@ class CentralSystemServer {
 			// Found?
 			if (chargingStation) {
 				// Save
-				return chargingStation.saveDataTransfer(args);
+				return chargingStation.handleDataTransfer(args);
 			}
 		}).then(() => {
 			// Log
@@ -501,7 +509,7 @@ class CentralSystemServer {
 			// Found?
 			if (chargingStation) {
 				// Save
-				return chargingStation.saveStopTransaction(args);
+				return chargingStation.handleStopTransaction(args);
 			}
 		}).then(() => {
 			let message;

@@ -60,6 +60,7 @@ class SiteArea {
 	setSite(site) {
 		if (site) {
 			this._model.site = site.getModel();
+			this._model.siteID = site.getID();
 		} else {
 			this._model.site = null;
 		}
