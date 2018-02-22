@@ -10,6 +10,19 @@ module.exports = {
 		return uuidV4();
 	},
 
+	isEmptyJSon(document) {
+		// Empty?
+		if (!document) {
+			return true;
+		}
+		// Check type
+		if (typeof document != "object") {
+			return true;
+		}
+		// Check
+		return Object.keys(document).length == 0;
+	},
+
 	buildUserFullName(user, withID=true) {
 		if (!user) {
 			return "Unknown";

@@ -315,7 +315,7 @@ class CentralSystemServer {
 				// Log
 				Logging.logInfo({
 					source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleAuthorize",
-					action: "Authorize", message: `User has been authorized to use the Charging Station (access control disabled)`,
+					action: "Authorize", message: `An anonymous user has been authorized to use the Charging Station`,
 					detailedMessages: args });
 			}
 
@@ -431,10 +431,17 @@ class CentralSystemServer {
 			}
 		}).then(() => {
 			// Log
-			Logging.logInfo({
-				source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStartTransaction",
-				action: "StartTransaction", message: `Transaction ID '${args.transactionId}' has been started by '${Utils.buildUserFullName(args.user._model)}' on Connector '${args.connectorId}'`,
-				detailedMessages: args });
+			if (args.user) {
+				Logging.logInfo({
+					source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStartTransaction",
+					action: "StartTransaction", message: `Transaction ID '${args.transactionId}' has been started by '${Utils.buildUserFullName(args.user._model)}' on Connector '${args.connectorId}'`,
+					detailedMessages: args });
+			} else {
+				Logging.logInfo({
+					source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStartTransaction",
+					action: "StartTransaction", message: `Transaction ID '${args.transactionId}' has been started by an anonymous user on Connector '${args.connectorId}'`,
+					detailedMessages: args });
+			}
 
 			return {
 				"startTransactionResponse": {

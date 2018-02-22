@@ -796,8 +796,9 @@ class SecurityRestObjectFiltering {
 			return null;
 		}
 		// Check auth
-		if (CentralRestServerAuthorization.canReadUser(loggedUser, transaction.user) &&
-			CentralRestServerAuthorization.canReadChargingStation(loggedUser, transaction.chargeBox)) {
+		if (CentralRestServerAuthorization.isAdmin(loggedUser) ||
+			((transaction.user && CentralRestServerAuthorization.canReadUser(loggedUser, transaction.user)) &&
+			CentralRestServerAuthorization.canReadChargingStation(loggedUser, transaction.chargeBox))) {
 			// Set only necessary info
 			filteredTransaction = {};
 			filteredTransaction.id = transaction.id;

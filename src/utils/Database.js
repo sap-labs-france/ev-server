@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const Users = require('./Users');
+const Utils = require('./Utils');
 require('source-map-support').install();
 
 module.exports = {
@@ -98,12 +99,12 @@ module.exports = {
 		dest.sourceId = src.sourceId;
 		dest.sourceDescr = src.sourceDescr;
 		// User
-		if (src.userID) {
+		if (!Utils.isEmptyJSon(src.userID)) {
 			dest.user = {};
 			this.updateUser(src.userID, dest.user);
 		}
 		// ChargeBox
-		if (src.chargeBoxID) {
+		if (!Utils.isEmptyJSon(src.chargeBoxID)) {
 			dest.chargeBox = {};
 			this.updateChargingStation(src.chargeBoxID, dest.chargeBox);
 		}
@@ -239,12 +240,12 @@ module.exports = {
 		this.updateID(src, dest);
 		dest.transactionId = src.id;
 		// ChargeBox
-		if (src.chargeBoxID) {
+		if (!Utils.isEmptyJSon(src.chargeBoxID)) {
 			dest.chargeBox = {};
 			this.updateChargingStation(src.chargeBoxID, dest.chargeBox);
 		}
 		// User
-		if (src.userID) {
+		if (!Utils.isEmptyJSon(src.userID)) {
 			dest.user = {};
 			this.updateUser(src.userID, dest.user);
 		}
@@ -253,10 +254,10 @@ module.exports = {
 		dest.tagID = src.tagID;
 		dest.meterStart = src.meterStart;
 		// Stop?
-		if (src.stop) {
+		if (!Utils.isEmptyJSon(src.stop)) {
 			dest.stop = {};
 			// User
-			if (src.stop.userID) {
+			if (!Utils.isEmptyJSon(src.stop.userID)) {
 				dest.stop.user = {};
 				this.updateUser(src.stop.userID, dest.stop.user);
 			}

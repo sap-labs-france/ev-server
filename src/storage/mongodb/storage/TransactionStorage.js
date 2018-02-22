@@ -61,7 +61,9 @@ class TransactionStorage {
 		if (!startTransaction.id) {
 			// No: Set a new ID
 			startTransaction.id = startTransaction.transactionId;
-			startTransaction.userID = startTransaction.user.getID();
+			if (startTransaction.user) {
+				startTransaction.userID = startTransaction.user.getID();
+			}
 			startTransaction.tagID = startTransaction.idTag;
 		}
 
@@ -289,6 +291,7 @@ class TransactionStorage {
 				// Add
 				transactions.push(transaction);
 			});
+			console.log(transactions);
 			return transactions;
 		});
 	}

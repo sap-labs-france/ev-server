@@ -216,11 +216,14 @@ class TransactionService {
 					500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
-				// Not Authorized!
-				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
-					CentralRestServerAuthorization.ENTITY_USER,
-					transaction.user, 500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
+			if (!transaction.user || !CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
+				if (!CentralRestServerAuthorization.isAdmin(req.user)) {
+					// Not Authorized!
+					throw new AppAuthError(req.user,
+						CentralRestServerAuthorization.ACTION_READ,
+						CentralRestServerAuthorization.ENTITY_USER,
+						transaction.user, 500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
+				}
 			}
 			// Get the Charging Station
 			return global.storage.getChargingStation(transaction.chargeBox.id);
