@@ -296,37 +296,41 @@ class TransactionService {
 			user: req.user, action: action,
 			module: "TransactionService",
 			method: "handleGetTransaction",
-			message: `Read Transaction ID '${req.query.TransactionId}'`,
+			message: `Read Transaction ID '${req.query.ID}'`,
 			detailedMessages: req.query
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canReadTransaction(req.user, req.query.TransactionId)) {
+		if (!CentralRestServerAuthorization.canReadTransaction(req.user, req.query.ID)) {
 			// Not Authorized!
 			throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
 				CentralRestServerAuthorization.ENTITY_TRANSACTION,
-				req.query.TransactionId, 500, "TransactionService", "handleGetTransaction");
+				req.query.ID, 500, "TransactionService", "handleGetTransaction");
 		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterTransactionRequest(req.query, req.user);
 		// Charge Box is mandatory
-		if(!filteredRequest.TransactionId) {
+		if(!filteredRequest.ID) {
 			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The Transaction ID is mandatory`), req, res, next);
 			return;
 		}
 		// Get Transaction
-		global.storage.getTransaction(filteredRequest.TransactionId).then((transaction) => {
+		global.storage.getTransaction(filteredRequest.ID).then((transaction) => {
 			// Found?
 			if (!transaction) {
 				// Not Found!
-				throw new AppError(`Transaction '${filteredRequest.TransactionId}' does not exist`,
+				throw new AppError(`Transaction '${filteredRequest.ID}' does not exist`,
 					500, "TransactionService", "handleGetTransaction");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
-				// Not Authorized!
-				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
-					CentralRestServerAuthorization.ENTITY_USER,
-					transaction.user, 500, "TransactionService", "handleGetTransaction");
+			if (!transaction.user || !CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
+				// Admin?
+				if (!CentralRestServerAuthorization.isAdmin(req.user)) {
+					// No: Not Authorized!
+					throw new AppAuthError(req.user,
+						CentralRestServerAuthorization.ACTION_READ,
+						CentralRestServerAuthorization.ENTITY_USER,
+						transaction.user, 500, "TransactionService", "handleGetTransaction");
+				}
 			}
 			// Return
 			res.json(

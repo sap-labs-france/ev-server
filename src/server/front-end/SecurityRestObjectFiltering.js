@@ -119,7 +119,7 @@ class SecurityRestObjectFiltering {
 	static filterTransactionRequest(request, loggedUser) {
 		let filteredRequest = {};
 		// Set
-		filteredRequest.TransactionId = sanitize(request.TransactionId);
+		filteredRequest.ID = sanitize(request.ID);
 		return filteredRequest;
 	}
 
