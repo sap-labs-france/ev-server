@@ -1,5 +1,6 @@
 var Database = require('../utils/Database');
 var Users = require('../utils/Users');
+var Constants = require('../utils/Constants');
 
 class User {
 	constructor(user) {

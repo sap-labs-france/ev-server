@@ -367,7 +367,8 @@ class ChargingStation {
 				// Found?
 				if (!transaction.stop) {
 					// Get the consumption
-					return this.getConsumptionsFromTransaction(transaction, false).then((consumption) => {
+					return this.getConsumptionsFromTransaction(transaction, false).then(
+							(consumption) => {
 						let currentConsumption = 0;
 						let totalConsumption = 0;
 						// Check
@@ -530,11 +531,11 @@ class ChargingStation {
 			newMeterValues.values.push(newMeterValue);
 		});
 
-		// Update Charging Station Consumption
-		return this.updateChargingStationConsumption(meterValues.transactionId).then(() => {
-			// Save Meter Values
-			return global.storage.saveMeterValues(newMeterValues);
-		});
+		// Save Meter Values
+		return global.storage.saveMeterValues(newMeterValues).then((result) => {
+			// Update Charging Station Consumption
+			return this.updateChargingStationConsumption(meterValues.transactionId);
+		})
 	}
 
 	saveConfiguration(configuration) {
