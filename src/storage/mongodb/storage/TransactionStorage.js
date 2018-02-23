@@ -291,7 +291,6 @@ class TransactionStorage {
 				// Add
 				transactions.push(transaction);
 			});
-			console.log(transactions);
 			return transactions;
 		});
 	}
