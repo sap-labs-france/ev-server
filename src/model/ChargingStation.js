@@ -867,7 +867,7 @@ class ChargingStation {
 	getConsumptionsFromTransaction(transaction, optimizeNbrOfValues) {
 		// Get the last 5 meter values
 		return global.storage.getMeterValuesFromTransaction(
-				transaction.transactionId).then((meterValues) => {
+				transaction.id).then((meterValues) => {
 			// Read the pricing
 			return global.storage.getPricing().then((pricing) => {
 				// Build the header
@@ -880,7 +880,7 @@ class ChargingStation {
 				chargingStationConsumption.totalConsumption = 0;
 				chargingStationConsumption.chargeBoxID = this.getID();
 				chargingStationConsumption.connectorId = transaction.connectorId;
-				chargingStationConsumption.transactionId = transaction.transactionId;
+				chargingStationConsumption.transactionId = transaction.id;
 				chargingStationConsumption.user = transaction.user;
 				if (transaction.stop && transaction.stop.user) {
 					chargingStationConsumption.stop = {};

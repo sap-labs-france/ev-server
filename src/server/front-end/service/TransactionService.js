@@ -47,7 +47,6 @@ class TransactionService {
 					500, "TransactionService", "handleDeleteTransaction");
 			}
 			// Check auth
-			console.log(transaction);
 			if (!transaction.user || !CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
 				// Admin?
 				if (!CentralRestServerAuthorization.isAdmin(req.user)) {
@@ -175,12 +174,6 @@ class TransactionService {
 			stopTransaction.user = req.user.id;
 			stopTransaction.timestamp = new Date().toISOString();
 			stopTransaction.meterStop = 0;
-			console.log('transaction -------------------------------------');
-			console.log(transaction);
-			console.log('stopTransaction ---------------------------------');
-			console.log(stopTransaction);
-			console.log("chargingStation ----------------------------------");
-			console.log(chargingStation);
 			// Save
 			return chargingStation.handleStopTransaction(stopTransaction);
 		}).then((result) => {
@@ -254,7 +247,9 @@ class TransactionService {
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
 				// Not Authorized!
-				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ, CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
+				throw new AppAuthError(req.user,
+					CentralRestServerAuthorization.ACTION_READ,
+					CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
 					chargingStation.getID(), 500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
 			}
 			// Check dates
