@@ -47,12 +47,16 @@ class TransactionService {
 					500, "TransactionService", "handleDeleteTransaction");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
-				// Not Authorized!
-				throw new AppAuthError(req.user,
-					CentralRestServerAuthorization.ACTION_READ,
-					CentralRestServerAuthorization.ENTITY_USER,
-					transaction.user, 500, "TransactionService", "handleDeleteTransaction");
+			console.log(transaction);
+			if (!transaction.user || !CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
+				// Admin?
+				if (!CentralRestServerAuthorization.isAdmin(req.user)) {
+					// Not Authorized!
+					throw new AppAuthError(req.user,
+						CentralRestServerAuthorization.ACTION_READ,
+						CentralRestServerAuthorization.ENTITY_USER,
+						transaction.user, 500, "TransactionService", "handleDeleteTransaction");
+				}
 			}
 			// Get the Charging Station
 			return global.storage.getChargingStation(transaction.chargeBox.id);
@@ -271,7 +275,7 @@ class TransactionService {
 			if(!filteredRequest.StartDateTime && !filteredRequest.EndDateTime) {
 				// No: Get the Consumption from the transaction
 				return chargingStation.getConsumptionsFromTransaction(
-					transaction, true).then((consumptions);
+					transaction, true);
 			} else {
 				// Yes: Get the Consumption from dates within the trasaction
 				return chargingStation.getConsumptionsFromDateTimeRange(

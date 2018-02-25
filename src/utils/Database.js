@@ -238,7 +238,6 @@ module.exports = {
 
 	updateTransaction(src, dest) {
 		this.updateID(src, dest);
-		dest.transactionId = src.id;
 		// ChargeBox
 		if (!Utils.isEmptyJSon(src.chargeBoxID)) {
 			dest.chargeBox = {};

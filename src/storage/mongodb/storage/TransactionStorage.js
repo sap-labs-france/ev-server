@@ -26,7 +26,7 @@ class TransactionStorage {
 			_centralRestServer.notifyTransactionDeleted(
 				{
 					"id": transaction.id,
-					"chargeBoxID": transaction.chargeBoxID.id,
+					"chargeBoxID": transaction.chargeBox.id,
 					"connectorId": transaction.connectorId,
 					"type": Constants.NOTIF_ENTITY_TRANSACTION
 				}
