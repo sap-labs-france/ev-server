@@ -30,8 +30,17 @@ class StatisticService {
 				Users.WITH_NO_IMAGE, Constants.NO_LIMIT).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
-				return CentralRestServerAuthorization.canReadUser(req.user, transaction.user) &&
-					CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBox);
+				// Check user
+				if (!transaction.user || CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
+					if (!CentralRestServerAuthorization.isAdmin(req.user)) {
+						return false;
+					}
+				}
+				// Check Charging Station
+				if (!CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBox)) {
+					return false;
+				}
+				return true;
 			});
 			// Group Them By Month
 			let monthStats = [];
@@ -100,8 +109,17 @@ class StatisticService {
 				filteredRequest.SiteID, Users.WITH_NO_IMAGE, Constants.NO_LIMIT).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
-				return CentralRestServerAuthorization.canReadUser(req.user, transaction.user) &&
-					CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBox);
+				// Check user
+				if (!transaction.user || CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
+					if (!CentralRestServerAuthorization.isAdmin(req.user)) {
+						return false;
+					}
+				}
+				// Check Charging Station
+				if (!CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBox)) {
+					return false;
+				}
+				return true;
 			});
 			// Group Them By Month
 			let monthStats = [];
@@ -167,8 +185,17 @@ class StatisticService {
 				Users.WITH_NO_IMAGE, Constants.NO_LIMIT).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
-				return CentralRestServerAuthorization.canReadUser(req.user, transaction.user) &&
-					CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBox);
+				// Check user
+				if (!transaction.user || CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
+					if (!CentralRestServerAuthorization.isAdmin(req.user)) {
+						return false;
+					}
+				}
+				// Check Charging Station
+				if (!CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBox)) {
+					return false;
+				}
+				return true;
 			});
 			// Group Them By Month
 			let monthStats = [];
@@ -235,8 +262,17 @@ class StatisticService {
 				Users.WITH_NO_IMAGE, Constants.NO_LIMIT).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
-				return CentralRestServerAuthorization.canReadUser(req.user, transaction.user) &&
-					CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBox);
+				// Check user
+				if (!transaction.user || CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
+					if (!CentralRestServerAuthorization.isAdmin(req.user)) {
+						return false;
+					}
+				}
+				// Check Charging Station
+				if (!CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBox)) {
+					return false;
+				}
+				return true;
 			});
 			// Group Them By Month
 			let monthStats = [];

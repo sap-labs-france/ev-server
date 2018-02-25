@@ -90,8 +90,6 @@ class TransactionService {
 			return chargingStation.deleteTransaction(transaction);
 		}).then((result) => {
 			// Log
-			console.log(user);
-			console.log(transaction);
 			Logging.logSecurityInfo({
 				user: req.user, module: "TransactionService", method: "handleDeleteTransaction",
 				message: `Transaction ID ${filteredRequest.ID} started by '${Utils.buildUserFullName(user.getModel())}' on '${transaction.chargeBox.id}'-'${transaction.connectorId}' has been deleted successfully`,
@@ -173,17 +171,23 @@ class TransactionService {
 			}
 			// Stop Transaction
 			let stopTransaction = {};
-			stopTransaction.transactionId = transaction.transactionId;
+			stopTransaction.transactionId = transaction.id;
 			stopTransaction.user = req.user.id;
 			stopTransaction.timestamp = new Date().toISOString();
 			stopTransaction.meterStop = 0;
+			console.log('transaction -------------------------------------');
+			console.log(transaction);
+			console.log('stopTransaction ---------------------------------');
+			console.log(stopTransaction);
+			console.log("chargingStation ----------------------------------");
+			console.log(chargingStation);
 			// Save
-			return chargingStation.saveStopTransaction(stopTransaction);
+			return chargingStation.handleStopTransaction(stopTransaction);
 		}).then((result) => {
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: "TransactionService", method: "handleTransactionSoftStop",
-				message: `Transaction ID '${transaction.transactionId}' started by '${Utils.buildUserFullName(transaction.user)}' on '${transaction.chargeBox.id}'-'${transaction.connectorId}' has been stopped successfully`,
+				message: `Transaction ID '${transaction.id}' started by '${Utils.buildUserFullName(transaction.user)}' on '${transaction.chargeBox.id}'-'${transaction.connectorId}' has been stopped successfully`,
 				action: action, detailedMessages: result});
 			// Ok
 			res.json({status: `Success`});
