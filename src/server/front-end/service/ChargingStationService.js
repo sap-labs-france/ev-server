@@ -103,11 +103,11 @@ class ChargingStationService {
 					500, "ChargingStationService", "handleGetChargingStationConfiguration");
 			}
 			// Get the Config
-			chargingStation.getConfiguration().then((configuration) => {
-				// Return the result
-				res.json(configuration);
-				next();
-			});
+			return chargingStation.getConfiguration();
+		}).then((configuration) => {
+			// Return the result
+			res.json(configuration);
+			next();
 		}).catch((err) => {
 			// Log
 			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);

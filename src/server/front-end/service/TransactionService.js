@@ -21,7 +21,8 @@ class TransactionService {
 		// Check auth
 		if (!CentralRestServerAuthorization.canDeleteTransaction(req.user, req.query.ID)) {
 			// Not Authorized!
-			throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
+			throw new AppAuthError(req.user,
+				CentralRestServerAuthorization.ACTION_DELETE,
 				CentralRestServerAuthorization.ENTITY_TRANSACTION,
 				req.query.ID, 500, "TransactionService", "handleDeleteTransaction");
 		}
@@ -36,6 +37,7 @@ class TransactionService {
 		// Get Transaction
 		let transaction;
 		let chargingStation;
+		let user;
 		global.storage.getTransaction(filteredRequest.ID, Users.WITH_NO_IMAGE).then((foundTransaction) => {
 			transaction = foundTransaction;
 			// Found?
@@ -47,7 +49,8 @@ class TransactionService {
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
 				// Not Authorized!
-				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
+				throw new AppAuthError(req.user,
+					CentralRestServerAuthorization.ACTION_READ,
 					CentralRestServerAuthorization.ENTITY_USER,
 					transaction.user, 500, "TransactionService", "handleDeleteTransaction");
 			}
@@ -64,12 +67,15 @@ class TransactionService {
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
 				// Not Authorized!
-				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ, CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
+				throw new AppAuthError(req.user,
+					CentralRestServerAuthorization.ACTION_READ,
+					CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
 					chargingStation.getID(), 500, "TransactionService", "handleDeleteTransaction");
 			}
 			// Get logged user
 			return global.storage.getUser(req.user.id);
-		}).then((user) => {
+		}).then((foundUser) => {
+			user = foundUser;
 			// Check
 			if (!user) {
 				// Not Found!
@@ -77,16 +83,18 @@ class TransactionService {
 					500, "TransactionService", "handleDeleteTransaction");
 			}
 			// Delete Transaction
-			chargingStation.deleteTransaction(transaction).then(() => {
-				// Log
-				Logging.logSecurityInfo({
-					user: req.user, module: "TransactionService", method: "handleDeleteTransaction",
-					message: `Transaction ID ${filteredRequest.ID} started by '${Utils.buildUserFullName(user.getModel())}' on '${transaction.chargeBox.id}'-'${transaction.connectorId}' has been deleted successfully`,
-					action: action, detailedMessages: user});
-				// Ok
-				res.json({status: `Success`});
-				next();
-			});
+			return chargingStation.deleteTransaction(transaction);
+		}).then((result) => {
+			// Log
+			console.log(user);
+			console.log(transaction);
+			Logging.logSecurityInfo({
+				user: req.user, module: "TransactionService", method: "handleDeleteTransaction",
+				message: `Transaction ID ${filteredRequest.ID} started by '${Utils.buildUserFullName(user.getModel())}' on '${transaction.chargeBox.id}'-'${transaction.connectorId}' has been deleted successfully`,
+				action: action, detailedMessages: result});
+			// Ok
+			res.json({status: `Success`});
+			next();
 		}).catch((err) => {
 			// Log
 			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
@@ -166,16 +174,16 @@ class TransactionService {
 			stopTransaction.timestamp = new Date().toISOString();
 			stopTransaction.meterStop = 0;
 			// Save
-			chargingStation.saveStopTransaction(stopTransaction).then(() => {
-				// Log
-				Logging.logSecurityInfo({
-					user: req.user, module: "TransactionService", method: "handleTransactionSoftStop",
-					message: `Transaction ID '${transaction.transactionId}' started by '${Utils.buildUserFullName(transaction.user)}' on '${transaction.chargeBox.id}'-'${transaction.connectorId}' has been stopped successfully`,
-					action: action, detailedMessages: user});
-				// Ok
-				res.json({status: `Success`});
-				next();
-			});
+			return chargingStation.saveStopTransaction(stopTransaction);
+		}).then((result) => {
+			// Log
+			Logging.logSecurityInfo({
+				user: req.user, module: "TransactionService", method: "handleTransactionSoftStop",
+				message: `Transaction ID '${transaction.transactionId}' started by '${Utils.buildUserFullName(transaction.user)}' on '${transaction.chargeBox.id}'-'${transaction.connectorId}' has been stopped successfully`,
+				action: action, detailedMessages: result});
+			// Ok
+			res.json({status: `Success`});
+			next();
 		}).catch((err) => {
 			// Log
 			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
@@ -262,29 +270,21 @@ class TransactionService {
 			// Dates provided?
 			if(!filteredRequest.StartDateTime && !filteredRequest.EndDateTime) {
 				// No: Get the Consumption from the transaction
-				chargingStation.getConsumptionsFromTransaction(
-						transaction, true).then((consumptions) => {
-					// Return the result
-					res.json(
-						// Filter
-						SecurityRestObjectFiltering.filterConsumptionsFromTransactionResponse(
-							consumptions, req.user)
-					);
-					next();
-				});
+				return chargingStation.getConsumptionsFromTransaction(
+					transaction, true).then((consumptions);
 			} else {
 				// Yes: Get the Consumption from dates within the trasaction
-				chargingStation.getConsumptionsFromDateTimeRange(
-						transaction, filteredRequest.StartDateTime).then((consumptions) => {
-					// Return the result
-					res.json(
-						// Filter
-						SecurityRestObjectFiltering.filterConsumptionsFromTransactionResponse(
-							consumptions, req.user, true)
-					);
-					next();
-				});
+				return chargingStation.getConsumptionsFromDateTimeRange(
+					transaction, filteredRequest.StartDateTime);
 			}
+		}).then((consumptions) => {
+			// Return the result
+			res.json(
+				// Filter
+				SecurityRestObjectFiltering.filterConsumptionsFromTransactionResponse(
+					consumptions, req.user, true)
+			);
+			next();
 		}).catch((err) => {
 			// Log
 			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);

@@ -30,6 +30,9 @@ class UserService {
 					endUserLicenseAgreement, req.user)
 			);
 			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
 		});
 	}
 
