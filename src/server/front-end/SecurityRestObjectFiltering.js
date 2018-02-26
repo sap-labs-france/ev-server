@@ -667,10 +667,10 @@ class SecurityRestObjectFiltering {
 			if (site.address) {
 				filteredSite.address = SecurityRestObjectFiltering.filterAddressRequest(site.address, loggedUser);
 			}
-			if (site.company) {
+			if (site.company && CentralRestServerAuthorization.canReadCompany(loggedUser, site.company)) {
 				filteredSite.company = this.filterCompanyResponse(site.company, loggedUser);;
 			}
-			if (site.siteAreas) {
+			if (site.siteAreas && CentralRestServerAuthorization.canListSiteAreas(loggedUser)) {
 				filteredSite.siteAreas = this.filterSiteAreasResponse(site.siteAreas, loggedUser);
 			}
 		}

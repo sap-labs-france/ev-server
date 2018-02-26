@@ -31,10 +31,12 @@ class StatisticService {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				// Check user
-				if (!transaction.user || CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
-					if (!CentralRestServerAuthorization.isAdmin(req.user)) {
+				if (transaction.user) {
+					if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
 						return false;
 					}
+				} else if (!CentralRestServerAuthorization.isAdmin(req.user)) {
+					return false;
 				}
 				// Check Charging Station
 				if (!CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBox)) {
@@ -110,10 +112,12 @@ class StatisticService {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				// Check user
-				if (!transaction.user || CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
-					if (!CentralRestServerAuthorization.isAdmin(req.user)) {
+				if (transaction.user) {
+					if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
 						return false;
 					}
+				} else if (!CentralRestServerAuthorization.isAdmin(req.user)) {
+					return false;
 				}
 				// Check Charging Station
 				if (!CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBox)) {
@@ -186,10 +190,12 @@ class StatisticService {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				// Check user
-				if (!transaction.user || CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
-					if (!CentralRestServerAuthorization.isAdmin(req.user)) {
+				if (transaction.user) {
+					if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
 						return false;
 					}
+				} else if (!CentralRestServerAuthorization.isAdmin(req.user)) {
+					return false;
 				}
 				// Check Charging Station
 				if (!CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBox)) {
@@ -263,10 +269,12 @@ class StatisticService {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				// Check user
-				if (!transaction.user || CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
-					if (!CentralRestServerAuthorization.isAdmin(req.user)) {
+				if (transaction.user) {
+					if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
 						return false;
 					}
+				} else if (!CentralRestServerAuthorization.isAdmin(req.user)) {
+					return false;
 				}
 				// Check Charging Station
 				if (!CentralRestServerAuthorization.canReadChargingStation(req.user, transaction.chargeBox)) {
