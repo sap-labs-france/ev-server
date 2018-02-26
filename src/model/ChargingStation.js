@@ -432,21 +432,23 @@ class ChargingStation {
 				// --------------------------------------------------------------------
 				if (_configChargingStation.notifEndOfChargeEnabled && avgConsumption === 0) {
 					// Send Notification
-					NotificationHandler.sendEndOfCharge(
-						transaction.transactionId + "-EOF",
-						transaction.user,
-						this.getModel(),
-						{
-							"user": transaction.user,
-							"chargingBoxID": this.getID(),
-							"connectorId": transaction.connectorId,
-							"totalConsumption": (this.getConnectors()[transaction.connectorId-1].totalConsumption/1000).toLocaleString(
-								(transaction.user.locale?transaction.user.locale.replace('_','-'):Users.DEFAULT_LOCALE.replace('_','-')),
+					if (transaction.user) {
+						NotificationHandler.sendEndOfCharge(
+							transaction.transactionId + "-EOF",
+							transaction.user,
+							this.getModel(),
+							{
+								"user": transaction.user,
+								"chargingBoxID": this.getID(),
+								"connectorId": transaction.connectorId,
+								"totalConsumption": (this.getConnectors()[transaction.connectorId-1].totalConsumption/1000).toLocaleString(
+									(transaction.user.locale ? transaction.user.locale.replace('_','-') : Users.DEFAULT_LOCALE.replace('_','-')),
 									{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
-							"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.transactionId),
-							"notifStopTransactionAndUnlockConnector": _configChargingStation.notifStopTransactionAndUnlockConnector
-						},
-						transaction.user.locale);
+								"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.transactionId),
+								"notifStopTransactionAndUnlockConnector": _configChargingStation.notifStopTransactionAndUnlockConnector
+							},
+							transaction.user.locale);
+					}
 
 					// Stop Transaction and Unlock Connector?
 					if (_configChargingStation.notifStopTransactionAndUnlockConnector) {
@@ -649,19 +651,21 @@ class ChargingStation {
 						return saveFunction(request).then(() => {
 							// Check function
 							if (saveFunction.name === "saveStartTransaction") {
-								// Notify
-								NotificationHandler.sendTransactionStarted(
-									request.transactionId,
-									user.getModel(),
-									this.getModel(),
-									{
-										"user": user.getModel(),
-										"chargingBoxID": this.getID(),
-										"connectorId": request.connectorId,
-										"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, request.connectorId, request.transactionId)
-									},
-									user.getLocale()
-								);
+								if (user) {
+									// Notify
+									NotificationHandler.sendTransactionStarted(
+										request.transactionId,
+										user.getModel(),
+										this.getModel(),
+										{
+											"user": user.getModel(),
+											"chargingBoxID": this.getID(),
+											"connectorId": request.connectorId,
+											"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, request.connectorId, request.transactionId)
+										},
+										user.getLocale()
+									);
+								}
 							}
 						});
 					}
