@@ -31,7 +31,20 @@ module.exports = {
 		dest.lastHeartBeat = src.lastHeartBeat;
 		dest.lastReboot = src.lastReboot;
 		dest.siteAreaID = src.siteAreaID;
-		dest.connectors = src.connectors;
+		dest.connectors = [];
+		if (src.connectors) {
+			// Set
+			src.connectors.forEach((connector) => {
+				dest.connectors.push({
+					"connectorId": connector.connectorId,
+					"currentConsumption": connector.currentConsumption,
+					"totalConsumption": connector.totalConsumption,
+					"status": connector.status,
+					"errorCode": connector.errorCode,
+					"power": connector.power
+				});
+			});
+		}
 		if (src.createdBy && src.createdOn) {
 			dest.createdBy = src.createdBy;
 			dest.createdOn = src.createdOn;

@@ -562,7 +562,11 @@ class SecurityRestObjectFiltering {
 				filteredChargingStation.connectors = chargingStation.connectors;
 				filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
 				filteredChargingStation.siteAreaID = chargingStation.siteAreaID;
-				filteredChargingStation.siteArea = chargingStation.siteArea;
+				if (chargingStation.siteArea &&
+						CentralRestServerAuthorization.canReadSiteArea(loggedUser, chargingStation.siteArea)) {
+					// Set
+					filteredChargingStation.siteArea = chargingStation.siteArea;
+				}
 			}
 		}
 		return filteredChargingStation;
@@ -698,15 +702,8 @@ class SecurityRestObjectFiltering {
 				filteredSiteArea.siteID = siteArea.siteID;
 			}
 			if (siteArea.site) {
-				let site = {};
-				site.id = siteArea.site.id;
-				site.name = siteArea.site.name;
-				if (siteArea.site.address) {
-					site.address = {};
-					site.address.city = siteArea.site.address.city;
-					site.address.country = siteArea.site.address.country;
-				}
-				filteredSiteArea.site = site;
+				// Site
+				filteredSiteArea.site = this.filterSiteResponse(siteArea.site, loggedUser);
 			}
 			if (siteArea.chargeBoxes) {
 				filteredSiteArea.chargeBoxes = this.filterChargingStationsResponse(
