@@ -88,7 +88,6 @@ class CentralSystemServer {
 				// Save Charging Station
 				chargingStation = new ChargingStation(args);
 				// Update timestamp
-				chargingStation.setCreatedBy(Constants.CENTRAL_SERVER);
 				chargingStation.setCreatedOn(new Date());
 			} else {
 				// Update data

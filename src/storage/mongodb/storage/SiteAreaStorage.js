@@ -96,6 +96,16 @@ class SiteAreaStorage {
 			} else {
 				siteAreaFilter._id = ObjectId();
 			}
+			// Check Created By
+			if (siteArea.createdBy && typeof siteArea.createdBy == "object") {
+				// This is the User Model
+				siteArea.createdBy = new ObjectId(siteArea.createdBy.id);
+			}
+			// Check Last Changed By
+			if (siteArea.lastChangedBy && typeof siteArea.lastChangedBy == "object") {
+				// This is the User Model
+				siteArea.lastChangedBy = new ObjectId(siteArea.lastChangedBy.id);
+			}
 			// Get
 			return MDBSiteArea.findOneAndUpdate(siteAreaFilter, siteArea, {
 					new: true,
@@ -176,6 +186,32 @@ class SiteAreaStorage {
 			$addFields: {
 				"numberOfChargeBoxes": { $size: "$chargeBoxes" }
 			}
+		});
+		// Created By
+		aggregation.push({
+			$lookup: {
+				from: "users",
+				localField: "createdBy",
+				foreignField: "_id",
+				as: "createdBy"
+			}
+		});
+		// Single Record
+		aggregation.push({
+			$unwind: { "path": "$createdBy", "preserveNullAndEmptyArrays": true }
+		});
+		// Last Changed By
+		aggregation.push({
+			$lookup: {
+				from: "users",
+				localField: "lastChangedBy",
+				foreignField: "_id",
+				as: "lastChangedBy"
+			}
+		});
+		// Single Record
+		aggregation.push({
+			$unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
 		});
 		// Picture?
 		if (!withPicture) {

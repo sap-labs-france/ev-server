@@ -22,8 +22,8 @@ module.exports = mongoose.model('User',{
 	address: commons.Address,
 	locale: String,
 	deleted: Boolean,
-	createdBy: String,
+	createdBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
 	createdOn: Date,
-	lastChangedBy: String,
+	lastChangedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
 	lastChangedOn: Date
 });

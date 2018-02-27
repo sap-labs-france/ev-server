@@ -45,14 +45,7 @@ module.exports = {
 				});
 			});
 		}
-		if (src.createdBy && src.createdOn) {
-			dest.createdBy = src.createdBy;
-			dest.createdOn = src.createdOn;
-		}
-		if (src.lastChangedBy && src.lastChangedOn) {
-			dest.lastChangedBy = src.lastChangedBy;
-			dest.lastChangedOn = src.lastChangedOn;
-		}
+		this.updateCreatedByAndLastChangedBy(src, dest);
 		if (!dest.connectors) {
 			dest.connectors = [];
 		}
@@ -156,14 +149,7 @@ module.exports = {
 			dest.eulaAcceptedVersion = src.eulaAcceptedVersion;
 			dest.eulaAcceptedHash = src.eulaAcceptedHash;
 		}
-		if (src.createdBy && src.createdOn) {
-			dest.createdBy = src.createdBy;
-			dest.createdOn = src.createdOn;
-		}
-		if (src.lastChangedBy && src.lastChangedOn) {
-			dest.lastChangedBy = src.lastChangedBy;
-			dest.lastChangedOn = src.lastChangedOn;
-		}
+		this.updateCreatedByAndLastChangedBy(src, dest);
 		dest.deleted = src.deleted;
 		dest.tagIDs = src.tagIDs;
 		if (src.role) {
@@ -185,12 +171,22 @@ module.exports = {
 		dest.image = src.image;
 		dest.companyID = src.companyID;
 		dest.numberOfSiteAreas = src.numberOfSiteAreas;
-		if (src.createdBy && src.createdOn) {
-			dest.createdBy = src.createdBy;
+		this.updateCreatedByAndLastChangedBy(src, dest);
+	},
+
+	updateCreatedByAndLastChangedBy(src, dest) {
+		if (src.createdBy && typeof src.createdBy == "object") {
+			dest.createdBy = {};
+			this.updateUser(src.createdBy, dest.createdBy);
+		}
+		if (src.createdOn) {
 			dest.createdOn = src.createdOn;
 		}
-		if (src.lastChangedBy && src.lastChangedOn) {
-			dest.lastChangedBy = src.lastChangedBy;
+		if (src.lastChangedBy && typeof src.lastChangedBy == "object") {
+			dest.lastChangedBy = {};
+			this.updateUser(src.lastChangedBy, dest.lastChangedBy);
+		}
+		if (src.lastChangedOn) {
 			dest.lastChangedOn = src.lastChangedOn;
 		}
 	},
@@ -202,14 +198,7 @@ module.exports = {
 		this.updateAddress(src.address, dest.address)
 		dest.logo = src.logo;
 		dest.numberOfSites = src.numberOfSites;
-		if (src.createdBy && src.createdOn) {
-			dest.createdBy = src.createdBy;
-			dest.createdOn = src.createdOn;
-		}
-		if (src.lastChangedBy && src.lastChangedOn) {
-			dest.lastChangedBy = src.lastChangedBy;
-			dest.lastChangedOn = src.lastChangedOn;
-		}
+		this.updateCreatedByAndLastChangedBy(src, dest);
 	},
 
 	updateAddress(src, dest) {
@@ -233,6 +222,7 @@ module.exports = {
 		dest.accessControl = src.accessControl;
 		dest.numberOfChargeBoxes = src.numberOfChargeBoxes;
 		dest.siteID = src.siteID;
+		this.updateCreatedByAndLastChangedBy(src, dest);
 	},
 
 	updateLoggingObject(src, dest) {

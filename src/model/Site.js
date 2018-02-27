@@ -51,11 +51,14 @@ class Site {
 	}
 
 	getCreatedBy() {
-		return this._model.createdBy;
+		if (this._model.createdBy) {
+			return new User(this._model.createdBy);
+		}
+		return null;
 	}
 
-	setCreatedBy(createdBy) {
-		this._model.createdBy = createdBy;
+	setCreatedBy(user) {
+		this._model.createdBy = user.getModel();
 	}
 
 	getCreatedOn() {
@@ -67,11 +70,14 @@ class Site {
 	}
 
 	getLastChangedBy() {
-		return this._model.lastChangedBy;
+		if (this._model.lastChangedBy) {
+			return new User(this._model.lastChangedBy);
+		}
+		return null;
 	}
 
-	setLastChangedBy(lastChangedBy) {
-		this._model.lastChangedBy = lastChangedBy;
+	setLastChangedBy(user) {
+		this._model.lastChangedBy = user.getModel();
 	}
 
 	getLastChangedOn() {

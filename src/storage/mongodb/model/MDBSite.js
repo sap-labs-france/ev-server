@@ -5,9 +5,9 @@ module.exports = mongoose.model('Site', {
 	name: String,
 	address: commons.Address,
 	image: String,
-	createdBy: String,
+	createdBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
 	createdOn: Date,
-	lastChangedBy: String,
+	lastChangedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
 	lastChangedOn: Date,
 	companyID: {type: mongoose.Schema.Types.ObjectId, ref: 'Company'}
 });

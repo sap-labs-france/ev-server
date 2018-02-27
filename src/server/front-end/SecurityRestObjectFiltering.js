@@ -1,5 +1,6 @@
 const CentralRestServerAuthorization = require('./CentralRestServerAuthorization');
 const Users = require('../../utils/Users');
+const Utils = require('../../utils/Utils');
 const sanitize = require('mongo-sanitize');
 
 require('source-map-support').install();
@@ -658,8 +659,24 @@ class SecurityRestObjectFiltering {
 					return SecurityRestObjectFiltering.filterSiteResponse(site, loggedUser);
 				})
 			}
+			// Created By / Last Changed By
+			SecurityRestObjectFiltering.filterCreatedByAndLastChangedBy(
+				filteredCompany, company, loggedUser);
 		}
 		return filteredCompany;
+	}
+
+	static filterCreatedByAndLastChangedBy(filteredEntity, entity, loggedUser) {
+		if (entity.createdBy && typeof entity.createdBy == "object" &&
+				CentralRestServerAuthorization.canReadUser(loggedUser, entity.createdBy)) {
+			// Build user
+			filteredEntity.createdBy = Utils.buildUserFullName(entity.createdBy, false);
+		}
+		if (entity.lastChangedBy && typeof entity.lastChangedBy == "object" &&
+				CentralRestServerAuthorization.canReadUser(loggedUser, entity.lastChangedBy)) {
+			// Build user
+			filteredEntity.lastChangedBy = Utils.buildUserFullName(entity.lastChangedBy, false);
+		}
 	}
 
 	static filterSiteResponse(site, loggedUser) {
@@ -692,6 +709,9 @@ class SecurityRestObjectFiltering {
 			if (site.siteAreas) {
 				filteredSite.siteAreas = this.filterSiteAreasResponse(site.siteAreas, loggedUser);
 			}
+			// Created By / Last Changed By
+			SecurityRestObjectFiltering.filterCreatedByAndLastChangedBy(
+				filteredSite, site, loggedUser);
 		}
 		return filteredSite;
 	}
@@ -724,6 +744,9 @@ class SecurityRestObjectFiltering {
 				filteredSiteArea.chargeBoxes = this.filterChargingStationsResponse(
 					siteArea.chargeBoxes, loggedUser );
 			}
+			// Created By / Last Changed By
+			SecurityRestObjectFiltering.filterCreatedByAndLastChangedBy(
+				filteredSiteArea, siteArea, loggedUser);
 		}
 		return filteredSiteArea;
 	}

@@ -34,18 +34,26 @@ class SiteAreaService {
 		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreaCreateRequest( req.body, req.user );
+		let newSiteArea;
 		// Check Mandatory fields
 		if (SiteAreas.checkIfSiteAreaValid("SiteAreaCreate", filteredRequest, req, res, next)) {
-			// Create site area
-			let newSiteArea = new SiteArea(filteredRequest);
 			// Check Site
 			global.storage.getSite(filteredRequest.siteID).then((site) => {
 				// Found?
 				if (!site) {
 					// Not Found!
 					throw new AppError(`The Site ID '${filteredRequest.siteID}' does not exist`,
-						500, "SiteService", "handleCreateSiteArea");
+						500, "SiteAreaService", "handleCreateSiteArea");
 				}
+				// Get the logged user
+				return global.storage.getUser(req.user.id);
+			// Logged User
+			}).then((loggedUser) => {
+				// Create site
+				let newSiteArea = new SiteArea(filteredRequest);
+				// Update timestamp
+				newSiteArea.setCreatedBy(loggedUser);
+				newSiteArea.setCreatedOn(new Date());
 				// Save
 				return newSiteArea.save();
 			}).then((createdSiteArea) => {
@@ -266,8 +274,15 @@ class SiteAreaService {
 				});
 				return Promise.all(proms);
 			}).then((results) => {
+				// Get the logged user
+				return global.storage.getUser(req.user.id);
+			// Logged User
+			}).then((loggedUser) => {
 				// Update
 				Database.updateSiteArea(filteredRequest, siteArea.getModel());
+				// Update timestamp
+				siteArea.setLastChangedBy(loggedUser);
+				siteArea.setLastChangedOn(new Date());
 				// Update
 				return siteArea.save();
 			}).then((updatedSiteArea) => {

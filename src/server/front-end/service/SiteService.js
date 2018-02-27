@@ -177,7 +177,7 @@ class SiteService {
 				// Create site
 				let newSite = new Site(filteredRequest);
 				// Update timestamp
-				newSite.setCreatedBy(Utils.buildUserFullName(loggedUser.getModel()));
+				newSite.setCreatedBy(loggedUser);
 				newSite.setCreatedOn(new Date());
 				// Save
 				return newSite.save();
@@ -208,9 +208,10 @@ class SiteService {
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteUpdateRequest( req.body, req.user );
 		// Check Mandatory fields
 		if (Sites.checkIfSiteValid(action, filteredRequest, req, res, next)) {
-			let siteWithId;
+			let site;
 			// Check email
-			global.storage.getSite(filteredRequest.id).then((site) => {
+			global.storage.getSite(filteredRequest.id).then((foundSite) => {
+				site = foundSite;
 				if (!site) {
 					throw new AppError(`The Site with ID '${filteredRequest.id}' does not exist anymore`,
 						550, "SiteService", "handleUpdateSite");
@@ -224,10 +225,14 @@ class SiteService {
 						site.getName(), req, res, next);
 					return;
 				}
+				// Get the logged user
+				return global.storage.getUser(req.user.id);
+			// Logged User
+			}).then((loggedUser) => {
 				// Update
 				Database.updateSite(filteredRequest, site.getModel());
 				// Update timestamp
-				site.setLastChangedBy(`${Utils.buildUserFullName(req.user)}`);
+				site.setLastChangedBy(loggedUser);
 				site.setLastChangedOn(new Date());
 				// Update
 				return site.save();

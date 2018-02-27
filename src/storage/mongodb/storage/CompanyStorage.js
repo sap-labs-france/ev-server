@@ -25,7 +25,8 @@ class CompanyStorage {
 
 	static handleGetCompany(id) {
 		// Exec request
-		return MDBCompany.findById(id).exec().then((companyMDB) => {
+		return MDBCompany.findById(id)
+				.exec().then((companyMDB) => {
 			let company = null;
 			// Check
 			if (companyMDB) {
@@ -49,6 +50,16 @@ class CompanyStorage {
 				companyFilter._id = company.id;
 			} else {
 				companyFilter._id = ObjectId();
+			}
+			// Check Created By
+			if (company.createdBy && typeof company.createdBy == "object") {
+				// This is the User Model
+				company.createdBy = new ObjectId(company.createdBy.id);
+			}
+			// Check Last Changed By
+			if (company.lastChangedBy && typeof company.lastChangedBy == "object") {
+				// This is the User Model
+				company.lastChangedBy = new ObjectId(company.lastChangedBy.id);
 			}
 			// Get
 			return MDBCompany.findOneAndUpdate(companyFilter, company, {
@@ -124,6 +135,32 @@ class CompanyStorage {
 			$addFields: {
 				"numberOfSites": { $size: "$sites" }
 			}
+		});
+		// Created By
+		aggregation.push({
+			$lookup: {
+				from: "users",
+				localField: "createdBy",
+				foreignField: "_id",
+				as: "createdBy"
+			}
+		});
+		// Single Record
+		aggregation.push({
+			$unwind: { "path": "$createdBy", "preserveNullAndEmptyArrays": true }
+		});
+		// Last Changed By
+		aggregation.push({
+			$lookup: {
+				from: "users",
+				localField: "lastChangedBy",
+				foreignField: "_id",
+				as: "lastChangedBy"
+			}
+		});
+		// Single Record
+		aggregation.push({
+			$unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
 		});
 		// Picture?
 		if (!withLogo) {

@@ -167,7 +167,7 @@ class CompanyService {
 				// Create
 				let newCompany = new Company(filteredRequest);
 				// Update timestamp
-				newCompany.setCreatedBy(Utils.buildUserFullName(loggedUser.getModel()));
+				newCompany.setCreatedBy(loggedUser);
 				newCompany.setCreatedOn(new Date());
 				// Save
 				return newCompany.save();
@@ -199,7 +199,9 @@ class CompanyService {
 		// Check Mandatory fields
 		if (Companies.checkIfCompanyValid(action, filteredRequest, req, res, next)) {
 			// Check email
-			global.storage.getCompany(filteredRequest.id).then((company) => {
+			let company;
+			global.storage.getCompany(filteredRequest.id).then((foundCompany) => {
+				company = foundCompany;
 				if (!company) {
 					throw new AppError(`The Company with ID '${filteredRequest.id}' does not exist anymore`,
 						550, "SiteService", "handleUpdateCompany");
@@ -213,10 +215,14 @@ class CompanyService {
 						company.getName(), req, res, next);
 					return;
 				}
+				// Get the logged user
+				return global.storage.getUser(req.user.id);
+			// Logged User
+			}).then((loggedUser) => {
 				// Update
 				Database.updateCompany(filteredRequest, company.getModel());
 				// Update timestamp
-				company.setLastChangedBy(Utils.buildUserFullName(req.user));
+				company.setLastChangedBy(loggedUser);
 				company.setLastChangedOn(new Date());
 				// Update
 				return company.save();

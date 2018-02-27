@@ -34,6 +34,44 @@ class SiteArea {
 		return this._model.accessControl;
 	}
 
+	getCreatedBy() {
+		if (this._model.createdBy) {
+			return new User(this._model.createdBy);
+		}
+		return null;
+	}
+
+	setCreatedBy(user) {
+		this._model.createdBy = user.getModel();
+	}
+
+	getCreatedOn() {
+		return this._model.createdOn;
+	}
+
+	setCreatedOn(createdOn) {
+		this._model.createdOn = createdOn;
+	}
+
+	getLastChangedBy() {
+		if (this._model.lastChangedBy) {
+			return new User(this._model.lastChangedBy);
+		}
+		return null;
+	}
+
+	setLastChangedBy(user) {
+		this._model.lastChangedBy = user.getModel();
+	}
+
+	getLastChangedOn() {
+		return this._model.lastChangedOn;
+	}
+
+	setLastChangedOn(lastChangedOn) {
+		this._model.lastChangedOn = lastChangedOn;
+	}
+
 	setImage(image) {
 		this._model.image = image;
 	}

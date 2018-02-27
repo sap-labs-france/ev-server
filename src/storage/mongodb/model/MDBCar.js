@@ -7,6 +7,7 @@ module.exports = mongoose.model('Car', {
 	batteryKW: Number,
 	autonomyKmNEDC: Number,
 	autonomyKmFTP75: Number,
+	autonomyKmWLTP: Number,
 	autonomyKmReal: Number,
 	horsePower: Number,
 	torqueNm: Number,
@@ -16,9 +17,9 @@ module.exports = mongoose.model('Car', {
 	lengthMeter: Number,
 	widthMeter: Number,
 	heightMeter: Number,
-	createdBy: String,
+	createdBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
 	createdOn: Date,
-	lastChangedBy: String,
+	lastChangedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
 	lastChangedOn: Date,
 	siteID: {type: mongoose.Schema.Types.ObjectId, ref: 'Site'}
 });

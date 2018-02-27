@@ -84,6 +84,16 @@ class SiteStorage {
 			} else {
 				siteFilter._id = ObjectId();
 			}
+			// Check Created By
+			if (site.createdBy && typeof site.createdBy == "object") {
+				// This is the User Model
+				site.createdBy = new ObjectId(site.createdBy.id);
+			}
+			// Check Last Changed By
+			if (site.lastChangedBy && typeof site.lastChangedBy == "object") {
+				// This is the User Model
+				site.lastChangedBy = new ObjectId(site.lastChangedBy.id);
+			}
 			// Get
 			return MDBSite.findOneAndUpdate(siteFilter, site, {
 					new: true,
@@ -170,6 +180,32 @@ class SiteStorage {
 				}
 			});
 		}
+		// Created By
+		aggregation.push({
+			$lookup: {
+				from: "users",
+				localField: "createdBy",
+				foreignField: "_id",
+				as: "createdBy"
+			}
+		});
+		// Single Record
+		aggregation.push({
+			$unwind: { "path": "$createdBy", "preserveNullAndEmptyArrays": true }
+		});
+		// Last Changed By
+		aggregation.push({
+			$lookup: {
+				from: "users",
+				localField: "lastChangedBy",
+				foreignField: "_id",
+				as: "lastChangedBy"
+			}
+		});
+		// Single Record
+		aggregation.push({
+			$unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
+		});
 		// Picture?
 		if (!withPicture) {
 			aggregation.push({
