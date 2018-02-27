@@ -1,6 +1,7 @@
 {
 	"CentralSystems": [
 		{
+			"type": "ocpp",
 			"implementation": "soap",
 			"protocol": "http",
 			"host": "localhost",
@@ -36,7 +37,8 @@
 		"port": 27017,
 		"user": "evse-user",
 		"password": "",
-		"schema": "evse"
+		"schema": "evse",
+		"debug": false
 	},
 	"Email": {
 		 "from": "admin.noreply@evse.com",
