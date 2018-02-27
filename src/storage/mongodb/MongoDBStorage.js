@@ -24,7 +24,6 @@ class MongoDBStorage extends Storage {
 		_dbConfig = dbConfig;
 		// Override Promise
 		mongoose.Promise = global.Promise;
-		console.log(dbConfig);
 		// Set debug?
 		if (dbConfig.debug) {
 			mongoose.set('debug', true);
