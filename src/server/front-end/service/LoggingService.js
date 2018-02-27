@@ -9,7 +9,9 @@ class LoggingService {
 		if (!CentralRestServerAuthorization.canListLogging(req.user)) {
 			// Not Authorized!
 			Logging.logActionUnauthorizedMessageAndSendResponse(
-				CentralRestServerAuthorization.ACTION_LIST, CentralRestServerAuthorization.ENTITY_LOGGING, null, req, res, next);
+				CentralRestServerAuthorization.ACTION_LIST,
+				CentralRestServerAuthorization.ENTITY_LOGGING,
+				null, req, res, next);
 			return;
 		}
 		// Filter
