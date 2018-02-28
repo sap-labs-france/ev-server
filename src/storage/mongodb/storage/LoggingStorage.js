@@ -185,7 +185,6 @@ class LoggingStorage {
 		return MDBLog.aggregate(aggregation)
 				.exec().then((loggingsMDB) => {
 			let loggings = [];
-			console.log(loggingsMDB);
 			loggingsMDB.forEach(function(loggingMDB) {
 				let logging = {};
 				// Set

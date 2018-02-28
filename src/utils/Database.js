@@ -241,8 +241,6 @@ module.exports = {
 			this.updateUser(src.user, dest.user);
 		}
 		if (src.actionOnUser && typeof src.actionOnUser == "object") {
-			console.log("src.actionOnUser");
-			console.log(src.actionOnUser);
 			dest.actionOnUser = {};
 			this.updateUser(src.actionOnUser, dest.actionOnUser);
 		}
