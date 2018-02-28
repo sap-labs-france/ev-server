@@ -15,9 +15,12 @@ class PricingService {
 		// Check auth
 		if (!CentralRestServerAuthorization.canReadPricing(req.user)) {
 			// Not Authorized!
-			Logging.logActionUnauthorizedMessageAndSendResponse(
-				action, CentralRestServerAuthorization.ENTITY_PRICING, null, req, res, next);
-			return;
+			throw new AppAuthError(
+				action,
+				CentralRestServerAuthorization.ENTITY_PRICING,
+				null,
+				500, "PricingService", "handleGetPricing",
+				req.user);
 		}
 		// Get the Pricing
 		global.storage.getPricing().then((pricing) => {
@@ -49,9 +52,12 @@ class PricingService {
 		// Check auth
 		if (!CentralRestServerAuthorization.canUpdatePricing(req.user)) {
 			// Not Authorized!
-			Logging.logActionUnauthorizedMessageAndSendResponse(
-				action, CentralRestServerAuthorization.ENTITY_PRICING, null, req, res, next);
-			return;
+			throw new AppAuthError(
+				action,
+				CentralRestServerAuthorization.ENTITY_PRICING,
+				null,
+				500, "PricingService", "handleUpdatePricing",
+				req.user);
 		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterPricingUpdateRequest(req.body, req.user);

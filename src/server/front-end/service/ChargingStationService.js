@@ -35,11 +35,12 @@ class ChargingStationService {
 				// Check auth
 				if (!CentralRestServerAuthorization.canUpdateChargingStation(req.user, chargingStation.getModel())) {
 					// Not Authorized!
-					Logging.logActionUnauthorizedMessageAndSendResponse(
+					throw new AppAuthError(
 						CentralRestServerAuthorization.ACTION_UPDATE,
 						CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
-						site.getID(), req, res, next);
-					return;
+						site.getID(),
+						500, "ChargingStationService", "handleUpdateChargingStation",
+						req.user);
 				}
 				// Update
 				if (filteredRequest.siteAreaID) {
@@ -103,9 +104,12 @@ class ChargingStationService {
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
 				// Not Authorized!
-				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
-					CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getID(),
-					500, "ChargingStationService", "handleGetChargingStationConfiguration");
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_READ,
+					CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
+					chargingStation.getID(),
+					500, "ChargingStationService", "handleGetChargingStationConfiguration",
+					req.user);
 			}
 			// Get the Config
 			return chargingStation.getConfiguration();
@@ -147,9 +151,12 @@ class ChargingStationService {
 			// Check auth
 			if (!CentralRestServerAuthorization.canDeleteChargingStation(req.user, chargingStation.getModel())) {
 				// Not Authorized!
-				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
-					CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getID(),
-					500, "ChargingStationService", "handleDeleteChargingStation");
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_DELETE,
+					CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
+					chargingStation.getID(),
+					500, "ChargingStationService", "handleDeleteChargingStation",
+					req.user);
 			}
 			// Delete
 			return chargingStation.delete();
@@ -214,10 +221,12 @@ class ChargingStationService {
 		// Check auth
 		if (!CentralRestServerAuthorization.canListChargingStations(req.user)) {
 			// Not Authorized!
-			Logging.logActionUnauthorizedMessageAndSendResponse(
+			throw new AppAuthError(
 				CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS,
-				null, req, res, next);
+				null,
+				500, "ChargingStationService", "handleGetChargingStations",
+				req.user);
 			return;
 		}
 		// Filter
@@ -279,9 +288,11 @@ class ChargingStationService {
 						// Check auth
 						if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action, transaction.user)) {
 							// Not Authorized!
-							throw new AppAuthError(req.user, action,
-								CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getID(),
-								500, "ChargingStationService", "handleAction");
+							throw new AppAuthError(action,
+								CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
+								chargingStation.getID(),
+								500, "ChargingStationService", "handleAction",
+								req.user);
 						}
 						// Execute it
 						return chargingStation.handleAction(action, filteredRequest.args);
@@ -297,9 +308,11 @@ class ChargingStationService {
 				// Check auth
 				if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action)) {
 					// Not Authorized!
-					throw new AppAuthError(req.user, action,
-						CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getID(),
-						500, "ChargingStationService", "handleAction");
+					throw new AppAuthError(action,
+						CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
+						chargingStation.getID(),
+						500, "ChargingStationService", "handleAction",
+						req.user);
 				}
 				// Execute it
 				return chargingStation.handleAction(action, filteredRequest.args);
@@ -351,9 +364,11 @@ class ChargingStationService {
 			// Check auth
 			if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), "ChangeConfiguration")) {
 				// Not Authorized!
-				throw new AppAuthError(req.user, action,
-					CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getID(),
-					500, "ChargingStationService", "handleActionSetMaxIntensitySocket");
+				throw new AppAuthError(action,
+					CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
+					chargingStation.getID(),
+					500, "ChargingStationService", "handleActionSetMaxIntensitySocket",
+					req.user);
 			}
 			// Get the Config
 			return chargingStation.getConfiguration();

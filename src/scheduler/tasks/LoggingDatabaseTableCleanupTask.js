@@ -37,8 +37,7 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 			}
 		}).catch((error) => {
 			// Log error
-			Logging.logUnexpectedErrorMessage("LogsCleanup", "LoggingDatabaseTableCleanupTask",
-				"run", error);
+			Logging.logActionExceptionMessage("LogsCleanup", error);
 		});
 		// Delete date
 		let securityDeleteUpToDate = moment().subtract(config.securityRetentionPeriodWeeks, "w").startOf("week").toDate().toISOString();
@@ -63,8 +62,7 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 			}
 		}).catch((error) => {
 			// Log error
-			Logging.logUnexpectedErrorMessage("LogsCleanup", "LoggingDatabaseTableCleanupTask",
-				"run", error);
+			Logging.logActionExceptionMessage("LogsCleanup", error);
 		});
 	}
 }

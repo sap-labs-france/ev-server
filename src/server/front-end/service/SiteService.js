@@ -46,9 +46,12 @@ class SiteService {
 			// Check auth
 			if (!CentralRestServerAuthorization.canDeleteSite(req.user, site.getModel())) {
 				// Not Authorized!
-				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
-					CentralRestServerAuthorization.ENTITY_SITE, site.getID(),
-					500, "SiteService", "handleDeleteSite");
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_DELETE,
+					CentralRestServerAuthorization.ENTITY_SITE,
+					site.getID(),
+					500, "SiteService", "handleDeleteSite",
+					req.user);
 			}
 			// Delete
 			return site.delete();
@@ -113,10 +116,12 @@ class SiteService {
 		// Check auth
 		if (!CentralRestServerAuthorization.canListSites(req.user)) {
 			// Not Authorized!
-			Logging.logActionUnauthorizedMessageAndSendResponse(
+			throw new AppAuthError(
 				CentralRestServerAuthorization.ACTION_LIST,
-				CentralRestServerAuthorization.ENTITY_SITES, null, req, res, next);
-			return;
+				CentralRestServerAuthorization.ENTITY_SITES,
+				null,
+				500, "SiteService", "handleGetSites",
+				req.user);
 		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterSitesRequest(req.query, req.user);
@@ -153,10 +158,12 @@ class SiteService {
 		// Check auth
 		if (!CentralRestServerAuthorization.canCreateSite(req.user)) {
 			// Not Authorized!
-			Logging.logActionUnauthorizedMessageAndSendResponse(
+			throw new AppAuthError(
 				CentralRestServerAuthorization.ACTION_CREATE,
-				CentralRestServerAuthorization.ENTITY_SITE, null, req, res, next);
-			return;
+				CentralRestServerAuthorization.ENTITY_SITE,
+				null,
+				500, "SiteService", "handleCreateSite",
+				req.user);
 		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteCreateRequest( req.body, req.user );
@@ -219,11 +226,12 @@ class SiteService {
 				// Check auth
 				if (!CentralRestServerAuthorization.canUpdateSite(req.user, site.getModel())) {
 					// Not Authorized!
-					Logging.logActionUnauthorizedMessageAndSendResponse(
+					throw new AppAuthError(
 						CentralRestServerAuthorization.ACTION_UPDATE,
 						CentralRestServerAuthorization.ENTITY_SITE,
-						site.getName(), req, res, next);
-					return;
+						site.getID(),
+						500, "SiteService", "handleUpdateSite",
+						req.user);
 				}
 				// Get the logged user
 				return global.storage.getUser(req.user.id);

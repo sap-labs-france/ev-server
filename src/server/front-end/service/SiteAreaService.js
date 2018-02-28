@@ -27,10 +27,12 @@ class SiteAreaService {
 		// Check auth
 		if (!CentralRestServerAuthorization.canCreateSite(req.user)) {
 			// Not Authorized!
-			Logging.logActionUnauthorizedMessageAndSendResponse(
+			throw new AppAuthError(
 				CentralRestServerAuthorization.ACTION_CREATE,
-				CentralRestServerAuthorization.ENTITY_SITE_AREA, null, req, res, next);
-			return;
+				CentralRestServerAuthorization.ENTITY_SITE_AREA,
+				null,
+				500, "SiteAreaService", "handleCreateSiteArea",
+				req.user);
 		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreaCreateRequest( req.body, req.user );
@@ -107,10 +109,12 @@ class SiteAreaService {
 		// Check auth
 		if (!CentralRestServerAuthorization.canListSiteAreas(req.user)) {
 			// Not Authorized!
-			Logging.logActionUnauthorizedMessageAndSendResponse(
+			throw new AppAuthError(
 				CentralRestServerAuthorization.ACTION_LIST,
-				CentralRestServerAuthorization.ENTITY_SITE_AREAS, null, req, res, next);
-			return;
+				CentralRestServerAuthorization.ENTITY_SITE_AREAS,
+				null,
+				500, "SiteAreaService", "handleGetSiteAreas",
+				req.user);
 		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreasRequest(req.query, req.user);
@@ -167,9 +171,12 @@ class SiteAreaService {
 			if (!CentralRestServerAuthorization.canDeleteSiteArea(req.user,
 					{ "id": siteArea.getID() })) {
 				// Not Authorized!
-				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
-					CentralRestServerAuthorization.ENTITY_SITE_AREA, siteArea.getID(),
-					500, "SiteAreaService", "handleDeleteSiteArea");
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_DELETE,
+					CentralRestServerAuthorization.ENTITY_SITE_AREA,
+					siteArea.getID(),
+					500, "SiteAreaService", "handleDeleteSiteArea",
+					req.user);
 			}
 			// Delete
 			return siteArea.delete();
@@ -248,11 +255,12 @@ class SiteAreaService {
 				// Check auth
 				if (!CentralRestServerAuthorization.canUpdateSiteArea(req.user, siteArea.getModel())) {
 					// Not Authorized!
-					Logging.logActionUnauthorizedMessageAndSendResponse(
+					throw new AppAuthError(
 						CentralRestServerAuthorization.ACTION_UPDATE,
 						CentralRestServerAuthorization.ENTITY_SITE_AREA,
-						siteArea.getName(), req, res, next);
-					return;
+						siteArea.getID(),
+						500, "SiteAreaService", "handleUpdateSiteArea",
+						req.user);
 				}
 				// Get the logged user
 				return global.storage.getUser(req.user.id);

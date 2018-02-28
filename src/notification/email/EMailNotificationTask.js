@@ -158,8 +158,9 @@ class EMailNotificationTask extends NotificationTask {
 		}).then((message) => {
 			// User
 			Logging.logInfo({
-				module: "EMailNotificationTask", method: "_prepareAndSendEmail", action: "SendEmail",
-				message: `Email has been sent to User ${Utils.buildUserFullName(data.user)} successfully`,
+				module: "EMailNotificationTask", method: "_prepareAndSendEmail",
+				action: "SendEmail", actionOnUser: data.user,
+				message: `Email has been sent successfully`,
 				detailedMessages: {
 					"subject": subject,
 					"body": html

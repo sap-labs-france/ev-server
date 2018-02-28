@@ -119,56 +119,74 @@ class Logging {
 	}
 
 	// Used to log exception in catch(...) only
-	static logActionExceptionMessageAndSendResponse(action, exception, req, res, next) {
+	static logActionExceptionMessage(action, exception) {
 		if (exception instanceof AppError) {
 			// Log Error
-			Logging._logActionExceptionMessageAndSendResponse(
-				action, exception, req, res, next, exception.errorCode);
+			Logging._logActionAppExceptionMessage(action, exception);
 		} else if (exception instanceof AppAuthError) {
 			// Log Auth Error
-			Logging.logActionUnauthorizedMessageAndSendResponse(
-				action, exception.entity, exception.value, req, res, next, exception.errorCode);
+			Logging._logActionAppAuthExceptionMessage(action, exception);
 		} else {
 			// Log Unexpected
-			Logging._logActionExceptionMessageAndSendResponse(
-				action, exception, req, res, next);
+			Logging._logActionExceptionMessage(action, exception);
 		}
 	}
 
-	// Log issues
-	static logUnexpectedErrorMessage(action, module, method, err, source, userFullName) {
-		Logging.logSecurityError({
-			"userFullName": userFullName,
-			"source": source, "module": module, "method": method,
-			"action": action, "message": `${err.message}`,
-			"detailedMessages": err.stack });
-	}
-
-	// Log issues
-	static logActionUnauthorizedMessageAndSendResponse(action, entity, value, req, res, next) {
-		// Log
-		Logging._logActionExceptionMessageAndSendResponse(action,
-			new Error(`Not authorised to perform '${action}' on ${entity} ${(value?"'"+value+"'":"")} (Role='${req.user.role}')`), req, res, next);
-	}
-
-	// Used to check URL params (not in catch)
-	static _logActionExceptionMessageAndSendResponse(action, exception, req, res, next, errorCode=500) {
+	// Used to log exception in catch(...) only
+	static logActionExceptionMessageAndSendResponse(action, exception, req, res, next) {
 		// Clear password
 		if (action==="login" && req.body.password) {
 			req.body.password = "####";
 		}
+		if (exception instanceof AppError) {
+			// Log App Error
+			Logging._logActionAppExceptionMessage(action, exception);
+		} else if (exception instanceof AppAuthError) {
+			// Log Auth Error
+			Logging._logActionAppAuthExceptionMessage(action, exception);
+		} else {
+			// Log Generic Error
+			Logging._logActionExceptionMessage(action, exception);
+		}
+		// Send error
+		res.status((exception.errorCode ? exception.errorCode : 500)).send({"message": Utils.hideShowMessage(exception.message)});
+		next();
+	}
+
+	static _logActionExceptionMessage(action, exception) {
 		Logging.logSecurityError({
-			userID: ((req && req.user)?req.user.id:null), userFullName: Utils.buildUserFullName(req.user, false),
+			module: exception.module, method: exception.method,
+			action: action, message: exception.message,
+			detailedMessages: [{
+				"stack": exception.stack,
+				"request": req.body}]
+		});
+	}
+
+	static _logActionAppExceptionMessage(action, exception) {
+		Logging.logSecurityError({
+			user: exception.user,
+			actionOnUser: exception.actionOnUser,
 			module: exception.module, method: exception.method,
 			action: action, message: exception.message,
 			detailedMessages: [{
 				"stack": exception.stack,
 				"request": req.body}] });
-		// Send error
-		res.status(errorCode).send({"message": Utils.hideShowMessage(exception.message)});
-		next();
 	}
 
+	// Used to check URL params (not in catch)
+	static _logActionAppAuthExceptionMessage(action, exception) {
+		Logging.logSecurityError({
+			user: exception.user,
+			actionOnUser: exception.actionOnUser,
+			module: exception.module, method: exception.method,
+			action: action, message: exception.message,
+			detailedMessages: [{
+				"stack": exception.stack,
+				"request": req.body}] });
+	}
+
+	// Used to check URL params (not in catch)
 	static _format(detailedMessage) {
 		// JSON?
 		if (typeof detailedMessage === "object") {
@@ -195,14 +213,6 @@ class Logging {
 			log.source = Constants.CENTRAL_SERVER;
 		}
 
-		// Set User
-		if (log.user) {
-			log.userID = log.user.id;
-			log.userFullName = Utils.buildUserFullName(log.user, false);
-		} else if (!log.userFullName) {
-			log.userFullName = "System";
-		}
-
 		// Check Array
 		if (log.detailedMessages && !Array.isArray(log.detailedMessages)){
 			// Handle update of array
@@ -215,7 +225,6 @@ class Logging {
 		if (!log.type) {
 			log.type = LoggingType.REGULAR;
 		}
-
 		// Log
 		global.storage.saveLog(log);
 	}

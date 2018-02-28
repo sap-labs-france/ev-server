@@ -19,7 +19,7 @@ class CompanyService {
 	static handleDeleteCompany(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
-			module: "SiteService",
+			module: "CompanyService",
 			method: "handleDeleteCompany",
 			message: `Delete Company '${req.query.ID}'`,
 			detailedMessages: req.query
@@ -41,21 +41,24 @@ class CompanyService {
 			if (!company) {
 				// Not Found!
 				throw new AppError(`Company with ID '${filteredRequest.ID}' does not exist`,
-					500, "SiteService", "handleDeleteCompany");
+					500, "CompanyService", "handleDeleteCompany");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canDeleteCompany(req.user, company.getModel())) {
 				// Not Authorized!
-				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
-					CentralRestServerAuthorization.ENTITY_COMPANY, company.getID(),
-					500, "SiteService", "handleDeleteCompany");
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_DELETE,
+					CentralRestServerAuthorization.ENTITY_COMPANY,
+					company.getID(),
+					500, "CompanyService", "handleDeleteCompany",
+					req.user);
 			}
 			// Delete
 			return company.delete();
 		}).then(() => {
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "SiteService", method: "handleDeleteCompany",
+				user: req.user, module: "CompanyService", method: "handleDeleteCompany",
 				message: `Company '${company.getName()}' has been deleted successfully`,
 				action: action, detailedMessages: company});
 			// Ok
@@ -70,7 +73,7 @@ class CompanyService {
 	static handleGetCompany(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
-			module: "SiteService",
+			module: "CompanyService",
 			method: "handleGetCompany",
 			message: `Read Company '${req.query.ID}'`,
 			detailedMessages: req.query
@@ -105,7 +108,7 @@ class CompanyService {
 	static handleGetCompanies(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
-			module: "SiteService",
+			module: "CompanyService",
 			method: "handleGetCompanies",
 			message: `Read All Companies`,
 			detailedMessages: req.query
@@ -113,10 +116,12 @@ class CompanyService {
 		// Check auth
 		if (!CentralRestServerAuthorization.canListCompanies(req.user)) {
 			// Not Authorized!
-			Logging.logActionUnauthorizedMessageAndSendResponse(
+			throw new AppAuthError(
 				CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_COMPANIES,
-				null, req, res, next);
+				null,
+				500, "CompanyService", "handleGetCompanies",
+				req.user);
 			return;
 		}
 		// Filter
@@ -145,7 +150,7 @@ class CompanyService {
 	static handleCreateCompany(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
-			module: "SiteService",
+			module: "CompanyService",
 			method: "handleCreateCompany",
 			message: `Create Company '${req.body.name}'`,
 			detailedMessages: req.body
@@ -153,10 +158,12 @@ class CompanyService {
 		// Check auth
 		if (!CentralRestServerAuthorization.canCreateCompany(req.user)) {
 			// Not Authorized!
-			Logging.logActionUnauthorizedMessageAndSendResponse(
+			throw new AppAuthError(
 				CentralRestServerAuthorization.ACTION_CREATE,
-				CentralRestServerAuthorization.ENTITY_COMPANY, null, req, res, next);
-			return;
+				CentralRestServerAuthorization.ENTITY_COMPANY,
+				null,
+				500, "CompanyService", "handleCreateCompany",
+				req.user);
 		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterCompanyCreateRequest( req.body, req.user );
@@ -173,7 +180,7 @@ class CompanyService {
 				return newCompany.save();
 			}).then((createdCompany) => {
 				Logging.logSecurityInfo({
-					user: req.user, module: "SiteService", method: "handleCreateCompany",
+					user: req.user, module: "CompanyService", method: "handleCreateCompany",
 					message: `Company '${createdCompany.getName()}' has been created successfully`,
 					action: action, detailedMessages: createdCompany});
 				// Ok
@@ -189,7 +196,7 @@ class CompanyService {
 	static handleUpdateCompany(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
-			module: "SiteService",
+			module: "CompanyService",
 			method: "handleUpdateCompany",
 			message: `Update Company '${req.body.name}' (ID '${req.body.id}')`,
 			detailedMessages: req.body
@@ -204,16 +211,17 @@ class CompanyService {
 				company = foundCompany;
 				if (!company) {
 					throw new AppError(`The Company with ID '${filteredRequest.id}' does not exist anymore`,
-						550, "SiteService", "handleUpdateCompany");
+						550, "CompanyService", "handleUpdateCompany");
 				}
 				// Check auth
 				if (!CentralRestServerAuthorization.canUpdateCompany(req.user, company.getModel())) {
 					// Not Authorized!
-					Logging.logActionUnauthorizedMessageAndSendResponse(
+					throw new AppAuthError(
 						CentralRestServerAuthorization.ACTION_UPDATE,
 						CentralRestServerAuthorization.ENTITY_COMPANY,
-						company.getName(), req, res, next);
-					return;
+						company.getID(),
+						500, "CompanyService", "handleCreateCompany",
+						req.user);
 				}
 				// Get the logged user
 				return global.storage.getUser(req.user.id);
@@ -229,7 +237,7 @@ class CompanyService {
 			}).then((updatedCompany) => {
 				// Log
 				Logging.logSecurityInfo({
-					user: req.user, module: "SiteService", method: "handleUpdateCompany",
+					user: req.user, module: "CompanyService", method: "handleUpdateCompany",
 					message: `Company '${updatedCompany.getName()}' has been updated successfully`,
 					action: action, detailedMessages: updatedCompany});
 				// Ok

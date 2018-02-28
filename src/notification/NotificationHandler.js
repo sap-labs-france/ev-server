@@ -33,8 +33,9 @@ class NotificationHandler {
 			if (user) {
 				// User
 				Logging.logInfo({
-					module: "Notification", method: "saveNotification", action: sourceDescr,
-					message: `User ${Utils.buildUserFullName(user)} is being notified`
+					module: "Notification", method: "saveNotification",
+					action: sourceDescr, actionOnUser: user,
+					message: `User is being notified`
 				});
 			} else {
 				// Admin
@@ -45,8 +46,7 @@ class NotificationHandler {
 			}
 		}).catch((error) => {
 			// Log error
-			Logging.logUnexpectedErrorMessage("SaveNotification", "NotificationHandler",
-				"saveNotification", error);
+			Logging.logActionExceptionMessage("SaveNotification", error);
 		});
 	}
 
@@ -61,8 +61,7 @@ class NotificationHandler {
 			return notificationsFiltered.length > 0;
 		}).catch((error) => {
 			// Log error
-			Logging.logUnexpectedErrorMessage("HasNotification", "NotificationHandler",
-				"hasNotifiedSource", error);
+			Logging.logActionExceptionMessage("HasNotification", error);
 		});
 	}
 
@@ -81,15 +80,14 @@ class NotificationHandler {
 						_email.sendBeforeEndOfCharge(sourceData, locale);
 					}).catch(error => {
 						// Log error
-						Logging.logUnexpectedErrorMessage(SOURCE_BEFORE_END_OF_CHARGE,
-							"NotificationHandler", "sendBeforeEndOfCharge", error);
+						Logging.logActionExceptionMessage(
+							SOURCE_BEFORE_END_OF_CHARGE, error);
 					});
 				}
 			}
 		}).catch((error) => {
 			// Log error
-			Logging.logUnexpectedErrorMessage(SOURCE_BEFORE_END_OF_CHARGE,
-				"NotificationHandler", "sendBeforeEndOfCharge", error);
+			Logging.logActionExceptionMessage(SOURCE_BEFORE_END_OF_CHARGE, error);
 		});
 	}
 
@@ -108,15 +106,13 @@ class NotificationHandler {
 						_email.sendEndOfCharge(sourceData, locale);
 					}).catch(error => {
 						// Log error
-						Logging.logUnexpectedErrorMessage(SOURCE_END_OF_CHARGE, "NotificationHandler",
-							"sendEndOfCharge", error);
+						Logging.logActionExceptionMessage(SOURCE_END_OF_CHARGE, error);
 					});
 				}
 			}
 		}).catch((err) => {
 			// Log error
-			Logging.logUnexpectedErrorMessage(SOURCE_END_OF_CHARGE, "NotificationHandler",
-				"sendEndOfCharge", error);
+			Logging.logActionExceptionMessage(SOURCE_END_OF_CHARGE, error);
 		});
 	}
 
@@ -130,8 +126,7 @@ class NotificationHandler {
 				_email.sendResetPassword(sourceData, locale);
 			}).catch(error => {
 				// Log error
-				Logging.logUnexpectedErrorMessage(SOURCE_RESET_PASSWORD, "NotificationHandler",
-					"sendResetPassword", error);
+				Logging.logActionExceptionMessage(SOURCE_RESET_PASSWORD, error);
 			});
 			return Promise.resolve();
 		} else {
@@ -149,8 +144,8 @@ class NotificationHandler {
 				_email.sendUserAccountStatusChanged(sourceData, locale);
 			}).catch(error => {
 				// Log error
-				Logging.logUnexpectedErrorMessage(SOURCE_USER_ACCOUNT_STATUS_CHANGED,
-					"NotificationHandler", "sendUserAccountStatusChanged", error);
+				Logging.logActionExceptionMessage(
+					SOURCE_USER_ACCOUNT_STATUS_CHANGED, error);
 			});
 			return Promise.resolve();
 		} else {
@@ -168,8 +163,7 @@ class NotificationHandler {
 				_email.sendNewRegisteredUser(sourceData, locale);
 			}).catch(error => {
 				// Log error
-				Logging.logUnexpectedErrorMessage(SOURCE_NEW_REGISTERED_USER,
-					"NotificationHandler", "sendNewRegisteredUser", error);
+				Logging.logActionExceptionMessage(SOURCE_NEW_REGISTERED_USER, error);
 			});
 			return Promise.resolve();
 		} else {
@@ -187,8 +181,7 @@ class NotificationHandler {
 				_email.sendChargingStationStatusError(sourceData, Users.DEFAULT_LOCALE);
 			}).catch(error => {
 				// Log error
-				Logging.logUnexpectedErrorMessage(SOURCE_CHARGING_STATION_STATUS_ERROR,
-					"NotificationHandler", "sendChargingStationStatusError", error);
+				Logging.logActionExceptionMessage(SOURCE_CHARGING_STATION_STATUS_ERROR, error);
 			});
 			return Promise.resolve();
 		} else {
@@ -206,8 +199,7 @@ class NotificationHandler {
 				_email.sendUnknownUserBadged(sourceData, Users.DEFAULT_LOCALE);
 			}).catch(error => {
 				// Log error
-				Logging.logUnexpectedErrorMessage(SOURCE_UNKNOWN_USER_BADGED,
-					"NotificationHandler", "sendUnknownUserBadged", error);
+				Logging.logActionExceptionMessage(SOURCE_UNKNOWN_USER_BADGED, error);
 			});
 			return Promise.resolve();
 		} else {
@@ -225,8 +217,7 @@ class NotificationHandler {
 				_email.sendTransactionStarted(sourceData, locale);
 			}).catch(error => {
 				// Log error
-				Logging.logUnexpectedErrorMessage(SOURCE_TRANSACTION_STARTED,
-					"NotificationHandler", "sendTransactionStarted", error);
+				Logging.logActionExceptionMessage(SOURCE_TRANSACTION_STARTED, error);
 			});
 			return Promise.resolve();
 		} else {

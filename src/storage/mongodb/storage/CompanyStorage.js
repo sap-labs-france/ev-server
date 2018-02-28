@@ -170,7 +170,7 @@ class CompanyStorage {
 				}
 			});
 		}
-		// Single Record
+		// Sort
 		aggregation.push({
 			$sort: { name : 1 }
 		});

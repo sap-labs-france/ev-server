@@ -310,6 +310,9 @@ class SecurityRestObjectFiltering {
 		if (!logging) {
 			return null;
 		}
+		if (!CentralRestServerAuthorization.isAdmin(loggedUser)) {
+			return null;
+		}
 		filteredLogging.level = logging.level;
 		filteredLogging.timestamp = logging.timestamp;
 		filteredLogging.type = logging.type;
@@ -320,6 +323,14 @@ class SecurityRestObjectFiltering {
 		filteredLogging.module = logging.module;
 		filteredLogging.method = logging.method;
 		filteredLogging.detailedMessages = logging.detailedMessages;
+		if (logging.user && typeof logging.user == "object") {
+			// Build user
+			filteredLogging.user = Utils.buildUserFullName(logging.user, false);
+		}
+		if (logging.actionOnUser && typeof logging.actionOnUser == "object") {
+			// Build user
+			filteredLogging.actionOnUser = Utils.buildUserFullName(logging.actionOnUser, false);
+		}
 		return filteredLogging;
 	}
 

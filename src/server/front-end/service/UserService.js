@@ -63,18 +63,22 @@ class UserService {
 			// Check authchargingStation
 			if (!CentralRestServerAuthorization.canDeleteUser(req.user, user.getModel())) {
 				// Not Authorized!
-				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
-					CentralRestServerAuthorization.ENTITY_USER, user.getID(),
-					500, "UserService", "handleDeleteUser");
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_DELETE,
+					CentralRestServerAuthorization.ENTITY_USER,
+					user.getID(),
+					500, "UserService", "handleDeleteUser",
+					req.user);
 			}
 			// Delete
 			return user.delete();
 		}).then(() => {
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "UserService", method: "DeletehandleDeleteUser",
-				message: `User '${Utils.buildUserFullName(user.getModel())}' with Email '${user.getEMail()}' has been deleted successfully`,
-				action: action, detailedMessages: user});
+				user: req.user, actionOnUser: user.getModel(),
+				module: "UserService", method: "handleDeleteUser",
+				message: `User with ID '${user.getID()}' has been deleted successfully`,
+				action: action});
 			// Ok
 			res.json({status: `Success`});
 			next();
@@ -86,11 +90,10 @@ class UserService {
 
 	static handleUpdateUser(action, req, res, next) {
 		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "UserService",
-			method: "handleUpdateUser",
-			message: `Update User '${Utils.buildUserFullName(req.body, false)}' (ID '${req.body.id}')`,
-			detailedMessages: req.body
+			user: req.user, actionOnUser: req.body,
+			action: action,
+			module: "UserService", method: "handleUpdateUser",
+			message: `Update User with ID '${req.body.id}'`
 		});
 		let statusHasChanged=false;
 		// Filter
@@ -120,12 +123,12 @@ class UserService {
 			}).then((newPasswordHashed) => {
 				// Check auth
 				if (!CentralRestServerAuthorization.canUpdateUser(req.user, user.getModel())) {
-					// Not Authorized!
-					Logging.logActionUnauthorizedMessageAndSendResponse(
+					throw new AppAuthError(
 						CentralRestServerAuthorization.ACTION_UPDATE,
 						CentralRestServerAuthorization.ENTITY_USER,
-						Utils.buildUserFullName(user.getModel()), req, res, next);
-					return;
+						user.getID(),
+						500, "UserService", "handleUpdateUser",
+						req.user, user);
 				}
 				// Check if Role is provided and has been changed
 				if (filteredRequest.role &&
@@ -133,8 +136,9 @@ class UserService {
 						req.user.role !== Users.USER_ROLE_ADMIN) {
 					// Role provided and not an Admin
 					Logging.logError({
-						user: req.user, module: "UserService", method: "UpdateUser",
-						message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to change the role of the user ${Utils.buildUserFullName(user.getModel())} to '${filteredRequest.role}' without having the Admin priviledge` });
+						user: req.user, actionOnUser: user.getModel(),
+						module: "UserService", method: "handleUpdateUser",
+						message: `User with role '${req.user.role}' tried to change the role to '${filteredRequest.role}' without having the Admin priviledge` });
 					// Override it
 					filteredRequest.role = user.getRole();
 				}
@@ -145,8 +149,9 @@ class UserService {
 					if (req.user.role !== Users.USER_ROLE_ADMIN) {
 						// Role provided and not an Admin
 						Logging.logError({
-							user: req.user, module: "UserService", method: "UpdateUser",
-							message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to update the status of the user ${Utils.buildUserFullName(user.getModel())} to '${filteredRequest.status}' without having the Admin priviledge` });
+							user: req.user, actionOnUser: user.getModel(),
+							module: "UserService", method: "handleUpdateUser",
+							message: `User with role '${req.user.role}' tried to update the status to '${filteredRequest.status}' without having the Admin priviledge` });
 						// Ovverride it
 						filteredRequest.status = user.getStatus();
 					} else {
@@ -173,9 +178,10 @@ class UserService {
 			}).then((updatedUser) => {
 				// Log
 				Logging.logSecurityInfo({
-					user: req.user, module: "UserService", method: "handleUpdateUser",
-					message: `User '${Utils.buildUserFullName(updatedUser.getModel())}' with Email '${updatedUser.getEMail()}' has been updated successfully`,
-					action: action, detailedMessages: updatedUser});
+					user: req.user, actionOnUser: updatedUser.getModel(),
+					module: "UserService", method: "handleUpdateUser",
+					message: `User has been updated successfully`,
+					action: action});
 				// Notify
 				if (statusHasChanged) {
 					// Send notification
@@ -201,8 +207,7 @@ class UserService {
 	static handleGetUser(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
-			module: "UserService",
-			method: "handleGetUser",
+			module: "UserService", method: "handleGetUser",
 			message: `Read User ID '${req.query.ID}'`,
 			detailedMessages: req.query
 		});
@@ -210,18 +215,19 @@ class UserService {
 		let filteredRequest = SecurityRestObjectFiltering.filterUserRequest(req.query, req.user);
 		// User mandatory
 		if(!filteredRequest.ID) {
-			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The User's ID is mandatory`), req, res, next);
+			Logging.logActionExceptionMessageAndSendResponse(
+				action, new Error(`The User's ID is mandatory`), req, res, next);
 			return;
 		}
 		// Get the user
 		global.storage.getUser(filteredRequest.ID).then((user) => {
 			if (user) {
 				Logging.logSecurityInfo({
-					user: req.user, action: action,
-					module: "UserService",
-					method: "handleGetUser",
-					message: `Read User '${Utils.buildUserFullName(req.user)}'`,
-					detailedMessages: req.user
+					user: req.user,
+					actionOnUser: user.getModel(),
+					action: action,
+					module: "UserService", method: "handleGetUser",
+					message: 'Read User'
 				});
 				// Set the user
 				res.json(
@@ -249,10 +255,12 @@ class UserService {
 		// Check auth
 		if (!CentralRestServerAuthorization.canListUsers(req.user)) {
 			// Not Authorized!
-			Logging.logActionUnauthorizedMessageAndSendResponse(
+			throw new AppAuthError(
 				CentralRestServerAuthorization.ACTION_LIST,
-				CentralRestServerAuthorization.ENTITY_USERS, null, req, res, next);
-			return;
+				CentralRestServerAuthorization.ENTITY_USERS,
+				null,
+				500, "UserService", "handleGetUsers",
+				req.user);
 		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterUsersRequest(req.query, req.user);
@@ -281,15 +289,17 @@ class UserService {
 			user: req.user, action: action,
 			module: "UserService",
 			method: "handleCreateUser",
-			message: `Create User '${Utils.buildUserFullName(req.body, false)}' with Email '${req.body.email}'`
+			message: `Create User`
 		});
 		// Check auth
 		if (!CentralRestServerAuthorization.canCreateUser(req.user)) {
 			// Not Authorized!
-			Logging.logActionUnauthorizedMessageAndSendResponse(
+			throw new AppAuthError(
 				CentralRestServerAuthorization.ACTION_CREATE,
-				CentralRestServerAuthorization.ENTITY_USER, null, req, res, next);
-			return;
+				CentralRestServerAuthorization.ENTITY_USER,
+				null,
+				500, "UserService", "handleCreateUser",
+				req.user);
 		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterUserCreateRequest( req.body, req.user );
@@ -329,9 +339,10 @@ class UserService {
 				return user.save();
 			}).then((createdUser) => {
 				Logging.logSecurityInfo({
-					user: req.user, module: "UserService", method: "handleCreateUser",
-					message: `User '${Utils.buildUserFullName(createdUser.getModel())}' with email '${createdUser.getEMail()}' has been created successfully`,
-					action: action, detailedMessages: createdUser});
+					user: req.user, actionOnUser: createdUser.getModel(),
+					module: "UserService", method: "handleCreateUser",
+					message: `User with ID '${createdUser.getID()}' has been created successfully`,
+					action: action});
 				// Ok
 				res.json({status: `Success`});
 				next();

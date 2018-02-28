@@ -235,8 +235,17 @@ module.exports = {
 		dest.timestamp = src.timestamp;
 		dest.action = src.action;
 		dest.message = src.message;
-		dest.userFullName = src.userFullName;
 		dest.detailedMessages = src.detailedMessages;
+		if (src.user && typeof src.user == "object") {
+			dest.user = {};
+			this.updateUser(src.user, dest.user);
+		}
+		if (src.actionOnUser && typeof src.actionOnUser == "object") {
+			console.log("src.actionOnUser");
+			console.log(src.actionOnUser);
+			dest.actionOnUser = {};
+			this.updateUser(src.actionOnUser, dest.actionOnUser);
+		}
 	},
 
 	updateTransaction(src, dest) {

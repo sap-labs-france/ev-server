@@ -4,6 +4,7 @@ const Logging = require('../utils/Logging');
 const User = require('./User');
 const SiteArea = require('./SiteArea');
 const Users = require('../utils/Users');
+const AppError = require('../exception/AppError');
 const Constants = require('../utils/Constants');
 const Database = require('../utils/Database');
 const moment = require('moment');
@@ -648,8 +649,10 @@ class ChargingStation {
 					// Check status
 					if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
 						// Reject but save ok
-						return Promise.reject( new Error(
-							`User ${Utils.buildUserFullName(user.getModel())} with TagID ${request.idTag} is not Active`) );
+						return Promise.reject( new AppError(
+							`User with TagID ${request.idTag} is not Active`, 500,
+							"ChargingStation", "checkIfUserIsAuthorized",
+							null, user) );
 					} else {
 						// Save it
 						request.user = user;

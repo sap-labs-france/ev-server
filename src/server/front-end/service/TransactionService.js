@@ -21,10 +21,12 @@ class TransactionService {
 		// Check auth
 		if (!CentralRestServerAuthorization.canDeleteTransaction(req.user, req.query.ID)) {
 			// Not Authorized!
-			throw new AppAuthError(req.user,
+			throw new AppAuthError(
 				CentralRestServerAuthorization.ACTION_DELETE,
 				CentralRestServerAuthorization.ENTITY_TRANSACTION,
-				req.query.ID, 500, "TransactionService", "handleDeleteTransaction");
+				req.query.ID,
+				500, "TransactionService", "handleDeleteTransaction",
+				req.user);
 		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterTransactionDelete(req.query, req.user);
@@ -51,10 +53,12 @@ class TransactionService {
 				// Admin?
 				if (!CentralRestServerAuthorization.isAdmin(req.user)) {
 					// Not Authorized!
-					throw new AppAuthError(req.user,
+					throw new AppAuthError(
 						CentralRestServerAuthorization.ACTION_READ,
 						CentralRestServerAuthorization.ENTITY_USER,
-						transaction.user, 500, "TransactionService", "handleDeleteTransaction");
+						transaction.user.id,
+						500, "TransactionService", "handleDeleteTransaction",
+						req.user);
 				}
 			}
 			// Get the Charging Station
@@ -70,10 +74,12 @@ class TransactionService {
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
 				// Not Authorized!
-				throw new AppAuthError(req.user,
+				throw new AppAuthError(
 					CentralRestServerAuthorization.ACTION_READ,
 					CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
-					chargingStation.getID(), 500, "TransactionService", "handleDeleteTransaction");
+					chargingStation.getID(),
+					500, "TransactionService", "handleDeleteTransaction",
+					req.user);
 			}
 			// Get logged user
 			return global.storage.getUser(req.user.id);
@@ -90,8 +96,9 @@ class TransactionService {
 		}).then((result) => {
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "TransactionService", method: "handleDeleteTransaction",
-				message: `Transaction ID ${filteredRequest.ID} started by '${Utils.buildUserFullName(user.getModel())}' on '${transaction.chargeBox.id}'-'${transaction.connectorId}' has been deleted successfully`,
+				user: req.user, actionOnUser: user.getModel(),
+				module: "TransactionService", method: "handleDeleteTransaction",
+				message: `Transaction ID ${filteredRequest.ID} on '${transaction.chargeBox.id}'-'${transaction.connectorId}' has been deleted successfully`,
 				action: action, detailedMessages: result});
 			// Ok
 			res.json({status: `Success`});
@@ -113,9 +120,12 @@ class TransactionService {
 		// Check auth
 		if (!CentralRestServerAuthorization.canUpdateTransaction(req.user, req.body.transactionId)) {
 			// Not Authorized!
-			throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_UPDATE,
+			throw new AppAuthError(
+				CentralRestServerAuthorization.ACTION_UPDATE,
 				CentralRestServerAuthorization.ENTITY_TRANSACTION,
-				req.body.transactionId, 500, "TransactionService", "handleTransactionSoftStop");
+				req.body.transactionId,
+				500, "TransactionService", "handleTransactionSoftStop",
+				req.user);
 		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterTransactionSoftStop(req.body, req.user);
@@ -139,9 +149,12 @@ class TransactionService {
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
 				// Not Authorized!
-				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_READ,
 					CentralRestServerAuthorization.ENTITY_USER,
-					transaction.user, 500, "TransactionService", "handleTransactionSoftStop");
+					transaction.user.id,
+					500, "TransactionService", "handleTransactionSoftStop",
+					req.user);
 			}
 			// Get the Charging Station
 			return global.storage.getChargingStation(transaction.chargeBox.id);
@@ -156,8 +169,11 @@ class TransactionService {
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
 				// Not Authorized!
-				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ, CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
-					chargingStation.getID(), 500, "TransactionService", "handleTransactionSoftStop");
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_READ, CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
+					chargingStation.getID(),
+					500, "TransactionService", "handleTransactionSoftStop",
+					req.user);
 			}
 			// Get logged user
 			return global.storage.getUser(req.user.id, Users.WITH_NO_IMAGE);
@@ -179,8 +195,9 @@ class TransactionService {
 		}).then((result) => {
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "TransactionService", method: "handleTransactionSoftStop",
-				message: `Transaction ID '${transaction.id}' started by '${Utils.buildUserFullName(transaction.user)}' on '${transaction.chargeBox.id}'-'${transaction.connectorId}' has been stopped successfully`,
+				user: req.user, actionOnUser: user.getModel(),
+				module: "TransactionService", method: "handleTransactionSoftStop",
+				message: `Transaction ID '${transaction.id}' on '${transaction.chargeBox.id}'-'${transaction.connectorId}' has been stopped successfully`,
 				action: action, detailedMessages: result});
 			// Ok
 			res.json({status: `Success`});
@@ -202,9 +219,12 @@ class TransactionService {
 		// Check auth
 		if (!CentralRestServerAuthorization.canReadTransaction(req.user, req.query.TransactionId)) {
 			// Not Authorized!
-			throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
+			throw new AppAuthError(
+				CentralRestServerAuthorization.ACTION_READ,
 				CentralRestServerAuthorization.ENTITY_TRANSACTION,
-				req.query.TransactionId, 500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
+				req.query.TransactionId,
+				500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction",
+				req.user);
 		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationConsumptionFromTransactionRequest(req.query, req.user);
@@ -228,10 +248,12 @@ class TransactionService {
 			if (!transaction.user || !CentralRestServerAuthorization.canReadUser(req.user, transaction.user)) {
 				if (!CentralRestServerAuthorization.isAdmin(req.user)) {
 					// Not Authorized!
-					throw new AppAuthError(req.user,
+					throw new AppAuthError(
 						CentralRestServerAuthorization.ACTION_READ,
 						CentralRestServerAuthorization.ENTITY_USER,
-						transaction.user, 500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
+						transaction.user.id,
+						500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction",
+						req.user);
 				}
 			}
 			// Get the Charging Station
@@ -247,10 +269,12 @@ class TransactionService {
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
 				// Not Authorized!
-				throw new AppAuthError(req.user,
+				throw new AppAuthError(
 					CentralRestServerAuthorization.ACTION_READ,
 					CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
-					chargingStation.getID(), 500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
+					chargingStation.getID(),
+					500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction",
+					req.user);
 			}
 			// Check dates
 			if (filteredRequest.StartDateTime) {
@@ -305,9 +329,12 @@ class TransactionService {
 		// Check auth
 		if (!CentralRestServerAuthorization.canReadTransaction(req.user, req.query.ID)) {
 			// Not Authorized!
-			throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
+			throw new AppAuthError(
+				CentralRestServerAuthorization.ACTION_READ,
 				CentralRestServerAuthorization.ENTITY_TRANSACTION,
-				req.query.ID, 500, "TransactionService", "handleGetTransaction");
+				req.query.ID,
+				500, "TransactionService", "handleGetTransaction",
+				req.user);
 		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterTransactionRequest(req.query, req.user);
@@ -329,10 +356,12 @@ class TransactionService {
 				// Admin?
 				if (!CentralRestServerAuthorization.isAdmin(req.user)) {
 					// No: Not Authorized!
-					throw new AppAuthError(req.user,
+					throw new AppAuthError(
 						CentralRestServerAuthorization.ACTION_READ,
 						CentralRestServerAuthorization.ENTITY_USER,
-						transaction.user, 500, "TransactionService", "handleGetTransaction");
+						transaction.user.id,
+						500, "TransactionService", "handleGetTransaction",
+						req.user);
 				}
 			}
 			// Return
@@ -359,9 +388,12 @@ class TransactionService {
 		// Check auth
 		if (!CentralRestServerAuthorization.canListTransactions(req.user)) {
 			// Not Authorized!
-			throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_LIST,
+			throw new AppAuthError(
+				CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_TRANSACTION,
-				null, 500, "TransactionService", "handleGetChargingStationTransactions");
+				null,
+				500, "TransactionService", "handleGetChargingStationTransactions",
+				req.user);
 		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationTransactionsRequest(req.query, req.user);
@@ -386,9 +418,12 @@ class TransactionService {
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
 				// Not Authorized!
-				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_READ,
-					CentralRestServerAuthorization.ENTITY_CHARGING_STATION, chargingStation.getID(),
-					500, "TransactionService", "handleGetChargingStationTransactions");
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_READ,
+					CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
+					chargingStation.getID(),
+					500, "TransactionService", "handleGetChargingStationTransactions",
+					req.user);
 			}
 			// Set the model
 			return chargingStation.getTransactions(
@@ -445,9 +480,12 @@ class TransactionService {
 		// Check auth
 		if (!CentralRestServerAuthorization.canListTransactions(req.user)) {
 			// Not Authorized!
-			throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_LIST,
+			throw new AppAuthError(
+				CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_TRANSACTION,
-				null, 500, "TransactionService", "handleGetTransactionsActive");
+				null,
+				500, "TransactionService", "handleGetTransactionsActive",
+				req.user);
 		}
 		let filter = { stop: { $exists: false } };
 		// Filter
@@ -485,10 +523,12 @@ class TransactionService {
 		// Check auth
 		if (!CentralRestServerAuthorization.canListTransactions(req.user)) {
 			// Not Authorized!
-			throw new AppAuthError(req.user,
+			throw new AppAuthError(
 				CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_TRANSACTION,
-				null, 500, "TransactionService", "handleGetTransactionsCompleted");
+				null,
+				500, "TransactionService", "handleGetTransactionsCompleted",
+				req.user);
 		}
 		let pricing;
 		let filter = {stop: {$exists: true}};

@@ -86,8 +86,9 @@ class AuthService {
 					if (moment(user.getPasswordBlockedUntil()).isBefore(moment())) {
 						// Time elapsed: activate the account again
 						Logging.logSecurityInfo({
-							user: user.getModel(), module: "AuthService", method: "handleLogIn", action: action,
-							message: `User '${Utils.buildUserFullName(user.getModel())}' has been unlocked and can try to login again`});
+							actionOnUser: user.getModel(),
+							module: "AuthService", method: "handleLogIn", action: action,
+							message: `User has been unlocked and can try to login again`});
 						// Reinit nbr of trial and status
 						user.setPasswordWrongNbrTrials(0);
 						user.setStatus(Users.USER_STATUS_ACTIVE);
@@ -99,8 +100,9 @@ class AuthService {
 					} else {
 						// Block
 						Logging.logSecurityError({
-							user: user.getModel(), module: "AuthService", method: "handleLogIn", action: action,
-							message: `User '${Utils.buildUserFullName(user.getModel())}' tried to login too many times: account is locked`});
+							actionOnUser: user.getModel(),
+							module: "AuthService", method: "handleLogIn", action: action,
+							message: `User is locked (too many failed attempts)`});
 						// Return data
 						res.status(450).send({"message": Utils.hideShowMessage("User is locked: too many attempts")});
 						next();
@@ -379,8 +381,9 @@ class AuthService {
 						user.save();
 						// Log it
 						Logging.logSecurityInfo({
-							user: user.getModel(), module: "AuthService", method: "checkUserLogin", action: action,
-							message: `User '${Utils.buildUserFullName(user.getModel())}' logged in successfully`});
+							user: user.getModel(),
+							module: "AuthService", method: "checkUserLogin", action: action,
+							message: `User logged in successfully`});
 						// Get authorisation
 						let userRole = Authorization.getAuthorizationFromRoleID(user.getRole());
 						// Parse the auth and replace values
@@ -424,8 +427,9 @@ class AuthService {
 						// Too many attempts, lock user
 						// Log it
 						Logging.logSecurityError({
+							actionOnUser: user,
 							module: "AuthService", method: "checkUserLogin", action: action,
-							message: `User '${Utils.buildUserFullName(user.getModel())}' is locked for ${_centralSystemRestConfig.passwordBlockedWaitTimeMin} mins: too many failed attempts (${_centralSystemRestConfig.passwordWrongNumberOfTrial})`});
+							message: `User is locked for ${_centralSystemRestConfig.passwordBlockedWaitTimeMin} mins`});
 						// User locked
 						user.setStatus(Users.USER_STATUS_LOCKED);
 						// Set blocking date
@@ -442,8 +446,9 @@ class AuthService {
 						// Wrong logon
 						// Log it
 						Logging.logSecurityError({
+							actionOnUser: user,
 							module: "AuthService", method: "checkUserLogin", action: action,
-							message: `User '${Utils.buildUserFullName(user.getModel())}' tried to log in without success, ${_centralSystemRestConfig.passwordWrongNumberOfTrial - user.getPasswordWrongNbrTrials()} trial(s) remaining`});
+							message: `User failed to log in, ${_centralSystemRestConfig.passwordWrongNumberOfTrial - user.getPasswordWrongNbrTrials()} trial(s) remaining`});
 						// Not authorized
 						user.save().then(() => {
 							// Unauthorized

@@ -8,11 +8,12 @@ class LoggingService {
 		// Check auth
 		if (!CentralRestServerAuthorization.canListLogging(req.user)) {
 			// Not Authorized!
-			Logging.logActionUnauthorizedMessageAndSendResponse(
+			throw new AppAuthError(
 				CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_LOGGING,
-				null, req, res, next);
-			return;
+				null,
+				500, "LoggingService", "handleGetLoggings",
+				req.user);
 		}
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterLoggingsRequest(req.query, req.user);

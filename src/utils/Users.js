@@ -236,24 +236,11 @@ module.exports = {
 			if (!userDB) {
 				global.storage.saveUser(user).then((newUser) => {
 					console.log(`User Import: User with email '${user.email}' has been created with success`);
-					Logging.logInfo({
-						action: "ImportUser", module: "Users", method: "importUsers",
-						message: `User ${Utils.buildUserFullName(newUser.getModel())} with email '${newUser.getEMail()}' has been imported successfully`,
-						detailedMessages: user});
 				}).catch((err) => {
 					console.log(`User Import: Failed to import user with email '${user.email}': ${err.toString()}`);
-					// Log
-					Logging.logError({
-						action: "ImportUser", module: "Users", method: "importUsers",
-						message: `Cannot import user with email '${user.email}': ${err.toString()}`,
-						detailedMessages: [user, err.stack] });
 				});
 			} else {
 				console.log(`User Import: User with email '${user.email}' already exists`);
-				Logging.logInfo({
-					action: "ImportUser", module: "Users", method: "importUsers",
-					message: `User with email '${user.email}' already exists`,
-					detailedMessages: user});
 			}
 		});
 	},

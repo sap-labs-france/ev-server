@@ -145,12 +145,7 @@ class CentralSystemServer {
 				}
 			}).catch((error) => {
 				// Log error
-				Logging.logUnexpectedErrorMessage(
-					"BootNotification",
-					"CentralSystemServer",
-					"handleBootNotification",
-					error,
-					headers.chargeBoxIdentity);
+				Logging.logActionExceptionMessage("BootNotification", error);
 				// Reject
 				return {
 					"bootNotificationResponse": {
@@ -190,12 +185,7 @@ class CentralSystemServer {
 			};
 		}).catch((error) => {
 			// Log error
-			Logging.logUnexpectedErrorMessage(
-				"HeartBeat",
-				"CentralSystemServer",
-				"handleHeartBeat",
-				error,
-				headers.chargeBoxIdentity);
+			Logging.logActionExceptionMessage("HeartBeat", error);
 			// Send the response
 			return {
 				"heartbeatResponse": {
@@ -244,12 +234,7 @@ class CentralSystemServer {
 			};
 		}).catch((error) => {
 			// Log error
-			Logging.logUnexpectedErrorMessage(
-				"StatusNotification",
-				"CentralSystemServer",
-				"handleStatusNotification",
-				error,
-				headers.chargeBoxIdentity);
+			Logging.logActionExceptionMessage("StatusNotification", error);
 			// Return
 			return {
 				"statusNotificationResponse": {
@@ -278,12 +263,7 @@ class CentralSystemServer {
 			};
 		}).catch((error) => {
 			// Log error
-			Logging.logUnexpectedErrorMessage(
-				"MeterValues",
-				"CentralSystemServer",
-				"handleMeterValues",
-				error,
-				headers.chargeBoxIdentity);
+			Logging.logActionExceptionMessage("MeterValues", error);
 			// Response
 			return {
 				"meterValuesResponse": {
@@ -308,7 +288,8 @@ class CentralSystemServer {
 				// Log
 				Logging.logInfo({
 					source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleAuthorize",
-					action: "Authorize", message: `User '${Utils.buildUserFullName(args.user._model)}' has been authorized to use the Charging Station`,
+					action: "Authorize", user: args.user,
+					message: `User has been granted access`,
 					detailedMessages: args });
 			} else {
 				// Log
@@ -329,12 +310,7 @@ class CentralSystemServer {
 			};
 		}).catch((error) => {
 			// Log error
-			Logging.logUnexpectedErrorMessage(
-				"Authorize",
-				"CentralSystemServer",
-				"handleAuthorize",
-				error,
-				headers.chargeBoxIdentity);
+			Logging.logActionExceptionMessage("Authorize", error);
 			return {
 				"authorizeResponse": {
 					"idTagInfo": {
@@ -368,12 +344,7 @@ class CentralSystemServer {
 			};
 		}).catch((error) => {
 			// Log error
-			Logging.logUnexpectedErrorMessage(
-				"DiagnosticsStatusNotification",
-				"CentralSystemServer",
-				"handleDiagnosticsStatusNotification",
-				error,
-				headers.chargeBoxIdentity);
+			Logging.logActionExceptionMessage("DiagnosticsStatusNotification", error);
 			return {
 				"diagnosticsStatusNotificationResponse": {
 				}
@@ -401,12 +372,7 @@ class CentralSystemServer {
 			};
 		}).catch((error) => {
 			// Log error
-			Logging.logUnexpectedErrorMessage(
-				"FirmwareStatusNotification",
-				"CentralSystemServer",
-				"handleFirmwareStatusNotification",
-				error,
-				headers.chargeBoxIdentity);
+			Logging.logActionExceptionMessage("FirmwareStatusNotification", error);
 			return {
 				"firmwareStatusNotificationResponse": {
 				}
@@ -433,7 +399,8 @@ class CentralSystemServer {
 			if (args.user) {
 				Logging.logInfo({
 					source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStartTransaction",
-					action: "StartTransaction", message: `Transaction ID '${args.transactionId}' has been started by '${Utils.buildUserFullName(args.user._model)}' on Connector '${args.connectorId}'`,
+					action: "StartTransaction", user: args.user,
+					message: `Transaction ID '${args.transactionId}' has been started on Connector '${args.connectorId}'`,
 					detailedMessages: args });
 			} else {
 				Logging.logInfo({
@@ -454,12 +421,7 @@ class CentralSystemServer {
 			};
 		}).catch((error) => {
 			// Log error
-			Logging.logUnexpectedErrorMessage(
-				"StartTransaction",
-				"CentralSystemServer",
-				"handleStartTransaction",
-				error,
-				headers.chargeBoxIdentity);
+			Logging.logActionExceptionMessage("StartTransaction", error);
 			return {
 				"startTransactionResponse": {
 					"transactionId": args.transactionId,
@@ -495,12 +457,7 @@ class CentralSystemServer {
 			};
 		}).catch((error) => {
 			// Log error
-			Logging.logUnexpectedErrorMessage(
-				"DataTransfer",
-				"CentralSystemServer",
-				"handleDataTransfer",
-				error,
-				headers.chargeBoxIdentity);
+			Logging.logActionExceptionMessage("DataTransfer", error);
 			return {
 				"dataTransferResponse": {
 					"status": "Rejected"
@@ -518,16 +475,11 @@ class CentralSystemServer {
 				return chargingStation.handleStopTransaction(args);
 			}
 		}).then(() => {
-			let message;
-			if (args.user) {
-				message = `Transaction ID '${args.transactionId}' has been stopped by '${Utils.buildUserFullName(args.user._model)}'`;
-			} else {
-				message = `Transaction ID '${args.transactionId}' has been stopped`;
-			}
 			// Log
 			Logging.logInfo({
 				source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStopTransaction",
-				action: "StopTransaction", message: message,
+				action: "StopTransaction", user: args.user,
+				message: `Transaction ID '${args.transactionId}' has been stopped`,
 				detailedMessages: args });
 			// Success
 			return {
@@ -541,12 +493,7 @@ class CentralSystemServer {
 			};
 		}).catch((error) => {
 			// Log error
-			Logging.logUnexpectedErrorMessage(
-				"StopTransaction",
-				"CentralSystemServer",
-				"handleStopTransaction",
-				error,
-				headers.chargeBoxIdentity);
+			Logging.logActionExceptionMessage("StopTransaction", error);
 			// Error
 			return {
 				"stopTransactionResponse": {
