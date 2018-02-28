@@ -19,7 +19,7 @@ class SiteAreaService {
 	static handleCreateSiteArea(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
-			module: "SiteService",
+			module: "SiteAreaService",
 			method: "handleCreateSiteArea",
 			message: `Create Site Area '${req.body.name}'`,
 			detailedMessages: req.body
@@ -35,6 +35,7 @@ class SiteAreaService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreaCreateRequest( req.body, req.user );
 		let newSiteArea;
+		let loggedUser;
 		// Check Mandatory fields
 		if (SiteAreas.checkIfSiteAreaValid("SiteAreaCreate", filteredRequest, req, res, next)) {
 			// Check Site
@@ -48,7 +49,8 @@ class SiteAreaService {
 				// Get the logged user
 				return global.storage.getUser(req.user.id);
 			// Logged User
-			}).then((loggedUser) => {
+			}).then((foundLoggedUser) => {
+				loggedUser = foundLoggedUser;
 				// Create site
 				let newSiteArea = new SiteArea(filteredRequest);
 				// Update timestamp
@@ -70,6 +72,10 @@ class SiteAreaService {
 				let proms = [];
 				// Get it
 				assignedChargingStations.forEach((assignedChargingStation) => {
+					// Update timestamp
+					assignedChargingStation.setLastChangedBy(loggedUser);
+					assignedChargingStation.setLastChangedOn(new Date());
+					// Set
 					assignedChargingStation.setSiteArea(newSiteArea);
 					proms.push(assignedChargingStation.saveChargingStationSiteArea());
 				});
@@ -77,7 +83,7 @@ class SiteAreaService {
 			}).then((results) => {
 				// Ok
 				Logging.logSecurityInfo({
-					user: req.user, module: "SiteService", method: "handleCreateSiteArea",
+					user: req.user, module: "SiteAreaService", method: "handleCreateSiteArea",
 					message: `Site Area '${newSiteArea.getName()}' has been created successfully`,
 					action: action, detailedMessages: newSiteArea});
 				// Ok
@@ -93,7 +99,7 @@ class SiteAreaService {
 	static handleGetSiteAreas(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
-			module: "SiteService",
+			module: "SiteAreaService",
 			method: "handleGetSiteAreas",
 			message: `Read All Site Areas`,
 			detailedMessages: req.query
@@ -133,7 +139,7 @@ class SiteAreaService {
 	static handleDeleteSiteArea(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
-			module: "SiteService",
+			module: "SiteAreaService",
 			method: "handleDeleteSiteArea",
 			message: `Delete Site Area '${req.query.ID}'`,
 			detailedMessages: req.query
@@ -155,7 +161,7 @@ class SiteAreaService {
 			if (!siteArea) {
 				// Not Found!
 				throw new AppError(`Site Area with ID '${filteredRequest.ID}' does not exist`,
-					500, "SiteService", "handleDeleteSiteArea");
+					500, "SiteAreaService", "handleDeleteSiteArea");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canDeleteSiteArea(req.user,
@@ -163,14 +169,14 @@ class SiteAreaService {
 				// Not Authorized!
 				throw new AppAuthError(req.user, CentralRestServerAuthorization.ACTION_DELETE,
 					CentralRestServerAuthorization.ENTITY_SITE_AREA, siteArea.getID(),
-					500, "SiteService", "handleDeleteSiteArea");
+					500, "SiteAreaService", "handleDeleteSiteArea");
 			}
 			// Delete
 			return siteArea.delete();
 		}).then(() => {
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "SiteService", method: "handleDeleteSiteArea",
+				user: req.user, module: "SiteAreaService", method: "handleDeleteSiteArea",
 				message: `Site Area '${siteArea.getName()}' has been deleted successfully`,
 				action: action, detailedMessages: siteArea});
 			// Ok
@@ -185,7 +191,7 @@ class SiteAreaService {
 	static handleGetSiteArea(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
-			module: "SiteService",
+			module: "SiteAreaService",
 			method: "handleGetSiteArea",
 			message: `Read Site Area '${req.query.ID}'`,
 			detailedMessages: req.query
@@ -221,7 +227,7 @@ class SiteAreaService {
 	static handleUpdateSiteArea(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
-			module: "SiteService",
+			module: "SiteAreaService",
 			method: "handleUpdateSiteArea",
 			message: `Update Site Area '${req.body.name}' (ID '${req.body.id}')`,
 			detailedMessages: req.body
@@ -231,12 +237,13 @@ class SiteAreaService {
 		// Check Mandatory fields
 		if (SiteAreas.checkIfSiteAreaValid(action, filteredRequest, req, res, next)) {
 			let siteArea;
+			let loggedUser;
 			// Check
 			global.storage.getSiteArea(filteredRequest.id).then((foundSiteArea) => {
 				siteArea = foundSiteArea;
 				if (!siteArea) {
 					throw new AppError(`The Site Area with ID '${filteredRequest.id}' does not exist anymore`,
-						550, "SiteService", "handleUpdateSiteArea");
+						550, "SiteAreaService", "handleUpdateSiteArea");
 				}
 				// Check auth
 				if (!CentralRestServerAuthorization.canUpdateSiteArea(req.user, siteArea.getModel())) {
@@ -247,12 +254,21 @@ class SiteAreaService {
 						siteArea.getName(), req, res, next);
 					return;
 				}
+				// Get the logged user
+				return global.storage.getUser(req.user.id);
+			// Logged User
+			}).then((foundLoggedUser) => {
+				loggedUser = foundLoggedUser;
 				// Get Charging Stations
 				return siteArea.getChargingStations();
 			}).then((assignedChargingStations) => {
 				let proms = [];
 				// Clear Site Area from Existing Charging Station
 				assignedChargingStations.forEach((assignedChargingStation) => {
+					// Update timestamp
+					assignedChargingStation.setLastChangedBy(loggedUser);
+					assignedChargingStation.setLastChangedOn(new Date());
+					// Set
 					assignedChargingStation.setSiteArea(null);
 					proms.push(assignedChargingStation.saveChargingStationSiteArea());
 				});
@@ -269,15 +285,15 @@ class SiteAreaService {
 				let proms = [];
 				// Get it
 				assignedChargingStations.forEach((assignedChargingStation) => {
+					// Update timestamp
+					assignedChargingStation.setLastChangedBy(loggedUser);
+					assignedChargingStation.setLastChangedOn(new Date());
+					// Set
 					assignedChargingStation.setSiteArea(siteArea);
 					proms.push(assignedChargingStation.saveChargingStationSiteArea());
 				});
 				return Promise.all(proms);
 			}).then((results) => {
-				// Get the logged user
-				return global.storage.getUser(req.user.id);
-			// Logged User
-			}).then((loggedUser) => {
 				// Update
 				Database.updateSiteArea(filteredRequest, siteArea.getModel());
 				// Update timestamp
@@ -288,7 +304,7 @@ class SiteAreaService {
 			}).then((updatedSiteArea) => {
 				// Log
 				Logging.logSecurityInfo({
-					user: req.user, module: "SiteService", method: "handleUpdateSiteArea",
+					user: req.user, module: "SiteAreaService", method: "handleUpdateSiteArea",
 					message: `Site Area '${updatedSiteArea.getName()}' has been updated successfully`,
 					action: action, detailedMessages: updatedSiteArea});
 				// Ok

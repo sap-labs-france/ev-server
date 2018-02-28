@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Logging = require('../../../utils/Logging');
 const Utils = require('../../../utils/Utils');
 const Constants = require('../../../utils/Constants');
@@ -13,6 +14,7 @@ const MDBAuthorize = require('../model/MDBAuthorize');
 const ChargingStation = require('../../../model/ChargingStation');
 const SiteArea = require('../../../model/SiteArea');
 const crypto = require('crypto');
+const ObjectId = mongoose.Types.ObjectId;
 
 let _centralRestServer;
 
@@ -41,9 +43,11 @@ class ChargingStationStorage {
 		});
 	}
 
-	static handleGetChargingStations(searchValue, siteAreaID, onlyWithNoSiteArea, numberOfChargingStation) {
+	static handleGetChargingStations(searchValue, siteAreaID, onlyWithNoSiteArea, numberOfChargingStations) {
 		// Check Limit
-		numberOfChargingStation = Utils.checkRecordLimit(numberOfChargingStation);
+		numberOfChargingStations = Utils.checkRecordLimit(numberOfChargingStations);
+		// Create Aggregation
+		let aggregation = [];
 		// Set the filters
 		let filters = {
 			"$and": [
@@ -72,11 +76,48 @@ class ChargingStationStorage {
 			// Build filter
 			filters.siteAreaID = null;
 		}
-		// Exec request
-		return MDBChargingStation.find(filters)
-				.collation({ locale: Constants.APPLICATION_LOCALE, caseLevel: true })
-				.sort( { _id: 1 } )
-				.limit(numberOfChargingStation)
+		// Filters
+		aggregation.push({
+			$match: filters
+		});
+		// Created By
+		aggregation.push({
+			$lookup: {
+				from: "users",
+				localField: "createdBy",
+				foreignField: "_id",
+				as: "createdBy"
+			}
+		});
+		// Single Record
+		aggregation.push({
+			$unwind: { "path": "$createdBy", "preserveNullAndEmptyArrays": true }
+		});
+		// Last Changed By
+		aggregation.push({
+			$lookup: {
+				from: "users",
+				localField: "lastChangedBy",
+				foreignField: "_id",
+				as: "lastChangedBy"
+			}
+		});
+		// Single Record
+		aggregation.push({
+			$unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
+		});
+		// Single Record
+		aggregation.push({
+			$sort: { _id : 1 }
+		});
+		// Limit
+		if (numberOfChargingStations > 0) {
+			aggregation.push({
+				$limit: numberOfChargingStations
+			});
+		}
+		// Execute
+		return MDBChargingStation.aggregate(aggregation)
 				.exec().then((chargingStationsMDB) => {
 			let chargingStations = [];
 			// Create
@@ -96,6 +137,16 @@ class ChargingStationStorage {
 		} else {
 			// Set it to null
 			chargingStation.siteAreaID = null;
+		}
+		// Check Created By
+		if (chargingStation.createdBy && typeof chargingStation.createdBy == "object") {
+			// This is the User Model
+			chargingStation.createdBy = new ObjectId(chargingStation.createdBy.id);
+		}
+		// Check Last Changed By
+		if (chargingStation.lastChangedBy && typeof chargingStation.lastChangedBy == "object") {
+			// This is the User Model
+			chargingStation.lastChangedBy = new ObjectId(chargingStation.lastChangedBy.id);
 		}
 		// Update
 		return MDBChargingStation.findOneAndUpdate(
@@ -163,6 +214,12 @@ class ChargingStationStorage {
 	static handleSaveChargingStationSiteArea(chargingStation) {
 		let updatedFields = {};
 		updatedFields["siteAreaID"] = (chargingStation.siteArea ? chargingStation.siteArea.id : null);
+		// Check Last Changed By
+		if (chargingStation.lastChangedBy && typeof chargingStation.lastChangedBy == "object") {
+			// This is the User Model
+			updatedFields["lastChangedBy"] = new ObjectId(chargingStation.lastChangedBy.id);
+			updatedFields["lastChangedOn"] = chargingStation.lastChangedOn;
+		}
 		// Update
 		return MDBChargingStation.findByIdAndUpdate(
 				chargingStation.id,

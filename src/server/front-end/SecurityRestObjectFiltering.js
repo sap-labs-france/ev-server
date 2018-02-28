@@ -511,10 +511,6 @@ class SecurityRestObjectFiltering {
 				filteredUser.status = user.status;
 				filteredUser.eulaAcceptedOn = user.eulaAcceptedOn;
 				filteredUser.eulaAcceptedVersion = user.eulaAcceptedVersion;
-				filteredUser.createdBy = user.createdBy;
-				filteredUser.createdOn = user.createdOn;
-				filteredUser.lastChangedBy = user.lastChangedBy;
-				filteredUser.lastChangedOn = user.lastChangedOn;
 				filteredUser.tagIDs = user.tagIDs;
 				filteredUser.role = user.role;
 				filteredUser.numberOfTransactions = user.numberOfTransactions;
@@ -535,6 +531,9 @@ class SecurityRestObjectFiltering {
 					filteredUser.image = user.image;
 				}
 			}
+			// Created By / Last Changed By
+			SecurityRestObjectFiltering.filterCreatedByAndLastChangedBy(
+				filteredUser, user, loggedUser);
 		}
 
 		return filteredUser;
@@ -584,6 +583,9 @@ class SecurityRestObjectFiltering {
 					filteredChargingStation.siteArea = this.filterSiteAreaResponse(chargingStation.siteArea, loggedUser);
 				}
 			}
+			// Created By / Last Changed By
+			SecurityRestObjectFiltering.filterCreatedByAndLastChangedBy(
+				filteredChargingStation, chargingStation, loggedUser);
 		}
 		return filteredChargingStation;
 	}

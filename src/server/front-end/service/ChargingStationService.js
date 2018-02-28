@@ -24,9 +24,10 @@ class ChargingStationService {
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationUpdateRequest( req.body, req.user );
 		// Check Mandatory fields
 		if (ChargingStations.checkIfChargingStationValid(action, filteredRequest, req, res, next)) {
-			let siteWithId;
+			let chargingStation;
 			// Check email
-			global.storage.getChargingStation(filteredRequest.id).then((chargingStation) => {
+			global.storage.getChargingStation(filteredRequest.id).then((foundChargingStation) => {
+				chargingStation = foundChargingStation;
 				if (!chargingStation) {
 					throw new AppError(`The Charging Station with ID '${filteredRequest.id}' does not exist anymore`,
 						550, "ChargingStationService", "handleUpdateChargingStation");
@@ -49,8 +50,12 @@ class ChargingStationService {
 				if (filteredRequest.endpoint) {
 					chargingStation.setEndPoint(filteredRequest.endpoint);
 				}
+				// Get the logged user
+				return global.storage.getUser(req.user.id);
+			// Logged User
+			}).then((loggedUser) => {
 				// Update timestamp
-				chargingStation.setLastChangedBy(`${Utils.buildUserFullName(req.user)}`);
+				chargingStation.setLastChangedBy(loggedUser);
 				chargingStation.setLastChangedOn(new Date());
 				// Update
 				return chargingStation.save();
