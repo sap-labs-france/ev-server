@@ -97,21 +97,20 @@ class UserService {
 		let filteredRequest = SecurityRestObjectFiltering.filterUserUpdateRequest( req.body, req.user );
 		// Check Mandatory fields
 		if (Users.checkIfUserValid(action, filteredRequest, req, res, next)) {
-			let currentUserInDB;
+			let user;
 			// Check email
-			global.storage.getUser(filteredRequest.id).then((user) => {
+			global.storage.getUser(filteredRequest.id).then((foundUser) => {
+				user = foundUser;
 				if (!user) {
 					throw new AppError(`The user with ID '${filteredRequest.id}' does not exist anymore`,
 						550, "UserService", "handleUpdateUser");
 				}
-				// Keep
-				currentUserInDB = user;
 			}).then(() => {
 				// Check email
 				return global.storage.getUserByEmail(filteredRequest.email);
 			}).then((userWithEmail) => {
 				// Check if EMail is already taken
-				if (userWithEmail && currentUserInDB.getID() !== userWithEmail.getID()) {
+				if (userWithEmail && user.getID() !== userWithEmail.getID()) {
 					// Yes!
 					throw new AppError(`The email '${filteredRequest.email}' already exists`,
 						510, "UserService", "handleUpdateUser");
@@ -120,53 +119,57 @@ class UserService {
 				return Users.hashPasswordBcrypt(filteredRequest.password);
 			}).then((newPasswordHashed) => {
 				// Check auth
-				if (!CentralRestServerAuthorization.canUpdateUser(req.user, currentUserInDB.getModel())) {
+				if (!CentralRestServerAuthorization.canUpdateUser(req.user, user.getModel())) {
 					// Not Authorized!
 					Logging.logActionUnauthorizedMessageAndSendResponse(
 						CentralRestServerAuthorization.ACTION_UPDATE,
 						CentralRestServerAuthorization.ENTITY_USER,
-						Utils.buildUserFullName(currentUserInDB.getModel()), req, res, next);
+						Utils.buildUserFullName(user.getModel()), req, res, next);
 					return;
 				}
 				// Check if Role is provided and has been changed
 				if (filteredRequest.role &&
-						filteredRequest.role !== currentUserInDB.getRole() &&
+						filteredRequest.role !== user.getRole() &&
 						req.user.role !== Users.USER_ROLE_ADMIN) {
 					// Role provided and not an Admin
 					Logging.logError({
 						user: req.user, module: "UserService", method: "UpdateUser",
-						message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to change the role of the user ${Utils.buildUserFullName(currentUserInDB.getModel())} to '${filteredRequest.role}' without having the Admin priviledge` });
+						message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to change the role of the user ${Utils.buildUserFullName(user.getModel())} to '${filteredRequest.role}' without having the Admin priviledge` });
 					// Override it
-					filteredRequest.role = currentUserInDB.getRole();
+					filteredRequest.role = user.getRole();
 				}
 				// Check if Status has been changed
 				if (filteredRequest.status &&
-						filteredRequest.status !== currentUserInDB.getStatus()) {
+						filteredRequest.status !== user.getStatus()) {
 					// Right to change?
 					if (req.user.role !== Users.USER_ROLE_ADMIN) {
 						// Role provided and not an Admin
 						Logging.logError({
 							user: req.user, module: "UserService", method: "UpdateUser",
-							message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to update the status of the user ${Utils.buildUserFullName(currentUserInDB.getModel())} to '${filteredRequest.status}' without having the Admin priviledge` });
+							message: `User ${Utils.buildUserFullName(req.user)} with role '${req.user.role}' tried to update the status of the user ${Utils.buildUserFullName(user.getModel())} to '${filteredRequest.status}' without having the Admin priviledge` });
 						// Ovverride it
-						filteredRequest.status = currentUserInDB.getStatus();
+						filteredRequest.status = user.getStatus();
 					} else {
 						// Status changed
 						statusHasChanged = true;
 					}
 				}
+				// Get the logged user
+				return global.storage.getUser(req.user.id);
+			// Logged User
+			}).then((loggedUser) => {
 				// Update
-				Database.updateUser(filteredRequest, currentUserInDB.getModel());
+				Database.updateUser(filteredRequest, user.getModel());
 				// Update timestamp
-				currentUserInDB.setLastChangedBy(Utils.buildUserFullName(req.user));
-				currentUserInDB.setLastChangedOn(new Date());
+				user.setLastChangedBy(loggedUser);
+				user.setLastChangedOn(new Date());
 				// Check the password
 				if (filteredRequest.password && filteredRequest.password.length > 0) {
 					// Update the password
-					currentUserInDB.setPassword(newPasswordHashed);
+					user.setPassword(newPasswordHashed);
 				}
 				// Update
-				return currentUserInDB.save();
+				return user.save();
 			}).then((updatedUser) => {
 				// Log
 				Logging.logSecurityInfo({
@@ -295,13 +298,13 @@ class UserService {
 			filteredRequest.role = Users.USER_ROLE_BASIC;
 			filteredRequest.status = Users.USER_STATUS_INACTIVE;
 		}
+		let loggedUser;
 		// Check Mandatory fields
 		if (Users.checkIfUserValid(action, filteredRequest, req, res, next)) {
-			let loggedUserGeneral;
 			// Get the logged user
-			global.storage.getUser(req.user.id).then((loggedUser) => {
+			global.storage.getUser(req.user.id).then((foundLoggedUser) => {
 				// Set
-				loggedUserGeneral = loggedUser;
+				loggedUser = foundLoggedUser;
 				// Get the email
 				return global.storage.getUserByEmail(filteredRequest.email);
 			}).then((foundUser) => {
@@ -313,17 +316,17 @@ class UserService {
 				return Users.hashPasswordBcrypt(filteredRequest.password);
 			}).then((newPasswordHashed) => {
 				// Create user
-				var newUser = new User(filteredRequest);
-				// Update timestamp
-				newUser.setCreatedBy(Utils.buildUserFullName(loggedUserGeneral.getModel()));
-				newUser.setCreatedOn(new Date());
+				let user = new User(filteredRequest);
 				// Set the password
 				if (filteredRequest.password) {
 					// Generate a hash
-					newUser.setPassword(newPasswordHashed);
+					user.setPassword(newPasswordHashed);
 				}
+				// Update timestamp
+				user.setCreatedBy(loggedUser);
+				user.setCreatedOn(new Date());
 				// Save
-				return newUser.save();
+				return user.save();
 			}).then((createdUser) => {
 				Logging.logSecurityInfo({
 					user: req.user, module: "UserService", method: "handleCreateUser",

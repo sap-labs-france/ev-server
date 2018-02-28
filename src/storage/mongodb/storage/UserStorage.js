@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Constants = require('../../../utils/Constants');
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
@@ -9,6 +10,7 @@ const MDBTag = require('../model/MDBTag');
 const MDBEula = require('../model/MDBEula');
 const User = require('../../../model/User');
 const crypto = require('crypto');
+const ObjectId = mongoose.Types.ObjectId;
 
 let _centralRestServer;
 
@@ -144,6 +146,16 @@ class UserStorage {
 			} else {
 				userFilter.email = user.email;
 			}
+			// Check Created By
+			if (user.createdBy && typeof user.createdBy == "object") {
+				// This is the User Model
+				user.createdBy = new ObjectId(user.createdBy.id);
+			}
+			// Check Last Changed By
+			if (user.lastChangedBy && typeof user.lastChangedBy == "object") {
+				// This is the User Model
+				user.lastChangedBy = new ObjectId(user.lastChangedBy.id);
+			}
 			// Get
 			return MDBUser.findOneAndUpdate(userFilter, user, {
 					new: true,
@@ -217,6 +229,32 @@ class UserStorage {
 		}
 		// Create Aggregation
 		let aggregation = [];
+		// Created By
+		aggregation.push({
+			$lookup: {
+				from: "users",
+				localField: "createdBy",
+				foreignField: "_id",
+				as: "createdBy"
+			}
+		});
+		// Single Record
+		aggregation.push({
+			$unwind: { "path": "$createdBy", "preserveNullAndEmptyArrays": true }
+		});
+		// Last Changed By
+		aggregation.push({
+			$lookup: {
+				from: "users",
+				localField: "lastChangedBy",
+				foreignField: "_id",
+				as: "lastChangedBy"
+			}
+		});
+		// Single Record
+		aggregation.push({
+			$unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
+		});
 		// Picture?
 		if (!withPicture) {
 			aggregation.push({
