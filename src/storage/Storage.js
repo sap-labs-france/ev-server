@@ -191,6 +191,12 @@ class Storage {
 	getSiteArea(id, withChargingStations=false, withSite=false) {
 	}
 
+	getSiteAreaImage(id) {
+	}
+
+	getSiteAreaImages() {
+	}
+
 	saveSiteArea(siteArea) {
 	}
 

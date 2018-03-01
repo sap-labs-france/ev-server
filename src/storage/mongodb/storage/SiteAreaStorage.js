@@ -7,6 +7,7 @@ const Configuration = require('../../../utils/Configuration');
 const MDBCompany = require('../model/MDBCompany');
 const MDBSite = require('../model/MDBSite');
 const MDBSiteArea = require('../model/MDBSiteArea');
+const MDBSiteAreaImage = require('../model/MDBSiteAreaImage');
 const MDBChargingStation = require('../model/MDBChargingStation');
 const Company = require('../../../model/Company');
 const ChargingStation = require('../../../model/ChargingStation');
@@ -20,6 +21,38 @@ let _centralRestServer;
 class SiteAreaStorage {
 	static setCentralRestServer(centralRestServer) {
 		_centralRestServer = centralRestServer;
+	}
+
+	static handleGetSiteAreaImage(id) {
+		// Exec request
+		return MDBSiteAreaImage.findById(id)
+				.exec().then((siteAreaImageMDB) => {
+			let siteAreaImage = null;
+			// Set
+			if (siteAreaImageMDB) {
+				siteAreaImage = {
+					id: siteAreaImageMDB._id,
+					image: siteAreaImageMDB.image
+				};
+			}
+			return siteAreaImage;
+		});
+	}
+
+	static handleGetSiteAreaImages() {
+		// Exec request
+		return MDBSiteAreaImage.find({})
+				.exec().then((siteAreaImagesMDB) => {
+			let siteAreaImages = [];
+			// Add
+			siteAreaImagesMDB.forEach((siteAreaImageMDB) => {
+				siteAreaImages.push({
+					id: siteAreaImageMDB._id,
+					image: siteAreaImageMDB.image
+				});
+			});
+			return siteAreaImages;
+		});
 	}
 
 	static handleGetSiteArea(id, withChargingStations, withSite) {
@@ -107,11 +140,21 @@ class SiteAreaStorage {
 				siteArea.lastChangedBy = new ObjectId(siteArea.lastChangedBy.id);
 			}
 			// Get
+			let newSiteArea;
 			return MDBSiteArea.findOneAndUpdate(siteAreaFilter, siteArea, {
 					new: true,
 					upsert: true
 				}).then((siteAreaMDB) => {
-					let newSiteArea = new SiteArea(siteAreaMDB);
+					newSiteArea = new SiteArea(siteAreaMDB);
+
+					// Save Image
+					return MDBSiteAreaImage.findOneAndUpdate({
+						"_id": new ObjectId(newSiteArea.getID())
+					}, siteArea, {
+						new: true,
+						upsert: true
+					});
+				}).then(() => {
 					// Notify Change
 					if (!siteArea.id) {
 						_centralRestServer.notifySiteAreaCreated(
@@ -266,18 +309,20 @@ class SiteAreaStorage {
 			{ siteAreaID: id },
 			{ $set: { siteAreaID: null } },
 		 	{ multi: true }
-		).then((result) => {
+		).then((results) => {
 			// Remove Site Area
-			return MDBSiteArea.findByIdAndRemove(id).then(() => {
-				// Notify Change
-				_centralRestServer.notifySiteAreaDeleted(
-					{
-						"id": id,
-						"type": Constants.NOTIF_ENTITY_SITE_AREA
-					}
-				);
-				return;
-			});
+			return MDBSiteArea.findByIdAndRemove(id);
+		}).then((results) => {
+			// Remove Image
+			return MDBSiteAreaImage.findByIdAndRemove( id );
+		}).then((results) => {
+			// Notify Change
+			_centralRestServer.notifySiteAreaDeleted(
+				{
+					"id": id,
+					"type": Constants.NOTIF_ENTITY_SITE_AREA
+				}
+			);
 		});
 	}
 }

@@ -215,6 +215,16 @@ class SiteAreaService {
 		global.storage.getSiteArea(filteredRequest.ID, SiteAreas.WITH_CHARGING_STATIONS,
 				SiteAreas.WITHOUT_SITE).then((siteArea) => {
 			if (siteArea) {
+				// Check auth
+				if (!CentralRestServerAuthorization.canReadSiteArea(req.user, siteArea.getModel())) {
+					// Not Authorized!
+					throw new AppAuthError(
+						CentralRestServerAuthorization.ACTION_READ,
+						CentralRestServerAuthorization.ENTITY_SITE_AREA,
+						siteArea.getID(),
+						500, "SiteAreaService", "handleGetSiteAreaImage",
+						req.user);
+				}
 				// Return
 				res.json(
 					// Filter
@@ -224,6 +234,94 @@ class SiteAreaService {
 			} else {
 				res.json({});
 			}
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
+	static handleGetSiteAreaImage(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "SiteAreaService",
+			method: "handleGetSiteAreaImage",
+			message: `Read Site Area Image '${req.query.ID}'`,
+			detailedMessages: req.query
+		});
+		// Filter
+		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreaRequest(req.query, req.user);
+		// Charge Box is mandatory
+		if(!filteredRequest.ID) {
+			Logging.logActionExceptionMessageAndSendResponse(
+				action, new Error(`The Site Area ID is mandatory`), req, res, next);
+			return;
+		}
+		// Get it
+		global.storage.getSiteArea(filteredRequest.ID).then((siteArea) => {
+			if (!siteArea) {
+				throw new AppError(`The Site Area with ID '${filteredRequest.ID}' does not exist anymore`,
+					550, "SiteAreaService", "handleUpdateSiteArea");
+			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canReadSiteArea(req.user, siteArea.getModel())) {
+				// Not Authorized!
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_READ,
+					CentralRestServerAuthorization.ENTITY_SITE_AREA,
+					siteArea.getID(),
+					500, "SiteAreaService", "handleGetSiteAreaImage",
+					req.user);
+			}
+			// Get the image
+			return global.storage.getSiteAreaImage(filteredRequest.ID);
+		}).then((siteAreaImage) => {
+			// Found?
+			if (siteAreaImage) {
+				Logging.logSecurityInfo({
+					user: req.user,
+					action: action,
+					module: "SiteAreaService", method: "handleGetSiteAreaImage",
+					message: 'Read Site Area Image'
+				});
+				// Set the user
+				res.json(siteAreaImage);
+			} else {
+				res.json(null);
+			}
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
+	static handleGetSiteAreaImages(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "SiteAreaService", method: "handleGetSiteAreaImages",
+			message: `Read Site Area Images`,
+			detailedMessages: req.query
+		});
+		// Check auth
+		if (!CentralRestServerAuthorization.canListSiteAreas(req.user)) {
+			// Not Authorized!
+			throw new AppAuthError(
+				CentralRestServerAuthorization.ACTION_LIST,
+				CentralRestServerAuthorization.ENTITY_SITE_AREAS,
+				null,
+				500, "SiteAreaService", "handleGetSiteAreaImages",
+				req.user);
+		}
+		// Get the Site Area image
+		global.storage.getSiteAreaImages().then((siteAreaImages) => {
+			Logging.logSecurityInfo({
+				user: req.user,
+				action: action,
+				module: "SiteAreaService", method: "handleGetSiteAreaImages",
+				message: 'Read Site Area Images'
+			});
+			res.json(siteAreaImages);
 			next();
 		}).catch((err) => {
 			// Log

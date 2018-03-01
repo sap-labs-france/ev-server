@@ -374,6 +374,16 @@ class MongoDBStorage extends Storage {
 		// Delegate
 		return SiteAreaStorage.handleGetSiteArea(id, withChargingStations, withSite);
 	}
+
+	getSiteAreaImage(id) {
+		// Delegate
+		return SiteAreaStorage.handleGetSiteAreaImage(id);
+	}
+
+	getSiteAreaImages() {
+		// Delegate
+		return SiteAreaStorage.handleGetSiteAreaImages();
+	}
 }
 
 module.exports = MongoDBStorage;

@@ -134,7 +134,7 @@ class SiteStorage {
 				upsert: true
 			}).then((siteMDB) => {
 				newSite = new Site(siteMDB);
-				// Save Logo
+				// Save Image
 				return MDBSiteImage.findOneAndUpdate({
 					"_id": new ObjectId(newSite.getID())
 				}, site, {
@@ -339,7 +339,7 @@ class SiteStorage {
 			// Delete Site
 			return MDBSite.findByIdAndRemove(id);
 		}).then((results) => {
-			// Remove Logo
+			// Remove Image
 			return MDBSiteImage.findByIdAndRemove( id );
 		}).then((results) => {
 			// Notify Change
