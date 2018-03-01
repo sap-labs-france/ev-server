@@ -38,9 +38,6 @@ module.exports = {
 	PWD_NUMBER_RE: /([\d])/g,
 	PWD_SPECIAL_CHAR_RE: /([!#\$%\^&\*\.\?\-])/g,
 
-	WITH_IMAGE: true,
-	WITH_NO_IMAGE: false,
-
 	WITH_ID: true,
 	WITHOUT_ID: false,
 

@@ -27,7 +27,7 @@ class StatisticService {
 		}
 		// Check email
 		global.storage.getTransactions(null, filter, filteredRequest.SiteID,
-				Users.WITH_NO_IMAGE, Constants.NO_LIMIT).then((transactions) => {
+			Constants.NO_LIMIT).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				// Check user
@@ -108,7 +108,7 @@ class StatisticService {
 		}
 		// Check email
 		global.storage.getTransactions(null, filter,
-				filteredRequest.SiteID, Users.WITH_NO_IMAGE, Constants.NO_LIMIT).then((transactions) => {
+				filteredRequest.SiteID, Constants.NO_LIMIT).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				// Check user
@@ -186,7 +186,7 @@ class StatisticService {
 		}
 		// Check email
 		global.storage.getTransactions(null, filter, filteredRequest.SiteID,
-				Users.WITH_NO_IMAGE, Constants.NO_LIMIT).then((transactions) => {
+				Constants.NO_LIMIT).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				// Check user
@@ -265,7 +265,7 @@ class StatisticService {
 		}
 		// Check email
 		global.storage.getTransactions(null, filter, filteredRequest.SiteID,
-				Users.WITH_NO_IMAGE, Constants.NO_LIMIT).then((transactions) => {
+				Constants.NO_LIMIT).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				// Check user
