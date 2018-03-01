@@ -89,7 +89,7 @@ class CompanyStorage {
 	}
 
 	// Delegate
-	static handleGetCompanies(searchValue, withSites, withLogo, numberOfCompanies) {
+	static handleGetCompanies(searchValue, withSites, numberOfCompanies) {
 		// Check Limit
 		numberOfCompanies = Utils.checkRecordLimit(numberOfCompanies);
 		// Set the filters
@@ -108,14 +108,6 @@ class CompanyStorage {
 		}
 		// Create Aggregation
 		let aggregation = [];
-		// Picture?
-		if (!withLogo) {
-			aggregation.push({
-				$project: {
-					logo: 0
-				}
-			});
-		}
 		// Filters
 		if (filters) {
 			aggregation.push({
@@ -162,14 +154,6 @@ class CompanyStorage {
 		aggregation.push({
 			$unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
 		});
-		// Picture?
-		if (!withLogo) {
-			aggregation.push({
-				$project: {
-					"sites.image": 0
-				}
-			});
-		}
 		// Sort
 		aggregation.push({
 			$sort: { name : 1 }

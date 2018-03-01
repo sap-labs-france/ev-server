@@ -200,14 +200,14 @@ class MongoDBStorage extends Storage {
 		return TransactionStorage.handleSaveMeterValues(meterValues);
 	}
 
-	getTransactions(searchValue=null, filter={}, siteID=null, withPicture=false, numberOfTransactions=500) {
+	getTransactions(searchValue=null, filter={}, siteID=null, numberOfTransactions=500) {
 		// Delegate
-		return TransactionStorage.handleGetTransactions(searchValue, filter, siteID, withPicture, numberOfTransactions);
+		return TransactionStorage.handleGetTransactions(searchValue, filter, siteID, numberOfTransactions);
 	}
 
-	getTransaction(transactionId, withPicture=true) {
+	getTransaction(transactionId) {
 		// Delegate
-		return TransactionStorage.handleGetTransaction(transactionId, withPicture);
+		return TransactionStorage.handleGetTransaction(transactionId);
 	}
 
 	saveChargingStationConnector(chargingStation, connectorId) {
@@ -248,9 +248,9 @@ class MongoDBStorage extends Storage {
 		return ChargingStationStorage.handleGetChargingStation(id);
 	}
 
-	getUsers(searchValue, withPicture=false, numberOfUser=500) {
+	getUsers(searchValue, numberOfUser=500) {
 		// Delegate
-		return UserStorage.handleGetUsers(searchValue, withPicture, numberOfUser);
+		return UserStorage.handleGetUsers(searchValue, numberOfUser);
 	}
 
 	saveUser(user) {
@@ -258,9 +258,9 @@ class MongoDBStorage extends Storage {
 		return UserStorage.handleSaveUser(user);
 	}
 
-	getUser(id, withPicture=true) {
+	getUser(id) {
 		// Delegate
-		return UserStorage.handleGetUser(id, withPicture);
+		return UserStorage.handleGetUser(id);
 	}
 
 	getUserImage(id) {
@@ -288,9 +288,9 @@ class MongoDBStorage extends Storage {
 		return UserStorage.handleGetUserByTagId(tagID);
 	}
 
-	getCompanies(searchValue, withSites=false, withLogo=false, numberOfCompanies=500) {
+	getCompanies(searchValue, withSites=false, numberOfCompanies=500) {
 		// Delegate
-		return CompanyStorage.handleGetCompanies(searchValue, withSites, withLogo, numberOfCompanies);
+		return CompanyStorage.handleGetCompanies(searchValue, withSites, numberOfCompanies);
 	}
 
 	getCompany(id) {
@@ -309,10 +309,10 @@ class MongoDBStorage extends Storage {
 	}
 
 	getSites(searchValue, withSiteAreas=false, withChargeBoxes=false,
-			withPicture=false, withCompanyLogo=false, numberOfSite=500) {
+			withCompanyLogo=false, numberOfSite=500) {
 		// Delegate
 		return SiteStorage.handleGetSites(searchValue, withSiteAreas, withChargeBoxes,
-			withPicture, withCompanyLogo, numberOfSite);
+			withCompanyLogo, numberOfSite);
 	}
 
 	saveCompany(company) {
@@ -325,9 +325,9 @@ class MongoDBStorage extends Storage {
 		return SiteStorage.handleSaveSite(site);
 	}
 
-	getSiteAreas(searchValue, withChargeBoxes=false, withPicture=false, numberOfSiteArea=500) {
+	getSiteAreas(searchValue, withChargeBoxes=false, numberOfSiteArea=500) {
 		// Delegate
-		return SiteAreaStorage.handleGetSiteAreas(searchValue, withChargeBoxes, withPicture, numberOfSiteArea);
+		return SiteAreaStorage.handleGetSiteAreas(searchValue, withChargeBoxes, numberOfSiteArea);
 	}
 
 	saveSiteArea(siteArea) {

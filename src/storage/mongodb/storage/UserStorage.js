@@ -122,9 +122,9 @@ class UserStorage {
 		});
 	}
 
-	static handleGetUser(id, withPicture) {
+	static handleGetUser(id) {
 		// Exec request
-		return MDBUser.findById(id, (withPicture ? '' : '-image' ))
+		return MDBUser.findById(id)
 				.exec().then((userMDB) => {
 			// Check deleted
 			if (userMDB) {
@@ -244,7 +244,7 @@ class UserStorage {
 		}
 	}
 
-	static handleGetUsers(searchValue, withPicture, numberOfUsers) {
+	static handleGetUsers(searchValue, numberOfUsers) {
 		// Set the filters
 		let filters = {
 			"$and": [
@@ -297,14 +297,6 @@ class UserStorage {
 		aggregation.push({
 			$unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
 		});
-		// Picture?
-		if (!withPicture) {
-			aggregation.push({
-				$project: {
-					image: 0
-				}
-			});
-		}
 		// Filters
 		if (filters) {
 			aggregation.push({

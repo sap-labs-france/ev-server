@@ -120,7 +120,7 @@ class SiteAreaService {
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreasRequest(req.query, req.user);
 		// Get the sites
 		global.storage.getSiteAreas(filteredRequest.Search,
-				filteredRequest.WithChargeBoxes, filteredRequest.WithPicture,
+				filteredRequest.WithChargeBoxes,
 				Constants.NO_LIMIT).then((siteAreas) => {
 			let siteAreasJSon = [];
 			siteAreas.forEach((siteArea) => {

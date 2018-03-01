@@ -498,7 +498,7 @@ class TransactionService {
 		}
 		// Get Transactions
 		global.storage.getTransactions(null, filter, null,
-				filteredRequest.WithPicture, Constants.NO_LIMIT).then((transactions) => {
+				Constants.NO_LIMIT).then((transactions) => {
 			// Return
 			res.json(
 				// Filter
@@ -553,7 +553,6 @@ class TransactionService {
 				filteredRequest.Search,
 				filter,
 				filteredRequest.SiteID,
-				filteredRequest.WithPicture,
 				filteredRequest.Limit);
 		}).then((transactions) => {
 			// Found?``

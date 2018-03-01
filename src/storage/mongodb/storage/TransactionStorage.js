@@ -151,7 +151,7 @@ class TransactionStorage {
 		});
 	}
 
-	static handleGetTransactions(searchValue, filter, siteID, withPicture, numberOfTransactions) {
+	static handleGetTransactions(searchValue, filter, siteID, numberOfTransactions) {
 		// Check Limit
 		numberOfTransactions = Utils.checkRecordLimit(numberOfTransactions);
 		// Build filter
@@ -259,15 +259,6 @@ class TransactionStorage {
 		aggregation.push({
 			$unwind: { "path": "$stop.userID", "preserveNullAndEmptyArrays": true }
 		});
-		// Picture?
-		if (!withPicture) {
-			aggregation.push({
-				$project: {
-					"userID.image": 0,
-					"stop.userID.image": 0
-				}
-			});
-		}
 		// Sort
 		aggregation.push({
 			$sort: { timestamp: -1 }
@@ -295,10 +286,10 @@ class TransactionStorage {
 		});
 	}
 
-	static handleGetTransaction(transactionId, withPicture) {
+	static handleGetTransaction(transactionId) {
 		// Get the Start Transaction
 		return MDBTransaction.findById({"_id": transactionId})
-				.populate("userID", (withPicture?{}:{image:0}))
+				.populate("userID")
 				.populate("chargeBoxID")
 				.populate("stop.userID").exec().then((transactionMDB) => {
 			// Set

@@ -156,7 +156,6 @@ class SecurityRestObjectFiltering {
 		let filteredRequest = {};
 		filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
 		filteredRequest.ConnectorId = sanitize(request.ConnectorId);
-		filteredRequest.WithPicture = SecurityRestObjectFiltering.filterBoolean(request.WithPicture);
 		return filteredRequest;
 	}
 
@@ -179,7 +178,6 @@ class SecurityRestObjectFiltering {
 	static filterTransactionsCompletedRequest(request, loggedUser) {
 		let filteredRequest = {};
 		// Handle picture
-		filteredRequest.WithPicture = SecurityRestObjectFiltering.filterBoolean(request.WithPicture);
 		filteredRequest.StartDateTime = sanitize(request.StartDateTime);
 		filteredRequest.EndDateTime = sanitize(request.EndDateTime);
 		filteredRequest.SiteID = sanitize(request.SiteID);
@@ -219,7 +217,6 @@ class SecurityRestObjectFiltering {
 		let filteredRequest = {};
 		// Handle picture
 		filteredRequest.Search = request.Search;
-		filteredRequest.WithPicture = SecurityRestObjectFiltering.filterBoolean(request.WithPicture);
 		return filteredRequest;
 	}
 
@@ -250,7 +247,6 @@ class SecurityRestObjectFiltering {
 	static filterCompaniesRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
-		filteredRequest.WithLogo = SecurityRestObjectFiltering.filterBoolean(request.WithLogo);
 		filteredRequest.WithSites = SecurityRestObjectFiltering.filterBoolean(request.WithSites);
 		return filteredRequest;
 	}
@@ -258,7 +254,6 @@ class SecurityRestObjectFiltering {
 	static filterSitesRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
-		filteredRequest.WithPicture = SecurityRestObjectFiltering.filterBoolean(request.WithPicture);
 		filteredRequest.WithSiteAreas = SecurityRestObjectFiltering.filterBoolean(request.WithSiteAreas);
 		filteredRequest.WithChargeBoxes = SecurityRestObjectFiltering.filterBoolean(request.WithChargeBoxes);
 		filteredRequest.WithCompanyLogo = SecurityRestObjectFiltering.filterBoolean(request.WithCompanyLogo);
@@ -268,7 +263,6 @@ class SecurityRestObjectFiltering {
 	static filterSiteAreasRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
-		filteredRequest.WithPicture = SecurityRestObjectFiltering.filterBoolean(request.WithPicture);
 		filteredRequest.WithChargeBoxes = SecurityRestObjectFiltering.filterBoolean(request.WithChargeBoxes);
 		return filteredRequest;
 	}

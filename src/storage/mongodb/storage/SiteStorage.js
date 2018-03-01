@@ -122,7 +122,7 @@ class SiteStorage {
 	}
 
 	static handleGetSites(searchValue, withSiteAreas, withChargeBoxes,
-			withPicture, withCompanyLogo, numberOfSites) {
+			withCompanyLogo, numberOfSites) {
 		// Check Limit
 		numberOfSites = Utils.checkRecordLimit(numberOfSites);
 		// Set the filters
@@ -141,14 +141,6 @@ class SiteStorage {
 		}
 		// Create Aggregation
 		let aggregation = [];
-		// Picture?
-		if (!withPicture) {
-			aggregation.push({
-				$project: {
-					image: 0
-				}
-			});
-		}
 		// Filters
 		if (filters) {
 			aggregation.push({
@@ -206,14 +198,6 @@ class SiteStorage {
 		aggregation.push({
 			$unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
 		});
-		// Picture?
-		if (!withPicture) {
-			aggregation.push({
-				$project: {
-					"siteAreas.image": 0
-				}
-			});
-		}
 		// Add Company
 		aggregation.push({
 			$lookup: {

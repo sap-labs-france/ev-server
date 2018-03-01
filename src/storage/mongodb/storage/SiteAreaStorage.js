@@ -133,7 +133,7 @@ class SiteAreaStorage {
 		}
 	}
 
-	static handleGetSiteAreas(searchValue, withChargeBoxes, withPicture, numberOfSiteAreas) {
+	static handleGetSiteAreas(searchValue, withChargeBoxes, numberOfSiteAreas) {
 		// Check Limit
 		numberOfSiteAreas = Utils.checkRecordLimit(numberOfSiteAreas);
 		// Set the filters
@@ -146,16 +146,6 @@ class SiteAreaStorage {
 				"$or": [
 					{ "name" : { $regex : searchValue, $options: 'i' } }
 				]
-			});
-		}
-		// Create Aggregation
-		let aggregation = [];
-		// Picture?
-		if (!withPicture) {
-			aggregation.push({
-				$project: {
-					image: 0
-				}
 			});
 		}
 		// Filters
@@ -213,14 +203,6 @@ class SiteAreaStorage {
 		aggregation.push({
 			$unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
 		});
-		// Picture?
-		if (!withPicture) {
-			aggregation.push({
-				$project: {
-					"site.image": 0
-				}
-			});
-		}
 		// Single Record
 		aggregation.push({
 			$unwind: "$site"
