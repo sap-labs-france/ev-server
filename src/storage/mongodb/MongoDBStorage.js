@@ -263,6 +263,11 @@ class MongoDBStorage extends Storage {
 		return UserStorage.handleGetUser(id, withPicture);
 	}
 
+	getUserImage(id) {
+		// Delegate
+		return UserStorage.handleGetUserImage(id);
+	}
+
 	deleteUser(id) {
 		// Delegate
 		return UserStorage.handleDeleteUser(id);

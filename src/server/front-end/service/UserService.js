@@ -245,6 +245,53 @@ class UserService {
 		});
 	}
 
+	static handleGetUserImage(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "UserService", method: "handleGetUserImage",
+			message: `Read User ID '${req.query.ID}'`,
+			detailedMessages: req.query
+		});
+		// Filter
+		let filteredRequest = SecurityRestObjectFiltering.filterUserRequest(req.query, req.user);
+		// User mandatory
+		if(!filteredRequest.ID) {
+			Logging.logActionExceptionMessageAndSendResponse(
+				action, new Error(`The User's ID is mandatory`), req, res, next);
+			return;
+		}
+		// Get the logged user
+		let user;
+		global.storage.getUser(filteredRequest.ID).then((foundUser) => {
+			// Keep the user
+			user = foundUser;
+			if (!user) {
+				throw new AppError(`The user with ID '${filteredRequest.ID}' does not exist anymore`,
+					550, "UserService", "handleGetUserImage");
+			}
+			// Get the user image
+			return global.storage.getUserImage(filteredRequest.ID);
+		}).then((userImage) => {
+			if (userImage) {
+				Logging.logSecurityInfo({
+					user: req.user,
+					actionOnUser: user,
+					action: action,
+					module: "UserService", method: "handleGetUserImage",
+					message: 'Read User Image'
+				});
+				// Set the user
+				res.send(userImage);
+			} else {
+				res.send(null);
+			}
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
 	static handleGetUsers(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,

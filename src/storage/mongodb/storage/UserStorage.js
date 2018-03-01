@@ -6,6 +6,7 @@ const Configuration = require('../../../utils/Configuration');
 const Users = require('../../../utils/Users');
 const Utils = require('../../../utils/Utils');
 const MDBUser = require('../model/MDBUser');
+const MDBUserImage = require('../model/MDBUserImage');
 const MDBTag = require('../model/MDBTag');
 const MDBEula = require('../model/MDBEula');
 const User = require('../../../model/User');
@@ -133,6 +134,18 @@ class UserStorage {
 		});
 	}
 
+	static handleGetUserImage(id) {
+		// Exec request
+		return MDBUserImage.findById(id)
+				.exec().then((userImageMDB) => {
+			let userImage = null;
+			if (userImageMDB) {
+				userImage = userImageMDB.image;
+			}
+			return userImage;
+		});
+	}
+
 	static handleSaveUser(user) {
 		// Check if ID or email is provided
 		if (!user.id && !user.email) {
@@ -156,49 +169,61 @@ class UserStorage {
 				// This is the User Model
 				user.lastChangedBy = new ObjectId(user.lastChangedBy.id);
 			}
-			// Get
+			// Save
+			let newUser;
 			return MDBUser.findOneAndUpdate(userFilter, user, {
+				new: true,
+				upsert: true
+			}).then((userMDB) => {
+				newUser = new User(userMDB);
+				// Save Image
+				return MDBUserImage.findOneAndUpdate({
+					"_id": new ObjectId(newUser.getID())
+				}, user, {
 					new: true,
 					upsert: true
-				}).then((userMDB) => {
-					let newUser = new User(userMDB);
-					// Notify Change
-					if (!user.id) {
-						_centralRestServer.notifyUserCreated(
-							{
-								"id": newUser.getID(),
-								"type": Constants.NOTIF_ENTITY_USER
-							}
-						);
-					} else {
-						_centralRestServer.notifyUserUpdated(
-							{
-								"id": newUser.getID(),
-								"type": Constants.NOTIF_ENTITY_USER
-							}
-						);
-					}
-					// Update the badges
-					// First delete them
-					MDBTag.remove({ "userID" : userMDB._id }).then(() => {
-						// Add tags
-						user.tagIDs.forEach((tag) => {
-							// Update/Insert Tag
-							return MDBTag.findOneAndUpdate({
-									"_id": tag
-								},{
-									"_id": tag,
-									"userID": userMDB._id
-								},{
-									new: true,
-									upsert: true
-								}).then((newTag) => {
-									// Created with success
-								});                // Add TagIds
-						});
-					});
-					return newUser;
 				});
+			}).then(() => {
+				// Update the badges
+				// First delete all of them
+				return MDBTag.remove({ "userID" : new ObjectId(newUser.getID()) });
+			}).then(() => {
+				// Add tags
+				let proms = [];
+				user.tagIDs.forEach((tag) => {
+					// Update/Insert Tag
+					proms.push(
+						MDBTag.findOneAndUpdate({
+							"_id": tag
+						},{
+							"_id": tag,
+							"userID": new ObjectId(newUser.getID())
+						},{
+							new: true,
+							upsert: true
+						})
+					);
+				});
+				return Promise.all(proms);
+			}).then(() => {
+				// Notify Change
+				if (!user.id) {
+					_centralRestServer.notifyUserCreated(
+						{
+							"id": newUser.getID(),
+							"type": Constants.NOTIF_ENTITY_USER
+						}
+					);
+				} else {
+					_centralRestServer.notifyUserUpdated(
+						{
+							"id": newUser.getID(),
+							"type": Constants.NOTIF_ENTITY_USER
+						}
+					);
+				}
+				return newUser;
+			});
 		}
 	}
 
@@ -323,6 +348,9 @@ class UserStorage {
 
 	static handleDeleteUser(id) {
 		return MDBUser.findByIdAndRemove( id ).then((result) => {
+			// Remove Image
+			return MDBUserImage.findByIdAndRemove( id );
+		}).then((result) => {
 			// Notify Change
 			_centralRestServer.notifyUserDeleted(
 				{
@@ -330,8 +358,6 @@ class UserStorage {
 					"type": Constants.NOTIF_ENTITY_USER
 				}
 			);
-			// Return the result
-			return result.result;
 		});
 	}
 

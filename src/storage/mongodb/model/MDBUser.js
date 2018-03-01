@@ -4,7 +4,6 @@ const commons = require('./MDBCommons');
 module.exports = mongoose.model('User',{
 	name: String,
 	firstName: String,
-	image: String,
 	email: String,
 	eulaAcceptedOn: Date,
 	eulaAcceptedVersion: Number,

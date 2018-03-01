@@ -169,6 +169,12 @@ module.exports = {
 						UserService.handleGetUser(action, req, res, next);
 						break;
 
+					// Get the user image
+					case "UserImage":
+						// Delegate
+						UserService.handleGetUserImage(action, req, res, next);
+						break;
+
 					// Get the completed transactions
 					case "TransactionsCompleted":
 						// Delegate
