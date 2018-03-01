@@ -427,7 +427,7 @@ class AuthService {
 						// Too many attempts, lock user
 						// Log it
 						Logging.logSecurityError({
-							actionOnUser: user,
+							actionOnUser: user.getModel(),
 							module: "AuthService", method: "checkUserLogin", action: action,
 							message: `User is locked for ${_centralSystemRestConfig.passwordBlockedWaitTimeMin} mins`});
 						// User locked
@@ -446,7 +446,7 @@ class AuthService {
 						// Wrong logon
 						// Log it
 						Logging.logSecurityError({
-							actionOnUser: user,
+							actionOnUser: user.getModel(),
 							module: "AuthService", method: "checkUserLogin", action: action,
 							message: `User failed to log in, ${_centralSystemRestConfig.passwordWrongNumberOfTrial - user.getPasswordWrongNbrTrials()} trial(s) remaining`});
 						// Not authorized

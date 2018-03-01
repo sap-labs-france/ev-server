@@ -296,7 +296,7 @@ class UserService {
 			if (userImage) {
 				Logging.logSecurityInfo({
 					user: req.user,
-					actionOnUser: user,
+					actionOnUser: user.getModel(),
 					action: action,
 					module: "UserService", method: "handleGetUserImage",
 					message: 'Read User Image'
