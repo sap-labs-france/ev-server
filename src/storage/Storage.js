@@ -176,6 +176,12 @@ class Storage {
 	getSite(id) {
 	}
 
+	getSiteImage(id) {
+	}
+
+	getSiteImages() {
+	}
+
 	getSiteAreasFromSite(siteID) {
 	}
 

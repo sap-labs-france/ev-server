@@ -6,6 +6,7 @@ const Utils = require('../../../utils/Utils');
 const Configuration = require('../../../utils/Configuration');
 const MDBCompany = require('../model/MDBCompany');
 const MDBSite = require('../model/MDBSite');
+const MDBSiteImage = require('../model/MDBSiteImage');
 const MDBSiteArea = require('../model/MDBSiteArea');
 const MDBChargingStation = require('../model/MDBChargingStation');
 const Company = require('../../../model/Company');
@@ -21,6 +22,38 @@ let _centralRestServer;
 class SiteStorage {
 	static setCentralRestServer(centralRestServer) {
 		_centralRestServer = centralRestServer;
+	}
+
+	static handleGetSiteImage(id) {
+		// Exec request
+		return MDBSiteImage.findById(id)
+				.exec().then((siteImageMDB) => {
+			let siteImage = null;
+			// Set
+			if (siteImageMDB) {
+				siteImage = {
+					id: siteImageMDB._id,
+					image: siteImageMDB.image
+				};
+			}
+			return siteImage;
+		});
+	}
+
+	static handleGetSiteImages() {
+		// Exec request
+		return MDBSiteImage.find({})
+				.exec().then((siteImagesMDB) => {
+			let siteImages = [];
+			// Add
+			siteImagesMDB.forEach((siteImageMDB) => {
+				siteImages.push({
+					id: siteImageMDB._id,
+					image: siteImageMDB.image
+				});
+			});
+			return siteImages;
+		});
 	}
 
 	static handleGetSite(id) {
@@ -95,29 +128,38 @@ class SiteStorage {
 				site.lastChangedBy = new ObjectId(site.lastChangedBy.id);
 			}
 			// Get
+			let newSite;
 			return MDBSite.findOneAndUpdate(siteFilter, site, {
+				new: true,
+				upsert: true
+			}).then((siteMDB) => {
+				newSite = new Site(siteMDB);
+				// Save Logo
+				return MDBSiteImage.findOneAndUpdate({
+					"_id": new ObjectId(newSite.getID())
+				}, site, {
 					new: true,
 					upsert: true
-				}).then((siteMDB) => {
-					let newSite = new Site(siteMDB);
-					// Notify Change
-					if (!site.id) {
-						_centralRestServer.notifySiteCreated(
-							{
-								"id": newSite.getID(),
-								"type": Constants.NOTIF_ENTITY_SITE
-							}
-						);
-					} else {
-						_centralRestServer.notifySiteUpdated(
-							{
-								"id": newSite.getID(),
-								"type": Constants.NOTIF_ENTITY_SITE
-							}
-						);
-					}
-					return newSite;
 				});
+			}).then(() => {
+				// Notify Change
+				if (!site.id) {
+					_centralRestServer.notifySiteCreated(
+						{
+							"id": newSite.getID(),
+							"type": Constants.NOTIF_ENTITY_SITE
+						}
+					);
+				} else {
+					_centralRestServer.notifySiteUpdated(
+						{
+							"id": newSite.getID(),
+							"type": Constants.NOTIF_ENTITY_SITE
+						}
+					);
+				}
+				return newSite;
+			});
 		}
 	}
 
@@ -295,16 +337,18 @@ class SiteStorage {
 			return Promise.all(proms);
 		}).then((results) => {
 			// Delete Site
-			return MDBSite.findByIdAndRemove(id).then(() => {
-				// Notify Change
-				_centralRestServer.notifySiteDeleted(
-					{
-						"id": id,
-						"type": Constants.NOTIF_ENTITY_SITE
-					}
-				);
-				return;
-			});
+			return MDBSite.findByIdAndRemove(id);
+		}).then((results) => {
+			// Remove Logo
+			return MDBSiteImage.findByIdAndRemove( id );
+		}).then((results) => {
+			// Notify Change
+			_centralRestServer.notifySiteDeleted(
+				{
+					"id": id,
+					"type": Constants.NOTIF_ENTITY_SITE
+				}
+			);
 		});
 	}
 }

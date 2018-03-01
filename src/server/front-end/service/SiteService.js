@@ -147,6 +147,94 @@ class SiteService {
 		});
 	}
 
+	static handleGetSiteImage(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "SiteService",
+			method: "handleGetSiteImage",
+			message: `Read Site Image '${req.query.ID}'`,
+			detailedMessages: req.query
+		});
+		// Filter
+		let filteredRequest = SecurityRestObjectFiltering.filterSiteRequest(req.query, req.user);
+		// Charge Box is mandatory
+		if(!filteredRequest.ID) {
+			Logging.logActionExceptionMessageAndSendResponse(
+				action, new Error(`The Site ID is mandatory`), req, res, next);
+			return;
+		}
+		// Get it
+		global.storage.getSite(filteredRequest.ID).then((site) => {
+			if (!site) {
+				throw new AppError(`The Site with ID '${filteredRequest.ID}' does not exist anymore`,
+					550, "SiteService", "handleUpdateSite");
+			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canReadSite(req.user, site.getModel())) {
+				// Not Authorized!
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_READ,
+					CentralRestServerAuthorization.ENTITY_SITE,
+					site.getID(),
+					500, "SiteService", "handleGetSiteImage",
+					req.user);
+			}
+			// Get the image
+			return global.storage.getSiteImage(filteredRequest.ID);
+		}).then((siteImage) => {
+			// Found?
+			if (siteImage) {
+				Logging.logSecurityInfo({
+					user: req.user,
+					action: action,
+					module: "SiteService", method: "handleGetSiteImage",
+					message: 'Read Site Image'
+				});
+				// Set the user
+				res.json(siteImage);
+			} else {
+				res.json(null);
+			}
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
+	static handleGetSiteImages(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "SiteService", method: "handleGetSiteImages",
+			message: `Read Site Images`,
+			detailedMessages: req.query
+		});
+		// Check auth
+		if (!CentralRestServerAuthorization.canListSites(req.user)) {
+			// Not Authorized!
+			throw new AppAuthError(
+				CentralRestServerAuthorization.ACTION_LIST,
+				CentralRestServerAuthorization.ENTITY_SITES,
+				null,
+				500, "SiteService", "handleGetSiteImages",
+				req.user);
+		}
+		// Get the site image
+		global.storage.getSiteImages().then((siteImages) => {
+			Logging.logSecurityInfo({
+				user: req.user,
+				action: action,
+				module: "SiteService", method: "handleGetSiteImages",
+				message: 'Read Site Images'
+			});
+			res.json(siteImages);
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
 	static handleCreateSite(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,

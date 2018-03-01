@@ -137,7 +137,7 @@ class CompanyService {
 			company = foundCompany;
 			if (!company) {
 				throw new AppError(`The Company with ID '${filteredRequest.ID}' does not exist anymore`,
-					550, "CompanyService", "handleUpdateCompany");
+					550, "CompanyService", "handleGetCompanyLogo");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadCompany(req.user, company.getModel())) {
@@ -157,8 +157,8 @@ class CompanyService {
 				Logging.logSecurityInfo({
 					user: req.user,
 					action: action,
-					module: "CompanyService", method: "handleUpdateCompany",
-					message: 'Read Company Image'
+					module: "CompanyService", method: "handleGetCompanyLogo",
+					message: 'Read Company Logo'
 				});
 				// Set the user
 				res.json(companyLogo);

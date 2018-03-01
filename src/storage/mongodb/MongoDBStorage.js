@@ -360,6 +360,16 @@ class MongoDBStorage extends Storage {
 		return SiteStorage.handleGetSite(id);
 	}
 
+	getSiteImage(id) {
+		// Delegate
+		return SiteStorage.handleGetSiteImage(id);
+	}
+
+	getSiteImages() {
+		// Delegate
+		return SiteStorage.handleGetSiteImages();
+	}
+
 	getSiteArea(id, withChargingStations=false, withSite=false) {
 		// Delegate
 		return SiteAreaStorage.handleGetSiteArea(id, withChargingStations, withSite);
