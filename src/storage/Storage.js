@@ -145,7 +145,13 @@ class Storage {
 	getCompanies(searchValue, withSites=false, numberOfCompanies=500) {
 	}
 
+	getCompanyLogos() {
+	}
+
 	getCompany(id) {
+	}
+
+	getCompanyLogo(id) {
 	}
 
 	saveCompany(company) {

@@ -298,6 +298,16 @@ class MongoDBStorage extends Storage {
 		return CompanyStorage.handleGetCompany(id);
 	}
 
+ 	getCompanyLogo(id) {
+		// Delegate
+		return CompanyStorage.handleGetCompanyLogo(id);
+	}
+
+	getCompanyLogos() {
+		// Delegate
+		return CompanyStorage.handleGetCompanyLogos();
+	}
+
 	deleteCompany(id) {
 		// Delegate
 		return CompanyStorage.handleDeleteCompany(id);

@@ -144,7 +144,7 @@ class UserStorage {
 				userImage = {
 					id: userImageMDB._id,
 					image: userImageMDB.image
-				}
+				};
 			}
 			return userImage;
 		});

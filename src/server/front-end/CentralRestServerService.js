@@ -133,6 +133,18 @@ module.exports = {
 						CompanyService.handleGetCompany(action, req, res, next);
 						break;
 
+					// Get all the company logos
+					case "CompanyLogos":
+						// Delegate
+						CompanyService.handleGetCompanyLogos(action, req, res, next);
+						break;
+
+					// Get one company logo
+					case "CompanyLogo":
+						// Delegate
+						CompanyService.handleGetCompanyLogo(action, req, res, next);
+						break;
+
 					// Get all the sites
 					case "Sites":
 						// Delegate
@@ -145,16 +157,40 @@ module.exports = {
 						SiteService.handleGetSite(action, req, res, next);
 						break;
 
+					// Get all the site images
+					case "SiteImages":
+						// Delegate
+						SiteService.handleGetSiteImages(action, req, res, next);
+						break;
+
+					// Get one site image
+					case "SiteImage":
+						// Delegate
+						SiteService.handleGetSiteImage(action, req, res, next);
+						break;
+
 					// Get all the site areas
 					case "SiteAreas":
 						// Delegate
 						SiteAreaService.handleGetSiteAreas(action, req, res, next);
 						break;
 
-					// Get all the site areas
+					// Get one site area
 					case "SiteArea":
 						// Delegate
 						SiteAreaService.handleGetSiteArea(action, req, res, next);
+						break;
+
+					// Get all the site area images
+					case "SiteAreaImages":
+						// Delegate
+						SiteAreaService.handleGetSiteAreaImages(action, req, res, next);
+						break;
+
+					// Get one site area image
+					case "SiteAreaImage":
+						// Delegate
+						SiteAreaService.handleGetSiteAreaImage(action, req, res, next);
 						break;
 
 					// Get all the users

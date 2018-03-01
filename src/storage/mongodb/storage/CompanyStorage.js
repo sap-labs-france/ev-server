@@ -8,6 +8,7 @@ const MDBCompany = require('../model/MDBCompany');
 const MDBSite = require('../model/MDBSite');
 const MDBSiteArea = require('../model/MDBSiteArea');
 const MDBChargingStation = require('../model/MDBChargingStation');
+const MDBCompanyLogo = require('../model/MDBCompanyLogo');
 const Company = require('../../../model/Company');
 const SiteStorage = require('./SiteStorage');
 const ChargingStation = require('../../../model/ChargingStation');
@@ -37,6 +38,38 @@ class CompanyStorage {
 		});
 	}
 
+	static handleGetCompanyLogo(id) {
+		// Exec request
+		return MDBCompanyLogo.findById(id)
+				.exec().then((companyLogoMDB) => {
+			let companyLogo = null;
+			// Set
+			if (companyLogoMDB) {
+				companyLogo = {
+					id: companyLogoMDB._id,
+					logo: companyLogoMDB.logo
+				};
+			}
+			return companyLogo;
+		});
+	}
+
+	static handleGetCompanyLogos() {
+		// Exec request
+		return MDBCompanyLogo.find({})
+				.exec().then((companyLogosMDB) => {
+			let companyLogos = [];
+			// Add
+			companyLogosMDB.forEach((companyLogoMDB) => {
+				companyLogos.push({
+					id: companyLogoMDB._id,
+					logo: companyLogoMDB.logo
+				});
+			});
+			return companyLogos;
+		});
+	}
+
 	static handleSaveCompany(company) {
 		// Check if ID/Name is provided
 		if (!company.id && !company.name) {
@@ -62,29 +95,38 @@ class CompanyStorage {
 				company.lastChangedBy = new ObjectId(company.lastChangedBy.id);
 			}
 			// Get
+			let newCompany;
 			return MDBCompany.findOneAndUpdate(companyFilter, company, {
+				new: true,
+				upsert: true
+			}).then((companyMDB) => {
+				newCompany = new Company(companyMDB);
+				// Save Logo
+				return MDBCompanyLogo.findOneAndUpdate({
+					"_id": new ObjectId(newCompany.getID())
+				}, company, {
 					new: true,
 					upsert: true
-				}).then((companyMDB) => {
-					let newCompany = new Company(companyMDB);
-					// Notify Change
-					if (!company.id) {
-						_centralRestServer.notifyCompanyCreated(
-							{
-								"id": newCompany.getID(),
-								"type": Constants.NOTIF_ENTITY_COMPANY
-							}
-						);
-					} else {
-						_centralRestServer.notifyCompanyUpdated(
-							{
-								"id": newCompany.getID(),
-								"type": Constants.NOTIF_ENTITY_COMPANY
-							}
-						);
-					}
-					return newCompany;
 				});
+			}).then(() => {
+				// Notify Change
+				if (!company.id) {
+					_centralRestServer.notifyCompanyCreated(
+						{
+							"id": newCompany.getID(),
+							"type": Constants.NOTIF_ENTITY_COMPANY
+						}
+					);
+				} else {
+					_centralRestServer.notifyCompanyUpdated(
+						{
+							"id": newCompany.getID(),
+							"type": Constants.NOTIF_ENTITY_COMPANY
+						}
+					);
+				}
+				return newCompany;
+			});
 		}
 	}
 
@@ -198,16 +240,19 @@ class CompanyStorage {
 			return Promise.all(proms);
 		}).then((results) => {
 			// Remove the Company
-			return MDBCompany.findByIdAndRemove(id).then(() => {
-				// Notify Change
-				_centralRestServer.notifyCompanyDeleted(
-					{
-						"id": id,
-						"type": Constants.NOTIF_ENTITY_COMPANY
-					}
-				);
-				return;
-			});
+			return MDBCompany.findByIdAndRemove(id);
+		}).then((results) => {
+			// Remove Logo
+			return MDBCompanyLogo.findByIdAndRemove( id );
+		}).then((result) => {
+			// Notify Change
+			_centralRestServer.notifyCompanyDeleted(
+				{
+					"id": id,
+					"type": Constants.NOTIF_ENTITY_COMPANY
+				}
+			);
+			return;
 		});
 	}
 }

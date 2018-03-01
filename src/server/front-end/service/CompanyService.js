@@ -89,6 +89,16 @@ class CompanyService {
 		// Get it
 		global.storage.getCompany(filteredRequest.ID).then((company) => {
 			if (company) {
+				// Check auth
+				if (!CentralRestServerAuthorization.canReadCompany(req.user, company.getModel())) {
+					// Not Authorized!
+					throw new AppAuthError(
+						CentralRestServerAuthorization.ACTION_READ,
+						CentralRestServerAuthorization.ENTITY_COMPANY,
+						company.getID(),
+						500, "CompanyService", "handleGetCompany",
+						req.user);
+				}
 				// Return
 				res.json(
 					// Filter
@@ -98,6 +108,96 @@ class CompanyService {
 			} else {
 				res.json({});
 			}
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
+	static handleGetCompanyLogo(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "CompanyService",
+			method: "handleGetCompanyLogo",
+			message: `Read Company Logo '${req.query.ID}'`,
+			detailedMessages: req.query
+		});
+		// Filter
+		let filteredRequest = SecurityRestObjectFiltering.filterCompanyRequest(req.query, req.user);
+		// Charge Box is mandatory
+		if(!filteredRequest.ID) {
+			Logging.logActionExceptionMessageAndSendResponse(
+				action, new Error(`The Company ID is mandatory`), req, res, next);
+			return;
+		}
+		// Get it
+		let company;
+		global.storage.getCompany(filteredRequest.ID).then((foundCompany) => {
+			company = foundCompany;
+			if (!company) {
+				throw new AppError(`The Company with ID '${filteredRequest.ID}' does not exist anymore`,
+					550, "CompanyService", "handleUpdateCompany");
+			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canReadCompany(req.user, company.getModel())) {
+				// Not Authorized!
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_READ,
+					CentralRestServerAuthorization.ENTITY_COMPANY,
+					company.getID(),
+					500, "CompanyService", "handleGetCompanyLogo",
+					req.user);
+			}
+			// Get the logo
+			return global.storage.getCompanyLogo(filteredRequest.ID);
+		}).then((companyLogo) => {
+			// Found?
+			if (companyLogo) {
+				Logging.logSecurityInfo({
+					user: req.user,
+					action: action,
+					module: "CompanyService", method: "handleUpdateCompany",
+					message: 'Read Company Image'
+				});
+				// Set the user
+				res.json(companyLogo);
+			} else {
+				res.json(null);
+			}
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
+	static handleGetCompanyLogos(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "CompanyService", method: "handleGetCompanyLogos",
+			message: `Read Company Logos`,
+			detailedMessages: req.query
+		});
+		// Check auth
+		if (!CentralRestServerAuthorization.canListCompanies(req.user)) {
+			// Not Authorized!
+			throw new AppAuthError(
+				CentralRestServerAuthorization.ACTION_LIST,
+				CentralRestServerAuthorization.ENTITY_COMPANIES,
+				null,
+				500, "CompanyService", "handleGetCompanyLogos",
+				req.user);
+		}
+		// Get the company logo
+		global.storage.getCompanyLogos().then((companyLogos) => {
+			Logging.logSecurityInfo({
+				user: req.user,
+				action: action,
+				module: "CompanyService", method: "handleGetCompanyLogos",
+				message: 'Read Company Logos'
+			});
+			res.json(companyLogos);
 			next();
 		}).catch((err) => {
 			// Log
