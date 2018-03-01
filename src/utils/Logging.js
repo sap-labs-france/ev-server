@@ -158,8 +158,8 @@ class Logging {
 			module: exception.module, method: exception.method,
 			action: action, message: exception.message,
 			detailedMessages: [{
-				"stack": exception.stack,
-				"request": req.body}]
+				"stack": exception.stack
+			}]
 		});
 	}
 
@@ -170,8 +170,9 @@ class Logging {
 			module: exception.module, method: exception.method,
 			action: action, message: exception.message,
 			detailedMessages: [{
-				"stack": exception.stack,
-				"request": req.body}] });
+				"stack": exception.stack
+			}]
+		});
 	}
 
 	// Used to check URL params (not in catch)
@@ -182,8 +183,9 @@ class Logging {
 			module: exception.module, method: exception.method,
 			action: action, message: exception.message,
 			detailedMessages: [{
-				"stack": exception.stack,
-				"request": req.body}] });
+				"stack": exception.stack
+			}]
+		});
 	}
 
 	// Used to check URL params (not in catch)

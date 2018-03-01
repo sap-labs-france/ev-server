@@ -139,10 +139,27 @@ class UserStorage {
 		return MDBUserImage.findById(id)
 				.exec().then((userImageMDB) => {
 			let userImage = null;
+			// Set
 			if (userImageMDB) {
 				userImage = userImageMDB.image;
 			}
 			return userImage;
+		});
+	}
+
+	static handleGetUserImages() {
+		// Exec request
+		return MDBUserImage.find({})
+				.exec().then((userImagesMDB) => {
+			let userImages = [];
+			// Add
+			userImagesMDB.forEach((userImageMDB) => {
+				userImages.push({
+					id: userImageMDB._id,
+					image: userImageMDB.image
+				});
+			});
+			return userImages;
 		});
 	}
 

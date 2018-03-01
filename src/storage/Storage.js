@@ -139,6 +139,9 @@ class Storage {
 	getUserImage(id) {
 	}
 
+	getUserImages() {
+	}
+
 	getCompanies(searchValue, withSites=false, withLogo=false, numberOfCompanies=500) {
 	}
 

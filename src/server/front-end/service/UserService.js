@@ -60,7 +60,7 @@ class UserService {
 				throw new AppError(`The user with ID '${filteredRequest.id}' does not exist anymore`,
 					500, "UserService", "handleDeleteUser");
 			}
-			// Check authchargingStation
+			// Check auth
 			if (!CentralRestServerAuthorization.canDeleteUser(req.user, user.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
@@ -222,6 +222,16 @@ class UserService {
 		// Get the user
 		global.storage.getUser(filteredRequest.ID).then((user) => {
 			if (user) {
+				// Check auth
+				if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
+					// Not Authorized!
+					throw new AppAuthError(
+						CentralRestServerAuthorization.ACTION_READ,
+						CentralRestServerAuthorization.ENTITY_USER,
+						user.getID(),
+						500, "UserService", "handleGetUser",
+						req.user);
+				}
 				Logging.logSecurityInfo({
 					user: req.user,
 					actionOnUser: user.getModel(),
@@ -249,7 +259,7 @@ class UserService {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
 			module: "UserService", method: "handleGetUserImage",
-			message: `Read User ID '${req.query.ID}'`,
+			message: `Read User Image with ID '${req.query.ID}'`,
 			detailedMessages: req.query
 		});
 		// Filter
@@ -269,9 +279,20 @@ class UserService {
 				throw new AppError(`The user with ID '${filteredRequest.ID}' does not exist anymore`,
 					550, "UserService", "handleGetUserImage");
 			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
+				// Not Authorized!
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_READ,
+					CentralRestServerAuthorization.ENTITY_USER,
+					user.getID(),
+					500, "UserService", "handleGetUserImage",
+					req.user);
+			}
 			// Get the user image
 			return global.storage.getUserImage(filteredRequest.ID);
 		}).then((userImage) => {
+			// Found?
 			if (userImage) {
 				Logging.logSecurityInfo({
 					user: req.user,
@@ -285,6 +306,39 @@ class UserService {
 			} else {
 				res.send(null);
 			}
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
+	static handleGetUserImages(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "UserService", method: "handleGetUserImages",
+			message: `Read User Images`,
+			detailedMessages: req.query
+		});
+		// Check auth
+		if (!CentralRestServerAuthorization.canListUsers(req.user)) {
+			// Not Authorized!
+			throw new AppAuthError(
+				CentralRestServerAuthorization.ACTION_LIST,
+				CentralRestServerAuthorization.ENTITY_USERS,
+				null,
+				500, "UserService", "handleGetUserImages",
+				req.user);
+		}
+		// Get the user image
+		global.storage.getUserImages().then((userImages) => {
+			Logging.logSecurityInfo({
+				user: req.user,
+				action: action,
+				module: "UserService", method: "handleGetUserImages",
+				message: 'Read User Images'
+			});
+			res.json(userImages);
 			next();
 		}).catch((err) => {
 			// Log

@@ -163,6 +163,12 @@ module.exports = {
 						UserService.handleGetUsers(action, req, res, next);
 						break;
 
+					// Get the user images
+					case "UserImages":
+						// Delegate
+						UserService.handleGetUserImages(action, req, res, next);
+						break;
+
 					// Get the user
 					case "User":
 						// Delegate
