@@ -302,9 +302,9 @@ class UserService {
 					message: 'Read User Image'
 				});
 				// Set the user
-				res.send(userImage);
+				res.json(userImage);
 			} else {
-				res.send(null);
+				res.json(null);
 			}
 			next();
 		}).catch((err) => {

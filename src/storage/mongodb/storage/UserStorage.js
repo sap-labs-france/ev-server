@@ -141,7 +141,10 @@ class UserStorage {
 			let userImage = null;
 			// Set
 			if (userImageMDB) {
-				userImage = userImageMDB.image;
+				userImage = {
+					id: userImageMDB._id,
+					image: userImageMDB.image
+				}
 			}
 			return userImage;
 		});

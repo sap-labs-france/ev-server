@@ -923,9 +923,11 @@ class SecurityRestObjectFiltering {
 		if (CentralRestServerAuthorization.canReadUser(loggedUser, user)) {
 			// Demo user?
 			if (CentralRestServerAuthorization.isDemo(loggedUser)) {
+				userID.id = null;
 				userID.name = Users.ANONIMIZED_VALUE;
 				userID.firstName = Users.ANONIMIZED_VALUE;
 			} else {
+				userID.id = user.id;
 				userID.name = user.name;
 				userID.firstName = user.firstName;
 				if (user.image) {

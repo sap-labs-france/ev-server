@@ -148,6 +148,8 @@ class SiteAreaStorage {
 				]
 			});
 		}
+		// Create Aggregation
+		let aggregation = [];
 		// Filters
 		if (filters) {
 			aggregation.push({
