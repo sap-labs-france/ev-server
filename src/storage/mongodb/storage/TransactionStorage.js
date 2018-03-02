@@ -233,6 +233,16 @@ class TransactionStorage {
 				$match: { "siteAreaID.siteID": new ObjectId(siteID) }
 			});
 		}
+		// Sort
+		aggregation.push({
+			$sort: { timestamp: -1 }
+		});
+		// Limit
+		if (numberOfTransactions > 0) {
+			aggregation.push({
+				$limit: numberOfTransactions
+			});
+		}
 		// Add User that started the transaction
 		aggregation.push({
 			$lookup: {
@@ -259,16 +269,6 @@ class TransactionStorage {
 		aggregation.push({
 			$unwind: { "path": "$stop.userID", "preserveNullAndEmptyArrays": true }
 		});
-		// Sort
-		aggregation.push({
-			$sort: { timestamp: -1 }
-		});
-		// Limit
-		if (numberOfTransactions > 0) {
-			aggregation.push({
-				$limit: numberOfTransactions
-			});
-		}
 		// Execute
 		return MDBTransaction.aggregate(aggregation)
 				.exec().then((transactionsMDB) => {

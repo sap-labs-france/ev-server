@@ -145,6 +145,16 @@ class LoggingStorage {
 			// default
 			sort.timestamp = -1;
 		}
+		// Sort
+		aggregation.push({
+			$sort: sort
+		});
+		// Limit
+		if (numberOfLogs > 0) {
+			aggregation.push({
+				$limit: numberOfLogs
+			});
+		}
 		// User
 		aggregation.push({
 			$lookup: {
@@ -171,16 +181,6 @@ class LoggingStorage {
 		aggregation.push({
 			$unwind: { "path": "$actionOnUser", "preserveNullAndEmptyArrays": true }
 		});
-		// Sort
-		aggregation.push({
-			$sort: sort
-		});
-		// Limit
-		if (numberOfLogs > 0) {
-			aggregation.push({
-				$limit: numberOfLogs
-			});
-		}
 		// Execute
 		return MDBLog.aggregate(aggregation)
 				.exec().then((loggingsMDB) => {

@@ -266,6 +266,7 @@ class UserStorage {
 			// Build filter
 			filters.$and.push({
 				"$or": [
+					{ "_id" : { $regex : searchValue, $options: 'i' } },
 					{ "name" : { $regex : searchValue, $options: 'i' } },
 					{ "firstName" : { $regex : searchValue, $options: 'i' } },
 					{ "email" : { $regex : searchValue, $options: 'i' } }
