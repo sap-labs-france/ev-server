@@ -101,6 +101,34 @@ class Company {
 		});
 	}
 
+	getUsers() {
+		if (this._model.users) {
+			return Promise.resolve(this._model.users.map((user) => {
+				return new User(user);
+			}));
+		} else if (this._model.userIDs) {
+			let proms = [];
+			// Get Users
+			this._model.userIDs.forEach((userID) => {
+				// Add
+				proms.push(global.storage.getUser(userID));
+			});
+			return Promise.all(proms).then((users) => {
+				// Keep it
+				this.setUsers(users);
+				return users;
+			});
+		} else {
+			return Promise.resolve([]);
+		}
+	}
+
+	setUsers(users) {
+		this._model.users = users.map((user) => {
+			return user.getModel();
+		});
+	}
+
 	save() {
 		return global.storage.saveCompany(this.getModel());
 	}

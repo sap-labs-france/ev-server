@@ -13,6 +13,7 @@ const Company = require('../../../model/Company');
 const SiteStorage = require('./SiteStorage');
 const ChargingStation = require('../../../model/ChargingStation');
 const Site = require('../../../model/Site');
+const User = require('../../../model/User');
 const SiteArea = require('../../../model/SiteArea');
 const crypto = require('crypto');
 const ObjectId = mongoose.Types.ObjectId;
@@ -24,15 +25,41 @@ class CompanyStorage {
 		_centralRestServer = centralRestServer;
 	}
 
-	static handleGetCompany(id) {
-		// Exec request
-		return MDBCompany.findById(id)
+	static handleGetCompany(id, withUsers) {
+		// Create Aggregation
+		let aggregation = [];
+		// Filters
+		aggregation.push({
+			$match: { _id: ObjectId(id) }
+		});
+		if (withUsers) {
+			// Add
+			aggregation.push({
+				$lookup: {
+					from: "users",
+					localField: "userIDs",
+					foreignField: "_id",
+					as: "users"
+				}
+			});
+		}
+		// Execute
+		return MDBCompany.aggregate(aggregation)
 				.exec().then((companyMDB) => {
+			console.log(companyMDB);
 			let company = null;
 			// Check
-			if (companyMDB) {
+			if (companyMDB && companyMDB.length > 0) {
 				// Create
-				company = new Company(companyMDB);
+				company = new Company(companyMDB[0]);
+				// Set users
+				if (companyMDB[0].users) {
+					// Create Users
+					companyMDB[0].users = companyMDB[0].users.map((user) => {
+						return new User(user);
+					});
+					company.setUsers(companyMDB[0].users)
+				}
 			}
 			return company;
 		});

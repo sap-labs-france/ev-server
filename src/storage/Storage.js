@@ -118,7 +118,7 @@ class Storage {
 	deleteChargingStation(id) {
 	}
 
-	getChargingStations(searchValue, siteAreaID, onlyWithNoSiteArea, numberOfChargingStation=500) {
+	getChargingStations(searchValue, siteAreaID, withNoSiteArea, numberOfChargingStation=500) {
 	}
 
 	getChargingStation(id) {
@@ -148,7 +148,7 @@ class Storage {
 	getCompanyLogos() {
 	}
 
-	getCompany(id) {
+	getCompany(id, withUsers=false) {
 	}
 
 	getCompanyLogo(id) {

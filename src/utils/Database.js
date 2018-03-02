@@ -196,6 +196,7 @@ module.exports = {
 		dest.name = src.name;
 		dest.address = {};
 		this.updateAddress(src.address, dest.address)
+		dest.userIDs = src.userIDs;
 		dest.logo = src.logo;
 		dest.numberOfSites = src.numberOfSites;
 		this.updateCreatedAndLastChanged(src, dest);

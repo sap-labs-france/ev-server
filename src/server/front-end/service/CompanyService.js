@@ -87,7 +87,7 @@ class CompanyService {
 			return;
 		}
 		// Get it
-		global.storage.getCompany(filteredRequest.ID).then((company) => {
+		global.storage.getCompany(filteredRequest.ID, filteredRequest.WithUsers).then((company) => {
 			if (company) {
 				// Check auth
 				if (!CentralRestServerAuthorization.canReadCompany(req.user, company.getModel())) {

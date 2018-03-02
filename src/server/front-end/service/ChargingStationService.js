@@ -232,7 +232,7 @@ class ChargingStationService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationsRequest(req.query, req.user);
 		// Get the charging stfoundChargingStationsations
-		global.storage.getChargingStations(filteredRequest.Search, null, filteredRequest.OnlyWithNoSiteArea,
+		global.storage.getChargingStations(filteredRequest.Search, null, filteredRequest.WithNoSiteArea,
 				Constants.NO_LIMIT).then((foundChargingStations) => {
 			// Set
 			let chargingStations = foundChargingStations;

@@ -134,7 +134,7 @@ class SecurityRestObjectFiltering {
 		return filteredRequest;
 	}
 
-	static filterBoolean(value) {
+	static _filterBoolean(value) {
 		let result = false;
 		// Check boolean
 		if(value) {
@@ -185,11 +185,11 @@ class SecurityRestObjectFiltering {
 		if (request.UserID) {
 			filteredRequest.UserID = sanitize(request.UserID);
 		}
-		SecurityRestObjectFiltering.filterLimit(request, filteredRequest);
+		SecurityRestObjectFiltering._filterLimit(request, filteredRequest);
 		return filteredRequest;
 	}
 
-	static filterLimit(request, filteredRequest) {
+	static _filterLimit(request, filteredRequest) {
 		// Exist?
 		if (!request.Limit) {
 			// Default
@@ -229,6 +229,7 @@ class SecurityRestObjectFiltering {
 	static filterCompanyRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.ID = sanitize(request.ID);
+		filteredRequest.WithUsers = SecurityRestObjectFiltering._filterBoolean(request.WithUsers);
 		return filteredRequest;
 	}
 
@@ -247,30 +248,30 @@ class SecurityRestObjectFiltering {
 	static filterCompaniesRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
-		filteredRequest.WithSites = SecurityRestObjectFiltering.filterBoolean(request.WithSites);
+		filteredRequest.WithSites = SecurityRestObjectFiltering._filterBoolean(request.WithSites);
 		return filteredRequest;
 	}
 
 	static filterSitesRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
-		filteredRequest.WithSiteAreas = SecurityRestObjectFiltering.filterBoolean(request.WithSiteAreas);
-		filteredRequest.WithChargeBoxes = SecurityRestObjectFiltering.filterBoolean(request.WithChargeBoxes);
-		filteredRequest.WithCompanyLogo = SecurityRestObjectFiltering.filterBoolean(request.WithCompanyLogo);
+		filteredRequest.WithSiteAreas = SecurityRestObjectFiltering._filterBoolean(request.WithSiteAreas);
+		filteredRequest.WithChargeBoxes = SecurityRestObjectFiltering._filterBoolean(request.WithChargeBoxes);
+		filteredRequest.WithCompanyLogo = SecurityRestObjectFiltering._filterBoolean(request.WithCompanyLogo);
 		return filteredRequest;
 	}
 
 	static filterSiteAreasRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
-		filteredRequest.WithChargeBoxes = SecurityRestObjectFiltering.filterBoolean(request.WithChargeBoxes);
+		filteredRequest.WithChargeBoxes = SecurityRestObjectFiltering._filterBoolean(request.WithChargeBoxes);
 		return filteredRequest;
 	}
 
 	static filterChargingStationsRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
-		filteredRequest.OnlyWithNoSiteArea = SecurityRestObjectFiltering.filterBoolean(request.OnlyWithNoSiteArea);
+		filteredRequest.WithNoSiteArea = SecurityRestObjectFiltering._filterBoolean(request.WithNoSiteArea);
 		return filteredRequest;
 	}
 
@@ -283,7 +284,7 @@ class SecurityRestObjectFiltering {
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.SortDate = sanitize(request.SortDate);
 		filteredRequest.Type = sanitize(request.Type);
-		SecurityRestObjectFiltering.filterLimit(request, filteredRequest);
+		SecurityRestObjectFiltering._filterLimit(request, filteredRequest);
 		return filteredRequest;
 	}
 
@@ -336,7 +337,7 @@ class SecurityRestObjectFiltering {
 		}
 		loggings.forEach(logging => {
 			// Filter
-			let filteredLogging = this.filterLoggingResponse(logging, loggedUser);
+			let filteredLogging = SecurityRestObjectFiltering.filterLoggingResponse(logging, loggedUser);
 			// Ok?
 			if (filteredLogging) {
 				// Add
@@ -348,7 +349,7 @@ class SecurityRestObjectFiltering {
 
 	static filterUserUpdateRequest(request, loggedUser) {
 		// Set
-		let filteredRequest = SecurityRestObjectFiltering.filterUser(request, loggedUser);
+		let filteredRequest = SecurityRestObjectFiltering._filterUserRequest(request, loggedUser);
 		filteredRequest.id = sanitize(request.id);
 		return filteredRequest;
 	}
@@ -364,30 +365,30 @@ class SecurityRestObjectFiltering {
 
 	static filterCompanyUpdateRequest(request, loggedUser) {
 		// Set
-		let filteredRequest = SecurityRestObjectFiltering.filterCompany(request, loggedUser);
+		let filteredRequest = SecurityRestObjectFiltering._filterCompanyRequest(request, loggedUser);
 		filteredRequest.id = sanitize(request.id);
 		return filteredRequest;
 	}
 
 	static filterSiteUpdateRequest(request, loggedUser) {
 		// Set
-		let filteredRequest = SecurityRestObjectFiltering.filterSite(request, loggedUser);
+		let filteredRequest = SecurityRestObjectFiltering._filterSiteRequest(request, loggedUser);
 		filteredRequest.id = sanitize(request.id);
 		return filteredRequest;
 	}
 
 	static filterSiteAreaUpdateRequest(request, loggedUser) {
 		// Set
-		let filteredRequest = SecurityRestObjectFiltering.filterSiteArea(request, loggedUser);
+		let filteredRequest = SecurityRestObjectFiltering._filterSiteAreaRequest(request, loggedUser);
 		filteredRequest.id = sanitize(request.id);
 		return filteredRequest;
 	}
 
 	static filterUserCreateRequest(request, loggedUser) {
-		return SecurityRestObjectFiltering.filterUser(request, loggedUser);
+		return SecurityRestObjectFiltering._filterUserRequest(request, loggedUser);
 	}
 
-	static filterUser(request, loggedUser) {
+	static _filterUserRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.costCenter = sanitize(request.costCenter);
 		filteredRequest.email = sanitize(request.email);
@@ -397,7 +398,7 @@ class SecurityRestObjectFiltering {
 		filteredRequest.mobile = sanitize(request.mobile);
 		filteredRequest.name = sanitize(request.name);
 		filteredRequest.locale = sanitize(request.locale);
-		filteredRequest.address = SecurityRestObjectFiltering.filterAddressRequest(request.address, loggedUser);
+		filteredRequest.address = SecurityRestObjectFiltering._filterAddressRequest(request.address, loggedUser);
 		if (request.passwords) {
 			filteredRequest.password = sanitize(request.passwords.password);
 		}
@@ -457,7 +458,7 @@ class SecurityRestObjectFiltering {
 				}
 			}
 			// Set user
-			filteredConsumption.user = SecurityRestObjectFiltering.filterUserInTransactionResponse(
+			filteredConsumption.user = SecurityRestObjectFiltering._filterUserInTransactionResponse(
 				consumption.user, loggedUser);
 			// Admin?
 			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
@@ -523,11 +524,8 @@ class SecurityRestObjectFiltering {
 				filteredUser.tagIDs = user.tagIDs;
 				filteredUser.role = user.role;
 				filteredUser.numberOfTransactions = user.numberOfTransactions;
-				if (user.image) {
-					filteredUser.image = user.image;
-				}
 				if (user.address) {
-					filteredUser.address = SecurityRestObjectFiltering.filterAddressRequest(user.address, loggedUser);
+					filteredUser.address = SecurityRestObjectFiltering._filterAddressRequest(user.address, loggedUser);
 				}
 			} else {
 				// Set only necessary info
@@ -536,12 +534,9 @@ class SecurityRestObjectFiltering {
 				filteredUser.firstName = user.firstName;
 				filteredUser.email = user.email;
 				filteredUser.locale = user.locale;
-				if (user.image) {
-					filteredUser.image = user.image;
-				}
 			}
 			// Created By / Last Changed By
-			SecurityRestObjectFiltering.filterCreatedAndLastChanged(
+			SecurityRestObjectFiltering._filterCreatedAndLastChanged(
 				filteredUser, user, loggedUser);
 		}
 		return filteredUser;
@@ -555,7 +550,7 @@ class SecurityRestObjectFiltering {
 		}
 		users.forEach(user => {
 			// Filter
-			let filteredUser = this.filterUserResponse(user, loggedUser);
+			let filteredUser = SecurityRestObjectFiltering.filterUserResponse(user, loggedUser);
 			// Ok?
 			if (filteredUser) {
 				// Add
@@ -588,31 +583,31 @@ class SecurityRestObjectFiltering {
 				filteredChargingStation.siteAreaID = chargingStation.siteAreaID;
 				// Site Area
 				if (chargingStation.siteArea) {
-					filteredChargingStation.siteArea = this.filterSiteAreaResponse(chargingStation.siteArea, loggedUser);
+					filteredChargingStation.siteArea = SecurityRestObjectFiltering.filterSiteAreaResponse(chargingStation.siteArea, loggedUser);
 				}
 			}
 			// Created By / Last Changed By
-			SecurityRestObjectFiltering.filterCreatedAndLastChanged(
+			SecurityRestObjectFiltering._filterCreatedAndLastChanged(
 				filteredChargingStation, chargingStation, loggedUser);
 		}
 		return filteredChargingStation;
 	}
 
 	static filterSiteCreateRequest(request, loggedUser) {
-		return SecurityRestObjectFiltering.filterSite(request, loggedUser);
+		return SecurityRestObjectFiltering._filterSiteRequest(request, loggedUser);
 	}
 
-	static filterSite(request, loggedUser) {
+	static _filterSiteRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.name = sanitize(request.name);
-		filteredRequest.address = SecurityRestObjectFiltering.filterAddressRequest(request.address, loggedUser);
+		filteredRequest.address = SecurityRestObjectFiltering._filterAddressRequest(request.address, loggedUser);
 		filteredRequest.image = sanitize(request.image);
 		filteredRequest.gps = sanitize(request.gps);
 		filteredRequest.companyID = sanitize(request.companyID);
 		return filteredRequest;
 	}
 
-	static filterAddressRequest(address, loggedUser) {
+	static _filterAddressRequest(address, loggedUser) {
 		let filteredAddress = {};
 		if (address) {
 			filteredAddress.address1 = sanitize(address.address1);
@@ -629,26 +624,36 @@ class SecurityRestObjectFiltering {
 	}
 
 	static filterCompanyCreateRequest(request, loggedUser) {
-		return SecurityRestObjectFiltering.filterCompany(request, loggedUser);
+		return SecurityRestObjectFiltering._filterCompanyRequest(request, loggedUser);
 	}
 
-	static filterCompany(request, loggedUser) {
+	static _filterCompanyRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.name = sanitize(request.name);
-		filteredRequest.address = SecurityRestObjectFiltering.filterAddressRequest(request.address, loggedUser);
+		filteredRequest.address = SecurityRestObjectFiltering._filterAddressRequest(request.address, loggedUser);
 		filteredRequest.logo = sanitize(request.logo);
+		filteredRequest.userIDs = request.userIDs.map((userID) => {
+			return sanitize(userID);
+		});
+		filteredRequest.userIDs = request.userIDs.filter((userID) => {
+			// Check auth
+			if (CentralRestServerAuthorization.canReadUser(loggedUser, {id: userID})) {
+				return true;
+			}
+			return false;
+		});
 		return filteredRequest;
 	}
 
 	static filterSiteAreaCreateRequest(request, loggedUser) {
-		return SecurityRestObjectFiltering.filterSiteArea(request, loggedUser);
+		return SecurityRestObjectFiltering._filterSiteAreaRequest(request, loggedUser);
 	}
 
-	static filterSiteArea(request, loggedUser) {
+	static _filterSiteAreaRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.name = sanitize(request.name);
 		filteredRequest.image = sanitize(request.image);
-		filteredRequest.accessControl = SecurityRestObjectFiltering.filterBoolean(request.accessControl);
+		filteredRequest.accessControl = SecurityRestObjectFiltering._filterBoolean(request.accessControl);
 		filteredRequest.siteID = sanitize(request.siteID);
 		filteredRequest.chargeBoxIDs = sanitize(request.chargeBoxIDs);
 		return filteredRequest;
@@ -671,24 +676,28 @@ class SecurityRestObjectFiltering {
 				filteredCompany = {};
 				filteredCompany.id = company.id;
 				filteredCompany.name = company.name;
-				filteredCompany.logo = company.logo;
 			}
 			if (company.address) {
-				filteredCompany.address = SecurityRestObjectFiltering.filterAddressRequest(company.address, loggedUser);
+				filteredCompany.address = SecurityRestObjectFiltering._filterAddressRequest(company.address, loggedUser);
 			}
 			if (company.sites) {
 				filteredCompany.sites = company.sites.map((site) => {
 					return SecurityRestObjectFiltering.filterSiteResponse(site, loggedUser);
 				})
 			}
+			if (company.users) {
+				filteredCompany.users = company.users.map((user) => {
+					return SecurityRestObjectFiltering.filterUserResponse(user, loggedUser);
+				})
+			}
 			// Created By / Last Changed By
-			SecurityRestObjectFiltering.filterCreatedAndLastChanged(
+			SecurityRestObjectFiltering._filterCreatedAndLastChanged(
 				filteredCompany, company, loggedUser);
 		}
 		return filteredCompany;
 	}
 
-	static filterCreatedAndLastChanged(filteredEntity, entity, loggedUser) {
+	static _filterCreatedAndLastChanged(filteredEntity, entity, loggedUser) {
 		if (entity.createdBy && typeof entity.createdBy == "object" &&
 				CentralRestServerAuthorization.canReadUser(loggedUser, entity.createdBy)) {
 			// Build user
@@ -724,21 +733,20 @@ class SecurityRestObjectFiltering {
 				filteredSite = {};
 				filteredSite.id = site.id;
 				filteredSite.name = site.name;
-				filteredSite.image = site.image;
 				filteredSite.gps = site.gps;
 				filteredSite.companyID = site.companyID;
 			}
 			if (site.address) {
-				filteredSite.address = SecurityRestObjectFiltering.filterAddressRequest(site.address, loggedUser);
+				filteredSite.address = SecurityRestObjectFiltering._filterAddressRequest(site.address, loggedUser);
 			}
 			if (site.company) {
-				filteredSite.company = this.filterCompanyResponse(site.company, loggedUser);;
+				filteredSite.company = SecurityRestObjectFiltering.filterCompanyResponse(site.company, loggedUser);;
 			}
 			if (site.siteAreas) {
-				filteredSite.siteAreas = this.filterSiteAreasResponse(site.siteAreas, loggedUser);
+				filteredSite.siteAreas = SecurityRestObjectFiltering.filterSiteAreasResponse(site.siteAreas, loggedUser);
 			}
 			// Created By / Last Changed By
-			SecurityRestObjectFiltering.filterCreatedAndLastChanged(
+			SecurityRestObjectFiltering._filterCreatedAndLastChanged(
 				filteredSite, site, loggedUser);
 		}
 		return filteredSite;
@@ -761,19 +769,18 @@ class SecurityRestObjectFiltering {
 				filteredSiteArea = {};
 				filteredSiteArea.id = siteArea.id;
 				filteredSiteArea.name = siteArea.name;
-				filteredSiteArea.image = siteArea.image;
 				filteredSiteArea.siteID = siteArea.siteID;
 			}
 			if (siteArea.site) {
 				// Site
-				filteredSiteArea.site = this.filterSiteResponse(siteArea.site, loggedUser);
+				filteredSiteArea.site = SecurityRestObjectFiltering.filterSiteResponse(siteArea.site, loggedUser);
 			}
 			if (siteArea.chargeBoxes) {
-				filteredSiteArea.chargeBoxes = this.filterChargingStationsResponse(
+				filteredSiteArea.chargeBoxes = SecurityRestObjectFiltering.filterChargingStationsResponse(
 					siteArea.chargeBoxes, loggedUser );
 			}
 			// Created By / Last Changed By
-			SecurityRestObjectFiltering.filterCreatedAndLastChanged(
+			SecurityRestObjectFiltering._filterCreatedAndLastChanged(
 				filteredSiteArea, siteArea, loggedUser);
 		}
 		return filteredSiteArea;
@@ -790,7 +797,7 @@ class SecurityRestObjectFiltering {
 		}
 		chargingStations.forEach(chargingStation => {
 			// Filter
-			let filteredChargingStation = this.filterChargingStationResponse(chargingStation, loggedUser);
+			let filteredChargingStation = SecurityRestObjectFiltering.filterChargingStationResponse(chargingStation, loggedUser);
 			// Ok?
 			if (filteredChargingStation) {
 				// Add
@@ -811,7 +818,7 @@ class SecurityRestObjectFiltering {
 		}
 		companies.forEach(company => {
 			// Filter
-			let filteredCompany = this.filterCompanyResponse(company, loggedUser);
+			let filteredCompany = SecurityRestObjectFiltering.filterCompanyResponse(company, loggedUser);
 			// Ok?
 			if (filteredCompany) {
 				// Add
@@ -832,7 +839,7 @@ class SecurityRestObjectFiltering {
 		}
 		sites.forEach(site => {
 			// Filter
-			let filteredSite = this.filterSiteResponse(site, loggedUser);
+			let filteredSite = SecurityRestObjectFiltering.filterSiteResponse(site, loggedUser);
 			// Ok?
 			if (filteredSite) {
 				// Add
@@ -853,7 +860,7 @@ class SecurityRestObjectFiltering {
 		}
 		siteAreas.forEach(siteArea => {
 			// Filter
-			let filteredSiteArea = this.filterSiteAreaResponse(siteArea, loggedUser);
+			let filteredSiteArea = SecurityRestObjectFiltering.filterSiteAreaResponse(siteArea, loggedUser);
 			// Ok?
 			if (filteredSiteArea) {
 				// Add
@@ -881,7 +888,7 @@ class SecurityRestObjectFiltering {
 			filteredTransaction.connectorId = transaction.connectorId;
 			filteredTransaction.timestamp = transaction.timestamp;
 			// Filter user
-			filteredTransaction.user = SecurityRestObjectFiltering.filterUserInTransactionResponse(
+			filteredTransaction.user = SecurityRestObjectFiltering._filterUserInTransactionResponse(
 				transaction.user, loggedUser);
 			// Transaction Stop
 			if (transaction.stop) {
@@ -896,7 +903,7 @@ class SecurityRestObjectFiltering {
 				// Stop User
 				if (transaction.stop.user) {
 					// Filter user
-					filteredTransaction.stop.user = SecurityRestObjectFiltering.filterUserInTransactionResponse(
+					filteredTransaction.stop.user = SecurityRestObjectFiltering._filterUserInTransactionResponse(
 						transaction.stop.user, loggedUser);
 				}
 			}
@@ -913,7 +920,7 @@ class SecurityRestObjectFiltering {
 		return filteredTransaction;
 	}
 
-	static filterUserInTransactionResponse(user, loggedUser) {
+	static _filterUserInTransactionResponse(user, loggedUser) {
 		let userID = {};
 
 		if (!user) {
@@ -930,9 +937,6 @@ class SecurityRestObjectFiltering {
 				userID.id = user.id;
 				userID.name = user.name;
 				userID.firstName = user.firstName;
-				if (user.image) {
-					userID.image = user.image;
-				}
 			}
 		}
 		return userID;
@@ -949,7 +953,7 @@ class SecurityRestObjectFiltering {
 		}
 		transactions.forEach(transaction => {
 			// Filter
-			let filteredTransaction = this.filterTransactionResponse(transaction, loggedUser, withConnector);
+			let filteredTransaction = SecurityRestObjectFiltering.filterTransactionResponse(transaction, loggedUser, withConnector);
 			// Ok?
 			if (filteredTransaction) {
 				// Add

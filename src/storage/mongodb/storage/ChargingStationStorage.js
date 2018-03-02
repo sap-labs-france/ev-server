@@ -43,7 +43,7 @@ class ChargingStationStorage {
 		});
 	}
 
-	static handleGetChargingStations(searchValue, siteAreaID, onlyWithNoSiteArea, numberOfChargingStations) {
+	static handleGetChargingStations(searchValue, siteAreaID, withNoSiteArea, numberOfChargingStations) {
 		// Check Limit
 		numberOfChargingStations = Utils.checkRecordLimit(numberOfChargingStations);
 		// Create Aggregation
@@ -72,7 +72,7 @@ class ChargingStationStorage {
 			filters.siteAreaID = siteAreaID;
 		}
 		// With no Site Area
-		if (onlyWithNoSiteArea) {
+		if (withNoSiteArea) {
 			// Build filter
 			filters.siteAreaID = null;
 		}

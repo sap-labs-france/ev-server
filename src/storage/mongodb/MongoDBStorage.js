@@ -238,9 +238,9 @@ class MongoDBStorage extends Storage {
 		return ChargingStationStorage.handleDeleteChargingStation(id);
 	}
 
-	getChargingStations(searchValue, siteAreaID, onlyWithNoSiteArea=false, numberOfChargingStation=500) {
+	getChargingStations(searchValue, siteAreaID, withNoSiteArea=false, numberOfChargingStation=500) {
 		// Delegate
-		return ChargingStationStorage.handleGetChargingStations(searchValue, siteAreaID, onlyWithNoSiteArea, numberOfChargingStation);
+		return ChargingStationStorage.handleGetChargingStations(searchValue, siteAreaID, withNoSiteArea, numberOfChargingStation);
 	}
 
 	getChargingStation(id) {
@@ -293,9 +293,9 @@ class MongoDBStorage extends Storage {
 		return CompanyStorage.handleGetCompanies(searchValue, withSites, numberOfCompanies);
 	}
 
-	getCompany(id) {
+	getCompany(id, withUsers=false) {
 		// Delegate
-		return CompanyStorage.handleGetCompany(id);
+		return CompanyStorage.handleGetCompany(id, withUsers);
 	}
 
  	getCompanyLogo(id) {
