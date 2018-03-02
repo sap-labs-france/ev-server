@@ -24,12 +24,17 @@ module.exports = {
 		<ul>
 			<li>First and Last Name</li>
 			<li>Email</li>
-			<li>Phone and/or the Mobile numbers</li>
+			<li>Phone and Mobile number</li>
 			<li>Badge IDs</li>
-			<li>Photo</li>
+			<li>Status</li>
+			<li>Role</li>
+			<li>Language</li>
+			<li>Picture</li>
+			<li>Full address</li>
 			<li>Plate ID</li>
+			<li>Hashed Password</li>
 			<li>Professional ID Number</li>
-			<li>Cost Center</li>
+			<li>Professional Cost Center</li>
 		</ul>
 		<p>
 			Charging information such as:
@@ -41,7 +46,7 @@ module.exports = {
 			<li>Session Date/Hour and Duration</li>
 			<li>User Sessions</li>
 			<li>Start/Stop of Sessions</li>
-			<li>Usage and Consumption Statistics</li>
+			<li>Statistics on Usage, Consumption and Cost</li>
 			<li>Configuration</li>
 			<li>Site Management</li>
 			<li>Price Management</li>
@@ -67,12 +72,14 @@ module.exports = {
 		<h4>The duty to inform the users of their rights</h4>
 		<p>
 			This document must be accepted by all users if they want to use charging stations monitored by this software.<br/>
+			If not, the users will not be able to access the charge service.<br/>
 		</p>
 
 		<h4>The exercice of the right of access and correction</h4>
 		<p>
 			The holder of the right of access may require that the information concerning him/her that is inaccurate, incomplete, equivocal, no longer valid, or that the use, communication or keeping of which is prohibited, may be corrected, completed, clarified, updated or deleted.<br/>
 			Every person, upon providing proof of his identity, has the right to make inquiry to the services responsible for implementation about which scenarios his/her personal data is used in the application.<br/>
+			In case of an inactivity beyond 6 months, an administrator will delete t les utilisateurs se verront refuser le service de chargehe user account.<br/>
 		</p>
 	`,
 
@@ -102,10 +109,15 @@ module.exports = {
 				<li>Courrier électronique</li>
 				<li>Téléphone fixe et portable</li>
 				<li>Numéro de badge</li>
+				<li>Status</li>
+				<li>Role</li>
+				<li>Language</li>
 				<li>Photo</li>
+				<li>Addresse complète</li>
 				<li>Plaque d'immatriculation</li>
+				<li>Mot de passe hashé</li>
 				<li>Numéro d'identification professionnel</li>
-				<li>Centre de coût</li>
+				<li>Centre de coût professionnel</li>
 		</ul>
 		<p>
 				Informations de recharge comme:
@@ -117,7 +129,7 @@ module.exports = {
 				<li>Date/Heure, Durée des Sessions</li>
 				<li>Historique des Sessions</li>
 				<li>Démarrage/Arrêt des Sessions</li>
-				<li>Statistiques sur l'Utilisation et la Consommation</li>
+				<li>Statistiques sur l'Utilisation des Bornes, la Consommation et le Coût</li>
 				<li>Configuration</li>
 				<li>Gestion des Sites</li>
 				<li>Gestion des Tarifs</li>
@@ -127,15 +139,16 @@ module.exports = {
 		<p>
 				Les données personnelles seront conservées jusqu'à la fin du contrat ou à la demande de l'utilisateur.<br/>
 				Dans ce cas, celles-ci seront supprimées et les sessions anonymisées (plus aucunes relations ne pourra être établie avec l'utilisateur).<br/>
+				En cas d'inactivité de plus de 6 mois, le compte de l'utilisateur sera supprimé par un adminstrateur.<br/>
 		</p>
 
 		<h3>Sécurité et Principe de non Divulgation</h3>
 		<p>
-				Le devoir de sécurité et l'interdiction sur le traitement des données personnelles est assurés.<br/>
+				Le devoir de sécurité et l'interdiction sur le traitement des données personnelles seront assurés.<br/>
 				Des identifiants sont requis pour accéder à l'application pour les utilisateurs standards et les administrateurs<br/>
 				Seuls les administrateurs sont autorisés à lire, écrire, éditer et effacer toutes les informations<br/>
 				Les utilisateurs standards sont autorisés à lire et modifier leurs propres données personnelles, voir la disponibilité des bornes de recharge, la charge en cours, l'historique de leurs sessions et leurs statistiques.<br/>
-				Les données peuvent être communiquées à une tierce partie en cas de demande légale comme par exemple l'inspection du travail, les services fiscaux ou de police.<br/>
+				Les données peuvent être communiquées à une tierce partie en cas de demande légale comme par exemple l'inspection du travail, les services fiscaux ou la police.<br/>
 		</p>
 
 		<h3>Principe de la Liberté des Données Personnelles</h3>
@@ -143,6 +156,7 @@ module.exports = {
 		<h4>Le devoir d'informer les utilisateurs de leurs droits</h4>
 		<p>
 				Ce document doit être accepté par tous les utilisateurs voulant utiliser les bornes de recharges gérées par cette application.<br/>
+				Dans le cas contraire, les utilisateurs se verront refuser le service de charge.<br/>
 		</p>
 
 		<h4>Le droit d'Accès et de Correction</h4>
