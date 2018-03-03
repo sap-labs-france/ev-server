@@ -46,7 +46,6 @@ class CompanyStorage {
 		// Execute
 		return MDBCompany.aggregate(aggregation)
 				.exec().then((companyMDB) => {
-			console.log(companyMDB);
 			let company = null;
 			// Check
 			if (companyMDB && companyMDB.length > 0) {
