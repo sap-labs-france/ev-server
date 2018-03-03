@@ -72,7 +72,7 @@ class ChargingStation {
 		}
 	}
 
-	getSiteArea() {
+	getSiteArea(withSite=false) {
 		if (this._model.siteArea) {
 			return Promise.resolve(new SiteArea(this._model.siteArea));
 		} else if (this._model.siteAreaID){
@@ -590,12 +590,28 @@ class ChargingStation {
 		transaction.chargeBoxID = this.getID();
 		// Check if already exists
 		if (!transaction.id) {
-			// No: Check user and save
-			return this.checkIfUserIsAuthorized(transaction, global.storage.saveStartTransaction);
+			// Check if the charging station has already a transaction
+			return this.getActiveTransaction(transaction.connectorId).then((activeTransaction) => {
+				// Exists already?
+				if (!activeTransaction) {
+					// No: Generate the transaction ID
+					transaction.transactionId = Utils.getRandomInt();
+					// Check user and save
+					return this.checkIfUserIsAuthorized(transaction, global.storage.saveStartTransaction);
+				} else {
+					// Yes: Reuse transaction ID
+					transaction.transactionId = activeTransaction.id;
+					return Promise.resolve();
+				}
+			});
 		} else {
 			// Yes: save it
 			return global.storage.saveStartTransaction(transaction);
 		}
+	}
+
+	getActiveTransaction(connectorId) {
+		return global.storage.getActiveTransaction(this.getID(), connectorId);
 	}
 
 	handleDataTransfer(dataTransfer) {
@@ -636,81 +652,120 @@ class ChargingStation {
 
 	checkIfUserIsAuthorized(request, saveFunction) {
 		// Check first if the site area access control is active
-		return this.getSiteArea().then((siteArea) => {
-			if (siteArea && !siteArea.isAccessControlEnabled()) {
-				// Access Control disabled
-				// Execute the function
+		let user, site, siteArea;
+		return this.getSiteArea().then((foundSiteArea) => {
+			siteArea = foundSiteArea;
+			// Site is mandatory
+			if (!siteArea) {
+				// Reject Site Not Found
+				return Promise.reject( new AppError(
+					`The Charging Station '${this.getID()}' is not assigned to a Site!`, 500,
+					"ChargingStation", "checkIfUserIsAuthorized",
+					null, null) );
+			}
+			// Check if Access Control is disabled
+			if (!siteArea.isAccessControlEnabled()) {
+				// Yes: authorize all the time
 				return saveFunction(request);
 			}
-			// Check User
-			return global.storage.getUserByTagId(request.idTag).then((user) => {
-				// Found?
-				if (user) {
-					// Check status
-					if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
-						// Reject but save ok
-						return Promise.reject( new AppError(
-							`User with TagID ${request.idTag} is not Active`, 500,
-							"ChargingStation", "checkIfUserIsAuthorized",
-							null, user) );
-					} else {
-						// Save it
-						request.user = user;
-						// Execute the function
-						return saveFunction(request).then(() => {
-							// Check function
-							if (saveFunction.name === "saveStartTransaction") {
-								if (user) {
-									// Notify
-									NotificationHandler.sendTransactionStarted(
-										request.transactionId,
-										user.getModel(),
-										this.getModel(),
-										{
-											"user": user.getModel(),
-											"chargingBoxID": this.getID(),
-											"connectorId": request.connectorId,
-											"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, request.connectorId, request.transactionId)
-										},
-										user.getLocale()
-									);
-								}
-							}
-						});
-					}
-				} else {
-					// Create an empty user
-					var newUser = new User({
-						name: "Unknown",
-						firstName: "User",
-						status: Users.USER_STATUS_PENDING,
-						role: Users.USER_ROLE_BASIC,
-						email: request.idTag + "@sap.com",
-						tagIDs: [request.idTag],
-						createdBy: Constants.CENTRAL_SERVER,
-						createdOn: new Date().toISOString()
-					});
+			// Get the User with its Tag ID
+			return global.storage.getUserByTagId(request.idTag);
+		}).then((foundUser) => {
+			user = foundUser;
+			// Found?
+			if (!user) {
+				// No: Create an empty user
+				var newUser = new User({
+					name: "Unknown",
+					firstName: "User",
+					status: Users.USER_STATUS_PENDING,
+					role: Users.USER_ROLE_BASIC,
+					email: request.idTag + "@chargeangels.fr",
+					tagIDs: [request.idTag],
+					createdOn: new Date().toISOString()
+				});
 
-					// Save the user
-					return newUser.save().then((user) => {
-						// Send Notification
-						NotificationHandler.sendUnknownUserBadged(
-							Utils.generateGUID(),
-							this.getModel(),
-							{
-								"chargingBoxID": this.getID(),
-								"badgeId": request.idTag,
-								"evseDashboardUserURL" : Utils.buildEvseUserURL(user)
-							}
-						);
-						// Reject but save ok
-						return Promise.reject( new Error(`User with Tag ID ${request.idTag} not found but saved as inactive user`) );
-					}, (err) => {
-						// Reject, cannot save
-						return Promise.reject( new Error(`User with Tag ID ${request.idTag} not found and cannot be created: ${err.message}`) );
-					});
-				}
+				// Save the user
+				return newUser.save().then((user) => {
+					// Send Notification
+					NotificationHandler.sendUnknownUserBadged(
+						Utils.generateGUID(),
+						this.getModel(),
+						{
+							"chargingBoxID": this.getID(),
+							"badgeId": request.idTag,
+							"evseDashboardUserURL" : Utils.buildEvseUserURL(user)
+						}
+					);
+					// Reject but save ok
+					return Promise.reject(
+						new Error(`User with Tag ID ${request.idTag} not found but saved as inactive user`) );
+				});
+			}
+			// Check if the user is assigned to the Charge Box's Company
+			// Get the Charge Box' Site
+			return siteArea.getSite();
+		}).then((foundSite) => {
+			site = foundSite;
+			if (!site) {
+				// Reject Site Not Found
+				return Promise.reject( new AppError(
+					`The Site Area '${siteArea.getName()}' is not assigned to a Site!`, 500,
+					"ChargingStation", "checkIfUserIsAuthorized",
+					null, user.getModel()) );
+			}
+			// Get the Charge Box's Company
+			return site.getCompany();
+		}).then((company) => {
+			if (!company) {
+				// Reject Site Not Found
+				return Promise.reject( new AppError(
+					`The Site '${site.getName()}' is not assigned to a Company!`, 500,
+					"ChargingStation", "checkIfUserIsAuthorized",
+					null, user.getModel()) );
+			}
+			// Check if the user is assigned to the company
+			let foundUser = company.getUserIDs().find((userID) => {
+				return userID == user.getID();
 			});
+			if (!foundUser) {
+				// Reject Site Not Found
+				return Promise.reject( new AppError(
+					`The User is not assigned to the Company '${company.getName()}'!`, 500,
+					"ChargingStation", "checkIfUserIsAuthorized",
+					null, user.getModel()) );
+			}
+			// Check status
+			if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
+				// Reject but save ok
+				return Promise.reject( new AppError(
+					`User with TagID ${request.idTag} is not Active`, 500,
+					"ChargingStation", "checkIfUserIsAuthorized",
+					null, user.getModel()) );
+			}
+			// Save it
+			request.user = user;
+			// Execute the function
+			return saveFunction(request);
+		}).then(() => {
+			// Check function
+			if (saveFunction.name === "saveStartTransaction") {
+				if (user) {
+					// Notify
+					NotificationHandler.sendTransactionStarted(
+						request.transactionId,
+						user.getModel(),
+						this.getModel(),
+						{
+							"user": user.getModel(),
+							"chargingBoxID": this.getID(),
+							"connectorId": request.connectorId,
+							"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, request.connectorId, request.transactionId)
+						},
+						user.getLocale()
+					);
+				}
+			}
 		});
 	}
 

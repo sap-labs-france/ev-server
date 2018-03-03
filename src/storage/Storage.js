@@ -100,6 +100,9 @@ class Storage {
 	getTransactions(searchValue=null, filter={}, siteID=null, numberOfTransactions=500) {
 	}
 
+	getActiveTransaction(chargeBoxID, connectorID) {
+	}
+
 	getTransaction(transactionId) {
 	}
 

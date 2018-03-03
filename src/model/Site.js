@@ -1,5 +1,6 @@
 const Database = require('../utils/Database');
 const SiteArea = require('./SiteArea');
+const Company = require('./Company');
 
 class Site {
 	constructor(site) {

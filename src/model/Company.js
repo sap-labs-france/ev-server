@@ -101,6 +101,10 @@ class Company {
 		});
 	}
 
+	getUserIDs() {
+		return (this._model.userIDs?this._model.userIDs:[]);
+	}
+
 	getUsers() {
 		if (this._model.users) {
 			return Promise.resolve(this._model.users.map((user) => {

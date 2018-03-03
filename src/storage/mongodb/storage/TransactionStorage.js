@@ -56,6 +56,7 @@ class TransactionStorage {
 			return meterValues;
 		});
 	}
+
 	static handleSaveStartTransaction(startTransaction) {
 		// Already created?
 		if (!startTransaction.id) {
@@ -66,7 +67,6 @@ class TransactionStorage {
 			}
 			startTransaction.tagID = startTransaction.idTag;
 		}
-
 		// Get
 		return MDBTransaction.findOneAndUpdate({"_id": startTransaction.id}, startTransaction, {
 				new: true,
@@ -299,6 +299,26 @@ class TransactionStorage {
 				// Set data
 				transaction = {};
 				Database.updateTransaction(transactionMDB, transaction);
+			}
+			// Ok
+			return transaction;
+		});
+	}
+
+	static handleGetActiveTransaction(chargeBoxID, connectorID) {
+		// Get the Active Transaction
+		return MDBTransaction.find({
+					"chargeBoxID": chargeBoxID,
+					"connectorId": connectorID,
+					"stop": { $exists: false }
+				}).then((transactionsMDB) => {
+			// Set
+			let transaction = null;
+			// Found?
+			if (transactionsMDB && transactionsMDB.length > 0) {
+				// Set data
+				transaction = {};
+				Database.updateTransaction(transactionsMDB[0], transaction);
 			}
 			// Ok
 			return transaction;

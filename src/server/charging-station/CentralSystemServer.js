@@ -381,9 +381,6 @@ class CentralSystemServer {
 }
 
 	handleStartTransaction(args, headers, req) {
-		// Set the transaction ID
-		args.transactionId = Utils.getRandomInt();
-
 		// Get the charging station
 		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
 			// Found?

@@ -205,6 +205,11 @@ class MongoDBStorage extends Storage {
 		return TransactionStorage.handleGetTransactions(searchValue, filter, siteID, numberOfTransactions);
 	}
 
+	getActiveTransaction(chargeBoxID, connectorID) {
+		// Delegate
+		return TransactionStorage.handleGetActiveTransaction(chargeBoxID, connectorID);
+	}
+
 	getTransaction(transactionId) {
 		// Delegate
 		return TransactionStorage.handleGetTransaction(transactionId);
