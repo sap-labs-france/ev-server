@@ -173,7 +173,7 @@
 			{
 				"AuthObject": "Transaction",
 				"AuthFieldValue": {
-					"UserID": "*",
+					"UserID": ["{{user.id}}"],
 					"Action": ["Read"]
 				}
 			},

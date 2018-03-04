@@ -387,7 +387,11 @@ class AuthService {
 						// Get authorisation
 						let userRole = Authorization.getAuthorizationFromRoleID(user.getRole());
 						// Parse the auth and replace values
-						let parsedAuths = Mustache.render(JSON.stringify(userRole.auths), {"user": user.getModel()});
+						let parsedAuths = Mustache.render(JSON.stringify(userRole.auths),
+							{
+								"user": user.getModel()
+							}
+						);
 						// Compile auths of the role
 						let compiledAuths = compileProfile(JSON.parse(parsedAuths));
 						// Yes: build payload

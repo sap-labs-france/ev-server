@@ -51,21 +51,42 @@ module.exports = {
 	},
 
 	canReadTransaction(loggedUser, transaction) {
-		// Check
-		return this.canPerformAction(loggedUser, this.ENTITY_TRANSACTION,
-			{ "Action": this.ACTION_READ });
+		// Check auth
+		if (transaction.user) {
+			// Check
+			return this.canPerformAction(loggedUser, this.ENTITY_TRANSACTION,
+				{ "Action": this.ACTION_READ , "UserID": transaction.user.id.toString()});
+		// Admin?
+		} else if (!this.isAdmin(loggedUser)) {
+			return false;
+		}
+		return true;
 	},
 
 	canUpdateTransaction(loggedUser, transaction) {
-		// Check
-		return this.canPerformAction(loggedUser, this.ENTITY_TRANSACTION,
-			{ "Action": this.ACTION_UPDATE });
+		// Check auth
+		if (transaction.user) {
+			// Check
+			return this.canPerformAction(loggedUser, this.ENTITY_TRANSACTION,
+				{ "Action": this.ACTION_UPDATE, "UserID": transaction.user.id.toString()});
+		// Admin?
+		} else if (!this.isAdmin(loggedUser)) {
+			return false;
+		}
+		return true;
 	},
 
 	canDeleteTransaction(loggedUser, transaction) {
-		// Check
-		return this.canPerformAction(loggedUser, this.ENTITY_TRANSACTION,
-			{ "Action": this.ACTION_DELETE });
+		// Check auth
+		if (transaction.user) {
+			// Check
+			return this.canPerformAction(loggedUser, this.ENTITY_TRANSACTION,
+				{ "Action": this.ACTION_DELETE, "UserID": transaction.user.id.toString()});
+		// Admin?
+		} else if (!this.isAdmin(loggedUser)) {
+			return false;
+		}
+		return true;
 	},
 
 	canListChargingStations(loggedUser) {
@@ -78,7 +99,7 @@ module.exports = {
 		// Check
 		if (user) {
 			return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATION,
-				{ "Action": action, "UserID": user.id });
+				{ "Action": action, "UserID": user.id.toString() });
 		} else {
 			return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATION,
 				{ "Action": action });
@@ -112,7 +133,7 @@ module.exports = {
 	canLogoutUser(loggedUser, user) {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_USER,
-			{ "Action": this.ACTION_LOGOUT, "UserID": user.id });
+			{ "Action": this.ACTION_LOGOUT, "UserID": user.id.toString() });
 	},
 
 	canCreateUser(loggedUser) {
@@ -124,13 +145,13 @@ module.exports = {
 	canUpdateUser(loggedUser, user) {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_USER,
-			{ "Action": this.ACTION_UPDATE, "UserID": user.id });
+			{ "Action": this.ACTION_UPDATE, "UserID": user.id.toString() });
 	},
 
 	canDeleteUser(loggedUser, user) {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_USER,
-			{ "Action": this.ACTION_DELETE, "UserID": user.id });
+			{ "Action": this.ACTION_DELETE, "UserID": user.id.toString() });
 	},
 
 	canListSites(loggedUser) {
