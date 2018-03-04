@@ -913,13 +913,12 @@ class ChargingStation {
 				null,
 				{"chargeBoxID": this.getID()},
 				null,
-				false,
 				1).then((transactions) => {
 			return (transactions && transactions.length > 0 ? true : false);
 		});;
 	}
 
-	getTransactions(connectorId, startDateTime, endDateTime, withImage) {
+	getTransactions(connectorId, startDateTime, endDateTime) {
 		// Get the consumption
 		return global.storage.getTransactions(
 			null,
@@ -927,8 +926,6 @@ class ChargingStation {
 			 "connectorId": connectorId,
 			 "startDateTime": startDateTime,
 			 "endDateTime" : endDateTime},
-			null,
-			withImage,
 		 	Constants.NO_LIMIT);
 	}
 

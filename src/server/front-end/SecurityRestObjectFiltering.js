@@ -257,7 +257,7 @@ class SecurityRestObjectFiltering {
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.WithSiteAreas = SecurityRestObjectFiltering._filterBoolean(request.WithSiteAreas);
 		filteredRequest.WithChargeBoxes = SecurityRestObjectFiltering._filterBoolean(request.WithChargeBoxes);
-		filteredRequest.WithCompanyLogo = SecurityRestObjectFiltering._filterBoolean(request.WithCompanyLogo);
+		filteredRequest.WithCompany = SecurityRestObjectFiltering._filterBoolean(request.WithCompany);
 		return filteredRequest;
 	}
 

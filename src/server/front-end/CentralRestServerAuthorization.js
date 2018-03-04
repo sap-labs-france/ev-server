@@ -55,7 +55,7 @@ module.exports = {
 		if (transaction.user) {
 			// Check
 			return this.canPerformAction(loggedUser, this.ENTITY_TRANSACTION,
-				{ "Action": this.ACTION_READ , "UserID": transaction.user.id.toString()});
+				{ "Action": this.ACTION_READ, "UserID": transaction.user.id.toString()});
 		// Admin?
 		} else if (!this.isAdmin(loggedUser)) {
 			return false;
@@ -99,23 +99,29 @@ module.exports = {
 		// Check
 		if (user) {
 			return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATION,
-				{ "Action": action, "UserID": user.id.toString() });
+				{ "Action": action, "UserID": user.id.toString(), "ChargingStationID": chargingStation.id });
 		} else {
 			return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATION,
-				{ "Action": action });
+				{ "Action": action, "ChargingStationID": chargingStation.id });
 		}
 	},
 
 	canReadChargingStation(loggedUser, chargingStation) {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATION,
-			{ "Action": this.ACTION_READ });
+			{ "Action": this.ACTION_READ, "ChargingStationID": chargingStation.id });
 	},
 
 	canUpdateChargingStation(loggedUser, chargingStation) {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATION,
-			{ "Action": this.ACTION_UPDATE });
+			{ "Action": this.ACTION_UPDATE, "ChargingStationID": chargingStation.id });
+	},
+
+	canDeleteChargingStation(loggedUser, chargingStation) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATION,
+			{ "Action": this.ACTION_DELETE, "ChargingStationID": chargingStation.id });
 	},
 
 	canListUsers(loggedUser) {
@@ -163,7 +169,7 @@ module.exports = {
 	canReadSite(loggedUser, site) {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_SITE,
-			{ "Action": this.ACTION_READ });
+			{ "Action": this.ACTION_READ, "SiteID": site.id.toString() });
 	},
 
 	canCreateSite(loggedUser) {
@@ -175,13 +181,13 @@ module.exports = {
 	canUpdateSite(loggedUser, site) {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_SITE,
-			{ "Action": this.ACTION_UPDATE, "SiteID": site.id });
+			{ "Action": this.ACTION_UPDATE, "SiteID": site.id.toString() });
 	},
 
 	canDeleteSite(loggedUser, site) {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_SITE,
-			{ "Action": this.ACTION_DELETE, "SiteID": site.id });
+			{ "Action": this.ACTION_DELETE, "SiteID": site.id.toString() });
 	},
 
 	canListSiteAreas(loggedUser) {
@@ -193,7 +199,7 @@ module.exports = {
 	canReadSiteArea(loggedUser, siteArea) {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_SITE_AREA,
-			{ "Action": this.ACTION_READ });
+			{ "Action": this.ACTION_READ, "SiteAreaID": siteArea.id.toString() });
 	},
 
 	canCreateSiteArea(loggedUser) {
@@ -205,13 +211,13 @@ module.exports = {
 	canUpdateSiteArea(loggedUser, siteArea) {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_SITE_AREA,
-			{ "Action": this.ACTION_UPDATE, "SiteAreaID": siteArea.id });
+			{ "Action": this.ACTION_UPDATE, "SiteAreaID": siteArea.id.toString() });
 	},
 
 	canDeleteSiteArea(loggedUser, siteArea) {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_SITE_AREA,
-			{ "Action": this.ACTION_DELETE, "SiteAreaID": siteArea.id });
+			{ "Action": this.ACTION_DELETE, "SiteAreaID": siteArea.id.toString() });
 	},
 
 	canListCompanies(loggedUser) {
@@ -223,7 +229,7 @@ module.exports = {
 	canReadCompany(loggedUser, company) {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_COMPANY,
-			{ "Action": this.ACTION_READ });
+			{ "Action": this.ACTION_READ, "CompanyID": company.id.toString() });
 	},
 
 	canCreateCompany(loggedUser) {
@@ -235,13 +241,13 @@ module.exports = {
 	canUpdateCompany(loggedUser, company) {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_COMPANY,
-			{ "Action": this.ACTION_UPDATE, "CompanyID": company.id });
+			{ "Action": this.ACTION_UPDATE, "CompanyID": company.id.toString() });
 	},
 
 	canDeleteCompany(loggedUser, company) {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_COMPANY,
-			{ "Action": this.ACTION_DELETE, "CompanyID": company.id });
+			{ "Action": this.ACTION_DELETE, "CompanyID": company.id.toString() });
 	},
 
 	canReadPricing(loggedUser) {
@@ -254,12 +260,6 @@ module.exports = {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_PRICING,
 			{ "Action": this.ACTION_UPDATE });
-	},
-
-	canDeleteChargingStation(loggedUser, chargingStation) {
-		// Check
-		return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATION,
-			{ "Action": this.ACTION_DELETE });
 	},
 
 	isAdmin(loggedUser) {

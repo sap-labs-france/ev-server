@@ -163,8 +163,8 @@ class SiteStorage {
 		}
 	}
 
-	static handleGetSites(searchValue, withSiteAreas, withChargeBoxes,
-			withCompanyLogo, numberOfSites) {
+	static handleGetSites(searchValue, companyID, withCompany, withSiteAreas,
+			withChargeBoxes, numberOfSites) {
 		// Check Limit
 		numberOfSites = Utils.checkRecordLimit(numberOfSites);
 		// Set the filters
@@ -180,6 +180,10 @@ class SiteStorage {
 					{ "address.country" : { $regex : searchValue, $options: 'i' } }
 				]
 			});
+		}
+		// Set Company?
+		if (companyID) {
+			filters.companyID = new ObjectId(companyID);
 		}
 		// Create Aggregation
 		let aggregation = [];
@@ -240,27 +244,21 @@ class SiteStorage {
 		aggregation.push({
 			$unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
 		});
-		// Add Company
-		aggregation.push({
-			$lookup: {
-				from: "companies",
-				localField: "companyID",
-				foreignField: "_id",
-				as: "company"
-			}
-		});
-		// Logo?
-		if (!withCompanyLogo) {
+		// Add Company?
+		if (withCompany) {
 			aggregation.push({
-				$project: {
-					"company.logo": 0
+				$lookup: {
+					from: "companies",
+					localField: "companyID",
+					foreignField: "_id",
+					as: "company"
 				}
 			});
+			// Single Record
+			aggregation.push({
+				$unwind: "$company"
+			});
 		}
-		// Single Record
-		aggregation.push({
-			$unwind: "$company"
-		});
 		// Single Record
 		aggregation.push({
 			$sort: { name : 1 }
@@ -300,23 +298,10 @@ class SiteStorage {
 						return siteAreaObj;
 					}));
 				}
-				// Set Company
-				site.setCompany(new Company(siteMDB.company));
-				// Add
-				sites.push(site);
-			});
-			return sites;
-		});
-	}
-
-	static handleGetSitesFromCompany(companyID) {
-		// Exec request
-		return MDBSite.find({"companyID": companyID}).then((sitesMDB) => {
-			let sites = [];
-			// Create
-			sitesMDB.forEach((siteMDB) => {
-				// Create
-				let site = new Site(siteMDB);
+				// Set Company?
+				if (siteMDB.company) {
+					site.setCompany(new Company(siteMDB.company));
+				}
 				// Add
 				sites.push(site);
 			});
@@ -326,7 +311,7 @@ class SiteStorage {
 
 	static handleDeleteSite(id) {
 		// Delete Site Areas
-		return SiteAreaStorage.handleGetSiteAreasFromSite(id).then((siteAreas) => {
+		return SiteAreaStorage.handleGetSiteAreas(null, id).then((siteAreas) => {
 			// Delete
 			let proms = [];
 			siteAreas.forEach((siteArea) => {

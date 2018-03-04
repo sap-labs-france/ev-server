@@ -7,7 +7,7 @@ const User = require('../../../model/User');
 const Users = require('../../../utils/Users');
 const Utils = require('../../../utils/Utils');
 const Configuration = require('../../../utils/Configuration');
-const Authorization = require('../../../utils/Authorization');
+const Authorizations = require('../../../utils/Authorizations');
 const NotificationHandler = require('../../../notification/NotificationHandler');
 const compileProfile = require('node-authorization').profileCompiler;
 const passport = require('passport');
@@ -369,6 +369,10 @@ class AuthService {
 				// Check new and old version of hashing the password
 				if (match || (user.getPassword() === Users.hashPassword(filteredRequest.password))) {
 					// Password OK
+					let companies,
+						sites = [],
+						siteAreas = [],
+						chargingStations = [];
 					// Read Eula
 					global.storage.getEndUserLicenseAgreement(user.getLanguage()).then((endUserLicenseAgreement) => {
 						// Set Eula Info
@@ -378,31 +382,112 @@ class AuthService {
 						// Reset wrong number of trial
 						user.setPasswordWrongNbrTrials(0);
 						// Save
-						user.save();
+						return user.save();
+					}).then(() => {
+						// Get Companies
+						if (user.getRole() == CentralRestServerAuthorization.ROLE_ADMIN) {
+							// Nothing to get
+							return Promise.resolve([]);
+						} else {
+							// Get companies
+							return user.getCompanies();
+						}
+					}).then((foundCompanies) => {
+						companies = foundCompanies;
+						if (companies.length == 0) {
+							return Promise.resolve([]);
+						}
+						// Get all the sites
+						let proms = [];
+						companies.forEach((company) => {
+							proms.push(company.getSites());
+						});
+						return Promise.all(proms);
+					}).then((foundSitesProms) => {
+						// Merge results
+						foundSitesProms.forEach((foundSitesProm) => {
+							sites = sites.concat(foundSitesProm);
+						});
+						// console.log(JSON.stringify(sites, null, ' '));
+						if (sites.length == 0) {
+							return Promise.resolve([]);
+						}
+						// Get all the site areas
+						let proms = [];
+						sites.forEach((site) => {
+							proms.push(site.getSiteAreas());
+						})
+						return Promise.all(proms);
+					}).then((foundSiteAreasProms) => {
+						// Merge results
+						foundSiteAreasProms.forEach((foundSiteAreasProm) => {
+							siteAreas = siteAreas.concat(foundSiteAreasProm);
+						});
+						if (siteAreas.length == 0) {
+							return Promise.resolve([]);
+						}
+						// Get all the charging stations
+						let proms = [];
+						siteAreas.forEach((siteArea) => {
+							proms.push(siteArea.getChargingStations());
+						})
+						return Promise.all(proms);
+					}).then((foundChargingStationsProms) => {
+						// Merge results
+						foundChargingStationsProms.forEach((foundChargingStationsProm) => {
+							chargingStations = chargingStations.concat(foundChargingStationsProm);
+						});
+						// Convert to IDs
+						let companyIDs = companies.map((company) => {
+							return company.getID();
+						});
+						let siteIDs = sites.map((site) => {
+							return site.getID();
+						});
+						let siteAreaIDs = siteAreas.map((siteArea) => {
+							return siteArea.getID();
+						});
+						let chargingStationIDs = chargingStations.map((chargingStation) => {
+							return chargingStation.getID();
+						});
 						// Log it
 						Logging.logSecurityInfo({
 							user: user.getModel(),
-							module: "AuthService", method: "checkUserLogin", action: action,
-							message: `User logged in successfully`});
+							module: "AuthService", method: "checkUserLogin",
+							action: action, message: `User logged in successfully`});
 						// Get authorisation
-						let userRole = Authorization.getAuthorizationFromRoleID(user.getRole());
+						let authsDefinition = Authorizations.getAuthorizations();
 						// Parse the auth and replace values
-						let parsedAuths = Mustache.render(JSON.stringify(userRole.auths),
+						let authsDefinitionParsed = Mustache.render(
+							authsDefinition,
 							{
-								"user": user.getModel()
+								"userID": user.getID(),
+								"companyID": companyIDs,
+								"siteID": siteIDs,
+								"siteAreaID": siteAreaIDs,
+								"chargingStationID": chargingStationIDs,
+								"trim": () => {
+									return (text, render) => {
+										// trim trailing comma and whitespace
+										return render(text).replace(/(,\s*$)/g, '');
+									}
+								}
 							}
 						);
+						let userAuthDefinition = Authorizations.getAuthorizationFromRoleID(
+							JSON.parse(authsDefinitionParsed), user.getRole());
+						console.log(JSON.stringify(userAuthDefinition, null, ' '));
 						// Compile auths of the role
-						let compiledAuths = compileProfile(JSON.parse(parsedAuths));
+						let compiledAuths = compileProfile(userAuthDefinition.auths);
 						// Yes: build payload
 						let payload = {
-								id: user.getID(),
-								role: user.getRole(),
-								name: user.getName(),
-								firstName: user.getFirstName(),
-								locale: user.getLocale(),
-								language: user.getLanguage(),
-								auths: compiledAuths
+							id: user.getID(),
+							role: user.getRole(),
+							name: user.getName(),
+							firstName: user.getFirstName(),
+							locale: user.getLocale(),
+							language: user.getLanguage(),
+							auths: compiledAuths
 						};
 						// Build token
 						let token;
@@ -421,6 +506,9 @@ class AuthService {
 						}
 						// Return it
 						res.json({ token: token });
+					}).catch((err) => {
+						// Log exception
+						Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
 					});
 				} else {
 					// Wrong Password

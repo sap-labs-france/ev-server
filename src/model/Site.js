@@ -120,7 +120,7 @@ class Site {
 			}));
 		} else {
 			// Get from DB
-			return global.storage.getSiteAreasFromSite(this.getID()).then((siteAreas) => {
+			return global.storage.getSiteAreas(null, this.getID()).then((siteAreas) => {
 				// Keep it
 				this.setSiteAreas(siteAreas);
 				return siteAreas;

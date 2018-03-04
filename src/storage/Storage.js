@@ -145,7 +145,7 @@ class Storage {
 	getUserImages() {
 	}
 
-	getCompanies(searchValue, withSites=false, numberOfCompanies=500) {
+	getCompanies(searchValue, userID, withSites=false, numberOfCompanies=500) {
 	}
 
 	getCompanyLogos() {
@@ -163,11 +163,8 @@ class Storage {
 	deleteCompany(id) {
 	}
 
-	getSitesFromCompany(companyID) {
-	}
-
-	getSites(searchValue, withSiteAreas=false, withChargeBoxes=false,
-		withCompanyLogo=false, numberOfSite=500) {
+	getSites(searchValue, companyID, withCompany=false, withSiteAreas=false,
+		withChargeBoxes=false, numberOfSite=500) {
 	}
 
 	saveSite(site) {
@@ -185,10 +182,7 @@ class Storage {
 	getSiteImages() {
 	}
 
-	getSiteAreasFromSite(siteID) {
-	}
-
-	getSiteAreas(searchValue, withChargeBoxes=false, numberOfSiteArea=500) {
+	getSiteAreas(searchValue, siteID=null, withChargeBoxes=false, numberOfSiteArea=500) {
 	}
 
 	getSiteArea(id, withChargingStations=false, withSite=false) {

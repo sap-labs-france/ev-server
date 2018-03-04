@@ -157,7 +157,7 @@ class CompanyStorage {
 	}
 
 	// Delegate
-	static handleGetCompanies(searchValue, withSites, numberOfCompanies) {
+	static handleGetCompanies(searchValue, userID, withSites, numberOfCompanies) {
 		// Check Limit
 		numberOfCompanies = Utils.checkRecordLimit(numberOfCompanies);
 		// Set the filters
@@ -173,6 +173,10 @@ class CompanyStorage {
 					{ "address.country" : { $regex : searchValue, $options: 'i' } }
 				]
 			});
+		}
+		// Set User?
+		if (userID) {
+			filters.userIDs = new ObjectId(userID);
 		}
 		// Create Aggregation
 		let aggregation = [];
@@ -255,7 +259,7 @@ class CompanyStorage {
 
 	static handleDeleteCompany(id) {
 		// Delete Sites
-		return SiteStorage.handleGetSitesFromCompany(id).then((sites) => {
+		return SiteStorage.handleGetSites(null, id).then((sites) => {
 			// Delete
 			let proms = [];
 			sites.forEach((site) => {

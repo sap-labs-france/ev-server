@@ -227,7 +227,7 @@ class CompanyService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterCompaniesRequest(req.query, req.user);
 		// Get the companies
-		global.storage.getCompanies(filteredRequest.Search, filteredRequest.WithSites,
+		global.storage.getCompanies(filteredRequest.Search, null, filteredRequest.WithSites,
 				Constants.NO_LIMIT).then((companies) => {
 			let companiesJSon = [];
 			companies.forEach((company) => {

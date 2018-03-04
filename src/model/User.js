@@ -232,7 +232,7 @@ class User {
 		return this._model.deleted;
 	}
 
-	getTransactions(filter, withImage) {
+	getTransactions(filter) {
 		if (!filter) {
 			filter = {};
 		}
@@ -243,8 +243,12 @@ class User {
 			null,
 			filter,
 			null,
-			withImage,
 			Constants.NO_LIMIT);
+	}
+
+	getCompanies() {
+		// Get Companies
+		return global.storage.getCompanies(null, this.getID());
 	}
 
 	save() {

@@ -87,7 +87,7 @@ class Company {
 			}));
 		} else {
 			// Get from DB
-			return global.storage.getSitesFromCompany(this.getID()).then((sites) => {
+			return global.storage.getSites(null, this.getID()).then((sites) => {
 				// Keep it
 				this.setSites(sites);
 				return sites;

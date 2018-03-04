@@ -293,9 +293,9 @@ class MongoDBStorage extends Storage {
 		return UserStorage.handleGetUserByTagId(tagID);
 	}
 
-	getCompanies(searchValue, withSites=false, numberOfCompanies=500) {
+	getCompanies(searchValue, userID=null, withSites=false, numberOfCompanies=500) {
 		// Delegate
-		return CompanyStorage.handleGetCompanies(searchValue, withSites, numberOfCompanies);
+		return CompanyStorage.handleGetCompanies(searchValue, userID, withSites, numberOfCompanies);
 	}
 
 	getCompany(id, withUsers=false) {
@@ -318,16 +318,11 @@ class MongoDBStorage extends Storage {
 		return CompanyStorage.handleDeleteCompany(id);
 	}
 
-	getSitesFromCompany(companyID) {
+	getSites(searchValue, companyID=null, withCompany=false, withSiteAreas=false,
+			withChargeBoxes=false, numberOfSite=500) {
 		// Delegate
-		return SiteStorage.handleGetSitesFromCompany(companyID);
-	}
-
-	getSites(searchValue, withSiteAreas=false, withChargeBoxes=false,
-			withCompanyLogo=false, numberOfSite=500) {
-		// Delegate
-		return SiteStorage.handleGetSites(searchValue, withSiteAreas, withChargeBoxes,
-			withCompanyLogo, numberOfSite);
+		return SiteStorage.handleGetSites(searchValue, companyID, withCompany, withSiteAreas,
+			withChargeBoxes, numberOfSite);
 	}
 
 	saveCompany(company) {
@@ -340,9 +335,10 @@ class MongoDBStorage extends Storage {
 		return SiteStorage.handleSaveSite(site);
 	}
 
-	getSiteAreas(searchValue, withChargeBoxes=false, numberOfSiteArea=500) {
+	getSiteAreas(searchValue, siteID=null, withChargeBoxes=false, numberOfSiteArea=500) {
 		// Delegate
-		return SiteAreaStorage.handleGetSiteAreas(searchValue, withChargeBoxes, numberOfSiteArea);
+		return SiteAreaStorage.handleGetSiteAreas(searchValue, siteID,
+			withChargeBoxes, numberOfSiteArea);
 	}
 
 	saveSiteArea(siteArea) {

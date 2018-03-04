@@ -176,7 +176,7 @@ class SiteAreaStorage {
 		}
 	}
 
-	static handleGetSiteAreas(searchValue, withChargeBoxes, numberOfSiteAreas) {
+	static handleGetSiteAreas(searchValue, siteID, withChargeBoxes, numberOfSiteAreas) {
 		// Check Limit
 		numberOfSiteAreas = Utils.checkRecordLimit(numberOfSiteAreas);
 		// Set the filters
@@ -190,6 +190,10 @@ class SiteAreaStorage {
 					{ "name" : { $regex : searchValue, $options: 'i' } }
 				]
 			});
+		}
+		// Set Site?
+		if (siteID) {
+			filters.siteID = new ObjectId(siteID);
 		}
 		// Create Aggregation
 		let aggregation = [];
@@ -281,21 +285,6 @@ class SiteAreaStorage {
 				}
 				// Set
 				siteArea.setSite(new Site(siteAreaMDB.site));
-				// Add
-				siteAreas.push(siteArea);
-			});
-			return siteAreas;
-		});
-	}
-
-	static handleGetSiteAreasFromSite(siteID) {
-		// Exec request
-		return MDBSiteArea.find({"siteID": siteID}).then((siteAreasMDB) => {
-			let siteAreas = [];
-			// Create
-			siteAreasMDB.forEach((siteAreaMDB) => {
-				// Create
-				let siteArea = new SiteArea(siteAreaMDB);
 				// Add
 				siteAreas.push(siteArea);
 			});
