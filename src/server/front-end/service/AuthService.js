@@ -408,7 +408,6 @@ class AuthService {
 						foundSitesProms.forEach((foundSitesProm) => {
 							sites = sites.concat(foundSitesProm);
 						});
-						// console.log(JSON.stringify(sites, null, ' '));
 						if (sites.length == 0) {
 							return Promise.resolve([]);
 						}
@@ -476,7 +475,6 @@ class AuthService {
 						);
 						let userAuthDefinition = Authorizations.getAuthorizationFromRoleID(
 							JSON.parse(authsDefinitionParsed), user.getRole());
-						console.log(JSON.stringify(userAuthDefinition, null, ' '));
 						// Compile auths of the role
 						let compiledAuths = compileProfile(userAuthDefinition.auths);
 						// Yes: build payload
