@@ -4,6 +4,7 @@ const Logging = require('../utils/Logging');
 const User = require('./User');
 const SiteArea = require('./SiteArea');
 const Users = require('../utils/Users');
+const Sites = require('../utils/Sites');
 const AppError = require('../exception/AppError');
 const Constants = require('../utils/Constants');
 const Database = require('../utils/Database');
@@ -666,10 +667,13 @@ class ChargingStation {
 			// Check if Access Control is disabled
 			if (!siteArea.isAccessControlEnabled()) {
 				// Yes: authorize all the time
-				return saveFunction(request);
+				saveFunction(request);
+				// Break the chain of promises
+				throw new Error(Sites.SITE_IS_UNLOCKED);
+			} else {
+				// Get the User with its Tag ID
+				return global.storage.getUserByTagId(request.idTag);
 			}
-			// Get the User with its Tag ID
-			return global.storage.getUserByTagId(request.idTag);
 		}).then((foundUser) => {
 			user = foundUser;
 			// Found?
@@ -765,6 +769,12 @@ class ChargingStation {
 						user.getLocale()
 					);
 				}
+			}
+		}).catch((error) => {
+			// Check error
+			if (error.message !== Sites.SITE_IS_UNLOCKED) {
+				// Not known error: rethrow it
+				throw error;
 			}
 		});
 	}

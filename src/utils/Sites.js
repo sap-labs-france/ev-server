@@ -3,6 +3,8 @@ const Logging = require('./Logging');
 require('source-map-support').install();
 
 module.exports = {
+	SITE_IS_UNLOCKED: "Site is unlocked",
+
 	checkIfSiteValid(action, filteredRequest, req, res, next) {
 		// Update model?
 		if(req.method !== "POST" && !filteredRequest.id) {
