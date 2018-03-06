@@ -391,28 +391,28 @@ class CentralSystemServer {
 				// Reject but save ok
 				return Promise.reject( new Error(`Transaction rejected: Charging Station  ${headers.chargeBoxIdentity} does not exist`) );
 			}
-		}).then(() => {
+		}).then((transaction) => {
 			// Log
-			if (args.user) {
+			if (transaction.user) {
 				Logging.logInfo({
 					source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStartTransaction",
-					action: "StartTransaction", user: args.user,
-					message: `Transaction ID '${args.transactionId}' has been started on Connector '${args.connectorId}'`,
+					action: "StartTransaction", user: transaction.user,
+					message: `Transaction ID '${transaction.id}' has been started on Connector '${transaction.connectorId}'`,
 					detailedMessages: args });
 			} else {
 				Logging.logInfo({
 					source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStartTransaction",
-					action: "StartTransaction", message: `Transaction ID '${args.transactionId}' has been started by an anonymous user on Connector '${args.connectorId}'`,
+					action: "StartTransaction", message: `Transaction ID '${transaction.transactionId}' has been started by an anonymous user on Connector '${transaction.connectorId}'`,
 					detailedMessages: args });
 			}
 
 			return {
 				"startTransactionResponse": {
-					"transactionId": args.transactionId,
+					"transactionId": transaction.id,
 					"idTagInfo": {
 						"status": "Accepted"
-	//          "expiryDate": "",
-	//          "parentIdTag": ""
+						// "expiryDate": "",
+						// "parentIdTag": ""
 					}
 				}
 			};
@@ -421,11 +421,11 @@ class CentralSystemServer {
 			Logging.logActionExceptionMessage("StartTransaction", error);
 			return {
 				"startTransactionResponse": {
-					"transactionId": args.transactionId,
+					"transactionId": 0,
 					"idTagInfo": {
 						"status": "Invalid"
-	//          "expiryDate": "",
-	//          "parentIdTag": ""
+						// "expiryDate": "",
+						// "parentIdTag": ""
 					}
 				}
 			};

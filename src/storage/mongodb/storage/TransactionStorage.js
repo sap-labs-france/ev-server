@@ -58,20 +58,16 @@ class TransactionStorage {
 	}
 
 	static handleSaveStartTransaction(startTransaction) {
-		// Already created?
-		if (!startTransaction.id) {
-			// No: Set a new ID
-			startTransaction.id = startTransaction.transactionId;
-			if (startTransaction.user) {
-				startTransaction.userID = startTransaction.user.getID();
-			}
-			startTransaction.tagID = startTransaction.idTag;
+		if (startTransaction.user) {
+			startTransaction.userID = startTransaction.user.getID();
 		}
+		startTransaction.tagID = startTransaction.idTag;
 		// Get
 		return MDBTransaction.findOneAndUpdate({"_id": startTransaction.id}, startTransaction, {
 				new: true,
 				upsert: true
 			}).then((startTransactionMDB) => {
+				let transaction = {};
 				// Notify
 				_centralRestServer.notifyTransactionCreated(
 					{
@@ -81,6 +77,10 @@ class TransactionStorage {
 						"type": Constants.NOTIF_ENTITY_TRANSACTION
 					}
 				);
+				// Update
+				Database.updateTransaction(startTransactionMDB, transaction);
+				// Return
+				return transaction;
 			});
 	}
 
@@ -291,7 +291,8 @@ class TransactionStorage {
 		return MDBTransaction.findById({"_id": transactionId})
 				.populate("userID")
 				.populate("chargeBoxID")
-				.populate("stop.userID").exec().then((transactionMDB) => {
+				.populate("stop.userID")
+				.exec().then((transactionMDB) => {
 			// Set
 			let transaction = null;
 			// Found?
@@ -311,7 +312,9 @@ class TransactionStorage {
 					"chargeBoxID": chargeBoxID,
 					"connectorId": connectorID,
 					"stop": { $exists: false }
-				}).then((transactionsMDB) => {
+				})
+				.populate("userID")
+				.exec().then((transactionsMDB) => {
 			// Set
 			let transaction = null;
 			// Found?

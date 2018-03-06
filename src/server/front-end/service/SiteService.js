@@ -40,7 +40,9 @@ class SiteService {
 			// Found?
 			if (!site) {
 				// Not Found!
-				throw new AppError(`Site with ID '${filteredRequest.ID}' does not exist`,
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`Site with ID '${filteredRequest.ID}' does not exist`,
 					500, "SiteService", "handleDeleteSite");
 			}
 			// Check auth
@@ -126,7 +128,7 @@ class SiteService {
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterSitesRequest(req.query, req.user);
 		// Get the sites
-		global.storage.getSites(filteredRequest.Search, null, filteredRequest.WithCompany, 
+		global.storage.getSites(filteredRequest.Search, null, filteredRequest.WithCompany,
 				filteredRequest.WithSiteAreas, filteredRequest.WithChargeBoxes,
 				Constants.NO_LIMIT).then((sites) => {
 			let sitesJSon = [];
@@ -166,7 +168,9 @@ class SiteService {
 		// Get it
 		global.storage.getSite(filteredRequest.ID).then((site) => {
 			if (!site) {
-				throw new AppError(`The Site with ID '${filteredRequest.ID}' does not exist anymore`,
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Site with ID '${filteredRequest.ID}' does not exist anymore`,
 					550, "SiteService", "handleUpdateSite");
 			}
 			// Check auth
@@ -262,7 +266,9 @@ class SiteService {
 				// Found?
 				if (!company) {
 					// Not Found!
-					throw new AppError(`The Company ID '${filteredRequest.companyID}' does not exist`,
+					throw new AppError(
+						Constants.CENTRAL_SERVER,
+						`The Company ID '${filteredRequest.companyID}' does not exist`,
 						500, "SiteService", "handleCreateSite");
 				}
 				// Get the logged user
@@ -308,7 +314,9 @@ class SiteService {
 			global.storage.getSite(filteredRequest.id).then((foundSite) => {
 				site = foundSite;
 				if (!site) {
-					throw new AppError(`The Site with ID '${filteredRequest.id}' does not exist anymore`,
+					throw new AppError(
+						Constants.CENTRAL_SERVER,
+						`The Site with ID '${filteredRequest.id}' does not exist anymore`,
 						550, "SiteService", "handleUpdateSite");
 				}
 				// Check auth

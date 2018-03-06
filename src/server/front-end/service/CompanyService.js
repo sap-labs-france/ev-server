@@ -40,7 +40,9 @@ class CompanyService {
 			// Found?
 			if (!company) {
 				// Not Found!
-				throw new AppError(`Company with ID '${filteredRequest.ID}' does not exist`,
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`Company with ID '${filteredRequest.ID}' does not exist`,
 					500, "CompanyService", "handleDeleteCompany");
 			}
 			// Check auth
@@ -136,7 +138,9 @@ class CompanyService {
 		global.storage.getCompany(filteredRequest.ID).then((foundCompany) => {
 			company = foundCompany;
 			if (!company) {
-				throw new AppError(`The Company with ID '${filteredRequest.ID}' does not exist anymore`,
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Company with ID '${filteredRequest.ID}' does not exist anymore`,
 					550, "CompanyService", "handleGetCompanyLogo");
 			}
 			// Check auth
@@ -310,7 +314,9 @@ class CompanyService {
 			global.storage.getCompany(filteredRequest.id).then((foundCompany) => {
 				company = foundCompany;
 				if (!company) {
-					throw new AppError(`The Company with ID '${filteredRequest.id}' does not exist anymore`,
+					throw new AppError(
+						Constants.CENTRAL_SERVER,
+						`The Company with ID '${filteredRequest.id}' does not exist anymore`,
 						550, "CompanyService", "handleUpdateCompany");
 				}
 				// Check auth

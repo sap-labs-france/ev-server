@@ -1,6 +1,7 @@
 const SecurityRestObjectFiltering = require('../SecurityRestObjectFiltering');
 const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
 const Logging = require('../../../utils/Logging');
+const Constants = require('../../../utils/Constants');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const User = require('../../../model/User');
@@ -66,6 +67,7 @@ class AuthService {
 		if (!filteredRequest.acceptEula) {
 			Logging.logActionExceptionMessageAndSendResponse(action,
 				new AppError(
+					Constants.CENTRAL_SERVER,
 					`The End-user License Agreement is mandatory`,
 					520, "AuthService", "handleLogIn"),
 				req, res, next);
@@ -75,6 +77,7 @@ class AuthService {
 		global.storage.getUserByEmail(filteredRequest.email).then((user) => {
 			if (!user) {
 				throw new AppError(
+					Constants.CENTRAL_SERVER,
 					`The user with email '${filteredRequest.email}' does not exist`,
 					500, "AuthService", "handleLogIn");
 			}
@@ -159,7 +162,9 @@ class AuthService {
 					// Check email
 					global.storage.getUserByEmail(filteredRequest.email).then((user) => {
 						if (user) {
-							throw new AppError(`The email '${filteredRequest.email}' already exists`, 510,
+							throw new AppError(
+								Constants.CENTRAL_SERVER,
+								`The email '${filteredRequest.email}' already exists`, 510,
 								"AuthService", "handleRegisterUser");
 						}
 						// Generate a password
@@ -246,7 +251,9 @@ class AuthService {
 					global.storage.getUserByEmail(filteredRequest.email).then((user) => {
 						// Found?
 						if (!user) {
-							throw new AppError(`User with email '${filteredRequest.email}' does not exist`, 545,
+							throw new AppError(
+								Constants.CENTRAL_SERVER,
+								`User with email '${filteredRequest.email}' does not exist`, 545,
 								"AuthService", "handleUserPasswordReset");
 						}
 						// Hash it
@@ -296,12 +303,16 @@ class AuthService {
 			}).then((user) => {
 				// Found?
 				if (!user) {
-					throw new AppError(`User with email '${filteredRequest.email}' does not exist`, 545,
+					throw new AppError(
+						Constants.CENTRAL_SERVER,
+						`User with email '${filteredRequest.email}' does not exist`, 545,
 						"AuthService", "handleUserPasswordReset");
 				}
 				// Check the hash from the db
 				if (!user.getPasswordResetHash() || filteredRequest.hash !== user.getPasswordResetHash()) {
-					throw new AppError(`The user's hash '${user.getPasswordResetHash()}' do not match`, 535,
+					throw new AppError(
+						Constants.CENTRAL_SERVER,
+						`The user's hash '${user.getPasswordResetHash()}' do not match`, 535,
 						"AuthService", "handleUserPasswordReset");
 				}
 				// Set the hashed password
@@ -359,6 +370,7 @@ class AuthService {
 				Logging.logActionExceptionMessageAndSendResponse(
 					action,
 					new AppError(
+						Constants.CENTRAL_SERVER,
 						`Your account '${user.getEMail()}' is not yet active`,
 						550, "AuthService", "checkUserLogin"),
 					req, res, next);

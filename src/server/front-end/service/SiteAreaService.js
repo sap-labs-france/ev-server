@@ -45,7 +45,9 @@ class SiteAreaService {
 				// Found?
 				if (!site) {
 					// Not Found!
-					throw new AppError(`The Site ID '${filteredRequest.siteID}' does not exist`,
+					throw new AppError(
+						Constants.CENTRAL_SERVER,
+						`The Site ID '${filteredRequest.siteID}' does not exist`,
 						500, "SiteAreaService", "handleCreateSiteArea");
 				}
 				// Get the logged user
@@ -164,7 +166,9 @@ class SiteAreaService {
 			// Found?
 			if (!siteArea) {
 				// Not Found!
-				throw new AppError(`Site Area with ID '${filteredRequest.ID}' does not exist`,
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`Site Area with ID '${filteredRequest.ID}' does not exist`,
 					500, "SiteAreaService", "handleDeleteSiteArea");
 			}
 			// Check auth
@@ -260,7 +264,9 @@ class SiteAreaService {
 		// Get it
 		global.storage.getSiteArea(filteredRequest.ID).then((siteArea) => {
 			if (!siteArea) {
-				throw new AppError(`The Site Area with ID '${filteredRequest.ID}' does not exist anymore`,
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Site Area with ID '${filteredRequest.ID}' does not exist anymore`,
 					550, "SiteAreaService", "handleUpdateSiteArea");
 			}
 			// Check auth
@@ -347,7 +353,9 @@ class SiteAreaService {
 			global.storage.getSiteArea(filteredRequest.id).then((foundSiteArea) => {
 				siteArea = foundSiteArea;
 				if (!siteArea) {
-					throw new AppError(`The Site Area with ID '${filteredRequest.id}' does not exist anymore`,
+					throw new AppError(
+						Constants.CENTRAL_SERVER,
+						`The Site Area with ID '${filteredRequest.id}' does not exist anymore`,
 						550, "SiteAreaService", "handleUpdateSiteArea");
 				}
 				// Check auth

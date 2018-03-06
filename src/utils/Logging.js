@@ -165,6 +165,7 @@ class Logging {
 
 	static _logActionAppExceptionMessage(action, exception) {
 		Logging.logSecurityError({
+			source: exception.source,
 			user: exception.user,
 			actionOnUser: exception.actionOnUser,
 			module: exception.module, method: exception.method,
