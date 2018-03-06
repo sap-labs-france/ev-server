@@ -442,7 +442,7 @@ class ChargingStation {
 					// Send Notification
 					if (transaction.user) {
 						NotificationHandler.sendEndOfCharge(
-							transaction.transactionId + "-EOF",
+							transaction.id + "-EOF",
 							transaction.user,
 							this.getModel(),
 							{
@@ -452,7 +452,7 @@ class ChargingStation {
 								"totalConsumption": (this.getConnectors()[transaction.connectorId-1].totalConsumption/1000).toLocaleString(
 									(transaction.user.locale ? transaction.user.locale.replace('_','-') : Users.DEFAULT_LOCALE.replace('_','-')),
 									{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
-								"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.transactionId),
+								"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
 								"notifStopTransactionAndUnlockConnector": _configChargingStation.notifStopTransactionAndUnlockConnector
 							},
 							transaction.user.locale);
@@ -461,7 +461,7 @@ class ChargingStation {
 					// Stop Transaction and Unlock Connector?
 					if (_configChargingStation.notifStopTransactionAndUnlockConnector) {
 						// Yes: Stop the transaction
-						this.requestStopTransaction(transaction.transactionId).then((result) => {
+						this.requestStopTransaction(transaction.id).then((result) => {
 							// Ok?
 							if (result && result.status === "Accepted") {
 								// Unlock the connector
