@@ -293,7 +293,7 @@ class TransactionService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`Transaction '${filteredRequest.ID}' does not exist`,
-					500, "TransactionService", "handleGetTransaction");
+					510, "TransactionService", "handleGetTransaction");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadTransaction(req.user, transaction)) {
