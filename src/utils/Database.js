@@ -13,6 +13,19 @@ module.exports = {
 		if (!dest.id && src._id) {
 			dest.id = src._id;
 		}
+		dest.id = this.validateId(dest.id);
+	},
+
+	validateId(id) {
+		let changedID = id;
+		if (changedID && typeof changedID == "object") {
+			if (changedID instanceof Buffer) {
+				changedID = changedID.toString('hex');
+			} else {
+				changedID = changedID.toString();
+			}
+		}
+		return changedID;
 	},
 
 	updateChargingStation(src, dest) {
@@ -195,8 +208,12 @@ module.exports = {
 		this.updateID(src, dest);
 		dest.name = src.name;
 		dest.address = {};
-		this.updateAddress(src.address, dest.address)
-		dest.userIDs = src.userIDs;
+		this.updateAddress(src.address, dest.address);
+		if (src.userIDs) {
+			dest.userIDs = src.userIDs.map((userID) => {
+				return this.validateId(userID);
+			});
+		}
 		dest.logo = src.logo;
 		dest.numberOfSites = src.numberOfSites;
 		this.updateCreatedAndLastChanged(src, dest);

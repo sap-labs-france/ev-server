@@ -73,8 +73,20 @@ class UserService {
 					req.user);
 			}
 			// Delete
+			return user.getCompanies();
+		}).then((companies) => {
+			let proms = [];
+			companies.forEach((company) => {
+				// Remove User
+				company.removeUser(user);
+				// Save
+				proms.push(company.save());
+			});
+			return Promise.all(proms);
+		}).then((results) => {
+			// Delete User
 			return user.delete();
-		}).then(() => {
+		}).then((result) => {
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, actionOnUser: user.getModel(),

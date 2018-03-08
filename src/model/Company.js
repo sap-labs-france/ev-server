@@ -131,6 +131,32 @@ class Company {
 		this._model.users = users.map((user) => {
 			return user.getModel();
 		});
+		this._model.userIDs = users.map((user) => {
+			return user.getID();
+		});
+	}
+
+	removeUser(user) {
+		if (this._model.users) {
+			// Search
+			for (var i = 0; i < this._model.users.length; i++) {
+				if (this._model.users[i].getID() == user.getID()) {
+					// Remove
+					this._model.users.splice(i, 1);
+					break;
+				}
+			}
+		}
+		if (this._model.userIDs) {
+			// Search
+			for (var i = 0; i < this._model.userIDs.length; i++) {
+				if (this._model.userIDs[i] == user.getID()) {
+					// Remove
+					this._model.userIDs.splice(i, 1);
+					break;
+				}
+			}
+		}
 	}
 
 	save() {

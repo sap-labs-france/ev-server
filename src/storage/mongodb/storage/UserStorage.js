@@ -371,6 +371,7 @@ class UserStorage {
 					"type": Constants.NOTIF_ENTITY_USER
 				}
 			);
+			return result;
 		});
 	}
 
