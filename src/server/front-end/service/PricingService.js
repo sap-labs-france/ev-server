@@ -16,10 +16,9 @@ class PricingService {
 		if (!CentralRestServerAuthorization.canReadPricing(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				action,
-				CentralRestServerAuthorization.ENTITY_PRICING,
+				action, CentralRestServerAuthorization.ENTITY_PRICING,
 				null,
-				500, "PricingService", "handleGetPricing",
+				560, "PricingService", "handleGetPricing",
 				req.user);
 		}
 		// Get the Pricing
@@ -53,10 +52,9 @@ class PricingService {
 		if (!CentralRestServerAuthorization.canUpdatePricing(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				action,
-				CentralRestServerAuthorization.ENTITY_PRICING,
+				action, CentralRestServerAuthorization.ENTITY_PRICING,
 				null,
-				500, "PricingService", "handleUpdatePricing",
+				560, "PricingService", "handleUpdatePricing",
 				req.user);
 		}
 		// Filter

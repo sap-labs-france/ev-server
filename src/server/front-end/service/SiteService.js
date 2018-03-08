@@ -43,7 +43,7 @@ class SiteService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`Site with ID '${filteredRequest.ID}' does not exist`,
-					500, "SiteService", "handleDeleteSite");
+					550, "SiteService", "handleDeleteSite");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canDeleteSite(req.user, site.getModel())) {
@@ -52,7 +52,7 @@ class SiteService {
 					CentralRestServerAuthorization.ACTION_DELETE,
 					CentralRestServerAuthorization.ENTITY_SITE,
 					site.getID(),
-					500, "SiteService", "handleDeleteSite",
+					560, "SiteService", "handleDeleteSite",
 					req.user);
 			}
 			// Delete
@@ -90,16 +90,18 @@ class SiteService {
 		}
 		// Get it
 		global.storage.getSite(filteredRequest.ID).then((site) => {
-			if (site) {
-				// Return
-				res.json(
-					// Filter
-					SecurityRestObjectFiltering.filterSiteResponse(
-						site.getModel(), req.user)
-				);
-			} else {
-				res.json({});
+			if (!site) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Site with ID '${filteredRequest.ID}' does not exist anymore`,
+					550, "SiteService", "handleUpdateSite");
 			}
+			// Return
+			res.json(
+				// Filter
+				SecurityRestObjectFiltering.filterSiteResponse(
+					site.getModel(), req.user)
+			);
 			next();
 		}).catch((err) => {
 			// Log
@@ -122,7 +124,7 @@ class SiteService {
 				CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_SITES,
 				null,
-				500, "SiteService", "handleGetSites",
+				560, "SiteService", "handleGetSites",
 				req.user);
 		}
 		// Filter
@@ -180,7 +182,7 @@ class SiteService {
 					CentralRestServerAuthorization.ACTION_READ,
 					CentralRestServerAuthorization.ENTITY_SITE,
 					site.getID(),
-					500, "SiteService", "handleGetSiteImage",
+					560, "SiteService", "handleGetSiteImage",
 					req.user);
 			}
 			// Get the image
@@ -220,7 +222,7 @@ class SiteService {
 				CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_SITES,
 				null,
-				500, "SiteService", "handleGetSiteImages",
+				560, "SiteService", "handleGetSiteImages",
 				req.user);
 		}
 		// Get the site image
@@ -254,7 +256,7 @@ class SiteService {
 				CentralRestServerAuthorization.ACTION_CREATE,
 				CentralRestServerAuthorization.ENTITY_SITE,
 				null,
-				500, "SiteService", "handleCreateSite",
+				560, "SiteService", "handleCreateSite",
 				req.user);
 		}
 		// Filter
@@ -269,7 +271,7 @@ class SiteService {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
 						`The Company ID '${filteredRequest.companyID}' does not exist`,
-						500, "SiteService", "handleCreateSite");
+						550, "SiteService", "handleCreateSite");
 				}
 				// Get the logged user
 				return global.storage.getUser(req.user.id);
@@ -326,7 +328,7 @@ class SiteService {
 						CentralRestServerAuthorization.ACTION_UPDATE,
 						CentralRestServerAuthorization.ENTITY_SITE,
 						site.getID(),
-						500, "SiteService", "handleUpdateSite",
+						560, "SiteService", "handleUpdateSite",
 						req.user);
 				}
 				// Get the logged user

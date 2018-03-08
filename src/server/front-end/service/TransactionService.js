@@ -38,7 +38,7 @@ class TransactionService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`Transaction '${filteredRequest.ID}' does not exist`,
-					500, "TransactionService", "handleDeleteTransaction");
+					550, "TransactionService", "handleDeleteTransaction");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canDeleteTransaction(req.user, transaction)) {
@@ -47,7 +47,7 @@ class TransactionService {
 					CentralRestServerAuthorization.ACTION_DELETE,
 					CentralRestServerAuthorization.ENTITY_TRANSACTION,
 					transaction.id,
-					500, "TransactionService", "handleDeleteTransaction",
+					560, "TransactionService", "handleDeleteTransaction",
 					req.user);
 			}
 			// Get the Charging Station
@@ -60,7 +60,7 @@ class TransactionService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`Charging Station with ID ${transaction.chargeBox.id} does not exist`,
-					500, "TransactionService", "handleDeleteTransaction");
+					550, "TransactionService", "handleDeleteTransaction");
 			}
 			// Get logged user
 			return global.storage.getUser(req.user.id);
@@ -72,7 +72,7 @@ class TransactionService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The user with ID '${req.user.id}' does not exist`,
-					500, "TransactionService", "handleDeleteTransaction");
+					550, "TransactionService", "handleDeleteTransaction");
 			}
 			// Delete Transaction
 			return chargingStation.deleteTransaction(transaction);
@@ -118,7 +118,7 @@ class TransactionService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`Transaction '${filteredRequest.transactionId}' does not exist`,
-					500, "TransactionService", "handleTransactionSoftStop");
+					550, "TransactionService", "handleTransactionSoftStop");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canUpdateTransaction(req.user, transaction)) {
@@ -127,7 +127,7 @@ class TransactionService {
 					CentralRestServerAuthorization.ACTION_UPDATE,
 					CentralRestServerAuthorization.ENTITY_TRANSACTION,
 					transaction.id,
-					500, "TransactionService", "handleTransactionSoftStop",
+					560, "TransactionService", "handleTransactionSoftStop",
 					req.user);
 			}
 			// Get the Charging Station
@@ -140,7 +140,7 @@ class TransactionService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`Charging Station with ID '${transaction.chargeBox.id}' does not exist`,
-					500, "TransactionService", "handleTransactionSoftStop");
+					550, "TransactionService", "handleTransactionSoftStop");
 			}
 			// Get logged user
 			return global.storage.getUser(req.user.id);
@@ -152,7 +152,7 @@ class TransactionService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The user with ID '${req.user.id}' does not exist`,
-					500, "TransactionService", "handleTransactionSoftStop");
+					550, "TransactionService", "handleTransactionSoftStop");
 			}
 			// Stop Transaction
 			let stopTransaction = {};
@@ -204,7 +204,7 @@ class TransactionService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`Transaction '${filteredRequest.TransactionId}' does not exist`,
-					500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
+					550, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadTransaction(req.user, transaction)) {
@@ -213,7 +213,7 @@ class TransactionService {
 					CentralRestServerAuthorization.ACTION_READ,
 					CentralRestServerAuthorization.ENTITY_TRANSACTION,
 					transaction.id,
-					500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction",
+					560, "TransactionService", "handleGetChargingStationConsumptionFromTransaction",
 					req.user);
 			}
 			// Get the Charging Station
@@ -226,7 +226,7 @@ class TransactionService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`Charging Station with ID '${filteredRequest.id}' does not exist`,
-					500, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
+					550, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
 			}
 			// Check dates
 			if (filteredRequest.StartDateTime) {
@@ -293,7 +293,7 @@ class TransactionService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`Transaction '${filteredRequest.ID}' does not exist`,
-					510, "TransactionService", "handleGetTransaction");
+					550, "TransactionService", "handleGetTransaction");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadTransaction(req.user, transaction)) {
@@ -302,7 +302,7 @@ class TransactionService {
 					CentralRestServerAuthorization.ACTION_READ,
 					CentralRestServerAuthorization.ENTITY_TRANSACTION,
 					transaction.id,
-					500, "TransactionService", "handleGetTransaction",
+					560, "TransactionService", "handleGetTransaction",
 					req.user);
 			}
 			// Return
@@ -333,7 +333,7 @@ class TransactionService {
 				CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_TRANSACTION,
 				null,
-				500, "TransactionService", "handleGetChargingStationTransactions",
+				560, "TransactionService", "handleGetChargingStationTransactions",
 				req.user);
 		}
 		// Filter
@@ -356,7 +356,7 @@ class TransactionService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`Charging Station with ID '${filteredRequest.ChargeBoxID}' does not exist`,
-					500, "TransactionService", "handleGetChargingStationTransactions");
+					550, "TransactionService", "handleGetChargingStationTransactions");
 			}
 			// Set the model
 			return chargingStation.getTransactions(
@@ -416,7 +416,7 @@ class TransactionService {
 				CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_TRANSACTION,
 				null,
-				500, "TransactionService", "handleGetTransactionsActive",
+				560, "TransactionService", "handleGetTransactionsActive",
 				req.user);
 		}
 		let filter = { stop: { $exists: false } };
@@ -459,7 +459,7 @@ class TransactionService {
 				CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_TRANSACTION,
 				null,
-				500, "TransactionService", "handleGetTransactionsCompleted",
+				560, "TransactionService", "handleGetTransactionsCompleted",
 				req.user);
 		}
 		let pricing;

@@ -43,7 +43,7 @@ class CompanyService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`Company with ID '${filteredRequest.ID}' does not exist`,
-					500, "CompanyService", "handleDeleteCompany");
+					550, "CompanyService", "handleDeleteCompany");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canDeleteCompany(req.user, company.getModel())) {
@@ -52,7 +52,7 @@ class CompanyService {
 					CentralRestServerAuthorization.ACTION_DELETE,
 					CentralRestServerAuthorization.ENTITY_COMPANY,
 					company.getID(),
-					500, "CompanyService", "handleDeleteCompany",
+					560, "CompanyService", "handleDeleteCompany",
 					req.user);
 			}
 			// Delete
@@ -90,26 +90,28 @@ class CompanyService {
 		}
 		// Get it
 		global.storage.getCompany(filteredRequest.ID, filteredRequest.WithUsers).then((company) => {
-			if (company) {
-				// Check auth
-				if (!CentralRestServerAuthorization.canReadCompany(req.user, company.getModel())) {
-					// Not Authorized!
-					throw new AppAuthError(
-						CentralRestServerAuthorization.ACTION_READ,
-						CentralRestServerAuthorization.ENTITY_COMPANY,
-						company.getID(),
-						500, "CompanyService", "handleGetCompany",
-						req.user);
-				}
-				// Return
-				res.json(
-					// Filter
-					SecurityRestObjectFiltering.filterCompanyResponse(
-						company.getModel(), req.user)
-				);
-			} else {
-				res.json({});
+			if (!company) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Company with ID '${filteredRequest.ID}' does not exist anymore`,
+					550, "CompanyService", "handleGetCompanyLogo");
 			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canReadCompany(req.user, company.getModel())) {
+				// Not Authorized!
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_READ,
+					CentralRestServerAuthorization.ENTITY_COMPANY,
+					company.getID(),
+					560, "CompanyService", "handleGetCompany",
+					req.user);
+			}
+			// Return
+			res.json(
+				// Filter
+				SecurityRestObjectFiltering.filterCompanyResponse(
+					company.getModel(), req.user)
+			);
 			next();
 		}).catch((err) => {
 			// Log
@@ -150,7 +152,7 @@ class CompanyService {
 					CentralRestServerAuthorization.ACTION_READ,
 					CentralRestServerAuthorization.ENTITY_COMPANY,
 					company.getID(),
-					500, "CompanyService", "handleGetCompanyLogo",
+					560, "CompanyService", "handleGetCompanyLogo",
 					req.user);
 			}
 			// Get the logo
@@ -190,7 +192,7 @@ class CompanyService {
 				CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_COMPANIES,
 				null,
-				500, "CompanyService", "handleGetCompanyLogos",
+				560, "CompanyService", "handleGetCompanyLogos",
 				req.user);
 		}
 		// Get the company logo
@@ -224,7 +226,7 @@ class CompanyService {
 				CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_COMPANIES,
 				null,
-				500, "CompanyService", "handleGetCompanies",
+				560, "CompanyService", "handleGetCompanies",
 				req.user);
 			return;
 		}
@@ -266,7 +268,7 @@ class CompanyService {
 				CentralRestServerAuthorization.ACTION_CREATE,
 				CentralRestServerAuthorization.ENTITY_COMPANY,
 				null,
-				500, "CompanyService", "handleCreateCompany",
+				560, "CompanyService", "handleCreateCompany",
 				req.user);
 		}
 		// Filter
@@ -326,7 +328,7 @@ class CompanyService {
 						CentralRestServerAuthorization.ACTION_UPDATE,
 						CentralRestServerAuthorization.ENTITY_COMPANY,
 						company.getID(),
-						500, "CompanyService", "handleCreateCompany",
+						560, "CompanyService", "handleCreateCompany",
 						req.user);
 				}
 				// Get the logged user

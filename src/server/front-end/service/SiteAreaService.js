@@ -31,7 +31,7 @@ class SiteAreaService {
 				CentralRestServerAuthorization.ACTION_CREATE,
 				CentralRestServerAuthorization.ENTITY_SITE_AREA,
 				null,
-				500, "SiteAreaService", "handleCreateSiteArea",
+				560, "SiteAreaService", "handleCreateSiteArea",
 				req.user);
 		}
 		// Filter
@@ -48,7 +48,7 @@ class SiteAreaService {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
 						`The Site ID '${filteredRequest.siteID}' does not exist`,
-						500, "SiteAreaService", "handleCreateSiteArea");
+						550, "SiteAreaService", "handleCreateSiteArea");
 				}
 				// Get the logged user
 				return global.storage.getUser(req.user.id);
@@ -115,7 +115,7 @@ class SiteAreaService {
 				CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_SITE_AREAS,
 				null,
-				500, "SiteAreaService", "handleGetSiteAreas",
+				560, "SiteAreaService", "handleGetSiteAreas",
 				req.user);
 		}
 		// Filter
@@ -169,7 +169,7 @@ class SiteAreaService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`Site Area with ID '${filteredRequest.ID}' does not exist`,
-					500, "SiteAreaService", "handleDeleteSiteArea");
+					550, "SiteAreaService", "handleDeleteSiteArea");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canDeleteSiteArea(req.user,
@@ -179,7 +179,7 @@ class SiteAreaService {
 					CentralRestServerAuthorization.ACTION_DELETE,
 					CentralRestServerAuthorization.ENTITY_SITE_AREA,
 					siteArea.getID(),
-					500, "SiteAreaService", "handleDeleteSiteArea",
+					560, "SiteAreaService", "handleDeleteSiteArea",
 					req.user);
 			}
 			// Delete
@@ -218,26 +218,30 @@ class SiteAreaService {
 		// Get it
 		global.storage.getSiteArea(filteredRequest.ID, SiteAreas.WITH_CHARGING_STATIONS,
 				SiteAreas.WITHOUT_SITE).then((siteArea) => {
-			if (siteArea) {
-				// Check auth
-				if (!CentralRestServerAuthorization.canReadSiteArea(req.user, siteArea.getModel())) {
-					// Not Authorized!
-					throw new AppAuthError(
-						CentralRestServerAuthorization.ACTION_READ,
-						CentralRestServerAuthorization.ENTITY_SITE_AREA,
-						siteArea.getID(),
-						500, "SiteAreaService", "handleGetSiteAreaImage",
-						req.user);
-				}
-				// Return
-				res.json(
-					// Filter
-					SecurityRestObjectFiltering.filterSiteAreaResponse(
-						siteArea.getModel(), req.user)
-				);
-			} else {
-				res.json({});
+			// Found?
+			if (!siteArea) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`Site Area with ID '${filteredRequest.ID}' does not exist`,
+					550, "SiteAreaService", "handleDeleteSiteArea");
 			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canReadSiteArea(req.user, siteArea.getModel())) {
+				// Not Authorized!
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_READ,
+					CentralRestServerAuthorization.ENTITY_SITE_AREA,
+					siteArea.getID(),
+					560, "SiteAreaService", "handleGetSiteAreaImage",
+					req.user);
+			}
+			// Return
+			res.json(
+				// Filter
+				SecurityRestObjectFiltering.filterSiteAreaResponse(
+					siteArea.getModel(), req.user)
+			);
 			next();
 		}).catch((err) => {
 			// Log
@@ -276,7 +280,7 @@ class SiteAreaService {
 					CentralRestServerAuthorization.ACTION_READ,
 					CentralRestServerAuthorization.ENTITY_SITE_AREA,
 					siteArea.getID(),
-					500, "SiteAreaService", "handleGetSiteAreaImage",
+					560, "SiteAreaService", "handleGetSiteAreaImage",
 					req.user);
 			}
 			// Get the image
@@ -316,7 +320,7 @@ class SiteAreaService {
 				CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_SITE_AREAS,
 				null,
-				500, "SiteAreaService", "handleGetSiteAreaImages",
+				560, "SiteAreaService", "handleGetSiteAreaImages",
 				req.user);
 		}
 		// Get the Site Area image
@@ -365,7 +369,7 @@ class SiteAreaService {
 						CentralRestServerAuthorization.ACTION_UPDATE,
 						CentralRestServerAuthorization.ENTITY_SITE_AREA,
 						siteArea.getID(),
-						500, "SiteAreaService", "handleUpdateSiteArea",
+						560, "SiteAreaService", "handleUpdateSiteArea",
 						req.user);
 				}
 				// Get the logged user

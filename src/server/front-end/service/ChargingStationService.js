@@ -41,7 +41,7 @@ class ChargingStationService {
 						CentralRestServerAuthorization.ACTION_UPDATE,
 						CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
 						site.getID(),
-						500, "ChargingStationService", "handleUpdateChargingStation",
+						560, "ChargingStationService", "handleUpdateChargingStation",
 						req.user);
 				}
 				// Update
@@ -103,7 +103,7 @@ class ChargingStationService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`Charging Station with ID '${filteredRequest.ChargeBoxID}' does not exist`,
-					500, "ChargingStationService", "handleGetChargingStationConfiguration");
+					550, "ChargingStationService", "handleGetChargingStationConfiguration");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadChargingStation(req.user, chargingStation.getModel())) {
@@ -112,7 +112,7 @@ class ChargingStationService {
 					CentralRestServerAuthorization.ACTION_READ,
 					CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
 					chargingStation.getID(),
-					500, "ChargingStationService", "handleGetChargingStationConfiguration",
+					560, "ChargingStationService", "handleGetChargingStationConfiguration",
 					req.user);
 			}
 			// Get the Config
@@ -152,7 +152,7 @@ class ChargingStationService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`Charging Station with ID '${filteredRequest.ID}' does not exist`,
-					500, "ChargingStationService", "handleDeleteChargingStation");
+					550, "ChargingStationService", "handleDeleteChargingStation");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canDeleteChargingStation(req.user, chargingStation.getModel())) {
@@ -161,7 +161,7 @@ class ChargingStationService {
 					CentralRestServerAuthorization.ACTION_DELETE,
 					CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
 					chargingStation.getID(),
-					500, "ChargingStationService", "handleDeleteChargingStation",
+					560, "ChargingStationService", "handleDeleteChargingStation",
 					req.user);
 			}
 			// Delete
@@ -231,7 +231,7 @@ class ChargingStationService {
 				CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS,
 				null,
-				500, "ChargingStationService", "handleGetChargingStations",
+				560, "ChargingStationService", "handleGetChargingStations",
 				req.user);
 			return;
 		}
@@ -284,7 +284,7 @@ class ChargingStationService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
-					500, "ChargingStationService", "handleAction");
+					550, "ChargingStationService", "handleAction");
 			}
 			if (action === "StopTransaction" ||
 					action === "UnlockConnector") {
@@ -299,7 +299,7 @@ class ChargingStationService {
 							throw new AppAuthError(action,
 								CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
 								chargingStation.getID(),
-								500, "ChargingStationService", "handleAction",
+								560, "ChargingStationService", "handleAction",
 								req.user);
 						}
 						// Execute it
@@ -319,7 +319,7 @@ class ChargingStationService {
 					throw new AppAuthError(action,
 						CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
 						chargingStation.getID(),
-						500, "ChargingStationService", "handleAction",
+						560, "ChargingStationService", "handleAction",
 						req.user);
 				}
 				// Execute it
@@ -369,7 +369,7 @@ class ChargingStationService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
-					500, "ChargingStationService", "handleActionSetMaxIntensitySocket");
+					550, "ChargingStationService", "handleActionSetMaxIntensitySocket");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), "ChangeConfiguration")) {
@@ -377,7 +377,7 @@ class ChargingStationService {
 				throw new AppAuthError(action,
 					CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
 					chargingStation.getID(),
-					500, "ChargingStationService", "handleActionSetMaxIntensitySocket",
+					560, "ChargingStationService", "handleActionSetMaxIntensitySocket",
 					req.user);
 			}
 			// Get the Config
@@ -389,7 +389,7 @@ class ChargingStationService {
 				throw new AppError(
 					chargingStation.getID(),
 					`Cannot retrieve the configuration from the Charging Station '${filteredRequest.chargeBoxID}'`,
-					500, "ChargingStationService", "handleActionSetMaxIntensitySocket");
+					550, "ChargingStationService", "handleActionSetMaxIntensitySocket");
 			}
 
 			let maxIntensitySocketMax = null;
@@ -406,7 +406,7 @@ class ChargingStationService {
 				throw new AppError(
 					chargingStation.getID(),
 					`Cannot retrieve the max intensity socket from the configuration from the Charging Station '${filteredRequest.chargeBoxID}'`,
-					500, "ChargingStationService", "handleActionSetMaxIntensitySocket");
+					550, "ChargingStationService", "handleActionSetMaxIntensitySocket");
 			}
 			// Check
 			if (filteredRequest.maxIntensity && filteredRequest.maxIntensity >= 0 && filteredRequest.maxIntensity <= maxIntensitySocketMax) {

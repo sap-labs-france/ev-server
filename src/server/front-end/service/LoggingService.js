@@ -12,7 +12,7 @@ class LoggingService {
 				CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_LOGGING,
 				null,
-				500, "LoggingService", "handleGetLoggings",
+				560, "LoggingService", "handleGetLoggings",
 				req.user);
 		}
 		// Filter

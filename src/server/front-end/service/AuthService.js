@@ -79,7 +79,7 @@ class AuthService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The user with email '${filteredRequest.email}' does not exist`,
-					500, "AuthService", "handleLogIn");
+					550, "AuthService", "handleLogIn");
 			}
 			// Check if the number of trials is reached
 			if (user.getPasswordWrongNbrTrials() >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
@@ -101,14 +101,12 @@ class AuthService {
 							AuthService.checkUserLogin(action, user, filteredRequest, req, res, next);
 						});
 					} else {
-						// Block
-						Logging.logSecurityError({
-							actionOnUser: user.getModel(),
-							module: "AuthService", method: "handleLogIn", action: action,
-							message: `User is locked (too many failed attempts)`});
 						// Return data
-						res.status(450).send({"message": Utils.hideShowMessage("User is locked: too many attempts")});
-						next();
+						throw new AppError(
+							Constants.CENTRAL_SERVER,
+							`User is locked`,
+							570, "AuthService", "handleLogIn",
+							user.getModel());
 					}
 				} else {
 					// An admin has reactivated the account
@@ -164,8 +162,9 @@ class AuthService {
 						if (user) {
 							throw new AppError(
 								Constants.CENTRAL_SERVER,
-								`The email '${filteredRequest.email}' already exists`, 510,
-								"AuthService", "handleRegisterUser");
+								`Email already exists`,
+								510, "AuthService", "handleRegisterUser",
+								null, user.getModel());
 						}
 						// Generate a password
 						return Users.hashPasswordBcrypt(filteredRequest.password);
@@ -253,8 +252,8 @@ class AuthService {
 						if (!user) {
 							throw new AppError(
 								Constants.CENTRAL_SERVER,
-								`User with email '${filteredRequest.email}' does not exist`, 545,
-								"AuthService", "handleUserPasswordReset");
+								`User with email '${filteredRequest.email}' does not exist`,
+								550, "AuthService", "handleUserPasswordReset");
 						}
 						// Hash it
 						user.setPasswordResetHash(resetHash);
@@ -305,15 +304,16 @@ class AuthService {
 				if (!user) {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
-						`User with email '${filteredRequest.email}' does not exist`, 545,
-						"AuthService", "handleUserPasswordReset");
+						`User with email '${filteredRequest.email}' does not exist`,
+						550, "AuthService", "handleUserPasswordReset");
 				}
 				// Check the hash from the db
 				if (!user.getPasswordResetHash() || filteredRequest.hash !== user.getPasswordResetHash()) {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
-						`The user's hash '${user.getPasswordResetHash()}' do not match`, 535,
-						"AuthService", "handleUserPasswordReset");
+						`The user's hash '${user.getPasswordResetHash()}' do not match`,
+						540, "AuthService", "handleUserPasswordReset",
+						user.getModel());
 				}
 				// Set the hashed password
 				user.setPassword(newHashedPassword);
@@ -364,212 +364,212 @@ class AuthService {
 
 	static checkUserLogin(action, user, filteredRequest, req, res, next) {
 		// User Found?
-		if (user) {
-			// Check if the account is active
-			if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
-				Logging.logActionExceptionMessageAndSendResponse(
-					action,
-					new AppError(
-						Constants.CENTRAL_SERVER,
-						`Your account '${user.getEMail()}' is not yet active`,
-						550, "AuthService", "checkUserLogin"),
-					req, res, next);
-				return;
-			}
-			// Check password
-			Users.checkPasswordBCrypt(filteredRequest.password, user.getPassword()).then((match) => {
-				// Check new and old version of hashing the password
-				if (match || (user.getPassword() === Users.hashPassword(filteredRequest.password))) {
-					// Password OK
-					let companies,
-						sites = [],
-						siteAreas = [],
-						chargingStations = [];
-					// Read Eula
-					global.storage.getEndUserLicenseAgreement(user.getLanguage()).then((endUserLicenseAgreement) => {
-						// Set Eula Info
-						user.setEulaAcceptedOn(new Date());
-						user.setEulaAcceptedVersion(endUserLicenseAgreement.version);
-						user.setEulaAcceptedHash(endUserLicenseAgreement.hash);
-						// Reset wrong number of trial
-						user.setPasswordWrongNbrTrials(0);
-						// Save
-						return user.save();
-					}).then(() => {
-						// Get Companies
-						if (user.getRole() == CentralRestServerAuthorization.ROLE_ADMIN) {
-							// Nothing to get
-							return Promise.resolve([]);
-						} else {
-							// Get companies
-							return user.getCompanies();
-						}
-					}).then((foundCompanies) => {
-						companies = foundCompanies;
-						if (companies.length == 0) {
-							return Promise.resolve([]);
-						}
-						// Get all the sites
-						let proms = [];
-						companies.forEach((company) => {
-							proms.push(company.getSites());
-						});
-						return Promise.all(proms);
-					}).then((foundSitesProms) => {
-						// Merge results
-						foundSitesProms.forEach((foundSitesProm) => {
-							sites = sites.concat(foundSitesProm);
-						});
-						if (sites.length == 0) {
-							return Promise.resolve([]);
-						}
-						// Get all the site areas
-						let proms = [];
-						sites.forEach((site) => {
-							proms.push(site.getSiteAreas());
-						})
-						return Promise.all(proms);
-					}).then((foundSiteAreasProms) => {
-						// Merge results
-						foundSiteAreasProms.forEach((foundSiteAreasProm) => {
-							siteAreas = siteAreas.concat(foundSiteAreasProm);
-						});
-						if (siteAreas.length == 0) {
-							return Promise.resolve([]);
-						}
-						// Get all the charging stations
-						let proms = [];
-						siteAreas.forEach((siteArea) => {
-							proms.push(siteArea.getChargingStations());
-						})
-						return Promise.all(proms);
-					}).then((foundChargingStationsProms) => {
-						// Merge results
-						foundChargingStationsProms.forEach((foundChargingStationsProm) => {
-							chargingStations = chargingStations.concat(foundChargingStationsProm);
-						});
-						// Convert to IDs
-						let companyIDs = companies.map((company) => {
-							return company.getID();
-						});
-						let siteIDs = sites.map((site) => {
-							return site.getID();
-						});
-						let siteAreaIDs = siteAreas.map((siteArea) => {
-							return siteArea.getID();
-						});
-						let chargingStationIDs = chargingStations.map((chargingStation) => {
-							return chargingStation.getID();
-						});
-						// Log it
-						Logging.logSecurityInfo({
-							user: user.getModel(),
-							module: "AuthService", method: "checkUserLogin",
-							action: action, message: `User logged in successfully`});
-						// Get authorisation
-						let authsDefinition = Authorizations.getAuthorizations();
-						// Parse the auth and replace values
-						let authsDefinitionParsed = Mustache.render(
-							authsDefinition,
-							{
-								"userID": user.getID(),
-								"companyID": companyIDs,
-								"siteID": siteIDs,
-								"siteAreaID": siteAreaIDs,
-								"chargingStationID": chargingStationIDs,
-								"trim": () => {
-									return (text, render) => {
-										// trim trailing comma and whitespace
-										return render(text).replace(/(,\s*$)/g, '');
-									}
+		if (!user) {
+			// User not Found!
+			Logging.logActionExceptionMessageAndSendResponse(
+				action,
+				new AppError(
+					Constants.CENTRAL_SERVER,
+					`Unknown user tried to log in with email '${filteredRequest.email}'`,
+					401, "AuthService", "checkUserLogin",
+					user.getModel()),
+				req, res, next);
+		}
+		// Check if the account is active
+		if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
+			Logging.logActionExceptionMessageAndSendResponse(
+				action,
+				new AppError(
+					Constants.CENTRAL_SERVER,
+					`Account is not active`,
+					580, "AuthService", "checkUserLogin",
+					user.getModel()),
+				req, res, next);
+			return;
+		}
+		// Check password
+		Users.checkPasswordBCrypt(filteredRequest.password, user.getPassword()).then((match) => {
+			// Check new and old version of hashing the password
+			if (match || (user.getPassword() === Users.hashPassword(filteredRequest.password))) {
+				// Password OK
+				let companies,
+					sites = [],
+					siteAreas = [],
+					chargingStations = [];
+				// Read Eula
+				global.storage.getEndUserLicenseAgreement(user.getLanguage()).then((endUserLicenseAgreement) => {
+					// Set Eula Info
+					user.setEulaAcceptedOn(new Date());
+					user.setEulaAcceptedVersion(endUserLicenseAgreement.version);
+					user.setEulaAcceptedHash(endUserLicenseAgreement.hash);
+					// Reset wrong number of trial
+					user.setPasswordWrongNbrTrials(0);
+					// Save
+					return user.save();
+				}).then(() => {
+					// Get Companies
+					if (user.getRole() == CentralRestServerAuthorization.ROLE_ADMIN) {
+						// Nothing to get
+						return Promise.resolve([]);
+					} else {
+						// Get companies
+						return user.getCompanies();
+					}
+				}).then((foundCompanies) => {
+					companies = foundCompanies;
+					if (companies.length == 0) {
+						return Promise.resolve([]);
+					}
+					// Get all the sites
+					let proms = [];
+					companies.forEach((company) => {
+						proms.push(company.getSites());
+					});
+					return Promise.all(proms);
+				}).then((foundSitesProms) => {
+					// Merge results
+					foundSitesProms.forEach((foundSitesProm) => {
+						sites = sites.concat(foundSitesProm);
+					});
+					if (sites.length == 0) {
+						return Promise.resolve([]);
+					}
+					// Get all the site areas
+					let proms = [];
+					sites.forEach((site) => {
+						proms.push(site.getSiteAreas());
+					})
+					return Promise.all(proms);
+				}).then((foundSiteAreasProms) => {
+					// Merge results
+					foundSiteAreasProms.forEach((foundSiteAreasProm) => {
+						siteAreas = siteAreas.concat(foundSiteAreasProm);
+					});
+					if (siteAreas.length == 0) {
+						return Promise.resolve([]);
+					}
+					// Get all the charging stations
+					let proms = [];
+					siteAreas.forEach((siteArea) => {
+						proms.push(siteArea.getChargingStations());
+					})
+					return Promise.all(proms);
+				}).then((foundChargingStationsProms) => {
+					// Merge results
+					foundChargingStationsProms.forEach((foundChargingStationsProm) => {
+						chargingStations = chargingStations.concat(foundChargingStationsProm);
+					});
+					// Convert to IDs
+					let companyIDs = companies.map((company) => {
+						return company.getID();
+					});
+					let siteIDs = sites.map((site) => {
+						return site.getID();
+					});
+					let siteAreaIDs = siteAreas.map((siteArea) => {
+						return siteArea.getID();
+					});
+					let chargingStationIDs = chargingStations.map((chargingStation) => {
+						return chargingStation.getID();
+					});
+					// Log it
+					Logging.logSecurityInfo({
+						user: user.getModel(),
+						module: "AuthService", method: "checkUserLogin",
+						action: action, message: `User logged in successfully`});
+					// Get authorisation
+					let authsDefinition = Authorizations.getAuthorizations();
+					// Parse the auth and replace values
+					let authsDefinitionParsed = Mustache.render(
+						authsDefinition,
+						{
+							"userID": user.getID(),
+							"companyID": companyIDs,
+							"siteID": siteIDs,
+							"siteAreaID": siteAreaIDs,
+							"chargingStationID": chargingStationIDs,
+							"trim": () => {
+								return (text, render) => {
+									// trim trailing comma and whitespace
+									return render(text).replace(/(,\s*$)/g, '');
 								}
 							}
-						);
-						let userAuthDefinition = Authorizations.getAuthorizationFromRoleID(
-							JSON.parse(authsDefinitionParsed), user.getRole());
-						// Compile auths of the role
-						let compiledAuths = compileProfile(userAuthDefinition.auths);
-						// Yes: build payload
-						let payload = {
-							id: user.getID(),
-							role: user.getRole(),
-							name: user.getName(),
-							firstName: user.getFirstName(),
-							locale: user.getLocale(),
-							language: user.getLanguage(),
-							auths: compiledAuths
-						};
-						// Build token
-						let token;
-						// Role Demo?
-						if (CentralRestServerAuthorization.isDemo(user.getModel()) ||
-								CentralRestServerAuthorization.isCorporate(user.getModel())) {
-							// Yes
-							token = jwt.sign(payload, jwtOptions.secretOrKey, {
-								expiresIn: _centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600
-							});
-						} else {
-							// No
-							token = jwt.sign(payload, jwtOptions.secretOrKey, {
-								expiresIn: _centralSystemRestConfig.userTokenLifetimeHours * 3600
-							});
 						}
-						// Return it
-						res.json({ token: token });
-					}).catch((err) => {
-						// Log exception
-						Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-					});
-				} else {
-					// Wrong Password
-					// Add wrong trial + 1
-					user.setPasswordWrongNbrTrials(user.getPasswordWrongNbrTrials() + 1);
-					// Check if the number of trial is reached
-					if (user.getPasswordWrongNbrTrials() >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
-						// Too many attempts, lock user
-						// Log it
-						Logging.logSecurityError({
-							actionOnUser: user.getModel(),
-							module: "AuthService", method: "checkUserLogin", action: action,
-							message: `User is locked for ${_centralSystemRestConfig.passwordBlockedWaitTimeMin} mins`});
-						// User locked
-						user.setStatus(Users.USER_STATUS_LOCKED);
-						// Set blocking date
-						user.setPasswordBlockedUntil(
-							moment().add(_centralSystemRestConfig.passwordBlockedWaitTimeMin, "m").toDate()
-						);
-						// Save nbr of trials
-						user.save().then(() => {
-							// Account locked
-							res.status(450).send({"message": Utils.hideShowMessage("User is locked: too many attempt")});
-							next();
+					);
+					let userAuthDefinition = Authorizations.getAuthorizationFromRoleID(
+						JSON.parse(authsDefinitionParsed), user.getRole());
+					// Compile auths of the role
+					let compiledAuths = compileProfile(userAuthDefinition.auths);
+					// Yes: build payload
+					let payload = {
+						id: user.getID(),
+						role: user.getRole(),
+						name: user.getName(),
+						firstName: user.getFirstName(),
+						locale: user.getLocale(),
+						language: user.getLanguage(),
+						auths: compiledAuths
+					};
+					// Build token
+					let token;
+					// Role Demo?
+					if (CentralRestServerAuthorization.isDemo(user.getModel()) ||
+							CentralRestServerAuthorization.isCorporate(user.getModel())) {
+						// Yes
+						token = jwt.sign(payload, jwtOptions.secretOrKey, {
+							expiresIn: _centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600
 						});
 					} else {
-						// Wrong logon
-						// Log it
-						Logging.logSecurityError({
-							actionOnUser: user.getModel(),
-							module: "AuthService", method: "checkUserLogin", action: action,
-							message: `User failed to log in, ${_centralSystemRestConfig.passwordWrongNumberOfTrial - user.getPasswordWrongNbrTrials()} trial(s) remaining`});
-						// Not authorized
-						user.save().then(() => {
-							// Unauthorized
-							res.sendStatus(401);
-							next();
+						// No
+						token = jwt.sign(payload, jwtOptions.secretOrKey, {
+							expiresIn: _centralSystemRestConfig.userTokenLifetimeHours * 3600
 						});
 					}
+					// Return it
+					res.json({ token: token });
+				}).catch((err) => {
+					// Log exception
+					Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+				});
+			} else {
+				// Wrong Password
+				// Add wrong trial + 1
+				user.setPasswordWrongNbrTrials(user.getPasswordWrongNbrTrials() + 1);
+				// Check if the number of trial is reached
+				if (user.getPasswordWrongNbrTrials() >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
+					// Too many attempts, lock user
+					// User locked
+					user.setStatus(Users.USER_STATUS_LOCKED);
+					// Set blocking date
+					user.setPasswordBlockedUntil(
+						moment().add(_centralSystemRestConfig.passwordBlockedWaitTimeMin, "m").toDate()
+					);
+					// Save nbr of trials
+					user.save().then(() => {
+						Logging.logActionExceptionMessageAndSendResponse(
+							action,
+							new AppError(
+								Constants.CENTRAL_SERVER,
+								`User is locked`,
+								570, "AuthService", "checkUserLogin",
+								user.getModel()),
+							req, res, next);
+					});
+				} else {
+					// Wrong logon
+					user.save().then(() => {
+						Logging.logActionExceptionMessageAndSendResponse(
+							action,
+							new AppError(
+								Constants.CENTRAL_SERVER,
+								`User failed to log in, ${_centralSystemRestConfig.passwordWrongNumberOfTrial - user.getPasswordWrongNbrTrials()} trial(s) remaining`,
+								401, "AuthService", "checkUserLogin",
+								user.getModel()),
+							req, res, next);
+					});
 				}
-			});
-		} else {
-			// User not Found!
-			// Log it
-			Logging.logSecurityError({
-				module: "AuthService", method: "checkUserLogin", action: action,
-				message: `Unknown user tried to log in with email '${filteredRequest.email}'`});
-			// User not found
-			res.sendStatus(401);
-			next();
-		}
+			}
+		});
 	}
 }
 

@@ -60,7 +60,7 @@ class UserService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The user with ID '${filteredRequest.id}' does not exist anymore`,
-					500, "UserService", "handleDeleteUser");
+					550, "UserService", "handleDeleteUser");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canDeleteUser(req.user, user.getModel())) {
@@ -69,7 +69,7 @@ class UserService {
 					CentralRestServerAuthorization.ACTION_DELETE,
 					CentralRestServerAuthorization.ENTITY_USER,
 					user.getID(),
-					500, "UserService", "handleDeleteUser",
+					560, "UserService", "handleDeleteUser",
 					req.user);
 			}
 			// Delete
@@ -145,7 +145,7 @@ class UserService {
 						CentralRestServerAuthorization.ACTION_UPDATE,
 						CentralRestServerAuthorization.ENTITY_USER,
 						user.getID(),
-						500, "UserService", "handleUpdateUser",
+						560, "UserService", "handleUpdateUser",
 						req.user, user);
 				}
 				// Check if Role is provided and has been changed
@@ -239,33 +239,35 @@ class UserService {
 		}
 		// Get the user
 		global.storage.getUser(filteredRequest.ID).then((user) => {
-			if (user) {
-				// Check auth
-				if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
-					// Not Authorized!
-					throw new AppAuthError(
-						CentralRestServerAuthorization.ACTION_READ,
-						CentralRestServerAuthorization.ENTITY_USER,
-						user.getID(),
-						500, "UserService", "handleGetUser",
-						req.user);
-				}
-				Logging.logSecurityInfo({
-					user: req.user,
-					actionOnUser: user.getModel(),
-					action: action,
-					module: "UserService", method: "handleGetUser",
-					message: 'Read User'
-				});
-				// Set the user
-				res.json(
-					// Filter
-					SecurityRestObjectFiltering.filterUserResponse(
-						user.getModel(), req.user)
-				);
-			} else {
-				res.json({});
+			if (!user) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The user with ID '${filteredRequest.id}' does not exist anymore`,
+					550, "UserService", "handleDeleteUser");
 			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
+				// Not Authorized!
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_READ,
+					CentralRestServerAuthorization.ENTITY_USER,
+					user.getID(),
+					560, "UserService", "handleGetUser",
+					req.user);
+			}
+			Logging.logSecurityInfo({
+				user: req.user,
+				actionOnUser: user.getModel(),
+				action: action,
+				module: "UserService", method: "handleGetUser",
+				message: 'Read User'
+			});
+			// Set the user
+			res.json(
+				// Filter
+				SecurityRestObjectFiltering.filterUserResponse(
+					user.getModel(), req.user)
+			);
 			next();
 		}).catch((err) => {
 			// Log
@@ -306,7 +308,7 @@ class UserService {
 					CentralRestServerAuthorization.ACTION_READ,
 					CentralRestServerAuthorization.ENTITY_USER,
 					user.getID(),
-					500, "UserService", "handleGetUserImage",
+					560, "UserService", "handleGetUserImage",
 					req.user);
 			}
 			// Get the user image
@@ -347,7 +349,7 @@ class UserService {
 				CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_USERS,
 				null,
-				500, "UserService", "handleGetUserImages",
+				560, "UserService", "handleGetUserImages",
 				req.user);
 		}
 		// Get the user image
@@ -380,7 +382,7 @@ class UserService {
 				CentralRestServerAuthorization.ACTION_LIST,
 				CentralRestServerAuthorization.ENTITY_USERS,
 				null,
-				500, "UserService", "handleGetUsers",
+				560, "UserService", "handleGetUsers",
 				req.user);
 		}
 		// Filter
@@ -419,7 +421,7 @@ class UserService {
 				CentralRestServerAuthorization.ACTION_CREATE,
 				CentralRestServerAuthorization.ENTITY_USER,
 				null,
-				500, "UserService", "handleCreateUser",
+				560, "UserService", "handleCreateUser",
 				req.user);
 		}
 		// Filter
