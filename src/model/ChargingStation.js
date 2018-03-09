@@ -695,7 +695,7 @@ class ChargingStation {
 						return Promise.reject(
 							new AppError(
 								this.getID(),
-								`User with Tag ID ${request.idTag} not found but saved as inactive user`,
+								`User with Tag ID '${request.idTag}' not found but saved as inactive user`,
 								"ChargingStation", "checkIfUserIsAuthorized",
 								null, user.getModel()) );
 					});

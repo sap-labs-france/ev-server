@@ -269,7 +269,7 @@ class User {
 				this.setEMail(Users.ANONIMIZED_VALUE);
 				this.setPhone(Users.ANONIMIZED_VALUE);
 				this.setMobile(Users.ANONIMIZED_VALUE);
-				this.setImage(Users.ANONIMIZED_VALUE);
+				this.setImage("");
 				this.setINumber(Users.ANONIMIZED_VALUE);
 				this.setCostCenter(Users.ANONIMIZED_VALUE);
 				// Delete
