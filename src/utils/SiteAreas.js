@@ -7,7 +7,7 @@ module.exports = {
 	WITHOUT_CHARGING_STATIONS: false,
 	WITH_SITE: true,
 	WITHOUT_SITE: false,
-
+	
 	checkIfSiteAreaValid(action, filteredRequest, req, res, next) {
 		// Update model?
 		if(req.method !== "POST" && !filteredRequest.id) {

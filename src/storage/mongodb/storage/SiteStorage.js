@@ -172,14 +172,11 @@ class SiteStorage {
 		// Source?
 		if (searchValue) {
 			// Build filter
-			filters.$and = [];
-			filters.$and.push({
-				"$or": [
-					{ "name" : { $regex : searchValue, $options: 'i' } },
-					{ "address.city" : { $regex : searchValue, $options: 'i' } },
-					{ "address.country" : { $regex : searchValue, $options: 'i' } }
-				]
-			});
+			filters.$or = [
+				{ "name" : { $regex : searchValue, $options: 'i' } },
+				{ "address.city" : { $regex : searchValue, $options: 'i' } },
+				{ "address.country" : { $regex : searchValue, $options: 'i' } }
+			];
 		}
 		// Set Company?
 		if (companyID) {

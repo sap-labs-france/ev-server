@@ -62,19 +62,26 @@ class ChargingStationStorage {
 		// Source?
 		if (searchValue) {
 			// Build filter
-			filters.$or = [
-				{ "_id" : { $regex : searchValue, $options: 'i' } }
-			];
+			filters.$and.push({
+				"$or": [
+					{ "_id" : { $regex : searchValue, $options: 'i' } }
+				]
+			});
 		}
 		// Source?
 		if (siteAreaID) {
 			// Build filter
-			filters.siteAreaID = siteAreaID;
+			filters.$and.push({
+				"siteAreaID": siteAreaID
+			});
 		}
 		// With no Site Area
 		if (withNoSiteArea) {
 			// Build filter
-			filters.siteAreaID = null;
+			// Build filter
+			filters.$and.push({
+				"siteAreaID": null
+			});
 		}
 		// Filters
 		aggregation.push({

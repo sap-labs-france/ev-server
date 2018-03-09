@@ -60,7 +60,7 @@ class SiteAreaStorage {
 		let aggregation = [];
 		// Filters
 		aggregation.push({
-			$match: { _id: ObjectId(id) }
+			$match: { _id: new ObjectId(id) }
 		});
 		if (withChargingStations) {
 			// Add
@@ -184,12 +184,9 @@ class SiteAreaStorage {
 		// Source?
 		if (searchValue) {
 			// Build filter
-			filters.$and = [];
-			filters.$and.push({
-				"$or": [
-					{ "name" : { $regex : searchValue, $options: 'i' } }
-				]
-			});
+			filters.$or = [
+				{ "name" : { $regex : searchValue, $options: 'i' } }
+			];
 		}
 		// Set Site?
 		if (siteID) {

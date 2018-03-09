@@ -164,6 +164,8 @@ class ChargingStationService {
 					560, "ChargingStationService", "handleDeleteChargingStation",
 					req.user);
 			}
+			// Remove Site Area
+			chargingStation.setSiteArea(null);
 			// Delete
 			return chargingStation.delete();
 		}).then(() => {
