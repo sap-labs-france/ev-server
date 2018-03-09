@@ -8,8 +8,8 @@ module.exports.html = `
 			</br>
 			<% if (user.status==='A') { %>
 			You can now access the <a href="<%= evseDashboardURL %>">EVSE Dashboard</a>!</br>
-			<% } %>
 			</br>
+			<% } %>
 			Best Regards,</br>
 			EVSE Admin.
 		</body>

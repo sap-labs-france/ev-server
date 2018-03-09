@@ -114,7 +114,7 @@ class UserService {
 		let filteredRequest = SecurityRestObjectFiltering.filterUserUpdateRequest( req.body, req.user );
 		// Check Mandatory fields
 		if (Users.checkIfUserValid(action, filteredRequest, req, res, next)) {
-			let user;
+			let user, newPasswordHashed;
 			// Check email
 			global.storage.getUser(filteredRequest.id).then((foundUser) => {
 				user = foundUser;
@@ -138,7 +138,8 @@ class UserService {
 				}
 				// Generate the password hash
 				return Users.hashPasswordBcrypt(filteredRequest.password);
-			}).then((newPasswordHashed) => {
+			}).then((passwordHashed) => {
+				newPasswordHashed = passwordHashed;
 				// Check auth
 				if (!CentralRestServerAuthorization.canUpdateUser(req.user, user.getModel())) {
 					throw new AppAuthError(

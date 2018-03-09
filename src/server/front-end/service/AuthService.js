@@ -45,23 +45,23 @@ class AuthService {
 	}
 
 	static handleLogIn(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "AuthService",
-			method: "handleLogIn",
-			message: `User Logs In with Email '${req.body.email}'`
-		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterLoginRequest(req.body);
 		// Check
 		if (!filteredRequest.email) {
 			Logging.logActionExceptionMessageAndSendResponse(action,
-				new Error(`The email is mandatory`), req, res, next);
+				new AppError(
+					Constants.CENTRAL_SERVER,
+					`The email is mandatory`,
+					500, "AuthService", "handleLogIn"), req, res, next);
 			return;
 		}
 		if (!filteredRequest.password) {
 			Logging.logActionExceptionMessageAndSendResponse(action,
-				new Error(`The password is mandatory`), req, res, next);
+				new AppError(
+					Constants.CENTRAL_SERVER,
+					`The password is mandatory`,
+					500, "AuthService", "handleLogIn"), req, res, next);
 			return;
 		}
 		if (!filteredRequest.acceptEula) {
@@ -125,19 +125,15 @@ class AuthService {
 	}
 
 	static handleRegisterUser(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "AuthService",
-			method: "handleRegisterUser",
-			message: `User Registers in with Email '${req.body.email}'`,
-			detailedMessages: req.body
-		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterRegisterUserRequest(req.body);
 		// Check
 		if (!filteredRequest.captcha) {
 			Logging.logActionExceptionMessageAndSendResponse(action,
-				new Error(`The captcha is mandatory`), req, res, next);
+				new AppError(
+					Constants.CENTRAL_SERVER,
+					`The captcha is mandatory`,
+					500, "AuthService", "handleRegisterUser"), req, res, next);
 			return;
 		}
 		// Check captcha
@@ -152,7 +148,10 @@ class AuthService {
 				let responseGoogleDataJSon = JSON.parse(responseGoogleData);
 				if (!responseGoogleDataJSon.success) {
 					Logging.logActionExceptionMessageAndSendResponse(action,
-						new Error(`The captcha is invalid`), req, res, next);
+						new AppError(
+							Constants.CENTRAL_SERVER,
+							`The captcha is invalid`,
+							500, "AuthService", "handleRegisterUser"), req, res, next);
 					return;
 				}
 				// Check Mandatory fields
@@ -212,13 +211,6 @@ class AuthService {
 	}
 
 	static handleUserPasswordReset(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "AuthService",
-			method: "handleUserPasswordReset",
-			message: `User Password Reset with Email '${req.body.email}'`,
-			detailedMessages: req.body
-		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterResetPasswordRequest(req.body);
 		// Check hash
@@ -226,7 +218,10 @@ class AuthService {
 			// No hash: Send email with init pass hash link
 			if (!filteredRequest.captcha) {
 				Logging.logActionExceptionMessageAndSendResponse(action,
-					new Error(`The captcha is mandatory`), req, res, next);
+					new AppError(
+						Constants.CENTRAL_SERVER,
+						`The captcha is mandatory`,
+						500, "AuthService", "handleUserPasswordReset"), req, res, next);
 				return;
 			}
 			// Check captcha
@@ -241,7 +236,10 @@ class AuthService {
 					let responseGoogleDataJSon = JSON.parse(responseGoogleData);
 					if (!responseGoogleDataJSon.success) {
 						Logging.logActionExceptionMessageAndSendResponse(action,
-							new Error(`The captcha is invalid`), req, res, next);
+							new AppError(
+								Constants.CENTRAL_SERVER,
+								`The captcha is invalid`,
+								500, "AuthService", "handleUserPasswordReset"), req, res, next);
 						return;
 					}
 					// Yes: Generate new password
@@ -326,7 +324,7 @@ class AuthService {
 					user: req.user, action: action,
 					module: "AuthService",
 					method: "handleUserPasswordReset",
-					message: `User with Email '${req.body.email}' have had his password reset successfully`,
+					message: `User's password has been reset successfully`,
 					detailedMessages: req.body
 				});
 				// Send notification
@@ -355,7 +353,7 @@ class AuthService {
 			user: req.user, action: action,
 			module: "AuthService",
 			method: "handleUserLogOut",
-			message: `User with Email '${req.body.email}' just logged out`,
+			message: `User logged out`,
 			detailedMessages: req.body
 		});
 		req.logout();
