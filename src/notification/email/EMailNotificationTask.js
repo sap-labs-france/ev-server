@@ -5,6 +5,7 @@ const nodemailer = require('nodemailer');
 const path = require('path');
 const email = require("emailjs");
 const ejs = require('ejs');
+const mainTemplate = require('./template/main-template.js');
 const resetPasswordTemplate = require('./template/reset-password.js');
 const newRegisteredUserTemplate = require('./template/new-registered-user.js');
 const userAccountStatusChanged = require('./template/user-account-status-changed.js');
@@ -145,10 +146,33 @@ class EMailNotificationTask extends NotificationTask {
 			// Set the localized template
 			emailTemplate = emailTemplate[locale];
 		}
+
+		// Render the localized template ---------------------------------------
 		// Render the subject
-		let subject = ejs.render(emailTemplate.subject, data);
-		// Render the HTML
-		let html = ejs.render(emailTemplate.html, data);
+		emailTemplate.email.subject = ejs.render(emailTemplate.email.subject, data);
+		// Render the title
+		emailTemplate.email.body.header.title = ejs.render(emailTemplate.email.body.header.title, data);
+		// Render  Lines Before Action
+		emailTemplate.email.body.beforeActionLines =
+			emailTemplate.email.body.beforeActionLines.map((beforeActionLine) => {
+				return ejs.render(beforeActionLine, data);
+			});
+		// Render Action
+		if (emailTemplate.email.body.action) {
+			emailTemplate.email.body.action.title =
+				ejs.render(emailTemplate.email.body.action.title, data);
+			emailTemplate.email.body.action.url =
+				ejs.render(emailTemplate.email.body.action.url, data);
+		}
+		// Render Lines After Action
+		emailTemplate.email.body.afterActionLines =
+			emailTemplate.email.body.afterActionLines.map((afterActionLine) => {
+				return ejs.render(afterActionLine, data);
+			});
+
+		// Render the final HTML -----------------------------------------------
+		let subject = ejs.render(mainTemplate.subject, emailTemplate.email);
+		let html = ejs.render(mainTemplate.html, emailTemplate.email);
 		// Send the email
 		this.sendEmail({
 			to: (data.user?data.user.email:null),
