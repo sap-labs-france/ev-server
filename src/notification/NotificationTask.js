@@ -6,9 +6,6 @@ class NotificationTask {
 	sendResetPassword(data, locale) {
 	}
 
-	sendBeforeEndOfCharge(data, locale) {
-	}
-
 	sendEndOfCharge(data, locale) {
 	}
 

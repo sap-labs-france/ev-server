@@ -41,7 +41,7 @@ module.exports = {
 	WITH_ID: true,
 	WITHOUT_ID: false,
 
-	DEFAULT_LOCALE: "en_US",
+	DEFAULT_LOCALE: "fr_FR",
 
 	ANONIMIZED_VALUE: "####",
 

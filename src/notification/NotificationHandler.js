@@ -9,7 +9,6 @@ _notificationConfig = Configuration.getNotificationConfig();
 _email = new EMailNotificationTask();
 
 const CHANNEL_EMAIL = "email";
-const SOURCE_BEFORE_END_OF_CHARGE = "NotifyBeforeEndOfCharge";
 const SOURCE_CHARGING_STATION_STATUS_ERROR = "NotifyChargingStationStatusError";
 const SOURCE_END_OF_CHARGE = "NotifyEndOfCharge";
 const SOURCE_RESET_PASSWORD = "NotifyResetPassword";
@@ -62,32 +61,6 @@ class NotificationHandler {
 		}).catch((error) => {
 			// Log error
 			Logging.logActionExceptionMessage("HasNotification", error);
-		});
-	}
-
-	static sendBeforeEndOfCharge(sourceId, user, chargingStation, sourceData, locale) {
-		// Check notification
-		return NotificationHandler.hasNotifiedSource(sourceId).then(hasBeenNotified => {
-			// Notified?
-			if (!hasBeenNotified) {
-				// Email enabled?
-				if (_notificationConfig.Email.enabled) {
-					// Save notif
-					NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
-							SOURCE_BEFORE_END_OF_CHARGE,
-							user, chargingStation).then(() => {
-						// Send email
-						_email.sendBeforeEndOfCharge(sourceData, locale);
-					}).catch(error => {
-						// Log error
-						Logging.logActionExceptionMessage(
-							SOURCE_BEFORE_END_OF_CHARGE, error);
-					});
-				}
-			}
-		}).catch((error) => {
-			// Log error
-			Logging.logActionExceptionMessage(SOURCE_BEFORE_END_OF_CHARGE, error);
 		});
 	}
 

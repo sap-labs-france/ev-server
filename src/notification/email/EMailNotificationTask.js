@@ -10,7 +10,6 @@ const resetPasswordTemplate = require('./template/reset-password.js');
 const newRegisteredUserTemplate = require('./template/new-registered-user.js');
 const userAccountStatusChanged = require('./template/user-account-status-changed.js');
 const endOfChargeTemplate = require('./template/end-of-charge.js');
-const beforeEndOfChargeTemplate = require('./template/before-end-of-charge.js');
 const chargingStationStatusError = require('./template/charging-station-status-error.js');
 const transactionStarted = require('./template/transaction-started');
 const unknownUserBadged = require('./template/unknown-user-badged');
@@ -49,14 +48,6 @@ class EMailNotificationTask extends NotificationTask {
 		return new Promise((fulfill, reject) => {
 			// Send it
 			this._prepareAndSendEmail('reset-password', data, locale, fulfill, reject);
-		});
-	}
-
-	sendBeforeEndOfCharge(data, locale) {
-		// Create a promise
-		return new Promise((fulfill, reject) => {
-			// Send it
-			this._prepareAndSendEmail('before-end-of-charge', data, locale, fulfill, reject);
 		});
 	}
 
@@ -112,10 +103,6 @@ class EMailNotificationTask extends NotificationTask {
 			// Registered user
 			case 'new-registered-user':
 				emailTemplate = newRegisteredUserTemplate;
-				break;
-			// Before End of charge
-			case 'before-end-of-charge':
-				emailTemplate = beforeEndOfChargeTemplate;
 				break;
 			// End of charge
 			case 'end-of-charge':
