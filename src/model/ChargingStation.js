@@ -741,7 +741,7 @@ class ChargingStation {
 					// Reject but save ok
 					return Promise.reject( new AppError(
 						this.getID(),
-						`User with TagID ${request.idTag} is not Active`, 500,
+						`User with TagID '${request.idTag}' is not Active`, 500,
 						"ChargingStation", "checkIfUserIsAuthorized",
 						null, user.getModel()) );
 				}

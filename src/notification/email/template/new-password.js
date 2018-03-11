@@ -11,15 +11,15 @@ module.exports.email = {
 			}
 		},
 		"beforeActionLines": [
-			"Hi <%= (user.firstName?user.firstName:user.name) %>,",
+			"Hi <%- (user.firstName?user.firstName:user.name) %>,",
 			"",
 			"Your password has been reset successfully.",
 			"",
-			"Your new password is: <b><%= newPassword %></b>"
+			"Your new password is: <b><%- newPassword %></b>"
 		],
 		"action": {
 			"title": "Sign in to Charge-Angels",
-			"url": "<%= evseDashboardURL %>"
+			"url": "<%- evseDashboardURL %>"
 		},
 		"afterActionLines": [
 			"Best Regards,",
@@ -44,15 +44,15 @@ module.exports.fr_FR.email = {
 			}
 		},
 		"beforeActionLines": [
-			"Bonjour <%= (user.firstName?user.firstName:user.name) %>,",
+			"Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
 			"",
 			"Votre mot de passe a été réinitialisé avec succès.",
 			"",
-			"Votre nouveau mot de passe est : <b><%= newPassword %></b>"
+			"Votre nouveau mot de passe est : <b><%- newPassword %></b>"
 		],
 		"action": {
 			"title": "Sign in to Charge-Angels",
-			"url": "<%= evseDashboardURL %>"
+			"url": "<%- evseDashboardURL %>"
 		},
 		"afterActionLines": [
 			"Cordialement,",

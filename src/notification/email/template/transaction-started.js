@@ -1,5 +1,5 @@
 module.exports.email = {
-	"subject": "Your vehicle is successfully connected to <%= chargingBoxID %>",
+	"subject": "Your vehicle is successfully connected to <%- chargingBoxID %>",
 	"body": {
 		"header": {
 			"title": "Successfully Connected!",
@@ -11,13 +11,13 @@ module.exports.email = {
 			}
 		},
 		"beforeActionLines": [
-			"Hi <%= (user.firstName?user.firstName:user.name) %>,",
+			"Hi <%- (user.firstName?user.firstName:user.name) %>,",
 			"",
-			"Your electric vehicle is successfully connected to '<%= chargingBoxID %>'."
+			"Your electric vehicle is successfully connected to '<%- chargingBoxID %>'."
 		],
 		"action": {
 			"title": "View Session",
-			"url": "<%= evseDashboardChargingStationURL %>"
+			"url": "<%- evseDashboardChargingStationURL %>"
 		},
 		"afterActionLines": [
 			"Best Regards,",
@@ -30,7 +30,7 @@ module.exports.email = {
 
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
-	"subject": "Votre véhicule est correctement connecté sur <%= chargingBoxID %>",
+	"subject": "Votre véhicule est correctement connecté sur <%- chargingBoxID %>",
 	"body": {
 		"header": {
 			"title": "Connecté avec Succès!",
@@ -42,13 +42,13 @@ module.exports.fr_FR.email = {
 			}
 		},
 		"beforeActionLines": [
-			"Bonjour <%= (user.firstName?user.firstName:user.name) %>,",
+			"Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
 			"",
-			"Votre véhicule électrique est correctement connecté sur '<%= chargingBoxID %>'."
+			"Votre véhicule électrique est correctement connecté sur '<%- chargingBoxID %>'."
 		],
 		"action": {
 			"title": "Voir Session",
-			"url": "<%= evseDashboardChargingStationURL %>"
+			"url": "<%- evseDashboardChargingStationURL %>"
 		},
 		"afterActionLines": [
 			"Cordialement,",

@@ -165,8 +165,6 @@ class EMailNotificationTask extends NotificationTask {
 					ejs.render(emailTemplate.email.body.action.title, data);
 				emailTemplate.email.body.action.url =
 					ejs.render(emailTemplate.email.body.action.url, data);
-				console.log(emailTemplate.email.body.action.url);
-				console.log(emailTemplate.email.body.action.url);
 			}
 			// Render Lines After Action
 			emailTemplate.email.body.afterActionLines =

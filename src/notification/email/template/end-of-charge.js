@@ -1,44 +1,68 @@
-module.exports.subject = "EVSE - Your vehicule has finished charging on <%= chargingBoxID %>";
-module.exports.html = `
-	<html>
-		<body>
-			Hi <%= (user.firstName?user.firstName:user.name) %>,</br>
-			</br>
-			Your electric vehicle, which is connected to the charging station <a href="<%= evseDashboardChargingStationURL %>"><%= chargingBoxID %></a>, has finished charging.</br>
-			</br>
-			<% if (notifStopTransactionAndUnlockConnector) { %>
-				The transaction has been automatically stopped and the connector unlocked.</br>
-			<% } else { %>
-				You can now stop the transaction and unlock the connector.</br>
-			<% } %>
-			</br>
-			The total consumption is: <b><%= totalConsumption %> kW.h</b>.</br>
-			</br>
-			Best Regards,</br>
-			EVSE Admin.
-		</body>
-	</html>
-`;
+module.exports.email = {
+	"subject": "Charge is finished on <%- chargingBoxID %>",
+	"body": {
+		"header": {
+			"title": "Charge Finished",
+			"image": {
+				"width": 50,
+				"height": 50,
+				"url": "https://cloud.charge-angels.fr/assets/img/info.png",
+				"content": null
+			}
+		},
+		"beforeActionLines": [
+			"Hi <%- (user.firstName?user.firstName:user.name) %>,",
+			"",
+			"Your electric vehicle, which is connected to '<%- chargingBoxID %>', has finished charging.",
+			"",
+			"The total consumption is: <b><%- totalConsumption %> kW.h</b>.",
+			"",
+			"You can now stop the session and move your car."
+		],
+		"action": {
+			"title": "View Session",
+			"url": "<%- evseDashboardChargingStationURL %>"
+		},
+		"afterActionLines": [
+			"Best Regards,",
+			"EV Admin."
+		],
+		"footer": {
+		}
+	}
+};
 
 module.exports.fr_FR = {};
-module.exports.fr_FR.subject = "EVSE - La charge de votre véhicule est terminée sur la borne <%= chargingBoxID %>";
-module.exports.fr_FR.html = `
-	<html>
-		<body>
-			Bonjour <%= (user.firstName?user.firstName:user.name) %>,</br>
-			</br>
-			Votre véhicule électrique, qui est connecté sur la borne <a href="<%= evseDashboardChargingStationURL %>"><%= chargingBoxID %></a>, a terminé sa charge.</br>
-			</br>
-			<% if (notifStopTransactionAndUnlockConnector) { %>
-				La transaction a été automatiquement stoppée et le connecteur dévérouillé.</br>
-			<% } else { %>
-				Vous pouvez dès maintenant stopper la transaction et devérouiller le connecteur.</br>
-			<% } %>
-			</br>
-			La consommation totale est de : <b><%= totalConsumption %> kW.h</b>.</br>
-			</br>
-			Cordialement,</br>
-			EVSE Admin.
-		</body>
-	</html>
-`;
+module.exports.fr_FR.email = {
+	"subject": "La charge est terminée sur <%- chargingBoxID %>",
+	"body": {
+		"header": {
+			"title": "Charge Terminée",
+			"image": {
+				"width": 50,
+				"height": 50,
+				"url": "https://cloud.charge-angels.fr/assets/img/info.png",
+				"content": null
+			}
+		},
+		"beforeActionLines": [
+			"Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
+			"",
+			"Votre véhicule électrique, qui est connecté sur '<%- chargingBoxID %>', a terminé sa charge.",
+			"",
+			"La consommation totale est de : <b><%- totalConsumption %> kW.h</b>.",
+			"",
+			"Vous pouvez maintenant stopper la session et deplacer votre vehicule."
+		],
+		"action": {
+			"title": "Voir Session",
+			"url": "<%- evseDashboardChargingStationURL %>"
+		},
+		"afterActionLines": [
+			"Cordialement,",
+			"EV Admin."
+		],
+		"footer": {
+		}
+	}
+};

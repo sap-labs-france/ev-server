@@ -1,5 +1,5 @@
 module.exports.email = {
-	"subject": "<%= chargingBoxID %> - Unknown user just badged (<%= badgeId %>)",
+	"subject": "<%- chargingBoxID %> - Unknown user just badged (<%- badgeId %>)",
 	"body": {
 		"header": {
 			"title": "Unknown User Badged!",
@@ -13,11 +13,11 @@ module.exports.email = {
 		"beforeActionLines": [
 			"Hi,",
 			"",
-			"An unknown user has just badged on '<%= chargingBoxID %>' with the badge ID '<%= badgeId %>'."
+			"An unknown user has just badged on '<%- chargingBoxID %>' with the badge ID '<%- badgeId %>'."
 		],
 		"action": {
 			"title": "Edit User",
-			"url": "<%= evseDashboardUserURL %>"
+			"url": "<%- evseDashboardUserURL %>"
 		},
 		"afterActionLines": [
 			"Best Regards,",
@@ -30,7 +30,7 @@ module.exports.email = {
 
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
-	"subject": "<%= chargingBoxID %> - Un utilisateur inconnu vient de badger (<%= badgeId %>)",
+	"subject": "<%- chargingBoxID %> - Un utilisateur inconnu vient de badger (<%- badgeId %>)",
 	"body": {
 		"header": {
 			"title": "Utilisateur Inconnu!",
@@ -44,11 +44,11 @@ module.exports.fr_FR.email = {
 		"beforeActionLines": [
 			"Bonjour,",
 			"",
-			"Un utilisateur inconnu vient juste de badger sur '<%= chargingBoxID %>' avec le badge ID '<%= badgeId %>'."
+			"Un utilisateur inconnu vient juste de badger sur '<%- chargingBoxID %>' avec le badge ID '<%- badgeId %>'."
 		],
 		"action": {
 			"title": "Editer Utilisateur",
-			"url": "<%= evseDashboardUserURL %>"
+			"url": "<%- evseDashboardUserURL %>"
 		},
 		"afterActionLines": [
 			"Cordialement,",

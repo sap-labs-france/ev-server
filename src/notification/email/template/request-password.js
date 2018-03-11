@@ -11,7 +11,7 @@ module.exports.email = {
 			}
 		},
 		"beforeActionLines": [
-			"Hi <%= (user.firstName?user.firstName:user.name) %>,",
+			"Hi <%- (user.firstName?user.firstName:user.name) %>,",
 			"",
 			"You have just requested to reset your password.",
 			"",
@@ -19,7 +19,7 @@ module.exports.email = {
 		],
 		"action": {
 			"title": "Reset Password",
-			"url": "<%= evseDashboardResetPassURL %>"
+			"url": "<%- evseDashboardResetPassURL %>"
 		},
 		"afterActionLines": [
 			"If you haven't requested anything, you can ignore this email.",
@@ -34,10 +34,10 @@ module.exports.email = {
 
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
-	"subject": "Votre véhicule est correctement connecté sur <%= chargingBoxID %>",
+	"subject": "Demande d'initialisation du mot de passe",
 	"body": {
 		"header": {
-			"title": "Connecté avec Succès!",
+			"title": "Demande Mot de Passe",
 			"image": {
 				"width": 50,
 				"height": 50,
@@ -46,15 +46,15 @@ module.exports.fr_FR.email = {
 			}
 		},
 		"beforeActionLines": [
-			"Bonjour <%= (user.firstName?user.firstName:user.name) %>,",
+			"Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
 			"",
 			"Vous venez de demander un nouveau mot de passe.",
 			"",
 			"Cliquez sur le lien ci-dessous pour en générer et en recevoir un nouveau."
 		],
 		"action": {
-			"title": "Init Mot De Passe",
-			"url": "<%= evseDashboardResetPassURL %>"
+			"title": "Init Mot de Passe",
+			"url": "<%- evseDashboardResetPassURL %>"
 		},
 		"afterActionLines": [
 			"Si vous n'êtes par l'auteur de cette rêquete, vous pouvez ignorer cet email.",

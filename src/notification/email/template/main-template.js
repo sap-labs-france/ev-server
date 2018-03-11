@@ -16,8 +16,8 @@ module.exports.html = `
 									<font size="5" color="white" face="sans-serif"><b><%- body.header.title %></b></font>
 								</td>
 								<td width="180" align="center">
-									<img width="<%= body.header.image.width %>"
-										height="<%= body.header.image.height %>" alt="Info"
+									<img width="<%- body.header.image.width %>"
+										height="<%- body.header.image.height %>" alt="Info"
 										src="<%- (body.header.image.url ? body.header.image.url : body.header.image.content) %>">
 								</td>
 							</tr>
