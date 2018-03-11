@@ -3,6 +3,7 @@ const chargePointService12Wsdl = require('../../client/soap/wsdl/OCPP_ChargePoin
 const chargePointService15Wsdl = require('../../client/soap/wsdl/OCPP_ChargePointService1.5.wsdl');
 const chargePointService16Wsdl = require('../../client/soap/wsdl/OCPP_ChargePointService1.6.wsdl');
 const Utils = require('../../utils/Utils');
+const AppError = require('../../exception/AppError');
 const Constants = require('../../utils/Constants');
 const Logging = require('../../utils/Logging');
 const Database = require('../../utils/Database');
@@ -164,19 +165,23 @@ class CentralSystemServer {
 		// Get the charging station
 		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
 			// Found?
-			if (chargingStation) {
-				// Set Heartbeat
-				chargingStation.setLastHeartBeat(heartBeat);
-				// Save
-				return chargingStation.saveHeartBeat().then(()=> {
-					// Log
-					Logging.logDebug({
-						source: headers.chargeBoxIdentity,
-						module: "CentralSystemServer", method: "handleHeartBeat",
-						action: "HeartBeat", message: `HeartBeat received`,
-						detailedMessages: heartBeat });
-				});
+			if (!chargingStation) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
+					550, "CentralSystemServer", "handleStatusNotification");
 			}
+			// Set Heartbeat
+			chargingStation.setLastHeartBeat(heartBeat);
+			// Save
+			return chargingStation.saveHeartBeat().then(()=> {
+				// Log
+				Logging.logDebug({
+					source: headers.chargeBoxIdentity,
+					module: "CentralSystemServer", method: "handleHeartBeat",
+					action: "HeartBeat", message: `HeartBeat received`,
+					detailedMessages: heartBeat });
+			});
 		}).then(() => {
 			return {
 				"heartbeatResponse": {
@@ -199,28 +204,32 @@ class CentralSystemServer {
 		// Get the charging station
 		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
 			// Found?
-			if (chargingStation) {
-				// Check if error
-				if (args.status === "Faulted") {
-					// Log
-					Logging.logError({
-						source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStatusNotification",
-						action: "StatusNotification", message: `The Charging Station '${headers.chargeBoxIdentity}' has reported an error on connector ${args.connectorId}: ${args.status} - ${args.errorCode}` });
-					// Send Notification
-					NotificationHandler.sendChargingStationStatusError(
-						Utils.generateGUID(),
-						chargingStation.getModel(),
-						{
-							"chargeBoxID": chargingStation.getID(),
-							"connectorId": args.connectorId,
-							"error": `${args.status} - ${args.errorCode}`,
-							"evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(chargingStation, args.connectorId)
-						}
-					);
-				}
-				// Save
-				return chargingStation.handleStatusNotification(args);
+			if (!chargingStation) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
+					550, "CentralSystemServer", "handleStatusNotification");
 			}
+			// Check if error
+			if (args.status === "Faulted") {
+				// Log
+				Logging.logError({
+					source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStatusNotification",
+					action: "StatusNotification", message: `The Charging Station '${headers.chargeBoxIdentity}' has reported an error on connector ${args.connectorId}: ${args.status} - ${args.errorCode}` });
+				// Send Notification
+				NotificationHandler.sendChargingStationStatusError(
+					Utils.generateGUID(),
+					chargingStation.getModel(),
+					{
+						"chargeBoxID": chargingStation.getID(),
+						"connectorId": args.connectorId,
+						"error": `${args.status} - ${args.errorCode}`,
+						"evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(chargingStation, args.connectorId)
+					}
+				);
+			}
+			// Save
+			return chargingStation.handleStatusNotification(args);
 		}).then(() => {
 			// Log
 			Logging.logInfo({
@@ -247,10 +256,14 @@ class CentralSystemServer {
 		// Get the charging station
 		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
 			// Found?
-			if (chargingStation) {
-				// Save
-				return chargingStation.handleMeterValues(args);
+			if (!chargingStation) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
+					550, "CentralSystemServer", "handleStatusNotification");
 			}
+			// Save
+			return chargingStation.handleMeterValues(args);
 		}).then(() => {
 			// Log
 			Logging.logDebug({
@@ -276,13 +289,14 @@ class CentralSystemServer {
 		// Get the charging station
 		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
 			// Found?
-			if (chargingStation) {
-				// Save
-				return chargingStation.handleAuthorize(args);
-			} else {
-				// Error
-				return Promise.reject(new Error(`Charging Station ${headers.chargeBoxIdentity} does not exist`));
+			if (!chargingStation) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
+					550, "CentralSystemServer", "handleStatusNotification");
 			}
+			// Save
+			return chargingStation.handleAuthorize(args);
 		}).then(() => {
 			if (args.user) {
 				// Log
@@ -327,10 +341,14 @@ class CentralSystemServer {
 		// Get the charging station
 		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
 			// Found?
-			if (chargingStation) {
-				// Save
-				return chargingStation.handleDiagnosticsStatusNotification(args);
+			if (!chargingStation) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
+					550, "CentralSystemServer", "handleStatusNotification");
 			}
+			// Save
+			return chargingStation.handleDiagnosticsStatusNotification(args);
 		}).then(() => {
 			// Log
 			Logging.logInfo({
@@ -356,10 +374,14 @@ class CentralSystemServer {
 		// Get the charging station
 		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
 			// Found?
-			if (chargingStation) {
-				// Save
-				return chargingStation.handleFirmwareStatusNotification(args);
+			if (!chargingStation) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
+					550, "CentralSystemServer", "handleStatusNotification");
 			}
+			// Save
+			return chargingStation.handleFirmwareStatusNotification(args);
 		}).then(() => {
 			// Log
 			Logging.logDebug({
@@ -384,13 +406,14 @@ class CentralSystemServer {
 		// Get the charging station
 		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
 			// Found?
-			if (chargingStation) {
-				// Save
-				return chargingStation.handleStartTransaction(args);
-			} else {
-				// Reject but save ok
-				return Promise.reject( new Error(`Transaction rejected: Charging Station  ${headers.chargeBoxIdentity} does not exist`) );
+			if (!chargingStation) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
+					550, "CentralSystemServer", "handleStatusNotification");
 			}
+			// Save
+			return chargingStation.handleStartTransaction(args);
 		}).then((transaction) => {
 			// Log
 			if (transaction.user) {
@@ -436,10 +459,14 @@ class CentralSystemServer {
 		// Get the charging station
 		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
 			// Found?
-			if (chargingStation) {
-				// Save
-				return chargingStation.handleDataTransfer(args);
+			if (!chargingStation) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
+					550, "CentralSystemServer", "handleStatusNotification");
 			}
+			// Save
+			return chargingStation.handleDataTransfer(args);
 		}).then(() => {
 			// Log
 			Logging.logInfo({
@@ -467,10 +494,14 @@ class CentralSystemServer {
 		// Get the charging station
 		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
 			// Found?
-			if (chargingStation) {
-				// Save
-				return chargingStation.handleStopTransaction(args);
+			if (!chargingStation) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
+					550, "CentralSystemServer", "handleStatusNotification");
 			}
+			// Save
+			return chargingStation.handleStopTransaction(args);
 		}).then(() => {
 			// Log
 			Logging.logInfo({
