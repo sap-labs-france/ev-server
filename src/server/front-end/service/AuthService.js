@@ -265,14 +265,15 @@ class AuthService {
 							message: `User with Email '${req.body.email}' will receive an email to reset his password`
 						});
 						// Send notification
-						NotificationHandler.sendResetPassword(
+						let evseDashboardResetPassURL = Utils.buildEvseURL() +
+							'/#/reset-password?hash=' + resetHash + '&email=' +
+							savedUser.getEMail();
+						NotificationHandler.sendRequestPassword(
 							Utils.generateGUID(),
 							savedUser.getModel(),
 							{
 								"user": savedUser.getModel(),
-								"hash": resetHash,
-								"email": savedUser.getEMail(),
-								"evseDashboardURL" : Utils.buildEvseURL()
+								"evseDashboardResetPassURL" : evseDashboardResetPassURL
 							},
 							savedUser.getLocale());
 						// Ok
@@ -306,10 +307,18 @@ class AuthService {
 						550, "AuthService", "handleUserPasswordReset");
 				}
 				// Check the hash from the db
-				if (!user.getPasswordResetHash() || filteredRequest.hash !== user.getPasswordResetHash()) {
+				if (!user.getPasswordResetHash()) {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
-						`The user's hash '${user.getPasswordResetHash()}' do not match`,
+						`The user has already reset his password`,
+						540, "AuthService", "handleUserPasswordReset",
+						user.getModel());
+				}
+				// Check the hash from the db
+				if (filteredRequest.hash !== user.getPasswordResetHash()) {
+					throw new AppError(
+						Constants.CENTRAL_SERVER,
+						`The user's hash '${user.getPasswordResetHash()}' do not match the requested one '${filteredRequest.hash}'`,
 						540, "AuthService", "handleUserPasswordReset",
 						user.getModel());
 				}
@@ -328,7 +337,7 @@ class AuthService {
 					detailedMessages: req.body
 				});
 				// Send notification
-				NotificationHandler.sendResetPassword(
+				NotificationHandler.sendNewPassword(
 					Utils.generateGUID(),
 					newUser.getModel(),
 					{

@@ -1,4 +1,4 @@
-module.exports.subject = "Charge-Angels - <%= subject %>";
+module.exports.subject = "Charge-Angels - <%- subject %>";
 module.exports.html = `
 <html>
 	<body align="center" bgcolor="cadetblue" background="https://cloud.charge-angels.fr/assets/img/charge-angels-bg.jpg" style="margin: 15px;">
@@ -13,12 +13,12 @@ module.exports.html = `
 									<center><img width="150" height="50" alt="Logo" src="https://cloud.charge-angels.fr/assets/img/angel-wings-low.gif"></center>
 								</td>
 								<td align="center" style="border-color:white;border-width: 2px;border-left-style: solid;border-right-style: solid;">
-									<font size="5" color="white" face="sans-serif"><b><%= body.header.title %></b></font>
+									<font size="5" color="white" face="sans-serif"><b><%- body.header.title %></b></font>
 								</td>
 								<td width="180" align="center">
 									<img width="<%= body.header.image.width %>"
 										height="<%= body.header.image.height %>" alt="Info"
-										src="<%= (body.header.image.url ? body.header.image.url : body.header.image.content) %>">
+										src="<%- (body.header.image.url ? body.header.image.url : body.header.image.content) %>">
 								</td>
 							</tr>
 						</table>
@@ -33,7 +33,7 @@ module.exports.html = `
 					<tr>
 						<td colspan="3" style="padding: 5px 0 0 20px;">
 							<font size="4" face="sans-serif">
-								<%= body.beforeActionLines[i] %>&nbsp;
+								<%- body.beforeActionLines[i] %>&nbsp;
 							</font>
 						</td>
 					</tr>
@@ -44,9 +44,9 @@ module.exports.html = `
 					<tr>
 						<td style="width: 30%;"></td>
 						<td align="center" height="50" style="background-color: #356964;border-radius: 10px;">
-							<a style="text-decoration:none;" href="<%= body.action.url %>" target="_blank">
+							<a style="text-decoration:none;" href="<%- body.action.url %>" target="_blank">
 								<font size="4" color="white" face="sans-serif">
-									<b><%= body.action.title %></b>
+									<b><%- body.action.title %></b>
 								</font>
 							</a>
 						</td>
@@ -59,7 +59,7 @@ module.exports.html = `
 					<tr>
 						<td colspan="3" style="padding: 5px 0 0 20px;">
 							<font size="4" face="sans-serif">
-								<%= body.afterActionLines[i] %>
+								<%- body.afterActionLines[i] %>&nbsp;
 							</font>
 						</td>
 					</tr>

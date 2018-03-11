@@ -3,7 +3,10 @@ class NotificationTask {
 	sendNewRegisteredUser(data, locale) {
 	}
 
-	sendResetPassword(data, locale) {
+	sendRequestPassword(data, locale) {
+	}
+
+	sendNewPassword(data, locale) {
 	}
 
 	sendEndOfCharge(data, locale) {

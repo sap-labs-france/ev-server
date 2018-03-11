@@ -11,7 +11,8 @@ _email = new EMailNotificationTask();
 const CHANNEL_EMAIL = "email";
 const SOURCE_CHARGING_STATION_STATUS_ERROR = "NotifyChargingStationStatusError";
 const SOURCE_END_OF_CHARGE = "NotifyEndOfCharge";
-const SOURCE_RESET_PASSWORD = "NotifyResetPassword";
+const SOURCE_NEW_PASSWORD = "NotifyNewPassword";
+const SOURCE_REQUEST_PASSWORD = "NotifyRequestPassword";
 const SOURCE_USER_ACCOUNT_STATUS_CHANGED = "NotifyUserAccountStatusChanged";
 const SOURCE_NEW_REGISTERED_USER = "NotifyNewRegisteredUser";
 const SOURCE_UNKNOWN_USER_BADGED = "NotifyUnknownUserBadged";
@@ -89,17 +90,35 @@ class NotificationHandler {
 		});
 	}
 
-	static sendResetPassword(sourceId, user, sourceData, locale) {
+	static sendRequestPassword(sourceId, user, sourceData, locale) {
 		// Email enabled?
 		if (_notificationConfig.Email.enabled) {
 			// Save notif
-			NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_RESET_PASSWORD,
+			NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_REQUEST_PASSWORD,
 					user, null).then(() => {
 				// Send email
-				_email.sendResetPassword(sourceData, locale);
+				_email.sendRequestPassword(sourceData, locale);
 			}).catch(error => {
 				// Log error
-				Logging.logActionExceptionMessage(SOURCE_RESET_PASSWORD, error);
+				Logging.logActionExceptionMessage(SOURCE_REQUEST_PASSWORD, error);
+			});
+			return Promise.resolve();
+		} else {
+			return Promise.resolve();
+		}
+	}
+
+	static sendNewPassword(sourceId, user, sourceData, locale) {
+		// Email enabled?
+		if (_notificationConfig.Email.enabled) {
+			// Save notif
+			NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_NEW_PASSWORD,
+					user, null).then(() => {
+				// Send email
+				_email.sendNewPassword(sourceData, locale);
+			}).catch(error => {
+				// Log error
+				Logging.logActionExceptionMessage(SOURCE_NEW_PASSWORD, error);
 			});
 			return Promise.resolve();
 		} else {
