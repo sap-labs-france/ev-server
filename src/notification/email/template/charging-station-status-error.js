@@ -30,7 +30,7 @@ module.exports.email = {
 
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
-	"subject": "<%= chargingBoxID %> - Connecteur <%= connectorId %> - <%= error %>",
+	"subject": "<%= chargeBoxID %> - Connecteur <%= connectorId %> - <%= error %>",
 	"body": {
 		"header": {
 			"title": "Erreur Borne",
@@ -44,7 +44,7 @@ module.exports.fr_FR.email = {
 		"beforeActionLines": [
 			"Bonjour,",
 			"",
-			"Une erreur est survenue sur '<%= chargingBoxID %>' - Connector '<%= connectorId %>': <b><%= error %></b>."
+			"Une erreur est survenue sur '<%= chargeBoxID %>' - Connector '<%= connectorId %>': <b><%= error %></b>."
 		],
 		"action": {
 			"title": "Voir Erreur",
