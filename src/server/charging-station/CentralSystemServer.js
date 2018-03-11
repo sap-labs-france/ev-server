@@ -205,7 +205,7 @@ class CentralSystemServer {
 					// Log
 					Logging.logError({
 						source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStatusNotification",
-						action: "StatusNotification", message: `The Charging Station ${headers.chargeBoxIdentity} has reported an error on connector ${args.connectorId}: ${args.status} - ${args.errorCode}` });
+						action: "StatusNotification", message: `The Charging Station '${headers.chargeBoxIdentity}' has reported an error on connector ${args.connectorId}: ${args.status} - ${args.errorCode}` });
 					// Send Notification
 					NotificationHandler.sendChargingStationStatusError(
 						Utils.generateGUID(),
