@@ -397,8 +397,6 @@ class SiteAreaService {
 			});
 			return Promise.all(proms);
 		}).then((results) => {
-			console.log("filteredRequest.chargeBoxIDs --------------------------");
-			console.log(filteredRequest.chargeBoxIDs);
 			let proms = [];
 			// Assign new Charging Stations
 			filteredRequest.chargeBoxIDs.forEach((chargeBoxID) => {
