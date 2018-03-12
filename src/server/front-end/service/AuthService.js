@@ -273,6 +273,7 @@ class AuthService {
 							savedUser.getModel(),
 							{
 								"user": savedUser.getModel(),
+								"evseDashboardURL" : Utils.buildEvseURL(),
 								"evseDashboardResetPassURL" : evseDashboardResetPassURL
 							},
 							savedUser.getLocale());

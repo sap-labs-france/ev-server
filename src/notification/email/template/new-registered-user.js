@@ -1,36 +1,68 @@
-module.exports.subject = "EVSE - Your account has been created successfully";
-module.exports.html = `
-	<html>
-		<body>
-			Hi <%- (user.firstName?user.firstName:user.name) %>,</br>
-			</br>
-			Welcome to the <a href="<%- evseDashboardURL %>">EVSE Dashboard</a>!</br>
-			</br>
-			Your account has been created successfully.</br>
-			</br>
-			An administrator will verify and activate it.</br>
-			</br>
-			Best Regards,</br>
-			EVSE Admin.
-		</body>
-	</html>
-`;
+module.exports.email = {
+	"subject": "Your account has been created successfully",
+	"baseURL": "<%- evseDashboardURL %>",
+	"body": {
+		"header": {
+			"title": "Account Created!",
+			"image": {
+				"right": {
+					"width": 50,
+					"height": 50,
+					"url": "<%- evseDashboardURL %>/assets/img/info.png"
+				}
+			}
+		},
+		"beforeActionLines": [
+			"Hi <%- (user.firstName?user.firstName:user.name) %>,",
+			"",
+			"Your account has been created successfully.",
+			"",
+			"An administrator will verify and activate it."
+		],
+		"action": {
+			"title": "Charge-Angels",
+			"url": "<%- evseDashboardURL %>"
+		},
+		"afterActionLines": [
+			"Best Regards,",
+			"EV Admin."
+		],
+		"footer": {
+		}
+	}
+};
 
 module.exports.fr_FR = {};
-module.exports.fr_FR.subject = "EVSE - Votre compte a été créé avec succès";
-module.exports.fr_FR.html = `
-	<html>
-		<body>
-			Bonjour <%- (user.firstName?user.firstName:user.name) %>,</br>
-			</br>
-			Bienvenue dans l'<a href="<%- evseDashboardURL %>">EVSE Dashboard</a> !</br>
-			</br>
-			Votre compte a été créé avec succès.</br>
-			</br>
-			Un administrateur va le vérifier et l'activer.</br>
-			</br>
-			Cordialement,</br>
-			EVSE Admin.
-		</body>
-	</html>
-`;
+module.exports.fr_FR.email = {
+	"subject": "Votre compte a été créé avec succès",
+	"baseURL": "<%- evseDashboardURL %>",
+	"body": {
+		"header": {
+			"title": "Compte Créé!",
+			"image": {
+				"right": {
+					"width": 50,
+					"height": 50,
+					"url": "<%- evseDashboardURL %>/assets/img/info.png"
+				}
+			}
+		},
+		"beforeActionLines": [
+			"Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
+			"",
+			"Votre compte a été créé avec succès.",
+			"",
+			"Un administrateur va le vérifier et l'activer."
+		],
+		"action": {
+			"title": "Charge-Angels",
+			"url": "<%- evseDashboardURL %>"
+		},
+		"afterActionLines": [
+			"Cordialement,",
+			"EV Admin."
+		],
+		"footer": {
+		}
+	}
+};

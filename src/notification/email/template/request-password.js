@@ -1,13 +1,15 @@
 module.exports.email = {
 	"subject": "Request to reset your password",
+	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
 			"title": "Reset Password",
 			"image": {
-				"width": 50,
-				"height": 50,
-				"url": "https://cloud.charge-angels.fr/assets/img/info.png",
-				"content": null
+				"right": {
+					"width": 50,
+					"height": 50,
+					"url": "<%- evseDashboardURL %>/assets/img/info.png"
+				}
 			}
 		},
 		"beforeActionLines": [
@@ -35,14 +37,16 @@ module.exports.email = {
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
 	"subject": "Demande d'initialisation du mot de passe",
+	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
 			"title": "Demande Mot de Passe",
 			"image": {
-				"width": 50,
-				"height": 50,
-				"url": "https://cloud.charge-angels.fr/assets/img/info.png",
-				"content": null
+				"right": {
+					"width": 50,
+					"height": 50,
+					"url": "<%- evseDashboardURL %>/assets/img/info.png"
+				}
 			}
 		},
 		"beforeActionLines": [

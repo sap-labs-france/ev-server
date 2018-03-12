@@ -1,13 +1,15 @@
 module.exports.email = {
 	"subject": "Your vehicle is successfully connected to <%- chargingBoxID %>",
+	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
 			"title": "Successfully Connected!",
 			"image": {
-				"width": 50,
-				"height": 50,
-				"url": "https://cloud.charge-angels.fr/assets/img/info.png",
-				"content": null
+				"right": {
+					"width": 150,
+					"height": 50,
+					"url": "<%- companyLogo ? companyLogo : evseDashboardURL + '/assets/img/theme/no-logo.jpg' %>"
+				}
 			}
 		},
 		"beforeActionLines": [
@@ -31,14 +33,16 @@ module.exports.email = {
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
 	"subject": "Votre véhicule est correctement connecté sur <%- chargingBoxID %>",
+	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
 			"title": "Connecté avec Succès!",
 			"image": {
-				"width": 50,
-				"height": 50,
-				"url": "https://cloud.charge-angels.fr/assets/img/info.png",
-				"content": null
+				"right": {
+					"width": 150,
+					"height": 50,
+					"url": "<%- companyLogo ? companyLogo : evseDashboardURL + '/assets/img/theme/no-logo.jpg' %>"
+				}
 			}
 		},
 		"beforeActionLines": [

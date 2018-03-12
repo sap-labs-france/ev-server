@@ -169,7 +169,7 @@ class CentralSystemServer {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
-					550, "CentralSystemServer", "handleStatusNotification");
+					550, "CentralSystemServer", "handleHeartBeat");
 			}
 			// Set Heartbeat
 			chargingStation.setLastHeartBeat(heartBeat);
@@ -212,21 +212,32 @@ class CentralSystemServer {
 			}
 			// Check if error
 			if (args.status === "Faulted") {
-				// Log
-				Logging.logError({
-					source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStatusNotification",
-					action: "StatusNotification", message: `The Charging Station '${headers.chargeBoxIdentity}' has reported an error on connector ${args.connectorId}: ${args.status} - ${args.errorCode}` });
-				// Send Notification
-				NotificationHandler.sendChargingStationStatusError(
-					Utils.generateGUID(),
-					chargingStation.getModel(),
-					{
-						"chargeBoxID": chargingStation.getID(),
-						"connectorId": args.connectorId,
-						"error": `${args.status} - ${args.errorCode}`,
-						"evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(chargingStation, args.connectorId)
-					}
-				);
+				// Get the company logo
+				chargingStation.getCompany().then((company) => {
+					// Get the logo
+					return company.getLogo();
+				}).then((companyLogo) => {
+					// Log
+					Logging.logError({
+						source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStatusNotification",
+						action: "StatusNotification", message: `The Charging Station '${headers.chargeBoxIdentity}' has reported an error on connector ${args.connectorId}: ${args.status} - ${args.errorCode}` });
+					// Send Notification
+					NotificationHandler.sendChargingStationStatusError(
+						Utils.generateGUID(),
+						chargingStation.getModel(),
+						{
+							"chargeBoxID": chargingStation.getID(),
+							"connectorId": args.connectorId,
+							"companyLogo": companyLogo.logo,
+							"error": `${args.status} - ${args.errorCode}`,
+							"evseDashboardURL" : Utils.buildEvseURL(),
+							"evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(chargingStation, args.connectorId)
+						}
+					);
+				}).catch((error) => {
+					// Log error
+					Logging.logActionExceptionMessage("StatusNotification", error);
+				});
 			}
 			// Save
 			return chargingStation.handleStatusNotification(args);
@@ -260,7 +271,7 @@ class CentralSystemServer {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
-					550, "CentralSystemServer", "handleStatusNotification");
+					550, "CentralSystemServer", "handleMeterValues");
 			}
 			// Save
 			return chargingStation.handleMeterValues(args);
@@ -293,7 +304,7 @@ class CentralSystemServer {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
-					550, "CentralSystemServer", "handleStatusNotification");
+					550, "CentralSystemServer", "handleAuthorize");
 			}
 			// Save
 			return chargingStation.handleAuthorize(args);
@@ -345,7 +356,7 @@ class CentralSystemServer {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
-					550, "CentralSystemServer", "handleStatusNotification");
+					550, "CentralSystemServer", "handleDiagnosticsStatusNotification");
 			}
 			// Save
 			return chargingStation.handleDiagnosticsStatusNotification(args);
@@ -378,7 +389,7 @@ class CentralSystemServer {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
-					550, "CentralSystemServer", "handleStatusNotification");
+					550, "CentralSystemServer", "handleFirmwareStatusNotification");
 			}
 			// Save
 			return chargingStation.handleFirmwareStatusNotification(args);
@@ -410,7 +421,7 @@ class CentralSystemServer {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
-					550, "CentralSystemServer", "handleStatusNotification");
+					550, "CentralSystemServer", "handleStartTransaction");
 			}
 			// Save
 			return chargingStation.handleStartTransaction(args);
@@ -463,7 +474,7 @@ class CentralSystemServer {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
-					550, "CentralSystemServer", "handleStatusNotification");
+					550, "CentralSystemServer", "handleDataTransfer");
 			}
 			// Save
 			return chargingStation.handleDataTransfer(args);
@@ -498,7 +509,7 @@ class CentralSystemServer {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
-					550, "CentralSystemServer", "handleStatusNotification");
+					550, "CentralSystemServer", "handleStopTransaction");
 			}
 			// Save
 			return chargingStation.handleStopTransaction(args);

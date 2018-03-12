@@ -152,8 +152,12 @@ class EMailNotificationTask extends NotificationTask {
 			// Render the localized template ---------------------------------------
 			// Render the subject
 			emailTemplate.email.subject = ejs.render(emailTemplate.email.subject, data);
+			// Render Base URL
+			emailTemplate.email.baseURL = ejs.render(emailTemplate.email.baseURL, data);
 			// Render the title
 			emailTemplate.email.body.header.title = ejs.render(emailTemplate.email.body.header.title, data);
+			// Image
+			emailTemplate.email.body.header.image.right.url = ejs.render(emailTemplate.email.body.header.image.right.url, data);
 			// Render  Lines Before Action
 			emailTemplate.email.body.beforeActionLines =
 				emailTemplate.email.body.beforeActionLines.map((beforeActionLine) => {

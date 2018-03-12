@@ -453,6 +453,7 @@ class ChargingStation {
 									(transaction.user.locale ? transaction.user.locale.replace('_','-') : Users.DEFAULT_LOCALE.replace('_','-')),
 									{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
 								"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
+								"evseDashboardURL" : Utils.buildEvseURL(),
 								"notifStopTransactionAndUnlockConnector": _configChargingStation.notifStopTransactionAndUnlockConnector
 							},
 							transaction.user.locale);
@@ -644,6 +645,47 @@ class ChargingStation {
 		return this.checkIfUserIsAuthorized(authorize, global.storage.saveAuthorize);
 	}
 
+	getCompany() {
+		// Get Site Area
+		let site, siteArea;
+		return this.getSiteArea().then((foundSiteArea) => {
+			siteArea = foundSiteArea;
+			// Site is mandatory
+			if (!siteArea) {
+				// Reject Site Not Found
+				return Promise.reject( new AppError(
+					this.getID(),
+					`The Charging Station '${this.getID()}' is not assigned to a Site!`, 500,
+					"ChargingStation", "checkIfUserIsAuthorized",
+					null, null) );
+			}
+			// Get the Charge Box' Site
+			return siteArea.getSite();
+		}).then((foundSite) => {
+			site = foundSite;
+			if (!site) {
+				// Reject Site Not Found
+				return Promise.reject( new AppError(
+					this.getID(),
+					`The Site Area '${siteArea.getName()}' is not assigned to a Site!`, 500,
+					"ChargingStation", "checkIfUserIsAuthorized",
+					null, user.getModel()) );
+			}
+			// Get the Charge Box's Company
+			return site.getCompany();
+		}).then((company) => {
+			if (!company) {
+				// Reject Site Not Found
+				return Promise.reject( new AppError(
+					this.getID(),
+					`The Site '${site.getName()}' is not assigned to a Company!`, 500,
+					"ChargingStation", "checkIfUserIsAuthorized",
+					null, user.getModel()) );
+			}
+			return company;
+		});
+	}
+
 	checkIfUserIsAuthorized(request, saveFunction) {
 		// Check first if the site area access control is active
 		let user, site, siteArea;
@@ -688,6 +730,7 @@ class ChargingStation {
 							{
 								"chargingBoxID": this.getID(),
 								"badgeId": request.idTag,
+								"evseDashboardURL" : Utils.buildEvseURL(),
 								"evseDashboardUserURL" : Utils.buildEvseUserURL(user)
 							}
 						);
@@ -762,6 +805,7 @@ class ChargingStation {
 								"user": user.getModel(),
 								"chargingBoxID": this.getID(),
 								"connectorId": request.connectorId,
+								"evseDashboardURL" : Utils.buildEvseURL(),
 								"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, request.connectorId, request.id)
 							},
 							user.getLocale()

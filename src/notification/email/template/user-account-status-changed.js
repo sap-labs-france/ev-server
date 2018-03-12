@@ -1,13 +1,15 @@
 module.exports.email = {
 	"subject": "Your account is <%- (user.status === 'A' ? 'activated' : 'suspended'); %>!",
+	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
 			"title": "Your Account is <%- (user.status === 'A' ? 'Active' : 'Supended'); %>!",
 			"image": {
-				"width": 50,
-				"height": 50,
-				"url": "https://cloud.charge-angels.fr/assets/img/info.png",
-				"content": null
+				"right": {
+					"width": 50,
+					"height": 50,
+					"url": "<%- evseDashboardURL %>/assets/img/info.png"
+				}
 			}
 		},
 		"beforeActionLines": [
@@ -31,14 +33,16 @@ module.exports.email = {
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
 	"subject": "Votre compte est <%- (user.status==='A'?'activé':'suspendu'); %>!",
+	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
 			"title": "Votre Compte est <%- (user.status === 'A' ? 'Activé' : 'Suspendu'); %>!",
 			"image": {
-				"width": 50,
-				"height": 50,
-				"url": "https://cloud.charge-angels.fr/assets/img/info.png",
-				"content": null
+				"right": {
+					"width": 50,
+					"height": 50,
+					"url": "<%- evseDashboardURL %>/assets/img/info.png"
+				}
 			}
 		},
 		"beforeActionLines": [

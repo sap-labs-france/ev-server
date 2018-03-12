@@ -1,7 +1,7 @@
 module.exports.subject = "Charge-Angels - <%- subject %>";
 module.exports.html = `
 <html>
-	<body align="center" bgcolor="cadetblue" background="https://cloud.charge-angels.fr/assets/img/charge-angels-bg.jpg" style="margin: 15px;">
+	<body align="center" bgcolor="cadetblue" background="<%- baseURL %>/assets/img/charge-angels-bg.jpg" style="margin: 15px;">
 		<center>
 			<!-- Header -->
 			<table width="768" border="0" cellspacing="0" cellpadding="0">
@@ -10,15 +10,15 @@ module.exports.html = `
 						<table width="768" border="0" cellspacing="0" cellpadding="0">
 							<tr height="70">
 								<td width="180" align="center">
-									<center><img width="150" height="50" alt="Logo" src="https://cloud.charge-angels.fr/assets/img/angel-wings-low.gif"></center>
+									<center><img width="150" height="50" alt="Logo" src="<%- baseURL %>/assets/img/angel-wings-low.gif"></center>
 								</td>
 								<td align="center" style="border-color:white;border-width: 2px;border-left-style: solid;border-right-style: solid;">
 									<font size="5" color="white" face="sans-serif"><b><%- body.header.title %></b></font>
 								</td>
 								<td width="180" align="center">
-									<img width="<%- body.header.image.width %>"
-										height="<%- body.header.image.height %>" alt="Info"
-										src="<%- (body.header.image.url ? body.header.image.url : body.header.image.content) %>">
+									<img width="<%- body.header.image.right.width %>"
+										height="<%- body.header.image.right.height %>" alt="Image"
+										src="<%- body.header.image.right.url %>">
 								</td>
 							</tr>
 						</table>

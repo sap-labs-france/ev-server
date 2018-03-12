@@ -34,12 +34,8 @@ class Company {
 		return this._model.address;
 	}
 
-	setLogo(logo) {
-		this._model.logo = logo;
-	}
-
 	getLogo() {
-		return this._model.logo;
+		return global.storage.getCompanyLogo(this.getID());
 	}
 
 	getCreatedBy() {
