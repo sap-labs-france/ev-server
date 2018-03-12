@@ -349,90 +349,96 @@ class SiteAreaService {
 		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreaUpdateRequest( req.body, req.user );
-		// Check Mandatory fields
-		if (SiteAreas.checkIfSiteAreaValid(action, filteredRequest, req, res, next)) {
-			let siteArea;
-			let loggedUser;
-			// Check
-			global.storage.getSiteArea(filteredRequest.id).then((foundSiteArea) => {
-				siteArea = foundSiteArea;
-				if (!siteArea) {
-					throw new AppError(
-						Constants.CENTRAL_SERVER,
-						`The Site Area with ID '${filteredRequest.id}' does not exist anymore`,
-						550, "SiteAreaService", "handleUpdateSiteArea");
-				}
-				// Check auth
-				if (!CentralRestServerAuthorization.canUpdateSiteArea(req.user, siteArea.getModel())) {
-					// Not Authorized!
-					throw new AppAuthError(
-						CentralRestServerAuthorization.ACTION_UPDATE,
-						CentralRestServerAuthorization.ENTITY_SITE_AREA,
-						siteArea.getID(),
-						560, "SiteAreaService", "handleUpdateSiteArea",
-						req.user);
-				}
-				// Get the logged user
-				return global.storage.getUser(req.user.id);
-			// Logged User
-			}).then((foundLoggedUser) => {
-				loggedUser = foundLoggedUser;
-				// Get Charging Stations
-				return siteArea.getChargingStations();
-			}).then((assignedChargingStations) => {
-				let proms = [];
-				// Clear Site Area from Existing Charging Station
-				assignedChargingStations.forEach((assignedChargingStation) => {
-					// Update timestamp
-					assignedChargingStation.setLastChangedBy(loggedUser);
-					assignedChargingStation.setLastChangedOn(new Date());
-					// Set
-					assignedChargingStation.setSiteArea(null);
-					proms.push(assignedChargingStation.saveChargingStationSiteArea());
-				});
-				return Promise.all(proms);
-			}).then((results) => {
-				let proms = [];
-				// Assign new Charging Stations
-				filteredRequest.chargeBoxIDs.forEach((chargeBoxID) => {
-					// Get it
-					proms.push(global.storage.getChargingStation(chargeBoxID));
-				});
-				return Promise.all(proms);
-			}).then((assignedChargingStations) => {
-				let proms = [];
-				// Get it
-				assignedChargingStations.forEach((assignedChargingStation) => {
-					// Update timestamp
-					assignedChargingStation.setLastChangedBy(loggedUser);
-					assignedChargingStation.setLastChangedOn(new Date());
-					// Set
-					assignedChargingStation.setSiteArea(siteArea);
-					proms.push(assignedChargingStation.saveChargingStationSiteArea());
-				});
-				return Promise.all(proms);
-			}).then((results) => {
-				// Update
-				Database.updateSiteArea(filteredRequest, siteArea.getModel());
+		let siteArea;
+		let loggedUser;
+		// Check
+		global.storage.getSiteArea(filteredRequest.id).then((foundSiteArea) => {
+			siteArea = foundSiteArea;
+			if (!siteArea) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Site Area with ID '${filteredRequest.id}' does not exist anymore`,
+					550, "SiteAreaService", "handleUpdateSiteArea");
+			}
+			// Check Mandatory fields
+			if (!SiteAreas.checkIfSiteAreaValid(action, filteredRequest, req, res, next)) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Site Area request in invalid`,
+					500, "SiteAreaService", "handleUpdateSiteArea");
+			};
+			// Check auth
+			if (!CentralRestServerAuthorization.canUpdateSiteArea(req.user, siteArea.getModel())) {
+				// Not Authorized!
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_UPDATE,
+					CentralRestServerAuthorization.ENTITY_SITE_AREA,
+					siteArea.getID(),
+					560, "SiteAreaService", "handleUpdateSiteArea",
+					req.user);
+			}
+			// Get the logged user
+			return global.storage.getUser(req.user.id);
+		// Logged User
+		}).then((foundLoggedUser) => {
+			loggedUser = foundLoggedUser;
+			// Get Charging Stations
+			return siteArea.getChargingStations();
+		}).then((assignedChargingStations) => {
+			let proms = [];
+			// Clear Site Area from Existing Charging Station
+			assignedChargingStations.forEach((assignedChargingStation) => {
 				// Update timestamp
-				siteArea.setLastChangedBy(loggedUser);
-				siteArea.setLastChangedOn(new Date());
-				// Update
-				return siteArea.save();
-			}).then((updatedSiteArea) => {
-				// Log
-				Logging.logSecurityInfo({
-					user: req.user, module: "SiteAreaService", method: "handleUpdateSiteArea",
-					message: `Site Area '${updatedSiteArea.getName()}' has been updated successfully`,
-					action: action, detailedMessages: updatedSiteArea});
-				// Ok
-				res.json({status: `Success`});
-				next();
-			}).catch((err) => {
-				// Log
-				Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+				assignedChargingStation.setLastChangedBy(loggedUser);
+				assignedChargingStation.setLastChangedOn(new Date());
+				// Set
+				assignedChargingStation.setSiteArea(null);
+				proms.push(assignedChargingStation.saveChargingStationSiteArea());
 			});
-		}
+			return Promise.all(proms);
+		}).then((results) => {
+			console.log("filteredRequest.chargeBoxIDs --------------------------");
+			console.log(filteredRequest.chargeBoxIDs);
+			let proms = [];
+			// Assign new Charging Stations
+			filteredRequest.chargeBoxIDs.forEach((chargeBoxID) => {
+				// Get it
+				proms.push(global.storage.getChargingStation(chargeBoxID));
+			});
+			return Promise.all(proms);
+		}).then((assignedChargingStations) => {
+			let proms = [];
+			// Get it
+			assignedChargingStations.forEach((assignedChargingStation) => {
+				// Update timestamp
+				assignedChargingStation.setLastChangedBy(loggedUser);
+				assignedChargingStation.setLastChangedOn(new Date());
+				// Set
+				assignedChargingStation.setSiteArea(siteArea);
+				proms.push(assignedChargingStation.saveChargingStationSiteArea());
+			});
+			return Promise.all(proms);
+		}).then((results) => {
+			// Update
+			Database.updateSiteArea(filteredRequest, siteArea.getModel());
+			// Update timestamp
+			siteArea.setLastChangedBy(loggedUser);
+			siteArea.setLastChangedOn(new Date());
+			// Update
+			return siteArea.save();
+		}).then((updatedSiteArea) => {
+			// Log
+			Logging.logSecurityInfo({
+				user: req.user, module: "SiteAreaService", method: "handleUpdateSiteArea",
+				message: `Site Area '${updatedSiteArea.getName()}' has been updated successfully`,
+				action: action, detailedMessages: updatedSiteArea});
+			// Ok
+			res.json({status: `Success`});
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
 	}
 }
 

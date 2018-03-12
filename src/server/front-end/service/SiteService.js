@@ -309,53 +309,57 @@ class SiteService {
 		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterSiteUpdateRequest( req.body, req.user );
-		// Check Mandatory fields
-		if (Sites.checkIfSiteValid(action, filteredRequest, req, res, next)) {
-			let site;
-			// Check email
-			global.storage.getSite(filteredRequest.id).then((foundSite) => {
-				site = foundSite;
-				if (!site) {
-					throw new AppError(
-						Constants.CENTRAL_SERVER,
-						`The Site with ID '${filteredRequest.id}' does not exist anymore`,
-						550, "SiteService", "handleUpdateSite");
-				}
-				// Check auth
-				if (!CentralRestServerAuthorization.canUpdateSite(req.user, site.getModel())) {
-					// Not Authorized!
-					throw new AppAuthError(
-						CentralRestServerAuthorization.ACTION_UPDATE,
-						CentralRestServerAuthorization.ENTITY_SITE,
-						site.getID(),
-						560, "SiteService", "handleUpdateSite",
-						req.user);
-				}
-				// Get the logged user
-				return global.storage.getUser(req.user.id);
-			// Logged User
-			}).then((loggedUser) => {
-				// Update
-				Database.updateSite(filteredRequest, site.getModel());
-				// Update timestamp
-				site.setLastChangedBy(loggedUser);
-				site.setLastChangedOn(new Date());
-				// Update
-				return site.save();
-			}).then((updatedSite) => {
-				// Log
-				Logging.logSecurityInfo({
-					user: req.user, module: "SiteService", method: "handleUpdateSite",
-					message: `Site '${updatedSite.getName()}' has been updated successfully`,
-					action: action, detailedMessages: updatedSite});
-				// Ok
-				res.json({status: `Success`});
-				next();
-			}).catch((err) => {
-				// Log
-				Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-			});
-		}
+		let site;
+		// Check email
+		global.storage.getSite(filteredRequest.id).then((foundSite) => {
+			site = foundSite;
+			if (!site) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Site with ID '${filteredRequest.id}' does not exist anymore`,
+					550, "SiteService", "handleUpdateSite");
+			}
+			// Check Mandatory fields
+			if (!Sites.checkIfSiteValid(action, filteredRequest, req, res, next)) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Site request is invalid`,
+					500, "SiteService", "handleUpdateSite");
+			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canUpdateSite(req.user, site.getModel())) {
+				// Not Authorized!
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_UPDATE,
+					CentralRestServerAuthorization.ENTITY_SITE,
+					site.getID(),
+					560, "SiteService", "handleUpdateSite",
+					req.user);
+			}
+			// Get the logged user
+			return global.storage.getUser(req.user.id);
+		// Logged User
+		}).then((loggedUser) => {
+			// Update
+			Database.updateSite(filteredRequest, site.getModel());
+			// Update timestamp
+			site.setLastChangedBy(loggedUser);
+			site.setLastChangedOn(new Date());
+			// Update
+			return site.save();
+		}).then((updatedSite) => {
+			// Log
+			Logging.logSecurityInfo({
+				user: req.user, module: "SiteService", method: "handleUpdateSite",
+				message: `Site '${updatedSite.getName()}' has been updated successfully`,
+				action: action, detailedMessages: updatedSite});
+			// Ok
+			res.json({status: `Success`});
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
 	}
 }
 

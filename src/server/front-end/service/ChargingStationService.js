@@ -22,60 +22,64 @@ class ChargingStationService {
 		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationUpdateRequest( req.body, req.user );
-		// Check Mandatory fields
-		if (ChargingStations.checkIfChargingStationValid(action, filteredRequest, req, res, next)) {
-			let chargingStation;
-			// Check email
-			global.storage.getChargingStation(filteredRequest.id).then((foundChargingStation) => {
-				chargingStation = foundChargingStation;
-				if (!chargingStation) {
-					throw new AppError(
-						Constants.CENTRAL_SERVER,
-						`The Charging Station with ID '${filteredRequest.id}' does not exist anymore`,
-						550, "ChargingStationService", "handleUpdateChargingStation");
-				}
-				// Check auth
-				if (!CentralRestServerAuthorization.canUpdateChargingStation(req.user, chargingStation.getModel())) {
-					// Not Authorized!
-					throw new AppAuthError(
-						CentralRestServerAuthorization.ACTION_UPDATE,
-						CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
-						site.getID(),
-						560, "ChargingStationService", "handleUpdateChargingStation",
-						req.user);
-				}
-				// Update
-				if (filteredRequest.siteAreaID) {
-					chargingStation.setSiteArea(new SiteArea({
-						"id": filteredRequest.siteAreaID
-					}));
-				}
-				if (filteredRequest.endpoint) {
-					chargingStation.setEndPoint(filteredRequest.endpoint);
-				}
-				// Get the logged user
-				return global.storage.getUser(req.user.id);
-			// Logged User
-			}).then((loggedUser) => {
-				// Update timestamp
-				chargingStation.setLastChangedBy(loggedUser);
-				chargingStation.setLastChangedOn(new Date());
-				// Update
-				return chargingStation.save();
-			}).then((updatedChargingStation) => {
-				// Log
-				Logging.logSecurityInfo({
-					user: req.user, module: "ChargingStationService", method: "handleUpdateChargingStation",
-					message: `Charging Station '${updatedChargingStation.getID()}' has been updated successfully`,
-					action: action, detailedMessages: updatedChargingStation});
-				// Ok
-				res.json({status: `Success`});
-				next();
-			}).catch((err) => {
-				// Log
-				Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-			});
-		}
+		let chargingStation;
+		// Check email
+		global.storage.getChargingStation(filteredRequest.id).then((foundChargingStation) => {
+			chargingStation = foundChargingStation;
+			if (!chargingStation) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Charging Station with ID '${filteredRequest.id}' does not exist anymore`,
+					550, "ChargingStationService", "handleUpdateChargingStation");
+			}
+			// Check Mandatory fields
+			if (!ChargingStations.checkIfChargingStationValid(action, filteredRequest, req, res, next)) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Charging Station request is invalid`,
+					500, "ChargingStationService", "handleUpdateChargingStation");
+			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canUpdateChargingStation(req.user, chargingStation.getModel())) {
+				// Not Authorized!
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_UPDATE,
+					CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
+					site.getID(),
+					560, "ChargingStationService", "handleUpdateChargingStation",
+					req.user);
+			}
+			// Update
+			if (filteredRequest.siteAreaID) {
+				chargingStation.setSiteArea(new SiteArea({
+					"id": filteredRequest.siteAreaID
+				}));
+			}
+			if (filteredRequest.endpoint) {
+				chargingStation.setEndPoint(filteredRequest.endpoint);
+			}
+			// Get the logged user
+			return global.storage.getUser(req.user.id);
+		// Logged User
+		}).then((loggedUser) => {
+			// Update timestamp
+			chargingStation.setLastChangedBy(loggedUser);
+			chargingStation.setLastChangedOn(new Date());
+			// Update
+			return chargingStation.save();
+		}).then((updatedChargingStation) => {
+			// Log
+			Logging.logSecurityInfo({
+				user: req.user, module: "ChargingStationService", method: "handleUpdateChargingStation",
+				message: `Charging Station '${updatedChargingStation.getID()}' has been updated successfully`,
+				action: action, detailedMessages: updatedChargingStation});
+			// Ok
+			res.json({status: `Success`});
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
 	}
 
 	static handleGetChargingStationConfiguration(action, req, res, next) {

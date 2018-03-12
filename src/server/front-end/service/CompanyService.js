@@ -309,53 +309,57 @@ class CompanyService {
 		});
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterCompanyUpdateRequest( req.body, req.user );
-		// Check Mandatory fields
-		if (Companies.checkIfCompanyValid(action, filteredRequest, req, res, next)) {
-			// Check email
-			let company;
-			global.storage.getCompany(filteredRequest.id).then((foundCompany) => {
-				company = foundCompany;
-				if (!company) {
-					throw new AppError(
-						Constants.CENTRAL_SERVER,
-						`The Company with ID '${filteredRequest.id}' does not exist anymore`,
-						550, "CompanyService", "handleUpdateCompany");
-				}
-				// Check auth
-				if (!CentralRestServerAuthorization.canUpdateCompany(req.user, company.getModel())) {
-					// Not Authorized!
-					throw new AppAuthError(
-						CentralRestServerAuthorization.ACTION_UPDATE,
-						CentralRestServerAuthorization.ENTITY_COMPANY,
-						company.getID(),
-						560, "CompanyService", "handleCreateCompany",
-						req.user);
-				}
-				// Get the logged user
-				return global.storage.getUser(req.user.id);
-			// Logged User
-			}).then((loggedUser) => {
-				// Update
-				Database.updateCompany(filteredRequest, company.getModel());
-				// Update timestamp
-				company.setLastChangedBy(loggedUser);
-				company.setLastChangedOn(new Date());
-				// Update
-				return company.save();
-			}).then((updatedCompany) => {
-				// Log
-				Logging.logSecurityInfo({
-					user: req.user, module: "CompanyService", method: "handleUpdateCompany",
-					message: `Company '${updatedCompany.getName()}' has been updated successfully`,
-					action: action, detailedMessages: updatedCompany});
-				// Ok
-				res.json({status: `Success`});
-				next();
-			}).catch((err) => {
-				// Log
-				Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-			});
-		}
+		// Check email
+		let company;
+		global.storage.getCompany(filteredRequest.id).then((foundCompany) => {
+			company = foundCompany;
+			if (!company) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Company with ID '${filteredRequest.id}' does not exist anymore`,
+					550, "CompanyService", "handleUpdateCompany");
+			}
+			// Check Mandatory fields
+			if (!Companies.checkIfCompanyValid(action, filteredRequest, req, res, next)) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Company request is invalid`,
+					500, "CompanyService", "handleUpdateCompany");
+			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canUpdateCompany(req.user, company.getModel())) {
+				// Not Authorized!
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_UPDATE,
+					CentralRestServerAuthorization.ENTITY_COMPANY,
+					company.getID(),
+					560, "CompanyService", "handleCreateCompany",
+					req.user);
+			}
+			// Get the logged user
+			return global.storage.getUser(req.user.id);
+		// Logged User
+		}).then((loggedUser) => {
+			// Update
+			Database.updateCompany(filteredRequest, company.getModel());
+			// Update timestamp
+			company.setLastChangedBy(loggedUser);
+			company.setLastChangedOn(new Date());
+			// Update
+			return company.save();
+		}).then((updatedCompany) => {
+			// Log
+			Logging.logSecurityInfo({
+				user: req.user, module: "CompanyService", method: "handleUpdateCompany",
+				message: `Company '${updatedCompany.getName()}' has been updated successfully`,
+				action: action, detailedMessages: updatedCompany});
+			// Ok
+			res.json({status: `Success`});
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
 	}
 }
 

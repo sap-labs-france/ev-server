@@ -72,7 +72,7 @@ class ChargingStationStorage {
 		if (siteAreaID) {
 			// Build filter
 			filters.$and.push({
-				"siteAreaID": siteAreaID
+				"siteAreaID": new ObjectId(siteAreaID)
 			});
 		}
 		// With no Site Area

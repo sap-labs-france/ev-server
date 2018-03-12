@@ -112,115 +112,119 @@ class UserService {
 		let statusHasChanged=false;
 		// Filter
 		let filteredRequest = SecurityRestObjectFiltering.filterUserUpdateRequest( req.body, req.user );
-		// Check Mandatory fields
-		if (Users.checkIfUserValid(action, filteredRequest, req, res, next)) {
-			let user, newPasswordHashed;
+		let user, newPasswordHashed;
+		// Check email
+		global.storage.getUser(filteredRequest.id).then((foundUser) => {
+			user = foundUser;
+			if (!user) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The user with ID '${filteredRequest.id}' does not exist anymore`,
+					550, "UserService", "handleUpdateUser");
+			}
+			// Check Mandatory fields
+			if (!Users.checkIfUserValid(action, filteredRequest, req, res, next)) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The user request is invalid`,
+					500, "UserService", "handleUpdateUser");
+			}
+		}).then(() => {
 			// Check email
-			global.storage.getUser(filteredRequest.id).then((foundUser) => {
-				user = foundUser;
-				if (!user) {
-					throw new AppError(
-						Constants.CENTRAL_SERVER,
-						`The user with ID '${filteredRequest.id}' does not exist anymore`,
-						550, "UserService", "handleUpdateUser");
-				}
-			}).then(() => {
-				// Check email
-				return global.storage.getUserByEmail(filteredRequest.email);
-			}).then((userWithEmail) => {
-				// Check if EMail is already taken
-				if (userWithEmail && user.getID() !== userWithEmail.getID()) {
-					// Yes!
-					throw new AppError(
-						Constants.CENTRAL_SERVER,
-						`The email '${filteredRequest.email}' already exists`,
-						510, "UserService", "handleUpdateUser");
-				}
-				// Generate the password hash
-				return Users.hashPasswordBcrypt(filteredRequest.password);
-			}).then((passwordHashed) => {
-				newPasswordHashed = passwordHashed;
-				// Check auth
-				if (!CentralRestServerAuthorization.canUpdateUser(req.user, user.getModel())) {
-					throw new AppAuthError(
-						CentralRestServerAuthorization.ACTION_UPDATE,
-						CentralRestServerAuthorization.ENTITY_USER,
-						user.getID(),
-						560, "UserService", "handleUpdateUser",
-						req.user, user);
-				}
-				// Check if Role is provided and has been changed
-				if (filteredRequest.role &&
-						filteredRequest.role !== user.getRole() &&
-						req.user.role !== Users.USER_ROLE_ADMIN) {
+			return global.storage.getUserByEmail(filteredRequest.email);
+		}).then((userWithEmail) => {
+			// Check if EMail is already taken
+			if (userWithEmail && user.getID() !== userWithEmail.getID()) {
+				// Yes!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The email '${filteredRequest.email}' already exists`,
+					510, "UserService", "handleUpdateUser");
+			}
+			// Generate the password hash
+			return Users.hashPasswordBcrypt(filteredRequest.password);
+		}).then((passwordHashed) => {
+			newPasswordHashed = passwordHashed;
+			// Check auth
+			if (!CentralRestServerAuthorization.canUpdateUser(req.user, user.getModel())) {
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_UPDATE,
+					CentralRestServerAuthorization.ENTITY_USER,
+					user.getID(),
+					560, "UserService", "handleUpdateUser",
+					req.user, user);
+			}
+			// Check if Role is provided and has been changed
+			if (filteredRequest.role &&
+					filteredRequest.role !== user.getRole() &&
+					req.user.role !== Users.USER_ROLE_ADMIN) {
+				// Role provided and not an Admin
+				Logging.logError({
+					user: req.user, actionOnUser: user.getModel(),
+					module: "UserService", method: "handleUpdateUser",
+					message: `User with role '${req.user.role}' tried to change the role to '${filteredRequest.role}' without having the Admin priviledge` });
+				// Override it
+				filteredRequest.role = user.getRole();
+			}
+			// Check if Status has been changed
+			if (filteredRequest.status &&
+					filteredRequest.status !== user.getStatus()) {
+				// Right to change?
+				if (req.user.role !== Users.USER_ROLE_ADMIN) {
 					// Role provided and not an Admin
 					Logging.logError({
 						user: req.user, actionOnUser: user.getModel(),
 						module: "UserService", method: "handleUpdateUser",
-						message: `User with role '${req.user.role}' tried to change the role to '${filteredRequest.role}' without having the Admin priviledge` });
-					// Override it
-					filteredRequest.role = user.getRole();
+						message: `User with role '${req.user.role}' tried to update the status to '${filteredRequest.status}' without having the Admin priviledge` });
+					// Ovverride it
+					filteredRequest.status = user.getStatus();
+				} else {
+					// Status changed
+					statusHasChanged = true;
 				}
-				// Check if Status has been changed
-				if (filteredRequest.status &&
-						filteredRequest.status !== user.getStatus()) {
-					// Right to change?
-					if (req.user.role !== Users.USER_ROLE_ADMIN) {
-						// Role provided and not an Admin
-						Logging.logError({
-							user: req.user, actionOnUser: user.getModel(),
-							module: "UserService", method: "handleUpdateUser",
-							message: `User with role '${req.user.role}' tried to update the status to '${filteredRequest.status}' without having the Admin priviledge` });
-						// Ovverride it
-						filteredRequest.status = user.getStatus();
-					} else {
-						// Status changed
-						statusHasChanged = true;
-					}
-				}
-				// Get the logged user
-				return global.storage.getUser(req.user.id);
-			// Logged User
-			}).then((loggedUser) => {
-				// Update
-				Database.updateUser(filteredRequest, user.getModel());
-				// Update timestamp
-				user.setLastChangedBy(loggedUser);
-				user.setLastChangedOn(new Date());
-				// Check the password
-				if (filteredRequest.password && filteredRequest.password.length > 0) {
-					// Update the password
-					user.setPassword(newPasswordHashed);
-				}
-				// Update
-				return user.save();
-			}).then((updatedUser) => {
-				// Log
-				Logging.logSecurityInfo({
-					user: req.user, actionOnUser: updatedUser.getModel(),
-					module: "UserService", method: "handleUpdateUser",
-					message: `User has been updated successfully`,
-					action: action});
-				// Notify
-				if (statusHasChanged) {
-					// Send notification
-					NotificationHandler.sendUserAccountStatusChanged(
-						Utils.generateGUID(),
-						updatedUser.getModel(),
-						{
-							"user": updatedUser.getModel(),
-							"evseDashboardURL" : Utils.buildEvseURL()
-						},
-						updatedUser.getLocale());
-				}
-				// Ok
-				res.json({status: `Success`});
-				next();
-			}).catch((err) => {
-				// Log
-				Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-			});
-		}
+			}
+			// Get the logged user
+			return global.storage.getUser(req.user.id);
+		// Logged User
+		}).then((loggedUser) => {
+			// Update
+			Database.updateUser(filteredRequest, user.getModel());
+			// Update timestamp
+			user.setLastChangedBy(loggedUser);
+			user.setLastChangedOn(new Date());
+			// Check the password
+			if (filteredRequest.password && filteredRequest.password.length > 0) {
+				// Update the password
+				user.setPassword(newPasswordHashed);
+			}
+			// Update
+			return user.save();
+		}).then((updatedUser) => {
+			// Log
+			Logging.logSecurityInfo({
+				user: req.user, actionOnUser: updatedUser.getModel(),
+				module: "UserService", method: "handleUpdateUser",
+				message: `User has been updated successfully`,
+				action: action});
+			// Notify
+			if (statusHasChanged) {
+				// Send notification
+				NotificationHandler.sendUserAccountStatusChanged(
+					Utils.generateGUID(),
+					updatedUser.getModel(),
+					{
+						"user": updatedUser.getModel(),
+						"evseDashboardURL" : Utils.buildEvseURL()
+					},
+					updatedUser.getLocale());
+			}
+			// Ok
+			res.json({status: `Success`});
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
 	}
 
 	static handleGetUser(action, req, res, next) {
