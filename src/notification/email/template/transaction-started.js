@@ -6,8 +6,8 @@ module.exports.email = {
 			"title": "Successfully Connected!",
 			"image": {
 				"right": {
-					"width": 150,
-					"height": 50,
+					"width": 100,
+					"height": 60,
 					"url": "<%- companyLogo ? companyLogo : evseDashboardURL + '/assets/img/theme/no-logo.jpg' %>"
 				}
 			}
@@ -15,7 +15,7 @@ module.exports.email = {
 		"beforeActionLines": [
 			"Hi <%- (user.firstName?user.firstName:user.name) %>,",
 			"",
-			"Your electric vehicle is successfully connected to '<%- chargingBoxID %>'."
+			"Your electric vehicle is successfully connected to <b><%- chargingBoxID %></b>."
 		],
 		"action": {
 			"title": "View Session",
@@ -39,8 +39,8 @@ module.exports.fr_FR.email = {
 			"title": "Connecté avec Succès!",
 			"image": {
 				"right": {
-					"width": 150,
-					"height": 50,
+					"width": 100,
+					"height": 60,
 					"url": "<%- companyLogo ? companyLogo : evseDashboardURL + '/assets/img/theme/no-logo.jpg' %>"
 				}
 			}
@@ -48,7 +48,7 @@ module.exports.fr_FR.email = {
 		"beforeActionLines": [
 			"Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
 			"",
-			"Votre véhicule électrique est correctement connecté sur '<%- chargingBoxID %>'."
+			"Votre véhicule électrique est correctement connecté sur <b><%- chargingBoxID %></b>."
 		],
 		"action": {
 			"title": "Voir Session",

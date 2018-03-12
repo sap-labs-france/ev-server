@@ -15,7 +15,7 @@ module.exports.email = {
 		"beforeActionLines": [
 			"Hi <%- (user.firstName ? user.firstName : user.name) %>,",
 			"",
-			"Your account has been <%- (user.status === 'A' ? 'activated' : 'suspended'); %> by an administrator."
+			"Your account has been <b><%- (user.status === 'A' ? 'activated' : 'suspended'); %></b> by an administrator."
 		],
 		"action": {
 			"title": "Charge-Angels",
@@ -48,7 +48,7 @@ module.exports.fr_FR.email = {
 		"beforeActionLines": [
 			"Bonjour <%- (user.firstName ? user.firstName : user.name) %>,",
 			"",
-			"Votre compte a été <%- (user.status === 'A' ? 'activé' : 'suspendu'); %> par un administrateur."
+			"Votre compte a été <b><%- (user.status === 'A' ? 'activé' : 'suspendu'); %></b> par un administrateur."
 		],
 		"action": {
 			"title": "Charge-Angels",

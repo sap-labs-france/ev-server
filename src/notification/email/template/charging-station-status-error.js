@@ -6,8 +6,8 @@ module.exports.email = {
 			"title": "Charger Error",
 			"image": {
 				"right": {
-					"width": 150,
-					"height": 50,
+					"width": 100,
+					"height": 60,
 					"url": "<%- companyLogo ? companyLogo : evseDashboardURL + '/assets/img/theme/no-logo.jpg' %>"
 				}
 			}
@@ -15,7 +15,7 @@ module.exports.email = {
 		"beforeActionLines": [
 			"Hi,",
 			"",
-			"Error occurred on '<%- chargeBoxID %>' - Connector '<%- connectorId %>': <b><%- error %></b>."
+			"Error occurred on <b><%- chargeBoxID %></b> - <b>Connector <%- connectorId %></b>: <b><%- error %></b>."
 		],
 		"action": {
 			"title": "View Error",
@@ -39,8 +39,8 @@ module.exports.fr_FR.email = {
 			"title": "Erreur Borne",
 			"image": {
 				"right": {
-					"width": 150,
-					"height": 50,
+					"width": 100,
+					"height": 60,
 					"url": "<%- companyLogo ? companyLogo : evseDashboardURL + '/assets/img/theme/no-logo.jpg' %>"
 				}
 			}
@@ -48,7 +48,7 @@ module.exports.fr_FR.email = {
 		"beforeActionLines": [
 			"Bonjour,",
 			"",
-			"Une erreur est survenue sur '<%- chargeBoxID %>' - Connector '<%- connectorId %>': <b><%- error %></b>."
+			"Une erreur est survenue sur <b><%- chargeBoxID %></b> - <b>Connector <%- connectorId %></b>: <b><%- error %></b>."
 		],
 		"action": {
 			"title": "Voir Erreur",

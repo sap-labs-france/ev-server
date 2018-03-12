@@ -439,24 +439,36 @@ class ChargingStation {
 				// Notification END of charge
 				// --------------------------------------------------------------------
 				if (_configChargingStation.notifEndOfChargeEnabled && avgConsumption === 0) {
-					// Send Notification
+					// Notify User?
 					if (transaction.user) {
-						NotificationHandler.sendEndOfCharge(
-							transaction.id + "-EOF",
-							transaction.user,
-							this.getModel(),
-							{
-								"user": transaction.user,
-								"chargingBoxID": this.getID(),
-								"connectorId": transaction.connectorId,
-								"totalConsumption": (this.getConnectors()[transaction.connectorId-1].totalConsumption/1000).toLocaleString(
-									(transaction.user.locale ? transaction.user.locale.replace('_','-') : Users.DEFAULT_LOCALE.replace('_','-')),
-									{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
-								"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
-								"evseDashboardURL" : Utils.buildEvseURL(),
-								"notifStopTransactionAndUnlockConnector": _configChargingStation.notifStopTransactionAndUnlockConnector
-							},
-							transaction.user.locale);
+						// Get the company logo
+						this.getCompany().then((company) => {
+							// Get the logo
+							return company.getLogo();
+						}).then((companyLogo) => {
+							// Send Notification
+							NotificationHandler.sendEndOfCharge(
+								transaction.id + "-EOF",
+								transaction.user,
+								this.getModel(),
+								{
+									"user": transaction.user,
+									"chargingBoxID": this.getID(),
+									"companyLogo": companyLogo.logo,
+									"connectorId": transaction.connectorId,
+									"totalConsumption": (this.getConnectors()[transaction.connectorId-1].totalConsumption/1000).toLocaleString(
+										(transaction.user.locale ? transaction.user.locale.replace('_','-') : Users.DEFAULT_LOCALE.replace('_','-')),
+										{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
+									"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
+									"evseDashboardURL" : Utils.buildEvseURL(),
+									"notifStopTransactionAndUnlockConnector": _configChargingStation.notifStopTransactionAndUnlockConnector
+								},
+								transaction.user.locale
+							);
+						}).catch((error) => {
+							// Log error
+							Logging.logActionExceptionMessage("StatusNotification", error);
+						});
 					}
 
 					// Stop Transaction and Unlock Connector?
@@ -477,8 +489,11 @@ class ChargingStation {
 											module: "ChargingStation", method: "handleNotificationEndOfCharge",
 											action: "NotifyEndOfCharge", message: `Cannot unlock the connector '${transaction.connectorId}' of the Charging Station '${this.getID()}'`,
 											detailedMessages: transaction});
-										}
-									});
+									}
+								}).catch((error) => {
+									// Log error
+									Logging.logActionExceptionMessage("EndOfCharge", error);
+								});
 							} else {
 								// Cannot stop the transaction
 								Logging.logError({
@@ -486,6 +501,9 @@ class ChargingStation {
 									action: "NotifyEndOfCharge", message: `Cannot stop the transaction of the Charging Station '${this.getID()}'`,
 									detailedMessages: transaction});
 							}
+						}).catch((error) => {
+							// Log error
+							Logging.logActionExceptionMessage("EndOfCharge", error);
 						});
 					}
 				}
@@ -705,7 +723,7 @@ class ChargingStation {
 				// Yes: authorize all the time
 				return saveFunction(request);
 			}
-			// Check User with its Tag ID
+			// If Access Control is active: Check User with its Tag ID
 			return global.storage.getUserByTagId(request.idTag).then((foundUser) => {
 				user = foundUser;
 				// Found?
@@ -723,24 +741,35 @@ class ChargingStation {
 
 					// Save the user
 					return newUser.save().then((user) => {
-						// Send Notification
-						NotificationHandler.sendUnknownUserBadged(
-							Utils.generateGUID(),
-							this.getModel(),
-							{
-								"chargingBoxID": this.getID(),
-								"badgeId": request.idTag,
-								"evseDashboardURL" : Utils.buildEvseURL(),
-								"evseDashboardUserURL" : Utils.buildEvseUserURL(user)
-							}
-						);
+						// Get the company logo
+						this.getCompany().then((company) => {
+							// Get the logo
+							return company.getLogo();
+						}).then((companyLogo) => {
+							// Send Notification
+							NotificationHandler.sendUnknownUserBadged(
+								Utils.generateGUID(),
+								this.getModel(),
+								{
+									"chargingBoxID": this.getID(),
+									"badgeId": request.idTag,
+									"companyLogo": companyLogo.logo,
+									"evseDashboardURL" : Utils.buildEvseURL(),
+									"evseDashboardUserURL" : Utils.buildEvseUserURL(user)
+								}
+							);
+						}).catch((error) => {
+							// Log error
+							Logging.logActionExceptionMessage("StatusNotification", error);
+						});
 						// Reject but save ok
 						return Promise.reject(
 							new AppError(
 								this.getID(),
 								`User with Tag ID '${request.idTag}' not found but saved as inactive user`,
 								"ChargingStation", "checkIfUserIsAuthorized",
-								null, user.getModel()) );
+								null, user.getModel())
+						);
 					});
 				}
 				// Check if the user is assigned to the Charge Box's Company
@@ -796,20 +825,30 @@ class ChargingStation {
 				// Check function
 				if (saveFunction.name === "saveStartTransaction") {
 					if (user) {
-						// Notify
-						NotificationHandler.sendTransactionStarted(
-							request.id,
-							user.getModel(),
-							this.getModel(),
-							{
-								"user": user.getModel(),
-								"chargingBoxID": this.getID(),
-								"connectorId": request.connectorId,
-								"evseDashboardURL" : Utils.buildEvseURL(),
-								"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, request.connectorId, request.id)
-							},
-							user.getLocale()
-						);
+						// Get the company logo
+						this.getCompany().then((company) => {
+							// Get the logo
+							return company.getLogo();
+						}).then((companyLogo) => {
+							// Notify
+							NotificationHandler.sendTransactionStarted(
+								request.id,
+								user.getModel(),
+								this.getModel(),
+								{
+									"user": user.getModel(),
+									"chargingBoxID": this.getID(),
+									"connectorId": request.connectorId,
+									"companyLogo": companyLogo.logo,
+									"evseDashboardURL" : Utils.buildEvseURL(),
+									"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, request.connectorId, request.id)
+								},
+								user.getLocale()
+							);
+						}).catch((error) => {
+							// Log error
+							Logging.logActionExceptionMessage("StatusNotification", error);
+						});
 					}
 				}
 				return result;

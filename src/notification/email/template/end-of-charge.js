@@ -3,11 +3,11 @@ module.exports.email = {
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
-			"title": "Charge Finished",
+			"title": "Charge Finished!",
 			"image": {
 				"right": {
-					"width": 150,
-					"height": 50,
+					"width": 100,
+					"height": 60,
 					"url": "<%- companyLogo ? companyLogo : evseDashboardURL + '/assets/img/theme/no-logo.jpg' %>"
 				}
 			}
@@ -15,7 +15,7 @@ module.exports.email = {
 		"beforeActionLines": [
 			"Hi <%- (user.firstName?user.firstName:user.name) %>,",
 			"",
-			"Your electric vehicle, which is connected to '<%- chargingBoxID %>', has finished charging.",
+			"Your electric vehicle, which is connected to <b><%- chargingBoxID %></b>, has finished charging.",
 			"",
 			"The total consumption is: <b><%- totalConsumption %> kW.h</b>.",
 			"",
@@ -40,11 +40,11 @@ module.exports.fr_FR.email = {
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
-			"title": "Charge Terminée",
+			"title": "Charge Terminée!",
 			"image": {
 				"right": {
-					"width": 150,
-					"height": 50,
+					"width": 100,
+					"height": 60,
 					"url": "<%- companyLogo ? companyLogo : evseDashboardURL + '/assets/img/theme/no-logo.jpg' %>"
 				}
 			}
@@ -52,7 +52,7 @@ module.exports.fr_FR.email = {
 		"beforeActionLines": [
 			"Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
 			"",
-			"Votre véhicule électrique, qui est connecté sur '<%- chargingBoxID %>', a terminé sa charge.",
+			"Votre véhicule électrique, qui est connecté sur <b><%- chargingBoxID %></b>, a terminé sa charge.",
 			"",
 			"La consommation totale est de : <b><%- totalConsumption %> kW.h</b>.",
 			"",

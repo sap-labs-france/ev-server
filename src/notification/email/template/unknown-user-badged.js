@@ -6,8 +6,8 @@ module.exports.email = {
 			"title": "Unknown User Badged!",
 			"image": {
 				"right": {
-					"width": 150,
-					"height": 50,
+					"width": 100,
+					"height": 60,
 					"url": "<%- companyLogo ? companyLogo : evseDashboardURL + '/assets/img/theme/no-logo.jpg' %>"
 				}
 			}
@@ -15,7 +15,7 @@ module.exports.email = {
 		"beforeActionLines": [
 			"Hi,",
 			"",
-			"An unknown user has just badged on '<%- chargingBoxID %>' with the badge ID '<%- badgeId %>'."
+			"An unknown user has just badged on <b><%- chargingBoxID %></b> with the badge ID <b><%- badgeId %></b>."
 		],
 		"action": {
 			"title": "Edit User",
@@ -39,8 +39,8 @@ module.exports.fr_FR.email = {
 			"title": "Utilisateur Inconnu!",
 			"image": {
 				"right": {
-					"width": 150,
-					"height": 50,
+					"width": 100,
+					"height": 60,
 					"url": "<%- companyLogo ? companyLogo : evseDashboardURL + '/assets/img/theme/no-logo.jpg' %>"
 				}
 			}
@@ -48,7 +48,7 @@ module.exports.fr_FR.email = {
 		"beforeActionLines": [
 			"Bonjour,",
 			"",
-			"Un utilisateur inconnu vient juste de badger sur '<%- chargingBoxID %>' avec le badge ID '<%- badgeId %>'."
+			"Un utilisateur inconnu vient juste de badger sur <b><%- chargingBoxID %></b> avec le badge ID <b><%- badgeId %></b>."
 		],
 		"action": {
 			"title": "Editer Utilisateur",
