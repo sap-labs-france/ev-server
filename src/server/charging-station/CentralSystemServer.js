@@ -97,65 +97,68 @@ class CentralSystemServer {
 				chargingStation.setDeleted(false);
 			}
 			// Save Charging Station
-			return chargingStation.save().then(() => {
-				// Save the Boot Notification
-				return chargingStation.handleBootNotification(args);
-			}).then(() => {
-				// Log
-				Logging.logInfo({
-					source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleBootNotification",
-					action: "BootNotification", message: `Changing Station has just rebooted`,
-					detailedMessages: args });
-				// Get the Charging Station Config
-				return chargingStation.requestGetConfiguration();
-			// Save the config
-			}).then((configuration) => {
-				// Save it
-				if (configuration) {
-					return chargingStation.saveConfiguration(configuration);
-				} else {
-					// Log
-					return Promise.reject(new Error(`Cannot retrieve the Configuration of ${headers.chargeBoxIdentity}`));
-				}
-			// Return the result
-			}).then(() => {
-				// Log
-				Logging.logInfo({
-					source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleBootNotification",
-					action: "BootNotification", message: `Charging Station's Configuration has been updated` });
+			return chargingStation.save();
+		}).then(() => {
+			// Save the Boot Notification
+			return chargingStation.handleBootNotification(args);
+		}).then(() => {
+			// Log
+			Logging.logInfo({
+				source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleBootNotification",
+				action: "BootNotification", message: `Changing Station has just rebooted`,
+				detailedMessages: args });
+			// Get the Charging Station Config
+			return chargingStation.requestGetConfiguration();
+		// Save the config
+		}).then((configuration) => {
+			if (!configuration) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`Cannot retrieve the configuration of ${headers.chargeBoxIdentity}`,
+					550, "CentralSystemServer", "handleBootNotification");
+			}
+			// Save it
+			return chargingStation.saveConfiguration(configuration);
+		// Return the result
+		}).then(() => {
+			// Log
+			Logging.logInfo({
+				source: headers.chargeBoxIdentity,
+				module: "CentralSystemServer", method: "handleBootNotification",
+				action: "BootNotification",
+				message: `Charging Station's configuration has been updated` });
 
-				// Return the result
-				// OCPP 1.6
-				if (args.ocppVersion === "1.6") {
-					return {
-						"bootNotificationResponse": {
-							"status": 'Accepted',
-							"currentTime": new Date().toISOString(),
-							"interval": _chargingStationConfig.heartbeatIntervalSecs
-						}
-					};
-					// OCPP 1.2 && 1.5
-				} else {
-					return {
-						"bootNotificationResponse": {
-							"status": 'Accepted',
-							"currentTime": new Date().toISOString(),
-							"heartbeatInterval": _chargingStationConfig.heartbeatIntervalSecs
-						}
-					};
-				}
-			}).catch((error) => {
-				// Log error
-				Logging.logActionExceptionMessage("BootNotification", error);
-				// Reject
+			// Return the result
+			// OCPP 1.6
+			if (args.ocppVersion === "1.6") {
 				return {
 					"bootNotificationResponse": {
-						"status": 'Rejected',
+						"status": 'Accepted',
+						"currentTime": new Date().toISOString(),
+						"interval": _chargingStationConfig.heartbeatIntervalSecs
+					}
+				};
+				// OCPP 1.2 && 1.5
+			} else {
+				return {
+					"bootNotificationResponse": {
+						"status": 'Accepted',
 						"currentTime": new Date().toISOString(),
 						"heartbeatInterval": _chargingStationConfig.heartbeatIntervalSecs
 					}
 				};
-			});
+			}
+		}).catch((error) => {
+			// Log error
+			Logging.logActionExceptionMessage("BootNotification", error);
+			// Reject
+			return {
+				"bootNotificationResponse": {
+					"status": 'Rejected',
+					"currentTime": new Date().toISOString(),
+					"heartbeatInterval": _chargingStationConfig.heartbeatIntervalSecs
+				}
+			};
 		});
 	}
 
@@ -174,15 +177,15 @@ class CentralSystemServer {
 			// Set Heartbeat
 			chargingStation.setLastHeartBeat(heartBeat);
 			// Save
-			return chargingStation.saveHeartBeat().then(()=> {
-				// Log
-				Logging.logDebug({
-					source: headers.chargeBoxIdentity,
-					module: "CentralSystemServer", method: "handleHeartBeat",
-					action: "HeartBeat", message: `HeartBeat received`,
-					detailedMessages: heartBeat });
-			});
+			return chargingStation.saveHeartBeat();
 		}).then(() => {
+			// Log
+			Logging.logDebug({
+				source: headers.chargeBoxIdentity,
+				module: "CentralSystemServer", method: "handleHeartBeat",
+				action: "HeartBeat", message: `HeartBeat received`,
+				detailedMessages: heartBeat
+			});
 			return {
 				"heartbeatResponse": {
 					"currentTime": heartBeat.toISOString()

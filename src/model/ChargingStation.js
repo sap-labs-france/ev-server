@@ -614,12 +614,12 @@ class ChargingStation {
 			if (!activeTransaction) {
 				// No: Generate the transaction ID
 				transaction.id = Utils.getRandomInt();
-				// Check user and save
-				return this.checkIfUserIsAuthorized(transaction, global.storage.saveStartTransaction);
 			} else {
-				// Yes: Reuse transaction ID
-				return Promise.resolve(activeTransaction);
+				// Yes: Reuse the transaction ID
+				transaction.id = activeTransaction.id;
 			}
+			// Check user and save
+			return this.checkIfUserIsAuthorized(transaction, global.storage.saveStartTransaction);
 		});
 	}
 
