@@ -44,9 +44,6 @@ class NotificationHandler {
 					action: sourceDescr, message: `Admin users is being notified`
 				});
 			}
-		}).catch((error) => {
-			// Log error
-			Logging.logActionExceptionMessage("SaveNotification", error);
 		});
 	}
 
@@ -73,16 +70,20 @@ class NotificationHandler {
 				// Email enabled?
 				if (_notificationConfig.Email.enabled) {
 					// Save notif
-					NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+					return NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
 							SOURCE_END_OF_CHARGE,
 							user, chargingStation).then(() => {
 						// Send email
-						_email.sendEndOfCharge(sourceData, locale);
-					}).catch(error => {
+						return _email.sendEndOfCharge(sourceData, locale);
+					}).catch((error) => {
 						// Log error
 						Logging.logActionExceptionMessage(SOURCE_END_OF_CHARGE, error);
 					});
+				} else {
+					return Promise.resolve();
 				}
+			} else {
+				return Promise.resolve();
 			}
 		}).catch((err) => {
 			// Log error
@@ -94,15 +95,14 @@ class NotificationHandler {
 		// Email enabled?
 		if (_notificationConfig.Email.enabled) {
 			// Save notif
-			NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_REQUEST_PASSWORD,
+			return NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_REQUEST_PASSWORD,
 					user, null).then(() => {
 				// Send email
-				_email.sendRequestPassword(sourceData, locale);
-			}).catch(error => {
+				return _email.sendRequestPassword(sourceData, locale);
+			}).catch((error) => {
 				// Log error
 				Logging.logActionExceptionMessage(SOURCE_REQUEST_PASSWORD, error);
 			});
-			return Promise.resolve();
 		} else {
 			return Promise.resolve();
 		}
@@ -112,15 +112,14 @@ class NotificationHandler {
 		// Email enabled?
 		if (_notificationConfig.Email.enabled) {
 			// Save notif
-			NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_NEW_PASSWORD,
+			return NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_NEW_PASSWORD,
 					user, null).then(() => {
 				// Send email
-				_email.sendNewPassword(sourceData, locale);
-			}).catch(error => {
+				return _email.sendNewPassword(sourceData, locale);
+			}).catch((error) => {
 				// Log error
 				Logging.logActionExceptionMessage(SOURCE_NEW_PASSWORD, error);
 			});
-			return Promise.resolve();
 		} else {
 			return Promise.resolve();
 		}
@@ -130,16 +129,15 @@ class NotificationHandler {
 		// Email enabled?
 		if (_notificationConfig.Email.enabled) {
 			// Save notif
-			NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+			return NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
 					SOURCE_USER_ACCOUNT_STATUS_CHANGED, user, null).then(() => {
 				// Send email
-				_email.sendUserAccountStatusChanged(sourceData, locale);
-			}).catch(error => {
+				return _email.sendUserAccountStatusChanged(sourceData, locale);
+			}).catch((error) => {
 				// Log error
 				Logging.logActionExceptionMessage(
 					SOURCE_USER_ACCOUNT_STATUS_CHANGED, error);
 			});
-			return Promise.resolve();
 		} else {
 			return Promise.resolve();
 		}
@@ -149,15 +147,14 @@ class NotificationHandler {
 		// Email enabled?
 		if (_notificationConfig.Email.enabled) {
 			// Save notif
-			NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+			return NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
 					SOURCE_NEW_REGISTERED_USER, user, null).then(() => {
 				// Send email
-				_email.sendNewRegisteredUser(sourceData, locale);
-			}).catch(error => {
+				return _email.sendNewRegisteredUser(sourceData, locale);
+			}).catch((error) => {
 				// Log error
 				Logging.logActionExceptionMessage(SOURCE_NEW_REGISTERED_USER, error);
 			});
-			return Promise.resolve();
 		} else {
 			return Promise.resolve();
 		}
@@ -167,15 +164,14 @@ class NotificationHandler {
 		// Email enabled?
 		if (_notificationConfig.Email.enabled) {
 			// Save notif
-			NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+			return NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
 					SOURCE_CHARGING_STATION_STATUS_ERROR, null, chargingStation).then(() => {
 				// Send email
-				_email.sendChargingStationStatusError(sourceData, Users.DEFAULT_LOCALE);
-			}).catch(error => {
+				return _email.sendChargingStationStatusError(sourceData, Users.DEFAULT_LOCALE);
+			}).catch((error) => {
 				// Log error
 				Logging.logActionExceptionMessage(SOURCE_CHARGING_STATION_STATUS_ERROR, error);
 			});
-			return Promise.resolve();
 		} else {
 			return Promise.resolve();
 		}
@@ -185,15 +181,14 @@ class NotificationHandler {
 		// Email enabled?
 		if (_notificationConfig.Email.enabled) {
 			// Save notif
-			NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+			return NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
 					SOURCE_UNKNOWN_USER_BADGED, null, chargingStation).then(() => {
 				// Send email
-				_email.sendUnknownUserBadged(sourceData, Users.DEFAULT_LOCALE);
-			}).catch(error => {
+				return _email.sendUnknownUserBadged(sourceData, Users.DEFAULT_LOCALE);
+			}).catch((error) => {
 				// Log error
 				Logging.logActionExceptionMessage(SOURCE_UNKNOWN_USER_BADGED, error);
 			});
-			return Promise.resolve();
 		} else {
 			return Promise.resolve();
 		}
@@ -203,15 +198,15 @@ class NotificationHandler {
 		// Email enabled?
 		if (_notificationConfig.Email.enabled) {
 			// Save notif
-			NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+			return NotificationHandler.saveNotification(
+					CHANNEL_EMAIL, sourceId,
 					SOURCE_TRANSACTION_STARTED, user, chargingStation).then(() => {
 				// Send email
-				_email.sendTransactionStarted(sourceData, locale);
-			}).catch(error => {
+				return _email.sendTransactionStarted(sourceData, locale);
+			}).catch((error) => {
 				// Log error
 				Logging.logActionExceptionMessage(SOURCE_TRANSACTION_STARTED, error);
 			});
-			return Promise.resolve();
 		} else {
 			return Promise.resolve();
 		}

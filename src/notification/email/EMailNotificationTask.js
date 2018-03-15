@@ -104,107 +104,103 @@ class EMailNotificationTask extends NotificationTask {
 		// Create email
 		let emailTemplate;
 
-		try {
-			// Get the template dir
-			switch (templateName) {
-				// Request password
-				case 'request-password':
-					emailTemplate = requestPassword;
-					break;
-				// New password
-				case 'new-password':
-					emailTemplate = newPassword;
-					break;
-				// Registered user
-				case 'new-registered-user':
-					emailTemplate = newRegisteredUser;
-					break;
-				// End of charge
-				case 'end-of-charge':
-					emailTemplate = endOfCharge;
-					break;
-				// Charging Station Status Error
-				case 'charging-station-status-error':
-					emailTemplate = chargingStationStatusError;
-					break;
-				case 'unknown-user-badged':
-					emailTemplate = unknownUserBadged;
-					break;
-				case 'transaction-started':
-					emailTemplate = transactionStarted;
-					break;
-				case 'user-account-status-changed':
-					emailTemplate = userAccountStatusChanged;
-					break;
-			}
-			// Template found?
-			if (!emailTemplate) {
-				// No
-				reject(new Error(`No template found for ${templateName}`));
-				return;
-			}
-			// Check for localized template?
-			if (emailTemplate[locale]) {
-				// Set the localized template
-				emailTemplate = emailTemplate[locale];
-			}
-
-			// Render the localized template ---------------------------------------
-			// Render the subject
-			emailTemplate.email.subject = ejs.render(emailTemplate.email.subject, data);
-			// Render Base URL
-			emailTemplate.email.baseURL = ejs.render(emailTemplate.email.baseURL, data);
-			// Render the title
-			emailTemplate.email.body.header.title = ejs.render(emailTemplate.email.body.header.title, data);
-			// Image
-			emailTemplate.email.body.header.image.right.url = ejs.render(emailTemplate.email.body.header.image.right.url, data);
-			// Render  Lines Before Action
-			emailTemplate.email.body.beforeActionLines =
-				emailTemplate.email.body.beforeActionLines.map((beforeActionLine) => {
-					return ejs.render(beforeActionLine, data);
-				});
-			// Render Action
-			if (emailTemplate.email.body.action) {
-				emailTemplate.email.body.action.title =
-					ejs.render(emailTemplate.email.body.action.title, data);
-				emailTemplate.email.body.action.url =
-					ejs.render(emailTemplate.email.body.action.url, data);
-			}
-			// Render Lines After Action
-			emailTemplate.email.body.afterActionLines =
-				emailTemplate.email.body.afterActionLines.map((afterActionLine) => {
-					return ejs.render(afterActionLine, data);
-				});
-
-			// Render the final HTML -----------------------------------------------
-			let subject = ejs.render(mainTemplate.subject, emailTemplate.email);
-			let html = ejs.render(mainTemplate.html, emailTemplate.email);
-
-			// Send the email
-			this.sendEmail({
-				to: (data.user?data.user.email:null),
-				subject: subject,
-				text: html,
-				html: html
-			}).then((message) => {
-				// User
-				Logging.logInfo({
-					module: "EMailNotificationTask", method: "_prepareAndSendEmail",
-					action: "SendEmail", actionOnUser: data.user,
-					message: `Email has been sent successfully`,
-					detailedMessages: {
-						"subject": subject,
-						"body": html
-					}
-				});
-				// Ok
-				fulfill(message);
-			}, (error) => {
-				reject(error);
-			});
-		} catch (error) {
-			reject(error);
+		// Get the template dir
+		switch (templateName) {
+			// Request password
+			case 'request-password':
+				emailTemplate = requestPassword;
+				break;
+			// New password
+			case 'new-password':
+				emailTemplate = newPassword;
+				break;
+			// Registered user
+			case 'new-registered-user':
+				emailTemplate = newRegisteredUser;
+				break;
+			// End of charge
+			case 'end-of-charge':
+				emailTemplate = endOfCharge;
+				break;
+			// Charging Station Status Error
+			case 'charging-station-status-error':
+				emailTemplate = chargingStationStatusError;
+				break;
+			case 'unknown-user-badged':
+				emailTemplate = unknownUserBadged;
+				break;
+			case 'transaction-started':
+				emailTemplate = transactionStarted;
+				break;
+			case 'user-account-status-changed':
+				emailTemplate = userAccountStatusChanged;
+				break;
 		}
+		// Template found?
+		if (!emailTemplate) {
+			// No
+			reject(new Error(`No template found for ${templateName}`));
+			return;
+		}
+		// Check for localized template?
+		if (emailTemplate[locale]) {
+			// Set the localized template
+			emailTemplate = emailTemplate[locale];
+		}
+
+		// Render the localized template ---------------------------------------
+		// Render the subject
+		emailTemplate.email.subject = ejs.render(emailTemplate.email.subject, data);
+		// Render Base URL
+		emailTemplate.email.baseURL = ejs.render(emailTemplate.email.baseURL, data);
+		// Render the title
+		emailTemplate.email.body.header.title = ejs.render(emailTemplate.email.body.header.title, data);
+		// Image
+		emailTemplate.email.body.header.image.right.url = ejs.render(emailTemplate.email.body.header.image.right.url, data);
+		// Render  Lines Before Action
+		emailTemplate.email.body.beforeActionLines =
+			emailTemplate.email.body.beforeActionLines.map((beforeActionLine) => {
+				return ejs.render(beforeActionLine, data);
+			});
+		// Render Action
+		if (emailTemplate.email.body.action) {
+			emailTemplate.email.body.action.title =
+				ejs.render(emailTemplate.email.body.action.title, data);
+			emailTemplate.email.body.action.url =
+				ejs.render(emailTemplate.email.body.action.url, data);
+		}
+		// Render Lines After Action
+		emailTemplate.email.body.afterActionLines =
+			emailTemplate.email.body.afterActionLines.map((afterActionLine) => {
+				return ejs.render(afterActionLine, data);
+			});
+
+		// Render the final HTML -----------------------------------------------
+		let subject = ejs.render(mainTemplate.subject, emailTemplate.email);
+		let html = ejs.render(mainTemplate.html, emailTemplate.email);
+
+		// Send the email
+		return this.sendEmail({
+			to: (data.user?data.user.email:null),
+			subject: subject,
+			text: html,
+			html: html
+		}).then((message) => {
+			// User
+			Logging.logInfo({
+				module: "EMailNotificationTask", method: "_prepareAndSendEmail",
+				action: "SendEmail", actionOnUser: data.user,
+				message: `Email has been sent successfully`,
+				detailedMessages: {
+					"subject": subject,
+					"body": html
+				}
+			});
+			// Ok
+			fulfill(message);
+		}).catch((error) => {
+			reject(error);
+		});
 	}
 
 	sendEmail(email) {
