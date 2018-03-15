@@ -5,6 +5,11 @@ module.exports.email = {
 		"header": {
 			"title": "Your Account is <%- (user.status === 'A' ? 'Active' : 'Supended'); %>!",
 			"image": {
+				"left": {
+					"width": 150,
+					"height": 60,
+					"url": "chargeAngelsLogo"
+				},
 				"right": {
 					"width": 50,
 					"height": 50,
@@ -38,6 +43,11 @@ module.exports.fr_FR.email = {
 		"header": {
 			"title": "Votre Compte est <%- (user.status === 'A' ? 'Activé' : 'Suspendu'); %>!",
 			"image": {
+				"left": {
+					"width": 150,
+					"height": 60,
+					"url": "chargeAngelsLogo"
+				},
 				"right": {
 					"width": 50,
 					"height": 50,

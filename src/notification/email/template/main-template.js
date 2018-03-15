@@ -10,14 +10,18 @@ module.exports.html = `
 						<table width="768" border="0" cellspacing="0" cellpadding="0">
 							<tr height="70">
 								<td width="180" align="center">
-									<center><img width="150" height="50" alt="Logo" src="<%- baseURL %>/assets/img/angel-wings-low.gif"></center>
+									<img width="<%- body.header.image.left.width %>"
+										height="<%- body.header.image.left.height %>"
+										alt="Logo"
+										src="<%- body.header.image.left.url %>">
 								</td>
 								<td align="center" style="border-color:white;border-width: 2px;border-left-style: solid;border-right-style: solid;">
 									<font size="5" color="white" face="sans-serif"><b><%- body.header.title %></b></font>
 								</td>
 								<td width="180" align="center">
 									<img width="<%- body.header.image.right.width %>"
-										height="<%- body.header.image.right.height %>" alt="Image"
+										height="<%- body.header.image.right.height %>"
+										alt="Logo"
 										src="<%- body.header.image.right.url %>">
 								</td>
 							</tr>

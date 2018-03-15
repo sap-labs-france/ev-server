@@ -1,6 +1,7 @@
 const Configuration = require('../../utils/Configuration');
 const Logging = require('../../utils/Logging');
 const Utils = require('../../utils/Utils');
+const Constants = require('../../utils/Constants');
 const nodemailer = require('nodemailer');
 const path = require('path');
 const email = require("emailjs");
@@ -155,7 +156,9 @@ class EMailNotificationTask extends NotificationTask {
 		emailTemplate.email.baseURL = ejs.render(emailTemplate.email.baseURL, data);
 		// Render the title
 		emailTemplate.email.body.header.title = ejs.render(emailTemplate.email.body.header.title, data);
-		// Image
+		// Charge Angels Logo
+		emailTemplate.email.body.header.image.left.url = Constants.LOGO_CHARGE_ANGELS_EMAIL;
+		// Company Logo
 		emailTemplate.email.body.header.image.right.url = ejs.render(emailTemplate.email.body.header.image.right.url, data);
 		// Render  Lines Before Action
 		emailTemplate.email.body.beforeActionLines =

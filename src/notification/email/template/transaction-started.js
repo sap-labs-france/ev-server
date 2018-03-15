@@ -5,6 +5,11 @@ module.exports.email = {
 		"header": {
 			"title": "Successfully Connected!",
 			"image": {
+				"left": {
+					"width": 150,
+					"height": 60,
+					"url": "chargeAngelsLogo"
+				},
 				"right": {
 					"width": 100,
 					"height": 60,
@@ -38,6 +43,11 @@ module.exports.fr_FR.email = {
 		"header": {
 			"title": "Connecté avec Succès!",
 			"image": {
+				"left": {
+					"width": 150,
+					"height": 60,
+					"url": "chargeAngelsLogo"
+				},
 				"right": {
 					"width": 100,
 					"height": 60,

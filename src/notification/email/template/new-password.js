@@ -5,6 +5,11 @@ module.exports.email = {
 		"header": {
 			"title": "New Password",
 			"image": {
+				"left": {
+					"width": 150,
+					"height": 60,
+					"url": "chargeAngelsLogo"
+				},
 				"right": {
 					"width": 50,
 					"height": 50,
@@ -40,6 +45,11 @@ module.exports.fr_FR.email = {
 		"header": {
 			"title": "Nouveau Mot De Passe",
 			"image": {
+				"left": {
+					"width": 150,
+					"height": 60,
+					"url": "chargeAngelsLogo"
+				},
 				"right": {
 					"width": 50,
 					"height": 50,
