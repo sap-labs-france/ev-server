@@ -47,7 +47,6 @@ module.exports = {
 		dest.connectors = [];
 		if (src.connectors) {
 			// Set
-			console.log(src.connectors);
 			src.connectors.forEach((connector) => {
 				if (connector) {
 					dest.connectors.push({
