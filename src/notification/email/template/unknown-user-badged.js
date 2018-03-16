@@ -11,8 +11,8 @@ module.exports.email = {
 					"url": "<%- evseDashboardURL %>/assets/img/angel-wings-email.gif"
 				},
 				"right": {
-					"width": 100,
-					"height": 60,
+					"width": 50,
+					"height": 50,
 					"url": "<%- evseDashboardURL %>/assets/img/info.png"
 				}
 			}
@@ -49,8 +49,8 @@ module.exports.fr_FR.email = {
 					"url": "<%- evseDashboardURL %>/assets/img/angel-wings-email.gif"
 				},
 				"right": {
-					"width": 100,
-					"height": 60,
+					"width": 50,
+					"height": 50,
 					"url": "<%- evseDashboardURL %>/assets/img/info.png"
 				}
 			}
