@@ -190,7 +190,6 @@ class EMailNotificationTask extends NotificationTask {
 		let subject = ejs.render(mainTemplate.subject, emailTemplate.email);
 		let html = ejs.render(mainTemplate.html, emailTemplate.email);
 
-		console.log(html);
 		// Send the email
 		return this.sendEmail({
 			to: (data.user?data.user.email:null),
