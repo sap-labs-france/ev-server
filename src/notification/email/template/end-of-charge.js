@@ -20,17 +20,19 @@ module.exports.email = {
 		"beforeActionLines": [
 			"Hi <%- (user.firstName?user.firstName:user.name) %>,",
 			"",
-			"Your electric vehicle, which is connected to <b><%- chargingBoxID %></b>, has finished charging.",
-			"",
-			"The total consumption is: <b><%- totalConsumption %> kW.h</b>.",
-			"",
-			"You can now stop the session and move your car."
+			"Your electric vehicle, which is connected to <b><%- chargingBoxID %></b>, has finished charging."
+		],
+		"stats": [
+			{ "label": "Consumption", "value": "<%- totalConsumption %> kW.h" },
+			{ "label": "Current Duration", "value": "<%- totalDuration %>" }
 		],
 		"action": {
 			"title": "View Session",
 			"url": "<%- evseDashboardChargingStationURL %>"
 		},
 		"afterActionLines": [
+			"You can now stop the session and move your car.",
+			"",
 			"Best Regards,",
 			"EV Admin."
 		],
@@ -62,17 +64,19 @@ module.exports.fr_FR.email = {
 		"beforeActionLines": [
 			"Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
 			"",
-			"Votre véhicule électrique, qui est connecté sur <b><%- chargingBoxID %></b>, a terminé sa charge.",
-			"",
-			"La consommation totale est de : <b><%- totalConsumption %> kW.h</b>.",
-			"",
-			"Vous pouvez maintenant stopper la session et deplacer votre vehicule."
+			"Votre véhicule électrique, qui est connecté sur <b><%- chargingBoxID %></b>, a terminé sa charge."
+		],
+		"stats": [
+			{ "label": "Consommation", "value": "<%- totalConsumption %> kW.h" },
+			{ "label": "Durée Actuelle", "value": "<%- totalDuration %>" }
 		],
 		"action": {
 			"title": "Voir Session",
 			"url": "<%- evseDashboardChargingStationURL %>"
 		},
 		"afterActionLines": [
+			"Vous pouvez maintenant stopper la session et deplacer votre véhicule.",
+			"",
 			"Cordialement,",
 			"EV Admin."
 		],

@@ -160,11 +160,20 @@ class EMailNotificationTask extends NotificationTask {
 		emailTemplate.email.body.header.image.left.url = Constants.LOGO_CHARGE_ANGELS_EMAIL;
 		// Company Logo
 		emailTemplate.email.body.header.image.right.url = ejs.render(emailTemplate.email.body.header.image.right.url, data);
-		// Render  Lines Before Action
+		// Render Lines Before Action
 		emailTemplate.email.body.beforeActionLines =
 			emailTemplate.email.body.beforeActionLines.map((beforeActionLine) => {
 				return ejs.render(beforeActionLine, data);
 			});
+		// Render Stats
+		if (emailTemplate.email.body.stats) {
+			emailTemplate.email.body.stats =
+				emailTemplate.email.body.stats.map((stat) => {
+					stat.label = ejs.render(stat.label, data);
+					stat.value = ejs.render(stat.value, data);
+					return stat;
+				});
+		}
 		// Render Action
 		if (emailTemplate.email.body.action) {
 			emailTemplate.email.body.action.title =
@@ -177,7 +186,6 @@ class EMailNotificationTask extends NotificationTask {
 			emailTemplate.email.body.afterActionLines.map((afterActionLine) => {
 				return ejs.render(afterActionLine, data);
 			});
-
 		// Render the final HTML -----------------------------------------------
 		let subject = ejs.render(mainTemplate.subject, emailTemplate.email);
 		let html = ejs.render(mainTemplate.html, emailTemplate.email);

@@ -459,6 +459,7 @@ class ChargingStation {
 									"totalConsumption": (this.getConnectors()[transaction.connectorId-1].totalConsumption/1000).toLocaleString(
 										(transaction.user.locale ? transaction.user.locale.replace('_','-') : Users.DEFAULT_LOCALE.replace('_','-')),
 										{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
+									"totalDuration": this._buildCurrentTransactionDuration(transaction),
 									"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
 									"evseDashboardURL" : Utils.buildEvseURL(),
 									"notifStopTransactionAndUnlockConnector": _configChargingStation.notifStopTransactionAndUnlockConnector
@@ -509,6 +510,25 @@ class ChargingStation {
 				}
 			}
 		}
+	}
+
+	// Build duration
+	_buildCurrentTransactionDuration(transaction, i18nHourShort="h") {
+		// Build date
+		let dateTimeString, timeDiffDuration;
+
+		// Compute duration from now
+		timeDiffDuration = moment.duration(
+			moment().diff(moment(transaction.timestamp))
+		);
+		// Set duration
+		let mins = Math.floor(timeDiffDuration.minutes());
+		// Set duration
+		dateTimeString =
+			Math.floor(timeDiffDuration.asHours()).toString() + i18nHourShort +
+			(mins < 10 ? ("0" + mins) : mins.toString());
+		// End
+		return dateTimeString;
 	}
 
 	handleMeterValues(meterValues) {

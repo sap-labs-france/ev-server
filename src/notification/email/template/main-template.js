@@ -42,6 +42,30 @@ module.exports.html = `
 						</td>
 					</tr>
 				<% } %>
+				<!-- Stats -->
+				<% if (body.stats) { %>
+					<% for (var i = 0; i < body.stats.length; i++) { %>
+						<tr><td colspan="3" style="padding: 15px 0 0 0;">&nbsp;</td></tr>
+						<tr>
+							<td align="center" colspan="3" style="background-color: #356964;border-radius: 10px;">
+								<table width="100%" bgcolor="white" border="0" cellspacing="0" cellpadding="0">
+									<tr>
+										<td style="width: 30%;"></td>
+										<td align="center" height="80" style="line-height:1.3;background-color: #356964;border-radius: 10px;">
+											<font size="4" color="white" face="sans-serif">
+												<%- body.stats[i].label %><br/>
+											</font>
+											<font size="6" color="white" face="sans-serif">
+												<b><%- body.stats[i].value %></b>
+											</font>
+										</td>
+										<td style="width: 30%;"></td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+					<% } %>
+				<% } %>
 				<!-- Action -->
 				<% if (body.action) { %>
 					<tr><td colspan="3" style="padding: 10px 0;">&nbsp;</td></tr>
