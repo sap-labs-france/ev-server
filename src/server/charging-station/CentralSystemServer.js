@@ -84,7 +84,9 @@ class CentralSystemServer {
 		args.timestamp = args.lastReboot;
 
 		// Get the charging station
-		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
+		let chargingStation;
+		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((foundChargingStation) => {
+			chargingStation = foundChargingStation;
 			if (!chargingStation) {
 				// Save Charging Station
 				chargingStation = new ChargingStation(args);
@@ -101,32 +103,15 @@ class CentralSystemServer {
 		}).then(() => {
 			// Save the Boot Notification
 			return chargingStation.handleBootNotification(args);
-		}).then(() => {
-			// Log
-			Logging.logInfo({
-				source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleBootNotification",
-				action: "BootNotification", message: `Changing Station has just rebooted`,
-				detailedMessages: args });
-			// Get the Charging Station Config
-			return chargingStation.requestGetConfiguration();
-		// Save the config
-		}).then((configuration) => {
-			if (!configuration) {
-				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`Cannot retrieve the configuration of ${headers.chargeBoxIdentity}`,
-					550, "CentralSystemServer", "handleBootNotification");
-			}
-			// Save it
-			return chargingStation.saveConfiguration(configuration);
 		// Return the result
 		}).then(() => {
 			// Log
-			Logging.logInfo({
+			Logging.logDebug({
 				source: headers.chargeBoxIdentity,
 				module: "CentralSystemServer", method: "handleBootNotification",
 				action: "BootNotification",
-				message: `Charging Station's configuration has been updated` });
+				message: `Reboot with success`,
+				detailedMessages: args });
 
 			// Return the result
 			// OCPP 1.6
@@ -170,8 +155,8 @@ class CentralSystemServer {
 			// Found?
 			if (!chargingStation) {
 				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
+					headers.chargeBoxIdentity,
+					`Charging Station does not exist`,
 					550, "CentralSystemServer", "handleHeartBeat");
 			}
 			// Set Heartbeat
@@ -209,8 +194,8 @@ class CentralSystemServer {
 			// Found?
 			if (!chargingStation) {
 				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
+					headers.chargeBoxIdentity,
+					`Charging Station does not exist`,
 					550, "CentralSystemServer", "handleStatusNotification");
 			}
 			// Check if error
@@ -272,8 +257,8 @@ class CentralSystemServer {
 			// Found?
 			if (!chargingStation) {
 				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
+					headers.chargeBoxIdentity,
+					`Charging Station does not exist`,
 					550, "CentralSystemServer", "handleMeterValues");
 			}
 			// Save
@@ -305,8 +290,8 @@ class CentralSystemServer {
 			// Found?
 			if (!chargingStation) {
 				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
+					headers.chargeBoxIdentity,
+					`Charging Station does not exist`,
 					550, "CentralSystemServer", "handleAuthorize");
 			}
 			// Save
@@ -357,8 +342,8 @@ class CentralSystemServer {
 			// Found?
 			if (!chargingStation) {
 				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
+					headers.chargeBoxIdentity,
+					`Charging Station does not exist`,
 					550, "CentralSystemServer", "handleDiagnosticsStatusNotification");
 			}
 			// Save
@@ -390,8 +375,8 @@ class CentralSystemServer {
 			// Found?
 			if (!chargingStation) {
 				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
+					headers.chargeBoxIdentity,
+					`Charging Station does not exist`,
 					550, "CentralSystemServer", "handleFirmwareStatusNotification");
 			}
 			// Save
@@ -422,8 +407,8 @@ class CentralSystemServer {
 			// Found?
 			if (!chargingStation) {
 				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
+					headers.chargeBoxIdentity,
+					`Charging Station does not exist`,
 					550, "CentralSystemServer", "handleStartTransaction");
 			}
 			// Save
@@ -475,8 +460,8 @@ class CentralSystemServer {
 			// Found?
 			if (!chargingStation) {
 				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
+					headers.chargeBoxIdentity,
+					`Charging Station does not exist`,
 					550, "CentralSystemServer", "handleDataTransfer");
 			}
 			// Save
@@ -510,8 +495,8 @@ class CentralSystemServer {
 			// Found?
 			if (!chargingStation) {
 				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`The Charging Station with ID '${headers.chargeBoxIdentity}' does not exist`,
+					headers.chargeBoxIdentity,
+					`Charging Station does not exist`,
 					550, "CentralSystemServer", "handleStopTransaction");
 			}
 			// Save

@@ -20,6 +20,9 @@ class NotificationTask {
 
 	sendTransactionStarted(data, locale) {
 	}
+
+	sendChargingStationRegistered(data, locale) {
+	}
 }
 
 module.exports = NotificationTask;

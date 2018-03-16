@@ -18,7 +18,7 @@ module.exports.email = {
 			}
 		},
 		"beforeActionLines": [
-			"Hi,",
+			"Hi Admin,",
 			"",
 			"An unknown user has just badged on <b><%- chargingBoxID %></b> with the badge ID <b><%- badgeId %></b>."
 		],
@@ -56,7 +56,7 @@ module.exports.fr_FR.email = {
 			}
 		},
 		"beforeActionLines": [
-			"Bonjour,",
+			"Bonjour Admin,",
 			"",
 			"Un utilisateur inconnu vient juste de badger sur <b><%- chargingBoxID %></b> avec le badge ID <b><%- badgeId %></b>."
 		],

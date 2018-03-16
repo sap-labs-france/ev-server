@@ -61,11 +61,18 @@ module.exports = {
 		return _evseBaseURL + "/#/pages/users/user/" + user.getID();
 	},
 
-	buildEvseChargingStationURL(chargingStation, connectorId) {
+	buildEvseChargingStationURL(chargingStation, connectorId=null) {
 		let _evseBaseURL = this.buildEvseURL();
-		// Add : https://localhost:8080/#/pages/chargers/charger/REE001
-		return _evseBaseURL + "/#/pages/chargers/charger/" + chargingStation.getID() +
-		"/connector/" + connectorId;
+
+		// Connector provided?
+		if (connectorId > 0) {
+			// URL with connector
+			return _evseBaseURL + "/#/pages/chargers/charger/" + chargingStation.getID() +
+				"/connector/" + connectorId;
+		} else {
+			// URL with charger only
+			return _evseBaseURL + "/#/pages/chargers/charger/" + chargingStation.getID();
+		}
 	},
 
 	buildEvseTransactionURL(chargingStation, connectorId, transactionId) {

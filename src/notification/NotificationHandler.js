@@ -10,6 +10,7 @@ _email = new EMailNotificationTask();
 
 const CHANNEL_EMAIL = "email";
 const SOURCE_CHARGING_STATION_STATUS_ERROR = "NotifyChargingStationStatusError";
+const SOURCE_CHARGING_STATION_REGISTERED = "NotifyChargingStationRegistered";
 const SOURCE_END_OF_CHARGE = "NotifyEndOfCharge";
 const SOURCE_NEW_PASSWORD = "NotifyNewPassword";
 const SOURCE_REQUEST_PASSWORD = "NotifyRequestPassword";
@@ -171,6 +172,23 @@ class NotificationHandler {
 			}).catch((error) => {
 				// Log error
 				Logging.logActionExceptionMessage(SOURCE_CHARGING_STATION_STATUS_ERROR, error);
+			});
+		} else {
+			return Promise.resolve();
+		}
+	}
+
+	static sendChargingStationRegistered(sourceId, chargingStation, sourceData) {
+		// Email enabled?
+		if (_notificationConfig.Email.enabled) {
+			// Save notif
+			return NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+					SOURCE_CHARGING_STATION_REGISTERED, null, chargingStation).then(() => {
+				// Send email
+				return _email.sendChargingStationRegistered(sourceData, Users.DEFAULT_LOCALE);
+			}).catch((error) => {
+				// Log error
+				Logging.logActionExceptionMessage(SOURCE_CHARGING_STATION_REGISTERED, error);
 			});
 		} else {
 			return Promise.resolve();

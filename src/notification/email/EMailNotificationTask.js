@@ -8,6 +8,7 @@ const email = require("emailjs");
 const ejs = require('ejs');
 const mainTemplate = require('./template/main-template.js');
 const requestPassword = require('./template/request-password.js');
+const chargingStationRegistered = require('./template/charging-station-registered.js');
 const newPassword = require('./template/new-password.js');
 const newRegisteredUser = require('./template/new-registered-user.js');
 const userAccountStatusChanged = require('./template/user-account-status-changed.js');
@@ -77,6 +78,14 @@ class EMailNotificationTask extends NotificationTask {
 		});
 	}
 
+	sendChargingStationRegistered(data, locale) {
+		// Create a promise
+		return new Promise((fulfill, reject) => {
+			// Send it
+			this._prepareAndSendEmail('charging-station-registered', data, locale, fulfill, reject);
+		});
+	}
+
 	sendUserAccountStatusChanged(data, locale) {
 		// Create a promise
 		return new Promise((fulfill, reject) => {
@@ -135,6 +144,9 @@ class EMailNotificationTask extends NotificationTask {
 				break;
 			case 'user-account-status-changed':
 				emailTemplate = userAccountStatusChanged;
+				break;
+			case 'charging-station-registered':
+				emailTemplate = chargingStationRegistered;
 				break;
 		}
 		// Template found?

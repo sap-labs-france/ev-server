@@ -47,15 +47,20 @@ module.exports = {
 		dest.connectors = [];
 		if (src.connectors) {
 			// Set
+			console.log(src.connectors);
 			src.connectors.forEach((connector) => {
-				dest.connectors.push({
-					"connectorId": connector.connectorId,
-					"currentConsumption": connector.currentConsumption,
-					"totalConsumption": connector.totalConsumption,
-					"status": connector.status,
-					"errorCode": connector.errorCode,
-					"power": connector.power
-				});
+				if (connector) {
+					dest.connectors.push({
+						"connectorId": connector.connectorId,
+						"currentConsumption": connector.currentConsumption,
+						"totalConsumption": connector.totalConsumption,
+						"status": connector.status,
+						"errorCode": connector.errorCode,
+						"power": connector.power
+					});
+				} else {
+					dest.connectors.push(null);
+				}
 			});
 		}
 		this.updateCreatedAndLastChanged(src, dest);

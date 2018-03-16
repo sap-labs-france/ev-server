@@ -1,9 +1,9 @@
 module.exports.email = {
-	"subject": "<%- chargeBoxID %> - Connector <%- connectorId %> - <%- error %>",
+	"subject": "<%- chargeBoxID %> connected to the central server",
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
-			"title": "Charger Error",
+			"title": "Charger Connected!",
 			"image": {
 				"left": {
 					"width": 150,
@@ -20,10 +20,10 @@ module.exports.email = {
 		"beforeActionLines": [
 			"Hi Admin,",
 			"",
-			"Error occurred on <b><%- chargeBoxID %></b> - <b>Connector <%- connectorId %></b>: <b><%- error %></b>."
+			"<b><%- chargeBoxID %></b> just got connected to the central server."
 		],
 		"action": {
-			"title": "View Error",
+			"title": "View <%- chargeBoxID %>",
 			"url": "<%- evseDashboardChargingStationURL %>"
 		},
 		"afterActionLines": [
@@ -37,11 +37,11 @@ module.exports.email = {
 
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
-	"subject": "<%- chargeBoxID %> - Connecteur <%- connectorId %> - <%- error %>",
+	"subject": "<%- chargeBoxID %> connectée au serveur central",
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
-			"title": "Erreur Borne",
+			"title": "Borne Connectée!",
 			"image": {
 				"left": {
 					"width": 150,
@@ -58,10 +58,10 @@ module.exports.fr_FR.email = {
 		"beforeActionLines": [
 			"Bonjour Admin,",
 			"",
-			"Une erreur est survenue sur <b><%- chargeBoxID %></b> - <b>Connector <%- connectorId %></b>: <b><%- error %></b>."
+			"<b><%- chargeBoxID %></b> vient de se connecter au central serveur."
 		],
 		"action": {
-			"title": "Voir Erreur",
+			"title": "Voir <%- chargeBoxID %>",
 			"url": "<%- evseDashboardChargingStationURL %>"
 		},
 		"afterActionLines": [
