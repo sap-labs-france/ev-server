@@ -157,7 +157,7 @@ class EMailNotificationTask extends NotificationTask {
 		// Render the title
 		emailTemplate.email.body.header.title = ejs.render(emailTemplate.email.body.header.title, data);
 		// Charge Angels Logo
-		emailTemplate.email.body.header.image.left.url = Constants.LOGO_CHARGE_ANGELS_EMAIL;
+		emailTemplate.email.body.header.image.left.url = ejs.render(emailTemplate.email.body.header.image.left.url, data);;
 		// Company Logo
 		emailTemplate.email.body.header.image.right.url = ejs.render(emailTemplate.email.body.header.image.right.url, data);
 		// Render Lines Before Action
@@ -190,6 +190,7 @@ class EMailNotificationTask extends NotificationTask {
 		let subject = ejs.render(mainTemplate.subject, emailTemplate.email);
 		let html = ejs.render(mainTemplate.html, emailTemplate.email);
 
+		console.log(html);
 		// Send the email
 		return this.sendEmail({
 			to: (data.user?data.user.email:null),

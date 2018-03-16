@@ -21,7 +21,7 @@ module.exports.html = `
 								<td width="180" align="center">
 									<img width="<%- body.header.image.right.width %>"
 										height="<%- body.header.image.right.height %>"
-										alt="Logo"
+										alt="Image"
 										src="<%- body.header.image.right.url %>">
 								</td>
 							</tr>

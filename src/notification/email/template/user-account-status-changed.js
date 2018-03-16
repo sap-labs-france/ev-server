@@ -8,7 +8,7 @@ module.exports.email = {
 				"left": {
 					"width": 150,
 					"height": 60,
-					"url": "chargeAngelsLogo"
+					"url": "<%- evseDashboardURL %>/assets/img/angel-wings-email.gif"
 				},
 				"right": {
 					"width": 50,
@@ -46,7 +46,7 @@ module.exports.fr_FR.email = {
 				"left": {
 					"width": 150,
 					"height": 60,
-					"url": "chargeAngelsLogo"
+					"url": "<%- evseDashboardURL %>/assets/img/angel-wings-email.gif"
 				},
 				"right": {
 					"width": 50,

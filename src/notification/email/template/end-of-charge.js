@@ -8,12 +8,12 @@ module.exports.email = {
 				"left": {
 					"width": 150,
 					"height": 60,
-					"url": "chargeAngelsLogo"
+					"url": "<%- evseDashboardURL %>/assets/img/angel-wings-email.gif"
 				},
 				"right": {
 					"width": 100,
 					"height": 60,
-					"url": "<%- companyLogo ? companyLogo : evseDashboardURL + '/assets/img/theme/no-logo.jpg' %>"
+					"url": "<%- evseDashboardURL %>/assets/img/info.png"
 				}
 			}
 		},
@@ -52,12 +52,12 @@ module.exports.fr_FR.email = {
 				"left": {
 					"width": 150,
 					"height": 60,
-					"url": "chargeAngelsLogo"
+					"url": "<%- evseDashboardURL %>/assets/img/angel-wings-email.gif"
 				},
 				"right": {
 					"width": 100,
 					"height": 60,
-					"url": "<%- companyLogo ? companyLogo : evseDashboardURL + '/assets/img/theme/no-logo.jpg' %>"
+					"url": "<%- evseDashboardURL %>/assets/img/info.png"
 				}
 			}
 		},
