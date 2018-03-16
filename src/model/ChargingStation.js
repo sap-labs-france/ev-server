@@ -353,6 +353,29 @@ class ChargingStation {
 				// Save Status
 				return global.storage.saveChargingStationConnector(
 					this.getModel(), statusNotification.connectorId);
+
+			}).then(() => {
+				// Check if error
+				if (statusNotification.status === "Faulted") {
+					// Log
+					Logging.logError({
+						source: this.getID(),
+						module: "ChargingStation", method: "handleStatusNotification",
+						action: "StatusNotification",
+						message: `Error on connector ${statusNotification.connectorId}: ${statusNotification.status} - ${statusNotification.errorCode}` });
+					// Send Notification
+					NotificationHandler.sendChargingStationStatusError(
+						Utils.generateGUID(),
+						this.getModel(),
+						{
+							"chargeBoxID": this.getID(),
+							"connectorId": statusNotification.connectorId,
+							"error": `${statusNotification.status} - ${statusNotification.errorCode}`,
+							"evseDashboardURL" : Utils.buildEvseURL(),
+							"evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(this, statusNotification.connectorId)
+						}
+					);
+				}
 			});
 		})(connectors[statusNotification.connectorId-1]);
 	}

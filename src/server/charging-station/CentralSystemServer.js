@@ -198,35 +198,6 @@ class CentralSystemServer {
 					`Charging Station does not exist`,
 					550, "CentralSystemServer", "handleStatusNotification");
 			}
-			// Check if error
-			if (args.status === "Faulted") {
-				// Get the company logo
-				chargingStation.getCompany().then((company) => {
-					// Get the logo
-					return company.getLogo();
-				}).then((companyLogo) => {
-					// Log
-					Logging.logError({
-						source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStatusNotification",
-						action: "StatusNotification", message: `The Charging Station '${headers.chargeBoxIdentity}' has reported an error on connector ${args.connectorId}: ${args.status} - ${args.errorCode}` });
-					// Send Notification
-					NotificationHandler.sendChargingStationStatusError(
-						Utils.generateGUID(),
-						chargingStation.getModel(),
-						{
-							"chargeBoxID": chargingStation.getID(),
-							"connectorId": args.connectorId,
-							"companyLogo": companyLogo.logo,
-							"error": `${args.status} - ${args.errorCode}`,
-							"evseDashboardURL" : Utils.buildEvseURL(),
-							"evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(chargingStation, args.connectorId)
-						}
-					);
-				}).catch((error) => {
-					// Log error
-					Logging.logActionExceptionMessage("StatusNotification", error);
-				});
-			}
 			// Save
 			return chargingStation.handleStatusNotification(args);
 		}).then(() => {
