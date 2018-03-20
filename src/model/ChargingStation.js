@@ -927,6 +927,20 @@ class ChargingStation {
 				throw new Error(`The Transaction ID '${stopTransaction.transactionId}' does not exist`);
 			}
 		}).then((consumption) => {
+			// Compute total inactivity seconds
+			stopTransaction.totalInactivitySecs = 0;
+			consumption.values.forEach((value, index) => {
+				// Don't check the first
+				if (index > 0) {
+					// Check value + Check Previous value
+					if (value.value == 0 && consumption.values[index-1].value == 0) {
+						// Add the inactivity in secs
+						stopTransaction.totalInactivitySecs += moment.duration(
+							moment(value.date).diff(moment(consumption.values[index-1].date))
+						).asSeconds();
+					}
+				}
+			});
 			// Set the total consumption (optimization)
 			stopTransaction.totalConsumption = consumption.totalConsumption;
 			// User Provided?

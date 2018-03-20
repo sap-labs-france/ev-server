@@ -7,7 +7,8 @@ const StopTransaction = new mongoose.Schema({
 	meterStop: Number,
 	reason : String,
 	transactionData: [],
-	totalConsumption: Number
+	totalConsumption: Number,
+	totalInactivitySecs: Number
 });
 
 module.exports = mongoose.model('Transaction',{
