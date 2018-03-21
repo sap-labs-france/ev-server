@@ -102,6 +102,8 @@ global.storage.start().then(() => {
 		// -------------------------------------------------------------------------
 		SchedulerManager.init();
 	}).catch((error) => {
+		// Log in the console also
+		console.log(error);
 		// Log
 		Logging.logError({
 			source: "BootStrap", module: "start", method: "-", action: "Migrate",

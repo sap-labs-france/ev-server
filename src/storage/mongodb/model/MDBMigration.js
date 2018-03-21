@@ -4,5 +4,6 @@ module.exports = mongoose.model('Migration', {
 	_id: String,
 	timestamp: Date,
 	name: String,
-	version: String
+	version: String,
+	durationSecs: Number
 });
