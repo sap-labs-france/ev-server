@@ -223,6 +223,24 @@ module.exports = {
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
+	updateCar(src, dest) {
+		this.updateID(src, dest);
+		dest.manufacturer = src.manufacturer;
+		dest.model = src.model;
+		dest.batteryKW = src.batteryKW;
+		dest.autonomyKmWLTP = src.autonomyKmWLTP;
+		dest.autonomyKmReal = src.autonomyKmReal;
+		dest.horsePower = src.horsePower;
+		dest.torqueNm = src.torqueNm;
+		dest.performance0To100kmh = src.performance0To100kmh;
+		dest.weightKg = src.weightKg;
+		dest.lengthMeter = src.lengthMeter;
+		dest.widthMeter = src.widthMeter;
+		dest.heightMeter = src.heightMeter;
+		dest.image = src.image;
+		this.updateCreatedAndLastChanged(src, dest);
+	},
+
 	updateAddress(src, dest) {
 		if (src) {
 			dest.address1 = src.address1;

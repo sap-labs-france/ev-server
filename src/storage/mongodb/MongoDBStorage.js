@@ -7,6 +7,7 @@ const PricingStorage = require('./storage/PricingStorage');
 const TransactionStorage = require('./storage/TransactionStorage');
 const NotificationStorage = require('./storage/NotificationStorage');
 const UserStorage = require('./storage/UserStorage');
+const CarStorage = require('./storage/CarStorage');
 const CompanyStorage = require('./storage/CompanyStorage');
 const SiteStorage = require('./storage/SiteStorage');
 const SiteAreaStorage = require('./storage/SiteAreaStorage');
@@ -59,6 +60,7 @@ class MongoDBStorage extends Storage {
 		CompanyStorage.setCentralRestServer(centralRestServer);
 		SiteStorage.setCentralRestServer(centralRestServer);
 		SiteAreaStorage.setCentralRestServer(centralRestServer);
+		CarStorage.setCentralRestServer(centralRestServer);
 	}
 
 	getEndUserLicenseAgreement(language="en") {
@@ -318,21 +320,9 @@ class MongoDBStorage extends Storage {
 		return CompanyStorage.handleDeleteCompany(id);
 	}
 
-	getSites(searchValue, companyID=null, withCompany=false, withSiteAreas=false,
-			withChargeBoxes=false, numberOfSite=500) {
-		// Delegate
-		return SiteStorage.handleGetSites(searchValue, companyID, withCompany, withSiteAreas,
-			withChargeBoxes, numberOfSite);
-	}
-
 	saveCompany(company) {
 		// Delegate
 		return CompanyStorage.handleSaveCompany(company);
-	}
-
-	saveSite(site) {
-		// Delegate
-		return SiteStorage.handleSaveSite(site);
 	}
 
 	getSiteAreas(searchValue, siteID=null, withChargeBoxes=false, numberOfSiteArea=500) {
@@ -346,14 +336,41 @@ class MongoDBStorage extends Storage {
 		return SiteAreaStorage.handleSaveSiteArea(siteArea);
 	}
 
-	deleteSite(id) {
-		// Delegate
-		return SiteStorage.handleDeleteSite(id);
-	}
-
 	deleteSiteArea(id) {
 		// Delegate
 		return SiteAreaStorage.handleDeleteSiteArea(id);
+	}
+
+	getSiteArea(id, withChargingStations=false, withSite=false) {
+		// Delegate
+		return SiteAreaStorage.handleGetSiteArea(id, withChargingStations, withSite);
+	}
+
+	getSiteAreaImage(id) {
+		// Delegate
+		return SiteAreaStorage.handleGetSiteAreaImage(id);
+	}
+
+	getSiteAreaImages() {
+		// Delegate
+		return SiteAreaStorage.handleGetSiteAreaImages();
+	}
+
+	getSites(searchValue, companyID=null, withCompany=false, withSiteAreas=false,
+			withChargeBoxes=false, numberOfSite=500) {
+		// Delegate
+		return SiteStorage.handleGetSites(searchValue, companyID, withCompany, withSiteAreas,
+			withChargeBoxes, numberOfSite);
+	}
+
+	saveSite(site) {
+		// Delegate
+		return SiteStorage.handleSaveSite(site);
+	}
+
+	deleteSite(id) {
+		// Delegate
+		return SiteStorage.handleDeleteSite(id);
 	}
 
 	getSite(id) {
@@ -371,19 +388,34 @@ class MongoDBStorage extends Storage {
 		return SiteStorage.handleGetSiteImages();
 	}
 
-	getSiteArea(id, withChargingStations=false, withSite=false) {
+	getCars(searchValue, numberOfCar=500) {
 		// Delegate
-		return SiteAreaStorage.handleGetSiteArea(id, withChargingStations, withSite);
+		return CarStorage.handleGetCars(searchValue, numberOfCar);
 	}
 
-	getSiteAreaImage(id) {
+	saveCar(car) {
 		// Delegate
-		return SiteAreaStorage.handleGetSiteAreaImage(id);
+		return CarStorage.handleSaveCar(car);
 	}
 
-	getSiteAreaImages() {
+	deleteCar(id) {
 		// Delegate
-		return SiteAreaStorage.handleGetSiteAreaImages();
+		return CarStorage.handleDeleteCar(id);
+	}
+
+	getCar(id) {
+		// Delegate
+		return CarStorage.handleGetCar(id);
+	}
+
+	getCarImage(id) {
+		// Delegate
+		return CarStorage.handleGetCarImage(id);
+	}
+
+	getCarImages() {
+		// Delegate
+		return CarStorage.handleGetCarImages();
 	}
 }
 

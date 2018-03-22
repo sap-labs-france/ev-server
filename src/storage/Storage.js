@@ -205,6 +205,24 @@ class Storage {
 
 	getUserByTagId(tagID) {
 	}
+
+	getCars(searchValue, numberOfCar=500) {
+	}
+
+	saveCar(car) {
+	}
+
+	deleteCar(id) {
+	}
+
+	getCar(id) {
+	}
+
+	getCarImage(id) {
+	}
+
+	getCarImages() {
+	}
 }
 
 module.exports=Storage;

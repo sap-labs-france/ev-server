@@ -183,6 +183,45 @@ class CentralSystemRestServer {
 		});
 	}
 
+	notifyCarCreated(data) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_CAR,
+			"action": CentralRestServerAuthorization.ACTION_CREATE,
+			"data": data
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_CARS
+		});
+	}
+
+	notifyCarUpdated(data) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_CAR,
+			"action": CentralRestServerAuthorization.ACTION_UPDATE,
+			"data": data
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_CARS
+		});
+	}
+
+	notifyCarDeleted(data) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_CAR,
+			"action": CentralRestServerAuthorization.ACTION_DELETE,
+			"data": data
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_CARS
+		});
+	}
+
 	notifySiteCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
@@ -260,7 +299,7 @@ class CentralSystemRestServer {
 			"entity": CentralRestServerAuthorization.ENTITY_SITE_AREAS
 		});
 	}
-	
+
 	notifyCompanyCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({

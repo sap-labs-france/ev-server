@@ -13,6 +13,8 @@ module.exports = {
 
 	ENTITY_USERS: "Users",
 	ENTITY_USER: "User",
+	ENTITY_CARS: "Cars",
+	ENTITY_CAR: "Car",
 	ENTITY_COMPANIES: "Companies",
 	ENTITY_COMPANY: "Company",
 	ENTITY_SITES: "Sites",
@@ -188,6 +190,36 @@ module.exports = {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_SITE,
 			{ "Action": this.ACTION_DELETE, "SiteID": site.id.toString() });
+	},
+
+	canListCars(loggedUser) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_CARS,
+			{ "Action": this.ACTION_LIST });
+	},
+
+	canReadCar(loggedUser, car) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_CAR,
+			{ "Action": this.ACTION_READ, "CarID": car.id.toString() });
+	},
+
+	canCreateCar(loggedUser) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_CAR,
+			{ "Action": this.ACTION_CREATE });
+	},
+
+	canUpdateCar(loggedUser, car) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_CAR,
+			{ "Action": this.ACTION_UPDATE, "CarID": car.id.toString() });
+	},
+
+	canDeleteCar(loggedUser, car) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_CAR,
+			{ "Action": this.ACTION_DELETE, "CarID": car.id.toString() });
 	},
 
 	canListSiteAreas(loggedUser) {
