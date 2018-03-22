@@ -13,7 +13,7 @@ module.exports = mongoose.model('MeterValue', {
 	chargeBoxID: {type: String, ref: 'ChargingStation'},
 	connectorId: Number,
 	timestamp: { type: Date, index: true },
-	transactionId: Number,
+	transactionId: { type: Number, index: true },
 	value: Number,
 	attribute: Attribute
 });

@@ -48,7 +48,8 @@ class MigrationHandler {
 							source: "Migration", action: "Migration",
 							module: "MigrationHandler", method: "migrate",
 							message: `Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...` });
-
+						// Log in the console also
+						console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`);
 						// Push for run migration
 						proms.push(currentMigrationTask.migrate());
 					}
@@ -65,9 +66,10 @@ class MigrationHandler {
 						source: "Migration", action: "Migration",
 						module: "MigrationHandler", method: "migrate",
 						message: `Task '${currentTask.getName()}' Version '${currentTask.getVersion()}' has run with success in ${result.totalTaskTimeSecs} secs` });
+					// Log in the console also
+					console.log(`Migration Task '${currentTask.getName()}' Version '${currentTask.getVersion()}' has run with success in ${result.totalTaskTimeSecs} secs`);
 					// Save to the DB
-					console.log("currentTask.getName()");
-					console.log(currentTask.getName());
+					// Save the migration
 					promsSaveDB.push(global.storage.saveMigration({
 						name: currentTask.getName(),
 						version: currentTask.getVersion(),
