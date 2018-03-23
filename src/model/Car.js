@@ -5,7 +5,6 @@ class Car {
 	constructor(car) {
 		// Init model
 		this._model = {};
-
 		// Set it
 		Database.updateCar(car, this._model);
 	}
@@ -110,11 +109,11 @@ class Car {
 		return this._model.heightMeter;
 	}
 
-	setModel(model) {
+	setCarModel(model) {
 		this._model.model = model;
 	}
 
-	getModel() {
+	getCarModel() {
 		return this._model.model;
 	}
 
@@ -161,6 +160,7 @@ class Car {
 	}
 
 	save() {
+		console.log(this.getModel());
 		return global.storage.saveCar(this.getModel());
 	}
 
