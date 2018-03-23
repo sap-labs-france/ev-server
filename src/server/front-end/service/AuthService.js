@@ -1,4 +1,4 @@
-const SecurityRestObjectFiltering = require('../SecurityRestObjectFiltering');
+const sanitize = require('mongo-sanitize');
 const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
@@ -18,6 +18,7 @@ const jwt = require('jsonwebtoken');
 const Mustache = require('mustache');
 const moment = require('moment');
 const https = require('https');
+const UtilsSecurity = require('./UtilsService').UtilsSecurity;
 
 let _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 
@@ -46,7 +47,7 @@ class AuthService {
 
 	static handleLogIn(action, req, res, next) {
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterLoginRequest(req.body);
+		let filteredRequest = AuthSecurity.filterLoginRequest(req.body);
 		// Check
 		if (!filteredRequest.email) {
 			Logging.logActionExceptionMessageAndSendResponse(action,
@@ -126,7 +127,7 @@ class AuthService {
 
 	static handleRegisterUser(action, req, res, next) {
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterRegisterUserRequest(req.body);
+		let filteredRequest = AuthSecurity.filterRegisterUserRequest(req.body);
 		// Check
 		if (!filteredRequest.captcha) {
 			Logging.logActionExceptionMessageAndSendResponse(action,
@@ -212,7 +213,7 @@ class AuthService {
 
 	static handleUserPasswordReset(action, req, res, next) {
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterResetPasswordRequest(req.body);
+		let filteredRequest = AuthSecurity.filterResetPasswordRequest(req.body);
 		// Check hash
 		if (!filteredRequest.hash) {
 			// No hash: Send email with init pass hash link
@@ -581,4 +582,39 @@ class AuthService {
 	}
 }
 
-module.exports = AuthService;
+class AuthSecurity {
+	static filterResetPasswordRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.email = sanitize(request.email);
+		filteredRequest.captcha = sanitize(request.captcha);
+		filteredRequest.hash = sanitize(request.hash);
+		return filteredRequest;
+	}
+
+	static filterRegisterUserRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.name = sanitize(request.name);
+		filteredRequest.firstName = sanitize(request.firstName);
+		filteredRequest.email = sanitize(request.email);
+		filteredRequest.password = sanitize(request.passwords.password);
+		filteredRequest.captcha = sanitize(request.captcha);
+		filteredRequest.status = Users.USER_STATUS_PENDING;
+		return filteredRequest;
+	}
+
+	static filterLoginRequest(request) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.email = sanitize(request.email);
+		filteredRequest.password = sanitize(request.password);
+		filteredRequest.acceptEula = sanitize(request.acceptEula);
+		return filteredRequest;
+	}
+}
+
+module.exports = {
+	"AuthService": AuthService,
+	"AuthSecurity": AuthSecurity
+};

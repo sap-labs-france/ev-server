@@ -1,8 +1,9 @@
-const SecurityRestObjectFiltering = require('../SecurityRestObjectFiltering');
+const sanitize = require('mongo-sanitize');
 const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
 const Logging = require('../../../utils/Logging');
 const Utils = require('../../../utils/Utils');
 const Database = require('../../../utils/Database');
+const UtilsSecurity = require('./UtilsService').UtilsSecurity;
 
 class PricingService {
 	static handleGetPricing(action, req, res, next) {
@@ -27,7 +28,7 @@ class PricingService {
 			if (pricing) {
 				res.json(
 					// Filter
-					SecurityRestObjectFiltering.filterPricingResponse(
+					PricingSecurity.filterPricingResponse(
 						pricing, req.user)
 				);
 			} else {
@@ -58,7 +59,7 @@ class PricingService {
 				req.user);
 		}
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterPricingUpdateRequest(req.body, req.user);
+		let filteredRequest = PricingSecurity.filterPricingUpdateRequest(req.body, req.user);
 		// Check
 		if (!filteredRequest.priceKWH || isNaN(filteredRequest.priceKWH)) {
 			Logging.logActionExceptionMessageAndSendResponse(
@@ -89,4 +90,34 @@ class PricingService {
 	}
 }
 
-module.exports = PricingService;
+class PricingSecurity {
+	// Pricing
+	static filterPricingResponse(pricing, loggedUser) {
+		let filteredPricing = {};
+		if (!pricing) {
+			return null;
+		}
+		if (!CentralRestServerAuthorization.isAdmin(loggedUser)) {
+			return null;
+		}
+		// Set
+		filteredPricing.timestamp = pricing.timestamp;
+		filteredPricing.priceKWH = pricing.priceKWH;
+		filteredPricing.priceUnit = pricing.priceUnit;
+		// Return
+		return filteredPricing;
+	}
+
+	static filterPricingUpdateRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.priceKWH = sanitize(request.priceKWH);
+		filteredRequest.priceUnit = sanitize(request.priceUnit);
+		return filteredRequest;
+	}
+}
+
+module.exports = {
+	"PricingService": PricingService,
+	"PricingSecurity": PricingSecurity
+};

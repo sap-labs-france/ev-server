@@ -1,14 +1,15 @@
 const Logging = require('../../utils/Logging');
-const ChargingStationService = require('./service/ChargingStationService');
-const UserService = require('./service/UserService');
-const CompanyService = require('./service/CompanyService');
-const SiteService = require('./service/SiteService');
-const SiteAreaService = require('./service/SiteAreaService');
-const PricingService = require('./service/PricingService');
-const UtilsService = require('./service/UtilsService');
-const LoggingService = require('./service/LoggingService');
-const TransactionService = require('./service/TransactionService');
-const StatisticService = require('./service/StatisticService');
+const ChargingStationService = require('./service/ChargingStationService').ChargingStationService;
+const UserService = require('./service/UserService').UserService;
+const CompanyService = require('./service/CompanyService').CompanyService;
+const SiteService = require('./service/SiteService').SiteService;
+const SiteAreaService = require('./service/SiteAreaService').SiteAreaService;
+const PricingService = require('./service/PricingService').PricingService;
+const CarService = require('./service/CarService').CarService;
+const UtilsService = require('./service/UtilsService').UtilsService;
+const LoggingService = require('./service/LoggingService').LoggingService;
+const TransactionService = require('./service/TransactionService').TransactionService;
+const StatisticService = require('./service/StatisticService').StatisticService;
 
 require('source-map-support').install();
 
@@ -72,6 +73,12 @@ module.exports = {
 					case "CompanyCreate":
 						// Delegate
 						CompanyService.handleCreateCompany(action, req, res, next);
+						break;
+
+					// Create Car
+					case "CarCreate":
+						// Delegate
+						CarService.handleCreateCar(action, req, res, next);
 						break;
 
 					// Create Site
@@ -167,6 +174,30 @@ module.exports = {
 					case "SiteImage":
 						// Delegate
 						SiteService.handleGetSiteImage(action, req, res, next);
+						break;
+
+					// Get all the cars
+					case "Cars":
+						// Delegate
+						CarService.handleGetCars(action, req, res, next);
+						break;
+
+					// Get one car
+					case "Car":
+						// Delegate
+						CarService.handleGetCar(action, req, res, next);
+						break;
+
+					// Get all the car images
+					case "CarImages":
+						// Delegate
+						CarService.handleGetCarImages(action, req, res, next);
+						break;
+
+					// Get one car image
+					case "CarImage":
+						// Delegate
+						CarService.handleGetCarImage(action, req, res, next);
 						break;
 
 					// Get all the site areas
@@ -330,6 +361,12 @@ module.exports = {
 						CompanyService.handleUpdateCompany(action, req, res, next);
 						break;
 
+					// Car
+					case "CarUpdate":
+						// Delegate
+						CarService.handleUpdateCar(action, req, res, next);
+						break;
+
 					// Transaction
 					case "TransactionSoftStop":
 						// Delegate
@@ -357,6 +394,12 @@ module.exports = {
 					case "CompanyDelete":
 						// Delegate
 						CompanyService.handleDeleteCompany(action, req, res, next);
+						break;
+
+					// Car
+					case "CarDelete":
+						// Delegate
+						CarService.handleDeleteCar(action, req, res, next);
 						break;
 
 					// Site

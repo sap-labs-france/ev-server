@@ -1,4 +1,4 @@
-const SecurityRestObjectFiltering = require('../SecurityRestObjectFiltering');
+const sanitize = require('mongo-sanitize');
 const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
@@ -13,9 +13,11 @@ const Users = require('../../../utils/Users');
 const Company = require('../../../model/Company');
 const Site = require('../../../model/Site');
 const SiteArea = require('../../../model/SiteArea');
+const UtilsSecurity = require('./UtilsService').UtilsSecurity;
+const SiteAreaSecurity = require('./SiteAreaService').SiteAreaSecurity;
+const CompanySecurity = require('./CompanyService').CompanySecurity;
 
 class SiteService {
-
 	static handleDeleteSite(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
@@ -26,7 +28,7 @@ class SiteService {
 		});
 		// Filter
 		let site;
-		let filteredRequest = SecurityRestObjectFiltering.filterSiteDeleteRequest(
+		let filteredRequest = SiteSecurity.filterSiteDeleteRequest(
 			req.query, req.user);
 		// Check Mandatory fields
 		if(!filteredRequest.ID) {
@@ -81,7 +83,7 @@ class SiteService {
 			detailedMessages: req.query
 		});
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterSiteRequest(req.query, req.user);
+		let filteredRequest = SiteSecurity.filterSiteRequest(req.query, req.user);
 		// Charge Box is mandatory
 		if(!filteredRequest.ID) {
 			Logging.logActionExceptionMessageAndSendResponse(
@@ -99,7 +101,7 @@ class SiteService {
 			// Return
 			res.json(
 				// Filter
-				SecurityRestObjectFiltering.filterSiteResponse(
+				SiteSecurity.filterSiteResponse(
 					site.getModel(), req.user)
 			);
 			next();
@@ -128,7 +130,7 @@ class SiteService {
 				req.user);
 		}
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterSitesRequest(req.query, req.user);
+		let filteredRequest = SiteSecurity.filterSitesRequest(req.query, req.user);
 		// Get the sites
 		global.storage.getSites(filteredRequest.Search, null, filteredRequest.WithCompany,
 				filteredRequest.WithSiteAreas, filteredRequest.WithChargeBoxes,
@@ -141,7 +143,7 @@ class SiteService {
 			// Return
 			res.json(
 				// Filter
-				SecurityRestObjectFiltering.filterSitesResponse(
+				SiteSecurity.filterSitesResponse(
 					sitesJSon, req.user)
 			);
 			next();
@@ -160,7 +162,7 @@ class SiteService {
 			detailedMessages: req.query
 		});
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterSiteRequest(req.query, req.user);
+		let filteredRequest = SiteSecurity.filterSiteRequest(req.query, req.user);
 		// Charge Box is mandatory
 		if(!filteredRequest.ID) {
 			Logging.logActionExceptionMessageAndSendResponse(
@@ -260,7 +262,7 @@ class SiteService {
 				req.user);
 		}
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterSiteCreateRequest( req.body, req.user );
+		let filteredRequest = SiteSecurity.filterSiteCreateRequest( req.body, req.user );
 		// Check Mandatory fields
 		if (Sites.checkIfSiteValid(action, filteredRequest, req, res, next)) {
 			// Check Company
@@ -308,7 +310,7 @@ class SiteService {
 			detailedMessages: req.body
 		});
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterSiteUpdateRequest( req.body, req.user );
+		let filteredRequest = SiteSecurity.filterSiteUpdateRequest( req.body, req.user );
 		let site;
 		// Check email
 		global.storage.getSite(filteredRequest.id).then((foundSite) => {
@@ -363,4 +365,109 @@ class SiteService {
 	}
 }
 
-module.exports = SiteService;
+class SiteSecurity {
+	static filterSiteDeleteRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.ID = sanitize(request.ID);
+		return filteredRequest;
+	}
+
+	static filterSiteRequest(request, loggedUser) {
+		let filteredRequest = {};
+		filteredRequest.ID = sanitize(request.ID);
+		return filteredRequest;
+	}
+
+	static filterSitesRequest(request, loggedUser) {
+		let filteredRequest = {};
+		filteredRequest.Search = sanitize(request.Search);
+		filteredRequest.WithSiteAreas = UtilsSecurity.filterBoolean(request.WithSiteAreas);
+		filteredRequest.WithChargeBoxes = UtilsSecurity.filterBoolean(request.WithChargeBoxes);
+		filteredRequest.WithCompany = UtilsSecurity.filterBoolean(request.WithCompany);
+		return filteredRequest;
+	}
+
+	static filterSiteUpdateRequest(request, loggedUser) {
+		// Set
+		let filteredRequest = SiteSecurity._filterSiteRequest(request, loggedUser);
+		filteredRequest.id = sanitize(request.id);
+		return filteredRequest;
+	}
+
+	static filterSiteCreateRequest(request, loggedUser) {
+		return SiteSecurity._filterSiteRequest(request, loggedUser);
+	}
+
+	static _filterSiteRequest(request, loggedUser) {
+		let filteredRequest = {};
+		filteredRequest.name = sanitize(request.name);
+		filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
+		filteredRequest.image = sanitize(request.image);
+		filteredRequest.gps = sanitize(request.gps);
+		filteredRequest.companyID = sanitize(request.companyID);
+		return filteredRequest;
+	}
+
+	static filterSiteResponse(site, loggedUser) {
+		let filteredSite;
+
+		if (!site) {
+			return null;
+		}
+		// Check auth
+		if (CentralRestServerAuthorization.canReadSite(loggedUser, site)) {
+			// Admin?
+			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+				// Yes: set all params
+				filteredSite = site;
+			} else {
+				// Set only necessary info
+				filteredSite = {};
+				filteredSite.id = site.id;
+				filteredSite.name = site.name;
+				filteredSite.gps = site.gps;
+				filteredSite.companyID = site.companyID;
+			}
+			if (site.address) {
+				filteredSite.address = UtilsSecurity.filterAddressRequest(site.address, loggedUser);
+			}
+			if (site.company) {
+				filteredSite.company = CompanySecurity.filterCompanyResponse(site.company, loggedUser);;
+			}
+			if (site.siteAreas) {
+				filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse(site.siteAreas, loggedUser);
+			}
+			// Created By / Last Changed By
+			UtilsSecurity.filterCreatedAndLastChanged(
+				filteredSite, site, loggedUser);
+		}
+		return filteredSite;
+	}
+
+	static filterSitesResponse(sites, loggedUser) {
+		let filteredSites = [];
+
+		if (!sites) {
+			return null;
+		}
+		if (!CentralRestServerAuthorization.canListSites(loggedUser)) {
+			return null;
+		}
+		sites.forEach(site => {
+			// Filter
+			let filteredSite = SiteSecurity.filterSiteResponse(site, loggedUser);
+			// Ok?
+			if (filteredSite) {
+				// Add
+				filteredSites.push(filteredSite);
+			}
+		});
+		return filteredSites;
+	}
+}
+
+module.exports = {
+	"SiteService": SiteService,
+	"SiteSecurity": SiteSecurity
+};

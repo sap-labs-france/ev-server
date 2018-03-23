@@ -1,6 +1,6 @@
-const AuthService = require('./service/AuthService');
-const UserService = require('./service/UserService');
-const UtilsService = require('./service/UtilsService');
+const AuthService = require('./service/AuthService').AuthService;
+const UserService = require('./service/UserService').UserService;
+const UtilsService = require('./service/UtilsService').UtilsService;
 
 require('source-map-support').install();
 

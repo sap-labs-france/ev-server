@@ -1,10 +1,11 @@
-const SecurityRestObjectFiltering = require('../SecurityRestObjectFiltering');
+const sanitize = require('mongo-sanitize');
 const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
 const Logging = require('../../../utils/Logging');
 const Utils = require('../../../utils/Utils');
 const moment = require('moment');
 const Users = require('../../../utils/Users');
 const Constants = require('../../../utils/Constants');
+const UtilsSecurity = require('./UtilsService').UtilsSecurity;
 
 class StatisticService {
 	static handleUserUsageStatistics(action, req, res, next) {
@@ -16,7 +17,7 @@ class StatisticService {
 		});
 		let filter = {stop: {$exists: true}};
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterUserStatisticsRequest(req.query, req.user);
+		let filteredRequest = StatisticSecurity.filterUserStatisticsRequest(req.query, req.user);
 		// Date
 		if (filteredRequest.Year) {
 			filter.startDateTime = moment().year(filteredRequest.Year).startOf('year').toDate().toISOString();
@@ -89,7 +90,7 @@ class StatisticService {
 		});
 		let filter = {stop: {$exists: true}};
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterUserStatisticsRequest(req.query, req.user);
+		let filteredRequest = StatisticSecurity.filterUserStatisticsRequest(req.query, req.user);
 		// Date
 		if (filteredRequest.Year) {
 			filter.startDateTime = moment().year(filteredRequest.Year).startOf('year').toDate().toISOString();
@@ -159,7 +160,7 @@ class StatisticService {
 		});
 		let filter = {stop: {$exists: true}};
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationStatisticsRequest(req.query, req.user);
+		let filteredRequest = StatisticSecurity.filterChargingStationStatisticsRequest(req.query, req.user);
 		// Date
 		if (filteredRequest.Year) {
 			filter.startDateTime = moment().year(filteredRequest.Year).startOf('year').toDate().toISOString();
@@ -230,7 +231,7 @@ class StatisticService {
 		});
 		let filter = {stop: {$exists: true}};
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationStatisticsRequest(req.query, req.user);
+		let filteredRequest = StatisticSecurity.filterChargingStationStatisticsRequest(req.query, req.user);
 		// Date
 		if (filteredRequest.Year) {
 			filter.startDateTime = moment().year(filteredRequest.Year).startOf('year').toDate().toISOString();
@@ -291,4 +292,25 @@ class StatisticService {
 	}
 }
 
-module.exports = StatisticService;
+class StatisticSecurity {
+	static filterUserStatisticsRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.Year = sanitize(request.Year);
+		filteredRequest.SiteID = sanitize(request.SiteID);
+		return filteredRequest;
+	}
+
+	static filterChargingStationStatisticsRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.Year = sanitize(request.Year);
+		filteredRequest.SiteID = sanitize(request.SiteID);
+		return filteredRequest;
+	}
+}
+
+module.exports = {
+	"StatisticService": StatisticService,
+	"StatisticSecurity": StatisticSecurity
+};

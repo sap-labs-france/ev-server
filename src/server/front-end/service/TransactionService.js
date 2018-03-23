@@ -1,4 +1,4 @@
-const SecurityRestObjectFiltering = require('../SecurityRestObjectFiltering');
+const sanitize = require('mongo-sanitize');
 const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
 const Logging = require('../../../utils/Logging');
 const AppError = require('../../../exception/AppError');
@@ -8,6 +8,7 @@ const ChargingStations = require('../../../utils/ChargingStations');
 const Users = require('../../../utils/Users');
 const Constants = require('../../../utils/Constants');
 const moment = require('moment');
+const UtilsSecurity = require('./UtilsService').UtilsSecurity;
 
 class TransactionService {
 	static handleDeleteTransaction(action, req, res, next) {
@@ -19,7 +20,7 @@ class TransactionService {
 			detailedMessages: req.query
 		});
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterTransactionDelete(req.query, req.user);
+		let filteredRequest = TransactionSecurity.filterTransactionDelete(req.query, req.user);
 		// Transaction Id is mandatory
 		if(!filteredRequest.ID) {
 			Logging.logActionExceptionMessageAndSendResponse(
@@ -101,7 +102,7 @@ class TransactionService {
 			detailedMessages: req.body
 		});
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterTransactionSoftStop(req.body, req.user);
+		let filteredRequest = TransactionSecurity.filterTransactionSoftStop(req.body, req.user);
 		// Transaction Id is mandatory
 		if(!filteredRequest.transactionId) {
 			Logging.logActionExceptionMessageAndSendResponse(
@@ -187,7 +188,7 @@ class TransactionService {
 			detailedMessages: req.query
 		});
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationConsumptionFromTransactionRequest(req.query, req.user);
+		let filteredRequest = TransactionSecurity.filterChargingStationConsumptionFromTransactionRequest(req.query, req.user);
 		// Transaction Id is mandatory
 		if(!filteredRequest.TransactionId) {
 			Logging.logActionExceptionMessageAndSendResponse(
@@ -260,7 +261,7 @@ class TransactionService {
 			// Return the result
 			res.json(
 				// Filter
-				SecurityRestObjectFiltering.filterConsumptionsFromTransactionResponse(
+				TransactionSecurity.filterConsumptionsFromTransactionResponse(
 					consumptions, req.user, true)
 			);
 			next();
@@ -279,7 +280,7 @@ class TransactionService {
 			detailedMessages: req.query
 		});
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterTransactionRequest(req.query, req.user);
+		let filteredRequest = TransactionSecurity.filterTransactionRequest(req.query, req.user);
 		// Charge Box is mandatory
 		if(!filteredRequest.ID) {
 			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The Transaction ID is mandatory`), req, res, next);
@@ -308,7 +309,7 @@ class TransactionService {
 			// Return
 			res.json(
 				// Filter
-				SecurityRestObjectFiltering.filterTransactionResponse(
+				TransactionSecurity.filterTransactionResponse(
 					transaction, req.user, true)
 			);
 			next();
@@ -337,7 +338,7 @@ class TransactionService {
 				req.user);
 		}
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationTransactionsRequest(req.query, req.user);
+		let filteredRequest = TransactionSecurity.filterChargingStationTransactionsRequest(req.query, req.user);
 		// Charge Box is mandatory
 		if(!filteredRequest.ChargeBoxID) {
 			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The Charging Station ID is mandatory`), req, res, next);
@@ -368,7 +369,7 @@ class TransactionService {
 			// Return
 			res.json(
 				// Filter
-				SecurityRestObjectFiltering.filterTransactionsResponse(
+				TransactionSecurity.filterTransactionsResponse(
 					transactions, req.user, ChargingStations.WITH_CONNECTORS)
 			);
 			next();
@@ -421,7 +422,7 @@ class TransactionService {
 		}
 		let filter = { stop: { $exists: false } };
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterTransactionsActiveRequest(req.query, req.user);
+		let filteredRequest = TransactionSecurity.filterTransactionsActiveRequest(req.query, req.user);
 		if (filteredRequest.ChargeBoxID) {
 			filter.chargeBoxIdentity = filteredRequest.ChargeBoxID;
 		}
@@ -434,7 +435,7 @@ class TransactionService {
 			// Return
 			res.json(
 				// Filter
-				SecurityRestObjectFiltering.filterTransactionsResponse(
+				TransactionSecurity.filterTransactionsResponse(
 					transactions, req.user, ChargingStations.WITH_CONNECTORS)
 			);
 			next();
@@ -465,7 +466,7 @@ class TransactionService {
 		let pricing;
 		let filter = {stop: {$exists: true}};
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterTransactionsCompletedRequest(req.query, req.user);
+		let filteredRequest = TransactionSecurity.filterTransactionsCompletedRequest(req.query, req.user);
 		// Date
 		if (filteredRequest.StartDateTime) {
 			filter.startDateTime = filteredRequest.StartDateTime;
@@ -499,7 +500,7 @@ class TransactionService {
 			// Return
 			res.json(
 				// Filter
-				SecurityRestObjectFiltering.filterTransactionsResponse(
+				TransactionSecurity.filterTransactionsResponse(
 					transactions, req.user, ChargingStations.WITHOUT_CONNECTORS)
 			);
 			next();
@@ -510,4 +511,212 @@ class TransactionService {
 	}
 }
 
-module.exports = TransactionService;
+class TransactionSecurity {
+	static filterTransactionDelete(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.ID = sanitize(request.ID);
+		return filteredRequest;
+	}
+
+	static filterTransactionSoftStop(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.transactionId = sanitize(request.transactionId);
+		return filteredRequest;
+	}
+
+	static filterTransactionRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.ID = sanitize(request.ID);
+		return filteredRequest;
+	}
+
+	static filterTransactionsActiveRequest(request, loggedUser) {
+		let filteredRequest = {};
+		filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
+		filteredRequest.ConnectorId = sanitize(request.ConnectorId);
+		return filteredRequest;
+	}
+
+	static filterTransactionsCompletedRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Handle picture
+		filteredRequest.StartDateTime = sanitize(request.StartDateTime);
+		filteredRequest.EndDateTime = sanitize(request.EndDateTime);
+		filteredRequest.SiteID = sanitize(request.SiteID);
+		filteredRequest.Search = sanitize(request.Search);
+		if (request.UserID) {
+			filteredRequest.UserID = sanitize(request.UserID);
+		}
+		UtilsSecurity._filterLimit(request, filteredRequest);
+		return filteredRequest;
+	}
+
+	// Transaction
+	static filterTransactionResponse(transaction, loggedUser, withConnector=false) {
+		let filteredTransaction;
+
+		if (!transaction) {
+			return null;
+		}
+		// Check auth
+		if (CentralRestServerAuthorization.canReadTransaction(loggedUser, transaction)) {
+			// Set only necessary info
+			filteredTransaction = {};
+			filteredTransaction.id = transaction.id;
+			filteredTransaction.transactionId = transaction.transactionId;
+			filteredTransaction.connectorId = transaction.connectorId;
+			filteredTransaction.timestamp = transaction.timestamp;
+			// Filter user
+			filteredTransaction.user = TransactionSecurity._filterUserInTransactionResponse(
+				transaction.user, loggedUser);
+			// Transaction Stop
+			if (transaction.stop) {
+				filteredTransaction.stop = {};
+				filteredTransaction.stop.timestamp = transaction.stop.timestamp;
+				filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
+				// Admin?
+				if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+					filteredTransaction.stop.price = transaction.stop.price;
+					filteredTransaction.stop.priceUnit = transaction.stop.priceUnit;
+				}
+				// Stop User
+				if (transaction.stop.user) {
+					// Filter user
+					filteredTransaction.stop.user = TransactionSecurity._filterUserInTransactionResponse(
+						transaction.stop.user, loggedUser);
+				}
+			}
+			// Charging Station
+			filteredTransaction.chargeBox = {};
+			filteredTransaction.chargeBox.id = transaction.chargeBox.id;
+			filteredTransaction.chargeBox.chargeBoxID = transaction.chargeBox.chargeBoxID;
+			if (withConnector) {
+				filteredTransaction.chargeBox.connectors = [];
+				filteredTransaction.chargeBox.connectors[transaction.connectorId-1] = transaction.chargeBox.connectors[transaction.connectorId-1];
+			}
+		}
+
+		return filteredTransaction;
+	}
+
+	static filterTransactionsResponse(transactions, loggedUser, withConnector=false) {
+		let filteredTransactions = [];
+
+		if (!transactions) {
+			return null;
+		}
+		if (!CentralRestServerAuthorization.canListTransactions(loggedUser)) {
+			return null;
+		}
+		transactions.forEach(transaction => {
+			// Filter
+			let filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser, withConnector);
+			// Ok?
+			if (filteredTransaction) {
+				// Add
+				filteredTransactions.push(filteredTransaction);
+			}
+		});
+		return filteredTransactions;
+	}
+
+	static _filterUserInTransactionResponse(user, loggedUser) {
+		let userID = {};
+
+		if (!user) {
+			return null;
+		}
+		// Check auth
+		if (CentralRestServerAuthorization.canReadUser(loggedUser, user)) {
+			// Demo user?
+			if (CentralRestServerAuthorization.isDemo(loggedUser)) {
+				userID.id = null;
+				userID.name = Users.ANONIMIZED_VALUE;
+				userID.firstName = Users.ANONIMIZED_VALUE;
+			} else {
+				userID.id = user.id;
+				userID.name = user.name;
+				userID.firstName = user.firstName;
+			}
+		}
+		return userID;
+	}
+
+	static filterChargingStationConsumptionFromTransactionRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.TransactionId = sanitize(request.TransactionId);
+		filteredRequest.StartDateTime = sanitize(request.StartDateTime);
+		filteredRequest.EndDateTime = sanitize(request.EndDateTime);
+		return filteredRequest;
+	}
+
+	static filterChargingStationTransactionsRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
+		filteredRequest.ConnectorId = sanitize(request.ConnectorId);
+		filteredRequest.StartDateTime = sanitize(request.StartDateTime);
+		filteredRequest.EndDateTime = sanitize(request.EndDateTime);
+		return filteredRequest;
+	}
+
+	static filterConsumptionsFromTransactionResponse(consumption, loggedUser) {
+		let filteredConsumption = {};
+
+		if (!consumption) {
+			return null;
+		}
+		// Check
+		if (CentralRestServerAuthorization.canReadChargingStation(loggedUser, consumption.chargeBoxID)) {
+			filteredConsumption.chargeBoxID = consumption.chargeBoxID;
+			filteredConsumption.connectorId = consumption.connectorId;
+			// Admin?
+			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+				filteredConsumption.priceUnit = consumption.priceUnit;
+				filteredConsumption.totalPrice = consumption.totalPrice;
+			}
+			filteredConsumption.totalConsumption = consumption.totalConsumption;
+			filteredConsumption.transactionId = consumption.transactionId;
+			// Check user
+			if (consumption.user) {
+				if (!CentralRestServerAuthorization.canReadUser(loggedUser, consumption.user)) {
+					return null;
+				}
+			} else {
+				if (!CentralRestServerAuthorization.isAdmin(loggedUser)) {
+					return null;
+				}
+			}
+			// Set user
+			filteredConsumption.user = TransactionSecurity._filterUserInTransactionResponse(
+				consumption.user, loggedUser);
+			// Admin?
+			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+				// Set them all
+				filteredConsumption.values = consumption.values;
+			} else {
+				// Clean
+				filteredConsumption.values = [];
+				consumption.values.forEach((value) => {
+					// Set
+					filteredConsumption.values.push({
+						date: value.date,
+						value: value.value,
+						cumulated: value.cumulated
+					});
+				});
+			}
+		}
+
+		return filteredConsumption;
+	}
+}
+
+module.exports = {
+	"TransactionService": TransactionService,
+	"TransactionSecurity": TransactionSecurity
+};

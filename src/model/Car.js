@@ -14,6 +14,10 @@ class Car {
 		return this._model;
 	}
 
+	getName() {
+		return `${this.getManufacturer()} ${this.getModel()}`;
+	}
+
 	getID() {
 		return this._model.id;
 	}

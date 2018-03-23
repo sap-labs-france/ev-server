@@ -1,4 +1,4 @@
-const SecurityRestObjectFiltering = require('../SecurityRestObjectFiltering');
+const sanitize = require('mongo-sanitize');
 const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
@@ -13,6 +13,9 @@ const Users = require('../../../utils/Users');
 const Company = require('../../../model/Company');
 const Site = require('../../../model/Site');
 const SiteArea = require('../../../model/SiteArea');
+const UtilsSecurity = require('./UtilsService').UtilsSecurity;
+const SiteSecurity = require('./SiteService').SiteSecurity;
+const ChargingStationSecurity = require('./ChargingStationService').ChargingStationSecurity;
 
 class SiteAreaService {
 
@@ -35,7 +38,7 @@ class SiteAreaService {
 				req.user);
 		}
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreaCreateRequest( req.body, req.user );
+		let filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest( req.body, req.user );
 		let newSiteArea;
 		let loggedUser;
 		// Check Mandatory fields
@@ -119,7 +122,7 @@ class SiteAreaService {
 				req.user);
 		}
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreasRequest(req.query, req.user);
+		let filteredRequest = SiteAreaSecurity.filterSiteAreasRequest(req.query, req.user);
 		// Get the sites
 		global.storage.getSiteAreas(filteredRequest.Search,
 				filteredRequest.WithChargeBoxes,
@@ -132,7 +135,7 @@ class SiteAreaService {
 			// Return
 			res.json(
 				// Filter
-				SecurityRestObjectFiltering.filterSiteAreasResponse(
+				SiteAreaSecurity.filterSiteAreasResponse(
 					siteAreasJSon, req.user)
 			);
 			next();
@@ -152,7 +155,7 @@ class SiteAreaService {
 		});
 		// Filter
 		let siteArea;
-		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreaDeleteRequest(
+		let filteredRequest = SiteAreaSecurity.filterSiteAreaDeleteRequest(
 			req.query, req.user);
 		// Check Mandatory fields
 		if(!filteredRequest.ID) {
@@ -208,7 +211,7 @@ class SiteAreaService {
 			detailedMessages: req.query
 		});
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreaRequest(req.query, req.user);
+		let filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query, req.user);
 		// Charge Box is mandatory
 		if(!filteredRequest.ID) {
 			Logging.logActionExceptionMessageAndSendResponse(
@@ -239,7 +242,7 @@ class SiteAreaService {
 			// Return
 			res.json(
 				// Filter
-				SecurityRestObjectFiltering.filterSiteAreaResponse(
+				SiteAreaSecurity.filterSiteAreaResponse(
 					siteArea.getModel(), req.user)
 			);
 			next();
@@ -258,7 +261,7 @@ class SiteAreaService {
 			detailedMessages: req.query
 		});
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreaRequest(req.query, req.user);
+		let filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query, req.user);
 		// Charge Box is mandatory
 		if(!filteredRequest.ID) {
 			Logging.logActionExceptionMessageAndSendResponse(
@@ -348,7 +351,7 @@ class SiteAreaService {
 			detailedMessages: req.body
 		});
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterSiteAreaUpdateRequest( req.body, req.user );
+		let filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest( req.body, req.user );
 		let siteArea;
 		let loggedUser;
 		// Check
@@ -440,4 +443,105 @@ class SiteAreaService {
 	}
 }
 
-module.exports = SiteAreaService;
+class SiteAreaSecurity {
+	static filterSiteAreaDeleteRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.ID = sanitize(request.ID);
+		return filteredRequest;
+	}
+
+	static filterSiteAreaRequest(request, loggedUser) {
+		let filteredRequest = {};
+		filteredRequest.ID = sanitize(request.ID);
+		return filteredRequest;
+	}
+
+	static filterSiteAreasRequest(request, loggedUser) {
+		let filteredRequest = {};
+		filteredRequest.Search = sanitize(request.Search);
+		filteredRequest.WithChargeBoxes = UtilsSecurity.filterBoolean(request.WithChargeBoxes);
+		return filteredRequest;
+	}
+
+	static filterSiteAreaUpdateRequest(request, loggedUser) {
+		// Set
+		let filteredRequest = SiteAreaSecurity._filterSiteAreaRequest(request, loggedUser);
+		filteredRequest.id = sanitize(request.id);
+		return filteredRequest;
+	}
+
+	static filterSiteAreaCreateRequest(request, loggedUser) {
+		return SiteAreaSecurity._filterSiteAreaRequest(request, loggedUser);
+	}
+
+	static _filterSiteAreaRequest(request, loggedUser) {
+		let filteredRequest = {};
+		filteredRequest.name = sanitize(request.name);
+		filteredRequest.image = sanitize(request.image);
+		filteredRequest.accessControl = UtilsSecurity.filterBoolean(request.accessControl);
+		filteredRequest.siteID = sanitize(request.siteID);
+		filteredRequest.chargeBoxIDs = sanitize(request.chargeBoxIDs);
+		return filteredRequest;
+	}
+
+	static filterSiteAreaResponse(siteArea, loggedUser) {
+		let filteredSiteArea;
+
+		if (!siteArea) {
+			return null;
+		}
+		// Check auth
+		if (CentralRestServerAuthorization.canReadSiteArea(loggedUser, siteArea)) {
+			// Admin?
+			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+				// Yes: set all params
+				filteredSiteArea = siteArea;
+			} else {
+				// Set only necessary info
+				filteredSiteArea = {};
+				filteredSiteArea.id = siteArea.id;
+				filteredSiteArea.name = siteArea.name;
+				filteredSiteArea.siteID = siteArea.siteID;
+			}
+			if (siteArea.site) {
+				// Site
+				filteredSiteArea.site = SiteSecurity.filterSiteResponse(siteArea.site, loggedUser);
+			}
+			if (siteArea.chargeBoxes) {
+				filteredSiteArea.chargeBoxes = ChargingStationSecurity.filterChargingStationsResponse(
+					siteArea.chargeBoxes, loggedUser );
+			}
+			// Created By / Last Changed By
+			UtilsSecurity.filterCreatedAndLastChanged(
+				filteredSiteArea, siteArea, loggedUser);
+		}
+		return filteredSiteArea;
+	}
+
+	static filterSiteAreasResponse(siteAreas, loggedUser) {
+		let filteredSiteAreas = [];
+
+		if (!siteAreas) {
+			return null;
+		}
+		if (!CentralRestServerAuthorization.canListSiteAreas(loggedUser)) {
+			return null;
+		}
+		siteAreas.forEach(siteArea => {
+			// Filter
+			let filteredSiteArea = SiteAreaSecurity.filterSiteAreaResponse(siteArea, loggedUser);
+			// Ok?
+			if (filteredSiteArea) {
+				// Add
+				filteredSiteAreas.push(filteredSiteArea);
+			}
+		});
+		return filteredSiteAreas;
+	}
+}
+
+module.exports = {
+	"SiteAreaService": SiteAreaService,
+	"SiteAreaSecurity": SiteAreaSecurity
+};

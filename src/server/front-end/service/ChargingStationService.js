@@ -1,4 +1,4 @@
-const SecurityRestObjectFiltering = require('../SecurityRestObjectFiltering');
+const sanitize = require('mongo-sanitize');
 const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
@@ -9,6 +9,8 @@ const ChargingStations = require('../../../utils/ChargingStations');
 const Database = require('../../../utils/Database');
 const Utils = require('../../../utils/Utils');
 const SiteArea = require('../../../model/SiteArea');
+const UtilsSecurity = require('./UtilsService').UtilsSecurity;
+const SiteAreaSecurity = require('./SiteAreaService').SiteAreaSecurity;
 
 class ChargingStationService {
 
@@ -21,7 +23,7 @@ class ChargingStationService {
 			detailedMessages: req.body
 		});
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationUpdateRequest( req.body, req.user );
+		let filteredRequest = ChargingStationSecurity.filterChargingStationUpdateRequest( req.body, req.user );
 		let chargingStation;
 		// Check email
 		global.storage.getChargingStation(filteredRequest.id).then((foundChargingStation) => {
@@ -91,7 +93,7 @@ class ChargingStationService {
 			detailedMessages: req.query
 		});
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationConfigurationRequest(req.query, req.user);
+		let filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query, req.user);
 		// Charge Box is mandatory
 		if(!filteredRequest.ChargeBoxID) {
 			Logging.logActionExceptionMessageAndSendResponse(
@@ -141,7 +143,7 @@ class ChargingStationService {
 		});
 		// Filter
 		let chargingStation;
-		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationDeleteRequest(req.query, req.user);
+		let filteredRequest = ChargingStationSecurity.filterChargingStationDeleteRequest(req.query, req.user);
 		// Check Mandatory fields
 		if(!filteredRequest.ID) {
 			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The charging station's ID must be provided`), req, res, next);
@@ -196,7 +198,7 @@ class ChargingStationService {
 			detailedMessages: req.query
 		});
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationRequest(req.query, req.user);
+		let filteredRequest = ChargingStationSecurity.filterChargingStationRequest(req.query, req.user);
 		// Charge Box is mandatory
 		if(!filteredRequest.ID) {
 			Logging.logActionExceptionMessageAndSendResponse(
@@ -209,7 +211,7 @@ class ChargingStationService {
 				// Return
 				res.json(
 					// Filter
-					SecurityRestObjectFiltering.filterChargingStationResponse(
+					ChargingStationSecurity.filterChargingStationResponse(
 						chargingStation.getModel(), req.user)
 				);
 			} else {
@@ -242,7 +244,7 @@ class ChargingStationService {
 			return;
 		}
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationsRequest(req.query, req.user);
+		let filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query, req.user);
 		// Get the charging stfoundChargingStationsations
 		global.storage.getChargingStations(filteredRequest.Search, null, filteredRequest.WithNoSiteArea,
 				Constants.NO_LIMIT).then((foundChargingStations) => {
@@ -256,7 +258,7 @@ class ChargingStationService {
 			// Return
 			res.json(
 				// Filter
-				SecurityRestObjectFiltering.filterChargingStationsResponse(
+				ChargingStationSecurity.filterChargingStationsResponse(
 					chargingStationsJSon, req.user)
 			);
 			next();
@@ -275,7 +277,7 @@ class ChargingStationService {
 			detailedMessages: req.body
 		});
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationActionRequest( req.body, action, req.user );
+		let filteredRequest = ChargingStationSecurity.filterChargingStationActionRequest( req.body, action, req.user );
 		// Charge Box is mandatory
 		if(!filteredRequest.chargeBoxID) {
 			Logging.logActionExceptionMessageAndSendResponse(
@@ -359,7 +361,7 @@ class ChargingStationService {
 			detailedMessages: req.body
 		});
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterChargingStationSetMaxIntensitySocketRequest( req.body, req.user );
+		let filteredRequest = ChargingStationSecurity.filterChargingStationSetMaxIntensitySocketRequest( req.body, req.user );
 		// Charge Box is mandatory
 		if(!filteredRequest.chargeBoxID) {
 			Logging.logActionExceptionMessageAndSendResponse(
@@ -440,4 +442,124 @@ class ChargingStationService {
 	}
 }
 
-module.exports = ChargingStationService;
+class ChargingStationSecurity {
+	// Charging Station
+	static filterChargingStationResponse(chargingStation, loggedUser) {
+		let filteredChargingStation;
+
+		if (!chargingStation) {
+			return null;
+		}
+		// Check auth
+		if (CentralRestServerAuthorization.canReadChargingStation(loggedUser, chargingStation)) {
+			// Admin?
+			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+				// Yes: set all params
+				filteredChargingStation = chargingStation;
+			} else {
+				// Set only necessary info
+				filteredChargingStation = {};
+				filteredChargingStation.id = chargingStation.id;
+				filteredChargingStation.chargeBoxID = chargingStation.chargeBoxID;
+				filteredChargingStation.connectors = chargingStation.connectors;
+				filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
+				filteredChargingStation.siteAreaID = chargingStation.siteAreaID;
+				// Site Area
+				if (chargingStation.siteArea) {
+					filteredChargingStation.siteArea = SiteAreaSecurity.filterSiteAreaResponse(chargingStation.siteArea, loggedUser);
+				}
+			}
+			// Created By / Last Changed By
+			UtilsSecurity.filterCreatedAndLastChanged(
+				filteredChargingStation, chargingStation, loggedUser);
+		}
+		return filteredChargingStation;
+	}
+
+	static filterChargingStationsResponse(chargingStations, loggedUser) {
+		let filteredChargingStations = [];
+
+		if (!chargingStations) {
+			return null;
+		}
+		if (!CentralRestServerAuthorization.canListChargingStations(loggedUser)) {
+			return null;
+		}
+		chargingStations.forEach(chargingStation => {
+			// Filter
+			let filteredChargingStation = ChargingStationSecurity.filterChargingStationResponse(chargingStation, loggedUser);
+			// Ok?
+			if (filteredChargingStation) {
+				// Add
+				filteredChargingStations.push(filteredChargingStation);
+			}
+		});
+		return filteredChargingStations;
+	}
+
+	static filterChargingStationDeleteRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.ID = sanitize(request.ID);
+		return filteredRequest;
+	}
+
+	static filterChargingStationConfigurationRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
+		return filteredRequest;
+	}
+
+	static filterChargingStationStatisticsRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.Year = sanitize(request.Year);
+		filteredRequest.SiteID = sanitize(request.SiteID);
+		return filteredRequest;
+	}
+
+	static filterChargingStationRequest(request, loggedUser) {
+		let filteredRequest = {};
+		filteredRequest.ID = sanitize(request.ID);
+		return filteredRequest;
+	}
+
+	static filterChargingStationsRequest(request, loggedUser) {
+		let filteredRequest = {};
+		filteredRequest.Search = sanitize(request.Search);
+		filteredRequest.WithNoSiteArea = UtilsSecurity.filterBoolean(request.WithNoSiteArea);
+		return filteredRequest;
+	}
+
+	static filterChargingStationUpdateRequest(request, loggedUser) {
+		// Set
+		let filteredRequest = {};
+		filteredRequest.id = sanitize(request.id);
+		filteredRequest.endpoint = sanitize(request.endpoint); // http://192.168.0.118:8080/
+		filteredRequest.siteAreaID = sanitize(request.siteAreaID);
+		return filteredRequest;
+	}
+
+	static filterChargingStationActionRequest(request, action, loggedUser) {
+		let filteredRequest = {};
+		// Check
+		filteredRequest.chargeBoxID = sanitize(request.chargeBoxID);
+		// Do not check action?
+		filteredRequest.args =  request.args;
+		return filteredRequest;
+	}
+
+	static filterChargingStationSetMaxIntensitySocketRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Check
+		filteredRequest.chargeBoxID = sanitize(request.chargeBoxID);
+		filteredRequest.maxIntensity =  sanitize(request.args.maxIntensity);
+		return filteredRequest;
+	}
+}
+
+module.exports = {
+	"ChargingStationService": ChargingStationService,
+	"ChargingStationSecurity": ChargingStationSecurity
+};

@@ -1,4 +1,4 @@
-const SecurityRestObjectFiltering = require('../SecurityRestObjectFiltering');
+const sanitize = require('mongo-sanitize');
 const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
 const NotificationHandler = require('../../../notification/NotificationHandler');
 const Logging = require('../../../utils/Logging');
@@ -9,6 +9,7 @@ const Users = require('../../../utils/Users');
 const User = require('../../../model/User');
 const Utils = require('../../../utils/Utils');
 const Database = require('../../../utils/Database');
+const UtilsSecurity = require('./UtilsService').UtilsSecurity;
 
 class UserService {
 
@@ -21,12 +22,12 @@ class UserService {
 			detailedMessages: req.query
 		});
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterEndUserLicenseAgreementRequest(req.query, req.user);
+		let filteredRequest = UserSecurity.filterEndUserLicenseAgreementRequest(req.query, req.user);
 		// Get it
 		global.storage.getEndUserLicenseAgreement(filteredRequest.Language).then((endUserLicenseAgreement) => {
 			res.json(
 				// Filter
-				SecurityRestObjectFiltering.filterEndUserLicenseAgreementResponse(
+				UserSecurity.filterEndUserLicenseAgreementResponse(
 					endUserLicenseAgreement, req.user)
 			);
 			next();
@@ -45,7 +46,7 @@ class UserService {
 			detailedMessages: req.query
 		});
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterUserDeleteRequest(req.query, req.user);
+		let filteredRequest = UserSecurity.filterUserDeleteRequest(req.query, req.user);
 		// Check Mandatory fields
 		if(!filteredRequest.ID) {
 			Logging.logActionExceptionMessageAndSendResponse(
@@ -111,7 +112,7 @@ class UserService {
 		});
 		let statusHasChanged=false;
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterUserUpdateRequest( req.body, req.user );
+		let filteredRequest = UserSecurity.filterUserUpdateRequest( req.body, req.user );
 		let user, newPasswordHashed;
 		// Check email
 		global.storage.getUser(filteredRequest.id).then((foundUser) => {
@@ -235,7 +236,7 @@ class UserService {
 			detailedMessages: req.query
 		});
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterUserRequest(req.query, req.user);
+		let filteredRequest = UserSecurity.filterUserRequest(req.query, req.user);
 		// User mandatory
 		if(!filteredRequest.ID) {
 			Logging.logActionExceptionMessageAndSendResponse(
@@ -270,7 +271,7 @@ class UserService {
 			// Set the user
 			res.json(
 				// Filter
-				SecurityRestObjectFiltering.filterUserResponse(
+				UserSecurity.filterUserResponse(
 					user.getModel(), req.user)
 			);
 			next();
@@ -288,7 +289,7 @@ class UserService {
 			detailedMessages: req.query
 		});
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterUserRequest(req.query, req.user);
+		let filteredRequest = UserSecurity.filterUserRequest(req.query, req.user);
 		// User mandatory
 		if(!filteredRequest.ID) {
 			Logging.logActionExceptionMessageAndSendResponse(
@@ -391,7 +392,7 @@ class UserService {
 				req.user);
 		}
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterUsersRequest(req.query, req.user);
+		let filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
 		// Get users
 		global.storage.getUsers(filteredRequest.Search, Constants.NO_LIMIT).then((users) => {
 			var usersJSon = [];
@@ -402,7 +403,7 @@ class UserService {
 			// Return
 			res.json(
 				// Filter
-				SecurityRestObjectFiltering.filterUsersResponse(
+				UserSecurity.filterUsersResponse(
 					usersJSon, req.user)
 			);
 			next();
@@ -430,7 +431,7 @@ class UserService {
 				req.user);
 		}
 		// Filter
-		let filteredRequest = SecurityRestObjectFiltering.filterUserCreateRequest( req.body, req.user );
+		let filteredRequest = UserSecurity.filterUserCreateRequest( req.body, req.user );
 		if (!filteredRequest.role) {
 			// Set to default role
 			filteredRequest.role = Users.USER_ROLE_BASIC;
@@ -484,4 +485,146 @@ class UserService {
 	}
 }
 
-module.exports = UserService;
+class UserSecurity {
+	static filterUserDeleteRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.ID = sanitize(request.ID);
+		return filteredRequest;
+	}
+
+	static filterUserRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.ID = sanitize(request.ID);
+		return filteredRequest;
+	}
+
+	static filterUsersRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Handle picture
+		filteredRequest.Search = request.Search;
+		return filteredRequest;
+	}
+
+	static filterUserUpdateRequest(request, loggedUser) {
+		// Set
+		let filteredRequest = UserSecurity._filterUserRequest(request, loggedUser);
+		filteredRequest.id = sanitize(request.id);
+		return filteredRequest;
+	}
+
+	static filterUserCreateRequest(request, loggedUser) {
+		return UserSecurity._filterUserRequest(request, loggedUser);
+	}
+
+	static _filterUserRequest(request, loggedUser) {
+		let filteredRequest = {};
+		filteredRequest.costCenter = sanitize(request.costCenter);
+		filteredRequest.email = sanitize(request.email);
+		filteredRequest.firstName = sanitize(request.firstName);
+		filteredRequest.iNumber = sanitize(request.iNumber);
+		filteredRequest.image = sanitize(request.image);
+		filteredRequest.mobile = sanitize(request.mobile);
+		filteredRequest.name = sanitize(request.name);
+		filteredRequest.locale = sanitize(request.locale);
+		filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
+		if (request.passwords) {
+			filteredRequest.password = sanitize(request.passwords.password);
+		}
+		filteredRequest.phone = sanitize(request.phone);
+		// Admin?
+		if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+			// Ok to set the role
+			filteredRequest.role = sanitize(request.role);
+			filteredRequest.status = sanitize(request.status);
+		}
+		filteredRequest.tagIDs = sanitize(request.tagIDs);
+		return filteredRequest;
+	}
+
+	// User
+	static filterUserResponse(user, loggedUser) {
+		let filteredUser={};
+
+		if (!user) {
+			return null;
+		}
+		// Check auth
+		if (CentralRestServerAuthorization.canReadUser(loggedUser, user)) {
+			// Admin?
+			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+				filteredUser.id = user.id;
+				filteredUser.name = user.name;
+				filteredUser.firstName = user.firstName;
+				filteredUser.locale = user.locale;
+				filteredUser.email = user.email;
+				filteredUser.phone = user.phone;
+				filteredUser.mobile = user.mobile;
+				filteredUser.iNumber = user.iNumber;
+				filteredUser.costCenter = user.costCenter;
+				filteredUser.status = user.status;
+				filteredUser.eulaAcceptedOn = user.eulaAcceptedOn;
+				filteredUser.eulaAcceptedVersion = user.eulaAcceptedVersion;
+				filteredUser.tagIDs = user.tagIDs;
+				filteredUser.role = user.role;
+				filteredUser.numberOfTransactions = user.numberOfTransactions;
+				if (user.address) {
+					filteredUser.address = UtilsSecurity.filterAddressRequest(user.address, loggedUser);
+				}
+			} else {
+				// Set only necessary info
+				filteredUser.id = user.id;
+				filteredUser.name = user.name;
+				filteredUser.firstName = user.firstName;
+				filteredUser.email = user.email;
+				filteredUser.locale = user.locale;
+			}
+			// Created By / Last Changed By
+			UtilsSecurity.filterCreatedAndLastChanged(
+				filteredUser, user, loggedUser);
+		}
+		return filteredUser;
+	}
+
+	static filterUsersResponse(users, loggedUser) {
+		let filteredUsers = [];
+
+		if (!users) {
+			return null;
+		}
+		users.forEach(user => {
+			// Filter
+			let filteredUser = UserSecurity.filterUserResponse(user, loggedUser);
+			// Ok?
+			if (filteredUser) {
+				// Add
+				filteredUsers.push(filteredUser);
+			}
+		});
+		return filteredUsers;
+	}
+
+	static filterEndUserLicenseAgreementRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.Language = sanitize(request.Language);
+		return filteredRequest;
+	}
+
+	static filterEndUserLicenseAgreementResponse(endUserLicenseAgreement, loggedUser) {
+		let filteredEndUserLicenseAgreement = {};
+
+		if (!endUserLicenseAgreement) {
+			return null;
+		}
+		// Set
+		filteredEndUserLicenseAgreement.text = endUserLicenseAgreement.text;
+		return filteredEndUserLicenseAgreement;
+	}
+}
+
+module.exports = {
+	"UserService": UserService,
+	"UserSecurity": UserSecurity
+};
