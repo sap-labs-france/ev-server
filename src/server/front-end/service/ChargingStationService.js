@@ -511,14 +511,6 @@ class ChargingStationSecurity {
 		return filteredRequest;
 	}
 
-	static filterChargingStationStatisticsRequest(request, loggedUser) {
-		let filteredRequest = {};
-		// Set
-		filteredRequest.Year = sanitize(request.Year);
-		filteredRequest.SiteID = sanitize(request.SiteID);
-		return filteredRequest;
-	}
-
 	static filterChargingStationRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.ID = sanitize(request.ID);
