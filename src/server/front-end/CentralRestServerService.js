@@ -1,15 +1,15 @@
 const Logging = require('../../utils/Logging');
-const ChargingStationService = require('./service/ChargingStationService').ChargingStationService;
-const UserService = require('./service/UserService').UserService;
-const CompanyService = require('./service/CompanyService').CompanyService;
-const SiteService = require('./service/SiteService').SiteService;
-const SiteAreaService = require('./service/SiteAreaService').SiteAreaService;
-const PricingService = require('./service/PricingService').PricingService;
-const CarService = require('./service/CarService').CarService;
-const UtilsService = require('./service/UtilsService').UtilsService;
-const LoggingService = require('./service/LoggingService').LoggingService;
-const TransactionService = require('./service/TransactionService').TransactionService;
-const StatisticService = require('./service/StatisticService').StatisticService;
+const ChargingStationService = require('./service/ChargingStationService');
+const UserService = require('./service/UserService');
+const CompanyService = require('./service/CompanyService');
+const SiteService = require('./service/SiteService');
+const SiteAreaService = require('./service/SiteAreaService');
+const PricingService = require('./service/PricingService');
+const CarService = require('./service/CarService');
+const UtilsService = require('./service/UtilsService');
+const LoggingService = require('./service/LoggingService');
+const TransactionService = require('./service/TransactionService');
+const StatisticService = require('./service/StatisticService');
 
 require('source-map-support').install();
 

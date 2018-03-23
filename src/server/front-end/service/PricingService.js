@@ -1,9 +1,8 @@
-const sanitize = require('mongo-sanitize');
 const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
 const Logging = require('../../../utils/Logging');
 const Utils = require('../../../utils/Utils');
 const Database = require('../../../utils/Database');
-const UtilsSecurity = require('./UtilsService').UtilsSecurity;
+const PricingSecurity = require('./security/PricingSecurity');
 
 class PricingService {
 	static handleGetPricing(action, req, res, next) {
@@ -90,34 +89,4 @@ class PricingService {
 	}
 }
 
-class PricingSecurity {
-	// Pricing
-	static filterPricingResponse(pricing, loggedUser) {
-		let filteredPricing = {};
-		if (!pricing) {
-			return null;
-		}
-		if (!CentralRestServerAuthorization.isAdmin(loggedUser)) {
-			return null;
-		}
-		// Set
-		filteredPricing.timestamp = pricing.timestamp;
-		filteredPricing.priceKWH = pricing.priceKWH;
-		filteredPricing.priceUnit = pricing.priceUnit;
-		// Return
-		return filteredPricing;
-	}
-
-	static filterPricingUpdateRequest(request, loggedUser) {
-		let filteredRequest = {};
-		// Set
-		filteredRequest.priceKWH = sanitize(request.priceKWH);
-		filteredRequest.priceUnit = sanitize(request.priceUnit);
-		return filteredRequest;
-	}
-}
-
-module.exports = {
-	"PricingService": PricingService,
-	"PricingSecurity": PricingSecurity
-};
+module.exports = PricingService;

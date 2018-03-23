@@ -1,5 +1,3 @@
-const sanitize = require('mongo-sanitize');
-const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const AppError = require('../../../exception/AppError');
@@ -10,6 +8,7 @@ const Utils = require('../../../utils/Utils');
 const Configuration = require('../../../utils/Configuration');
 const Authorizations = require('../../../utils/Authorizations');
 const NotificationHandler = require('../../../notification/NotificationHandler');
+const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
 const compileProfile = require('node-authorization').profileCompiler;
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
@@ -18,7 +17,7 @@ const jwt = require('jsonwebtoken');
 const Mustache = require('mustache');
 const moment = require('moment');
 const https = require('https');
-const UtilsSecurity = require('./UtilsService').UtilsSecurity;
+const AuthSecurity = require('./security/AuthSecurity');
 
 let _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 
@@ -582,39 +581,4 @@ class AuthService {
 	}
 }
 
-class AuthSecurity {
-	static filterResetPasswordRequest(request, loggedUser) {
-		let filteredRequest = {};
-		// Set
-		filteredRequest.email = sanitize(request.email);
-		filteredRequest.captcha = sanitize(request.captcha);
-		filteredRequest.hash = sanitize(request.hash);
-		return filteredRequest;
-	}
-
-	static filterRegisterUserRequest(request, loggedUser) {
-		let filteredRequest = {};
-		// Set
-		filteredRequest.name = sanitize(request.name);
-		filteredRequest.firstName = sanitize(request.firstName);
-		filteredRequest.email = sanitize(request.email);
-		filteredRequest.password = sanitize(request.passwords.password);
-		filteredRequest.captcha = sanitize(request.captcha);
-		filteredRequest.status = Users.USER_STATUS_PENDING;
-		return filteredRequest;
-	}
-
-	static filterLoginRequest(request) {
-		let filteredRequest = {};
-		// Set
-		filteredRequest.email = sanitize(request.email);
-		filteredRequest.password = sanitize(request.password);
-		filteredRequest.acceptEula = sanitize(request.acceptEula);
-		return filteredRequest;
-	}
-}
-
-module.exports = {
-	"AuthService": AuthService,
-	"AuthSecurity": AuthSecurity
-};
+module.exports = AuthService;

@@ -1,11 +1,10 @@
-const sanitize = require('mongo-sanitize');
 const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
 const Logging = require('../../../utils/Logging');
 const Utils = require('../../../utils/Utils');
 const moment = require('moment');
 const Users = require('../../../utils/Users');
 const Constants = require('../../../utils/Constants');
-const UtilsSecurity = require('./UtilsService').UtilsSecurity;
+const StatisticSecurity = require('./security/StatisticSecurity');
 
 class StatisticService {
 	static handleUserUsageStatistics(action, req, res, next) {
@@ -292,25 +291,4 @@ class StatisticService {
 	}
 }
 
-class StatisticSecurity {
-	static filterUserStatisticsRequest(request, loggedUser) {
-		let filteredRequest = {};
-		// Set
-		filteredRequest.Year = sanitize(request.Year);
-		filteredRequest.SiteID = sanitize(request.SiteID);
-		return filteredRequest;
-	}
-
-	static filterChargingStationStatisticsRequest(request, loggedUser) {
-		let filteredRequest = {};
-		// Set
-		filteredRequest.Year = sanitize(request.Year);
-		filteredRequest.SiteID = sanitize(request.SiteID);
-		return filteredRequest;
-	}
-}
-
-module.exports = {
-	"StatisticService": StatisticService,
-	"StatisticSecurity": StatisticSecurity
-};
+module.exports = StatisticService;
