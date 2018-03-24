@@ -384,6 +384,17 @@ class ChargingStation {
 		// Set the Station ID
 		bootNotification.chargeBoxID = this.getID();
 
+		// Send Notification
+		NotificationHandler.sendChargingStationRegistered(
+			Utils.generateGUID(),
+			this.getModel(),
+			{
+				"chargeBoxID": this.getID(),
+				"evseDashboardURL" : Utils.buildEvseURL(),
+				"evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(this)
+			}
+		);
+
 		// Save Boot Notification
 		return global.storage.saveBootNotification(bootNotification).then(() => {
 			// Log
@@ -392,35 +403,27 @@ class ChargingStation {
 				module: "ChargingStation", method: "handleBootNotification",
 				action: "BootNotification", message: `Boot notification saved`
 			});
-			// Get the Charging Station Config
-			return this.requestGetConfiguration();
-		// Save the config
-		}).then((configuration) => {
-			if (!configuration) {
-				throw new AppError(
-					this.getID(),
-					`Cannot retrieve the configuration`,
-					550, "ChargingStation", "handleBootNotification");
-			}
-			// Save it
-			return this.saveConfiguration(configuration);
-		}).then(() => {
-			Logging.logInfo({
-				source: this.getID(),
-				module: "ChargingStation", method: "handleBootNotification",
-				action: "BootNotification",
-				message: `Configuration has been saved` });
-
-			// Send Notification
-			NotificationHandler.sendChargingStationRegistered(
-				Utils.generateGUID(),
-				this.getModel(),
-				{
-					"chargeBoxID": this.getID(),
-					"evseDashboardURL" : Utils.buildEvseURL(),
-					"evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(this)
+			// Handle the get of configuration apart
+			// In case of error. the boot should no be denied
+			this.requestGetConfiguration().then((configuration) => {
+				if (!configuration) {
+					throw new AppError(
+						this.getID(),
+						`Cannot retrieve the configuration`,
+						550, "ChargingStation", "handleBootNotification");
 				}
-			);
+				// Save it
+				return this.saveConfiguration(configuration);
+			}).then(() => {
+				Logging.logInfo({
+					source: this.getID(),
+					module: "ChargingStation", method: "handleBootNotification",
+					action: "BootNotification",
+					message: `Configuration has been saved` });
+			}).catch((error) => {
+				// Log error
+				Logging.logActionExceptionMessage("BootNotification", error);
+			});
 		});
 	}
 
