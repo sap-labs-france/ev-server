@@ -40,13 +40,8 @@ Procedure to update the Site
 -----------------------------------------------------
 Procedure to restart the services
 -----------------------------------------------------
-NGINX (Front-End Server + Proxy)
 	sudo service nginx restart
-
-PM2 (REST Server + Charging Station Server)
-	pm2 list + pm2 restart 0
-
-MongoDB
+	pm2 restart 0
 	sudo service mongod restart
 
 -----------------------------------------------------
@@ -54,9 +49,16 @@ Topology
 -----------------------------------------------------
 NGINX		Path			Type 						Forwarded		Dest				Folder
 HTTP 443 	/				Angular static files		No				static dir			/var/www/html/evse
-HTTP 443	/client/api		Front-End Rest				Yes				localhost:443		/var/www/nodejs/evse
+HTTP 443	/client/api		Front-End Rest				Yes				localhost:50000		/var/www/nodejs/evse
 HTTP 8000	/				Charging Stations OCPP		Yes				localhost:58000		/var/www/nodejs/evse
-35000		/				Mongo DB					n/a				n/a					/var/lib/mongo
+32500		/				Mongo DB					n/a				n/a					/var/lib/mongo
+
+-----------------------------------------------------
+SSL
+-----------------------------------------------------
+"ssl-key": "ssl/82.165.163.132.key",
+"ssl-cert": "ssl/82.165.163.132.cer",
+"ssl-ca": [ "ssl/82.165.163.132.inter.cer" ],
 
 -----------------------------------------------------
 NGINX
@@ -93,9 +95,10 @@ Installation
 			https://fedoraproject.org/wiki/Nginx
 		- sudo dnf install nginx | yum install nginx
 		- Register:
-			systemctl enable nginx.service
+			sudo systemctl enable nginx.service
+			sudo systemctl disable nginx.service
 		- Start:
-			systemctl start nginx.service
+			sudo systemctl start nginx.service
 		- Conf:
 			/etc/nginx/nginx.conf
 		- Exec to avoid forward issue:
@@ -141,7 +144,8 @@ Installation
 			- sudo chown -R mongodb:mongodb /var/lib/mongo
 			- sudo chown -R mongodb:mongodb /var/log/mongodb
 		- sudo service mongod start
-		- Enable Startup: /usr/lib/systemd/systemd-sysv-install enable mongod
+		- Enable Startup:
+			sudo /usr/lib/systemd/systemd-sysv-install enable mongod
 		- Logs
 			- sudo tail -f /var/log/mongodb/mongod.log
 		- Service
