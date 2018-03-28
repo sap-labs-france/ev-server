@@ -1,0 +1,12 @@
+{
+	"apps" : [
+		{
+			"name": "REST Server",
+			"script": "./dist/start.js",
+			"watch": true,
+			"env": {
+				"NODE_ENV": "production",
+			}
+		}
+	]
+}
