@@ -160,7 +160,6 @@ class Car {
 	}
 
 	save() {
-		console.log(this.getModel());
 		return global.storage.saveCar(this.getModel());
 	}
 

@@ -70,7 +70,7 @@ sudo ps -aux | grep nginx
 	Edit Config
 		sudo gedit /etc/nginx/nginx.conf
 	SSL key
-		/etc/pki/nginx/evse
+		/etc/pki/nginx
 	Check
 		nginx -t
 

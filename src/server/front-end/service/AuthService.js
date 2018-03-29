@@ -396,10 +396,7 @@ class AuthService {
 			return;
 		}
 		// Check password
-		console.log(filteredRequest.password);
-		console.log(user.getPassword());
 		Users.checkPasswordBCrypt(filteredRequest.password, user.getPassword()).then((match) => {
-			console.log("OK");
 			// Check new and old version of hashing the password
 			if (match || (user.getPassword() === Users.hashPassword(filteredRequest.password))) {
 				// Password OK
@@ -581,6 +578,7 @@ class AuthService {
 				}
 			}
 		}).catch((err) => {
+			// Log in the console also
 			console.log(err);
 			// Log exception
 			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
