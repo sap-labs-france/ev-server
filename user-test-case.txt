@@ -1,0 +1,24 @@
+Site Protected
+	Start Transaction with known user
+			- Accept Transaction
+
+	Start Transaction
+			- Unknown user
+				- User created as Unknown
+				- Reject Transaction
+			- Inactive User
+				- Start Transaction -> Rejected
+			- Active User + No Company
+				- Start Transaction -> Rejected
+			- Active User + Company
+				- Start Transaction -> Rejected not active
+
+Site Not Protected
+	Start Transaction with known user
+		- Accept Transaction
+
+	Start Transaction with unknown user - Rejected
+		- User created as Anonymous
+		- Accept Transaction
+
+Charging Station not assigned to a Site Area
