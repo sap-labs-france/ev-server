@@ -338,9 +338,9 @@ module.exports = {
 						break;
 
 					// User
-					case "ChargingStationUpdate":
+					case "ChargingStationUpdateURL":
 						// Delegate
-						ChargingStationService.handleUpdateChargingStation(action, req, res, next);
+						ChargingStationService.handleUpdateChargingStationURL(action, req, res, next);
 						break;
 
 					// Site

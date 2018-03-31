@@ -93,12 +93,11 @@ class ChargingStationSecurity {
 		return filteredRequest;
 	}
 
-	static filterChargingStationUpdateRequest(request, loggedUser) {
+	static filterChargingStationURLUpdateRequest(request, loggedUser) {
 		// Set
 		let filteredRequest = {};
 		filteredRequest.id = sanitize(request.id);
-		filteredRequest.endpoint = sanitize(request.endpoint); // http://192.168.0.118:8080/
-		filteredRequest.siteAreaID = sanitize(request.siteAreaID);
+		filteredRequest.chargingStationURL = sanitize(request.chargingStationURL);
 		return filteredRequest;
 	}
 

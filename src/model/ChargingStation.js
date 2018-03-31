@@ -206,6 +206,14 @@ class ChargingStation {
 		this._model.endpoint = endpoint;
 	}
 
+	getChargingStationURL() {
+		return this._model.chargingStationURL;
+	}
+
+	setChargingStationURL(chargingStationURL) {
+		this._model.chargingStationURL = chargingStationURL;
+	}
+
 	getOcppVersion() {
 		return this._model.ocppVersion;
 	}
@@ -268,6 +276,11 @@ class ChargingStation {
 	saveHeartBeat() {
 		// Save
 		return global.storage.saveChargingStationHeartBeat(this.getModel());
+	}
+
+	saveChargingStationURL() {
+		// Save
+		return global.storage.saveChargingStationURL(this.getModel());
 	}
 
 	saveChargingStationSiteArea() {

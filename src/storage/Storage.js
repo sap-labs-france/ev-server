@@ -112,6 +112,9 @@ class Storage {
 	saveChargingStationConnector(chargingStation, connectorId) {
 	}
 
+	saveChargingStationURL(chargingStation) {
+	}
+
 	saveChargingStationHeartBeat(chargingStation) {
 	}
 

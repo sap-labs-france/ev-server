@@ -23,6 +23,7 @@ module.exports = mongoose.model('ChargingStation',{
 	meterType: String,
 	meterSerialNumber: String,
 	endpoint: String,
+	chargingStationURL: String,
 	ocppVersion: String,
 	lastReboot: Date,
 	lastHeartBeat: Date,

@@ -11,16 +11,16 @@ const SiteArea = require('../../../model/SiteArea');
 const ChargingStationSecurity = require('./security/ChargingStationSecurity');
 
 class ChargingStationService {
-	static handleUpdateChargingStation(action, req, res, next) {
+	static handleUpdateChargingStationURL(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
 			module: "ChargingStationService",
-			method: "handleUpdateChargingStation",
-			message: `Update Charging Station '${req.body.id}'`,
+			method: "handleUpdateChargingStationURL",
+			message: `Update URL of Charging Station '${req.body.id}'`,
 			detailedMessages: req.body
 		});
 		// Filter
-		let filteredRequest = ChargingStationSecurity.filterChargingStationUpdateRequest( req.body, req.user );
+		let filteredRequest = ChargingStationSecurity.filterChargingStationURLUpdateRequest( req.body, req.user );
 		let chargingStation;
 		// Check email
 		global.storage.getChargingStation(filteredRequest.id).then((foundChargingStation) => {
@@ -29,34 +29,20 @@ class ChargingStationService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Charging Station with ID '${filteredRequest.id}' does not exist anymore`,
-					550, "ChargingStationService", "handleUpdateChargingStation");
+					550, "ChargingStationService", "handleUpdateChargingStationURL");
 			}
-			// Check Mandatory fields
-			if (!ChargingStations.checkIfChargingStationValid(action, filteredRequest, req, res, next)) {
-				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`The Charging Station request is invalid`,
-					500, "ChargingStationService", "handleUpdateChargingStation");
-			}
-			// Check auth
 			if (!CentralRestServerAuthorization.canUpdateChargingStation(req.user, chargingStation.getModel())) {
+			// Check auth
 				// Not Authorized!
 				throw new AppAuthError(
 					CentralRestServerAuthorization.ACTION_UPDATE,
 					CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
 					site.getID(),
-					560, "ChargingStationService", "handleUpdateChargingStation",
+					560, "ChargingStationService", "handleUpdateChargingStationURL",
 					req.user);
 			}
-			// Update
-			if (filteredRequest.siteAreaID) {
-				chargingStation.setSiteArea(new SiteArea({
-					"id": filteredRequest.siteAreaID
-				}));
-			}
-			if (filteredRequest.endpoint) {
-				chargingStation.setEndPoint(filteredRequest.endpoint);
-			}
+			// Update Charging Station URL
+			chargingStation.setChargingStationURL(filteredRequest.chargingStationURL);
 			// Get the logged user
 			return global.storage.getUser(req.user.id);
 		// Logged User
@@ -65,12 +51,12 @@ class ChargingStationService {
 			chargingStation.setLastChangedBy(loggedUser);
 			chargingStation.setLastChangedOn(new Date());
 			// Update
-			return chargingStation.save();
+			return chargingStation.saveChargingStationURL();
 		}).then((updatedChargingStation) => {
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "ChargingStationService", method: "handleUpdateChargingStation",
-				message: `Charging Station '${updatedChargingStation.getID()}' has been updated successfully`,
+				user: req.user, module: "ChargingStationService", method: "handleUpdateChargingStationURL",
+				message: `Charging Station '${updatedChargingStation.getID()}' URL has been updated successfully`,
 				action: action, detailedMessages: updatedChargingStation});
 			// Ok
 			res.json({status: `Success`});

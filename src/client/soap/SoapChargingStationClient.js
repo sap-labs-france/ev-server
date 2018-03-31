@@ -64,7 +64,7 @@ class SoapChargingStationClient extends ChargingStationClient {
 					//   console.log(request);
 					// });
 					// Set endpoint
-					_client.setEndpoint(_chargingStation.getEndPoint());
+					_client.setEndpoint(_chargingStation.getChargingStationURL());
 					// Ok
 					fulfill(this);
 				}
@@ -80,7 +80,7 @@ class SoapChargingStationClient extends ChargingStationClient {
 		_client.addSoapHeader(`<h:chargeBoxIdentity xmlns:h="urn://Ocpp/Cp/2012/06/">${_chargingStation.getID()}</h:chargeBoxIdentity>`);
 		_client.addSoapHeader(`<a:MessageID xmlns:a="http://www.w3.org/2005/08/addressing">urn:uuid:589e13ae-1787-49f8-ab8b-4567327b23c6</a:MessageID>`);
 		_client.addSoapHeader(`<a:ReplyTo xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address></a:ReplyTo>`);
-		_client.addSoapHeader(`<a:To xmlns:a="http://www.w3.org/2005/08/addressing">${_chargingStation.getEndPoint()}</a:To>`);
+		_client.addSoapHeader(`<a:To xmlns:a="http://www.w3.org/2005/08/addressing">${_chargingStation.getChargingStationURL()}</a:To>`);
 		_client.addSoapHeader(`<a:Action xmlns:a="http://www.w3.org/2005/08/addressing">/${action}</a:Action>`);
 		_client.addSoapHeader(`<a:From xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>http://localhost:8080</a:Address></a:From>`);
 	}

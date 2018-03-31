@@ -44,6 +44,9 @@ module.exports = {
 		dest.lastHeartBeat = src.lastHeartBeat;
 		dest.lastReboot = src.lastReboot;
 		dest.siteAreaID = src.siteAreaID;
+		if (src.chargingStationURL) {
+			dest.chargingStationURL = src.chargingStationURL;
+		}
 		dest.connectors = [];
 		if (src.connectors) {
 			// Set

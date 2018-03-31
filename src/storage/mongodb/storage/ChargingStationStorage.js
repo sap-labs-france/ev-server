@@ -200,6 +200,24 @@ class ChargingStationStorage {
 		});
 	}
 
+	static handleSaveChargingStationURL(chargingStation) {
+		let updatedFields = {};
+		updatedFields["chargingStationURL"] = chargingStation.chargingStationURL;
+		// Update
+		return MDBChargingStation.findByIdAndUpdate(
+				chargingStation.id,
+				updatedFields).then((chargingStationMDB) => {
+			let newChargingStation = new ChargingStation(chargingStationMDB);
+			_centralRestServer.notifyChargingStationUpdated(
+				{
+					"id" : chargingStation.id,
+					"type": Constants.NOTIF_ENTITY_CHARGING_STATION
+				}
+			);
+			return newChargingStation;
+		});
+	}
+
 	static handleSaveChargingStationHeartBeat(chargingStation) {
 		let updatedFields = {};
 		updatedFields["lastHeartBeat"] = chargingStation.lastHeartBeat;
