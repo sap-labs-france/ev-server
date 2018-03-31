@@ -406,10 +406,12 @@ class AuthService {
 					chargingStations = [];
 				// Read Eula
 				global.storage.getEndUserLicenseAgreement(user.getLanguage()).then((endUserLicenseAgreement) => {
-					// Set Eula Info
-					user.setEulaAcceptedOn(new Date());
-					user.setEulaAcceptedVersion(endUserLicenseAgreement.version);
-					user.setEulaAcceptedHash(endUserLicenseAgreement.hash);
+					// Set Eula Info on Login Only
+					if (action == "login") {
+						user.setEulaAcceptedOn(new Date());
+						user.setEulaAcceptedVersion(endUserLicenseAgreement.version);
+						user.setEulaAcceptedHash(endUserLicenseAgreement.hash);
+					}
 					// Reset wrong number of trial
 					user.setPasswordWrongNbrTrials(0);
 					// Save
