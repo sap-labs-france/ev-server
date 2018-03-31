@@ -247,8 +247,7 @@ class UserStorage {
 		}
 	}
 
-	static handleGetUsers(searchValue, numberOfUsers) {
-		// Set the filters
+	static handleGetUsers(searchValue, companyID, numberOfUsers) {
 		let filters = {
 			"$and": [
 				{
@@ -305,6 +304,21 @@ class UserStorage {
 		if (filters) {
 			aggregation.push({
 				$match: filters
+			});
+		}
+		// Company?
+		if (companyID) {
+			// Add Number of Transactions
+			aggregation.push({
+				$lookup: {
+					from: "companies",
+					localField: "_id",
+					foreignField: "userIDs",
+					as: "companies"
+				}
+			});
+			aggregation.push({
+				$match: { "companies._id": new ObjectId(companyID) }
 			});
 		}
 		// Add Number of Transactions

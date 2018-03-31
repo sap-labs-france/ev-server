@@ -392,7 +392,7 @@ class UserService {
 		// Filter
 		let filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
 		// Get users
-		global.storage.getUsers(filteredRequest.Search, Constants.NO_LIMIT).then((users) => {
+		global.storage.getUsers(filteredRequest.Search, filteredRequest.CompanyID, Constants.NO_LIMIT).then((users) => {
 			var usersJSon = [];
 			users.forEach((user) => {
 				// Set the model

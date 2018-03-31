@@ -261,9 +261,9 @@ class MongoDBStorage extends Storage {
 		return ChargingStationStorage.handleGetChargingStation(id);
 	}
 
-	getUsers(searchValue, numberOfUser=500) {
+	getUsers(searchValue, companyID, numberOfUser=500) {
 		// Delegate
-		return UserStorage.handleGetUsers(searchValue, numberOfUser);
+		return UserStorage.handleGetUsers(searchValue, companyID, numberOfUser);
 	}
 
 	saveUser(user) {

@@ -22,6 +22,7 @@ class UserSecurity {
 		let filteredRequest = {};
 		// Handle picture
 		filteredRequest.Search = request.Search;
+		filteredRequest.CompanyID = request.CompanyID;
 		return filteredRequest;
 	}
 

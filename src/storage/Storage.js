@@ -130,7 +130,7 @@ class Storage {
 	getChargingStation(id) {
 	}
 
-	getUsers(searchValue, numberOfUser=500) {
+	getUsers(searchValue, companyID, numberOfUser=500) {
 	}
 
 	saveUser(user) {
