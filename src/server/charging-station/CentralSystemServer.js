@@ -95,6 +95,11 @@ class CentralSystemServer {
 				// Update timestamp
 				chargingStation.setCreatedOn(new Date());
 			} else {
+				// Check
+				if (!chargingStation.getChargingStationURL()) {
+					// Set the URL = enpoint
+					chargingStation.setChargingStationURL(chargingStation.getEndPoint())
+				}
 				// Update data
 				Database.updateChargingStation(args, chargingStation.getModel());
 				// Back again
