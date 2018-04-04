@@ -138,6 +138,10 @@ class Site {
 		return global.storage.saveSite(this.getModel());
 	}
 
+	saveImage() {
+		return global.storage.saveSiteImage(this.getModel());
+	}
+
 	delete() {
 		return global.storage.deleteSite(this.getID());
 	}

@@ -196,14 +196,6 @@ class UserStorage {
 				upsert: true
 			}).then((userMDB) => {
 				newUser = new User(userMDB);
-				// Save Image
-				return MDBUserImage.findOneAndUpdate({
-					"_id": new ObjectId(newUser.getID())
-				}, user, {
-					new: true,
-					upsert: true
-				});
-			}).then(() => {
 				// Update the badges
 				// First delete all of them
 				return MDBTag.remove({ "userID" : new ObjectId(newUser.getID()) });
@@ -244,6 +236,29 @@ class UserStorage {
 				}
 				return newUser;
 			});
+		}
+	}
+
+	static handleSaveUserImage(user) {
+		// Check if ID is provided
+		if (!user.id) {
+			// ID must be provided!
+			return Promise.reject( new Error("Error in saving the User: User has no ID and no Email and cannot be created or updated") );
+		} else {
+			// Save Image
+			return MDBUserImage.findOneAndUpdate({
+				"_id": new ObjectId(user.id)
+			}, user, {
+				new: true,
+				upsert: true
+			});
+			// Notify
+			_centralRestServer.notifyUserUpdated(
+				{
+					"id": user.id,
+					"type": Constants.NOTIF_ENTITY_USER
+				}
+			);
 		}
 	}
 
@@ -374,8 +389,9 @@ class UserStorage {
 	}
 
 	static handleDeleteUser(id) {
+		// Remove User
 		return MDBUser.findByIdAndRemove( id ).then((result) => {
-			// Remove Image
+			// Remove User's Image
 			return MDBUserImage.findByIdAndRemove( id );
 		}).then((result) => {
 			// Notify Change

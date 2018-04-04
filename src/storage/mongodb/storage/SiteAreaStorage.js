@@ -146,15 +146,6 @@ class SiteAreaStorage {
 					upsert: true
 				}).then((siteAreaMDB) => {
 					newSiteArea = new SiteArea(siteAreaMDB);
-
-					// Save Image
-					return MDBSiteAreaImage.findOneAndUpdate({
-						"_id": new ObjectId(newSiteArea.getID())
-					}, siteArea, {
-						new: true,
-						upsert: true
-					});
-				}).then(() => {
 					// Notify Change
 					if (!siteArea.id) {
 						_centralRestServer.notifySiteAreaCreated(
@@ -173,6 +164,29 @@ class SiteAreaStorage {
 					}
 					return newSiteArea;
 				});
+		}
+	}
+
+	static handleSaveSiteAreaImage(siteArea) {
+		// Check if ID is provided
+		if (!siteArea.id) {
+			// ID must be provided!
+			return Promise.reject( new Error("Error in saving the Site: Site has no ID and no Name and cannot be created or updated") );
+		} else {
+			// Save Image
+			return MDBSiteAreaImage.findOneAndUpdate({
+				"_id": new ObjectId(siteArea.id)
+			}, siteArea, {
+				new: true,
+				upsert: true
+			});
+			// Notify Change
+			_centralRestServer.notifySiteAreaCreated(
+				{
+					"id": siteArea.id,
+					"type": Constants.NOTIF_ENTITY_SITE_AREA
+				}
+			);
 		}
 	}
 

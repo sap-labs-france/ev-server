@@ -275,19 +275,26 @@ class CompanyService {
 		// Check Mandatory fields
 		if (Companies.checkIfCompanyValid(action, filteredRequest, req, res, next)) {
 			// Get the logged user
+			let company, newCompany;
 			global.storage.getUser(req.user.id).then((loggedUser) => {
 				// Create
-				let newCompany = new Company(filteredRequest);
+				company = new Company(filteredRequest);
 				// Update timestamp
-				newCompany.setCreatedBy(loggedUser);
-				newCompany.setCreatedOn(new Date());
+				company.setCreatedBy(loggedUser);
+				company.setCreatedOn(new Date());
 				// Save
-				return newCompany.save();
+				return company.save();
 			}).then((createdCompany) => {
+				newCompany = createdCompany;
+				// Update Company's Logo
+				newCompany.setLogo(company.getLogo());
+				// Save
+				return newCompany.saveLogo();
+			}).then(() => {
 				Logging.logSecurityInfo({
 					user: req.user, module: "CompanyService", method: "handleCreateCompany",
-					message: `Company '${createdCompany.getName()}' has been created successfully`,
-					action: action, detailedMessages: createdCompany});
+					message: `Company '${newCompany.getName()}' has been created successfully`,
+					action: action, detailedMessages: newCompany});
 				// Ok
 				res.json({status: `Success`});
 				next();
@@ -344,7 +351,10 @@ class CompanyService {
 			// Update timestamp
 			company.setLastChangedBy(loggedUser);
 			company.setLastChangedOn(new Date());
-			// Update
+			// Update Company's Logo
+			return company.saveLogo();
+		}).then(() => {
+			// Update Company
 			return company.save();
 		}).then((updatedCompany) => {
 			// Log

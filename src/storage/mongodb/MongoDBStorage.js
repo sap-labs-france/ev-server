@@ -271,6 +271,11 @@ class MongoDBStorage extends Storage {
 		return UserStorage.handleSaveUser(user);
 	}
 
+	saveUserImage(user) {
+		// Delegate
+		return UserStorage.handleSaveUserImage(user);
+	}
+
 	getUser(id) {
 		// Delegate
 		return UserStorage.handleGetUser(id);
@@ -331,6 +336,11 @@ class MongoDBStorage extends Storage {
 		return CompanyStorage.handleSaveCompany(company);
 	}
 
+	saveCompanyLogo(company) {
+		// Delegate
+		return CompanyStorage.handleSaveCompanyLogo(company);
+	}
+
 	getSiteAreas(searchValue, siteID=null, withChargeBoxes=false, numberOfSiteArea=500) {
 		// Delegate
 		return SiteAreaStorage.handleGetSiteAreas(searchValue, siteID,
@@ -340,6 +350,11 @@ class MongoDBStorage extends Storage {
 	saveSiteArea(siteArea) {
 		// Delegate
 		return SiteAreaStorage.handleSaveSiteArea(siteArea);
+	}
+
+	saveSiteAreaImage(siteArea) {
+		// Delegate
+		return SiteAreaStorage.handleSaveSiteAreaImage(siteArea);
 	}
 
 	deleteSiteArea(id) {
@@ -372,6 +387,11 @@ class MongoDBStorage extends Storage {
 	saveSite(site) {
 		// Delegate
 		return SiteStorage.handleSaveSite(site);
+	}
+
+	saveSiteImage(site) {
+		// Delegate
+		return SiteStorage.handleSaveSiteImage(site);
 	}
 
 	deleteSite(id) {

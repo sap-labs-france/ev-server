@@ -134,14 +134,6 @@ class SiteStorage {
 				upsert: true
 			}).then((siteMDB) => {
 				newSite = new Site(siteMDB);
-				// Save Image
-				return MDBSiteImage.findOneAndUpdate({
-					"_id": new ObjectId(newSite.getID())
-				}, site, {
-					new: true,
-					upsert: true
-				});
-			}).then(() => {
 				// Notify Change
 				if (!site.id) {
 					_centralRestServer.notifySiteCreated(
@@ -160,6 +152,29 @@ class SiteStorage {
 				}
 				return newSite;
 			});
+		}
+	}
+
+	static handleSaveSiteImage(site) {
+		// Check if ID is provided
+		if (!site.id) {
+			// ID must be provided!
+			return Promise.reject( new Error("Error in saving the Site: Site has no ID and no Name and cannot be created or updated") );
+		} else {
+			// Save Image
+			return MDBSiteImage.findOneAndUpdate({
+				"_id": new ObjectId(site.id)
+			}, site, {
+				new: true,
+				upsert: true
+			});
+			// Notify Change
+			_centralRestServer.notifySiteCreated(
+				{
+					"id": site.id,
+					"type": Constants.NOTIF_ENTITY_SITE
+				}
+			);
 		}
 	}
 

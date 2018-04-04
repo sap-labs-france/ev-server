@@ -93,7 +93,7 @@ class SiteService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Site with ID '${filteredRequest.ID}' does not exist anymore`,
-					550, "SiteService", "handleUpdateSite");
+					550, "SiteService", "handleGetSite");
 			}
 			// Return
 			res.json(
@@ -172,7 +172,7 @@ class SiteService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Site with ID '${filteredRequest.ID}' does not exist anymore`,
-					550, "SiteService", "handleUpdateSite");
+					550, "SiteService", "handleGetSite");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadSite(req.user, site.getModel())) {
@@ -263,6 +263,7 @@ class SiteService {
 		// Check Mandatory fields
 		if (Sites.checkIfSiteValid(action, filteredRequest, req, res, next)) {
 			// Check Company
+			let site, newSite;
 			global.storage.getCompany(filteredRequest.companyID).then((company) => {
 				// Found?
 				if (!company) {
@@ -277,17 +278,23 @@ class SiteService {
 			// Logged User
 			}).then((loggedUser) => {
 				// Create site
-				let newSite = new Site(filteredRequest);
+				site = new Site(filteredRequest);
 				// Update timestamp
-				newSite.setCreatedBy(loggedUser);
-				newSite.setCreatedOn(new Date());
-				// Save
-				return newSite.save();
+				site.setCreatedBy(loggedUser);
+				site.setCreatedOn(new Date());
+				// Save Site
+				return site.save();
 			}).then((createdSite) => {
+				newSite = createdSite;
+				// Save Site's Image
+				newSite.setImage(site.getImage());
+				// Save
+				return newSite.saveImage();
+			}).then(() => {
 				Logging.logSecurityInfo({
 					user: req.user, module: "SiteService", method: "handleCreateSite",
-					message: `Site '${createdSite.getName()}' has been created successfully`,
-					action: action, detailedMessages: createdSite});
+					message: `Site '${newSite.getName()}' has been created successfully`,
+					action: action, detailedMessages: newSite});
 				// Ok
 				res.json({status: `Success`});
 				next();
@@ -344,7 +351,10 @@ class SiteService {
 			// Update timestamp
 			site.setLastChangedBy(loggedUser);
 			site.setLastChangedOn(new Date());
-			// Update
+			// Update Site's Image
+			return site.saveImage();
+		}).then(() => {
+			// Update Site
 			return site.save();
 		}).then((updatedSite) => {
 			// Log

@@ -136,6 +136,9 @@ class Storage {
 	saveUser(user) {
 	}
 
+	saveUserImage(user) {
+	}
+
 	deleteUser(id) {
 	}
 
@@ -163,6 +166,9 @@ class Storage {
 	saveCompany(company) {
 	}
 
+	saveCompanyLogo(company) {
+	}
+
 	deleteCompany(id) {
 	}
 
@@ -171,6 +177,9 @@ class Storage {
 	}
 
 	saveSite(site) {
+	}
+
+	saveSiteImage(site) {
 	}
 
 	deleteSite(id) {
@@ -198,6 +207,9 @@ class Storage {
 	}
 
 	saveSiteArea(siteArea) {
+	}
+
+	saveSiteAreaImage(siteArea) {
 	}
 
 	deleteSiteArea(id) {

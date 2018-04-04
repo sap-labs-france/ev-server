@@ -255,6 +255,10 @@ class User {
 		return global.storage.saveUser(this.getModel());
 	}
 
+	saveImage() {
+		return global.storage.saveUserImage(this.getModel());
+	}
+
 	delete() {
 		// Check if the user has a transaction
 		return this.getTransactions().then((transactions) => {

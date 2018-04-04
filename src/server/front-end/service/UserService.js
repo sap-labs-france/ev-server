@@ -196,7 +196,10 @@ class UserService {
 				// Update the password
 				user.setPassword(newPasswordHashed);
 			}
-			// Update
+			// Update User's Image
+			return user.saveImage();
+		}).then(() => {
+			// Update User
 			return user.save();
 		}).then((updatedUser) => {
 			// Log
@@ -435,7 +438,7 @@ class UserService {
 			filteredRequest.role = Users.USER_ROLE_BASIC;
 			filteredRequest.status = Users.USER_STATUS_INACTIVE;
 		}
-		let loggedUser;
+		let loggedUser, newUser, user;
 		// Check Mandatory fields
 		if (Users.checkIfUserValid(action, filteredRequest, req, res, next)) {
 			// Get the logged user
@@ -455,7 +458,7 @@ class UserService {
 				return Users.hashPasswordBcrypt(filteredRequest.password);
 			}).then((newPasswordHashed) => {
 				// Create user
-				let user = new User(filteredRequest);
+				user = new User(filteredRequest);
 				// Set the password
 				if (filteredRequest.password) {
 					// Generate a hash
@@ -464,13 +467,19 @@ class UserService {
 				// Update timestamp
 				user.setCreatedBy(loggedUser);
 				user.setCreatedOn(new Date());
-				// Save
+				// Save User
 				return user.save();
 			}).then((createdUser) => {
+				newUser = createdUser;
+				// Update User's Image
+				newUser.setImage(user.getImage());
+				// Save
+				return newUser.saveImage();
+			}).then(() => {
 				Logging.logSecurityInfo({
-					user: req.user, actionOnUser: createdUser.getModel(),
+					user: req.user, actionOnUser: newUser.getModel(),
 					module: "UserService", method: "handleCreateUser",
-					message: `User with ID '${createdUser.getID()}' has been created successfully`,
+					message: `User with ID '${newUser.getID()}' has been created successfully`,
 					action: action});
 				// Ok
 				res.json({status: `Success`});

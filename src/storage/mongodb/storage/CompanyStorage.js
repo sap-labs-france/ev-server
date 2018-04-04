@@ -127,14 +127,6 @@ class CompanyStorage {
 				upsert: true
 			}).then((companyMDB) => {
 				newCompany = new Company(companyMDB);
-				// Save Logo
-				return MDBCompanyLogo.findOneAndUpdate({
-					"_id": new ObjectId(newCompany.getID())
-				}, company, {
-					new: true,
-					upsert: true
-				});
-			}).then(() => {
 				// Notify Change
 				if (!company.id) {
 					_centralRestServer.notifyCompanyCreated(
@@ -153,6 +145,30 @@ class CompanyStorage {
 				}
 				return newCompany;
 			});
+		}
+	}
+
+	static handleSaveCompanyLogo(company) {
+		// Check if ID/Name is provided
+		if (!company.id) {
+			// ID must be provided!
+			return Promise.reject( new Error(
+				"Error in saving the Company: Company has no ID and no Name and cannot be created or updated") );
+		} else {
+			// Save Logo
+			return MDBCompanyLogo.findOneAndUpdate({
+				"_id": new ObjectId(company.id)
+			}, company, {
+				new: true,
+				upsert: true
+			});
+			// Notify Change
+			_centralRestServer.notifyCompanyCreated(
+				{
+					"id": company.id,
+					"type": Constants.NOTIF_ENTITY_COMPANY
+				}
+			);
 		}
 	}
 

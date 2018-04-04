@@ -35,7 +35,11 @@ class Company {
 	}
 
 	getLogo() {
-		return global.storage.getCompanyLogo(this.getID());
+		return this._model.logo;
+	}
+
+	setLogo(logo) {
+		this._model.logo = logo;
 	}
 
 	getCreatedBy() {
@@ -157,6 +161,10 @@ class Company {
 
 	save() {
 		return global.storage.saveCompany(this.getModel());
+	}
+
+	saveLogo() {
+		return global.storage.saveCompanyLogo(this.getModel());
 	}
 
 	delete() {

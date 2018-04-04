@@ -35,9 +35,8 @@ class SiteAreaService {
 		}
 		// Filter
 		let filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest( req.body, req.user );
-		let newSiteArea;
-		let loggedUser;
 		// Check Mandatory fields
+		let loggedUser, siteArea, newSiteArea;
 		if (SiteAreas.checkIfSiteAreaValid("SiteAreaCreate", filteredRequest, req, res, next)) {
 			// Check Site
 			global.storage.getSite(filteredRequest.siteID).then((site) => {
@@ -55,14 +54,19 @@ class SiteAreaService {
 			}).then((foundLoggedUser) => {
 				loggedUser = foundLoggedUser;
 				// Create site
-				let newSiteArea = new SiteArea(filteredRequest);
+				siteArea = new SiteArea(filteredRequest);
 				// Update timestamp
-				newSiteArea.setCreatedBy(loggedUser);
-				newSiteArea.setCreatedOn(new Date());
+				siteArea.setCreatedBy(loggedUser);
+				siteArea.setCreatedOn(new Date());
 				// Save
-				return newSiteArea.save();
+				return siteArea.save();
 			}).then((createdSiteArea) => {
 				newSiteArea = createdSiteArea;
+				// Save Site's Image
+				newSiteArea.setImage(siteArea.getImage());
+				// Save
+				return newSiteArea.saveImage();
+			}).then(() => {
 				// Get the assigned Charge Boxes
 				let proms = [];
 				// Assign new Charging Stations
@@ -270,7 +274,7 @@ class SiteAreaService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Site Area with ID '${filteredRequest.ID}' does not exist anymore`,
-					550, "SiteAreaService", "handleUpdateSiteArea");
+					550, "SiteAreaService", "handleGetSiteAreaImage");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadSiteArea(req.user, siteArea.getModel())) {
@@ -421,7 +425,10 @@ class SiteAreaService {
 			// Update timestamp
 			siteArea.setLastChangedBy(loggedUser);
 			siteArea.setLastChangedOn(new Date());
-			// Update
+			// Update Site Area's Image
+			return siteArea.saveImage();
+		}).then(() => {
+			// Update Site Area
 			return siteArea.save();
 		}).then((updatedSiteArea) => {
 			// Log

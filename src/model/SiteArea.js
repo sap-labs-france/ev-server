@@ -108,6 +108,10 @@ class SiteArea {
 		return global.storage.saveSiteArea(this.getModel());
 	}
 
+	saveImage() {
+		return global.storage.saveSiteAreaImage(this.getModel());
+	}
+
 	delete() {
 		return global.storage.deleteSiteArea(this.getID());
 	}
