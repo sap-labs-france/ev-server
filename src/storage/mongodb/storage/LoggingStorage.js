@@ -27,7 +27,7 @@ class LoggingStorage {
 		} else {
 			return;
 		}
-		return MDBLog.remove(filter).then((result) => {
+		return MDBLog.remove(filters).then((result) => {
 			// Notify Change
 			_centralRestServer.notifyLoggingDeleted();
 			// Return the result
@@ -48,7 +48,7 @@ class LoggingStorage {
 		} else {
 			return;
 		}
-		return MDBLog.remove(filter).then((result) => {
+		return MDBLog.remove(filters).then((result) => {
 			// Notify Change
 			_centralRestServer.notifyLoggingDeleted();
 			// Return the result
