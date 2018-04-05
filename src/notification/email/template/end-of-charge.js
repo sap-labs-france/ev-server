@@ -24,7 +24,7 @@ module.exports.email = {
 		],
 		"stats": [
 			{ "label": "Consumption", "value": "<%- totalConsumption %> kW.h" },
-			{ "label": "Current Duration", "value": "<%- totalDuration %>" }
+			{ "label": "Estimated Duration", "value": "<%- totalDuration %>" }
 		],
 		"action": {
 			"title": "View Session",
@@ -68,7 +68,7 @@ module.exports.fr_FR.email = {
 		],
 		"stats": [
 			{ "label": "Consommation", "value": "<%- totalConsumption %> kW.h" },
-			{ "label": "Durée Actuelle", "value": "<%- totalDuration %>" }
+			{ "label": "Durée Estimée", "value": "<%- totalDuration %>" }
 		],
 		"action": {
 			"title": "Voir Session",
