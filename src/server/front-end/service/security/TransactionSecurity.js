@@ -164,7 +164,7 @@ class TransactionSecurity {
 			return null;
 		}
 		// Check
-		if (CentralRestServerAuthorization.canReadChargingStation(loggedUser, consumption.chargeBoxID)) {
+		if (CentralRestServerAuthorization.canReadChargingStation(loggedUser, {"id" : consumption.chargeBoxID})) {
 			filteredConsumption.chargeBoxID = consumption.chargeBoxID;
 			filteredConsumption.connectorId = consumption.connectorId;
 			// Admin?
