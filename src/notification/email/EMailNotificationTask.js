@@ -118,35 +118,36 @@ class EMailNotificationTask extends NotificationTask {
 		switch (templateName) {
 			// Request password
 			case 'request-password':
-				emailTemplate = requestPassword;
+				// Copy
+				emailTemplate = JSON.parse(JSON.stringify(requestPassword));
 				break;
 			// New password
 			case 'new-password':
-				emailTemplate = newPassword;
+				emailTemplate = JSON.parse(JSON.stringify(newPassword));
 				break;
 			// Registered user
 			case 'new-registered-user':
-				emailTemplate = newRegisteredUser;
+				emailTemplate = JSON.parse(JSON.stringify(newRegisteredUser));
 				break;
 			// End of charge
 			case 'end-of-charge':
-				emailTemplate = endOfCharge;
+				emailTemplate = JSON.parse(JSON.stringify(endOfCharge));
 				break;
 			// Charging Station Status Error
 			case 'charging-station-status-error':
-				emailTemplate = chargingStationStatusError;
+				emailTemplate = JSON.parse(JSON.stringify(chargingStationStatusError));
 				break;
 			case 'unknown-user-badged':
-				emailTemplate = unknownUserBadged;
+				emailTemplate = JSON.parse(JSON.stringify(unknownUserBadged));
 				break;
 			case 'transaction-started':
-				emailTemplate = transactionStarted;
+				emailTemplate = JSON.parse(JSON.stringify(transactionStarted));
 				break;
 			case 'user-account-status-changed':
-				emailTemplate = userAccountStatusChanged;
+				emailTemplate = JSON.parse(JSON.stringify(userAccountStatusChanged));
 				break;
 			case 'charging-station-registered':
-				emailTemplate = chargingStationRegistered;
+				emailTemplate = JSON.parse(JSON.stringify(chargingStationRegistered));
 				break;
 		}
 		// Template found?
