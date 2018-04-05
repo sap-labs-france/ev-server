@@ -8,7 +8,7 @@ module.exports.html = `
 				<tr style="background-color: #356964;background: linear-gradient(to right, rgba(53,105,100,1) 0%,rgba(53,105,100,1) 62%,rgba(107,173,167,1) 100%);">
 					<td>
 						<table width="768" border="0" cellspacing="0" cellpadding="0">
-							<tr height="70">
+							<tr height="90">
 								<td width="180" align="center">
 									<img width="<%- body.header.image.left.width %>"
 										height="<%- body.header.image.left.height %>"
