@@ -48,7 +48,7 @@ module.exports.html = `
 						<tr><td colspan="3" style="padding: 15px 0 0 0;">&nbsp;</td></tr>
 						<tr>
 							<td align="center" colspan="3" style="background-color: #356964;border-radius: 10px;">
-								<table width="100%" bgcolor="white" border="0" cellspacing="0" cellpadding="0">
+								<table width="768" bgcolor="white" border="0" cellspacing="0" cellpadding="0">
 									<tr>
 										<td style="width: 30%;"></td>
 										<td align="center" height="80" style="line-height:1.3;background-color: #356964;border-radius: 10px;">
