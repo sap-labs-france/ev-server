@@ -12,6 +12,8 @@ module.exports = {
 				<br/>
 				It was adopted on 27th, April 2016 and it becomes enforceable from 25 May 2018, after a two-year transition period.
 			</cite>
+			<br/>
+			<a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016R0679" target="_blank">Click here for more information</a>
 		</p>
 
 		<h2>Personal Data</h2>
@@ -170,6 +172,8 @@ module.exports = {
 				<br/>
 				Ses dispositions sont directement applicables dans l'ensemble des 28 États membres de l'Union européenne à compter du 25 mai 2018.
 			</cite>
+			<br/>
+			<a href="https://eur-lex.europa.eu/legal-content/FR/TXT/?uri=CELEX:32016R0679" target="_blank">Cliquez ici pour plus d'information</a>
 		</p>
 
 		<h2>Données Personnelles</h2>
