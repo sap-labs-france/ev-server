@@ -1,9 +1,9 @@
 module.exports.email = {
-	"subject": "Your password has been reset",
+	"subject": "New password",
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
-			"title": "New Password",
+			"title": "New Password!",
 			"image": {
 				"left": {
 					"width": 150,
@@ -39,11 +39,11 @@ module.exports.email = {
 
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
-	"subject": "Votre mot de passe a été initialisé avec succès",
+	"subject": "Nouveau mot de passe",
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
-			"title": "Nouveau Mot De Passe",
+			"title": "Nouveau Mot De Passe!",
 			"image": {
 				"left": {
 					"width": 150,

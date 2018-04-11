@@ -1,5 +1,5 @@
 module.exports.email = {
-	"subject": "Charge is finished on <%- chargingBoxID %>",
+	"subject": "Charge finished",
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
@@ -43,7 +43,7 @@ module.exports.email = {
 
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
-	"subject": "La charge est terminée sur <%- chargingBoxID %>",
+	"subject": "Charge terminée",
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {

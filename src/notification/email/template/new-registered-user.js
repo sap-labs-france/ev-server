@@ -1,5 +1,5 @@
 module.exports.email = {
-	"subject": "Your account has been created successfully",
+	"subject": "Account created!",
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
@@ -39,7 +39,7 @@ module.exports.email = {
 
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
-	"subject": "Votre compte a été créé avec succès",
+	"subject": "Compte créé!",
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {

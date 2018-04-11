@@ -1,9 +1,9 @@
 module.exports.email = {
-	"subject": "<%- chargingBoxID %> - Unknown user just badged (<%- badgeId %>)",
+	"subject": "Unknown user",
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
-			"title": "Unknown User Badged!",
+			"title": "Unknown User!",
 			"image": {
 				"left": {
 					"width": 150,
@@ -37,7 +37,7 @@ module.exports.email = {
 
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
-	"subject": "<%- chargingBoxID %> - Un utilisateur inconnu vient de badger (<%- badgeId %>)",
+	"subject": "Utilisateur inconnu",
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {

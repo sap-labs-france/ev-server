@@ -1,5 +1,5 @@
 module.exports.email = {
-	"subject": "<%- chargeBoxID %> connected to the central server",
+	"subject": "<%- chargeBoxID %> connected",
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
@@ -37,7 +37,7 @@ module.exports.email = {
 
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
-	"subject": "<%- chargeBoxID %> connectée au serveur central",
+	"subject": "<%- chargeBoxID %> connectée",
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {

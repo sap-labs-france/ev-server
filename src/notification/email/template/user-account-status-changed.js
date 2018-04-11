@@ -1,9 +1,9 @@
 module.exports.email = {
-	"subject": "Your account is <%- (user.status === 'A' ? 'activated' : 'suspended'); %>!",
+	"subject": "Account <%- (user.status === 'A' ? 'activated' : 'suspended'); %>",
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
-			"title": "Your Account is <%- (user.status === 'A' ? 'Active' : 'Supended'); %>!",
+			"title": "Account <%- (user.status === 'A' ? 'Active' : 'Supended'); %>!",
 			"image": {
 				"left": {
 					"width": 150,
@@ -37,11 +37,11 @@ module.exports.email = {
 
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
-	"subject": "Votre compte est <%- (user.status==='A'?'activé':'suspendu'); %>!",
+	"subject": "Compte <%- (user.status==='A'?'activé':'suspendu'); %>",
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
-			"title": "Votre Compte est <%- (user.status === 'A' ? 'Activé' : 'Suspendu'); %>!",
+			"title": "Compte <%- (user.status === 'A' ? 'Activé' : 'Suspendu'); %>!",
 			"image": {
 				"left": {
 					"width": 150,

@@ -1,5 +1,5 @@
 module.exports.email = {
-	"subject": "Your vehicle is successfully connected to <%- chargingBoxID %>",
+	"subject": "Successfully connected",
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
@@ -37,7 +37,7 @@ module.exports.email = {
 
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
-	"subject": "Votre véhicule est correctement connecté sur <%- chargingBoxID %>",
+	"subject": "Connecté avec succès",
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
