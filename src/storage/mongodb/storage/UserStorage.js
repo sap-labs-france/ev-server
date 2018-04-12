@@ -283,12 +283,28 @@ class UserStorage {
 					{ "_id" : { $regex : searchValue, $options: 'i' } },
 					{ "name" : { $regex : searchValue, $options: 'i' } },
 					{ "firstName" : { $regex : searchValue, $options: 'i' } },
+					{ "tags._id" : { $regex : searchValue, $options: 'i' } },
 					{ "email" : { $regex : searchValue, $options: 'i' } }
 				]
 			});
 		}
 		// Create Aggregation
 		let aggregation = [];
+		// Add TagIDs
+		aggregation.push({
+			$lookup: {
+				from: "tags",
+				localField: "_id",
+				foreignField: "userID",
+				as: "tags"
+			}
+		});
+		// Filters
+		if (filters) {
+			aggregation.push({
+				$match: filters
+			});
+		}
 		// Created By
 		aggregation.push({
 			$lookup: {
@@ -315,12 +331,6 @@ class UserStorage {
 		aggregation.push({
 			$unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
 		});
-		// Filters
-		if (filters) {
-			aggregation.push({
-				$match: filters
-			});
-		}
 		// Company?
 		if (companyID) {
 			// Add Number of Transactions
@@ -348,15 +358,6 @@ class UserStorage {
 		aggregation.push({
 			$addFields: {
 				"numberOfTransactions": { $size: "$transactions" }
-			}
-		});
-		// Add TagIDs
-		aggregation.push({
-			$lookup: {
-				from: "tags",
-				localField: "_id",
-				foreignField: "userID",
-				as: "tags"
 			}
 		});
 		// Sort
