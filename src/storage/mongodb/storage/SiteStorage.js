@@ -363,6 +363,11 @@ class SiteStorage {
 				let site = new Site(siteMDB);
 				// Set Site Areas
 				if (withSiteAreas && siteMDB.siteAreas) {
+					// Sort Site Areas
+					siteMDB.siteAreas.sort((cb1, cb2) => {
+						return cb1.name.localeCompare(cb2.name);
+					});
+					// Set
 					site.setSiteAreas(siteMDB.siteAreas.map((siteArea) => {
 						let siteAreaObj = new SiteArea(siteArea);
 						// Set Site Areas
