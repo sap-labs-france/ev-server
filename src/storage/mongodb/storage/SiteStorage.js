@@ -189,8 +189,8 @@ class SiteStorage {
 			// Build filter
 			filters.$or = [
 				{ "name" : { $regex : searchValue, $options: 'i' } },
-				{ "address.city" : { $regex : searchValue, $options: 'i' } },
-				{ "address.country" : { $regex : searchValue, $options: 'i' } }
+				{ "siteAreas.name" : { $regex : searchValue, $options: 'i' } },
+				{ "chargeBoxes._id" : { $regex : searchValue, $options: 'i' } }
 			];
 		}
 		// Set Company?
@@ -199,12 +199,6 @@ class SiteStorage {
 		}
 		// Create Aggregation
 		let aggregation = [];
-		// Filters
-		if (filters) {
-			aggregation.push({
-				$match: filters
-			});
-		}
 		// Add SiteAreas
 		aggregation.push({
 			$lookup: {
@@ -228,6 +222,12 @@ class SiteStorage {
 					foreignField: "siteAreaID",
 					as: "chargeBoxes"
 				}
+			});
+		}
+		// Filters
+		if (filters) {
+			aggregation.push({
+				$match: filters
 			});
 		}
 		// Created By
@@ -285,6 +285,78 @@ class SiteStorage {
 		return MDBSite.aggregate(aggregation)
 				.exec().then((sitesMDB) => {
 			let sites = [];
+			// Filter
+			if (searchValue) {
+				let matchSite = false, matchSiteArea = false, matchChargingStation = false;
+				let searchRegEx = new RegExp(searchValue, "i");
+				// Sites
+				for (var i = 0; i < sitesMDB.length; i++) {
+					if (searchRegEx.test(sitesMDB[i].name)) {
+						matchSite = true;
+						break;
+					}
+					// Site Areas
+					if (sitesMDB[i].siteAreas) {
+						for (var j = 0; j < sitesMDB[i].siteAreas.length; j++) {
+							// Check Site Area
+							if (searchRegEx.test(sitesMDB[i].siteAreas[j].name)) {
+								matchSiteArea = true;
+								break;
+							}
+							// Charge Boxes
+							if (sitesMDB[i].chargeBoxes) {
+								for (var k = 0; k < sitesMDB[i].chargeBoxes.length; k++) {
+									// Check Charging Station
+									if (searchRegEx.test(sitesMDB[i].chargeBoxes[k]._id)) {
+										matchChargingStation = true;
+										break;
+									}
+								}
+							}
+						}
+					}
+				}
+				// Match Site Area?
+				if (!matchSite && matchSiteArea) {
+					// Filter the Site Area
+					sitesMDB.forEach((siteMDB) => {
+						// Site Areas
+						if (siteMDB.siteAreas) {
+							// Filter
+							siteMDB.siteAreas = siteMDB.siteAreas.filter((siteArea) => {
+								return searchRegEx.test(siteArea.name);
+							});
+						}
+					});
+				// Match Charging Station?
+				} else if (!matchSite && matchChargingStation) {
+					// Filter the Site Area
+					sitesMDB.forEach((siteMDB) => {
+						// Charging Stations
+						if (siteMDB.chargeBoxes) {
+							// Filter Charging Stations
+							siteMDB.chargeBoxes = siteMDB.chargeBoxes.filter((chargeBox) => {
+								return searchRegEx.test(chargeBox._id);
+							});
+						}
+						// Site Areas
+						if (siteMDB.siteAreas) {
+							// Filter Site Areas
+							siteMDB.siteAreas = siteMDB.siteAreas.filter((siteArea) => {
+								let chargeBoxesPerSiteArea = [];
+								// Filter Charging Stations
+								if (siteMDB.chargeBoxes) {
+									// Filter with Site Area
+									chargeBoxesPerSiteArea = siteMDB.chargeBoxes.filter((chargeBox) => {
+										return chargeBox.siteAreaID.toString() == siteArea._id;
+									});
+								}
+								return chargeBoxesPerSiteArea.length > 0;
+							});
+						}
+					});
+				}
+			}
 			// Create
 			sitesMDB.forEach((siteMDB) => {
 				// Create
