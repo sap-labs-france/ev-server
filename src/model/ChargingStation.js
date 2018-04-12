@@ -580,13 +580,14 @@ class ChargingStation {
 	_buildCurrentTransactionInactivity(transaction, i18nHourShort="h") {
 		// Check
 		if (!transaction.stop || !transaction.stop.totalInactivitySecs) {
-			return "0min (0%)";
+			return "0h00 (0%)";
 		}
 		// Compute duration from now
 		let totalDurationSecs = moment.duration(
-			moment().diff(moment(transaction.timestamp))).asSeconds();
+			moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
 		// Compute the percentage
-		let totalInactivityPercent = Math.round(parseInt(transaction.stop.totalInactivitySecs) / parseInt(totalDurationSecs));
+		let totalInactivityPercent = Math.round(
+			parseInt(transaction.stop.totalInactivitySecs) * 100 / totalDurationSecs);
 		// Create Moment
 		let totalInactivitySecs = moment.duration(transaction.stop.totalInactivitySecs, 'seconds');
 		// Get Minutes
@@ -607,9 +608,15 @@ class ChargingStation {
 		let dateTimeString, timeDiffDuration;
 
 		// Compute duration from now
-		timeDiffDuration = moment.duration(
-			moment().diff(moment(transaction.timestamp))
-		);
+		if (transaction.stop) {
+			timeDiffDuration = moment.duration(
+				moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))
+			);
+		} else {
+			timeDiffDuration = moment.duration(
+				moment().diff(moment(transaction.timestamp))
+			);
+		}
 		// Set duration
 		let mins = Math.floor(timeDiffDuration.minutes());
 		// Set duration

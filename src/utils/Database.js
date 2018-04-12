@@ -318,6 +318,7 @@ module.exports = {
 			dest.stop.meterStop = src.stop.meterStop;
 			dest.stop.transactionData = src.stop.transactionData;
 			dest.stop.totalConsumption = src.stop.totalConsumption;
+			dest.stop.totalInactivitySecs = src.stop.totalInactivitySecs;
 		}
 	}
 };

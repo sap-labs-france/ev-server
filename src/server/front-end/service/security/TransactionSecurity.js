@@ -70,6 +70,7 @@ class TransactionSecurity {
 				filteredTransaction.stop = {};
 				filteredTransaction.stop.timestamp = transaction.stop.timestamp;
 				filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
+				filteredTransaction.stop.totalInactivitySecs = transaction.stop.totalInactivitySecs;
 				// Admin?
 				if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
 					filteredTransaction.stop.price = transaction.stop.price;
