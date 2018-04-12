@@ -601,7 +601,6 @@ class ChargingStation {
 		return inactivityString;
 	}
 
-
 	// Build duration
 	_buildCurrentTransactionDuration(transaction, i18nHourShort="h") {
 		// Build date
