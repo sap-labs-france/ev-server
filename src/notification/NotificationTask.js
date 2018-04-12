@@ -12,6 +12,9 @@ class NotificationTask {
 	sendEndOfCharge(data, locale) {
 	}
 
+	sendEndOfSession(data, locale) {
+	}
+
 	sendChargingStationStatusError(data, locale) {
 	}
 

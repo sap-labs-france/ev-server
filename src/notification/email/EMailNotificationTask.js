@@ -13,6 +13,7 @@ const newPassword = require('./template/new-password.js');
 const newRegisteredUser = require('./template/new-registered-user.js');
 const userAccountStatusChanged = require('./template/user-account-status-changed.js');
 const endOfCharge = require('./template/end-of-charge.js');
+const endOfSession = require('./template/end-of-session.js');
 const chargingStationStatusError = require('./template/charging-station-status-error.js');
 const transactionStarted = require('./template/transaction-started');
 const unknownUserBadged = require('./template/unknown-user-badged');
@@ -67,6 +68,14 @@ class EMailNotificationTask extends NotificationTask {
 		return new Promise((fulfill, reject) => {
 			// Send it
 			this._prepareAndSendEmail('end-of-charge', data, locale, fulfill, reject);
+		});
+	}
+
+	sendEndOfSession(data, locale) {
+		// Create a promise
+		return new Promise((fulfill, reject) => {
+			// Send it
+			this._prepareAndSendEmail('end-of-session', data, locale, fulfill, reject);
 		});
 	}
 
@@ -132,6 +141,10 @@ class EMailNotificationTask extends NotificationTask {
 			// End of charge
 			case 'end-of-charge':
 				emailTemplate = JSON.parse(JSON.stringify(endOfCharge));
+				break;
+			// End of session
+			case 'end-of-session':
+				emailTemplate = JSON.parse(JSON.stringify(endOfSession));
 				break;
 			// Charging Station Status Error
 			case 'charging-station-status-error':

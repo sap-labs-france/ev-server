@@ -441,7 +441,7 @@ class ChargingStation {
 	}
 
 	updateChargingStationConsumption(transactionId) {
-		// Get the last tranasction first
+		// Get the last transaction first
 		return this.getTransaction(transactionId).then((transaction) => {
 			// Found?
 			if (transaction) {
@@ -518,7 +518,7 @@ class ChargingStation {
 					if (transaction.user) {
 						// Send Notification
 						NotificationHandler.sendEndOfCharge(
-							transaction.id + "-EOF",
+							transaction.id + "-EOC",
 							transaction.user,
 							this.getModel(),
 							{
@@ -530,8 +530,7 @@ class ChargingStation {
 									{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
 								"totalDuration": this._buildCurrentTransactionDuration(transaction),
 								"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
-								"evseDashboardURL" : Utils.buildEvseURL(),
-								"notifStopTransactionAndUnlockConnector": _configChargingStation.notifStopTransactionAndUnlockConnector
+								"evseDashboardURL" : Utils.buildEvseURL()
 							},
 							transaction.user.locale
 						);
@@ -576,6 +575,31 @@ class ChargingStation {
 			}
 		}
 	}
+
+	// Build Inactivity
+	_buildCurrentTransactionInactivity(transaction, i18nHourShort="h") {
+		// Check
+		if (!transaction.stop || !transaction.stop.totalInactivitySecs) {
+			return "0min (0%)";
+		}
+		// Compute duration from now
+		let totalDurationSecs = moment.duration(
+			moment().diff(moment(transaction.timestamp))).asSeconds();
+		// Compute the percentage
+		let totalInactivityPercent = Math.round(parseInt(transaction.stop.totalInactivitySecs) / parseInt(totalDurationSecs));
+		// Create Moment
+		let totalInactivitySecs = moment.duration(transaction.stop.totalInactivitySecs, 'seconds');
+		// Get Minutes
+		let mins = Math.floor(totalInactivitySecs.minutes());
+		// Build Inactivity
+		let inactivityString =
+			Math.floor(totalInactivitySecs.asHours()).toString() + i18nHourShort +
+			(mins < 10 ? ("0" + mins) : mins.toString()) +
+			" (" + totalInactivityPercent + "%)";
+		// End
+		return inactivityString;
+	}
+
 
 	// Build duration
 	_buildCurrentTransactionDuration(transaction, i18nHourShort="h") {
@@ -935,21 +959,31 @@ class ChargingStation {
 	}
 
 	handleStopTransaction(stopTransaction) {
+		let transaction;
 		// Set the charger ID
 		stopTransaction.chargeBoxID = this.getID();
 		// Get the transaction first (to get the connector id)
-		return this.getTransaction(stopTransaction.transactionId).then((transaction) => {
-			if (transaction) {
-				// Init the charging station
-				this.getConnectors()[transaction.connectorId-1].currentConsumption = 0;
-				this.getConnectors()[transaction.connectorId-1].totalConsumption = 0;
-				// Save it
-				this.save();
-				// Compute total consumption (optimization)
-				return this.getConsumptionsFromTransaction(transaction, true);
-			} else {
+		return this.getTransaction(stopTransaction.transactionId).then((foundTransaction) => {
+			transaction = foundTransaction;
+			if (!transaction) {
 				throw new Error(`The Transaction ID '${stopTransaction.transactionId}' does not exist`);
 			}
+			// Set the stop
+			transaction.stop = stopTransaction;
+			// Set data
+			if(stopTransaction.idTag) {
+				transaction.stop.tagID = stopTransaction.idTag;
+			}
+			if(stopTransaction.user) {
+				transaction.stop.userID = stopTransaction.user.id;
+			}
+			// Init the charging station
+			this.getConnectors()[transaction.connectorId-1].currentConsumption = 0;
+			this.getConnectors()[transaction.connectorId-1].totalConsumption = 0;
+			// Save it
+			this.save();
+			// Compute total consumption (optimization)
+			return this.getConsumptionsFromTransaction(transaction, true);
 		}).then((consumption) => {
 			// Compute total inactivity seconds
 			stopTransaction.totalInactivitySecs = 0;
@@ -967,6 +1001,28 @@ class ChargingStation {
 			});
 			// Set the total consumption (optimization)
 			stopTransaction.totalConsumption = consumption.totalConsumption;
+			// Notify User
+			if (transaction.user) {
+				// Send Notification
+				NotificationHandler.sendEndOfSession(
+					transaction.id + "-EOS",
+					transaction.user,
+					this.getModel(),
+					{
+						"user": transaction.user,
+						"chargingBoxID": this.getID(),
+						"connectorId": transaction.connectorId,
+						"totalConsumption": (this.getConnectors()[transaction.connectorId-1].totalConsumption/1000).toLocaleString(
+							(transaction.user.locale ? transaction.user.locale.replace('_','-') : Users.DEFAULT_LOCALE.replace('_','-')),
+							{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
+						"totalDuration": this._buildCurrentTransactionDuration(transaction),
+						"totalInactivity": this._buildCurrentTransactionInactivity(transaction),
+						"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
+						"evseDashboardURL" : Utils.buildEvseURL()
+					},
+					transaction.user.locale
+				);
+			}
 			// User Provided?
 			if (stopTransaction.idTag) {
 				// Save it with the user

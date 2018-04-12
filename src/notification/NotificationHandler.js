@@ -12,6 +12,7 @@ const CHANNEL_EMAIL = "email";
 const SOURCE_CHARGING_STATION_STATUS_ERROR = "NotifyChargingStationStatusError";
 const SOURCE_CHARGING_STATION_REGISTERED = "NotifyChargingStationRegistered";
 const SOURCE_END_OF_CHARGE = "NotifyEndOfCharge";
+const SOURCE_END_OF_SESSION = "NotifyEndOfSession";
 const SOURCE_NEW_PASSWORD = "NotifyNewPassword";
 const SOURCE_REQUEST_PASSWORD = "NotifyRequestPassword";
 const SOURCE_USER_ACCOUNT_STATUS_CHANGED = "NotifyUserAccountStatusChanged";
@@ -89,6 +90,34 @@ class NotificationHandler {
 		}).catch((err) => {
 			// Log error
 			Logging.logActionExceptionMessage(SOURCE_END_OF_CHARGE, error);
+		});
+	}
+
+	static sendEndOfSession(sourceId, user, chargingStation, sourceData, locale) {
+		// Check notification
+		return NotificationHandler.hasNotifiedSource(sourceId).then(hasBeenNotified => {
+			// Notified?
+			if (!hasBeenNotified) {
+				// Email enabled?
+				if (_notificationConfig.Email.enabled) {
+					// Save notif
+					return NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+							SOURCE_END_OF_SESSION, user, chargingStation).then(() => {
+						// Send email
+						return _email.sendEndOfSession(sourceData, locale);
+					}).catch((error) => {
+						// Log error
+						Logging.logActionExceptionMessage(SOURCE_END_OF_SESSION, error);
+					});
+				} else {
+					return Promise.resolve();
+				}
+			} else {
+				return Promise.resolve();
+			}
+		}).catch((err) => {
+			// Log error
+			Logging.logActionExceptionMessage(SOURCE_END_OF_SESSION, error);
 		});
 	}
 
