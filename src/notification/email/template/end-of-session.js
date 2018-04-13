@@ -42,11 +42,11 @@ module.exports.email = {
 
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
-	"subject": "Charge terminée",
+	"subject": "Session terminée",
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
-			"title": "Charge Terminée!",
+			"title": "Session Terminée!",
 			"image": {
 				"left": {
 					"width": 150,
