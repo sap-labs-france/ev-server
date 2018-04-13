@@ -338,7 +338,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"manufacturer\": \"Renault\",\n\t\"model\": \"Zoe\",\n\t\"batteryKW\": 40,\n\t\"autonomyKmWLTP\": 300,\n\t\"autonomyKmReal\": 200,\n\t\"horsePower\": 80,\n\t\"torqueNm\": 100,\n\t\"performance0To100kmh\": 69,\n\t\"weightKg\": 1250,\n\t\"lengthMeter\": 4.30,\n\t\"widthMeter\": 2,\n\t\"heightMeter\": 1.6\n}"
+					"raw": "{\n\t\"manufacturer\": \"Renault\",\n\t\"model\": \"Zoe\",\n\t\"batteryKW\": 40,\n\t\"autonomyKmWLTP\": 300,\n\t\"autonomyKmReal\": 200,\n\t\"horsePower\": 80,\n\t\"torqueNm\": 100,\n\t\"performance0To100kmh\": 69,\n\t\"weightKg\": 1250,\n\t\"lengthMeter\": 4.30,\n\t\"widthMeter\": 2,\n\t\"heightMeter\": 1.6,\n\t\"images\": [\"xyz\", \"uvw\"],\n\t\"withCarImages\": true\n}"
 				},
 				"url": {
 					"raw": "https://127.0.0.1:443/client/api/CarCreate",
@@ -544,7 +544,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "https://127.0.0.1:443/client/api/Car?ID=5ab55b7e64467a19cd79b805",
+					"raw": "https://127.0.0.1:443/client/api/Car?ID=5ad052cb5ed0e73c8ad84a04",
 					"protocol": "https",
 					"host": [
 						"127",
@@ -561,9 +561,76 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5ab55b7e64467a19cd79b805",
+							"value": "5ad052cb5ed0e73c8ad84a04",
 							"equals": true
 						}
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "FE-CarImage",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost/client/api/CarImage?ID=5ad052cb5ed0e73c8ad84a04",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"client",
+						"api",
+						"CarImage"
+					],
+					"query": [
+						{
+							"key": "ID",
+							"value": "5ad052cb5ed0e73c8ad84a04",
+							"equals": true
+						}
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "FE-CarImages",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost/client/api/CarImages",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"client",
+						"api",
+						"CarImages"
 					]
 				},
 				"description": ""
@@ -1639,7 +1706,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"id\": \"5ab55b7e64467a19cd79b805\",\r\n    \"manufacturer\": \"Renault2\",\r\n    \"model\": \"Zoe2\",\r\n    \"batteryKW\": 402,\r\n    \"autonomyKmWLTP\": 3002,\r\n    \"autonomyKmReal\": 2002,\r\n    \"horsePower\": 802,\r\n    \"torqueNm\": 1002,\r\n    \"performance0To100kmh\": 692,\r\n    \"weightKg\": 12502,\r\n    \"lengthMeter\": 4.32,\r\n    \"widthMeter\": 22,\r\n    \"heightMeter\": 1.62\r\n}\r\n"
+					"raw": "{\r\n    \"id\": \"5ad052cb5ed0e73c8ad84a04\",\r\n    \"manufacturer\": \"Renault2\",\r\n    \"model\": \"Zoe2\",\r\n    \"batteryKW\": 402,\r\n    \"autonomyKmWLTP\": 3002,\r\n    \"autonomyKmReal\": 2002,\r\n    \"horsePower\": 802,\r\n    \"torqueNm\": 1002,\r\n    \"performance0To100kmh\": 692,\r\n    \"weightKg\": 12502,\r\n    \"lengthMeter\": 4.32,\r\n    \"widthMeter\": 22,\r\n    \"heightMeter\": 1.62,\r\n\t\"images\": [\"www\", \"zzz\"],\r\n\t\"withCarImages\": true\r\n}\r\n"
 				},
 				"url": {
 					"raw": "https://127.0.0.1:443/client/api/CarUpdate",
@@ -1846,7 +1913,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "https://127.0.0.1:443/client/api/CarDelete?ID=5ab55b7e64467a19cd79b805",
+					"raw": "https://127.0.0.1:443/client/api/CarDelete?ID=5ad052cb5ed0e73c8ad84a04",
 					"protocol": "https",
 					"host": [
 						"127",
@@ -1863,7 +1930,7 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5ab55b7e64467a19cd79b805",
+							"value": "5ad052cb5ed0e73c8ad84a04",
 							"equals": true
 						}
 					]
@@ -2356,7 +2423,7 @@
 			"response": []
 		},
 		{
-			"name": "MeterValue1-2",
+			"name": "MeterValue2-1",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -2464,7 +2531,7 @@
 			"response": []
 		},
 		{
-			"name": "MeterValue3-2",
+			"name": "MeterValue2-3",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -2518,7 +2585,7 @@
 			"response": []
 		},
 		{
-			"name": "MeterValue4-2",
+			"name": "MeterValue2-4",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -2572,7 +2639,7 @@
 			"response": []
 		},
 		{
-			"name": "MeterValue5-2",
+			"name": "MeterValue2-5",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -2626,7 +2693,7 @@
 			"response": []
 		},
 		{
-			"name": "MeterValue6-2",
+			"name": "MeterValue2-6",
 			"request": {
 				"method": "POST",
 				"header": [],
