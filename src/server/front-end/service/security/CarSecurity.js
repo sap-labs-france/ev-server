@@ -27,6 +27,7 @@ class CarSecurity {
 		// Set
 		let filteredRequest = CarSecurity._filterCarRequest(request, loggedUser);
 		filteredRequest.id = sanitize(request.id);
+		filteredRequest.withCarImages = UtilsSecurity.filterBoolean(request.withCarImages);
 		return filteredRequest;
 	}
 

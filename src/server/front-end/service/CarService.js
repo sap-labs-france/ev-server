@@ -88,7 +88,7 @@ class CarService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Car with ID '${filteredRequest.ID}' does not exist anymore`,
-					550, "CarService", "handleUpdateCar");
+					550, "CarService", "handleGetCar");
 			}
 			// Return
 			res.json(
@@ -165,7 +165,7 @@ class CarService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Car with ID '${filteredRequest.ID}' does not exist anymore`,
-					550, "CarService", "handleUpdateCar");
+					550, "CarService", "handleGetCarImage");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadCar(req.user, car.getModel())) {
@@ -335,7 +335,12 @@ class CarService {
 			// Update timestamp
 			car.setLastChangedBy(loggedUser);
 			car.setLastChangedOn(new Date());
-			// Update
+			// Update Car's Image
+			if (filteredRequest.withCarImages) {
+				return car.saveImages();
+			}
+		}).then(() => {
+			// Update Car
 			return car.save();
 		}).then((updatedCar) => {
 			// Log
