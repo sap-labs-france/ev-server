@@ -20,6 +20,36 @@ class CarStorage {
 		_centralRestServer = centralRestServer;
 	}
 
+	static handleGetCarImage(id) {
+		// Exec request
+		return MDBCarImage.findById(id).exec().then((carImageMDB) => {
+			let carImage = null;
+			// Set
+			if (carImageMDB) {
+				carImage = {
+					id: carImageMDB._id,
+					images: carImageMDB.images
+				};
+			}
+			return carImage;
+		});
+	}
+
+	static handleGetCarImages() {
+		// Exec request
+		return MDBCarImage.find({}).exec().then((carImagesMDB) => {
+			let carImages = [];
+			// Add
+			carImagesMDB.forEach((carImageMDB) => {
+				carImages.push({
+					id: carImageMDB._id,
+					images: carImageMDB.images
+				});
+			});
+			return carImages;
+		});
+	}
+
 	static handleGetCar(id) {
 		// Create Aggregation
 		let aggregation = [];
@@ -37,38 +67,6 @@ class CarStorage {
 				car = new Car(carMDB[0]);
 			}
 			return car;
-		});
-	}
-
-	static handleGetCarImage(id) {
-		// Exec request
-		return MDBCarImage.findById(id)
-				.exec().then((carImageMDB) => {
-			let carImage = null;
-			// Set
-			if (carImageMDB) {
-				carImage = {
-					id: carImageMDB._id,
-					image: carImageMDB.image
-				};
-			}
-			return carImage;
-		});
-	}
-
-	static handleGetCarImages() {
-		// Exec request
-		return MDBCarImage.find({})
-				.exec().then((carImagesMDB) => {
-			let carImages = [];
-			// Add
-			carImagesMDB.forEach((carImageMDB) => {
-				carImages.push({
-					id: carImageMDB._id,
-					image: carImageMDB.image
-				});
-			});
-			return carImages;
 		});
 	}
 
@@ -103,14 +101,6 @@ class CarStorage {
 				upsert: true
 			}).then((carMDB) => {
 				newCar = new Car(carMDB);
-				// Save Image
-				return MDBCarImage.findOneAndUpdate({
-					"_id": new ObjectId(newCar.getID())
-				}, car, {
-					new: true,
-					upsert: true
-				});
-			}).then(() => {
 				// Notify Change
 				if (!car.id) {
 					_centralRestServer.notifyCarCreated(
@@ -129,6 +119,29 @@ class CarStorage {
 				}
 				return newCar;
 			});
+		}
+	}
+
+	static handleSaveCarImages(car) {
+		// Check if ID is provided
+		if (!car.id) {
+			// ID must be provided!
+			return Promise.reject( new Error("Error in saving the Car: Car has no ID cannot be created or updated") );
+		} else {
+			// Save Image
+			return MDBCarImage.findOneAndUpdate({
+				"_id": new ObjectId(car.id)
+			}, car, {
+				new: true,
+				upsert: true
+			});
+			// Notify Change
+			_centralRestServer.notifyCarUpdated(
+				{
+					"id": car.id,
+					"type": Constants.NOTIF_ENTITY_CAR
+				}
+			);
 		}
 	}
 

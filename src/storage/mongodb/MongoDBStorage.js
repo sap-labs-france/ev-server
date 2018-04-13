@@ -424,6 +424,11 @@ class MongoDBStorage extends Storage {
 		return CarStorage.handleSaveCar(car);
 	}
 
+	saveCarImages(car) {
+		// Delegate
+		return CarStorage.handleSaveCarImages(car);
+	}
+
 	deleteCar(id) {
 		// Delegate
 		return CarStorage.handleDeleteCar(id);

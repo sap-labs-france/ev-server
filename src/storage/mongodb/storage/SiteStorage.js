@@ -159,7 +159,7 @@ class SiteStorage {
 		// Check if ID is provided
 		if (!site.id) {
 			// ID must be provided!
-			return Promise.reject( new Error("Error in saving the Site: Site has no ID and no Name and cannot be created or updated") );
+			return Promise.reject( new Error("Error in saving the Site: Site has no ID and cannot be created or updated") );
 		} else {
 			// Save Image
 			return MDBSiteImage.findOneAndUpdate({
@@ -169,7 +169,7 @@ class SiteStorage {
 				upsert: true
 			});
 			// Notify Change
-			_centralRestServer.notifySiteCreated(
+			_centralRestServer.notifySiteUpdated(
 				{
 					"id": site.id,
 					"type": Constants.NOTIF_ENTITY_SITE

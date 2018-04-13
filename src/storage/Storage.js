@@ -227,6 +227,9 @@ class Storage {
 	saveCar(car) {
 	}
 
+	saveCarImages(car) {
+	}
+
 	deleteCar(id) {
 	}
 

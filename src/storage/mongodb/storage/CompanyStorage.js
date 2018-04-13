@@ -163,7 +163,7 @@ class CompanyStorage {
 				upsert: true
 			});
 			// Notify Change
-			_centralRestServer.notifyCompanyCreated(
+			_centralRestServer.notifyCompanyUpdated(
 				{
 					"id": company.id,
 					"type": Constants.NOTIF_ENTITY_COMPANY

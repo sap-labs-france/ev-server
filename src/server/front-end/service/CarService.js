@@ -238,7 +238,7 @@ class CarService {
 			user: req.user, action: action,
 			module: "CarService",
 			method: "handleCreateCar",
-			message: `Create Car '${req.body.name}'`,
+			message: `Create Car '${req.body.manufacturer} ${req.body.model}'`,
 			detailedMessages: req.body
 		});
 		// Check auth
@@ -255,20 +255,30 @@ class CarService {
 		let filteredRequest = CarSecurity.filterCarCreateRequest( req.body, req.user );
 		// Check Mandatory fields
 		if (Cars.checkIfCarValid(action, filteredRequest, req, res, next)) {
+			let car, newCar;
 			// Get the logged user
 			global.storage.getUser(req.user.id).then((loggedUser) => {
 				// Create car
-				let newCar = new Car(filteredRequest);
+				car = new Car(filteredRequest);
 				// Update timestamp
-				newCar.setCreatedBy(loggedUser);
-				newCar.setCreatedOn(new Date());
+				car.setCreatedBy(loggedUser);
+				car.setCreatedOn(new Date());
 				// Save
-				return newCar.save();
+				return car.save();
 			}).then((createdCar) => {
+				newCar = createdCar;
+				// Save Images?
+				if (filteredRequest.withCarImages) {
+					// Save Site's Image
+					newCar.setImages(car.getImages());
+					// Save
+					return newCar.saveImages();
+				}
+			}).then(() => {
 				Logging.logSecurityInfo({
 					user: req.user, module: "CarService", method: "handleCreateCar",
-					message: `Car '${createdCar.getName()}' has been created successfully`,
-					action: action, detailedMessages: createdCar});
+					message: `Car '${newCar.getName()}' has been created successfully`,
+					action: action, detailedMessages: newCar});
 				// Ok
 				res.json({status: `Success`});
 				next();

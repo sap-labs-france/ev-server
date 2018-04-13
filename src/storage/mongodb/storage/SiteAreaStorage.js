@@ -181,7 +181,7 @@ class SiteAreaStorage {
 				upsert: true
 			});
 			// Notify Change
-			_centralRestServer.notifySiteAreaCreated(
+			_centralRestServer.notifySiteAreaUpdated(
 				{
 					"id": siteArea.id,
 					"type": Constants.NOTIF_ENTITY_SITE_AREA

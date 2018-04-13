@@ -14,7 +14,7 @@ class Car {
 	}
 
 	getName() {
-		return `${this.getManufacturer()} ${this.getModel()}`;
+		return `${this.getManufacturer()} ${this.getCarModel()}`;
 	}
 
 	getID() {
@@ -117,8 +117,12 @@ class Car {
 		return this._model.model;
 	}
 
-	getImage() {
-		return global.storage.getCarImage(this.getID());
+	setImages(images) {
+		this._model.images = images;
+	}
+
+	getImages() {
+		return this._model.images;
 	}
 
 	getCreatedBy() {
@@ -161,6 +165,10 @@ class Car {
 
 	save() {
 		return global.storage.saveCar(this.getModel());
+	}
+
+	saveImages() {
+		return global.storage.saveCarImages(this.getModel());
 	}
 
 	delete() {

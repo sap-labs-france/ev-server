@@ -31,7 +31,9 @@ class CarSecurity {
 	}
 
 	static filterCarCreateRequest(request, loggedUser) {
-		return CarSecurity._filterCarRequest(request, loggedUser);
+		let filteredRequest = CarSecurity._filterCarRequest(request, loggedUser);
+		filteredRequest.withCarImages = UtilsSecurity.filterBoolean(request.withCarImages);
+		return filteredRequest;
 	}
 
 	static _filterCarRequest(request, loggedUser) {
@@ -48,6 +50,7 @@ class CarSecurity {
 		filteredRequest.lengthMeter = sanitize(request.lengthMeter);
 		filteredRequest.widthMeter = sanitize(request.widthMeter);
 		filteredRequest.heightMeter = sanitize(request.heightMeter);
+		filteredRequest.images = sanitize(request.images);
 		return filteredRequest;
 	}
 

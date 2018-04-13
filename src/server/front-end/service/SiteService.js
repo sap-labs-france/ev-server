@@ -262,8 +262,8 @@ class SiteService {
 		let filteredRequest = SiteSecurity.filterSiteCreateRequest( req.body, req.user );
 		// Check Mandatory fields
 		if (Sites.checkIfSiteValid(action, filteredRequest, req, res, next)) {
-			// Check Company
 			let site, newSite;
+			// Check Company
 			global.storage.getCompany(filteredRequest.companyID).then((company) => {
 				// Found?
 				if (!company) {
