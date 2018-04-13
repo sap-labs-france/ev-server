@@ -1018,7 +1018,7 @@ class ChargingStation {
 						"user": transaction.user,
 						"chargingBoxID": this.getID(),
 						"connectorId": transaction.connectorId,
-						"totalConsumption": (this.getConnectors()[transaction.connectorId-1].totalConsumption/1000).toLocaleString(
+						"totalConsumption": (stopTransaction.totalConsumption/1000).toLocaleString(
 							(transaction.user.locale ? transaction.user.locale.replace('_','-') : Users.DEFAULT_LOCALE.replace('_','-')),
 							{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
 						"totalDuration": this._buildCurrentTransactionDuration(transaction),
