@@ -193,6 +193,29 @@ class CarStorage {
 		aggregation.push({
 			$unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
 		});
+		// Add Car Images
+		aggregation.push({
+			$lookup: {
+				from: "carimages",
+				localField: "_id",
+				foreignField: "_id",
+				as: "carImages"
+			}
+		});
+		// Single Record
+		aggregation.push({
+			$unwind: { "path": "$carImages", "preserveNullAndEmptyArrays": true }
+		});
+		aggregation.push({
+			$addFields: {
+				"numberOfImages": { $size: "$carImages.images" }
+			}
+		});
+		aggregation.push({
+			$project: {
+				"carImages.images": 0
+			}
+		});
 		// Sort
 		aggregation.push({
 			$sort: { model : 1 }

@@ -241,6 +241,7 @@ module.exports = {
 		dest.widthMeter = src.widthMeter;
 		dest.heightMeter = src.heightMeter;
 		dest.images = src.images;
+		dest.numberOfImages = src.numberOfImages; 
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
