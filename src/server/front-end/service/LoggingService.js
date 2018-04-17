@@ -2,6 +2,7 @@ const CentralRestServerAuthorization = require('../CentralRestServerAuthorizatio
 const Logging = require('../../../utils/Logging');
 const Utils = require('../../../utils/Utils');
 const LoggingSecurity = require('./security/LoggingSecurity');
+const AppAuthError = require('../../../exception/AppAuthError');
 
 class LoggingService {
 	static handleGetLoggings(action, req, res, next) {
