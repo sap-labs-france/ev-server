@@ -218,7 +218,10 @@ class CarStorage {
 		});
 		// Sort
 		aggregation.push({
-			$sort: { model : 1 }
+			$sort: {
+				manufacturer : 1, 
+				model : 1
+			}
 		});
 		// Limit
 		if (numberOfCars > 0) {
