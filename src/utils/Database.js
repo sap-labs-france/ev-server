@@ -240,8 +240,9 @@ module.exports = {
 		dest.lengthMeter = src.lengthMeter;
 		dest.widthMeter = src.widthMeter;
 		dest.heightMeter = src.heightMeter;
+		dest.releasedOn = src.releasedOn;
 		dest.images = src.images;
-		dest.numberOfImages = src.numberOfImages; 
+		dest.numberOfImages = src.numberOfImages;
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 

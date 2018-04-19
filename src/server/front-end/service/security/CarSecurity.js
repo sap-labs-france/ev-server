@@ -51,6 +51,7 @@ class CarSecurity {
 		filteredRequest.lengthMeter = sanitize(request.lengthMeter);
 		filteredRequest.widthMeter = sanitize(request.widthMeter);
 		filteredRequest.heightMeter = sanitize(request.heightMeter);
+		filteredRequest.releasedOn = sanitize(request.releasedOn);
 		filteredRequest.images = sanitize(request.images);
 		return filteredRequest;
 	}

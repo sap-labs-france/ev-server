@@ -13,6 +13,7 @@ module.exports = mongoose.model('Car', {
 	lengthMeter: Number,
 	widthMeter: Number,
 	heightMeter: Number,
+	releasedOn: Date,
 	createdBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
 	createdOn: Date,
 	lastChangedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
