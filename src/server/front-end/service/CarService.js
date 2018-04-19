@@ -267,13 +267,14 @@ class CarService {
 				return car.save();
 			}).then((createdCar) => {
 				newCar = createdCar;
-				// Save Images?
-				if (filteredRequest.withCarImages) {
-					// Save Site's Image
+				// Save Site's Image
+				if (car.getImages()) {
 					newCar.setImages(car.getImages());
-					// Save
-					return newCar.saveImages();
+				} else {
+					newCar.setImages([]);
 				}
+				// Save
+				return newCar.saveImages();
 			}).then(() => {
 				Logging.logSecurityInfo({
 					user: req.user, module: "CarService", method: "handleCreateCar",

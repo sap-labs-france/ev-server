@@ -33,7 +33,6 @@ class CarSecurity {
 
 	static filterCarCreateRequest(request, loggedUser) {
 		let filteredRequest = CarSecurity._filterCarRequest(request, loggedUser);
-		filteredRequest.withCarImages = UtilsSecurity.filterBoolean(request.withCarImages);
 		return filteredRequest;
 	}
 
