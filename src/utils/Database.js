@@ -242,6 +242,7 @@ module.exports = {
 		dest.heightMeter = src.heightMeter;
 		dest.releasedOn = src.releasedOn;
 		dest.images = src.images;
+		dest.logo = src.logo;
 		dest.numberOfImages = src.numberOfImages;
 		this.updateCreatedAndLastChanged(src, dest);
 	},

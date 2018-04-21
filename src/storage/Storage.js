@@ -241,6 +241,15 @@ class Storage {
 
 	getCarImages() {
 	}
+
+	getCarLogo(id) {
+	}
+
+	getCarLogos() {
+	}
+
+	saveCarLogo(car) {
+	}
 }
 
 module.exports=Storage;

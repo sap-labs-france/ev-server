@@ -276,6 +276,11 @@ class CarService {
 				// Save
 				return newCar.saveImages();
 			}).then(() => {
+				// Update Car's Logo
+				newCar.setLogo(car.getLogo());
+				// Save
+				return newCar.saveLogo();
+			}).then(() => {
 				Logging.logSecurityInfo({
 					user: req.user, module: "CarService", method: "handleCreateCar",
 					message: `Car '${newCar.getName()}' has been created successfully`,
@@ -341,6 +346,9 @@ class CarService {
 				return car.saveImages();
 			}
 		}).then(() => {
+			// Update Car's Logo
+			return car.saveLogo();
+		}).then(() => {
 			// Update Car
 			return car.save();
 		}).then((updatedCar) => {
@@ -351,6 +359,98 @@ class CarService {
 				action: action, detailedMessages: updatedCar});
 			// Ok
 			res.json({status: `Success`});
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
+	static handleGetCarLogo(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "CarService",
+			method: "handleGetCarLogo",
+			message: `Read Car Logo '${req.query.ID}'`,
+			detailedMessages: req.query
+		});
+		// Filter
+		let filteredRequest = CarSecurity.filterCarRequest(req.query, req.user);
+		// Charge Box is mandatory
+		if(!filteredRequest.ID) {
+			Logging.logActionExceptionMessageAndSendResponse(
+				action, new Error(`The Car ID is mandatory`), req, res, next);
+			return;
+		}
+		// Get it
+		let car;
+		global.storage.getCar(filteredRequest.ID).then((foundCar) => {
+			car = foundCar;
+			if (!car) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Car with ID '${filteredRequest.ID}' does not exist anymore`,
+					550, "CarService", "handleGetCarLogo");
+			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canReadCar(req.user, car.getModel())) {
+				// Not Authorized!
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_READ,
+					CentralRestServerAuthorization.ENTITY_COMPANY,
+					car.getID(),
+					560, "CarService", "handleGetCarLogo",
+					req.user);
+			}
+			// Get the logo
+			return global.storage.getCarLogo(filteredRequest.ID);
+		}).then((carLogo) => {
+			// Found?
+			if (carLogo) {
+				Logging.logSecurityInfo({
+					user: req.user,
+					action: action,
+					module: "CarService", method: "handleGetCarLogo",
+					message: 'Read Car Logo'
+				});
+				// Set the user
+				res.json(carLogo);
+			} else {
+				res.json(null);
+			}
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
+	static handleGetCarLogos(action, req, res, next) {
+		Logging.logSecurityInfo({
+			user: req.user, action: action,
+			module: "CarService", method: "handleGetCarLogos",
+			message: `Read Car Logos`,
+			detailedMessages: req.query
+		});
+		// Check auth
+		if (!CentralRestServerAuthorization.canListCompanies(req.user)) {
+			// Not Authorized!
+			throw new AppAuthError(
+				CentralRestServerAuthorization.ACTION_LIST,
+				CentralRestServerAuthorization.ENTITY_COMPANIES,
+				null,
+				560, "CarService", "handleGetCarLogos",
+				req.user);
+		}
+		// Get the car logo
+		global.storage.getCarLogos().then((carLogos) => {
+			Logging.logSecurityInfo({
+				user: req.user,
+				action: action,
+				module: "CarService", method: "handleGetCarLogos",
+				message: 'Read Car Logos'
+			});
+			res.json(carLogos);
 			next();
 		}).catch((err) => {
 			// Log

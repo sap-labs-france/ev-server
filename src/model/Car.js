@@ -125,6 +125,14 @@ class Car {
 		return this._model.images;
 	}
 
+	getLogo() {
+		return this._model.logo;
+	}
+
+	setLogo(logo) {
+		this._model.logo = logo;
+	}
+
 	getCreatedBy() {
 		if (this._model.createdBy) {
 			return new User(this._model.createdBy);
@@ -169,6 +177,10 @@ class Car {
 
 	saveImages() {
 		return global.storage.saveCarImages(this.getModel());
+	}
+
+	saveLogo() {
+		return global.storage.saveCarLogo(this.getModel());
 	}
 
 	delete() {

@@ -93,7 +93,7 @@ class CompanyService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Company with ID '${filteredRequest.ID}' does not exist anymore`,
-					550, "CompanyService", "handleGetCompanyLogo");
+					550, "CompanyService", "handleGetCompany");
 			}
 			// Check auth
 			if (!CentralRestServerAuthorization.canReadCompany(req.user, company.getModel())) {

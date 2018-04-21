@@ -153,7 +153,7 @@ class CompanyStorage {
 		if (!company.id) {
 			// ID must be provided!
 			return Promise.reject( new Error(
-				"Error in saving the Company: Company has no ID and no Name and cannot be created or updated") );
+				"Error in saving the Company: Company has no ID and cannot be created or updated") );
 		} else {
 			// Save Logo
 			return MDBCompanyLogo.findOneAndUpdate({

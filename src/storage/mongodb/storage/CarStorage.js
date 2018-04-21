@@ -12,12 +12,69 @@ const ChargingStation = require('../../../model/ChargingStation');
 const User = require('../../../model/User');
 const crypto = require('crypto');
 const ObjectId = mongoose.Types.ObjectId;
+const MDBCarLogo = require('../model/MDBCarLogo');
 
 let _centralRestServer;
 
 class CarStorage {
 	static setCentralRestServer(centralRestServer) {
 		_centralRestServer = centralRestServer;
+	}
+
+	static handleGetCarLogo(id) {
+		// Exec request
+		return MDBCarLogo.findById(id)
+				.exec().then((carLogoMDB) => {
+			let carLogo = null;
+			// Set
+			if (carLogoMDB) {
+				carLogo = {
+					id: carLogoMDB._id,
+					logo: carLogoMDB.logo
+				};
+			}
+			return carLogo;
+		});
+	}
+
+	static handleGetCarLogos() {
+		// Exec request
+		return MDBCarLogo.find({})
+				.exec().then((carLogosMDB) => {
+			let carLogos = [];
+			// Add
+			carLogosMDB.forEach((carLogoMDB) => {
+				carLogos.push({
+					id: carLogoMDB._id,
+					logo: carLogoMDB.logo
+				});
+			});
+			return carLogos;
+		});
+	}
+
+	static handleSaveCarLogo(car) {
+		// Check if ID/Name is provided
+		if (!car.id) {
+			// ID must be provided!
+			return Promise.reject( new Error(
+				"Error in saving the Car: Car has no ID and cannot be created or updated") );
+		} else {
+			// Save Logo
+			return MDBCarLogo.findOneAndUpdate({
+				"_id": new ObjectId(car.id)
+			}, car, {
+				new: true,
+				upsert: true
+			});
+			// Notify Change
+			_centralRestServer.notifyCarUpdated(
+				{
+					"id": car.id,
+					"type": Constants.NOTIF_ENTITY_COMPANY
+				}
+			);
+		}
 	}
 
 	static handleGetCarImage(id) {
@@ -219,7 +276,7 @@ class CarStorage {
 		// Sort
 		aggregation.push({
 			$sort: {
-				manufacturer : 1, 
+				manufacturer : 1,
 				model : 1
 			}
 		});
@@ -249,6 +306,9 @@ class CarStorage {
 		MDBCar.findByIdAndRemove(id).then((results) => {
 			// Remove Image
 			return MDBCarImage.findByIdAndRemove( id );
+		}).then((result) => {
+			// Remove Logo
+			return MDBCarLogo.findByIdAndRemove( id );
 		}).then((result) => {
 			// Notify Change
 			_centralRestServer.notifyCarDeleted(

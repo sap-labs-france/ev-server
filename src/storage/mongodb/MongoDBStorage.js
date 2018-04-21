@@ -326,6 +326,26 @@ class MongoDBStorage extends Storage {
 		return CompanyStorage.handleGetCompanyLogos();
 	}
 
+	saveCompanyLogo(company) {
+		// Delegate
+		return CompanyStorage.handleSaveCompanyLogo(company);
+	}
+
+	getCarLogo(id) {
+		// Delegate
+		return CarStorage.handleGetCarLogo(id);
+	}
+
+	getCarLogos() {
+		// Delegate
+		return CarStorage.handleGetCarLogos();
+	}
+
+	saveCarLogo(car) {
+		// Delegate
+		return CarStorage.handleSaveCarLogo(car);
+	}
+
 	deleteCompany(id) {
 		// Delegate
 		return CompanyStorage.handleDeleteCompany(id);
@@ -334,11 +354,6 @@ class MongoDBStorage extends Storage {
 	saveCompany(company) {
 		// Delegate
 		return CompanyStorage.handleSaveCompany(company);
-	}
-
-	saveCompanyLogo(company) {
-		// Delegate
-		return CompanyStorage.handleSaveCompanyLogo(company);
 	}
 
 	getSiteAreas(searchValue, siteID=null, withChargeBoxes=false, numberOfSiteArea=500) {

@@ -200,6 +200,18 @@ module.exports = {
 						CarService.handleGetCarImage(action, req, res, next);
 						break;
 
+					// Get all the car logos
+					case "CarLogos":
+						// Delegate
+						CarService.handleGetCarLogos(action, req, res, next);
+						break;
+
+					// Get one car logo
+					case "CarLogo":
+						// Delegate
+						CarService.handleGetCarLogo(action, req, res, next);
+						break;
+
 					// Get all the site areas
 					case "SiteAreas":
 						// Delegate
