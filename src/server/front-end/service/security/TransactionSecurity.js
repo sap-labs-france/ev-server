@@ -61,6 +61,7 @@ class TransactionSecurity {
 			filteredTransaction.id = transaction.id;
 			filteredTransaction.transactionId = transaction.transactionId;
 			filteredTransaction.connectorId = transaction.connectorId;
+			filteredTransaction.tagID = transaction.tagID;
 			filteredTransaction.timestamp = transaction.timestamp;
 			// Filter user
 			filteredTransaction.user = TransactionSecurity._filterUserInTransactionResponse(
@@ -92,7 +93,6 @@ class TransactionSecurity {
 				filteredTransaction.chargeBox.connectors[transaction.connectorId-1] = transaction.chargeBox.connectors[transaction.connectorId-1];
 			}
 		}
-
 		return filteredTransaction;
 	}
 
