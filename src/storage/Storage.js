@@ -242,13 +242,25 @@ class Storage {
 	getCarImages() {
 	}
 
-	getCarLogo(id) {
+	getVehicleManufacturers(searchValue, numberOfVehicleManufacturers=500) {
 	}
 
-	getCarLogos() {
+	getVehicleManufacturer(id) {
 	}
 
-	saveCarLogo(car) {
+	deleteVehicleManufacturer(id) {
+	}
+
+	saveVehicleManufacturer(vehicleManufacturer) {
+	}
+
+	getVehicleManufacturerLogo(id) {
+	}
+
+	getVehicleManufacturerLogos() {
+	}
+
+	saveVehicleManufacturerLogo(car) {
 	}
 }
 

@@ -1,5 +1,6 @@
 const Logging = require('../../utils/Logging');
 const ChargingStationService = require('./service/ChargingStationService');
+const VehicleManufacturerService = require('./service/VehicleManufacturerService');
 const UserService = require('./service/UserService');
 const CompanyService = require('./service/CompanyService');
 const SiteService = require('./service/SiteService');
@@ -79,6 +80,12 @@ module.exports = {
 					case "CarCreate":
 						// Delegate
 						CarService.handleCreateCar(action, req, res, next);
+						break;
+
+					// Create Vehicle Manufacturer
+					case "VehicleManufacturerCreate":
+						// Delegate
+						VehicleManufacturerService.handleCreateVehicleManufacturer(action, req, res, next);
 						break;
 
 					// Create Site
@@ -200,16 +207,28 @@ module.exports = {
 						CarService.handleGetCarImage(action, req, res, next);
 						break;
 
-					// Get all the car logos
-					case "CarLogos":
+					// Get all the Vehicle Manufacturers
+					case "VehicleManufacturers":
 						// Delegate
-						CarService.handleGetCarLogos(action, req, res, next);
+						VehicleManufacturer.handleGetVehicleManufacturers(action, req, res, next);
 						break;
 
-					// Get one car logo
-					case "CarLogo":
+					// Get one Vehicle Manufacturer
+					case "VehicleManufacturer":
 						// Delegate
-						CarService.handleGetCarLogo(action, req, res, next);
+						VehicleManufacturerService.handleGetVehicleManufacturer(action, req, res, next);
+						break;
+
+					// Get all the Vehicle Manufacturer logos
+					case "VehicleManufacturerLogos":
+						// Delegate
+						VehicleManufacturerService.handleGetVehicleManufacturerLogos(action, req, res, next);
+						break;
+
+					// Get one Vehicle Manufacturer logo
+					case "VehicleManufacturerLogo":
+						// Delegate
+						VehicleManufacturerService.handleGetVehicleManufacturerLogo(action, req, res, next);
 						break;
 
 					// Get all the site areas
@@ -377,6 +396,12 @@ module.exports = {
 					case "CarUpdate":
 						// Delegate
 						CarService.handleUpdateCar(action, req, res, next);
+						break;
+
+					// Vehicle Manufacturer
+					case "VehicleManufacturerUpdate":
+						// Delegate
+						VehicleManufacturerService.handleUpdateVehicleManufacturer(action, req, res, next);
 						break;
 
 					// Transaction

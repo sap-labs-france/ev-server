@@ -15,6 +15,8 @@ module.exports = {
 	ENTITY_USER: "User",
 	ENTITY_CARS: "Cars",
 	ENTITY_CAR: "Car",
+	ENTITY_VEHICLE_MANUFACTURERS: "VehicleManufacturers",
+	ENTITY_VEHICLE_MANUFACTURER: "VehicleManufacturer",
 	ENTITY_COMPANIES: "Companies",
 	ENTITY_COMPANY: "Company",
 	ENTITY_SITES: "Sites",
@@ -220,6 +222,36 @@ module.exports = {
 		// Check
 		return this.canPerformAction(loggedUser, this.ENTITY_CAR,
 			{ "Action": this.ACTION_DELETE, "CarID": car.id.toString() });
+	},
+
+	canListVehicleManufacturers(loggedUser) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_VEHICLE_MANUFACTURERS,
+			{ "Action": this.ACTION_LIST });
+	},
+
+	canReadVehicleManufacturer(loggedUser, vehicleManufacturer) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_VEHICLE_MANUFACTURER,
+			{ "Action": this.ACTION_READ, "VehicleManufacturerID": vehicleManufacturer.id.toString() });
+	},
+
+	canCreateVehicleManufacturer(loggedUser) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_VEHICLE_MANUFACTURER,
+			{ "Action": this.ACTION_CREATE });
+	},
+
+	canUpdateVehicleManufacturer(loggedUser, vehicleManufacturer) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_VEHICLE_MANUFACTURER,
+			{ "Action": this.ACTION_UPDATE, "VehicleManufacturerID": vehicleManufacturer.id.toString() });
+	},
+
+	canDeleteVehicleManufacturer(loggedUser, vehicleManufacturer) {
+		// Check
+		return this.canPerformAction(loggedUser, this.ENTITY_VEHICLE_MANUFACTURER,
+			{ "Action": this.ACTION_DELETE, "VehicleManufacturerID": vehicleManufacturer.id.toString() });
 	},
 
 	canListSiteAreas(loggedUser) {

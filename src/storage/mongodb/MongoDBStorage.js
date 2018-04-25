@@ -12,6 +12,7 @@ const CompanyStorage = require('./storage/CompanyStorage');
 const SiteStorage = require('./storage/SiteStorage');
 const SiteAreaStorage = require('./storage/SiteAreaStorage');
 const MigrationStorage = require('./storage/MigrationStorage');
+const VehicleManufacturerStorage = require('./storage/VehicleManufacturerStorage');
 
 require('source-map-support').install();
 
@@ -61,6 +62,7 @@ class MongoDBStorage extends Storage {
 		SiteStorage.setCentralRestServer(centralRestServer);
 		SiteAreaStorage.setCentralRestServer(centralRestServer);
 		CarStorage.setCentralRestServer(centralRestServer);
+		VehicleManufacturerStorage.setCentralRestServer(centralRestServer);
 	}
 
 	getEndUserLicenseAgreement(language="en") {
@@ -331,21 +333,6 @@ class MongoDBStorage extends Storage {
 		return CompanyStorage.handleSaveCompanyLogo(company);
 	}
 
-	getCarLogo(id) {
-		// Delegate
-		return CarStorage.handleGetCarLogo(id);
-	}
-
-	getCarLogos() {
-		// Delegate
-		return CarStorage.handleGetCarLogos();
-	}
-
-	saveCarLogo(car) {
-		// Delegate
-		return CarStorage.handleSaveCarLogo(car);
-	}
-
 	deleteCompany(id) {
 		// Delegate
 		return CompanyStorage.handleDeleteCompany(id);
@@ -354,6 +341,41 @@ class MongoDBStorage extends Storage {
 	saveCompany(company) {
 		// Delegate
 		return CompanyStorage.handleSaveCompany(company);
+	}
+
+	getVehicleManufacturers(searchValue, numberOfVehicleManufacturers=500) {
+		// Delegate
+		return VehicleManufacturerStorage.handleGetVehicleManufacturers(searchValue, numberOfVehicleManufacturers);
+	}
+
+	getVehicleManufacturer(id) {
+		// Delegate
+		return VehicleManufacturerStorage.handleGetVehicleManufacturer(id);
+	}
+
+	deleteVehicleManufacturer(id) {
+		// Delegate
+		return VehicleManufacturerStorage.handleDeleteVehicleManufacturer(id);
+	}
+
+	saveVehicleManufacturer(vehicleManufacturer) {
+		// Delegate
+		return VehicleManufacturerStorage.handleSaveVehicleManufacturer(vehicleManufacturer);
+	}
+
+	getVehicleManufacturerLogo(id) {
+		// Delegate
+		return VehicleManufacturerStorage.handleGetVehicleManufacturerLogo(id);
+	}
+
+	getVehicleManufacturerLogos() {
+		// Delegate
+		return VehicleManufacturerStorage.handleGetVehicleManufacturerLogos();
+	}
+
+	saveVehicleManufacturerLogo(vehicleManufacturer) {
+		// Delegate
+		return VehicleManufacturerStorage.handleSaveVehicleManufacturerLogo(vehicleManufacturer);
 	}
 
 	getSiteAreas(searchValue, siteID=null, withChargeBoxes=false, numberOfSiteArea=500) {

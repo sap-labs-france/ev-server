@@ -222,6 +222,45 @@ class CentralSystemRestServer {
 		});
 	}
 
+	notifyVehicleManufacturerCreated(data) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_VEHICLE_MANUFACTURER,
+			"action": CentralRestServerAuthorization.ACTION_CREATE,
+			"data": data
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_VEHICLE_MANUFACTURERS
+		});
+	}
+
+	notifyVehicleManufacturerUpdated(data) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_VEHICLE_MANUFACTURER,
+			"action": CentralRestServerAuthorization.ACTION_UPDATE,
+			"data": data
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_VEHICLE_MANUFACTURERS
+		});
+	}
+
+	notifyVehicleManufacturerDeleted(data) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_VEHICLE_MANUFACTURER,
+			"action": CentralRestServerAuthorization.ACTION_DELETE,
+			"data": data
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": CentralRestServerAuthorization.ENTITY_VEHICLE_MANUFACTURERS
+		});
+	}
+
 	notifySiteCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({

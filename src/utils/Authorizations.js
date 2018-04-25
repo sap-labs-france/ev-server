@@ -58,6 +58,19 @@ module.exports = {
 							}
 						},
 						{
+							"AuthObject": "VehicleManufacturers",
+							"AuthFieldValue": {
+								"Action": ["List"]
+							}
+						},
+						{
+							"AuthObject": "VehicleManufacturer",
+							"AuthFieldValue": {
+								"VehicleManufacturerID": "*",
+								"Action": ["Create", "Read", "Update", "Delete"]
+							}
+						},
+						{
 							"AuthObject": "Cars",
 							"AuthFieldValue": {
 								"Action": ["List"]
@@ -176,6 +189,19 @@ module.exports = {
 										{{/siteID}}
 									{{/trim}}
 								],
+								"Action": ["Read"]
+							}
+						},
+						{
+							"AuthObject": "VehicleManufacturers",
+							"AuthFieldValue": {
+								"Action": ["List"]
+							}
+						},
+						{
+							"AuthObject": "VehicleManufacturer",
+							"AuthFieldValue": {
+								"VehicleManufacturerID": "*",
 								"Action": ["Read"]
 							}
 						},
@@ -302,6 +328,19 @@ module.exports = {
 							}
 						},
 						{
+							"AuthObject": "VehicleManufacturers",
+							"AuthFieldValue": {
+								"Action": ["List"]
+							}
+						},
+						{
+							"AuthObject": "VehicleManufacturer",
+							"AuthFieldValue": {
+								"VehicleManufacturerID": "*",
+								"Action": ["Read"]
+							}
+						},
+						{
 							"AuthObject": "Cars",
 							"AuthFieldValue": {
 								"Action": ["List"]
@@ -408,6 +447,19 @@ module.exports = {
 							"AuthObject": "Site",
 							"AuthFieldValue": {
 								"SiteID": "*",
+								"Action": ["Read"]
+							}
+						},
+						{
+							"AuthObject": "VehicleManufacturers",
+							"AuthFieldValue": {
+								"Action": ["List"]
+							}
+						},
+						{
+							"AuthObject": "VehicleManufacturer",
+							"AuthFieldValue": {
+								"VehicleManufacturerID": "*",
 								"Action": ["Read"]
 							}
 						},
