@@ -423,7 +423,7 @@ class TransactionService {
 		// Filter
 		let filteredRequest = TransactionSecurity.filterTransactionsActiveRequest(req.query, req.user);
 		if (filteredRequest.ChargeBoxID) {
-			filter.chargeBoxIdentity = filteredRequest.ChargeBoxID;
+			filter.chargeBoxID = filteredRequest.ChargeBoxID;
 		}
 		if (filteredRequest.ConnectorId) {
 			filter.connectorId = filteredRequest.ConnectorId;

@@ -92,19 +92,15 @@ class UserStorage {
 
 	static handleGetUserByTagId(tagID) {
 		// Exec request
-		return MDBTag.findById(tagID)
-				.populate("userID").exec().then((tagMDB) => {
-			let user = null;
+		return MDBTag.findById(tagID).exec().then((tagMDB) => {
 			// Check
-			if (tagMDB && tagMDB.userID && !tagMDB.userID.deleted) {
+			if (tagMDB) {
 				// Ok
-				user = new User(tagMDB.userID);
+				return UserStorage.handleGetUser(tagMDB.userID);
 			} else {
 				// Return empty user
 				return Promise.resolve();
 			}
-			// Ok
-			return user;
 		});
 	}
 

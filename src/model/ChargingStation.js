@@ -788,8 +788,8 @@ class ChargingStation {
 				// Reject Site Not Found
 				return Promise.reject( new AppError(
 					this.getID(),
-					`The Charging Station '${this.getID()}' is not assigned to a Site!`, 500,
-					"ChargingStation", "checkIfUserIsAuthorized",
+					`The Charging Station '${this.getID()}' is not assigned to a Site Area!`, 500,
+					"ChargingStation", "getCompany",
 					null, null) );
 			}
 			// Get the Charge Box' Site
@@ -801,7 +801,7 @@ class ChargingStation {
 				return Promise.reject( new AppError(
 					this.getID(),
 					`The Site Area '${siteArea.getName()}' is not assigned to a Site!`, 500,
-					"ChargingStation", "checkIfUserIsAuthorized",
+					"ChargingStation", "getCompany",
 					null, user.getModel()) );
 			}
 			// Get the Charge Box's Company
@@ -812,7 +812,7 @@ class ChargingStation {
 				return Promise.reject( new AppError(
 					this.getID(),
 					`The Site '${site.getName()}' is not assigned to a Company!`, 500,
-					"ChargingStation", "checkIfUserIsAuthorized",
+					"ChargingStation", "getCompany",
 					null, user.getModel()) );
 			}
 			return company;
@@ -829,16 +829,15 @@ class ChargingStation {
 				// Reject Site Not Found
 				return Promise.reject( new AppError(
 					this.getID(),
-					`The Charging Station '${this.getID()}' is not assigned to a Site!`, 500,
+					`The Charging Station '${this.getID()}' is not assigned to a Site Area!`, 500,
 					"ChargingStation", "checkIfUserIsAuthorized",
 					null, null) );
 			}
 			// If Access Control is active: Check User with its Tag ID
-			return global.storage.getUserByTagId(request.idTag)
+			return global.storage.getUserByTagId(request.idTag);
 		}).then((foundUser) => {
-			user = foundUser;
 			// Found?
-			if (!user) {
+			if (!foundUser) {
 				// No: Create an empty user
 				var newUser = new User({
 					name: (siteArea.isAccessControlEnabled() ? "Unknown" : "Anonymous"),
@@ -853,8 +852,9 @@ class ChargingStation {
 				newUserCreated = true;
 				// Save the user
 				return newUser.save();
+			} else {
+				return foundUser;
 			}
-			return user;
 		}).then((foundUser) => {
 			user = foundUser;
 			// New User?
@@ -987,7 +987,8 @@ class ChargingStation {
 			this.getConnectors()[transaction.connectorId-1].currentConsumption = 0;
 			this.getConnectors()[transaction.connectorId-1].totalConsumption = 0;
 			// Save it
-			this.save();
+			return this.save();
+		}).then(() => {
 			// Compute total consumption (optimization)
 			return this.getConsumptionsFromTransaction(transaction, true);
 		}).then((consumption) => {
