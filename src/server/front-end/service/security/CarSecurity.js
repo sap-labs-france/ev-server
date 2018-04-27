@@ -53,6 +53,7 @@ class CarSecurity {
 		filteredRequest.releasedOn = sanitize(request.releasedOn);
 		filteredRequest.images = sanitize(request.images);
 		filteredRequest.logo = sanitize(request.logo);
+		filteredRequest.vehiculeManufacturerID = sanitize(request.vehiculeManufacturerID);
 		return filteredRequest;
 	}
 

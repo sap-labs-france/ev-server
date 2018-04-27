@@ -250,6 +250,7 @@ module.exports = {
 		dest.releasedOn = src.releasedOn;
 		dest.images = src.images;
 		dest.numberOfImages = src.numberOfImages;
+		dest.vehiculeManufacturerID = src.vehiculeManufacturerID;
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
