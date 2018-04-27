@@ -149,7 +149,8 @@ class VehicleManufacturerStorage {
 	}
 
 	// Delegate
-	static handleGetVehicleManufacturers(searchValue, numberOfVehicleManufacturers) {
+	static handleGetVehicleManufacturers(searchValue, withCars, numberOfVehicleManufacturers) {
+		console.log(withCars);
 		// Check Limit
 		numberOfVehicleManufacturers = Utils.checkRecordLimit(numberOfVehicleManufacturers);
 		// Set the filters
@@ -168,6 +169,17 @@ class VehicleManufacturerStorage {
 		if (filters) {
 			aggregation.push({
 				$match: filters
+			});
+		}
+		// With Cars
+		if (withCars) {
+			aggregation.push({
+				$lookup: {
+					from: "cars",
+					localField: "_id",
+					foreignField: "vehiculeManufacturerID",
+					as: "cars"
+				}
 			});
 		}
 		// Created By
@@ -214,6 +226,7 @@ class VehicleManufacturerStorage {
 			let vehicleManufacturers = [];
 			// Create
 			vehicleManufacturersMDB.forEach((vehicleManufacturerMDB) => {
+				console.log(vehicleManufacturerMDB);
 				// Create
 				let vehicleManufacturer = new VehicleManufacturer(vehicleManufacturerMDB);
 				// Add

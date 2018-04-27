@@ -124,7 +124,8 @@ class VehicleManufacturerService {
 		// Filter
 		let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturersRequest(req.query, req.user);
 		// Get the vehicle Manufacturers
-		global.storage.getVehicleManufacturers(filteredRequest.Search, Constants.NO_LIMIT).then((vehicleManufacturers) => {
+		global.storage.getVehicleManufacturers(filteredRequest.Search,
+				filteredRequest.WithCars, Constants.NO_LIMIT).then((vehicleManufacturers) => {
 			let vehicleManufacturersJSon = [];
 			vehicleManufacturers.forEach((vehicleManufacturer) => {
 				// Set the model

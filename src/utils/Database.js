@@ -198,6 +198,9 @@ module.exports = {
 		this.updateID(src, dest);
 		dest.name = src.name;
 		dest.logo = src.logo;
+		if (src.cars) {
+			dest.cars = src.cars;
+		}
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
