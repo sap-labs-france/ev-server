@@ -123,7 +123,7 @@ class VehicleManufacturerService {
 		}
 		// Filter
 		let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturersRequest(req.query, req.user);
-		// Get the vehicleManufacturers
+		// Get the vehicle Manufacturers
 		global.storage.getVehicleManufacturers(filteredRequest.Search, Constants.NO_LIMIT).then((vehicleManufacturers) => {
 			let vehicleManufacturersJSon = [];
 			vehicleManufacturers.forEach((vehicleManufacturer) => {
@@ -148,7 +148,7 @@ class VehicleManufacturerService {
 			user: req.user, action: action,
 			module: "VehicleManufacturerService",
 			method: "handleCreateVehicleManufacturer",
-			message: `Create VehicleManufacturer '${req.body.manufacturer} ${req.body.model}'`,
+			message: `Create Vehicle Manufacturer '${req.body.manufacturer} ${req.body.model}'`,
 			detailedMessages: req.body
 		});
 		// Check auth
@@ -184,7 +184,7 @@ class VehicleManufacturerService {
 			}).then(() => {
 				Logging.logSecurityInfo({
 					user: req.user, module: "VehicleManufacturerService", method: "handleCreateVehicleManufacturer",
-					message: `VehicleManufacturer '${newVehicleManufacturer.getName()}' has been created successfully`,
+					message: `Vehicle Manufacturer '${newVehicleManufacturer.getName()}' has been created successfully`,
 					action: action, detailedMessages: newVehicleManufacturer});
 				// Ok
 				res.json({status: `Success`});
@@ -201,7 +201,7 @@ class VehicleManufacturerService {
 			user: req.user, action: action,
 			module: "VehicleManufacturerService",
 			method: "handleUpdateVehicleManufacturer",
-			message: `Update VehicleManufacturer '${req.body.model} ${req.body.manufacturer}' (ID '${req.body.id}')`,
+			message: `Update Vehicle Manufacturer '${req.body.model} ${req.body.manufacturer}' (ID '${req.body.id}')`,
 			detailedMessages: req.body
 		});
 		// Filter
@@ -213,14 +213,14 @@ class VehicleManufacturerService {
 			if (!vehicleManufacturer) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The VehicleManufacturer with ID '${filteredRequest.id}' does not exist anymore`,
+					`The Vehicle Manufacturer with ID '${filteredRequest.id}' does not exist anymore`,
 					550, "VehicleManufacturerService", "handleUpdateVehicleManufacturer");
 			}
 			// Check Mandatory fields
 			if (!VehicleManufacturers.checkIfVehicleManufacturerValid(action, filteredRequest, req, res, next)) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The VehicleManufacturer request is invalid`,
+					`The Vehicle Manufacturer request is invalid`,
 					500, "VehicleManufacturerService", "handleUpdateVehicleManufacturer");
 			}
 			// Check auth
@@ -252,7 +252,7 @@ class VehicleManufacturerService {
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: "VehicleManufacturerService", method: "handleUpdateVehicleManufacturer",
-				message: `VehicleManufacturer '${updatedVehicleManufacturer.getName()}' has been updated successfully`,
+				message: `Vehicle Manufacturer '${updatedVehicleManufacturer.getName()}' has been updated successfully`,
 				action: action, detailedMessages: updatedVehicleManufacturer});
 			// Ok
 			res.json({status: `Success`});
@@ -268,7 +268,7 @@ class VehicleManufacturerService {
 			user: req.user, action: action,
 			module: "VehicleManufacturerService",
 			method: "handleGetVehicleManufacturerLogo",
-			message: `Read VehicleManufacturer Logo '${req.query.ID}'`,
+			message: `Read Vehicle Manufacturer Logo '${req.query.ID}'`,
 			detailedMessages: req.query
 		});
 		// Filter
@@ -276,7 +276,7 @@ class VehicleManufacturerService {
 		// Charge Box is mandatory
 		if(!filteredRequest.ID) {
 			Logging.logActionExceptionMessageAndSendResponse(
-				action, new Error(`The VehicleManufacturer ID is mandatory`), req, res, next);
+				action, new Error(`The Vehicle Manufacturer ID is mandatory`), req, res, next);
 			return;
 		}
 		// Get it
@@ -286,7 +286,7 @@ class VehicleManufacturerService {
 			if (!vehicleManufacturer) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The VehicleManufacturer with ID '${filteredRequest.ID}' does not exist anymore`,
+					`The Vehicle Manufacturer with ID '${filteredRequest.ID}' does not exist anymore`,
 					550, "VehicleManufacturerService", "handleGetVehicleManufacturerLogo");
 			}
 			// Check auth
@@ -308,7 +308,7 @@ class VehicleManufacturerService {
 					user: req.user,
 					action: action,
 					module: "VehicleManufacturerService", method: "handleGetVehicleManufacturerLogo",
-					message: 'Read VehicleManufacturer Logo'
+					message: 'Read Vehicle Manufacturer Logo'
 				});
 				// Set the user
 				res.json(vehicleManufacturerLogo);
@@ -326,7 +326,7 @@ class VehicleManufacturerService {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
 			module: "VehicleManufacturerService", method: "handleGetVehicleManufacturerLogos",
-			message: `Read VehicleManufacturer Logos`,
+			message: `Read Vehicle Manufacturer Logos`,
 			detailedMessages: req.query
 		});
 		// Check auth
@@ -339,13 +339,13 @@ class VehicleManufacturerService {
 				560, "VehicleManufacturerService", "handleGetVehicleManufacturerLogos",
 				req.user);
 		}
-		// Get the vehicleManufacturer logo
+		// Get the vehicle manufacturer logo
 		global.storage.getVehicleManufacturerLogos().then((vehicleManufacturerLogos) => {
 			Logging.logSecurityInfo({
 				user: req.user,
 				action: action,
 				module: "VehicleManufacturerService", method: "handleGetVehicleManufacturerLogos",
-				message: 'Read VehicleManufacturer Logos'
+				message: 'Read Vehicle Manufacturer Logos'
 			});
 			res.json(vehicleManufacturerLogos);
 			next();

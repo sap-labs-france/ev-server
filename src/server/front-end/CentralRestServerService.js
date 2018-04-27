@@ -439,6 +439,12 @@ module.exports = {
 						CarService.handleDeleteCar(action, req, res, next);
 						break;
 
+					// Vehicle Manufacturer
+					case "VehicleManufacturerDelete":
+						// Delegate
+						VehicleManufacturerService.handleDeleteVehicleManufacturer(action, req, res, next);
+						break;
+
 					// Site
 					case "SiteDelete":
 						// Delegate
