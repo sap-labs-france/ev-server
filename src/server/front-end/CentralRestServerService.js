@@ -210,7 +210,7 @@ module.exports = {
 					// Get all the Vehicle Manufacturers
 					case "VehicleManufacturers":
 						// Delegate
-						VehicleManufacturer.handleGetVehicleManufacturers(action, req, res, next);
+						VehicleManufacturerService.handleGetVehicleManufacturers(action, req, res, next);
 						break;
 
 					// Get one Vehicle Manufacturer
