@@ -89,7 +89,6 @@ class VehicleManufacturerStorage {
 		return MDBVehicleManufacturer.aggregate(aggregation)
 				.exec().then((vehicleManufacturerMDB) => {
 			let vehicleManufacturer = null;
-			console.log(vehicleManufacturerMDB);
 			// Check
 			if (vehicleManufacturerMDB && vehicleManufacturerMDB.length > 0) {
 				// Create
@@ -204,7 +203,6 @@ class VehicleManufacturerStorage {
 			let vehicleManufacturers = [];
 			// Create
 			vehicleManufacturersMDB.forEach((vehicleManufacturerMDB) => {
-				console.log(vehicleManufacturerMDB);
 				// Create
 				let vehicleManufacturer = new VehicleManufacturer(vehicleManufacturerMDB);
 				// Add

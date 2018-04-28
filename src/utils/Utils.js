@@ -24,6 +24,31 @@ module.exports = {
 	},
 
 	pushCreatedLastChangedInAggregation(aggregation) {
+		// Filter
+		let filterUserFields = {
+			"email" : 0,
+			"phone" : 0,
+			"mobile" : 0,
+			"iNumber" : 0,
+			"costCenter" : 0,
+			"status" : 0,
+			"createdBy" : 0,
+			"createdOn" : 0,
+			"lastChangedBy" : 0,
+			"lastChangedOn" : 0,
+			"role" : 0,
+			"password" : 0,
+			"locale" : 0,
+			"deleted" : 0,
+			"passwordWrongNbrTrials" : 0,
+			"passwordBlockedUntil" : 0,
+			"passwordResetHash" : 0,
+			"eulaAcceptedOn" : 0,
+			"eulaAcceptedVersion" : 0,
+			"eulaAcceptedHash" : 0,
+			"image" : 0,
+			"address" : 0
+		};
 		// Created By
 		aggregation.push({
 			$lookup: {
@@ -37,6 +62,12 @@ module.exports = {
 		aggregation.push({
 			$unwind: { "path": "$createdBy", "preserveNullAndEmptyArrays": true }
 		});
+		// Filter
+		aggregation.push({
+			$project: {
+				"createdBy": filterUserFields
+			}
+		});
 		// Last Changed By
 		aggregation.push({
 			$lookup: {
@@ -49,6 +80,12 @@ module.exports = {
 		// Single Record
 		aggregation.push({
 			$unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
+		});
+		// Filter
+		aggregation.push({
+			$project: {
+				"lastChangedBy": filterUserFields
+			}
 		});
 	},
 
