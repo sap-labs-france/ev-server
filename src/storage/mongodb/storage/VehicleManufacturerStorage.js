@@ -150,7 +150,6 @@ class VehicleManufacturerStorage {
 
 	// Delegate
 	static handleGetVehicleManufacturers(searchValue, withCars, numberOfVehicleManufacturers) {
-		console.log(withCars);
 		// Check Limit
 		numberOfVehicleManufacturers = Utils.checkRecordLimit(numberOfVehicleManufacturers);
 		// Set the filters
