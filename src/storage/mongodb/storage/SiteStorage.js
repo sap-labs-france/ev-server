@@ -63,6 +63,8 @@ class SiteStorage {
 		aggregation.push({
 			$match: { _id: ObjectId(id) }
 		});
+		// Add Created By / Last Changed By
+		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Add SiteAreas
 		aggregation.push({
 			$lookup: {
@@ -83,7 +85,7 @@ class SiteStorage {
 		});
 		// Single Record
 		aggregation.push({
-			$unwind: "$company"
+			$unwind: { "path": "$company", "preserveNullAndEmptyArrays": true }
 		});
 		// Exexute
 		return MDBSite.aggregate(aggregation)
@@ -230,32 +232,8 @@ class SiteStorage {
 				$match: filters
 			});
 		}
-		// Created By
-		aggregation.push({
-			$lookup: {
-				from: "users",
-				localField: "createdBy",
-				foreignField: "_id",
-				as: "createdBy"
-			}
-		});
-		// Single Record
-		aggregation.push({
-			$unwind: { "path": "$createdBy", "preserveNullAndEmptyArrays": true }
-		});
-		// Last Changed By
-		aggregation.push({
-			$lookup: {
-				from: "users",
-				localField: "lastChangedBy",
-				foreignField: "_id",
-				as: "lastChangedBy"
-			}
-		});
-		// Single Record
-		aggregation.push({
-			$unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
-		});
+		// Add Created By / Last Changed By
+		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Add Company?
 		if (withCompany) {
 			aggregation.push({
@@ -268,7 +246,7 @@ class SiteStorage {
 			});
 			// Single Record
 			aggregation.push({
-				$unwind: "$company"
+				$unwind: { "path": "$company", "preserveNullAndEmptyArrays": true }
 			});
 		}
 		// Single Record

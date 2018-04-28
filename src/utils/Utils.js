@@ -23,6 +23,35 @@ module.exports = {
 		return Object.keys(document).length == 0;
 	},
 
+	pushCreatedLastChangedInAggregation(aggregation) {
+		// Created By
+		aggregation.push({
+			$lookup: {
+				from: "users",
+				localField: "createdBy",
+				foreignField: "_id",
+				as: "createdBy"
+			}
+		});
+		// Single Record
+		aggregation.push({
+			$unwind: { "path": "$createdBy", "preserveNullAndEmptyArrays": true }
+		});
+		// Last Changed By
+		aggregation.push({
+			$lookup: {
+				from: "users",
+				localField: "lastChangedBy",
+				foreignField: "_id",
+				as: "lastChangedBy"
+			}
+		});
+		// Single Record
+		aggregation.push({
+			$unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
+		});
+	},
+
 	buildUserFullName(user, withID=true) {
 		if (!user) {
 			return "Unknown";

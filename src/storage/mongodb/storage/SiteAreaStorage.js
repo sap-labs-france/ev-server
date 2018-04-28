@@ -62,6 +62,9 @@ class SiteAreaStorage {
 		aggregation.push({
 			$match: { _id: new ObjectId(id) }
 		});
+		// Add Created By / Last Changed By
+		Utils.pushCreatedLastChangedInAggregation(aggregation);
+		// Charging Station
 		if (withChargingStations) {
 			// Add
 			aggregation.push({
@@ -73,6 +76,7 @@ class SiteAreaStorage {
 				}
 			});
 		}
+		// Site
 		if (withSite) {
 			// Add
 			aggregation.push({
@@ -85,7 +89,7 @@ class SiteAreaStorage {
 			});
 			// Add
 			aggregation.push({
-				$unwind: "$site"
+				$unwind: { "path": "$site", "preserveNullAndEmptyArrays": true }
 			});
 		}
 		// Execute
@@ -237,35 +241,11 @@ class SiteAreaStorage {
 				"numberOfChargeBoxes": { $size: "$chargeBoxes" }
 			}
 		});
-		// Created By
-		aggregation.push({
-			$lookup: {
-				from: "users",
-				localField: "createdBy",
-				foreignField: "_id",
-				as: "createdBy"
-			}
-		});
+		// Add Created By / Last Changed By
+		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Single Record
 		aggregation.push({
-			$unwind: { "path": "$createdBy", "preserveNullAndEmptyArrays": true }
-		});
-		// Last Changed By
-		aggregation.push({
-			$lookup: {
-				from: "users",
-				localField: "lastChangedBy",
-				foreignField: "_id",
-				as: "lastChangedBy"
-			}
-		});
-		// Single Record
-		aggregation.push({
-			$unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
-		});
-		// Single Record
-		aggregation.push({
-			$unwind: "$site"
+			$unwind: { "path": "$site", "preserveNullAndEmptyArrays": true }
 		});
 		// Sort
 		aggregation.push({

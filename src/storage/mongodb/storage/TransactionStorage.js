@@ -212,7 +212,7 @@ class TransactionStorage {
 		});
 		// Single Record
 		aggregation.push({
-			$unwind: "$chargeBoxID"
+			$unwind: { "path": "$chargeBoxID", "preserveNullAndEmptyArrays": true }
 		});
 		if (siteID) {
 			// Add Site Area

@@ -57,6 +57,8 @@ class CarStorage {
 		aggregation.push({
 			$match: { _id: ObjectId(id) }
 		});
+		// Add Created By / Last Changed By
+		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Execute
 		return MDBCar.aggregate(aggregation)
 				.exec().then((carMDB) => {
@@ -167,32 +169,8 @@ class CarStorage {
 				$match: filters
 			});
 		}
-		// Created By
-		aggregation.push({
-			$lookup: {
-				from: "users",
-				localField: "createdBy",
-				foreignField: "_id",
-				as: "createdBy"
-			}
-		});
-		// Single Record
-		aggregation.push({
-			$unwind: { "path": "$createdBy", "preserveNullAndEmptyArrays": true }
-		});
-		// Last Changed By
-		aggregation.push({
-			$lookup: {
-				from: "users",
-				localField: "lastChangedBy",
-				foreignField: "_id",
-				as: "lastChangedBy"
-			}
-		});
-		// Single Record
-		aggregation.push({
-			$unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
-		});
+		// Add Created By / Last Changed By
+		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Add Car Images
 		aggregation.push({
 			$lookup: {

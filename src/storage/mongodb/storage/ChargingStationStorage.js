@@ -24,19 +24,39 @@ class ChargingStationStorage {
 	}
 
 	static handleGetChargingStation(id) {
-		// Exec request
-		return MDBChargingStation.findById({"_id": id})
-				.populate("siteAreaID", { image: 0 })
-				.then(chargingStationMDB => {
+		// Create Aggregation
+		let aggregation = [];
+		// Filters
+		aggregation.push({
+			$match: { _id: id }
+		});
+		// Add Created By / Last Changed By
+		Utils.pushCreatedLastChangedInAggregation(aggregation);
+		// Add
+		aggregation.push({
+			$lookup: {
+				from: "siteareas",
+				localField: "siteAreaID",
+				foreignField: "_id",
+				as: "siteArea"
+			}
+		});
+		// Add
+		aggregation.push({
+			$unwind: { "path": "$siteArea", "preserveNullAndEmptyArrays": true }
+		});
+		// Execute
+		return MDBChargingStation.aggregate(aggregation)
+				.exec().then((chargingStationMDB) => {
 			let chargingStation = null;
 			// Found
-			if (chargingStationMDB) {
+			if (chargingStationMDB && chargingStationMDB.length > 0) {
 				// Create
-				chargingStation = new ChargingStation(chargingStationMDB);
+				chargingStation = new ChargingStation(chargingStationMDB[0]);
 				// Set Site Area
-				if (chargingStationMDB.siteAreaID) {
+				if (chargingStationMDB[0].siteArea) {
 					chargingStation.setSiteArea(
-						new SiteArea(chargingStationMDB.siteAreaID));
+						new SiteArea(chargingStationMDB[0].siteArea));
 				}
 			}
 			return chargingStation;
@@ -87,32 +107,8 @@ class ChargingStationStorage {
 		aggregation.push({
 			$match: filters
 		});
-		// Created By
-		aggregation.push({
-			$lookup: {
-				from: "users",
-				localField: "createdBy",
-				foreignField: "_id",
-				as: "createdBy"
-			}
-		});
-		// Single Record
-		aggregation.push({
-			$unwind: { "path": "$createdBy", "preserveNullAndEmptyArrays": true }
-		});
-		// Last Changed By
-		aggregation.push({
-			$lookup: {
-				from: "users",
-				localField: "lastChangedBy",
-				foreignField: "_id",
-				as: "lastChangedBy"
-			}
-		});
-		// Single Record
-		aggregation.push({
-			$unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
-		});
+		// Add Created By / Last Changed By
+		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Single Record
 		aggregation.push({
 			$sort: { _id : 1 }

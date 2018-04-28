@@ -83,10 +83,13 @@ class VehicleManufacturerStorage {
 		aggregation.push({
 			$match: { _id: ObjectId(id) }
 		});
+		// Add Created By / Last Changed By
+		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Execute
 		return MDBVehicleManufacturer.aggregate(aggregation)
 				.exec().then((vehicleManufacturerMDB) => {
 			let vehicleManufacturer = null;
+			console.log(vehicleManufacturerMDB);
 			// Check
 			if (vehicleManufacturerMDB && vehicleManufacturerMDB.length > 0) {
 				// Create
@@ -181,32 +184,8 @@ class VehicleManufacturerStorage {
 				}
 			});
 		}
-		// Created By
-		aggregation.push({
-			$lookup: {
-				from: "users",
-				localField: "createdBy",
-				foreignField: "_id",
-				as: "createdBy"
-			}
-		});
-		// Single Record
-		aggregation.push({
-			$unwind: { "path": "$createdBy", "preserveNullAndEmptyArrays": true }
-		});
-		// Last Changed By
-		aggregation.push({
-			$lookup: {
-				from: "users",
-				localField: "lastChangedBy",
-				foreignField: "_id",
-				as: "lastChangedBy"
-			}
-		});
-		// Single Record
-		aggregation.push({
-			$unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
-		});
+		// Add Created By / Last Changed By
+		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Sort
 		aggregation.push({
 			$sort: {

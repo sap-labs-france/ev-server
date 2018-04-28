@@ -119,13 +119,21 @@ class UserStorage {
 	}
 
 	static handleGetUser(id) {
-		// Exec request
-		return MDBUser.findById(id)
+		// Create Aggregation
+		let aggregation = [];
+		// Filters
+		aggregation.push({
+			$match: { _id: ObjectId(id) }
+		});
+		// Add Created By / Last Changed By
+		Utils.pushCreatedLastChangedInAggregation(aggregation);
+		// Execute
+		return MDBUser.aggregate(aggregation)
 				.exec().then((userMDB) => {
 			// Check deleted
-			if (userMDB) {
+			if (userMDB && userMDB.length > 0) {
 				// Ok
-				return UserStorage._createUser(userMDB);
+				return UserStorage._createUser(userMDB[0]);
 			}
 		});
 	}
@@ -301,32 +309,8 @@ class UserStorage {
 				$match: filters
 			});
 		}
-		// Created By
-		aggregation.push({
-			$lookup: {
-				from: "users",
-				localField: "createdBy",
-				foreignField: "_id",
-				as: "createdBy"
-			}
-		});
-		// Single Record
-		aggregation.push({
-			$unwind: { "path": "$createdBy", "preserveNullAndEmptyArrays": true }
-		});
-		// Last Changed By
-		aggregation.push({
-			$lookup: {
-				from: "users",
-				localField: "lastChangedBy",
-				foreignField: "_id",
-				as: "lastChangedBy"
-			}
-		});
-		// Single Record
-		aggregation.push({
-			$unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
-		});
+		// Add Created By / Last Changed By
+		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Company?
 		if (companyID) {
 			// Add Number of Transactions
