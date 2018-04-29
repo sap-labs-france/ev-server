@@ -452,9 +452,9 @@ class MongoDBStorage extends Storage {
 		return SiteStorage.handleGetSiteImages();
 	}
 
-	getCars(searchValue, numberOfCar=500) {
+	getCars(searchValue, vehicleManufacturerID=null, numberOfCar=500) {
 		// Delegate
-		return CarStorage.handleGetCars(searchValue, numberOfCar);
+		return CarStorage.handleGetCars(searchValue, vehicleManufacturerID, numberOfCar);
 	}
 
 	saveCar(car) {

@@ -1,5 +1,6 @@
 const Database = require('../utils/Database');
 const User = require('./User');
+const Car = require('./Car');
 
 class VehicleManufacturer {
 	constructor(vehicleManufacturer) {
@@ -69,6 +70,27 @@ class VehicleManufacturer {
 
 	setLastChangedOn(lastChangedOn) {
 		this._model.lastChangedOn = lastChangedOn;
+	}
+
+	getCars() {
+		if (this._model.cars) {
+			return Promise.resolve(this._model.cars.map((car) => {
+				return new Car(car);
+			}));
+		} else {
+			// Get from DB
+			return global.storage.getCars(null, this.getID()).then((cars) => {
+				// Keep it
+				this.setCars(cars);
+				return cars;
+			});
+		}
+	}
+
+	setCars(cars) {
+		this._model.cars = cars.map((car) => {
+			return car.getModel();
+		});
 	}
 
 	save() {

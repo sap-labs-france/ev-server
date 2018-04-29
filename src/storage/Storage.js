@@ -221,7 +221,7 @@ class Storage {
 	getUserByTagId(tagID) {
 	}
 
-	getCars(searchValue, numberOfCar=500) {
+	getCars(searchValue, vehicleManufacturerID=null, numberOfCar=500) {
 	}
 
 	saveCar(car) {

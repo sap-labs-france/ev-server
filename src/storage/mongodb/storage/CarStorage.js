@@ -148,7 +148,7 @@ class CarStorage {
 	}
 
 	// Delegate
-	static handleGetCars(searchValue, numberOfCars) {
+	static handleGetCars(searchValue, vehicleManufacturerID, numberOfCars) {
 		// Check Limit
 		numberOfCars = Utils.checkRecordLimit(numberOfCars);
 		// Set the filters
@@ -160,6 +160,10 @@ class CarStorage {
 				{ "model" : { $regex : searchValue, $options: 'i' } },
 				{ "manufacturer" : { $regex : searchValue, $options: 'i' } }
 			];
+		}
+		// Set Company?
+		if (vehicleManufacturerID) {
+			filters.vehicleManufacturerID = new ObjectId(vehicleManufacturerID);
 		}
 		// Create Aggregation
 		let aggregation = [];
@@ -191,7 +195,7 @@ class CarStorage {
 		});
 		aggregation.push({
 			$project: {
-				"carImages.images": 0
+				"carImages": 0
 			}
 		});
 		// Sort

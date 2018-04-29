@@ -5,9 +5,8 @@ const Database = require('../../../utils/Database');
 const Utils = require('../../../utils/Utils');
 const Configuration = require('../../../utils/Configuration');
 const MDBVehicleManufacturer = require('../model/MDBVehicleManufacturer');
-const MDBChargingStation = require('../model/MDBChargingStation');
 const VehicleManufacturer = require('../../../model/VehicleManufacturer');
-const ChargingStation = require('../../../model/ChargingStation');
+const Car = require('../../../model/Car');
 const User = require('../../../model/User');
 const crypto = require('crypto');
 const ObjectId = mongoose.Types.ObjectId;
@@ -182,6 +181,29 @@ class VehicleManufacturerStorage {
 					as: "cars"
 				}
 			});
+			// Add Car Images
+			aggregation.push({
+				$lookup: {
+					from: "carimages",
+					localField: "cars._id",
+					foreignField: "_id",
+					as: "carImages"
+				}
+			});
+			// Single Record
+			aggregation.push({
+				$unwind: { "path": "$carImages", "preserveNullAndEmptyArrays": true }
+			});
+			aggregation.push({
+				$addFields: {
+					"cars.numberOfImages": { $size: "$carImages.images" }
+				}
+			});
+			aggregation.push({
+				$project: {
+					"carImages": 0
+				}
+			});
 		}
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
@@ -205,6 +227,12 @@ class VehicleManufacturerStorage {
 			vehicleManufacturersMDB.forEach((vehicleManufacturerMDB) => {
 				// Create
 				let vehicleManufacturer = new VehicleManufacturer(vehicleManufacturerMDB);
+				// Set Cars
+				if (withCars && vehicleManufacturerMDB.cars) {
+					vehicleManufacturer.setCars(vehicleManufacturerMDB.cars.map((car) => {
+						return new Car(car);
+					}));
+				}
 				// Add
 				vehicleManufacturers.push(vehicleManufacturer);
 			});

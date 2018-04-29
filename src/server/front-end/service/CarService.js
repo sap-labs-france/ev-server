@@ -124,7 +124,7 @@ class CarService {
 		// Filter
 		let filteredRequest = CarSecurity.filterCarsRequest(req.query, req.user);
 		// Get the cars
-		global.storage.getCars(filteredRequest.Search, Constants.NO_LIMIT).then((cars) => {
+		global.storage.getCars(filteredRequest.Search, null, Constants.NO_LIMIT).then((cars) => {
 			let carsJSon = [];
 			cars.forEach((car) => {
 				// Set the model
