@@ -197,20 +197,6 @@ class VehicleManufacturerStorage {
 					as: "carImages"
 				}
 			});
-			// Single Record
-			aggregation.push({
-				$unwind: { "path": "$carImages", "preserveNullAndEmptyArrays": true }
-			});
-			aggregation.push({
-				$addFields: {
-					"cars.numberOfImages": { $size: "$carImages.images" }
-				}
-			});
-			aggregation.push({
-				$project: {
-					"carImages": 0
-				}
-			});
 		}
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
@@ -236,6 +222,18 @@ class VehicleManufacturerStorage {
 				let vehicleManufacturer = new VehicleManufacturer(vehicleManufacturerMDB);
 				// Set Cars
 				if (withCars && vehicleManufacturerMDB.cars) {
+					// Check images
+					vehicleManufacturerMDB.cars.forEach((car) => {
+						// Check images
+						for (var i = 0; i < vehicleManufacturerMDB.carImages.length; i++) {
+							// Compare
+							if (vehicleManufacturerMDB.carImages[i]._id.equals(car._id)) {
+								// Set the number of images
+								car.numberOfImages = (vehicleManufacturerMDB.carImages[i].images ? vehicleManufacturerMDB.carImages[i].images.length : 0);
+							}
+						}
+					});
+					// Add cars
 					vehicleManufacturer.setCars(vehicleManufacturerMDB.cars.map((car) => {
 						return new Car(car);
 					}));
