@@ -6,6 +6,7 @@ const Utils = require('../../../utils/Utils');
 const Configuration = require('../../../utils/Configuration');
 const MDBVehicleManufacturer = require('../model/MDBVehicleManufacturer');
 const VehicleManufacturer = require('../../../model/VehicleManufacturer');
+const CarStorage = require('./CarStorage');
 const Car = require('../../../model/Car');
 const User = require('../../../model/User');
 const crypto = require('crypto');
@@ -159,8 +160,7 @@ class VehicleManufacturerStorage {
 		if (searchValue) {
 			// Build filter
 			filters.$or = [
-				{ "model" : { $regex : searchValue, $options: 'i' } },
-				{ "manufacturer" : { $regex : searchValue, $options: 'i' } }
+				{ "name" : { $regex : searchValue, $options: 'i' } }
 			];
 		}
 		// Create Aggregation
@@ -171,16 +171,23 @@ class VehicleManufacturerStorage {
 				$match: filters
 			});
 		}
+		//  Cars
+		aggregation.push({
+			$lookup: {
+				from: "cars",
+				localField: "_id",
+				foreignField: "vehiculeManufacturerID",
+				as: "cars"
+			}
+		});
+		// Nbre of Cars
+		aggregation.push({
+			$addFields: {
+				"numberOfCars": { $size: "$cars" }
+			}
+		});
 		// With Cars
 		if (withCars) {
-			aggregation.push({
-				$lookup: {
-					from: "cars",
-					localField: "_id",
-					foreignField: "vehiculeManufacturerID",
-					as: "cars"
-				}
-			});
 			// Add Car Images
 			aggregation.push({
 				$lookup: {
@@ -241,10 +248,22 @@ class VehicleManufacturerStorage {
 	}
 
 	static handleDeleteVehicleManufacturer(id) {
-		// Remove the VehicleManufacturer
-		MDBVehicleManufacturer.findByIdAndRemove(id).then((results) => {
+		// Delete Cars
+		return CarStorage.handleGetCars(null, id).then((cars) => {
+			// Delete
+			let proms = [];
+			cars.forEach((car) => {
+				//	Delete Car
+				proms.push(car.delete());
+			});
+			// Execute all promises
+			return Promise.all(proms);
+		}).then((results) => {
+			// Remove the VehicleManufacturer
+			return MDBVehicleManufacturer.findByIdAndRemove(id);
+		}).then((results) => {
 			// Remove Logo
-			return MDBVehicleManufacturerLogo.findByIdAndRemove( id );
+			return MDBVehicleManufacturerLogo.findByIdAndRemove(id);
 		}).then((result) => {
 			// Notify Change
 			_centralRestServer.notifyVehicleManufacturerDeleted(
@@ -253,7 +272,6 @@ class VehicleManufacturerStorage {
 					"type": Constants.NOTIF_ENTITY_VEHICLE_MANUFACTURER
 				}
 			);
-			return;
 		});
 	}
 }
