@@ -15,7 +15,7 @@ module.exports = {
 				new Error(`The Car Model is mandatory`), req, res, next);
 			return false;
 		}
-		if(!filteredRequest.vehiculeManufacturerID) {
+		if(!filteredRequest.vehicleManufacturerID) {
 			Logging.logActionExceptionMessageAndSendResponse(action,
 				new Error(`The Car Manufacturer is mandatory`), req, res, next);
 			return false;

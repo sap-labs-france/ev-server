@@ -14,7 +14,7 @@ module.exports = mongoose.model('Car', {
 	widthMeter: Number,
 	heightMeter: Number,
 	releasedOn: Date,
-	vehiculeManufacturerID: {type: mongoose.Schema.Types.ObjectId, ref: 'VehicleManufacturer'},
+	vehicleManufacturerID: {type: mongoose.Schema.Types.ObjectId, ref: 'VehicleManufacturer'},
 	createdBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
 	createdOn: Date,
 	lastChangedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},

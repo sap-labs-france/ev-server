@@ -176,7 +176,7 @@ class VehicleManufacturerStorage {
 			$lookup: {
 				from: "cars",
 				localField: "_id",
-				foreignField: "vehiculeManufacturerID",
+				foreignField: "vehicleManufacturerID",
 				as: "cars"
 			}
 		});

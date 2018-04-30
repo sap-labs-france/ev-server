@@ -157,8 +157,7 @@ class CarStorage {
 		if (searchValue) {
 			// Build filter
 			filters.$or = [
-				{ "model" : { $regex : searchValue, $options: 'i' } },
-				{ "manufacturer" : { $regex : searchValue, $options: 'i' } }
+				{ "model" : { $regex : searchValue, $options: 'i' } }
 			];
 		}
 		// Set Company?
@@ -173,6 +172,7 @@ class CarStorage {
 				$match: filters
 			});
 		}
+		console.log(filters);
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Add Car Images
