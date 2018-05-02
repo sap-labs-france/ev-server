@@ -55,7 +55,7 @@ class CarStorage {
 		let aggregation = [];
 		// Filters
 		aggregation.push({
-			$match: { _id: ObjectId(id) }
+			$match: { _id: new ObjectId(id) }
 		});
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
