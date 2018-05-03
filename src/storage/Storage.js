@@ -242,7 +242,7 @@ class Storage {
 	getVehicleImages() {
 	}
 
-	getVehicleManufacturers(searchValue, withVehicles=false, numberOfVehicleManufacturers=500) {
+	getVehicleManufacturers(searchValue, withVehicles=false, vehicleType, numberOfVehicleManufacturers=500) {
 	}
 
 	getVehicleManufacturer(id) {

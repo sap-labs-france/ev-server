@@ -343,10 +343,10 @@ class MongoDBStorage extends Storage {
 		return CompanyStorage.handleSaveCompany(company);
 	}
 
-	getVehicleManufacturers(searchValue, withVehicles=false, numberOfVehicleManufacturers=500) {
+	getVehicleManufacturers(searchValue, withVehicles=false, vehicleType, numberOfVehicleManufacturers=500) {
 		// Delegate
 		return VehicleManufacturerStorage.handleGetVehicleManufacturers(
-			searchValue, withVehicles, numberOfVehicleManufacturers);
+			searchValue, withVehicles, vehicleType, numberOfVehicleManufacturers);
 	}
 
 	getVehicleManufacturer(id) {

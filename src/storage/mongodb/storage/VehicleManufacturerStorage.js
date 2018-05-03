@@ -151,7 +151,7 @@ class VehicleManufacturerStorage {
 	}
 
 	// Delegate
-	static handleGetVehicleManufacturers(searchValue, withVehicles, numberOfVehicleManufacturers) {
+	static handleGetVehicleManufacturers(searchValue, withVehicles, vehicleType, numberOfVehicleManufacturers) {
 		// Check Limit
 		numberOfVehicleManufacturers = Utils.checkRecordLimit(numberOfVehicleManufacturers);
 		// Set the filters
@@ -188,6 +188,12 @@ class VehicleManufacturerStorage {
 		});
 		// With Vehicles
 		if (withVehicles) {
+			// Type?
+			if (vehicleType) {
+				aggregation.push({
+					$match: { "vehicles.type" : vehicleType }
+				});
+			}
 			// Add Vehicle Images
 			aggregation.push({
 				$lookup: {

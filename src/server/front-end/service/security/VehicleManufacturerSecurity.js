@@ -21,6 +21,7 @@ class VehicleManufacturerSecurity {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.WithVehicles = UtilsSecurity.filterBoolean(request.WithVehicles);
+		filteredRequest.VehicleType = sanitize(request.VehicleType);
 		return filteredRequest;
 	}
 
