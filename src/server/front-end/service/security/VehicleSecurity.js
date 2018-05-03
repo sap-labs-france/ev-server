@@ -20,6 +20,7 @@ class VehicleSecurity {
 	static filterVehiclesRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
+		filteredRequest.Type = sanitize(request.Type);
 		return filteredRequest;
 	}
 

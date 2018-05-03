@@ -148,7 +148,7 @@ class VehicleStorage {
 	}
 
 	// Delegate
-	static handleGetVehicles(searchValue, vehicleManufacturerID, numberOfVehicles) {
+	static handleGetVehicles(searchValue, vehicleManufacturerID, vehicleType, numberOfVehicles) {
 		// Check Limit
 		numberOfVehicles = Utils.checkRecordLimit(numberOfVehicles);
 		// Set the filters
@@ -164,6 +164,10 @@ class VehicleStorage {
 		if (vehicleManufacturerID) {
 			filters.vehicleManufacturerID = new ObjectId(vehicleManufacturerID);
 		}
+		// Set Vehicle Type?
+		if (vehicleType) {
+			filters.type = vehicleType;
+		}
 		// Create Aggregation
 		let aggregation = [];
 		// Filters
@@ -172,7 +176,6 @@ class VehicleStorage {
 				$match: filters
 			});
 		}
-		console.log(filters);
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Add Vehicle Images

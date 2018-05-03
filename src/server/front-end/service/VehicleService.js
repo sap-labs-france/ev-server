@@ -124,7 +124,8 @@ class VehicleService {
 		// Filter
 		let filteredRequest = VehicleSecurity.filterVehiclesRequest(req.query, req.user);
 		// Get the vehicles
-		global.storage.getVehicles(filteredRequest.Search, null, Constants.NO_LIMIT).then((vehicles) => {
+		global.storage.getVehicles(filteredRequest.Search, null,
+				filteredRequest.Type, Constants.NO_LIMIT).then((vehicles) => {
 			let vehiclesJSon = [];
 			vehicles.forEach((vehicle) => {
 				// Set the model
