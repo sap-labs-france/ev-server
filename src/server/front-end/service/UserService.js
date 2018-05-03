@@ -114,19 +114,14 @@ class UserService {
 		let user, newPasswordHashed;
 		// Check email
 		global.storage.getUser(filteredRequest.id).then((foundUser) => {
+			// Check Mandatory fields
+			Users.checkIfUserValid(filteredRequest, req);
 			user = foundUser;
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The user with ID '${filteredRequest.id}' does not exist anymore`,
 					550, "UserService", "handleUpdateUser");
-			}
-			// Check Mandatory fields
-			if (!Users.checkIfUserValid(action, filteredRequest, req, res, next)) {
-				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`The user request is invalid`,
-					500, "UserService", "handleUpdateUser");
 			}
 		}).then(() => {
 			// Check email
@@ -439,56 +434,55 @@ class UserService {
 			filteredRequest.status = Users.USER_STATUS_INACTIVE;
 		}
 		let loggedUser, newUser, user;
-		// Check Mandatory fields
-		if (Users.checkIfUserValid(action, filteredRequest, req, res, next)) {
-			// Get the logged user
-			global.storage.getUser(req.user.id).then((foundLoggedUser) => {
-				// Set
-				loggedUser = foundLoggedUser;
-				// Get the email
-				return global.storage.getUserByEmail(filteredRequest.email);
-			}).then((foundUser) => {
-				if (foundUser) {
-					throw new AppError(
-						Constants.CENTRAL_SERVER,
-						`The email '${filteredRequest.email}' already exists`,
-						510, "UserService", "handleCreateUser");
-				}
-				// Generate a hash for the given password
-				return Users.hashPasswordBcrypt(filteredRequest.password);
-			}).then((newPasswordHashed) => {
-				// Create user
-				user = new User(filteredRequest);
-				// Set the password
-				if (filteredRequest.password) {
-					// Generate a hash
-					user.setPassword(newPasswordHashed);
-				}
-				// Update timestamp
-				user.setCreatedBy(loggedUser);
-				user.setCreatedOn(new Date());
-				// Save User
-				return user.save();
-			}).then((createdUser) => {
-				newUser = createdUser;
-				// Update User's Image
-				newUser.setImage(user.getImage());
-				// Save
-				return newUser.saveImage();
-			}).then(() => {
-				Logging.logSecurityInfo({
-					user: req.user, actionOnUser: newUser.getModel(),
-					module: "UserService", method: "handleCreateUser",
-					message: `User with ID '${newUser.getID()}' has been created successfully`,
-					action: action});
-				// Ok
-				res.json({status: `Success`});
-				next();
-			}).catch((err) => {
-				// Log
-				Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-			});
-		}
+		// Get the logged user
+		global.storage.getUser(req.user.id).then((foundLoggedUser) => {
+			// Check Mandatory fields
+			Users.checkIfUserValid(filteredRequest, req);
+			// Set
+			loggedUser = foundLoggedUser;
+			// Get the email
+			return global.storage.getUserByEmail(filteredRequest.email);
+		}).then((foundUser) => {
+			if (foundUser) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The email '${filteredRequest.email}' already exists`,
+					510, "UserService", "handleCreateUser");
+			}
+			// Generate a hash for the given password
+			return Users.hashPasswordBcrypt(filteredRequest.password);
+		}).then((newPasswordHashed) => {
+			// Create user
+			user = new User(filteredRequest);
+			// Set the password
+			if (filteredRequest.password) {
+				// Generate a hash
+				user.setPassword(newPasswordHashed);
+			}
+			// Update timestamp
+			user.setCreatedBy(loggedUser);
+			user.setCreatedOn(new Date());
+			// Save User
+			return user.save();
+		}).then((createdUser) => {
+			newUser = createdUser;
+			// Update User's Image
+			newUser.setImage(user.getImage());
+			// Save
+			return newUser.saveImage();
+		}).then(() => {
+			Logging.logSecurityInfo({
+				user: req.user, actionOnUser: newUser.getModel(),
+				module: "UserService", method: "handleCreateUser",
+				message: `User with ID '${newUser.getID()}' has been created successfully`,
+				action: action});
+			// Ok
+			res.json({status: `Success`});
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
 	}
 }
 

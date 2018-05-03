@@ -125,7 +125,7 @@ class VehicleManufacturerService {
 		let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturersRequest(req.query, req.user);
 		// Get the vehicle Manufacturers
 		global.storage.getVehicleManufacturers(filteredRequest.Search,
-				filteredRequest.WithCars, Constants.NO_LIMIT).then((vehicleManufacturers) => {
+				filteredRequest.WithVehicles, Constants.NO_LIMIT).then((vehicleManufacturers) => {
 			let vehicleManufacturersJSon = [];
 			vehicleManufacturers.forEach((vehicleManufacturer) => {
 				// Set the model
@@ -164,37 +164,36 @@ class VehicleManufacturerService {
 		}
 		// Filter
 		let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerCreateRequest( req.body, req.user );
-		// Check Mandatory fields
-		if (VehicleManufacturers.checkIfVehicleManufacturerValid(action, filteredRequest, req, res, next)) {
-			let vehicleManufacturer, newVehicleManufacturer;
-			// Get the logged user
-			global.storage.getUser(req.user.id).then((loggedUser) => {
-				// Create vehicleManufacturer
-				vehicleManufacturer = new VehicleManufacturer(filteredRequest);
-				// Update timestamp
-				vehicleManufacturer.setCreatedBy(loggedUser);
-				vehicleManufacturer.setCreatedOn(new Date());
-				// Save
-				return vehicleManufacturer.save();
-			}).then((createdVehicleManufacturer) => {
-				newVehicleManufacturer = createdVehicleManufacturer;
-				// Update VehicleManufacturer's Logo
-				newVehicleManufacturer.setLogo(vehicleManufacturer.getLogo());
-				// Save
-				return newVehicleManufacturer.saveLogo();
-			}).then(() => {
-				Logging.logSecurityInfo({
-					user: req.user, module: "VehicleManufacturerService", method: "handleCreateVehicleManufacturer",
-					message: `Vehicle Manufacturer '${newVehicleManufacturer.getName()}' has been created successfully`,
-					action: action, detailedMessages: newVehicleManufacturer});
-				// Ok
-				res.json({status: `Success`});
-				next();
-			}).catch((err) => {
-				// Log
-				Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-			});
-		}
+		let vehicleManufacturer, newVehicleManufacturer;
+		// Get the logged user
+		global.storage.getUser(req.user.id).then((loggedUser) => {
+			// Check Mandatory fields
+			VehicleManufacturers.checkIfVehicleManufacturerValid(filteredRequest, req);
+			// Create vehicleManufacturer
+			vehicleManufacturer = new VehicleManufacturer(filteredRequest);
+			// Update timestamp
+			vehicleManufacturer.setCreatedBy(loggedUser);
+			vehicleManufacturer.setCreatedOn(new Date());
+			// Save
+			return vehicleManufacturer.save();
+		}).then((createdVehicleManufacturer) => {
+			newVehicleManufacturer = createdVehicleManufacturer;
+			// Update VehicleManufacturer's Logo
+			newVehicleManufacturer.setLogo(vehicleManufacturer.getLogo());
+			// Save
+			return newVehicleManufacturer.saveLogo();
+		}).then(() => {
+			Logging.logSecurityInfo({
+				user: req.user, module: "VehicleManufacturerService", method: "handleCreateVehicleManufacturer",
+				message: `Vehicle Manufacturer '${newVehicleManufacturer.getName()}' has been created successfully`,
+				action: action, detailedMessages: newVehicleManufacturer});
+			// Ok
+			res.json({status: `Success`});
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
 	}
 
 	static handleUpdateVehicleManufacturer(action, req, res, next) {
@@ -218,12 +217,7 @@ class VehicleManufacturerService {
 					550, "VehicleManufacturerService", "handleUpdateVehicleManufacturer");
 			}
 			// Check Mandatory fields
-			if (!VehicleManufacturers.checkIfVehicleManufacturerValid(action, filteredRequest, req, res, next)) {
-				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`The Vehicle Manufacturer request is invalid`,
-					500, "VehicleManufacturerService", "handleUpdateVehicleManufacturer");
-			}
+			VehicleManufacturers.checkIfVehicleManufacturerValid(filteredRequest, req);
 			// Check auth
 			if (!CentralRestServerAuthorization.canUpdateVehicleManufacturer(req.user, vehicleManufacturer.getModel())) {
 				// Not Authorized!

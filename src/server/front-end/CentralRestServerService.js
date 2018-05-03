@@ -6,7 +6,7 @@ const CompanyService = require('./service/CompanyService');
 const SiteService = require('./service/SiteService');
 const SiteAreaService = require('./service/SiteAreaService');
 const PricingService = require('./service/PricingService');
-const CarService = require('./service/CarService');
+const VehicleService = require('./service/VehicleService');
 const UtilsService = require('./service/UtilsService');
 const LoggingService = require('./service/LoggingService');
 const TransactionService = require('./service/TransactionService');
@@ -76,10 +76,10 @@ module.exports = {
 						CompanyService.handleCreateCompany(action, req, res, next);
 						break;
 
-					// Create Car
-					case "CarCreate":
+					// Create Vehicle
+					case "VehicleCreate":
 						// Delegate
-						CarService.handleCreateCar(action, req, res, next);
+						VehicleService.handleCreateVehicle(action, req, res, next);
 						break;
 
 					// Create Vehicle Manufacturer
@@ -183,28 +183,28 @@ module.exports = {
 						SiteService.handleGetSiteImage(action, req, res, next);
 						break;
 
-					// Get all the cars
-					case "Cars":
+					// Get all the vehicles
+					case "Vehicles":
 						// Delegate
-						CarService.handleGetCars(action, req, res, next);
+						VehicleService.handleGetVehicles(action, req, res, next);
 						break;
 
-					// Get one car
-					case "Car":
+					// Get one vehicle
+					case "Vehicle":
 						// Delegate
-						CarService.handleGetCar(action, req, res, next);
+						VehicleService.handleGetVehicle(action, req, res, next);
 						break;
 
-					// Get all the car images
-					case "CarImages":
+					// Get all the vehicle images
+					case "VehicleImages":
 						// Delegate
-						CarService.handleGetCarImages(action, req, res, next);
+						VehicleService.handleGetVehicleImages(action, req, res, next);
 						break;
 
-					// Get one car image
-					case "CarImage":
+					// Get one vehicle image
+					case "VehicleImage":
 						// Delegate
-						CarService.handleGetCarImage(action, req, res, next);
+						VehicleService.handleGetVehicleImage(action, req, res, next);
 						break;
 
 					// Get all the Vehicle Manufacturers
@@ -392,10 +392,10 @@ module.exports = {
 						CompanyService.handleUpdateCompany(action, req, res, next);
 						break;
 
-					// Car
-					case "CarUpdate":
+					// Vehicle
+					case "VehicleUpdate":
 						// Delegate
-						CarService.handleUpdateCar(action, req, res, next);
+						VehicleService.handleUpdateVehicle(action, req, res, next);
 						break;
 
 					// Vehicle Manufacturer
@@ -433,10 +433,10 @@ module.exports = {
 						CompanyService.handleDeleteCompany(action, req, res, next);
 						break;
 
-					// Car
-					case "CarDelete":
+					// Vehicle
+					case "VehicleDelete":
 						// Delegate
-						CarService.handleDeleteCar(action, req, res, next);
+						VehicleService.handleDeleteVehicle(action, req, res, next);
 						break;
 
 					// Vehicle Manufacturer

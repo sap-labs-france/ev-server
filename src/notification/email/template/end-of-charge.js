@@ -31,7 +31,7 @@ module.exports.email = {
 			"url": "<%- evseDashboardChargingStationURL %>"
 		},
 		"afterActionLines": [
-			"You can now stop the session and move your car.",
+			"You can now stop the session and move your vehicle.",
 			"",
 			"Best Regards,",
 			"EV Admin."

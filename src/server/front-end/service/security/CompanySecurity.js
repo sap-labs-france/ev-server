@@ -57,16 +57,19 @@ class CompanySecurity {
 		filteredRequest.name = sanitize(request.name);
 		filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
 		filteredRequest.logo = sanitize(request.logo);
-		filteredRequest.userIDs = request.userIDs.map((userID) => {
-			return sanitize(userID);
-		});
-		filteredRequest.userIDs = request.userIDs.filter((userID) => {
-			// Check auth
-			if (CentralRestServerAuthorization.canReadUser(loggedUser, {id: userID})) {
-				return true;
-			}
-			return false;
-		});
+		if (filteredRequest.userIDs) {
+			// Handle Users
+			filteredRequest.userIDs = request.userIDs.map((userID) => {
+				return sanitize(userID);
+			});
+			filteredRequest.userIDs = request.userIDs.filter((userID) => {
+				// Check auth
+				if (CentralRestServerAuthorization.canReadUser(loggedUser, {id: userID})) {
+					return true;
+				}
+				return false;
+			});
+		}
 		return filteredRequest;
 	}
 

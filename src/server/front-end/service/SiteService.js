@@ -260,49 +260,48 @@ class SiteService {
 		}
 		// Filter
 		let filteredRequest = SiteSecurity.filterSiteCreateRequest( req.body, req.user );
-		// Check Mandatory fields
-		if (Sites.checkIfSiteValid(action, filteredRequest, req, res, next)) {
-			let site, newSite;
-			// Check Company
-			global.storage.getCompany(filteredRequest.companyID).then((company) => {
-				// Found?
-				if (!company) {
-					// Not Found!
-					throw new AppError(
-						Constants.CENTRAL_SERVER,
-						`The Company ID '${filteredRequest.companyID}' does not exist`,
-						550, "SiteService", "handleCreateSite");
-				}
-				// Get the logged user
-				return global.storage.getUser(req.user.id);
-			// Logged User
-			}).then((loggedUser) => {
-				// Create site
-				site = new Site(filteredRequest);
-				// Update timestamp
-				site.setCreatedBy(loggedUser);
-				site.setCreatedOn(new Date());
-				// Save Site
-				return site.save();
-			}).then((createdSite) => {
-				newSite = createdSite;
-				// Save Site's Image
-				newSite.setImage(site.getImage());
-				// Save
-				return newSite.saveImage();
-			}).then(() => {
-				Logging.logSecurityInfo({
-					user: req.user, module: "SiteService", method: "handleCreateSite",
-					message: `Site '${newSite.getName()}' has been created successfully`,
-					action: action, detailedMessages: newSite});
-				// Ok
-				res.json({status: `Success`});
-				next();
-			}).catch((err) => {
-				// Log
-				Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-			});
-		}
+		let site, newSite;
+		// Check Company
+		global.storage.getCompany(filteredRequest.companyID).then((company) => {
+			// Check Mandatory fields
+			Sites.checkIfSiteValid(filteredRequest, req);
+			// Found?
+			if (!company) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Company ID '${filteredRequest.companyID}' does not exist`,
+					550, "SiteService", "handleCreateSite");
+			}
+			// Get the logged user
+			return global.storage.getUser(req.user.id);
+		// Logged User
+		}).then((loggedUser) => {
+			// Create site
+			site = new Site(filteredRequest);
+			// Update timestamp
+			site.setCreatedBy(loggedUser);
+			site.setCreatedOn(new Date());
+			// Save Site
+			return site.save();
+		}).then((createdSite) => {
+			newSite = createdSite;
+			// Save Site's Image
+			newSite.setImage(site.getImage());
+			// Save
+			return newSite.saveImage();
+		}).then(() => {
+			Logging.logSecurityInfo({
+				user: req.user, module: "SiteService", method: "handleCreateSite",
+				message: `Site '${newSite.getName()}' has been created successfully`,
+				action: action, detailedMessages: newSite});
+			// Ok
+			res.json({status: `Success`});
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
 	}
 
 	static handleUpdateSite(action, req, res, next) {
@@ -326,12 +325,7 @@ class SiteService {
 					550, "SiteService", "handleUpdateSite");
 			}
 			// Check Mandatory fields
-			if (!Sites.checkIfSiteValid(action, filteredRequest, req, res, next)) {
-				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`The Site request is invalid`,
-					500, "SiteService", "handleUpdateSite");
-			}
+			Sites.checkIfSiteValid(filteredRequest, req);
 			// Check auth
 			if (!CentralRestServerAuthorization.canUpdateSite(req.user, site.getModel())) {
 				// Not Authorized!

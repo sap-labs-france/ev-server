@@ -1,6 +1,6 @@
 const Database = require('../utils/Database');
 const User = require('./User');
-const Car = require('./Car');
+const Vehicle = require('./Vehicle');
 
 class VehicleManufacturer {
 	constructor(vehicleManufacturer) {
@@ -72,24 +72,24 @@ class VehicleManufacturer {
 		this._model.lastChangedOn = lastChangedOn;
 	}
 
-	getCars() {
-		if (this._model.cars) {
-			return Promise.resolve(this._model.cars.map((car) => {
-				return new Car(car);
+	getVehicles() {
+		if (this._model.vehicles) {
+			return Promise.resolve(this._model.vehicles.map((vehicle) => {
+				return new Vehicle(vehicle);
 			}));
 		} else {
 			// Get from DB
-			return global.storage.getCars(null, this.getID()).then((cars) => {
+			return global.storage.getVehicles(null, this.getID()).then((vehicles) => {
 				// Keep it
-				this.setCars(cars);
-				return cars;
+				this.setVehicles(vehicles);
+				return vehicles;
 			});
 		}
 	}
 
-	setCars(cars) {
-		this._model.cars = cars.map((car) => {
-			return car.getModel();
+	setVehicles(vehicles) {
+		this._model.vehicles = vehicles.map((vehicle) => {
+			return vehicle.getModel();
 		});
 	}
 

@@ -1,21 +1,23 @@
 const Logging = require('./Logging');
+const Constants = require('./Constants');
+const AppError = require('../exception/AppError');
 
 require('source-map-support').install();
 
 module.exports = {
-	checkIfVehicleManufacturerValid(action, filteredRequest, req, res, next) {
+	checkIfVehicleManufacturerValid(filteredRequest, request) {
 		// Update model?
-		if(req.method !== "POST" && !filteredRequest.id) {
-			Logging.logActionExceptionMessageAndSendResponse(action,
-				new Error(`The Vehicle Manufacturer ID is mandatory`), req, res, next);
-			return false;
+		if(request.method !== "POST" && !filteredRequest.id) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Vehicle Manufacturer ID is mandatory`,
+				500, "VehicleManufacturers", "checkIfVehicleManufacturerValid");
 		}
 		if(!filteredRequest.name) {
-			Logging.logActionExceptionMessageAndSendResponse(action,
-				new Error(`The Vehicle Manufacturer Name is mandatory`), req, res, next);
-			return false;
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Vehicle Manufacturer Name is mandatory`,
+				500, "VehicleManufacturers", "checkIfVehicleManufacturerValid");
 		}
-		// Ok
-		return true;
 	}
 };

@@ -7,7 +7,7 @@ const PricingStorage = require('./storage/PricingStorage');
 const TransactionStorage = require('./storage/TransactionStorage');
 const NotificationStorage = require('./storage/NotificationStorage');
 const UserStorage = require('./storage/UserStorage');
-const CarStorage = require('./storage/CarStorage');
+const VehicleStorage = require('./storage/VehicleStorage');
 const CompanyStorage = require('./storage/CompanyStorage');
 const SiteStorage = require('./storage/SiteStorage');
 const SiteAreaStorage = require('./storage/SiteAreaStorage');
@@ -61,7 +61,7 @@ class MongoDBStorage extends Storage {
 		CompanyStorage.setCentralRestServer(centralRestServer);
 		SiteStorage.setCentralRestServer(centralRestServer);
 		SiteAreaStorage.setCentralRestServer(centralRestServer);
-		CarStorage.setCentralRestServer(centralRestServer);
+		VehicleStorage.setCentralRestServer(centralRestServer);
 		VehicleManufacturerStorage.setCentralRestServer(centralRestServer);
 	}
 
@@ -343,10 +343,10 @@ class MongoDBStorage extends Storage {
 		return CompanyStorage.handleSaveCompany(company);
 	}
 
-	getVehicleManufacturers(searchValue, withCars=false, numberOfVehicleManufacturers=500) {
+	getVehicleManufacturers(searchValue, withVehicles=false, numberOfVehicleManufacturers=500) {
 		// Delegate
 		return VehicleManufacturerStorage.handleGetVehicleManufacturers(
-			searchValue, withCars, numberOfVehicleManufacturers);
+			searchValue, withVehicles, numberOfVehicleManufacturers);
 	}
 
 	getVehicleManufacturer(id) {
@@ -452,39 +452,39 @@ class MongoDBStorage extends Storage {
 		return SiteStorage.handleGetSiteImages();
 	}
 
-	getCars(searchValue, vehicleManufacturerID=null, numberOfCar=500) {
+	getVehicles(searchValue, vehicleManufacturerID=null, numberOfVehicle=500) {
 		// Delegate
-		return CarStorage.handleGetCars(searchValue, vehicleManufacturerID, numberOfCar);
+		return VehicleStorage.handleGetVehicles(searchValue, vehicleManufacturerID, numberOfVehicle);
 	}
 
-	saveCar(car) {
+	saveVehicle(vehicle) {
 		// Delegate
-		return CarStorage.handleSaveCar(car);
+		return VehicleStorage.handleSaveVehicle(vehicle);
 	}
 
-	saveCarImages(car) {
+	saveVehicleImages(vehicle) {
 		// Delegate
-		return CarStorage.handleSaveCarImages(car);
+		return VehicleStorage.handleSaveVehicleImages(vehicle);
 	}
 
-	deleteCar(id) {
+	deleteVehicle(id) {
 		// Delegate
-		return CarStorage.handleDeleteCar(id);
+		return VehicleStorage.handleDeleteVehicle(id);
 	}
 
-	getCar(id) {
+	getVehicle(id) {
 		// Delegate
-		return CarStorage.handleGetCar(id);
+		return VehicleStorage.handleGetVehicle(id);
 	}
 
-	getCarImage(id) {
+	getVehicleImage(id) {
 		// Delegate
-		return CarStorage.handleGetCarImage(id);
+		return VehicleStorage.handleGetVehicleImage(id);
 	}
 
-	getCarImages() {
+	getVehicleImages() {
 		// Delegate
-		return CarStorage.handleGetCarImages();
+		return VehicleStorage.handleGetVehicleImages();
 	}
 }
 

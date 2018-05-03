@@ -183,42 +183,42 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyCarCreated(data) {
+	notifyVehicleCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_CAR,
+			"entity": CentralRestServerAuthorization.ENTITY_VEHICLE,
 			"action": CentralRestServerAuthorization.ACTION_CREATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_CARS
+			"entity": CentralRestServerAuthorization.ENTITY_VEHICLES
 		});
 	}
 
-	notifyCarUpdated(data) {
+	notifyVehicleUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_CAR,
+			"entity": CentralRestServerAuthorization.ENTITY_VEHICLE,
 			"action": CentralRestServerAuthorization.ACTION_UPDATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_CARS
+			"entity": CentralRestServerAuthorization.ENTITY_VEHICLES
 		});
 	}
 
-	notifyCarDeleted(data) {
+	notifyVehicleDeleted(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_CAR,
+			"entity": CentralRestServerAuthorization.ENTITY_VEHICLE,
 			"action": CentralRestServerAuthorization.ACTION_DELETE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_CARS
+			"entity": CentralRestServerAuthorization.ENTITY_VEHICLES
 		});
 	}
 

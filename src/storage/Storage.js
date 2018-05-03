@@ -221,28 +221,28 @@ class Storage {
 	getUserByTagId(tagID) {
 	}
 
-	getCars(searchValue, vehicleManufacturerID=null, numberOfCar=500) {
+	getVehicles(searchValue, vehicleManufacturerID=null, numberOfVehicle=500) {
 	}
 
-	saveCar(car) {
+	saveVehicle(vehicle) {
 	}
 
-	saveCarImages(car) {
+	saveVehicleImages(vehicle) {
 	}
 
-	deleteCar(id) {
+	deleteVehicle(id) {
 	}
 
-	getCar(id) {
+	getVehicle(id) {
 	}
 
-	getCarImage(id) {
+	getVehicleImage(id) {
 	}
 
-	getCarImages() {
+	getVehicleImages() {
 	}
 
-	getVehicleManufacturers(searchValue, withCars=false, numberOfVehicleManufacturers=500) {
+	getVehicleManufacturers(searchValue, withVehicles=false, numberOfVehicleManufacturers=500) {
 	}
 
 	getVehicleManufacturer(id) {
@@ -260,7 +260,7 @@ class Storage {
 	getVehicleManufacturerLogos() {
 	}
 
-	saveVehicleManufacturerLogo(car) {
+	saveVehicleManufacturerLogo(vehicle) {
 	}
 }
 

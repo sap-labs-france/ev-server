@@ -6,8 +6,8 @@ const Utils = require('../../../utils/Utils');
 const Configuration = require('../../../utils/Configuration');
 const MDBVehicleManufacturer = require('../model/MDBVehicleManufacturer');
 const VehicleManufacturer = require('../../../model/VehicleManufacturer');
-const CarStorage = require('./CarStorage');
-const Car = require('../../../model/Car');
+const VehicleStorage = require('./VehicleStorage');
+const Vehicle = require('../../../model/Vehicle');
 const User = require('../../../model/User');
 const crypto = require('crypto');
 const ObjectId = mongoose.Types.ObjectId;
@@ -151,7 +151,7 @@ class VehicleManufacturerStorage {
 	}
 
 	// Delegate
-	static handleGetVehicleManufacturers(searchValue, withCars, numberOfVehicleManufacturers) {
+	static handleGetVehicleManufacturers(searchValue, withVehicles, numberOfVehicleManufacturers) {
 		// Check Limit
 		numberOfVehicleManufacturers = Utils.checkRecordLimit(numberOfVehicleManufacturers);
 		// Set the filters
@@ -171,30 +171,30 @@ class VehicleManufacturerStorage {
 				$match: filters
 			});
 		}
-		//  Cars
+		//  Vehicles
 		aggregation.push({
 			$lookup: {
-				from: "cars",
+				from: "vehicles",
 				localField: "_id",
 				foreignField: "vehicleManufacturerID",
-				as: "cars"
+				as: "vehicles"
 			}
 		});
-		// Nbre of Cars
+		// Nbre of Vehicles
 		aggregation.push({
 			$addFields: {
-				"numberOfCars": { $size: "$cars" }
+				"numberOfVehicles": { $size: "$vehicles" }
 			}
 		});
-		// With Cars
-		if (withCars) {
-			// Add Car Images
+		// With Vehicles
+		if (withVehicles) {
+			// Add Vehicle Images
 			aggregation.push({
 				$lookup: {
-					from: "carimages",
-					localField: "cars._id",
+					from: "vehicleimages",
+					localField: "vehicles._id",
 					foreignField: "_id",
-					as: "carImages"
+					as: "vehicleImages"
 				}
 			});
 		}
@@ -220,22 +220,22 @@ class VehicleManufacturerStorage {
 			vehicleManufacturersMDB.forEach((vehicleManufacturerMDB) => {
 				// Create
 				let vehicleManufacturer = new VehicleManufacturer(vehicleManufacturerMDB);
-				// Set Cars
-				if (withCars && vehicleManufacturerMDB.cars) {
+				// Set Vehicles
+				if (withVehicles && vehicleManufacturerMDB.vehicles) {
 					// Check images
-					vehicleManufacturerMDB.cars.forEach((car) => {
+					vehicleManufacturerMDB.vehicles.forEach((vehicle) => {
 						// Check images
-						for (var i = 0; i < vehicleManufacturerMDB.carImages.length; i++) {
+						for (var i = 0; i < vehicleManufacturerMDB.vehicleImages.length; i++) {
 							// Compare
-							if (vehicleManufacturerMDB.carImages[i]._id.equals(car._id)) {
+							if (vehicleManufacturerMDB.vehicleImages[i]._id.equals(vehicle._id)) {
 								// Set the number of images
-								car.numberOfImages = (vehicleManufacturerMDB.carImages[i].images ? vehicleManufacturerMDB.carImages[i].images.length : 0);
+								vehicle.numberOfImages = (vehicleManufacturerMDB.vehicleImages[i].images ? vehicleManufacturerMDB.vehicleImages[i].images.length : 0);
 							}
 						}
 					});
-					// Add cars
-					vehicleManufacturer.setCars(vehicleManufacturerMDB.cars.map((car) => {
-						return new Car(car);
+					// Add vehicles
+					vehicleManufacturer.setVehicles(vehicleManufacturerMDB.vehicles.map((vehicle) => {
+						return new Vehicle(vehicle);
 					}));
 				}
 				// Add
@@ -246,13 +246,13 @@ class VehicleManufacturerStorage {
 	}
 
 	static handleDeleteVehicleManufacturer(id) {
-		// Delete Cars
-		return CarStorage.handleGetCars(null, id).then((cars) => {
+		// Delete Vehicles
+		return VehicleStorage.handleGetVehicles(null, id).then((vehicles) => {
 			// Delete
 			let proms = [];
-			cars.forEach((car) => {
-				//	Delete Car
-				proms.push(car.delete());
+			vehicles.forEach((vehicle) => {
+				//	Delete Vehicle
+				proms.push(vehicle.delete());
 			});
 			// Execute all promises
 			return Promise.all(proms);

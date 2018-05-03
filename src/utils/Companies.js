@@ -1,19 +1,26 @@
 const Logging = require('./Logging');
+const Constants = require('./Constants');
+const AppError = require('../exception/AppError');
 
 require('source-map-support').install();
 
 module.exports = {
-	checkIfCompanyValid(action, filteredRequest, req, res, next) {
+	checkIfCompanyValid(filteredRequest, req) {
 		// Update model?
 		if(req.method !== "POST" && !filteredRequest.id) {
-			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The Company ID is mandatory`), req, res, next);
-			return false;
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Company ID is mandatory`,
+				500, "Companies", "checkIfCompanyValid");
 		}
 		if(!filteredRequest.name) {
-			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The Company Name is mandatory`), req, res, next);
-			return false;
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Company Name is mandatory`,
+				500, "Companies", "checkIfCompanyValid");
 		}
-		// Ok
-		return true;
+		if (!filteredRequest.userIDs) {
+			filteredRequest.userIDs = [];
+		}
 	}
 };

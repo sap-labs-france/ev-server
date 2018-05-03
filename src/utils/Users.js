@@ -5,6 +5,8 @@ const passwordGenerator = require("password-generator");
 const Logging = require('./Logging');
 const bcrypt = require('bcrypt');
 const eula = require('../end-user-agreement');
+const Constants = require('./Constants');
+const AppError = require('../exception/AppError');
 
 require('source-map-support').install();
 
@@ -130,55 +132,77 @@ module.exports = {
 		return /^[A-Z]{1}[0-9]{6}$/.test(iNumber);
 	},
 
-	checkIfUserValid(action, filteredRequest, req, res, next) {
+	checkIfUserValid(filteredRequest, request) {
 		// Update model?
-		if(req.method !== "POST" && !filteredRequest.id) {
-			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The User ID is mandatory`), req, res, next);
-			return false;
+		if(request.method !== "POST" && !filteredRequest.id) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The User ID is mandatory`,
+				500, "Users", "checkIfUserValid");
 		}
 		if(!filteredRequest.name) {
-			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The User Last Name is mandatory`), req, res, next);
-			return false;
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The User Last Name is mandatory`,
+				500, "Users", "checkIfUserValid");
 		}
 		if(!filteredRequest.email) {
-			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The User Email is mandatory`), req, res, next);
-			return false;
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The User Email is mandatory`,
+				500, "Users", "checkIfUserValid");
 		}
 		// Check password id provided
 		if (filteredRequest.password && !this.isPasswordValid(filteredRequest.password)) {
-			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The User Password is not valid`), req, res, next);
-			return false;
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The User Password is not valid`,
+				500, "Users", "checkIfUserValid");
 		}
 		// Check format
 		if (!this.isUserNameValid(filteredRequest.name)) {
-			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The User Last Name ${filteredRequest.name} is not valid`), req, res, next);
-			return false;
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The User Last Name ${filteredRequest.name} is not valid`,
+				500, "Users", "checkIfUserValid");
 		}
 		if (!this.isUserNameValid(filteredRequest.firstName)) {
-			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The User First Name ${filteredRequest.firstName} is not valid`), req, res, next);
-			return false;
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The User First Name ${filteredRequest.firstName} is not valid`,
+				500, "Users", "checkIfUserValid");
 		}
 		if (!this.isUserEmailValid(filteredRequest.email)) {
-			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The User Email ${filteredRequest.email} is not valid`), req, res, next);
-			return false;
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The User Email ${filteredRequest.email} is not valid`,
+				500, "Users", "checkIfUserValid");
 		}
 		if (filteredRequest.phone && !this.isPhoneValid(filteredRequest.phone)) {
-			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The User Phone ${filteredRequest.phone} is not valid`), req, res, next);
-			return false;
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The User Phone ${filteredRequest.phone} is not valid`,
+				500, "Users", "checkIfUserValid");
 		}
 		if (filteredRequest.mobile && !this.isPhoneValid(filteredRequest.mobile)) {
-			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The User Mobile ${filteredRequest.mobile} is not valid`), req, res, next);
-			return false;
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The User Mobile ${filteredRequest.mobile} is not valid`,
+				500, "Users", "checkIfUserValid");
 		}
 		if (filteredRequest.iNumber && !this.isINumberValid(filteredRequest.iNumber)) {
-			Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The User I-Number ${filteredRequest.iNumber} is not valid`), req, res, next);
-			return false;
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The User I-Number ${filteredRequest.iNumber} is not valid`,
+				500, "Users", "checkIfUserValid");
 		}
 		if (filteredRequest.tagIDs) {
 			// Check
 			if (!this.isTagIDValid(filteredRequest.tagIDs)) {
-				Logging.logActionExceptionMessageAndSendResponse(action, new Error(`The User Tags ${filteredRequest.tagIDs} is/are not valid`), req, res, next);
-				return false;
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The User Tags ${filteredRequest.tagIDs} is/are not valid`,
+					500, "Users", "checkIfUserValid");
 			}
 			// Check
 			if (!Array.isArray(filteredRequest.tagIDs)) {
@@ -189,8 +213,6 @@ module.exports = {
 			// Default
 			filteredRequest.tagIDs = [];
 		}
-		// Ok
-		return true;
 	},
 
 	importUsers() {

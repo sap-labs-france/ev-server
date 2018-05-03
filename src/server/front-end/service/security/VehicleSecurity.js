@@ -3,42 +3,42 @@ const CentralRestServerAuthorization = require('../../CentralRestServerAuthoriza
 const Utils = require('../../../../utils/Utils');
 const UtilsSecurity = require('./UtilsSecurity');
 
-class CarSecurity {
-	static filterCarDeleteRequest(request, loggedUser) {
+class VehicleSecurity {
+	static filterVehicleDeleteRequest(request, loggedUser) {
 		let filteredRequest = {};
 		// Set
 		filteredRequest.ID = sanitize(request.ID);
 		return filteredRequest;
 	}
 
-	static filterCarRequest(request, loggedUser) {
+	static filterVehicleRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.ID = sanitize(request.ID);
 		return filteredRequest;
 	}
 
-	static filterCarsRequest(request, loggedUser) {
+	static filterVehiclesRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
 		return filteredRequest;
 	}
 
-	static filterCarUpdateRequest(request, loggedUser) {
+	static filterVehicleUpdateRequest(request, loggedUser) {
 		// Set
-		let filteredRequest = CarSecurity._filterCarRequest(request, loggedUser);
+		let filteredRequest = VehicleSecurity._filterVehicleRequest(request, loggedUser);
 		filteredRequest.id = sanitize(request.id);
-		filteredRequest.withCarImages = UtilsSecurity.filterBoolean(request.withCarImages);
+		filteredRequest.withVehicleImages = UtilsSecurity.filterBoolean(request.withVehicleImages);
 		return filteredRequest;
 	}
 
-	static filterCarCreateRequest(request, loggedUser) {
-		let filteredRequest = CarSecurity._filterCarRequest(request, loggedUser);
+	static filterVehicleCreateRequest(request, loggedUser) {
+		let filteredRequest = VehicleSecurity._filterVehicleRequest(request, loggedUser);
 		return filteredRequest;
 	}
 
-	static _filterCarRequest(request, loggedUser) {
+	static _filterVehicleRequest(request, loggedUser) {
 		let filteredRequest = {};
-		filteredRequest.manufacturer = sanitize(request.manufacturer);
+		filteredRequest.type = sanitize(request.type);
 		filteredRequest.model = sanitize(request.model);
 		filteredRequest.batteryKW = sanitize(request.batteryKW);
 		filteredRequest.autonomyKmWLTP = sanitize(request.autonomyKmWLTP);
@@ -57,49 +57,49 @@ class CarSecurity {
 		return filteredRequest;
 	}
 
-	static filterCarResponse(car, loggedUser) {
-		let filteredCar;
+	static filterVehicleResponse(vehicle, loggedUser) {
+		let filteredVehicle;
 
-		if (!car) {
+		if (!vehicle) {
 			return null;
 		}
 		// Check auth
-		if (CentralRestServerAuthorization.canReadCar(loggedUser, car)) {
+		if (CentralRestServerAuthorization.canReadVehicle(loggedUser, vehicle)) {
 			// Admin?
 			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
 				// Yes: set all params
-				filteredCar = car;
+				filteredVehicle = vehicle;
 			} else {
 				// Set only necessary info
-				filteredCar = car;
+				filteredVehicle = vehicle;
 			}
 			// Created By / Last Changed By
 			UtilsSecurity.filterCreatedAndLastChanged(
-				filteredCar, car, loggedUser);
+				filteredVehicle, vehicle, loggedUser);
 		}
-		return filteredCar;
+		return filteredVehicle;
 	}
 
-	static filterCarsResponse(cars, loggedUser) {
-		let filteredCars = [];
+	static filterVehiclesResponse(vehicles, loggedUser) {
+		let filteredVehicles = [];
 
-		if (!cars) {
+		if (!vehicles) {
 			return null;
 		}
-		if (!CentralRestServerAuthorization.canListCars(loggedUser)) {
+		if (!CentralRestServerAuthorization.canListVehicles(loggedUser)) {
 			return null;
 		}
-		cars.forEach(car => {
+		vehicles.forEach(vehicle => {
 			// Filter
-			let filteredCar = CarSecurity.filterCarResponse(car, loggedUser);
+			let filteredVehicle = VehicleSecurity.filterVehicleResponse(vehicle, loggedUser);
 			// Ok?
-			if (filteredCar) {
+			if (filteredVehicle) {
 				// Add
-				filteredCars.push(filteredCar);
+				filteredVehicles.push(filteredVehicle);
 			}
 		});
-		return filteredCars;
+		return filteredVehicles;
 	}
 }
 
-module.exports = CarSecurity;
+module.exports = VehicleSecurity;

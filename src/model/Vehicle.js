@@ -1,12 +1,12 @@
 const Database = require('../utils/Database');
 const User = require('./User');
 
-class Car {
-	constructor(car) {
+class Vehicle {
+	constructor(vehicle) {
 		// Init model
 		this._model = {};
 		// Set it
-		Database.updateCar(car, this._model);
+		Database.updateVehicle(vehicle, this._model);
 	}
 
 	getModel() {
@@ -14,35 +14,43 @@ class Car {
 	}
 
 	getName() {
-		return `${this.getManufacturer()} ${this.getCarModel()}`;
+		return `${this.getManufacturer()} ${this.getVehicleModel()}`;
 	}
 
 	getID() {
 		return this._model.id;
 	}
 
-	setManufacturer(manufacturer) {
-		this._model.manufacturer = manufacturer;
+	getType() {
+		return this._model.type;
+	}
+
+	setType(type) {
+		this._model.type = type;
 	}
 
 	getManufacturer() {
 		return this._model.manufacturer;
 	}
 
-	setBatteryKW(batteryKW) {
-		this._model.batteryKW = batteryKW;
+	setManufacturer(manufacturer) {
+		this._model.manufacturer = manufacturer;
 	}
 
 	getBatteryKW() {
 		return this._model.batteryKW;
 	}
 
-	setAutonomyKmWLTP(autonomyKmWLTP) {
-		this._model.autonomyKmWLTP = autonomyKmWLTP;
+	setBatteryKW(batteryKW) {
+		this._model.batteryKW = batteryKW;
 	}
 
 	getAutonomyKmWLTP() {
 		return this._model.autonomyKmWLTP;
+	}
+
+	setAutonomyKmWLTP(autonomyKmWLTP) {
+		this._model.autonomyKmWLTP = autonomyKmWLTP;
 	}
 
 	setAutonomyKmReal(autonomyKmReal) {
@@ -109,11 +117,11 @@ class Car {
 		return this._model.heightMeter;
 	}
 
-	setCarModel(model) {
+	setVehicleModel(model) {
 		this._model.model = model;
 	}
 
-	getCarModel() {
+	getVehicleModel() {
 		return this._model.model;
 	}
 
@@ -172,20 +180,20 @@ class Car {
 	}
 
 	save() {
-		return global.storage.saveCar(this.getModel());
+		return global.storage.saveVehicle(this.getModel());
 	}
 
 	saveImages() {
-		return global.storage.saveCarImages(this.getModel());
+		return global.storage.saveVehicleImages(this.getModel());
 	}
 
 	saveLogo() {
-		return global.storage.saveCarLogo(this.getModel());
+		return global.storage.saveVehicleLogo(this.getModel());
 	}
 
 	delete() {
-		return global.storage.deleteCar(this.getID());
+		return global.storage.deleteVehicle(this.getID());
 	}
 }
 
-module.exports = Car;
+module.exports = Vehicle;

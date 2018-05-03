@@ -35,72 +35,71 @@ class SiteAreaService {
 		}
 		// Filter
 		let filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest( req.body, req.user );
-		// Check Mandatory fields
 		let loggedUser, siteArea, newSiteArea;
-		if (SiteAreas.checkIfSiteAreaValid("SiteAreaCreate", filteredRequest, req, res, next)) {
-			// Check Site
-			global.storage.getSite(filteredRequest.siteID).then((site) => {
-				// Found?
-				if (!site) {
-					// Not Found!
-					throw new AppError(
-						Constants.CENTRAL_SERVER,
-						`The Site ID '${filteredRequest.siteID}' does not exist`,
-						550, "SiteAreaService", "handleCreateSiteArea");
-				}
-				// Get the logged user
-				return global.storage.getUser(req.user.id);
-			// Logged User
-			}).then((foundLoggedUser) => {
-				loggedUser = foundLoggedUser;
-				// Create site
-				siteArea = new SiteArea(filteredRequest);
-				// Update timestamp
-				siteArea.setCreatedBy(loggedUser);
-				siteArea.setCreatedOn(new Date());
-				// Save
-				return siteArea.save();
-			}).then((createdSiteArea) => {
-				newSiteArea = createdSiteArea;
-				// Save Site's Image
-				newSiteArea.setImage(siteArea.getImage());
-				// Save
-				return newSiteArea.saveImage();
-			}).then(() => {
-				// Get the assigned Charge Boxes
-				let proms = [];
-				// Assign new Charging Stations
-				filteredRequest.chargeBoxIDs.forEach((chargeBoxID) => {
-					// Get it
-					proms.push(global.storage.getChargingStation(chargeBoxID));
-				});
-				return Promise.all(proms);
-			}).then((assignedChargingStations) => {
-				let proms = [];
+		// Check Site
+		global.storage.getSite(filteredRequest.siteID).then((site) => {
+			// Check Mandatory fields
+			SiteAreas.checkIfSiteAreaValid(filteredRequest, req);
+			// Found?
+			if (!site) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Site ID '${filteredRequest.siteID}' does not exist`,
+					550, "SiteAreaService", "handleCreateSiteArea");
+			}
+			// Get the logged user
+			return global.storage.getUser(req.user.id);
+		// Logged User
+		}).then((foundLoggedUser) => {
+			loggedUser = foundLoggedUser;
+			// Create site
+			siteArea = new SiteArea(filteredRequest);
+			// Update timestamp
+			siteArea.setCreatedBy(loggedUser);
+			siteArea.setCreatedOn(new Date());
+			// Save
+			return siteArea.save();
+		}).then((createdSiteArea) => {
+			newSiteArea = createdSiteArea;
+			// Save Site's Image
+			newSiteArea.setImage(siteArea.getImage());
+			// Save
+			return newSiteArea.saveImage();
+		}).then(() => {
+			// Get the assigned Charge Boxes
+			let proms = [];
+			// Assign new Charging Stations
+			filteredRequest.chargeBoxIDs.forEach((chargeBoxID) => {
 				// Get it
-				assignedChargingStations.forEach((assignedChargingStation) => {
-					// Update timestamp
-					assignedChargingStation.setLastChangedBy(loggedUser);
-					assignedChargingStation.setLastChangedOn(new Date());
-					// Set
-					assignedChargingStation.setSiteArea(newSiteArea);
-					proms.push(assignedChargingStation.saveChargingStationSiteArea());
-				});
-				return Promise.all(proms);
-			}).then((results) => {
-				// Ok
-				Logging.logSecurityInfo({
-					user: req.user, module: "SiteAreaService", method: "handleCreateSiteArea",
-					message: `Site Area '${newSiteArea.getName()}' has been created successfully`,
-					action: action, detailedMessages: newSiteArea});
-				// Ok
-				res.json({status: `Success`});
-				next();
-			}).catch((err) => {
-				// Log
-				Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+				proms.push(global.storage.getChargingStation(chargeBoxID));
 			});
-		}
+			return Promise.all(proms);
+		}).then((assignedChargingStations) => {
+			let proms = [];
+			// Get it
+			assignedChargingStations.forEach((assignedChargingStation) => {
+				// Update timestamp
+				assignedChargingStation.setLastChangedBy(loggedUser);
+				assignedChargingStation.setLastChangedOn(new Date());
+				// Set
+				assignedChargingStation.setSiteArea(newSiteArea);
+				proms.push(assignedChargingStation.saveChargingStationSiteArea());
+			});
+			return Promise.all(proms);
+		}).then((results) => {
+			// Ok
+			Logging.logSecurityInfo({
+				user: req.user, module: "SiteAreaService", method: "handleCreateSiteArea",
+				message: `Site Area '${newSiteArea.getName()}' has been created successfully`,
+				action: action, detailedMessages: newSiteArea});
+			// Ok
+			res.json({status: `Success`});
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
 	}
 
 	static handleGetSiteAreas(action, req, res, next) {
@@ -364,12 +363,7 @@ class SiteAreaService {
 					550, "SiteAreaService", "handleUpdateSiteArea");
 			}
 			// Check Mandatory fields
-			if (!SiteAreas.checkIfSiteAreaValid(action, filteredRequest, req, res, next)) {
-				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`The Site Area request in invalid`,
-					500, "SiteAreaService", "handleUpdateSiteArea");
-			};
+			SiteAreas.checkIfSiteAreaValid(filteredRequest, req);
 			// Check auth
 			if (!CentralRestServerAuthorization.canUpdateSiteArea(req.user, siteArea.getModel())) {
 				// Not Authorized!

@@ -198,7 +198,7 @@ module.exports = {
 		this.updateID(src, dest);
 		dest.name = src.name;
 		dest.logo = src.logo;
-		dest.numberOfCars = src.numberOfCars;
+		dest.numberOfVehicles = src.numberOfVehicles;
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
@@ -234,9 +234,9 @@ module.exports = {
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
-	updateCar(src, dest) {
+	updateVehicle(src, dest) {
 		this.updateID(src, dest);
-		dest.manufacturer = src.manufacturer;
+		dest.type = src.type;
 		dest.model = src.model;
 		dest.batteryKW = src.batteryKW;
 		dest.autonomyKmWLTP = src.autonomyKmWLTP;

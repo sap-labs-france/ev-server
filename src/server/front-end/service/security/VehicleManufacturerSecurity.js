@@ -20,7 +20,7 @@ class VehicleManufacturerSecurity {
 	static filterVehicleManufacturersRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
-		filteredRequest.WithCars = UtilsSecurity.filterBoolean(request.WithCars);
+		filteredRequest.WithVehicles = UtilsSecurity.filterBoolean(request.WithVehicles);
 		return filteredRequest;
 	}
 

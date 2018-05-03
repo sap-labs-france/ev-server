@@ -272,37 +272,36 @@ class CompanyService {
 		}
 		// Filter
 		let filteredRequest = CompanySecurity.filterCompanyCreateRequest( req.body, req.user );
-		// Check Mandatory fields
-		if (Companies.checkIfCompanyValid(action, filteredRequest, req, res, next)) {
-			// Get the logged user
-			let company, newCompany;
-			global.storage.getUser(req.user.id).then((loggedUser) => {
-				// Create
-				company = new Company(filteredRequest);
-				// Update timestamp
-				company.setCreatedBy(loggedUser);
-				company.setCreatedOn(new Date());
-				// Save
-				return company.save();
-			}).then((createdCompany) => {
-				newCompany = createdCompany;
-				// Update Company's Logo
-				newCompany.setLogo(company.getLogo());
-				// Save
-				return newCompany.saveLogo();
-			}).then(() => {
-				Logging.logSecurityInfo({
-					user: req.user, module: "CompanyService", method: "handleCreateCompany",
-					message: `Company '${newCompany.getName()}' has been created successfully`,
-					action: action, detailedMessages: newCompany});
-				// Ok
-				res.json({status: `Success`});
-				next();
-			}).catch((err) => {
-				// Log
-				Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-			});
-		}
+		// Get the logged user
+		let company, newCompany;
+		global.storage.getUser(req.user.id).then((loggedUser) => {
+			// Check Mandatory fields
+			Companies.checkIfCompanyValid(filteredRequest, req);
+			// Create
+			company = new Company(filteredRequest);
+			// Update timestamp
+			company.setCreatedBy(loggedUser);
+			company.setCreatedOn(new Date());
+			// Save
+			return company.save();
+		}).then((createdCompany) => {
+			newCompany = createdCompany;
+			// Update Company's Logo
+			newCompany.setLogo(company.getLogo());
+			// Save
+			return newCompany.saveLogo();
+		}).then(() => {
+			Logging.logSecurityInfo({
+				user: req.user, module: "CompanyService", method: "handleCreateCompany",
+				message: `Company '${newCompany.getName()}' has been created successfully`,
+				action: action, detailedMessages: newCompany});
+			// Ok
+			res.json({status: `Success`});
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
 	}
 
 	static handleUpdateCompany(action, req, res, next) {
@@ -326,12 +325,7 @@ class CompanyService {
 					550, "CompanyService", "handleUpdateCompany");
 			}
 			// Check Mandatory fields
-			if (!Companies.checkIfCompanyValid(action, filteredRequest, req, res, next)) {
-				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`The Company request is invalid`,
-					500, "CompanyService", "handleUpdateCompany");
-			}
+			Companies.checkIfCompanyValid(filteredRequest, req);
 			// Check auth
 			if (!CentralRestServerAuthorization.canUpdateCompany(req.user, company.getModel())) {
 				// Not Authorized!

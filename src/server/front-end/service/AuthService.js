@@ -154,55 +154,54 @@ class AuthService {
 							500, "AuthService", "handleRegisterUser"), req, res, next);
 					return;
 				}
-				// Check Mandatory fields
-				if (Users.checkIfUserValid("RegisterUser", filteredRequest, req, res, next)) {
-					// Check email
-					global.storage.getUserByEmail(filteredRequest.email).then((user) => {
-						if (user) {
-							throw new AppError(
-								Constants.CENTRAL_SERVER,
-								`Email already exists`,
-								510, "AuthService", "handleRegisterUser",
-								null, user.getModel());
-						}
-						// Generate a password
-						return Users.hashPasswordBcrypt(filteredRequest.password);
-					}).then((newPasswordHashed) => {
-						// Create the user
-						let newUser = new User(filteredRequest);
-						// Set data
-						newUser.setStatus(Users.USER_STATUS_PENDING);
-						newUser.setRole(Users.USER_ROLE_BASIC);
-						newUser.setPassword(newPasswordHashed);
-						newUser.setLocale(req.locale.substring(0,5));
-						newUser.setCreatedOn(new Date());
-						// Save
-						return newUser.save();
-					}).then((newUser) => {
-						Logging.logSecurityInfo({
-							user: req.user, action: action,
-							module: "AuthService",
-							method: "handleRegisterUser",
-							message: `User with Email '${req.body.email}' has been created successfully`,
-							detailedMessages: req.body
-						});
-						// Send notification
-						NotificationHandler.sendNewRegisteredUser(
-							Utils.generateGUID(),
-							newUser.getModel(),
-							{
-								"user": newUser.getModel(),
-								"evseDashboardURL" : Utils.buildEvseURL()
-							},
-							newUser.getLocale());
-						// Ok
-						res.json({status: `Success`});
-						next();
-					}).catch((err) => {
-						// Log
-						Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+				// Check email
+				global.storage.getUserByEmail(filteredRequest.email).then((user) => {
+					// Check Mandatory fields
+					Users.checkIfUserValid(filteredRequest, req);
+					if (user) {
+						throw new AppError(
+							Constants.CENTRAL_SERVER,
+							`Email already exists`,
+							510, "AuthService", "handleRegisterUser",
+							null, user.getModel());
+					}
+					// Generate a password
+					return Users.hashPasswordBcrypt(filteredRequest.password);
+				}).then((newPasswordHashed) => {
+					// Create the user
+					let newUser = new User(filteredRequest);
+					// Set data
+					newUser.setStatus(Users.USER_STATUS_PENDING);
+					newUser.setRole(Users.USER_ROLE_BASIC);
+					newUser.setPassword(newPasswordHashed);
+					newUser.setLocale(req.locale.substring(0,5));
+					newUser.setCreatedOn(new Date());
+					// Save
+					return newUser.save();
+				}).then((newUser) => {
+					Logging.logSecurityInfo({
+						user: req.user, action: action,
+						module: "AuthService",
+						method: "handleRegisterUser",
+						message: `User with Email '${req.body.email}' has been created successfully`,
+						detailedMessages: req.body
 					});
-				}
+					// Send notification
+					NotificationHandler.sendNewRegisteredUser(
+						Utils.generateGUID(),
+						newUser.getModel(),
+						{
+							"user": newUser.getModel(),
+							"evseDashboardURL" : Utils.buildEvseURL()
+						},
+						newUser.getLocale());
+					// Ok
+					res.json({status: `Success`});
+					next();
+				}).catch((err) => {
+					// Log
+					Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+				});
 			});
 		}).on("error", (err) => {
 			// Log

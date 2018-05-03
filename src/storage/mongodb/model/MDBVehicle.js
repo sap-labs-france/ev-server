@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
-module.exports = mongoose.model('Car', {
-	manufacturer: String,
+module.exports = mongoose.model('Vehicle', {
+	type: String,
 	model: String,
 	batteryKW: Number,
 	autonomyKmWLTP: Number,

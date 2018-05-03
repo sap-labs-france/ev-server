@@ -71,15 +71,15 @@ module.exports = {
 							}
 						},
 						{
-							"AuthObject": "Cars",
+							"AuthObject": "Vehicles",
 							"AuthFieldValue": {
 								"Action": ["List"]
 							}
 						},
 						{
-							"AuthObject": "Car",
+							"AuthObject": "Vehicle",
 							"AuthFieldValue": {
-								"CarID": "*",
+								"VehicleID": "*",
 								"Action": ["Create", "Read", "Update", "Delete"]
 							}
 						},
@@ -206,15 +206,15 @@ module.exports = {
 							}
 						},
 						{
-							"AuthObject": "Cars",
+							"AuthObject": "Vehicles",
 							"AuthFieldValue": {
 								"Action": ["List"]
 							}
 						},
 						{
-							"AuthObject": "Car",
+							"AuthObject": "Vehicle",
 							"AuthFieldValue": {
-								"CarID": "*",
+								"VehicleID": "*",
 								"Action": ["Read"]
 							}
 						},
@@ -341,13 +341,13 @@ module.exports = {
 							}
 						},
 						{
-							"AuthObject": "Cars",
+							"AuthObject": "Vehicles",
 							"AuthFieldValue": {
 								"Action": ["List"]
 							}
 						},
 						{
-							"AuthObject": "Car",
+							"AuthObject": "Vehicle",
 							"AuthFieldValue": {
 								"SiteID": "*",
 								"Action": ["Read"]
@@ -464,13 +464,13 @@ module.exports = {
 							}
 						},
 						{
-							"AuthObject": "Cars",
+							"AuthObject": "Vehicles",
 							"AuthFieldValue": {
 								"Action": ["List"]
 							}
 						},
 						{
-							"AuthObject": "Car",
+							"AuthObject": "Vehicle",
 							"AuthFieldValue": {
 								"SiteID": "*",
 								"Action": ["Read"]

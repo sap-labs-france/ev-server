@@ -13,8 +13,8 @@ module.exports = {
 
 	ENTITY_USERS: "Users",
 	ENTITY_USER: "User",
-	ENTITY_CARS: "Cars",
-	ENTITY_CAR: "Car",
+	ENTITY_VEHICLES: "Vehicles",
+	ENTITY_VEHICLE: "Vehicle",
 	ENTITY_VEHICLE_MANUFACTURERS: "VehicleManufacturers",
 	ENTITY_VEHICLE_MANUFACTURER: "VehicleManufacturer",
 	ENTITY_COMPANIES: "Companies",
@@ -194,34 +194,34 @@ module.exports = {
 			{ "Action": this.ACTION_DELETE, "SiteID": site.id.toString() });
 	},
 
-	canListCars(loggedUser) {
+	canListVehicles(loggedUser) {
 		// Check
-		return this.canPerformAction(loggedUser, this.ENTITY_CARS,
+		return this.canPerformAction(loggedUser, this.ENTITY_VEHICLES,
 			{ "Action": this.ACTION_LIST });
 	},
 
-	canReadCar(loggedUser, car) {
+	canReadVehicle(loggedUser, vehicle) {
 		// Check
-		return this.canPerformAction(loggedUser, this.ENTITY_CAR,
-			{ "Action": this.ACTION_READ, "CarID": car.id.toString() });
+		return this.canPerformAction(loggedUser, this.ENTITY_VEHICLE,
+			{ "Action": this.ACTION_READ, "VehicleID": vehicle.id.toString() });
 	},
 
-	canCreateCar(loggedUser) {
+	canCreateVehicle(loggedUser) {
 		// Check
-		return this.canPerformAction(loggedUser, this.ENTITY_CAR,
+		return this.canPerformAction(loggedUser, this.ENTITY_VEHICLE,
 			{ "Action": this.ACTION_CREATE });
 	},
 
-	canUpdateCar(loggedUser, car) {
+	canUpdateVehicle(loggedUser, vehicle) {
 		// Check
-		return this.canPerformAction(loggedUser, this.ENTITY_CAR,
-			{ "Action": this.ACTION_UPDATE, "CarID": car.id.toString() });
+		return this.canPerformAction(loggedUser, this.ENTITY_VEHICLE,
+			{ "Action": this.ACTION_UPDATE, "VehicleID": vehicle.id.toString() });
 	},
 
-	canDeleteCar(loggedUser, car) {
+	canDeleteVehicle(loggedUser, vehicle) {
 		// Check
-		return this.canPerformAction(loggedUser, this.ENTITY_CAR,
-			{ "Action": this.ACTION_DELETE, "CarID": car.id.toString() });
+		return this.canPerformAction(loggedUser, this.ENTITY_VEHICLE,
+			{ "Action": this.ACTION_DELETE, "VehicleID": vehicle.id.toString() });
 	},
 
 	canListVehicleManufacturers(loggedUser) {
