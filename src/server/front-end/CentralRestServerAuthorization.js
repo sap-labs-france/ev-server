@@ -39,6 +39,7 @@ module.exports = {
 	ACTION_RESET: "Reset",
 	ACTION_CLEAR_CACHE: "ClearCache",
 	ACTION_STOP_TRANSACTION: "StopTransaction",
+	ACTION_START_TRANSACTION: "StartTransaction",
 	ACTION_UNLOCK_CONNECTOR: "UnlockConnector",
 	ACTION_GET_CONFIGURATION: "GetConfiguration",
 

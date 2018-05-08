@@ -90,28 +90,62 @@ class SoapChargingStationClient extends ChargingStationClient {
 			// Init SOAP Headers with the action
 			this.initSoapHeaders("RemoteStopTransaction");
 
-			// Convert
-			transactionId = parseInt(transactionId);
-
 			// Log
 			Logging.logSendAction(_moduleName, _chargingStation.getID(), "RemoteStopTransaction", transactionId);
 
 			// Execute
 			_client.RemoteStopTransaction({
-						"remoteStopTransactionRequest": {
-							"transactionId": transactionId
+					"remoteStopTransactionRequest": {
+						"transactionId": transactionId
+				}
+			}, (err, result, envelope) => {
+				if(err) {
+					// Log
+					Logging.logError({
+						source: _chargingStation.getID(), module: "SoapChargingStationClient", method: "stopTransaction",
+						message: `Error when trying to stop the transaction ID ${transactionId} of the station ${_chargingStation.getID()}: ${err.toString()}`,
+						detailedMessages: err.stack });
+					reject(err);
+				} else {
+					// Log
+					Logging.logReturnedAction(_moduleName, _chargingStation.getID(), "RemoteStopTransaction", result);
+					fulfill(result);
+				}
+			});
+		});
+	}
+
+	startTransaction(connectorId, tagID) {
+		return new Promise((fulfill, reject) => {
+			let meterStart = 0;
+			let timestamp = new Date().toISOString();
+
+			// Init SOAP Headers with the action
+			this.initSoapHeaders("RemoteStartTransaction");
+
+			// Log
+			Logging.logSendAction(_moduleName, _chargingStation.getID(), "RemoteStartTransaction", {
+				"connectorId": connectorId,
+				"idTag": tagID
+			});
+
+			// Execute
+			_client.RemoteStartTransaction({
+						"remoteStartTransactionRequest": {
+							"connectorId": connectorId,
+							"idTag": tagID
 					}
 				}, (err, result, envelope) => {
 					if(err) {
 						// Log
 						Logging.logError({
-							source: _chargingStation.getID(), module: "SoapChargingStationClient", method: "stopTransaction",
-							message: `Error when trying to stop the transaction ID ${transactionId} of the station ${_chargingStation.getID()}: ${err.toString()}`,
+							source: _chargingStation.getID(), module: "SoapChargingStationClient", method: "startTransaction",
+							message: `Error when trying to start a transaction on the station ${_chargingStation.getID()}: ${err.toString()}`,
 							detailedMessages: err.stack });
 						reject(err);
 					} else {
 						// Log
-						Logging.logReturnedAction(_moduleName, _chargingStation.getID(), "RemoteStopTransaction", result);
+						Logging.logReturnedAction(_moduleName, _chargingStation.getID(), "RemoteStartTransaction", result);
 						fulfill(result);
 					}
 				});
@@ -123,31 +157,28 @@ class SoapChargingStationClient extends ChargingStationClient {
 			// Init SOAP Headers with the action
 			this.initSoapHeaders("UnlockConnector");
 
-			// Convert
-			connectorId = parseInt(connectorId);
-
 			// Log
 			Logging.logSendAction(_moduleName, _chargingStation.getID(), "UnlockConnector", connectorId);
 
 			// Execute
 			_client.UnlockConnector({
-						"unlockConnectorRequest": {
-							"connectorId": connectorId
-					}
-				}, (err, result, envelope) => {
-					if(err) {
-						// Log
-						Logging.logError({
-							source: _chargingStation.getID(), module: "SoapChargingStationClient", method: "unlockConnector",
-							message: `Error when trying to unlock the connector ${connectorId} of the station ${_chargingStation.getID()}: ${err.toString()}`,
-							detailedMessages: err.stack });
-						reject(err);
-					} else {
-						// Log
-						Logging.logReturnedAction(_moduleName, _chargingStation.getID(), "UnlockConnector", result);
-						fulfill(result);
-					}
-				});
+					"unlockConnectorRequest": {
+						"connectorId": connectorId
+				}
+			}, (err, result, envelope) => {
+				if(err) {
+					// Log
+					Logging.logError({
+						source: _chargingStation.getID(), module: "SoapChargingStationClient", method: "unlockConnector",
+						message: `Error when trying to unlock the connector ${connectorId} of the station ${_chargingStation.getID()}: ${err.toString()}`,
+						detailedMessages: err.stack });
+					reject(err);
+				} else {
+					// Log
+					Logging.logReturnedAction(_moduleName, _chargingStation.getID(), "UnlockConnector", result);
+					fulfill(result);
+				}
+			});
 		});
 	}
 
@@ -162,22 +193,22 @@ class SoapChargingStationClient extends ChargingStationClient {
 
 			// Execute
 			_client.Reset({
-					"resetRequest": {
-						"type": type
-					}
-				}, (err, result, envelope) => {
-					if(err) {
-						// Log
-						Logging.logError({
-							source: _chargingStation.getID(), module: "SoapChargingStationClient", method: "reset",
-							message: `Error when trying to reboot the station ${_chargingStation.getID()}: ${err.toString()}`,
-							detailedMessages: err.stack });
-						reject(err);
-					} else {
-						// Log
-						Logging.logReturnedAction(_moduleName, _chargingStation.getID(), "Reset", result);
-						fulfill(result);
-					}
+				"resetRequest": {
+					"type": type
+				}
+			}, (err, result, envelope) => {
+				if(err) {
+					// Log
+					Logging.logError({
+						source: _chargingStation.getID(), module: "SoapChargingStationClient", method: "reset",
+						message: `Error when trying to reboot the station ${_chargingStation.getID()}: ${err.toString()}`,
+						detailedMessages: err.stack });
+					reject(err);
+				} else {
+					// Log
+					Logging.logReturnedAction(_moduleName, _chargingStation.getID(), "Reset", result);
+					fulfill(result);
+				}
 			});
 		});
 	}
@@ -258,24 +289,24 @@ class SoapChargingStationClient extends ChargingStationClient {
 
 			// Execute
 			_client.ChangeConfiguration({
-						"changeConfigurationRequest": {
-							"key": key,
-							"value": value
-					}
-				}, (err, result, envelope) => {
-					if(err) {
-						// Log
-						Logging.logError({
-							source: _chargingStation.getID(), module: "SoapChargingStationClient", method: "changeConfiguration",
-							message: `Error when trying to change the configuration parameter '${key}' with value '${value}' of the station ${_chargingStation.getID()}: ${err.toString()}`,
-							detailedMessages: err.stack });
-						reject(err);
-					} else {
-						// Log
-						Logging.logReturnedAction(_moduleName, _chargingStation.getID(), "ChangeConfiguration", result);
-						fulfill(result);
-					}
-				});
+					"changeConfigurationRequest": {
+						"key": key,
+						"value": value
+				}
+			}, (err, result, envelope) => {
+				if(err) {
+					// Log
+					Logging.logError({
+						source: _chargingStation.getID(), module: "SoapChargingStationClient", method: "changeConfiguration",
+						message: `Error when trying to change the configuration parameter '${key}' with value '${value}' of the station ${_chargingStation.getID()}: ${err.toString()}`,
+						detailedMessages: err.stack });
+					reject(err);
+				} else {
+					// Log
+					Logging.logReturnedAction(_moduleName, _chargingStation.getID(), "ChangeConfiguration", result);
+					fulfill(result);
+				}
+			});
 		});
 	}
 

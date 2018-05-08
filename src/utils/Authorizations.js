@@ -107,7 +107,7 @@ module.exports = {
 							"AuthFieldValue": {
 								"UserID": "*",
 								"ChargingStationID": "*",
-								"Action": ["Create", "Read", "Update", "Delete", "Reset", "ClearCache", "GetConfiguration", "ChangeConfiguration", "StopTransaction", "UnlockConnector"]
+								"Action": ["Create", "Read", "Update", "Delete", "Reset", "ClearCache", "GetConfiguration", "ChangeConfiguration", "StartTransaction", "StopTransaction", "UnlockConnector"]
 							}
 						},
 						{
@@ -254,7 +254,7 @@ module.exports = {
 										{{/chargingStationID}}
 									{{/trim}}
 								],
-								"Action": ["Read", "StopTransaction", "UnlockConnector"]
+								"Action": ["Read", "StartTransaction", "StopTransaction", "UnlockConnector"]
 							}
 						},
 						{
@@ -377,7 +377,7 @@ module.exports = {
 							"AuthFieldValue": {
 								"UserID": "*",
 								"ChargingStationID": "*",
-								"Action": ["Read", "StopTransaction", "UnlockConnector"]
+								"Action": ["Read", "StartTransaction", "StopTransaction", "UnlockConnector"]
 							}
 						},
 						{

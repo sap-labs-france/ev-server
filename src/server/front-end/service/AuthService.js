@@ -514,6 +514,7 @@ class AuthService {
 						id: user.getID(),
 						role: user.getRole(),
 						name: user.getName(),
+						tagIDs: user.getTagIDs(),
 						firstName: user.getFirstName(),
 						locale: user.getLocale(),
 						language: user.getLanguage(),

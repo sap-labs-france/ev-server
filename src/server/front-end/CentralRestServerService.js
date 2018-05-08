@@ -56,6 +56,7 @@ module.exports = {
 					case "ChargingStationGetConfiguration":
 					case "ChargingStationChangeConfiguration":
 					case "ChargingStationStopTransaction":
+					case "ChargingStationStartTransaction":
 					case "ChargingStationUnlockConnector":
 					case "ChargingStationReset":
 						// Keep the action (remove ChargingStation)

@@ -42,9 +42,16 @@ class ChargingStation {
 			case "ChangeConfiguration":
 				// Change the config
 				return this.requestChangeConfiguration(params.key, params.value);
+
 			// Unlock Connector
 			case "UnlockConnector":
 				return this.requestUnlockConnector(params.connectorId);
+
+			// Start Transaction
+			case "StartTransaction":
+				return this.requestStartTransaction(
+					params.connectorId,
+					params.tagID);
 
 			// Stop Transaction
 			case "StopTransaction":
@@ -356,12 +363,12 @@ class ChargingStation {
 							connector.power = Math.floor(400 * current * Math.sqrt(nbPhase));
 						}
 					}
-					// Save Status Notif
-					return global.storage.saveStatusNotification(statusNotification);
 				} else {
-					// Log
-					return Promise.reject(new Error(`Cannot retrieve the Configuration of ${this.getID()}`));
+					// Not possible to compute Power
+					connector.power = 0;
 				}
+				// Save Status Notif
+				return global.storage.saveStatusNotification(statusNotification);
 			}).then(() => {
 				// Save Status
 				return global.storage.saveChargingStationConnector(
@@ -1051,11 +1058,20 @@ class ChargingStation {
 	}
 
 	// Stop Transaction
-	requestStopTransaction(params) {
+	requestStopTransaction(transactionId) {
 		// Get the client
 		return this.getChargingStationClient().then((chargingStationClient) => {
 			// Restart
-			return chargingStationClient.stopTransaction(params);
+			return chargingStationClient.stopTransaction(transactionId);
+		});
+	}
+
+	// Start Transaction
+	requestStartTransaction(connectorId, tagID) {
+		// Get the client
+		return this.getChargingStationClient().then((chargingStationClient) => {
+			// Restart
+			return chargingStationClient.startTransaction(connectorId, tagID);
 		});
 	}
 
@@ -1112,11 +1128,11 @@ class ChargingStation {
 	}
 
 	// Unlock connector
-	requestUnlockConnector(params) {
+	requestUnlockConnector(connectorId) {
 		// Get the client
 		return this.getChargingStationClient().then((chargingStationClient) => {
 			// Get config
-			return chargingStationClient.unlockConnector(params);
+			return chargingStationClient.unlockConnector(connectorId);
 		});
 	}
 
