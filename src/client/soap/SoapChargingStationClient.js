@@ -115,7 +115,7 @@ class SoapChargingStationClient extends ChargingStationClient {
 		});
 	}
 
-	startTransaction(connectorId, tagID) {
+	startTransaction(tagID) {
 		return new Promise((fulfill, reject) => {
 			let meterStart = 0;
 			let timestamp = new Date().toISOString();
@@ -125,14 +125,11 @@ class SoapChargingStationClient extends ChargingStationClient {
 
 			// Log
 			Logging.logSendAction(_moduleName, _chargingStation.getID(), "RemoteStartTransaction", {
-				"connectorId": connectorId,
 				"idTag": tagID
 			});
-
 			// Execute
 			_client.RemoteStartTransaction({
 						"remoteStartTransactionRequest": {
-							"connectorId": connectorId,
 							"idTag": tagID
 					}
 				}, (err, result, envelope) => {
