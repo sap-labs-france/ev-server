@@ -280,7 +280,7 @@ class ChargingStationService {
 			if (action === "StopTransaction" ||
 					action === "UnlockConnector") {
 				// Get Transaction
-				global.storage.getTransaction(filteredRequest.args.transactionId).then((transaction) => {
+				return global.storage.getTransaction(filteredRequest.args.transactionId).then((transaction) => {
 					if (transaction) {
 						// Add connector ID
 						filteredRequest.args.connectorId = transaction.connectorId;
