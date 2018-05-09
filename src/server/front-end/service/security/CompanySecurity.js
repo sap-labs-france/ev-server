@@ -57,7 +57,7 @@ class CompanySecurity {
 		filteredRequest.name = sanitize(request.name);
 		filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
 		filteredRequest.logo = sanitize(request.logo);
-		if (filteredRequest.userIDs) {
+		if (request.userIDs) {
 			// Handle Users
 			filteredRequest.userIDs = request.userIDs.map((userID) => {
 				return sanitize(userID);
