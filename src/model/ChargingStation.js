@@ -59,7 +59,7 @@ class ChargingStation {
 			default:
 				// Log
 				Logging.logError({
-					module: "ChargingStation", method: "handleAction",
+					source: this.getID(), module: "ChargingStation", method: "handleAction",
 					message: `Action does not exist: ${action}` });
 				throw new Error(`Action does not exist: ${action}`);
 		}
@@ -377,9 +377,8 @@ class ChargingStation {
 				if (statusNotification.status === "Faulted") {
 					// Log
 					Logging.logError({
-						source: this.getID(),
-						module: "ChargingStation", method: "handleStatusNotification",
-						action: "StatusNotification",
+						source: this.getID(), module: "ChargingStation",
+						method: "handleStatusNotification", action: "StatusNotification",
 						message: `Error on connector ${statusNotification.connectorId}: ${statusNotification.status} - ${statusNotification.errorCode}` });
 					// Send Notification
 					NotificationHandler.sendChargingStationStatusError(
@@ -434,9 +433,8 @@ class ChargingStation {
 				return this.saveConfiguration(configuration);
 			}).then(() => {
 				Logging.logInfo({
-					source: this.getID(),
-					module: "ChargingStation", method: "handleBootNotification",
-					action: "BootNotification",
+					source: this.getID(), module: "ChargingStation",
+					method: "handleBootNotification", action: "BootNotification",
 					message: `Configuration has been saved` });
 			}).catch((error) => {
 				// Log error
@@ -472,9 +470,9 @@ class ChargingStation {
 							connector.totalConsumption = totalConsumption;
 							// Log
 							Logging.logInfo({
-								module: "ChargingStation",
+								source: this.getID(), module: "ChargingStation",
 								method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
-								message: `${this.getID()} - ${connector.connectorId} - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
+								message: `Connector '${connector.connectorId}' - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
 						}
 						this.setLastHeartBeat(new Date());
 						// Handle End Of charge
@@ -490,9 +488,9 @@ class ChargingStation {
 						connector.totalConsumption = 0;
 						// Log
 						Logging.logInfo({
-							module: "ChargingStation",
+							source: this.getID(), module: "ChargingStation",
 							method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
-							message: `${this.getID()} - ${connector.connectorId} - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
+							message: `Connector '${connector.connectorId}' - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
 						// Save
 						return this.save();
 					}
@@ -500,9 +498,9 @@ class ChargingStation {
 			} else {
 				// Log
 				Logging.logError({
-					module: "ChargingStation",
+					source: this.getID(), module: "ChargingStation",
 					method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
-					message: `${this.getID()} - Transaction ID '${transactionId}' not found` });
+					message: `Transaction ID '${transactionId}' not found` });
 			}
 		});
 	}
@@ -547,17 +545,27 @@ class ChargingStation {
 						this.requestStopTransaction(transaction.id).then((result) => {
 							// Ok?
 							if (result && result.status === "Accepted") {
+								// Cannot unlock the connector
+								Logging.logInfo({
+									source: this.getID(), module: "ChargingStation", method: "handleNotificationEndOfCharge",
+									action: "NotifyEndOfCharge", message: `Transaction ID '${transaction.id}' has been stopped`,
+									detailedMessages: transaction});
 								// Unlock the connector
 								this.requestUnlockConnector(transaction.connectorId).then((result) => {
 									// Ok?
 									if (result && result.status === "Accepted") {
+										// Cannot unlock the connector
+										Logging.logInfo({
+											source: this.getID(), module: "ChargingStation", method: "handleNotificationEndOfCharge",
+											action: "NotifyEndOfCharge", message: `Connector '${transaction.connectorId}' has been unlocked`,
+											detailedMessages: transaction});
 										// Nothing to do
 										return Promise.resolve();
 									} else {
 										// Cannot unlock the connector
 										Logging.logError({
-											module: "ChargingStation", method: "handleNotificationEndOfCharge",
-											action: "NotifyEndOfCharge", message: `Cannot unlock the connector '${transaction.connectorId}' of the Charging Station '${this.getID()}'`,
+											source: this.getID(), module: "ChargingStation", method: "handleNotificationEndOfCharge",
+											action: "NotifyEndOfCharge", message: `Cannot unlock the connector '${transaction.connectorId}'`,
 											detailedMessages: transaction});
 									}
 								}).catch((error) => {
@@ -567,8 +575,8 @@ class ChargingStation {
 							} else {
 								// Cannot stop the transaction
 								Logging.logError({
-									module: "ChargingStation", method: "handleNotificationEndOfCharge",
-									action: "NotifyEndOfCharge", message: `Cannot stop the transaction of the Charging Station '${this.getID()}'`,
+									source: this.getID(), module: "ChargingStation", method: "handleNotificationEndOfCharge",
+									action: "NotifyEndOfCharge", message: `Cannot stop the transaction`,
 									detailedMessages: transaction});
 							}
 						}).catch((error) => {
