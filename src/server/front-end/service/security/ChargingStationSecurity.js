@@ -32,11 +32,6 @@ class ChargingStationSecurity {
 				filteredChargingStation.chargeBoxID = chargingStation.chargeBoxID;
 				filteredChargingStation.connectors = chargingStation.connectors;
 				filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
-				filteredChargingStation.siteAreaID = chargingStation.siteAreaID;
-				// Site Area
-				if (chargingStation.siteArea) {
-					filteredChargingStation.siteArea = ChargingStationSecurity.getSiteAreaSecurity().filterSiteAreaResponse(chargingStation.siteArea, loggedUser);
-				}
 			}
 			// Created By / Last Changed By
 			UtilsSecurity.filterCreatedAndLastChanged(
