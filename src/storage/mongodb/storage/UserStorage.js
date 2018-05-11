@@ -393,7 +393,7 @@ class UserStorage {
 			// Create
 			user = new User(userMDB);
 			// Get the Tags
-			return MDBTag.find({"userID": userMDB.id}).exec().then((tagsMDB) => {
+			return MDBTag.find({"userID": user.getID()}).exec().then((tagsMDB) => {
 				// Check
 				if (tagsMDB) {
 					// Get the Tags
