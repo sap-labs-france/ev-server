@@ -57,56 +57,40 @@ class TransactionStorage {
 		});
 	}
 
-	static handleSaveStartTransaction(startTransaction) {
-		if (startTransaction.user) {
-			startTransaction.userID = startTransaction.user.getID();
-		}
-		startTransaction.tagID = startTransaction.idTag;
+	static handleSaveTransaction(transaction) {
 		// Get
-		return MDBTransaction.findOneAndUpdate({"_id": startTransaction.id}, startTransaction, {
+		return MDBTransaction.findOneAndUpdate({"_id": transaction.id}, transaction, {
 				new: true,
 				upsert: true
-			}).then((startTransactionMDB) => {
+			}).then((transactionMDB) => {
 				let transaction = {};
 				// Notify
-				_centralRestServer.notifyTransactionCreated(
-					{
-						"id": startTransaction.id,
-						"chargeBoxID": startTransaction.chargeBoxID,
-						"connectorId": startTransaction.connectorId,
-						"type": Constants.NOTIF_ENTITY_TRANSACTION
-					}
-				);
+				if (!transaction.id) {
+					// Created
+					_centralRestServer.notifyTransactionCreated(
+						{
+							"id": transaction.id,
+							"chargeBoxID": transaction.chargeBoxID,
+							"connectorId": transaction.connectorId,
+							"type": Constants.NOTIF_ENTITY_TRANSACTION
+						}
+					);
+				} else {
+					// Updated
+					_centralRestServer.notifyTransactionUpdated(
+						{
+							"id": transaction.id,
+							"chargeBoxID": transaction.chargeBoxID,
+							"connectorId": transaction.connectorId,
+							"type": Constants.NOTIF_ENTITY_TRANSACTION
+						}
+					);
+				}
 				// Update
-				Database.updateTransaction(startTransactionMDB, transaction);
+				Database.updateTransaction(transactionMDB, transaction);
 				// Return
 				return transaction;
 			});
-	}
-
-	static handleSaveStopTransaction(stopTransaction) {
-		// Get the Start Transaction
-		return MDBTransaction.findById({"_id": stopTransaction.transactionId}).then((transactionMDB) => {
-			// Create model
-			transactionMDB.stop = stopTransaction;
-			// Set the User data
-			if(stopTransaction.idTag) {
-				transactionMDB.stop.tagID = stopTransaction.idTag;
-			}
-			if(stopTransaction.user) {
-				transactionMDB.stop.userID = stopTransaction.user.id;
-			}
-			// Create new
-			return transactionMDB.save().then((result) => {
-				// Notify
-				_centralRestServer.notifyTransactionUpdated(
-					{
-						"id": stopTransaction.transactionId,
-						"type": Constants.NOTIF_ENTITY_TRANSACTION_STOP
-					}
-				);
-			});
-		});
 	}
 
 	static handleSaveMeterValues(meterValues) {

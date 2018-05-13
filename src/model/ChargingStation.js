@@ -747,7 +747,31 @@ class ChargingStation {
 				transaction.id = activeTransaction.id;
 			}
 			// Check user and save
-			return this.checkIfUserIsAuthorized(transaction, global.storage.saveStartTransaction);
+			return this.checkIfUserIsAuthorized(transaction.idTag);
+		}).then((user) => {
+			if (user) {
+				// Set the user
+				transaction.userID = user.getID();
+				// Notify
+				NotificationHandler.sendTransactionStarted(
+					transaction.id,
+					user.getModel(),
+					this.getModel(),
+					{
+						"user": user.getModel(),
+						"chargingBoxID": this.getID(),
+						"connectorId": transaction.connectorId,
+						"evseDashboardURL" : Utils.buildEvseURL(),
+						"evseDashboardChargingStationURL" :
+							Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id)
+					},
+					user.getLocale()
+				);
+			}
+			// Set the tag ID
+			transaction.tagID = transaction.idTag;
+			// Ok: Save Transaction
+			return global.storage.saveTransaction(transaction);
 		});
 	}
 
@@ -788,7 +812,10 @@ class ChargingStation {
 		authorize.timestamp = new Date();
 
 		// Execute
-		return this.checkIfUserIsAuthorized(authorize, global.storage.saveAuthorize);
+		return this.checkIfUserIsAuthorized(authorize.idTag).then(() => {
+			// Save
+			return global.storage.saveAuthorize(authorize);
+		})
 	}
 
 	getCompany() {
@@ -832,7 +859,7 @@ class ChargingStation {
 		});
 	}
 
-	checkIfUserIsAuthorized(request, saveFunction) {
+	checkIfUserIsAuthorized(tagID) {
 		// Check first if the site area access control is active
 		let user, site, siteArea, newUserCreated = false;
 		// Site Area -----------------------------------------------
@@ -848,7 +875,7 @@ class ChargingStation {
 					null, null) );
 			}
 			// If Access Control is active: Check User with its Tag ID
-			return global.storage.getUserByTagId(request.idTag);
+			return global.storage.getUserByTagId(tagID);
 		// User -----------------------------------------------
 		}).then((foundUser) => {
 			// Found?
@@ -859,8 +886,8 @@ class ChargingStation {
 					firstName: "User",
 					status: (siteArea.isAccessControlEnabled() ? Users.USER_STATUS_PENDING : Users.USER_STATUS_ACTIVE),
 					role: Users.USER_ROLE_BASIC,
-					email: request.idTag + "@chargeangels.fr",
-					tagIDs: [request.idTag],
+					email: tagID + "@chargeangels.fr",
+					tagIDs: [tagID],
 					createdOn: new Date().toISOString()
 				});
 				// Set the flag
@@ -881,7 +908,7 @@ class ChargingStation {
 					this.getModel(),
 					{
 						"chargingBoxID": this.getID(),
-						"badgeId": request.idTag,
+						"badgeId": tagID,
 						"evseDashboardURL" : Utils.buildEvseURL(),
 						"evseDashboardUserURL" : Utils.buildEvseUserURL(user)
 					}
@@ -892,7 +919,7 @@ class ChargingStation {
 				// Yes
 				return Promise.reject( new AppError(
 					this.getID(),
-					`User with Tag ID '${request.idTag}' not found but saved as inactive user`,
+					`User with Tag ID '${tagID}' not found but saved as inactive user`,
 					"ChargingStation", "checkIfUserIsAuthorized",
 					null, user.getModel()
 				));
@@ -903,7 +930,7 @@ class ChargingStation {
 				// Reject but save ok
 				return Promise.reject( new AppError(
 					this.getID(),
-					`User with TagID '${request.idTag}' is not Active`, 500,
+					`User with TagID '${tagID}' is not Active`, 500,
 					"ChargingStation", "checkIfUserIsAuthorized",
 					null, user.getModel()) );
 			}
@@ -948,32 +975,8 @@ class ChargingStation {
 					"ChargingStation", "checkIfUserIsAuthorized",
 					null, user.getModel()) );
 			}
-			// Save it
-			request.user = user;
-			// Execute the function
-			return saveFunction(request);
-		// Transaction -----------------------------------------------
-		}).then((result) => {
-			// Check function
-			if (saveFunction.name === "saveStartTransaction") {
-				if (user) {
-					// Notify
-					NotificationHandler.sendTransactionStarted(
-						request.id,
-						user.getModel(),
-						this.getModel(),
-						{
-							"user": user.getModel(),
-							"chargingBoxID": this.getID(),
-							"connectorId": request.connectorId,
-							"evseDashboardURL" : Utils.buildEvseURL(),
-							"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, request.connectorId, request.id)
-						},
-						user.getLocale()
-					);
-				}
-			}
-			return result;
+			// Return
+			return user;
 		});
 	}
 
@@ -983,28 +986,34 @@ class ChargingStation {
 	}
 
 	handleStopTransaction(stopTransaction) {
-		let transaction;
+		let transaction, user;
 		// Set the charger ID
 		stopTransaction.chargeBoxID = this.getID();
 		// Get the transaction first (to get the connector id)
 		return this.getTransaction(stopTransaction.transactionId).then((foundTransaction) => {
 			transaction = foundTransaction;
+			// Found?
 			if (!transaction) {
 				throw new Error(`The Transaction ID '${stopTransaction.transactionId}' does not exist`);
 			}
-			// Set the stop
-			transaction.stop = stopTransaction;
-			// Set data
-			if(stopTransaction.idTag) {
-				transaction.stop.tagID = stopTransaction.idTag;
+			// Save it with the user
+			if (stopTransaction.idTag) {
+				// Set Tag ID
+				stopTransaction.tagID = stopTransaction.idTag;
+				// Check User
+				return this.checkIfUserIsAuthorized(stopTransaction.idTag);
 			}
-			if(stopTransaction.user) {
-				transaction.stop.userID = stopTransaction.user.id;
+		}).then((foundUser) => {
+			user = foundUser;
+			// User Found
+			if (user) {
+				// Set the User ID
+				stopTransaction.userID = user.getID();
 			}
 			// Init the charging station
 			this.getConnectors()[transaction.connectorId-1].currentConsumption = 0;
 			this.getConnectors()[transaction.connectorId-1].totalConsumption = 0;
-			// Save it
+			// Save Charging Station
 			return this.save();
 		}).then(() => {
 			// Compute total consumption (optimization)
@@ -1035,6 +1044,7 @@ class ChargingStation {
 					this.getModel(),
 					{
 						"user": transaction.user,
+						"userStopped": user,
 						"chargingBoxID": this.getID(),
 						"connectorId": transaction.connectorId,
 						"totalConsumption": (stopTransaction.totalConsumption/1000).toLocaleString(
@@ -1048,14 +1058,11 @@ class ChargingStation {
 					transaction.user.locale
 				);
 			}
-			// User Provided?
-			if (stopTransaction.idTag) {
-				// Save it with the user
-				return this.checkIfUserIsAuthorized(stopTransaction, global.storage.saveStopTransaction);
-			} else {
-				// Save it without the User
-				return global.storage.saveStopTransaction(stopTransaction);
-			}
+			// Set the stop
+			transaction.stop = stopTransaction;
+			console.log(transaction);
+			// // Save Transaction
+			return global.storage.saveTransaction(transaction);
 		});
 	}
 

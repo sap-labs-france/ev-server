@@ -76,10 +76,7 @@ class Storage {
 	saveAuthorize(authorize) {
 	}
 
-	saveStartTransaction(startTransaction) {
-	}
-
-	saveStopTransaction(stopTransaction) {
+	saveTransaction(transaction) {
 	}
 
 	getTransactionYears() {

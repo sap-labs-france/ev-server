@@ -179,14 +179,9 @@ class MongoDBStorage extends Storage {
 		return ChargingStationStorage.handleSaveAuthorize(authorize);
 	}
 
-	saveStartTransaction(startTransaction) {
+	saveTransaction(transaction) {
 		// Delegate
-		return TransactionStorage.handleSaveStartTransaction(startTransaction);
-	}
-
-	saveStopTransaction(stopTransaction) {
-		// Delegate
-		return TransactionStorage.handleSaveStopTransaction(stopTransaction);
+		return TransactionStorage.handleSaveTransaction(transaction);
 	}
 
 	getMigrations() {
