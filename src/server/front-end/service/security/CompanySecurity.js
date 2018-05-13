@@ -101,7 +101,7 @@ class CompanySecurity {
 			}
 			if (company.users) {
 				filteredCompany.users = company.users.map((user) => {
-					return CompanySecurity.getUserSecurity().filterUserResponse(user, loggedUser);
+					return CompanySecurity.getUserSecurity().filterMinimalUserResponse(user, loggedUser);
 				})
 			}
 			// Created By / Last Changed By

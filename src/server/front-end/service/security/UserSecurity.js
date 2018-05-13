@@ -106,6 +106,30 @@ class UserSecurity {
 		return filteredUser;
 	}
 
+	// User
+	static filterMinimalUserResponse(user, loggedUser) {
+		let filteredUser={};
+
+		if (!user) {
+			return null;
+		}
+		// Check auth
+		if (CentralRestServerAuthorization.canReadUser(loggedUser, user)) {
+			// Admin?
+			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+				filteredUser.id = user.id;
+				filteredUser.name = user.name;
+				filteredUser.firstName = user.firstName;
+			} else {
+				// Set only necessary info
+				filteredUser.id = user.id;
+				filteredUser.name = user.name;
+				filteredUser.firstName = user.firstName;
+			}
+		}
+		return filteredUser;
+	}
+
 	static filterUsersResponse(users, loggedUser) {
 		let filteredUsers = [];
 

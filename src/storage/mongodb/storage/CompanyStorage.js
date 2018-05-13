@@ -5,6 +5,7 @@ const Database = require('../../../utils/Database');
 const Utils = require('../../../utils/Utils');
 const Configuration = require('../../../utils/Configuration');
 const MDBCompany = require('../model/MDBCompany');
+const MDBCompanyUser = require('../model/MDBCompanyUser');
 const MDBSite = require('../model/MDBSite');
 const MDBSiteArea = require('../model/MDBSiteArea');
 const MDBChargingStation = require('../model/MDBChargingStation');
@@ -39,8 +40,17 @@ class CompanyStorage {
 			// Add
 			aggregation.push({
 				$lookup: {
+					from: "companyusers",
+					localField: "_id",
+					foreignField: "companyID",
+					as: "companyusers"
+				}
+			});
+			// Add
+			aggregation.push({
+				$lookup: {
 					from: "users",
-					localField: "userIDs",
+					localField: "companyusers.userID",
 					foreignField: "_id",
 					as: "users"
 				}
@@ -130,6 +140,28 @@ class CompanyStorage {
 				upsert: true
 			}).then((companyMDB) => {
 				newCompany = new Company(companyMDB);
+				// Delete first Users
+				return MDBCompanyUser.remove({ "companyID" : new ObjectId(newCompany.getID()) });
+			}).then(() => {
+				// Add Users
+				let proms = [];
+				company.userIDs.forEach((user) => {
+					// Update/Insert Tag
+					proms.push(
+						MDBCompanyUser.findOneAndUpdate({
+							"companyID": newCompany.getID(),
+							"userID": user
+						},{
+							"companyID": new ObjectId(newCompany.getID()),
+							"userID": new ObjectId(user)
+						},{
+							new: true,
+							upsert: true
+						})
+					);
+				});
+				return Promise.all(proms);
+			}).then(() => {
 				// Notify Change
 				if (!company.id) {
 					_centralRestServer.notifyCompanyCreated(
@@ -190,12 +222,31 @@ class CompanyStorage {
 				{ "address.country" : { $regex : searchValue, $options: 'i' } }
 			];
 		}
-		// Set User?
-		if (userID) {
-			filters.userIDs = new ObjectId(userID);
-		}
 		// Create Aggregation
 		let aggregation = [];
+		// Add
+		aggregation.push({
+			$lookup: {
+				from: "companyusers",
+				localField: "_id",
+				foreignField: "companyID",
+				as: "companyusers"
+			}
+		});
+		// Add
+		aggregation.push({
+			$lookup: {
+				from: "users",
+				localField: "companyusers.userID",
+				foreignField: "_id",
+				as: "users"
+			}
+		});
+		// Set User?
+		if (userID) {
+			filters.userIDs = {};
+			filters.userIDs.userID = new ObjectId(userID);
+		}
 		// Filters
 		if (filters) {
 			aggregation.push({
@@ -236,6 +287,10 @@ class CompanyStorage {
 			companiesMDB.forEach((companyMDB) => {
 				// Create
 				let company = new Company(companyMDB);
+				// Set Users
+				company.setUsers(companyMDB.users.map((user) => {
+					return new User(user);
+				}));
 				// Set site
 				if (withSites && companyMDB.sites) {
 					company.setSites(companyMDB.sites.map((site) => {
@@ -266,6 +321,9 @@ class CompanyStorage {
 		}).then((results) => {
 			// Remove Logo
 			return MDBCompanyLogo.findByIdAndRemove( id );
+		}).then((results) => {
+			// Remove Users
+			return MDBCompanyUser.remove( { companyID: new ObjectId(id) } );
 		}).then((result) => {
 			// Notify Change
 			_centralRestServer.notifyCompanyDeleted(
