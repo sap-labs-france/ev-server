@@ -287,7 +287,6 @@ class TransactionService {
 		}
 		// Get Transaction
 		global.storage.getTransaction(filteredRequest.ID).then((transaction) => {
-			console.log(transaction);
 			// Found?
 			if (!transaction) {
 				// Not Found!

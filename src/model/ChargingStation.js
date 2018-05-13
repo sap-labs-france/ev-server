@@ -1060,7 +1060,6 @@ class ChargingStation {
 			}
 			// Set the stop
 			transaction.stop = stopTransaction;
-			console.log(transaction);
 			// // Save Transaction
 			return global.storage.saveTransaction(transaction);
 		});
