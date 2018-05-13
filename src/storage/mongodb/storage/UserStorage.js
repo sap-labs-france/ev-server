@@ -200,7 +200,6 @@ class UserStorage {
 				upsert: true
 			}).then((userMDB) => {
 				newUser = new User(userMDB);
-				// Update the badges
 				// First delete all of them
 				return MDBTag.remove({ "userID" : new ObjectId(newUser.getID()) });
 			}).then(() => {
