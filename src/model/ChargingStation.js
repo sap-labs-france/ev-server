@@ -83,7 +83,7 @@ class ChargingStation {
 			return Promise.resolve(new SiteArea(this._model.siteArea));
 		} else if (this._model.siteAreaID){
 			// Get from DB
-			return global.storage.getSiteArea(this._model.siteAreaID).then((siteArea) => {
+			return global.storage.getSiteArea(this._model.siteAreaID, false, withSite).then((siteArea) => {
 				// Keep it
 				this.setSiteArea(siteArea);
 				return siteArea;
@@ -835,6 +835,7 @@ class ChargingStation {
 	checkIfUserIsAuthorized(request, saveFunction) {
 		// Check first if the site area access control is active
 		let user, site, siteArea, newUserCreated = false;
+		// Site Area -----------------------------------------------
 		return this.getSiteArea().then((foundSiteArea) => {
 			siteArea = foundSiteArea;
 			// Site is mandatory
@@ -848,6 +849,7 @@ class ChargingStation {
 			}
 			// If Access Control is active: Check User with its Tag ID
 			return global.storage.getUserByTagId(request.idTag);
+		// User -----------------------------------------------
 		}).then((foundUser) => {
 			// Found?
 			if (!foundUser) {
@@ -868,6 +870,7 @@ class ChargingStation {
 			} else {
 				return foundUser;
 			}
+		// User -----------------------------------------------
 		}).then((foundUser) => {
 			user = foundUser;
 			// New User?
@@ -884,7 +887,6 @@ class ChargingStation {
 					}
 				);
 			}
-
 			// Access Control enabled?
 			if (newUserCreated && siteArea.isAccessControlEnabled()) {
 				// Yes
@@ -908,6 +910,7 @@ class ChargingStation {
 
 			// Get the Charge Box' Site
 			return siteArea.getSite();
+		// Site -----------------------------------------------
 		}).then((foundSite) => {
 			site = foundSite;
 			if (!site) {
@@ -918,8 +921,9 @@ class ChargingStation {
 					"ChargingStation", "checkIfUserIsAuthorized",
 					null, user.getModel()) );
 			}
-			// Get the Charge Box's Company
-			return site.getCompany();
+			// Get the Charge Box's Company with users
+			return site.getCompany(true);
+		// Company -----------------------------------------------
 		}).then((company) => {
 			if (!company) {
 				// Reject Site Not Found
@@ -948,6 +952,7 @@ class ChargingStation {
 			request.user = user;
 			// Execute the function
 			return saveFunction(request);
+		// Transaction -----------------------------------------------
 		}).then((result) => {
 			// Check function
 			if (saveFunction.name === "saveStartTransaction") {

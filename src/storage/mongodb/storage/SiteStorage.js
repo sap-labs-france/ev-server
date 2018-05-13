@@ -56,7 +56,7 @@ class SiteStorage {
 		});
 	}
 
-	static handleGetSite(id) {
+	static handleGetSite(id, withCompany=false) {
 		// Create Aggregation
 		let aggregation = [];
 		// Filters
@@ -74,19 +74,21 @@ class SiteStorage {
 				as: "siteAreas"
 			}
 		});
-		// Add Company
-		aggregation.push({
-			$lookup: {
-				from: "companies",
-				localField: "companyID",
-				foreignField: "_id",
-				as: "company"
-			}
-		});
-		// Single Record
-		aggregation.push({
-			$unwind: { "path": "$company", "preserveNullAndEmptyArrays": true }
-		});
+		if (withCompany) {
+			// Add Company
+			aggregation.push({
+				$lookup: {
+					from: "companies",
+					localField: "companyID",
+					foreignField: "_id",
+					as: "company"
+				}
+			});
+			// Single Record
+			aggregation.push({
+				$unwind: { "path": "$company", "preserveNullAndEmptyArrays": true }
+			});
+		}
 		// Exexute
 		return MDBSite.aggregate(aggregation)
 				.exec().then((sitesMDB) => {
@@ -100,7 +102,9 @@ class SiteStorage {
 					return new SiteArea(siteArea);
 				}));
 				// Set Company
-				site.setCompany(new Company(sitesMDB[0].company));
+				if (withCompany) {
+					site.setCompany(new Company(sitesMDB[0].company));
+				}
 			}
 			return site;
 		});

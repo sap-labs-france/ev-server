@@ -437,9 +437,9 @@ class MongoDBStorage extends Storage {
 		return SiteStorage.handleDeleteSite(id);
 	}
 
-	getSite(id) {
+	getSite(id, withCompany=false) {
 		// Delegate
-		return SiteStorage.handleGetSite(id);
+		return SiteStorage.handleGetSite(id, withCompany);
 	}
 
 	getSiteImage(id) {

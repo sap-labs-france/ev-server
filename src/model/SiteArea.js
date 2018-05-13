@@ -80,12 +80,12 @@ class SiteArea {
 		return this._model.image;
 	}
 
-	getSite() {
+	getSite(withCompany=false) {
 		if (this._model.site) {
 			return Promise.resolve(new Site(this._model.site));
 		} else if (this._model.siteID){
 			// Get from DB
-			return global.storage.getSite(this._model.siteID).then((site) => {
+			return global.storage.getSite(this._model.siteID, withCompany).then((site) => {
 				// Keep it
 				this.setSite(site);
 				return site;

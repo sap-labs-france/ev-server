@@ -185,7 +185,7 @@ class Storage {
 	deleteSite(id) {
 	}
 
-	getSite(id) {
+	getSite(id, withCompany=false) {
 	}
 
 	getSiteImage(id) {

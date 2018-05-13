@@ -89,12 +89,12 @@ class Site {
 		this._model.lastChangedOn = lastChangedOn;
 	}
 
-	getCompany() {
+	getCompany(withUser=false) {
 		if (this._model.company) {
 			return Promise.resolve(new Company(this._model.company));
 		} else if (this._model.companyID){
 			// Get from DB
-			return global.storage.getCompany(this._model.companyID).then((company) => {
+			return global.storage.getCompany(this._model.companyID, withUser).then((company) => {
 				// Keep it
 				this.setCompany(company);
 				return company;
