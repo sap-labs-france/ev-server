@@ -140,11 +140,11 @@ class CompanyStorage {
 				upsert: true
 			}).then((companyMDB) => {
 				newCompany = new Company(companyMDB);
-				// Delete first Users
+				// Delete old Users
 				return MDBCompanyUser.remove({ "companyID" : new ObjectId(newCompany.getID()) });
 			}).then(() => {
-				// Add Users
 				let proms = [];
+				// Add new Users
 				company.userIDs.forEach((user) => {
 					// Update/Insert Tag
 					proms.push(
@@ -233,6 +233,16 @@ class CompanyStorage {
 				as: "companyusers"
 			}
 		});
+		// Set User?
+		if (userID) {
+			filters["companyusers.userID"] = new ObjectId(userID);
+		}
+		// Filters
+		if (filters) {
+			aggregation.push({
+				$match: filters
+			});
+		}
 		// Add
 		aggregation.push({
 			$lookup: {
@@ -242,17 +252,6 @@ class CompanyStorage {
 				as: "users"
 			}
 		});
-		// Set User?
-		if (userID) {
-			filters.userIDs = {};
-			filters.userIDs.userID = new ObjectId(userID);
-		}
-		// Filters
-		if (filters) {
-			aggregation.push({
-				$match: filters
-			});
-		}
 		// Add Sites
 		aggregation.push({
 			$lookup: {

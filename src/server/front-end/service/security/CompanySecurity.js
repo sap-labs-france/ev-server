@@ -38,6 +38,7 @@ class CompanySecurity {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.WithSites = UtilsSecurity.filterBoolean(request.WithSites);
+		filteredRequest.UserID = sanitize(request.UserID);
 		return filteredRequest;
 	}
 

@@ -140,7 +140,7 @@ class Company {
 		if (this._model.users) {
 			// Search
 			for (var i = 0; i < this._model.users.length; i++) {
-				if (this._model.users[i].getID() == user.getID()) {
+				if (this._model.users[i].id == user.getID()) {
 					// Remove
 					this._model.users.splice(i, 1);
 					break;
