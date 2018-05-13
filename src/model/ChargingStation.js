@@ -828,7 +828,7 @@ class ChargingStation {
 				// Reject Site Not Found
 				return Promise.reject( new AppError(
 					this.getID(),
-					`The Charging Station '${this.getID()}' is not assigned to a Site Area!`, 500,
+					`Charging Station '${this.getID()}' is not assigned to a Site Area!`, 500,
 					"ChargingStation", "getCompany",
 					null, null) );
 			}
@@ -840,7 +840,7 @@ class ChargingStation {
 				// Reject Site Not Found
 				return Promise.reject( new AppError(
 					this.getID(),
-					`The Site Area '${siteArea.getName()}' is not assigned to a Site!`, 500,
+					`Site Area '${siteArea.getName()}' is not assigned to a Site!`, 500,
 					"ChargingStation", "getCompany",
 					null, user.getModel()) );
 			}
@@ -851,7 +851,7 @@ class ChargingStation {
 				// Reject Site Not Found
 				return Promise.reject( new AppError(
 					this.getID(),
-					`The Site '${site.getName()}' is not assigned to a Company!`, 500,
+					`Site '${site.getName()}' is not assigned to a Company!`, 500,
 					"ChargingStation", "getCompany",
 					null, user.getModel()) );
 			}
@@ -870,7 +870,7 @@ class ChargingStation {
 				// Reject Site Not Found
 				return Promise.reject( new AppError(
 					this.getID(),
-					`The Charging Station '${this.getID()}' is not assigned to a Site Area!`, 500,
+					`Charging Station '${this.getID()}' is not assigned to a Site Area!`, 500,
 					"ChargingStation", "checkIfUserIsAuthorized",
 					null, null) );
 			}
@@ -944,7 +944,7 @@ class ChargingStation {
 				// Reject Site Not Found
 				return Promise.reject( new AppError(
 					this.getID(),
-					`The Site Area '${siteArea.getName()}' is not assigned to a Site!`, 500,
+					`Site Area '${siteArea.getName()}' is not assigned to a Site!`, 500,
 					"ChargingStation", "checkIfUserIsAuthorized",
 					null, user.getModel()) );
 			}
@@ -956,7 +956,7 @@ class ChargingStation {
 				// Reject Site Not Found
 				return Promise.reject( new AppError(
 					this.getID(),
-					`The Site '${site.getName()}' is not assigned to a Company!`, 500,
+					`Site '${site.getName()}' is not assigned to a Company!`, 500,
 					"ChargingStation", "checkIfUserIsAuthorized",
 					null, user.getModel()) );
 			}
@@ -971,7 +971,7 @@ class ChargingStation {
 				// Yes: Reject the User
 				return Promise.reject( new AppError(
 					this.getID(),
-					`The User is not assigned to the Company '${company.getName()}'!`, 500,
+					`User is not assigned to the Company '${company.getName()}'!`, 500,
 					"ChargingStation", "checkIfUserIsAuthorized",
 					null, user.getModel()) );
 			}
@@ -994,7 +994,7 @@ class ChargingStation {
 			transaction = foundTransaction;
 			// Found?
 			if (!transaction) {
-				throw new Error(`The Transaction ID '${stopTransaction.transactionId}' does not exist`);
+				throw new Error(`Transaction ID '${stopTransaction.transactionId}' does not exist`);
 			}
 			// Save it with the user
 			if (stopTransaction.idTag) {
