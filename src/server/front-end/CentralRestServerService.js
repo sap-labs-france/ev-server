@@ -26,7 +26,7 @@ module.exports = {
 				// Check Context
 				switch (action) {
 					// Ping
-					case "ping":
+					case "Ping":
 						res.sendStatus(200);
 						break;
 				}

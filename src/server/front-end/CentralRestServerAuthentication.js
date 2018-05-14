@@ -24,19 +24,19 @@ module.exports = {
 				// Action
 				switch (action) {
 					// Login
-					case "login":
+					case "Login":
 						// Delegate
 						AuthService.handleLogIn(action, req, res, next);
 						break;
 
 					// Register User
-					case "registeruser":
+					case "RegisterUser":
 						// Delegate
 						AuthService.handleRegisterUser(action, req, res, next);
 						break;
 
 					// Reset password
-					case "reset":
+					case "Reset":
 						// Delegate
 						AuthService.handleUserPasswordReset(action, req, res, next);
 						break;
@@ -52,7 +52,7 @@ module.exports = {
 				// Action
 				switch (action) {
 					// Log out
-					case "logout":
+					case "Logout":
 						// Delegate
 						AuthService.handleUserLogOut(action, req, res, next);
 						break;

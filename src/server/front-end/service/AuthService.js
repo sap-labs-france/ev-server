@@ -407,7 +407,7 @@ class AuthService {
 				// Read Eula
 				global.storage.getEndUserLicenseAgreement(user.getLanguage()).then((endUserLicenseAgreement) => {
 					// Set Eula Info on Login Only
-					if (action == "login") {
+					if (action == "Login") {
 						user.setEulaAcceptedOn(new Date());
 						user.setEulaAcceptedVersion(endUserLicenseAgreement.version);
 						user.setEulaAcceptedHash(endUserLicenseAgreement.hash);
