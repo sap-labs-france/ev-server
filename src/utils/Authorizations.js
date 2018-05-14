@@ -150,7 +150,13 @@ module.exports = {
 						{
 							"AuthObject": "User",
 							"AuthFieldValue": {
-								"UserID": ["{{ userID }}"],
+								"UserID": [
+									{{#trim}}
+										{{#userID}}
+											"{{.}}",
+										{{/userID}}
+									{{/trim}}
+								],
 								"Action": ["Update","Read","Logout"]
 							}
 						},
@@ -246,7 +252,13 @@ module.exports = {
 						{
 							"AuthObject": "ChargingStation",
 							"AuthFieldValue": {
-								"UserID": ["{{userID}}"],
+								"UserID": [
+									{{#trim}}
+										{{#userID}}
+											"{{.}}",
+										{{/userID}}
+									{{/trim}}
+								],
 								"ChargingStationID": [
 									{{#trim}}
 										{{#chargingStationID}}
@@ -266,7 +278,13 @@ module.exports = {
 						{
 							"AuthObject": "Transaction",
 							"AuthFieldValue": {
-								"UserID": ["{{userID }}"],
+								"UserID": [
+									{{#trim}}
+										{{#userID}}
+											"{{.}}",
+										{{/userID}}
+									{{/trim}}
+								],
 								"Action": ["Read"]
 							}
 						},

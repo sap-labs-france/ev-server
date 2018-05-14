@@ -402,7 +402,8 @@ class AuthService {
 				let companies,
 					sites = [],
 					siteAreas = [],
-					chargingStations = [];
+					chargingStations = [],
+					users = [];
 				// Read Eula
 				global.storage.getEndUserLicenseAgreement(user.getLanguage()).then((endUserLicenseAgreement) => {
 					// Set Eula Info on Login Only
@@ -488,11 +489,13 @@ class AuthService {
 						action: action, message: `User logged in successfully`});
 					// Get authorisation
 					let authsDefinition = Authorizations.getAuthorizations();
+					// Add user
+					users.push(user.getID());
 					// Parse the auth and replace values
 					let authsDefinitionParsed = Mustache.render(
 						authsDefinition,
 						{
-							"userID": user.getID(),
+							"userID": users,
 							"companyID": companyIDs,
 							"siteID": siteIDs,
 							"siteAreaID": siteAreaIDs,
