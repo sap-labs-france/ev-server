@@ -8,12 +8,14 @@ const MDBCompany = require('../model/MDBCompany');
 const MDBSite = require('../model/MDBSite');
 const MDBSiteImage = require('../model/MDBSiteImage');
 const MDBSiteArea = require('../model/MDBSiteArea');
+const MDBSiteUser = require('../model/MDBSiteUser');
 const MDBChargingStation = require('../model/MDBChargingStation');
 const Company = require('../../../model/Company');
 const ChargingStation = require('../../../model/ChargingStation');
 const Site = require('../../../model/Site');
 const SiteArea = require('../../../model/SiteArea');
 const SiteAreaStorage = require('./SiteAreaStorage');
+const User = require('../../../model/User');
 const crypto = require('crypto');
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -24,39 +26,7 @@ class SiteStorage {
 		_centralRestServer = centralRestServer;
 	}
 
-	static handleGetSiteImage(id) {
-		// Exec request
-		return MDBSiteImage.findById(id)
-				.exec().then((siteImageMDB) => {
-			let siteImage = null;
-			// Set
-			if (siteImageMDB) {
-				siteImage = {
-					id: siteImageMDB._id,
-					image: siteImageMDB.image
-				};
-			}
-			return siteImage;
-		});
-	}
-
-	static handleGetSiteImages() {
-		// Exec request
-		return MDBSiteImage.find({})
-				.exec().then((siteImagesMDB) => {
-			let siteImages = [];
-			// Add
-			siteImagesMDB.forEach((siteImageMDB) => {
-				siteImages.push({
-					id: siteImageMDB._id,
-					image: siteImageMDB.image
-				});
-			});
-			return siteImages;
-		});
-	}
-
-	static handleGetSite(id, withCompany=false) {
+	static handleGetSite(id, withCompany, withUsers) {
 		// Create Aggregation
 		let aggregation = [];
 		// Filters
@@ -65,6 +35,27 @@ class SiteStorage {
 		});
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
+		// User
+		if (withUsers) {
+			// Add
+			aggregation.push({
+				$lookup: {
+					from: "siteusers",
+					localField: "_id",
+					foreignField: "siteID",
+					as: "siteusers"
+				}
+			});
+			// Add
+			aggregation.push({
+				$lookup: {
+					from: "users",
+					localField: "siteusers.userID",
+					foreignField: "_id",
+					as: "users"
+				}
+			});
+		}
 		// Add SiteAreas
 		aggregation.push({
 			$lookup: {
@@ -105,8 +96,48 @@ class SiteStorage {
 				if (withCompany) {
 					site.setCompany(new Company(sitesMDB[0].company));
 				}
+				// Set users
+				if (withUsers && sitesMDB[0].users) {
+					// Create Users
+					sitesMDB[0].users = sitesMDB[0].users.map((user) => {
+						return new User(user);
+					});
+					site.setUsers(sitesMDB[0].users)
+				}
 			}
 			return site;
+		});
+	}
+
+	static handleGetSiteImage(id) {
+		// Exec request
+		return MDBSiteImage.findById(id)
+				.exec().then((siteImageMDB) => {
+			let siteImage = null;
+			// Set
+			if (siteImageMDB) {
+				siteImage = {
+					id: siteImageMDB._id,
+					image: siteImageMDB.image
+				};
+			}
+			return siteImage;
+		});
+	}
+
+	static handleGetSiteImages() {
+		// Exec request
+		return MDBSiteImage.find({})
+				.exec().then((siteImagesMDB) => {
+			let siteImages = [];
+			// Add
+			siteImagesMDB.forEach((siteImageMDB) => {
+				siteImages.push({
+					id: siteImageMDB._id,
+					image: siteImageMDB.image
+				});
+			});
+			return siteImages;
 		});
 	}
 
@@ -114,7 +145,7 @@ class SiteStorage {
 		// Check if ID/Name is provided
 		if (!site.id && !site.name) {
 			// ID must be provided!
-			return Promise.reject( new Error("Error in saving the Site: Site has no ID and no Name and cannot be created or updated") );
+			return Promise.reject( new Error("Site has no ID and no Name and cannot be created or updated") );
 		} else {
 			let siteFilter = {};
 			// Build Request
@@ -140,6 +171,28 @@ class SiteStorage {
 				upsert: true
 			}).then((siteMDB) => {
 				newSite = new Site(siteMDB);
+				// Delete old Users
+				return MDBSiteUser.remove({ "siteID" : new ObjectId(newSite.getID()) });
+			}).then(() => {
+				let proms = [];
+				// Add new Users
+				site.userIDs.forEach((userID) => {
+					// Update/Insert Tag
+					proms.push(
+						MDBSiteUser.findOneAndUpdate({
+							"siteID": newSite.getID(),
+							"userID": userID
+						},{
+							"siteID": new ObjectId(newSite.getID()),
+							"userID": new ObjectId(userID)
+						},{
+							new: true,
+							upsert: true
+						})
+					);
+				});
+				return Promise.all(proms);
+			}).then(() => {
 				// Notify Change
 				if (!site.id) {
 					_centralRestServer.notifySiteCreated(
@@ -165,7 +218,7 @@ class SiteStorage {
 		// Check if ID is provided
 		if (!site.id) {
 			// ID must be provided!
-			return Promise.reject( new Error("Error in saving the Site: Site has no ID and cannot be created or updated") );
+			return Promise.reject( new Error("Site has no ID and cannot be created or updated") );
 		} else {
 			// Save Image
 			return MDBSiteImage.findOneAndUpdate({
@@ -184,8 +237,8 @@ class SiteStorage {
 		}
 	}
 
-	static handleGetSites(searchValue, companyID, withCompany, withSiteAreas,
-			withChargeBoxes, numberOfSites) {
+	static handleGetSites(searchValue, companyID, userID, withCompany, withSiteAreas,
+			withChargeBoxes, withUsers, numberOfSites) {
 		// Check Limit
 		numberOfSites = Utils.checkRecordLimit(numberOfSites);
 		// Set the filters
@@ -205,6 +258,36 @@ class SiteStorage {
 		}
 		// Create Aggregation
 		let aggregation = [];
+		// Add Users
+		aggregation.push({
+			$lookup: {
+				from: "siteusers",
+				localField: "_id",
+				foreignField: "siteID",
+				as: "siteusers"
+			}
+		});
+		// Set User?
+		if (userID) {
+			filters["siteusers.userID"] = new ObjectId(userID);
+		}
+		// Number of Users
+		aggregation.push({
+			$addFields: {
+				"numberOfUsers": { $size: "$siteusers" }
+			}
+		});
+		if (withUsers) {
+			// Add
+			aggregation.push({
+				$lookup: {
+					from: "users",
+					localField: "siteusers.userID",
+					foreignField: "_id",
+					as: "users"
+				}
+			});
+		}
 		// Add SiteAreas
 		aggregation.push({
 			$lookup: {
@@ -343,6 +426,13 @@ class SiteStorage {
 			sitesMDB.forEach((siteMDB) => {
 				// Create
 				let site = new Site(siteMDB);
+				// Set Users
+				if (withUsers && siteMDB.users) {
+					// Set Users
+					site.setUsers(siteMDB.users.map((user) => {
+						return new User(user);
+					}));
+				}
 				// Set Site Areas
 				if (withSiteAreas && siteMDB.siteAreas) {
 					// Sort Site Areas
@@ -397,6 +487,9 @@ class SiteStorage {
 		}).then((results) => {
 			// Remove Image
 			return MDBSiteImage.findByIdAndRemove( id );
+		}).then((results) => {
+			// Remove Users
+			return MDBSiteUser.remove( { siteID: new ObjectId(id) } );
 		}).then((results) => {
 			// Notify Change
 			_centralRestServer.notifySiteDeleted(

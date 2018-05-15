@@ -246,9 +246,9 @@ class User {
 			Constants.NO_LIMIT);
 	}
 
-	getCompanies() {
-		// Get Companies
-		return global.storage.getCompanies(null, this.getID());
+	getSites() {
+		// Get Sites
+		return global.storage.getSites(null, null, this.getID());
 	}
 
 	save() {

@@ -88,7 +88,7 @@ class CompanyService {
 			return;
 		}
 		// Get it
-		global.storage.getCompany(filteredRequest.ID, filteredRequest.WithUsers).then((company) => {
+		global.storage.getCompany(filteredRequest.ID).then((company) => {
 			if (!company) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -232,7 +232,7 @@ class CompanyService {
 		// Filter
 		let filteredRequest = CompanySecurity.filterCompaniesRequest(req.query, req.user);
 		// Get the companies
-		global.storage.getCompanies(filteredRequest.Search, filteredRequest.UserID,
+		global.storage.getCompanies(filteredRequest.Search,
 				filteredRequest.WithSites, Constants.NO_LIMIT).then((companies) => {
 			let companiesJSon = [];
 			companies.forEach((company) => {

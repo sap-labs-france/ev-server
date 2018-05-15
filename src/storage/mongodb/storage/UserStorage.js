@@ -174,7 +174,7 @@ class UserStorage {
 		// Check if ID or email is provided
 		if (!user.id && !user.email) {
 			// ID must be provided!
-			return Promise.reject( new Error("Error in saving the User: User has no ID and no Email and cannot be created or updated") );
+			return Promise.reject( new Error("User has no ID and no Email and cannot be created or updated") );
 		} else {
 			let userFilter = {};
 			// Build Request
@@ -246,7 +246,7 @@ class UserStorage {
 		// Check if ID is provided
 		if (!user.id) {
 			// ID must be provided!
-			return Promise.reject( new Error("Error in saving the User: User has no ID and no Email and cannot be created or updated") );
+			return Promise.reject( new Error("User has no ID and no Email and cannot be created or updated") );
 		} else {
 			// Save Image
 			return MDBUserImage.findOneAndUpdate({
@@ -265,7 +265,7 @@ class UserStorage {
 		}
 	}
 
-	static handleGetUsers(searchValue, companyID, numberOfUsers) {
+	static handleGetUsers(searchValue, siteID, numberOfUsers) {
 		let filters = {
 			"$and": [
 				{
@@ -310,22 +310,27 @@ class UserStorage {
 		}
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
-		// Company?
-		if (companyID) {
-			// Add Number of Transactions
+		// Add Site
+		aggregation.push({
+			$lookup: {
+				from: "siteusers",
+				localField: "_id",
+				foreignField: "userID",
+				as: "siteusers"
+			}
+		});
+		// Site ID?
+		if (siteID) {
 			aggregation.push({
-				$lookup: {
-					from: "companies",
-					localField: "_id",
-					foreignField: "userIDs",
-					as: "companies"
-				}
-			});
-			aggregation.push({
-				$match: { "companies._id": new ObjectId(companyID) }
+				$match: { "siteusers.siteID": new ObjectId(siteID) }
 			});
 		}
-		// Add Number of Transactions
+		aggregation.push({
+			$addFields: {
+				"numberOfSites": { $size: "$siteusers" }
+			}
+		});
+		// Transactions
 		aggregation.push({
 			$lookup: {
 				from: 'transactions',

@@ -2,8 +2,10 @@ const sanitize = require('mongo-sanitize');
 const CentralRestServerAuthorization = require('../../CentralRestServerAuthorization');
 const Utils = require('../../../../utils/Utils');
 const UtilsSecurity = require('./UtilsSecurity');
+
 let CompanySecurity; // Avoid circular deps
 let SiteAreaSecurity; // Avoid circular deps
+let UserSecurity; // Avoid circular deps
 
 class SiteSecurity {
 	static getCompanySecurity() {
@@ -20,6 +22,13 @@ class SiteSecurity {
 		return SiteAreaSecurity;
 	}
 
+	static getUserSecurity() {
+		if (!UserSecurity) {
+			UserSecurity = require('./UserSecurity');
+		}
+		return UserSecurity;
+	}
+
 	static filterSiteDeleteRequest(request, loggedUser) {
 		let filteredRequest = {};
 		// Set
@@ -30,20 +39,23 @@ class SiteSecurity {
 	static filterSiteRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.ID = sanitize(request.ID);
+		filteredRequest.WithUsers = UtilsSecurity.filterBoolean(request.WithUsers);
 		return filteredRequest;
 	}
 
 	static filterSitesRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
+		filteredRequest.UserID = sanitize(request.UserID);
 		filteredRequest.WithSiteAreas = UtilsSecurity.filterBoolean(request.WithSiteAreas);
 		filteredRequest.WithChargeBoxes = UtilsSecurity.filterBoolean(request.WithChargeBoxes);
 		filteredRequest.WithCompany = UtilsSecurity.filterBoolean(request.WithCompany);
+		filteredRequest.WithUsers = UtilsSecurity.filterBoolean(request.WithUsers);
 		return filteredRequest;
 	}
 
 	static filterSiteUpdateRequest(request, loggedUser) {
-		// Set
+		// SetSites
 		let filteredRequest = SiteSecurity._filterSiteRequest(request, loggedUser);
 		filteredRequest.id = sanitize(request.id);
 		return filteredRequest;
@@ -59,6 +71,19 @@ class SiteSecurity {
 		filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
 		filteredRequest.image = sanitize(request.image);
 		filteredRequest.gps = sanitize(request.gps);
+		if (request.userIDs) {
+			// Handle Users
+			filteredRequest.userIDs = request.userIDs.map((userID) => {
+				return sanitize(userID);
+			});
+			filteredRequest.userIDs = request.userIDs.filter((userID) => {
+				// Check auth
+				if (CentralRestServerAuthorization.canReadUser(loggedUser, {id: userID})) {
+					return true;
+				}
+				return false;
+			});
+		}
 		filteredRequest.companyID = sanitize(request.companyID);
 		return filteredRequest;
 	}
@@ -91,6 +116,11 @@ class SiteSecurity {
 			}
 			if (site.siteAreas) {
 				filteredSite.siteAreas = SiteSecurity.getSiteAreaSecurity().filterSiteAreasResponse(site.siteAreas, loggedUser);
+			}
+			if (site.users) {
+				filteredSite.users = site.users.map((user) => {
+					return SiteSecurity.getUserSecurity().filterMinimalUserResponse(user, loggedUser);
+				})
 			}
 			// Created By / Last Changed By
 			UtilsSecurity.filterCreatedAndLastChanged(

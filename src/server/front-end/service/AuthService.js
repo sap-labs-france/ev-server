@@ -399,8 +399,8 @@ class AuthService {
 			// Check new and old version of hashing the password
 			if (match || (user.getPassword() === Users.hashPassword(filteredRequest.password))) {
 				// Password OK
-				let companies,
-					sites = [],
+				let companies = [],
+					sites,
 					siteAreas = [],
 					chargingStations = [],
 					users = [];
@@ -422,28 +422,25 @@ class AuthService {
 						// Nothing to get
 						return Promise.resolve([]);
 					} else {
-						// Get companies
-						return user.getCompanies();
+						// Get sites
+						return user.getSites();
 					}
-				}).then((foundCompanies) => {
-					companies = foundCompanies;
-					if (companies.length == 0) {
-						return Promise.resolve([]);
-					}
-					// Get all the sites
-					let proms = [];
-					companies.forEach((company) => {
-						proms.push(company.getSites());
-					});
-					return Promise.all(proms);
-				}).then((foundSitesProms) => {
-					// Merge results
-					foundSitesProms.forEach((foundSitesProm) => {
-						sites = sites.concat(foundSitesProm);
-					});
+				}).then((foundSites) => {
+					sites = foundSites;
 					if (sites.length == 0) {
 						return Promise.resolve([]);
 					}
+					// Get all the companies
+					let proms = [];
+					sites.forEach((site) => {
+						proms.push(site.getCompany());
+					});
+					return Promise.all(proms);
+				}).then((foundCompanyProms) => {
+					// Merge results
+					foundCompanyProms.forEach((foundCompanyProm) => {
+						companies.push(foundCompanyProm);
+					});
 					// Get all the site areas
 					let proms = [];
 					sites.forEach((site) => {

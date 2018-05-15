@@ -124,7 +124,7 @@ class SiteAreaStorage {
 		// Check if ID/Name is provided
 		if (!siteArea.id && !siteArea.name) {
 			// ID must be provided!
-			return Promise.reject( new Error("Error in saving the Site: Site has no ID and no Name and cannot be created or updated") );
+			return Promise.reject( new Error("Site Area has no ID and no Name and cannot be created or updated") );
 		} else {
 			let siteAreaFilter = {};
 			// Build Request
@@ -175,7 +175,7 @@ class SiteAreaStorage {
 		// Check if ID is provided
 		if (!siteArea.id) {
 			// ID must be provided!
-			return Promise.reject( new Error("Error in saving the Site: Site has no ID and no Name and cannot be created or updated") );
+			return Promise.reject( new Error("Site Area has no ID and no Name and cannot be created or updated") );
 		} else {
 			// Save Image
 			return MDBSiteAreaImage.findOneAndUpdate({

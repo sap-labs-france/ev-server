@@ -77,7 +77,7 @@ class VehicleStorage {
 		if (!vehicle.id && !vehicle.model) {
 			// ID must be provided!
 			return Promise.reject( new Error(
-				"Error in saving the Vehicle: Vehicle has no ID and no Model and cannot be created or updated") );
+				"Vehicle has no ID and no Model and cannot be created or updated") );
 		} else {
 			let vehicleFilter = {};
 			// Build Request
@@ -128,7 +128,7 @@ class VehicleStorage {
 		// Check if ID is provided
 		if (!vehicle.id) {
 			// ID must be provided!
-			return Promise.reject( new Error("Error in saving the Vehicle: Vehicle has no ID cannot be created or updated") );
+			return Promise.reject( new Error("Vehicle has no ID cannot be created or updated") );
 		} else {
 			// Save Image
 			return MDBVehicleImage.findOneAndUpdate({

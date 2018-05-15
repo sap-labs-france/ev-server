@@ -57,7 +57,7 @@ class VehicleManufacturerStorage {
 		if (!vehicleManufacturer.id) {
 			// ID must be provided!
 			return Promise.reject( new Error(
-				"Error in saving the VehicleManufacturer: VehicleManufacturer has no ID and cannot be created or updated") );
+				"Vehicle Manufacturer has no ID and cannot be created or updated") );
 		} else {
 			// Save Logo
 			return MDBVehicleManufacturerLogo.findOneAndUpdate({
@@ -103,7 +103,7 @@ class VehicleManufacturerStorage {
 		if (!vehicleManufacturer.id && !vehicleManufacturer.name) {
 			// ID must be provided!
 			return Promise.reject( new Error(
-				"Error in saving the VehicleManufacturer: Vehicle Manufacturer has no ID and no Name and cannot be created or updated") );
+				"Vehicle Manufacturer has no ID and no Name and cannot be created or updated") );
 		} else {
 			let vehicleManufacturerFilter = {};
 			// Build Request

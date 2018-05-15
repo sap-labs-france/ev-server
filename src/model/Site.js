@@ -1,6 +1,7 @@
 const Database = require('../utils/Database');
 const SiteArea = require('./SiteArea');
 const Company = require('./Company');
+const User = require('./User');
 
 class Site {
 	constructor(site) {
@@ -89,12 +90,12 @@ class Site {
 		this._model.lastChangedOn = lastChangedOn;
 	}
 
-	getCompany(withUser=false) {
+	getCompany() {
 		if (this._model.company) {
 			return Promise.resolve(new Company(this._model.company));
 		} else if (this._model.companyID){
 			// Get from DB
-			return global.storage.getCompany(this._model.companyID, withUser).then((company) => {
+			return global.storage.getCompany(this._model.companyID).then((company) => {
 				// Keep it
 				this.setCompany(company);
 				return company;
@@ -131,6 +132,40 @@ class Site {
 	setSiteAreas(siteAreas) {
 		this._model.siteAreas = siteAreas.map((siteArea) => {
 			return siteArea.getModel();
+		});
+	}
+
+	getUsers() {
+		if (this._model.users) {
+			return Promise.resolve(this._model.users.map((user) => {
+				return new User(user);
+			}));
+		} else {
+			// Get from DB
+			return global.storage.getUsers(null, this.getID()).then((users) => {
+				// Keep it
+				this.setUsers(users);
+				return users;
+			});
+		}
+	}
+
+	removeUser(user) {
+		if (this._model.users) {
+			// Search
+			for (var i = 0; i < this._model.users.length; i++) {
+				if (this._model.users[i].id == user.getID()) {
+					// Remove
+					this._model.users.splice(i, 1);
+					break;
+				}
+			}
+		}
+	}
+
+	setUsers(users) {
+		this._model.users = users.map((user) => {
+			return user.getModel();
 		});
 	}
 

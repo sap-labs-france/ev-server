@@ -88,7 +88,7 @@ class SiteService {
 			return;
 		}
 		// Get it
-		global.storage.getSite(filteredRequest.ID).then((site) => {
+		global.storage.getSite(filteredRequest.ID, null, filteredRequest.WithUsers).then((site) => {
 			if (!site) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -129,9 +129,10 @@ class SiteService {
 		// Filter
 		let filteredRequest = SiteSecurity.filterSitesRequest(req.query, req.user);
 		// Get the sites
-		global.storage.getSites(filteredRequest.Search, null, filteredRequest.WithCompany,
+		global.storage.getSites(filteredRequest.Search, null,
+				filteredRequest.UserID, filteredRequest.WithCompany,
 				filteredRequest.WithSiteAreas, filteredRequest.WithChargeBoxes,
-				Constants.NO_LIMIT).then((sites) => {
+				filteredRequest.WithUsers, Constants.NO_LIMIT).then((sites) => {
 			let sitesJSon = [];
 			sites.forEach((site) => {
 				// Set the model

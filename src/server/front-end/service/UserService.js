@@ -72,14 +72,14 @@ class UserService {
 					req.user);
 			}
 			// Delete
-			return user.getCompanies();
-		}).then((companies) => {
+			return user.getSites();
+		}).then((sites) => {
 			let proms = [];
-			companies.forEach((company) => {
+			sites.forEach((site) => {
 				// Remove User
-				company.removeUser(user);
+				site.removeUser(user);
 				// Save
-				proms.push(company.save());
+				proms.push(site.save());
 			});
 			return Promise.all(proms);
 		}).then((results) => {

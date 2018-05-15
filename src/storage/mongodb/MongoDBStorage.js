@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const Storage = require('../Storage');
 const Logging = require('../../utils/Logging');
 const LoggingStorage = require("./storage/LoggingStorage");
 const ChargingStationStorage = require('./storage/ChargingStationStorage');
@@ -18,10 +17,9 @@ require('source-map-support').install();
 
 let _dbConfig;
 
-class MongoDBStorage extends Storage {
+class MongoDBStorage {
 	// Create database access
 	constructor(dbConfig) {
-		super(dbConfig);
 		// Keep local
 		_dbConfig = dbConfig;
 		// Override Promise
@@ -258,9 +256,9 @@ class MongoDBStorage extends Storage {
 		return ChargingStationStorage.handleGetChargingStation(id);
 	}
 
-	getUsers(searchValue, companyID, numberOfUser=500) {
+	getUsers(searchValue, siteID, numberOfUser=500) {
 		// Delegate
-		return UserStorage.handleGetUsers(searchValue, companyID, numberOfUser);
+		return UserStorage.handleGetUsers(searchValue, siteID, numberOfUser);
 	}
 
 	saveUser(user) {
@@ -303,14 +301,14 @@ class MongoDBStorage extends Storage {
 		return UserStorage.handleGetUserByTagId(tagID);
 	}
 
-	getCompanies(searchValue, userID=null, withSites=false, numberOfCompanies=500) {
+	getCompanies(searchValue, withSites=false, numberOfCompanies=500) {
 		// Delegate
-		return CompanyStorage.handleGetCompanies(searchValue, userID, withSites, numberOfCompanies);
+		return CompanyStorage.handleGetCompanies(searchValue, withSites, numberOfCompanies);
 	}
 
-	getCompany(id, withUsers=false) {
+	getCompany(id) {
 		// Delegate
-		return CompanyStorage.handleGetCompany(id, withUsers);
+		return CompanyStorage.handleGetCompany(id);
 	}
 
  	getCompanyLogo(id) {
@@ -410,11 +408,11 @@ class MongoDBStorage extends Storage {
 		return SiteAreaStorage.handleGetSiteAreaImages();
 	}
 
-	getSites(searchValue, companyID=null, withCompany=false, withSiteAreas=false,
-			withChargeBoxes=false, numberOfSite=500) {
+	getSites(searchValue, companyID=null, userID=null, withCompany=false, withSiteAreas=false,
+			withChargeBoxes=false, withUsers=false, numberOfSite=500) {
 		// Delegate
-		return SiteStorage.handleGetSites(searchValue, companyID, withCompany, withSiteAreas,
-			withChargeBoxes, numberOfSite);
+		return SiteStorage.handleGetSites(searchValue, companyID, userID, withCompany, withSiteAreas,
+			withChargeBoxes, withUsers, numberOfSite);
 	}
 
 	saveSite(site) {
@@ -432,9 +430,9 @@ class MongoDBStorage extends Storage {
 		return SiteStorage.handleDeleteSite(id);
 	}
 
-	getSite(id, withCompany=false) {
+	getSite(id, withCompany=false, withUsers=false) {
 		// Delegate
-		return SiteStorage.handleGetSite(id, withCompany);
+		return SiteStorage.handleGetSite(id, withCompany, withUsers);
 	}
 
 	getSiteImage(id) {

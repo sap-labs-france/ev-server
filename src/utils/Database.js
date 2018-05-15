@@ -155,6 +155,7 @@ module.exports = {
 		dest.mobile = src.mobile;
 		dest.iNumber = src.iNumber;
 		dest.costCenter = src.costCenter;
+		dest.numberOfSites = src.numberOfSites;
 		dest.numberOfTransactions = src.numberOfTransactions;
 		dest.address = {};
 		this.updateAddress(src.address, dest.address)
@@ -191,6 +192,12 @@ module.exports = {
 		dest.image = src.image;
 		dest.companyID = src.companyID;
 		dest.numberOfSiteAreas = src.numberOfSiteAreas;
+		dest.numberOfUsers = src.numberOfUsers;
+		if (src.userIDs) {
+			dest.userIDs = src.userIDs.map((userID) => {
+				return this.validateId(userID);
+			});
+		}
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
@@ -224,11 +231,6 @@ module.exports = {
 		dest.name = src.name;
 		dest.address = {};
 		this.updateAddress(src.address, dest.address);
-		if (src.userIDs) {
-			dest.userIDs = src.userIDs.map((userID) => {
-				return this.validateId(userID);
-			});
-		}
 		dest.logo = src.logo;
 		dest.numberOfSites = src.numberOfSites;
 		this.updateCreatedAndLastChanged(src, dest);

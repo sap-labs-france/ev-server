@@ -1,5 +1,4 @@
 const Database = require('../utils/Database');
-const User = require('./User');
 
 class Company {
 	constructor(company) {
@@ -99,64 +98,6 @@ class Company {
 		this._model.sites = sites.map((site) => {
 			return site.getModel();
 		});
-	}
-
-	getUserIDs() {
-		return (this._model.userIDs?this._model.userIDs:[]);
-	}
-
-	getUsers() {
-		if (this._model.users) {
-			return Promise.resolve(this._model.users.map((user) => {
-				return new User(user);
-			}));
-		} else if (this._model.userIDs) {
-			let proms = [];
-			// Get Users
-			this._model.userIDs.forEach((userID) => {
-				// Add
-				proms.push(global.storage.getUser(userID));
-			});
-			return Promise.all(proms).then((users) => {
-				// Keep it
-				this.setUsers(users);
-				return users;
-			});
-		} else {
-			return Promise.resolve([]);
-		}
-	}
-
-	setUsers(users) {
-		this._model.users = users.map((user) => {
-			return user.getModel();
-		});
-		this._model.userIDs = users.map((user) => {
-			return user.getID();
-		});
-	}
-
-	removeUser(user) {
-		if (this._model.users) {
-			// Search
-			for (var i = 0; i < this._model.users.length; i++) {
-				if (this._model.users[i].id == user.getID()) {
-					// Remove
-					this._model.users.splice(i, 1);
-					break;
-				}
-			}
-		}
-		if (this._model.userIDs) {
-			// Search
-			for (var i = 0; i < this._model.userIDs.length; i++) {
-				if (this._model.userIDs[i] == user.getID()) {
-					// Remove
-					this._model.userIDs.splice(i, 1);
-					break;
-				}
-			}
-		}
 	}
 
 	save() {
