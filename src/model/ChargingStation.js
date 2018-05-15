@@ -924,7 +924,6 @@ class ChargingStation {
 					null, user.getModel()
 				));
 			}
-
 			// Check User status
 			if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
 				// Reject but save ok
@@ -934,7 +933,6 @@ class ChargingStation {
 					"ChargingStation", "checkIfUserIsAuthorized",
 					null, user.getModel()) );
 			}
-
 			// Get the Charge Box' Site
 			return siteArea.getSite();
 		// Site -----------------------------------------------
