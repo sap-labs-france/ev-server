@@ -246,9 +246,11 @@ class User {
 			Constants.NO_LIMIT);
 	}
 
-	getSites() {
+	getSites(withCompany=false, withSiteAreas=false,
+			withChargeBoxes=false, withUsers=false) {
 		// Get Sites
-		return global.storage.getSites(null, null, this.getID());
+		return global.storage.getSites(null, null, this.getID(),
+			withCompany, withSiteAreas, withChargeBoxes, withUsers);
 	}
 
 	save() {

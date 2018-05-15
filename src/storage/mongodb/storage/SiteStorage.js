@@ -176,15 +176,15 @@ class SiteStorage {
 			}).then(() => {
 				let proms = [];
 				// Add new Users
-				site.userIDs.forEach((userID) => {
+				site.users.forEach((user) => {
 					// Update/Insert Tag
 					proms.push(
 						MDBSiteUser.findOneAndUpdate({
 							"siteID": newSite.getID(),
-							"userID": userID
+							"userID": user.id
 						},{
 							"siteID": new ObjectId(newSite.getID()),
-							"userID": new ObjectId(userID)
+							"userID": new ObjectId(user.id)
 						},{
 							new: true,
 							upsert: true

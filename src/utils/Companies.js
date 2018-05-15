@@ -19,8 +19,5 @@ module.exports = {
 				`The Company Name is mandatory`,
 				500, "Companies", "checkIfCompanyValid");
 		}
-		if (!filteredRequest.userIDs) {
-			filteredRequest.userIDs = [];
-		}
 	}
 };

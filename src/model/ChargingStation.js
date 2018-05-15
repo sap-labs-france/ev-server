@@ -934,7 +934,7 @@ class ChargingStation {
 					null, user.getModel()) );
 			}
 			// Get the Charge Box' Site
-			return siteArea.getSite();
+			return siteArea.getSite(null, true);
 		// Site -----------------------------------------------
 		}).then((foundSite) => {
 			site = foundSite;
@@ -946,23 +946,9 @@ class ChargingStation {
 					"ChargingStation", "checkIfUserIsAuthorized",
 					null, user.getModel()) );
 			}
-			// Get the Charge Box's Company with users
-			return site.getCompany(true);
-		// Company -----------------------------------------------
-		}).then((company) => {
-			if (!company) {
-				// Reject Site Not Found
-				return Promise.reject( new AppError(
-					this.getID(),
-					`Site '${site.getName()}' is not assigned to a Company!`, 500,
-					"ChargingStation", "checkIfUserIsAuthorized",
-					null, user.getModel()) );
-			}
-			// Get User IDS
-			let userIDs = company.getUserIDs();
 			// Check if the user is assigned to the company
-			let foundUser = userIDs.find((userID) => {
-				return userID == user.getID();
+			let foundUser = site.users.find((siteUser) => {
+				return siteUser.id == user.getID();
 			});
 			// User not found and Access Control Enabled?
 			if (!foundUser && siteArea.isAccessControlEnabled()) {

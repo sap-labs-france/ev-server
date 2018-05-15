@@ -283,6 +283,23 @@ class SiteService {
 			// Update timestamp
 			site.setCreatedBy(loggedUser);
 			site.setCreatedOn(new Date());
+		}).then(() => {
+			let proms = [];
+			// Get the users
+			if (filteredRequest.userIDs) {
+				filteredRequest.userIDs.forEach((userID) => {
+					proms.push(global.storage.getUser(userID)) ;
+				});
+			}
+			return Promise.all(proms);
+		}).then((usersProm) => {
+			let users = [];
+			// Get the result
+			usersProm.forEach((userProm) => {
+				users.push(userProm);
+			});
+			// Set Users
+			site.setUsers(users);
 			// Save Site
 			return site.save();
 		}).then((createdSite) => {
@@ -349,6 +366,22 @@ class SiteService {
 			// Update Site's Image
 			return site.saveImage();
 		}).then(() => {
+			let proms = [];
+			// Get the users
+			if (filteredRequest.userIDs) {
+				filteredRequest.userIDs.forEach((userID) => {
+					proms.push(global.storage.getUser(userID)) ;
+				});
+			}
+			return Promise.all(proms);
+		}).then((usersProm) => {
+			let users = [];
+			// Get the result
+			usersProm.forEach((userProm) => {
+				users.push(userProm);
+			});
+			// Set Users
+			site.setUsers(users);
 			// Update Site
 			return site.save();
 		}).then((updatedSite) => {

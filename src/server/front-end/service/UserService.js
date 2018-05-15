@@ -72,7 +72,7 @@ class UserService {
 					req.user);
 			}
 			// Delete
-			return user.getSites();
+			return user.getSites(false, false, false, true);
 		}).then((sites) => {
 			let proms = [];
 			sites.forEach((site) => {

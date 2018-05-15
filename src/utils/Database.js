@@ -193,11 +193,6 @@ module.exports = {
 		dest.companyID = src.companyID;
 		dest.numberOfSiteAreas = src.numberOfSiteAreas;
 		dest.numberOfUsers = src.numberOfUsers;
-		if (src.userIDs) {
-			dest.userIDs = src.userIDs.map((userID) => {
-				return this.validateId(userID);
-			});
-		}
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
