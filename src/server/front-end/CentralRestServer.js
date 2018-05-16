@@ -130,7 +130,10 @@ class CentralSystemRestServer {
 				// Send
 				for (var i = _currentNotifications.length-1; i >= 0; i--) {
 					// send
-					this.notifyAllWebSocketClients(_currentNotifications[i]);
+					console.log("notifyAllWebSocketClients -------------------------");
+					console.log(JSON.stringify(_currentNotifications[i], null, ' '));
+					// Notify all Web Sockets
+					_io.sockets.emit(_currentNotifications[i].entity, _currentNotifications[i]);
 					// Remove
 					_currentNotifications.splice(i, 1);
 				}
@@ -493,10 +496,6 @@ class CentralSystemRestServer {
 			// No: Add it
 			_currentNotifications.push(notification);
 		}
-	}
-
-	notifyAllWebSocketClients(notification) {
-		_io.sockets.emit(notification.entity, notification);
 	}
 }
 

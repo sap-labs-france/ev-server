@@ -23,6 +23,23 @@ module.exports = {
 		return Object.keys(document).length == 0;
 	},
 
+	objectIdtoString(id) {
+		let changedID = id;
+		// MongoDB Object?
+		if (changedID && (typeof changedID == "object")) {
+			// MongoDB Buffer?
+			if (changedID instanceof Buffer) {
+				// Convert to String
+				changedID = changedID.toString('hex');
+			// MongoDB ObjectID?
+			} else if (changedID.constructor.name == "ObjectID") {
+				// Convert to String
+				changedID = changedID.toString();
+			}
+		}
+		return changedID;
+	},
+
 	pushCreatedLastChangedInAggregation(aggregation) {
 		// Filter
 		let filterUserFields = {

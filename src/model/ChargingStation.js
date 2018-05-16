@@ -946,16 +946,19 @@ class ChargingStation {
 					"ChargingStation", "checkIfUserIsAuthorized",
 					null, user.getModel()) );
 			}
+			// Get Users
+			return site.getUsers();
+		}).then((siteUsers) => {
 			// Check if the user is assigned to the company
-			let foundUser = site.users.find((siteUser) => {
-				return siteUser.id == user.getID();
+			let foundUser = siteUsers.find((siteUser) => {
+				return siteUser.getID() == user.getID();
 			});
 			// User not found and Access Control Enabled?
 			if (!foundUser && siteArea.isAccessControlEnabled()) {
 				// Yes: Reject the User
 				return Promise.reject( new AppError(
 					this.getID(),
-					`User is not assigned to the Company '${company.getName()}'!`, 500,
+					`User is not assigned to the Site '${site.getName()}'!`, 500,
 					"ChargingStation", "checkIfUserIsAuthorized",
 					null, user.getModel()) );
 			}

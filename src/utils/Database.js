@@ -18,7 +18,9 @@ module.exports = {
 
 	validateId(id) {
 		let changedID = id;
-		if (changedID && typeof changedID == "object") {
+		// Object?
+		if (changedID && (typeof changedID == "object")) {
+			// Mongo DB?
 			if (changedID instanceof Buffer) {
 				changedID = changedID.toString('hex');
 			} else {
@@ -43,7 +45,7 @@ module.exports = {
 		dest.ocppVersion = src.ocppVersion;
 		dest.lastHeartBeat = src.lastHeartBeat;
 		dest.lastReboot = src.lastReboot;
-		dest.siteAreaID = src.siteAreaID;
+		dest.siteAreaID = Utils.objectIdtoString(src.siteAreaID);
 		if (src.chargingStationURL) {
 			dest.chargingStationURL = src.chargingStationURL;
 		}
@@ -125,12 +127,14 @@ module.exports = {
 		dest.sourceId = src.sourceId;
 		dest.sourceDescr = src.sourceDescr;
 		// User
-		if (!Utils.isEmptyJSon(src.userID)) {
+		dest.userID = Utils.objectIdtoString(src.userID);
+		if (!Utils.isEmptyJSon(dest.userID)) {
 			dest.user = {};
 			this.updateUser(src.userID, dest.user);
 		}
 		// ChargeBox
-		if (!Utils.isEmptyJSon(src.chargeBoxID)) {
+		dest.chargeBoxID = Utils.objectIdtoString(src.chargeBoxID)
+		if (!Utils.isEmptyJSon(dest.chargeBoxID)) {
 			dest.chargeBox = {};
 			this.updateChargingStation(src.chargeBoxID, dest.chargeBox);
 		}
@@ -172,7 +176,12 @@ module.exports = {
 		}
 		this.updateCreatedAndLastChanged(src, dest);
 		dest.deleted = src.deleted;
-		dest.tagIDs = src.tagIDs;
+		if (src.tagIDs) {
+			// Convert
+			dest.tagIDs = src.tagIDs.map((tagID) => {
+				return Utils.objectIdtoString(tagID);
+			});
+		}
 		if (src.role) {
 			dest.role = src.role;
 		}
@@ -190,7 +199,7 @@ module.exports = {
 		dest.address = {};
 		this.updateAddress(src.address, dest.address)
 		dest.image = src.image;
-		dest.companyID = src.companyID;
+		dest.companyID = Utils.objectIdtoString(src.companyID);
 		dest.numberOfSiteAreas = src.numberOfSiteAreas;
 		dest.numberOfUsers = src.numberOfUsers;
 		this.updateCreatedAndLastChanged(src, dest);
@@ -248,7 +257,7 @@ module.exports = {
 		dest.releasedOn = src.releasedOn;
 		dest.images = src.images;
 		dest.numberOfImages = src.numberOfImages;
-		dest.vehicleManufacturerID = src.vehicleManufacturerID;
+		dest.vehicleManufacturerID = Utils.objectIdtoString(src.vehicleManufacturerID);
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
@@ -272,7 +281,7 @@ module.exports = {
 		dest.image = src.image;
 		dest.accessControl = src.accessControl;
 		dest.numberOfChargeBoxes = src.numberOfChargeBoxes;
-		dest.siteID = src.siteID;
+		dest.siteID = Utils.objectIdtoString(src.siteID);
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
@@ -300,29 +309,32 @@ module.exports = {
 	updateTransaction(src, dest) {
 		this.updateID(src, dest);
 		// ChargeBox
-		if (!Utils.isEmptyJSon(src.chargeBoxID)) {
+		dest.chargeBoxID = Utils.objectIdtoString(src.chargeBoxID);
+		if (!Utils.isEmptyJSon(dest.chargeBoxID)) {
 			dest.chargeBox = {};
 			this.updateChargingStation(src.chargeBoxID, dest.chargeBox);
 		}
 		// User
-		if (!Utils.isEmptyJSon(src.userID)) {
+		dest.userID = Utils.objectIdtoString(src.userID);
+		if (!Utils.isEmptyJSon(dest.userID)) {
 			dest.user = {};
 			this.updateUser(src.userID, dest.user);
 		}
 		dest.connectorId = src.connectorId;
 		dest.timestamp = src.timestamp;
-		dest.tagID = src.tagID;
+		dest.tagID = Utils.objectIdtoString(src.tagID);
 		dest.meterStart = src.meterStart;
 		// Stop?
 		if (!Utils.isEmptyJSon(src.stop)) {
 			dest.stop = {};
 			// User
-			if (!Utils.isEmptyJSon(src.stop.userID)) {
+			dest.stop.userID = Utils.objectIdtoString(src.stop.userID);
+			if (!Utils.isEmptyJSon(dest.stop.userID)) {
 				dest.stop.user = {};
 				this.updateUser(src.stop.userID, dest.stop.user);
 			}
 			dest.stop.timestamp = src.stop.timestamp;
-			dest.stop.tagID = src.stop.tagID;
+			dest.stop.tagID = Utils.objectIdtoString(src.stop.tagID);
 			dest.stop.meterStop = src.stop.meterStop;
 			dest.stop.transactionData = src.stop.transactionData;
 			dest.stop.totalConsumption = src.stop.totalConsumption;

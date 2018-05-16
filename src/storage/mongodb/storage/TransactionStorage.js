@@ -58,39 +58,41 @@ class TransactionStorage {
 	}
 
 	static handleSaveTransaction(transaction) {
-		// Get
+		let transactionCreated = !transaction.stop;
+		// Update
 		return MDBTransaction.findOneAndUpdate({"_id": transaction.id}, transaction, {
-				new: true,
-				upsert: true
-			}).then((transactionMDB) => {
-				let transaction = {};
-				// Notify
-				if (!transaction.id) {
-					// Created
-					_centralRestServer.notifyTransactionCreated(
-						{
-							"id": transaction.id,
-							"chargeBoxID": transaction.chargeBoxID,
-							"connectorId": transaction.connectorId,
-							"type": Constants.NOTIF_ENTITY_TRANSACTION
-						}
-					);
-				} else {
-					// Updated
-					_centralRestServer.notifyTransactionUpdated(
-						{
-							"id": transaction.id,
-							"chargeBoxID": transaction.chargeBoxID,
-							"connectorId": transaction.connectorId,
-							"type": Constants.NOTIF_ENTITY_TRANSACTION
-						}
-					);
-				}
-				// Update
-				Database.updateTransaction(transactionMDB, transaction);
-				// Return
-				return transaction;
-			});
+			new: true,
+			upsert: true
+		}).then((transactionMDB) => {
+			// Create
+			let transaction = {};
+			// Update
+			Database.updateTransaction(transactionMDB, transaction);
+			// Notify
+			if (transactionCreated) {
+				// Created
+				_centralRestServer.notifyTransactionCreated(
+					{
+						"id": transaction.id,
+						"chargeBoxID": transaction.chargeBoxID,
+						"connectorId": transaction.connectorId,
+						"type": Constants.NOTIF_ENTITY_TRANSACTION
+					}
+				);
+			} else {
+				// Updated
+				_centralRestServer.notifyTransactionUpdated(
+					{
+						"id": transaction.id,
+						"chargeBoxID": transaction.chargeBoxID,
+						"connectorId": transaction.connectorId,
+						"type": Constants.NOTIF_ENTITY_TRANSACTION_STOP
+					}
+				);
+			}
+			// Return
+			return transaction;
+		});
 	}
 
 	static handleSaveMeterValues(meterValues) {
