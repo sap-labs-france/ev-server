@@ -129,9 +129,6 @@ class CentralSystemRestServer {
 			setInterval(() => {
 				// Send
 				for (var i = _currentNotifications.length-1; i >= 0; i--) {
-					// send
-					console.log("notifyAllWebSocketClients -------------------------");
-					console.log(JSON.stringify(_currentNotifications[i], null, ' '));
 					// Notify all Web Sockets
 					_io.sockets.emit(_currentNotifications[i].entity, _currentNotifications[i]);
 					// Remove
