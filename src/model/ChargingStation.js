@@ -11,6 +11,7 @@ const Database = require('../utils/Database');
 const moment = require('moment');
 const Configuration = require('../utils/Configuration');
 const NotificationHandler = require('../notification/NotificationHandler');
+const CentralRestServerAuthorization = require('../server/front-end/CentralRestServerAuthorization');
 
 _configAdvanced = Configuration.getAdvancedConfig();
 _configChargingStation = Configuration.getChargingStationConfig();
@@ -986,7 +987,7 @@ class ChargingStation {
 	}
 
 	handleStopTransaction(stopTransaction) {
-		let transaction, user;
+		let transaction, newTransaction, user;
 		// Set the charger ID
 		stopTransaction.chargeBoxID = this.getID();
 		// Get the transaction first (to get the connector id)
@@ -1009,6 +1010,15 @@ class ChargingStation {
 			if (user) {
 				// Set the User ID
 				stopTransaction.userID = user.getID();
+			}
+			// Check auth
+			if (!CentralRestServerAuthorization.canReadTransaction(user.getModel(), transaction)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					CentralRestServerAuthorization.ACTION_UPDATE,
+					CentralRestServerAuthorization.ENTITY_TRANSACTION,
+					transaction.id,
+					560, "ChargingStation", "handleStopTransaction", user.getModel());
 			}
 			// Init the charging station
 			this.getConnectors()[transaction.connectorId-1].currentConsumption = 0;
@@ -1062,6 +1072,13 @@ class ChargingStation {
 			transaction.stop = stopTransaction;
 			// // Save Transaction
 			return global.storage.saveTransaction(transaction);
+		}).then((savedTransaction) => {
+			newTransaction = savedTransaction;
+			// Set the user
+			if (user) {
+				newTransaction.user = user.getModel();
+			}
+			return newTransaction;
 		});
 	}
 

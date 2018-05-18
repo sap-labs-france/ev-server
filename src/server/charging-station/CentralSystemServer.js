@@ -479,12 +479,12 @@ class CentralSystemServer {
 			}
 			// Save
 			return chargingStation.handleStopTransaction(args);
-		}).then(() => {
+		}).then((transaction) => {
 			// Log
 			Logging.logInfo({
 				source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStopTransaction",
-				action: "StopTransaction", user: args.user,
-				message: `Transaction ID '${args.transactionId}' has been stopped`,
+				action: "StopTransaction", user: transaction.user,
+				message: `Transaction ID '${transaction.id}' has been stopped`,
 				detailedMessages: args });
 			// Success
 			return {
