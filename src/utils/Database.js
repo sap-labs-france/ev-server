@@ -214,14 +214,16 @@ module.exports = {
 	},
 
 	updateCreatedAndLastChanged(src, dest) {
-		if (src.createdBy && typeof src.createdBy == "object") {
+		dest.createdBy = Utils.objectIdtoString(src.createdBy);
+		if (dest.createdBy && (typeof dest.createdBy == "object")) {
 			dest.createdBy = {};
 			this.updateUser(src.createdBy, dest.createdBy);
 		}
 		if (src.createdOn) {
 			dest.createdOn = src.createdOn;
 		}
-		if (src.lastChangedBy && typeof src.lastChangedBy == "object") {
+		dest.lastChangedBy = Utils.objectIdtoString(src.lastChangedBy);
+		if (dest.lastChangedBy && typeof dest.lastChangedBy == "object") {
 			dest.lastChangedBy = {};
 			this.updateUser(src.lastChangedBy, dest.lastChangedBy);
 		}

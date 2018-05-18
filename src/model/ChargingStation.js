@@ -736,6 +736,8 @@ class ChargingStation {
 	handleStartTransaction(transaction) {
 		// Set the charger ID
 		transaction.chargeBoxID = this.getID();
+		// User
+		let user, newTransaction;
 		// Check if the charging station has already a transaction
 		return this.getActiveTransaction(transaction.connectorId).then((activeTransaction) => {
 			// Exists already?
@@ -748,7 +750,8 @@ class ChargingStation {
 			}
 			// Check user and save
 			return this.checkIfUserIsAuthorized(transaction.idTag);
-		}).then((user) => {
+		}).then((foundUser) => {
+			user = foundUser;
 			if (user) {
 				// Set the user
 				transaction.userID = user.getID();
@@ -772,6 +775,16 @@ class ChargingStation {
 			transaction.tagID = transaction.idTag;
 			// Ok: Save Transaction
 			return global.storage.saveTransaction(transaction);
+		}).then((savedTransaction) => {
+			newTransaction = savedTransaction;
+			// Set the user
+			if (user) {
+				newTransaction.user = user.getModel();
+			}
+			// Update Consumption
+			return this.updateChargingStationConsumption(transaction.id);
+		}).then(() => {
+			return newTransaction;
 		});
 	}
 

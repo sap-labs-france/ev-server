@@ -402,7 +402,7 @@ class CentralSystemServer {
 			} else {
 				Logging.logInfo({
 					source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStartTransaction",
-					action: "StartTransaction", message: `Transaction ID '${transaction.transactionId}' has been started by an anonymous user on Connector '${transaction.connectorId}'`,
+					action: "StartTransaction", message: `Transaction ID '${transaction.id}' has been started by an anonymous user on Connector '${transaction.connectorId}'`,
 					detailedMessages: args });
 			}
 
