@@ -129,15 +129,9 @@ module.exports = {
 			{ "Action": this.ACTION_LIST });
 	},
 
-	canPerformActionOnChargingStation(loggedUser, chargingStation, action, user=null) {
-		// Check
-		if (user) {
-			return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATION,
-				{ "Action": action, "UserID": user.id.toString(), "ChargingStationID": chargingStation.id });
-		} else {
-			return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATION,
-				{ "Action": action, "ChargingStationID": chargingStation.id });
-		}
+	canPerformActionOnChargingStation(loggedUser, chargingStation, action) {
+		return this.canPerformAction(loggedUser, this.ENTITY_CHARGING_STATION,
+			{ "Action": action, "ChargingStationID": chargingStation.id });
 	},
 
 	canReadChargingStation(loggedUser, chargingStation) {
@@ -491,7 +485,6 @@ module.exports = {
 						{
 							"AuthObject": "ChargingStation",
 							"AuthFieldValue": {
-								"UserID": "*",
 								"ChargingStationID": "*",
 								"Action": ["Create", "Read", "Update", "Delete", "Reset", "ClearCache", "GetConfiguration", "ChangeConfiguration", "StartTransaction", "StopTransaction", "UnlockConnector"]
 							}
@@ -638,13 +631,6 @@ module.exports = {
 						{
 							"AuthObject": "ChargingStation",
 							"AuthFieldValue": {
-								"UserID": [
-									{{#trim}}
-										{{#userID}}
-											"{{.}}",
-										{{/userID}}
-									{{/trim}}
-								],
 								"ChargingStationID": [
 									{{#trim}}
 										{{#chargingStationID}}
@@ -779,7 +765,6 @@ module.exports = {
 						{
 							"AuthObject": "ChargingStation",
 							"AuthFieldValue": {
-								"UserID": "*",
 								"ChargingStationID": "*",
 								"Action": ["Read", "StartTransaction", "StopTransaction", "UnlockConnector"]
 							}
@@ -902,7 +887,6 @@ module.exports = {
 						{
 							"AuthObject": "ChargingStation",
 							"AuthFieldValue": {
-								"UserID": "*",
 								"ChargingStationID": "*",
 								"Action": ["Read"]
 							}

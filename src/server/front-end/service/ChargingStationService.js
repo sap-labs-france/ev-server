@@ -285,7 +285,7 @@ class ChargingStationService {
 						// Add connector ID
 						filteredRequest.args.connectorId = transaction.connectorId;
 						// Check auth
-						if (!Authorizations.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action, transaction.user)) {
+						if (!Authorizations.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action)) {
 							// Not Authorized!
 							throw new AppAuthError(action,
 								Authorizations.ENTITY_CHARGING_STATION,
