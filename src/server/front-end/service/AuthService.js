@@ -8,7 +8,6 @@ const Utils = require('../../../utils/Utils');
 const Configuration = require('../../../utils/Configuration');
 const Authorizations = require('../../../utils/Authorizations');
 const NotificationHandler = require('../../../notification/NotificationHandler');
-const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
 const compileProfile = require('node-authorization').profileCompiler;
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
@@ -417,8 +416,8 @@ class AuthService {
 					// Save
 					return user.save();
 				}).then(() => {
-					// Get Companies
-					if (user.getRole() == CentralRestServerAuthorization.ROLE_ADMIN) {
+					// Admin?
+					if (user.getRole() == Authorizations.ROLE_ADMIN) {
 						// Nothing to get
 						return Promise.resolve([]);
 					} else {
@@ -523,8 +522,8 @@ class AuthService {
 					// Build token
 					let token;
 					// Role Demo?
-					if (CentralRestServerAuthorization.isDemo(user.getModel()) ||
-							CentralRestServerAuthorization.isCorporate(user.getModel())) {
+					if (Authorizations.isDemo(user.getModel()) ||
+							Authorizations.isCorporate(user.getModel())) {
 						// Yes
 						token = jwt.sign(payload, jwtOptions.secretOrKey, {
 							expiresIn: _centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600

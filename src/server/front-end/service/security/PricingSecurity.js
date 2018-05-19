@@ -1,5 +1,5 @@
 const sanitize = require('mongo-sanitize');
-const CentralRestServerAuthorization = require('../../CentralRestServerAuthorization');
+const Authorizations = require('../../../../utils/Authorizations');
 const Utils = require('../../../../utils/Utils');
 const UtilsSecurity = require('./UtilsSecurity');
 
@@ -10,7 +10,7 @@ class PricingSecurity {
 		if (!pricing) {
 			return null;
 		}
-		if (!CentralRestServerAuthorization.isAdmin(loggedUser)) {
+		if (!Authorizations.isAdmin(loggedUser)) {
 			return null;
 		}
 		// Set

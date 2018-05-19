@@ -11,7 +11,7 @@ const Users = require('../../../utils/Users');
 const Company = require('../../../model/Company');
 const Site = require('../../../model/Site');
 const SiteArea = require('../../../model/SiteArea');
-const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
+const Authorizations = require('../../../utils/Authorizations');
 const CompanySecurity = require('./security/CompanySecurity');
 
 class CompanyService {
@@ -45,11 +45,11 @@ class CompanyService {
 					550, "CompanyService", "handleDeleteCompany");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canDeleteCompany(req.user, company.getModel())) {
+			if (!Authorizations.canDeleteCompany(req.user, company.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_DELETE,
-					CentralRestServerAuthorization.ENTITY_COMPANY,
+					Authorizations.ACTION_DELETE,
+					Authorizations.ENTITY_COMPANY,
 					company.getID(),
 					560, "CompanyService", "handleDeleteCompany",
 					req.user);
@@ -96,11 +96,11 @@ class CompanyService {
 					550, "CompanyService", "handleGetCompany");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canReadCompany(req.user, company.getModel())) {
+			if (!Authorizations.canReadCompany(req.user, company.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_READ,
-					CentralRestServerAuthorization.ENTITY_COMPANY,
+					Authorizations.ACTION_READ,
+					Authorizations.ENTITY_COMPANY,
 					company.getID(),
 					560, "CompanyService", "handleGetCompany",
 					req.user);
@@ -145,11 +145,11 @@ class CompanyService {
 					550, "CompanyService", "handleGetCompanyLogo");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canReadCompany(req.user, company.getModel())) {
+			if (!Authorizations.canReadCompany(req.user, company.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_READ,
-					CentralRestServerAuthorization.ENTITY_COMPANY,
+					Authorizations.ACTION_READ,
+					Authorizations.ENTITY_COMPANY,
 					company.getID(),
 					560, "CompanyService", "handleGetCompanyLogo",
 					req.user);
@@ -185,11 +185,11 @@ class CompanyService {
 			detailedMessages: req.query
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canListCompanies(req.user)) {
+		if (!Authorizations.canListCompanies(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_LIST,
-				CentralRestServerAuthorization.ENTITY_COMPANIES,
+				Authorizations.ACTION_LIST,
+				Authorizations.ENTITY_COMPANIES,
 				null,
 				560, "CompanyService", "handleGetCompanyLogos",
 				req.user);
@@ -219,11 +219,11 @@ class CompanyService {
 			detailedMessages: req.query
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canListCompanies(req.user)) {
+		if (!Authorizations.canListCompanies(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_LIST,
-				CentralRestServerAuthorization.ENTITY_COMPANIES,
+				Authorizations.ACTION_LIST,
+				Authorizations.ENTITY_COMPANIES,
 				null,
 				560, "CompanyService", "handleGetCompanies",
 				req.user);
@@ -261,11 +261,11 @@ class CompanyService {
 			detailedMessages: req.body
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canCreateCompany(req.user)) {
+		if (!Authorizations.canCreateCompany(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_CREATE,
-				CentralRestServerAuthorization.ENTITY_COMPANY,
+				Authorizations.ACTION_CREATE,
+				Authorizations.ENTITY_COMPANY,
 				null,
 				560, "CompanyService", "handleCreateCompany",
 				req.user);
@@ -327,11 +327,11 @@ class CompanyService {
 			// Check Mandatory fields
 			Companies.checkIfCompanyValid(filteredRequest, req);
 			// Check auth
-			if (!CentralRestServerAuthorization.canUpdateCompany(req.user, company.getModel())) {
+			if (!Authorizations.canUpdateCompany(req.user, company.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_UPDATE,
-					CentralRestServerAuthorization.ENTITY_COMPANY,
+					Authorizations.ACTION_UPDATE,
+					Authorizations.ENTITY_COMPANY,
 					company.getID(),
 					560, "CompanyService", "handleCreateCompany",
 					req.user);

@@ -3,7 +3,7 @@ const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Utils = require('../../../utils/Utils');
 const ChargingStations = require('../../../utils/ChargingStations');
-const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
+const Authorizations = require('../../../utils/Authorizations');
 const Users = require('../../../utils/Users');
 const Constants = require('../../../utils/Constants');
 const moment = require('moment');
@@ -41,11 +41,11 @@ class TransactionService {
 					550, "TransactionService", "handleDeleteTransaction");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canDeleteTransaction(req.user, transaction)) {
+			if (!Authorizations.canDeleteTransaction(req.user, transaction)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_DELETE,
-					CentralRestServerAuthorization.ENTITY_TRANSACTION,
+					Authorizations.ACTION_DELETE,
+					Authorizations.ENTITY_TRANSACTION,
 					transaction.id,
 					560, "TransactionService", "handleDeleteTransaction",
 					req.user);
@@ -121,11 +121,11 @@ class TransactionService {
 					550, "TransactionService", "handleTransactionSoftStop");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canUpdateTransaction(req.user, transaction)) {
+			if (!Authorizations.canUpdateTransaction(req.user, transaction)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_UPDATE,
-					CentralRestServerAuthorization.ENTITY_TRANSACTION,
+					Authorizations.ACTION_UPDATE,
+					Authorizations.ENTITY_TRANSACTION,
 					transaction.id,
 					560, "TransactionService", "handleTransactionSoftStop",
 					req.user);
@@ -207,11 +207,11 @@ class TransactionService {
 					550, "TransactionService", "handleGetChargingStationConsumptionFromTransaction");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canReadTransaction(req.user, transaction)) {
+			if (!Authorizations.canReadTransaction(req.user, transaction)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_READ,
-					CentralRestServerAuthorization.ENTITY_TRANSACTION,
+					Authorizations.ACTION_READ,
+					Authorizations.ENTITY_TRANSACTION,
 					transaction.id,
 					560, "TransactionService", "handleGetChargingStationConsumptionFromTransaction",
 					req.user);
@@ -296,11 +296,11 @@ class TransactionService {
 					550, "TransactionService", "handleGetTransaction");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canReadTransaction(req.user, transaction)) {
+			if (!Authorizations.canReadTransaction(req.user, transaction)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_READ,
-					CentralRestServerAuthorization.ENTITY_TRANSACTION,
+					Authorizations.ACTION_READ,
+					Authorizations.ENTITY_TRANSACTION,
 					transaction.id,
 					560, "TransactionService", "handleGetTransaction",
 					req.user);
@@ -327,11 +327,11 @@ class TransactionService {
 			detailedMessages: req.query
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canListTransactions(req.user)) {
+		if (!Authorizations.canListTransactions(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_LIST,
-				CentralRestServerAuthorization.ENTITY_TRANSACTION,
+				Authorizations.ACTION_LIST,
+				Authorizations.ENTITY_TRANSACTION,
 				null,
 				560, "TransactionService", "handleGetChargingStationTransactions",
 				req.user);
@@ -410,11 +410,11 @@ class TransactionService {
 			detailedMessages: req.query
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canListTransactions(req.user)) {
+		if (!Authorizations.canListTransactions(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_LIST,
-				CentralRestServerAuthorization.ENTITY_TRANSACTION,
+				Authorizations.ACTION_LIST,
+				Authorizations.ENTITY_TRANSACTION,
 				null,
 				560, "TransactionService", "handleGetTransactionsActive",
 				req.user);
@@ -453,11 +453,11 @@ class TransactionService {
 			detailedMessages: req.query
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canListTransactions(req.user)) {
+		if (!Authorizations.canListTransactions(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_LIST,
-				CentralRestServerAuthorization.ENTITY_TRANSACTION,
+				Authorizations.ACTION_LIST,
+				Authorizations.ENTITY_TRANSACTION,
 				null,
 				560, "TransactionService", "handleGetTransactionsCompleted",
 				req.user);

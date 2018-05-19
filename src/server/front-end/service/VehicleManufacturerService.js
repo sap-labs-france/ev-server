@@ -2,7 +2,7 @@ const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
-const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
+const Authorizations = require('../../../utils/Authorizations');
 const VehicleManufacturers = require('../../../utils/VehicleManufacturers');
 const Constants = require('../../../utils/Constants');
 const Utils = require('../../../utils/Utils');
@@ -40,11 +40,11 @@ class VehicleManufacturerService {
 					550, "VehicleManufacturerService", "handleDeleteVehicleManufacturer");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canDeleteVehicleManufacturer(req.user, vehicleManufacturer.getModel())) {
+			if (!Authorizations.canDeleteVehicleManufacturer(req.user, vehicleManufacturer.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_DELETE,
-					CentralRestServerAuthorization.ENTITY_VEHICLE_MANUFACTURERS,
+					Authorizations.ACTION_DELETE,
+					Authorizations.ENTITY_VEHICLE_MANUFACTURERS,
 					vehicleManufacturer.getID(),
 					560, "VehicleManufacturerService", "handleDeleteVehicleManufacturer",
 					req.user);
@@ -112,11 +112,11 @@ class VehicleManufacturerService {
 			detailedMessages: req.query
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canListVehicleManufacturers(req.user)) {
+		if (!Authorizations.canListVehicleManufacturers(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_LIST,
-				CentralRestServerAuthorization.ENTITY_VEHICLE_MANUFACTURERSS,
+				Authorizations.ACTION_LIST,
+				Authorizations.ENTITY_VEHICLE_MANUFACTURERSS,
 				null,
 				560, "VehicleManufacturerService", "handleGetVehicleManufacturers",
 				req.user);
@@ -154,11 +154,11 @@ class VehicleManufacturerService {
 			detailedMessages: req.body
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canCreateVehicleManufacturer(req.user)) {
+		if (!Authorizations.canCreateVehicleManufacturer(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_CREATE,
-				CentralRestServerAuthorization.ENTITY_VEHICLE_MANUFACTURERS,
+				Authorizations.ACTION_CREATE,
+				Authorizations.ENTITY_VEHICLE_MANUFACTURERS,
 				null,
 				560, "VehicleManufacturerService", "handleCreateVehicleManufacturer",
 				req.user);
@@ -220,11 +220,11 @@ class VehicleManufacturerService {
 			// Check Mandatory fields
 			VehicleManufacturers.checkIfVehicleManufacturerValid(filteredRequest, req);
 			// Check auth
-			if (!CentralRestServerAuthorization.canUpdateVehicleManufacturer(req.user, vehicleManufacturer.getModel())) {
+			if (!Authorizations.canUpdateVehicleManufacturer(req.user, vehicleManufacturer.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_UPDATE,
-					CentralRestServerAuthorization.ENTITY_VEHICLE_MANUFACTURERS,
+					Authorizations.ACTION_UPDATE,
+					Authorizations.ENTITY_VEHICLE_MANUFACTURERS,
 					vehicleManufacturer.getID(),
 					560, "VehicleManufacturerService", "handleUpdateVehicleManufacturer",
 					req.user);
@@ -286,11 +286,11 @@ class VehicleManufacturerService {
 					550, "VehicleManufacturerService", "handleGetVehicleManufacturerLogo");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canReadVehicleManufacturer(req.user, vehicleManufacturer.getModel())) {
+			if (!Authorizations.canReadVehicleManufacturer(req.user, vehicleManufacturer.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_READ,
-					CentralRestServerAuthorization.ENTITY_COMPANY,
+					Authorizations.ACTION_READ,
+					Authorizations.ENTITY_COMPANY,
 					vehicleManufacturer.getID(),
 					560, "VehicleManufacturerService", "handleGetVehicleManufacturerLogo",
 					req.user);
@@ -326,11 +326,11 @@ class VehicleManufacturerService {
 			detailedMessages: req.query
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canListCompanies(req.user)) {
+		if (!Authorizations.canListCompanies(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_LIST,
-				CentralRestServerAuthorization.ENTITY_COMPANIES,
+				Authorizations.ACTION_LIST,
+				Authorizations.ENTITY_COMPANIES,
 				null,
 				560, "VehicleManufacturerService", "handleGetVehicleManufacturerLogos",
 				req.user);

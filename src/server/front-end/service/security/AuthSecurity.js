@@ -1,5 +1,4 @@
 const sanitize = require('mongo-sanitize');
-const CentralRestServerAuthorization = require('../../CentralRestServerAuthorization');
 const Utils = require('../../../../utils/Utils');
 const Users = require('../../../../utils/Users');
 const UtilsSecurity = require('./UtilsSecurity');

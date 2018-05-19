@@ -1,4 +1,3 @@
-const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
@@ -13,6 +12,7 @@ const Company = require('../../../model/Company');
 const Site = require('../../../model/Site');
 const SiteArea = require('../../../model/SiteArea');
 const SiteAreaSecurity = require('./security/SiteAreaSecurity');
+const Authorizations = require('../../../utils/Authorizations');
 
 class SiteAreaService {
 	static handleCreateSiteArea(action, req, res, next) {
@@ -24,11 +24,11 @@ class SiteAreaService {
 			detailedMessages: req.body
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canCreateSite(req.user)) {
+		if (!Authorizations.canCreateSite(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_CREATE,
-				CentralRestServerAuthorization.ENTITY_SITE_AREA,
+				Authorizations.ACTION_CREATE,
+				Authorizations.ENTITY_SITE_AREA,
 				null,
 				560, "SiteAreaService", "handleCreateSiteArea",
 				req.user);
@@ -111,11 +111,11 @@ class SiteAreaService {
 			detailedMessages: req.query
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canListSiteAreas(req.user)) {
+		if (!Authorizations.canListSiteAreas(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_LIST,
-				CentralRestServerAuthorization.ENTITY_SITE_AREAS,
+				Authorizations.ACTION_LIST,
+				Authorizations.ENTITY_SITE_AREAS,
 				null,
 				560, "SiteAreaService", "handleGetSiteAreas",
 				req.user);
@@ -174,12 +174,12 @@ class SiteAreaService {
 					550, "SiteAreaService", "handleDeleteSiteArea");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canDeleteSiteArea(req.user,
+			if (!Authorizations.canDeleteSiteArea(req.user,
 					{ "id": siteArea.getID() })) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_DELETE,
-					CentralRestServerAuthorization.ENTITY_SITE_AREA,
+					Authorizations.ACTION_DELETE,
+					Authorizations.ENTITY_SITE_AREA,
 					siteArea.getID(),
 					560, "SiteAreaService", "handleDeleteSiteArea",
 					req.user);
@@ -229,11 +229,11 @@ class SiteAreaService {
 					550, "SiteAreaService", "handleDeleteSiteArea");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canReadSiteArea(req.user, siteArea.getModel())) {
+			if (!Authorizations.canReadSiteArea(req.user, siteArea.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_READ,
-					CentralRestServerAuthorization.ENTITY_SITE_AREA,
+					Authorizations.ACTION_READ,
+					Authorizations.ENTITY_SITE_AREA,
 					siteArea.getID(),
 					560, "SiteAreaService", "handleGetSiteAreaImage",
 					req.user);
@@ -276,11 +276,11 @@ class SiteAreaService {
 					550, "SiteAreaService", "handleGetSiteAreaImage");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canReadSiteArea(req.user, siteArea.getModel())) {
+			if (!Authorizations.canReadSiteArea(req.user, siteArea.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_READ,
-					CentralRestServerAuthorization.ENTITY_SITE_AREA,
+					Authorizations.ACTION_READ,
+					Authorizations.ENTITY_SITE_AREA,
 					siteArea.getID(),
 					560, "SiteAreaService", "handleGetSiteAreaImage",
 					req.user);
@@ -316,11 +316,11 @@ class SiteAreaService {
 			detailedMessages: req.query
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canListSiteAreas(req.user)) {
+		if (!Authorizations.canListSiteAreas(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_LIST,
-				CentralRestServerAuthorization.ENTITY_SITE_AREAS,
+				Authorizations.ACTION_LIST,
+				Authorizations.ENTITY_SITE_AREAS,
 				null,
 				560, "SiteAreaService", "handleGetSiteAreaImages",
 				req.user);
@@ -365,11 +365,11 @@ class SiteAreaService {
 			// Check Mandatory fields
 			SiteAreas.checkIfSiteAreaValid(filteredRequest, req);
 			// Check auth
-			if (!CentralRestServerAuthorization.canUpdateSiteArea(req.user, siteArea.getModel())) {
+			if (!Authorizations.canUpdateSiteArea(req.user, siteArea.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_UPDATE,
-					CentralRestServerAuthorization.ENTITY_SITE_AREA,
+					Authorizations.ACTION_UPDATE,
+					Authorizations.ENTITY_SITE_AREA,
 					siteArea.getID(),
 					560, "SiteAreaService", "handleUpdateSiteArea",
 					req.user);

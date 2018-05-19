@@ -2,7 +2,7 @@ const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
-const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
+const Authorizations = require('../../../utils/Authorizations');
 const Vehicles = require('../../../utils/Vehicles');
 const Constants = require('../../../utils/Constants');
 const Utils = require('../../../utils/Utils');
@@ -40,11 +40,11 @@ class VehicleService {
 					550, "VehicleService", "handleDeleteVehicle");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canDeleteVehicle(req.user, vehicle.getModel())) {
+			if (!Authorizations.canDeleteVehicle(req.user, vehicle.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_DELETE,
-					CentralRestServerAuthorization.ENTITY_VEHICLE,
+					Authorizations.ACTION_DELETE,
+					Authorizations.ENTITY_VEHICLE,
 					vehicle.getID(),
 					560, "VehicleService", "handleDeleteVehicle",
 					req.user);
@@ -112,11 +112,11 @@ class VehicleService {
 			detailedMessages: req.query
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canListVehicles(req.user)) {
+		if (!Authorizations.canListVehicles(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_LIST,
-				CentralRestServerAuthorization.ENTITY_VEHICLES,
+				Authorizations.ACTION_LIST,
+				Authorizations.ENTITY_VEHICLES,
 				null,
 				560, "VehicleService", "handleGetVehicles",
 				req.user);
@@ -169,11 +169,11 @@ class VehicleService {
 					550, "VehicleService", "handleGetVehicleImage");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canReadVehicle(req.user, vehicle.getModel())) {
+			if (!Authorizations.canReadVehicle(req.user, vehicle.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_READ,
-					CentralRestServerAuthorization.ENTITY_VEHICLE,
+					Authorizations.ACTION_READ,
+					Authorizations.ENTITY_VEHICLE,
 					vehicle.getID(),
 					560, "VehicleService", "handleGetVehicleImage",
 					req.user);
@@ -209,11 +209,11 @@ class VehicleService {
 			detailedMessages: req.query
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canListVehicles(req.user)) {
+		if (!Authorizations.canListVehicles(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_LIST,
-				CentralRestServerAuthorization.ENTITY_VEHICLES,
+				Authorizations.ACTION_LIST,
+				Authorizations.ENTITY_VEHICLES,
 				null,
 				560, "VehicleService", "handleGetVehicleImages",
 				req.user);
@@ -243,11 +243,11 @@ class VehicleService {
 			detailedMessages: req.body
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canCreateVehicle(req.user)) {
+		if (!Authorizations.canCreateVehicle(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_CREATE,
-				CentralRestServerAuthorization.ENTITY_VEHICLE,
+				Authorizations.ACTION_CREATE,
+				Authorizations.ENTITY_VEHICLE,
 				null,
 				560, "VehicleService", "handleCreateVehicle",
 				req.user);
@@ -313,11 +313,11 @@ class VehicleService {
 			// Check Mandatory fields
 			Vehicles.checkIfVehicleValid(filteredRequest, req);
 			// Check auth
-			if (!CentralRestServerAuthorization.canUpdateVehicle(req.user, vehicle.getModel())) {
+			if (!Authorizations.canUpdateVehicle(req.user, vehicle.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_UPDATE,
-					CentralRestServerAuthorization.ENTITY_VEHICLE,
+					Authorizations.ACTION_UPDATE,
+					Authorizations.ENTITY_VEHICLE,
 					vehicle.getID(),
 					560, "VehicleService", "handleUpdateVehicle",
 					req.user);

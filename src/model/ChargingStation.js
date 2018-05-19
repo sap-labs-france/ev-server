@@ -11,7 +11,7 @@ const Database = require('../utils/Database');
 const moment = require('moment');
 const Configuration = require('../utils/Configuration');
 const NotificationHandler = require('../notification/NotificationHandler');
-const CentralRestServerAuthorization = require('../server/front-end/CentralRestServerAuthorization');
+const Authorizations = require('../utils/Authorizations');
 
 _configAdvanced = Configuration.getAdvancedConfig();
 _configChargingStation = Configuration.getChargingStationConfig();
@@ -1012,11 +1012,11 @@ class ChargingStation {
 				stopTransaction.userID = user.getID();
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canReadTransaction(user.getModel(), transaction)) {
+			if (!Authorizations.canReadTransaction(user.getModel(), transaction)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_UPDATE,
-					CentralRestServerAuthorization.ENTITY_TRANSACTION,
+					Authorizations.ACTION_UPDATE,
+					Authorizations.ENTITY_TRANSACTION,
 					transaction.id,
 					560, "ChargingStation", "handleStopTransaction", user.getModel());
 			}

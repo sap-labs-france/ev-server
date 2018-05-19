@@ -1,4 +1,4 @@
-const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
+const Authorizations = require('../../../utils/Authorizations');
 const Logging = require('../../../utils/Logging');
 const Utils = require('../../../utils/Utils');
 const Database = require('../../../utils/Database');
@@ -13,10 +13,10 @@ class PricingService {
 			message: `Read Pricing`
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canReadPricing(req.user)) {
+		if (!Authorizations.canReadPricing(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				action, CentralRestServerAuthorization.ENTITY_PRICING,
+				action, Authorizations.ENTITY_PRICING,
 				null,
 				560, "PricingService", "handleGetPricing",
 				req.user);
@@ -49,10 +49,10 @@ class PricingService {
 			detailedMessages: req.body
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canUpdatePricing(req.user)) {
+		if (!Authorizations.canUpdatePricing(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				action, CentralRestServerAuthorization.ENTITY_PRICING,
+				action, Authorizations.ENTITY_PRICING,
 				null,
 				560, "PricingService", "handleUpdatePricing",
 				req.user);

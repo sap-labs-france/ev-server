@@ -1,6 +1,5 @@
 const Utils = require('../../../utils/Utils');
 const Logging = require('../../../utils/Logging');
-const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
 const UtilsSecurity = require('./security/UtilsSecurity');
 
 class UtilsService {

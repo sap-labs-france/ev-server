@@ -1,4 +1,4 @@
-const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
+const Authorizations = require('../../../utils/Authorizations');
 const NotificationHandler = require('../../../notification/NotificationHandler');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
@@ -62,11 +62,11 @@ class UserService {
 					550, "UserService", "handleDeleteUser");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canDeleteUser(req.user, user.getModel())) {
+			if (!Authorizations.canDeleteUser(req.user, user.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_DELETE,
-					CentralRestServerAuthorization.ENTITY_USER,
+					Authorizations.ACTION_DELETE,
+					Authorizations.ENTITY_USER,
 					user.getID(),
 					560, "UserService", "handleDeleteUser",
 					req.user);
@@ -140,10 +140,10 @@ class UserService {
 		}).then((passwordHashed) => {
 			newPasswordHashed = passwordHashed;
 			// Check auth
-			if (!CentralRestServerAuthorization.canUpdateUser(req.user, user.getModel())) {
+			if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_UPDATE,
-					CentralRestServerAuthorization.ENTITY_USER,
+					Authorizations.ACTION_UPDATE,
+					Authorizations.ENTITY_USER,
 					user.getID(),
 					560, "UserService", "handleUpdateUser",
 					req.user, user);
@@ -248,11 +248,11 @@ class UserService {
 					550, "UserService", "handleDeleteUser");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
+			if (!Authorizations.canReadUser(req.user, user.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_READ,
-					CentralRestServerAuthorization.ENTITY_USER,
+					Authorizations.ACTION_READ,
+					Authorizations.ENTITY_USER,
 					user.getID(),
 					560, "UserService", "handleGetUser",
 					req.user);
@@ -304,11 +304,11 @@ class UserService {
 					550, "UserService", "handleGetUserImage");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canReadUser(req.user, user.getModel())) {
+			if (!Authorizations.canReadUser(req.user, user.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_READ,
-					CentralRestServerAuthorization.ENTITY_USER,
+					Authorizations.ACTION_READ,
+					Authorizations.ENTITY_USER,
 					user.getID(),
 					560, "UserService", "handleGetUserImage",
 					req.user);
@@ -345,11 +345,11 @@ class UserService {
 			detailedMessages: req.query
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canListUsers(req.user)) {
+		if (!Authorizations.canListUsers(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_LIST,
-				CentralRestServerAuthorization.ENTITY_USERS,
+				Authorizations.ACTION_LIST,
+				Authorizations.ENTITY_USERS,
 				null,
 				560, "UserService", "handleGetUserImages",
 				req.user);
@@ -378,11 +378,11 @@ class UserService {
 			message: `Read All Users`
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canListUsers(req.user)) {
+		if (!Authorizations.canListUsers(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_LIST,
-				CentralRestServerAuthorization.ENTITY_USERS,
+				Authorizations.ACTION_LIST,
+				Authorizations.ENTITY_USERS,
 				null,
 				560, "UserService", "handleGetUsers",
 				req.user);
@@ -417,11 +417,11 @@ class UserService {
 			message: `Create User`
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canCreateUser(req.user)) {
+		if (!Authorizations.canCreateUser(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_CREATE,
-				CentralRestServerAuthorization.ENTITY_USER,
+				Authorizations.ACTION_CREATE,
+				Authorizations.ENTITY_USER,
 				null,
 				560, "UserService", "handleCreateUser",
 				req.user);

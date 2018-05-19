@@ -1,5 +1,5 @@
 const sanitize = require('mongo-sanitize');
-const CentralRestServerAuthorization = require('../../CentralRestServerAuthorization');
+const Authorizations = require('../../../../utils/Authorizations');
 const Utils = require('../../../../utils/Utils');
 
 class UtilsSecurity {
@@ -56,12 +56,12 @@ class UtilsSecurity {
 
 	static filterCreatedAndLastChanged(filteredEntity, entity, loggedUser) {
 		if (entity.createdBy && typeof entity.createdBy == "object" &&
-				CentralRestServerAuthorization.canReadUser(loggedUser, entity.createdBy)) {
+				Authorizations.canReadUser(loggedUser, entity.createdBy)) {
 			// Build user
 			filteredEntity.createdBy = Utils.buildUserFullName(entity.createdBy, false);
 		}
 		if (entity.lastChangedBy && typeof entity.lastChangedBy == "object" &&
-				CentralRestServerAuthorization.canReadUser(loggedUser, entity.lastChangedBy)) {
+				Authorizations.canReadUser(loggedUser, entity.lastChangedBy)) {
 			// Build user
 			filteredEntity.lastChangedBy = Utils.buildUserFullName(entity.lastChangedBy, false);
 		}

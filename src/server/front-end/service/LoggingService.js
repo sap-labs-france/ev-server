@@ -1,4 +1,4 @@
-const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
+const Authorizations = require('../../../utils/Authorizations');
 const Logging = require('../../../utils/Logging');
 const Utils = require('../../../utils/Utils');
 const LoggingSecurity = require('./security/LoggingSecurity');
@@ -7,11 +7,11 @@ const AppAuthError = require('../../../exception/AppAuthError');
 class LoggingService {
 	static handleGetLoggings(action, req, res, next) {
 		// Check auth
-		if (!CentralRestServerAuthorization.canListLogging(req.user)) {
+		if (!Authorizations.canListLogging(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_LIST,
-				CentralRestServerAuthorization.ENTITY_LOGGING,
+				Authorizations.ACTION_LIST,
+				Authorizations.ENTITY_LOGGING,
 				null,
 				560, "LoggingService", "handleGetLoggings",
 				req.user);

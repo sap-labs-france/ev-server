@@ -1,5 +1,5 @@
 const sanitize = require('mongo-sanitize');
-const CentralRestServerAuthorization = require('../../CentralRestServerAuthorization');
+const Authorizations = require('../../../../utils/Authorizations');
 const Utils = require('../../../../utils/Utils');
 const UtilsSecurity = require('./UtilsSecurity');
 
@@ -65,9 +65,9 @@ class VehicleSecurity {
 			return null;
 		}
 		// Check auth
-		if (CentralRestServerAuthorization.canReadVehicle(loggedUser, vehicle)) {
+		if (Authorizations.canReadVehicle(loggedUser, vehicle)) {
 			// Admin?
-			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+			if (Authorizations.isAdmin(loggedUser)) {
 				// Yes: set all params
 				filteredVehicle = vehicle;
 			} else {
@@ -87,7 +87,7 @@ class VehicleSecurity {
 		if (!vehicles) {
 			return null;
 		}
-		if (!CentralRestServerAuthorization.canListVehicles(loggedUser)) {
+		if (!Authorizations.canListVehicles(loggedUser)) {
 			return null;
 		}
 		vehicles.forEach(vehicle => {

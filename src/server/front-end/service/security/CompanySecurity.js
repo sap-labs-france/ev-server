@@ -1,5 +1,5 @@
 const sanitize = require('mongo-sanitize');
-const CentralRestServerAuthorization = require('../../CentralRestServerAuthorization');
+const Authorizations = require('../../../../utils/Authorizations');
 const Utils = require('../../../../utils/Utils');
 const UtilsSecurity = require('./UtilsSecurity');
 
@@ -59,9 +59,9 @@ class CompanySecurity {
 			return null;
 		}
 		// Check auth
-		if (CentralRestServerAuthorization.canReadCompany(loggedUser, company)) {
+		if (Authorizations.canReadCompany(loggedUser, company)) {
 			// Admin?
-			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+			if (Authorizations.isAdmin(loggedUser)) {
 				// Yes: set all params
 				filteredCompany = company;
 			} else {
@@ -91,7 +91,7 @@ class CompanySecurity {
 		if (!companies) {
 			return null;
 		}
-		if (!CentralRestServerAuthorization.canListCompanies(loggedUser)) {
+		if (!Authorizations.canListCompanies(loggedUser)) {
 			return null;
 		}
 		companies.forEach(company => {

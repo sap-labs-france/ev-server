@@ -1,6 +1,6 @@
 const ChargingStation = require('../../model/ChargingStation');
 const CentralRestServerAuthentication = require('./CentralRestServerAuthentication');
-const CentralRestServerAuthorization = require('./CentralRestServerAuthorization');
+const Authorizations = require('../../utils/Authorizations');
 const CentralRestServerService = require('./CentralRestServerService');
 const Utils = require('../../utils/Utils');
 const Configuration = require('../../utils/Configuration');
@@ -147,328 +147,328 @@ class CentralSystemRestServer {
 	notifyUserUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_USER,
-			"action": CentralRestServerAuthorization.ACTION_UPDATE,
+			"entity": Authorizations.ENTITY_USER,
+			"action": Authorizations.ACTION_UPDATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_USERS
+			"entity": Authorizations.ENTITY_USERS
 		});
 	}
 
 	notifyUserCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_USER,
-			"action": CentralRestServerAuthorization.ACTION_CREATE,
+			"entity": Authorizations.ENTITY_USER,
+			"action": Authorizations.ACTION_CREATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_USERS
+			"entity": Authorizations.ENTITY_USERS
 		});
 	}
 
 	notifyUserDeleted(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_USER,
-			"action": CentralRestServerAuthorization.ACTION_DELETE,
+			"entity": Authorizations.ENTITY_USER,
+			"action": Authorizations.ACTION_DELETE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_USERS
+			"entity": Authorizations.ENTITY_USERS
 		});
 	}
 
 	notifyVehicleCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_VEHICLE,
-			"action": CentralRestServerAuthorization.ACTION_CREATE,
+			"entity": Authorizations.ENTITY_VEHICLE,
+			"action": Authorizations.ACTION_CREATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_VEHICLES
+			"entity": Authorizations.ENTITY_VEHICLES
 		});
 	}
 
 	notifyVehicleUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_VEHICLE,
-			"action": CentralRestServerAuthorization.ACTION_UPDATE,
+			"entity": Authorizations.ENTITY_VEHICLE,
+			"action": Authorizations.ACTION_UPDATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_VEHICLES
+			"entity": Authorizations.ENTITY_VEHICLES
 		});
 	}
 
 	notifyVehicleDeleted(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_VEHICLE,
-			"action": CentralRestServerAuthorization.ACTION_DELETE,
+			"entity": Authorizations.ENTITY_VEHICLE,
+			"action": Authorizations.ACTION_DELETE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_VEHICLES
+			"entity": Authorizations.ENTITY_VEHICLES
 		});
 	}
 
 	notifyVehicleManufacturerCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_VEHICLE_MANUFACTURER,
-			"action": CentralRestServerAuthorization.ACTION_CREATE,
+			"entity": Authorizations.ENTITY_VEHICLE_MANUFACTURER,
+			"action": Authorizations.ACTION_CREATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_VEHICLE_MANUFACTURERS
+			"entity": Authorizations.ENTITY_VEHICLE_MANUFACTURERS
 		});
 	}
 
 	notifyVehicleManufacturerUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_VEHICLE_MANUFACTURER,
-			"action": CentralRestServerAuthorization.ACTION_UPDATE,
+			"entity": Authorizations.ENTITY_VEHICLE_MANUFACTURER,
+			"action": Authorizations.ACTION_UPDATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_VEHICLE_MANUFACTURERS
+			"entity": Authorizations.ENTITY_VEHICLE_MANUFACTURERS
 		});
 	}
 
 	notifyVehicleManufacturerDeleted(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_VEHICLE_MANUFACTURER,
-			"action": CentralRestServerAuthorization.ACTION_DELETE,
+			"entity": Authorizations.ENTITY_VEHICLE_MANUFACTURER,
+			"action": Authorizations.ACTION_DELETE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_VEHICLE_MANUFACTURERS
+			"entity": Authorizations.ENTITY_VEHICLE_MANUFACTURERS
 		});
 	}
 
 	notifySiteCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_SITE,
-			"action": CentralRestServerAuthorization.ACTION_CREATE,
+			"entity": Authorizations.ENTITY_SITE,
+			"action": Authorizations.ACTION_CREATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_SITES
+			"entity": Authorizations.ENTITY_SITES
 		});
 	}
 
 	notifySiteUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_SITE,
-			"action": CentralRestServerAuthorization.ACTION_UPDATE,
+			"entity": Authorizations.ENTITY_SITE,
+			"action": Authorizations.ACTION_UPDATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_SITES
+			"entity": Authorizations.ENTITY_SITES
 		});
 	}
 
 	notifySiteDeleted(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_SITE,
-			"action": CentralRestServerAuthorization.ACTION_DELETE,
+			"entity": Authorizations.ENTITY_SITE,
+			"action": Authorizations.ACTION_DELETE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_SITES
+			"entity": Authorizations.ENTITY_SITES
 		});
 	}
 
 	notifySiteAreaCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_SITE_AREA,
-			"action": CentralRestServerAuthorization.ACTION_CREATE,
+			"entity": Authorizations.ENTITY_SITE_AREA,
+			"action": Authorizations.ACTION_CREATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_SITE_AREAS
+			"entity": Authorizations.ENTITY_SITE_AREAS
 		});
 	}
 
 	notifySiteAreaUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_SITE_AREA,
-			"action": CentralRestServerAuthorization.ACTION_UPDATE,
+			"entity": Authorizations.ENTITY_SITE_AREA,
+			"action": Authorizations.ACTION_UPDATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_SITE_AREAS
+			"entity": Authorizations.ENTITY_SITE_AREAS
 		});
 	}
 
 	notifySiteAreaDeleted(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_SITE_AREA,
-			"action": CentralRestServerAuthorization.ACTION_DELETE,
+			"entity": Authorizations.ENTITY_SITE_AREA,
+			"action": Authorizations.ACTION_DELETE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_SITE_AREAS
+			"entity": Authorizations.ENTITY_SITE_AREAS
 		});
 	}
 
 	notifyCompanyCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_COMPANY,
-			"action": CentralRestServerAuthorization.ACTION_CREATE,
+			"entity": Authorizations.ENTITY_COMPANY,
+			"action": Authorizations.ACTION_CREATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_COMPANIES
+			"entity": Authorizations.ENTITY_COMPANIES
 		});
 	}
 
 	notifyCompanyUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_COMPANY,
-			"action": CentralRestServerAuthorization.ACTION_UPDATE,
+			"entity": Authorizations.ENTITY_COMPANY,
+			"action": Authorizations.ACTION_UPDATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_COMPANIES
+			"entity": Authorizations.ENTITY_COMPANIES
 		});
 	}
 
 	notifyCompanyDeleted(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_COMPANY,
-			"action": CentralRestServerAuthorization.ACTION_DELETE,
+			"entity": Authorizations.ENTITY_COMPANY,
+			"action": Authorizations.ACTION_DELETE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_COMPANIES
+			"entity": Authorizations.ENTITY_COMPANIES
 		});
 	}
 
 	notifyTransactionUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_TRANSACTION,
-			"action": CentralRestServerAuthorization.ACTION_UPDATE,
+			"entity": Authorizations.ENTITY_TRANSACTION,
+			"action": Authorizations.ACTION_UPDATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_TRANSACTIONS
+			"entity": Authorizations.ENTITY_TRANSACTIONS
 		});
 	}
 
 	notifyTransactionCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_TRANSACTION,
-			"action": CentralRestServerAuthorization.ACTION_CREATE,
+			"entity": Authorizations.ENTITY_TRANSACTION,
+			"action": Authorizations.ACTION_CREATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_TRANSACTIONS
+			"entity": Authorizations.ENTITY_TRANSACTIONS
 		});
 	}
 
 	notifyTransactionDeleted(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_TRANSACTION,
-			"action": CentralRestServerAuthorization.ACTION_DELETE,
+			"entity": Authorizations.ENTITY_TRANSACTION,
+			"action": Authorizations.ACTION_DELETE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_TRANSACTIONS
+			"entity": Authorizations.ENTITY_TRANSACTIONS
 		});
 	}
 
 	notifyChargingStationUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
-			"action": CentralRestServerAuthorization.ACTION_UPDATE,
+			"entity": Authorizations.ENTITY_CHARGING_STATION,
+			"action": Authorizations.ACTION_UPDATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS
+			"entity": Authorizations.ENTITY_CHARGING_STATIONS
 		});
 	}
 
 	notifyChargingStationCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
-			"action": CentralRestServerAuthorization.ACTION_CREATE,
+			"entity": Authorizations.ENTITY_CHARGING_STATION,
+			"action": Authorizations.ACTION_CREATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS
+			"entity": Authorizations.ENTITY_CHARGING_STATIONS
 		});
 	}
 
 	notifyChargingStationDeleted(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_CHARGING_STATION,
-			"action": CentralRestServerAuthorization.ACTION_DELETE,
+			"entity": Authorizations.ENTITY_CHARGING_STATION,
+			"action": Authorizations.ACTION_DELETE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_CHARGING_STATIONS
+			"entity": Authorizations.ENTITY_CHARGING_STATIONS
 		});
 	}
 
 	notifyLoggingCreated() {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_LOGGING,
-			"action": CentralRestServerAuthorization.ACTION_CREATE,
+			"entity": Authorizations.ENTITY_LOGGING,
+			"action": Authorizations.ACTION_CREATE,
 		});
 	}
 
 	notifyLoggingDeleted() {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": CentralRestServerAuthorization.ENTITY_LOGGING,
-			"action": CentralRestServerAuthorization.ACTION_DELETE,
+			"entity": Authorizations.ENTITY_LOGGING,
+			"action": Authorizations.ACTION_DELETE,
 		});
 	}
 

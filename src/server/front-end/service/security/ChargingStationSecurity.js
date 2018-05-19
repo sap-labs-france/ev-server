@@ -1,5 +1,5 @@
 const sanitize = require('mongo-sanitize');
-const CentralRestServerAuthorization = require('../../CentralRestServerAuthorization');
+const Authorizations = require('../../../../utils/Authorizations');
 const Utils = require('../../../../utils/Utils');
 const UtilsSecurity = require('./UtilsSecurity');
 let SiteAreaSecurity; // Avoid circular deps
@@ -20,9 +20,9 @@ class ChargingStationSecurity {
 			return null;
 		}
 		// Check auth
-		if (CentralRestServerAuthorization.canReadChargingStation(loggedUser, chargingStation)) {
+		if (Authorizations.canReadChargingStation(loggedUser, chargingStation)) {
 			// Admin?
-			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+			if (Authorizations.isAdmin(loggedUser)) {
 				// Yes: set all params
 				filteredChargingStation = chargingStation;
 			} else {
@@ -46,7 +46,7 @@ class ChargingStationSecurity {
 		if (!chargingStations) {
 			return null;
 		}
-		if (!CentralRestServerAuthorization.canListChargingStations(loggedUser)) {
+		if (!Authorizations.canListChargingStations(loggedUser)) {
 			return null;
 		}
 		chargingStations.forEach(chargingStation => {

@@ -2,7 +2,7 @@ const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
-const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
+const Authorizations = require('../../../utils/Authorizations');
 const Companies = require('../../../utils/Companies');
 const Sites = require('../../../utils/Sites');
 const SiteAreas = require('../../../utils/SiteAreas');
@@ -45,11 +45,11 @@ class SiteService {
 					550, "SiteService", "handleDeleteSite");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canDeleteSite(req.user, site.getModel())) {
+			if (!Authorizations.canDeleteSite(req.user, site.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_DELETE,
-					CentralRestServerAuthorization.ENTITY_SITE,
+					Authorizations.ACTION_DELETE,
+					Authorizations.ENTITY_SITE,
 					site.getID(),
 					560, "SiteService", "handleDeleteSite",
 					req.user);
@@ -117,11 +117,11 @@ class SiteService {
 			detailedMessages: req.query
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canListSites(req.user)) {
+		if (!Authorizations.canListSites(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_LIST,
-				CentralRestServerAuthorization.ENTITY_SITES,
+				Authorizations.ACTION_LIST,
+				Authorizations.ENTITY_SITES,
 				null,
 				560, "SiteService", "handleGetSites",
 				req.user);
@@ -176,11 +176,11 @@ class SiteService {
 					550, "SiteService", "handleGetSite");
 			}
 			// Check auth
-			if (!CentralRestServerAuthorization.canReadSite(req.user, site.getModel())) {
+			if (!Authorizations.canReadSite(req.user, site.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_READ,
-					CentralRestServerAuthorization.ENTITY_SITE,
+					Authorizations.ACTION_READ,
+					Authorizations.ENTITY_SITE,
 					site.getID(),
 					560, "SiteService", "handleGetSiteImage",
 					req.user);
@@ -216,11 +216,11 @@ class SiteService {
 			detailedMessages: req.query
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canListSites(req.user)) {
+		if (!Authorizations.canListSites(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_LIST,
-				CentralRestServerAuthorization.ENTITY_SITES,
+				Authorizations.ACTION_LIST,
+				Authorizations.ENTITY_SITES,
 				null,
 				560, "SiteService", "handleGetSiteImages",
 				req.user);
@@ -250,11 +250,11 @@ class SiteService {
 			detailedMessages: req.body
 		});
 		// Check auth
-		if (!CentralRestServerAuthorization.canCreateSite(req.user)) {
+		if (!Authorizations.canCreateSite(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				CentralRestServerAuthorization.ACTION_CREATE,
-				CentralRestServerAuthorization.ENTITY_SITE,
+				Authorizations.ACTION_CREATE,
+				Authorizations.ENTITY_SITE,
 				null,
 				560, "SiteService", "handleCreateSite",
 				req.user);
@@ -345,11 +345,11 @@ class SiteService {
 			// Check Mandatory fields
 			Sites.checkIfSiteValid(filteredRequest, req);
 			// Check auth
-			if (!CentralRestServerAuthorization.canUpdateSite(req.user, site.getModel())) {
+			if (!Authorizations.canUpdateSite(req.user, site.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					CentralRestServerAuthorization.ACTION_UPDATE,
-					CentralRestServerAuthorization.ENTITY_SITE,
+					Authorizations.ACTION_UPDATE,
+					Authorizations.ENTITY_SITE,
 					site.getID(),
 					560, "SiteService", "handleUpdateSite",
 					req.user);

@@ -1,5 +1,5 @@
 const sanitize = require('mongo-sanitize');
-const CentralRestServerAuthorization = require('../../CentralRestServerAuthorization');
+const Authorizations = require('../../../../utils/Authorizations');
 const Utils = require('../../../../utils/Utils');
 const UtilsSecurity = require('./UtilsSecurity');
 
@@ -78,7 +78,7 @@ class SiteSecurity {
 			});
 			filteredRequest.userIDs = request.userIDs.filter((userID) => {
 				// Check auth
-				if (CentralRestServerAuthorization.canReadUser(loggedUser, {id: userID})) {
+				if (Authorizations.canReadUser(loggedUser, {id: userID})) {
 					return true;
 				}
 				return false;
@@ -95,9 +95,9 @@ class SiteSecurity {
 			return null;
 		}
 		// Check auth
-		if (CentralRestServerAuthorization.canReadSite(loggedUser, site)) {
+		if (Authorizations.canReadSite(loggedUser, site)) {
 			// Admin?
-			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+			if (Authorizations.isAdmin(loggedUser)) {
 				// Yes: set all params
 				filteredSite = site;
 			} else {
@@ -135,7 +135,7 @@ class SiteSecurity {
 		if (!sites) {
 			return null;
 		}
-		if (!CentralRestServerAuthorization.canListSites(loggedUser)) {
+		if (!Authorizations.canListSites(loggedUser)) {
 			return null;
 		}
 		sites.forEach(site => {

@@ -1,5 +1,5 @@
 const sanitize = require('mongo-sanitize');
-const CentralRestServerAuthorization = require('../../CentralRestServerAuthorization');
+const Authorizations = require('../../../../utils/Authorizations');
 const Utils = require('../../../../utils/Utils');
 const UtilsSecurity = require('./UtilsSecurity');
 let SiteSecurity; // Avoid circular deps
@@ -68,9 +68,9 @@ class SiteAreaSecurity {
 			return null;
 		}
 		// Check auth
-		if (CentralRestServerAuthorization.canReadSiteArea(loggedUser, siteArea)) {
+		if (Authorizations.canReadSiteArea(loggedUser, siteArea)) {
 			// Admin?
-			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+			if (Authorizations.isAdmin(loggedUser)) {
 				// Yes: set all params
 				filteredSiteArea = siteArea;
 			} else {
@@ -101,7 +101,7 @@ class SiteAreaSecurity {
 		if (!siteAreas) {
 			return null;
 		}
-		if (!CentralRestServerAuthorization.canListSiteAreas(loggedUser)) {
+		if (!Authorizations.canListSiteAreas(loggedUser)) {
 			return null;
 		}
 		siteAreas.forEach(siteArea => {

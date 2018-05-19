@@ -1,5 +1,5 @@
 const sanitize = require('mongo-sanitize');
-const CentralRestServerAuthorization = require('../../CentralRestServerAuthorization');
+const Authorizations = require('../../../../utils/Authorizations');
 const Utils = require('../../../../utils/Utils');
 const UtilsSecurity = require('./UtilsSecurity');
 
@@ -53,7 +53,7 @@ class UserSecurity {
 		}
 		filteredRequest.phone = sanitize(request.phone);
 		// Admin?
-		if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+		if (Authorizations.isAdmin(loggedUser)) {
 			// Ok to set the role
 			filteredRequest.role = sanitize(request.role);
 			filteredRequest.status = sanitize(request.status);
@@ -70,9 +70,9 @@ class UserSecurity {
 			return null;
 		}
 		// Check auth
-		if (CentralRestServerAuthorization.canReadUser(loggedUser, user)) {
+		if (Authorizations.canReadUser(loggedUser, user)) {
 			// Admin?
-			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+			if (Authorizations.isAdmin(loggedUser)) {
 				filteredUser.id = user.id;
 				filteredUser.name = user.name;
 				filteredUser.firstName = user.firstName;
@@ -115,9 +115,9 @@ class UserSecurity {
 			return null;
 		}
 		// Check auth
-		if (CentralRestServerAuthorization.canReadUser(loggedUser, user)) {
+		if (Authorizations.canReadUser(loggedUser, user)) {
 			// Admin?
-			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+			if (Authorizations.isAdmin(loggedUser)) {
 				filteredUser.id = user.id;
 				filteredUser.name = user.name;
 				filteredUser.firstName = user.firstName;

@@ -1,4 +1,4 @@
-const CentralRestServerAuthorization = require('../CentralRestServerAuthorization');
+const Authorizations = require('../../../utils/Authorizations');
 const Logging = require('../../../utils/Logging');
 const Utils = require('../../../utils/Utils');
 const moment = require('moment');
@@ -31,7 +31,7 @@ class StatisticService {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				// Check user
-				if (!CentralRestServerAuthorization.canReadTransaction(req.user, transaction)) {
+				if (!Authorizations.canReadTransaction(req.user, transaction)) {
 					return false;
 				}
 				return true;
@@ -104,7 +104,7 @@ class StatisticService {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				// Check user
-				if (!CentralRestServerAuthorization.canReadTransaction(req.user, transaction)) {
+				if (!Authorizations.canReadTransaction(req.user, transaction)) {
 					return false;
 				}
 				return true;
@@ -174,7 +174,7 @@ class StatisticService {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				// Check user
-				if (!CentralRestServerAuthorization.canReadTransaction(req.user, transaction)) {
+				if (!Authorizations.canReadTransaction(req.user, transaction)) {
 					return false;
 				}
 				return true;
@@ -245,7 +245,7 @@ class StatisticService {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				// Check user
-				if (!CentralRestServerAuthorization.canReadTransaction(req.user, transaction)) {
+				if (!Authorizations.canReadTransaction(req.user, transaction)) {
 					return false;
 				}
 				return true;

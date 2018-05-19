@@ -1,5 +1,5 @@
 const sanitize = require('mongo-sanitize');
-const CentralRestServerAuthorization = require('../../CentralRestServerAuthorization');
+const Authorizations = require('../../../../utils/Authorizations');
 const Utils = require('../../../../utils/Utils');
 const Users = require('../../../../utils/Users');
 const UtilsSecurity = require('./UtilsSecurity');
@@ -55,7 +55,7 @@ class TransactionSecurity {
 			return null;
 		}
 		// Check auth
-		if (CentralRestServerAuthorization.canReadTransaction(loggedUser, transaction)) {
+		if (Authorizations.canReadTransaction(loggedUser, transaction)) {
 			// Set only necessary info
 			filteredTransaction = {};
 			filteredTransaction.id = transaction.id;
@@ -73,7 +73,7 @@ class TransactionSecurity {
 				filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
 				filteredTransaction.stop.totalInactivitySecs = transaction.stop.totalInactivitySecs;
 				// Admin?
-				if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+				if (Authorizations.isAdmin(loggedUser)) {
 					filteredTransaction.stop.price = transaction.stop.price;
 					filteredTransaction.stop.priceUnit = transaction.stop.priceUnit;
 				}
@@ -102,7 +102,7 @@ class TransactionSecurity {
 		if (!transactions) {
 			return null;
 		}
-		if (!CentralRestServerAuthorization.canListTransactions(loggedUser)) {
+		if (!Authorizations.canListTransactions(loggedUser)) {
 			return null;
 		}
 		transactions.forEach(transaction => {
@@ -124,9 +124,9 @@ class TransactionSecurity {
 			return null;
 		}
 		// Check auth
-		if (CentralRestServerAuthorization.canReadUser(loggedUser, user)) {
+		if (Authorizations.canReadUser(loggedUser, user)) {
 			// Demo user?
-			if (CentralRestServerAuthorization.isDemo(loggedUser)) {
+			if (Authorizations.isDemo(loggedUser)) {
 				userID.id = null;
 				userID.name = Users.ANONIMIZED_VALUE;
 				userID.firstName = Users.ANONIMIZED_VALUE;
@@ -165,11 +165,11 @@ class TransactionSecurity {
 			return null;
 		}
 		// Check
-		if (CentralRestServerAuthorization.canReadChargingStation(loggedUser, {"id" : consumption.chargeBoxID})) {
+		if (Authorizations.canReadChargingStation(loggedUser, {"id" : consumption.chargeBoxID})) {
 			filteredConsumption.chargeBoxID = consumption.chargeBoxID;
 			filteredConsumption.connectorId = consumption.connectorId;
 			// Admin?
-			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+			if (Authorizations.isAdmin(loggedUser)) {
 				filteredConsumption.priceUnit = consumption.priceUnit;
 				filteredConsumption.totalPrice = consumption.totalPrice;
 			}
@@ -177,11 +177,11 @@ class TransactionSecurity {
 			filteredConsumption.transactionId = consumption.transactionId;
 			// Check user
 			if (consumption.user) {
-				if (!CentralRestServerAuthorization.canReadUser(loggedUser, consumption.user)) {
+				if (!Authorizations.canReadUser(loggedUser, consumption.user)) {
 					return null;
 				}
 			} else {
-				if (!CentralRestServerAuthorization.isAdmin(loggedUser)) {
+				if (!Authorizations.isAdmin(loggedUser)) {
 					return null;
 				}
 			}
@@ -189,7 +189,7 @@ class TransactionSecurity {
 			filteredConsumption.user = TransactionSecurity._filterUserInTransactionResponse(
 				consumption.user, loggedUser);
 			// Admin?
-			if (CentralRestServerAuthorization.isAdmin(loggedUser)) {
+			if (Authorizations.isAdmin(loggedUser)) {
 				// Set them all
 				filteredConsumption.values = consumption.values;
 			} else {
