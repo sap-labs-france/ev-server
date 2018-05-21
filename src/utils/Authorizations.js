@@ -1,6 +1,8 @@
 const Logging = require('./Logging');
 const Configuration = require('./Configuration');
 const Authorization = require('node-authorization').Authorization;
+const Mustache = require('mustache');
+const compileProfile = require('node-authorization').profileCompiler;
 require('source-map-support').install();
 
 let _configuration;
@@ -52,14 +54,89 @@ module.exports = {
 			chargingStations = [],
 			users = [];
 
-		// Admin?
-		if (user.getRole() == this.ROLE_ADMIN) {
-			// Nothing to get
-			return Promise.resolve([]);
-		} else {
-			// Get sites
-			return user.getSites();
-		}
+		// Get sites
+		return user.getSites().then((foundSites) => {
+			sites = foundSites;
+			if (sites.length == 0) {
+				return Promise.resolve([]);
+			}
+			// Get all the companies
+			let proms = [];
+			sites.forEach((site) => {
+				proms.push(site.getCompany());
+			});
+			return Promise.all(proms);
+		}).then((foundCompanyProms) => {
+			// Merge results
+			foundCompanyProms.forEach((foundCompanyProm) => {
+				companies.push(foundCompanyProm);
+			});
+			// Get all the site areas
+			let proms = [];
+			sites.forEach((site) => {
+				proms.push(site.getSiteAreas());
+			})
+			return Promise.all(proms);
+		}).then((foundSiteAreasProms) => {
+			// Merge results
+			foundSiteAreasProms.forEach((foundSiteAreasProm) => {
+				siteAreas = siteAreas.concat(foundSiteAreasProm);
+			});
+			if (siteAreas.length == 0) {
+				return Promise.resolve([]);
+			}
+			// Get all the charging stations
+			let proms = [];
+			siteAreas.forEach((siteArea) => {
+				proms.push(siteArea.getChargingStations());
+			})
+			return Promise.all(proms);
+		}).then((foundChargingStationsProms) => {
+			// Merge results
+			foundChargingStationsProms.forEach((foundChargingStationsProm) => {
+				chargingStations = chargingStations.concat(foundChargingStationsProm);
+			});
+			// Convert to IDs
+			let companyIDs = companies.map((company) => {
+				return company.getID();
+			});
+			let siteIDs = sites.map((site) => {
+				return site.getID();
+			});
+			let siteAreaIDs = siteAreas.map((siteArea) => {
+				return siteArea.getID();
+			});
+			let chargingStationIDs = chargingStations.map((chargingStation) => {
+				return chargingStation.getID();
+			});
+			// Get authorisation
+			let authsDefinition = this.getAuthorizations();
+			// Add user
+			users.push(user.getID());
+			// Parse the auth and replace values
+			let authsDefinitionParsed = Mustache.render(
+				authsDefinition,
+				{
+					"userID": users,
+					"companyID": companyIDs,
+					"siteID": siteIDs,
+					"siteAreaID": siteAreaIDs,
+					"chargingStationID": chargingStationIDs,
+					"trim": () => {
+						return (text, render) => {
+							// trim trailing comma and whitespace
+							return render(text).replace(/(,\s*$)/g, '');
+						}
+					}
+				}
+			);
+			let userAuthDefinition = this.getAuthorizationFromRoleID(
+				JSON.parse(authsDefinitionParsed), user.getRole());
+			// Compile auths of the role
+			let compiledAuths = compileProfile(userAuthDefinition.auths);
+			// Return
+			return compiledAuths;
+		});
 	},
 
 	// Read the config file

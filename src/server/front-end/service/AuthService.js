@@ -397,13 +397,12 @@ class AuthService {
 		Users.checkPasswordBCrypt(filteredRequest.password, user.getPassword()).then((match) => {
 			// Check new and old version of hashing the password
 			if (match || (user.getPassword() === Users.hashPassword(filteredRequest.password))) {
-				// Password OK
-				let companies = [],
-					sites,
-					siteAreas = [],
-					chargingStations = [],
-					users = [];
-				// Read Eula
+				// Password / Login OK
+				Logging.logSecurityInfo({
+					user: user.getModel(),
+					module: "AuthService", method: "checkUserLogin",
+					action: action, message: `User logged in successfully`});
+				// Get EULA
 				global.storage.getEndUserLicenseAgreement(user.getLanguage()).then((endUserLicenseAgreement) => {
 					// Set Eula Info on Login Only
 					if (action == "Login") {
@@ -416,108 +415,19 @@ class AuthService {
 					// Save
 					return user.save();
 				}).then(() => {
-					// Admin?
-					if (user.getRole() == Authorizations.ROLE_ADMIN) {
-						// Nothing to get
-						return Promise.resolve([]);
-					} else {
-						// Get sites
-						return user.getSites();
-					}
-				}).then((foundSites) => {
-					sites = foundSites;
-					if (sites.length == 0) {
-						return Promise.resolve([]);
-					}
-					// Get all the companies
-					let proms = [];
-					sites.forEach((site) => {
-						proms.push(site.getCompany());
-					});
-					return Promise.all(proms);
-				}).then((foundCompanyProms) => {
-					// Merge results
-					foundCompanyProms.forEach((foundCompanyProm) => {
-						companies.push(foundCompanyProm);
-					});
-					// Get all the site areas
-					let proms = [];
-					sites.forEach((site) => {
-						proms.push(site.getSiteAreas());
-					})
-					return Promise.all(proms);
-				}).then((foundSiteAreasProms) => {
-					// Merge results
-					foundSiteAreasProms.forEach((foundSiteAreasProm) => {
-						siteAreas = siteAreas.concat(foundSiteAreasProm);
-					});
-					if (siteAreas.length == 0) {
-						return Promise.resolve([]);
-					}
-					// Get all the charging stations
-					let proms = [];
-					siteAreas.forEach((siteArea) => {
-						proms.push(siteArea.getChargingStations());
-					})
-					return Promise.all(proms);
-				}).then((foundChargingStationsProms) => {
-					// Merge results
-					foundChargingStationsProms.forEach((foundChargingStationsProm) => {
-						chargingStations = chargingStations.concat(foundChargingStationsProm);
-					});
-					// Convert to IDs
-					let companyIDs = companies.map((company) => {
-						return company.getID();
-					});
-					let siteIDs = sites.map((site) => {
-						return site.getID();
-					});
-					let siteAreaIDs = siteAreas.map((siteArea) => {
-						return siteArea.getID();
-					});
-					let chargingStationIDs = chargingStations.map((chargingStation) => {
-						return chargingStation.getID();
-					});
-					// Log it
-					Logging.logSecurityInfo({
-						user: user.getModel(),
-						module: "AuthService", method: "checkUserLogin",
-						action: action, message: `User logged in successfully`});
-					// Get authorisation
-					let authsDefinition = Authorizations.getAuthorizations();
-					// Add user
-					users.push(user.getID());
-					// Parse the auth and replace values
-					let authsDefinitionParsed = Mustache.render(
-						authsDefinition,
-						{
-							"userID": users,
-							"companyID": companyIDs,
-							"siteID": siteIDs,
-							"siteAreaID": siteAreaIDs,
-							"chargingStationID": chargingStationIDs,
-							"trim": () => {
-								return (text, render) => {
-									// trim trailing comma and whitespace
-									return render(text).replace(/(,\s*$)/g, '');
-								}
-							}
-						}
-					);
-					let userAuthDefinition = Authorizations.getAuthorizationFromRoleID(
-						JSON.parse(authsDefinitionParsed), user.getRole());
-					// Compile auths of the role
-					let compiledAuths = compileProfile(userAuthDefinition.auths);
+					// Build Authorization
+					return Authorizations.buildAuthorizations(user);
+				}).then((auths) => {
 					// Yes: build payload
 					let payload = {
-						id: user.getID(),
-						role: user.getRole(),
-						name: user.getName(),
-						tagIDs: user.getTagIDs(),
-						firstName: user.getFirstName(),
-						locale: user.getLocale(),
-						language: user.getLanguage(),
-						auths: compiledAuths
+						"id": user.getID(),
+						"role": user.getRole(),
+						"name": user.getName(),
+						"tagIDs": user.getTagIDs(),
+						"firstName": user.getFirstName(),
+						"locale": user.getLocale(),
+						"language": user.getLanguage(),
+						"auths": auths
 					};
 					// Build token
 					let token;
