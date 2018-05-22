@@ -768,7 +768,7 @@ class ChargingStation {
 
 		// Execute
 		return Authorizations.checkIfUserIsAuthorizedForChargingStation(
-				"Authorize", this, authorize.idTag).then(() => {
+				Authorizations.ACTION_AUTHORIZE, this, authorize.idTag).then(() => {
 			// Save
 			return global.storage.saveAuthorize(authorize);
 		})
@@ -830,27 +830,12 @@ class ChargingStation {
 			}
 			// Check user and save
 			return Authorizations.checkIfUserIsAuthorizedForChargingStation(
-				"StartTransaction", this, transaction.idTag);
+				Authorizations.ACTION_START_TRANSACTION, this, transaction.idTag);
 		}).then((foundUsers) => {
 			// Set
 			users = foundUsers;
 			// Set current user
 			user = (users.alternateUser ? users.alternateUser : users.user);
-			// Check function
-			return Authorizations.buildAuthorizations(user);
-		}).then((auths) => {
-			// Set
-			user.setAuthorisations(auths);
-			// Check
-			if (!Authorizations.canStartTransaction(user, this)) {
-				// Not Authorized!
-				throw new AppAuthError(
-					Authorizations.ACTION_READ,
-					Authorizations.ENTITY_CHARGING_STATION,
-					this.getID(),
-					560, "ChargingStation", "handleStartTransaction",
-					user.getModel());
-			}
 			// Set the user
 			transaction.userID = user.getID();
 			// Notify
@@ -875,7 +860,7 @@ class ChargingStation {
 		}).then((savedTransaction) => {
 			newTransaction = savedTransaction;
 			// Set the user
-			newTransaction.user = user;
+			newTransaction.user = user.getModel();
 			// Update Consumption
 			return this.updateChargingStationConsumption(transaction.id);
 		}).then(() => {
@@ -903,27 +888,12 @@ class ChargingStation {
 			stopTransaction.tagID = stopTransaction.idTag;
 			// Check User
 			return Authorizations.checkIfUserIsAuthorizedForChargingStation(
-				"StopTransaction", this, transaction.tagID, stopTransaction.tagID);
+				Authorizations.ACTION_STOP_TRANSACTION, this, transaction.tagID, stopTransaction.tagID);
 		}).then((foundUsers) => {
 			// Set
 			users = foundUsers;
 			// Set current user
 			user = (users.alternateUser ? users.alternateUser : users.user);
-			// Check function
-			return Authorizations.buildAuthorizations(user);
-		}).then((auths) => {
-			// Set Auths
-			user.setAuthorisations(auths);
-			// Check
-			if (!Authorizations.canStopTransaction(user, this)) {
-				// Not Authorized!
-				throw new AppAuthError(
-					Authorizations.ACTION_READ,
-					Authorizations.ENTITY_CHARGING_STATION,
-					this.getID(),
-					560, "ChargingStation", "handleStopTransaction",
-					user.getModel());
-			}
 			// Set the User ID
 			stopTransaction.userID = user.getID();
 			// Init the charging station

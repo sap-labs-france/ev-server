@@ -47,6 +47,25 @@ module.exports = {
 
 	ANONIMIZED_VALUE: "####",
 
+	getStatusDescription(status) {
+		switch (status) {
+			case this.USER_STATUS_PENDING:
+				return "Pending";
+			case this.USER_STATUS_LOCKED:
+				return "Locked";
+			case this.USER_STATUS_BLOCKED:
+				return "Blocked";
+			case this.USER_STATUS_ACTIVE:
+				return "Active";
+			case this.USER_STATUS_DELETED:
+				return "Deleted";
+			case this.USER_STATUS_INACTIVE:
+				return "Inactive";
+			default:
+				return "Unknown";
+		}
+	},
+
 	isPasswordStrongEnough(password) {
 		var uc = password.match(this.PWD_UPPERCASE_RE);
 		var lc = password.match(this.PWD_LOWERCASE_RE);

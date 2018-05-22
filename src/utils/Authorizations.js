@@ -44,6 +44,7 @@ module.exports = {
 	ACTION_LOGOUT: "Logout",
 	ACTION_LIST: "List",
 	ACTION_RESET: "Reset",
+	ACTION_AUTHORIZE: "Authorize",
 	ACTION_CLEAR_CACHE: "ClearCache",
 	ACTION_STOP_TRANSACTION: "StopTransaction",
 	ACTION_START_TRANSACTION: "StartTransaction",
@@ -216,7 +217,7 @@ module.exports = {
 				return Promise.reject( new AppError(
 					chargingStation.getID(),
 					`User with Tag ID '${tagID}' not found but saved as inactive user`,
-					"Authorizations", "checkIfUserIsAuthorizedForChargingStation",
+					"Authorizations", "getOrCreateUserByTagID",
 					null, user.getModel()
 				));
 			}
@@ -225,8 +226,8 @@ module.exports = {
 				// Reject but save ok
 				return Promise.reject( new AppError(
 					chargingStation.getID(),
-					`User with TagID '${tagID}' is not Active`, 500,
-					"Authorizations", "checkIfUserIsAuthorizedForChargingStation",
+					`User with TagID '${tagID}' is '${Users.getStatusDescription(user.getStatus())}'`, 500,
+					"Authorizations", "getOrCreateUserByTagID",
 					null, user.getModel()) );
 			}
 			return user;
@@ -235,18 +236,18 @@ module.exports = {
 
 	checkIfUserIsAuthorizedForChargingStation(action, chargingStation, tagID, alternateTagID) {
 		// Check first if the site area access control is active
-		let user, alternateUser, site, siteArea;
+		let currentUser, user, alternateUser, site, siteArea;
 		// Site Area -----------------------------------------------
 		return chargingStation.getSiteArea().then((foundSiteArea) => {
 			siteArea = foundSiteArea;
 			// Site is mandatory
 			if (!siteArea) {
 				// Reject Site Not Found
-				return Promise.reject( new AppError(
+				throw new AppError(
 					chargingStation.getID(),
 					`Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`, 500,
 					"Authorizations", "checkIfUserIsAuthorizedForChargingStation",
-					null, null) );
+					null, null);
 			}
 			// Get and Check User
 			return this.getOrCreateUserByTagID(chargingStation, siteArea, tagID);
@@ -262,6 +263,13 @@ module.exports = {
 		}).then((foundAlternateUser) => {
 			// Set
 			alternateUser = foundAlternateUser;
+			// Set current user
+			currentUser = (alternateUser ? alternateUser : user);
+			// Check Auth
+			return this.buildAuthorizations(currentUser);
+		}).then((auths) => {
+			// Set
+			currentUser.setAuthorisations(auths);
 			// Get the Charge Box' Site
 			return siteArea.getSite(null, true);
 		// Site -----------------------------------------------
@@ -269,11 +277,11 @@ module.exports = {
 			site = foundSite;
 			if (!site) {
 				// Reject Site Not Found
-				return Promise.reject( new AppError(
+				throw new AppError(
 					chargingStation.getID(),
 					`Site Area '${siteArea.getName()}' is not assigned to a Site!`, 500,
 					"Authorizations", "checkIfUserIsAuthorizedForChargingStation",
-					null, user.getModel()) );
+					null, user.getModel());
 			}
 			// Get Users
 			return site.getUsers();
@@ -283,13 +291,16 @@ module.exports = {
 				return siteUser.getID() == user.getID();
 			});
 			// User not found and Access Control Enabled?
-			if (!foundUser && siteArea.isAccessControlEnabled()) {
-				// Yes: Reject the User
-				return Promise.reject( new AppError(
-					chargingStation.getID(),
-					`User is not assigned to the Site '${site.getName()}'!`, 500,
-					"Authorizations", "checkIfUserIsAuthorizedForChargingStation",
-					null, user.getModel()) );
+			if (!foundUser) {
+				// ACL Enabled?
+				if (siteArea.isAccessControlEnabled()) {
+					// Yes: Reject the User
+					throw new AppError(
+						chargingStation.getID(),
+						`User is not assigned to the Site '${site.getName()}'!`, 500,
+						"Authorizations", "checkIfUserIsAuthorizedForChargingStation",
+						null, user.getModel());
+				}
 			}
 			// Check Alternate User --------------------------------
 			let foundAlternateUser;
@@ -299,24 +310,43 @@ module.exports = {
 				});
 			}
 			// Alternate User not found and Access Control Enabled?
-			if (alternateUser && !foundAlternateUser && siteArea.isAccessControlEnabled()) {
-				// Yes: Reject the User
-				return Promise.reject( new AppError(
-					chargingStation.getID(),
-					`User is not assigned to the Site '${site.getName()}'!`, 500,
-					"Authorizations", "checkIfUserIsAuthorizedForChargingStation",
-					null, alternateUser.getModel()) );
+			if (alternateUser && !foundAlternateUser && !foundAlternateUser.isAdmin()) {
+				// ACL Enabled?
+				if (siteArea.isAccessControlEnabled()) {
+					// Reject the User
+					throw new AppError(
+						chargingStation.getID(),
+						`User is not assigned to the Site '${site.getName()}'!`, 500,
+						"Authorizations", "checkIfUserIsAuthorizedForChargingStation",
+						null, alternateUser.getModel());
+				}
 			}
 			// Check if users are differents
-			if (alternateUser && user.getID() != alternateUser.getID()) {
+			if (alternateUser && user.getID() != alternateUser.getID() && !foundAlternateUser.isAdmin()) {
 				// Site allows this?
 				if (!site.isAllowAllUsersToStopTransactionsEnabled()) {
-					// Yes: Reject the User
-					return Promise.reject( new AppError(
+					// Reject the User
+					throw new AppError(
 						chargingStation.getID(),
 						`User '${alternateUser.getFullName()}' is not allowed to perform '${action}' on User '${user.getFullName()}' on Site '${site.getName()}'!`,
 						500, "Authorizations", "checkIfUserIsAuthorizedForChargingStation",
-						alternateUser.getModel(), user.getModel()));
+						alternateUser.getModel(), user.getModel());
+				}
+			}
+			// Can perform action?
+			if (!this.canPerformActionOnChargingStation(
+					currentUser.getModel(),
+					chargingStation.getModel(),
+					action)) {
+				// ACL Enabled?
+				if (siteArea.isAccessControlEnabled()) {
+					// Not Authorized!
+					throw new AppAuthError(
+						action,
+						this.ENTITY_CHARGING_STATION,
+						chargingStation.getID(),
+						500, "Authorizations", "checkIfUserIsAuthorizedForChargingStation",
+						currentUser.getModel());
 				}
 			}
 			// Return
@@ -751,7 +781,7 @@ module.exports = {
 							"AuthObject": "ChargingStation",
 							"AuthFieldValue": {
 								"ChargingStationID": "*",
-								"Action": ["Create", "Read", "Update", "Delete", "Reset", "ClearCache", "GetConfiguration", "ChangeConfiguration", "StartTransaction", "StopTransaction", "UnlockConnector"]
+								"Action": ["Create", "Read", "Update", "Delete", "Reset", "ClearCache", "GetConfiguration", "ChangeConfiguration", "StartTransaction", "StopTransaction", "UnlockConnector", "Authorize"]
 							}
 						},
 						{
@@ -903,7 +933,7 @@ module.exports = {
 										{{/chargingStationID}}
 									{{/trim}}
 								],
-								"Action": ["Read", "StartTransaction", "StopTransaction", "UnlockConnector"]
+								"Action": ["Read", "StartTransaction", "StopTransaction", "UnlockConnector", "Authorize"]
 							}
 						},
 						{
@@ -1031,7 +1061,7 @@ module.exports = {
 							"AuthObject": "ChargingStation",
 							"AuthFieldValue": {
 								"ChargingStationID": "*",
-								"Action": ["Read", "StartTransaction", "StopTransaction", "UnlockConnector"]
+								"Action": ["Read", "StartTransaction", "StopTransaction", "UnlockConnector", "Authorize"]
 							}
 						},
 						{
