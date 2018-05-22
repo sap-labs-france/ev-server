@@ -773,7 +773,7 @@ class ChargingStation {
 
 		// Execute
 		return Authorizations.checkIfUserIsAuthorizedForChargingStation(
-				this, authorize.idTag).then(() => {
+				"Authorize", this, authorize.idTag).then(() => {
 			// Save
 			return global.storage.saveAuthorize(authorize);
 		})
@@ -822,7 +822,7 @@ class ChargingStation {
 		// Set the charger ID
 		transaction.chargeBoxID = this.getID();
 		// User
-		let user, newTransaction;
+		let user, users, newTransaction;
 		// Check if the charging station has already a transaction
 		return this.getActiveTransaction(transaction.connectorId).then((activeTransaction) => {
 			// Exists already?
@@ -835,9 +835,12 @@ class ChargingStation {
 			}
 			// Check user and save
 			return Authorizations.checkIfUserIsAuthorizedForChargingStation(
-				this, transaction.idTag);
-		}).then((foundUser) => {
-			user = foundUser;
+				"StartTransaction", this, transaction.idTag);
+		}).then((foundUsers) => {
+			// Set
+			users = foundUsers;
+			// Set current user
+			user = (users.alternateUser ? users.alternateUser : users.user);
 			// Check function
 			return Authorizations.buildAuthorizations(user);
 		}).then((auths) => {
@@ -877,7 +880,7 @@ class ChargingStation {
 		}).then((savedTransaction) => {
 			newTransaction = savedTransaction;
 			// Set the user
-			newTransaction.user = user.getModel();
+			newTransaction.user = user;
 			// Update Consumption
 			return this.updateChargingStationConsumption(transaction.id);
 		}).then(() => {
@@ -886,7 +889,7 @@ class ChargingStation {
 	}
 
 	handleStopTransaction(stopTransaction) {
-		let transaction, newTransaction, user;
+		let transaction, newTransaction, user, users;
 		// Set the charger ID
 		stopTransaction.chargeBoxID = this.getID();
 		// Get the transaction first (to get the connector id)
@@ -905,9 +908,12 @@ class ChargingStation {
 			stopTransaction.tagID = stopTransaction.idTag;
 			// Check User
 			return Authorizations.checkIfUserIsAuthorizedForChargingStation(
-				this, transaction.tagID, stopTransaction.tagID);
-		}).then((foundUser) => {
-			user = foundUser;
+				"StopTransaction", this, transaction.tagID, stopTransaction.tagID);
+		}).then((foundUsers) => {
+			// Set
+			users = foundUsers;
+			// Set current user
+			user = (users.alternateUser ? users.alternateUser : users.user);
 			// Check function
 			return Authorizations.buildAuthorizations(user);
 		}).then((auths) => {
@@ -980,9 +986,8 @@ class ChargingStation {
 		}).then((savedTransaction) => {
 			newTransaction = savedTransaction;
 			// Set the user
-			if (user) {
-				newTransaction.user = user.getModel();
-			}
+			newTransaction.user = users.user.getModel();
+			newTransaction.stop.user = users.alternateUser.getModel();
 			return newTransaction;
 		});
 	}

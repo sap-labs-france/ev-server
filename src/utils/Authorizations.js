@@ -214,7 +214,7 @@ module.exports = {
 				return Promise.reject( new AppError(
 					chargingStation.getID(),
 					`User with Tag ID '${tagID}' not found but saved as inactive user`,
-					"ChargingStation", "checkIfUserIsAuthorizedForChargingStation",
+					"Authorizations", "checkIfUserIsAuthorizedForChargingStation",
 					null, user.getModel()
 				));
 			}
@@ -224,14 +224,14 @@ module.exports = {
 				return Promise.reject( new AppError(
 					chargingStation.getID(),
 					`User with TagID '${tagID}' is not Active`, 500,
-					"ChargingStation", "checkIfUserIsAuthorizedForChargingStation",
+					"Authorizations", "checkIfUserIsAuthorizedForChargingStation",
 					null, user.getModel()) );
 			}
 			return user;
 		});
 	},
 
-	checkIfUserIsAuthorizedForChargingStation(chargingStation, tagID, alternateTagID) {
+	checkIfUserIsAuthorizedForChargingStation(action, chargingStation, tagID, alternateTagID) {
 		// Check first if the site area access control is active
 		let user, alternateUser, site, siteArea;
 		// Site Area -----------------------------------------------
@@ -243,7 +243,7 @@ module.exports = {
 				return Promise.reject( new AppError(
 					chargingStation.getID(),
 					`Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`, 500,
-					"ChargingStation", "checkIfUserIsAuthorizedForChargingStation",
+					"Authorizations", "checkIfUserIsAuthorizedForChargingStation",
 					null, null) );
 			}
 			// Get and Check User
@@ -270,7 +270,7 @@ module.exports = {
 				return Promise.reject( new AppError(
 					chargingStation.getID(),
 					`Site Area '${siteArea.getName()}' is not assigned to a Site!`, 500,
-					"ChargingStation", "checkIfUserIsAuthorizedForChargingStation",
+					"Authorizations", "checkIfUserIsAuthorizedForChargingStation",
 					null, user.getModel()) );
 			}
 			// Get Users
@@ -286,7 +286,7 @@ module.exports = {
 				return Promise.reject( new AppError(
 					chargingStation.getID(),
 					`User is not assigned to the Site '${site.getName()}'!`, 500,
-					"ChargingStation", "checkIfUserIsAuthorizedForChargingStation",
+					"Authorizations", "checkIfUserIsAuthorizedForChargingStation",
 					null, user.getModel()) );
 			}
 			// Check Alternate User --------------------------------
@@ -302,20 +302,26 @@ module.exports = {
 				return Promise.reject( new AppError(
 					chargingStation.getID(),
 					`User is not assigned to the Site '${site.getName()}'!`, 500,
-					"ChargingStation", "checkIfUserIsAuthorizedForChargingStation",
+					"Authorizations", "checkIfUserIsAuthorizedForChargingStation",
 					null, alternateUser.getModel()) );
 			}
 			// Check if users are differents
-			if (alternateUser && user.getID() != alternateUser.getID() && !site.isAllowAllUsersToStopTransactionsEnabled()) {
-				// Yes: Reject the User
-				return Promise.reject( new AppError(
-					chargingStation.getID(),
-					`User '${alternateUser.getFullName()}' is not allowed to perform action on User '${user.getFullName()}'!`, 500,
-					"ChargingStation", "checkIfUserIsAuthorizedForChargingStation",
-					alternateUser.getModel(), user.getModel()));
+			if (alternateUser && user.getID() != alternateUser.getID()) {
+				// Site allows this?
+				if (!site.isAllowAllUsersToStopTransactionsEnabled()) {
+					// Yes: Reject the User
+					return Promise.reject( new AppError(
+						chargingStation.getID(),
+						`User '${alternateUser.getFullName()}' is not allowed to perform '${action}' on User '${user.getFullName()}' on Site '${site.getName()}'!`,
+						500, "Authorizations", "checkIfUserIsAuthorizedForChargingStation",
+						alternateUser.getModel(), user.getModel()));
+				}
 			}
 			// Return
-			return (alternateUser ? alternateUser : user);
+			return {
+				"user": user,
+				"alternateUser": alternateUser
+			};
 		});
 	},
 

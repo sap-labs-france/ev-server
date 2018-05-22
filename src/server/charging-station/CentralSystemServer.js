@@ -483,7 +483,7 @@ class CentralSystemServer {
 			// Log
 			Logging.logInfo({
 				source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStopTransaction",
-				action: "StopTransaction", user: transaction.user,
+				action: "StopTransaction", user: transaction.stop.user, actionOnUser: transaction.user,
 				message: `Transaction ID '${transaction.id}' has been stopped`,
 				detailedMessages: args });
 			// Success
