@@ -512,6 +512,8 @@ class ChargingStation {
 		if (transaction && !transaction.stop) {
 			// Has consumption?
 			if (consumption && consumption.values && consumption.values.length > 1) {
+				// Last timestamp
+				let lastTimestamp = consumption.values[consumption.values.length-1].date;
 				// Compute avg of last two values
 				let avgConsumption = (consumption.values[consumption.values.length-1].value +
 					consumption.values[consumption.values.length-2].value) / 2;
@@ -533,7 +535,7 @@ class ChargingStation {
 								"totalConsumption": (this.getConnectors()[transaction.connectorId-1].totalConsumption/1000).toLocaleString(
 									(transaction.user.locale ? transaction.user.locale.replace('_','-') : Users.DEFAULT_LOCALE.replace('_','-')),
 									{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
-								"totalDuration": this._buildCurrentTransactionDuration(transaction),
+								"totalDuration": this._buildCurrentTransactionDuration(transaction, lastTimestamp),
 								"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
 								"evseDashboardURL" : Utils.buildEvseURL()
 							},
@@ -617,20 +619,13 @@ class ChargingStation {
 	}
 
 	// Build duration
-	_buildCurrentTransactionDuration(transaction, i18nHourShort="h") {
+	_buildCurrentTransactionDuration(transaction, lastTimestamp) {
 		// Build date
 		let dateTimeString, timeDiffDuration;
-
+		let i18nHourShort = "h";
 		// Compute duration from now
-		if (transaction.stop) {
-			timeDiffDuration = moment.duration(
-				moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))
-			);
-		} else {
-			timeDiffDuration = moment.duration(
-				moment().diff(moment(transaction.timestamp))
-			);
-		}
+		timeDiffDuration = moment.duration(
+			moment(lastTimestamp).diff(moment(transaction.timestamp)));
 		// Set duration
 		let mins = Math.floor(timeDiffDuration.minutes());
 		// Set duration
@@ -956,6 +951,8 @@ class ChargingStation {
 			});
 			// Set the total consumption (optimization)
 			stopTransaction.totalConsumption = consumption.totalConsumption;
+			// Set the stop
+			transaction.stop = stopTransaction;
 			// Notify User
 			if (transaction.user) {
 				// Send Notification
@@ -971,7 +968,7 @@ class ChargingStation {
 						"totalConsumption": (stopTransaction.totalConsumption/1000).toLocaleString(
 							(transaction.user.locale ? transaction.user.locale.replace('_','-') : Users.DEFAULT_LOCALE.replace('_','-')),
 							{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
-						"totalDuration": this._buildCurrentTransactionDuration(transaction),
+						"totalDuration": this._buildCurrentTransactionDuration(transaction, transaction.stop.timestamp),
 						"totalInactivity": this._buildCurrentTransactionInactivity(transaction),
 						"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
 						"evseDashboardURL" : Utils.buildEvseURL()
@@ -979,8 +976,6 @@ class ChargingStation {
 					transaction.user.locale
 				);
 			}
-			// Set the stop
-			transaction.stop = stopTransaction;
 			// // Save Transaction
 			return global.storage.saveTransaction(transaction);
 		}).then((savedTransaction) => {

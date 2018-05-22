@@ -1,11 +1,13 @@
 const Logging = require('./Logging');
 const Configuration = require('./Configuration');
 const Authorization = require('node-authorization').Authorization;
+const NotificationHandler = require('../notification/NotificationHandler');
 const Mustache = require('mustache');
 const compileProfile = require('node-authorization').profileCompiler;
 const AppError = require('../exception/AppError');
 const Users = require('./Users');
 const Utils = require('./Utils');
+const User = require('../model/User');
 require('source-map-support').install();
 
 let _configuration;
