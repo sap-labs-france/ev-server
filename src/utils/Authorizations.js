@@ -3,7 +3,9 @@ const Configuration = require('./Configuration');
 const Authorization = require('node-authorization').Authorization;
 const Mustache = require('mustache');
 const compileProfile = require('node-authorization').profileCompiler;
+const AppError = require('../exception/AppError');
 const Users = require('./Users');
+const Utils = require('./Utils');
 require('source-map-support').install();
 
 let _configuration;
@@ -274,8 +276,6 @@ module.exports = {
 			// Get Users
 			return site.getUsers();
 		}).then((siteUsers) => {
-			console.log(user);
-			console.log(alternateUser);
 			// Check User ------------------------------------------
 			let foundUser = siteUsers.find((siteUser) => {
 				return siteUser.getID() == user.getID();
@@ -304,6 +304,15 @@ module.exports = {
 					`User is not assigned to the Site '${site.getName()}'!`, 500,
 					"ChargingStation", "checkIfUserIsAuthorizedForChargingStation",
 					null, alternateUser.getModel()) );
+			}
+			// Check if users are differents
+			if (alternateUser && user.getID() != alternateUser.getID() && !site.isAllowAllUsersToStopTransactionsEnabled()) {
+				// Yes: Reject the User
+				return Promise.reject( new AppError(
+					chargingStation.getID(),
+					`User '${alternateUser.getFullName()}' is not allowed to perform action on User '${user.getFullName()}'!`, 500,
+					"ChargingStation", "checkIfUserIsAuthorizedForChargingStation",
+					alternateUser.getModel(), user.getModel()));
 			}
 			// Return
 			return (alternateUser ? alternateUser : user);

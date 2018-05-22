@@ -36,6 +36,14 @@ class Site {
 		return this._model.address;
 	}
 
+	setAllowAllUsersToStopTransactionsEnabled(allowAllUsersToStopTransactions) {
+		this._model.allowAllUsersToStopTransactions = allowAllUsersToStopTransactions;
+	}
+
+	isAllowAllUsersToStopTransactionsEnabled() {
+		return this._model.allowAllUsersToStopTransactions;
+	}
+
 	setImage(image) {
 		this._model.image = image;
 	}
