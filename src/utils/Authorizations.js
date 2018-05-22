@@ -3,6 +3,7 @@ const Configuration = require('./Configuration');
 const Authorization = require('node-authorization').Authorization;
 const Mustache = require('mustache');
 const compileProfile = require('node-authorization').profileCompiler;
+const Users = require('./Users');
 require('source-map-support').install();
 
 let _configuration;
@@ -44,6 +45,32 @@ module.exports = {
 	ACTION_START_TRANSACTION: "StartTransaction",
 	ACTION_UNLOCK_CONNECTOR: "UnlockConnector",
 	ACTION_GET_CONFIGURATION: "GetConfiguration",
+
+	canStartTransaction(user, chargingStation) {
+		// Can perform stop?
+		if (!this.canPerformActionOnChargingStation(
+				user.getModel(),
+				chargingStation.getModel(),
+				this.ACTION_START_TRANSACTION)) {
+			// Ko
+			return false;
+		}
+		// Ok
+		return true;
+	},
+
+	canStopTransaction(user, chargingStation) {
+		// Can perform stop?
+		if (!this.canPerformActionOnChargingStation(
+				user.getModel(),
+				chargingStation.getModel(),
+				this.ACTION_STOP_TRANSACTION)) {
+			// Ko
+			return false;
+		}
+		// Ok
+		return true;
+	},
 
 	// Build Auth
 	buildAuthorizations(user) {
@@ -136,6 +163,150 @@ module.exports = {
 			let compiledAuths = compileProfile(userAuthDefinition.auths);
 			// Return
 			return compiledAuths;
+		});
+	},
+
+	getOrCreateUserByTagID(chargingStation, siteArea, tagID) {
+		let newUserCreated = false;
+		// Get the user
+		return global.storage.getUserByTagId(tagID).then((foundUser) => {
+			// Found?
+			if (!foundUser) {
+				// No: Create an empty user
+				var newUser = new User({
+					name: (siteArea.isAccessControlEnabled() ? "Unknown" : "Anonymous"),
+					firstName: "User",
+					status: (siteArea.isAccessControlEnabled() ? Users.USER_STATUS_PENDING : Users.USER_STATUS_ACTIVE),
+					role: Users.USER_ROLE_BASIC,
+					email: tagID + "@chargeangels.fr",
+					tagIDs: [tagID],
+					createdOn: new Date().toISOString()
+				});
+				// Set the flag
+				newUserCreated = true;
+				// Save the user
+				return newUser.save();
+			} else {
+				return foundUser;
+			}
+		// User -----------------------------------------------
+		}).then((foundUser) => {
+			let user = foundUser;
+			// New User?
+			if (newUserCreated) {
+				// Notify
+				NotificationHandler.sendUnknownUserBadged(
+					Utils.generateGUID(),
+					chargingStation.getModel(),
+					{
+						"chargingBoxID": chargingStation.getID(),
+						"badgeId": tagID,
+						"evseDashboardURL" : Utils.buildEvseURL(),
+						"evseDashboardUserURL" : Utils.buildEvseUserURL(user)
+					}
+				);
+			}
+			// Access Control enabled?
+			if (newUserCreated && siteArea.isAccessControlEnabled()) {
+				// Yes
+				return Promise.reject( new AppError(
+					chargingStation.getID(),
+					`User with Tag ID '${tagID}' not found but saved as inactive user`,
+					"ChargingStation", "checkIfUserIsAuthorizedForChargingStation",
+					null, user.getModel()
+				));
+			}
+			// Check User status
+			if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
+				// Reject but save ok
+				return Promise.reject( new AppError(
+					chargingStation.getID(),
+					`User with TagID '${tagID}' is not Active`, 500,
+					"ChargingStation", "checkIfUserIsAuthorizedForChargingStation",
+					null, user.getModel()) );
+			}
+			return user;
+		});
+	},
+
+	checkIfUserIsAuthorizedForChargingStation(chargingStation, tagID, alternateTagID) {
+		// Check first if the site area access control is active
+		let user, alternateUser, site, siteArea;
+		// Site Area -----------------------------------------------
+		return chargingStation.getSiteArea().then((foundSiteArea) => {
+			siteArea = foundSiteArea;
+			// Site is mandatory
+			if (!siteArea) {
+				// Reject Site Not Found
+				return Promise.reject( new AppError(
+					chargingStation.getID(),
+					`Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`, 500,
+					"ChargingStation", "checkIfUserIsAuthorizedForChargingStation",
+					null, null) );
+			}
+			// Get and Check User
+			return this.getOrCreateUserByTagID(chargingStation, siteArea, tagID);
+		// User -------------------------------------------------
+		}).then((foundUser) => {
+			// Set
+			user = foundUser;
+			// Get and Check Alternate User
+			if (alternateTagID) {
+				return this.getOrCreateUserByTagID(chargingStation, siteArea, alternateTagID);
+			}
+		// Alternate User --------------------------------------
+		}).then((foundAlternateUser) => {
+			// Set
+			alternateUser = foundAlternateUser;
+			// Get the Charge Box' Site
+			return siteArea.getSite(null, true);
+		// Site -----------------------------------------------
+		}).then((foundSite) => {
+			site = foundSite;
+			if (!site) {
+				// Reject Site Not Found
+				return Promise.reject( new AppError(
+					chargingStation.getID(),
+					`Site Area '${siteArea.getName()}' is not assigned to a Site!`, 500,
+					"ChargingStation", "checkIfUserIsAuthorizedForChargingStation",
+					null, user.getModel()) );
+			}
+			// Get Users
+			return site.getUsers();
+		}).then((siteUsers) => {
+			console.log(user);
+			console.log(alternateUser);
+			// Check User ------------------------------------------
+			let foundUser = siteUsers.find((siteUser) => {
+				return siteUser.getID() == user.getID();
+			});
+			// User not found and Access Control Enabled?
+			if (!foundUser && siteArea.isAccessControlEnabled()) {
+				// Yes: Reject the User
+				return Promise.reject( new AppError(
+					chargingStation.getID(),
+					`User is not assigned to the Site '${site.getName()}'!`, 500,
+					"ChargingStation", "checkIfUserIsAuthorizedForChargingStation",
+					null, user.getModel()) );
+			}
+			// Check Alternate User --------------------------------
+			let foundAlternateUser;
+			if (alternateUser) {
+				foundAlternateUser = siteUsers.find((siteUser) => {
+					return siteUser.getID() == alternateUser.getID();
+				});
+			}
+			// Alternate User not found and Access Control Enabled?
+			if (alternateUser && !foundAlternateUser && siteArea.isAccessControlEnabled()) {
+				// Yes: Reject the User
+				return Promise.reject( new AppError(
+					chargingStation.getID(),
+					`User is not assigned to the Site '${site.getName()}'!`, 500,
+					"ChargingStation", "checkIfUserIsAuthorizedForChargingStation",
+					null, alternateUser.getModel()) );
+			}
+			// Return
+			return (alternateUser ? alternateUser : user);
 		});
 	},
 

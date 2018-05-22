@@ -11,6 +11,10 @@ class User {
 		Database.updateUser(user, this._model);
 	}
 
+	setAuthorisations(auths) {
+		this._model.auths = auths;
+	}
+
 	setEulaAcceptedHash(eulaAcceptedHash) {
 		this._model.eulaAcceptedHash = eulaAcceptedHash;
 	}

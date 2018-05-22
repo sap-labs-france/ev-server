@@ -6,6 +6,7 @@ const SiteArea = require('./SiteArea');
 const Users = require('../utils/Users');
 const Sites = require('../utils/Sites');
 const AppError = require('../exception/AppError');
+const AppAuthError = require('../exception/AppAuthError');
 const Constants = require('../utils/Constants');
 const Database = require('../utils/Database');
 const moment = require('moment');
@@ -734,61 +735,6 @@ class ChargingStation {
 		})
 	}
 
-	handleStartTransaction(transaction) {
-		// Set the charger ID
-		transaction.chargeBoxID = this.getID();
-		// User
-		let user, newTransaction;
-		// Check if the charging station has already a transaction
-		return this.getActiveTransaction(transaction.connectorId).then((activeTransaction) => {
-			// Exists already?
-			if (!activeTransaction) {
-				// No: Generate the transaction ID
-				transaction.id = Utils.getRandomInt();
-			} else {
-				// Yes: Reuse the transaction ID
-				transaction.id = activeTransaction.id;
-			}
-			// Check user and save
-			return this.checkIfUserIsAuthorized(transaction.idTag);
-		}).then((foundUser) => {
-			user = foundUser;
-			if (user) {
-				// Set the user
-				transaction.userID = user.getID();
-				// Notify
-				NotificationHandler.sendTransactionStarted(
-					transaction.id,
-					user.getModel(),
-					this.getModel(),
-					{
-						"user": user.getModel(),
-						"chargingBoxID": this.getID(),
-						"connectorId": transaction.connectorId,
-						"evseDashboardURL" : Utils.buildEvseURL(),
-						"evseDashboardChargingStationURL" :
-							Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id)
-					},
-					user.getLocale()
-				);
-			}
-			// Set the tag ID
-			transaction.tagID = transaction.idTag;
-			// Ok: Save Transaction
-			return global.storage.saveTransaction(transaction);
-		}).then((savedTransaction) => {
-			newTransaction = savedTransaction;
-			// Set the user
-			if (user) {
-				newTransaction.user = user.getModel();
-			}
-			// Update Consumption
-			return this.updateChargingStationConsumption(transaction.id);
-		}).then(() => {
-			return newTransaction;
-		});
-	}
-
 	getActiveTransaction(connectorId) {
 		return global.storage.getActiveTransaction(this.getID(), connectorId);
 	}
@@ -826,164 +772,117 @@ class ChargingStation {
 		authorize.timestamp = new Date();
 
 		// Execute
-		return this.checkIfUserIsAuthorized(authorize.idTag).then(() => {
+		return Authorizations.checkIfUserIsAuthorizedForChargingStation(
+				this, authorize.idTag).then(() => {
 			// Save
 			return global.storage.saveAuthorize(authorize);
 		})
 	}
 
-	getCompany() {
+	getSite() {
 		// Get Site Area
-		let site, siteArea;
-		return this.getSiteArea().then((foundSiteArea) => {
-			siteArea = foundSiteArea;
-			// Site is mandatory
+		return this.getSiteArea().then((siteArea) => {
+			// Check Site Area
 			if (!siteArea) {
-				// Reject Site Not Found
-				return Promise.reject( new AppError(
-					this.getID(),
-					`Charging Station '${this.getID()}' is not assigned to a Site Area!`, 500,
-					"ChargingStation", "getCompany",
-					null, null) );
+				return null;
 			}
 			// Get the Charge Box' Site
 			return siteArea.getSite();
-		}).then((foundSite) => {
-			site = foundSite;
+		});
+	}
+
+	getCompany() {
+		// Get Site Area
+		return this.getSiteArea().then((siteArea) => {
+			// Check Site Area
+			if (!siteArea) {
+				return null;
+			}
+			// Get the Charge Box' Site
+			return siteArea.getSite();
+		}).then((site) => {
+			// Check Site
 			if (!site) {
-				// Reject Site Not Found
-				return Promise.reject( new AppError(
-					this.getID(),
-					`Site Area '${siteArea.getName()}' is not assigned to a Site!`, 500,
-					"ChargingStation", "getCompany",
-					null, user.getModel()) );
+				return null;
 			}
 			// Get the Charge Box's Company
 			return site.getCompany();
 		}).then((company) => {
-			if (!company) {
-				// Reject Site Not Found
-				return Promise.reject( new AppError(
-					this.getID(),
-					`Site '${site.getName()}' is not assigned to a Company!`, 500,
-					"ChargingStation", "getCompany",
-					null, user.getModel()) );
-			}
-			return company;
-		});
-	}
-
-	checkIfUserIsAuthorized(tagID) {
-		// Check first if the site area access control is active
-		let user, site, siteArea, newUserCreated = false;
-		// Site Area -----------------------------------------------
-		return this.getSiteArea().then((foundSiteArea) => {
-			siteArea = foundSiteArea;
-			// Site is mandatory
-			if (!siteArea) {
-				// Reject Site Not Found
-				return Promise.reject( new AppError(
-					this.getID(),
-					`Charging Station '${this.getID()}' is not assigned to a Site Area!`, 500,
-					"ChargingStation", "checkIfUserIsAuthorized",
-					null, null) );
-			}
-			// If Access Control is active: Check User with its Tag ID
-			return global.storage.getUserByTagId(tagID);
-		// User -----------------------------------------------
-		}).then((foundUser) => {
-			// Found?
-			if (!foundUser) {
-				// No: Create an empty user
-				var newUser = new User({
-					name: (siteArea.isAccessControlEnabled() ? "Unknown" : "Anonymous"),
-					firstName: "User",
-					status: (siteArea.isAccessControlEnabled() ? Users.USER_STATUS_PENDING : Users.USER_STATUS_ACTIVE),
-					role: Users.USER_ROLE_BASIC,
-					email: tagID + "@chargeangels.fr",
-					tagIDs: [tagID],
-					createdOn: new Date().toISOString()
-				});
-				// Set the flag
-				newUserCreated = true;
-				// Save the user
-				return newUser.save();
-			} else {
-				return foundUser;
-			}
-		// User -----------------------------------------------
-		}).then((foundUser) => {
-			user = foundUser;
-			// New User?
-			if (newUserCreated) {
-				// Notify
-				NotificationHandler.sendUnknownUserBadged(
-					Utils.generateGUID(),
-					this.getModel(),
-					{
-						"chargingBoxID": this.getID(),
-						"badgeId": tagID,
-						"evseDashboardURL" : Utils.buildEvseURL(),
-						"evseDashboardUserURL" : Utils.buildEvseUserURL(user)
-					}
-				);
-			}
-			// Access Control enabled?
-			if (newUserCreated && siteArea.isAccessControlEnabled()) {
-				// Yes
-				return Promise.reject( new AppError(
-					this.getID(),
-					`User with Tag ID '${tagID}' not found but saved as inactive user`,
-					"ChargingStation", "checkIfUserIsAuthorized",
-					null, user.getModel()
-				));
-			}
-			// Check User status
-			if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
-				// Reject but save ok
-				return Promise.reject( new AppError(
-					this.getID(),
-					`User with TagID '${tagID}' is not Active`, 500,
-					"ChargingStation", "checkIfUserIsAuthorized",
-					null, user.getModel()) );
-			}
-			// Get the Charge Box' Site
-			return siteArea.getSite(null, true);
-		// Site -----------------------------------------------
-		}).then((foundSite) => {
-			site = foundSite;
-			if (!site) {
-				// Reject Site Not Found
-				return Promise.reject( new AppError(
-					this.getID(),
-					`Site Area '${siteArea.getName()}' is not assigned to a Site!`, 500,
-					"ChargingStation", "checkIfUserIsAuthorized",
-					null, user.getModel()) );
-			}
-			// Get Users
-			return site.getUsers();
-		}).then((siteUsers) => {
-			// Check if the user is assigned to the company
-			let foundUser = siteUsers.find((siteUser) => {
-				return siteUser.getID() == user.getID();
-			});
-			// User not found and Access Control Enabled?
-			if (!foundUser && siteArea.isAccessControlEnabled()) {
-				// Yes: Reject the User
-				return Promise.reject( new AppError(
-					this.getID(),
-					`User is not assigned to the Site '${site.getName()}'!`, 500,
-					"ChargingStation", "checkIfUserIsAuthorized",
-					null, user.getModel()) );
-			}
 			// Return
-			return user;
+			return company;
 		});
 	}
 
 	getTransaction(transactionId) {
 		// Get the tranasction first (to get the connector id)
 		return global.storage.getTransaction(transactionId);
+	}
+
+	handleStartTransaction(transaction) {
+		// Set the charger ID
+		transaction.chargeBoxID = this.getID();
+		// User
+		let user, newTransaction;
+		// Check if the charging station has already a transaction
+		return this.getActiveTransaction(transaction.connectorId).then((activeTransaction) => {
+			// Exists already?
+			if (!activeTransaction) {
+				// No: Generate the transaction ID
+				transaction.id = Utils.getRandomInt();
+			} else {
+				// Yes: Reuse the transaction ID
+				transaction.id = activeTransaction.id;
+			}
+			// Check user and save
+			return Authorizations.checkIfUserIsAuthorizedForChargingStation(
+				this, transaction.idTag);
+		}).then((foundUser) => {
+			user = foundUser;
+			// Check function
+			return Authorizations.buildAuthorizations(user);
+		}).then((auths) => {
+			// Set
+			user.setAuthorisations(auths);
+			// Check
+			if (!Authorizations.canStartTransaction(user, this)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					Authorizations.ACTION_READ,
+					Authorizations.ENTITY_CHARGING_STATION,
+					this.getID(),
+					560, "ChargingStation", "handleStartTransaction",
+					user.getModel());
+			}
+			// Set the user
+			transaction.userID = user.getID();
+			// Notify
+			NotificationHandler.sendTransactionStarted(
+				transaction.id,
+				user.getModel(),
+				this.getModel(),
+				{
+					"user": user.getModel(),
+					"chargingBoxID": this.getID(),
+					"connectorId": transaction.connectorId,
+					"evseDashboardURL" : Utils.buildEvseURL(),
+					"evseDashboardChargingStationURL" :
+						Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id)
+				},
+				user.getLocale()
+			);
+			// Set the tag ID
+			transaction.tagID = transaction.idTag;
+			// Ok: Save Transaction
+			return global.storage.saveTransaction(transaction);
+		}).then((savedTransaction) => {
+			newTransaction = savedTransaction;
+			// Set the user
+			newTransaction.user = user.getModel();
+			// Update Consumption
+			return this.updateChargingStationConsumption(transaction.id);
+		}).then(() => {
+			return newTransaction;
+		});
 	}
 
 	handleStopTransaction(stopTransaction) {
@@ -998,28 +897,34 @@ class ChargingStation {
 				throw new Error(`Transaction ID '${stopTransaction.transactionId}' does not exist`);
 			}
 			// Save it with the user
-			if (stopTransaction.idTag) {
-				// Set Tag ID
-				stopTransaction.tagID = stopTransaction.idTag;
-				// Check User
-				return this.checkIfUserIsAuthorized(stopTransaction.idTag);
+			if (!stopTransaction.idTag) {
+				// Set Tag ID with user that started the transaction
+				stopTransaction.idTag = transaction.tagID;
 			}
+			// Set Tag ID to a new property
+			stopTransaction.tagID = stopTransaction.idTag;
+			// Check User
+			return Authorizations.checkIfUserIsAuthorizedForChargingStation(
+				this, transaction.tagID, stopTransaction.tagID);
 		}).then((foundUser) => {
 			user = foundUser;
-			// User Found
-			if (user) {
-				// Set the User ID
-				stopTransaction.userID = user.getID();
-			}
-			// Check auth
-			if (!Authorizations.canReadTransaction(user.getModel(), transaction)) {
+			// Check function
+			return Authorizations.buildAuthorizations(user);
+		}).then((auths) => {
+			// Set Auths
+			user.setAuthorisations(auths);
+			// Check
+			if (!Authorizations.canStopTransaction(user, this)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_UPDATE,
-					Authorizations.ENTITY_TRANSACTION,
-					transaction.id,
-					560, "ChargingStation", "handleStopTransaction", user.getModel());
+					Authorizations.ACTION_READ,
+					Authorizations.ENTITY_CHARGING_STATION,
+					this.getID(),
+					560, "ChargingStation", "handleStopTransaction",
+					user.getModel());
 			}
+			// Set the User ID
+			stopTransaction.userID = user.getID();
 			// Init the charging station
 			this.getConnectors()[transaction.connectorId-1].currentConsumption = 0;
 			this.getConnectors()[transaction.connectorId-1].totalConsumption = 0;
