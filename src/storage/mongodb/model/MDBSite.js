@@ -4,6 +4,7 @@ const commons = require('./MDBCommons');
 module.exports = mongoose.model('Site', {
 	name: String,
 	address: commons.Address,
+	allowAllUsersToStopTransactions: Boolean,
 	createdBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
 	createdOn: Date,
 	lastChangedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},

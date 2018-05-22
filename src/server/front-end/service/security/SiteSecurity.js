@@ -70,6 +70,8 @@ class SiteSecurity {
 		filteredRequest.name = sanitize(request.name);
 		filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
 		filteredRequest.image = sanitize(request.image);
+		filteredRequest.allowAllUsersToStopTransactions =
+			UtilsSecurity.filterBoolean(request.allowAllUsersToStopTransactions);
 		filteredRequest.gps = sanitize(request.gps);
 		if (request.userIDs) {
 			// Handle Users

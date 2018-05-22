@@ -197,6 +197,7 @@ module.exports = {
 		this.updateID(src, dest);
 		dest.name = src.name;
 		dest.address = {};
+		dest.allowAllUsersToStopTransactions = src.allowAllUsersToStopTransactions;
 		this.updateAddress(src.address, dest.address)
 		dest.image = src.image;
 		dest.companyID = Utils.objectIdtoString(src.companyID);
