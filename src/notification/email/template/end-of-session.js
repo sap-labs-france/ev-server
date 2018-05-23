@@ -20,12 +20,6 @@ module.exports.email = {
 		"beforeActionLines": [
 			"Hi <%- (user.firstName?user.firstName:user.name) %>,",
 			"",
-			"",
-			"",
-			"",
-			"",
-			"",
-			"",
 			"Your session on <b><%- chargingBoxID %></b> is finished."
 		],
 		"stats": [
