@@ -310,7 +310,7 @@ module.exports = {
 				});
 			}
 			// Alternate User not found and Access Control Enabled?
-			if (alternateUser && !foundAlternateUser && !foundAlternateUser.isAdmin()) {
+			if (alternateUser && !foundAlternateUser && !alternateUser.isAdmin()) {
 				// ACL Enabled?
 				if (siteArea.isAccessControlEnabled()) {
 					// Reject the User
@@ -322,7 +322,7 @@ module.exports = {
 				}
 			}
 			// Check if users are differents
-			if (alternateUser && user.getID() != alternateUser.getID() && !foundAlternateUser.isAdmin()) {
+			if (alternateUser && user.getID() != alternateUser.getID() && !alternateUser.isAdmin()) {
 				// Site allows this?
 				if (!site.isAllowAllUsersToStopTransactionsEnabled()) {
 					// Reject the User
