@@ -180,7 +180,7 @@ class TransactionService {
 
 	static handleGetChargingStationConsumptionFromTransaction(action, req, res, next) {
 		Logging.logSecurityInfo({
-			user: req.user, action: action,
+			user: req.user, action: "ChargingStationConsumption",
 			module: "TransactionService",
 			method: "handleGetChargingStationConsumptionFromTransaction",
 			message: `Read Consumption from Transaction ID '${req.query.TransactionId}'`,
