@@ -20,6 +20,12 @@ module.exports.email = {
 		"beforeActionLines": [
 			"Hi <%- (user.firstName?user.firstName:user.name) %>,",
 			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
 			"Your session on <b><%- chargingBoxID %></b> is finished."
 		],
 		"stats": [
@@ -32,6 +38,8 @@ module.exports.email = {
 			"url": "<%- evseDashboardChargingStationURL %>"
 		},
 		"afterActionLines": [
+			"<%- (alternateUser ? 'The user <b>' + (alternateUser.firstName ? alternateUser.name + ' ' + alternateUser.firstName : alternateUser.name) + '</b> has stopped your session.' : '') %>",
+			"",
 			"Best Regards,",
 			"EV Admin."
 		],
@@ -75,6 +83,8 @@ module.exports.fr_FR.email = {
 			"url": "<%- evseDashboardChargingStationURL %>"
 		},
 		"afterActionLines": [
+			"<%- (alternateUser ? 'L&#39;utilisateur <b>' + (alternateUser.firstName ? alternateUser.name + ' ' + alternateUser.firstName : alternateUser.name) + '</b> a stoppé votre session.' : '') %>",
+			"",
 			"Cordialement,",
 			"EV Admin."
 		],

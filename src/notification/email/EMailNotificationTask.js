@@ -191,6 +191,8 @@ class EMailNotificationTask extends NotificationTask {
 			emailTemplate.email.body.beforeActionLines.map((beforeActionLine) => {
 				return ejs.render(beforeActionLine, data);
 			});
+		// Remove extra empty lines
+		Utils.removeExtraEmptyLines(emailTemplate.email.body.beforeActionLines);
 		// Render Stats
 		if (emailTemplate.email.body.stats) {
 			emailTemplate.email.body.stats =
@@ -212,10 +214,11 @@ class EMailNotificationTask extends NotificationTask {
 			emailTemplate.email.body.afterActionLines.map((afterActionLine) => {
 				return ejs.render(afterActionLine, data);
 			});
+		// Remove extra empty lines
+		Utils.removeExtraEmptyLines(emailTemplate.email.body.afterActionLines);
 		// Render the final HTML -----------------------------------------------
 		let subject = ejs.render(mainTemplate.subject, emailTemplate.email);
 		let html = ejs.render(mainTemplate.html, emailTemplate.email);
-
 		// Send the email
 		return this.sendEmail({
 			to: (data.user?data.user.email:null),

@@ -931,8 +931,8 @@ class ChargingStation {
 					transaction.user,
 					this.getModel(),
 					{
-						"user": transaction.user,
-						"userStopped": user,
+						"user": users.user.getModel(),
+						"alternateUser": (users.user.getID() != users.alternateUser.getID() ? users.alternateUser.getModel() : null),
 						"chargingBoxID": this.getID(),
 						"connectorId": transaction.connectorId,
 						"totalConsumption": (stopTransaction.totalConsumption/1000).toLocaleString(

@@ -23,6 +23,22 @@ module.exports = {
 		return Object.keys(document).length == 0;
 	},
 
+	removeExtraEmptyLines(tab) {
+		// Start from the end
+		for (var i = tab.length-1; i > 0 ; i--) {
+			// Two consecutive empty lines?
+			if (tab[i].length == 0 && tab[i-1].length == 0) {
+				// Remove the last one
+				tab.splice(i, 1);
+			}
+			// Check last line
+			if (i == 1 && tab[i-1].length == 0) {
+				// Remove the first one
+				tab.splice(i-1, 1);
+			}
+		}
+	},
+
 	objectIdtoString(id) {
 		let changedID = id;
 		// MongoDB Object?
