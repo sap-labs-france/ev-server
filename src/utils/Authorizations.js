@@ -218,7 +218,6 @@ module.exports = {
 			}
 		// User -----------------------------------------------
 		}).then((foundUser) => {
-			console.log(foundUser);
 			let user = foundUser;
 			// New User?
 			if (newUserCreated) {
