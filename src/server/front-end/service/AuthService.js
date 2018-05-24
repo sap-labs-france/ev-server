@@ -126,6 +126,16 @@ class AuthService {
 	static handleRegisterUser(action, req, res, next) {
 		// Filter
 		let filteredRequest = AuthSecurity.filterRegisterUserRequest(req.body);
+		// Check EULA
+		if (!filteredRequest.acceptEula) {
+			Logging.logActionExceptionMessageAndSendResponse(action,
+				new AppError(
+					Constants.CENTRAL_SERVER,
+					`The End-user License Agreement is mandatory`,
+					520, "AuthService", "handleLogIn"),
+				req, res, next);
+			return;
+		}
 		// Check
 		if (!filteredRequest.captcha) {
 			Logging.logActionExceptionMessageAndSendResponse(action,
@@ -145,6 +155,7 @@ class AuthService {
 			responseGoogle.on('data', (responseGoogleData) => {
 				// Check
 				let responseGoogleDataJSon = JSON.parse(responseGoogleData);
+				let newUser;
 				if (!responseGoogleDataJSon.success) {
 					Logging.logActionExceptionMessageAndSendResponse(action,
 						new AppError(
@@ -168,13 +179,20 @@ class AuthService {
 					return Users.hashPasswordBcrypt(filteredRequest.password);
 				}).then((newPasswordHashed) => {
 					// Create the user
-					let newUser = new User(filteredRequest);
+					newUser = new User(filteredRequest);
 					// Set data
 					newUser.setStatus(Users.USER_STATUS_PENDING);
 					newUser.setRole(Users.USER_ROLE_BASIC);
 					newUser.setPassword(newPasswordHashed);
 					newUser.setLocale(req.locale.substring(0,5));
 					newUser.setCreatedOn(new Date());
+					// Get EULA
+					return global.storage.getEndUserLicenseAgreement(newUser.getLanguage());
+				}).then((endUserLicenseAgreement) => {
+					// Set Eula Info on Login Only
+					newUser.setEulaAcceptedOn(new Date());
+					newUser.setEulaAcceptedVersion(endUserLicenseAgreement.version);
+					newUser.setEulaAcceptedHash(endUserLicenseAgreement.hash);
 					// Save
 					return newUser.save();
 				}).then((newUser) => {

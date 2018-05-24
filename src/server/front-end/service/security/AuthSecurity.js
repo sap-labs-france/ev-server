@@ -21,6 +21,7 @@ class AuthSecurity {
 		filteredRequest.email = sanitize(request.email);
 		filteredRequest.password = sanitize(request.passwords.password);
 		filteredRequest.captcha = sanitize(request.captcha);
+		filteredRequest.acceptEula = sanitize(request.acceptEula);
 		filteredRequest.status = Users.USER_STATUS_PENDING;
 		return filteredRequest;
 	}

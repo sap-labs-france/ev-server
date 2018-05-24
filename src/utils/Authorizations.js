@@ -196,7 +196,7 @@ module.exports = {
 				// Restore it
 				foundUser.setDeleted(false);
 				// Set default user's value
-				foundUser.setStatus((siteArea.isAccessControlEnabled() ? Users.USER_STATUS_PENDING : Users.USER_STATUS_ACTIVE));
+				foundUser.setStatus((siteArea.isAccessControlEnabled() ? Users.USER_STATUS_INACTIVE : Users.USER_STATUS_ACTIVE));
 				foundUser.setName((siteArea.isAccessControlEnabled() ? "Unknown" : "Anonymous"));
 				foundUser.setFirstName("User");
 				foundUser.setEMail(tagID + "@chargeangels.fr");
