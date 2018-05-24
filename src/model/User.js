@@ -287,7 +287,6 @@ class User {
 				this.setImage("");
 				this.setINumber(Users.ANONIMIZED_VALUE);
 				this.setCostCenter(Users.ANONIMIZED_VALUE);
-				this.setTagIDs([]);
 				// Delete
 				return this.save();
 			} else {

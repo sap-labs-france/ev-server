@@ -171,7 +171,7 @@ module.exports = {
 		});
 	},
 
-	getOrCreateUserByTagID(chargingStation, siteArea, tagID) {
+	getOrCreateUserByTagID(chargingStation, siteArea, tagID, action) {
 		let newUserCreated = false;
 		// Get the user
 		return global.storage.getUserByTagId(tagID).then((foundUser) => {
@@ -191,11 +191,34 @@ module.exports = {
 				newUserCreated = true;
 				// Save the user
 				return newUser.save();
+			// Check User Deleted?
+			} else if (foundUser.getStatus() == Users.USER_STATUS_DELETED) {
+				// Restore it
+				foundUser.setDeleted(false);
+				// Set default user's value
+				foundUser.setStatus((siteArea.isAccessControlEnabled() ? Users.USER_STATUS_PENDING : Users.USER_STATUS_ACTIVE));
+				foundUser.setName((siteArea.isAccessControlEnabled() ? "Unknown" : "Anonymous"));
+				foundUser.setFirstName("User");
+				foundUser.setEMail(tagID + "@chargeangels.fr");
+				foundUser.setPhone("");
+				foundUser.setMobile("");
+				foundUser.setImage("");
+				foundUser.setINumber("");
+				foundUser.setCostCenter("");
+				// Log
+				Logging.logSecurityInfo({
+					user: foundUser,
+					module: "Authorizations", method: "getOrCreateUserByTagID",
+					message: `User with ID '${foundUser.getID()}' has been restored`,
+					action: action});
+				// Save
+				return foundUser.save();
 			} else {
 				return foundUser;
 			}
 		// User -----------------------------------------------
 		}).then((foundUser) => {
+			console.log(foundUser);
 			let user = foundUser;
 			// New User?
 			if (newUserCreated) {
@@ -250,14 +273,14 @@ module.exports = {
 					null, null);
 			}
 			// Get and Check User
-			return this.getOrCreateUserByTagID(chargingStation, siteArea, tagID);
+			return this.getOrCreateUserByTagID(chargingStation, siteArea, tagID, action);
 		// User -------------------------------------------------
 		}).then((foundUser) => {
 			// Set
 			user = foundUser;
 			// Get and Check Alternate User
 			if (alternateTagID) {
-				return this.getOrCreateUserByTagID(chargingStation, siteArea, alternateTagID);
+				return this.getOrCreateUserByTagID(chargingStation, siteArea, alternateTagID, action);
 			}
 		// Alternate User --------------------------------------
 		}).then((foundAlternateUser) => {
