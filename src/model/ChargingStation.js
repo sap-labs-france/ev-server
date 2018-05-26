@@ -275,7 +275,6 @@ class ChargingStation {
 		if (!this.getConnectors()) {
 			this.setConnectors([]);
 		}
-
 		// Save
 		return global.storage.saveChargingStation(this.getModel());
 	}
@@ -476,6 +475,9 @@ class ChargingStation {
 								method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
 								message: `Connector '${connector.connectorId}' - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
 						}
+						// Update Transaction ID
+						connector.activeTransactionID = transactionId;
+						// Update Heartbeat
 						this.setLastHeartBeat(new Date());
 						// Handle End Of charge
 						this.handleNotificationEndOfCharge(transaction, consumption);
@@ -483,19 +485,18 @@ class ChargingStation {
 						return this.save();
 					});
 				} else {
-					// Check
-					if (connector.currentConsumption !== 0 || connector.totalConsumption !== 0) {
-						// Set consumption
-						connector.currentConsumption = 0;
-						connector.totalConsumption = 0;
-						// Log
-						Logging.logInfo({
-							source: this.getID(), module: "ChargingStation",
-							method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
-							message: `Connector '${connector.connectorId}' - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
-						// Save
-						return this.save();
-					}
+					// Set consumption
+					connector.currentConsumption = 0;
+					connector.totalConsumption = 0;
+					// Reset Transaction ID
+					connector.activeTransactionID = 0;
+					// Log
+					Logging.logInfo({
+						source: this.getID(), module: "ChargingStation",
+						method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
+						message: `Connector '${connector.connectorId}' - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
+					// Save
+					return this.save();
 				}
 			} else {
 				// Log
@@ -896,9 +897,13 @@ class ChargingStation {
 			user = (users.alternateUser ? users.alternateUser : users.user);
 			// Set the User ID
 			stopTransaction.userID = user.getID();
+			// Get the connector
+			let connector = this.getConnectors()[transaction.connectorId-1];
 			// Init the charging station
-			this.getConnectors()[transaction.connectorId-1].currentConsumption = 0;
-			this.getConnectors()[transaction.connectorId-1].totalConsumption = 0;
+			connector.currentConsumption = 0;
+			connector.totalConsumption = 0;
+			// Reset Transaction ID
+			connector.activeTransactionID = 0;
 			// Save Charging Station
 			return this.save();
 		}).then(() => {

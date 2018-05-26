@@ -6,7 +6,8 @@ const Connector = new mongoose.Schema({
 	totalConsumption: Number,
 	status: String,
 	errorCode: String,
-	power: Number
+	power: Number,
+	activeTransactionID: Number
 });
 
 module.exports = mongoose.model('ChargingStation',{

@@ -60,7 +60,8 @@ module.exports = {
 						"totalConsumption": connector.totalConsumption,
 						"status": connector.status,
 						"errorCode": connector.errorCode,
-						"power": connector.power
+						"power": connector.power,
+						"activeTransactionID": connector.activeTransactionID 
 					});
 				} else {
 					dest.connectors.push(null);
