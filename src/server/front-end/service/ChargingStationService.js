@@ -281,24 +281,17 @@ class ChargingStationService {
 					action === "UnlockConnector") {
 				// Get Transaction
 				return global.storage.getTransaction(filteredRequest.args.transactionId).then((transaction) => {
-					if (transaction) {
-						// Add connector ID
-						filteredRequest.args.connectorId = transaction.connectorId;
-						// Check auth
-						if (!Authorizations.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action)) {
-							// Not Authorized!
-							throw new AppAuthError(action,
-								Authorizations.ENTITY_CHARGING_STATION,
-								chargingStation.getID(),
-								560, "ChargingStationService", "handleAction",
-								req.user);
-						}
-						// Execute it
-						return chargingStation.handleAction(action, filteredRequest.args);
-					} else {
+					if (!transaction) {
 						// Log
 						return Promise.reject(new Error(`Transaction ${filteredRequest.TransactionId} does not exist`));
 					}
+					// Add connector ID
+					filteredRequest.args.connectorId = transaction.connectorId;
+					// Check if user is authorized
+					return Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, transaction.tagID, req.user.tagIDs[0]);
+				}).then(() => {
+					// Ok: Execute it
+					return chargingStation.handleAction(action, filteredRequest.args);
 				}).catch((err) => {
 					// Log
 					Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);

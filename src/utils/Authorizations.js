@@ -256,7 +256,7 @@ module.exports = {
 		});
 	},
 
-	checkIfUserIsAuthorizedForChargingStation(action, chargingStation, tagID, alternateTagID) {
+	checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, tagID, alternateTagID) {
 		// Check first if the site area access control is active
 		let currentUser, user, alternateUser, site, siteArea;
 		// Site Area -----------------------------------------------
@@ -267,8 +267,8 @@ module.exports = {
 				// Reject Site Not Found
 				throw new AppError(
 					chargingStation.getID(),
-					`Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`, 500,
-					"Authorizations", "checkIfUserIsAuthorizedForChargingStation",
+					`Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`, 525,
+					"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
 					null, null);
 			}
 			// Get and Check User
@@ -301,8 +301,8 @@ module.exports = {
 				// Reject Site Not Found
 				throw new AppError(
 					chargingStation.getID(),
-					`Site Area '${siteArea.getName()}' is not assigned to a Site!`, 500,
-					"Authorizations", "checkIfUserIsAuthorizedForChargingStation",
+					`Site Area '${siteArea.getName()}' is not assigned to a Site!`, 525,
+					"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
 					null, user.getModel());
 			}
 			// Get Users
@@ -313,16 +313,13 @@ module.exports = {
 				return siteUser.getID() == user.getID();
 			});
 			// User not found and Access Control Enabled?
-			if (!foundUser) {
-				// ACL Enabled?
-				if (siteArea.isAccessControlEnabled()) {
-					// Yes: Reject the User
-					throw new AppError(
-						chargingStation.getID(),
-						`User is not assigned to the Site '${site.getName()}'!`, 500,
-						"Authorizations", "checkIfUserIsAuthorizedForChargingStation",
-						null, user.getModel());
-				}
+			if (!foundUser && siteArea.isAccessControlEnabled()) {
+				// Yes: Reject the User
+				throw new AppError(
+					chargingStation.getID(),
+					`User is not assigned to the Site '${site.getName()}'!`, 525,
+					"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
+					null, user.getModel());
 			}
 			// Check Alternate User --------------------------------
 			let foundAlternateUser;
@@ -332,44 +329,36 @@ module.exports = {
 				});
 			}
 			// Alternate User not found and Access Control Enabled?
-			if (alternateUser && !foundAlternateUser && !alternateUser.isAdmin()) {
-				// ACL Enabled?
-				if (siteArea.isAccessControlEnabled()) {
-					// Reject the User
-					throw new AppError(
-						chargingStation.getID(),
-						`User is not assigned to the Site '${site.getName()}'!`, 500,
-						"Authorizations", "checkIfUserIsAuthorizedForChargingStation",
-						null, alternateUser.getModel());
-				}
+			if (alternateUser && !foundAlternateUser && siteArea.isAccessControlEnabled()) {
+				// Reject the User
+				throw new AppError(
+					chargingStation.getID(),
+					`User is not assigned to the Site '${site.getName()}'!`, 525,
+					"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
+					null, alternateUser.getModel());
 			}
 			// Check if users are differents
-			if (alternateUser && user.getID() != alternateUser.getID() && !alternateUser.isAdmin()) {
-				// Site allows this?
-				if (!site.isAllowAllUsersToStopTransactionsEnabled()) {
-					// Reject the User
-					throw new AppError(
-						chargingStation.getID(),
-						`User '${alternateUser.getFullName()}' is not allowed to perform '${action}' on User '${user.getFullName()}' on Site '${site.getName()}'!`,
-						500, "Authorizations", "checkIfUserIsAuthorizedForChargingStation",
-						alternateUser.getModel(), user.getModel());
-				}
+			if (alternateUser && (user.getID() != alternateUser.getID()) &&
+					!alternateUser.isAdmin() && !site.isAllowAllUsersToStopTransactionsEnabled()) {
+				// Reject the User
+				throw new AppError(
+					chargingStation.getID(),
+					`User '${alternateUser.getFullName()}' is not allowed to perform '${action}' on User '${user.getFullName()}' on Site '${site.getName()}'!`,
+					525, "Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
+					alternateUser.getModel(), user.getModel());
 			}
 			// Can perform action?
 			if (!this.canPerformActionOnChargingStation(
 					currentUser.getModel(),
 					chargingStation.getModel(),
 					action)) {
-				// ACL Enabled?
-				if (siteArea.isAccessControlEnabled()) {
-					// Not Authorized!
-					throw new AppAuthError(
-						action,
-						this.ENTITY_CHARGING_STATION,
-						chargingStation.getID(),
-						500, "Authorizations", "checkIfUserIsAuthorizedForChargingStation",
-						currentUser.getModel());
-				}
+				// Not Authorized!
+				throw new AppAuthError(
+					action,
+					this.ENTITY_CHARGING_STATION,
+					chargingStation.getID(),
+					500, "Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
+					currentUser.getModel());
 			}
 			// Return
 			return {

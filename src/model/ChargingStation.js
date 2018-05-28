@@ -768,7 +768,7 @@ class ChargingStation {
 		authorize.timestamp = new Date();
 
 		// Execute
-		return Authorizations.checkIfUserIsAuthorizedForChargingStation(
+		return Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
 				Authorizations.ACTION_AUTHORIZE, this, authorize.idTag).then(() => {
 			// Save
 			return global.storage.saveAuthorize(authorize);
@@ -830,7 +830,7 @@ class ChargingStation {
 				transaction.id = activeTransaction.id;
 			}
 			// Check user and save
-			return Authorizations.checkIfUserIsAuthorizedForChargingStation(
+			return Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
 				Authorizations.ACTION_START_TRANSACTION, this, transaction.idTag);
 		}).then((foundUsers) => {
 			// Set
@@ -888,7 +888,7 @@ class ChargingStation {
 			// Set Tag ID to a new property
 			stopTransaction.tagID = stopTransaction.idTag;
 			// Check User
-			return Authorizations.checkIfUserIsAuthorizedForChargingStation(
+			return Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
 				Authorizations.ACTION_STOP_TRANSACTION, this, transaction.tagID, stopTransaction.tagID);
 		}).then((foundUsers) => {
 			// Set
