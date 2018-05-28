@@ -61,7 +61,7 @@ module.exports = {
 						"status": connector.status,
 						"errorCode": connector.errorCode,
 						"power": connector.power,
-						"activeTransactionID": connector.activeTransactionID 
+						"activeTransactionID": connector.activeTransactionID
 					});
 				} else {
 					dest.connectors.push(null);
@@ -343,6 +343,12 @@ module.exports = {
 			dest.stop.transactionData = src.stop.transactionData;
 			dest.stop.totalConsumption = src.stop.totalConsumption;
 			dest.stop.totalInactivitySecs = src.stop.totalInactivitySecs;
+		}
+		// Remote Stop?
+		if (!Utils.isEmptyJSon(src.remotestop)) {
+			dest.remotestop = {};
+			dest.remotestop.timestamp = src.remotestop.timestamp;
+			dest.remotestop.tagID = Utils.objectIdtoString(src.remotestop.tagID);
 		}
 	}
 };

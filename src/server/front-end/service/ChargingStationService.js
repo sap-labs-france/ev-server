@@ -280,7 +280,9 @@ class ChargingStationService {
 			if (action === "StopTransaction" ||
 					action === "UnlockConnector") {
 				// Get Transaction
-				return global.storage.getTransaction(filteredRequest.args.transactionId).then((transaction) => {
+				let transaction;
+				return global.storage.getTransaction(filteredRequest.args.transactionId).then((foundTransaction) => {
+					transaction = foundTransaction;
 					if (!transaction) {
 						// Log
 						return Promise.reject(new Error(`Transaction ${filteredRequest.TransactionId} does not exist`));
@@ -289,6 +291,13 @@ class ChargingStationService {
 					filteredRequest.args.connectorId = transaction.connectorId;
 					// Check if user is authorized
 					return Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, transaction.tagID, req.user.tagIDs[0]);
+				}).then(() => {
+					// Set the tag ID to handle the Stop Transaction afterwards
+					transaction.remotestop = {};
+					transaction.remotestop.tagID = req.user.tagIDs[0];
+					transaction.remotestop.timestamp = new Date().toISOString();
+					// Save Transaction
+					return global.storage.saveTransaction(transaction);
 				}).then(() => {
 					// Ok: Execute it
 					return chargingStation.handleAction(action, filteredRequest.args);

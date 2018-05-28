@@ -880,7 +880,19 @@ class ChargingStation {
 			if (!transaction) {
 				throw new Error(`Transaction ID '${stopTransaction.transactionId}' does not exist`);
 			}
-			// Save it with the user
+			// Remote Stop Transaction?
+			if (transaction.remotestop) {
+				// Check Timestamp
+				// Add the inactivity in secs
+				let secs = moment.duration(moment().diff(
+					moment(transaction.remotestop.timestamp))).asSeconds();
+				// In a minute
+				if (secs < 60) {
+					// Set Tag ID with user that remotely stopped the transaction
+					stopTransaction.idTag = transaction.remotestop.tagID;
+				}
+			}
+			// Stop Transaction with the same user
 			if (!stopTransaction.idTag) {
 				// Set Tag ID with user that started the transaction
 				stopTransaction.idTag = transaction.tagID;
@@ -951,7 +963,7 @@ class ChargingStation {
 					transaction.user.locale
 				);
 			}
-			// // Save Transaction
+			// Save Transaction
 			return global.storage.saveTransaction(transaction);
 		}).then((savedTransaction) => {
 			newTransaction = savedTransaction;

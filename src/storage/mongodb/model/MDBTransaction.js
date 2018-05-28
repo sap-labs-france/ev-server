@@ -11,6 +11,11 @@ const StopTransaction = new mongoose.Schema({
 	totalInactivitySecs: Number
 });
 
+const RemoteStopTransaction = new mongoose.Schema({
+	timestamp: Date,
+	tagID: {type: String, ref: 'Tag'}
+});
+
 module.exports = mongoose.model('Transaction',{
 	_id: Number,
 	chargeBoxID: {type: String, ref: 'ChargingStation'},
@@ -20,5 +25,6 @@ module.exports = mongoose.model('Transaction',{
 	timestamp: Date,
 	reservationId: Number,
 	meterStart: Number,
-	stop: StopTransaction
+	stop: StopTransaction,
+	remotestop: RemoteStopTransaction
 });
