@@ -91,7 +91,7 @@ class CentralSystemServer {
 				// Save Charging Station
 				chargingStation = new ChargingStation(args);
 				// Set the URL = enpoint
-				chargingStation.setChargingStationURL(chargingStation.getEndPoint())
+				chargingStation.setChargingStationURL(chargingStation.getEndPoint());
 				// Update timestamp
 				chargingStation.setCreatedOn(new Date());
 			} else {

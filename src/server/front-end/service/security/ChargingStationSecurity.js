@@ -88,11 +88,12 @@ class ChargingStationSecurity {
 		return filteredRequest;
 	}
 
-	static filterChargingStationURLUpdateRequest(request, loggedUser) {
+	static filterChargingStationParamsUpdateRequest(request, loggedUser) {
 		// Set
 		let filteredRequest = {};
 		filteredRequest.id = sanitize(request.id);
 		filteredRequest.chargingStationURL = sanitize(request.chargingStationURL);
+		filteredRequest.numberOfConnectedPhase = sanitize(request.numberOfConnectedPhase);
 		return filteredRequest;
 	}
 

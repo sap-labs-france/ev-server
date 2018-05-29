@@ -127,6 +127,14 @@ class ChargingStation {
 		this._model.chargeBoxSerialNumber = chargeBoxSerialNumber;
 	}
 
+	getNumberOfConnectedPhase() {
+		return this._model.numberOfConnectedPhase;
+	}
+
+	setNumberOfConnectedPhase(numberOfConnectedPhase) {
+		this._model.numberOfConnectedPhase = numberOfConnectedPhase;
+	}
+
 	getFirmwareVersion() {
 		return this._model.firmwareVersion;
 	}
@@ -284,9 +292,9 @@ class ChargingStation {
 		return global.storage.saveChargingStationHeartBeat(this.getModel());
 	}
 
-	saveChargingStationURL() {
+	saveChargingStationParams() {
 		// Save
-		return global.storage.saveChargingStationURL(this.getModel());
+		return global.storage.saveChargingStationParams(this.getModel());
 	}
 
 	saveChargingStationSiteArea() {
@@ -297,11 +305,9 @@ class ChargingStation {
 	handleStatusNotification(statusNotification) {
 		// Set the Station ID
 		statusNotification.chargeBoxID = this.getID();
-
 		// Update the connector -----------------------------------------
 		// Get the connectors
 		let connectors = this.getConnectors();
-
 		// Init previous connector status
 		for (var i = 0; i < statusNotification.connectorId; i++) {
 			// Check if former connector can be set
@@ -310,23 +316,66 @@ class ChargingStation {
 				connectors[i] = { connectorId: i+1, currentConsumption: 0, status: 'Unknown', power: 0 };
 			}
 		}
-
 		// Set the status
 		connectors[statusNotification.connectorId-1].connectorId = statusNotification.connectorId;
 		// Error Code?
 		connectors[statusNotification.connectorId-1].status = statusNotification.status;
 		connectors[statusNotification.connectorId-1].errorCode = statusNotification.errorCode;
+		// Set
 		this.setConnectors(connectors);
-
 		// Compute the power of the connector
-		// Use a function to pass the connector`
-		return ((connector) => {
+		return this.updateConnectorsPower().then(() => {
+			// Save Status Notif
+			return global.storage.saveStatusNotification(statusNotification);
+		}).then(() => {
+			// Save Status
+			return global.storage.saveChargingStationConnector(
+				this.getModel(), statusNotification.connectorId);
+		}).then(() => {
+			// Check if error
+			if (statusNotification.status === "Faulted") {
+				// Log
+				Logging.logError({
+					source: this.getID(), module: "ChargingStation",
+					method: "handleStatusNotification", action: "StatusNotification",
+					message: `Error on connector ${statusNotification.connectorId}: ${statusNotification.status} - ${statusNotification.errorCode}` });
+				// Send Notification
+				NotificationHandler.sendChargingStationStatusError(
+					Utils.generateGUID(),
+					this.getModel(),
+					{
+						"chargeBoxID": this.getID(),
+						"connectorId": statusNotification.connectorId,
+						"error": `${statusNotification.status} - ${statusNotification.errorCode}`,
+						"evseDashboardURL" : Utils.buildEvseURL(),
+						"evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(this, statusNotification.connectorId)
+					}
+				);
+			}
+		});
+	}
+
+	updateConnectorsPower(forceUpdate=false) {
+		let updatePower = forceUpdate;
+		// Check
+		if (!forceUpdate) {
+			this.getConnectors().forEach((connector) => {
+				if (!connector || !connector.power) {
+					// Update
+					updatePower = true;
+				}
+			});
+		}
+		// Update?
+		console.log(updatePower);
+		if (updatePower) {
 			// Get the configuration
 			return this.getConfiguration().then((configuration) => {
-				var voltageRerefence = 0;
-				var current = 0;
-				var chargerConsumption = 0;
-				var nbPhase = 0;
+				let voltageRerefence = 0;
+				let current = 0;
+				let chargerConsumption = 0;
+				let nbPhase = 0;
+				let power = 0;
 
 				if (configuration && configuration.configuration) {
 					// Search for params
@@ -352,50 +401,37 @@ class ChargingStation {
 								break;
 						}
 					}
-
+					// Override?
+					console.log(voltageRerefence);
+					console.log(current);
+					console.log(nbPhase);
+					console.log(this.getNumberOfConnectedPhase());
+					if (this.getNumberOfConnectedPhase()) {
+						// Yes
+						nbPhase = this.getNumberOfConnectedPhase();
+					}
 					// Compute it
 					if (voltageRerefence && current && nbPhase) {
 						// One Phase?
 						if (nbPhase == 1) {
-							connector.power = Math.floor(230 * current);
+							power = Math.floor(230 * current);
 						} else {
-							connector.power = Math.floor(400 * current * Math.sqrt(nbPhase));
+							power = Math.floor(400 * current * Math.sqrt(nbPhase));
 						}
 					}
-				} else {
-					// Not possible to compute Power
-					connector.power = 0;
 				}
-				// Save Status Notif
-				return global.storage.saveStatusNotification(statusNotification);
-			}).then(() => {
-				// Save Status
-				return global.storage.saveChargingStationConnector(
-					this.getModel(), statusNotification.connectorId);
-
-			}).then(() => {
-				// Check if error
-				if (statusNotification.status === "Faulted") {
-					// Log
-					Logging.logError({
-						source: this.getID(), module: "ChargingStation",
-						method: "handleStatusNotification", action: "StatusNotification",
-						message: `Error on connector ${statusNotification.connectorId}: ${statusNotification.status} - ${statusNotification.errorCode}` });
-					// Send Notification
-					NotificationHandler.sendChargingStationStatusError(
-						Utils.generateGUID(),
-						this.getModel(),
-						{
-							"chargeBoxID": this.getID(),
-							"connectorId": statusNotification.connectorId,
-							"error": `${statusNotification.status} - ${statusNotification.errorCode}`,
-							"evseDashboardURL" : Utils.buildEvseURL(),
-							"evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(this, statusNotification.connectorId)
-						}
-					);
-				}
+				console.log(power);
+				// Set Power
+				this.getConnectors().forEach((connector) => {
+					if (connector) {
+						connector.power = power;
+					}
+				});
 			});
-		})(connectors[statusNotification.connectorId-1]);
+		} else {
+			// No
+			return Promise.resolve(null);
+		}
 	}
 
 	handleBootNotification(bootNotification) {

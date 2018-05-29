@@ -196,9 +196,10 @@ class ChargingStationStorage {
 		});
 	}
 
-	static handleSaveChargingStationURL(chargingStation) {
+	static handleSaveChargingStationParams(chargingStation) {
 		let updatedFields = {};
 		updatedFields["chargingStationURL"] = chargingStation.chargingStationURL;
+		updatedFields["numberOfConnectedPhase"] = chargingStation.numberOfConnectedPhase;
 		// Update
 		return MDBChargingStation.findByIdAndUpdate(
 				chargingStation.id,

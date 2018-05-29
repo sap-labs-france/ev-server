@@ -369,10 +369,10 @@ module.exports = {
 						UserService.handleUpdateUser(action, req, res, next);
 						break;
 
-					// User
-					case "ChargingStationUpdateURL":
+					// Charging Station Params
+					case "ChargingStationUpdateParams":
 						// Delegate
-						ChargingStationService.handleUpdateChargingStationURL(action, req, res, next);
+						ChargingStationService.handleUpdateChargingStationParams(action, req, res, next);
 						break;
 
 					// Site

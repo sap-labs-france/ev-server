@@ -26,6 +26,7 @@ module.exports = mongoose.model('ChargingStation',{
 	endpoint: String,
 	chargingStationURL: String,
 	ocppVersion: String,
+	numberOfConnectedPhase: Number,
 	lastReboot: Date,
 	lastHeartBeat: Date,
 	deleted: Boolean,

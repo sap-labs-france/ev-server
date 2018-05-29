@@ -11,16 +11,16 @@ const SiteArea = require('../../../model/SiteArea');
 const ChargingStationSecurity = require('./security/ChargingStationSecurity');
 
 class ChargingStationService {
-	static handleUpdateChargingStationURL(action, req, res, next) {
+	static handleUpdateChargingStationParams(action, req, res, next) {
 		Logging.logSecurityInfo({
 			user: req.user, action: action,
 			module: "ChargingStationService",
-			method: "handleUpdateChargingStationURL",
+			method: "handleUpdateChargingStationParams",
 			message: `Update URL of Charging Station '${req.body.id}'`,
 			detailedMessages: req.body
 		});
 		// Filter
-		let filteredRequest = ChargingStationSecurity.filterChargingStationURLUpdateRequest( req.body, req.user );
+		let filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest( req.body, req.user );
 		let chargingStation;
 		// Check email
 		global.storage.getChargingStation(filteredRequest.id).then((foundChargingStation) => {
@@ -29,7 +29,7 @@ class ChargingStationService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Charging Station with ID '${filteredRequest.id}' does not exist anymore`,
-					550, "ChargingStationService", "handleUpdateChargingStationURL");
+					550, "ChargingStationService", "handleUpdateChargingStationParams");
 			}
 			if (!Authorizations.canUpdateChargingStation(req.user, chargingStation.getModel())) {
 			// Check auth
@@ -38,11 +38,16 @@ class ChargingStationService {
 					Authorizations.ACTION_UPDATE,
 					Authorizations.ENTITY_CHARGING_STATION,
 					site.getID(),
-					560, "ChargingStationService", "handleUpdateChargingStationURL",
+					560, "ChargingStationService", "handleUpdateChargingStationParams",
 					req.user);
 			}
-			// Update Charging Station URL
+			// Update URL
 			chargingStation.setChargingStationURL(filteredRequest.chargingStationURL);
+			// Update Nb Phase
+			chargingStation.setNumberOfConnectedPhase(filteredRequest.numberOfConnectedPhase);
+			// Update Power
+			return chargingStation.updateConnectorsPower(true);
+		}).then(() => {
 			// Get the logged user
 			return global.storage.getUser(req.user.id);
 		// Logged User
@@ -51,11 +56,11 @@ class ChargingStationService {
 			chargingStation.setLastChangedBy(loggedUser);
 			chargingStation.setLastChangedOn(new Date());
 			// Update
-			return chargingStation.saveChargingStationURL();
+			return chargingStation.save();
 		}).then((updatedChargingStation) => {
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "ChargingStationService", method: "handleUpdateChargingStationURL",
+				user: req.user, module: "ChargingStationService", method: "handleUpdateChargingStationParams",
 				message: `Charging Station '${updatedChargingStation.getID()}' URL has been updated successfully`,
 				action: action, detailedMessages: updatedChargingStation});
 			// Ok

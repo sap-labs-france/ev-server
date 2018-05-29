@@ -45,6 +45,7 @@ module.exports = {
 		dest.ocppVersion = src.ocppVersion;
 		dest.lastHeartBeat = src.lastHeartBeat;
 		dest.lastReboot = src.lastReboot;
+		dest.numberOfConnectedPhase = src.numberOfConnectedPhase;
 		dest.siteAreaID = Utils.objectIdtoString(src.siteAreaID);
 		if (src.chargingStationURL) {
 			dest.chargingStationURL = src.chargingStationURL;

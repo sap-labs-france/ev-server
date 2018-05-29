@@ -218,9 +218,9 @@ class MongoDBStorage {
 			chargingStation, connectorId);
 	}
 
-	saveChargingStationURL(chargingStation) {
+	saveChargingStationParams(chargingStation) {
 		// Delegate
-		return ChargingStationStorage.handleSaveChargingStationURL(
+		return ChargingStationStorage.handleSaveChargingStationParams(
 			chargingStation);
 	}
 
