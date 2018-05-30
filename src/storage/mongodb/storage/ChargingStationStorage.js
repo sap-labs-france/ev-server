@@ -258,7 +258,11 @@ class ChargingStationStorage {
 	}
 
 	static handleDeleteChargingStation(id) {
-		return MDBChargingStation.findByIdAndRemove( id ).then((result) => {
+		// Remove Configuration
+		return MDBConfiguration.findByIdAndRemove( id ).then((result) => {
+			// Remove Charging Station
+			return MDBChargingStation.findByIdAndRemove( id );
+		}).then((result) => {
 			// Notify Change
 			_centralRestServer.notifyChargingStationDeleted(
 				{
