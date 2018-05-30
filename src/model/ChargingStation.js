@@ -367,7 +367,6 @@ class ChargingStation {
 			});
 		}
 		// Update?
-		console.log(updatePower);
 		if (updatePower) {
 			// Get the configuration
 			return this.getConfiguration().then((configuration) => {
@@ -402,10 +401,6 @@ class ChargingStation {
 						}
 					}
 					// Override?
-					console.log(voltageRerefence);
-					console.log(current);
-					console.log(nbPhase);
-					console.log(this.getNumberOfConnectedPhase());
 					if (this.getNumberOfConnectedPhase()) {
 						// Yes
 						nbPhase = this.getNumberOfConnectedPhase();
@@ -420,7 +415,6 @@ class ChargingStation {
 						}
 					}
 				}
-				console.log(power);
 				// Set Power
 				this.getConnectors().forEach((connector) => {
 					if (connector) {
