@@ -43,8 +43,10 @@ class MongoDBStorage {
 			host: urlencode(_dbConfig.host),
 			port: urlencode(_dbConfig.port),
 			database: urlencode(_dbConfig.schema),
+			options: {
+				replicaSet: "rs0"
+		    }
 		});
-
 		// MONGOOSE --------------------------------------------------
 		// Connect
 		mongoose.connect(mongoUrl,
@@ -59,7 +61,13 @@ class MongoDBStorage {
 		// MONGOOSE --------------------------------------------------
 
 		// MongoDB Native Driver
-		return MongoClient.connect(mongoUrl, { useNewUrlParser: true }).then((client) => {
+		return MongoClient.connect(mongoUrl,
+				{
+					useNewUrlParser: true,
+					poolSize: _dbConfig.poolSize,
+					replicaSet: _dbConfig.replicaSet,
+					loggerLevel: (_dbConfig.debug ? "debug" : null)
+				}).then((client) => {
 			// Get the DB
 			let db = client.db(_dbConfig.schema);
 			// Set DB

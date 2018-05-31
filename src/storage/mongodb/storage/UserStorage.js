@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const Constants = require('../../../utils/Constants');
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
@@ -10,7 +9,7 @@ const MDBUserImage = require('../model/MDBUserImage');
 const MDBTag = require('../model/MDBTag');
 const User = require('../../../model/User');
 const crypto = require('crypto');
-const ObjectId = mongoose.Types.ObjectId;
+const ObjectID = require('mongodb').ObjectID;
 
 let _centralRestServer;
 let _db;
@@ -44,8 +43,8 @@ class UserStorage {
 		currentEula = Users.getEndUserLicenseAgreement(language);
 		// Read DB
 		return _db.collection('eulas')
-				.find({"language":language})
-				.sort({"version": -1})
+				.find({'language':language})
+				.sort({'version': -1})
 				.limit(1)
 				.toArray()
 				.then((eulasMDB) => {
@@ -85,7 +84,7 @@ class UserStorage {
 					eula.text = currentEula;
 					eula.hash = crypto.createHash('sha256')
 						.update(currentEula)
-						.digest("hex");
+						.digest('hex');
 					// Create
 				    return _db.collection('eulas')
 							.insertOne(eula)
@@ -107,29 +106,31 @@ class UserStorage {
 	}
 
 	static handleGetUserByTagId(tagID) {
-		// Exec request
-		return MDBTag.findById(tagID).exec().then((tagMDB) => {
+		// Read DB
+		return _db.collection('tags')
+				.find({'_id': tagID})
+				.limit(1)
+				.toArray()
+				.then((tagsMDB) => {
 			// Check
-			if (tagMDB) {
+			if (tagsMDB && tagsMDB.length > 0) {
 				// Ok
-				return UserStorage.handleGetUser(tagMDB.userID);
-			} else {
-				// Return empty user
-				return Promise.resolve();
+				return UserStorage.handleGetUser(tagsMDB[0].userID);
 			}
 		});
 	}
 
 	static handleGetUserByEmail(email) {
-		// Exec request
-		return MDBUser.findOne({"email": email}).then((userMDB) => {
+		// Read DB
+		return _db.collection('users')
+				.find({'email': email})
+				.limit(1)
+				.toArray()
+				.then((usersMDB) => {
 			// Check deleted
-			if (userMDB && userMDB.deleted) {
-				// Return empty user
-				return Promise.resolve();
-			} else {
+			if (usersMDB && (usersMDB.length > 0) && !usersMDB[0].deleted) {
 				// Ok
-				return UserStorage._createUser(userMDB);
+				return UserStorage._createUser(usersMDB[0]);
 			}
 		});
 	}
@@ -139,31 +140,38 @@ class UserStorage {
 		let aggregation = [];
 		// Filters
 		aggregation.push({
-			$match: { _id: ObjectId(id) }
+			$match: { '_id': ObjectID(id) }
 		});
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
-		// Execute
-		return MDBUser.aggregate(aggregation)
-				.exec().then((userMDB) => {
+		// Read DB
+		return _db.collection('users')
+				.aggregate(aggregation)
+				.limit(1)
+				.toArray()
+				.then((usersMDB) => {
 			// Check deleted
-			if (userMDB && userMDB.length > 0) {
+			if (usersMDB && (usersMDB.length > 0) && !usersMDB[0].deleted) {
 				// Ok
-				return UserStorage._createUser(userMDB[0]);
+				return UserStorage._createUser(usersMDB[0]);
 			}
 		});
 	}
 
 	static handleGetUserImage(id) {
-		// Exec request
-		return MDBUserImage.findById(id)
-				.exec().then((userImageMDB) => {
+		// Read DB
+		return _db.collection('userimages')
+				.find({'_id': ObjectID(id)})
+				.limit(1)
+				.toArray()
+				.then((userImagesMDB) => {
 			let userImage = null;
-			// Set
-			if (userImageMDB) {
+			// Check
+			if (userImagesMDB && (userImagesMDB.length > 0)) {
+				// Set
 				userImage = {
-					id: userImageMDB._id,
-					image: userImageMDB.image
+					id: userImagesMDB[0]._id,
+					image: userImagesMDB[0].image
 				};
 			}
 			return userImage;
@@ -171,9 +179,11 @@ class UserStorage {
 	}
 
 	static handleGetUserImages() {
-		// Exec request
-		return MDBUserImage.find({})
-				.exec().then((userImagesMDB) => {
+		// Read DB
+		return _db.collection('userimages')
+				.find({})
+				.toArray()
+				.then((userImagesMDB) => {
 			let userImages = [];
 			// Add
 			userImagesMDB.forEach((userImageMDB) => {
@@ -190,87 +200,87 @@ class UserStorage {
 		// Check if ID or email is provided
 		if (!user.id && !user.email) {
 			// ID must be provided!
-			return Promise.reject( new Error("User has no ID and no Email and cannot be created or updated") );
-		} else {
-			let userFilter = {};
-			// Build Request
-			if (user.id) {
-				userFilter._id = user.id;
-			} else {
-				userFilter.email = user.email;
-			}
-			// Check Created By
-			if (user.createdBy && typeof user.createdBy == "object") {
-				// This is the User Model
-				user.createdBy = new ObjectId(user.createdBy.id);
-			}
-			// Check Last Changed By
-			if (user.lastChangedBy && typeof user.lastChangedBy == "object") {
-				// This is the User Model
-				user.lastChangedBy = new ObjectId(user.lastChangedBy.id);
-			}
-			// Save
-			let newUser;
-			return MDBUser.findOneAndUpdate(userFilter, user, {
-				new: true,
-				upsert: true
-			}).then((userMDB) => {
-				newUser = new User(userMDB);
-				// First delete all of them
-				return MDBTag.remove({ "userID" : new ObjectId(newUser.getID()) });
-			}).then(() => {
-				// Add tags
-				let proms = [];
-				user.tagIDs.forEach((tag) => {
-					// Update/Insert Tag
-					proms.push(
-						MDBTag.findOneAndUpdate({
-							"_id": tag
-						},{
-							"_id": tag,
-							"userID": new ObjectId(newUser.getID())
-						},{
-							new: true,
-							upsert: true
-						})
-					);
-				});
-				return Promise.all(proms);
-			}).then(() => {
-				// Notify Change
-				if (!user.id) {
-					_centralRestServer.notifyUserCreated(
-						{
-							"id": newUser.getID(),
-							"type": Constants.NOTIF_ENTITY_USER
-						}
-					);
-				} else {
-					_centralRestServer.notifyUserUpdated(
-						{
-							"id": newUser.getID(),
-							"type": Constants.NOTIF_ENTITY_USER
-						}
-					);
-				}
-				return newUser;
-			});
+			throw new Error("User has no ID and no Email and cannot be created or updated");
 		}
+		let userFilter = {};
+		// Build Request
+		if (user.id) {
+			console.log(typeof user.id);
+			userFilter._id = new ObjectID(user.id);
+		} else {
+			userFilter.email = user.email;
+		}
+		// Check Created By
+		if (user.createdBy && typeof user.createdBy == "object") {
+			// This is the User Model
+			user.createdBy = ObjectID(user.createdBy.id);
+		}
+		// Check Last Changed By
+		if (user.lastChangedBy && typeof user.lastChangedBy == "object") {
+			// This is the User Model
+			user.lastChangedBy = ObjectID(user.lastChangedBy.id);
+		}
+		// Save
+		let newUser;
+		// Modify and return the modified document
+	    return _db.collection('users').findOneAndUpdate(
+				userFilter,
+				{$set: user},
+				{upsert: true, new: true}).then((result) => {
+			console.log(result);
+			newUser = new User(result.value);
+			// First delete all of them
+			return MDBTag.remove({ "userID" : new ObjectID(newUser.getID()) });
+		}).then(() => {
+			// Add tags
+			let proms = [];
+			user.tagIDs.forEach((tag) => {
+				// Update/Insert Tag
+				proms.push(
+					MDBTag.findOneAndUpdate({
+						"_id": tag
+					},{
+						"_id": tag,
+						"userID": new ObjectID(newUser.getID())
+					},{
+						new: true,
+						upsert: true
+					})
+				);
+			});
+			return Promise.all(proms);
+		}).then(() => {
+			// Notify Change
+			if (!user.id) {
+				_centralRestServer.notifyUserCreated(
+					{
+						"id": newUser.getID(),
+						"type": Constants.NOTIF_ENTITY_USER
+					}
+				);
+			} else {
+				_centralRestServer.notifyUserUpdated(
+					{
+						"id": newUser.getID(),
+						"type": Constants.NOTIF_ENTITY_USER
+					}
+				);
+			}
+			return newUser;
+		});
 	}
 
 	static handleSaveUserImage(user) {
 		// Check if ID is provided
 		if (!user.id) {
-			// ID must be provided!
-			return Promise.reject( new Error("User has no ID and no Email and cannot be created or updated") );
-		} else {
-			// Save Image
-			return MDBUserImage.findOneAndUpdate({
-				"_id": new ObjectId(user.id)
-			}, user, {
-				new: true,
-				upsert: true
-			});
+			throw new Error("User has no ID and cannot be created or updated");
+		}
+		// Modify and return the modified document
+	    return _db.collection('userimages').findOneAndUpdate(
+				{'_id': new ObjectID(user.id)},
+				{$set: user},
+				{upsert: true, new: true}).then((result) => {
+			console.log(result);
 			// Notify
 			_centralRestServer.notifyUserUpdated(
 				{
@@ -278,7 +288,7 @@ class UserStorage {
 					"type": Constants.NOTIF_ENTITY_USER
 				}
 			);
-		}
+		});
 	}
 
 	static handleGetUsers(searchValue, siteID, numberOfUsers) {
@@ -287,7 +297,8 @@ class UserStorage {
 				{
 					"$or": [
 						{ "deleted": { $exists:false } },
-						{ deleted: false }
+						{ deleted: false },
+						{ deleted: null }
 					]
 				}
 			]
@@ -338,7 +349,7 @@ class UserStorage {
 		// Site ID?
 		if (siteID) {
 			aggregation.push({
-				$match: { "siteusers.siteID": new ObjectId(siteID) }
+				$match: { "siteusers.siteID": new ObjectID(siteID) }
 			});
 		}
 		aggregation.push({
@@ -370,9 +381,11 @@ class UserStorage {
 				$limit: numberOfUsers
 			});
 		}
-		// Execute
-		return MDBUser.aggregate(aggregation)
-				.exec().then((usersMDB) => {
+		// Read DB
+		return _db.collection('users')
+				.aggregate(aggregation)
+				.toArray()
+				.then((usersMDB) => {
 			let users = [];
 			// Create
 			usersMDB.forEach((userMDB) => {
@@ -390,10 +403,13 @@ class UserStorage {
 	}
 
 	static handleDeleteUser(id) {
-		// Remove User
-		return MDBUser.findByIdAndRemove( id ).then((result) => {
+		// Read DB
+		return _db.collection('users')
+				.findOneAndDelete( {'_id': new ObjectID(id)} )
+				.then((result) => {
 			// Remove User's Image
-			return MDBUserImage.findByIdAndRemove( id );
+			return _db.collection('userimages')
+				.findOneAndDelete( {'_id': new ObjectID(id)} );
 		}).then((result) => {
 			// Notify Change
 			_centralRestServer.notifyUserDeleted(
@@ -413,7 +429,10 @@ class UserStorage {
 			// Create
 			user = new User(userMDB);
 			// Get the Tags
-			return MDBTag.find({"userID": user.getID()}).exec().then((tagsMDB) => {
+			return _db.collection('tags')
+					.find({"userID": user.getID()})
+					.toArray()
+					.then((tagsMDB) => {
 				// Check
 				if (tagsMDB) {
 					// Get the Tags
