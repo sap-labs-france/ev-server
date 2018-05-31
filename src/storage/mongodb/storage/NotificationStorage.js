@@ -4,7 +4,13 @@ const Database = require('../../../utils/Database');
 const MDBNotification = require('../model/MDBNotification');
 const crypto = require('crypto');
 
+let _db;
+
 class NotificationStorage {
+	static setDatabase(db) {
+		_db = db;
+	}
+
 	static handleGetNotification(sourceId) {
 		// Exec request
 		return MDBNotification.find({"sourceId": sourceId}).exec().then((notificationsMDB) => {

@@ -14,10 +14,15 @@ const ObjectId = mongoose.Types.ObjectId;
 const MDBVehicleManufacturerLogo = require('../model/MDBVehicleManufacturerLogo');
 
 let _centralRestServer;
+let _db;
 
 class VehicleManufacturerStorage {
 	static setCentralRestServer(centralRestServer) {
 		_centralRestServer = centralRestServer;
+	}
+
+	static setDatabase(db) {
+		_db = db;
 	}
 
 	static handleGetVehicleManufacturerLogo(id) {

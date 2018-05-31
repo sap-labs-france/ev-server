@@ -9,10 +9,15 @@ const ObjectId = mongoose.Types.ObjectId;
 const crypto = require('crypto');
 
 let _centralRestServer;
+let _db;
 
 class TransactionStorage {
 	static setCentralRestServer(centralRestServer) {
 		_centralRestServer = centralRestServer;
+	}
+
+	static setDatabase(db) {
+		_db = db;
 	}
 
 	static handleDeleteTransaction(transaction) {

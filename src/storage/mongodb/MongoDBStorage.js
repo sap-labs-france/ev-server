@@ -12,10 +12,15 @@ const SiteStorage = require('./storage/SiteStorage');
 const SiteAreaStorage = require('./storage/SiteAreaStorage');
 const MigrationStorage = require('./storage/MigrationStorage');
 const VehicleManufacturerStorage = require('./storage/VehicleManufacturerStorage');
+const assert = require('assert');
+const MongoClient = require('mongodb').MongoClient;
+const mongoUriBuilder = require('mongo-uri-builder');
+const urlencode = require('urlencode');
 
 require('source-map-support').install();
 
 let _dbConfig;
+let _db;
 
 class MongoDBStorage {
 	// Create database access
@@ -31,21 +36,47 @@ class MongoDBStorage {
 	}
 
 	start() {
-		return new Promise((fulfill, reject) => {
-			// Connect
-			mongoose.connect(`mongodb://${_dbConfig.user}:${_dbConfig.password}@${_dbConfig.host}:${_dbConfig.port}/${_dbConfig.schema}`,
-					{"useMongoClient": true}, (err) => {
-				if (err) {
-					reject(err);
-				} else {
-					// Log
-					Logging.logInfo({
-						module: "MongoDBStorage", method: "start", action: "Startup",
-						message: `Connected to MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}' and using schema '${_dbConfig.schema}'` });
-					// Ok
-					fulfill();
-				}
-			});
+		// Build URL
+		let mongoUrl = mongoUriBuilder({
+			username: urlencode(_dbConfig.user),
+			password: urlencode(_dbConfig.password),
+			host: urlencode(_dbConfig.host),
+			port: urlencode(_dbConfig.port),
+			database: urlencode(_dbConfig.schema),
+		});
+
+		// MONGOOSE --------------------------------------------------
+		// Connect
+		mongoose.connect(mongoUrl,
+				{"useMongoClient": true}, (err) => {
+			if (!err) {
+				// Log
+				Logging.logInfo({
+					module: "MongoDBStorage", method: "start", action: "Startup",
+					message: `Connected to MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}' and using schema '${_dbConfig.schema}'` });
+			}
+		});
+		// MONGOOSE --------------------------------------------------
+
+		// MongoDB Native Driver
+		return MongoClient.connect(mongoUrl, { useNewUrlParser: true }).then((client) => {
+			// Get the DB
+			let db = client.db(_dbConfig.schema);
+			// Set DB
+			LoggingStorage.setDatabase(db);
+			ChargingStationStorage.setDatabase(db);
+			PricingStorage.setDatabase(db);
+			TransactionStorage.setDatabase(db);
+			UserStorage.setDatabase(db);
+			CompanyStorage.setDatabase(db);
+			SiteStorage.setDatabase(db);
+			SiteAreaStorage.setDatabase(db);
+			VehicleStorage.setDatabase(db);
+			VehicleManufacturerStorage.setDatabase(db);
+			// Log
+			Logging.logInfo({
+				module: "MongoDBStorage", method: "start", action: "Startup",
+				message: `Connected to MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}' and using schema '${_dbConfig.schema}'` });
 		});
 	}
 

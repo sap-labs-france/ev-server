@@ -5,10 +5,15 @@ const MDBPricing = require('../model/MDBPricing');
 const crypto = require('crypto');
 
 let _centralRestServer;
+let _db;
 
 class PricingStorage {
 	static setCentralRestServer(centralRestServer) {
 		_centralRestServer = centralRestServer;
+	}
+
+	static setDatabase(db) {
+		_db = db;
 	}
 
 	static handleGetPricing() {

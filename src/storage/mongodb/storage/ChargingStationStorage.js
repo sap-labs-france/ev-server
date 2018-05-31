@@ -17,10 +17,15 @@ const crypto = require('crypto');
 const ObjectId = mongoose.Types.ObjectId;
 
 let _centralRestServer;
+let _db;
 
 class ChargingStationStorage {
 	static setCentralRestServer(centralRestServer) {
 		_centralRestServer = centralRestServer;
+	}
+
+	static setDatabase(db) {
+		_db = db;
 	}
 
 	static handleGetChargingStation(id) {

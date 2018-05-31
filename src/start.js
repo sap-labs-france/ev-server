@@ -113,6 +113,6 @@ global.storage.start().then(() => {
 	// Log
 	Logging.logError({
 		source: "BootStrap", module: "start", method: "-", action: "StartDatabase",
-		message: `Cannot start MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}': ${error.toString()}` });
-	console.log(`Cannot start MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}': ${error.toString()}`);
+		message: `Cannot start MongoDB (Database) on '${storageConfig.host}:${storageConfig.port}': ${error.toString()}` });
+	console.log(`Cannot start MongoDB (Database) on '${storageConfig.host}:${storageConfig.port}': ${error.toString()}`);
 });

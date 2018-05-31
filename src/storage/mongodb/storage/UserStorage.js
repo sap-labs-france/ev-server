@@ -8,16 +8,20 @@ const Utils = require('../../../utils/Utils');
 const MDBUser = require('../model/MDBUser');
 const MDBUserImage = require('../model/MDBUserImage');
 const MDBTag = require('../model/MDBTag');
-const MDBEula = require('../model/MDBEula');
 const User = require('../../../model/User');
 const crypto = require('crypto');
 const ObjectId = mongoose.Types.ObjectId;
 
 let _centralRestServer;
+let _db;
 
 class UserStorage {
 	static setCentralRestServer(centralRestServer) {
 		_centralRestServer = centralRestServer;
+	}
+
+	static setDatabase(db) {
+		_db = db;
 	}
 
 	static handleGetEndUserLicenseAgreement(language="en") {
@@ -25,6 +29,7 @@ class UserStorage {
 		let currentEula;
 		let currentEulaHash;
 		let newEula;
+		let eula = null;
 		let supportLanguages = Configuration.getLocalesConfig().supported;
 
 		supportLanguages.forEach(supportLanguage => {
@@ -38,10 +43,13 @@ class UserStorage {
 		// Get current eula
 		currentEula = Users.getEndUserLicenseAgreement(language);
 		// Read DB
-		return MDBEula.findOne({"language":language})
+		return _db.collection('eulas')
+				.find({"language":language})
 				.sort({"version": -1})
-				.then((eulaMDB) => {
-			let eula = null;
+				.limit(1)
+				.toArray()
+				.then((eulasMDB) => {
+			let eulaMDB = eulasMDB[0];
 			// Set
 			if (!eulaMDB) {
 				// Create Default
@@ -54,11 +62,15 @@ class UserStorage {
 					.update(currentEula)
 					.digest("hex");
 				// Create
-				newEula = new MDBEula(eula);
-				// Transfer
-				Database.updateEula(newEula, eula);
-				// Save
-				newEula.save();
+			    return _db.collection('eulas')
+						.insertOne(eula)
+						.then((result) => {
+					// Update object
+					eula = {};
+					Database.updateEula(result.ops[0], eula);
+					// Return
+					return eula;
+				});
 			} else {
 				// Check if eula has changed
 				currentEulaHash = crypto.createHash('sha256')
@@ -75,18 +87,22 @@ class UserStorage {
 						.update(currentEula)
 						.digest("hex");
 					// Create
-					newEula = new MDBEula(eula);
-					// Transfer
-					Database.updateEula(newEula, eula);
-					// Save
-					newEula.save();
+				    return _db.collection('eulas')
+							.insertOne(eula)
+							.then((result) => {
+						// Update object
+						eula = {};
+						Database.updateEula(result.ops[0], eula);
+						// Return
+						return eula;
+					});
 				} else {
 					// Ok: Transfer
 					eula = {};
 					Database.updateEula(eulaMDB, eula);
+					return eula;
 				}
 			}
-			return eula;
 		});
 	}
 

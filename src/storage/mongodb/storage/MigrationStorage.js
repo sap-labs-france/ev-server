@@ -4,7 +4,13 @@ const Database = require('../../../utils/Database');
 const MDBMigration = require('../model/MDBMigration');
 const crypto = require('crypto');
 
+let _db;
+
 class MigrationStorage {
+	static setDatabase(db) {
+		_db = db;
+	}
+
 	static handleGetMigrations() {
 		// Exec request
 		return MDBMigration.find({}).exec().then((migrationsMDB) => {

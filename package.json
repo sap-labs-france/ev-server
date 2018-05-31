@@ -6,6 +6,7 @@
 	"homepage": "https://github.com/LucasBrazi06/ev-server",
 	"main": "src/start.js",
 	"dependencies": {
+		"assert": "^1.4.1",
 		"babel-polyfill": "^6.26.0",
 		"bcrypt": "^1.0.3",
 		"body-parser": "^1.17.2",
@@ -23,7 +24,10 @@
 		"jsonwebtoken": "^7.4.3",
 		"locale": "^0.1.0",
 		"moment": "^2.18.1",
+		"mongo-oplog": "^2.1.0",
 		"mongo-sanitize": "^1.0.0",
+		"mongo-uri-builder": "^1.0.3",
+		"mongodb": "^3.1.0-beta4",
 		"mongoose": "^4.11.9",
 		"morgan": "^1.8.2",
 		"mustache": "^2.3.0",
@@ -42,6 +46,7 @@
 		"socket.io": "^2.0.3",
 		"source-map-support": "^0.4.16",
 		"strong-soap": "^1.2.6",
+		"urlencode": "^1.1.0",
 		"uuid": "^3.1.0",
 		"xml-formatter": "^1.0.1"
 	},
