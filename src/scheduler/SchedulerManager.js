@@ -3,7 +3,7 @@ const cron = require('node-cron');
 const Logging = require('../utils/Logging');
 const LoggingDatabaseTableCleanupTask = require('./tasks/LoggingDatabaseTableCleanupTask');
 
-_schedulerConfig = Configuration.getSchedulerConfig();
+let _schedulerConfig = Configuration.getSchedulerConfig();
 
 class SchedulerManager {
 	static init() {

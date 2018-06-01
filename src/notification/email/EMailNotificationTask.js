@@ -22,7 +22,7 @@ const NotificationTask = require('../NotificationTask');
 require('source-map-support').install();
 
 // Email
-_emailConfig = Configuration.getEmailConfig();
+let _emailConfig = Configuration.getEmailConfig();
 
 // https://nodemailer.com/smtp/
 class EMailNotificationTask extends NotificationTask {

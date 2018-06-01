@@ -4,8 +4,6 @@ const Database = require('../../../utils/Database');
 const Configuration = require('../../../utils/Configuration');
 const Users = require('../../../utils/Users');
 const Utils = require('../../../utils/Utils');
-const MDBUser = require('../model/MDBUser');
-const MDBUserImage = require('../model/MDBUserImage');
 const MDBTag = require('../model/MDBTag');
 const User = require('../../../model/User');
 const crypto = require('crypto');
@@ -205,7 +203,6 @@ class UserStorage {
 		let userFilter = {};
 		// Build Request
 		if (user.id) {
-			console.log(typeof user.id);
 			userFilter._id = new ObjectID(user.id);
 		} else {
 			userFilter.email = user.email;
@@ -227,7 +224,6 @@ class UserStorage {
 				userFilter,
 				{$set: user},
 				{upsert: true, new: true}).then((result) => {
-			console.log(result);
 			newUser = new User(result.value);
 			// First delete all of them
 			return MDBTag.remove({ "userID" : new ObjectID(newUser.getID()) });
@@ -280,7 +276,6 @@ class UserStorage {
 				{'_id': new ObjectID(user.id)},
 				{$set: user},
 				{upsert: true, new: true}).then((result) => {
-			console.log(result);
 			// Notify
 			_centralRestServer.notifyUserUpdated(
 				{

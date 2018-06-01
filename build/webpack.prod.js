@@ -1,5 +1,6 @@
 const config = {
-  devtool: "source-map"
+	mode: 'production',
+	devtool: "source-map"
 };
 
 module.exports = config;

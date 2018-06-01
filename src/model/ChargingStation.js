@@ -14,8 +14,8 @@ const Configuration = require('../utils/Configuration');
 const NotificationHandler = require('../notification/NotificationHandler');
 const Authorizations = require('../utils/Authorizations');
 
-_configAdvanced = Configuration.getAdvancedConfig();
-_configChargingStation = Configuration.getChargingStationConfig();
+let _configAdvanced = Configuration.getAdvancedConfig();
+let _configChargingStation = Configuration.getChargingStationConfig();
 
 class ChargingStation {
 	constructor(chargingStation) {

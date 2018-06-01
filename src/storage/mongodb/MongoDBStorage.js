@@ -35,6 +35,39 @@ class MongoDBStorage {
 		}
 	}
 
+	async checkAndCreateCollection(db, allCollections, name, indexes) {
+		// Check Logs
+		let foundCollection = allCollections.find((collection) => {
+			return collection.name == name;
+		});
+		// Check if it exists
+		if (!foundCollection) {
+			// Create
+			await db.createCollection(name);
+			// Create Indexes
+			if (indexes) {
+				// Create
+				indexes.forEach(async (index) => {
+					await db.collection(name).createIndex(index);
+				});
+			}
+		}
+	}
+
+	async checkDatabase(db) {
+		// Get all the collections
+		let collections = await db.listCollections({}).toArray();
+		// Check only collections with indexes
+		// Logs
+		await this.checkAndCreateCollection(db, collections, "logs",
+			[{ 'timestamp' : 1 }, { 'level' : 1 }, { 'type' : 1 }]
+		);
+		// MeterValues
+		await this.checkAndCreateCollection(db, collections, "metervalues",
+			[{ 'timestamp' : 1 }, { 'transactionId' : 1 }]
+		);
+	}
+
 	start() {
 		// Build URL
 		let mongoUrl = mongoUriBuilder({
@@ -67,9 +100,11 @@ class MongoDBStorage {
 					poolSize: _dbConfig.poolSize,
 					replicaSet: _dbConfig.replicaSet,
 					loggerLevel: (_dbConfig.debug ? "debug" : null)
-				}).then((client) => {
+				}).then(async (client) => {
 			// Get the DB
 			let db = client.db(_dbConfig.schema);
+			// Check Database
+			await this.checkDatabase(db);
 			// Set DB
 			LoggingStorage.setDatabase(db);
 			ChargingStationStorage.setDatabase(db);

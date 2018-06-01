@@ -51,15 +51,18 @@
 		"xml-formatter": "^1.0.1"
 	},
 	"devDependencies": {
+		"babel-core": "^6.26.3",
+		"babel-loader": "^7.1.4",
 		"copy-webpack-plugin": "^4.0.1",
 		"json-loader": "^0.5.7",
 		"node-sass": "^4.5.3",
 		"nodemon": "^1.11.0",
 		"sass-loader": "^6.0.6",
 		"uglifyjs-webpack-plugin": "^1.0.0-beta.2",
-		"webpack": "^3.5.5",
+		"webpack": "^4.10.2",
+		"webpack-cli": "^2.1.4",
 		"webpack-merge": "^4.1.0",
-		"webpack-node-externals": "^1.6.0",
+		"webpack-node-externals": "^1.7.2",
 		"webpack-obfuscator": "^0.11.0"
 	},
 	"scripts": {

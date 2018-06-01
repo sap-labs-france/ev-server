@@ -5,8 +5,8 @@ const Utils = require('../utils/Utils');
 const Logging = require('../utils/Logging');
 require('source-map-support').install();
 
-_notificationConfig = Configuration.getNotificationConfig();
-_email = new EMailNotificationTask();
+let _notificationConfig = Configuration.getNotificationConfig();
+let _email = new EMailNotificationTask();
 
 const CHANNEL_EMAIL = "email";
 const SOURCE_CHARGING_STATION_STATUS_ERROR = "NotifyChargingStationStatusError";

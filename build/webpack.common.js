@@ -6,7 +6,7 @@ const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const JavaScriptObfuscator = require('webpack-obfuscator');
 
 const config = {
-  entry: "./src/start.js",
+  entry: commonPaths.srcPath + "/start.js",
   target: 'node',
   node: {
     console: false,
@@ -22,7 +22,18 @@ const config = {
     path: commonPaths.outputPath
   },
   module: {
-    rules: []
+	rules: [
+		{
+			test: /\.js$/,
+			exclude: /(node_modules|bower_components)/,
+			use: {
+				loader: 'babel-loader',
+				options: {
+					presets: ['es2015']
+		  		}
+			}
+		}
+	]
   },
   plugins: [
     new webpack.ProgressPlugin(),
