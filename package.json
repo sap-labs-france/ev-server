@@ -8,7 +8,7 @@
 	"dependencies": {
 		"assert": "^1.4.1",
 		"babel-polyfill": "^6.26.0",
-		"bcrypt": "^1.0.3",
+		"bcrypt": "^2.0.1",
 		"body-parser": "^1.17.2",
 		"body-parser-xml": "^1.1.0",
 		"cookie-parser": "^1.4.3",
@@ -20,7 +20,6 @@
 		"helmet": "^3.8.1",
 		"http": "^0.0.0",
 		"install": "^0.10.1",
-		"jade": "^1.11.0",
 		"jsonwebtoken": "^7.4.3",
 		"locale": "^0.1.0",
 		"moment": "^2.18.1",
