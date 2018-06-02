@@ -3,7 +3,6 @@ config
 users.json
 users-imported.json
 src/config.json
-package-lock.json
 yarn.lock
 
 # Logs
