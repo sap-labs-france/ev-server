@@ -61,6 +61,13 @@ class UserService {
 					`The user with ID '${filteredRequest.id}' does not exist anymore`,
 					550, "UserService", "handleDeleteUser");
 			}
+			// Deleted
+			if (user.deleted) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The user with ID '${filteredRequest.id}' is logically deleted`,
+					550, "UserService", "handleDeleteUser");
+			}
 			// Check auth
 			if (!Authorizations.canDeleteUser(req.user, user.getModel())) {
 				// Not Authorized!
@@ -121,6 +128,13 @@ class UserService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The user with ID '${filteredRequest.id}' does not exist anymore`,
+					550, "UserService", "handleUpdateUser");
+			}
+			// Deleted?
+			if (user.deleted) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The user with ID '${filteredRequest.id}' is logically deleted`,
 					550, "UserService", "handleUpdateUser");
 			}
 		}).then(() => {
@@ -245,7 +259,14 @@ class UserService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The user with ID '${filteredRequest.id}' does not exist anymore`,
-					550, "UserService", "handleDeleteUser");
+					550, "UserService", "handleGetUser");
+			}
+			// Deleted?
+			if (user.deleted) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The user with ID '${filteredRequest.id}' is logically deleted`,
+					550, "UserService", "handleGetUser");
 			}
 			// Check auth
 			if (!Authorizations.canReadUser(req.user, user.getModel())) {
@@ -301,6 +322,13 @@ class UserService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The user with ID '${filteredRequest.ID}' does not exist anymore`,
+					550, "UserService", "handleGetUserImage");
+			}
+			// Deleted?
+			if (user.deleted) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The user with ID '${filteredRequest.ID}' is logically deleted`,
 					550, "UserService", "handleGetUserImage");
 			}
 			// Check auth

@@ -1,6 +1,8 @@
 const Configuration = require('./Configuration');
 const Logging = require('./Logging');
 const uuidV4 = require('uuid/v4');
+const ObjectID = require('mongodb').ObjectID;
+
 require('source-map-support').install();
 
 let _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
@@ -37,6 +39,16 @@ module.exports = {
 				tab.splice(i-1, 1);
 			}
 		}
+	},
+
+	checkIdIsObjectID(id) {
+		let changedID = id;
+		// Check
+		if (typeof id == "string") {
+			// Create Object
+			changedID = new ObjectID(id);
+		}
+		return changedID;
 	},
 
 	objectIdtoString(id) {

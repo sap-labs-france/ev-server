@@ -153,11 +153,13 @@ module.exports = {
 		dest.attribute = src.attribute;
 	},
 
-	updateUser(src, dest) {
+	updateUser(src, dest, updateImage=true) {
 		this.updateID(src, dest);
 		dest.name = src.name;
 		dest.firstName = src.firstName;
-		dest.image = src.image;
+		if (updateImage) {
+			dest.image = src.image;
+		}
 		dest.email = src.email;
 		dest.phone = src.phone;
 		dest.mobile = src.mobile;

@@ -80,6 +80,12 @@ class AuthService {
 					`The user with email '${filteredRequest.email}' does not exist`,
 					550, "AuthService", "handleLogIn");
 			}
+			if (user.deleted) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The user with email '${filteredRequest.email}' is logically deleted`,
+					550, "AuthService", "handleLogIn");
+			}
 			// Check if the number of trials is reached
 			if (user.getPasswordWrongNbrTrials() >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
 				// Check if the user is still locked
@@ -269,6 +275,13 @@ class AuthService {
 								`User with email '${filteredRequest.email}' does not exist`,
 								550, "AuthService", "handleUserPasswordReset");
 						}
+						// Deleted
+						if (user.deleted) {
+							throw new AppError(
+								Constants.CENTRAL_SERVER,
+								`User with email '${filteredRequest.email}' is logically deleted`,
+								550, "AuthService", "handleUserPasswordReset");
+						}
 						// Hash it
 						user.setPasswordResetHash(resetHash);
 						// Save the user
@@ -321,6 +334,13 @@ class AuthService {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
 						`User with email '${filteredRequest.email}' does not exist`,
+						550, "AuthService", "handleUserPasswordReset");
+				}
+				// Deleted
+				if (user.deleted) {
+					throw new AppError(
+						Constants.CENTRAL_SERVER,
+						`User with email '${filteredRequest.email}' is logically deleted`,
 						550, "AuthService", "handleUserPasswordReset");
 				}
 				// Check the hash from the db
