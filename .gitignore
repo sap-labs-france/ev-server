@@ -4,6 +4,7 @@ users.json
 users-imported.json
 src/config.json
 yarn.lock
+package-lock.json
 
 # Logs
 logs
