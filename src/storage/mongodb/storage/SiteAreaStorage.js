@@ -160,14 +160,14 @@ class SiteAreaStorage {
 						_centralRestServer.notifySiteAreaCreated(
 							{
 								"id": newSiteArea.getID(),
-								"type": Constants.NOTIF_ENTITY_SITE_AREA
+								"type": Constants.ENTITY_SITE_AREA
 							}
 						);
 					} else {
 						_centralRestServer.notifySiteUpdated(
 							{
 								"id": newSiteArea.getID(),
-								"type": Constants.NOTIF_ENTITY_SITE_AREA
+								"type": Constants.ENTITY_SITE_AREA
 							}
 						);
 					}
@@ -193,7 +193,7 @@ class SiteAreaStorage {
 			_centralRestServer.notifySiteAreaUpdated(
 				{
 					"id": siteArea.id,
-					"type": Constants.NOTIF_ENTITY_SITE_AREA
+					"type": Constants.ENTITY_SITE_AREA
 				}
 			);
 		}
@@ -305,7 +305,7 @@ class SiteAreaStorage {
 			_centralRestServer.notifySiteAreaDeleted(
 				{
 					"id": id,
-					"type": Constants.NOTIF_ENTITY_SITE_AREA
+					"type": Constants.ENTITY_SITE_AREA
 				}
 			);
 		});

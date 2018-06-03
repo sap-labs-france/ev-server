@@ -75,7 +75,7 @@ class VehicleManufacturerStorage {
 			_centralRestServer.notifyVehicleManufacturerUpdated(
 				{
 					"id": vehicleManufacturer.id,
-					"type": Constants.NOTIF_ENTITY_VEHICLE_MANUFACTURER
+					"type": Constants.ENTITY_VEHICLE_MANUFACTURER
 				}
 			);
 		}
@@ -139,14 +139,14 @@ class VehicleManufacturerStorage {
 					_centralRestServer.notifyVehicleManufacturerCreated(
 						{
 							"id": newVehicleManufacturer.getID(),
-							"type": Constants.NOTIF_ENTITY_VEHICLE_MANUFACTURER
+							"type": Constants.ENTITY_VEHICLE_MANUFACTURER
 						}
 					);
 				} else {
 					_centralRestServer.notifyVehicleManufacturerUpdated(
 						{
 							"id": newVehicleManufacturer.getID(),
-							"type": Constants.NOTIF_ENTITY_VEHICLE_MANUFACTURER
+							"type": Constants.ENTITY_VEHICLE_MANUFACTURER
 						}
 					);
 				}
@@ -278,7 +278,7 @@ class VehicleManufacturerStorage {
 			_centralRestServer.notifyVehicleManufacturerDeleted(
 				{
 					"id": id,
-					"type": Constants.NOTIF_ENTITY_VEHICLE_MANUFACTURER
+					"type": Constants.ENTITY_VEHICLE_MANUFACTURER
 				}
 			);
 		});

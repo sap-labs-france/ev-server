@@ -1,6 +1,5 @@
 const ChargingStation = require('../../model/ChargingStation');
 const CentralRestServerAuthentication = require('./CentralRestServerAuthentication');
-const Authorizations = require('../../utils/Authorizations');
 const CentralRestServerService = require('./CentralRestServerService');
 const Utils = require('../../utils/Utils');
 const Configuration = require('../../utils/Configuration');
@@ -129,6 +128,8 @@ class CentralSystemRestServer {
 			setInterval(() => {
 				// Send
 				for (var i = _currentNotifications.length-1; i >= 0; i--) {
+					console.log(
+						`Notify '${_currentNotifications[i].entity}', Action '${(_currentNotifications[i].action?_currentNotifications[i].action:'')}', ID '${(_currentNotifications[i].data?_currentNotifications[i].data.id:'')}'`);
 					// Notify all Web Sockets
 					_io.sockets.emit(_currentNotifications[i].entity, _currentNotifications[i]);
 					// Remove
@@ -144,331 +145,297 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyUserUpdated(data) {
+	notifyUser(action, data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_USER,
-			"action": Authorizations.ACTION_UPDATE,
+			"entity": Constants.ENTITY_USER,
+			"action": action,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_USERS
-		});
-	}
-
-	notifyUserCreated(data) {
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_USER,
-			"action": Authorizations.ACTION_CREATE,
-			"data": data
-		});
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_USERS
-		});
-	}
-
-	notifyUserDeleted(data) {
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_USER,
-			"action": Authorizations.ACTION_DELETE,
-			"data": data
-		});
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_USERS
+			"entity": Constants.ENTITY_USERS
 		});
 	}
 
 	notifyVehicleCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_VEHICLE,
-			"action": Authorizations.ACTION_CREATE,
+			"entity": Constants.ENTITY_VEHICLE,
+			"action": Constants.ACTION_CREATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_VEHICLES
+			"entity": Constants.ENTITY_VEHICLES
 		});
 	}
 
 	notifyVehicleUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_VEHICLE,
-			"action": Authorizations.ACTION_UPDATE,
+			"entity": Constants.ENTITY_VEHICLE,
+			"action": Constants.ACTION_UPDATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_VEHICLES
+			"entity": Constants.ENTITY_VEHICLES
 		});
 	}
 
 	notifyVehicleDeleted(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_VEHICLE,
-			"action": Authorizations.ACTION_DELETE,
+			"entity": Constants.ENTITY_VEHICLE,
+			"action": Constants.ACTION_DELETE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_VEHICLES
+			"entity": Constants.ENTITY_VEHICLES
 		});
 	}
 
 	notifyVehicleManufacturerCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_VEHICLE_MANUFACTURER,
-			"action": Authorizations.ACTION_CREATE,
+			"entity": Constants.ENTITY_VEHICLE_MANUFACTURER,
+			"action": Constants.ACTION_CREATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_VEHICLE_MANUFACTURERS
+			"entity": Constants.ENTITY_VEHICLE_MANUFACTURERS
 		});
 	}
 
 	notifyVehicleManufacturerUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_VEHICLE_MANUFACTURER,
-			"action": Authorizations.ACTION_UPDATE,
+			"entity": Constants.ENTITY_VEHICLE_MANUFACTURER,
+			"action": Constants.ACTION_UPDATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_VEHICLE_MANUFACTURERS
+			"entity": Constants.ENTITY_VEHICLE_MANUFACTURERS
 		});
 	}
 
 	notifyVehicleManufacturerDeleted(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_VEHICLE_MANUFACTURER,
-			"action": Authorizations.ACTION_DELETE,
+			"entity": Constants.ENTITY_VEHICLE_MANUFACTURER,
+			"action": Constants.ACTION_DELETE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_VEHICLE_MANUFACTURERS
+			"entity": Constants.ENTITY_VEHICLE_MANUFACTURERS
 		});
 	}
 
 	notifySiteCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_SITE,
-			"action": Authorizations.ACTION_CREATE,
+			"entity": Constants.ENTITY_SITE,
+			"action": Constants.ACTION_CREATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_SITES
+			"entity": Constants.ENTITY_SITES
 		});
 	}
 
 	notifySiteUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_SITE,
-			"action": Authorizations.ACTION_UPDATE,
+			"entity": Constants.ENTITY_SITE,
+			"action": Constants.ACTION_UPDATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_SITES
+			"entity": Constants.ENTITY_SITES
 		});
 	}
 
 	notifySiteDeleted(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_SITE,
-			"action": Authorizations.ACTION_DELETE,
+			"entity": Constants.ENTITY_SITE,
+			"action": Constants.ACTION_DELETE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_SITES
+			"entity": Constants.ENTITY_SITES
 		});
 	}
 
 	notifySiteAreaCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_SITE_AREA,
-			"action": Authorizations.ACTION_CREATE,
+			"entity": Constants.ENTITY_SITE_AREA,
+			"action": Constants.ACTION_CREATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_SITE_AREAS
+			"entity": Constants.ENTITY_SITE_AREAS
 		});
 	}
 
 	notifySiteAreaUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_SITE_AREA,
-			"action": Authorizations.ACTION_UPDATE,
+			"entity": Constants.ENTITY_SITE_AREA,
+			"action": Constants.ACTION_UPDATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_SITE_AREAS
+			"entity": Constants.ENTITY_SITE_AREAS
 		});
 	}
 
 	notifySiteAreaDeleted(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_SITE_AREA,
-			"action": Authorizations.ACTION_DELETE,
+			"entity": Constants.ENTITY_SITE_AREA,
+			"action": Constants.ACTION_DELETE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_SITE_AREAS
+			"entity": Constants.ENTITY_SITE_AREAS
 		});
 	}
 
 	notifyCompanyCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_COMPANY,
-			"action": Authorizations.ACTION_CREATE,
+			"entity": Constants.ENTITY_COMPANY,
+			"action": Constants.ACTION_CREATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_COMPANIES
+			"entity": Constants.ENTITY_COMPANIES
 		});
 	}
 
 	notifyCompanyUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_COMPANY,
-			"action": Authorizations.ACTION_UPDATE,
+			"entity": Constants.ENTITY_COMPANY,
+			"action": Constants.ACTION_UPDATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_COMPANIES
+			"entity": Constants.ENTITY_COMPANIES
 		});
 	}
 
 	notifyCompanyDeleted(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_COMPANY,
-			"action": Authorizations.ACTION_DELETE,
+			"entity": Constants.ENTITY_COMPANY,
+			"action": Constants.ACTION_DELETE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_COMPANIES
+			"entity": Constants.ENTITY_COMPANIES
 		});
 	}
 
 	notifyTransactionUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_TRANSACTION,
-			"action": Authorizations.ACTION_UPDATE,
+			"entity": Constants.ENTITY_TRANSACTION,
+			"action": Constants.ACTION_UPDATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_TRANSACTIONS
+			"entity": Constants.ENTITY_TRANSACTIONS
 		});
 	}
 
 	notifyTransactionCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_TRANSACTION,
-			"action": Authorizations.ACTION_CREATE,
+			"entity": Constants.ENTITY_TRANSACTION,
+			"action": Constants.ACTION_CREATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_TRANSACTIONS
+			"entity": Constants.ENTITY_TRANSACTIONS
 		});
 	}
 
 	notifyTransactionDeleted(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_TRANSACTION,
-			"action": Authorizations.ACTION_DELETE,
+			"entity": Constants.ENTITY_TRANSACTION,
+			"action": Constants.ACTION_DELETE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_TRANSACTIONS
+			"entity": Constants.ENTITY_TRANSACTIONS
 		});
 	}
 
 	notifyChargingStationUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_CHARGING_STATION,
-			"action": Authorizations.ACTION_UPDATE,
+			"entity": Constants.ENTITY_CHARGING_STATION,
+			"action": Constants.ACTION_UPDATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_CHARGING_STATIONS
+			"entity": Constants.ENTITY_CHARGING_STATIONS
 		});
 	}
 
 	notifyChargingStationCreated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_CHARGING_STATION,
-			"action": Authorizations.ACTION_CREATE,
+			"entity": Constants.ENTITY_CHARGING_STATION,
+			"action": Constants.ACTION_CREATE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_CHARGING_STATIONS
+			"entity": Constants.ENTITY_CHARGING_STATIONS
 		});
 	}
 
 	notifyChargingStationDeleted(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_CHARGING_STATION,
-			"action": Authorizations.ACTION_DELETE,
+			"entity": Constants.ENTITY_CHARGING_STATION,
+			"action": Constants.ACTION_DELETE,
 			"data": data
 		});
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_CHARGING_STATIONS
+			"entity": Constants.ENTITY_CHARGING_STATIONS
 		});
 	}
 
-	notifyLoggingCreated() {
+	notifyLogging(action) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_LOGGING,
-			"action": Authorizations.ACTION_CREATE,
-		});
-	}
-
-	notifyLoggingDeleted() {
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Authorizations.ENTITY_LOGGING,
-			"action": Authorizations.ACTION_DELETE,
+			"entity": Constants.ENTITY_LOGGING,
+			"action": action
 		});
 	}
 
@@ -478,7 +445,6 @@ class CentralSystemRestServer {
 		for (var i = 0; i < _currentNotifications.length; i++) {
 			if (_currentNotifications[i].entity === notification.entity &&
 					_currentNotifications[i].action === notification.action) {
-
 				if (_currentNotifications[i].data &&
 					_currentNotifications[i].data.id === notification.data.id &&
 					_currentNotifications[i].data.type === notification.data.type) {

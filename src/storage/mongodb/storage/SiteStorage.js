@@ -203,14 +203,14 @@ class SiteStorage {
 					_centralRestServer.notifySiteCreated(
 						{
 							"id": newSite.getID(),
-							"type": Constants.NOTIF_ENTITY_SITE
+							"type": Constants.ENTITY_SITE
 						}
 					);
 				} else {
 					_centralRestServer.notifySiteUpdated(
 						{
 							"id": newSite.getID(),
-							"type": Constants.NOTIF_ENTITY_SITE
+							"type": Constants.ENTITY_SITE
 						}
 					);
 				}
@@ -236,7 +236,7 @@ class SiteStorage {
 			_centralRestServer.notifySiteUpdated(
 				{
 					"id": site.id,
-					"type": Constants.NOTIF_ENTITY_SITE
+					"type": Constants.ENTITY_SITE
 				}
 			);
 		}
@@ -500,7 +500,7 @@ class SiteStorage {
 			_centralRestServer.notifySiteDeleted(
 				{
 					"id": id,
-					"type": Constants.NOTIF_ENTITY_SITE
+					"type": Constants.ENTITY_SITE
 				}
 			);
 		});

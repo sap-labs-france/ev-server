@@ -33,7 +33,7 @@ class TransactionStorage {
 					"id": transaction.id,
 					"chargeBoxID": transaction.chargeBox.id,
 					"connectorId": transaction.connectorId,
-					"type": Constants.NOTIF_ENTITY_TRANSACTION
+					"type": Constants.ENTITY_TRANSACTION
 				}
 			);
 			return result.result;
@@ -81,7 +81,7 @@ class TransactionStorage {
 						"id": transaction.id,
 						"chargeBoxID": transaction.chargeBoxID,
 						"connectorId": transaction.connectorId,
-						"type": Constants.NOTIF_ENTITY_TRANSACTION
+						"type": Constants.ENTITY_TRANSACTION
 					}
 				);
 			} else {
@@ -91,7 +91,7 @@ class TransactionStorage {
 						"id": transaction.id,
 						"chargeBoxID": transaction.chargeBoxID,
 						"connectorId": transaction.connectorId,
-						"type": Constants.NOTIF_ENTITY_TRANSACTION_STOP
+						"type": Constants.ENTITY_TRANSACTION_STOP
 					}
 				);
 			}
@@ -116,7 +116,7 @@ class TransactionStorage {
 				_centralRestServer.notifyTransactionUpdated(
 					{
 						"id": meterValues.values[0].transactionId,
-						"type": Constants.NOTIF_ENTITY_TRANSACTION_METER_VALUES
+						"type": Constants.ENTITY_TRANSACTION_METER_VALUES
 					}
 				);
 			});

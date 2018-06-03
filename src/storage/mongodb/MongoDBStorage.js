@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Logging = require('../../utils/Logging');
+const Constants = require('../../utils/Constants');
 const LoggingStorage = require("./storage/LoggingStorage");
 const ChargingStationStorage = require('./storage/ChargingStationStorage');
 const PricingStorage = require('./storage/PricingStorage');
@@ -16,12 +17,15 @@ const assert = require('assert');
 const MongoClient = require('mongodb').MongoClient;
 const mongoUriBuilder = require('mongo-uri-builder');
 const urlencode = require('urlencode');
+const Timestamp = require('mongodb').Timestamp;
 
 require('source-map-support').install();
 
 let _dbConfig;
 let _evseDB;
 let _localDB;
+let _localDBLastTimestampCheck = new Date();
+let _centralRestServer;
 
 class MongoDBStorage {
 	// Create database access
@@ -67,6 +71,20 @@ class MongoDBStorage {
 		await this.checkAndCreateCollection(db, collections, "metervalues",
 			[{ 'timestamp' : 1 }, { 'transactionId' : 1 }]
 		);
+	}
+
+	// Check for permitted operation
+	getActionFromOperation(operation) {
+		// Check
+		switch (operation) {
+			case 'i': // Insert/Create
+				return Constants.ACTION_CREATE;
+			case 'u': // Update
+				return Constants.ACTION_UPDATE;
+			case 'd': // Delete
+				return Constants.ACTION_DELETE;
+		}
+		return null;
 	}
 
 	async start() {
@@ -135,23 +153,63 @@ class MongoDBStorage {
 				{
 					useNewUrlParser: true,
 				});
-				// Get the Local DB
-				_localDB = clientOpLog.db("local");
-				let result = await _localDB.collection("oplog.rs")
-				.find({ns : {$regex: new RegExp(`^${_dbConfig.database}`)}})
-				.toArray();
-				console.log(result.length);
+			// Get the Local DB
+			_localDB = clientOpLog.db("local");
+			// Start Listening
+			setInterval(async () => {
+				// Check
+				if (!_centralRestServer) {
+					console.log("No central server");
+					return;
+				}
+				// Get collection
+				let lastUpdatedEvseDocs = await _localDB.collection("oplog.rs")
+					.find({
+						ns : { $regex: new RegExp(`^${_dbConfig.database}`) },
+						ts : { $gte : new Timestamp(0, Math.trunc(_localDBLastTimestampCheck.getTime() / 1000)) }
+					})
+					.toArray();
+				console.log(lastUpdatedEvseDocs.length);
+				// Aggregate
+				let action, notif;
+				lastUpdatedEvseDocs.forEach((lastUpdatedEvseDoc) => {
+					// Check for permitted operation
+					action = this.getActionFromOperation(lastUpdatedEvseDoc.op);
+					// Found
+					if (action) {
+						// Check namespace
+						switch (lastUpdatedEvseDoc.ns) {
+							// Logs
+							case "evse.logs":
+							// Notify
+							_centralRestServer.notifyLogging(action);
+							break;
+							// Users
+							case "evse.users":
+							case "evse.userimages":
+							// Notify
+							_centralRestServer.notifyUser(action, {
+								"type": Constants.ENTITY_USER,
+								"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
+							});
+							break;
+						}
+					}
+				});
+				// Set new last date
+				_localDBLastTimestampCheck = new Date();
+			}, _dbConfig.replica.intervalPullSecs * 1000);
 		}
 		// Monitor MongoDB -------------------------------------------
 	}
 
 	setCentralRestServer(centralRestServer) {
 		// Set
-		LoggingStorage.setCentralRestServer(centralRestServer);
+		_centralRestServer = centralRestServer;
+		// Set
 		ChargingStationStorage.setCentralRestServer(centralRestServer);
 		PricingStorage.setCentralRestServer(centralRestServer);
 		TransactionStorage.setCentralRestServer(centralRestServer);
-		UserStorage.setCentralRestServer(centralRestServer);
 		CompanyStorage.setCentralRestServer(centralRestServer);
 		SiteStorage.setCentralRestServer(centralRestServer);
 		SiteAreaStorage.setCentralRestServer(centralRestServer);

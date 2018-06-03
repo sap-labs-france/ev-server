@@ -8,14 +8,9 @@ const User = require('../../../model/User');
 const crypto = require('crypto');
 const ObjectID = require('mongodb').ObjectID;
 
-let _centralRestServer;
 let _db;
 
 class UserStorage {
-	static setCentralRestServer(centralRestServer) {
-		_centralRestServer = centralRestServer;
-	}
-
 	static setDatabase(db) {
 		_db = db;
 	}
@@ -232,22 +227,6 @@ class UserStorage {
 				{upsert: true, new: true, returnOriginal: false}
 			);
 		});
-		// Notify Change
-		if (!user.id) {
-			_centralRestServer.notifyUserCreated(
-				{
-					"id": newUser.getID(),
-					"type": Constants.NOTIF_ENTITY_USER
-				}
-			);
-		} else {
-			_centralRestServer.notifyUserUpdated(
-				{
-					"id": newUser.getID(),
-					"type": Constants.NOTIF_ENTITY_USER
-				}
-			);
-		}
 		return newUser;
 	}
 
@@ -266,13 +245,6 @@ class UserStorage {
 			{'_id': Utils.checkIdIsObjectID(user.id)},
 			{$set: user},
 			{upsert: true, new: true});
-		// Notify
-		_centralRestServer.notifyUserUpdated(
-			{
-				"id": user.id,
-				"type": Constants.NOTIF_ENTITY_USER
-			}
-		);
 	}
 
 	static async handleGetUsers(searchValue, siteID, numberOfUsers) {
@@ -394,13 +366,6 @@ class UserStorage {
 		// Delete Tags
 		await _db.collection('tags')
 			.findOneAndDelete( {'userID': Utils.checkIdIsObjectID(id)} );
-		// Notify Change
-		_centralRestServer.notifyUserDeleted(
-			{
-				"id": id,
-				"type": Constants.NOTIF_ENTITY_USER
-			}
-		);
 	}
 
 	static async _createUser(userMDB) {

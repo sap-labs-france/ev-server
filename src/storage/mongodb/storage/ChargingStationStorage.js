@@ -167,14 +167,14 @@ class ChargingStationStorage {
 					_centralRestServer.notifyChargingStationCreated(
 						{
 							"id" : newChargingStation.id,
-							"type": Constants.NOTIF_ENTITY_CHARGING_STATION
+							"type": Constants.ENTITY_CHARGING_STATION
 						}
 					);
 				} else {
 					_centralRestServer.notifyChargingStationUpdated(
 						{
 							"id" : chargingStation.id,
-							"type": Constants.NOTIF_ENTITY_CHARGING_STATION
+							"type": Constants.ENTITY_CHARGING_STATION
 						}
 					);
 				}
@@ -194,7 +194,7 @@ class ChargingStationStorage {
 				{
 					"id" : chargingStation.id,
 					"connectorId": connectorId,
-					"type": Constants.NOTIF_ENTITY_CHARGING_STATION_STATUS
+					"type": Constants.ENTITY_CHARGING_STATION_STATUS
 				}
 			);
 			return newChargingStation;
@@ -213,7 +213,7 @@ class ChargingStationStorage {
 			_centralRestServer.notifyChargingStationUpdated(
 				{
 					"id" : chargingStation.id,
-					"type": Constants.NOTIF_ENTITY_CHARGING_STATION
+					"type": Constants.ENTITY_CHARGING_STATION
 				}
 			);
 			return newChargingStation;
@@ -231,7 +231,7 @@ class ChargingStationStorage {
 			_centralRestServer.notifyChargingStationUpdated(
 				{
 					"id" : chargingStation.id,
-					"type": Constants.NOTIF_ENTITY_CHARGING_STATION
+					"type": Constants.ENTITY_CHARGING_STATION
 				}
 			);
 			return newChargingStation;
@@ -255,7 +255,7 @@ class ChargingStationStorage {
 			_centralRestServer.notifyChargingStationUpdated(
 				{
 					"id" : chargingStation.id,
-					"type": Constants.NOTIF_ENTITY_CHARGING_STATION
+					"type": Constants.ENTITY_CHARGING_STATION
 				}
 			);
 			return newChargingStation;
@@ -272,7 +272,7 @@ class ChargingStationStorage {
 			_centralRestServer.notifyChargingStationDeleted(
 				{
 					"id": id,
-					"type": Constants.NOTIF_ENTITY_CHARGING_STATION
+					"type": Constants.ENTITY_CHARGING_STATION
 				}
 			);
 			// Return the result
@@ -314,7 +314,7 @@ class ChargingStationStorage {
 				_centralRestServer.notifyChargingStationUpdated(
 					{
 						"id" : configuration.chargeBoxID,
-						"type": Constants.NOTIF_ENTITY_CHARGING_STATION_CONFIG
+						"type": Constants.ENTITY_CHARGING_STATION_CONFIG
 					}
 				);
 				// Return
@@ -388,7 +388,7 @@ class ChargingStationStorage {
 				{
 					"id": statusNotification.chargeBoxID,
 					"connectorId": statusNotification.connectorId,
-					"type": Constants.NOTIF_ENTITY_CHARGING_STATION_STATUS
+					"type": Constants.ENTITY_CHARGING_STATION_STATUS
 				}
 			);
 		});

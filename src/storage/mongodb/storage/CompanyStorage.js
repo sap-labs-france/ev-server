@@ -120,14 +120,14 @@ class CompanyStorage {
 					_centralRestServer.notifyCompanyCreated(
 						{
 							"id": newCompany.getID(),
-							"type": Constants.NOTIF_ENTITY_COMPANY
+							"type": Constants.ENTITY_COMPANY
 						}
 					);
 				} else {
 					_centralRestServer.notifyCompanyUpdated(
 						{
 							"id": newCompany.getID(),
-							"type": Constants.NOTIF_ENTITY_COMPANY
+							"type": Constants.ENTITY_COMPANY
 						}
 					);
 				}
@@ -154,7 +154,7 @@ class CompanyStorage {
 			_centralRestServer.notifyCompanyUpdated(
 				{
 					"id": company.id,
-					"type": Constants.NOTIF_ENTITY_COMPANY
+					"type": Constants.ENTITY_COMPANY
 				}
 			);
 		}
@@ -252,7 +252,7 @@ class CompanyStorage {
 			_centralRestServer.notifyCompanyDeleted(
 				{
 					"id": id,
-					"type": Constants.NOTIF_ENTITY_COMPANY
+					"type": Constants.ENTITY_COMPANY
 				}
 			);
 			return;

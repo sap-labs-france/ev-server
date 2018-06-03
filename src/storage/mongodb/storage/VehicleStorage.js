@@ -113,14 +113,14 @@ class VehicleStorage {
 					_centralRestServer.notifyVehicleCreated(
 						{
 							"id": newVehicle.getID(),
-							"type": Constants.NOTIF_ENTITY_VEHICLE
+							"type": Constants.ENTITY_VEHICLE
 						}
 					);
 				} else {
 					_centralRestServer.notifyVehicleUpdated(
 						{
 							"id": newVehicle.getID(),
-							"type": Constants.NOTIF_ENTITY_VEHICLE
+							"type": Constants.ENTITY_VEHICLE
 						}
 					);
 				}
@@ -146,7 +146,7 @@ class VehicleStorage {
 			_centralRestServer.notifyVehicleUpdated(
 				{
 					"id": vehicle.id,
-					"type": Constants.NOTIF_ENTITY_VEHICLE
+					"type": Constants.ENTITY_VEHICLE
 				}
 			);
 		}
@@ -244,7 +244,7 @@ class VehicleStorage {
 			_centralRestServer.notifyVehicleDeleted(
 				{
 					"id": id,
-					"type": Constants.NOTIF_ENTITY_VEHICLE
+					"type": Constants.ENTITY_VEHICLE
 				}
 			);
 			return;

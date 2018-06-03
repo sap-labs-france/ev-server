@@ -37,8 +37,8 @@ module.exports = {
 	ENTITY_LOGGING: "Logging",
 	ENTITY_PRICING: "Pricing",
 
-	ACTION_CREATE: "Create",
 	ACTION_READ  : "Read",
+	ACTION_CREATE: "Create",
 	ACTION_UPDATE: "Update",
 	ACTION_DELETE: "Delete",
 	ACTION_LOGOUT: "Logout",

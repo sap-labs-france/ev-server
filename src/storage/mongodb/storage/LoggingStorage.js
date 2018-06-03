@@ -7,14 +7,9 @@ const MDBLog = require('../model/MDBLog');
 const crypto = require('crypto');
 const ObjectId = mongoose.Types.ObjectId;
 
-let _centralRestServer;
 let _db;
 
 class LoggingStorage {
-	static setCentralRestServer(centralRestServer) {
-		_centralRestServer = centralRestServer;
-	}
-
 	static setDatabase(db) {
 		_db = db;
 	}
@@ -33,8 +28,6 @@ class LoggingStorage {
 			return;
 		}
 		return MDBLog.remove(filters).then((result) => {
-			// Notify Change
-			_centralRestServer.notifyLoggingDeleted();
 			// Return the result
 			return result.result;
 		});
@@ -54,8 +47,6 @@ class LoggingStorage {
 			return;
 		}
 		return MDBLog.remove(filters).then((result) => {
-			// Notify Change
-			_centralRestServer.notifyLoggingDeleted();
 			// Return the result
 			return result.result;
 		});
@@ -74,13 +65,7 @@ class LoggingStorage {
 		// Create model
 		let logMDB = new MDBLog(log);
 		// Save
-		return logMDB.save().then(() => {
-			// Available?
-			if (_centralRestServer) {
-				// Notify Change
-				_centralRestServer.notifyLoggingCreated();
-			}
-		});
+		return logMDB.save();
 	}
 
 	static handleGetLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs, sortDate) {
