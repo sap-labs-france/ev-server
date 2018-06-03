@@ -36,8 +36,8 @@ global.storage.start().then(() => {
 	// Log
 	Logging.logInfo({
 		module: "Bootstrap", method: "start", action: "Startup",
-		message: `Connected successfully to '${storageConfig.implementation}' on '${storageConfig.host}:${storageConfig.port}', schema '${storageConfig.schema}', user '${storageConfig.user}'` });
-	console.log(`Connected successfully to '${storageConfig.implementation}' on '${storageConfig.host}:${storageConfig.port}', schema '${storageConfig.schema}',  user '${storageConfig.user}'`);
+		message: `Successfully connected to '${storageConfig.implementation}' (Database) on '${storageConfig.host}:${storageConfig.port}'` });
+	console.log(`Successfully connected to '${storageConfig.implementation}' (Database) on '${storageConfig.host}:${storageConfig.port}'`);
 
 	// ---------------------------------------------------------------------------
 	// Check and trigger migration
@@ -109,10 +109,10 @@ global.storage.start().then(() => {
 			source: "BootStrap", module: "start", method: "-", action: "Migrate",
 			message: `Error occurred during the migration: ${error.toString()}` });
 	});
-}, (error) => {
+}).catch((error) => {
 	// Log
 	Logging.logError({
 		source: "BootStrap", module: "start", method: "-", action: "StartDatabase",
-		message: `Cannot start MongoDB (Database) on '${storageConfig.host}:${storageConfig.port}': ${error.toString()}` });
-	console.log(`Cannot start MongoDB (Database) on '${storageConfig.host}:${storageConfig.port}': ${error.toString()}`);
+		message: `Cannot connect to '${storageConfig.implementation}' on '${storageConfig.host}:${storageConfig.port}': ${error.toString()}` });
+	console.log(`Cannot connect to '${storageConfig.implementation}' on '${storageConfig.host}:${storageConfig.port}': ${error.toString()}`);
 });

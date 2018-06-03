@@ -25,15 +25,18 @@ The application:
 #### Start MongoDB
 
 ```
-mongod --port 27017 --dbpath /data/evse
+mongod --port <port> --dbpath <path> --replSet <replcaSetName>
+```
+For instance:
+```
+mongod --port 27017 --dbpath "/var/lib/mongodb" --replSet "rs0"
 ```
 
 #### Create the Admin user
 
 This user will be used to connect to the database as an administrator with tools like MongoDB shell or RoboMongo:
 
-In MongoDB shell, run the following command:
-
+Create Admin User on Admin schema:
 ```
   use admin
   db.createUser({
@@ -53,10 +56,9 @@ In MongoDB shell, run the following command:
   })
 ```
 
-#### Create the Application user
+#### Create the Application User
 
-This user will be used by the application server to read/write data in MongoDB:
-
+Create Application User on EVSE schema
 ```
   use evse
   db.createUser({
@@ -68,12 +70,39 @@ This user will be used by the application server to read/write data in MongoDB:
   })
 ```
 
+#### Activate the Replica Set
+
+Activate the replica set:
+
+- Start the Mongo client
+```
+mongo
+```
+
+- Activate the Replica Set
+```
+rs.initiate()
+```
+
+Create Application User on EVSE schema
+```
+  use admin
+  db.createUser({
+    user: "evse-local",
+    pwd: "YourPassword",
+	roles: [ { role: "readWrite", db: "local" } ]
+  })
+```
+
+Check here for more info:
+[Mongo DB Replica Set](https://docs.mongodb.com/manual/tutorial/convert-standalone-to-replica-set/)
+
 #### Restart MongoDB with authentication enabled
 
 This will restart MongoDB and will accept only authenticated connections from now:
 
 ```
-mongod --auth --port 27017 --dbpath /data/evse
+mongod --auth --port <port> --dbpath <path> --replSet <replcaSetName>
 ```
 
 Now your database is ready to be used.

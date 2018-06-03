@@ -37,8 +37,16 @@
 		"port": 27017,
 		"user": "evse-user",
 		"password": "",
-		"schema": "evse",
-		"debug": false
+		"database": "evse",
+		"poolSize": 20,
+		"replicaSet": "rs0",
+		"debug": false,
+		"replica": {
+			"user":"evse-local",
+			"database": "admin",
+			"password": "",
+			"intervalPullSecs": 3
+		}
 	},
 	"Email": {
 		 "from": "admin.noreply@evse.com",

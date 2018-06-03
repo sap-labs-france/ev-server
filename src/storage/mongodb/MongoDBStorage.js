@@ -20,7 +20,8 @@ const urlencode = require('urlencode');
 require('source-map-support').install();
 
 let _dbConfig;
-let _db;
+let _evseDB;
+let _localDB;
 
 class MongoDBStorage {
 	// Create database access
@@ -54,7 +55,7 @@ class MongoDBStorage {
 		}
 	}
 
-	async checkDatabase(db) {
+	async checkEVSEDatabase(db) {
 		// Get all the collections
 		let collections = await db.listCollections({}).toArray();
 		// Check only collections with indexes
@@ -68,14 +69,14 @@ class MongoDBStorage {
 		);
 	}
 
-	start() {
-		// Build URL
+	async start() {
+		// Build EVSE URL
 		let mongoUrl = mongoUriBuilder({
-			username: urlencode(_dbConfig.user),
-			password: urlencode(_dbConfig.password),
 			host: urlencode(_dbConfig.host),
 			port: urlencode(_dbConfig.port),
-			database: urlencode(_dbConfig.schema),
+			username: urlencode(_dbConfig.user),
+			password: urlencode(_dbConfig.password),
+			database: urlencode(_dbConfig.database),
 			options: {
 				replicaSet: "rs0"
 		    }
@@ -93,34 +94,55 @@ class MongoDBStorage {
 		});
 		// MONGOOSE --------------------------------------------------
 
-		// MongoDB Native Driver
-		return MongoClient.connect(mongoUrl,
+		// Connect to EVSE
+		let client = await MongoClient.connect(
+			mongoUrl,
+			{
+				useNewUrlParser: true,
+				poolSize: _dbConfig.poolSize,
+				replicaSet: _dbConfig.replicaSet,
+				loggerLevel: (_dbConfig.debug ? "debug" : null)
+			});
+		// Get the EVSE DB
+		_evseDB = client.db(_dbConfig.schema);
+		// Check EVSE Database
+		await this.checkEVSEDatabase(_evseDB);
+		// Set EVSE DB
+		LoggingStorage.setDatabase(_evseDB);
+		ChargingStationStorage.setDatabase(_evseDB);
+		PricingStorage.setDatabase(_evseDB);
+		TransactionStorage.setDatabase(_evseDB);
+		UserStorage.setDatabase(_evseDB);
+		CompanyStorage.setDatabase(_evseDB);
+		SiteStorage.setDatabase(_evseDB);
+		SiteAreaStorage.setDatabase(_evseDB);
+		VehicleStorage.setDatabase(_evseDB);
+		VehicleManufacturerStorage.setDatabase(_evseDB);
+
+		// Monitor MongoDB -------------------------------------------
+		if (_dbConfig.replica) {
+			// Build Replica URL
+			let mongoOpLogUrl = mongoUriBuilder({
+				host: urlencode(_dbConfig.host),
+				port: urlencode(_dbConfig.port),
+				username: urlencode(_dbConfig.replica.user),
+				password: urlencode(_dbConfig.replica.password),
+				database: urlencode(_dbConfig.replica.database)
+			});
+			// Connect to Replica DB
+			let clientOpLog = await MongoClient.connect(
+				mongoOpLogUrl,
 				{
 					useNewUrlParser: true,
-					poolSize: _dbConfig.poolSize,
-					replicaSet: _dbConfig.replicaSet,
-					loggerLevel: (_dbConfig.debug ? "debug" : null)
-				}).then(async (client) => {
-			// Get the DB
-			let db = client.db(_dbConfig.schema);
-			// Check Database
-			await this.checkDatabase(db);
-			// Set DB
-			LoggingStorage.setDatabase(db);
-			ChargingStationStorage.setDatabase(db);
-			PricingStorage.setDatabase(db);
-			TransactionStorage.setDatabase(db);
-			UserStorage.setDatabase(db);
-			CompanyStorage.setDatabase(db);
-			SiteStorage.setDatabase(db);
-			SiteAreaStorage.setDatabase(db);
-			VehicleStorage.setDatabase(db);
-			VehicleManufacturerStorage.setDatabase(db);
-			// Log
-			Logging.logInfo({
-				module: "MongoDBStorage", method: "start", action: "Startup",
-				message: `Connected to MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}' and using schema '${_dbConfig.schema}'` });
-		});
+				});
+				// Get the Local DB
+				_localDB = clientOpLog.db("local");
+				let result = await _localDB.collection("oplog.rs")
+				.find({ns : {$regex: new RegExp(`^${_dbConfig.database}`)}})
+				.toArray();
+				console.log(result.length);
+		}
+		// Monitor MongoDB -------------------------------------------
 	}
 
 	setCentralRestServer(centralRestServer) {
