@@ -159,7 +159,6 @@ class MongoDBStorage {
 			setInterval(async () => {
 				// Check
 				if (!_centralRestServer) {
-					console.log("No central server");
 					return;
 				}
 				// Get collection
@@ -169,7 +168,6 @@ class MongoDBStorage {
 						ts : { $gte : new Timestamp(0, Math.trunc(_localDBLastTimestampCheck.getTime() / 1000)) }
 					})
 					.toArray();
-				console.log(lastUpdatedEvseDocs.length);
 				// Aggregate
 				let action, notif;
 				lastUpdatedEvseDocs.forEach((lastUpdatedEvseDoc) => {
