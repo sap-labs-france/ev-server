@@ -292,11 +292,6 @@ class ChargingStation {
 		return global.storage.saveChargingStationHeartBeat(this.getModel());
 	}
 
-	saveChargingStationParams() {
-		// Save
-		return global.storage.saveChargingStationParams(this.getModel());
-	}
-
 	saveChargingStationSiteArea() {
 		// Save
 		return global.storage.saveChargingStationSiteArea(this.getModel());

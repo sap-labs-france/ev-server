@@ -16,19 +16,14 @@ const SiteArea = require('../../../model/SiteArea');
 const crypto = require('crypto');
 const ObjectId = mongoose.Types.ObjectId;
 
-let _centralRestServer;
 let _db;
 
 class ChargingStationStorage {
-	static setCentralRestServer(centralRestServer) {
-		_centralRestServer = centralRestServer;
-	}
-
 	static setDatabase(db) {
 		_db = db;
 	}
 
-	static handleGetChargingStation(id) {
+	static async handleGetChargingStation(id) {
 		// Create Aggregation
 		let aggregation = [];
 		// Filters
@@ -50,25 +45,26 @@ class ChargingStationStorage {
 		aggregation.push({
 			$unwind: { "path": "$siteArea", "preserveNullAndEmptyArrays": true }
 		});
-		// Execute
-		return MDBChargingStation.aggregate(aggregation)
-				.exec().then((chargingStationMDB) => {
-			let chargingStation = null;
-			// Found
-			if (chargingStationMDB && chargingStationMDB.length > 0) {
-				// Create
-				chargingStation = new ChargingStation(chargingStationMDB[0]);
-				// Set Site Area
-				if (chargingStationMDB[0].siteArea) {
-					chargingStation.setSiteArea(
-						new SiteArea(chargingStationMDB[0].siteArea));
-				}
+		// Read DB
+		let chargingStationMDB = await _db.collection('chargingstations')
+			.aggregate(aggregation)
+			.limit(1)
+			.toArray();
+		let chargingStation = null;
+		// Found
+		if (chargingStationMDB && chargingStationMDB.length > 0) {
+			// Create
+			chargingStation = new ChargingStation(chargingStationMDB[0]);
+			// Set Site Area
+			if (chargingStationMDB[0].siteArea) {
+				chargingStation.setSiteArea(
+					new SiteArea(chargingStationMDB[0].siteArea));
 			}
-			return chargingStation;
-		});
+		}
+		return chargingStation;
 	}
 
-	static handleGetChargingStations(searchValue, siteAreaID, withNoSiteArea, numberOfChargingStations) {
+	static async handleGetChargingStations(searchValue, siteAreaID, withNoSiteArea, numberOfChargingStations) {
 		// Check Limit
 		numberOfChargingStations = Utils.checkRecordLimit(numberOfChargingStations);
 		// Create Aggregation
@@ -97,7 +93,7 @@ class ChargingStationStorage {
 		if (siteAreaID) {
 			// Build filter
 			filters.$and.push({
-				"siteAreaID": new ObjectId(siteAreaID)
+				"siteAreaID": Utils.checkIdIsObjectID(siteAreaID)
 			});
 		}
 		// With no Site Area
@@ -124,160 +120,101 @@ class ChargingStationStorage {
 				$limit: numberOfChargingStations
 			});
 		}
-		// Execute
-		return MDBChargingStation.aggregate(aggregation)
-				.exec().then((chargingStationsMDB) => {
-			let chargingStations = [];
-			// Create
-			chargingStationsMDB.forEach((chargingStationMDB) => {
-				chargingStations.push(new ChargingStation(chargingStationMDB));
-			});
-			// Ok
-			return chargingStations;
+		// Read DB
+		let chargingStationsMDB = await _db.collection('chargingstations')
+			.aggregate(aggregation)
+			.toArray();
+		let chargingStations = [];
+		// Create
+		chargingStationsMDB.forEach((chargingStationMDB) => {
+			chargingStations.push(new ChargingStation(chargingStationMDB));
 		});
+		// Ok
+		return chargingStations;
 	}
 
-	static handleSaveChargingStation(chargingStation) {
+	static async handleSaveChargingStation(chargingStationToSave) {
 		// Check Site Area
-		if (chargingStation.siteArea && chargingStation.siteArea.id) {
+		if (chargingStationToSave.siteArea && chargingStationToSave.siteArea.id) {
 			// Set the ID
-			chargingStation.siteAreaID = chargingStation.siteArea.id;
+			chargingStationToSave.siteAreaID = chargingStationToSave.siteArea.id;
 		} else {
 			// Set it to null
-			chargingStation.siteAreaID = null;
+			chargingStationToSave.siteAreaID = null;
 		}
 		// Check Created By
-		if (chargingStation.createdBy && typeof chargingStation.createdBy == "object") {
-			// This is the User Model
-			chargingStation.createdBy = new ObjectId(chargingStation.createdBy.id);
+		if (chargingStationToSave.createdBy && typeof chargingStationToSave.createdBy == "object") {
+			chargingStationToSave.createdBy =
+				Utils.checkIdIsObjectID(chargingStationToSave.createdBy.id);
 		}
 		// Check Last Changed By
-		if (chargingStation.lastChangedBy && typeof chargingStation.lastChangedBy == "object") {
-			// This is the User Model
-			chargingStation.lastChangedBy = new ObjectId(chargingStation.lastChangedBy.id);
+		if (chargingStationToSave.lastChangedBy && typeof chargingStationToSave.lastChangedBy == "object") {
+			chargingStationToSave.lastChangedBy =
+				Utils.checkIdIsObjectID(chargingStationToSave.lastChangedBy.id);
 		}
-		// Update
-		return MDBChargingStation.findOneAndUpdate(
-			{"_id": chargingStation.id},
-			chargingStation,
-			{new: true, upsert: true}).then((chargingStationMDB) => {
-				let newChargingStation = new ChargingStation(chargingStationMDB);
-				// Notify Change
-				if (!chargingStation.id) {
-					_centralRestServer.notifyChargingStationCreated(
-						{
-							"id" : newChargingStation.id,
-							"type": Constants.ENTITY_CHARGING_STATION
-						}
-					);
-				} else {
-					_centralRestServer.notifyChargingStationUpdated(
-						{
-							"id" : chargingStation.id,
-							"type": Constants.ENTITY_CHARGING_STATION
-						}
-					);
-				}
-				return newChargingStation;
-		});
+		// Transfer
+		let chargingStation = {};
+		Database.updateChargingStation(chargingStationToSave, chargingStation, false);
+		// Modify and return the modified document
+	    let result = await _db.collection('chargingstations').findOneAndUpdate(
+			{"_id": chargingStationToSave.id},
+			{$set: chargingStation},
+			{upsert: true, new: true, returnOriginal: false});
+		// Create
+		return new ChargingStation(result.value);
 	}
 
-	static handleSaveChargingStationConnector(chargingStation, connectorId) {
+	static async handleSaveChargingStationConnector(chargingStation, connectorId) {
 		let updatedFields = {};
 		updatedFields["connectors." + (connectorId-1)] = chargingStation.connectors[connectorId-1];
-		// Update
-		return MDBChargingStation.findByIdAndUpdate(
-				chargingStation.id,
-				updatedFields).then((chargingStationMDB) => {
-			let newChargingStation = new ChargingStation(chargingStationMDB);
-			_centralRestServer.notifyChargingStationUpdated(
-				{
-					"id" : chargingStation.id,
-					"connectorId": connectorId,
-					"type": Constants.ENTITY_CHARGING_STATION_STATUS
-				}
-			);
-			return newChargingStation;
-		});
+		// Modify and return the modified document
+	    let result = await _db.collection('chargingstations').findOneAndUpdate(
+			{"_id": chargingStation.id},
+			{$set: updatedFields},
+			{upsert: true, new: true, returnOriginal: false});
+		// Create
+		return new ChargingStation(result.value);
 	}
 
-	static handleSaveChargingStationParams(chargingStation) {
-		let updatedFields = {};
-		updatedFields["chargingStationURL"] = chargingStation.chargingStationURL;
-		updatedFields["numberOfConnectedPhase"] = chargingStation.numberOfConnectedPhase;
-		// Update
-		return MDBChargingStation.findByIdAndUpdate(
-				chargingStation.id,
-				updatedFields).then((chargingStationMDB) => {
-			let newChargingStation = new ChargingStation(chargingStationMDB);
-			_centralRestServer.notifyChargingStationUpdated(
-				{
-					"id" : chargingStation.id,
-					"type": Constants.ENTITY_CHARGING_STATION
-				}
-			);
-			return newChargingStation;
-		});
-	}
-
-	static handleSaveChargingStationHeartBeat(chargingStation) {
+	static async handleSaveChargingStationHeartBeat(chargingStation) {
 		let updatedFields = {};
 		updatedFields["lastHeartBeat"] = chargingStation.lastHeartBeat;
-		// Update
-		return MDBChargingStation.findByIdAndUpdate(
-				chargingStation.id,
-				updatedFields).then((chargingStationMDB) => {
-			let newChargingStation = new ChargingStation(chargingStationMDB);
-			_centralRestServer.notifyChargingStationUpdated(
-				{
-					"id" : chargingStation.id,
-					"type": Constants.ENTITY_CHARGING_STATION
-				}
-			);
-			return newChargingStation;
-		});
+		// Modify and return the modified document
+	    let result = await _db.collection('chargingstations').findOneAndUpdate(
+			{"_id": chargingStation.id},
+			{$set: updatedFields},
+			{upsert: true, new: true, returnOriginal: false});
+		// Create
+		return new ChargingStation(result.value);
 	}
 
-	static handleSaveChargingStationSiteArea(chargingStation) {
+	static async handleSaveChargingStationSiteArea(chargingStation) {
 		let updatedFields = {};
-		updatedFields["siteAreaID"] = (chargingStation.siteArea ? chargingStation.siteArea.id : null);
+		updatedFields["siteAreaID"] = (chargingStation.siteArea ? Utils.checkIdIsObjectID(chargingStation.siteArea.id) : null);
 		// Check Last Changed By
 		if (chargingStation.lastChangedBy && typeof chargingStation.lastChangedBy == "object") {
 			// This is the User Model
-			updatedFields["lastChangedBy"] = new ObjectId(chargingStation.lastChangedBy.id);
+			updatedFields["lastChangedBy"] = Utils.checkIdIsObjectID(chargingStation.lastChangedBy.id);
 			updatedFields["lastChangedOn"] = chargingStation.lastChangedOn;
 		}
-		// Update
-		return MDBChargingStation.findByIdAndUpdate(
-				chargingStation.id,
-				updatedFields).then((chargingStationMDB) => {
-			let newChargingStation = new ChargingStation(chargingStationMDB);
-			_centralRestServer.notifyChargingStationUpdated(
-				{
-					"id" : chargingStation.id,
-					"type": Constants.ENTITY_CHARGING_STATION
-				}
-			);
-			return newChargingStation;
-		});
+		// Modify and return the modified document
+	    let result = await _db.collection('chargingstations').findOneAndUpdate(
+			{"_id": chargingStation.id},
+			{$set: updatedFields},
+			{upsert: true, new: true, returnOriginal: false});
+		// Create
+		return new ChargingStation(result.value);
 	}
 
-	static handleDeleteChargingStation(id) {
-		// Remove Configuration
-		return MDBConfiguration.findByIdAndRemove( id ).then((result) => {
-			// Remove Charging Station
-			return MDBChargingStation.findByIdAndRemove( id );
-		}).then((result) => {
-			// Notify Change
-			_centralRestServer.notifyChargingStationDeleted(
-				{
-					"id": id,
-					"type": Constants.ENTITY_CHARGING_STATION
-				}
-			);
-			// Return the result
-			return result.result;
-		});
+	static async handleDeleteChargingStation(id) {
+		// Delete Configuration
+		console.log(id);
+		await _db.collection('configurations')
+			.findOneAndDelete( {'_id': id} );
+		// Delete Charger
+		await _db.collection('chargingstations')
+			.findOneAndDelete( {'_id': id} );
+		// Keep the rest (bootnotif, authorize...)
 	}
 
 	static handleSaveAuthorize(authorize) {
@@ -309,17 +246,7 @@ class ChargingStationStorage {
 		return MDBConfiguration.findOneAndUpdate(
 			{"_id": configuration.chargeBoxID},
 			configurationMDB,
-			{new: true, upsert: true}).then((chargingStationMDB) => {
-				// Notify
-				_centralRestServer.notifyChargingStationUpdated(
-					{
-						"id" : configuration.chargeBoxID,
-						"type": Constants.ENTITY_CHARGING_STATION_CONFIG
-					}
-				);
-				// Return
-				return chargingStationMDB;
-		});
+			{new: true, upsert: true});
 	}
 
 	static handleSaveDataTransfer(dataTransfer) {
@@ -382,16 +309,7 @@ class ChargingStationStorage {
 			.update(`${statusNotification.chargeBoxID}~${statusNotification.connectorId}~${statusNotification.status}~${statusNotification.timestamp}`)
 			.digest("hex");
 		// Create new
-		return statusNotificationMDB.save().then(() => {
-			// Notify
-			_centralRestServer.notifyChargingStationUpdated(
-				{
-					"id": statusNotification.chargeBoxID,
-					"connectorId": statusNotification.connectorId,
-					"type": Constants.ENTITY_CHARGING_STATION_STATUS
-				}
-			);
-		});
+		return statusNotificationMDB.save();
 	}
 
 	static handleGetLastStatusNotification(chargeBoxID, connectorId) {

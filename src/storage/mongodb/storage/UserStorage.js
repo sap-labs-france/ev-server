@@ -359,7 +359,7 @@ class UserStorage {
 	static async handleDeleteUser(id) {
 		// Delete User
 		await _db.collection('users')
-				.findOneAndDelete( {'_id': Utils.checkIdIsObjectID(id)} );
+			.findOneAndDelete( {'_id': Utils.checkIdIsObjectID(id)} );
 		// Delete Image
 		await _db.collection('userimages')
 			.findOneAndDelete( {'_id': Utils.checkIdIsObjectID(id)} );

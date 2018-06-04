@@ -30,8 +30,10 @@ module.exports = {
 		return changedID;
 	},
 
-	updateChargingStation(src, dest) {
-		this.updateID(src, dest);
+	updateChargingStation(src, dest, forFrontEnd=true) {
+		if (forFrontEnd) {
+			this.updateID(src, dest);
+		}
 		dest.chargePointSerialNumber = src.chargePointSerialNumber;
 		dest.chargePointModel = src.chargePointModel;
 		dest.chargeBoxSerialNumber = src.chargeBoxSerialNumber;

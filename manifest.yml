@@ -1,0 +1,9 @@
+applications:
+- name: ev-server
+  memory: 256M
+  disk_quota: 256M
+  instances: 1
+  buildpack: https://github.com/cloudfoundry/nodejs-buildpack
+  random-route: true
+  path: dist
+  host: charge-angels-server

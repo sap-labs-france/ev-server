@@ -392,6 +392,19 @@ class CentralSystemRestServer {
 		});
 	}
 
+	notifyChargingStation(action, data) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": Constants.ENTITY_CHARGING_STATION,
+			"action": action,
+			"data": data
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": Constants.ENTITY_CHARGING_STATIONS
+		});
+	}
+
 	notifyChargingStationUpdated(data) {
 		// Add in buffer
 		this.addNotificationInBuffer({

@@ -159,7 +159,6 @@ class MongoDBStorage {
 			setInterval(async () => {
 				// Check
 				if (!_centralRestServer) {
-					console.log("No central server");
 					return;
 				}
 				// Get collection
@@ -181,18 +180,24 @@ class MongoDBStorage {
 						switch (lastUpdatedEvseDoc.ns) {
 							// Logs
 							case "evse.logs":
-							// Notify
-							_centralRestServer.notifyLogging(action);
-							break;
+								// Notify
+								_centralRestServer.notifyLogging(action);
+								break;
 							// Users
 							case "evse.users":
 							case "evse.userimages":
-							// Notify
-							_centralRestServer.notifyUser(action, {
-								"type": Constants.ENTITY_USER,
-								"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
-							});
-							break;
+								// Notify
+								_centralRestServer.notifyUser(action, {
+									"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
+								});
+								break;
+							// Charging Stations
+							case "evse.chargingstations":
+								// Notify
+								_centralRestServer.notifyChargingStation(action, {
+									"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
+								});
+								break;
 						}
 					}
 				});
@@ -207,7 +212,6 @@ class MongoDBStorage {
 		// Set
 		_centralRestServer = centralRestServer;
 		// Set
-		ChargingStationStorage.setCentralRestServer(centralRestServer);
 		PricingStorage.setCentralRestServer(centralRestServer);
 		TransactionStorage.setCentralRestServer(centralRestServer);
 		CompanyStorage.setCentralRestServer(centralRestServer);
@@ -370,12 +374,6 @@ class MongoDBStorage {
 		// Delegate
 		return ChargingStationStorage.handleSaveChargingStationConnector(
 			chargingStation, connectorId);
-	}
-
-	saveChargingStationParams(chargingStation) {
-		// Delegate
-		return ChargingStationStorage.handleSaveChargingStationParams(
-			chargingStation);
 	}
 
 	saveChargingStationHeartBeat(chargingStation) {
