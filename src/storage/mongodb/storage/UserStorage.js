@@ -212,19 +212,22 @@ class UserStorage {
 		result = await _db.collection('tags')
 			.deleteMany( {'userID': Utils.checkIdIsObjectID(updatedUser.getID())} );
 		// Add tags
-		userToSave.tagIDs.forEach(async (tag) => {
-			// Create
-			await _db.collection('tags').findOneAndUpdate(
-				{"_id": tag},
-				{
-					$set: {
-						"_id": tag,
-						"userID": Utils.checkIdIsObjectID(updatedUser.getID())
-					}
-				},
+		if (userToSave.tagIDs && userToSave.tagIDs.length > 0) {
+			let tagsMDB = [];
+			// Create the list
+			userToSave.tagIDs.forEach(async (tag) => {
+				// Add
+				tagsMDB.push({
+					"_id": tag,
+					"userID": Utils.checkIdIsObjectID(updatedUser.getID())
+				});
+			});
+			// Execute
+			await _db.collection('tags').insertMany(
+				tagsMDB,
 				{upsert: true, new: true, returnOriginal: false}
 			);
-		});
+		}
 		return updatedUser;
 	}
 
