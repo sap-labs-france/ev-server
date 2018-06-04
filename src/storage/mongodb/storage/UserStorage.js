@@ -181,70 +181,67 @@ class UserStorage {
 				`User has no ID and no Email`,
 				550, "UserStorage", "handleSaveUser");
 		}
+		// Build Request
+		let userFilter = {};
+		if (userToSave.id) {
+			userFilter._id = Utils.checkIdIsObjectID(userToSave.id);
+		} else {
+			userFilter.email = userToSave.email;
+		}
+		// Check Created By
+		if (userToSave.createdBy && typeof userToSave.createdBy == "object") {
+			// This is the User Model
+			userToSave.createdBy = Utils.checkIdIsObjectID(userToSave.createdBy.id);
+		}
+		// Check Last Changed By
+		if (userToSave.lastChangedBy && typeof userToSave.lastChangedBy == "object") {
+			// This is the User Model
+			userToSave.lastChangedBy = Utils.checkIdIsObjectID(userToSave.lastChangedBy.id);
+		}
 		// Transfer
 		let user = {};
 		Database.updateUser(userToSave, user, false);
-		// Build Request
-		let userFilter = {};
-		if (user.id) {
-			userFilter._id = Utils.checkIdIsObjectID(user.id);
-		} else {
-			userFilter.email = user.email;
-		}
-		// Check Created By
-		if (user.createdBy && typeof user.createdBy == "object") {
-			// This is the User Model
-			user.createdBy = Utils.checkIdIsObjectID(user.createdBy.id);
-		}
-		// Check Last Changed By
-		if (user.lastChangedBy && typeof user.lastChangedBy == "object") {
-			// This is the User Model
-			user.lastChangedBy = Utils.checkIdIsObjectID(user.lastChangedBy.id);
-		}
-		// Save
-		let newUser;
 		// Modify and return the modified document
 	    let result = await _db.collection('users').findOneAndUpdate(
 			userFilter,
 			{$set: user},
 			{upsert: true, new: true, returnOriginal: false});
 		// Create
-		newUser = new User(result.value);
+		let updatedUser = new User(result.value);
 		// Delete Tag IDs
 		result = await _db.collection('tags')
-			.findOneAndDelete( {'userID': Utils.checkIdIsObjectID(newUser.getID())} );
+			.deleteMany( {'userID': Utils.checkIdIsObjectID(updatedUser.getID())} );
 		// Add tags
-		user.tagIDs.forEach(async (tag) => {
+		userToSave.tagIDs.forEach(async (tag) => {
 			// Create
 			await _db.collection('tags').findOneAndUpdate(
 				{"_id": tag},
 				{
 					$set: {
 						"_id": tag,
-						"userID": Utils.checkIdIsObjectID(newUser.getID())
+						"userID": Utils.checkIdIsObjectID(updatedUser.getID())
 					}
 				},
 				{upsert: true, new: true, returnOriginal: false}
 			);
 		});
-		return newUser;
+		return updatedUser;
 	}
 
-	static async handleSaveUserImage(userToSave) {
+	static async handleSaveUserImage(userImageToSave) {
 		// Check if ID is provided
-		if (!userToSave.id) {
-			throw new Error("User has no ID and cannot be created or updated");
+		if (!userImageToSave.id) {
+			// ID must be provided!
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`User Image has no ID`,
+				550, "UserStorage", "handleSaveUserImage");
 		}
-		// Set Image
-		let user = {
-			id: userToSave.id,
-			image: userToSave.image
-		};
 		// Modify and return the modified document
-	    await _db.collection('userimages').findOneAndUpdate(
-			{'_id': Utils.checkIdIsObjectID(user.id)},
-			{$set: user},
-			{upsert: true, new: true});
+	    let result = await _db.collection('userimages').findOneAndUpdate(
+			{'_id': Utils.checkIdIsObjectID(userImageToSave.id)},
+			{$set: {image: userImageToSave.image}},
+			{upsert: true, new: true, returnOriginal: false});
 	}
 
 	static async handleGetUsers(searchValue, siteID, numberOfUsers) {
@@ -365,7 +362,7 @@ class UserStorage {
 			.findOneAndDelete( {'_id': Utils.checkIdIsObjectID(id)} );
 		// Delete Tags
 		await _db.collection('tags')
-			.findOneAndDelete( {'userID': Utils.checkIdIsObjectID(id)} );
+			.deleteMany( {'userID': Utils.checkIdIsObjectID(id)} );
 	}
 
 	static async _createUser(userMDB) {

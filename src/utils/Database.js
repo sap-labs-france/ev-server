@@ -153,11 +153,13 @@ module.exports = {
 		dest.attribute = src.attribute;
 	},
 
-	updateUser(src, dest, updateImage=true) {
-		this.updateID(src, dest);
+	updateUser(src, dest, forFrontEnd=true) {
+		if (forFrontEnd) {
+			this.updateID(src, dest);
+		}
 		dest.name = src.name;
 		dest.firstName = src.firstName;
-		if (updateImage) {
+		if (forFrontEnd) {
 			dest.image = src.image;
 		}
 		dest.email = src.email;
@@ -182,7 +184,7 @@ module.exports = {
 		}
 		this.updateCreatedAndLastChanged(src, dest);
 		dest.deleted = src.deleted;
-		if (src.tagIDs) {
+		if (forFrontEnd && src.tagIDs) {
 			// Convert
 			dest.tagIDs = src.tagIDs.map((tagID) => {
 				return Utils.objectIdtoString(tagID);

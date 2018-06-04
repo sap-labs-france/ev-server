@@ -214,6 +214,14 @@ class User {
 		this._model.createdOn = createdOn;
 	}
 
+	getAddress() {
+		return this._model.address;
+	}
+
+	setAddress(address) {
+		this._model.address = address;
+	}
+
 	getLastChangedBy() {
 		if (this._model.lastChangedBy) {
 			return new User(this._model.lastChangedBy);
@@ -249,9 +257,7 @@ class User {
 		filter.userId = this.getID();
 		// Get the consumption
 		return global.storage.getTransactions(
-			null,
-			filter,
-			null,
+			null, filter, null,
 			Constants.NO_LIMIT);
 	}
 
@@ -270,30 +276,36 @@ class User {
 		return global.storage.saveUserImage(this.getModel());
 	}
 
-	delete() {
+	async delete() {
 		// Check if the user has a transaction
-		return this.getTransactions().then((transactions) => {
-			if (transactions && transactions.length > 0) {
-				// Delete logically
-				// Set deleted
-				this.setDeleted(true);
-				// Anonymize user
-				this.setStatus(Users.USER_STATUS_DELETED);
-				this.setName(Users.ANONIMIZED_VALUE);
-				this.setFirstName(Users.ANONIMIZED_VALUE);
-				this.setEMail(Users.ANONIMIZED_VALUE);
-				this.setPhone(Users.ANONIMIZED_VALUE);
-				this.setMobile(Users.ANONIMIZED_VALUE);
-				this.setImage("");
-				this.setINumber(Users.ANONIMIZED_VALUE);
-				this.setCostCenter(Users.ANONIMIZED_VALUE);
-				// Delete
-				return this.save();
-			} else {
-				// Delete physically
-				return global.storage.deleteUser(this.getID());
-			}
-		})
+		let transactions = await this.getTransactions();
+		// Check
+		if (transactions && transactions.length > 0) {
+			// Delete logically
+			// Set deleted
+			this.setDeleted(true);
+			// Anonymize user
+			this.setStatus(Users.USER_STATUS_DELETED);
+			this.setName(Users.ANONIMIZED_VALUE);
+			this.setFirstName(Users.ANONIMIZED_VALUE);
+			this.setAddress(null);
+			this.setEMail(Users.ANONIMIZED_VALUE);
+			this.setPassword(Users.ANONIMIZED_VALUE);
+			this.setPasswordResetHash(Users.ANONIMIZED_VALUE);
+			this.setPhone(Users.ANONIMIZED_VALUE);
+			this.setMobile(Users.ANONIMIZED_VALUE);
+			this.setTagIDs([]);
+			this.setINumber(Users.ANONIMIZED_VALUE);
+			this.setCostCenter(Users.ANONIMIZED_VALUE);
+			this.setImage(null);
+			// Save User Image
+			await this.saveImage();
+			// Save User
+			return this.save();
+		} else {
+			// Delete physically
+			return global.storage.deleteUser(this.getID());
+		}
 	}
 }
 
