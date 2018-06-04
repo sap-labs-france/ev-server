@@ -11,13 +11,6 @@ const VehicleSecurity = require('./security/VehicleSecurity');
 
 class VehicleService {
 	static handleDeleteVehicle(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "VehicleService",
-			method: "handleDeleteVehicle",
-			message: `Delete Vehicle '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let vehicle;
 		let filteredRequest = VehicleSecurity.filterVehicleDeleteRequest(
@@ -67,13 +60,6 @@ class VehicleService {
 	}
 
 	static handleGetVehicle(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "VehicleService",
-			method: "handleGetVehicle",
-			message: `Read Vehicle '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let filteredRequest = VehicleSecurity.filterVehicleRequest(req.query, req.user);
 		// Charge Box is mandatory
@@ -104,13 +90,6 @@ class VehicleService {
 	}
 
 	static handleGetVehicles(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "VehicleService",
-			method: "handleGetVehicles",
-			message: `Read All Vehicles`,
-			detailedMessages: req.query
-		});
 		// Check auth
 		if (!Authorizations.canListVehicles(req.user)) {
 			// Not Authorized!
@@ -145,13 +124,6 @@ class VehicleService {
 	}
 
 	static handleGetVehicleImage(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "VehicleService",
-			method: "handleGetVehicleImage",
-			message: `Read Vehicle Image '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let filteredRequest = VehicleSecurity.filterVehicleRequest(req.query, req.user);
 		// Charge Box is mandatory
@@ -183,6 +155,7 @@ class VehicleService {
 		}).then((vehicleImage) => {
 			// Found?
 			if (vehicleImage) {
+				// Log
 				Logging.logSecurityInfo({
 					user: req.user,
 					action: action,
@@ -202,12 +175,6 @@ class VehicleService {
 	}
 
 	static handleGetVehicleImages(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "VehicleService", method: "handleGetVehicleImages",
-			message: `Read Vehicle Images`,
-			detailedMessages: req.query
-		});
 		// Check auth
 		if (!Authorizations.canListVehicles(req.user)) {
 			// Not Authorized!
@@ -220,6 +187,7 @@ class VehicleService {
 		}
 		// Get the vehicle image
 		global.storage.getVehicleImages().then((vehicleImages) => {
+			// Log
 			Logging.logSecurityInfo({
 				user: req.user,
 				action: action,
@@ -235,13 +203,6 @@ class VehicleService {
 	}
 
 	static handleCreateVehicle(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "VehicleService",
-			method: "handleCreateVehicle",
-			message: `Create Vehicle '${req.body.manufacturer} ${req.body.model}'`,
-			detailedMessages: req.body
-		});
 		// Check auth
 		if (!Authorizations.canCreateVehicle(req.user)) {
 			// Not Authorized!
@@ -291,13 +252,6 @@ class VehicleService {
 	}
 
 	static handleUpdateVehicle(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "VehicleService",
-			method: "handleUpdateVehicle",
-			message: `Update Vehicle '${req.body.model} ${req.body.manufacturer}' (ID '${req.body.id}')`,
-			detailedMessages: req.body
-		});
 		// Filter
 		let filteredRequest = VehicleSecurity.filterVehicleUpdateRequest( req.body, req.user );
 		let vehicle;

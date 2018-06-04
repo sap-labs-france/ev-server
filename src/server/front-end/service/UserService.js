@@ -12,13 +12,6 @@ const UserSecurity = require('./security/UserSecurity');
 
 class UserService {
 	static handleGetEndUserLicenseAgreement(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "UserService",
-			method: "handleGetEndUserLicenseAgreement",
-			message: `Get End User License Agreement`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let filteredRequest = UserSecurity.filterEndUserLicenseAgreementRequest(req.query, req.user);
 		// Get it
@@ -36,13 +29,6 @@ class UserService {
 	}
 
 	static handleDeleteUser(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "UserService",
-			method: "handleDeleteUser",
-			message: `Delete User with ID '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let filteredRequest = UserSecurity.filterUserDeleteRequest(req.query, req.user);
 		// Check Mandatory fields
@@ -109,12 +95,6 @@ class UserService {
 	}
 
 	static handleUpdateUser(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, actionOnUser: req.body,
-			action: action,
-			module: "UserService", method: "handleUpdateUser",
-			message: `Update User with ID '${req.body.id}'`
-		});
 		let statusHasChanged=false;
 		// Filter
 		let filteredRequest = UserSecurity.filterUserUpdateRequest( req.body, req.user );
@@ -239,12 +219,6 @@ class UserService {
 	}
 
 	static handleGetUser(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "UserService", method: "handleGetUser",
-			message: `Read User ID '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let filteredRequest = UserSecurity.filterUserRequest(req.query, req.user);
 		// User mandatory
@@ -299,12 +273,6 @@ class UserService {
 	}
 
 	static handleGetUserImage(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "UserService", method: "handleGetUserImage",
-			message: `Read User Image with ID '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let filteredRequest = UserSecurity.filterUserRequest(req.query, req.user);
 		// User mandatory
@@ -366,12 +334,6 @@ class UserService {
 	}
 
 	static handleGetUserImages(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "UserService", method: "handleGetUserImages",
-			message: `Read User Images`,
-			detailedMessages: req.query
-		});
 		// Check auth
 		if (!Authorizations.canListUsers(req.user)) {
 			// Not Authorized!
@@ -384,6 +346,7 @@ class UserService {
 		}
 		// Get the user image
 		global.storage.getUserImages().then((userImages) => {
+			// Log
 			Logging.logSecurityInfo({
 				user: req.user,
 				action: action,
@@ -399,12 +362,6 @@ class UserService {
 	}
 
 	static handleGetUsers(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "UserService",
-			method: "handleGetUsers",
-			message: `Read All Users`
-		});
 		// Check auth
 		if (!Authorizations.canListUsers(req.user)) {
 			// Not Authorized!
@@ -438,12 +395,6 @@ class UserService {
 	}
 
 	static handleCreateUser(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "UserService",
-			method: "handleCreateUser",
-			message: `Create User`
-		});
 		// Check auth
 		if (!Authorizations.canCreateUser(req.user)) {
 			// Not Authorized!

@@ -11,13 +11,6 @@ const TransactionSecurity = require('./security/TransactionSecurity');
 
 class TransactionService {
 	static handleDeleteTransaction(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "TransactionService",
-			method: "handleDeleteTransaction",
-			message: `Delete Transaction ID '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let filteredRequest = TransactionSecurity.filterTransactionDelete(req.query, req.user);
 		// Transaction Id is mandatory
@@ -93,13 +86,6 @@ class TransactionService {
 	}
 
 	static handleTransactionSoftStop(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "TransactionService",
-			method: "handleTransactionSoftStop",
-			message: `Soft Stop Transaction ID '${req.body.transactionId}'`,
-			detailedMessages: req.body
-		});
 		// Filter
 		let filteredRequest = TransactionSecurity.filterTransactionSoftStop(req.body, req.user);
 		// Transaction Id is mandatory
@@ -179,13 +165,6 @@ class TransactionService {
 	}
 
 	static handleGetChargingStationConsumptionFromTransaction(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: "ChargingStationConsumption",
-			module: "TransactionService",
-			method: "handleGetChargingStationConsumptionFromTransaction",
-			message: `Read Consumption from Transaction ID '${req.query.TransactionId}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let filteredRequest = TransactionSecurity.filterChargingStationConsumptionFromTransactionRequest(req.query, req.user);
 		// Transaction Id is mandatory
@@ -271,13 +250,6 @@ class TransactionService {
 	}
 
 	static handleGetTransaction(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "TransactionService",
-			method: "handleGetTransaction",
-			message: `Read Transaction ID '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let filteredRequest = TransactionSecurity.filterTransactionRequest(req.query, req.user);
 		// Charge Box is mandatory
@@ -319,13 +291,6 @@ class TransactionService {
 	}
 
 	static handleGetChargingStationTransactions(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "TransactionService",
-			method: "handleGetChargingStationTransactions",
-			message: `Read Transactions from Charging Station '${req.query.ChargeBoxID}'-'${req.query.ConnectorId}'`,
-			detailedMessages: req.query
-		});
 		// Check auth
 		if (!Authorizations.canListTransactions(req.user)) {
 			// Not Authorized!
@@ -379,12 +344,6 @@ class TransactionService {
 	}
 
 	static handleGetTransactionYears(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "TransactionService",
-			method: "handleGetTransactionYears",
-			message: `Get Transaction's Years`
-		});
 		// Get Transactions
 		global.storage.getTransactionYears().then((transactionsYears) => {
 			let result = {};
@@ -402,13 +361,6 @@ class TransactionService {
 	}
 
 	static handleGetTransactionsActive(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "TransactionService",
-			method: "handleGetTransactionsActive",
-			message: `Read Active Transactions`,
-			detailedMessages: req.query
-		});
 		// Check auth
 		if (!Authorizations.canListTransactions(req.user)) {
 			// Not Authorized!
@@ -445,13 +397,6 @@ class TransactionService {
 	}
 
 	static handleGetTransactionsCompleted(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "TransactionService",
-			method: "handleGetTransactionsCompleted",
-			message: `Read Completed Transactions`,
-			detailedMessages: req.query
-		});
 		// Check auth
 		if (!Authorizations.canListTransactions(req.user)) {
 			// Not Authorized!

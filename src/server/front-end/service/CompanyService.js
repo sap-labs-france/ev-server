@@ -16,13 +16,6 @@ const CompanySecurity = require('./security/CompanySecurity');
 
 class CompanyService {
 	static handleDeleteCompany(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "CompanyService",
-			method: "handleDeleteCompany",
-			message: `Delete Company '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let company;
 		let filteredRequest = CompanySecurity.filterCompanyDeleteRequest(
@@ -72,13 +65,6 @@ class CompanyService {
 	}
 
 	static handleGetCompany(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "CompanyService",
-			method: "handleGetCompany",
-			message: `Read Company '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let filteredRequest = CompanySecurity.filterCompanyRequest(req.query, req.user);
 		// Charge Box is mandatory
@@ -119,13 +105,6 @@ class CompanyService {
 	}
 
 	static handleGetCompanyLogo(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "CompanyService",
-			method: "handleGetCompanyLogo",
-			message: `Read Company Logo '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let filteredRequest = CompanySecurity.filterCompanyRequest(req.query, req.user);
 		// Charge Box is mandatory
@@ -178,12 +157,6 @@ class CompanyService {
 	}
 
 	static handleGetCompanyLogos(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "CompanyService", method: "handleGetCompanyLogos",
-			message: `Read Company Logos`,
-			detailedMessages: req.query
-		});
 		// Check auth
 		if (!Authorizations.canListCompanies(req.user)) {
 			// Not Authorized!
@@ -211,13 +184,6 @@ class CompanyService {
 	}
 
 	static handleGetCompanies(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "CompanyService",
-			method: "handleGetCompanies",
-			message: `Read All Companies`,
-			detailedMessages: req.query
-		});
 		// Check auth
 		if (!Authorizations.canListCompanies(req.user)) {
 			// Not Authorized!
@@ -253,13 +219,6 @@ class CompanyService {
 	}
 
 	static handleCreateCompany(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "CompanyService",
-			method: "handleCreateCompany",
-			message: `Create Company '${req.body.name}'`,
-			detailedMessages: req.body
-		});
 		// Check auth
 		if (!Authorizations.canCreateCompany(req.user)) {
 			// Not Authorized!
@@ -305,13 +264,6 @@ class CompanyService {
 	}
 
 	static handleUpdateCompany(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "CompanyService",
-			method: "handleUpdateCompany",
-			message: `Update Company '${req.body.name}' (ID '${req.body.id}')`,
-			detailedMessages: req.body
-		});
 		// Filter
 		let filteredRequest = CompanySecurity.filterCompanyUpdateRequest( req.body, req.user );
 		// Check email

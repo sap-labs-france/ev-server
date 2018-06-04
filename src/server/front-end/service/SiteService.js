@@ -16,13 +16,6 @@ const SiteSecurity = require('./security/SiteSecurity');
 
 class SiteService {
 	static handleDeleteSite(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "SiteService",
-			method: "handleDeleteSite",
-			message: `Delete Site '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let site;
 		let filteredRequest = SiteSecurity.filterSiteDeleteRequest(
@@ -72,13 +65,6 @@ class SiteService {
 	}
 
 	static handleGetSite(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "SiteService",
-			method: "handleGetSite",
-			message: `Read Site '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let filteredRequest = SiteSecurity.filterSiteRequest(req.query, req.user);
 		// Charge Box is mandatory
@@ -109,13 +95,6 @@ class SiteService {
 	}
 
 	static handleGetSites(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "SiteService",
-			method: "handleGetSites",
-			message: `Read All Sites`,
-			detailedMessages: req.query
-		});
 		// Check auth
 		if (!Authorizations.canListSites(req.user)) {
 			// Not Authorized!
@@ -152,13 +131,6 @@ class SiteService {
 	}
 
 	static handleGetSiteImage(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "SiteService",
-			method: "handleGetSiteImage",
-			message: `Read Site Image '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let filteredRequest = SiteSecurity.filterSiteRequest(req.query, req.user);
 		// Charge Box is mandatory
@@ -190,6 +162,7 @@ class SiteService {
 		}).then((siteImage) => {
 			// Found?
 			if (siteImage) {
+				// Log
 				Logging.logSecurityInfo({
 					user: req.user,
 					action: action,
@@ -209,12 +182,6 @@ class SiteService {
 	}
 
 	static handleGetSiteImages(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "SiteService", method: "handleGetSiteImages",
-			message: `Read Site Images`,
-			detailedMessages: req.query
-		});
 		// Check auth
 		if (!Authorizations.canListSites(req.user)) {
 			// Not Authorized!
@@ -227,6 +194,7 @@ class SiteService {
 		}
 		// Get the site image
 		global.storage.getSiteImages().then((siteImages) => {
+			// Log
 			Logging.logSecurityInfo({
 				user: req.user,
 				action: action,
@@ -242,13 +210,6 @@ class SiteService {
 	}
 
 	static handleCreateSite(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "SiteService",
-			method: "handleCreateSite",
-			message: `Create Site '${req.body.name}'`,
-			detailedMessages: req.body
-		});
 		// Check auth
 		if (!Authorizations.canCreateSite(req.user)) {
 			// Not Authorized!
@@ -323,13 +284,6 @@ class SiteService {
 	}
 
 	static handleUpdateSite(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "SiteService",
-			method: "handleUpdateSite",
-			message: `Update Site '${req.body.name}' (ID '${req.body.id}')`,
-			detailedMessages: req.body
-		});
 		// Filter
 		let filteredRequest = SiteSecurity.filterSiteUpdateRequest( req.body, req.user );
 		let site;

@@ -16,13 +16,6 @@ const Authorizations = require('../../../utils/Authorizations');
 
 class SiteAreaService {
 	static handleCreateSiteArea(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "SiteAreaService",
-			method: "handleCreateSiteArea",
-			message: `Create Site Area '${req.body.name}'`,
-			detailedMessages: req.body
-		});
 		// Check auth
 		if (!Authorizations.canCreateSite(req.user)) {
 			// Not Authorized!
@@ -103,13 +96,6 @@ class SiteAreaService {
 	}
 
 	static handleGetSiteAreas(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "SiteAreaService",
-			method: "handleGetSiteAreas",
-			message: `Read All Site Areas`,
-			detailedMessages: req.query
-		});
 		// Check auth
 		if (!Authorizations.canListSiteAreas(req.user)) {
 			// Not Authorized!
@@ -145,13 +131,6 @@ class SiteAreaService {
 	}
 
 	static handleDeleteSiteArea(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "SiteAreaService",
-			method: "handleDeleteSiteArea",
-			message: `Delete Site Area '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let siteArea;
 		let filteredRequest = SiteAreaSecurity.filterSiteAreaDeleteRequest(
@@ -202,13 +181,6 @@ class SiteAreaService {
 	}
 
 	static handleGetSiteArea(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "SiteAreaService",
-			method: "handleGetSiteArea",
-			message: `Read Site Area '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query, req.user);
 		// Charge Box is mandatory
@@ -252,13 +224,6 @@ class SiteAreaService {
 	}
 
 	static handleGetSiteAreaImage(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "SiteAreaService",
-			method: "handleGetSiteAreaImage",
-			message: `Read Site Area Image '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query, req.user);
 		// Charge Box is mandatory
@@ -309,12 +274,6 @@ class SiteAreaService {
 	}
 
 	static handleGetSiteAreaImages(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "SiteAreaService", method: "handleGetSiteAreaImages",
-			message: `Read Site Area Images`,
-			detailedMessages: req.query
-		});
 		// Check auth
 		if (!Authorizations.canListSiteAreas(req.user)) {
 			// Not Authorized!
@@ -327,6 +286,7 @@ class SiteAreaService {
 		}
 		// Get the Site Area image
 		global.storage.getSiteAreaImages().then((siteAreaImages) => {
+			// Log
 			Logging.logSecurityInfo({
 				user: req.user,
 				action: action,
@@ -342,13 +302,6 @@ class SiteAreaService {
 	}
 
 	static handleUpdateSiteArea(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "SiteAreaService",
-			method: "handleUpdateSiteArea",
-			message: `Update Site Area '${req.body.name}' (ID '${req.body.id}')`,
-			detailedMessages: req.body
-		});
 		// Filter
 		let filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest( req.body, req.user );
 		let siteArea;

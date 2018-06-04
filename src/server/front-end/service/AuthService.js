@@ -395,13 +395,6 @@ class AuthService {
 	}
 
 	static handleUserLogOut(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "AuthService",
-			method: "handleUserLogOut",
-			message: `User logged out`,
-			detailedMessages: req.body
-		});
 		req.logout();
 		res.status(200).send({});
 	}

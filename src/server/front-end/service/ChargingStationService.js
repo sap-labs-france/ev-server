@@ -12,13 +12,6 @@ const ChargingStationSecurity = require('./security/ChargingStationSecurity');
 
 class ChargingStationService {
 	static handleUpdateChargingStationParams(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "ChargingStationService",
-			method: "handleUpdateChargingStationParams",
-			message: `Update URL of Charging Station '${req.body.id}'`,
-			detailedMessages: req.body
-		});
 		// Filter
 		let filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest( req.body, req.user );
 		let chargingStation;
@@ -73,13 +66,6 @@ class ChargingStationService {
 	}
 
 	static handleGetChargingStationConfiguration(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "ChargingStationService",
-			method: "handleGetChargingStationConfiguration",
-			message: `Get Configuration from '${req.query.ChargeBoxID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query, req.user);
 		// Charge Box is mandatory
@@ -122,13 +108,6 @@ class ChargingStationService {
 	}
 
 	static handleDeleteChargingStation(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "ChargingStationService",
-			method: "handleDeleteChargingStation",
-			message: `Delete Charging Station '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let chargingStation;
 		let filteredRequest = ChargingStationSecurity.filterChargingStationDeleteRequest(req.query, req.user);
@@ -178,13 +157,6 @@ class ChargingStationService {
 	}
 
 	static handleGetChargingStation(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "ChargingStationService",
-			method: "handleGetChargingStation",
-			message: `Read Charging Station '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let filteredRequest = ChargingStationSecurity.filterChargingStationRequest(req.query, req.user);
 		// Charge Box is mandatory
@@ -213,13 +185,6 @@ class ChargingStationService {
 	}
 
 	static handleGetChargingStations(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "ChargingStationService",
-			method: "handleGetChargingStations",
-			message: `Read All Charging Stations`,
-			detailedMessages: req.query
-		});
 		// Check auth
 		if (!Authorizations.canListChargingStations(req.user)) {
 			// Not Authorized!
@@ -257,13 +222,6 @@ class ChargingStationService {
 	}
 
 	static handleAction(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "ChargingStationService",
-			method: "handleAction",
-			message: `Execute Action '${action}' on Charging Station '${req.body.chargeBoxID}'`,
-			detailedMessages: req.body
-		});
 		// Filter
 		let filteredRequest = ChargingStationSecurity.filterChargingStationActionRequest( req.body, action, req.user );
 		// Charge Box is mandatory
@@ -342,14 +300,6 @@ class ChargingStationService {
 
 	static handleActionSetMaxIntensitySocket(action, req, res, next) {
 		let chargingStation;
-
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "ChargingStationService",
-			method: "handleActionSetMaxIntensitySocket",
-			message: `Execute Action '${action}' on Charging Station '${req.body.chargeBoxID}'`,
-			detailedMessages: req.body
-		});
 		// Filter
 		let filteredRequest = ChargingStationSecurity.filterChargingStationSetMaxIntensitySocketRequest( req.body, req.user );
 		// Charge Box is mandatory

@@ -11,13 +11,6 @@ const VehicleManufacturerSecurity = require('./security/VehicleManufacturerSecur
 
 class VehicleManufacturerService {
 	static handleDeleteVehicleManufacturer(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "VehicleManufacturerService",
-			method: "handleDeleteVehicleManufacturer",
-			message: `Delete Vehicle Manufacturer '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let vehicleManufacturer;
 		let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerDeleteRequest(
@@ -67,13 +60,6 @@ class VehicleManufacturerService {
 	}
 
 	static handleGetVehicleManufacturer(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "VehicleManufacturerService",
-			method: "handleGetVehicleManufacturer",
-			message: `Read Vehicle Manufacturer '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerRequest(req.query, req.user);
 		// Charge Box is mandatory
@@ -104,13 +90,6 @@ class VehicleManufacturerService {
 	}
 
 	static handleGetVehicleManufacturers(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "VehicleManufacturerService",
-			method: "handleGetVehicleManufacturers",
-			message: `Read All Vehicle Manufacturers`,
-			detailedMessages: req.query
-		});
 		// Check auth
 		if (!Authorizations.canListVehicleManufacturers(req.user)) {
 			// Not Authorized!
@@ -146,13 +125,6 @@ class VehicleManufacturerService {
 	}
 
 	static handleCreateVehicleManufacturer(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "VehicleManufacturerService",
-			method: "handleCreateVehicleManufacturer",
-			message: `Create Vehicle Manufacturer '${req.body.manufacturer} ${req.body.model}'`,
-			detailedMessages: req.body
-		});
 		// Check auth
 		if (!Authorizations.canCreateVehicleManufacturer(req.user)) {
 			// Not Authorized!
@@ -198,13 +170,6 @@ class VehicleManufacturerService {
 	}
 
 	static handleUpdateVehicleManufacturer(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "VehicleManufacturerService",
-			method: "handleUpdateVehicleManufacturer",
-			message: `Update Vehicle Manufacturer '${req.body.model} ${req.body.manufacturer}' (ID '${req.body.id}')`,
-			detailedMessages: req.body
-		});
 		// Filter
 		let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerUpdateRequest( req.body, req.user );
 		let vehicleManufacturer;
@@ -260,13 +225,6 @@ class VehicleManufacturerService {
 	}
 
 	static handleGetVehicleManufacturerLogo(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "VehicleManufacturerService",
-			method: "handleGetVehicleManufacturerLogo",
-			message: `Read Vehicle Manufacturer Logo '${req.query.ID}'`,
-			detailedMessages: req.query
-		});
 		// Filter
 		let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerRequest(req.query, req.user);
 		// Charge Box is mandatory
@@ -319,12 +277,6 @@ class VehicleManufacturerService {
 	}
 
 	static handleGetVehicleManufacturerLogos(action, req, res, next) {
-		Logging.logSecurityInfo({
-			user: req.user, action: action,
-			module: "VehicleManufacturerService", method: "handleGetVehicleManufacturerLogos",
-			message: `Read Vehicle Manufacturer Logos`,
-			detailedMessages: req.query
-		});
 		// Check auth
 		if (!Authorizations.canListCompanies(req.user)) {
 			// Not Authorized!
