@@ -13,19 +13,17 @@ const SiteStorage = require('./storage/SiteStorage');
 const SiteAreaStorage = require('./storage/SiteAreaStorage');
 const MigrationStorage = require('./storage/MigrationStorage');
 const VehicleManufacturerStorage = require('./storage/VehicleManufacturerStorage');
-const assert = require('assert');
 const MongoClient = require('mongodb').MongoClient;
 const mongoUriBuilder = require('mongo-uri-builder');
 const urlencode = require('urlencode');
 const Timestamp = require('mongodb').Timestamp;
+const MongoDBStorageNotification = require('./MongoDBStorageNotification');
 
 require('source-map-support').install();
 
 let _dbConfig;
 let _evseDB;
-let _localDB;
-let _localDBLastTimestampCheck = new Date();
-let _centralRestServer;
+let _mongoDBStorageNotification;
 
 class MongoDBStorage {
 	// Create database access
@@ -73,20 +71,6 @@ class MongoDBStorage {
 		);
 	}
 
-	// Check for permitted operation
-	getActionFromOperation(operation) {
-		// Check
-		switch (operation) {
-			case 'i': // Insert/Create
-				return Constants.ACTION_CREATE;
-			case 'u': // Update
-				return Constants.ACTION_UPDATE;
-			case 'd': // Delete
-				return Constants.ACTION_DELETE;
-		}
-		return null;
-	}
-
 	async start() {
 		// Build EVSE URL
 		let mongoUrl = mongoUriBuilder({
@@ -103,12 +87,6 @@ class MongoDBStorage {
 		// Connect
 		mongoose.connect(mongoUrl,
 				{"useMongoClient": true}, (err) => {
-			if (!err) {
-				// Log
-				Logging.logInfo({
-					module: "MongoDBStorage", method: "start", action: "Startup",
-					message: `Connected to MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}' and using schema '${_dbConfig.schema}'` });
-			}
 		});
 		// MONGOOSE --------------------------------------------------
 
@@ -123,8 +101,10 @@ class MongoDBStorage {
 			});
 		// Get the EVSE DB
 		_evseDB = client.db(_dbConfig.schema);
+
 		// Check EVSE Database
 		await this.checkEVSEDatabase(_evseDB);
+
 		// Set EVSE DB
 		LoggingStorage.setDatabase(_evseDB);
 		ChargingStationStorage.setDatabase(_evseDB);
@@ -137,96 +117,27 @@ class MongoDBStorage {
 		VehicleStorage.setDatabase(_evseDB);
 		VehicleManufacturerStorage.setDatabase(_evseDB);
 
+		// Log
+		Logging.logInfo({
+			module: "MongoDBStorage", method: "start", action: "Startup",
+			message: `Connected to MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}' and using schema '${_dbConfig.schema}'` });
+
 		// Monitor MongoDB -------------------------------------------
 		if (_dbConfig.replica) {
-			// Build Replica URL
-			let mongoOpLogUrl = mongoUriBuilder({
-				host: urlencode(_dbConfig.host),
-				port: urlencode(_dbConfig.port),
-				username: urlencode(_dbConfig.replica.user),
-				password: urlencode(_dbConfig.replica.password),
-				database: urlencode(_dbConfig.replica.database)
-			});
-			// Connect to Replica DB
-			let clientOpLog = await MongoClient.connect(
-				mongoOpLogUrl,
-				{
-					useNewUrlParser: true,
-				});
-			// Get the Local DB
-			_localDB = clientOpLog.db("local");
-			// Start Listening
-			setInterval(async () => {
-				// Check
-				if (!_centralRestServer) {
-					return;
-				}
-				// Get collection
-				let lastUpdatedEvseDocs = await _localDB.collection("oplog.rs")
-					.find({
-						ns : { $regex: new RegExp(`^${_dbConfig.database}`) },
-						ts : { $gte : new Timestamp(0, Math.trunc(_localDBLastTimestampCheck.getTime() / 1000)) }
-					})
-					.toArray();
-				console.log(lastUpdatedEvseDocs.length);
-				// Aggregate
-				let action, notif;
-				lastUpdatedEvseDocs.forEach((lastUpdatedEvseDoc) => {
-					// Check for permitted operation
-					action = this.getActionFromOperation(lastUpdatedEvseDoc.op);
-					// Found
-					if (action) {
-						// Check namespace
-						switch (lastUpdatedEvseDoc.ns) {
-							// Logs
-							case "evse.logs":
-								// Notify
-								_centralRestServer.notifyLogging(action);
-								break;
-							// Users
-							case "evse.users":
-							case "evse.userimages":
-								// Notify
-								_centralRestServer.notifyUser(action, {
-									"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
-								});
-								break;
-							// Charging Stations
-							case "evse.chargingstations":
-								// Notify
-								_centralRestServer.notifyChargingStation(action, {
-									"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
-								});
-								break;
-							// Charging Stations Configuration
-							case "evse.configurations":
-								// Notify
-								_centralRestServer.notifyChargingStation(action, {
-									"type": Constants.NOTIF_TYPE_CHARGING_STATION_CONFIGURATION,
-									"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
-								});
-								break;
-						}
-					}
-				});
-				// Set new last date
-				_localDBLastTimestampCheck = new Date();
-			}, _dbConfig.replica.intervalPullSecs * 1000);
+			// Create
+			_mongoDBStorageNotification = new MongoDBStorageNotification(_dbConfig);
+			// Start
+			_mongoDBStorageNotification.start();
 		}
 		// Monitor MongoDB -------------------------------------------
 	}
 
 	setCentralRestServer(centralRestServer) {
-		// Set
-		_centralRestServer = centralRestServer;
-		// Set
-		PricingStorage.setCentralRestServer(centralRestServer);
-		TransactionStorage.setCentralRestServer(centralRestServer);
-		CompanyStorage.setCentralRestServer(centralRestServer);
-		SiteStorage.setCentralRestServer(centralRestServer);
-		SiteAreaStorage.setCentralRestServer(centralRestServer);
-		VehicleStorage.setCentralRestServer(centralRestServer);
-		VehicleManufacturerStorage.setCentralRestServer(centralRestServer);
+		// Check
+		if (_mongoDBStorageNotification) {
+			// Pass it to the class
+			_mongoDBStorageNotification.setCentralRestServer(centralRestServer);
+		}
 	}
 
 	getEndUserLicenseAgreement(language="en") {

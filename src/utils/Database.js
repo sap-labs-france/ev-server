@@ -298,8 +298,10 @@ module.exports = {
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
-	updateLoggingObject(src, dest) {
-		this.updateID(src, dest);
+	updateLoggingObject(src, dest, forFrontEnd=true) {
+		if (forFrontEnd) {
+			this.updateID(src, dest);
+		}
 		dest.level = src.level;
 		dest.source = src.source;
 		dest.type = src.type;

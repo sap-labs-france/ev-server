@@ -1,11 +1,8 @@
-const mongoose = require('mongoose');
 const Constants = require('../../../utils/Constants');
 const Logging = require('../../../utils/Logging');
 const Utils = require('../../../utils/Utils');
 const Database = require('../../../utils/Database');
-const MDBLog = require('../model/MDBLog');
 const crypto = require('crypto');
-const ObjectId = mongoose.Types.ObjectId;
 
 let _db;
 
@@ -14,7 +11,7 @@ class LoggingStorage {
 		_db = db;
 	}
 
-	static handleDeleteLogs(deleteUpToDate) {
+	static async handleDeleteLogs(deleteUpToDate) {
 		// Build filter
 		let filters = {};
 		// Do Not Delete Security Logs
@@ -27,13 +24,14 @@ class LoggingStorage {
 		} else {
 			return;
 		}
-		return MDBLog.remove(filters).then((result) => {
-			// Return the result
-			return result.result;
-		});
+		// Delete Logs
+		let result = await _db.collection('logs')
+			.deleteMany( filters );
+		// Return the result
+		return result.result;
 	}
 
-	static handleDeleteSecurityLogs(deleteUpToDate) {
+	static async handleDeleteSecurityLogs(deleteUpToDate) {
 		// Build filter
 		let filters = {};
 		// Delete Only Security Logs
@@ -46,29 +44,31 @@ class LoggingStorage {
 		} else {
 			return;
 		}
-		return MDBLog.remove(filters).then((result) => {
-			// Return the result
-			return result.result;
-		});
+		// Delete Logs
+		let result = await _db.collection('logs')
+			.deleteMany( filters );
+		// Return the result
+		return result.result;
 	}
 
-	static handleSaveLog(log) {
+	static async handleSaveLog(logToSave) {
 		// Check User
-		if (log.user && typeof log.user == "object") {
+		if (logToSave.user && typeof logToSave.user == "object") {
 			// This is the User Model
-			log.userID = new ObjectId(log.user.id);
+			logToSave.userID = Utils.checkIdIsObjectID(logToSave.user.id);
 		}
-		if (log.actionOnUser && typeof log.actionOnUser == "object") {
+		if (logToSave.actionOnUser && typeof logToSave.actionOnUser == "object") {
 			// This is the User Model
-			log.actionOnUserID = new ObjectId(log.actionOnUser.id);
+			logToSave.actionOnUserID = Utils.checkIdIsObjectID(logToSave.actionOnUser.id);
 		}
-		// Create model
-		let logMDB = new MDBLog(log);
-		// Save
-		return logMDB.save();
+		// Transfer
+		let log = {};
+		Database.updateUser(logToSave, log, false);
+		// Insert
+	    await _db.collection('logs').insertOne(log);
 	}
 
-	static handleGetLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs, sortDate) {
+	static async handleGetLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs, sortDate) {
 		// Check Limit
 		numberOfLogs = Utils.checkRecordLimit(numberOfLogs);
 		// Set the filters
@@ -171,20 +171,20 @@ class LoggingStorage {
 		aggregation.push({
 			$unwind: { "path": "$actionOnUser", "preserveNullAndEmptyArrays": true }
 		});
-		// Execute
-		return MDBLog.aggregate(aggregation)
-				.exec().then((loggingsMDB) => {
-			let loggings = [];
-			loggingsMDB.forEach(function(loggingMDB) {
-				let logging = {};
-				// Set
-				Database.updateLoggingObject(loggingMDB, logging);
-				// Set the model
-				loggings.push(logging);
-			});
-			// Ok
-			return loggings;
+		// Read DB
+		let loggingsMDB = await _db.collection('logs')
+				.aggregate(aggregation)
+				.toArray();
+		let loggings = [];
+		loggingsMDB.forEach((loggingMDB) => {
+			let logging = {};
+			// Set
+			Database.updateLoggingObject(loggingMDB, logging);
+			// Set the model
+			loggings.push(logging);
 		});
+		// Ok
+		return loggings;
 	}
 }
 
