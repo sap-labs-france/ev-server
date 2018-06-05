@@ -40,7 +40,6 @@ class PricingStorage {
 		let pricing = {};
 		Database.updatePricing(pricingToSave, pricing, false)
 		// Modify
-		console.log(pricing);
 	    await _db.collection('pricings').findOneAndUpdate(
 			{},
 			{$set: pricing},
