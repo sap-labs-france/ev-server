@@ -243,8 +243,10 @@ module.exports = {
 		}
 	},
 
-	updateCompany(src, dest) {
-		this.updateID(src, dest);
+	updateCompany(src, dest, forFrontEnd=true) {
+		if (forFrontEnd) {
+			this.updateID(src, dest);
+		}
 		dest.name = src.name;
 		dest.address = {};
 		this.updateAddress(src.address, dest.address);
@@ -298,7 +300,7 @@ module.exports = {
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
-	updateLoggingObject(src, dest, forFrontEnd=true) {
+	updateLogging(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
 			this.updateID(src, dest);
 		}

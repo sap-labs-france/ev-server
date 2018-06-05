@@ -4,7 +4,6 @@ const Constants = require('../../../utils/Constants');
 const Database = require('../../../utils/Database');
 const Utils = require('../../../utils/Utils');
 const Configuration = require('../../../utils/Configuration');
-const MDBCompany = require('../model/MDBCompany');
 const MDBSite = require('../model/MDBSite');
 const MDBSiteImage = require('../model/MDBSiteImage');
 const MDBSiteArea = require('../model/MDBSiteArea');

@@ -63,7 +63,7 @@ class LoggingStorage {
 		}
 		// Transfer
 		let log = {};
-		Database.updateUser(logToSave, log, false);
+		Database.updateLogging(logToSave, log, false);
 		// Insert
 	    await _db.collection('logs').insertOne(log);
 	}
@@ -179,7 +179,7 @@ class LoggingStorage {
 		loggingsMDB.forEach((loggingMDB) => {
 			let logging = {};
 			// Set
-			Database.updateLoggingObject(loggingMDB, logging);
+			Database.updateLogging(loggingMDB, logging);
 			// Set the model
 			loggings.push(logging);
 		});

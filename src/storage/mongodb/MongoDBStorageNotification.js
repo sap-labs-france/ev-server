@@ -4,7 +4,6 @@ const PricingStorage = require('./storage/PricingStorage');
 const TransactionStorage = require('./storage/TransactionStorage');
 const NotificationStorage = require('./storage/NotificationStorage');
 const VehicleStorage = require('./storage/VehicleStorage');
-const CompanyStorage = require('./storage/CompanyStorage');
 const SiteStorage = require('./storage/SiteStorage');
 const SiteAreaStorage = require('./storage/SiteAreaStorage');
 const MigrationStorage = require('./storage/MigrationStorage');
@@ -110,6 +109,14 @@ class MongoDBStorageNotification {
 							"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
 						});
 						break;
+					// Company
+					case "evse.companylogos":
+					case "evse.companies":
+						// Notify
+						_centralRestServer.notifyCompany(action, {
+							"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
+						});
+						break;
 					// Charging Stations Configuration
 					case "evse.configurations":
 						// Notify
@@ -131,7 +138,6 @@ class MongoDBStorageNotification {
 		// Set
 		PricingStorage.setCentralRestServer(centralRestServer);
 		TransactionStorage.setCentralRestServer(centralRestServer);
-		CompanyStorage.setCentralRestServer(centralRestServer);
 		SiteStorage.setCentralRestServer(centralRestServer);
 		SiteAreaStorage.setCentralRestServer(centralRestServer);
 		VehicleStorage.setCentralRestServer(centralRestServer);

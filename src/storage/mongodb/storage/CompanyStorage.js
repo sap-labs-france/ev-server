@@ -1,77 +1,70 @@
-const mongoose = require('mongoose');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const Database = require('../../../utils/Database');
 const Utils = require('../../../utils/Utils');
-const Configuration = require('../../../utils/Configuration');
-const MDBCompany = require('../model/MDBCompany');
-const MDBSite = require('../model/MDBSite');
-const MDBSiteArea = require('../model/MDBSiteArea');
-const MDBChargingStation = require('../model/MDBChargingStation');
-const MDBCompanyLogo = require('../model/MDBCompanyLogo');
 const Company = require('../../../model/Company');
 const SiteStorage = require('./SiteStorage');
-const ChargingStation = require('../../../model/ChargingStation');
 const Site = require('../../../model/Site');
-const SiteArea = require('../../../model/SiteArea');
 const crypto = require('crypto');
-const ObjectId = mongoose.Types.ObjectId;
+const ObjectID = require('mongodb').ObjectID;
 
-let _centralRestServer;
 let _db;
 
 class CompanyStorage {
-	static setCentralRestServer(centralRestServer) {
-		_centralRestServer = centralRestServer;
-	}
-
 	static setDatabase(db) {
 		_db = db;
 	}
 
-	static handleGetCompany(id) {
+	static async handleGetCompany(id) {
 		// Create Aggregation
 		let aggregation = [];
 		// Filters
 		aggregation.push({
-			$match: { _id: ObjectId(id) }
+			$match: { _id: Utils.checkIdIsObjectID(id) }
 		});
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
-		// Execute
-		return MDBCompany.aggregate(aggregation)
-				.exec().then((companyMDB) => {
-			let company = null;
-			// Check
-			if (companyMDB && companyMDB.length > 0) {
-				// Create
-				company = new Company(companyMDB[0]);
-			}
-			return company;
-		});
+		// Read DB
+		let companiesMDB = await _db.collection('companies')
+			.aggregate(aggregation)
+			.limit(1)
+			.toArray();
+		let company = null;
+		// Check
+		if (companiesMDB && companiesMDB.length > 0) {
+			// Create
+			company = new Company(companiesMDB[0]);
+		}
+		return company;
 	}
 
-	static handleGetCompanyLogo(id) {
-		// Exec request
-		return MDBCompanyLogo.findById(id)
-				.exec().then((companyLogoMDB) => {
-			let companyLogo = null;
-			// Set
-			if (companyLogoMDB) {
-				companyLogo = {
-					id: companyLogoMDB._id,
-					logo: companyLogoMDB.logo
-				};
-			}
-			return companyLogo;
-		});
+	static async handleGetCompanyLogo(id) {
+		// Read DB
+		let companyLogosMDB = await _db.collection('companylogos')
+			.find({_id: Utils.checkIdIsObjectID(id)})
+			.limit(1)
+			.toArray();
+		let companyLogo = null;
+		// Set
+		if (companyLogosMDB && companyLogosMDB.length > 0) {
+			companyLogo = {
+				id: companyLogosMDB[0]._id,
+				logo: companyLogosMDB[0].logo
+			};
+		}
+		return companyLogo;
 	}
 
-	static handleGetCompanyLogos() {
-		// Exec request
-		return MDBCompanyLogo.find({})
-				.exec().then((companyLogosMDB) => {
-			let companyLogos = [];
+	static async handleGetCompanyLogos() {
+		// Read DB
+		let companyLogosMDB = await _db.collection('companylogos')
+			.find({})
+			.limit(1)
+			.toArray();
+		let companyLogo = null;
+		// Set
+		let companyLogos = [];
+		if (companyLogosMDB && companyLogosMDB.length > 0) {
 			// Add
 			companyLogosMDB.forEach((companyLogoMDB) => {
 				companyLogos.push({
@@ -79,89 +72,69 @@ class CompanyStorage {
 					logo: companyLogoMDB.logo
 				});
 			});
-			return companyLogos;
-		});
+		}
+		return companyLogos;
 	}
 
-	static handleSaveCompany(company) {
+	static async handleSaveCompany(companyToSave) {
 		// Check if ID/Name is provided
-		if (!company.id && !company.name) {
+		if (!companyToSave.id && !companyToSave.name) {
 			// ID must be provided!
-			return Promise.reject( new Error(
-				"Error in saving the Company: Company has no ID and no Name and cannot be created or updated") );
-		} else {
-			let companyFilter = {};
-			// Build Request
-			if (company.id) {
-				companyFilter._id = company.id;
-			} else {
-				companyFilter._id = ObjectId();
-			}
-			// Check Created By
-			if (company.createdBy && typeof company.createdBy == "object") {
-				// This is the User Model
-				company.createdBy = new ObjectId(company.createdBy.id);
-			}
-			// Check Last Changed By
-			if (company.lastChangedBy && typeof company.lastChangedBy == "object") {
-				// This is the User Model
-				company.lastChangedBy = new ObjectId(company.lastChangedBy.id);
-			}
-			// Get
-			let newCompany;
-			return MDBCompany.findOneAndUpdate(companyFilter, company, {
-				new: true,
-				upsert: true
-			}).then((companyMDB) => {
-				newCompany = new Company(companyMDB);
-			}).then(() => {
-				// Notify Change
-				if (!company.id) {
-					_centralRestServer.notifyCompanyCreated(
-						{
-							"id": newCompany.getID(),
-							"type": Constants.ENTITY_COMPANY
-						}
-					);
-				} else {
-					_centralRestServer.notifyCompanyUpdated(
-						{
-							"id": newCompany.getID(),
-							"type": Constants.ENTITY_COMPANY
-						}
-					);
-				}
-				return newCompany;
-			});
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`Company has no ID and no Name`,
+				550, "CompanyStorage", "handleSaveCompany");
 		}
+		let companyFilter = {};
+		// Build Request
+		if (companyToSave.id) {
+			companyFilter._id = Utils.checkIdIsObjectID(companyToSave.id);
+		} else {
+			companyFilter._id = new ObjectID();
+		}
+		// Check Created By
+		if (companyToSave.createdBy && typeof companyToSave.createdBy == "object") {
+			// This is the User Model
+			companyToSave.createdBy = Utils.checkIdIsObjectID(companyToSave.createdBy.id);
+		}
+		// Check Last Changed By
+		if (companyToSave.lastChangedBy && typeof companyToSave.lastChangedBy == "object") {
+			// This is the User Model
+			companyToSave.lastChangedBy = Utils.checkIdIsObjectID(companyToSave.lastChangedBy.id);
+		}
+		// Ensure Date
+		companyToSave.createdOn = Utils.convertToDate(companyToSave.createdOn);
+		companyToSave.lastChangedOn = Utils.convertToDate(companyToSave.lastChangedOn);
+		// Transfer
+		let company = {};
+		Database.updateCompany(companyToSave, company, false);
+		// Modify
+	    let result = await _db.collection('companies').findOneAndUpdate(
+			companyFilter,
+			{$set: company},
+			{upsert: true, new: true, returnOriginal: false});
+		// Create
+		return new Company(result.value);
 	}
 
-	static handleSaveCompanyLogo(company) {
-		// Check if ID/Name is provided
-		if (!company.id) {
+	static async handleSaveCompanyLogo(companyLogoToSave) {
+		// Check if ID is provided
+		if (!companyLogoToSave.id) {
 			// ID must be provided!
-			return Promise.reject( new Error(
-				"Error in saving the Company: Company has no ID and cannot be created or updated") );
-		} else {
-			// Save Logo
-			return MDBCompanyLogo.findOneAndUpdate({
-				"_id": new ObjectId(company.id)
-			}, company, {
-				new: true,
-				upsert: true
-			});
-			// Notify Change
-			_centralRestServer.notifyCompanyUpdated(
-				{
-					"id": company.id,
-					"type": Constants.ENTITY_COMPANY
-				}
-			);
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`Company Logo has no ID`,
+				550, "CompanyStorage", "handleSaveCompanyLogo");
 		}
+		// Modify
+	    await _db.collection('companylogos').findOneAndUpdate(
+			{'_id': Utils.checkIdIsObjectID(companyLogoToSave.id)},
+			{$set: {logo: companyLogoToSave.logo}},
+			{upsert: true, new: true, returnOriginal: false});
 	}
 
 	// Delegate
-	static handleGetCompanies(searchValue, withSites, numberOfCompanies) {
+	static async handleGetCompanies(searchValue, withSites, numberOfCompanies) {
 		// Check Limit
 		numberOfCompanies = Utils.checkRecordLimit(numberOfCompanies);
 		// Set the filters
@@ -209,10 +182,13 @@ class CompanyStorage {
 				$limit: numberOfCompanies
 			});
 		}
-		// Execute
-		return MDBCompany.aggregate(aggregation)
-				.exec().then((companiesMDB) => {
-			let companies = [];
+		// Read DB
+		let companiesMDB = await _db.collection('companies')
+			.aggregate(aggregation)
+			.toArray();
+		let companies = [];
+		// Check
+		if (companiesMDB && companiesMDB.length > 0) {
 			// Create
 			companiesMDB.forEach((companyMDB) => {
 				// Create
@@ -226,37 +202,24 @@ class CompanyStorage {
 				// Add
 				companies.push(company);
 			});
-			return companies;
-		});
+		}
+		return companies;
 	}
 
-	static handleDeleteCompany(id) {
+	static async handleDeleteCompany(id) {
 		// Delete Sites
-		return SiteStorage.handleGetSites(null, id).then((sites) => {
-			// Delete
-			let proms = [];
-			sites.forEach((site) => {
-				//	Delete Site
-				proms.push(site.delete());
-			});
-			// Execute all promises
-			return Promise.all(proms);
-		}).then((results) => {
-			// Remove the Company
-			return MDBCompany.findByIdAndRemove(id);
-		}).then((results) => {
-			// Remove Logo
-			return MDBCompanyLogo.findByIdAndRemove( id );
-		}).then((result) => {
-			// Notify Change
-			_centralRestServer.notifyCompanyDeleted(
-				{
-					"id": id,
-					"type": Constants.ENTITY_COMPANY
-				}
-			);
-			return;
+		let sites = await SiteStorage.handleGetSites(null, id);
+		// Delete
+		sites.forEach(async (site) => {
+			//	Delete Site
+			await site.delete();
 		});
+		// Delete the Company
+		await _db.collection('companies')
+			.findOneAndDelete( {'_id': Utils.checkIdIsObjectID(id)} );
+		// Delete Logo
+		await _db.collection('companylogos')
+			.findOneAndDelete( {'_id': Utils.checkIdIsObjectID(id)} );
 	}
 }
 
