@@ -79,7 +79,7 @@ class CentralSystemServer {
 		// Set the ChargeBox ID
 		args.id = headers.chargeBoxIdentity;
 		// Set the default Heart Beat
-		args.lastReboot = new Date().toISOString();
+		args.lastReboot = new Date();
 		args.lastHeartBeat = args.lastReboot;
 		args.timestamp = args.lastReboot;
 
@@ -126,7 +126,7 @@ class CentralSystemServer {
 				return {
 					"bootNotificationResponse": {
 						"status": 'Accepted',
-						"currentTime": new Date().toISOString(),
+						"currentTime": new Date(),
 						"interval": _chargingStationConfig.heartbeatIntervalSecs
 					}
 				};
@@ -135,7 +135,7 @@ class CentralSystemServer {
 				return {
 					"bootNotificationResponse": {
 						"status": 'Accepted',
-						"currentTime": new Date().toISOString(),
+						"currentTime": new Date(),
 						"heartbeatInterval": _chargingStationConfig.heartbeatIntervalSecs
 					}
 				};
@@ -147,7 +147,7 @@ class CentralSystemServer {
 			return {
 				"bootNotificationResponse": {
 					"status": 'Rejected',
-					"currentTime": new Date().toISOString(),
+					"currentTime": new Date(),
 					"heartbeatInterval": _chargingStationConfig.heartbeatIntervalSecs
 				}
 			};
@@ -180,7 +180,7 @@ class CentralSystemServer {
 			});
 			return {
 				"heartbeatResponse": {
-					"currentTime": heartBeat.toISOString()
+					"currentTime": heartBeat
 				}
 			};
 		}).catch((error) => {
@@ -189,7 +189,7 @@ class CentralSystemServer {
 			// Send the response
 			return {
 				"heartbeatResponse": {
-					"currentTime": heartBeat.toISOString()
+					"currentTime": heartBeat
 				}
 			};
 		});

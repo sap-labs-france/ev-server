@@ -152,6 +152,10 @@ class ChargingStationStorage {
 			chargingStationToSave.lastChangedBy =
 				Utils.checkIdIsObjectID(chargingStationToSave.lastChangedBy.id);
 		}
+		// Ensure Date
+		chargingStationToSave.lastChangedOn = Utils.convertToDate(chargingStationToSave.lastChangedOn);
+		chargingStationToSave.lastHeartBeat = Utils.convertToDate(chargingStationToSave.lastHeartBeat);
+		chargingStationToSave.lastReboot = Utils.convertToDate(chargingStationToSave.lastReboot);
 		// Transfer
 		let chargingStation = {};
 		Database.updateChargingStation(chargingStationToSave, chargingStation, false);
@@ -178,7 +182,7 @@ class ChargingStationStorage {
 
 	static async handleSaveChargingStationHeartBeat(chargingStation) {
 		let updatedFields = {};
-		updatedFields["lastHeartBeat"] = chargingStation.lastHeartBeat;
+		updatedFields["lastHeartBeat"] = Utils.convertToDate(chargingStation.lastHeartBeat);
 		// Modify and return the modified document
 	    let result = await _db.collection('chargingstations').findOneAndUpdate(
 			{"_id": chargingStation.id},
@@ -195,7 +199,7 @@ class ChargingStationStorage {
 		if (chargingStation.lastChangedBy && typeof chargingStation.lastChangedBy == "object") {
 			// This is the User Model
 			updatedFields["lastChangedBy"] = Utils.checkIdIsObjectID(chargingStation.lastChangedBy.id);
-			updatedFields["lastChangedOn"] = chargingStation.lastChangedOn;
+			updatedFields["lastChangedOn"] = Utils.convertToDate(chargingStation.lastChangedOn);
 		}
 		// Modify and return the modified document
 	    let result = await _db.collection('chargingstations').findOneAndUpdate(
@@ -208,7 +212,6 @@ class ChargingStationStorage {
 
 	static async handleDeleteChargingStation(id) {
 		// Delete Configuration
-		console.log(id);
 		await _db.collection('configurations')
 			.findOneAndDelete( {'_id': id} );
 		// Delete Charger
@@ -217,62 +220,74 @@ class ChargingStationStorage {
 		// Keep the rest (bootnotif, authorize...)
 	}
 
-	static handleSaveAuthorize(authorize) {
-		// Create model
-		let authorizeMDB = new MDBAuthorize(authorize);
+	static async handleSaveAuthorize(authorize) {
 		// Set the ID
-		authorizeMDB._id = crypto.createHash('sha256')
+		authorize.id = crypto.createHash('sha256')
 			.update(`${authorize.chargeBoxID}~${authorize.timestamp.toISOString()}`)
 			.digest("hex");
+		// Set the User
 		if (authorize.user) {
-			authorizeMDB.userID = authorize.user.getID();
+			authorize.userID = Utils.checkIdIsObjectID(authorize.user.getID());
 		}
-		authorizeMDB.tagID = authorize.idTag;
-		// Create new
-		return authorizeMDB.save().then(() => {
-			// No notification
-		});
+		// Insert
+	    await _db.collection('authorizes')
+			.insertOne({
+				_id: authorize.id,
+				tagID: authorize.idTag,
+				chargeBoxID: authorize.chargeBoxID,
+				userID: authorize.userID,
+				timestamp: Utils.convertToDate(authorize.timestamp)
+			});
 	}
 
-	static handleSaveConfiguration(configuration) {
-		// Create model
-		let configurationMDB = {};
-		// Set the ID
-		configurationMDB._id = configuration.chargeBoxID;
-		configurationMDB.configuration = configuration.configurationKey;
-		configurationMDB.timestamp = configuration.timestamp;
-
-		// Get
-		return MDBConfiguration.findOneAndUpdate(
+	static async handleSaveConfiguration(configuration) {
+		// Modify
+	    await _db.collection('configurations').findOneAndUpdate(
 			{"_id": configuration.chargeBoxID},
-			configurationMDB,
-			{new: true, upsert: true});
+			{$set: {
+				configuration: configuration.configurationKey,
+				timestamp: Utils.convertToDate(configuration.timestamp)
+			}},
+			{upsert: true, new: true, returnOriginal: false});
 	}
 
-	static handleSaveDataTransfer(dataTransfer) {
-		// Create model
-		let dataTransferMDB = new MDBDataTransfer(dataTransfer);
+	static async handleSaveDataTransfer(dataTransfer) {
 		// Set the ID
-		dataTransferMDB._id = crypto.createHash('sha256')
+		dataTransfer.id = crypto.createHash('sha256')
 			.update(`${dataTransfer.chargeBoxID}~${dataTransfer.data}~${dataTransfer.timestamp}`)
 			.digest("hex");
-		// Create new
-		return dataTransferMDB.save().then(() => {
-			// No notification
-		});
+		// Insert
+	    await _db.collection('datatransfers')
+			.insertOne({
+				_id: dataTransfer.id,
+				vendorId: dataTransfer.vendorId,
+				messageId: dataTransfer.messageId,
+				data: dataTransfer.data,
+				chargeBoxID: dataTransfer.chargeBoxID,
+				timestamp: Utils.convertToDate(dataTransfer.timestamp)
+			});
 	}
 
-	static handleSaveBootNotification(bootNotification) {
-		// Create model
-		let bootNotificationMDB = new MDBBootNotification(bootNotification);
+	static async handleSaveBootNotification(bootNotification) {
 		// Set the ID
-		bootNotificationMDB._id = crypto.createHash('sha256')
+		bootNotification.id = crypto.createHash('sha256')
 			.update(`${bootNotification.chargeBoxID}~${bootNotification.timestamp}`)
 			.digest("hex");
-		// Create new
-		return bootNotificationMDB.save().then(() => {
-			// No Notification
-		});
+		// Insert
+	    let result = await _db.collection('bootnotifications')
+			.insertOne({
+				_id: bootNotification.id,
+				chargeBoxID: bootNotification.chargeBoxID,
+				chargePointVendor: bootNotification.chargePointVendor,
+				chargePointModel: bootNotification.chargePointModel,
+				chargePointSerialNumber: bootNotification.chargePointSerialNumber,
+				chargeBoxSerialNumber: bootNotification.chargeBoxSerialNumber,
+				firmwareVersion: bootNotification.firmwareVersion,
+				ocppVersion: bootNotification.ocppVersion,
+				endpoint: bootNotification.endpoint,
+				chargeBoxIdentity: bootNotification.chargeBoxIdentity,
+				timestamp: Utils.convertToDate(bootNotification.timestamp)
+			});
 	}
 
 	static handleSaveDiagnosticsStatusNotification(diagnosticsStatusNotification) {

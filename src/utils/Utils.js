@@ -12,6 +12,18 @@ module.exports = {
 		return uuidV4();
 	},
 
+	convertToDate(date) {
+		// Check
+		if (!date) {
+			return date;
+		}
+		// Check Type
+		if (!(date instanceof Date)) {
+			return new Date();
+		}
+		return date;
+	},
+
 	isEmptyJSon(document) {
 		// Empty?
 		if (!document) {

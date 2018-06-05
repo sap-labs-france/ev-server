@@ -426,7 +426,6 @@ class ChargingStation {
 	handleBootNotification(bootNotification) {
 		// Set the Station ID
 		bootNotification.chargeBoxID = this.getID();
-
 		// Send Notification
 		NotificationHandler.sendChargingStationRegistered(
 			Utils.generateGUID(),
@@ -437,7 +436,6 @@ class ChargingStation {
 				"evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(this)
 			}
 		);
-
 		// Save Boot Notification
 		return global.storage.saveBootNotification(bootNotification).then(() => {
 			// Log
@@ -794,7 +792,9 @@ class ChargingStation {
 
 		// Execute
 		return Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
-				Authorizations.ACTION_AUTHORIZE, this, authorize.idTag).then(() => {
+				Authorizations.ACTION_AUTHORIZE, this, authorize.idTag).then((users) => {
+			// Set current user
+			authorize.user = users.user;
 			// Save
 			return global.storage.saveAuthorize(authorize);
 		})
@@ -1316,8 +1316,6 @@ class ChargingStation {
 								// Set the consumption
 								chargingStationConsumption.values.push(consumption);
 							}
-							// Debug
-							//console.log(`Date: ${meterValue.timestamp.toISOString()}, Last Meter: ${lastMeterValue.value}, Meter: ${meterValue.value}, Conso: ${currentConsumption}, Cumulated: ${chargingStationConsumption.totalConsumption}`);
 						}
 					} else {
 						// Last one is 0, set it to 0

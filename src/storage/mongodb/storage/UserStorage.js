@@ -198,6 +198,10 @@ class UserStorage {
 			// This is the User Model
 			userToSave.lastChangedBy = Utils.checkIdIsObjectID(userToSave.lastChangedBy.id);
 		}
+		// Ensure Date
+		userToSave.createdOn = Utils.convertToDate(userToSave.createdOn);
+		userToSave.lastChangedOn = Utils.convertToDate(userToSave.lastChangedOn);
+		userToSave.eulaAcceptedOn = Utils.convertToDate(userToSave.eulaAcceptedOn);
 		// Transfer
 		let user = {};
 		Database.updateUser(userToSave, user, false);
