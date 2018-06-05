@@ -1,20 +1,10 @@
-const mongoose = require('mongoose');
 const Logging = require('../../../utils/Logging');
 const Utils = require('../../../utils/Utils');
 const Constants = require('../../../utils/Constants');
 const Database = require('../../../utils/Database');
-const MDBConfiguration = require('../model/MDBConfiguration');
-const MDBStatusNotification = require('../model/MDBStatusNotification');
-const MDBBootNotification = require('../model/MDBBootNotification');
-const MDBDataTransfer = require('../model/MDBDataTransfer');
-const MDBDiagnosticsStatusNotification = require('../model/MDBDiagnosticsStatusNotification');
-const MDBFirmwareStatusNotification = require('../model/MDBFirmwareStatusNotification');
-const MDBChargingStation = require('../model/MDBChargingStation');
-const MDBAuthorize = require('../model/MDBAuthorize');
 const ChargingStation = require('../../../model/ChargingStation');
 const SiteArea = require('../../../model/SiteArea');
 const crypto = require('crypto');
-const ObjectId = mongoose.Types.ObjectId;
 
 let _db;
 
@@ -290,125 +280,92 @@ class ChargingStationStorage {
 			});
 	}
 
-	static handleSaveDiagnosticsStatusNotification(diagnosticsStatusNotification) {
-		// Create model
-		let diagnosticsstatusNotificationMDB = new MDBDiagnosticsStatusNotification(diagnosticsStatusNotification);
+	static async handleSaveDiagnosticsStatusNotification(diagnosticsStatusNotification) {
 		// Set the ID
-		diagnosticsstatusNotificationMDB._id = crypto.createHash('sha256')
+		diagnosticsStatusNotification.id = crypto.createHash('sha256')
 			.update(`${diagnosticsStatusNotification.chargeBoxID}~${diagnosticsStatusNotification.timestamp.toISOString()}`)
 			.digest("hex");
-		// Create new
-		return diagnosticsstatusNotificationMDB.save(() => {
-			// No Notification
-		});
+		// Insert
+	    await _db.collection('diagnosticsstatusnotifications')
+			.insertOne({
+				_id: diagnosticsStatusNotification.id,
+				chargeBoxID: diagnosticsStatusNotification.chargeBoxID,
+				status: diagnosticsStatusNotification.status,
+				timestamp: Utils.convertToDate(diagnosticsStatusNotification.timestamp)
+			});
 	}
 
-	static handleSaveFirmwareStatusNotification(firmwareStatusNotification) {
-		// Create model
-		let firmwarestatusNotificationMDB = new MDBFirmwareStatusNotification(firmwareStatusNotification);
+	static async handleSaveFirmwareStatusNotification(firmwareStatusNotification) {
 		// Set the ID
-		firmwarestatusNotificationMDB._id = crypto.createHash('sha256')
+		firmwareStatusNotification.id = crypto.createHash('sha256')
 			.update(`${firmwareStatusNotification.chargeBoxID}~${firmwareStatusNotification.timestamp.toISOString()}`)
 			.digest("hex");
-		// Create new
-		return firmwarestatusNotificationMDB.save().then(() => {
-			// No Notification
-		});
+		// Insert
+	    await _db.collection('firmwarestatusnotifications')
+			.insertOne({
+				_id: firmwareStatusNotification.id,
+				chargeBoxID: firmwareStatusNotification.chargeBoxID,
+				status: firmwareStatusNotification.status,
+				timestamp: Utils.convertToDate(firmwareStatusNotification.timestamp)
+			});
 	}
 
-	static handleSaveStatusNotification(statusNotification) {
-		// Create model
-		let statusNotificationMDB = new MDBStatusNotification(statusNotification);
+	static async handleSaveStatusNotification(statusNotification) {
 		// Set the ID
-		statusNotificationMDB._id = crypto.createHash('sha256')
+		statusNotification.id = crypto.createHash('sha256')
 			.update(`${statusNotification.chargeBoxID}~${statusNotification.connectorId}~${statusNotification.status}~${statusNotification.timestamp}`)
 			.digest("hex");
-		// Create new
-		return statusNotificationMDB.save();
-	}
-
-	static handleGetLastStatusNotification(chargeBoxID, connectorId) {
-		// Get the Status Notification
-		let filter = {};
-		filter.chargeBoxID = chargeBoxID;
-		filter.connectorId = connectorId;
-		// Exec request
-		return MDBStatusNotification.find(filter)
-				.sort({timestamp: -1})
-				.limit(1).exec().then((statusNotificationsMDB) => {
-			let statusNotification = null;
-			// At least one
-			if (statusNotificationsMDB[0]) {
-				statusNotification = {};
-				// Set values
-				Database.updateStatusNotification(statusNotificationsMDB[0], statusNotification);
-			}
-			// Ok
-			return statusNotification;
-		});
-	}
-
-	static handleGetStatusNotifications(chargeBoxID, connectorId) {
-		let filter = {};
-		if (chargeBoxID) {
-			filter.chargeBoxID = chargeBoxID;
-		}
-		if (connectorId) {
-			filter.connectorId = connectorId;
-		}
-		// Exec request
-		return MDBStatusNotification.find(filter)
-				.sort({timestamp: 1})
-				.exec().then((statusNotificationsMDB) => {
-			let statusNotifications = [];
-			// Create
-			statusNotificationsMDB.forEach((statusNotificationMDB) => {
-				let statusNotification = {};
-				// Set values
-				Database.updateStatusNotification(statusNotificationMDB, statusNotification);
-				// Add
-				statusNotifications.push(statusNotification);
+		// Insert
+	    await _db.collection('statusnotifications')
+			.insertOne({
+				_id: statusNotification.id,
+				chargeBoxID: statusNotification.chargeBoxID,
+				connectorId: statusNotification.connectorId,
+				status: statusNotification.status,
+				errorCode: statusNotification.errorCode,
+				info: statusNotification.info,
+				vendorId: statusNotification.vendorId,
+				vendorErrorCode: statusNotification.vendorErrorCode,
+				timestamp: Utils.convertToDate(statusNotification.timestamp)
 			});
-			// Ok
-			return statusNotifications;
-		});
 	}
 
-	static handleGetConfigurationParamValue(chargeBoxID, paramName) {
+	static async handleGetConfigurationParamValue(chargeBoxID, paramName) {
 		// Get the config
-		return ChargingStationStorage.getConfiguration(chargeBoxID).then((configuration) => {
-			let value = null;
-			if (configuration) {
-				// Get the value
-				configuration.configuration.every((param) => {
-					// Check
-					if (param.key === paramName) {
-						// Found!
-						value = param.value;
-						// Break
-						return false;
-					} else {
-						// Continue
-						return true;
-					}
-				});
-			}
-			return value;
-		});
+		let configuration = await ChargingStationStorage.getConfiguration(chargeBoxID);
+		let value = null;
+		if (configuration) {
+			// Get the value
+			configuration.configuration.every((param) => {
+				// Check
+				if (param.key === paramName) {
+					// Found!
+					value = param.value;
+					// Break
+					return false;
+				} else {
+					// Continue
+					return true;
+				}
+			});
+		}
+		return value;
 	}
 
-	static handleGetConfiguration(chargeBoxID) {
-		// Exec request
-		return MDBConfiguration.findById({"_id": chargeBoxID }).then((configurationMDB) => {
-			let configuration = null;
-			if (configurationMDB) {
-				// Set values
-				configuration = {};
-				Database.updateConfiguration(configurationMDB, configuration);
-			}
-			// Ok
-			return configuration;
-		});
+	static async handleGetConfiguration(chargeBoxID) {
+		// Read DB
+		let configurationsMDB = await _db.collection('configurations')
+			.find({"_id": chargeBoxID })
+			.limit(1)
+			.toArray();
+		// Found?
+		let configuration = null;
+		if (configurationsMDB && configurationsMDB.length > 0) {
+			// Set values
+			configuration = {};
+			Database.updateConfiguration(configurationsMDB[0], configuration);
+		}
+		return configuration;
 	}
 }
 

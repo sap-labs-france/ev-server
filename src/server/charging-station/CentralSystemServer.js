@@ -324,6 +324,8 @@ class CentralSystemServer {
 					`Charging Station does not exist`,
 					550, "CentralSystemServer", "handleDiagnosticsStatusNotification");
 			}
+			// Set date
+			args.timestamp = new Date();
 			// Save
 			return chargingStation.handleDiagnosticsStatusNotification(args);
 		}).then(() => {

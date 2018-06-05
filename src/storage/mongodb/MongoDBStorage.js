@@ -198,6 +198,14 @@ class MongoDBStorage {
 									"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
 								});
 								break;
+							// Charging Stations Configuration
+							case "evse.configurations":
+								// Notify
+								_centralRestServer.notifyChargingStation(action, {
+									"type": Constants.NOTIF_TYPE_CHARGING_STATION_CONFIGURATION,
+									"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
+								});
+								break;
 						}
 					}
 				});
@@ -268,16 +276,6 @@ class MongoDBStorage {
 	savePricing(pricing) {
 		// Delegate
 		return PricingStorage.handleSavePricing(pricing);
-	}
-
-	getStatusNotifications(chargeBoxID, connectorId) {
-		// Delegate
-		return ChargingStationStorage.handleGetStatusNotifications(chargeBoxID, connectorId);
-	}
-
-	getLastStatusNotification(chargeBoxID, connectorId) {
-		// Delegate
-		return ChargingStationStorage.handleGetLastStatusNotification(chargeBoxID, connectorId);
 	}
 
 	getMeterValuesFromTransaction(transactionId) {

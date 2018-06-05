@@ -1087,18 +1087,6 @@ class ChargingStation {
 		});
 	}
 
-	getStatusNotifications(connectorId) {
-		return global.storage.getStatusNotifications(this.getID(), connectorId).then((statusNotifications) => {
-			return statusNotifications;
-		});
-	}
-
-	getLastStatusNotification(connectorId) {
-		return global.storage.getLastStatusNotification(this.getID(), connectorId).then((statusNotification) => {
-			return statusNotification;
-		});
-	}
-
 	getConfiguration() {
 		return global.storage.getConfiguration(this.getID()).then((configuration) => {
 			return configuration;

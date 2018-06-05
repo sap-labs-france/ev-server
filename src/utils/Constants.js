@@ -21,6 +21,8 @@ module.exports = {
 	ENTITY_VEHICLE: "Vehicle",
 	ENTITY_LOGGING: "Logging",
 
+	NOTIF_TYPE_CHARGING_STATION_CONFIGURATION: "Configuration",
+
 	ACTION_CREATE: "Create",
 	ACTION_UPDATE: "Update",
 	ACTION_DELETE: "Delete",
