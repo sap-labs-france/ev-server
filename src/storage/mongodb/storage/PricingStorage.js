@@ -1,7 +1,7 @@
 const Constants = require('../../../utils/Constants');
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
-const MDBPricing = require('../model/MDBPricing');
+const Utils = require('../../../utils/Utils');
 const crypto = require('crypto');
 
 let _centralRestServer;
@@ -16,28 +16,35 @@ class PricingStorage {
 		_db = db;
 	}
 
-	static handleGetPricing() {
-		// Exec request
-		return MDBPricing.findOne({}).then((pricingMDB) => {
-			var pricing;
-			if (pricingMDB) {
-				// Set
-				pricing = {};
-				Database.updatePricing(pricingMDB, pricing);
-			}
-			// Ok
-			return pricing;
-		});
+	static async handleGetPricing() {
+		// Read DB
+		let pricingsMDB = await _db.collection('pricings')
+			.find({})
+			.limit(1)
+			.toArray();
+		// Set
+		let pricing = null;
+		if (pricingsMDB && pricingsMDB.length > 0) {
+			// Set
+			pricing = {};
+			Database.updatePricing(pricingsMDB[0], pricing);
+		}
+		// Ok
+		return pricing;
 	}
 
-	static handleSavePricing(pricing) {
-		// Get
-		return MDBPricing.findOneAndUpdate({}, pricing, {
-				new: true,
-				upsert: true
-			}).then((pricingMDB) => {
-				return pricingMDB;
-		});
+	static async handleSavePricing(pricingToSave) {
+		// Check date
+		pricingToSave.timestamp = Utils.convertToDate(pricingToSave.timestamp);
+		// Transfer
+		let pricing = {};
+		Database.updatePricing(pricingToSave, pricing, false)
+		// Modify
+		console.log(pricing);
+	    await _db.collection('pricings').findOneAndUpdate(
+			{},
+			{$set: pricing},
+			{upsert: true, new: true, returnOriginal: false});
 	}
 }
 

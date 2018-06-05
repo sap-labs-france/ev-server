@@ -88,15 +88,10 @@ module.exports = {
 		dest.hash = src.hash;
 	},
 
-	updatePricing(src, dest) {
-		this.updateID(src, dest);
-		dest.timestamp = src.timestamp;
-		dest.priceKWH = src.priceKWH;
-		dest.priceUnit = src.priceUnit;
-	},
-
-	updatePricing(src, dest) {
-		this.updateID(src, dest);
+	updatePricing(src, dest, forFrontEnd=true) {
+		if (forFrontEnd) {
+			this.updateID(src, dest);
+		}
 		dest.timestamp = src.timestamp;
 		dest.priceKWH = src.priceKWH;
 		dest.priceUnit = src.priceUnit;
