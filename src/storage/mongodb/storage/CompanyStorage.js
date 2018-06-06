@@ -5,7 +5,6 @@ const Utils = require('../../../utils/Utils');
 const Company = require('../../../model/Company');
 const SiteStorage = require('./SiteStorage');
 const Site = require('../../../model/Site');
-const crypto = require('crypto');
 const ObjectID = require('mongodb').ObjectID;
 
 let _db;
@@ -20,7 +19,7 @@ class CompanyStorage {
 		let aggregation = [];
 		// Filters
 		aggregation.push({
-			$match: { _id: Utils.checkIdIsObjectID(id) }
+			$match: { _id: Utils.ensureIsObjectID(id) }
 		});
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
@@ -41,7 +40,7 @@ class CompanyStorage {
 	static async handleGetCompanyLogo(id) {
 		// Read DB
 		let companyLogosMDB = await _db.collection('companylogos')
-			.find({_id: Utils.checkIdIsObjectID(id)})
+			.find({_id: Utils.ensureIsObjectID(id)})
 			.limit(1)
 			.toArray();
 		let companyLogo = null;
@@ -88,22 +87,15 @@ class CompanyStorage {
 		let companyFilter = {};
 		// Build Request
 		if (companyToSave.id) {
-			companyFilter._id = Utils.checkIdIsObjectID(companyToSave.id);
+			companyFilter._id = Utils.ensureIsObjectID(companyToSave.id);
 		} else {
 			companyFilter._id = new ObjectID();
 		}
-		// Check Created By
-		if (companyToSave.createdBy && typeof companyToSave.createdBy == "object") {
-			// This is the User Model
-			companyToSave.createdBy = Utils.checkIdIsObjectID(companyToSave.createdBy.id);
-		}
-		// Check Last Changed By
-		if (companyToSave.lastChangedBy && typeof companyToSave.lastChangedBy == "object") {
-			// This is the User Model
-			companyToSave.lastChangedBy = Utils.checkIdIsObjectID(companyToSave.lastChangedBy.id);
-		}
-		// Ensure Date
+		// Check Created By/On
+		companyToSave.createdBy = Utils.ensureIsUserObjectID(companyToSave.createdBy);
 		companyToSave.createdOn = Utils.convertToDate(companyToSave.createdOn);
+		// Check Last Changed By/On
+		companyToSave.lastChangedBy = Utils.ensureIsUserObjectID(companyToSave.lastChangedBy);
 		companyToSave.lastChangedOn = Utils.convertToDate(companyToSave.lastChangedOn);
 		// Transfer
 		let company = {};
@@ -128,7 +120,7 @@ class CompanyStorage {
 		}
 		// Modify
 	    await _db.collection('companylogos').findOneAndUpdate(
-			{'_id': Utils.checkIdIsObjectID(companyLogoToSave.id)},
+			{'_id': Utils.ensureIsObjectID(companyLogoToSave.id)},
 			{$set: {logo: companyLogoToSave.logo}},
 			{upsert: true, new: true, returnOriginal: false});
 	}
@@ -216,10 +208,10 @@ class CompanyStorage {
 		});
 		// Delete the Company
 		await _db.collection('companies')
-			.findOneAndDelete( {'_id': Utils.checkIdIsObjectID(id)} );
+			.findOneAndDelete( {'_id': Utils.ensureIsObjectID(id)} );
 		// Delete Logo
 		await _db.collection('companylogos')
-			.findOneAndDelete( {'_id': Utils.checkIdIsObjectID(id)} );
+			.findOneAndDelete( {'_id': Utils.ensureIsObjectID(id)} );
 	}
 }
 

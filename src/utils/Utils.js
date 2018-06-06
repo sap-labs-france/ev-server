@@ -53,7 +53,7 @@ module.exports = {
 		}
 	},
 
-	checkIdIsObjectID(id) {
+	ensureIsObjectID(id) {
 		let changedID = id;
 		// Check
 		if (typeof id == "string") {
@@ -63,21 +63,25 @@ module.exports = {
 		return changedID;
 	},
 
-	objectIdtoString(id) {
-		let changedID = id;
-		// MongoDB Object?
-		if (changedID && (typeof changedID == "object")) {
-			// MongoDB Buffer?
-			if (changedID instanceof Buffer) {
-				// Convert to String
-				changedID = changedID.toString('hex');
-			// MongoDB ObjectID?
-			} else if (changedID.constructor.name == "ObjectID") {
-				// Convert to String
-				changedID = changedID.toString();
+	ensureIsUserObjectID(user) {
+		let userID = null;
+		// Check Created By
+		if (user) {
+			// Set
+			userID = user;
+			// Check User Model
+			if (typeof user == "object" &&
+					user.constructor.name != "ObjectID") {
+				// This is the User Model
+				userID = this.ensureIsObjectID(user.id);
+			}
+			// Check String
+			if (typeof user == "string") {
+				// This is a String
+				userID = this.ensureIsObjectID(user);
 			}
 		}
-		return changedID;
+		return userID;
 	},
 
 	pushCreatedLastChangedInAggregation(aggregation) {

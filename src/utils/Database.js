@@ -50,7 +50,7 @@ module.exports = {
 		if (src.numberOfConnectedPhase) {
 			dest.numberOfConnectedPhase = src.numberOfConnectedPhase;
 		}
-		dest.siteAreaID = Utils.objectIdtoString(src.siteAreaID);
+		dest.siteAreaID = src.siteAreaID;
 		if (src.chargingStationURL) {
 			dest.chargingStationURL = src.chargingStationURL;
 		}
@@ -139,13 +139,13 @@ module.exports = {
 		dest.sourceId = src.sourceId;
 		dest.sourceDescr = src.sourceDescr;
 		// User
-		dest.userID = Utils.objectIdtoString(src.userID);
+		dest.userID = src.userID;
 		if (!Utils.isEmptyJSon(dest.userID)) {
 			dest.user = {};
 			this.updateUser(src.userID, dest.user);
 		}
 		// ChargeBox
-		dest.chargeBoxID = Utils.objectIdtoString(src.chargeBoxID)
+		dest.chargeBoxID = src.chargeBoxID
 		if (!Utils.isEmptyJSon(dest.chargeBoxID)) {
 			dest.chargeBox = {};
 			this.updateChargingStation(src.chargeBoxID, dest.chargeBox);
@@ -195,10 +195,7 @@ module.exports = {
 		this.updateCreatedAndLastChanged(src, dest);
 		dest.deleted = src.deleted;
 		if (forFrontEnd && src.tagIDs) {
-			// Convert
-			dest.tagIDs = src.tagIDs.map((tagID) => {
-				return Utils.objectIdtoString(tagID);
-			});
+			dest.tagIDs = src.tagIDs;
 		}
 		if (src.role) {
 			dest.role = src.role;
@@ -214,15 +211,15 @@ module.exports = {
 	updateSite(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
 			this.updateID(src, dest);
+			dest.image = src.image;
+			dest.numberOfSiteAreas = src.numberOfSiteAreas;
+			dest.numberOfUsers = src.numberOfUsers;
 		}
 		dest.name = src.name;
 		dest.address = {};
 		dest.allowAllUsersToStopTransactions = src.allowAllUsersToStopTransactions;
 		this.updateAddress(src.address, dest.address)
-		dest.image = src.image;
-		dest.companyID = Utils.objectIdtoString(src.companyID);
-		dest.numberOfSiteAreas = src.numberOfSiteAreas;
-		dest.numberOfUsers = src.numberOfUsers;
+		dest.companyID = src.companyID;
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
@@ -237,19 +234,35 @@ module.exports = {
 	},
 
 	updateCreatedAndLastChanged(src, dest) {
-		dest.createdBy = Utils.objectIdtoString(src.createdBy);
-		if (dest.createdBy && (typeof dest.createdBy == "object")) {
-			dest.createdBy = {};
-			this.updateUser(src.createdBy, dest.createdBy);
+		// Check
+		if (src.createdBy) {
+			// Set
+			dest.createdBy = src.createdBy;
+			// User model?
+			if (typeof dest.createdBy == "object" &&
+					dest.createdBy.constructor.name != "ObjectID") {
+				// Yes
+				dest.createdBy = {};
+				this.updateUser(src.createdBy, dest.createdBy);
+			}
 		}
+		// Check
 		if (src.createdOn) {
 			dest.createdOn = src.createdOn;
 		}
-		dest.lastChangedBy = Utils.objectIdtoString(src.lastChangedBy);
-		if (dest.lastChangedBy && typeof dest.lastChangedBy == "object") {
-			dest.lastChangedBy = {};
-			this.updateUser(src.lastChangedBy, dest.lastChangedBy);
+		// Check
+		if (src.lastChangedBy) {
+			// Set
+			dest.lastChangedBy = src.lastChangedBy;
+			// User model?
+			if (typeof dest.lastChangedBy == "object" &&
+					dest.lastChangedBy.constructor.name != "ObjectID") {
+				// Yes
+				dest.lastChangedBy = {};
+				this.updateUser(src.lastChangedBy, dest.lastChangedBy);
+			}
 		}
+		// Check
 		if (src.lastChangedOn) {
 			dest.lastChangedOn = src.lastChangedOn;
 		}
@@ -286,7 +299,7 @@ module.exports = {
 		dest.releasedOn = src.releasedOn;
 		dest.images = src.images;
 		dest.numberOfImages = src.numberOfImages;
-		dest.vehicleManufacturerID = Utils.objectIdtoString(src.vehicleManufacturerID);
+		dest.vehicleManufacturerID = src.vehicleManufacturerID;
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
@@ -307,12 +320,12 @@ module.exports = {
 	updateSiteArea(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
 			this.updateID(src, dest);
+			dest.image = src.image;
+			dest.numberOfChargeBoxes = src.numberOfChargeBoxes;
 		}
 		dest.name = src.name;
-		dest.image = src.image;
 		dest.accessControl = src.accessControl;
-		dest.numberOfChargeBoxes = src.numberOfChargeBoxes;
-		dest.siteID = Utils.objectIdtoString(src.siteID);
+		dest.siteID = src.siteID;
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
@@ -344,32 +357,32 @@ module.exports = {
 			this.updateID(src, dest);
 		}
 		// ChargeBox
-		dest.chargeBoxID = Utils.objectIdtoString(src.chargeBoxID);
+		dest.chargeBoxID = src.chargeBoxID;
 		if (!Utils.isEmptyJSon(dest.chargeBoxID)) {
 			dest.chargeBox = {};
 			this.updateChargingStation(src.chargeBoxID, dest.chargeBox);
 		}
 		// User
-		dest.userID = Utils.objectIdtoString(src.userID);
+		dest.userID = src.userID;
 		if (!Utils.isEmptyJSon(dest.userID)) {
 			dest.user = {};
 			this.updateUser(src.userID, dest.user);
 		}
 		dest.connectorId = src.connectorId;
 		dest.timestamp = src.timestamp;
-		dest.tagID = Utils.objectIdtoString(src.tagID);
+		dest.tagID = src.tagID;
 		dest.meterStart = src.meterStart;
 		// Stop?
 		if (!Utils.isEmptyJSon(src.stop)) {
 			dest.stop = {};
 			// User
-			dest.stop.userID = Utils.objectIdtoString(src.stop.userID);
+			dest.stop.userID = src.stop.userID;
 			if (!Utils.isEmptyJSon(dest.stop.userID)) {
 				dest.stop.user = {};
 				this.updateUser(src.stop.userID, dest.stop.user);
 			}
 			dest.stop.timestamp = src.stop.timestamp;
-			dest.stop.tagID = Utils.objectIdtoString(src.stop.tagID);
+			dest.stop.tagID = src.stop.tagID;
 			dest.stop.meterStop = src.stop.meterStop;
 			dest.stop.transactionData = src.stop.transactionData;
 			dest.stop.totalConsumption = src.stop.totalConsumption;
@@ -379,7 +392,7 @@ module.exports = {
 		if (!Utils.isEmptyJSon(src.remotestop)) {
 			dest.remotestop = {};
 			dest.remotestop.timestamp = src.remotestop.timestamp;
-			dest.remotestop.tagID = Utils.objectIdtoString(src.remotestop.tagID);
+			dest.remotestop.tagID = src.remotestop.tagID;
 		}
 	}
 };

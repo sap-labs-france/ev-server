@@ -2,7 +2,6 @@ const Constants = require('../../../utils/Constants');
 const Logging = require('../../../utils/Logging');
 const Utils = require('../../../utils/Utils');
 const Database = require('../../../utils/Database');
-const crypto = require('crypto');
 
 let _db;
 
@@ -55,11 +54,11 @@ class LoggingStorage {
 		// Check User
 		if (logToSave.user && typeof logToSave.user == "object") {
 			// This is the User Model
-			logToSave.userID = Utils.checkIdIsObjectID(logToSave.user.id);
+			logToSave.userID = Utils.ensureIsObjectID(logToSave.user.id);
 		}
 		if (logToSave.actionOnUser && typeof logToSave.actionOnUser == "object") {
 			// This is the User Model
-			logToSave.actionOnUserID = Utils.checkIdIsObjectID(logToSave.actionOnUser.id);
+			logToSave.actionOnUserID = Utils.ensureIsObjectID(logToSave.actionOnUser.id);
 		}
 		// Transfer
 		let log = {};

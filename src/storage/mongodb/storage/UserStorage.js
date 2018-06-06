@@ -122,7 +122,7 @@ class UserStorage {
 		let aggregation = [];
 		// Filters
 		aggregation.push({
-			$match: { '_id': Utils.checkIdIsObjectID(id) }
+			$match: { '_id': Utils.ensureIsObjectID(id) }
 		});
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
@@ -141,7 +141,7 @@ class UserStorage {
 	static async handleGetUserImage(id) {
 		// Read DB
 		let userImagesMDB = await _db.collection('userimages')
-			.find({'_id': Utils.checkIdIsObjectID(id)})
+			.find({'_id': Utils.ensureIsObjectID(id)})
 			.limit(1)
 			.toArray();
 		let userImage = null;
@@ -184,19 +184,19 @@ class UserStorage {
 		// Build Request
 		let userFilter = {};
 		if (userToSave.id) {
-			userFilter._id = Utils.checkIdIsObjectID(userToSave.id);
+			userFilter._id = Utils.ensureIsObjectID(userToSave.id);
 		} else {
 			userFilter.email = userToSave.email;
 		}
 		// Check Created By
 		if (userToSave.createdBy && typeof userToSave.createdBy == "object") {
 			// This is the User Model
-			userToSave.createdBy = Utils.checkIdIsObjectID(userToSave.createdBy.id);
+			userToSave.createdBy = Utils.ensureIsObjectID(userToSave.createdBy.id);
 		}
 		// Check Last Changed By
 		if (userToSave.lastChangedBy && typeof userToSave.lastChangedBy == "object") {
 			// This is the User Model
-			userToSave.lastChangedBy = Utils.checkIdIsObjectID(userToSave.lastChangedBy.id);
+			userToSave.lastChangedBy = Utils.ensureIsObjectID(userToSave.lastChangedBy.id);
 		}
 		// Ensure Date
 		userToSave.createdOn = Utils.convertToDate(userToSave.createdOn);
@@ -214,7 +214,7 @@ class UserStorage {
 		let updatedUser = new User(result.value);
 		// Delete Tag IDs
 		result = await _db.collection('tags')
-			.deleteMany( {'userID': Utils.checkIdIsObjectID(updatedUser.getID())} );
+			.deleteMany( {'userID': Utils.ensureIsObjectID(updatedUser.getID())} );
 		// Add tags
 		if (userToSave.tagIDs && userToSave.tagIDs.length > 0) {
 			let tagsMDB = [];
@@ -223,7 +223,7 @@ class UserStorage {
 				// Add
 				tagsMDB.push({
 					"_id": tag,
-					"userID": Utils.checkIdIsObjectID(updatedUser.getID())
+					"userID": Utils.ensureIsObjectID(updatedUser.getID())
 				});
 			});
 			// Execute
@@ -246,7 +246,7 @@ class UserStorage {
 		}
 		// Modify and return the modified document
 	    let result = await _db.collection('userimages').findOneAndUpdate(
-			{'_id': Utils.checkIdIsObjectID(userImageToSave.id)},
+			{'_id': Utils.ensureIsObjectID(userImageToSave.id)},
 			{$set: {image: userImageToSave.image}},
 			{upsert: true, new: true, returnOriginal: false});
 	}
@@ -309,7 +309,7 @@ class UserStorage {
 		// Site ID?
 		if (siteID) {
 			aggregation.push({
-				$match: { "siteusers.siteID": Utils.checkIdIsObjectID(siteID) }
+				$match: { "siteusers.siteID": Utils.ensureIsObjectID(siteID) }
 			});
 		}
 		aggregation.push({
@@ -363,13 +363,13 @@ class UserStorage {
 	static async handleDeleteUser(id) {
 		// Delete User
 		await _db.collection('users')
-			.findOneAndDelete( {'_id': Utils.checkIdIsObjectID(id)} );
+			.findOneAndDelete( {'_id': Utils.ensureIsObjectID(id)} );
 		// Delete Image
 		await _db.collection('userimages')
-			.findOneAndDelete( {'_id': Utils.checkIdIsObjectID(id)} );
+			.findOneAndDelete( {'_id': Utils.ensureIsObjectID(id)} );
 		// Delete Tags
 		await _db.collection('tags')
-			.deleteMany( {'userID': Utils.checkIdIsObjectID(id)} );
+			.deleteMany( {'userID': Utils.ensureIsObjectID(id)} );
 	}
 
 	static async _createUser(userMDB) {
@@ -380,7 +380,7 @@ class UserStorage {
 			user = new User(userMDB);
 			// Get the Tags
 			let tagsMDB = await _db.collection('tags')
-				.find({"userID": Utils.checkIdIsObjectID(user.getID())})
+				.find({"userID": Utils.ensureIsObjectID(user.getID())})
 				.toArray();
 			// Check
 			if (tagsMDB) {

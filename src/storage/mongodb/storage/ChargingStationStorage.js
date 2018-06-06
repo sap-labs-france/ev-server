@@ -83,7 +83,7 @@ class ChargingStationStorage {
 		if (siteAreaID) {
 			// Build filter
 			filters.$and.push({
-				"siteAreaID": Utils.checkIdIsObjectID(siteAreaID)
+				"siteAreaID": Utils.ensureIsObjectID(siteAreaID)
 			});
 		}
 		// With no Site Area
@@ -132,18 +132,14 @@ class ChargingStationStorage {
 			// Set it to null
 			chargingStationToSave.siteAreaID = null;
 		}
-		// Check Created By
-		if (chargingStationToSave.createdBy && typeof chargingStationToSave.createdBy == "object") {
-			chargingStationToSave.createdBy =
-				Utils.checkIdIsObjectID(chargingStationToSave.createdBy.id);
-		}
-		// Check Last Changed By
-		if (chargingStationToSave.lastChangedBy && typeof chargingStationToSave.lastChangedBy == "object") {
-			chargingStationToSave.lastChangedBy =
-				Utils.checkIdIsObjectID(chargingStationToSave.lastChangedBy.id);
-		}
-		// Ensure Date
+
+		// Check Created By/On
+		chargingStationToSave.createdBy = Utils.ensureIsUserObjectID(chargingStationToSave.createdBy);
+		chargingStationToSave.createdOn = Utils.convertToDate(chargingStationToSave.createdOn);
+		// Check Last Changed By/On
+		chargingStationToSave.lastChangedBy = Utils.ensureIsUserObjectID(chargingStationToSave.lastChangedBy);
 		chargingStationToSave.lastChangedOn = Utils.convertToDate(chargingStationToSave.lastChangedOn);
+		// Ensure Date
 		chargingStationToSave.lastHeartBeat = Utils.convertToDate(chargingStationToSave.lastHeartBeat);
 		chargingStationToSave.lastReboot = Utils.convertToDate(chargingStationToSave.lastReboot);
 		// Transfer
@@ -184,11 +180,11 @@ class ChargingStationStorage {
 
 	static async handleSaveChargingStationSiteArea(chargingStation) {
 		let updatedFields = {};
-		updatedFields["siteAreaID"] = (chargingStation.siteArea ? Utils.checkIdIsObjectID(chargingStation.siteArea.id) : null);
+		updatedFields["siteAreaID"] = (chargingStation.siteArea ? Utils.ensureIsObjectID(chargingStation.siteArea.id) : null);
 		// Check Last Changed By
 		if (chargingStation.lastChangedBy && typeof chargingStation.lastChangedBy == "object") {
 			// This is the User Model
-			updatedFields["lastChangedBy"] = Utils.checkIdIsObjectID(chargingStation.lastChangedBy.id);
+			updatedFields["lastChangedBy"] = Utils.ensureIsObjectID(chargingStation.lastChangedBy.id);
 			updatedFields["lastChangedOn"] = Utils.convertToDate(chargingStation.lastChangedOn);
 		}
 		// Modify and return the modified document
@@ -217,7 +213,7 @@ class ChargingStationStorage {
 			.digest("hex");
 		// Set the User
 		if (authorize.user) {
-			authorize.userID = Utils.checkIdIsObjectID(authorize.user.getID());
+			authorize.userID = Utils.ensureIsObjectID(authorize.user.getID());
 		}
 		// Insert
 	    await _db.collection('authorizes')

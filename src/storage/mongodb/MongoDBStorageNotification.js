@@ -1,11 +1,9 @@
 const Logging = require('../../utils/Logging');
 const Constants = require('../../utils/Constants');
-const PricingStorage = require('./storage/PricingStorage');
 const TransactionStorage = require('./storage/TransactionStorage');
 const NotificationStorage = require('./storage/NotificationStorage');
 const VehicleStorage = require('./storage/VehicleStorage');
 const SiteStorage = require('./storage/SiteStorage');
-const SiteAreaStorage = require('./storage/SiteAreaStorage');
 const MigrationStorage = require('./storage/MigrationStorage');
 const VehicleManufacturerStorage = require('./storage/VehicleManufacturerStorage');
 const assert = require('assert');
@@ -110,10 +108,18 @@ class MongoDBStorageNotification {
 						});
 						break;
 					// Company
-					case "evse.companylogos":
 					case "evse.companies":
+					case "evse.companylogos":
 						// Notify
 						_centralRestServer.notifyCompany(action, {
+							"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
+						});
+						break;
+					// Site Area
+					case "evse.siteareas":
+					case "evse.siteareaimages":
+						// Notify
+						_centralRestServer.notifySiteArea(action, {
 							"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
 						});
 						break;
@@ -136,10 +142,8 @@ class MongoDBStorageNotification {
 		// Set
 		_centralRestServer = centralRestServer;
 		// Set
-		PricingStorage.setCentralRestServer(centralRestServer);
 		TransactionStorage.setCentralRestServer(centralRestServer);
 		SiteStorage.setCentralRestServer(centralRestServer);
-		SiteAreaStorage.setCentralRestServer(centralRestServer);
 		VehicleStorage.setCentralRestServer(centralRestServer);
 		VehicleManufacturerStorage.setCentralRestServer(centralRestServer);
 	}
