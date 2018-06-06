@@ -116,6 +116,7 @@ class MongoDBStorage {
 		SiteAreaStorage.setDatabase(_evseDB);
 		VehicleStorage.setDatabase(_evseDB);
 		VehicleManufacturerStorage.setDatabase(_evseDB);
+		MigrationStorage.setDatabase(_evseDB);
 
 		// Log
 		Logging.logInfo({
@@ -256,7 +257,7 @@ class MongoDBStorage {
 
 	saveMigration(migration) {
 		// Delegate
-		return MigrationStorage.handleSaveMigrations(migration);
+		return MigrationStorage.handleSaveMigration(migration);
 	}
 
 	saveMeterValues(meterValues) {

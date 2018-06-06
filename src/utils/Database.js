@@ -97,11 +97,14 @@ module.exports = {
 		dest.priceUnit = src.priceUnit;
 	},
 
-	updateMigration(src, dest) {
-		this.updateID(src, dest);
+	updateMigration(src, dest, forFrontEnd=true) {
+		if (forFrontEnd) {
+			this.updateID(src, dest);
+		}
 		dest.timestamp = src.timestamp;
 		dest.name = src.name;
 		dest.version = src.version;
+		dest.durationSecs = src.durationSecs;
 	},
 
 	updateConfiguration(src, dest) {
