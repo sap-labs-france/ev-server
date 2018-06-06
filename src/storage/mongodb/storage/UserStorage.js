@@ -219,7 +219,7 @@ class UserStorage {
 		if (userToSave.tagIDs && userToSave.tagIDs.length > 0) {
 			let tagsMDB = [];
 			// Create the list
-			userToSave.tagIDs.forEach(async (tag) => {
+			userToSave.tagIDs.forEach((tag) => {
 				// Add
 				tagsMDB.push({
 					"_id": tag,
@@ -227,10 +227,7 @@ class UserStorage {
 				});
 			});
 			// Execute
-			await _db.collection('tags').insertMany(
-				tagsMDB,
-				{upsert: true, new: true, returnOriginal: false}
-			);
+			await _db.collection('tags').insertMany(tagsMDB);
 		}
 		return updatedUser;
 	}

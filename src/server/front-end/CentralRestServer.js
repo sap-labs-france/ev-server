@@ -236,37 +236,11 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifySiteCreated(data) {
+	notifySite(action, data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": Constants.ENTITY_SITE,
-			"action": Constants.ACTION_CREATE,
-			"data": data
-		});
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Constants.ENTITY_SITES
-		});
-	}
-
-	notifySiteUpdated(data) {
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Constants.ENTITY_SITE,
-			"action": Constants.ACTION_UPDATE,
-			"data": data
-		});
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Constants.ENTITY_SITES
-		});
-	}
-
-	notifySiteDeleted(data) {
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Constants.ENTITY_SITE,
-			"action": Constants.ACTION_DELETE,
+			"action": action,
 			"data": data
 		});
 		// Add in buffer

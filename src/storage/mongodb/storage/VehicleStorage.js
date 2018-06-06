@@ -6,7 +6,6 @@ const Utils = require('../../../utils/Utils');
 const Configuration = require('../../../utils/Configuration');
 const MDBVehicle = require('../model/MDBVehicle');
 const MDBVehicleImage = require('../model/MDBVehicleImage');
-const MDBChargingStation = require('../model/MDBChargingStation');
 const Vehicle = require('../../../model/Vehicle');
 const ChargingStation = require('../../../model/ChargingStation');
 const User = require('../../../model/User');
