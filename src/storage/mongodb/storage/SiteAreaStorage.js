@@ -18,7 +18,7 @@ class SiteAreaStorage {
 	static async handleGetSiteAreaImage(id) {
 		// Read DB
 		let siteAreaImagesMDB = await _db.collection('siteareaimages')
-			.find({_id: Utils.ensureIsObjectID(id)})
+			.find({_id: Utils.convertToObjectID(id)})
 			.limit(1)
 			.toArray();
 		let siteAreaImage = null;
@@ -55,7 +55,7 @@ class SiteAreaStorage {
 		let aggregation = [];
 		// Filters
 		aggregation.push({
-			$match: { _id: Utils.ensureIsObjectID(id) }
+			$match: { _id: Utils.convertToObjectID(id) }
 		});
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
@@ -127,7 +127,7 @@ class SiteAreaStorage {
 		let siteAreaFilter = {};
 		// Build Request
 		if (siteAreaToSave.id) {
-			siteAreaFilter._id = Utils.ensureIsObjectID(siteAreaToSave.id);
+			siteAreaFilter._id = Utils.convertToObjectID(siteAreaToSave.id);
 		} else {
 			siteAreaFilter._id = new ObjectID();
 		}
@@ -138,7 +138,7 @@ class SiteAreaStorage {
 		siteAreaToSave.lastChangedBy = Utils.ensureIsUserObjectID(siteAreaToSave.lastChangedBy);
 		siteAreaToSave.lastChangedOn = Utils.convertToDate(siteAreaToSave.lastChangedOn);
 		// Check ID
-		siteAreaToSave.siteID = Utils.ensureIsObjectID(siteAreaToSave.siteID);
+		siteAreaToSave.siteID = Utils.convertToObjectID(siteAreaToSave.siteID);
 		// Transfer
 		let siteArea = {};
 		Database.updateSiteArea(siteAreaToSave, siteArea, false);
@@ -162,7 +162,7 @@ class SiteAreaStorage {
 		}
 		// Modify
 	    await _db.collection('siteareaimages').findOneAndUpdate(
-			{'_id': Utils.ensureIsObjectID(siteAreaImageToSave.id)},
+			{'_id': Utils.convertToObjectID(siteAreaImageToSave.id)},
 			{$set: {image: siteAreaImageToSave.image}},
 			{upsert: true, new: true, returnOriginal: false});
 	}
@@ -181,7 +181,7 @@ class SiteAreaStorage {
 		}
 		// Set Site?
 		if (siteID) {
-			filters.siteID = Utils.ensureIsObjectID(siteID);
+			filters.siteID = Utils.convertToObjectID(siteID);
 		}
 		// Create Aggregation
 		let aggregation = [];
@@ -262,15 +262,15 @@ class SiteAreaStorage {
 	static async handleDeleteSiteArea(id) {
 		// Remove Charging Station's Site Area
 	    await _db.collection('chargingstations').updateMany(
-			{ siteAreaID: Utils.ensureIsObjectID(id) },
+			{ siteAreaID: Utils.convertToObjectID(id) },
 			{$set: { siteAreaID: null }},
 			{upsert: true, new: true, returnOriginal: false});
 		// Delete Site
 		await _db.collection('siteareas')
-			.findOneAndDelete( {'_id': Utils.ensureIsObjectID(id)} );
+			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 		// Delete Image
 		await _db.collection('sitesareaimages')
-			.findOneAndDelete( {'_id': Utils.ensureIsObjectID(id)} );
+			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 	}
 }
 

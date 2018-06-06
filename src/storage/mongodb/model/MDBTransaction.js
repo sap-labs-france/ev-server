@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 
 const StopTransaction = new mongoose.Schema({
 	timestamp: Date,
-	tagID: {type: String, ref: 'Tag'},
-	userID: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+	tagID: String,
+	userID: mongoose.Schema.Types.ObjectId,
 	meterStop: Number,
 	reason : String,
 	transactionData: [],
@@ -13,14 +13,14 @@ const StopTransaction = new mongoose.Schema({
 
 const RemoteStopTransaction = new mongoose.Schema({
 	timestamp: Date,
-	tagID: {type: String, ref: 'Tag'}
+	tagID: String
 });
 
 module.exports = mongoose.model('Transaction',{
 	_id: Number,
-	chargeBoxID: {type: String, ref: 'ChargingStation'},
-	tagID: {type: String, ref: 'Tag'},
-	userID: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+	chargeBoxID: String,
+	tagID: String,
+	userID: mongoose.Schema.Types.ObjectId,
 	connectorId: Number,
 	timestamp: Date,
 	reservationId: Number,

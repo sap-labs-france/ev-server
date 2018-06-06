@@ -358,15 +358,15 @@ module.exports = {
 		}
 		// ChargeBox
 		dest.chargeBoxID = src.chargeBoxID;
-		if (!Utils.isEmptyJSon(dest.chargeBoxID)) {
+		if (forFrontEnd && !Utils.isEmptyJSon(src.chargeBox)) {
 			dest.chargeBox = {};
-			this.updateChargingStation(src.chargeBoxID, dest.chargeBox);
+			this.updateChargingStation(src.chargeBox, dest.chargeBox);
 		}
 		// User
 		dest.userID = src.userID;
-		if (!Utils.isEmptyJSon(dest.userID)) {
+		if (forFrontEnd && !Utils.isEmptyJSon(src.user)) {
 			dest.user = {};
-			this.updateUser(src.userID, dest.user);
+			this.updateUser(src.user, dest.user);
 		}
 		dest.connectorId = src.connectorId;
 		dest.timestamp = src.timestamp;
@@ -377,9 +377,9 @@ module.exports = {
 			dest.stop = {};
 			// User
 			dest.stop.userID = src.stop.userID;
-			if (!Utils.isEmptyJSon(dest.stop.userID)) {
+			if (forFrontEnd && !Utils.isEmptyJSon(src.stop.user)) {
 				dest.stop.user = {};
-				this.updateUser(src.stop.userID, dest.stop.user);
+				this.updateUser(src.stop.user, dest.stop.user);
 			}
 			dest.stop.timestamp = src.stop.timestamp;
 			dest.stop.tagID = src.stop.tagID;

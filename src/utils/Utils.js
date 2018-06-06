@@ -19,7 +19,7 @@ module.exports = {
 		}
 		// Check Type
 		if (!(date instanceof Date)) {
-			return new Date();
+			return new Date(date);
 		}
 		return date;
 	},
@@ -53,12 +53,22 @@ module.exports = {
 		}
 	},
 
-	ensureIsObjectID(id) {
+	convertToObjectID(id) {
 		let changedID = id;
 		// Check
 		if (typeof id == "string") {
 			// Create Object
 			changedID = new ObjectID(id);
+		}
+		return changedID;
+	},
+
+	convertToNumber(id) {
+		let changedID = id;
+		// Check
+		if (typeof id == "string") {
+			// Create Object
+			changedID = parseInt(id);
 		}
 		return changedID;
 	},
@@ -73,12 +83,12 @@ module.exports = {
 			if (typeof user == "object" &&
 					user.constructor.name != "ObjectID") {
 				// This is the User Model
-				userID = this.ensureIsObjectID(user.id);
+				userID = this.convertToObjectID(user.id);
 			}
 			// Check String
 			if (typeof user == "string") {
 				// This is a String
-				userID = this.ensureIsObjectID(user);
+				userID = this.convertToObjectID(user);
 			}
 		}
 		return userID;

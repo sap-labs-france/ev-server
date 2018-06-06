@@ -19,7 +19,7 @@ class CompanyStorage {
 		let aggregation = [];
 		// Filters
 		aggregation.push({
-			$match: { _id: Utils.ensureIsObjectID(id) }
+			$match: { _id: Utils.convertToObjectID(id) }
 		});
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
@@ -40,7 +40,7 @@ class CompanyStorage {
 	static async handleGetCompanyLogo(id) {
 		// Read DB
 		let companyLogosMDB = await _db.collection('companylogos')
-			.find({_id: Utils.ensureIsObjectID(id)})
+			.find({_id: Utils.convertToObjectID(id)})
 			.limit(1)
 			.toArray();
 		let companyLogo = null;
@@ -87,7 +87,7 @@ class CompanyStorage {
 		let companyFilter = {};
 		// Build Request
 		if (companyToSave.id) {
-			companyFilter._id = Utils.ensureIsObjectID(companyToSave.id);
+			companyFilter._id = Utils.convertToObjectID(companyToSave.id);
 		} else {
 			companyFilter._id = new ObjectID();
 		}
@@ -120,7 +120,7 @@ class CompanyStorage {
 		}
 		// Modify
 	    await _db.collection('companylogos').findOneAndUpdate(
-			{'_id': Utils.ensureIsObjectID(companyLogoToSave.id)},
+			{'_id': Utils.convertToObjectID(companyLogoToSave.id)},
 			{$set: {logo: companyLogoToSave.logo}},
 			{upsert: true, new: true, returnOriginal: false});
 	}
@@ -208,10 +208,10 @@ class CompanyStorage {
 		});
 		// Delete the Company
 		await _db.collection('companies')
-			.findOneAndDelete( {'_id': Utils.ensureIsObjectID(id)} );
+			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 		// Delete Logo
 		await _db.collection('companylogos')
-			.findOneAndDelete( {'_id': Utils.ensureIsObjectID(id)} );
+			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 	}
 }
 

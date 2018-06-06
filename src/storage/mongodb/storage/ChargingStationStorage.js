@@ -83,7 +83,7 @@ class ChargingStationStorage {
 		if (siteAreaID) {
 			// Build filter
 			filters.$and.push({
-				"siteAreaID": Utils.ensureIsObjectID(siteAreaID)
+				"siteAreaID": Utils.convertToObjectID(siteAreaID)
 			});
 		}
 		// With no Site Area
@@ -180,11 +180,11 @@ class ChargingStationStorage {
 
 	static async handleSaveChargingStationSiteArea(chargingStation) {
 		let updatedFields = {};
-		updatedFields["siteAreaID"] = (chargingStation.siteArea ? Utils.ensureIsObjectID(chargingStation.siteArea.id) : null);
+		updatedFields["siteAreaID"] = (chargingStation.siteArea ? Utils.convertToObjectID(chargingStation.siteArea.id) : null);
 		// Check Last Changed By
 		if (chargingStation.lastChangedBy && typeof chargingStation.lastChangedBy == "object") {
 			// This is the User Model
-			updatedFields["lastChangedBy"] = Utils.ensureIsObjectID(chargingStation.lastChangedBy.id);
+			updatedFields["lastChangedBy"] = Utils.convertToObjectID(chargingStation.lastChangedBy.id);
 			updatedFields["lastChangedOn"] = Utils.convertToDate(chargingStation.lastChangedOn);
 		}
 		// Modify and return the modified document
@@ -213,7 +213,7 @@ class ChargingStationStorage {
 			.digest("hex");
 		// Set the User
 		if (authorize.user) {
-			authorize.userID = Utils.ensureIsObjectID(authorize.user.getID());
+			authorize.userID = Utils.convertToObjectID(authorize.user.getID());
 		}
 		// Insert
 	    await _db.collection('authorizes')

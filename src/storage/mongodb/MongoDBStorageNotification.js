@@ -131,6 +131,13 @@ class MongoDBStorageNotification {
 							"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
 						});
 						break;
+					// Transaction
+					case "evse.transactions":
+						// Notify
+						_centralRestServer.notifyTransaction(action, {
+							"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
+						});
+						break;
 					// Charging Stations Configuration
 					case "evse.configurations":
 						// Notify
@@ -150,7 +157,6 @@ class MongoDBStorageNotification {
 		// Set
 		_centralRestServer = centralRestServer;
 		// Set
-		TransactionStorage.setCentralRestServer(centralRestServer);
 		VehicleStorage.setCentralRestServer(centralRestServer);
 		VehicleManufacturerStorage.setCentralRestServer(centralRestServer);
 	}

@@ -5,39 +5,23 @@ const Utils = require('../../../utils/Utils');
 const MDBMeterValue = require('../model/MDBMeterValue');
 const MDBTransaction = require('../model/MDBTransaction');
 const mongoose = require('mongoose');
-const ObjectId = mongoose.Types.ObjectId;
 const crypto = require('crypto');
+const ObjectID = require('mongodb').ObjectID;
 
-let _centralRestServer;
 let _db;
 
 class TransactionStorage {
-	static setCentralRestServer(centralRestServer) {
-		_centralRestServer = centralRestServer;
-	}
-
 	static setDatabase(db) {
 		_db = db;
 	}
 
-	static handleDeleteTransaction(transaction) {
-		let result;
-		return MDBTransaction.findByIdAndRemove( transaction.id ).then((resultTransaction) => {
-			result = resultTransaction;
-			// Exec request
-			return MDBMeterValue.remove({ "transactionId" : transaction.id });
-		}).then((resultMeterValue) => {
-			// Notify Change
-			_centralRestServer.notifyTransactionDeleted(
-				{
-					"id": transaction.id,
-					"chargeBoxID": transaction.chargeBox.id,
-					"connectorId": transaction.connectorId,
-					"type": Constants.ENTITY_TRANSACTION
-				}
-			);
-			return result.result;
-		});
+	static async handleDeleteTransaction(transaction) {
+		// Delete Transactions
+		await _db.collection('transactions')
+			.findOneAndDelete( {'_id': transaction.id} );
+		// Delete Meter Values
+		await _db.collection('metervalues')
+			.deleteMany( {'transactionId': transaction.id} );
 	}
 
 	static handleGetMeterValuesFromTransaction(transactionId) {
@@ -73,28 +57,28 @@ class TransactionStorage {
 			let transaction = {};
 			// Update
 			Database.updateTransaction(transactionMDB, transaction);
-			// Notify
-			if (transactionCreated) {
-				// Created
-				_centralRestServer.notifyTransactionCreated(
-					{
-						"id": transaction.id,
-						"chargeBoxID": transaction.chargeBoxID,
-						"connectorId": transaction.connectorId,
-						"type": Constants.ENTITY_TRANSACTION
-					}
-				);
-			} else {
-				// Updated
-				_centralRestServer.notifyTransactionUpdated(
-					{
-						"id": transaction.id,
-						"chargeBoxID": transaction.chargeBoxID,
-						"connectorId": transaction.connectorId,
-						"type": Constants.ENTITY_TRANSACTION_STOP
-					}
-				);
-			}
+			// // Notify
+			// if (transactionCreated) {
+			// 	// Created
+			// 	_centralRestServer.notifyTransactionCreated(
+			// 		{
+			// 			"id": transaction.id,
+			// 			"chargeBoxID": transaction.chargeBoxID,
+			// 			"connectorId": transaction.connectorId,
+			// 			"type": Constants.ENTITY_TRANSACTION
+			// 		}
+			// 	);
+			// } else {
+			// 	// Updated
+			// 	_centralRestServer.notifyTransactionUpdated(
+			// 		{
+			// 			"id": transaction.id,
+			// 			"chargeBoxID": transaction.chargeBoxID,
+			// 			"connectorId": transaction.connectorId,
+			// 			"type": Constants.ENTITY_TRANSACTION_STOP
+			// 		}
+			// 	);
+			// }
 			// Return
 			return transaction;
 		});
@@ -112,13 +96,13 @@ class TransactionStorage {
 				.digest("hex");
 			// Save
 			return meterValueMDB.save().then(() => {
-				// Notify
-				_centralRestServer.notifyTransactionUpdated(
-					{
-						"id": meterValues.values[0].transactionId,
-						"type": Constants.ENTITY_TRANSACTION_METER_VALUES
-					}
-				);
+				// // Notify
+				// _centralRestServer.notifyTransactionUpdated(
+				// 	{
+				// 		"id": meterValues.values[0].transactionId,
+				// 		"type": Constants.ENTITY_TRANSACTION_METER_VALUES
+				// 	}
+				// );
 			});
 		}));
 	}
@@ -142,7 +126,7 @@ class TransactionStorage {
 		});
 	}
 
-	static handleGetTransactions(searchValue, filter, siteID, numberOfTransactions) {
+	static async handleGetTransactions(searchValue, filter, siteID, numberOfTransactions) {
 		// Check Limit
 		numberOfTransactions = Utils.checkRecordLimit(numberOfTransactions);
 		// Build filter
@@ -158,7 +142,7 @@ class TransactionStorage {
 		}
 		// User
 		if (filter.userId) {
-			match.userID = new ObjectId(filter.userId);
+			match.userID = Utils.convertToObjectID(filter.userId);
 		}
 		// Charge Box
 		if (filter.chargeBoxID) {
@@ -166,7 +150,7 @@ class TransactionStorage {
 		}
 		// Connector
 		if (filter.connectorId) {
-			match.connectorId = parseInt(filter.connectorId);
+			match.connectorId = Utils.convertToNumber(filter.connectorId);
 		}
 		// Date provided?
 		if (filter.startDateTime || filter.endDateTime) {
@@ -174,11 +158,11 @@ class TransactionStorage {
 		}
 		// Start date
 		if (filter.startDateTime) {
-			match.timestamp.$gte = new Date(filter.startDateTime);
+			match.timestamp.$gte = Utils.convertToDate(filter.startDateTime);
 		}
 		// End date
 		if (filter.endDateTime) {
-			match.timestamp.$lte = new Date(filter.endDateTime);
+			match.timestamp.$lte = Utils.convertToDate(filter.endDateTime);
 		}
 		// Check stop tr
 		if (filter.stop) {
@@ -198,30 +182,30 @@ class TransactionStorage {
 				from: 'chargingstations',
 				localField: 'chargeBoxID',
 				foreignField: '_id',
-				as: 'chargeBoxID'
+				as: 'chargeBox'
 			}
 		});
 		// Single Record
 		aggregation.push({
-			$unwind: { "path": "$chargeBoxID", "preserveNullAndEmptyArrays": true }
+			$unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
 		});
 		if (siteID) {
 			// Add Site Area
 			aggregation.push({
 				$lookup: {
 					from: 'siteareas',
-					localField: 'chargeBoxID.siteAreaID',
+					localField: 'chargeBox.siteAreaID',
 					foreignField: '_id',
-					as: 'siteAreaID'
+					as: 'siteArea'
 				}
 			});
 			// Single Record
 			aggregation.push({
-				$unwind: { "path": "$siteAreaID", "preserveNullAndEmptyArrays": true }
+				$unwind: { "path": "$siteArea", "preserveNullAndEmptyArrays": true }
 			});
 			// Filter
 			aggregation.push({
-				$match: { "siteAreaID.siteID": new ObjectId(siteID) }
+				$match: { "siteArea.siteID": Utils.convertToObjectID(siteID) }
 			});
 		}
 		// Sort
@@ -240,12 +224,12 @@ class TransactionStorage {
 				from: 'users',
 				localField: 'userID',
 				foreignField: '_id',
-				as: 'userID'
+				as: 'user'
 			}
 		});
 		// Single Record
 		aggregation.push({
-			$unwind: { "path": "$userID", "preserveNullAndEmptyArrays": true }
+			$unwind: { "path": "$user", "preserveNullAndEmptyArrays": true }
 		});
 		// Add User that stopped the transaction
 		aggregation.push({
@@ -253,18 +237,21 @@ class TransactionStorage {
 				from: 'users',
 				localField: 'stop.userID',
 				foreignField: '_id',
-				as: 'stop.userID'
+				as: 'stop.user'
 			}
 		});
 		// Single Record
 		aggregation.push({
-			$unwind: { "path": "$stop.userID", "preserveNullAndEmptyArrays": true }
+			$unwind: { "path": "$stop.user", "preserveNullAndEmptyArrays": true }
 		});
-		// Execute
-		return MDBTransaction.aggregate(aggregation)
-				.exec().then((transactionsMDB) => {
-			// Set
-			let transactions = [];
+		// Read DB
+		let transactionsMDB = await _db.collection('transactions')
+			.aggregate(aggregation)
+			.toArray();
+		// Set
+		let transactions = [];
+		// Create
+		if (transactionsMDB && transactionsMDB.length > 0) {
 			// Create
 			transactionsMDB.forEach((transactionMDB) => {
 				// Set
@@ -273,28 +260,70 @@ class TransactionStorage {
 				// Add
 				transactions.push(transaction);
 			});
-			return transactions;
-		});
+		}
+		return transactions;
 	}
 
-	static handleGetTransaction(transactionId) {
-		// Get the Start Transaction
-		return MDBTransaction.findById({"_id": transactionId})
-				.populate("userID")
-				.populate("chargeBoxID")
-				.populate("stop.userID")
-				.exec().then((transactionMDB) => {
-			// Set
-			let transaction = null;
-			// Found?
-			if (transactionMDB) {
-				// Set data
-				transaction = {};
-				Database.updateTransaction(transactionMDB, transaction);
-			}
-			// Ok
-			return transaction;
+	static async handleGetTransaction(id) {
+		// Create Aggregation
+		let aggregation = [];
+		// Filters
+		aggregation.push({
+			$match: { _id: Utils.convertToNumber(id) }
 		});
+		// Add User
+		aggregation.push({
+			$lookup: {
+				from: "users",
+				localField: "userID",
+				foreignField: "_id",
+				as: "user"
+			}
+		});
+		// Add
+		aggregation.push({
+			$unwind: { "path": "$user", "preserveNullAndEmptyArrays": true }
+		});
+		// Add Stop User
+		aggregation.push({
+			$lookup: {
+				from: "users",
+				localField: "stop.userID",
+				foreignField: "_id",
+				as: "stop.user"
+			}
+		});
+		// Add
+		aggregation.push({
+			$unwind: { "path": "$stop.user", "preserveNullAndEmptyArrays": true }
+		});
+		// Add
+		aggregation.push({
+			$lookup: {
+				from: "chargingstations",
+				localField: "chargeBoxID",
+				foreignField: "_id",
+				as: "chargeBox"
+			}
+		});
+		// Add
+		aggregation.push({
+			$unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
+		});
+		// Read DB
+		let transactionsMDB = await _db.collection('transactions')
+			.aggregate(aggregation)
+			.toArray();
+		// Set
+		let transaction = null;
+		// Found?
+		if (transactionsMDB && transactionsMDB.length > 0) {
+			// Set data
+			transaction = {};
+			Database.updateTransaction(transactionsMDB[0], transaction);
+		}
+		// Ok
+		return transaction;
 	}
 
 	static handleGetActiveTransaction(chargeBoxID, connectorID) {

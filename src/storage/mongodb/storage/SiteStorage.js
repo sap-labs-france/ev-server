@@ -23,7 +23,7 @@ class SiteStorage {
 		let aggregation = [];
 		// Filters
 		aggregation.push({
-			$match: { _id: Utils.ensureIsObjectID(id) }
+			$match: { _id: Utils.convertToObjectID(id) }
 		});
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
@@ -104,7 +104,7 @@ class SiteStorage {
 	static async handleGetSiteImage(id) {
 		// Read DB
 		let siteImagesMDB = await _db.collection('siteimages')
-			.find({_id: Utils.ensureIsObjectID(id)})
+			.find({_id: Utils.convertToObjectID(id)})
 			.limit(1)
 			.toArray();
 		let siteImage = null;
@@ -160,7 +160,7 @@ class SiteStorage {
 		siteToSave.lastChangedBy = Utils.ensureIsUserObjectID(siteToSave.lastChangedBy);
 		siteToSave.lastChangedOn = Utils.convertToDate(siteToSave.lastChangedOn);
 		// Check ID
-		siteToSave.companyID = Utils.ensureIsObjectID(siteToSave.companyID);
+		siteToSave.companyID = Utils.convertToObjectID(siteToSave.companyID);
 		// Transfer
 		let site = {};
 		Database.updateSite(siteToSave, site, false);
@@ -173,7 +173,7 @@ class SiteStorage {
 		let updatedSite = new Site(result.value);
 		// Delete Users
 		await _db.collection('siteusers')
-			.deleteMany( {'siteID': Utils.ensureIsObjectID(updatedSite.getID())} );
+			.deleteMany( {'siteID': Utils.convertToObjectID(updatedSite.getID())} );
 		// Add Users`
 		if (siteToSave.users && siteToSave.users.length > 0) {
 			let siteUsersMDB = [];
@@ -181,8 +181,8 @@ class SiteStorage {
 			siteToSave.users.forEach((user) => {
 				// Add
 				siteUsersMDB.push({
-					"siteID": Utils.ensureIsObjectID(updatedSite.getID()),
-					"userID": Utils.ensureIsObjectID(user.id)
+					"siteID": Utils.convertToObjectID(updatedSite.getID()),
+					"userID": Utils.convertToObjectID(user.id)
 				});
 			});
 			// Execute
@@ -202,7 +202,7 @@ class SiteStorage {
 		}
 		// Modify
 	    await _db.collection('siteimages').findOneAndUpdate(
-			{'_id': Utils.ensureIsObjectID(siteImageToSave.id)},
+			{'_id': Utils.convertToObjectID(siteImageToSave.id)},
 			{$set: {image: siteImageToSave.image}},
 			{upsert: true, new: true, returnOriginal: false});
 	}
@@ -224,7 +224,7 @@ class SiteStorage {
 		}
 		// Set Company?
 		if (companyID) {
-			filters.companyID = Utils.ensureIsObjectID(companyID);
+			filters.companyID = Utils.convertToObjectID(companyID);
 		}
 		// Create Aggregation
 		let aggregation = [];
@@ -239,7 +239,7 @@ class SiteStorage {
 		});
 		// Set User?
 		if (userID) {
-			filters["siteusers.userID"] = Utils.ensureIsObjectID(userID);
+			filters["siteusers.userID"] = Utils.convertToObjectID(userID);
 		}
 		// Number of Users
 		aggregation.push({
@@ -453,13 +453,13 @@ class SiteStorage {
 		});
 		// Delete Site
 		await _db.collection('sites')
-			.findOneAndDelete( {'_id': Utils.ensureIsObjectID(id)} );
+			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 		// Delete Image
 		await _db.collection('siteimages')
-			.findOneAndDelete( {'_id': Utils.ensureIsObjectID(id)} );
+			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 		// Delete Site's Users
 		await _db.collection('siteusers')
-			.deleteMany( {'siteID': Utils.ensureIsObjectID(id)} );
+			.deleteMany( {'siteID': Utils.convertToObjectID(id)} );
 	}
 }
 

@@ -54,11 +54,11 @@ class LoggingStorage {
 		// Check User
 		if (logToSave.user && typeof logToSave.user == "object") {
 			// This is the User Model
-			logToSave.userID = Utils.ensureIsObjectID(logToSave.user.id);
+			logToSave.userID = Utils.convertToObjectID(logToSave.user.id);
 		}
 		if (logToSave.actionOnUser && typeof logToSave.actionOnUser == "object") {
 			// This is the User Model
-			logToSave.actionOnUserID = Utils.ensureIsObjectID(logToSave.actionOnUser.id);
+			logToSave.actionOnUserID = Utils.convertToObjectID(logToSave.actionOnUser.id);
 		}
 		// Transfer
 		let log = {};
