@@ -17,26 +17,29 @@ class MigrationStorage {
 			.find({})
 			.toArray();
 		let migrations = [];
-		// Create
-		migrationsMDB.forEach((migrationMDB) => {
-			let migration = {};
-			// Set values
-			Database.updateMigration(migrationMDB, migration);
-			// Add
-			migrations.push(migration);
-		});
+		// Check
+		if (migrationsMDB && migrationsMDB.length > 0) {
+			// Create
+			migrationsMDB.forEach((migrationMDB) => {
+				let migration = {};
+				// Set values
+				Database.updateMigration(migrationMDB, migration);
+				// Add
+				migrations.push(migration);
+			});
+		}
 		// Ok
 		return migrations;
 	}
 
 	static async handleSaveMigration(migrationToSave) {
-		// Set the ID
-		migrationToSave.id = migrationToSave.name + "~" + migrationToSave.version;
 		// Ensure Date
 		migrationToSave.timestamp = Utils.convertToDate(migrationToSave.timestamp);
 		// Transfer
 		let migration = {};
 		Database.updateMigration(migrationToSave, migration, false);
+		// Set the ID
+		migration._id = migrationToSave.name + "~" + migrationToSave.version;
 		// Create
 		await _db.collection('migrations')
 			.insertOne(migration);

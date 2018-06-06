@@ -1,7 +1,7 @@
 const Constants = require('../../../utils/Constants');
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
-const MDBNotification = require('../model/MDBNotification');
+const Utils = require('../../../utils/Utils');
 const crypto = require('crypto');
 
 let _db;
@@ -11,10 +11,14 @@ class NotificationStorage {
 		_db = db;
 	}
 
-	static handleGetNotification(sourceId) {
-		// Exec request
-		return MDBNotification.find({"sourceId": sourceId}).exec().then((notificationsMDB) => {
-			let notifications = [];
+	static async handleGetNotification(sourceId) {
+		// Read DB
+		let notificationsMDB = await _db.collection('notifications')
+			.find({"sourceId": sourceId})
+			.toArray();
+		let notifications = [];
+		// Check
+		if (notificationsMDB && notificationsMDB.length > 0) {
 			// Create
 			notificationsMDB.forEach((notificationMDB) => {
 				let notification = {};
@@ -23,22 +27,24 @@ class NotificationStorage {
 				// Add
 				notifications.push(notification);
 			});
-			// Ok
-			return notifications;
-		});
+		}
+		// Ok
+		return notifications;
 	}
 
-	static handleSaveNotification(notification) {
-		// Create model
-		let notificationMDB = new MDBNotification(notification);
+	static async handleSaveNotification(notificationToSave) {
+		// Ensure Date
+		notificationToSave.timestamp = Utils.convertToDate(notificationToSave.timestamp);
+		// Transfer
+		let notification = {};
+		Database.updateNotification(notificationToSave, notification, false);
 		// Set the ID
-		notificationMDB._id = crypto.createHash('sha256')
-			.update(`${notification.sourceId}~${notification.channel}`)
+		notification._id = crypto.createHash('sha256')
+			.update(`${notificationToSave.sourceId}~${notificationToSave.channel}`)
 			.digest("hex");
-		// Create new
-		return notificationMDB.save().then(() => {
-			// Nothing
-		});
+		// Create
+		await _db.collection('notifications')
+			.insertOne(notification);
 	}
 }
 

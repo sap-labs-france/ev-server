@@ -117,6 +117,7 @@ class MongoDBStorage {
 		VehicleStorage.setDatabase(_evseDB);
 		VehicleManufacturerStorage.setDatabase(_evseDB);
 		MigrationStorage.setDatabase(_evseDB);
+		NotificationStorage.setDatabase(_evseDB);
 
 		// Log
 		Logging.logInfo({

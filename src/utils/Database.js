@@ -79,8 +79,10 @@ module.exports = {
 		}
 	},
 
-	updateEula(src, dest) {
-		this.updateID(src, dest);
+	updateEula(src, dest, forFrontEnd=true) {
+		if (forFrontEnd) {
+			this.updateID(src, dest);
+		}
 		dest.timestamp = src.timestamp;
 		dest.version = src.version;
 		dest.language = src.language;
@@ -107,14 +109,18 @@ module.exports = {
 		dest.durationSecs = src.durationSecs;
 	},
 
-	updateConfiguration(src, dest) {
-		this.updateID(src, dest);
+	updateConfiguration(src, dest, forFrontEnd=true) {
+		if (forFrontEnd) {
+			this.updateID(src, dest);
+		}
 		dest.timestamp = src.timestamp;
 		dest.configuration = src.configuration;
 	},
 
-	updateStatusNotification(src, dest) {
-		this.updateID(src, dest);
+	updateStatusNotification(src, dest, forFrontEnd=true) {
+		if (forFrontEnd) {
+			this.updateID(src, dest);
+		}
 		dest.connectorId = src.connectorId;
 		dest.timestamp = src.timestamp;
 		dest.status = src.status;
@@ -124,8 +130,10 @@ module.exports = {
 		dest.vendorErrorCode = src.vendorErrorCode;
 	},
 
-	updateNotification(src, dest) {
-		this.updateID(src, dest);
+	updateNotification(src, dest, forFrontEnd=true) {
+		if (forFrontEnd) {
+			this.updateID(src, dest);
+		}
 		dest.timestamp = src.timestamp;
 		dest.channel = src.channel;
 		dest.sourceId = src.sourceId;
@@ -144,8 +152,10 @@ module.exports = {
 		}
 	},
 
-	updateMeterValue(src, dest) {
-		this.updateID(src, dest);
+	updateMeterValue(src, dest, forFrontEnd=true) {
+		if (forFrontEnd) {
+			this.updateID(src, dest);
+		}
 		dest.connectorId = src.connectorId;
 		dest.transactionId = src.transactionId;
 		dest.timestamp = src.timestamp;
@@ -201,8 +211,10 @@ module.exports = {
 		dest.passwordResetHash = src.passwordResetHash;
 	},
 
-	updateSite(src, dest) {
-		this.updateID(src, dest);
+	updateSite(src, dest, forFrontEnd=true) {
+		if (forFrontEnd) {
+			this.updateID(src, dest);
+		}
 		dest.name = src.name;
 		dest.address = {};
 		dest.allowAllUsersToStopTransactions = src.allowAllUsersToStopTransactions;
@@ -214,8 +226,10 @@ module.exports = {
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
-	updateVehicleManufacturer(src, dest) {
-		this.updateID(src, dest);
+	updateVehicleManufacturer(src, dest, forFrontEnd=true) {
+		if (forFrontEnd) {
+			this.updateID(src, dest);
+		}
 		dest.name = src.name;
 		dest.logo = src.logo;
 		dest.numberOfVehicles = src.numberOfVehicles;
@@ -253,8 +267,10 @@ module.exports = {
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
-	updateVehicle(src, dest) {
-		this.updateID(src, dest);
+	updateVehicle(src, dest, forFrontEnd=true) {
+		if (forFrontEnd) {
+			this.updateID(src, dest);
+		}
 		dest.type = src.type;
 		dest.model = src.model;
 		dest.batteryKW = src.batteryKW;
@@ -288,8 +304,10 @@ module.exports = {
 		}
 	},
 
-	updateSiteArea(src, dest) {
-		this.updateID(src, dest);
+	updateSiteArea(src, dest, forFrontEnd=true) {
+		if (forFrontEnd) {
+			this.updateID(src, dest);
+		}
 		dest.name = src.name;
 		dest.image = src.image;
 		dest.accessControl = src.accessControl;
@@ -321,8 +339,10 @@ module.exports = {
 		}
 	},
 
-	updateTransaction(src, dest) {
-		this.updateID(src, dest);
+	updateTransaction(src, dest, forFrontEnd=true) {
+		if (forFrontEnd) {
+			this.updateID(src, dest);
+		}
 		// ChargeBox
 		dest.chargeBoxID = Utils.objectIdtoString(src.chargeBoxID);
 		if (!Utils.isEmptyJSon(dest.chargeBoxID)) {
