@@ -129,7 +129,7 @@ class CentralSystemRestServer {
 				// Send
 				for (var i = _currentNotifications.length-1; i >= 0; i--) {
 					console.log(
-						`Notify '${_currentNotifications[i].entity}', Action '${(_currentNotifications[i].action?_currentNotifications[i].action:'')}', ID '${(_currentNotifications[i].data?_currentNotifications[i].data.id:'')}'`);
+						`Notify '${_currentNotifications[i].entity}', Action '${(_currentNotifications[i].action?_currentNotifications[i].action:'')}', Data '${(_currentNotifications[i].data ? JSON.stringify(_currentNotifications[i].data, null, ' ') : '')}'`);
 					// Notify all Web Sockets
 					_io.sockets.emit(_currentNotifications[i].entity, _currentNotifications[i]);
 					// Remove

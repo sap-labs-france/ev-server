@@ -2,9 +2,6 @@ const Constants = require('../../../utils/Constants');
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const Utils = require('../../../utils/Utils');
-const MDBMeterValue = require('../model/MDBMeterValue');
-const MDBTransaction = require('../model/MDBTransaction');
-const mongoose = require('mongoose');
 const crypto = require('crypto');
 const ObjectID = require('mongodb').ObjectID;
 
@@ -24,15 +21,19 @@ class TransactionStorage {
 			.deleteMany( {'transactionId': transaction.id} );
 	}
 
-	static handleGetMeterValuesFromTransaction(transactionId) {
+	static async handleGetMeterValuesFromTransaction(transactionId) {
 		// Build filter
 		let filter = {};
 		// Mandatory filters
-		filter.transactionId = transactionId;
-
-		// Exec request
-		return MDBMeterValue.find(filter).sort( {timestamp: 1, value: -1} ).exec().then((meterValuesMDB) => {
-			let meterValues = [];
+		filter.transactionId = Utils.convertToNumber(transactionId);
+		// Read DB
+		let meterValuesMDB = await _db.collection('metervalues')
+			.find(filter)
+			.sort( {timestamp: 1, value: -1} )
+			.toArray();
+		let meterValues = [];
+		// Set
+		if (meterValuesMDB && meterValuesMDB.length > 0) {
 			// Create
 			meterValuesMDB.forEach((meterValueMDB) => {
 				let meterValue = {};
@@ -41,89 +42,77 @@ class TransactionStorage {
 				// Add
 				meterValues.push(meterValue);
 			});
-			// Ok
-			return meterValues;
-		});
+		}
+		// Ok
+		return meterValues;
 	}
 
-	static handleSaveTransaction(transaction) {
-		let transactionCreated = !transaction.stop;
+	static async handleSaveTransaction(transaction) {
+		// Check ID
+		console.log("handleSaveTransaction --------------------------------------------");
+		console.log(transaction);
+		transaction.userID = Utils.convertToObjectID(transaction.userID);
+		if (transaction.stop && transaction.stop.userID) {
+			transaction.stop.userID = Utils.convertToObjectID(transaction.stop.userID);
+		}
+		// Modify
+	    let result = await _db.collection('transactions').findOneAndUpdate(
+			{"_id": Utils.convertToNumber(transaction.id)},
+			{$set: transaction},
+			{upsert: true, new: true, returnOriginal: false});
+		// Create
+		let updatedTransaction = {};
 		// Update
-		return MDBTransaction.findOneAndUpdate({"_id": transaction.id}, transaction, {
-			new: true,
-			upsert: true
-		}).then((transactionMDB) => {
-			// Create
-			let transaction = {};
-			// Update
-			Database.updateTransaction(transactionMDB, transaction);
-			// // Notify
-			// if (transactionCreated) {
-			// 	// Created
-			// 	_centralRestServer.notifyTransactionCreated(
-			// 		{
-			// 			"id": transaction.id,
-			// 			"chargeBoxID": transaction.chargeBoxID,
-			// 			"connectorId": transaction.connectorId,
-			// 			"type": Constants.ENTITY_TRANSACTION
-			// 		}
-			// 	);
-			// } else {
-			// 	// Updated
-			// 	_centralRestServer.notifyTransactionUpdated(
-			// 		{
-			// 			"id": transaction.id,
-			// 			"chargeBoxID": transaction.chargeBoxID,
-			// 			"connectorId": transaction.connectorId,
-			// 			"type": Constants.ENTITY_TRANSACTION_STOP
-			// 		}
-			// 	);
-			// }
-			// Return
-			return transaction;
-		});
+		Database.updateTransaction(result.value, updatedTransaction);
+		console.log(updatedTransaction);
+		console.log("------------------------------------------------------------------");
+		// Return
+		return updatedTransaction;
 	}
 
-	static handleSaveMeterValues(meterValues) {
+	static async handleSaveMeterValues(meterValuesToSave) {
+		let meterValuesMDB = [];
+		console.log("handleSaveMeterValues -----------------");
+		console.log(meterValuesToSave);
 		// Save all
-		return Promise.all(meterValues.values.map(meterValue => {
-			// Create model
-			let meterValueMDB = new MDBMeterValue(meterValue);
-			// Set the ID
-			let attribute = JSON.stringify(meterValue.attribute);
-			meterValueMDB._id = crypto.createHash('sha256')
-				.update(`${meterValue.chargeBoxID}~${meterValue.connectorId}~${meterValue.timestamp}~${meterValue.value}~${attribute}`)
-				.digest("hex");
-			// Save
-			return meterValueMDB.save().then(() => {
-				// // Notify
-				// _centralRestServer.notifyTransactionUpdated(
-				// 	{
-				// 		"id": meterValues.values[0].transactionId,
-				// 		"type": Constants.ENTITY_TRANSACTION_METER_VALUES
-				// 	}
-				// );
+		meterValuesToSave.values.forEach((meterValue) => {
+			// Add
+			meterValuesMDB.push({
+				"_id" : crypto.createHash('sha256')
+					.update(`${meterValue.chargeBoxID}~${meterValue.connectorId}~${meterValue.timestamp}~${meterValue.value}~${attribute}`)
+					.digest("hex"),
+			    "chargeBoxID" : meterValue.chargeBoxID,
+			    "connectorId" : Utils.convertToNumber(meterValue.connectorId),
+			    "transactionId" : Utils.convertToNumber(meterValue.transactionId),
+			    "timestamp" : Utils.convertToDate(meterValue.timestamp),
+			    "value" : Utils.convertToNumber(meterValue.value),
+			    "attribute" : JSON.stringify(meterValue.attribute)
 			});
-		}));
+		});
+		console.log(meterValuesMDB);
+		// Execute
+		await _db.collection('metervalues').insertMany(meterValuesMDB);
 	}
 
-	static handleGetTransactionYears() {
-		// Yes: Get only active ones
-		return MDBTransaction.findOne({})
-				.sort({timestamp:1})
-				.limit(1)
-				.exec().then(firstTransactionMDB => {
-			if (!firstTransactionMDB) {
-				return null;
-			}
-			let transactionYears = [];
-			// Push the rest of the years up to now
-			for (var i = new Date(firstTransactionMDB.timestamp).getFullYear(); i <= new Date().getFullYear(); i++) {
-				// Add
-				transactionYears.push(i);
-			}
-			return transactionYears;
-		});
+	static async handleGetTransactionYears() {
+		// Read DB
+		let firstTransactionsMDB = await _db.collection('transactions')
+			.find({})
+			.sort({timestamp:1})
+			.limit(1)
+			.toArray();
+		// Found?
+		if (!firstTransactionsMDB || firstTransactionsMDB.length == 0) {
+			return null;
+		}
+		let transactionYears = [];
+		// Push the rest of the years up to now
+		for (var i = new Date(firstTransactionsMDB[0].timestamp).getFullYear();
+				i <= new Date().getFullYear(); i++) {
+			// Add
+			transactionYears.push(i);
+		}
+		return transactionYears;
 	}
 
 	static async handleGetTransactions(searchValue, filter, siteID, numberOfTransactions) {
@@ -326,26 +315,47 @@ class TransactionStorage {
 		return transaction;
 	}
 
-	static handleGetActiveTransaction(chargeBoxID, connectorID) {
-		// Get the Active Transaction
-		return MDBTransaction.find({
-					"chargeBoxID": chargeBoxID,
-					"connectorId": connectorID,
-					"stop": { $exists: false }
-				})
-				.populate("userID")
-				.exec().then((transactionsMDB) => {
-			// Set
-			let transaction = null;
-			// Found?
-			if (transactionsMDB && transactionsMDB.length > 0) {
-				// Set data
-				transaction = {};
-				Database.updateTransaction(transactionsMDB[0], transaction);
+	static async handleGetActiveTransaction(chargeBoxID, connectorId) {
+		// Create Aggregation
+		let aggregation = [];
+		// Filters
+		aggregation.push({
+			$match: {
+				"chargeBoxID": chargeBoxID,
+				"connectorId": Utils.convertToNumber(connectorId),
+				"stop": { $exists: false }
 			}
-			// Ok
-			return transaction;
 		});
+		// Add User
+		aggregation.push({
+			$lookup: {
+				from: "users",
+				localField: "userID",
+				foreignField: "_id",
+				as: "user"
+			}
+		});
+		// Add
+		aggregation.push({
+			$unwind: { "path": "$user", "preserveNullAndEmptyArrays": true }
+		});
+		console.log("handleGetActiveTransaction ------------------------------");
+		console.log(aggregation);
+		// Read DB
+		let transactionsMDB = await _db.collection('transactions')
+			.aggregate(aggregation)
+			.toArray();
+		// Set
+		let transaction = null;
+		// Found?
+		if (transactionsMDB && transactionsMDB.length > 0) {
+			// Set data
+			transaction = {};
+			Database.updateTransaction(transactionsMDB[0], transaction);
+		}
+		console.log(transactionsMDB);
+		// Ok
+		return transaction;
 	}
 }
 

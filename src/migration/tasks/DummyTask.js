@@ -1,4 +1,3 @@
-const MDBTransaction = require('../../storage/mongodb/model/MDBTransaction');
 const Database = require('../../utils/Database');
 const ChargingStation = require('../../model/ChargingStation');
 const moment = require('moment');

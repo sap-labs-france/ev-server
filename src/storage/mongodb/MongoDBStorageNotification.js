@@ -65,6 +65,19 @@ class MongoDBStorageNotification {
 		}
 	}
 
+	getObjectIDFromOpLogDocument(document) {
+		// Check
+		switch (document.op) {
+			case 'i': // Insert/Create
+				return document.o._id.toString();
+			case 'u': // Update
+				return document.o2._id.toString();
+			case 'd': // Delete
+				return document.o._id.toString();
+		}
+		return null;
+	}
+
 	async checkChangedCollections()  {
 		// Check
 		if (!_centralRestServer) {
@@ -79,7 +92,7 @@ class MongoDBStorageNotification {
 			.toArray();
 		console.log(lastUpdatedEvseDocs.length);
 		// Aggregate
-		let action, notif;
+		let action, notification;
 		lastUpdatedEvseDocs.forEach((lastUpdatedEvseDoc) => {
 			// Check for permitted operation
 			action = this.getActionFromOperation(lastUpdatedEvseDoc.op);
@@ -97,14 +110,14 @@ class MongoDBStorageNotification {
 					case "evse.userimages":
 						// Notify
 						_centralRestServer.notifyUser(action, {
-							"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
+							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
 						});
 						break;
 					// Charging Stations
 					case "evse.chargingstations":
 						// Notify
 						_centralRestServer.notifyChargingStation(action, {
-							"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
+							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
 						});
 						break;
 					// Company
@@ -112,7 +125,7 @@ class MongoDBStorageNotification {
 					case "evse.companylogos":
 						// Notify
 						_centralRestServer.notifyCompany(action, {
-							"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
+							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
 						});
 						break;
 					// Site Area
@@ -120,7 +133,7 @@ class MongoDBStorageNotification {
 					case "evse.siteareaimages":
 						// Notify
 						_centralRestServer.notifySiteArea(action, {
-							"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
+							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
 						});
 						break;
 					// Site
@@ -128,22 +141,52 @@ class MongoDBStorageNotification {
 					case "evse.siteimages":
 						// Notify
 						_centralRestServer.notifySite(action, {
-							"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
+							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
 						});
 						break;
 					// Transaction
 					case "evse.transactions":
+						notification = {
+							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
+						};
+						// Operation
+						console.log(lastUpdatedEvseDoc);
+						switch (lastUpdatedEvseDoc.op) {
+							case 'i': // Insert/Create
+								notification.connectorId = lastUpdatedEvseDoc.o.connectorId;
+								notification.chargeBoxID = lastUpdatedEvseDoc.o.chargeBoxID;
+								break;
+							case 'u': // Update
+								notification.connectorId = lastUpdatedEvseDoc.o2.connectorId;
+								notification.chargeBoxID = lastUpdatedEvseDoc.o2.chargeBoxID;
+								if (lastUpdatedEvseDoc.o2.stop) {
+									notification.type = Constants.ENTITY_TRANSACTION_STOP;
+								}
+								break;
+						}
 						// Notify
-						_centralRestServer.notifyTransaction(action, {
-							"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
-						});
+						console.log(notification);
+						_centralRestServer.notifyTransaction(action, notification);
+						break;
+					// Meter Values
+					case "evse.metervalues":
+						notification = {};
+						// Operation
+						switch (lastUpdatedEvseDoc.op) {
+							case 'i': // Insert/Create
+								notification.id = lastUpdatedEvseDoc.o.transactionId;
+								notification.type = Constants.ENTITY_TRANSACTION_METER_VALUES;
+								// Notify
+								_centralRestServer.notifyTransaction(action, notification);
+								break;
+						}
 						break;
 					// Charging Stations Configuration
 					case "evse.configurations":
 						// Notify
 						_centralRestServer.notifyChargingStation(action, {
 							"type": Constants.NOTIF_TYPE_CHARGING_STATION_CONFIGURATION,
-							"id": (lastUpdatedEvseDoc.o2 ? lastUpdatedEvseDoc.o2._id.toString() : lastUpdatedEvseDoc.o._id.toString())
+							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
 						});
 						break;
 				}

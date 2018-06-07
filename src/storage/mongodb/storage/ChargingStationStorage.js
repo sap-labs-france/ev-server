@@ -142,6 +142,8 @@ class ChargingStationStorage {
 		// Ensure Date
 		chargingStationToSave.lastHeartBeat = Utils.convertToDate(chargingStationToSave.lastHeartBeat);
 		chargingStationToSave.lastReboot = Utils.convertToDate(chargingStationToSave.lastReboot);
+		// Check ID
+		siteAreaToSave.siteAreaID = Utils.convertToObjectID(chargingStationToSave.siteAreaID);
 		// Transfer
 		let chargingStation = {};
 		Database.updateChargingStation(chargingStationToSave, chargingStation, false);
