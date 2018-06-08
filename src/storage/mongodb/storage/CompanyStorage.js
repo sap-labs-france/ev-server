@@ -93,10 +93,7 @@ class CompanyStorage {
 		}
 		// Check Created By/On
 		companyToSave.createdBy = Utils.convertUserToObjectID(companyToSave.createdBy);
-		companyToSave.createdOn = Utils.convertToDate(companyToSave.createdOn);
-		// Check Last Changed By/On
 		companyToSave.lastChangedBy = Utils.convertUserToObjectID(companyToSave.lastChangedBy);
-		companyToSave.lastChangedOn = Utils.convertToDate(companyToSave.lastChangedOn);
 		// Transfer
 		let company = {};
 		Database.updateCompany(companyToSave, company, false);

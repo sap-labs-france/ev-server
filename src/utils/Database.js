@@ -219,7 +219,7 @@ module.exports = {
 		dest.address = {};
 		dest.allowAllUsersToStopTransactions = src.allowAllUsersToStopTransactions;
 		this.updateAddress(src.address, dest.address)
-		dest.companyID = src.companyID;
+		dest.companyID = Utils.convertToObjectID(src.companyID);
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
@@ -279,12 +279,12 @@ module.exports = {
 	updateCompany(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
 			this.updateID(src, dest);
+			dest.logo = src.logo;
+			dest.numberOfSites = src.numberOfSites;
 		}
 		dest.name = src.name;
 		dest.address = {};
 		this.updateAddress(src.address, dest.address);
-		dest.logo = src.logo;
-		dest.numberOfSites = src.numberOfSites;
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
@@ -333,7 +333,7 @@ module.exports = {
 		}
 		dest.name = src.name;
 		dest.accessControl = src.accessControl;
-		dest.siteID = src.siteID;
+		dest.siteID = Utils.convertToObjectID(src.siteID);
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
@@ -346,15 +346,15 @@ module.exports = {
 		dest.type = src.type;
 		dest.module = src.module;
 		dest.method = src.method;
-		dest.timestamp = src.timestamp;
+		dest.timestamp = Utils.convertToDate(src.timestamp);
 		dest.action = src.action;
 		dest.message = src.message;
 		dest.detailedMessages = src.detailedMessages;
-		if (src.user && typeof src.user == "object") {
+		if (forFrontEnd && src.user && typeof src.user == "object") {
 			dest.user = {};
 			this.updateUser(src.user, dest.user);
 		}
-		if (src.actionOnUser && typeof src.actionOnUser == "object") {
+		if (forFrontEnd && src.actionOnUser && typeof src.actionOnUser == "object") {
 			dest.actionOnUser = {};
 			this.updateUser(src.actionOnUser, dest.actionOnUser);
 		}

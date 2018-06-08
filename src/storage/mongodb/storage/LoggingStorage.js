@@ -53,11 +53,9 @@ class LoggingStorage {
 	static async handleSaveLog(logToSave) {
 		// Check User
 		if (logToSave.user && typeof logToSave.user == "object") {
-			// This is the User Model
 			logToSave.userID = Utils.convertToObjectID(logToSave.user.id);
 		}
 		if (logToSave.actionOnUser && typeof logToSave.actionOnUser == "object") {
-			// This is the User Model
 			logToSave.actionOnUserID = Utils.convertToObjectID(logToSave.actionOnUser.id);
 		}
 		// Transfer

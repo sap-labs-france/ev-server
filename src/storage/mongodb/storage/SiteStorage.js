@@ -156,12 +156,7 @@ class SiteStorage {
 		}
 		// Check Created By/On
 		siteToSave.createdBy = Utils.convertUserToObjectID(siteToSave.createdBy);
-		siteToSave.createdOn = Utils.convertToDate(siteToSave.createdOn);
-		// Check Last Changed By/On
 		siteToSave.lastChangedBy = Utils.convertUserToObjectID(siteToSave.lastChangedBy);
-		siteToSave.lastChangedOn = Utils.convertToDate(siteToSave.lastChangedOn);
-		// Check ID
-		siteToSave.companyID = Utils.convertToObjectID(siteToSave.companyID);
 		// Transfer
 		let site = {};
 		Database.updateSite(siteToSave, site, false);

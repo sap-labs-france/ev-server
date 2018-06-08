@@ -134,12 +134,7 @@ class SiteAreaStorage {
 		}
 		// Check Created By/On
 		siteAreaToSave.createdBy = Utils.convertUserToObjectID(siteAreaToSave.createdBy);
-		siteAreaToSave.createdOn = Utils.convertToDate(siteAreaToSave.createdOn);
-		// Check Last Changed By/On
 		siteAreaToSave.lastChangedBy = Utils.convertUserToObjectID(siteAreaToSave.lastChangedBy);
-		siteAreaToSave.lastChangedOn = Utils.convertToDate(siteAreaToSave.lastChangedOn);
-		// Check ID
-		siteAreaToSave.siteID = Utils.convertToObjectID(siteAreaToSave.siteID);
 		// Transfer
 		let siteArea = {};
 		Database.updateSiteArea(siteAreaToSave, siteArea, false);
