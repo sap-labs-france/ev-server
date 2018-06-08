@@ -258,12 +258,6 @@ class VehicleManufacturerService {
 		}).then((vehicleManufacturerLogo) => {
 			// Found?
 			if (vehicleManufacturerLogo) {
-				Logging.logSecurityInfo({
-					user: req.user,
-					action: action,
-					module: "VehicleManufacturerService", method: "handleGetVehicleManufacturerLogo",
-					message: 'Read Vehicle Manufacturer Logo'
-				});
 				// Set the user
 				res.json(vehicleManufacturerLogo);
 			} else {
@@ -289,12 +283,6 @@ class VehicleManufacturerService {
 		}
 		// Get the vehicle manufacturer logo
 		global.storage.getVehicleManufacturerLogos().then((vehicleManufacturerLogos) => {
-			Logging.logSecurityInfo({
-				user: req.user,
-				action: action,
-				module: "VehicleManufacturerService", method: "handleGetVehicleManufacturerLogos",
-				message: 'Read Vehicle Manufacturer Logos'
-			});
 			res.json(vehicleManufacturerLogos);
 			next();
 		}).catch((err) => {

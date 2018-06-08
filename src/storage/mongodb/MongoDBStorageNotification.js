@@ -150,35 +150,31 @@ class MongoDBStorageNotification {
 							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
 						};
 						// Operation
-						console.log(lastUpdatedEvseDoc);
 						switch (lastUpdatedEvseDoc.op) {
 							case 'i': // Insert/Create
 								notification.connectorId = lastUpdatedEvseDoc.o.connectorId;
 								notification.chargeBoxID = lastUpdatedEvseDoc.o.chargeBoxID;
 								break;
 							case 'u': // Update
-								notification.connectorId = lastUpdatedEvseDoc.o2.connectorId;
-								notification.chargeBoxID = lastUpdatedEvseDoc.o2.chargeBoxID;
-								if (lastUpdatedEvseDoc.o2.stop) {
+								if (lastUpdatedEvseDoc.o.$set.stop) {
 									notification.type = Constants.ENTITY_TRANSACTION_STOP;
 								}
 								break;
 						}
 						// Notify
-						console.log(notification);
 						_centralRestServer.notifyTransaction(action, notification);
 						break;
 					// Meter Values
 					case "evse.metervalues":
 						notification = {};
-						// Operation
-						switch (lastUpdatedEvseDoc.op) {
-							case 'i': // Insert/Create
-								notification.id = lastUpdatedEvseDoc.o.transactionId;
-								notification.type = Constants.ENTITY_TRANSACTION_METER_VALUES;
-								// Notify
-								_centralRestServer.notifyTransaction(action, notification);
-								break;
+						// Insert/Create?
+						if (lastUpdatedEvseDoc.op == 'i') {
+							notification.id = lastUpdatedEvseDoc.o.transactionId;
+							notification.type = Constants.ENTITY_TRANSACTION_METER_VALUES;
+							notification.chargeBoxID = lastUpdatedEvseDoc.o.chargeBoxID;
+							notification.connectorId = lastUpdatedEvseDoc.o.connectorId;
+							// Notify, Force Transaction Update
+							_centralRestServer.notifyTransaction(Constants.ACTION_UPDATE, notification);
 						}
 						break;
 					// Charging Stations Configuration

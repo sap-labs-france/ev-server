@@ -255,12 +255,6 @@ class SiteAreaService {
 		}).then((siteAreaImage) => {
 			// Found?
 			if (siteAreaImage) {
-				Logging.logSecurityInfo({
-					user: req.user,
-					action: action,
-					module: "SiteAreaService", method: "handleGetSiteAreaImage",
-					message: 'Read Site Area Image'
-				});
 				// Set the user
 				res.json(siteAreaImage);
 			} else {
@@ -286,13 +280,6 @@ class SiteAreaService {
 		}
 		// Get the Site Area image
 		global.storage.getSiteAreaImages().then((siteAreaImages) => {
-			// Log
-			Logging.logSecurityInfo({
-				user: req.user,
-				action: action,
-				module: "SiteAreaService", method: "handleGetSiteAreaImages",
-				message: 'Read Site Area Images'
-			});
 			res.json(siteAreaImages);
 			next();
 		}).catch((err) => {

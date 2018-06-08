@@ -11,6 +11,7 @@ module.exports = {
 	ENTITY_CHARGING_STATION: "ChargingStation",
 	ENTITY_CHARGING_STATIONS: "ChargingStations",
 	ENTITY_TRANSACTION: "Transaction",
+	ENTITY_TRANSACTIONS: "Transactions",
 	ENTITY_TRANSACTION_METER_VALUES: "MeterValues",
 	ENTITY_TRANSACTION_STOP: "Stop",
 	ENTITY_USER: "User",

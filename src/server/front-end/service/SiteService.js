@@ -162,13 +162,6 @@ class SiteService {
 		}).then((siteImage) => {
 			// Found?
 			if (siteImage) {
-				// Log
-				Logging.logSecurityInfo({
-					user: req.user,
-					action: action,
-					module: "SiteService", method: "handleGetSiteImage",
-					message: 'Read Site Image'
-				});
 				// Set the user
 				res.json(siteImage);
 			} else {
@@ -194,13 +187,6 @@ class SiteService {
 		}
 		// Get the site image
 		global.storage.getSiteImages().then((siteImages) => {
-			// Log
-			Logging.logSecurityInfo({
-				user: req.user,
-				action: action,
-				module: "SiteService", method: "handleGetSiteImages",
-				message: 'Read Site Images'
-			});
 			res.json(siteImages);
 			next();
 		}).catch((err) => {

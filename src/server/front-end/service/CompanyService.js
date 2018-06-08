@@ -138,12 +138,6 @@ class CompanyService {
 		}).then((companyLogo) => {
 			// Found?
 			if (companyLogo) {
-				Logging.logSecurityInfo({
-					user: req.user,
-					action: action,
-					module: "CompanyService", method: "handleGetCompanyLogo",
-					message: 'Read Company Logo'
-				});
 				// Set the user
 				res.json(companyLogo);
 			} else {
@@ -169,12 +163,6 @@ class CompanyService {
 		}
 		// Get the company logo
 		global.storage.getCompanyLogos().then((companyLogos) => {
-			Logging.logSecurityInfo({
-				user: req.user,
-				action: action,
-				module: "CompanyService", method: "handleGetCompanyLogos",
-				message: 'Read Company Logos'
-			});
 			res.json(companyLogos);
 			next();
 		}).catch((err) => {

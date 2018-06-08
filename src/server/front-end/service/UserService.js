@@ -252,13 +252,6 @@ class UserService {
 					560, "UserService", "handleGetUser",
 					req.user);
 			}
-			Logging.logSecurityInfo({
-				user: req.user,
-				actionOnUser: user.getModel(),
-				action: action,
-				module: "UserService", method: "handleGetUser",
-				message: 'Read User'
-			});
 			// Set the user
 			res.json(
 				// Filter
@@ -314,13 +307,6 @@ class UserService {
 		}).then((userImage) => {
 			// Found?
 			if (userImage) {
-				Logging.logSecurityInfo({
-					user: req.user,
-					actionOnUser: user.getModel(),
-					action: action,
-					module: "UserService", method: "handleGetUserImage",
-					message: 'Read User Image'
-				});
 				// Set the user
 				res.json(userImage);
 			} else {
@@ -346,13 +332,6 @@ class UserService {
 		}
 		// Get the user image
 		global.storage.getUserImages().then((userImages) => {
-			// Log
-			Logging.logSecurityInfo({
-				user: req.user,
-				action: action,
-				module: "UserService", method: "handleGetUserImages",
-				message: 'Read User Images'
-			});
 			res.json(userImages);
 			next();
 		}).catch((err) => {

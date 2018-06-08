@@ -155,13 +155,6 @@ class VehicleService {
 		}).then((vehicleImage) => {
 			// Found?
 			if (vehicleImage) {
-				// Log
-				Logging.logSecurityInfo({
-					user: req.user,
-					action: action,
-					module: "VehicleService", method: "handleGetVehicleImage",
-					message: 'Read Vehicle Image'
-				});
 				// Set the user
 				res.json(vehicleImage);
 			} else {
@@ -187,13 +180,6 @@ class VehicleService {
 		}
 		// Get the vehicle image
 		global.storage.getVehicleImages().then((vehicleImages) => {
-			// Log
-			Logging.logSecurityInfo({
-				user: req.user,
-				action: action,
-				module: "VehicleService", method: "handleGetVehicleImages",
-				message: 'Read Vehicle Images'
-			});
 			res.json(vehicleImages);
 			next();
 		}).catch((err) => {

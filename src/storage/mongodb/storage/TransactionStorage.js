@@ -47,49 +47,56 @@ class TransactionStorage {
 		return meterValues;
 	}
 
-	static async handleSaveTransaction(transaction) {
-		// Check ID
-		console.log("handleSaveTransaction --------------------------------------------");
-		console.log(transaction);
-		transaction.userID = Utils.convertToObjectID(transaction.userID);
-		if (transaction.stop && transaction.stop.userID) {
-			transaction.stop.userID = Utils.convertToObjectID(transaction.stop.userID);
+	static async handleSaveTransaction(transactionToSave) {
+		// Create
+		let transaction = {
+			chargeBoxID: transactionToSave.chargeBoxID,
+			connectorId: Utils.convertToNumber(transactionToSave.connectorId),
+			meterStart: Utils.convertToNumber(transactionToSave.meterStart),
+			tagID: transactionToSave.tagID,
+			timestamp: Utils.convertToDate(transactionToSave.timestamp),
+			userID: Utils.convertToObjectID(transactionToSave.userID)
+		}
+		// Check Stop
+		if (transactionToSave.stop) {
+			transaction.stop = {};
+			transaction.stop.timestamp = Utils.convertToDate(transactionToSave.stop.timestamp);
+			transaction.stop.meterStop = Utils.convertToNumber(transactionToSave.stop.meterStop);
+			transaction.stop.tagID = transactionToSave.stop.tagID;
+			transaction.stop.userID = Utils.convertToObjectID(transactionToSave.stop.userID);
+			transaction.stop.totalInactivitySecs = Utils.convertToNumber(transactionToSave.stop.totalInactivitySecs);
+			transaction.stop.totalConsumption = Utils.convertToNumber(transactionToSave.stop.totalConsumption);
 		}
 		// Modify
 	    let result = await _db.collection('transactions').findOneAndUpdate(
-			{"_id": Utils.convertToNumber(transaction.id)},
+			{"_id": Utils.convertToNumber(transactionToSave.id)},
 			{$set: transaction},
 			{upsert: true, new: true, returnOriginal: false});
 		// Create
 		let updatedTransaction = {};
 		// Update
 		Database.updateTransaction(result.value, updatedTransaction);
-		console.log(updatedTransaction);
-		console.log("------------------------------------------------------------------");
 		// Return
 		return updatedTransaction;
 	}
 
 	static async handleSaveMeterValues(meterValuesToSave) {
 		let meterValuesMDB = [];
-		console.log("handleSaveMeterValues -----------------");
-		console.log(meterValuesToSave);
 		// Save all
 		meterValuesToSave.values.forEach((meterValue) => {
 			// Add
 			meterValuesMDB.push({
 				"_id" : crypto.createHash('sha256')
-					.update(`${meterValue.chargeBoxID}~${meterValue.connectorId}~${meterValue.timestamp}~${meterValue.value}~${attribute}`)
+					.update(`${meterValue.chargeBoxID}~${meterValue.connectorId}~${meterValue.timestamp}~${meterValue.value}~${JSON.stringify(meterValue.attribute)}`)
 					.digest("hex"),
 			    "chargeBoxID" : meterValue.chargeBoxID,
 			    "connectorId" : Utils.convertToNumber(meterValue.connectorId),
 			    "transactionId" : Utils.convertToNumber(meterValue.transactionId),
 			    "timestamp" : Utils.convertToDate(meterValue.timestamp),
 			    "value" : Utils.convertToNumber(meterValue.value),
-			    "attribute" : JSON.stringify(meterValue.attribute)
+			    "attribute" : meterValue.attribute
 			});
 		});
-		console.log(meterValuesMDB);
 		// Execute
 		await _db.collection('metervalues').insertMany(meterValuesMDB);
 	}
@@ -339,8 +346,6 @@ class TransactionStorage {
 		aggregation.push({
 			$unwind: { "path": "$user", "preserveNullAndEmptyArrays": true }
 		});
-		console.log("handleGetActiveTransaction ------------------------------");
-		console.log(aggregation);
 		// Read DB
 		let transactionsMDB = await _db.collection('transactions')
 			.aggregate(aggregation)
@@ -353,7 +358,6 @@ class TransactionStorage {
 			transaction = {};
 			Database.updateTransaction(transactionsMDB[0], transaction);
 		}
-		console.log(transactionsMDB);
 		// Ok
 		return transaction;
 	}

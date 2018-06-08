@@ -8,7 +8,7 @@ module.exports.email = {
 				"left": {
 					"width": 150,
 					"height": 60,
-					"url": "<%- evseDashboardURL %>/assets/img/angel-wings-email.gif"
+					"url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
 				},
 				"right": {
 					"width": 50,
@@ -48,7 +48,7 @@ module.exports.fr_FR.email = {
 				"left": {
 					"width": 150,
 					"height": 60,
-					"url": "<%- evseDashboardURL %>/assets/img/angel-wings-email.gif"
+					"url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
 				},
 				"right": {
 					"width": 50,
