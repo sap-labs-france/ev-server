@@ -226,10 +226,10 @@ module.exports = {
 	updateVehicleManufacturer(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
 			this.updateID(src, dest);
+			dest.logo = src.logo;
+			dest.numberOfVehicles = src.numberOfVehicles;
 		}
 		dest.name = src.name;
-		dest.logo = src.logo;
-		dest.numberOfVehicles = src.numberOfVehicles;
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 

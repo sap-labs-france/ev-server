@@ -58,7 +58,6 @@ class CompanyStorage {
 		// Read DB
 		let companyLogosMDB = await _db.collection('companylogos')
 			.find({})
-			.limit(1)
 			.toArray();
 		let companyLogo = null;
 		// Set

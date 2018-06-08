@@ -1,51 +1,47 @@
-const mongoose = require('mongoose');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const Database = require('../../../utils/Database');
 const Utils = require('../../../utils/Utils');
 const Configuration = require('../../../utils/Configuration');
-const MDBVehicleManufacturer = require('../model/MDBVehicleManufacturer');
 const VehicleManufacturer = require('../../../model/VehicleManufacturer');
 const VehicleStorage = require('./VehicleStorage');
 const Vehicle = require('../../../model/Vehicle');
 const User = require('../../../model/User');
 const crypto = require('crypto');
-const ObjectId = mongoose.Types.ObjectId;
-const MDBVehicleManufacturerLogo = require('../model/MDBVehicleManufacturerLogo');
+const ObjectID = require('mongodb').ObjectID;
 
-let _centralRestServer;
 let _db;
 
 class VehicleManufacturerStorage {
-	static setCentralRestServer(centralRestServer) {
-		_centralRestServer = centralRestServer;
-	}
-
 	static setDatabase(db) {
 		_db = db;
 	}
 
-	static handleGetVehicleManufacturerLogo(id) {
-		// Exec request
-		return MDBVehicleManufacturerLogo.findById(id)
-				.exec().then((vehicleManufacturerLogoMDB) => {
-			let vehicleManufacturerLogo = null;
-			// Set
-			if (vehicleManufacturerLogoMDB) {
-				vehicleManufacturerLogo = {
-					id: vehicleManufacturerLogoMDB._id,
-					logo: vehicleManufacturerLogoMDB.logo
-				};
-			}
-			return vehicleManufacturerLogo;
-		});
+	static async handleGetVehicleManufacturerLogo(id) {
+		// Read DB
+		let vehicleManufacturerLogosMDB = await _db.collection('vehiclemanufacturerlogos')
+			.find({_id: Utils.convertToObjectID(id)})
+			.limit(1)
+			.toArray();
+		let vehicleManufacturerLogo = null;
+		// Set
+		if (vehicleManufacturerLogosMDB && vehicleManufacturerLogosMDB.length > 0) {
+			vehicleManufacturerLogo = {
+				id: vehicleManufacturerLogosMDB[0]._id,
+				logo: vehicleManufacturerLogosMDB[0].logo
+			};
+		}
+		return vehicleManufacturerLogo;
 	}
 
-	static handleGetVehicleManufacturerLogos() {
-		// Exec request
-		return MDBVehicleManufacturerLogo.find({})
-				.exec().then((vehicleManufacturerLogosMDB) => {
-			let vehicleManufacturerLogos = [];
+	static async handleGetVehicleManufacturerLogos() {
+		// Read DB
+		let vehicleManufacturerLogosMDB = await _db.collection('vehiclemanufacturerlogos')
+			.find()
+			.toArray();
+		let vehicleManufacturerLogos = [];
+		// Check
+		if (vehicleManufacturerLogosMDB && vehicleManufacturerLogosMDB.length > 0) {
 			// Add
 			vehicleManufacturerLogosMDB.forEach((vehicleManufacturerLogoMDB) => {
 				vehicleManufacturerLogos.push({
@@ -53,110 +49,85 @@ class VehicleManufacturerStorage {
 					logo: vehicleManufacturerLogoMDB.logo
 				});
 			});
-			return vehicleManufacturerLogos;
-		});
-	}
-
-	static handleSaveVehicleManufacturerLogo(vehicleManufacturer) {
-		// Check if ID/Name is provided
-		if (!vehicleManufacturer.id) {
-			// ID must be provided!
-			return Promise.reject( new Error(
-				"Vehicle Manufacturer has no ID and cannot be created or updated") );
-		} else {
-			// Save Logo
-			return MDBVehicleManufacturerLogo.findOneAndUpdate({
-				"_id": new ObjectId(vehicleManufacturer.id)
-			}, vehicleManufacturer, {
-				new: true,
-				upsert: true
-			});
-			// Notify Change
-			_centralRestServer.notifyVehicleManufacturerUpdated(
-				{
-					"id": vehicleManufacturer.id,
-					"type": Constants.ENTITY_VEHICLE_MANUFACTURER
-				}
-			);
 		}
+		return vehicleManufacturerLogos;
 	}
 
-	static handleGetVehicleManufacturer(id) {
+	static async handleSaveVehicleManufacturerLogo(vehicleManufacturerLogoToSave) {
+		// Check if ID/Name is provided
+		if (!vehicleManufacturerLogoToSave.id) {
+			// ID must be provided!
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`Vehicle Manufacturer Logo has no ID`,
+				550, "VehicleManufacturerStorage", "handleSaveVehicleManufacturerLogo");
+		}
+		// Modify
+	    await _db.collection('vehiclemanufacturerlogos').findOneAndUpdate(
+			{'_id': Utils.convertToObjectID(vehicleManufacturerLogoToSave.id)},
+			{$set: {logo: vehicleManufacturerLogoToSave.logo}},
+			{upsert: true, new: true, returnOriginal: false});
+	}
+
+	static async handleGetVehicleManufacturer(id) {
 		// Create Aggregation
 		let aggregation = [];
 		// Filters
 		aggregation.push({
-			$match: { _id: ObjectId(id) }
+			$match: { _id: Utils.convertToObjectID(id) }
 		});
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
-		// Execute
-		return MDBVehicleManufacturer.aggregate(aggregation)
-				.exec().then((vehicleManufacturerMDB) => {
-			let vehicleManufacturer = null;
-			// Check
-			if (vehicleManufacturerMDB && vehicleManufacturerMDB.length > 0) {
-				// Create
-				vehicleManufacturer = new VehicleManufacturer(vehicleManufacturerMDB[0]);
-			}
-			return vehicleManufacturer;
-		});
+		// Read DB
+		let vehicleManufacturersMDB = await _db.collection('vehiclemanufacturers')
+			.aggregate(aggregation)
+			.limit(1)
+			.toArray();
+		let vehicleManufacturer = null;
+		// Check
+		if (vehicleManufacturersMDB && vehicleManufacturersMDB.length > 0) {
+			// Create
+			vehicleManufacturer = new VehicleManufacturer(vehicleManufacturersMDB[0]);
+		}
+		return vehicleManufacturer;
 	}
 
-	static handleSaveVehicleManufacturer(vehicleManufacturer) {
+	static async handleSaveVehicleManufacturer(vehicleManufacturerToSave) {
 		// Check if ID/Model is provided
-		if (!vehicleManufacturer.id && !vehicleManufacturer.name) {
+		if (!vehicleManufacturerToSave.id && !vehicleManufacturerToSave.name) {
 			// ID must be provided!
-			return Promise.reject( new Error(
-				"Vehicle Manufacturer has no ID and no Name and cannot be created or updated") );
-		} else {
-			let vehicleManufacturerFilter = {};
-			// Build Request
-			if (vehicleManufacturer.id) {
-				vehicleManufacturerFilter._id = vehicleManufacturer.id;
-			} else {
-				vehicleManufacturerFilter._id = ObjectId();
-			}
-			// Check Created By
-			if (vehicleManufacturer.createdBy && typeof vehicleManufacturer.createdBy == "object") {
-				// This is the User Model
-				vehicleManufacturer.createdBy = new ObjectId(vehicleManufacturer.createdBy.id);
-			}
-			// Check Last Changed By
-			if (vehicleManufacturer.lastChangedBy && typeof vehicleManufacturer.lastChangedBy == "object") {
-				// This is the User Model
-				vehicleManufacturer.lastChangedBy = new ObjectId(vehicleManufacturer.lastChangedBy.id);
-			}
-			// Get
-			let newVehicleManufacturer;
-			return MDBVehicleManufacturer.findOneAndUpdate(vehicleManufacturerFilter, vehicleManufacturer, {
-				new: true,
-				upsert: true
-			}).then((vehicleManufacturerMDB) => {
-				newVehicleManufacturer = new VehicleManufacturer(vehicleManufacturerMDB);
-				// Notify Change
-				if (!vehicleManufacturer.id) {
-					_centralRestServer.notifyVehicleManufacturerCreated(
-						{
-							"id": newVehicleManufacturer.getID(),
-							"type": Constants.ENTITY_VEHICLE_MANUFACTURER
-						}
-					);
-				} else {
-					_centralRestServer.notifyVehicleManufacturerUpdated(
-						{
-							"id": newVehicleManufacturer.getID(),
-							"type": Constants.ENTITY_VEHICLE_MANUFACTURER
-						}
-					);
-				}
-				return newVehicleManufacturer;
-			});
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`Vehicle Manufacturer has no ID and no Name`,
+				550, "VehicleManufacturerStorage", "handleSaveVehicleManufacturer");
 		}
+		let vehicleManufacturerFilter = {};
+		// Build Request
+		if (vehicleManufacturerToSave.id) {
+			vehicleManufacturerFilter._id = Utils.convertToObjectID(vehicleManufacturerToSave.id);
+		} else {
+			vehicleManufacturerFilter._id = new ObjectID();
+		}
+		// Check Created By/On
+		vehicleManufacturerToSave.createdBy = Utils.ensureIsUserObjectID(vehicleManufacturerToSave.createdBy);
+		vehicleManufacturerToSave.createdOn = Utils.convertToDate(vehicleManufacturerToSave.createdOn);
+		// Check Last Changed By/On
+		vehicleManufacturerToSave.lastChangedBy = Utils.ensureIsUserObjectID(vehicleManufacturerToSave.lastChangedBy);
+		vehicleManufacturerToSave.lastChangedOn = Utils.convertToDate(vehicleManufacturerToSave.lastChangedOn);
+		// Transfer
+		let vehicleManufacturer = {};
+		Database.updateVehicleManufacturer(vehicleManufacturerToSave, vehicleManufacturer, false);
+		// Modify
+	    let result = await _db.collection('vehiclemanufacturers').findOneAndUpdate(
+			vehicleManufacturerFilter,
+			{$set: vehicleManufacturer},
+			{upsert: true, new: true, returnOriginal: false});
+		// Create
+		return new VehicleManufacturer(result.value);
 	}
 
 	// Delegate
-	static handleGetVehicleManufacturers(searchValue, withVehicles, vehicleType, numberOfVehicleManufacturers) {
+	static async handleGetVehicleManufacturers(searchValue, withVehicles, vehicleType, numberOfVehicleManufacturers) {
 		// Check Limit
 		numberOfVehicleManufacturers = Utils.checkRecordLimit(numberOfVehicleManufacturers);
 		// Set the filters
@@ -223,12 +194,15 @@ class VehicleManufacturerStorage {
 				$limit: numberOfVehicleManufacturers
 			});
 		}
-		// Execute
-		return MDBVehicleManufacturer.aggregate(aggregation)
-				.exec().then((vehicleManufacturersMDB) => {
-			let vehicleManufacturers = [];
+		// Read DB
+		let vehiclemanufacturersMDB = await _db.collection('vehiclemanufacturers')
+			.aggregate(aggregation)
+			.toArray();
+		let vehicleManufacturers = [];
+		// Check
+		if (vehiclemanufacturersMDB && vehiclemanufacturersMDB.length > 0) {
 			// Create
-			vehicleManufacturersMDB.forEach((vehicleManufacturerMDB) => {
+			vehiclemanufacturersMDB.forEach((vehicleManufacturerMDB) => {
 				// Create
 				let vehicleManufacturer = new VehicleManufacturer(vehicleManufacturerMDB);
 				// Set Vehicles
@@ -252,36 +226,24 @@ class VehicleManufacturerStorage {
 				// Add
 				vehicleManufacturers.push(vehicleManufacturer);
 			});
-			return vehicleManufacturers;
-		});
+		}
+		return vehicleManufacturers;
 	}
 
-	static handleDeleteVehicleManufacturer(id) {
+	static async handleDeleteVehicleManufacturer(id) {
 		// Delete Vehicles
-		return VehicleStorage.handleGetVehicles(null, id).then((vehicles) => {
-			// Delete
-			let proms = [];
-			vehicles.forEach((vehicle) => {
-				//	Delete Vehicle
-				proms.push(vehicle.delete());
-			});
-			// Execute all promises
-			return Promise.all(proms);
-		}).then((results) => {
-			// Remove the VehicleManufacturer
-			return MDBVehicleManufacturer.findByIdAndRemove(id);
-		}).then((results) => {
-			// Remove Logo
-			return MDBVehicleManufacturerLogo.findByIdAndRemove(id);
-		}).then((result) => {
-			// Notify Change
-			_centralRestServer.notifyVehicleManufacturerDeleted(
-				{
-					"id": id,
-					"type": Constants.ENTITY_VEHICLE_MANUFACTURER
-				}
-			);
+		let vehicles = await VehicleStorage.handleGetVehicles(null, id);
+		// Delete
+		vehicles.forEach(async (vehicle) => {
+			//	Delete Vehicle
+			await vehicle.delete();
 		});
+		// Delete the Vehicle Manufacturers
+		await _db.collection('vehiclemanufacturers')
+			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
+		// Delete Vehicle Manufacturer Logo
+		await _db.collection('vehiclemanufacturerlogos')
+			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 	}
 }
 

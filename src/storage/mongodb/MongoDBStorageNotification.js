@@ -90,7 +90,6 @@ class MongoDBStorageNotification {
 				ts : { $gte : new Timestamp(0, Math.trunc(_localDBLastTimestampCheck.getTime() / 1000)) }
 			})
 			.toArray();
-		console.log(lastUpdatedEvseDocs.length);
 		// Aggregate
 		let action, notification;
 		lastUpdatedEvseDocs.forEach((lastUpdatedEvseDoc) => {
@@ -113,10 +112,18 @@ class MongoDBStorageNotification {
 							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
 						});
 						break;
-					// Charging Stations
+					// Charging Station
 					case "evse.chargingstations":
 						// Notify
 						_centralRestServer.notifyChargingStation(action, {
+							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
+						});
+						break;
+					// Manufacturer
+					case "evse.vehiclemanufacturers":
+					case "evse.vehiclemanufacturerlogos":
+						// Notify
+						_centralRestServer.notifyVehicleManufacturer(action, {
 							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
 						});
 						break;
@@ -197,7 +204,6 @@ class MongoDBStorageNotification {
 		_centralRestServer = centralRestServer;
 		// Set
 		VehicleStorage.setCentralRestServer(centralRestServer);
-		VehicleManufacturerStorage.setCentralRestServer(centralRestServer);
 	}
 }
 

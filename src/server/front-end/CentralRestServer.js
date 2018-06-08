@@ -197,37 +197,11 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyVehicleManufacturerCreated(data) {
+	notifyVehicleManufacturer(action, data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": Constants.ENTITY_VEHICLE_MANUFACTURER,
-			"action": Constants.ACTION_CREATE,
-			"data": data
-		});
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Constants.ENTITY_VEHICLE_MANUFACTURERS
-		});
-	}
-
-	notifyVehicleManufacturerUpdated(data) {
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Constants.ENTITY_VEHICLE_MANUFACTURER,
-			"action": Constants.ACTION_UPDATE,
-			"data": data
-		});
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Constants.ENTITY_VEHICLE_MANUFACTURERS
-		});
-	}
-
-	notifyVehicleManufacturerDeleted(data) {
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Constants.ENTITY_VEHICLE_MANUFACTURER,
-			"action": Constants.ACTION_DELETE,
+			"action": action,
 			"data": data
 		});
 		// Add in buffer
