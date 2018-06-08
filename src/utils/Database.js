@@ -168,19 +168,17 @@ module.exports = {
 	updateUser(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
 			this.updateID(src, dest);
+			dest.image = src.image;
+			dest.numberOfSites = src.numberOfSites;
+			dest.numberOfTransactions = src.numberOfTransactions;
 		}
 		dest.name = src.name;
 		dest.firstName = src.firstName;
-		if (forFrontEnd) {
-			dest.image = src.image;
-		}
 		dest.email = src.email;
 		dest.phone = src.phone;
 		dest.mobile = src.mobile;
 		dest.iNumber = src.iNumber;
 		dest.costCenter = src.costCenter;
-		dest.numberOfSites = src.numberOfSites;
-		dest.numberOfTransactions = src.numberOfTransactions;
 		dest.address = {};
 		this.updateAddress(src.address, dest.address)
 		if (src.status) {
@@ -204,8 +202,8 @@ module.exports = {
 		}
 		if (src.password) {
 			dest.password = src.password;
-			dest.passwordWrongNbrTrials = (!src.passwordWrongNbrTrials?0:src.passwordWrongNbrTrials);
-			dest.passwordBlockedUntil = (!src.passwordBlockedUntil?"":src.passwordBlockedUntil);
+			dest.passwordWrongNbrTrials = Utils.convertToInt(src.passwordWrongNbrTrials);
+			dest.passwordBlockedUntil = Utils.convertToDate(src.passwordBlockedUntil);
 		}
 		dest.passwordResetHash = src.passwordResetHash;
 	},

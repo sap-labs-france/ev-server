@@ -99,6 +99,7 @@ class AuthService {
 							message: `User has been unlocked and can try to login again`});
 						// Reinit nbr of trial and status
 						user.setPasswordWrongNbrTrials(0);
+						user.setPasswordBlockedUntil(null);
 						user.setStatus(Users.USER_STATUS_ACTIVE);
 						// Save
 						user.save().then(() => {
@@ -116,6 +117,7 @@ class AuthService {
 				} else {
 					// An admin has reactivated the account
 					user.setPasswordWrongNbrTrials(0);
+					user.setPasswordBlockedUntil(null);
 					// Check user
 					AuthService.checkUserLogin(action, user, filteredRequest, req, res, next);
 				}
@@ -443,6 +445,8 @@ class AuthService {
 					}
 					// Reset wrong number of trial
 					user.setPasswordWrongNbrTrials(0);
+					user.setPasswordBlockedUntil(null);
+					user.setPasswordResetHash(null);
 					// Save
 					return user.save();
 				}).then(() => {
