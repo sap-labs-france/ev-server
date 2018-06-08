@@ -6,6 +6,7 @@ const Company = require('../../../model/Company');
 const SiteStorage = require('./SiteStorage');
 const Site = require('../../../model/Site');
 const ObjectID = require('mongodb').ObjectID;
+const AppError = require('../../../exception/AppError');
 
 let _db;
 
@@ -91,10 +92,10 @@ class CompanyStorage {
 			companyFilter._id = new ObjectID();
 		}
 		// Check Created By/On
-		companyToSave.createdBy = Utils.ensureIsUserObjectID(companyToSave.createdBy);
+		companyToSave.createdBy = Utils.convertUserToObjectID(companyToSave.createdBy);
 		companyToSave.createdOn = Utils.convertToDate(companyToSave.createdOn);
 		// Check Last Changed By/On
-		companyToSave.lastChangedBy = Utils.ensureIsUserObjectID(companyToSave.lastChangedBy);
+		companyToSave.lastChangedBy = Utils.convertUserToObjectID(companyToSave.lastChangedBy);
 		companyToSave.lastChangedOn = Utils.convertToDate(companyToSave.lastChangedOn);
 		// Transfer
 		let company = {};

@@ -119,11 +119,19 @@ class MongoDBStorageNotification {
 							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
 						});
 						break;
-					// Manufacturer
+					// Vehicle Manufacturer
 					case "evse.vehiclemanufacturers":
 					case "evse.vehiclemanufacturerlogos":
 						// Notify
 						_centralRestServer.notifyVehicleManufacturer(action, {
+							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
+						});
+						break;
+					// Vehicle
+					case "evse.vehicles":
+					case "evse.vehicleimages":
+						// Notify
+						_centralRestServer.notifyVehicle(action, {
 							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
 						});
 						break;
@@ -202,8 +210,6 @@ class MongoDBStorageNotification {
 	setCentralRestServer(centralRestServer) {
 		// Set
 		_centralRestServer = centralRestServer;
-		// Set
-		VehicleStorage.setCentralRestServer(centralRestServer);
 	}
 }
 

@@ -1,48 +1,46 @@
-const mongoose = require('mongoose');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const Database = require('../../../utils/Database');
 const Utils = require('../../../utils/Utils');
 const Configuration = require('../../../utils/Configuration');
-const MDBVehicle = require('../model/MDBVehicle');
-const MDBVehicleImage = require('../model/MDBVehicleImage');
 const Vehicle = require('../../../model/Vehicle');
 const ChargingStation = require('../../../model/ChargingStation');
 const User = require('../../../model/User');
-const crypto = require('crypto');
-const ObjectId = mongoose.Types.ObjectId;
+const AppError = require('../../../exception/AppError');
+const ObjectID = require('mongodb').ObjectID;
 
-let _centralRestServer;
 let _db;
 
 class VehicleStorage {
-	static setCentralRestServer(centralRestServer) {
-		_centralRestServer = centralRestServer;
-	}
-
-	static setDatabase(db) {
+	static async setDatabase(db) {
 		_db = db;
 	}
 
-	static handleGetVehicleImage(id) {
-		// Exec request
-		return MDBVehicleImage.findById(id).exec().then((vehicleImageMDB) => {
-			let vehicleImage = null;
-			// Set
-			if (vehicleImageMDB) {
-				vehicleImage = {
-					id: vehicleImageMDB._id,
-					images: vehicleImageMDB.images
-				};
-			}
-			return vehicleImage;
-		});
+	static async handleGetVehicleImage(id) {
+		// Read DB
+		let vehicleImagesMDB = await _db.collection('vehicleimages')
+			.find({_id: Utils.convertToObjectID(id)})
+			.limit(1)
+			.toArray();
+		let vehicleImage = null;
+		// Set
+		if (vehicleImagesMDB && vehicleImagesMDB.length > 0) {
+			vehicleImage = {
+				id: vehicleImagesMDB[0]._id,
+				images: vehicleImagesMDB[0].images
+			};
+		}
+		return vehicleImage;
 	}
 
-	static handleGetVehicleImages() {
-		// Exec request
-		return MDBVehicleImage.find({}).exec().then((vehicleImagesMDB) => {
-			let vehicleImages = [];
+	static async handleGetVehicleImages() {
+		// Read DB
+		let vehicleImagesMDB = await _db.collection('vehicleimages')
+			.find({_id: Utils.convertToObjectID(id)})
+			.toArray();
+		let vehicleImages = [];
+		// Set
+		if (vehicleImagesMDB && vehicleImagesMDB.length > 0) {
 			// Add
 			vehicleImagesMDB.forEach((vehicleImageMDB) => {
 				vehicleImages.push({
@@ -50,109 +48,81 @@ class VehicleStorage {
 					images: vehicleImageMDB.images
 				});
 			});
-			return vehicleImages;
-		});
+		}
+		return vehicleImages;
 	}
 
-	static handleGetVehicle(id) {
+	static async handleGetVehicle(id) {
 		// Create Aggregation
 		let aggregation = [];
 		// Filters
 		aggregation.push({
-			$match: { _id: new ObjectId(id) }
+			$match: { _id: Utils.convertToObjectID(id) }
 		});
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
-		// Execute
-		return MDBVehicle.aggregate(aggregation)
-				.exec().then((vehicleMDB) => {
-			let vehicle = null;
-			// Check
-			if (vehicleMDB && vehicleMDB.length > 0) {
-				// Create
-				vehicle = new Vehicle(vehicleMDB[0]);
-			}
-			return vehicle;
-		});
+		// Read DB
+		let vehiclesMDB = await _db.collection('vehicles')
+			.aggregate(aggregation)
+			.toArray();
+		// Set
+		let vehicle = null;
+		if (vehiclesMDB && vehiclesMDB.length > 0) {
+			// Create
+			vehicle = new Vehicle(vehiclesMDB[0]);
+		}
+		return vehicle;
 	}
 
-	static handleSaveVehicle(vehicle) {
+	static async handleSaveVehicle(vehicleToSave) {
 		// Check if ID/Model is provided
-		if (!vehicle.id && !vehicle.model) {
+		if (!vehicleToSave.id && !vehicleToSave.model) {
 			// ID must be provided!
-			return Promise.reject( new Error(
-				"Vehicle has no ID and no Model and cannot be created or updated") );
-		} else {
-			let vehicleFilter = {};
-			// Build Request
-			if (vehicle.id) {
-				vehicleFilter._id = vehicle.id;
-			} else {
-				vehicleFilter._id = ObjectId();
-			}
-			// Check Created By
-			if (vehicle.createdBy && typeof vehicle.createdBy == "object") {
-				// This is the User Model
-				vehicle.createdBy = new ObjectId(vehicle.createdBy.id);
-			}
-			// Check Last Changed By
-			if (vehicle.lastChangedBy && typeof vehicle.lastChangedBy == "object") {
-				// This is the User Model
-				vehicle.lastChangedBy = new ObjectId(vehicle.lastChangedBy.id);
-			}
-			// Get
-			let newVehicle;
-			return MDBVehicle.findOneAndUpdate(vehicleFilter, vehicle, {
-				new: true,
-				upsert: true
-			}).then((vehicleMDB) => {
-				newVehicle = new Vehicle(vehicleMDB);
-				// Notify Change
-				if (!vehicle.id) {
-					_centralRestServer.notifyVehicleCreated(
-						{
-							"id": newVehicle.getID(),
-							"type": Constants.ENTITY_VEHICLE
-						}
-					);
-				} else {
-					_centralRestServer.notifyVehicleUpdated(
-						{
-							"id": newVehicle.getID(),
-							"type": Constants.ENTITY_VEHICLE
-						}
-					);
-				}
-				return newVehicle;
-			});
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`Vehicle has no ID and no Model`,
+				550, "VehicleStorage", "handleSaveVehicle");
 		}
+		let vehicleFilter = {};
+		// Build Request
+		if (vehicleToSave.id) {
+			vehicleFilter._id = Utils.convertUserToObjectID(vehicleToSave.id);
+		} else {
+			vehicleFilter._id = new ObjectID();
+		}
+		// Set Created By
+		vehicleToSave.createdBy = Utils.convertUserToObjectID(vehicleToSave.createdBy);
+		vehicleToSave.lastChangedBy = Utils.convertUserToObjectID(vehicleToSave.lastChangedBy);
+		// Transfer
+		let vehicle = {};
+		Database.updateVehicle(vehicleToSave, vehicle, false);
+		// Modify
+	    let result = await _db.collection('vehicles').findOneAndUpdate(
+			vehicleFilter,
+			{$set: vehicle},
+			{upsert: true, new: true, returnOriginal: false});
+		// Create
+		return new Vehicle(result.value);
 	}
 
-	static handleSaveVehicleImages(vehicle) {
+	static async handleSaveVehicleImages(vehicleImagesToSave) {
 		// Check if ID is provided
-		if (!vehicle.id) {
+		if (!vehicleImagesToSave.id) {
 			// ID must be provided!
-			return Promise.reject( new Error("Vehicle has no ID cannot be created or updated") );
-		} else {
-			// Save Image
-			return MDBVehicleImage.findOneAndUpdate({
-				"_id": new ObjectId(vehicle.id)
-			}, vehicle, {
-				new: true,
-				upsert: true
-			});
-			// Notify Change
-			_centralRestServer.notifyVehicleUpdated(
-				{
-					"id": vehicle.id,
-					"type": Constants.ENTITY_VEHICLE
-				}
-			);
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`Vehicle Images has no ID`,
+				550, "VehicleStorage", "handleSaveVehicleImages");
 		}
+		// Modify
+	    await _db.collection('vehicleimages').findOneAndUpdate(
+			{'_id': Utils.convertToObjectID(vehicleImagesToSave.id)},
+			{$set: {images: vehicleImagesToSave.images}},
+			{upsert: true, new: true, returnOriginal: false});
 	}
 
 	// Delegate
-	static handleGetVehicles(searchValue, vehicleManufacturerID, vehicleType, numberOfVehicles) {
+	static async handleGetVehicles(searchValue, vehicleManufacturerID, vehicleType, numberOfVehicles) {
 		// Check Limit
 		numberOfVehicles = Utils.checkRecordLimit(numberOfVehicles);
 		// Set the filters
@@ -166,7 +136,7 @@ class VehicleStorage {
 		}
 		// Set Company?
 		if (vehicleManufacturerID) {
-			filters.vehicleManufacturerID = new ObjectId(vehicleManufacturerID);
+			filters.vehicleManufacturerID = Utils.convertToObjectID(vehicleManufacturerID);
 		}
 		// Set Vehicle Type?
 		if (vehicleType) {
@@ -218,10 +188,13 @@ class VehicleStorage {
 				$limit: numberOfVehicles
 			});
 		}
-		// Execute
-		return MDBVehicle.aggregate(aggregation)
-				.exec().then((vehiclesMDB) => {
-			let vehicles = [];
+		// Read DB
+		let vehiclesMDB = await _db.collection('vehicles')
+			.aggregate(aggregation)
+			.toArray();
+		let vehicles = [];
+		// Check
+		if (vehiclesMDB && vehiclesMDB.length > 0) {
 			// Create
 			vehiclesMDB.forEach((vehicleMDB) => {
 				// Create
@@ -229,25 +202,17 @@ class VehicleStorage {
 				// Add
 				vehicles.push(vehicle);
 			});
-			return vehicles;
-		});
+		}
+		return vehicles;
 	}
 
-	static handleDeleteVehicle(id) {
-		// Remove the Vehicle
-		MDBVehicle.findByIdAndRemove(id).then((results) => {
-			// Remove Image
-			return MDBVehicleImage.findByIdAndRemove( id );
-		}).then((result) => {
-			// Notify Change
-			_centralRestServer.notifyVehicleDeleted(
-				{
-					"id": id,
-					"type": Constants.ENTITY_VEHICLE
-				}
-			);
-			return;
-		});
+	static async handleDeleteVehicle(id) {
+		// Delete Vehicle
+		await _db.collection('vehicles')
+			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
+		// Delete Images
+		await _db.collection('vehicleimages')
+			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 	}
 }
 

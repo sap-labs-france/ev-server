@@ -63,8 +63,11 @@ module.exports = {
 		return changedID;
 	},
 
-	convertToNumber(id) {
+	convertToInt(id) {
 		let changedID = id;
+		if (!id) {
+			return 0;
+		}
 		// Check
 		if (typeof id == "string") {
 			// Create Object
@@ -73,7 +76,20 @@ module.exports = {
 		return changedID;
 	},
 
-	ensureIsUserObjectID(user) {
+	convertToFloat(id) {
+		let changedID = id;
+		if (!id) {
+			return 0;
+		}
+		// Check
+		if (typeof id == "string") {
+			// Create Object
+			changedID = parseFloat(id);
+		}
+		return changedID;
+	},
+
+	convertUserToObjectID(user) {
 		let userID = null;
 		// Check Created By
 		if (user) {

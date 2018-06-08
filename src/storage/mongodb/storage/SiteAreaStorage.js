@@ -6,6 +6,7 @@ const Configuration = require('../../../utils/Configuration');
 const ChargingStation = require('../../../model/ChargingStation');
 const Site = require('../../../model/Site');
 const SiteArea = require('../../../model/SiteArea');
+const AppError = require('../../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
 
 let _db;
@@ -132,10 +133,10 @@ class SiteAreaStorage {
 			siteAreaFilter._id = new ObjectID();
 		}
 		// Check Created By/On
-		siteAreaToSave.createdBy = Utils.ensureIsUserObjectID(siteAreaToSave.createdBy);
+		siteAreaToSave.createdBy = Utils.convertUserToObjectID(siteAreaToSave.createdBy);
 		siteAreaToSave.createdOn = Utils.convertToDate(siteAreaToSave.createdOn);
 		// Check Last Changed By/On
-		siteAreaToSave.lastChangedBy = Utils.ensureIsUserObjectID(siteAreaToSave.lastChangedBy);
+		siteAreaToSave.lastChangedBy = Utils.convertUserToObjectID(siteAreaToSave.lastChangedBy);
 		siteAreaToSave.lastChangedOn = Utils.convertToDate(siteAreaToSave.lastChangedOn);
 		// Check ID
 		siteAreaToSave.siteID = Utils.convertToObjectID(siteAreaToSave.siteID);

@@ -7,7 +7,7 @@ const VehicleManufacturer = require('../../../model/VehicleManufacturer');
 const VehicleStorage = require('./VehicleStorage');
 const Vehicle = require('../../../model/Vehicle');
 const User = require('../../../model/User');
-const crypto = require('crypto');
+const AppError = require('../../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
 
 let _db;
@@ -108,12 +108,9 @@ class VehicleManufacturerStorage {
 		} else {
 			vehicleManufacturerFilter._id = new ObjectID();
 		}
-		// Check Created By/On
-		vehicleManufacturerToSave.createdBy = Utils.ensureIsUserObjectID(vehicleManufacturerToSave.createdBy);
-		vehicleManufacturerToSave.createdOn = Utils.convertToDate(vehicleManufacturerToSave.createdOn);
-		// Check Last Changed By/On
-		vehicleManufacturerToSave.lastChangedBy = Utils.ensureIsUserObjectID(vehicleManufacturerToSave.lastChangedBy);
-		vehicleManufacturerToSave.lastChangedOn = Utils.convertToDate(vehicleManufacturerToSave.lastChangedOn);
+		// Check Created/Last Changed By
+		vehicleManufacturerToSave.createdBy = Utils.convertUserToObjectID(vehicleManufacturerToSave.createdBy);
+		vehicleManufacturerToSave.lastChangedBy = Utils.convertUserToObjectID(vehicleManufacturerToSave.lastChangedBy);
 		// Transfer
 		let vehicleManufacturer = {};
 		Database.updateVehicleManufacturer(vehicleManufacturerToSave, vehicleManufacturer, false);

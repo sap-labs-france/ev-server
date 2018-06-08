@@ -45,12 +45,12 @@ module.exports = {
 		dest.meterSerialNumber = src.meterSerialNumber;
 		dest.endpoint = src.endpoint;
 		dest.ocppVersion = src.ocppVersion;
-		dest.lastHeartBeat = src.lastHeartBeat;
-		dest.lastReboot = src.lastReboot;
+		dest.lastHeartBeat = Utils.convertToDate(src.lastHeartBeat);
+		dest.lastReboot = Utils.convertToDate(src.lastReboot);
 		if (src.numberOfConnectedPhase) {
-			dest.numberOfConnectedPhase = src.numberOfConnectedPhase;
+			dest.numberOfConnectedPhase = Utils.convertToInt(src.numberOfConnectedPhase);
 		}
-		dest.siteAreaID = src.siteAreaID;
+		dest.siteAreaID = Utils.convertToObjectID(src.siteAreaID);
 		if (src.chargingStationURL) {
 			dest.chargingStationURL = src.chargingStationURL;
 		}
@@ -60,13 +60,13 @@ module.exports = {
 			src.connectors.forEach((connector) => {
 				if (connector) {
 					dest.connectors.push({
-						"connectorId": connector.connectorId,
-						"currentConsumption": connector.currentConsumption,
-						"totalConsumption": connector.totalConsumption,
+						"connectorId": Utils.convertToInt(connector.connectorId),
+						"currentConsumption": Utils.convertToFloat(connector.currentConsumption),
+						"totalConsumption": Utils.convertToFloat(connector.totalConsumption),
 						"status": connector.status,
 						"errorCode": connector.errorCode,
-						"power": connector.power,
-						"activeTransactionID": connector.activeTransactionID
+						"power": Utils.convertToInt(connector.power),
+						"activeTransactionID": Utils.convertToInt(connector.activeTransactionID)
 					});
 				} else {
 					dest.connectors.push(null);
@@ -83,7 +83,7 @@ module.exports = {
 		if (forFrontEnd) {
 			this.updateID(src, dest);
 		}
-		dest.timestamp = src.timestamp;
+		dest.timestamp = Utils.convertToDate(src.timestamp);
 		dest.version = src.version;
 		dest.language = src.language;
 		dest.text = src.text;
@@ -94,8 +94,8 @@ module.exports = {
 		if (forFrontEnd) {
 			this.updateID(src, dest);
 		}
-		dest.timestamp = src.timestamp;
-		dest.priceKWH = src.priceKWH;
+		dest.timestamp = Utils.convertToDate(src.timestamp);
+		dest.priceKWH = Utils.convertToFloat(src.priceKWH);
 		dest.priceUnit = src.priceUnit;
 	},
 
@@ -103,17 +103,17 @@ module.exports = {
 		if (forFrontEnd) {
 			this.updateID(src, dest);
 		}
-		dest.timestamp = src.timestamp;
+		dest.timestamp = Utils.convertToDate(src.timestamp);
 		dest.name = src.name;
 		dest.version = src.version;
-		dest.durationSecs = src.durationSecs;
+		dest.durationSecs = Utils.convertToFloat(src.durationSecs);
 	},
 
 	updateConfiguration(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
 			this.updateID(src, dest);
 		}
-		dest.timestamp = src.timestamp;
+		dest.timestamp = Utils.convertToDate(src.timestamp);
 		dest.configuration = src.configuration;
 	},
 
@@ -121,8 +121,9 @@ module.exports = {
 		if (forFrontEnd) {
 			this.updateID(src, dest);
 		}
-		dest.connectorId = src.connectorId;
-		dest.timestamp = src.timestamp;
+		dest.chargeBoxID = src.chargeBoxID;
+		dest.connectorId = Utils.convertToInt(src.connectorId);
+		dest.timestamp = Utils.convertToDate(src.timestamp);
 		dest.status = src.status;
 		dest.errorCode = src.errorCode;
 		dest.info = src.info;
@@ -134,19 +135,19 @@ module.exports = {
 		if (forFrontEnd) {
 			this.updateID(src, dest);
 		}
-		dest.timestamp = src.timestamp;
+		dest.timestamp = Utils.convertToDate(src.timestamp);
 		dest.channel = src.channel;
 		dest.sourceId = src.sourceId;
 		dest.sourceDescr = src.sourceDescr;
 		// User
-		dest.userID = src.userID;
-		if (!Utils.isEmptyJSon(dest.userID)) {
+		dest.userID = Utils.convertToObjectID(src.userID);
+		if (forFrontEnd && !Utils.isEmptyJSon(dest.userID)) {
 			dest.user = {};
 			this.updateUser(src.userID, dest.user);
 		}
 		// ChargeBox
 		dest.chargeBoxID = src.chargeBoxID
-		if (!Utils.isEmptyJSon(dest.chargeBoxID)) {
+		if (forFrontEnd && !Utils.isEmptyJSon(dest.chargeBoxID)) {
 			dest.chargeBox = {};
 			this.updateChargingStation(src.chargeBoxID, dest.chargeBox);
 		}
@@ -156,10 +157,11 @@ module.exports = {
 		if (forFrontEnd) {
 			this.updateID(src, dest);
 		}
-		dest.connectorId = src.connectorId;
-		dest.transactionId = src.transactionId;
-		dest.timestamp = src.timestamp;
-		dest.value = src.value;
+		dest.chargeBoxID = src.chargeBoxID;
+		dest.connectorId = Utils.convertToInt(src.connectorId);
+		dest.transactionId = Utils.convertToInt(src.transactionId);
+		dest.timestamp = Utils.convertToDate(src.timestamp);
+		dest.value = Utils.convertToInt(src.value);
 		dest.attribute = src.attribute;
 	},
 
@@ -188,7 +190,7 @@ module.exports = {
 			dest.locale = src.locale;
 		}
 		if (src.eulaAcceptedOn && src.eulaAcceptedVersion && src.eulaAcceptedHash) {
-			dest.eulaAcceptedOn = src.eulaAcceptedOn;
+			dest.eulaAcceptedOn = Utils.convertToDate(src.eulaAcceptedOn);
 			dest.eulaAcceptedVersion = src.eulaAcceptedVersion;
 			dest.eulaAcceptedHash = src.eulaAcceptedHash;
 		}
@@ -244,11 +246,15 @@ module.exports = {
 				// Yes
 				dest.createdBy = {};
 				this.updateUser(src.createdBy, dest.createdBy);
+			} else {
+				try {
+					dest.createdBy = Utils.convertToObjectID(dest.createdBy);
+				} catch (e) {} // Not an Object ID
 			}
 		}
 		// Check
 		if (src.createdOn) {
-			dest.createdOn = src.createdOn;
+			dest.createdOn = Utils.convertToDate(src.createdOn);
 		}
 		// Check
 		if (src.lastChangedBy) {
@@ -260,11 +266,15 @@ module.exports = {
 				// Yes
 				dest.lastChangedBy = {};
 				this.updateUser(src.lastChangedBy, dest.lastChangedBy);
+			} else {
+				try {
+					dest.lastChangedBy = Utils.convertToObjectID(dest.lastChangedBy);
+				} catch (e) {} // Not an Object ID
 			}
 		}
 		// Check
 		if (src.lastChangedOn) {
-			dest.lastChangedOn = src.lastChangedOn;
+			dest.lastChangedOn = Utils.convertToDate(src.lastChangedOn);
 		}
 	},
 
@@ -283,23 +293,23 @@ module.exports = {
 	updateVehicle(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
 			this.updateID(src, dest);
+			dest.images = src.images;
+			dest.numberOfImages = src.numberOfImages;
 		}
 		dest.type = src.type;
 		dest.model = src.model;
-		dest.batteryKW = src.batteryKW;
-		dest.autonomyKmWLTP = src.autonomyKmWLTP;
-		dest.autonomyKmReal = src.autonomyKmReal;
-		dest.horsePower = src.horsePower;
-		dest.torqueNm = src.torqueNm;
-		dest.performance0To100kmh = src.performance0To100kmh;
-		dest.weightKg = src.weightKg;
-		dest.lengthMeter = src.lengthMeter;
-		dest.widthMeter = src.widthMeter;
-		dest.heightMeter = src.heightMeter;
-		dest.releasedOn = src.releasedOn;
-		dest.images = src.images;
-		dest.numberOfImages = src.numberOfImages;
-		dest.vehicleManufacturerID = src.vehicleManufacturerID;
+		dest.batteryKW = Utils.convertToInt(src.batteryKW);
+		dest.autonomyKmWLTP = Utils.convertToInt(src.autonomyKmWLTP);
+		dest.autonomyKmReal = Utils.convertToInt(src.autonomyKmReal);
+		dest.horsePower = Utils.convertToInt(src.horsePower);
+		dest.torqueNm = Utils.convertToInt(src.torqueNm);
+		dest.performance0To100kmh = Utils.convertToFloat(src.performance0To100kmh);
+		dest.weightKg = Utils.convertToInt(src.weightKg);
+		dest.lengthMeter = Utils.convertToFloat(src.lengthMeter);
+		dest.widthMeter = Utils.convertToFloat(src.widthMeter);
+		dest.heightMeter = Utils.convertToFloat(src.heightMeter);
+		dest.releasedOn = Utils.convertToDate(src.releasedOn);
+		dest.vehicleManufacturerID = Utils.convertToObjectID(src.vehicleManufacturerID);
 		this.updateCreatedAndLastChanged(src, dest);
 	},
 
@@ -363,30 +373,30 @@ module.exports = {
 			this.updateChargingStation(src.chargeBox, dest.chargeBox);
 		}
 		// User
-		dest.userID = src.userID;
+		dest.userID = Utils.convertToObjectID(src.userID);
 		if (forFrontEnd && !Utils.isEmptyJSon(src.user)) {
 			dest.user = {};
 			this.updateUser(src.user, dest.user);
 		}
-		dest.connectorId = src.connectorId;
-		dest.timestamp = src.timestamp;
+		dest.connectorId = Utils.convertToInt(src.connectorId);
+		dest.timestamp = Utils.convertToDate(src.timestamp);
 		dest.tagID = src.tagID;
-		dest.meterStart = src.meterStart;
+		dest.meterStart = Utils.convertToInt(src.meterStart);
 		// Stop?
 		if (!Utils.isEmptyJSon(src.stop)) {
 			dest.stop = {};
 			// User
-			dest.stop.userID = src.stop.userID;
+			dest.stop.userID = Utils.convertToObjectID(src.stop.userID);
 			if (forFrontEnd && !Utils.isEmptyJSon(src.stop.user)) {
 				dest.stop.user = {};
 				this.updateUser(src.stop.user, dest.stop.user);
 			}
-			dest.stop.timestamp = src.stop.timestamp;
+			dest.stop.timestamp = Utils.convertToDate(src.stop.timestamp);
 			dest.stop.tagID = src.stop.tagID;
-			dest.stop.meterStop = src.stop.meterStop;
+			dest.stop.meterStop = Utils.convertToInt(src.stop.meterStop);
 			dest.stop.transactionData = src.stop.transactionData;
-			dest.stop.totalConsumption = src.stop.totalConsumption;
-			dest.stop.totalInactivitySecs = src.stop.totalInactivitySecs;
+			dest.stop.totalConsumption = Utils.convertToInt(src.stop.totalConsumption);
+			dest.stop.totalInactivitySecs = Utils.convertToInt(src.stop.totalInactivitySecs);
 		}
 		// Remote Stop?
 		if (!Utils.isEmptyJSon(src.remotestop)) {

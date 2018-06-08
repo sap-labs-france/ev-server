@@ -25,7 +25,7 @@ class TransactionStorage {
 		// Build filter
 		let filter = {};
 		// Mandatory filters
-		filter.transactionId = Utils.convertToNumber(transactionId);
+		filter.transactionId = Utils.convertToInt(transactionId);
 		// Read DB
 		let meterValuesMDB = await _db.collection('metervalues')
 			.find(filter)
@@ -48,28 +48,12 @@ class TransactionStorage {
 	}
 
 	static async handleSaveTransaction(transactionToSave) {
-		// Create
-		let transaction = {
-			chargeBoxID: transactionToSave.chargeBoxID,
-			connectorId: Utils.convertToNumber(transactionToSave.connectorId),
-			meterStart: Utils.convertToNumber(transactionToSave.meterStart),
-			tagID: transactionToSave.tagID,
-			timestamp: Utils.convertToDate(transactionToSave.timestamp),
-			userID: Utils.convertToObjectID(transactionToSave.userID)
-		}
-		// Check Stop
-		if (transactionToSave.stop) {
-			transaction.stop = {};
-			transaction.stop.timestamp = Utils.convertToDate(transactionToSave.stop.timestamp);
-			transaction.stop.meterStop = Utils.convertToNumber(transactionToSave.stop.meterStop);
-			transaction.stop.tagID = transactionToSave.stop.tagID;
-			transaction.stop.userID = Utils.convertToObjectID(transactionToSave.stop.userID);
-			transaction.stop.totalInactivitySecs = Utils.convertToNumber(transactionToSave.stop.totalInactivitySecs);
-			transaction.stop.totalConsumption = Utils.convertToNumber(transactionToSave.stop.totalConsumption);
-		}
+		// Set
+		let transaction = {};
+		Database.updateTransaction(transactionToSave, transaction, false);
 		// Modify
 	    let result = await _db.collection('transactions').findOneAndUpdate(
-			{"_id": Utils.convertToNumber(transactionToSave.id)},
+			{"_id": Utils.convertToInt(transactionToSave.id)},
 			{$set: transaction},
 			{upsert: true, new: true, returnOriginal: false});
 		// Create
@@ -83,19 +67,16 @@ class TransactionStorage {
 	static async handleSaveMeterValues(meterValuesToSave) {
 		let meterValuesMDB = [];
 		// Save all
-		meterValuesToSave.values.forEach((meterValue) => {
+		meterValuesToSave.values.forEach((meterValueToSave) => {
+			let meterValue = {}
+			// Id
+			meterValue._id = crypto.createHash('sha256')
+				.update(`${meterValueToSave.chargeBoxID}~${meterValueToSave.connectorId}~${meterValueToSave.timestamp}~${meterValueToSave.value}~${JSON.stringify(meterValueToSave.attribute)}`)
+				.digest("hex");
+			// Set
+			Database.updateMeterValue(meterValueToSave, meterValue, false);
 			// Add
-			meterValuesMDB.push({
-				"_id" : crypto.createHash('sha256')
-					.update(`${meterValue.chargeBoxID}~${meterValue.connectorId}~${meterValue.timestamp}~${meterValue.value}~${JSON.stringify(meterValue.attribute)}`)
-					.digest("hex"),
-			    "chargeBoxID" : meterValue.chargeBoxID,
-			    "connectorId" : Utils.convertToNumber(meterValue.connectorId),
-			    "transactionId" : Utils.convertToNumber(meterValue.transactionId),
-			    "timestamp" : Utils.convertToDate(meterValue.timestamp),
-			    "value" : Utils.convertToNumber(meterValue.value),
-			    "attribute" : meterValue.attribute
-			});
+			meterValuesMDB.push(meterValue);
 		});
 		// Execute
 		await _db.collection('metervalues').insertMany(meterValuesMDB);
@@ -146,7 +127,7 @@ class TransactionStorage {
 		}
 		// Connector
 		if (filter.connectorId) {
-			match.connectorId = Utils.convertToNumber(filter.connectorId);
+			match.connectorId = Utils.convertToInt(filter.connectorId);
 		}
 		// Date provided?
 		if (filter.startDateTime || filter.endDateTime) {
@@ -265,7 +246,7 @@ class TransactionStorage {
 		let aggregation = [];
 		// Filters
 		aggregation.push({
-			$match: { _id: Utils.convertToNumber(id) }
+			$match: { _id: Utils.convertToInt(id) }
 		});
 		// Add User
 		aggregation.push({
@@ -329,7 +310,7 @@ class TransactionStorage {
 		aggregation.push({
 			$match: {
 				"chargeBoxID": chargeBoxID,
-				"connectorId": Utils.convertToNumber(connectorId),
+				"connectorId": Utils.convertToInt(connectorId),
 				"stop": { $exists: false }
 			}
 		});

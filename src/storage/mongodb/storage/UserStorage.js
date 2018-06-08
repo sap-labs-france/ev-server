@@ -7,6 +7,7 @@ const Utils = require('../../../utils/Utils');
 const User = require('../../../model/User');
 const crypto = require('crypto');
 const ObjectID = require('mongodb').ObjectID;
+const AppError = require('../../../exception/AppError');
 
 let _db;
 
@@ -188,20 +189,9 @@ class UserStorage {
 		} else {
 			userFilter.email = userToSave.email;
 		}
-		// Check Created By
-		if (userToSave.createdBy && typeof userToSave.createdBy == "object") {
-			// This is the User Model
-			userToSave.createdBy = Utils.convertToObjectID(userToSave.createdBy.id);
-		}
-		// Check Last Changed By
-		if (userToSave.lastChangedBy && typeof userToSave.lastChangedBy == "object") {
-			// This is the User Model
-			userToSave.lastChangedBy = Utils.convertToObjectID(userToSave.lastChangedBy.id);
-		}
-		// Ensure Date
-		userToSave.createdOn = Utils.convertToDate(userToSave.createdOn);
-		userToSave.lastChangedOn = Utils.convertToDate(userToSave.lastChangedOn);
-		userToSave.eulaAcceptedOn = Utils.convertToDate(userToSave.eulaAcceptedOn);
+		// Check Created/Last Changed By
+		userToSave.createdBy = Utils.convertUserToObjectID(userToSave.createdBy);
+		userToSave.lastChangedBy = Utils.convertUserToObjectID(userToSave.lastChangedBy);
 		// Transfer
 		let user = {};
 		Database.updateUser(userToSave, user, false);

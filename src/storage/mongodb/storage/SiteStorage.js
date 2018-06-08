@@ -9,6 +9,7 @@ const Site = require('../../../model/Site');
 const SiteArea = require('../../../model/SiteArea');
 const SiteAreaStorage = require('./SiteAreaStorage');
 const User = require('../../../model/User');
+const AppError = require('../../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
 
 let _db;
@@ -149,15 +150,15 @@ class SiteStorage {
 		let siteFilter = {};
 		// Build Request
 		if (siteToSave.id) {
-			siteFilter._id = Utils.ensureIsUserObjectID(siteToSave.id);
+			siteFilter._id = Utils.convertUserToObjectID(siteToSave.id);
 		} else {
 			siteFilter._id = new ObjectID();
 		}
 		// Check Created By/On
-		siteToSave.createdBy = Utils.ensureIsUserObjectID(siteToSave.createdBy);
+		siteToSave.createdBy = Utils.convertUserToObjectID(siteToSave.createdBy);
 		siteToSave.createdOn = Utils.convertToDate(siteToSave.createdOn);
 		// Check Last Changed By/On
-		siteToSave.lastChangedBy = Utils.ensureIsUserObjectID(siteToSave.lastChangedBy);
+		siteToSave.lastChangedBy = Utils.convertUserToObjectID(siteToSave.lastChangedBy);
 		siteToSave.lastChangedOn = Utils.convertToDate(siteToSave.lastChangedOn);
 		// Check ID
 		siteToSave.companyID = Utils.convertToObjectID(siteToSave.companyID);

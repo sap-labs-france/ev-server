@@ -20,7 +20,7 @@ const path = require('path');
 require('source-map-support').install();
 
 let _centralSystemRestConfig;
-let _io;
+let _socketIO;
 let _currentNotifications = [];
 
 class CentralSystemRestServer {
@@ -112,10 +112,10 @@ class CentralSystemRestServer {
 		}
 
 		// Init Socket IO
-		_io = require("socket.io")(server);
+		_socketIO = require("socket.io")(server);
 
 		// Handle Socket IO connection
-		_io.on("connection", (socket) => {
+		_socketIO.on("connection", (socket) => {
 			// Handle Socket IO connection
 			socket.on("disconnect", () =>{
 				// Nothing to do
@@ -131,7 +131,7 @@ class CentralSystemRestServer {
 					console.log(
 						`Notify '${_currentNotifications[i].entity}', Action '${(_currentNotifications[i].action?_currentNotifications[i].action:'')}', Data '${(_currentNotifications[i].data ? JSON.stringify(_currentNotifications[i].data, null, ' ') : '')}'`);
 					// Notify all Web Sockets
-					_io.sockets.emit(_currentNotifications[i].entity, _currentNotifications[i]);
+					_socketIO.sockets.emit(_currentNotifications[i].entity, _currentNotifications[i]);
 					// Remove
 					_currentNotifications.splice(i, 1);
 				}
@@ -158,37 +158,11 @@ class CentralSystemRestServer {
 		});
 	}
 
-	notifyVehicleCreated(data) {
+	notifyVehicle(action, data) {
 		// Add in buffer
 		this.addNotificationInBuffer({
 			"entity": Constants.ENTITY_VEHICLE,
-			"action": Constants.ACTION_CREATE,
-			"data": data
-		});
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Constants.ENTITY_VEHICLES
-		});
-	}
-
-	notifyVehicleUpdated(data) {
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Constants.ENTITY_VEHICLE,
-			"action": Constants.ACTION_UPDATE,
-			"data": data
-		});
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Constants.ENTITY_VEHICLES
-		});
-	}
-
-	notifyVehicleDeleted(data) {
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Constants.ENTITY_VEHICLE,
-			"action": Constants.ACTION_DELETE,
+			"action": action,
 			"data": data
 		});
 		// Add in buffer
@@ -267,45 +241,6 @@ class CentralSystemRestServer {
 		this.addNotificationInBuffer({
 			"entity": Constants.ENTITY_CHARGING_STATION,
 			"action": action,
-			"data": data
-		});
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Constants.ENTITY_CHARGING_STATIONS
-		});
-	}
-
-	notifyChargingStationUpdated(data) {
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Constants.ENTITY_CHARGING_STATION,
-			"action": Constants.ACTION_UPDATE,
-			"data": data
-		});
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Constants.ENTITY_CHARGING_STATIONS
-		});
-	}
-
-	notifyChargingStationCreated(data) {
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Constants.ENTITY_CHARGING_STATION,
-			"action": Constants.ACTION_CREATE,
-			"data": data
-		});
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Constants.ENTITY_CHARGING_STATIONS
-		});
-	}
-
-	notifyChargingStationDeleted(data) {
-		// Add in buffer
-		this.addNotificationInBuffer({
-			"entity": Constants.ENTITY_CHARGING_STATION,
-			"action": Constants.ACTION_DELETE,
 			"data": data
 		});
 		// Add in buffer

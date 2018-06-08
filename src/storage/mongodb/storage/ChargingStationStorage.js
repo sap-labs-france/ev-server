@@ -132,18 +132,9 @@ class ChargingStationStorage {
 			// Set it to null
 			chargingStationToSave.siteAreaID = null;
 		}
-
 		// Check Created By/On
-		chargingStationToSave.createdBy = Utils.ensureIsUserObjectID(chargingStationToSave.createdBy);
-		chargingStationToSave.createdOn = Utils.convertToDate(chargingStationToSave.createdOn);
-		// Check Last Changed By/On
-		chargingStationToSave.lastChangedBy = Utils.ensureIsUserObjectID(chargingStationToSave.lastChangedBy);
-		chargingStationToSave.lastChangedOn = Utils.convertToDate(chargingStationToSave.lastChangedOn);
-		// Ensure Date
-		chargingStationToSave.lastHeartBeat = Utils.convertToDate(chargingStationToSave.lastHeartBeat);
-		chargingStationToSave.lastReboot = Utils.convertToDate(chargingStationToSave.lastReboot);
-		// Check ID
-		chargingStationToSave.siteAreaID = Utils.convertToObjectID(chargingStationToSave.siteAreaID);
+		chargingStationToSave.createdBy = Utils.convertUserToObjectID(chargingStationToSave.createdBy);
+		chargingStationToSave.lastChangedBy = Utils.convertUserToObjectID(chargingStationToSave.lastChangedBy);
 		// Transfer
 		let chargingStation = {};
 		Database.updateChargingStation(chargingStationToSave, chargingStation, false);
@@ -308,24 +299,17 @@ class ChargingStationStorage {
 			});
 	}
 
-	static async handleSaveStatusNotification(statusNotification) {
+	static async handleSaveStatusNotification(statusNotificationToSave) {
+		let statusNotification = {};
 		// Set the ID
-		statusNotification.id = crypto.createHash('sha256')
-			.update(`${statusNotification.chargeBoxID}~${statusNotification.connectorId}~${statusNotification.status}~${statusNotification.timestamp}`)
+		statusNotification._id = crypto.createHash('sha256')
+			.update(`${statusNotificationToSave.chargeBoxID}~${statusNotificationToSave.connectorId}~${statusNotificationToSave.status}~${statusNotificationToSave.timestamp}`)
 			.digest("hex");
+		// Set
+		Database.updateStatusNotification(statusNotificationToSave, statusNotification, false);
 		// Insert
 	    await _db.collection('statusnotifications')
-			.insertOne({
-				_id: statusNotification.id,
-				chargeBoxID: statusNotification.chargeBoxID,
-				connectorId: statusNotification.connectorId,
-				status: statusNotification.status,
-				errorCode: statusNotification.errorCode,
-				info: statusNotification.info,
-				vendorId: statusNotification.vendorId,
-				vendorErrorCode: statusNotification.vendorErrorCode,
-				timestamp: Utils.convertToDate(statusNotification.timestamp)
-			});
+			.insertOne(statusNotification);
 	}
 
 	static async handleGetConfigurationParamValue(chargeBoxID, paramName) {
