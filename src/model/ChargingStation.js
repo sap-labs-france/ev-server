@@ -461,6 +461,8 @@ class ChargingStation {
 						source: this.getID(), module: "ChargingStation",
 						method: "handleBootNotification", action: "BootNotification",
 						message: `Configuration has been saved` });
+					// Update connector power
+					return this.updateConnectorsPower(true);
 				}).catch((error) => {
 					// Log error
 					Logging.logActionExceptionMessage("BootNotification", error);
