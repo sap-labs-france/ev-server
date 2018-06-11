@@ -94,6 +94,7 @@ class CentralSystemServer {
 				chargingStation.setChargingStationURL(chargingStation.getEndPoint());
 				// Update timestamp
 				chargingStation.setCreatedOn(new Date());
+				chargingStation.setLastHeartBeat(new Date());
 			} else {
 				// Set the URL = enpoint
 				if (!chargingStation.getChargingStationURL()) {
@@ -106,6 +107,7 @@ class CentralSystemServer {
 				chargingStation.setChargeBoxSerialNumber(args.chargeBoxSerialNumber);
 				chargingStation.setFirmwareVersion(args.firmwareVersion);
 				chargingStation.setOcppVersion(args.ocppVersion);
+				chargingStation.setLastHeartBeat(new Date());
 				// Back again
 				chargingStation.setDeleted(false);
 			}
