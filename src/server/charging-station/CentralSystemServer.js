@@ -95,13 +95,17 @@ class CentralSystemServer {
 				// Update timestamp
 				chargingStation.setCreatedOn(new Date());
 			} else {
-				// Check
+				// Set the URL = enpoint
 				if (!chargingStation.getChargingStationURL()) {
-					// Set the URL = enpoint
 					chargingStation.setChargingStationURL(chargingStation.getEndPoint())
 				}
 				// Update data
-				Database.updateChargingStation(args, chargingStation.getModel());
+				chargingStation.setChargePointVendor(args.chargePointVendor);
+				chargingStation.setChargePointModel(args.chargePointModel);
+				chargingStation.setChargePointSerialNumber(args.chargePointSerialNumber);
+				chargingStation.setChargeBoxSerialNumber(args.chargeBoxSerialNumber);
+				chargingStation.setFirmwareVersion(args.firmwareVersion);
+				chargingStation.setOcppVersion(args.ocppVersion);
 				// Back again
 				chargingStation.setDeleted(false);
 			}
@@ -117,7 +121,7 @@ class CentralSystemServer {
 				source: headers.chargeBoxIdentity,
 				module: "CentralSystemServer", method: "handleBootNotification",
 				action: "BootNotification",
-				message: `Reboot with success`,
+				message: `Rebooted with success`,
 				detailedMessages: args });
 
 			// Return the result
