@@ -111,9 +111,9 @@ class CentralSystemServer {
 			}
 			// Save Charging Station
 			return chargingStation.save();
-		}).then(() => {
+		}).then((updatedChargingStation) => {
 			// Save the Boot Notification
-			return chargingStation.handleBootNotification(args);
+			return updatedChargingStation.handleBootNotification(args);
 		// Return the result
 		}).then(() => {
 			// Log
@@ -130,7 +130,7 @@ class CentralSystemServer {
 				return {
 					"bootNotificationResponse": {
 						"status": 'Accepted',
-						"currentTime": new Date(),
+						"currentTime": new Date().toISOString(),
 						"interval": _chargingStationConfig.heartbeatIntervalSecs
 					}
 				};
@@ -139,7 +139,7 @@ class CentralSystemServer {
 				return {
 					"bootNotificationResponse": {
 						"status": 'Accepted',
-						"currentTime": new Date(),
+						"currentTime": new Date().toISOString(),
 						"heartbeatInterval": _chargingStationConfig.heartbeatIntervalSecs
 					}
 				};
@@ -151,7 +151,7 @@ class CentralSystemServer {
 			return {
 				"bootNotificationResponse": {
 					"status": 'Rejected',
-					"currentTime": new Date(),
+					"currentTime": new Date().toISOString(),
 					"heartbeatInterval": _chargingStationConfig.heartbeatIntervalSecs
 				}
 			};
@@ -160,7 +160,6 @@ class CentralSystemServer {
 
 	handleHeartBeat(args, headers, req) {
 		var heartBeat = new Date();
-
 		// Get the charging station
 		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
 			// Found?

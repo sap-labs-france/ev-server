@@ -248,14 +248,12 @@ class ChargingStationStorage {
 	}
 
 	static async handleSaveBootNotification(bootNotification) {
-		// Set the ID
-		bootNotification.id = crypto.createHash('sha256')
-			.update(`${bootNotification.chargeBoxID}~${bootNotification.timestamp}`)
-			.digest("hex");
 		// Insert
 	    let result = await _db.collection('bootnotifications')
 			.insertOne({
-				_id: bootNotification.id,
+				_id: crypto.createHash('sha256')
+					.update(`${bootNotification.chargeBoxID}~${bootNotification.timestamp}`)
+					.digest("hex"),
 				chargeBoxID: bootNotification.chargeBoxID,
 				chargePointVendor: bootNotification.chargePointVendor,
 				chargePointModel: bootNotification.chargePointModel,
