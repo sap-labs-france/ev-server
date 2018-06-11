@@ -444,26 +444,28 @@ class ChargingStation {
 				module: "ChargingStation", method: "handleBootNotification",
 				action: "BootNotification", message: `Boot notification saved`
 			});
-			// Handle the get of configuration apart
-			// In case of error. the boot should no be denied
-			this.requestGetConfiguration().then((configuration) => {
-				if (!configuration) {
-					throw new AppError(
-						this.getID(),
-						`Cannot retrieve the configuration`,
-						550, "ChargingStation", "handleBootNotification");
-				}
-				// Save it
-				return this.saveConfiguration(configuration);
-			}).then(() => {
-				Logging.logInfo({
-					source: this.getID(), module: "ChargingStation",
-					method: "handleBootNotification", action: "BootNotification",
-					message: `Configuration has been saved` });
-			}).catch((error) => {
-				// Log error
-				Logging.logActionExceptionMessage("BootNotification", error);
-			});
+			// Handle the get of configuration later on
+			setTimeout(() => {
+				// In case of error. the boot should no be denied
+				this.requestGetConfiguration().then((configuration) => {
+					if (!configuration) {
+						throw new AppError(
+							this.getID(),
+							`Cannot retrieve the configuration`,
+							550, "ChargingStation", "handleBootNotification");
+					}
+					// Save it
+					return this.saveConfiguration(configuration);
+				}).then(() => {
+					Logging.logInfo({
+						source: this.getID(), module: "ChargingStation",
+						method: "handleBootNotification", action: "BootNotification",
+						message: `Configuration has been saved` });
+				}).catch((error) => {
+					// Log error
+					Logging.logActionExceptionMessage("BootNotification", error);
+				});
+			}, 3000);
 		});
 	}
 
