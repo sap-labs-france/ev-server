@@ -53,9 +53,14 @@ class ChargingStationService {
 		}).then((updatedChargingStation) => {
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "ChargingStationService", method: "handleUpdateChargingStationParams",
-				message: `Charging Station '${updatedChargingStation.getID()}' URL has been updated successfully`,
-				action: action, detailedMessages: updatedChargingStation});
+				source: updatedChargingStation.getID(),
+				user: req.user, module: "ChargingStationService",
+				method: "handleUpdateChargingStationParams",
+				message: `Parameters have been updated successfully`,
+				action: action, detailedMessages: {
+					"numberOfConnectedPhase": updatedChargingStation.getNumberOfConnectedPhase(),
+					"chargingStationURL": updatedChargingStation.getChargingStationURL()					
+				}});
 			// Ok
 			res.json({status: `Success`});
 			next();

@@ -446,6 +446,11 @@ class ChargingStation {
 			});
 			// Handle the get of configuration later on
 			setTimeout(() => {
+				// Log
+				Logging.logInfo({
+					source: this.getID(), module: "ChargingStation",
+					method: "handleBootNotification", action: "BootNotification",
+					message: `Retrieve configuration` });
 				// In case of error. the boot should no be denied
 				this.requestGetConfiguration().then((configuration) => {
 					if (!configuration) {

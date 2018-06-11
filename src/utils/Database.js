@@ -350,6 +350,8 @@ module.exports = {
 		dest.action = src.action;
 		dest.message = src.message;
 		dest.detailedMessages = src.detailedMessages;
+		dest.userID = src.userID;
+		dest.actionOnUserID = src.actionOnUserID;
 		if (forFrontEnd && src.user && typeof src.user == "object") {
 			dest.user = {};
 			this.updateUser(src.user, dest.user);

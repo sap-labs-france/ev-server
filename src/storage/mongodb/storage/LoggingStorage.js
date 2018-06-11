@@ -52,12 +52,8 @@ class LoggingStorage {
 
 	static async handleSaveLog(logToSave) {
 		// Check User
-		if (logToSave.user && typeof logToSave.user == "object") {
-			logToSave.userID = Utils.convertToObjectID(logToSave.user.id);
-		}
-		if (logToSave.actionOnUser && typeof logToSave.actionOnUser == "object") {
-			logToSave.actionOnUserID = Utils.convertToObjectID(logToSave.actionOnUser.id);
-		}
+		logToSave.userID = Utils.convertUserToObjectID(logToSave.user);
+		logToSave.actionOnUserID = Utils.convertUserToObjectID(logToSave.actionOnUser);
 		// Transfer
 		let log = {};
 		Database.updateLogging(logToSave, log, false);
