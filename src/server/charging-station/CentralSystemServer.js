@@ -284,8 +284,8 @@ class CentralSystemServer {
 				// Log
 				Logging.logInfo({
 					source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleAuthorize",
-					action: "Authorize", user: args.user,
-					message: `User has been granted access`,
+					action: "Authorize", user: args.user.getModel(),
+					message: `User has been authorized to use Charging Station`,
 					detailedMessages: args });
 			} else {
 				// Log
