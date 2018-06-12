@@ -10,8 +10,7 @@ module.exports.html = `
 						<table width="768" border="0" cellspacing="0" cellpadding="0">
 							<tr height="90">
 								<td width="180" align="center">
-									<img width="<%- body.header.image.left.width %>"
-										height="<%- body.header.image.left.height %>"
+									<img height="<%- body.header.image.left.height %>"
 										alt="Logo"
 										src="<%- body.header.image.left.url %>">
 								</td>
@@ -19,8 +18,7 @@ module.exports.html = `
 									<font size="5" color="white" face="sans-serif"><b><%- body.header.title %></b></font>
 								</td>
 								<td width="180" align="center">
-									<img width="<%- body.header.image.right.width %>"
-										height="<%- body.header.image.right.height %>"
+									<img height="<%- body.header.image.right.height %>"
 										alt="Image"
 										src="<%- body.header.image.right.url %>">
 								</td>

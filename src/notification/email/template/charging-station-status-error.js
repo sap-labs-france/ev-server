@@ -6,12 +6,10 @@ module.exports.email = {
 			"title": "Charger Error",
 			"image": {
 				"left": {
-					"width": 150,
 					"height": 60,
 					"url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
 				},
 				"right": {
-					"width": 50,
 					"height": 50,
 					"url": "<%- evseDashboardURL %>/assets/img/info.png"
 				}
@@ -44,12 +42,10 @@ module.exports.fr_FR.email = {
 			"title": "Erreur Borne",
 			"image": {
 				"left": {
-					"width": 150,
 					"height": 60,
 					"url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
 				},
 				"right": {
-					"width": 50,
 					"height": 50,
 					"url": "<%- evseDashboardURL %>/assets/img/info.png"
 				}

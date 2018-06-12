@@ -6,12 +6,10 @@ module.exports.email = {
 			"title": "Account Created!",
 			"image": {
 				"left": {
-					"width": 150,
 					"height": 60,
 					"url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
 				},
 				"right": {
-					"width": 50,
 					"height": 50,
 					"url": "<%- evseDashboardURL %>/assets/img/info.png"
 				}
@@ -46,12 +44,10 @@ module.exports.fr_FR.email = {
 			"title": "Compte Créé!",
 			"image": {
 				"left": {
-					"width": 150,
 					"height": 60,
 					"url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
 				},
 				"right": {
-					"width": 50,
 					"height": 50,
 					"url": "<%- evseDashboardURL %>/assets/img/info.png"
 				}
