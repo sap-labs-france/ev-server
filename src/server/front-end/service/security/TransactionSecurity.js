@@ -61,7 +61,15 @@ class TransactionSecurity {
 			filteredTransaction.id = transaction.id;
 			filteredTransaction.transactionId = transaction.transactionId;
 			filteredTransaction.connectorId = transaction.connectorId;
-			filteredTransaction.tagID = transaction.tagID;
+			// Check auth
+			if (Authorizations.canReadUser(loggedUser, transaction.user)) {
+				// Demo user?
+				if (Authorizations.isDemo(loggedUser)) {
+					filteredTransaction.tagID = Users.ANONIMIZED_VALUE;
+				} else {
+					filteredTransaction.tagID = transaction.tagID;
+				}
+			}
 			filteredTransaction.timestamp = transaction.timestamp;
 			// Filter user
 			filteredTransaction.user = TransactionSecurity._filterUserInTransactionResponse(
@@ -72,6 +80,15 @@ class TransactionSecurity {
 				filteredTransaction.stop.timestamp = transaction.stop.timestamp;
 				filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
 				filteredTransaction.stop.totalInactivitySecs = transaction.stop.totalInactivitySecs;
+				// Check auth
+				if (transaction.stop.user && Authorizations.canReadUser(loggedUser, transaction.stop.user)) {
+					// Demo user?
+					if (Authorizations.isDemo(loggedUser)) {
+						filteredTransaction.stop.tagID = Users.ANONIMIZED_VALUE;
+					} else {
+						filteredTransaction.stop.tagID = transaction.stop.tagID;
+					}
+				}
 				// Admin?
 				if (Authorizations.isAdmin(loggedUser)) {
 					filteredTransaction.stop.price = transaction.stop.price;
