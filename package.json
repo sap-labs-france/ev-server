@@ -2,7 +2,7 @@
 	"name": "ev-server",
 	"engines": {
 		"node": "8.x.x"
-    },
+	},
 	"version": "1.6.0",
 	"description": "Backend for Electric Vehicule charging station",
 	"author": "LucasBrazi06 <sergefabiano@free.fr>",
@@ -34,7 +34,7 @@
 		"mustache": "^2.3.0",
 		"node-authorization": "^1.0.5",
 		"node-cron": "^1.2.1",
-		"node-pre-gyp": "^0.6.36",
+		"node-pre-gyp": "^0.10.0",
 		"nodemailer": "^4.1.0",
 		"nodemailer-smtp-transport": "^2.7.4",
 		"passport": "^0.4.0",
@@ -43,7 +43,7 @@
 		"passport-strategy": "^1.0.0",
 		"password-generator": "^2.1.0",
 		"promise": "^8.0.1",
-		"soap": "^0.21.0",
+		"soap": "^0.24.0",
 		"socket.io": "^2.0.3",
 		"source-map-support": "^0.4.16",
 		"strong-soap": "^1.2.6",
