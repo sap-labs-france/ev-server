@@ -52,6 +52,7 @@ module.exports = {
 		dest.endpoint = src.endpoint;
 		dest.ocppVersion = src.ocppVersion;
 		dest.lastHeartBeat = Utils.convertToDate(src.lastHeartBeat);
+		dest.deleted = src.deleted;
 		// Check Inactive Chargers
 		if (forFrontEnd) {
 			// Default

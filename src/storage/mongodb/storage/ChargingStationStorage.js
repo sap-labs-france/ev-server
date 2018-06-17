@@ -125,12 +125,10 @@ class ChargingStationStorage {
 
 	static async handleSaveChargingStation(chargingStationToSave) {
 		// Check Site Area
+		chargingStationToSave.siteAreaID = null;
 		if (chargingStationToSave.siteArea && chargingStationToSave.siteArea.id) {
 			// Set the ID
 			chargingStationToSave.siteAreaID = chargingStationToSave.siteArea.id;
-		} else {
-			// Set it to null
-			chargingStationToSave.siteAreaID = null;
 		}
 		// Check Created By/On
 		chargingStationToSave.createdBy = Utils.convertUserToObjectID(chargingStationToSave.createdBy);
