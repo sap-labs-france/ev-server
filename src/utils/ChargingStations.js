@@ -1,7 +1,7 @@
 const Logging = require('./Logging');
-require('source-map-support').install();
 const Constants = require('./Constants');
 const AppError = require('../exception/AppError');
+require('source-map-support').install();
 
 module.exports = {
 	WITH_CONNECTORS: true,

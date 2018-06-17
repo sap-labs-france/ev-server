@@ -59,7 +59,7 @@ class ChargingStationService {
 				message: `Parameters have been updated successfully`,
 				action: action, detailedMessages: {
 					"numberOfConnectedPhase": updatedChargingStation.getNumberOfConnectedPhase(),
-					"chargingStationURL": updatedChargingStation.getChargingStationURL()					
+					"chargingStationURL": updatedChargingStation.getChargingStationURL()
 				}});
 			// Ok
 			res.json({status: `Success`});

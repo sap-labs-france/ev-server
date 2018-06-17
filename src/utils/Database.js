@@ -4,6 +4,8 @@ const Users = require('./Users');
 const Utils = require('./Utils');
 require('source-map-support').install();
 
+let _heartbeatIntervalSecs;
+
 module.exports = {
 	updateID(src, dest) {
 		// Set it
@@ -30,6 +32,10 @@ module.exports = {
 		return changedID;
 	},
 
+	setChargingStationHeartbeatIntervalSecs(heartbeatIntervalSecs) {
+		_heartbeatIntervalSecs = heartbeatIntervalSecs;
+	},
+
 	updateChargingStation(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
 			this.updateID(src, dest);
@@ -46,6 +52,16 @@ module.exports = {
 		dest.endpoint = src.endpoint;
 		dest.ocppVersion = src.ocppVersion;
 		dest.lastHeartBeat = Utils.convertToDate(src.lastHeartBeat);
+		// Check Inactive Chargers
+		if (forFrontEnd) {
+			// Default
+			dest.inactive = false;
+			let inactivitySecs = Math.floor((Date.now() - dest.lastHeartBeat.getTime()) / 1000);
+			// Inactive?
+			if (inactivitySecs > (_heartbeatIntervalSecs * 2)) {
+				dest.inactive = true;
+			}
+		}
 		dest.lastReboot = Utils.convertToDate(src.lastReboot);
 		if (src.numberOfConnectedPhase) {
 			dest.numberOfConnectedPhase = Utils.convertToInt(src.numberOfConnectedPhase);
@@ -73,7 +89,9 @@ module.exports = {
 				}
 			});
 		}
+		// Update
 		this.updateCreatedAndLastChanged(src, dest);
+		// No connectors?
 		if (!dest.connectors) {
 			dest.connectors = [];
 		}

@@ -2,6 +2,7 @@ const ChargingStation = require('../../model/ChargingStation');
 const CentralRestServerAuthentication = require('./CentralRestServerAuthentication');
 const CentralRestServerService = require('./CentralRestServerService');
 const Utils = require('../../utils/Utils');
+const Database = require('../../utils/Database');
 const Configuration = require('../../utils/Configuration');
 const Logging = require('../../utils/Logging');
 const Constants = require('../../utils/Constants');
@@ -20,12 +21,21 @@ const path = require('path');
 require('source-map-support').install();
 
 let _centralSystemRestConfig;
+let _chargingStationConfig;
 let _socketIO;
 let _currentNotifications = [];
 
 class CentralSystemRestServer {
 	// Create the rest server
-	constructor(centralSystemRestConfig) {
+	constructor(centralSystemRestConfig, chargingStationConfig) {
+		// Keep params
+		_centralSystemRestConfig = centralSystemRestConfig;
+		_chargingStationConfig = chargingStationConfig;
+
+		// Set
+		Database.setChargingStationHeartbeatIntervalSecs(
+			_chargingStationConfig.heartbeatIntervalSecs);
+
 		// Body parser
 		app.use(bodyParser.json({limit: '1mb'}));
 		app.use(bodyParser.urlencoded({ extended: false, limit: '1mb' }));
@@ -75,9 +85,6 @@ class CentralSystemRestServer {
 				res.sendFile(path.join(__dirname, centralSystemConfig.distPath, 'index.html'));
 			});
 		}
-
-		// Keep params
-		_centralSystemRestConfig = centralSystemRestConfig;
 	}
 
 	// Start the server (to be defined in sub-classes)

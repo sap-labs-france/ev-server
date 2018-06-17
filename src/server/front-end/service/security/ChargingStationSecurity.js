@@ -32,6 +32,7 @@ class ChargingStationSecurity {
 				filteredChargingStation.chargeBoxID = chargingStation.chargeBoxID;
 				filteredChargingStation.connectors = chargingStation.connectors;
 				filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
+				filteredChargingStation.inactive = chargingStation.inactive;
 			}
 			// Created By / Last Changed By
 			UtilsSecurity.filterCreatedAndLastChanged(

@@ -127,6 +127,14 @@ class ChargingStation {
 		this._model.chargeBoxSerialNumber = chargeBoxSerialNumber;
 	}
 
+	setInactive(inactive) {
+		this._model.inactive = inactive;
+	}
+
+	isInactive() {
+		return this._model.inactive;
+	}
+
 	getNumberOfConnectedPhase() {
 		return this._model.numberOfConnectedPhase;
 	}

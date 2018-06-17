@@ -71,7 +71,7 @@ global.storage.start().then(() => {
 		// Provided?
 		if (centralSystemRestConfig) {
 			// Create the server
-			let centralRestServer = new CentralRestServer(centralSystemRestConfig);
+			let centralRestServer = new CentralRestServer(centralSystemRestConfig, chargingStationConfig);
 			// Set to database for Web Socket Notifications
 			global.storage.setCentralRestServer(centralRestServer);
 			// Start it
