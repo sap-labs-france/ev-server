@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const Logging = require('../../utils/Logging');
 const Constants = require('../../utils/Constants');
 const LoggingStorage = require("./storage/LoggingStorage");
@@ -30,12 +29,6 @@ class MongoDBStorage {
 	constructor(dbConfig) {
 		// Keep local
 		_dbConfig = dbConfig;
-		// Override Promise
-		mongoose.Promise = global.Promise;
-		// Set debug?
-		if (dbConfig.debug) {
-			mongoose.set('debug', true);
-		}
 	}
 
 	async checkAndCreateCollection(db, allCollections, name, indexes) {
@@ -83,13 +76,6 @@ class MongoDBStorage {
 				replicaSet: "rs0"
 		    }
 		});
-		// MONGOOSE --------------------------------------------------
-		// Connect
-		mongoose.connect(mongoUrl,
-				{"useMongoClient": true}, (err) => {
-		});
-		// MONGOOSE --------------------------------------------------
-
 		// Connect to EVSE
 		let client = await MongoClient.connect(
 			mongoUrl,
