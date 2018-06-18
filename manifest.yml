@@ -1,7 +1,7 @@
 applications:
 - name: ev-server
-  memory: 256M
-  disk_quota: 256M
+  memory: 512M
+  disk_quota: 1024M
   instances: 1
   buildpack: https://github.com/cloudfoundry/nodejs-buildpack
   random-route: true
