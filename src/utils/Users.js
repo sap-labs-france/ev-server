@@ -129,11 +129,6 @@ module.exports = {
 		});
 	},
 
-	// Check name
-	isUserNameValid(name) {
-		return /^[a-zA-Z\u00E0-\u00FC- ]*$/.test(name);
-	},
-
 	// Check email
 	isUserEmailValid(email) {
 		return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
@@ -176,19 +171,6 @@ module.exports = {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
 				`The User Password is not valid`,
-				500, "Users", "checkIfUserValid");
-		}
-		// Check format
-		if (!this.isUserNameValid(filteredRequest.name)) {
-			throw new AppError(
-				Constants.CENTRAL_SERVER,
-				`The User Last Name ${filteredRequest.name} is not valid`,
-				500, "Users", "checkIfUserValid");
-		}
-		if (!this.isUserNameValid(filteredRequest.firstName)) {
-			throw new AppError(
-				Constants.CENTRAL_SERVER,
-				`The User First Name ${filteredRequest.firstName} is not valid`,
 				500, "Users", "checkIfUserValid");
 		}
 		if (!this.isUserEmailValid(filteredRequest.email)) {
