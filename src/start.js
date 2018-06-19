@@ -81,21 +81,24 @@ global.storage.start().then(() => {
 		// -------------------------------------------------------------------------
 		// Instanciate central servers
 		// -------------------------------------------------------------------------
-		centralSystemsConfig.forEach((centralSystemConfig) => {
-			let centralSystemServer;
-			// Check implementation
-			switch (centralSystemConfig.implementation) {
-				// SOAP
-				case 'soap':
+		if (centralSystemsConfig) {
+			// Start
+			centralSystemsConfig.forEach((centralSystemConfig) => {
+				let centralSystemServer;
+				// Check implementation
+				switch (centralSystemConfig.implementation) {
+					// SOAP
+					case 'soap':
 					// Create implementation
 					centralSystemServer = new SoapCentralSystemServer(centralSystemConfig, chargingStationConfig);
 					// Start
 					centralSystemServer.start();
 					break;
-				default:
+					default:
 					console.log(`Central System Server implementation '${centralSystemConfig.implementation}' not found!`);
-			}
-		});
+				}
+			});
+		}
 
 		// -------------------------------------------------------------------------
 		// Start the Scheduler
