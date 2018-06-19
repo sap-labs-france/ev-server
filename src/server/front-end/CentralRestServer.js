@@ -116,24 +116,25 @@ class CentralSystemRestServer {
 					}
 				}
 			}
+			console.log("https");
 			// Https server
 			server = https.createServer(options, app);
 		} else {
+			console.log("http");
 			// Http server
 			server = http.createServer(app);
 		}
 
 		// Init Socket IO
 		_socketIO = require("socket.io")(server);
-
 		// Handle Socket IO connection
 		_socketIO.on("connection", (socket) => {
 			// Handle Socket IO connection
-			socket.on("disconnect", () =>{
+			socket.on("disconnect", () => {
 				// Nothing to do
 			});
 		});
-
+		console.log(_centralSystemRestConfig);
 		// Listen
 		server.listen(_centralSystemRestConfig.port, _centralSystemRestConfig.host, () => {
 			// Check and send notif
