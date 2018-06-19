@@ -64,6 +64,7 @@ module.exports = {
 			centralSystemRestService.protocol = urlParsed.protocol;
 			centralSystemRestService.host = urlParsed.hostname;
 		}
+		console.log(centralSystemRestService);
 		// Read conf
 		return centralSystemRestService;
 	},
