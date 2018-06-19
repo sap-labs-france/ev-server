@@ -62,7 +62,8 @@ module.exports = {
 			let urlParsed = url.parse(_appEnv.url, true);
 			// Set URL
 			console.log(urlParsed);
-			centralSystemRestService.protocol = urlParsed.protocol;
+			centralSystemRestService.protocol =
+				urlParsed.protocol.substring(0, urlParsed.protocol.length-1);
 			centralSystemRestService.host = urlParsed.hostname;
 		}
 		console.log(centralSystemRestService);
