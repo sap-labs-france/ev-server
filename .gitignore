@@ -5,6 +5,7 @@ users-imported.json
 src/config.json
 yarn.lock
 package-lock.json
+manifest.yml
 
 # Logs
 logs
