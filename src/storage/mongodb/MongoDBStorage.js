@@ -84,7 +84,6 @@ class MongoDBStorage {
 				}
 			});
 		}
-		console.log(mongoUrl);
 		// Connect to EVSE
 		let client = await MongoClient.connect(
 			mongoUrl,

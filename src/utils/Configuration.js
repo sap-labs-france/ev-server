@@ -22,8 +22,21 @@ module.exports = {
 
 	// Central System config
 	getCentralSystemsConfig() {
+		let centralSystems = this.getConfig().CentralSystems;
+		// Check env
+		if (centralSystems && !_appEnv.isLocal) {
+			// Parse the URL
+			let urlParsed = url.parse(_appEnv.url, true);
+			// Change host/port
+			centralSystems.forEach((centralSystem) => {
+				// CF Environment: Override
+				centralSystem.port = _appEnv.port;
+				centralSystem.protocol = urlParsed.protocol;
+				centralSystem.host = urlParsed.hostname;
+			});
+		}
 		// Read conf
-		return this.getConfig().CentralSystems;
+		return centralSystems;
 	},
 
 	// Notification config
