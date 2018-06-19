@@ -29,6 +29,8 @@ module.exports = {
 			let urlParsed = url.parse(_appEnv.url, true);
 			// Change host/port
 			centralSystems.forEach((centralSystem) => {
+				// Set Cloud Foundry flag
+				centralSystem.cloudFoundry = !_appEnv.isLocal;
 				// CF Environment: Override
 				centralSystem.port = _appEnv.port;
 				centralSystem.protocol = urlParsed.protocol;
@@ -54,6 +56,8 @@ module.exports = {
 	// Central System REST config
 	getCentralSystemRestServiceConfig() {
 		let centralSystemRestService = this.getConfig().CentralSystemRestService;
+		// Set Cloud Foundry flag
+		centralSystemRestService.cloudFoundry = !_appEnv.isLocal;
 		// Check env
 		if (centralSystemRestService && !_appEnv.isLocal) {
 			// CF Environment: Override
@@ -61,12 +65,10 @@ module.exports = {
 			// Parse the URL
 			let urlParsed = url.parse(_appEnv.url, true);
 			// Set URL
-			console.log(urlParsed);
 			centralSystemRestService.protocol =
 				urlParsed.protocol.substring(0, urlParsed.protocol.length-1);
 			centralSystemRestService.host = urlParsed.hostname;
 		}
-		console.log(centralSystemRestService);
 		// Read conf
 		return centralSystemRestService;
 	},
@@ -107,6 +109,8 @@ module.exports = {
 	// DB config
 	getStorageConfig() {
 		let storage = this.getConfig().Storage;
+		// Set Cloud Foundry flag
+		storage.cloudFoundry = !_appEnv.isLocal;
 		// Check env
 		if (storage && !_appEnv.isLocal) {
 			// CF Environment: Override

@@ -122,10 +122,10 @@ class MongoDBStorage {
 
 		// Monitor MongoDB -------------------------------------------
 		if (_dbConfig.replica) {
-			// Create
-			_mongoDBStorageNotification = new MongoDBStorageNotification(_dbConfig);
-			// Start
-			_mongoDBStorageNotification.start();
+			// // Create
+			// _mongoDBStorageNotification = new MongoDBStorageNotification(_dbConfig);
+			// // Start
+			// _mongoDBStorageNotification.start();
 		}
 		// Monitor MongoDB -------------------------------------------
 	}

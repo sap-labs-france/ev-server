@@ -93,7 +93,7 @@ class CentralSystemRestServer {
 		// Log
 		console.log(`Starting Central Rest Server (Front-End)...`);
 		// Create the HTTP server
-		if (_centralSystemRestConfig.protocol === "https") {
+		if (!_centralSystemRestConfig.cloudFoundry && _centralSystemRestConfig.protocol === "https") {
 			// Create the options
 			var options = {
 				key: fs.readFileSync(_centralSystemRestConfig["ssl-key"]),
