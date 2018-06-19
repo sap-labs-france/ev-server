@@ -25,6 +25,7 @@ module.exports = {
 		let centralSystems = this.getConfig().CentralSystems;
 		// Check env
 		if (centralSystems && !_appEnv.isLocal) {
+			console.log(centralSystems);
 			// Parse the URL
 			let urlParsed = url.parse(_appEnv.url, true);
 			// Change host/port
