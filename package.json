@@ -14,6 +14,7 @@
 		"bcrypt": "^2.0.1",
 		"body-parser": "^1.17.2",
 		"body-parser-xml": "^1.1.0",
+		"cfenv": "^1.1.0",
 		"cookie-parser": "^1.4.3",
 		"cors": "^2.8.4",
 		"ejs": "^2.5.7",
