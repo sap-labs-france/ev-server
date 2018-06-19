@@ -66,16 +66,25 @@ class MongoDBStorage {
 
 	async start() {
 		// Build EVSE URL
-		let mongoUrl = mongoUriBuilder({
-			host: urlencode(_dbConfig.host),
-			port: urlencode(_dbConfig.port),
-			username: urlencode(_dbConfig.user),
-			password: urlencode(_dbConfig.password),
-			database: urlencode(_dbConfig.database),
-			options: {
-				replicaSet: "rs0"
-		    }
-		});
+		let mongoUrl;
+		// URI provided?
+		if (_dbConfig.uri) {
+			// Yes: use it
+			mongoUrl = _dbConfig.uri;
+		} else {
+			// No: Build it
+			mongoUrl = mongoUriBuilder({
+				host: urlencode(_dbConfig.host),
+				port: urlencode(_dbConfig.port),
+				username: urlencode(_dbConfig.user),
+				password: urlencode(_dbConfig.password),
+				database: urlencode(_dbConfig.database),
+				options: {
+					replicaSet: "rs0"
+				}
+			});
+		}
+		console.log(mongoUrl);
 		// Connect to EVSE
 		let client = await MongoClient.connect(
 			mongoUrl,

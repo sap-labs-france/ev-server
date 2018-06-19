@@ -1,7 +1,12 @@
 const fs = require('fs');
 const path = require('path');
+const cfenv = require('cfenv');
 const _config = require('../config.json');
+const url = require('url');
 require('source-map-support').install();
+
+// Cloud Foundry App Env
+let _appEnv = cfenv.getAppEnv();
 
 module.exports = {
 	// Read the config file
@@ -35,8 +40,19 @@ module.exports = {
 
 	// Central System REST config
 	getCentralSystemRestServiceConfig() {
+		let centralSystemRestService = this.getConfig().CentralSystemRestService;
+		// Check env
+		if (centralSystemRestService && !_appEnv.isLocal) {
+			// CF Environment: Override
+			centralSystemRestService.port = _appEnv.port;
+			// Parse the URL
+			let urlParsed = url.parse(_appEnv.url, true);
+			// Set URL
+			centralSystemRestService.protocol = urlParsed.protocol;
+			centralSystemRestService.host = urlParsed.hostname;
+		}
 		// Read conf
-		return this.getConfig().CentralSystemRestService;
+		return centralSystemRestService;
 	},
 
 	// Central System Front-End config
@@ -74,8 +90,24 @@ module.exports = {
 
 	// DB config
 	getStorageConfig() {
+		let storage = this.getConfig().Storage;
+		// Check env
+		if (storage && !_appEnv.isLocal) {
+			// CF Environment: Override
+			let mongoDBService = _appEnv.services.mongodb[0];
+			// Set MongoDB URI
+			storage.uri = mongoDBService.credentials.uri;
+			storage.port = mongoDBService.credentials.port;
+			storage.user = mongoDBService.credentials.username;
+			storage.password = mongoDBService.credentials.password;
+			storage.replicaSet = mongoDBService.credentials.replicaset;
+			if (storage.replica) {
+				storage.replica.user = mongoDBService.credentials.username;
+				storage.replica.password = mongoDBService.credentials.password;
+			}
+		}
 		// Read conf
-		return this.getConfig().Storage;
+		return storage;
 	},
 
 	// Central System config

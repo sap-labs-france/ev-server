@@ -5,5 +5,7 @@ applications:
   instances: 1
   buildpack: https://github.com/cloudfoundry/nodejs-buildpack
   random-route: true
-  path: dist
+  command: node dist/start.js
   host: charge-angels-server
+  services:
+  - ev-mongodb
