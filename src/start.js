@@ -33,12 +33,6 @@ switch (storageConfig.implementation) {
 // Start the DB
 // -----------------------------------------------------------------------------
 global.storage.start().then(() => {
-	// Log
-	Logging.logInfo({
-		module: "Bootstrap", method: "start", action: "Startup",
-		message: `Successfully connected to '${storageConfig.implementation}' (Database) on '${storageConfig.host}:${storageConfig.port}'` });
-	console.log(`Successfully connected to '${storageConfig.implementation}' (Database) on '${storageConfig.host}:${storageConfig.port}'`);
-
 	// ---------------------------------------------------------------------------
 	// Check and trigger migration
 	// ---------------------------------------------------------------------------
@@ -89,13 +83,14 @@ global.storage.start().then(() => {
 				switch (centralSystemConfig.implementation) {
 					// SOAP
 					case 'soap':
-					// Create implementation
-					centralSystemServer = new SoapCentralSystemServer(centralSystemConfig, chargingStationConfig);
-					// Start
-					centralSystemServer.start();
-					break;
+						// Create implementation
+						centralSystemServer = new SoapCentralSystemServer(centralSystemConfig, chargingStationConfig);
+						// Start
+						centralSystemServer.start();
+						break;
+					// Not Found
 					default:
-					console.log(`Central System Server implementation '${centralSystemConfig.implementation}' not found!`);
+						console.log(`Central System Server implementation '${centralSystemConfig.implementation}' not found!`);
 				}
 			});
 		}
@@ -116,6 +111,6 @@ global.storage.start().then(() => {
 	// Log
 	Logging.logError({
 		source: "BootStrap", module: "start", method: "-", action: "StartDatabase",
-		message: `Cannot connect to '${storageConfig.implementation}' on '${storageConfig.host}:${storageConfig.port}': ${error.toString()}` });
-	console.log(`Cannot connect to '${storageConfig.implementation}' on '${storageConfig.host}:${storageConfig.port}': ${error.toString()}`);
+		message: `Cannot connect to '${storageConfig.implementation}': ${error.toString()}` });
+	console.log(`Cannot connect to '${storageConfig.implementation}': ${error.toString()}`);
 });

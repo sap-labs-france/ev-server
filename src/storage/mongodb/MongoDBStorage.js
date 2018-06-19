@@ -65,6 +65,8 @@ class MongoDBStorage {
 	}
 
 	async start() {
+		// Log
+		console.log(`Connecting to '${_dbConfig.implementation}'...`);
 		// Build EVSE URL
 		let mongoUrl;
 		// URI provided?
@@ -84,7 +86,6 @@ class MongoDBStorage {
 				}
 			});
 		}
-		console.log(mongoUrl);
 		// Connect to EVSE
 		let client = await MongoClient.connect(
 			mongoUrl,
@@ -114,10 +115,10 @@ class MongoDBStorage {
 		MigrationStorage.setDatabase(_evseDB);
 		NotificationStorage.setDatabase(_evseDB);
 
-		// Log
 		Logging.logInfo({
 			module: "MongoDBStorage", method: "start", action: "Startup",
-			message: `Connected to MongoDB (Database) on '${_dbConfig.host}:${_dbConfig.port}' and using schema '${_dbConfig.schema}'` });
+			message: `Connected to '${_dbConfig.implementation}' successfully` });
+		console.log(`Connected to '${_dbConfig.implementation}' successfully`);
 
 		// Monitor MongoDB -------------------------------------------
 		if (_dbConfig.replica) {

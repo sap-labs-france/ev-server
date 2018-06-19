@@ -90,6 +90,8 @@ class CentralSystemRestServer {
 	// Start the server (to be defined in sub-classes)
 	start() {
 		var server;
+		// Log
+		console.log(`Starting Central Rest Server (Front-End)...`);
 		// Create the HTTP server
 		if (_centralSystemRestConfig.protocol === "https") {
 			// Create the options

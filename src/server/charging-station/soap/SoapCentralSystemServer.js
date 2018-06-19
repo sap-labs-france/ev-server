@@ -34,7 +34,8 @@ class SoapCentralSystemServer extends CentralSystemServer {
 		start() {
 			// Create the server
 			var server;
-
+			// Log
+			console.log(`Starting Central System Server (Charging Stations)...`);
 			// Make it global for SOAP Services
 			global.centralSystemSoap = this;
 
