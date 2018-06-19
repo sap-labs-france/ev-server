@@ -43,14 +43,22 @@ class MongoDBStorageNotification {
 	async start() {
 		// Check
 		if (_dbConfig.replica) {
-			// Build Replica URL
-			let mongoOpLogUrl = mongoUriBuilder({
-				host: urlencode(_dbConfig.host),
-				port: urlencode(_dbConfig.port),
-				username: urlencode(_dbConfig.replica.user),
-				password: urlencode(_dbConfig.replica.password),
-				database: urlencode(_dbConfig.replica.database)
-			});
+			// Build EVSE URL
+			let mongoOpLogUrl;
+			// URI provided?
+			if (_dbConfig.replica.uri) {
+				// Yes: use it
+				mongoOpLogUrl = _dbConfig.replica.uri;
+			} else {
+				// Build Replica URL
+				mongoOpLogUrl = mongoUriBuilder({
+					host: urlencode(_dbConfig.host),
+					port: urlencode(_dbConfig.port),
+					username: urlencode(_dbConfig.replica.user),
+					password: urlencode(_dbConfig.replica.password),
+					database: urlencode(_dbConfig.replica.database)
+				});
+			}
 			// Connect to Replica DB
 			let clientOpLog = await MongoClient.connect(
 				mongoOpLogUrl,

@@ -114,7 +114,9 @@ module.exports = {
 			storage.user = mongoDBService.credentials.username;
 			storage.password = mongoDBService.credentials.password;
 			storage.replicaSet = mongoDBService.credentials.replicaset;
+			// Replica?
 			if (storage.replica) {
+				storage.replica.uri = mongoDBService.credentials.uri;
 				storage.replica.user = mongoDBService.credentials.username;
 				storage.replica.password = mongoDBService.credentials.password;
 			}

@@ -30,6 +30,7 @@
 	},
 	"Storage": {
 		"implementation": "mongodb",
+		"uri": null,
 		"host": "localhost",
 		"port": 27017,
 		"user": "evse-user",
@@ -39,6 +40,7 @@
 		"replicaSet": "rs0",
 		"debug": false,
 		"replica": {
+			"uri": null,
 			"user":"evse-local",
 			"database": "admin",
 			"password": "",
