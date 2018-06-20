@@ -30,13 +30,12 @@ if (_centralSystemRestConfig) {
 		// issuer: 'evse-dashboard',
 		// audience: 'evse-dashboard'
 	};
+	// Use
+	passport.use(new JwtStrategy(jwtOptions, (jwtPayload, done) => {
+		// Return the token decoded right away
+		return done(null, jwtPayload);
+	}));
 }
-
-// Use
-passport.use(new JwtStrategy(jwtOptions, (jwtPayload, done) => {
-	// Return the token decoded right away
-	return done(null, jwtPayload);
-}));
 
 class AuthService {
 	static initialize() {
