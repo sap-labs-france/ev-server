@@ -33,19 +33,35 @@ class SoapCentralSystemServer extends CentralSystemServer {
 		*/
 		start() {
 			// Create the server
-			var server;
+			let server;
 			// Log
 			console.log(`Starting Central System Server (Charging Stations)...`);
 			// Make it global for SOAP Services
 			global.centralSystemSoap = this;
-
 			// Create the HTTP server
 			if (_centralSystemConfig.protocol === "https") {
 				// Create the options
-				const options = {
-					key: fs.readFileSync(_centralSystemConfig["ssl-key"]),
-					cert: fs.readFileSync(_centralSystemConfig["ssl-cert"])
-				};
+				var options = {};
+				// Cloud Foundry
+				if (!_centralSystemConfig.cloudFoundry) {
+					// Set the keys
+					options.key = fs.readFileSync(_centralSystemConfig["ssl-key"]);
+					options.cert = fs.readFileSync(_centralSystemConfig["ssl-cert"]);
+					// Intermediate cert?
+					if (_centralSystemConfig["ssl-ca"]) {
+						// Array?
+						if (Array.isArray(_centralSystemConfig["ssl-ca"])) {
+							options.ca = [];
+							// Add all
+							for (var i = 0; i < _centralSystemConfig["ssl-ca"].length; i++) {
+								options.ca.push(fs.readFileSync(_centralSystemConfig["ssl-ca"][i]));
+							}
+						} else {
+							// Add one
+							options.ca = fs.readFileSync(_centralSystemRestConfig["ssl-ca"]);
+						}
+					}
+				}
 				// Https server
 				server = https.createServer(options, express);
 			} else {
@@ -62,7 +78,9 @@ class SoapCentralSystemServer extends CentralSystemServer {
 			var soapServer16 = soap.listen(server, '/OCPP16', centralSystemService16, centralSystemService16Wsdl);
 
 			// Listen
-			server.listen(_centralSystemConfig.port, _centralSystemConfig.host, () => {
+			server.listen(
+					_centralSystemConfig.port,
+					(_centralSystemConfig.cloudFoundry ? null : _centralSystemConfig.host), () => {
 				// Log
 				Logging.logInfo({
 					module: "SoapCentralSystemServer", method: "start", action: "Startup",

@@ -89,7 +89,7 @@ class CentralSystemRestServer {
 
 	// Start the server (to be defined in sub-classes)
 	start() {
-		var server;
+		let server;
 		// Log
 		console.log(`Starting Central Rest Server (Front-End)...`);
 		// Create the HTTP server
@@ -116,11 +116,9 @@ class CentralSystemRestServer {
 					}
 				}
 			}
-			console.log("https");
 			// Https server
 			server = https.createServer(options, app);
 		} else {
-			console.log("http");
 			// Http server
 			server = http.createServer(app);
 		}
@@ -134,10 +132,10 @@ class CentralSystemRestServer {
 				// Nothing to do
 			});
 		});
-		console.log(_centralSystemRestConfig);
+
 		// Listen
 		server.listen(
-				_centralSystemRestConfig.port, 
+				_centralSystemRestConfig.port,
 				(_centralSystemRestConfig.cloudFoundry ? null : _centralSystemRestConfig.host), () => {
 			// Check and send notif
 			setInterval(() => {
