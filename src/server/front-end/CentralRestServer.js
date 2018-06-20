@@ -136,7 +136,9 @@ class CentralSystemRestServer {
 		});
 		console.log(_centralSystemRestConfig);
 		// Listen
-		server.listen(_centralSystemRestConfig.port, () => {
+		server.listen(
+				_centralSystemRestConfig.port, 
+				(_centralSystemRestConfig.cloudFoundry ? null : _centralSystemRestConfig.host), () => {
 			// Check and send notif
 			setInterval(() => {
 				// Send
