@@ -88,7 +88,7 @@ Create Application User on EVSE schema
 ```
   use admin
   db.createUser({
-    user: "evse-local",
+    user: "evse-user",
     pwd: "YourPassword",
 	roles: [ { role: "readWrite", db: "local" } ]
   })

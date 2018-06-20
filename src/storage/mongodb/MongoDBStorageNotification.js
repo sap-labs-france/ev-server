@@ -18,6 +18,7 @@ let _dbConfig;
 let _localDB;
 let _localDBLastTimestampCheck = new Date();
 let _centralRestServer;
+let _mongoDBClient;
 
 class MongoDBStorageNotification {
 	// Create database access
@@ -56,21 +57,28 @@ class MongoDBStorageNotification {
 					port: urlencode(_dbConfig.port),
 					username: urlencode(_dbConfig.replica.user),
 					password: urlencode(_dbConfig.replica.password),
-					database: urlencode(_dbConfig.replica.database)
+					database: urlencode(_dbConfig.replica.database),
+					options: {
+						replicaSet: _dbConfig.replicaSet
+					}
 				});
 			}
 			// Connect to Replica DB
-			let clientOpLog = await MongoClient.connect(
+			_mongoDBClient = await MongoClient.connect(
 				mongoOpLogUrl,
 				{
 					useNewUrlParser: true,
-				});
-			// Get the Local DB
-			_localDB = clientOpLog.db("local");
-			// Start Listening
-			setInterval(this.checkChangedCollections.bind(this),
-				_dbConfig.replica.intervalPullSecs * 1000);
+					poolSize: _dbConfig.poolSize,
+					replicaSet: _dbConfig.replicaSet,
+					loggerLevel: (_dbConfig.debug ? "debug" : null)
+				}
+			);
 		}
+		// Get the Local DB
+		_localDB = _mongoDBClient.db("local");
+		// Start Listening
+		setInterval(this.checkChangedCollections.bind(this),
+			_dbConfig.replica.intervalPullSecs * 1000);
 	}
 
 	getObjectIDFromOpLogDocument(document) {

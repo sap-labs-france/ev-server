@@ -21,6 +21,7 @@ const MongoDBStorageNotification = require('./MongoDBStorageNotification');
 require('source-map-support').install();
 
 let _dbConfig;
+let _mongoDBClient;
 let _evseDB;
 let _mongoDBStorageNotification;
 
@@ -82,21 +83,22 @@ class MongoDBStorage {
 				password: urlencode(_dbConfig.password),
 				database: urlencode(_dbConfig.database),
 				options: {
-					replicaSet: "rs0"
+					replicaSet: _dbConfig.replicaSet
 				}
 			});
 		}
 		// Connect to EVSE
-		let client = await MongoClient.connect(
+		_mongoDBClient = await MongoClient.connect(
 			mongoUrl,
 			{
 				useNewUrlParser: true,
 				poolSize: _dbConfig.poolSize,
 				replicaSet: _dbConfig.replicaSet,
 				loggerLevel: (_dbConfig.debug ? "debug" : null)
-			});
+			}
+		);
 		// Get the EVSE DB
-		_evseDB = client.db(_dbConfig.schema);
+		_evseDB = _mongoDBClient.db(_dbConfig.schema);
 
 		// Check EVSE Database
 		await this.checkEVSEDatabase(_evseDB);
@@ -122,10 +124,10 @@ class MongoDBStorage {
 
 		// Monitor MongoDB -------------------------------------------
 		if (_dbConfig.replica) {
-			// // Create
-			// _mongoDBStorageNotification = new MongoDBStorageNotification(_dbConfig);
-			// // Start
-			// _mongoDBStorageNotification.start();
+			// Create
+			_mongoDBStorageNotification = new MongoDBStorageNotification(_dbConfig);
+			// Start
+			_mongoDBStorageNotification.start();
 		}
 		// Monitor MongoDB -------------------------------------------
 	}
