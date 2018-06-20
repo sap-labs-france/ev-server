@@ -19,14 +19,18 @@ const https = require('https');
 const AuthSecurity = require('./security/AuthSecurity');
 
 let _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
+let jwtOptions;
 
 // Init JWT auth options
-let jwtOptions = {
-	jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-	secretOrKey: _centralSystemRestConfig.userTokenKey
-	// issuer: 'evse-dashboard',
-	// audience: 'evse-dashboard'
-};
+if (_centralSystemRestConfig) {
+	// Set
+	jwtOptions = {
+		jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+		secretOrKey: _centralSystemRestConfig.userTokenKey
+		// issuer: 'evse-dashboard',
+		// audience: 'evse-dashboard'
+	};
+}
 
 // Use
 passport.use(new JwtStrategy(jwtOptions, (jwtPayload, done) => {
