@@ -56,10 +56,10 @@ module.exports = {
 	// Central System REST config
 	getCentralSystemRestServiceConfig() {
 		let centralSystemRestService = this.getConfig().CentralSystemRestService;
-		// Set Cloud Foundry flag
-		centralSystemRestService.cloudFoundry = !_appEnv.isLocal;
 		// Check env
 		if (centralSystemRestService && !_appEnv.isLocal) {
+			// Set Cloud Foundry flag
+			centralSystemRestService.cloudFoundry = !_appEnv.isLocal;
 			// CF Environment: Override
 			centralSystemRestService.port = _appEnv.port;
 			// Parse the URL
