@@ -42,6 +42,8 @@ class MongoDBStorageNotification {
 	}
 
 	async start() {
+		// Log
+		console.log(`Starting to pull Notifications from '${_dbConfig.implementation}'...`);
 		// Check
 		if (_dbConfig.replica) {
 			// Build EVSE URL
@@ -79,6 +81,11 @@ class MongoDBStorageNotification {
 		// Start Listening
 		setInterval(this.checkChangedCollections.bind(this),
 			_dbConfig.replica.intervalPullSecs * 1000);
+		// Log
+		Logging.logInfo({
+			module: "MongoDBStorage", method: "start", action: "Startup",
+			message: `Started to pull Notifications from '${_dbConfig.implementation}' successfully` });
+		console.log(`Started to pull Notifications from '${_dbConfig.implementation}' successfully`);
 	}
 
 	getObjectIDFromOpLogDocument(document) {

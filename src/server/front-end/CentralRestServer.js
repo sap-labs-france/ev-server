@@ -136,7 +136,7 @@ class CentralSystemRestServer {
 		});
 		console.log(_centralSystemRestConfig);
 		// Listen
-		server.listen(_centralSystemRestConfig.port, _centralSystemRestConfig.host, () => {
+		server.listen(_centralSystemRestConfig.port, () => {
 			// Check and send notif
 			setInterval(() => {
 				// Send

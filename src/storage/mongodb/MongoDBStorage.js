@@ -116,20 +116,19 @@ class MongoDBStorage {
 		VehicleManufacturerStorage.setDatabase(_evseDB);
 		MigrationStorage.setDatabase(_evseDB);
 		NotificationStorage.setDatabase(_evseDB);
-
+		// Log
 		Logging.logInfo({
 			module: "MongoDBStorage", method: "start", action: "Startup",
 			message: `Connected to '${_dbConfig.implementation}' successfully` });
 		console.log(`Connected to '${_dbConfig.implementation}' successfully`);
 
-		// Monitor MongoDB -------------------------------------------
+		// Monitor MongoDB for Notifications
 		if (_dbConfig.replica) {
 			// Create
 			_mongoDBStorageNotification = new MongoDBStorageNotification(_dbConfig);
 			// Start
-			_mongoDBStorageNotification.start();
+			await _mongoDBStorageNotification.start();
 		}
-		// Monitor MongoDB -------------------------------------------
 	}
 
 	setCentralRestServer(centralRestServer) {
