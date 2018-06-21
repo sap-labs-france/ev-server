@@ -19,3 +19,4 @@ user-test-case.txt
 webpack.config.js
 yarn.lock
 yarn-error.log
+manifest-cf-template.yml
