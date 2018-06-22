@@ -55,6 +55,9 @@ class MongoDBStorage {
 		// Get all the collections
 		let collections = await db.listCollections({}).toArray();
 		// Check only collections with indexes
+		// Users
+		await this.checkAndCreateCollection(db, collections, "users");
+		await this.checkAndCreateCollection(db, collections, "eulas");
 		// Logs
 		await this.checkAndCreateCollection(db, collections, "logs",
 			[{ 'timestamp' : 1 }, { 'level' : 1 }, { 'type' : 1 }]
