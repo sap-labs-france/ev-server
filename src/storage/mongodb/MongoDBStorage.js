@@ -54,7 +54,6 @@ class MongoDBStorage {
 	async checkEVSEDatabase(db) {
 		// Get all the collections
 		let collections = await db.listCollections({}).toArray();
-		console.log(collections);
 		// Check only collections with indexes
 		// Logs
 		await this.checkAndCreateCollection(db, collections, "logs",

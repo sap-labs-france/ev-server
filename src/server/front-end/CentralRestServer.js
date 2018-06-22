@@ -93,27 +93,24 @@ class CentralSystemRestServer {
 		// Log
 		console.log(`Starting Central Rest Server (Front-End)...`);
 		// Create the HTTP server
-		if (_centralSystemRestConfig.protocol == "https") {
+		if (!_centralSystemRestConfig.cloudFoundry && _centralSystemRestConfig.protocol == "https") {
 			// Create the options
 			var options = {};
-			// Cloud Foundry
-			if (!_centralSystemRestConfig.cloudFoundry) {
-				// Set the keys
-				options.key = fs.readFileSync(_centralSystemRestConfig["ssl-key"]);
-				options.cert = fs.readFileSync(_centralSystemRestConfig["ssl-cert"]);
-				// Intermediate cert?
-				if (_centralSystemRestConfig["ssl-ca"]) {
-					// Array?
-					if (Array.isArray(_centralSystemRestConfig["ssl-ca"])) {
-						options.ca = [];
-						// Add all
-						for (var i = 0; i < _centralSystemRestConfig["ssl-ca"].length; i++) {
-							options.ca.push(fs.readFileSync(_centralSystemRestConfig["ssl-ca"][i]));
-						}
-					} else {
-						// Add one
-						options.ca = fs.readFileSync(_centralSystemRestConfig["ssl-ca"]);
+			// Set the keys
+			options.key = fs.readFileSync(_centralSystemRestConfig["ssl-key"]);
+			options.cert = fs.readFileSync(_centralSystemRestConfig["ssl-cert"]);
+			// Intermediate cert?
+			if (_centralSystemRestConfig["ssl-ca"]) {
+				// Array?
+				if (Array.isArray(_centralSystemRestConfig["ssl-ca"])) {
+					options.ca = [];
+					// Add all
+					for (var i = 0; i < _centralSystemRestConfig["ssl-ca"].length; i++) {
+						options.ca.push(fs.readFileSync(_centralSystemRestConfig["ssl-ca"][i]));
 					}
+				} else {
+					// Add one
+					options.ca = fs.readFileSync(_centralSystemRestConfig["ssl-ca"]);
 				}
 			}
 			// Https server
