@@ -76,8 +76,8 @@ class UserSecurity {
 				filteredUser.id = user.id;
 				filteredUser.name = user.name;
 				filteredUser.firstName = user.firstName;
-				filteredUser.locale = user.locale;
 				filteredUser.email = user.email;
+				filteredUser.locale = user.locale;
 				filteredUser.phone = user.phone;
 				filteredUser.mobile = user.mobile;
 				filteredUser.iNumber = user.iNumber;
@@ -99,6 +99,14 @@ class UserSecurity {
 				filteredUser.firstName = user.firstName;
 				filteredUser.email = user.email;
 				filteredUser.locale = user.locale;
+				filteredUser.phone = user.phone;
+				filteredUser.mobile = user.mobile;
+				filteredUser.iNumber = user.iNumber;
+				filteredUser.costCenter = user.costCenter;
+				filteredUser.tagIDs = user.tagIDs;
+				if (user.address) {
+					filteredUser.address = UtilsSecurity.filterAddressRequest(user.address, loggedUser);
+				}
 			}
 			// Created By / Last Changed By
 			UtilsSecurity.filterCreatedAndLastChanged(
