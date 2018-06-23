@@ -1,8 +1,7 @@
 {
 	"info": {
+		"_postman_id": "ca951e96-9a2f-4102-9020-de3a86ee40c3",
 		"name": "EVSE",
-		"_postman_id": "7b3216ea-f43f-a5d9-1d2d-c9a4bcb8d311",
-		"description": "",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -30,7 +29,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"email\": \"serge.fabiano@sap.com\",\n\t\"password\": \"SDF.1sdf.2\",\n\t\"acceptEula\": true\n}"
+					"raw": "{\n\t\"email\": \"demo.admin@sap.com\",\n\t\"password\": \"DeM*Us$r2\",\n\t\"acceptEula\": true\n}"
 				},
 				"url": {
 					"raw": "https://127.0.0.1:443/client/auth/Login",
@@ -47,13 +46,12 @@
 						"auth",
 						"Login"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
-			"name": "FE-LoginDemoBasic",
+			"name": "FE-LoginDemo",
 			"event": [
 				{
 					"listen": "test",
@@ -76,7 +74,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"email\": \"demo.basic@sap.com\",\n\t\"password\": \"SDF.1sdf.2\",\n\t\"acceptEula\": true\n}"
+					"raw": "{\n\t\"email\": \"demo.demo@sap.com\",\n\t\"password\": \"DeM*Us$r1\",\n\t\"acceptEula\": true\n}"
 				},
 				"url": {
 					"raw": "https://127.0.0.1:443/client/auth/Login",
@@ -93,13 +91,12 @@
 						"auth",
 						"Login"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
-			"name": "FE-LoginCorbacBasic",
+			"name": "FE-LoginBasic",
 			"event": [
 				{
 					"listen": "test",
@@ -113,6 +110,9 @@
 				}
 			],
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "POST",
 				"header": [
 					{
@@ -122,7 +122,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"email\": \"cedric.dangremont@sap.com\",\n\t\"password\": \"SDF.1sdf.2\",\n\t\"acceptEula\": true\n}"
+					"raw": "{\n\t\"email\": \"demo.basic@sap.com\",\n\t\"password\": \"DeM*Us$r3\",\n\t\"acceptEula\": true\n}"
 				},
 				"url": {
 					"raw": "https://127.0.0.1:443/client/auth/Login",
@@ -139,8 +139,7 @@
 						"auth",
 						"Login"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -159,6 +158,9 @@
 				}
 			],
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "POST",
 				"header": [
 					{
@@ -185,14 +187,16 @@
 						"auth",
 						"Login"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-ResetPassword",
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "POST",
 				"header": [
 					{
@@ -219,14 +223,16 @@
 						"auth",
 						"Reset"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-ResetPasswordHash",
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "POST",
 				"header": [
 					{
@@ -253,14 +259,16 @@
 						"auth",
 						"Reset"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-Register",
 			"request": {
+				"auth": {
+					"type": "noauth"
+				},
 				"method": "POST",
 				"header": [
 					{
@@ -287,20 +295,25 @@
 						"auth",
 						"RegisterUser"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-CompanyCreate",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "POST",
 				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					},
 					{
 						"key": "Content-Type",
 						"value": "application/json"
@@ -325,20 +338,25 @@
 						"api",
 						"CompanyCreate"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-SiteCreate",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "POST",
 				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					},
 					{
 						"key": "Content-Type",
 						"value": "application/json"
@@ -363,20 +381,25 @@
 						"api",
 						"SiteCreate"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-VehicleCreate",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "POST",
 				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					},
 					{
 						"key": "Content-Type",
 						"value": "application/json"
@@ -401,20 +424,25 @@
 						"api",
 						"VehicleCreate"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-VehicleManufacturerCreate",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "POST",
 				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					},
 					{
 						"key": "Content-Type",
 						"value": "application/json"
@@ -439,20 +467,25 @@
 						"api",
 						"VehicleManufacturerCreate"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-SiteAreaCreate",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "POST",
 				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					},
 					{
 						"key": "Content-Type",
 						"value": "application/json"
@@ -477,21 +510,25 @@
 						"api",
 						"SiteAreaCreate"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-VehicleManufacturers",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -514,30 +551,32 @@
 					"query": [
 						{
 							"key": "WithVehicles",
-							"value": "true",
-							"equals": true
+							"value": "true"
 						},
 						{
 							"key": "VehicleType",
-							"value": "C",
-							"equals": true
+							"value": "C"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-VehicleManufacturer",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -560,25 +599,28 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5ae2f21b6ced5d1f2b7c1de9",
-							"equals": true
+							"value": "5ae2f21b6ced5d1f2b7c1de9"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-VehicleManufacturerLogos",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -598,21 +640,25 @@
 						"api",
 						"VehicleManufacturerLogos"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-VehicleManufacturerLogo",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -635,25 +681,28 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5ae2e856906e960e3fbe3054",
-							"equals": true
+							"value": "5ae2e856906e960e3fbe3054"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-Vehicles",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -676,25 +725,28 @@
 					"query": [
 						{
 							"key": "Type",
-							"value": "C",
-							"equals": true
+							"value": "C"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-Vehicle",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -717,25 +769,28 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5aeab5aada4ddc20e9672a9a",
-							"equals": true
+							"value": "5aeab5aada4ddc20e9672a9a"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-VehicleImage",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -754,25 +809,28 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5aeab5aada4ddc20e9672a9a",
-							"equals": true
+							"value": "5aeab5aada4ddc20e9672a9a"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-VehicleImages",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -788,21 +846,25 @@
 						"api",
 						"VehicleImages"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-Companies",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -825,25 +887,28 @@
 					"query": [
 						{
 							"key": "WithSites",
-							"value": "false",
-							"equals": true
+							"value": "false"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-Company",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -866,25 +931,28 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5abeba344bae1457eb565e27",
-							"equals": true
+							"value": "5abeba344bae1457eb565e27"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-CompanyLogos",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -900,21 +968,25 @@
 						"api",
 						"CompanyLogos"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-CompanyLogo",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -933,25 +1005,28 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5a74d8e5a518dd74ad2eb150",
-							"equals": true
+							"value": "5a74d8e5a518dd74ad2eb150"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-Sites",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -974,45 +1049,44 @@
 					"query": [
 						{
 							"key": "WithPicture",
-							"value": "false",
-							"equals": true
+							"value": "false"
 						},
 						{
 							"key": "WithSiteAreas",
-							"value": "false",
-							"equals": true
+							"value": "false"
 						},
 						{
 							"key": "WithChargeBoxes",
-							"value": "false",
-							"equals": true
+							"value": "false"
 						},
 						{
 							"key": "WithCompany",
-							"value": "false",
-							"equals": true
+							"value": "false"
 						},
 						{
 							"key": "WithUsers",
-							"value": "false",
-							"equals": true
+							"value": "false"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-Site",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1035,30 +1109,32 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5afaa433374fca4ee850b8b5",
-							"equals": true
+							"value": "5afaa433374fca4ee850b8b5"
 						},
 						{
 							"key": "WithUsers",
-							"value": "true",
-							"equals": true
+							"value": "true"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-SiteImage",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1077,25 +1153,28 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5a8fb88aedf8fc30d76b39d9",
-							"equals": true
+							"value": "5a8fb88aedf8fc30d76b39d9"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-SiteImages",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1111,21 +1190,25 @@
 						"api",
 						"SiteImages"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-SitesAreas",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1148,25 +1231,28 @@
 					"query": [
 						{
 							"key": "WithChargeBoxes",
-							"value": "true",
-							"equals": true
+							"value": "true"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-SiteArea",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1189,25 +1275,28 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5a9c607157bd3655a29fa394",
-							"equals": true
+							"value": "5a9c607157bd3655a29fa394"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-SiteAreaImage",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1226,25 +1315,28 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5a8fbb81edf8fc30d76b3a50",
-							"equals": true
+							"value": "5a8fbb81edf8fc30d76b3a50"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-SiteAreaImages",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1260,21 +1352,25 @@
 						"api",
 						"SiteAreaImages"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-ChargingStations",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1294,21 +1390,18 @@
 						"api",
 						"ChargingStations"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-ChargingStation",
 			"request": {
+				"auth": {
+					"type": "bearer"
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1327,25 +1420,21 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "{{chargingStation}}",
-							"equals": true
+							"value": "{{chargingStation}}"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-TransactionsCompleted",
 			"request": {
+				"auth": {
+					"type": "bearer"
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1368,30 +1457,32 @@
 					"query": [
 						{
 							"key": "Limit",
-							"value": "10",
-							"equals": true
+							"value": "10"
 						},
 						{
 							"key": "SiteID",
-							"value": "5a89e28708dc6e18968eacda",
-							"equals": true
+							"value": "5a89e28708dc6e18968eacda"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-TransactionsActive",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1411,21 +1502,25 @@
 						"api",
 						"TransactionsActive"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-Transaction",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1445,21 +1540,25 @@
 						"api",
 						"TransactionsActive"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-EndUserLicenseAgreement",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1479,21 +1578,25 @@
 						"auth",
 						"EndUserLicenseAgreement"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-TransactionsYears",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1513,21 +1616,25 @@
 						"api",
 						"TransactionYears"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-ChargingStationConsumptionStatistics",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1550,30 +1657,32 @@
 					"query": [
 						{
 							"key": "Year",
-							"value": "2017",
-							"equals": true
+							"value": "2017"
 						},
 						{
 							"key": "SiteID",
-							"value": "5a89e28708dc6e18968eacda",
-							"equals": true
+							"value": "5a89e28708dc6e18968eacda"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-ChargingStationUsageStatistics",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1596,25 +1705,28 @@
 					"query": [
 						{
 							"key": "Year",
-							"value": "2017",
-							"equals": true
+							"value": "2017"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-UserConsumptionStatistics",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1637,25 +1749,28 @@
 					"query": [
 						{
 							"key": "Year",
-							"value": "2017",
-							"equals": true
+							"value": "2017"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-UserUsageStatistics",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1678,25 +1793,28 @@
 					"query": [
 						{
 							"key": "Year",
-							"value": "2017",
-							"equals": true
+							"value": "2017"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-Users",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1712,21 +1830,25 @@
 						"api",
 						"Users"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-User",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1745,25 +1867,28 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5b06ea4a24312009bbbb2421",
-							"equals": true
+							"value": "5b06ea4a24312009bbbb2421"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-UserImage",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1782,25 +1907,28 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5a9cf274cd9b95f6180ed58c",
-							"equals": true
+							"value": "5a9cf274cd9b95f6180ed58c"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-UserImages",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1816,21 +1944,25 @@
 						"api",
 						"UserImages"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-Logs",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					}
-				],
+				"header": [],
 				"body": {
 					"mode": "raw",
 					"raw": ""
@@ -1849,34 +1981,36 @@
 					"query": [
 						{
 							"key": "DateFrom",
-							"value": "2018-02-28T10:27:50.833Z",
-							"equals": true
+							"value": "2018-02-28T10:27:50.833Z"
 						},
 						{
 							"key": "Limit",
-							"value": "10",
-							"equals": true
+							"value": "10"
 						},
 						{
 							"key": "SortDate",
-							"value": "-1",
-							"equals": true
+							"value": "-1"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-UserUpdate",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "PUT",
 				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					},
 					{
 						"key": "Content-Type",
 						"value": "application/json"
@@ -1901,20 +2035,25 @@
 						"api",
 						"UserUpdate"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-UserUpdateToAdmin",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "PUT",
 				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					},
 					{
 						"key": "Content-Type",
 						"value": "application/json"
@@ -1939,20 +2078,25 @@
 						"api",
 						"UserUpdate"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-SiteUpdate",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "PUT",
 				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					},
 					{
 						"key": "Content-Type",
 						"value": "application/json"
@@ -1977,20 +2121,25 @@
 						"api",
 						"SiteUpdate"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-VehicleUpdate",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "PUT",
 				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					},
 					{
 						"key": "Content-Type",
 						"value": "application/json"
@@ -2015,20 +2164,25 @@
 						"api",
 						"VehicleUpdate"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-VehicleManufacturerUpdate",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "PUT",
 				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					},
 					{
 						"key": "Content-Type",
 						"value": "application/json"
@@ -2053,20 +2207,25 @@
 						"api",
 						"VehicleManufacturerUpdate"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-CompanyUpdate",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "PUT",
 				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					},
 					{
 						"key": "Content-Type",
 						"value": "application/json"
@@ -2091,20 +2250,25 @@
 						"api",
 						"CompanyUpdate"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-ChargingStationUpdate",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "PUT",
 				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					},
 					{
 						"key": "Content-Type",
 						"value": "application/json"
@@ -2129,20 +2293,25 @@
 						"api",
 						"ChargingStationUpdate"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-CompanyDelete",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "DELETE",
 				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					},
 					{
 						"key": "Content-Type",
 						"value": "application/json"
@@ -2170,24 +2339,28 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5a7234df6a0b293d15ed02e1",
-							"equals": true
+							"value": "5a7234df6a0b293d15ed02e1"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-SiteDelete",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "DELETE",
 				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					},
 					{
 						"key": "Content-Type",
 						"value": "application/json"
@@ -2215,24 +2388,28 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5afaa433374fca4ee850b8b5",
-							"equals": true
+							"value": "5afaa433374fca4ee850b8b5"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-VehicleDelete",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "DELETE",
 				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					},
 					{
 						"key": "Content-Type",
 						"value": "application/json"
@@ -2260,24 +2437,28 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5aeab570da4ddc20e9672a97",
-							"equals": true
+							"value": "5aeab570da4ddc20e9672a97"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-VehicleManufacturerDelete",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "DELETE",
 				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					},
 					{
 						"key": "Content-Type",
 						"value": "application/json"
@@ -2305,24 +2486,28 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5ae6df8c00abd72b716047a9",
-							"equals": true
+							"value": "5ae6df8c00abd72b716047a9"
 						}
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
 		{
 			"name": "FE-SiteAreaDelete",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
 				"method": "DELETE",
 				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{token}}"
-					},
 					{
 						"key": "Content-Type",
 						"value": "application/json"
@@ -2350,46 +2535,10 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5a72286d2e24f229a520add1",
-							"equals": true
+							"value": "5a72286d2e24f229a520add1"
 						}
 					]
-				},
-				"description": ""
-			},
-			"response": []
-		},
-		{
-			"name": "FE-UserRegister",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"FABIANO \",\r\n  \"firstName\": \"Serge\",\r\n  \"email\": \"serge.fabiano@sap.comssssss\",\r\n  \"password\": \"SDF.1sdf.2\"\r\n}\r\n"
-				},
-				"url": {
-					"raw": "https://127.0.0.1:443/client/auth/registeruser",
-					"protocol": "https",
-					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
-					],
-					"port": "443",
-					"path": [
-						"client",
-						"auth",
-						"registeruser"
-					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2415,8 +2564,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2442,8 +2590,7 @@
 					"path": [
 						""
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2469,8 +2616,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2496,8 +2642,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2523,8 +2668,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2563,8 +2707,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2603,8 +2746,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2630,8 +2772,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2657,8 +2798,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2697,8 +2837,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2724,8 +2863,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2751,8 +2889,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2778,8 +2915,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2805,8 +2941,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2832,8 +2967,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2859,8 +2993,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2886,8 +3019,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2913,8 +3045,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2940,8 +3071,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2967,8 +3097,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -2994,8 +3123,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -3035,8 +3163,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -3062,8 +3189,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -3089,8 +3215,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -3116,8 +3241,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -3143,8 +3267,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -3170,8 +3293,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -3197,8 +3319,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -3224,8 +3345,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -3251,8 +3371,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -3278,8 +3397,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -3305,8 +3423,7 @@
 					"path": [
 						"OCPP15"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		}
