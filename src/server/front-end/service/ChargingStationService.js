@@ -236,8 +236,10 @@ class ChargingStationService {
 			return;
 		}
 		// Get the Charging station
-		global.storage.getChargingStation(filteredRequest.chargeBoxID).then((chargingStation) => {
+		let chargingStation;
+		global.storage.getChargingStation(filteredRequest.chargeBoxID).then((foundChargingStation) => {
 			// Found?
+			chargingStation = foundChargingStation;
 			if (!chargingStation) {
 				// Not Found!
 				throw new AppError(
@@ -288,9 +290,8 @@ class ChargingStationService {
 			}
 		}).then((result) => {
 			Logging.logSecurityInfo({
-				user: req.user, action: action,
-				module: "ChargingStationService",
-				method: "handleAction",
+				source: chargingStation.getID(), user: req.user, action: action,
+				module: "ChargingStationService", method: "handleAction",
 				message: `Action '${action}' has been executed on Charging Station '${req.body.chargeBoxID}'`,
 				detailedMessages: result
 			});
@@ -365,7 +366,8 @@ class ChargingStationService {
 			if (filteredRequest.maxIntensity && filteredRequest.maxIntensity >= 0 && filteredRequest.maxIntensity <= maxIntensitySocketMax) {
 				// Log
 				Logging.logSecurityInfo({
-					user: req.user, module: "ChargingStationService", method: "handleActionSetMaxIntensitySocket", action: action,
+					user: req.user, module: "ChargingStationService", method: "handleActionSetMaxIntensitySocket",
+					action: action, source: chargingStation.getID(),
 					message: `Change Max Instensity Socket from Charging Station '${filteredRequest.chargeBoxID}' has been set to '${filteredRequest.maxIntensity}'`});
 				// Change the config
 				return chargingStation.requestChangeConfiguration('maxintensitysocket', filteredRequest.maxIntensity);

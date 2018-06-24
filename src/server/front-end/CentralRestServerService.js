@@ -48,6 +48,7 @@ module.exports = {
 					// Change max intensity
 					case "ChargingStationSetMaxIntensitySocket":
 						// Delegate
+						action = action.slice(15);
 						ChargingStationService.handleActionSetMaxIntensitySocket(action, req, res, next);
 						break;
 					// Charge Box
