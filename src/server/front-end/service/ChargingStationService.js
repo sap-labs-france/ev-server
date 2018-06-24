@@ -292,7 +292,7 @@ class ChargingStationService {
 			Logging.logSecurityInfo({
 				source: chargingStation.getID(), user: req.user, action: action,
 				module: "ChargingStationService", method: "handleAction",
-				message: `Action '${action}' has been executed on Charging Station '${req.body.chargeBoxID}'`,
+				message: `'${action}' has been executed successfully`,
 				detailedMessages: result
 			});
 			// Return the result
@@ -342,7 +342,7 @@ class ChargingStationService {
 				// Not Found!
 				throw new AppError(
 					chargingStation.getID(),
-					`Cannot retrieve the configuration from the Charging Station '${filteredRequest.chargeBoxID}'`,
+					`Cannot retrieve the configuration`,
 					550, "ChargingStationService", "handleActionSetMaxIntensitySocket");
 			}
 
@@ -359,7 +359,7 @@ class ChargingStationService {
 				// Not Found!
 				throw new AppError(
 					chargingStation.getID(),
-					`Cannot retrieve the max intensity socket from the configuration from the Charging Station '${filteredRequest.chargeBoxID}'`,
+					`Cannot retrieve the max intensity socket from the configuration`,
 					550, "ChargingStationService", "handleActionSetMaxIntensitySocket");
 			}
 			// Check
@@ -368,14 +368,14 @@ class ChargingStationService {
 				Logging.logSecurityInfo({
 					user: req.user, module: "ChargingStationService", method: "handleActionSetMaxIntensitySocket",
 					action: action, source: chargingStation.getID(),
-					message: `Change Max Instensity Socket from Charging Station '${filteredRequest.chargeBoxID}' has been set to '${filteredRequest.maxIntensity}'`});
+					message: `Max Instensity Socket has been set to '${filteredRequest.maxIntensity}'`});
 				// Change the config
 				return chargingStation.requestChangeConfiguration('maxintensitysocket', filteredRequest.maxIntensity);
 			} else {
 				// Invalid value
 				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`Invalid value for param max intensity socket '${filteredRequest.maxIntensity}' for Charging Station ${filteredRequest.chargeBoxID}`,
+					chargingStation.getID(),
+					`Invalid value for Max Intensity Socket: '${filteredRequest.maxIntensity}'`,
 					500, "ChargingStationService", "handleActionSetMaxIntensitySocket");
 			}
 		}).then((result) => {
