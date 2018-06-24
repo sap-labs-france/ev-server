@@ -117,7 +117,6 @@ class TransactionStorage {
 				{ "chargeBoxID" : { $regex : searchValue, $options: 'i' } }
 			];
 		}
-		console.log(JSON.stringify(searchValue, null, ' '));
 		// User
 		if (filter.userId) {
 			match.userID = Utils.convertToObjectID(filter.userId);
