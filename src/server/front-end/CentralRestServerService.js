@@ -50,7 +50,6 @@ module.exports = {
 						// Delegate
 						ChargingStationService.handleActionSetMaxIntensitySocket(action, req, res, next);
 						break;
-
 					// Charge Box
 					case "ChargingStationClearCache":
 					case "ChargingStationGetConfiguration":
@@ -64,43 +63,41 @@ module.exports = {
 						// Delegate
 						ChargingStationService.handleAction(action, req, res, next);
 						break;
-
 					// Create User
 					case "UserCreate":
 						// Delegate
 						UserService.handleCreateUser(action, req, res, next);
 						break;
-
 					// Create Company
 					case "CompanyCreate":
 						// Delegate
 						CompanyService.handleCreateCompany(action, req, res, next);
 						break;
-
 					// Create Vehicle
 					case "VehicleCreate":
 						// Delegate
 						VehicleService.handleCreateVehicle(action, req, res, next);
 						break;
-
 					// Create Vehicle Manufacturer
 					case "VehicleManufacturerCreate":
 						// Delegate
 						VehicleManufacturerService.handleCreateVehicleManufacturer(action, req, res, next);
 						break;
-
 					// Create Site
 					case "SiteCreate":
 						// Delegate
 						SiteService.handleCreateSite(action, req, res, next);
 						break;
-
 					// Create Site Area
 					case "SiteAreaCreate":
 						// Delegate
 						SiteAreaService.handleCreateSiteArea(action, req, res, next);
 						break;
-
+					// Transaction Refund
+					case "TransactionRefund":
+						// Delegate
+						TransactionService.handleRefundTransaction(action, req, res, next);
+						break;
 					// Unknown Context
 					default:
 						// Delegate
@@ -117,235 +114,196 @@ module.exports = {
 						// Delegate
 						PricingService.handleGetPricing(action, req, res, next);
 						break;
-
 					// Get the Logging
 					case "Loggings":
 						// Delegate
 						LoggingService.handleGetLoggings(action, req, res, next);
 						break;
-
 					// Get all the charging stations
 					case "ChargingStations":
 						// Delegate
 						ChargingStationService.handleGetChargingStations(action, req, res, next);
 						break;
-
 					// Get one charging station
 					case "ChargingStation":
 						// Delegate
 						ChargingStationService.handleGetChargingStation(action, req, res, next);
 						break;
-
 					// Get all the companies
 					case "Companies":
 						// Delegate
 						CompanyService.handleGetCompanies(action, req, res, next);
 						break;
-
 					// Get one company
 					case "Company":
 						// Delegate
 						CompanyService.handleGetCompany(action, req, res, next);
 						break;
-
 					// Get all the company logos
 					case "CompanyLogos":
 						// Delegate
 						CompanyService.handleGetCompanyLogos(action, req, res, next);
 						break;
-
 					// Get one company logo
 					case "CompanyLogo":
 						// Delegate
 						CompanyService.handleGetCompanyLogo(action, req, res, next);
 						break;
-
 					// Get all the sites
 					case "Sites":
 						// Delegate
 						SiteService.handleGetSites(action, req, res, next);
 						break;
-
 					// Get one site
 					case "Site":
 						// Delegate
 						SiteService.handleGetSite(action, req, res, next);
 						break;
-
 					// Get all the site images
 					case "SiteImages":
 						// Delegate
 						SiteService.handleGetSiteImages(action, req, res, next);
 						break;
-
 					// Get one site image
 					case "SiteImage":
 						// Delegate
 						SiteService.handleGetSiteImage(action, req, res, next);
 						break;
-
 					// Get all the vehicles
 					case "Vehicles":
 						// Delegate
 						VehicleService.handleGetVehicles(action, req, res, next);
 						break;
-
 					// Get one vehicle
 					case "Vehicle":
 						// Delegate
 						VehicleService.handleGetVehicle(action, req, res, next);
 						break;
-
 					// Get all the vehicle images
 					case "VehicleImages":
 						// Delegate
 						VehicleService.handleGetVehicleImages(action, req, res, next);
 						break;
-
 					// Get one vehicle image
 					case "VehicleImage":
 						// Delegate
 						VehicleService.handleGetVehicleImage(action, req, res, next);
 						break;
-
 					// Get all the Vehicle Manufacturers
 					case "VehicleManufacturers":
 						// Delegate
 						VehicleManufacturerService.handleGetVehicleManufacturers(action, req, res, next);
 						break;
-
 					// Get one Vehicle Manufacturer
 					case "VehicleManufacturer":
 						// Delegate
 						VehicleManufacturerService.handleGetVehicleManufacturer(action, req, res, next);
 						break;
-
 					// Get all the Vehicle Manufacturer logos
 					case "VehicleManufacturerLogos":
 						// Delegate
 						VehicleManufacturerService.handleGetVehicleManufacturerLogos(action, req, res, next);
 						break;
-
 					// Get one Vehicle Manufacturer logo
 					case "VehicleManufacturerLogo":
 						// Delegate
 						VehicleManufacturerService.handleGetVehicleManufacturerLogo(action, req, res, next);
 						break;
-
 					// Get all the site areas
 					case "SiteAreas":
 						// Delegate
 						SiteAreaService.handleGetSiteAreas(action, req, res, next);
 						break;
-
 					// Get one site area
 					case "SiteArea":
 						// Delegate
 						SiteAreaService.handleGetSiteArea(action, req, res, next);
 						break;
-
 					// Get all the site area images
 					case "SiteAreaImages":
 						// Delegate
 						SiteAreaService.handleGetSiteAreaImages(action, req, res, next);
 						break;
-
 					// Get one site area image
 					case "SiteAreaImage":
 						// Delegate
 						SiteAreaService.handleGetSiteAreaImage(action, req, res, next);
 						break;
-
 					// Get all the users
 					case "Users":
 						// Delegate
 						UserService.handleGetUsers(action, req, res, next);
 						break;
-
 					// Get the user images
 					case "UserImages":
 						// Delegate
 						UserService.handleGetUserImages(action, req, res, next);
 						break;
-
 					// Get the user
 					case "User":
 						// Delegate
 						UserService.handleGetUser(action, req, res, next);
 						break;
-
 					// Get the user image
 					case "UserImage":
 						// Delegate
 						UserService.handleGetUserImage(action, req, res, next);
 						break;
-
 					// Get the completed transactions
 					case "TransactionsCompleted":
 						// Delegate
 						TransactionService.handleGetTransactionsCompleted(action, req, res, next);
 						break;
-
 					// Get the transaction's years
 					case "TransactionYears":
 						// Delegate
 						TransactionService.handleGetTransactionYears(action, req, res, next);
 						break;
-
 					// Get the consumption statistics
 					case "ChargingStationConsumptionStatistics":
 						// Delegate
 						StatisticService.handleGetChargingStationConsumptionStatistics(action, req, res, next);
 						break;
-
 					// Get the consumption statistics
 					case "ChargingStationUsageStatistics":
 						// Delegate
 						StatisticService.handleGetChargingStationUsageStatistics(action, req, res, next);
 						break;
-
 					// Get the consumption statistics
 					case "UserConsumptionStatistics":
 						// Delegate
 						StatisticService.handleGetUserConsumptionStatistics(action, req, res, next);
 						break;
-
 					// Get the usage statistics
 					case "UserUsageStatistics":
 						// Delegate
 						StatisticService.handleUserUsageStatistics(action, req, res, next);
 						break;
-
 					// Get the active transactions
 					case "TransactionsActive":
 						// Delegate
 						TransactionService.handleGetTransactionsActive(action, req, res, next);
 						break;
-
 					// Get the transactions
 					case "ChargingStationTransactions":
 						// Delegate
 						TransactionService.handleGetChargingStationTransactions(action, req, res, next);
 						break;
-
 					// Get the transaction
 					case "Transaction":
 						// Delegate
 						TransactionService.handleGetTransaction(action, req, res, next);
 						break;
-
 					// Get Charging Consumption
 					case "ChargingStationConsumptionFromTransaction":
 						// Delegate
 						TransactionService.handleGetChargingStationConsumptionFromTransaction(action, req, res, next);
 						break;
-
 					// Get Charging Configuration
 					case "ChargingStationConfiguration":
 						// Delegate
 						ChargingStationService.handleGetChargingStationConfiguration(action, req, res, next);
 						break;
-
 					// Unknown Action
 					default:
 						// Delegate
@@ -362,55 +320,46 @@ module.exports = {
 						// Delegate
 						PricingService.handleUpdatePricing(action, req, res, next);
 						break;
-
 					// User
 					case "UserUpdate":
 						// Delegate
 						UserService.handleUpdateUser(action, req, res, next);
 						break;
-
 					// Charging Station Params
 					case "ChargingStationUpdateParams":
 						// Delegate
 						ChargingStationService.handleUpdateChargingStationParams(action, req, res, next);
 						break;
-
 					// Site
 					case "SiteUpdate":
 						// Delegate
 						SiteService.handleUpdateSite(action, req, res, next);
 						break;
-
 					// Site Area
 					case "SiteAreaUpdate":
 						// Delegate
 						SiteAreaService.handleUpdateSiteArea(action, req, res, next);
 						break;
-
 					// Company
 					case "CompanyUpdate":
 						// Delegate
 						CompanyService.handleUpdateCompany(action, req, res, next);
 						break;
-
 					// Vehicle
 					case "VehicleUpdate":
 						// Delegate
 						VehicleService.handleUpdateVehicle(action, req, res, next);
 						break;
-
 					// Vehicle Manufacturer
 					case "VehicleManufacturerUpdate":
 						// Delegate
 						VehicleManufacturerService.handleUpdateVehicleManufacturer(action, req, res, next);
 						break;
-
 					// Transaction
 					case "TransactionSoftStop":
 						// Delegate
 						TransactionService.handleTransactionSoftStop(action, req, res, next);
 						break;
-
 					// Not found
 					default:
 						// Delegate
@@ -427,49 +376,41 @@ module.exports = {
 						// Delegate
 						UserService.handleDeleteUser(action, req, res, next);
 						break;
-
 					// Company
 					case "CompanyDelete":
 						// Delegate
 						CompanyService.handleDeleteCompany(action, req, res, next);
 						break;
-
 					// Vehicle
 					case "VehicleDelete":
 						// Delegate
 						VehicleService.handleDeleteVehicle(action, req, res, next);
 						break;
-
 					// Vehicle Manufacturer
 					case "VehicleManufacturerDelete":
 						// Delegate
 						VehicleManufacturerService.handleDeleteVehicleManufacturer(action, req, res, next);
 						break;
-
 					// Site
 					case "SiteDelete":
 						// Delegate
 						SiteService.handleDeleteSite(action, req, res, next);
 						break;
-
 					// Site Area
 					case "SiteAreaDelete":
 						// Delegate
 						SiteAreaService.handleDeleteSiteArea(action, req, res, next);
 						break;
-
 					// Charging station
 					case "ChargingStationDelete":
 						// Delegate
 						ChargingStationService.handleDeleteChargingStation(action, req, res, next);
 						break;
-
 					// Transaction
 					case "TransactionDelete":
 						// Delegate
 						TransactionService.handleDeleteTransaction(action, req, res, next);
 						break;
-
 					// Not found
 					default:
 						// Delegate

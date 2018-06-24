@@ -5,6 +5,13 @@ const Users = require('../../../../utils/Users');
 const UtilsSecurity = require('./UtilsSecurity');
 
 class TransactionSecurity {
+	static filterTransactionRefund(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.id = sanitize(request.id);
+		return filteredRequest;
+	}
+
 	static filterTransactionDelete(request, loggedUser) {
 		let filteredRequest = {};
 		// Set

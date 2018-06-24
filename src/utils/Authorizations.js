@@ -48,8 +48,22 @@ module.exports = {
 	ACTION_CLEAR_CACHE: "ClearCache",
 	ACTION_STOP_TRANSACTION: "StopTransaction",
 	ACTION_START_TRANSACTION: "StartTransaction",
+	ACTION_REFUND_TRANSACTION: "RefundTransaction",
 	ACTION_UNLOCK_CONNECTOR: "UnlockConnector",
 	ACTION_GET_CONFIGURATION: "GetConfiguration",
+
+	canRefundTransaction(loggedUser, transaction) {
+		// Check auth
+		if (transaction.user) {
+			// Check
+			return this.canPerformAction(loggedUser, this.ENTITY_TRANSACTION,
+				{ "Action": this.ACTION_REFUND_TRANSACTION, "UserID": transaction.user.id.toString()});
+		// Admin?
+		} else if (!this.isAdmin(loggedUser)) {
+			return false;
+		}
+		return true;
+	},
 
 	canStartTransaction(user, chargingStation) {
 		// Can perform stop?
@@ -805,7 +819,7 @@ module.exports = {
 							"AuthObject": "Transaction",
 							"AuthFieldValue": {
 								"UserID": "*",
-								"Action": ["Read", "Update", "Delete"]
+								"Action": ["Read", "Update", "Delete", "RefundTransaction"]
 							}
 						},
 						{

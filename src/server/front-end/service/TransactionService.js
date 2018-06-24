@@ -8,8 +8,110 @@ const Users = require('../../../utils/Users');
 const Constants = require('../../../utils/Constants');
 const moment = require('moment');
 const TransactionSecurity = require('./security/TransactionSecurity');
+const ClientOAuth2 = require('client-oauth2');
+const axios = require('axios');
 
 class TransactionService {
+	static handleRefundTransaction(action, req, res, next) {
+		// Filter
+		let filteredRequest = TransactionSecurity.filterTransactionRefund(req.body, req.user);
+		// Transaction Id is mandatory
+		if(!filteredRequest.id) {
+			Logging.logActionExceptionMessageAndSendResponse(
+				action, new Error(`The Transaction ID is mandatory`), req, res, next);
+			return;
+		}
+		// Get Transaction
+		let transaction;
+		let chargingStation;
+		let user;
+		global.storage.getTransaction(filteredRequest.id).then((foundTransaction) => {
+			transaction = foundTransaction;
+			// Found?
+			if (!transaction) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`Transaction '${filteredRequest.ID}' does not exist`,
+					550, "TransactionService", "handleRefundTransaction");
+			}
+			// Check auth
+			if (!Authorizations.canRefundTransaction(req.user, transaction)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					Authorizations.ACTION_REFUND_TRANSACTION,
+					Authorizations.ENTITY_TRANSACTION,
+					transaction.id,
+					560, "TransactionService", "handleRefundTransaction",
+					req.user);
+			}
+			// Get the Charging Station
+			return global.storage.getChargingStation(transaction.chargeBox.id);
+		}).then((foundChargingStation) => {
+			chargingStation = foundChargingStation;
+			// Found?
+			if (!chargingStation) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`Charging Station with ID ${transaction.chargeBox.id} does not exist`,
+					550, "TransactionService", "handleRefundTransaction");
+			}
+			// Get logged user
+			return global.storage.getUser(req.user.id);
+		}).then((foundUser) => {
+			user = foundUser;
+			// Check
+			if (!user) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The user with ID '${req.user.id}' does not exist`,
+					550, "TransactionService", "handleRefundTransaction");
+			}
+			// Refund Transaction
+			let cloudRevenueAuth = new ClientOAuth2({
+			  clientId: 'sb-revenue-cloud!b1122|revenue-cloud!b1532',
+			  clientSecret: 'BtuZkWlC/58HmEMoqBCHc0jBoVg=',
+			  accessTokenUri: 'https://seed-innovation.authentication.eu10.hana.ondemand.com/oauth/token'
+			})
+			// Get the token
+			return cloudRevenueAuth.credentials.getToken();
+		}).then((authResponse) => {
+			// Send HTTP request
+			return axios.post(
+				'https://eu10.revenue.cloud.sap/api/usage-record/v1/usage-records',
+				{
+					"metricId": "ChargeCurrent",
+					"quantity": transaction.stop.totalConsumption,
+					"startedAt": transaction.timestamp,
+					"endedAt": transaction.stop.timestamp,
+					"userTechnicalId": transaction.tagID
+				},
+				{
+					"headers": {
+						"Authorization": "Bearer " + authResponse.accessToken,
+						"Content-Type": "application/json"
+					}
+				}
+			);
+		}).then((result) => {
+			// console.log(result.data); // { id: 'c9fa0882-512a-427b-97ea-a0b3b05a08e4' }
+			// Log
+			Logging.logSecurityInfo({
+				user: req.user, actionOnUser: user.getModel(),
+				module: "TransactionService", method: "handleRefundTransaction",
+				message: `Transaction ID '${filteredRequest.id}' on '${transaction.chargeBox.id}'-'${transaction.connectorId}' has been refunded successfully`,
+				action: action, detailedMessages: result.data});
+			// Ok
+			res.json({status: `Success`});
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
 	static handleDeleteTransaction(action, req, res, next) {
 		// Filter
 		let filteredRequest = TransactionSecurity.filterTransactionDelete(req.query, req.user);

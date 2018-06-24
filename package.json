@@ -10,11 +10,13 @@
 	"main": "dist/start.js",
 	"dependencies": {
 		"assert": "^1.4.1",
+		"axios": "^0.18.0",
 		"babel-polyfill": "^6.26.0",
 		"bcrypt": "^2.0.1",
 		"body-parser": "^1.17.2",
 		"body-parser-xml": "^1.1.0",
 		"cfenv": "^1.1.0",
+		"client-oauth2": "^4.2.1",
 		"cookie-parser": "^1.4.3",
 		"cors": "^2.8.4",
 		"ejs": "^2.5.7",

@@ -1070,7 +1070,7 @@ class ChargingStation {
 		// Result
 		}).then((result) => {
 			// Request the new Configuration?
-			if (result.status === "Accepted") {
+			if (result.status == "Accepted") {
 				// Get the Charging Station Config
 				return this.requestGetConfiguration();
 			} else {
@@ -1082,11 +1082,8 @@ class ChargingStation {
 			if (configuration) {
 				// Save
 				return this.saveConfiguration(configuration).then((config) => {
-					// Ok ?
-					if (config) {
-						// Return the first result
-						return {"status": "Accepted"};
-					}
+					// Return the first result
+					return {"status": "Accepted"};
 				});
 			} else {
 				// Log
