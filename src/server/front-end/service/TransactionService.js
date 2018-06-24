@@ -99,7 +99,7 @@ class TransactionService {
 			// console.log(result.data); // { id: 'c9fa0882-512a-427b-97ea-a0b3b05a08e4' }
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, actionOnUser: user.getModel(),
+				user: req.user, actionOnUser: transaction.user,
 				source: transaction.chargeBox.id,
 				module: "TransactionService", method: "handleRefundTransaction",
 				message: `Transaction ID '${filteredRequest.id}' has been refunded successfully`,
