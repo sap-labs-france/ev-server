@@ -36,7 +36,7 @@ class VehicleStorage {
 	static async handleGetVehicleImages() {
 		// Read DB
 		let vehicleImagesMDB = await _db.collection('vehicleimages')
-			.find({_id: Utils.convertToObjectID(id)})
+			.find({})
 			.toArray();
 		let vehicleImages = [];
 		// Set
