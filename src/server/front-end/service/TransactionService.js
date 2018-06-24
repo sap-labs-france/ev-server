@@ -100,8 +100,9 @@ class TransactionService {
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, actionOnUser: user.getModel(),
+				source: transaction.chargeBox.id,
 				module: "TransactionService", method: "handleRefundTransaction",
-				message: `Transaction ID '${filteredRequest.id}' on '${transaction.chargeBox.id}'-'${transaction.connectorId}' has been refunded successfully`,
+				message: `Transaction ID '${filteredRequest.id}' has been refunded successfully`,
 				action: action, detailedMessages: result.data});
 			// Ok
 			res.json({status: `Success`});
