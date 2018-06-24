@@ -112,11 +112,12 @@ class TransactionStorage {
 		if (searchValue) {
 			// Build filter
 			match.$or = [
-				{ "_id" : { $regex : searchValue, $options: 'i' } },
+				{ "_id" : parseInt(searchValue) },
 				{ "tagID" : { $regex : searchValue, $options: 'i' } },
 				{ "chargeBoxID" : { $regex : searchValue, $options: 'i' } }
 			];
 		}
+		console.log(JSON.stringify(searchValue, null, ' '));
 		// User
 		if (filter.userId) {
 			match.userID = Utils.convertToObjectID(filter.userId);
