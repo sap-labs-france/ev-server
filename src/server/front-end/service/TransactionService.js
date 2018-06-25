@@ -82,7 +82,7 @@ class TransactionService {
 			return axios.post(
 				'https://eu10.revenue.cloud.sap/api/usage-record/v1/usage-records',
 				{
-					"metricId": "ChargeCurrent",
+					"metricId": "ChargeCurrent_Demo",
 					"quantity": transaction.stop.totalConsumption / 1000,
 					"startedAt": transaction.timestamp,
 					"endedAt": transaction.stop.timestamp,

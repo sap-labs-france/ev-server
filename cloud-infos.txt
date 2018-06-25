@@ -10,6 +10,8 @@ common:
     NIGINX
         /var/log/nginx/access.log
         /var/log/nginx/error.log
+        SSL  /etc/pki/nginx/bundle.cer
+             /etc/pki/nginx/82.165.163.132.key
 
 cloud:
     http:  /var/www/html/cloud
