@@ -83,7 +83,7 @@ class TransactionService {
 				'https://eu10.revenue.cloud.sap/api/usage-record/v1/usage-records',
 				{
 					"metricId": "ChargeCurrent",
-					"quantity": transaction.stop.totalConsumption,
+					"quantity": transaction.stop.totalConsumption / 1000,
 					"startedAt": transaction.timestamp,
 					"endedAt": transaction.stop.timestamp,
 					"userTechnicalId": transaction.tagID
