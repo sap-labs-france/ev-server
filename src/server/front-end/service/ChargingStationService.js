@@ -226,20 +226,19 @@ class ChargingStationService {
 		});
 	}
 
-	static handleAction(action, req, res, next) {
-		// Filter
-		let filteredRequest = ChargingStationSecurity.filterChargingStationActionRequest( req.body, action, req.user );
-		// Charge Box is mandatory
-		if(!filteredRequest.chargeBoxID) {
-			Logging.logActionExceptionMessageAndSendResponse(
-				action, new Error(`The Charging Station ID is mandatory`), req, res, next);
-			return;
-		}
-		// Get the Charging station
-		let chargingStation;
-		global.storage.getChargingStation(filteredRequest.chargeBoxID).then((foundChargingStation) => {
+	static async handleAction(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = ChargingStationSecurity.filterChargingStationActionRequest( req.body, action, req.user );
+			// Charge Box is mandatory
+			if(!filteredRequest.chargeBoxID) {
+				Logging.logActionExceptionMessageAndSendResponse(
+					action, new Error(`The Charging Station ID is mandatory`), req, res, next);
+				return;
+			}
+			// Get the Charging station
+			let chargingStation = await global.storage.getChargingStation(filteredRequest.chargeBoxID);
 			// Found?
-			chargingStation = foundChargingStation;
 			if (!chargingStation) {
 				// Not Found!
 				throw new AppError(
@@ -247,34 +246,34 @@ class ChargingStationService {
 					`Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
 					550, "ChargingStationService", "handleAction");
 			}
+			let result;
 			if (action === "StopTransaction" ||
 					action === "UnlockConnector") {
 				// Get Transaction
-				let transaction;
-				return global.storage.getTransaction(filteredRequest.args.transactionId).then((foundTransaction) => {
-					transaction = foundTransaction;
-					if (!transaction) {
-						// Log
-						return Promise.reject(new Error(`Transaction ${filteredRequest.TransactionId} does not exist`));
-					}
-					// Add connector ID
-					filteredRequest.args.connectorId = transaction.connectorId;
-					// Check if user is authorized
-					return Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, transaction.tagID, req.user.tagIDs[0]);
-				}).then(() => {
-					// Set the tag ID to handle the Stop Transaction afterwards
-					transaction.remotestop = {};
-					transaction.remotestop.tagID = req.user.tagIDs[0];
-					transaction.remotestop.timestamp = new Date().toISOString();
-					// Save Transaction
-					return global.storage.saveTransaction(transaction);
-				}).then(() => {
-					// Ok: Execute it
-					return chargingStation.handleAction(action, filteredRequest.args);
-				}).catch((err) => {
-					// Log
-					Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-				});
+				let transaction = await global.storage.getTransaction(filteredRequest.args.transactionId);
+				if (!transaction) {
+					throw new AppError(
+						Constants.CENTRAL_SERVER,
+						`Transaction ${filteredRequest.TransactionId} does not exist`,
+						560, "ChargingStationService", "handleAction");
+				}
+				// Add connector ID
+				filteredRequest.args.connectorId = transaction.connectorId;
+				// Check if user is authorized
+				await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, transaction.tagID, req.user.tagIDs[0]);
+				// Set the tag ID to handle the Stop Transaction afterwards
+				transaction.remotestop = {};
+				transaction.remotestop.tagID = req.user.tagIDs[0];
+				transaction.remotestop.timestamp = new Date().toISOString();
+				// Save Transaction
+				await global.storage.saveTransaction(transaction);
+				// Ok: Execute it
+				result = await chargingStation.handleAction(action, filteredRequest.args);
+			} else if (action === "StartTransaction") {
+				// Check if user is authorized
+				await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, filteredRequest.args.tagID);
+				// Ok: Execute it
+				result = await chargingStation.handleAction(action, filteredRequest.args);
 			} else {
 				// Check auth
 				if (!Authorizations.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action)) {
@@ -286,22 +285,21 @@ class ChargingStationService {
 						req.user);
 				}
 				// Execute it
-				return chargingStation.handleAction(action, filteredRequest.args);
+				result = await chargingStation.handleAction(action, filteredRequest.args);
 			}
-		}).then((result) => {
+			// Ok
 			Logging.logSecurityInfo({
 				source: chargingStation.getID(), user: req.user, action: action,
 				module: "ChargingStationService", method: "handleAction",
 				message: `'${action}' has been executed successfully`,
-				detailedMessages: result
-			});
+				detailedMessages: result });
 			// Return the result
 			res.json(result);
 			next();
-		}).catch((err) => {
+		} catch(err) {
 			// Log
 			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+		}
 	}
 
 	static handleActionSetMaxIntensitySocket(action, req, res, next) {
