@@ -38,7 +38,7 @@
 						},
 						{
 							"key": "password",
-							"value": "DeM*Us$r",
+							"value": "DeM*Us$r42",
 							"description": "",
 							"type": "text"
 						},
@@ -584,7 +584,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "https://127.0.0.1:443/client/api/VehicleManufacturers?WithVehicles=true&VehicleType=C",
+					"raw": "https://127.0.0.1:443/client/api/VehicleManufacturers?WithVehicles=true",
 					"protocol": "https",
 					"host": [
 						"127",
@@ -602,10 +602,6 @@
 						{
 							"key": "WithVehicles",
 							"value": "true"
-						},
-						{
-							"key": "VehicleType",
-							"value": "C"
 						}
 					]
 				}
@@ -632,7 +628,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "https://127.0.0.1:443/client/api/VehicleManufacturer?ID=5ae2f21b6ced5d1f2b7c1de9",
+					"raw": "https://127.0.0.1:443/client/api/VehicleManufacturer?ID=5b2faf9c17b7b24c5d7ebb9a",
 					"protocol": "https",
 					"host": [
 						"127",
@@ -649,7 +645,7 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5ae2f21b6ced5d1f2b7c1de9"
+							"value": "5b2faf9c17b7b24c5d7ebb9a"
 						}
 					]
 				}
@@ -714,7 +710,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "https://127.0.0.1:443/client/api/VehicleManufacturerLogo?ID=5ae2e856906e960e3fbe3054",
+					"raw": "https://127.0.0.1:443/client/api/VehicleManufacturerLogo?ID=5b2faf9c17b7b24c5d7ebb9a",
 					"protocol": "https",
 					"host": [
 						"127",
@@ -731,7 +727,7 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5ae2e856906e960e3fbe3054"
+							"value": "5b2faf9c17b7b24c5d7ebb9a"
 						}
 					]
 				}
@@ -802,7 +798,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "https://127.0.0.1:443/client/api/Vehicle?ID=5aeab5aada4ddc20e9672a9a",
+					"raw": "https://127.0.0.1:443/client/api/Vehicle?ID=5b2faf9a17b7b24c5d7ebb98",
 					"protocol": "https",
 					"host": [
 						"127",
@@ -819,47 +815,7 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5aeab5aada4ddc20e9672a9a"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-VehicleImage",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "https://localhost/client/api/VehicleImage?ID=5aeab5aada4ddc20e9672a9a",
-					"protocol": "https",
-					"host": [
-						"localhost"
-					],
-					"path": [
-						"client",
-						"api",
-						"VehicleImage"
-					],
-					"query": [
-						{
-							"key": "ID",
-							"value": "5aeab5aada4ddc20e9672a9a"
+							"value": "5b2faf9a17b7b24c5d7ebb98"
 						}
 					]
 				}
@@ -895,6 +851,46 @@
 						"client",
 						"api",
 						"VehicleImages"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-VehicleImage",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost/client/api/VehicleImage?ID=5b2faf9a17b7b24c5d7ebb98",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"client",
+						"api",
+						"VehicleImage"
+					],
+					"query": [
+						{
+							"key": "ID",
+							"value": "5b2faf9a17b7b24c5d7ebb98"
+						}
 					]
 				}
 			},
@@ -964,7 +960,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "https://127.0.0.1:443/client/api/Company?ID=5abeba344bae1457eb565e27",
+					"raw": "https://127.0.0.1:443/client/api/Company?ID=5abeba504bae1457eb565e31",
 					"protocol": "https",
 					"host": [
 						"127",
@@ -981,7 +977,7 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5abeba344bae1457eb565e27"
+							"value": "5abeba504bae1457eb565e31"
 						}
 					]
 				}
@@ -1042,7 +1038,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "https://localhost/client/api/CompanyLogo?ID=5a74d8e5a518dd74ad2eb150",
+					"raw": "https://localhost/client/api/CompanyLogo?ID=5abeba504bae1457eb565e31",
 					"protocol": "https",
 					"host": [
 						"localhost"
@@ -1055,7 +1051,7 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5a74d8e5a518dd74ad2eb150"
+							"value": "5abeba504bae1457eb565e31"
 						}
 					]
 				}
@@ -1142,7 +1138,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "https://127.0.0.1:443/client/api/Site?ID=5afaa433374fca4ee850b8b5&WithUsers=true",
+					"raw": "https://127.0.0.1:443/client/api/Site?ID=5af1ba7cee5dc0cd3bc7fd14&WithUsers=true",
 					"protocol": "https",
 					"host": [
 						"127",
@@ -1159,51 +1155,11 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5afaa433374fca4ee850b8b5"
+							"value": "5af1ba7cee5dc0cd3bc7fd14"
 						},
 						{
 							"key": "WithUsers",
 							"value": "true"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-SiteImage",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "https://localhost/client/api/SiteImage?ID=5a8fb88aedf8fc30d76b39d9",
-					"protocol": "https",
-					"host": [
-						"localhost"
-					],
-					"path": [
-						"client",
-						"api",
-						"SiteImage"
-					],
-					"query": [
-						{
-							"key": "ID",
-							"value": "5a8fb88aedf8fc30d76b39d9"
 						}
 					]
 				}
@@ -1239,6 +1195,46 @@
 						"client",
 						"api",
 						"SiteImages"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SiteImage",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost/client/api/SiteImage?ID=5abeba9e4bae1457eb565e66",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"client",
+						"api",
+						"SiteImage"
+					],
+					"query": [
+						{
+							"key": "ID",
+							"value": "5abeba9e4bae1457eb565e66"
+						}
 					]
 				}
 			},
@@ -1308,7 +1304,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "https://127.0.0.1:443/client/api/SiteArea?ID=5a9c607157bd3655a29fa394",
+					"raw": "https://127.0.0.1:443/client/api/SiteArea?ID=5af1ba94ee5dc0cd3bc7fd50",
 					"protocol": "https",
 					"host": [
 						"127",
@@ -1325,47 +1321,7 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5a9c607157bd3655a29fa394"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-SiteAreaImage",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "https://localhost/client/api/SiteAreaImage?ID=5a8fbb81edf8fc30d76b3a50",
-					"protocol": "https",
-					"host": [
-						"localhost"
-					],
-					"path": [
-						"client",
-						"api",
-						"SiteAreaImage"
-					],
-					"query": [
-						{
-							"key": "ID",
-							"value": "5a8fbb81edf8fc30d76b3a50"
+							"value": "5af1ba94ee5dc0cd3bc7fd50"
 						}
 					]
 				}
@@ -1401,6 +1357,46 @@
 						"client",
 						"api",
 						"SiteAreaImages"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-SiteAreaImage",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost/client/api/SiteAreaImage?ID=5ac678b5c0cc5e7fdd2c5ef3",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"client",
+						"api",
+						"SiteAreaImage"
+					],
+					"query": [
+						{
+							"key": "ID",
+							"value": "5ac678b5c0cc5e7fdd2c5ef3"
+						}
 					]
 				}
 			},
@@ -1448,7 +1444,14 @@
 			"name": "FE-ChargingStation",
 			"request": {
 				"auth": {
-					"type": "bearer"
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
 				},
 				"method": "GET",
 				"header": [],
@@ -1481,7 +1484,14 @@
 			"name": "FE-TransactionsCompleted",
 			"request": {
 				"auth": {
-					"type": "bearer"
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
 				},
 				"method": "GET",
 				"header": [],
@@ -1904,7 +1914,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "https://localhost/client/api/User?ID=5b06ea4a24312009bbbb2421",
+					"raw": "https://localhost/client/api/User?ID=592e969f89d8e07a2b16a795",
 					"protocol": "https",
 					"host": [
 						"localhost"
@@ -1917,47 +1927,7 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5b06ea4a24312009bbbb2421"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-UserImage",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "https://localhost/client/api/UserImage?ID=5a9cf274cd9b95f6180ed58c",
-					"protocol": "https",
-					"host": [
-						"localhost"
-					],
-					"path": [
-						"client",
-						"api",
-						"UserImage"
-					],
-					"query": [
-						{
-							"key": "ID",
-							"value": "5a9cf274cd9b95f6180ed58c"
+							"value": "592e969f89d8e07a2b16a795"
 						}
 					]
 				}
@@ -1993,6 +1963,46 @@
 						"client",
 						"api",
 						"UserImages"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-UserImage",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost/client/api/UserImage?ID=592e969f89d8e07a2b16a795",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"client",
+						"api",
+						"UserImage"
+					],
+					"query": [
+						{
+							"key": "ID",
+							"value": "592e969f89d8e07a2b16a795"
+						}
 					]
 				}
 			},

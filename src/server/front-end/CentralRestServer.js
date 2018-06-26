@@ -138,7 +138,7 @@ class CentralSystemRestServer {
 			setInterval(() => {
 				// Send
 				for (var i = _currentNotifications.length-1; i >= 0; i--) {
-					// console.log(`Notify '${_currentNotifications[i].entity}', Action '${(_currentNotifications[i].action?_currentNotifications[i].action:'')}', Data '${(_currentNotifications[i].data ? JSON.stringify(_currentNotifications[i].data, null, ' ') : '')}'`);
+					console.log(`****** Notify '${_currentNotifications[i].entity}', Action '${(_currentNotifications[i].action?_currentNotifications[i].action:'')}', Data '${(_currentNotifications[i].data ? JSON.stringify(_currentNotifications[i].data, null, ' ') : '')}'`);
 					// Notify all Web Sockets
 					_socketIO.sockets.emit(_currentNotifications[i].entity, _currentNotifications[i]);
 					// Remove
@@ -270,14 +270,18 @@ class CentralSystemRestServer {
 		let dups = false;
 		// Add in buffer
 		for (var i = 0; i < _currentNotifications.length; i++) {
-			if (_currentNotifications[i].entity === notification.entity &&
-					_currentNotifications[i].action === notification.action) {
+			// Same Entity and Action?
+			if (_currentNotifications[i].entity == notification.entity &&
+					_currentNotifications[i].action == notification.action) {
+				// Yes
+				dups = true;
+				// Data provided: Check Id and Type
 				if (_currentNotifications[i].data &&
-					_currentNotifications[i].data.id === notification.data.id &&
-					_currentNotifications[i].data.type === notification.data.type) {
-					dups = true;
+						(_currentNotifications[i].data.id != notification.data.id ||
+						_currentNotifications[i].data.type != notification.data.type)) {
+					dups = false;
 				} else {
-					dups = true;
+					break;
 				}
 			}
 		}
