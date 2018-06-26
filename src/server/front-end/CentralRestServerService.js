@@ -1,6 +1,7 @@
 const Logging = require('../../utils/Logging');
 const ChargingStationService = require('./service/ChargingStationService');
 const VehicleManufacturerService = require('./service/VehicleManufacturerService');
+const AuthService = require('./service/AuthService');
 const UserService = require('./service/UserService');
 const CompanyService = require('./service/CompanyService');
 const SiteService = require('./service/SiteService');
@@ -304,6 +305,11 @@ module.exports = {
 					case "ChargingStationConfiguration":
 						// Delegate
 						ChargingStationService.handleGetChargingStationConfiguration(action, req, res, next);
+						break;
+					// Authorization
+					case "IsAuthorized":
+						// Delegate
+						AuthService.handleIsAuthorized(action, req, res, next);
 						break;
 					// Unknown Action
 					default:

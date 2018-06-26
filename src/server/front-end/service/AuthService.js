@@ -46,6 +46,76 @@ class AuthService {
 		return passport.authenticate('jwt', { session: false });
 	}
 
+	static async handleIsAuthorized(action, req, res, next) {
+		try {
+			// Default
+			let result = {"IsAuthorized" : false};
+			// Filter
+			let filteredRequest = AuthSecurity.filterIsAuthorizedRequest(req.query);
+			// Check
+			if (!filteredRequest.Action) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Action is mandatory`,
+					550, "AuthService", "handleIsAuthorized");
+			}
+			// Action
+			switch (filteredRequest.Action) {
+				// Action on charger
+				case "StopTransaction":
+					// Check
+					if (!filteredRequest.Arg1) {
+						throw new AppError(
+							Constants.CENTRAL_SERVER,
+							`The Charging Station ID is mandatory`,
+							550, "AuthService", "handleIsAuthorized");
+					}
+					// Check
+					if (!filteredRequest.Arg2) {
+						throw new AppError(
+							Constants.CENTRAL_SERVER,
+							`The Transaction ID is mandatory`,
+							550, "AuthService", "handleIsAuthorized");
+					}
+					// Get the Charging station
+					let chargingStation = await global.storage.getChargingStation(filteredRequest.Arg1);
+					// Found?
+					if (!chargingStation) {
+						// Not Found!
+						throw new AppError(
+							Constants.CENTRAL_SERVER,
+							`Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
+							550, "AuthService", "handleIsAuthorized");
+					}
+					// Get Transaction
+					let transaction = await global.storage.getTransaction(filteredRequest.Arg2);
+					if (!transaction) {
+						throw new AppError(
+							Constants.CENTRAL_SERVER,
+							`Transaction with ID '${filteredRequest.Arg2}' does not exist`,
+							560, "ChargingStationService", "handleAction");
+					}
+					try {
+						// Check
+						await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
+							filteredRequest.Action, chargingStation, transaction.tagID, req.user.tagIDs[0]);
+						// Ok
+						result.IsAuthorized = true;
+					} catch (e) {
+						// Ko
+						result.IsAuthorized = false;
+					}
+					break;
+			}
+			// Return the result
+			res.json(result);
+			next();
+		} catch(err) {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		}
+	}
+
 	static handleLogIn(action, req, res, next) {
 		// Filter
 		let filteredRequest = AuthSecurity.filterLoginRequest(req.body);

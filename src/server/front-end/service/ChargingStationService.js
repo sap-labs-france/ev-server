@@ -254,7 +254,7 @@ class ChargingStationService {
 				if (!transaction) {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
-						`Transaction ${filteredRequest.TransactionId} does not exist`,
+						`Transaction with ID '${filteredRequest.TransactionId}' does not exist`,
 						560, "ChargingStationService", "handleAction");
 				}
 				// Add connector ID

@@ -5,6 +5,7 @@ const NotificationHandler = require('../notification/NotificationHandler');
 const Mustache = require('mustache');
 const compileProfile = require('node-authorization').profileCompiler;
 const AppError = require('../exception/AppError');
+const AppAuthError = require('../exception/AppAuthError');
 const Users = require('./Users');
 const Utils = require('./Utils');
 const User = require('../model/User');

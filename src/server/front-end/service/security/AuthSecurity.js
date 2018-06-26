@@ -4,6 +4,17 @@ const Users = require('../../../../utils/Users');
 const UtilsSecurity = require('./UtilsSecurity');
 
 class AuthSecurity {
+
+	static filterIsAuthorizedRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.Action = sanitize(request.Action);
+		filteredRequest.Arg1 = sanitize(request.Arg1);
+		filteredRequest.Arg2 = sanitize(request.Arg2);
+		filteredRequest.Arg3 = sanitize(request.Arg3);
+		return filteredRequest;
+	}
+
 	static filterResetPasswordRequest(request, loggedUser) {
 		let filteredRequest = {};
 		// Set
