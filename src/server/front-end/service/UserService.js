@@ -1,4 +1,4 @@
-const Authorizations = require('../../../utils/Authorizations');
+const Authorizations = require('../../../authorization/Authorizations');
 const NotificationHandler = require('../../../notification/NotificationHandler');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');

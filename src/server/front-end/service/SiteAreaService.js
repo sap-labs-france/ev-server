@@ -12,7 +12,7 @@ const Company = require('../../../model/Company');
 const Site = require('../../../model/Site');
 const SiteArea = require('../../../model/SiteArea');
 const SiteAreaSecurity = require('./security/SiteAreaSecurity');
-const Authorizations = require('../../../utils/Authorizations');
+const Authorizations = require('../../../authorization/Authorizations');
 
 class SiteAreaService {
 	static handleCreateSiteArea(action, req, res, next) {

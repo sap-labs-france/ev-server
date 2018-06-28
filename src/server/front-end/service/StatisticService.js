@@ -1,4 +1,4 @@
-const Authorizations = require('../../../utils/Authorizations');
+const Authorizations = require('../../../authorization/Authorizations');
 const Logging = require('../../../utils/Logging');
 const Utils = require('../../../utils/Utils');
 const moment = require('moment');

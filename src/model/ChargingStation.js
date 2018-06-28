@@ -12,7 +12,7 @@ const Database = require('../utils/Database');
 const moment = require('moment');
 const Configuration = require('../utils/Configuration');
 const NotificationHandler = require('../notification/NotificationHandler');
-const Authorizations = require('../utils/Authorizations');
+const Authorizations = require('../authorization/Authorizations');
 
 let _configAdvanced = Configuration.getAdvancedConfig();
 let _configChargingStation = Configuration.getChargingStationConfig();

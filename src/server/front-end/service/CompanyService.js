@@ -11,7 +11,7 @@ const Users = require('../../../utils/Users');
 const Company = require('../../../model/Company');
 const Site = require('../../../model/Site');
 const SiteArea = require('../../../model/SiteArea');
-const Authorizations = require('../../../utils/Authorizations');
+const Authorizations = require('../../../authorization/Authorizations');
 const CompanySecurity = require('./security/CompanySecurity');
 
 class CompanyService {
