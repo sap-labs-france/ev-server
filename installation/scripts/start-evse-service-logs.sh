@@ -1,1 +1,0 @@
-gnome-terminal --tab -e 'sudo tail -f /var/log/nginx/access.log' --tab -e 'sudo tail -f /var/log/nginx/error.log' --tab -e 'sudo tail -f /var/log/mongodb/mongod.log' --tab -e 'sudo tail -f /home/serge/.pm2/logs/start-error-0.log' --tab -e 'sudo tail -f /home/serge/.pm2/logs/start-out-0.log'
