@@ -1,3 +1,24 @@
+# Charge-Angels - SCP
+
+## Applications
+### No SQL Client
+- application: mc
+- url: https://yamc.cfapps.eu10.hana.ondemand.com/
+- git: https://github.com/nosqlclient/nosqlclient
+- credentials : admin/password
+
+### Mongo Express
+- application: mongoexpress
+- url: https://mongoexpress.cfapps.eu10.hana.ondemand.com/
+- git: https://github.com/mongo-express/mongo-express
+- credentials : charge-angels/3QvDxAhGKS
+
+### Admin Mongo
+- application: adminmongo
+- url: https://adminmongo.cfapps.eu10.hana.ondemand.com/
+- git: https://github.com/mrvautin/adminMongo
+- credentials : 3QvDxAhGKS (pas de user)
+
 # Charge-Angels - Cloud
 
 ## Common
