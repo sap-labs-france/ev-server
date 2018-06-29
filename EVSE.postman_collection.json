@@ -70,70 +70,6 @@
 			"response": []
 		},
 		{
-			"name": "FE-LoginDemo",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"type": "text/javascript",
-						"exec": [
-							"var responseJson = JSON.parse(responseBody);",
-							"postman.setEnvironmentVariable(\"token\", responseJson[\"token\"]);"
-						]
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/x-www-form-urlencoded"
-					}
-				],
-				"body": {
-					"mode": "urlencoded",
-					"urlencoded": [
-						{
-							"key": "email",
-							"value": "demo.demo@sap.com",
-							"description": "",
-							"type": "text"
-						},
-						{
-							"key": "password",
-							"value": "DeM*Us$r1",
-							"description": "",
-							"type": "text"
-						},
-						{
-							"key": "acceptEula",
-							"value": "true",
-							"description": "",
-							"type": "text"
-						}
-					]
-				},
-				"url": {
-					"raw": "https://127.0.0.1:443/client/auth/Login",
-					"protocol": "https",
-					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
-					],
-					"port": "443",
-					"path": [
-						"client",
-						"auth",
-						"Login"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "FE-LoginBasic",
 			"event": [
 				{
@@ -167,6 +103,70 @@
 						{
 							"key": "password",
 							"value": "DeM*Us$r3",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "acceptEula",
+							"value": "true",
+							"description": "",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://127.0.0.1:443/client/auth/Login",
+					"protocol": "https",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "443",
+					"path": [
+						"client",
+						"auth",
+						"Login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-LoginDemo",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var responseJson = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"token\", responseJson[\"token\"]);"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "email",
+							"value": "demo.demo@sap.com",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "DeM*Us$r1",
 							"description": "",
 							"type": "text"
 						},
@@ -559,6 +559,54 @@
 						"client",
 						"api",
 						"SiteAreaCreate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-IsAuthorizedStopTransaction",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost/client/api/IsAuthorized?Action=StopTransaction&Arg1=SAP-Mougins-06&Arg2=506907446",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"client",
+						"api",
+						"IsAuthorized"
+					],
+					"query": [
+						{
+							"key": "Action",
+							"value": "StopTransaction"
+						},
+						{
+							"key": "Arg1",
+							"value": "SAP-Mougins-06"
+						},
+						{
+							"key": "Arg2",
+							"value": "506907446"
+						}
 					]
 				}
 			},
