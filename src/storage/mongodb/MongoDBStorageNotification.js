@@ -15,27 +15,31 @@ const Timestamp = require('mongodb').Timestamp;
 require('source-map-support').install();
 
 let _dbConfig;
-let _localDB;
-let _localDBLastTimestampCheck = new Date();
 let _centralRestServer;
-let _mongoDBClient;
+let _evseDB;
 
 class MongoDBStorageNotification {
 	// Create database access
-	constructor(dbConfig) {
+	constructor(dbConfig, evseDB) {
 		// Keep local
 		_dbConfig = dbConfig;
+		_evseDB = evseDB;
 	}
+
+  setCentralRestServer(centralRestServer) {
+    // Keep Central Server
+    _centralRestServer = centralRestServer;
+  }
 
 	// Check for permitted operation
 	getActionFromOperation(operation) {
 		// Check
 		switch (operation) {
-			case 'i': // Insert/Create
+			case 'insert': // Insert/Create
 				return Constants.ACTION_CREATE;
-			case 'u': // Update
+			case 'update': // Update
 				return Constants.ACTION_UPDATE;
-			case 'd': // Delete
+			case 'delete': // Delete
 				return Constants.ACTION_DELETE;
 		}
 		return null;
@@ -43,196 +47,141 @@ class MongoDBStorageNotification {
 
 	async start() {
 		// Log
-		console.log(`Starting to pull Notifications from '${_dbConfig.implementation}'...`);
-		// Check
-		if (_dbConfig.replica) {
-			// Build EVSE URL
-			let mongoOpLogUrl;
-			// URI provided?
-			if (_dbConfig.replica.uri) {
-				// Yes: use it
-				mongoOpLogUrl = _dbConfig.replica.uri;
-			} else {
-				// Build Replica URL
-				mongoOpLogUrl = mongoUriBuilder({
-					host: urlencode(_dbConfig.host),
-					port: urlencode(_dbConfig.port),
-					username: urlencode(_dbConfig.replica.user),
-					password: urlencode(_dbConfig.replica.password),
-					database: urlencode(_dbConfig.replica.database),
-					options: {
-						replicaSet: _dbConfig.replicaSet
-					}
-				});
-			}
-			// Connect to Replica DB
-			_mongoDBClient = await MongoClient.connect(
-				mongoOpLogUrl,
-				{
-					useNewUrlParser: true,
-					poolSize: _dbConfig.poolSize,
-					replicaSet: _dbConfig.replicaSet,
-					loggerLevel: (_dbConfig.debug ? "debug" : null)
-				}
-			);
-		}
-		// Get the Local DB
-		_localDB = _mongoDBClient.db("local");
+		console.log(`Starting to pull database Notifications from '${_dbConfig.implementation}'...`);
 		// Start Listening
-		setInterval(this.checkChangedCollections.bind(this),
-			_dbConfig.replica.intervalPullSecs * 1000);
+    this.checkChangedCollections();
 		// Log
 		Logging.logInfo({
 			module: "MongoDBStorage", method: "start", action: "Startup",
-			message: `Started to pull Notifications from '${_dbConfig.implementation}' successfully` });
+			message: `Started to pull Notifications from '${_dbConfig.implementation}' successfully`
+		});
 		console.log(`Started to pull Notifications from '${_dbConfig.implementation}' successfully`);
 	}
 
-	getObjectIDFromOpLogDocument(document) {
-		// Check
-		switch (document.op) {
-			case 'i': // Insert/Create
-				return document.o._id.toString();
-			case 'u': // Update
-				return document.o2._id.toString();
-			case 'd': // Delete
-				return document.o._id.toString();
-		}
-		return null;
-	}
+  async watchCollection(name, pipeline, options, notifyCallback, notifyWithID) {
+    // Users
+		let collectionWatcher = await _evseDB.collection(name).watch(pipeline, options);
+    // Change Handling
+    collectionWatcher.on("change", (change) => {
+			// Check for permitted operation
+			let action = this.getActionFromOperation(change.operationType);
+			// Notify
+      if (notifyWithID) {
+        notifyCallback(action, {
+          "id": change.documentKey._id.toString()
+        });
+      } else {
+        notifyCallback(action);
+      }
+		});
+    // Error Handling
+    collectionWatcher.on("error", (error) => {
+      // Log
+      Logging.logError({
+        module: "MongoDBStorageNotification",
+      	method: "watchCollection", action: `Watch`,
+      	message: `Error occurred in watching collection ${name}: ${error}`,
+      	detailedMessages: error
+      });
+    });
+  }
 
-	async checkChangedCollections()  {
+	async checkChangedCollections() {
+		let action, notification;
+    let pipeline = [];
+    let options = {
+      'fullDocument': 'updateLookup'
+    };
 		// Check
 		if (!_centralRestServer) {
 			return;
 		}
-		// Get collection
-		let lastUpdatedEvseDocs = await _localDB.collection("oplog.rs")
-			.find({
-				ns : { $regex: new RegExp(`^${_dbConfig.database}`) },
-				ts : { $gte : new Timestamp(0, Math.trunc(_localDBLastTimestampCheck.getTime() / 1000)) }
-			})
-			.toArray();
-		// Aggregate
-		let action, notification;
-		lastUpdatedEvseDocs.forEach((lastUpdatedEvseDoc) => {
+
+		// Logs
+    this.watchCollection("logs", pipeline, options, _centralRestServer.notifyLogging.bind(_centralRestServer), false);
+		// Users
+    this.watchCollection("users", pipeline, options, _centralRestServer.notifyUser.bind(_centralRestServer), true);
+    // User Images
+    this.watchCollection("userimages", pipeline, options, _centralRestServer.notifyUser.bind(_centralRestServer), true);
+    // Charging Stations
+    this.watchCollection("chargingstations", pipeline, options, _centralRestServer.notifyChargingStation.bind(_centralRestServer), true);
+    // Vehicle Manufacturers
+    this.watchCollection("vehiclemanufacturers", pipeline, options, _centralRestServer.notifyVehicleManufacturer.bind(_centralRestServer), true);
+		// Vehicle Manufacturer Logos
+    this.watchCollection("vehiclemanufacturerlogos", pipeline, options, _centralRestServer.notifyVehicleManufacturer.bind(_centralRestServer), true);
+		// Vehicles
+    this.watchCollection("vehicles", pipeline, options, _centralRestServer.notifyVehicle.bind(_centralRestServer), true);
+		// Vehicle Images
+    this.watchCollection("vehicleimages", pipeline, options, _centralRestServer.notifyVehicle.bind(_centralRestServer), true);
+		// Companies
+    this.watchCollection("companies", pipeline, options, _centralRestServer.notifyCompany.bind(_centralRestServer), true);
+		// Company Logos
+    this.watchCollection("companylogos", pipeline, options, _centralRestServer.notifyCompany.bind(_centralRestServer), true);
+		// Site Areas
+    this.watchCollection("siteareas", pipeline, options, _centralRestServer.notifySiteArea.bind(_centralRestServer), true);
+		// Site Area Images
+    this.watchCollection("siteareaimages", pipeline, options, _centralRestServer.notifySiteArea.bind(_centralRestServer), true);
+		// Sites
+    this.watchCollection("sites", pipeline, options, _centralRestServer.notifySite.bind(_centralRestServer), true);
+		// Site Images
+    this.watchCollection("siteimages", pipeline, options, _centralRestServer.notifySite.bind(_centralRestServer), true);
+		// Transaction
+		let transactionsWatcher = await _evseDB.collection("transactions").watch(pipeline, options);
+    // Change Handling
+    transactionsWatcher.on("change", (change) => {
 			// Check for permitted operation
-			action = this.getActionFromOperation(lastUpdatedEvseDoc.op);
-			// Found
-			if (action) {
-				// Check namespace
-				switch (lastUpdatedEvseDoc.ns) {
-					// Logs
-					case "evse.logs":
-						// Notify
-						_centralRestServer.notifyLogging(action);
-						break;
-					// Users
-					case "evse.users":
-					case "evse.userimages":
-						// Notify
-						_centralRestServer.notifyUser(action, {
-							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
-						});
-						break;
-					// Charging Station
-					case "evse.chargingstations":
-						// Notify
-						_centralRestServer.notifyChargingStation(action, {
-							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
-						});
-						break;
-					// Vehicle Manufacturer
-					case "evse.vehiclemanufacturers":
-					case "evse.vehiclemanufacturerlogos":
-						// Notify
-						_centralRestServer.notifyVehicleManufacturer(action, {
-							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
-						});
-						break;
-					// Vehicle
-					case "evse.vehicles":
-					case "evse.vehicleimages":
-						// Notify
-						_centralRestServer.notifyVehicle(action, {
-							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
-						});
-						break;
-					// Company
-					case "evse.companies":
-					case "evse.companylogos":
-						// Notify
-						_centralRestServer.notifyCompany(action, {
-							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
-						});
-						break;
-					// Site Area
-					case "evse.siteareas":
-					case "evse.siteareaimages":
-						// Notify
-						_centralRestServer.notifySiteArea(action, {
-							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
-						});
-						break;
-					// Site
-					case "evse.sites":
-					case "evse.siteimages":
-						// Notify
-						_centralRestServer.notifySite(action, {
-							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
-						});
-						break;
-					// Transaction
-					case "evse.transactions":
-						notification = {
-							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
-						};
-						// Operation
-						switch (lastUpdatedEvseDoc.op) {
-							case 'i': // Insert/Create
-								notification.connectorId = lastUpdatedEvseDoc.o.connectorId;
-								notification.chargeBoxID = lastUpdatedEvseDoc.o.chargeBoxID;
-								break;
-							case 'u': // Update
-								if (lastUpdatedEvseDoc.o.$set.stop) {
-									notification.type = Constants.ENTITY_TRANSACTION_STOP;
-								}
-								break;
-						}
-						// Notify
-						_centralRestServer.notifyTransaction(action, notification);
-						break;
-					// Meter Values
-					case "evse.metervalues":
-						notification = {};
-						// Insert/Create?
-						if (lastUpdatedEvseDoc.op == 'i') {
-							notification.id = lastUpdatedEvseDoc.o.transactionId;
-							notification.type = Constants.ENTITY_TRANSACTION_METER_VALUES;
-							notification.chargeBoxID = lastUpdatedEvseDoc.o.chargeBoxID;
-							notification.connectorId = lastUpdatedEvseDoc.o.connectorId;
-							// Notify, Force Transaction Update
-							_centralRestServer.notifyTransaction(Constants.ACTION_UPDATE, notification);
-						}
-						break;
-					// Charging Stations Configuration
-					case "evse.configurations":
-						// Notify
-						_centralRestServer.notifyChargingStation(action, {
-							"type": Constants.NOTIF_TYPE_CHARGING_STATION_CONFIGURATION,
-							"id": this.getObjectIDFromOpLogDocument(lastUpdatedEvseDoc)
-						});
-						break;
-				}
+			let action = this.getActionFromOperation(change.operationType);
+			// Notify
+			let notification = {
+				"id": change.documentKey._id.toString()
+			};
+			// Operation
+			switch (change.operationType) {
+				case 'insert': // Insert/Create
+					notification.connectorId = change.fullDocument.connectorId;
+					notification.chargeBoxID = change.fullDocument.chargeBoxID;
+					break;
+				case 'update': // Update
+					if (change.fullDocument.stop) {
+						notification.type = Constants.ENTITY_TRANSACTION_STOP;
+					}
+					break;
+			}
+			// Notify
+			_centralRestServer.notifyTransaction(action, notification);
+		});
+
+		// Meter Values
+		let meterValuesWatcher = await _evseDB.collection("metervalues").watch(pipeline, options);
+    // Change Handling
+    meterValuesWatcher.on("change", (change) => {
+			// Check for permitted operation
+			let action = this.getActionFromOperation(change.operationType);
+			// Notify
+			let notification = {};
+      // Insert/Create?
+			if (change.operationType == 'insert') {
+				notification.id = change.fullDocument.transactionId;
+				notification.type = Constants.ENTITY_TRANSACTION_METER_VALUES;
+				notification.chargeBoxID = change.fullDocument.chargeBoxID;
+				notification.connectorId = change.fullDocument.connectorId;
+				// Notify, Force Transaction Update
+				_centralRestServer.notifyTransaction(Constants.ACTION_UPDATE, notification);
 			}
 		});
-		// Set new last date
-		_localDBLastTimestampCheck = new Date();
-	}
 
-	setCentralRestServer(centralRestServer) {
-		// Set
-		_centralRestServer = centralRestServer;
+		// Charging Stations Configuration
+		let configurationsWatcher = await _evseDB.collection("configurations").watch(pipeline, options);
+    // Change Handling
+    configurationsWatcher.on("change", (change) => {
+			// Check for permitted operation
+			let action = this.getActionFromOperation(change.operationType);
+      // Notify
+			_centralRestServer.notifyChargingStation(action, {
+				"type": Constants.NOTIF_TYPE_CHARGING_STATION_CONFIGURATION,
+				"id": change.documentKey._id.toString()
+			});
+		});
 	}
 }
 

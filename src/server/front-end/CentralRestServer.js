@@ -25,7 +25,7 @@ let _chargingStationConfig;
 let _socketIO;
 let _currentNotifications = [];
 
-class CentralSystemRestServer {
+class CentralRestServer {
 	// Create the rest server
 	constructor(centralSystemRestConfig, chargingStationConfig) {
 		// Keep params
@@ -293,4 +293,4 @@ class CentralSystemRestServer {
 	}
 }
 
-module.exports = CentralSystemRestServer;
+module.exports = CentralRestServer;

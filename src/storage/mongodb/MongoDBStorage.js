@@ -24,6 +24,7 @@ let _dbConfig;
 let _mongoDBClient;
 let _evseDB;
 let _mongoDBStorageNotification;
+let _centralRestServer;
 
 class MongoDBStorage {
 	// Create database access
@@ -124,22 +125,16 @@ class MongoDBStorage {
 			module: "MongoDBStorage", method: "start", action: "Startup",
 			message: `Connected to '${_dbConfig.implementation}' successfully` });
 		console.log(`Connected to '${_dbConfig.implementation}' successfully`);
-
-		// Monitor MongoDB for Notifications
-		if (_dbConfig.replica) {
-			// Create
-			_mongoDBStorageNotification = new MongoDBStorageNotification(_dbConfig);
-			// Start
-			await _mongoDBStorageNotification.start();
-		}
 	}
 
-	setCentralRestServer(centralRestServer) {
-		// Check
-		if (_mongoDBStorageNotification) {
-			// Pass it to the class
-			_mongoDBStorageNotification.setCentralRestServer(centralRestServer);
-		}
+	async setCentralRestServer(centralRestServer) {
+    // Monitor MongoDB for Notifications
+		_mongoDBStorageNotification = new MongoDBStorageNotification(
+      _dbConfig, _evseDB);
+    // Set Central Rest Server
+    _mongoDBStorageNotification.setCentralRestServer(centralRestServer);
+		// Start
+		await _mongoDBStorageNotification.start();
 	}
 
 	getEndUserLicenseAgreement(language="en") {
