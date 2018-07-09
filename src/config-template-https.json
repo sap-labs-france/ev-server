@@ -41,14 +41,7 @@
 		"database": "evse",
 		"poolSize": 20,
 		"replicaSet": "rs0",
-		"debug": false,
-		"replica": {
-			"uri": null,
-			"user":"evse-local",
-			"database": "admin",
-			"password": "",
-			"intervalPullSecs": 3
-		}
+		"debug": false
 	},
 	"Email": {
 		 "from": "admin.noreply@evse.com",
