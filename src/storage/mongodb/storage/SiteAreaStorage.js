@@ -259,8 +259,8 @@ class SiteAreaStorage {
 		// Remove Charging Station's Site Area
 	    await _db.collection('chargingstations').updateMany(
 			{ siteAreaID: Utils.convertToObjectID(id) },
-			{$set: { siteAreaID: null }},
-			{upsert: true, new: true, returnOriginal: false});
+			{ $set: { siteAreaID: null } },
+			{ upsert: false, new: true, returnOriginal: false });
 		// Delete Site
 		await _db.collection('siteareas')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
