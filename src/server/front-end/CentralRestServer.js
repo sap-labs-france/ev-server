@@ -90,6 +90,7 @@ class CentralRestServer {
 	// Start the server (to be defined in sub-classes)
 	start() {
 		let server;
+		let httpUsed = false;
 		// Log
 		console.log(`Starting Central Rest Server (Front-End)...`);
 		// Create the HTTP server
@@ -117,6 +118,7 @@ class CentralRestServer {
 			server = https.createServer(options, app);
 		} else {
 			// Http server
+			httpUsed = true;
 			server = http.createServer(app);
 		}
 
@@ -149,8 +151,8 @@ class CentralRestServer {
 			// Log
 			Logging.logInfo({
 				module: "CentralServerRestServer", method: "start", action: "Startup",
-				message: `Central Rest Server (Front-End) started on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'` });
-			console.log(`Central Rest Server (Front-End) started on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'`);
+				message: `Central Rest Server (Front-End) listening on '${(httpUsed ? 'http' : 'https')}://${server.address().address}:${server.address().port}'` });
+			console.log(`Central Rest Server (Front-End) listening on '${(httpUsed ? 'http' : 'https')}://${server.address().address}:${server.address().port}'`);
 		});
 	}
 

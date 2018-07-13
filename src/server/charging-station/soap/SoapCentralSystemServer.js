@@ -17,109 +17,112 @@ let _centralSystemConfig;
 let _chargingStationConfig;
 
 class SoapCentralSystemServer extends CentralSystemServer {
-		constructor(centralSystemConfig, chargingStationConfig) {
-			// Call parent
-			super(centralSystemConfig, chargingStationConfig, express);
+	constructor(centralSystemConfig, chargingStationConfig) {
+		// Call parent
+		super(centralSystemConfig, chargingStationConfig, express);
 
-			// Keep local
-			_centralSystemConfig = centralSystemConfig;
-			_chargingStationConfig = chargingStationConfig;
-		}
+		// Keep local
+		_centralSystemConfig = centralSystemConfig;
+		_chargingStationConfig = chargingStationConfig;
+	}
 
-		/*
-			Start the server and listen to all SOAP OCCP versions
-			Listen to external command to send request to charging stations
-		*/
-		start() {
-			// Create the server
-			let server;
-			// Log
-			console.log(`Starting Central System Server (Charging Stations)...`);
-			// Make it global for SOAP Services
-			global.centralSystemSoap = this;
-			// Create the HTTP server
-			if (_centralSystemConfig.protocol === "https" && !_centralSystemConfig.cloudFoundry) {
-				// Create the options
-				let options = {};
-				// Cloud Foundry
-				if (!_centralSystemConfig.cloudFoundry) {
-					// Set the keys
-					options.key = fs.readFileSync(_centralSystemConfig["ssl-key"]);
-					options.cert = fs.readFileSync(_centralSystemConfig["ssl-cert"]);
-					// Intermediate cert?
-					if (_centralSystemConfig["ssl-ca"]) {
-						// Array?
-						if (Array.isArray(_centralSystemConfig["ssl-ca"])) {
-							options.ca = [];
-							// Add all
-							for (let i = 0; i < _centralSystemConfig["ssl-ca"].length; i++) {
-								options.ca.push(fs.readFileSync(_centralSystemConfig["ssl-ca"][i]));
-							}
-						} else {
-							// Add one
-							options.ca = fs.readFileSync(_centralSystemRestConfig["ssl-ca"]);
-						}
+	/*
+		Start the server and listen to all SOAP OCCP versions
+		Listen to external command to send request to charging stations
+	*/
+	start() {
+		// Create the server
+		let server;
+		let httpUsed = false;
+		// Log
+		console.log(`Starting Central System Server (Charging Stations)...`);
+		// Make it global for SOAP Services
+		global.centralSystemSoap = this;
+		// Create the HTTP server
+		if (_centralSystemConfig.protocol === "https" && !_centralSystemConfig.cloudFoundry) {
+			// Create the options
+			let options = {};
+			// Set the keys
+			options.key = fs.readFileSync(_centralSystemConfig["ssl-key"]);
+			options.cert = fs.readFileSync(_centralSystemConfig["ssl-cert"]);
+			// Intermediate cert?
+			if (_centralSystemConfig["ssl-ca"]) {
+				// Array?
+				if (Array.isArray(_centralSystemConfig["ssl-ca"])) {
+					options.ca = [];
+					// Add all
+					for (let i = 0; i < _centralSystemConfig["ssl-ca"].length; i++) {
+						options.ca.push(fs.readFileSync(_centralSystemConfig["ssl-ca"][i]));
 					}
+				} else {
+					// Add one
+					options.ca = fs.readFileSync(_centralSystemRestConfig["ssl-ca"]);
 				}
-				// Https server
-				server = https.createServer(options, express);
-			} else {
-				// Http server
-				server = http.createServer(express);
 			}
-
-			// Create Soap Servers
-			// OCPP 1.2 -----------------------------------------
-			let soapServer12 = soap.listen(server, '/OCPP12', centralSystemService12, centralSystemService12Wsdl);
-			// Log
-			if (_centralSystemConfig.debug) {
-				console.log("Debug SOAP 1.2 active");
-				soapServer12.log = (type, data) => {
-					console.log(`-----------------------------------------`);
-					console.log(`SOAP 1.2 - ${type}`);
-					console.log(`------------------------`);
-					console.log(data);
-					console.log(`-----------------------------------------`);
-				};
-			}
-			// OCPP 1.5 -----------------------------------------
-			let soapServer15 = soap.listen(server, '/OCPP15', centralSystemService15, centralSystemService15Wsdl);
-			// Log
-			if (_centralSystemConfig.debug) {
-				console.log("Debug SOAP 1.5 active");
-				soapServer15.log = (type, data) => {
-					console.log(`-----------------------------------------`);
-					console.log(`SOAP 1.5 - ${type}`);
-					console.log(`------------------------`);
-					console.log(data);
-					console.log(`-----------------------------------------`);
-				};
-			}
-			// OCPP 1.6 -----------------------------------------
-			let soapServer16 = soap.listen(server, '/OCPP16', centralSystemService16, centralSystemService16Wsdl);
-			// Log
-			if (_centralSystemConfig.debug) {
-				console.log("Debug SOAP 1.6 active");
-				soapServer16.log = (type, data) => {
-					console.log(`-----------------------------------------`);
-					console.log(`SOAP 1.6 - ${type}`);
-					console.log(`------------------------`);
-					console.log(data);
-					console.log(`-----------------------------------------`);
-				};
+			// Https server
+			server = https.createServer(options, express);
+		} else {
+			// Http server
+			httpUsed = true;
+			server = http.createServer(express);
 		}
 
+		// Create Soap Servers
+		// OCPP 1.2 -----------------------------------------
+		let soapServer12 = soap.listen(server, '/OCPP12', centralSystemService12, centralSystemService12Wsdl);
+		// Log
+		if (_centralSystemConfig.debug) {
 			// Listen
-			server.listen(
-					_centralSystemConfig.port,
-					(_centralSystemConfig.cloudFoundry ? null : _centralSystemConfig.host), () => {
+			soapServer12.log = (type, data) => {
+				// Log
+				Logging.logDebug({
+					module: "SoapCentralSystemServer", method: "start", action: "SoapRequest",
+					message: `OCPP 1.2 - Type '${type}'`,
+					detailedMessages: data
+				});
+			};
+		}
+		// OCPP 1.5 -----------------------------------------
+		let soapServer15 = soap.listen(server, '/OCPP15', centralSystemService15, centralSystemService15Wsdl);
+		// Log
+		if (_centralSystemConfig.debug) {
+			// Listen
+			soapServer15.log = (type, data) => {
+				// Log
+				Logging.logDebug({
+					module: "SoapCentralSystemServer", method: "start", action: "SoapRequest",
+					message: `OCPP 1.2 - Type '${type}'`,
+					detailedMessages: data
+				});
+			};
+		}
+		// OCPP 1.6 -----------------------------------------
+		let soapServer16 = soap.listen(server, '/OCPP16', centralSystemService16, centralSystemService16Wsdl);
+		// Log
+		if (_centralSystemConfig.debug) {
+			// Listen
+			soapServer16.log = (type, data) => {
+				// Log
+				Logging.logDebug({
+					module: "SoapCentralSystemServer", method: "start", action: "SoapRequest",
+					message: `OCPP 1.2 - Type '${type}'`,
+					detailedMessages: data
+				});
+			};
+		}
+
+		// Listen
+		server.listen(
+			_centralSystemConfig.port,
+			(_centralSystemConfig.cloudFoundry ? null : _centralSystemConfig.host), () => {
 				// Log
 				Logging.logInfo({
 					module: "SoapCentralSystemServer", method: "start", action: "Startup",
-					message: `Central System Server (Charging Stations) started on '${_centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'` });
-				console.log(`Central System Server (Charging Stations) started on '${_centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`);
+					message: `Central System Server (Charging Stations) listening on '${(httpUsed ? 'http' : 'https')}://${server.address().address}:${server.address().port}'`
+				});
+				console.log(`Central System Server (Charging Stations) listening on '${(httpUsed ? 'http' : 'https')}://${server.address().address}:${server.address().port}'`);
 			});
-		}
+	}
 }
 
 module.exports = SoapCentralSystemServer;

@@ -5,7 +5,8 @@
 			"implementation": "soap",
 			"protocol": "http",
 			"host": "localhost",
-			"port": 8000
+			"port": 8000,
+			"debug": false
 		}
 	],
 	"CentralSystemRestService": {
