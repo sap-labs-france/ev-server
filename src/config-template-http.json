@@ -20,6 +20,7 @@
 		"passwordWrongNumberOfTrial": 3,
 		"passwordBlockedWaitTimeMin": 5,
 		"captchaSecretKey": "YourCaptchaSecretKey",
+		"wsdlBaseURL": "http://localhost:8000",
 		"debug": false
 	},
 	"CentralSystemFrontEnd": {

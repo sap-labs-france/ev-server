@@ -2,18 +2,13 @@ const ChargingStation = require('../../model/ChargingStation');
 const chargePointService12Wsdl = require('../../client/soap/wsdl/OCPP_ChargePointService1.2.wsdl');
 const chargePointService15Wsdl = require('../../client/soap/wsdl/OCPP_ChargePointService1.5.wsdl');
 const chargePointService16Wsdl = require('../../client/soap/wsdl/OCPP_ChargePointService1.6.wsdl');
-const Utils = require('../../utils/Utils');
 const AppError = require('../../exception/AppError');
-const Constants = require('../../utils/Constants');
 const Logging = require('../../utils/Logging');
-const Database = require('../../utils/Database');
 const bodyParser = require("body-parser");
 require('body-parser-xml')(bodyParser);
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const locale = require('locale');
-const NotificationHandler = require('../../notification/NotificationHandler');
 require('source-map-support').install();
 
 let _centralSystemConfig;
