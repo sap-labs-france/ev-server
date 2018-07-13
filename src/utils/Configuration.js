@@ -29,12 +29,10 @@ module.exports = {
 			let urlParsed = url.parse(_appEnv.url, true);
 			// Change host/port
 			centralSystems.forEach((centralSystem) => {
-				// Set Cloud Foundry flag
-				centralSystem.cloudFoundry = !_appEnv.isLocal;
 				// CF Environment: Override
 				centralSystem.port = _appEnv.port;
-				centralSystem.protocol = urlParsed.protocol.substring(0, urlParsed.protocol.length-1);
-				centralSystem.host = urlParsed.hostname;
+				centralSystem.protocol = "http"; // Always HTTP
+				centralSystem.host = null;
 			});
 		}
 		// Read conf
@@ -58,16 +56,11 @@ module.exports = {
 		let centralSystemRestService = this.getConfig().CentralSystemRestService;
 		// Check env
 		if (centralSystemRestService && !_appEnv.isLocal) {
-			// Set Cloud Foundry flag
-			centralSystemRestService.cloudFoundry = !_appEnv.isLocal;
 			// CF Environment: Override
 			centralSystemRestService.port = _appEnv.port;
-			// Parse the URL
-			let urlParsed = url.parse(_appEnv.url, true);
 			// Set URL
-			centralSystemRestService.protocol =
-				urlParsed.protocol.substring(0, urlParsed.protocol.length-1);
-			centralSystemRestService.host = urlParsed.hostname;
+			centralSystemRestService.protocol = "http"; // Always HTTP
+			centralSystemRestService.host = null;
 		}
 		// Read conf
 		return centralSystemRestService;
@@ -109,8 +102,6 @@ module.exports = {
 	// DB config
 	getStorageConfig() {
 		let storage = this.getConfig().Storage;
-		// Set Cloud Foundry flag
-		storage.cloudFoundry = !_appEnv.isLocal;
 		// Check env
 		if (storage && !_appEnv.isLocal) {
 			// CF Environment: Override
@@ -121,12 +112,6 @@ module.exports = {
 			storage.user = mongoDBService.credentials.username;
 			storage.password = mongoDBService.credentials.password;
 			storage.replicaSet = mongoDBService.credentials.replicaset;
-			// Replica?
-			if (storage.replica) {
-				storage.replica.uri = mongoDBService.credentials.uri;
-				storage.replica.user = mongoDBService.credentials.username;
-				storage.replica.password = mongoDBService.credentials.password;
-			}
 		}
 		// Read conf
 		return storage;

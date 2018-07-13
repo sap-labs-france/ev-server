@@ -90,11 +90,10 @@ class CentralRestServer {
 	// Start the server (to be defined in sub-classes)
 	start() {
 		let server;
-		let httpUsed = false;
 		// Log
 		console.log(`Starting Central Rest Server (Front-End)...`);
 		// Create the HTTP server
-		if (!_centralSystemRestConfig.cloudFoundry && _centralSystemRestConfig.protocol == "https") {
+		if (_centralSystemRestConfig.protocol == "https") {
 			// Create the options
 			var options = {};
 			// Set the keys
@@ -118,7 +117,6 @@ class CentralRestServer {
 			server = https.createServer(options, app);
 		} else {
 			// Http server
-			httpUsed = true;
 			server = http.createServer(app);
 		}
 
@@ -133,9 +131,7 @@ class CentralRestServer {
 		});
 
 		// Listen
-		server.listen(
-				_centralSystemRestConfig.port,
-				(_centralSystemRestConfig.cloudFoundry ? null : _centralSystemRestConfig.host), () => {
+		server.listen(_centralSystemRestConfig.port, _centralSystemRestConfig.host, () => {
 			// Check and send notif
 			setInterval(() => {
 				// Send
@@ -151,8 +147,8 @@ class CentralRestServer {
 			// Log
 			Logging.logInfo({
 				module: "CentralServerRestServer", method: "start", action: "Startup",
-				message: `Central Rest Server (Front-End) listening on '${(httpUsed ? 'http' : 'https')}://${server.address().address}:${server.address().port}'` });
-			console.log(`Central Rest Server (Front-End) listening on '${(httpUsed ? 'http' : 'https')}://${server.address().address}:${server.address().port}'`);
+				message: `Central Rest Server (Front-End) listening on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'` });
+			console.log(`Central Rest Server (Front-End) listening on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'`);
 		});
 	}
 

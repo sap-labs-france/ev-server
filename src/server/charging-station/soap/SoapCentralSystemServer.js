@@ -33,13 +33,12 @@ class SoapCentralSystemServer extends CentralSystemServer {
 	start() {
 		// Create the server
 		let server;
-		let httpUsed = false;
 		// Log
 		console.log(`Starting Central System Server (Charging Stations)...`);
 		// Make it global for SOAP Services
 		global.centralSystemSoap = this;
 		// Create the HTTP server
-		if (_centralSystemConfig.protocol === "https" && !_centralSystemConfig.cloudFoundry) {
+		if (_centralSystemConfig.protocol === "https") {
 			// Create the options
 			let options = {};
 			// Set the keys
@@ -63,7 +62,6 @@ class SoapCentralSystemServer extends CentralSystemServer {
 			server = https.createServer(options, express);
 		} else {
 			// Http server
-			httpUsed = true;
 			server = http.createServer(express);
 		}
 
@@ -112,15 +110,13 @@ class SoapCentralSystemServer extends CentralSystemServer {
 		}
 
 		// Listen
-		server.listen(
-			_centralSystemConfig.port,
-			(_centralSystemConfig.cloudFoundry ? null : _centralSystemConfig.host), () => {
+		server.listen(_centralSystemConfig.port, _centralSystemConfig.host, () => {
 				// Log
 				Logging.logInfo({
 					module: "SoapCentralSystemServer", method: "start", action: "Startup",
-					message: `Central System Server (Charging Stations) listening on '${(httpUsed ? 'http' : 'https')}://${server.address().address}:${server.address().port}'`
+					message: `Central System Server (Charging Stations) listening on '${_centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`
 				});
-				console.log(`Central System Server (Charging Stations) listening on '${(httpUsed ? 'http' : 'https')}://${server.address().address}:${server.address().port}'`);
+				console.log(`Central System Server (Charging Stations) listening on '${_centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`);
 			});
 	}
 }
