@@ -1,16 +1,5 @@
 const Logging = require('../../utils/Logging');
 const Constants = require('../../utils/Constants');
-const TransactionStorage = require('./storage/TransactionStorage');
-const NotificationStorage = require('./storage/NotificationStorage');
-const VehicleStorage = require('./storage/VehicleStorage');
-const SiteStorage = require('./storage/SiteStorage');
-const MigrationStorage = require('./storage/MigrationStorage');
-const VehicleManufacturerStorage = require('./storage/VehicleManufacturerStorage');
-const assert = require('assert');
-const MongoClient = require('mongodb').MongoClient;
-const mongoUriBuilder = require('mongo-uri-builder');
-const urlencode = require('urlencode');
-const Timestamp = require('mongodb').Timestamp;
 
 require('source-map-support').install();
 
@@ -47,15 +36,15 @@ class MongoDBStorageNotification {
 
 	async start() {
 		// Log
-		console.log(`Starting to pull database Notifications from '${_dbConfig.implementation}'...`);
+		console.log(`Starting to monitor changes on database '${_dbConfig.implementation}'...`);
 		// Start Listening
     this.checkChangedCollections();
 		// Log
 		Logging.logInfo({
 			module: "MongoDBStorage", method: "start", action: "Startup",
-			message: `Started to pull Notifications from '${_dbConfig.implementation}' successfully`
+			message: `Monitor changes on database '${_dbConfig.implementation}' is active`
 		});
-		console.log(`Started to pull Notifications from '${_dbConfig.implementation}' successfully`);
+		console.log(`Monitor changes on database '${_dbConfig.implementation}' is active`);
 	}
 
   async watchCollection(name, pipeline, options, notifyCallback, notifyWithID) {

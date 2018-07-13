@@ -61,11 +61,11 @@ class MongoDBStorage {
 		await this.checkAndCreateCollection(db, collections, "eulas");
 		// Logs
 		await this.checkAndCreateCollection(db, collections, "logs",
-			[{ 'timestamp' : 1 }, { 'level' : 1 }, { 'type' : 1 }]
+			[{ 'timestamp': 1 }, { 'level': 1 }, { 'type': 1 }]
 		);
 		// MeterValues
 		await this.checkAndCreateCollection(db, collections, "metervalues",
-			[{ 'timestamp' : 1 }, { 'transactionId' : 1 }]
+			[{ 'timestamp': 1 }, { 'transactionId': 1 }]
 		);
 	}
 
@@ -123,21 +123,24 @@ class MongoDBStorage {
 		// Log
 		Logging.logInfo({
 			module: "MongoDBStorage", method: "start", action: "Startup",
-			message: `Connected to '${_dbConfig.implementation}' successfully` });
+			message: `Connected to '${_dbConfig.implementation}' successfully`
+		});
 		console.log(`Connected to '${_dbConfig.implementation}' successfully`);
 	}
 
 	async setCentralRestServer(centralRestServer) {
-    // Monitor MongoDB for Notifications
-		_mongoDBStorageNotification = new MongoDBStorageNotification(
-      _dbConfig, _evseDB);
-    // Set Central Rest Server
-    _mongoDBStorageNotification.setCentralRestServer(centralRestServer);
-		// Start
-		await _mongoDBStorageNotification.start();
+		if (_dbConfig.monitorDBChange) {
+			// Monitor MongoDB for Notifications
+			_mongoDBStorageNotification = new MongoDBStorageNotification(
+				_dbConfig, _evseDB);
+			// Set Central Rest Server
+			_mongoDBStorageNotification.setCentralRestServer(centralRestServer);
+			// Start
+			await _mongoDBStorageNotification.start();
+		}
 	}
 
-	getEndUserLicenseAgreement(language="en") {
+	getEndUserLicenseAgreement(language = "en") {
 		// Delegate
 		return UserStorage.handleGetEndUserLicenseAgreement(language);
 	}
@@ -147,7 +150,7 @@ class MongoDBStorage {
 		return ChargingStationStorage.handleGetConfigurationParamValue(chargeBoxID, paramName);
 	}
 
-	getLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs=500, sortDate) {
+	getLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs = 500, sortDate) {
 		// Delegate
 		return LoggingStorage.handleGetLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs, sortDate);
 	}
@@ -261,7 +264,7 @@ class MongoDBStorage {
 		return TransactionStorage.handleSaveMeterValues(meterValues);
 	}
 
-	getTransactions(searchValue=null, filter={}, siteID=null, numberOfTransactions=500) {
+	getTransactions(searchValue = null, filter = {}, siteID = null, numberOfTransactions = 500) {
 		// Delegate
 		return TransactionStorage.handleGetTransactions(searchValue, filter, siteID, numberOfTransactions);
 	}
@@ -304,7 +307,7 @@ class MongoDBStorage {
 		return ChargingStationStorage.handleDeleteChargingStation(id);
 	}
 
-	getChargingStations(searchValue, siteAreaID, withNoSiteArea=false, numberOfChargingStation=500) {
+	getChargingStations(searchValue, siteAreaID, withNoSiteArea = false, numberOfChargingStation = 500) {
 		// Delegate
 		return ChargingStationStorage.handleGetChargingStations(searchValue, siteAreaID, withNoSiteArea, numberOfChargingStation);
 	}
@@ -314,7 +317,7 @@ class MongoDBStorage {
 		return ChargingStationStorage.handleGetChargingStation(id);
 	}
 
-	getUsers(searchValue, siteID, numberOfUser=500) {
+	getUsers(searchValue, siteID, numberOfUser = 500) {
 		// Delegate
 		return UserStorage.handleGetUsers(searchValue, siteID, numberOfUser);
 	}
@@ -359,7 +362,7 @@ class MongoDBStorage {
 		return UserStorage.handleGetUserByTagId(tagID);
 	}
 
-	getCompanies(searchValue, withSites=false, numberOfCompanies=500) {
+	getCompanies(searchValue, withSites = false, numberOfCompanies = 500) {
 		// Delegate
 		return CompanyStorage.handleGetCompanies(searchValue, withSites, numberOfCompanies);
 	}
@@ -369,7 +372,7 @@ class MongoDBStorage {
 		return CompanyStorage.handleGetCompany(id);
 	}
 
- 	getCompanyLogo(id) {
+	getCompanyLogo(id) {
 		// Delegate
 		return CompanyStorage.handleGetCompanyLogo(id);
 	}
@@ -394,7 +397,7 @@ class MongoDBStorage {
 		return CompanyStorage.handleSaveCompany(company);
 	}
 
-	getVehicleManufacturers(searchValue, withVehicles=false, vehicleType, numberOfVehicleManufacturers=500) {
+	getVehicleManufacturers(searchValue, withVehicles = false, vehicleType, numberOfVehicleManufacturers = 500) {
 		// Delegate
 		return VehicleManufacturerStorage.handleGetVehicleManufacturers(
 			searchValue, withVehicles, vehicleType, numberOfVehicleManufacturers);
@@ -430,7 +433,7 @@ class MongoDBStorage {
 		return VehicleManufacturerStorage.handleSaveVehicleManufacturerLogo(vehicleManufacturer);
 	}
 
-	getSiteAreas(searchValue, siteID=null, withChargeBoxes=false, numberOfSiteArea=500) {
+	getSiteAreas(searchValue, siteID = null, withChargeBoxes = false, numberOfSiteArea = 500) {
 		// Delegate
 		return SiteAreaStorage.handleGetSiteAreas(searchValue, siteID,
 			withChargeBoxes, numberOfSiteArea);
@@ -451,7 +454,7 @@ class MongoDBStorage {
 		return SiteAreaStorage.handleDeleteSiteArea(id);
 	}
 
-	getSiteArea(id, withChargingStations=false, withSite=false) {
+	getSiteArea(id, withChargingStations = false, withSite = false) {
 		// Delegate
 		return SiteAreaStorage.handleGetSiteArea(id, withChargingStations, withSite);
 	}
@@ -466,8 +469,8 @@ class MongoDBStorage {
 		return SiteAreaStorage.handleGetSiteAreaImages();
 	}
 
-	getSites(searchValue, companyID=null, userID=null, withCompany=false, withSiteAreas=false,
-			withChargeBoxes=false, withUsers=false, numberOfSite=500) {
+	getSites(searchValue, companyID = null, userID = null, withCompany = false, withSiteAreas = false,
+		withChargeBoxes = false, withUsers = false, numberOfSite = 500) {
 		// Delegate
 		return SiteStorage.handleGetSites(searchValue, companyID, userID, withCompany, withSiteAreas,
 			withChargeBoxes, withUsers, numberOfSite);
@@ -488,7 +491,7 @@ class MongoDBStorage {
 		return SiteStorage.handleDeleteSite(id);
 	}
 
-	getSite(id, withCompany=false, withUsers=false) {
+	getSite(id, withCompany = false, withUsers = false) {
 		// Delegate
 		return SiteStorage.handleGetSite(id, withCompany, withUsers);
 	}
@@ -503,7 +506,7 @@ class MongoDBStorage {
 		return SiteStorage.handleGetSiteImages();
 	}
 
-	getVehicles(searchValue, vehicleManufacturerID=null, vehicleType, numberOfVehicle=500) {
+	getVehicles(searchValue, vehicleManufacturerID = null, vehicleType, numberOfVehicle = 500) {
 		// Delegate
 		return VehicleStorage.handleGetVehicles(searchValue, vehicleManufacturerID, vehicleType, numberOfVehicle);
 	}

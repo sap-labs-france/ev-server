@@ -38,6 +38,7 @@
 		"database": "evse",
 		"poolSize": 20,
 		"replicaSet": "rs0",
+		"monitorDBChange": true,
 		"debug": false
 	},
 	"Email": {
