@@ -38,7 +38,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
 			// Make it global for SOAP Services
 			global.centralSystemSoap = this;
 			// Create the HTTP server
-			if (_centralSystemConfig.protocol === "https") {
+			if (_centralSystemConfig.protocol === "https" && !_centralSystemConfig.cloudFoundry) {
 				// Create the options
 				let options = {};
 				// Cloud Foundry
