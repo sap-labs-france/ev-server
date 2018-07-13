@@ -35,7 +35,6 @@ module.exports = {
 				centralSystem.port = _appEnv.port;
 				centralSystem.protocol = urlParsed.protocol.substring(0, urlParsed.protocol.length-1);
 				centralSystem.host = urlParsed.hostname;
-				console.log(centralSystem);				
 			});
 		}
 		// Read conf
