@@ -75,7 +75,7 @@ module.exports = {
 
 		<h2>Involved Users</h2>
 		<p>
-			The users that make use of the charging stations on the monitored site and who registered to the <a href="https://cloud.charge-angels.fr" target="_blank">Charge-Angels</a> application.
+			The users that make use of the charging stations on the monitored site and who registered to the <a href="{{chargeAngelsURL}}" target="_blank">Charge-Angels</a> application.
 			<br/>
 		</p>
 
@@ -83,13 +83,13 @@ module.exports = {
 		<p>
 			The data processing are for local SAP Site Managers, SAP Data Scientists in Germany, demos to internal or external people.
 			<br/>
-			Local SAP Site Managers access the data only through the secured <a href="https://cloud.charge-angels.fr" target="_blank">Charge-Angels</a> application with the role administrators.
+			Local SAP Site Managers access the data only through the secured <a href="{{chargeAngelsURL}}" target="_blank">Charge-Angels</a> application with the role administrators.
 			<br/>
 			SAP Data Scientists in Germany receive only the anonymized transactions from an admin to test their charging algorithm.
 			<br/>
-			For demoing the <a href="https://cloud.charge-angels.fr" target="_blank">Charge-Angels</a> application internally, we use a corporate demo user to display all the information.
+			For demoing the <a href="{{chargeAngelsURL}}" target="_blank">Charge-Angels</a> application internally, we use a corporate demo user to display all the information.
 			<br/>
-			For demoing the <a href="https://cloud.charge-angels.fr" target="_blank">Charge-Angels</a> application to external people (not SAP), we use a demo user to anonymize all the personal data.
+			For demoing the <a href="{{chargeAngelsURL}}" target="_blank">Charge-Angels</a> application to external people (not SAP), we use a demo user to anonymize all the personal data.
 			<br/>
 		</p>
 
@@ -128,7 +128,7 @@ module.exports = {
 		<p>
 			You must give your explicit consent for us to use your data.
 			<br/>
-			This is done via a checkbox in the log in page of the <a href="https://cloud.charge-angels.fr" target="_blank">Charge-Angels</a> application.
+			This is done via a checkbox in the log in page of the <a href="{{chargeAngelsURL}}" target="_blank">Charge-Angels</a> application.
 			<br/>
 		</p>
 
@@ -242,13 +242,13 @@ module.exports = {
 		<p>
 			Managers locaux des sites SAP, Data Scientists SAP en Allemagne, Démos pour les personnes externes.
 			<br/>
-			Les managers des sites SAP accedent aux donnees exclusivement au travers de l'application securisée <a href="https://cloud.charge-angels.fr" target="_blank">Charge-Angels</a> avec le role administrateur.
+			Les managers des sites SAP accedent aux donnees exclusivement au travers de l'application securisée <a href="{{chargeAngelsURL}}" target="_blank">Charge-Angels</a> avec le role administrateur.
 			<br/>
 			Les Data Scientists SAP en Allemagne recoivent seulement les transactions anonymisées envoyées par un administrateur pour tester leur algorithme.
 			<br/>
-			Pour réaliser des démonstrations de l'application <a href="https://cloud.charge-angels.fr" target="_blank">Charge-Angels</a> en interne (SAP), un utilisateur avec le role demo corporate est utilisé pour afficher toutes les informations.
+			Pour réaliser des démonstrations de l'application <a href="{{chargeAngelsURL}}" target="_blank">Charge-Angels</a> en interne (SAP), un utilisateur avec le role demo corporate est utilisé pour afficher toutes les informations.
 			<br/>
-			Pour réaliser des démonstrations de l'application <a href="https://cloud.charge-angels.fr" target="_blank">Charge-Angels</a> à des personnes extérieurs, un utilisateur avec le role demo est utilisé pour anonymizer toutes les informations.
+			Pour réaliser des démonstrations de l'application <a href="{{chargeAngelsURL}}" target="_blank">Charge-Angels</a> à des personnes extérieurs, un utilisateur avec le role demo est utilisé pour anonymizer toutes les informations.
 			<br/>
 		</p>
 
@@ -288,7 +288,7 @@ module.exports = {
 		<p>
 			Vous devez explicitement donner votre consentement pour nous autoriser à utiliser vos données.
 			<br/>
-			Celui-ci est matérialisé par une case à cocher dans la page de connexion de l'application <a href="https://cloud.charge-angels.fr" target="_blank">Charge-Angels</a>.
+			Celui-ci est matérialisé par une case à cocher dans la page de connexion de l'application <a href="{{chargeAngelsURL}}" target="_blank">Charge-Angels</a>.
 			<br/>
 		</p>
 

@@ -1,4 +1,3 @@
-const Logging = require('./Logging');
 const Constants = require('./Constants');
 const AppError = require('../exception/AppError');
 require('source-map-support').install();

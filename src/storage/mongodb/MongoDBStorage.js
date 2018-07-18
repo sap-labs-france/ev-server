@@ -1,5 +1,4 @@
 const Logging = require('../../utils/Logging');
-const Constants = require('../../utils/Constants');
 const LoggingStorage = require("./storage/LoggingStorage");
 const ChargingStationStorage = require('./storage/ChargingStationStorage');
 const PricingStorage = require('./storage/PricingStorage');
@@ -15,7 +14,6 @@ const VehicleManufacturerStorage = require('./storage/VehicleManufacturerStorage
 const MongoClient = require('mongodb').MongoClient;
 const mongoUriBuilder = require('mongo-uri-builder');
 const urlencode = require('urlencode');
-const Timestamp = require('mongodb').Timestamp;
 const MongoDBStorageNotification = require('./MongoDBStorageNotification');
 
 require('source-map-support').install();

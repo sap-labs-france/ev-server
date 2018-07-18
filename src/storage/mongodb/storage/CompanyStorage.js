@@ -1,4 +1,3 @@
-const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const Database = require('../../../utils/Database');
 const Utils = require('../../../utils/Utils');

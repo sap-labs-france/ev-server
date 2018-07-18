@@ -2,12 +2,7 @@ const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
-const Users = require('../../../utils/Users');
-const ChargingStations = require('../../../utils/ChargingStations');
 const Authorizations = require('../../../authorization/Authorizations');
-const Database = require('../../../utils/Database');
-const Utils = require('../../../utils/Utils');
-const SiteArea = require('../../../model/SiteArea');
 const ChargingStationSecurity = require('./security/ChargingStationSecurity');
 
 class ChargingStationService {

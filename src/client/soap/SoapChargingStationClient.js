@@ -1,6 +1,5 @@
 var ChargingStationClient = require('../ChargingStationClient');
 var soap = require('strong-soap').soap;
-var path = require('path');
 var Logging = require('../../utils/Logging');
 var Configuration = require('../../utils/Configuration');
 
@@ -76,7 +75,7 @@ class SoapChargingStationClient extends ChargingStationClient {
 		_client.addSoapHeader(`<a:ReplyTo xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address></a:ReplyTo>`);
 		_client.addSoapHeader(`<a:To xmlns:a="http://www.w3.org/2005/08/addressing">${_chargingStation.getChargingStationURL()}</a:To>`);
 		_client.addSoapHeader(`<a:Action xmlns:a="http://www.w3.org/2005/08/addressing">/${action}</a:Action>`);
-		_client.addSoapHeader(`<a:From xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>http://localhost:8080</a:Address></a:From>`);
+		_client.addSoapHeader(`<a:From xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>${_centralSystemServiceConfig.wsdlBaseURL}</a:Address></a:From>`);
 	}
 
 	stopTransaction(transactionId) {

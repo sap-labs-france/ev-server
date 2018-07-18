@@ -1,7 +1,6 @@
 const Logging = require('../../utils/Logging');
 const moment = require('moment');
 const SchedulerTask = require('../SchedulerTask');
-const Configuration = require('../../utils/Configuration');
 
 class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 	constructor() {

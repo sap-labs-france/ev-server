@@ -1,12 +1,10 @@
 const Constants = require('../../../utils/Constants');
-const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const Configuration = require('../../../utils/Configuration');
 const Users = require('../../../utils/Users');
 const Utils = require('../../../utils/Utils');
 const User = require('../../../model/User');
 const crypto = require('crypto');
-const ObjectID = require('mongodb').ObjectID;
 const AppError = require('../../../exception/AppError');
 
 let _db;

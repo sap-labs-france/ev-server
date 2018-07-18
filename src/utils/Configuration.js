@@ -1,5 +1,3 @@
-const fs = require('fs');
-const path = require('path');
 const cfenv = require('cfenv');
 const _config = require('../config.json');
 const url = require('url');

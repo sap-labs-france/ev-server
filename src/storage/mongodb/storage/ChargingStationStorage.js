@@ -1,6 +1,4 @@
-const Logging = require('../../../utils/Logging');
 const Utils = require('../../../utils/Utils');
-const Constants = require('../../../utils/Constants');
 const Database = require('../../../utils/Database');
 const ChargingStation = require('../../../model/ChargingStation');
 const SiteArea = require('../../../model/SiteArea');

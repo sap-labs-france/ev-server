@@ -9,6 +9,7 @@ require('body-parser-xml')(bodyParser);
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const sanitize = require('mongo-sanitize');
 require('source-map-support').install();
 
 let _centralSystemConfig;
@@ -54,7 +55,7 @@ class CentralSystemServer {
 					break;
 				// Unknown
 				default:
-					res.status(500).send(`${req.params["0"]} does not exist!`);
+					res.status(500).send(`${sanitize(req.params["0"])} does not exist!`);
 			}
 		});
 

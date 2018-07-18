@@ -1,5 +1,4 @@
 const Configuration = require('./Configuration');
-const Logging = require('./Logging');
 const uuidV4 = require('uuid/v4');
 const ObjectID = require('mongodb').ObjectID;
 

@@ -1,6 +1,5 @@
 const sanitize = require('mongo-sanitize');
 const Authorizations = require('../../../../authorization/Authorizations');
-const Utils = require('../../../../utils/Utils');
 const UtilsSecurity = require('./UtilsSecurity');
 
 class VehicleManufacturerSecurity {

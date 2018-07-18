@@ -1,6 +1,5 @@
 const Authorizations = require('../../../authorization/Authorizations');
 const Logging = require('../../../utils/Logging');
-const Utils = require('../../../utils/Utils');
 const Database = require('../../../utils/Database');
 const PricingSecurity = require('./security/PricingSecurity');
 

@@ -7,11 +7,14 @@ const bcrypt = require('bcrypt');
 const eula = require('../end-user-agreement');
 const Constants = require('./Constants');
 const AppError = require('../exception/AppError');
+const Mustache = require('mustache');
+const Configuration = require('./Configuration');
 
 require('source-map-support').install();
 
 let _userFilename = path.join(__dirname, "../../users.json");
 let _userFilenameImported = path.join(__dirname, "../../users-imported.json");
+let _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 
 module.exports = {
 	// Statuses
@@ -67,10 +70,10 @@ module.exports = {
 	},
 
 	isPasswordStrongEnough(password) {
-		var uc = password.match(this.PWD_UPPERCASE_RE);
-		var lc = password.match(this.PWD_LOWERCASE_RE);
-		var n = password.match(this.PWD_NUMBER_RE);
-		var sc = password.match(this.PWD_SPECIAL_CHAR_RE);
+		let uc = password.match(this.PWD_UPPERCASE_RE);
+		let lc = password.match(this.PWD_LOWERCASE_RE);
+		let n = password.match(this.PWD_NUMBER_RE);
+		let sc = password.match(this.PWD_SPECIAL_CHAR_RE);
 		return password.length >= this.PWD_MIN_LENGTH &&
 			uc && uc.length >= this.PWD_UPPERCASE_MIN_COUNT &&
 			lc && lc.length >= this.PWD_LOWERCASE_MIN_COUNT &&
@@ -79,8 +82,8 @@ module.exports = {
 	},
 
 	generatePassword() {
-		var password = "";
-		var randomLength = Math.floor(Math.random() * (this.PWD_MAX_LENGTH - this.PWD_MIN_LENGTH)) + this.PWD_MIN_LENGTH;
+		let password = "";
+		let randomLength = Math.floor(Math.random() * (this.PWD_MAX_LENGTH - this.PWD_MIN_LENGTH)) + this.PWD_MIN_LENGTH;
 		while (!this.isPasswordStrongEnough(password)) {
 			password = passwordGenerator(randomLength, false, /[\w\d!#\$%\^&\*\.\?\-]/);
 		}
@@ -218,11 +221,11 @@ module.exports = {
 
 	importUsers() {
 		// Get from the file system
-		var users = this.getUsers();
+		let users = this.getUsers();
 		// Found?
 		if (users) {
 			// Import them
-			for (var i = 0; i < users.length; i++) {
+			for (let i = 0; i < users.length; i++) {
 				// Check & Save
 				this._checkAndSaveUser(users[i]);
 			}
@@ -266,11 +269,24 @@ module.exports = {
 	},
 
 	getEndUserLicenseAgreement(language="en") {
+		// Get it
 		let eulaText = eula[language];
-
+		// Check
 		if (!eulaText) {
+			// Backup to EN
 			eulaText = eula["en"];
 		}
+		// Build Front End URL
+		let frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
+			_centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port; 
+		// Parse the auth and replace values
+		eulaText = Mustache.render(
+			eulaText,
+			{
+				"chargeAngelsURL": frontEndURL
+			}
+		);
+		// Parse
 		return eulaText;
 	}
 };

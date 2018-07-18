@@ -1,6 +1,4 @@
-const Utils = require('../../../utils/Utils');
 const Logging = require('../../../utils/Logging');
-const UtilsSecurity = require('./security/UtilsSecurity');
 
 class UtilsService {
 	static handleUnknownAction(action, req, res, next) {

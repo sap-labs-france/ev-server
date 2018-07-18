@@ -1,6 +1,4 @@
 const sanitize = require('mongo-sanitize');
-const Utils = require('../../../../utils/Utils');
-const UtilsSecurity = require('./UtilsSecurity');
 
 class StatisticSecurity {
 	static filterUserStatisticsRequest(request, loggedUser) {

@@ -5,7 +5,6 @@ const AppAuthError = require('../../../exception/AppAuthError');
 const Authorizations = require('../../../authorization/Authorizations');
 const VehicleManufacturers = require('../../../utils/VehicleManufacturers');
 const Constants = require('../../../utils/Constants');
-const Utils = require('../../../utils/Utils');
 const VehicleManufacturer = require('../../../model/VehicleManufacturer');
 const VehicleManufacturerSecurity = require('./security/VehicleManufacturerSecurity');
 

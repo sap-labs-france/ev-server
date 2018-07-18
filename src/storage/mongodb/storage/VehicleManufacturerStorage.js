@@ -1,12 +1,9 @@
-const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const Database = require('../../../utils/Database');
 const Utils = require('../../../utils/Utils');
-const Configuration = require('../../../utils/Configuration');
 const VehicleManufacturer = require('../../../model/VehicleManufacturer');
 const VehicleStorage = require('./VehicleStorage');
 const Vehicle = require('../../../model/Vehicle');
-const User = require('../../../model/User');
 const AppError = require('../../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
 

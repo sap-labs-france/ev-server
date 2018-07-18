@@ -3,14 +3,8 @@ const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Companies = require('../../../utils/Companies');
-const Sites = require('../../../utils/Sites');
-const SiteAreas = require('../../../utils/SiteAreas');
 const Constants = require('../../../utils/Constants');
-const Utils = require('../../../utils/Utils');
-const Users = require('../../../utils/Users');
 const Company = require('../../../model/Company');
-const Site = require('../../../model/Site');
-const SiteArea = require('../../../model/SiteArea');
 const Authorizations = require('../../../authorization/Authorizations');
 const CompanySecurity = require('./security/CompanySecurity');
 

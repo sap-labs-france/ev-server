@@ -1,7 +1,5 @@
-const ChargingStation = require('../../model/ChargingStation');
 const CentralRestServerAuthentication = require('./CentralRestServerAuthentication');
 const CentralRestServerService = require('./CentralRestServerService');
-const Utils = require('../../utils/Utils');
 const Database = require('../../utils/Database');
 const Configuration = require('../../utils/Configuration');
 const Logging = require('../../utils/Logging');
@@ -12,12 +10,12 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const locale = require('locale');
-const express = require('express');
 const app = require('express')();
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const sanitize = require('mongo-sanitize');
 require('source-map-support').install();
 
 let _centralSystemRestConfig;
@@ -76,7 +74,7 @@ class CentralRestServer {
 				// Filter to not handle other server requests
 				if(!res.headersSent) {
 					// Not already processed: serve the file
-					res.sendFile(path.join(__dirname, centralSystemConfig.distPath, req.params[0]));
+					res.sendFile(path.join(__dirname, centralSystemConfig.distPath, sanitize(req.params[0])));
 				}
 			});
 			// Default, serve the index.html

@@ -2,7 +2,6 @@ const Authorizations = require('../../../authorization/Authorizations');
 const Logging = require('../../../utils/Logging');
 const Utils = require('../../../utils/Utils');
 const moment = require('moment');
-const Users = require('../../../utils/Users');
 const Constants = require('../../../utils/Constants');
 const StatisticSecurity = require('./security/StatisticSecurity');
 
