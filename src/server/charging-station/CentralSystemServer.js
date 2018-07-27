@@ -181,7 +181,7 @@ class CentralSystemServer {
 			});
 			return {
 				"heartbeatResponse": {
-					"currentTime": heartBeat
+					"currentTime": heartBeat.toISOString()
 				}
 			};
 		}).catch((error) => {
@@ -190,7 +190,7 @@ class CentralSystemServer {
 			// Send the response
 			return {
 				"heartbeatResponse": {
-					"currentTime": heartBeat
+					"currentTime": heartBeat.toISOString()
 				}
 			};
 		});
