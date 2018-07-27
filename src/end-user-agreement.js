@@ -1,7 +1,7 @@
 module.exports = {
 	"en": `
-		<h1>End-user Agreement Usage of the Charge-Angels Software (April 2018)</h1>
-		<h2>General Data Protection Regulation (GDPR)</h2>
+		<h3>End-user Agreement Usage of the Charge-Angels Software</h3>
+		<h4>General Data Protection Regulation (GDPR)</h4>
 		<p>
 			<cite>
 				The General Data Protection Regulation (GDPR) is a regulation in EU law on data protection and privacy for all individuals within the European Union.
@@ -16,7 +16,7 @@ module.exports = {
 			<a href="https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016R0679" target="_blank">Click here for more information</a>
 		</p>
 
-		<h2>Personal Data</h2>
+		<h4>Personal Data</h4>
 		<p>
 			Only meaningful data will be stored regarding the usage of the charging stations for each user:
 			<br/>
@@ -38,7 +38,7 @@ module.exports = {
 			<li>Professional Cost Center</li>
 		</ul>
 
-		<h2>Data Processing Scenarios</h2>
+		<h4>Data Processing Scenarios</h4>
 		<ul>
 			<li>Landscape Overview</li>
 			<li>Instant and Total Consumption</li>
@@ -57,7 +57,7 @@ module.exports = {
 			<li>Users' Notifications</li>
 		</ul>
 
-		<h2>Goal of the Data Processing</h2>
+		<h4>Goal of the Data Processing</h4>
 		<p>
 			Maximize the usage of the charging stations by the user while keeping the cost low.
 			<br/>
@@ -67,19 +67,19 @@ module.exports = {
 			<br/>
 		</p>
 
-		<h2>Privacy by Design</h2>
+		<h4>Privacy by Design</h4>
 		<p>
 			This application has been designed considering all personal data privacy from the beginning.
 			<br/>
 		</p>
 
-		<h2>Involved Users</h2>
+		<h4>Involved Users</h4>
 		<p>
 			The users that make use of the charging stations on the monitored site and who registered to the <a href="{{chargeAngelsURL}}" target="_blank">Charge-Angels</a> application.
 			<br/>
 		</p>
 
-		<h2>Data Processing Target</h2>
+		<h4>Data Processing Target</h4>
 		<p>
 			The data processing are for local SAP Site Managers, SAP Data Scientists in Germany, demos to internal or external people.
 			<br/>
@@ -93,7 +93,7 @@ module.exports = {
 			<br/>
 		</p>
 
-		<h2>Data Localization</h2>
+		<h4>Data Localization</h4>
 		<p>
 			The data will be stored on a server in the Cloud that will be physically installed in a country belonging to the European Union.
 			<br/>
@@ -101,7 +101,7 @@ module.exports = {
 			<br/>
 		</p>
 
-		<h2>Right to Oblivion</h2>
+		<h4>Right to Oblivion</h4>
 		<p>
 			Your personal data will be kept until the end of the user's contract with the company.
 			<br/>
@@ -111,7 +111,7 @@ module.exports = {
 			<br/>
 		</p>
 
-		<h2>Security by Default</h2>
+		<h4>Security by Default</h4>
 		<p>
 			Credentials are required to access the application for all the administrators, standard and demos users.
 			<br/>
@@ -124,7 +124,7 @@ module.exports = {
 			Your data can be communicated to third parties in case of legal inquiry such as "Inspection du travail" or "Services fiscaux" or police services.<br/>
 		</p>
 
-		<h2>User Consent</h2>
+		<h4>User Consent</h4>
 		<p>
 			You must give your explicit consent for us to use your data.
 			<br/>
@@ -132,7 +132,7 @@ module.exports = {
 			<br/>
 		</p>
 
-		<h2>Right to access and correct data</h2>
+		<h4>Right to access and correct data</h4>
 		<p>
 			You can, upon providing proof of your identity, make an inquiry to the <a href="mailto:dpo@charge-angels.fr">Data Privacy Officer</a> about the right of accessing your personal data.
 			<br/>
@@ -140,19 +140,19 @@ module.exports = {
 			<br/>
 		</p>
 
-		<h2>Right to Object</h2>
+		<h4>Right to Object</h4>
 		<p>
 			You have the right to object, by contacting the <a href="mailto:dpo@charge-angels.fr">Data Privacy Officer</a>, to allow or object about the usage of your data.
 			<br/>
 		</p>
 
-		<h2>Limit the Data Processing</h2>
+		<h4>Limit the Data Processing</h4>
 		<p>
 			You have the right to limit the usage of your data.
 			<br/>
 		</p>
 
-		<h2>Portability Right</h2>
+		<h4>Portability Right</h4>
 		<p>
 			You can request, to the <a href="mailto:dpo@charge-angels.fr">Data Privacy Officer</a>, the transfer of all or part of your personal data in a file which is readable.
 			<br/>
@@ -160,8 +160,8 @@ module.exports = {
 	`,
 
 	"fr": `
-		<h1>Conditions Générales d'Utilisation de l’application Charge-Angels (Avril 2018)</h1>
-		<h2>Règlement Général sur la Protection des Données (RGPD)</h2>
+		<h3>Conditions Générales d'Utilisation de l’application Charge-Angels (Avril 2018)</h3>
+		<h4>Règlement Général sur la Protection des Données (RGPD)</h4>
 		<p>
 			<cite>
 				Le règlement général sur la protection des données (RGPD), constitue le texte de référence européen en matière de protection des données à caractère personnel.
@@ -176,7 +176,7 @@ module.exports = {
 			<a href="https://eur-lex.europa.eu/legal-content/FR/TXT/?uri=CELEX:32016R0679" target="_blank">Cliquez ici pour plus d'information</a>
 		</p>
 
-		<h2>Données Personnelles</h2>
+		<h4>Données Personnelles</h4>
 		<p>
 			Seul les données importantes seront enregistrées concernant l'utilisation des bornes de recharge pour chaque utilisateur.
 			<br/>
@@ -198,7 +198,7 @@ module.exports = {
 			<li>Centre de coût professionnel</li>
 		</ul>
 
-		<h2>Scénarios du Traitement des Données</h2>
+		<h4>Scénarios du Traitement des Données</h4>
 		<ul>
 			<li>Consommation Instantanée et Totale</li>
 			<li>Statut des Bornes de recharge</li>
@@ -216,7 +216,7 @@ module.exports = {
 			<li>Notifications Utilisateur</li>
 		</ul>
 
-		<h2>Finalité du Traitement des Données</h2>
+		<h4>Finalité du Traitement des Données</h4>
 		<p>
 			Maximiser l'utilisation des bornes par les utilisateurs en gardant des coûts de fonctionnement bas.
 			<br/>
@@ -226,19 +226,19 @@ module.exports = {
 			<br/>
 		</p>
 
-		<h2>Protection des Données dès la Conception</h2>
+		<h4>Protection des Données dès la Conception</h4>
 		<p>
 			Cette application a été conçue dès le départ en tenant compte des contraintes de la protection des données personnelles.
 			<br/>
 		</p>
 
-		<h2>Utilisateurs Impliqués</h2>
+		<h4>Utilisateurs Impliqués</h4>
 		<p>
 			Les utilisateurs faisant usage des bornes de recharge sur le site monitoré et ayant procédé a leur inscription dans l'application.
 			<br/>
 		</p>
 
-		<h2>Destinataires des Traitements des Données</h2>
+		<h4>Destinataires des Traitements des Données</h4>
 		<p>
 			Managers locaux des sites SAP, Data Scientists SAP en Allemagne, Démos pour les personnes externes.
 			<br/>
@@ -252,7 +252,7 @@ module.exports = {
 			<br/>
 		</p>
 
-		<h2>Localisation des Données</h2>
+		<h4>Localisation des Données</h4>
 		<p>
 			Les données seront enregistrées sur un serveur Cloud qui sera physiquement installé dans un des pays de l'Union Européenne.
 			<br/>
@@ -260,7 +260,7 @@ module.exports = {
 			<br/>
 		</p>
 
-		<h2>Droit à l'Oubli</h2>
+		<h4>Droit à l'Oubli</h4>
 		<p>
 			Vos données personnelles seront conservées jusqu'à la fin du contrat de l'utilisateur avec la société.
 			<br/>
@@ -270,7 +270,7 @@ module.exports = {
 			<br/>
 		</p>
 
-		<h2>Sécurité des Données</h2>
+		<h4>Sécurité des Données</h4>
 		<p>
 			Des identifiants sont requis pour accéder à l'application pour tous les utilisateurs standards, démos et les administrateurs.
 			<br/>
@@ -284,7 +284,7 @@ module.exports = {
 			<br/>
 		</p>
 
-		<h2>Consentement Utilisateur</h2>
+		<h4>Consentement Utilisateur</h4>
 		<p>
 			Vous devez explicitement donner votre consentement pour nous autoriser à utiliser vos données.
 			<br/>
@@ -292,7 +292,7 @@ module.exports = {
 			<br/>
 		</p>
 
-		<h2>Le droit d'Accès et de Correction</h2>
+		<h4>Le droit d'Accès et de Correction</h4>
 		<p>
 			Vous pouvez, sous couvert de prouver votre identité, requérir auprès du <a href="mailto:dpo@charge-angels.fr">Responsable des Données Personnelles</a>, l'accès à vos données personnelles.
 			<br/>
@@ -300,19 +300,19 @@ module.exports = {
 			<br/>
 		</p>
 
-		<h2>Le droit d'Opposition</h2>
+		<h4>Le droit d'Opposition</h4>
 		<p>
 			Vous avez le droit de vous opposer, en contactant le <a href="mailto:dpo@charge-angels.fr">Responsable des Données Personnelles</a>, à l'utilisation de vos données.
 			<br/>
 		</p>
 
-		<h2>Limiter le Traitement des Données</h2>
+		<h4>Limiter le Traitement des Données</h4>
 		<p>
 			Vous avez le droit de limiter l'utilisation de vos données.
 			<br/>
 		</p>
 
-		<h2>Droit a la Portabilité des Données</h2>
+		<h4>Droit a la Portabilité des Données</h4>
 		<p>
 			Vous avez le droit de demander, au <a href="mailto:dpo@charge-angels.fr">Responsable des Données Personnelles</a>, le transfert de tout ou partie de vos données personnelles sous forme d'un fichier informatique lisible.
 			<br/>
