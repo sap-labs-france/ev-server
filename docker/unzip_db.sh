@@ -1,1 +1,1 @@
-unzip ./export.zip -d /export
+unzip ./export.zip

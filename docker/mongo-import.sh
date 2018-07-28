@@ -1,3 +1,5 @@
+rm -R ./export
+mkdir export
 mongoimport --uri $MONGO_URI --collection companies --file /export/companies.json
 mongoimport --uri $MONGO_URI --collection companylogos --file /export/companylogos.json
 mongoimport --uri $MONGO_URI --collection sites --file /export/sites.json
