@@ -4,7 +4,7 @@ const Logging = require('../../utils/Logging');
 const Configuration = require('../../utils/Configuration');
 
 const _moduleName = "SoapChargingStationClient";
-const _centralSystemServiceConfig = Configuration.getCentralSystemRestServiceConfig();
+let _centralSystemServiceConfig = Configuration.getCentralSystemRestServiceConfig();
 
 console.log(_centralSystemServiceConfig);
 
