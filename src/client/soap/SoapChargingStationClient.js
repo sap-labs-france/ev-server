@@ -15,6 +15,10 @@ class SoapChargingStationClient extends ChargingStationClient {
 		// Keep config
 		this._chargingStation = chargingStation;
 
+		console.log("Config 1");
+		console.log(_centralSystemServiceConfig);
+		_centralSystemServiceConfig = Configuration.getCentralSystemRestServiceConfig();
+		console.log("Config 2");
 		console.log(_centralSystemServiceConfig);
 
 		// Get the Charging Station
