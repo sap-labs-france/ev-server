@@ -1,18 +1,16 @@
 const cfenv = require('cfenv');
 const url = require('url');
+const config = require('../config.json');
+
 require('source-map-support').install();
 
 // Cloud Foundry App Env
 let _appEnv = cfenv.getAppEnv();
-let _config;
 
 module.exports = {
 	// Read the config file
 	getConfig() {
-		if (!_config) {
-			_config = require('../config.json');
-		}
-		return _config;
+		return config;
 	},
 
 	// Scheduler config
