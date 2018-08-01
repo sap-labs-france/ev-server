@@ -2,9 +2,11 @@ const Utils = require('./Utils');
 const Constants = require('./Constants');
 const AppError = require('../exception/AppError');
 const AppAuthError = require('../exception/AppAuthError');
+const log = require('cf-nodejs-logging-support');
+const Configuration = require('../utils/Configuration');
 require('source-map-support').install();
 
-let LoggingLevel = {
+let LogLevel = {
 	"INFO": 'I',
 	"DEBUG": 'D',
 	"WARNING": 'W',
@@ -20,7 +22,7 @@ class Logging {
 	// Log Debug
 	static logDebug(log) {
 		// Log
-		log.level = LoggingLevel.DEBUG;
+		log.level = LogLevel.DEBUG;
 		// Log it
 		Logging._log(log);
 	}
@@ -36,7 +38,7 @@ class Logging {
 	// Log Info
 	static logInfo(log) {
 		// Log
-		log.level = LoggingLevel.INFO;
+		log.level = LogLevel.INFO;
 		// Log it
 		Logging._log(log);
 	}
@@ -44,7 +46,7 @@ class Logging {
 	// Log Warning
 	static logWarning(log) {
 		// Log
-		log.level = LoggingLevel.WARNING;
+		log.level = LogLevel.WARNING;
 		// Log it
 		Logging._log(log);
 	}
@@ -60,7 +62,7 @@ class Logging {
 	// Log Error
 	static logError(log) {
 		// Log
-		log.level = LoggingLevel.ERROR;
+		log.level = LogLevel.ERROR;
 		// Log it
 		Logging._log(log);
 	}
@@ -230,6 +232,27 @@ class Logging {
 		}
 		// Log
 		global.storage.saveLog(log);
+
+		// Log in Cloud Foundry
+		if (Configuration.isCloudFoundry()) {
+			// Bind to express app
+			log.logMessage(Logging.getCloudFoundryLogLevel(log.level), log.message);
+		}
+	}
+
+	// Log
+	static getCloudFoundryLogLevel(logLevel) {
+		// Log level
+		switch (logLevel) {
+			case LogLevel.DEBUG:
+				return "debug";		
+			case LogLevel.INFO:
+				return "info";		
+			case LogLevel.WARNING:
+				return "warning";		
+			case LogLevel.ERROR:
+				return "error";		
+		}
 	}
 }
 

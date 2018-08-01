@@ -1,11 +1,3 @@
-const CentralRestServerAuthentication = require('./CentralRestServerAuthentication');
-const CentralRestServerService = require('./CentralRestServerService');
-const Database = require('../../utils/Database');
-const Configuration = require('../../utils/Configuration');
-const Logging = require('../../utils/Logging');
-const Constants = require('../../utils/Constants');
-const bodyParser = require("body-parser");
-require('body-parser-xml')(bodyParser);
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -16,6 +8,15 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const sanitize = require('mongo-sanitize');
+const bodyParser = require("body-parser");
+const log = require('cf-nodejs-logging-support');
+require('body-parser-xml')(bodyParser);
+const CentralRestServerAuthentication = require('./CentralRestServerAuthentication');
+const CentralRestServerService = require('./CentralRestServerService');
+const Database = require('../../utils/Database');
+const Configuration = require('../../utils/Configuration');
+const Logging = require('../../utils/Logging');
+const Constants = require('../../utils/Constants');
 require('source-map-support').install();
 
 let _centralSystemRestConfig;
@@ -53,6 +54,12 @@ class CentralRestServer {
 		// Secure the application
 		app.use(helmet());
 
+		// Check Cloud Foundry
+		if (Configuration.isCloudFoundry()) {
+			// Bind to express app
+			app.use(log.logNetwork);
+		}
+		
 		// Authentication
 		app.use(CentralRestServerAuthentication.initialize());
 

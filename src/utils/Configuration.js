@@ -1,14 +1,17 @@
 const cfenv = require('cfenv');
-const _config = require('../config.json');
 const url = require('url');
 require('source-map-support').install();
 
 // Cloud Foundry App Env
 let _appEnv = cfenv.getAppEnv();
+let _config;
 
 module.exports = {
 	// Read the config file
 	getConfig() {
+		if (!_config) {
+			_config = require('../config.json');
+		}
 		return _config;
 	},
 
@@ -21,7 +24,7 @@ module.exports = {
 	// Central System config
 	getCentralSystemsConfig() {
 		let centralSystems = this.getConfig().CentralSystems;
-		// Check env
+		// Check Cloud Foundry
 		if (centralSystems && !_appEnv.isLocal) {
 			// Parse the URL
 			let urlParsed = url.parse(_appEnv.url, true);
@@ -49,10 +52,14 @@ module.exports = {
 		return this.getConfig().Authorization;
 	},
 
+	isCloudFoundry() {
+		return !_appEnv.isLocal;
+	},
+
 	// Central System REST config
 	getCentralSystemRestServiceConfig() {
 		let centralSystemRestService = this.getConfig().CentralSystemRestService;
-		// Check env
+		// Check Cloud Foundry
 		if (centralSystemRestService && !_appEnv.isLocal) {
 			// CF Environment: Override
 			centralSystemRestService.port = _appEnv.port;
@@ -100,7 +107,7 @@ module.exports = {
 	// DB config
 	getStorageConfig() {
 		let storage = this.getConfig().Storage;
-		// Check env
+		// Check Cloud Foundry
 		if (storage && !_appEnv.isLocal) {
 			// CF Environment: Override
 			let mongoDBService = _appEnv.services.mongodb[0];

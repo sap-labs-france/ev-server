@@ -15,6 +15,7 @@
 		"bcrypt": "^3.0.0",
 		"body-parser": "^1.17.2",
 		"body-parser-xml": "^1.1.0",
+		"cf-nodejs-logging-support": "^3.0.11",
 		"cfenv": "^1.1.0",
 		"client-oauth2": "^4.2.1",
 		"cookie-parser": "^1.4.3",
@@ -50,6 +51,7 @@
 		"strong-soap": "^1.11.0",
 		"urlencode": "^1.1.0",
 		"uuid": "^3.3.2",
+		"winston": "^3.0.0",
 		"xml-formatter": "^1.0.1"
 	},
 	"devDependencies": {
