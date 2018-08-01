@@ -5,8 +5,6 @@ const Configuration = require('../../utils/Configuration');
 
 const _moduleName = "SoapChargingStationClient";
 
-console.log(this._centralSystemServiceConfig);
-
 class SoapChargingStationClient extends ChargingStationClient {
 	constructor(chargingStation) {
 		super();
@@ -15,6 +13,9 @@ class SoapChargingStationClient extends ChargingStationClient {
 
 		// Get the config
 		this._centralSystemServiceConfig = Configuration.getCentralSystemRestServiceConfig();
+		console.log('---------------------------------');
+		console.log(this._centralSystemServiceConfig);
+		console.log('---------------------------------');
 	
 		// Get the Charging Station
 		return new Promise((fulfill, reject) => {
