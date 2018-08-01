@@ -3,35 +3,33 @@ const soap = require('strong-soap').soap;
 const Logging = require('../../utils/Logging');
 const Configuration = require('../../utils/Configuration');
 
+// Default Module name
 const _moduleName = "SoapChargingStationClient";
+// Get the config
+const _wsdlEndpointConfig = Configuration.getWSDLEndpointConfig();		
+console.log('====================================');
+console.log(_wsdlEndpointConfig);
+console.log('====================================');
 
 class SoapChargingStationClient extends ChargingStationClient {
 	constructor(chargingStation) {
 		super();
 		// Keep the charger
 		this._chargingStation = chargingStation;
-
-		// Get the config
-		this._centralSystemServiceConfig = Configuration.getCentralSystemRestServiceConfig();
-		console.log('---------------------------------');
-		console.log(this._centralSystemServiceConfig);
-		console.log('---------------------------------');
-	
 		// Get the Charging Station
 		return new Promise((fulfill, reject) => {
 			let chargingStationWdsl = null;
-
 			// Read the WSDL client files
 			switch(this._chargingStation.getOcppVersion()) {
 				// OCPP V1.2
 				case "1.2":
-					chargingStationWdsl = this._centralSystemServiceConfig.wsdlBaseURL + '/wsdl/OCPP_ChargePointService1.2.wsdl';
+					chargingStationWdsl = _wsdlEndpointConfig.baseUrl + '/wsdl/OCPP_ChargePointService1.2.wsdl';
 					break;
 				case "1.5":
-					chargingStationWdsl = this._centralSystemServiceConfig.wsdlBaseURL + '/wsdl/OCPP_ChargePointService1.5.wsdl';
+					chargingStationWdsl = _wsdlEndpointConfig.baseUrl + '/wsdl/OCPP_ChargePointService1.5.wsdl';
 					break;
 				case "1.6":
-					chargingStationWdsl = this._centralSystemServiceConfig.wsdlBaseURL + '/wsdl/OCPP_ChargePointService1.6.wsdl';
+					chargingStationWdsl = _wsdlEndpointConfig.baseUrl + '/wsdl/OCPP_ChargePointService1.6.wsdl';
 					break;
 				default:
 					// Log
@@ -77,7 +75,7 @@ class SoapChargingStationClient extends ChargingStationClient {
 		this._client.addSoapHeader(`<a:ReplyTo xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address></a:ReplyTo>`);
 		this._client.addSoapHeader(`<a:To xmlns:a="http://www.w3.org/2005/08/addressing">${this._chargingStation.getChargingStationURL()}</a:To>`);
 		this._client.addSoapHeader(`<a:Action xmlns:a="http://www.w3.org/2005/08/addressing">/${action}</a:Action>`);
-		this._client.addSoapHeader(`<a:From xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>${this._centralSystemServiceConfig.wsdlBaseURL}</a:Address></a:From>`);
+		this._client.addSoapHeader(`<a:From xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>${_wsdlEndpointConfig.baseUrl}</a:Address></a:From>`);
 	}
 
 	stopTransaction(transactionId) {

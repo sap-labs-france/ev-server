@@ -10,9 +10,6 @@ let _appEnv = cfenv.getAppEnv();
 module.exports = {
 	// Read the config file
 	getConfig() {
-		console.log('CONFIG ---------------------------------');
-		console.log(config);
-		console.log('CONFIG ---------------------------------');
 		return config;
 	},
 
@@ -70,6 +67,11 @@ module.exports = {
 		}
 		// Read conf
 		return centralSystemRestService;
+	},
+
+	// Central System REST config
+	getWSDLEndpointConfig() {
+		return this.getConfig().WSDLEndpoint;
 	},
 
 	// Central System Front-End config
