@@ -22,8 +22,8 @@ const config = {
     path: commonPaths.outputPath
   },
   module: {
-	rules: [
-	]
+    rules: [
+    ]
   },
   plugins: [
     new webpack.ProgressPlugin(),

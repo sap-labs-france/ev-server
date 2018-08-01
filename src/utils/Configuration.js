@@ -1,6 +1,6 @@
 const cfenv = require('cfenv');
 const url = require('url');
-const config = require('../config.json');
+let config = require('../config.json');
 
 require('source-map-support').install();
 
@@ -10,6 +10,9 @@ let _appEnv = cfenv.getAppEnv();
 module.exports = {
 	// Read the config file
 	getConfig() {
+		console.log('CONFIG ---------------------------------');
+		console.log(config);
+		console.log('CONFIG ---------------------------------');
 		return config;
 	},
 
