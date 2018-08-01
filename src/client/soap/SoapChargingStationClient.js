@@ -7,9 +7,6 @@ const Configuration = require('../../utils/Configuration');
 const _moduleName = "SoapChargingStationClient";
 // Get the config
 const _wsdlEndpointConfig = Configuration.getWSDLEndpointConfig();		
-console.log('====================================');
-console.log(_wsdlEndpointConfig);
-console.log('====================================');
 
 class SoapChargingStationClient extends ChargingStationClient {
 	constructor(chargingStation) {
