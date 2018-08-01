@@ -9,7 +9,7 @@ const fs = require('fs');
 const path = require('path');
 const sanitize = require('mongo-sanitize');
 const bodyParser = require("body-parser");
-const log = require('cf-nodejs-logging-support');
+const CFLog = require('cf-nodejs-logging-support');
 require('body-parser-xml')(bodyParser);
 const CentralRestServerAuthentication = require('./CentralRestServerAuthentication');
 const CentralRestServerService = require('./CentralRestServerService');
@@ -57,7 +57,7 @@ class CentralRestServer {
 		// Check Cloud Foundry
 		if (Configuration.isCloudFoundry()) {
 			// Bind to express app
-			app.use(log.logNetwork);
+			app.use(CFLog.logNetwork);
 		}
 		
 		// Authentication

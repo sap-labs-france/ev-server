@@ -2,7 +2,7 @@ const Utils = require('./Utils');
 const Constants = require('./Constants');
 const AppError = require('../exception/AppError');
 const AppAuthError = require('../exception/AppAuthError');
-const log = require('cf-nodejs-logging-support');
+const CFLog = require('cf-nodejs-logging-support');
 const Configuration = require('../utils/Configuration');
 require('source-map-support').install();
 
@@ -236,12 +236,12 @@ class Logging {
 		// Log in Cloud Foundry
 		if (Configuration.isCloudFoundry()) {
 			// Bind to express app
-			log.logMessage(Logging.getCloudFoundryLogLevel(log.level), log.message);
+			CFLog.logMessage(Logging.getCFLogLevel(log.level), log.message);
 		}
 	}
 
 	// Log
-	static getCloudFoundryLogLevel(logLevel) {
+	static getCFLogLevel(logLevel) {
 		// Log level
 		switch (logLevel) {
 			case LogLevel.DEBUG:
