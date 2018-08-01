@@ -80,12 +80,9 @@ class UserStorage {
 				.update(currentEula)
 				.digest("hex");
 			// Create
-			console.log("Insert EULA");
 			let result = await _db.collection('eulas').insertOne(eula);
 			// Update object
 			eula = {};
-			console.log(JSON.stringify(result));
-			
 			Database.updateEula(result.ops[0], eula);
 			// Return
 			return eula;
