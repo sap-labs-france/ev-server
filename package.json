@@ -3,7 +3,7 @@
 	"engines": {
 		"node": "8.x.x"
 	},
-	"version": "1.6.0",
+	"version": "1.8.0",
 	"description": "Backend for Electric Vehicule charging station",
 	"author": "LucasBrazi06 <sergefabiano@free.fr>",
 	"homepage": "https://github.com/LucasBrazi06/ev-server",
@@ -67,10 +67,10 @@
 		"webpack-cli": "^3.1.0",
 		"webpack-merge": "^4.1.0",
 		"webpack-node-externals": "^1.7.2",
-		"webpack-obfuscator": "^0.17.1"
+		"webpack-obfuscator": "^0.17.3"
 	},
 	"scripts": {
-		"start": "node start",
+		"start": "node src/start",
 		"start:dev:debug": "node --inspect --debug-brk src/start.js",
 		"start:dev": "nodemon -w dist dist/start.js",
 		"start:prod": "NODE_ENV=production node dist/start.js",

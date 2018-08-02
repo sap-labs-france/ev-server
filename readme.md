@@ -84,16 +84,6 @@ mongo
 rs.initiate()
 ```
 
-Create Application User on EVSE schema
-```
-  use admin
-  db.createUser({
-    user: "evse-user",
-    pwd: "YourPassword",
-	roles: [ { role: "readWrite", db: "local" } ]
-  })
-```
-
 Check here for more info:
 [Mongo DB Replica Set](https://docs.mongodb.com/manual/tutorial/convert-standalone-to-replica-set/)
 
