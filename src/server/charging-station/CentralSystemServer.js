@@ -116,7 +116,7 @@ class CentralSystemServer {
 		}).then(() => {
 			// Log
 			Logging.logDebug({
-				source: headers.chargeBoxIdentity,
+				source: chargingStation.getID(),
 				module: "CentralSystemServer", method: "handleBootNotification",
 				action: "BootNotification",
 				message: `Rebooted with success`,
