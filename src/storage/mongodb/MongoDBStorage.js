@@ -40,14 +40,33 @@ class MongoDBStorage {
 		if (!foundCollection) {
 			// Create
 			await db.createCollection(name);
-			// Create Indexes
-			if (indexes) {
-				// Create
-				indexes.forEach(async (index) => {
-					await db.collection(name).createIndex(index);
-				});
-			}
 		}
+		// Indexes?
+		if (indexes) {
+			// Get current indexes
+			let existingIndexes = await db.collection(name).listIndexes().toArray();
+			// Check each index
+			indexes.forEach(async (index) => {
+				// Create
+				// Check if it exists
+				let foundIndex = existingIndexes.find((existingIndex) => {
+					return (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields));
+				});
+				// Found?
+				if (!foundIndex) {
+					// No: Create Index
+					await db.collection(name).createIndex(index.fields, index.options);
+				}
+			});
+		}
+		
+		// // Create Indexes
+		// if (indexes) {
+		// 	// Create
+		// 	indexes.forEach(async (index) => {
+		// 		await db.collection(name).createIndex(index.fields, index.options);
+		// 	});
+		// }
 	}
 
 	async checkEVSEDatabase(db) {
@@ -55,16 +74,21 @@ class MongoDBStorage {
 		let collections = await db.listCollections({}).toArray();
 		// Check only collections with indexes
 		// Users
-		await this.checkAndCreateCollection(db, collections, "users");
+		await this.checkAndCreateCollection(db, collections, "users", [
+			{ fields: { email: 1 }, options: { unique: true } } 
+		]);
 		await this.checkAndCreateCollection(db, collections, "eulas");
 		// Logs
-		await this.checkAndCreateCollection(db, collections, "logs",
-			[{ 'timestamp': 1 }, { 'level': 1 }, { 'type': 1 }]
-		);
+		await this.checkAndCreateCollection(db, collections, "logs", [
+			{ fields: { timestamp: 1 } },
+			{ fields: { level: 1 } },
+			{ fields: { type: 1 }	} 
+		]);
 		// MeterValues
-		await this.checkAndCreateCollection(db, collections, "metervalues",
-			[{ 'timestamp': 1 }, { 'transactionId': 1 }]
-		);
+		await this.checkAndCreateCollection(db, collections, "metervalues", [
+			{ fields: { timestamp: 1 } },
+			{ fields: { transactionId: 1 } }
+		]);
 	}
 
 	async start() {

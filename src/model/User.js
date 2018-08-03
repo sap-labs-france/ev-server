@@ -289,7 +289,7 @@ class User {
 			this.setName(Users.ANONIMIZED_VALUE);
 			this.setFirstName(Users.ANONIMIZED_VALUE);
 			this.setAddress(null);
-			this.setEMail(Users.ANONIMIZED_VALUE);
+			this.setEMail(this.getID());
 			this.setPassword(Users.ANONIMIZED_VALUE);
 			this.setPasswordResetHash(Users.ANONIMIZED_VALUE);
 			this.setPhone(Users.ANONIMIZED_VALUE);
