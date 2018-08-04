@@ -1126,7 +1126,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "https://127.0.0.1:443/client/api/Sites?WithPicture=false&WithSiteAreas=false&WithChargeBoxes=false&WithCompany=false&WithUsers=false",
+					"raw": "https://127.0.0.1:443/client/api/Sites?WithPicture=false&WithSiteAreas=true&WithChargeBoxes=true&WithCompany=false&WithUsers=true",
 					"protocol": "https",
 					"host": [
 						"127",
@@ -1147,11 +1147,11 @@
 						},
 						{
 							"key": "WithSiteAreas",
-							"value": "false"
+							"value": "true"
 						},
 						{
 							"key": "WithChargeBoxes",
-							"value": "false"
+							"value": "true"
 						},
 						{
 							"key": "WithCompany",
@@ -1159,7 +1159,7 @@
 						},
 						{
 							"key": "WithUsers",
-							"value": "false"
+							"value": "true"
 						}
 					]
 				}
@@ -1548,7 +1548,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "https://127.0.0.1:443/client/api/TransactionsCompleted?Limit=10&SiteID=5a89e28708dc6e18968eacda",
+					"raw": "https://127.0.0.1:443/client/api/TransactionsCompleted?Limit=100&SiteID=5abeba9e4bae1457eb565e66",
 					"protocol": "https",
 					"host": [
 						"127",
@@ -1565,11 +1565,11 @@
 					"query": [
 						{
 							"key": "Limit",
-							"value": "10"
+							"value": "100"
 						},
 						{
 							"key": "SiteID",
-							"value": "5a89e28708dc6e18968eacda"
+							"value": "5abeba9e4bae1457eb565e66"
 						}
 					]
 				}
@@ -2105,6 +2105,166 @@
 			"response": []
 		},
 		{
+			"name": "FE-ChargingStationConsumptionStatistics",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost/client/api/ChargingStationConsumptionStatistics?Year=2018",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"client",
+						"api",
+						"ChargingStationConsumptionStatistics"
+					],
+					"query": [
+						{
+							"key": "Year",
+							"value": "2018"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationUsageStatistics",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost/client/api/ChargingStationUsageStatistics?Year=2018",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"client",
+						"api",
+						"ChargingStationUsageStatistics"
+					],
+					"query": [
+						{
+							"key": "Year",
+							"value": "2018"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-UserConsumptionStatistics",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost/client/api/UserConsumptionStatistics?Year=2018",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"client",
+						"api",
+						"UserConsumptionStatistics"
+					],
+					"query": [
+						{
+							"key": "Year",
+							"value": "2018"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-UserUsageStatistics",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost/client/api/UserUsageStatistics?Year=2018",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"client",
+						"api",
+						"UserUsageStatistics"
+					],
+					"query": [
+						{
+							"key": "Year",
+							"value": "2018"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "FE-UserUpdate",
 			"request": {
 				"auth": {
@@ -2497,6 +2657,55 @@
 						{
 							"key": "ID",
 							"value": "5afaa433374fca4ee850b8b5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-UserDelete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://127.0.0.1:443/client/api/UserDelete?ID=592e969f89d8e07a2b16a7b1",
+					"protocol": "https",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "443",
+					"path": [
+						"client",
+						"api",
+						"UserDelete"
+					],
+					"query": [
+						{
+							"key": "ID",
+							"value": "592e969f89d8e07a2b16a7b1"
 						}
 					]
 				}

@@ -1,6 +1,8 @@
 require('source-map-support').install();
 
 module.exports = {
+	STATS_GROUP_BY_CONSUMPTION: "C",
+	STATS_GROUP_BY_USAGE: "U",
 	// Statuses
 	ENTITY_SITE: "Site",
 	ENTITY_SITES: "Sites",

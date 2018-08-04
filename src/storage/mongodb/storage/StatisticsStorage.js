@@ -1,4 +1,5 @@
 const Utils = require('../../../utils/Utils');
+const Constants = require('../../../utils/Constants');
 
 let _db;
 
@@ -7,7 +8,7 @@ class StatisticsStorage {
 		_db = db;
 	}
 
-	static async handleGetChargingStationConsumptions(filter, siteID) {
+	static async handleGetChargingStationStats(filter, siteID, groupBy) {
 		// Build filter
 		let match = {};
 		// Date provided?
@@ -68,12 +69,27 @@ class StatisticsStorage {
 			});
 		}
 		// Group
-		aggregation.push({
-			$group: {
-				_id: {chargeBox: "$chargeBoxID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" }},
-				total: { $sum: "$stop.totalConsumption" }
-			}
-		});
+		switch (groupBy) {
+			// By Consumption
+			case Constants.STATS_GROUP_BY_CONSUMPTION:
+				aggregation.push({
+					$group: {
+						_id: {chargeBox: "$chargeBoxID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" }},
+						total: { $sum: { $divide: [ "$stop.totalConsumption", 1000 ] } }
+					}
+				});
+				break;
+		
+			// By usage
+			case Constants.STATS_GROUP_BY_USAGE:
+				aggregation.push({
+					$group: {
+						_id: {chargeBox: "$chargeBoxID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" }},
+						total : { $sum: { $divide: [ { $subtract: ["$stop.timestamp", "$timestamp"] } , 60 * 60 * 1000 ] } }
+					}
+				});
+				break;
+		}
 		// Sort
 		aggregation.push({
 			$sort: { "_id.month": 1, "_id.chargeBox": 1 }
@@ -103,13 +119,13 @@ class StatisticsStorage {
 					transaction.month = transactionStatMDB._id.month - 1;
 				}
 				// Set consumption
-				transaction[transactionStatMDB._id.chargeBox] = transactionStatMDB.total / 1000;
+				transaction[transactionStatMDB._id.chargeBox] = transactionStatMDB.total;
 			});
 		}
 		return transactions;
 	}
 
-	static async handleGetUserConsumptions(filter, siteID) {
+	static async handleGetUserStats(filter, siteID, groupBy) {
 		// Build filter
 		let match = {};
 		// Date provided?
@@ -170,12 +186,27 @@ class StatisticsStorage {
 			});
 		}
 		// Group
-		aggregation.push({
-			$group: {
-				_id: {userID: "$userID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" }},
-				total: { $sum: "$stop.totalConsumption" }
-			}
-		});
+		switch (groupBy) {
+			// By Consumption
+			case Constants.STATS_GROUP_BY_CONSUMPTION:
+				aggregation.push({
+					$group: {
+						_id: {userID: "$userID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" }},
+						total: { $sum: { $divide: [ "$stop.totalConsumption", 1000 ] } }
+					}
+				});
+				break;
+		
+			// By usage
+			case Constants.STATS_GROUP_BY_USAGE:
+				aggregation.push({
+					$group: {
+						_id: {userID: "$userID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" }},
+						total : { $sum: { $divide: [ { $subtract: ["$stop.timestamp", "$timestamp"] } , 60 * 60 * 1000 ] } }
+					}
+				});
+				break;
+		}
 		// Resolve Users
 		aggregation.push({
 			$lookup: {
@@ -218,7 +249,7 @@ class StatisticsStorage {
 					transaction.month = transactionStatMDB._id.month - 1;
 				}
 				// Set consumption
-				transaction[Utils.buildUserFullName(transactionStatMDB.user)] = transactionStatMDB.total / 1000;
+				transaction[Utils.buildUserFullName(transactionStatMDB.user)] = transactionStatMDB.total;
 			});
 		}
 		return transactions;

@@ -572,14 +572,14 @@ class MongoDBStorage {
 		return VehicleStorage.handleGetVehicleImages();
 	}
 
-	getChargingStationConsumptions(filter, siteID) {
+	getChargingStationStats(filter, siteID, groupBy) {
 		// Delegate
-		return StatisticsStorage.handleGetChargingStationConsumptions(filter, siteID);
+		return StatisticsStorage.handleGetChargingStationStats(filter, siteID, groupBy);
 	}
 
-	getUserConsumptions(filter, siteID) {
+	getUserStats(filter, siteID, groupBy) {
 		// Delegate
-		return StatisticsStorage.handleGetUserConsumptions(filter, siteID);
+		return StatisticsStorage.handleGetUserStats(filter, siteID, groupBy);
 	}
 }
 
