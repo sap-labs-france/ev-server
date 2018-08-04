@@ -428,8 +428,7 @@ class TransactionService {
 			return chargingStation.getTransactions(
 				filteredRequest.ConnectorId,
 				filteredRequest.StartDateTime,
-				filteredRequest.EndDateTime,
-				Constants.NO_LIMIT);
+				filteredRequest.EndDateTime);
 		}).then((transactions) => {
 			// Return
 			res.json(
@@ -482,7 +481,7 @@ class TransactionService {
 			filter.connectorId = filteredRequest.ConnectorId;
 		}
 		// Get Transactions
-		global.storage.getTransactions(null, filter, null,
+		global.storage.getTransactions(null, filter, null, true,
 				Constants.NO_LIMIT).then((transactions) => {
 			// Return
 			res.json(
@@ -531,6 +530,7 @@ class TransactionService {
 				filteredRequest.Search,
 				filter,
 				filteredRequest.SiteID,
+				false,
 				filteredRequest.Limit);
 		}).then((transactions) => {
 			// Found?``

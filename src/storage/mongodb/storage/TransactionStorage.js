@@ -100,7 +100,7 @@ class TransactionStorage {
 		return transactionYears;
 	}
 
-	static async handleGetTransactions(searchValue, filter, siteID, numberOfTransactions) {
+	static async handleGetTransactions(searchValue, filter, siteID, withChargeBoxes, numberOfTransactions) {
 		// Check Limit
 		numberOfTransactions = Utils.checkRecordLimit(numberOfTransactions);
 		// Build filter
@@ -150,7 +150,7 @@ class TransactionStorage {
 				$match: match
 			});
 		}
-		if (siteID) {
+		if (withChargeBoxes || siteID) {
 			// Add Charge Box
 			aggregation.push({
 				$lookup: {
@@ -164,6 +164,8 @@ class TransactionStorage {
 			aggregation.push({
 				$unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
 			});
+		}
+		if (siteID) {
 			// Add Site Area
 			aggregation.push({
 				$lookup: {

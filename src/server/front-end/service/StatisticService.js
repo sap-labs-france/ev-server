@@ -19,7 +19,7 @@ class StatisticService {
 			filter.endDateTime = moment().endOf('year').toDate().toISOString();
 		}
 		// Check email
-		global.storage.getTransactions(null, filter, filteredRequest.SiteID,
+		global.storage.getTransactions(null, filter, filteredRequest.SiteID, false,
 			Constants.NO_LIMIT).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
@@ -87,7 +87,7 @@ class StatisticService {
 		}
 		// Check email
 		global.storage.getTransactions(null, filter,
-				filteredRequest.SiteID, Constants.NO_LIMIT).then((transactions) => {
+				filteredRequest.SiteID, false, Constants.NO_LIMIT).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
 				// Check user
@@ -150,7 +150,7 @@ class StatisticService {
 			filter.endDateTime = moment().endOf('year').toDate().toISOString();
 		}
 		// Check email
-		global.storage.getTransactions(null, filter, filteredRequest.SiteID,
+		global.storage.getTransactions(null, filter, filteredRequest.SiteID,false,
 				Constants.NO_LIMIT).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {
@@ -215,7 +215,7 @@ class StatisticService {
 			filter.endDateTime = moment().endOf('year').toDate().toISOString();
 		}
 		// Check email
-		global.storage.getTransactions(null, filter, filteredRequest.SiteID,
+		global.storage.getTransactions(null, filter, filteredRequest.SiteID, false,
 				Constants.NO_LIMIT).then((transactions) => {
 			// filters
 			transactions = transactions.filter((transaction) => {

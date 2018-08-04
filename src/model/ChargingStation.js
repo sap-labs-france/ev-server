@@ -1117,6 +1117,7 @@ class ChargingStation {
 				null,
 				{"chargeBoxID": this.getID()},
 				null,
+				false,
 				1).then((transactions) => {
 			return (transactions && transactions.length > 0 ? true : false);
 		});;
@@ -1130,6 +1131,7 @@ class ChargingStation {
 			 "connectorId": connectorId,
 			 "startDateTime": startDateTime,
 			 "endDateTime" : endDateTime},
+			false,
 		 	Constants.NO_LIMIT);
 	}
 

@@ -257,7 +257,7 @@ class User {
 		filter.userId = this.getID();
 		// Get the consumption
 		return global.storage.getTransactions(
-			null, filter, null,
+			null, filter, null, false,
 			Constants.NO_LIMIT);
 	}
 

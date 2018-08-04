@@ -49,7 +49,7 @@ class SiteAreaStorage {
 		return siteAreaImages;
 	}
 
-	static async handleGetSiteArea(id, withChargingStations, withSite) {
+	static async handleGetSiteArea(id, withChargeBoxes, withSite) {
 		// Create Aggregation
 		let aggregation = [];
 		// Filters
@@ -59,7 +59,7 @@ class SiteAreaStorage {
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Charging Station
-		if (withChargingStations) {
+		if (withChargeBoxes) {
 			// Add
 			aggregation.push({
 				$lookup: {

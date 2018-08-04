@@ -293,9 +293,9 @@ class MongoDBStorage {
 		return TransactionStorage.handleSaveMeterValues(meterValues);
 	}
 
-	getTransactions(searchValue = null, filter = {}, siteID = null, numberOfTransactions = 500) {
+	getTransactions(searchValue = null, filter = {}, siteID = null, withChargeBoxes = false, numberOfTransactions = 500) {
 		// Delegate
-		return TransactionStorage.handleGetTransactions(searchValue, filter, siteID, numberOfTransactions);
+		return TransactionStorage.handleGetTransactions(searchValue, filter, siteID, withChargeBoxes, numberOfTransactions);
 	}
 
 	getActiveTransaction(chargeBoxID, connectorID) {
@@ -483,9 +483,9 @@ class MongoDBStorage {
 		return SiteAreaStorage.handleDeleteSiteArea(id);
 	}
 
-	getSiteArea(id, withChargingStations = false, withSite = false) {
+	getSiteArea(id, withChargeBoxes = false, withSite = false) {
 		// Delegate
-		return SiteAreaStorage.handleGetSiteArea(id, withChargingStations, withSite);
+		return SiteAreaStorage.handleGetSiteArea(id, withChargeBoxes, withSite);
 	}
 
 	getSiteAreaImage(id) {
