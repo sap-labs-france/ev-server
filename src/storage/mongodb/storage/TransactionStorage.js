@@ -150,20 +150,20 @@ class TransactionStorage {
 				$match: match
 			});
 		}
-		// Add Charge Box
-		aggregation.push({
-			$lookup: {
-				from: 'chargingstations',
-				localField: 'chargeBoxID',
-				foreignField: '_id',
-				as: 'chargeBox'
-			}
-		});
-		// Single Record
-		aggregation.push({
-			$unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
-		});
 		if (siteID) {
+			// Add Charge Box
+			aggregation.push({
+				$lookup: {
+					from: 'chargingstations',
+					localField: 'chargeBoxID',
+					foreignField: '_id',
+					as: 'chargeBox'
+				}
+			});
+			// Single Record
+			aggregation.push({
+				$unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
+			});
 			// Add Site Area
 			aggregation.push({
 				$lookup: {

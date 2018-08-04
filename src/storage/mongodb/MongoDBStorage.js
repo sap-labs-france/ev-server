@@ -1,5 +1,5 @@
 const Logging = require('../../utils/Logging');
-const LoggingStorage = require("./storage/LoggingStorage");
+const LoggingStorage = require('./storage/LoggingStorage');
 const ChargingStationStorage = require('./storage/ChargingStationStorage');
 const PricingStorage = require('./storage/PricingStorage');
 const TransactionStorage = require('./storage/TransactionStorage');
@@ -59,14 +59,6 @@ class MongoDBStorage {
 				}
 			});
 		}
-		
-		// // Create Indexes
-		// if (indexes) {
-		// 	// Create
-		// 	indexes.forEach(async (index) => {
-		// 		await db.collection(name).createIndex(index.fields, index.options);
-		// 	});
-		// }
 	}
 
 	async checkEVSEDatabase(db) {
@@ -74,20 +66,35 @@ class MongoDBStorage {
 		let collections = await db.listCollections({}).toArray();
 		// Check only collections with indexes
 		// Users
-		await this.checkAndCreateCollection(db, collections, "users", [
+		await this.checkAndCreateCollection(db, collections, 'users', [
 			{ fields: { email: 1 }, options: { unique: true } } 
 		]);
-		await this.checkAndCreateCollection(db, collections, "eulas");
+		await this.checkAndCreateCollection(db, collections, 'eulas');
 		// Logs
-		await this.checkAndCreateCollection(db, collections, "logs", [
+		await this.checkAndCreateCollection(db, collections, 'logs', [
 			{ fields: { timestamp: 1 } },
 			{ fields: { level: 1 } },
 			{ fields: { type: 1 }	} 
 		]);
 		// MeterValues
-		await this.checkAndCreateCollection(db, collections, "metervalues", [
+		await this.checkAndCreateCollection(db, collections, 'metervalues', [
 			{ fields: { timestamp: 1 } },
 			{ fields: { transactionId: 1 } }
+		]);
+		// Tags
+		await this.checkAndCreateCollection(db, collections, 'tags', [
+			{ fields: { userID: 1 } }
+		]);
+		// Sites/Users
+		await this.checkAndCreateCollection(db, collections, 'siteusers', [
+			{ fields: { siteID: 1 } },
+			{ fields: { userID: 1 } }
+		]);
+		// Transactions
+		await this.checkAndCreateCollection(db, collections, 'transactions', [
+			{ fields: { timestamp: 1 } },
+			{ fields: { chargeBoxID: 1 } },
+			{ fields: { userID: 1 } }
 		]);
 	}
 
@@ -120,7 +127,7 @@ class MongoDBStorage {
 				useNewUrlParser: true,
 				poolSize: _dbConfig.poolSize,
 				replicaSet: _dbConfig.replicaSet,
-				loggerLevel: (_dbConfig.debug ? "debug" : null)
+				loggerLevel: (_dbConfig.debug ? 'debug' : null)
 			}
 		);
 		// Get the EVSE DB
@@ -144,7 +151,7 @@ class MongoDBStorage {
 		NotificationStorage.setDatabase(_evseDB);
 		// Log
 		Logging.logInfo({
-			module: "MongoDBStorage", method: "start", action: "Startup",
+			module: 'MongoDBStorage', method: 'start', action: 'Startup',
 			message: `Connected to '${_dbConfig.implementation}' successfully`
 		});
 		console.log(`Connected to '${_dbConfig.implementation}' successfully`);
@@ -162,7 +169,7 @@ class MongoDBStorage {
 		}
 	}
 
-	getEndUserLicenseAgreement(language = "en") {
+	getEndUserLicenseAgreement(language = 'en') {
 		// Delegate
 		return UserStorage.handleGetEndUserLicenseAgreement(language);
 	}

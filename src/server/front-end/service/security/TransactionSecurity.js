@@ -108,9 +108,11 @@ class TransactionSecurity {
 				}
 			}
 			// Charging Station
-			filteredTransaction.chargeBox = {};
-			filteredTransaction.chargeBox.id = transaction.chargeBox.id;
-			filteredTransaction.chargeBox.chargeBoxID = transaction.chargeBox.chargeBoxID;
+			filteredTransaction.chargeBoxID = transaction.chargeBoxID;
+			if (transaction.chargeBox) {
+				filteredTransaction.chargeBox = {};
+				filteredTransaction.chargeBox.id = transaction.chargeBox.id;
+			}
 			if (withConnector) {
 				filteredTransaction.chargeBox.connectors = [];
 				filteredTransaction.chargeBox.connectors[transaction.connectorId-1] = transaction.chargeBox.connectors[transaction.connectorId-1];

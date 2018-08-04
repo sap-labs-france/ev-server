@@ -179,13 +179,13 @@ class StatisticService {
 					monthStat.month = moment(transactions[i].timestamp).month();
 				}
 				// Set Usage
-				if (!monthStat[transactions[i].chargeBox.id]) {
+				if (!monthStat[transactions[i].chargeBoxID]) {
 					// Add Usage in Hours
-					monthStat[transactions[i].chargeBox.id] =
+					monthStat[transactions[i].chargeBoxID] =
 						(new Date(transactions[i].stop.timestamp).getTime() - new Date(transactions[i].timestamp).getTime()) / (3600 * 1000);
 				} else {
 					// Add Usage in Hours
-					monthStat[transactions[i].chargeBox.id] +=
+					monthStat[transactions[i].chargeBoxID] +=
 						(new Date(transactions[i].stop.timestamp).getTime() - new Date(transactions[i].timestamp).getTime()) / (3600 * 1000);
 				}
 			}
@@ -244,12 +244,12 @@ class StatisticService {
 					monthStat.month = moment(transactions[i].timestamp).month();
 				}
 				// Set consumption
-				if (!monthStat[transactions[i].chargeBox.id]) {
+				if (!monthStat[transactions[i].chargeBoxID]) {
 					// Add conso in kW.h
-					monthStat[transactions[i].chargeBox.id] = transactions[i].stop.totalConsumption / 1000;
+					monthStat[transactions[i].chargeBoxID] = transactions[i].stop.totalConsumption / 1000;
 				} else {
 					// Add conso in kW.h
-					monthStat[transactions[i].chargeBox.id] += transactions[i].stop.totalConsumption / 1000;
+					monthStat[transactions[i].chargeBoxID] += transactions[i].stop.totalConsumption / 1000;
 				}
 			}
 			// Add the last month statistics
