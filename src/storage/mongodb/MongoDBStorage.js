@@ -4,6 +4,7 @@ const ChargingStationStorage = require('./storage/ChargingStationStorage');
 const PricingStorage = require('./storage/PricingStorage');
 const TransactionStorage = require('./storage/TransactionStorage');
 const NotificationStorage = require('./storage/NotificationStorage');
+const StatisticsStorage = require('./storage/StatisticsStorage');
 const UserStorage = require('./storage/UserStorage');
 const VehicleStorage = require('./storage/VehicleStorage');
 const CompanyStorage = require('./storage/CompanyStorage');
@@ -137,6 +138,7 @@ class MongoDBStorage {
 		await this.checkEVSEDatabase(_evseDB);
 
 		// Set EVSE DB
+		StatisticsStorage.setDatabase(_evseDB);
 		LoggingStorage.setDatabase(_evseDB);
 		ChargingStationStorage.setDatabase(_evseDB);
 		PricingStorage.setDatabase(_evseDB);
@@ -568,6 +570,11 @@ class MongoDBStorage {
 	getVehicleImages() {
 		// Delegate
 		return VehicleStorage.handleGetVehicleImages();
+	}
+
+	getChargingStationConsumptions(filter, siteID) {
+		// Delegate
+		return StatisticsStorage.handleGetChargingStationConsumptions(filter, siteID);
 	}
 }
 
