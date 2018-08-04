@@ -86,50 +86,8 @@ class StatisticService {
 			filter.endDateTime = moment().endOf('year').toDate().toISOString();
 		}
 		// Check email
-		global.storage.getTransactions(null, filter,
-				filteredRequest.SiteID, false, Constants.NO_LIMIT).then((transactions) => {
-			// filters
-			transactions = transactions.filter((transaction) => {
-				// Check user
-				if (!Authorizations.canReadTransaction(req.user, transaction)) {
-					return false;
-				}
-				return true;
-			});
-			// Group Them By Month
-			let monthStats = [];
-			let monthStat;
-			// Browse in reverse order
-			for (var i = transactions.length-1; i >= 0; i--) {
-				// First Init
-				if (!monthStat) {
-					monthStat = {};
-					monthStat.month = moment(transactions[i].timestamp).month();
-				}
-				// Month changed?
-				if (monthStat.month != moment(transactions[i].timestamp).month()) {
-					// Add
-					monthStats.push(monthStat);
-					// Reset
-					monthStat = {};
-					monthStat.month = moment(transactions[i].timestamp).month();
-				}
-				// Set consumption
-				let userName = Utils.buildUserFullName(transactions[i].user, false);
-				if (!monthStat[userName]) {
-					// Add conso in kW.h
-					monthStat[userName] = transactions[i].stop.totalConsumption / 1000;
-				} else {
-					// Add conso in kW.h
-					monthStat[userName] += transactions[i].stop.totalConsumption / 1000;
-				}
-			}
-			// Add the last month statistics
-			if (monthStat) {
-				monthStats.push(monthStat);
-			}
-			// Return
-			res.json(monthStats);
+		global.storage.getUserConsumptions(filter, filteredRequest.SiteID).then((transactions) => {
+			res.json(transactions);
 			next();
 		}).catch((err) => {
 			// Log

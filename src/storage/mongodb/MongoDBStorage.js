@@ -576,6 +576,11 @@ class MongoDBStorage {
 		// Delegate
 		return StatisticsStorage.handleGetChargingStationConsumptions(filter, siteID);
 	}
+
+	getUserConsumptions(filter, siteID) {
+		// Delegate
+		return StatisticsStorage.handleGetUserConsumptions(filter, siteID);
+	}
 }
 
 module.exports = MongoDBStorage;
