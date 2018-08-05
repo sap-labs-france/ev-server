@@ -203,7 +203,7 @@ module.exports = {
 		if (src.locale) {
 			dest.locale = src.locale;
 		}
-		if (src.eulaAcceptedOn && src.eulaAcceptedVersion && src.eulaAcceptedHash) {
+		if (src.eulaAcceptedOn) {
 			dest.eulaAcceptedOn = Utils.convertToDate(src.eulaAcceptedOn);
 			dest.eulaAcceptedVersion = src.eulaAcceptedVersion;
 			dest.eulaAcceptedHash = src.eulaAcceptedHash;

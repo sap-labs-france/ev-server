@@ -312,6 +312,26 @@ class UserStorage {
 				"numberOfTransactions": { $size: "$transactions" }
 			}
 		});
+		// Add Site
+		aggregation.push({
+			"$project": {
+				"_id": 1,
+				"name": 1,
+				"firstName": 1,
+				"email": 1,
+				"status": 1,
+				"role": 1,
+				"createdOn": 1,
+				"createdBy": 1,
+				"lastChangedOn": 1,
+				"lastChangedBy": 1,
+				"eulaAcceptedOn": 1,
+				"eulaAcceptedVersion": 1,
+				"numberOfSites": 1,
+				"numberOfTransactions": 1,
+				"tags": 1
+		 }
+		});
 		// Sort
 		aggregation.push({
 			$sort: { status: -1, name: 1, firstName: 1 }
