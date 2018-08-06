@@ -312,7 +312,7 @@ class UserStorage {
 				"numberOfTransactions": { $size: "$transactions" }
 			}
 		});
-		// Add Site
+		// Project
 		aggregation.push({
 			"$project": {
 				"_id": 1,
