@@ -1,4 +1,5 @@
 const Logging = require('../../../../utils/Logging');
+const ChargingStations = require('../../../../utils/ChargingStations');
 
 var _moduleName = "centralSystemService1.6";
 
@@ -6,6 +7,8 @@ module.exports = { /* Services */
 	CentralSystemService: { /* Ports */
 		CentralSystemServiceSoap12: { /* Methods */
 			Authorize: function(args, callback, headers, req) {
+				// Normalize Header
+				ChargingStations.normalizeHeader(headers);
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "Authorize", args, headers);
 				// Handle
@@ -42,6 +45,8 @@ module.exports = { /* Services */
 			BootNotification: function(args, callback, headers, req) {
 				// Add OCPP Version
 				args.ocppVersion = '1.6';
+				// Normalize Header
+				ChargingStations.normalizeHeader(headers);
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "BootNotification", args, headers);
 				// Handle
@@ -77,6 +82,8 @@ module.exports = { /* Services */
 				}; */
 			},
 			DataTransfer: function(args, callback, headers, req) {
+				// Normalize Header
+				ChargingStations.normalizeHeader(headers);
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "DataTransfer", args, headers);
 				// Handle
@@ -107,6 +114,8 @@ module.exports = { /* Services */
 				}; */
 			},
 			DiagnosticsStatusNotification: function(args, callback, headers, req) {
+				// Normalize Header
+				ChargingStations.normalizeHeader(headers);
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", args, headers);
 				// Handle
@@ -133,6 +142,8 @@ module.exports = { /* Services */
 				}; */
 			},
 			FirmwareStatusNotification: function(args, callback, headers, req) {
+				// Normalize Header
+				ChargingStations.normalizeHeader(headers);
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "FirmwareStatusNotification", args, headers);
 				// Handle
@@ -159,6 +170,8 @@ module.exports = { /* Services */
 				}; */
 			},
 			Heartbeat: function(args, callback, headers, req) {
+				// Normalize Header
+				ChargingStations.normalizeHeader(headers);
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "Heartbeat", args, headers);
 				// Handle
@@ -185,9 +198,10 @@ module.exports = { /* Services */
 				}; */
 			},
 			MeterValues: function(args, callback, headers, req) {
+				// Normalize Header
+				ChargingStations.normalizeHeader(headers);
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "MeterValues", args, headers);
-
 				// Handle
 				global.centralSystemSoap.handleMeterValues(args, headers, req).then(function(result) {
 					// Return the result async
@@ -230,6 +244,8 @@ module.exports = { /* Services */
 				}; */
 			},
 			StartTransaction: function(args, callback, headers, req) {
+				// Normalize Header
+				ChargingStations.normalizeHeader(headers);
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StartTransaction", args, headers);
 				// Handle
@@ -268,6 +284,8 @@ module.exports = { /* Services */
 				}; */
 			},
 			StatusNotification: function(args, callback, headers, req) {
+				// Normalize Header
+				ChargingStations.normalizeHeader(headers);
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StatusNotification", args, headers);
 				// Handle
@@ -300,6 +318,8 @@ module.exports = { /* Services */
 				}; */
 			},
 			StopTransaction: function(args, callback, headers, req) {
+				// Normalize Header
+				ChargingStations.normalizeHeader(headers);
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StopTransaction", args, headers);
 				// Handle

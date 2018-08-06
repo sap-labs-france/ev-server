@@ -1123,7 +1123,7 @@ class ChargingStation {
 		});;
 	}
 
-	getTransactions(connectorId, startDateTime, endDateTime) {
+	getTransactions(connectorId, startDateTime, endDateTime, withChargeBoxes=false) {
 		// Get the consumption
 		return global.storage.getTransactions(
 			null,
@@ -1131,7 +1131,8 @@ class ChargingStation {
 			 "connectorId": connectorId,
 			 "startDateTime": startDateTime,
 			 "endDateTime" : endDateTime},
-			false,
+			null,
+			withChargeBoxes,
 		 	Constants.NO_LIMIT);
 	}
 

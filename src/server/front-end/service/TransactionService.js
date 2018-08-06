@@ -428,7 +428,8 @@ class TransactionService {
 			return chargingStation.getTransactions(
 				filteredRequest.ConnectorId,
 				filteredRequest.StartDateTime,
-				filteredRequest.EndDateTime);
+				filteredRequest.EndDateTime,
+				true);
 		}).then((transactions) => {
 			// Return
 			res.json(

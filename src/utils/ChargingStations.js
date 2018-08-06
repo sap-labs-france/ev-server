@@ -14,5 +14,18 @@ module.exports = {
 				`The Charging Station ID is mandatory`,
 				500, "ChargingStations", "checkIfChargingStationValid");
 		}
+	},
+
+	normalizeHeader(headers) {
+		// Object?
+		if (typeof headers.chargeBoxIdentity === "object") {
+			// Yes: ABB header
+			headers.chargeBoxIdentity = headers.chargeBoxIdentity.$value;
+		}
+		// Action
+		if (typeof headers.Action === "object") {
+			// Yes: ABB header
+			headers.Action = headers.Action.$value;
+		}
 	}
 };
