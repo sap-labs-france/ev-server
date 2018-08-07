@@ -38,8 +38,6 @@ class LoggingService {
 		let filteredRequest = LoggingSecurity.filterLoggingRequest(req.query, req.user);
 		// Get logs
 		Logging.getLog(filteredRequest.ID).then((logging) => {
-			console.log(logging);
-			
 			// Check auth
 			if (!Authorizations.canReadLogging(req.user, logging)) {
 				// Not Authorized!
