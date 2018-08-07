@@ -278,40 +278,21 @@ class UserStorage {
 		}
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
-		// Add Site
-		aggregation.push({
-			$lookup: {
-				from: "siteusers",
-				localField: "_id",
-				foreignField: "userID",
-				as: "siteusers"
-			}
-		});
 		// Site ID?
 		if (siteID) {
+			// Add Site
+			aggregation.push({
+				$lookup: {
+					from: "siteusers",
+					localField: "_id",
+					foreignField: "userID",
+					as: "siteusers"
+				}
+			});
 			aggregation.push({
 				$match: { "siteusers.siteID": Utils.convertToObjectID(siteID) }
 			});
 		}
-		aggregation.push({
-			$addFields: {
-				"numberOfSites": { $size: "$siteusers" }
-			}
-		});
-		// Transactions
-		aggregation.push({
-			$lookup: {
-				from: 'transactions',
-				localField: '_id',
-				foreignField: 'userID',
-				as: 'transactions'
-			}
-		});
-		aggregation.push({
-			$addFields: {
-				"numberOfTransactions": { $size: "$transactions" }
-			}
-		});
 		// Project
 		aggregation.push({
 			"$project": {
@@ -327,8 +308,6 @@ class UserStorage {
 				"lastChangedBy": 1,
 				"eulaAcceptedOn": 1,
 				"eulaAcceptedVersion": 1,
-				"numberOfSites": 1,
-				"numberOfTransactions": 1,
 				"tags": 1
 		 }
 		});
