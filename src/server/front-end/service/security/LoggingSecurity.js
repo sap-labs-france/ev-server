@@ -17,7 +17,14 @@ class LoggingSecurity {
 		return filteredRequest;
 	}
 
-	static filterLoggingResponse(logging, loggedUser) {
+	static filterLoggingRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Get logs
+		filteredRequest.ID = sanitize(request.ID);
+		return filteredRequest;
+	}
+
+	static filterLoggingResponse(logging, loggedUser, withDetailedMessage=false) {
 		let filteredLogging = {};
 
 		if (!logging) {
@@ -26,6 +33,7 @@ class LoggingSecurity {
 		if (!Authorizations.isAdmin(loggedUser)) {
 			return null;
 		}
+		filteredLogging.id = logging.id;
 		filteredLogging.level = logging.level;
 		filteredLogging.timestamp = logging.timestamp;
 		filteredLogging.type = logging.type;
@@ -35,7 +43,10 @@ class LoggingSecurity {
 		filteredLogging.message = logging.message;
 		filteredLogging.module = logging.module;
 		filteredLogging.method = logging.method;
-		filteredLogging.detailedMessages = logging.detailedMessages;
+		filteredLogging.hasDetailedMessages = (logging.detailedMessages && logging.detailedMessages.length > 0 ? true : false);
+		if (withDetailedMessage) {
+			filteredLogging.detailedMessages = logging.detailedMessages;
+		}
 		if (logging.user && typeof logging.user == "object") {
 			// Build user
 			filteredLogging.user = Utils.buildUserFullName(logging.user, false);

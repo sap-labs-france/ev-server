@@ -36,7 +36,7 @@ class CompanyService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_DELETE,
-					Authorizations.ENTITY_COMPANY,
+					Constants.ENTITY_COMPANY,
 					company.getID(),
 					560, "CompanyService", "handleDeleteCompany",
 					req.user);
@@ -80,7 +80,7 @@ class CompanyService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_READ,
-					Authorizations.ENTITY_COMPANY,
+					Constants.ENTITY_COMPANY,
 					company.getID(),
 					560, "CompanyService", "handleGetCompany",
 					req.user);
@@ -122,7 +122,7 @@ class CompanyService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_READ,
-					Authorizations.ENTITY_COMPANY,
+					Constants.ENTITY_COMPANY,
 					company.getID(),
 					560, "CompanyService", "handleGetCompanyLogo",
 					req.user);
@@ -150,7 +150,7 @@ class CompanyService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_LIST,
-				Authorizations.ENTITY_COMPANIES,
+				Constants.ENTITY_COMPANIES,
 				null,
 				560, "CompanyService", "handleGetCompanyLogos",
 				req.user);
@@ -171,7 +171,7 @@ class CompanyService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_LIST,
-				Authorizations.ENTITY_COMPANIES,
+				Constants.ENTITY_COMPANIES,
 				null,
 				560, "CompanyService", "handleGetCompanies",
 				req.user);
@@ -206,7 +206,7 @@ class CompanyService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_CREATE,
-				Authorizations.ENTITY_COMPANY,
+				Constants.ENTITY_COMPANY,
 				null,
 				560, "CompanyService", "handleCreateCompany",
 				req.user);
@@ -265,7 +265,7 @@ class CompanyService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_UPDATE,
-					Authorizations.ENTITY_COMPANY,
+					Constants.ENTITY_COMPANY,
 					company.getID(),
 					560, "CompanyService", "handleCreateCompany",
 					req.user);

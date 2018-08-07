@@ -186,6 +186,11 @@ class MongoDBStorage {
 		return LoggingStorage.handleGetLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs, sortDate);
 	}
 
+	getLog(id) {
+		// Delegate
+		return LoggingStorage.handleGetLog(id);
+	}
+
 	saveLog(log) {
 		// Delegate
 		return LoggingStorage.handleSaveLog(log);

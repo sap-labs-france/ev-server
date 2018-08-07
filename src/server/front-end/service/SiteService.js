@@ -36,7 +36,7 @@ class SiteService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_DELETE,
-					Authorizations.ENTITY_SITE,
+					Constants.ENTITY_SITE,
 					site.getID(),
 					560, "SiteService", "handleDeleteSite",
 					req.user);
@@ -94,7 +94,7 @@ class SiteService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_LIST,
-				Authorizations.ENTITY_SITES,
+				Constants.ENTITY_SITES,
 				null,
 				560, "SiteService", "handleGetSites",
 				req.user);
@@ -146,7 +146,7 @@ class SiteService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_READ,
-					Authorizations.ENTITY_SITE,
+					Constants.ENTITY_SITE,
 					site.getID(),
 					560, "SiteService", "handleGetSiteImage",
 					req.user);
@@ -174,7 +174,7 @@ class SiteService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_LIST,
-				Authorizations.ENTITY_SITES,
+				Constants.ENTITY_SITES,
 				null,
 				560, "SiteService", "handleGetSiteImages",
 				req.user);
@@ -195,7 +195,7 @@ class SiteService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_CREATE,
-				Authorizations.ENTITY_SITE,
+				Constants.ENTITY_SITE,
 				null,
 				560, "SiteService", "handleCreateSite",
 				req.user);
@@ -283,7 +283,7 @@ class SiteService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_UPDATE,
-					Authorizations.ENTITY_SITE,
+					Constants.ENTITY_SITE,
 					site.getID(),
 					560, "SiteService", "handleUpdateSite",
 					req.user);

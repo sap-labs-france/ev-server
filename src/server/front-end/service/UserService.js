@@ -59,7 +59,7 @@ class UserService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_DELETE,
-					Authorizations.ENTITY_USER,
+					Constants.ENTITY_USER,
 					user.getID(),
 					560, "UserService", "handleDeleteUser",
 					req.user);
@@ -137,7 +137,7 @@ class UserService {
 			if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
 				throw new AppAuthError(
 					Authorizations.ACTION_UPDATE,
-					Authorizations.ENTITY_USER,
+					Constants.ENTITY_USER,
 					user.getID(),
 					560, "UserService", "handleUpdateUser",
 					req.user, user);
@@ -247,7 +247,7 @@ class UserService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_READ,
-					Authorizations.ENTITY_USER,
+					Constants.ENTITY_USER,
 					user.getID(),
 					560, "UserService", "handleGetUser",
 					req.user);
@@ -297,7 +297,7 @@ class UserService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_READ,
-					Authorizations.ENTITY_USER,
+					Constants.ENTITY_USER,
 					user.getID(),
 					560, "UserService", "handleGetUserImage",
 					req.user);
@@ -325,7 +325,7 @@ class UserService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_LIST,
-				Authorizations.ENTITY_USERS,
+				Constants.ENTITY_USERS,
 				null,
 				560, "UserService", "handleGetUserImages",
 				req.user);
@@ -346,7 +346,7 @@ class UserService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_LIST,
-				Authorizations.ENTITY_USERS,
+				Constants.ENTITY_USERS,
 				null,
 				560, "UserService", "handleGetUsers",
 				req.user);
@@ -379,7 +379,7 @@ class UserService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_CREATE,
-				Authorizations.ENTITY_USER,
+				Constants.ENTITY_USER,
 				null,
 				560, "UserService", "handleCreateUser",
 				req.user);

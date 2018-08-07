@@ -22,7 +22,9 @@ module.exports = {
 	ENTITY_VEHICLE_MANUFACTURERS: "VehicleManufacturers",
 	ENTITY_VEHICLES: "Vehicles",
 	ENTITY_VEHICLE: "Vehicle",
+	ENTITY_LOGGINGS: "Loggings",
 	ENTITY_LOGGING: "Logging",
+	ENTITY_PRICING: "Pricing",
 
 	NOTIF_TYPE_CHARGING_STATION_CONFIGURATION: "Configuration",
 

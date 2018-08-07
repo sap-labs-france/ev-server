@@ -67,6 +67,11 @@ class Logging {
 		Logging._log(log);
 	}
 
+	// Get Log
+	static getLog(id) {
+		return global.storage.getLog(id);
+	}
+
 	// Get Logs
 	static getLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs, sortDate) {
 		return global.storage.getLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs, sortDate);

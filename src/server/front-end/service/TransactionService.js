@@ -38,7 +38,7 @@ class TransactionService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_REFUND_TRANSACTION,
-					Authorizations.ENTITY_TRANSACTION,
+					Constants.ENTITY_TRANSACTION,
 					transaction.id,
 					560, "TransactionService", "handleRefundTransaction",
 					req.user);
@@ -139,7 +139,7 @@ class TransactionService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_DELETE,
-					Authorizations.ENTITY_TRANSACTION,
+					Constants.ENTITY_TRANSACTION,
 					transaction.id,
 					560, "TransactionService", "handleDeleteTransaction",
 					req.user);
@@ -212,7 +212,7 @@ class TransactionService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_UPDATE,
-					Authorizations.ENTITY_TRANSACTION,
+					Constants.ENTITY_TRANSACTION,
 					transaction.id,
 					560, "TransactionService", "handleTransactionSoftStop",
 					req.user);
@@ -291,7 +291,7 @@ class TransactionService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_READ,
-					Authorizations.ENTITY_TRANSACTION,
+					Constants.ENTITY_TRANSACTION,
 					transaction.id,
 					560, "TransactionService", "handleGetChargingStationConsumptionFromTransaction",
 					req.user);
@@ -373,7 +373,7 @@ class TransactionService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_READ,
-					Authorizations.ENTITY_TRANSACTION,
+					Constants.ENTITY_TRANSACTION,
 					transaction.id,
 					560, "TransactionService", "handleGetTransaction",
 					req.user);
@@ -397,7 +397,7 @@ class TransactionService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_LIST,
-				Authorizations.ENTITY_TRANSACTION,
+				Constants.ENTITY_TRANSACTION,
 				null,
 				560, "TransactionService", "handleGetChargingStationTransactions",
 				req.user);
@@ -467,7 +467,7 @@ class TransactionService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_LIST,
-				Authorizations.ENTITY_TRANSACTION,
+				Constants.ENTITY_TRANSACTION,
 				null,
 				560, "TransactionService", "handleGetTransactionsActive",
 				req.user);
@@ -503,7 +503,7 @@ class TransactionService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_LIST,
-				Authorizations.ENTITY_TRANSACTION,
+				Constants.ENTITY_TRANSACTION,
 				null,
 				560, "TransactionService", "handleGetTransactionsCompleted",
 				req.user);

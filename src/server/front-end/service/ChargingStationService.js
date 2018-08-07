@@ -24,7 +24,7 @@ class ChargingStationService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_UPDATE,
-					Authorizations.ENTITY_CHARGING_STATION,
+					Constants.ENTITY_CHARGING_STATION,
 					site.getID(),
 					560, "ChargingStationService", "handleUpdateChargingStationParams",
 					req.user);
@@ -90,7 +90,7 @@ class ChargingStationService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_READ,
-					Authorizations.ENTITY_CHARGING_STATION,
+					Constants.ENTITY_CHARGING_STATION,
 					chargingStation.getID(),
 					560, "ChargingStationService", "handleGetChargingStationConfiguration",
 					req.user);
@@ -132,7 +132,7 @@ class ChargingStationService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_DELETE,
-					Authorizations.ENTITY_CHARGING_STATION,
+					Constants.ENTITY_CHARGING_STATION,
 					chargingStation.getID(),
 					560, "ChargingStationService", "handleDeleteChargingStation",
 					req.user);
@@ -190,7 +190,7 @@ class ChargingStationService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_LIST,
-				Authorizations.ENTITY_CHARGING_STATIONS,
+				Constants.ENTITY_CHARGING_STATIONS,
 				null,
 				560, "ChargingStationService", "handleGetChargingStations",
 				req.user);
@@ -274,7 +274,7 @@ class ChargingStationService {
 				if (!Authorizations.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action)) {
 					// Not Authorized!
 					throw new AppAuthError(action,
-						Authorizations.ENTITY_CHARGING_STATION,
+						Constants.ENTITY_CHARGING_STATION,
 						chargingStation.getID(),
 						560, "ChargingStationService", "handleAction",
 						req.user);
@@ -322,7 +322,7 @@ class ChargingStationService {
 			if (!Authorizations.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), "ChangeConfiguration")) {
 				// Not Authorized!
 				throw new AppAuthError(action,
-					Authorizations.ENTITY_CHARGING_STATION,
+					Constants.ENTITY_CHARGING_STATION,
 					chargingStation.getID(),
 					560, "ChargingStationService", "handleActionSetMaxIntensitySocket",
 					req.user);

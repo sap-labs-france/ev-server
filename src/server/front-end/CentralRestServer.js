@@ -264,7 +264,7 @@ class CentralRestServer {
 	notifyLogging(action) {
 		// Add in buffer
 		this.addNotificationInBuffer({
-			"entity": Constants.ENTITY_LOGGING,
+			"entity": Constants.ENTITY_LOGGINGS,
 			"action": action
 		});
 	}

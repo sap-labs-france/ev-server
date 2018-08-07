@@ -36,7 +36,7 @@ class VehicleManufacturerService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_DELETE,
-					Authorizations.ENTITY_VEHICLE_MANUFACTURERS,
+					Constants.ENTITY_VEHICLE_MANUFACTURERS,
 					vehicleManufacturer.getID(),
 					560, "VehicleManufacturerService", "handleDeleteVehicleManufacturer",
 					req.user);
@@ -94,7 +94,7 @@ class VehicleManufacturerService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_LIST,
-				Authorizations.ENTITY_VEHICLE_MANUFACTURERSS,
+				Constants.ENTITY_VEHICLE_MANUFACTURERSS,
 				null,
 				560, "VehicleManufacturerService", "handleGetVehicleManufacturers",
 				req.user);
@@ -129,7 +129,7 @@ class VehicleManufacturerService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_CREATE,
-				Authorizations.ENTITY_VEHICLE_MANUFACTURERS,
+				Constants.ENTITY_VEHICLE_MANUFACTURERS,
 				null,
 				560, "VehicleManufacturerService", "handleCreateVehicleManufacturer",
 				req.user);
@@ -188,7 +188,7 @@ class VehicleManufacturerService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_UPDATE,
-					Authorizations.ENTITY_VEHICLE_MANUFACTURERS,
+					Constants.ENTITY_VEHICLE_MANUFACTURERS,
 					vehicleManufacturer.getID(),
 					560, "VehicleManufacturerService", "handleUpdateVehicleManufacturer",
 					req.user);
@@ -247,7 +247,7 @@ class VehicleManufacturerService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_READ,
-					Authorizations.ENTITY_COMPANY,
+					Constants.ENTITY_COMPANY,
 					vehicleManufacturer.getID(),
 					560, "VehicleManufacturerService", "handleGetVehicleManufacturerLogo",
 					req.user);
@@ -275,7 +275,7 @@ class VehicleManufacturerService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_LIST,
-				Authorizations.ENTITY_COMPANIES,
+				Constants.ENTITY_COMPANIES,
 				null,
 				560, "VehicleManufacturerService", "handleGetVehicleManufacturerLogos",
 				req.user);

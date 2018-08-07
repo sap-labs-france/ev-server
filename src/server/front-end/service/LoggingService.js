@@ -10,7 +10,7 @@ class LoggingService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_LIST,
-				Authorizations.ENTITY_LOGGING,
+				Constants.ENTITY_LOGGINGS,
 				null,
 				560, "LoggingService", "handleGetLoggings",
 				req.user);
@@ -24,6 +24,36 @@ class LoggingService {
 			res.json(
 				LoggingSecurity.filterLoggingsResponse(
 					loggings, req.user
+				)
+			);
+			next();
+		}).catch((err) => {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		});
+	}
+
+	static handleGetLogging(action, req, res, next) {
+		// Filter
+		let filteredRequest = LoggingSecurity.filterLoggingRequest(req.query, req.user);
+		// Get logs
+		Logging.getLog(filteredRequest.ID).then((logging) => {
+			console.log(logging);
+			
+			// Check auth
+			if (!Authorizations.canReadLogging(req.user, logging)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					Authorizations.ACTION_READ,
+					Constants.ENTITY_LOGGING,
+					null,
+					560, "LoggingService", "handleGetLogging",
+					req.user);
+			}
+			// Return
+			res.json(
+				LoggingSecurity.filterLoggingResponse(
+					logging, req.user, true
 				)
 			);
 			next();

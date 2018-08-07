@@ -36,7 +36,7 @@ class VehicleService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_DELETE,
-					Authorizations.ENTITY_VEHICLE,
+					Constants.ENTITY_VEHICLE,
 					vehicle.getID(),
 					560, "VehicleService", "handleDeleteVehicle",
 					req.user);
@@ -94,7 +94,7 @@ class VehicleService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_LIST,
-				Authorizations.ENTITY_VEHICLES,
+				Constants.ENTITY_VEHICLES,
 				null,
 				560, "VehicleService", "handleGetVehicles",
 				req.user);
@@ -144,7 +144,7 @@ class VehicleService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_READ,
-					Authorizations.ENTITY_VEHICLE,
+					Constants.ENTITY_VEHICLE,
 					vehicle.getID(),
 					560, "VehicleService", "handleGetVehicleImage",
 					req.user);
@@ -172,7 +172,7 @@ class VehicleService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_LIST,
-				Authorizations.ENTITY_VEHICLES,
+				Constants.ENTITY_VEHICLES,
 				null,
 				560, "VehicleService", "handleGetVehicleImages",
 				req.user);
@@ -193,7 +193,7 @@ class VehicleService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_CREATE,
-				Authorizations.ENTITY_VEHICLE,
+				Constants.ENTITY_VEHICLE,
 				null,
 				560, "VehicleService", "handleCreateVehicle",
 				req.user);
@@ -256,7 +256,7 @@ class VehicleService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_UPDATE,
-					Authorizations.ENTITY_VEHICLE,
+					Constants.ENTITY_VEHICLE,
 					vehicle.getID(),
 					560, "VehicleService", "handleUpdateVehicle",
 					req.user);

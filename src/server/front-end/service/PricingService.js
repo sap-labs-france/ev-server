@@ -9,7 +9,7 @@ class PricingService {
 		if (!Authorizations.canReadPricing(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				action, Authorizations.ENTITY_PRICING,
+				action, Constants.ENTITY_PRICING,
 				null,
 				560, "PricingService", "handleGetPricing",
 				req.user);
@@ -38,7 +38,7 @@ class PricingService {
 		if (!Authorizations.canUpdatePricing(req.user)) {
 			// Not Authorized!
 			throw new AppAuthError(
-				action, Authorizations.ENTITY_PRICING,
+				action, Constants.ENTITY_PRICING,
 				null,
 				560, "PricingService", "handleUpdatePricing",
 				req.user);

@@ -15,7 +15,7 @@ class SiteAreaService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_CREATE,
-				Authorizations.ENTITY_SITE_AREA,
+				Constants.ENTITY_SITE_AREA,
 				null,
 				560, "SiteAreaService", "handleCreateSiteArea",
 				req.user);
@@ -95,7 +95,7 @@ class SiteAreaService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_LIST,
-				Authorizations.ENTITY_SITE_AREAS,
+				Constants.ENTITY_SITE_AREAS,
 				null,
 				560, "SiteAreaService", "handleGetSiteAreas",
 				req.user);
@@ -152,7 +152,7 @@ class SiteAreaService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_DELETE,
-					Authorizations.ENTITY_SITE_AREA,
+					Constants.ENTITY_SITE_AREA,
 					siteArea.getID(),
 					560, "SiteAreaService", "handleDeleteSiteArea",
 					req.user);
@@ -199,7 +199,7 @@ class SiteAreaService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_READ,
-					Authorizations.ENTITY_SITE_AREA,
+					Constants.ENTITY_SITE_AREA,
 					siteArea.getID(),
 					560, "SiteAreaService", "handleGetSiteAreaImage",
 					req.user);
@@ -239,7 +239,7 @@ class SiteAreaService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_READ,
-					Authorizations.ENTITY_SITE_AREA,
+					Constants.ENTITY_SITE_AREA,
 					siteArea.getID(),
 					560, "SiteAreaService", "handleGetSiteAreaImage",
 					req.user);
@@ -267,7 +267,7 @@ class SiteAreaService {
 			// Not Authorized!
 			throw new AppAuthError(
 				Authorizations.ACTION_LIST,
-				Authorizations.ENTITY_SITE_AREAS,
+				Constants.ENTITY_SITE_AREAS,
 				null,
 				560, "SiteAreaService", "handleGetSiteAreaImages",
 				req.user);
@@ -303,7 +303,7 @@ class SiteAreaService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_UPDATE,
-					Authorizations.ENTITY_SITE_AREA,
+					Constants.ENTITY_SITE_AREA,
 					siteArea.getID(),
 					560, "SiteAreaService", "handleUpdateSiteArea",
 					req.user);

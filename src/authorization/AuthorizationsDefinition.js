@@ -113,9 +113,16 @@ module.exports = {
 							}
 						},
 						{
+							"AuthObject": "Loggings",
+							"AuthFieldValue": {
+								"Action": ["List", "Read"]
+							}
+						},
+						{
 							"AuthObject": "Logging",
 							"AuthFieldValue": {
-								"Action": ["List"]
+								"LogID": "*",
+								"Action": ["Read"]
 							}
 						},
 						{
@@ -271,8 +278,15 @@ module.exports = {
 							}
 						},
 						{
+							"AuthObject": "Loggings",
+							"AuthFieldValue": {
+								"Action": []
+							}
+						},
+						{
 							"AuthObject": "Logging",
 							"AuthFieldValue": {
+								"LogID": "*",
 								"Action": []
 							}
 						},
@@ -393,8 +407,15 @@ module.exports = {
 							}
 						},
 						{
+							"AuthObject": "Loggings",
+							"AuthFieldValue": {
+								"Action": []
+							}
+						},
+						{
 							"AuthObject": "Logging",
 							"AuthFieldValue": {
+								"LogID": "*",
 								"Action": []
 							}
 						},
@@ -515,8 +536,15 @@ module.exports = {
 							}
 						},
 						{
+							"AuthObject": "Loggings",
+							"AuthFieldValue": {
+								"Action": []
+							}
+						},
+						{
 							"AuthObject": "Logging",
 							"AuthFieldValue": {
+								"LogID": "*",
 								"Action": []
 							}
 						},

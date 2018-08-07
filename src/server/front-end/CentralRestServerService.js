@@ -121,6 +121,11 @@ module.exports = {
 						// Delegate
 						LoggingService.handleGetLoggings(action, req, res, next);
 						break;
+					// Get the Logging
+					case "Logging":
+						// Delegate
+						LoggingService.handleGetLogging(action, req, res, next);
+						break;
 					// Get all the charging stations
 					case "ChargingStations":
 						// Delegate

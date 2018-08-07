@@ -59,6 +59,22 @@ class LoggingStorage {
 	    await _db.collection('logs').insertOne(log);
 	}
 
+	static async handleGetLog(id) {
+		// Read DB
+		let loggingMDB = await _db.collection('logs')
+			.find({_id: Utils.convertToObjectID(id)})
+			.limit(1)
+			.toArray();
+		let logging = null;
+		// Set
+		if (loggingMDB && loggingMDB.length > 0) {
+			// Set
+			logging = {};
+			Database.updateLogging(loggingMDB[0], logging);
+		}
+		return logging;
+	}
+
 	static async handleGetLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs, sortDate) {
 		// Check Limit
 		numberOfLogs = Utils.checkRecordLimit(numberOfLogs);
