@@ -49,7 +49,7 @@ class ChargingStation {
 
 			// Start Transaction
 			case "StartTransaction":
-				return this.requestStartTransaction(params.tagID);
+				return this.requestStartTransaction(params.tagID, params.connectorID);
 
 			// Stop Transaction
 			case "StopTransaction":
@@ -1033,11 +1033,11 @@ class ChargingStation {
 	}
 
 	// Start Transaction
-	requestStartTransaction(tagID) {
+	requestStartTransaction(tagID, connectorID) {
 		// Get the client
 		return this.getChargingStationClient().then((chargingStationClient) => {
 			// Restart
-			return chargingStationClient.startTransaction(tagID);
+			return chargingStationClient.startTransaction(tagID, connectorID);
 		});
 	}
 

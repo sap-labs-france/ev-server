@@ -56,7 +56,7 @@ class LoggingStorage {
 		let log = {};
 		Database.updateLogging(logToSave, log, false);
 		// Insert
-	    await _db.collection('logs').insertOne(log);
+	  await _db.collection('logs').insertOne(log);
 	}
 
 	static async handleGetLog(id) {

@@ -223,10 +223,13 @@ class Logging {
 			log.source = Constants.CENTRAL_SERVER;
 		}
 
-		// Check Array
-		if (log.detailedMessages && !Array.isArray(log.detailedMessages)){
-			// Handle update of array
-			log.detailedMessages = [log.detailedMessages];
+		// Check
+		if (log.detailedMessages) {
+			// Array?
+			if (!Array.isArray(log.detailedMessages)){
+				// Set array
+				log.detailedMessages = [log.detailedMessages];
+			}
 			// Format
 			log.detailedMessages = Logging._format(log.detailedMessages);
 		}

@@ -17,7 +17,7 @@ class ChargingStationClient {
 	changeConfiguration(key, value) {
 	}
 
-	startTransaction(tagID) {
+	startTransaction(tagID, connectorID) {
 	}
 
 	stopTransaction(transactionId) {

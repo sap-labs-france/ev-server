@@ -42,17 +42,14 @@ class SoapChargingStationClient extends ChargingStationClient {
 				if (err) {
 					// Log
 					Logging.logError({
+						source: this._chargingStation.getID(),
 						module: "SoapChargingStationClient", method: "constructor",
-						message: `Error when creating SOAP client for chaging station with ID ${this._chargingStation.getID()}: ${err.toString()}`,
+						message: `Error when creating SOAP client: ${err.toString()}`,
 						detailedMessages: err.stack });
 					reject(`Error when creating SOAP client for chaging station with ID ${this._chargingStation.getID()}: ${err.message}`);
 				} else {
 					// Keep
 					this._client = client;
-					// // Log
-					// this._client.on("request", (request) => {
-					//   console.log(request);
-					// });
 					// Set endpoint
 					this._client.setEndpoint(this._chargingStation.getChargingStationURL());
 					// Ok
@@ -93,8 +90,13 @@ class SoapChargingStationClient extends ChargingStationClient {
 					// Log
 					Logging.logError({
 						source: this._chargingStation.getID(), module: "SoapChargingStationClient", method: "stopTransaction",
-						message: `Error when trying to stop the transaction ID ${transactionId} of the station ${this._chargingStation.getID()}: ${err.toString()}`,
-						detailedMessages: err.stack });
+						message: `Error when trying to stop the transaction ID ${transactionId}: ${err.toString()}`,
+						detailedMessages: [
+							{ 'stack': err.stack },
+							{ 'result': result }, 
+							{ 'envelope': envelope } 
+						]
+					});
 					reject(err);
 				} else {
 					// Log
@@ -105,7 +107,7 @@ class SoapChargingStationClient extends ChargingStationClient {
 		});
 	}
 
-	startTransaction(tagID) {
+	startTransaction(tagID, connectorID) {
 		return new Promise((fulfill, reject) => {
 			let meterStart = 0;
 			let timestamp = new Date().toISOString();
@@ -115,20 +117,27 @@ class SoapChargingStationClient extends ChargingStationClient {
 
 			// Log
 			Logging.logSendAction(_moduleName, this._chargingStation.getID(), "RemoteStartTransaction", {
-				"idTag": tagID
+				"idTag": tagID,
+				"connectorId": connectorID
 			});
 			// Execute
 			this._client.RemoteStartTransaction({
 						"remoteStartTransactionRequest": {
-							"idTag": tagID
-					}
+							"idTag": tagID,
+							"connectorId": connectorID
+						}
 				}, (err, result, envelope) => {
 					if(err) {
 						// Log
 						Logging.logError({
 							source: this._chargingStation.getID(), module: "SoapChargingStationClient", method: "startTransaction",
-							message: `Error when trying to start a transaction on the station ${this._chargingStation.getID()}: ${err.toString()}`,
-							detailedMessages: err.stack });
+							message: `Error when trying to start a transaction: ${err.toString()}`,
+							detailedMessages: [
+								{ 'stack': err.stack },
+								{ 'result': result }, 
+								{ 'envelope': envelope } 
+							]
+						});
 						reject(err);
 					} else {
 						// Log
@@ -157,8 +166,13 @@ class SoapChargingStationClient extends ChargingStationClient {
 					// Log
 					Logging.logError({
 						source: this._chargingStation.getID(), module: "SoapChargingStationClient", method: "unlockConnector",
-						message: `Error when trying to unlock the connector ${connectorId} of the station ${this._chargingStation.getID()}: ${err.toString()}`,
-						detailedMessages: err.stack });
+						message: `Error when trying to unlock the connector '${connectorId}': ${err.toString()}`,
+						detailedMessages: [
+							{ 'stack': err.stack },
+							{ 'result': result }, 
+							{ 'envelope': envelope } 
+						]
+					});
 					reject(err);
 				} else {
 					// Log
@@ -188,8 +202,13 @@ class SoapChargingStationClient extends ChargingStationClient {
 					// Log
 					Logging.logError({
 						source: this._chargingStation.getID(), module: "SoapChargingStationClient", method: "reset",
-						message: `Error when trying to reboot the station ${this._chargingStation.getID()}: ${err.toString()}`,
-						detailedMessages: err.stack });
+						message: `Error when trying to reboot: ${err.toString()}`,
+						detailedMessages: [
+							{ 'stack': err.stack },
+							{ 'result': result }, 
+							{ 'envelope': envelope } 
+						]
+					});
 					reject(err);
 				} else {
 					// Log
@@ -215,8 +234,13 @@ class SoapChargingStationClient extends ChargingStationClient {
 					// Log
 					Logging.logError({
 						source: this._chargingStation.getID(), module: "SoapChargingStationClient", method: "clearCache",
-						message: `Error when trying to clear the cache of the station ${this._chargingStation.getID()}: ${err.toString()}`,
-						detailedMessages: err.stack });
+						message: `Error when trying to clear the cache: ${err.toString()}`,
+						detailedMessages: [
+							{ 'stack': err.stack },
+							{ 'result': result }, 
+							{ 'envelope': envelope } 
+						]
+					});
 					reject(err);
 				} else {
 					// Log
@@ -253,8 +277,13 @@ class SoapChargingStationClient extends ChargingStationClient {
 					// Log
 					Logging.logError({
 						source: this._chargingStation.getID(), module: "SoapChargingStationClient", method: "getConfiguration",
-						message: `Error when trying to get the configuration of the station ${this._chargingStation.getID()}: ${err.toString()}`,
-						detailedMessages: err.stack });
+						message: `Error when trying to get the configuration: ${err.toString()}`,
+						detailedMessages: [
+							{ 'stack': err.stack },
+							{ 'result': result }, 
+							{ 'envelope': envelope } 
+						]
+					});
 					reject(err);
 					//res.json(`{error: ${err.message}}`);
 				} else {
@@ -285,8 +314,13 @@ class SoapChargingStationClient extends ChargingStationClient {
 					// Log
 					Logging.logError({
 						source: this._chargingStation.getID(), module: "SoapChargingStationClient", method: "changeConfiguration",
-						message: `Error when trying to change the configuration parameter '${key}' with value '${value}' of the station ${this._chargingStation.getID()}: ${err.toString()}`,
-						detailedMessages: err.stack });
+						message: `Error when trying to change the configuration parameter '${key}' with value '${value}': ${err.toString()}`,
+						detailedMessages: [
+							{ 'stack': err.stack },
+							{ 'result': result }, 
+							{ 'envelope': envelope } 
+						]
+					});
 					reject(err);
 				} else {
 					// Log
