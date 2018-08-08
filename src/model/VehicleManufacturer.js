@@ -72,18 +72,15 @@ class VehicleManufacturer {
 		this._model.lastChangedOn = lastChangedOn;
 	}
 
-	getVehicles() {
+	async getVehicles() {
 		if (this._model.vehicles) {
-			return Promise.resolve(this._model.vehicles.map((vehicle) => {
-				return new Vehicle(vehicle);
-			}));
+			return this._model.vehicles.map((vehicle) => new Vehicle(vehicle));
 		} else {
 			// Get from DB
-			return global.storage.getVehicles(null, this.getID()).then((vehicles) => {
-				// Keep it
-				this.setVehicles(vehicles);
-				return vehicles;
-			});
+			let vehicles = await global.storage.getVehicles(null, this.getID());
+			// Keep it
+			this.setVehicles(vehicles);
+			return vehicles;
 		}
 	}
 

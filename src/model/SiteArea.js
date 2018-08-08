@@ -80,18 +80,15 @@ class SiteArea {
 		return this._model.image;
 	}
 
-	getSite(withCompany=false, withUser=false) {
+	async getSite(withCompany=false, withUser=false) {
 		if (this._model.site) {
-			return Promise.resolve(new Site(this._model.site));
+			return new Site(this._model.site);
 		} else if (this._model.siteID){
 			// Get from DB
-			return global.storage.getSite(this._model.siteID, withCompany, withUser).then((site) => {
-				// Keep it
-				this.setSite(site);
-				return site;
-			});
-		} else {
-			return Promise.resolve(null);
+			let site = await global.storage.getSite(this._model.siteID, withCompany, withUser);
+			// Keep it
+			this.setSite(site);
+			return site;
 		}
 	}
 
@@ -116,26 +113,20 @@ class SiteArea {
 		return global.storage.deleteSiteArea(this.getID());
 	}
 
-	getChargingStations() {
+	async getChargingStations() {
 		if (this._model.chargeBoxes) {
-			return Promise.resolve(this._model.chargeBoxes.map((chargeBox) => {
-				return new ChargingStation(chargeBox);
-			}));
+			return this._model.chargeBoxes.map((chargeBox) => new ChargingStation(chargeBox));
 		} else {
 			// Get from DB
-			return global.storage.getChargingStations(null, this.getID(),
-					Constants.NO_LIMIT).then((chargeBoxes) => {
-				// Keep it
-				this.setChargingStations(chargeBoxes);
-				return chargeBoxes;
-			});
+			let chargeBoxes = await global.storage.getChargingStations(null, this.getID(), Constants.NO_LIMIT);
+			// Keep it
+			this.setChargingStations(chargeBoxes);
+			return chargeBoxes;
 		}
 	}
 
 	setChargingStations(chargeBoxes) {
-		this._model.chargeBoxes = chargeBoxes.map((chargeBox) => {
-			return chargeBox.getModel();
-		});
+		this._model.chargeBoxes = chargeBoxes.map((chargeBox) => chargeBox.getModel());
 	}
 }
 

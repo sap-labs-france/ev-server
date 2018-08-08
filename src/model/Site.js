@@ -98,18 +98,15 @@ class Site {
 		this._model.lastChangedOn = lastChangedOn;
 	}
 
-	getCompany() {
+	async getCompany() {
 		if (this._model.company) {
-			return Promise.resolve(new Company(this._model.company));
+			return new Company(this._model.company);
 		} else if (this._model.companyID){
 			// Get from DB
-			return global.storage.getCompany(this._model.companyID).then((company) => {
-				// Keep it
-				this.setCompany(company);
-				return company;
-			});
-		} else {
-			return Promise.resolve(null);
+			let company = await global.storage.getCompany(this._model.companyID);
+			// Keep it
+			this.setCompany(company);
+			return company;
 		}
 	}
 
@@ -122,39 +119,31 @@ class Site {
 		}
 	}
 
-	getSiteAreas() {
+	async getSiteAreas() {
 		if (this._model.sites) {
-			return Promise.resolve(this._model.siteAreas.map((siteArea) => {
-				return new SiteArea(siteArea);
-			}));
+			return this._model.siteAreas.map((siteArea) => new SiteArea(siteArea));
 		} else {
 			// Get from DB
-			return global.storage.getSiteAreas(null, this.getID()).then((siteAreas) => {
-				// Keep it
-				this.setSiteAreas(siteAreas);
-				return siteAreas;
-			});
+			let siteAreas = await global.storage.getSiteAreas(null, this.getID());
+			// Keep it
+			this.setSiteAreas(siteAreas);
+			return siteAreas;
 		}
 	}
 
 	setSiteAreas(siteAreas) {
-		this._model.siteAreas = siteAreas.map((siteArea) => {
-			return siteArea.getModel();
-		});
+		this._model.siteAreas = siteAreas.map((siteArea) => siteArea.getModel());
 	}
 
-	getUsers() {
+	async getUsers() {
 		if (this._model.users) {
-			return Promise.resolve(this._model.users.map((user) => {
-				return new User(user);
-			}));
+			return this._model.users.map((user) => new User(user));
 		} else {
 			// Get from DB
-			return global.storage.getUsers(null, this.getID()).then((users) => {
-				// Keep it
-				this.setUsers(users);
-				return users;
-			});
+			let users = await global.storage.getUsers(null, this.getID());
+			// Keep it
+			this.setUsers(users);
+			return users;
 		}
 	}
 
@@ -172,9 +161,7 @@ class Site {
 	}
 
 	setUsers(users) {
-		this._model.users = users.map((user) => {
-			return user.getModel();
-		});
+		this._model.users = users.map((user) => user.getModel());
 	}
 
 	save() {

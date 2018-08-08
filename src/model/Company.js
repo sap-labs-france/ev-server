@@ -79,25 +79,20 @@ class Company {
 		this._model.lastChangedOn = lastChangedOn;
 	}
 
-	getSites() {
+	async getSites() {
 		if (this._model.sites) {
-			return Promise.resolve(this._model.sites.map((site) => {
-				return new Site(site);
-			}));
+			return this._model.sites.map((site) => new Site(site));
 		} else {
 			// Get from DB
-			return global.storage.getSites(null, this.getID()).then((sites) => {
-				// Keep it
-				this.setSites(sites);
-				return sites;
-			});
+			let sites = await global.storage.getSites(null, this.getID());
+			// Keep it
+			this.setSites(sites);
+			return sites;
 		}
 	}
 
 	setSites(sites) {
-		this._model.sites = sites.map((site) => {
-			return site.getModel();
-		});
+		this._model.sites = sites.map((site) => site.getModel());
 	}
 
 	save() {
