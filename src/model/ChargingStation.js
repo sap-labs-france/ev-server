@@ -77,18 +77,16 @@ class ChargingStation {
 		}
 	}
 
-	getSiteArea(withSite=false) {
+	async getSiteArea(withSite=false) {
 		if (this._model.siteArea) {
-			return Promise.resolve(new SiteArea(this._model.siteArea));
+			return new SiteArea(this._model.siteArea);
 		} else if (this._model.siteAreaID){
 			// Get from DB
-			return global.storage.getSiteArea(this._model.siteAreaID, false, withSite).then((siteArea) => {
-				// Keep it
-				this.setSiteArea(siteArea);
-				return siteArea;
-			});
-		} else {
-			return Promise.resolve(null);
+			let siteArea = await global.storage.getSiteArea(this._model.siteAreaID, false, withSite);
+			// Set it
+			this.setSiteArea(siteArea);
+			// Return
+			return siteArea;
 		}
 	}
 
@@ -242,17 +240,13 @@ class ChargingStation {
 		this._model.ocppVersion = ocppVersion;
 	}
 
-	getChargingStationClient() {
+	async getChargingStationClient() {
 		// Already created?
 		if (!this._chargingStationClient) {
 			// Init client
-			return new SoapChargingStationClient(this).then((soapClient) => {
-				this._chargingStationClient = soapClient;
-				return this._chargingStationClient;
-			});
-		} else {
-			return Promise.resolve(this._chargingStationClient);
+			this._chargingStationClient = await new SoapChargingStationClient(this);
 		}
+		return this._chargingStationClient;
 	}
 
 	getLastHeartBeat() {
@@ -406,7 +400,7 @@ class ChargingStation {
 		});
 	}
 
-	handleBootNotification(bootNotification) {
+	async handleBootNotification(bootNotification) {
 		// Set the Station ID
 		bootNotification.chargeBoxID = this.getID();
 		// Send Notification
@@ -420,19 +414,18 @@ class ChargingStation {
 			}
 		);
 		// Save Boot Notification
-		return global.storage.saveBootNotification(bootNotification).then(() => {
-			// Log
-			Logging.logInfo({
-				source: this.getID(),
-				module: "ChargingStation", method: "handleBootNotification",
-				action: "BootNotification", message: `Boot notification saved`
-			});
-			// Handle the get of configuration later on
-			setTimeout(() => {
-				// Get config and save it
-				this.requestAndSaveConfiguration();
-			}, 3000);
+		await global.storage.saveBootNotification(bootNotification);
+		// Log
+		Logging.logInfo({
+			source: this.getID(),
+			module: "ChargingStation", method: "handleBootNotification",
+			action: "BootNotification", message: `Boot notification saved`
 		});
+		// Handle the get of configuration later on
+		setTimeout(() => {
+			// Get config and save it
+			this.requestAndSaveConfiguration();
+		}, 3000);
 	}
 
 	async requestAndSaveConfiguration() {
@@ -524,71 +517,70 @@ class ChargingStation {
 		return {status: 'Accepted'};
 	}
 
-	updateChargingStationConsumption(transactionId) {
+	async updateChargingStationConsumption(transactionId) {
+		console.log("updateChargingStationConsumption");
+		
 		// Get the last transaction first
-		return this.getTransaction(transactionId).then((transaction) => {
+		let transaction = await this.getTransaction(transactionId);
+		// Found?
+		if (transaction) {
+			// Get connectorId
+			let connector = this.getConnectors()[transaction.connectorId-1];
 			// Found?
-			if (transaction) {
-				// Get connectorId
-				let connector = this.getConnectors()[transaction.connectorId-1];
-				// Found?
-				if (!transaction.stop) {
-					// Get the consumption
-					return this.getConsumptionsFromTransaction(transaction, false).then(
-							(consumption) => {
-						let currentConsumption = 0;
-						let totalConsumption = 0;
-						// Check
-						if (consumption) {
-							currentConsumption = (consumption.values.length > 0?consumption.values[consumption.values.length-1].value:0);
-							totalConsumption = consumption.totalConsumption;
-						}
-						// Changed?
-						if (connector.currentConsumption !== currentConsumption ||
-								connector.totalConsumption !== totalConsumption) {
-							// Set consumption
-							connector.currentConsumption = currentConsumption;
-							connector.totalConsumption = totalConsumption;
-							// Log
-							Logging.logInfo({
-								source: this.getID(), module: "ChargingStation",
-								method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
-								message: `Connector '${connector.connectorId}' - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
-						}
-						// Update Transaction ID
-						connector.activeTransactionID = transactionId;
-						// Update Heartbeat
-						this.setLastHeartBeat(new Date());
-						// Handle End Of charge
-						this.handleNotificationEndOfCharge(transaction, consumption);
-						// Save
-						return this.save();
-					});
-				} else {
+			if (!transaction.stop) {
+				// Get the consumption
+				let consumption = await this.getConsumptionsFromTransaction(transaction, false);
+				let currentConsumption = 0;
+				let totalConsumption = 0;
+				// Check
+				if (consumption) {
+					currentConsumption = (consumption.values.length > 0?consumption.values[consumption.values.length-1].value:0);
+					totalConsumption = consumption.totalConsumption;
+				}
+				// Changed?
+				if (connector.currentConsumption !== currentConsumption ||
+						connector.totalConsumption !== totalConsumption) {
 					// Set consumption
-					connector.currentConsumption = 0;
-					connector.totalConsumption = 0;
-					// Reset Transaction ID
-					connector.activeTransactionID = 0;
+					connector.currentConsumption = currentConsumption;
+					connector.totalConsumption = totalConsumption;
 					// Log
 					Logging.logInfo({
 						source: this.getID(), module: "ChargingStation",
 						method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
 						message: `Connector '${connector.connectorId}' - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
-					// Save
-					return this.save();
 				}
+				// Update Transaction ID
+				connector.activeTransactionID = transactionId;
+				// Update Heartbeat
+				this.setLastHeartBeat(new Date());
+				// Handle End Of charge
+				this.handleNotificationEndOfCharge(transaction, consumption);
+				// Save
+				await this.save();
 			} else {
+				// Set consumption
+				connector.currentConsumption = 0;
+				connector.totalConsumption = 0;
+				// Reset Transaction ID
+				connector.activeTransactionID = 0;
 				// Log
-				Logging.logError({
+				Logging.logInfo({
 					source: this.getID(), module: "ChargingStation",
 					method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
-					message: `Transaction ID '${transactionId}' not found` });
+					message: `Connector '${connector.connectorId}' - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
+				// Save
+				await this.save();
 			}
-		});
+		} else {
+			// Log
+			Logging.logError({
+				source: this.getID(), module: "ChargingStation",
+				method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
+				message: `Transaction ID '${transactionId}' not found` });
+		}
 	}
 
-	handleNotificationEndOfCharge(transaction, consumption) {
+	async handleNotificationEndOfCharge(transaction, consumption) {
 		// Transaction in progress?
 		if (transaction && !transaction.stop) {
 			// Has consumption?
@@ -626,8 +618,9 @@ class ChargingStation {
 
 					// Stop Transaction and Unlock Connector?
 					if (_configChargingStation.notifStopTransactionAndUnlockConnector) {
-						// Yes: Stop the transaction
-						this.requestStopTransaction(transaction.id).then((result) => {
+						try {
+							// Yes: Stop the transaction
+							let result = await this.requestStopTransaction(transaction.id);
 							// Ok?
 							if (result && result.status === "Accepted") {
 								// Cannot unlock the connector
@@ -636,27 +629,21 @@ class ChargingStation {
 									action: "NotifyEndOfCharge", message: `Transaction ID '${transaction.id}' has been stopped`,
 									detailedMessages: transaction});
 								// Unlock the connector
-								this.requestUnlockConnector(transaction.connectorId).then((result) => {
-									// Ok?
-									if (result && result.status === "Accepted") {
-										// Cannot unlock the connector
-										Logging.logInfo({
-											source: this.getID(), module: "ChargingStation", method: "handleNotificationEndOfCharge",
-											action: "NotifyEndOfCharge", message: `Connector '${transaction.connectorId}' has been unlocked`,
-											detailedMessages: transaction});
-										// Nothing to do
-										return Promise.resolve();
-									} else {
-										// Cannot unlock the connector
-										Logging.logError({
-											source: this.getID(), module: "ChargingStation", method: "handleNotificationEndOfCharge",
-											action: "NotifyEndOfCharge", message: `Cannot unlock the connector '${transaction.connectorId}'`,
-											detailedMessages: transaction});
-									}
-								}).catch((error) => {
-									// Log error
-									Logging.logActionExceptionMessage("EndOfCharge", error);
-								});
+								result = await this.requestUnlockConnector(transaction.connectorId);
+								// Ok?
+								if (result && result.status === "Accepted") {
+									// Cannot unlock the connector
+									Logging.logInfo({
+										source: this.getID(), module: "ChargingStation", method: "handleNotificationEndOfCharge",
+										action: "NotifyEndOfCharge", message: `Connector '${transaction.connectorId}' has been unlocked`,
+										detailedMessages: transaction});
+								} else {
+									// Cannot unlock the connector
+									Logging.logError({
+										source: this.getID(), module: "ChargingStation", method: "handleNotificationEndOfCharge",
+										action: "NotifyEndOfCharge", message: `Cannot unlock the connector '${transaction.connectorId}'`,
+										detailedMessages: transaction});
+								}
 							} else {
 								// Cannot stop the transaction
 								Logging.logError({
@@ -664,10 +651,10 @@ class ChargingStation {
 									action: "NotifyEndOfCharge", message: `Cannot stop the transaction`,
 									detailedMessages: transaction});
 							}
-						}).catch((error) => {
+						} catch(error) {
 							// Log error
 							Logging.logActionExceptionMessage("EndOfCharge", error);
-						});
+						}
 					}
 				}
 			}
@@ -717,7 +704,7 @@ class ChargingStation {
 		return dateTimeString;
 	}
 
-	handleMeterValues(meterValues) {
+	async handleMeterValues(meterValues) {
 		// Create model
 		var newMeterValues = {};
 		// Init
@@ -767,10 +754,9 @@ class ChargingStation {
 		});
 
 		// Save Meter Values
-		return global.storage.saveMeterValues(newMeterValues).then((result) => {
-			// Update Charging Station Consumption
-			return this.updateChargingStationConsumption(meterValues.transactionId);
-		})
+		await global.storage.saveMeterValues(newMeterValues);
+		// Update Charging Station Consumption
+		await this.updateChargingStationConsumption(meterValues.transactionId);
 	}
 
 	saveConfiguration(configuration) {
@@ -795,20 +781,19 @@ class ChargingStation {
 		return global.storage.deleteTransaction(transaction);
 	}
 
-	delete() {
+	async delete() {
 		// Check if the user has a transaction
-		return this.hasAtLeastOneTransaction().then((result) => {
-			if (result) {
-				// Delete logically
-				// Set deleted
-				this.setDeleted(true);
-				// Delete
-				return this.save();
-			} else {
-				// Delete physically
-				return global.storage.deleteChargingStation(this.getID());
-			}
-		})
+		let result = await this.hasAtLeastOneTransaction();
+		if (result) {
+			// Delete logically
+			// Set deleted
+			this.setDeleted(true);
+			// Delete
+			await this.save();
+		} else {
+			// Delete physically
+			await global.storage.deleteChargingStation(this.getID());
+		}
 	}
 
 	getActiveTransaction(connectorId) {
@@ -842,53 +827,41 @@ class ChargingStation {
 		return global.storage.saveFirmwareStatusNotification(firmwareStatusNotification);
 	}
 
-	handleAuthorize(authorize) {
+	async handleAuthorize(authorize) {
 		// Set the charger ID
 		authorize.chargeBoxID = this.getID();
 		authorize.timestamp = new Date();
-
 		// Execute
-		return Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
-				Authorizations.ACTION_AUTHORIZE, this, authorize.idTag).then((users) => {
-			// Set current user
-			authorize.user = users.user;
-			// Save
-			return global.storage.saveAuthorize(authorize);
-		})
+		let users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
+				Authorizations.ACTION_AUTHORIZE, this, authorize.idTag);
+		// Set current user
+		authorize.user = users.user;
+		// Save
+		await global.storage.saveAuthorize(authorize);
 	}
 
-	getSite() {
+	async getSite() {
 		// Get Site Area
-		return this.getSiteArea().then((siteArea) => {
-			// Check Site Area
-			if (!siteArea) {
-				return null;
-			}
-			// Get the Charge Box' Site
-			return siteArea.getSite();
-		});
+		let siteArea = await this.getSiteArea();
+		// Check Site Area
+		if (!siteArea) {
+			return null;
+		}
+		// Get Site
+		let site = await siteArea.getSite();
+		return site;
 	}
 
-	getCompany() {
-		// Get Site Area
-		return this.getSiteArea().then((siteArea) => {
-			// Check Site Area
-			if (!siteArea) {
-				return null;
-			}
-			// Get the Charge Box' Site
-			return siteArea.getSite();
-		}).then((site) => {
-			// Check Site
-			if (!site) {
-				return null;
-			}
-			// Get the Charge Box's Company
-			return site.getCompany();
-		}).then((company) => {
-			// Return
-			return company;
-		});
+	async getCompany() {
+		// Get the Site
+		let site = await this.getSite();
+		// Check Site
+		if (!site) {
+			return null;
+		}
+		// Get the Company
+		let company = await site.getCompany();
+		return company;
 	}
 
 	getTransaction(transactionId) {
@@ -896,209 +869,186 @@ class ChargingStation {
 		return global.storage.getTransaction(transactionId);
 	}
 
-	handleStartTransaction(transaction) {
+	async handleStartTransaction(transaction) {
 		// Set the charger ID
 		transaction.chargeBoxID = this.getID();
-		// User
-		let user, users, newTransaction;
 		// Check if the charging station has already a transaction
-		return this.getActiveTransaction(transaction.connectorId).then((activeTransaction) => {
-			// Exists already?
-			if (!activeTransaction) {
-				// No: Generate the transaction ID
-				transaction.id = Utils.getRandomInt();
-			} else {
-				// Yes: Reuse the transaction ID
-				transaction.id = activeTransaction.id;
-			}
-			// Check user and save
-			return Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
-				Authorizations.ACTION_START_TRANSACTION, this, transaction.idTag);
-		}).then((foundUsers) => {
-			// Set
-			users = foundUsers;
-			// Set current user
-			user = (users.alternateUser ? users.alternateUser : users.user);
-			// Set the user
-			transaction.userID = user.getID();
-			// Notify
-			NotificationHandler.sendTransactionStarted(
-				transaction.id,
-				user.getModel(),
-				this.getModel(),
-				{
-					"user": user.getModel(),
-					"chargingBoxID": this.getID(),
-					"connectorId": transaction.connectorId,
-					"evseDashboardURL" : Utils.buildEvseURL(),
-					"evseDashboardChargingStationURL" :
-						Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id)
-				},
-				user.getLocale()
-			);
-			// Set the tag ID
-			transaction.tagID = transaction.idTag;
-			// Ok: Save Transaction
-			return global.storage.saveTransaction(transaction);
-		}).then((savedTransaction) => {
-			newTransaction = savedTransaction;
-			// Set the user
-			newTransaction.user = user.getModel();
-			// Update Consumption
-			return this.updateChargingStationConsumption(transaction.id);
-		}).then(() => {
-			return newTransaction;
-		});
+		let activeTransaction = await this.getActiveTransaction(transaction.connectorId);
+		// Exists already?
+		if (!activeTransaction) {
+			// No: Generate the transaction ID
+			transaction.id = Utils.getRandomInt();
+		} else {
+			// Yes: Reuse the transaction ID
+			transaction.id = activeTransaction.id;
+		}
+		// Check user and save
+		let users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
+			Authorizations.ACTION_START_TRANSACTION, this, transaction.idTag);
+		// Set current user
+		let user = (users.alternateUser ? users.alternateUser : users.user);
+		// Set the user
+		transaction.userID = user.getID();
+		// Notify
+		NotificationHandler.sendTransactionStarted(
+			transaction.id,
+			user.getModel(),
+			this.getModel(),
+			{
+				"user": user.getModel(),
+				"chargingBoxID": this.getID(),
+				"connectorId": transaction.connectorId,
+				"evseDashboardURL" : Utils.buildEvseURL(),
+				"evseDashboardChargingStationURL" :
+					Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id)
+			},
+			user.getLocale()
+		);
+		// Set the tag ID
+		transaction.tagID = transaction.idTag;
+		// Ok: Save Transaction
+		let newTransaction = await global.storage.saveTransaction(transaction);
+		// Set the user
+		newTransaction.user = user.getModel();
+		// Update Consumption
+		await this.updateChargingStationConsumption(transaction.id);
+		// Return
+		return newTransaction;
 	}
 
-	handleStopTransaction(stopTransaction) {
-		let transaction, newTransaction, user, users;
+	async handleStopTransaction(stopTransaction) {
 		// Set the charger ID
 		stopTransaction.chargeBoxID = this.getID();
 		// Get the transaction first (to get the connector id)
-		return this.getTransaction(stopTransaction.transactionId).then((foundTransaction) => {
-			transaction = foundTransaction;
-			// Found?
-			if (!transaction) {
-				throw new Error(`Transaction ID '${stopTransaction.transactionId}' does not exist`);
+		let transaction = await this.getTransaction(stopTransaction.transactionId);
+		// Found?
+		if (!transaction) {
+			throw new Error(`Transaction ID '${stopTransaction.transactionId}' does not exist`);
+		}
+		// Remote Stop Transaction?
+		if (transaction.remotestop) {
+			// Check Timestamp
+			// Add the inactivity in secs
+			let secs = moment.duration(moment().diff(
+				moment(transaction.remotestop.timestamp))).asSeconds();
+			// In a minute
+			if (secs < 60) {
+				// Set Tag ID with user that remotely stopped the transaction
+				stopTransaction.idTag = transaction.remotestop.tagID;
 			}
-			// Remote Stop Transaction?
-			if (transaction.remotestop) {
-				// Check Timestamp
-				// Add the inactivity in secs
-				let secs = moment.duration(moment().diff(
-					moment(transaction.remotestop.timestamp))).asSeconds();
-				// In a minute
-				if (secs < 60) {
-					// Set Tag ID with user that remotely stopped the transaction
-					stopTransaction.idTag = transaction.remotestop.tagID;
+		}
+		// Stop Transaction with the same user
+		if (!stopTransaction.idTag) {
+			// Set Tag ID with user that started the transaction
+			stopTransaction.idTag = transaction.tagID;
+		}
+		// Set Tag ID to a new property
+		stopTransaction.tagID = stopTransaction.idTag;
+		// Check User
+		let users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
+			Authorizations.ACTION_STOP_TRANSACTION, this, transaction.tagID, stopTransaction.tagID);
+		// Set current user
+		let user = (users.alternateUser ? users.alternateUser : users.user);
+		// Set the User ID
+		stopTransaction.userID = user.getID();
+		// Get the connector
+		let connector = this.getConnectors()[transaction.connectorId-1];
+		// Init the charging station
+		connector.currentConsumption = 0;
+		connector.totalConsumption = 0;
+		// Reset Transaction ID
+		connector.activeTransactionID = 0;
+		// Save Charging Station
+		await this.save();
+		// Compute total consumption (optimization)
+		let consumption = await this.getConsumptionsFromTransaction(transaction, true);
+		// Compute total inactivity seconds
+		stopTransaction.totalInactivitySecs = 0;
+		consumption.values.forEach((value, index) => {
+			// Don't check the first
+			if (index > 0) {
+				// Check value + Check Previous value
+				if (value.value == 0 && consumption.values[index-1].value == 0) {
+					// Add the inactivity in secs
+					stopTransaction.totalInactivitySecs += moment.duration(
+						moment(value.date).diff(moment(consumption.values[index-1].date))
+					).asSeconds();
 				}
 			}
-			// Stop Transaction with the same user
-			if (!stopTransaction.idTag) {
-				// Set Tag ID with user that started the transaction
-				stopTransaction.idTag = transaction.tagID;
-			}
-			// Set Tag ID to a new property
-			stopTransaction.tagID = stopTransaction.idTag;
-			// Check User
-			return Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
-				Authorizations.ACTION_STOP_TRANSACTION, this, transaction.tagID, stopTransaction.tagID);
-		}).then((foundUsers) => {
-			// Set
-			users = foundUsers;
-			// Set current user
-			user = (users.alternateUser ? users.alternateUser : users.user);
-			// Set the User ID
-			stopTransaction.userID = user.getID();
-			// Get the connector
-			let connector = this.getConnectors()[transaction.connectorId-1];
-			// Init the charging station
-			connector.currentConsumption = 0;
-			connector.totalConsumption = 0;
-			// Reset Transaction ID
-			connector.activeTransactionID = 0;
-			// Save Charging Station
-			return this.save();
-		}).then(() => {
-			// Compute total consumption (optimization)
-			return this.getConsumptionsFromTransaction(transaction, true);
-		}).then((consumption) => {
-			// Compute total inactivity seconds
-			stopTransaction.totalInactivitySecs = 0;
-			consumption.values.forEach((value, index) => {
-				// Don't check the first
-				if (index > 0) {
-					// Check value + Check Previous value
-					if (value.value == 0 && consumption.values[index-1].value == 0) {
-						// Add the inactivity in secs
-						stopTransaction.totalInactivitySecs += moment.duration(
-							moment(value.date).diff(moment(consumption.values[index-1].date))
-						).asSeconds();
-					}
-				}
-			});
-			// Set the total consumption (optimization)
-			stopTransaction.totalConsumption = consumption.totalConsumption;
-			// Set the stop
-			transaction.stop = stopTransaction;
-			// Notify User
-			if (transaction.user) {
-				// Send Notification
-				NotificationHandler.sendEndOfSession(
-					transaction.id + "-EOS",
-					transaction.user,
-					this.getModel(),
-					{
-						"user": users.user.getModel(),
-						"alternateUser": (users.user.getID() != users.alternateUser.getID() ? users.alternateUser.getModel() : null),
-						"chargingBoxID": this.getID(),
-						"connectorId": transaction.connectorId,
-						"totalConsumption": (stopTransaction.totalConsumption/1000).toLocaleString(
-							(transaction.user.locale ? transaction.user.locale.replace('_','-') : Users.DEFAULT_LOCALE.replace('_','-')),
-							{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
-						"totalDuration": this._buildCurrentTransactionDuration(transaction, transaction.stop.timestamp),
-						"totalInactivity": this._buildCurrentTransactionInactivity(transaction),
-						"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
-						"evseDashboardURL" : Utils.buildEvseURL()
-					},
-					transaction.user.locale
-				);
-			}
-			// Save Transaction
-			return global.storage.saveTransaction(transaction);
-		}).then((savedTransaction) => {
-			newTransaction = savedTransaction;
-			// Set the user
-			newTransaction.user = users.user.getModel();
-			newTransaction.stop.user = users.alternateUser.getModel();
-			return newTransaction;
 		});
+		// Set the total consumption (optimization)
+		stopTransaction.totalConsumption = consumption.totalConsumption;
+		// Set the stop
+		transaction.stop = stopTransaction;
+		// Notify User
+		if (transaction.user) {
+			// Send Notification
+			NotificationHandler.sendEndOfSession(
+				transaction.id + "-EOS",
+				transaction.user,
+				this.getModel(),
+				{
+					"user": users.user.getModel(),
+					"alternateUser": (users.user.getID() != users.alternateUser.getID() ? users.alternateUser.getModel() : null),
+					"chargingBoxID": this.getID(),
+					"connectorId": transaction.connectorId,
+					"totalConsumption": (stopTransaction.totalConsumption/1000).toLocaleString(
+						(transaction.user.locale ? transaction.user.locale.replace('_','-') : Users.DEFAULT_LOCALE.replace('_','-')),
+						{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
+					"totalDuration": this._buildCurrentTransactionDuration(transaction, transaction.stop.timestamp),
+					"totalInactivity": this._buildCurrentTransactionInactivity(transaction),
+					"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
+					"evseDashboardURL" : Utils.buildEvseURL()
+				},
+				transaction.user.locale
+			);
+		}
+		// Save Transaction
+		let newTransaction = await global.storage.saveTransaction(transaction);
+		// Set the user
+		newTransaction.user = users.user.getModel();
+		newTransaction.stop.user = users.alternateUser.getModel();
+		return newTransaction;
 	}
 
 	// Restart the charger
-	requestReset(type) {
+	async requestReset(type) {
 		// Get the client
-		return this.getChargingStationClient().then((chargingStationClient) => {
-			// Restart
-			return chargingStationClient.reset(type);
-		});
+		let chargingStationClient = await this.getChargingStationClient();
+		// Restart
+		return chargingStationClient.reset(type);
 	}
 
 	// Stop Transaction
-	requestStopTransaction(transactionId) {
+	async requestStopTransaction(transactionId) {
 		// Get the client
-		return this.getChargingStationClient().then((chargingStationClient) => {
-			// Restart
-			return chargingStationClient.stopTransaction(transactionId);
-		});
+		let chargingStationClient = await this.getChargingStationClient();
+		// Restart
+		return chargingStationClient.stopTransaction(transactionId);
 	}
 
 	// Start Transaction
-	requestStartTransaction(tagID, connectorID) {
+	async requestStartTransaction(tagID, connectorID) {
 		// Get the client
-		return this.getChargingStationClient().then((chargingStationClient) => {
-			// Restart
-			return chargingStationClient.startTransaction(tagID, connectorID);
-		});
+		let chargingStationClient = await this.getChargingStationClient();
+		// Restart
+		return chargingStationClient.startTransaction(tagID, connectorID);
 	}
 
 	// Clear the cache
-	requestClearCache() {
+	async requestClearCache() {
 		// Get the client
-		return this.getChargingStationClient().then((chargingStationClient) => {
-			// Restart
-			return chargingStationClient.clearCache();
-		});
+		let chargingStationClient = await this.getChargingStationClient();
+		// Restart
+		return chargingStationClient.clearCache();
 	}
 
 	// Get the configuration for the EVSE
-	requestGetConfiguration(configParamNames) {
+	async requestGetConfiguration(configParamNames) {
 		// Get the client
-		return this.getChargingStationClient().then((chargingStationClient) => {
-			// Get config
-			return chargingStationClient.getConfiguration(configParamNames);
-		});
+		let chargingStationClient = await this.getChargingStationClient();
+		// Get config
+		return chargingStationClient.getConfiguration(configParamNames);
 	}
 
 	// Get the configuration for the EVSE
@@ -1119,36 +1069,27 @@ class ChargingStation {
 	}
 
 	// Unlock connector
-	requestUnlockConnector(connectorId) {
+	async requestUnlockConnector(connectorId) {
 		// Get the client
-		return this.getChargingStationClient().then((chargingStationClient) => {
-			// Get config
-			return chargingStationClient.unlockConnector(connectorId);
-		});
+		let chargingStationClient = await this.getChargingStationClient();
+		// Get config
+		return chargingStationClient.unlockConnector(connectorId);
 	}
 
 	getConfiguration() {
-		return global.storage.getConfiguration(this.getID()).then((configuration) => {
-			return configuration;
-		});
+		return global.storage.getConfiguration(this.getID());
 	}
 
 	getConfigurationParamValue(paramName) {
-		return global.storage.getConfigurationParamValue(this.getID(), paramName).then((paramValue) => {
-			return paramValue;
-		});
+		return global.storage.getConfigurationParamValue(this.getID(), paramName);
 	}
 
-	hasAtLeastOneTransaction() {
+	async hasAtLeastOneTransaction() {
 		// Get the consumption
-		return global.storage.getTransactions(
-				null,
-				{"chargeBoxID": this.getID()},
-				null,
-				false,
-				1).then((transactions) => {
-			return (transactions && transactions.length > 0 ? true : false);
-		});;
+		let transactions = await global.storage.getTransactions(
+				null, {"chargeBoxID": this.getID()}, null, false, 1);
+		// Return
+		return (transactions && transactions.length > 0 ? true : false);
 	}
 
 	getTransactions(connectorId, startDateTime, endDateTime, withChargeBoxes=false) {
@@ -1164,51 +1105,45 @@ class ChargingStation {
 		 	Constants.NO_LIMIT);
 	}
 
-	getConsumptionsFromTransaction(transaction, optimizeNbrOfValues) {
+	async getConsumptionsFromTransaction(transaction, optimizeNbrOfValues) {
 		// Get the last 5 meter values
-		return global.storage.getMeterValuesFromTransaction(
-				transaction.id).then((meterValues) => {
-			// Read the pricing
-			return global.storage.getPricing().then((pricing) => {
-				// Build the header
-				var chargingStationConsumption = {};
-				if (pricing) {
-					chargingStationConsumption.priceUnit = pricing.priceUnit;
-					chargingStationConsumption.totalPrice = 0;
-				}
-				chargingStationConsumption.values = [];
-				chargingStationConsumption.totalConsumption = 0;
-				chargingStationConsumption.chargeBoxID = this.getID();
-				chargingStationConsumption.connectorId = transaction.connectorId;
-				chargingStationConsumption.transactionId = transaction.id;
-				chargingStationConsumption.user = transaction.user;
-				if (transaction.stop && transaction.stop.user) {
-					chargingStationConsumption.stop = {};
-					chargingStationConsumption.stop.user = transaction.stop.user;
-				}
-				// Compute consumption
-				let consumptions = this.buildConsumption(chargingStationConsumption, meterValues, transaction, pricing, optimizeNbrOfValues);
-
-				return consumptions;
-			});
-		});
+		let meterValues = await global.storage.getMeterValuesFromTransaction(transaction.id);
+		// Read the pricing
+		let pricing = await global.storage.getPricing();
+		// Build the header
+		let chargingStationConsumption = {};
+		if (pricing) {
+			chargingStationConsumption.priceUnit = pricing.priceUnit;
+			chargingStationConsumption.totalPrice = 0;
+		}
+		chargingStationConsumption.values = [];
+		chargingStationConsumption.totalConsumption = 0;
+		chargingStationConsumption.chargeBoxID = this.getID();
+		chargingStationConsumption.connectorId = transaction.connectorId;
+		chargingStationConsumption.transactionId = transaction.id;
+		chargingStationConsumption.user = transaction.user;
+		if (transaction.stop && transaction.stop.user) {
+			chargingStationConsumption.stop = {};
+			chargingStationConsumption.stop.user = transaction.stop.user;
+		}
+		// Compute consumption
+		return this.buildConsumption(chargingStationConsumption, meterValues, transaction, pricing, optimizeNbrOfValues);
 	}
 
-	getConsumptionsFromDateTimeRange(transaction, startDateTime) {
+	async getConsumptionsFromDateTimeRange(transaction, startDateTime) {
 		// Get all from the transaction (not optimized)
-		return this.getConsumptionsFromTransaction(transaction, false).then((consumptions) => {
-			// Found?
-			if (consumptions && consumptions.values) {
-				// Start date
-				let startDateMoment = moment(startDateTime);
-				// Filter value per date
-				consumptions.values = consumptions.values.filter((consumption) => {
-					// Filter
-					return moment(consumption.date).isAfter(startDateMoment);
-				});
-			}
-			return consumptions;
-		});
+		let consumptions = await this.getConsumptionsFromTransaction(transaction, false);
+		// Found?
+		if (consumptions && consumptions.values) {
+			// Start date
+			let startDateMoment = moment(startDateTime);
+			// Filter value per date
+			consumptions.values = consumptions.values.filter((consumption) => {
+				// Filter
+				return moment(consumption.date).isAfter(startDateMoment);
+			});
+		}
+		return consumptions;
 	}
 
 	// Method to build the consumption
