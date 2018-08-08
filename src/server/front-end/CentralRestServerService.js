@@ -311,6 +311,11 @@ module.exports = {
 						// Delegate
 						ChargingStationService.handleGetChargingStationConfiguration(action, req, res, next);
 						break;
+					// Request Charging Configuration
+					case "ChargingStationRequestConfiguration":
+						// Delegate
+						ChargingStationService.handleRequestChargingStationConfiguration(action, req, res, next);
+						break;
 					// Authorization
 					case "IsAuthorized":
 						// Delegate

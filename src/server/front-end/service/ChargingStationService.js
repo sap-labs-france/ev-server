@@ -107,6 +107,49 @@ class ChargingStationService {
 		});
 	}
 
+	static async handleRequestChargingStationConfiguration(action, req, res, next) {
+		// Filter
+		let filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query, req.user);
+		// Charge Box is mandatory
+		if(!filteredRequest.ChargeBoxID) {
+			Logging.logActionExceptionMessageAndSendResponse(
+				action, new Error(`The Charging Station ID is mandatory`), req, res, next);
+			return;
+		}
+		try {
+			// Get the Charging Station
+			let chargingStation = await global.storage.getChargingStation(filteredRequest.ChargeBoxID);
+			// Found?
+			if (!chargingStation) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`Charging Station with ID '${filteredRequest.ChargeBoxID}' does not exist`,
+					550, "ChargingStationService", "handleGetChargingStationConfiguration");
+			}
+			// Check auth
+			if (!Authorizations.canReadChargingStation(req.user, chargingStation.getModel())) {
+				// Not Authorized!
+				throw new AppAuthError(
+					Authorizations.ACTION_READ,
+					Constants.ENTITY_CHARGING_STATION,
+					chargingStation.getID(),
+					560, "ChargingStationService", "handleGetChargingStationConfiguration",
+					req.user);
+			}
+			// Get the Config
+			let configuration = await chargingStation.requestGetConfiguration();
+			// Save it
+			await chargingStation.saveConfiguration(configuration);
+			// Return the result
+			res.json({status: 'Accepted'});
+			next();
+		} catch (err) {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		}
+	}
+
 	static handleDeleteChargingStation(action, req, res, next) {
 		// Filter
 		let chargingStation;

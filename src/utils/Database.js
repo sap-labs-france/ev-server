@@ -56,7 +56,7 @@ module.exports = {
 			dest.inactive = false;
 			let inactivitySecs = Math.floor((Date.now() - dest.lastHeartBeat.getTime()) / 1000);
 			// Inactive?
-			if (inactivitySecs > (_heartbeatIntervalSecs * 2)) {
+			if (inactivitySecs > (_heartbeatIntervalSecs * 5)) {
 				dest.inactive = true;
 			}
 		}
