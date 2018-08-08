@@ -4,7 +4,6 @@ const Logging = require('../utils/Logging');
 const User = require('./User');
 const SiteArea = require('./SiteArea');
 const Users = require('../utils/Users');
-const AppError = require('../exception/AppError');
 const Constants = require('../utils/Constants');
 const Database = require('../utils/Database');
 const moment = require('moment');
@@ -303,7 +302,7 @@ class ChargingStation {
 		return global.storage.saveChargingStationSiteArea(this.getModel());
 	}
 
-	handleStatusNotification(statusNotification) {
+	async handleStatusNotification(statusNotification) {
 		// Set the Station ID
 		statusNotification.chargeBoxID = this.getID();
 		// Update the connector -----------------------------------------
@@ -324,109 +323,87 @@ class ChargingStation {
 		connectors[statusNotification.connectorId-1].errorCode = statusNotification.errorCode;
 		// Set
 		this.setConnectors(connectors);
-		// Compute the power of the connector
-		return this.updateConnectorsPower().then(() => {
-			// Save Status Notif
-			return global.storage.saveStatusNotification(statusNotification);
-		}).then(() => {
-			// Save Status
-			return global.storage.saveChargingStationConnector(
-				this.getModel(), statusNotification.connectorId);
-		}).then(() => {
-			// Check if error
-			if (statusNotification.status === "Faulted") {
-				// Log
-				Logging.logError({
-					source: this.getID(), module: "ChargingStation",
-					method: "handleStatusNotification", action: "StatusNotification",
-					message: `Error on connector ${statusNotification.connectorId}: ${statusNotification.status} - ${statusNotification.errorCode}` });
-				// Send Notification
-				NotificationHandler.sendChargingStationStatusError(
-					Utils.generateGUID(),
-					this.getModel(),
-					{
-						"chargeBoxID": this.getID(),
-						"connectorId": statusNotification.connectorId,
-						"error": `${statusNotification.status} - ${statusNotification.errorCode}`,
-						"evseDashboardURL" : Utils.buildEvseURL(),
-						"evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(this, statusNotification.connectorId)
-					}
-				);
-			}
-		});
+		// Save Status Notif
+		await global.storage.saveStatusNotification(statusNotification);
+		// Save Charger Status
+		await global.storage.saveChargingStationConnector(
+			this.getModel(), statusNotification.connectorId);
+		// Notify if error
+		if (statusNotification.status === "Faulted") {
+			// Log
+			Logging.logError({
+				source: this.getID(), module: "ChargingStation",
+				method: "handleStatusNotification", action: "StatusNotification",
+				message: `Error on connector ${statusNotification.connectorId}: ${statusNotification.status} - ${statusNotification.errorCode}` });
+			// Send Notification
+			NotificationHandler.sendChargingStationStatusError(
+				Utils.generateGUID(),
+				this.getModel(),
+				{
+					"chargeBoxID": this.getID(),
+					"connectorId": statusNotification.connectorId,
+					"error": `${statusNotification.status} - ${statusNotification.errorCode}`,
+					"evseDashboardURL" : Utils.buildEvseURL(),
+					"evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(this, statusNotification.connectorId)
+				}
+			);
+		}
 	}
 
-	updateConnectorsPower(forceUpdate=false) {
-		let updatePower = forceUpdate;
-		// Check
-		if (!forceUpdate) {
-			this.getConnectors().forEach((connector) => {
-				if (!connector || !connector.power) {
-					// Update
-					updatePower = true;
+	async updateConnectorsPower() {
+		let voltageRerefence = 0;
+		let current = 0;
+		let nbPhase = 0;
+		let power = 0;
+
+		// Get the configuration
+		let configuration = await this.getConfiguration();
+		// Config Provided?
+		if (configuration && configuration.configuration) {
+			// Search for params
+			for (var i = 0; i < configuration.configuration.length; i++) {
+				// Check
+				switch (configuration.configuration[i].key) {
+					// Voltage
+					case "voltagererefence":
+						// Get the meter interval
+						voltageRerefence = parseInt(configuration.configuration[i].value);
+						break;
+
+					// Current
+					case "currentpb1":
+						// Get the meter interval
+						current = parseInt(configuration.configuration[i].value);
+						break;
+
+					// Nb Phase
+					case "nbphase":
+						// Get the meter interval
+						nbPhase = parseInt(configuration.configuration[i].value);
+						break;
 				}
-			});
-		}
-		// Update?
-		if (updatePower) {
-			// Get the configuration
-			return this.getConfiguration().then((configuration) => {
-				let voltageRerefence = 0;
-				let current = 0;
-				let chargerConsumption = 0;
-				let nbPhase = 0;
-				let power = 0;
-
-				if (configuration && configuration.configuration) {
-					// Search for params
-					for (var i = 0; i < configuration.configuration.length; i++) {
-						// Check
-						switch (configuration.configuration[i].key) {
-							// Voltage
-							case "voltagererefence":
-								// Get the meter interval
-								voltageRerefence = parseInt(configuration.configuration[i].value);
-								break;
-
-							// Current
-							case "currentpb1":
-								// Get the meter interval
-								current = parseInt(configuration.configuration[i].value);
-								break;
-
-							// Nb Phase
-							case "nbphase":
-								// Get the meter interval
-								nbPhase = parseInt(configuration.configuration[i].value);
-								break;
-						}
-					}
-					// Override?
-					if (this.getNumberOfConnectedPhase()) {
-						// Yes
-						nbPhase = this.getNumberOfConnectedPhase();
-					}
-					// Compute it
-					if (voltageRerefence && current && nbPhase) {
-						// One Phase?
-						if (nbPhase == 1) {
-							power = Math.floor(230 * current);
-						} else {
-							power = Math.floor(400 * current * Math.sqrt(nbPhase));
-						}
-					}
+			}
+			// Override?
+			if (this.getNumberOfConnectedPhase()) {
+				// Yes
+				nbPhase = this.getNumberOfConnectedPhase();
+			}
+			// Compute it
+			if (voltageRerefence && current && nbPhase) {
+				// One Phase?
+				if (nbPhase == 1) {
+					power = Math.floor(230 * current);
+				} else {
+					power = Math.floor(400 * current * Math.sqrt(nbPhase));
 				}
-				// Set Power
-				this.getConnectors().forEach((connector) => {
-					if (connector) {
-						connector.power = power;
-					}
-				});
-			});
-		} else {
-			// No
-			return Promise.resolve(null);
+			}
 		}
+		// Set Power
+		this.getConnectors().forEach((connector) => {
+			if (connector) {
+				connector.power = power;
+			}
+		});
 	}
 
 	handleBootNotification(bootNotification) {
@@ -452,34 +429,99 @@ class ChargingStation {
 			});
 			// Handle the get of configuration later on
 			setTimeout(() => {
-				// Log
-				Logging.logInfo({
-					source: this.getID(), module: "ChargingStation",
-					method: "handleBootNotification", action: "BootNotification",
-					message: `Retrieve configuration` });
-				// In case of error. the boot should no be denied
-				this.requestGetConfiguration().then((configuration) => {
-					if (!configuration) {
-						throw new AppError(
-							this.getID(),
-							`Cannot retrieve the configuration`,
-							550, "ChargingStation", "handleBootNotification");
-					}
-					// Save it
-					return this.saveConfiguration(configuration);
-				}).then(() => {
-					Logging.logInfo({
-						source: this.getID(), module: "ChargingStation",
-						method: "handleBootNotification", action: "BootNotification",
-						message: `Configuration has been saved` });
-					// Update connector power
-					return this.updateConnectorsPower(true);
-				}).catch((error) => {
-					// Log error
-					Logging.logActionExceptionMessage("BootNotification", error);
-				});
+				// Get config and save it
+				this.requestAndSaveConfiguration();
 			}, 3000);
 		});
+	}
+
+	async requestAndSaveConfiguration() {
+		let configuration = null;
+		// Log
+		Logging.logInfo({
+			source: this.getID(), module: "ChargingStation",
+			method: "requestAndSaveConfiguration", action: "RequestConfiguration",
+			message: `Request configuration` });
+		try {
+			// In case of error. the boot should no be denied
+			configuration = await this.requestGetConfiguration();
+			// Override with Conf
+			configuration = {
+				'configuration': configuration.configurationKey
+			}
+		} catch (error) {
+			// Log error
+			Logging.logActionExceptionMessage("RequestConfiguration", error);
+		}
+		// Set default?
+		if (!configuration) {
+			// Check if there is an already existing config
+			let existingConfiguration = await this.getConfiguration();
+			if (!existingConfiguration) {
+				// No config at all: Set default OCCP configuration
+				configuration = {
+					'configuration': [
+						{ 'key': 'AllowOfflineTxForUnknownId', 'readonly': false, 'value': null }, 
+						{ 'key': 'AuthorizationCacheEnabled', 'readonly': false, 'value': null }, 
+						{ 'key': 'AuthorizeRemoteTxRequests', 'readonly': false, 'value': null }, 
+						{ 'key': 'BlinkRepeat', 'readonly': false, 'value': null }, 
+						{ 'key': 'ClockAlignedDataInterval', 'readonly': false, 'value': null }, 
+						{ 'key': 'ConnectionTimeOut', 'readonly': false, 'value': null }, 
+						{ 'key': 'GetConfigurationMaxKeys', 'readonly': false, 'value': null }, 
+						{ 'key': 'HeartbeatInterval', 'readonly': false, 'value': null }, 
+						{ 'key': 'LightIntensity', 'readonly': false, 'value': null }, 
+						{ 'key': 'LocalAuthorizeOffline', 'readonly': false, 'value': null }, 
+						{ 'key': 'LocalPreAuthorize', 'readonly': false, 'value': null }, 
+						{ 'key': 'MaxEnergyOnInvalidId', 'readonly': false, 'value': null }, 
+						{ 'key': 'MeterValuesAlignedData', 'readonly': false, 'value': null }, 
+						{ 'key': 'MeterValuesAlignedDataMaxLength', 'readonly': false, 'value': null }, 
+						{ 'key': 'MeterValuesSampledData', 'readonly': false, 'value': null }, 
+						{ 'key': 'MeterValuesSampledDataMaxLength', 'readonly': false, 'value': null }, 
+						{ 'key': 'MeterValueSampleInterval', 'readonly': false, 'value': null }, 
+						{ 'key': 'MinimumStatusDuration', 'readonly': false, 'value': null }, 
+						{ 'key': 'NumberOfConnectors', 'readonly': false, 'value': null }, 
+						{ 'key': 'ResetRetries', 'readonly': false, 'value': null }, 
+						{ 'key': 'ConnectorPhaseRotation', 'readonly': false, 'value': null }, 
+						{ 'key': 'ConnectorPhaseRotationMaxLength', 'readonly': false, 'value': null }, 
+						{ 'key': 'StopTransactionOnEVSideDisconnect', 'readonly': false, 'value': null }, 
+						{ 'key': 'StopTransactionOnInvalidId', 'readonly': false, 'value': null }, 
+						{ 'key': 'StopTxnAlignedData', 'readonly': false, 'value': null }, 
+						{ 'key': 'StopTxnAlignedDataMaxLength', 'readonly': false, 'value': null }, 
+						{ 'key': 'StopTxnSampledData', 'readonly': false, 'value': null }, 
+						{ 'key': 'StopTxnSampledDataMaxLength', 'readonly': false, 'value': null }, 
+						{ 'key': 'SupportedFeatureProfiles', 'readonly': false, 'value': null }, 
+						{ 'key': 'SupportedFeatureProfilesMaxLength', 'readonly': false, 'value': null }, 
+						{ 'key': 'TransactionMessageAttempts', 'readonly': false, 'value': null }, 
+						{ 'key': 'TransactionMessageRetryInterval', 'readonly': false, 'value': null }, 
+						{ 'key': 'UnlockConnectorOnEVSideDisconnect', 'readonly': false, 'value': null }, 
+						{ 'key': 'WebSocketPingInterval', 'readonly': false, 'value': null }, 
+						{ 'key': 'LocalAuthListEnabled', 'readonly': false, 'value': null }, 
+						{ 'key': 'LocalAuthListMaxLength', 'readonly': false, 'value': null }, 
+						{ 'key': 'SendLocalListMaxLength', 'readonly': false, 'value': null }, 
+						{ 'key': 'ReserveConnectorZeroSupported', 'readonly': false, 'value': null }, 
+						{ 'key': 'ChargeProfileMaxStackLevel', 'readonly': false, 'value': null }, 
+						{ 'key': 'ChargingScheduleAllowedChargingRateUnit', 'readonly': false, 'value': null }, 
+						{ 'key': 'ChargingScheduleMaxPeriods', 'readonly': false, 'value': null }, 
+						{ 'key': 'ConnectorSwitch3to1PhaseSupported', 'readonly': false, 'value': null }, 
+						{ 'key': 'MaxChargingProfilesInstalled', 'readonly': false, 'value': null }
+					]
+				};
+			} else {
+				// Set default
+				configuration = existingConfiguration;
+			}
+		}
+		// Save it
+		await this.saveConfiguration(configuration);
+		// Ok
+		Logging.logInfo({
+				source: this.getID(), module: "ChargingStation",
+				method: "requestAndSaveConfiguration", action: "RequestConfiguration",
+				message: `Configuration has been saved` });
+		// Update connector power
+		await this.updateConnectorsPower();
+		// Ok
+		return {status: 'Accepted'};
 	}
 
 	updateChargingStationConsumption(transactionId) {
@@ -1060,34 +1102,20 @@ class ChargingStation {
 	}
 
 	// Get the configuration for the EVSE
-	requestChangeConfiguration(key, value) {
+	async requestChangeConfiguration(key, value) {
 		// Get the client
-		return this.getChargingStationClient().then((chargingStationClient) => {
-			// Get config
-			return chargingStationClient.changeConfiguration(key, value);
-		// Result
-		}).then((result) => {
-			// Request the new Configuration?
-			if (result.status == "Accepted") {
-				// Get the Charging Station Config
-				return this.requestGetConfiguration();
-			} else {
-				// Log
-				return Promise.reject(new Error(`Cannot set the configuration param ${key} with value ${value} to ${this.getID()}`));
-			}
-		}).then((configuration) => {
-			// Save it
-			if (configuration) {
-				// Save
-				return this.saveConfiguration(configuration).then((config) => {
-					// Return the first result
-					return {"status": "Accepted"};
-				});
-			} else {
-				// Log
-				return Promise.reject(new Error(`Cannot retrieve the Configuration of ${this.getID()}`));
-			}
-		});
+		let chargingStationClient = await this.getChargingStationClient();
+		// Get config
+		let result = await chargingStationClient.changeConfiguration(key, value);
+		// Request the new Configuration?
+		if (result.status !== "Accepted") {
+			// Log
+			throw new Error(`Cannot set the configuration param ${key} with value ${value} to ${this.getID()}`);
+		}
+		// Update
+		await this.requestAndSaveConfiguration();
+		// Return
+		return result;
 	}
 
 	// Unlock connector

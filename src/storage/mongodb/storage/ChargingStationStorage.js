@@ -218,10 +218,10 @@ class ChargingStationStorage {
 
 	static async handleSaveConfiguration(configuration) {
 		// Modify
-	    await _db.collection('configurations').findOneAndUpdate(
+    await _db.collection('configurations').findOneAndUpdate(
 			{"_id": configuration.chargeBoxID},
 			{$set: {
-				configuration: configuration.configurationKey,
+				configuration: configuration.configuration,
 				timestamp: Utils.convertToDate(configuration.timestamp)
 			}},
 			{upsert: true, new: true, returnOriginal: false});

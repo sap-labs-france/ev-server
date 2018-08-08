@@ -1,3 +1,4 @@
+const User = require('../../../model/User');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const AppError = require('../../../exception/AppError');
@@ -6,21 +7,21 @@ const Authorizations = require('../../../authorization/Authorizations');
 const ChargingStationSecurity = require('./security/ChargingStationSecurity');
 
 class ChargingStationService {
-	static handleUpdateChargingStationParams(action, req, res, next) {
-		// Filter
-		let filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest( req.body, req.user );
-		let chargingStation;
-		// Check email
-		global.storage.getChargingStation(filteredRequest.id).then((foundChargingStation) => {
-			chargingStation = foundChargingStation;
+
+	static async handleUpdateChargingStationParams(action, req, res, next) {
+		try {
+				// Filter
+			let filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest( req.body, req.user );
+			// Check email
+			let chargingStation = await global.storage.getChargingStation(filteredRequest.id);
 			if (!chargingStation) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Charging Station with ID '${filteredRequest.id}' does not exist anymore`,
 					550, "ChargingStationService", "handleUpdateChargingStationParams");
 			}
+			// Check Auth
 			if (!Authorizations.canUpdateChargingStation(req.user, chargingStation.getModel())) {
-			// Check auth
 				// Not Authorized!
 				throw new AppAuthError(
 					Authorizations.ACTION_UPDATE,
@@ -34,18 +35,12 @@ class ChargingStationService {
 			// Update Nb Phase
 			chargingStation.setNumberOfConnectedPhase(filteredRequest.numberOfConnectedPhase);
 			// Update Power
-			return chargingStation.updateConnectorsPower(true);
-		}).then(() => {
-			// Get the logged user
-			return global.storage.getUser(req.user.id);
-		// Logged User
-		}).then((loggedUser) => {
+			await chargingStation.updateConnectorsPower();
 			// Update timestamp
-			chargingStation.setLastChangedBy(loggedUser);
+			chargingStation.setLastChangedBy(new User({'id': req.user.id}));
 			chargingStation.setLastChangedOn(new Date());
 			// Update
-			return chargingStation.save();
-		}).then((updatedChargingStation) => {
+			let updatedChargingStation = await chargingStation.save();
 			// Log
 			Logging.logSecurityInfo({
 				source: updatedChargingStation.getID(),
@@ -55,14 +50,15 @@ class ChargingStationService {
 				action: action, detailedMessages: {
 					"numberOfConnectedPhase": updatedChargingStation.getNumberOfConnectedPhase(),
 					"chargingStationURL": updatedChargingStation.getChargingStationURL()
-				}});
+				}
+			});
 			// Ok
 			res.json({status: `Success`});
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
 	static handleGetChargingStationConfiguration(action, req, res, next) {
@@ -138,13 +134,15 @@ class ChargingStationService {
 					req.user);
 			}
 			// Get the Config
-			let configuration = await chargingStation.requestGetConfiguration();
-			// Save it
-			await chargingStation.saveConfiguration(configuration);
+			let result = await chargingStation.requestAndSaveConfiguration();
 			// Return the result
-			res.json({status: 'Accepted'});
+			res.json(result);
 			next();
 		} catch (err) {
+			console.log("ERROR");
+			// Get the Config
+			let configuration = await chargingStation.requestGetConfiguration();
+			
 			// Log
 			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
 		}
