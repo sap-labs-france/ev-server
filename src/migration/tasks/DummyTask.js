@@ -1,20 +1,7 @@
-const moment = require('moment');
-
 class DummyTask {
 	migrate(config={}) {
-		return new Promise((fulfill, reject) => {
-			// Start time
-			let startTaskTime = moment();
-
-			// Execute the migration ------------------------------------------
-			// -----------------------------------------------------------------
-
-			// End time
-			let totalTaskTimeSecs = moment.duration(moment().diff(startTaskTime)).asSeconds();
-
-			// Ok
-			fulfill({ "totalTaskTimeSecs": totalTaskTimeSecs });
-		});
+		for (let index = 0; index < 100000000; index++) {
+		}
 	}
 
 	getVersion() {

@@ -29,88 +29,79 @@ switch (storageConfig.implementation) {
 		console.log(`Storage Server implementation '${storageConfig.implementation}' not supported!`);
 }
 
-// -----------------------------------------------------------------------------
-// Start the DB
-// -----------------------------------------------------------------------------
-global.storage.start().then(() => {
-	// ---------------------------------------------------------------------------
-	// Check and trigger migration
-	// ---------------------------------------------------------------------------
-	MigrationHandler.migrate().then((results) => {
-		// ---------------------------------------------------------------------------
-		// Import Users
-		// ---------------------------------------------------------------------------
+// Start
+Bootstrap.start();
+
+class Bootstrap {
+	static async start() {
 		try {
-			// Import users
-			Users.importUsers();
-		} catch (err) {
+			// Connect to the the DB
+			await global.storage.start();
+		
+			// Check and trigger migration
+			await MigrationHandler.migrate();
+		
+			// Import Users
+			try {
+				// Import users
+				Users.importUsers();
+			} catch (err) {
+				// Log
+				Logging.logError({
+					module: "ImportUsersTask",
+					method: "run", message: `Cannot import users: ${err.toString()}`,
+					detailedMessages: err.stack });
+			}
+		
+			// Get all configs
+			let centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
+			let centralSystemsConfig = Configuration.getCentralSystemsConfig();
+			let chargingStationConfig = Configuration.getChargingStationConfig();
+		
+			// Start REST Server
+			if (centralSystemRestConfig) {
+				// Create the server
+				let centralRestServer = new CentralRestServer(centralSystemRestConfig, chargingStationConfig);
+				// Set to database for Web Socket Notifications
+				global.storage.setCentralRestServer(centralRestServer);
+				// Start it
+				await centralRestServer.start();
+			}
+		
+			// -------------------------------------------------------------------------
+			// Instanciate central servers
+			// -------------------------------------------------------------------------
+			if (centralSystemsConfig) {
+				// Start
+				for (const centralSystemConfig of centralSystemsConfig) {
+					let centralSystemServer;
+					// Check implementation
+					switch (centralSystemConfig.implementation) {
+						// SOAP
+						case 'soap':
+							// Create implementation
+							centralSystemServer = new SoapCentralSystemServer(centralSystemConfig, chargingStationConfig);
+							// Start
+							await centralSystemServer.start();
+							break;
+						// Not Found
+						default:
+							console.log(`Central System Server implementation '${centralSystemConfig.implementation}' not found!`);
+					}
+				};
+			}
+		
+			// -------------------------------------------------------------------------
+			// Init the Scheduler
+			// -------------------------------------------------------------------------
+			SchedulerManager.init();
+		
+		} catch (error) {
 			// Log
 			Logging.logError({
-				module: "ImportUsersTask",
-				method: "run", message: `Cannot import users: ${err.toString()}`,
-				detailedMessages: err.stack });
+				source: "BootStrap", module: "start", method: "-", action: "StartServer",
+				message: `Unexpected exception: ${error.toString()}` });
+			console.log(`Unexpected exception: ${error.toString()}`);
 		}
-
-		// -------------------------------------------------------------------------
-		// Create the Central Systems (Charging Stations)
-		// -------------------------------------------------------------------------
-		let centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
-		let centralSystemsConfig = Configuration.getCentralSystemsConfig();
-		let chargingStationConfig = Configuration.getChargingStationConfig();
-		let advancedConfig = Configuration.getAdvancedConfig();
-
-		// -------------------------------------------------------------------------
-		// Start the Central Rest System (Front-end REST service)
-		// -------------------------------------------------------------------------
-		// Provided?
-		if (centralSystemRestConfig) {
-			// Create the server
-			let centralRestServer = new CentralRestServer(centralSystemRestConfig, chargingStationConfig);
-			// Set to database for Web Socket Notifications
-			global.storage.setCentralRestServer(centralRestServer);
-			// Start it
-			centralRestServer.start();
-		}
-
-		// -------------------------------------------------------------------------
-		// Instanciate central servers
-		// -------------------------------------------------------------------------
-		if (centralSystemsConfig) {
-			// Start
-			centralSystemsConfig.forEach((centralSystemConfig) => {
-				let centralSystemServer;
-				// Check implementation
-				switch (centralSystemConfig.implementation) {
-					// SOAP
-					case 'soap':
-						// Create implementation
-						centralSystemServer = new SoapCentralSystemServer(centralSystemConfig, chargingStationConfig);
-						// Start
-						centralSystemServer.start();
-						break;
-					// Not Found
-					default:
-						console.log(`Central System Server implementation '${centralSystemConfig.implementation}' not found!`);
-				}
-			});
-		}
-
-		// -------------------------------------------------------------------------
-		// Start the Scheduler
-		// -------------------------------------------------------------------------
-		SchedulerManager.init();
-	}).catch((error) => {
-		// Log in the console also
-		console.log(error);
-		// Log
-		Logging.logError({
-			source: "BootStrap", module: "start", method: "-", action: "Migrate",
-			message: `Error occurred during the migration: ${error.toString()}` });
-	});
-}).catch((error) => {
-	// Log
-	Logging.logError({
-		source: "BootStrap", module: "start", method: "-", action: "StartDatabase",
-		message: `Cannot connect to '${storageConfig.implementation}': ${error.toString()}` });
-	console.log(`Cannot connect to '${storageConfig.implementation}': ${error.toString()}`);
-});
+	}
+}
