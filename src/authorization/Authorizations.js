@@ -76,7 +76,7 @@ module.exports = {
 	},
 
 	// Build Auth
-	buildAuthorizations(user) {
+	async buildAuthorizations(user) {
 		// Password OK
 		let companies = [],
 			sites,
@@ -85,285 +85,234 @@ module.exports = {
 			users = [];
 
 		// Get sites
-		return user.getSites().then((foundSites) => {
-			sites = foundSites;
-			if (sites.length == 0) {
-				return Promise.resolve([]);
-			}
-			// Get all the companies
-			let proms = [];
-			sites.forEach((site) => {
-				proms.push(site.getCompany());
-			});
-			return Promise.all(proms);
-		}).then((foundCompanyProms) => {
-			// Merge results
-			foundCompanyProms.forEach((foundCompanyProm) => {
-				companies.push(foundCompanyProm);
-			});
-			// Get all the site areas
-			let proms = [];
-			sites.forEach((site) => {
-				proms.push(site.getSiteAreas());
-			})
-			return Promise.all(proms);
-		}).then((foundSiteAreasProms) => {
-			// Merge results
-			foundSiteAreasProms.forEach((foundSiteAreasProm) => {
-				siteAreas = siteAreas.concat(foundSiteAreasProm);
-			});
-			if (siteAreas.length == 0) {
-				return Promise.resolve([]);
-			}
-			// Get all the charging stations
-			let proms = [];
-			siteAreas.forEach((siteArea) => {
-				proms.push(siteArea.getChargingStations());
-			})
-			return Promise.all(proms);
-		}).then((foundChargingStationsProms) => {
-			// Merge results
-			foundChargingStationsProms.forEach((foundChargingStationsProm) => {
-				chargingStations = chargingStations.concat(foundChargingStationsProm);
-			});
-			// Convert to IDs
-			let companyIDs = companies.map((company) => {
-				return company.getID();
-			});
-			let siteIDs = sites.map((site) => {
-				return site.getID();
-			});
-			let siteAreaIDs = siteAreas.map((siteArea) => {
-				return siteArea.getID();
-			});
-			let chargingStationIDs = chargingStations.map((chargingStation) => {
-				return chargingStation.getID();
-			});
-			// Get authorisation
-			let authsDefinition = AuthorizationsDefinition.getAuthorizations();
-			// Add user
-			users.push(user.getID());
-			// Parse the auth and replace values
-			let authsDefinitionParsed = Mustache.render(
-				authsDefinition,
-				{
-					"userID": users,
-					"companyID": companyIDs,
-					"siteID": siteIDs,
-					"siteAreaID": siteAreaIDs,
-					"chargingStationID": chargingStationIDs,
-					"trim": () => {
-						return (text, render) => {
-							// trim trailing comma and whitespace
-							return render(text).replace(/(,\s*$)/g, '');
-						}
+		sites = await user.getSites();
+		// Get all the companies and site areas
+		for (const site of sites) {
+			companies.push(await site.getCompany());
+			siteAreas.push(...await site.getSiteAreas());
+		}
+		// Get all the charging stations
+		for (const siteArea of siteAreas) {
+			chargingStations.push(...await siteArea.getChargingStations());
+		}
+		// Convert to IDs
+		let companyIDs = companies.map((company) => {
+			return company.getID();
+		});
+		let siteIDs = sites.map((site) => {
+			return site.getID();
+		});
+		let siteAreaIDs = siteAreas.map((siteArea) => {
+			return siteArea.getID();
+		});
+		let chargingStationIDs = chargingStations.map((chargingStation) => {
+			return chargingStation.getID();
+		});
+		// Get authorisation
+		let authsDefinition = AuthorizationsDefinition.getAuthorizations();
+		// Add user
+		users.push(user.getID());
+		// Parse the auth and replace values
+		let authsDefinitionParsed = Mustache.render(
+			authsDefinition,
+			{
+				"userID": users,
+				"companyID": companyIDs,
+				"siteID": siteIDs,
+				"siteAreaID": siteAreaIDs,
+				"chargingStationID": chargingStationIDs,
+				"trim": () => {
+					return (text, render) => {
+						// trim trailing comma and whitespace
+						return render(text).replace(/(,\s*$)/g, '');
 					}
 				}
-			);
-			let userAuthDefinition = this.getAuthorizationFromRoleID(
-				JSON.parse(authsDefinitionParsed), user.getRole());
-			// Compile auths of the role
-			let compiledAuths = compileProfile(userAuthDefinition.auths);
-			// Return
-			return compiledAuths;
-		});
+			}
+		);
+		let userAuthDefinition = this.getAuthorizationFromRoleID(
+			JSON.parse(authsDefinitionParsed), user.getRole());
+		// Compile auths of the role
+		let compiledAuths = compileProfile(userAuthDefinition.auths);
+		// Return
+		return compiledAuths;
 	},
 
-	getOrCreateUserByTagID(chargingStation, siteArea, tagID, action) {
+	async getOrCreateUserByTagID(chargingStation, siteArea, tagID, action) {
 		let newUserCreated = false;
 		// Get the user
-		return global.storage.getUserByTagId(tagID).then((foundUser) => {
-			// Found?
-			if (!foundUser) {
-				// No: Create an empty user
-				var newUser = new User({
-					name: (siteArea.isAccessControlEnabled() ? "Unknown" : "Anonymous"),
-					firstName: "User",
-					status: (siteArea.isAccessControlEnabled() ? Users.USER_STATUS_PENDING : Users.USER_STATUS_ACTIVE),
-					role: Users.USER_ROLE_BASIC,
-					email: tagID + "@chargeangels.fr",
-					tagIDs: [tagID],
-					createdOn: new Date().toISOString()
-				});
-				// Set the flag
-				newUserCreated = true;
-				// Save the user
-				return newUser.save();
-			// Check User Deleted?
-			} else if (foundUser.getStatus() == Users.USER_STATUS_DELETED) {
-				// Restore it
-				foundUser.setDeleted(false);
-				// Set default user's value
-				foundUser.setStatus((siteArea.isAccessControlEnabled() ? Users.USER_STATUS_INACTIVE : Users.USER_STATUS_ACTIVE));
-				foundUser.setName((siteArea.isAccessControlEnabled() ? "Unknown" : "Anonymous"));
-				foundUser.setFirstName("User");
-				foundUser.setEMail(tagID + "@chargeangels.fr");
-				foundUser.setPhone("");
-				foundUser.setMobile("");
-				foundUser.setImage("");
-				foundUser.setINumber("");
-				foundUser.setCostCenter("");
-				// Log
-				Logging.logSecurityInfo({
-					user: foundUser,
-					module: "Authorizations", method: "getOrCreateUserByTagID",
-					message: `User with ID '${foundUser.getID()}' has been restored`,
-					action: action});
-				// Save
-				return foundUser.save();
-			} else {
-				return foundUser;
-			}
-		// User -----------------------------------------------
-		}).then((foundUser) => {
-			let user = foundUser;
-			// New User?
-			if (newUserCreated) {
-				// Notify
-				NotificationHandler.sendUnknownUserBadged(
-					Utils.generateGUID(),
-					chargingStation.getModel(),
-					{
-						"chargingBoxID": chargingStation.getID(),
-						"badgeId": tagID,
-						"evseDashboardURL" : Utils.buildEvseURL(),
-						"evseDashboardUserURL" : Utils.buildEvseUserURL(user)
-					}
-				);
-			}
-			// Access Control enabled?
-			if (newUserCreated && siteArea.isAccessControlEnabled()) {
-				// Yes
-				return Promise.reject( new AppError(
-					chargingStation.getID(),
-					`User with Tag ID '${tagID}' not found but saved as inactive user`,
-					"Authorizations", "getOrCreateUserByTagID",
-					null, user.getModel()
-				));
-			}
-			// Check User status
-			if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
-				// Reject but save ok
-				return Promise.reject( new AppError(
-					chargingStation.getID(),
-					`User with TagID '${tagID}' is '${Users.getStatusDescription(user.getStatus())}'`, 500,
-					"Authorizations", "getOrCreateUserByTagID",
-					null, user.getModel()) );
-			}
-			return user;
-		});
+		let user = await global.storage.getUserByTagId(tagID);
+		// Found?
+		if (!user) {
+			// No: Create an empty user
+			newUser = new User({
+				name: (siteArea.isAccessControlEnabled() ? "Unknown" : "Anonymous"),
+				firstName: "User",
+				status: (siteArea.isAccessControlEnabled() ? Users.USER_STATUS_PENDING : Users.USER_STATUS_ACTIVE),
+				role: Users.USER_ROLE_BASIC,
+				email: tagID + "@chargeangels.fr",
+				tagIDs: [tagID],
+				createdOn: new Date().toISOString()
+			});
+			// Set the flag
+			newUserCreated = true;
+			// Save the user
+			user = await newUser.save();
+		// Check User Deleted?
+		} else if (user.getStatus() == Users.USER_STATUS_DELETED) {
+			// Restore it
+			user.setDeleted(false);
+			// Set default user's value
+			user.setStatus((siteArea.isAccessControlEnabled() ? Users.USER_STATUS_INACTIVE : Users.USER_STATUS_ACTIVE));
+			user.setName((siteArea.isAccessControlEnabled() ? "Unknown" : "Anonymous"));
+			user.setFirstName("User");
+			user.setEMail(tagID + "@chargeangels.fr");
+			user.setPhone("");
+			user.setMobile("");
+			user.setImage("");
+			user.setINumber("");
+			user.setCostCenter("");
+			// Log
+			Logging.logSecurityInfo({
+				user: user,
+				module: "Authorizations", method: "getOrCreateUserByTagID",
+				message: `User with ID '${user.getID()}' has been restored`,
+				action: action
+			});
+			// Save
+			user = user.save();
+		}
+		// New User?
+		if (newUserCreated) {
+			// Notify
+			NotificationHandler.sendUnknownUserBadged(
+				Utils.generateGUID(),
+				chargingStation.getModel(),
+				{
+					"chargingBoxID": chargingStation.getID(),
+					"badgeId": tagID,
+					"evseDashboardURL" : Utils.buildEvseURL(),
+					"evseDashboardUserURL" : Utils.buildEvseUserURL(user)
+				}
+			);
+		}
+		// Access Control enabled?
+		if (newUserCreated && siteArea.isAccessControlEnabled()) {
+			// Yes
+			return Promise.reject( new AppError(
+				chargingStation.getID(),
+				`User with Tag ID '${tagID}' not found but saved as inactive user`,
+				"Authorizations", "getOrCreateUserByTagID",
+				null, user.getModel()
+			));
+		}
+		// Check User status
+		if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
+			// Reject but save ok
+			return Promise.reject( new AppError(
+				chargingStation.getID(),
+				`User with TagID '${tagID}' is '${Users.getStatusDescription(user.getStatus())}'`, 500,
+				"Authorizations", "getOrCreateUserByTagID",
+				null, user.getModel()) );
+		}
+		return user;
 	},
 
-	checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, tagID, alternateTagID) {
-		// Check first if the site area access control is active
-		let currentUser, user, alternateUser, site, siteArea;
+	async checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, tagID, alternateTagID) {
 		// Site Area -----------------------------------------------
-		return chargingStation.getSiteArea().then((foundSiteArea) => {
-			siteArea = foundSiteArea;
-			// Site is mandatory
-			if (!siteArea) {
-				// Reject Site Not Found
-				throw new AppError(
-					chargingStation.getID(),
-					`Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`, 525,
-					"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
-					null, null);
-			}
-			// Get and Check User
-			return this.getOrCreateUserByTagID(chargingStation, siteArea, tagID, action);
+		// Check first if the site area access control is active
+		let siteArea = await chargingStation.getSiteArea();
+		// Site is mandatory
+		if (!siteArea) {
+			// Reject Site Not Found
+			throw new AppError(
+				chargingStation.getID(),
+				`Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`, 525,
+				"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
+				null, null);
+		}
 		// User -------------------------------------------------
-		}).then((foundUser) => {
-			// Set
-			user = foundUser;
-			// Get and Check Alternate User
-			if (alternateTagID) {
-				return this.getOrCreateUserByTagID(chargingStation, siteArea, alternateTagID, action);
-			}
-		// Alternate User --------------------------------------
-		}).then((foundAlternateUser) => {
-			// Set
-			alternateUser = foundAlternateUser;
-			// Set current user
-			currentUser = (alternateUser ? alternateUser : user);
-			// Check Auth
-			return this.buildAuthorizations(currentUser);
-		}).then((auths) => {
-			// Set
-			currentUser.setAuthorisations(auths);
-			// Get the Charge Box' Site
-			return siteArea.getSite(null, true);
-		// Site -----------------------------------------------
-		}).then((foundSite) => {
-			site = foundSite;
-			if (!site) {
-				// Reject Site Not Found
-				throw new AppError(
-					chargingStation.getID(),
-					`Site Area '${siteArea.getName()}' is not assigned to a Site!`, 525,
-					"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
-					null, user.getModel());
-			}
-			// Get Users
-			return site.getUsers();
-		}).then((siteUsers) => {
-			// Check User ------------------------------------------
-			let foundUser = siteUsers.find((siteUser) => {
-				return siteUser.getID() == user.getID();
-			});
-			// User not found and Access Control Enabled?
-			if (!foundUser && siteArea.isAccessControlEnabled()) {
-				// Yes: Reject the User
-				throw new AppError(
-					chargingStation.getID(),
-					`User is not assigned to the Site '${site.getName()}'!`, 525,
-					"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
-					null, user.getModel());
-			}
-			// Check Alternate User --------------------------------
-			let foundAlternateUser;
-			if (alternateUser) {
-				foundAlternateUser = siteUsers.find((siteUser) => {
-					return siteUser.getID() == alternateUser.getID();
-				});
-			}
-			// Alternate User not found and Access Control Enabled?
-			if (alternateUser && !foundAlternateUser && siteArea.isAccessControlEnabled()) {
-				// Reject the User
-				throw new AppError(
-					chargingStation.getID(),
-					`User is not assigned to the Site '${site.getName()}'!`, 525,
-					"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
-					null, alternateUser.getModel());
-			}
-			// Check if users are differents
-			if (alternateUser && (user.getID() != alternateUser.getID()) &&
-					!alternateUser.isAdmin() && !site.isAllowAllUsersToStopTransactionsEnabled()) {
-				// Reject the User
-				throw new AppError(
-					chargingStation.getID(),
-					`User '${alternateUser.getFullName()}' is not allowed to perform '${action}' on User '${user.getFullName()}' on Site '${site.getName()}'!`,
-					525, "Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
-					alternateUser.getModel(), user.getModel());
-			}
-			// Can perform action?
-			if (!this.canPerformActionOnChargingStation(
-					currentUser.getModel(),
-					chargingStation.getModel(),
-					action)) {
-				// Not Authorized!
-				throw new AppAuthError(
-					action,
-					Constants.ENTITY_CHARGING_STATION,
-					chargingStation.getID(),
-					500, "Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
-					currentUser.getModel());
-			}
-			// Return
-			return {
-				"user": user,
-				"alternateUser": alternateUser
-			};
+		// Get and Check User
+		let user = await this.getOrCreateUserByTagID(chargingStation, siteArea, tagID, action);
+		let alternateUser;
+		// Get and Check Alternate User
+		if (alternateTagID) {
+			alternateUser = await this.getOrCreateUserByTagID(chargingStation, siteArea, alternateTagID, action);
+		}
+		// Set current user
+		let currentUser = (alternateUser ? alternateUser : user);
+		// Check Auth
+		auths = await this.buildAuthorizations(currentUser);
+		// Set
+		currentUser.setAuthorisations(auths);
+		// Get the Site
+		let site = await siteArea.getSite(null, true);
+		if (!site) {
+			// Reject Site Not Found
+			throw new AppError(
+				chargingStation.getID(),
+				`Site Area '${siteArea.getName()}' is not assigned to a Site!`, 525,
+				"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
+				null, user.getModel());
+		}
+		// Get Users
+		siteUsers = await site.getUsers();
+		// Check User ------------------------------------------
+		let foundUser = siteUsers.find((siteUser) => {
+			return siteUser.getID() == user.getID();
 		});
+		// User not found and Access Control Enabled?
+		if (!foundUser && siteArea.isAccessControlEnabled()) {
+			// Yes: Reject the User
+			throw new AppError(
+				chargingStation.getID(),
+				`User is not assigned to the Site '${site.getName()}'!`, 525,
+				"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
+				null, user.getModel());
+		}
+		// Check Alternate User --------------------------------
+		let foundAlternateUser;
+		if (alternateUser) {
+			foundAlternateUser = siteUsers.find((siteUser) => {
+				return siteUser.getID() == alternateUser.getID();
+			});
+		}
+		// Alternate User not found and Access Control Enabled?
+		if (alternateUser && !foundAlternateUser && siteArea.isAccessControlEnabled()) {
+			// Reject the User
+			throw new AppError(
+				chargingStation.getID(),
+				`User is not assigned to the Site '${site.getName()}'!`, 525,
+				"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
+				null, alternateUser.getModel());
+		}
+		// Check if users are differents
+		if (alternateUser && (user.getID() != alternateUser.getID()) &&
+				!alternateUser.isAdmin() && !site.isAllowAllUsersToStopTransactionsEnabled()) {
+			// Reject the User
+			throw new AppError(
+				chargingStation.getID(),
+				`User '${alternateUser.getFullName()}' is not allowed to perform '${action}' on User '${user.getFullName()}' on Site '${site.getName()}'!`,
+				525, "Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
+				alternateUser.getModel(), user.getModel());
+		}
+		// Can perform action?
+		if (!this.canPerformActionOnChargingStation(
+				currentUser.getModel(),
+				chargingStation.getModel(),
+				action)) {
+			// Not Authorized!
+			throw new AppAuthError(
+				action,
+				Constants.ENTITY_CHARGING_STATION,
+				chargingStation.getID(),
+				500, "Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
+				currentUser.getModel());
+		}
+		// Return
+		return {
+			"user": user,
+			"alternateUser": alternateUser
+		};
 	},
 
 	// Read the config file

@@ -294,7 +294,6 @@ class User {
 			this.setPasswordResetHash(Users.ANONIMIZED_VALUE);
 			this.setPhone(Users.ANONIMIZED_VALUE);
 			this.setMobile(Users.ANONIMIZED_VALUE);
-			this.setTagIDs([]);
 			this.setINumber(Users.ANONIMIZED_VALUE);
 			this.setCostCenter(Users.ANONIMIZED_VALUE);
 			this.setImage(null);
