@@ -1,85 +1,80 @@
-const Authorizations = require('../../../authorization/Authorizations');
 const Logging = require('../../../utils/Logging');
-const Utils = require('../../../utils/Utils');
 const moment = require('moment');
 const Constants = require('../../../utils/Constants');
 const StatisticSecurity = require('./security/StatisticSecurity');
 
 class StatisticService {
 	
-	static handleUserUsageStatistics(action, req, res, next) {
-		let filter = {stop: {$exists: true}};
-		// Filter
-		let filteredRequest = StatisticSecurity.filterUserStatisticsRequest(req.query, req.user);
-		// Date
-		if (filteredRequest.Year) {
-			filter.startDateTime = moment().year(filteredRequest.Year).startOf('year').toDate().toISOString();
-			filter.endDateTime = moment().year(filteredRequest.Year).endOf('year').toDate().toISOString();
-		} else {
-			filter.startDateTime = moment().startOf('year').toDate().toISOString();
-			filter.endDateTime = moment().endOf('year').toDate().toISOString();
-		}
-		// Get Stats
-		global.storage.getUserStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_USAGE).then((transactions) => {
+	static async handleUserUsageStatistics(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = StatisticSecurity.filterUserStatisticsRequest(req.query, req.user);
+			// Build filter
+			let filter = StatisticService.buildFilter(filteredRequest);
+			// Get Stats
+			let transactions = await global.storage.getUserStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_USAGE);
 			// Return
 			res.json(transactions);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetUserConsumptionStatistics(action, req, res, next) {
-		let filter = {stop: {$exists: true}};
-		// Filter
-		let filteredRequest = StatisticSecurity.filterUserStatisticsRequest(req.query, req.user);
-		// Date
-		if (filteredRequest.Year) {
-			filter.startDateTime = moment().year(filteredRequest.Year).startOf('year').toDate().toISOString();
-			filter.endDateTime = moment().year(filteredRequest.Year).endOf('year').toDate().toISOString();
-		} else {
-			filter.startDateTime = moment().startOf('year').toDate().toISOString();
-			filter.endDateTime = moment().endOf('year').toDate().toISOString();
-		}
-		// Get Stats
-		global.storage.getUserStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_CONSUMPTION).then((transactions) => {
+	static async handleGetUserConsumptionStatistics(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = StatisticSecurity.filterUserStatisticsRequest(req.query, req.user);
+			// Build filter
+			let filter = StatisticService.buildFilter(filteredRequest);
+			// Get Stats
+			let transactions = await global.storage.getUserStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_CONSUMPTION);
 			// Return
 			res.json(transactions);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetChargingStationUsageStatistics(action, req, res, next) {
-		let filter = {stop: {$exists: true}};
-		// Filter
-		let filteredRequest = StatisticSecurity.filterChargingStationStatisticsRequest(req.query, req.user);
-		// Date
-		if (filteredRequest.Year) {
-			filter.startDateTime = moment().year(filteredRequest.Year).startOf('year').toDate().toISOString();
-			filter.endDateTime = moment().year(filteredRequest.Year).endOf('year').toDate().toISOString();
-		} else {
-			filter.startDateTime = moment().startOf('year').toDate().toISOString();
-			filter.endDateTime = moment().endOf('year').toDate().toISOString();
-		}
-		// Get Stats
-		global.storage.getChargingStationStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_USAGE).then((transactions) => {
+	static async handleGetChargingStationUsageStatistics(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = StatisticSecurity.filterChargingStationStatisticsRequest(req.query, req.user);
+			// Build filter
+			let filter = StatisticService.buildFilter(filteredRequest);
+			// Get Stats
+			let transactions = await global.storage.getChargingStationStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_USAGE);
 			// Return
 			res.json(transactions);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetChargingStationConsumptionStatistics(action, req, res, next) {
+	static async handleGetChargingStationConsumptionStatistics(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = StatisticSecurity.filterChargingStationStatisticsRequest(req.query, req.user);
+			// Build filter
+			let filter = StatisticService.buildFilter(filteredRequest);
+			// Get Stats
+			let transactions = await global.storage.getChargingStationStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_CONSUMPTION);
+			// Return
+			res.json(transactions);
+			next();
+		} catch (error) {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
+	}
+
+	static buildFilter(filteredRequest) {
 		let filter = {stop: {$exists: true}};
-		// Filter
-		let filteredRequest = StatisticSecurity.filterChargingStationStatisticsRequest(req.query, req.user);
 		// Date
 		if (filteredRequest.Year) {
 			filter.startDateTime = moment().year(filteredRequest.Year).startOf('year').toDate().toISOString();
@@ -88,16 +83,8 @@ class StatisticService {
 			filter.startDateTime = moment().startOf('year').toDate().toISOString();
 			filter.endDateTime = moment().endOf('year').toDate().toISOString();
 		}
-		// Get Stats
-		global.storage.getChargingStationStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_CONSUMPTION).then((transactions) => {
-			// Return
-			res.json(transactions);
-			next();
-		}).catch((err) => {
-			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
-	}
+		return filter
+	} 
 }
 
 module.exports = StatisticService;
