@@ -279,8 +279,8 @@ class ChargingStationService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
-					550, 'ChargingStationService', 'handleAction', req.user);
+					`Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`, 550, 
+					'ChargingStationService', 'handleAction', req.user);
 			}
 			let result;
 			if (action === 'StopTransaction' ||
@@ -290,8 +290,8 @@ class ChargingStationService {
 				if (!transaction) {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
-						`Transaction with ID '${filteredRequest.TransactionId}' does not exist`,
-						560, 'ChargingStationService', 'handleAction', req.user);
+						`Transaction with ID '${filteredRequest.TransactionId}' does not exist`, 560, 
+						'ChargingStationService', 'handleAction', req.user);
 				}
 				// Add connector ID
 				filteredRequest.args.connectorId = transaction.connectorId;

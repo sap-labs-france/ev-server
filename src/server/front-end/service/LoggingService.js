@@ -13,7 +13,7 @@ class LoggingService {
 					Authorizations.ACTION_LIST,
 					Constants.ENTITY_LOGGINGS,
 					null,
-					560, "LoggingService", "handleGetLoggings",
+					560, 'LoggingService', 'handleGetLoggings',
 					req.user);
 			}
 			// Filter
@@ -47,7 +47,7 @@ class LoggingService {
 					Authorizations.ACTION_READ,
 					Constants.ENTITY_LOGGING,
 					null,
-					560, "LoggingService", "handleGetLogging",
+					560, 'LoggingService', 'handleGetLogging',
 					req.user);
 			}
 			// Return

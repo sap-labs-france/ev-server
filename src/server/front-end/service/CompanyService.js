@@ -21,7 +21,7 @@ class CompanyService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Company's ID must be provided`, 500, 
-					"CompanyService", "handleDeleteCompany", req.user);
+					'CompanyService', 'handleDeleteCompany', req.user);
 			}
 			// Get
 			let company = await global.storage.getCompany(filteredRequest.ID);
@@ -69,7 +69,7 @@ class CompanyService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Company's ID must be provided`, 500, 
-					"CompanyService", "handleGetCompany", req.user);
+					'CompanyService', 'handleGetCompany', req.user);
 			}
 			// Get it
 			let company = await global.storage.getCompany(filteredRequest.ID);
@@ -112,7 +112,7 @@ class CompanyService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Company's ID must be provided`, 500, 
-					"CompanyService", "handleGetCompanyLogo", req.user);
+					'CompanyService', 'handleGetCompanyLogo', req.user);
 			}
 			// Get it
 			let company = await global.storage.getCompany(filteredRequest.ID);

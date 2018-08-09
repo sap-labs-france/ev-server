@@ -12,7 +12,7 @@ class PricingService {
 				throw new AppAuthError(
 					action, Constants.ENTITY_PRICING,
 					null,
-					560, "PricingService", "handleGetPricing",
+					560, 'PricingService', 'handleGetPricing',
 					req.user);
 			}
 			// Get the Pricing
@@ -42,7 +42,7 @@ class PricingService {
 				throw new AppAuthError(
 					action, Constants.ENTITY_PRICING,
 					null,
-					560, "PricingService", "handleUpdatePricing",
+					560, 'PricingService', 'handleUpdatePricing',
 					req.user);
 			}
 			// Filter
@@ -53,7 +53,7 @@ class PricingService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The price ${filteredRequest.priceKWH} has not a correct format`, 500, 
-					"PricingService", "handleUpdatePricing", req.user);
+					'PricingService', 'handleUpdatePricing', req.user);
 			}
 			// Update
 			let pricing = {};
@@ -65,8 +65,8 @@ class PricingService {
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, action: action,
-				module: "PricingService",
-				method: "handleUpdatePricing",
+				module: 'PricingService',
+				method: 'handleUpdatePricing',
 				message: `Pricing has been updated to '${req.body.priceKWH} ${req.body.priceUnit}'`,
 				detailedMessages: req.body
 			});
