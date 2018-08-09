@@ -11,48 +11,50 @@ const Database = require('../../../utils/Database');
 const UserSecurity = require('./security/UserSecurity');
 
 class UserService {
-	static handleGetEndUserLicenseAgreement(action, req, res, next) {
-		// Filter
-		let filteredRequest = UserSecurity.filterEndUserLicenseAgreementRequest(req.query, req.user);
-		// Get it
-		global.storage.getEndUserLicenseAgreement(filteredRequest.Language).then((endUserLicenseAgreement) => {
+	static async handleGetEndUserLicenseAgreement(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = UserSecurity.filterEndUserLicenseAgreementRequest(req.query, req.user);
+			// Get it
+			let endUserLicenseAgreement = await global.storage.getEndUserLicenseAgreement(filteredRequest.Language);
 			res.json(
 				// Filter
 				UserSecurity.filterEndUserLicenseAgreementResponse(
 					endUserLicenseAgreement, req.user)
 			);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleDeleteUser(action, req, res, next) {
-		// Filter
-		let filteredRequest = UserSecurity.filterUserDeleteRequest(req.query, req.user);
-		// Check Mandatory fields
-		if(!filteredRequest.ID) {
-			Logging.logActionExceptionMessageAndSendResponse(
-				action, new Error(`The user's ID must be provided`), req, res, next);
-			return;
-		}
-		// Check email
-		let user;
-		global.storage.getUser(filteredRequest.ID).then((foundUser) => {
-			user = foundUser;
+	static async handleDeleteUser(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = UserSecurity.filterUserDeleteRequest(req.query, req.user);
+			// Check Mandatory fields
+			if(!filteredRequest.ID) {
+					// Not Found!
+					throw new AppError(
+						Constants.CENTRAL_SERVER,
+						`The User's ID must be provided`, 500, 
+						'UserService', 'handleDeleteUser', req.user);
+			}
+			// Check email
+			let user = await global.storage.getUser(filteredRequest.ID);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The user with ID '${filteredRequest.id}' does not exist anymore`,
-					550, "UserService", "handleDeleteUser");
+					`The user with ID '${filteredRequest.id}' does not exist anymore`, 550, 
+					'UserService', 'handleDeleteUser', req.user);
 			}
 			// Deleted
 			if (user.deleted) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The user with ID '${filteredRequest.id}' is logically deleted`,
-					550, "UserService", "handleDeleteUser");
+					`The user with ID '${filteredRequest.id}' is already deleted`, 550, 
+					'UserService', 'handleDeleteUser', req.user);
 			}
 			// Check auth
 			if (!Authorizations.canDeleteUser(req.user, user.getModel())) {
@@ -61,85 +63,77 @@ class UserService {
 					Authorizations.ACTION_DELETE,
 					Constants.ENTITY_USER,
 					user.getID(),
-					560, "UserService", "handleDeleteUser",
+					560, 
+					'UserService', 'handleDeleteUser',
 					req.user);
 			}
 			// Delete
-			return user.getSites(false, false, false, true);
-		}).then((sites) => {
-			let proms = [];
-			sites.forEach((site) => {
+			let sites = await user.getSites(false, false, false, true);
+			for (const site of sites) {
 				// Remove User
 				site.removeUser(user);
 				// Save
-				proms.push(site.save());
-			});
-			return Promise.all(proms);
-		}).then((results) => {
+				await site.save();
+			}
 			// Delete User
-			return user.delete();
-		}).then((result) => {
+			await user.delete();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, actionOnUser: user.getModel(),
-				module: "UserService", method: "handleDeleteUser",
+				module: 'UserService', method: 'handleDeleteUser',
 				message: `User with ID '${user.getID()}' has been deleted successfully`,
 				action: action});
 			// Ok
 			res.json({status: `Success`});
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleUpdateUser(action, req, res, next) {
-		let statusHasChanged=false;
-		// Filter
-		let filteredRequest = UserSecurity.filterUserUpdateRequest( req.body, req.user );
-		let user, newPasswordHashed;
-		// Check email
-		global.storage.getUser(filteredRequest.id).then((foundUser) => {
+	static async handleUpdateUser(action, req, res, next) {
+		try {
+			let statusHasChanged=false;
+			// Filter
+			let filteredRequest = UserSecurity.filterUserUpdateRequest( req.body, req.user );
 			// Check Mandatory fields
 			Users.checkIfUserValid(filteredRequest, req);
-			user = foundUser;
+			// Check email
+			let user = await global.storage.getUser(filteredRequest.id);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The user with ID '${filteredRequest.id}' does not exist anymore`,
-					550, "UserService", "handleUpdateUser");
+					`The user with ID '${filteredRequest.id}' does not exist anymore`, 550, 
+					'UserService', 'handleUpdateUser', req.user);
 			}
 			// Deleted?
 			if (user.deleted) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The user with ID '${filteredRequest.id}' is logically deleted`,
-					550, "UserService", "handleUpdateUser");
+					`The user with ID '${filteredRequest.id}' is logically deleted`, 550, 
+					'UserService', 'handleUpdateUser', req.user);
 			}
-		}).then(() => {
 			// Check email
-			return global.storage.getUserByEmail(filteredRequest.email);
-		}).then((userWithEmail) => {
+			let userWithEmail = await global.storage.getUserByEmail(filteredRequest.email);
 			// Check if EMail is already taken
 			if (userWithEmail && user.getID() !== userWithEmail.getID()) {
 				// Yes!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The email '${filteredRequest.email}' already exists`,
-					510, "UserService", "handleUpdateUser");
+					`The email '${filteredRequest.email}' already exists`, 510, 
+					'UserService', 'handleUpdateUser', req.user);
 			}
 			// Generate the password hash
-			return Users.hashPasswordBcrypt(filteredRequest.password);
-		}).then((passwordHashed) => {
-			newPasswordHashed = passwordHashed;
+			let newPasswordHashed = await Users.hashPasswordBcrypt(filteredRequest.password);
 			// Check auth
 			if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
 				throw new AppAuthError(
 					Authorizations.ACTION_UPDATE,
 					Constants.ENTITY_USER,
 					user.getID(),
-					560, "UserService", "handleUpdateUser",
+					560, 
+					'UserService', 'handleUpdateUser',
 					req.user, user);
 			}
 			// Check if Role is provided and has been changed
@@ -147,12 +141,10 @@ class UserService {
 					filteredRequest.role !== user.getRole() &&
 					req.user.role !== Users.USER_ROLE_ADMIN) {
 				// Role provided and not an Admin
-				Logging.logError({
-					user: req.user, actionOnUser: user.getModel(),
-					module: "UserService", method: "handleUpdateUser",
-					message: `User with role '${req.user.role}' tried to change the role to '${filteredRequest.role}' without having the Admin priviledge` });
-				// Override it
-				filteredRequest.role = user.getRole();
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`User with role '${req.user.role}' tried to change the role to '${filteredRequest.role}' without having the Admin priviledge`, 500, 
+					'UserService', 'handleUpdateUser', req.user);
 			}
 			// Check if Status has been changed
 			if (filteredRequest.status &&
@@ -160,41 +152,33 @@ class UserService {
 				// Right to change?
 				if (req.user.role !== Users.USER_ROLE_ADMIN) {
 					// Role provided and not an Admin
-					Logging.logError({
-						user: req.user, actionOnUser: user.getModel(),
-						module: "UserService", method: "handleUpdateUser",
-						message: `User with role '${req.user.role}' tried to update the status to '${filteredRequest.status}' without having the Admin priviledge` });
-					// Ovverride it
-					filteredRequest.status = user.getStatus();
+					throw new AppError(
+						Constants.CENTRAL_SERVER,
+						`User with role '${req.user.role}' tried to update the status to '${filteredRequest.status}' without having the Admin priviledge`, 500, 
+						'UserService', 'handleUpdateUser', req.user);
 				} else {
 					// Status changed
 					statusHasChanged = true;
 				}
 			}
-			// Get the logged user
-			return global.storage.getUser(req.user.id);
-		// Logged User
-		}).then((loggedUser) => {
 			// Update
 			Database.updateUser(filteredRequest, user.getModel());
 			// Update timestamp
-			user.setLastChangedBy(loggedUser);
+			user.setLastChangedBy(new User({'id': req.user.id}));
 			user.setLastChangedOn(new Date());
 			// Check the password
 			if (filteredRequest.password && filteredRequest.password.length > 0) {
 				// Update the password
 				user.setPassword(newPasswordHashed);
 			}
-			// Update User's Image
-			return user.saveImage();
-		}).then(() => {
 			// Update User
-			return user.save();
-		}).then((updatedUser) => {
+			let updatedUser = await user.save();
+			// Update User's Image
+			await user.saveImage();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, actionOnUser: updatedUser.getModel(),
-				module: "UserService", method: "handleUpdateUser",
+				module: 'UserService', method: 'handleUpdateUser',
 				message: `User has been updated successfully`,
 				action: action});
 			// Notify
@@ -204,43 +188,47 @@ class UserService {
 					Utils.generateGUID(),
 					updatedUser.getModel(),
 					{
-						"user": updatedUser.getModel(),
-						"evseDashboardURL" : Utils.buildEvseURL()
+						'user': updatedUser.getModel(),
+						'evseDashboardURL' : Utils.buildEvseURL()
 					},
-					updatedUser.getLocale());
+					updatedUser.getLocale()
+				);
 			}
 			// Ok
 			res.json({status: `Success`});
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetUser(action, req, res, next) {
-		// Filter
-		let filteredRequest = UserSecurity.filterUserRequest(req.query, req.user);
-		// User mandatory
-		if(!filteredRequest.ID) {
-			Logging.logActionExceptionMessageAndSendResponse(
-				action, new Error(`The User's ID is mandatory`), req, res, next);
-			return;
-		}
-		// Get the user
-		global.storage.getUser(filteredRequest.ID).then((user) => {
+	static async handleGetUser(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = UserSecurity.filterUserRequest(req.query, req.user);
+			// User mandatory
+			if(!filteredRequest.ID) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The User's ID must be provided`, 500, 
+					'UserService', 'handleGetUser', req.user);
+			}
+			// Get the user
+			let user = await global.storage.getUser(filteredRequest.ID);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The user with ID '${filteredRequest.id}' does not exist anymore`,
-					550, "UserService", "handleGetUser");
+					`The user with ID '${filteredRequest.id}' does not exist anymore`, 550, 
+					'UserService', 'handleGetUser', req.user);
 			}
 			// Deleted?
 			if (user.deleted) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The user with ID '${filteredRequest.id}' is logically deleted`,
-					550, "UserService", "handleGetUser");
+					`The user with ID '${filteredRequest.id}' is logically deleted`, 550, 
+					'UserService', 'handleGetUser', req.user);
 			}
 			// Check auth
 			if (!Authorizations.canReadUser(req.user, user.getModel())) {
@@ -249,7 +237,7 @@ class UserService {
 					Authorizations.ACTION_READ,
 					Constants.ENTITY_USER,
 					user.getID(),
-					560, "UserService", "handleGetUser",
+					560, 'UserService', 'handleGetUser',
 					req.user);
 			}
 			// Set the user
@@ -259,38 +247,38 @@ class UserService {
 					user.getModel(), req.user)
 			);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetUserImage(action, req, res, next) {
-		// Filter
-		let filteredRequest = UserSecurity.filterUserRequest(req.query, req.user);
-		// User mandatory
-		if(!filteredRequest.ID) {
-			Logging.logActionExceptionMessageAndSendResponse(
-				action, new Error(`The User's ID is mandatory`), req, res, next);
-			return;
-		}
-		// Get the logged user
-		let user;
-		global.storage.getUser(filteredRequest.ID).then((foundUser) => {
-			// Keep the user
-			user = foundUser;
+	static async handleGetUserImage(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = UserSecurity.filterUserRequest(req.query, req.user);
+			// User mandatory
+			if(!filteredRequest.ID) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The User's ID must be provided`, 500, 
+					'UserService', 'handleGetUser', req.user);
+			}
+			// Get the logged user
+			let user = await global.storage.getUser(filteredRequest.ID)
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The user with ID '${filteredRequest.ID}' does not exist anymore`,
-					550, "UserService", "handleGetUserImage");
+					`The user with ID '${filteredRequest.ID}' does not exist anymore`, 550, 
+					'UserService', 'handleGetUserImage', req.user);
 			}
 			// Deleted?
 			if (user.deleted) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The user with ID '${filteredRequest.ID}' is logically deleted`,
-					550, "UserService", "handleGetUserImage");
+					`The user with ID '${filteredRequest.ID}' is logically deleted`, 550, 
+					'UserService', 'handleGetUserImage', req.user);
 			}
 			// Check auth
 			if (!Authorizations.canReadUser(req.user, user.getModel())) {
@@ -299,62 +287,61 @@ class UserService {
 					Authorizations.ACTION_READ,
 					Constants.ENTITY_USER,
 					user.getID(),
-					560, "UserService", "handleGetUserImage",
+					560, 'UserService', 'handleGetUserImage',
 					req.user);
 			}
 			// Get the user image
-			return global.storage.getUserImage(filteredRequest.ID);
-		}).then((userImage) => {
-			// Found?
-			if (userImage) {
-				// Set the user
-				res.json(userImage);
-			} else {
-				res.json(null);
-			}
+			let userImage = await global.storage.getUserImage(filteredRequest.ID);
+			// Return 
+			res.json(userImage);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetUserImages(action, req, res, next) {
-		// Check auth
-		if (!Authorizations.canListUsers(req.user)) {
-			// Not Authorized!
-			throw new AppAuthError(
-				Authorizations.ACTION_LIST,
-				Constants.ENTITY_USERS,
-				null,
-				560, "UserService", "handleGetUserImages",
-				req.user);
-		}
-		// Get the user image
-		global.storage.getUserImages().then((userImages) => {
+	static async handleGetUserImages(action, req, res, next) {
+		try {
+			// Check auth
+			if (!Authorizations.canListUsers(req.user)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					Authorizations.ACTION_LIST,
+					Constants.ENTITY_USERS,
+					null,
+					560, 
+					'UserService', 'handleGetUserImages',
+					req.user);
+			}
+			// Get the user image
+			let userImages = await global.storage.getUserImages();
+			// Return
 			res.json(userImages);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetUsers(action, req, res, next) {
-		// Check auth
-		if (!Authorizations.canListUsers(req.user)) {
-			// Not Authorized!
-			throw new AppAuthError(
-				Authorizations.ACTION_LIST,
-				Constants.ENTITY_USERS,
-				null,
-				560, "UserService", "handleGetUsers",
-				req.user);
-		}
-		// Filter
-		let filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
-		// Get users
-		global.storage.getUsers(filteredRequest.Search, filteredRequest.SiteID, Constants.NO_LIMIT).then((users) => {
+	static async handleGetUsers(action, req, res, next) {
+		try {
+			// Check auth
+			if (!Authorizations.canListUsers(req.user)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					Authorizations.ACTION_LIST,
+					Constants.ENTITY_USERS,
+					null,
+					560, 
+					'UserService', 'handleGetUsers',
+					req.user);
+			}
+			// Filter
+			let filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
+			// Get users
+			let users = await global.storage.getUsers(filteredRequest.Search, filteredRequest.SiteID, Constants.NO_LIMIT);
 			var usersJSon = [];
 			users.forEach((user) => {
 				// Set the model
@@ -363,84 +350,76 @@ class UserService {
 			// Return
 			res.json(
 				// Filter
-				UserSecurity.filterUsersResponse(
-					usersJSon, req.user)
+				UserSecurity.filterUsersResponse(usersJSon, req.user)
 			);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleCreateUser(action, req, res, next) {
-		// Check auth
-		if (!Authorizations.canCreateUser(req.user)) {
-			// Not Authorized!
-			throw new AppAuthError(
-				Authorizations.ACTION_CREATE,
-				Constants.ENTITY_USER,
-				null,
-				560, "UserService", "handleCreateUser",
-				req.user);
-		}
-		// Filter
-		let filteredRequest = UserSecurity.filterUserCreateRequest( req.body, req.user );
-		if (!filteredRequest.role) {
-			// Set to default role
-			filteredRequest.role = Users.USER_ROLE_BASIC;
-			filteredRequest.status = Users.USER_STATUS_INACTIVE;
-		}
-		let loggedUser, newUser, user;
-		// Get the logged user
-		global.storage.getUser(req.user.id).then((foundLoggedUser) => {
+	static async handleCreateUser(action, req, res, next) {
+		try {
+			// Check auth
+			if (!Authorizations.canCreateUser(req.user)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					Authorizations.ACTION_CREATE,
+					Constants.ENTITY_USER,
+					null,
+					560, 
+					'UserService', 'handleCreateUser',
+					req.user);
+			}
+			// Filter
+			let filteredRequest = UserSecurity.filterUserCreateRequest( req.body, req.user );
+			if (!filteredRequest.role) {
+				// Set to default role
+				filteredRequest.role = Users.USER_ROLE_BASIC;
+				filteredRequest.status = Users.USER_STATUS_INACTIVE;
+			}
 			// Check Mandatory fields
 			Users.checkIfUserValid(filteredRequest, req);
-			// Set
-			loggedUser = foundLoggedUser;
 			// Get the email
-			return global.storage.getUserByEmail(filteredRequest.email);
-		}).then((foundUser) => {
+			let foundUser = await global.storage.getUserByEmail(filteredRequest.email);
 			if (foundUser) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The email '${filteredRequest.email}' already exists`,
-					510, "UserService", "handleCreateUser");
+					`The email '${filteredRequest.email}' already exists`, 510, 
+					'UserService', 'handleCreateUser', req.user);
 			}
 			// Generate a hash for the given password
-			return Users.hashPasswordBcrypt(filteredRequest.password);
-		}).then((newPasswordHashed) => {
+			let newPasswordHashed = await Users.hashPasswordBcrypt(filteredRequest.password);
 			// Create user
-			user = new User(filteredRequest);
+			let user = new User(filteredRequest);
 			// Set the password
 			if (filteredRequest.password) {
 				// Generate a hash
 				user.setPassword(newPasswordHashed);
 			}
 			// Update timestamp
-			user.setCreatedBy(loggedUser);
+			user.setCreatedBy(new User({'id': req.user.id}));
 			user.setCreatedOn(new Date());
 			// Save User
-			return user.save();
-		}).then((createdUser) => {
-			newUser = createdUser;
+			let newUser = await user.save();
 			// Update User's Image
 			newUser.setImage(user.getImage());
 			// Save
-			return newUser.saveImage();
-		}).then(() => {
+			await newUser.saveImage();
+			// Log
 			Logging.logSecurityInfo({
 				user: req.user, actionOnUser: newUser.getModel(),
-				module: "UserService", method: "handleCreateUser",
+				module: 'UserService', method: 'handleCreateUser',
 				message: `User with ID '${newUser.getID()}' has been created successfully`,
 				action: action});
 			// Ok
 			res.json({status: `Success`});
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 }
 

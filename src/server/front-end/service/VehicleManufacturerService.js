@@ -1,3 +1,4 @@
+const User = require('../../../model/User');
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
@@ -9,27 +10,27 @@ const VehicleManufacturer = require('../../../model/VehicleManufacturer');
 const VehicleManufacturerSecurity = require('./security/VehicleManufacturerSecurity');
 
 class VehicleManufacturerService {
-	static handleDeleteVehicleManufacturer(action, req, res, next) {
-		// Filter
-		let vehicleManufacturer;
-		let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerDeleteRequest(
-			req.query, req.user);
-		// Check Mandatory fields
-		if(!filteredRequest.ID) {
-			Logging.logActionExceptionMessageAndSendResponse(
-				action, new Error(`The Vehicle Manufacturer's ID must be provided`), req, res, next);
-			return;
-		}
-		// Get
-		global.storage.getVehicleManufacturer(filteredRequest.ID).then((foundVehicleManufacturer) => {
-			vehicleManufacturer = foundVehicleManufacturer;
-			// Found?
+	static async handleDeleteVehicleManufacturer(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerDeleteRequest(
+				req.query, req.user);
+			// Check Mandatory fields
+			if(!filteredRequest.ID) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Vehicle Manufacturer's ID must be provided`, 500, 
+					'VehicleManufacturerService', 'handleDeleteVehicleManufacturer', req.user);
+			}
+			// Get
+			let vehicleManufacturer = await global.storage.getVehicleManufacturer(filteredRequest.ID);
 			if (!vehicleManufacturer) {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Vehicle Manufacturer with ID '${filteredRequest.ID}' does not exist`,
-					550, "VehicleManufacturerService", "handleDeleteVehicleManufacturer");
+					`Vehicle Manufacturer with ID '${filteredRequest.ID}' does not exist`, 550, 
+					'VehicleManufacturerService', 'handleDeleteVehicleManufacturer', req.user);
 			}
 			// Check auth
 			if (!Authorizations.canDeleteVehicleManufacturer(req.user, vehicleManufacturer.getModel())) {
@@ -38,42 +39,45 @@ class VehicleManufacturerService {
 					Authorizations.ACTION_DELETE,
 					Constants.ENTITY_VEHICLE_MANUFACTURERS,
 					vehicleManufacturer.getID(),
-					560, "VehicleManufacturerService", "handleDeleteVehicleManufacturer",
+					560, 
+					'VehicleManufacturerService', 'handleDeleteVehicleManufacturer',
 					req.user);
 			}
 			// Delete
-			return vehicleManufacturer.delete();
-		}).then(() => {
+			await vehicleManufacturer.delete();
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "VehicleManufacturerService", method: "handleDeleteVehicleManufacturer",
+				user: req.user, module: 'VehicleManufacturerService', method: 'handleDeleteVehicleManufacturer',
 				message: `Vehicle Manufacturer '${vehicleManufacturer.getName()}' has been deleted successfully`,
 				action: action, detailedMessages: vehicleManufacturer});
 			// Ok
 			res.json({status: `Success`});
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetVehicleManufacturer(action, req, res, next) {
-		// Filter
-		let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerRequest(req.query, req.user);
-		// Charge Box is mandatory
-		if(!filteredRequest.ID) {
-			Logging.logActionExceptionMessageAndSendResponse(
-				action, new Error(`The Vehicle Manufacturer ID is mandatory`), req, res, next);
-			return;
-		}
-		// Get it
-		global.storage.getVehicleManufacturer(filteredRequest.ID).then((vehicleManufacturer) => {
+	static async handleGetVehicleManufacturer(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerRequest(req.query, req.user);
+			// Charge Box is mandatory
+			if(!filteredRequest.ID) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Vehicle Manufacturer's ID must be provided`, 500, 
+					'VehicleManufacturerService', 'handleDeleteVehicleManufacturer', req.user);
+			}
+			// Get it
+			let vehicleManufacturer = await global.storage.getVehicleManufacturer(filteredRequest.ID);
 			if (!vehicleManufacturer) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Vehicle Manufacturer with ID '${filteredRequest.ID}' does not exist anymore`,
-					550, "VehicleManufacturerService", "handleGetVehicleManufacturer");
+					`The Vehicle Manufacturer with ID '${filteredRequest.ID}' does not exist anymore`, 550, 
+					'VehicleManufacturerService', 'handleGetVehicleManufacturer', req.user);
 			}
 			// Return
 			res.json(
@@ -82,29 +86,31 @@ class VehicleManufacturerService {
 					vehicleManufacturer.getModel(), req.user)
 			);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetVehicleManufacturers(action, req, res, next) {
-		// Check auth
-		if (!Authorizations.canListVehicleManufacturers(req.user)) {
-			// Not Authorized!
-			throw new AppAuthError(
-				Authorizations.ACTION_LIST,
-				Constants.ENTITY_VEHICLE_MANUFACTURERSS,
-				null,
-				560, "VehicleManufacturerService", "handleGetVehicleManufacturers",
-				req.user);
-		}
-		// Filter
-		let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturersRequest(req.query, req.user);
-		// Get the vehicle Manufacturers
-		global.storage.getVehicleManufacturers(filteredRequest.Search,
-				filteredRequest.WithVehicles, filteredRequest.VehicleType,
-				Constants.NO_LIMIT).then((vehicleManufacturers) => {
+	static async handleGetVehicleManufacturers(action, req, res, next) {
+		try {
+			// Check auth
+			if (!Authorizations.canListVehicleManufacturers(req.user)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					Authorizations.ACTION_LIST,
+					Constants.ENTITY_VEHICLE_MANUFACTURERSS,
+					null,
+					560, 
+					'VehicleManufacturerService', 'handleGetVehicleManufacturers',
+					req.user);
+			}
+			// Filter
+			let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturersRequest(req.query, req.user);
+			// Get the vehicle Manufacturers
+			let vehicleManufacturers = await global.storage.getVehicleManufacturers(filteredRequest.Search,
+				filteredRequest.WithVehicles, filteredRequest.VehicleType, Constants.NO_LIMIT);
+			// Build
 			let vehicleManufacturersJSon = [];
 			vehicleManufacturers.forEach((vehicleManufacturer) => {
 				// Set the model
@@ -117,69 +123,65 @@ class VehicleManufacturerService {
 					vehicleManufacturersJSon, req.user)
 			);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleCreateVehicleManufacturer(action, req, res, next) {
-		// Check auth
-		if (!Authorizations.canCreateVehicleManufacturer(req.user)) {
-			// Not Authorized!
-			throw new AppAuthError(
-				Authorizations.ACTION_CREATE,
-				Constants.ENTITY_VEHICLE_MANUFACTURERS,
-				null,
-				560, "VehicleManufacturerService", "handleCreateVehicleManufacturer",
-				req.user);
-		}
-		// Filter
-		let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerCreateRequest( req.body, req.user );
-		let vehicleManufacturer, newVehicleManufacturer;
-		// Get the logged user
-		global.storage.getUser(req.user.id).then((loggedUser) => {
+	static async handleCreateVehicleManufacturer(action, req, res, next) {
+		try {
+			// Check auth
+			if (!Authorizations.canCreateVehicleManufacturer(req.user)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					Authorizations.ACTION_CREATE,
+					Constants.ENTITY_VEHICLE_MANUFACTURERS,
+					null,
+					560, 
+					'VehicleManufacturerService', 'handleCreateVehicleManufacturer',
+					req.user);
+			}
+			// Filter
+			let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerCreateRequest( req.body, req.user );
 			// Check Mandatory fields
 			VehicleManufacturers.checkIfVehicleManufacturerValid(filteredRequest, req);
 			// Create vehicleManufacturer
-			vehicleManufacturer = new VehicleManufacturer(filteredRequest);
+			let vehicleManufacturer = new VehicleManufacturer(filteredRequest);
 			// Update timestamp
-			vehicleManufacturer.setCreatedBy(loggedUser);
+			vehicleManufacturer.setCreatedBy(new User({'id': req.user.id}));
 			vehicleManufacturer.setCreatedOn(new Date());
 			// Save
-			return vehicleManufacturer.save();
-		}).then((createdVehicleManufacturer) => {
-			newVehicleManufacturer = createdVehicleManufacturer;
+			let newVehicleManufacturer = await vehicleManufacturer.save();
 			// Update VehicleManufacturer's Logo
 			newVehicleManufacturer.setLogo(vehicleManufacturer.getLogo());
 			// Save
-			return newVehicleManufacturer.saveLogo();
-		}).then(() => {
+			await newVehicleManufacturer.saveLogo();
+			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "VehicleManufacturerService", method: "handleCreateVehicleManufacturer",
+				user: req.user, module: 'VehicleManufacturerService', method: 'handleCreateVehicleManufacturer',
 				message: `Vehicle Manufacturer '${newVehicleManufacturer.getName()}' has been created successfully`,
 				action: action, detailedMessages: newVehicleManufacturer});
 			// Ok
 			res.json({status: `Success`});
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleUpdateVehicleManufacturer(action, req, res, next) {
-		// Filter
-		let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerUpdateRequest( req.body, req.user );
-		let vehicleManufacturer;
-		// Check email
-		global.storage.getVehicleManufacturer(filteredRequest.id).then((foundVehicleManufacturer) => {
-			vehicleManufacturer = foundVehicleManufacturer;
+	static async handleUpdateVehicleManufacturer(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerUpdateRequest( req.body, req.user );
+			// Check email
+			let vehicleManufacturer = await	global.storage.getVehicleManufacturer(filteredRequest.id);
 			if (!vehicleManufacturer) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Vehicle Manufacturer with ID '${filteredRequest.id}' does not exist anymore`,
-					550, "VehicleManufacturerService", "handleUpdateVehicleManufacturer");
+					`The Vehicle Manufacturer with ID '${filteredRequest.id}' does not exist anymore`, 550, 
+					'VehicleManufacturerService', 'handleUpdateVehicleManufacturer', req.user);
 			}
 			// Check Mandatory fields
 			VehicleManufacturers.checkIfVehicleManufacturerValid(filteredRequest, req);
@@ -190,57 +192,52 @@ class VehicleManufacturerService {
 					Authorizations.ACTION_UPDATE,
 					Constants.ENTITY_VEHICLE_MANUFACTURERS,
 					vehicleManufacturer.getID(),
-					560, "VehicleManufacturerService", "handleUpdateVehicleManufacturer",
+					560, 
+					'VehicleManufacturerService', 'handleUpdateVehicleManufacturer',
 					req.user);
 			}
-			// Get the logged user
-			return global.storage.getUser(req.user.id);
-		// Logged User
-		}).then((loggedUser) => {
 			// Update
 			Database.updateVehicleManufacturer(filteredRequest, vehicleManufacturer.getModel());
 			// Update timestamp
-			vehicleManufacturer.setLastChangedBy(loggedUser);
+			vehicleManufacturer.setLastChangedBy(new User({'id': req.user.id}));
 			vehicleManufacturer.setLastChangedOn(new Date());
-		}).then(() => {
-			// Update VehicleManufacturer's Logo
-			return vehicleManufacturer.saveLogo();
-		}).then(() => {
 			// Update VehicleManufacturer
-			return vehicleManufacturer.save();
-		}).then((updatedVehicleManufacturer) => {
+			let updatedVehicleManufacturer = await vehicleManufacturer.save();
+			// Update VehicleManufacturer's Logo
+			await vehicleManufacturer.saveLogo();
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "VehicleManufacturerService", method: "handleUpdateVehicleManufacturer",
+				user: req.user, module: 'VehicleManufacturerService', method: 'handleUpdateVehicleManufacturer',
 				message: `Vehicle Manufacturer '${updatedVehicleManufacturer.getName()}' has been updated successfully`,
 				action: action, detailedMessages: updatedVehicleManufacturer});
 			// Ok
 			res.json({status: `Success`});
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetVehicleManufacturerLogo(action, req, res, next) {
-		// Filter
-		let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerRequest(req.query, req.user);
-		// Charge Box is mandatory
-		if(!filteredRequest.ID) {
-			Logging.logActionExceptionMessageAndSendResponse(
-				action, new Error(`The Vehicle Manufacturer ID is mandatory`), req, res, next);
-			return;
-		}
-		// Get it
-		let vehicleManufacturer;
-		global.storage.getVehicleManufacturer(filteredRequest.ID).then((foundVehicleManufacturer) => {
-			vehicleManufacturer = foundVehicleManufacturer;
+	static async handleGetVehicleManufacturerLogo(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerRequest(req.query, req.user);
+			// Charge Box is mandatory
+			if(!filteredRequest.ID) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Vehicle Manufacturer's ID must be provided`, 500, 
+					'VehicleManufacturerService', 'handleGetVehicleManufacturerLogo', req.user);
+			}
+			// Get it
+			let vehicleManufacturer = await global.storage.getVehicleManufacturer(filteredRequest.ID);
 			if (!vehicleManufacturer) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Vehicle Manufacturer with ID '${filteredRequest.ID}' does not exist anymore`,
-					550, "VehicleManufacturerService", "handleGetVehicleManufacturerLogo");
+					`The Vehicle Manufacturer with ID '${filteredRequest.ID}' does not exist anymore`, 550, 
+					'VehicleManufacturerService', 'handleGetVehicleManufacturerLogo', req.user);
 			}
 			// Check auth
 			if (!Authorizations.canReadVehicleManufacturer(req.user, vehicleManufacturer.getModel())) {
@@ -249,45 +246,43 @@ class VehicleManufacturerService {
 					Authorizations.ACTION_READ,
 					Constants.ENTITY_COMPANY,
 					vehicleManufacturer.getID(),
-					560, "VehicleManufacturerService", "handleGetVehicleManufacturerLogo",
+					560, 
+					'VehicleManufacturerService', 'handleGetVehicleManufacturerLogo',
 					req.user);
 			}
 			// Get the logo
-			return global.storage.getVehicleManufacturerLogo(filteredRequest.ID);
-		}).then((vehicleManufacturerLogo) => {
-			// Found?
-			if (vehicleManufacturerLogo) {
-				// Set the user
-				res.json(vehicleManufacturerLogo);
-			} else {
-				res.json(null);
-			}
+			let vehicleManufacturerLogo = await global.storage.getVehicleManufacturerLogo(filteredRequest.ID);
+			// Return
+			res.json(vehicleManufacturerLogo);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetVehicleManufacturerLogos(action, req, res, next) {
-		// Check auth
-		if (!Authorizations.canListCompanies(req.user)) {
-			// Not Authorized!
-			throw new AppAuthError(
-				Authorizations.ACTION_LIST,
-				Constants.ENTITY_COMPANIES,
-				null,
-				560, "VehicleManufacturerService", "handleGetVehicleManufacturerLogos",
-				req.user);
-		}
-		// Get the vehicle manufacturer logo
-		global.storage.getVehicleManufacturerLogos().then((vehicleManufacturerLogos) => {
+	static async handleGetVehicleManufacturerLogos(action, req, res, next) {
+		try {
+			// Check auth
+			if (!Authorizations.canListCompanies(req.user)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					Authorizations.ACTION_LIST,
+					Constants.ENTITY_COMPANIES,
+					null,
+					560, 
+					'VehicleManufacturerService', 'handleGetVehicleManufacturerLogos',
+					req.user);
+			}
+			// Get the vehicle manufacturer logo
+			let vehicleManufacturerLogos = await global.storage.getVehicleManufacturerLogos();
+			// Return
 			res.json(vehicleManufacturerLogos);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 }
 
