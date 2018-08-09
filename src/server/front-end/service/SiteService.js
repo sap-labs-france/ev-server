@@ -1,3 +1,4 @@
+const User = require('../../../model/User');
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
@@ -9,27 +10,26 @@ const Site = require('../../../model/Site');
 const SiteSecurity = require('./security/SiteSecurity');
 
 class SiteService {
-	static handleDeleteSite(action, req, res, next) {
-		// Filter
-		let site;
-		let filteredRequest = SiteSecurity.filterSiteDeleteRequest(
-			req.query, req.user);
-		// Check Mandatory fields
-		if(!filteredRequest.ID) {
-			Logging.logActionExceptionMessageAndSendResponse(
-				action, new Error(`The Site's ID must be provided`), req, res, next);
-			return;
-		}
-		// Get
-		global.storage.getSite(filteredRequest.ID).then((foundSite) => {
-			site = foundSite;
-			// Found?
+	static async handleDeleteSite(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = SiteSecurity.filterSiteDeleteRequest(req.query, req.user);
+			// Check Mandatory fields
+			if(!filteredRequest.ID) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Site's ID must be provided`, 500, 
+					'SiteService', 'handleDeleteSite', req.user);
+			}
+			// Get
+			let site = await global.storage.getSite(filteredRequest.ID);
 			if (!site) {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Site with ID '${filteredRequest.ID}' does not exist`,
-					550, "SiteService", "handleDeleteSite");
+					`Site with ID '${filteredRequest.ID}' does not exist`, 550, 
+					'SiteService', 'handleDeleteSite', req.user);
 			}
 			// Check auth
 			if (!Authorizations.canDeleteSite(req.user, site.getModel())) {
@@ -38,42 +38,45 @@ class SiteService {
 					Authorizations.ACTION_DELETE,
 					Constants.ENTITY_SITE,
 					site.getID(),
-					560, "SiteService", "handleDeleteSite",
+					560, 
+					'SiteService', 'handleDeleteSite',
 					req.user);
 			}
 			// Delete
-			return site.delete();
-		}).then(() => {
+			await site.delete();
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "SiteService", method: "handleDeleteSite",
+				user: req.user, module: 'SiteService', method: 'handleDeleteSite',
 				message: `Site '${site.getName()}' has been deleted successfully`,
 				action: action, detailedMessages: site});
 			// Ok
 			res.json({status: `Success`});
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetSite(action, req, res, next) {
-		// Filter
-		let filteredRequest = SiteSecurity.filterSiteRequest(req.query, req.user);
-		// Charge Box is mandatory
-		if(!filteredRequest.ID) {
-			Logging.logActionExceptionMessageAndSendResponse(
-				action, new Error(`The Site ID is mandatory`), req, res, next);
-			return;
-		}
-		// Get it
-		global.storage.getSite(filteredRequest.ID, null, filteredRequest.WithUsers).then((site) => {
+	static async handleGetSite(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = SiteSecurity.filterSiteRequest(req.query, req.user);
+			// Charge Box is mandatory
+			if(!filteredRequest.ID) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Site's ID must be provided`, 500, 
+					'SiteService', 'handleGetSite', req.user);
+			}
+			// Get it
+			let site = await global.storage.getSite(filteredRequest.ID, null, filteredRequest.WithUsers);
 			if (!site) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Site with ID '${filteredRequest.ID}' does not exist anymore`,
-					550, "SiteService", "handleGetSite");
+					`The Site with ID '${filteredRequest.ID}' does not exist anymore`, 550, 
+					'SiteService', 'handleGetSite', req.user);
 			}
 			// Return
 			res.json(
@@ -82,30 +85,33 @@ class SiteService {
 					site.getModel(), req.user)
 			);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetSites(action, req, res, next) {
-		// Check auth
-		if (!Authorizations.canListSites(req.user)) {
-			// Not Authorized!
-			throw new AppAuthError(
-				Authorizations.ACTION_LIST,
-				Constants.ENTITY_SITES,
-				null,
-				560, "SiteService", "handleGetSites",
-				req.user);
-		}
+	static async handleGetSites(action, req, res, next) {
+		try {
+			// Check auth
+			if (!Authorizations.canListSites(req.user)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					Authorizations.ACTION_LIST,
+					Constants.ENTITY_SITES,
+					null,
+					560, 
+					'SiteService', 'handleGetSites',
+					req.user);
+			}
 		// Filter
-		let filteredRequest = SiteSecurity.filterSitesRequest(req.query, req.user);
-		// Get the sites
-		global.storage.getSites(filteredRequest.Search, null,
+			let filteredRequest = SiteSecurity.filterSitesRequest(req.query, req.user);
+			// Get the sites
+			let sites = await global.storage.getSites(filteredRequest.Search, null,
 				filteredRequest.UserID, filteredRequest.WithCompany,
 				filteredRequest.WithSiteAreas, filteredRequest.WithChargeBoxes,
-				filteredRequest.WithUsers, Constants.NO_LIMIT).then((sites) => {
+				filteredRequest.WithUsers, Constants.NO_LIMIT);
+			// Set
 			let sitesJSon = [];
 			sites.forEach((site) => {
 				// Set the model
@@ -118,28 +124,31 @@ class SiteService {
 					sitesJSon, req.user)
 			);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetSiteImage(action, req, res, next) {
-		// Filter
-		let filteredRequest = SiteSecurity.filterSiteRequest(req.query, req.user);
-		// Charge Box is mandatory
-		if(!filteredRequest.ID) {
-			Logging.logActionExceptionMessageAndSendResponse(
-				action, new Error(`The Site ID is mandatory`), req, res, next);
-			return;
-		}
-		// Get it
-		global.storage.getSite(filteredRequest.ID).then((site) => {
+	static async handleGetSiteImage(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = SiteSecurity.filterSiteRequest(req.query, req.user);
+			// Charge Box is mandatory
+			if(!filteredRequest.ID) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Site's ID must be provided`, 500, 
+					'SiteService', 'handleGetSiteImage', req.user);
+			}
+			// Get it
+			let site = await global.storage.getSite(filteredRequest.ID);
 			if (!site) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Site with ID '${filteredRequest.ID}' does not exist anymore`,
-					550, "SiteService", "handleGetSite");
+					`The Site with ID '${filteredRequest.ID}' does not exist anymore`, 550, 
+					'SiteService', 'handleGetSite', req.user);
 			}
 			// Check auth
 			if (!Authorizations.canReadSite(req.user, site.getModel())) {
@@ -148,63 +157,62 @@ class SiteService {
 					Authorizations.ACTION_READ,
 					Constants.ENTITY_SITE,
 					site.getID(),
-					560, "SiteService", "handleGetSiteImage",
+					560, 
+					'SiteService', 'handleGetSiteImage',
 					req.user);
 			}
 			// Get the image
-			return global.storage.getSiteImage(filteredRequest.ID);
-		}).then((siteImage) => {
-			// Found?
-			if (siteImage) {
-				// Set the user
-				res.json(siteImage);
-			} else {
-				res.json(null);
-			}
+			let siteImage = await global.storage.getSiteImage(filteredRequest.ID);
+			// Return
+			res.json(siteImage);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetSiteImages(action, req, res, next) {
-		// Check auth
-		if (!Authorizations.canListSites(req.user)) {
-			// Not Authorized!
-			throw new AppAuthError(
-				Authorizations.ACTION_LIST,
-				Constants.ENTITY_SITES,
-				null,
-				560, "SiteService", "handleGetSiteImages",
-				req.user);
-		}
-		// Get the site image
-		global.storage.getSiteImages().then((siteImages) => {
+	static async handleGetSiteImages(action, req, res, next) {
+		try {
+			// Check auth
+			if (!Authorizations.canListSites(req.user)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					Authorizations.ACTION_LIST,
+					Constants.ENTITY_SITES,
+					null,
+					560, 
+					'SiteService', 'handleGetSiteImages',
+					req.user);
+			}
+			// Get the site image
+			let siteImages = await global.storage.getSiteImages();
+			// Return
 			res.json(siteImages);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleCreateSite(action, req, res, next) {
-		// Check auth
-		if (!Authorizations.canCreateSite(req.user)) {
-			// Not Authorized!
-			throw new AppAuthError(
-				Authorizations.ACTION_CREATE,
-				Constants.ENTITY_SITE,
-				null,
-				560, "SiteService", "handleCreateSite",
-				req.user);
-		}
-		// Filter
-		let filteredRequest = SiteSecurity.filterSiteCreateRequest( req.body, req.user );
-		let site, newSite;
-		// Check Company
-		global.storage.getCompany(filteredRequest.companyID).then((company) => {
+	static async handleCreateSite(action, req, res, next) {
+		try {
+			// Check auth
+			if (!Authorizations.canCreateSite(req.user)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					Authorizations.ACTION_CREATE,
+					Constants.ENTITY_SITE,
+					null,
+					560, 
+					'SiteService', 'handleCreateSite',
+					req.user);
+			}
+			// Filter
+			let filteredRequest = SiteSecurity.filterSiteCreateRequest( req.body, req.user );
+			// Check Company
+			let company = await global.storage.getCompany(filteredRequest.companyID);
 			// Check Mandatory fields
 			Sites.checkIfSiteValid(filteredRequest, req);
 			// Found?
@@ -212,69 +220,55 @@ class SiteService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Company ID '${filteredRequest.companyID}' does not exist`,
-					550, "SiteService", "handleCreateSite");
+					`The Company ID '${filteredRequest.companyID}' does not exist`, 550, 
+					'SiteService', 'handleCreateSite', req.user);
 			}
-			// Get the logged user
-			return global.storage.getUser(req.user.id);
-		// Logged User
-		}).then((loggedUser) => {
 			// Create site
-			site = new Site(filteredRequest);
+			let site = new Site(filteredRequest);
 			// Update timestamp
-			site.setCreatedBy(loggedUser);
+			site.setCreatedBy(new User({'id': req.user.id}));
 			site.setCreatedOn(new Date());
-		}).then(() => {
-			let proms = [];
 			// Get the users
-			if (filteredRequest.userIDs) {
-				filteredRequest.userIDs.forEach((userID) => {
-					proms.push(global.storage.getUser(userID)) ;
-				});
-			}
-			return Promise.all(proms);
-		}).then((usersProm) => {
 			let users = [];
-			// Get the result
-			usersProm.forEach((userProm) => {
-				users.push(userProm);
-			});
+			for (const userID of filteredRequest.userIDs) {
+				// Get User
+				let user = await global.storage.getUser(userID);
+				// Add
+				users.push(user);
+			}
 			// Set Users
 			site.setUsers(users);
 			// Save Site
-			return site.save();
-		}).then((createdSite) => {
-			newSite = createdSite;
+			let newSite = await site.save();
 			// Save Site's Image
 			newSite.setImage(site.getImage());
 			// Save
-			return newSite.saveImage();
-		}).then(() => {
+			await newSite.saveImage();
+			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "SiteService", method: "handleCreateSite",
+				user: req.user, module: 'SiteService', method: 'handleCreateSite',
 				message: `Site '${newSite.getName()}' has been created successfully`,
 				action: action, detailedMessages: newSite});
 			// Ok
 			res.json({status: `Success`});
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleUpdateSite(action, req, res, next) {
-		// Filter
-		let filteredRequest = SiteSecurity.filterSiteUpdateRequest( req.body, req.user );
-		let site;
-		// Check email
-		global.storage.getSite(filteredRequest.id).then((foundSite) => {
-			site = foundSite;
+	static async handleUpdateSite(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = SiteSecurity.filterSiteUpdateRequest( req.body, req.user );
+			// Check email
+			let site = await global.storage.getSite(filteredRequest.id);
 			if (!site) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Site with ID '${filteredRequest.id}' does not exist anymore`,
-					550, "SiteService", "handleUpdateSite");
+					`The Site with ID '${filteredRequest.id}' does not exist anymore`, 550, 
+					'SiteService', 'handleUpdateSite', req.user);
 			}
 			// Check Mandatory fields
 			Sites.checkIfSiteValid(filteredRequest, req);
@@ -285,52 +279,41 @@ class SiteService {
 					Authorizations.ACTION_UPDATE,
 					Constants.ENTITY_SITE,
 					site.getID(),
-					560, "SiteService", "handleUpdateSite",
+					560, 
+					'SiteService', 'handleUpdateSite',
 					req.user);
 			}
-			// Get the logged user
-			return global.storage.getUser(req.user.id);
-		// Logged User
-		}).then((loggedUser) => {
 			// Update
 			Database.updateSite(filteredRequest, site.getModel());
 			// Update timestamp
-			site.setLastChangedBy(loggedUser);
+			site.setLastChangedBy(new User({'id': req.user.id}));
 			site.setLastChangedOn(new Date());
 			// Update Site's Image
-			return site.saveImage();
-		}).then(() => {
-			let proms = [];
+			await site.saveImage();
 			// Get the users
-			if (filteredRequest.userIDs) {
-				filteredRequest.userIDs.forEach((userID) => {
-					proms.push(global.storage.getUser(userID)) ;
-				});
-			}
-			return Promise.all(proms);
-		}).then((usersProm) => {
 			let users = [];
-			// Get the result
-			usersProm.forEach((userProm) => {
-				users.push(userProm);
-			});
+			for (const userID of filteredRequest.userIDs) {
+				// Get User
+				let user = await global.storage.getUser(userID);
+				// Add
+				users.push(user);
+			}
 			// Set Users
 			site.setUsers(users);
 			// Update Site
-			return site.save();
-		}).then((updatedSite) => {
+			let updatedSite = await site.save();
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "SiteService", method: "handleUpdateSite",
+				user: req.user, module: 'SiteService', method: 'handleUpdateSite',
 				message: `Site '${updatedSite.getName()}' has been updated successfully`,
 				action: action, detailedMessages: updatedSite});
 			// Ok
 			res.json({status: `Success`});
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 }
 
