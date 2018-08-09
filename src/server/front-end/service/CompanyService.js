@@ -5,31 +5,33 @@ const AppAuthError = require('../../../exception/AppAuthError');
 const Companies = require('../../../utils/Companies');
 const Constants = require('../../../utils/Constants');
 const Company = require('../../../model/Company');
+const User = require('../../../model/User');
 const Authorizations = require('../../../authorization/Authorizations');
 const CompanySecurity = require('./security/CompanySecurity');
 
 class CompanyService {
-	static handleDeleteCompany(action, req, res, next) {
-		// Filter
-		let company;
-		let filteredRequest = CompanySecurity.filterCompanyDeleteRequest(
-			req.query, req.user);
-		// Check Mandatory fields
-		if(!filteredRequest.ID) {
-			Logging.logActionExceptionMessageAndSendResponse(
-				action, new Error(`The Company's ID must be provided`), req, res, next);
-			return;
-		}
-		// Get
-		global.storage.getCompany(filteredRequest.ID).then((foundCompany) => {
-			company = foundCompany;
+	static async handleDeleteCompany(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = CompanySecurity.filterCompanyDeleteRequest(
+				req.query, req.user);
+			// Check Mandatory fields
+			if(!filteredRequest.ID) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Company's ID must be provided`, 500, 
+					"CompanyService", "handleDeleteCompany", req.user);
+			}
+			// Get
+			let company = await global.storage.getCompany(filteredRequest.ID);
 			// Found?
 			if (!company) {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Company with ID '${filteredRequest.ID}' does not exist`,
-					550, "CompanyService", "handleDeleteCompany");
+					`Company with ID '${filteredRequest.ID}' does not exist`, 550, 
+					'CompanyService', 'handleDeleteCompany', req.user);
 			}
 			// Check auth
 			if (!Authorizations.canDeleteCompany(req.user, company.getModel())) {
@@ -38,42 +40,44 @@ class CompanyService {
 					Authorizations.ACTION_DELETE,
 					Constants.ENTITY_COMPANY,
 					company.getID(),
-					560, "CompanyService", "handleDeleteCompany",
+					560, 'CompanyService', 'handleDeleteCompany',
 					req.user);
 			}
 			// Delete
-			return company.delete();
-		}).then(() => {
+			await company.delete();
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "CompanyService", method: "handleDeleteCompany",
+				user: req.user, module: 'CompanyService', method: 'handleDeleteCompany',
 				message: `Company '${company.getName()}' has been deleted successfully`,
 				action: action, detailedMessages: company});
 			// Ok
 			res.json({status: `Success`});
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetCompany(action, req, res, next) {
-		// Filter
-		let filteredRequest = CompanySecurity.filterCompanyRequest(req.query, req.user);
-		// Charge Box is mandatory
-		if(!filteredRequest.ID) {
-			Logging.logActionExceptionMessageAndSendResponse(
-				action, new Error(`The Company ID is mandatory`), req, res, next);
-			return;
-		}
-		// Get it
-		global.storage.getCompany(filteredRequest.ID).then((company) => {
+	static async handleGetCompany(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = CompanySecurity.filterCompanyRequest(req.query, req.user);
+			// Charge Box is mandatory
+			if(!filteredRequest.ID) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Company's ID must be provided`, 500, 
+					"CompanyService", "handleGetCompany", req.user);
+			}
+			// Get it
+			let company = await global.storage.getCompany(filteredRequest.ID);
 			if (!company) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Company with ID '${filteredRequest.ID}' does not exist anymore`,
-					550, "CompanyService", "handleGetCompany");
+					`The Company with ID '${filteredRequest.ID}' does not exist anymore`, 550, 
+					'CompanyService', 'handleGetCompany', req.user);
 			}
 			// Check auth
 			if (!Authorizations.canReadCompany(req.user, company.getModel())) {
@@ -82,7 +86,7 @@ class CompanyService {
 					Authorizations.ACTION_READ,
 					Constants.ENTITY_COMPANY,
 					company.getID(),
-					560, "CompanyService", "handleGetCompany",
+					560, 'CompanyService', 'handleGetCompany',
 					req.user);
 			}
 			// Return
@@ -92,30 +96,31 @@ class CompanyService {
 					company.getModel(), req.user)
 			);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetCompanyLogo(action, req, res, next) {
-		// Filter
-		let filteredRequest = CompanySecurity.filterCompanyRequest(req.query, req.user);
-		// Charge Box is mandatory
-		if(!filteredRequest.ID) {
-			Logging.logActionExceptionMessageAndSendResponse(
-				action, new Error(`The Company ID is mandatory`), req, res, next);
-			return;
-		}
-		// Get it
-		let company;
-		global.storage.getCompany(filteredRequest.ID).then((foundCompany) => {
-			company = foundCompany;
+	static async handleGetCompanyLogo(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = CompanySecurity.filterCompanyRequest(req.query, req.user);
+			// Charge Box is mandatory
+			if(!filteredRequest.ID) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Company's ID must be provided`, 500, 
+					"CompanyService", "handleGetCompanyLogo", req.user);
+			}
+			// Get it
+			let company = await global.storage.getCompany(filteredRequest.ID);
 			if (!company) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Company with ID '${filteredRequest.ID}' does not exist anymore`,
-					550, "CompanyService", "handleGetCompanyLogo");
+					`The Company with ID '${filteredRequest.ID}' does not exist anymore`, 550, 
+					'CompanyService', 'handleGetCompanyLogo', req.user);
 			}
 			// Check auth
 			if (!Authorizations.canReadCompany(req.user, company.getModel())) {
@@ -124,64 +129,60 @@ class CompanyService {
 					Authorizations.ACTION_READ,
 					Constants.ENTITY_COMPANY,
 					company.getID(),
-					560, "CompanyService", "handleGetCompanyLogo",
+					560, 'CompanyService', 'handleGetCompanyLogo',
 					req.user);
 			}
 			// Get the logo
-			return global.storage.getCompanyLogo(filteredRequest.ID);
-		}).then((companyLogo) => {
-			// Found?
-			if (companyLogo) {
-				// Set the user
-				res.json(companyLogo);
-			} else {
-				res.json(null);
-			}
+			let companyLogo = await global.storage.getCompanyLogo(filteredRequest.ID);
+			// Return
+			res.json(companyLogo);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetCompanyLogos(action, req, res, next) {
-		// Check auth
-		if (!Authorizations.canListCompanies(req.user)) {
-			// Not Authorized!
-			throw new AppAuthError(
-				Authorizations.ACTION_LIST,
-				Constants.ENTITY_COMPANIES,
-				null,
-				560, "CompanyService", "handleGetCompanyLogos",
-				req.user);
-		}
-		// Get the company logo
-		global.storage.getCompanyLogos().then((companyLogos) => {
+	static async handleGetCompanyLogos(action, req, res, next) {
+		try {
+			// Check auth
+			if (!Authorizations.canListCompanies(req.user)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					Authorizations.ACTION_LIST,
+					Constants.ENTITY_COMPANIES,
+					null,
+					560, 'CompanyService', 'handleGetCompanyLogos',
+					req.user);
+			}
+			// Get the company logo
+			let companyLogos = await global.storage.getCompanyLogos();
 			res.json(companyLogos);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetCompanies(action, req, res, next) {
-		// Check auth
-		if (!Authorizations.canListCompanies(req.user)) {
-			// Not Authorized!
-			throw new AppAuthError(
-				Authorizations.ACTION_LIST,
-				Constants.ENTITY_COMPANIES,
-				null,
-				560, "CompanyService", "handleGetCompanies",
-				req.user);
-			return;
-		}
-		// Filter
-		let filteredRequest = CompanySecurity.filterCompaniesRequest(req.query, req.user);
-		// Get the companies
-		global.storage.getCompanies(filteredRequest.Search,
-				filteredRequest.WithSites, Constants.NO_LIMIT).then((companies) => {
+	static async handleGetCompanies(action, req, res, next) {
+		try {
+			// Check auth
+			if (!Authorizations.canListCompanies(req.user)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					Authorizations.ACTION_LIST,
+					Constants.ENTITY_COMPANIES,
+					null,
+					560, 'CompanyService', 'handleGetCompanies',
+					req.user);
+				return;
+			}
+			// Filter
+			let filteredRequest = CompanySecurity.filterCompaniesRequest(req.query, req.user);
+			// Get the companies
+			let companies = await global.storage.getCompanies(filteredRequest.Search,
+					filteredRequest.WithSites, Constants.NO_LIMIT);
 			let companiesJSon = [];
 			companies.forEach((company) => {
 				// Set the model
@@ -194,69 +195,64 @@ class CompanyService {
 					companiesJSon, req.user)
 			);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleCreateCompany(action, req, res, next) {
-		// Check auth
-		if (!Authorizations.canCreateCompany(req.user)) {
-			// Not Authorized!
-			throw new AppAuthError(
-				Authorizations.ACTION_CREATE,
-				Constants.ENTITY_COMPANY,
-				null,
-				560, "CompanyService", "handleCreateCompany",
-				req.user);
-		}
-		// Filter
-		let filteredRequest = CompanySecurity.filterCompanyCreateRequest( req.body, req.user );
-		// Get the logged user
-		let company, newCompany;
-		global.storage.getUser(req.user.id).then((loggedUser) => {
+	static async handleCreateCompany(action, req, res, next) {
+		try {
+				// Check auth
+			if (!Authorizations.canCreateCompany(req.user)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					Authorizations.ACTION_CREATE,
+					Constants.ENTITY_COMPANY,
+					null,
+					560, 'CompanyService', 'handleCreateCompany',
+					req.user);
+			}
+			// Filter
+			let filteredRequest = CompanySecurity.filterCompanyCreateRequest( req.body, req.user );
 			// Check Mandatory fields
 			Companies.checkIfCompanyValid(filteredRequest, req);
 			// Create
-			company = new Company(filteredRequest);
+			let company = new Company(filteredRequest);
 			// Update timestamp
-			company.setCreatedBy(loggedUser);
+			company.setCreatedBy(new User({'id': req.user.id}));
 			company.setCreatedOn(new Date());
 			// Save
-			return company.save();
-		}).then((createdCompany) => {
-			newCompany = createdCompany;
+			let newCompany = await company.save();
 			// Update Company's Logo
 			newCompany.setLogo(company.getLogo());
 			// Save
-			return newCompany.saveLogo();
-		}).then(() => {
+			await newCompany.saveLogo();
+			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "CompanyService", method: "handleCreateCompany",
+				user: req.user, module: 'CompanyService', method: 'handleCreateCompany',
 				message: `Company '${newCompany.getName()}' has been created successfully`,
 				action: action, detailedMessages: newCompany});
 			// Ok
 			res.json({status: `Success`});
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleUpdateCompany(action, req, res, next) {
-		// Filter
-		let filteredRequest = CompanySecurity.filterCompanyUpdateRequest( req.body, req.user );
-		// Check email
-		let company;
-		global.storage.getCompany(filteredRequest.id).then((foundCompany) => {
-			company = foundCompany;
+	static async handleUpdateCompany(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = CompanySecurity.filterCompanyUpdateRequest( req.body, req.user );
+			// Check email
+			let company = await global.storage.getCompany(filteredRequest.id);
 			if (!company) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Company with ID '${filteredRequest.id}' does not exist anymore`,
-					550, "CompanyService", "handleUpdateCompany");
+					`The Company with ID '${filteredRequest.id}' does not exist anymore`, 550, 
+					'CompanyService', 'handleUpdateCompany', req.user);
 			}
 			// Check Mandatory fields
 			Companies.checkIfCompanyValid(filteredRequest, req);
@@ -267,36 +263,30 @@ class CompanyService {
 					Authorizations.ACTION_UPDATE,
 					Constants.ENTITY_COMPANY,
 					company.getID(),
-					560, "CompanyService", "handleCreateCompany",
+					560, 'CompanyService', 'handleCreateCompany',
 					req.user);
 			}
-			// Get the logged user
-			return global.storage.getUser(req.user.id);
-		// Logged User
-		}).then((loggedUser) => {
 			// Update
 			Database.updateCompany(filteredRequest, company.getModel());
 			// Update timestamp
-			company.setLastChangedBy(loggedUser);
+			company.setLastChangedBy(new User({'id': req.user.id}));
 			company.setLastChangedOn(new Date());
-			// Update Company's Logo
-			return company.saveLogo();
-		}).then(() => {
 			// Update Company
-			return company.save();
-		}).then((updatedCompany) => {
+			let updatedCompany = await company.save();
+			// Update Company's Logo
+			await company.saveLogo();
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "CompanyService", method: "handleUpdateCompany",
+				user: req.user, module: 'CompanyService', method: 'handleUpdateCompany',
 				message: `Company '${updatedCompany.getName()}' has been updated successfully`,
 				action: action, detailedMessages: updatedCompany});
 			// Ok
 			res.json({status: `Success`});
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 }
 

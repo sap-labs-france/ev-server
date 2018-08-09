@@ -112,7 +112,7 @@ class ChargingStationService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Charging Station ID is mandatory`, 500, 
-					'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
+					'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
 			}
 			// Get the Charging Station
 			let chargingStation = await global.storage.getChargingStation(filteredRequest.ChargeBoxID);
@@ -122,7 +122,7 @@ class ChargingStationService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`Charging Station with ID '${filteredRequest.ChargeBoxID}' does not exist`,	550, 
-					'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
+					'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
 			}
 			// Check auth
 			if (!Authorizations.canReadChargingStation(req.user, chargingStation.getModel())) {
@@ -155,7 +155,7 @@ class ChargingStationService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Charging Station ID is mandatory`, 500, 
-					'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
+					'ChargingStationService', 'handleDeleteChargingStation', req.user);
 			}
 			// Get
 			let chargingStation = await global.storage.getChargingStation(filteredRequest.ID);
@@ -205,7 +205,7 @@ class ChargingStationService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Charging Station ID is mandatory`, 500, 
-					'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
+					'ChargingStationService', 'handleGetChargingStation', req.user);
 			}
 			// Get it
 			let chargingStation = await global.storage.getChargingStation(filteredRequest.ID);
@@ -348,7 +348,7 @@ class ChargingStationService {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
 						`The Charging Station ID is mandatory`, 500, 
-						'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
+						'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
 			}
 			// Get the Charging station
 			let chargingStation = await global.storage.getChargingStation(filteredRequest.chargeBoxID);
