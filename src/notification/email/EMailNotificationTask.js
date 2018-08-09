@@ -116,7 +116,7 @@ class EMailNotificationTask extends NotificationTask {
 		});
 	}
 
-	_prepareAndSendEmail(templateName, data, locale, fulfill, reject) {
+	async _prepareAndSendEmail(templateName, data, locale, fulfill, reject) {
 		// Create email
 		let emailTemplate;
 
@@ -217,27 +217,24 @@ class EMailNotificationTask extends NotificationTask {
 		let subject = ejs.render(mainTemplate.subject, emailTemplate.email);
 		let html = ejs.render(mainTemplate.html, emailTemplate.email);
 		// Send the email
-		return this.sendEmail({
+		let message = await this.sendEmail({
 			to: (data.user?data.user.email:null),
 			subject: subject,
 			text: html,
 			html: html
-		}).then((message) => {
-			// User
-			Logging.logInfo({
-				module: "EMailNotificationTask", method: "_prepareAndSendEmail",
-				action: "SendEmail", actionOnUser: data.user,
-				message: `Email has been sent successfully`,
-				detailedMessages: {
-					"subject": subject,
-					"body": html
-				}
-			});
-			// Ok
-			fulfill(message);
-		}).catch((error) => {
-			reject(error);
 		});
+		// User
+		Logging.logInfo({
+			module: "EMailNotificationTask", method: "_prepareAndSendEmail",
+			action: "SendEmail", actionOnUser: data.user,
+			message: `Email has been sent successfully`,
+			detailedMessages: {
+				"subject": subject,
+				"body": html
+			}
+		});
+		// Ok
+		fulfill(message);
 	}
 
 	sendEmail(email) {
