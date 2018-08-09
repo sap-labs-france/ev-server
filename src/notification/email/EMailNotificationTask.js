@@ -37,86 +37,56 @@ class EMailNotificationTask extends NotificationTask {
 	}
 
 	sendNewRegisteredUser(data, locale) {
-		// Create a promise
-		return new Promise((fulfill, reject) => {
-			// Send it
-			this._prepareAndSendEmail('new-registered-user', data, locale, fulfill, reject);
-		});
+		// Send it
+		return this._prepareAndSendEmail('new-registered-user', data, locale);
 	}
 
 	sendRequestPassword(data, locale) {
-		// Create a promise
-		return new Promise((fulfill, reject) => {
-			// Send it
-			this._prepareAndSendEmail('request-password', data, locale, fulfill, reject);
-		});
+		// Send it
+		return this._prepareAndSendEmail('request-password', data, locale);
 	}
 
 	sendNewPassword(data, locale) {
-		// Create a promise
-		return new Promise((fulfill, reject) => {
-			// Send it
-			this._prepareAndSendEmail('new-password', data, locale, fulfill, reject);
-		});
+		// Send it
+		return this._prepareAndSendEmail('new-password', data, locale);
 	}
 
 	sendEndOfCharge(data, locale) {
-		// Create a promise
-		return new Promise((fulfill, reject) => {
-			// Send it
-			this._prepareAndSendEmail('end-of-charge', data, locale, fulfill, reject);
-		});
+		// Send it
+		return this._prepareAndSendEmail('end-of-charge', data, locale);
 	}
 
 	sendEndOfSession(data, locale) {
-		// Create a promise
-		return new Promise((fulfill, reject) => {
-			// Send it
-			this._prepareAndSendEmail('end-of-session', data, locale, fulfill, reject);
-		});
+		// Send it
+		return this._prepareAndSendEmail('end-of-session', data, locale);
 	}
 
 	sendChargingStationStatusError(data, locale) {
-		// Create a promise
-		return new Promise((fulfill, reject) => {
-			// Send it
-			this._prepareAndSendEmail('charging-station-status-error', data, locale, fulfill, reject);
-		});
+		// Send it
+		return this._prepareAndSendEmail('charging-station-status-error', data, locale);
 	}
 
 	sendChargingStationRegistered(data, locale) {
-		// Create a promise
-		return new Promise((fulfill, reject) => {
-			// Send it
-			this._prepareAndSendEmail('charging-station-registered', data, locale, fulfill, reject);
-		});
+		// Send it
+		return this._prepareAndSendEmail('charging-station-registered', data, locale);
 	}
 
 	sendUserAccountStatusChanged(data, locale) {
-		// Create a promise
-		return new Promise((fulfill, reject) => {
-			// Send it
-			this._prepareAndSendEmail('user-account-status-changed', data, locale, fulfill, reject);
-		});
+		// Send it
+		return this._prepareAndSendEmail('user-account-status-changed', data, locale);
 	}
 
 	sendUnknownUserBadged(data, locale) {
-		// Create a promise
-		return new Promise((fulfill, reject) => {
-			// Send it
-			this._prepareAndSendEmail('unknown-user-badged', data, locale, fulfill, reject);
-		});
+		// Send it
+		return this._prepareAndSendEmail('unknown-user-badged', data, locale);
 	}
 
 	sendTransactionStarted(data, locale) {
-		// Create a promise
-		return new Promise((fulfill, reject) => {
-			// Send it
-			this._prepareAndSendEmail('transaction-started', data, locale, fulfill, reject);
-		});
+		// Send it
+		return this._prepareAndSendEmail('transaction-started', data, locale);
 	}
 
-	async _prepareAndSendEmail(templateName, data, locale, fulfill, reject) {
+	async _prepareAndSendEmail(templateName, data, locale) {
 		// Create email
 		let emailTemplate;
 
@@ -163,8 +133,7 @@ class EMailNotificationTask extends NotificationTask {
 		// Template found?
 		if (!emailTemplate) {
 			// No
-			reject(new Error(`No template found for ${templateName}`));
-			return;
+			throw new Error(`No Email template found for '${templateName}'`);
 		}
 		// Check for localized template?
 		if (emailTemplate[locale]) {
@@ -234,7 +203,7 @@ class EMailNotificationTask extends NotificationTask {
 			}
 		});
 		// Ok
-		fulfill(message);
+		return message;
 	}
 
 	sendEmail(email) {
@@ -247,31 +216,20 @@ class EMailNotificationTask extends NotificationTask {
 				email.bcc += ',' + _emailConfig.admins.join(',');
 			}
 		}
-		// In promise
-		return new Promise((fulfill, reject) => {
-			// Create the message
-			var message	= {
-				from:  (!email.from?_emailConfig.from:email.from),
-				to: email.to,
-				cc: email.cc,
-				bcc: email.bcc,
-				subject: email.subject,
-				// text: email.text,
-				attachment: [
-					{ data: email.html, alternative:true }
-				]
-			};
-
-			// send the message and get a callback with an error or details of the message that was sent
-			this.server.send(message, (err, message) => {
-				// Error Handling
-				if (err) {
-					reject(err);
-				} else {
-					fulfill(message);
-				}
-			});
-		});
+		// Create the message
+		var message	= {
+			from:  (!email.from?_emailConfig.from:email.from),
+			to: email.to,
+			cc: email.cc,
+			bcc: email.bcc,
+			subject: email.subject,
+			// text: email.text,
+			attachment: [
+				{ data: email.html, alternative:true }
+			]
+		};
+		// send the message and get a callback with an error or details of the message that was sent
+		return this.server.send(message);
 	}
 }
 

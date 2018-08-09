@@ -142,7 +142,7 @@ class Logging {
 	// Used to log exception in catch(...) only
 	static logActionExceptionMessageAndSendResponse(action, exception, req, res, next) {
 		// Clear password
-		if (action==="login" && req.body.password) {
+		if (action === "login" && req.body.password) {
 			req.body.password = "####";
 		}
 		if (exception instanceof AppError) {
