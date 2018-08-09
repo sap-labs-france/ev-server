@@ -4,18 +4,19 @@ const Database = require('../../../utils/Database');
 const PricingSecurity = require('./security/PricingSecurity');
 
 class PricingService {
-	static handleGetPricing(action, req, res, next) {
-		// Check auth
-		if (!Authorizations.canReadPricing(req.user)) {
-			// Not Authorized!
-			throw new AppAuthError(
-				action, Constants.ENTITY_PRICING,
-				null,
-				560, "PricingService", "handleGetPricing",
-				req.user);
-		}
-		// Get the Pricing
-		global.storage.getPricing().then((pricing) => {
+	static async handleGetPricing(action, req, res, next) {
+		try {
+			// Check auth
+			if (!Authorizations.canReadPricing(req.user)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					action, Constants.ENTITY_PRICING,
+					null,
+					560, "PricingService", "handleGetPricing",
+					req.user);
+			}
+			// Get the Pricing
+			let pricing = await global.storage.getPricing();
 			// Return
 			if (pricing) {
 				res.json(
@@ -24,40 +25,44 @@ class PricingService {
 						pricing, req.user)
 				);
 			} else {
-				res.json({});
+				res.json(null);
 			}
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleUpdatePricing(action, req, res, next) {
-		// Check auth
-		if (!Authorizations.canUpdatePricing(req.user)) {
-			// Not Authorized!
-			throw new AppAuthError(
-				action, Constants.ENTITY_PRICING,
-				null,
-				560, "PricingService", "handleUpdatePricing",
-				req.user);
-		}
-		// Filter
-		let filteredRequest = PricingSecurity.filterPricingUpdateRequest(req.body, req.user);
-		// Check
-		if (!filteredRequest.priceKWH || isNaN(filteredRequest.priceKWH)) {
-			Logging.logActionExceptionMessageAndSendResponse(
-				action, new Error(`The price ${filteredRequest.priceKWH} has not a correct format`), req, res, next);
-			return;
-		}
-		// Update
-		let pricing = {};
-		Database.updatePricing(filteredRequest, pricing);
-		// Set timestamp
-		pricing.timestamp = new Date();
-		// Get
-		global.storage.savePricing(pricing).then((pricingMDB) => {
+	static async handleUpdatePricing(action, req, res, next) {
+		try {
+			// Check auth
+			if (!Authorizations.canUpdatePricing(req.user)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					action, Constants.ENTITY_PRICING,
+					null,
+					560, "PricingService", "handleUpdatePricing",
+					req.user);
+			}
+			// Filter
+			let filteredRequest = PricingSecurity.filterPricingUpdateRequest(req.body, req.user);
+			// Check
+			if (!filteredRequest.priceKWH || isNaN(filteredRequest.priceKWH)) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The price ${filteredRequest.priceKWH} has not a correct format`, 500, 
+					"PricingService", "handleUpdatePricing", req.user);
+			}
+			// Update
+			let pricing = {};
+			Database.updatePricing(filteredRequest, pricing);
+			// Set timestamp
+			pricing.timestamp = new Date();
+			// Get
+			let pricingMDB = await global.storage.savePricing(pricing);
+			// Log
 			Logging.logSecurityInfo({
 				user: req.user, action: action,
 				module: "PricingService",
@@ -68,10 +73,10 @@ class PricingService {
 			// Ok
 			res.json({status: `Success`});
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 }
 

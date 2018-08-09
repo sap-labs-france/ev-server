@@ -4,22 +4,23 @@ const LoggingSecurity = require('./security/LoggingSecurity');
 const AppAuthError = require('../../../exception/AppAuthError');
 
 class LoggingService {
-	static handleGetLoggings(action, req, res, next) {
-		// Check auth
-		if (!Authorizations.canListLogging(req.user)) {
-			// Not Authorized!
-			throw new AppAuthError(
-				Authorizations.ACTION_LIST,
-				Constants.ENTITY_LOGGINGS,
-				null,
-				560, "LoggingService", "handleGetLoggings",
-				req.user);
-		}
-		// Filter
-		let filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query, req.user);
-		// Get logs
-		Logging.getLogs(filteredRequest.DateFrom, filteredRequest.Level, filteredRequest.Type, filteredRequest.ChargingStation,
-				filteredRequest.Search, filteredRequest.Limit, filteredRequest.SortDate).then((loggings) => {
+	static async handleGetLoggings(action, req, res, next) {
+		try {
+			// Check auth
+			if (!Authorizations.canListLogging(req.user)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					Authorizations.ACTION_LIST,
+					Constants.ENTITY_LOGGINGS,
+					null,
+					560, "LoggingService", "handleGetLoggings",
+					req.user);
+			}
+			// Filter
+			let filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query, req.user);
+			// Get logs
+			let loggings = await Logging.getLogs(filteredRequest.DateFrom, filteredRequest.Level, filteredRequest.Type, filteredRequest.ChargingStation,
+					filteredRequest.Search, filteredRequest.Limit, filteredRequest.SortDate);
 			// Return
 			res.json(
 				LoggingSecurity.filterLoggingsResponse(
@@ -27,17 +28,18 @@ class LoggingService {
 				)
 			);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetLogging(action, req, res, next) {
-		// Filter
-		let filteredRequest = LoggingSecurity.filterLoggingRequest(req.query, req.user);
-		// Get logs
-		Logging.getLog(filteredRequest.ID).then((logging) => {
+	static async handleGetLogging(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = LoggingSecurity.filterLoggingRequest(req.query, req.user);
+			// Get logs
+			let logging = await Logging.getLog(filteredRequest.ID);
 			// Check auth
 			if (!Authorizations.canReadLogging(req.user, logging)) {
 				// Not Authorized!
@@ -55,10 +57,10 @@ class LoggingService {
 				)
 			);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 }
 
