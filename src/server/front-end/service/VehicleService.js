@@ -1,3 +1,4 @@
+const User = require('../../../model/User');
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
@@ -9,27 +10,26 @@ const Vehicle = require('../../../model/Vehicle');
 const VehicleSecurity = require('./security/VehicleSecurity');
 
 class VehicleService {
-	static handleDeleteVehicle(action, req, res, next) {
-		// Filter
-		let vehicle;
-		let filteredRequest = VehicleSecurity.filterVehicleDeleteRequest(
-			req.query, req.user);
-		// Check Mandatory fields
-		if(!filteredRequest.ID) {
-			Logging.logActionExceptionMessageAndSendResponse(
-				action, new Error(`The Vehicle's ID must be provided`), req, res, next);
-			return;
-		}
-		// Get
-		global.storage.getVehicle(filteredRequest.ID).then((foundVehicle) => {
-			vehicle = foundVehicle;
-			// Found?
+	static async handleDeleteVehicle(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = VehicleSecurity.filterVehicleDeleteRequest(req.query, req.user);
+			// Check Mandatory fields
+			if(!filteredRequest.ID) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Vehicle's ID must be provided`, 500, 
+					'VehicleService', 'handleDeleteVehicle', req.user);
+			}
+			// Get
+			let vehicle = await global.storage.getVehicle(filteredRequest.ID);
 			if (!vehicle) {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Vehicle with ID '${filteredRequest.ID}' does not exist`,
-					550, "VehicleService", "handleDeleteVehicle");
+					`Vehicle with ID '${filteredRequest.ID}' does not exist`, 550, 
+					'VehicleService', 'handleDeleteVehicle', req.user);
 			}
 			// Check auth
 			if (!Authorizations.canDeleteVehicle(req.user, vehicle.getModel())) {
@@ -38,42 +38,45 @@ class VehicleService {
 					Authorizations.ACTION_DELETE,
 					Constants.ENTITY_VEHICLE,
 					vehicle.getID(),
-					560, "VehicleService", "handleDeleteVehicle",
+					560, 
+					'VehicleService', 'handleDeleteVehicle',
 					req.user);
 			}
 			// Delete
-			return vehicle.delete();
-		}).then(() => {
+			await vehicle.delete();
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "VehicleService", method: "handleDeleteVehicle",
+				user: req.user, module: 'VehicleService', method: 'handleDeleteVehicle',
 				message: `Vehicle '${vehicle.getName()}' has been deleted successfully`,
 				action: action, detailedMessages: vehicle});
 			// Ok
 			res.json({status: `Success`});
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetVehicle(action, req, res, next) {
-		// Filter
-		let filteredRequest = VehicleSecurity.filterVehicleRequest(req.query, req.user);
-		// Charge Box is mandatory
-		if(!filteredRequest.ID) {
-			Logging.logActionExceptionMessageAndSendResponse(
-				action, new Error(`The Vehicle ID is mandatory`), req, res, next);
-			return;
-		}
-		// Get it
-		global.storage.getVehicle(filteredRequest.ID).then((vehicle) => {
+	static async handleGetVehicle(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = VehicleSecurity.filterVehicleRequest(req.query, req.user);
+			// Charge Box is mandatory
+			if(!filteredRequest.ID) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Vehicle's ID must be provided`, 500, 
+					'VehicleService', 'handleGetVehicle', req.user);
+			}
+			// Get it
+			let vehicle = await global.storage.getVehicle(filteredRequest.ID);
 			if (!vehicle) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Vehicle with ID '${filteredRequest.ID}' does not exist anymore`,
-					550, "VehicleService", "handleGetVehicle");
+					`The Vehicle with ID '${filteredRequest.ID}' does not exist anymore`, 550, 
+					'VehicleService', 'handleGetVehicle', req.user);
 			}
 			// Return
 			res.json(
@@ -82,28 +85,30 @@ class VehicleService {
 					vehicle.getModel(), req.user)
 			);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetVehicles(action, req, res, next) {
-		// Check auth
-		if (!Authorizations.canListVehicles(req.user)) {
-			// Not Authorized!
-			throw new AppAuthError(
-				Authorizations.ACTION_LIST,
-				Constants.ENTITY_VEHICLES,
-				null,
-				560, "VehicleService", "handleGetVehicles",
-				req.user);
-		}
-		// Filter
-		let filteredRequest = VehicleSecurity.filterVehiclesRequest(req.query, req.user);
-		// Get the vehicles
-		global.storage.getVehicles(filteredRequest.Search, null,
-				filteredRequest.Type, Constants.NO_LIMIT).then((vehicles) => {
+	static async handleGetVehicles(action, req, res, next) {
+		try {
+			// Check auth
+			if (!Authorizations.canListVehicles(req.user)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					Authorizations.ACTION_LIST,
+					Constants.ENTITY_VEHICLES,
+					null,
+					560, 
+					'VehicleService', 'handleGetVehicles',
+					req.user);
+			}
+			// Filter
+			let filteredRequest = VehicleSecurity.filterVehiclesRequest(req.query, req.user);
+			// Get the vehicles
+			let vehicles = await global.storage.getVehicles(
+				filteredRequest.Search, null, filteredRequest.Type, Constants.NO_LIMIT);
 			let vehiclesJSon = [];
 			vehicles.forEach((vehicle) => {
 				// Set the model
@@ -116,28 +121,31 @@ class VehicleService {
 					vehiclesJSon, req.user)
 			);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetVehicleImage(action, req, res, next) {
-		// Filter
-		let filteredRequest = VehicleSecurity.filterVehicleRequest(req.query, req.user);
-		// Charge Box is mandatory
-		if(!filteredRequest.ID) {
-			Logging.logActionExceptionMessageAndSendResponse(
-				action, new Error(`The Vehicle ID is mandatory`), req, res, next);
-			return;
-		}
-		// Get it
-		global.storage.getVehicle(filteredRequest.ID).then((vehicle) => {
+	static async handleGetVehicleImage(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = VehicleSecurity.filterVehicleRequest(req.query, req.user);
+			// Charge Box is mandatory
+			if(!filteredRequest.ID) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Vehicle's ID must be provided`, 500, 
+					'VehicleService', 'handleGetVehicleImage', req.user);
+			}
+			// Get it
+			let vehicle = await global.storage.getVehicle(filteredRequest.ID);
 			if (!vehicle) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Vehicle with ID '${filteredRequest.ID}' does not exist anymore`,
-					550, "VehicleService", "handleGetVehicleImage");
+					`The Vehicle with ID '${filteredRequest.ID}' does not exist anymore`, 550, 
+					'VehicleService', 'handleGetVehicleImage', req.user);
 			}
 			// Check auth
 			if (!Authorizations.canReadVehicle(req.user, vehicle.getModel())) {
@@ -146,74 +154,69 @@ class VehicleService {
 					Authorizations.ACTION_READ,
 					Constants.ENTITY_VEHICLE,
 					vehicle.getID(),
-					560, "VehicleService", "handleGetVehicleImage",
+					560, 
+					'VehicleService', 'handleGetVehicleImage',
 					req.user);
 			}
 			// Get the image
-			return global.storage.getVehicleImage(filteredRequest.ID);
-		}).then((vehicleImage) => {
-			// Found?
-			if (vehicleImage) {
-				// Set the user
-				res.json(vehicleImage);
-			} else {
-				res.json(null);
-			}
+			let vehicleImage = await global.storage.getVehicleImage(filteredRequest.ID);
+			// Return
+			res.json(vehicleImage);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleGetVehicleImages(action, req, res, next) {
-		// Check auth
-		if (!Authorizations.canListVehicles(req.user)) {
-			// Not Authorized!
-			throw new AppAuthError(
-				Authorizations.ACTION_LIST,
-				Constants.ENTITY_VEHICLES,
-				null,
-				560, "VehicleService", "handleGetVehicleImages",
-				req.user);
-		}
-		// Get the vehicle image
-		global.storage.getVehicleImages().then((vehicleImages) => {
+	static async handleGetVehicleImages(action, req, res, next) {
+		try {
+			// Check auth
+			if (!Authorizations.canListVehicles(req.user)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					Authorizations.ACTION_LIST,
+					Constants.ENTITY_VEHICLES,
+					null,
+					560, 
+					'VehicleService', 'handleGetVehicleImages',
+					req.user);
+			}
+			// Get the vehicle image
+			let vehicleImages = await global.storage.getVehicleImages();
+			// Return
 			res.json(vehicleImages);
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleCreateVehicle(action, req, res, next) {
-		// Check auth
-		if (!Authorizations.canCreateVehicle(req.user)) {
-			// Not Authorized!
-			throw new AppAuthError(
-				Authorizations.ACTION_CREATE,
-				Constants.ENTITY_VEHICLE,
-				null,
-				560, "VehicleService", "handleCreateVehicle",
-				req.user);
-		}
-		// Filter
-		let filteredRequest = VehicleSecurity.filterVehicleCreateRequest( req.body, req.user );
-		let vehicle, newVehicle;
-		// Get the logged user
-		global.storage.getUser(req.user.id).then((loggedUser) => {
+	static async handleCreateVehicle(action, req, res, next) {
+		try {
+			// Check auth
+			if (!Authorizations.canCreateVehicle(req.user)) {
+				// Not Authorized!
+				throw new AppAuthError(
+					Authorizations.ACTION_CREATE,
+					Constants.ENTITY_VEHICLE,
+					null,
+					560, 
+					'VehicleService', 'handleCreateVehicle',
+					req.user);
+			}
+			// Filter
+			let filteredRequest = VehicleSecurity.filterVehicleCreateRequest( req.body, req.user );
 			// Check Mandatory fields
 			Vehicles.checkIfVehicleValid(filteredRequest, req);
 			// Create vehicle
-			vehicle = new Vehicle(filteredRequest);
+			let vehicle = new Vehicle(filteredRequest);
 			// Update timestamp
-			vehicle.setCreatedBy(loggedUser);
+			vehicle.setCreatedBy(new User({'id': req.user.id}));
 			vehicle.setCreatedOn(new Date());
 			// Save
-			return vehicle.save();
-		}).then((createdVehicle) => {
-			newVehicle = createdVehicle;
+			let newVehicle = await vehicle.save();
 			// Save Site's Image
 			if (vehicle.getImages()) {
 				newVehicle.setImages(vehicle.getImages());
@@ -221,33 +224,32 @@ class VehicleService {
 				newVehicle.setImages([]);
 			}
 			// Save
-			return newVehicle.saveImages();
-		}).then(() => {
+			await newVehicle.saveImages();
+			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "VehicleService", method: "handleCreateVehicle",
+				user: req.user, module: 'VehicleService', method: 'handleCreateVehicle',
 				message: `Vehicle '${newVehicle.getName()}' has been created successfully`,
 				action: action, detailedMessages: newVehicle});
 			// Ok
 			res.json({status: `Success`});
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 
-	static handleUpdateVehicle(action, req, res, next) {
-		// Filter
-		let filteredRequest = VehicleSecurity.filterVehicleUpdateRequest( req.body, req.user );
-		let vehicle;
-		// Check email
-		global.storage.getVehicle(filteredRequest.id).then((foundVehicle) => {
-			vehicle = foundVehicle;
+	static async handleUpdateVehicle(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = VehicleSecurity.filterVehicleUpdateRequest( req.body, req.user );
+			// Check email
+			let vehicle = await global.storage.getVehicle(filteredRequest.id);
 			if (!vehicle) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Vehicle with ID '${filteredRequest.id}' does not exist anymore`,
-					550, "VehicleService", "handleUpdateVehicle");
+					`The Vehicle with ID '${filteredRequest.id}' does not exist anymore`, 550, 
+					'VehicleService', 'handleUpdateVehicle', req.user);
 			}
 			// Check Mandatory fields
 			Vehicles.checkIfVehicleValid(filteredRequest, req);
@@ -258,38 +260,33 @@ class VehicleService {
 					Authorizations.ACTION_UPDATE,
 					Constants.ENTITY_VEHICLE,
 					vehicle.getID(),
-					560, "VehicleService", "handleUpdateVehicle",
+					560, 
+					'VehicleService', 'handleUpdateVehicle',
 					req.user);
 			}
-			// Get the logged user
-			return global.storage.getUser(req.user.id);
-		// Logged User
-		}).then((loggedUser) => {
 			// Update
 			Database.updateVehicle(filteredRequest, vehicle.getModel());
 			// Update timestamp
-			vehicle.setLastChangedBy(loggedUser);
+			vehicle.setLastChangedBy(new User({'id': req.user.id}));
 			vehicle.setLastChangedOn(new Date());
+			// Update Vehicle
+			let updatedVehicle = await vehicle.save();
 			// Update Vehicle's Image
 			if (filteredRequest.withVehicleImages) {
-				return vehicle.saveImages();
+				await vehicle.saveImages();
 			}
-		}).then(() => {
-			// Update Vehicle
-			return vehicle.save();
-		}).then((updatedVehicle) => {
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, module: "VehicleService", method: "handleUpdateVehicle",
+				user: req.user, module: 'VehicleService', method: 'handleUpdateVehicle',
 				message: `Vehicle '${updatedVehicle.getName()}' has been updated successfully`,
 				action: action, detailedMessages: updatedVehicle});
 			// Ok
 			res.json({status: `Success`});
 			next();
-		}).catch((err) => {
+		} catch (error) {
 			// Log
-			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
-		});
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
 	}
 }
 

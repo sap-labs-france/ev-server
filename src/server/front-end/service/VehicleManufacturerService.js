@@ -69,7 +69,7 @@ class VehicleManufacturerService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Vehicle Manufacturer's ID must be provided`, 500, 
-					'VehicleManufacturerService', 'handleDeleteVehicleManufacturer', req.user);
+					'VehicleManufacturerService', 'handleGetVehicleManufacturer', req.user);
 			}
 			// Get it
 			let vehicleManufacturer = await global.storage.getVehicleManufacturer(filteredRequest.ID);
