@@ -198,7 +198,7 @@ module.exports = {
 	},
 
 	getRandomInt() {
-		return Math.floor((Math.random() * 1000000000) + 1);
+		return Math.floor((Math.random() * 4294967296) + 1); // UINT32
 	},
 
 	buildEvseURL() {

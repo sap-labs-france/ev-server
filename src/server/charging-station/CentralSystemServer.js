@@ -69,6 +69,26 @@ class CentralSystemServer {
 		// Done in the subclass
 	}
 
+	async checkAndGetChargingStation(chargeBoxIdentity) {
+		// Get the charging station
+		let chargingStation = await global.storage.getChargingStation(chargeBoxIdentity);
+		// Found?
+		if (!chargingStation) {
+			throw new AppError(
+				chargeBoxIdentity,
+				`Charging Station does not exist`,
+				550, "CentralSystemServer", "checkAndGetChargingStation");
+		}
+		// Found?
+		if (chargingStation.isDeleted()) {
+			throw new AppError(
+				chargeBoxIdentity,
+				`Charging Station is deleted`,
+				550, "CentralSystemServer", "checkAndGetChargingStation");
+		}
+		return chargingStation;
+	}
+
 	async handleBootNotification(args, headers, req) {
 		try{
 				// Set the endpoint
@@ -156,14 +176,7 @@ class CentralSystemServer {
 		try {
 			var heartBeat = new Date();
 			// Get the charging station
-			let chargingStation = await global.storage.getChargingStation(headers.chargeBoxIdentity);
-			// Found?
-			if (!chargingStation) {
-				throw new AppError(
-					headers.chargeBoxIdentity,
-					`Charging Station does not exist`,
-					550, "CentralSystemServer", "handleHeartBeat");
-			}
+			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
 			// Set Heartbeat
 			chargingStation.setLastHeartBeat(heartBeat);
 			// Save
@@ -195,14 +208,7 @@ class CentralSystemServer {
 	async handleStatusNotification(args, headers, req) {
 		try {
 			// Get the charging station
-			let chargingStation = await global.storage.getChargingStation(headers.chargeBoxIdentity);
-			// Found?
-			if (!chargingStation) {
-				throw new AppError(
-					headers.chargeBoxIdentity,
-					`Charging Station does not exist`,
-					550, "CentralSystemServer", "handleStatusNotification");
-			}
+			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
 			// Handle
 			await chargingStation.handleStatusNotification(args);
 			// Log
@@ -229,14 +235,7 @@ class CentralSystemServer {
 	async handleMeterValues(args, headers, req) {
 		try {
 			// Get the charging station
-			let chargingStation = await global.storage.getChargingStation(headers.chargeBoxIdentity);
-			// Found?
-			if (!chargingStation) {
-				throw new AppError(
-					headers.chargeBoxIdentity,
-					`Charging Station does not exist`,
-					550, "CentralSystemServer", "handleMeterValues");
-			}
+			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
 			// Save
 			await chargingStation.handleMeterValues(args);
 			// Log
@@ -263,14 +262,7 @@ class CentralSystemServer {
 	async handleAuthorize(args, headers, req) {
 		try {
 			// Get the charging station
-			let chargingStation = await global.storage.getChargingStation(headers.chargeBoxIdentity);
-			// Found?
-			if (!chargingStation) {
-				throw new AppError(
-					headers.chargeBoxIdentity,
-					`Charging Station does not exist`,
-					550, "CentralSystemServer", "handleAuthorize");
-			}
+			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
 			// Handle
 			await chargingStation.handleAuthorize(args);
 			// Log
@@ -316,14 +308,7 @@ class CentralSystemServer {
 	async handleDiagnosticsStatusNotification(args, headers, req) {
 		try {
 			// Get the charging station
-			let chargingStation = await global.storage.getChargingStation(headers.chargeBoxIdentity);
-			// Found?
-			if (!chargingStation) {
-				throw new AppError(
-					headers.chargeBoxIdentity,
-					`Charging Station does not exist`,
-					550, "CentralSystemServer", "handleDiagnosticsStatusNotification");
-			}
+			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
 			// Set date
 			args.timestamp = new Date();
 			// Save
@@ -351,14 +336,7 @@ class CentralSystemServer {
 	async handleFirmwareStatusNotification(args, headers, req) {
 		try {
 			// Get the charging station
-			let chargingStation = await global.storage.getChargingStation(headers.chargeBoxIdentity);
-			// Found?
-			if (!chargingStation) {
-				throw new AppError(
-					headers.chargeBoxIdentity,
-					`Charging Station does not exist`,
-					550, "CentralSystemServer", "handleFirmwareStatusNotification");
-			}
+			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
 			// Set date
 			args.timestamp = new Date();
 			// Save
@@ -386,14 +364,7 @@ class CentralSystemServer {
 	async handleStartTransaction(args, headers, req) {
 		try {
 			// Get the charging station
-			let chargingStation = await global.storage.getChargingStation(headers.chargeBoxIdentity);
-			// Found?
-			if (!chargingStation) {
-				throw new AppError(
-					headers.chargeBoxIdentity,
-					`Charging Station does not exist`,
-					550, "CentralSystemServer", "handleStartTransaction");
-			}
+			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
 			// Save
 			let transaction = await chargingStation.handleStartTransaction(args);
 			// Log
@@ -415,8 +386,6 @@ class CentralSystemServer {
 					"transactionId": transaction.id,
 					"idTagInfo": {
 						"status": "Accepted"
-						// "expiryDate": "",
-						// "parentIdTag": ""
 					}
 				}
 			};
@@ -428,8 +397,6 @@ class CentralSystemServer {
 					"transactionId": 0,
 					"idTagInfo": {
 						"status": "Invalid"
-						// "expiryDate": "",
-						// "parentIdTag": ""
 					}
 				}
 			};
@@ -439,14 +406,7 @@ class CentralSystemServer {
 	async handleDataTransfer(args, headers, req) {
 		try {
 			// Get the charging station
-			let chargingStation = await global.storage.getChargingStation(headers.chargeBoxIdentity);
-			// Found?
-			if (!chargingStation) {
-				throw new AppError(
-					headers.chargeBoxIdentity,
-					`Charging Station does not exist`,
-					550, "CentralSystemServer", "handleDataTransfer");
-			}
+			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
 			// Save
 			await chargingStation.handleDataTransfer(args);
 			// Log
@@ -474,14 +434,7 @@ class CentralSystemServer {
 	async handleStopTransaction(args, headers, req) {
 		try {
 			// Get the charging station
-			let chargingStation = await global.storage.getChargingStation(headers.chargeBoxIdentity);
-			// Found?
-			if (!chargingStation) {
-				throw new AppError(
-					headers.chargeBoxIdentity,
-					`Charging Station does not exist`,
-					550, "CentralSystemServer", "handleStopTransaction");
-			}
+			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
 			// Save
 			await chargingStation.handleStopTransaction(args);
 			// Log

@@ -47,7 +47,7 @@ class AuthService {
 	static async handleIsAuthorized(action, req, res, next) {
 		try {
 			// Default
-			let result = {"IsAuthorized" : false};
+			let result = {'IsAuthorized' : false};
 			// Filter
 			let filteredRequest = AuthSecurity.filterIsAuthorizedRequest(req.query);
 			// Check
@@ -55,25 +55,25 @@ class AuthService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Action is mandatory`,
-					550, "AuthService", "handleIsAuthorized");
+					550, 'AuthService', 'handleIsAuthorized');
 			}
 			// Action
 			switch (filteredRequest.Action) {
 				// Action on charger
-				case "StopTransaction":
+				case 'StopTransaction':
 					// Check
 					if (!filteredRequest.Arg1) {
 						throw new AppError(
 							Constants.CENTRAL_SERVER,
 							`The Charging Station ID is mandatory`,
-							550, "AuthService", "handleIsAuthorized");
+							550, 'AuthService', 'handleIsAuthorized');
 					}
 					// Check
 					if (!filteredRequest.Arg2) {
 						throw new AppError(
 							Constants.CENTRAL_SERVER,
 							`The Transaction ID is mandatory`,
-							550, "AuthService", "handleIsAuthorized");
+							550, 'AuthService', 'handleIsAuthorized');
 					}
 					// Get the Charging station
 					let chargingStation = await global.storage.getChargingStation(filteredRequest.Arg1);
@@ -83,7 +83,7 @@ class AuthService {
 						throw new AppError(
 							Constants.CENTRAL_SERVER,
 							`Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
-							550, "AuthService", "handleIsAuthorized");
+							550, 'AuthService', 'handleIsAuthorized');
 					}
 					// Get Transaction
 					let transaction = await global.storage.getTransaction(filteredRequest.Arg2);
@@ -91,7 +91,7 @@ class AuthService {
 						throw new AppError(
 							Constants.CENTRAL_SERVER,
 							`Transaction with ID '${filteredRequest.Arg2}' does not exist`,
-							560, "ChargingStationService", "handleAction");
+							560, 'ChargingStationService', 'handleAction');
 					}
 					try {
 						// Check
@@ -123,19 +123,19 @@ class AuthService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Email is mandatory`,
-					500, "AuthService", "handleLogIn");
+					500, 'AuthService', 'handleLogIn');
 			}
 			if (!filteredRequest.password) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Password is mandatory`,
-					500, "AuthService", "handleLogIn");
+					500, 'AuthService', 'handleLogIn');
 			}
 			if (!filteredRequest.acceptEula) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The End-user License Agreement is mandatory`,
-					520, "AuthService", "handleLogIn");
+					520, 'AuthService', 'handleLogIn');
 			}
 			// Check email
 			let user = await global.storage.getUserByEmail(filteredRequest.email);
@@ -143,13 +143,13 @@ class AuthService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The user with email '${filteredRequest.email}' does not exist`,
-					550, "AuthService", "handleLogIn");
+					550, 'AuthService', 'handleLogIn');
 			}
 			if (user.deleted) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The user with email '${filteredRequest.email}' is logically deleted`,
-					550, "AuthService", "handleLogIn");
+					550, 'AuthService', 'handleLogIn');
 			}
 			// Check if the number of trials is reached
 			if (user.getPasswordWrongNbrTrials() >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
@@ -160,7 +160,7 @@ class AuthService {
 						// Time elapsed: activate the account again
 						Logging.logSecurityInfo({
 							actionOnUser: user.getModel(),
-							module: "AuthService", method: "handleLogIn", action: action,
+							module: 'AuthService', method: 'handleLogIn', action: action,
 							message: `User has been unlocked and can try to login again`});
 						// Reinit nbr of trial and status
 						user.setPasswordWrongNbrTrials(0);
@@ -174,7 +174,7 @@ class AuthService {
 						// Return data
 						throw new AppError(
 							Constants.CENTRAL_SERVER,	`User is locked`,
-							570, "AuthService", "handleLogIn",
+							570, 'AuthService', 'handleLogIn',
 							user.getModel());
 					}
 				} else {
@@ -203,14 +203,14 @@ class AuthService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The End-user License Agreement is mandatory`,
-					520, "AuthService", "handleLogIn");
+					520, 'AuthService', 'handleLogIn');
 			}
 			// Check
 			if (!filteredRequest.captcha) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The captcha is mandatory`,
-					500, "AuthService", "handleRegisterUser");
+					500, 'AuthService', 'handleRegisterUser');
 			}
 			// Check captcha
 			let response = await axios.get(
@@ -220,7 +220,7 @@ class AuthService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The captcha is invalid`,
-					500, "AuthService", "handleRegisterUser");
+					500, 'AuthService', 'handleRegisterUser');
 			}
 			// Check email
 			let user = await global.storage.getUserByEmail(filteredRequest.email);
@@ -230,7 +230,7 @@ class AuthService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`Email already exists`,
-					510, "AuthService", "handleRegisterUser",
+					510, 'AuthService', 'handleRegisterUser',
 					null, user.getModel());
 			}
 			// Generate a password
@@ -254,8 +254,8 @@ class AuthService {
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, action: action,
-				module: "AuthService",
-				method: "handleRegisterUser",
+				module: 'AuthService',
+				method: 'handleRegisterUser',
 				message: `User with Email '${req.body.email}' has been created successfully`,
 				detailedMessages: req.body
 			});
@@ -264,8 +264,8 @@ class AuthService {
 				Utils.generateGUID(),
 				newUser.getModel(),
 				{
-					"user": newUser.getModel(),
-					"evseDashboardURL" : Utils.buildEvseURL()
+					'user': newUser.getModel(),
+					'evseDashboardURL' : Utils.buildEvseURL()
 				},
 				newUser.getLocale()
 			);
@@ -285,7 +285,7 @@ class AuthService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The captcha is mandatory`,
-					500, "AuthService", "handleUserPasswordReset");
+					500, 'AuthService', 'handleUserPasswordReset');
 			}
 			// Check captcha
 			let response = await axios.get(
@@ -295,7 +295,7 @@ class AuthService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The captcha is invalid`,
-					500, "AuthService", "handleRegisterUser");
+					500, 'AuthService', 'handleRegisterUser');
 			}
 			// Yes: Generate new password
 			let resetHash = Utils.generateGUID();
@@ -306,14 +306,14 @@ class AuthService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`User with email '${filteredRequest.email}' does not exist`,
-					550, "AuthService", "handleUserPasswordReset");
+					550, 'AuthService', 'handleUserPasswordReset');
 			}
 			// Deleted
 			if (user.deleted) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`User with email '${filteredRequest.email}' is logically deleted`,
-					550, "AuthService", "handleUserPasswordReset");
+					550, 'AuthService', 'handleUserPasswordReset');
 			}
 			// Hash it
 			user.setPasswordResetHash(resetHash);
@@ -322,8 +322,8 @@ class AuthService {
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, action: action,
-				module: "AuthService",
-				method: "handleUserPasswordReset",
+				module: 'AuthService',
+				method: 'handleUserPasswordReset',
 				message: `User with Email '${req.body.email}' will receive an email to reset his password`
 			});
 			// Send notification
@@ -335,9 +335,9 @@ class AuthService {
 				Utils.generateGUID(),
 				savedUser.getModel(),
 				{
-					"user": savedUser.getModel(),
-					"evseDashboardURL" : Utils.buildEvseURL(),
-					"evseDashboardResetPassURL" : evseDashboardResetPassURL
+					'user': savedUser.getModel(),
+					'evseDashboardURL' : Utils.buildEvseURL(),
+					'evseDashboardResetPassURL' : evseDashboardResetPassURL
 				},
 				savedUser.getLocale()
 			);
@@ -363,21 +363,21 @@ class AuthService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`User with email '${filteredRequest.email}' does not exist`,
-					550, "AuthService", "handleUserPasswordReset");
+					550, 'AuthService', 'handleUserPasswordReset');
 			}
 			// Deleted
 			if (user.deleted) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`User with email '${filteredRequest.email}' is logically deleted`,
-					550, "AuthService", "handleUserPasswordReset");
+					550, 'AuthService', 'handleUserPasswordReset');
 			}
 			// Check the hash from the db
 			if (!user.getPasswordResetHash()) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The user has already reset his password`,
-					540, "AuthService", "handleUserPasswordReset",
+					540, 'AuthService', 'handleUserPasswordReset',
 					user.getModel());
 			}
 			// Check the hash from the db
@@ -385,7 +385,7 @@ class AuthService {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The user's hash '${user.getPasswordResetHash()}' do not match the requested one '${filteredRequest.hash}'`,
-					540, "AuthService", "handleUserPasswordReset",
+					540, 'AuthService', 'handleUserPasswordReset',
 					user.getModel());
 			}
 			// Set the hashed password
@@ -397,8 +397,8 @@ class AuthService {
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, action: action,
-				module: "AuthService",
-				method: "handleUserPasswordReset",
+				module: 'AuthService',
+				method: 'handleUserPasswordReset',
 				message: `User's password has been reset successfully`,
 				detailedMessages: req.body
 			});
@@ -407,10 +407,10 @@ class AuthService {
 				Utils.generateGUID(),
 				newUser.getModel(),
 				{
-					"user": newUser.getModel(),
-					"hash": null,
-					"newPassword": newPassword,
-					"evseDashboardURL" : Utils.buildEvseURL()
+					'user': newUser.getModel(),
+					'hash': null,
+					'newPassword': newPassword,
+					'evseDashboardURL' : Utils.buildEvseURL()
 				},
 				newUser.getLocale()
 			);
@@ -451,14 +451,14 @@ class AuthService {
 			user.setStatus(Users.USER_STATUS_LOCKED);
 			// Set blocking date
 			user.setPasswordBlockedUntil(
-				moment().add(_centralSystemRestConfig.passwordBlockedWaitTimeMin, "m").toDate()
+				moment().add(_centralSystemRestConfig.passwordBlockedWaitTimeMin, 'm').toDate()
 			);
 			// Save nbr of trials
 			await user.save();
 			// Log
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`User is locked`, 570, "AuthService", "checkUserLogin",
+				`User is locked`, 570, 'AuthService', 'checkUserLogin',
 				user.getModel()
 			);
 		} else {
@@ -468,7 +468,7 @@ class AuthService {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
 				`User failed to log in, ${_centralSystemRestConfig.passwordWrongNumberOfTrial - user.getPasswordWrongNbrTrials()} trial(s) remaining`,
-				401, "AuthService", "checkUserLogin",
+				401, 'AuthService', 'checkUserLogin',
 				user.getModel()
 			);
 		}
@@ -478,12 +478,12 @@ class AuthService {
 		// Password / Login OK
 		Logging.logSecurityInfo({
 			user: user.getModel(),
-			module: "AuthService", method: "checkUserLogin",
+			module: 'AuthService', method: 'checkUserLogin',
 			action: action, message: `User logged in successfully`});
 		// Get EULA
 		let endUserLicenseAgreement = await global.storage.getEndUserLicenseAgreement(user.getLanguage());
 		// Set Eula Info on Login Only
-		if (action == "Login") {
+		if (action == 'Login') {
 			user.setEulaAcceptedOn(new Date());
 			user.setEulaAcceptedVersion(endUserLicenseAgreement.version);
 			user.setEulaAcceptedHash(endUserLicenseAgreement.hash);
@@ -498,14 +498,14 @@ class AuthService {
 		let auths = await Authorizations.buildAuthorizations(user);
 		// Yes: build payload
 		let payload = {
-			"id": user.getID(),
-			"role": user.getRole(),
-			"name": user.getName(),
-			"tagIDs": user.getTagIDs(),
-			"firstName": user.getFirstName(),
-			"locale": user.getLocale(),
-			"language": user.getLanguage(),
-			"auths": auths
+			'id': user.getID(),
+			'role': user.getRole(),
+			'name': user.getName(),
+			'tagIDs': user.getTagIDs(),
+			'firstName': user.getFirstName(),
+			'locale': user.getLocale(),
+			'language': user.getLanguage(),
+			'auths': auths
 		};
 		// Build token
 		let token;
@@ -532,15 +532,15 @@ class AuthService {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
 				`Unknown user tried to log in with email '${filteredRequest.email}'`,
-				401, "AuthService", "checkUserLogin",
+				401, 'AuthService', 'checkUserLogin',
 				user.getModel());
 		}
 		// Check if the account is active
 		if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`Account is not active`,
-				580, "AuthService", "checkUserLogin",
+				`Account is not active`, 580, 
+				'AuthService', 'checkUserLogin',
 				user.getModel());
 		}
 		// Check password

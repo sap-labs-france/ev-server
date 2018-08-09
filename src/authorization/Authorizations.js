@@ -198,21 +198,21 @@ module.exports = {
 		// Access Control enabled?
 		if (newUserCreated && siteArea.isAccessControlEnabled()) {
 			// Yes
-			return Promise.reject( new AppError(
+			throw new AppError(
 				chargingStation.getID(),
 				`User with Tag ID '${tagID}' not found but saved as inactive user`,
 				"Authorizations", "getOrCreateUserByTagID",
 				null, user.getModel()
-			));
+			);
 		}
 		// Check User status
 		if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
 			// Reject but save ok
-			return Promise.reject( new AppError(
+			throw new AppError(
 				chargingStation.getID(),
 				`User with TagID '${tagID}' is '${Users.getStatusDescription(user.getStatus())}'`, 500,
 				"Authorizations", "getOrCreateUserByTagID",
-				null, user.getModel()) );
+				null, user.getModel());
 		}
 		return user;
 	},
