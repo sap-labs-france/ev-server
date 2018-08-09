@@ -299,11 +299,14 @@ class ChargingStation {
 	async handleStatusNotification(statusNotification) {
 		// Set the Station ID
 		statusNotification.chargeBoxID = this.getID();
+		if (!statusNotification.timestamp) {
+			statusNotification.timestamp = new Date().toISOString();
+		}
 		// Update the connector -----------------------------------------
 		// Get the connectors
 		let connectors = this.getConnectors();
 		// Init previous connector status
-		for (var i = 0; i < statusNotification.connectorId; i++) {
+		for (let i = 0; i < statusNotification.connectorId; i++) {
 			// Check if former connector can be set
 			if (!connectors[i]) {
 				// Init
@@ -317,11 +320,15 @@ class ChargingStation {
 		connectors[statusNotification.connectorId-1].errorCode = statusNotification.errorCode;
 		// Set
 		this.setConnectors(connectors);
+		// Update Power?
+		if (!connectors[statusNotification.connectorId-1].power) {
+			// Update
+			this.updateConnectorsPower();
+		}
 		// Save Status Notif
 		await global.storage.saveStatusNotification(statusNotification);
 		// Save Charger Status
-		await global.storage.saveChargingStationConnector(
-			this.getModel(), statusNotification.connectorId);
+		await global.storage.saveChargingStationConnector(this.getModel(), statusNotification.connectorId);
 		// Notify if error
 		if (statusNotification.status === "Faulted") {
 			// Log
@@ -518,8 +525,6 @@ class ChargingStation {
 	}
 
 	async updateChargingStationConsumption(transactionId) {
-		console.log("updateChargingStationConsumption");
-		
 		// Get the last transaction first
 		let transaction = await this.getTransaction(transactionId);
 		// Found?

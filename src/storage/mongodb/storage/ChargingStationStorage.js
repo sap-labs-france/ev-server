@@ -16,7 +16,9 @@ class ChargingStationStorage {
 		let aggregation = [];
 		// Filters
 		aggregation.push({
-			$match: { _id: id }
+			$match: {
+				_id: id
+			}
 		});
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
@@ -31,7 +33,10 @@ class ChargingStationStorage {
 		});
 		// Add
 		aggregation.push({
-			$unwind: { "path": "$siteArea", "preserveNullAndEmptyArrays": true }
+			$unwind: {
+				"path": "$siteArea",
+				"preserveNullAndEmptyArrays": true
+			}
 		});
 		// Read DB
 		let chargingStationMDB = await _db.collection('chargingstations')
@@ -59,23 +64,31 @@ class ChargingStationStorage {
 		let aggregation = [];
 		// Set the filters
 		let filters = {
-			"$and": [
-				{
-					"$or": [
-						{ "deleted": { $exists: false } },
-						{ "deleted": null },
-						{ "deleted": false }
-					]
-				}
-			]
+			"$and": [{
+				"$or": [{
+						"deleted": {
+							$exists: false
+						}
+					},
+					{
+						"deleted": null
+					},
+					{
+						"deleted": false
+					}
+				]
+			}]
 		};
 		// Source?
 		if (searchValue) {
 			// Build filter
 			filters.$and.push({
-				"$or": [
-					{ "_id" : { $regex : searchValue, $options: 'i' } }
-				]
+				"$or": [{
+					"_id": {
+						$regex: searchValue,
+						$options: 'i'
+					}
+				}]
 			});
 		}
 		// Source?
@@ -101,7 +114,9 @@ class ChargingStationStorage {
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Single Record
 		aggregation.push({
-			$sort: { _id : 1 }
+			$sort: {
+				_id: 1
+			}
 		});
 		// Limit
 		if (numberOfChargingStations > 0) {
@@ -136,22 +151,32 @@ class ChargingStationStorage {
 		let chargingStation = {};
 		Database.updateChargingStation(chargingStationToSave, chargingStation, false);
 		// Modify and return the modified document
-	    let result = await _db.collection('chargingstations').findOneAndUpdate(
-			{"_id": chargingStationToSave.id},
-			{$set: chargingStation},
-			{upsert: true, new: true, returnOriginal: false});
+		let result = await _db.collection('chargingstations').findOneAndUpdate({
+			"_id": chargingStationToSave.id
+		}, {
+			$set: chargingStation
+		}, {
+			upsert: true,
+			new: true,
+			returnOriginal: false
+		});
 		// Create
 		return new ChargingStation(result.value);
 	}
 
 	static async handleSaveChargingStationConnector(chargingStation, connectorId) {
 		let updatedFields = {};
-		updatedFields["connectors." + (connectorId-1)] = chargingStation.connectors[connectorId-1];
+		updatedFields["connectors." + (connectorId - 1)] = chargingStation.connectors[connectorId - 1];
 		// Modify and return the modified document
-	    let result = await _db.collection('chargingstations').findOneAndUpdate(
-			{"_id": chargingStation.id},
-			{$set: updatedFields},
-			{upsert: true, new: true, returnOriginal: false});
+		let result = await _db.collection('chargingstations').findOneAndUpdate({
+			"_id": chargingStation.id
+		}, {
+			$set: updatedFields
+		}, {
+			upsert: true,
+			new: true,
+			returnOriginal: false
+		});
 		// Create
 		return new ChargingStation(result.value);
 	}
@@ -160,10 +185,15 @@ class ChargingStationStorage {
 		let updatedFields = {};
 		updatedFields["lastHeartBeat"] = Utils.convertToDate(chargingStation.lastHeartBeat);
 		// Modify and return the modified document
-	    let result = await _db.collection('chargingstations').findOneAndUpdate(
-			{"_id": chargingStation.id},
-			{$set: updatedFields},
-			{upsert: true, new: true, returnOriginal: false});
+		let result = await _db.collection('chargingstations').findOneAndUpdate({
+			"_id": chargingStation.id
+		}, {
+			$set: updatedFields
+		}, {
+			upsert: true,
+			new: true,
+			returnOriginal: false
+		});
 		// Create
 		return new ChargingStation(result.value);
 	}
@@ -178,10 +208,15 @@ class ChargingStationStorage {
 			updatedFields["lastChangedOn"] = Utils.convertToDate(chargingStation.lastChangedOn);
 		}
 		// Modify and return the modified document
-	    let result = await _db.collection('chargingstations').findOneAndUpdate(
-			{"_id": chargingStation.id},
-			{$set: updatedFields},
-			{upsert: true, new: true, returnOriginal: false});
+		let result = await _db.collection('chargingstations').findOneAndUpdate({
+			"_id": chargingStation.id
+		}, {
+			$set: updatedFields
+		}, {
+			upsert: true,
+			new: true,
+			returnOriginal: false
+		});
 		// Create
 		return new ChargingStation(result.value);
 	}
@@ -189,10 +224,14 @@ class ChargingStationStorage {
 	static async handleDeleteChargingStation(id) {
 		// Delete Configuration
 		await _db.collection('configurations')
-			.findOneAndDelete( {'_id': id} );
+			.findOneAndDelete({
+				'_id': id
+			});
 		// Delete Charger
 		await _db.collection('chargingstations')
-			.findOneAndDelete( {'_id': id} );
+			.findOneAndDelete({
+				'_id': id
+			});
 		// Keep the rest (bootnotif, authorize...)
 	}
 
@@ -206,7 +245,7 @@ class ChargingStationStorage {
 			authorize.userID = Utils.convertToObjectID(authorize.user.getID());
 		}
 		// Insert
-	    await _db.collection('authorizes')
+		await _db.collection('authorizes')
 			.insertOne({
 				_id: authorize.id,
 				tagID: authorize.idTag,
@@ -218,13 +257,18 @@ class ChargingStationStorage {
 
 	static async handleSaveConfiguration(configuration) {
 		// Modify
-    await _db.collection('configurations').findOneAndUpdate(
-			{"_id": configuration.chargeBoxID},
-			{$set: {
+		await _db.collection('configurations').findOneAndUpdate({
+			"_id": configuration.chargeBoxID
+		}, {
+			$set: {
 				configuration: configuration.configuration,
 				timestamp: Utils.convertToDate(configuration.timestamp)
-			}},
-			{upsert: true, new: true, returnOriginal: false});
+			}
+		}, {
+			upsert: true,
+			new: true,
+			returnOriginal: false
+		});
 	}
 
 	static async handleSaveDataTransfer(dataTransfer) {
@@ -233,7 +277,7 @@ class ChargingStationStorage {
 			.update(`${dataTransfer.chargeBoxID}~${dataTransfer.data}~${dataTransfer.timestamp}`)
 			.digest("hex");
 		// Insert
-	    await _db.collection('datatransfers')
+		await _db.collection('datatransfers')
 			.insertOne({
 				_id: dataTransfer.id,
 				vendorId: dataTransfer.vendorId,
@@ -246,7 +290,7 @@ class ChargingStationStorage {
 
 	static async handleSaveBootNotification(bootNotification) {
 		// Insert
-	    let result = await _db.collection('bootnotifications')
+		let result = await _db.collection('bootnotifications')
 			.insertOne({
 				_id: crypto.createHash('sha256')
 					.update(`${bootNotification.chargeBoxID}~${bootNotification.timestamp}`)
@@ -270,7 +314,7 @@ class ChargingStationStorage {
 			.update(`${diagnosticsStatusNotification.chargeBoxID}~${diagnosticsStatusNotification.timestamp.toISOString()}`)
 			.digest("hex");
 		// Insert
-	    await _db.collection('diagnosticsstatusnotifications')
+		await _db.collection('diagnosticsstatusnotifications')
 			.insertOne({
 				_id: diagnosticsStatusNotification.id,
 				chargeBoxID: diagnosticsStatusNotification.chargeBoxID,
@@ -285,7 +329,7 @@ class ChargingStationStorage {
 			.update(`${firmwareStatusNotification.chargeBoxID}~${firmwareStatusNotification.timestamp.toISOString()}`)
 			.digest("hex");
 		// Insert
-	    await _db.collection('firmwarestatusnotifications')
+		await _db.collection('firmwarestatusnotifications')
 			.insertOne({
 				_id: firmwareStatusNotification.id,
 				chargeBoxID: firmwareStatusNotification.chargeBoxID,
@@ -303,7 +347,7 @@ class ChargingStationStorage {
 		// Set
 		Database.updateStatusNotification(statusNotificationToSave, statusNotification, false);
 		// Insert
-	    await _db.collection('statusnotifications')
+		await _db.collection('statusnotifications')
 			.insertOne(statusNotification);
 	}
 
@@ -332,7 +376,9 @@ class ChargingStationStorage {
 	static async handleGetConfiguration(chargeBoxID) {
 		// Read DB
 		let configurationsMDB = await _db.collection('configurations')
-			.find({"_id": chargeBoxID })
+			.find({
+				"_id": chargeBoxID
+			})
 			.limit(1)
 			.toArray();
 		// Found?
