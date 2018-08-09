@@ -252,20 +252,20 @@ module.exports = {
 		return (users?JSON.parse(users):null);
 	},
 
-	_checkAndSaveUser(user) {
-		// Get user
-		global.storage.getUserByEmail(user.email).then((userDB) => {
+	async _checkAndSaveUser(user) {
+		try {
+			// Get user
+			let userDB = await global.storage.getUserByEmail(user.email);
 			// Found
 			if (!userDB) {
-				global.storage.saveUser(user).then((newUser) => {
-					console.log(`User Import: User with email '${user.email}' has been created with success`);
-				}).catch((err) => {
-					console.log(`User Import: Failed to import user with email '${user.email}': ${err.toString()}`);
-				});
+				let newUser = await global.storage.saveUser(user);
+				console.log(`User Import: User with email '${user.email}' has been created with success`);
 			} else {
 				console.log(`User Import: User with email '${user.email}' already exists`);
 			}
-		});
+		} catch(err) {
+			console.log(`User Import: Failed to import user with email '${user.email}': ${err.toString()}`);
+		}
 	},
 
 	getEndUserLicenseAgreement(language="en") {

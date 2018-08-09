@@ -69,20 +69,19 @@ class CentralSystemServer {
 		// Done in the subclass
 	}
 
-	handleBootNotification(args, headers, req) {
-		// Set the endpoint
-		args.endpoint = headers.From.Address;
-		// Set the ChargeBox ID
-		args.id = headers.chargeBoxIdentity;
-		// Set the default Heart Beat
-		args.lastReboot = new Date();
-		args.lastHeartBeat = args.lastReboot;
-		args.timestamp = args.lastReboot;
+	async handleBootNotification(args, headers, req) {
+		try{
+				// Set the endpoint
+			args.endpoint = headers.From.Address;
+			// Set the ChargeBox ID
+			args.id = headers.chargeBoxIdentity;
+			// Set the default Heart Beat
+			args.lastReboot = new Date();
+			args.lastHeartBeat = args.lastReboot;
+			args.timestamp = args.lastReboot;
 
-		// Get the charging station
-		let chargingStation;
-		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((foundChargingStation) => {
-			chargingStation = foundChargingStation;
+			// Get the charging station
+			let chargingStation = await global.storage.getChargingStation(headers.chargeBoxIdentity);
 			if (!chargingStation) {
 				// Save Charging Station
 				chargingStation = new ChargingStation(args);
@@ -108,12 +107,9 @@ class CentralSystemServer {
 				chargingStation.setDeleted(false);
 			}
 			// Save Charging Station
-			return chargingStation.save();
-		}).then((updatedChargingStation) => {
+			let updatedChargingStation = await chargingStation.save();
 			// Save the Boot Notification
-			return updatedChargingStation.handleBootNotification(args);
-		// Return the result
-		}).then(() => {
+			await updatedChargingStation.handleBootNotification(args);
 			// Log
 			Logging.logDebug({
 				source: chargingStation.getID(),
@@ -142,7 +138,7 @@ class CentralSystemServer {
 					}
 				};
 			}
-		}).catch((error) => {
+		} catch(error) {
 			// Log error
 			Logging.logActionExceptionMessage("BootNotification", error);
 			// Reject
@@ -153,13 +149,14 @@ class CentralSystemServer {
 					"heartbeatInterval": _chargingStationConfig.heartbeatIntervalSecs
 				}
 			};
-		});
+		}
 	}
 
-	handleHeartBeat(args, headers, req) {
-		var heartBeat = new Date();
-		// Get the charging station
-		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
+	async handleHeartBeat(args, headers, req) {
+		try {
+			var heartBeat = new Date();
+			// Get the charging station
+			let chargingStation = await global.storage.getChargingStation(headers.chargeBoxIdentity);
 			// Found?
 			if (!chargingStation) {
 				throw new AppError(
@@ -170,8 +167,7 @@ class CentralSystemServer {
 			// Set Heartbeat
 			chargingStation.setLastHeartBeat(heartBeat);
 			// Save
-			return chargingStation.saveHeartBeat();
-		}).then(() => {
+			await chargingStation.saveHeartBeat();
 			// Log
 			Logging.logDebug({
 				source: headers.chargeBoxIdentity,
@@ -184,7 +180,7 @@ class CentralSystemServer {
 					"currentTime": heartBeat.toISOString()
 				}
 			};
-		}).catch((error) => {
+		} catch(error) {
 			// Log error
 			Logging.logActionExceptionMessage("HeartBeat", error);
 			// Send the response
@@ -193,12 +189,13 @@ class CentralSystemServer {
 					"currentTime": heartBeat.toISOString()
 				}
 			};
-		});
+		}
 	}
 
-	handleStatusNotification(args, headers, req) {
-		// Get the charging station
-		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
+	async handleStatusNotification(args, headers, req) {
+		try {
+			// Get the charging station
+			let chargingStation = await global.storage.getChargingStation(headers.chargeBoxIdentity);
 			// Found?
 			if (!chargingStation) {
 				throw new AppError(
@@ -206,9 +203,8 @@ class CentralSystemServer {
 					`Charging Station does not exist`,
 					550, "CentralSystemServer", "handleStatusNotification");
 			}
-			// Save
-			return chargingStation.handleStatusNotification(args);
-		}).then(() => {
+			// Handle
+			await chargingStation.handleStatusNotification(args);
 			// Log
 			Logging.logInfo({
 				source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStatusNotification",
@@ -219,7 +215,7 @@ class CentralSystemServer {
 				"statusNotificationResponse": {
 				}
 			};
-		}).catch((error) => {
+		} catch(error) {
 			// Log error
 			Logging.logActionExceptionMessage("StatusNotification", error);
 			// Return
@@ -227,12 +223,13 @@ class CentralSystemServer {
 				"statusNotificationResponse": {
 				}
 			};
-		});
+		}
 	}
 
-	handleMeterValues(args, headers, req) {
-		// Get the charging station
-		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
+	async handleMeterValues(args, headers, req) {
+		try {
+			// Get the charging station
+			let chargingStation = await global.storage.getChargingStation(headers.chargeBoxIdentity);
 			// Found?
 			if (!chargingStation) {
 				throw new AppError(
@@ -241,18 +238,18 @@ class CentralSystemServer {
 					550, "CentralSystemServer", "handleMeterValues");
 			}
 			// Save
-			return chargingStation.handleMeterValues(args);
-		}).then(() => {
+			await chargingStation.handleMeterValues(args);
 			// Log
 			Logging.logDebug({
 				source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleMeterValues",
 				action: "MeterValues", message: `Meter Values have been received for Transaction ID '${args.transactionId}' and Connector '${args.connectorId}'`,
 				detailedMessages: args });
+			// Return
 			return {
 				"meterValuesResponse": {
 				}
 			};
-		}).catch((error) => {
+		} catch(error) {
 			// Log error
 			Logging.logActionExceptionMessage("MeterValues", error);
 			// Response
@@ -260,12 +257,13 @@ class CentralSystemServer {
 				"meterValuesResponse": {
 				}
 			};
-		});
+		}
 	}
 
-	handleAuthorize(args, headers, req) {
-		// Get the charging station
-		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
+	async handleAuthorize(args, headers, req) {
+		try {
+			// Get the charging station
+			let chargingStation = await global.storage.getChargingStation(headers.chargeBoxIdentity);
 			// Found?
 			if (!chargingStation) {
 				throw new AppError(
@@ -273,9 +271,9 @@ class CentralSystemServer {
 					`Charging Station does not exist`,
 					550, "CentralSystemServer", "handleAuthorize");
 			}
-			// Save
-			return chargingStation.handleAuthorize(args);
-		}).then(() => {
+			// Handle
+			await chargingStation.handleAuthorize(args);
+			// Log
 			if (args.user) {
 				// Log
 				Logging.logInfo({
@@ -290,7 +288,7 @@ class CentralSystemServer {
 					action: "Authorize", message: `An anonymous user has been authorized to use the Charging Station`,
 					detailedMessages: args });
 			}
-
+			// Return
 			return {
 				"authorizeResponse": {
 					"idTagInfo": {
@@ -300,7 +298,7 @@ class CentralSystemServer {
 					}
 				}
 			};
-		}).catch((error) => {
+		} catch(error) {
 			// Log error
 			Logging.logActionExceptionMessage("Authorize", error);
 			return {
@@ -312,12 +310,13 @@ class CentralSystemServer {
 					}
 				}
 			};
-		});
+		}
 	}
 
-	handleDiagnosticsStatusNotification(args, headers, req) {
-		// Get the charging station
-		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
+	async handleDiagnosticsStatusNotification(args, headers, req) {
+		try {
+			// Get the charging station
+			let chargingStation = await global.storage.getChargingStation(headers.chargeBoxIdentity);
 			// Found?
 			if (!chargingStation) {
 				throw new AppError(
@@ -328,31 +327,31 @@ class CentralSystemServer {
 			// Set date
 			args.timestamp = new Date();
 			// Save
-			return chargingStation.handleDiagnosticsStatusNotification(args);
-		}).then(() => {
+			await chargingStation.handleDiagnosticsStatusNotification(args);
 			// Log
 			Logging.logInfo({
 				source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleDiagnosticsStatusNotification",
 				action: "DiagnosticsStatusNotification", message: `Diagnostics Status Notification has been received`,
 				detailedMessages: args });
-
+			// Return
 			return {
 				"diagnosticsStatusNotificationResponse": {
 				}
 			};
-		}).catch((error) => {
+		} catch(error) {
 			// Log error
 			Logging.logActionExceptionMessage("DiagnosticsStatusNotification", error);
 			return {
 				"diagnosticsStatusNotificationResponse": {
 				}
 			};
-		});
+		}
 	}
 
-	handleFirmwareStatusNotification(args, headers, req) {
-		// Get the charging station
-		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
+	async handleFirmwareStatusNotification(args, headers, req) {
+		try {
+			// Get the charging station
+			let chargingStation = await global.storage.getChargingStation(headers.chargeBoxIdentity);
 			// Found?
 			if (!chargingStation) {
 				throw new AppError(
@@ -363,30 +362,31 @@ class CentralSystemServer {
 			// Set date
 			args.timestamp = new Date();
 			// Save
-			return chargingStation.handleFirmwareStatusNotification(args);
-		}).then(() => {
+			await chargingStation.handleFirmwareStatusNotification(args);
 			// Log
 			Logging.logDebug({
 				source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleFirmwareStatusNotification",
 				action: "FirmwareStatusNotification", message: `Firmware Status Notification has been received`,
 				detailedMessages: args });
+			// Return
 			return {
 				"firmwareStatusNotificationResponse": {
 				}
 			};
-		}).catch((error) => {
+		} catch(error) {
 			// Log error
 			Logging.logActionExceptionMessage("FirmwareStatusNotification", error);
 			return {
 				"firmwareStatusNotificationResponse": {
 				}
 			};
-		});
-}
+		}
+	}
 
-	handleStartTransaction(args, headers, req) {
-		// Get the charging station
-		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
+	async handleStartTransaction(args, headers, req) {
+		try {
+			// Get the charging station
+			let chargingStation = await global.storage.getChargingStation(headers.chargeBoxIdentity);
 			// Found?
 			if (!chargingStation) {
 				throw new AppError(
@@ -395,8 +395,7 @@ class CentralSystemServer {
 					550, "CentralSystemServer", "handleStartTransaction");
 			}
 			// Save
-			return chargingStation.handleStartTransaction(args);
-		}).then((transaction) => {
+			let transaction = await chargingStation.handleStartTransaction(args);
 			// Log
 			if (transaction.user) {
 				Logging.logInfo({
@@ -410,7 +409,7 @@ class CentralSystemServer {
 					action: "StartTransaction", message: `Transaction ID '${transaction.id}' has been started by an anonymous user on Connector '${transaction.connectorId}'`,
 					detailedMessages: args });
 			}
-
+			// Return
 			return {
 				"startTransactionResponse": {
 					"transactionId": transaction.id,
@@ -421,7 +420,7 @@ class CentralSystemServer {
 					}
 				}
 			};
-		}).catch((error) => {
+		} catch(error) {
 			// Log error
 			Logging.logActionExceptionMessage("StartTransaction", error);
 			return {
@@ -434,12 +433,13 @@ class CentralSystemServer {
 					}
 				}
 			};
-		});
+		}
 	}
 
-	handleDataTransfer(args, headers, req) {
-		// Get the charging station
-		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
+	async handleDataTransfer(args, headers, req) {
+		try {
+			// Get the charging station
+			let chargingStation = await global.storage.getChargingStation(headers.chargeBoxIdentity);
 			// Found?
 			if (!chargingStation) {
 				throw new AppError(
@@ -448,20 +448,19 @@ class CentralSystemServer {
 					550, "CentralSystemServer", "handleDataTransfer");
 			}
 			// Save
-			return chargingStation.handleDataTransfer(args);
-		}).then(() => {
+			await chargingStation.handleDataTransfer(args);
 			// Log
 			Logging.logInfo({
 				source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleDataTransfer",
 				action: "DataTransfer", message: `Data Transfer has been received`,
 				detailedMessages: args });
+			// Return
 			return {
 				"dataTransferResponse": {
 					"status": "Accepted"
-	//        "data": ""
 				}
 			};
-		}).catch((error) => {
+		} catch(error) {
 			// Log error
 			Logging.logActionExceptionMessage("DataTransfer", error);
 			return {
@@ -469,12 +468,13 @@ class CentralSystemServer {
 					"status": "Rejected"
 				}
 			};
-		});
+		}
 	}
 
-	handleStopTransaction(args, headers, req) {
-		// Get the charging station
-		return global.storage.getChargingStation(headers.chargeBoxIdentity).then((chargingStation) => {
+	async handleStopTransaction(args, headers, req) {
+		try {
+			// Get the charging station
+			let chargingStation = await global.storage.getChargingStation(headers.chargeBoxIdentity);
 			// Found?
 			if (!chargingStation) {
 				throw new AppError(
@@ -483,8 +483,7 @@ class CentralSystemServer {
 					550, "CentralSystemServer", "handleStopTransaction");
 			}
 			// Save
-			return chargingStation.handleStopTransaction(args);
-		}).then((transaction) => {
+			await chargingStation.handleStopTransaction(args);
 			// Log
 			Logging.logInfo({
 				source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStopTransaction",
@@ -496,12 +495,10 @@ class CentralSystemServer {
 				"stopTransactionResponse": {
 					"idTagInfo": {
 						"status": "Accepted"
-	//          "expiryDate": "",
-	//          "parentIdTag": "",
 					}
 				}
 			};
-		}).catch((error) => {
+		} catch(error) {
 			// Log error
 			Logging.logActionExceptionMessage("StopTransaction", error);
 			// Error
@@ -509,12 +506,10 @@ class CentralSystemServer {
 				"stopTransactionResponse": {
 					"idTagInfo": {
 						"status": "Invalid"
-	//          "expiryDate": "",
-	//          "parentIdTag": "",
 					}
 				}
 			};
-		});
+		}
 	}
 }
 

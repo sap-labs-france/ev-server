@@ -7,16 +7,17 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 		super();
 	}
 
-	run(config) {
-		Logging.logInfo({
-			module: "LoggingDatabaseTableCleanupTask",
-			method: "run", action: "LogsCleanup",
-			message: `The task 'loggingDatabaseTableCleanupTask' is being run` });
+	async run(config) {
+		try {
+			Logging.logInfo({
+				module: "LoggingDatabaseTableCleanupTask",
+				method: "run", action: "LogsCleanup",
+				message: `The task 'loggingDatabaseTableCleanupTask' is being run` });
 
-		// Delete date
-		let deleteUpToDate = moment().subtract(config.retentionPeriodWeeks, "w").startOf("week").toDate().toISOString();
-		// Delete
-		Logging.deleteLogs(deleteUpToDate).then(result => {
+			// Delete date
+			let deleteUpToDate = moment().subtract(config.retentionPeriodWeeks, "w").startOf("week").toDate().toISOString();
+			// Delete
+			let result = await Logging.deleteLogs(deleteUpToDate);
 			// Ok?
 			if (result.ok === 1) {
 				// Ok
@@ -34,14 +35,10 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 					detailedMessages: result
 				});
 			}
-		}).catch((error) => {
-			// Log error
-			Logging.logActionExceptionMessage("LogsCleanup", error);
-		});
-		// Delete date
-		let securityDeleteUpToDate = moment().subtract(config.securityRetentionPeriodWeeks, "w").startOf("week").toDate().toISOString();
-		// Delete Security Logs
-		Logging.deleteSecurityLogs(securityDeleteUpToDate).then(result => {
+			// Delete date
+			let securityDeleteUpToDate = moment().subtract(config.securityRetentionPeriodWeeks, "w").startOf("week").toDate().toISOString();
+			// Delete Security Logs
+			result = await Logging.deleteSecurityLogs(securityDeleteUpToDate);
 			// Ok?
 			if (result.ok === 1) {
 				// Ok
@@ -59,10 +56,10 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 				 	detailedMessages: result
 				});
 			}
-		}).catch((error) => {
+		} catch(error) {
 			// Log error
 			Logging.logActionExceptionMessage("LogsCleanup", error);
-		});
+		}
 	}
 }
 
