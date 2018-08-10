@@ -202,7 +202,7 @@ module.exports = {
 				chargingStation.getID(),
 				`User with Tag ID '${tagID}' not found but saved as inactive user`,
 				"Authorizations", "getOrCreateUserByTagID",
-				null, user.getModel()
+				user.getModel()
 			);
 		}
 		// Check User status
@@ -212,7 +212,7 @@ module.exports = {
 				chargingStation.getID(),
 				`User with TagID '${tagID}' is '${Users.getStatusDescription(user.getStatus())}'`, 500,
 				"Authorizations", "getOrCreateUserByTagID",
-				null, user.getModel());
+				user.getModel());
 		}
 		return user;
 	},
@@ -227,8 +227,7 @@ module.exports = {
 			throw new AppError(
 				chargingStation.getID(),
 				`Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`, 525,
-				"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
-				null, null);
+				"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation");
 		}
 		// User -------------------------------------------------
 		// Get and Check User
@@ -252,7 +251,7 @@ module.exports = {
 				chargingStation.getID(),
 				`Site Area '${siteArea.getName()}' is not assigned to a Site!`, 525,
 				"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
-				null, user.getModel());
+				user.getModel());
 		}
 		// Get Users
 		siteUsers = await site.getUsers();
@@ -267,7 +266,7 @@ module.exports = {
 				chargingStation.getID(),
 				`User is not assigned to the Site '${site.getName()}'!`, 525,
 				"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
-				null, user.getModel());
+				user.getModel());
 		}
 		// Check Alternate User --------------------------------
 		let foundAlternateUser;
@@ -283,7 +282,7 @@ module.exports = {
 				chargingStation.getID(),
 				`User is not assigned to the Site '${site.getName()}'!`, 525,
 				"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
-				null, alternateUser.getModel());
+				alternateUser.getModel());
 		}
 		// Check if users are differents
 		if (alternateUser && (user.getID() != alternateUser.getID()) &&
