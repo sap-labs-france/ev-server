@@ -198,7 +198,7 @@ module.exports = {
 	},
 
 	getRandomInt() {
-		return Math.floor((Math.random() * 1500000000 ) + 1); // UINT32
+		return Math.floor((Math.random() * 2147483648 ) + 1); // INT32 (signed: issue in Schneider)
 	},
 
 	buildEvseURL() {
