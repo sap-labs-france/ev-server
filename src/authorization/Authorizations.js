@@ -88,7 +88,18 @@ module.exports = {
 		sites = await user.getSites();
 		// Get all the companies and site areas
 		for (const site of sites) {
-			companies.push(await site.getCompany());
+			// Get Company
+			let company = await site.getCompany();
+			// Check
+			let foundCompany = companies.find((existingCompany) => {
+				return existingCompany.getID() === company.getID();
+			});
+			// Found?
+			if (!foundCompany) {
+				// No: Add it
+				companies.push(company);
+			}
+			// Get site areas
 			siteAreas.push(...await site.getSiteAreas());
 		}
 		// Get all the charging stations

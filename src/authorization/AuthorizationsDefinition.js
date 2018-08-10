@@ -115,7 +115,7 @@ module.exports = {
 						{
 							"AuthObject": "Loggings",
 							"AuthFieldValue": {
-								"Action": ["List", "Read"]
+								"Action": ["List"]
 							}
 						},
 						{
