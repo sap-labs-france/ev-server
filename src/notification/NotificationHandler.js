@@ -218,13 +218,18 @@ class NotificationHandler {
 
 	static async sendTransactionStarted(sourceId, user, chargingStation, sourceData, locale) {
 		try {
-			// Email enabled?
-			if (_notificationConfig.Email.enabled) {
-				// Save notif
-				await NotificationHandler.saveNotification(
-						CHANNEL_EMAIL, sourceId, SOURCE_TRANSACTION_STARTED, user, chargingStation);
-				// Send email
-				return _email.sendTransactionStarted(sourceData, locale);
+			// Check notification
+			let hasBeenNotified = await NotificationHandler.hasNotifiedSource(sourceId);
+			// Notified?
+			if (!hasBeenNotified) {
+					// Email enabled?
+				if (_notificationConfig.Email.enabled) {
+					// Save notif
+					await NotificationHandler.saveNotification(
+							CHANNEL_EMAIL, sourceId, SOURCE_TRANSACTION_STARTED, user, chargingStation);
+					// Send email
+					return _email.sendTransactionStarted(sourceData, locale);
+				}
 			}
 		} catch(error) {
 			// Log error

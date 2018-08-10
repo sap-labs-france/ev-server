@@ -436,7 +436,7 @@ class CentralSystemServer {
 			// Get the charging station
 			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
 			// Save
-			await chargingStation.handleStopTransaction(args);
+			let transaction = await chargingStation.handleStopTransaction(args);
 			// Log
 			Logging.logInfo({
 				source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStopTransaction",
