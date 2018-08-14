@@ -8,24 +8,28 @@ module.exports = {
 
 	checkIfChargingStationValid(filteredRequest, request) {
 		// Update mode?
-		if(request.method !== "POST" && !filteredRequest.id) {
+		if(request.method !== 'POST' && !filteredRequest.id) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
 				`The Charging Station ID is mandatory`,
-				500, "ChargingStations", "checkIfChargingStationValid");
+				500, 'ChargingStations', 'checkIfChargingStationValid');
 		}
 	},
 
 	normalizeHeader(headers) {
-		// Object?
-		if (typeof headers.chargeBoxIdentity === "object") {
-			// Yes: ABB header
-			headers.chargeBoxIdentity = headers.chargeBoxIdentity.$value;
-		}
+		// ChargeBox Identity
+		this.normalizeOneHeader(headers, 'chargeBoxIdentity');
 		// Action
-		if (typeof headers.Action === "object") {
-			// Yes: ABB header
-			headers.Action = headers.Action.$value;
+		this.normalizeOneHeader(headers, 'Action');
+		// To
+		this.normalizeOneHeader(headers, 'To');
+	},
+
+	normalizeOneHeader(headers, name) {
+		// Object?
+		if (typeof headers[name] === 'object' && headers[name].$value) {
+			// Yes: Set header
+			headers[name] = headers[name].$value;
 		}
 	}
 };

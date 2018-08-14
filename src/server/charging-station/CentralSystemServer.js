@@ -130,14 +130,6 @@ class CentralSystemServer {
 			let updatedChargingStation = await chargingStation.save();
 			// Save the Boot Notification
 			await updatedChargingStation.handleBootNotification(args);
-			// Log
-			Logging.logDebug({
-				source: chargingStation.getID(),
-				module: "CentralSystemServer", method: "handleBootNotification",
-				action: "BootNotification",
-				message: `Rebooted with success`,
-				detailedMessages: args });
-
 			// Return the result
 			// OCPP 1.6
 			if (args.ocppVersion === "1.6") {
@@ -174,23 +166,14 @@ class CentralSystemServer {
 
 	async handleHeartBeat(args, headers, req) {
 		try {
-			var heartBeat = new Date();
 			// Get the charging station
 			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
-			// Set Heartbeat
-			chargingStation.setLastHeartBeat(heartBeat);
 			// Save
-			await chargingStation.saveHeartBeat();
-			// Log
-			Logging.logDebug({
-				source: headers.chargeBoxIdentity,
-				module: "CentralSystemServer", method: "handleHeartBeat",
-				action: "HeartBeat", message: `HeartBeat received`,
-				detailedMessages: heartBeat
-			});
+			await chargingStation.handleHeartBeat();
+			// Return			
 			return {
 				"heartbeatResponse": {
-					"currentTime": heartBeat.toISOString()
+					"currentTime": chargingStation.getLastHeartBeat().toISOString()
 				}
 			};
 		} catch(error) {
@@ -199,7 +182,7 @@ class CentralSystemServer {
 			// Send the response
 			return {
 				"heartbeatResponse": {
-					"currentTime": heartBeat.toISOString()
+					"currentTime": chargingStation.getLastHeartBeat().toISOString()
 				}
 			};
 		}
@@ -211,12 +194,7 @@ class CentralSystemServer {
 			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
 			// Handle
 			await chargingStation.handleStatusNotification(args);
-			// Log
-			Logging.logInfo({
-				source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStatusNotification",
-				action: "StatusNotification", message: `Status Notification '${args.status}-${args.errorCode}' from Connector '${args.connectorId}' has been received`,
-				detailedMessages: args });
-
+			// Respond
 			return {
 				"statusNotificationResponse": {
 				}
@@ -238,11 +216,6 @@ class CentralSystemServer {
 			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
 			// Save
 			await chargingStation.handleMeterValues(args);
-			// Log
-			Logging.logDebug({
-				source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleMeterValues",
-				action: "MeterValues", message: `Meter Values have been received for Transaction ID '${args.transactionId}' and Connector '${args.connectorId}'`,
-				detailedMessages: args });
 			// Return
 			return {
 				"meterValuesResponse": {
@@ -265,28 +238,11 @@ class CentralSystemServer {
 			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
 			// Handle
 			await chargingStation.handleAuthorize(args);
-			// Log
-			if (args.user) {
-				// Log
-				Logging.logInfo({
-					source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleAuthorize",
-					action: "Authorize", user: args.user.getModel(),
-					message: `User has been authorized to use Charging Station`,
-					detailedMessages: args });
-			} else {
-				// Log
-				Logging.logInfo({
-					source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleAuthorize",
-					action: "Authorize", message: `An anonymous user has been authorized to use the Charging Station`,
-					detailedMessages: args });
-			}
 			// Return
 			return {
 				"authorizeResponse": {
 					"idTagInfo": {
 						"status": "Accepted"
-						//          "expiryDate": "",
-						//          "parentIdTag": ""
 					}
 				}
 			};
@@ -297,8 +253,6 @@ class CentralSystemServer {
 				"authorizeResponse": {
 					"idTagInfo": {
 						"status": "Invalid"
-						//          "expiryDate": "",
-						//          "parentIdTag": ""
 					}
 				}
 			};
@@ -309,15 +263,8 @@ class CentralSystemServer {
 		try {
 			// Get the charging station
 			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
-			// Set date
-			args.timestamp = new Date();
 			// Save
 			await chargingStation.handleDiagnosticsStatusNotification(args);
-			// Log
-			Logging.logInfo({
-				source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleDiagnosticsStatusNotification",
-				action: "DiagnosticsStatusNotification", message: `Diagnostics Status Notification has been received`,
-				detailedMessages: args });
 			// Return
 			return {
 				"diagnosticsStatusNotificationResponse": {
@@ -337,15 +284,8 @@ class CentralSystemServer {
 		try {
 			// Get the charging station
 			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
-			// Set date
-			args.timestamp = new Date();
 			// Save
 			await chargingStation.handleFirmwareStatusNotification(args);
-			// Log
-			Logging.logDebug({
-				source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleFirmwareStatusNotification",
-				action: "FirmwareStatusNotification", message: `Firmware Status Notification has been received`,
-				detailedMessages: args });
 			// Return
 			return {
 				"firmwareStatusNotificationResponse": {
@@ -367,19 +307,6 @@ class CentralSystemServer {
 			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
 			// Save
 			let transaction = await chargingStation.handleStartTransaction(args);
-			// Log
-			if (transaction.user) {
-				Logging.logInfo({
-					source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStartTransaction",
-					action: "StartTransaction", user: transaction.user,
-					message: `Transaction ID '${transaction.id}' has been started on Connector '${transaction.connectorId}'`,
-					detailedMessages: args });
-			} else {
-				Logging.logInfo({
-					source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStartTransaction",
-					action: "StartTransaction", message: `Transaction ID '${transaction.id}' has been started by an anonymous user on Connector '${transaction.connectorId}'`,
-					detailedMessages: args });
-			}
 			// Return
 			return {
 				"startTransactionResponse": {
@@ -409,11 +336,6 @@ class CentralSystemServer {
 			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
 			// Save
 			await chargingStation.handleDataTransfer(args);
-			// Log
-			Logging.logInfo({
-				source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleDataTransfer",
-				action: "DataTransfer", message: `Data Transfer has been received`,
-				detailedMessages: args });
 			// Return
 			return {
 				"dataTransferResponse": {
@@ -435,14 +357,8 @@ class CentralSystemServer {
 		try {
 			// Get the charging station
 			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
-			// Save
-			let transaction = await chargingStation.handleStopTransaction(args);
-			// Log
-			Logging.logInfo({
-				source: headers.chargeBoxIdentity, module: "CentralSystemServer", method: "handleStopTransaction",
-				action: "StopTransaction", user: transaction.stop.user, actionOnUser: transaction.user,
-				message: `Transaction ID '${transaction.id}' has been stopped`,
-				detailedMessages: args });
+			// Handle
+			await chargingStation.handleStopTransaction(args);
 			// Success
 			return {
 				"stopTransactionResponse": {

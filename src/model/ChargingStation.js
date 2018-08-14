@@ -329,6 +329,10 @@ class ChargingStation {
 		await global.storage.saveStatusNotification(statusNotification);
 		// Save Charger Status
 		await global.storage.saveChargingStationConnector(this.getModel(), statusNotification.connectorId);
+		// Log
+		Logging.logInfo({
+			source: this.getID(), module: "ChargingStation", method: "handleStatusNotification",
+			action: "StatusNotification", message: `'${statusNotification.status}-${statusNotification.errorCode}' on Connector '${statusNotification.connectorId}' has been saved` });
 		// Notify if error
 		if (statusNotification.status === "Faulted") {
 			// Log
@@ -433,6 +437,19 @@ class ChargingStation {
 			// Get config and save it
 			this.requestAndSaveConfiguration();
 		}, 3000);
+	}
+
+	async handleHeartBeat() {
+		// Set Heartbeat
+		this.setLastHeartBeat(new Date());
+		// Save
+		await this.saveHeartBeat();
+		// Log
+		Logging.logInfo({
+			source: this.getID(),
+			module: "ChargingStation", method: "handleHeartBeat",
+			action: "HeartBeat", message: `HeartBeat saved`
+		});
 	}
 
 	async requestAndSaveConfiguration() {
@@ -762,6 +779,12 @@ class ChargingStation {
 		await global.storage.saveMeterValues(newMeterValues);
 		// Update Charging Station Consumption
 		await this.updateChargingStationConsumption(meterValues.transactionId);
+
+			// Log
+			Logging.logInfo({
+				source: this.getID(), module: "ChargingStation", method: "handleMeterValues",
+				action: "MeterValues", message: `Meter Values have been saved for Transaction ID '${meterValues.transactionId}'`,
+				detailedMessages: meterValues });
 	}
 
 	saveConfiguration(configuration) {
@@ -805,31 +828,40 @@ class ChargingStation {
 		return global.storage.getActiveTransaction(this.getID(), connectorId);
 	}
 
-	handleDataTransfer(dataTransfer) {
+	async handleDataTransfer(dataTransfer) {
 		// Set the charger ID
 		dataTransfer.chargeBoxID = this.getID();
 		dataTransfer.timestamp = new Date();
-
 		// Save it
-		return global.storage.saveDataTransfer(dataTransfer);
+		await global.storage.saveDataTransfer(dataTransfer);
+		// Log
+		Logging.logInfo({
+			source: this.getID(), module: "CharingStation", method: "handleDataTransfer",
+			action: "DataTransfer", message: `Data Transfer has been saved` });
 	}
 
-	handleDiagnosticsStatusNotification(diagnosticsStatusNotification) {
+	async handleDiagnosticsStatusNotification(diagnosticsStatusNotification) {
 		// Set the charger ID
 		diagnosticsStatusNotification.chargeBoxID = this.getID();
 		diagnosticsStatusNotification.timestamp = new Date();
-
 		// Save it
-		return global.storage.saveDiagnosticsStatusNotification(diagnosticsStatusNotification);
+		await global.storage.saveDiagnosticsStatusNotification(diagnosticsStatusNotification);
+		// Log
+		Logging.logInfo({
+			source: this.getID(), module: "ChargingStation", method: "handleDiagnosticsStatusNotification",
+			action: "DiagnosticsStatusNotification", message: `Diagnostics Status Notification has been saved` });
 	}
 
-	handleFirmwareStatusNotification(firmwareStatusNotification) {
+	async handleFirmwareStatusNotification(firmwareStatusNotification) {
 		// Set the charger ID
 		firmwareStatusNotification.chargeBoxID = this.getID();
 		firmwareStatusNotification.timestamp = new Date();
-
 		// Save it
-		return global.storage.saveFirmwareStatusNotification(firmwareStatusNotification);
+		await global.storage.saveFirmwareStatusNotification(firmwareStatusNotification);
+		// Log
+		Logging.logInfo({
+			source: this.getID(), module: "ChargingStation", method: "handleFirmwareStatusNotification",
+			action: "FirmwareStatusNotification", message: `Firmware Status Notification has been saved` });
 	}
 
 	async handleAuthorize(authorize) {
@@ -843,6 +875,19 @@ class ChargingStation {
 		authorize.user = users.user;
 		// Save
 		await global.storage.saveAuthorize(authorize);
+		// Log
+		if (authorize.user) {
+			// Log
+			Logging.logInfo({
+				source: this.getID(), module: "ChargingStation", method: "handleAuthorize",
+				action: "Authorize", user: authorize.user.getModel(),
+				message: `User has been authorized to use Charging Station` });
+		} else {
+			// Log
+			Logging.logInfo({
+				source: this.getID(), module: "ChargingStation", method: "handleAuthorize",
+				action: "Authorize", message: `Anonymous user has been authorized to use the Charging Station` });
+		}
 	}
 
 	async getSite() {
@@ -917,6 +962,17 @@ class ChargingStation {
 		newTransaction.user = user.getModel();
 		// Update Consumption
 		await this.updateChargingStationConsumption(transaction.id);
+		// Log
+		if (newTransaction.user) {
+			Logging.logInfo({
+				source: this.getID(), module: "ChargingStation", method: "handleStartTransaction",
+				action: "StartTransaction", user: newTransaction.user,
+				message: `Transaction ID '${newTransaction.id}' has been started on Connector '${newTransaction.connectorId}'` });
+		} else {
+			Logging.logInfo({
+				source: this.getID(), module: "ChargingStation", method: "handleStartTransaction",
+				action: "StartTransaction", message: `Transaction ID '${newTransaction.id}' has been started by an anonymous user on Connector '${newTransaction.connectorId}'` });
+		}
 		// Return
 		return newTransaction;
 	}
@@ -1013,6 +1069,12 @@ class ChargingStation {
 		// Set the user
 		newTransaction.user = users.user.getModel();
 		newTransaction.stop.user = users.alternateUser.getModel();
+		// Log
+		Logging.logInfo({
+			source: this.getID(), module: "ChargingStation", method: "handleStopTransaction",
+			action: "StopTransaction", user: newTransaction.stop.user, actionOnUser: newTransaction.user,
+			message: `Transaction ID '${newTransaction.id}' has been stopped` });
+		// Return
 		return newTransaction;
 	}
 
