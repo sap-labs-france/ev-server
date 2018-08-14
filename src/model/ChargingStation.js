@@ -454,14 +454,15 @@ class ChargingStation {
 
 	async requestAndSaveConfiguration() {
 		let configuration = null;
-		// Log
-		Logging.logInfo({
-			source: this.getID(), module: "ChargingStation",
-			method: "requestAndSaveConfiguration", action: "RequestConfiguration",
-			message: `Request configuration` });
 		try {
 			// In case of error. the boot should no be denied
 			configuration = await this.requestGetConfiguration();
+			// Log
+			Logging.logInfo({
+				source: this.getID(), module: "ChargingStation",
+				method: "requestAndSaveConfiguration", action: "RequestConfiguration",
+				message: `Command sent with success`,
+				detailedMessages: configuration });
 			// Override with Conf
 			configuration = {
 				'configuration': configuration.configurationKey
@@ -1083,31 +1084,63 @@ class ChargingStation {
 		// Get the client
 		let chargingStationClient = await this.getChargingStationClient();
 		// Restart
-		return chargingStationClient.reset(type);
+		let result = await chargingStationClient.reset(type);
+		// Log
+		Logging.logInfo({
+			source: this.getID(), module: "ChargingStation",
+			method: "requestReset", action: "Reset",
+			message: `Command sent with success`,
+			detailedMessages: result });
+		// Return
+		return result;
 	}
 
 	// Stop Transaction
 	async requestStopTransaction(transactionId) {
 		// Get the client
 		let chargingStationClient = await this.getChargingStationClient();
-		// Restart
-		return chargingStationClient.stopTransaction(transactionId);
+		// Stop Transaction
+		let result = await chargingStationClient.stopTransaction(transactionId);
+		// Log
+		Logging.logInfo({
+			source: this.getID(), module: "ChargingStation",
+			method: "requestStopTransaction", action: "StopTransaction",
+			message: `Command sent with success`,
+			detailedMessages: result });
+		// Return
+		return result;
 	}
 
 	// Start Transaction
 	async requestStartTransaction(tagID, connectorID) {
 		// Get the client
 		let chargingStationClient = await this.getChargingStationClient();
-		// Restart
-		return chargingStationClient.startTransaction(tagID, connectorID);
+		// Start Transaction
+		let result = await chargingStationClient.startTransaction(tagID, connectorID);
+		// Log
+		Logging.logInfo({
+			source: this.getID(), module: "ChargingStation",
+			method: "requestStartTransaction", action: "StartTransaction",
+			message: `Command sent with success`,
+			detailedMessages: result });
+		// Return
+		return result;
 	}
 
 	// Clear the cache
 	async requestClearCache() {
 		// Get the client
 		let chargingStationClient = await this.getChargingStationClient();
-		// Restart
-		return chargingStationClient.clearCache();
+		// Clear
+		let result = await chargingStationClient.clearCache();
+		// Log
+		Logging.logInfo({
+			source: this.getID(), module: "ChargingStation",
+			method: "requestClearCache", action: "ClearCache",
+			message: `Command sent with success`,
+			detailedMessages: result });
+		// Return
+		return result;
 	}
 
 	// Get the configuration for the EVSE
@@ -1115,7 +1148,15 @@ class ChargingStation {
 		// Get the client
 		let chargingStationClient = await this.getChargingStationClient();
 		// Get config
-		return chargingStationClient.getConfiguration(configParamNames);
+		let result = await chargingStationClient.getConfiguration(configParamNames);
+		// Log
+		Logging.logInfo({
+			source: this.getID(), module: "ChargingStation",
+			method: "requestGetConfiguration", action: "GetConfiguration",
+			message: `Command sent with success`,
+			detailedMessages: result });
+		// Return
+		return result;
 	}
 
 	// Get the configuration for the EVSE
@@ -1124,6 +1165,12 @@ class ChargingStation {
 		let chargingStationClient = await this.getChargingStationClient();
 		// Get config
 		let result = await chargingStationClient.changeConfiguration(key, value);
+		// Log
+		Logging.logInfo({
+			source: this.getID(), module: "ChargingStation",
+			method: "requestChangeConfiguration", action: "ChangeConfiguration",
+			message: `Command sent with success`,
+			detailedMessages: result });
 		// Request the new Configuration?
 		if (result.status !== "Accepted") {
 			// Log
@@ -1140,7 +1187,15 @@ class ChargingStation {
 		// Get the client
 		let chargingStationClient = await this.getChargingStationClient();
 		// Get config
-		return chargingStationClient.unlockConnector(connectorId);
+		let result = await chargingStationClient.unlockConnector(connectorId);
+		// Log
+		Logging.logInfo({
+			source: this.getID(), module: "ChargingStation",
+			method: "requestUnlockConnector", action: "UnlockConnector",
+			message: `Command sent with success`,
+			detailedMessages: result });
+		// Return
+		return result;
 	}
 
 	getConfiguration() {
