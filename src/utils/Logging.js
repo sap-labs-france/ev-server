@@ -113,15 +113,13 @@ class Logging {
 	}
 
 	// Log
-	static logReturnedAction(module, chargeBoxID, action, result) {
+	static logReturnedAction(module, chargeBoxID, action, detailedMessages) {
 		// Log
 		Logging.logDebug({
 			source: chargeBoxID, module: module, method: action,
 			message: `<< OCPP Request Returned`,
 			action: action,
-			detailedMessages: {
-				"result": result
-			}
+			detailedMessages: detailedMessages
 		});
 	}
 

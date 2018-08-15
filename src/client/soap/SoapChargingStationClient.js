@@ -100,7 +100,10 @@ class SoapChargingStationClient extends ChargingStationClient {
 					reject(err);
 				} else {
 					// Log
-					Logging.logReturnedAction(_moduleName, this._chargingStation.getID(), "RemoteStopTransaction", result);
+					Logging.logReturnedAction(_moduleName, this._chargingStation.getID(), "RemoteStopTransaction", [
+						{ 'result': result }, 
+						{ 'envelope': envelope } 
+					]);
 					fulfill(result);
 				}
 			});
@@ -141,7 +144,10 @@ class SoapChargingStationClient extends ChargingStationClient {
 						reject(err);
 					} else {
 						// Log
-						Logging.logReturnedAction(_moduleName, this._chargingStation.getID(), "RemoteStartTransaction", result);
+						Logging.logReturnedAction(_moduleName, this._chargingStation.getID(), "RemoteStartTransaction", [
+							{ 'result': result }, 
+							{ 'envelope': envelope } 
+						]);
 						fulfill(result);
 					}
 				});
@@ -176,7 +182,10 @@ class SoapChargingStationClient extends ChargingStationClient {
 					reject(err);
 				} else {
 					// Log
-					Logging.logReturnedAction(_moduleName, this._chargingStation.getID(), "UnlockConnector", result);
+					Logging.logReturnedAction(_moduleName, this._chargingStation.getID(), "UnlockConnector", [
+						{ 'result': result }, 
+						{ 'envelope': envelope } 
+					]);
 					fulfill(result);
 				}
 			});
@@ -212,7 +221,10 @@ class SoapChargingStationClient extends ChargingStationClient {
 					reject(err);
 				} else {
 					// Log
-					Logging.logReturnedAction(_moduleName, this._chargingStation.getID(), "Reset", result);
+					Logging.logReturnedAction(_moduleName, this._chargingStation.getID(), "Reset", [
+						{ 'result': result }, 
+						{ 'envelope': envelope } 
+					]);
 					fulfill(result);
 				}
 			});
@@ -244,7 +256,10 @@ class SoapChargingStationClient extends ChargingStationClient {
 					reject(err);
 				} else {
 					// Log
-					Logging.logReturnedAction(_moduleName, this._chargingStation.getID(), "ClearCache", result);
+					Logging.logReturnedAction(_moduleName, this._chargingStation.getID(), "ClearCache", [
+						{ 'result': result }, 
+						{ 'envelope': envelope } 
+					]);
 					fulfill(result);
 				}
 			});
@@ -288,7 +303,10 @@ class SoapChargingStationClient extends ChargingStationClient {
 					//res.json(`{error: ${err.message}}`);
 				} else {
 					// Log
-					Logging.logReturnedAction(_moduleName, this._chargingStation.getID(), "GetConfiguration", result);
+					Logging.logReturnedAction(_moduleName, this._chargingStation.getID(), "GetConfiguration", [
+						{ 'result': result }, 
+						{ 'envelope': envelope } 
+					]);
 					fulfill(result);
 				}
 			});
@@ -324,7 +342,10 @@ class SoapChargingStationClient extends ChargingStationClient {
 					reject(err);
 				} else {
 					// Log
-					Logging.logReturnedAction(_moduleName, this._chargingStation.getID(), "ChangeConfiguration", result);
+					Logging.logReturnedAction(_moduleName, this._chargingStation.getID(), "ChangeConfiguration", [
+						{ 'result': result }, 
+						{ 'envelope': envelope } 
+					]);
 					fulfill(result);
 				}
 			});

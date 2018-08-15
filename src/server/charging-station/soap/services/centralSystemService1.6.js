@@ -14,7 +14,9 @@ module.exports = { /* Services */
 				// Handle
 				global.centralSystemSoap.handleAuthorize(args, headers, req).then(function(result) {
 					// Log
-					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "Authorize", result);
+					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "Authorize", {
+						"result": result
+					});
 					// Answer
 					callback(result);
 				});
@@ -52,7 +54,9 @@ module.exports = { /* Services */
 				// Handle
 				global.centralSystemSoap.handleBootNotification(args, headers, req).then(function(result) {
 					// Log
-					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "BootNotification", result);
+					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "BootNotification", {
+						"result": result
+					});
 					callback(result);
 				});
 
@@ -89,7 +93,9 @@ module.exports = { /* Services */
 				// Handle
 				global.centralSystemSoap.handleDataTransfer(args, headers, req).then(function(result) {
 					// Log
-					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "DataTransfer", result);
+					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "DataTransfer", {
+						"result": result
+					});
 					callback(result);
 				});
 
@@ -121,7 +127,9 @@ module.exports = { /* Services */
 				// Handle
 				global.centralSystemSoap.handleDiagnosticsStatusNotification(args, headers, req).then(function(result) {
 					// Log
-					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", result);
+					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", {
+						"result": result
+					});
 					callback(result);
 				});
 
@@ -149,7 +157,9 @@ module.exports = { /* Services */
 				// Handle
 				global.centralSystemSoap.handleFirmwareStatusNotification(args, headers, req).then(function(result) {
 					// Log
-					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "FirmwareStatusNotification", result);
+					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "FirmwareStatusNotification", {
+						"result": result
+					});
 					callback(result);
 				});
 
@@ -177,7 +187,9 @@ module.exports = { /* Services */
 				// Handle
 				global.centralSystemSoap.handleHeartBeat(args, headers, req).then(function(result) {
 					// Log
-					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "Heartbeat", result);
+					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "Heartbeat", {
+						"result": result
+					});
 					callback(result);
 				});
 
@@ -205,7 +217,9 @@ module.exports = { /* Services */
 				// Handle
 				global.centralSystemSoap.handleMeterValues(args, headers, req).then(function(result) {
 					// Return the result async
-					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "MeterValues", result);
+					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "MeterValues", {
+						"result": result
+					});
 					callback(result);
 				});
 
@@ -251,7 +265,9 @@ module.exports = { /* Services */
 				// Handle
 				global.centralSystemSoap.handleStartTransaction(args, headers, req).then(function(result) {
 					// Log
-					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StartTransaction", result);
+					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StartTransaction", {
+						"result": result
+					});
 					callback(result);
 				});
 
@@ -291,7 +307,9 @@ module.exports = { /* Services */
 				// Handle
 				global.centralSystemSoap.handleStatusNotification(args, headers, req).then(function(result) {
 					// Log
-					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StatusNotification", result);
+					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StatusNotification", {
+						"result": result
+					});
 					callback(result);
 				});
 
@@ -325,7 +343,9 @@ module.exports = { /* Services */
 				// Handle
 				global.centralSystemSoap.handleStopTransaction(args, headers, req).then(function(result) {
 					// Log
-					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StopTransaction", result);
+					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StopTransaction", {
+						"result": result
+					});
 					callback(result);
 				});
 
