@@ -258,8 +258,8 @@ module.exports = {
 			recordLimit = 100;
 		}
 		// Limit Exceeded?
-		if(recordLimit > 500) {
-			recordLimit = 500;
+		if(recordLimit > 2000) {
+			recordLimit = 2000;
 		}
 		return recordLimit;
 	}
