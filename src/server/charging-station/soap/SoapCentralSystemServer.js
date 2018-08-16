@@ -72,12 +72,15 @@ class SoapCentralSystemServer extends CentralSystemServer {
 		if (_centralSystemConfig.debug) {
 			// Listen
 			soapServer12.log = (type, data) => {
-				// Log
-				Logging.logDebug({
-					module: "SoapCentralSystemServer", method: "start", action: "SoapRequest",
-					message: `OCPP 1.2 - Type '${type}'`,
-					detailedMessages: data
-				});
+				// Do not log 'Info'
+				if (type === 'received' || type === 'replied') {
+						// Log
+					Logging.logDebug({
+						module: "SoapCentralSystemServer", method: "start", action: "SoapRequest",
+						message: `OCPP 1.2 - Type '${type}'`,
+						detailedMessages: data
+					});
+				}
 			};
 		}
 		// OCPP 1.5 -----------------------------------------
@@ -86,12 +89,15 @@ class SoapCentralSystemServer extends CentralSystemServer {
 		if (_centralSystemConfig.debug) {
 			// Listen
 			soapServer15.log = (type, data) => {
-				// Log
-				Logging.logDebug({
-					module: "SoapCentralSystemServer", method: "start", action: "SoapRequest",
-					message: `OCPP 1.5 - Type '${type}'`,
-					detailedMessages: data
-				});
+				// Do not log 'Info'
+				if (type === 'received' || type === 'replied') {
+					// Log
+					Logging.logDebug({
+						module: "SoapCentralSystemServer", method: "start", action: "SoapRequest",
+						message: `OCPP 1.5 - Type '${type}'`,
+						detailedMessages: data
+					});
+				}
 			};
 		}
 		// OCPP 1.6 -----------------------------------------
@@ -100,12 +106,15 @@ class SoapCentralSystemServer extends CentralSystemServer {
 		if (_centralSystemConfig.debug) {
 			// Listen
 			soapServer16.log = (type, data) => {
-				// Log
-				Logging.logDebug({
-					module: "SoapCentralSystemServer", method: "start", action: "SoapRequest",
-					message: `OCPP 1.6 - Type '${type}'`,
-					detailedMessages: data
-				});
+				// Do not log 'Info'
+				if (type === 'received' || type === 'replied') {
+					// Log
+					Logging.logDebug({
+						module: "SoapCentralSystemServer", method: "start", action: "SoapRequest",
+						message: `OCPP 1.6 - Type '${type}'`,
+						detailedMessages: data
+					});
+				}
 			};
 		}
 
