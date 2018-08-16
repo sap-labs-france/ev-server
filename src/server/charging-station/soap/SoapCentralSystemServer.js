@@ -89,7 +89,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
 				// Log
 				Logging.logDebug({
 					module: "SoapCentralSystemServer", method: "start", action: "SoapRequest",
-					message: `OCPP 1.2 - Type '${type}'`,
+					message: `OCPP 1.5 - Type '${type}'`,
 					detailedMessages: data
 				});
 			};
@@ -103,7 +103,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
 				// Log
 				Logging.logDebug({
 					module: "SoapCentralSystemServer", method: "start", action: "SoapRequest",
-					message: `OCPP 1.2 - Type '${type}'`,
+					message: `OCPP 1.6 - Type '${type}'`,
 					detailedMessages: data
 				});
 			};
