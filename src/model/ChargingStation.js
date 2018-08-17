@@ -564,8 +564,8 @@ class ChargingStation {
 				if (connector.currentConsumption !== currentConsumption ||
 						connector.totalConsumption !== totalConsumption) {
 					// Set consumption
-					connector.currentConsumption = currentConsumption;
-					connector.totalConsumption = totalConsumption;
+					connector.currentConsumption = Math.floor(currentConsumption);
+					connector.totalConsumption = Math.floor(totalConsumption);
 					// Log
 					Logging.logInfo({
 						source: this.getID(), module: "ChargingStation",
@@ -923,21 +923,43 @@ class ChargingStation {
 	async handleStartTransaction(transaction) {
 		// Set the charger ID
 		transaction.chargeBoxID = this.getID();
-		// Check if the charging station has already a transaction
-		let activeTransaction = await this.getActiveTransaction(transaction.connectorId);
-		// Exists already?
-		if (!activeTransaction) {
-			// No: Generate the transaction ID
-			transaction.id = Utils.getRandomInt();
-		} else {
-			// Yes: Reuse the transaction ID
-			transaction.id = activeTransaction.id;
-		}
 		// Check user and save
 		let users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
 			Authorizations.ACTION_START_TRANSACTION, this, transaction.idTag);
 		// Set current user
 		let user = (users.alternateUser ? users.alternateUser : users.user);
+		// Check for active transaction
+		let activeTransaction;
+		do {
+			// Check if the charging station has already a transaction
+			activeTransaction = await this.getActiveTransaction(transaction.connectorId);
+			// Exists already?
+			if (activeTransaction) {
+				Logging.logInfo({
+					source: this.getID(), module: "ChargingStation", method: "handleStartTransaction",
+					action: "StartTransaction", user: user.getModel(), actionOnUser: activeTransaction.user,
+					message: `Active Transaction ID '${activeTransaction.id}' has been deleted on Connector '${activeTransaction.connectorId}'` });
+				// Delete
+				await this.deleteTransaction(activeTransaction);
+			}
+		} while(activeTransaction);
+		// Check transaction ID is not yet used
+		let existingTransaction;
+		do {
+			// Generate new transaction ID
+			transaction.id = Utils.getRandomInt();
+			// Check if the charging station has already a transaction
+			existingTransaction = await this.getTransaction(transaction.id);
+			// Found?
+			if (existingTransaction) {
+				// Log
+				Logging.logWarning({
+					source: this.getID(), module: "ChargingStation", method: "handleStartTransaction",
+					action: "StartTransaction", user: user.getModel(), 
+					actionOnUser: existingTransaction.user,
+					message: `Transaction ID '${transaction.id}' already exists, generating a new one...` });
+			}
+		} while(existingTransaction);
 		// Set the user
 		transaction.userID = user.getID();
 		// Notify

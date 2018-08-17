@@ -48,8 +48,8 @@ class Bootstrap {
 			} catch (err) {
 				// Log
 				Logging.logError({
-					module: "ImportUsersTask",
-					method: "run", message: `Cannot import users: ${err.toString()}`,
+					module: 'ImportUsersTask',
+					method: 'run', message: `Cannot import users: ${err.toString()}`,
 					detailedMessages: err.stack });
 			}
 		
@@ -99,7 +99,7 @@ class Bootstrap {
 		} catch (error) {
 			// Log
 			Logging.logError({
-				source: "BootStrap", module: "start", method: "-", action: "StartServer",
+				source: 'BootStrap', module: 'start', method: '-', action: 'StartServer',
 				message: `Unexpected exception: ${error.toString()}` });
 			console.log(`Unexpected exception: ${error.toString()}`);
 		}

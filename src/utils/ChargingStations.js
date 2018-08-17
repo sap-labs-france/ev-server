@@ -11,8 +11,8 @@ module.exports = {
 		if(request.method !== 'POST' && !filteredRequest.id) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The Charging Station ID is mandatory`,
-				500, 'ChargingStations', 'checkIfChargingStationValid');
+				`The Charging Station ID is mandatory`, 500, 
+				'ChargingStations', 'checkIfChargingStationValid');
 		}
 	},
 

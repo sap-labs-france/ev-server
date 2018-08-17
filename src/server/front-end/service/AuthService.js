@@ -122,34 +122,34 @@ class AuthService {
 			if (!filteredRequest.email) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Email is mandatory`,
-					500, 'AuthService', 'handleLogIn');
+					`The Email is mandatory`, 500, 
+					'AuthService', 'handleLogIn');
 			}
 			if (!filteredRequest.password) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Password is mandatory`,
-					500, 'AuthService', 'handleLogIn');
+					`The Password is mandatory`, 500, 
+					'AuthService', 'handleLogIn');
 			}
 			if (!filteredRequest.acceptEula) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The End-user License Agreement is mandatory`,
-					520, 'AuthService', 'handleLogIn');
+					`The End-user License Agreement is mandatory`, 520, 
+					'AuthService', 'handleLogIn');
 			}
 			// Check email
 			let user = await global.storage.getUserByEmail(filteredRequest.email);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The user with email '${filteredRequest.email}' does not exist`,
-					550, 'AuthService', 'handleLogIn');
+					`The user with email '${filteredRequest.email}' does not exist`, 550, 
+					'AuthService', 'handleLogIn');
 			}
 			if (user.deleted) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The user with email '${filteredRequest.email}' is logically deleted`,
-					550, 'AuthService', 'handleLogIn');
+					`The user with email '${filteredRequest.email}' is logically deleted`, 550, 
+					'AuthService', 'handleLogIn');
 			}
 			// Check if the number of trials is reached
 			if (user.getPasswordWrongNbrTrials() >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
@@ -209,8 +209,8 @@ class AuthService {
 			if (!filteredRequest.captcha) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The captcha is mandatory`,
-					500, 'AuthService', 'handleRegisterUser');
+					`The captcha is mandatory`, 500, 
+					'AuthService', 'handleRegisterUser');
 			}
 			// Check captcha
 			let response = await axios.get(
@@ -219,8 +219,8 @@ class AuthService {
 			if (!response.data.success) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The captcha is invalid`,
-					500, 'AuthService', 'handleRegisterUser');
+					`The captcha is invalid`, 500, 
+					'AuthService', 'handleRegisterUser');
 			}
 			// Check email
 			let user = await global.storage.getUserByEmail(filteredRequest.email);
@@ -229,8 +229,8 @@ class AuthService {
 			if (user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Email already exists`,
-					510, 'AuthService', 'handleRegisterUser',
+					`Email already exists`, 510, 
+					'AuthService', 'handleRegisterUser',
 					null, user.getModel());
 			}
 			// Generate a password
@@ -284,8 +284,8 @@ class AuthService {
 			if (!filteredRequest.captcha) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The captcha is mandatory`,
-					500, 'AuthService', 'handleUserPasswordReset');
+					`The captcha is mandatory`, 500, 
+					'AuthService', 'handleUserPasswordReset');
 			}
 			// Check captcha
 			let response = await axios.get(
@@ -294,8 +294,8 @@ class AuthService {
 			if (!response.data.success) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The captcha is invalid`,
-					500, 'AuthService', 'handleRegisterUser');
+					`The captcha is invalid`, 500, 
+					'AuthService', 'handleRegisterUser');
 			}
 			// Yes: Generate new password
 			let resetHash = Utils.generateGUID();
@@ -305,15 +305,15 @@ class AuthService {
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`User with email '${filteredRequest.email}' does not exist`,
-					550, 'AuthService', 'handleUserPasswordReset');
+					`User with email '${filteredRequest.email}' does not exist`, 550, 
+					'AuthService', 'handleUserPasswordReset');
 			}
 			// Deleted
 			if (user.deleted) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`User with email '${filteredRequest.email}' is logically deleted`,
-					550, 'AuthService', 'handleUserPasswordReset');
+					`User with email '${filteredRequest.email}' is logically deleted`, 550, 
+					'AuthService', 'handleUserPasswordReset');
 			}
 			// Hash it
 			user.setPasswordResetHash(resetHash);

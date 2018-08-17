@@ -11,23 +11,23 @@ module.exports = {
 
 	checkIfSiteAreaValid(filteredRequest, request) {
 		// Update model?
-		if(request.method !== "POST" && !filteredRequest.id) {
+		if(request.method !== 'POST' && !filteredRequest.id) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The Site Area ID is mandatory`,
-				500, "SiteAreas", "checkIfSiteAreaValid");
+				`The Site Area ID is mandatory`, 500, 
+				'SiteAreas', 'checkIfSiteAreaValid');
 		}
 		if(!filteredRequest.name) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The Site Area Name is mandatory`,
-				500, "SiteAreas", "checkIfSiteAreaValid");
+				`The Site Area Name is mandatory`, 500, 
+				'SiteAreas', 'checkIfSiteAreaValid');
 		}
 		if(!filteredRequest.siteID) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The Site ID is mandatory`,
-				500, "SiteAreas", "checkIfSiteAreaValid");
+				`The Site ID is mandatory`, 500, 
+				'SiteAreas', 'checkIfSiteAreaValid');
 		}
 		if (!filteredRequest.chargeBoxIDs) {
 			filteredRequest.chargeBoxIDs = [];

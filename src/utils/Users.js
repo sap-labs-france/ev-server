@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const passwordGenerator = require("password-generator");
+const passwordGenerator = require('password-generator');
 const Logging = require('./Logging');
 const bcrypt = require('bcrypt');
 const eula = require('../end-user-agreement');
@@ -12,23 +12,23 @@ const Configuration = require('./Configuration');
 
 require('source-map-support').install();
 
-let _userFilename = path.join(__dirname, "../../users.json");
-let _userFilenameImported = path.join(__dirname, "../../users-imported.json");
+let _userFilename = path.join(__dirname, '../../users.json');
+let _userFilenameImported = path.join(__dirname, '../../users-imported.json');
 let _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 
 module.exports = {
 	// Statuses
-	USER_STATUS_PENDING: "P",
-	USER_STATUS_ACTIVE: "A",
-	USER_STATUS_DELETED: "D",
-	USER_STATUS_INACTIVE: "I",
-	USER_STATUS_BLOCKED: "B",
-	USER_STATUS_LOCKED: "L",
+	USER_STATUS_PENDING: 'P',
+	USER_STATUS_ACTIVE: 'A',
+	USER_STATUS_DELETED: 'D',
+	USER_STATUS_INACTIVE: 'I',
+	USER_STATUS_BLOCKED: 'B',
+	USER_STATUS_LOCKED: 'L',
 
 	// Roles
-	USER_ROLE_BASIC: "B",
-	USER_ROLE_ADMIN: "A",
-	USER_ROLE_DEMO: "D",
+	USER_ROLE_BASIC: 'B',
+	USER_ROLE_ADMIN: 'A',
+	USER_ROLE_DEMO: 'D',
 
 	// Password constants
 	PWD_MIN_LENGTH: 15,
@@ -46,26 +46,26 @@ module.exports = {
 	WITH_ID: true,
 	WITHOUT_ID: false,
 
-	DEFAULT_LOCALE: "en_US",
+	DEFAULT_LOCALE: 'en_US',
 
-	ANONIMIZED_VALUE: "####",
+	ANONIMIZED_VALUE: '####',
 
 	getStatusDescription(status) {
 		switch (status) {
 			case this.USER_STATUS_PENDING:
-				return "Pending";
+				return 'Pending';
 			case this.USER_STATUS_LOCKED:
-				return "Locked";
+				return 'Locked';
 			case this.USER_STATUS_BLOCKED:
-				return "Blocked";
+				return 'Blocked';
 			case this.USER_STATUS_ACTIVE:
-				return "Active";
+				return 'Active';
 			case this.USER_STATUS_DELETED:
-				return "Deleted";
+				return 'Deleted';
 			case this.USER_STATUS_INACTIVE:
-				return "Inactive";
+				return 'Inactive';
 			default:
-				return "Unknown";
+				return 'Unknown';
 		}
 	},
 
@@ -82,7 +82,7 @@ module.exports = {
 	},
 
 	generatePassword() {
-		let password = "";
+		let password = '';
 		let randomLength = Math.floor(Math.random() * (this.PWD_MAX_LENGTH - this.PWD_MIN_LENGTH)) + this.PWD_MIN_LENGTH;
 		while (!this.isPasswordStrongEnough(password)) {
 			password = passwordGenerator(randomLength, false, /[\w\d!#\$%\^&\*\.\?\-]/);
@@ -93,7 +93,7 @@ module.exports = {
 	// Check password
 	isPasswordValid(password) {
 		// Check
-		return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/"'\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
+		return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
 	},
 
 	// Hash password (old version kept for compatibility reason)
@@ -134,7 +134,7 @@ module.exports = {
 
 	// Check email
 	isUserEmailValid(email) {
-		return /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
+		return /^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
 	},
 
 	isTagIDValid(tagID) {
@@ -151,62 +151,62 @@ module.exports = {
 
 	checkIfUserValid(filteredRequest, request) {
 		// Update model?
-		if(request.method !== "POST" && !filteredRequest.id) {
+		if(request.method !== 'POST' && !filteredRequest.id) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The User ID is mandatory`,
-				500, "Users", "checkIfUserValid");
+				`The User ID is mandatory`, 500, 
+				'Users', 'checkIfUserValid');
 		}
 		if(!filteredRequest.name) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The User Last Name is mandatory`,
-				500, "Users", "checkIfUserValid");
+				`The User Last Name is mandatory`, 500, 
+				'Users', 'checkIfUserValid');
 		}
 		if(!filteredRequest.email) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The User Email is mandatory`,
-				500, "Users", "checkIfUserValid");
+				`The User Email is mandatory`, 500, 
+				'Users', 'checkIfUserValid');
 		}
 		// Check password id provided
 		if (filteredRequest.password && !this.isPasswordValid(filteredRequest.password)) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The User Password is not valid`,
-				500, "Users", "checkIfUserValid");
+				`The User Password is not valid`, 500, 
+				'Users', 'checkIfUserValid');
 		}
 		if (!this.isUserEmailValid(filteredRequest.email)) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The User Email ${filteredRequest.email} is not valid`,
-				500, "Users", "checkIfUserValid");
+				`The User Email ${filteredRequest.email} is not valid`, 500, 
+				'Users', 'checkIfUserValid');
 		}
 		if (filteredRequest.phone && !this.isPhoneValid(filteredRequest.phone)) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The User Phone ${filteredRequest.phone} is not valid`,
-				500, "Users", "checkIfUserValid");
+				`The User Phone ${filteredRequest.phone} is not valid`, 500, 
+				'Users', 'checkIfUserValid');
 		}
 		if (filteredRequest.mobile && !this.isPhoneValid(filteredRequest.mobile)) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The User Mobile ${filteredRequest.mobile} is not valid`,
-				500, "Users", "checkIfUserValid");
+				`The User Mobile ${filteredRequest.mobile} is not valid`, 500, 
+				'Users', 'checkIfUserValid');
 		}
 		if (filteredRequest.iNumber && !this.isINumberValid(filteredRequest.iNumber)) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The User I-Number ${filteredRequest.iNumber} is not valid`,
-				500, "Users", "checkIfUserValid");
+				`The User I-Number ${filteredRequest.iNumber} is not valid`, 500, 
+				'Users', 'checkIfUserValid');
 		}
 		if (filteredRequest.tagIDs) {
 			// Check
 			if (!this.isTagIDValid(filteredRequest.tagIDs)) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The User Tags ${filteredRequest.tagIDs} is/are not valid`,
-					500, "Users", "checkIfUserValid");
+					`The User Tags ${filteredRequest.tagIDs} is/are not valid`, 500, 
+					'Users', 'checkIfUserValid');
 			}
 			// Check
 			if (!Array.isArray(filteredRequest.tagIDs)) {
@@ -233,8 +233,8 @@ module.exports = {
 			fs.renameSync(_userFilename, _userFilenameImported);
 			// Imported
 			Logging.logInfo({
-				action: "ImportUser",
-				module: "ChargingStationBackgroundTasks", method: "importUsers",
+				action: 'ImportUser',
+				module: 'ChargingStationBackgroundTasks', method: 'importUsers',
 				message: `Users have been imported`,
 				detailedMessages: users});
 		}
@@ -246,7 +246,7 @@ module.exports = {
 		// File exists?
 		if(fs.existsSync(_userFilename)) {
 			// Read in file
-			users = fs.readFileSync(_userFilename, "UTF-8");
+			users = fs.readFileSync(_userFilename, 'UTF-8');
 		}
 		// Read conf
 		return (users?JSON.parse(users):null);
@@ -268,13 +268,13 @@ module.exports = {
 		}
 	},
 
-	getEndUserLicenseAgreement(language="en") {
+	getEndUserLicenseAgreement(language='en') {
 		// Get it
 		let eulaText = eula[language];
 		// Check
 		if (!eulaText) {
 			// Backup to EN
-			eulaText = eula["en"];
+			eulaText = eula['en'];
 		}
 		// Build Front End URL
 		let frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
@@ -283,7 +283,7 @@ module.exports = {
 		eulaText = Mustache.render(
 			eulaText,
 			{
-				"chargeAngelsURL": frontEndURL
+				'chargeAngelsURL': frontEndURL
 			}
 		);
 		// Parse

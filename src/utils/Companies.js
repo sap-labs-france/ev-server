@@ -6,17 +6,17 @@ require('source-map-support').install();
 module.exports = {
 	checkIfCompanyValid(filteredRequest, req) {
 		// Update model?
-		if(req.method !== "POST" && !filteredRequest.id) {
+		if(req.method !== 'POST' && !filteredRequest.id) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The Company ID is mandatory`,
-				500, "Companies", "checkIfCompanyValid");
+				`The Company ID is mandatory`, 500, 
+				'Companies', 'checkIfCompanyValid');
 		}
 		if(!filteredRequest.name) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The Company Name is mandatory`,
-				500, "Companies", "checkIfCompanyValid");
+				`The Company Name is mandatory`, 500, 
+				'Companies', 'checkIfCompanyValid');
 		}
 	}
 };
