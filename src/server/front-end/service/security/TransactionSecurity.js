@@ -67,6 +67,9 @@ class TransactionSecurity {
 			filteredTransaction.id = transaction.id;
 			filteredTransaction.transactionId = transaction.transactionId;
 			filteredTransaction.connectorId = transaction.connectorId;
+			if (transaction.totalDurationSecs) {
+				filteredTransaction.totalDurationSecs = transaction.totalDurationSecs;
+			}			
 			// Check auth
 			if (Authorizations.canReadUser(loggedUser, transaction.user)) {
 				// Demo user?

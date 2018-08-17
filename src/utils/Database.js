@@ -381,6 +381,9 @@ module.exports = {
 	updateTransaction(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
 			this.updateID(src, dest);
+			if (src.totalDurationSecs) {
+				dest.totalDurationSecs = src.totalDurationSecs;
+			}
 		}
 		// ChargeBox
 		dest.chargeBoxID = src.chargeBoxID;

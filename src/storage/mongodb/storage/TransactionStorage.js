@@ -150,6 +150,13 @@ class TransactionStorage {
 				$match: match
 			});
 		}
+		// Transaction Duration Secs
+		aggregation.push({
+			$addFields: {
+				"totalDurationSecs": { $divide: [ { $subtract: [ "$stop.timestamp", "$timestamp" ] }, 1000 ] } 
+			}
+		});
+		// Charger?
 		if (withChargeBoxes || siteID) {
 			// Add Charge Box
 			aggregation.push({
