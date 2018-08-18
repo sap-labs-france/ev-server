@@ -1604,7 +1604,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/client/api/TransactionsCompleted?StartDateTime=2017-12-31T23:00:00.000Z&EndDateTime=2018-08-17T15:37:57.059Z&Limit=0",
+					"raw": "{{base_url}}/client/api/TransactionsCompleted?StartDateTime=2017-12-31T23:00:00.000Z&EndDateTime=2018-08-17T15:37:57.059Z&Limit=100",
 					"host": [
 						"{{base_url}}"
 					],
@@ -1624,7 +1624,7 @@
 						},
 						{
 							"key": "Limit",
-							"value": "0"
+							"value": "100"
 						}
 					]
 				}
