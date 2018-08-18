@@ -1,12 +1,13 @@
-const ChargingStation = require('../../model/ChargingStation');
-const AppError = require('../../exception/AppError');
-const Logging = require('../../utils/Logging');
-const bodyParser = require("body-parser");
+const bodyParser = require('body-parser');
+const CFLog = require('cf-nodejs-logging-support');
 require('body-parser-xml')(bodyParser);
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const sanitize = require('mongo-sanitize');
+const ChargingStation = require('../../model/ChargingStation');
+const AppError = require('../../exception/AppError');
+const Logging = require('../../utils/Logging');
+const Configuration = require('../../utils/Configuration');
 require('source-map-support').install();
 
 let _centralSystemConfig;
@@ -17,7 +18,7 @@ class CentralSystemServer {
 	constructor(centralSystemConfig, chargingStationConfig, express) {
 		// Check
 		if (new.target === CentralSystemServer) {
-			throw new TypeError("Cannot construct CentralSystemServer instances directly");
+			throw new TypeError('Cannot construct CentralSystemServer instances directly');
 		}
 
 		// Body parser
@@ -27,8 +28,20 @@ class CentralSystemServer {
 
 		// Enable debug?
 		if (centralSystemConfig.debug) {
-			// log to console
-			express.use(morgan('dev'));
+			// Log
+			express.use(
+				morgan('combined', {
+					'stream': {
+						write: (message) => { 
+							// Log
+							Logging.logDebug({
+								module: "CentralSystemServer", method: "constructor", action: "HttpRequest",
+								message: message
+							});
+						}
+					}
+				})
+			);
 		}
 
 		// Cross origin headers
@@ -37,6 +50,12 @@ class CentralSystemServer {
 		// Secure the application
 		express.use(helmet());
 
+		// Check Cloud Foundry
+		if (Configuration.isCloudFoundry()) {
+			// Bind to express app
+			express.use(CFLog.logNetwork);
+		}
+		
 		// Keep params
 		_centralSystemConfig = centralSystemConfig;
 		_chargingStationConfig = chargingStationConfig;
@@ -54,15 +73,15 @@ class CentralSystemServer {
 		if (!chargingStation) {
 			throw new AppError(
 				chargeBoxIdentity,
-				`Charging Station does not exist`,
-				550, "CentralSystemServer", "checkAndGetChargingStation");
+				`Charging Station does not exist`, 550, 
+				'CentralSystemServer', 'checkAndGetChargingStation');
 		}
 		// Found?
 		if (chargingStation.isDeleted()) {
 			throw new AppError(
 				chargeBoxIdentity,
-				`Charging Station is deleted`,
-				550, "CentralSystemServer", "checkAndGetChargingStation");
+				`Charging Station is deleted`, 550, 
+				'CentralSystemServer', 'checkAndGetChargingStation');
 		}
 		return chargingStation;
 	}
@@ -110,33 +129,33 @@ class CentralSystemServer {
 			await updatedChargingStation.handleBootNotification(args);
 			// Return the result
 			// OCPP 1.6
-			if (args.ocppVersion === "1.6") {
+			if (args.ocppVersion === '1.6') {
 				return {
-					"bootNotificationResponse": {
-						"status": 'Accepted',
-						"currentTime": new Date().toISOString(),
-						"interval": _chargingStationConfig.heartbeatIntervalSecs
+					'bootNotificationResponse': {
+						'status': 'Accepted',
+						'currentTime': new Date().toISOString(),
+						'interval': _chargingStationConfig.heartbeatIntervalSecs
 					}
 				};
 				// OCPP 1.2 && 1.5
 			} else {
 				return {
-					"bootNotificationResponse": {
-						"status": 'Accepted',
-						"currentTime": new Date().toISOString(),
-						"heartbeatInterval": _chargingStationConfig.heartbeatIntervalSecs
+					'bootNotificationResponse': {
+						'status': 'Accepted',
+						'currentTime': new Date().toISOString(),
+						'heartbeatInterval': _chargingStationConfig.heartbeatIntervalSecs
 					}
 				};
 			}
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage("BootNotification", error);
+			Logging.logActionExceptionMessage('BootNotification', error);
 			// Reject
 			return {
-				"bootNotificationResponse": {
-					"status": 'Rejected',
-					"currentTime": new Date().toISOString(),
-					"heartbeatInterval": _chargingStationConfig.heartbeatIntervalSecs
+				'bootNotificationResponse': {
+					'status': 'Rejected',
+					'currentTime': new Date().toISOString(),
+					'heartbeatInterval': _chargingStationConfig.heartbeatIntervalSecs
 				}
 			};
 		}
@@ -150,17 +169,17 @@ class CentralSystemServer {
 			await chargingStation.handleHeartBeat();
 			// Return			
 			return {
-				"heartbeatResponse": {
-					"currentTime": chargingStation.getLastHeartBeat().toISOString()
+				'heartbeatResponse': {
+					'currentTime': chargingStation.getLastHeartBeat().toISOString()
 				}
 			};
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage("HeartBeat", error);
+			Logging.logActionExceptionMessage('HeartBeat', error);
 			// Send the response
 			return {
-				"heartbeatResponse": {
-					"currentTime": new Date().toISOString()
+				'heartbeatResponse': {
+					'currentTime': new Date().toISOString()
 				}
 			};
 		}
@@ -174,15 +193,15 @@ class CentralSystemServer {
 			await chargingStation.handleStatusNotification(args);
 			// Respond
 			return {
-				"statusNotificationResponse": {
+				'statusNotificationResponse': {
 				}
 			};
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage("StatusNotification", error);
+			Logging.logActionExceptionMessage('StatusNotification', error);
 			// Return
 			return {
-				"statusNotificationResponse": {
+				'statusNotificationResponse': {
 				}
 			};
 		}
@@ -196,15 +215,15 @@ class CentralSystemServer {
 			await chargingStation.handleMeterValues(args);
 			// Return
 			return {
-				"meterValuesResponse": {
+				'meterValuesResponse': {
 				}
 			};
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage("MeterValues", error);
+			Logging.logActionExceptionMessage('MeterValues', error);
 			// Response
 			return {
-				"meterValuesResponse": {
+				'meterValuesResponse': {
 				}
 			};
 		}
@@ -218,19 +237,19 @@ class CentralSystemServer {
 			await chargingStation.handleAuthorize(args);
 			// Return
 			return {
-				"authorizeResponse": {
-					"idTagInfo": {
-						"status": "Accepted"
+				'authorizeResponse': {
+					'idTagInfo': {
+						'status': 'Accepted'
 					}
 				}
 			};
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage("Authorize", error);
+			Logging.logActionExceptionMessage('Authorize', error);
 			return {
-				"authorizeResponse": {
-					"idTagInfo": {
-						"status": "Invalid"
+				'authorizeResponse': {
+					'idTagInfo': {
+						'status': 'Invalid'
 					}
 				}
 			};
@@ -245,14 +264,14 @@ class CentralSystemServer {
 			await chargingStation.handleDiagnosticsStatusNotification(args);
 			// Return
 			return {
-				"diagnosticsStatusNotificationResponse": {
+				'diagnosticsStatusNotificationResponse': {
 				}
 			};
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage("DiagnosticsStatusNotification", error);
+			Logging.logActionExceptionMessage('DiagnosticsStatusNotification', error);
 			return {
-				"diagnosticsStatusNotificationResponse": {
+				'diagnosticsStatusNotificationResponse': {
 				}
 			};
 		}
@@ -266,14 +285,14 @@ class CentralSystemServer {
 			await chargingStation.handleFirmwareStatusNotification(args);
 			// Return
 			return {
-				"firmwareStatusNotificationResponse": {
+				'firmwareStatusNotificationResponse': {
 				}
 			};
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage("FirmwareStatusNotification", error);
+			Logging.logActionExceptionMessage('FirmwareStatusNotification', error);
 			return {
-				"firmwareStatusNotificationResponse": {
+				'firmwareStatusNotificationResponse': {
 				}
 			};
 		}
@@ -287,21 +306,21 @@ class CentralSystemServer {
 			let transaction = await chargingStation.handleStartTransaction(args);
 			// Return
 			return {
-				"startTransactionResponse": {
-					"transactionId": transaction.id,
-					"idTagInfo": {
-						"status": "Accepted"
+				'startTransactionResponse': {
+					'transactionId': transaction.id,
+					'idTagInfo': {
+						'status': 'Accepted'
 					}
 				}
 			};
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage("StartTransaction", error);
+			Logging.logActionExceptionMessage('StartTransaction', error);
 			return {
-				"startTransactionResponse": {
-					"transactionId": 0,
-					"idTagInfo": {
-						"status": "Invalid"
+				'startTransactionResponse': {
+					'transactionId': 0,
+					'idTagInfo': {
+						'status': 'Invalid'
 					}
 				}
 			};
@@ -316,16 +335,16 @@ class CentralSystemServer {
 			await chargingStation.handleDataTransfer(args);
 			// Return
 			return {
-				"dataTransferResponse": {
-					"status": "Accepted"
+				'dataTransferResponse': {
+					'status': 'Accepted'
 				}
 			};
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage("DataTransfer", error);
+			Logging.logActionExceptionMessage('DataTransfer', error);
 			return {
-				"dataTransferResponse": {
-					"status": "Rejected"
+				'dataTransferResponse': {
+					'status': 'Rejected'
 				}
 			};
 		}
@@ -339,20 +358,20 @@ class CentralSystemServer {
 			await chargingStation.handleStopTransaction(args);
 			// Success
 			return {
-				"stopTransactionResponse": {
-					"idTagInfo": {
-						"status": "Accepted"
+				'stopTransactionResponse': {
+					'idTagInfo': {
+						'status': 'Accepted'
 					}
 				}
 			};
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage("StopTransaction", error);
+			Logging.logActionExceptionMessage('StopTransaction', error);
 			// Error
 			return {
-				"stopTransactionResponse": {
-					"idTagInfo": {
-						"status": "Invalid"
+				'stopTransactionResponse': {
+					'idTagInfo': {
+						'status': 'Invalid'
 					}
 				}
 			};

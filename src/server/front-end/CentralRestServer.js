@@ -45,7 +45,20 @@ class CentralRestServer {
 
 		// log to console
 		if (centralSystemRestConfig.debug) {
-			express.use(morgan('dev'));
+			// Log
+			express.use(
+				morgan('combined', {
+					'stream': {
+						write: (message) => { 
+							// Log
+							Logging.logDebug({
+								module: "CentralSystemServer", method: "constructor", action: "HttpRequest",
+								message: message
+							});
+						}
+					}
+				})
+			);
 		}
 
 		// Cross origin headers

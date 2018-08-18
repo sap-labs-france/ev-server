@@ -14,6 +14,7 @@ const centralSystemService16Wsdl = require('./wsdl/OCPP_CentralSystemService1.6.
 const chargePointService12Wsdl = require('../../../client/soap/wsdl/OCPP_ChargePointService1.2.wsdl');
 const chargePointService15Wsdl = require('../../../client/soap/wsdl/OCPP_ChargePointService1.5.wsdl');
 const chargePointService16Wsdl = require('../../../client/soap/wsdl/OCPP_ChargePointService1.6.wsdl');
+const sanitize = require('mongo-sanitize');
 require('source-map-support').install();
 
 let _centralSystemConfig;
@@ -99,7 +100,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
 			soapServer12.log = (type, data) => {
 				// Do not log 'Info'
 				if (type === 'received' || type === 'replied') {
-						// Log
+					// Log
 					Logging.logDebug({
 						module: "SoapCentralSystemServer", method: "start", action: "SoapRequest",
 						message: `OCPP 1.2 - Type '${type}'`,
