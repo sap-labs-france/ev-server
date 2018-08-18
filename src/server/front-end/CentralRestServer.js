@@ -52,7 +52,7 @@ class CentralRestServer {
 						write: (message) => { 
 							// Log
 							Logging.logDebug({
-								module: "CentralSystemServer", method: "constructor", action: "HttpRequest",
+								module: "CentralRestServer", method: "constructor", action: "HttpRequestLog",
 								message: message
 							});
 						}

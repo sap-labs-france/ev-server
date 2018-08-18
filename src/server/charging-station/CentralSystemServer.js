@@ -35,7 +35,7 @@ class CentralSystemServer {
 						write: (message) => { 
 							// Log
 							Logging.logDebug({
-								module: "CentralSystemServer", method: "constructor", action: "HttpRequest",
+								module: "CentralSystemServer", method: "constructor", action: "HttpRequestLog",
 								message: message
 							});
 						}
