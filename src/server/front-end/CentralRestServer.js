@@ -2,7 +2,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const locale = require('locale');
-const app = require('express')();
+const express = require('express')();
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
@@ -36,48 +36,48 @@ class CentralRestServer {
 			_chargingStationConfig.heartbeatIntervalSecs);
 
 		// Body parser
-		app.use(bodyParser.json({limit: '1mb'}));
-		app.use(bodyParser.urlencoded({ extended: false, limit: '1mb' }));
-		app.use(bodyParser.xml());
+		express.use(bodyParser.json({limit: '1mb'}));
+		express.use(bodyParser.urlencoded({ extended: false, limit: '1mb' }));
+		express.use(bodyParser.xml());
 
 		// Use
-		app.use(locale(Configuration.getLocalesConfig().supported));
+		express.use(locale(Configuration.getLocalesConfig().supported));
 
 		// log to console
 		if (centralSystemRestConfig.debug) {
-			app.use(morgan('dev'));
+			express.use(morgan('dev'));
 		}
 
 		// Cross origin headers
-		app.use(cors());
+		express.use(cors());
 
 		// Secure the application
-		app.use(helmet());
+		express.use(helmet());
 
 		// Check Cloud Foundry
 		if (Configuration.isCloudFoundry()) {
 			// Bind to express app
-			app.use(CFLog.logNetwork);
+			express.use(CFLog.logNetwork);
 		}
 		
 		// Authentication
-		app.use(CentralRestServerAuthentication.initialize());
+		express.use(CentralRestServerAuthentication.initialize());
 
 		// Auth services
-		app.use('/client/auth', CentralRestServerAuthentication.authService);
+		express.use('/client/auth', CentralRestServerAuthentication.authService);
 
 		// Secured API
-		app.use('/client/api', CentralRestServerAuthentication.authenticate(), CentralRestServerService.restServiceSecured);
+		express.use('/client/api', CentralRestServerAuthentication.authenticate(), CentralRestServerService.restServiceSecured);
 
 		// Util API
-		app.use('/client/util', CentralRestServerService.restServiceUtil);
+		express.use('/client/util', CentralRestServerService.restServiceUtil);
 
 		// Check if the front-end has to be served also
 		let centralSystemConfig = Configuration.getCentralSystemFrontEndConfig();
 		// Server it?
 		if (centralSystemConfig.distEnabled) {
 			// Serve all the static files of the front-end
-			app.get(/^\/(?!client\/)(.+)$/, function(req, res, next) {
+			express.get(/^\/(?!client\/)(.+)$/, function(req, res, next) {
 				// Filter to not handle other server requests
 				if(!res.headersSent) {
 					// Not already processed: serve the file
@@ -85,7 +85,7 @@ class CentralRestServer {
 				}
 			});
 			// Default, serve the index.html
-			app.get('/', function(req, res, next) {
+			express.get('/', function(req, res, next) {
 				// Return the index.html
 				res.sendFile(path.join(__dirname, centralSystemConfig.distPath, 'index.html'));
 			});
@@ -119,10 +119,10 @@ class CentralRestServer {
 				}
 			}
 			// Https server
-			server = https.createServer(options, app);
+			server = https.createServer(options, express);
 		} else {
 			// Http server
-			server = http.createServer(app);
+			server = http.createServer(express);
 		}
 
 		// Init Socket IO

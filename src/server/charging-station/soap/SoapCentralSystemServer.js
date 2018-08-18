@@ -1,3 +1,9 @@
+const fs = require('fs');
+const soap = require('strong-soap').soap;
+const http = require('http');
+const https = require('https');
+const express = require('express')();
+const CentralSystemServer = require('../CentralSystemServer');
 const Logging = require('../../../utils/Logging');
 const centralSystemService12 = require('./services/centralSystemService1.2');
 const centralSystemService12Wsdl = require('./wsdl/OCPP_CentralSystemService1.2.wsdl');
@@ -5,12 +11,9 @@ const centralSystemService15 = require('./services/centralSystemService1.5');
 const centralSystemService15Wsdl = require('./wsdl/OCPP_CentralSystemService1.5.wsdl');
 const centralSystemService16 = require('./services/centralSystemService1.6');
 const centralSystemService16Wsdl = require('./wsdl/OCPP_CentralSystemService1.6.wsdl');
-const fs = require('fs');
-const soap = require('strong-soap').soap;
-const http = require('http');
-const https = require('https');
-const express = require('express')();
-const CentralSystemServer = require('../CentralSystemServer');
+const chargePointService12Wsdl = require('../../../client/soap/wsdl/OCPP_ChargePointService1.2.wsdl');
+const chargePointService15Wsdl = require('../../../client/soap/wsdl/OCPP_ChargePointService1.5.wsdl');
+const chargePointService16Wsdl = require('../../../client/soap/wsdl/OCPP_ChargePointService1.6.wsdl');
 require('source-map-support').install();
 
 let _centralSystemConfig;
@@ -24,6 +27,28 @@ class SoapCentralSystemServer extends CentralSystemServer {
 		// Keep local
 		_centralSystemConfig = centralSystemConfig;
 		_chargingStationConfig = chargingStationConfig;
+
+		// Default, serve the index.html
+		express.get(/^\/wsdl(.+)$/, function(req, res, next) {
+			// WDSL file?
+			switch (req.params["0"]) {
+				// Charge Point WSDL 1.2
+				case '/OCPP_ChargePointService1.2.wsdl':
+					res.send(chargePointService12Wsdl);
+					break;
+				// Charge Point WSDL 1.5
+				case '/OCPP_ChargePointService1.5.wsdl':
+					res.send(chargePointService15Wsdl);
+					break;
+				// Charge Point WSDL 1.6
+				case '/OCPP_ChargePointService1.6.wsdl':
+					res.send(chargePointService16Wsdl);
+					break;
+				// Unknown
+				default:
+					res.status(500).send(`${sanitize(req.params["0"])} does not exist!`);
+			}
+		});
 	}
 
 	/*
