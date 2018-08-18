@@ -99,15 +99,24 @@ class SoapCentralSystemServer extends CentralSystemServer {
 			// Listen
 			soapServer12.log = (type, data) => {
 				// Do not log 'Info'
-				if (type === 'received' || type === 'replied') {
+				if (type === 'replied') {
 					// Log
 					Logging.logDebug({
 						module: "SoapCentralSystemServer", method: "start", action: "SoapRequest",
-						message: `OCPP 1.2 - Type '${type}'`,
+						message: `OCPP 1.2 - Request Replied`,
 						detailedMessages: data
 					});
 				}
 			};
+			// Log Request
+			soapServer12.on('request', (request, methodName) => {
+				// Log
+				Logging.logDebug({
+					module: "SoapCentralSystemServer", method: "start", action: "SoapRequest",
+					message: `OCPP 1.2 - Request '${methodName}' Received`,
+					detailedMessages: request
+				});
+			});
 		}
 		// OCPP 1.5 -----------------------------------------
 		let soapServer15 = soap.listen(server, '/OCPP15', centralSystemService15, centralSystemService15Wsdl);
@@ -116,16 +125,25 @@ class SoapCentralSystemServer extends CentralSystemServer {
 			// Listen
 			soapServer15.log = (type, data) => {
 				// Do not log 'Info'
-				if (type === 'received' || type === 'replied') {
+				if (type === 'replied') {
 					// Log
 					Logging.logDebug({
 						module: "SoapCentralSystemServer", method: "start", action: "SoapRequest",
-						message: `OCPP 1.5 - Type '${type}'`,
+						message: `OCPP 1.5 - Request Replied`,
 						detailedMessages: data
 					});
 				}
 			};
-		}
+			// Log Request
+			soapServer15.on('request', (request, methodName) => {
+				// Log
+				Logging.logDebug({
+					module: "SoapCentralSystemServer", method: "start", action: "SoapRequest",
+					message: `OCPP 1.5 - Request '${methodName}' Received`,
+					detailedMessages: request
+				});
+			});
+	}
 		// OCPP 1.6 -----------------------------------------
 		let soapServer16 = soap.listen(server, '/OCPP16', centralSystemService16, centralSystemService16Wsdl);
 		// Log
@@ -133,15 +151,24 @@ class SoapCentralSystemServer extends CentralSystemServer {
 			// Listen
 			soapServer16.log = (type, data) => {
 				// Do not log 'Info'
-				if (type === 'received' || type === 'replied') {
+				if (type === 'replied') {
 					// Log
 					Logging.logDebug({
 						module: "SoapCentralSystemServer", method: "start", action: "SoapRequest",
-						message: `OCPP 1.6 - Type '${type}'`,
+						message: `OCPP 1.6 - Request Replied`,
 						detailedMessages: data
 					});
 				}
 			};
+			// Log Request
+			soapServer16.on('request', (request, methodName) => {
+				// Log
+				Logging.logDebug({
+					module: "SoapCentralSystemServer", method: "start", action: "SoapRequest",
+					message: `OCPP 1.6 - Request '${methodName}' Received`,
+					detailedMessages: request
+				});
+			});
 		}
 
 		// Listen
