@@ -12,7 +12,6 @@ const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const jwt = require('jsonwebtoken');
 const moment = require('moment');
-const https = require('https');
 const AuthSecurity = require('./security/AuthSecurity');
 const axios = require('axios');
 
@@ -510,8 +509,7 @@ class AuthService {
 		// Build token
 		let token;
 		// Role Demo?
-		if (Authorizations.isDemo(user.getModel()) ||
-				Authorizations.isCorporate(user.getModel())) {
+		if (Authorizations.isDemo(user.getModel())) {
 			// Yes
 			token = jwt.sign(payload, jwtOptions.secretOrKey, {
 				expiresIn: _centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600

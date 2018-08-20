@@ -299,135 +299,6 @@ module.exports = {
 					]
 				},
 				{
-					"id": "C",
-					"name": "Corporate",
-					"auths": [
-						{
-							"AuthObject": "Users",
-							"AuthFieldValue": {
-								"Action": []
-							}
-						},
-						{
-							"AuthObject": "User",
-							"AuthFieldValue": {
-								"UserID": "*",
-								"Action": ["Read"]
-							}
-						},
-						{
-							"AuthObject": "Companies",
-							"AuthFieldValue": {
-								"Action": ["List"]
-							}
-						},
-						{
-							"AuthObject": "Company",
-							"AuthFieldValue": {
-								"CompanyID": "*",
-								"Action": ["Read"]
-							}
-						},
-						{
-							"AuthObject": "Sites",
-							"AuthFieldValue": {
-								"Action": ["List"]
-							}
-						},
-						{
-							"AuthObject": "Site",
-							"AuthFieldValue": {
-								"SiteID": "*",
-								"Action": ["Read"]
-							}
-						},
-						{
-							"AuthObject": "VehicleManufacturers",
-							"AuthFieldValue": {
-								"Action": ["List"]
-							}
-						},
-						{
-							"AuthObject": "VehicleManufacturer",
-							"AuthFieldValue": {
-								"VehicleManufacturerID": "*",
-								"Action": ["Read"]
-							}
-						},
-						{
-							"AuthObject": "Vehicles",
-							"AuthFieldValue": {
-								"Action": ["List"]
-							}
-						},
-						{
-							"AuthObject": "Vehicle",
-							"AuthFieldValue": {
-								"SiteID": "*",
-								"Action": ["Read"]
-							}
-						},
-						{
-							"AuthObject": "SiteAreas",
-							"AuthFieldValue": {
-								"Action": ["List"]
-							}
-						},
-						{
-							"AuthObject": "SiteArea",
-							"AuthFieldValue": {
-								"SiteAreaID": "*",
-								"Action": ["Read"]
-							}
-						},
-						{
-							"AuthObject": "ChargingStations",
-							"AuthFieldValue": {
-								"Action": ["List"]
-							}
-						},
-						{
-							"AuthObject": "ChargingStation",
-							"AuthFieldValue": {
-								"ChargingStationID": "*",
-								"Action": ["Read", "StartTransaction", "StopTransaction", "UnlockConnector", "Authorize"]
-							}
-						},
-						{
-							"AuthObject": "Transactions",
-							"AuthFieldValue": {
-								"Action": ["List"]
-							}
-						},
-						{
-							"AuthObject": "Transaction",
-							"AuthFieldValue": {
-								"UserID": "*",
-								"Action": ["Read"]
-							}
-						},
-						{
-							"AuthObject": "Loggings",
-							"AuthFieldValue": {
-								"Action": []
-							}
-						},
-						{
-							"AuthObject": "Logging",
-							"AuthFieldValue": {
-								"LogID": "*",
-								"Action": []
-							}
-						},
-						{
-							"AuthObject": "Pricing",
-							"AuthFieldValue": {
-								"Action": []
-							}
-						}
-					]
-				},
-				{
 					"id": "D",
 					"name": "Demo",
 					"auths": [
@@ -441,7 +312,7 @@ module.exports = {
 							"AuthObject": "User",
 							"AuthFieldValue": {
 								"UserID": "*",
-								"Action": ["Read"]
+								"Action": ["Read", "Logout"]
 							}
 						},
 						{

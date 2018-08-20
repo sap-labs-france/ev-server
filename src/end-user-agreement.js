@@ -87,8 +87,6 @@ module.exports = {
 			<br/>
 			SAP Data Scientists in Germany receive only the anonymized transactions from an admin to test their charging algorithm.
 			<br/>
-			For demoing the <a href="{{chargeAngelsURL}}" target="_blank">Charge-Angels</a> application internally, we use a corporate demo user to display all the information.
-			<br/>
 			For demoing the <a href="{{chargeAngelsURL}}" target="_blank">Charge-Angels</a> application to external people (not SAP), we use a demo user to anonymize all the personal data.
 			<br/>
 		</p>
@@ -245,8 +243,6 @@ module.exports = {
 			Les managers des sites SAP accedent aux donnees exclusivement au travers de l'application securisée <a href="{{chargeAngelsURL}}" target="_blank">Charge-Angels</a> avec le role administrateur.
 			<br/>
 			Les Data Scientists SAP en Allemagne recoivent seulement les transactions anonymisées envoyées par un administrateur pour tester leur algorithme.
-			<br/>
-			Pour réaliser des démonstrations de l'application <a href="{{chargeAngelsURL}}" target="_blank">Charge-Angels</a> en interne (SAP), un utilisateur avec le role demo corporate est utilisé pour afficher toutes les informations.
 			<br/>
 			Pour réaliser des démonstrations de l'application <a href="{{chargeAngelsURL}}" target="_blank">Charge-Angels</a> à des personnes extérieurs, un utilisateur avec le role demo est utilisé pour anonymizer toutes les informations.
 			<br/>

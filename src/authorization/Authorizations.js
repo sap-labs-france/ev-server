@@ -19,7 +19,6 @@ module.exports = {
 	ROLE_ADMIN: "A",
 	ROLE_BASIC: "B",
 	ROLE_DEMO: "D",
-	ROLE_CORPORATE: "C",
 
 	ACTION_READ  : "Read",
 	ACTION_CREATE: "Create",
@@ -625,10 +624,6 @@ module.exports = {
 
 	isUser(loggedUser) {
 		return loggedUser.role === this.ROLE_USER;
-	},
-
-	isCorporate(loggedUser) {
-		return loggedUser.role === this.ROLE_CORPORATE;
 	},
 
 	isDemo(loggedUser) {
