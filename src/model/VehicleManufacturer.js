@@ -1,6 +1,8 @@
 const Database = require('../utils/Database');
 const User = require('./User');
 const Vehicle = require('./Vehicle');
+const Constants = require('../utils/Constants');
+const AppError = require('../exception/AppError');
 
 class VehicleManufacturer {
 	constructor(vehicleManufacturer) {
@@ -70,6 +72,22 @@ class VehicleManufacturer {
 
 	setLastChangedOn(lastChangedOn) {
 		this._model.lastChangedOn = lastChangedOn;
+	}
+
+	static checkIfVehicleManufacturerValid(filteredRequest, request) {
+		// Update model?
+		if(request.method !== 'POST' && !filteredRequest.id) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Vehicle Manufacturer ID is mandatory`, 500, 
+				'VehicleManufacturer', 'checkIfVehicleManufacturerValid');
+		}
+		if(!filteredRequest.name) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Vehicle Manufacturer Name is mandatory`, 500, 
+				'VehicleManufacturer', 'checkIfVehicleManufacturerValid');
+		}
 	}
 
 	async getVehicles() {

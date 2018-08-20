@@ -2,7 +2,6 @@ const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
-const SiteAreas = require('../../../utils/SiteAreas');
 const Constants = require('../../../utils/Constants');
 const SiteArea = require('../../../model/SiteArea');
 const SiteAreaSecurity = require('./security/SiteAreaSecurity');
@@ -25,7 +24,7 @@ class SiteAreaService {
 			// Filter
 			let filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest( req.body, req.user );
 			// Check Mandatory fields
-			SiteAreas.checkIfSiteAreaValid(filteredRequest, req);
+			SiteArea.checkIfSiteAreaValid(filteredRequest, req);
 			// Check Site
 			let site = await global.storage.getSite(filteredRequest.siteID);
 			// Found?
@@ -174,7 +173,7 @@ class SiteAreaService {
 			}
 			// Get it
 			let siteArea = await global.storage.getSiteArea(
-				filteredRequest.ID, SiteAreas.WITH_CHARGING_STATIONS, SiteAreas.WITHOUT_SITE);
+				filteredRequest.ID, Constants.WITH_CHARGING_STATIONS, Constants.WITHOUT_SITE);
 			// Found?
 			if (!siteArea) {
 				// Not Found!
@@ -284,7 +283,7 @@ class SiteAreaService {
 					'SiteAreaService', 'handleUpdateSiteArea', req.user);
 			}
 			// Check Mandatory fields
-			SiteAreas.checkIfSiteAreaValid(filteredRequest, req);
+			SiteArea.checkIfSiteAreaValid(filteredRequest, req);
 			// Check auth
 			if (!Authorizations.canUpdateSiteArea(req.user, siteArea.getModel())) {
 				// Not Authorized!

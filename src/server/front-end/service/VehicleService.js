@@ -4,7 +4,6 @@ const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Authorizations = require('../../../authorization/Authorizations');
-const Vehicles = require('../../../utils/Vehicles');
 const Constants = require('../../../utils/Constants');
 const Vehicle = require('../../../model/Vehicle');
 const VehicleSecurity = require('./security/VehicleSecurity');
@@ -209,7 +208,7 @@ class VehicleService {
 			// Filter
 			let filteredRequest = VehicleSecurity.filterVehicleCreateRequest( req.body, req.user );
 			// Check Mandatory fields
-			Vehicles.checkIfVehicleValid(filteredRequest, req);
+			Vehicle.checkIfVehicleValid(filteredRequest, req);
 			// Create vehicle
 			let vehicle = new Vehicle(filteredRequest);
 			// Update timestamp
@@ -252,7 +251,7 @@ class VehicleService {
 					'VehicleService', 'handleUpdateVehicle', req.user);
 			}
 			// Check Mandatory fields
-			Vehicles.checkIfVehicleValid(filteredRequest, req);
+			Vehicle.checkIfVehicleValid(filteredRequest, req);
 			// Check auth
 			if (!Authorizations.canUpdateVehicle(req.user, vehicle.getModel())) {
 				// Not Authorized!

@@ -3,13 +3,13 @@ const SoapChargingStationClient = require('../client/soap/SoapChargingStationCli
 const Logging = require('../utils/Logging');
 const User = require('./User');
 const SiteArea = require('./SiteArea');
-const Users = require('../utils/Users');
 const Constants = require('../utils/Constants');
 const Database = require('../utils/Database');
 const moment = require('moment');
 const Configuration = require('../utils/Configuration');
 const NotificationHandler = require('../notification/NotificationHandler');
 const Authorizations = require('../authorization/Authorizations');
+const AppError = require('../exception/AppError');
 
 let _configAdvanced = Configuration.getAdvancedConfig();
 let _configChargingStation = Configuration.getChargingStationConfig();
@@ -275,6 +275,16 @@ class ChargingStation {
 
 	getModel() {
 		return this._model;
+	}
+
+	static checkIfChargingStationValid(filteredRequest, request) {
+		// Update mode?
+		if(request.method !== 'POST' && !filteredRequest.id) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Charging Station ID is mandatory`, 500, 
+				'ChargingStations', 'checkIfChargingStationValid');
+		}
 	}
 
 	save() {
@@ -629,7 +639,7 @@ class ChargingStation {
 								"chargingBoxID": this.getID(),
 								"connectorId": transaction.connectorId,
 								"totalConsumption": (this.getConnectors()[transaction.connectorId-1].totalConsumption/1000).toLocaleString(
-									(transaction.user.locale ? transaction.user.locale.replace('_','-') : Users.DEFAULT_LOCALE.replace('_','-')),
+									(transaction.user.locale ? transaction.user.locale.replace('_','-') : Constants.DEFAULT_LOCALE.replace('_','-')),
 									{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
 								"totalDuration": this._buildCurrentTransactionDuration(transaction, lastTimestamp),
 								"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
@@ -1077,7 +1087,7 @@ class ChargingStation {
 					"chargingBoxID": this.getID(),
 					"connectorId": transaction.connectorId,
 					"totalConsumption": (stopTransaction.totalConsumption/1000).toLocaleString(
-						(transaction.user.locale ? transaction.user.locale.replace('_','-') : Users.DEFAULT_LOCALE.replace('_','-')),
+						(transaction.user.locale ? transaction.user.locale.replace('_','-') : User.DEFAULT_LOCALE.replace('_','-')),
 						{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
 					"totalDuration": this._buildCurrentTransactionDuration(transaction, transaction.stop.timestamp),
 					"totalInactivity": this._buildCurrentTransactionInactivity(transaction),

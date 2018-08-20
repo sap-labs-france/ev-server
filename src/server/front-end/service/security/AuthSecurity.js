@@ -1,5 +1,5 @@
 const sanitize = require('mongo-sanitize');
-const Users = require('../../../../utils/Users');
+const Constants = require('../../../../utils/Constants');
 
 class AuthSecurity {
 
@@ -31,7 +31,7 @@ class AuthSecurity {
 		filteredRequest.password = sanitize(request.passwords.password);
 		filteredRequest.captcha = sanitize(request.captcha);
 		filteredRequest.acceptEula = sanitize(request.acceptEula);
-		filteredRequest.status = Users.USER_STATUS_PENDING;
+		filteredRequest.status = Constants.USER_STATUS_PENDING;
 		return filteredRequest;
 	}
 

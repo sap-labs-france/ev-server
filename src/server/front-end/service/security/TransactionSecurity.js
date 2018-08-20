@@ -1,6 +1,6 @@
 const sanitize = require('mongo-sanitize');
 const Authorizations = require('../../../../authorization/Authorizations');
-const Users = require('../../../../utils/Users');
+const Constants = require('../../../../utils/Constants');
 const UtilsSecurity = require('./UtilsSecurity');
 
 class TransactionSecurity {
@@ -74,7 +74,7 @@ class TransactionSecurity {
 			if (Authorizations.canReadUser(loggedUser, transaction.user)) {
 				// Demo user?
 				if (Authorizations.isDemo(loggedUser)) {
-					filteredTransaction.tagID = Users.ANONIMIZED_VALUE;
+					filteredTransaction.tagID = Constants.ANONIMIZED_VALUE;
 				} else {
 					filteredTransaction.tagID = transaction.tagID;
 				}
@@ -93,7 +93,7 @@ class TransactionSecurity {
 				if (transaction.stop.user && Authorizations.canReadUser(loggedUser, transaction.stop.user)) {
 					// Demo user?
 					if (Authorizations.isDemo(loggedUser)) {
-						filteredTransaction.stop.tagID = Users.ANONIMIZED_VALUE;
+						filteredTransaction.stop.tagID = Constants.ANONIMIZED_VALUE;
 					} else {
 						filteredTransaction.stop.tagID = transaction.stop.tagID;
 					}
@@ -157,8 +157,8 @@ class TransactionSecurity {
 			// Demo user?
 			if (Authorizations.isDemo(loggedUser)) {
 				userID.id = null;
-				userID.name = Users.ANONIMIZED_VALUE;
-				userID.firstName = Users.ANONIMIZED_VALUE;
+				userID.name = Constants.ANONIMIZED_VALUE;
+				userID.firstName = Constants.ANONIMIZED_VALUE;
 			} else {
 				userID.id = user.id;
 				userID.name = user.name;

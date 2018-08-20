@@ -11,6 +11,23 @@ module.exports = {
 		return uuidV4();
 	},
 
+	normalizeSOAPHeader(headers) {
+		// ChargeBox Identity
+		this.normalizeOneSOAPHeader(headers, 'chargeBoxIdentity');
+		// Action
+		this.normalizeOneSOAPHeader(headers, 'Action');
+		// To
+		this.normalizeOneSOAPHeader(headers, 'To');
+	},
+
+	normalizeOneSOAPHeader(headers, name) {
+		// Object?
+		if (typeof headers[name] === 'object' && headers[name].$value) {
+			// Yes: Set header
+			headers[name] = headers[name].$value;
+		}
+	},
+
 	convertToDate(date) {
 		// Check
 		if (!date) {

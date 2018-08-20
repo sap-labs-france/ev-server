@@ -1,4 +1,6 @@
 const Database = require('../utils/Database');
+const AppError = require('../exception/AppError');
+const Constants = require('../utils/Constants');
 
 class Company {
 	constructor(company) {
@@ -77,6 +79,22 @@ class Company {
 
 	setLastChangedOn(lastChangedOn) {
 		this._model.lastChangedOn = lastChangedOn;
+	}
+
+	static checkIfCompanyValid(filteredRequest, req) {
+		// Update model?
+		if(req.method !== 'POST' && !filteredRequest.id) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Company ID is mandatory`, 500, 
+				'Company', 'checkIfCompanyValid');
+		}
+		if(!filteredRequest.name) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Company Name is mandatory`, 500, 
+				'Company', 'checkIfCompanyValid');
+		}
 	}
 
 	async getSites() {

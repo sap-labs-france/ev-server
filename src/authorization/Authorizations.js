@@ -7,7 +7,6 @@ const Mustache = require('mustache');
 const compileProfile = require('node-authorization').profileCompiler;
 const AppError = require('../exception/AppError');
 const AppAuthError = require('../exception/AppAuthError');
-const Users = require('../utils/Users');
 const Utils = require('../utils/Utils');
 const User = require('../model/User');
 const AuthorizationsDefinition = require('./AuthorizationsDefinition');
@@ -154,11 +153,11 @@ module.exports = {
 		// Found?
 		if (!user) {
 			// No: Create an empty user
-			newUser = new User({
+			let newUser = new User({
 				name: (siteArea.isAccessControlEnabled() ? "Unknown" : "Anonymous"),
 				firstName: "User",
-				status: (siteArea.isAccessControlEnabled() ? Users.USER_STATUS_PENDING : Users.USER_STATUS_ACTIVE),
-				role: Users.USER_ROLE_BASIC,
+				status: (siteArea.isAccessControlEnabled() ? Constants.USER_STATUS_PENDING : Constants.USER_STATUS_ACTIVE),
+				role: Constants.USER_ROLE_BASIC,
 				email: tagID + "@chargeangels.fr",
 				tagIDs: [tagID],
 				createdOn: new Date().toISOString()
@@ -168,11 +167,11 @@ module.exports = {
 			// Save the user
 			user = await newUser.save();
 		// Check User Deleted?
-		} else if (user.getStatus() == Users.USER_STATUS_DELETED) {
+		} else if (user.getStatus() == Constants.USER_STATUS_DELETED) {
 			// Restore it
 			user.setDeleted(false);
 			// Set default user's value
-			user.setStatus((siteArea.isAccessControlEnabled() ? Users.USER_STATUS_INACTIVE : Users.USER_STATUS_ACTIVE));
+			user.setStatus((siteArea.isAccessControlEnabled() ? Constants.USER_STATUS_INACTIVE : Constants.USER_STATUS_ACTIVE));
 			user.setName((siteArea.isAccessControlEnabled() ? "Unknown" : "Anonymous"));
 			user.setFirstName("User");
 			user.setEMail(tagID + "@chargeangels.fr");
@@ -216,11 +215,11 @@ module.exports = {
 			);
 		}
 		// Check User status
-		if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
+		if (user.getStatus() !== Constants.USER_STATUS_ACTIVE) {
 			// Reject but save ok
 			throw new AppError(
 				chargingStation.getID(),
-				`User with TagID '${tagID}' is '${Users.getStatusDescription(user.getStatus())}'`, 500,
+				`User with TagID '${tagID}' is '${User.getStatusDescription(user.getStatus())}'`, 500,
 				"Authorizations", "getOrCreateUserByTagID",
 				user.getModel());
 		}
@@ -250,7 +249,7 @@ module.exports = {
 		// Set current user
 		let currentUser = (alternateUser ? alternateUser : user);
 		// Check Auth
-		auths = await this.buildAuthorizations(currentUser);
+		let auths = await this.buildAuthorizations(currentUser);
 		// Set
 		currentUser.setAuthorisations(auths);
 		// Get the Site
@@ -264,9 +263,9 @@ module.exports = {
 				user.getModel());
 		}
 		// Get Users
-		siteUsers = await site.getUsers();
+		let siteUsers = await site.getUsers();
 		// Check User ------------------------------------------
-		let foundUser = siteUsers.find((siteUser) => {
+		let foundUser = siteUser.find((siteUser) => {
 			return siteUser.getID() == user.getID();
 		});
 		// User not found and Access Control Enabled?
@@ -281,7 +280,7 @@ module.exports = {
 		// Check Alternate User --------------------------------
 		let foundAlternateUser;
 		if (alternateUser) {
-			foundAlternateUser = siteUsers.find((siteUser) => {
+			foundAlternateUser = siteUser.find((siteUser) => {
 				return siteUser.getID() == alternateUser.getID();
 			});
 		}
@@ -645,7 +644,7 @@ module.exports = {
 			Authorization.switchTraceOn();
 		}
 		// Create Auth
-		var auth = new Authorization(loggedUser.role, loggedUser.auths);
+		const auth = new Authorization(loggedUser.role, loggedUser.auths);
 		// Check
 		if(auth.check(entity, fieldNamesValues)) {
 			// Authorized!

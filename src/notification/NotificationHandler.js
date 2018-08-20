@@ -1,6 +1,5 @@
 const Configuration = require('../utils/Configuration');
 const EMailNotificationTask = require('./email/EMailNotificationTask');
-const Users = require('../utils/Users');
 const Logging = require('../utils/Logging');
 require('source-map-support').install();
 
@@ -176,7 +175,7 @@ class NotificationHandler {
 				await NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
 						SOURCE_CHARGING_STATION_STATUS_ERROR, null, chargingStation);
 				// Send email
-				return _email.sendChargingStationStatusError(sourceData, Users.DEFAULT_LOCALE);
+				return _email.sendChargingStationStatusError(sourceData, Constants.DEFAULT_LOCALE);
 			}
 		} catch(error) {
 			// Log error
@@ -192,7 +191,7 @@ class NotificationHandler {
 				await NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
 						SOURCE_CHARGING_STATION_REGISTERED, null, chargingStation);
 				// Send email
-				return _email.sendChargingStationRegistered(sourceData, Users.DEFAULT_LOCALE);
+				return _email.sendChargingStationRegistered(sourceData, Constants.DEFAULT_LOCALE);
 			}
 		} catch(error) {
 			// Log error
@@ -208,7 +207,7 @@ class NotificationHandler {
 				await NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
 						SOURCE_UNKNOWN_USER_BADGED, null, chargingStation);
 				// Send email
-				return _email.sendUnknownUserBadged(sourceData, Users.DEFAULT_LOCALE);
+				return _email.sendUnknownUserBadged(sourceData, Constants.DEFAULT_LOCALE);
 			}
 		} catch(error) {
 			// Log error

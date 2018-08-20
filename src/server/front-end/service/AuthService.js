@@ -2,7 +2,6 @@ const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const AppError = require('../../../exception/AppError');
 const User = require('../../../model/User');
-const Users = require('../../../utils/Users');
 const Utils = require('../../../utils/Utils');
 const Configuration = require('../../../utils/Configuration');
 const Authorizations = require('../../../authorization/Authorizations');
@@ -153,7 +152,7 @@ class AuthService {
 			// Check if the number of trials is reached
 			if (user.getPasswordWrongNbrTrials() >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
 				// Check if the user is still locked
-				if (user.getStatus() === Users.USER_STATUS_LOCKED) {
+				if (user.getStatus() === Constants.USER_STATUS_LOCKED) {
 					// Yes: Check date to reset pass
 					if (moment(user.getPasswordBlockedUntil()).isBefore(moment())) {
 						// Time elapsed: activate the account again
@@ -164,7 +163,7 @@ class AuthService {
 						// Reinit nbr of trial and status
 						user.setPasswordWrongNbrTrials(0);
 						user.setPasswordBlockedUntil(null);
-						user.setStatus(Users.USER_STATUS_ACTIVE);
+						user.setStatus(Constants.USER_STATUS_ACTIVE);
 						// Save
 						await user.save();
 						// Check user
@@ -224,7 +223,7 @@ class AuthService {
 			// Check email
 			let user = await global.storage.getUserByEmail(filteredRequest.email);
 			// Check Mandatory fields
-			Users.checkIfUserValid(filteredRequest, req);
+			User.checkIfUserValid(filteredRequest, req);
 			if (user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -233,12 +232,12 @@ class AuthService {
 					null, user.getModel());
 			}
 			// Generate a password
-			let newPasswordHashed = await Users.hashPasswordBcrypt(filteredRequest.password);
+			let newPasswordHashed = await User.hashPasswordBcrypt(filteredRequest.password);
 			// Create the user
 			let newUser = new User(filteredRequest);
 			// Set data
-			newUser.setStatus(Users.USER_STATUS_PENDING);
-			newUser.setRole(Users.USER_ROLE_BASIC);
+			newUser.setStatus(Constants.USER_STATUS_PENDING);
+			newUser.setRole(Constants.USER_ROLE_BASIC);
 			newUser.setPassword(newPasswordHashed);
 			newUser.setLocale(req.locale.substring(0,5));
 			newUser.setCreatedOn(new Date());
@@ -352,9 +351,9 @@ class AuthService {
 	static async generateNewPasswordAndSendEmail(filteredRequest, action, req, res, next) {
 		try {
 			// Create the password
-			let newPassword = Users.generatePassword();
+			let newPassword = User.generatePassword();
 			// Hash it
-			let newHashedPassword = await Users.hashPasswordBcrypt(newPassword);
+			let newHashedPassword = await User.hashPasswordBcrypt(newPassword);
 			// Get the user
 			let user = await global.storage.getUserByEmail(filteredRequest.email);
 			// Found?
@@ -447,7 +446,7 @@ class AuthService {
 		if (user.getPasswordWrongNbrTrials() >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
 			// Too many attempts, lock user
 			// User locked
-			user.setStatus(Users.USER_STATUS_LOCKED);
+			user.setStatus(Constants.USER_STATUS_LOCKED);
 			// Set blocking date
 			user.setPasswordBlockedUntil(
 				moment().add(_centralSystemRestConfig.passwordBlockedWaitTimeMin, 'm').toDate()
@@ -534,7 +533,7 @@ class AuthService {
 				user.getModel());
 		}
 		// Check if the account is active
-		if (user.getStatus() !== Users.USER_STATUS_ACTIVE) {
+		if (user.getStatus() !== Constants.USER_STATUS_ACTIVE) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
 				`Account is not active`, 580, 
@@ -542,9 +541,9 @@ class AuthService {
 				user.getModel());
 		}
 		// Check password
-		let match = await Users.checkPasswordBCrypt(filteredRequest.password, user.getPassword());
+		let match = await User.checkPasswordBCrypt(filteredRequest.password, user.getPassword());
 		// Check new and old version of hashing the password
-		if (match || (user.getPassword() === Users.hashPassword(filteredRequest.password))) {
+		if (match || (user.getPassword() === User.hashPassword(filteredRequest.password))) {
 			// Login OK
 			await AuthService.userLoginSucceeded(action, user, req, res, next);
 		} else {

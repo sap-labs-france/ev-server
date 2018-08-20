@@ -1,6 +1,5 @@
 const MongoDBStorage = require('./storage/mongodb/MongoDBStorage');
 const Configuration = require('./utils/Configuration');
-const Users = require('./utils/Users');
 const SoapCentralSystemServer = require('./server/charging-station/soap/SoapCentralSystemServer');
 const CentralRestServer = require('./server/front-end/CentralRestServer');
 const SchedulerManager = require('./scheduler/SchedulerManager');
@@ -40,18 +39,6 @@ class Bootstrap {
 		
 			// Check and trigger migration
 			await MigrationHandler.migrate();
-		
-			// Import Users
-			try {
-				// Import users
-				Users.importUsers();
-			} catch (err) {
-				// Log
-				Logging.logError({
-					module: 'ImportUsersTask',
-					method: 'run', message: `Cannot import users: ${err.toString()}`,
-					detailedMessages: err.stack });
-			}
 		
 			// Get all configs
 			let centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();

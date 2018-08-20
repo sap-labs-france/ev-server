@@ -1,5 +1,6 @@
-var Database = require('../utils/Database');
-var Constants = require('../utils/Constants');
+const Database = require('../utils/Database');
+const Constants = require('../utils/Constants');
+const AppError = require('../exception/AppError');
 
 class SiteArea {
 	constructor(siteArea) {
@@ -98,6 +99,31 @@ class SiteArea {
 			this._model.siteID = site.getID();
 		} else {
 			this._model.site = null;
+		}
+	}
+
+	static checkIfSiteAreaValid(filteredRequest, request) {
+		// Update model?
+		if(request.method !== 'POST' && !filteredRequest.id) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Site Area ID is mandatory`, 500, 
+				'SiteArea', 'checkIfSiteAreaValid');
+		}
+		if(!filteredRequest.name) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Site Area Name is mandatory`, 500, 
+				'SiteArea', 'checkIfSiteAreaValid');
+		}
+		if(!filteredRequest.siteID) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Site ID is mandatory`, 500, 
+				'SiteArea', 'checkIfSiteAreaValid');
+		}
+		if (!filteredRequest.chargeBoxIDs) {
+			filteredRequest.chargeBoxIDs = [];
 		}
 	}
 

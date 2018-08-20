@@ -1,7 +1,6 @@
 const Logging = require('../../../utils/Logging');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
-const ChargingStations = require('../../../utils/ChargingStations');
 const Authorizations = require('../../../authorization/Authorizations');
 const Constants = require('../../../utils/Constants');
 const moment = require('moment');
@@ -426,7 +425,7 @@ class TransactionService {
 			res.json(
 				// Filter
 				TransactionSecurity.filterTransactionsResponse(
-					transactions, req.user, ChargingStations.WITH_CONNECTORS)
+					transactions, req.user, Constants.WITH_CONNECTORS)
 			);
 			next();
 		} catch (error) {
@@ -482,7 +481,7 @@ class TransactionService {
 			res.json(
 				// Filter
 				TransactionSecurity.filterTransactionsResponse(
-					transactions, req.user, ChargingStations.WITH_CONNECTORS)
+					transactions, req.user, Constants.WITH_CONNECTORS)
 			);
 			next();
 		} catch (error) {
@@ -539,7 +538,7 @@ class TransactionService {
 			res.json(
 				// Filter
 				TransactionSecurity.filterTransactionsResponse(
-					transactions, req.user, ChargingStations.WITHOUT_CONNECTORS)
+					transactions, req.user, Constants.WITHOUT_CONNECTORS)
 			);
 			next();
 		} catch (error) {

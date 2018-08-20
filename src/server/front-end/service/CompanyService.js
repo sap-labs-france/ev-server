@@ -2,7 +2,6 @@ const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
-const Companies = require('../../../utils/Companies');
 const Constants = require('../../../utils/Constants');
 const Company = require('../../../model/Company');
 const User = require('../../../model/User');
@@ -216,7 +215,7 @@ class CompanyService {
 			// Filter
 			let filteredRequest = CompanySecurity.filterCompanyCreateRequest( req.body, req.user );
 			// Check Mandatory fields
-			Companies.checkIfCompanyValid(filteredRequest, req);
+			Company.checkIfCompanyValid(filteredRequest, req);
 			// Create
 			let company = new Company(filteredRequest);
 			// Update timestamp
@@ -255,7 +254,7 @@ class CompanyService {
 					'CompanyService', 'handleUpdateCompany', req.user);
 			}
 			// Check Mandatory fields
-			Companies.checkIfCompanyValid(filteredRequest, req);
+			Company.checkIfCompanyValid(filteredRequest, req);
 			// Check auth
 			if (!Authorizations.canUpdateCompany(req.user, company.getModel())) {
 				// Not Authorized!

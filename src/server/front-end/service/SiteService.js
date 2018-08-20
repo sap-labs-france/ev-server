@@ -4,7 +4,6 @@ const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Authorizations = require('../../../authorization/Authorizations');
-const Sites = require('../../../utils/Sites');
 const Constants = require('../../../utils/Constants');
 const Site = require('../../../model/Site');
 const SiteSecurity = require('./security/SiteSecurity');
@@ -214,7 +213,7 @@ class SiteService {
 			// Check Company
 			let company = await global.storage.getCompany(filteredRequest.companyID);
 			// Check Mandatory fields
-			Sites.checkIfSiteValid(filteredRequest, req);
+			Site.checkIfSiteValid(filteredRequest, req);
 			// Found?
 			if (!company) {
 				// Not Found!
@@ -271,7 +270,7 @@ class SiteService {
 					'SiteService', 'handleUpdateSite', req.user);
 			}
 			// Check Mandatory fields
-			Sites.checkIfSiteValid(filteredRequest, req);
+			Site.checkIfSiteValid(filteredRequest, req);
 			// Check auth
 			if (!Authorizations.canUpdateSite(req.user, site.getModel())) {
 				// Not Authorized!

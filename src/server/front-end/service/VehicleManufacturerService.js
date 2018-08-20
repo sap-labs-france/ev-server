@@ -4,7 +4,6 @@ const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Authorizations = require('../../../authorization/Authorizations');
-const VehicleManufacturers = require('../../../utils/VehicleManufacturers');
 const Constants = require('../../../utils/Constants');
 const VehicleManufacturer = require('../../../model/VehicleManufacturer');
 const VehicleManufacturerSecurity = require('./security/VehicleManufacturerSecurity');
@@ -145,7 +144,7 @@ class VehicleManufacturerService {
 			// Filter
 			let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerCreateRequest( req.body, req.user );
 			// Check Mandatory fields
-			VehicleManufacturers.checkIfVehicleManufacturerValid(filteredRequest, req);
+			VehicleManufacturer.checkIfVehicleManufacturerValid(filteredRequest, req);
 			// Create vehicleManufacturer
 			let vehicleManufacturer = new VehicleManufacturer(filteredRequest);
 			// Update timestamp
@@ -184,7 +183,7 @@ class VehicleManufacturerService {
 					'VehicleManufacturerService', 'handleUpdateVehicleManufacturer', req.user);
 			}
 			// Check Mandatory fields
-			VehicleManufacturers.checkIfVehicleManufacturerValid(filteredRequest, req);
+			VehicleManufacturer.checkIfVehicleManufacturerValid(filteredRequest, req);
 			// Check auth
 			if (!Authorizations.canUpdateVehicleManufacturer(req.user, vehicleManufacturer.getModel())) {
 				// Not Authorized!

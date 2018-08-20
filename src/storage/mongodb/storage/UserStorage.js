@@ -1,7 +1,6 @@
 const Constants = require('../../../utils/Constants');
 const Database = require('../../../utils/Database');
 const Configuration = require('../../../utils/Configuration');
-const Users = require('../../../utils/Users');
 const Utils = require('../../../utils/Utils');
 const User = require('../../../model/User');
 const crypto = require('crypto');
@@ -18,7 +17,6 @@ class UserStorage {
 		let languageFound = false;
 		let currentEula;
 		let currentEulaHash;
-		let newEula;
 		let eula = null;
 		let supportLanguages = Configuration.getLocalesConfig().supported;
 
@@ -32,7 +30,7 @@ class UserStorage {
 			language = "en";
 		}
 		// Get current eula
-		currentEula = Users.getEndUserLicenseAgreement(language);
+		currentEula = User.getEndUserLicenseAgreement(language);
 		// Read DB
 		let eulasMDB = await _db.collection('eulas')
 			.find({'language':language})

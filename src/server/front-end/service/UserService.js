@@ -4,7 +4,6 @@ const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
-const Users = require('../../../utils/Users');
 const User = require('../../../model/User');
 const Utils = require('../../../utils/Utils');
 const Database = require('../../../utils/Database');
@@ -98,7 +97,7 @@ class UserService {
 			// Filter
 			let filteredRequest = UserSecurity.filterUserUpdateRequest( req.body, req.user );
 			// Check Mandatory fields
-			Users.checkIfUserValid(filteredRequest, req);
+			User.checkIfUserValid(filteredRequest, req);
 			// Check email
 			let user = await global.storage.getUser(filteredRequest.id);
 			if (!user) {
@@ -125,7 +124,7 @@ class UserService {
 					'UserService', 'handleUpdateUser', req.user);
 			}
 			// Generate the password hash
-			let newPasswordHashed = await Users.hashPasswordBcrypt(filteredRequest.password);
+			let newPasswordHashed = await User.hashPasswordBcrypt(filteredRequest.password);
 			// Check auth
 			if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
 				throw new AppAuthError(
@@ -139,7 +138,7 @@ class UserService {
 			// Check if Role is provided and has been changed
 			if (filteredRequest.role &&
 					filteredRequest.role !== user.getRole() &&
-					req.user.role !== Users.USER_ROLE_ADMIN) {
+					req.user.role !== Constants.USER_ROLE_ADMIN) {
 				// Role provided and not an Admin
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -150,7 +149,7 @@ class UserService {
 			if (filteredRequest.status &&
 					filteredRequest.status !== user.getStatus()) {
 				// Right to change?
-				if (req.user.role !== Users.USER_ROLE_ADMIN) {
+				if (req.user.role !== Constants.USER_ROLE_ADMIN) {
 					// Role provided and not an Admin
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
@@ -376,11 +375,11 @@ class UserService {
 			let filteredRequest = UserSecurity.filterUserCreateRequest( req.body, req.user );
 			if (!filteredRequest.role) {
 				// Set to default role
-				filteredRequest.role = Users.USER_ROLE_BASIC;
-				filteredRequest.status = Users.USER_STATUS_INACTIVE;
+				filteredRequest.role = Constants.USER_ROLE_BASIC;
+				filteredRequest.status = Constants.USER_STATUS_INACTIVE;
 			}
 			// Check Mandatory fields
-			Users.checkIfUserValid(filteredRequest, req);
+			User.checkIfUserValid(filteredRequest, req);
 			// Get the email
 			let foundUser = await global.storage.getUserByEmail(filteredRequest.email);
 			if (foundUser) {
@@ -390,7 +389,7 @@ class UserService {
 					'UserService', 'handleCreateUser', req.user);
 			}
 			// Generate a hash for the given password
-			let newPasswordHashed = await Users.hashPasswordBcrypt(filteredRequest.password);
+			let newPasswordHashed = await User.hashPasswordBcrypt(filteredRequest.password);
 			// Create user
 			let user = new User(filteredRequest);
 			// Set the password

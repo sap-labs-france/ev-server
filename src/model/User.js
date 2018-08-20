@@ -1,7 +1,15 @@
+const crypto = require('crypto');
+const passwordGenerator = require('password-generator');
+const bcrypt = require('bcrypt');
+const Mustache = require('mustache');
+const eula = require('../end-user-agreement');
 const Database = require('../utils/Database');
-const Users = require('../utils/Users');
 const Constants = require('../utils/Constants');
+const AppError = require('../exception/AppError');
 const Utils = require('../utils/Utils');
+const Configuration = require('../utils/Configuration');
+
+let _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 
 class User {
 	constructor(user) {
@@ -89,7 +97,7 @@ class User {
 	}
 
 	getLocale() {
-		return (this._model.locale ? this._model.locale : Users.DEFAULT_LOCALE);
+		return (this._model.locale ? this._model.locale : Constants.DEFAULT_LOCALE);
 	}
 
 	getLanguage() {
@@ -285,17 +293,17 @@ class User {
 			// Set deleted
 			this.setDeleted(true);
 			// Anonymize user
-			this.setStatus(Users.USER_STATUS_DELETED);
-			this.setName(Users.ANONIMIZED_VALUE);
-			this.setFirstName(Users.ANONIMIZED_VALUE);
+			this.setStatus(Constants.USER_STATUS_DELETED);
+			this.setName(Constants.ANONIMIZED_VALUE);
+			this.setFirstName(Constants.ANONIMIZED_VALUE);
 			this.setAddress(null);
 			this.setEMail(this.getID());
-			this.setPassword(Users.ANONIMIZED_VALUE);
-			this.setPasswordResetHash(Users.ANONIMIZED_VALUE);
-			this.setPhone(Users.ANONIMIZED_VALUE);
-			this.setMobile(Users.ANONIMIZED_VALUE);
-			this.setINumber(Users.ANONIMIZED_VALUE);
-			this.setCostCenter(Users.ANONIMIZED_VALUE);
+			this.setPassword(Constants.ANONIMIZED_VALUE);
+			this.setPasswordResetHash(Constants.ANONIMIZED_VALUE);
+			this.setPhone(Constants.ANONIMIZED_VALUE);
+			this.setMobile(Constants.ANONIMIZED_VALUE);
+			this.setINumber(Constants.ANONIMIZED_VALUE);
+			this.setCostCenter(Constants.ANONIMIZED_VALUE);
 			this.setImage(null);
 			// Save User Image
 			await this.saveImage();
@@ -305,6 +313,197 @@ class User {
 			// Delete physically
 			return global.storage.deleteUser(this.getID());
 		}
+	}
+
+	static getEndUserLicenseAgreement(language='en') {
+		// Get it
+		let eulaText = eula[language];
+		// Check
+		if (!eulaText) {
+			// Backup to EN
+			eulaText = eula['en'];
+		}
+		// Build Front End URL
+		let frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
+			_centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port; 
+		// Parse the auth and replace values
+		eulaText = Mustache.render(
+			eulaText,
+			{
+				'chargeAngelsURL': frontEndURL
+			}
+		);
+		// Parse
+		return eulaText;
+	}
+
+	static checkIfUserValid(filteredRequest, request) {
+		// Update model?
+		if(request.method !== 'POST' && !filteredRequest.id) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The User ID is mandatory`, 500, 
+				'Users', 'checkIfUserValid');
+		}
+		if(!filteredRequest.name) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The User Last Name is mandatory`, 500, 
+				'Users', 'checkIfUserValid');
+		}
+		if(!filteredRequest.email) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The User Email is mandatory`, 500, 
+				'Users', 'checkIfUserValid');
+		}
+		// Check password id provided
+		if (filteredRequest.password && !User.isPasswordValid(filteredRequest.password)) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The User Password is not valid`, 500, 
+				'Users', 'checkIfUserValid');
+		}
+		if (!User.isUserEmailValid(filteredRequest.email)) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The User Email ${filteredRequest.email} is not valid`, 500, 
+				'Users', 'checkIfUserValid');
+		}
+		if (filteredRequest.phone && !User.isPhoneValid(filteredRequest.phone)) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The User Phone ${filteredRequest.phone} is not valid`, 500, 
+				'Users', 'checkIfUserValid');
+		}
+		if (filteredRequest.mobile && !User.isPhoneValid(filteredRequest.mobile)) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The User Mobile ${filteredRequest.mobile} is not valid`, 500, 
+				'Users', 'checkIfUserValid');
+		}
+		if (filteredRequest.iNumber && !User.isINumberValid(filteredRequest.iNumber)) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The User I-Number ${filteredRequest.iNumber} is not valid`, 500, 
+				'Users', 'checkIfUserValid');
+		}
+		if (filteredRequest.tagIDs) {
+			// Check
+			if (!User.isTagIDValid(filteredRequest.tagIDs)) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The User Tags ${filteredRequest.tagIDs} is/are not valid`, 500, 
+					'Users', 'checkIfUserValid');
+			}
+			// Check
+			if (!Array.isArray(filteredRequest.tagIDs)) {
+				// Split
+				filteredRequest.tagIDs = filteredRequest.tagIDs.split(',');
+			}
+		} else {
+			// Default
+			filteredRequest.tagIDs = [];
+		}
+	}
+
+	// Check email
+	static isUserEmailValid(email) {
+		return /^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
+	}
+
+	static isTagIDValid(tagID) {
+		return /^[A-Z0-9,]*$/.test(tagID);
+	}
+
+	static isPhoneValid(phone) {
+		return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
+	}
+
+	static isINumberValid(iNumber) {
+		return /^[A-Z]{1}[0-9]{6}$/.test(iNumber);
+	}
+
+	static hashPasswordBcrypt(password) {
+		return new Promise((fulfill, reject) => {
+			// Generate a salt with 15 rounds
+			bcrypt.genSalt(10, (err, salt) => {
+				// Hash
+				bcrypt.hash(password, salt, (err, hash) => {
+					// Error?
+					if(err) {
+						reject(err);
+					} else {
+						fulfill(hash);
+					}
+				});
+			});
+		});
+	}
+
+	static checkPasswordBCrypt(password, hash) {
+		return new Promise((fulfill, reject) => {
+			// Compare
+			bcrypt.compare(password, hash, (err, match) => {
+				// Error?
+				if(err) {
+					reject(err);
+				} else {
+					fulfill(match);
+				}
+			});
+		});
+	}
+
+	static getStatusDescription(status) {
+		switch (status) {
+			case Constants.USER_STATUS_PENDING:
+				return 'Pending';
+			case Constants.USER_STATUS_LOCKED:
+				return 'Locked';
+			case Constants.USER_STATUS_BLOCKED:
+				return 'Blocked';
+			case Constants.USER_STATUS_ACTIVE:
+				return 'Active';
+			case Constants.USER_STATUS_DELETED:
+				return 'Deleted';
+			case Constants.USER_STATUS_INACTIVE:
+				return 'Inactive';
+			default:
+				return 'Unknown';
+		}
+	}
+
+	static isPasswordStrongEnough(password) {
+		let uc = password.match(Constants.PWD_UPPERCASE_RE);
+		let lc = password.match(Constants.PWD_LOWERCASE_RE);
+		let n = password.match(Constants.PWD_NUMBER_RE);
+		let sc = password.match(Constants.PWD_SPECIAL_CHAR_RE);
+		return password.length >= Constants.PWD_MIN_LENGTH &&
+			uc && uc.length >= Constants.PWD_UPPERCASE_MIN_COUNT &&
+			lc && lc.length >= Constants.PWD_LOWERCASE_MIN_COUNT &&
+			n && n.length >= Constants.PWD_NUMBER_MIN_COUNT &&
+			sc && sc.length >= Constants.PWD_SPECIAL_MIN_COUNT;
+	}
+
+	static generatePassword() {
+		let password = '';
+		let randomLength = Math.floor(Math.random() * (Constants.PWD_MAX_LENGTH - Constants.PWD_MIN_LENGTH)) + Constants.PWD_MIN_LENGTH;
+		while (!User.isPasswordStrongEnough(password)) {
+			password = passwordGenerator(randomLength, false, /[\w\d!#\$%\^&\*\.\?\-]/);
+		}
+		return password;
+	}
+
+	// Check password
+	static isPasswordValid(password) {
+		// Check
+		return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
+	}
+
+	// Hash password (old version kept for compatibility reason)
+	static hashPassword(password) {
+		return crypto.createHash('sha256').update(password).digest('hex');
 	}
 }
 
