@@ -265,7 +265,7 @@ module.exports = {
 		// Get Users
 		let siteUsers = await site.getUsers();
 		// Check User ------------------------------------------
-		let foundUser = siteUser.find((siteUser) => {
+		let foundUser = siteUsers.find((siteUser) => {
 			return siteUser.getID() == user.getID();
 		});
 		// User not found and Access Control Enabled?
@@ -280,7 +280,7 @@ module.exports = {
 		// Check Alternate User --------------------------------
 		let foundAlternateUser;
 		if (alternateUser) {
-			foundAlternateUser = siteUser.find((siteUser) => {
+			foundAlternateUser = siteUsers.find((siteUser) => {
 				return siteUser.getID() == alternateUser.getID();
 			});
 		}
