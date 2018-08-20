@@ -353,7 +353,7 @@ module.exports = {
 
 	canReadTransaction(loggedUser, transaction) {
 		// Check auth
-		if (transaction.user) {
+		if (transaction.user && transaction.user.id) {
 			// Check
 			return this.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
 				{ "Action": this.ACTION_READ, "UserID": transaction.user.id.toString()});
@@ -621,8 +621,8 @@ module.exports = {
 		return loggedUser.role === this.ROLE_ADMIN;
 	},
 
-	isUser(loggedUser) {
-		return loggedUser.role === this.ROLE_USER;
+	isBasic(loggedUser) {
+		return loggedUser.role === this.ROLE_BASIC;
 	},
 
 	isDemo(loggedUser) {

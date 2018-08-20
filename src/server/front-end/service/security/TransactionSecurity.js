@@ -71,7 +71,7 @@ class TransactionSecurity {
 				filteredTransaction.totalDurationSecs = transaction.totalDurationSecs;
 			}			
 			// Check auth
-			if (Authorizations.canReadUser(loggedUser, transaction.user)) {
+			if (transaction.user && Authorizations.canReadUser(loggedUser, transaction.user)) {
 				// Demo user?
 				if (Authorizations.isDemo(loggedUser)) {
 					filteredTransaction.tagID = Constants.ANONIMIZED_VALUE;

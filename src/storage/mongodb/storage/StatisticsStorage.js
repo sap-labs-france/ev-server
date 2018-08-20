@@ -27,14 +27,16 @@ class StatisticsStorage {
 		if (filter.stop) {
 			match.stop = filter.stop;
 		}
+		// Check User
+		if (filter.userID) {
+			match.userID = Utils.convertToObjectID(filter.userID);
+		}
 		// Create Aggregation
 		let aggregation = [];
 		// Filters
-		if (match) {
-			aggregation.push({
-				$match: match
-			});
-		}
+		aggregation.push({
+			$match: match
+		});
 		// Filter on Site?
 		if (siteID) {
 			// Add Charge Box
@@ -110,15 +112,16 @@ class StatisticsStorage {
 				if(month !== transactionStatMDB._id.month) {
 					// Set
 					month = transactionStatMDB._id.month;
+					// Create new
+					transaction = {};
+					transaction.month = transactionStatMDB._id.month - 1;
 					// Add
 					if (transaction) {
 						transactions.push(transaction);
 					}
-					// Create new
-					transaction = {};
-					transaction.month = transactionStatMDB._id.month - 1;
 				}
 				// Set consumption
+				// Add
 				transaction[transactionStatMDB._id.chargeBox] = transactionStatMDB.total;
 			});
 		}
@@ -144,14 +147,16 @@ class StatisticsStorage {
 		if (filter.stop) {
 			match.stop = filter.stop;
 		}
+		// Check User
+		if (filter.userID) {
+			match.userID = Utils.convertToObjectID(filter.userID);
+		}
 		// Create Aggregation
 		let aggregation = [];
 		// Filters
-		if (match) {
-			aggregation.push({
-				$match: match
-			});
-		}
+		aggregation.push({
+			$match: match
+		});
 		// Filter on Site?
 		if (siteID) {
 			// Add Charge Box
@@ -240,13 +245,13 @@ class StatisticsStorage {
 				if(month !== transactionStatMDB._id.month) {
 					// Set
 					month = transactionStatMDB._id.month;
+					// Create new
+					transaction = {};
+					transaction.month = transactionStatMDB._id.month - 1;
 					// Add
 					if (transaction) {
 						transactions.push(transaction);
 					}
-					// Create new
-					transaction = {};
-					transaction.month = transactionStatMDB._id.month - 1;
 				}
 				// Set consumption
 				transaction[Utils.buildUserFullName(transactionStatMDB.user)] = transactionStatMDB.total;

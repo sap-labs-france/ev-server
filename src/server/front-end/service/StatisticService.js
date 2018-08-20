@@ -1,6 +1,7 @@
 const Logging = require('../../../utils/Logging');
 const moment = require('moment');
 const Constants = require('../../../utils/Constants');
+const Authorizations = require('../../../authorization/Authorizations');
 const StatisticSecurity = require('./security/StatisticSecurity');
 
 class StatisticService {
@@ -10,7 +11,7 @@ class StatisticService {
 			// Filter
 			let filteredRequest = StatisticSecurity.filterUserStatisticsRequest(req.query, req.user);
 			// Build filter
-			let filter = StatisticService.buildFilter(filteredRequest);
+			let filter = StatisticService.buildFilter(filteredRequest, req.user);
 			// Get Stats
 			let transactions = await global.storage.getUserStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_USAGE);
 			// Return
@@ -27,7 +28,7 @@ class StatisticService {
 			// Filter
 			let filteredRequest = StatisticSecurity.filterUserStatisticsRequest(req.query, req.user);
 			// Build filter
-			let filter = StatisticService.buildFilter(filteredRequest);
+			let filter = StatisticService.buildFilter(filteredRequest, req.user);
 			// Get Stats
 			let transactions = await global.storage.getUserStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_CONSUMPTION);
 			// Return
@@ -44,7 +45,7 @@ class StatisticService {
 			// Filter
 			let filteredRequest = StatisticSecurity.filterChargingStationStatisticsRequest(req.query, req.user);
 			// Build filter
-			let filter = StatisticService.buildFilter(filteredRequest);
+			let filter = StatisticService.buildFilter(filteredRequest, req.user);
 			// Get Stats
 			let transactions = await global.storage.getChargingStationStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_USAGE);
 			// Return
@@ -61,7 +62,7 @@ class StatisticService {
 			// Filter
 			let filteredRequest = StatisticSecurity.filterChargingStationStatisticsRequest(req.query, req.user);
 			// Build filter
-			let filter = StatisticService.buildFilter(filteredRequest);
+			let filter = StatisticService.buildFilter(filteredRequest, req.user);
 			// Get Stats
 			let transactions = await global.storage.getChargingStationStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_CONSUMPTION);
 			// Return
@@ -73,8 +74,9 @@ class StatisticService {
 		}
 	}
 
-	static buildFilter(filteredRequest) {
-		let filter = {stop: {$exists: true}};
+	static buildFilter(filteredRequest, loggedUser) {
+		// Only completed transactions
+		let filter = { stop: {$exists: true} };
 		// Date
 		if (filteredRequest.Year) {
 			filter.startDateTime = moment().year(filteredRequest.Year).startOf('year').toDate().toISOString();
@@ -82,6 +84,11 @@ class StatisticService {
 		} else {
 			filter.startDateTime = moment().startOf('year').toDate().toISOString();
 			filter.endDateTime = moment().endOf('year').toDate().toISOString();
+		}
+		// Check
+		if (Authorizations.isBasic(loggedUser)) {
+			// Only for current user
+			filter.userID = loggedUser.id;
 		}
 		return filter
 	} 
