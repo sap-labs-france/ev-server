@@ -1,6 +1,7 @@
 const Configuration = require('../utils/Configuration');
 const EMailNotificationTask = require('./email/EMailNotificationTask');
 const Logging = require('../utils/Logging');
+const Constants = require('../utils/Constants');
 require('source-map-support').install();
 
 let _notificationConfig = Configuration.getNotificationConfig();
