@@ -18,7 +18,7 @@ module.exports = {
 							"AuthObject": "User",
 							"AuthFieldValue": {
 								"UserID": "*",
-								"Action": ["Create", "Read", "Update", "Delete", "Logout"]
+								"Action": ["Create", "Read", "Update", "Delete", "Logout", "UnlockConnector"]
 							}
 						},
 						{
