@@ -383,44 +383,6 @@
 			"response": []
 		},
 		{
-			"name": "FE-VehicleCreate",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n\t\"type\": \"C\",\n\t\"model\": \"Zoe3\",\n\t\"batteryKW\": 40,\n\t\"autonomyKmWLTP\": 300,\n\t\"autonomyKmReal\": 200,\n\t\"horsePower\": 80,\n\t\"torqueNm\": 100,\n\t\"performance0To100kmh\": 69,\n\t\"weightKg\": 1250,\n\t\"lengthMeter\": 4.30,\n\t\"widthMeter\": 2,\n\t\"heightMeter\": 1.6,\n\t\"vehicleManufacturerID\" : \"5ae6df8c00abd72b716047a9\",\n\t\"releasedOn\": \"01/10/2018\",\n\t\"images\": [\"xyz\", \"uvw\"],\n\t\"withVehicleImages\": true\n}"
-				},
-				"url": {
-					"raw": "{{base_url}}/client/api/VehicleCreate",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"VehicleCreate"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "FE-VehicleManufacturerCreate",
 			"request": {
 				"auth": {
@@ -459,6 +421,44 @@
 			"response": []
 		},
 		{
+			"name": "FE-VehicleCreate",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"type\": \"C\",\n\t\"model\": \"Zoe3\",\n\t\"batteryKW\": 40,\n\t\"autonomyKmWLTP\": 300,\n\t\"autonomyKmReal\": 200,\n\t\"horsePower\": 80,\n\t\"torqueNm\": 100,\n\t\"performance0To100kmh\": 69,\n\t\"weightKg\": 1250,\n\t\"lengthMeter\": 4.30,\n\t\"widthMeter\": 2,\n\t\"heightMeter\": 1.6,\n\t\"vehicleManufacturerID\" : \"5b7ab627670416a1e4c44764\",\n\t\"releasedOn\": \"01/10/2018\",\n\t\"images\": [\"xyz\", \"uvw\"],\n\t\"withVehicleImages\": true\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/client/api/VehicleCreate",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"client",
+						"api",
+						"VehicleCreate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "FE-SiteAreaCreate",
 			"request": {
 				"auth": {
@@ -480,7 +480,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\": \"North\",\n\t\"siteID\": \"5abebaaf4bae1457eb565e6e\"\n}"
+					"raw": "{\n\t\"name\": \"North\",\n\t\"siteID\": \"5abeba9e4bae1457eb565e66\"\n}"
 				},
 				"url": {
 					"raw": "{{base_url}}/client/api/SiteAreaCreate",
@@ -3078,12 +3078,24 @@
 		},
 		{
 			"name": "StatusNotificationStartTransaction",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "e13402a7-7400-4237-83bb-3260476ac1fe",
+						"type": "text/javascript",
+						"exec": [
+							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
+						]
+					}
+				}
+			],
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <status>Occupied</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{dateStartTransaction}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <status>Occupied</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
 					"raw": "http://127.0.0.1:8000/OCPP15",
@@ -3286,12 +3298,24 @@
 		},
 		{
 			"name": "StatusNotificationStopTransaction",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "7b585d41-25bf-48d3-8b21-b8fd22e63df6",
+						"type": "text/javascript",
+						"exec": [
+							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
+						]
+					}
+				}
+			],
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <status>Available</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{dateStopTransaction}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <status>Available</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
 					"raw": "http://127.0.0.1:8000/OCPP15",
@@ -3432,12 +3456,24 @@
 		},
 		{
 			"name": "StatusNotificationStartTransaction2",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "6f4df3bb-af15-4ed5-9873-66174b58c31c",
+						"type": "text/javascript",
+						"exec": [
+							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
+						]
+					}
+				}
+			],
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <status>Occupied</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{dateStartTransaction}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <status>Occupied</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
 					"raw": "http://127.0.0.1:8000/OCPP15",
@@ -3640,12 +3676,24 @@
 		},
 		{
 			"name": "StatusNotificationStopTransaction2",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "869852eb-06e1-4b5d-8e4d-610b3b14e0b5",
+						"type": "text/javascript",
+						"exec": [
+							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
+						]
+					}
+				}
+			],
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <status>Available</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{dateStopTransaction}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <status>Available</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
 					"raw": "http://127.0.0.1:8000/OCPP15",
