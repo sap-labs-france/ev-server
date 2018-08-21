@@ -458,7 +458,7 @@ class ChargingStation {
 		Logging.logInfo({
 			source: this.getID(),
 			module: "ChargingStation", method: "handleHeartBeat",
-			action: "HeartBeat", message: `HeartBeat saved`
+			action: "Heartbeat", message: `Heartbeat saved`
 		});
 	}
 
