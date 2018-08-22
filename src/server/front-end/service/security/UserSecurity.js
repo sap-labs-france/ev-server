@@ -65,7 +65,7 @@ class UserSecurity {
 		if (request.address) {
 			filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
 		}
-		if (request.passwords) {
+		if (request.passwords && request.passwords.password && request.passwords.password.length > 0) {
 			filteredRequest.password = sanitize(request.passwords.password);
 		}
 		if (request.phone) {
