@@ -181,9 +181,9 @@ class MongoDBStorage {
 		return ChargingStationStorage.handleGetConfigurationParamValue(chargeBoxID, paramName);
 	}
 
-	getLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs, sortDate) {
+	getLogs(dateFrom, level, type, chargingStation, searchValue, action, numberOfLogs, sortDate) {
 		// Delegate
-		return LoggingStorage.handleGetLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs, sortDate);
+		return LoggingStorage.handleGetLogs(dateFrom, level, type, chargingStation, searchValue, action, numberOfLogs, sortDate);
 	}
 
 	getLog(id) {

@@ -75,7 +75,7 @@ class LoggingStorage {
 		return logging;
 	}
 
-	static async handleGetLogs(dateFrom, level, type, chargingStation, searchValue, numberOfLogs, sortDate) {
+	static async handleGetLogs(dateFrom, level, type, chargingStation, searchValue, action, numberOfLogs, sortDate) {
 		// Check Limit
 		numberOfLogs = Utils.checkRecordLimit(numberOfLogs);
 		// Set the filters
@@ -115,6 +115,11 @@ class LoggingStorage {
 		if (type) {
 			// Yes, add in filter
 			filters.type = type;
+		}
+		// Action
+		if (action) {
+			// Yes, add in filter
+			filters.action = action;
 		}
 		// Source?
 		if (searchValue) {

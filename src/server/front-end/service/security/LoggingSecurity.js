@@ -13,6 +13,7 @@ class LoggingSecurity {
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.SortDate = sanitize(request.SortDate);
 		filteredRequest.Type = sanitize(request.Type);
+		filteredRequest.Action = sanitize(request.Action);
 		UtilsSecurity.filterLimit(request, filteredRequest);
 		return filteredRequest;
 	}
