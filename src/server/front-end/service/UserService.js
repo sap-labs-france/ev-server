@@ -93,7 +93,7 @@ class UserService {
 
 	static async handleUpdateUser(action, req, res, next) {
 		try {
-			let statusHasChanged=false;
+			let statusHasChanged = false;
 			// Filter
 			let filteredRequest = UserSecurity.filterUserUpdateRequest( req.body, req.user );
 			// Check Mandatory fields
@@ -123,8 +123,6 @@ class UserService {
 					`The email '${filteredRequest.email}' already exists`, 510, 
 					'UserService', 'handleUpdateUser', req.user);
 			}
-			// Generate the password hash
-			let newPasswordHashed = await User.hashPasswordBcrypt(filteredRequest.password);
 			// Check auth
 			if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
 				throw new AppAuthError(
@@ -135,41 +133,24 @@ class UserService {
 					'UserService', 'handleUpdateUser',
 					req.user, user);
 			}
-			// Check if Role is provided and has been changed
-			if (filteredRequest.role &&
-					filteredRequest.role !== user.getRole() &&
-					req.user.role !== Constants.USER_ROLE_ADMIN) {
-				// Role provided and not an Admin
-				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`User with role '${req.user.role}' tried to change the role to '${filteredRequest.role}' without having the Admin priviledge`, 500, 
-					'UserService', 'handleUpdateUser', req.user);
-			}
 			// Check if Status has been changed
 			if (filteredRequest.status &&
 					filteredRequest.status !== user.getStatus()) {
-				// Right to change?
-				if (req.user.role !== Constants.USER_ROLE_ADMIN) {
-					// Role provided and not an Admin
-					throw new AppError(
-						Constants.CENTRAL_SERVER,
-						`User with role '${req.user.role}' tried to update the status to '${filteredRequest.status}' without having the Admin priviledge`, 500, 
-						'UserService', 'handleUpdateUser', req.user);
-				} else {
-					// Status changed
-					statusHasChanged = true;
-				}
+				// Status changed
+				statusHasChanged = true;
 			}
 			// Update
 			Database.updateUser(filteredRequest, user.getModel());
-			// Update timestamp
-			user.setLastChangedBy(new User({'id': req.user.id}));
-			user.setLastChangedOn(new Date());
 			// Check the password
 			if (filteredRequest.password && filteredRequest.password.length > 0) {
+				// Generate the password hash
+				let newPasswordHashed = await User.hashPasswordBcrypt(filteredRequest.password);
 				// Update the password
 				user.setPassword(newPasswordHashed);
 			}
+			// Update timestamp
+			user.setLastChangedBy(new User({'id': req.user.id}));
+			user.setLastChangedOn(new Date());
 			// Update User
 			let updatedUser = await user.save();
 			// Update User's Image

@@ -38,26 +38,52 @@ class UserSecurity {
 
 	static _filterUserRequest(request, loggedUser) {
 		let filteredRequest = {};
-		filteredRequest.costCenter = sanitize(request.costCenter);
-		filteredRequest.email = sanitize(request.email);
-		filteredRequest.firstName = sanitize(request.firstName);
-		filteredRequest.iNumber = sanitize(request.iNumber);
-		filteredRequest.image = sanitize(request.image);
-		filteredRequest.mobile = sanitize(request.mobile);
-		filteredRequest.name = sanitize(request.name);
-		filteredRequest.locale = sanitize(request.locale);
-		filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
+		if (request.costCenter) {
+			filteredRequest.costCenter = sanitize(request.costCenter);
+		}
+		if (request.email) {
+			filteredRequest.email = sanitize(request.email);
+		}
+		if (request.firstName) {
+			filteredRequest.firstName = sanitize(request.firstName);
+		}
+		if (request.iNumber) {
+			filteredRequest.iNumber = sanitize(request.iNumber);
+		}
+		if (request.image) {
+			filteredRequest.image = sanitize(request.image);
+		}
+		if (request.mobile) {
+			filteredRequest.mobile = sanitize(request.mobile);
+		}
+		if (request.name) {
+			filteredRequest.name = sanitize(request.name);
+		}
+		if (request.locale) {
+			filteredRequest.locale = sanitize(request.locale);
+		}
+		if (request.address) {
+			filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
+		}
 		if (request.passwords) {
 			filteredRequest.password = sanitize(request.passwords.password);
 		}
-		filteredRequest.phone = sanitize(request.phone);
+		if (request.phone) {
+			filteredRequest.phone = sanitize(request.phone);
+		}
 		// Admin?
 		if (Authorizations.isAdmin(loggedUser)) {
 			// Ok to set the role
-			filteredRequest.role = sanitize(request.role);
-			filteredRequest.status = sanitize(request.status);
+			if (request.role) {
+				filteredRequest.role = sanitize(request.role);
+			}
+			if (request.status) {
+				filteredRequest.status = sanitize(request.status);
+			}
 		}
-		filteredRequest.tagIDs = sanitize(request.tagIDs);
+		if (request.tagIDs) {
+			filteredRequest.tagIDs = sanitize(request.tagIDs);
+		}
 		return filteredRequest;
 	}
 

@@ -184,19 +184,35 @@ module.exports = {
 	updateUser(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
 			this.updateID(src, dest);
-			dest.image = src.image;
-			dest.numberOfSites = src.numberOfSites;
-			dest.numberOfTransactions = src.numberOfTransactions;
+			if (src.image) {
+				dest.image = src.image;
+			}
 		}
-		dest.name = src.name;
-		dest.firstName = src.firstName;
-		dest.email = src.email;
-		dest.phone = src.phone;
-		dest.mobile = src.mobile;
-		dest.iNumber = src.iNumber;
-		dest.costCenter = src.costCenter;
+		if (src.name) {
+			dest.name = src.name;
+		}
+		if (src.firstName) {
+			dest.firstName = src.firstName;
+		}
+		if (src.email) {
+			dest.email = src.email;
+		}
+		if (src.phone) {
+			dest.phone = src.phone;
+		}
+		if (src.mobile) {
+			dest.mobile = src.mobile;
+		}
+		if (src.iNumber) {
+			dest.iNumber = src.iNumber;
+		}
+		if (src.costCenter) {
+			dest.costCenter = src.costCenter;
+		}
 		dest.address = {};
-		this.updateAddress(src.address, dest.address)
+		if (src.address) {
+			this.updateAddress(src.address, dest.address)
+		}
 		if (src.status) {
 			dest.status = src.status;
 		}
@@ -221,7 +237,9 @@ module.exports = {
 			dest.passwordWrongNbrTrials = Utils.convertToInt(src.passwordWrongNbrTrials);
 			dest.passwordBlockedUntil = Utils.convertToDate(src.passwordBlockedUntil);
 		}
-		dest.passwordResetHash = src.passwordResetHash;
+		if (src.passwordResetHash) {
+			dest.passwordResetHash = src.passwordResetHash;
+		}
 	},
 
 	updateSite(src, dest, forFrontEnd=true) {
