@@ -79,6 +79,8 @@ module.exports = {
 						"totalConsumption": Utils.convertToFloat(connector.totalConsumption),
 						"status": connector.status,
 						"errorCode": connector.errorCode,
+						"info": connector.info,
+						"vendorErrorCode": connector.vendorErrorCode,
 						"power": Utils.convertToInt(connector.power),
 						"activeTransactionID": Utils.convertToInt(connector.activeTransactionID)
 					});

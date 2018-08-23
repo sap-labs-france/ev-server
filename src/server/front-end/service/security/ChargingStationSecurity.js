@@ -29,7 +29,17 @@ class ChargingStationSecurity {
 				filteredChargingStation = {};
 				filteredChargingStation.id = chargingStation.id;
 				filteredChargingStation.chargeBoxID = chargingStation.chargeBoxID;
-				filteredChargingStation.connectors = chargingStation.connectors;
+				filteredChargingStation.connectors = chargingStation.connectors.map((connector) => {
+					return {
+						'activeTransactionID': connector.activeTransactionID,
+						'connectorId': connector.connectorId,
+						'currentConsumption': connector.currentConsumption,
+						'errorCode': connector.errorCode,
+						'power': connector.power,
+						'status': connector.status,
+						'totalConsumption': connector.totalConsumption
+					};
+				});
 				filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
 				filteredChargingStation.inactive = chargingStation.inactive;
 			}

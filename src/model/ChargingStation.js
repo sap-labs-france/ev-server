@@ -328,6 +328,8 @@ class ChargingStation {
 		// Error Code?
 		connectors[statusNotification.connectorId-1].status = statusNotification.status;
 		connectors[statusNotification.connectorId-1].errorCode = statusNotification.errorCode;
+		connectors[statusNotification.connectorId-1].info = statusNotification.info;
+		connectors[statusNotification.connectorId-1].vendorErrorCode = statusNotification.vendorErrorCode;
 		// Set
 		this.setConnectors(connectors);
 		// Update Power?
@@ -357,7 +359,7 @@ class ChargingStation {
 				{
 					"chargeBoxID": this.getID(),
 					"connectorId": statusNotification.connectorId,
-					"error": `${statusNotification.status} - ${statusNotification.errorCode}`,
+					"error": `${statusNotification.status} - ${statusNotification.errorCode} - ${statusNotification.errorInfo}`,
 					"evseDashboardURL" : Utils.buildEvseURL(),
 					"evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(this, statusNotification.connectorId)
 				}
