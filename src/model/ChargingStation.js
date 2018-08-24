@@ -746,6 +746,18 @@ class ChargingStation {
 		newMeterValues.values = [];
 		// Set the charger ID
 		newMeterValues.chargeBoxID = this.getID();
+		// Check if the transaction ID matches
+		let chargerTransactionId = this.getConnectors()[meterValues.connectorId-1].activeTransactionID;
+		// Same?
+		if (meterValues.transactionId !== chargerTransactionId) {
+			// No: Log
+			Logging.logError({
+				source: this.getID(), module: "ChargingStation", method: "handleMeterValues",
+				action: "MeterValues", message: `Meter Values Transaction ID '${meterValues.transactionId}' has been overridden with Start Transaction ID '${chargerTransactionId}'`
+			});
+			// Override
+			meterValues.transactionId = chargerTransactionId;
+		} 
 		// Check if OCPP 1.6
 		if (meterValues.meterValue) {
 			// Set it to 'values'
@@ -787,17 +799,15 @@ class ChargingStation {
 			// Add
 			newMeterValues.values.push(newMeterValue);
 		});
-
 		// Save Meter Values
 		await global.storage.saveMeterValues(newMeterValues);
 		// Update Charging Station Consumption
 		await this.updateChargingStationConsumption(meterValues.transactionId);
-
-			// Log
-			Logging.logInfo({
-				source: this.getID(), module: "ChargingStation", method: "handleMeterValues",
-				action: "MeterValues", message: `Meter Values have been saved for Transaction ID '${meterValues.transactionId}'`,
-				detailedMessages: meterValues });
+		// Log
+		Logging.logInfo({
+			source: this.getID(), module: "ChargingStation", method: "handleMeterValues",
+			action: "MeterValues", message: `Meter Values have been saved for Transaction ID '${meterValues.transactionId}'`,
+			detailedMessages: meterValues });
 	}
 
 	saveConfiguration(configuration) {
