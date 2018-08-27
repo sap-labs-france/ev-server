@@ -749,7 +749,7 @@ class ChargingStation {
 		// Check if the transaction ID matches
 		let chargerTransactionId = this.getConnectors()[meterValues.connectorId-1].activeTransactionID;
 		// Same?
-		if (meterValues.transactionId !== chargerTransactionId) {
+		if (parseInt(meterValues.transactionId) !== parseInt(chargerTransactionId)) {
 			// No: Log
 			Logging.logError({
 				source: this.getID(), module: "ChargingStation", method: "handleMeterValues",
