@@ -57,9 +57,11 @@ class ChargingStationStorage {
 		return chargingStation;
 	}
 
-	static async handleGetChargingStations(searchValue, siteAreaID, withNoSiteArea, numberOfChargingStations) {
+	static async handleGetChargingStations(searchValue, siteAreaID, withNoSiteArea, limit, skip) {
 		// Check Limit
-		numberOfChargingStations = Utils.checkRecordLimit(numberOfChargingStations);
+		limit = Utils.checkRecordLimit(limit);
+		// Check Skip
+		skip = Utils.checkRecordSkip(skip);
 		// Create Aggregation
 		let aggregation = [];
 		// Set the filters
@@ -118,12 +120,14 @@ class ChargingStationStorage {
 				_id: 1
 			}
 		});
+		// Skip
+		aggregation.push({
+			$skip: skip
+		});
 		// Limit
-		if (numberOfChargingStations > 0) {
-			aggregation.push({
-				$limit: numberOfChargingStations
-			});
-		}
+		aggregation.push({
+			$limit: limit
+		});
 		// Read DB
 		let chargingStationsMDB = await _db.collection('chargingstations')
 			.aggregate(aggregation)

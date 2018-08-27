@@ -75,9 +75,11 @@ class LoggingStorage {
 		return logging;
 	}
 
-	static async handleGetLogs(dateFrom, level, type, chargingStation, searchValue, action, numberOfLogs, sortDate) {
+	static async handleGetLogs(dateFrom, level, type, chargingStation, searchValue, action, limit, skip, sort) {
 		// Check Limit
-		numberOfLogs = Utils.checkRecordLimit(numberOfLogs);
+		limit = Utils.checkRecordLimit(limit);
+		// Check Skip
+		skip = Utils.checkRecordSkip(skip);
 		// Set the filters
 		let filters = {};
 		// Date from provided?
@@ -138,25 +140,26 @@ class LoggingStorage {
 				$match: filters
 			});
 		}
-		// Set the sort
-		let sort = {};
-		// Set timestamp
-		if (sortDate) {
-			sort.timestamp = parseInt(sortDate);
+		// Sort
+		if (sort) {
+			// Sort
+			aggregation.push({
+				$sort: { timestamp: parseInt(sort) }
+			});
 		} else {
 			// default
-			sort.timestamp = -1;
-		}
-		// Sort
-		aggregation.push({
-			$sort: sort
-		});
-		// Limit
-		if (numberOfLogs > 0) {
 			aggregation.push({
-				$limit: numberOfLogs
+				$sort: { timestamp: -1 }
 			});
 		}
+		// Skip
+		aggregation.push({
+			$skip: skip
+		});
+		// Limit
+		aggregation.push({
+			$limit: limit
+		});
 		// User
 		aggregation.push({
 			$lookup: {

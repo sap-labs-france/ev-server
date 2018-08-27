@@ -76,5 +76,7 @@ module.exports = {
 
 	DEFAULT_LOCALE: 'en_US',
 
-	ANONIMIZED_VALUE: '####'
+	ANONIMIZED_VALUE: '####',
+
+	DEFAULT_DB_LIMIT: 100
 };

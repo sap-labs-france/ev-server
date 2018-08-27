@@ -202,18 +202,18 @@ class SiteStorage {
 	}
 
 	static async handleGetSites(searchValue, companyID, userID, withCompany, withSiteAreas,
-			withChargeBoxes, withUsers, numberOfSites) {
+			withChargeBoxes, withUsers, limit, skip) {
 		// Check Limit
-		numberOfSites = Utils.checkRecordLimit(numberOfSites);
+		limit = Utils.checkRecordLimit(limit);
+		// Check Skip
+		skip = Utils.checkRecordSkip(skip);
 		// Set the filters
 		let filters = {};
 		// Source?
 		if (searchValue) {
 			// Build filter
 			filters.$or = [
-				{ "name" : { $regex : searchValue, $options: 'i' } },
-				{ "siteAreas.name" : { $regex : searchValue, $options: 'i' } },
-				{ "chargeBoxes._id" : { $regex : searchValue, $options: 'i' } }
+				{ "name" : { $regex : searchValue, $options: 'i' } }
 			];
 		}
 		// Set Company?
@@ -222,50 +222,44 @@ class SiteStorage {
 		}
 		// Create Aggregation
 		let aggregation = [];
-		// Add Users
-		aggregation.push({
-			$lookup: {
-				from: "siteusers",
-				localField: "_id",
-				foreignField: "siteID",
-				as: "siteusers"
-			}
-		});
 		// Set User?
-		if (userID) {
-			filters["siteusers.userID"] = Utils.convertToObjectID(userID);
-		}
-		// Number of Users
-		aggregation.push({
-			$addFields: {
-				"numberOfUsers": { $size: "$siteusers" }
-			}
-		});
-		if (withUsers) {
-			// Add
+		if (withUsers || userID) {
+				// Add Users
 			aggregation.push({
 				$lookup: {
-					from: "users",
-					localField: "siteusers.userID",
-					foreignField: "_id",
-					as: "users"
+					from: "siteusers",
+					localField: "_id",
+					foreignField: "siteID",
+					as: "siteusers"
+				}
+			});
+			// Set
+			if (userID) {
+				filters["siteusers.userID"] = Utils.convertToObjectID(userID);
+			}
+			if (withUsers) {
+				// Add
+				aggregation.push({
+					$lookup: {
+						from: "users",
+						localField: "siteusers.userID",
+						foreignField: "_id",
+						as: "users"
+					}
+				});
+			}
+		}
+		if (withSiteAreas || withChargeBoxes) {
+			// Add SiteAreas
+			aggregation.push({
+				$lookup: {
+					from: "siteareas",
+					localField: "_id",
+					foreignField: "siteID",
+					as: "siteAreas"
 				}
 			});
 		}
-		// Add SiteAreas
-		aggregation.push({
-			$lookup: {
-				from: "siteareas",
-				localField: "_id",
-				foreignField: "siteID",
-				as: "siteAreas"
-			}
-		});
-		aggregation.push({
-			$addFields: {
-				"numberOfSiteAreas": { $size: "$siteAreas" }
-			}
-		});
 		// With Chargers?
 		if (withChargeBoxes) {
 			aggregation.push({
@@ -304,88 +298,18 @@ class SiteStorage {
 		aggregation.push({
 			$sort: { name : 1 }
 		});
+		// Skip
+		aggregation.push({
+			$skip: skip
+		});
 		// Limit
-		if (numberOfSites > 0) {
-			aggregation.push({
-				$limit: numberOfSites
-			});
-		}
+		aggregation.push({
+			$limit: limit
+		});
 		// Read DB
 		let sitesMDB = await _db.collection('sites')
 			.aggregate(aggregation)
 			.toArray();
-		// Filter
-		if (searchValue) {
-			let matchSite = false, matchSiteArea = false, matchChargingStation = false;
-			let searchRegEx = new RegExp(searchValue, "i");
-			// Sites
-			for (var i = 0; i < sitesMDB.length; i++) {
-				if (searchRegEx.test(sitesMDB[i].name)) {
-					matchSite = true;
-					break;
-				}
-				// Site Areas
-				if (sitesMDB[i].siteAreas) {
-					for (var j = 0; j < sitesMDB[i].siteAreas.length; j++) {
-						// Check Site Area
-						if (searchRegEx.test(sitesMDB[i].siteAreas[j].name)) {
-							matchSiteArea = true;
-							break;
-						}
-						// Charge Boxes
-						if (sitesMDB[i].chargeBoxes) {
-							for (var k = 0; k < sitesMDB[i].chargeBoxes.length; k++) {
-								// Check Charging Station
-								if (searchRegEx.test(sitesMDB[i].chargeBoxes[k]._id)) {
-									matchChargingStation = true;
-									break;
-								}
-							}
-						}
-					}
-				}
-			}
-			// Match Site Area?
-			if (!matchSite && matchSiteArea) {
-				// Filter the Site Area
-				sitesMDB.forEach((siteMDB) => {
-					// Site Areas
-					if (siteMDB.siteAreas) {
-						// Filter
-						siteMDB.siteAreas = siteMDB.siteAreas.filter((siteArea) => {
-							return searchRegEx.test(siteArea.name);
-						});
-					}
-				});
-			// Match Charging Station?
-			} else if (!matchSite && matchChargingStation) {
-				// Filter the Site Area
-				sitesMDB.forEach((siteMDB) => {
-					// Charging Stations
-					if (siteMDB.chargeBoxes) {
-						// Filter Charging Stations
-						siteMDB.chargeBoxes = siteMDB.chargeBoxes.filter((chargeBox) => {
-							return searchRegEx.test(chargeBox._id);
-						});
-					}
-					// Site Areas
-					if (siteMDB.siteAreas) {
-						// Filter Site Areas
-						siteMDB.siteAreas = siteMDB.siteAreas.filter((siteArea) => {
-							let chargeBoxesPerSiteArea = [];
-							// Filter Charging Stations
-							if (siteMDB.chargeBoxes) {
-								// Filter with Site Area
-								chargeBoxesPerSiteArea = siteMDB.chargeBoxes.filter((chargeBox) => {
-									return chargeBox.siteAreaID.toString() == siteArea._id;
-								});
-							}
-							return chargeBoxesPerSiteArea.length > 0;
-						});
-					}
-				});
-			}
-		}
 		let sites = [];
 		// Check
 		if (sitesMDB && sitesMDB.length > 0) {
@@ -394,14 +318,12 @@ class SiteStorage {
 				// Create
 				let site = new Site(siteMDB);
 				// Set Users
-				if (withUsers && siteMDB.users) {
+				if ((userID || withUsers) && siteMDB.users) {
 					// Set Users
-					site.setUsers(siteMDB.users.map((user) => {
-						return new User(user);
-					}));
+					site.setUsers(siteMDB.users.map((user) => new User(user)));
 				}
 				// Set Site Areas
-				if (withSiteAreas && siteMDB.siteAreas) {
+				if ((withChargeBoxes || withSiteAreas) && siteMDB.siteAreas) {
 					// Sort Site Areas
 					siteMDB.siteAreas.sort((cb1, cb2) => {
 						return cb1.name.localeCompare(cb2.name);

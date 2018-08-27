@@ -21,6 +21,7 @@ class VehicleManufacturerSecurity {
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.WithVehicles = UtilsSecurity.filterBoolean(request.WithVehicles);
 		filteredRequest.VehicleType = sanitize(request.VehicleType);
+		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
 		return filteredRequest;
 	}
 

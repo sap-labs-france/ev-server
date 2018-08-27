@@ -476,7 +476,8 @@ class TransactionService {
 			}
 			// Get Transactions
 			let transactions = await global.storage.getTransactions(
-					null, filter, null, true, Constants.NO_LIMIT);
+					null, filter, null, true, 
+					filteredRequest.Limit, filteredRequest.Skip);
 			// Return
 			res.json(
 				// Filter
@@ -520,11 +521,9 @@ class TransactionService {
 			let pricing = await global.storage.getPricing();
 			// Check email
 			let transactions = await global.storage.getTransactions(
-				filteredRequest.Search,
-				filter,
-				filteredRequest.SiteID,
-				false,
-				filteredRequest.Limit);
+				filteredRequest.Search, filter,
+				filteredRequest.SiteID, false,
+				filteredRequest.Limit, filteredRequest.Skip);
 			// Found?``
 			if (transactions && pricing) {
 				// List the transactions

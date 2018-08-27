@@ -29,6 +29,7 @@ class CompanySecurity {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.WithSites = UtilsSecurity.filterBoolean(request.WithSites);
+		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
 		return filteredRequest;
 	}
 

@@ -37,6 +37,7 @@ class SiteAreaSecurity {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.WithChargeBoxes = UtilsSecurity.filterBoolean(request.WithChargeBoxes);
+		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
 		return filteredRequest;
 	}
 

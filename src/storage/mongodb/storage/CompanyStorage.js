@@ -122,9 +122,11 @@ class CompanyStorage {
 	}
 
 	// Delegate
-	static async handleGetCompanies(searchValue, withSites, numberOfCompanies) {
+	static async handleGetCompanies(searchValue, withSites, limit, skip) {
 		// Check Limit
-		numberOfCompanies = Utils.checkRecordLimit(numberOfCompanies);
+		limit = Utils.checkRecordLimit(limit);
+		// Check Skip
+		skip = Utils.checkRecordSkip(skip);
 		// Set the filters
 		let filters = {};
 		// Source?
@@ -164,12 +166,14 @@ class CompanyStorage {
 		aggregation.push({
 			$sort: { name : 1 }
 		});
+		// Skip
+		aggregation.push({
+			$skip: skip
+		});
 		// Limit
-		if (numberOfCompanies > 0) {
-			aggregation.push({
-				$limit: numberOfCompanies
-			});
-		}
+		aggregation.push({
+			$limit: limit
+		});
 		// Read DB
 		let companiesMDB = await _db.collection('companies')
 			.aggregate(aggregation)

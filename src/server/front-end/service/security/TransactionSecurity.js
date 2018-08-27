@@ -49,7 +49,7 @@ class TransactionSecurity {
 		if (request.UserID) {
 			filteredRequest.UserID = sanitize(request.UserID);
 		}
-		UtilsSecurity.filterLimit(request, filteredRequest);
+		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
 		return filteredRequest;
 	}
 
@@ -184,6 +184,7 @@ class TransactionSecurity {
 		filteredRequest.ConnectorId = sanitize(request.ConnectorId);
 		filteredRequest.StartDateTime = sanitize(request.StartDateTime);
 		filteredRequest.EndDateTime = sanitize(request.EndDateTime);
+		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
 		return filteredRequest;
 	}
 

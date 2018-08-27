@@ -1,6 +1,7 @@
 const sanitize = require('mongo-sanitize');
 const Authorizations = require('../../../../authorization/Authorizations');
 const Utils = require('../../../../utils/Utils');
+const Constants = require('../../../../utils/Constants');
 
 class UtilsSecurity {
 	static filterBoolean(value) {
@@ -11,7 +12,7 @@ class UtilsSecurity {
 			value = sanitize(value);
 			// Check the type
 			if (typeof value == "boolean") {
-				// Arealdy a boolean
+				// Already a boolean
 				result = value;
 			} else {
 				// Convert
@@ -21,19 +22,43 @@ class UtilsSecurity {
 		return result;
 	}
 
+	static filterSkipAndLimit(request, filteredRequest) {
+		// Limit
+		UtilsSecurity.filterLimit(request, filteredRequest);
+		// Skip
+		UtilsSecurity.filterSkip(request, filteredRequest);
+	}
+
 	static filterLimit(request, filteredRequest) {
 		// Exist?
 		if (!request.Limit) {
 			// Default
-			filteredRequest.Limit = 100;
+			filteredRequest.Limit = Constants.DEFAULT_DB_LIMIT;
 		} else {
 			// Parse
 			filteredRequest.Limit = parseInt(sanitize(request.Limit));
 			if (isNaN(filteredRequest.Limit)) {
-				filteredRequest.Limit = 100;
+				filteredRequest.Limit = Constants.DEFAULT_DB_LIMIT;
 			// Negative limit?
 			} else if (filteredRequest.Limit < 0) {
-				filteredRequest.Limit = 100;
+				filteredRequest.Limit = Constants.DEFAULT_DB_LIMIT;
+			}
+		}
+	}
+
+	static filterSkip(request, filteredRequest) {
+		// Exist?
+		if (!request.Skip) {
+			// Default
+			filteredRequest.Skip = 0;
+		} else {
+			// Parse
+			filteredRequest.Skip = parseInt(sanitize(request.Skip));
+			if (isNaN(filteredRequest.Skip)) {
+				filteredRequest.Skip = 0;
+			// Negative?
+			} else if (filteredRequest.Skip < 0) {
+				filteredRequest.Skip = 0;
 			}
 		}
 	}

@@ -90,7 +90,8 @@ class SiteAreaService {
 			let filteredRequest = SiteAreaSecurity.filterSiteAreasRequest(req.query, req.user);
 			// Get the sites
 			let siteAreas = await global.storage.getSiteAreas(
-				filteredRequest.Search, null, filteredRequest.WithChargeBoxes, Constants.NO_LIMIT);
+				filteredRequest.Search, null, filteredRequest.WithChargeBoxes, 
+				filteredRequest.Limit, filteredRequest.Skip);
 			// Assign
 			let siteAreasJSon = [];
 			siteAreas.forEach((siteArea) => {

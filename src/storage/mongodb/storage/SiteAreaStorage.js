@@ -161,9 +161,11 @@ class SiteAreaStorage {
 			{upsert: true, new: true, returnOriginal: false});
 	}
 
-	static async handleGetSiteAreas(searchValue, siteID, withChargeBoxes, numberOfSiteAreas) {
+	static async handleGetSiteAreas(searchValue, siteID, withChargeBoxes, limit, skip) {
 		// Check Limit
-		numberOfSiteAreas = Utils.checkRecordLimit(numberOfSiteAreas);
+		limit = Utils.checkRecordLimit(limit);
+		// Check Skip
+		skip = Utils.checkRecordSkip(skip);
 		// Set the filters
 		let filters = {};
 		// Source?
@@ -221,12 +223,14 @@ class SiteAreaStorage {
 				"name": 1
 			}
 		});
+		// Skip
+		aggregation.push({
+			$skip: skip
+		});
 		// Limit
-		if (numberOfSiteAreas > 0) {
-			aggregation.push({
-				$limit: numberOfSiteAreas
-			});
-		}
+		aggregation.push({
+			$limit: limit
+		});
 		// Read DB
 		let siteAreasMDB = await _db.collection('siteareas')
 			.aggregate(aggregation)

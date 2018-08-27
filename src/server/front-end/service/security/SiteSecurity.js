@@ -50,6 +50,7 @@ class SiteSecurity {
 		filteredRequest.WithChargeBoxes = UtilsSecurity.filterBoolean(request.WithChargeBoxes);
 		filteredRequest.WithCompany = UtilsSecurity.filterBoolean(request.WithCompany);
 		filteredRequest.WithUsers = UtilsSecurity.filterBoolean(request.WithUsers);
+		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
 		return filteredRequest;
 	}
 

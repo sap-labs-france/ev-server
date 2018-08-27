@@ -121,9 +121,11 @@ class VehicleManufacturerStorage {
 	}
 
 	// Delegate
-	static async handleGetVehicleManufacturers(searchValue, withVehicles, vehicleType, numberOfVehicleManufacturers) {
+	static async handleGetVehicleManufacturers(searchValue, withVehicles, vehicleType, limit, skip) {
 		// Check Limit
-		numberOfVehicleManufacturers = Utils.checkRecordLimit(numberOfVehicleManufacturers);
+		limit = Utils.checkRecordLimit(limit);
+		// Check Skip
+		skip = Utils.checkRecordSkip(skip);
 		// Set the filters
 		let filters = {};
 		// Source?
@@ -182,12 +184,14 @@ class VehicleManufacturerStorage {
 				name : 1
 			}
 		});
+		// Skip
+		aggregation.push({
+			$skip: skip
+		});
 		// Limit
-		if (numberOfVehicleManufacturers > 0) {
-			aggregation.push({
-				$limit: numberOfVehicleManufacturers
-			});
-		}
+		aggregation.push({
+			$limit: limit
+		});
 		// Read DB
 		let vehiclemanufacturersMDB = await _db.collection('vehiclemanufacturers')
 			.aggregate(aggregation)

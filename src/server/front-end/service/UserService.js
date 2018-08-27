@@ -321,7 +321,8 @@ class UserService {
 			// Filter
 			let filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
 			// Get users
-			let users = await global.storage.getUsers(filteredRequest.Search, filteredRequest.SiteID, Constants.NO_LIMIT);
+			let users = await global.storage.getUsers(filteredRequest.Search, filteredRequest.SiteID, 
+				filteredRequest.Limit, filteredRequest.Skip);
 			var usersJSon = [];
 			users.forEach((user) => {
 				// Set the model

@@ -248,8 +248,6 @@ module.exports = {
 		if (forFrontEnd) {
 			this.updateID(src, dest);
 			dest.image = src.image;
-			dest.numberOfSiteAreas = src.numberOfSiteAreas;
-			dest.numberOfUsers = src.numberOfUsers;
 		}
 		dest.name = src.name;
 		dest.address = {};

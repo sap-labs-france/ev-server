@@ -181,9 +181,9 @@ class MongoDBStorage {
 		return ChargingStationStorage.handleGetConfigurationParamValue(chargeBoxID, paramName);
 	}
 
-	getLogs(dateFrom, level, type, chargingStation, searchValue, action, numberOfLogs, sortDate) {
+	getLogs(dateFrom, level, type, chargingStation, searchValue, action, limit, skip, sort) {
 		// Delegate
-		return LoggingStorage.handleGetLogs(dateFrom, level, type, chargingStation, searchValue, action, numberOfLogs, sortDate);
+		return LoggingStorage.handleGetLogs(dateFrom, level, type, chargingStation, searchValue, action, limit, skip, sort);
 	}
 
 	getLog(id) {
@@ -300,9 +300,9 @@ class MongoDBStorage {
 		return TransactionStorage.handleSaveMeterValues(meterValues);
 	}
 
-	getTransactions(searchValue = null, filter = {}, siteID = null, withChargeBoxes = false, numberOfTransactions) {
+	getTransactions(searchValue = null, filter = {}, siteID = null, withChargeBoxes = false, limit, skip) {
 		// Delegate
-		return TransactionStorage.handleGetTransactions(searchValue, filter, siteID, withChargeBoxes, numberOfTransactions);
+		return TransactionStorage.handleGetTransactions(searchValue, filter, siteID, withChargeBoxes, limit, skip);
 	}
 
 	getActiveTransaction(chargeBoxID, connectorID) {
@@ -343,9 +343,9 @@ class MongoDBStorage {
 		return ChargingStationStorage.handleDeleteChargingStation(id);
 	}
 
-	getChargingStations(searchValue, siteAreaID, withNoSiteArea = false, numberOfChargingStation) {
+	getChargingStations(searchValue, siteAreaID, withNoSiteArea = false, limit, skip) {
 		// Delegate
-		return ChargingStationStorage.handleGetChargingStations(searchValue, siteAreaID, withNoSiteArea, numberOfChargingStation);
+		return ChargingStationStorage.handleGetChargingStations(searchValue, siteAreaID, withNoSiteArea, limit, skip);
 	}
 
 	getChargingStation(id) {
@@ -353,9 +353,9 @@ class MongoDBStorage {
 		return ChargingStationStorage.handleGetChargingStation(id);
 	}
 
-	getUsers(searchValue, siteID, numberOfUser) {
+	getUsers(searchValue, siteID, limit, skip) {
 		// Delegate
-		return UserStorage.handleGetUsers(searchValue, siteID, numberOfUser);
+		return UserStorage.handleGetUsers(searchValue, siteID, limit, skip);
 	}
 
 	saveUser(user) {
@@ -398,9 +398,9 @@ class MongoDBStorage {
 		return UserStorage.handleGetUserByTagId(tagID);
 	}
 
-	getCompanies(searchValue, withSites = false, numberOfCompanies) {
+	getCompanies(searchValue, withSites = false, limit, skip) {
 		// Delegate
-		return CompanyStorage.handleGetCompanies(searchValue, withSites, numberOfCompanies);
+		return CompanyStorage.handleGetCompanies(searchValue, withSites, limit, skip);
 	}
 
 	getCompany(id) {
@@ -433,10 +433,10 @@ class MongoDBStorage {
 		return CompanyStorage.handleSaveCompany(company);
 	}
 
-	getVehicleManufacturers(searchValue, withVehicles = false, vehicleType, numberOfVehicleManufacturers) {
+	getVehicleManufacturers(searchValue, withVehicles = false, vehicleType, limit, skip) {
 		// Delegate
 		return VehicleManufacturerStorage.handleGetVehicleManufacturers(
-			searchValue, withVehicles, vehicleType, numberOfVehicleManufacturers);
+			searchValue, withVehicles, vehicleType, limit, skip);
 	}
 
 	getVehicleManufacturer(id) {
@@ -469,10 +469,10 @@ class MongoDBStorage {
 		return VehicleManufacturerStorage.handleSaveVehicleManufacturerLogo(vehicleManufacturer);
 	}
 
-	getSiteAreas(searchValue, siteID = null, withChargeBoxes = false, numberOfSiteArea) {
+	getSiteAreas(searchValue, siteID = null, withChargeBoxes = false, limit, skip) {
 		// Delegate
 		return SiteAreaStorage.handleGetSiteAreas(searchValue, siteID,
-			withChargeBoxes, numberOfSiteArea);
+			withChargeBoxes, limit, skip);
 	}
 
 	saveSiteArea(siteArea) {
@@ -506,10 +506,10 @@ class MongoDBStorage {
 	}
 
 	getSites(searchValue, companyID = null, userID = null, withCompany = false, withSiteAreas = false,
-		withChargeBoxes = false, withUsers = false, numberOfSite) {
+		withChargeBoxes = false, withUsers = false, limit, skip) {
 		// Delegate
 		return SiteStorage.handleGetSites(searchValue, companyID, userID, withCompany, withSiteAreas,
-			withChargeBoxes, withUsers, numberOfSite);
+			withChargeBoxes, withUsers, limit, skip);
 	}
 
 	saveSite(site) {
@@ -542,9 +542,9 @@ class MongoDBStorage {
 		return SiteStorage.handleGetSiteImages();
 	}
 
-	getVehicles(searchValue, vehicleManufacturerID = null, vehicleType, numberOfVehicle) {
+	getVehicles(searchValue, vehicleManufacturerID = null, vehicleType, limit, skip) {
 		// Delegate
-		return VehicleStorage.handleGetVehicles(searchValue, vehicleManufacturerID, vehicleType, numberOfVehicle);
+		return VehicleStorage.handleGetVehicles(searchValue, vehicleManufacturerID, vehicleType, limit, skip);
 	}
 
 	saveVehicle(vehicle) {

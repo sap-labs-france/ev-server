@@ -20,7 +20,7 @@ class LoggingService {
 			let filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query, req.user);
 			// Get logs
 			let loggings = await Logging.getLogs(filteredRequest.DateFrom, filteredRequest.Level, filteredRequest.Type, filteredRequest.ChargingStation,
-					filteredRequest.Search, filteredRequest.Action, filteredRequest.Limit, filteredRequest.SortDate);
+					filteredRequest.Search, filteredRequest.Action, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.SortDate);
 			// Return
 			res.json(
 				LoggingSecurity.filterLoggingsResponse(

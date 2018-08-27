@@ -22,6 +22,7 @@ class UserSecurity {
 		// Handle picture
 		filteredRequest.Search = request.Search;
 		filteredRequest.SiteID = request.SiteID;
+		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
 		return filteredRequest;
 	}
 

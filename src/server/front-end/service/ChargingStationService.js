@@ -242,7 +242,8 @@ class ChargingStationService {
 			let filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query, req.user);
 			// Get the charging stfoundChargingStationsations
 			let chargingStations = await global.storage.getChargingStations(
-					filteredRequest.Search, null, filteredRequest.WithNoSiteArea, Constants.NO_LIMIT);
+					filteredRequest.Search, null, filteredRequest.WithNoSiteArea, 
+					filteredRequest.Limit, filteredRequest.Skip);
 			// Set
 			let chargingStationsJSon = [];
 			chargingStations.forEach((chargingStation) => {

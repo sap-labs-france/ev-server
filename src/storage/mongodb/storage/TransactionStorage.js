@@ -100,9 +100,11 @@ class TransactionStorage {
 		return transactionYears;
 	}
 
-	static async handleGetTransactions(searchValue, filter, siteID, withChargeBoxes, numberOfTransactions) {
+	static async handleGetTransactions(searchValue, filter, siteID, withChargeBoxes, limit, skip) {
 		// Check Limit
-		numberOfTransactions = Utils.checkRecordLimit(numberOfTransactions);
+		limit = Utils.checkRecordLimit(limit);
+		// Check Skip
+		skip = Utils.checkRecordSkip(skip);
 		// Build filter
 		let match = {};
 		// Filter?
@@ -195,12 +197,14 @@ class TransactionStorage {
 		aggregation.push({
 			$sort: { timestamp: -1 }
 		});
+		// Skip
+		aggregation.push({
+			$skip: skip
+		});
 		// Limit
-		if (numberOfTransactions > 0) {
-			aggregation.push({
-				$limit: numberOfTransactions
-			});
-		}
+		aggregation.push({
+			$limit: limit
+		});
 		// Add User that started the transaction
 		aggregation.push({
 			$lookup: {

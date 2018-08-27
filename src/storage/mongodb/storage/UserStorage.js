@@ -230,7 +230,11 @@ class UserStorage {
 			{upsert: true, new: true, returnOriginal: false});
 	}
 
-	static async handleGetUsers(searchValue, siteID, numberOfUsers) {
+	static async handleGetUsers(searchValue, siteID, limit, skip) {
+		// Check Limit
+		limit = Utils.checkRecordLimit(limit);
+		// Check Skip
+		skip = Utils.checkRecordSkip(skip);
 		let filters = {
 			"$and": [
 				{
@@ -242,8 +246,6 @@ class UserStorage {
 				}
 			]
 		};
-		// Check Limit
-		numberOfUsers = Utils.checkRecordLimit(numberOfUsers);
 		// Source?
 		if (searchValue) {
 			// Build filter
@@ -313,12 +315,14 @@ class UserStorage {
 		aggregation.push({
 			$sort: { status: -1, name: 1, firstName: 1 }
 		});
+		// Skip
+		aggregation.push({
+			$skip: skip
+		});
 		// Limit
-		if (numberOfUsers > 0) {
-			aggregation.push({
-				$limit: numberOfUsers
-			});
-		}
+		aggregation.push({
+			$limit: limit
+		});
 		// Read DB
 		let usersMDB = await _db.collection('users')
 			.aggregate(aggregation)

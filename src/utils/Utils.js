@@ -1,6 +1,7 @@
 const Configuration = require('./Configuration');
 const uuidV4 = require('uuid/v4');
 const ObjectID = require('mongodb').ObjectID;
+const Constants = require('./Constants');
 
 require('source-map-support').install();
 
@@ -266,18 +267,28 @@ module.exports = {
 	},
 
 	checkRecordLimit(recordLimit) {
+		// String?
 		if (typeof recordLimit == "string" ) {
 			recordLimit = parseInt(recordLimit);
 		}
 		// Not provided?
-		if (isNaN(recordLimit) || recordLimit < 0) {
+		if (isNaN(recordLimit) || recordLimit < 0 || recordLimit === 0) {
 			// Default
-			recordLimit = 100;
-		}
-		// Limit Exceeded?
-		if(recordLimit > 2000) {
-			recordLimit = 2000;
+			recordLimit = Constants.DEFAULT_DB_LIMIT;
 		}
 		return recordLimit;
+	},
+
+	checkRecordSkip(recordSkip) {
+		// String?
+		if (typeof recordSkip == "string" ) {
+			recordSkip = parseInt(recordSkip);
+		}
+		// Not provided?
+		if (isNaN(recordSkip) || recordSkip < 0) {
+			// Default
+			recordSkip = 0;
+		}
+		return recordSkip;
 	}
 };
