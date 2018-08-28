@@ -113,7 +113,7 @@ class VehicleStorage {
 	}
 
 	// Delegate
-	static async getVehicles(searchValue, vehicleManufacturerID, vehicleType, limit, skip) {
+	static async getVehicles(params, limit, skip, sort) {
 		const Vehicle = require('../../model/Vehicle'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
@@ -122,19 +122,19 @@ class VehicleStorage {
 		// Set the filters
 		let filters = {};
 		// Source?
-		if (searchValue) {
+		if (params.search) {
 			// Build filter
 			filters.$or = [
-				{ "model" : { $regex : searchValue, $options: 'i' } }
+				{ "model" : { $regex : params.search, $options: 'i' } }
 			];
 		}
 		// Set Company?
-		if (vehicleManufacturerID) {
-			filters.vehicleManufacturerID = Utils.convertToObjectID(vehicleManufacturerID);
+		if (params.vehicleManufacturerID) {
+			filters.vehicleManufacturerID = Utils.convertToObjectID(params.vehicleManufacturerID);
 		}
 		// Set Vehicle Type?
-		if (vehicleType) {
-			filters.type = vehicleType;
+		if (params.vehicleType) {
+			filters.type = params.vehicleType;
 		}
 		// Create Aggregation
 		let aggregation = [];
@@ -146,36 +146,20 @@ class VehicleStorage {
 		}
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
-		// Add Vehicle Images
-		aggregation.push({
-			$lookup: {
-				from: "vehicleimages",
-				localField: "_id",
-				foreignField: "_id",
-				as: "vehicleImages"
-			}
-		});
-		// Single Record
-		aggregation.push({
-			$unwind: { "path": "$vehicleImages", "preserveNullAndEmptyArrays": true }
-		});
-		aggregation.push({
-			$addFields: {
-				"numberOfImages": { $size: "$vehicleImages.images" }
-			}
-		});
-		aggregation.push({
-			$project: {
-				"vehicleImages": 0
-			}
-		});
 		// Sort
-		aggregation.push({
-			$sort: {
-				manufacturer : 1,
-				model : 1
-			}
-		});
+		if (sort) {
+			// Sort
+			aggregation.push({
+				$sort: sort
+			});
+		} else {
+			// Default
+			aggregation.push({
+				$sort: {
+					manufacturer : 1, model : 1
+				}
+			});
+		}
 		// Skip
 		aggregation.push({
 			$skip: skip
@@ -193,10 +177,8 @@ class VehicleStorage {
 		if (vehiclesMDB && vehiclesMDB.length > 0) {
 			// Create
 			vehiclesMDB.forEach((vehicleMDB) => {
-				// Create
-				let vehicle = new Vehicle(vehicleMDB);
 				// Add
-				vehicles.push(vehicle);
+				vehicles.push(new Vehicle(vehicleMDB));
 			});
 		}
 		return vehicles;

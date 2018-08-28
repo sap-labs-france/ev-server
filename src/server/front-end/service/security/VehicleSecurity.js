@@ -20,6 +20,7 @@ class VehicleSecurity {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.Type = sanitize(request.Type);
+		filteredRequest.VehicleManufacturerID = sanitize(request.VehicleManufacturerID);
 		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
 		UtilsSecurity.filterSort(request, filteredRequest);
 		return filteredRequest;

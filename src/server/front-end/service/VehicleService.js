@@ -108,7 +108,8 @@ class VehicleService {
 			let filteredRequest = VehicleSecurity.filterVehiclesRequest(req.query, req.user);
 			// Get the vehicles
 			let vehicles = await VehicleStorage.getVehicles(
-				filteredRequest.Search, null, filteredRequest.Type, 
+				{ 'search': filteredRequest.Search, 'vehicleType': filteredRequest.Type, 
+					'vehicleManufacturerID': filteredRequest.VehicleManufacturerID }, 
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			let vehiclesJSon = [];
 			vehicles.forEach((vehicle) => {
