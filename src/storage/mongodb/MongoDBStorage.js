@@ -506,10 +506,10 @@ class MongoDBStorage {
 	}
 
 	getSites(searchValue, companyID = null, userID = null, withCompany = false, withSiteAreas = false,
-		withChargeBoxes = false, withUsers = false, limit, skip) {
+		withChargeBoxes = false, withUsers = false, limit, skip, sort) {
 		// Delegate
 		return SiteStorage.handleGetSites(searchValue, companyID, userID, withCompany, withSiteAreas,
-			withChargeBoxes, withUsers, limit, skip);
+			withChargeBoxes, withUsers, limit, skip, sort);
 	}
 
 	saveSite(site) {

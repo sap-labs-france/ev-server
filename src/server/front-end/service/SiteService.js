@@ -109,7 +109,7 @@ class SiteService {
 			let sites = await global.storage.getSites(filteredRequest.Search, null,
 				filteredRequest.UserID, filteredRequest.WithCompany,
 				filteredRequest.WithSiteAreas, filteredRequest.WithChargeBoxes,
-				filteredRequest.WithUsers, filteredRequest.Limit, filteredRequest.Skip);
+				filteredRequest.WithUsers, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
 			let sitesJSon = [];
 			sites.forEach((site) => {

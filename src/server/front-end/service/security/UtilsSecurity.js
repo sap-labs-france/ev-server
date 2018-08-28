@@ -22,6 +22,30 @@ class UtilsSecurity {
 		return result;
 	}
 
+	static filterSort(request, filteredRequest) {
+		// Exist?
+		if (request.SortFields) {
+			// Sanitize
+			request.SortFields = sanitize(request.SortFields);
+			request.SortDirs = sanitize(request.SortDirs);
+			// Array?
+			if (Array.isArray(request.SortFields) && request.SortFields.length > 0) {
+				// Init
+				filteredRequest.Sort = {};
+				// Build
+				request.SortFields.forEach((sortField, i) => {
+					// Set
+					filteredRequest.Sort[sortField] = (request.SortDirs[i] === "asc" ? 1 : -1);  
+				});
+			} else {
+				// Init
+				filteredRequest.Sort = {};
+				// Set
+				filteredRequest.Sort[request.SortFields] = (request.SortDirs === "asc" ? 1 : -1);  
+			}
+		}
+	}
+
 	static filterSkipAndLimit(request, filteredRequest) {
 		// Limit
 		UtilsSecurity.filterLimit(request, filteredRequest);

@@ -51,6 +51,7 @@ class SiteSecurity {
 		filteredRequest.WithCompany = UtilsSecurity.filterBoolean(request.WithCompany);
 		filteredRequest.WithUsers = UtilsSecurity.filterBoolean(request.WithUsers);
 		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+		UtilsSecurity.filterSort(request, filteredRequest);
 		return filteredRequest;
 	}
 

@@ -202,7 +202,7 @@ class SiteStorage {
 	}
 
 	static async handleGetSites(searchValue, companyID, userID, withCompany, withSiteAreas,
-			withChargeBoxes, withUsers, limit, skip) {
+			withChargeBoxes, withUsers, limit, skip, sort) {
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip
@@ -295,9 +295,17 @@ class SiteStorage {
 			});
 		}
 		// Single Record
-		aggregation.push({
-			$sort: { name : 1 }
-		});
+		if (sort) {
+			// Default
+			aggregation.push({
+				$sort: sort
+			});
+		} else {
+			// Default
+			aggregation.push({
+				$sort: { name : 1 }
+			});
+		}
 		// Skip
 		aggregation.push({
 			$skip: skip
@@ -306,6 +314,9 @@ class SiteStorage {
 		aggregation.push({
 			$limit: limit
 		});
+		console.log('====================================');
+		console.log(JSON.stringify(aggregation, null, ' '));
+		console.log('====================================');
 		// Read DB
 		let sitesMDB = await _db.collection('sites')
 			.aggregate(aggregation)
