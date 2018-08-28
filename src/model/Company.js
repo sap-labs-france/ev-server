@@ -104,7 +104,7 @@ class Company {
 			return this._model.sites.map((site) => new Site(site));
 		} else {
 			// Get from DB
-			let sites = await SiteStorage.getSites(null, this.getID());
+			let sites = await SiteStorage.getSites({'companyID': this.getID()});
 			// Keep it
 			this.setSites(sites);
 			return sites;

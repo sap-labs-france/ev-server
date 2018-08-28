@@ -195,8 +195,7 @@ class SiteStorage {
 			{upsert: true, new: true, returnOriginal: false});
 	}
 
-	static async getSites(searchValue, companyID, userID, withCompany, withSiteAreas,
-			withChargeBoxes, withUsers, limit, skip, sort) {
+	static async getSites(params, limit, skip, sort) {
 		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
 		const Company = require('../../model/Company'); // Avoid fucking circular deps!!!
 		const Site = require('../../model/Site'); // Avoid fucking circular deps!!!
@@ -209,20 +208,20 @@ class SiteStorage {
 		// Set the filters
 		let filters = {};
 		// Source?
-		if (searchValue) {
+		if (params.search) {
 			// Build filter
 			filters.$or = [
-				{ "name" : { $regex : searchValue, $options: 'i' } }
+				{ "name" : { $regex : params.search, $options: 'i' } }
 			];
 		}
 		// Set Company?
-		if (companyID) {
-			filters.companyID = Utils.convertToObjectID(companyID);
+		if (params.companyID) {
+			filters.companyID = Utils.convertToObjectID(params.companyID);
 		}
 		// Create Aggregation
 		let aggregation = [];
 		// Set User?
-		if (withUsers || userID) {
+		if (params.withUsers || params.userID) {
 				// Add Users
 			aggregation.push({
 				$lookup: {
@@ -233,10 +232,10 @@ class SiteStorage {
 				}
 			});
 			// Set
-			if (userID) {
-				filters["siteusers.userID"] = Utils.convertToObjectID(userID);
+			if (params.userID) {
+				filters["siteusers.userID"] = Utils.convertToObjectID(params.userID);
 			}
-			if (withUsers) {
+			if (params.withUsers) {
 				// Add
 				aggregation.push({
 					$lookup: {
@@ -248,7 +247,7 @@ class SiteStorage {
 				});
 			}
 		}
-		if (withSiteAreas || withChargeBoxes) {
+		if (params.withSiteAreas || params.withChargeBoxes) {
 			// Add SiteAreas
 			aggregation.push({
 				$lookup: {
@@ -260,7 +259,7 @@ class SiteStorage {
 			});
 		}
 		// With Chargers?
-		if (withChargeBoxes) {
+		if (params.withChargeBoxes) {
 			aggregation.push({
 				$lookup: {
 					from: "chargingstations",
@@ -279,7 +278,7 @@ class SiteStorage {
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Add Company?
-		if (withCompany) {
+		if (params.withCompany) {
 			aggregation.push({
 				$lookup: {
 					from: "companies",
@@ -325,12 +324,12 @@ class SiteStorage {
 				// Create
 				let site = new Site(siteMDB);
 				// Set Users
-				if ((userID || withUsers) && siteMDB.users) {
+				if ((params.userID || params.withUsers) && siteMDB.users) {
 					// Set Users
 					site.setUsers(siteMDB.users.map((user) => new User(user)));
 				}
 				// Set Site Areas
-				if ((withChargeBoxes || withSiteAreas) && siteMDB.siteAreas) {
+				if ((params.withChargeBoxes || params.withSiteAreas) && siteMDB.siteAreas) {
 					// Sort Site Areas
 					siteMDB.siteAreas.sort((cb1, cb2) => {
 						return cb1.name.localeCompare(cb2.name);

@@ -109,10 +109,11 @@ class SiteService {
 			// Filter
 			let filteredRequest = SiteSecurity.filterSitesRequest(req.query, req.user);
 			// Get the sites
-			let sites = await SiteStorage.getSites(filteredRequest.Search, null,
-				filteredRequest.UserID, filteredRequest.WithCompany,
-				filteredRequest.WithSiteAreas, filteredRequest.WithChargeBoxes,
-				filteredRequest.WithUsers, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+			let sites = await SiteStorage.getSites(
+				{ 'search': filteredRequest.Search, 'userID': filteredRequest.UserID, 'withCompany': filteredRequest.WithCompany, 
+					'withSiteAreas': filteredRequest.WithSiteAreas, 'withChargeBoxes': filteredRequest.WithChargeBoxes, 
+					'withUsers': filteredRequest.WithUsers },
+				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
 			let sitesJSon = [];
 			sites.forEach((site) => {

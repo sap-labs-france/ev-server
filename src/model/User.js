@@ -275,8 +275,8 @@ class User {
 	getSites(withCompany=false, withSiteAreas=false,
 			withChargeBoxes=false, withUsers=false) {
 		// Get Sites
-		return SiteStorage.getSites(null, null, this.getID(),
-			withCompany, withSiteAreas, withChargeBoxes, withUsers);
+		return SiteStorage.getSites({'userID': this.getID(),
+			withCompany, withSiteAreas, withChargeBoxes, withUsers});
 	}
 
 	save() {
