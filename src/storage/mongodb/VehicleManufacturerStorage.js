@@ -115,7 +115,7 @@ class VehicleManufacturerStorage {
 	}
 
 	// Delegate
-	static async getVehicleManufacturers(searchValue, withVehicles, vehicleType, limit, skip) {
+	static async getVehicleManufacturers(params, limit, skip, sort) {
 		const VehicleManufacturer = require('../../model/VehicleManufacturer'); // Avoid fucking circular deps!!!
 		const Vehicle = require('../../model/Vehicle'); // Avoid fucking circular deps!!!
 		// Check Limit
@@ -125,10 +125,10 @@ class VehicleManufacturerStorage {
 		// Set the filters
 		let filters = {};
 		// Source?
-		if (searchValue) {
+		if (params.search) {
 			// Build filter
 			filters.$or = [
-				{ "name" : { $regex : searchValue, $options: 'i' } }
+				{ "name" : { $regex : params.search, $options: 'i' } }
 			];
 		}
 		// Create Aggregation
@@ -139,47 +139,40 @@ class VehicleManufacturerStorage {
 				$match: filters
 			});
 		}
-		//  Vehicles
-		aggregation.push({
-			$lookup: {
-				from: "vehicles",
-				localField: "_id",
-				foreignField: "vehicleManufacturerID",
-				as: "vehicles"
-			}
-		});
-		// Nbre of Vehicles
-		aggregation.push({
-			$addFields: {
-				"numberOfVehicles": { $size: "$vehicles" }
-			}
-		});
 		// With Vehicles
-		if (withVehicles) {
-			// Type?
-			if (vehicleType) {
-				aggregation.push({
-					$match: { "vehicles.type" : vehicleType }
-				});
-			}
-			// Add Vehicle Images
+		if (params.withVehicles || params.vehicleType) {
+			//  Vehicles
 			aggregation.push({
 				$lookup: {
-					from: "vehicleimages",
-					localField: "vehicles._id",
-					foreignField: "_id",
-					as: "vehicleImages"
+					from: "vehicles",
+					localField: "_id",
+					foreignField: "vehicleManufacturerID",
+					as: "vehicles"
 				}
+			});
+		}
+		// Type?
+		if (params.vehicleType) {
+			aggregation.push({
+				$match: { "vehicles.type": params.vehicleType }
 			});
 		}
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Sort
-		aggregation.push({
-			$sort: {
-				name : 1
-			}
-		});
+		if (sort) {
+			// Sort
+			aggregation.push({
+				$sort: sort
+			});
+		} else {
+			// Default
+			aggregation.push({
+				$sort: {
+					name : 1
+				}
+			});
+		}
 		// Skip
 		aggregation.push({
 			$skip: skip
@@ -200,18 +193,7 @@ class VehicleManufacturerStorage {
 				// Create
 				let vehicleManufacturer = new VehicleManufacturer(vehicleManufacturerMDB);
 				// Set Vehicles
-				if (withVehicles && vehicleManufacturerMDB.vehicles) {
-					// Check images
-					vehicleManufacturerMDB.vehicles.forEach((vehicle) => {
-						// Check images
-						for (var i = 0; i < vehicleManufacturerMDB.vehicleImages.length; i++) {
-							// Compare
-							if (vehicleManufacturerMDB.vehicleImages[i]._id.equals(vehicle._id)) {
-								// Set the number of images
-								vehicle.numberOfImages = (vehicleManufacturerMDB.vehicleImages[i].images ? vehicleManufacturerMDB.vehicleImages[i].images.length : 0);
-							}
-						}
-					});
+				if (params.withVehicles && vehicleManufacturerMDB.vehicles) {
 					// Add vehicles
 					vehicleManufacturer.setVehicles(vehicleManufacturerMDB.vehicles.map((vehicle) => {
 						return new Vehicle(vehicle);
