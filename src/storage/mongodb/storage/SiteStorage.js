@@ -314,9 +314,6 @@ class SiteStorage {
 		aggregation.push({
 			$limit: limit
 		});
-		console.log('====================================');
-		console.log(JSON.stringify(aggregation, null, ' '));
-		console.log('====================================');
 		// Read DB
 		let sitesMDB = await _db.collection('sites')
 			.aggregate(aggregation)
