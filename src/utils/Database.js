@@ -315,7 +315,6 @@ module.exports = {
 		if (forFrontEnd) {
 			this.updateID(src, dest);
 			dest.logo = src.logo;
-			dest.numberOfSites = src.numberOfSites;
 		}
 		dest.name = src.name;
 		dest.address = {};

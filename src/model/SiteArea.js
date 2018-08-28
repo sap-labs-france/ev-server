@@ -147,7 +147,8 @@ class SiteArea {
 			return this._model.chargeBoxes.map((chargeBox) => new ChargingStation(chargeBox));
 		} else {
 			// Get from DB
-			let chargeBoxes = await ChargingStationStorage.getChargingStations(null, this.getID(), Constants.NO_LIMIT);
+			let chargeBoxes = await ChargingStationStorage.getChargingStations(
+				{ siteAreaID: this.getID() }, Constants.NO_LIMIT);
 			// Keep it
 			this.setChargingStations(chargeBoxes);
 			return chargeBoxes;

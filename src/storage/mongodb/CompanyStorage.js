@@ -116,7 +116,7 @@ class CompanyStorage {
 	}
 
 	// Delegate
-	static async getCompanies(searchValue, withSites, limit, skip) {
+	static async getCompanies(params, limit, skip) {
 		const Company = require('../../model/Company'); // Avoid fucking circular deps!!!
 		const Site = require('../../model/Site');  // Avoid fucking circular deps!!!
 		// Check Limit
@@ -126,12 +126,12 @@ class CompanyStorage {
 		// Set the filters
 		let filters = {};
 		// Source?
-		if (searchValue) {
+		if (params.search) {
 			// Build filter
 			filters.$or = [
-				{ "name" : { $regex : searchValue, $options: 'i' } },
-				{ "address.city" : { $regex : searchValue, $options: 'i' } },
-				{ "address.country" : { $regex : searchValue, $options: 'i' } }
+				{ "name" : { $regex : params.search, $options: 'i' } },
+				{ "address.city" : { $regex : params.search, $options: 'i' } },
+				{ "address.country" : { $regex : params.search, $options: 'i' } }
 			];
 		}
 		// Create Aggregation
@@ -142,20 +142,17 @@ class CompanyStorage {
 				$match: filters
 			});
 		}
-		// Add Sites
-		aggregation.push({
-			$lookup: {
-				from: "sites",
-				localField: "_id",
-				foreignField: "companyID",
-				as: "sites"
-			}
-		});
-		aggregation.push({
-			$addFields: {
-				"numberOfSites": { $size: "$sites" }
-			}
-		});
+		if (params.withSites) {
+			// Add Sites
+			aggregation.push({
+				$lookup: {
+					from: "sites",
+					localField: "_id",
+					foreignField: "companyID",
+					as: "sites"
+				}
+			});
+		}
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Sort
@@ -182,7 +179,7 @@ class CompanyStorage {
 				// Create
 				let company = new Company(companyMDB);
 				// Set site
-				if (withSites && companyMDB.sites) {
+				if (params.withSites && companyMDB.sites) {
 					company.setSites(companyMDB.sites.map((site) => {
 						return new Site(site);
 					}));

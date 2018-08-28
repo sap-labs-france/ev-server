@@ -51,7 +51,7 @@ class ChargingStationStorage {
 		return chargingStation;
 	}
 
-	static async getChargingStations(searchValue, siteAreaID, withNoSiteArea, limit, skip) {
+	static async getChargingStations(params, limit, skip) {
 		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
@@ -77,26 +77,23 @@ class ChargingStationStorage {
 			}]
 		};
 		// Source?
-		if (searchValue) {
+		if (params.search) {
 			// Build filter
 			filters.$and.push({
 				"$or": [{
-					"_id": {
-						$regex: searchValue,
-						$options: 'i'
-					}
+					"_id": { $regex: params.search, $options: 'i' }
 				}]
 			});
 		}
 		// Source?
-		if (siteAreaID) {
+		if (params.siteAreaID) {
 			// Build filter
 			filters.$and.push({
-				"siteAreaID": Utils.convertToObjectID(siteAreaID)
+				"siteAreaID": Utils.convertToObjectID(params.siteAreaID)
 			});
 		}
 		// With no Site Area
-		if (withNoSiteArea) {
+		if (params.withNoSiteArea) {
 			// Build filter
 			// Build filter
 			filters.$and.push({

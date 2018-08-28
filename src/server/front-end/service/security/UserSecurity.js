@@ -113,8 +113,6 @@ class UserSecurity {
 				filteredUser.eulaAcceptedVersion = user.eulaAcceptedVersion;
 				filteredUser.tagIDs = user.tagIDs;
 				filteredUser.role = user.role;
-				filteredUser.numberOfTransactions = user.numberOfTransactions;
-				filteredUser.numberOfSites = user.numberOfSites;
 				if (user.address) {
 					filteredUser.address = UtilsSecurity.filterAddressRequest(user.address, loggedUser);
 				}

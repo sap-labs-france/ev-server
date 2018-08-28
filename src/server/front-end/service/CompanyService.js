@@ -181,8 +181,9 @@ class CompanyService {
 			// Filter
 			let filteredRequest = CompanySecurity.filterCompaniesRequest(req.query, req.user);
 			// Get the companies
-			let companies = await CompanyStorage.getCompanies(filteredRequest.Search,
-					filteredRequest.WithSites, filteredRequest.Limit, filteredRequest.Skip);
+			let companies = await CompanyStorage.getCompanies(
+				{ search: filteredRequest.Search, withSites: filteredRequest.WithSites },
+				filteredRequest.Limit, filteredRequest.Skip);
 			let companiesJSon = [];
 			companies.forEach((company) => {
 				// Set the model
