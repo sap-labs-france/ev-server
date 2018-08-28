@@ -110,7 +110,7 @@ class VehicleManufacturerService {
 			// Get the vehicle Manufacturers
 			let vehicleManufacturers = await VehicleManufacturerStorage.getVehicleManufacturers(filteredRequest.Search,
 				filteredRequest.WithVehicles, filteredRequest.VehicleType, 
-				filteredRequest.Limit, filteredRequest.Skip);
+				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Build
 			let vehicleManufacturersJSon = [];
 			vehicleManufacturers.forEach((vehicleManufacturer) => {

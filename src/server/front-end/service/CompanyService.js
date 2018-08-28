@@ -183,7 +183,7 @@ class CompanyService {
 			// Get the companies
 			let companies = await CompanyStorage.getCompanies(
 				{ search: filteredRequest.Search, withSites: filteredRequest.WithSites },
-				filteredRequest.Limit, filteredRequest.Skip);
+				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			let companiesJSon = [];
 			companies.forEach((company) => {
 				// Set the model

@@ -239,7 +239,7 @@ class UserStorage {
 			{upsert: true, new: true, returnOriginal: false});
 	}
 
-	static async getUsers(searchValue, siteID, limit, skip) {
+	static async getUsers(params, limit, skip, sort) {
 		const User = require('../../model/User'); // Avoid circular fucking deps!!! 
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
@@ -257,15 +257,15 @@ class UserStorage {
 			]
 		};
 		// Source?
-		if (searchValue) {
+		if (params.search) {
 			// Build filter
 			filters.$and.push({
 				"$or": [
-					{ "_id" : { $regex : searchValue, $options: 'i' } },
-					{ "name" : { $regex : searchValue, $options: 'i' } },
-					{ "firstName" : { $regex : searchValue, $options: 'i' } },
-					{ "tags._id" : { $regex : searchValue, $options: 'i' } },
-					{ "email" : { $regex : searchValue, $options: 'i' } }
+					{ "_id" : { $regex : params.search, $options: 'i' } },
+					{ "name" : { $regex : params.search, $options: 'i' } },
+					{ "firstName" : { $regex : params.search, $options: 'i' } },
+					{ "tags._id" : { $regex : params.search, $options: 'i' } },
+					{ "email" : { $regex : params.search, $options: 'i' } }
 				]
 			});
 		}
@@ -289,7 +289,7 @@ class UserStorage {
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Site ID?
-		if (siteID) {
+		if (params.siteID) {
 			// Add Site
 			aggregation.push({
 				$lookup: {
@@ -300,7 +300,7 @@ class UserStorage {
 				}
 			});
 			aggregation.push({
-				$match: { "siteusers.siteID": Utils.convertToObjectID(siteID) }
+				$match: { "siteusers.siteID": Utils.convertToObjectID(params.siteID) }
 			});
 		}
 		// Project
@@ -322,9 +322,17 @@ class UserStorage {
 		 }
 		});
 		// Sort
-		aggregation.push({
-			$sort: { status: -1, name: 1, firstName: 1 }
-		});
+		if (sort) {
+			// Sort
+			aggregation.push({
+				$sort: sort
+			});
+		} else {
+			// Default
+			aggregation.push({
+				$sort: { status: -1, name: 1, firstName: 1 }
+			});
+		}
 		// Skip
 		aggregation.push({
 			$skip: skip

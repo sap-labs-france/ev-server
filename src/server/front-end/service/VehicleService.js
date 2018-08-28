@@ -109,7 +109,7 @@ class VehicleService {
 			// Get the vehicles
 			let vehicles = await VehicleStorage.getVehicles(
 				filteredRequest.Search, null, filteredRequest.Type, 
-				filteredRequest.Limit, filteredRequest.Skip);
+				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			let vehiclesJSon = [];
 			vehicles.forEach((vehicle) => {
 				// Set the model

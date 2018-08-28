@@ -245,7 +245,7 @@ class ChargingStationService {
 			// Get the charging stfoundChargingStationsations
 			let chargingStations = await ChargingStationStorage.getChargingStations(
 				{ 'search': filteredRequest.Search, 'withNoSiteArea': filteredRequest.WithNoSiteArea },
-				filteredRequest.Limit, filteredRequest.Skip);
+				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
 			let chargingStationsJSon = [];
 			chargingStations.forEach((chargingStation) => {

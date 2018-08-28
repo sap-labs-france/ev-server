@@ -36,6 +36,8 @@ class TransactionSecurity {
 		let filteredRequest = {};
 		filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
 		filteredRequest.ConnectorId = sanitize(request.ConnectorId);
+		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+		UtilsSecurity.filterSort(request, filteredRequest);
 		return filteredRequest;
 	}
 
