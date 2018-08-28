@@ -1,16 +1,10 @@
-const Database = require('../../../utils/Database');
-const Utils = require('../../../utils/Utils');
-
-let _db;
+const Database = require('../../utils/Database');
+const Utils = require('../../utils/Utils');
 
 class PricingStorage {
-	static setDatabase(db) {
-		_db = db;
-	}
-
-	static async handleGetPricing() {
+	static async getPricing() {
 		// Read DB
-		let pricingsMDB = await _db.collection('pricings')
+		let pricingsMDB = await global.db.collection('pricings')
 			.find({})
 			.limit(1)
 			.toArray();
@@ -25,14 +19,14 @@ class PricingStorage {
 		return pricing;
 	}
 
-	static async handleSavePricing(pricingToSave) {
+	static async savePricing(pricingToSave) {
 		// Check date
 		pricingToSave.timestamp = Utils.convertToDate(pricingToSave.timestamp);
 		// Transfer
 		let pricing = {};
 		Database.updatePricing(pricingToSave, pricing, false)
 		// Modify
-	    await _db.collection('pricings').findOneAndUpdate(
+	    await global.db.collection('pricings').findOneAndUpdate(
 			{},
 			{$set: pricing},
 			{upsert: true, new: true, returnOriginal: false});

@@ -1,18 +1,12 @@
-const Utils = require('../../../utils/Utils');
-const Database = require('../../../utils/Database');
-const ChargingStation = require('../../../model/ChargingStation');
-const SiteArea = require('../../../model/SiteArea');
+const Utils = require('../../utils/Utils');
+const Database = require('../../utils/Database');
 const crypto = require('crypto');
 
-let _db;
-
 class ChargingStationStorage {
-	static setDatabase(db) {
-		_db = db;
-	}
-
-	static async handleGetChargingStation(id) {
-		// Create Aggregation
+	static async getChargingStation(id) {
+		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
+		const SiteArea = require('../../model/SiteArea'); // Avoid fucking circular deps!!!
+	// Create Aggregation
 		let aggregation = [];
 		// Filters
 		aggregation.push({
@@ -39,7 +33,7 @@ class ChargingStationStorage {
 			}
 		});
 		// Read DB
-		let chargingStationMDB = await _db.collection('chargingstations')
+		let chargingStationMDB = await global.db.collection('chargingstations')
 			.aggregate(aggregation)
 			.limit(1)
 			.toArray();
@@ -57,7 +51,8 @@ class ChargingStationStorage {
 		return chargingStation;
 	}
 
-	static async handleGetChargingStations(searchValue, siteAreaID, withNoSiteArea, limit, skip) {
+	static async getChargingStations(searchValue, siteAreaID, withNoSiteArea, limit, skip) {
+		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip
@@ -129,7 +124,7 @@ class ChargingStationStorage {
 			$limit: limit
 		});
 		// Read DB
-		let chargingStationsMDB = await _db.collection('chargingstations')
+		let chargingStationsMDB = await global.db.collection('chargingstations')
 			.aggregate(aggregation)
 			.toArray();
 		let chargingStations = [];
@@ -141,7 +136,8 @@ class ChargingStationStorage {
 		return chargingStations;
 	}
 
-	static async handleSaveChargingStation(chargingStationToSave) {
+	static async saveChargingStation(chargingStationToSave) {
+		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
 		// Check Site Area
 		chargingStationToSave.siteAreaID = null;
 		if (chargingStationToSave.siteArea && chargingStationToSave.siteArea.id) {
@@ -155,7 +151,7 @@ class ChargingStationStorage {
 		let chargingStation = {};
 		Database.updateChargingStation(chargingStationToSave, chargingStation, false);
 		// Modify and return the modified document
-		let result = await _db.collection('chargingstations').findOneAndUpdate({
+		let result = await global.db.collection('chargingstations').findOneAndUpdate({
 			"_id": chargingStationToSave.id
 		}, {
 			$set: chargingStation
@@ -168,11 +164,12 @@ class ChargingStationStorage {
 		return new ChargingStation(result.value);
 	}
 
-	static async handleSaveChargingStationConnector(chargingStation, connectorId) {
+	static async saveChargingStationConnector(chargingStation, connectorId) {
+		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
 		let updatedFields = {};
 		updatedFields["connectors." + (connectorId - 1)] = chargingStation.connectors[connectorId - 1];
 		// Modify and return the modified document
-		let result = await _db.collection('chargingstations').findOneAndUpdate({
+		let result = await global.db.collection('chargingstations').findOneAndUpdate({
 			"_id": chargingStation.id
 		}, {
 			$set: updatedFields
@@ -185,11 +182,12 @@ class ChargingStationStorage {
 		return new ChargingStation(result.value);
 	}
 
-	static async handleSaveChargingStationHeartBeat(chargingStation) {
+	static async saveChargingStationHeartBeat(chargingStation) {
+		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
 		let updatedFields = {};
 		updatedFields["lastHeartBeat"] = Utils.convertToDate(chargingStation.lastHeartBeat);
 		// Modify and return the modified document
-		let result = await _db.collection('chargingstations').findOneAndUpdate({
+		let result = await global.db.collection('chargingstations').findOneAndUpdate({
 			"_id": chargingStation.id
 		}, {
 			$set: updatedFields
@@ -202,7 +200,8 @@ class ChargingStationStorage {
 		return new ChargingStation(result.value);
 	}
 
-	static async handleSaveChargingStationSiteArea(chargingStation) {
+	static async saveChargingStationSiteArea(chargingStation) {
+		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
 		let updatedFields = {};
 		updatedFields["siteAreaID"] = (chargingStation.siteArea ? Utils.convertToObjectID(chargingStation.siteArea.id) : null);
 		// Check Last Changed By
@@ -212,7 +211,7 @@ class ChargingStationStorage {
 			updatedFields["lastChangedOn"] = Utils.convertToDate(chargingStation.lastChangedOn);
 		}
 		// Modify and return the modified document
-		let result = await _db.collection('chargingstations').findOneAndUpdate({
+		let result = await global.db.collection('chargingstations').findOneAndUpdate({
 			"_id": chargingStation.id
 		}, {
 			$set: updatedFields
@@ -225,21 +224,21 @@ class ChargingStationStorage {
 		return new ChargingStation(result.value);
 	}
 
-	static async handleDeleteChargingStation(id) {
+	static async deleteChargingStation(id) {
 		// Delete Configuration
-		await _db.collection('configurations')
+		await global.db.collection('configurations')
 			.findOneAndDelete({
 				'_id': id
 			});
 		// Delete Charger
-		await _db.collection('chargingstations')
+		await global.db.collection('chargingstations')
 			.findOneAndDelete({
 				'_id': id
 			});
 		// Keep the rest (bootnotif, authorize...)
 	}
 
-	static async handleSaveAuthorize(authorize) {
+	static async saveAuthorize(authorize) {
 		// Set the ID
 		authorize.id = crypto.createHash('sha256')
 			.update(`${authorize.chargeBoxID}~${authorize.timestamp.toISOString()}`)
@@ -249,7 +248,7 @@ class ChargingStationStorage {
 			authorize.userID = Utils.convertToObjectID(authorize.user.getID());
 		}
 		// Insert
-		await _db.collection('authorizes')
+		await global.db.collection('authorizes')
 			.insertOne({
 				_id: authorize.id,
 				tagID: authorize.idTag,
@@ -259,9 +258,9 @@ class ChargingStationStorage {
 			});
 	}
 
-	static async handleSaveConfiguration(configuration) {
+	static async saveConfiguration(configuration) {
 		// Modify
-		await _db.collection('configurations').findOneAndUpdate({
+		await global.db.collection('configurations').findOneAndUpdate({
 			"_id": configuration.chargeBoxID
 		}, {
 			$set: {
@@ -275,13 +274,13 @@ class ChargingStationStorage {
 		});
 	}
 
-	static async handleSaveDataTransfer(dataTransfer) {
+	static async saveDataTransfer(dataTransfer) {
 		// Set the ID
 		dataTransfer.id = crypto.createHash('sha256')
 			.update(`${dataTransfer.chargeBoxID}~${dataTransfer.data}~${dataTransfer.timestamp}`)
 			.digest("hex");
 		// Insert
-		await _db.collection('datatransfers')
+		await global.db.collection('datatransfers')
 			.insertOne({
 				_id: dataTransfer.id,
 				vendorId: dataTransfer.vendorId,
@@ -292,9 +291,9 @@ class ChargingStationStorage {
 			});
 	}
 
-	static async handleSaveBootNotification(bootNotification) {
+	static async saveBootNotification(bootNotification) {
 		// Insert
-		let result = await _db.collection('bootnotifications')
+		let result = await global.db.collection('bootnotifications')
 			.insertOne({
 				_id: crypto.createHash('sha256')
 					.update(`${bootNotification.chargeBoxID}~${bootNotification.timestamp}`)
@@ -312,13 +311,13 @@ class ChargingStationStorage {
 			});
 	}
 
-	static async handleSaveDiagnosticsStatusNotification(diagnosticsStatusNotification) {
+	static async saveDiagnosticsStatusNotification(diagnosticsStatusNotification) {
 		// Set the ID
 		diagnosticsStatusNotification.id = crypto.createHash('sha256')
 			.update(`${diagnosticsStatusNotification.chargeBoxID}~${diagnosticsStatusNotification.timestamp.toISOString()}`)
 			.digest("hex");
 		// Insert
-		await _db.collection('diagnosticsstatusnotifications')
+		await global.db.collection('diagnosticsstatusnotifications')
 			.insertOne({
 				_id: diagnosticsStatusNotification.id,
 				chargeBoxID: diagnosticsStatusNotification.chargeBoxID,
@@ -327,13 +326,13 @@ class ChargingStationStorage {
 			});
 	}
 
-	static async handleSaveFirmwareStatusNotification(firmwareStatusNotification) {
+	static async saveFirmwareStatusNotification(firmwareStatusNotification) {
 		// Set the ID
 		firmwareStatusNotification.id = crypto.createHash('sha256')
 			.update(`${firmwareStatusNotification.chargeBoxID}~${firmwareStatusNotification.timestamp.toISOString()}`)
 			.digest("hex");
 		// Insert
-		await _db.collection('firmwarestatusnotifications')
+		await global.db.collection('firmwarestatusnotifications')
 			.insertOne({
 				_id: firmwareStatusNotification.id,
 				chargeBoxID: firmwareStatusNotification.chargeBoxID,
@@ -342,7 +341,7 @@ class ChargingStationStorage {
 			});
 	}
 
-	static async handleSaveStatusNotification(statusNotificationToSave) {
+	static async saveStatusNotification(statusNotificationToSave) {
 		let statusNotification = {};
 		// Set the ID
 		statusNotification._id = crypto.createHash('sha256')
@@ -351,11 +350,11 @@ class ChargingStationStorage {
 		// Set
 		Database.updateStatusNotification(statusNotificationToSave, statusNotification, false);
 		// Insert
-		await _db.collection('statusnotifications')
+		await global.db.collection('statusnotifications')
 			.insertOne(statusNotification);
 	}
 
-	static async handleGetConfigurationParamValue(chargeBoxID, paramName) {
+	static async getConfigurationParamValue(chargeBoxID, paramName) {
 		// Get the config
 		let configuration = await ChargingStationStorage.getConfiguration(chargeBoxID);
 		let value = null;
@@ -377,9 +376,9 @@ class ChargingStationStorage {
 		return value;
 	}
 
-	static async handleGetConfiguration(chargeBoxID) {
+	static async getConfiguration(chargeBoxID) {
 		// Read DB
-		let configurationsMDB = await _db.collection('configurations')
+		let configurationsMDB = await global.db.collection('configurations')
 			.find({
 				"_id": chargeBoxID
 			})

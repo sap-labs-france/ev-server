@@ -1,17 +1,4 @@
 const Logging = require('../../utils/Logging');
-const LoggingStorage = require('./storage/LoggingStorage');
-const ChargingStationStorage = require('./storage/ChargingStationStorage');
-const PricingStorage = require('./storage/PricingStorage');
-const TransactionStorage = require('./storage/TransactionStorage');
-const NotificationStorage = require('./storage/NotificationStorage');
-const StatisticsStorage = require('./storage/StatisticsStorage');
-const UserStorage = require('./storage/UserStorage');
-const VehicleStorage = require('./storage/VehicleStorage');
-const CompanyStorage = require('./storage/CompanyStorage');
-const SiteStorage = require('./storage/SiteStorage');
-const SiteAreaStorage = require('./storage/SiteAreaStorage');
-const MigrationStorage = require('./storage/MigrationStorage');
-const VehicleManufacturerStorage = require('./storage/VehicleManufacturerStorage');
 const MongoClient = require('mongodb').MongoClient;
 const mongoUriBuilder = require('mongo-uri-builder');
 const urlencode = require('urlencode');
@@ -21,9 +8,8 @@ require('source-map-support').install();
 
 let _dbConfig;
 let _mongoDBClient;
-let _evseDB;
+let _db;
 let _mongoDBStorageNotification;
-let _centralRestServer;
 
 class MongoDBStorage {
 	// Create database access
@@ -62,7 +48,7 @@ class MongoDBStorage {
 		}
 	}
 
-	async checkEVSEDatabase(db) {
+	async checkDatabase(db) {
 		// Get all the collections
 		let collections = await db.listCollections({}).toArray();
 		// Check only collections with indexes
@@ -132,25 +118,14 @@ class MongoDBStorage {
 			}
 		);
 		// Get the EVSE DB
-		_evseDB = _mongoDBClient.db(_dbConfig.schema);
+		_db = _mongoDBClient.db(_dbConfig.schema);
 
 		// Check EVSE Database
-		await this.checkEVSEDatabase(_evseDB);
+		await this.checkDatabase(_db);
 
-		// Set EVSE DB
-		StatisticsStorage.setDatabase(_evseDB);
-		LoggingStorage.setDatabase(_evseDB);
-		ChargingStationStorage.setDatabase(_evseDB);
-		PricingStorage.setDatabase(_evseDB);
-		TransactionStorage.setDatabase(_evseDB);
-		UserStorage.setDatabase(_evseDB);
-		CompanyStorage.setDatabase(_evseDB);
-		SiteStorage.setDatabase(_evseDB);
-		SiteAreaStorage.setDatabase(_evseDB);
-		VehicleStorage.setDatabase(_evseDB);
-		VehicleManufacturerStorage.setDatabase(_evseDB);
-		MigrationStorage.setDatabase(_evseDB);
-		NotificationStorage.setDatabase(_evseDB);
+		// Keep the DB access global
+		global.db = _db;
+
 		// Log
 		Logging.logInfo({
 			module: 'MongoDBStorage', method: 'start', action: 'Startup',
@@ -163,428 +138,12 @@ class MongoDBStorage {
 		if (_dbConfig.monitorDBChange) {
 			// Monitor MongoDB for Notifications
 			_mongoDBStorageNotification = new MongoDBStorageNotification(
-				_dbConfig, _evseDB);
+				_dbConfig, _db);
 			// Set Central Rest Server
 			_mongoDBStorageNotification.setCentralRestServer(centralRestServer);
 			// Start
 			await _mongoDBStorageNotification.start();
 		}
-	}
-
-	getEndUserLicenseAgreement(language = 'en') {
-		// Delegate
-		return UserStorage.handleGetEndUserLicenseAgreement(language);
-	}
-
-	getConfigurationParamValue(chargeBoxID, paramName) {
-		// Delegate
-		return ChargingStationStorage.handleGetConfigurationParamValue(chargeBoxID, paramName);
-	}
-
-	getLogs(dateFrom, level, type, chargingStation, searchValue, action, limit, skip, sort) {
-		// Delegate
-		return LoggingStorage.handleGetLogs(dateFrom, level, type, chargingStation, searchValue, action, limit, skip, sort);
-	}
-
-	getLog(id) {
-		// Delegate
-		return LoggingStorage.handleGetLog(id);
-	}
-
-	saveLog(log) {
-		// Delegate
-		return LoggingStorage.handleSaveLog(log);
-	}
-
-	deleteLogs(deleteUpToDate) {
-		// Delegate
-		return LoggingStorage.handleDeleteLogs(deleteUpToDate);
-	}
-
-	deleteSecurityLogs(deleteUpToDate) {
-		// Delegate
-		return LoggingStorage.handleDeleteSecurityLogs(deleteUpToDate);
-	}
-
-	getConfiguration(chargeBoxID) {
-		// Delegate
-		return ChargingStationStorage.handleGetConfiguration(chargeBoxID);
-	}
-
-	getTransactionYears() {
-		return TransactionStorage.handleGetTransactionYears();
-	}
-
-	getPricing() {
-		// Delegate
-		return PricingStorage.handleGetPricing();
-	}
-
-	savePricing(pricing) {
-		// Delegate
-		return PricingStorage.handleSavePricing(pricing);
-	}
-
-	getMeterValuesFromTransaction(transactionId) {
-		// Delegate
-		return TransactionStorage.handleGetMeterValuesFromTransaction(transactionId);
-	}
-
-	deleteTransaction(transaction) {
-		// Delegate
-		return TransactionStorage.handleDeleteTransaction(transaction);
-	}
-
-	saveBootNotification(bootNotification) {
-		// Delegate
-		return ChargingStationStorage.handleSaveBootNotification(bootNotification);
-	}
-
-	saveNotification(notification) {
-		// Delegate
-		return NotificationStorage.handleSaveNotification(notification);
-	}
-
-	getNotifications(sourceId) {
-		// Delegate
-		return NotificationStorage.handleGetNotification(sourceId);
-	}
-
-	saveDataTransfer(dataTransfer) {
-		// Delegate
-		return ChargingStationStorage.handleSaveDataTransfer(dataTransfer);
-	}
-
-	saveConfiguration(configuration) {
-		// Delegate
-		return ChargingStationStorage.handleSaveConfiguration(configuration);
-	}
-
-	saveStatusNotification(statusNotification) {
-		// Delegate
-		return ChargingStationStorage.handleSaveStatusNotification(statusNotification);
-	}
-
-	saveDiagnosticsStatusNotification(diagnosticsStatusNotification) {
-		// Delegate
-		return ChargingStationStorage.handleSaveDiagnosticsStatusNotification(diagnosticsStatusNotification);
-	}
-
-	saveFirmwareStatusNotification(firmwareStatusNotification) {
-		// Delegate
-		return ChargingStationStorage.handleSaveFirmwareStatusNotification(firmwareStatusNotification);
-	}
-
-	saveAuthorize(authorize) {
-		// Delegate
-		return ChargingStationStorage.handleSaveAuthorize(authorize);
-	}
-
-	saveTransaction(transaction) {
-		// Delegate
-		return TransactionStorage.handleSaveTransaction(transaction);
-	}
-
-	getMigrations() {
-		// Delegate
-		return MigrationStorage.handleGetMigrations();
-	}
-
-	saveMigration(migration) {
-		// Delegate
-		return MigrationStorage.handleSaveMigration(migration);
-	}
-
-	saveMeterValues(meterValues) {
-		// Delegate
-		return TransactionStorage.handleSaveMeterValues(meterValues);
-	}
-
-	getTransactions(searchValue = null, filter = {}, siteID = null, withChargeBoxes = false, limit, skip) {
-		// Delegate
-		return TransactionStorage.handleGetTransactions(searchValue, filter, siteID, withChargeBoxes, limit, skip);
-	}
-
-	getActiveTransaction(chargeBoxID, connectorID) {
-		// Delegate
-		return TransactionStorage.handleGetActiveTransaction(chargeBoxID, connectorID);
-	}
-
-	getTransaction(transactionId) {
-		// Delegate
-		return TransactionStorage.handleGetTransaction(transactionId);
-	}
-
-	saveChargingStationConnector(chargingStation, connectorId) {
-		// Delegate
-		return ChargingStationStorage.handleSaveChargingStationConnector(
-			chargingStation, connectorId);
-	}
-
-	saveChargingStationHeartBeat(chargingStation) {
-		// Delegate
-		return ChargingStationStorage.handleSaveChargingStationHeartBeat(
-			chargingStation);
-	}
-
-	saveChargingStationSiteArea(chargingStation) {
-		// Delegate
-		return ChargingStationStorage.handleSaveChargingStationSiteArea(
-			chargingStation);
-	}
-
-	saveChargingStation(chargingStation) {
-		// Delegate
-		return ChargingStationStorage.handleSaveChargingStation(chargingStation);
-	}
-
-	deleteChargingStation(id) {
-		// Delegate
-		return ChargingStationStorage.handleDeleteChargingStation(id);
-	}
-
-	getChargingStations(searchValue, siteAreaID, withNoSiteArea = false, limit, skip) {
-		// Delegate
-		return ChargingStationStorage.handleGetChargingStations(searchValue, siteAreaID, withNoSiteArea, limit, skip);
-	}
-
-	getChargingStation(id) {
-		// Delegate
-		return ChargingStationStorage.handleGetChargingStation(id);
-	}
-
-	getUsers(searchValue, siteID, limit, skip) {
-		// Delegate
-		return UserStorage.handleGetUsers(searchValue, siteID, limit, skip);
-	}
-
-	saveUser(user) {
-		// Delegate
-		return UserStorage.handleSaveUser(user);
-	}
-
-	saveUserImage(user) {
-		// Delegate
-		return UserStorage.handleSaveUserImage(user);
-	}
-
-	getUser(id) {
-		// Delegate
-		return UserStorage.handleGetUser(id);
-	}
-
-	getUserImage(id) {
-		// Delegate
-		return UserStorage.handleGetUserImage(id);
-	}
-
-	getUserImages() {
-		// Delegate
-		return UserStorage.handleGetUserImages();
-	}
-
-	deleteUser(id) {
-		// Delegate
-		return UserStorage.handleDeleteUser(id);
-	}
-
-	getUserByEmail(email) {
-		// Delegate
-		return UserStorage.handleGetUserByEmail(email);
-	}
-
-	getUserByTagId(tagID) {
-		// Delegate
-		return UserStorage.handleGetUserByTagId(tagID);
-	}
-
-	getCompanies(searchValue, withSites = false, limit, skip) {
-		// Delegate
-		return CompanyStorage.handleGetCompanies(searchValue, withSites, limit, skip);
-	}
-
-	getCompany(id) {
-		// Delegate
-		return CompanyStorage.handleGetCompany(id);
-	}
-
-	getCompanyLogo(id) {
-		// Delegate
-		return CompanyStorage.handleGetCompanyLogo(id);
-	}
-
-	getCompanyLogos() {
-		// Delegate
-		return CompanyStorage.handleGetCompanyLogos();
-	}
-
-	saveCompanyLogo(company) {
-		// Delegate
-		return CompanyStorage.handleSaveCompanyLogo(company);
-	}
-
-	deleteCompany(id) {
-		// Delegate
-		return CompanyStorage.handleDeleteCompany(id);
-	}
-
-	saveCompany(company) {
-		// Delegate
-		return CompanyStorage.handleSaveCompany(company);
-	}
-
-	getVehicleManufacturers(searchValue, withVehicles = false, vehicleType, limit, skip) {
-		// Delegate
-		return VehicleManufacturerStorage.handleGetVehicleManufacturers(
-			searchValue, withVehicles, vehicleType, limit, skip);
-	}
-
-	getVehicleManufacturer(id) {
-		// Delegate
-		return VehicleManufacturerStorage.handleGetVehicleManufacturer(id);
-	}
-
-	deleteVehicleManufacturer(id) {
-		// Delegate
-		return VehicleManufacturerStorage.handleDeleteVehicleManufacturer(id);
-	}
-
-	saveVehicleManufacturer(vehicleManufacturer) {
-		// Delegate
-		return VehicleManufacturerStorage.handleSaveVehicleManufacturer(vehicleManufacturer);
-	}
-
-	getVehicleManufacturerLogo(id) {
-		// Delegate
-		return VehicleManufacturerStorage.handleGetVehicleManufacturerLogo(id);
-	}
-
-	getVehicleManufacturerLogos() {
-		// Delegate
-		return VehicleManufacturerStorage.handleGetVehicleManufacturerLogos();
-	}
-
-	saveVehicleManufacturerLogo(vehicleManufacturer) {
-		// Delegate
-		return VehicleManufacturerStorage.handleSaveVehicleManufacturerLogo(vehicleManufacturer);
-	}
-
-	getSiteAreas(searchValue, siteID = null, withChargeBoxes = false, limit, skip) {
-		// Delegate
-		return SiteAreaStorage.handleGetSiteAreas(searchValue, siteID,
-			withChargeBoxes, limit, skip);
-	}
-
-	saveSiteArea(siteArea) {
-		// Delegate
-		return SiteAreaStorage.handleSaveSiteArea(siteArea);
-	}
-
-	saveSiteAreaImage(siteArea) {
-		// Delegate
-		return SiteAreaStorage.handleSaveSiteAreaImage(siteArea);
-	}
-
-	deleteSiteArea(id) {
-		// Delegate
-		return SiteAreaStorage.handleDeleteSiteArea(id);
-	}
-
-	getSiteArea(id, withChargeBoxes = false, withSite = false) {
-		// Delegate
-		return SiteAreaStorage.handleGetSiteArea(id, withChargeBoxes, withSite);
-	}
-
-	getSiteAreaImage(id) {
-		// Delegate
-		return SiteAreaStorage.handleGetSiteAreaImage(id);
-	}
-
-	getSiteAreaImages() {
-		// Delegate
-		return SiteAreaStorage.handleGetSiteAreaImages();
-	}
-
-	getSites(searchValue, companyID = null, userID = null, withCompany = false, withSiteAreas = false,
-		withChargeBoxes = false, withUsers = false, limit, skip, sort) {
-		// Delegate
-		return SiteStorage.handleGetSites(searchValue, companyID, userID, withCompany, withSiteAreas,
-			withChargeBoxes, withUsers, limit, skip, sort);
-	}
-
-	saveSite(site) {
-		// Delegate
-		return SiteStorage.handleSaveSite(site);
-	}
-
-	saveSiteImage(site) {
-		// Delegate
-		return SiteStorage.handleSaveSiteImage(site);
-	}
-
-	deleteSite(id) {
-		// Delegate
-		return SiteStorage.handleDeleteSite(id);
-	}
-
-	getSite(id, withCompany = false, withUsers = false) {
-		// Delegate
-		return SiteStorage.handleGetSite(id, withCompany, withUsers);
-	}
-
-	getSiteImage(id) {
-		// Delegate
-		return SiteStorage.handleGetSiteImage(id);
-	}
-
-	getSiteImages() {
-		// Delegate
-		return SiteStorage.handleGetSiteImages();
-	}
-
-	getVehicles(searchValue, vehicleManufacturerID = null, vehicleType, limit, skip) {
-		// Delegate
-		return VehicleStorage.handleGetVehicles(searchValue, vehicleManufacturerID, vehicleType, limit, skip);
-	}
-
-	saveVehicle(vehicle) {
-		// Delegate
-		return VehicleStorage.handleSaveVehicle(vehicle);
-	}
-
-	saveVehicleImages(vehicle) {
-		// Delegate
-		return VehicleStorage.handleSaveVehicleImages(vehicle);
-	}
-
-	deleteVehicle(id) {
-		// Delegate
-		return VehicleStorage.handleDeleteVehicle(id);
-	}
-
-	getVehicle(id) {
-		// Delegate
-		return VehicleStorage.handleGetVehicle(id);
-	}
-
-	getVehicleImage(id) {
-		// Delegate
-		return VehicleStorage.handleGetVehicleImage(id);
-	}
-
-	getVehicleImages() {
-		// Delegate
-		return VehicleStorage.handleGetVehicleImages();
-	}
-
-	getChargingStationStats(filter, siteID, groupBy) {
-		// Delegate
-		return StatisticsStorage.handleGetChargingStationStats(filter, siteID, groupBy);
-	}
-
-	getUserStats(filter, siteID, groupBy) {
-		// Delegate
-		return StatisticsStorage.handleGetUserStats(filter, siteID, groupBy);
 	}
 }
 

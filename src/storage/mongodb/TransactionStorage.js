@@ -1,30 +1,24 @@
-const Database = require('../../../utils/Database');
-const Utils = require('../../../utils/Utils');
+const Database = require('../../utils/Database');
+const Utils = require('../../utils/Utils');
 const crypto = require('crypto');
 
-let _db;
-
 class TransactionStorage {
-	static setDatabase(db) {
-		_db = db;
-	}
-
-	static async handleDeleteTransaction(transaction) {
+	static async deleteTransaction(transaction) {
 		// Delete Transactions
-		await _db.collection('transactions')
+		await global.db.collection('transactions')
 			.findOneAndDelete( {'_id': transaction.id} );
 		// Delete Meter Values
-		await _db.collection('metervalues')
+		await global.db.collection('metervalues')
 			.deleteMany( {'transactionId': transaction.id} );
 	}
 
-	static async handleGetMeterValuesFromTransaction(transactionId) {
+	static async getMeterValuesFromTransaction(transactionId) {
 		// Build filter
 		let filter = {};
 		// Mandatory filters
 		filter.transactionId = Utils.convertToInt(transactionId);
 		// Read DB
-		let meterValuesMDB = await _db.collection('metervalues')
+		let meterValuesMDB = await global.db.collection('metervalues')
 			.find(filter)
 			.sort( {timestamp: 1, value: -1} )
 			.toArray();
@@ -44,12 +38,12 @@ class TransactionStorage {
 		return meterValues;
 	}
 
-	static async handleSaveTransaction(transactionToSave) {
+	static async saveTransaction(transactionToSave) {
 		// Set
 		let transaction = {};
 		Database.updateTransaction(transactionToSave, transaction, false);
 		// Modify
-	    let result = await _db.collection('transactions').findOneAndUpdate(
+	    let result = await global.db.collection('transactions').findOneAndUpdate(
 			{"_id": Utils.convertToInt(transactionToSave.id)},
 			{$set: transaction},
 			{upsert: true, new: true, returnOriginal: false});
@@ -61,7 +55,7 @@ class TransactionStorage {
 		return updatedTransaction;
 	}
 
-	static async handleSaveMeterValues(meterValuesToSave) {
+	static async saveMeterValues(meterValuesToSave) {
 		let meterValuesMDB = [];
 		// Save all
 		meterValuesToSave.values.forEach((meterValueToSave) => {
@@ -76,12 +70,12 @@ class TransactionStorage {
 			meterValuesMDB.push(meterValue);
 		});
 		// Execute
-		await _db.collection('metervalues').insertMany(meterValuesMDB);
+		await global.db.collection('metervalues').insertMany(meterValuesMDB);
 	}
 
-	static async handleGetTransactionYears() {
+	static async getTransactionYears() {
 		// Read DB
-		let firstTransactionsMDB = await _db.collection('transactions')
+		let firstTransactionsMDB = await global.db.collection('transactions')
 			.find({})
 			.sort({timestamp:1})
 			.limit(1)
@@ -100,7 +94,7 @@ class TransactionStorage {
 		return transactionYears;
 	}
 
-	static async handleGetTransactions(searchValue, filter, siteID, withChargeBoxes, limit, skip) {
+	static async getTransactions(searchValue, filter, siteID, withChargeBoxes, limit, skip) {
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip
@@ -232,7 +226,7 @@ class TransactionStorage {
 			$unwind: { "path": "$stop.user", "preserveNullAndEmptyArrays": true }
 		});
 		// Read DB
-		let transactionsMDB = await _db.collection('transactions')
+		let transactionsMDB = await global.db.collection('transactions')
 			.aggregate(aggregation)
 			.toArray();
 		// Set
@@ -251,7 +245,7 @@ class TransactionStorage {
 		return transactions;
 	}
 
-	static async handleGetTransaction(id) {
+	static async getTransaction(id) {
 		// Create Aggregation
 		let aggregation = [];
 		// Filters
@@ -298,7 +292,7 @@ class TransactionStorage {
 			$unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
 		});
 		// Read DB
-		let transactionsMDB = await _db.collection('transactions')
+		let transactionsMDB = await global.db.collection('transactions')
 			.aggregate(aggregation)
 			.toArray();
 		// Set
@@ -313,7 +307,7 @@ class TransactionStorage {
 		return transaction;
 	}
 
-	static async handleGetActiveTransaction(chargeBoxID, connectorId) {
+	static async getActiveTransaction(chargeBoxID, connectorId) {
 		// Create Aggregation
 		let aggregation = [];
 		// Filters
@@ -338,7 +332,7 @@ class TransactionStorage {
 			$unwind: { "path": "$user", "preserveNullAndEmptyArrays": true }
 		});
 		// Read DB
-		let transactionsMDB = await _db.collection('transactions')
+		let transactionsMDB = await global.db.collection('transactions')
 			.aggregate(aggregation)
 			.toArray();
 		// Set

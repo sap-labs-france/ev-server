@@ -4,6 +4,10 @@ const Company = require('./Company');
 const User = require('./User');
 const AppError = require('../exception/AppError');
 const Constants = require('../utils/Constants');
+const CompanyStorage = require('../storage/mongodb/CompanyStorage');
+const UserStorage = require('../storage/mongodb/UserStorage');
+const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
+const SiteStorage = require('../storage/mongodb/SiteStorage');
 
 class Site {
 	constructor(site) {
@@ -127,7 +131,7 @@ class Site {
 			return new Company(this._model.company);
 		} else if (this._model.companyID){
 			// Get from DB
-			let company = await global.storage.getCompany(this._model.companyID);
+			let company = await CompanyStorage.getCompany(this._model.companyID);
 			// Keep it
 			this.setCompany(company);
 			return company;
@@ -148,7 +152,7 @@ class Site {
 			return this._model.siteAreas.map((siteArea) => new SiteArea(siteArea));
 		} else {
 			// Get from DB
-			let siteAreas = await global.storage.getSiteAreas(null, this.getID());
+			let siteAreas = await SiteAreaStorage.getSiteAreas(null, this.getID());
 			// Keep it
 			this.setSiteAreas(siteAreas);
 			return siteAreas;
@@ -164,7 +168,7 @@ class Site {
 			return this._model.users.map((user) => new User(user));
 		} else {
 			// Get from DB
-			let users = await global.storage.getUsers(null, this.getID());
+			let users = await UserStorage.getUsers(null, this.getID());
 			// Keep it
 			this.setUsers(users);
 			return users;
@@ -189,15 +193,15 @@ class Site {
 	}
 
 	save() {
-		return global.storage.saveSite(this.getModel());
+		return SiteStorage.saveSite(this.getModel());
 	}
 
 	saveImage() {
-		return global.storage.saveSiteImage(this.getModel());
+		return SiteStorage.saveSiteImage(this.getModel());
 	}
 
 	delete() {
-		return global.storage.deleteSite(this.getID());
+		return SiteStorage.deleteSite(this.getID());
 	}
 }
 

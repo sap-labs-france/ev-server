@@ -1,20 +1,13 @@
-const Constants = require('../../../utils/Constants');
-const Database = require('../../../utils/Database');
-const Utils = require('../../../utils/Utils');
-const Company = require('../../../model/Company');
+const Constants = require('../../utils/Constants');
+const Database = require('../../utils/Database');
+const Utils = require('../../utils/Utils');
 const SiteStorage = require('./SiteStorage');
-const Site = require('../../../model/Site');
 const ObjectID = require('mongodb').ObjectID;
-const AppError = require('../../../exception/AppError');
-
-let _db;
+const AppError = require('../../exception/AppError');
 
 class CompanyStorage {
-	static setDatabase(db) {
-		_db = db;
-	}
-
-	static async handleGetCompany(id) {
+	static async getCompany(id) {
+		const Company = require('../../model/Company'); // Avoid fucking circular deps!!!
 		// Create Aggregation
 		let aggregation = [];
 		// Filters
@@ -24,7 +17,7 @@ class CompanyStorage {
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Read DB
-		let companiesMDB = await _db.collection('companies')
+		let companiesMDB = await global.db.collection('companies')
 			.aggregate(aggregation)
 			.limit(1)
 			.toArray();
@@ -37,9 +30,9 @@ class CompanyStorage {
 		return company;
 	}
 
-	static async handleGetCompanyLogo(id) {
+	static async getCompanyLogo(id) {
 		// Read DB
-		let companyLogosMDB = await _db.collection('companylogos')
+		let companyLogosMDB = await global.db.collection('companylogos')
 			.find({_id: Utils.convertToObjectID(id)})
 			.limit(1)
 			.toArray();
@@ -54,9 +47,9 @@ class CompanyStorage {
 		return companyLogo;
 	}
 
-	static async handleGetCompanyLogos() {
+	static async getCompanyLogos() {
 		// Read DB
-		let companyLogosMDB = await _db.collection('companylogos')
+		let companyLogosMDB = await global.db.collection('companylogos')
 			.find({})
 			.toArray();
 		let companyLogo = null;
@@ -74,14 +67,15 @@ class CompanyStorage {
 		return companyLogos;
 	}
 
-	static async handleSaveCompany(companyToSave) {
+	static async saveCompany(companyToSave) {
+		const Company = require('../../model/Company'); // Avoid fucking circular deps!!!
 		// Check if ID/Name is provided
 		if (!companyToSave.id && !companyToSave.name) {
 			// ID must be provided!
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
 				`Company has no ID and no Name`,
-				550, "CompanyStorage", "handleSaveCompany");
+				550, "CompanyStorage", "saveCompany");
 		}
 		let companyFilter = {};
 		// Build Request
@@ -97,7 +91,7 @@ class CompanyStorage {
 		let company = {};
 		Database.updateCompany(companyToSave, company, false);
 		// Modify
-	    let result = await _db.collection('companies').findOneAndUpdate(
+	    let result = await global.db.collection('companies').findOneAndUpdate(
 			companyFilter,
 			{$set: company},
 			{upsert: true, new: true, returnOriginal: false});
@@ -105,24 +99,26 @@ class CompanyStorage {
 		return new Company(result.value);
 	}
 
-	static async handleSaveCompanyLogo(companyLogoToSave) {
+	static async saveCompanyLogo(companyLogoToSave) {
 		// Check if ID is provided
 		if (!companyLogoToSave.id) {
 			// ID must be provided!
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
 				`Company Logo has no ID`,
-				550, "CompanyStorage", "handleSaveCompanyLogo");
+				550, "CompanyStorage", "saveCompanyLogo");
 		}
 		// Modify
-	    await _db.collection('companylogos').findOneAndUpdate(
+	    await global.db.collection('companylogos').findOneAndUpdate(
 			{'_id': Utils.convertToObjectID(companyLogoToSave.id)},
 			{$set: {logo: companyLogoToSave.logo}},
 			{upsert: true, new: true, returnOriginal: false});
 	}
 
 	// Delegate
-	static async handleGetCompanies(searchValue, withSites, limit, skip) {
+	static async getCompanies(searchValue, withSites, limit, skip) {
+		const Company = require('../../model/Company'); // Avoid fucking circular deps!!!
+		const Site = require('../../model/Site');  // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip
@@ -175,7 +171,7 @@ class CompanyStorage {
 			$limit: limit
 		});
 		// Read DB
-		let companiesMDB = await _db.collection('companies')
+		let companiesMDB = await global.db.collection('companies')
 			.aggregate(aggregation)
 			.toArray();
 		let companies = [];
@@ -198,19 +194,19 @@ class CompanyStorage {
 		return companies;
 	}
 
-	static async handleDeleteCompany(id) {
+	static async deleteCompany(id) {
 		// Delete Sites
-		let sites = await SiteStorage.handleGetSites(null, id);
+		let sites = await SiteStorage.getSites(null, id);
 		// Delete
 		sites.forEach(async (site) => {
 			//	Delete Site
 			await site.delete();
 		});
 		// Delete the Company
-		await _db.collection('companies')
+		await global.db.collection('companies')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 		// Delete Logo
-		await _db.collection('companylogos')
+		await global.db.collection('companylogos')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 	}
 }

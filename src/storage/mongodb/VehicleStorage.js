@@ -1,20 +1,13 @@
-const Constants = require('../../../utils/Constants');
-const Database = require('../../../utils/Database');
-const Utils = require('../../../utils/Utils');
-const Vehicle = require('../../../model/Vehicle');
-const AppError = require('../../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
-
-let _db;
+const Constants = require('../../utils/Constants');
+const Database = require('../../utils/Database');
+const Utils = require('../../utils/Utils');
+const AppError = require('../../exception/AppError');
 
 class VehicleStorage {
-	static async setDatabase(db) {
-		_db = db;
-	}
-
-	static async handleGetVehicleImage(id) {
+	static async getVehicleImage(id) {
 		// Read DB
-		let vehicleImagesMDB = await _db.collection('vehicleimages')
+		let vehicleImagesMDB = await global.db.collection('vehicleimages')
 			.find({_id: Utils.convertToObjectID(id)})
 			.limit(1)
 			.toArray();
@@ -29,9 +22,9 @@ class VehicleStorage {
 		return vehicleImage;
 	}
 
-	static async handleGetVehicleImages() {
+	static async getVehicleImages() {
 		// Read DB
-		let vehicleImagesMDB = await _db.collection('vehicleimages')
+		let vehicleImagesMDB = await global.db.collection('vehicleimages')
 			.find({})
 			.toArray();
 		let vehicleImages = [];
@@ -48,7 +41,8 @@ class VehicleStorage {
 		return vehicleImages;
 	}
 
-	static async handleGetVehicle(id) {
+	static async getVehicle(id) {
+		const Vehicle = require('../../model/Vehicle'); // Avoid fucking circular deps!!!
 		// Create Aggregation
 		let aggregation = [];
 		// Filters
@@ -58,7 +52,7 @@ class VehicleStorage {
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Read DB
-		let vehiclesMDB = await _db.collection('vehicles')
+		let vehiclesMDB = await global.db.collection('vehicles')
 			.aggregate(aggregation)
 			.toArray();
 		// Set
@@ -70,14 +64,15 @@ class VehicleStorage {
 		return vehicle;
 	}
 
-	static async handleSaveVehicle(vehicleToSave) {
+	static async saveVehicle(vehicleToSave) {
+		const Vehicle = require('../../model/Vehicle'); // Avoid fucking circular deps!!!
 		// Check if ID/Model is provided
 		if (!vehicleToSave.id && !vehicleToSave.model) {
 			// ID must be provided!
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
 				`Vehicle has no ID and no Model`,
-				550, "VehicleStorage", "handleSaveVehicle");
+				550, "VehicleStorage", "saveVehicle");
 		}
 		let vehicleFilter = {};
 		// Build Request
@@ -93,7 +88,7 @@ class VehicleStorage {
 		let vehicle = {};
 		Database.updateVehicle(vehicleToSave, vehicle, false);
 		// Modify
-	    let result = await _db.collection('vehicles').findOneAndUpdate(
+	    let result = await global.db.collection('vehicles').findOneAndUpdate(
 			vehicleFilter,
 			{$set: vehicle},
 			{upsert: true, new: true, returnOriginal: false});
@@ -101,24 +96,25 @@ class VehicleStorage {
 		return new Vehicle(result.value);
 	}
 
-	static async handleSaveVehicleImages(vehicleImagesToSave) {
+	static async saveVehicleImages(vehicleImagesToSave) {
 		// Check if ID is provided
 		if (!vehicleImagesToSave.id) {
 			// ID must be provided!
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
 				`Vehicle Images has no ID`,
-				550, "VehicleStorage", "handleSaveVehicleImages");
+				550, "VehicleStorage", "saveVehicleImages");
 		}
 		// Modify
-	    await _db.collection('vehicleimages').findOneAndUpdate(
+	    await global.db.collection('vehicleimages').findOneAndUpdate(
 			{'_id': Utils.convertToObjectID(vehicleImagesToSave.id)},
 			{$set: {images: vehicleImagesToSave.images}},
 			{upsert: true, new: true, returnOriginal: false});
 	}
 
 	// Delegate
-	static async handleGetVehicles(searchValue, vehicleManufacturerID, vehicleType, limit, skip) {
+	static async getVehicles(searchValue, vehicleManufacturerID, vehicleType, limit, skip) {
+		const Vehicle = require('../../model/Vehicle'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip
@@ -189,7 +185,7 @@ class VehicleStorage {
 			$limit: limit
 		});
 		// Read DB
-		let vehiclesMDB = await _db.collection('vehicles')
+		let vehiclesMDB = await global.db.collection('vehicles')
 			.aggregate(aggregation)
 			.toArray();
 		let vehicles = [];
@@ -206,12 +202,12 @@ class VehicleStorage {
 		return vehicles;
 	}
 
-	static async handleDeleteVehicle(id) {
+	static async deleteVehicle(id) {
 		// Delete Vehicle
-		await _db.collection('vehicles')
+		await global.db.collection('vehicles')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 		// Delete Images
-		await _db.collection('vehicleimages')
+		await global.db.collection('vehicleimages')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 	}
 }

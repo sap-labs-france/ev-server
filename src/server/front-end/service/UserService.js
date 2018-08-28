@@ -8,6 +8,7 @@ const User = require('../../../model/User');
 const Utils = require('../../../utils/Utils');
 const Database = require('../../../utils/Database');
 const UserSecurity = require('./security/UserSecurity');
+const UserStorage = require('../../../storage/mongodb/UserStorage'); 
 
 class UserService {
 	static async handleGetEndUserLicenseAgreement(action, req, res, next) {
@@ -15,7 +16,7 @@ class UserService {
 			// Filter
 			let filteredRequest = UserSecurity.filterEndUserLicenseAgreementRequest(req.query, req.user);
 			// Get it
-			let endUserLicenseAgreement = await global.storage.getEndUserLicenseAgreement(filteredRequest.Language);
+			let endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(filteredRequest.Language);
 			res.json(
 				// Filter
 				UserSecurity.filterEndUserLicenseAgreementResponse(
@@ -41,7 +42,7 @@ class UserService {
 						'UserService', 'handleDeleteUser', req.user);
 			}
 			// Check email
-			let user = await global.storage.getUser(filteredRequest.ID);
+			let user = await UserStorage.getUser(filteredRequest.ID);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -99,7 +100,7 @@ class UserService {
 			// Check Mandatory fields
 			User.checkIfUserValid(filteredRequest, req);
 			// Check email
-			let user = await global.storage.getUser(filteredRequest.id);
+			let user = await UserStorage.getUser(filteredRequest.id);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -114,7 +115,7 @@ class UserService {
 					'UserService', 'handleUpdateUser', req.user);
 			}
 			// Check email
-			let userWithEmail = await global.storage.getUserByEmail(filteredRequest.email);
+			let userWithEmail = await UserStorage.getUserByEmail(filteredRequest.email);
 			// Check if EMail is already taken
 			if (userWithEmail && user.getID() !== userWithEmail.getID()) {
 				// Yes!
@@ -196,7 +197,7 @@ class UserService {
 					'UserService', 'handleGetUser', req.user);
 			}
 			// Get the user
-			let user = await global.storage.getUser(filteredRequest.ID);
+			let user = await UserStorage.getUser(filteredRequest.ID);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -246,7 +247,7 @@ class UserService {
 					'UserService', 'handleGetUser', req.user);
 			}
 			// Get the logged user
-			let user = await global.storage.getUser(filteredRequest.ID)
+			let user = await UserStorage.getUser(filteredRequest.ID)
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -271,7 +272,7 @@ class UserService {
 					req.user);
 			}
 			// Get the user image
-			let userImage = await global.storage.getUserImage(filteredRequest.ID);
+			let userImage = await UserStorage.getUserImage(filteredRequest.ID);
 			// Return 
 			res.json(userImage);
 			next();
@@ -295,7 +296,7 @@ class UserService {
 					req.user);
 			}
 			// Get the user image
-			let userImages = await global.storage.getUserImages();
+			let userImages = await UserStorage.getUserImages();
 			// Return
 			res.json(userImages);
 			next();
@@ -321,7 +322,7 @@ class UserService {
 			// Filter
 			let filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
 			// Get users
-			let users = await global.storage.getUsers(filteredRequest.Search, filteredRequest.SiteID, 
+			let users = await UserStorage.getUsers(filteredRequest.Search, filteredRequest.SiteID, 
 				filteredRequest.Limit, filteredRequest.Skip);
 			var usersJSon = [];
 			users.forEach((user) => {
@@ -363,7 +364,7 @@ class UserService {
 			// Check Mandatory fields
 			User.checkIfUserValid(filteredRequest, req);
 			// Get the email
-			let foundUser = await global.storage.getUserByEmail(filteredRequest.email);
+			let foundUser = await UserStorage.getUserByEmail(filteredRequest.email);
 			if (foundUser) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,

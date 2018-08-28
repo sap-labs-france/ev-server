@@ -2,6 +2,7 @@ const Database = require('../utils/Database');
 const User = require('./User');
 const Constants = require('../utils/Constants');
 const AppError = require('../exception/AppError');
+const VehicleStorage = require('../storage/mongodb/VehicleStorage');
 
 class Vehicle {
 	constructor(vehicle) {
@@ -210,19 +211,15 @@ class Vehicle {
 	}
 
 	save() {
-		return global.storage.saveVehicle(this.getModel());
+		return VehicleStorage.saveVehicle(this.getModel());
 	}
 
 	saveImages() {
-		return global.storage.saveVehicleImages(this.getModel());
-	}
-
-	saveLogo() {
-		return global.storage.saveVehicleLogo(this.getModel());
+		return VehicleStorage.saveVehicleImages(this.getModel());
 	}
 
 	delete() {
-		return global.storage.deleteVehicle(this.getID());
+		return VehicleStorage.deleteVehicle(this.getID());
 	}
 }
 

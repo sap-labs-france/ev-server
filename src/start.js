@@ -8,35 +8,34 @@ const Logging = require('./utils/Logging');
 
 require('source-map-support').install();
 
-// Start the connection to the Database
-let storageConfig = Configuration.getStorageConfig();
-
-let nodejs_env = process.env.NODE_ENV || 'dev';
-console.log(`NodeJS is started in '${nodejs_env}' mode`);
-
-// Check implementation
-switch (storageConfig.implementation) {
-	// MongoDB?
-	case 'mongodb':
-			// Create MongoDB
-		let mongoDB = new MongoDBStorage(storageConfig);
-		// Set global var
-		global.storage = mongoDB;
-		break;
-
-	default:
-		console.log(`Storage Server implementation '${storageConfig.implementation}' not supported!`);
-}
-
 // Start
 Bootstrap.start();
 
 class Bootstrap {
 	static async start() {
 		try {
+			// Start the connection to the Database
+			let storageConfig = Configuration.getStorageConfig();
+
+			let nodejs_env = process.env.NODE_ENV || 'dev';
+			console.log(`NodeJS is started in '${nodejs_env}' mode`);
+
+			// Check implementation
+			let database; 
+			switch (storageConfig.implementation) {
+				// MongoDB?
+				case 'mongodb':
+						// Create MongoDB
+					database = new MongoDBStorage(storageConfig);
+					break;
+
+				default:
+					console.log(`Storage Server implementation '${storageConfig.implementation}' not supported!`);
+			}
+
 			// Connect to the the DB
-			await global.storage.start();
-		
+			await database.start();
+			
 			// Check and trigger migration
 			await MigrationHandler.migrate();
 		
@@ -50,7 +49,7 @@ class Bootstrap {
 				// Create the server
 				let centralRestServer = new CentralRestServer(centralSystemRestConfig, chargingStationConfig);
 				// Set to database for Web Socket Notifications
-				global.storage.setCentralRestServer(centralRestServer);
+				database.setCentralRestServer(centralRestServer);
 				// Start it
 				await centralRestServer.start();
 			}

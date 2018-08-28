@@ -7,6 +7,7 @@ const Authorizations = require('../../../authorization/Authorizations');
 const Constants = require('../../../utils/Constants');
 const VehicleManufacturer = require('../../../model/VehicleManufacturer');
 const VehicleManufacturerSecurity = require('./security/VehicleManufacturerSecurity');
+const VehicleManufacturerStorage = require('../../../storage/mongodb/VehicleManufacturerStorage'); 
 
 class VehicleManufacturerService {
 	static async handleDeleteVehicleManufacturer(action, req, res, next) {
@@ -23,7 +24,7 @@ class VehicleManufacturerService {
 					'VehicleManufacturerService', 'handleDeleteVehicleManufacturer', req.user);
 			}
 			// Get
-			let vehicleManufacturer = await global.storage.getVehicleManufacturer(filteredRequest.ID);
+			let vehicleManufacturer = await VehicleManufacturerStorage.getVehicleManufacturer(filteredRequest.ID);
 			if (!vehicleManufacturer) {
 				// Not Found!
 				throw new AppError(
@@ -71,7 +72,7 @@ class VehicleManufacturerService {
 					'VehicleManufacturerService', 'handleGetVehicleManufacturer', req.user);
 			}
 			// Get it
-			let vehicleManufacturer = await global.storage.getVehicleManufacturer(filteredRequest.ID);
+			let vehicleManufacturer = await VehicleManufacturerStorage.getVehicleManufacturer(filteredRequest.ID);
 			if (!vehicleManufacturer) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -107,7 +108,7 @@ class VehicleManufacturerService {
 			// Filter
 			let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturersRequest(req.query, req.user);
 			// Get the vehicle Manufacturers
-			let vehicleManufacturers = await global.storage.getVehicleManufacturers(filteredRequest.Search,
+			let vehicleManufacturers = await VehicleManufacturerStorage.getVehicleManufacturers(filteredRequest.Search,
 				filteredRequest.WithVehicles, filteredRequest.VehicleType, 
 				filteredRequest.Limit, filteredRequest.Skip);
 			// Build
@@ -176,7 +177,7 @@ class VehicleManufacturerService {
 			// Filter
 			let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerUpdateRequest( req.body, req.user );
 			// Check email
-			let vehicleManufacturer = await	global.storage.getVehicleManufacturer(filteredRequest.id);
+			let vehicleManufacturer = await	VehicleManufacturerStorage.getVehicleManufacturer(filteredRequest.id);
 			if (!vehicleManufacturer) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -232,7 +233,7 @@ class VehicleManufacturerService {
 					'VehicleManufacturerService', 'handleGetVehicleManufacturerLogo', req.user);
 			}
 			// Get it
-			let vehicleManufacturer = await global.storage.getVehicleManufacturer(filteredRequest.ID);
+			let vehicleManufacturer = await VehicleManufacturerStorage.getVehicleManufacturer(filteredRequest.ID);
 			if (!vehicleManufacturer) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -251,7 +252,7 @@ class VehicleManufacturerService {
 					req.user);
 			}
 			// Get the logo
-			let vehicleManufacturerLogo = await global.storage.getVehicleManufacturerLogo(filteredRequest.ID);
+			let vehicleManufacturerLogo = await VehicleManufacturerStorage.getVehicleManufacturerLogo(filteredRequest.ID);
 			// Return
 			res.json(vehicleManufacturerLogo);
 			next();
@@ -275,7 +276,7 @@ class VehicleManufacturerService {
 					req.user);
 			}
 			// Get the vehicle manufacturer logo
-			let vehicleManufacturerLogos = await global.storage.getVehicleManufacturerLogos();
+			let vehicleManufacturerLogos = await VehicleManufacturerStorage.getVehicleManufacturerLogos();
 			// Return
 			res.json(vehicleManufacturerLogos);
 			next();

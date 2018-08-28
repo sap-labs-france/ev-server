@@ -2,6 +2,7 @@ const Authorizations = require('../../../authorization/Authorizations');
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const PricingSecurity = require('./security/PricingSecurity');
+const PricingStorage = require('../../../storage/mongodb/PricingStorage'); 
 
 class PricingService {
 	static async handleGetPricing(action, req, res, next) {
@@ -16,7 +17,7 @@ class PricingService {
 					req.user);
 			}
 			// Get the Pricing
-			let pricing = await global.storage.getPricing();
+			let pricing = await PricingStorage.getPricing();
 			// Return
 			if (pricing) {
 				res.json(
@@ -61,7 +62,7 @@ class PricingService {
 			// Set timestamp
 			pricing.timestamp = new Date();
 			// Get
-			let pricingMDB = await global.storage.savePricing(pricing);
+			let pricingMDB = await PricingStorage.savePricing(pricing);
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, action: action,

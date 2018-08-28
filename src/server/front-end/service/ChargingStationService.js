@@ -5,6 +5,8 @@ const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Authorizations = require('../../../authorization/Authorizations');
 const ChargingStationSecurity = require('./security/ChargingStationSecurity');
+const ChargingStationStorage = require('../../../storage/mongodb/ChargingStationStorage'); 
+const TransactionStorage = require('../../../storage/mongodb/TransactionStorage'); 
 
 class ChargingStationService {
 
@@ -13,7 +15,7 @@ class ChargingStationService {
 				// Filter
 			let filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest( req.body, req.user );
 			// Check email
-			let chargingStation = await global.storage.getChargingStation(filteredRequest.id);
+			let chargingStation = await ChargingStationStorage.getChargingStation(filteredRequest.id);
 			if (!chargingStation) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -73,7 +75,7 @@ class ChargingStationService {
 					'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
 			}
 			// Get the Charging Station`
-			let chargingStation = await global.storage.getChargingStation(filteredRequest.ChargeBoxID);
+			let chargingStation = await ChargingStationStorage.getChargingStation(filteredRequest.ChargeBoxID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -115,7 +117,7 @@ class ChargingStationService {
 					'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
 			}
 			// Get the Charging Station
-			let chargingStation = await global.storage.getChargingStation(filteredRequest.ChargeBoxID);
+			let chargingStation = await ChargingStationStorage.getChargingStation(filteredRequest.ChargeBoxID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -158,7 +160,7 @@ class ChargingStationService {
 					'ChargingStationService', 'handleDeleteChargingStation', req.user);
 			}
 			// Get
-			let chargingStation = await global.storage.getChargingStation(filteredRequest.ID);
+			let chargingStation = await ChargingStationStorage.getChargingStation(filteredRequest.ID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -208,7 +210,7 @@ class ChargingStationService {
 					'ChargingStationService', 'handleGetChargingStation', req.user);
 			}
 			// Get it
-			let chargingStation = await global.storage.getChargingStation(filteredRequest.ID);
+			let chargingStation = await ChargingStationStorage.getChargingStation(filteredRequest.ID);
 			if (chargingStation) {
 				// Return
 				res.json(
@@ -241,7 +243,7 @@ class ChargingStationService {
 			// Filter
 			let filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query, req.user);
 			// Get the charging stfoundChargingStationsations
-			let chargingStations = await global.storage.getChargingStations(
+			let chargingStations = await ChargingStationStorage.getChargingStations(
 					filteredRequest.Search, null, filteredRequest.WithNoSiteArea, 
 					filteredRequest.Limit, filteredRequest.Skip);
 			// Set
@@ -274,7 +276,7 @@ class ChargingStationService {
 				return;
 			}
 			// Get the Charging station
-			let chargingStation = await global.storage.getChargingStation(filteredRequest.chargeBoxID);
+			let chargingStation = await ChargingStationStorage.getChargingStation(filteredRequest.chargeBoxID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -287,7 +289,7 @@ class ChargingStationService {
 			if (action === 'StopTransaction' ||
 					action === 'UnlockConnector') {
 				// Get Transaction
-				let transaction = await global.storage.getTransaction(filteredRequest.args.transactionId);
+				let transaction = await TransactionStorage.getTransaction(filteredRequest.args.transactionId);
 				if (!transaction) {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
@@ -303,7 +305,7 @@ class ChargingStationService {
 				transaction.remotestop.tagID = req.user.tagIDs[0];
 				transaction.remotestop.timestamp = new Date().toISOString();
 				// Save Transaction
-				await global.storage.saveTransaction(transaction);
+				await TransactionStorage.saveTransaction(transaction);
 				// Ok: Execute it
 				result = await chargingStation.handleAction(action, filteredRequest.args);
 			} else if (action === 'StartTransaction') {
@@ -352,7 +354,7 @@ class ChargingStationService {
 						'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
 			}
 			// Get the Charging station
-			let chargingStation = await global.storage.getChargingStation(filteredRequest.chargeBoxID);
+			let chargingStation = await ChargingStationStorage.getChargingStation(filteredRequest.chargeBoxID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!

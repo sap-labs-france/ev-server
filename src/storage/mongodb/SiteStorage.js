@@ -1,23 +1,16 @@
-const Constants = require('../../../utils/Constants');
-const Database = require('../../../utils/Database');
-const Utils = require('../../../utils/Utils');
-const Company = require('../../../model/Company');
-const ChargingStation = require('../../../model/ChargingStation');
-const Site = require('../../../model/Site');
-const SiteArea = require('../../../model/SiteArea');
+const Constants = require('../../utils/Constants');
+const Database = require('../../utils/Database');
+const Utils = require('../../utils/Utils');
 const SiteAreaStorage = require('./SiteAreaStorage');
-const User = require('../../../model/User');
-const AppError = require('../../../exception/AppError');
+const AppError = require('../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
 
-let _db;
-
 class SiteStorage {
-	static setDatabase(db) {
-		_db = db;
-	}
-
-	static async handleGetSite(id, withCompany, withUsers) {
+	static async getSite(id, withCompany, withUsers) {
+		const Site = require('../../model/Site'); // Avoid fucking circular deps!!!
+		const Company = require('../../model/Company'); // Avoid fucking circular deps!!!
+		const SiteArea = require('../../model/SiteArea'); // Avoid fucking circular deps!!!
+		const User = require('../../model/User'); // Avoid fucking circular deps!!!
 		// Create Aggregation
 		let aggregation = [];
 		// Filters
@@ -72,7 +65,7 @@ class SiteStorage {
 			});
 		}
 		// Read DB
-		let sitesMDB = await _db.collection('sites')
+		let sitesMDB = await global.db.collection('sites')
 			.aggregate(aggregation)
 			.toArray();
 		let site = null;
@@ -100,9 +93,9 @@ class SiteStorage {
 		return site;
 	}
 
-	static async handleGetSiteImage(id) {
+	static async getSiteImage(id) {
 		// Read DB
-		let siteImagesMDB = await _db.collection('siteimages')
+		let siteImagesMDB = await global.db.collection('siteimages')
 			.find({_id: Utils.convertToObjectID(id)})
 			.limit(1)
 			.toArray();
@@ -117,9 +110,9 @@ class SiteStorage {
 		return siteImage;
 	}
 
-	static async handleGetSiteImages() {
+	static async getSiteImages() {
 		// Read DB
-		let siteImagesMDB = await _db.collection('siteimages')
+		let siteImagesMDB = await global.db.collection('siteimages')
 			.find({})
 			.toArray();
 		let siteImages = [];
@@ -136,14 +129,15 @@ class SiteStorage {
 		return siteImages;
 	}
 
-	static async handleSaveSite(siteToSave) {
+	static async saveSite(siteToSave) {
+		const Site = require('../../model/Site'); // Avoid fucking circular deps!!!
 		// Check if ID/Name is provided
 		if (!siteToSave.id && !siteToSave.name) {
 			// ID must be provided!
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
 				`Site has no ID and no Name`,
-				550, "SiteStorage", "handleSaveSite");
+				550, "SiteStorage", "saveSite");
 		}
 		let siteFilter = {};
 		// Build Request
@@ -159,14 +153,14 @@ class SiteStorage {
 		let site = {};
 		Database.updateSite(siteToSave, site, false);
 		// Modify
-	    let result = await _db.collection('sites').findOneAndUpdate(
+	    let result = await global.db.collection('sites').findOneAndUpdate(
 			siteFilter,
 			{$set: site},
 			{upsert: true, new: true, returnOriginal: false});
 		// Create
 		let updatedSite = new Site(result.value);
 		// Delete Users
-		await _db.collection('siteusers')
+		await global.db.collection('siteusers')
 			.deleteMany( {'siteID': Utils.convertToObjectID(updatedSite.getID())} );
 		// Add Users`
 		if (siteToSave.users && siteToSave.users.length > 0) {
@@ -180,29 +174,34 @@ class SiteStorage {
 				});
 			});
 			// Execute
-			await _db.collection('siteusers').insertMany(siteUsersMDB);
+			await global.db.collection('siteusers').insertMany(siteUsersMDB);
 		}
 		return updatedSite;
 	}
 
-	static async handleSaveSiteImage(siteImageToSave) {
+	static async saveSiteImage(siteImageToSave) {
 		// Check if ID is provided
 		if (!siteImageToSave.id) {
 			// ID must be provided!
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
 				`Site Image has no ID`,
-				550, "SiteStorage", "handleSaveSiteImage");
+				550, "SiteStorage", "saveSiteImage");
 		}
 		// Modify
-	    await _db.collection('siteimages').findOneAndUpdate(
+	    await global.db.collection('siteimages').findOneAndUpdate(
 			{'_id': Utils.convertToObjectID(siteImageToSave.id)},
 			{$set: {image: siteImageToSave.image}},
 			{upsert: true, new: true, returnOriginal: false});
 	}
 
-	static async handleGetSites(searchValue, companyID, userID, withCompany, withSiteAreas,
+	static async getSites(searchValue, companyID, userID, withCompany, withSiteAreas,
 			withChargeBoxes, withUsers, limit, skip, sort) {
+		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
+		const Company = require('../../model/Company'); // Avoid fucking circular deps!!!
+		const Site = require('../../model/Site'); // Avoid fucking circular deps!!!
+		const SiteArea = require('../../model/SiteArea'); // Avoid fucking circular deps!!!
+		const User = require('../../model/User'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip
@@ -315,7 +314,7 @@ class SiteStorage {
 			$limit: limit
 		});
 		// Read DB
-		let sitesMDB = await _db.collection('sites')
+		let sitesMDB = await global.db.collection('sites')
 			.aggregate(aggregation)
 			.toArray();
 		let sites = [];
@@ -367,22 +366,22 @@ class SiteStorage {
 		return sites;
 	}
 
-	static async handleDeleteSite(id) {
+	static async deleteSite(id) {
 		// Delete Site Areas
-		let siteAreas = await SiteAreaStorage.handleGetSiteAreas(null, id)
+		let siteAreas = await SiteAreaStorage.getSiteAreas(null, id)
 		// Delete
 		siteAreas.forEach(async (siteArea) => {
 			//	Delete Site Area
 			await siteArea.delete();
 		});
 		// Delete Site
-		await _db.collection('sites')
+		await global.db.collection('sites')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 		// Delete Image
-		await _db.collection('siteimages')
+		await global.db.collection('siteimages')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 		// Delete Site's Users
-		await _db.collection('siteusers')
+		await global.db.collection('siteusers')
 			.deleteMany( {'siteID': Utils.convertToObjectID(id)} );
 	}
 }

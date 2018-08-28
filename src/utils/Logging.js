@@ -4,6 +4,7 @@ const AppError = require('../exception/AppError');
 const AppAuthError = require('../exception/AppAuthError');
 const CFLog = require('cf-nodejs-logging-support');
 const Configuration = require('../utils/Configuration');
+const LoggingStorage = require('../storage/mongodb/LoggingStorage'); 
 require('source-map-support').install();
 
 let LogLevel = {
@@ -69,22 +70,22 @@ class Logging {
 
 	// Get Log
 	static getLog(id) {
-		return global.storage.getLog(id);
+		return LoggingStorage.getLog(id);
 	}
 
 	// Get Logs
 	static getLogs(dateFrom, level, type, chargingStation, searchValue, action, limit, skip, sortDate) {
-		return global.storage.getLogs(dateFrom, level, type, chargingStation, searchValue, action, limit, skip, sortDate);
+		return LoggingStorage.getLogs(dateFrom, level, type, chargingStation, searchValue, action, limit, skip, sortDate);
 	}
 
 	// Delete
 	static deleteLogs(deleteUpToDate) {
-		return global.storage.deleteLogs(deleteUpToDate);
+		return LoggingStorage.deleteLogs(deleteUpToDate);
 	}
 
 	// Delete
 	static deleteSecurityLogs(deleteUpToDate) {
-		return global.storage.deleteSecurityLogs(deleteUpToDate);
+		return LoggingStorage.deleteSecurityLogs(deleteUpToDate);
 	}
 
 	// Log
@@ -237,7 +238,7 @@ class Logging {
 			log.type = LoggingType.REGULAR;
 		}
 		// Log
-		global.storage.saveLog(log);
+		LoggingStorage.saveLog(log);
 
 		// Log in Cloud Foundry
 		if (Configuration.isCloudFoundry()) {

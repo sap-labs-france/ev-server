@@ -1,19 +1,13 @@
-const Constants = require('../../../utils/Constants');
-const Database = require('../../../utils/Database');
-const Configuration = require('../../../utils/Configuration');
-const Utils = require('../../../utils/Utils');
-const User = require('../../../model/User');
 const crypto = require('crypto');
-const AppError = require('../../../exception/AppError');
-
-let _db;
+const Constants = require('../../utils/Constants');
+const Database = require('../../utils/Database');
+const Configuration = require('../../utils/Configuration');
+const Utils = require('../../utils/Utils');
+const AppError = require('../../exception/AppError');
 
 class UserStorage {
-	static setDatabase(db) {
-		_db = db;
-	}
-
-	static async handleGetEndUserLicenseAgreement(language="en") {
+	static async getEndUserLicenseAgreement(language="en") {
+		const User = require('../../model/User'); // Avoid circular fucking deps!!! 
 		let languageFound = false;
 		let currentEula;
 		let currentEulaHash;
@@ -32,7 +26,7 @@ class UserStorage {
 		// Get current eula
 		currentEula = User.getEndUserLicenseAgreement(language);
 		// Read DB
-		let eulasMDB = await _db.collection('eulas')
+		let eulasMDB = await global.db.collection('eulas')
 			.find({'language':language})
 			.sort({'version': -1})
 			.limit(1)
@@ -54,7 +48,7 @@ class UserStorage {
 				eula.text = currentEula;
 				eula.hash = currentEulaHash;
 				// Create
-				let result = await _db.collection('eulas')
+				let result = await global.db.collection('eulas')
 					.insertOne(eula);
 				// Update object
 				eula = {};
@@ -78,7 +72,7 @@ class UserStorage {
 				.update(currentEula)
 				.digest("hex");
 			// Create
-			let result = await _db.collection('eulas').insertOne(eula);
+			let result = await global.db.collection('eulas').insertOne(eula);
 			// Update object
 			eula = {};
 			Database.updateEula(result.ops[0], eula);
@@ -87,22 +81,22 @@ class UserStorage {
 		}
 	}
 
-	static async handleGetUserByTagId(tagID) {
+	static async getUserByTagId(tagID) {
 		// Read DB
-		let tagsMDB = await _db.collection('tags')
+		let tagsMDB = await global.db.collection('tags')
 			.find({'_id': tagID})
 			.limit(1)
 			.toArray();
 		// Check
 		if (tagsMDB && tagsMDB.length > 0) {
 			// Ok
-			return UserStorage.handleGetUser(tagsMDB[0].userID);
+			return UserStorage.getUser(tagsMDB[0].userID);
 		}
 	}
 
-	static async handleGetUserByEmail(email) {
+	static async getUserByEmail(email) {
 		// Read DB
-		let usersMDB = await _db.collection('users')
+		let usersMDB = await global.db.collection('users')
 			.find({'email': email})
 			.limit(1)
 			.toArray();
@@ -113,7 +107,7 @@ class UserStorage {
 		}
 	}
 
-	static async handleGetUser(id) {
+	static async getUser(id) {
 		// Create Aggregation
 		let aggregation = [];
 		// Filters
@@ -137,7 +131,7 @@ class UserStorage {
 			}
 		});
 		// Read DB
-		let usersMDB = await _db.collection('users')
+		let usersMDB = await global.db.collection('users')
 			.aggregate(aggregation)
 			.limit(1)
 			.toArray();
@@ -148,9 +142,9 @@ class UserStorage {
 		}
 	}
 
-	static async handleGetUserImage(id) {
+	static async getUserImage(id) {
 		// Read DB
-		let userImagesMDB = await _db.collection('userimages')
+		let userImagesMDB = await global.db.collection('userimages')
 			.find({'_id': Utils.convertToObjectID(id)})
 			.limit(1)
 			.toArray();
@@ -166,9 +160,9 @@ class UserStorage {
 		return userImage;
 	}
 
-	static async handleGetUserImages() {
+	static async getUserImages() {
 		// Read DB
-		let userImagesMDB = await _db.collection('userimages')
+		let userImagesMDB = await global.db.collection('userimages')
 			.find({})
 			.toArray();
 		let userImages = [];
@@ -182,14 +176,15 @@ class UserStorage {
 		return userImages;
 	}
 
-	static async handleSaveUser(userToSave) {
+	static async saveUser(userToSave) {
+		const User = require('../../model/User'); // Avoid circular fucking deps!!! 
 		// Check if ID or email is provided
 		if (!userToSave.id && !userToSave.email) {
 			// ID must be provided!
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
 				`User has no ID and no Email`,
-				550, "UserStorage", "handleSaveUser");
+				550, "UserStorage", "saveUser");
 		}
 		// Build Request
 		let userFilter = {};
@@ -205,21 +200,21 @@ class UserStorage {
 		let user = {};
 		Database.updateUser(userToSave, user, false);
 		// Modify and return the modified document
-	    let result = await _db.collection('users').findOneAndUpdate(
+	    let result = await global.db.collection('users').findOneAndUpdate(
 			userFilter,
 			{$set: user},
 			{upsert: true, new: true, returnOriginal: false});
 		// Create
 		let updatedUser = new User(result.value);
 		// Delete Tag IDs
-		await _db.collection('tags')
+		await global.db.collection('tags')
 			.deleteMany( {'userID': Utils.convertToObjectID(updatedUser.getID())} );
 		// Add tags
 		if (userToSave.tagIDs && userToSave.tagIDs.length > 0) {
 			// Create the list
 			userToSave.tagIDs.forEach(async (tag) => {
 				// Modify
-				await _db.collection('tags').findOneAndUpdate(
+				await global.db.collection('tags').findOneAndUpdate(
 					{'_id': tag},
 					{$set: {'userID': Utils.convertToObjectID(updatedUser.getID())}},
 					{upsert: true, new: true, returnOriginal: false});
@@ -228,23 +223,24 @@ class UserStorage {
 		return updatedUser;
 	}
 
-	static async handleSaveUserImage(userImageToSave) {
+	static async saveUserImage(userImageToSave) {
 		// Check if ID is provided
 		if (!userImageToSave.id) {
 			// ID must be provided!
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
 				`User Image has no ID`,
-				550, "UserStorage", "handleSaveUserImage");
+				550, "UserStorage", "saveUserImage");
 		}
 		// Modify and return the modified document
-	    let result = await _db.collection('userimages').findOneAndUpdate(
+	    let result = await global.db.collection('userimages').findOneAndUpdate(
 			{'_id': Utils.convertToObjectID(userImageToSave.id)},
 			{$set: {image: userImageToSave.image}},
 			{upsert: true, new: true, returnOriginal: false});
 	}
 
-	static async handleGetUsers(searchValue, siteID, limit, skip) {
+	static async getUsers(searchValue, siteID, limit, skip) {
+		const User = require('../../model/User'); // Avoid circular fucking deps!!! 
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip
@@ -338,7 +334,7 @@ class UserStorage {
 			$limit: limit
 		});
 		// Read DB
-		let usersMDB = await _db.collection('users')
+		let usersMDB = await global.db.collection('users')
 			.aggregate(aggregation)
 			.toArray();
 		let users = [];
@@ -356,26 +352,27 @@ class UserStorage {
 		return users;
 	}
 
-	static async handleDeleteUser(id) {
+	static async deleteUser(id) {
 		// Delete User
-		await _db.collection('users')
+		await global.db.collection('users')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 		// Delete Image
-		await _db.collection('userimages')
+		await global.db.collection('userimages')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 		// Delete Tags
-		await _db.collection('tags')
+		await global.db.collection('tags')
 			.deleteMany( {'userID': Utils.convertToObjectID(id)} );
 	}
 
 	static async _createUser(userMDB) {
+		const User = require('../../model/User'); // Avoid circular fucking deps!!! 
 		let user = null;
 		// Check
 		if (userMDB) {
 			// Create
 			user = new User(userMDB);
 			// Get the Tags
-			let tagsMDB = await _db.collection('tags')
+			let tagsMDB = await global.db.collection('tags')
 				.find({"userID": Utils.convertToObjectID(user.getID())})
 				.toArray();
 			// Check

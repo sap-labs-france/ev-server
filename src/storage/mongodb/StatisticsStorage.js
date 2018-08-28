@@ -1,14 +1,8 @@
-const Utils = require('../../../utils/Utils');
-const Constants = require('../../../utils/Constants');
-
-let _db;
+const Utils = require('../../utils/Utils');
+const Constants = require('../../utils/Constants');
 
 class StatisticsStorage {
-	static setDatabase(db) {
-		_db = db;
-	}
-
-	static async handleGetChargingStationStats(filter, siteID, groupBy) {
+	static async getChargingStationStats(filter, siteID, groupBy) {
 		// Build filter
 		let match = {};
 		// Date provided?
@@ -97,7 +91,7 @@ class StatisticsStorage {
 			$sort: { "_id.month": 1, "_id.chargeBox": 1 }
 		});
 		// Read DB
-		let transactionStatsMDB = await _db.collection('transactions')
+		let transactionStatsMDB = await global.db.collection('transactions')
 			.aggregate(aggregation)
 			.toArray();
 		// Set
@@ -128,7 +122,7 @@ class StatisticsStorage {
 		return transactions;
 	}
 
-	static async handleGetUserStats(filter, siteID, groupBy) {
+	static async getUserStats(filter, siteID, groupBy) {
 		// Build filter
 		let match = {};
 		// Date provided?
@@ -230,7 +224,7 @@ class StatisticsStorage {
 			$sort: { "_id.month": 1, "_id.chargeBox": 1 }
 		});
 		// Read DB
-		let transactionStatsMDB = await _db.collection('transactions')
+		let transactionStatsMDB = await global.db.collection('transactions')
 			.aggregate(aggregation)
 			.toArray();
 		// Set

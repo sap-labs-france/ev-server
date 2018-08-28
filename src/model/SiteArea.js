@@ -1,6 +1,9 @@
 const Database = require('../utils/Database');
 const Constants = require('../utils/Constants');
 const AppError = require('../exception/AppError');
+const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
+const SiteStorage = require('../storage/mongodb/SiteStorage');
+const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
 
 class SiteArea {
 	constructor(siteArea) {
@@ -86,7 +89,7 @@ class SiteArea {
 			return new Site(this._model.site);
 		} else if (this._model.siteID){
 			// Get from DB
-			let site = await global.storage.getSite(this._model.siteID, withCompany, withUser);
+			let site = await SiteStorage.getSite(this._model.siteID, withCompany, withUser);
 			// Keep it
 			this.setSite(site);
 			return site;
@@ -128,15 +131,15 @@ class SiteArea {
 	}
 
 	save() {
-		return global.storage.saveSiteArea(this.getModel());
+		return SiteAreaStorage.saveSiteArea(this.getModel());
 	}
 
 	saveImage() {
-		return global.storage.saveSiteAreaImage(this.getModel());
+		return SiteAreaStorage.saveSiteAreaImage(this.getModel());
 	}
 
 	delete() {
-		return global.storage.deleteSiteArea(this.getID());
+		return SiteAreaStorage.deleteSiteArea(this.getID());
 	}
 
 	async getChargingStations() {
@@ -144,7 +147,7 @@ class SiteArea {
 			return this._model.chargeBoxes.map((chargeBox) => new ChargingStation(chargeBox));
 		} else {
 			// Get from DB
-			let chargeBoxes = await global.storage.getChargingStations(null, this.getID(), Constants.NO_LIMIT);
+			let chargeBoxes = await ChargingStationStorage.getChargingStations(null, this.getID(), Constants.NO_LIMIT);
 			// Keep it
 			this.setChargingStations(chargeBoxes);
 			return chargeBoxes;

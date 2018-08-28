@@ -1,14 +1,8 @@
-const Utils = require('../../../utils/Utils');
-const Database = require('../../../utils/Database');
-
-let _db;
+const Utils = require('../../utils/Utils');
+const Database = require('../../utils/Database');
 
 class LoggingStorage {
-	static setDatabase(db) {
-		_db = db;
-	}
-
-	static async handleDeleteLogs(deleteUpToDate) {
+	static async deleteLogs(deleteUpToDate) {
 		// Build filter
 		let filters = {};
 		// Do Not Delete Security Logs
@@ -22,13 +16,13 @@ class LoggingStorage {
 			return;
 		}
 		// Delete Logs
-		let result = await _db.collection('logs')
+		let result = await global.db.collection('logs')
 			.deleteMany( filters );
 		// Return the result
 		return result.result;
 	}
 
-	static async handleDeleteSecurityLogs(deleteUpToDate) {
+	static async deleteSecurityLogs(deleteUpToDate) {
 		// Build filter
 		let filters = {};
 		// Delete Only Security Logs
@@ -42,13 +36,13 @@ class LoggingStorage {
 			return;
 		}
 		// Delete Logs
-		let result = await _db.collection('logs')
+		let result = await global.db.collection('logs')
 			.deleteMany( filters );
 		// Return the result
 		return result.result;
 	}
 
-	static async handleSaveLog(logToSave) {
+	static async saveLog(logToSave) {
 		// Check User
 		logToSave.userID = Utils.convertUserToObjectID(logToSave.user);
 		logToSave.actionOnUserID = Utils.convertUserToObjectID(logToSave.actionOnUser);
@@ -56,12 +50,12 @@ class LoggingStorage {
 		let log = {};
 		Database.updateLogging(logToSave, log, false);
 		// Insert
-	  await _db.collection('logs').insertOne(log);
+	  await global.db.collection('logs').insertOne(log);
 	}
 
-	static async handleGetLog(id) {
+	static async getLog(id) {
 		// Read DB
-		let loggingMDB = await _db.collection('logs')
+		let loggingMDB = await global.db.collection('logs')
 			.find({_id: Utils.convertToObjectID(id)})
 			.limit(1)
 			.toArray();
@@ -75,7 +69,7 @@ class LoggingStorage {
 		return logging;
 	}
 
-	static async handleGetLogs(dateFrom, level, type, chargingStation, searchValue, action, limit, skip, sort) {
+	static async getLogs(dateFrom, level, type, chargingStation, searchValue, action, limit, skip, sort) {
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip
@@ -187,7 +181,7 @@ class LoggingStorage {
 			$unwind: { "path": "$actionOnUser", "preserveNullAndEmptyArrays": true }
 		});
 		// Read DB
-		let loggingsMDB = await _db.collection('logs')
+		let loggingsMDB = await global.db.collection('logs')
 				.aggregate(aggregation)
 				.toArray();
 		let loggings = [];

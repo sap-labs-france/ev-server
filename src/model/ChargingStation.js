@@ -10,6 +10,10 @@ const Configuration = require('../utils/Configuration');
 const NotificationHandler = require('../notification/NotificationHandler');
 const Authorizations = require('../authorization/Authorizations');
 const AppError = require('../exception/AppError');
+const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage'); 
+const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage'); 
+const TransactionStorage = require('../storage/mongodb/TransactionStorage');
+const PricingStorage = require('../storage/mongodb/PricingStorage');
 
 let _configAdvanced = Configuration.getAdvancedConfig();
 let _configChargingStation = Configuration.getChargingStationConfig();
@@ -82,7 +86,7 @@ class ChargingStation {
 			return new SiteArea(this._model.siteArea);
 		} else if (this._model.siteAreaID){
 			// Get from DB
-			let siteArea = await global.storage.getSiteArea(this._model.siteAreaID, false, withSite);
+			let siteArea = await SiteAreaStorage.getSiteArea(this._model.siteAreaID, false, withSite);
 			// Set it
 			this.setSiteArea(siteArea);
 			// Return
@@ -293,17 +297,17 @@ class ChargingStation {
 			this.setConnectors([]);
 		}
 		// Save
-		return global.storage.saveChargingStation(this.getModel());
+		return ChargingStationStorage.saveChargingStation(this.getModel());
 	}
 
 	saveHeartBeat() {
 		// Save
-		return global.storage.saveChargingStationHeartBeat(this.getModel());
+		return ChargingStationStorage.saveChargingStationHeartBeat(this.getModel());
 	}
 
 	saveChargingStationSiteArea() {
 		// Save
-		return global.storage.saveChargingStationSiteArea(this.getModel());
+		return ChargingStationStorage.saveChargingStationSiteArea(this.getModel());
 	}
 
 	async handleStatusNotification(statusNotification) {
@@ -338,9 +342,9 @@ class ChargingStation {
 			this.updateConnectorsPower();
 		}
 		// Save Status Notif
-		await global.storage.saveStatusNotification(statusNotification);
+		await ChargingStationStorage.saveStatusNotification(statusNotification);
 		// Save Charger Status
-		await global.storage.saveChargingStationConnector(this.getModel(), statusNotification.connectorId);
+		await ChargingStationStorage.saveChargingStationConnector(this.getModel(), statusNotification.connectorId);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: "ChargingStation", method: "handleStatusNotification",
@@ -437,7 +441,7 @@ class ChargingStation {
 			}
 		);
 		// Save Boot Notification
-		await global.storage.saveBootNotification(bootNotification);
+		await ChargingStationStorage.saveBootNotification(bootNotification);
 		// Log
 		Logging.logInfo({
 			source: this.getID(),
@@ -800,7 +804,7 @@ class ChargingStation {
 			newMeterValues.values.push(newMeterValue);
 		});
 		// Save Meter Values
-		await global.storage.saveMeterValues(newMeterValues);
+		await TransactionStorage.saveMeterValues(newMeterValues);
 		// Update Charging Station Consumption
 		await this.updateChargingStationConsumption(meterValues.transactionId);
 		// Log
@@ -816,7 +820,7 @@ class ChargingStation {
 		configuration.timestamp = new Date();
 
 		// Save config
-		return global.storage.saveConfiguration(configuration);
+		return ChargingStationStorage.saveConfiguration(configuration);
 	}
 
 	setDeleted(deleted) {
@@ -829,7 +833,7 @@ class ChargingStation {
 
 	deleteTransaction(transaction) {
 		// Yes: save it
-		return global.storage.deleteTransaction(transaction);
+		return TransactionStorage.deleteTransaction(transaction);
 	}
 
 	async delete() {
@@ -843,12 +847,12 @@ class ChargingStation {
 			await this.save();
 		} else {
 			// Delete physically
-			await global.storage.deleteChargingStation(this.getID());
+			await ChargingStationStorage.deleteChargingStation(this.getID());
 		}
 	}
 
 	getActiveTransaction(connectorId) {
-		return global.storage.getActiveTransaction(this.getID(), connectorId);
+		return TransactionStorage.getActiveTransaction(this.getID(), connectorId);
 	}
 
 	async handleDataTransfer(dataTransfer) {
@@ -856,7 +860,7 @@ class ChargingStation {
 		dataTransfer.chargeBoxID = this.getID();
 		dataTransfer.timestamp = new Date();
 		// Save it
-		await global.storage.saveDataTransfer(dataTransfer);
+		await ChargingStationStorage.saveDataTransfer(dataTransfer);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: "CharingStation", method: "handleDataTransfer",
@@ -868,7 +872,7 @@ class ChargingStation {
 		diagnosticsStatusNotification.chargeBoxID = this.getID();
 		diagnosticsStatusNotification.timestamp = new Date();
 		// Save it
-		await global.storage.saveDiagnosticsStatusNotification(diagnosticsStatusNotification);
+		await ChargingStationStorage.saveDiagnosticsStatusNotification(diagnosticsStatusNotification);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: "ChargingStation", method: "handleDiagnosticsStatusNotification",
@@ -880,7 +884,7 @@ class ChargingStation {
 		firmwareStatusNotification.chargeBoxID = this.getID();
 		firmwareStatusNotification.timestamp = new Date();
 		// Save it
-		await global.storage.saveFirmwareStatusNotification(firmwareStatusNotification);
+		await ChargingStationStorage.saveFirmwareStatusNotification(firmwareStatusNotification);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: "ChargingStation", method: "handleFirmwareStatusNotification",
@@ -897,7 +901,7 @@ class ChargingStation {
 		// Set current user
 		authorize.user = users.user;
 		// Save
-		await global.storage.saveAuthorize(authorize);
+		await ChargingStationStorage.saveAuthorize(authorize);
 		// Log
 		if (authorize.user) {
 			// Log
@@ -939,7 +943,7 @@ class ChargingStation {
 
 	getTransaction(transactionId) {
 		// Get the tranasction first (to get the connector id)
-		return global.storage.getTransaction(transactionId);
+		return TransactionStorage.getTransaction(transactionId);
 	}
 
 	async handleStartTransaction(transaction) {
@@ -1002,7 +1006,7 @@ class ChargingStation {
 		// Set the tag ID
 		transaction.tagID = transaction.idTag;
 		// Ok: Save Transaction
-		let newTransaction = await global.storage.saveTransaction(transaction);
+		let newTransaction = await TransactionStorage.saveTransaction(transaction);
 		// Set the user
 		newTransaction.user = user.getModel();
 		// Update Consumption
@@ -1110,7 +1114,7 @@ class ChargingStation {
 			);
 		}
 		// Save Transaction
-		let newTransaction = await global.storage.saveTransaction(transaction);
+		let newTransaction = await TransactionStorage.saveTransaction(transaction);
 		// Set the user
 		newTransaction.user = users.user.getModel();
 		newTransaction.stop.user = users.alternateUser.getModel();
@@ -1243,16 +1247,16 @@ class ChargingStation {
 	}
 
 	getConfiguration() {
-		return global.storage.getConfiguration(this.getID());
+		return ChargingStationStorage.getConfiguration(this.getID());
 	}
 
 	getConfigurationParamValue(paramName) {
-		return global.storage.getConfigurationParamValue(this.getID(), paramName);
+		return ChargingStationStorage.getConfigurationParamValue(this.getID(), paramName);
 	}
 
 	async hasAtLeastOneTransaction() {
 		// Get the consumption
-		let transactions = await global.storage.getTransactions(
+		let transactions = await TransactionStorage.getTransactions(
 				null, {"chargeBoxID": this.getID()}, null, false, 1);
 		// Return
 		return (transactions && transactions.length > 0 ? true : false);
@@ -1260,7 +1264,7 @@ class ChargingStation {
 
 	getTransactions(connectorId, startDateTime, endDateTime, withChargeBoxes=false) {
 		// Get the consumption
-		return global.storage.getTransactions(
+		return TransactionStorage.getTransactions(
 			null,
 			{"chargeBoxID": this.getID(),
 			 "connectorId": connectorId,
@@ -1273,9 +1277,9 @@ class ChargingStation {
 
 	async getConsumptionsFromTransaction(transaction, optimizeNbrOfValues) {
 		// Get the last 5 meter values
-		let meterValues = await global.storage.getMeterValuesFromTransaction(transaction.id);
+		let meterValues = await TransactionStorage.getMeterValuesFromTransaction(transaction.id);
 		// Read the pricing
-		let pricing = await global.storage.getPricing();
+		let pricing = await PricingStorage.getPricing();
 		// Build the header
 		let chargingStationConsumption = {};
 		if (pricing) {

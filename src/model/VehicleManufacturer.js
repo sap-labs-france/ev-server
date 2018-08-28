@@ -3,6 +3,8 @@ const User = require('./User');
 const Vehicle = require('./Vehicle');
 const Constants = require('../utils/Constants');
 const AppError = require('../exception/AppError');
+const VehicleManufacturerStorage = require('../storage/mongodb/VehicleManufacturerStorage');
+const VehicleStorage = require('../storage/mongodb/VehicleStorage');
 
 class VehicleManufacturer {
 	constructor(vehicleManufacturer) {
@@ -95,7 +97,7 @@ class VehicleManufacturer {
 			return this._model.vehicles.map((vehicle) => new Vehicle(vehicle));
 		} else {
 			// Get from DB
-			let vehicles = await global.storage.getVehicles(null, this.getID());
+			let vehicles = await VehicleStorage.getVehicles(null, this.getID());
 			// Keep it
 			this.setVehicles(vehicles);
 			return vehicles;
@@ -109,15 +111,15 @@ class VehicleManufacturer {
 	}
 
 	save() {
-		return global.storage.saveVehicleManufacturer(this.getModel());
+		return VehicleManufacturerStorage.saveVehicleManufacturer(this.getModel());
 	}
 
 	saveLogo() {
-		return global.storage.saveVehicleManufacturerLogo(this.getModel());
+		return VehicleManufacturerStorage.saveVehicleManufacturerLogo(this.getModel());
 	}
 
 	delete() {
-		return global.storage.deleteVehicleManufacturer(this.getID());
+		return VehicleManufacturerStorage.deleteVehicleManufacturer(this.getID());
 	}
 }
 

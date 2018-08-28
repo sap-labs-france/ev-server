@@ -8,6 +8,7 @@ const ChargingStation = require('../../model/ChargingStation');
 const AppError = require('../../exception/AppError');
 const Logging = require('../../utils/Logging');
 const Configuration = require('../../utils/Configuration');
+const ChargingStationStorage = require('../../storage/mongodb/ChargingStationStorage'); 
 require('source-map-support').install();
 
 let _centralSystemConfig;
@@ -68,7 +69,7 @@ class CentralSystemServer {
 
 	async checkAndGetChargingStation(chargeBoxIdentity) {
 		// Get the charging station
-		let chargingStation = await global.storage.getChargingStation(chargeBoxIdentity);
+		let chargingStation = await ChargingStationStorage.getChargingStation(chargeBoxIdentity);
 		// Found?
 		if (!chargingStation) {
 			throw new AppError(
@@ -98,7 +99,7 @@ class CentralSystemServer {
 			args.timestamp = args.lastReboot;
 
 			// Get the charging station
-			let chargingStation = await global.storage.getChargingStation(headers.chargeBoxIdentity);
+			let chargingStation = await ChargingStationStorage.getChargingStation(headers.chargeBoxIdentity);
 			if (!chargingStation) {
 				// Save Charging Station
 				chargingStation = new ChargingStation(args);

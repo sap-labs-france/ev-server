@@ -10,6 +10,7 @@ const AppAuthError = require('../exception/AppAuthError');
 const Utils = require('../utils/Utils');
 const User = require('../model/User');
 const AuthorizationsDefinition = require('./AuthorizationsDefinition');
+const UserStorage = require('../storage/mongodb/UserStorage')
 require('source-map-support').install();
 
 let _configuration;
@@ -149,7 +150,7 @@ module.exports = {
 	async getOrCreateUserByTagID(chargingStation, siteArea, tagID, action) {
 		let newUserCreated = false;
 		// Get the user
-		let user = await global.storage.getUserByTagId(tagID);
+		let user = await UserStorage.getUserByTagId(tagID);
 		// Found?
 		if (!user) {
 			// No: Create an empty user

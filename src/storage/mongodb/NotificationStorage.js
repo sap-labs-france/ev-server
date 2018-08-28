@@ -1,17 +1,11 @@
-const Database = require('../../../utils/Database');
-const Utils = require('../../../utils/Utils');
+const Database = require('../../utils/Database');
+const Utils = require('../../utils/Utils');
 const crypto = require('crypto');
 
-let _db;
-
 class NotificationStorage {
-	static setDatabase(db) {
-		_db = db;
-	}
-
-	static async handleGetNotification(sourceId) {
+	static async getNotification(sourceId) {
 		// Read DB
-		let notificationsMDB = await _db.collection('notifications')
+		let notificationsMDB = await global.db.collection('notifications')
 			.find({"sourceId": sourceId})
 			.toArray();
 		let notifications = [];
@@ -30,7 +24,7 @@ class NotificationStorage {
 		return notifications;
 	}
 
-	static async handleSaveNotification(notificationToSave) {
+	static async saveNotification(notificationToSave) {
 		// Ensure Date
 		notificationToSave.timestamp = Utils.convertToDate(notificationToSave.timestamp);
 		// Transfer
@@ -41,7 +35,7 @@ class NotificationStorage {
 			.update(`${notificationToSave.sourceId}~${notificationToSave.channel}`)
 			.digest("hex");
 		// Create
-		await _db.collection('notifications')
+		await global.db.collection('notifications')
 			.insertOne(notification);
 	}
 }

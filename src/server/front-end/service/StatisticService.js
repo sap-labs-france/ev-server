@@ -3,6 +3,7 @@ const moment = require('moment');
 const Constants = require('../../../utils/Constants');
 const Authorizations = require('../../../authorization/Authorizations');
 const StatisticSecurity = require('./security/StatisticSecurity');
+const StatisticsStorage = require('../../../storage/mongodb/StatisticsStorage');
 
 class StatisticService {
 	
@@ -13,7 +14,7 @@ class StatisticService {
 			// Build filter
 			let filter = StatisticService.buildFilter(filteredRequest, req.user);
 			// Get Stats
-			let transactions = await global.storage.getUserStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_USAGE);
+			let transactions = await StatisticsStorage.getUserStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_USAGE);
 			// Return
 			res.json(transactions);
 			next();
@@ -30,7 +31,7 @@ class StatisticService {
 			// Build filter
 			let filter = StatisticService.buildFilter(filteredRequest, req.user);
 			// Get Stats
-			let transactions = await global.storage.getUserStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_CONSUMPTION);
+			let transactions = await StatisticsStorage.getUserStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_CONSUMPTION);
 			// Return
 			res.json(transactions);
 			next();
@@ -47,7 +48,7 @@ class StatisticService {
 			// Build filter
 			let filter = StatisticService.buildFilter(filteredRequest, req.user);
 			// Get Stats
-			let transactions = await global.storage.getChargingStationStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_USAGE);
+			let transactions = await StatisticsStorage.getChargingStationStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_USAGE);
 			// Return
 			res.json(transactions);
 			next();
@@ -64,7 +65,7 @@ class StatisticService {
 			// Build filter
 			let filter = StatisticService.buildFilter(filteredRequest, req.user);
 			// Get Stats
-			let transactions = await global.storage.getChargingStationStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_CONSUMPTION);
+			let transactions = await StatisticsStorage.getChargingStationStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_CONSUMPTION);
 			// Return
 			res.json(transactions);
 			next();

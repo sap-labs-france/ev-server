@@ -1,6 +1,7 @@
 const Logging = require('../utils/Logging');
 const DummyTask = require('./tasks/DummyTask');
 const moment = require('moment');
+const MigrationStorage = require('../storage/mongodb/MigrationStorage')
 
 class MigrationHandler {
 	// Migrate method
@@ -19,7 +20,7 @@ class MigrationHandler {
 			currentMigrationTasks.push(new DummyTask());
 
 			// Get the already done migrations from the DB
-			let migrationTasksDone = await global.storage.getMigrations();
+			let migrationTasksDone = await MigrationStorage.getMigrations();
 
 			// Check
 			for (const currentMigrationTask of currentMigrationTasks) {
@@ -66,7 +67,7 @@ class MigrationHandler {
 				console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`);
 
 				// Save to the DB
-				await global.storage.saveMigration({
+				await MigrationStorage.saveMigration({
 					name: currentMigrationTask.getName(),
 					version: currentMigrationTask.getVersion(),
 					timestamp: new Date(),

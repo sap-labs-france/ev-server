@@ -1,3 +1,9 @@
+const passport = require('passport');
+const JwtStrategy = require('passport-jwt').Strategy;
+const ExtractJwt = require('passport-jwt').ExtractJwt;
+const jwt = require('jsonwebtoken');
+const moment = require('moment');
+const axios = require('axios');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const AppError = require('../../../exception/AppError');
@@ -6,13 +12,10 @@ const Utils = require('../../../utils/Utils');
 const Configuration = require('../../../utils/Configuration');
 const Authorizations = require('../../../authorization/Authorizations');
 const NotificationHandler = require('../../../notification/NotificationHandler');
-const passport = require('passport');
-const JwtStrategy = require('passport-jwt').Strategy;
-const ExtractJwt = require('passport-jwt').ExtractJwt;
-const jwt = require('jsonwebtoken');
-const moment = require('moment');
 const AuthSecurity = require('./security/AuthSecurity');
-const axios = require('axios');
+const ChargingStationStorage = require('../../../storage/mongodb/ChargingStationStorage'); 
+const TransactionStorage = require('../../../storage/mongodb/TransactionStorage');
+const UserStorage = require('../../../storage/mongodb/UserStorage');
 
 let _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -74,7 +77,7 @@ class AuthService {
 							550, 'AuthService', 'handleIsAuthorized');
 					}
 					// Get the Charging station
-					let chargingStation = await global.storage.getChargingStation(filteredRequest.Arg1);
+					let chargingStation = await ChargingStationStorage.getChargingStation(filteredRequest.Arg1);
 					// Found?
 					if (!chargingStation) {
 						// Not Found!
@@ -84,7 +87,7 @@ class AuthService {
 							550, 'AuthService', 'handleIsAuthorized');
 					}
 					// Get Transaction
-					let transaction = await global.storage.getTransaction(filteredRequest.Arg2);
+					let transaction = await TransactionStorage.getTransaction(filteredRequest.Arg2);
 					if (!transaction) {
 						throw new AppError(
 							Constants.CENTRAL_SERVER,
@@ -136,7 +139,7 @@ class AuthService {
 					'AuthService', 'handleLogIn');
 			}
 			// Check email
-			let user = await global.storage.getUserByEmail(filteredRequest.email);
+			let user = await UserStorage.getUserByEmail(filteredRequest.email);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -221,7 +224,7 @@ class AuthService {
 					'AuthService', 'handleRegisterUser');
 			}
 			// Check email
-			let user = await global.storage.getUserByEmail(filteredRequest.email);
+			let user = await UserStorage.getUserByEmail(filteredRequest.email);
 			// Check Mandatory fields
 			User.checkIfUserValid(filteredRequest, req);
 			if (user) {
@@ -242,7 +245,7 @@ class AuthService {
 			newUser.setLocale(req.locale.substring(0,5));
 			newUser.setCreatedOn(new Date());
 			// Get EULA
-			let endUserLicenseAgreement = await global.storage.getEndUserLicenseAgreement(newUser.getLanguage());
+			let endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(newUser.getLanguage());
 			// Set Eula Info on Login Only
 			newUser.setEulaAcceptedOn(new Date());
 			newUser.setEulaAcceptedVersion(endUserLicenseAgreement.version);
@@ -298,7 +301,7 @@ class AuthService {
 			// Yes: Generate new password
 			let resetHash = Utils.generateGUID();
 			// Generate a new password
-			let user = await global.storage.getUserByEmail(filteredRequest.email);
+			let user = await UserStorage.getUserByEmail(filteredRequest.email);
 			// Found?
 			if (!user) {
 				throw new AppError(
@@ -355,7 +358,7 @@ class AuthService {
 			// Hash it
 			let newHashedPassword = await User.hashPasswordBcrypt(newPassword);
 			// Get the user
-			let user = await global.storage.getUserByEmail(filteredRequest.email);
+			let user = await UserStorage.getUserByEmail(filteredRequest.email);
 			// Found?
 			if (!user) {
 				throw new AppError(
@@ -479,7 +482,7 @@ class AuthService {
 			module: 'AuthService', method: 'checkUserLogin',
 			action: action, message: `User logged in successfully`});
 		// Get EULA
-		let endUserLicenseAgreement = await global.storage.getEndUserLicenseAgreement(user.getLanguage());
+		let endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(user.getLanguage());
 		// Set Eula Info on Login Only
 		if (action == 'Login') {
 			user.setEulaAcceptedOn(new Date());

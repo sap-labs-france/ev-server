@@ -2,6 +2,7 @@ const Configuration = require('../utils/Configuration');
 const EMailNotificationTask = require('./email/EMailNotificationTask');
 const Logging = require('../utils/Logging');
 const Constants = require('../utils/Constants');
+const NotificationStorage = require('../storage/mongodb/NotificationStorage');
 require('source-map-support').install();
 
 let _notificationConfig = Configuration.getNotificationConfig();
@@ -22,7 +23,7 @@ const SOURCE_TRANSACTION_STARTED = "NotifyTransactionStarted";
 class NotificationHandler {
 	static async saveNotification(channel, sourceId, sourceDescr, user, chargingStation) {
 		// Save it
-		await global.storage.saveNotification({
+		await NotificationStorage.saveNotification({
 			timestamp: new Date(),
 			channel: channel,
 			sourceId: sourceId,
@@ -50,7 +51,7 @@ class NotificationHandler {
 	static async hasNotifiedSource(sourceId) {
 		try {
 			// Save it
-			let notifications = await global.storage.getNotifications(sourceId);
+			let notifications = await NotificationStorage.getNotification(sourceId);
 			// Filter by source id
 			let notificationsFiltered = notifications.filter(notification => {
 				return (notification.sourceId === sourceId);

@@ -1,22 +1,14 @@
-const Constants = require('../../../utils/Constants');
-const Database = require('../../../utils/Database');
-const Utils = require('../../../utils/Utils');
-const VehicleManufacturer = require('../../../model/VehicleManufacturer');
+const Constants = require('../../utils/Constants');
+const Database = require('../../utils/Database');
+const Utils = require('../../utils/Utils');
 const VehicleStorage = require('./VehicleStorage');
-const Vehicle = require('../../../model/Vehicle');
-const AppError = require('../../../exception/AppError');
+const AppError = require('../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
 
-let _db;
-
 class VehicleManufacturerStorage {
-	static setDatabase(db) {
-		_db = db;
-	}
-
-	static async handleGetVehicleManufacturerLogo(id) {
+	static async getVehicleManufacturerLogo(id) {
 		// Read DB
-		let vehicleManufacturerLogosMDB = await _db.collection('vehiclemanufacturerlogos')
+		let vehicleManufacturerLogosMDB = await global.db.collection('vehiclemanufacturerlogos')
 			.find({_id: Utils.convertToObjectID(id)})
 			.limit(1)
 			.toArray();
@@ -31,9 +23,9 @@ class VehicleManufacturerStorage {
 		return vehicleManufacturerLogo;
 	}
 
-	static async handleGetVehicleManufacturerLogos() {
+	static async getVehicleManufacturerLogos() {
 		// Read DB
-		let vehicleManufacturerLogosMDB = await _db.collection('vehiclemanufacturerlogos')
+		let vehicleManufacturerLogosMDB = await global.db.collection('vehiclemanufacturerlogos')
 			.find()
 			.toArray();
 		let vehicleManufacturerLogos = [];
@@ -50,23 +42,24 @@ class VehicleManufacturerStorage {
 		return vehicleManufacturerLogos;
 	}
 
-	static async handleSaveVehicleManufacturerLogo(vehicleManufacturerLogoToSave) {
+	static async saveVehicleManufacturerLogo(vehicleManufacturerLogoToSave) {
 		// Check if ID/Name is provided
 		if (!vehicleManufacturerLogoToSave.id) {
 			// ID must be provided!
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
 				`Vehicle Manufacturer Logo has no ID`,
-				550, "VehicleManufacturerStorage", "handleSaveVehicleManufacturerLogo");
+				550, "VehicleManufacturerStorage", "saveVehicleManufacturerLogo");
 		}
 		// Modify
-	    await _db.collection('vehiclemanufacturerlogos').findOneAndUpdate(
+	    await global.db.collection('vehiclemanufacturerlogos').findOneAndUpdate(
 			{'_id': Utils.convertToObjectID(vehicleManufacturerLogoToSave.id)},
 			{$set: {logo: vehicleManufacturerLogoToSave.logo}},
 			{upsert: true, new: true, returnOriginal: false});
 	}
 
-	static async handleGetVehicleManufacturer(id) {
+	static async getVehicleManufacturer(id) {
+		const VehicleManufacturer = require('../../model/VehicleManufacturer'); // Avoid fucking circular deps!!!
 		// Create Aggregation
 		let aggregation = [];
 		// Filters
@@ -76,7 +69,7 @@ class VehicleManufacturerStorage {
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Read DB
-		let vehicleManufacturersMDB = await _db.collection('vehiclemanufacturers')
+		let vehicleManufacturersMDB = await global.db.collection('vehiclemanufacturers')
 			.aggregate(aggregation)
 			.limit(1)
 			.toArray();
@@ -89,14 +82,15 @@ class VehicleManufacturerStorage {
 		return vehicleManufacturer;
 	}
 
-	static async handleSaveVehicleManufacturer(vehicleManufacturerToSave) {
+	static async saveVehicleManufacturer(vehicleManufacturerToSave) {
+		const VehicleManufacturer = require('../../model/VehicleManufacturer'); // Avoid fucking circular deps!!!
 		// Check if ID/Model is provided
 		if (!vehicleManufacturerToSave.id && !vehicleManufacturerToSave.name) {
 			// ID must be provided!
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
 				`Vehicle Manufacturer has no ID and no Name`,
-				550, "VehicleManufacturerStorage", "handleSaveVehicleManufacturer");
+				550, "VehicleManufacturerStorage", "saveVehicleManufacturer");
 		}
 		let vehicleManufacturerFilter = {};
 		// Build Request
@@ -112,7 +106,7 @@ class VehicleManufacturerStorage {
 		let vehicleManufacturer = {};
 		Database.updateVehicleManufacturer(vehicleManufacturerToSave, vehicleManufacturer, false);
 		// Modify
-	    let result = await _db.collection('vehiclemanufacturers').findOneAndUpdate(
+	    let result = await global.db.collection('vehiclemanufacturers').findOneAndUpdate(
 			vehicleManufacturerFilter,
 			{$set: vehicleManufacturer},
 			{upsert: true, new: true, returnOriginal: false});
@@ -121,7 +115,9 @@ class VehicleManufacturerStorage {
 	}
 
 	// Delegate
-	static async handleGetVehicleManufacturers(searchValue, withVehicles, vehicleType, limit, skip) {
+	static async getVehicleManufacturers(searchValue, withVehicles, vehicleType, limit, skip) {
+		const VehicleManufacturer = require('../../model/VehicleManufacturer'); // Avoid fucking circular deps!!!
+		const Vehicle = require('../../model/Vehicle'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip
@@ -193,7 +189,7 @@ class VehicleManufacturerStorage {
 			$limit: limit
 		});
 		// Read DB
-		let vehiclemanufacturersMDB = await _db.collection('vehiclemanufacturers')
+		let vehiclemanufacturersMDB = await global.db.collection('vehiclemanufacturers')
 			.aggregate(aggregation)
 			.toArray();
 		let vehicleManufacturers = [];
@@ -228,19 +224,19 @@ class VehicleManufacturerStorage {
 		return vehicleManufacturers;
 	}
 
-	static async handleDeleteVehicleManufacturer(id) {
+	static async deleteVehicleManufacturer(id) {
 		// Delete Vehicles
-		let vehicles = await VehicleStorage.handleGetVehicles(null, id);
+		let vehicles = await VehicleStorage.getVehicles(null, id);
 		// Delete
 		vehicles.forEach(async (vehicle) => {
 			//	Delete Vehicle
 			await vehicle.delete();
 		});
 		// Delete the Vehicle Manufacturers
-		await _db.collection('vehiclemanufacturers')
+		await global.db.collection('vehiclemanufacturers')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 		// Delete Vehicle Manufacturer Logo
-		await _db.collection('vehiclemanufacturerlogos')
+		await global.db.collection('vehiclemanufacturerlogos')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 	}
 }

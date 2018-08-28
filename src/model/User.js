@@ -8,6 +8,9 @@ const Constants = require('../utils/Constants');
 const AppError = require('../exception/AppError');
 const Utils = require('../utils/Utils');
 const Configuration = require('../utils/Configuration');
+const UserStorage = require('../storage/mongodb/UserStorage');
+const SiteStorage = require('../storage/mongodb/SiteStorage');
+const TransactionStorage = require('../storage/mongodb/TransactionStorage');
 
 let _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 
@@ -264,7 +267,7 @@ class User {
 		// Set the user ID
 		filter.userId = this.getID();
 		// Get the consumption
-		return global.storage.getTransactions(
+		return TransactionStorage.getTransactions(
 			null, filter, null, false,
 			Constants.NO_LIMIT);
 	}
@@ -272,16 +275,16 @@ class User {
 	getSites(withCompany=false, withSiteAreas=false,
 			withChargeBoxes=false, withUsers=false) {
 		// Get Sites
-		return global.storage.getSites(null, null, this.getID(),
+		return SiteStorage.getSites(null, null, this.getID(),
 			withCompany, withSiteAreas, withChargeBoxes, withUsers);
 	}
 
 	save() {
-		return global.storage.saveUser(this.getModel());
+		return UserStorage.saveUser(this.getModel());
 	}
 
 	saveImage() {
-		return global.storage.saveUserImage(this.getModel());
+		return UserStorage.saveUserImage(this.getModel());
 	}
 
 	async delete() {
@@ -311,7 +314,7 @@ class User {
 			return this.save();
 		} else {
 			// Delete physically
-			return global.storage.deleteUser(this.getID());
+			return UserStorage.deleteUser(this.getID());
 		}
 	}
 

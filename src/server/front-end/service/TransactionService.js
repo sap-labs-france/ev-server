@@ -7,6 +7,10 @@ const moment = require('moment');
 const TransactionSecurity = require('./security/TransactionSecurity');
 const ClientOAuth2 = require('client-oauth2');
 const axios = require('axios');
+const ChargingStationStorage = require('../../../storage/mongodb/ChargingStationStorage'); 
+const TransactionStorage = require('../../../storage/mongodb/TransactionStorage'); 
+const UserStorage = require('../../../storage/mongodb/UserStorage'); 
+const PricingStorage = require('../../../storage/mongodb/PricingStorage'); 
 
 class TransactionService {
 	static async handleRefundTransaction(action, req, res, next) {
@@ -22,7 +26,7 @@ class TransactionService {
 					'TransactionService', 'handleRefundTransaction', req.user);
 			}
 			// Get Transaction
-			let transaction = await global.storage.getTransaction(filteredRequest.id);
+			let transaction = await TransactionStorage.getTransaction(filteredRequest.id);
 			// Found?
 			if (!transaction) {
 				// Not Found!
@@ -42,7 +46,7 @@ class TransactionService {
 					req.user);
 			}
 			// Get the Charging Station
-			let chargingStation = await global.storage.getChargingStation(transaction.chargeBox.id);
+			let chargingStation = await ChargingStationStorage.getChargingStation(transaction.chargeBox.id);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -52,7 +56,7 @@ class TransactionService {
 					'TransactionService', 'handleRefundTransaction', req.user);
 			}
 			// Get Transaction User
-			let user = await global.storage.getUser(transaction.userID);
+			let user = await UserStorage.getUser(transaction.userID);
 			// Check
 			if (!user) {
 				// Not Found!
@@ -115,7 +119,7 @@ class TransactionService {
 					'TransactionService', 'handleDeleteTransaction', req.user);
 			}
 			// Get Transaction
-			let transaction = await global.storage.getTransaction(filteredRequest.ID);
+			let transaction = await TransactionStorage.getTransaction(filteredRequest.ID);
 			// Found?
 			if (!transaction) {
 				// Not Found!
@@ -135,7 +139,7 @@ class TransactionService {
 					req.user);
 			}
 			// Get the Charging Station
-			let chargingStation = await global.storage.getChargingStation(transaction.chargeBox.id);
+			let chargingStation = await ChargingStationStorage.getChargingStation(transaction.chargeBox.id);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -145,7 +149,7 @@ class TransactionService {
 					'TransactionService', 'handleDeleteTransaction', req.user);
 			}
 			// Get Transaction User
-			let user = await global.storage.getUser(transaction.userID);
+			let user = await UserStorage.getUser(transaction.userID);
 			// Check
 			if (!user) {
 				// Not Found!
@@ -184,7 +188,7 @@ class TransactionService {
 					'TransactionService', 'handleTransactionSoftStop', req.user);
 			}
 			// Get Transaction
-			let transaction = await global.storage.getTransaction(filteredRequest.transactionId);
+			let transaction = await TransactionStorage.getTransaction(filteredRequest.transactionId);
 			if (!transaction) {
 				// Not Found!
 				throw new AppError(
@@ -203,7 +207,7 @@ class TransactionService {
 					req.user);
 			}
 			// Get the Charging Station
-			let chargingStation = await global.storage.getChargingStation(transaction.chargeBox.id);
+			let chargingStation = await ChargingStationStorage.getChargingStation(transaction.chargeBox.id);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -213,7 +217,7 @@ class TransactionService {
 					'TransactionService', 'handleTransactionSoftStop', req.user);
 			}
 			// Get Transaction User
-			let user = await global.storage.getUser(transaction.userID);
+			let user = await UserStorage.getUser(transaction.userID);
 			// Check
 			if (!user) {
 				// Not Found!
@@ -258,7 +262,7 @@ class TransactionService {
 					'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
 			}
 			// Get Transaction
-			let transaction = await global.storage.getTransaction(filteredRequest.TransactionId);
+			let transaction = await TransactionStorage.getTransaction(filteredRequest.TransactionId);
 			if (!transaction) {
 				// Not Found!
 				throw new AppError(
@@ -277,7 +281,7 @@ class TransactionService {
 					req.user);
 			}
 			// Get the Charging Station
-			let chargingStation = await global.storage.getChargingStation(transaction.chargeBox.id);
+			let chargingStation = await ChargingStationStorage.getChargingStation(transaction.chargeBox.id);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -341,7 +345,7 @@ class TransactionService {
 					'TransactionService', 'handleRefundTransaction', req.user);
 			}
 			// Get Transaction
-			let transaction = await global.storage.getTransaction(filteredRequest.ID);
+			let transaction = await TransactionStorage.getTransaction(filteredRequest.ID);
 			// Found?
 			if (!transaction) {
 				// Not Found!
@@ -406,7 +410,7 @@ class TransactionService {
 					'TransactionService', 'handleGetChargingStationTransactions', req.user);
 			}
 			// Get Charge Box
-			let chargingStation = await global.storage.getChargingStation(filteredRequest.ChargeBoxID);
+			let chargingStation = await ChargingStationStorage.getChargingStation(filteredRequest.ChargeBoxID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -437,7 +441,7 @@ class TransactionService {
 	static async handleGetTransactionYears(action, req, res, next) {
 		try {
 			// Get Transactions
-			let transactionsYears = await global.storage.getTransactionYears();
+			let transactionsYears = await TransactionStorage.getTransactionYears();
 			let result = {};
 			if (transactionsYears) {
 				result.years = [];
@@ -475,7 +479,7 @@ class TransactionService {
 				filter.connectorId = filteredRequest.ConnectorId;
 			}
 			// Get Transactions
-			let transactions = await global.storage.getTransactions(
+			let transactions = await TransactionStorage.getTransactions(
 					null, filter, null, true, 
 					filteredRequest.Limit, filteredRequest.Skip);
 			// Return
@@ -518,9 +522,9 @@ class TransactionService {
 				filter.userId = filteredRequest.UserID;
 			}
 			// Read the pricing
-			let pricing = await global.storage.getPricing();
+			let pricing = await PricingStorage.getPricing();
 			// Check email
-			let transactions = await global.storage.getTransactions(
+			let transactions = await TransactionStorage.getTransactions(
 				filteredRequest.Search, filter,
 				filteredRequest.SiteID, false,
 				filteredRequest.Limit, filteredRequest.Skip);
