@@ -68,26 +68,6 @@ class Logging {
 		Logging._log(log);
 	}
 
-	// Get Log
-	static getLog(id) {
-		return LoggingStorage.getLog(id);
-	}
-
-	// Get Logs
-	static getLogs(dateFrom, level, type, chargingStation, searchValue, action, limit, skip, sortDate) {
-		return LoggingStorage.getLogs(dateFrom, level, type, chargingStation, searchValue, action, limit, skip, sortDate);
-	}
-
-	// Delete
-	static deleteLogs(deleteUpToDate) {
-		return LoggingStorage.deleteLogs(deleteUpToDate);
-	}
-
-	// Delete
-	static deleteSecurityLogs(deleteUpToDate) {
-		return LoggingStorage.deleteSecurityLogs(deleteUpToDate);
-	}
-
 	// Log
 	static logReceivedAction(module, chargeBoxID, action, args, headers) {
 		// Log

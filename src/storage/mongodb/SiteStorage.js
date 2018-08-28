@@ -293,9 +293,9 @@ class SiteStorage {
 				$unwind: { "path": "$company", "preserveNullAndEmptyArrays": true }
 			});
 		}
-		// Single Record
+		// Sort
 		if (sort) {
-			// Default
+			// Sort
 			aggregation.push({
 				$sort: sort
 			});

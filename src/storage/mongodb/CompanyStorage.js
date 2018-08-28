@@ -116,7 +116,7 @@ class CompanyStorage {
 	}
 
 	// Delegate
-	static async getCompanies(params, limit, skip) {
+	static async getCompanies(params, limit, skip, sort) {
 		const Company = require('../../model/Company'); // Avoid fucking circular deps!!!
 		const Site = require('../../model/Site');  // Avoid fucking circular deps!!!
 		// Check Limit
@@ -156,9 +156,17 @@ class CompanyStorage {
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Sort
-		aggregation.push({
-			$sort: { name : 1 }
-		});
+		if (sort) {
+			// Sort
+			aggregation.push({
+				$sort: sort
+			});
+		} else {
+			// Default
+			aggregation.push({
+				$sort: { name : 1 }
+			});
+		}
 		// Skip
 		aggregation.push({
 			$skip: skip

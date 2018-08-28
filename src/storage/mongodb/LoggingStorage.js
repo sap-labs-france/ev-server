@@ -69,7 +69,7 @@ class LoggingStorage {
 		return logging;
 	}
 
-	static async getLogs(dateFrom, level, type, chargingStation, searchValue, action, limit, skip, sort) {
+	static async getLogs(params, limit, skip, sort) {
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip
@@ -77,13 +77,13 @@ class LoggingStorage {
 		// Set the filters
 		let filters = {};
 		// Date from provided?
-		if (dateFrom) {
+		if (params.dateFrom) {
 			// Yes, add in filter
 			filters.timestamp = {};
-			filters.timestamp.$gte = new Date(dateFrom);
+			filters.timestamp.$gte = new Date(params.dateFrom);
 		}
 		// Log level
-		switch (level) {
+		switch (params.level) {
 			// Error
 			case "E":
 				// Build filter
@@ -97,33 +97,29 @@ class LoggingStorage {
 			case "I":
 				filters.level = { $in : ['E','W','I'] };
 				break;
-			// Debug
-			case "D":
-				// No filter
-				break;
 		}
 		// Charging Station
-		if (chargingStation) {
+		if (params.source) {
 			// Yes, add in filter
-			filters.source = chargingStation;
+			filters.source = params.source;
 		}
 		// Type
-		if (type) {
+		if (params.type) {
 			// Yes, add in filter
-			filters.type = type;
+			filters.type = params.type;
 		}
 		// Action
-		if (action) {
+		if (params.action) {
 			// Yes, add in filter
-			filters.action = action;
+			filters.action = params.action;
 		}
 		// Source?
-		if (searchValue) {
+		if (params.search) {
 			// Build filter
 			filters.$or = [
-				{ "message" : { $regex : searchValue, $options: 'i' } },
-				{ "action" : { $regex : searchValue, $options: 'i' } },
-				{ "userFullName" : { $regex : searchValue, $options: 'i' } }
+				{ "message" : { $regex : params.search, $options: 'i' } },
+				{ "action" : { $regex : params.search, $options: 'i' } },
+				{ "userFullName" : { $regex : params.search, $options: 'i' } }
 			];
 		}
 		// Create Aggregation
@@ -138,12 +134,12 @@ class LoggingStorage {
 		if (sort) {
 			// Sort
 			aggregation.push({
-				$sort: { timestamp: parseInt(sort) }
+				$sort: sort
 			});
 		} else {
-			// default
+			// Default
 			aggregation.push({
-				$sort: { timestamp: -1 }
+				$sort: { timestamp : -1 }
 			});
 		}
 		// Skip

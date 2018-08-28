@@ -51,7 +51,7 @@ class ChargingStationStorage {
 		return chargingStation;
 	}
 
-	static async getChargingStations(params, limit, skip) {
+	static async getChargingStations(params, limit, skip, sort) {
 		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
@@ -106,12 +106,18 @@ class ChargingStationStorage {
 		});
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
-		// Single Record
-		aggregation.push({
-			$sort: {
-				_id: 1
-			}
-		});
+		// Sort
+		if (sort) {
+			// Sort
+			aggregation.push({
+				$sort: sort
+			});
+		} else {
+			// Default
+			aggregation.push({
+				$sort: { _id: 1 }
+			});
+		}
 		// Skip
 		aggregation.push({
 			$skip: skip

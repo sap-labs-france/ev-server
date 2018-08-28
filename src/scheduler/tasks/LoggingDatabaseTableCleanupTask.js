@@ -1,6 +1,7 @@
 const Logging = require('../../utils/Logging');
 const moment = require('moment');
 const SchedulerTask = require('../SchedulerTask');
+const LoggingStorage = require('../../storage/mongodb/LoggingStorage');
 
 class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 	constructor() {
@@ -17,7 +18,7 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 			// Delete date
 			let deleteUpToDate = moment().subtract(config.retentionPeriodWeeks, "w").startOf("week").toDate().toISOString();
 			// Delete
-			let result = await Logging.deleteLogs(deleteUpToDate);
+			let result = await LoggingStorage.deleteLogs(deleteUpToDate);
 			// Ok?
 			if (result.ok === 1) {
 				// Ok
@@ -38,7 +39,7 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 			// Delete date
 			let securityDeleteUpToDate = moment().subtract(config.securityRetentionPeriodWeeks, "w").startOf("week").toDate().toISOString();
 			// Delete Security Logs
-			result = await Logging.deleteSecurityLogs(securityDeleteUpToDate);
+			result = await LoggingStorage.deleteSecurityLogs(securityDeleteUpToDate);
 			// Ok?
 			if (result.ok === 1) {
 				// Ok
