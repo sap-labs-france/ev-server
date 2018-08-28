@@ -94,7 +94,7 @@ class TransactionStorage {
 		return transactionYears;
 	}
 
-	static async getTransactions(searchValue, filter, siteID, withChargeBoxes, limit, skip) {
+	static async getTransactions(params, limit, skip, sort) {
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip
@@ -102,41 +102,41 @@ class TransactionStorage {
 		// Build filter
 		let match = {};
 		// Filter?
-		if (searchValue) {
+		if (params.search) {
 			// Build filter
 			match.$or = [
-				{ "_id" : parseInt(searchValue) },
-				{ "tagID" : { $regex : searchValue, $options: 'i' } },
-				{ "chargeBoxID" : { $regex : searchValue, $options: 'i' } }
+				{ "_id" : parseInt(params.search) },
+				{ "tagID" : { $regex : params.search, $options: 'i' } },
+				{ "chargeBoxID" : { $regex : params.search, $options: 'i' } }
 			];
 		}
 		// User
-		if (filter.userId) {
-			match.userID = Utils.convertToObjectID(filter.userId);
+		if (params.userId) {
+			match.userID = Utils.convertToObjectID(params.userId);
 		}
 		// Charge Box
-		if (filter.chargeBoxID) {
-			match.chargeBoxID = filter.chargeBoxID;
+		if (params.chargeBoxID) {
+			match.chargeBoxID = params.chargeBoxID;
 		}
 		// Connector
-		if (filter.connectorId) {
-			match.connectorId = Utils.convertToInt(filter.connectorId);
+		if (params.connectorId) {
+			match.connectorId = Utils.convertToInt(params.connectorId);
 		}
 		// Date provided?
-		if (filter.startDateTime || filter.endDateTime) {
+		if (params.startDateTime || params.endDateTime) {
 			match.timestamp = {};
 		}
 		// Start date
-		if (filter.startDateTime) {
-			match.timestamp.$gte = Utils.convertToDate(filter.startDateTime);
+		if (params.startDateTime) {
+			match.timestamp.$gte = Utils.convertToDate(params.startDateTime);
 		}
 		// End date
-		if (filter.endDateTime) {
-			match.timestamp.$lte = Utils.convertToDate(filter.endDateTime);
+		if (params.endDateTime) {
+			match.timestamp.$lte = Utils.convertToDate(params.endDateTime);
 		}
 		// Check stop tr
-		if (filter.stop) {
-			match.stop = filter.stop;
+		if (params.stop) {
+			match.stop = params.stop;
 		}
 		// Create Aggregation
 		let aggregation = [];
@@ -153,7 +153,7 @@ class TransactionStorage {
 			}
 		});
 		// Charger?
-		if (withChargeBoxes || siteID) {
+		if (params.withChargeBoxes || params.siteID) {
 			// Add Charge Box
 			aggregation.push({
 				$lookup: {
@@ -168,7 +168,7 @@ class TransactionStorage {
 				$unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
 			});
 		}
-		if (siteID) {
+		if (params.siteID) {
 			// Add Site Area
 			aggregation.push({
 				$lookup: {
@@ -184,13 +184,21 @@ class TransactionStorage {
 			});
 			// Filter
 			aggregation.push({
-				$match: { "siteArea.siteID": Utils.convertToObjectID(siteID) }
+				$match: { "siteArea.siteID": Utils.convertToObjectID(params.siteID) }
 			});
 		}
 		// Sort
-		aggregation.push({
-			$sort: { timestamp: -1 }
-		});
+		if (sort) {
+			// Sort
+			aggregation.push({
+				$sort: sort
+			});
+		} else {
+			// Default
+			aggregation.push({
+				$sort: { timestamp: -1 }
+			});
+		}
 		// Skip
 		aggregation.push({
 			$skip: skip

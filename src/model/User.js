@@ -267,9 +267,7 @@ class User {
 		// Set the user ID
 		filter.userId = this.getID();
 		// Get the consumption
-		return TransactionStorage.getTransactions(
-			null, filter, null, false,
-			Constants.NO_LIMIT);
+		return TransactionStorage.getTransactions(filter, Constants.NO_LIMIT);
 	}
 
 	getSites(withCompany=false, withSiteAreas=false,

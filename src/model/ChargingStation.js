@@ -30,39 +30,39 @@ class ChargingStation {
 		// Handle Client Requests
 		switch (action) {
 			// Reset
-			case "Reset":
+			case 'Reset':
 				return this.requestReset(params.type);
 
 			// Clear cache
-			case "ClearCache":
+			case 'ClearCache':
 				return this.requestClearCache();
 
 			// Get Configuration
-			case "GetConfiguration":
+			case 'GetConfiguration':
 				return this.requestGetConfiguration(params.keys);
 
 			// Set Configuration
-			case "ChangeConfiguration":
+			case 'ChangeConfiguration':
 				// Change the config
 				return this.requestChangeConfiguration(params.key, params.value);
 
 			// Unlock Connector
-			case "UnlockConnector":
+			case 'UnlockConnector':
 				return this.requestUnlockConnector(params.connectorId);
 
 			// Start Transaction
-			case "StartTransaction":
+			case 'StartTransaction':
 				return this.requestStartTransaction(params.tagID, params.connectorID);
 
 			// Stop Transaction
-			case "StopTransaction":
+			case 'StopTransaction':
 				return this.requestStopTransaction(params.transactionId);
 
 			// Not Exists!
 			default:
 				// Log
 				Logging.logError({
-					source: this.getID(), module: "ChargingStation", method: "handleAction",
+					source: this.getID(), module: 'ChargingStation', method: 'handleAction',
 					message: `Action does not exist: ${action}` });
 				throw new Error(`Action does not exist: ${action}`);
 		}
@@ -347,25 +347,25 @@ class ChargingStation {
 		await ChargingStationStorage.saveChargingStationConnector(this.getModel(), statusNotification.connectorId);
 		// Log
 		Logging.logInfo({
-			source: this.getID(), module: "ChargingStation", method: "handleStatusNotification",
-			action: "StatusNotification", message: `'${statusNotification.status}-${statusNotification.errorCode}' on Connector '${statusNotification.connectorId}' has been saved` });
+			source: this.getID(), module: 'ChargingStation', method: 'handleStatusNotification',
+			action: 'StatusNotification', message: `'${statusNotification.status}-${statusNotification.errorCode}' on Connector '${statusNotification.connectorId}' has been saved` });
 		// Notify if error
-		if (statusNotification.status === "Faulted") {
+		if (statusNotification.status === 'Faulted') {
 			// Log
 			Logging.logError({
-				source: this.getID(), module: "ChargingStation",
-				method: "handleStatusNotification", action: "StatusNotification",
+				source: this.getID(), module: 'ChargingStation',
+				method: 'handleStatusNotification', action: 'StatusNotification',
 				message: `Error on connector ${statusNotification.connectorId}: ${statusNotification.status} - ${statusNotification.errorCode}` });
 			// Send Notification
 			NotificationHandler.sendChargingStationStatusError(
 				Utils.generateGUID(),
 				this.getModel(),
 				{
-					"chargeBoxID": this.getID(),
-					"connectorId": statusNotification.connectorId,
-					"error": `${statusNotification.status} - ${statusNotification.errorCode} - ${statusNotification.errorInfo}`,
-					"evseDashboardURL" : Utils.buildEvseURL(),
-					"evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(this, statusNotification.connectorId)
+					'chargeBoxID': this.getID(),
+					'connectorId': statusNotification.connectorId,
+					'error': `${statusNotification.status} - ${statusNotification.errorCode} - ${statusNotification.errorInfo}`,
+					'evseDashboardURL' : Utils.buildEvseURL(),
+					'evseDashboardChargingStationURL' : Utils.buildEvseChargingStationURL(this, statusNotification.connectorId)
 				}
 			);
 		}
@@ -386,19 +386,19 @@ class ChargingStation {
 				// Check
 				switch (configuration.configuration[i].key) {
 					// Voltage
-					case "voltagererefence":
+					case 'voltagererefence':
 						// Get the meter interval
 						voltageRerefence = parseInt(configuration.configuration[i].value);
 						break;
 
 					// Current
-					case "currentpb1":
+					case 'currentpb1':
 						// Get the meter interval
 						current = parseInt(configuration.configuration[i].value);
 						break;
 
 					// Nb Phase
-					case "nbphase":
+					case 'nbphase':
 						// Get the meter interval
 						nbPhase = parseInt(configuration.configuration[i].value);
 						break;
@@ -435,9 +435,9 @@ class ChargingStation {
 			Utils.generateGUID(),
 			this.getModel(),
 			{
-				"chargeBoxID": this.getID(),
-				"evseDashboardURL" : Utils.buildEvseURL(),
-				"evseDashboardChargingStationURL" : Utils.buildEvseChargingStationURL(this)
+				'chargeBoxID': this.getID(),
+				'evseDashboardURL' : Utils.buildEvseURL(),
+				'evseDashboardChargingStationURL' : Utils.buildEvseChargingStationURL(this)
 			}
 		);
 		// Save Boot Notification
@@ -445,8 +445,8 @@ class ChargingStation {
 		// Log
 		Logging.logInfo({
 			source: this.getID(),
-			module: "ChargingStation", method: "handleBootNotification",
-			action: "BootNotification", message: `Boot notification saved`
+			module: 'ChargingStation', method: 'handleBootNotification',
+			action: 'BootNotification', message: `Boot notification saved`
 		});
 		// Handle the get of configuration later on
 		setTimeout(() => {
@@ -463,8 +463,8 @@ class ChargingStation {
 		// Log
 		Logging.logInfo({
 			source: this.getID(),
-			module: "ChargingStation", method: "handleHeartBeat",
-			action: "Heartbeat", message: `Heartbeat saved`
+			module: 'ChargingStation', method: 'handleHeartBeat',
+			action: 'Heartbeat', message: `Heartbeat saved`
 		});
 	}
 
@@ -475,8 +475,8 @@ class ChargingStation {
 			configuration = await this.requestGetConfiguration();
 			// Log
 			Logging.logInfo({
-				source: this.getID(), module: "ChargingStation",
-				method: "requestAndSaveConfiguration", action: "RequestConfiguration",
+				source: this.getID(), module: 'ChargingStation',
+				method: 'requestAndSaveConfiguration', action: 'RequestConfiguration',
 				message: `Command sent with success`,
 				detailedMessages: configuration });
 			// Override with Conf
@@ -485,7 +485,7 @@ class ChargingStation {
 			}
 		} catch (error) {
 			// Log error
-			Logging.logActionExceptionMessage("RequestConfiguration", error);
+			Logging.logActionExceptionMessage('RequestConfiguration', error);
 		}
 		// Set default?
 		if (!configuration) {
@@ -549,8 +549,8 @@ class ChargingStation {
 		await this.saveConfiguration(configuration);
 		// Ok
 		Logging.logInfo({
-				source: this.getID(), module: "ChargingStation",
-				method: "requestAndSaveConfiguration", action: "RequestConfiguration",
+				source: this.getID(), module: 'ChargingStation',
+				method: 'requestAndSaveConfiguration', action: 'RequestConfiguration',
 				message: `Configuration has been saved` });
 		// Update connector power
 		await this.updateConnectorsPower();
@@ -584,8 +584,8 @@ class ChargingStation {
 					connector.totalConsumption = Math.floor(totalConsumption);
 					// Log
 					Logging.logInfo({
-						source: this.getID(), module: "ChargingStation",
-						method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
+						source: this.getID(), module: 'ChargingStation',
+						method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
 						message: `Connector '${connector.connectorId}' - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
 				}
 				// Update Transaction ID
@@ -604,8 +604,8 @@ class ChargingStation {
 				connector.activeTransactionID = 0;
 				// Log
 				Logging.logInfo({
-					source: this.getID(), module: "ChargingStation",
-					method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
+					source: this.getID(), module: 'ChargingStation',
+					method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
 					message: `Connector '${connector.connectorId}' - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
 				// Save
 				await this.save();
@@ -613,8 +613,8 @@ class ChargingStation {
 		} else {
 			// Log
 			Logging.logError({
-				source: this.getID(), module: "ChargingStation",
-				method: "updateChargingStationConsumption", action: "ChargingStationConsumption",
+				source: this.getID(), module: 'ChargingStation',
+				method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
 				message: `Transaction ID '${transactionId}' not found` });
 		}
 	}
@@ -637,19 +637,19 @@ class ChargingStation {
 					if (transaction.user) {
 						// Send Notification
 						NotificationHandler.sendEndOfCharge(
-							transaction.id + "-EOC",
+							transaction.id + '-EOC',
 							transaction.user,
 							this.getModel(),
 							{
-								"user": transaction.user,
-								"chargingBoxID": this.getID(),
-								"connectorId": transaction.connectorId,
-								"totalConsumption": (this.getConnectors()[transaction.connectorId-1].totalConsumption/1000).toLocaleString(
+								'user': transaction.user,
+								'chargingBoxID': this.getID(),
+								'connectorId': transaction.connectorId,
+								'totalConsumption': (this.getConnectors()[transaction.connectorId-1].totalConsumption/1000).toLocaleString(
 									(transaction.user.locale ? transaction.user.locale.replace('_','-') : Constants.DEFAULT_LOCALE.replace('_','-')),
 									{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
-								"totalDuration": this._buildCurrentTransactionDuration(transaction, lastTimestamp),
-								"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
-								"evseDashboardURL" : Utils.buildEvseURL()
+								'totalDuration': this._buildCurrentTransactionDuration(transaction, lastTimestamp),
+								'evseDashboardChargingStationURL' : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
+								'evseDashboardURL' : Utils.buildEvseURL()
 							},
 							transaction.user.locale
 						);
@@ -661,38 +661,38 @@ class ChargingStation {
 							// Yes: Stop the transaction
 							let result = await this.requestStopTransaction(transaction.id);
 							// Ok?
-							if (result && result.status === "Accepted") {
+							if (result && result.status === 'Accepted') {
 								// Cannot unlock the connector
 								Logging.logInfo({
-									source: this.getID(), module: "ChargingStation", method: "handleNotificationEndOfCharge",
-									action: "NotifyEndOfCharge", message: `Transaction ID '${transaction.id}' has been stopped`,
+									source: this.getID(), module: 'ChargingStation', method: 'handleNotificationEndOfCharge',
+									action: 'NotifyEndOfCharge', message: `Transaction ID '${transaction.id}' has been stopped`,
 									detailedMessages: transaction});
 								// Unlock the connector
 								result = await this.requestUnlockConnector(transaction.connectorId);
 								// Ok?
-								if (result && result.status === "Accepted") {
+								if (result && result.status === 'Accepted') {
 									// Cannot unlock the connector
 									Logging.logInfo({
-										source: this.getID(), module: "ChargingStation", method: "handleNotificationEndOfCharge",
-										action: "NotifyEndOfCharge", message: `Connector '${transaction.connectorId}' has been unlocked`,
+										source: this.getID(), module: 'ChargingStation', method: 'handleNotificationEndOfCharge',
+										action: 'NotifyEndOfCharge', message: `Connector '${transaction.connectorId}' has been unlocked`,
 										detailedMessages: transaction});
 								} else {
 									// Cannot unlock the connector
 									Logging.logError({
-										source: this.getID(), module: "ChargingStation", method: "handleNotificationEndOfCharge",
-										action: "NotifyEndOfCharge", message: `Cannot unlock the connector '${transaction.connectorId}'`,
+										source: this.getID(), module: 'ChargingStation', method: 'handleNotificationEndOfCharge',
+										action: 'NotifyEndOfCharge', message: `Cannot unlock the connector '${transaction.connectorId}'`,
 										detailedMessages: transaction});
 								}
 							} else {
 								// Cannot stop the transaction
 								Logging.logError({
-									source: this.getID(), module: "ChargingStation", method: "handleNotificationEndOfCharge",
-									action: "NotifyEndOfCharge", message: `Cannot stop the transaction`,
+									source: this.getID(), module: 'ChargingStation', method: 'handleNotificationEndOfCharge',
+									action: 'NotifyEndOfCharge', message: `Cannot stop the transaction`,
 									detailedMessages: transaction});
 							}
 						} catch(error) {
 							// Log error
-							Logging.logActionExceptionMessage("EndOfCharge", error);
+							Logging.logActionExceptionMessage('EndOfCharge', error);
 						}
 					}
 				}
@@ -701,10 +701,10 @@ class ChargingStation {
 	}
 
 	// Build Inactivity
-	_buildCurrentTransactionInactivity(transaction, i18nHourShort="h") {
+	_buildCurrentTransactionInactivity(transaction, i18nHourShort='h') {
 		// Check
 		if (!transaction.stop || !transaction.stop.totalInactivitySecs) {
-			return "0h00 (0%)";
+			return '0h00 (0%)';
 		}
 		// Compute duration from now
 		let totalDurationSecs = moment.duration(
@@ -719,8 +719,8 @@ class ChargingStation {
 		// Build Inactivity
 		let inactivityString =
 			Math.floor(totalInactivitySecs.asHours()).toString() + i18nHourShort +
-			(mins < 10 ? ("0" + mins) : mins.toString()) +
-			" (" + totalInactivityPercent + "%)";
+			(mins < 10 ? ('0' + mins) : mins.toString()) +
+			' (' + totalInactivityPercent + '%)';
 		// End
 		return inactivityString;
 	}
@@ -729,7 +729,7 @@ class ChargingStation {
 	_buildCurrentTransactionDuration(transaction, lastTimestamp) {
 		// Build date
 		let dateTimeString, timeDiffDuration;
-		let i18nHourShort = "h";
+		let i18nHourShort = 'h';
 		// Compute duration from now
 		timeDiffDuration = moment.duration(
 			moment(lastTimestamp).diff(moment(transaction.timestamp)));
@@ -738,7 +738,7 @@ class ChargingStation {
 		// Set duration
 		dateTimeString =
 			Math.floor(timeDiffDuration.asHours()).toString() + i18nHourShort +
-			(mins < 10 ? ("0" + mins) : mins.toString());
+			(mins < 10 ? ('0' + mins) : mins.toString());
 		// End
 		return dateTimeString;
 	}
@@ -756,8 +756,8 @@ class ChargingStation {
 		if (parseInt(meterValues.transactionId) !== parseInt(chargerTransactionId)) {
 			// No: Log
 			Logging.logError({
-				source: this.getID(), module: "ChargingStation", method: "handleMeterValues",
-				action: "MeterValues", message: `Meter Values Transaction ID '${meterValues.transactionId}' has been overridden with Start Transaction ID '${chargerTransactionId}'`
+				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+				action: 'MeterValues', message: `Meter Values Transaction ID '${meterValues.transactionId}' has been overridden with Start Transaction ID '${chargerTransactionId}'`
 			});
 			// Override
 			meterValues.transactionId = chargerTransactionId;
@@ -809,8 +809,8 @@ class ChargingStation {
 		await this.updateChargingStationConsumption(meterValues.transactionId);
 		// Log
 		Logging.logInfo({
-			source: this.getID(), module: "ChargingStation", method: "handleMeterValues",
-			action: "MeterValues", message: `Meter Values have been saved for Transaction ID '${meterValues.transactionId}'`,
+			source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+			action: 'MeterValues', message: `Meter Values have been saved for Transaction ID '${meterValues.transactionId}'`,
 			detailedMessages: meterValues });
 	}
 
@@ -863,8 +863,8 @@ class ChargingStation {
 		await ChargingStationStorage.saveDataTransfer(dataTransfer);
 		// Log
 		Logging.logInfo({
-			source: this.getID(), module: "CharingStation", method: "handleDataTransfer",
-			action: "DataTransfer", message: `Data Transfer has been saved` });
+			source: this.getID(), module: 'CharingStation', method: 'handleDataTransfer',
+			action: 'DataTransfer', message: `Data Transfer has been saved` });
 	}
 
 	async handleDiagnosticsStatusNotification(diagnosticsStatusNotification) {
@@ -875,8 +875,8 @@ class ChargingStation {
 		await ChargingStationStorage.saveDiagnosticsStatusNotification(diagnosticsStatusNotification);
 		// Log
 		Logging.logInfo({
-			source: this.getID(), module: "ChargingStation", method: "handleDiagnosticsStatusNotification",
-			action: "DiagnosticsStatusNotification", message: `Diagnostics Status Notification has been saved` });
+			source: this.getID(), module: 'ChargingStation', method: 'handleDiagnosticsStatusNotification',
+			action: 'DiagnosticsStatusNotification', message: `Diagnostics Status Notification has been saved` });
 	}
 
 	async handleFirmwareStatusNotification(firmwareStatusNotification) {
@@ -887,8 +887,8 @@ class ChargingStation {
 		await ChargingStationStorage.saveFirmwareStatusNotification(firmwareStatusNotification);
 		// Log
 		Logging.logInfo({
-			source: this.getID(), module: "ChargingStation", method: "handleFirmwareStatusNotification",
-			action: "FirmwareStatusNotification", message: `Firmware Status Notification has been saved` });
+			source: this.getID(), module: 'ChargingStation', method: 'handleFirmwareStatusNotification',
+			action: 'FirmwareStatusNotification', message: `Firmware Status Notification has been saved` });
 	}
 
 	async handleAuthorize(authorize) {
@@ -906,14 +906,14 @@ class ChargingStation {
 		if (authorize.user) {
 			// Log
 			Logging.logInfo({
-				source: this.getID(), module: "ChargingStation", method: "handleAuthorize",
-				action: "Authorize", user: authorize.user.getModel(),
+				source: this.getID(), module: 'ChargingStation', method: 'handleAuthorize',
+				action: 'Authorize', user: authorize.user.getModel(),
 				message: `User has been authorized to use Charging Station` });
 		} else {
 			// Log
 			Logging.logInfo({
-				source: this.getID(), module: "ChargingStation", method: "handleAuthorize",
-				action: "Authorize", message: `Anonymous user has been authorized to use the Charging Station` });
+				source: this.getID(), module: 'ChargingStation', method: 'handleAuthorize',
+				action: 'Authorize', message: `Anonymous user has been authorized to use the Charging Station` });
 		}
 	}
 
@@ -962,8 +962,8 @@ class ChargingStation {
 			// Exists already?
 			if (activeTransaction) {
 				Logging.logInfo({
-					source: this.getID(), module: "ChargingStation", method: "handleStartTransaction",
-					action: "StartTransaction", user: user.getModel(), actionOnUser: activeTransaction.user,
+					source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
+					action: 'StartTransaction', user: user.getModel(), actionOnUser: activeTransaction.user,
 					message: `Active Transaction ID '${activeTransaction.id}' has been deleted on Connector '${activeTransaction.connectorId}'` });
 				// Delete
 				await this.deleteTransaction(activeTransaction);
@@ -980,8 +980,8 @@ class ChargingStation {
 			if (existingTransaction) {
 				// Log
 				Logging.logWarning({
-					source: this.getID(), module: "ChargingStation", method: "handleStartTransaction",
-					action: "StartTransaction", user: user.getModel(), 
+					source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
+					action: 'StartTransaction', user: user.getModel(), 
 					actionOnUser: existingTransaction.user,
 					message: `Transaction ID '${transaction.id}' already exists, generating a new one...` });
 			}
@@ -994,11 +994,11 @@ class ChargingStation {
 			user.getModel(),
 			this.getModel(),
 			{
-				"user": user.getModel(),
-				"chargingBoxID": this.getID(),
-				"connectorId": transaction.connectorId,
-				"evseDashboardURL" : Utils.buildEvseURL(),
-				"evseDashboardChargingStationURL" :
+				'user': user.getModel(),
+				'chargingBoxID': this.getID(),
+				'connectorId': transaction.connectorId,
+				'evseDashboardURL' : Utils.buildEvseURL(),
+				'evseDashboardChargingStationURL' :
 					Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id)
 			},
 			user.getLocale()
@@ -1014,13 +1014,13 @@ class ChargingStation {
 		// Log
 		if (newTransaction.user) {
 			Logging.logInfo({
-				source: this.getID(), module: "ChargingStation", method: "handleStartTransaction",
-				action: "StartTransaction", user: newTransaction.user,
+				source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
+				action: 'StartTransaction', user: newTransaction.user,
 				message: `Transaction ID '${newTransaction.id}' has been started on Connector '${newTransaction.connectorId}'` });
 		} else {
 			Logging.logInfo({
-				source: this.getID(), module: "ChargingStation", method: "handleStartTransaction",
-				action: "StartTransaction", message: `Transaction ID '${newTransaction.id}' has been started by an anonymous user on Connector '${newTransaction.connectorId}'` });
+				source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
+				action: 'StartTransaction', message: `Transaction ID '${newTransaction.id}' has been started by an anonymous user on Connector '${newTransaction.connectorId}'` });
 		}
 		// Return
 		return newTransaction;
@@ -1094,21 +1094,21 @@ class ChargingStation {
 		if (transaction.user) {
 			// Send Notification
 			NotificationHandler.sendEndOfSession(
-				transaction.id + "-EOS",
+				transaction.id + '-EOS',
 				transaction.user,
 				this.getModel(),
 				{
-					"user": users.user.getModel(),
-					"alternateUser": (users.user.getID() != users.alternateUser.getID() ? users.alternateUser.getModel() : null),
-					"chargingBoxID": this.getID(),
-					"connectorId": transaction.connectorId,
-					"totalConsumption": (stopTransaction.totalConsumption/1000).toLocaleString(
+					'user': users.user.getModel(),
+					'alternateUser': (users.user.getID() != users.alternateUser.getID() ? users.alternateUser.getModel() : null),
+					'chargingBoxID': this.getID(),
+					'connectorId': transaction.connectorId,
+					'totalConsumption': (stopTransaction.totalConsumption/1000).toLocaleString(
 						(transaction.user.locale ? transaction.user.locale.replace('_','-') : User.DEFAULT_LOCALE.replace('_','-')),
 						{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
-					"totalDuration": this._buildCurrentTransactionDuration(transaction, transaction.stop.timestamp),
-					"totalInactivity": this._buildCurrentTransactionInactivity(transaction),
-					"evseDashboardChargingStationURL" : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
-					"evseDashboardURL" : Utils.buildEvseURL()
+					'totalDuration': this._buildCurrentTransactionDuration(transaction, transaction.stop.timestamp),
+					'totalInactivity': this._buildCurrentTransactionInactivity(transaction),
+					'evseDashboardChargingStationURL' : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
+					'evseDashboardURL' : Utils.buildEvseURL()
 				},
 				transaction.user.locale
 			);
@@ -1120,8 +1120,8 @@ class ChargingStation {
 		newTransaction.stop.user = users.alternateUser.getModel();
 		// Log
 		Logging.logInfo({
-			source: this.getID(), module: "ChargingStation", method: "handleStopTransaction",
-			action: "StopTransaction", user: newTransaction.stop.user, actionOnUser: newTransaction.user,
+			source: this.getID(), module: 'ChargingStation', method: 'handleStopTransaction',
+			action: 'StopTransaction', user: newTransaction.stop.user, actionOnUser: newTransaction.user,
 			message: `Transaction ID '${newTransaction.id}' has been stopped` });
 		// Return
 		return newTransaction;
@@ -1135,8 +1135,8 @@ class ChargingStation {
 		let result = await chargingStationClient.reset(type);
 		// Log
 		Logging.logInfo({
-			source: this.getID(), module: "ChargingStation",
-			method: "requestReset", action: "Reset",
+			source: this.getID(), module: 'ChargingStation',
+			method: 'requestReset', action: 'Reset',
 			message: `Command sent with success`,
 			detailedMessages: result });
 		// Return
@@ -1151,8 +1151,8 @@ class ChargingStation {
 		let result = await chargingStationClient.stopTransaction(transactionId);
 		// Log
 		Logging.logInfo({
-			source: this.getID(), module: "ChargingStation",
-			method: "requestStopTransaction", action: "StopTransaction",
+			source: this.getID(), module: 'ChargingStation',
+			method: 'requestStopTransaction', action: 'StopTransaction',
 			message: `Command sent with success`,
 			detailedMessages: result });
 		// Return
@@ -1167,8 +1167,8 @@ class ChargingStation {
 		let result = await chargingStationClient.startTransaction(tagID, connectorID);
 		// Log
 		Logging.logInfo({
-			source: this.getID(), module: "ChargingStation",
-			method: "requestStartTransaction", action: "StartTransaction",
+			source: this.getID(), module: 'ChargingStation',
+			method: 'requestStartTransaction', action: 'StartTransaction',
 			message: `Command sent with success`,
 			detailedMessages: result });
 		// Return
@@ -1183,8 +1183,8 @@ class ChargingStation {
 		let result = await chargingStationClient.clearCache();
 		// Log
 		Logging.logInfo({
-			source: this.getID(), module: "ChargingStation",
-			method: "requestClearCache", action: "ClearCache",
+			source: this.getID(), module: 'ChargingStation',
+			method: 'requestClearCache', action: 'ClearCache',
 			message: `Command sent with success`,
 			detailedMessages: result });
 		// Return
@@ -1199,8 +1199,8 @@ class ChargingStation {
 		let result = await chargingStationClient.getConfiguration(configParamNames);
 		// Log
 		Logging.logInfo({
-			source: this.getID(), module: "ChargingStation",
-			method: "requestGetConfiguration", action: "GetConfiguration",
+			source: this.getID(), module: 'ChargingStation',
+			method: 'requestGetConfiguration', action: 'GetConfiguration',
 			message: `Command sent with success`,
 			detailedMessages: result });
 		// Return
@@ -1215,12 +1215,12 @@ class ChargingStation {
 		let result = await chargingStationClient.changeConfiguration(key, value);
 		// Log
 		Logging.logInfo({
-			source: this.getID(), module: "ChargingStation",
-			method: "requestChangeConfiguration", action: "ChangeConfiguration",
+			source: this.getID(), module: 'ChargingStation',
+			method: 'requestChangeConfiguration', action: 'ChangeConfiguration',
 			message: `Command sent with success`,
 			detailedMessages: result });
 		// Request the new Configuration?
-		if (result.status !== "Accepted") {
+		if (result.status !== 'Accepted') {
 			// Log
 			throw new Error(`Cannot set the configuration param ${key} with value ${value} to ${this.getID()}`);
 		}
@@ -1238,8 +1238,8 @@ class ChargingStation {
 		let result = await chargingStationClient.unlockConnector(connectorId);
 		// Log
 		Logging.logInfo({
-			source: this.getID(), module: "ChargingStation",
-			method: "requestUnlockConnector", action: "UnlockConnector",
+			source: this.getID(), module: 'ChargingStation',
+			method: 'requestUnlockConnector', action: 'UnlockConnector',
 			message: `Command sent with success`,
 			detailedMessages: result });
 		// Return
@@ -1257,7 +1257,7 @@ class ChargingStation {
 	async hasAtLeastOneTransaction() {
 		// Get the consumption
 		let transactions = await TransactionStorage.getTransactions(
-				null, {"chargeBoxID": this.getID()}, null, false, 1);
+			{ 'chargeBoxID': this.getID() }, 1);
 		// Return
 		return (transactions && transactions.length > 0 ? true : false);
 	}
@@ -1265,13 +1265,8 @@ class ChargingStation {
 	getTransactions(connectorId, startDateTime, endDateTime, withChargeBoxes=false) {
 		// Get the consumption
 		return TransactionStorage.getTransactions(
-			null,
-			{"chargeBoxID": this.getID(),
-			 "connectorId": connectorId,
-			 "startDateTime": startDateTime,
-			 "endDateTime" : endDateTime},
-			null,
-			withChargeBoxes,
+			{ 'chargeBoxID': this.getID(), 'connectorId': connectorId, 'startDateTime': startDateTime,
+				'endDateTime' : endDateTime, 'withChargeBoxes': withChargeBoxes },
 		 	Constants.NO_LIMIT);
 	}
 
@@ -1370,7 +1365,7 @@ class ChargingStation {
 
 			// Filter on consumption value
 			if (meterValue.attribute && meterValue.attribute.measurand &&
-					meterValue.attribute.measurand === "Energy.Active.Import.Register") {
+					meterValue.attribute.measurand === 'Energy.Active.Import.Register') {
 				// Get the moment
 				let currentTimestamp = moment(meterValue.timestamp);
 				// First value?
@@ -1400,7 +1395,7 @@ class ChargingStation {
 							// Count
 							totalNbrOfMetrics++;
 							// Get the diff
-							var diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, "seconds");
+							var diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, 'seconds');
 							// Sample multiplier
 							let sampleMultiplier = 3600 / diffSecs;
 							// compute
@@ -1412,12 +1407,12 @@ class ChargingStation {
 									// 0..123 -> Current value is positive and n-1 is 0: add 0 before the end graph is drawn
 									if (chargingStationConsumption.values[numberOfReturnedMeters-1].value === 0) {
 										// Check the timeframe: should be just before: if not add one
-										if (currentTimestamp.diff(chargingStationConsumption.values[numberOfReturnedMeters-1].date, "seconds") > diffSecs) {
+										if (currentTimestamp.diff(chargingStationConsumption.values[numberOfReturnedMeters-1].date, 'seconds') > diffSecs) {
 											// Add a 0 just before
-											chargingStationConsumption.values.push({date: currentTimestamp.clone().subtract(diffSecs, "seconds").toDate(), value: 0 });
+											chargingStationConsumption.values.push({date: currentTimestamp.clone().subtract(diffSecs, 'seconds').toDate(), value: 0 });
 										}
 									// Return one value every 'n' time intervals
-									} else if (optimizeNbrOfValues && currentTimestamp.diff(chargingStationConsumption.values[numberOfReturnedMeters-1].date, "seconds") < _configAdvanced.chargeCurveTimeFrameSecsPoint) {
+									} else if (optimizeNbrOfValues && currentTimestamp.diff(chargingStationConsumption.values[numberOfReturnedMeters-1].date, 'seconds') < _configAdvanced.chargeCurveTimeFrameSecsPoint) {
 										// Do not add
 										addValue = false;
 									}
@@ -1468,8 +1463,8 @@ class ChargingStation {
 		if (totalNbrOfMetrics) {
 			// Log
 			Logging.logDebug({
-				source: this.getID(), module: "ChargingStation",
-				method: "buildConsumption", action:"BuildConsumption",
+				source: this.getID(), module: 'ChargingStation',
+				method: 'buildConsumption', action:'BuildConsumption',
 				message: `Consumption - ${meterValues.length} metrics, ${totalNbrOfMetrics} relevant, ${chargingStationConsumption.values.length} returned` });
 		}
 		// Return the result

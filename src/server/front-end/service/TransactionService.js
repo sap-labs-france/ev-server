@@ -480,8 +480,8 @@ class TransactionService {
 			}
 			// Get Transactions
 			let transactions = await TransactionStorage.getTransactions(
-					null, filter, null, true, 
-					filteredRequest.Limit, filteredRequest.Skip);
+				{ ...filter, 'withChargeBoxes': true }, 
+				filteredRequest.Limit, filteredRequest.Skip);
 			// Return
 			res.json(
 				// Filter
@@ -525,8 +525,7 @@ class TransactionService {
 			let pricing = await PricingStorage.getPricing();
 			// Check email
 			let transactions = await TransactionStorage.getTransactions(
-				filteredRequest.Search, filter,
-				filteredRequest.SiteID, false,
+				{ ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
 				filteredRequest.Limit, filteredRequest.Skip);
 			// Found?``
 			if (transactions && pricing) {
