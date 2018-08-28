@@ -368,7 +368,7 @@ class SiteStorage {
 
 	static async deleteSite(id) {
 		// Delete Site Areas
-		let siteAreas = await SiteAreaStorage.getSiteAreas(null, id)
+		let siteAreas = await SiteAreaStorage.getSiteAreas({'siteID': id})
 		// Delete
 		siteAreas.forEach(async (siteArea) => {
 			//	Delete Site Area

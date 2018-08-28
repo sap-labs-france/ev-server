@@ -363,7 +363,6 @@ module.exports = {
 		if (forFrontEnd) {
 			this.updateID(src, dest);
 			dest.image = src.image;
-			dest.numberOfChargeBoxes = src.numberOfChargeBoxes;
 		}
 		dest.name = src.name;
 		dest.accessControl = src.accessControl;

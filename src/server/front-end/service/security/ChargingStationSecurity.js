@@ -96,6 +96,7 @@ class ChargingStationSecurity {
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.WithNoSiteArea = UtilsSecurity.filterBoolean(request.WithNoSiteArea);
 		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+		UtilsSecurity.filterSort(request, filteredRequest);
 		return filteredRequest;
 	}
 

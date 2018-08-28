@@ -156,7 +156,7 @@ class SiteAreaStorage {
 			{upsert: true, new: true, returnOriginal: false});
 	}
 
-	static async getSiteAreas(searchValue, siteID, withChargeBoxes, limit, skip) {
+	static async getSiteAreas(params, limit, skip, sort) {
 		const Site = require('../../model/Site');  // Avoid fucking circular deps!!!
 		const SiteArea = require('../../model/SiteArea'); // Avoid fucking circular deps!!!
 		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!! 
@@ -167,15 +167,15 @@ class SiteAreaStorage {
 		// Set the filters
 		let filters = {};
 		// Source?
-		if (searchValue) {
+		if (params.search) {
 			// Build filter
 			filters.$or = [
-				{ "name" : { $regex : searchValue, $options: 'i' } }
+				{ "name" : { $regex : params.search, $options: 'i' } }
 			];
 		}
 		// Set Site?
-		if (siteID) {
-			filters.siteID = Utils.convertToObjectID(siteID);
+		if (params.siteID) {
+			filters.siteID = Utils.convertToObjectID(params.siteID);
 		}
 		// Create Aggregation
 		let aggregation = [];
@@ -185,42 +185,48 @@ class SiteAreaStorage {
 				$match: filters
 			});
 		}
-		// Add Sites
-		aggregation.push({
-			$lookup: {
-				from: "sites",
-				localField: "siteID",
-				foreignField: "_id",
-				as: "site"
-			}
-		});
-		// Add Charge Stations
-		aggregation.push({
-			$lookup: {
-				from: "chargingstations",
-				localField: "_id",
-				foreignField: "siteAreaID",
-				as: "chargeBoxes"
-			}
-		});
-		aggregation.push({
-			$addFields: {
-				"numberOfChargeBoxes": { $size: "$chargeBoxes" }
-			}
-		});
+		// Sites
+		if (params.withSite) {
+			// Add Sites
+			aggregation.push({
+				$lookup: {
+					from: "sites",
+					localField: "siteID",
+					foreignField: "_id",
+					as: "site"
+				}
+			});
+			// Single Record
+			aggregation.push({
+				$unwind: { "path": "$site", "preserveNullAndEmptyArrays": true }
+			});
+		}
+		// Charging Stations
+		if (params.withChargeBoxes) {
+			// Add Charging Stations
+			aggregation.push({
+				$lookup: {
+					from: "chargingstations",
+					localField: "_id",
+					foreignField: "siteAreaID",
+					as: "chargeBoxes"
+				}
+			});
+		}
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
-		// Single Record
-		aggregation.push({
-			$unwind: { "path": "$site", "preserveNullAndEmptyArrays": true }
-		});
 		// Sort
-		aggregation.push({
-			$sort: {
-				"site.name": 1,
-				"name": 1
-			}
-		});
+		if (sort) {
+			// Sort
+			aggregation.push({
+				$sort: sort
+			});
+		} else {
+			// Default
+			aggregation.push({
+				$sort: { name : 1 }
+			});
+		}
 		// Skip
 		aggregation.push({
 			$skip: skip
@@ -241,13 +247,16 @@ class SiteAreaStorage {
 				// Create
 				let siteArea = new SiteArea(siteAreaMDB);
 				// Set Site Areas
-				if (withChargeBoxes && siteAreaMDB.chargeBoxes) {
+				if (params.withChargeBoxes && siteAreaMDB.chargeBoxes) {
 					siteArea.setChargingStations(siteAreaMDB.chargeBoxes.map((chargeBox) => {
 						return new ChargingStation(chargeBox);
 					}));
 				}
-				// Set
-				siteArea.setSite(new Site(siteAreaMDB.site));
+				// Set Site
+				if (params.withSite && siteAreaMDB.site) {
+					// Set
+					siteArea.setSite(new Site(siteAreaMDB.site));
+				}
 				// Add
 				siteAreas.push(siteArea);
 			});

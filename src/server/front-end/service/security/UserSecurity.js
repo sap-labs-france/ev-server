@@ -23,6 +23,7 @@ class UserSecurity {
 		filteredRequest.Search = request.Search;
 		filteredRequest.SiteID = request.SiteID;
 		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+		UtilsSecurity.filterSort(request, filteredRequest);
 		return filteredRequest;
 	}
 

@@ -152,7 +152,7 @@ class Site {
 			return this._model.siteAreas.map((siteArea) => new SiteArea(siteArea));
 		} else {
 			// Get from DB
-			let siteAreas = await SiteAreaStorage.getSiteAreas(null, this.getID());
+			let siteAreas = await SiteAreaStorage.getSiteAreas({'siteID': this.getID()});
 			// Keep it
 			this.setSiteAreas(siteAreas);
 			return siteAreas;

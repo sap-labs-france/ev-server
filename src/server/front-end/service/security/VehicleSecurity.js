@@ -21,6 +21,7 @@ class VehicleSecurity {
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.Type = sanitize(request.Type);
 		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+		UtilsSecurity.filterSort(request, filteredRequest);
 		return filteredRequest;
 	}
 

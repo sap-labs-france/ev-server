@@ -50,6 +50,7 @@ class TransactionSecurity {
 			filteredRequest.UserID = sanitize(request.UserID);
 		}
 		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+		UtilsSecurity.filterSort(request, filteredRequest);
 		return filteredRequest;
 	}
 
@@ -185,6 +186,7 @@ class TransactionSecurity {
 		filteredRequest.StartDateTime = sanitize(request.StartDateTime);
 		filteredRequest.EndDateTime = sanitize(request.EndDateTime);
 		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+		UtilsSecurity.filterSort(request, filteredRequest);
 		return filteredRequest;
 	}
 

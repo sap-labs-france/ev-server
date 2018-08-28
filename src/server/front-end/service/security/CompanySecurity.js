@@ -30,6 +30,7 @@ class CompanySecurity {
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.WithSites = UtilsSecurity.filterBoolean(request.WithSites);
 		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+		UtilsSecurity.filterSort(request, filteredRequest);
 		return filteredRequest;
 	}
 
