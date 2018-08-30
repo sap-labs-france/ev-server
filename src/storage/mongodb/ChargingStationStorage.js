@@ -104,6 +104,10 @@ class ChargingStationStorage {
 		aggregation.push({
 			$match: filters
 		});
+		// Count Records
+		let chargingStationsCountMDB = await global.db.collection('chargingstations')
+			.aggregate([...aggregation, { $count: "count" }])
+			.toArray();
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Sort
@@ -136,7 +140,10 @@ class ChargingStationStorage {
 			chargingStations.push(new ChargingStation(chargingStationMDB));
 		});
 		// Ok
-		return chargingStations;
+		return {
+			count: (chargingStationsCountMDB.length > 0 ? chargingStationsCountMDB[0].count : 0),
+			result: chargingStations
+		};
 	}
 
 	static async saveChargingStation(chargingStationToSave) {

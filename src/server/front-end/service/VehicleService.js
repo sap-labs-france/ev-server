@@ -111,17 +111,14 @@ class VehicleService {
 				{ 'search': filteredRequest.Search, 'vehicleType': filteredRequest.Type, 
 					'vehicleManufacturerID': filteredRequest.VehicleManufacturerID }, 
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
-			let vehiclesJSon = [];
-			vehicles.forEach((vehicle) => {
-				// Set the model
-				vehiclesJSon.push(vehicle.getModel());
-			});
+
+			// Set
+			vehicles.result = vehicles.result.map((vehicle) => vehicle.getModel());
+			// Filter
+			vehicles.result = VehicleSecurity.filterVehiclesResponse(
+				vehicles.result, req.user);
 			// Return
-			res.json(
-				// Filter
-				VehicleSecurity.filterVehiclesResponse(
-					vehiclesJSon, req.user)
-			);
+			res.json(vehicles);
 			next();
 		} catch (error) {
 			// Log

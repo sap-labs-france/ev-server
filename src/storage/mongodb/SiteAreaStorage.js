@@ -185,6 +185,10 @@ class SiteAreaStorage {
 				$match: filters
 			});
 		}
+		// Count Records
+		let siteAreasCountMDB = await global.db.collection('siteareas')
+			.aggregate([...aggregation, { $count: "count" }])
+			.toArray();
 		// Sites
 		if (params.withSite) {
 			// Add Sites
@@ -261,7 +265,11 @@ class SiteAreaStorage {
 				siteAreas.push(siteArea);
 			});
 		}
-		return siteAreas;
+		// Ok
+		return {
+			count: (siteAreasCountMDB.length > 0 ? siteAreasCountMDB[0].count : 0),
+			result: siteAreas
+		};
 	}
 
 	static async deleteSiteArea(id) {

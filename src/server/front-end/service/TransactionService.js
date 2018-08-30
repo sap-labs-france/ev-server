@@ -425,12 +425,11 @@ class TransactionService {
 				filteredRequest.StartDateTime,
 				filteredRequest.EndDateTime,
 				true);
+			// Filter
+			transactions.result = TransactionSecurity.filterTransactionsResponse(
+				transactions.result, req.user, Constants.WITH_CONNECTORS);
 			// Return
-			res.json(
-				// Filter
-				TransactionSecurity.filterTransactionsResponse(
-					transactions, req.user, Constants.WITH_CONNECTORS)
-			);
+			res.json(transactions);
 			next();
 		} catch (error) {
 			// Log
@@ -482,12 +481,11 @@ class TransactionService {
 			let transactions = await TransactionStorage.getTransactions(
 				{ ...filter, 'withChargeBoxes': true }, 
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+			// Filter
+			transactions.result = TransactionSecurity.filterTransactionsResponse(
+				transactions.result, req.user, Constants.WITH_CONNECTORS);
 			// Return
-			res.json(
-				// Filter
-				TransactionSecurity.filterTransactionsResponse(
-					transactions, req.user, Constants.WITH_CONNECTORS)
-			);
+			res.json(transactions);
 			next();
 		} catch (error) {
 			// Log
@@ -527,21 +525,20 @@ class TransactionService {
 			let transactions = await TransactionStorage.getTransactions(
 				{ ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
-			// Found?``
+			// Found?
 			if (transactions && pricing) {
 				// List the transactions
-				transactions.forEach((transaction) => {
+				transactions.result.forEach((transaction) => {
 					// Compute the price
 					transaction.stop.price = (transaction.stop.totalConsumption / 1000) * pricing.priceKWH;
 					transaction.stop.priceUnit = pricing.priceUnit;
 				});
 			}
+			// Filter
+			transactions.result = TransactionSecurity.filterTransactionsResponse(
+				transactions.result, req.user, Constants.WITHOUT_CONNECTORS);
 			// Return
-			res.json(
-				// Filter
-				TransactionSecurity.filterTransactionsResponse(
-					transactions, req.user, Constants.WITHOUT_CONNECTORS)
-			);
+			res.json(transactions);
 			next();
 		} catch (error) {
 			// Log

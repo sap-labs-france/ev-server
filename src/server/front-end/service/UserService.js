@@ -325,16 +325,13 @@ class UserService {
 			let users = await UserStorage.getUsers(
 				{ 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID }, 
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
-			var usersJSon = [];
-			users.forEach((user) => {
-				// Set the model
-				usersJSon.push(user.getModel());
-			});
+			// Set
+			users.result = users.result.map((user) => user.getModel());
+			// Filter
+			users.result = UserSecurity.filterUsersResponse(
+				users.result, req.user);
 			// Return
-			res.json(
-				// Filter
-				UserSecurity.filterUsersResponse(usersJSon, req.user)
-			);
+			res.json(users);
 			next();
 		} catch (error) {
 			// Log

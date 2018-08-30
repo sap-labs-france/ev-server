@@ -247,17 +247,11 @@ class ChargingStationService {
 				{ 'search': filteredRequest.Search, 'withNoSiteArea': filteredRequest.WithNoSiteArea },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
-			let chargingStationsJSon = [];
-			chargingStations.forEach((chargingStation) => {
-				// Add
-				chargingStationsJSon.push(chargingStation.getModel());
-			});
+			chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
+			// Filter
+			chargingStations.result = ChargingStationSecurity.filterChargingStationsResponse(chargingStations.result, req.user);
 			// Return
-			res.json(
-				// Filter
-				ChargingStationSecurity.filterChargingStationsResponse(
-					chargingStationsJSon, req.user)
-			);
+			res.json(chargingStations);
 			next();
 		} catch (error) {
 			// Log

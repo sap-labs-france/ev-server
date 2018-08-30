@@ -157,6 +157,10 @@ class VehicleManufacturerStorage {
 				$match: { "vehicles.type": params.vehicleType }
 			});
 		}
+		// Count Records
+		let vehiclemanufacturersCountMDB = await global.db.collection('vehiclemanufacturers')
+			.aggregate([...aggregation, { $count: "count" }])
+			.toArray();
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Sort
@@ -203,7 +207,11 @@ class VehicleManufacturerStorage {
 				vehicleManufacturers.push(vehicleManufacturer);
 			});
 		}
-		return vehicleManufacturers;
+		// Ok
+		return {
+			count: (vehiclemanufacturersCountMDB.length > 0 ? vehiclemanufacturersCountMDB[0].count : 0),
+			result: vehicleManufacturers
+		};
 	}
 
 	static async deleteVehicleManufacturer(id) {

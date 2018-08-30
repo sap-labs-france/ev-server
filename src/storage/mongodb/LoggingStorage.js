@@ -194,7 +194,7 @@ class LoggingStorage {
 		});
 		// Ok
 		return {
-			count: loggingsCountMDB[0].count,
+			count: (loggingsCountMDB.length > 0 ? loggingsCountMDB[0].count : 0),
 			result: loggings
 		};
 	}

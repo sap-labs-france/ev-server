@@ -133,11 +133,7 @@ class SiteSecurity {
 	}
 
 	static filterSitesResponse(sites, loggedUser) {
-		let filteredSites = {};
-
-		// Init
-		filteredSites.count = sites.count;
-		filteredSites.result = [];
+		let filteredSites = [];
 
 		if (!sites) {
 			return null;
@@ -145,13 +141,13 @@ class SiteSecurity {
 		if (!Authorizations.canListSites(loggedUser)) {
 			return null;
 		}
-		sites.result.forEach(site => {
+		sites.forEach(site => {
 			// Filter
 			let filteredSite = SiteSecurity.filterSiteResponse(site, loggedUser);
 			// Ok?
 			if (filteredSite) {
 				// Add
-				filteredSites.result.push(filteredSite);
+				filteredSites.push(filteredSite);
 			}
 		});
 		return filteredSites;

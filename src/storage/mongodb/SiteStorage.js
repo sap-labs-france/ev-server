@@ -368,7 +368,7 @@ class SiteStorage {
 		}
 		// Ok
 		return {
-			count: sitesCountMDB[0].count,
+			count: (sitesCountMDB.length > 0 ? sitesCountMDB[0].count : 0),
 			result: sites
 		};
 	}

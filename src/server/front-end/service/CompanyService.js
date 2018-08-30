@@ -184,17 +184,13 @@ class CompanyService {
 			let companies = await CompanyStorage.getCompanies(
 				{ search: filteredRequest.Search, withSites: filteredRequest.WithSites },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
-			let companiesJSon = [];
-			companies.forEach((company) => {
-				// Set the model
-				companiesJSon.push(company.getModel());
-			});
+			// Set
+			companies.result = companies.result.map((company) => company.getModel());
+			// Filter
+			companies.result = CompanySecurity.filterCompaniesResponse(
+				companies.result, req.user);
 			// Return
-			res.json(
-				// Filter
-				CompanySecurity.filterCompaniesResponse(
-					companiesJSon, req.user)
-			);
+			res.json(companies);
 			next();
 		} catch (error) {
 			// Log

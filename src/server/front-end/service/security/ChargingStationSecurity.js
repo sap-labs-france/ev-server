@@ -53,6 +53,7 @@ class ChargingStationSecurity {
 	static filterChargingStationsResponse(chargingStations, loggedUser) {
 		let filteredChargingStations = [];
 
+		// Check
 		if (!chargingStations) {
 			return null;
 		}

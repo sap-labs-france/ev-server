@@ -144,6 +144,10 @@ class VehicleStorage {
 				$match: filters
 			});
 		}
+		// Count Records
+		let vehiclesCountMDB = await global.db.collection('vehicles')
+			.aggregate([...aggregation, { $count: "count" }])
+			.toArray();
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Sort
@@ -181,7 +185,11 @@ class VehicleStorage {
 				vehicles.push(new Vehicle(vehicleMDB));
 			});
 		}
-		return vehicles;
+		// Ok
+		return {
+			count: (vehiclesCountMDB.length > 0 ? vehiclesCountMDB[0].count : 0),
+			result: vehicles
+		};
 	}
 
 	static async deleteVehicle(id) {

@@ -116,11 +116,11 @@ class SiteService {
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
 			sites.result = sites.result.map((site) => site.getModel());
+			// Filter
+			sites.result = SiteSecurity.filterSitesResponse(
+				sites.result, req.user);
 			// Return
-			res.json(
-				// Filter
-				SiteSecurity.filterSitesResponse(sites, req.user)
-			);
+			res.json(sites);
 			next();
 		} catch (error) {
 			// Log

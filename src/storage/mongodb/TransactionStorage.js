@@ -187,6 +187,10 @@ class TransactionStorage {
 				$match: { "siteArea.siteID": Utils.convertToObjectID(params.siteID) }
 			});
 		}
+		// Count Records
+		let transactionsCountMDB = await global.db.collection('transactions')
+			.aggregate([...aggregation, { $count: "count" }])
+			.toArray();
 		// Sort
 		if (sort) {
 			// Sort
@@ -250,7 +254,11 @@ class TransactionStorage {
 				transactions.push(transaction);
 			});
 		}
-		return transactions;
+		// Ok
+		return {
+			count: (transactionsCountMDB.length > 0 ? transactionsCountMDB[0].count : 0),
+			result: transactions
+		};
 	}
 
 	static async getTransaction(id) {

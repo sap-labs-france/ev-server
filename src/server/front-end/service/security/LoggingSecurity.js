@@ -61,22 +61,18 @@ class LoggingSecurity {
 	}
 
 	static filterLoggingsResponse(loggings, loggedUser) {
-		let filteredLoggings = {};
+		let filteredLoggings = [];
 		
-		// Init
-		filteredLoggings.count = loggings.count;
-		filteredLoggings.result = [];
-
 		if (!loggings) {
 			return null;
 		}
-		loggings.result.forEach(logging => {
+		loggings.forEach(logging => {
 			// Filter
 			let filteredLogging = LoggingSecurity.filterLoggingResponse(logging, loggedUser);
 			// Ok?
 			if (filteredLogging) {
 				// Add
-				filteredLoggings.result.push(filteredLogging);
+				filteredLoggings.push(filteredLogging);
 			}
 		});
 		return filteredLoggings;

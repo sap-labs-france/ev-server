@@ -289,6 +289,10 @@ class UserStorage {
 				$match: { "siteusers.siteID": Utils.convertToObjectID(params.siteID) }
 			});
 		}
+		// Count Records
+		let usersCountMDB = await global.db.collection('users')
+			.aggregate([...aggregation, { $count: "count" }])
+			.toArray();
 		// Project
 		aggregation.push({
 			"$project": {
@@ -343,7 +347,11 @@ class UserStorage {
 			// Add
 			users.push(user);
 		});
-		return users;
+		// Ok
+		return {
+			count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
+			result: users
+		};
 	}
 
 	static async deleteUser(id) {

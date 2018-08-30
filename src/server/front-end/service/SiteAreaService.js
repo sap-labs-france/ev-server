@@ -96,18 +96,13 @@ class SiteAreaService {
 				{ 'search': filteredRequest.Search, 'withSite': filteredRequest.WithSite, 
 					'withChargeBoxes': filteredRequest.WithChargeBoxes },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
-			// Assign
-			let siteAreasJSon = [];
-			siteAreas.forEach((siteArea) => {
-				// Set the model
-				siteAreasJSon.push(siteArea.getModel());
-			});
+			// Set
+			siteAreas.result = siteAreas.result.map((siteArea) => siteArea.getModel());
+			// Filter
+			siteAreas.result = SiteAreaSecurity.filterSiteAreasResponse(
+				siteAreas.result, req.user);
 			// Return
-			res.json(
-				// Filter
-				SiteAreaSecurity.filterSiteAreasResponse(
-					siteAreasJSon, req.user)
-			);
+			res.json(siteAreas);
 			next();
 		} catch (error) {
 			// Log

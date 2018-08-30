@@ -153,6 +153,10 @@ class CompanyStorage {
 				}
 			});
 		}
+		// Count Records
+		let companiesCountMDB = await global.db.collection('companies')
+			.aggregate([...aggregation, { $count: "count" }])
+			.toArray();
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Sort
@@ -196,7 +200,11 @@ class CompanyStorage {
 				companies.push(company);
 			});
 		}
-		return companies;
+		// Ok
+		return {
+			count: (companiesCountMDB.length > 0 ? companiesCountMDB[0].count : 0),
+			result: companies
+		};
 	}
 
 	static async deleteCompany(id) {

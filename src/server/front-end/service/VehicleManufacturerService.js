@@ -111,18 +111,14 @@ class VehicleManufacturerService {
 			let vehicleManufacturers = await VehicleManufacturerStorage.getVehicleManufacturers(
 				{ 'search': filteredRequest.Search, 'withVehicles': filteredRequest.WithVehicles, 'vehicleType': filteredRequest.VehicleType}, 
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
-			// Build
-			let vehicleManufacturersJSon = [];
-			vehicleManufacturers.forEach((vehicleManufacturer) => {
-				// Set the model
-				vehicleManufacturersJSon.push(vehicleManufacturer.getModel());
-			});
+
+			// Set
+			vehicleManufacturers.result = vehicleManufacturers.result.map((vehicleManufacturer) => vehicleManufacturer.getModel());
+			// Filter
+			vehicleManufacturers.result = VehicleManufacturerSecurity.filterVehicleManufacturersResponse(
+				vehicleManufacturers.result, req.user);
 			// Return
-			res.json(
-				// Filter
-				VehicleManufacturerSecurity.filterVehicleManufacturersResponse(
-					vehicleManufacturersJSon, req.user)
-			);
+			res.json(vehicleManufacturers);
 			next();
 		} catch (error) {
 			// Log
