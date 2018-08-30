@@ -275,6 +275,10 @@ class SiteStorage {
 				$match: filters
 			});
 		}
+		// Count Records
+		let sitesCountMDB = await global.db.collection('sites')
+			.aggregate([...aggregation, { $count: "count" }])
+			.toArray();
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Add Company?
@@ -362,7 +366,11 @@ class SiteStorage {
 				sites.push(site);
 			});
 		}
-		return sites;
+		// Ok
+		return {
+			count: sitesCountMDB[0].count,
+			result: sites
+		};
 	}
 
 	static async deleteSite(id) {

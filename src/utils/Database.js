@@ -189,7 +189,6 @@ module.exports = {
 			if (src.image) {
 				dest.image = src.image;
 			}
-			dest.numberOfSites = src.numberOfSites;
 		}
 		if (src.name) {
 			dest.name = src.name;

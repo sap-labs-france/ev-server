@@ -130,6 +130,10 @@ class LoggingStorage {
 				$match: filters
 			});
 		}
+		// Count Records
+		let loggingsCountMDB = await global.db.collection('logs')
+			.aggregate([...aggregation, { $count: "count" }])
+			.toArray();
 		// Sort
 		if (sort) {
 			// Sort
@@ -189,7 +193,10 @@ class LoggingStorage {
 			loggings.push(logging);
 		});
 		// Ok
-		return loggings;
+		return {
+			count: loggingsCountMDB[0].count,
+			result: loggings
+		};
 	}
 }
 

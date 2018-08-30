@@ -115,16 +115,11 @@ class SiteService {
 					'withUsers': filteredRequest.WithUsers },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
-			let sitesJSon = [];
-			sites.forEach((site) => {
-				// Set the model
-				sitesJSon.push(site.getModel());
-			});
+			sites.result = sites.result.map((site) => site.getModel());
 			// Return
 			res.json(
 				// Filter
-				SiteSecurity.filterSitesResponse(
-					sitesJSon, req.user)
+				SiteSecurity.filterSitesResponse(sites, req.user)
 			);
 			next();
 		} catch (error) {

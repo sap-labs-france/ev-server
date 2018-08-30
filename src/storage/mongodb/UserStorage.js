@@ -116,20 +116,6 @@ class UserStorage {
 		});
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
-		// Add Site
-		aggregation.push({
-			$lookup: {
-				from: "siteusers",
-				localField: "_id",
-				foreignField: "userID",
-				as: "siteusers"
-			}
-		});
-		aggregation.push({
-			$addFields: {
-				"numberOfSites": { $size: "$siteusers" }
-			}
-		});
 		// Read DB
 		let usersMDB = await global.db.collection('users')
 			.aggregate(aggregation)
