@@ -154,8 +154,8 @@ class Site {
 			// Get from DB
 			let siteAreas = await SiteAreaStorage.getSiteAreas({'siteID': this.getID()});
 			// Keep it
-			this.setSiteAreas(siteAreas);
-			return siteAreas;
+			this.setSiteAreas(siteAreas.result);
+			return siteAreas.result;
 		}
 	}
 
@@ -168,10 +168,10 @@ class Site {
 			return this._model.users.map((user) => new User(user));
 		} else {
 			// Get from DB
-			let users = await UserStorage.getUsers(null, this.getID());
+			let users = await UserStorage.getUsers({'siteID': this.getID()});
 			// Keep it
-			this.setUsers(users);
-			return users;
+			this.setUsers(users.result);
+			return users.result;
 		}
 	}
 

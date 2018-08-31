@@ -111,7 +111,6 @@ class VehicleManufacturerService {
 			let vehicleManufacturers = await VehicleManufacturerStorage.getVehicleManufacturers(
 				{ 'search': filteredRequest.Search, 'withVehicles': filteredRequest.WithVehicles, 'vehicleType': filteredRequest.VehicleType}, 
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
-
 			// Set
 			vehicleManufacturers.result = vehicleManufacturers.result.map((vehicleManufacturer) => vehicleManufacturer.getModel());
 			// Filter

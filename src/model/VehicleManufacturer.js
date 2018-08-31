@@ -97,10 +97,11 @@ class VehicleManufacturer {
 			return this._model.vehicles.map((vehicle) => new Vehicle(vehicle));
 		} else {
 			// Get from DB
-			let vehicles = await VehicleStorage.getVehicles(null, this.getID());
+			let vehicles = await VehicleStorage.getVehicles({'vehicleManufacturerID': this.getID()});
 			// Keep it
-			this.setVehicles(vehicles);
-			return vehicles;
+			this.setVehicles(vehicles.result);
+			// Return
+			return vehicles.result;
 		}
 	}
 

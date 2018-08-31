@@ -106,8 +106,8 @@ class Company {
 			// Get from DB
 			let sites = await SiteStorage.getSites({'companyID': this.getID()});
 			// Keep it
-			this.setSites(sites);
-			return sites;
+			this.setSites(sites.result);
+			return sites.result;
 		}
 	}
 

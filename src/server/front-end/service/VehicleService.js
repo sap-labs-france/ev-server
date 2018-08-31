@@ -111,7 +111,6 @@ class VehicleService {
 				{ 'search': filteredRequest.Search, 'vehicleType': filteredRequest.Type, 
 					'vehicleManufacturerID': filteredRequest.VehicleManufacturerID }, 
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
-
 			// Set
 			vehicles.result = vehicles.result.map((vehicle) => vehicle.getModel());
 			// Filter

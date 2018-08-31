@@ -218,7 +218,7 @@ class VehicleManufacturerStorage {
 		// Delete Vehicles
 		let vehicles = await VehicleStorage.getVehicles(null, id);
 		// Delete
-		vehicles.forEach(async (vehicle) => {
+		vehicles.result.forEach(async (vehicle) => {
 			//	Delete Vehicle
 			await vehicle.delete();
 		});

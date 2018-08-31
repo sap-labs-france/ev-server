@@ -1259,15 +1259,17 @@ class ChargingStation {
 		let transactions = await TransactionStorage.getTransactions(
 			{ 'chargeBoxID': this.getID() }, 1);
 		// Return
-		return (transactions && transactions.length > 0 ? true : false);
+		return (transactions.count > 0);
 	}
 
-	getTransactions(connectorId, startDateTime, endDateTime, withChargeBoxes=false) {
+	async getTransactions(connectorId, startDateTime, endDateTime, withChargeBoxes=false) {
 		// Get the consumption
-		return TransactionStorage.getTransactions(
+		let transactions = await TransactionStorage.getTransactions(
 			{ 'chargeBoxID': this.getID(), 'connectorId': connectorId, 'startDateTime': startDateTime,
 				'endDateTime' : endDateTime, 'withChargeBoxes': withChargeBoxes },
-		 	Constants.NO_LIMIT);
+			Constants.NO_LIMIT);
+		// Return list of transactions
+		return transactions.result;
 	}
 
 	async getConsumptionsFromTransaction(transaction, optimizeNbrOfValues) {

@@ -260,21 +260,25 @@ class User {
 		return this._model.deleted;
 	}
 
-	getTransactions(filter) {
+	async getTransactions(filter) {
 		if (!filter) {
 			filter = {};
 		}
 		// Set the user ID
 		filter.userId = this.getID();
 		// Get the consumption
-		return TransactionStorage.getTransactions(filter, Constants.NO_LIMIT);
+		let transactions = await TransactionStorage.getTransactions(filter, Constants.NO_LIMIT);
+		// Return
+		return transactions.result;
 	}
 
-	getSites(withCompany=false, withSiteAreas=false,
+	async getSites(withCompany=false, withSiteAreas=false,
 			withChargeBoxes=false, withUsers=false) {
 		// Get Sites
-		return SiteStorage.getSites({'userID': this.getID(),
+		let sites = await SiteStorage.getSites({'userID': this.getID(),
 			withCompany, withSiteAreas, withChargeBoxes, withUsers});
+		// Return the array
+		return sites.result;
 	}
 
 	save() {
@@ -289,7 +293,7 @@ class User {
 		// Check if the user has a transaction
 		let transactions = await this.getTransactions();
 		// Check
-		if (transactions && transactions.length > 0) {
+		if (transactions.count > 0) {
 			// Delete logically
 			// Set deleted
 			this.setDeleted(true);
