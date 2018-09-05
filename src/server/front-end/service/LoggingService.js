@@ -21,7 +21,7 @@ class LoggingService {
 			let filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query, req.user);
 			// Get logs
 			let loggings = await LoggingStorage.getLogs({'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 
-				'level': filteredRequest.Level, 'type': filteredRequest.Type, 'source': filteredRequest.ChargingStation, 
+				'level': filteredRequest.Level, 'type': filteredRequest.Type, 'source': filteredRequest.Source, 
 				'action': filteredRequest.Action}, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Filter
 			loggings.result = LoggingSecurity.filterLoggingsResponse(

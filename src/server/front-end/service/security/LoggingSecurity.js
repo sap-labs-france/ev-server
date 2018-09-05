@@ -9,7 +9,7 @@ class LoggingSecurity {
 		// Get logs
 		filteredRequest.DateFrom = sanitize(request.DateFrom);
 		filteredRequest.Level = sanitize(request.Level);
-		filteredRequest.ChargingStation = sanitize(request.ChargingStation);
+		filteredRequest.Source = sanitize(request.Source);
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.SortDate = sanitize(request.SortDate);
 		filteredRequest.Type = sanitize(request.Type);
