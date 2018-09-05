@@ -755,7 +755,7 @@ class ChargingStation {
 		// Same?
 		if (parseInt(meterValues.transactionId) !== parseInt(chargerTransactionId)) {
 			// No: Log
-			Logging.logError({
+			Logging.logWarning({
 				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
 				action: 'MeterValues', message: `Meter Values Transaction ID '${meterValues.transactionId}' has been overridden with Start Transaction ID '${chargerTransactionId}'`
 			});
