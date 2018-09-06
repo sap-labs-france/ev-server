@@ -26,7 +26,7 @@ class ChargingStationService {
 			if (!Authorizations.canUpdateChargingStation(req.user, chargingStation.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_UPDATE, Constants.ENTITY_CHARGING_STATION,
+					Constants.ACTION_UPDATE, Constants.ENTITY_CHARGING_STATION,
 					site.getID(), 560, 
 					'ChargingStationService', 'handleUpdateChargingStationParams',
 					req.user);
@@ -88,7 +88,7 @@ class ChargingStationService {
 			if (!Authorizations.canReadChargingStation(req.user, chargingStation.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_READ, Constants.ENTITY_CHARGING_STATION,
+					Constants.ACTION_READ, Constants.ENTITY_CHARGING_STATION,
 					chargingStation.getID(), 560, 
 					'ChargingStationService', 'handleGetChargingStationConfiguration',
 					req.user);
@@ -130,7 +130,7 @@ class ChargingStationService {
 			if (!Authorizations.canReadChargingStation(req.user, chargingStation.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_READ,
+					Constants.ACTION_READ,
 					Constants.ENTITY_CHARGING_STATION,
 					chargingStation.getID(), 560, 
 					'ChargingStationService', 'handleGetChargingStationConfiguration',
@@ -173,7 +173,7 @@ class ChargingStationService {
 			if (!Authorizations.canDeleteChargingStation(req.user, chargingStation.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_DELETE,
+					Constants.ACTION_DELETE,
 					Constants.ENTITY_CHARGING_STATION,
 					chargingStation.getID(), 560, 
 					'ChargingStationService', 'handleDeleteChargingStation',
@@ -234,7 +234,7 @@ class ChargingStationService {
 			if (!Authorizations.canListChargingStations(req.user)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_LIST,
+					Constants.ACTION_LIST,
 					Constants.ENTITY_CHARGING_STATIONS,
 					null, 560, 
 					'ChargingStationService', 'handleGetChargingStations',

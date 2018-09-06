@@ -3,6 +3,7 @@ require('source-map-support').install();
 module.exports = {
 	STATS_GROUP_BY_CONSUMPTION: "C",
 	STATS_GROUP_BY_USAGE: "U",
+
 	// Statuses
 	ENTITY_SITE: "Site",
 	ENTITY_SITES: "Sites",
@@ -57,9 +58,23 @@ module.exports = {
 	USER_STATUS_LOCKED: 'L',
 
 	// Roles
-	USER_ROLE_BASIC: 'B',
-	USER_ROLE_ADMIN: 'A',
-	USER_ROLE_DEMO: 'D',
+	ROLE_ADMIN: "A",
+	ROLE_BASIC: "B",
+	ROLE_DEMO: "D",
+	ACTION_READ  : "Read",
+	ACTION_CREATE: "Create",
+	ACTION_UPDATE: "Update",
+	ACTION_DELETE: "Delete",
+	ACTION_LOGOUT: "Logout",
+	ACTION_LIST: "List",
+	ACTION_RESET: "Reset",
+	ACTION_AUTHORIZE: "Authorize",
+	ACTION_CLEAR_CACHE: "ClearCache",
+	ACTION_STOP_TRANSACTION: "StopTransaction",
+	ACTION_START_TRANSACTION: "StartTransaction",
+	ACTION_REFUND_TRANSACTION: "RefundTransaction",
+	ACTION_UNLOCK_CONNECTOR: "UnlockConnector",
+	ACTION_GET_CONFIGURATION: "GetConfiguration",
 
 	// Password constants
 	PWD_MIN_LENGTH: 15,

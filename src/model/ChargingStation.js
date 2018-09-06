@@ -897,7 +897,7 @@ class ChargingStation {
 		authorize.timestamp = new Date();
 		// Execute
 		let users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
-				Authorizations.ACTION_AUTHORIZE, this, authorize.idTag);
+				Constants.ACTION_AUTHORIZE, this, authorize.idTag);
 		// Set current user
 		authorize.user = users.user;
 		// Save
@@ -951,7 +951,7 @@ class ChargingStation {
 		transaction.chargeBoxID = this.getID();
 		// Check user and save
 		let users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
-			Authorizations.ACTION_START_TRANSACTION, this, transaction.idTag);
+			Constants.ACTION_START_TRANSACTION, this, transaction.idTag);
 		// Set current user
 		let user = (users.alternateUser ? users.alternateUser : users.user);
 		// Check for active transaction
@@ -1056,7 +1056,7 @@ class ChargingStation {
 		stopTransaction.tagID = stopTransaction.idTag;
 		// Check User
 		let users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
-			Authorizations.ACTION_STOP_TRANSACTION, this, transaction.tagID, stopTransaction.tagID);
+			Constants.ACTION_STOP_TRANSACTION, this, transaction.tagID, stopTransaction.tagID);
 		// Set current user
 		let user = (users.alternateUser ? users.alternateUser : users.user);
 		// Set the User ID

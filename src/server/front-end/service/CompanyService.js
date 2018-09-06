@@ -37,7 +37,7 @@ class CompanyService {
 			if (!Authorizations.canDeleteCompany(req.user, company.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_DELETE,
+					Constants.ACTION_DELETE,
 					Constants.ENTITY_COMPANY,
 					company.getID(),
 					560, 'CompanyService', 'handleDeleteCompany',
@@ -83,7 +83,7 @@ class CompanyService {
 			if (!Authorizations.canReadCompany(req.user, company.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_READ,
+					Constants.ACTION_READ,
 					Constants.ENTITY_COMPANY,
 					company.getID(),
 					560, 'CompanyService', 'handleGetCompany',
@@ -126,7 +126,7 @@ class CompanyService {
 			if (!Authorizations.canReadCompany(req.user, company.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_READ,
+					Constants.ACTION_READ,
 					Constants.ENTITY_COMPANY,
 					company.getID(),
 					560, 'CompanyService', 'handleGetCompanyLogo',
@@ -149,7 +149,7 @@ class CompanyService {
 			if (!Authorizations.canListCompanies(req.user)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_LIST,
+					Constants.ACTION_LIST,
 					Constants.ENTITY_COMPANIES,
 					null,
 					560, 'CompanyService', 'handleGetCompanyLogos',
@@ -171,7 +171,7 @@ class CompanyService {
 			if (!Authorizations.canListCompanies(req.user)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_LIST,
+					Constants.ACTION_LIST,
 					Constants.ENTITY_COMPANIES,
 					null,
 					560, 'CompanyService', 'handleGetCompanies',
@@ -204,7 +204,7 @@ class CompanyService {
 			if (!Authorizations.canCreateCompany(req.user)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_CREATE,
+					Constants.ACTION_CREATE,
 					Constants.ENTITY_COMPANY,
 					null,
 					560, 'CompanyService', 'handleCreateCompany',
@@ -257,7 +257,7 @@ class CompanyService {
 			if (!Authorizations.canUpdateCompany(req.user, company.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_UPDATE,
+					Constants.ACTION_UPDATE,
 					Constants.ENTITY_COMPANY,
 					company.getID(),
 					560, 'CompanyService', 'handleCreateCompany',

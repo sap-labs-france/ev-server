@@ -240,7 +240,7 @@ class AuthService {
 			let newUser = new User(filteredRequest);
 			// Set data
 			newUser.setStatus(Constants.USER_STATUS_PENDING);
-			newUser.setRole(Constants.USER_ROLE_BASIC);
+			newUser.setRole(Constants.ROLE_BASIC);
 			newUser.setPassword(newPasswordHashed);
 			newUser.setLocale(req.locale.substring(0,5));
 			newUser.setCreatedOn(new Date());

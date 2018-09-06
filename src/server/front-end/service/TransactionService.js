@@ -39,7 +39,7 @@ class TransactionService {
 			if (!Authorizations.canRefundTransaction(req.user, transaction)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_REFUND_TRANSACTION,
+					Constants.ACTION_REFUND_TRANSACTION,
 					Constants.ENTITY_TRANSACTION,
 					transaction.id,
 					560, 'TransactionService', 'handleRefundTransaction',
@@ -132,7 +132,7 @@ class TransactionService {
 			if (!Authorizations.canDeleteTransaction(req.user, transaction)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_DELETE,
+					Constants.ACTION_DELETE,
 					Constants.ENTITY_TRANSACTION,
 					transaction.id,
 					560, 'TransactionService', 'handleDeleteTransaction',
@@ -200,7 +200,7 @@ class TransactionService {
 			if (!Authorizations.canUpdateTransaction(req.user, transaction)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_UPDATE,
+					Constants.ACTION_UPDATE,
 					Constants.ENTITY_TRANSACTION,
 					transaction.id,
 					560, 'TransactionService', 'handleTransactionSoftStop',
@@ -274,7 +274,7 @@ class TransactionService {
 			if (!Authorizations.canReadTransaction(req.user, transaction)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_READ,
+					Constants.ACTION_READ,
 					Constants.ENTITY_TRANSACTION,
 					transaction.id,
 					560, 'TransactionService', 'handleGetChargingStationConsumptionFromTransaction',
@@ -358,7 +358,7 @@ class TransactionService {
 			if (!Authorizations.canReadTransaction(req.user, transaction)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_READ,
+					Constants.ACTION_READ,
 					Constants.ENTITY_TRANSACTION,
 					transaction.id,
 					560, 
@@ -384,7 +384,7 @@ class TransactionService {
 			if (!Authorizations.canListTransactions(req.user)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_LIST,
+					Constants.ACTION_LIST,
 					Constants.ENTITY_TRANSACTION,
 					null,
 					560, 
@@ -461,7 +461,7 @@ class TransactionService {
 			if (!Authorizations.canListTransactions(req.user)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_LIST,
+					Constants.ACTION_LIST,
 					Constants.ENTITY_TRANSACTION,
 					null,
 					560, 
@@ -499,7 +499,7 @@ class TransactionService {
 			if (!Authorizations.canListTransactions(req.user)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_LIST,
+					Constants.ACTION_LIST,
 					Constants.ENTITY_TRANSACTION,
 					null,
 					560, 

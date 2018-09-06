@@ -37,7 +37,7 @@ class SiteService {
 			if (!Authorizations.canDeleteSite(req.user, site.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_DELETE,
+					Constants.ACTION_DELETE,
 					Constants.ENTITY_SITE,
 					site.getID(),
 					560, 
@@ -99,7 +99,7 @@ class SiteService {
 			if (!Authorizations.canListSites(req.user)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_LIST,
+					Constants.ACTION_LIST,
 					Constants.ENTITY_SITES,
 					null,
 					560, 
@@ -152,7 +152,7 @@ class SiteService {
 			if (!Authorizations.canReadSite(req.user, site.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_READ,
+					Constants.ACTION_READ,
 					Constants.ENTITY_SITE,
 					site.getID(),
 					560, 
@@ -176,7 +176,7 @@ class SiteService {
 			if (!Authorizations.canListSites(req.user)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_LIST,
+					Constants.ACTION_LIST,
 					Constants.ENTITY_SITES,
 					null,
 					560, 
@@ -200,7 +200,7 @@ class SiteService {
 			if (!Authorizations.canCreateSite(req.user)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_CREATE,
+					Constants.ACTION_CREATE,
 					Constants.ENTITY_SITE,
 					null,
 					560, 
@@ -274,7 +274,7 @@ class SiteService {
 			if (!Authorizations.canUpdateSite(req.user, site.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_UPDATE,
+					Constants.ACTION_UPDATE,
 					Constants.ENTITY_SITE,
 					site.getID(),
 					560, 

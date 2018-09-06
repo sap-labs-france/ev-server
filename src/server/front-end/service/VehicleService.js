@@ -35,7 +35,7 @@ class VehicleService {
 			if (!Authorizations.canDeleteVehicle(req.user, vehicle.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_DELETE,
+					Constants.ACTION_DELETE,
 					Constants.ENTITY_VEHICLE,
 					vehicle.getID(),
 					560, 
@@ -97,7 +97,7 @@ class VehicleService {
 			if (!Authorizations.canListVehicles(req.user)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_LIST,
+					Constants.ACTION_LIST,
 					Constants.ENTITY_VEHICLES,
 					null,
 					560, 
@@ -149,7 +149,7 @@ class VehicleService {
 			if (!Authorizations.canReadVehicle(req.user, vehicle.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_READ,
+					Constants.ACTION_READ,
 					Constants.ENTITY_VEHICLE,
 					vehicle.getID(),
 					560, 
@@ -173,7 +173,7 @@ class VehicleService {
 			if (!Authorizations.canListVehicles(req.user)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_LIST,
+					Constants.ACTION_LIST,
 					Constants.ENTITY_VEHICLES,
 					null,
 					560, 
@@ -197,7 +197,7 @@ class VehicleService {
 			if (!Authorizations.canCreateVehicle(req.user)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_CREATE,
+					Constants.ACTION_CREATE,
 					Constants.ENTITY_VEHICLE,
 					null,
 					560, 
@@ -255,7 +255,7 @@ class VehicleService {
 			if (!Authorizations.canUpdateVehicle(req.user, vehicle.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_UPDATE,
+					Constants.ACTION_UPDATE,
 					Constants.ENTITY_VEHICLE,
 					vehicle.getID(),
 					560, 

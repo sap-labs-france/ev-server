@@ -18,7 +18,7 @@ class SiteAreaService {
 			if (!Authorizations.canCreateSite(req.user)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_CREATE,
+					Constants.ACTION_CREATE,
 					Constants.ENTITY_SITE_AREA,
 					null,
 					560, 'SiteAreaService', 'handleCreateSiteArea',
@@ -83,7 +83,7 @@ class SiteAreaService {
 			if (!Authorizations.canListSiteAreas(req.user)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_LIST,
+					Constants.ACTION_LIST,
 					Constants.ENTITY_SITE_AREAS,
 					null,
 					560, 'SiteAreaService', 'handleGetSiteAreas',
@@ -136,7 +136,7 @@ class SiteAreaService {
 			if (!Authorizations.canDeleteSiteArea(req.user, { 'id': siteArea.getID() })) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_DELETE,
+					Constants.ACTION_DELETE,
 					Constants.ENTITY_SITE_AREA,
 					siteArea.getID(),
 					560, 
@@ -186,7 +186,7 @@ class SiteAreaService {
 			if (!Authorizations.canReadSiteArea(req.user, siteArea.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_READ,
+					Constants.ACTION_READ,
 					Constants.ENTITY_SITE_AREA,
 					siteArea.getID(),
 					560, 
@@ -230,7 +230,7 @@ class SiteAreaService {
 			if (!Authorizations.canReadSiteArea(req.user, siteArea.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_READ,
+					Constants.ACTION_READ,
 					Constants.ENTITY_SITE_AREA,
 					siteArea.getID(),
 					560, 'SiteAreaService', 'handleGetSiteAreaImage',
@@ -253,7 +253,7 @@ class SiteAreaService {
 			if (!Authorizations.canListSiteAreas(req.user)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_LIST,
+					Constants.ACTION_LIST,
 					Constants.ENTITY_SITE_AREAS,
 					null,
 					560, 'SiteAreaService', 'handleGetSiteAreaImages',
@@ -288,7 +288,7 @@ class SiteAreaService {
 			if (!Authorizations.canUpdateSiteArea(req.user, siteArea.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_UPDATE,
+					Constants.ACTION_UPDATE,
 					Constants.ENTITY_SITE_AREA,
 					siteArea.getID(),
 					560, 'SiteAreaService', 'handleUpdateSiteArea',

@@ -1,5 +1,6 @@
 const Authorizations = require('../../../authorization/Authorizations');
 const Logging = require('../../../utils/Logging');
+const Constants = require('../../../utils/Constants');
 const LoggingSecurity = require('./security/LoggingSecurity');
 const AppAuthError = require('../../../exception/AppAuthError');
 const LoggingStorage = require('../../../storage/mongodb/LoggingStorage');
@@ -11,7 +12,7 @@ class LoggingService {
 			if (!Authorizations.canListLogging(req.user)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_LIST,
+					Constants.ACTION_LIST,
 					Constants.ENTITY_LOGGINGS,
 					null,
 					560, 'LoggingService', 'handleGetLoggings',
@@ -45,7 +46,7 @@ class LoggingService {
 			if (!Authorizations.canReadLogging(req.user, logging)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_READ,
+					Constants.ACTION_READ,
 					Constants.ENTITY_LOGGING,
 					null,
 					560, 'LoggingService', 'handleGetLogging',

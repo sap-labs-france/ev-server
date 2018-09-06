@@ -60,7 +60,7 @@ class UserService {
 			if (!Authorizations.canDeleteUser(req.user, user.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_DELETE,
+					Constants.ACTION_DELETE,
 					Constants.ENTITY_USER,
 					user.getID(),
 					560, 
@@ -127,7 +127,7 @@ class UserService {
 			// Check auth
 			if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
 				throw new AppAuthError(
-					Authorizations.ACTION_UPDATE,
+					Constants.ACTION_UPDATE,
 					Constants.ENTITY_USER,
 					user.getID(),
 					560, 
@@ -215,7 +215,7 @@ class UserService {
 			if (!Authorizations.canReadUser(req.user, user.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_READ,
+					Constants.ACTION_READ,
 					Constants.ENTITY_USER,
 					user.getID(),
 					560, 'UserService', 'handleGetUser',
@@ -265,7 +265,7 @@ class UserService {
 			if (!Authorizations.canReadUser(req.user, user.getModel())) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_READ,
+					Constants.ACTION_READ,
 					Constants.ENTITY_USER,
 					user.getID(),
 					560, 'UserService', 'handleGetUserImage',
@@ -288,7 +288,7 @@ class UserService {
 			if (!Authorizations.canListUsers(req.user)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_LIST,
+					Constants.ACTION_LIST,
 					Constants.ENTITY_USERS,
 					null,
 					560, 
@@ -312,7 +312,7 @@ class UserService {
 			if (!Authorizations.canListUsers(req.user)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_LIST,
+					Constants.ACTION_LIST,
 					Constants.ENTITY_USERS,
 					null,
 					560, 
@@ -345,7 +345,7 @@ class UserService {
 			if (!Authorizations.canCreateUser(req.user)) {
 				// Not Authorized!
 				throw new AppAuthError(
-					Authorizations.ACTION_CREATE,
+					Constants.ACTION_CREATE,
 					Constants.ENTITY_USER,
 					null,
 					560, 
@@ -356,7 +356,7 @@ class UserService {
 			let filteredRequest = UserSecurity.filterUserCreateRequest( req.body, req.user );
 			if (!filteredRequest.role) {
 				// Set to default role
-				filteredRequest.role = Constants.USER_ROLE_BASIC;
+				filteredRequest.role = Constants.ROLE_BASIC;
 				filteredRequest.status = Constants.USER_STATUS_INACTIVE;
 			}
 			// Check Mandatory fields
