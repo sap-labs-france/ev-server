@@ -143,14 +143,14 @@ class AuthService {
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The user with email '${filteredRequest.email}' does not exist`, 550, 
-					'AuthService', 'handleLogIn');
+					`The user with email '${filteredRequest.email}' does not exist`, 
+					550, 'AuthService', 'handleLogIn');
 			}
 			if (user.deleted) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The user with email '${filteredRequest.email}' is logically deleted`, 550, 
-					'AuthService', 'handleLogIn');
+					`The user with email '${filteredRequest.email}' is logically deleted`, 
+					550, 'AuthService', 'handleLogIn');
 			}
 			// Check if the number of trials is reached
 			if (user.getPasswordWrongNbrTrials() >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
@@ -175,7 +175,7 @@ class AuthService {
 						// Return data
 						throw new AppError(
 							Constants.CENTRAL_SERVER,	`User is locked`,
-							570, 'AuthService', 'handleLogIn',
+							550, 'AuthService', 'handleLogIn',
 							user.getModel());
 					}
 				} else {
@@ -469,7 +469,7 @@ class AuthService {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
 				`User failed to log in, ${_centralSystemRestConfig.passwordWrongNumberOfTrial - user.getPasswordWrongNbrTrials()} trial(s) remaining`,
-				401, 'AuthService', 'checkUserLogin',
+				550, 'AuthService', 'checkUserLogin',
 				user.getModel()
 			);
 		}
@@ -532,7 +532,7 @@ class AuthService {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
 				`Unknown user tried to log in with email '${filteredRequest.email}'`,
-				401, 'AuthService', 'checkUserLogin',
+				550, 'AuthService', 'checkUserLogin',
 				user.getModel());
 		}
 		// Check if the account is active
