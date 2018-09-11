@@ -428,9 +428,6 @@ class TransactionService {
 			// Filter
 			transactions.result = TransactionSecurity.filterTransactionsResponse(
 				transactions.result, req.user, Constants.WITH_CONNECTORS);
-			console.log('Result ====================================');
-			console.log(transactions);
-			console.log('====================================');
 			// Return
 			res.json(transactions);
 			next();
