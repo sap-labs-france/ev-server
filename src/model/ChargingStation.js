@@ -1269,7 +1269,7 @@ class ChargingStation {
 				'endDateTime' : endDateTime, 'withChargeBoxes': withChargeBoxes },
 			Constants.NO_LIMIT);
 		// Return list of transactions
-		return transactions.result;
+		return transactions;
 	}
 
 	async getConsumptionsFromTransaction(transaction, optimizeNbrOfValues) {

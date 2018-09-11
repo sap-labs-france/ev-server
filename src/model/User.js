@@ -269,7 +269,7 @@ class User {
 		// Get the consumption
 		let transactions = await TransactionStorage.getTransactions(filter, Constants.NO_LIMIT);
 		// Return
-		return transactions.result;
+		return transactions;
 	}
 
 	async getSites(withCompany=false, withSiteAreas=false,
