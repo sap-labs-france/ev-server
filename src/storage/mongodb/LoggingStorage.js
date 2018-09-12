@@ -85,16 +85,16 @@ class LoggingStorage {
 		// Log level
 		switch (params.level) {
 			// Error
-			case "E":
+			case 'E':
 				// Build filter
 				filters.level = 'E';
 				break;
 			// Warning
-			case "W":
+			case 'W':
 				filters.level = { $in : ['E','W'] };
 				break;
 			// Info
-			case "I":
+			case 'I':
 				filters.level = { $in : ['E','W','I'] };
 				break;
 		}
@@ -113,14 +113,32 @@ class LoggingStorage {
 			// Yes, add in filter
 			filters.action = params.action;
 		}
+		// User ID
+		if (params.userID) {
+			// Yes, add in filter
+			filters.$or = [
+				{ 'userID': Utils.convertToObjectID(params.userID) },
+				{ 'actionOnUserID': Utils.convertToObjectID(params.userID) }
+			];
+		}
 		// Source?
 		if (params.search) {
-			// Build filter
-			filters.$or = [
-				{ "message" : { $regex : params.search, $options: 'i' } },
-				{ "action" : { $regex : params.search, $options: 'i' } },
-				{ "userFullName" : { $regex : params.search, $options: 'i' } }
+			// Set
+			let searchArray = [
+				{ 'message': { $regex : params.search, $options: 'i' } },
+				{ 'action': { $regex : params.search, $options: 'i' } }
 			];
+			// Already exists?
+			if (filters.$or) {
+				// Add them all
+				filters.$and = [
+					{ $or: [...filters.$or] },
+					{ $or: [...searchArray] },
+				];
+			} else {
+				// Only one
+				filters.$or = searchArray;
+			}
 		}
 		// Create Aggregation
 		let aggregation = [];
@@ -132,7 +150,7 @@ class LoggingStorage {
 		}
 		// Count Records
 		let loggingsCountMDB = await global.db.collection('logs')
-			.aggregate([...aggregation, { $count: "count" }])
+			.aggregate([...aggregation, { $count: 'count' }])
 			.toArray();
 		// Sort
 		if (sort) {
@@ -157,28 +175,28 @@ class LoggingStorage {
 		// User
 		aggregation.push({
 			$lookup: {
-				from: "users",
-				localField: "userID",
-				foreignField: "_id",
-				as: "user"
+				from: 'users',
+				localField: 'userID',
+				foreignField: '_id',
+				as: 'user'
 			}
 		});
 		// Single Record
 		aggregation.push({
-			$unwind: { "path": "$user", "preserveNullAndEmptyArrays": true }
+			$unwind: { 'path': '$user', 'preserveNullAndEmptyArrays': true }
 		});
 		// Action on User
 		aggregation.push({
 			$lookup: {
-				from: "users",
-				localField: "actionOnUserID",
-				foreignField: "_id",
-				as: "actionOnUser"
+				from: 'users',
+				localField: 'actionOnUserID',
+				foreignField: '_id',
+				as: 'actionOnUser'
 			}
 		});
 		// Single Record
 		aggregation.push({
-			$unwind: { "path": "$actionOnUser", "preserveNullAndEmptyArrays": true }
+			$unwind: { 'path': '$actionOnUser', 'preserveNullAndEmptyArrays': true }
 		});
 		// Read DB
 		let loggingsMDB = await global.db.collection('logs')

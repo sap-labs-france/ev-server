@@ -14,6 +14,7 @@ class LoggingSecurity {
 		filteredRequest.SortDate = sanitize(request.SortDate);
 		filteredRequest.Type = sanitize(request.Type);
 		filteredRequest.Action = sanitize(request.Action);
+		filteredRequest.UserID = sanitize(request.UserID);
 		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
 		UtilsSecurity.filterSort(request, filteredRequest);
 		return filteredRequest;
