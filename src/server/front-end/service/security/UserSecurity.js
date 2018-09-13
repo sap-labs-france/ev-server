@@ -102,9 +102,9 @@ class UserSecurity {
 			if (request.status) {
 				filteredRequest.status = sanitize(request.status);
 			}
-		}
-		if (request.tagIDs) {
-			filteredRequest.tagIDs = sanitize(request.tagIDs);
+			if (request.tagIDs) {
+				filteredRequest.tagIDs = sanitize(request.tagIDs);
+			}
 		}
 		return filteredRequest;
 	}

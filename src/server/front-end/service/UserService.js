@@ -57,8 +57,18 @@ class UserService {
 					`The User with ID '${filteredRequest.userID}' does not exist anymore`, 550, 
 					'UserService', 'handleAddSitesToUser', req.user);
 			}
+			// Check auth
+			if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
+				throw new AppAuthError(
+					Constants.ACTION_UPDATE,
+					Constants.ENTITY_USER,
+					user.getID(),
+					560, 
+					'UserService', 'handleAddSitesToUser',
+					req.user, user);
+			}
 			// Get Sites
-			filteredRequest.siteIDs.forEach(async (siteID) => {
+			for (const siteID of filteredRequest.siteIDs) {
 				// Check the site
 				let site = await SiteStorage.getSite(siteID);
 				if (!site) {
@@ -67,7 +77,17 @@ class UserService {
 						`The Site with ID '${filteredRequest.id}' does not exist anymore`, 550, 
 						'UserService', 'handleAddSitesToUser', req.user);
 				}
-			});
+				// Check auth
+				if (!Authorizations.canUpdateSite(req.user, site.getModel())) {
+					throw new AppAuthError(
+						Constants.ACTION_UPDATE,
+						Constants.ENTITY_SITE,
+						user.getID(),
+						560, 
+						'UserService', 'handleAddSitesToUser',
+						req.user, user);
+				}
+			}
 			// Save
 			await UserStorage.addSitesToUser(filteredRequest.userID, filteredRequest.siteIDs);
 			// Log
@@ -110,8 +130,18 @@ class UserService {
 					`The User with ID '${filteredRequest.userID}' does not exist anymore`, 550, 
 					'UserService', 'handleAddSitesToUser', req.user);
 			}
+			// Check auth
+			if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
+				throw new AppAuthError(
+					Constants.ACTION_UPDATE,
+					Constants.ENTITY_USER,
+					user.getID(),
+					560, 
+					'UserService', 'handleAddSitesToUser',
+					req.user, user);
+			}
 			// Get Sites
-			filteredRequest.siteIDs.forEach(async (siteID) => {
+			for (const siteID of filteredRequest.siteIDs) {
 				// Check the site
 				let site = await SiteStorage.getSite(siteID);
 				if (!site) {
@@ -120,7 +150,17 @@ class UserService {
 						`The Site with ID '${filteredRequest.id}' does not exist anymore`, 550, 
 						'UserService', 'handleAddSitesToUser', req.user);
 				}
-			});
+				// Check auth
+				if (!Authorizations.canUpdateSite(req.user, site.getModel())) {
+					throw new AppAuthError(
+						Constants.ACTION_UPDATE,
+						Constants.ENTITY_SITE,
+						user.getID(),
+						560, 
+						'UserService', 'handleAddSitesToUser',
+						req.user, user);
+				}
+			}
 			// Save
 			await UserStorage.removeSitesFromUser(filteredRequest.userID, filteredRequest.siteIDs);
 			// Log
