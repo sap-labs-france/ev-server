@@ -180,10 +180,6 @@ class UserStorage {
 				await global.db.collection('siteusers').insertMany(siteUsers);
 			}
 		}
-		console.log('====================================');
-		console.log(userID);
-		console.log(siteIDs);
-		console.log('====================================');
 	}
 
 	static async saveUser(userToSave) {
