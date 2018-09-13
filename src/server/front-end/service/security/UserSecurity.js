@@ -3,6 +3,16 @@ const Authorizations = require('../../../../authorization/Authorizations');
 const UtilsSecurity = require('./UtilsSecurity');
 
 class UserSecurity {
+	static filterAddSitesToUserRequest(request, loggedUser) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.userID = sanitize(request.userID);
+		if (request.siteIDs) {
+			filteredRequest.siteIDs = request.siteIDs.map(siteID => sanitize(siteID));
+		}
+		return filteredRequest;
+	}
+
 	static filterUserDeleteRequest(request, loggedUser) {
 		let filteredRequest = {};
 		// Set

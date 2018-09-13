@@ -46,6 +46,7 @@ class SiteSecurity {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.UserID = sanitize(request.UserID);
+		filteredRequest.ExcludeSitesOfUserID = sanitize(request.ExcludeSitesOfUserID);
 		filteredRequest.WithSiteAreas = UtilsSecurity.filterBoolean(request.WithSiteAreas);
 		filteredRequest.WithChargeBoxes = UtilsSecurity.filterBoolean(request.WithChargeBoxes);
 		filteredRequest.WithCompany = UtilsSecurity.filterBoolean(request.WithCompany);

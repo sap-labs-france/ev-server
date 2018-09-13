@@ -7,7 +7,7 @@ const AppError = require('../../exception/AppError');
 
 class UserStorage {
 	static async getEndUserLicenseAgreement(language="en") {
-		const User = require('../../model/User'); // Avoid circular fucking deps!!! 
+		const User = require('../../model/User'); // Avoid fucking circular deps!!! 
 		let languageFound = false;
 		let currentEula;
 		let currentEulaHash;
@@ -162,8 +162,32 @@ class UserStorage {
 		return userImages;
 	}
 
+	static async addSitesToUser(userID, siteIDs) {
+		// User provided?
+		if (userID) {
+			// At least one Site
+			if (siteIDs && siteIDs.length > 0) {
+				let siteUsers = [];
+				// Create the list
+				siteIDs.forEach((siteID) => {
+					// Add
+					siteUsers.push({
+						"userID": Utils.convertToObjectID(userID),
+						"siteID": Utils.convertToObjectID(siteID)
+					});
+				});
+				// Execute
+				await global.db.collection('siteusers').insertMany(siteUsers);
+			}
+		}
+		console.log('====================================');
+		console.log(userID);
+		console.log(siteIDs);
+		console.log('====================================');
+	}
+
 	static async saveUser(userToSave) {
-		const User = require('../../model/User'); // Avoid circular fucking deps!!! 
+		const User = require('../../model/User'); // Avoid fucking circular deps!!! 
 		// Check if ID or email is provided
 		if (!userToSave.id && !userToSave.email) {
 			// ID must be provided!
@@ -192,19 +216,22 @@ class UserStorage {
 			{upsert: true, new: true, returnOriginal: false});
 		// Create
 		let updatedUser = new User(result.value);
-		// Delete Tag IDs
-		await global.db.collection('tags')
-			.deleteMany( {'userID': Utils.convertToObjectID(updatedUser.getID())} );
 		// Add tags
-		if (userToSave.tagIDs && userToSave.tagIDs.length > 0) {
-			// Create the list
-			userToSave.tagIDs.forEach(async (tag) => {
-				// Modify
-				await global.db.collection('tags').findOneAndUpdate(
-					{'_id': tag},
-					{$set: {'userID': Utils.convertToObjectID(updatedUser.getID())}},
-					{upsert: true, new: true, returnOriginal: false});
-			});
+		if (userToSave.tagIDs) {
+			// Delete Tag IDs
+			await global.db.collection('tags')
+				.deleteMany( {'userID': Utils.convertToObjectID(updatedUser.getID())} );
+			// At least one tag
+			if (userToSave.tagIDs.length > 0) {
+				// Create the list
+				userToSave.tagIDs.forEach(async (tag) => {
+					// Modify
+					await global.db.collection('tags').findOneAndUpdate(
+						{'_id': tag},
+						{$set: {'userID': Utils.convertToObjectID(updatedUser.getID())}},
+						{upsert: true, new: true, returnOriginal: false});
+				});
+			}
 		}
 		return updatedUser;
 	}
@@ -226,7 +253,7 @@ class UserStorage {
 	}
 
 	static async getUsers(params, limit, skip, sort) {
-		const User = require('../../model/User'); // Avoid circular fucking deps!!! 
+		const User = require('../../model/User'); // Avoid fucking circular deps!!! 
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip
@@ -367,7 +394,7 @@ class UserStorage {
 	}
 
 	static async _createUser(userMDB) {
-		const User = require('../../model/User'); // Avoid circular fucking deps!!! 
+		const User = require('../../model/User'); // Avoid fucking circular deps!!! 
 		let user = null;
 		// Check
 		if (userMDB) {

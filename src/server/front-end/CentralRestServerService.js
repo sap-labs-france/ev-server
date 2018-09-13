@@ -90,6 +90,11 @@ module.exports = {
 						// Delegate
 						SiteService.handleCreateSite(action, req, res, next);
 						break;
+					// Add Site to User
+					case "AddSitesToUser":
+						// Delegate
+						UserService.handleAddSitesToUser(action, req, res, next);
+						break;
 					// Create Site Area
 					case "SiteAreaCreate":
 						// Delegate

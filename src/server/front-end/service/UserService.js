@@ -9,6 +9,7 @@ const Utils = require('../../../utils/Utils');
 const Database = require('../../../utils/Database');
 const UserSecurity = require('./security/UserSecurity');
 const UserStorage = require('../../../storage/mongodb/UserStorage'); 
+const SiteStorage = require('../../../storage/mongodb/SiteStorage'); 
 
 class UserService {
 	static async handleGetEndUserLicenseAgreement(action, req, res, next) {
@@ -22,6 +23,59 @@ class UserService {
 				UserSecurity.filterEndUserLicenseAgreementResponse(
 					endUserLicenseAgreement, req.user)
 			);
+			next();
+		} catch (error) {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
+	}
+
+	static async handleAddSitesToUser(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = UserSecurity.filterAddSitesToUserRequest( req.body, req.user );
+			// Check Mandatory fields
+			if(!filteredRequest.userID) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The User's ID must be provided`, 500, 
+					'UserService', 'handleAddSitesToUser', req.user);
+			}
+			if(!filteredRequest.siteIDs || (filteredRequest.siteIDs && filteredRequest.siteIDs.length <= 0)) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Site's IDs must be provided`, 500, 
+					'UserService', 'handleAddSitesToUser', req.user);
+			}
+			// Get the User
+			let user = await UserStorage.getUser(filteredRequest.userID);
+			if (!user) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The User with ID '${filteredRequest.userID}' does not exist anymore`, 550, 
+					'UserService', 'handleAddSitesToUser', req.user);
+			}
+			// Get Sites
+			filteredRequest.siteIDs.forEach(async (siteID) => {
+				// Check the site
+				let site = await SiteStorage.getSite(siteID);
+				if (!site) {
+					throw new AppError(
+						Constants.CENTRAL_SERVER,
+						`The Site with ID '${filteredRequest.id}' does not exist anymore`, 550, 
+						'UserService', 'handleAddSitesToUser', req.user);
+				}
+			});
+			// Save
+			await UserStorage.addSitesToUser(filteredRequest.userID, filteredRequest.siteIDs);
+			// Log
+			Logging.logSecurityInfo({
+				user: req.user, module: 'UserService', method: 'handleAddSitesToUser',
+				message: `User's Sites has been added successfully`, action: action});
+			// Ok
+			res.json({status: `Success`});
 			next();
 		} catch (error) {
 			// Log

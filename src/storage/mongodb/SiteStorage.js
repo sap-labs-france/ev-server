@@ -159,22 +159,25 @@ class SiteStorage {
 			{upsert: true, new: true, returnOriginal: false});
 		// Create
 		let updatedSite = new Site(result.value);
-		// Delete Users
-		await global.db.collection('siteusers')
-			.deleteMany( {'siteID': Utils.convertToObjectID(updatedSite.getID())} );
-		// Add Users`
-		if (siteToSave.users && siteToSave.users.length > 0) {
-			let siteUsersMDB = [];
-			// Create the list
-			siteToSave.users.forEach((user) => {
-				// Add
-				siteUsersMDB.push({
-					"siteID": Utils.convertToObjectID(updatedSite.getID()),
-					"userID": Utils.convertToObjectID(user.id)
+		// Update Users?`
+		if (siteToSave.users) {
+			// Delete Users
+			await global.db.collection('siteusers')
+				.deleteMany( {'siteID': Utils.convertToObjectID(updatedSite.getID())} );
+			// At least one?
+			if (siteToSave.users.length > 0) {
+				let siteUsersMDB = [];
+				// Create the list
+				siteToSave.users.forEach((user) => {
+					// Add
+					siteUsersMDB.push({
+						"siteID": Utils.convertToObjectID(updatedSite.getID()),
+						"userID": Utils.convertToObjectID(user.id)
+					});
 				});
-			});
-			// Execute
-			await global.db.collection('siteusers').insertMany(siteUsersMDB);
+				// Execute
+				await global.db.collection('siteusers').insertMany(siteUsersMDB);
+			}
 		}
 		return updatedSite;
 	}
@@ -221,7 +224,7 @@ class SiteStorage {
 		// Create Aggregation
 		let aggregation = [];
 		// Set User?
-		if (params.withUsers || params.userID) {
+		if (params.withUsers || params.userID || params.excludeSitesOfUserID) {
 				// Add Users
 			aggregation.push({
 				$lookup: {
@@ -231,9 +234,13 @@ class SiteStorage {
 					as: "siteusers"
 				}
 			});
-			// Set
+			// User ID filter
 			if (params.userID) {
 				filters["siteusers.userID"] = Utils.convertToObjectID(params.userID);
+			}
+			// Exclude User ID filter
+			if (params.excludeSitesOfUserID) {
+				filters["siteusers.userID"] = { $ne: Utils.convertToObjectID(params.excludeSitesOfUserID) };
 			}
 			if (params.withUsers) {
 				// Add

@@ -112,7 +112,7 @@ class SiteService {
 			let sites = await SiteStorage.getSites(
 				{ 'search': filteredRequest.Search, 'userID': filteredRequest.UserID, 'withCompany': filteredRequest.WithCompany, 
 					'withSiteAreas': filteredRequest.WithSiteAreas, 'withChargeBoxes': filteredRequest.WithChargeBoxes, 
-					'withUsers': filteredRequest.WithUsers },
+					'withUsers': filteredRequest.WithUsers, 'excludeSitesOfUserID': filteredRequest.ExcludeSitesOfUserID },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
 			sites.result = sites.result.map((site) => site.getModel());
@@ -260,7 +260,7 @@ class SiteService {
 		try {
 			// Filter
 			let filteredRequest = SiteSecurity.filterSiteUpdateRequest( req.body, req.user );
-			// Check email
+			// Get Site
 			let site = await SiteStorage.getSite(filteredRequest.id);
 			if (!site) {
 				throw new AppError(
@@ -293,8 +293,10 @@ class SiteService {
 			for (const userID of filteredRequest.userIDs) {
 				// Get User
 				let user = await UserStorage.getUser(userID);
-				// Add
-				users.push(user);
+				if (user) {
+					// Add
+					users.push(user);
+				}
 			}
 			// Set Users
 			site.setUsers(users);
