@@ -162,6 +162,24 @@ class UserStorage {
 		return userImages;
 	}
 
+	static async removeSitesFromUser(userID, siteIDs) {
+		// User provided?
+		if (userID) {
+			// At least one Site
+			if (siteIDs && siteIDs.length > 0) {
+				let siteUsers = [];
+				// Create the list
+				siteIDs.forEach(async (siteID) => {
+					// Execute
+					await global.db.collection('siteusers').deleteMany({
+						"userID": Utils.convertToObjectID(userID),
+						"siteID": Utils.convertToObjectID(siteID)
+					});
+				});
+			}
+		}
+	}
+
 	static async addSitesToUser(userID, siteIDs) {
 		// User provided?
 		if (userID) {

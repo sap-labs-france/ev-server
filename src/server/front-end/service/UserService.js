@@ -73,7 +73,60 @@ class UserService {
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'UserService', method: 'handleAddSitesToUser',
-				message: `User's Sites has been added successfully`, action: action});
+				message: `User's Sites have been added successfully`, action: action});
+			// Ok
+			res.json({status: `Success`});
+			next();
+		} catch (error) {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+		}
+	}
+
+	static async handleRemoveSitesFromUser(action, req, res, next) {
+		try {
+			// Filter
+			let filteredRequest = UserSecurity.filterRemoveSitesFromUserRequest( req.body, req.user );
+			// Check Mandatory fields
+			if(!filteredRequest.userID) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The User's ID must be provided`, 500, 
+					'UserService', 'handleAddSitesToUser', req.user);
+			}
+			if(!filteredRequest.siteIDs || (filteredRequest.siteIDs && filteredRequest.siteIDs.length <= 0)) {
+				// Not Found!
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Site's IDs must be provided`, 500, 
+					'UserService', 'handleAddSitesToUser', req.user);
+			}
+			// Get the User
+			let user = await UserStorage.getUser(filteredRequest.userID);
+			if (!user) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The User with ID '${filteredRequest.userID}' does not exist anymore`, 550, 
+					'UserService', 'handleAddSitesToUser', req.user);
+			}
+			// Get Sites
+			filteredRequest.siteIDs.forEach(async (siteID) => {
+				// Check the site
+				let site = await SiteStorage.getSite(siteID);
+				if (!site) {
+					throw new AppError(
+						Constants.CENTRAL_SERVER,
+						`The Site with ID '${filteredRequest.id}' does not exist anymore`, 550, 
+						'UserService', 'handleAddSitesToUser', req.user);
+				}
+			});
+			// Save
+			await UserStorage.removeSitesFromUser(filteredRequest.userID, filteredRequest.siteIDs);
+			// Log
+			Logging.logSecurityInfo({
+				user: req.user, module: 'UserService', method: 'handleAddSitesToUser',
+				message: `User's Sites have been removed successfully`, action: action});
 			// Ok
 			res.json({status: `Success`});
 			next();
