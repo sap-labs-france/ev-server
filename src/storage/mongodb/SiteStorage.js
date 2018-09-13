@@ -119,12 +119,12 @@ class SiteStorage {
 		// Set
 		if (siteImagesMDB && siteImagesMDB.length > 0) {
 			// Add
-			siteImagesMDB.forEach((siteImageMDB) => {
+			for (const siteImageMDB of siteImagesMDB) {
 				siteImages.push({
 					id: siteImageMDB._id,
 					image: siteImageMDB.image
 				});
-			});
+			}
 		}
 		return siteImages;
 	}
@@ -168,13 +168,13 @@ class SiteStorage {
 			if (siteToSave.users.length > 0) {
 				let siteUsersMDB = [];
 				// Create the list
-				siteToSave.users.forEach((user) => {
+				for (const user of siteToSave.users) {
 					// Add
 					siteUsersMDB.push({
 						"siteID": Utils.convertToObjectID(updatedSite.getID()),
 						"userID": Utils.convertToObjectID(user.id)
 					});
-				});
+				}
 				// Execute
 				await global.db.collection('siteusers').insertMany(siteUsersMDB);
 			}
@@ -331,7 +331,7 @@ class SiteStorage {
 		// Check
 		if (sitesMDB && sitesMDB.length > 0) {
 			// Create
-			sitesMDB.forEach((siteMDB) => {
+			for (const siteMDB of sitesMDB) {
 				// Create
 				let site = new Site(siteMDB);
 				// Set Users
@@ -371,7 +371,7 @@ class SiteStorage {
 				}
 				// Add
 				sites.push(site);
-			});
+			}
 		}
 		// Ok
 		return {
@@ -384,10 +384,10 @@ class SiteStorage {
 		// Delete Site Areas
 		let siteAreas = await SiteAreaStorage.getSiteAreas({'siteID': id})
 		// Delete
-		siteAreas.result.forEach(async (siteArea) => {
+		for (const siteArea of siteAreas.result) {
 			//	Delete Site Area
 			await siteArea.delete();
-		});
+		}
 		// Delete Site
 		await global.db.collection('sites')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );

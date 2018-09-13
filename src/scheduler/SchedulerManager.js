@@ -15,7 +15,7 @@ class SchedulerManager {
 				method: "init", action: "Initialization",
 				message: `The Scheduler is active` });
 			// Yes: init
-			_schedulerConfig.tasks.forEach(task => {
+			for (const task of _schedulerConfig.tasks) {
 				// Active?
 				if (!task.active) {
 					// Log
@@ -46,7 +46,7 @@ class SchedulerManager {
 							method: "init", action: "Initialization",
 							message: `The task '${task.name}' is unknown` });
 				}
-			});
+			}
 		} else {
 			// Log
 			Logging.logError({

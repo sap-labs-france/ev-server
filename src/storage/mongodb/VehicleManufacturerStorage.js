@@ -32,12 +32,12 @@ class VehicleManufacturerStorage {
 		// Check
 		if (vehicleManufacturerLogosMDB && vehicleManufacturerLogosMDB.length > 0) {
 			// Add
-			vehicleManufacturerLogosMDB.forEach((vehicleManufacturerLogoMDB) => {
+			for (const vehicleManufacturerLogoMDB of vehicleManufacturerLogosMDB) {
 				vehicleManufacturerLogos.push({
 					id: vehicleManufacturerLogoMDB._id,
 					logo: vehicleManufacturerLogoMDB.logo
 				});
-			});
+			}
 		}
 		return vehicleManufacturerLogos;
 	}
@@ -193,7 +193,7 @@ class VehicleManufacturerStorage {
 		// Check
 		if (vehiclemanufacturersMDB && vehiclemanufacturersMDB.length > 0) {
 			// Create
-			vehiclemanufacturersMDB.forEach((vehicleManufacturerMDB) => {
+			for (const vehicleManufacturerMDB of vehiclemanufacturersMDB) {
 				// Create
 				let vehicleManufacturer = new VehicleManufacturer(vehicleManufacturerMDB);
 				// Set Vehicles
@@ -205,7 +205,7 @@ class VehicleManufacturerStorage {
 				}
 				// Add
 				vehicleManufacturers.push(vehicleManufacturer);
-			});
+			}
 		}
 		// Ok
 		return {
@@ -218,10 +218,10 @@ class VehicleManufacturerStorage {
 		// Delete Vehicles
 		let vehicles = await VehicleStorage.getVehicles(null, id);
 		// Delete
-		vehicles.result.forEach(async (vehicle) => {
+		for (const vehicle of vehicles.result) {
 			//	Delete Vehicle
 			await vehicle.delete();
-		});
+		}
 		// Delete the Vehicle Manufacturers
 		await global.db.collection('vehiclemanufacturers')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );

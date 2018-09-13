@@ -12,13 +12,13 @@ class NotificationStorage {
 		// Check
 		if (notificationsMDB && notificationsMDB.length > 0) {
 			// Create
-			notificationsMDB.forEach((notificationMDB) => {
+			for (const notificationMDB of notificationsMDB) {
 				let notification = {};
 				// Set values
 				Database.updateNotification(notificationMDB, notification);
 				// Add
 				notifications.push(notification);
-			});
+			}
 		}
 		// Ok
 		return notifications;

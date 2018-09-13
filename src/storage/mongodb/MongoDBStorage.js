@@ -33,7 +33,7 @@ class MongoDBStorage {
 			// Get current indexes
 			let existingIndexes = await db.collection(name).listIndexes().toArray();
 			// Check each index
-			indexes.forEach(async (index) => {
+			for (const index of indexes) {
 				// Create
 				// Check if it exists
 				let foundIndex = existingIndexes.find((existingIndex) => {
@@ -44,7 +44,7 @@ class MongoDBStorage {
 					// No: Create Index
 					await db.collection(name).createIndex(index.fields, index.options);
 				}
-			});
+			}
 		}
 	}
 

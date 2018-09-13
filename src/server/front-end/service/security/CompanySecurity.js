@@ -95,7 +95,7 @@ class CompanySecurity {
 		if (!Authorizations.canListCompanies(loggedUser)) {
 			return null;
 		}
-		companies.forEach(company => {
+		for (const company of companies) {
 			// Filter
 			let filteredCompany = CompanySecurity.filterCompanyResponse(company, loggedUser);
 			// Ok?
@@ -103,7 +103,7 @@ class CompanySecurity {
 				// Add
 				filteredCompanies.push(filteredCompany);
 			}
-		});
+		}
 		return filteredCompanies;
 	}
 }

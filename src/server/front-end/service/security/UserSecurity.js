@@ -190,7 +190,7 @@ class UserSecurity {
 		if (!users) {
 			return null;
 		}
-		users.forEach(user => {
+		for (const user of users) {
 			// Filter
 			let filteredUser = UserSecurity.filterUserResponse(user, loggedUser);
 			// Ok?
@@ -198,7 +198,7 @@ class UserSecurity {
 				// Add
 				filteredUsers.push(filteredUser);
 			}
-		});
+		}
 		return filteredUsers;
 	}
 

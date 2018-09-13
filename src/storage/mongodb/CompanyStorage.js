@@ -57,12 +57,12 @@ class CompanyStorage {
 		let companyLogos = [];
 		if (companyLogosMDB && companyLogosMDB.length > 0) {
 			// Add
-			companyLogosMDB.forEach((companyLogoMDB) => {
+			for (const companyLogoMDB of companyLogosMDB) {
 				companyLogos.push({
 					id: companyLogoMDB._id,
 					logo: companyLogoMDB.logo
 				});
-			});
+			}
 		}
 		return companyLogos;
 	}
@@ -186,8 +186,7 @@ class CompanyStorage {
 		let companies = [];
 		// Check
 		if (companiesMDB && companiesMDB.length > 0) {
-			// Create
-			companiesMDB.forEach((companyMDB) => {
+			for (const companyMDB of companiesMDB) {
 				// Create
 				let company = new Company(companyMDB);
 				// Set site
@@ -198,7 +197,7 @@ class CompanyStorage {
 				}
 				// Add
 				companies.push(company);
-			});
+			}
 		}
 		// Ok
 		return {
@@ -211,10 +210,10 @@ class CompanyStorage {
 		// Delete Sites
 		let sites = await SiteStorage.getSites({'companyID': id});
 		// Delete
-		sites.result.forEach(async (site) => {
+		for (const site of sites.result) {
 			//	Delete Site
 			await site.delete();
-		});
+		}
 		// Delete the Company
 		await global.db.collection('companies')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );

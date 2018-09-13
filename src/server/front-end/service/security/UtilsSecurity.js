@@ -33,10 +33,11 @@ class UtilsSecurity {
 				// Init
 				filteredRequest.Sort = {};
 				// Build
-				request.SortFields.forEach((sortField, i) => {
+				for (let i = 0; i < request.SortFields.length; i++) {
+					const sortField = request.SortFields[index];
 					// Set
 					filteredRequest.Sort[sortField] = (request.SortDirs[i] === "asc" ? 1 : -1);  
-				});
+				}
 			} else {
 				// Init
 				filteredRequest.Sort = {};

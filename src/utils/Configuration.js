@@ -27,12 +27,12 @@ module.exports = {
 			// Parse the URL
 			let urlParsed = url.parse(_appEnv.url, true);
 			// Change host/port
-			centralSystems.forEach((centralSystem) => {
+			for (const centralSystem of centralSystems) {
 				// CF Environment: Override
 				centralSystem.port = _appEnv.port;
 				centralSystem.protocol = "http"; // Always HTTP
 				centralSystem.host = null;
-			});
+			}
 		}
 		// Read conf
 		return centralSystems;

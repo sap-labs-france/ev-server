@@ -71,7 +71,7 @@ module.exports = {
 		dest.connectors = [];
 		if (src.connectors) {
 			// Set
-			src.connectors.forEach((connector) => {
+			for (const connector of src.connectors) {
 				if (connector) {
 					dest.connectors.push({
 						"connectorId": Utils.convertToInt(connector.connectorId),
@@ -87,7 +87,7 @@ module.exports = {
 				} else {
 					dest.connectors.push(null);
 				}
-			});
+			}
 		}
 		// Update
 		this.updateCreatedAndLastChanged(src, dest);

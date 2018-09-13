@@ -107,7 +107,7 @@ class SiteAreaSecurity {
 		if (!Authorizations.canListSiteAreas(loggedUser)) {
 			return null;
 		}
-		siteAreas.forEach(siteArea => {
+		for (const siteArea of siteAreas) {
 			// Filter
 			let filteredSiteArea = SiteAreaSecurity.filterSiteAreaResponse(siteArea, loggedUser);
 			// Ok?
@@ -115,7 +115,7 @@ class SiteAreaSecurity {
 				// Add
 				filteredSiteAreas.push(filteredSiteArea);
 			}
-		});
+		}
 		return filteredSiteAreas;
 	}
 }

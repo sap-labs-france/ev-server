@@ -60,7 +60,7 @@ class ChargingStationSecurity {
 		if (!Authorizations.canListChargingStations(loggedUser)) {
 			return null;
 		}
-		chargingStations.forEach(chargingStation => {
+		for (const chargingStation of chargingStations) {
 			// Filter
 			let filteredChargingStation = ChargingStationSecurity.filterChargingStationResponse(chargingStation, loggedUser);
 			// Ok?
@@ -68,7 +68,7 @@ class ChargingStationSecurity {
 				// Add
 				filteredChargingStations.push(filteredChargingStation);
 			}
-		});
+		}
 		return filteredChargingStations;
 	}
 

@@ -203,13 +203,13 @@ class LoggingStorage {
 				.aggregate(aggregation)
 				.toArray();
 		let loggings = [];
-		loggingsMDB.forEach((loggingMDB) => {
+		for (const loggingMDB of loggingsMDB) {
 			let logging = {};
 			// Set
 			Database.updateLogging(loggingMDB, logging);
 			// Set the model
 			loggings.push(logging);
-		});
+		}
 		// Ok
 		return {
 			count: (loggingsCountMDB.length > 0 ? loggingsCountMDB[0].count : 0),

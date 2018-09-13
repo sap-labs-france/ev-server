@@ -67,7 +67,7 @@ class LoggingSecurity {
 		if (!loggings) {
 			return null;
 		}
-		loggings.forEach(logging => {
+		for (const logging of loggings) {
 			// Filter
 			let filteredLogging = LoggingSecurity.filterLoggingResponse(logging, loggedUser);
 			// Ok?
@@ -75,7 +75,7 @@ class LoggingSecurity {
 				// Add
 				filteredLoggings.push(filteredLogging);
 			}
-		});
+		}
 		return filteredLoggings;
 	}
 }

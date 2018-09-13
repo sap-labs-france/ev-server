@@ -101,7 +101,7 @@ class StatisticsStorage {
 			// Create
 			let month = -1;
 			let transaction;
-			transactionStatsMDB.forEach((transactionStatMDB) => {
+			for (const transactionStatMDB of transactionStatsMDB) {
 				// Init
 				if(month !== transactionStatMDB._id.month) {
 					// Set
@@ -117,7 +117,7 @@ class StatisticsStorage {
 				// Set consumption
 				// Add
 				transaction[transactionStatMDB._id.chargeBox] = transactionStatMDB.total;
-			});
+			}
 		}
 		return transactions;
 	}
@@ -234,7 +234,7 @@ class StatisticsStorage {
 			// Create
 			let month = -1;
 			let transaction;
-			transactionStatsMDB.forEach((transactionStatMDB) => {
+			for (const transactionStatMDB of transactionStatsMDB) {
 				// Init
 				if(month !== transactionStatMDB._id.month) {
 					// Set
@@ -249,7 +249,7 @@ class StatisticsStorage {
 				}
 				// Set consumption
 				transaction[Utils.buildUserFullName(transactionStatMDB.user)] = transactionStatMDB.total;
-			});
+			}
 		}
 		return transactions;
 	}

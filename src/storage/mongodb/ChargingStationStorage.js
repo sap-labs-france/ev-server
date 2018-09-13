@@ -136,9 +136,9 @@ class ChargingStationStorage {
 			.toArray();
 		let chargingStations = [];
 		// Create
-		chargingStationsMDB.forEach((chargingStationMDB) => {
+		for (const chargingStationMDB of chargingStationsMDB) {
 			chargingStations.push(new ChargingStation(chargingStationMDB));
-		});
+		}
 		// Ok
 		return {
 			count: (chargingStationsCountMDB.length > 0 ? chargingStationsCountMDB[0].count : 0),

@@ -92,7 +92,7 @@ class VehicleSecurity {
 		if (!Authorizations.canListVehicles(loggedUser)) {
 			return null;
 		}
-		vehicles.forEach(vehicle => {
+		for (const vehicle of vehicles) {
 			// Filter
 			let filteredVehicle = VehicleSecurity.filterVehicleResponse(vehicle, loggedUser);
 			// Ok?
@@ -100,7 +100,7 @@ class VehicleSecurity {
 				// Add
 				filteredVehicles.push(filteredVehicle);
 			}
-		});
+		}
 		return filteredVehicles;
 	}
 }

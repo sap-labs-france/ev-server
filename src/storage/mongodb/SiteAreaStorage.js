@@ -30,12 +30,12 @@ class SiteAreaStorage {
 		let siteAreaImages = [];
 		// Add
 		if (siteAreaImagesMDB && siteAreaImagesMDB.length > 0) {
-			siteAreaImagesMDB.forEach((siteAreaImageMDB) => {
+			for (const siteAreaImageMDB of siteAreaImagesMDB) {
 				siteAreaImages.push({
 					id: siteAreaImageMDB._id,
 					image: siteAreaImageMDB.image
 				});
-			});
+			}
 		}
 		return siteAreaImages;
 	}
@@ -247,7 +247,7 @@ class SiteAreaStorage {
 		// Check
 		if (siteAreasMDB && siteAreasMDB.length > 0) {
 			// Create
-			siteAreasMDB.forEach((siteAreaMDB) => {
+			for (const siteAreaMDB of siteAreasMDB) {
 				// Create
 				let siteArea = new SiteArea(siteAreaMDB);
 				// Set Site Areas
@@ -263,7 +263,7 @@ class SiteAreaStorage {
 				}
 				// Add
 				siteAreas.push(siteArea);
-			});
+			}
 		}
 		// Ok
 		return {

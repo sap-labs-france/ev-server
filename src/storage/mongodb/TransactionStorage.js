@@ -26,13 +26,13 @@ class TransactionStorage {
 		// Set
 		if (meterValuesMDB && meterValuesMDB.length > 0) {
 			// Create
-			meterValuesMDB.forEach((meterValueMDB) => {
+			for (const meterValueMDB of meterValuesMDB) {
 				let meterValue = {};
 				// Set values
 				Database.updateMeterValue(meterValueMDB, meterValue);
 				// Add
 				meterValues.push(meterValue);
-			});
+			}
 		}
 		// Ok
 		return meterValues;
@@ -58,7 +58,7 @@ class TransactionStorage {
 	static async saveMeterValues(meterValuesToSave) {
 		let meterValuesMDB = [];
 		// Save all
-		meterValuesToSave.values.forEach((meterValueToSave) => {
+		for (const meterValueToSave of meterValuesToSave.values) {
 			let meterValue = {}
 			// Id
 			meterValue._id = crypto.createHash('sha256')
@@ -68,7 +68,7 @@ class TransactionStorage {
 			Database.updateMeterValue(meterValueToSave, meterValue, false);
 			// Add
 			meterValuesMDB.push(meterValue);
-		});
+		}
 		// Execute
 		await global.db.collection('metervalues').insertMany(meterValuesMDB);
 	}
@@ -246,13 +246,13 @@ class TransactionStorage {
 		// Create
 		if (transactionsMDB && transactionsMDB.length > 0) {
 			// Create
-			transactionsMDB.forEach((transactionMDB) => {
+			for (const transactionMDB of transactionsMDB) {
 				// Set
 				let transaction = {};
 				Database.updateTransaction(transactionMDB, transaction);
 				// Add
 				transactions.push(transaction);
-			});
+			}
 		}
 		// Ok
 		return {

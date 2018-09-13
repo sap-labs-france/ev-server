@@ -77,7 +77,7 @@ class VehicleManufacturerSecurity {
 		if (!Authorizations.canListVehicleManufacturers(loggedUser)) {
 			return null;
 		}
-		vehicleManufacturers.forEach(vehicleManufacturer => {
+		for (const vehicleManufacturer of vehicleManufacturers) {
 			// Filter
 			let filteredVehicleManufacturer = VehicleManufacturerSecurity.filterVehicleManufacturerResponse(vehicleManufacturer, loggedUser);
 			// Ok?
@@ -85,7 +85,7 @@ class VehicleManufacturerSecurity {
 				// Add
 				filteredVehicleManufacturers.push(filteredVehicleManufacturer);
 			}
-		});
+		}
 		return filteredVehicleManufacturers;
 	}
 }

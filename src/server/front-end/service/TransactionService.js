@@ -528,11 +528,11 @@ class TransactionService {
 			// Found?
 			if (transactions && pricing) {
 				// List the transactions
-				transactions.result.forEach((transaction) => {
+				for (const transaction of transactions.result) {
 					// Compute the price
 					transaction.stop.price = (transaction.stop.totalConsumption / 1000) * pricing.priceKWH;
 					transaction.stop.priceUnit = pricing.priceUnit;
-				});
+				}
 			}
 			// Filter
 			transactions.result = TransactionSecurity.filterTransactionsResponse(

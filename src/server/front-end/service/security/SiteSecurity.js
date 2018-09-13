@@ -142,7 +142,7 @@ class SiteSecurity {
 		if (!Authorizations.canListSites(loggedUser)) {
 			return null;
 		}
-		sites.forEach(site => {
+		for (const site of sites) {
 			// Filter
 			let filteredSite = SiteSecurity.filterSiteResponse(site, loggedUser);
 			// Ok?
@@ -150,7 +150,7 @@ class SiteSecurity {
 				// Add
 				filteredSites.push(filteredSite);
 			}
-		});
+		}
 		return filteredSites;
 	}
 }

@@ -15,11 +15,11 @@ class UserStorage {
 		let supportLanguages = Configuration.getLocalesConfig().supported;
 
 		// Search for language
-		supportLanguages.forEach(supportLanguage => {
+		for (const supportLanguage of supportLanguages) {
 			if (language == supportLanguage.substring(0, 2)) {
 				languageFound = true;
 			}
-		});
+		}
 		if (!languageFound) {
 			language = "en";
 		}
@@ -153,12 +153,12 @@ class UserStorage {
 			.toArray();
 		let userImages = [];
 		// Add
-		userImagesMDB.forEach((userImageMDB) => {
+		for (const userImageMDB of userImagesMDB) {
 			userImages.push({
 				id: userImageMDB._id,
 				image: userImageMDB.image
 			});
-		});
+		}
 		return userImages;
 	}
 
@@ -169,13 +169,13 @@ class UserStorage {
 			if (siteIDs && siteIDs.length > 0) {
 				let siteUsers = [];
 				// Create the list
-				siteIDs.forEach(async (siteID) => {
+				for (const siteID of siteIDs) {
 					// Execute
 					await global.db.collection('siteusers').deleteMany({
 						"userID": Utils.convertToObjectID(userID),
 						"siteID": Utils.convertToObjectID(siteID)
 					});
-				});
+				}
 			}
 		}
 	}
@@ -187,13 +187,13 @@ class UserStorage {
 			if (siteIDs && siteIDs.length > 0) {
 				let siteUsers = [];
 				// Create the list
-				siteIDs.forEach((siteID) => {
+				for (const siteID of siteIDs) {
 					// Add
 					siteUsers.push({
 						"userID": Utils.convertToObjectID(userID),
 						"siteID": Utils.convertToObjectID(siteID)
 					});
-				});
+				}
 				// Execute
 				await global.db.collection('siteusers').insertMany(siteUsers);
 			}
@@ -238,13 +238,13 @@ class UserStorage {
 			// At least one tag
 			if (userToSave.tagIDs.length > 0) {
 				// Create the list
-				userToSave.tagIDs.forEach(async (tag) => {
+				for (const tag of userToSave.tagIDs) {
 					// Modify
 					await global.db.collection('tags').findOneAndUpdate(
 						{'_id': tag},
 						{$set: {'userID': Utils.convertToObjectID(updatedUser.getID())}},
 						{upsert: true, new: true, returnOriginal: false});
-				});
+				}
 			}
 		}
 		return updatedUser;
@@ -378,7 +378,7 @@ class UserStorage {
 			.toArray();
 		let users = [];
 		// Create
-		usersMDB.forEach((userMDB) => {
+		for (const userMDB of usersMDB) {
 			// Create
 			let user = new User(userMDB);
 			// Set
@@ -387,7 +387,7 @@ class UserStorage {
 			}));
 			// Add
 			users.push(user);
-		});
+		}
 		// Ok
 		return {
 			count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),

@@ -420,11 +420,11 @@ class ChargingStation {
 			}
 		}
 		// Set Power
-		this.getConnectors().forEach((connector) => {
+		for (const connector of this.getConnectors()) {
 			if (connector) {
 				connector.power = power;
 			}
-		});
+		}
 	}
 
 	async handleBootNotification(bootNotification) {
@@ -773,7 +773,7 @@ class ChargingStation {
 			meterValues.values = [meterValues.values];
 		}
 		// For each value
-		meterValues.values.forEach((value, index) => {
+		for (const value of meterValues.values) {
 			var newMeterValue = {};
 			// Set the ID
 			newMeterValue.chargeBoxID = newMeterValues.chargeBoxID;
@@ -802,7 +802,7 @@ class ChargingStation {
 			}
 			// Add
 			newMeterValues.values.push(newMeterValue);
-		});
+		}
 		// Save Meter Values
 		await TransactionStorage.saveMeterValues(newMeterValues);
 		// Update Charging Station Consumption
@@ -1074,7 +1074,8 @@ class ChargingStation {
 		let consumption = await this.getConsumptionsFromTransaction(transaction, true);
 		// Compute total inactivity seconds
 		stopTransaction.totalInactivitySecs = 0;
-		consumption.values.forEach((value, index) => {
+		for (let index = 0; index < consumption.values.length; index++) {
+			const value = consumption.values[index];
 			// Don't check the first
 			if (index > 0) {
 				// Check value + Check Previous value
@@ -1085,7 +1086,7 @@ class ChargingStation {
 					).asSeconds();
 				}
 			}
-		});
+		}
 		// Set the total consumption (optimization)
 		stopTransaction.totalConsumption = consumption.totalConsumption;
 		// Set the stop
@@ -1361,7 +1362,8 @@ class ChargingStation {
 			}
 		}
 		// Build the model
-		meterValues.forEach((meterValue, meterValueIndex) => {
+		for (let meterValueIndex = 0; meterValueIndex < meterValues.length; meterValueIndex++) {
+			const meterValue = meterValues[index];
 			// Get the stored values
 			let numberOfReturnedMeters = chargingStationConsumption.values.length;
 
@@ -1461,7 +1463,7 @@ class ChargingStation {
 					lastMeterValue = meterValue;
 				}
 			}
-		});
+		}
 		if (totalNbrOfMetrics) {
 			// Log
 			Logging.logDebug({

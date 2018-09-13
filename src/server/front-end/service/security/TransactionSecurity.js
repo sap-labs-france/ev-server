@@ -137,7 +137,7 @@ class TransactionSecurity {
 		if (!Authorizations.canListTransactions(loggedUser)) {
 			return null;
 		}
-		transactions.forEach(transaction => {
+		for (const transaction of transactions) {
 			// Filter
 			let filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser, withConnector);
 			// Ok?
@@ -145,7 +145,7 @@ class TransactionSecurity {
 				// Add
 				filteredTransactions.push(filteredTransaction);
 			}
-		});
+		}
 		return filteredTransactions;
 	}
 
@@ -229,14 +229,14 @@ class TransactionSecurity {
 			} else {
 				// Clean
 				filteredConsumption.values = [];
-				consumption.values.forEach((value) => {
+				for (const value of consumption.values) {
 					// Set
 					filteredConsumption.values.push({
 						date: value.date,
 						value: value.value,
 						cumulated: value.cumulated
 					});
-				});
+				}
 			}
 		}
 

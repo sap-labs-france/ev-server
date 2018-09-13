@@ -10,14 +10,13 @@ class MigrationStorage {
 		let migrations = [];
 		// Check
 		if (migrationsMDB && migrationsMDB.length > 0) {
-			// Create
-			migrationsMDB.forEach((migrationMDB) => {
+			for (const migrationMDB of migrationsMDB) {
 				let migration = {};
 				// Set values
 				Database.updateMigration(migrationMDB, migration);
 				// Add
 				migrations.push(migration);
-			});
+			}
 		}
 		// Ok
 		return migrations;

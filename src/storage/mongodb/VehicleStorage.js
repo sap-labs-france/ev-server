@@ -31,12 +31,12 @@ class VehicleStorage {
 		// Set
 		if (vehicleImagesMDB && vehicleImagesMDB.length > 0) {
 			// Add
-			vehicleImagesMDB.forEach((vehicleImageMDB) => {
+			for (const vehicleImageMDB of vehicleImagesMDB) {
 				vehicleImages.push({
 					id: vehicleImageMDB._id,
 					images: vehicleImageMDB.images
 				});
-			});
+			}
 		}
 		return vehicleImages;
 	}
@@ -180,10 +180,10 @@ class VehicleStorage {
 		// Check
 		if (vehiclesMDB && vehiclesMDB.length > 0) {
 			// Create
-			vehiclesMDB.forEach((vehicleMDB) => {
+			for (const vehicleMDB of vehiclesMDB) {
 				// Add
 				vehicles.push(new Vehicle(vehicleMDB));
-			});
+			}
 		}
 		// Ok
 		return {
