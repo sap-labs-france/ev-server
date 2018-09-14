@@ -260,6 +260,22 @@ class User {
 		return this._model.deleted;
 	}
 
+	getVerificationToken() {
+		return this._model.verificationToken;
+	}
+
+	setVerificationToken(verificationToken) {
+		this._model.verificationToken = verificationToken;
+	}
+
+	getVerifiedAt() {
+		return this._model.verifiedAt;
+	}
+
+	setVerifiedAt(verifiedAt) {
+		this._model.verifiedAt = verifiedAt;
+	}
+
 	async getTransactions(filter) {
 		if (!filter) {
 			filter = {};

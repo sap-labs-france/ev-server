@@ -63,6 +63,12 @@ module.exports = {
 						UserService.handleGetEndUserLicenseAgreement(action, req, res, next);
 						break;
 
+					// Verify Email
+					case "VerifyEmail":
+						// Delegate
+						AuthService.handleVerifyEmail(action, req, res, next);
+						break;
+
 					default:
 						// Delegate
 						UtilsService.handleUnknownAction(action, req, res, next);

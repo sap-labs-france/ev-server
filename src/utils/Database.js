@@ -242,6 +242,13 @@ module.exports = {
 		if (src.passwordResetHash) {
 			dest.passwordResetHash = src.passwordResetHash;
 		}
+		if (src.verifiedAt) {
+			dest.verifiedAt =Utils.convertToDate(src.verifiedAt);
+		}
+		if (src.verificationToken) {
+			dest.verificationToken = src.verificationToken;
+		}
+
 	},
 
 	updateSite(src, dest, forFrontEnd=true) {
