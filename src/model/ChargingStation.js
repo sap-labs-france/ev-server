@@ -1363,7 +1363,7 @@ class ChargingStation {
 		}
 		// Build the model
 		for (let meterValueIndex = 0; meterValueIndex < meterValues.length; meterValueIndex++) {
-			const meterValue = meterValues[index];
+			const meterValue = meterValues[meterValueIndex];
 			// Get the stored values
 			let numberOfReturnedMeters = chargingStationConsumption.values.length;
 
