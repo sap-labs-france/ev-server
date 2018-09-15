@@ -245,9 +245,8 @@ module.exports = {
 		if (src.verifiedAt) {
 			dest.verifiedAt = Utils.convertToDate(src.verifiedAt);
 		}
-		if (src.verificationToken) {
-			dest.verificationToken = src.verificationToken;
-		}
+		// No check of if(src.verificationToken), otherwise we cannot set it back to null (after being verified)
+		dest.verificationToken = src.verificationToken;
 
 	},
 
