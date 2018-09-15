@@ -243,7 +243,7 @@ module.exports = {
 			dest.passwordResetHash = src.passwordResetHash;
 		}
 		if (src.verifiedAt) {
-			dest.verifiedAt =Utils.convertToDate(src.verifiedAt);
+			dest.verifiedAt = Utils.convertToDate(src.verifiedAt);
 		}
 		if (src.verificationToken) {
 			dest.verificationToken = src.verificationToken;
