@@ -146,7 +146,7 @@ class AuthService {
 					`The user with email '${filteredRequest.email}' does not exist`, 
 					550, 'AuthService', 'handleLogIn');
 			}
-			if (user.deleted) {
+			if (user.isDeleted()) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The user with email '${filteredRequest.email}' is logically deleted`, 
@@ -317,7 +317,7 @@ class AuthService {
 					'AuthService', 'handleUserPasswordReset');
 			}
 			// Deleted
-			if (user.deleted) {
+			if (user.isDeleted()) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`User with email '${filteredRequest.email}' is logically deleted`, 550, 
@@ -374,7 +374,7 @@ class AuthService {
 					550, 'AuthService', 'handleUserPasswordReset');
 			}
 			// Deleted
-			if (user.deleted) {
+			if (user.isDeleted()) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`User with email '${filteredRequest.email}' is logically deleted`,
