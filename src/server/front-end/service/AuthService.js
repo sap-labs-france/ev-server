@@ -488,7 +488,7 @@ class AuthService {
 			// Activate user
 			user.setStatus(Constants.USER_STATUS_ACTIVE); 
 			// Clear verificationToken
-			user.setVerificationToken('');
+			user.setVerificationToken(null);
 			// Set verifiedAt
 			user.setVerifiedAt(new Date());
 			// Save
