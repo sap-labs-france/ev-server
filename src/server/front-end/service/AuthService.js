@@ -502,9 +502,8 @@ class AuthService {
 			await user.save();
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, action: action,
-				module: 'AuthService',
-				method: 'handleVerifyEmail',
+				user: user.getModel(), action: action,
+				module: 'AuthService', method: 'handleVerifyEmail',
 				message: `User account has been successfully verified`,
 				detailedMessages: req.query
 			});			
