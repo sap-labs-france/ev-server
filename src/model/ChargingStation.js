@@ -1123,7 +1123,26 @@ class ChargingStation {
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation', method: 'handleStopTransaction',
 			action: 'StopTransaction', user: newTransaction.stop.user, actionOnUser: newTransaction.user,
-			message: `Transaction ID '${newTransaction.id}' has been stopped` });
+			message: `Transaction ID '${newTransaction.id}' has been stopped`});
+		// Cloud Revenue
+		setTimeout(() => {
+			// Check Chargers
+			if (this.getID() === 'PERNICE-WB-01' || 
+					this.getID() === 'HANNO-WB-01' ||
+					this.getID() === 'HANNO-WB-02') {
+				// Check Users
+				if (newTransaction.tagID === '5D38ED8F' || // Hanno
+						newTransaction.tagID === 'C3E4B3DD') { // Florent
+					// Ok
+					// Set Charger
+					newTransaction.chargeBox = {};
+					newTransaction.chargeBox.id = this.getID();
+					// Transfer it to the Revenue Cloud async
+					Utils.pushTransactionToRevenueCloud('StopTransaction', newTransaction, 
+						newTransaction.stop.user, newTransaction.user);
+				}
+			}
+		}, 3000);
 		// Return
 		return newTransaction;
 	}

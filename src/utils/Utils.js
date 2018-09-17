@@ -3,6 +3,8 @@ const uuidV4 = require('uuid/v4');
 const ObjectID = require('mongodb').ObjectID;
 const Constants = require('./Constants');
 const crypto = require('crypto');
+const ClientOAuth2 = require('client-oauth2');
+const axios = require('axios');
 
 require('source-map-support').install();
 
@@ -11,6 +13,44 @@ let _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig(
 module.exports = {
 	generateGUID() {
 		return uuidV4();
+	},
+
+	// Temporary method for Revenue Cloud concept
+	async pushTransactionToRevenueCloud(action, transaction, user, actionOnUser) {
+			const Logging = require('./Logging'); // Avoid fucking circular deps
+
+			// Refund Transaction
+			let cloudRevenueAuth = new ClientOAuth2({
+			  clientId: 'sb-revenue-cloud!b1122|revenue-cloud!b1532',
+			  clientSecret: 'BtuZkWlC/58HmEMoqBCHc0jBoVg=',
+			  accessTokenUri: 'https://seed-innovation.authentication.eu10.hana.ondemand.com/oauth/token'
+			})
+			// Get the token
+			let authResponse = await cloudRevenueAuth.credentials.getToken();
+			// Send HTTP request
+			let result = await axios.post(
+				'https://eu10.revenue.cloud.sap/api/usage-record/v1/usage-records',
+				{
+					'metricId': 'ChargeCurrent_Demo',
+					'quantity': transaction.stop.totalConsumption / 1000,
+					'startedAt': transaction.timestamp,
+					'endedAt': transaction.stop.timestamp,
+					'userTechnicalId': transaction.tagID
+				},
+				{
+					'headers': {
+						'Authorization': 'Bearer ' + authResponse.accessToken,
+						'Content-Type': 'application/json'
+					}
+				}
+			);
+			// Log
+			Logging.logSecurityInfo({
+				user, actionOnUser, action,
+				source: transaction.chargeBox.id,
+				module: 'Utils', method: 'pushTransactionToRevenueCloud',
+				message: `Transaction ID '${transaction.id}' has been refunded successfully`,
+				detailedMessages: result.data});
 	},
 
 	normalizeSOAPHeader(headers) {

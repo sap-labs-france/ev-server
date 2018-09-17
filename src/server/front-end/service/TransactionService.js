@@ -3,10 +3,9 @@ const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Authorizations = require('../../../authorization/Authorizations');
 const Constants = require('../../../utils/Constants');
+const Utils = require('../../../utils/Utils');
 const moment = require('moment');
 const TransactionSecurity = require('./security/TransactionSecurity');
-const ClientOAuth2 = require('client-oauth2');
-const axios = require('axios');
 const ChargingStationStorage = require('../../../storage/mongodb/ChargingStationStorage'); 
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage'); 
 const UserStorage = require('../../../storage/mongodb/UserStorage'); 
@@ -65,38 +64,8 @@ class TransactionService {
 					`The user with ID '${req.user.id}' does not exist`, 550, 
 					'TransactionService', 'handleRefundTransaction', req.user);
 			}
-			// Refund Transaction
-			let cloudRevenueAuth = new ClientOAuth2({
-			  clientId: 'sb-revenue-cloud!b1122|revenue-cloud!b1532',
-			  clientSecret: 'BtuZkWlC/58HmEMoqBCHc0jBoVg=',
-			  accessTokenUri: 'https://seed-innovation.authentication.eu10.hana.ondemand.com/oauth/token'
-			})
-			// Get the token
-			let authResponse = await cloudRevenueAuth.credentials.getToken();
-			// Send HTTP request
-			let result = await axios.post(
-				'https://eu10.revenue.cloud.sap/api/usage-record/v1/usage-records',
-				{
-					'metricId': 'ChargeCurrent_Demo',
-					'quantity': transaction.stop.totalConsumption / 1000,
-					'startedAt': transaction.timestamp,
-					'endedAt': transaction.stop.timestamp,
-					'userTechnicalId': transaction.tagID
-				},
-				{
-					'headers': {
-						'Authorization': 'Bearer ' + authResponse.accessToken,
-						'Content-Type': 'application/json'
-					}
-				}
-			);
-			// Log
-			Logging.logSecurityInfo({
-				user: req.user, actionOnUser: transaction.user,
-				source: transaction.chargeBox.id,
-				module: 'TransactionService', method: 'handleRefundTransaction',
-				message: `Transaction ID '${filteredRequest.id}' has been refunded successfully`,
-				action: action, detailedMessages: result.data});
+			// Transfer it to the Revenue Cloud
+			await Utils.pushTransactionToRevenueCloud(action, transaction, req.user, transaction.user);
 			// Ok
 			res.json({status: `Success`});
 			next();
