@@ -468,29 +468,29 @@ class AuthService {
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The user with email '${filteredRequest.Email}' does not exist`, 
-					550, 'AuthService', 'handleVerifyEmail');
+					`The user with email '${filteredRequest.Email}' does not exist`, 550, 
+					'AuthService', 'handleVerifyEmail');
 			}
 			// User deleted?
 			if (user.isDeleted()) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The user with email '${filteredRequest.Email}' is logically deleted`, 
-					550, 'AuthService', 'handleVerifyEmail');
+					`The user with email '${filteredRequest.Email}' is logically deleted`, 550,
+					'AuthService', 'handleVerifyEmail', user.getModel());
 			}
 			// Check if account is already active
 			if(user.getStatus() === Constants.USER_STATUS_ACTIVE){
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Account is already active`, 
-					530, 'AuthService', 'handleVerifyEmail', user.getModel());
+					`Account is already active`, 530, 
+					'AuthService', 'handleVerifyEmail', user.getModel());
 			}
 			// Check verificationToken
 			if(user.getVerificationToken() !== filteredRequest.VerificationToken){
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Wrong Verification Token`, 
-					540, 'AuthService', 'handleVerifyEmail');
+					`Wrong Verification Token`, 540, 
+					'AuthService', 'handleVerifyEmail', user.getModel());
 			}
 			// Activate user
 			user.setStatus(Constants.USER_STATUS_ACTIVE); 
