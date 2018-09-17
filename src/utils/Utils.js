@@ -2,6 +2,7 @@ const Configuration = require('./Configuration');
 const uuidV4 = require('uuid/v4');
 const ObjectID = require('mongodb').ObjectID;
 const Constants = require('./Constants');
+const crypto = require('crypto');
 
 require('source-map-support').install();
 
@@ -290,5 +291,12 @@ module.exports = {
 			recordSkip = 0;
 		}
 		return recordSkip;
+	},
+
+	generateToken(email) {
+		let token;
+		let currentDate = (new Date()).valueOf().toString();
+		token = crypto.createHash('sha1').update(currentDate + email).digest('hex');
+		return token; 
 	}
 };

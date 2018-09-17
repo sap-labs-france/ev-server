@@ -146,7 +146,7 @@ class AuthService {
 					`The user with email '${filteredRequest.email}' does not exist`, 
 					550, 'AuthService', 'handleLogIn');
 			}
-			if (user.deleted) {
+			if (user.isDeleted()) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The user with email '${filteredRequest.email}' is logically deleted`, 
@@ -250,6 +250,9 @@ class AuthService {
 			newUser.setEulaAcceptedOn(new Date());
 			newUser.setEulaAcceptedVersion(endUserLicenseAgreement.version);
 			newUser.setEulaAcceptedHash(endUserLicenseAgreement.hash);
+			// Generate Verification Token
+			let verificationToken = Utils.generateToken(req.body.email);
+			newUser.setVerificationToken(verificationToken);
 			// Save
 			newUser = await newUser.save();
 			// Log
@@ -261,12 +264,16 @@ class AuthService {
 				detailedMessages: req.body
 			});
 			// Send notification
+			let evseDashboardVerifyEmailURL = Utils.buildEvseURL() +
+			'/#/verify-email?verificationToken=' + verificationToken + '&email=' +
+			newUser.getEMail();
 			NotificationHandler.sendNewRegisteredUser(
 				Utils.generateGUID(),
 				newUser.getModel(),
 				{
 					'user': newUser.getModel(),
-					'evseDashboardURL' : Utils.buildEvseURL()
+					'evseDashboardURL' : Utils.buildEvseURL(),
+					'evseDashboardVerifyEmailURL' : evseDashboardVerifyEmailURL
 				},
 				newUser.getLocale()
 			);
@@ -310,7 +317,7 @@ class AuthService {
 					'AuthService', 'handleUserPasswordReset');
 			}
 			// Deleted
-			if (user.deleted) {
+			if (user.isDeleted()) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`User with email '${filteredRequest.email}' is logically deleted`, 550, 
@@ -367,7 +374,7 @@ class AuthService {
 					550, 'AuthService', 'handleUserPasswordReset');
 			}
 			// Deleted
-			if (user.deleted) {
+			if (user.isDeleted()) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`User with email '${filteredRequest.email}' is logically deleted`,
@@ -434,6 +441,72 @@ class AuthService {
 		} else {
 			// Send the new password
 			await AuthService.generateNewPasswordAndSendEmail(filteredRequest, action, req, res, next);
+		}
+	}
+
+	static async handleVerifyEmail(action, req, res, next) {
+		// Filter
+		let filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
+		try{
+			// Check email
+			if (!filteredRequest.email) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Email is mandatory`, 500, 
+					'AuthService', 'handleVerifyEmail');
+			}
+			// Check verificationToken
+			if (!filteredRequest.verificationToken) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`Verification Token is mandatory`, 500, 
+					'AuthService', 'handleVerifyEmail');
+			}
+			// Check email
+			let user = await UserStorage.getUserByEmail(filteredRequest.email);
+			// User exists?
+			if (!user) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The user with email '${filteredRequest.email}' does not exist`, 
+					550, 'AuthService', 'handleVerifyEmail');
+			}
+			// User deleted?
+			if (user.isDeleted()) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The user with email '${filteredRequest.email}' is logically deleted`, 
+					550, 'AuthService', 'handleVerifyEmail');
+			}
+			// Check verificationToken
+			if(user.getVerificationToken() !== filteredRequest.verificationToken){
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`Wrong Verification Token`, 
+					540, 'AuthService', 'handleVerifyEmail');
+			}
+			// Activate user
+			user.setStatus(Constants.USER_STATUS_ACTIVE); 
+			// Clear verificationToken
+			user.setVerificationToken(null);
+			// Set verifiedAt
+			user.setVerifiedAt(new Date());
+			// Save
+			await user.save();
+			// Log
+			Logging.logSecurityInfo({
+				user: req.user, action: action,
+				module: 'AuthService',
+				method: 'handleVerifyEmail',
+				message: `User account has been successfully verified`,
+				detailedMessages: req.query
+			});			
+			// Ok
+			res.json({status: `Success`});
+			next();
+		} catch(err){
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
 		}
 	}
 

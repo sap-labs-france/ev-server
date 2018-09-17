@@ -50,3 +50,6 @@ config/default.json
 
 # temporary file
 tmp
+
+# vscode
+.vscode

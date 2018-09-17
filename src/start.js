@@ -8,9 +8,6 @@ const Logging = require('./utils/Logging');
 
 require('source-map-support').install();
 
-// Start
-Bootstrap.start();
-
 class Bootstrap {
 	static async start() {
 		try {
@@ -91,3 +88,5 @@ class Bootstrap {
 		}
 	}
 }
+// Start
+Bootstrap.start();

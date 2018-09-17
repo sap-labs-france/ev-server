@@ -18,13 +18,11 @@ module.exports.email = {
 		"beforeActionLines": [
 			"Hi <%- (user.firstName?user.firstName:user.name) %>,",
 			"",
-			"Your account has been created successfully.",
-			"",
-			"An administrator will verify and activate it."
+			"Your account has been created successfully."
 		],
 		"action": {
-			"title": "Charge-Angels",
-			"url": "<%- evseDashboardURL %>"
+			"title": "Verify your Account",
+			"url": "<%- evseDashboardVerifyEmailURL %>"
 		},
 		"afterActionLines": [
 			"Best Regards,",
@@ -56,13 +54,11 @@ module.exports.fr_FR.email = {
 		"beforeActionLines": [
 			"Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
 			"",
-			"Votre compte a été créé avec succès.",
-			"",
-			"Un administrateur va le vérifier et l'activer."
+			"Votre compte a été créé avec succès."
 		],
 		"action": {
-			"title": "Charge-Angels",
-			"url": "<%- evseDashboardURL %>"
+			"title": "Vérifier votre Compte",
+			"url": "<%- evseDashboardVerifyEmailURL %>"
 		},
 		"afterActionLines": [
 			"Cordialement,",

@@ -43,6 +43,14 @@ class AuthSecurity {
 		filteredRequest.acceptEula = sanitize(request.acceptEula);
 		return filteredRequest;
 	}
+
+	static filterVerifyEmailRequest(request) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.email = sanitize(request.email);
+		filteredRequest.verificationToken = sanitize(request.verificationToken);
+		return filteredRequest;
+	}
 }
 
 module.exports = AuthSecurity;
