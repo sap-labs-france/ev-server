@@ -294,9 +294,6 @@ module.exports = {
 	},
 
 	generateToken(email) {
-		let token;
-		let currentDate = (new Date()).valueOf().toString();
-		token = crypto.createHash('sha1').update(currentDate + email).digest('hex');
-		return token; 
+		return crypto.createHash('sha1').update(`${new Date().toISOString()}~${email}`).digest('hex');
 	}
 };
