@@ -6,7 +6,7 @@ class ChargingStationStorage {
 	static async getChargingStation(id) {
 		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
 		const SiteArea = require('../../model/SiteArea'); // Avoid fucking circular deps!!!
-	// Create Aggregation
+		// Create Aggregation
 		let aggregation = [];
 		// Filters
 		aggregation.push({

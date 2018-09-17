@@ -41,7 +41,9 @@ class Bootstrap {
 			let centralSystemsConfig = Configuration.getCentralSystemsConfig();
 			let chargingStationConfig = Configuration.getChargingStationConfig();
 		
-			// Start REST Server
+			// -------------------------------------------------------------------------
+			// REST Server (Front-End)
+			// -------------------------------------------------------------------------
 			if (centralSystemRestConfig) {
 				// Create the server
 				let centralRestServer = new CentralRestServer(centralSystemRestConfig, chargingStationConfig);
@@ -52,7 +54,7 @@ class Bootstrap {
 			}
 		
 			// -------------------------------------------------------------------------
-			// Instanciate central servers
+			// Central Server (Charging Stations)
 			// -------------------------------------------------------------------------
 			if (centralSystemsConfig) {
 				// Start
