@@ -47,8 +47,8 @@ class AuthSecurity {
 	static filterVerifyEmailRequest(request) {
 		let filteredRequest = {};
 		// Set
-		filteredRequest.email = sanitize(request.email);
-		filteredRequest.verificationToken = sanitize(request.verificationToken);
+		filteredRequest.Email = sanitize(request.Email);
+		filteredRequest.VerificationToken = sanitize(request.VerificationToken);
 		return filteredRequest;
 	}
 }

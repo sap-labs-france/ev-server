@@ -265,7 +265,7 @@ class AuthService {
 			});
 			// Send notification
 			let evseDashboardVerifyEmailURL = Utils.buildEvseURL() +
-			'/#/verify-email?verificationToken=' + verificationToken + '&email=' +
+				'/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
 			newUser.getEMail();
 			NotificationHandler.sendNewRegisteredUser(
 				Utils.generateGUID(),
@@ -449,37 +449,37 @@ class AuthService {
 		let filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
 		try{
 			// Check email
-			if (!filteredRequest.email) {
+			if (!filteredRequest.Email) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`The Email is mandatory`, 500, 
 					'AuthService', 'handleVerifyEmail');
 			}
 			// Check verificationToken
-			if (!filteredRequest.verificationToken) {
+			if (!filteredRequest.VerificationToken) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`Verification Token is mandatory`, 500, 
 					'AuthService', 'handleVerifyEmail');
 			}
 			// Check email
-			let user = await UserStorage.getUserByEmail(filteredRequest.email);
+			let user = await UserStorage.getUserByEmail(filteredRequest.Email);
 			// User exists?
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The user with email '${filteredRequest.email}' does not exist`, 
+					`The user with email '${filteredRequest.Email}' does not exist`, 
 					550, 'AuthService', 'handleVerifyEmail');
 			}
 			// User deleted?
 			if (user.isDeleted()) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The user with email '${filteredRequest.email}' is logically deleted`, 
+					`The user with email '${filteredRequest.Email}' is logically deleted`, 
 					550, 'AuthService', 'handleVerifyEmail');
 			}
 			// Check verificationToken
-			if(user.getVerificationToken() !== filteredRequest.verificationToken){
+			if(user.getVerificationToken() !== filteredRequest.VerificationToken){
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
 					`Wrong Verification Token`, 

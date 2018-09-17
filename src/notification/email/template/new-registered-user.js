@@ -18,10 +18,12 @@ module.exports.email = {
 		"beforeActionLines": [
 			"Hi <%- (user.firstName?user.firstName:user.name) %>,",
 			"",
-			"Your account has been created successfully."
+			"Your account has been created successfully.",
+			"",
+			"Click on the link below to activate it."
 		],
 		"action": {
-			"title": "Verify your Account",
+			"title": "Activate your Account",
 			"url": "<%- evseDashboardVerifyEmailURL %>"
 		},
 		"afterActionLines": [
@@ -54,10 +56,12 @@ module.exports.fr_FR.email = {
 		"beforeActionLines": [
 			"Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
 			"",
-			"Votre compte a été créé avec succès."
+			"Votre compte a été créé avec succès.",
+			"",
+			"Cliquez sur le lien ci-dessous pour l'activer."
 		],
 		"action": {
-			"title": "Vérifier votre Compte",
+			"title": "Activez votre Compte",
 			"url": "<%- evseDashboardVerifyEmailURL %>"
 		},
 		"afterActionLines": [
