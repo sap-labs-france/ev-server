@@ -478,6 +478,13 @@ class AuthService {
 					`The user with email '${filteredRequest.Email}' is logically deleted`, 
 					550, 'AuthService', 'handleVerifyEmail');
 			}
+			// Check if account is already active
+			if(user.getStatus() === Constants.USER_STATUS_ACTIVE){
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`Account is already active`, 
+					530, 'AuthService', 'handleVerifyEmail', user.getModel());
+			}
 			// Check verificationToken
 			if(user.getVerificationToken() !== filteredRequest.VerificationToken){
 				throw new AppError(
