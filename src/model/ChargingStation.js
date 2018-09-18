@@ -778,10 +778,18 @@ class ChargingStation {
 			// No Transaction ID, retrieve it
 			Logging.logWarning({
 				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-				action: 'MeterValues', message: `Transaction ID is not provided but retrieved from StartTransaction ('${chargerTransactionId}')`
+				action: 'MeterValues', message: `Transaction ID is not provided but retrieved from StartTransaction '${chargerTransactionId}'`
 			});
 			// Override
 			meterValues.transactionId = chargerTransactionId;
+		}
+		// Check Transaction
+		if (parseInt(meterValues.transactionId) === 0) {
+			// Wrong Transaction ID!
+			Logging.logError({
+				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+				action: 'MeterValues', message: `Transaction ID must not be equal to '0'`
+			});
 		}
 		// Check if OCPP 1.6
 		if (meterValues.meterValue) {
