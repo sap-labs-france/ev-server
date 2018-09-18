@@ -750,18 +750,39 @@ class ChargingStation {
 		newMeterValues.values = [];
 		// Set the charger ID
 		newMeterValues.chargeBoxID = this.getID();
+		// Check Connector ID
+		if (meterValues.connectorId == 0) {
+			// BUG KEBA: Connector ID must be > 0 according OCPP
+			Logging.logWarning({
+				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+				action: 'MeterValues', message: `Connector ID cannot be equal to '0' and has been reset to '1'`
+			});
+			// Set to 1 (KEBA has only one connector)
+			meterValues.connectorId = 1;
+		}		
 		// Check if the transaction ID matches
 		let chargerTransactionId = this.getConnectors()[meterValues.connectorId-1].activeTransactionID;
 		// Same?
-		if (parseInt(meterValues.transactionId) !== parseInt(chargerTransactionId)) {
-			// No: Log
+		if (meterValues.hasOwnProperty('transactionId')) {
+			// BUG ABB: Check ID
+			if (parseInt(meterValues.transactionId) !== parseInt(chargerTransactionId)) {
+				// No: Log
+				Logging.logWarning({
+					source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+					action: 'MeterValues', message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
+				});
+				// Override
+				meterValues.transactionId = chargerTransactionId;
+			} 
+		} else {
+			// No Transaction ID, retrieve it
 			Logging.logWarning({
 				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-				action: 'MeterValues', message: `Meter Values Transaction ID '${meterValues.transactionId}' has been overridden with Start Transaction ID '${chargerTransactionId}'`
+				action: 'MeterValues', message: `Transaction ID is not provided but retrieved from StartTransaction ('${chargerTransactionId}')`
 			});
 			// Override
 			meterValues.transactionId = chargerTransactionId;
-		} 
+		}
 		// Check if OCPP 1.6
 		if (meterValues.meterValue) {
 			// Set it to 'values'
@@ -1131,7 +1152,8 @@ class ChargingStation {
 					this.getID() === 'HANNO-WB-01' ||
 					this.getID() === 'HANNO-WB-02') {
 				// Check Users
-				if (newTransaction.tagID === '5D38ED8F' || // Hanno
+				if (newTransaction.tagID === '5D38ED8F' || // Hanno 1
+						newTransaction.tagID === 'B31FB2DD' || // Hanno 2
 						newTransaction.tagID === 'C3E4B3DD') { // Florent
 					// Ok
 					// Set Charger
