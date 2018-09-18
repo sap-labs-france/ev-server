@@ -614,11 +614,19 @@ class AuthService {
 				550, 'AuthService', 'checkUserLogin',
 				user.getModel());
 		}
+		// Check if the account is pending
+		if (user.getStatus() === Constants.USER_STATUS_PENDING) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`Account is pending! User must activate his account in his email`, 590, 
+				'AuthService', 'checkUserLogin',
+				user.getModel());
+		}
 		// Check if the account is active
 		if (user.getStatus() !== Constants.USER_STATUS_ACTIVE) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`Account is not active`, 580, 
+				`Account is not active ('${user.getStatus()}')`, 580, 
 				'AuthService', 'checkUserLogin',
 				user.getModel());
 		}
