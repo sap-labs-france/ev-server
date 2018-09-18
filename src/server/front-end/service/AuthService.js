@@ -504,7 +504,7 @@ class AuthService {
 			Logging.logSecurityInfo({
 				user: user.getModel(), action: action,
 				module: 'AuthService', method: 'handleVerifyEmail',
-				message: `User account has been successfully verified`,
+				message: `User account has been successfully verified and activated`,
 				detailedMessages: req.query
 			});			
 			// Ok
