@@ -51,6 +51,14 @@ class AuthSecurity {
 		filteredRequest.VerificationToken = sanitize(request.VerificationToken);
 		return filteredRequest;
 	}
+
+	static filterResendVerificationEmail(request) {
+		let filteredRequest = {};
+		// Set
+		filteredRequest.email = sanitize(request.email);
+		filteredRequest.captcha = sanitize(request.captcha);
+		return filteredRequest;
+	}
 }
 
 module.exports = AuthSecurity;
