@@ -9,6 +9,7 @@ const chargingStationRegistered = require('./template/charging-station-registere
 const newPassword = require('./template/new-password.js');
 const newRegisteredUser = require('./template/new-registered-user.js');
 const userAccountStatusChanged = require('./template/user-account-status-changed.js');
+const verificationEmail= require('./template/verification-email.js');
 const endOfCharge = require('./template/end-of-charge.js');
 const endOfSession = require('./template/end-of-session.js');
 const chargingStationStatusError = require('./template/charging-station-status-error.js');
@@ -86,6 +87,11 @@ class EMailNotificationTask extends NotificationTask {
 		return this._prepareAndSendEmail('transaction-started', data, locale);
 	}
 
+	sendVerificationEmail(data, locale) {
+		// Send it
+		return this._prepareAndSendEmail('verification-email', data, locale);
+	}
+
 	async _prepareAndSendEmail(templateName, data, locale) {
 		// Create email
 		let emailTemplate;
@@ -104,6 +110,10 @@ class EMailNotificationTask extends NotificationTask {
 			// Registered user
 			case 'new-registered-user':
 				emailTemplate = JSON.parse(JSON.stringify(newRegisteredUser));
+				break;
+			// Verification email
+			case 'verification-email':
+				emailTemplate = JSON.parse(JSON.stringify(verificationEmail));
 				break;
 			// End of charge
 			case 'end-of-charge':

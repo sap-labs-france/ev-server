@@ -19,6 +19,7 @@ const SOURCE_USER_ACCOUNT_STATUS_CHANGED = "NotifyUserAccountStatusChanged";
 const SOURCE_NEW_REGISTERED_USER = "NotifyNewRegisteredUser";
 const SOURCE_UNKNOWN_USER_BADGED = "NotifyUnknownUserBadged";
 const SOURCE_TRANSACTION_STARTED = "NotifyTransactionStarted";
+const SOURCE_VERIFICATION_EMAIL= "NotifyVerificationEmail";
 
 class NotificationHandler {
 	static async saveNotification(channel, sourceId, sourceDescr, user, chargingStation) {
@@ -166,6 +167,22 @@ class NotificationHandler {
 		} catch(error) {
 			// Log error
 			Logging.logActionExceptionMessage(SOURCE_NEW_REGISTERED_USER, error);
+		}
+	}
+
+	static async sendVerificationEmail(sourceId, user, sourceData, locale) {
+		try {
+			// Email enabled?
+			if (_notificationConfig.Email.enabled) {
+				// Save notif
+				await NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+					SOURCE_VERIFICATION_EMAIL, user, null);
+				// Send email
+				return _email.sendVerificationEmail(sourceData, locale);
+			}
+		} catch(error) {
+			// Log error
+			Logging.logActionExceptionMessage(SOURCE_VERIFICATION_EMAIL, error);
 		}
 	}
 

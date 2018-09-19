@@ -593,7 +593,7 @@ class AuthService {
 			let evseDashboardVerifyEmailURL = Utils.buildEvseURL() +
 			'/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
 			user.getEMail();
-			NotificationHandler.sendNewRegisteredUser(
+			NotificationHandler.sendVerificationEmail(
 				Utils.generateGUID(),
 				user.getModel(),
 				{
