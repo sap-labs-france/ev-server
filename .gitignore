@@ -55,4 +55,4 @@ tmp
 .vscode
 
 # intellij
-.idea
+/.idea
