@@ -31,7 +31,7 @@ module.exports = {
 			let result = await axios.post(
 				'https://eu10.revenue.cloud.sap/api/usage-record/v1/usage-records',
 				{
-					'metricId': 'ChargeCurrent_Demo',
+					'metricId': 'ChargeCurrent_Trial',
 					'quantity': transaction.stop.totalConsumption / 1000,
 					'startedAt': transaction.timestamp,
 					'endedAt': transaction.stop.timestamp,
