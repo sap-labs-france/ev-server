@@ -595,7 +595,7 @@ class AuthService {
 			user.getEMail();
 			NotificationHandler.sendNewRegisteredUser(
 				Utils.generateGUID(),
-				newUser.getModel(),
+				user.getModel(),
 				{
 					'user': user.getModel(),
 					'evseDashboardURL' : Utils.buildEvseURL(),
