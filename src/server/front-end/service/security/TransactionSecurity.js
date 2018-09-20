@@ -44,6 +44,7 @@ class TransactionSecurity {
 	static filterTransactionsCompletedRequest(request, loggedUser) {
 		let filteredRequest = {};
 		// Handle picture
+        filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
 		filteredRequest.StartDateTime = sanitize(request.StartDateTime);
 		filteredRequest.EndDateTime = sanitize(request.EndDateTime);
 		filteredRequest.SiteID = sanitize(request.SiteID);
@@ -72,7 +73,7 @@ class TransactionSecurity {
 			filteredTransaction.connectorId = transaction.connectorId;
 			if (transaction.totalDurationSecs) {
 				filteredTransaction.totalDurationSecs = transaction.totalDurationSecs;
-			}			
+			}
 			// Check auth
 			if (transaction.user && Authorizations.canReadUser(loggedUser, transaction.user)) {
 				// Demo user?
