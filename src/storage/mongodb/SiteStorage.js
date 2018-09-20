@@ -325,7 +325,7 @@ class SiteStorage {
 		});
 		// Read DB
 		let sitesMDB = await global.db.collection('sites')
-			.aggregate(aggregation)
+			.aggregate(aggregation, { collation: { locale : Constants.DEFAULT_LOCALE, strength: 2 }})
 			.toArray();
 		let sites = [];
 		// Check
