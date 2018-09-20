@@ -6,10 +6,10 @@ const Constants = require('../../../utils/Constants');
 const Utils = require('../../../utils/Utils');
 const moment = require('moment');
 const TransactionSecurity = require('./security/TransactionSecurity');
-const ChargingStationStorage = require('../../../storage/mongodb/ChargingStationStorage'); 
-const TransactionStorage = require('../../../storage/mongodb/TransactionStorage'); 
-const UserStorage = require('../../../storage/mongodb/UserStorage'); 
-const PricingStorage = require('../../../storage/mongodb/PricingStorage'); 
+const ChargingStationStorage = require('../../../storage/mongodb/ChargingStationStorage');
+const TransactionStorage = require('../../../storage/mongodb/TransactionStorage');
+const UserStorage = require('../../../storage/mongodb/UserStorage');
+const PricingStorage = require('../../../storage/mongodb/PricingStorage');
 
 class TransactionService {
 	static async handleRefundTransaction(action, req, res, next) {
@@ -21,7 +21,7 @@ class TransactionService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Transaction's ID must be provided`, 500, 
+					`The Transaction's ID must be provided`, 500,
 					'TransactionService', 'handleRefundTransaction', req.user);
 			}
 			// Get Transaction
@@ -31,7 +31,7 @@ class TransactionService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Transaction '${filteredRequest.ID}' does not exist`, 550, 
+					`Transaction '${filteredRequest.ID}' does not exist`, 550,
 					'TransactionService', 'handleRefundTransaction', req.user);
 			}
 			// Check auth
@@ -51,7 +51,7 @@ class TransactionService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Charging Station with ID ${transaction.chargeBox.id} does not exist`, 550, 
+					`Charging Station with ID ${transaction.chargeBox.id} does not exist`, 550,
 					'TransactionService', 'handleRefundTransaction', req.user);
 			}
 			// Get Transaction User
@@ -61,7 +61,7 @@ class TransactionService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The user with ID '${req.user.id}' does not exist`, 550, 
+					`The user with ID '${req.user.id}' does not exist`, 550,
 					'TransactionService', 'handleRefundTransaction', req.user);
 			}
 			// Transfer it to the Revenue Cloud
@@ -84,7 +84,7 @@ class TransactionService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Transaction's ID must be provided`, 500, 
+					`The Transaction's ID must be provided`, 500,
 					'TransactionService', 'handleDeleteTransaction', req.user);
 			}
 			// Get Transaction
@@ -94,7 +94,7 @@ class TransactionService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Transaction '${filteredRequest.ID}' does not exist`, 550, 
+					`Transaction '${filteredRequest.ID}' does not exist`, 550,
 					'TransactionService', 'handleDeleteTransaction', req.user);
 			}
 			// Check auth
@@ -114,7 +114,7 @@ class TransactionService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Charging Station with ID ${transaction.chargeBox.id} does not exist`, 550, 
+					`Charging Station with ID ${transaction.chargeBox.id} does not exist`, 550,
 					'TransactionService', 'handleDeleteTransaction', req.user);
 			}
 			// Get Transaction User
@@ -124,7 +124,7 @@ class TransactionService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The user with ID '${req.user.id}' does not exist`, 550, 
+					`The user with ID '${req.user.id}' does not exist`, 550,
 					'TransactionService', 'handleDeleteTransaction', req.user);
 			}
 			// Delete Transaction
@@ -153,7 +153,7 @@ class TransactionService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Transaction's ID must be provided`, 500, 
+					`The Transaction's ID must be provided`, 500,
 					'TransactionService', 'handleTransactionSoftStop', req.user);
 			}
 			// Get Transaction
@@ -162,7 +162,7 @@ class TransactionService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Transaction '${filteredRequest.transactionId}' does not exist`, 550, 
+					`Transaction '${filteredRequest.transactionId}' does not exist`, 550,
 					'TransactionService', 'handleTransactionSoftStop', req.user);
 			}
 			// Check auth
@@ -182,7 +182,7 @@ class TransactionService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Charging Station with ID '${transaction.chargeBox.id}' does not exist`, 550, 
+					`Charging Station with ID '${transaction.chargeBox.id}' does not exist`, 550,
 					'TransactionService', 'handleTransactionSoftStop', req.user);
 			}
 			// Get Transaction User
@@ -192,7 +192,7 @@ class TransactionService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The user with ID '${req.user.id}' does not exist`, 550, 
+					`The user with ID '${req.user.id}' does not exist`, 550,
 					'TransactionService', 'handleTransactionSoftStop', req.user);
 			}
 			// Stop Transaction
@@ -227,7 +227,7 @@ class TransactionService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Transaction's ID must be provided`, 500, 
+					`The Transaction's ID must be provided`, 500,
 					'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
 			}
 			// Get Transaction
@@ -236,7 +236,7 @@ class TransactionService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Transaction '${filteredRequest.TransactionId}' does not exist`, 550, 
+					`Transaction '${filteredRequest.TransactionId}' does not exist`, 550,
 					'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
 			}
 			// Check auth
@@ -256,7 +256,7 @@ class TransactionService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Charging Station with ID '${filteredRequest.id}' does not exist`, 550, 
+					`Charging Station with ID '${filteredRequest.id}' does not exist`, 550,
 					'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
 			}
 			// Check dates
@@ -266,7 +266,7 @@ class TransactionService {
 						moment(filteredRequest.StartDateTime).isBefore(moment(transaction.timestamp))) {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
-						`The requested Start Date ${filteredRequest.StartDateTime} is before the transaction ID ${filteredRequest.TransactionId} Start Date ${transaction.timestamp}`, 500, 
+						`The requested Start Date ${filteredRequest.StartDateTime} is before the transaction ID ${filteredRequest.TransactionId} Start Date ${transaction.timestamp}`, 500,
 						'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
 				}
 				// Check date is in the transaction
@@ -275,7 +275,7 @@ class TransactionService {
 						moment(filteredRequest.StartDateTime).isAfter(moment(transaction.stop.timestamp))) {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
-						`The requested Start Date ${filteredRequest.StartDateTime} is after the transaction ID ${filteredRequest.TransactionId} Stop Date ${transaction.stop.timestamp}`, 500, 
+						`The requested Start Date ${filteredRequest.StartDateTime} is after the transaction ID ${filteredRequest.TransactionId} Stop Date ${transaction.stop.timestamp}`, 500,
 						'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
 				}
 			}
@@ -310,7 +310,7 @@ class TransactionService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Transaction's ID must be provided`, 500, 
+					`The Transaction's ID must be provided`, 500,
 					'TransactionService', 'handleRefundTransaction', req.user);
 			}
 			// Get Transaction
@@ -320,7 +320,7 @@ class TransactionService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Transaction '${filteredRequest.ID}' does not exist`, 550, 
+					`Transaction '${filteredRequest.ID}' does not exist`, 550,
 					'TransactionService', 'handleGetTransaction', req.user);
 			}
 			// Check auth
@@ -330,7 +330,7 @@ class TransactionService {
 					Constants.ACTION_READ,
 					Constants.ENTITY_TRANSACTION,
 					transaction.id,
-					560, 
+					560,
 					'TransactionService', 'handleGetTransaction',
 					req.user);
 			}
@@ -356,7 +356,7 @@ class TransactionService {
 					Constants.ACTION_LIST,
 					Constants.ENTITY_TRANSACTION,
 					null,
-					560, 
+					560,
 					'TransactionService', 'handleGetChargingStationTransactions',
 					req.user);
 			}
@@ -367,7 +367,7 @@ class TransactionService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Charging Station's ID must be provided`, 500, 
+					`The Charging Station's ID must be provided`, 500,
 					'TransactionService', 'handleGetChargingStationTransactions', req.user);
 			}
 			// Connector Id is mandatory
@@ -375,7 +375,7 @@ class TransactionService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Connector's ID must be provided`, 500, 
+					`The Connector's ID must be provided`, 500,
 					'TransactionService', 'handleGetChargingStationTransactions', req.user);
 			}
 			// Get Charge Box
@@ -385,7 +385,7 @@ class TransactionService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Charging Station with ID '${filteredRequest.ChargeBoxID}' does not exist`, 550, 
+					`Charging Station with ID '${filteredRequest.ChargeBoxID}' does not exist`, 550,
 					'TransactionService', 'handleGetChargingStationTransactions', req.user);
 			}
 			// Set the model
@@ -433,7 +433,7 @@ class TransactionService {
 					Constants.ACTION_LIST,
 					Constants.ENTITY_TRANSACTION,
 					null,
-					560, 
+					560,
 					'TransactionService', 'handleGetTransactionsActive',
 					req.user);
 			}
@@ -448,7 +448,7 @@ class TransactionService {
 			}
 			// Get Transactions
 			let transactions = await TransactionStorage.getTransactions(
-				{ ...filter, 'withChargeBoxes': true }, 
+				{ ...filter, 'withChargeBoxes': true },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Filter
 			transactions.result = TransactionSecurity.filterTransactionsResponse(
@@ -471,13 +471,16 @@ class TransactionService {
 					Constants.ACTION_LIST,
 					Constants.ENTITY_TRANSACTION,
 					null,
-					560, 
+					560,
 					'TransactionService', 'handleGetTransactionsCompleted',
 					req.user);
 			}
 			let filter = {stop: {$exists: true}};
 			// Filter
 			let filteredRequest = TransactionSecurity.filterTransactionsCompletedRequest(req.query, req.user);
+            if (filteredRequest.ChargeBoxID) {
+                filter.chargeBoxID = filteredRequest.ChargeBoxID;
+            }
 			// Date
 			if (filteredRequest.StartDateTime) {
 				filter.startDateTime = filteredRequest.StartDateTime;
