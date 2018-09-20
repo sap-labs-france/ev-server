@@ -41,6 +41,12 @@ module.exports = {
 						AuthService.handleUserPasswordReset(action, req, res, next);
 						break;
 
+					// Resend verification email
+					case "ResendVerificationEmail":
+						// Delegate
+						AuthService.handleResendVerificationEmail(action, req, res, next);
+						break;
+
 					default:
 						// Delegate
 						UtilsService.handleUnknownAction(action, req, res, next);

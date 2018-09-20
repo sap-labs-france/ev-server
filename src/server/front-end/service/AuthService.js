@@ -265,7 +265,7 @@ class AuthService {
 			});
 			// Send notification
 			let evseDashboardVerifyEmailURL = Utils.buildEvseURL() +
-				'/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
+			'/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
 			newUser.getEMail();
 			NotificationHandler.sendNewRegisteredUser(
 				Utils.generateGUID(),
@@ -514,6 +514,103 @@ class AuthService {
 			// Log
 			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
 		}
+	}
+
+	static async handleResendVerificationEmail(action, req, res, next) {
+		let verificationToken;
+		// Filter
+		let filteredRequest = AuthSecurity.filterResendVerificationEmail(req.body);			
+		try{
+			// Check email
+			if (!filteredRequest.email) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The Email is mandatory`, 500, 
+					'AuthService', 'handleResendVerificationEmail');
+			}
+			// Check captcha
+			if (!filteredRequest.captcha) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The captcha is mandatory`, 500, 
+					'AuthService', 'handleResendVerificationEmail');
+			}
+			// Is valid captcha?
+			let response = await axios.get(
+				`https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
+			if (!response.data.success) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The captcha is invalid`, 500, 
+					'AuthService', 'handleResendVerificationEmail');
+			}
+			// Is valid email?
+			let user = await UserStorage.getUserByEmail(filteredRequest.email);
+			// User exists?
+			if (!user) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The user with email '${filteredRequest.email}' does not exist`, 550, 
+					'AuthService', 'handleResendVerificationEmail');
+			}
+			// User deleted?
+			if (user.isDeleted()) {
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`The user with email '${filteredRequest.email}' is logically deleted`, 550,
+					'AuthService', 'handleResendVerificationEmail', user.getModel());
+			}
+			// Check if account is already active
+			if(user.getStatus() === Constants.USER_STATUS_ACTIVE){
+				throw new AppError(
+					Constants.CENTRAL_SERVER,
+					`Account is already active`, 530, 
+					'AuthService', 'handleResendVerificationEmail', user.getModel());
+			}
+			// Check verificationToken
+			if(user.getVerificationToken() === null){
+				// Verification token was not created after registration
+				// This should not happen
+				// Generate new verificationToken
+				verificationToken = Utils.generateToken(filteredRequest.email);
+				user.setVerificationToken(verificationToken);
+				// Save
+				user = await user.save();
+			} else {
+				// Get existing verificationToken
+				verificationToken = user.getVerificationToken();
+			}
+			// Log
+			Logging.logSecurityInfo({
+				user: user, 
+				action: action,
+				module: 'AuthService',
+				method: 'handleResendVerificationEmail',
+				message: `User with Email '${filteredRequest.email}' has been created successfully`,
+				detailedMessages: req.body
+			});
+			// Send notification
+			let evseDashboardVerifyEmailURL = Utils.buildEvseURL() +
+			'/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
+			user.getEMail();
+			NotificationHandler.sendVerificationEmail(
+				Utils.generateGUID(),
+				user.getModel(),
+				{
+					'user': user.getModel(),
+					'evseDashboardURL' : Utils.buildEvseURL(),
+					'evseDashboardVerifyEmailURL' : evseDashboardVerifyEmailURL
+				},
+				user.getLocale()
+			);
+			// Ok
+			res.json({status: `Success`});
+			next();
+		} catch(err) {
+			// Log
+			Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+		}
+		
 	}
 
 	static handleUserLogOut(action, req, res, next) {
