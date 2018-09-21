@@ -43,7 +43,7 @@ class SiteAreaStorage {
 	static async getSiteArea(id, withChargeBoxes, withSite) {
 		const Site = require('../../model/Site');  // Avoid fucking circular deps!!!
 		const SiteArea = require('../../model/SiteArea'); // Avoid fucking circular deps!!!
-		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!! 
+		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
 		// Create Aggregation
 		let aggregation = [];
 		// Filters
@@ -159,7 +159,7 @@ class SiteAreaStorage {
 	static async getSiteAreas(params, limit, skip, sort) {
 		const Site = require('../../model/Site');  // Avoid fucking circular deps!!!
 		const SiteArea = require('../../model/SiteArea'); // Avoid fucking circular deps!!!
-		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!! 
+		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip
@@ -241,7 +241,7 @@ class SiteAreaStorage {
 		});
 		// Read DB
 		let siteAreasMDB = await global.db.collection('siteareas')
-			.aggregate(aggregation)
+			.aggregate(aggregation, { collation: { locale : Constants.DEFAULT_LOCALE, strength: 2 }})
 			.toArray();
 		let siteAreas = [];
 		// Check

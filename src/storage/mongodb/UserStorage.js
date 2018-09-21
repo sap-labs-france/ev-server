@@ -7,7 +7,7 @@ const AppError = require('../../exception/AppError');
 
 class UserStorage {
 	static async getEndUserLicenseAgreement(language="en") {
-		const User = require('../../model/User'); // Avoid fucking circular deps!!! 
+		const User = require('../../model/User'); // Avoid fucking circular deps!!!
 		let languageFound = false;
 		let currentEula;
 		let currentEulaHash;
@@ -201,7 +201,7 @@ class UserStorage {
 	}
 
 	static async saveUser(userToSave) {
-		const User = require('../../model/User'); // Avoid fucking circular deps!!! 
+		const User = require('../../model/User'); // Avoid fucking circular deps!!!
 		// Check if ID or email is provided
 		if (!userToSave.id && !userToSave.email) {
 			// ID must be provided!
@@ -267,7 +267,7 @@ class UserStorage {
 	}
 
 	static async getUsers(params, limit, skip, sort) {
-		const User = require('../../model/User'); // Avoid fucking circular deps!!! 
+		const User = require('../../model/User'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip
@@ -374,7 +374,7 @@ class UserStorage {
 		});
 		// Read DB
 		let usersMDB = await global.db.collection('users')
-			.aggregate(aggregation)
+			.aggregate(aggregation, { collation: { locale :"en_US", strength: 2 }})
 			.toArray();
 		let users = [];
 		// Create
@@ -408,7 +408,7 @@ class UserStorage {
 	}
 
 	static async _createUser(userMDB) {
-		const User = require('../../model/User'); // Avoid fucking circular deps!!! 
+		const User = require('../../model/User'); // Avoid fucking circular deps!!!
 		let user = null;
 		// Check
 		if (userMDB) {

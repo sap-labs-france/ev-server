@@ -1,3 +1,4 @@
+const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const crypto = require('crypto');
@@ -149,7 +150,7 @@ class TransactionStorage {
 		// Transaction Duration Secs
 		aggregation.push({
 			$addFields: {
-				"totalDurationSecs": { $divide: [ { $subtract: [ "$stop.timestamp", "$timestamp" ] }, 1000 ] } 
+				"totalDurationSecs": { $divide: [ { $subtract: [ "$stop.timestamp", "$timestamp" ] }, 1000 ] }
 			}
 		});
 		// Charger?
@@ -239,7 +240,7 @@ class TransactionStorage {
 		});
 		// Read DB
 		let transactionsMDB = await global.db.collection('transactions')
-			.aggregate(aggregation)
+			.aggregate(aggregation, { collation: { locale : Constants.DEFAULT_LOCALE, strength: 2 }})
 			.toArray();
 		// Set
 		let transactions = [];

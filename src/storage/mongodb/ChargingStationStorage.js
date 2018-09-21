@@ -1,3 +1,4 @@
+const Constants = require('../../utils/Constants');
 const Utils = require('../../utils/Utils');
 const Database = require('../../utils/Database');
 const crypto = require('crypto');
@@ -132,7 +133,7 @@ class ChargingStationStorage {
 		});
 		// Read DB
 		let chargingStationsMDB = await global.db.collection('chargingstations')
-			.aggregate(aggregation)
+			.aggregate(aggregation, { collation: { locale : Constants.DEFAULT_LOCALE, strength: 2 }})
 			.toArray();
 		let chargingStations = [];
 		// Create

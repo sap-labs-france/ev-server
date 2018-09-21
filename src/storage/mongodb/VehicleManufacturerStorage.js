@@ -187,7 +187,7 @@ class VehicleManufacturerStorage {
 		});
 		// Read DB
 		let vehiclemanufacturersMDB = await global.db.collection('vehiclemanufacturers')
-			.aggregate(aggregation)
+			.aggregate(aggregation, { collation: { locale : Constants.DEFAULT_LOCALE, strength: 2 }})
 			.toArray();
 		let vehicleManufacturers = [];
 		// Check

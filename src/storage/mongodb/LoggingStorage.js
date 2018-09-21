@@ -1,5 +1,6 @@
 const Utils = require('../../utils/Utils');
 const Database = require('../../utils/Database');
+const Constants = require('../../utils/Constants');
 
 class LoggingStorage {
 	static async deleteLogs(deleteUpToDate) {
@@ -150,7 +151,7 @@ class LoggingStorage {
 		}
 		// Count Records
 		let loggingsCountMDB = await global.db.collection('logs')
-			.aggregate([...aggregation, { $count: 'count' }])
+			.aggregate([...aggregation, { $count: 'count' }], { collation: { locale : Constants.DEFAULT_LOCALE, strength: 2 }})
 			.toArray();
 		// Sort
 		if (sort) {

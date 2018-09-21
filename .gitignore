@@ -53,3 +53,6 @@ tmp
 
 # vscode
 .vscode
+
+# intellij
+/.idea
