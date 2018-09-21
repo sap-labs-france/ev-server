@@ -63,9 +63,6 @@ class UserSecurity {
 		if (request.costCenter) {
 			filteredRequest.costCenter = sanitize(request.costCenter);
 		}
-		if (request.email) {
-			filteredRequest.email = sanitize(request.email);
-		}
 		if (request.firstName) {
 			filteredRequest.firstName = sanitize(request.firstName);
 		}
@@ -95,8 +92,11 @@ class UserSecurity {
 		}
 		// Admin?
 		if (Authorizations.isAdmin(loggedUser)) {
-			// Ok to set the role
-			if (request.role) {
+			// Ok to set the sensitive data
+			if (request.email) {
+				filteredRequest.email = sanitize(request.email);
+			}
+				if (request.role) {
 				filteredRequest.role = sanitize(request.role);
 			}
 			if (request.status) {
