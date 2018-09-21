@@ -33,8 +33,6 @@ module.exports = {
 	ACTION_UPDATE: "Update",
 	ACTION_DELETE: "Delete",
 
-	APPLICATION_LOCALE: "en_US",
-
 	NO_LIMIT: 0,
 
 	CENTRAL_SERVER: "Central Server",
