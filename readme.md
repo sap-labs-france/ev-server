@@ -15,10 +15,17 @@ The application:
 
 ## Installation
 * Install NodeJS: https://nodejs.org/ (install the LTS version)
-* Install MongoDB: https://www.mongodb.com/
+* Install Python version 2.7 (not the version 3.7!)
+* Install MongoDB: https://www.mongodb.com/ (do not install the DB as a service)
 * Clone this GitHub project
-* Run **npm install** in the **ev-server** directory (use sudo in Linux)
-* Follow the setup below
+* Go into the **ev-server** directory and run **npm install** or **yarn install** (use sudo in Linux)
+* In case of issue with package **bcrypt** do the following:
+```
+  - npm install -g node-gyp
+  - npm install --g --production windows-build-tools
+  - npm install bcrypt
+```
+* Follow the rest of the setup below
 
 ## The Database
 
@@ -99,30 +106,28 @@ Now your database is ready to be used.
 
 ## The Application Server
 
-The application server consits of:
-* **Central Service Server**: A server that communicates with the charging stations
-* **Central Service REST Server**: A REST server that communicates with front-end Angular dashboard
+The application server consists of:
+* **Central Service Server**: Serves the charging stations
+* **Central Service REST Server**: Serves the Angular front-end dashboard
 
 
 ### The Central Service Server (CSS)
 
-This application server will listen to the charging station and store their data to the database.
+This application server will listen to the charging stations and store the data exchanged into to the database.
 
 It can also communicate with the charging stations (reboot, stop a transaction...)
 
-The communication used by this application server is the OCPP protocol (Open Charge Point Protocol) in version 1.2, 1.5 and 1.6.
+The protocol used by this application server is OCPP (Open Charge Point Protocol) in version 1.2, 1.5 and 1.6 (SOAP.)
 
-Other protocols, like the ISO 15118, may also be supported in the future.
+Other protocols, like the ISO 15118, or OCPP 2.0 will also be supported in the future.
 
 #### Configuration
 
-The server configuration is stored in the **config.json** file in the **src** directory.
-
 There are two templates already provided named **config-template-http.json** for HTTP and **config-template-https.json** for HTTPS.
 
-Choose one according the protocol and rename it to **config.json**.
+Choose one and rename it to **config.json**.
 
-In the next chapters, you will set relevant config data.
+Move this configuration file into the **src** directory.
 
 #### Listen to the Charging Stations
 
@@ -189,7 +194,7 @@ You have now to connect the server to the database.
 
 #### Configuration
 
-In the **config.json** file, set the database connection info
+Database connection info:
 
 ```
   "Storage": {
@@ -222,7 +227,7 @@ Only notification via emails is implemented today.
 
 #### Email Notification
 
-In the **config.json** file edit the following info:
+Edit the following info:
 
 ```
   "Email": {
@@ -272,60 +277,26 @@ The Demo users can have a longer lifetime for demo purposes with key **userDemoT
 The users can have differents roles:
 * Admin (**A**)
 * Basic (**B**)
-* Corporate (**C**)
 * Demo (**D**)
 
 ##### Authorisation Matrix
 
-|                  |                                                       Admin                                                       |                   User                  | Corporate |      Demo     |
-|------------------|:-----------------------------------------------------------------------------------------------------------------:|:---------------------------------------:|:---------:|:-------------:|
-| Users            |                                                        List                                                       |                    -                    |     -     |       -       |
-| User             |                                        Create, Read, Update, Delete, Logout                                       | Read, Update (Only logged user), Logout |    Read   | (user hidden) |
-| ChargingStations |                                                        List                                                       |                   List                  |    List   |      List     |
-| ChargingStation  | Read, Update, Delete, Reset, ClearCache,  GetConfiguration, ChangeConfiguration, StopTransaction, UnlockConnector |                   Read                  |    Read   |      Read     |
-| Logging          |                                                        List                                                       |                    -                    |     -     |               |
-
-#### Import initial EVSE Users in database
-
-First time you launch the dashoard, the database will be empty then you need at least one user to be able to log on.
-
-Edit the **user-template.json** file in the root directory and enter at least an Admin user with role = "A".
-
-```
- {
-  "name": "Admin",
-  "firstName": "",
-  "email": "",
-  "phone": "",
-  "mobile": "",
-  "iNumber": "",
-  "costCenter": "",
-  "status": "A",
-  "tagIDs": [],
-  "role": "A"
- },
-```
-
-Only the **email** and the **name** are mandatory and should not exist in the database.
-
-The email is used for unicity in the user's collection.
-
-Once done, rename the file to **user.json** and start the server (npm start.)
-
-You will get your users imported and the file will be renamed to **user-imported.json**.
-
-You can repeat the process several times (only new users will be imported.)
-
-Once done, you can initialize your password using the dashboard's retreive password feature in the log on screen (you will receive it by email.)
+|                  |                                                       Admin                                                       |                   Basic                 |      Demo     |
+|------------------|:-----------------------------------------------------------------------------------------------------------------:|:---------------------------------------:|:-------------:|
+| Users            |                                                        List                                                       |                    -                    |       -       |
+| User             |                                        Create, Read, Update, Delete, Logout                                       | Read, Update (Only logged user), Logout | (user hidden) |
+| ChargingStations |                                                        List                                                       |                   List                  |      List     |
+| ChargingStation  | Read, Update, Delete, Reset, ClearCache,  GetConfiguration, ChangeConfiguration, StopTransaction, UnlockConnector |                   Read                  |      Read     |
+| Logging          |                                                        List                                                       |                    -                    |               |
 
 
 ### Notifications
 
-The user will receive a notification when, for instance, his vehicule will be fully charged.
+The user will receive a notification when, for instance, his vehicle will be fully charged.
 
 #### Email Notification
 
-In the **config.json**, set the following info:
+Set the following info:
 
 ```
   "Email": {
@@ -389,8 +360,8 @@ Here is the advanced configuration:
 
 ```
  "Advanced": {
- 	"backgroundTasksIntervalSecs": 120,
-    "chargeCurveMeterIntervalSecs": 60
+  "backgroundTasksIntervalSecs": 120,
+  "chargeCurveMeterIntervalSecs": 60
  }
 ```
 
