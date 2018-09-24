@@ -3,8 +3,8 @@ require('source-map-support').install();
 
 let _heartbeatIntervalSecs;
 
-module.exports = {
-	updateID(src, dest) {
+class Database {
+	static updateID(src, dest) {
 		// Set it
 		if (src.id) {
 			dest.id = src.id;
@@ -12,10 +12,10 @@ module.exports = {
 		if (!dest.id && src._id) {
 			dest.id = src._id;
 		}
-		dest.id = this.validateId(dest.id);
-	},
+		dest.id = Database.validateId(dest.id);
+	}
 
-	validateId(id) {
+	static validateId(id) {
 		let changedID = id;
 		// Object?
 		if (changedID && (typeof changedID == "object")) {
@@ -27,15 +27,15 @@ module.exports = {
 			}
 		}
 		return changedID;
-	},
+	}
 
-	setChargingStationHeartbeatIntervalSecs(heartbeatIntervalSecs) {
+	static setChargingStationHeartbeatIntervalSecs(heartbeatIntervalSecs) {
 		_heartbeatIntervalSecs = heartbeatIntervalSecs;
-	},
+	}
 
-	updateChargingStation(src, dest, forFrontEnd=true) {
+	static updateChargingStation(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
-			this.updateID(src, dest);
+			Database.updateID(src, dest);
 		}
 		dest.chargePointSerialNumber = src.chargePointSerialNumber;
 		dest.chargePointModel = src.chargePointModel;
@@ -90,54 +90,54 @@ module.exports = {
 			}
 		}
 		// Update
-		this.updateCreatedAndLastChanged(src, dest);
+		Database.updateCreatedAndLastChanged(src, dest);
 		// No connectors?
 		if (!dest.connectors) {
 			dest.connectors = [];
 		}
-	},
+	}
 
-	updateEula(src, dest, forFrontEnd=true) {
+	static updateEula(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
-			this.updateID(src, dest);
+			Database.updateID(src, dest);
 		}
 		dest.timestamp = Utils.convertToDate(src.timestamp);
 		dest.version = src.version;
 		dest.language = src.language;
 		dest.text = src.text;
 		dest.hash = src.hash;
-	},
+	}
 
-	updatePricing(src, dest, forFrontEnd=true) {
+	static updatePricing(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
-			this.updateID(src, dest);
+			Database.updateID(src, dest);
 		}
 		dest.timestamp = Utils.convertToDate(src.timestamp);
 		dest.priceKWH = Utils.convertToFloat(src.priceKWH);
 		dest.priceUnit = src.priceUnit;
-	},
+	}
 
-	updateMigration(src, dest, forFrontEnd=true) {
+	static updateMigration(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
-			this.updateID(src, dest);
+			Database.updateID(src, dest);
 		}
 		dest.timestamp = Utils.convertToDate(src.timestamp);
 		dest.name = src.name;
 		dest.version = src.version;
 		dest.durationSecs = Utils.convertToFloat(src.durationSecs);
-	},
+	}
 
-	updateConfiguration(src, dest, forFrontEnd=true) {
+	static updateConfiguration(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
-			this.updateID(src, dest);
+			Database.updateID(src, dest);
 		}
 		dest.timestamp = Utils.convertToDate(src.timestamp);
 		dest.configuration = src.configuration;
-	},
+	}
 
-	updateStatusNotification(src, dest, forFrontEnd=true) {
+	static updateStatusNotification(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
-			this.updateID(src, dest);
+			Database.updateID(src, dest);
 		}
 		dest.chargeBoxID = src.chargeBoxID;
 		dest.connectorId = Utils.convertToInt(src.connectorId);
@@ -147,11 +147,11 @@ module.exports = {
 		dest.info = src.info;
 		dest.vendorId = src.vendorId;
 		dest.vendorErrorCode = src.vendorErrorCode;
-	},
+	}
 
-	updateNotification(src, dest, forFrontEnd=true) {
+	static updateNotification(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
-			this.updateID(src, dest);
+			Database.updateID(src, dest);
 		}
 		dest.timestamp = Utils.convertToDate(src.timestamp);
 		dest.channel = src.channel;
@@ -161,19 +161,19 @@ module.exports = {
 		dest.userID = Utils.convertToObjectID(src.userID);
 		if (forFrontEnd && !Utils.isEmptyJSon(dest.userID)) {
 			dest.user = {};
-			this.updateUser(src.userID, dest.user);
+			Database.updateUser(src.userID, dest.user);
 		}
 		// ChargeBox
 		dest.chargeBoxID = src.chargeBoxID
 		if (forFrontEnd && !Utils.isEmptyJSon(dest.chargeBoxID)) {
 			dest.chargeBox = {};
-			this.updateChargingStation(src.chargeBoxID, dest.chargeBox);
+			Database.updateChargingStation(src.chargeBoxID, dest.chargeBox);
 		}
-	},
+	}
 
-	updateMeterValue(src, dest, forFrontEnd=true) {
+	static updateMeterValue(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
-			this.updateID(src, dest);
+			Database.updateID(src, dest);
 		}
 		dest.chargeBoxID = src.chargeBoxID;
 		dest.connectorId = Utils.convertToInt(src.connectorId);
@@ -181,11 +181,11 @@ module.exports = {
 		dest.timestamp = Utils.convertToDate(src.timestamp);
 		dest.value = Utils.convertToInt(src.value);
 		dest.attribute = src.attribute;
-	},
+	}
 
-	updateUser(src, dest, forFrontEnd=true) {
+	static updateUser(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
-			this.updateID(src, dest);
+			Database.updateID(src, dest);
 			if (src.image) {
 				dest.image = src.image;
 			}
@@ -213,7 +213,7 @@ module.exports = {
 		}
 		dest.address = {};
 		if (src.address) {
-			this.updateAddress(src.address, dest.address)
+			Database.updateAddress(src.address, dest.address)
 		}
 		if (src.status) {
 			dest.status = src.status;
@@ -226,7 +226,7 @@ module.exports = {
 			dest.eulaAcceptedVersion = src.eulaAcceptedVersion;
 			dest.eulaAcceptedHash = src.eulaAcceptedHash;
 		}
-		this.updateCreatedAndLastChanged(src, dest);
+		Database.updateCreatedAndLastChanged(src, dest);
 		dest.deleted = src.deleted;
 		if (forFrontEnd && src.tagIDs) {
 			dest.tagIDs = src.tagIDs;
@@ -247,33 +247,32 @@ module.exports = {
 		}
 		// No check of if(src.verificationToken), otherwise we cannot set it back to null (after being verified)
 		dest.verificationToken = src.verificationToken;
+	}
 
-	},
-
-	updateSite(src, dest, forFrontEnd=true) {
+	static updateSite(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
-			this.updateID(src, dest);
+			Database.updateID(src, dest);
 			dest.image = src.image;
 		}
 		dest.name = src.name;
 		dest.address = {};
 		dest.allowAllUsersToStopTransactions = src.allowAllUsersToStopTransactions;
-		this.updateAddress(src.address, dest.address)
+		Database.updateAddress(src.address, dest.address)
 		dest.companyID = Utils.convertToObjectID(src.companyID);
-		this.updateCreatedAndLastChanged(src, dest);
-	},
+		Database.updateCreatedAndLastChanged(src, dest);
+	}
 
-	updateVehicleManufacturer(src, dest, forFrontEnd=true) {
+	static updateVehicleManufacturer(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
-			this.updateID(src, dest);
+			Database.updateID(src, dest);
 			dest.logo = src.logo;
 			dest.numberOfVehicles = src.numberOfVehicles;
 		}
 		dest.name = src.name;
-		this.updateCreatedAndLastChanged(src, dest);
-	},
+		Database.updateCreatedAndLastChanged(src, dest);
+	}
 
-	updateCreatedAndLastChanged(src, dest) {
+	static updateCreatedAndLastChanged(src, dest) {
 		// Check
 		if (src.createdBy) {
 			// Set
@@ -283,7 +282,7 @@ module.exports = {
 					dest.createdBy.constructor.name != "ObjectID") {
 				// Yes
 				dest.createdBy = {};
-				this.updateUser(src.createdBy, dest.createdBy);
+				Database.updateUser(src.createdBy, dest.createdBy);
 			} else {
 				try {
 					dest.createdBy = Utils.convertToObjectID(dest.createdBy);
@@ -303,7 +302,7 @@ module.exports = {
 					dest.lastChangedBy.constructor.name != "ObjectID") {
 				// Yes
 				dest.lastChangedBy = {};
-				this.updateUser(src.lastChangedBy, dest.lastChangedBy);
+				Database.updateUser(src.lastChangedBy, dest.lastChangedBy);
 			} else {
 				try {
 					dest.lastChangedBy = Utils.convertToObjectID(dest.lastChangedBy);
@@ -314,22 +313,22 @@ module.exports = {
 		if (src.lastChangedOn) {
 			dest.lastChangedOn = Utils.convertToDate(src.lastChangedOn);
 		}
-	},
+	}
 
-	updateCompany(src, dest, forFrontEnd=true) {
+	static updateCompany(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
-			this.updateID(src, dest);
+			Database.updateID(src, dest);
 			dest.logo = src.logo;
 		}
 		dest.name = src.name;
 		dest.address = {};
-		this.updateAddress(src.address, dest.address);
-		this.updateCreatedAndLastChanged(src, dest);
-	},
+		Database.updateAddress(src.address, dest.address);
+		Database.updateCreatedAndLastChanged(src, dest);
+	}
 
-	updateVehicle(src, dest, forFrontEnd=true) {
+	static updateVehicle(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
-			this.updateID(src, dest);
+			Database.updateID(src, dest);
 			dest.images = src.images;
 			dest.numberOfImages = src.numberOfImages;
 		}
@@ -347,10 +346,10 @@ module.exports = {
 		dest.heightMeter = Utils.convertToFloat(src.heightMeter);
 		dest.releasedOn = Utils.convertToDate(src.releasedOn);
 		dest.vehicleManufacturerID = Utils.convertToObjectID(src.vehicleManufacturerID);
-		this.updateCreatedAndLastChanged(src, dest);
-	},
+		Database.updateCreatedAndLastChanged(src, dest);
+	}
 
-	updateAddress(src, dest) {
+	static updateAddress(src, dest) {
 		if (src) {
 			dest.address1 = src.address1;
 			dest.address2 = src.address2;
@@ -362,22 +361,22 @@ module.exports = {
 			dest.latitude = src.latitude;
 			dest.longitude = src.longitude;
 		}
-	},
+	}
 
-	updateSiteArea(src, dest, forFrontEnd=true) {
+	static updateSiteArea(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
-			this.updateID(src, dest);
+			Database.updateID(src, dest);
 			dest.image = src.image;
 		}
 		dest.name = src.name;
 		dest.accessControl = src.accessControl;
 		dest.siteID = Utils.convertToObjectID(src.siteID);
-		this.updateCreatedAndLastChanged(src, dest);
-	},
+		Database.updateCreatedAndLastChanged(src, dest);
+	}
 
-	updateLogging(src, dest, forFrontEnd=true) {
+	static updateLogging(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
-			this.updateID(src, dest);
+			Database.updateID(src, dest);
 		}
 		dest.level = src.level;
 		dest.source = src.source;
@@ -392,17 +391,17 @@ module.exports = {
 		dest.actionOnUserID = src.actionOnUserID;
 		if (forFrontEnd && src.user && typeof src.user == "object") {
 			dest.user = {};
-			this.updateUser(src.user, dest.user);
+			Database.updateUser(src.user, dest.user);
 		}
 		if (forFrontEnd && src.actionOnUser && typeof src.actionOnUser == "object") {
 			dest.actionOnUser = {};
-			this.updateUser(src.actionOnUser, dest.actionOnUser);
+			Database.updateUser(src.actionOnUser, dest.actionOnUser);
 		}
-	},
+	}
 
-	updateTransaction(src, dest, forFrontEnd=true) {
+	static updateTransaction(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
-			this.updateID(src, dest);
+			Database.updateID(src, dest);
 			if (src.totalDurationSecs) {
 				dest.totalDurationSecs = src.totalDurationSecs;
 			}
@@ -411,13 +410,13 @@ module.exports = {
 		dest.chargeBoxID = src.chargeBoxID;
 		if (forFrontEnd && !Utils.isEmptyJSon(src.chargeBox)) {
 			dest.chargeBox = {};
-			this.updateChargingStation(src.chargeBox, dest.chargeBox);
+			Database.updateChargingStation(src.chargeBox, dest.chargeBox);
 		}
 		// User
 		dest.userID = Utils.convertToObjectID(src.userID);
 		if (forFrontEnd && !Utils.isEmptyJSon(src.user)) {
 			dest.user = {};
-			this.updateUser(src.user, dest.user);
+			Database.updateUser(src.user, dest.user);
 		}
 		dest.connectorId = Utils.convertToInt(src.connectorId);
 		dest.timestamp = Utils.convertToDate(src.timestamp);
@@ -430,7 +429,7 @@ module.exports = {
 			dest.stop.userID = Utils.convertToObjectID(src.stop.userID);
 			if (forFrontEnd && !Utils.isEmptyJSon(src.stop.user)) {
 				dest.stop.user = {};
-				this.updateUser(src.stop.user, dest.stop.user);
+				Database.updateUser(src.stop.user, dest.stop.user);
 			}
 			dest.stop.timestamp = Utils.convertToDate(src.stop.timestamp);
 			dest.stop.tagID = src.stop.tagID;
@@ -446,4 +445,6 @@ module.exports = {
 			dest.remotestop.tagID = src.remotestop.tagID;
 		}
 	}
-};
+}
+
+module.exports=Database;

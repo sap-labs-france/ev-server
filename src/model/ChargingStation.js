@@ -755,9 +755,6 @@ class ChargingStation {
 			// Default
 			meterValuesContext = Constants.METER_VALUE_CTX_SAMPLE_PERIODIC;
 		}
-		console.log('====================================');
-		console.log(meterValuesContext);
-		console.log('====================================');
 		// Init
 		newMeterValues.values = [];
 		// Set the charger ID

@@ -10,13 +10,13 @@ require('source-map-support').install();
 
 let _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 
-module.exports = {
-	generateGUID() {
+class Utils {
+	static generateGUID() {
 		return uuidV4();
-	},
+	}
 
 	// Temporary method for Revenue Cloud concept
-	async pushTransactionToRevenueCloud(action, transaction, user, actionOnUser) {
+	static async pushTransactionToRevenueCloud(action, transaction, user, actionOnUser) {
 			const Logging = require('./Logging'); // Avoid fucking circular deps
 
 			// Refund Transaction
@@ -51,26 +51,26 @@ module.exports = {
 				module: 'Utils', method: 'pushTransactionToRevenueCloud',
 				message: `Transaction ID '${transaction.id}' has been refunded successfully`,
 				detailedMessages: result.data});
-	},
+	}
 
-	normalizeSOAPHeader(headers) {
+	static normalizeSOAPHeader(headers) {
 		// ChargeBox Identity
-		this.normalizeOneSOAPHeader(headers, 'chargeBoxIdentity');
+		Utils.normalizeOneSOAPHeader(headers, 'chargeBoxIdentity');
 		// Action
-		this.normalizeOneSOAPHeader(headers, 'Action');
+		Utils.normalizeOneSOAPHeader(headers, 'Action');
 		// To
-		this.normalizeOneSOAPHeader(headers, 'To');
-	},
+		Utils.normalizeOneSOAPHeader(headers, 'To');
+	}
 
-	normalizeOneSOAPHeader(headers, name) {
+	static normalizeOneSOAPHeader(headers, name) {
 		// Object?
 		if (typeof headers[name] === 'object' && headers[name].$value) {
 			// Yes: Set header
 			headers[name] = headers[name].$value;
 		}
-	},
+	}
 
-	convertToDate(date) {
+	static convertToDate(date) {
 		// Check
 		if (!date) {
 			return date;
@@ -80,9 +80,9 @@ module.exports = {
 			return new Date(date);
 		}
 		return date;
-	},
+	}
 
-	isEmptyJSon(document) {
+	static isEmptyJSon(document) {
 		// Empty?
 		if (!document) {
 			return true;
@@ -93,9 +93,9 @@ module.exports = {
 		}
 		// Check
 		return Object.keys(document).length == 0;
-	},
+	}
 
-	removeExtraEmptyLines(tab) {
+	static removeExtraEmptyLines(tab) {
 		// Start from the end
 		for (var i = tab.length-1; i > 0 ; i--) {
 			// Two consecutive empty lines?
@@ -109,9 +109,9 @@ module.exports = {
 				tab.splice(i-1, 1);
 			}
 		}
-	},
+	}
 
-	convertToObjectID(id) {
+	static convertToObjectID(id) {
 		let changedID = id;
 		// Check
 		if (typeof id == "string") {
@@ -119,9 +119,9 @@ module.exports = {
 			changedID = new ObjectID(id);
 		}
 		return changedID;
-	},
+	}
 
-	convertToInt(id) {
+	static convertToInt(id) {
 		let changedID = id;
 		if (!id) {
 			return 0;
@@ -132,9 +132,9 @@ module.exports = {
 			changedID = parseInt(id);
 		}
 		return changedID;
-	},
+	}
 
-	convertToFloat(id) {
+	static convertToFloat(id) {
 		let changedID = id;
 		if (!id) {
 			return 0;
@@ -145,9 +145,9 @@ module.exports = {
 			changedID = parseFloat(id);
 		}
 		return changedID;
-	},
+	}
 
-	convertUserToObjectID(user) {
+	static convertUserToObjectID(user) {
 		let userID = null;
 		// Check Created By
 		if (user) {
@@ -157,18 +157,18 @@ module.exports = {
 			if (typeof user == "object" &&
 					user.constructor.name != "ObjectID") {
 				// This is the User Model
-				userID = this.convertToObjectID(user.id);
+				userID = Utils.convertToObjectID(user.id);
 			}
 			// Check String
 			if (typeof user == "string") {
 				// This is a String
-				userID = this.convertToObjectID(user);
+				userID = Utils.convertToObjectID(user);
 			}
 		}
 		return userID;
-	},
+	}
 
-	pushCreatedLastChangedInAggregation(aggregation) {
+	static pushCreatedLastChangedInAggregation(aggregation) {
 		// Filter
 		let filterUserFields = {
 			"email" : 0,
@@ -232,9 +232,9 @@ module.exports = {
 				"lastChangedBy": filterUserFields
 			}
 		});
-	},
+	}
 
-	buildUserFullName(user, withID=true) {
+	static buildUserFullName(user, withID=true) {
 		if (!user) {
 			return "Unknown";
 		}
@@ -248,32 +248,32 @@ module.exports = {
 		} else {
 			return `${user.firstName} ${user.name}`;
 		}
-	},
+	}
 
 	// Save the users in file
-	saveFile(filename, content) {
+	static saveFile(filename, content) {
 		// Save
 		fs.writeFileSync(path.join(__dirname, filename), content, 'UTF-8');
-	},
+	}
 
-	getRandomInt() {
+	static getRandomInt() {
 		return Math.floor((Math.random() * 2147483648 ) + 1); // INT32 (signed: issue in Schneider)
-	},
+	}
 
-	buildEvseURL() {
+	static buildEvseURL() {
 		return _centralSystemFrontEndConfig.protocol + "://" +
 			_centralSystemFrontEndConfig.host + ":" +
 			_centralSystemFrontEndConfig.port;
-	},
+	}
 
-	buildEvseUserURL(user) {
-		let _evseBaseURL = this.buildEvseURL();
+	static buildEvseUserURL(user) {
+		let _evseBaseURL = Utils.buildEvseURL();
 		// Add : https://localhost:8080/#/pages/chargers/charger/REE001
 		return _evseBaseURL + "/#/pages/users/user/" + user.getID();
-	},
+	}
 
-	buildEvseChargingStationURL(chargingStation, connectorId=null) {
-		let _evseBaseURL = this.buildEvseURL();
+	static buildEvseChargingStationURL(chargingStation, connectorId=null) {
+		let _evseBaseURL = Utils.buildEvseURL();
 
 		// Connector provided?
 		if (connectorId > 0) {
@@ -284,30 +284,30 @@ module.exports = {
 			// URL with charger only
 			return _evseBaseURL + "/#/pages/chargers/charger/" + chargingStation.getID();
 		}
-	},
+	}
 
-	buildEvseTransactionURL(chargingStation, connectorId, transactionId) {
-		let _evseBaseURL = this.buildEvseURL();
+	static buildEvseTransactionURL(chargingStation, connectorId, transactionId) {
+		let _evseBaseURL = Utils.buildEvseURL();
 		// Add : https://localhost:8080/#/pages/chargers/charger/REE001
 		return _evseBaseURL + "/#/pages/chargers/charger/" + chargingStation.getID() +
 		"/connector/" + connectorId + "/transaction/" + transactionId;
-	},
+	}
 
-	isServerInProductionMode() {
+	static isServerInProductionMode() {
 		var env = process.env.NODE_ENV || 'dev';
 		return (env !== "dev");
-	},
+	}
 
-	hideShowMessage(message) {
+	static hideShowMessage(message) {
 		// Check Prod
-		if (this.isServerInProductionMode()) {
+		if (Utils.isServerInProductionMode()) {
 			return "An unexpected server error occurred. Check the server's logs!";
 		} else {
 			return message;
 		}
-	},
+	}
 
-	checkRecordLimit(recordLimit) {
+	static checkRecordLimit(recordLimit) {
 		// String?
 		if (typeof recordLimit == "string" ) {
 			recordLimit = parseInt(recordLimit);
@@ -318,9 +318,9 @@ module.exports = {
 			recordLimit = Constants.DEFAULT_DB_LIMIT;
 		}
 		return recordLimit;
-	},
+	}
 
-	checkRecordSkip(recordSkip) {
+	static checkRecordSkip(recordSkip) {
 		// String?
 		if (typeof recordSkip == "string" ) {
 			recordSkip = parseInt(recordSkip);
@@ -331,9 +331,11 @@ module.exports = {
 			recordSkip = 0;
 		}
 		return recordSkip;
-	},
+	}
 
-	generateToken(email) {
+	static generateToken(email) {
 		return crypto.createHash('sha1').update(`${new Date().toISOString()}~${email}`).digest('hex');
 	}
-};
+}
+
+module.exports=Utils;

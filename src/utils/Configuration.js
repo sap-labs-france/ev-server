@@ -7,21 +7,21 @@ require('source-map-support').install();
 // Cloud Foundry App Env
 let _appEnv = cfenv.getAppEnv();
 
-module.exports = {
+class Configuration {
 	// Read the config file
-	getConfig() {
+	static getConfig() {
 		return config;
-	},
+	}
 
 	// Scheduler config
-	getSchedulerConfig() {
+	static getSchedulerConfig() {
 		// Read conf
-		return this.getConfig().Scheduler;
-	},
+		return Configuration.getConfig().Scheduler;
+	}
 
 	// Central System config
-	getCentralSystemsConfig() {
-		let centralSystems = this.getConfig().CentralSystems;
+	static getCentralSystemsConfig() {
+		let centralSystems = Configuration.getConfig().CentralSystems;
 		// Check Cloud Foundry
 		if (centralSystems && !_appEnv.isLocal) {
 			// Parse the URL
@@ -36,27 +36,27 @@ module.exports = {
 		}
 		// Read conf
 		return centralSystems;
-	},
+	}
 
 	// Notification config
-	getNotificationConfig() {
+	static getNotificationConfig() {
 		// Read conf
-		return this.getConfig().Notification;
-	},
+		return Configuration.getConfig().Notification;
+	}
 
 	// Authorization config
-	getAuthorizationConfig() {
+	static getAuthorizationConfig() {
 		// Read conf
-		return this.getConfig().Authorization;
-	},
+		return Configuration.getConfig().Authorization;
+	}
 
-	isCloudFoundry() {
+	static isCloudFoundry() {
 		return !_appEnv.isLocal;
-	},
+	}
 
 	// Central System REST config
-	getCentralSystemRestServiceConfig() {
-		let centralSystemRestService = this.getConfig().CentralSystemRestService;
+	static getCentralSystemRestServiceConfig() {
+		let centralSystemRestService = Configuration.getConfig().CentralSystemRestService;
 		// Check Cloud Foundry
 		if (centralSystemRestService && !_appEnv.isLocal) {
 			// CF Environment: Override
@@ -67,49 +67,49 @@ module.exports = {
 		}
 		// Read conf
 		return centralSystemRestService;
-	},
+	}
 
 	// Central System REST config
-	getWSDLEndpointConfig() {
-		return this.getConfig().WSDLEndpoint;
-	},
+	static getWSDLEndpointConfig() {
+		return Configuration.getConfig().WSDLEndpoint;
+	}
 
 	// Central System Front-End config
-	getCentralSystemFrontEndConfig() {
+	static getCentralSystemFrontEndConfig() {
 		// Read conf
-		return this.getConfig().CentralSystemFrontEnd;
-	},
+		return Configuration.getConfig().CentralSystemFrontEnd;
+	}
 
 	// Email config
-	getEmailConfig() {
+	static getEmailConfig() {
 		// Read conf
-		return this.getConfig().Email;
-	},
+		return Configuration.getConfig().Email;
+	}
 
 	// Advanced config
-	getAdvancedConfig() {
+	static getAdvancedConfig() {
 		// Read conf
-		return this.getConfig().Advanced;
-	},
+		return Configuration.getConfig().Advanced;
+	}
 
-	saveAdvancedConfig(advancedConfig) {
+	static saveAdvancedConfig(advancedConfig) {
 		// Read conf
-		let config = this.getConfig();
+		let config = Configuration.getConfig();
 		// Set
 		config.Advanced = advancedConfig;
 		// Save Config
-		this.saveConfig(config);
-	},
+		Configuration.saveConfig(config);
+	}
 
 	// Locale config
-	getLocalesConfig() {
+	static getLocalesConfig() {
 		// Read conf
-		return this.getConfig().Locales;
-	},
+		return Configuration.getConfig().Locales;
+	}
 
 	// DB config
-	getStorageConfig() {
-		let storage = this.getConfig().Storage;
+	static getStorageConfig() {
+		let storage = Configuration.getConfig().Storage;
 		// Check Cloud Foundry
 		if (storage && !_appEnv.isLocal) {
 			// CF Environment: Override
@@ -123,11 +123,13 @@ module.exports = {
 		}
 		// Read conf
 		return storage;
-	},
+	}
 
 	// Central System config
-	getChargingStationConfig() {
+	static getChargingStationConfig() {
 		// Read conf
-		return this.getConfig().ChargingStation;
+		return Configuration.getConfig().ChargingStation;
 	}
-};
+}
+
+module.exports=Configuration;
