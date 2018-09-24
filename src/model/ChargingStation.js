@@ -745,52 +745,76 @@ class ChargingStation {
 
 	async handleMeterValues(meterValues) {
 		// Create model
-		var newMeterValues = {};
+		let newMeterValues = {};
+		let meterValuesContext;
+		// Check Meter Value Context
+		if (meterValues && meterValues.values && meterValues.values.value && !Array.isArray(meterValues.values) && meterValues.values.value.attributes) {
+			// Get the Context: Sample.Clock, Sample.Periodic
+			meterValuesContext = meterValues.values.value.attributes.context;
+		} else {
+			// Default
+			meterValuesContext = Constants.METER_VALUE_CTX_SAMPLE_PERIODIC;
+		}
+		console.log('====================================');
+		console.log(meterValuesContext);
+		console.log('====================================');
 		// Init
 		newMeterValues.values = [];
 		// Set the charger ID
 		newMeterValues.chargeBoxID = this.getID();
-		// Check Connector ID
-		if (meterValues.connectorId == 0) {
-			// BUG KEBA: Connector ID must be > 0 according OCPP
-			Logging.logWarning({
-				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-				action: 'MeterValues', message: `Connector ID cannot be equal to '0' and has been reset to '1'`
-			});
-			// Set to 1 (KEBA has only one connector)
-			meterValues.connectorId = 1;
-		}		
-		// Check if the transaction ID matches
-		let chargerTransactionId = this.getConnectors()[meterValues.connectorId-1].activeTransactionID;
-		// Same?
-		if (meterValues.hasOwnProperty('transactionId')) {
-			// BUG ABB: Check ID
-			if (parseInt(meterValues.transactionId) !== parseInt(chargerTransactionId)) {
-				// No: Log
-				Logging.logWarning({
-					source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-					action: 'MeterValues', message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
-				});
-				// Override
-				meterValues.transactionId = chargerTransactionId;
-			} 
-		} else {
-			// No Transaction ID, retrieve it
-			Logging.logWarning({
-				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-				action: 'MeterValues', message: `Transaction ID is not provided but retrieved from StartTransaction '${chargerTransactionId}'`
-			});
-			// Override
-			meterValues.transactionId = chargerTransactionId;
+		// Check Context
+		switch (meterValuesContext) {
+			// Sample Periodic
+			case Constants.METER_VALUE_CTX_SAMPLE_PERIODIC:
+				// Check Connector ID
+				if (meterValues.connectorId == 0) {
+					// BUG KEBA: Connector ID must be > 0 according OCPP
+					Logging.logWarning({
+						source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+						action: 'MeterValues', message: `Connector ID cannot be equal to '0' and has been reset to '1'`
+					});
+					// Set to 1 (KEBA has only one connector)
+					meterValues.connectorId = 1;
+				}		
+				// Check if the transaction ID matches
+				let chargerTransactionId = this.getConnectors()[meterValues.connectorId-1].activeTransactionID;
+				// Same?
+				if (meterValues.hasOwnProperty('transactionId')) {
+					// BUG ABB: Check ID
+					if (parseInt(meterValues.transactionId) !== parseInt(chargerTransactionId)) {
+						// No: Log
+						Logging.logWarning({
+							source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+							action: 'MeterValues', message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
+						});
+						// Override
+						meterValues.transactionId = chargerTransactionId;
+					} 
+				} else {
+					// No Transaction ID, retrieve it
+					Logging.logWarning({
+						source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+						action: 'MeterValues', message: `Transaction ID is not provided but retrieved from StartTransaction '${chargerTransactionId}'`
+					});
+					// Override
+					meterValues.transactionId = chargerTransactionId;
+				}
+				// Check Transaction
+				if (parseInt(meterValues.transactionId) === 0) {
+					// Wrong Transaction ID!
+					Logging.logError({
+						source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+						action: 'MeterValues', message: `Transaction ID must not be equal to '0'`
+					});
+				}
+				break;
+		
+			// Sample Clock
+			case Constants.METER_VALUE_CTX_SAMPLE_CLOCK:
+				// Do nothing
+				break;
 		}
-		// Check Transaction
-		if (parseInt(meterValues.transactionId) === 0) {
-			// Wrong Transaction ID!
-			Logging.logError({
-				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-				action: 'MeterValues', message: `Transaction ID must not be equal to '0'`
-			});
-		}
+		// Handle Values
 		// Check if OCPP 1.6
 		if (meterValues.meterValue) {
 			// Set it to 'values'
@@ -834,13 +858,28 @@ class ChargingStation {
 		}
 		// Save Meter Values
 		await TransactionStorage.saveMeterValues(newMeterValues);
-		// Update Charging Station Consumption
-		await this.updateChargingStationConsumption(meterValues.transactionId);
-		// Log
-		Logging.logInfo({
-			source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-			action: 'MeterValues', message: `Meter Values have been saved for Transaction ID '${meterValues.transactionId}'`,
-			detailedMessages: meterValues });
+		// Check Context
+		switch (meterValuesContext) {
+			// Sample Periodic
+			case Constants.METER_VALUE_CTX_SAMPLE_PERIODIC:
+				// Update Charging Station Consumption
+				await this.updateChargingStationConsumption(meterValues.transactionId);
+				// Log
+				Logging.logInfo({
+					source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+					action: 'MeterValues', message: `'${meterValuesContext}' have been saved for Transaction ID '${meterValues.transactionId}'`,
+					detailedMessages: meterValues });
+
+			// Sample Clock
+			case Constants.METER_VALUE_CTX_SAMPLE_CLOCK:
+				// Log
+				Logging.logInfo({
+					source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+					action: 'MeterValues', message: `'${meterValuesContext}' have been saved`,
+					detailedMessages: meterValues });
+				// Do nothing
+				break;
+		}
 	}
 
 	saveConfiguration(configuration) {

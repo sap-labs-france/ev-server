@@ -91,5 +91,8 @@ module.exports = {
 
 	ANONIMIZED_VALUE: '####',
 
-	DEFAULT_DB_LIMIT: 100
+	DEFAULT_DB_LIMIT: 100,
+
+	METER_VALUE_CTX_SAMPLE_PERIODIC: 'Sample.Periodic',
+	METER_VALUE_CTX_SAMPLE_CLOCK: 'Sample.Clock'
 };
