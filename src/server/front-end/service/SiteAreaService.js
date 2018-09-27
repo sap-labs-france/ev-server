@@ -92,9 +92,11 @@ class SiteAreaService {
 			// Filter
 			let filteredRequest = SiteAreaSecurity.filterSiteAreasRequest(req.query, req.user);
 			// Get the sites
+			console.log(filteredRequest);
+			
 			let siteAreas = await SiteAreaStorage.getSiteAreas(
 				{ 'search': filteredRequest.Search, 'withSite': filteredRequest.WithSite, 
-					'withChargeBoxes': filteredRequest.WithChargeBoxes },
+					'withChargeBoxes': filteredRequest.WithChargeBoxes, 'siteID': filteredRequest.SiteID },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
 			siteAreas.result = siteAreas.result.map((siteArea) => siteArea.getModel());
@@ -173,7 +175,7 @@ class SiteAreaService {
 			}
 			// Get it
 			let siteArea = await SiteAreaStorage.getSiteArea(
-				filteredRequest.ID, Constants.WITH_CHARGING_STATIONS, Constants.WITHOUT_SITE);
+				filteredRequest.ID, filteredRequest.WithChargeBoxes, filteredRequest.WithSite);
 			// Found?
 			if (!siteArea) {
 				// Not Found!

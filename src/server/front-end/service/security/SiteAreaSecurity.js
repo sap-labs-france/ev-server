@@ -30,6 +30,8 @@ class SiteAreaSecurity {
 	static filterSiteAreaRequest(request, loggedUser) {
 		let filteredRequest = {};
 		filteredRequest.ID = sanitize(request.ID);
+		filteredRequest.WithChargeBoxes = sanitize(request.WithChargeBoxes);
+		filteredRequest.WithSite = sanitize(request.WithSite);
 		return filteredRequest;
 	}
 
@@ -38,6 +40,7 @@ class SiteAreaSecurity {
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.WithSite = UtilsSecurity.filterBoolean(request.WithSite);
 		filteredRequest.WithChargeBoxes = UtilsSecurity.filterBoolean(request.WithChargeBoxes);
+		filteredRequest.SiteID = sanitize(request.SiteID);
 		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
 		UtilsSecurity.filterSort(request, filteredRequest);
 		return filteredRequest;
