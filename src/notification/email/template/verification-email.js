@@ -3,7 +3,7 @@ module.exports.email = {
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
-			"title": "Account activation",
+			"title": "Account Activation",
 			"image": {
 				"left": {
 					"height": 60,
@@ -37,11 +37,11 @@ module.exports.email = {
 
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
-	"subject": "Activation de compte",
+	"subject": "Activation de votre compte",
 	"baseURL": "<%- evseDashboardURL %>",
 	"body": {
 		"header": {
-			"title": "Activation de compte",
+			"title": "Activation Compte",
 			"image": {
 				"left": {
 					"height": 60,
