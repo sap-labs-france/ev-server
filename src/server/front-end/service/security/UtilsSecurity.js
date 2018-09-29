@@ -35,12 +35,22 @@ class UtilsSecurity {
 				// Build
 				for (let i = 0; i < request.SortFields.length; i++) {
 					const sortField = request.SortFields[index];
+					// Check field ID
+					if (sortField === 'id') {
+						// In MongoDB it's '_id'
+						sortField = '_id';
+					}
 					// Set
 					filteredRequest.Sort[sortField] = (request.SortDirs[i] === "asc" ? 1 : -1);  
 				}
 			} else {
 				// Init
 				filteredRequest.Sort = {};
+				// Check field ID
+				if (request.SortFields === 'id') {
+					// In MongoDB it's '_id'
+					request.SortFields = '_id';
+				}
 				// Set
 				filteredRequest.Sort[request.SortFields] = (request.SortDirs === "asc" ? 1 : -1);  
 			}
