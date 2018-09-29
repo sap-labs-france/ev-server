@@ -265,7 +265,7 @@ class AuthService {
 			});
 			// Send notification
 			let evseDashboardVerifyEmailURL = Utils.buildEvseURL() +
-			'/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
+			'/verify-email?VerificationToken=' + verificationToken + '&Email=' +
 			newUser.getEMail();
 			NotificationHandler.sendNewRegisteredUser(
 				Utils.generateGUID(),
@@ -336,7 +336,7 @@ class AuthService {
 			});
 			// Send notification
 			let evseDashboardResetPassURL = Utils.buildEvseURL() +
-				'/#/reset-password?hash=' + resetHash + '&email=' +
+				'/reset-password?hash=' + resetHash + '&email=' +
 				savedUser.getEMail();
 			// Send email
 			NotificationHandler.sendRequestPassword(
@@ -591,7 +591,7 @@ class AuthService {
 			});
 			// Send notification
 			let evseDashboardVerifyEmailURL = Utils.buildEvseURL() +
-			'/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
+			'/verify-email?VerificationToken=' + verificationToken + '&Email=' +
 			user.getEMail();
 			NotificationHandler.sendVerificationEmail(
 				Utils.generateGUID(),

@@ -268,8 +268,8 @@ class Utils {
 
 	static buildEvseUserURL(user) {
 		let _evseBaseURL = Utils.buildEvseURL();
-		// Add : https://localhost:8080/#/pages/chargers/charger/REE001
-		return _evseBaseURL + "/#/pages/users/user/" + user.getID();
+		// Add
+		return _evseBaseURL + "/pages/users/user/" + user.getID();
 	}
 
 	static buildEvseChargingStationURL(chargingStation, connectorId=null) {
@@ -278,19 +278,19 @@ class Utils {
 		// Connector provided?
 		if (connectorId > 0) {
 			// URL with connector
-			return _evseBaseURL + "/#/pages/chargers/charger/" + chargingStation.getID() +
+			return _evseBaseURL + "/pages/chargers/charger/" + chargingStation.getID() +
 				"/connector/" + connectorId;
 		} else {
 			// URL with charger only
-			return _evseBaseURL + "/#/pages/chargers/charger/" + chargingStation.getID();
+			return _evseBaseURL + "/pages/chargers/charger/" + chargingStation.getID();
 		}
 	}
 
 	static buildEvseTransactionURL(chargingStation, connectorId, transactionId) {
 		let _evseBaseURL = Utils.buildEvseURL();
-		// Add : https://localhost:8080/#/pages/chargers/charger/REE001
-		return _evseBaseURL + "/#/pages/chargers/charger/" + chargingStation.getID() +
-		"/connector/" + connectorId + "/transaction/" + transactionId;
+		// Add
+		return _evseBaseURL + "/pages/chargers/charger/" + chargingStation.getID() +
+			"/connector/" + connectorId + "/transaction/" + transactionId;
 	}
 
 	static isServerInProductionMode() {

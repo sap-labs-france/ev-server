@@ -1454,7 +1454,8 @@ class ChargingStation {
 
 			// Filter on consumption value
 			if (meterValue.attribute && meterValue.attribute.measurand &&
-					meterValue.attribute.measurand === 'Energy.Active.Import.Register') {
+					meterValue.attribute.measurand === 'Energy.Active.Import.Register' &&
+					meterValue.attribute.context === 'Sample.Periodic') {
 				// Get the moment
 				let currentTimestamp = moment(meterValue.timestamp);
 				// First value?
