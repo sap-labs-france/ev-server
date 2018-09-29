@@ -52,7 +52,7 @@ class ChargingStationStorage {
 		return chargingStation;
 	}
 
-	static async getChargingStations(params, limit, skip, sort) {
+	static async getChargingStations(params={}, limit, skip, sort) {
 		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);

@@ -161,7 +161,7 @@ class SiteStorage {
 		let updatedSite = new Site(result.value);
 		// Update Users?`
 		if (siteToSave.users) {
-			// Delete Users
+			// Delete first
 			await global.db.collection('siteusers')
 				.deleteMany( {'siteID': Utils.convertToObjectID(updatedSite.getID())} );
 			// At least one?
@@ -198,7 +198,7 @@ class SiteStorage {
 			{upsert: true, new: true, returnOriginal: false});
 	}
 
-	static async getSites(params, limit, skip, sort) {
+	static async getSites(params={}, limit, skip, sort) {
 		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
 		const Company = require('../../model/Company'); // Avoid fucking circular deps!!!
 		const Site = require('../../model/Site'); // Avoid fucking circular deps!!!

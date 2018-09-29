@@ -288,6 +288,10 @@ class User {
 		return transactions;
 	}
 
+	setSites(sites) {
+		this._model.sites = sites.map((site) => site.getModel());
+	}
+
 	async getSites(withCompany=false, withSiteAreas=false,
 			withChargeBoxes=false, withUsers=false) {
 		// Get Sites

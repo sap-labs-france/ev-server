@@ -95,7 +95,7 @@ class TransactionStorage {
 		return transactionYears;
 	}
 
-	static async getTransactions(params, limit, skip, sort) {
+	static async getTransactions(params={}, limit, skip, sort) {
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip

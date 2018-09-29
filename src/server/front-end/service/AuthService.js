@@ -16,6 +16,7 @@ const AuthSecurity = require('./security/AuthSecurity');
 const ChargingStationStorage = require('../../../storage/mongodb/ChargingStationStorage'); 
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage');
 const UserStorage = require('../../../storage/mongodb/UserStorage');
+const SiteStorage = require('../../../storage/mongodb/SiteStorage');
 
 let _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -244,6 +245,12 @@ class AuthService {
 			newUser.setPassword(newPasswordHashed);
 			newUser.setLocale(req.locale.substring(0,5));
 			newUser.setCreatedOn(new Date());
+			// Set BadgeID (eg.: 'SF20170131')
+			newUser.setTagIDs([newUser.getName()[0] + newUser.getFirstName()[0] + Utils.getCurrentDateString()])
+			// Assign user to all sites
+			const sites = await SiteStorage.getSites();
+			// Set
+			newUser.setSites(sites.result);
 			// Get EULA
 			let endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(newUser.getLanguage());
 			// Set Eula Info on Login Only

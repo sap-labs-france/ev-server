@@ -116,7 +116,7 @@ class CompanyStorage {
 	}
 
 	// Delegate
-	static async getCompanies(params, limit, skip, sort) {
+	static async getCompanies(params={}, limit, skip, sort) {
 		const Company = require('../../model/Company'); // Avoid fucking circular deps!!!
 		const Site = require('../../model/Site');  // Avoid fucking circular deps!!!
 		// Check Limit

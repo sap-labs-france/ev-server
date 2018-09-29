@@ -247,6 +247,26 @@ class UserStorage {
 				}
 			}
 		}
+		// Update Sites?`
+		if (userToSave.sites) {
+			// Delete first
+			await global.db.collection('siteusers')
+				.deleteMany( {'userID': Utils.convertToObjectID(updatedUser.getID())} );
+			// At least one?
+			if (userToSave.sites.length > 0) {
+				let siteUsersMDB = [];
+				// Create the list
+				for (const site of userToSave.sites) {
+					// Add
+					siteUsersMDB.push({
+						"siteID": Utils.convertToObjectID(site.id),
+						"userID": Utils.convertToObjectID(updatedUser.getID())
+					});
+				}
+				// Execute
+				await global.db.collection('siteusers').insertMany(siteUsersMDB);
+			}
+		}
 		return updatedUser;
 	}
 
@@ -266,7 +286,7 @@ class UserStorage {
 			{upsert: true, new: true, returnOriginal: false});
 	}
 
-	static async getUsers(params, limit, skip, sort) {
+	static async getUsers(params={}, limit, skip, sort) {
 		const User = require('../../model/User'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);

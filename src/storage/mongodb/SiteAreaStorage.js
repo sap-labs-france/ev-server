@@ -156,7 +156,7 @@ class SiteAreaStorage {
 			{upsert: true, new: true, returnOriginal: false});
 	}
 
-	static async getSiteAreas(params, limit, skip, sort) {
+	static async getSiteAreas(params={}, limit, skip, sort) {
 		const Site = require('../../model/Site');  // Avoid fucking circular deps!!!
 		const SiteArea = require('../../model/SiteArea'); // Avoid fucking circular deps!!!
 		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!

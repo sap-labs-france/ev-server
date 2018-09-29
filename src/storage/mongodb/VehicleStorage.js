@@ -113,7 +113,7 @@ class VehicleStorage {
 	}
 
 	// Delegate
-	static async getVehicles(params, limit, skip, sort) {
+	static async getVehicles(params={}, limit, skip, sort) {
 		const Vehicle = require('../../model/Vehicle'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);

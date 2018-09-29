@@ -70,7 +70,7 @@ class LoggingStorage {
 		return logging;
 	}
 
-	static async getLogs(params, limit, skip, sort) {
+	static async getLogs(params={}, limit, skip, sort) {
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip

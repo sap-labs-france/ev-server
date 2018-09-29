@@ -115,7 +115,7 @@ class VehicleManufacturerStorage {
 	}
 
 	// Delegate
-	static async getVehicleManufacturers(params, limit, skip, sort) {
+	static async getVehicleManufacturers(params={}, limit, skip, sort) {
 		const VehicleManufacturer = require('../../model/VehicleManufacturer'); // Avoid fucking circular deps!!!
 		const Vehicle = require('../../model/Vehicle'); // Avoid fucking circular deps!!!
 		// Check Limit
