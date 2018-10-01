@@ -70,7 +70,7 @@ module.exports.html = `
 					<tr>
 						<td style="width: 30%;"></td>
 						<td align="center" height="50" style="background-color: #356964;border-radius: 10px;">
-							<a style="text-decoration:none;" href="<%- body.action.url %>" target="_blank">
+							<a id="action-url" style="text-decoration:none;" href="<%- body.action.url %>" target="_blank">
 								<font size="4" color="white" face="sans-serif">
 									<b><%- body.action.title %></b>
 								</font>
