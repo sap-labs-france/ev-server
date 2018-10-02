@@ -56,7 +56,7 @@ module.exports = {
 	USER_STATUS_LOCKED: 'L',
 
 	// Roles
-	ROLE_SUPER_ADMIN: "SA",
+	ROLE_SUPER_ADMIN: "S",
 	ROLE_ADMIN: "A",
 	ROLE_BASIC: "B",
 	ROLE_DEMO: "D",
