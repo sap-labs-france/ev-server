@@ -120,9 +120,6 @@ class AuthService {
 		try {
 			// Filter
 			let filteredRequest = AuthSecurity.filterLoginRequest(req.body);
-			console.log('====================================');
-			console.log(filteredRequest);
-			console.log('====================================');
 			// Check
 			if (!filteredRequest.email) {
 				throw new AppError(
