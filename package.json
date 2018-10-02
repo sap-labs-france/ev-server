@@ -12,7 +12,7 @@
 		"assert": "^1.4.1",
 		"axios": "^0.18.0",
 		"babel-polyfill": "^6.26.0",
-		"bcrypt": "^3.0.0",
+		"bcrypt": "^3.0.1",
 		"body-parser": "^1.17.2",
 		"body-parser-xml": "^1.1.0",
 		"cf-nodejs-logging-support": "^3.0.11",

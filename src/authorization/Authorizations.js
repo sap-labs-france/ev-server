@@ -277,7 +277,7 @@ class Authorizations {
 		}
 		// Check if users are differents
 		if (alternateUser && (user.getID() != alternateUser.getID()) &&
-				!alternateUser.isAdmin() && !site.isAllowAllUsersToStopTransactionsEnabled()) {
+				!Authorizations.isAdmin(alternateUser) && !site.isAllowAllUsersToStopTransactionsEnabled()) {
 			// Reject the User
 			throw new AppError(
 				chargingStation.getID(),
@@ -599,8 +599,12 @@ class Authorizations {
 			{ "Action": Constants.ACTION_UPDATE });
 	}
 
+	static isSuperAdmin(loggedUser) {
+		return loggedUser.role === Constants.ROLE_SUPER_ADMIN;
+	}
+
 	static isAdmin(loggedUser) {
-		return loggedUser.role === Constants.ROLE_ADMIN;
+		return this.isSuperAdmin(loggedUser) || loggedUser.role === Constants.ROLE_ADMIN;
 	}
 
 	static isBasic(loggedUser) {
