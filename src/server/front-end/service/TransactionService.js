@@ -266,7 +266,7 @@ class TransactionService {
 						moment(filteredRequest.StartDateTime).isBefore(moment(transaction.timestamp))) {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
-						`The requested Start Date ${filteredRequest.StartDateTime.toISOString()} is before the transaction ID ${filteredRequest.TransactionId} Start Date ${transaction.timestamp.toISOString()}`, 500,
+						`The requested Start Date '${new Date(filteredRequest.StartDateTime).toISOString()}' is before the transaction ID '${filteredRequest.TransactionId}' Start Date '${new Date(transaction.timestamp).toISOString()}'`, 500,
 						'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
 				}
 				// Check date is in the transaction
@@ -275,7 +275,7 @@ class TransactionService {
 						moment(filteredRequest.StartDateTime).isAfter(moment(transaction.stop.timestamp))) {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
-						`The requested Start Date ${filteredRequest.StartDateTime.toISOString()} is after the transaction ID ${filteredRequest.TransactionId} Stop Date ${transaction.stop.timestamp.toISOString()}`, 500,
+						`The requested Start Date '${new Date(filteredRequest.StartDateTime).toISOString()}' is after the transaction ID '${filteredRequest.TransactionId}' Stop Date '${new Date(transaction.stop.timestamp).toISOString()}'`, 500,
 						'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
 				}
 			}
