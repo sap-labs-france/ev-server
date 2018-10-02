@@ -759,58 +759,47 @@ class ChargingStation {
 		newMeterValues.values = [];
 		// Set the charger ID
 		newMeterValues.chargeBoxID = this.getID();
-		// Check Context
-		switch (meterValuesContext) {
-			// Sample Periodic
-			case Constants.METER_VALUE_CTX_SAMPLE_PERIODIC:
-				// Check Connector ID
-				if (meterValues.connectorId == 0) {
-					// BUG KEBA: Connector ID must be > 0 according OCPP
+			// Check Connector ID
+			if (meterValues.connectorId == 0) {
+				// BUG KEBA: Connector ID must be > 0 according OCPP
+				Logging.logWarning({
+					source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+					action: 'MeterValues', message: `Connector ID cannot be equal to '0' and has been reset to '1'`
+				});
+				// Set to 1 (KEBA has only one connector)
+				meterValues.connectorId = 1;
+			}		
+			// Check if the transaction ID matches
+			let chargerTransactionId = this.getConnectors()[meterValues.connectorId-1].activeTransactionID;
+			// Same?
+			if (meterValues.hasOwnProperty('transactionId')) {
+				// BUG ABB: Check ID
+				if (parseInt(meterValues.transactionId) !== parseInt(chargerTransactionId)) {
+					// No: Log
 					Logging.logWarning({
 						source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-						action: 'MeterValues', message: `Connector ID cannot be equal to '0' and has been reset to '1'`
-					});
-					// Set to 1 (KEBA has only one connector)
-					meterValues.connectorId = 1;
-				}		
-				// Check if the transaction ID matches
-				let chargerTransactionId = this.getConnectors()[meterValues.connectorId-1].activeTransactionID;
-				// Same?
-				if (meterValues.hasOwnProperty('transactionId')) {
-					// BUG ABB: Check ID
-					if (parseInt(meterValues.transactionId) !== parseInt(chargerTransactionId)) {
-						// No: Log
-						Logging.logWarning({
-							source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-							action: 'MeterValues', message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
-						});
-						// Override
-						meterValues.transactionId = chargerTransactionId;
-					} 
-				} else {
-					// No Transaction ID, retrieve it
-					Logging.logWarning({
-						source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-						action: 'MeterValues', message: `Transaction ID is not provided but retrieved from StartTransaction '${chargerTransactionId}'`
+						action: 'MeterValues', message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
 					});
 					// Override
 					meterValues.transactionId = chargerTransactionId;
-				}
-				// Check Transaction
-				if (parseInt(meterValues.transactionId) === 0) {
-					// Wrong Transaction ID!
-					Logging.logError({
-						source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-						action: 'MeterValues', message: `Transaction ID must not be equal to '0'`
-					});
-				}
-				break;
-		
-			// Sample Clock
-			case Constants.METER_VALUE_CTX_SAMPLE_CLOCK:
-				// Do nothing
-				break;
-		}
+				} 
+			} else if (chargerTransactionId > 0) {
+				// No Transaction ID, retrieve it
+				Logging.logWarning({
+					source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+					action: 'MeterValues', message: `Transaction ID is not provided but retrieved from StartTransaction '${chargerTransactionId}'`
+				});
+				// Override
+				meterValues.transactionId = chargerTransactionId;
+			}
+			// Check Transaction
+			if (meterValues.transactionId && parseInt(meterValues.transactionId) === 0) {
+				// Wrong Transaction ID!
+				Logging.logError({
+					source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+					action: 'MeterValues', message: `Transaction ID must not be equal to '0'`
+				});
+			}
 		// Handle Values
 		// Check if OCPP 1.6
 		if (meterValues.meterValue) {
@@ -855,28 +844,13 @@ class ChargingStation {
 		}
 		// Save Meter Values
 		await TransactionStorage.saveMeterValues(newMeterValues);
-		// Check Context
-		switch (meterValuesContext) {
-			// Sample Periodic
-			case Constants.METER_VALUE_CTX_SAMPLE_PERIODIC:
-				// Update Charging Station Consumption
-				await this.updateChargingStationConsumption(meterValues.transactionId);
-				// Log
-				Logging.logInfo({
-					source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-					action: 'MeterValues', message: `'${meterValuesContext}' have been saved for Transaction ID '${meterValues.transactionId}'`,
-					detailedMessages: meterValues });
-
-			// Sample Clock
-			case Constants.METER_VALUE_CTX_SAMPLE_CLOCK:
-				// Log
-				Logging.logInfo({
-					source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-					action: 'MeterValues', message: `'${meterValuesContext}' have been saved`,
-					detailedMessages: meterValues });
-				// Do nothing
-				break;
-		}
+		// Update Charging Station Consumption
+		await this.updateChargingStationConsumption(meterValues.transactionId);
+		// Log
+		Logging.logInfo({
+			source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+			action: 'MeterValues', message: `'${meterValuesContext}' have been saved for Transaction ID '${meterValues.transactionId}'`,
+			detailedMessages: meterValues });
 	}
 
 	saveConfiguration(configuration) {
@@ -1454,8 +1428,7 @@ class ChargingStation {
 
 			// Filter on consumption value
 			if (meterValue.attribute && meterValue.attribute.measurand &&
-					meterValue.attribute.measurand === 'Energy.Active.Import.Register' &&
-					meterValue.attribute.context === 'Sample.Periodic') {
+					meterValue.attribute.measurand === 'Energy.Active.Import.Register') {
 				// Get the moment
 				let currentTimestamp = moment(meterValue.timestamp);
 				// First value?
@@ -1467,7 +1440,8 @@ class ChargingStation {
 				// Calculate the consumption with the last value provided
 				} else {
 					// Value provided?
-					if (meterValue.value > 0 || lastMeterValue.value > 0) {
+					if ((meterValue.value > 0 || lastMeterValue.value > 0) && 
+							(meterValue.value !== lastMeterValue.value)) {
 						// Last value is > ?
 						if (lastMeterValue.value > meterValue.value) {
 							// Yes: reinit it (the value has started over from 0)
