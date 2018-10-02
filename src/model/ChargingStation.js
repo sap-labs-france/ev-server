@@ -354,14 +354,14 @@ class ChargingStation {
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation', method: 'handleStatusNotification',
-			action: 'StatusNotification', message: `'${statusNotification.status}-${statusNotification.errorCode}' on Connector '${statusNotification.connectorId}' has been saved` });
+			action: 'StatusNotification', message: `'${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}' on Connector '${statusNotification.connectorId}' has been saved` });
 		// Notify if error
 		if (statusNotification.status === 'Faulted') {
 			// Log
 			Logging.logError({
 				source: this.getID(), module: 'ChargingStation',
 				method: 'handleStatusNotification', action: 'StatusNotification',
-				message: `Error on connector ${statusNotification.connectorId}: ${statusNotification.status} - ${statusNotification.errorCode}` });
+				message: `Error on connector ${statusNotification.connectorId}: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'` });
 			// Send Notification
 			NotificationHandler.sendChargingStationStatusError(
 				Utils.generateGUID(),
@@ -369,7 +369,7 @@ class ChargingStation {
 				{
 					'chargeBoxID': this.getID(),
 					'connectorId': statusNotification.connectorId,
-					'error': `${statusNotification.status} - ${statusNotification.errorCode} - ${statusNotification.errorInfo}`,
+					'error': `${statusNotification.status} - ${statusNotification.errorCode} - ${statusNotification.info}`,
 					'evseDashboardURL' : Utils.buildEvseURL(),
 					'evseDashboardChargingStationURL' : Utils.buildEvseChargingStationURL(this, statusNotification.connectorId)
 				}
