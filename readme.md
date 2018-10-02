@@ -429,6 +429,14 @@ In another console, start the application (restarts if any changes is detected):
 ```
 npm run start:dev
 ```
+### Tests
+
+#### API tests
+After starting a server, run the following command:
+```
+npm test
+```
+
 
 ## Architecture
 
