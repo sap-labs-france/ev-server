@@ -376,23 +376,22 @@ class User {
 				`The User Last Name is mandatory`, 500, 
 				'Users', 'checkIfUserValid');
 		}
-		if(!filteredRequest.email) {
+		if(request.method === 'POST' && !filteredRequest.email) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
 				`The User Email is mandatory`, 500, 
 				'Users', 'checkIfUserValid');
 		}
-		// Check password id provided
+		if (request.method === 'POST' && !User.isUserEmailValid(filteredRequest.email)) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The User Email ${filteredRequest.email} is not valid`, 500, 
+				'Users', 'checkIfUserValid');
+		}
 		if (filteredRequest.password && !User.isPasswordValid(filteredRequest.password)) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
 				`The User Password is not valid`, 500, 
-				'Users', 'checkIfUserValid');
-		}
-		if (!User.isUserEmailValid(filteredRequest.email)) {
-			throw new AppError(
-				Constants.CENTRAL_SERVER,
-				`The User Email ${filteredRequest.email} is not valid`, 500, 
 				'Users', 'checkIfUserValid');
 		}
 		if (filteredRequest.phone && !User.isPhoneValid(filteredRequest.phone)) {
