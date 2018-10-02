@@ -334,6 +334,12 @@ class ChargingStation {
 		connectors[statusNotification.connectorId-1].errorCode = statusNotification.errorCode;
 		connectors[statusNotification.connectorId-1].info = statusNotification.info;
 		connectors[statusNotification.connectorId-1].vendorErrorCode = statusNotification.vendorErrorCode;
+		// Check Available
+		if (statusNotification.status === 'Available') {
+			// Reset Transaction ID
+			connectors[statusNotification.connectorId-1].activeTransactionID = 0;
+		}
+
 		// Set
 		this.setConnectors(connectors);
 		// Update Power?
@@ -1114,8 +1120,6 @@ class ChargingStation {
 		// Init the charging station
 		connector.currentConsumption = 0;
 		connector.totalConsumption = 0;
-		// Reset Transaction ID
-		connector.activeTransactionID = 0;
 		// Save Charging Station
 		await this.save();
 		// Compute total consumption (optimization)
