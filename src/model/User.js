@@ -119,10 +119,6 @@ class User {
 		this._model.role = role;
 	}
 
-	isAdmin() {
-		return (this.getRole() == "A"); // Not using constants to avoid circular deps
-	}
-
 	getFirstName() {
 		return this._model.firstName;
 	}
