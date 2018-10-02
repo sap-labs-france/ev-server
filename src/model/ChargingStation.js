@@ -844,13 +844,22 @@ class ChargingStation {
 		}
 		// Save Meter Values
 		await TransactionStorage.saveMeterValues(newMeterValues);
-		// Update Charging Station Consumption
-		await this.updateChargingStationConsumption(meterValues.transactionId);
-		// Log
-		Logging.logInfo({
-			source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-			action: 'MeterValues', message: `'${meterValuesContext}' have been saved for Transaction ID '${meterValues.transactionId}'`,
-			detailedMessages: meterValues });
+		// Compute consumption?
+		if (meterValues.transactionId) {
+			// Update Charging Station Consumption
+			await this.updateChargingStationConsumption(meterValues.transactionId);
+			// Log
+			Logging.logInfo({
+				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+				action: 'MeterValues', message: `'${meterValuesContext}' have been saved for Transaction ID '${meterValues.transactionId}'`,
+				detailedMessages: meterValues });
+		} else {
+			// Log
+			Logging.logInfo({
+				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+				action: 'MeterValues', message: `'${meterValuesContext}' have been saved`,
+				detailedMessages: meterValues });
+		}
 	}
 
 	saveConfiguration(configuration) {
