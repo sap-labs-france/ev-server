@@ -861,7 +861,7 @@ class ChargingStation {
 				detailedMessages: meterValues });
 		} else {
 			// Log
-			Logging.logInfo({
+			Logging.logWarning({
 				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
 				action: 'MeterValues', message: `'${meterValuesContext}' NOT saved`,
 				detailedMessages: meterValues });
