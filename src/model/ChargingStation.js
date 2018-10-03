@@ -848,10 +848,10 @@ class ChargingStation {
 			// Add
 			newMeterValues.values.push(newMeterValue);
 		}
-		// Save Meter Values
-		await TransactionStorage.saveMeterValues(newMeterValues);
 		// Compute consumption?
 		if (meterValues.transactionId) {
+			// Save Meter Values
+			await TransactionStorage.saveMeterValues(newMeterValues);
 			// Update Charging Station Consumption
 			await this.updateChargingStationConsumption(meterValues.transactionId);
 			// Log
@@ -863,7 +863,7 @@ class ChargingStation {
 			// Log
 			Logging.logInfo({
 				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-				action: 'MeterValues', message: `'${meterValuesContext}' have been saved`,
+				action: 'MeterValues', message: `'${meterValuesContext}' NOT saved`,
 				detailedMessages: meterValues });
 		}
 	}
