@@ -34,6 +34,14 @@ class Site {
 		return this._model.name;
 	}
 
+	setAvailableChargers(availableChargers) {
+		this._model.availableChargers = availableChargers;
+	}
+
+	getAvailableChargers() {
+		return this._model.availableChargers;
+	}
+
 	setAddress(address) {
 		this._model.address = address;
 	}

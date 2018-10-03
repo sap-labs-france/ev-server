@@ -254,7 +254,7 @@ class SiteStorage {
 				});
 			}
 		}
-		if (params.withSiteAreas || params.withChargeBoxes) {
+		if (params.withSiteAreas || params.withChargeBoxes || params.withAvailableChargers) {
 			// Add SiteAreas
 			aggregation.push({
 				$lookup: {
@@ -266,7 +266,7 @@ class SiteStorage {
 			});
 		}
 		// With Chargers?
-		if (params.withChargeBoxes) {
+		if (params.withChargeBoxes || params.withAvailableChargers) {
 			aggregation.push({
 				$lookup: {
 					from: "chargingstations",
@@ -338,6 +338,24 @@ class SiteStorage {
 				if ((params.userID || params.withUsers) && siteMDB.users) {
 					// Set Users
 					site.setUsers(siteMDB.users.map((user) => new User(user)));
+				}
+				// Count Available Charger
+				if (params.withAvailableChargers) {
+					let availableChargers = 0;
+					// Chargers
+					for (const chargeBox of siteMDB.chargeBoxes) {
+						// Connectors
+						for (const connector of chargeBox.connectors) {
+							// Check if Available
+							if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+								// Add 1
+								availableChargers++;
+								break;
+							}
+						}
+					}
+					// Set
+					site.setAvailableChargers(availableChargers);
 				}
 				// Set Site Areas
 				if ((params.withChargeBoxes || params.withSiteAreas) && siteMDB.siteAreas) {

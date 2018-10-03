@@ -112,7 +112,8 @@ class SiteService {
 			let sites = await SiteStorage.getSites(
 				{ 'search': filteredRequest.Search, 'userID': filteredRequest.UserID, 'withCompany': filteredRequest.WithCompany, 
 					'withSiteAreas': filteredRequest.WithSiteAreas, 'withChargeBoxes': filteredRequest.WithChargeBoxes, 
-					'withUsers': filteredRequest.WithUsers, 'excludeSitesOfUserID': filteredRequest.ExcludeSitesOfUserID },
+					'withUsers': filteredRequest.WithUsers, 'excludeSitesOfUserID': filteredRequest.ExcludeSitesOfUserID,
+					'withAvailableChargers': filteredRequest.WithAvailableChargers },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
 			sites.result = sites.result.map((site) => site.getModel());

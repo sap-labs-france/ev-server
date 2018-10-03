@@ -51,6 +51,7 @@ class SiteSecurity {
 		filteredRequest.WithChargeBoxes = UtilsSecurity.filterBoolean(request.WithChargeBoxes);
 		filteredRequest.WithCompany = UtilsSecurity.filterBoolean(request.WithCompany);
 		filteredRequest.WithUsers = UtilsSecurity.filterBoolean(request.WithUsers);
+		filteredRequest.WithAvailableChargers = UtilsSecurity.filterBoolean(request.WithAvailableChargers);
 		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
 		UtilsSecurity.filterSort(request, filteredRequest);
 		return filteredRequest;
@@ -125,6 +126,9 @@ class SiteSecurity {
 				filteredSite.users = site.users.map((user) => {
 					return SiteSecurity.getUserSecurity().filterMinimalUserResponse(user, loggedUser);
 				})
+			}
+			if (site.hasOwnProperty("availableChargers")) {
+				filteredSite.availableChargers = site.availableChargers;
 			}
 			// Created By / Last Changed By
 			UtilsSecurity.filterCreatedAndLastChanged(
