@@ -358,14 +358,13 @@ class ChargingStation {
 
 		// Set
 		this.setConnectors(connectors);
-		// Update Power?
 		if (!connectors[statusNotification.connectorId-1].power) {
-			// Update
+			// Update Connector's Power
 			this.updateConnectorsPower();
 		}
 		// Save Status Notif
 		await ChargingStationStorage.saveStatusNotification(statusNotification);
-		// Save Charger Status
+		// Save Connector
 		await ChargingStationStorage.saveChargingStationConnector(this.getModel(), statusNotification.connectorId);
 		// Log
 		Logging.logInfo({
@@ -398,6 +397,7 @@ class ChargingStation {
 		let current = 0;
 		let nbPhase = 0;
 		let power = 0;
+		let totalPower = 0;
 
 		// Only for Schneider
 		if (this.getChargePointVendor() === 'Schneider Electric') {
@@ -447,7 +447,13 @@ class ChargingStation {
 			for (const connector of this.getConnectors()) {
 				if (connector) {
 					connector.power = power;
+					totalPower += power;
 				}
+			}
+			// Set total power
+			if (totalPower && !this.getMaximumPower()) {
+				// Set
+				this.setMaximumPower(totalPower);
 			}
 		}
 	}
@@ -485,6 +491,19 @@ class ChargingStation {
 		this.setLastHeartBeat(new Date());
 		// Save
 		await this.saveHeartBeat();
+		// Update Charger Max Power?
+		console.log('====================================');
+		console.log("SAVE?");
+		console.log('====================================');
+		if (!this.getMaximumPower()) {
+			console.log('====================================');
+			console.log("YES");
+			console.log('====================================');
+				// Yes
+			await this.updateConnectorsPower();
+			// Save Charger
+			await this.save();
+		}
 		// Log
 		Logging.logInfo({
 			source: this.getID(),
