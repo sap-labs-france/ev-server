@@ -492,13 +492,7 @@ class ChargingStation {
 		// Save
 		await this.saveHeartBeat();
 		// Update Charger Max Power?
-		console.log('====================================');
-		console.log("SAVE?");
-		console.log('====================================');
 		if (!this.getMaximumPower()) {
-			console.log('====================================');
-			console.log("YES");
-			console.log('====================================');
 				// Yes
 			await this.updateConnectorsPower();
 			// Save Charger
