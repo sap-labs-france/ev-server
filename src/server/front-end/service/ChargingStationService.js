@@ -32,9 +32,13 @@ class ChargingStationService {
 					req.user);
 			}
 			// Update URL
-			chargingStation.setChargingStationURL(filteredRequest.chargingStationURL);
+			if (filteredRequest.chargingStationURL) {
+				chargingStation.setChargingStationURL(filteredRequest.chargingStationURL);
+			}
 			// Update Nb Phase
-			chargingStation.setNumberOfConnectedPhase(filteredRequest.numberOfConnectedPhase);
+			if (filteredRequest.numberOfConnectedPhase) {
+				chargingStation.setNumberOfConnectedPhase(parseInt(filteredRequest.numberOfConnectedPhase));
+			}
 			// Update Power
 			await chargingStation.updateConnectorsPower();
 			// Update timestamp
