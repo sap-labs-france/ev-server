@@ -142,6 +142,22 @@ class ChargingStation {
 		this._model.numberOfConnectedPhase = numberOfConnectedPhase;
 	}
 
+	getMaximumPower() {
+		return this._model.maximumPower;
+	}
+
+	setMaximumPower(maximumPower) {
+		this._model.maximumPower = maximumPower;
+	}
+
+	setCannotChargeInParallel(cannotChargeInParallel) {
+		this._model.cannotChargeInParallel = cannotChargeInParallel;
+	}
+
+	canChargeInParallel() {
+		return !this._model.cannotChargeInParallel;
+	}
+
 	getFirmwareVersion() {
 		return this._model.firmwareVersion;
 	}
@@ -383,52 +399,55 @@ class ChargingStation {
 		let nbPhase = 0;
 		let power = 0;
 
-		// Get the configuration
-		let configuration = await this.getConfiguration();
-		// Config Provided?
-		if (configuration && configuration.configuration) {
-			// Search for params
-			for (var i = 0; i < configuration.configuration.length; i++) {
-				// Check
-				switch (configuration.configuration[i].key) {
-					// Voltage
-					case 'voltagererefence':
-						// Get the meter interval
-						voltageRerefence = parseInt(configuration.configuration[i].value);
-						break;
+		// Only for Schneider
+		if (this.getChargePointVendor() === 'Schneider Electric') {
+			// Get the configuration
+			let configuration = await this.getConfiguration();
+			// Config Provided?
+			if (configuration && configuration.configuration) {
+				// Search for params
+				for (var i = 0; i < configuration.configuration.length; i++) {
+					// Check
+					switch (configuration.configuration[i].key) {
+						// Voltage
+						case 'voltagererefence':
+							// Get the meter interval
+							voltageRerefence = parseInt(configuration.configuration[i].value);
+							break;
 
-					// Current
-					case 'currentpb1':
-						// Get the meter interval
-						current = parseInt(configuration.configuration[i].value);
-						break;
+						// Current
+						case 'currentpb1':
+							// Get the meter interval
+							current = parseInt(configuration.configuration[i].value);
+							break;
 
-					// Nb Phase
-					case 'nbphase':
-						// Get the meter interval
-						nbPhase = parseInt(configuration.configuration[i].value);
-						break;
+						// Nb Phase
+						case 'nbphase':
+							// Get the meter interval
+							nbPhase = parseInt(configuration.configuration[i].value);
+							break;
+					}
+				}
+				// Override?
+				if (this.getNumberOfConnectedPhase()) {
+					// Yes
+					nbPhase = this.getNumberOfConnectedPhase();
+				}
+				// Compute it
+				if (voltageRerefence && current && nbPhase) {
+					// One Phase?
+					if (nbPhase == 1) {
+						power = Math.floor(230 * current);
+					} else {
+						power = Math.floor(400 * current * Math.sqrt(nbPhase));
+					}
 				}
 			}
-			// Override?
-			if (this.getNumberOfConnectedPhase()) {
-				// Yes
-				nbPhase = this.getNumberOfConnectedPhase();
-			}
-			// Compute it
-			if (voltageRerefence && current && nbPhase) {
-				// One Phase?
-				if (nbPhase == 1) {
-					power = Math.floor(230 * current);
-				} else {
-					power = Math.floor(400 * current * Math.sqrt(nbPhase));
+			// Set Power
+			for (const connector of this.getConnectors()) {
+				if (connector) {
+					connector.power = power;
 				}
-			}
-		}
-		// Set Power
-		for (const connector of this.getConnectors()) {
-			if (connector) {
-				connector.power = power;
 			}
 		}
 	}

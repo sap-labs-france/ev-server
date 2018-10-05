@@ -36,11 +36,27 @@ class ChargingStationService {
 				chargingStation.setChargingStationURL(filteredRequest.chargingStationURL);
 			}
 			// Update Nb Phase
-			if (filteredRequest.numberOfConnectedPhase) {
-				chargingStation.setNumberOfConnectedPhase(parseInt(filteredRequest.numberOfConnectedPhase));
+			if (filteredRequest.hasOwnProperty('numberOfConnectedPhase')) {
+				chargingStation.setNumberOfConnectedPhase(filteredRequest.numberOfConnectedPhase);
 			}
-			// Update Power
-			await chargingStation.updateConnectorsPower();
+			// Update Power Max
+			if (filteredRequest.hasOwnProperty('maximumPower')) {
+				chargingStation.setMaximumPower(parseInt(filteredRequest.maximumPower));
+			}
+			// Update Cannot Charge in Parallel
+			if (filteredRequest.hasOwnProperty('cannotChargeInParallel')) {
+				chargingStation.setCannotChargeInParallel(filteredRequest.cannotChargeInParallel);
+			}
+			// Update Connectors
+			if (filteredRequest.connectors) {
+				let chargerConnectors = chargingStation.getConnectors();
+				// Assign to Charger's connector
+				for (const connector of filteredRequest.connectors) {
+					// Set
+					chargerConnectors[connector.connectorId-1].power = connector.power;
+					chargerConnectors[connector.connectorId-1].type = connector.type;
+				}
+			}
 			// Update timestamp
 			chargingStation.setLastChangedBy(new User({'id': req.user.id}));
 			chargingStation.setLastChangedOn(new Date());

@@ -61,12 +61,18 @@ class Database {
 			}
 		}
 		dest.lastReboot = Utils.convertToDate(src.lastReboot);
-		if (src.numberOfConnectedPhase) {
-			dest.numberOfConnectedPhase = Utils.convertToInt(src.numberOfConnectedPhase);
-		}
 		dest.siteAreaID = Utils.convertToObjectID(src.siteAreaID);
 		if (src.chargingStationURL) {
 			dest.chargingStationURL = src.chargingStationURL;
+		}
+		if (src.hasOwnProperty('numberOfConnectedPhase')) {
+			dest.numberOfConnectedPhase = Utils.convertToInt(src.numberOfConnectedPhase);
+		}
+		if (src.hasOwnProperty('maximumPower')) {
+			dest.maximumPower = Utils.convertToInt(src.maximumPower);
+		}
+		if (src.hasOwnProperty('cannotChargeInParallel')) {
+			dest.cannotChargeInParallel = src.cannotChargeInParallel;
 		}
 		dest.connectors = [];
 		if (src.connectors) {
@@ -82,6 +88,7 @@ class Database {
 						"info": connector.info,
 						"vendorErrorCode": connector.vendorErrorCode,
 						"power": Utils.convertToInt(connector.power),
+						"type": connector.type,
 						"activeTransactionID": Utils.convertToInt(connector.activeTransactionID)
 					});
 				} else {
