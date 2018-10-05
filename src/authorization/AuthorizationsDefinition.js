@@ -426,6 +426,130 @@ module.exports = {
 							}
 						}
 					]
+				},
+				{
+					"id": "S",
+					"name": "SuperAdmin",
+					"auths": [
+						{
+							"AuthObject": "Users",
+							"AuthFieldValue": {
+								"Action": ["List"]
+							}
+						}, {
+							"AuthObject": "User",
+							"AuthFieldValue": {
+								"UserID": "*",
+								"Action": ["Create", "Read", "Update", "Delete", "Logout", "UnlockConnector"]
+							}
+						}, {
+							"AuthObject": "Companies",
+							"AuthFieldValue": {
+								"Action": ["List"]
+							}
+						}, {
+							"AuthObject": "Company",
+							"AuthFieldValue": {
+								"CompanyID": "*",
+								"Action": ["Create", "Read", "Update", "Delete"]
+							}
+						}, {
+							"AuthObject": "Sites",
+							"AuthFieldValue": {
+								"Action": ["List"]
+							}
+						}, {
+							"AuthObject": "Site",
+							"AuthFieldValue": {
+								"SiteID": "*",
+								"Action": ["Create", "Read", "Update", "Delete"]
+							}
+						}, {
+							"AuthObject": "VehicleManufacturers",
+							"AuthFieldValue": {
+								"Action": ["List"]
+							}
+						}, {
+							"AuthObject": "VehicleManufacturer",
+							"AuthFieldValue": {
+								"VehicleManufacturerID": "*",
+								"Action": ["Create", "Read", "Update", "Delete"]
+							}
+						}, {
+							"AuthObject": "Vehicles",
+							"AuthFieldValue": {
+								"Action": ["List"]
+							}
+						}, {
+							"AuthObject": "Vehicle",
+							"AuthFieldValue": {
+								"VehicleID": "*",
+								"Action": ["Create", "Read", "Update", "Delete"]
+							}
+						}, {
+							"AuthObject": "SiteAreas",
+							"AuthFieldValue": {
+								"Action": ["List"]
+							}
+						}, {
+							"AuthObject": "SiteArea",
+							"AuthFieldValue": {
+								"SiteAreaID": "*",
+								"Action": ["Create", "Read", "Update", "Delete"]
+							}
+						}, {
+							"AuthObject": "ChargingStations",
+							"AuthFieldValue": {
+								"Action": ["List"]
+							}
+						}, {
+							"AuthObject": "ChargingStation",
+							"AuthFieldValue": {
+								"ChargingStationID": "*",
+								"Action": ["Create", "Read", "Update", "Delete", "Reset", "ClearCache", "GetConfiguration", "ChangeConfiguration", "StartTransaction", "StopTransaction", "UnlockConnector", "Authorize"]
+							}
+						}, {
+							"AuthObject": "Transactions",
+							"AuthFieldValue": {
+								"Action": ["List"]
+							}
+						}, {
+							"AuthObject": "Transaction",
+							"AuthFieldValue": {
+								"UserID": "*",
+								"Action": ["Read", "Update", "Delete", "RefundTransaction"]
+							}
+						}, {
+							"AuthObject": "Loggings",
+							"AuthFieldValue": {
+								"Action": ["List"]
+							}
+						}, {
+							"AuthObject": "Logging",
+							"AuthFieldValue": {
+								"LogID": "*",
+								"Action": ["Read"]
+							}
+						}, {
+							"AuthObject": "Pricing",
+							"AuthFieldValue": {
+								"Action": ["Read", "Update"]
+							}
+						},
+						{
+							"AuthObject": "Tenants",
+							"AuthFieldValue": {
+								"Action": ["List"]
+							}
+						},
+						{
+							"AuthObject": "Tenant",
+							"AuthFieldValue": {
+								"TenantID": "*",
+								"Action": ["Create", "Read", "Update", "Delete"]
+							}
+						}
+					]
 				}
 			]
 		`;

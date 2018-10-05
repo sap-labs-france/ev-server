@@ -12,6 +12,7 @@ const UtilsService = require('./service/UtilsService');
 const LoggingService = require('./service/LoggingService');
 const TransactionService = require('./service/TransactionService');
 const StatisticService = require('./service/StatisticService');
+const TenantService = require('./service/TenantService');
 
 require('source-map-support').install();
 
@@ -74,6 +75,9 @@ module.exports = {
 					case "CompanyCreate":
 						// Delegate
 						CompanyService.handleCreateCompany(action, req, res, next);
+						break;
+					case "TenantCreate":
+						TenantService.handleCreateTenant(action, req, res, next);
 						break;
 					// Create Vehicle
 					case "VehicleCreate":
@@ -185,6 +189,9 @@ module.exports = {
 					case "SiteImage":
 						// Delegate
 						SiteService.handleGetSiteImage(action, req, res, next);
+						break;
+					case "Tenants":
+						TenantService.handleGetTenants(action, req, res, next);
 						break;
 					// Get all the vehicles
 					case "Vehicles":

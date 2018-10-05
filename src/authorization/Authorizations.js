@@ -587,6 +587,44 @@ class Authorizations {
 			{ "Action": Constants.ACTION_DELETE, "CompanyID": company.id.toString() });
 	}
 
+	static canListTenants(loggedUser) {
+		// Check
+		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TENANTS, {
+			"Action": Constants.ACTION_LIST
+		});
+	}
+
+	static canReadTenant(loggedUser, tenant) {
+		// Check
+		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TENANT, {
+			"Action": Constants.ACTION_READ,
+			"TenantID": tenant.id.toString()
+		});
+	}
+
+	static canCreateTenant(loggedUser) {
+		// Check
+		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TENANT, {
+			"Action": Constants.ACTION_CREATE
+		});
+	}
+
+	static canUpdateTenant(loggedUser, tenant) {
+		// Check
+		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TENANT, {
+			"Action": Constants.ACTION_UPDATE,
+			"TenantID": tenant.id.toString()
+		});
+	}
+
+	static canDeleteTenant(loggedUser, tenant) {
+		// Check
+		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TENANT, {
+			"Action": Constants.ACTION_DELETE,
+			"TenantID": tenant.id.toString()
+		});
+	}
+
 	static canReadPricing(loggedUser) {
 		// Check
 		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_PRICING,
