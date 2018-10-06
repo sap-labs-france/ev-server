@@ -350,12 +350,6 @@ class ChargingStation {
 		connectors[statusNotification.connectorId-1].errorCode = statusNotification.errorCode;
 		connectors[statusNotification.connectorId-1].info = statusNotification.info;
 		connectors[statusNotification.connectorId-1].vendorErrorCode = statusNotification.vendorErrorCode;
-		// Check Available
-		if (statusNotification.status === 'Available') {
-			// Reset Transaction ID
-			connectors[statusNotification.connectorId-1].activeTransactionID = 0;
-		}
-
 		// Set
 		this.setConnectors(connectors);
 		if (!connectors[statusNotification.connectorId-1].power) {
@@ -1093,6 +1087,20 @@ class ChargingStation {
 		transaction.tagID = transaction.idTag;
 		// Ok: Save Transaction
 		let newTransaction = await TransactionStorage.saveTransaction(transaction);
+		// Check if Charger can charge in //
+		if (!this.canChargeInParallel()) {
+			// Set all the other connectors to occupied
+			this.getConnectors().forEach(async (connector) => {
+				// Check
+				if (connector.status === 'Available') {
+					// Set Occupied
+					connector.status = 'Occupied';
+					connector.errorCode = 'NoError';
+					// Save Connector
+					await ChargingStationStorage.saveChargingStationConnector(this.getModel(), connector.connectorId);
+				}
+			});
+		}
 		// Set the user
 		newTransaction.user = user.getModel();
 		// Update Consumption
@@ -1152,6 +1160,20 @@ class ChargingStation {
 		// Init the charging station
 		connector.currentConsumption = 0;
 		connector.totalConsumption = 0;
+		// Reset Transaction ID
+		connector.activeTransactionID = 0;
+		// Check if Charger can charge in //
+		if (!this.canChargeInParallel()) {
+			// Set all the other connectors to Available
+			this.getConnectors().forEach(async (connector) => {
+				// Check
+				if (connector.status === 'Occupied') {
+					// Set Occupied
+					connector.status = 'Available';
+					connector.errorCode = 'NoError';
+				}
+			});
+		}
 		// Save Charging Station
 		await this.save();
 		// Compute total consumption (optimization)
