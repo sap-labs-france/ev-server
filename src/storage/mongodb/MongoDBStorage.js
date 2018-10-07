@@ -114,7 +114,10 @@ class MongoDBStorage {
 				useNewUrlParser: true,
 				poolSize: _dbConfig.poolSize,
 				replicaSet: _dbConfig.replicaSet,
-				loggerLevel: (_dbConfig.debug ? 'debug' : null)
+				loggerLevel: (_dbConfig.debug ? 'debug' : null),
+				reconnectTries: Number.MAX_VALUE,
+				reconnectInterval: 1000,
+				autoReconnect: true
 			}
 		);
 		// Get the EVSE DB
