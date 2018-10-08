@@ -1166,9 +1166,10 @@ class ChargingStation {
 		if (!this.canChargeInParallel()) {
 			// Set all the other connectors to Available
 			this.getConnectors().forEach(async (connector) => {
-				// Check
-				if (connector.status === 'Occupied') {
-					// Set Occupied
+				// Only other Occupied connectors
+				if ((connector.status === 'Occupied') && 
+						(connector.connectorId !== transaction.connectorId)) {
+					// Set connector Available again
 					connector.status = 'Available';
 					connector.errorCode = 'NoError';
 				}
