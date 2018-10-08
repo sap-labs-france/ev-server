@@ -442,7 +442,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"type\": \"C\",\n\t\"model\": \"Zoe3\",\n\t\"batteryKW\": 40,\n\t\"autonomyKmWLTP\": 300,\n\t\"autonomyKmReal\": 200,\n\t\"horsePower\": 80,\n\t\"torqueNm\": 100,\n\t\"performance0To100kmh\": 69,\n\t\"weightKg\": 1250,\n\t\"lengthMeter\": 4.30,\n\t\"widthMeter\": 2,\n\t\"heightMeter\": 1.6,\n\t\"vehicleManufacturerID\" : \"5b7ab627670416a1e4c44764\",\n\t\"releasedOn\": \"01/10/2018\",\n\t\"images\": [\"xyz\", \"uvw\"],\n\t\"withVehicleImages\": true\n}"
+					"raw": "{\n\t\"type\": \"C\",\n\t\"model\": \"Zoe3\",\n\t\"batteryKW\": 40,\n\t\"autonomyKmWLTP\": 300,\n\t\"autonomyKmReal\": 200,\n\t\"horsePower\": 80,\n\t\"torqueNm\": 100,\n\t\"performance0To100kmh\": 69,\n\t\"weightKg\": 1250,\n\t\"lengthMeter\": 4.30,\n\t\"widthMeter\": 2,\n\t\"heightMeter\": 1.6,\n\t\"vehicleManufacturerID\" : \"5b85c0eeb8e312367c713e9b\",\n\t\"releasedOn\": \"01/10/2018\",\n\t\"images\": [\"xyz\", \"uvw\"],\n\t\"withVehicleImages\": true\n}"
 				},
 				"url": {
 					"raw": "{{base_url}}/client/api/VehicleCreate",
@@ -563,7 +563,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/client/api/VehicleManufacturers?WithVehicles=true",
+					"raw": "{{base_url}}/client/api/VehicleManufacturers?WithVehicles=false",
 					"host": [
 						"{{base_url}}"
 					],
@@ -575,7 +575,7 @@
 					"query": [
 						{
 							"key": "WithVehicles",
-							"value": "true"
+							"value": "false"
 						}
 					]
 				}
@@ -863,7 +863,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/client/api/Companies?WithSites=false",
+					"raw": "{{base_url}}/client/api/Companies?WithSites=true",
 					"host": [
 						"{{base_url}}"
 					],
@@ -875,7 +875,7 @@
 					"query": [
 						{
 							"key": "WithSites",
-							"value": "false"
+							"value": "true"
 						}
 					]
 				}
@@ -1013,7 +1013,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/client/api/Sites?WithPicture=false&WithSiteAreas=true&WithChargeBoxes=true&WithCompany=false&WithUsers=true",
+					"raw": "{{base_url}}/client/api/Sites?WithPicture=false&WithSiteAreas=false&WithChargeBoxes=false&WithCompany=false&WithUsers=false&UserID=592e969f89d8e07a2b16a78f&Limit=0&Skip=0&WithAvailableChargers=true",
 					"host": [
 						"{{base_url}}"
 					],
@@ -1029,11 +1029,11 @@
 						},
 						{
 							"key": "WithSiteAreas",
-							"value": "true"
+							"value": "false"
 						},
 						{
 							"key": "WithChargeBoxes",
-							"value": "true"
+							"value": "false"
 						},
 						{
 							"key": "WithCompany",
@@ -1041,6 +1041,22 @@
 						},
 						{
 							"key": "WithUsers",
+							"value": "false"
+						},
+						{
+							"key": "UserID",
+							"value": "592e969f89d8e07a2b16a78f"
+						},
+						{
+							"key": "Limit",
+							"value": "0"
+						},
+						{
+							"key": "Skip",
+							"value": "0"
+						},
+						{
+							"key": "WithAvailableChargers",
 							"value": "true"
 						}
 					]
@@ -1183,7 +1199,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/client/api/SiteAreas?WithChargeBoxes=true",
+					"raw": "{{base_url}}/client/api/SiteAreas?WithChargeBoxes=true&WithSite=false&SiteID=5abeba8d4bae1457eb565e5b",
 					"host": [
 						"{{base_url}}"
 					],
@@ -1196,6 +1212,14 @@
 						{
 							"key": "WithChargeBoxes",
 							"value": "true"
+						},
+						{
+							"key": "WithSite",
+							"value": "false"
+						},
+						{
+							"key": "SiteID",
+							"value": "5abeba8d4bae1457eb565e5b"
 						}
 					]
 				}
@@ -1333,7 +1357,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/client/api/ChargingStations",
+					"raw": "{{base_url}}/client/api/ChargingStations?WithNoSiteArea=false&WithSiteArea=true&SiteID=5abeba8d4bae1457eb565e5b",
 					"host": [
 						"{{base_url}}"
 					],
@@ -1341,6 +1365,20 @@
 						"client",
 						"api",
 						"ChargingStations"
+					],
+					"query": [
+						{
+							"key": "WithNoSiteArea",
+							"value": "false"
+						},
+						{
+							"key": "WithSiteArea",
+							"value": "true"
+						},
+						{
+							"key": "SiteID",
+							"value": "5abeba8d4bae1457eb565e5b"
+						}
 					]
 				}
 			},
@@ -1391,6 +1429,45 @@
 						{
 							"key": "EndDateTime",
 							"value": "2018-08-06T21:22:54.225Z"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-ChargingStationConsumptionFromTransaction",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{base_url}}/client/api/ChargingStationConsumptionFromTransaction?TransactionId=424470619",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"client",
+						"api",
+						"ChargingStationConsumptionFromTransaction"
+					],
+					"query": [
+						{
+							"key": "TransactionId",
+							"value": "424470619"
 						}
 					]
 				}
@@ -1723,7 +1800,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/client/api/User?ID=592e969f89d8e07a2b16a795",
+					"raw": "{{base_url}}/client/api/User?ID=592e969f89d8e07a2b16a78f",
 					"host": [
 						"{{base_url}}"
 					],
@@ -1735,7 +1812,7 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "592e969f89d8e07a2b16a795"
+							"value": "592e969f89d8e07a2b16a78f"
 						}
 					]
 				}
@@ -2620,6 +2697,50 @@
 			"response": []
 		},
 		{
+			"name": "FE-TransactionDelete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{base_url}}/client/api/TransactionDelete?ID=1476453553",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"client",
+						"api",
+						"TransactionDelete"
+					],
+					"query": [
+						{
+							"key": "ID",
+							"value": "1476453553"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "HeartBeat",
 			"event": [
 				{
@@ -3048,6 +3169,54 @@
 			"response": []
 		},
 		{
+			"name": "MeterValue1-KEBA SampleClock",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "607d16dc-6bb2-43a7-9b7f-6bbdec7956b5",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "93c3f36b-90fe-4201-a886-80737ac0af28",
+						"type": "text/javascript",
+						"exec": [
+							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>0</connectorId>\r\n      <values>\r\n        <timestamp>{{currentDate}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Clock\">\r\n        \t10400\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8000/OCPP15",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"OCPP15"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "StartTransaction",
 			"event": [
 				{
@@ -3153,13 +3322,13 @@
 			"response": []
 		},
 		{
-			"name": "MeterValue1",
+			"name": "MeterValue1-KEBA",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <transactionId>{{transactionId}}</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction1}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t10400\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>0</connectorId>\r\n      <values>\r\n        <timestamp>{{dateTransaction1}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t10400\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
 					"raw": "http://127.0.0.1:8000/OCPP15",
@@ -3179,13 +3348,13 @@
 			"response": []
 		},
 		{
-			"name": "MeterValue2",
+			"name": "MeterValue2-ABB",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <transactionId>{{transactionId}}</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction2}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t10600\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <transactionId>-123456798</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction2}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t10600\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
 					"raw": "http://127.0.0.1:8000/OCPP15",
@@ -3205,13 +3374,13 @@
 			"response": []
 		},
 		{
-			"name": "MeterValue3",
+			"name": "MeterValue3-KEBA",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <transactionId>{{transactionId}}</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction3}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t11200\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>0</connectorId>\r\n      <values>\r\n        <timestamp>{{dateTransaction3}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Perodic\">\r\n        \t11200\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
 					"raw": "http://127.0.0.1:8000/OCPP15",
@@ -3231,13 +3400,13 @@
 			"response": []
 		},
 		{
-			"name": "MeterValue4",
+			"name": "MeterValue4-ABB-Sample.Clock",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <transactionId>{{transactionId}}</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction4}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t11450\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <transactionId>-255686</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction4}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Clock\">\r\n        \t11450\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
 					"raw": "http://127.0.0.1:8000/OCPP15",
