@@ -137,93 +137,266 @@ describe('Default transaction scenario', function() {
   it('A charging can update and stop a transaction', async () => {
     let currentTime = moment(context.currentTime);
     let connectorId = 1;
-    let chargePointState = {
-      connectorId: connectorId,
-      status: 'Available',
-      errorCode: 'NoError',
-      timestamp: currentTime.toISOString()
-    };
-    await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState, response => expect(response).to.eql({}));
 
-    let transactionState = {
-      connectorId: connectorId,
-      idTag: context.user.tagIDs[0],
-      meterStart: 10000,
-      timestamp: currentTime.toISOString()
-    };
-    let transactionId = null;
-    currentTime.add(1, 'minutes');
-    await ocpp.executeStartTransaction(context.chargeBoxIdentity, transactionState, response => {
-      expect(response).to.have.nested.property('transactionId');
-      transactionId = response.transactionId;
-      expect(response).to.containSubset({
-        idTagInfo: {
-          status: 'Accepted'
-        }
-      });
-    });
-    let expectedTransaction = {
-      connectorId: connectorId,
-      tagID: context.user.tagIDs[0],
-      chargeBoxID: context.chargeBoxIdentity,
-      chargeBox: {
-        id: context.chargeBoxIdentity,
-        connectors: [
-          {
-            activeTransactionID: transactionId,
-            connectorId: connectorId,
-            currentConsumption: 0,
-            totalConsumption: 0,
-            status: 'Available',
-            errorCode: 'NoError',
-            info: null,
-            vendorErrorCode: null
-          }
-        ]
+    await ocpp.executeStatusNotification(context.chargeBoxIdentity,
+      {
+        connectorId: connectorId,
+        status: 'Available',
+        errorCode: 'NoError',
+        timestamp: currentTime.toISOString()
       }
-    };
-    await transactionApi.readById(transactionId, (message) => expect(message.response).to.containSubset(expectedTransaction));
+      , response => expect(response).to.eql({}));
 
-    chargePointState.status = 'Occupied';
-    chargePointState.timestamp = currentTime.add(1, 'minutes');
-    await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState, response => expect(response).to.eql({}));
+    let transactionId = null;
 
-    expectedTransaction.chargeBox.connectors[0].status = 'Occupied';
-    await transactionApi.readById(transactionId, (message) => expect(message.response).to.containSubset(expectedTransaction));
+    const transactionStartDate = currentTime.add(1, 'minutes').clone();
+    await ocpp.executeStartTransaction(context.chargeBoxIdentity,
+      {
+        connectorId: connectorId,
+        idTag: context.user.tagIDs[0],
+        meterStart: 10000,
+        timestamp: transactionStartDate.toISOString()
+      }
+      , response => {
+        expect(response).to.have.nested.property('transactionId');
+        transactionId = response.transactionId;
+        expect(response).to.containSubset({
+          idTagInfo: {
+            status: 'Accepted'
+          }
+        });
+      });
 
-    const meterValue = {
-      connectorId: connectorId,
-      transactionId: transactionId,
-      values: {
-        timestamp: null,
-        value: {
-          $attributes: {
-            unit: 'Wh',
-            location: "Outlet",
-            measurand: "Energy.Active.Import.Register",
-            format: "Raw",
-            context: "Sample.Periodic"
-          },
-          $value: 10000
+    await transactionApi.readById(transactionId, (message) => expect(message.response).to.containSubset(
+      {
+        "chargeBox": {
+          "connectors": [
+            {
+              "activeTransactionID": transactionId,
+              "connectorId": connectorId,
+              "currentConsumption": 0,
+              "errorCode": "NoError",
+              "info": null,
+              "power": 0,
+              "status": "Available",
+              "totalConsumption": 0,
+              "vendorErrorCode": null,
+            }
+          ],
+          "id": context.chargeBoxIdentity,
+        },
+        connectorId: connectorId,
+        tagID: context.user.tagIDs[0],
+        chargeBoxID: context.chargeBoxIdentity,
+        "id": transactionId,
+        "timestamp": transactionStartDate.toISOString(),
+        "user": {
+          "firstName": context.user.firstName,
+          "id": context.user.id,
+          "name": context.user.name,
         }
-      },
-    };
+      }
+    ));
 
-    for (value in [...Array(10).keys()]) {
-      currentTime.add(1, "minutes").toISOString();
-      meterValue.values.timestamp = currentTime.add(1, "minutes").toISOString();
-      meterValue.values.value.$value = (200 * value);
-      await ocpp.executeMeterValues(context.chargeBoxIdentity, meterValue, response => expect(response).to.eql({}));
-      expectedTransaction.chargeBox.connectors[0].currentConsumption = value == 0 ? 0 : 6000;
-      expectedTransaction.chargeBox.connectors[0].totalConsumption = 200 * value;
-      await transactionApi.readById(transactionId, (message) => expect(message.response).to.containSubset(expectedTransaction));
+    await ocpp.executeStatusNotification(context.chargeBoxIdentity,
+      {
+        connectorId: connectorId,
+        status: 'Occupied',
+        errorCode: 'NoError',
+        timestamp: currentTime.add(1, 'minutes').toISOString()
+      }
+      , response => expect(response).to.eql({}));
+
+    await transactionApi.readById(transactionId, (message) => expect(message.response).to.containSubset(
+      {
+        "chargeBox": {
+          "connectors": [
+            {
+              "activeTransactionID": transactionId,
+              "connectorId": connectorId,
+              "currentConsumption": 0,
+              "errorCode": "NoError",
+              "info": null,
+              "power": 0,
+              "status": "Occupied",
+              "totalConsumption": 0,
+              "vendorErrorCode": null,
+            }
+          ],
+          "id": context.chargeBoxIdentity,
+        },
+        connectorId: connectorId,
+        tagID: context.user.tagIDs[0],
+        chargeBoxID: context.chargeBoxIdentity,
+        "id": transactionId,
+        "timestamp": transactionStartDate.toISOString(),
+        "user": {
+          "firstName": context.user.firstName,
+          "id": context.user.id,
+          "name": context.user.name,
+        }
+      }
+    ));
+
+
+    for (let value in [...Array(10).keys()]) {
+      await ocpp.executeMeterValues(context.chargeBoxIdentity,
+        {
+          connectorId: connectorId,
+          transactionId: transactionId,
+          values: {
+            timestamp: currentTime.add(1, "minutes").toISOString(),
+            value: {
+              $attributes: {
+                unit: 'Wh',
+                location: "Outlet",
+                measurand: "Energy.Active.Import.Register",
+                format: "Raw",
+                context: "Sample.Periodic"
+              },
+              $value: (200 * value)
+            }
+          },
+        }
+        , response => expect(response).to.eql({}));
+
+      await transactionApi.readById(transactionId, (message) => expect(message.response).to.containSubset(
+        {
+          "chargeBox": {
+            "connectors": [
+              {
+                "activeTransactionID": transactionId,
+                "connectorId": connectorId,
+                "currentConsumption": value == 0 ? 0 : 12000,
+                "errorCode": "NoError",
+                "info": null,
+                "power": 0,
+                "status": "Occupied",
+                "totalConsumption": 200 * value,
+                "vendorErrorCode": null,
+              }
+            ],
+            "id": context.chargeBoxIdentity,
+          },
+          connectorId: connectorId,
+          tagID: context.user.tagIDs[0],
+          chargeBoxID: context.chargeBoxIdentity,
+          "id": transactionId,
+          "timestamp": transactionStartDate.toISOString(),
+          "user": {
+            "firstName": context.user.firstName,
+            "id": context.user.id,
+            "name": context.user.name,
+          }
+        }
+      ));
     }
+    const transactionStopDate = currentTime.clone();
 
-    transactionState.transactionId = transactionId;
-    transactionState.timestamp = currentTime.toISOString();
-    await ocpp.executeStopTransaction(context.chargeBoxIdentity, transactionState, response => {
-      expect(response.idTagInfo.status).to.eql('Accepted');
-    });
+    await ocpp.executeStopTransaction(context.chargeBoxIdentity,
+      {
+        transactionId: transactionId,
+        connectorId: connectorId,
+        idTag: context.user.tagIDs[0],
+        meterStart: 10000,
+        timestamp: transactionStopDate.toISOString()
+      }
+      , response => {
+        expect(response.idTagInfo.status).to.eql('Accepted');
+      });
+
+
+    await transactionApi.readById(transactionId, (message) => expect(message.response).to.containSubset(
+      {
+        "chargeBox": {
+          "connectors": [
+            {
+              "activeTransactionID": transactionId,
+              "connectorId": connectorId,
+              "currentConsumption": 0,
+              "errorCode": "NoError",
+              "info": null,
+              "power": 0,
+              "status": "Occupied",
+              "totalConsumption": 0,
+              "vendorErrorCode": null
+            }
+          ],
+          "id": context.chargeBoxIdentity
+        },
+        "chargeBoxID": context.chargeBoxIdentity,
+        "connectorId": connectorId,
+        "id": transactionId,
+        "stop": {
+          "tagID": context.user.tagIDs[0],
+          "timestamp": transactionStopDate.toISOString(),
+          "totalConsumption": 1800,
+          "totalInactivitySecs": 0,
+          "user": {
+            "firstName": context.user.firstName,
+            "id": context.user.id,
+            "name": context.user.name,
+          },
+        },
+        "tagID": context.user.tagIDs[0],
+        "timestamp": transactionStartDate.toISOString(),
+        "user": {
+          "firstName": context.user.firstName,
+          "id": context.user.id,
+          "name": context.user.name,
+        }
+      }));
+
+    await ocpp.executeStatusNotification(context.chargeBoxIdentity,
+      {
+        connectorId: connectorId,
+        status: 'Available',
+        errorCode: 'NoError',
+        timestamp: currentTime.add(1, "minutes").toISOString()
+      }
+      , response => expect(response).to.eql({}));
+
+    await transactionApi.readById(transactionId, (message) => expect(message.response).to.containSubset(
+      {
+        "chargeBox": {
+          "connectors": [
+            {
+              "activeTransactionID": 0,
+              "connectorId": connectorId,
+              "currentConsumption": 0,
+              "errorCode": "NoError",
+              "info": null,
+              "power": 0,
+              "status": "Available",
+              "totalConsumption": 0,
+              "vendorErrorCode": null
+            }
+          ],
+          "id": context.chargeBoxIdentity
+        },
+        "chargeBoxID": context.chargeBoxIdentity,
+        "connectorId": connectorId,
+        "id": transactionId,
+        "stop": {
+          "tagID": context.user.tagIDs[0],
+          "timestamp": transactionStopDate.toISOString(),
+          "totalConsumption": 1800,
+          "totalInactivitySecs": 0,
+          "user": {
+            "firstName": context.user.firstName,
+            "id": context.user.id,
+            "name": context.user.name,
+          },
+        },
+        "tagID": context.user.tagIDs[0],
+        "timestamp": transactionStartDate.toISOString(),
+        "user": {
+          "firstName": context.user.firstName,
+          "id": context.user.id,
+          "name": context.user.name,
+        }
+      }
+    ));
 
   });
 

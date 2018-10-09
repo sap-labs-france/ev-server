@@ -1,4 +1,5 @@
 const Superagent = require('superagent');
+const config = require('../../../config');
 
 class BaseApi {
 
@@ -44,7 +45,9 @@ class BaseApi {
     } catch (error) {
       message = error.response;
     }
-    // console.log(JSON.stringify(message, null, 2));
+    if (config.get('logs')) {
+      console.log(JSON.stringify(message, null, 2));
+    }
     let response = null;
     if (data.headers.Accept === 'application/json') {
       response = JSON.parse(message.text);

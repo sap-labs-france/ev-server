@@ -1,8 +1,9 @@
 "use strict";
 
-var soap = require('strong-soap').soap;
-var XMLHandler = soap.XMLHandler;
-var xmlHandler = new XMLHandler();
+const soap = require('strong-soap').soap;
+const XMLHandler = soap.XMLHandler;
+const xmlHandler = new XMLHandler();
+const config = require('../../config');
 module.exports = class Ocpp15 {
 
   async init(url, options) {
@@ -81,7 +82,7 @@ module.exports = class Ocpp15 {
     }, expectations);
   }
 
-   executeStatusNotification(chargeBoxIdentity, payload, expectations) {
+  executeStatusNotification(chargeBoxIdentity, payload, expectations) {
     return this.execute({
       name: 'StatusNotification',
       headers: {
@@ -138,16 +139,18 @@ module.exports = class Ocpp15 {
     this.client.clearSoapHeaders();
     this.client.addSoapHeader(headers);
     const {result, envelope, soapHeader} = await method(payload, options, headers);
+    if (config.get('logs')) {
+      console.log('<!-- Request -->');
+      console.log(this.client.lastRequest);
+      if (soapHeader) {
+        console.log('<!-- Response Header -->');
+        console.log(soapHeader)
+      }
+      console.log('<!-- Response Envelope -->');
+      console.log(envelope);
+      console.log('\n');
+    }
 
-    // console.log('<!-- Request -->');
-    // console.log(this.client.lastRequest);
-    // if (soapHeader) {
-    //   console.log('<!-- Response Header -->');
-    //   console.log(soapHeader)
-    // }
-    // console.log('<!-- Response Envelope -->');
-    // console.log(envelope);
-    // console.log('\n');
 
     return result || {};
   }

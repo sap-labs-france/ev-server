@@ -8,6 +8,12 @@ const config = convict({
     default: 'local',
     env: 'NODE_ENV'
   },
+  logs: {
+    doc: 'true to trace communication with servers',
+    format: Boolean,
+    default: 'true',
+    env: 'TRACE_LOG'
+  },
   ocpp: {
     scheme: {
       doc: 'The OCPP server scheme.',

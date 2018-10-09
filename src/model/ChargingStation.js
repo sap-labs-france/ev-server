@@ -10,8 +10,8 @@ const Configuration = require('../utils/Configuration');
 const NotificationHandler = require('../notification/NotificationHandler');
 const Authorizations = require('../authorization/Authorizations');
 const AppError = require('../exception/AppError');
-const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage'); 
-const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage'); 
+const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
+const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
 const TransactionStorage = require('../storage/mongodb/TransactionStorage');
 const PricingStorage = require('../storage/mongodb/PricingStorage');
 
@@ -286,7 +286,7 @@ class ChargingStation {
 		if(request.method !== 'POST' && !filteredRequest.id) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The Charging Station ID is mandatory`, 500, 
+				`The Charging Station ID is mandatory`, 500,
 				'ChargingStations', 'checkIfChargingStationValid');
 		}
 	}
@@ -501,48 +501,48 @@ class ChargingStation {
 				// No config at all: Set default OCCP configuration
 				configuration = {
 					'configuration': [
-						{ 'key': 'AllowOfflineTxForUnknownId', 'readonly': false, 'value': null }, 
-						{ 'key': 'AuthorizationCacheEnabled', 'readonly': false, 'value': null }, 
-						{ 'key': 'AuthorizeRemoteTxRequests', 'readonly': false, 'value': null }, 
-						{ 'key': 'BlinkRepeat', 'readonly': false, 'value': null }, 
-						{ 'key': 'ClockAlignedDataInterval', 'readonly': false, 'value': null }, 
-						{ 'key': 'ConnectionTimeOut', 'readonly': false, 'value': null }, 
-						{ 'key': 'GetConfigurationMaxKeys', 'readonly': false, 'value': null }, 
-						{ 'key': 'HeartbeatInterval', 'readonly': false, 'value': null }, 
-						{ 'key': 'LightIntensity', 'readonly': false, 'value': null }, 
-						{ 'key': 'LocalAuthorizeOffline', 'readonly': false, 'value': null }, 
-						{ 'key': 'LocalPreAuthorize', 'readonly': false, 'value': null }, 
-						{ 'key': 'MaxEnergyOnInvalidId', 'readonly': false, 'value': null }, 
-						{ 'key': 'MeterValuesAlignedData', 'readonly': false, 'value': null }, 
-						{ 'key': 'MeterValuesAlignedDataMaxLength', 'readonly': false, 'value': null }, 
-						{ 'key': 'MeterValuesSampledData', 'readonly': false, 'value': null }, 
-						{ 'key': 'MeterValuesSampledDataMaxLength', 'readonly': false, 'value': null }, 
-						{ 'key': 'MeterValueSampleInterval', 'readonly': false, 'value': null }, 
-						{ 'key': 'MinimumStatusDuration', 'readonly': false, 'value': null }, 
-						{ 'key': 'NumberOfConnectors', 'readonly': false, 'value': null }, 
-						{ 'key': 'ResetRetries', 'readonly': false, 'value': null }, 
-						{ 'key': 'ConnectorPhaseRotation', 'readonly': false, 'value': null }, 
-						{ 'key': 'ConnectorPhaseRotationMaxLength', 'readonly': false, 'value': null }, 
-						{ 'key': 'StopTransactionOnEVSideDisconnect', 'readonly': false, 'value': null }, 
-						{ 'key': 'StopTransactionOnInvalidId', 'readonly': false, 'value': null }, 
-						{ 'key': 'StopTxnAlignedData', 'readonly': false, 'value': null }, 
-						{ 'key': 'StopTxnAlignedDataMaxLength', 'readonly': false, 'value': null }, 
-						{ 'key': 'StopTxnSampledData', 'readonly': false, 'value': null }, 
-						{ 'key': 'StopTxnSampledDataMaxLength', 'readonly': false, 'value': null }, 
-						{ 'key': 'SupportedFeatureProfiles', 'readonly': false, 'value': null }, 
-						{ 'key': 'SupportedFeatureProfilesMaxLength', 'readonly': false, 'value': null }, 
-						{ 'key': 'TransactionMessageAttempts', 'readonly': false, 'value': null }, 
-						{ 'key': 'TransactionMessageRetryInterval', 'readonly': false, 'value': null }, 
-						{ 'key': 'UnlockConnectorOnEVSideDisconnect', 'readonly': false, 'value': null }, 
-						{ 'key': 'WebSocketPingInterval', 'readonly': false, 'value': null }, 
-						{ 'key': 'LocalAuthListEnabled', 'readonly': false, 'value': null }, 
-						{ 'key': 'LocalAuthListMaxLength', 'readonly': false, 'value': null }, 
-						{ 'key': 'SendLocalListMaxLength', 'readonly': false, 'value': null }, 
-						{ 'key': 'ReserveConnectorZeroSupported', 'readonly': false, 'value': null }, 
-						{ 'key': 'ChargeProfileMaxStackLevel', 'readonly': false, 'value': null }, 
-						{ 'key': 'ChargingScheduleAllowedChargingRateUnit', 'readonly': false, 'value': null }, 
-						{ 'key': 'ChargingScheduleMaxPeriods', 'readonly': false, 'value': null }, 
-						{ 'key': 'ConnectorSwitch3to1PhaseSupported', 'readonly': false, 'value': null }, 
+						{ 'key': 'AllowOfflineTxForUnknownId', 'readonly': false, 'value': null },
+						{ 'key': 'AuthorizationCacheEnabled', 'readonly': false, 'value': null },
+						{ 'key': 'AuthorizeRemoteTxRequests', 'readonly': false, 'value': null },
+						{ 'key': 'BlinkRepeat', 'readonly': false, 'value': null },
+						{ 'key': 'ClockAlignedDataInterval', 'readonly': false, 'value': null },
+						{ 'key': 'ConnectionTimeOut', 'readonly': false, 'value': null },
+						{ 'key': 'GetConfigurationMaxKeys', 'readonly': false, 'value': null },
+						{ 'key': 'HeartbeatInterval', 'readonly': false, 'value': null },
+						{ 'key': 'LightIntensity', 'readonly': false, 'value': null },
+						{ 'key': 'LocalAuthorizeOffline', 'readonly': false, 'value': null },
+						{ 'key': 'LocalPreAuthorize', 'readonly': false, 'value': null },
+						{ 'key': 'MaxEnergyOnInvalidId', 'readonly': false, 'value': null },
+						{ 'key': 'MeterValuesAlignedData', 'readonly': false, 'value': null },
+						{ 'key': 'MeterValuesAlignedDataMaxLength', 'readonly': false, 'value': null },
+						{ 'key': 'MeterValuesSampledData', 'readonly': false, 'value': null },
+						{ 'key': 'MeterValuesSampledDataMaxLength', 'readonly': false, 'value': null },
+						{ 'key': 'MeterValueSampleInterval', 'readonly': false, 'value': null },
+						{ 'key': 'MinimumStatusDuration', 'readonly': false, 'value': null },
+						{ 'key': 'NumberOfConnectors', 'readonly': false, 'value': null },
+						{ 'key': 'ResetRetries', 'readonly': false, 'value': null },
+						{ 'key': 'ConnectorPhaseRotation', 'readonly': false, 'value': null },
+						{ 'key': 'ConnectorPhaseRotationMaxLength', 'readonly': false, 'value': null },
+						{ 'key': 'StopTransactionOnEVSideDisconnect', 'readonly': false, 'value': null },
+						{ 'key': 'StopTransactionOnInvalidId', 'readonly': false, 'value': null },
+						{ 'key': 'StopTxnAlignedData', 'readonly': false, 'value': null },
+						{ 'key': 'StopTxnAlignedDataMaxLength', 'readonly': false, 'value': null },
+						{ 'key': 'StopTxnSampledData', 'readonly': false, 'value': null },
+						{ 'key': 'StopTxnSampledDataMaxLength', 'readonly': false, 'value': null },
+						{ 'key': 'SupportedFeatureProfiles', 'readonly': false, 'value': null },
+						{ 'key': 'SupportedFeatureProfilesMaxLength', 'readonly': false, 'value': null },
+						{ 'key': 'TransactionMessageAttempts', 'readonly': false, 'value': null },
+						{ 'key': 'TransactionMessageRetryInterval', 'readonly': false, 'value': null },
+						{ 'key': 'UnlockConnectorOnEVSideDisconnect', 'readonly': false, 'value': null },
+						{ 'key': 'WebSocketPingInterval', 'readonly': false, 'value': null },
+						{ 'key': 'LocalAuthListEnabled', 'readonly': false, 'value': null },
+						{ 'key': 'LocalAuthListMaxLength', 'readonly': false, 'value': null },
+						{ 'key': 'SendLocalListMaxLength', 'readonly': false, 'value': null },
+						{ 'key': 'ReserveConnectorZeroSupported', 'readonly': false, 'value': null },
+						{ 'key': 'ChargeProfileMaxStackLevel', 'readonly': false, 'value': null },
+						{ 'key': 'ChargingScheduleAllowedChargingRateUnit', 'readonly': false, 'value': null },
+						{ 'key': 'ChargingScheduleMaxPeriods', 'readonly': false, 'value': null },
+						{ 'key': 'ConnectorSwitch3to1PhaseSupported', 'readonly': false, 'value': null },
 						{ 'key': 'MaxChargingProfilesInstalled', 'readonly': false, 'value': null }
 					]
 				};
@@ -774,7 +774,7 @@ class ChargingStation {
 				});
 				// Set to 1 (KEBA has only one connector)
 				meterValues.connectorId = 1;
-			}		
+			}
 			// Check if the transaction ID matches
 			let chargerTransactionId = this.getConnectors()[meterValues.connectorId-1].activeTransactionID;
 			// Same?
@@ -788,7 +788,7 @@ class ChargingStation {
 					});
 					// Override
 					meterValues.transactionId = chargerTransactionId;
-				} 
+				}
 			} else if (chargerTransactionId > 0) {
 				// No Transaction ID, retrieve it
 				Logging.logWarning({
@@ -1035,7 +1035,7 @@ class ChargingStation {
 				// Log
 				Logging.logWarning({
 					source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
-					action: 'StartTransaction', user: user.getModel(), 
+					action: 'StartTransaction', user: user.getModel(),
 					actionOnUser: existingTransaction.user,
 					message: `Transaction ID '${transaction.id}' already exists, generating a new one...` });
 			}
@@ -1156,7 +1156,7 @@ class ChargingStation {
 					'chargingBoxID': this.getID(),
 					'connectorId': transaction.connectorId,
 					'totalConsumption': (stopTransaction.totalConsumption/1000).toLocaleString(
-						(transaction.user.locale ? transaction.user.locale.replace('_','-') : User.DEFAULT_LOCALE.replace('_','-')),
+						(transaction.user.locale ? transaction.user.locale.replace('_','-') : Constants.DEFAULT_LOCALE.replace('_','-')),
 						{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
 					'totalDuration': this._buildCurrentTransactionDuration(transaction, transaction.stop.timestamp),
 					'totalInactivity': this._buildCurrentTransactionInactivity(transaction),
@@ -1179,7 +1179,7 @@ class ChargingStation {
 		// Cloud Revenue
 		setTimeout(() => {
 			// Check Chargers
-			if (this.getID() === 'PERNICE-WB-01' || 
+			if (this.getID() === 'PERNICE-WB-01' ||
 					this.getID() === 'HANNO-WB-01' ||
 					this.getID() === 'HANNO-WB-02') {
 				// Check Users
@@ -1191,7 +1191,7 @@ class ChargingStation {
 					newTransaction.chargeBox = {};
 					newTransaction.chargeBox.id = this.getID();
 					// Transfer it to the Revenue Cloud async
-					Utils.pushTransactionToRevenueCloud('StopTransaction', newTransaction, 
+					Utils.pushTransactionToRevenueCloud('StopTransaction', newTransaction,
 						newTransaction.stop.user, newTransaction.user);
 				}
 			}
@@ -1453,7 +1453,7 @@ class ChargingStation {
 				// Calculate the consumption with the last value provided
 				} else {
 					// Value provided?
-					if ((meterValue.value > 0 || lastMeterValue.value > 0) && 
+					if ((meterValue.value > 0 || lastMeterValue.value > 0) &&
 							(meterValue.value !== lastMeterValue.value)) {
 						// Last value is > ?
 						if (lastMeterValue.value > meterValue.value) {
