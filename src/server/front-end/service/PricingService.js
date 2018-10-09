@@ -3,6 +3,7 @@ const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const PricingSecurity = require('./security/PricingSecurity');
 const PricingStorage = require('../../../storage/mongodb/PricingStorage'); 
+const Constants = require('../../../utils/Constants');
 
 class PricingService {
 	static async handleGetPricing(action, req, res, next) {
@@ -72,7 +73,7 @@ class PricingService {
 				detailedMessages: req.body
 			});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log

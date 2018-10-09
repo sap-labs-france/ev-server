@@ -52,7 +52,7 @@ class SiteService {
 				message: `Site '${site.getName()}' has been deleted successfully`,
 				action: action, detailedMessages: site});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log
@@ -249,7 +249,7 @@ class SiteService {
 				message: `Site '${newSite.getName()}' has been created successfully`,
 				action: action, detailedMessages: newSite});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log
@@ -309,7 +309,7 @@ class SiteService {
 				message: `Site '${updatedSite.getName()}' has been updated successfully`,
 				action: action, detailedMessages: updatedSite});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log

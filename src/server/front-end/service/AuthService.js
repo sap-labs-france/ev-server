@@ -285,7 +285,7 @@ class AuthService {
 				newUser.getLocale()
 			);
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch(err) {	
 			// Log
@@ -357,7 +357,7 @@ class AuthService {
 				savedUser.getLocale()
 			);
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch(err) {
 			// Log
@@ -430,7 +430,7 @@ class AuthService {
 				newUser.getLocale()
 			);
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch(err) {
 			// Log
@@ -515,7 +515,7 @@ class AuthService {
 				detailedMessages: req.query
 			});			
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch(err){
 			// Log
@@ -611,7 +611,7 @@ class AuthService {
 				user.getLocale()
 			);
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch(err) {
 			// Log

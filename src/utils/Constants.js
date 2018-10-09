@@ -1,6 +1,8 @@
 require('source-map-support').install();
 
 module.exports = {
+	REST_RESPONSE_SUCCESS: { status: 'Success' },
+
 	CONN_STATUS_AVAILABLE: "Available",
 	CONN_STATUS_OCCUPIED: "Occupied",
 

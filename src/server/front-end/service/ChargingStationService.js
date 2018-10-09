@@ -7,7 +7,6 @@ const Authorizations = require('../../../authorization/Authorizations');
 const ChargingStationSecurity = require('./security/ChargingStationSecurity');
 const ChargingStationStorage = require('../../../storage/mongodb/ChargingStationStorage'); 
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage'); 
-
 class ChargingStationService {
 
 	static async handleUpdateChargingStationParams(action, req, res, next) {
@@ -74,7 +73,7 @@ class ChargingStationService {
 				}
 			});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log
@@ -209,7 +208,7 @@ class ChargingStationService {
 				message: `Charging Station '${chargingStation.getID()}' has been deleted successfully`,
 				action: action, detailedMessages: chargingStation});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log

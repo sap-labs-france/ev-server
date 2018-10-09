@@ -54,9 +54,7 @@ class TenantService {
                 detailedMessages: tenant
             });
             // Ok
-            res.json({
-                status: `Success`
-            });
+            res.json(Constants.REST_RESPONSE_SUCCESS);
             next();
         } catch (error) {
             // Log
@@ -193,9 +191,7 @@ class TenantService {
                 detailedMessages: newTenant
             });
             // Ok
-            res.json({
-                status: `Success`
-            });
+            res.json(Constants.REST_RESPONSE_SUCCESS);
             next();
         } catch (error) {
             // Log
@@ -246,9 +242,7 @@ class TenantService {
                 detailedMessages: updatedTenant
             });
             // Ok
-            res.json({
-                status: `Success`
-            });
+            res.json(Constants.REST_RESPONSE_SUCCESS);
             next();
         } catch (error) {
             // Log

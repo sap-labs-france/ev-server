@@ -51,7 +51,7 @@ class CompanyService {
 				message: `Company '${company.getName()}' has been deleted successfully`,
 				action: action, detailedMessages: company});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log
@@ -231,7 +231,7 @@ class CompanyService {
 				message: `Company '${newCompany.getName()}' has been created successfully`,
 				action: action, detailedMessages: newCompany});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log
@@ -278,7 +278,7 @@ class CompanyService {
 				message: `Company '${updatedCompany.getName()}' has been updated successfully`,
 				action: action, detailedMessages: updatedCompany});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log

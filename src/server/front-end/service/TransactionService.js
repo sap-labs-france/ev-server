@@ -67,7 +67,7 @@ class TransactionService {
 			// Transfer it to the Revenue Cloud
 			await Utils.pushTransactionToRevenueCloud(action, transaction, req.user, transaction.user);
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log
@@ -136,7 +136,7 @@ class TransactionService {
 				message: `Transaction ID '${filteredRequest.ID}' on '${transaction.chargeBox.id}'-'${transaction.connectorId}' has been deleted successfully`,
 				action: action, detailedMessages: result});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log
@@ -210,7 +210,7 @@ class TransactionService {
 				message: `Transaction ID '${transaction.id}' on '${transaction.chargeBox.id}'-'${transaction.connectorId}' has been stopped successfully`,
 				action: action, detailedMessages: result});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log

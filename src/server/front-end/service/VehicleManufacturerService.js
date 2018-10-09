@@ -51,7 +51,7 @@ class VehicleManufacturerService {
 				message: `Vehicle Manufacturer '${vehicleManufacturer.getName()}' has been deleted successfully`,
 				action: action, detailedMessages: vehicleManufacturer});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log
@@ -159,7 +159,7 @@ class VehicleManufacturerService {
 				message: `Vehicle Manufacturer '${newVehicleManufacturer.getName()}' has been created successfully`,
 				action: action, detailedMessages: newVehicleManufacturer});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log
@@ -207,7 +207,7 @@ class VehicleManufacturerService {
 				message: `Vehicle Manufacturer '${updatedVehicleManufacturer.getName()}' has been updated successfully`,
 				action: action, detailedMessages: updatedVehicleManufacturer});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log
