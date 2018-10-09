@@ -66,6 +66,15 @@ class Tenant {
         this._model.lastChangedOn = lastChangedOn;
     }
 
+    async save() {
+        let tenantMDB = await TenantStorage.saveTenant(this.getModel());
+        return new Tenant(tenantMDB);
+    }
+
+    delete() {
+        return TenantStorage.deleteTenant(this.getID());
+    }
+
     static checkIfTenantValid(filteredRequest, req) {
         // Update model?
         if (req.method !== 'POST' && !filteredRequest.id) {
@@ -88,49 +97,24 @@ class Tenant {
         }
     }
 
-    async save() {
-        let tenantMDB = await TenantStorage.saveTenant(this.getModel());
-        return new Tenant(tenantMDB);
-    }
-
-    delete() {
-        return TenantStorage.deleteTenant(this.getID());
-    }
-
     static async getTenant(id) {
-        return Tenant.createTenant(await TenantStorage.getTenant(id));
+        // Get Tenant
+        return await TenantStorage.getTenant(id)
     }
 
     static async getTenantByName(name) {
-        return Tenant.createTenant(await TenantStorage.getTenantByName(name));
+        // Get Tenant
+        return await TenantStorage.getTenantByName(name);
     }
 
     static async getTenantBySubdomain(subdomain) {
-        return Tenant.createTenant(await TenantStorage.getTenantBySubdomain(subdomain));
+        // Get Tenant
+        return await TenantStorage.getTenantBySubdomain(subdomain);
     }
 
     static async getTenants(params = {}, limit, skip, sort) {
-        let response = await TenantStorage.getTenants(params, limit, skip, sort);
-
-        if (response.result && response.result.length > 0) {
-            let tenants = [];
-            for (const tenantMDB of response.result) {
-                let tenant = Tenant.createTenant(tenantMDB);
-                if (tenant) {
-                    tenants.push(tenant);
-                }
-            }
-            response.result = tenants;
-        }
-        return response;
-    }
-
-    static createTenant(tenantMDB) {
-        let tenant;
-        if (tenantMDB) {
-            tenant = new Tenant(tenantMDB);
-        }
-        return tenant;
+        // Get Tenants
+        return await TenantStorage.getTenants(params, limit, skip, sort);
     }
 }
 

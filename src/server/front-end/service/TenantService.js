@@ -236,8 +236,6 @@ class TenantService {
             tenant.setLastChangedOn(new Date());
             // Update Tenant
             let updatedTenant = await tenant.save();
-            // Update Tenant's Logo
-            await tenant.saveLogo();
             // Log
             Logging.logSecurityInfo({
                 user: req.user,

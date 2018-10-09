@@ -6,6 +6,7 @@ const AppError = require('../../exception/AppError');
 
 class TenantStorage {
     static async getTenant(id) {
+		const Tenant = require('../../model/Tenant'); // Avoid fucking circular deps!!!
         // Create Aggregation
         let aggregation = [];
         // Filters
@@ -21,43 +22,44 @@ class TenantStorage {
             .aggregate(aggregation)
             .limit(1)
             .toArray();
-        let tenantMDB = null;
-        // Check
+        let tenant = null;
+        // Found?
         if (tenantsMDB && tenantsMDB.length > 0) {
             // Create
-            tenantMDB = tenantsMDB[0];
+            tenant = new Tenant(tenantsMDB[0]);
         }
-        return tenantMDB;
+        return tenant;
     }
 
     static async getTenantByName(name) {
-        let filter = {
-            'name': name
-        };
-        return await TenantStorage.getTenantByFilter(filter);
+        // Get
+        return await TenantStorage.getTenantByFilter({ 'name': name });
     }
 
     static async getTenantBySubdomain(subdomain) {
-        let filter = {
-            'subdomain': subdomain
-        };
-        return await TenantStorage.getTenantByFilter(filter);
+        // Get
+        return await TenantStorage.getTenantByFilter({ 'subdomain': subdomain });
     }
 
     static async getTenantByFilter(filter) {
+		const Tenant = require('../../model/Tenant'); // Avoid fucking circular deps!!!
         // Read DB
         let tenantsMDB = await global.db.collection('tenants')
             .find(filter)
             .limit(1)
             .toArray();
-        let tenantMDB = null;
+        let tenant = null;
+        // Found?
         if (tenantsMDB && tenantsMDB.length > 0) {
-            tenantMDB = tenantsMDB[0];
+			// Create
+            tenant = new Tenant(tenantsMDB[0]);
         }
-        return tenantMDB;
+        return tenant;
     }
 
     static async saveTenant(tenantToSave) {
+		const Tenant = require('../../model/Tenant'); // Avoid fucking circular deps!!!
+        // Check
         if (!tenantToSave.id && !tenantToSave.name) {
             throw new AppError(
                 Constants.CENTRAL_SERVER,
@@ -87,12 +89,15 @@ class TenantStorage {
                 returnOriginal: false
             });
         // Create
-        return result.value;
+        return new Tenant(result.value);
     }
 
     // Delegate
     static async getTenants(params = {}, limit, skip, sort) {
-        limit = Utils.checkRecordLimit(limit);
+		const Tenant = require('../../model/Tenant'); // Avoid fucking circular deps!!!
+	    // Check Limit
+	    limit = Utils.checkRecordLimit(limit);
+		// Check Skip
         skip = Utils.checkRecordSkip(skip);
         // Set the filters
         let filters = {};
@@ -153,10 +158,17 @@ class TenantStorage {
                 }
             })
             .toArray();
+
+        let tenants = [];
+        // Create
+        for (const tenantMDB of tenantsMDB) {
+            // Add
+            tenants.push(new Tenant(tenantMDB));
+        }
         // Ok
         return {
             count: (tenantsCountMDB.length > 0 ? tenantsCountMDB[0].count : 0),
-            result: tenantsMDB
+            result: tenants
         };
     }
 

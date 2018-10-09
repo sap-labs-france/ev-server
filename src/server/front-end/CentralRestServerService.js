@@ -190,8 +190,13 @@ module.exports = {
 						// Delegate
 						SiteService.handleGetSiteImage(action, req, res, next);
 						break;
+					// Get all tenant
 					case "Tenants":
 						TenantService.handleGetTenants(action, req, res, next);
+						break;
+					// Get one tenant
+					case "Tenant":
+						TenantService.handleGetTenant(action, req, res, next);
 						break;
 					// Get all the vehicles
 					case "Vehicles":
@@ -364,6 +369,11 @@ module.exports = {
 						// Delegate
 						ChargingStationService.handleUpdateChargingStationParams(action, req, res, next);
 						break;
+					// Tenant
+					case "TenantUpdate":
+						// Delegate
+						TenantService.handleUpdateTenant(action, req, res, next);
+						break;
 					// Site
 					case "SiteUpdate":
 						// Delegate
@@ -424,6 +434,11 @@ module.exports = {
 					case "VehicleManufacturerDelete":
 						// Delegate
 						VehicleManufacturerService.handleDeleteVehicleManufacturer(action, req, res, next);
+						break;
+					// Tenant
+					case "TenantDelete":
+						// Delegate
+						TenantService.handleDeleteTenant(action, req, res, next);
 						break;
 					// Site
 					case "SiteDelete":

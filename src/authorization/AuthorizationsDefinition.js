@@ -175,6 +175,17 @@ class AuthorizationsDefinition {
 						"AuthFieldValue": {
 							"Action": []
 						}
+					}, {
+						"AuthObject": "Tenants",
+						"AuthFieldValue": {
+							"Action": []
+						}
+					}, {
+						"AuthObject": "Tenant",
+						"AuthFieldValue": {
+							"TenantID": "*",
+							"Action": []
+						}
 					}
 				]
 			}
@@ -307,6 +318,17 @@ class AuthorizationsDefinition {
 					{
 						"AuthObject": "Pricing",
 						"AuthFieldValue": {
+							"Action": []
+						}
+					}, {
+						"AuthObject": "Tenants",
+						"AuthFieldValue": {
+							"Action": []
+						}
+					}, {
+						"AuthObject": "Tenant",
+						"AuthFieldValue": {
+							"TenantID": "*",
 							"Action": []
 						}
 					}
@@ -442,6 +464,17 @@ class AuthorizationsDefinition {
 						"AuthObject": "Pricing",
 						"AuthFieldValue": {
 							"Action": ["Read", "Update"]
+						}
+					}, {
+						"AuthObject": "Tenants",
+						"AuthFieldValue": {
+							"Action": []
+						}
+					}, {
+						"AuthObject": "Tenant",
+						"AuthFieldValue": {
+							"TenantID": "*",
+							"Action": []
 						}
 					}
 				]
