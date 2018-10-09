@@ -52,6 +52,11 @@ class MongoDBStorage {
 		// Get all the collections
 		let collections = await db.listCollections({}).toArray();
 		// Check only collections with indexes
+		// Tenants
+		await this.checkAndCreateCollection(db, collections, 'tenants', [
+			{ fields: { subdomain: 1 }, options: { unique: true } },
+			{ fields: { name: 1 }, options: { unique: true } } 
+		]);
 		// Users
 		await this.checkAndCreateCollection(db, collections, 'users', [
 			{ fields: { email: 1 }, options: { unique: true } } 
