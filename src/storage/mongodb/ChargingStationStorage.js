@@ -28,10 +28,7 @@ class ChargingStationStorage {
 		});
 		// Add
 		aggregation.push({
-			$unwind: {
-				"path": "$siteArea",
-				"preserveNullAndEmptyArrays": true
-			}
+			$unwind: { "path": "$siteArea", "preserveNullAndEmptyArrays": true }
 		});
 		// Read DB
 		let chargingStationMDB = await global.db.collection('chargingstations')
@@ -54,6 +51,7 @@ class ChargingStationStorage {
 
 	static async getChargingStations(params={}, limit, skip, sort) {
 		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
+		const SiteArea = require('../../model/SiteArea'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip
@@ -100,6 +98,20 @@ class ChargingStationStorage {
 			filters.$and.push({
 				"siteAreaID": null
 			});
+		} else {
+			// Always get the Site Area
+			aggregation.push({
+				$lookup: {
+					from: "siteareas",
+					localField: "siteAreaID",
+					foreignField: "_id",
+					as: "siteArea"
+				}
+			});
+			// Single Record
+			aggregation.push({
+				$unwind: { "path": "$siteArea", "preserveNullAndEmptyArrays": true }
+			});
 		}
 		// Filters
 		aggregation.push({
@@ -138,7 +150,12 @@ class ChargingStationStorage {
 		let chargingStations = [];
 		// Create
 		for (const chargingStationMDB of chargingStationsMDB) {
-			chargingStations.push(new ChargingStation(chargingStationMDB));
+			// Create the Charger
+			let chargingStation = new ChargingStation(chargingStationMDB)
+			// Add the Site Area
+			chargingStation.setSiteArea(new SiteArea(chargingStationMDB.siteArea))
+			// Add
+			chargingStations.push(chargingStation);
 		}
 		// Ok
 		return {

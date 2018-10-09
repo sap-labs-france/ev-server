@@ -355,32 +355,45 @@ class Authorizations {
 	}
 
 	static canListChargingStations(loggedUser) {
-		// Check
+		// Check Charging Station
 		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATIONS,
 			{ "Action": Constants.ACTION_LIST });
 	}
 
 	static canPerformActionOnChargingStation(loggedUser, chargingStation, action) {
-		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
-			{ "Action": action, "ChargingStationID": chargingStation.id });
+		// Check Charging Station && Site (Read)
+		return (
+			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+				{ "Action": action, "ChargingStationID": chargingStation.id })  &&
+			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
+				{ "Action": Constants.ACTION_READ, "SiteID": chargingStation.siteArea.siteID }));
 	}
 
 	static canReadChargingStation(loggedUser, chargingStation) {
-		// Check
-		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
-			{ "Action": Constants.ACTION_READ, "ChargingStationID": chargingStation.id });
+		// Check Charging Station && Site
+		return (
+			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+				{ "Action": Constants.ACTION_READ, "ChargingStationID": chargingStation.id }) &&
+			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
+				{ "Action": Constants.ACTION_READ, "SiteID": chargingStation.siteArea.siteID }));
 	}
 
 	static canUpdateChargingStation(loggedUser, chargingStation) {
-		// Check
-		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
-			{ "Action": Constants.ACTION_UPDATE, "ChargingStationID": chargingStation.id });
+		// Check Charging Station && Site
+		return (
+			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+				{ "Action": Constants.ACTION_UPDATE, "ChargingStationID": chargingStation.id }) &&
+			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
+				{ "Action": Constants.ACTION_UPDATE, "SiteID": chargingStation.siteArea.siteID }));
 	}
 
 	static canDeleteChargingStation(loggedUser, chargingStation) {
-		// Check
-		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
-			{ "Action": Constants.ACTION_DELETE, "ChargingStationID": chargingStation.id });
+		// Check Charging Station && Site
+		return (
+			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+				{ "Action": Constants.ACTION_DELETE, "ChargingStationID": chargingStation.id }) &&
+			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
+				{ "Action": Constants.ACTION_DELETE, "SiteID": chargingStation.siteArea.siteID }));
 	}
 
 	static canListUsers(loggedUser) {
@@ -516,27 +529,39 @@ class Authorizations {
 	}
 
 	static canReadSiteArea(loggedUser, siteArea) {
-		// Check
-		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA,
-			{ "Action": Constants.ACTION_READ, "SiteAreaID": siteArea.id.toString() });
+		// Check Site Area && Site
+		return (
+			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA,
+				{ "Action": Constants.ACTION_READ, "SiteAreaID": siteArea.id.toString() }) &&
+			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
+				{ "Action": Constants.ACTION_READ, "SiteID": siteArea.siteID }));
 	}
 
 	static canCreateSiteArea(loggedUser) {
-		// Check
-		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA,
-			{ "Action": Constants.ACTION_CREATE });
+		// Check Site Area && Site
+		return (
+			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA,
+				{ "Action": Constants.ACTION_CREATE }) &&
+			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
+				{ "Action": Constants.ACTION_CREATE }));
 	}
 
 	static canUpdateSiteArea(loggedUser, siteArea) {
-		// Check
-		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA,
-			{ "Action": Constants.ACTION_UPDATE, "SiteAreaID": siteArea.id.toString() });
+		// Check Site Area && Site
+		return (
+			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA,
+				{ "Action": Constants.ACTION_UPDATE, "SiteAreaID": siteArea.id.toString() }) &&
+			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
+				{ "Action": Constants.ACTION_UPDATE, "SiteID": siteArea.siteID }));
 	}
 
 	static canDeleteSiteArea(loggedUser, siteArea) {
-		// Check
-		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA,
-			{ "Action": Constants.ACTION_DELETE, "SiteAreaID": siteArea.id.toString() });
+		// Check Site Area && Site
+		return (
+			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA,
+				{ "Action": Constants.ACTION_DELETE, "SiteAreaID": siteArea.id.toString() }) &&
+			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
+				{ "Action": Constants.ACTION_DELETE, "SiteID": siteArea.siteID }));
 	}
 
 	static canListCompanies(loggedUser) {
