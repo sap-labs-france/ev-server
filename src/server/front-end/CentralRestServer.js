@@ -209,6 +209,19 @@ class CentralRestServer {
 		});
 	}
 
+	notifyTenant(action, data) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": Constants.ENTITY_TENANT,
+			"action": action,
+			"data": data
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": Constants.ENTITY_TENANTS
+		});
+	}
+
 	notifySite(action, data) {
 		// Add in buffer
 		this.addNotificationInBuffer({

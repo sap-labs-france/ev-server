@@ -90,6 +90,8 @@ class MongoDBStorageNotification {
     this.watchCollection("logs", pipeline, options, _centralRestServer.notifyLogging.bind(_centralRestServer), false);
 		// Users
     this.watchCollection("users", pipeline, options, _centralRestServer.notifyUser.bind(_centralRestServer), true);
+		// Tenants
+    this.watchCollection("tenants", pipeline, options, _centralRestServer.notifyTenant.bind(_centralRestServer), true);
     // User Images
     this.watchCollection("userimages", pipeline, options, _centralRestServer.notifyUser.bind(_centralRestServer), true);
     // Charging Stations
