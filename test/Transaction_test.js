@@ -54,32 +54,34 @@ describe('Default transaction scenario', function() {
   it('A charging can start a new transaction when available', async () => {
     let currentTime = moment(context.currentTime);
     let connectorId = 1;
-    let chargePointState = {
-      connectorId: connectorId,
-      status: 'Available',
-      errorCode: 'NoError',
-      timestamp: currentTime.toISOString()
-    };
-    await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState, response => expect(response).to.eql({}));
+    await ocpp.executeStatusNotification(context.chargeBoxIdentity,
+      {
+        connectorId: connectorId,
+        status: 'Available',
+        errorCode: 'NoError',
+        timestamp: currentTime.toISOString()
+      }
+      , response => expect(response).to.eql({}));
 
-    let transactionState = {
-      connectorId: connectorId,
-      idTag: context.user.tagIDs[0],
-      meterStart: 10000,
-      timestamp: currentTime.toISOString()
-    };
     let transactionId = null;
     currentTime.add(1, 'minutes');
-    await ocpp.executeStartTransaction(context.chargeBoxIdentity, transactionState, response => {
-      expect(response).to.be.a('object');
-      expect(response).to.have.nested.property('transactionId');
-      expect(response).to.deep.include({
-        idTagInfo: {
-          status: 'Accepted'
-        }
+    await ocpp.executeStartTransaction(context.chargeBoxIdentity,
+      {
+        connectorId: connectorId,
+        idTag: context.user.tagIDs[0],
+        meterStart: 10000,
+        timestamp: currentTime.toISOString()
+      }
+      , response => {
+        expect(response).to.be.a('object');
+        expect(response).to.have.nested.property('transactionId');
+        expect(response).to.deep.include({
+          idTagInfo: {
+            status: 'Accepted'
+          }
+        });
+        transactionId = response.transactionId;
       });
-      transactionId = response.transactionId;
-    });
 
     await transactionApi.readById(transactionId, (message) => expect(message.response).to.containSubset(
       {
@@ -97,41 +99,86 @@ describe('Default transaction scenario', function() {
               status: 'Available',
               errorCode: 'NoError',
               info: null,
+              type: null,
+              "power": 0,
               vendorErrorCode: null
             }
           ]
+        },
+        id: transactionId,
+        timestamp: currentTime.toISOString(),
+        "user": {
+          "firstName": context.user.firstName,
+          "id": context.user.id,
+          "name": context.user.name,
         }
-      }));
+      }
+    ));
   });
 
   it('A charging can start a new transaction when occupied', async () => {
     let currentTime = moment(context.currentTime);
     let connectorId = 1;
-    let chargePointState = {
-      connectorId: connectorId,
-      status: 'Occupied',
-      errorCode: 'NoError',
-      timestamp: currentTime.toISOString()
-    };
-    await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState, response => expect(response).to.eql({}));
+
+    await ocpp.executeStatusNotification(context.chargeBoxIdentity,
+      {
+        connectorId: connectorId,
+        status: 'Occupied',
+        errorCode: 'NoError',
+        timestamp: currentTime.toISOString()
+      }
+      , response => expect(response).to.eql({}));
     currentTime.add(1, 'minutes');
-    let transactionState = {
-      connectorId: connectorId,
-      idTag: context.user.tagIDs[0],
-      meterStart: 10000,
-      timestamp: currentTime.toISOString()
-    };
     let transactionId = null;
-    await ocpp.executeStartTransaction(context.chargeBoxIdentity, transactionState, response => {
-      expect(response).to.be.a('object');
-      expect(response).to.have.nested.property('transactionId');
-      expect(response).to.deep.include({
-        idTagInfo: {
-          status: 'Accepted'
-        }
+
+    await ocpp.executeStartTransaction(context.chargeBoxIdentity,
+      {
+        connectorId: connectorId,
+        idTag: context.user.tagIDs[0],
+        meterStart: 10000,
+        timestamp: currentTime.toISOString()
+      }, response => {
+        expect(response).to.be.a('object');
+        expect(response).to.have.nested.property('transactionId');
+        expect(response).to.deep.include({
+          idTagInfo: {
+            status: 'Accepted'
+          }
+        });
+        transactionId = response.transactionId;
       });
-      transactionId = response.transactionId;
-    });
+
+    await transactionApi.readById(transactionId, (message) => expect(message.response).to.containSubset(
+      {
+        connectorId: connectorId,
+        tagID: context.user.tagIDs[0],
+        chargeBoxID: context.chargeBoxIdentity,
+        chargeBox: {
+          id: context.chargeBoxIdentity,
+          connectors: [
+            {
+              activeTransactionID: transactionId,
+              connectorId: connectorId,
+              currentConsumption: 0,
+              totalConsumption: 0,
+              status: 'Occupied',
+              errorCode: 'NoError',
+              info: null,
+              type: null,
+              "power": 0,
+              vendorErrorCode: null
+            }
+          ]
+        },
+        id: transactionId,
+        timestamp: currentTime.toISOString(),
+        "user": {
+          "firstName": context.user.firstName,
+          "id": context.user.id,
+          "name": context.user.name,
+        }
+      }
+    ));
   });
 
   it('A charging can update and stop a transaction', async () => {
@@ -311,11 +358,12 @@ describe('Default transaction scenario', function() {
         "chargeBox": {
           "connectors": [
             {
-              "activeTransactionID": transactionId,
+              "activeTransactionID": 0,
               "connectorId": connectorId,
               "currentConsumption": 0,
               "errorCode": "NoError",
               "info": null,
+              "type": null,
               "power": 0,
               "status": "Occupied",
               "totalConsumption": 0,
@@ -366,6 +414,7 @@ describe('Default transaction scenario', function() {
               "currentConsumption": 0,
               "errorCode": "NoError",
               "info": null,
+              "type": null,
               "power": 0,
               "status": "Available",
               "totalConsumption": 0,

@@ -66,7 +66,7 @@ class Bootstrap {
     });
 
     context.chargePoint = ChargePointFactory.build();
-    context.chargeBoxIdentity = faker.random.alphaNumeric(20).toUpperCase();
+    context.chargeBoxIdentity = faker.random.alphaNumeric(12).toUpperCase();
 
     context.address = `${this.baseApi.url}/ChargeBox/Ocpp`;
 
