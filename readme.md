@@ -433,20 +433,17 @@ npm run start:dev
 
 * Create a local configuration file located in '/config/tests/local.json' with the parameters to override like 
          
-        ```json
         {
           "admin": {
             "username": "bla",
             "password": "bli"
           },
           "trace_logs": false
-        ...
         }
-        ```
-For further parameters, check [`config.js` ](./test/config.js) content.
+
+  For further parameters, check the [`config` ](./test/config.js) content. It is also possible to use environment variables as defined in the [`config` ](./test/config.js)  file
 * Start a server containing the configured admin user in the database
 * run the command `npm tests`
-
 
 ## Architecture
 
