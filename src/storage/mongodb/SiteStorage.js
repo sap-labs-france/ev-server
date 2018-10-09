@@ -376,8 +376,14 @@ class SiteStorage {
 							chargeBoxesPerSiteArea.sort((cb1, cb2) => {
 								return cb1._id.localeCompare(cb2._id);
 							});
+							// Set Charger to Site Area
 							siteAreaObj.setChargingStations(chargeBoxesPerSiteArea.map((chargeBoxPerSiteArea) => {
-								return new ChargingStation(chargeBoxPerSiteArea);
+								// Create the Charger
+								let chargingStation = new ChargingStation(chargeBoxPerSiteArea);
+								// Set Site Area to Charger
+								chargingStation.setSiteArea(new SiteArea(siteAreaObj.getModel())); // To avoid circular deps Charger -> Site Area -> Charger
+								// Return
+								return chargingStation;
 							}));
 						}
 						return siteAreaObj;
