@@ -118,9 +118,6 @@ class AuthService {
 
 	static async handleLogIn(action, req, res, next) {
 		try {
-			console.log('1 ====================================');
-			console.log(new Date().toISOString());
-			console.log('====================================');
 			// Filter
 			let filteredRequest = AuthSecurity.filterLoginRequest(req.body);
 			// Check
@@ -142,14 +139,8 @@ class AuthService {
 					`The End-user License Agreement is mandatory`, 520, 
 					'AuthService', 'handleLogIn');
 			}
-			console.log('2 ====================================');
-			console.log(new Date().toISOString());
-			console.log('====================================');
 			// Check email
 			let user = await UserStorage.getUserByEmail(filteredRequest.email);
-			console.log('3 ====================================');
-			console.log(new Date().toISOString());
-			console.log('====================================');
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -673,14 +664,8 @@ class AuthService {
 			user: user.getModel(),
 			module: 'AuthService', method: 'checkUserLogin',
 			action: action, message: `User logged in successfully`});
-		console.log('7 ====================================');
-		console.log(new Date().toISOString());
-		console.log('====================================');
 		// Get EULA
 		let endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(user.getLanguage());
-		console.log('8 ====================================');
-		console.log(new Date().toISOString());
-		console.log('====================================');
 		// Set Eula Info on Login Only
 		if (action == 'Login') {
 			user.setEulaAcceptedOn(new Date());
@@ -691,19 +676,10 @@ class AuthService {
 		user.setPasswordWrongNbrTrials(0);
 		user.setPasswordBlockedUntil(null);
 		user.setPasswordResetHash(null);
-		console.log('9 ====================================');
-		console.log(new Date().toISOString());
-		console.log('====================================');
 		// Save
 		await user.save();
-		console.log('10 ====================================');
-		console.log(new Date().toISOString());
-		console.log('====================================');
 		// Build Authorization
 		let auths = await Authorizations.buildAuthorizations(user);
-		console.log('11 ====================================');
-		console.log(new Date().toISOString());
-		console.log('====================================');
 		// Yes: build payload
 		let payload = {
 			'id': user.getID(),
@@ -717,9 +693,6 @@ class AuthService {
 		};
 		// Build token
 		let token;
-		console.log('12 ====================================');
-		console.log(new Date().toISOString());
-		console.log('====================================');
 		// Role Demo?
 		if (Authorizations.isDemo(user.getModel())) {
 			// Yes
@@ -732,9 +705,6 @@ class AuthService {
 				expiresIn: _centralSystemRestConfig.userTokenLifetimeHours * 3600
 			});
 		}
-		console.log('13 ====================================');
-		console.log(new Date().toISOString());
-		console.log('====================================');
 		// Return it
 		res.json({ token: token });
 	}
@@ -748,19 +718,10 @@ class AuthService {
 				550, 'AuthService', 'checkUserLogin',
 				user.getModel());
 		}
-		console.log('4 ====================================');
-		console.log(new Date().toISOString());
-		console.log('====================================');
 	// Check password
 		let match = await User.checkPasswordBCrypt(filteredRequest.password, user.getPassword());
-		console.log('5 ====================================');
-		console.log(new Date().toISOString());
-		console.log('====================================');
 		// Check new and old version of hashing the password
 		if (match || (user.getPassword() === User.hashPassword(filteredRequest.password))) {
-			console.log('6 ====================================');
-			console.log(new Date().toISOString());
-			console.log('====================================');
 				// Check if the account is pending
 			if (user.getStatus() === Constants.USER_STATUS_PENDING) {
 				throw new AppError(
