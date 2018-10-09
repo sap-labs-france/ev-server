@@ -1,6 +1,9 @@
 require('source-map-support').install();
 
 module.exports = {
+	CONN_STATUS_AVAILABLE: "Available",
+	CONN_STATUS_OCCUPIED: "Occupied",
+
 	STATS_GROUP_BY_CONSUMPTION: "C",
 	STATS_GROUP_BY_USAGE: "U",
 

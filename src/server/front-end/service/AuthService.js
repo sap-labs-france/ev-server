@@ -246,7 +246,7 @@ class AuthService {
 			newUser.setLocale(req.locale.substring(0,5));
 			newUser.setCreatedOn(new Date());
 			// Set BadgeID (eg.: 'SF20170131')
-			newUser.setTagIDs([newUser.getName()[0] + newUser.getFirstName()[0] + Utils.getCurrentDateString()])
+			newUser.setTagIDs([newUser.getName()[0] + newUser.getFirstName()[0] + Utils.getRandomInt()])
 			// Assign user to all sites
 			const sites = await SiteStorage.getSites();
 			// Set
@@ -718,11 +718,11 @@ class AuthService {
 				550, 'AuthService', 'checkUserLogin',
 				user.getModel());
 		}
-		// Check password
+	// Check password
 		let match = await User.checkPasswordBCrypt(filteredRequest.password, user.getPassword());
 		// Check new and old version of hashing the password
 		if (match || (user.getPassword() === User.hashPassword(filteredRequest.password))) {
-			// Check if the account is pending
+				// Check if the account is pending
 			if (user.getStatus() === Constants.USER_STATUS_PENDING) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,

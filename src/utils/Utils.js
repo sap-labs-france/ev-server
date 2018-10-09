@@ -260,10 +260,6 @@ class Utils {
 		return Math.floor((Math.random() * 2147483648 ) + 1); // INT32 (signed: issue in Schneider)
 	}
 
-	static getCurrentDateString() {
-		return parseInt(new Date().toISOString().split('-').join('').substring(0, 8));
-	}
-
 	static buildEvseURL() {
 		return _centralSystemFrontEndConfig.protocol + "://" +
 			_centralSystemFrontEndConfig.host + ":" +

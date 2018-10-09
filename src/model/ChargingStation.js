@@ -142,6 +142,22 @@ class ChargingStation {
 		this._model.numberOfConnectedPhase = numberOfConnectedPhase;
 	}
 
+	getMaximumPower() {
+		return this._model.maximumPower;
+	}
+
+	setMaximumPower(maximumPower) {
+		this._model.maximumPower = maximumPower;
+	}
+
+	setCannotChargeInParallel(cannotChargeInParallel) {
+		this._model.cannotChargeInParallel = cannotChargeInParallel;
+	}
+
+	canChargeInParallel() {
+		return !this._model.cannotChargeInParallel;
+	}
+
 	getFirmwareVersion() {
 		return this._model.firmwareVersion;
 	}
@@ -334,22 +350,15 @@ class ChargingStation {
 		connectors[statusNotification.connectorId-1].errorCode = statusNotification.errorCode;
 		connectors[statusNotification.connectorId-1].info = statusNotification.info;
 		connectors[statusNotification.connectorId-1].vendorErrorCode = statusNotification.vendorErrorCode;
-		// Check Available
-		if (statusNotification.status === 'Available') {
-			// Reset Transaction ID
-			connectors[statusNotification.connectorId-1].activeTransactionID = 0;
-		}
-
 		// Set
 		this.setConnectors(connectors);
-		// Update Power?
 		if (!connectors[statusNotification.connectorId-1].power) {
-			// Update
+			// Update Connector's Power
 			this.updateConnectorsPower();
 		}
 		// Save Status Notif
 		await ChargingStationStorage.saveStatusNotification(statusNotification);
-		// Save Charger Status
+		// Save Connector
 		await ChargingStationStorage.saveChargingStationConnector(this.getModel(), statusNotification.connectorId);
 		// Log
 		Logging.logInfo({
@@ -382,53 +391,63 @@ class ChargingStation {
 		let current = 0;
 		let nbPhase = 0;
 		let power = 0;
+		let totalPower = 0;
 
-		// Get the configuration
-		let configuration = await this.getConfiguration();
-		// Config Provided?
-		if (configuration && configuration.configuration) {
-			// Search for params
-			for (var i = 0; i < configuration.configuration.length; i++) {
-				// Check
-				switch (configuration.configuration[i].key) {
-					// Voltage
-					case 'voltagererefence':
-						// Get the meter interval
-						voltageRerefence = parseInt(configuration.configuration[i].value);
-						break;
+		// Only for Schneider
+		if (this.getChargePointVendor() === 'Schneider Electric') {
+			// Get the configuration
+			let configuration = await this.getConfiguration();
+			// Config Provided?
+			if (configuration && configuration.configuration) {
+				// Search for params
+				for (var i = 0; i < configuration.configuration.length; i++) {
+					// Check
+					switch (configuration.configuration[i].key) {
+						// Voltage
+						case 'voltagererefence':
+							// Get the meter interval
+							voltageRerefence = parseInt(configuration.configuration[i].value);
+							break;
 
-					// Current
-					case 'currentpb1':
-						// Get the meter interval
-						current = parseInt(configuration.configuration[i].value);
-						break;
+						// Current
+						case 'currentpb1':
+							// Get the meter interval
+							current = parseInt(configuration.configuration[i].value);
+							break;
 
-					// Nb Phase
-					case 'nbphase':
-						// Get the meter interval
-						nbPhase = parseInt(configuration.configuration[i].value);
-						break;
+						// Nb Phase
+						case 'nbphase':
+							// Get the meter interval
+							nbPhase = parseInt(configuration.configuration[i].value);
+							break;
+					}
+				}
+				// Override?
+				if (this.getNumberOfConnectedPhase()) {
+					// Yes
+					nbPhase = this.getNumberOfConnectedPhase();
+				}
+				// Compute it
+				if (voltageRerefence && current && nbPhase) {
+					// One Phase?
+					if (nbPhase == 1) {
+						power = Math.floor(230 * current);
+					} else {
+						power = Math.floor(400 * current * Math.sqrt(nbPhase));
+					}
 				}
 			}
-			// Override?
-			if (this.getNumberOfConnectedPhase()) {
-				// Yes
-				nbPhase = this.getNumberOfConnectedPhase();
-			}
-			// Compute it
-			if (voltageRerefence && current && nbPhase) {
-				// One Phase?
-				if (nbPhase == 1) {
-					power = Math.floor(230 * current);
-				} else {
-					power = Math.floor(400 * current * Math.sqrt(nbPhase));
+			// Set Power
+			for (const connector of this.getConnectors()) {
+				if (connector) {
+					connector.power = power;
+					totalPower += power;
 				}
 			}
-		}
-		// Set Power
-		for (const connector of this.getConnectors()) {
-			if (connector) {
-				connector.power = power;
+			// Set total power
+			if (totalPower && !this.getMaximumPower()) {
+				// Set
+				this.setMaximumPower(totalPower);
 			}
 		}
 	}
@@ -466,6 +485,13 @@ class ChargingStation {
 		this.setLastHeartBeat(new Date());
 		// Save
 		await this.saveHeartBeat();
+		// Update Charger Max Power?
+		if (!this.getMaximumPower()) {
+				// Yes
+			await this.updateConnectorsPower();
+			// Save Charger
+			await this.save();
+		}
 		// Log
 		Logging.logInfo({
 			source: this.getID(),
@@ -848,10 +874,10 @@ class ChargingStation {
 			// Add
 			newMeterValues.values.push(newMeterValue);
 		}
-		// Save Meter Values
-		await TransactionStorage.saveMeterValues(newMeterValues);
 		// Compute consumption?
 		if (meterValues.transactionId) {
+			// Save Meter Values
+			await TransactionStorage.saveMeterValues(newMeterValues);
 			// Update Charging Station Consumption
 			await this.updateChargingStationConsumption(meterValues.transactionId);
 			// Log
@@ -861,9 +887,9 @@ class ChargingStation {
 				detailedMessages: meterValues });
 		} else {
 			// Log
-			Logging.logInfo({
+			Logging.logWarning({
 				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-				action: 'MeterValues', message: `'${meterValuesContext}' have been saved`,
+				action: 'MeterValues', message: `'${meterValuesContext}' not saved (not linked to a Transaction)`,
 				detailedMessages: meterValues });
 		}
 	}
@@ -1061,6 +1087,20 @@ class ChargingStation {
 		transaction.tagID = transaction.idTag;
 		// Ok: Save Transaction
 		let newTransaction = await TransactionStorage.saveTransaction(transaction);
+		// Check if Charger can charge in //
+		if (!this.canChargeInParallel()) {
+			// Set all the other connectors to occupied
+			this.getConnectors().forEach(async (connector) => {
+				// Check
+				if (connector.status === 'Available') {
+					// Set Occupied
+					connector.status = 'Occupied';
+					connector.errorCode = 'NoError';
+					// Save Connector
+					await ChargingStationStorage.saveChargingStationConnector(this.getModel(), connector.connectorId);
+				}
+			});
+		}
 		// Set the user
 		newTransaction.user = user.getModel();
 		// Update Consumption
@@ -1120,6 +1160,21 @@ class ChargingStation {
 		// Init the charging station
 		connector.currentConsumption = 0;
 		connector.totalConsumption = 0;
+		// Reset Transaction ID
+		connector.activeTransactionID = 0;
+		// Check if Charger can charge in //
+		if (!this.canChargeInParallel()) {
+			// Set all the other connectors to Available
+			this.getConnectors().forEach(async (connector) => {
+				// Only other Occupied connectors
+				if ((connector.status === 'Occupied') && 
+						(connector.connectorId !== transaction.connectorId)) {
+					// Set connector Available again
+					connector.status = 'Available';
+					connector.errorCode = 'NoError';
+				}
+			});
+		}
 		// Save Charging Station
 		await this.save();
 		// Compute total consumption (optimization)

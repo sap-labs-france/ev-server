@@ -92,8 +92,6 @@ class SiteAreaService {
 			// Filter
 			let filteredRequest = SiteAreaSecurity.filterSiteAreasRequest(req.query, req.user);
 			// Get the sites
-			console.log(filteredRequest);
-			
 			let siteAreas = await SiteAreaStorage.getSiteAreas(
 				{ 'search': filteredRequest.Search, 'withSite': filteredRequest.WithSite, 
 					'withChargeBoxes': filteredRequest.WithChargeBoxes, 'siteID': filteredRequest.SiteID },
