@@ -36,6 +36,9 @@ class Database {
 	static updateChargingStation(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
 			Database.updateID(src, dest);
+			dest.siteAreaID = Database.validateId(src.siteAreaID);
+		} else {
+			dest.siteAreaID = Utils.convertToObjectID(src.siteAreaID);
 		}
 		dest.chargePointSerialNumber = src.chargePointSerialNumber;
 		dest.chargePointModel = src.chargePointModel;
@@ -61,7 +64,6 @@ class Database {
 			}
 		}
 		dest.lastReboot = Utils.convertToDate(src.lastReboot);
-		dest.siteAreaID = Utils.convertToObjectID(src.siteAreaID);
 		if (src.chargingStationURL) {
 			dest.chargingStationURL = src.chargingStationURL;
 		}
@@ -145,8 +147,10 @@ class Database {
 	static updateStatusNotification(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
 			Database.updateID(src, dest);
+			dest.chargeBoxID = Database.validateId(src.chargeBoxID);
+		} else {
+			dest.chargeBoxID = Utils.convertToObjectID(src.chargeBoxID);
 		}
-		dest.chargeBoxID = src.chargeBoxID;
 		dest.connectorId = Utils.convertToInt(src.connectorId);
 		dest.timestamp = Utils.convertToDate(src.timestamp);
 		dest.status = src.status;
@@ -181,8 +185,10 @@ class Database {
 	static updateMeterValue(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
 			Database.updateID(src, dest);
+			dest.chargeBoxID = Database.validateId(src.chargeBoxID);
+		} else {
+			dest.chargeBoxID = Utils.convertToObjectID(src.chargeBoxID);
 		}
-		dest.chargeBoxID = src.chargeBoxID;
 		dest.connectorId = Utils.convertToInt(src.connectorId);
 		dest.transactionId = Utils.convertToInt(src.transactionId);
 		dest.timestamp = Utils.convertToDate(src.timestamp);
@@ -260,12 +266,14 @@ class Database {
 		if (forFrontEnd) {
 			Database.updateID(src, dest);
 			dest.image = src.image;
+			dest.companyID = Database.validateId(src.companyID);
+		} else {
+			dest.companyID = Utils.convertToObjectID(src.companyID);
 		}
 		dest.name = src.name;
 		dest.address = {};
 		dest.allowAllUsersToStopTransactions = src.allowAllUsersToStopTransactions;
 		Database.updateAddress(src.address, dest.address)
-		dest.companyID = Utils.convertToObjectID(src.companyID);
 		Database.updateCreatedAndLastChanged(src, dest);
 	}
 
@@ -338,6 +346,9 @@ class Database {
 			Database.updateID(src, dest);
 			dest.images = src.images;
 			dest.numberOfImages = src.numberOfImages;
+			dest.vehicleManufacturerID = Database.validateId(src.vehicleManufacturerID);
+		} else {
+			dest.vehicleManufacturerID = Utils.convertToObjectID(src.vehicleManufacturerID);
 		}
 		dest.type = src.type;
 		dest.model = src.model;
@@ -352,7 +363,6 @@ class Database {
 		dest.widthMeter = Utils.convertToFloat(src.widthMeter);
 		dest.heightMeter = Utils.convertToFloat(src.heightMeter);
 		dest.releasedOn = Utils.convertToDate(src.releasedOn);
-		dest.vehicleManufacturerID = Utils.convertToObjectID(src.vehicleManufacturerID);
 		Database.updateCreatedAndLastChanged(src, dest);
 	}
 
@@ -374,16 +384,23 @@ class Database {
 		if (forFrontEnd) {
 			Database.updateID(src, dest);
 			dest.image = src.image;
+			dest.siteID = Database.validateId(src.siteID);
+		} else {
+			dest.siteID = Utils.convertToObjectID(src.siteID);
 		}
 		dest.name = src.name;
 		dest.accessControl = src.accessControl;
-		dest.siteID = Utils.convertToObjectID(src.siteID);
 		Database.updateCreatedAndLastChanged(src, dest);
 	}
 
 	static updateLogging(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
 			Database.updateID(src, dest);
+			dest.userID = Database.validateId(src.userID);
+			dest.actionOnUserID = Database.validateId(src.actionOnUserID);
+		} else {
+			dest.userID = Utils.convertToObjectID(src.userID);
+			dest.actionOnUserID = Utils.convertToObjectID(src.actionOnUserID);
 		}
 		dest.level = src.level;
 		dest.source = src.source;
@@ -394,8 +411,6 @@ class Database {
 		dest.action = src.action;
 		dest.message = src.message;
 		dest.detailedMessages = src.detailedMessages;
-		dest.userID = src.userID;
-		dest.actionOnUserID = src.actionOnUserID;
 		if (forFrontEnd && src.user && typeof src.user == "object") {
 			dest.user = {};
 			Database.updateUser(src.user, dest.user);
@@ -412,15 +427,18 @@ class Database {
 			if (src.totalDurationSecs) {
 				dest.totalDurationSecs = src.totalDurationSecs;
 			}
+			dest.userID = Database.validateId(src.userID);
+			dest.chargeBoxID = Database.validateId(src.chargeBoxID);
+		} else {
+			dest.userID = Utils.convertToObjectID(src.userID);
+			dest.chargeBoxID = Utils.convertToObjectID(src.chargeBoxID);
 		}
 		// ChargeBox
-		dest.chargeBoxID = src.chargeBoxID;
 		if (forFrontEnd && !Utils.isEmptyJSon(src.chargeBox)) {
 			dest.chargeBox = {};
 			Database.updateChargingStation(src.chargeBox, dest.chargeBox);
 		}
 		// User
-		dest.userID = Utils.convertToObjectID(src.userID);
 		if (forFrontEnd && !Utils.isEmptyJSon(src.user)) {
 			dest.user = {};
 			Database.updateUser(src.user, dest.user);

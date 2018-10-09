@@ -11,6 +11,7 @@ const Utils = require('../utils/Utils');
 const User = require('../model/User');
 const AuthorizationsDefinition = require('./AuthorizationsDefinition');
 const UserStorage = require('../storage/mongodb/UserStorage')
+const CompanyStorage = require('../storage/mongodb/CompanyStorage')
 require('source-map-support').install();
 
 let _configuration;
@@ -58,33 +59,32 @@ class Authorizations {
 	// Build Auth
 	static async buildAuthorizations(user) {
 		// Password OK
-		let companies = [],
-			sites,
-			siteAreas = [],
-			chargingStations = [],
-			users = [];
+		let companies = [], sites = [], users = [];
 
-		// Get sites
-		sites = await user.getSites();
-		// Get all the companies and site areas
-		for (const site of sites) {
-			// Get Company
-			let company = await site.getCompany();
-			// Check
-			let foundCompany = companies.find((existingCompany) => {
-				return existingCompany.getID() === company.getID();
-			});
-			// Found?
-			if (!foundCompany) {
-				// No: Add it
-				companies.push(company);
+		// Check Admin
+		if (!Authorizations.isAdmin(user.getModel())) {
+			// Not Admin: Get Auth data
+			// Get All Companies
+			let allCompanies = await CompanyStorage.getCompanies();
+			// Get Sites
+			sites = await user.getSites();
+			// Get all the companies and site areas
+			for (const site of sites) {
+				// Get the company
+				let company = allCompanies.result.find((company) => company.getID() === site.getCompanyID());
+				// Found?
+				if (company) {
+					// Check
+					let foundCompany = companies.find((existingCompany) => {
+						return existingCompany.getID() === company.getID();
+					});
+					// Found?
+					if (!foundCompany) {
+						// No: Add it
+						companies.push(company);
+					}
+				} 
 			}
-			// Get site areas
-			siteAreas.push(...await site.getSiteAreas());
-		}
-		// Get all the charging stations
-		for (const siteArea of siteAreas) {
-			chargingStations.push(...await siteArea.getChargingStations());
 		}
 		// Convert to IDs
 		let companyIDs = companies.map((company) => {
@@ -93,14 +93,8 @@ class Authorizations {
 		let siteIDs = sites.map((site) => {
 			return site.getID();
 		});
-		let siteAreaIDs = siteAreas.map((siteArea) => {
-			return siteArea.getID();
-		});
-		let chargingStationIDs = chargingStations.map((chargingStation) => {
-			return chargingStation.getID();
-		});
 		// Get authorisation
-		let authsDefinition = AuthorizationsDefinition.getAuthorizations();
+		let authsDefinition = AuthorizationsDefinition.getAuthorizations(user.getRole());
 		// Add user
 		users.push(user.getID());
 		// Parse the auth and replace values
@@ -110,8 +104,6 @@ class Authorizations {
 				"userID": users,
 				"companyID": companyIDs,
 				"siteID": siteIDs,
-				"siteAreaID": siteAreaIDs,
-				"chargingStationID": chargingStationIDs,
 				"trim": () => {
 					return (text, render) => {
 						// trim trailing comma and whitespace
@@ -120,8 +112,8 @@ class Authorizations {
 				}
 			}
 		);
-		let userAuthDefinition = Authorizations.getAuthorizationFromRoleID(
-			JSON.parse(authsDefinitionParsed), user.getRole());
+		// Make it Json
+		let userAuthDefinition = JSON.parse(authsDefinitionParsed);
 		// Compile auths of the role
 		let compiledAuths = compileProfile(userAuthDefinition.auths);
 		// Return
@@ -303,16 +295,6 @@ class Authorizations {
 			"user": user,
 			"alternateUser": alternateUser
 		};
-	}
-
-	// Read the config file
-	static getAuthorizationFromRoleID(authorisations, roleID) {
-		// Filter
-		let matchingAuthorisation = authorisations.filter((authorisation) => {
-			return authorisation.id === roleID;
-		});
-		// Only one role
-		return (matchingAuthorisation.length > 0 ? matchingAuthorisation[0] : []);
 	}
 
 	static canListLogging(loggedUser) {
