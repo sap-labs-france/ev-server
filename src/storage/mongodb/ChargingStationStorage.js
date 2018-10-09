@@ -94,7 +94,6 @@ class ChargingStationStorage {
 		// With no Site Area
 		if (params.withNoSiteArea) {
 			// Build filter
-			// Build filter
 			filters.$and.push({
 				"siteAreaID": null
 			});
@@ -112,6 +111,13 @@ class ChargingStationStorage {
 			aggregation.push({
 				$unwind: { "path": "$siteArea", "preserveNullAndEmptyArrays": true }
 			});
+			// Check Site ID
+			if (params.siteID) {
+				// Build filter
+				filters.$and.push({
+					"siteArea.siteID": Utils.convertToObjectID(params.siteID)
+				});
+		}
 		}
 		// Filters
 		aggregation.push({

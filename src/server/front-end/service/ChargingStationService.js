@@ -264,7 +264,7 @@ class ChargingStationService {
 			let filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query, req.user);
 			// Get the charging stfoundChargingStationsations
 			let chargingStations = await ChargingStationStorage.getChargingStations(
-				{ 'search': filteredRequest.Search, 'withNoSiteArea': filteredRequest.WithNoSiteArea },
+				{ 'search': filteredRequest.Search, 'withNoSiteArea': filteredRequest.WithNoSiteArea, 'siteID': filteredRequest.SiteID },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
 			chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
