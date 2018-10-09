@@ -92,7 +92,8 @@
 		"build": "npm run build:dev",
 		"build:dev": "webpack --watch --env.env=dev",
 		"build:prod": "webpack --env.env=prod",
-		"test": "TRACE_LOG=false mocha-parallel-tests 'test/**/*_test.js'"
+		"test": "TRACE_LOG=false mocha 'test/**/*_test.js'",
+		"test:parallel": "TRACE_LOG=false mocha-parallel-tests 'test/**/*_test.js'"
 	},
 	"license": "MIT"
 }
