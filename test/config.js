@@ -1,5 +1,5 @@
 const convict = require('convict');
-
+const fs = require('fs');
 // Define a schema
 const config = convict({
   env: {
@@ -8,11 +8,11 @@ const config = convict({
     default: 'local',
     env: 'NODE_ENV'
   },
-  logs: {
+  trace_logs: {
     doc: 'true to trace communication with servers',
     format: Boolean,
-    default: 'true',
-    env: 'TRACE_LOG'
+    default: 'false',
+    env: 'TRACE_LOGS'
   },
   ocpp: {
     scheme: {
@@ -57,7 +57,7 @@ const config = convict({
     }
   },
   admin: {
-    user: {
+    username: {
       doc: 'The admin username',
       format: String,
       default: 'demo.admin@sap.com',
@@ -73,8 +73,12 @@ const config = convict({
 });
 
 // Load environment dependent configuration
-var env = config.get('env');
-// config.loadFile('./config/' + env + '.json');
+const env = config.get('env');
+const fileName = './config/tests/' + env + '.json';
+
+if (fs.existsSync(fileName)) {
+  config.loadFile(fileName);
+}
 
 // Perform validation
 config.validate({allowed: 'strict'});

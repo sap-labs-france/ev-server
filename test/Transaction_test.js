@@ -10,9 +10,9 @@ const BaseApi = require('./api/client/utils/baseApi');
 const AuthenticatedBaseApi = require('./api/client/utils/authenticatedBaseApi');
 const config = require('./config');
 
-describe('Default transaction scenario', function() {
+describe('transaction tests', function() {
   const ocpp = new Ocpp15();
-  const authenticatedBaseApi = new AuthenticatedBaseApi(config.get('admin.user'), config.get('admin.password'), new BaseApi(`${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`));
+  const authenticatedBaseApi = new AuthenticatedBaseApi(config.get('admin.username'), config.get('admin.password'), new BaseApi(`${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`));
   let transactionApi = new TransactionApi(authenticatedBaseApi);
   let context = null;
   let bootstrap = new Bootstrap(authenticatedBaseApi, ocpp);
@@ -26,7 +26,7 @@ describe('Default transaction scenario', function() {
     context = await bootstrap.createMinimalContext();
   });
 
-  it('A Charging can notify its status', async () => {
+  it('A charging station can notify its status', async () => {
     let currentTime = moment(context.currentTime);
     let chargePointState = {
       connectorId: 1,
@@ -36,7 +36,7 @@ describe('Default transaction scenario', function() {
     };
     await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState, response => expect(response).to.eql({}));
   });
-  it('A Charging can notify its status multiple times', async () => {
+  it('A charging station can notify its status multiple times', async () => {
     let currentTime = moment(context.currentTime);
     let chargePointState = {
       connectorId: 1,
@@ -51,7 +51,7 @@ describe('Default transaction scenario', function() {
     await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState, response => expect(response).to.eql({}));
   });
 
-  it('A charging can start a new transaction when available', async () => {
+  it('A charging station can start a new transaction when available', async () => {
     let currentTime = moment(context.currentTime);
     let connectorId = 1;
     await ocpp.executeStatusNotification(context.chargeBoxIdentity,
@@ -116,7 +116,7 @@ describe('Default transaction scenario', function() {
     ));
   });
 
-  it('A charging can start a new transaction when occupied', async () => {
+  it('A charging station can start a new transaction when occupied', async () => {
     let currentTime = moment(context.currentTime);
     let connectorId = 1;
 
@@ -181,7 +181,7 @@ describe('Default transaction scenario', function() {
     ));
   });
 
-  it('A charging can update and stop a transaction', async () => {
+  it('A charging station can create and complete a transaction', async () => {
     let currentTime = moment(context.currentTime);
     let connectorId = 1;
 

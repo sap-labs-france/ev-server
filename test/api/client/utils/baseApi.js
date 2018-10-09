@@ -45,7 +45,7 @@ class BaseApi {
     } catch (error) {
       message = error.response;
     }
-    if (config.get('logs')) {
+    if (config.get('trace_logs')) {
       console.log(JSON.stringify(message, null, 2));
     }
     let response = null;

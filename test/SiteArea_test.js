@@ -12,7 +12,7 @@ const BaseApi = require('./api/client/utils/baseApi');
 const AuthenticatedBaseApi = require('./api/client/utils/authenticatedBaseApi');
 const config = require('./config');
 
-const authenticatedBaseApi = new AuthenticatedBaseApi(config.get('admin.user'), config.get('admin.password'), new BaseApi(`${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`));
+const authenticatedBaseApi = new AuthenticatedBaseApi(config.get('admin.username'), config.get('admin.password'), new BaseApi(`${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`));
 let companyApi = new CompanyApi(authenticatedBaseApi);
 let siteApi = new SiteApi(authenticatedBaseApi);
 let siteAreaApi = new SiteAreaApi(authenticatedBaseApi);

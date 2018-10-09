@@ -17,8 +17,8 @@ describe('Authentication Service', () => {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
       payload: {
-        email: 'demo.admin@sap.com',
-        password: 'DeM*Us$r42',
+        email: config.get('admin.username'),
+        password: config.get('admin.password'),
         acceptEula: 'true'
       }
     }, (message, response) => {
@@ -40,7 +40,7 @@ describe('Authentication Service', () => {
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         payload: {
-          email: 'demo.admin@sap.com',
+          email: config.get('admin.username'),
           password: 'another',
           acceptEula: 'true'
         }
@@ -60,7 +60,7 @@ describe('Authentication Service', () => {
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         payload: {
-          email: 'demo.admin@sap.com',
+          email: config.get('admin.username'),
           acceptEula: 'true'
         }
       }, (message, response) => {
@@ -82,8 +82,8 @@ describe('Authentication Service', () => {
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         payload: {
-          email: 'demo.admin@sap.com',
-          password: 'DeM*Us$r42',
+          email: config.get('admin.username'),
+          password: config.get('admin.password'),
           acceptEula: false
         }
       }, (message, response) => {
@@ -103,8 +103,8 @@ describe('Authentication Service', () => {
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         payload: {
-          email: 'demo.admin@sap.com',
-          password: 'DeM*Us$r42',
+          email: config.get('admin.username'),
+        password: config.get('admin.password'),
         }
       }, (message, response) => {
         expect(message).to.containSubset(

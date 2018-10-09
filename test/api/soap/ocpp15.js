@@ -139,7 +139,7 @@ module.exports = class Ocpp15 {
     this.client.clearSoapHeaders();
     this.client.addSoapHeader(headers);
     const {result, envelope, soapHeader} = await method(payload, options, headers);
-    if (config.get('logs')) {
+    if (config.get('trace_logs')) {
       console.log('<!-- Request -->');
       console.log(this.client.lastRequest);
       if (soapHeader) {
