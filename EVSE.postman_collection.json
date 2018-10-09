@@ -6,6 +6,62 @@
 	},
 	"item": [
 		{
+			"name": "FE-LoginSuperAdmin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var responseJson = JSON.parse(responseBody);",
+							"postman.setEnvironmentVariable(\"token\", responseJson[\"token\"]);"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "email",
+							"value": "demo.super.admin@sap.com",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "DeM*Us$r42",
+							"type": "text"
+						},
+						{
+							"key": "acceptEula",
+							"value": "true",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/client/auth/Login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"client",
+						"auth",
+						"Login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "FE-LoginAdmin",
 			"event": [
 				{
@@ -383,6 +439,44 @@
 			"response": []
 		},
 		{
+			"name": "FE-TenantCreate",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"name\": \"Tenant 1\",\n\t\"subdomain\": \"slf\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/client/api/TenantCreate",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"client",
+						"api",
+						"TenantCreate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "FE-VehicleManufacturerCreate",
 			"request": {
 				"auth": {
@@ -687,6 +781,78 @@
 						{
 							"key": "ID",
 							"value": "5b6cb3e8aeead45c9c70eba3"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-Tenants",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{base_url}}/client/api/Tenants",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"client",
+						"api",
+						"Tenants"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-Tenant",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{base_url}}/client/api/Tenant?ID=5bbd06cd4598d76ea07dd3cf",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"client",
+						"api",
+						"Tenant"
+					],
+					"query": [
+						{
+							"key": "ID",
+							"value": "5bbd06cd4598d76ea07dd3cf"
 						}
 					]
 				}
@@ -1013,7 +1179,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/client/api/Sites?WithPicture=false&WithSiteAreas=false&WithChargeBoxes=false&WithCompany=false&WithUsers=false&UserID=592e969f89d8e07a2b16a78f&Limit=0&Skip=0&WithAvailableChargers=true",
+					"raw": "{{base_url}}/client/api/Sites?WithSiteAreas=false&WithChargeBoxes=false&WithCompany=false",
 					"host": [
 						"{{base_url}}"
 					],
@@ -1023,10 +1189,6 @@
 						"Sites"
 					],
 					"query": [
-						{
-							"key": "WithPicture",
-							"value": "false"
-						},
 						{
 							"key": "WithSiteAreas",
 							"value": "false"
@@ -1038,26 +1200,6 @@
 						{
 							"key": "WithCompany",
 							"value": "false"
-						},
-						{
-							"key": "WithUsers",
-							"value": "false"
-						},
-						{
-							"key": "UserID",
-							"value": "592e969f89d8e07a2b16a78f"
-						},
-						{
-							"key": "Limit",
-							"value": "0"
-						},
-						{
-							"key": "Skip",
-							"value": "0"
-						},
-						{
-							"key": "WithAvailableChargers",
-							"value": "true"
 						}
 					]
 				}
@@ -1199,7 +1341,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/client/api/SiteAreas?WithChargeBoxes=true&WithSite=false&SiteID=5abeba8d4bae1457eb565e5b",
+					"raw": "{{base_url}}/client/api/SiteAreas?WithChargeBoxes=false&WithSite=false",
 					"host": [
 						"{{base_url}}"
 					],
@@ -1211,15 +1353,11 @@
 					"query": [
 						{
 							"key": "WithChargeBoxes",
-							"value": "true"
+							"value": "false"
 						},
 						{
 							"key": "WithSite",
 							"value": "false"
-						},
-						{
-							"key": "SiteID",
-							"value": "5abeba8d4bae1457eb565e5b"
 						}
 					]
 				}
@@ -1357,7 +1495,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/client/api/ChargingStations?WithNoSiteArea=false&WithSiteArea=true&SiteID=5abeba8d4bae1457eb565e5b",
+					"raw": "{{base_url}}/client/api/ChargingStations?WithNoSiteArea=false&SiteID=5abeba9e4bae1457eb565e66",
 					"host": [
 						"{{base_url}}"
 					],
@@ -1372,12 +1510,8 @@
 							"value": "false"
 						},
 						{
-							"key": "WithSiteArea",
-							"value": "true"
-						},
-						{
 							"key": "SiteID",
-							"value": "5abeba8d4bae1457eb565e5b"
+							"value": "5abeba9e4bae1457eb565e66"
 						}
 					]
 				}
@@ -2281,6 +2415,44 @@
 			"response": []
 		},
 		{
+			"name": "FE-TenantUpdate",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"id\": \"5bbd06cd4598d76ea07dd3cf\",\r\n  \"name\": \"Tenant Updated\",\r\n  \"subdomain\": \"slfnew\"\r\n}\r\n"
+				},
+				"url": {
+					"raw": "{{base_url}}/client/api/TenantUpdate",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"client",
+						"api",
+						"TenantUpdate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "FE-VehicleUpdate",
 			"request": {
 				"auth": {
@@ -2514,6 +2686,50 @@
 						{
 							"key": "ID",
 							"value": "5afaa433374fca4ee850b8b5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-TenantDelete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{base_url}}/client/api/TenantDelete?ID=5bbd06cd4598d76ea07dd3cf",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"client",
+						"api",
+						"TenantDelete"
+					],
+					"query": [
+						{
+							"key": "ID",
+							"value": "5bbd06cd4598d76ea07dd3cf"
 						}
 					]
 				}
