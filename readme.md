@@ -432,8 +432,8 @@ npm run start:dev
 ### Tests
 
 * Create a local configuration file located in '/config/tests/local.json' with the parameters to override like 
-        <!-- language: lang-json -->
-
+         
+        ```json
         {
           "admin": {
             "username": "bla",
@@ -442,7 +442,8 @@ npm run start:dev
           "trace_logs": false
         ...
         }
-For further parameters, check the `config.js` located in the `tests` folder.
+        ```
+For further parameters, check [`config.js` ](./test/config.js) content.
 * Start a server containing the configured admin user in the database
 * run the command `npm tests`
 
