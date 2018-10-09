@@ -1414,6 +1414,10 @@ class ChargingStation {
 		chargingStationConsumption.values = [];
 		chargingStationConsumption.totalConsumption = 0;
 		chargingStationConsumption.chargeBoxID = this.getID();
+		// Populate Site Area
+		await this.getSiteArea();
+		// Set the model
+		chargingStationConsumption.chargeBox = this.getModel();
 		chargingStationConsumption.connectorId = transaction.connectorId;
 		chargingStationConsumption.transactionId = transaction.id;
 		chargingStationConsumption.user = transaction.user;
