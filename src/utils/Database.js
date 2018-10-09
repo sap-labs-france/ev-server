@@ -147,10 +147,8 @@ class Database {
 	static updateStatusNotification(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
 			Database.updateID(src, dest);
-			dest.chargeBoxID = Database.validateId(src.chargeBoxID);
-		} else {
-			dest.chargeBoxID = Utils.convertToObjectID(src.chargeBoxID);
 		}
+		dest.chargeBoxID = src.chargeBoxID;
 		dest.connectorId = Utils.convertToInt(src.connectorId);
 		dest.timestamp = Utils.convertToDate(src.timestamp);
 		dest.status = src.status;
@@ -185,10 +183,8 @@ class Database {
 	static updateMeterValue(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
 			Database.updateID(src, dest);
-			dest.chargeBoxID = Database.validateId(src.chargeBoxID);
-		} else {
-			dest.chargeBoxID = Utils.convertToObjectID(src.chargeBoxID);
 		}
+		dest.chargeBoxID = src.chargeBoxID
 		dest.connectorId = Utils.convertToInt(src.connectorId);
 		dest.transactionId = Utils.convertToInt(src.transactionId);
 		dest.timestamp = Utils.convertToDate(src.timestamp);
@@ -428,12 +424,11 @@ class Database {
 				dest.totalDurationSecs = src.totalDurationSecs;
 			}
 			dest.userID = Database.validateId(src.userID);
-			dest.chargeBoxID = Database.validateId(src.chargeBoxID);
 		} else {
 			dest.userID = Utils.convertToObjectID(src.userID);
-			dest.chargeBoxID = Utils.convertToObjectID(src.chargeBoxID);
 		}
 		// ChargeBox
+		dest.chargeBoxID = src.chargeBoxID
 		if (forFrontEnd && !Utils.isEmptyJSon(src.chargeBox)) {
 			dest.chargeBox = {};
 			Database.updateChargingStation(src.chargeBox, dest.chargeBox);

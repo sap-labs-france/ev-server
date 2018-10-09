@@ -119,9 +119,6 @@ class SiteSecurity {
 			if (site.company) {
 				filteredSite.company = SiteSecurity.getCompanySecurity().filterCompanyResponse(site.company, loggedUser);;
 			}
-			if (site.siteAreas) {
-				filteredSite.siteAreas = SiteSecurity.getSiteAreaSecurity().filterSiteAreasResponse(site.siteAreas, loggedUser);
-			}
 			if (site.users) {
 				filteredSite.users = site.users.map((user) => {
 					return SiteSecurity.getUserSecurity().filterMinimalUserResponse(user, loggedUser);
