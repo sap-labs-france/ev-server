@@ -146,6 +146,10 @@ class Site {
 		}
 	}
 
+	getCompanyID() {
+		return this._model.companyID;
+	}
+
 	setCompany(company) {
 		if (company) {
 			this._model.company = company.getModel();

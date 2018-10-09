@@ -105,8 +105,28 @@ class ChargingStationSecurity {
 		// Set
 		let filteredRequest = {};
 		filteredRequest.id = sanitize(request.id);
-		filteredRequest.chargingStationURL = sanitize(request.chargingStationURL);
-		filteredRequest.numberOfConnectedPhase = sanitize(request.numberOfConnectedPhase);
+		if (request.hasOwnProperty('chargingStationURL')) {
+			filteredRequest.chargingStationURL = sanitize(request.chargingStationURL);
+		}
+		if (request.hasOwnProperty('numberOfConnectedPhase')) {
+			filteredRequest.numberOfConnectedPhase = sanitize(request.numberOfConnectedPhase);
+		}
+		if (request.hasOwnProperty('maximumPower')) {
+			filteredRequest.maximumPower = sanitize(request.maximumPower);
+		}
+		if (request.hasOwnProperty('cannotChargeInParallel')) {
+			filteredRequest.cannotChargeInParallel = UtilsSecurity.filterBoolean(request.cannotChargeInParallel);
+		}
+		if (request.connectors) {
+			// Filter
+			filteredRequest.connectors = request.connectors.map((connector) => {
+				return { 
+					connectorId: sanitize(connector.connectorId),
+					power: sanitize(connector.power),
+					type: sanitize(connector.type)
+				};
+			});
+		}
 		return filteredRequest;
 	}
 

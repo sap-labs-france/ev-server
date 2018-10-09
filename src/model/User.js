@@ -421,9 +421,6 @@ class User {
 				// Split
 				filteredRequest.tagIDs = filteredRequest.tagIDs.split(',');
 			}
-		} else {
-			// Default
-			filteredRequest.tagIDs = [];
 		}
 	}
 
