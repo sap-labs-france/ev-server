@@ -56,3 +56,4 @@ tmp
 
 # intellij
 /.idea
+build/config.gypi
