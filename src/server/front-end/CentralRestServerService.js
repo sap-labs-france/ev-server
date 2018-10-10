@@ -110,6 +110,9 @@ module.exports = {
 						// Delegate
 						TransactionService.handleRefundTransaction(action, req, res, next);
 						break;
+					// Create variant
+					case "VariantsCreate":
+					break;
 					// Unknown Context
 					default:
 						// Delegate
@@ -331,6 +334,9 @@ module.exports = {
 						// Delegate
 						AuthService.handleIsAuthorized(action, req, res, next);
 						break;
+					// Variants
+					case "Variants":
+						break;
 					// Unknown Action
 					default:
 						// Delegate
@@ -387,6 +393,9 @@ module.exports = {
 						// Delegate
 						TransactionService.handleTransactionSoftStop(action, req, res, next);
 						break;
+					// Variants
+					case "VariantsUpdate":
+						break;
 					// Not found
 					default:
 						// Delegate
@@ -437,6 +446,9 @@ module.exports = {
 					case "TransactionDelete":
 						// Delegate
 						TransactionService.handleDeleteTransaction(action, req, res, next);
+						break;
+					// Variants
+					case "VariantsDelete":
 						break;
 					// Not found
 					default:

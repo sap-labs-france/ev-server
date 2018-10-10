@@ -452,6 +452,11 @@ class Database {
 			dest.remotestop.tagID = src.remotestop.tagID;
 		}
 	}
+
+	static updateVariants(src, dest) {
+		// Model
+		dest.model = src.model;
+	}
 }
 
 module.exports=Database;

@@ -599,6 +599,36 @@ class Authorizations {
 			{ "Action": Constants.ACTION_UPDATE });
 	}
 
+	static canListVariants(loggedUser) {
+		// Check
+		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VARIANTS,
+			{ "Action": Constants.ACTION_LIST });
+	}
+
+	static canReadVariants(loggedUser, variants) {
+		// Check
+		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VARIANTS,
+			{ "Action": Constants.ACTION_READ, "ViewID": variants.ViewID, "UserID": variants.userID.toString() });
+	}
+
+	static canCreateVariants(loggedUser) {
+		// Check
+		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VARIANTS,
+			{ "Action": Constants.ACTION_CREATE });
+	}
+
+	static canUpdateVariants(loggedUser, variants) {
+		// Check
+		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VARIANTS,
+			{ "Action": Constants.ACTION_UPDATE, "ViewID": variants.ViewID, "UserID": variants.userID.toString() });
+	}
+
+	static canDeleteVariants(loggedUser, variants) {
+		// Check
+		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VARIANTS,
+			{ "Action": Constants.ACTION_DELETE, "ViewID": variants.ViewID, "UserID": variants.userID.toString() });
+	}
+
 	static isSuperAdmin(loggedUser) {
 		return loggedUser.role === Constants.ROLE_SUPER_ADMIN;
 	}
