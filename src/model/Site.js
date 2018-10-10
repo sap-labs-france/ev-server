@@ -66,14 +66,6 @@ class Site {
 		return this._model.image;
 	}
 
-	setGps(gps) {
-		this._model.gps = gps;
-	}
-
-	getGps() {
-		return this._model.gps;
-	}
-
 	getCreatedBy() {
 		if (this._model.createdBy) {
 			return new User(this._model.createdBy);
