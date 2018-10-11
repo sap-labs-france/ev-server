@@ -360,40 +360,52 @@ class Authorizations {
 			{ "Action": Constants.ACTION_LIST });
 	}
 
+	static checkChargingStationSite(loggedUser, chargingStation, action) {
+		// Check Site?
+		if (chargingStation.siteArea) {
+			// Yes
+			return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
+				{ "Action": action, "SiteID": chargingStation.siteArea.siteID });  
+		} else {
+			// No: Must be an admin
+			return Authorizations.isAdmin(loggedUser);
+		}
+	}
+
 	static canPerformActionOnChargingStation(loggedUser, chargingStation, action) {
-		// Check Charging Station && Site (Read)
-		return (
-			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
-				{ "Action": action, "ChargingStationID": chargingStation.id })  &&
-			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
-				{ "Action": Constants.ACTION_READ, "SiteID": chargingStation.siteArea.siteID }));
+		// Check Charging Station
+		let result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+			{ "Action": action, "ChargingStationID": chargingStation.id });
+		
+		// Return
+		return result && Authorizations.checkChargingStationSite(loggedUser, chargingStation, Constants.ACTION_UPDATE);
 	}
 
 	static canReadChargingStation(loggedUser, chargingStation) {
-		// Check Charging Station && Site
-		return (
-			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
-				{ "Action": Constants.ACTION_READ, "ChargingStationID": chargingStation.id }) &&
-			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
-				{ "Action": Constants.ACTION_READ, "SiteID": chargingStation.siteArea.siteID }));
+		// Check Charging Station
+		let result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+			{ "Action": Constants.ACTION_READ, "ChargingStationID": chargingStation.id });
+		
+		// Return
+		return result && Authorizations.checkChargingStationSite(loggedUser, chargingStation, Constants.ACTION_READ);
 	}
 
 	static canUpdateChargingStation(loggedUser, chargingStation) {
-		// Check Charging Station && Site
-		return (
-			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
-				{ "Action": Constants.ACTION_UPDATE, "ChargingStationID": chargingStation.id }) &&
-			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
-				{ "Action": Constants.ACTION_UPDATE, "SiteID": chargingStation.siteArea.siteID }));
+		// Check Charging Station
+		let result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+			{ "Action": Constants.ACTION_UPDATE, "ChargingStationID": chargingStation.id });
+		
+		// Return
+		return result && Authorizations.checkChargingStationSite(loggedUser, chargingStation, Constants.ACTION_UPDATE);
 	}
 
 	static canDeleteChargingStation(loggedUser, chargingStation) {
-		// Check Charging Station && Site
-		return (
-			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
-				{ "Action": Constants.ACTION_DELETE, "ChargingStationID": chargingStation.id }) &&
-			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
-				{ "Action": Constants.ACTION_DELETE, "SiteID": chargingStation.siteArea.siteID }));
+		// Check Charging Station
+		let result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+			{ "Action": Constants.ACTION_DELETE, "ChargingStationID": chargingStation.id });
+		
+		// Return
+		return result && Authorizations.checkChargingStationSite(loggedUser, chargingStation, Constants.ACTION_DELETE);
 	}
 
 	static canListUsers(loggedUser) {

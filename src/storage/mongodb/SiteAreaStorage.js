@@ -97,7 +97,12 @@ class SiteAreaStorage {
 				});
 				// Set
 				siteArea.setChargingStations(siteAreasMDB[0].chargingStations.map((chargingStation) => {
-					return new ChargingStation(chargingStation);
+					// Create the Charging Station
+					let chargingStationObj = new ChargingStation(chargingStation);
+					// Set the Site Area to it
+					chargingStationObj.setSiteArea(new SiteArea(siteArea.getModel())); // To avoid circular deps Charger -> Site Area -> Charger
+					// Return
+					return chargingStationObj;
 				}));
 			}
 			// Set Site

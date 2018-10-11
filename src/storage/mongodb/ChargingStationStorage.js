@@ -158,8 +158,11 @@ class ChargingStationStorage {
 		for (const chargingStationMDB of chargingStationsMDB) {
 			// Create the Charger
 			let chargingStation = new ChargingStation(chargingStationMDB)
-			// Add the Site Area
-			chargingStation.setSiteArea(new SiteArea(chargingStationMDB.siteArea))
+			// Add the Site Area?
+			if (chargingStationMDB.siteArea) {
+				// Set
+				chargingStation.setSiteArea(new SiteArea(chargingStationMDB.siteArea))
+			}
 			// Add
 			chargingStations.push(chargingStation);
 		}
