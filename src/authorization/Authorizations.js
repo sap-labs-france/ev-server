@@ -378,7 +378,7 @@ class Authorizations {
 			{ "Action": action, "ChargingStationID": chargingStation.id });
 		
 		// Return
-		return result && Authorizations.checkChargingStationSite(loggedUser, chargingStation, Constants.ACTION_UPDATE);
+		return result && Authorizations.checkChargingStationSite(loggedUser, chargingStation, Constants.ACTION_READ);
 	}
 
 	static canReadChargingStation(loggedUser, chargingStation) {
