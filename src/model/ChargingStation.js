@@ -791,47 +791,47 @@ class ChargingStation {
 		newMeterValues.values = [];
 		// Set the charger ID
 		newMeterValues.chargeBoxID = this.getID();
-			// Check Connector ID
-			if (meterValues.connectorId == 0) {
-				// BUG KEBA: Connector ID must be > 0 according OCPP
+		// Check Connector ID
+		if (meterValues.connectorId == 0) {
+			// BUG KEBA: Connector ID must be > 0 according OCPP
+			Logging.logWarning({
+				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+				action: 'MeterValues', message: `Connector ID cannot be equal to '0' and has been reset to '1'`
+			});
+			// Set to 1 (KEBA has only one connector)
+			meterValues.connectorId = 1;
+		}
+		// Check if the transaction ID matches
+		let chargerTransactionId = this.getConnectors()[meterValues.connectorId-1].activeTransactionID;
+		// Same?
+		if (meterValues.hasOwnProperty('transactionId')) {
+			// BUG ABB: Check ID
+			if (parseInt(meterValues.transactionId) !== parseInt(chargerTransactionId)) {
+				// No: Log
 				Logging.logWarning({
 					source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-					action: 'MeterValues', message: `Connector ID cannot be equal to '0' and has been reset to '1'`
-				});
-				// Set to 1 (KEBA has only one connector)
-				meterValues.connectorId = 1;
-			}
-			// Check if the transaction ID matches
-			let chargerTransactionId = this.getConnectors()[meterValues.connectorId-1].activeTransactionID;
-			// Same?
-			if (meterValues.hasOwnProperty('transactionId')) {
-				// BUG ABB: Check ID
-				if (parseInt(meterValues.transactionId) !== parseInt(chargerTransactionId)) {
-					// No: Log
-					Logging.logWarning({
-						source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-						action: 'MeterValues', message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
-					});
-					// Override
-					meterValues.transactionId = chargerTransactionId;
-				}
-			} else if (chargerTransactionId > 0) {
-				// No Transaction ID, retrieve it
-				Logging.logWarning({
-					source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-					action: 'MeterValues', message: `Transaction ID is not provided but retrieved from StartTransaction '${chargerTransactionId}'`
+					action: 'MeterValues', message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
 				});
 				// Override
 				meterValues.transactionId = chargerTransactionId;
 			}
-			// Check Transaction
-			if (meterValues.transactionId && parseInt(meterValues.transactionId) === 0) {
-				// Wrong Transaction ID!
-				Logging.logError({
-					source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-					action: 'MeterValues', message: `Transaction ID must not be equal to '0'`
-				});
-			}
+		} else if (chargerTransactionId > 0) {
+			// No Transaction ID, retrieve it
+			Logging.logWarning({
+				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+				action: 'MeterValues', message: `Transaction ID is not provided but retrieved from StartTransaction '${chargerTransactionId}'`
+			});
+			// Override
+			meterValues.transactionId = chargerTransactionId;
+		}
+		// Check Transaction
+		if (meterValues.transactionId && parseInt(meterValues.transactionId) === 0) {
+			// Wrong Transaction ID!
+			Logging.logError({
+				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+				action: 'MeterValues', message: `Transaction ID must not be equal to '0'`
+			});
+		}
 		// Handle Values
 		// Check if OCPP 1.6
 		if (meterValues.meterValue) {
@@ -1068,21 +1068,6 @@ class ChargingStation {
 		} while(existingTransaction);
 		// Set the user
 		transaction.userID = user.getID();
-		// Notify
-		NotificationHandler.sendTransactionStarted(
-			transaction.id,
-			user.getModel(),
-			this.getModel(),
-			{
-				'user': user.getModel(),
-				'chargingBoxID': this.getID(),
-				'connectorId': transaction.connectorId,
-				'evseDashboardURL' : Utils.buildEvseURL(),
-				'evseDashboardChargingStationURL' :
-					Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id)
-			},
-			user.getLocale()
-		);
 		// Set the tag ID
 		transaction.tagID = transaction.idTag;
 		// Ok: Save Transaction
@@ -1096,8 +1081,6 @@ class ChargingStation {
 					// Set Occupied
 					connector.status = 'Occupied';
 					connector.errorCode = 'NoError';
-					// Save Connector
-					await ChargingStationStorage.saveChargingStationConnector(this.getModel(), connector.connectorId);
 				}
 			});
 		}
@@ -1116,6 +1099,21 @@ class ChargingStation {
 				source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
 				action: 'StartTransaction', message: `Transaction ID '${newTransaction.id}' has been started by an anonymous user on Connector '${newTransaction.connectorId}'` });
 		}
+		// Notify
+		NotificationHandler.sendTransactionStarted(
+			transaction.id,
+			user.getModel(),
+			this.getModel(),
+			{
+				'user': user.getModel(),
+				'chargingBoxID': this.getID(),
+				'connectorId': transaction.connectorId,
+				'evseDashboardURL' : Utils.buildEvseURL(),
+				'evseDashboardChargingStationURL' :
+					Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id)
+			},
+			user.getLocale()
+		);
 		// Return
 		return newTransaction;
 	}
