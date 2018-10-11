@@ -453,7 +453,11 @@ class Database {
 		}
 	}
 
-	static updateVariants(src, dest) {
+	static updateVariant(src, dest, forFrontEnd=true) {
+		// Forntend?
+		if (forFrontEnd) {
+			Database.updateID(src, dest);
+		}
 		// Model
 		dest.model = src.model;
 	}

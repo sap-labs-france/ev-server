@@ -29,7 +29,7 @@ module.exports = {
 	ENTITY_LOGGINGS: "Loggings",
 	ENTITY_LOGGING: "Logging",
 	ENTITY_PRICING: "Pricing",
-	ENTITY_VARIANTS: "Variants",
+	ENTITY_VARIANT: "Variant",
 
 	NOTIF_TYPE_CHARGING_STATION_CONFIGURATION: "Configuration",
 

@@ -5,73 +5,84 @@ const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Authorizations = require('../../../authorization/Authorizations');
 const Constants = require('../../../utils/Constants');
-const Variants = require('../../../model/Variants');
-const VariantsSecurity = require('./security/VariantsSecurity');
-const VariantsStorage = require('../../../storage/mongodb/VariantsStorage');
+const Variant = require('../../../model/Variant');
+const VariantSecurity = require('./security/VariantSecurity');
+const VariantStorage = require('../../../storage/mongodb/VariantStorage');
 
-class VariantsService {
-  static async handleDeleteVariants(action, req, res, next) {
+class VariantService {
+  static async handleDeleteVariant(action, req, res, next) {
     try {
       // Filter
-      let filteredRequest = VariantsSecurity.filterVariantsDeleteRequest(
+      let filteredRequest = VariantSecurity.filterVariantDeleteRequest(
         req.query
       );
       // Check Mandatory fields
+      if (!filteredRequest.name) {
+        // Not Found!
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The variant name must be provided`,
+          500,
+          'VariantService',
+          'handleDeleteVariant',
+          req.user
+        );
+      }
       if (!filteredRequest.ViewID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The variants view ID must be provided`,
+          `The variant view ID must be provided`,
           500,
-          'VariantsService',
-          'handleDeleteVariants',
+          'VariantService',
+          'handleDeleteVariant',
           req.user
         );
       }
       // Get
-      let variants = await VariantsStorage.getUserVariantsByID(
+      let variant = await VariantStorage.getVariantByID(
+        filteredRequest.name,
         filteredRequest.viewID,
         filteredRequest.userID,
-        false
       );
-      if (!variants) {
+      if (!variant) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Variants with view ID '${filteredRequest.viewID}' and user ID '${
+          `Variant '${filteredRequest.name}' with view ID '${filteredRequest.viewID}' and user ID '${
             filteredRequest.userID
           }'  do not exist`,
           550,
-          'VariantsService',
-          'handleDeleteVariants',
+          'VariantService',
+          'handleDeleteVariant',
           req.user
         );
       }
       // Check auth
-      if (!Authorizations.canDeleteVariants(req.user, variants.getModel())) {
+      if (!Authorizations.canDeleteVariant(req.user, variant.getModel())) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_DELETE,
-          Constants.ENTITY_VARIANTS,
-          {viewID: variants.getviewID(), userID: userID},
+          Constants.ENTITY_VARIANT,
+          variant.getModel(),
           560,
-          'VariantsService',
-          'handleDeleteVariants',
+          'VariantService',
+          'handleDeleteVariant',
           req.user
         );
       }
       // Delete
-      await variants.delete();
+      await variant.delete();
       // Log
       Logging.logSecurityInfo({
         user: req.user,
-        module: 'VariantsService',
-        method: 'handleDeleteVariants',
-        message: `Variants associated to view '${variants.getViewID()}' and user '${
+        module: 'VariantService',
+        method: 'handleDeleteVariant',
+        message: `Variant '${variant.getName()}' associated to view '${variant.getViewID()}' and user '${
           req.user.email
         }' has been deleted successfully`,
         action: action,
-        detailedMessages: variants
+        detailedMessages: variant
       });
       // Ok
       res.json({status: `Success`});
@@ -88,47 +99,59 @@ class VariantsService {
     }
   }
 
-  static async handleGetVariants(action, req, res, next) {
+  static async handleGetVariant(action, req, res, next) {
     try {
       // Filter
-      let filteredRequest = VariantsSecurity.filterVariantsRequest(
+      let filteredRequest = VariantSecurity.filterVariantRequest(
         req.query,
         req.user
       );
-      // View ID  is mandatory
+       // Name is mandatory
+       if (!filteredRequest.Name) {
+        // Not Found!
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The variant name must be provided`,
+          500,
+          'VariantService',
+          'handleGetVariant',
+          req.user
+        );
+      }
+      // View ID is mandatory
       if (!filteredRequest.ViewID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The variants view ID must be provided`,
+          `The variant view ID must be provided`,
           500,
-          'VariantsService',
-          'handleGetVariants',
+          'VariantService',
+          'handleGetVariant',
           req.user
         );
       }
       // Get it
-      let variants = await VariantsStorage.getUserVariantsByID(
+      let variant = await VariantStorage.getVariantByID(
+        filteredRequest.Name,
         filteredRequest.ViewID,
-        filteredRequest.UserID,
-        filteredRequest.Global
+        filteredRequest.UserID
       );
-      if (!variants) {
+      if (!variant) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Variants with view ID '${filteredRequest.ViewID}' and user ID '${
+          `Variant '${filteredRequest.Name}' with view ID '${filteredRequest.ViewID}' and user ID '${
             filteredRequest.UserID
           }'  do not exist`,
           550,
-          'VariantsService',
-          'handleGetVariants',
+          'VariantService',
+          'handleGetVariant',
           req.user
         );
       }
       // Return
       res.json(
         // Filter
-        VariantsSecurity.filterVariantsResponse(variants.getModel(), req.user)
+        VariantSecurity.filterVariantResponse(variant.getModel(), req.user)
       );
       next();
     } catch (error) {
@@ -143,29 +166,29 @@ class VariantsService {
     }
   }
 
-  static async handleGetVariantsList(action, req, res, next) {
+  static async handleGetVariants(action, req, res, next) {
     try {
       // Check auth
       if (!Authorizations.canListVariants(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
-          Constants.ENTITY_VARIANTS,
+          Constants.ENTITY_VARIANT,
           null,
           560,
-          'VariantsService',
-          'handleGetVariantsList',
+          'VariantService',
+          'handleGetVariants',
           req.user
         );
       }
       // Filter
-      let filteredRequest = VariantsSecurity.filterVariantsRequest(
+      let filteredRequest = VariantSecurity.filterVariantsRequest(
         req.query,
         req.user
       );
       // Get variants
-      let variants = await VariantsStorage.getVariants(x, limit, skip, sort)(
-        {viewID: filteredRequest.ViewID, userID: filteredRequest.UserID},
+      let variants = await VariantStorage.getVariants(x, limit, skip, sort)(
+        {name: filteredRequest.Name, viewID: filteredRequest.ViewID, userID: filteredRequest.UserID},
         filteredRequest.Limit,
         filteredRequest.Skip,
         filteredRequest.Sort
@@ -173,7 +196,7 @@ class VariantsService {
       // Set
       variants.result = variants.result.map(variant => variant.getModel());
       // Filter
-      variants.result = VariantsSecurity.filterVariantsListResponse(
+      variants.result = VariantSecurity.filterVariantsResponse(
         variants.result,
         req.user
       );
@@ -192,40 +215,40 @@ class VariantsService {
     }
   }
 
-  static async handleCreateVariants(action, req, res, next) {
+  static async handleCreateVariant(action, req, res, next) {
     try {
       // Check auth
-      if (!Authorizations.canCreateVehicle(req.user)) {
+      if (!Authorizations.canCreateVariant(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_CREATE,
-          Constants.ENTITY_VARIANTS,
+          Constants.ENTITY_VARIANT,
           null,
           560,
-          'VariantsService',
-          'handleCreateVariants',
+          'VariantService',
+          'handleCreateVariant',
           req.user
         );
       }
       // Filter
-      let filteredRequest = VariantsSecurity.filterVariantsCreateRequest(
+      let filteredRequest = VariantSecurity.filterVariantCreateRequest(
         req.body,
         req.user
       );
       // Check Mandatory fields
-      Variants.checkIfVariantsValid(filteredRequest, req);
+      Variant.checkIfVariantValid(filteredRequest, req);
       // Create variants
-      let variants = new Variants(filteredRequest);
+      let variant = new Variant(filteredRequest);
       // Save
-      let newVariants = await variants.save();
+      let newVariant = await variant.save();
       // Log
       Logging.logSecurityInfo({
         user: req.user,
-        module: 'VariantsService',
-        method: 'handleCreateVariants',
-        message: `Variants associated to view '${newVariants.getViewID}' and user '${req.user.email }' have been created successfully`,
+        module: 'VariantService',
+        method: 'handleCreateVariant',
+        message: `Variant '${newVariant.getName()}' associated to view '${newVariant.getViewID()}' and user '${req.user.email }' has been created successfully`,
         action: action,
-        detailedMessages: newVariants
+        detailedMessages: newVariant
       });
       // Ok
       res.json({status: `Success`});
@@ -305,4 +328,4 @@ class VariantsService {
   }
 }
 
-module.exports = VariantsService;
+module.exports = VariantService;

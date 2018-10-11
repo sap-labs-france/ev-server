@@ -2,20 +2,31 @@ const sanitize = require('mongo-sanitize');
 const Authorizations = require('../../../../authorization/Authorizations');
 const UtilsSecurity = require('./UtilsSecurity');
 
-class VariantsSecurity {
-  static filterVariantsDeleteRequest(request) {
+class VariantSecurity {
+  static filterVariantDeleteRequest(request) {
     let filteredRequest = {};
     // Set
+    filteredRequest.name = sanitize(request.name);
     filteredRequest.viewID = sanitize(request.viewID);
     filteredRequest.userID = sanitize(request.userID);
     return filteredRequest;
   }
 
-  static filterVariantsRequest(request, loggedUser) {
+  static filterVariantRequest(request, loggedUser) {
     let filteredRequest = {};
+    filteredRequest.Name = sanitize(request.Name);
     filteredRequest.ViewID = sanitize(request.ViewID);
     filteredRequest.UserID = sanitize(request.UserID);
-    filteredRequest.Global = sanitize(request.Global);
+    /*     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest); */
+    return filteredRequest;
+  }
+
+  static filterVariantsRequest(request, loggedUser) {
+    let filteredRequest = {};
+    filteredRequest.Name = sanitize(request.Name);
+    filteredRequest.ViewID = sanitize(request.ViewID);
+    filteredRequest.UserID = sanitize(request.UserID);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -25,57 +36,54 @@ class VariantsSecurity {
     // Set
     let filteredRequest = VariantsSecurity._filterVariantsRequest(
       request,
-      loggedUser
+      loggedUser,
     );
     filteredRequest.viewID = sanitize(request.viewID);
     filteredRequest.userID = sanitize(request.userID);
     return filteredRequest;
   }
 
-  static filterVariantsCreateRequest(request, loggedUser) {
-    let filteredRequest = VariantsSecurity._filterVariantsRequest(
+  static filterVariantCreateRequest(request, loggedUser) {
+    let filteredRequest = VariantSecurity._filterVariantRequest(
       request,
-      loggedUser
+      loggedUser,
     );
+    filteredRequest.name = sanitize(request.name);
     filteredRequest.viewID = sanitize(request.viewID);
     filteredRequest.userID = sanitize(request.userID);
     return filteredRequest;
   }
 
-  static _filterVariantsRequest(request) {
+  static _filterVariantRequest(request) {
     let filteredRequest = {};
-    for (var i = 0; i < request.variants.length; i++) {
-      filteredRequest.variants.push(sanitize(request.variants[i]).variantName);
-      for (var j = 0; j < request.variants[i].filters.length; j++) {
-        filteredRequest.variants[i].filters.push(
-          sanitize(request.variants[i].filters[j]).variantName
-        );
-      }
+    for (var i = 0; i < request.filters.length; i++) {
+      filteredRequest.filters.push(sanitize(request.filters[i].filterID));
+      filteredRequest.filters.push(sanitize(request.filters[i].filterContent));
     }
     return filteredRequest;
   }
 
-  static filterVariantsResponse(variants, loggedUser) {
-    let filteredVariants;
+  static filterVariantResponse(variant, loggedUser) {
+    let filteredVariant;
 
-    if (!variants) {
+    if (!variant) {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadVariants(loggedUser, variants)) {
+    if (Authorizations.canReadVariant(loggedUser, variants)) {
       // Admin?
       if (Authorizations.isAdmin(loggedUser)) {
         // Yes: set all params
-        filteredVariants = variants;
+        filteredVariant = variant;
       } else {
         // Set only necessary info
-        filteredVariants = variants;
+        filteredVariant = variant;
       }
     }
-    return filteredVariants;
+    return filteredVariant;
   }
 
-  static filterVariantsListResponse(variants, loggedUser) {
+  static filterVariantsResponse(variants, loggedUser) {
     let filteredVariants = [];
 
     if (!variants) {
@@ -86,9 +94,9 @@ class VariantsSecurity {
     }
     for (const variant of variants) {
       // Filter
-      let filteredVariant = VariantsSecurity.filterVariantsResponse(
+      let filteredVariant = VariantSecurity.filterVariantResponse(
         variant,
-        loggedUser
+        loggedUser,
       );
       // Ok?
       if (filteredVariants) {
@@ -100,4 +108,4 @@ class VariantsSecurity {
   }
 }
 
-module.exports = VariantsSecurity;
+module.exports = VariantSecurity;
