@@ -625,7 +625,7 @@ class AuthService {
 		res.status(200).send({});
 	}
 
-	static async userLoginWrongPassword(action, user, req, res, next) {
+	static async userLoginWrongPassword(action, user, tenant, req, res, next) {
 		// Add wrong trial + 1
 		user.setPasswordWrongNbrTrials(user.getPasswordWrongNbrTrials() + 1);
 		// Check if the number of trial is reached
@@ -658,7 +658,7 @@ class AuthService {
 		}
 	}
 
-	static async userLoginSucceeded(action, user, req, res, next) {
+	static async userLoginSucceeded(action, user, tenant, req, res, next) {
 		// Password / Login OK
 		Logging.logSecurityInfo({
 			user: user.getModel(),
@@ -689,6 +689,7 @@ class AuthService {
 			'firstName': user.getFirstName(),
 			'locale': user.getLocale(),
 			'language': user.getLanguage(),
+			'tenant': tenant,
 			'auths': auths
 		};
 		// Build token
@@ -739,10 +740,10 @@ class AuthService {
 					user.getModel());
 			}
 			// Login OK
-			await AuthService.userLoginSucceeded(action, user, req, res, next);
+			await AuthService.userLoginSucceeded(action, user, filteredRequest.tenant, req, res, next);
 		} else {
 			// Login KO
-			await AuthService.userLoginWrongPassword(action, user, req, res, next);
+			await AuthService.userLoginWrongPassword(action, user, filteredRequest.tenant, req, res, next);
 		}
 	}
 }

@@ -41,6 +41,7 @@ class AuthSecurity {
 		// Set
 		filteredRequest.email = sanitize(request.email);
 		filteredRequest.password = sanitize(request.password);
+		filteredRequest.tenant = sanitize(request.tenant);
 		filteredRequest.acceptEula = UtilsSecurity.filterBoolean(request.acceptEula);
 		return filteredRequest;
 	}
