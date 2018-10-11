@@ -74,14 +74,11 @@ class TransactionSecurity {
 			if (transaction.totalDurationSecs) {
 				filteredTransaction.totalDurationSecs = transaction.totalDurationSecs;
 			}
-			// Check auth
-			if (transaction.user && Authorizations.canReadUser(loggedUser, transaction.user)) {
-				// Demo user?
-				if (Authorizations.isDemo(loggedUser)) {
-					filteredTransaction.tagID = Constants.ANONIMIZED_VALUE;
-				} else {
-					filteredTransaction.tagID = transaction.tagID;
-				}
+			// Demo user?
+			if (Authorizations.isDemo(loggedUser)) {
+				filteredTransaction.tagID = Constants.ANONIMIZED_VALUE;
+			} else {
+				filteredTransaction.tagID = transaction.tagID;
 			}
 			filteredTransaction.timestamp = transaction.timestamp;
 			// Filter user
@@ -93,14 +90,11 @@ class TransactionSecurity {
 				filteredTransaction.stop.timestamp = transaction.stop.timestamp;
 				filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
 				filteredTransaction.stop.totalInactivitySecs = transaction.stop.totalInactivitySecs;
-				// Check auth
-				if (transaction.stop.user && Authorizations.canReadUser(loggedUser, transaction.stop.user)) {
-					// Demo user?
-					if (Authorizations.isDemo(loggedUser)) {
-						filteredTransaction.stop.tagID = Constants.ANONIMIZED_VALUE;
-					} else {
-						filteredTransaction.stop.tagID = transaction.stop.tagID;
-					}
+				// Demo user?
+				if (Authorizations.isDemo(loggedUser)) {
+					filteredTransaction.stop.tagID = Constants.ANONIMIZED_VALUE;
+				} else {
+					filteredTransaction.stop.tagID = transaction.stop.tagID;
 				}
 				// Admin?
 				if (Authorizations.isAdmin(loggedUser)) {

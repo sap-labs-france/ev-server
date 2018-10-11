@@ -626,8 +626,6 @@ class ChargingStation {
 				this.setLastHeartBeat(new Date());
 				// Handle End Of charge
 				this.handleNotificationEndOfCharge(transaction, consumption);
-				// Save
-				await this.save();
 			} else {
 				// Set consumption
 				connector.currentConsumption = 0;
@@ -639,8 +637,6 @@ class ChargingStation {
 					source: this.getID(), module: 'ChargingStation',
 					method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
 					message: `Connector '${connector.connectorId}' - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
-				// Save
-				await this.save();
 			}
 		} else {
 			// Log
@@ -880,6 +876,8 @@ class ChargingStation {
 			await TransactionStorage.saveMeterValues(newMeterValues);
 			// Update Charging Station Consumption
 			await this.updateChargingStationConsumption(meterValues.transactionId);
+			// Save
+			await this.save();
 			// Log
 			Logging.logInfo({
 				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
@@ -978,8 +976,11 @@ class ChargingStation {
 		// Execute
 		let users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
 				Constants.ACTION_AUTHORIZE, this, authorize.idTag);
-		// Set current user
-		authorize.user = users.user;
+		// Check
+		if (users) {
+			// Set current user
+			authorize.user = users.user;
+		}
 		// Save
 		await ChargingStationStorage.saveAuthorize(authorize);
 		// Log
@@ -1032,8 +1033,14 @@ class ChargingStation {
 		// Check user and save
 		let users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
 			Constants.ACTION_START_TRANSACTION, this, transaction.idTag);
-		// Set current user
-		let user = (users.alternateUser ? users.alternateUser : users.user);
+		// Check
+		let user;
+		if (users) {
+			// Set current user
+			user = (users.alternateUser ? users.alternateUser : users.user);
+			// Set the user
+			transaction.userID = user.getID();
+		}
 		// Check for active transaction
 		let activeTransaction;
 		do {
@@ -1043,7 +1050,7 @@ class ChargingStation {
 			if (activeTransaction) {
 				Logging.logInfo({
 					source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
-					action: 'StartTransaction', user: user.getModel(), actionOnUser: activeTransaction.user,
+					action: 'StartTransaction', user: (user ? user.getModel() : null), actionOnUser: (users && users.alternateUser ? users.alternateUser : null),
 					message: `Active Transaction ID '${activeTransaction.id}' has been deleted on Connector '${activeTransaction.connectorId}'` });
 				// Delete
 				await this.deleteTransaction(activeTransaction);
@@ -1061,13 +1068,11 @@ class ChargingStation {
 				// Log
 				Logging.logWarning({
 					source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
-					action: 'StartTransaction', user: user.getModel(),
-					actionOnUser: existingTransaction.user,
+					action: 'StartTransaction', user: (user ? user.getModel() : null),
+					actionOnUser: (existingTransaction.user ? existingTransaction.user : null),
 					message: `Transaction ID '${transaction.id}' already exists, generating a new one...` });
 			}
 		} while(existingTransaction);
-		// Set the user
-		transaction.userID = user.getID();
 		// Set the tag ID
 		transaction.tagID = transaction.idTag;
 		// Ok: Save Transaction
@@ -1077,43 +1082,49 @@ class ChargingStation {
 			// Set all the other connectors to occupied
 			this.getConnectors().forEach(async (connector) => {
 				// Check
-				if (connector.status === 'Available') {
+				if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
 					// Set Occupied
-					connector.status = 'Occupied';
-					connector.errorCode = 'NoError';
+					connector.status = Constants.CONN_STATUS_OCCUPIED;
 				}
 			});
 		}
-		// Set the user
-		newTransaction.user = user.getModel();
+		// Check
+		if (user) {
+			// Set the user
+			newTransaction.user = user.getModel();
+		}
 		// Update Consumption
 		await this.updateChargingStationConsumption(transaction.id);
+		// Save
+		await this.save();
 		// Log
 		if (newTransaction.user) {
+			// Notify
+			NotificationHandler.sendTransactionStarted(
+				transaction.id,
+				user.getModel(),
+				this.getModel(),
+				{
+					'user': user.getModel(),
+					'chargingBoxID': this.getID(),
+					'connectorId': transaction.connectorId,
+					'evseDashboardURL' : Utils.buildEvseURL(),
+					'evseDashboardChargingStationURL' :
+						Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id)
+				},
+				user.getLocale()
+			);
+			// Log
 			Logging.logInfo({
 				source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
 				action: 'StartTransaction', user: newTransaction.user,
 				message: `Transaction ID '${newTransaction.id}' has been started on Connector '${newTransaction.connectorId}'` });
 		} else {
+			// Log
 			Logging.logInfo({
 				source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
 				action: 'StartTransaction', message: `Transaction ID '${newTransaction.id}' has been started by an anonymous user on Connector '${newTransaction.connectorId}'` });
 		}
-		// Notify
-		NotificationHandler.sendTransactionStarted(
-			transaction.id,
-			user.getModel(),
-			this.getModel(),
-			{
-				'user': user.getModel(),
-				'chargingBoxID': this.getID(),
-				'connectorId': transaction.connectorId,
-				'evseDashboardURL' : Utils.buildEvseURL(),
-				'evseDashboardChargingStationURL' :
-					Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id)
-			},
-			user.getLocale()
-		);
 		// Return
 		return newTransaction;
 	}
@@ -1149,10 +1160,14 @@ class ChargingStation {
 		// Check User
 		let users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
 			Constants.ACTION_STOP_TRANSACTION, this, transaction.tagID, stopTransaction.tagID);
-		// Set current user
-		let user = (users.alternateUser ? users.alternateUser : users.user);
-		// Set the User ID
-		stopTransaction.userID = user.getID();
+		// Check
+		let user;
+		if (users) {
+			// Set current user
+			let user = (users.alternateUser ? users.alternateUser : users.user);
+			// Set the User ID
+			stopTransaction.userID = user.getID();
+		}
 		// Get the connector
 		let connector = this.getConnectors()[transaction.connectorId-1];
 		// Init the charging station
@@ -1165,11 +1180,10 @@ class ChargingStation {
 			// Set all the other connectors to Available
 			this.getConnectors().forEach(async (connector) => {
 				// Only other Occupied connectors
-				if ((connector.status === 'Occupied') && 
+				if ((connector.status === Constants.CONN_STATUS_OCCUPIED) && 
 						(connector.connectorId !== transaction.connectorId)) {
 					// Set connector Available again
-					connector.status = 'Available';
-					connector.errorCode = 'NoError';
+					connector.status = Constants.CONN_STATUS_AVAILABLE;
 				}
 			});
 		}
@@ -1221,13 +1235,17 @@ class ChargingStation {
 		}
 		// Save Transaction
 		let newTransaction = await TransactionStorage.saveTransaction(transaction);
-		// Set the user
-		newTransaction.user = users.user.getModel();
-		newTransaction.stop.user = users.alternateUser.getModel();
+		// Check
+		if (users) {
+			// Set the user
+			newTransaction.user = users.user.getModel();
+			newTransaction.stop.user = users.alternateUser.getModel();
+		}
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation', method: 'handleStopTransaction',
-			action: 'StopTransaction', user: newTransaction.stop.user, actionOnUser: newTransaction.user,
+			action: 'StopTransaction', user: (newTransaction.stop.user ? newTransaction.stop.user : null), 
+			actionOnUser: (newTransaction.user ? newTransaction.user : null),
 			message: `Transaction ID '${newTransaction.id}' has been stopped`});
 		// Publish to Cloud Revenue
 		setTimeout(() => {

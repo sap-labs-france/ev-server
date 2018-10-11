@@ -20,7 +20,7 @@ class TransactionService {
 			if(!filteredRequest.id) {
 				// Not Found!
 				throw new AppError(
-					Constants.CENTRAL_SERVER,
+					Constants.CENTRAL_SERVER,c
 					`The Transaction's ID must be provided`, 500,
 					'TransactionService', 'handleRefundTransaction', req.user);
 			}
@@ -118,20 +118,24 @@ class TransactionService {
 					'TransactionService', 'handleDeleteTransaction', req.user);
 			}
 			// Get Transaction User
-			let user = await UserStorage.getUser(transaction.userID);
-			// Check
-			if (!user) {
-				// Not Found!
-				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`The user with ID '${req.user.id}' does not exist`, 550,
-					'TransactionService', 'handleDeleteTransaction', req.user);
+			let user;
+			if (transaction.userID) {
+				// Check
+				user = await UserStorage.getUser(transaction.userID);
+				// Check
+				if (!user) {
+					// Not Found!
+					throw new AppError(
+						Constants.CENTRAL_SERVER,
+						`The user with ID '${req.user.id}' does not exist`, 550,
+						'TransactionService', 'handleDeleteTransaction', req.user);
+				}
 			}
 			// Delete Transaction
 			let result = await chargingStation.deleteTransaction(transaction);
 			// Log
 			Logging.logSecurityInfo({
-				user: req.user, actionOnUser: user.getModel(),
+				user: req.user, actionOnUser: (user ? user.getModel() : null),
 				module: 'TransactionService', method: 'handleDeleteTransaction',
 				message: `Transaction ID '${filteredRequest.ID}' on '${transaction.chargeBox.id}'-'${transaction.connectorId}' has been deleted successfully`,
 				action: action, detailedMessages: result});
@@ -185,15 +189,19 @@ class TransactionService {
 					`Charging Station with ID '${transaction.chargeBox.id}' does not exist`, 550,
 					'TransactionService', 'handleTransactionSoftStop', req.user);
 			}
-			// Get Transaction User
-			let user = await UserStorage.getUser(transaction.userID);
-			// Check
-			if (!user) {
-				// Not Found!
-				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`The user with ID '${req.user.id}' does not exist`, 550,
-					'TransactionService', 'handleTransactionSoftStop', req.user);
+			// Check User
+			let user;
+			if (transaction.userID) {
+				// Get Transaction User
+				let user = await UserStorage.getUser(transaction.userID);
+				// Check
+				if (!user) {
+					// Not Found!
+					throw new AppError(
+						Constants.CENTRAL_SERVER,
+						`The user with ID '${req.user.id}' does not exist`, 550,
+						'TransactionService', 'handleTransactionSoftStop', req.user);
+				}
 			}
 			// Stop Transaction
 			let stopTransaction = {};

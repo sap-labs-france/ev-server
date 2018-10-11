@@ -179,6 +179,17 @@ class Site {
 		}
 	}
 
+	async getUser(userID) {
+		// Get from DB
+		let users = await UserStorage.getUsers({'siteID': this.getID(), 'userID': userID});
+		// Check
+		if (users.count > 0) {
+			return users.result[0];
+		}
+		// None
+		return null;
+	}
+
 	removeUser(user) {
 		if (this._model.users) {
 			// Search
