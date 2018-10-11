@@ -688,7 +688,7 @@ class Authorizations {
 		// Set debug mode?
 		if (Authorizations.getConfiguration().debug) {
 			// Switch on traces
-			Authorizations.switchTraceOn();
+			Authorization.switchTraceOn();
 		}
 		// Create Auth
 		const auth = new Authorization(loggedUser.role, loggedUser.auths);
