@@ -6,17 +6,19 @@ class VariantSecurity {
   static filterVariantDeleteRequest(request) {
     let filteredRequest = {};
     // Set
-    filteredRequest.name = sanitize(request.name);
+    filteredRequest.ID = sanitize(request.ID);
+/*     filteredRequest.name = sanitize(request.name);
     filteredRequest.viewID = sanitize(request.viewID);
-    filteredRequest.userID = sanitize(request.userID);
+    filteredRequest.userID = sanitize(request.userID); */
     return filteredRequest;
   }
 
   static filterVariantRequest(request, loggedUser) {
     let filteredRequest = {};
-    filteredRequest.Name = sanitize(request.Name);
+    filteredRequest.ID = sanitize(request.ID);
+    /* filteredRequest.Name = sanitize(request.Name);
     filteredRequest.ViewID = sanitize(request.ViewID);
-    filteredRequest.UserID = sanitize(request.UserID);
+    filteredRequest.UserID = sanitize(request.UserID); */
     /*     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest); */
     return filteredRequest;
@@ -27,17 +29,20 @@ class VariantSecurity {
     filteredRequest.Name = sanitize(request.Name);
     filteredRequest.ViewID = sanitize(request.ViewID);
     filteredRequest.UserID = sanitize(request.UserID);
+    filteredRequest.WithGlobal = UtilsSecurity.filterBoolean(request.WithGlobal);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 
-  static filterVariantsUpdateRequest(request, loggedUser) {
+  static filterVariantUpdateRequest(request, loggedUser) {
     // Set
-    let filteredRequest = VariantsSecurity._filterVariantsRequest(
+    let filteredRequest = VariantSecurity._filterVariantRequest(
       request,
       loggedUser,
     );
+    filteredRequest.id = sanitize(request.id);
+    filteredRequest.name = sanitize(request.name);
     filteredRequest.viewID = sanitize(request.viewID);
     filteredRequest.userID = sanitize(request.userID);
     return filteredRequest;
@@ -70,7 +75,7 @@ class VariantSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadVariant(loggedUser, variants)) {
+    if (Authorizations.canReadVariant(loggedUser, variant)) {
       // Admin?
       if (Authorizations.isAdmin(loggedUser)) {
         // Yes: set all params

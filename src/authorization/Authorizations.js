@@ -608,7 +608,7 @@ class Authorizations {
 	static canReadVariant(loggedUser, variant) {
 		// Check
 		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VARIANT,
-			{ "Action": Constants.ACTION_READ, "Name": variant.Name, "ViewID": variant.ViewID, "UserID": variant.UserID.toString() });
+			{ "Action": Constants.ACTION_READ, "VariantID": variant.ID.toString() });
 	}
 
 	static canCreateVariant(loggedUser) {
@@ -617,16 +617,16 @@ class Authorizations {
 			{ "Action": Constants.ACTION_CREATE });
 	}
 
-	static canUpdateVariants(loggedUser, variants) {
+	static canUpdateVariant(loggedUser, variant) {
 		// Check
-		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VARIANTS,
-			{ "Action": Constants.ACTION_UPDATE, "ViewID": variants.ViewID, "UserID": variants.userID.toString() });
+		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VARIANT,
+			{ "Action": Constants.ACTION_UPDATE, "VariantID": variant.id.toString() });
 	}
 
 	static canDeleteVariant(loggedUser, variant) {
 		// Check
 		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VARIANT,
-			{ "Action": Constants.ACTION_DELETE, "Name": variant.Name, "ViewID": variant.ViewID, "UserID": variant.userID.toString() });
+			{ "Action": Constants.ACTION_DELETE, "VariantID": variant.ID.toString() });
 	}
 
 	static isSuperAdmin(loggedUser) {

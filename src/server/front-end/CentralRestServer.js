@@ -282,6 +282,19 @@ class CentralRestServer {
 		});
 	}
 
+	notifyVariant(action, data) {
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": Constants.ENTITY_VARIANT,
+			"action": action,
+			"data": data
+		});
+		// Add in buffer
+		this.addNotificationInBuffer({
+			"entity": Constants.ENTITY_VARIANTS
+		});
+	}
+
 	addNotificationInBuffer(notification) {
 		let dups = false;
 		// Add in buffer

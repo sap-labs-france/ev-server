@@ -130,6 +130,19 @@ module.exports = {
 							"AuthFieldValue": {
 								"Action": ["Read", "Update"]
 							}
+						},
+						{
+							"AuthObject": "Variant",
+							"AuthFieldValue": {
+								"UserID": "*",
+								"Action": ["Create", "Read", "Update", "Delete"]
+							}
+						},
+						{
+							"AuthObject": "Variants",
+							"AuthFieldValue": {
+								"Action": ["List"]
+							}
 						}
 					]
 				},
@@ -295,6 +308,19 @@ module.exports = {
 							"AuthFieldValue": {
 								"Action": []
 							}
+						},
+						{
+							"AuthObject": "Variant",
+							"AuthFieldValue": {
+								"UserID": [
+									{{#trim}}
+										{{#userID}}
+											"{{.}}",
+										{{/userID}}
+									{{/trim}}
+								],
+								"Action": ["Create", "Read", "Update", "Delete"]
+							}
 						}
 					]
 				},
@@ -423,6 +449,13 @@ module.exports = {
 							"AuthObject": "Pricing",
 							"AuthFieldValue": {
 								"Action": []
+							}
+						},
+						{
+							"AuthObject": "Variant",
+							"AuthFieldValue": {
+								"UserID": "*",
+								"Action": ["Read"]
 							}
 						}
 					]

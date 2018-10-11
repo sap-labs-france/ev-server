@@ -17,22 +17,11 @@ class VariantService {
         req.query
       );
       // Check Mandatory fields
-      if (!filteredRequest.name) {
+      if (!filteredRequest.ID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The variant name must be provided`,
-          500,
-          'VariantService',
-          'handleDeleteVariant',
-          req.user
-        );
-      }
-      if (!filteredRequest.ViewID) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The variant view ID must be provided`,
+          `The variant ID must be provided`,
           500,
           'VariantService',
           'handleDeleteVariant',
@@ -40,18 +29,12 @@ class VariantService {
         );
       }
       // Get
-      let variant = await VariantStorage.getVariantByID(
-        filteredRequest.name,
-        filteredRequest.viewID,
-        filteredRequest.userID,
-      );
+      let variant = await VariantStorage.getVariant(filteredRequest.ID);
       if (!variant) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Variant '${filteredRequest.name}' with view ID '${filteredRequest.viewID}' and user ID '${
-            filteredRequest.userID
-          }'  do not exist`,
+          `Variant  ID '${filteredRequest.ID}' do not exist`,
           550,
           'VariantService',
           'handleDeleteVariant',
@@ -64,7 +47,7 @@ class VariantService {
         throw new AppAuthError(
           Constants.ACTION_DELETE,
           Constants.ENTITY_VARIANT,
-          variant.getModel(),
+          variant.getID(),
           560,
           'VariantService',
           'handleDeleteVariant',
@@ -106,24 +89,11 @@ class VariantService {
         req.query,
         req.user
       );
-       // Name is mandatory
-       if (!filteredRequest.Name) {
+      if (!filteredRequest.ID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The variant name must be provided`,
-          500,
-          'VariantService',
-          'handleGetVariant',
-          req.user
-        );
-      }
-      // View ID is mandatory
-      if (!filteredRequest.ViewID) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The variant view ID must be provided`,
+          `The variant ID must be provided`,
           500,
           'VariantService',
           'handleGetVariant',
@@ -131,17 +101,11 @@ class VariantService {
         );
       }
       // Get it
-      let variant = await VariantStorage.getVariantByID(
-        filteredRequest.Name,
-        filteredRequest.ViewID,
-        filteredRequest.UserID
-      );
+      let variant = await VariantStorage.getVariant(filteredRequest.ID);
       if (!variant) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Variant '${filteredRequest.Name}' with view ID '${filteredRequest.ViewID}' and user ID '${
-            filteredRequest.UserID
-          }'  do not exist`,
+          `Variant  ID '${filteredRequest.ID}' do not exist`,
           550,
           'VariantService',
           'handleGetVariant',
@@ -188,7 +152,12 @@ class VariantService {
       );
       // Get variants
       let variants = await VariantStorage.getVariants(x, limit, skip, sort)(
-        {name: filteredRequest.Name, viewID: filteredRequest.ViewID, userID: filteredRequest.UserID},
+        {
+          name: filteredRequest.Name,
+          viewID: filteredRequest.ViewID,
+          userID: filteredRequest.UserID,
+          withGlobal: filteredRequest.WithGlobal
+        },
         filteredRequest.Limit,
         filteredRequest.Skip,
         filteredRequest.Sort
@@ -236,7 +205,7 @@ class VariantService {
         req.user
       );
       // Check Mandatory fields
-      Variant.checkIfVariantValid(filteredRequest, req);
+      Variant.checkIfVariantValid(filteredRequest, req); // TODO Check if combination name/view/user exists
       // Create variants
       let variant = new Variant(filteredRequest);
       // Save
@@ -246,7 +215,9 @@ class VariantService {
         user: req.user,
         module: 'VariantService',
         method: 'handleCreateVariant',
-        message: `Variant '${newVariant.getName()}' associated to view '${newVariant.getViewID()}' and user '${req.user.email }' has been created successfully`,
+        message: `Variant '${newVariant.getName()}' associated to view '${newVariant.getViewID()}' and user '${
+          req.user.email
+        }' has been created successfully`,
         action: action,
         detailedMessages: newVariant
       });
@@ -265,52 +236,53 @@ class VariantService {
     }
   }
 
-  static async handleUpdateVariants(action, req, res, next) {
+  static async handleUpdateVariant(action, req, res, next) {
     try {
       // Filter
-      let filteredRequest = VariantsSecurity.filterVariantsUpdateRequest(
+      let filteredRequest = VariantSecurity.filterVariantUpdateRequest(
         req.body,
         req.user
       );
       // Check view
-      let variants = await VariantsStorage.getUserVariantsByID(filteredRequest.viewID, filteredRequest.userID, true);
-      if (!variants) {
+      let variant = await VariantStorage.getVariant(filteredRequest.id);
+
+      if (!variant) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Variants associated to view ID '${filteredRequest.viewID}' and user '${filteredRequest.userID}' do not exist anymore`,
+          `The Variant '${filteredRequest.id}' do not exist anymore`,
           550,
-          'VariantsService',
-          'handleUpdateVariants',
+          'VariantService',
+          'handleUpdateVariant',
           req.user
         );
       }
       // Check Mandatory fields
-      Variants.checkIfVariantsValid(filteredRequest, req);
+      Variant.checkIfVariantValid(filteredRequest, req);
       // Check auth
-      if (!Authorizations.canUpdateVariants(req.user, variants.getModel())) {
+      if (!Authorizations.canUpdateVariant(req.user, variant.getModel())) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
-          Constants.ENTITY_VARIANTS,
-          {"viewID": variants.getViewID(), "userID": variants.userID},
+          Constants.ENTITY_VARIANT,
+          variant.getID(),
           560,
-          'VariantsService',
-          'handleUpdateVariants',
+          'VariantService',
+          'handleUpdateVariant',
           req.user
         );
       }
       // Update
-      Database.updateVariants(filteredRequest, vehicle.getModel());
-      // Update Variants
-      let updatedVariants = await variants.save();
+      Database.updateVariant(filteredRequest, variant.getModel());
+      // Update Variant
+      let updatedVariant = await variant.save();
       // Log
       Logging.logSecurityInfo({
         user: req.user,
-        module: 'VariantsService',
-        method: 'handleUpdateVariants',
-        message: `Variants associated to view '${updatedVariants.getviewID()}' and user '${updatedVariants.getUserID()}'have been updated successfully`,
+        module: 'VariantService',
+        method: 'handleUpdateVariant',
+        message: `Variant '${updatedVariant.getName()}' associated to view '${updatedVariant.getviewID()}' and user '${updatedVariant.getUserID()}'has been updated successfully`,
         action: action,
-        detailedMessages: updatedVariants
+        detailedMessages: updatedVariant
       });
       // Ok
       res.json({status: `Success`});

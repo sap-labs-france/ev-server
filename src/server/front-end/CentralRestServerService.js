@@ -12,6 +12,7 @@ const UtilsService = require('./service/UtilsService');
 const LoggingService = require('./service/LoggingService');
 const TransactionService = require('./service/TransactionService');
 const StatisticService = require('./service/StatisticService');
+const VariantService = require('./service/VariantService');
 
 require('source-map-support').install();
 
@@ -110,8 +111,10 @@ module.exports = {
 						// Delegate
 						TransactionService.handleRefundTransaction(action, req, res, next);
 						break;
-					// Create variant
-					case "VariantsCreate":
+					// Create Variant
+					case "VariantCreate":
+						// Delegate
+						VariantService.handleCreateVariant(action, req, res, next);
 					break;
 					// Unknown Context
 					default:
@@ -334,8 +337,15 @@ module.exports = {
 						// Delegate
 						AuthService.handleIsAuthorized(action, req, res, next);
 						break;
+					// Variant
+					case "Variant":
+						// Delegate
+						VariantService.handleGetVariant(action, req, res, next)
+						break;
 					// Variants
 					case "Variants":
+						// Delegate
+						VariantService.handleGetVariants(action, req, res, next)
 						break;
 					// Unknown Action
 					default:
@@ -393,8 +403,10 @@ module.exports = {
 						// Delegate
 						TransactionService.handleTransactionSoftStop(action, req, res, next);
 						break;
-					// Variants
-					case "VariantsUpdate":
+					// Variant
+					case "VariantUpdate":
+						// Delegate
+						VariantService.handleUpdateVariant(action, req, res, next);
 						break;
 					// Not found
 					default:
@@ -447,8 +459,10 @@ module.exports = {
 						// Delegate
 						TransactionService.handleDeleteTransaction(action, req, res, next);
 						break;
-					// Variants
-					case "VariantsDelete":
+					// Variant
+					case "VariantDelete":
+						// Delegate
+						VariantService.handleDeleteVariant(action, req, res, next);
 						break;
 					// Not found
 					default:

@@ -4,17 +4,17 @@ const Utils = require('../../utils/Utils');
 const AppError = require('../../exception/AppError');
 
 class VariantStorage {
-  static async getVariantByID(name, viewID, userID) {
+  static async getVariant(id) {
     const Variant = require('../../model/Variant');
     // Create Aggregation
     let aggregation = [];
     // Filters
     aggregation.push({
-      $match: { $and: [{ name: name }, { viewID: viewID }, { userID: userID }] },
+      $match: {_id: Utils.convertToObjectID(id)}
     });
     // Read DB
     let variantsMDB = await global.db
-      .collection('variant')
+      .collection('variants')
       .aggregate(aggregation)
       .toArray();
     // Set
@@ -37,7 +37,7 @@ class VariantStorage {
         `Variant has no Name and no Model`,
         550,
         'VariantStorage',
-        'saveVariant',
+        'saveVariant'
       );
     }
 
@@ -49,28 +49,37 @@ class VariantStorage {
         `Variant has no View ID and no Model`,
         550,
         'VariantStorage',
-        'saveVariant',
+        'saveVariant'
       );
     }
 
     let variantFilter = {};
+
     // Build Request
+    if (variantToSave.id) {
+      variantToSave._id = Utils.convertUserToObjectID(variantToSave.id);
+    } else {
+      variantToSave._id = new ObjectID();
+    }
     if (variantToSave.name) {
       variantFilter.name = variantToSave.name;
     }
     if (variantToSave.viewID) {
       variantFilter.viewID = variantToSave.viewID;
     }
+    if (variantToSave.userID) {
+      variantToSave.userID = Utils.convertUserToObjectID(variantToSave.userID);
+    }
     // Transfer
     let variant = {};
     Database.updateVariant(variantToSave, variant, false);
     // Modify
     let result = await global.db
-      .collection('variant')
+      .collection('variants')
       .findOneAndUpdate(
         variantFilter,
-        { $set: variant },
-        { upsert: true, new: true, returnOriginal: false },
+        {$set: variant},
+        {upsert: true, new: true, returnOriginal: false}
       );
     // Create
     return new Variant(result.value);
@@ -96,7 +105,7 @@ class VariantStorage {
       filters.viewID = params.viewID;
     }
 
-    if (params.global && params.global == true) {
+    if (params.withGlobal && params.withGlobal == true) {
       // Include global variants
       // Set User?
       if (params.userID) {
@@ -105,11 +114,11 @@ class VariantStorage {
             filters,
             {
               $or: [
-                { userID: Utils.convertToObjectID(params.userID) },
-                { userID: null },
-              ],
-            },
-          ],
+                {userID: Utils.convertToObjectID(params.userID)},
+                {userID: null}
+              ]
+            }
+          ]
         };
       }
     } else {
@@ -123,19 +132,19 @@ class VariantStorage {
     // Filters
     if (filters) {
       aggregation.push({
-        $match: filters,
+        $match: filters
       });
     }
     // Count Records
     let variantsCountMDB = await global.db
-      .collection('variant')
-      .aggregate([...aggregation, { $count: 'count' }])
+      .collection('variants')
+      .aggregate([...aggregation, {$count: 'count'}])
       .toArray();
     // Sort
     if (sort) {
       // Sort
       aggregation.push({
-        $sort: sort,
+        $sort: sort
       });
     } else {
       // Default
@@ -143,23 +152,23 @@ class VariantStorage {
         $sort: {
           name: 1,
           viewID: 1,
-          userID: 1,
-        },
+          userID: 1
+        }
       });
     }
     // Skip
     aggregation.push({
-      $skip: skip,
+      $skip: skip
     });
     // Limit
     aggregation.push({
-      $limit: limit,
+      $limit: limit
     });
     // Read DB
     let variantsMDB = await global.db
-      .collection('variant')
+      .collection('variants')
       .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        collation: {locale: Constants.DEFAULT_LOCALE, strength: 2}
       })
       .toArray();
     let variants = [];
@@ -174,15 +183,15 @@ class VariantStorage {
     // Ok
     return {
       count: variantsCountMDB.length > 0 ? variantsCountMDB[0].count : 0,
-      result: variants,
+      result: variants
     };
   }
 
-  static async deleteVariant(name, viewID, userID) {
-    // Delete Variants
-    await global.db.collection('variant').findOneAndDelete({
-      $and: [{ name: name }, { viewID: viewID }, { userID: userID }],
-    });
+  static async deleteVariant(id) {
+    // Delete Vehicle
+    await global.db
+      .collection('variants')
+      .findOneAndDelete({_id: Utils.convertToObjectID(id)});
   }
 }
 

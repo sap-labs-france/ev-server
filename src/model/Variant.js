@@ -83,34 +83,44 @@ class Variant {
   }
 
   static checkIfVariantValid(filteredRequest, request) {
-    // Update model?
-    if (request.method !== 'POST' && !filteredRequest.viewID) {
+    // ID?
+    if (httpRequest.method !== 'POST' && !request.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `The Variant ID is mandatory`,
+        500,
+        'Variant',
+        'checkIfVariantValid'
+      );
+    }
+    // ViewID
+    if (!request.viewID) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `View ID is mandatory`,
         500,
         'Variant',
-        'checkIfVariantValid',
+        'checkIfVariantValid'
       );
     }
 
-    if (request.method !== 'POST' && !filteredRequest.name) {
+    if (!request.name) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Variant name is mandatory`,
         500,
         'Variant',
-        'checkIfVariantValid',
+        'checkIfVariantValid'
       );
     }
 
-    if (request.method !== 'POST' && !filteredRequest.filters) {
+    if (!request.filters) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Filters are mandatory`,
         500,
         'Variant',
-        'checkIfVariantValid',
+        'checkIfVariantValid'
       );
     }
   }
@@ -144,7 +154,7 @@ class Variant {
     return VariantStorage.deleteVariant(
       this.getName(),
       this.getViewID(),
-      this.getUserID(),
+      this.getUserID()
     );
   }
 }
