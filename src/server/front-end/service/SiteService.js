@@ -9,7 +9,7 @@ const Site = require('../../../model/Site');
 const SiteSecurity = require('./security/SiteSecurity');
 const SiteStorage = require('../../../storage/mongodb/SiteStorage');
 const UserStorage = require('../../../storage/mongodb/UserStorage');
-const CompanyStorage = require('../../../storage/mongodb/CompanyStorage'); 
+const CompanyStorage = require('../../../storage/mongodb/CompanyStorage');
 
 class SiteService {
 	static async handleDeleteSite(action, req, res, next) {
@@ -21,7 +21,7 @@ class SiteService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Site's ID must be provided`, 500, 
+					`The Site's ID must be provided`, 500,
 					'SiteService', 'handleDeleteSite', req.user);
 			}
 			// Get
@@ -30,7 +30,7 @@ class SiteService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Site with ID '${filteredRequest.ID}' does not exist`, 550, 
+					`Site with ID '${filteredRequest.ID}' does not exist`, 550,
 					'SiteService', 'handleDeleteSite', req.user);
 			}
 			// Check auth
@@ -40,7 +40,7 @@ class SiteService {
 					Constants.ACTION_DELETE,
 					Constants.ENTITY_SITE,
 					site.getID(),
-					560, 
+					560,
 					'SiteService', 'handleDeleteSite',
 					req.user);
 			}
@@ -69,7 +69,7 @@ class SiteService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Site's ID must be provided`, 500, 
+					`The Site's ID must be provided`, 500,
 					'SiteService', 'handleGetSite', req.user);
 			}
 			// Get it
@@ -77,7 +77,7 @@ class SiteService {
 			if (!site) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Site with ID '${filteredRequest.ID}' does not exist anymore`, 550, 
+					`The Site with ID '${filteredRequest.ID}' does not exist anymore`, 550,
 					'SiteService', 'handleGetSite', req.user);
 			}
 			// Return
@@ -102,7 +102,7 @@ class SiteService {
 					Constants.ACTION_LIST,
 					Constants.ENTITY_SITES,
 					null,
-					560, 
+					560,
 					'SiteService', 'handleGetSites',
 					req.user);
 			}
@@ -110,8 +110,8 @@ class SiteService {
 			let filteredRequest = SiteSecurity.filterSitesRequest(req.query, req.user);
 			// Get the sites
 			let sites = await SiteStorage.getSites(
-				{ 'search': filteredRequest.Search, 'userID': filteredRequest.UserID, 'withCompany': filteredRequest.WithCompany, 
-					'withSiteAreas': filteredRequest.WithSiteAreas, 'withChargeBoxes': filteredRequest.WithChargeBoxes, 
+				{ 'search': filteredRequest.Search, 'userID': filteredRequest.UserID, 'withCompany': filteredRequest.WithCompany,
+					'withSiteAreas': filteredRequest.WithSiteAreas, 'withChargeBoxes': filteredRequest.WithChargeBoxes,
 					'withUsers': filteredRequest.WithUsers, 'excludeSitesOfUserID': filteredRequest.ExcludeSitesOfUserID,
 					'withAvailableChargers': filteredRequest.WithAvailableChargers },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
@@ -138,7 +138,7 @@ class SiteService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Site's ID must be provided`, 500, 
+					`The Site's ID must be provided`, 500,
 					'SiteService', 'handleGetSiteImage', req.user);
 			}
 			// Get it
@@ -146,7 +146,7 @@ class SiteService {
 			if (!site) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Site with ID '${filteredRequest.ID}' does not exist anymore`, 550, 
+					`The Site with ID '${filteredRequest.ID}' does not exist anymore`, 550,
 					'SiteService', 'handleGetSite', req.user);
 			}
 			// Check auth
@@ -156,7 +156,7 @@ class SiteService {
 					Constants.ACTION_READ,
 					Constants.ENTITY_SITE,
 					site.getID(),
-					560, 
+					560,
 					'SiteService', 'handleGetSiteImage',
 					req.user);
 			}
@@ -180,7 +180,7 @@ class SiteService {
 					Constants.ACTION_LIST,
 					Constants.ENTITY_SITES,
 					null,
-					560, 
+					560,
 					'SiteService', 'handleGetSiteImages',
 					req.user);
 			}
@@ -204,7 +204,7 @@ class SiteService {
 					Constants.ACTION_CREATE,
 					Constants.ENTITY_SITE,
 					null,
-					560, 
+					560,
 					'SiteService', 'handleCreateSite',
 					req.user);
 			}
@@ -219,7 +219,7 @@ class SiteService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Company ID '${filteredRequest.companyID}' does not exist`, 550, 
+					`The Company ID '${filteredRequest.companyID}' does not exist`, 550,
 					'SiteService', 'handleCreateSite', req.user);
 			}
 			// Create site
@@ -229,11 +229,13 @@ class SiteService {
 			site.setCreatedOn(new Date());
 			// Get the users
 			let users = [];
-			for (const userID of filteredRequest.userIDs) {
-				// Get User
-				let user = await UserStorage.getUser(userID);
-				// Add
-				users.push(user);
+			if(filteredRequest.userIDs){
+				for (const userID of filteredRequest.userIDs) {
+					// Get User
+					let user = await UserStorage.getUser(userID);
+					// Add
+					users.push(user);
+				}
 			}
 			// Set Users
 			site.setUsers(users);
@@ -249,7 +251,9 @@ class SiteService {
 				message: `Site '${newSite.getName()}' has been created successfully`,
 				action: action, detailedMessages: newSite});
 			// Ok
-			res.json(Constants.REST_RESPONSE_SUCCESS);
+      const result = Constants.REST_RESPONSE_SUCCESS;
+      result.id = newSite._model.id;
+      res.json(result);
 			next();
 		} catch (error) {
 			// Log
@@ -266,7 +270,7 @@ class SiteService {
 			if (!site) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Site with ID '${filteredRequest.id}' does not exist anymore`, 550, 
+					`The Site with ID '${filteredRequest.id}' does not exist anymore`, 550,
 					'SiteService', 'handleUpdateSite', req.user);
 			}
 			// Check Mandatory fields
@@ -278,7 +282,7 @@ class SiteService {
 					Constants.ACTION_UPDATE,
 					Constants.ENTITY_SITE,
 					site.getID(),
-					560, 
+					560,
 					'SiteService', 'handleUpdateSite',
 					req.user);
 			}

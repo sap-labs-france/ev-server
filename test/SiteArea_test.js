@@ -23,41 +23,36 @@ describe('SiteArea tests', function() {
   describe('green cases', function() {
     let site = null;
     let company = null;
+
     beforeEach(async function() {
-      const companyToCreate = CompanyFactory.build();
-      await companyApi.create(companyToCreate);
-      await companyApi.readAll({}, (message, response) => {
+      company = CompanyFactory.build();
+      await companyApi.create(company, (message, response) => {
         expect(message.status).to.equal(200);
-        company = response.result.find((element) => element.name === companyToCreate.name);
+        company.id = response.id;
       });
-      const siteToCreate = SiteFactory.build({companyID: company.id});
-      await siteApi.create(siteToCreate, (message, response) => {
+
+      site = SiteFactory.build({companyID: company.id});
+      await siteApi.create(site, (message, response) => {
         expect(message.status).to.equal(200);
-        expect(response.status).to.eql('Success');
+        site.id = response.id;
       });
-      await siteApi.readAll({}, (message, response) => {
-        expect(message.status).to.equal(200);
-        expect(response).to.have.property('count');
-        site = response.result.find((element) => element.name === siteToCreate.name);
-      });
-    })
-    ;
+
+    });
 
     it('should create a new SiteAreaArea', async function() {
       await siteAreaApi.create(SiteAreaFactory.build({siteID: site.id}), (message, response) => {
         expect(message.status).to.equal(200);
         expect(response.status).to.eql('Success');
+        expect(response).to.have.property('id');
+        expect(response.id).to.match(/^[a-f0-9]+$/);
       });
     });
 
     it('should find a newly created siteArea from list', async function() {
       const siteArea = SiteAreaFactory.build({siteID: site.id});
-      await siteAreaApi.readAll({}, (message, response) => {
-        expect(message.status).to.equal(200);
-        expect(response).to.have.property('count');
-      });
-      await siteAreaApi.create(siteArea, (message, response) => expect(message.status).to.equal(200));
-      delete siteArea.userIDs;
+      await siteAreaApi.create(siteArea, ((message, response) => {
+        siteArea.id = response.id;
+      }));
       await siteAreaApi.readAll({}, (message, response) => {
         expect(message.status).to.equal(200);
         expect(response).to.have.property('count');
@@ -66,22 +61,16 @@ describe('SiteArea tests', function() {
         const actualSiteArea = response.result.find((element) => element.name === siteArea.name);
         expect(actualSiteArea).to.be.a('object');
         expect(actualSiteArea).to.containSubset(siteArea);
-        expect(actualSiteArea).to.have.property('id');
       });
     });
 
     it('should find a specific siteArea by id', async function() {
       const siteArea = SiteAreaFactory.build({siteID: site.id});
-      await siteAreaApi.create(siteArea);
-      let SiteAreaId = null;
-      await siteAreaApi.readAll({}, (message, response) => {
+      await siteAreaApi.create(siteArea, ((message, response) => {
         expect(message.status).to.equal(200);
-        expect(response).to.have.property('count');
-        expect(response).to.have.property('result');
-        SiteAreaId = response.result.find((element) => element.name === siteArea.name).id;
-      });
-      delete siteArea.userIDs;
-      await siteAreaApi.readById(SiteAreaId, (message, response) => {
+        siteArea.id = response.id;
+      }));
+      await siteAreaApi.readById(siteArea.id, (message, response) => {
         expect(message.status).to.equal(200);
         expect(response).to.containSubset(siteArea);
       });

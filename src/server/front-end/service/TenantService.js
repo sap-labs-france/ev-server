@@ -192,7 +192,9 @@ class TenantService {
                 detailedMessages: newTenant
             });
             // Ok
-            res.json(Constants.REST_RESPONSE_SUCCESS);
+          const result = Constants.REST_RESPONSE_SUCCESS;
+          result.id = newTenant._model.id;
+          res.json(result);
             next();
         } catch (error) {
             // Log

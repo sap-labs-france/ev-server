@@ -7,7 +7,7 @@ const Company = require('../../../model/Company');
 const User = require('../../../model/User');
 const Authorizations = require('../../../authorization/Authorizations');
 const CompanySecurity = require('./security/CompanySecurity');
-const CompanyStorage = require('../../../storage/mongodb/CompanyStorage'); 
+const CompanyStorage = require('../../../storage/mongodb/CompanyStorage');
 
 class CompanyService {
 	static async handleDeleteCompany(action, req, res, next) {
@@ -20,7 +20,7 @@ class CompanyService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Company's ID must be provided`, 500, 
+					`The Company's ID must be provided`, 500,
 					'CompanyService', 'handleDeleteCompany', req.user);
 			}
 			// Get
@@ -30,7 +30,7 @@ class CompanyService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Company with ID '${filteredRequest.ID}' does not exist`, 550, 
+					`Company with ID '${filteredRequest.ID}' does not exist`, 550,
 					'CompanyService', 'handleDeleteCompany', req.user);
 			}
 			// Check auth
@@ -68,7 +68,7 @@ class CompanyService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Company's ID must be provided`, 500, 
+					`The Company's ID must be provided`, 500,
 					'CompanyService', 'handleGetCompany', req.user);
 			}
 			// Get it
@@ -76,7 +76,7 @@ class CompanyService {
 			if (!company) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Company with ID '${filteredRequest.ID}' does not exist anymore`, 550, 
+					`The Company with ID '${filteredRequest.ID}' does not exist anymore`, 550,
 					'CompanyService', 'handleGetCompany', req.user);
 			}
 			// Check auth
@@ -111,7 +111,7 @@ class CompanyService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Company's ID must be provided`, 500, 
+					`The Company's ID must be provided`, 500,
 					'CompanyService', 'handleGetCompanyLogo', req.user);
 			}
 			// Get it
@@ -119,7 +119,7 @@ class CompanyService {
 			if (!company) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Company with ID '${filteredRequest.ID}' does not exist anymore`, 550, 
+					`The Company with ID '${filteredRequest.ID}' does not exist anymore`, 550,
 					'CompanyService', 'handleGetCompanyLogo', req.user);
 			}
 			// Check auth
@@ -231,7 +231,9 @@ class CompanyService {
 				message: `Company '${newCompany.getName()}' has been created successfully`,
 				action: action, detailedMessages: newCompany});
 			// Ok
-			res.json(Constants.REST_RESPONSE_SUCCESS);
+			const result = Constants.REST_RESPONSE_SUCCESS;
+			result.id = newCompany._model.id;
+			res.json(result);
 			next();
 		} catch (error) {
 			// Log
@@ -248,7 +250,7 @@ class CompanyService {
 			if (!company) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Company with ID '${filteredRequest.id}' does not exist anymore`, 550, 
+					`The Company with ID '${filteredRequest.id}' does not exist anymore`, 550,
 					'CompanyService', 'handleUpdateCompany', req.user);
 			}
 			// Check Mandatory fields

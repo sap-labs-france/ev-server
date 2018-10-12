@@ -7,7 +7,7 @@ const Authorizations = require('../../../authorization/Authorizations');
 const Constants = require('../../../utils/Constants');
 const VehicleManufacturer = require('../../../model/VehicleManufacturer');
 const VehicleManufacturerSecurity = require('./security/VehicleManufacturerSecurity');
-const VehicleManufacturerStorage = require('../../../storage/mongodb/VehicleManufacturerStorage'); 
+const VehicleManufacturerStorage = require('../../../storage/mongodb/VehicleManufacturerStorage');
 
 class VehicleManufacturerService {
 	static async handleDeleteVehicleManufacturer(action, req, res, next) {
@@ -20,7 +20,7 @@ class VehicleManufacturerService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Vehicle Manufacturer's ID must be provided`, 500, 
+					`The Vehicle Manufacturer's ID must be provided`, 500,
 					'VehicleManufacturerService', 'handleDeleteVehicleManufacturer', req.user);
 			}
 			// Get
@@ -29,7 +29,7 @@ class VehicleManufacturerService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Vehicle Manufacturer with ID '${filteredRequest.ID}' does not exist`, 550, 
+					`Vehicle Manufacturer with ID '${filteredRequest.ID}' does not exist`, 550,
 					'VehicleManufacturerService', 'handleDeleteVehicleManufacturer', req.user);
 			}
 			// Check auth
@@ -39,7 +39,7 @@ class VehicleManufacturerService {
 					Constants.ACTION_DELETE,
 					Constants.ENTITY_VEHICLE_MANUFACTURERS,
 					vehicleManufacturer.getID(),
-					560, 
+					560,
 					'VehicleManufacturerService', 'handleDeleteVehicleManufacturer',
 					req.user);
 			}
@@ -68,7 +68,7 @@ class VehicleManufacturerService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Vehicle Manufacturer's ID must be provided`, 500, 
+					`The Vehicle Manufacturer's ID must be provided`, 500,
 					'VehicleManufacturerService', 'handleGetVehicleManufacturer', req.user);
 			}
 			// Get it
@@ -76,7 +76,7 @@ class VehicleManufacturerService {
 			if (!vehicleManufacturer) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Vehicle Manufacturer with ID '${filteredRequest.ID}' does not exist anymore`, 550, 
+					`The Vehicle Manufacturer with ID '${filteredRequest.ID}' does not exist anymore`, 550,
 					'VehicleManufacturerService', 'handleGetVehicleManufacturer', req.user);
 			}
 			// Return
@@ -101,7 +101,7 @@ class VehicleManufacturerService {
 					Constants.ACTION_LIST,
 					Constants.ENTITY_VEHICLE_MANUFACTURERSS,
 					null,
-					560, 
+					560,
 					'VehicleManufacturerService', 'handleGetVehicleManufacturers',
 					req.user);
 			}
@@ -109,7 +109,7 @@ class VehicleManufacturerService {
 			let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturersRequest(req.query, req.user);
 			// Get the vehicle Manufacturers
 			let vehicleManufacturers = await VehicleManufacturerStorage.getVehicleManufacturers(
-				{ 'search': filteredRequest.Search, 'withVehicles': filteredRequest.WithVehicles, 'vehicleType': filteredRequest.VehicleType}, 
+				{ 'search': filteredRequest.Search, 'withVehicles': filteredRequest.WithVehicles, 'vehicleType': filteredRequest.VehicleType},
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
 			vehicleManufacturers.result = vehicleManufacturers.result.map((vehicleManufacturer) => vehicleManufacturer.getModel());
@@ -134,7 +134,7 @@ class VehicleManufacturerService {
 					Constants.ACTION_CREATE,
 					Constants.ENTITY_VEHICLE_MANUFACTURERS,
 					null,
-					560, 
+					560,
 					'VehicleManufacturerService', 'handleCreateVehicleManufacturer',
 					req.user);
 			}
@@ -159,7 +159,9 @@ class VehicleManufacturerService {
 				message: `Vehicle Manufacturer '${newVehicleManufacturer.getName()}' has been created successfully`,
 				action: action, detailedMessages: newVehicleManufacturer});
 			// Ok
-			res.json(Constants.REST_RESPONSE_SUCCESS);
+      const result = Constants.REST_RESPONSE_SUCCESS;
+      result.id = newVehicleManufacturer._model.id;
+      res.json(result);
 			next();
 		} catch (error) {
 			// Log
@@ -176,7 +178,7 @@ class VehicleManufacturerService {
 			if (!vehicleManufacturer) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Vehicle Manufacturer with ID '${filteredRequest.id}' does not exist anymore`, 550, 
+					`The Vehicle Manufacturer with ID '${filteredRequest.id}' does not exist anymore`, 550,
 					'VehicleManufacturerService', 'handleUpdateVehicleManufacturer', req.user);
 			}
 			// Check Mandatory fields
@@ -188,7 +190,7 @@ class VehicleManufacturerService {
 					Constants.ACTION_UPDATE,
 					Constants.ENTITY_VEHICLE_MANUFACTURERS,
 					vehicleManufacturer.getID(),
-					560, 
+					560,
 					'VehicleManufacturerService', 'handleUpdateVehicleManufacturer',
 					req.user);
 			}
@@ -224,7 +226,7 @@ class VehicleManufacturerService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Vehicle Manufacturer's ID must be provided`, 500, 
+					`The Vehicle Manufacturer's ID must be provided`, 500,
 					'VehicleManufacturerService', 'handleGetVehicleManufacturerLogo', req.user);
 			}
 			// Get it
@@ -232,7 +234,7 @@ class VehicleManufacturerService {
 			if (!vehicleManufacturer) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Vehicle Manufacturer with ID '${filteredRequest.ID}' does not exist anymore`, 550, 
+					`The Vehicle Manufacturer with ID '${filteredRequest.ID}' does not exist anymore`, 550,
 					'VehicleManufacturerService', 'handleGetVehicleManufacturerLogo', req.user);
 			}
 			// Check auth
@@ -242,7 +244,7 @@ class VehicleManufacturerService {
 					Constants.ACTION_READ,
 					Constants.ENTITY_COMPANY,
 					vehicleManufacturer.getID(),
-					560, 
+					560,
 					'VehicleManufacturerService', 'handleGetVehicleManufacturerLogo',
 					req.user);
 			}
@@ -266,7 +268,7 @@ class VehicleManufacturerService {
 					Constants.ACTION_LIST,
 					Constants.ENTITY_COMPANIES,
 					null,
-					560, 
+					560,
 					'VehicleManufacturerService', 'handleGetVehicleManufacturerLogos',
 					req.user);
 			}
