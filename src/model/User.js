@@ -430,7 +430,7 @@ class User {
 	}
 
 	static isTagIDValid(tagID) {
-		return /^[A-Z0-9,]*$/.test(tagID);
+		return /^[A-Za-z0-9,]*$/.test(tagID);
 	}
 
 	static isPhoneValid(phone) {

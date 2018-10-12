@@ -337,6 +337,15 @@ class Database {
 		Database.updateCreatedAndLastChanged(src, dest);
 	}
 
+	static updateTenant(src, dest, forFrontEnd = true) {
+		if (forFrontEnd) {
+			Database.updateID(src, dest);
+		}
+		dest.name = src.name;
+		dest.subdomain = src.subdomain;
+		Database.updateCreatedAndLastChanged(src, dest);
+	}
+
 	static updateVehicle(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
 			Database.updateID(src, dest);

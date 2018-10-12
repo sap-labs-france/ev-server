@@ -35,6 +35,7 @@ class ChargingStationSecurity {
 						'connectorId': connector.connectorId,
 						'currentConsumption': connector.currentConsumption,
 						'errorCode': connector.errorCode,
+						'type': connector.type,
 						'power': connector.power,
 						'status': connector.status,
 						'totalConsumption': connector.totalConsumption
@@ -42,6 +43,7 @@ class ChargingStationSecurity {
 				});
 				filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
 				filteredChargingStation.inactive = chargingStation.inactive;
+				filteredChargingStation.maximumPower = chargingStation.maximumPower;
 			}
 			// Created By / Last Changed By
 			UtilsSecurity.filterCreatedAndLastChanged(
@@ -96,6 +98,7 @@ class ChargingStationSecurity {
 		let filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.WithNoSiteArea = UtilsSecurity.filterBoolean(request.WithNoSiteArea);
+		filteredRequest.SiteID = sanitize(request.SiteID);
 		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
 		UtilsSecurity.filterSort(request, filteredRequest);
 		return filteredRequest;

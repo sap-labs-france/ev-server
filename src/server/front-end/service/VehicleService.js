@@ -50,7 +50,7 @@ class VehicleService {
 				message: `Vehicle '${vehicle.getName()}' has been deleted successfully`,
 				action: action, detailedMessages: vehicle});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log
@@ -229,7 +229,7 @@ class VehicleService {
 				message: `Vehicle '${newVehicle.getName()}' has been created successfully`,
 				action: action, detailedMessages: newVehicle});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log
@@ -279,7 +279,7 @@ class VehicleService {
 				message: `Vehicle '${updatedVehicle.getName()}' has been updated successfully`,
 				action: action, detailedMessages: updatedVehicle});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log

@@ -316,6 +316,13 @@ class UserStorage {
 				]
 			});
 		}
+		// UserID: Used only with SiteID
+		if (params.userID) {
+			// Build filter
+			filters.$and.push({
+				'_id': Utils.convertToObjectID(params.userID)
+			});
+		}
 		// Create Aggregation
 		let aggregation = [];
 		// Add TagIDs

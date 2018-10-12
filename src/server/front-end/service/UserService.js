@@ -95,7 +95,7 @@ class UserService {
 				user: req.user, module: 'UserService', method: 'handleAddSitesToUser',
 				message: `User's Sites have been added successfully`, action: action});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log
@@ -168,7 +168,7 @@ class UserService {
 				user: req.user, module: 'UserService', method: 'handleAddSitesToUser',
 				message: `User's Sites have been removed successfully`, action: action});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log
@@ -231,7 +231,7 @@ class UserService {
 				message: `User with ID '${user.getID()}' has been deleted successfully`,
 				action: action});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log
@@ -323,7 +323,7 @@ class UserService {
 				);
 			}
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log
@@ -541,7 +541,7 @@ class UserService {
 				message: `User with ID '${newUser.getID()}' has been created successfully`,
 				action: action});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log

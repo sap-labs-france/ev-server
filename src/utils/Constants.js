@@ -1,6 +1,8 @@
 require('source-map-support').install();
 
 module.exports = {
+	REST_RESPONSE_SUCCESS: { status: 'Success' },
+
 	CONN_STATUS_AVAILABLE: "Available",
 	CONN_STATUS_OCCUPIED: "Occupied",
 
@@ -16,6 +18,8 @@ module.exports = {
 	ENTITY_COMPANIES: "Companies",
 	ENTITY_CHARGING_STATION: "ChargingStation",
 	ENTITY_CHARGING_STATIONS: "ChargingStations",
+	ENTITY_TENANT: "Tenant",
+	ENTITY_TENANTS: "Tenants",
 	ENTITY_TRANSACTION: "Transaction",
 	ENTITY_TRANSACTIONS: "Transactions",
 	ENTITY_TRANSACTION_METER_VALUES: "MeterValues",
@@ -63,7 +67,7 @@ module.exports = {
 	ROLE_ADMIN: "A",
 	ROLE_BASIC: "B",
 	ROLE_DEMO: "D",
-	ACTION_READ  : "Read",
+	ACTION_READ: "Read",
 	ACTION_CREATE: "Create",
 	ACTION_UPDATE: "Update",
 	ACTION_DELETE: "Delete",

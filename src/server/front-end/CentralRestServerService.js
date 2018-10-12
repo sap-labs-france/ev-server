@@ -12,6 +12,7 @@ const UtilsService = require('./service/UtilsService');
 const LoggingService = require('./service/LoggingService');
 const TransactionService = require('./service/TransactionService');
 const StatisticService = require('./service/StatisticService');
+const TenantService = require('./service/TenantService');
 
 require('source-map-support').install();
 
@@ -74,6 +75,9 @@ module.exports = {
 					case "CompanyCreate":
 						// Delegate
 						CompanyService.handleCreateCompany(action, req, res, next);
+						break;
+					case "TenantCreate":
+						TenantService.handleCreateTenant(action, req, res, next);
 						break;
 					// Create Vehicle
 					case "VehicleCreate":
@@ -185,6 +189,14 @@ module.exports = {
 					case "SiteImage":
 						// Delegate
 						SiteService.handleGetSiteImage(action, req, res, next);
+						break;
+					// Get all tenant
+					case "Tenants":
+						TenantService.handleGetTenants(action, req, res, next);
+						break;
+					// Get one tenant
+					case "Tenant":
+						TenantService.handleGetTenant(action, req, res, next);
 						break;
 					// Get all the vehicles
 					case "Vehicles":
@@ -357,6 +369,11 @@ module.exports = {
 						// Delegate
 						ChargingStationService.handleUpdateChargingStationParams(action, req, res, next);
 						break;
+					// Tenant
+					case "TenantUpdate":
+						// Delegate
+						TenantService.handleUpdateTenant(action, req, res, next);
+						break;
 					// Site
 					case "SiteUpdate":
 						// Delegate
@@ -417,6 +434,11 @@ module.exports = {
 					case "VehicleManufacturerDelete":
 						// Delegate
 						VehicleManufacturerService.handleDeleteVehicleManufacturer(action, req, res, next);
+						break;
+					// Tenant
+					case "TenantDelete":
+						// Delegate
+						TenantService.handleDeleteTenant(action, req, res, next);
 						break;
 					// Site
 					case "SiteDelete":

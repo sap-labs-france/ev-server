@@ -69,7 +69,7 @@ class SiteAreaService {
 				message: `Site Area '${newSiteArea.getName()}' has been created successfully`,
 				action: action, detailedMessages: newSiteArea});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log
@@ -151,7 +151,7 @@ class SiteAreaService {
 				message: `Site Area '${siteArea.getName()}' has been deleted successfully`,
 				action: action, detailedMessages: siteArea});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log
@@ -335,7 +335,7 @@ class SiteAreaService {
 				message: `Site Area '${updatedSiteArea.getName()}' has been updated successfully`,
 				action: action, detailedMessages: updatedSiteArea});
 			// Ok
-			res.json({status: `Success`});
+			res.json(Constants.REST_RESPONSE_SUCCESS);
 			next();
 		} catch (error) {
 			// Log

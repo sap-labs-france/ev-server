@@ -10,8 +10,8 @@ const Configuration = require('../utils/Configuration');
 const NotificationHandler = require('../notification/NotificationHandler');
 const Authorizations = require('../authorization/Authorizations');
 const AppError = require('../exception/AppError');
-const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage'); 
-const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage'); 
+const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
+const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
 const TransactionStorage = require('../storage/mongodb/TransactionStorage');
 const PricingStorage = require('../storage/mongodb/PricingStorage');
 
@@ -308,7 +308,7 @@ class ChargingStation {
 		if(request.method !== 'POST' && !filteredRequest.id) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The Charging Station ID is mandatory`, 500, 
+				`The Charging Station ID is mandatory`, 500,
 				'ChargingStations', 'checkIfChargingStationValid');
 		}
 	}
@@ -533,48 +533,48 @@ class ChargingStation {
 				// No config at all: Set default OCCP configuration
 				configuration = {
 					'configuration': [
-						{ 'key': 'AllowOfflineTxForUnknownId', 'readonly': false, 'value': null }, 
-						{ 'key': 'AuthorizationCacheEnabled', 'readonly': false, 'value': null }, 
-						{ 'key': 'AuthorizeRemoteTxRequests', 'readonly': false, 'value': null }, 
-						{ 'key': 'BlinkRepeat', 'readonly': false, 'value': null }, 
-						{ 'key': 'ClockAlignedDataInterval', 'readonly': false, 'value': null }, 
-						{ 'key': 'ConnectionTimeOut', 'readonly': false, 'value': null }, 
-						{ 'key': 'GetConfigurationMaxKeys', 'readonly': false, 'value': null }, 
-						{ 'key': 'HeartbeatInterval', 'readonly': false, 'value': null }, 
-						{ 'key': 'LightIntensity', 'readonly': false, 'value': null }, 
-						{ 'key': 'LocalAuthorizeOffline', 'readonly': false, 'value': null }, 
-						{ 'key': 'LocalPreAuthorize', 'readonly': false, 'value': null }, 
-						{ 'key': 'MaxEnergyOnInvalidId', 'readonly': false, 'value': null }, 
-						{ 'key': 'MeterValuesAlignedData', 'readonly': false, 'value': null }, 
-						{ 'key': 'MeterValuesAlignedDataMaxLength', 'readonly': false, 'value': null }, 
-						{ 'key': 'MeterValuesSampledData', 'readonly': false, 'value': null }, 
-						{ 'key': 'MeterValuesSampledDataMaxLength', 'readonly': false, 'value': null }, 
-						{ 'key': 'MeterValueSampleInterval', 'readonly': false, 'value': null }, 
-						{ 'key': 'MinimumStatusDuration', 'readonly': false, 'value': null }, 
-						{ 'key': 'NumberOfConnectors', 'readonly': false, 'value': null }, 
-						{ 'key': 'ResetRetries', 'readonly': false, 'value': null }, 
-						{ 'key': 'ConnectorPhaseRotation', 'readonly': false, 'value': null }, 
-						{ 'key': 'ConnectorPhaseRotationMaxLength', 'readonly': false, 'value': null }, 
-						{ 'key': 'StopTransactionOnEVSideDisconnect', 'readonly': false, 'value': null }, 
-						{ 'key': 'StopTransactionOnInvalidId', 'readonly': false, 'value': null }, 
-						{ 'key': 'StopTxnAlignedData', 'readonly': false, 'value': null }, 
-						{ 'key': 'StopTxnAlignedDataMaxLength', 'readonly': false, 'value': null }, 
-						{ 'key': 'StopTxnSampledData', 'readonly': false, 'value': null }, 
-						{ 'key': 'StopTxnSampledDataMaxLength', 'readonly': false, 'value': null }, 
-						{ 'key': 'SupportedFeatureProfiles', 'readonly': false, 'value': null }, 
-						{ 'key': 'SupportedFeatureProfilesMaxLength', 'readonly': false, 'value': null }, 
-						{ 'key': 'TransactionMessageAttempts', 'readonly': false, 'value': null }, 
-						{ 'key': 'TransactionMessageRetryInterval', 'readonly': false, 'value': null }, 
-						{ 'key': 'UnlockConnectorOnEVSideDisconnect', 'readonly': false, 'value': null }, 
-						{ 'key': 'WebSocketPingInterval', 'readonly': false, 'value': null }, 
-						{ 'key': 'LocalAuthListEnabled', 'readonly': false, 'value': null }, 
-						{ 'key': 'LocalAuthListMaxLength', 'readonly': false, 'value': null }, 
-						{ 'key': 'SendLocalListMaxLength', 'readonly': false, 'value': null }, 
-						{ 'key': 'ReserveConnectorZeroSupported', 'readonly': false, 'value': null }, 
-						{ 'key': 'ChargeProfileMaxStackLevel', 'readonly': false, 'value': null }, 
-						{ 'key': 'ChargingScheduleAllowedChargingRateUnit', 'readonly': false, 'value': null }, 
-						{ 'key': 'ChargingScheduleMaxPeriods', 'readonly': false, 'value': null }, 
-						{ 'key': 'ConnectorSwitch3to1PhaseSupported', 'readonly': false, 'value': null }, 
+						{ 'key': 'AllowOfflineTxForUnknownId', 'readonly': false, 'value': null },
+						{ 'key': 'AuthorizationCacheEnabled', 'readonly': false, 'value': null },
+						{ 'key': 'AuthorizeRemoteTxRequests', 'readonly': false, 'value': null },
+						{ 'key': 'BlinkRepeat', 'readonly': false, 'value': null },
+						{ 'key': 'ClockAlignedDataInterval', 'readonly': false, 'value': null },
+						{ 'key': 'ConnectionTimeOut', 'readonly': false, 'value': null },
+						{ 'key': 'GetConfigurationMaxKeys', 'readonly': false, 'value': null },
+						{ 'key': 'HeartbeatInterval', 'readonly': false, 'value': null },
+						{ 'key': 'LightIntensity', 'readonly': false, 'value': null },
+						{ 'key': 'LocalAuthorizeOffline', 'readonly': false, 'value': null },
+						{ 'key': 'LocalPreAuthorize', 'readonly': false, 'value': null },
+						{ 'key': 'MaxEnergyOnInvalidId', 'readonly': false, 'value': null },
+						{ 'key': 'MeterValuesAlignedData', 'readonly': false, 'value': null },
+						{ 'key': 'MeterValuesAlignedDataMaxLength', 'readonly': false, 'value': null },
+						{ 'key': 'MeterValuesSampledData', 'readonly': false, 'value': null },
+						{ 'key': 'MeterValuesSampledDataMaxLength', 'readonly': false, 'value': null },
+						{ 'key': 'MeterValueSampleInterval', 'readonly': false, 'value': null },
+						{ 'key': 'MinimumStatusDuration', 'readonly': false, 'value': null },
+						{ 'key': 'NumberOfConnectors', 'readonly': false, 'value': null },
+						{ 'key': 'ResetRetries', 'readonly': false, 'value': null },
+						{ 'key': 'ConnectorPhaseRotation', 'readonly': false, 'value': null },
+						{ 'key': 'ConnectorPhaseRotationMaxLength', 'readonly': false, 'value': null },
+						{ 'key': 'StopTransactionOnEVSideDisconnect', 'readonly': false, 'value': null },
+						{ 'key': 'StopTransactionOnInvalidId', 'readonly': false, 'value': null },
+						{ 'key': 'StopTxnAlignedData', 'readonly': false, 'value': null },
+						{ 'key': 'StopTxnAlignedDataMaxLength', 'readonly': false, 'value': null },
+						{ 'key': 'StopTxnSampledData', 'readonly': false, 'value': null },
+						{ 'key': 'StopTxnSampledDataMaxLength', 'readonly': false, 'value': null },
+						{ 'key': 'SupportedFeatureProfiles', 'readonly': false, 'value': null },
+						{ 'key': 'SupportedFeatureProfilesMaxLength', 'readonly': false, 'value': null },
+						{ 'key': 'TransactionMessageAttempts', 'readonly': false, 'value': null },
+						{ 'key': 'TransactionMessageRetryInterval', 'readonly': false, 'value': null },
+						{ 'key': 'UnlockConnectorOnEVSideDisconnect', 'readonly': false, 'value': null },
+						{ 'key': 'WebSocketPingInterval', 'readonly': false, 'value': null },
+						{ 'key': 'LocalAuthListEnabled', 'readonly': false, 'value': null },
+						{ 'key': 'LocalAuthListMaxLength', 'readonly': false, 'value': null },
+						{ 'key': 'SendLocalListMaxLength', 'readonly': false, 'value': null },
+						{ 'key': 'ReserveConnectorZeroSupported', 'readonly': false, 'value': null },
+						{ 'key': 'ChargeProfileMaxStackLevel', 'readonly': false, 'value': null },
+						{ 'key': 'ChargingScheduleAllowedChargingRateUnit', 'readonly': false, 'value': null },
+						{ 'key': 'ChargingScheduleMaxPeriods', 'readonly': false, 'value': null },
+						{ 'key': 'ConnectorSwitch3to1PhaseSupported', 'readonly': false, 'value': null },
 						{ 'key': 'MaxChargingProfilesInstalled', 'readonly': false, 'value': null }
 					]
 				};
@@ -632,8 +632,6 @@ class ChargingStation {
 				this.setLastHeartBeat(new Date());
 				// Handle End Of charge
 				this.handleNotificationEndOfCharge(transaction, consumption);
-				// Save
-				await this.save();
 			} else {
 				// Set consumption
 				connector.currentConsumption = 0;
@@ -645,8 +643,6 @@ class ChargingStation {
 					source: this.getID(), module: 'ChargingStation',
 					method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
 					message: `Connector '${connector.connectorId}' - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}` });
-				// Save
-				await this.save();
 			}
 		} else {
 			// Log
@@ -797,47 +793,47 @@ class ChargingStation {
 		newMeterValues.values = [];
 		// Set the charger ID
 		newMeterValues.chargeBoxID = this.getID();
-			// Check Connector ID
-			if (meterValues.connectorId == 0) {
-				// BUG KEBA: Connector ID must be > 0 according OCPP
+		// Check Connector ID
+		if (meterValues.connectorId == 0) {
+			// BUG KEBA: Connector ID must be > 0 according OCPP
+			Logging.logWarning({
+				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+				action: 'MeterValues', message: `Connector ID cannot be equal to '0' and has been reset to '1'`
+			});
+			// Set to 1 (KEBA has only one connector)
+			meterValues.connectorId = 1;
+		}
+		// Check if the transaction ID matches
+		let chargerTransactionId = this.getConnectors()[meterValues.connectorId-1].activeTransactionID;
+		// Same?
+		if (meterValues.hasOwnProperty('transactionId')) {
+			// BUG ABB: Check ID
+			if (parseInt(meterValues.transactionId) !== parseInt(chargerTransactionId)) {
+				// No: Log
 				Logging.logWarning({
 					source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-					action: 'MeterValues', message: `Connector ID cannot be equal to '0' and has been reset to '1'`
-				});
-				// Set to 1 (KEBA has only one connector)
-				meterValues.connectorId = 1;
-			}		
-			// Check if the transaction ID matches
-			let chargerTransactionId = this.getConnectors()[meterValues.connectorId-1].activeTransactionID;
-			// Same?
-			if (meterValues.hasOwnProperty('transactionId')) {
-				// BUG ABB: Check ID
-				if (parseInt(meterValues.transactionId) !== parseInt(chargerTransactionId)) {
-					// No: Log
-					Logging.logWarning({
-						source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-						action: 'MeterValues', message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
-					});
-					// Override
-					meterValues.transactionId = chargerTransactionId;
-				} 
-			} else if (chargerTransactionId > 0) {
-				// No Transaction ID, retrieve it
-				Logging.logWarning({
-					source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-					action: 'MeterValues', message: `Transaction ID is not provided but retrieved from StartTransaction '${chargerTransactionId}'`
+					action: 'MeterValues', message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
 				});
 				// Override
 				meterValues.transactionId = chargerTransactionId;
 			}
-			// Check Transaction
-			if (meterValues.transactionId && parseInt(meterValues.transactionId) === 0) {
-				// Wrong Transaction ID!
-				Logging.logError({
-					source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-					action: 'MeterValues', message: `Transaction ID must not be equal to '0'`
-				});
-			}
+		} else if (chargerTransactionId > 0) {
+			// No Transaction ID, retrieve it
+			Logging.logWarning({
+				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+				action: 'MeterValues', message: `Transaction ID is not provided but retrieved from StartTransaction '${chargerTransactionId}'`
+			});
+			// Override
+			meterValues.transactionId = chargerTransactionId;
+		}
+		// Check Transaction
+		if (meterValues.transactionId && parseInt(meterValues.transactionId) === 0) {
+			// Wrong Transaction ID!
+			Logging.logError({
+				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+				action: 'MeterValues', message: `Transaction ID must not be equal to '0'`
+			});
+		}
 		// Handle Values
 		// Check if OCPP 1.6
 		if (meterValues.meterValue) {
@@ -886,6 +882,8 @@ class ChargingStation {
 			await TransactionStorage.saveMeterValues(newMeterValues);
 			// Update Charging Station Consumption
 			await this.updateChargingStationConsumption(meterValues.transactionId);
+			// Save
+			await this.save();
 			// Log
 			Logging.logInfo({
 				source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
@@ -984,8 +982,11 @@ class ChargingStation {
 		// Execute
 		let users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
 				Constants.ACTION_AUTHORIZE, this, authorize.idTag);
-		// Set current user
-		authorize.user = users.user;
+		// Check
+		if (users) {
+			// Set current user
+			authorize.user = users.user;
+		}
 		// Save
 		await ChargingStationStorage.saveAuthorize(authorize);
 		// Log
@@ -1038,8 +1039,14 @@ class ChargingStation {
 		// Check user and save
 		let users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
 			Constants.ACTION_START_TRANSACTION, this, transaction.idTag);
-		// Set current user
-		let user = (users.alternateUser ? users.alternateUser : users.user);
+		// Check
+		let user;
+		if (users) {
+			// Set current user
+			user = (users.alternateUser ? users.alternateUser : users.user);
+			// Set the user
+			transaction.userID = user.getID();
+		}
 		// Check for active transaction
 		let activeTransaction;
 		do {
@@ -1049,7 +1056,7 @@ class ChargingStation {
 			if (activeTransaction) {
 				Logging.logInfo({
 					source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
-					action: 'StartTransaction', user: user.getModel(), actionOnUser: activeTransaction.user,
+					action: 'StartTransaction', user: (user ? user.getModel() : null), actionOnUser: (users && users.alternateUser ? users.alternateUser : null),
 					message: `Active Transaction ID '${activeTransaction.id}' has been deleted on Connector '${activeTransaction.connectorId}'` });
 				// Delete
 				await this.deleteTransaction(activeTransaction);
@@ -1067,28 +1074,11 @@ class ChargingStation {
 				// Log
 				Logging.logWarning({
 					source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
-					action: 'StartTransaction', user: user.getModel(), 
-					actionOnUser: existingTransaction.user,
+					action: 'StartTransaction', user: (user ? user.getModel() : null),
+					actionOnUser: (existingTransaction.user ? existingTransaction.user : null),
 					message: `Transaction ID '${transaction.id}' already exists, generating a new one...` });
 			}
 		} while(existingTransaction);
-		// Set the user
-		transaction.userID = user.getID();
-		// Notify
-		NotificationHandler.sendTransactionStarted(
-			transaction.id,
-			user.getModel(),
-			this.getModel(),
-			{
-				'user': user.getModel(),
-				'chargingBoxID': this.getID(),
-				'connectorId': transaction.connectorId,
-				'evseDashboardURL' : Utils.buildEvseURL(),
-				'evseDashboardChargingStationURL' :
-					Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id)
-			},
-			user.getLocale()
-		);
 		// Set the tag ID
 		transaction.tagID = transaction.idTag;
 		// Ok: Save Transaction
@@ -1098,26 +1088,45 @@ class ChargingStation {
 			// Set all the other connectors to occupied
 			this.getConnectors().forEach(async (connector) => {
 				// Check
-				if (connector.status === 'Available') {
+				if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
 					// Set Occupied
-					connector.status = 'Occupied';
-					connector.errorCode = 'NoError';
-					// Save Connector
-					await ChargingStationStorage.saveChargingStationConnector(this.getModel(), connector.connectorId);
+					connector.status = Constants.CONN_STATUS_OCCUPIED;
 				}
 			});
 		}
-		// Set the user
-		newTransaction.user = user.getModel();
+		// Check
+		if (user) {
+			// Set the user
+			newTransaction.user = user.getModel();
+		}
 		// Update Consumption
 		await this.updateChargingStationConsumption(transaction.id);
+		// Save
+		await this.save();
 		// Log
 		if (newTransaction.user) {
+			// Notify
+			NotificationHandler.sendTransactionStarted(
+				transaction.id,
+				user.getModel(),
+				this.getModel(),
+				{
+					'user': user.getModel(),
+					'chargingBoxID': this.getID(),
+					'connectorId': transaction.connectorId,
+					'evseDashboardURL' : Utils.buildEvseURL(),
+					'evseDashboardChargingStationURL' :
+						Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id)
+				},
+				user.getLocale()
+			);
+			// Log
 			Logging.logInfo({
 				source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
 				action: 'StartTransaction', user: newTransaction.user,
 				message: `Transaction ID '${newTransaction.id}' has been started on Connector '${newTransaction.connectorId}'` });
 		} else {
+			// Log
 			Logging.logInfo({
 				source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
 				action: 'StartTransaction', message: `Transaction ID '${newTransaction.id}' has been started by an anonymous user on Connector '${newTransaction.connectorId}'` });
@@ -1157,10 +1166,14 @@ class ChargingStation {
 		// Check User
 		let users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
 			Constants.ACTION_STOP_TRANSACTION, this, transaction.tagID, stopTransaction.tagID);
-		// Set current user
-		let user = (users.alternateUser ? users.alternateUser : users.user);
-		// Set the User ID
-		stopTransaction.userID = user.getID();
+		// Check
+		let user;
+		if (users) {
+			// Set current user
+			let user = (users.alternateUser ? users.alternateUser : users.user);
+			// Set the User ID
+			stopTransaction.userID = user.getID();
+		}
 		// Get the connector
 		let connector = this.getConnectors()[transaction.connectorId-1];
 		// Init the charging station
@@ -1173,11 +1186,10 @@ class ChargingStation {
 			// Set all the other connectors to Available
 			this.getConnectors().forEach(async (connector) => {
 				// Only other Occupied connectors
-				if ((connector.status === 'Occupied') && 
+				if ((connector.status === Constants.CONN_STATUS_OCCUPIED) && 
 						(connector.connectorId !== transaction.connectorId)) {
 					// Set connector Available again
-					connector.status = 'Available';
-					connector.errorCode = 'NoError';
+					connector.status = Constants.CONN_STATUS_AVAILABLE;
 				}
 			});
 		}
@@ -1217,7 +1229,7 @@ class ChargingStation {
 					'chargingBoxID': this.getID(),
 					'connectorId': transaction.connectorId,
 					'totalConsumption': (stopTransaction.totalConsumption/1000).toLocaleString(
-						(transaction.user.locale ? transaction.user.locale.replace('_','-') : User.DEFAULT_LOCALE.replace('_','-')),
+						(transaction.user.locale ? transaction.user.locale.replace('_','-') : Constants.DEFAULT_LOCALE.replace('_','-')),
 						{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
 					'totalDuration': this._buildCurrentTransactionDuration(transaction, transaction.stop.timestamp),
 					'totalInactivity': this._buildCurrentTransactionInactivity(transaction),
@@ -1229,30 +1241,36 @@ class ChargingStation {
 		}
 		// Save Transaction
 		let newTransaction = await TransactionStorage.saveTransaction(transaction);
-		// Set the user
-		newTransaction.user = users.user.getModel();
-		newTransaction.stop.user = users.alternateUser.getModel();
+		// Check
+		if (users) {
+			// Set the user
+			newTransaction.user = users.user.getModel();
+			newTransaction.stop.user = users.alternateUser.getModel();
+		}
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation', method: 'handleStopTransaction',
-			action: 'StopTransaction', user: newTransaction.stop.user, actionOnUser: newTransaction.user,
+			action: 'StopTransaction', user: (newTransaction.stop.user ? newTransaction.stop.user : null), 
+			actionOnUser: (newTransaction.user ? newTransaction.user : null),
 			message: `Transaction ID '${newTransaction.id}' has been stopped`});
-		// Cloud Revenue
+		// Publish to Cloud Revenue
 		setTimeout(() => {
 			// Check Chargers
-			if (this.getID() === 'PERNICE-WB-01' || 
+			if (this.getID() === 'PERNICE-WB-01' ||
 					this.getID() === 'HANNO-WB-01' ||
+					this.getID() === 'WINTER-WB-01' ||
 					this.getID() === 'HANNO-WB-02') {
 				// Check Users
 				if (newTransaction.tagID === '5D38ED8F' || // Hanno 1
 						newTransaction.tagID === 'B31FB2DD' || // Hanno 2
+						newTransaction.tagID === 'WJ00001' || // Winter Juergen
 						newTransaction.tagID === 'C3E4B3DD') { // Florent
 					// Ok
 					// Set Charger
 					newTransaction.chargeBox = {};
 					newTransaction.chargeBox.id = this.getID();
 					// Transfer it to the Revenue Cloud async
-					Utils.pushTransactionToRevenueCloud('StopTransaction', newTransaction, 
+					Utils.pushTransactionToRevenueCloud('StopTransaction', newTransaction,
 						newTransaction.stop.user, newTransaction.user);
 				}
 			}
@@ -1518,7 +1536,7 @@ class ChargingStation {
 				// Calculate the consumption with the last value provided
 				} else {
 					// Value provided?
-					if ((meterValue.value > 0 || lastMeterValue.value > 0) && 
+					if ((meterValue.value > 0 || lastMeterValue.value > 0) &&
 							(meterValue.value !== lastMeterValue.value)) {
 						// Last value is > ?
 						if (lastMeterValue.value > meterValue.value) {
