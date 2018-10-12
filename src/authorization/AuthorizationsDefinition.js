@@ -319,7 +319,20 @@ module.exports = {
 										{{/userID}}
 									{{/trim}}
 								],
-								"Action": ["Create", "Read", "Update", "Delete"]
+								"Action": ["Create", "Update", "Delete"]
+							}
+						},
+						{
+							"AuthObject": "Variant",
+							"AuthFieldValue": {
+								"UserID": [
+									{{#trim}}
+										{{#userID}}
+											"{{.}}",
+										{{/userID}}
+									{{/trim}}, null
+								],
+								"Action": ["Read"]
 							}
 						},
 						{
