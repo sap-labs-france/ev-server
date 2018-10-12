@@ -21,16 +21,16 @@ describe('Company tests', function() {
     await companyApi.create(CompanyFactory.build(), (message, response) => {
       expect(message.status).to.equal(200);
       expect(response.status).to.eql('Success');
+      expect(response).to.have.property('id');
+      expect(response.id).to.match(/^[a-f0-9]+$/);
     });
   });
 
   it('should find a newly created company from list', async () => {
     const company = CompanyFactory.build();
-    await companyApi.readAll({}, (message, response) => {
-      expect(message.status).to.equal(200);
-      expect(response).to.have.property('count');
-    });
-    await companyApi.create(company);
+    await companyApi.create(company, ((message, response) => {
+      company.id = response.id;
+    }));
 
     await companyApi.readAll({}, (message, response) => {
       expect(message.status).to.equal(200);
@@ -40,22 +40,16 @@ describe('Company tests', function() {
       const actualCompany = response.result.find((element) => element.name === company.name);
       expect(actualCompany).to.be.a('object');
       expect(actualCompany).to.containSubset(company);
-      expect(actualCompany).to.have.property('id');
     });
   });
 
   it('should find a specific company by id', async () => {
     const company = CompanyFactory.build();
-    await companyApi.create(company);
-    let companyId = null;
-    await companyApi.readAll({}, (message, response) => {
-      expect(message.status).to.equal(200);
-      expect(response).to.have.property('count');
-      expect(response).to.have.property('result');
-      companyId = response.result.find((element) => element.name === company.name).id;
-    });
+    await companyApi.create(company, ((message, response) => {
+      company.id = response.id;
+    }));
 
-    await companyApi.readById(companyId, (message, response) => {
+    await companyApi.readById(company.id, (message, response) => {
       expect(message.status).to.equal(200);
       expect(response).to.containSubset(company);
     });

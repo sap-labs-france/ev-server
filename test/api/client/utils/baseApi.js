@@ -54,7 +54,7 @@ class BaseApi {
       message['response'] = response;
     }
     if (expectation) {
-      expectation(message, response);
+      await expectation(message, response);
     }
     return message;
   }

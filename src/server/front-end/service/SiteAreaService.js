@@ -9,7 +9,7 @@ const Authorizations = require('../../../authorization/Authorizations');
 const User = require('../../../model/User');
 const SiteAreaStorage = require('../../../storage/mongodb/SiteAreaStorage');
 const SiteStorage = require('../../../storage/mongodb/SiteStorage');
-const ChargingStationStorage = require('../../../storage/mongodb/ChargingStationStorage'); 
+const ChargingStationStorage = require('../../../storage/mongodb/ChargingStationStorage');
 
 class SiteAreaService {
 	static async handleCreateSiteArea(action, req, res, next) {
@@ -35,7 +35,7 @@ class SiteAreaService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Site ID '${filteredRequest.siteID}' does not exist`, 550, 
+					`The Site ID '${filteredRequest.siteID}' does not exist`, 550,
 					'SiteAreaService', 'handleCreateSiteArea', req.user);
 			}
 			// Create site
@@ -69,7 +69,7 @@ class SiteAreaService {
 				message: `Site Area '${newSiteArea.getName()}' has been created successfully`,
 				action: action, detailedMessages: newSiteArea});
 			// Ok
-			res.json(Constants.REST_RESPONSE_SUCCESS);
+			res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS, { id: newSiteArea.getID() }));
 			next();
 		} catch (error) {
 			// Log
@@ -93,7 +93,7 @@ class SiteAreaService {
 			let filteredRequest = SiteAreaSecurity.filterSiteAreasRequest(req.query, req.user);
 			// Get the sites
 			let siteAreas = await SiteAreaStorage.getSiteAreas(
-				{ 'search': filteredRequest.Search, 'withSite': filteredRequest.WithSite, 
+				{ 'search': filteredRequest.Search, 'withSite': filteredRequest.WithSite,
 					'withChargeBoxes': filteredRequest.WithChargeBoxes, 'siteID': filteredRequest.SiteID },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
@@ -119,7 +119,7 @@ class SiteAreaService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Site Area's ID must be provided`, 500, 
+					`The Site Area's ID must be provided`, 500,
 					'SiteAreaService', 'handleDeleteSiteArea', req.user);
 			}
 			// Get
@@ -129,7 +129,7 @@ class SiteAreaService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Site Area with ID '${filteredRequest.ID}' does not exist`, 550, 
+					`Site Area with ID '${filteredRequest.ID}' does not exist`, 550,
 					'SiteAreaService', 'handleDeleteSiteArea', req.user);
 			}
 			// Check auth
@@ -139,7 +139,7 @@ class SiteAreaService {
 					Constants.ACTION_DELETE,
 					Constants.ENTITY_SITE_AREA,
 					siteArea.getID(),
-					560, 
+					560,
 					'SiteAreaService', 'handleDeleteSiteArea',
 					req.user);
 			}
@@ -168,7 +168,7 @@ class SiteAreaService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Site Area's ID must be provided`, 500, 
+					`The Site Area's ID must be provided`, 500,
 					'SiteAreaService', 'handleGetSiteArea', req.user);
 			}
 			// Get it
@@ -179,7 +179,7 @@ class SiteAreaService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Site Area with ID '${filteredRequest.ID}' does not exist`, 550, 
+					`Site Area with ID '${filteredRequest.ID}' does not exist`, 550,
 					'SiteAreaService', 'handleGetSiteArea', req.user);
 			}
 			// Check auth
@@ -189,7 +189,7 @@ class SiteAreaService {
 					Constants.ACTION_READ,
 					Constants.ENTITY_SITE_AREA,
 					siteArea.getID(),
-					560, 
+					560,
 					'SiteAreaService', 'handleGetSiteAreaImage',
 					req.user);
 			}
@@ -215,7 +215,7 @@ class SiteAreaService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Site Area's ID must be provided`, 500, 
+					`The Site Area's ID must be provided`, 500,
 					'SiteAreaService', 'handleGetSiteAreaImage', req.user);
 			}
 			// Get it
@@ -223,7 +223,7 @@ class SiteAreaService {
 			if (!siteArea) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Site Area with ID '${filteredRequest.ID}' does not exist anymore`, 550, 
+					`The Site Area with ID '${filteredRequest.ID}' does not exist anymore`, 550,
 					'SiteAreaService', 'handleGetSiteAreaImage', req.user);
 			}
 			// Check auth
@@ -279,7 +279,7 @@ class SiteAreaService {
 			if (!siteArea) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Site Area with ID '${filteredRequest.id}' does not exist anymore`, 550, 
+					`The Site Area with ID '${filteredRequest.id}' does not exist anymore`, 550,
 					'SiteAreaService', 'handleUpdateSiteArea', req.user);
 			}
 			// Check Mandatory fields
