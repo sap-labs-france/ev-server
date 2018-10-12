@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "9f4af7ab-7857-488a-bc41-58862516e598",
+		"_postman_id": "68f403fc-2a6b-49c5-a294-22687aa3c2f4",
 		"name": "EVSE",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -3771,6 +3771,303 @@
 					"port": "8000",
 					"path": [
 						"OCPP15"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-CreateVariant",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5944d7b1-2d27-40db-bc33-96eed453201a",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\n\t\"name\": \"VA1\",\n\t\"viewID\": \"VW1\",\n\t\"userID\": \"5babd4f0cef480d6fee4416a\",\n\t\"filters\": [\n\t\t{\n\t\t\t\"filterID\": \"F1\",\n\t\t\t\"filterContent\": \"FC1\"\n\t\t},\n\t\t{\n\t\t\t\"filterID\": \"F1\",\n\t\t\t\"filterContent\": \"FC1\"\n\t\t}\n\t\t]\n}"
+				},
+				"url": {
+					"raw": "http://172.16.13.128:8081/client/api/VariantCreate",
+					"protocol": "http",
+					"host": [
+						"172",
+						"16",
+						"13",
+						"128"
+					],
+					"port": "8081",
+					"path": [
+						"client",
+						"api",
+						"VariantCreate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-UpdateVariant",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5944d7b1-2d27-40db-bc33-96eed453201a",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\" : \"5bbfd787abb1e08caa1db1ff\",\n   \"name\" : \"VA1I\",\n    \"viewID\" : \"VW11\",\n    \"filters\" : [ \n        {\n            \"filterID\" : \"F1\",\n            \"filterContent\" : \"FC2\"\n        }, \n        {\n            \"filterID\" : \"F11\",\n            \"filterContent\" : \"FC11\"\n        },\n        {\n            \"filterID\" : \"F17\",\n            \"filterContent\" : \"FC11\"\n        }\n    ],\n    \"userID\" :\"5babd4f0cef480d6fee4416b\"\n}"
+				},
+				"url": {
+					"raw": "http://172.16.13.128:8081/client/api/VariantUpdate",
+					"protocol": "http",
+					"host": [
+						"172",
+						"16",
+						"13",
+						"128"
+					],
+					"port": "8081",
+					"path": [
+						"client",
+						"api",
+						"VariantUpdate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-DeleteVariant",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5944d7b1-2d27-40db-bc33-96eed453201a",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\n\t\"name\": \"VA1\",\n\t\"viewID\": \"VW1\",\n\t\"userID\": \"5babd4f0cef480d6fee4416a\",\n\t\"filters\": [\n\t\t{\n\t\t\t\"filterID\": \"F1\",\n\t\t\t\"filterContent\": \"FC1\"\n\t\t},\n\t\t{\n\t\t\t\"filterID\": \"F1\",\n\t\t\t\"filterContent\": \"FC1\"\n\t\t}\n\t\t]\n}"
+				},
+				"url": {
+					"raw": "http://172.16.13.128:8081/client/api/VariantDelete?ID=5bbfd787abb1e08caa1db1ff",
+					"protocol": "http",
+					"host": [
+						"172",
+						"16",
+						"13",
+						"128"
+					],
+					"port": "8081",
+					"path": [
+						"client",
+						"api",
+						"VariantDelete"
+					],
+					"query": [
+						{
+							"key": "ID",
+							"value": "5bbfd787abb1e08caa1db1ff"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-GetVariants",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5944d7b1-2d27-40db-bc33-96eed453201a",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\n\t\"name\": \"VA1\",\n\t\"viewID\": \"VW1\",\n\t\"userID\": \"5babd4f0cef480d6fee4416a\",\n\t\"filters\": [\n\t\t{\n\t\t\t\"filterID\": \"F1\",\n\t\t\t\"filterContent\": \"FC1\"\n\t\t},\n\t\t{\n\t\t\t\"filterID\": \"F1\",\n\t\t\t\"filterContent\": \"FC1\"\n\t\t}\n\t\t]\n}"
+				},
+				"url": {
+					"raw": "http://172.16.13.128:8081/client/api/Variants?WithGlobal=true&UserID=5babd4f0cef480d6fee4416a",
+					"protocol": "http",
+					"host": [
+						"172",
+						"16",
+						"13",
+						"128"
+					],
+					"port": "8081",
+					"path": [
+						"client",
+						"api",
+						"Variants"
+					],
+					"query": [
+						{
+							"key": "WithGlobal",
+							"value": "true"
+						},
+						{
+							"key": "UserID",
+							"value": "5babd4f0cef480d6fee4416a"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FE-GetVariant",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5944d7b1-2d27-40db-bc33-96eed453201a",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\n\t\"name\": \"VA1\",\n\t\"viewID\": \"VW1\",\n\t\"userID\": \"5babd4f0cef480d6fee4416a\",\n\t\"filters\": [\n\t\t{\n\t\t\t\"filterID\": \"F1\",\n\t\t\t\"filterContent\": \"FC1\"\n\t\t},\n\t\t{\n\t\t\t\"filterID\": \"F1\",\n\t\t\t\"filterContent\": \"FC1\"\n\t\t}\n\t\t]\n}"
+				},
+				"url": {
+					"raw": "http://172.16.13.128:8081/client/api/Variant?ID=5bbfe397abb1e08caa1db752",
+					"protocol": "http",
+					"host": [
+						"172",
+						"16",
+						"13",
+						"128"
+					],
+					"port": "8081",
+					"path": [
+						"client",
+						"api",
+						"Variant"
+					],
+					"query": [
+						{
+							"key": "ID",
+							"value": "5bbfe397abb1e08caa1db752"
+						}
 					]
 				}
 			},
