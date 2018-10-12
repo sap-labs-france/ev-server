@@ -193,7 +193,6 @@ class Authorizations {
 
 	static async checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, tagID, alternateTagID) {
 		// Site Area -----------------------------------------------
-		// Check first if the site area access control is active
 		let siteArea = await chargingStation.getSiteArea();
 		// Site is mandatory
 		if (!siteArea) {
@@ -203,30 +202,12 @@ class Authorizations {
 				`Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`, 525,
 				"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation");
 		}
-		// User -------------------------------------------------
-		// Get and Check User
-		let user = await Authorizations.getOrCreateUserByTagID(chargingStation, siteArea, tagID, action);
-		let alternateUser;
-		// Get and Check Alternate User
-		if (alternateTagID) {
-			alternateUser = await Authorizations.getOrCreateUserByTagID(chargingStation, siteArea, alternateTagID, action);
+		// Acces Control Enabled?
+		if (!siteArea.isAccessControlEnabled()) {
+			// No control
+			return null;
 		}
-		// Set current user
-		let currentUser = (alternateUser ? alternateUser : user);
-		// Check User status
-		if (currentUser.getStatus() !== Constants.USER_STATUS_ACTIVE) {
-			// Reject but save ok
-			throw new AppError(
-				chargingStation.getID(),
-				`User with TagID '${tagID}' is '${User.getStatusDescription(currentUser.getStatus())}'`, 500,
-				"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
-				user.getModel());
-		}
-		// Check Auth
-		let auths = await Authorizations.buildAuthorizations(currentUser);
-		// Set
-		currentUser.setAuthorisations(auths);
-		// Get the Site
+		// Site -----------------------------------------------------
 		let site = await siteArea.getSite(null, true);
 		if (!site) {
 			// Reject Site Not Found
@@ -236,14 +217,32 @@ class Authorizations {
 				"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
 				user.getModel());
 		}
-		// Get Users
-		let siteUsers = await site.getUsers();
-		// Check User ------------------------------------------
-		let foundUser = siteUsers.find((siteUser) => {
-			return siteUser.getID() == user.getID();
-		});
+		let user, alternateUser, currentUser;
+		// User -------------------------------------------------
+		user = await Authorizations.getOrCreateUserByTagID(chargingStation, siteArea, tagID, action);
+		// Get and Check Alternate User
+		if (alternateTagID) {
+			alternateUser = await Authorizations.getOrCreateUserByTagID(chargingStation, siteArea, alternateTagID, action);
+		}
+		// Set current user
+		currentUser = (alternateUser ? alternateUser : user);
+		// Check User status
+		if (currentUser.getStatus() !== Constants.USER_STATUS_ACTIVE) {
+			// Reject but save ok
+			throw new AppError(
+				chargingStation.getID(),
+				`User with TagID '${tagID}' is '${User.getStatusDescription(currentUser.getStatus())}'`, 500,
+				"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
+				user.getModel());
+		}
+		// Build Authorizations -----------------------------------------------------
+		let auths = await Authorizations.buildAuthorizations(currentUser);
+		// Set
+		currentUser.setAuthorisations(auths);
+		// Check if User belongs to a Site ------------------------------------------
+		let foundUser = await site.getUser(user.getID());
 		// User not found and Access Control Enabled?
-		if (!foundUser && siteArea.isAccessControlEnabled()) {
+		if (!foundUser) {
 			// Yes: Reject the User
 			throw new AppError(
 				chargingStation.getID(),
@@ -251,21 +250,18 @@ class Authorizations {
 				"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
 				user.getModel());
 		}
-		// Check Alternate User --------------------------------
-		let foundAlternateUser;
+		// Check if Alternate User belongs to a Site --------------------------------
 		if (alternateUser) {
-			foundAlternateUser = siteUsers.find((siteUser) => {
-				return siteUser.getID() == alternateUser.getID();
-			});
-		}
-		// Alternate User not found and Access Control Enabled?
-		if (alternateUser && !foundAlternateUser && siteArea.isAccessControlEnabled()) {
-			// Reject the User
-			throw new AppError(
-				chargingStation.getID(),
-				`User is not assigned to the Site '${site.getName()}'!`, 525,
-				"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
-				alternateUser.getModel());
+			let foundAlternateUser = await site.getUser(alternateUser.getID());
+			// Alternate User not found and Access Control Enabled?
+			if (!foundAlternateUser) {
+				// Reject the User
+				throw new AppError(
+					chargingStation.getID(),
+					`User is not assigned to the Site '${site.getName()}'!`, 525,
+					"Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
+					alternateUser.getModel());
+			}
 		}
 		// Check if users are differents
 		if (alternateUser && (user.getID() != alternateUser.getID()) &&
@@ -360,40 +356,60 @@ class Authorizations {
 			{ "Action": Constants.ACTION_LIST });
 	}
 
+	static checkChargingStationSite(loggedUser, chargingStation, action) {
+		// Check Site?
+		if (chargingStation.siteArea) {
+			// Yes
+			return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
+				{ "Action": action, "SiteID": chargingStation.siteArea.siteID });  
+		} else {
+			// Log
+			Logging.logSecurityWarning({
+				user: loggedUser,
+				source: chargingStation.id,
+				module: "Authorizations", method: "checkChargingStationSite",
+				message: `Cannot check Site authorization`,
+				action: action
+			});
+			// No: Must be an admin
+			return Authorizations.isAdmin(loggedUser);
+		}
+	}
+
 	static canPerformActionOnChargingStation(loggedUser, chargingStation, action) {
-		// Check Charging Station && Site (Read)
-		return (
-			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
-				{ "Action": action, "ChargingStationID": chargingStation.id })  &&
-			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
-				{ "Action": Constants.ACTION_READ, "SiteID": chargingStation.siteArea.siteID }));
+		// Check Charging Station
+		let result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+			{ "Action": action, "ChargingStationID": chargingStation.id });
+		
+		// Return
+		return result && Authorizations.checkChargingStationSite(loggedUser, chargingStation, Constants.ACTION_READ);
 	}
 
 	static canReadChargingStation(loggedUser, chargingStation) {
-		// Check Charging Station && Site
-		return (
-			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
-				{ "Action": Constants.ACTION_READ, "ChargingStationID": chargingStation.id }) &&
-			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
-				{ "Action": Constants.ACTION_READ, "SiteID": chargingStation.siteArea.siteID }));
+		// Check Charging Station
+		let result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+			{ "Action": Constants.ACTION_READ, "ChargingStationID": chargingStation.id });
+		
+		// Return
+		return result && Authorizations.checkChargingStationSite(loggedUser, chargingStation, Constants.ACTION_READ);
 	}
 
 	static canUpdateChargingStation(loggedUser, chargingStation) {
-		// Check Charging Station && Site
-		return (
-			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
-				{ "Action": Constants.ACTION_UPDATE, "ChargingStationID": chargingStation.id }) &&
-			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
-				{ "Action": Constants.ACTION_UPDATE, "SiteID": chargingStation.siteArea.siteID }));
+		// Check Charging Station
+		let result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+			{ "Action": Constants.ACTION_UPDATE, "ChargingStationID": chargingStation.id });
+		
+		// Return
+		return result && Authorizations.checkChargingStationSite(loggedUser, chargingStation, Constants.ACTION_UPDATE);
 	}
 
 	static canDeleteChargingStation(loggedUser, chargingStation) {
-		// Check Charging Station && Site
-		return (
-			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
-				{ "Action": Constants.ACTION_DELETE, "ChargingStationID": chargingStation.id }) &&
-			Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
-				{ "Action": Constants.ACTION_DELETE, "SiteID": chargingStation.siteArea.siteID }));
+		// Check Charging Station
+		let result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+			{ "Action": Constants.ACTION_DELETE, "ChargingStationID": chargingStation.id });
+		
+		// Return
+		return result && Authorizations.checkChargingStationSite(loggedUser, chargingStation, Constants.ACTION_DELETE);
 	}
 
 	static canListUsers(loggedUser) {
@@ -672,7 +688,7 @@ class Authorizations {
 		// Set debug mode?
 		if (Authorizations.getConfiguration().debug) {
 			// Switch on traces
-			Authorizations.switchTraceOn();
+			Authorization.switchTraceOn();
 		}
 		// Create Auth
 		const auth = new Authorization(loggedUser.role, loggedUser.auths);

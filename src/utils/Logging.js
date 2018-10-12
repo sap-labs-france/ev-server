@@ -52,7 +52,15 @@ class Logging {
 		Logging._log(log);
 	}
 
-	// Log Info
+	// Log Warning
+	static logSecurityWarning(log) {
+		// Set
+		log.type = LoggingType.SECURITY;
+		// Log it
+		Logging.logWarning(log);
+	}
+
+	// Log Error
 	static logSecurityError(log) {
 		// Set
 		log.type = LoggingType.SECURITY;

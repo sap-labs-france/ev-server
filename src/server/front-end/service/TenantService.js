@@ -7,6 +7,7 @@ const Tenant = require('../../../model/Tenant');
 const User = require('../../../model/User');
 const Authorizations = require('../../../authorization/Authorizations');
 const TenantSecurity = require('./security/TenantSecurity');
+const HttpStatus = require('http-status-codes');
 
 class TenantService {
     static async handleDeleteTenant(action, req, res, next) {
@@ -246,6 +247,25 @@ class TenantService {
             next();
         } catch (error) {
             // Log
+            Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+        }
+    }
+
+    static async handleVerifyTenant(action, req, res, next) {
+        try {
+            // Filter
+            let filteredRequest = TenantSecurity.filterVerifyTenantRequest(req.headers);
+            // Check email
+            let tenant = await Tenant.getTenantBySubdomain(filteredRequest.tenant);
+            if (!tenant) {
+                throw new AppError(
+                    Constants.CENTRAL_SERVER,
+                    `The Tenant with subdomain '${filteredRequest.subdomain}' does not exist anymore`, HttpStatus.NOT_FOUND,
+                    'TenantService', 'handleVerifyTenant');
+            }
+            res.status(HttpStatus.OK).send({});
+            next();
+        } catch (error) {
             Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
         }
     }

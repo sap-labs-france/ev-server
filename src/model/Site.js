@@ -66,14 +66,6 @@ class Site {
 		return this._model.image;
 	}
 
-	setGps(gps) {
-		this._model.gps = gps;
-	}
-
-	getGps() {
-		return this._model.gps;
-	}
-
 	getCreatedBy() {
 		if (this._model.createdBy) {
 			return new User(this._model.createdBy);
@@ -185,6 +177,17 @@ class Site {
 			this.setUsers(users.result);
 			return users.result;
 		}
+	}
+
+	async getUser(userID) {
+		// Get from DB
+		let users = await UserStorage.getUsers({'siteID': this.getID(), 'userID': userID});
+		// Check
+		if (users.count > 0) {
+			return users.result[0];
+		}
+		// None
+		return null;
 	}
 
 	removeUser(user) {

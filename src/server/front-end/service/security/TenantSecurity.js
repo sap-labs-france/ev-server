@@ -17,6 +17,12 @@ class TenantSecurity {
         return filteredRequest;
     }
 
+    static filterVerifyTenantRequest(request) {
+        let filteredRequest = {};
+        filteredRequest.tenant = sanitize(request.tenant);
+        return filteredRequest;
+    }
+
     static filterTenantsRequest(request, loggedUser) {
         let filteredRequest = {};
         filteredRequest.Search = sanitize(request.Search);

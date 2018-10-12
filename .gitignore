@@ -57,3 +57,4 @@ tmp
 # intellij
 /.idea
 /docker/mongo
+build/config.gypi
