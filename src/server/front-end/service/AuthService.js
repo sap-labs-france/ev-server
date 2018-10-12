@@ -719,7 +719,7 @@ class AuthService {
 				550, 'AuthService', 'checkUserLogin',
 				user.getModel());
 		}
-	// Check password
+		// Check password
 		let match = await User.checkPasswordBCrypt(filteredRequest.password, user.getPassword());
 		// Check new and old version of hashing the password
 		if (match || (user.getPassword() === User.hashPassword(filteredRequest.password))) {
