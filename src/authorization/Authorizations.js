@@ -601,32 +601,32 @@ class Authorizations {
 
 	static canListVariants(loggedUser) {
 		// Check
-		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VARIANT,
+		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VARIANTS,
 			{ "Action": Constants.ACTION_LIST });
 	}
 
 	static canReadVariant(loggedUser, variant) {
 		// Check
 		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VARIANT,
-			{ "Action": Constants.ACTION_READ, "VariantID": variant.ID.toString() });
+			{ "Action": Constants.ACTION_READ, "UserID": Utils.convertObjectIDToString( variant.userID) });
 	}
 
 	static canCreateVariant(loggedUser) {
 		// Check
 		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VARIANT,
-			{ "Action": Constants.ACTION_CREATE });
+			{ "Action": Constants.ACTION_CREATE, "UserID": loggedUser.id });
 	}
 
 	static canUpdateVariant(loggedUser, variant) {
 		// Check
 		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VARIANT,
-			{ "Action": Constants.ACTION_UPDATE, "VariantID": variant.id.toString() });
+			{ "Action": Constants.ACTION_UPDATE, "UserID": Utils.convertObjectIDToString( variant.userID) });
 	}
 
 	static canDeleteVariant(loggedUser, variant) {
 		// Check
 		return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VARIANT,
-			{ "Action": Constants.ACTION_DELETE, "VariantID": variant.ID.toString() });
+			{ "Action": Constants.ACTION_DELETE, "UserID": Utils.convertObjectIDToString( variant.userID) });
 	}
 
 	static isSuperAdmin(loggedUser) {
@@ -657,7 +657,7 @@ class Authorizations {
 		// Set debug mode?
 		if (Authorizations.getConfiguration().debug) {
 			// Switch on traces
-			Authorizations.switchTraceOn();
+			Authorization.switchTraceOn();
 		}
 		// Create Auth
 		const auth = new Authorization(loggedUser.role, loggedUser.auths);

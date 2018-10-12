@@ -82,7 +82,7 @@ class Variant {
     }
   }
 
-  static checkIfVariantValid(filteredRequest, request) {
+  static checkIfVariantValid(request, httpRequest) {
     // ID?
     if (httpRequest.method !== 'POST' && !request.id) {
       throw new AppError(
@@ -151,11 +151,7 @@ class Variant {
   }
 
   delete() {
-    return VariantStorage.deleteVariant(
-      this.getName(),
-      this.getViewID(),
-      this.getUserID()
-    );
+    return VariantStorage.deleteVariant(this.getID());
   }
 }
 

@@ -321,6 +321,12 @@ module.exports = {
 								],
 								"Action": ["Create", "Read", "Update", "Delete"]
 							}
+						},
+						{
+							"AuthObject": "Variants",
+							"AuthFieldValue": {
+								"Action": ["List"]
+							}
 						}
 					]
 				},
@@ -456,6 +462,12 @@ module.exports = {
 							"AuthFieldValue": {
 								"UserID": "*",
 								"Action": ["Read"]
+							}
+						},
+						{
+							"AuthObject": "Variants",
+							"AuthFieldValue": {
+								"Action": ["List"]
 							}
 						}
 					]

@@ -1,4 +1,3 @@
-const User = require('../../../model/User');
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
@@ -62,7 +61,7 @@ class VariantService {
         module: 'VariantService',
         method: 'handleDeleteVariant',
         message: `Variant '${variant.getName()}' associated to view '${variant.getViewID()}' and user '${
-          req.user.email
+          req.user.id
         }' has been deleted successfully`,
         action: action,
         detailedMessages: variant
@@ -100,6 +99,7 @@ class VariantService {
           req.user
         );
       }
+
       // Get it
       let variant = await VariantStorage.getVariant(filteredRequest.ID);
       if (!variant) {
@@ -109,6 +109,19 @@ class VariantService {
           550,
           'VariantService',
           'handleGetVariant',
+          req.user
+        );
+      }
+      // Check auth
+      if (!Authorizations.canReadVariant(req.user, variant.getModel())) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_VARIANT,
+          variant.getID(),
+          560,
+          'VariantService',
+          'handleDeleteVariant',
           req.user
         );
       }
@@ -151,7 +164,7 @@ class VariantService {
         req.user
       );
       // Get variants
-      let variants = await VariantStorage.getVariants(x, limit, skip, sort)(
+      let variants = await VariantStorage.getVariants(
         {
           name: filteredRequest.Name,
           viewID: filteredRequest.ViewID,
@@ -216,7 +229,7 @@ class VariantService {
         module: 'VariantService',
         method: 'handleCreateVariant',
         message: `Variant '${newVariant.getName()}' associated to view '${newVariant.getViewID()}' and user '${
-          req.user.email
+          req.user.id
         }' has been created successfully`,
         action: action,
         detailedMessages: newVariant
@@ -280,7 +293,7 @@ class VariantService {
         user: req.user,
         module: 'VariantService',
         method: 'handleUpdateVariant',
-        message: `Variant '${updatedVariant.getName()}' associated to view '${updatedVariant.getviewID()}' and user '${updatedVariant.getUserID()}'has been updated successfully`,
+        message: `Variant '${updatedVariant.getName()}' associated to view '${updatedVariant.getViewID()}' and user '${updatedVariant.getUserID()}'has been updated successfully`,
         action: action,
         detailedMessages: updatedVariant
       });

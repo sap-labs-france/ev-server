@@ -336,6 +336,14 @@ class Utils {
 	static generateToken(email) {
 		return crypto.createHash('sha1').update(`${new Date().toISOString()}~${email}`).digest('hex');
 	}
+
+	static convertObjectIDToString(id) {
+		if(id && typeof id == "object") {
+			return id.toString();
+		} else {
+			return null
+		}
+	}
 }
 
 module.exports=Utils;

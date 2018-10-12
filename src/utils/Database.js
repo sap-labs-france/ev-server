@@ -458,8 +458,14 @@ class Database {
 		if (forFrontEnd) {
 			Database.updateID(src, dest);
 		}
-		// Model
-		dest.model = src.model;
+		dest.name = src.name;
+		dest.viewID = src.viewID;
+		dest.userID = src.userID;
+		dest.filters = [];
+		for (var i = 0; i < src.filters.length; i++) {
+			let filter = {filterID: src.filters[i].filterID, filterContent: src.filters[i].filterContent};
+			dest.filters.push(filter);
+		}
 	}
 }
 
