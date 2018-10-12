@@ -11,10 +11,11 @@ services:
     - 8088:8081
     - 8008:8000
     external_links:
-    - docker_mongodb_1
-    - docker_mailserver_1
+    - evse_mongodb_1
+    - evse_mailserver_1
     environment:
       WAIT_HOSTS: ev_mongo:27017
       WAIT_HOSTS_TIMEOUT: 90
+      WAIT_AFTER_HOSTS: 3
     networks:
     - ev_network
