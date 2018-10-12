@@ -69,9 +69,7 @@ class SiteAreaService {
 				message: `Site Area '${newSiteArea.getName()}' has been created successfully`,
 				action: action, detailedMessages: newSiteArea});
 			// Ok
-      const result = Constants.REST_RESPONSE_SUCCESS;
-      result.id = newSiteArea._model.id;
-      res.json(result);
+			res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS, { id: newSiteArea.getID() }));
 			next();
 		} catch (error) {
 			// Log

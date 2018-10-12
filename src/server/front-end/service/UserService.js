@@ -541,9 +541,7 @@ class UserService {
 				message: `User with ID '${newUser.getID()}' has been created successfully`,
 				action: action});
 			// Ok
-      const result = Constants.REST_RESPONSE_SUCCESS;
-      result.id = newUser._model.id;
-      res.json(result);
+			res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS, { id: newUser.getID() }));
 			next();
 		} catch (error) {
 			// Log

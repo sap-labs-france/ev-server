@@ -159,9 +159,7 @@ class VehicleManufacturerService {
 				message: `Vehicle Manufacturer '${newVehicleManufacturer.getName()}' has been created successfully`,
 				action: action, detailedMessages: newVehicleManufacturer});
 			// Ok
-      const result = Constants.REST_RESPONSE_SUCCESS;
-      result.id = newVehicleManufacturer._model.id;
-      res.json(result);
+			res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS, { id: newVehicleManufacturer.getID() }));
 			next();
 		} catch (error) {
 			// Log

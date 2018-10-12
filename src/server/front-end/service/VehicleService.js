@@ -229,9 +229,7 @@ class VehicleService {
 				message: `Vehicle '${newVehicle.getName()}' has been created successfully`,
 				action: action, detailedMessages: newVehicle});
 			// Ok
-      const result = Constants.REST_RESPONSE_SUCCESS;
-      result.id = newVehicle._model.id;
-      res.json(result);
+			res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS, { id: newVehicle.getID() }));
 			next();
 		} catch (error) {
 			// Log

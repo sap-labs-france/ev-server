@@ -251,9 +251,7 @@ class SiteService {
 				message: `Site '${newSite.getName()}' has been created successfully`,
 				action: action, detailedMessages: newSite});
 			// Ok
-      const result = Constants.REST_RESPONSE_SUCCESS;
-      result.id = newSite._model.id;
-      res.json(result);
+			res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS, { id: newSite.getID() }));
 			next();
 		} catch (error) {
 			// Log

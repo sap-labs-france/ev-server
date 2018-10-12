@@ -231,9 +231,7 @@ class CompanyService {
 				message: `Company '${newCompany.getName()}' has been created successfully`,
 				action: action, detailedMessages: newCompany});
 			// Ok
-			const result = Constants.REST_RESPONSE_SUCCESS;
-			result.id = newCompany._model.id;
-			res.json(result);
+			res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS, { id: newCompany.getID() }));
 			next();
 		} catch (error) {
 			// Log
