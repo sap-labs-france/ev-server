@@ -44,7 +44,6 @@ class LoggingStorage {
 	}
 
 	static async saveLog(logToSave) {
-		console.log(JSON.stringify(logToSave));
 		// Check User
 		logToSave.userID = Utils.convertUserToObjectID(logToSave.user);
 		logToSave.actionOnUserID = Utils.convertUserToObjectID(logToSave.actionOnUser);
