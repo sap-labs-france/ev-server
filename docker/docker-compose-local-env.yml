@@ -1,0 +1,45 @@
+version: "3.5"
+networks:
+  ev_network:
+    driver: bridge
+
+services:
+  mongodb:
+    image: mongo:3.6
+    ports:
+    - 27017:27017
+    volumes:
+    - ./initdb:/docker-entrypoint-initdb.d
+    - ./mongo:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+      MONGO_INITDB_DATABASE: evse
+    command: --replSet 'rs0'
+    networks:
+      ev_network:
+        aliases:
+        - ev_mongo
+    extra_hosts:
+    - ev_mongo:127.0.0.1
+  enablereplset:
+    depends_on:
+    - mongodb
+    build:
+      context: replica
+    links:
+    - mongodb
+    networks:
+    - ev_network
+    environment:
+      WAIT_HOSTS: ev_mongo:27017
+      WAIT_HOSTS_TIMEOUT: 90
+  mailserver:
+    image: djfarrelly/maildev
+    ports:
+    - 1025:70
+    - 1080:80
+    networks:
+    - ev_network
+    command: bin/maildev --web 80 --smtp 70 --verbose --incoming-user evse-mail-user --incoming-pass evse-mail-pwd
+

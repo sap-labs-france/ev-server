@@ -445,6 +445,75 @@ npm run start:dev
 * Start a server containing the configured admin user in the database
 * run the command `npm tests`
 
+### Docker Mode
+Depending on the need it is possible to start different docker containers.
+
+Each following command has to be executed in folder [docker](./docker).
+ 
+#### Minimal local environment
+It consist in starting a pre configured empty mongo database plus a mail service.
+To start it, execute command:
+```bash
+docker-compose -p evse -f docker-compose-local-env.yml up
+```
+To stop it, execute command:
+```bash
+docker-compose -p evse -f docker-compose-local-env.yml down
+```
+The mongo database folder will be kept along mutliple restarts. to remove it, delete the folder [docker/mongo](./docker/mongo).
+
+Due to fixed replica set configuration, the database hostname has to be referenced in the host machine to be accessible.
+To enable it, as admin, add the entry `ev_mongo 127.0.0.1` in `/private/etc/hosts` for mac-os or in `c:\Windows\System32\Drivers\etc\hosts` for windows.
+
+The database is then accessible using the credential `evse-admin/evse-admin-pwd`. 
+
+#### ev-server
+In case of UI development or test purpose, the server has been containerised.
+To start it, execute command:
+```bash
+docker-compose -p evse -f docker-compose-server.yml up
+```
+In order to rebuild the image in case of changes add the arguments `--build --force-recreate`
+
+To stop it, execute command:
+```bash
+docker-compose -p evse -f docker-compose-server.yml down
+```
+
+#### mongo express
+If needed, it is possible to start a [mongo express](https://github.com/mongo-express/mongo-express) instance auto connected to mongodb
+To start it, execute command:
+```bash
+docker-compose -p evse -f docker-compose-mongo-express.yml up
+```
+
+To stop it, execute command:
+```bash
+docker-compose -p evse -f docker-compose-mongo-express.yml down
+```
+
+#### All in one
+It is possible to start multiple containers in one command :
+```bash
+docker-compose -p evse -f docker-compose-local-env.yml -f docker-compose-server.yml -f docker-compose-mongo-express.yml up
+```
+
+### Tests
+
+* Create a local configuration file located in '/config/tests/local.json' with the parameters to override like 
+         
+        {
+          "admin": {
+            "username": "bla",
+            "password": "bli"
+          },
+          "trace_logs": false
+        }
+
+  For further parameters, check the [`config`](./test/config.js) content. It is also possible to use environment variables as defined in the [`config`](./test/config.js) file
+* Start a server containing the configured admin user in the database
+* run the command `npm tests`
+
 ## Architecture
 
 ### TAM Model

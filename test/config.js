@@ -60,13 +60,13 @@ const config = convict({
     username: {
       doc: 'The admin username',
       format: String,
-      default: 'demo.admin@sap.com',
+      default: 'super.admin@ev.com',
       env: 'ADMIN_USERNAME'
     },
     password: {
       doc: 'The admin password',
       format: String,
-      default: 'DeM*Us$r42',
+      default: 'EQPQLwBIC0XgUgX@1Aa',
       env: 'ADMIN_PASSWORD'
     }
   }

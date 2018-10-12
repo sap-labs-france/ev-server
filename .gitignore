@@ -56,3 +56,4 @@ tmp
 
 # intellij
 /.idea
+/docker/mongo
