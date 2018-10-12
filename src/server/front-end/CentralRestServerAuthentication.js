@@ -54,7 +54,7 @@ module.exports = {
 				}
 				break;
 
-			// Create Request
+			// Get Request
 			case "GET":
 				// Action
 				switch (action) {
@@ -77,7 +77,7 @@ module.exports = {
 						break;
 
 					case "VerifyTenant":
-						TenantService.handleVerifyTenant(action,req,res,next);
+						TenantService.handleVerifyTenant(action, req, res, next);
 						break;
 
 					default:
