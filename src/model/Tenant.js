@@ -103,24 +103,24 @@ class Tenant {
         }
     }
 
-    static async getTenant(id) {
+    static getTenant(id) {
         // Get Tenant
-        return await TenantStorage.getTenant(id)
+        return TenantStorage.getTenant(id)
     }
 
-    static async getTenantByName(name) {
+    static getTenantByName(name) {
         // Get Tenant
-        return await TenantStorage.getTenantByName(name);
+        return TenantStorage.getTenantByName(name);
     }
 
-    static async getTenantBySubdomain(subdomain) {
+    static getTenantBySubdomain(subdomain) {
         // Get Tenant
-        return await TenantStorage.getTenantBySubdomain(subdomain);
+        return TenantStorage.getTenantBySubdomain(subdomain);
     }
 
-    static async getTenants(params = {}, limit, skip, sort) {
+    static getTenants(params = {}, limit, skip, sort) {
         // Get Tenants
-        return await TenantStorage.getTenants(params, limit, skip, sort);
+        return TenantStorage.getTenants(params, limit, skip, sort);
     }
 }
 

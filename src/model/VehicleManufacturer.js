@@ -76,22 +76,6 @@ class VehicleManufacturer {
 		this._model.lastChangedOn = lastChangedOn;
 	}
 
-	static checkIfVehicleManufacturerValid(filteredRequest, request) {
-		// Update model?
-		if(request.method !== 'POST' && !filteredRequest.id) {
-			throw new AppError(
-				Constants.CENTRAL_SERVER,
-				`The Vehicle Manufacturer ID is mandatory`, 500, 
-				'VehicleManufacturer', 'checkIfVehicleManufacturerValid');
-		}
-		if(!filteredRequest.name) {
-			throw new AppError(
-				Constants.CENTRAL_SERVER,
-				`The Vehicle Manufacturer Name is mandatory`, 500, 
-				'VehicleManufacturer', 'checkIfVehicleManufacturerValid');
-		}
-	}
-
 	async getVehicles() {
 		if (this._model.vehicles) {
 			return this._model.vehicles.map((vehicle) => new Vehicle(vehicle));
@@ -121,6 +105,38 @@ class VehicleManufacturer {
 
 	delete() {
 		return VehicleManufacturerStorage.deleteVehicleManufacturer(this.getID());
+	}
+
+	static checkIfVehicleManufacturerValid(filteredRequest, request) {
+		// Update model?
+		if(request.method !== 'POST' && !filteredRequest.id) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Vehicle Manufacturer ID is mandatory`, 500, 
+				'VehicleManufacturer', 'checkIfVehicleManufacturerValid');
+		}
+		if(!filteredRequest.name) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Vehicle Manufacturer Name is mandatory`, 500, 
+				'VehicleManufacturer', 'checkIfVehicleManufacturerValid');
+		}
+	}
+
+	static getVehicleManufacturer(id) {
+		return VehicleManufacturerStorage.getVehicleManufacturer(id);
+	}
+
+	static getVehicleManufacturers(params, limit, skip, sort) {
+		return VehicleManufacturerStorage.getVehicleManufacturers(params, limit, skip, sort)
+	}
+
+	static getVehicleManufacturerLogo(id) {
+		return VehicleManufacturerStorage.getVehicleManufacturerLogo(id);
+	}
+
+	static getVehicleManufacturerLogos(params, limit, skip, sort) {
+		return VehicleManufacturerStorage.getVehicleManufacturerLogos(params, limit, skip, sort)
 	}
 }
 

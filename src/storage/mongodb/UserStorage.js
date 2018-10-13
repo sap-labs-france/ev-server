@@ -1,11 +1,37 @@
 const crypto = require('crypto');
+const Mustache = require('mustache');
 const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const Configuration = require('../../utils/Configuration');
 const Utils = require('../../utils/Utils');
 const AppError = require('../../exception/AppError');
+const eula = require('../../end-user-agreement');
+
+let _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 
 class UserStorage {
+	static getLatestEndUserLicenseAgreement(language='en') {
+		// Get it
+		let eulaText = eula[language];
+		// Check
+		if (!eulaText) {
+			// Backup to EN
+			eulaText = eula['en'];
+		}
+		// Build Front End URL
+		let frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
+			_centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port; 
+		// Parse the auth and replace values
+		eulaText = Mustache.render(
+			eulaText,
+			{
+				'chargeAngelsURL': frontEndURL
+			}
+		);
+		// Parse
+		return eulaText;
+	}
+
 	static async getEndUserLicenseAgreement(language="en") {
 		const User = require('../../model/User'); // Avoid fucking circular deps!!!
 		let languageFound = false;
@@ -24,7 +50,7 @@ class UserStorage {
 			language = "en";
 		}
 		// Get current eula
-		currentEula = User.getEndUserLicenseAgreement(language);
+		currentEula = await UserStorage.getLatestEndUserLicenseAgreement(language);
 		// Read DB
 		let eulasMDB = await global.db.collection('eulas')
 			.find({'language':language})
@@ -36,6 +62,8 @@ class UserStorage {
 			// Get
 			let eulaMDB = eulasMDB[0];
 			// Check if eula has changed
+			console.log(currentEula);
+			
 			currentEulaHash = crypto.createHash('sha256')
 				.update(currentEula)
 				.digest("hex");

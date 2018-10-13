@@ -5,8 +5,8 @@ const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Authorizations = require('../../../authorization/Authorizations');
 const ChargingStationSecurity = require('./security/ChargingStationSecurity');
-const ChargingStationStorage = require('../../../storage/mongodb/ChargingStationStorage'); 
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage'); 
+const ChargingStation = require('../../../model/ChargingStation');
 class ChargingStationService {
 
 	static async handleUpdateChargingStationParams(action, req, res, next) {
@@ -14,7 +14,7 @@ class ChargingStationService {
 				// Filter
 			let filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest( req.body, req.user );
 			// Check email
-			let chargingStation = await ChargingStationStorage.getChargingStation(filteredRequest.id);
+			let chargingStation = await ChargingStation.getChargingStation(filteredRequest.id);
 			if (!chargingStation) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -94,7 +94,7 @@ class ChargingStationService {
 					'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
 			}
 			// Get the Charging Station`
-			let chargingStation = await ChargingStationStorage.getChargingStation(filteredRequest.ChargeBoxID);
+			let chargingStation = await ChargingStation.getChargingStation(filteredRequest.ChargeBoxID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -136,7 +136,7 @@ class ChargingStationService {
 					'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
 			}
 			// Get the Charging Station
-			let chargingStation = await ChargingStationStorage.getChargingStation(filteredRequest.ChargeBoxID);
+			let chargingStation = await ChargingStation.getChargingStation(filteredRequest.ChargeBoxID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -179,7 +179,7 @@ class ChargingStationService {
 					'ChargingStationService', 'handleDeleteChargingStation', req.user);
 			}
 			// Get
-			let chargingStation = await ChargingStationStorage.getChargingStation(filteredRequest.ID);
+			let chargingStation = await ChargingStation.getChargingStation(filteredRequest.ID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -229,7 +229,7 @@ class ChargingStationService {
 					'ChargingStationService', 'handleGetChargingStation', req.user);
 			}
 			// Get it
-			let chargingStation = await ChargingStationStorage.getChargingStation(filteredRequest.ID);
+			let chargingStation = await ChargingStation.getChargingStation(filteredRequest.ID);
 			if (chargingStation) {
 				// Return
 				res.json(
@@ -261,8 +261,8 @@ class ChargingStationService {
 			}
 			// Filter
 			let filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query, req.user);
-			// Get the charging stfoundChargingStationsations
-			let chargingStations = await ChargingStationStorage.getChargingStations(
+			// Get the charging Charging Stations
+			let chargingStations = await ChargingStation.getChargingStations(
 				{ 'search': filteredRequest.Search, 'withNoSiteArea': filteredRequest.WithNoSiteArea, 'siteID': filteredRequest.SiteID },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
@@ -289,7 +289,7 @@ class ChargingStationService {
 				return;
 			}
 			// Get the Charging station
-			let chargingStation = await ChargingStationStorage.getChargingStation(filteredRequest.chargeBoxID);
+			let chargingStation = await ChargingStation.getChargingStation(filteredRequest.chargeBoxID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -367,7 +367,7 @@ class ChargingStationService {
 						'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
 			}
 			// Get the Charging station
-			let chargingStation = await ChargingStationStorage.getChargingStation(filteredRequest.chargeBoxID);
+			let chargingStation = await ChargingStation.getChargingStation(filteredRequest.chargeBoxID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!

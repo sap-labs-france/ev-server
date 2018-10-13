@@ -3,7 +3,6 @@ const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const LoggingSecurity = require('./security/LoggingSecurity');
 const AppAuthError = require('../../../exception/AppAuthError');
-const LoggingStorage = require('../../../storage/mongodb/LoggingStorage');
 
 class LoggingService {
 	static async handleGetLoggings(action, req, res, next) {
@@ -21,7 +20,7 @@ class LoggingService {
 			// Filter
 			let filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query, req.user);
 			// Get logs
-			let loggings = await LoggingStorage.getLogs({
+			let loggings = await Logging.getLogs({
 				'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'userID': filteredRequest.UserID, 
 				'level': filteredRequest.Level, 'type': filteredRequest.Type, 'source': filteredRequest.Source, 
 				'action': filteredRequest.Action}, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
@@ -42,7 +41,7 @@ class LoggingService {
 			// Filter
 			let filteredRequest = LoggingSecurity.filterLoggingRequest(req.query, req.user);
 			// Get logs
-			let logging = await LoggingStorage.getLog(filteredRequest.ID);
+			let logging = await Logging.getLog(filteredRequest.ID);
 			// Check auth
 			if (!Authorizations.canReadLogging(req.user, logging)) {
 				// Not Authorized!

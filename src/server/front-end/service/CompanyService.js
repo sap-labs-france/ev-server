@@ -7,7 +7,6 @@ const Company = require('../../../model/Company');
 const User = require('../../../model/User');
 const Authorizations = require('../../../authorization/Authorizations');
 const CompanySecurity = require('./security/CompanySecurity');
-const CompanyStorage = require('../../../storage/mongodb/CompanyStorage');
 
 class CompanyService {
 	static async handleDeleteCompany(action, req, res, next) {
@@ -24,7 +23,7 @@ class CompanyService {
 					'CompanyService', 'handleDeleteCompany', req.user);
 			}
 			// Get
-			let company = await CompanyStorage.getCompany(filteredRequest.ID);
+			let company = await Company.getCompany(filteredRequest.ID);
 			// Found?
 			if (!company) {
 				// Not Found!
@@ -72,7 +71,7 @@ class CompanyService {
 					'CompanyService', 'handleGetCompany', req.user);
 			}
 			// Get it
-			let company = await CompanyStorage.getCompany(filteredRequest.ID);
+			let company = await Company.getCompany(filteredRequest.ID);
 			if (!company) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -115,7 +114,7 @@ class CompanyService {
 					'CompanyService', 'handleGetCompanyLogo', req.user);
 			}
 			// Get it
-			let company = await CompanyStorage.getCompany(filteredRequest.ID);
+			let company = await Company.getCompany(filteredRequest.ID);
 			if (!company) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -133,7 +132,7 @@ class CompanyService {
 					req.user);
 			}
 			// Get the logo
-			let companyLogo = await CompanyStorage.getCompanyLogo(filteredRequest.ID);
+			let companyLogo = await Company.getCompanyLogo(filteredRequest.ID);
 			// Return
 			res.json(companyLogo);
 			next();
@@ -156,7 +155,7 @@ class CompanyService {
 					req.user);
 			}
 			// Get the company logo
-			let companyLogos = await CompanyStorage.getCompanyLogos();
+			let companyLogos = await Company.getCompanyLogos();
 			res.json(companyLogos);
 			next();
 		} catch (error) {
@@ -181,7 +180,7 @@ class CompanyService {
 			// Filter
 			let filteredRequest = CompanySecurity.filterCompaniesRequest(req.query, req.user);
 			// Get the companies
-			let companies = await CompanyStorage.getCompanies(
+			let companies = await Company.getCompanies(
 				{ search: filteredRequest.Search, withSites: filteredRequest.WithSites },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
@@ -244,7 +243,7 @@ class CompanyService {
 			// Filter
 			let filteredRequest = CompanySecurity.filterCompanyUpdateRequest( req.body, req.user );
 			// Check email
-			let company = await CompanyStorage.getCompany(filteredRequest.id);
+			let company = await Company.getCompany(filteredRequest.id);
 			if (!company) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,

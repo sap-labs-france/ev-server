@@ -1,12 +1,9 @@
 const Database = require('../utils/Database');
-const SiteArea = require('./SiteArea');
-const Company = require('./Company');
 const User = require('./User');
+const Company = require('./Company');
+const SiteArea = require('./SiteArea');
 const AppError = require('../exception/AppError');
 const Constants = require('../utils/Constants');
-const CompanyStorage = require('../storage/mongodb/CompanyStorage');
-const UserStorage = require('../storage/mongodb/UserStorage');
-const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const SiteStorage = require('../storage/mongodb/SiteStorage');
 
 class Site {
@@ -104,34 +101,12 @@ class Site {
 		this._model.lastChangedOn = lastChangedOn;
 	}
 
-	static checkIfSiteValid(filteredRequest, request) {
-		// Update model?
-		if(request.method !== 'POST' && !filteredRequest.id) {
-			throw new AppError(
-				Constants.CENTRAL_SERVER,
-				`The Site ID is mandatory`, 500, 
-				'Site', 'checkIfSiteValid');
-		}
-		if(!filteredRequest.name) {
-			throw new AppError(
-				Constants.CENTRAL_SERVER,
-				`The Site Name is mandatory`, 500, 
-				'Site', 'checkIfSiteValid');
-		}
-		if(!filteredRequest.companyID) {
-			throw new AppError(
-				Constants.CENTRAL_SERVER,
-				`The Company ID is mandatory for the Site`, 500, 
-				'Sites', 'checkIfSiteValid');
-		}
-	}
-
 	async getCompany() {
 		if (this._model.company) {
 			return new Company(this._model.company);
 		} else if (this._model.companyID){
 			// Get from DB
-			let company = await CompanyStorage.getCompany(this._model.companyID);
+			let company = await Company.getCompany(this._model.companyID);
 			// Keep it
 			this.setCompany(company);
 			return company;
@@ -156,7 +131,7 @@ class Site {
 			return this._model.siteAreas.map((siteArea) => new SiteArea(siteArea));
 		} else {
 			// Get from DB
-			let siteAreas = await SiteAreaStorage.getSiteAreas({'siteID': this.getID()});
+			let siteAreas = await SiteArea.getSiteAreas({'siteID': this.getID()});
 			// Keep it
 			this.setSiteAreas(siteAreas.result);
 			return siteAreas.result;
@@ -172,7 +147,7 @@ class Site {
 			return this._model.users.map((user) => new User(user));
 		} else {
 			// Get from DB
-			let users = await UserStorage.getUsers({'siteID': this.getID()});
+			let users = await User.getUsers({'siteID': this.getID()});
 			// Keep it
 			this.setUsers(users.result);
 			return users.result;
@@ -181,7 +156,7 @@ class Site {
 
 	async getUser(userID) {
 		// Get from DB
-		let users = await UserStorage.getUsers({'siteID': this.getID(), 'userID': userID});
+		let users = await User.getUsers({'siteID': this.getID(), 'userID': userID});
 		// Check
 		if (users.count > 0) {
 			return users.result[0];
@@ -217,6 +192,44 @@ class Site {
 
 	delete() {
 		return SiteStorage.deleteSite(this.getID());
+	}
+
+	static checkIfSiteValid(filteredRequest, request) {
+		// Update model?
+		if(request.method !== 'POST' && !filteredRequest.id) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Site ID is mandatory`, 500, 
+				'Site', 'checkIfSiteValid');
+		}
+		if(!filteredRequest.name) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Site Name is mandatory`, 500, 
+				'Site', 'checkIfSiteValid');
+		}
+		if(!filteredRequest.companyID) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Company ID is mandatory for the Site`, 500, 
+				'Sites', 'checkIfSiteValid');
+		}
+	}
+
+	static getSite(id) {
+		return SiteStorage.getSite(id);
+	}
+
+	static getSites(params, limit, skip, sort) {
+		return SiteStorage.getSites(params, limit, skip, sort)
+	}
+
+	static getSiteImage(id) {
+		return SiteStorage.getSiteImage(id);
+	}
+
+	static getSiteImages(params, limit, skip, sort) {
+		return SiteStorage.getSiteImages(params, limit, skip, sort)
 	}
 }
 

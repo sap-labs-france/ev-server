@@ -182,6 +182,18 @@ class Vehicle {
 		this._model.lastChangedOn = lastChangedOn;
 	}
 
+	save() {
+		return VehicleStorage.saveVehicle(this.getModel());
+	}
+
+	saveImages() {
+		return VehicleStorage.saveVehicleImages(this.getModel());
+	}
+
+	delete() {
+		return VehicleStorage.deleteVehicle(this.getID());
+	}
+
 	static checkIfVehicleValid(request, httpRequest) {
 		// Update model?
 		if(httpRequest.method !== 'POST' && !request.id) {
@@ -210,16 +222,20 @@ class Vehicle {
 		}
 	}
 
-	save() {
-		return VehicleStorage.saveVehicle(this.getModel());
+	static getVehicle(id) {
+		return VehicleStorage.getVehicle(id);
 	}
 
-	saveImages() {
-		return VehicleStorage.saveVehicleImages(this.getModel());
+	static getVehicles(params, limit, skip, sort) {
+		return VehicleStorage.getVehicles(params, limit, skip, sort)
 	}
 
-	delete() {
-		return VehicleStorage.deleteVehicle(this.getID());
+	static getVehicleImage(id) {
+		return VehicleStorage.getVehicleImage(id);
+	}
+
+	static getVehicleImages(params, limit, skip, sort) {
+		return VehicleStorage.getVehicleImages(params, limit, skip, sort)
 	}
 }
 

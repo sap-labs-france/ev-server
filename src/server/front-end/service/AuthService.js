@@ -8,15 +8,14 @@ const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const AppError = require('../../../exception/AppError');
 const User = require('../../../model/User');
+const ChargingStation = require('../../../model/ChargingStation');
+const Site = require('../../../model/Site');
 const Utils = require('../../../utils/Utils');
 const Configuration = require('../../../utils/Configuration');
 const Authorizations = require('../../../authorization/Authorizations');
 const NotificationHandler = require('../../../notification/NotificationHandler');
 const AuthSecurity = require('./security/AuthSecurity');
-const ChargingStationStorage = require('../../../storage/mongodb/ChargingStationStorage'); 
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage');
-const UserStorage = require('../../../storage/mongodb/UserStorage');
-const SiteStorage = require('../../../storage/mongodb/SiteStorage');
 
 let _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -78,7 +77,7 @@ class AuthService {
 							550, 'AuthService', 'handleIsAuthorized');
 					}
 					// Get the Charging station
-					let chargingStation = await ChargingStationStorage.getChargingStation(filteredRequest.Arg1);
+					let chargingStation = await ChargingStation.getChargingStation(filteredRequest.Arg1);
 					// Found?
 					if (!chargingStation) {
 						// Not Found!
@@ -140,7 +139,7 @@ class AuthService {
 					'AuthService', 'handleLogIn');
 			}
 			// Check email
-			let user = await UserStorage.getUserByEmail(filteredRequest.email);
+			let user = await User.getUserByEmail(filteredRequest.email);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -225,7 +224,7 @@ class AuthService {
 					'AuthService', 'handleRegisterUser');
 			}
 			// Check email
-			let user = await UserStorage.getUserByEmail(filteredRequest.email);
+			let user = await User.getUserByEmail(filteredRequest.email);
 			// Check Mandatory fields
 			User.checkIfUserValid(filteredRequest, req);
 			if (user) {
@@ -248,11 +247,11 @@ class AuthService {
 			// Set BadgeID (eg.: 'SF20170131')
 			newUser.setTagIDs([newUser.getName()[0] + newUser.getFirstName()[0] + Utils.getRandomInt()])
 			// Assign user to all sites
-			const sites = await SiteStorage.getSites();
+			const sites = await Site.getSites();
 			// Set
 			newUser.setSites(sites.result);
 			// Get EULA
-			let endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(newUser.getLanguage());
+			let endUserLicenseAgreement = await User.getEndUserLicenseAgreement(newUser.getLanguage());
 			// Set Eula Info on Login Only
 			newUser.setEulaAcceptedOn(new Date());
 			newUser.setEulaAcceptedVersion(endUserLicenseAgreement.version);
@@ -315,7 +314,7 @@ class AuthService {
 			// Yes: Generate new password
 			let resetHash = Utils.generateGUID();
 			// Generate a new password
-			let user = await UserStorage.getUserByEmail(filteredRequest.email);
+			let user = await User.getUserByEmail(filteredRequest.email);
 			// Found?
 			if (!user) {
 				throw new AppError(
@@ -372,7 +371,7 @@ class AuthService {
 			// Hash it
 			let newHashedPassword = await User.hashPasswordBcrypt(newPassword);
 			// Get the user
-			let user = await UserStorage.getUserByEmail(filteredRequest.email);
+			let user = await User.getUserByEmail(filteredRequest.email);
 			// Found?
 			if (!user) {
 				throw new AppError(
@@ -470,7 +469,7 @@ class AuthService {
 					'AuthService', 'handleVerifyEmail');
 			}
 			// Check email
-			let user = await UserStorage.getUserByEmail(filteredRequest.Email);
+			let user = await User.getUserByEmail(filteredRequest.Email);
 			// User exists?
 			if (!user) {
 				throw new AppError(
@@ -552,7 +551,7 @@ class AuthService {
 					'AuthService', 'handleResendVerificationEmail');
 			}
 			// Is valid email?
-			let user = await UserStorage.getUserByEmail(filteredRequest.email);
+			let user = await User.getUserByEmail(filteredRequest.email);
 			// User exists?
 			if (!user) {
 				throw new AppError(
@@ -665,7 +664,7 @@ class AuthService {
 			module: 'AuthService', method: 'checkUserLogin',
 			action: action, message: `User logged in successfully`});
 		// Get EULA
-		let endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(user.getLanguage());
+		let endUserLicenseAgreement = await User.getEndUserLicenseAgreement(user.getLanguage());
 		// Set Eula Info on Login Only
 		if (action == 'Login') {
 			user.setEulaAcceptedOn(new Date());

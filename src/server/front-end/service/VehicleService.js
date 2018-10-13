@@ -7,7 +7,6 @@ const Authorizations = require('../../../authorization/Authorizations');
 const Constants = require('../../../utils/Constants');
 const Vehicle = require('../../../model/Vehicle');
 const VehicleSecurity = require('./security/VehicleSecurity');
-const VehicleStorage = require('../../../storage/mongodb/VehicleStorage');
 
 class VehicleService {
 	static async handleDeleteVehicle(action, req, res, next) {
@@ -23,7 +22,7 @@ class VehicleService {
 					'VehicleService', 'handleDeleteVehicle', req.user);
 			}
 			// Get
-			let vehicle = await VehicleStorage.getVehicle(filteredRequest.ID);
+			let vehicle = await Vehicle.getVehicle(filteredRequest.ID);
 			if (!vehicle) {
 				// Not Found!
 				throw new AppError(
@@ -71,7 +70,7 @@ class VehicleService {
 					'VehicleService', 'handleGetVehicle', req.user);
 			}
 			// Get it
-			let vehicle = await VehicleStorage.getVehicle(filteredRequest.ID);
+			let vehicle = await Vehicle.getVehicle(filteredRequest.ID);
 			if (!vehicle) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -107,7 +106,7 @@ class VehicleService {
 			// Filter
 			let filteredRequest = VehicleSecurity.filterVehiclesRequest(req.query, req.user);
 			// Get the vehicles
-			let vehicles = await VehicleStorage.getVehicles(
+			let vehicles = await Vehicle.getVehicles(
 				{ 'search': filteredRequest.Search, 'vehicleType': filteredRequest.Type,
 					'vehicleManufacturerID': filteredRequest.VehicleManufacturerID },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
@@ -138,7 +137,7 @@ class VehicleService {
 					'VehicleService', 'handleGetVehicleImage', req.user);
 			}
 			// Get it
-			let vehicle = await VehicleStorage.getVehicle(filteredRequest.ID);
+			let vehicle = await Vehicle.getVehicle(filteredRequest.ID);
 			if (!vehicle) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -157,7 +156,7 @@ class VehicleService {
 					req.user);
 			}
 			// Get the image
-			let vehicleImage = await VehicleStorage.getVehicleImage(filteredRequest.ID);
+			let vehicleImage = await Vehicle.getVehicleImage(filteredRequest.ID);
 			// Return
 			res.json(vehicleImage);
 			next();
@@ -181,7 +180,7 @@ class VehicleService {
 					req.user);
 			}
 			// Get the vehicle image
-			let vehicleImages = await VehicleStorage.getVehicleImages();
+			let vehicleImages = await Vehicle.getVehicleImages();
 			// Return
 			res.json(vehicleImages);
 			next();
@@ -242,7 +241,7 @@ class VehicleService {
 			// Filter
 			let filteredRequest = VehicleSecurity.filterVehicleUpdateRequest( req.body, req.user );
 			// Check email
-			let vehicle = await VehicleStorage.getVehicle(filteredRequest.id);
+			let vehicle = await Vehicle.getVehicle(filteredRequest.id);
 			if (!vehicle) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,

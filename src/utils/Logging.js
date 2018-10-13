@@ -250,6 +250,14 @@ class Logging {
 				return "error";		
 		}
 	}
+
+	static getLog(id) {
+		return LoggingStorage.getLog(id);
+	}
+
+	static getLogs(params, limit, skip, sort) {
+		return LoggingStorage.getLogs(params, limit, skip, sort)
+	}
 }
 
 module.exports=Logging;

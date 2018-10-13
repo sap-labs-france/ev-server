@@ -10,7 +10,6 @@ const Configuration = require('../utils/Configuration');
 const NotificationHandler = require('../notification/NotificationHandler');
 const Authorizations = require('../authorization/Authorizations');
 const AppError = require('../exception/AppError');
-const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
 const TransactionStorage = require('../storage/mongodb/TransactionStorage');
 const PricingStorage = require('../storage/mongodb/PricingStorage');
@@ -86,7 +85,7 @@ class ChargingStation {
 			return new SiteArea(this._model.siteArea);
 		} else if (this._model.siteAreaID){
 			// Get from DB
-			let siteArea = await SiteAreaStorage.getSiteArea(this._model.siteAreaID, false, withSite);
+			let siteArea = await SiteArea.getSiteArea(this._model.siteAreaID, false, withSite);
 			// Set it
 			this.setSiteArea(siteArea);
 			// Return
@@ -295,16 +294,6 @@ class ChargingStation {
 
 	getModel() {
 		return this._model;
-	}
-
-	static checkIfChargingStationValid(filteredRequest, request) {
-		// Update mode?
-		if(request.method !== 'POST' && !filteredRequest.id) {
-			throw new AppError(
-				Constants.CENTRAL_SERVER,
-				`The Charging Station ID is mandatory`, 500,
-				'ChargingStations', 'checkIfChargingStationValid');
-		}
 	}
 
 	save() {
@@ -1623,6 +1612,24 @@ class ChargingStation {
 		}
 		// Return the result
 		return chargingStationConsumption;
+	}
+
+	static checkIfChargingStationValid(filteredRequest, request) {
+		// Update mode?
+		if(request.method !== 'POST' && !filteredRequest.id) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Charging Station ID is mandatory`, 500,
+				'ChargingStations', 'checkIfChargingStationValid');
+		}
+	}
+
+	static getChargingStation(id) {
+		return ChargingStationStorage.getChargingStation(id);
+	}
+
+	static getChargingStations(params, limit, skip, sort) {
+		return ChargingStationStorage.getChargingStations(params, limit, skip, sort)
 	}
 }
 

@@ -5,11 +5,10 @@ const Constants = require('../../../utils/Constants');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const User = require('../../../model/User');
+const Site = require('../../../model/Site');
 const Utils = require('../../../utils/Utils');
 const Database = require('../../../utils/Database');
 const UserSecurity = require('./security/UserSecurity');
-const UserStorage = require('../../../storage/mongodb/UserStorage');
-const SiteStorage = require('../../../storage/mongodb/SiteStorage');
 
 class UserService {
 	static async handleGetEndUserLicenseAgreement(action, req, res, next) {
@@ -17,7 +16,7 @@ class UserService {
 			// Filter
 			let filteredRequest = UserSecurity.filterEndUserLicenseAgreementRequest(req.query, req.user);
 			// Get it
-			let endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(filteredRequest.Language);
+			let endUserLicenseAgreement = await User.getEndUserLicenseAgreement(filteredRequest.Language);
 			res.json(
 				// Filter
 				UserSecurity.filterEndUserLicenseAgreementResponse(
@@ -50,7 +49,7 @@ class UserService {
 					'UserService', 'handleAddSitesToUser', req.user);
 			}
 			// Get the User
-			let user = await UserStorage.getUser(filteredRequest.userID);
+			let user = await User.getUser(filteredRequest.userID);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -70,7 +69,7 @@ class UserService {
 			// Get Sites
 			for (const siteID of filteredRequest.siteIDs) {
 				// Check the site
-				let site = await SiteStorage.getSite(siteID);
+				let site = await Site.getSite(siteID);
 				if (!site) {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
@@ -89,7 +88,7 @@ class UserService {
 				}
 			}
 			// Save
-			await UserStorage.addSitesToUser(filteredRequest.userID, filteredRequest.siteIDs);
+			await User.addSitesToUser(filteredRequest.userID, filteredRequest.siteIDs);
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'UserService', method: 'handleAddSitesToUser',
@@ -123,7 +122,7 @@ class UserService {
 					'UserService', 'handleAddSitesToUser', req.user);
 			}
 			// Get the User
-			let user = await UserStorage.getUser(filteredRequest.userID);
+			let user = await User.getUser(filteredRequest.userID);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -143,7 +142,7 @@ class UserService {
 			// Get Sites
 			for (const siteID of filteredRequest.siteIDs) {
 				// Check the site
-				let site = await SiteStorage.getSite(siteID);
+				let site = await Site.getSite(siteID);
 				if (!site) {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
@@ -162,7 +161,7 @@ class UserService {
 				}
 			}
 			// Save
-			await UserStorage.removeSitesFromUser(filteredRequest.userID, filteredRequest.siteIDs);
+			await User.removeSitesFromUser(filteredRequest.userID, filteredRequest.siteIDs);
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'UserService', method: 'handleAddSitesToUser',
@@ -189,7 +188,7 @@ class UserService {
 						'UserService', 'handleDeleteUser', req.user);
 			}
 			// Check email
-			let user = await UserStorage.getUser(filteredRequest.ID);
+			let user = await User.getUser(filteredRequest.ID);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -247,7 +246,7 @@ class UserService {
 			// Check Mandatory fields
 			User.checkIfUserValid(filteredRequest, req);
 			// Check email
-			let user = await UserStorage.getUser(filteredRequest.id);
+			let user = await User.getUser(filteredRequest.id);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -262,7 +261,7 @@ class UserService {
 					'UserService', 'handleUpdateUser', req.user);
 			}
 			// Check email
-			let userWithEmail = await UserStorage.getUserByEmail(filteredRequest.email);
+			let userWithEmail = await User.getUserByEmail(filteredRequest.email);
 			// Check if EMail is already taken
 			if (userWithEmail && user.getID() !== userWithEmail.getID()) {
 				// Yes!
@@ -344,7 +343,7 @@ class UserService {
 					'UserService', 'handleGetUser', req.user);
 			}
 			// Get the user
-			let user = await UserStorage.getUser(filteredRequest.ID);
+			let user = await User.getUser(filteredRequest.ID);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -394,7 +393,7 @@ class UserService {
 					'UserService', 'handleGetUser', req.user);
 			}
 			// Get the logged user
-			let user = await UserStorage.getUser(filteredRequest.ID)
+			let user = await User.getUser(filteredRequest.ID)
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -419,7 +418,7 @@ class UserService {
 					req.user);
 			}
 			// Get the user image
-			let userImage = await UserStorage.getUserImage(filteredRequest.ID);
+			let userImage = await User.getUserImage(filteredRequest.ID);
 			// Return
 			res.json(userImage);
 			next();
@@ -443,7 +442,7 @@ class UserService {
 					req.user);
 			}
 			// Get the user image
-			let userImages = await UserStorage.getUserImages();
+			let userImages = await User.getUserImages();
 			// Return
 			res.json(userImages);
 			next();
@@ -469,7 +468,7 @@ class UserService {
 			// Filter
 			let filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
 			// Get users
-			let users = await UserStorage.getUsers(
+			let users = await User.getUsers(
 				{ 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
@@ -509,7 +508,7 @@ class UserService {
 			// Check Mandatory fields
 			User.checkIfUserValid(filteredRequest, req);
 			// Get the email
-			let foundUser = await UserStorage.getUserByEmail(filteredRequest.email);
+			let foundUser = await User.getUserByEmail(filteredRequest.email);
 			if (foundUser) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,

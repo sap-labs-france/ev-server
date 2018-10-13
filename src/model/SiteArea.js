@@ -2,8 +2,8 @@ const Database = require('../utils/Database');
 const Constants = require('../utils/Constants');
 const AppError = require('../exception/AppError');
 const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
-const SiteStorage = require('../storage/mongodb/SiteStorage');
-const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
+const ChargingStation = require('./ChargingStation');
+const Site = require('./Site');
 
 class SiteArea {
 	constructor(siteArea) {
@@ -89,7 +89,7 @@ class SiteArea {
 			return new Site(this._model.site);
 		} else if (this._model.siteID){
 			// Get from DB
-			let site = await SiteStorage.getSite(this._model.siteID, withCompany, withUser);
+			let site = await Site.getSite(this._model.siteID, withCompany, withUser);
 			// Keep it
 			this.setSite(site);
 			return site;
@@ -103,6 +103,35 @@ class SiteArea {
 		} else {
 			this._model.site = null;
 		}
+	}
+
+	save() {
+		return SiteAreaStorage.saveSiteArea(this.getModel());
+	}
+
+	saveImage() {
+		return SiteAreaStorage.saveSiteAreaImage(this.getModel());
+	}
+
+	delete() {
+		return SiteAreaStorage.deleteSiteArea(this.getID());
+	}
+
+	async getChargingStations() {
+		if (this._model.chargeBoxes) {
+			return this._model.chargeBoxes.map((chargeBox) => new ChargingStation(chargeBox));
+		} else {
+			// Get from DB
+			let chargingStations = await ChargingStation.getChargingStations(
+				{ siteAreaID: this.getID() }, Constants.NO_LIMIT);
+			// Keep it
+			this.setChargingStations(chargingStations.result);
+			return chargingStations.result;
+		}
+	}
+
+	setChargingStations(chargeBoxes) {
+		this._model.chargeBoxes = chargeBoxes.map((chargeBox) => chargeBox.getModel());
 	}
 
 	static checkIfSiteAreaValid(filteredRequest, request) {
@@ -130,33 +159,20 @@ class SiteArea {
 		}
 	}
 
-	save() {
-		return SiteAreaStorage.saveSiteArea(this.getModel());
+	static getSiteArea(id) {
+		return SiteAreaStorage.getSiteArea(id);
 	}
 
-	saveImage() {
-		return SiteAreaStorage.saveSiteAreaImage(this.getModel());
+	static getSiteAreas(params, limit, skip, sort) {
+		return SiteAreaStorage.getSiteAreas(params, limit, skip, sort)
 	}
 
-	delete() {
-		return SiteAreaStorage.deleteSiteArea(this.getID());
+	static getSiteAreaImage(id) {
+		return SiteAreaStorage.getSiteAreaImage(id);
 	}
 
-	async getChargingStations() {
-		if (this._model.chargeBoxes) {
-			return this._model.chargeBoxes.map((chargeBox) => new ChargingStation(chargeBox));
-		} else {
-			// Get from DB
-			let chargingStations = await ChargingStationStorage.getChargingStations(
-				{ siteAreaID: this.getID() }, Constants.NO_LIMIT);
-			// Keep it
-			this.setChargingStations(chargingStations.result);
-			return chargingStations.result;
-		}
-	}
-
-	setChargingStations(chargeBoxes) {
-		this._model.chargeBoxes = chargeBoxes.map((chargeBox) => chargeBox.getModel());
+	static getSiteAreaImages(params, limit, skip, sort) {
+		return SiteAreaStorage.getSiteAreaImages(params, limit, skip, sort)
 	}
 }
 

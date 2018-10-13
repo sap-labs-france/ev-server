@@ -1,4 +1,3 @@
-const User = require('../../../model/User');
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
@@ -6,10 +5,8 @@ const AppAuthError = require('../../../exception/AppAuthError');
 const Authorizations = require('../../../authorization/Authorizations');
 const Constants = require('../../../utils/Constants');
 const Site = require('../../../model/Site');
+const User = require('../../../model/User');
 const SiteSecurity = require('./security/SiteSecurity');
-const SiteStorage = require('../../../storage/mongodb/SiteStorage');
-const UserStorage = require('../../../storage/mongodb/UserStorage');
-const CompanyStorage = require('../../../storage/mongodb/CompanyStorage');
 
 class SiteService {
 	static async handleDeleteSite(action, req, res, next) {
@@ -25,7 +22,7 @@ class SiteService {
 					'SiteService', 'handleDeleteSite', req.user);
 			}
 			// Get
-			let site = await SiteStorage.getSite(filteredRequest.ID);
+			let site = await Site.getSite(filteredRequest.ID);
 			if (!site) {
 				// Not Found!
 				throw new AppError(
@@ -73,7 +70,7 @@ class SiteService {
 					'SiteService', 'handleGetSite', req.user);
 			}
 			// Get it
-			let site = await SiteStorage.getSite(filteredRequest.ID, null, filteredRequest.WithUsers);
+			let site = await Site.getSite(filteredRequest.ID, null, filteredRequest.WithUsers);
 			if (!site) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -109,7 +106,7 @@ class SiteService {
 			// Filter
 			let filteredRequest = SiteSecurity.filterSitesRequest(req.query, req.user);
 			// Get the sites
-			let sites = await SiteStorage.getSites(
+			let sites = await Site.getSites(
 				{ 'search': filteredRequest.Search, 'userID': filteredRequest.UserID, 'withCompany': filteredRequest.WithCompany,
 					'withSiteAreas': filteredRequest.WithSiteAreas, 'withChargeBoxes': filteredRequest.WithChargeBoxes,
 					'withUsers': filteredRequest.WithUsers, 'excludeSitesOfUserID': filteredRequest.ExcludeSitesOfUserID,
@@ -142,7 +139,7 @@ class SiteService {
 					'SiteService', 'handleGetSiteImage', req.user);
 			}
 			// Get it
-			let site = await SiteStorage.getSite(filteredRequest.ID);
+			let site = await Site.getSite(filteredRequest.ID);
 			if (!site) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -161,7 +158,7 @@ class SiteService {
 					req.user);
 			}
 			// Get the image
-			let siteImage = await SiteStorage.getSiteImage(filteredRequest.ID);
+			let siteImage = await Site.getSiteImage(filteredRequest.ID);
 			// Return
 			res.json(siteImage);
 			next();
@@ -185,7 +182,7 @@ class SiteService {
 					req.user);
 			}
 			// Get the site image
-			let siteImages = await SiteStorage.getSiteImages();
+			let siteImages = await Site.getSiteImages();
 			// Return
 			res.json(siteImages);
 			next();
@@ -211,7 +208,7 @@ class SiteService {
 			// Filter
 			let filteredRequest = SiteSecurity.filterSiteCreateRequest( req.body, req.user );
 			// Check Company
-			let company = await CompanyStorage.getCompany(filteredRequest.companyID);
+			let company = await Company.getCompany(filteredRequest.companyID);
 			// Check Mandatory fields
 			Site.checkIfSiteValid(filteredRequest, req);
 			// Found?
@@ -232,7 +229,7 @@ class SiteService {
 			if(filteredRequest.userIDs){
 				for (const userID of filteredRequest.userIDs) {
 					// Get User
-					let user = await UserStorage.getUser(userID);
+					let user = await User.getUser(userID);
 					// Add
 					users.push(user);
 				}
@@ -264,7 +261,7 @@ class SiteService {
 			// Filter
 			let filteredRequest = SiteSecurity.filterSiteUpdateRequest( req.body, req.user );
 			// Get Site
-			let site = await SiteStorage.getSite(filteredRequest.id);
+			let site = await Site.getSite(filteredRequest.id);
 			if (!site) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -295,7 +292,7 @@ class SiteService {
 			let users = [];
 			for (const userID of filteredRequest.userIDs) {
 				// Get User
-				let user = await UserStorage.getUser(userID);
+				let user = await User.getUser(userID);
 				if (user) {
 					// Add
 					users.push(user);

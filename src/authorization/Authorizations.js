@@ -9,9 +9,8 @@ const AppError = require('../exception/AppError');
 const AppAuthError = require('../exception/AppAuthError');
 const Utils = require('../utils/Utils');
 const User = require('../model/User');
+const Company = require('../model/Company');
 const AuthorizationsDefinition = require('./AuthorizationsDefinition');
-const UserStorage = require('../storage/mongodb/UserStorage')
-const CompanyStorage = require('../storage/mongodb/CompanyStorage')
 require('source-map-support').install();
 
 let _configuration;
@@ -65,7 +64,7 @@ class Authorizations {
 		if (!Authorizations.isAdmin(user.getModel())) {
 			// Not Admin: Get Auth data
 			// Get All Companies
-			let allCompanies = await CompanyStorage.getCompanies();
+			let allCompanies = await Company.getCompanies();
 			// Get Sites
 			sites = await user.getSites();
 			// Get all the companies and site areas
@@ -123,7 +122,7 @@ class Authorizations {
 	static async getOrCreateUserByTagID(chargingStation, siteArea, tagID, action) {
 		let newUserCreated = false;
 		// Get the user
-		let user = await UserStorage.getUserByTagId(tagID);
+		let user = await User.getUserByTagId(tagID);
 		// Found?
 		if (!user) {
 			// No: Create an empty user
