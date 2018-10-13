@@ -234,8 +234,8 @@ class Vehicle {
 		return VehicleStorage.getVehicleImage(id);
 	}
 
-	static getVehicleImages(params, limit, skip, sort) {
-		return VehicleStorage.getVehicleImages(params, limit, skip, sort)
+	static getVehicleImages() {
+		return VehicleStorage.getVehicleImages()
 	}
 }
 

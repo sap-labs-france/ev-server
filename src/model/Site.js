@@ -228,8 +228,8 @@ class Site {
 		return SiteStorage.getSiteImage(id);
 	}
 
-	static getSiteImages(params, limit, skip, sort) {
-		return SiteStorage.getSiteImages(params, limit, skip, sort)
+	static getSiteImages() {
+		return SiteStorage.getSiteImages()
 	}
 }
 

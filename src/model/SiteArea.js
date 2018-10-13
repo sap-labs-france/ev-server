@@ -171,8 +171,8 @@ class SiteArea {
 		return SiteAreaStorage.getSiteAreaImage(id);
 	}
 
-	static getSiteAreaImages(params, limit, skip, sort) {
-		return SiteAreaStorage.getSiteAreaImages(params, limit, skip, sort)
+	static getSiteAreaImages() {
+		return SiteAreaStorage.getSiteAreaImages()
 	}
 }
 

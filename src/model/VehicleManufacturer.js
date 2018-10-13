@@ -135,8 +135,8 @@ class VehicleManufacturer {
 		return VehicleManufacturerStorage.getVehicleManufacturerLogo(id);
 	}
 
-	static getVehicleManufacturerLogos(params, limit, skip, sort) {
-		return VehicleManufacturerStorage.getVehicleManufacturerLogos(params, limit, skip, sort)
+	static getVehicleManufacturerLogos() {
+		return VehicleManufacturerStorage.getVehicleManufacturerLogos()
 	}
 }
 

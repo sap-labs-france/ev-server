@@ -512,8 +512,8 @@ class User {
 		return UserStorage.getUserImage(id);
 	}
 
-	static getUserImages(params, limit, skip, sort) {
-		return UserStorage.getUserImages(params, limit, skip, sort)
+	static getUserImages() {
+		return UserStorage.getUserImages()
 	}
 
 	static getUsers(params, limit, skip, sort) {
