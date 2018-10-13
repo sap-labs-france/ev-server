@@ -255,14 +255,6 @@ class TenantService {
         try {
             // Filter
             let filteredRequest = TenantSecurity.filterVerifyTenantRequest(req.headers);
-			// User mandatory
-			if(!filteredRequest.tenant) {
-				// Not Found!
-				throw new AppError(
-					Constants.CENTRAL_SERVER,
-					`The Tenant name must be provided`, 500,
-					'TenantService', 'handleVerifyTenant', req.user);
-			}
             // Check email
             let tenant = await Tenant.getTenantBySubdomain(filteredRequest.tenant);
             if (!tenant) {
