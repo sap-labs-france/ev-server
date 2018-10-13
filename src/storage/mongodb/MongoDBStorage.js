@@ -47,7 +47,7 @@ class MongoDBStorage {
 			}
 		}
 	}
-
+	
 	async checkDatabase(db) {
 		// Get all the collections
 		let collections = await db.listCollections({}).toArray();
@@ -90,6 +90,22 @@ class MongoDBStorage {
 		]);
 	}
 
+	async checkDatabaseDefaultContent(db) {
+		// Tenant
+		let tenantsMDB = await db.collection('tenants').find({ subdomain: '' }).toArray();
+		// Found?
+		if (tenantsMDB.length === 0) {
+			// No: Create it
+			await db.collection('tenants').insert(
+				{ 
+					"createdOn" : new Date(), 
+					"name": "Master Tenant", 
+					"subdomain" : ""
+				}
+			);
+		}
+	}
+
 	async start() {
 		// Log
 		console.log(`Connecting to '${_dbConfig.implementation}'...`);
@@ -128,8 +144,11 @@ class MongoDBStorage {
 		// Get the EVSE DB
 		_db = _mongoDBClient.db(_dbConfig.schema);
 
-		// Check EVSE Database
+		// Check Database
 		await this.checkDatabase(_db);
+
+		// Check Database Default Content
+		await this.checkDatabaseDefaultContent(_db);
 
 		// Keep the DB access global
 		global.db = _db;
