@@ -443,7 +443,7 @@ npm run start:dev
 
   For further parameters, check the [`config`](./test/config.js) content. It is also possible to use environment variables as defined in the [`config`](./test/config.js) file
 * Start a server containing the configured admin user in the database
-* run the command `npm tests`
+* run the command `npm test`
 
 ### Docker Mode
 Depending on the need it is possible to start different docker containers.
@@ -497,22 +497,6 @@ It is possible to start multiple containers in one command :
 ```bash
 docker-compose -p evse -f docker-compose-local-env.yml -f docker-compose-server.yml -f docker-compose-mongo-express.yml up
 ```
-
-### Tests
-
-* Create a local configuration file located in '/config/tests/local.json' with the parameters to override like 
-         
-        {
-          "admin": {
-            "username": "bla",
-            "password": "bli"
-          },
-          "trace_logs": false
-        }
-
-  For further parameters, check the [`config`](./test/config.js) content. It is also possible to use environment variables as defined in the [`config`](./test/config.js) file
-* Start a server containing the configured admin user in the database
-* run the command `npm tests`
 
 ## Architecture
 

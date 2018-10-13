@@ -93,8 +93,8 @@
 		"build": "npm run build:dev",
 		"build:dev": "webpack --watch --env.env=dev",
 		"build:prod": "webpack --env.env=prod",
-		"test": "mocha 'test/**/*_test.js'",
-		"test:parallel": "mocha-parallel-tests 'test/**/*_test.js'"
+		"test": "mocha test/**/*_test.js",
+		"test:parallel": "mocha-parallel-tests test/**/*_test.js"
 	},
 	"license": "MIT"
 }
