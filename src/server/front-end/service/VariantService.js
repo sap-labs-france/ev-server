@@ -235,7 +235,11 @@ class VariantService {
         detailedMessages: newVariant
       });
       // Ok
-      res.json({status: `Success`});
+      //res.json({status: `Success`});
+      res.json(
+        // Filter
+        VariantSecurity.filterVariantResponse(newVariant.getModel(), req.user)
+      );
       next();
     } catch (error) {
       // Log

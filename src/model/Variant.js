@@ -1,6 +1,7 @@
 const Database = require('../utils/Database');
 const User = require('./User');
 const AppError = require('../exception/AppError');
+const Constants = require('../utils/Constants');
 const UserStorage = require('../storage/mongodb/UserStorage');
 const VariantStorage = require('../storage/mongodb/VariantStorage');
 
