@@ -138,13 +138,15 @@ module.exports = class Ocpp15 {
   async send(method, data, options, headers) {
     this.client.clearSoapHeaders();
     this.client.addSoapHeader(headers);
-    console.log(JSON.stringify(
-      {
-        endpoint: this.endpoint,
-        headers: headers,
-        ...data,
-        options: options
-      }, null, 2));
+    if (config.get('trace_logs')) {
+      console.log(JSON.stringify(
+        {
+          endpoint: this.endpoint,
+          headers: headers,
+          ...data,
+          options: options
+        }, null, 2));
+    }
     const {result, envelope, soapHeader} = await method(data, options, headers);
     // if (config.get('trace_logs')) {
     //   console.log('<!-- Request -->');
@@ -162,7 +164,9 @@ module.exports = class Ocpp15 {
       headers: soapHeader || {},
       data: result || {}
     };
-    console.log(JSON.stringify(response, null, 2));
+    if (config.get('trace_logs')) {
+      console.log(JSON.stringify(response, null, 2));
+    }
     return response;
   }
 

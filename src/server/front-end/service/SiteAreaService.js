@@ -8,6 +8,7 @@ const Authorizations = require('../../../authorization/Authorizations');
 const User = require('../../../model/User');
 const ChargingStation = require('../../../model/ChargingStation');
 const SiteArea = require('../../../model/SiteArea');
+const Site = require('../../../model/Site');
 
 class SiteAreaService {
 	static async handleCreateSiteArea(action, req, res, next) {
