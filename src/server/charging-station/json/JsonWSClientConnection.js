@@ -26,15 +26,15 @@ class JsonWSClientConnection {
             this._url = req && req.url;
             const ip = req && ((req.connection && req.connection.remoteAddress) || req.headers['x-forwarded-for']);
             Logging.logInfo({
-                module: _moduleName, method: "constructor", action: "connection",
-                message: `New connection from "${ip}", protocol "${socket.protocol}", url "${this._url}"`
+                module: _moduleName, method: "constructor", action: "Connection",
+                message: `New connection from '${ip}', Protocol '${socket.protocol}', URL '${this._url}'`
             });
 
             if (this._url.startsWith("/OCPP16/") === false) { //In princple already checked in connection opening from server
                 throw new Error("invalid url");
             }
 
-// Fill in standard JSON object for communication with central server
+            // Fill in standard JSON object for communication with central server
             try {
                 let chargeBoxIdWithNameSpace = this._url.split("/")[2];
 
@@ -43,8 +43,8 @@ class JsonWSClientConnection {
                     ocppVersion: (socket.protocol.startsWith("ocpp") ? socket.protocol.replace("ocpp", "") : socket.protocol),
                     From : {
                         Address: ip
-                }
-            }; 
+                    }
+                }; 
             } catch (error) {
                 throw new Error("invalid url");
             }
@@ -63,7 +63,7 @@ class JsonWSClientConnection {
 
         socket.on('error', (err) => {
             Logging.logError({
-                module: _moduleName, method: "OnError", action: "connectionError",
+                module: _moduleName, method: "OnError", action: "ConnectionError",
                 message: err
             });
 //            debug(err);
@@ -71,7 +71,7 @@ class JsonWSClientConnection {
 
         socket.on('close', (code, reason) => {
             Logging.logWarning({
-                module: _moduleName, method: "OnClose", action: "connectionClose",
+                module: _moduleName, method: "OnClose", action: "ConnectionClose",
                 message: JSON.stringify({code: code, reason: reason}, null, " ")
             });
 //            global.centralSystemJson.closeConnection(this.getChargeBoxId());
@@ -84,7 +84,7 @@ class JsonWSClientConnection {
         try {
             [messageType, messageId, commandNameOrPayload, commandPayload, errorDetails] = JSON.parse(message);
         } catch (err) {
-            throw new Error(`Failed to parse message: "${message}", ${err.message}`);
+            throw new Error(`Failed to parse message: '${message}', ${err.message}`);
         }
 
         switch (messageType) {
@@ -96,40 +96,38 @@ class JsonWSClientConnection {
                 try {
                     // Check if method exist in central server
                     if ( typeof global.centralSystemJson["handle" + commandNameOrPayload] === 'function') {
-                        global.centralSystemJson["handle" + commandNameOrPayload](Object.assign(commandPayload, this._headers)).then( (result) => {
-                            // get answer from central server
-                            // response should like { commandNameRespons : { attributes of teh response } }
-                            Logging.logReturnedAction(_moduleName, this._headers.chargeBoxIdentity, commandNameOrPayload, {
-                                "result": result
-                            });
-                            //check if response contains proper attribute
-                            let reponseNameProperty = commandNameOrPayload.charAt(0).toLowerCase() + commandNameOrPayload.slice(1) + "Response";
-                            if (result.hasOwnProperty(reponseNameProperty)) {
-                                this.sendMessage(messageId, result[reponseNameProperty], CALLRESULT_MESSAGE).then((result) => {
-                                }, (error) => {
-                                    Logging.logError({ module: _moduleName, method: "sendMessage", action: "promiseError",
-                                                    message: {message: messageId, error: JSON.stringify(error, null, " ")}  });
-                                });
-                            } else {
-                                // TO DO what shall we do if we did not code it correctly :)
-                            }
+                        let result = await global.centralSystemJson["handle" + commandNameOrPayload](Object.assign(commandPayload, this._headers));
+                        // Get answer from central server
+                        // Response should like { commandNameRespons : { attributes of teh response } }
+                        Logging.logReturnedAction(_moduleName, this._headers.chargeBoxIdentity, commandNameOrPayload, {
+                            "result": result
                         });
+                        // Check if response contains proper attribute
+                        let reponseNameProperty = commandNameOrPayload.charAt(0).toLowerCase() + commandNameOrPayload.slice(1) + "Response";
+                        if (result.hasOwnProperty(reponseNameProperty)) {
+                            // Send Response
+                            result = await this.sendMessage(messageId, result[reponseNameProperty], CALLRESULT_MESSAGE);
+                        } else {
+                            // TO DO what shall we do if we did not code it correctly :)
+                            // Sacrifice Gerald to the gods ? :)
+                        }
                     } else {
                         let error = new OCPPError(OCPPErrorValues.ERROR_NOTIMPLEMENTED, "");
-                        return await this.sendError(messageId, error).then((result) => {
-                            Logging.logError({ module: _moduleName, method: "sendMessage", action: "NOT_IMPLEMENTED",
-                                                    message: {message: messageId, error: JSON.stringify(error, null, " ")}  });
-                        });    
+                        let result = await this.sendError(messageId, error);
+
+                        Logging.logError({ module: _moduleName, method: "sendMessage", action: "NOT_IMPLEMENTED",
+                            message: {message: messageId, error: JSON.stringify(error, null, " ")}
+                        });
                     }
                 } catch (err) {
                     // send error if payload didn't pass the validation
                     let error = new OCPPError(OCPPErrorValues.ERROR_FORMATIONVIOLATION, err.message);
-                    return await this.sendError(messageId, error).then((result) => {
-                        Logging.logError({ module: _moduleName, method: "sendMessage", action: "FORMATVIOLATION",
-                                                    message: {message: messageId, error: JSON.stringify(error, null, " ")}  });
-                    });
+                    let result = await this.sendError(messageId, error);
+                    Logging.logError({ module: _moduleName, method: "sendMessage", action: "FORMATVIOLATION",
+                        message: {message: messageId, error: JSON.stringify(error, null, " ")}  });
                 }
                 break;
+
             case CALLRESULT_MESSAGE:
                 // response
 //                debug(`>> ${this._url}: ${message}`);
@@ -144,11 +142,13 @@ class JsonWSClientConnection {
 
                 responseCallback(commandNameOrPayload);
                 break;
+
             case CALLERROR_MESSAGE:
                 // error response
 //                debug(`>> ERROR ${this._url}: ${message}`);
                 Logging.logError({ module: _moduleName, method: "sendMessage", action: "ErrorMessage",
-                            message: {message: messageId, error: JSON.stringify(message, null, " ")}  });
+                    message: {message: messageId, error: JSON.stringify(message, null, " ")}  
+                });
 
                 if (!this._requests[messageId]) {
                     throw new Error(`Response for unknown message ${messageId}`);

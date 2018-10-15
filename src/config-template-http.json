@@ -7,6 +7,14 @@
 			"host": "localhost",
 			"port": 8000,
 			"debug": false
+		},
+		{
+			"type": "ocpp",
+			"implementation": "json",
+			"protocol": "ws",
+			"host": "localhost",
+			"port": 8010,
+			"debug": false
 		}
 	],
 	"CentralSystemRestService": {
