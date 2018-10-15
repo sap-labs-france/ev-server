@@ -19,6 +19,13 @@ let LoggingType = {
 	"REGULAR": 'R'
 }
 
+let configLogLevel ={
+	"INFO": 'INFO', // Messages info, warning, error
+	"DEBUG": 'DEBUG', // Messages info, warning, error, debug
+	"WARNING": 'WARNING', // Messages warning, error
+	"ERROR": 'ERROR', // Messages warning, error
+}
+
 class Logging {
 	// Log Debug
 	static logDebug(log) {

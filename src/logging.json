@@ -1,0 +1,10 @@
+
+{
+    "logLevel": "DEBUG",
+    "consoleLog": true,
+    "moduleDetails": [{
+        "moduleName":"ChargingStation",
+        "logLevel": "NONE",
+        "consoleLog": false}]
+
+}
