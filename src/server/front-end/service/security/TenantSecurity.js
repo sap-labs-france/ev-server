@@ -57,17 +57,13 @@ class TenantSecurity {
         }
         // Check auth
         if (Authorizations.canReadTenant(loggedUser, tenant)) {
-            // Admin?
-            if (Authorizations.isSuperAdmin(loggedUser)) {
-                // Yes: set all params
-                filteredTenant = tenant;
-            } else {
-                // Set only necessary info
-                filteredTenant = {};
-                filteredTenant.id = tenant.id;
-                filteredTenant.name = tenant.name;
-                filteredTenant.subdomain = tenant.subdomain;
-            }
+            // Set only necessary info
+            filteredTenant = {};
+            filteredTenant.id = tenant.id;
+            filteredTenant.name = tenant.name;
+            filteredTenant.email = tenant.email;
+            filteredTenant.subdomain = tenant.subdomain;
+
             // Created By / Last Changed By
             UtilsSecurity.filterCreatedAndLastChanged(
                 filteredTenant, tenant, loggedUser);

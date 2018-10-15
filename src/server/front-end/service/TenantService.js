@@ -150,12 +150,9 @@ class TenantService {
                     560, 'TenantService', 'handleCreateTenant',
                     req.user);
             }
+            TenantValidator.validateTenantCreation(req.body);
             // Filter
             let filteredRequest = TenantSecurity.filterTenantCreateRequest(req.body, req.user);
-            // Check Mandatory fields
-            //Tenant.checkIfTenantValid(filteredRequest, req);
-
-            TenantValidator.validateTenantCreation(filteredRequest);
 
             let foundTenant = await Tenant.getTenantByName(filteredRequest.name);
             if (foundTenant) {
@@ -206,7 +203,9 @@ class TenantService {
     static async handleUpdateTenant(action, req, res, next) {
         try {
             // Filter
+            TenantValidator.validateTenantUpdate(req.body);
             let filteredRequest = TenantSecurity.filterTenantUpdateRequest(req.body, req.user);
+
             // Check email
             let tenant = await Tenant.getTenant(filteredRequest.id);
             if (!tenant) {
@@ -215,8 +214,6 @@ class TenantService {
                     `The Tenant with ID '${filteredRequest.id}' does not exist anymore`, 550,
                     'TenantService', 'handleUpdateTenant', req.user);
             }
-            // Check Mandatory fields
-            Tenant.checkIfTenantValid(filteredRequest, req);
             // Check auth
             if (!Authorizations.canUpdateTenant(req.user, tenant.getModel())) {
                 // Not Authorized!

@@ -84,34 +84,6 @@ class Tenant {
         return TenantStorage.deleteTenant(this.getID());
     }
 
-    static checkIfTenantValid(filteredRequest, req) {
-        // Update model?
-        if (req.method !== 'POST' && !filteredRequest.id) {
-            throw new AppError(
-                Constants.CENTRAL_SERVER,
-                `The Tenant ID is mandatory`, 500,
-                'Tenant', 'checkIfTenantValid');
-        }
-        if (!filteredRequest.name) {
-            throw new AppError(
-                Constants.CENTRAL_SERVER,
-                `The Tenant Name is mandatory`, 500,
-                'Tenant', 'checkIfTenantValid');
-        }
-        if (!filteredRequest.subdomain) {
-            throw new AppError(
-                Constants.CENTRAL_SERVER,
-                `The Tenant Subdomain is mandatory`, 500,
-                'Tenant', 'checkIfTenantValid');
-        }
-        if (!/^[a-z0-9]*$/.test(filteredRequest.subdomain)) {
-            throw new AppError(
-                Constants.CENTRAL_SERVER,
-                `The Tenant Subdomain is not valid`, 500,
-                'Tenant', 'checkIfTenantValid');
-        }
-    }
-
     static getTenant(id) {
         // Get Tenant
         return TenantStorage.getTenant(id)

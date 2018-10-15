@@ -7,7 +7,8 @@ class SchemaValidator {
         this.moduleName = moduleName;
         this.ajv = new Ajv({
             allErrors: true,
-            removeAdditional: 'all'
+            removeAdditional: 'all',
+            useDefaults: true
         });
     }
 

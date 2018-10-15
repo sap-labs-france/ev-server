@@ -1,5 +1,6 @@
 import SchemaValidator from './SchemaValidator';
 import tenantCreation from '../schemas/tenant/tenant-creation.json';
+import tenantUpdate from '../schemas/tenant/tenant-update.json';
 
 class TenantValidator extends SchemaValidator{
 
@@ -14,6 +15,10 @@ class TenantValidator extends SchemaValidator{
 
     validateTenantCreation(content) {
         this.validate(tenantCreation, content);
+    }
+
+    validateTenantUpdate(content) {
+        this.validate(tenantUpdate, content);
     }
 }
 
