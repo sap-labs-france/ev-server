@@ -8,7 +8,6 @@ const ChargingStation = require('../../model/ChargingStation');
 const AppError = require('../../exception/AppError');
 const Logging = require('../../utils/Logging');
 const Configuration = require('../../utils/Configuration');
-const ChargingStationStorage = require('../../storage/mongodb/ChargingStationStorage'); 
 require('source-map-support').install();
 
 let _centralSystemConfig;
@@ -70,7 +69,7 @@ class CentralSystemServer {
 
 	async checkAndGetChargingStation(chargeBoxIdentity) {
 		// Get the charging station
-		let chargingStation = await ChargingStationStorage.getChargingStation(chargeBoxIdentity);
+		let chargingStation = await ChargingStation.getChargingStation(chargeBoxIdentity);
 		// Found?
 		if (!chargingStation) {
 			throw new AppError(
@@ -100,7 +99,11 @@ class CentralSystemServer {
 			content.timestamp = content.lastReboot;
 
 			// Get the charging station
+<<<<<<< HEAD
 			let chargingStation = await ChargingStationStorage.getChargingStation(content.chargeBoxIdentity);
+=======
+			let chargingStation = await ChargingStation.getChargingStation(headers.chargeBoxIdentity);
+>>>>>>> 156ac50eeef57b527c17b98d8a221212b8e83e3b
 			if (!chargingStation) {
 				// Save Charging Station
 				chargingStation = new ChargingStation(content);
@@ -150,6 +153,8 @@ class CentralSystemServer {
 				};
 			}
 		} catch(error) {
+			// Set the source
+			error.source = headers.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('BootNotification', error);
 			// Reject
@@ -176,6 +181,8 @@ class CentralSystemServer {
 				}
 			};
 		} catch(error) {
+			// Set the source
+			error.source = headers.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('HeartBeat', error);
 			// Send the response
@@ -199,6 +206,8 @@ class CentralSystemServer {
 				}
 			};
 		} catch(error) {
+			// Set the source
+			error.source = headers.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('StatusNotification', error);
 			// Return
@@ -221,6 +230,8 @@ class CentralSystemServer {
 				}
 			};
 		} catch(error) {
+			// Set the source
+			error.source = headers.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('MeterValues', error);
 			// Response
@@ -246,6 +257,8 @@ class CentralSystemServer {
 				}
 			};
 		} catch(error) {
+			// Set the source
+			error.source = headers.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('Authorize', error);
 			return {
@@ -270,6 +283,8 @@ class CentralSystemServer {
 				}
 			};
 		} catch(error) {
+			// Set the source
+			error.source = headers.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('DiagnosticsStatusNotification', error);
 			return {
@@ -316,6 +331,8 @@ class CentralSystemServer {
 				}
 			};
 		} catch(error) {
+			// Set the source
+			error.source = headers.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('StartTransaction', error);
 			return {
@@ -342,6 +359,8 @@ class CentralSystemServer {
 				}
 			};
 		} catch(error) {
+			// Set the source
+			error.source = headers.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('DataTransfer', error);
 			return {
@@ -367,6 +386,8 @@ class CentralSystemServer {
 				}
 			};
 		} catch(error) {
+			// Set the source
+			error.source = headers.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('StopTransaction', error);
 			// Error

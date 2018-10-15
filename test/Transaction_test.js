@@ -107,10 +107,10 @@ describe('transaction tests', function() {
         },
         id: transactionId,
         timestamp: currentTime.toISOString(),
-        "user": {
-          "firstName": context.user.firstName,
-          "id": context.user.id,
-          "name": context.user.name,
+        user: {
+          firstName: context.user.firstName,
+          id: context.user.id,
+          name: context.user.name,
         }
       }
     ));
@@ -172,10 +172,10 @@ describe('transaction tests', function() {
         },
         id: transactionId,
         timestamp: currentTime.toISOString(),
-        "user": {
-          "firstName": context.user.firstName,
-          "id": context.user.id,
-          "name": context.user.name,
+        user: {
+          firstName: context.user.firstName,
+          id: context.user.id,
+          name: context.user.name,
         }
       }
     ));
@@ -237,10 +237,10 @@ describe('transaction tests', function() {
         chargeBoxID: context.chargeBoxIdentity,
         "id": transactionId,
         "timestamp": transactionStartDate.toISOString(),
-        "user": {
-          "firstName": context.user.firstName,
-          "id": context.user.id,
-          "name": context.user.name,
+        user: {
+          firstName: context.user.firstName,
+          id: context.user.id,
+          name: context.user.name,
         }
       }
     ));
@@ -277,10 +277,10 @@ describe('transaction tests', function() {
         chargeBoxID: context.chargeBoxIdentity,
         "id": transactionId,
         "timestamp": transactionStartDate.toISOString(),
-        "user": {
-          "firstName": context.user.firstName,
-          "id": context.user.id,
-          "name": context.user.name,
+        user: {
+          firstName: context.user.firstName,
+          id: context.user.id,
+          name: context.user.name,
         }
       }
     ));
@@ -388,10 +388,10 @@ describe('transaction tests', function() {
         },
         "tagID": context.user.tagIDs[0],
         "timestamp": transactionStartDate.toISOString(),
-        "user": {
-          "firstName": context.user.firstName,
-          "id": context.user.id,
-          "name": context.user.name,
+        user: {
+          firstName: context.user.firstName,
+          id: context.user.id,
+          name: context.user.name,
         }
       }));
 
@@ -439,10 +439,10 @@ describe('transaction tests', function() {
         },
         "tagID": context.user.tagIDs[0],
         "timestamp": transactionStartDate.toISOString(),
-        "user": {
-          "firstName": context.user.firstName,
-          "id": context.user.id,
-          "name": context.user.name,
+        user: {
+          firstName: context.user.firstName,
+          id: context.user.id,
+          name: context.user.name,
         }
       }
     ));

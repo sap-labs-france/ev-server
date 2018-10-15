@@ -1,8 +1,8 @@
 const Database = require('../utils/Database');
 const AppError = require('../exception/AppError');
 const Constants = require('../utils/Constants');
-const SiteStorage = require('../storage/mongodb/SiteStorage');
 const CompanyStorage = require('../storage/mongodb/CompanyStorage');
+const Site = require('./Site');
 
 class Company {
 	constructor(company) {
@@ -83,28 +83,12 @@ class Company {
 		this._model.lastChangedOn = lastChangedOn;
 	}
 
-	static checkIfCompanyValid(filteredRequest, req) {
-		// Update model?
-		if(req.method !== 'POST' && !filteredRequest.id) {
-			throw new AppError(
-				Constants.CENTRAL_SERVER,
-				`The Company ID is mandatory`, 500, 
-				'Company', 'checkIfCompanyValid');
-		}
-		if(!filteredRequest.name) {
-			throw new AppError(
-				Constants.CENTRAL_SERVER,
-				`The Company Name is mandatory`, 500, 
-				'Company', 'checkIfCompanyValid');
-		}
-	}
-
 	async getSites() {
 		if (this._model.sites) {
 			return this._model.sites.map((site) => new Site(site));
 		} else {
 			// Get from DB
-			let sites = await SiteStorage.getSites({'companyID': this.getID()});
+			let sites = await Site.getSites({'companyID': this.getID()});
 			// Keep it
 			this.setSites(sites.result);
 			return sites.result;
@@ -125,6 +109,38 @@ class Company {
 
 	delete() {
 		return CompanyStorage.deleteCompany(this.getID());
+	}
+
+	static checkIfCompanyValid(filteredRequest, req) {
+		// Update model?
+		if(req.method !== 'POST' && !filteredRequest.id) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Company ID is mandatory`, 500, 
+				'Company', 'checkIfCompanyValid');
+		}
+		if(!filteredRequest.name) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Company Name is mandatory`, 500, 
+				'Company', 'checkIfCompanyValid');
+		}
+	}
+
+	static getCompany(id) {
+		return CompanyStorage.getCompany(id);
+	}
+
+	static getCompanies(params, limit, skip, sort) {
+		return CompanyStorage.getCompanies(params, limit, skip, sort)
+	}
+
+	static getCompanyLogo(id) {
+		return CompanyStorage.getCompanyLogo(id);
+	}
+
+	static getCompanyLogos() {
+		return CompanyStorage.getCompanyLogos();
 	}
 }
 

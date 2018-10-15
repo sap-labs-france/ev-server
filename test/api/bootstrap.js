@@ -32,42 +32,37 @@ class Bootstrap {
     const context = {};
 
     const companyToCreate = CompanyFactory.build();
-
-    await this.companyApi.create(companyToCreate, (message, response) => {
+    await this.companyApi.create(companyToCreate, async (message, response) => {
       expect(message.status).to.equal(200);
       expect(response.status).to.eql('Success');
-    });
-    await this.companyApi.readAll({}, (message, response) => {
-      expect(message.status).to.equal(200);
-      context.company = response.result.find((element) => element.name === companyToCreate.name);
+      await this.companyApi.readById(response.id, (message, response) => {
+        expect(message.status).to.equal(200);
+        context.company = response;
+      });
     });
 
     const userToCreate = UserFactory.build();
-    await this.userApi.create(userToCreate, (message, response) => {
+    await this.userApi.create(userToCreate, async (message, response) => {
       expect(message.status).to.equal(200);
       expect(response.status).to.eql('Success');
-    });
-
-    await this.userApi.readAll({}, (message, response) => {
-      expect(message.status).to.equal(200);
-      expect(response).to.have.property('count');
-      context.user = response.result.find((element) => element.name === userToCreate.name);
+      await this.userApi.readById(response.id, (message, response) => {
+        expect(message.status).to.equal(200);
+        context.user = response;
+      });
     });
 
     const siteToCreate = SiteFactory.build({companyID: context.company.id, userIDs: [context.user.id]});
-    await this.siteApi.create(siteToCreate, (message, response) => {
+    await this.siteApi.create(siteToCreate, async (message, response) => {
       expect(message.status).to.equal(200);
       expect(response.status).to.eql('Success');
-    });
-    await this.siteApi.readAll({}, (message, response) => {
-      expect(message.status).to.equal(200);
-      expect(response).to.have.property('count');
-      context.site = response.result.find((element) => element.name === siteToCreate.name);
+      await this.siteApi.readById(response.id, (message, response) => {
+        expect(message.status).to.equal(200);
+        context.site = response;
+      });
     });
 
     context.chargePoint = ChargePointFactory.build();
     context.chargeBoxIdentity = faker.random.alphaNumeric(12).toUpperCase();
-
     context.address = `${this.baseApi.url}/ChargeBox/Ocpp`;
 
     await this.ocpp15.executeBootNotification(context.chargeBoxIdentity, context.address, context.chargePoint, response => {
@@ -79,14 +74,13 @@ class Bootstrap {
     const siteAreaToCreate = SiteAreaFactory.build({siteID: context.site.id});
     siteAreaToCreate.chargeBoxIDs = [];
     siteAreaToCreate.chargeBoxIDs.push(context.chargeBoxIdentity);
-    await this.siteAreaApi.create(siteAreaToCreate, (message, response) => {
+    await this.siteAreaApi.create(siteAreaToCreate, async (message, response) => {
       expect(message.status).to.equal(200);
       expect(response.status).to.eql('Success');
-    });
-    await this.siteAreaApi.readAll({}, (message, response) => {
-      expect(message.status).to.equal(200);
-      expect(response).to.have.property('count');
-      context.siteArea = response.result.find((element) => element.name === siteAreaToCreate.name);
+      await this.siteAreaApi.readById(response.id, (message, response) => {
+        expect(message.status).to.equal(200);
+        context.siteArea = response;
+      });
     });
 
     return context;

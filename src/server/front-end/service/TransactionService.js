@@ -6,10 +6,10 @@ const Constants = require('../../../utils/Constants');
 const Utils = require('../../../utils/Utils');
 const moment = require('moment');
 const TransactionSecurity = require('./security/TransactionSecurity');
-const ChargingStationStorage = require('../../../storage/mongodb/ChargingStationStorage');
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage');
-const UserStorage = require('../../../storage/mongodb/UserStorage');
 const PricingStorage = require('../../../storage/mongodb/PricingStorage');
+const ChargingStation = require('../../../model/ChargingStation');
+const User = require('../../../model/User');
 
 class TransactionService {
 	static async handleRefundTransaction(action, req, res, next) {
@@ -45,7 +45,7 @@ class TransactionService {
 					req.user);
 			}
 			// Get the Charging Station
-			let chargingStation = await ChargingStationStorage.getChargingStation(transaction.chargeBox.id);
+			let chargingStation = await ChargingStation.getChargingStation(transaction.chargeBox.id);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -55,7 +55,7 @@ class TransactionService {
 					'TransactionService', 'handleRefundTransaction', req.user);
 			}
 			// Get Transaction User
-			let user = await UserStorage.getUser(transaction.userID);
+			let user = await User.getUser(transaction.userID);
 			// Check
 			if (!user) {
 				// Not Found!
@@ -108,7 +108,7 @@ class TransactionService {
 					req.user);
 			}
 			// Get the Charging Station
-			let chargingStation = await ChargingStationStorage.getChargingStation(transaction.chargeBox.id);
+			let chargingStation = await ChargingStation.getChargingStation(transaction.chargeBox.id);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -121,7 +121,7 @@ class TransactionService {
 			let user;
 			if (transaction.userID) {
 				// Check
-				user = await UserStorage.getUser(transaction.userID);
+				user = await User.getUser(transaction.userID);
 				// Check
 				if (!user) {
 					// Not Found!
@@ -180,7 +180,7 @@ class TransactionService {
 					req.user);
 			}
 			// Get the Charging Station
-			let chargingStation = await ChargingStationStorage.getChargingStation(transaction.chargeBox.id);
+			let chargingStation = await ChargingStation.getChargingStation(transaction.chargeBox.id);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -193,7 +193,7 @@ class TransactionService {
 			let user;
 			if (transaction.userID) {
 				// Get Transaction User
-				let user = await UserStorage.getUser(transaction.userID);
+				let user = await User.getUser(transaction.userID);
 				// Check
 				if (!user) {
 					// Not Found!
@@ -258,7 +258,7 @@ class TransactionService {
 					req.user);
 			}
 			// Get the Charging Station
-			let chargingStation = await ChargingStationStorage.getChargingStation(transaction.chargeBox.id);
+			let chargingStation = await ChargingStation.getChargingStation(transaction.chargeBox.id);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -387,7 +387,7 @@ class TransactionService {
 					'TransactionService', 'handleGetChargingStationTransactions', req.user);
 			}
 			// Get Charge Box
-			let chargingStation = await ChargingStationStorage.getChargingStation(filteredRequest.ChargeBoxID);
+			let chargingStation = await ChargingStation.getChargingStation(filteredRequest.ChargeBoxID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!

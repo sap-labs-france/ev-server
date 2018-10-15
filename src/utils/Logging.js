@@ -149,6 +149,7 @@ class Logging {
 
 	static _logActionExceptionMessage(action, exception) {
 		Logging.logSecurityError({
+			source: exception.source,
 			module: exception.module, method: exception.method,
 			action: action, message: exception.message,
 			detailedMessages: [{
@@ -248,6 +249,14 @@ class Logging {
 			case LogLevel.ERROR:
 				return "error";		
 		}
+	}
+
+	static getLog(id) {
+		return LoggingStorage.getLog(id);
+	}
+
+	static getLogs(params, limit, skip, sort) {
+		return LoggingStorage.getLogs(params, limit, skip, sort)
 	}
 }
 

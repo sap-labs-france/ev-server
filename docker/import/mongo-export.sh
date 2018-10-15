@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 rm -rf export
 mkdir export
 mongoexport --uri $MONGO_URI --collection companies --out /export/companies.json

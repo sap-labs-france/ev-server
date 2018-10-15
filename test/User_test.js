@@ -2,10 +2,10 @@ const {expect} = require('chai');
 const chai = require('chai');
 const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
-const UserApi = require('./api/client/user')
-const UserFactory = require('./factories/user')
-const BaseApi = require('./api/client/utils/baseApi')
-const AuthenticatedBaseApi = require('./api/client/utils/authenticatedBaseApi')
+const UserApi = require('./api/client/user');
+const UserFactory = require('./factories/user');
+const BaseApi = require('./api/client/utils/baseApi');
+const AuthenticatedBaseApi = require('./api/client/utils/authenticatedBaseApi');
 const config = require('./config');
 
 describe('User tests', function() {
@@ -20,22 +20,22 @@ describe('User tests', function() {
   it('should create a new user', async () => {
     await userApi.create(UserFactory.build(), (message, response) => {
       expect(message.status).to.equal(200);
-      expect(response).to.eql(
-        {
-          status: 'Success'
-        }
-      );
+      expect(response.status).to.eql('Success');
+      expect(response).to.have.property('id');
+      expect(response.id).to.match(/^[a-f0-9]+$/);
     });
   });
 
   it('should find a newly created user from list', async () => {
     const user = UserFactory.build();
-    await userApi.readAll({Limit: 1}, (message, response) => {
-      expect(message.status).to.equal(200);
-      expect(response).to.have.property('count');
-    });
 
-    await userApi.create(user);
+    await userApi.create(user, ((message, response) => {
+      user.id = response.id;
+    }));
+
+    delete user.acceptEula;
+    delete user.captcha;
+    delete user.passwords;
 
     await userApi.readAll({}, (message, response) => {
       expect(message.status).to.equal(200);
@@ -44,37 +44,23 @@ describe('User tests', function() {
       expect(response.result).to.have.lengthOf(response.count);
       const actualUser = response.result.find((element) => element.email === user.email);
       expect(actualUser).to.be.a('object');
-      expect(actualUser).to.containSubset({
-        name: user.name,
-        firstName: user.firstName,
-        email: user.email,
-        role: user.role,
-        status: user.status,
-        tagIDs: user.tagIDs
-      });
-      expect(actualUser).to.have.property('id');
+      expect(actualUser).to.containSubset(user);
     });
   });
 
   it('should find a specific user by id', async () => {
     const user = UserFactory.build();
-    await userApi.create(user);
-    let userId = null;
-    await userApi.readAll({}, (message, response) => {
-      expect(message.status).to.equal(200);
-      expect(response).to.have.property('count');
-      expect(response).to.have.property('result');
-      userId = response.result.find((element) => element.email === user.email).id;
-    });
+    await userApi.create(user, ((message, response) => {
+      user.id = response.id;
+    }));
 
-    await userApi.readById(userId, (message, response) => {
+    delete user.acceptEula;
+    delete user.captcha;
+    delete user.passwords;
+
+    await userApi.readById(user.id, (message, response) => {
       expect(message.status).to.equal(200);
-      expect(response).to.containSubset({
-        name: user.name,
-        firstName: user.firstName,
-        email: user.email,
-        role: user.role
-      });
+      expect(response).to.containSubset(user);
     });
   });
 

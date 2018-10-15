@@ -1,18 +1,13 @@
 const crypto = require('crypto');
 const passwordGenerator = require('password-generator');
 const bcrypt = require('bcrypt');
-const Mustache = require('mustache');
-const eula = require('../end-user-agreement');
 const Database = require('../utils/Database');
 const Constants = require('../utils/Constants');
 const AppError = require('../exception/AppError');
 const Utils = require('../utils/Utils');
-const Configuration = require('../utils/Configuration');
 const UserStorage = require('../storage/mongodb/UserStorage');
-const SiteStorage = require('../storage/mongodb/SiteStorage');
 const TransactionStorage = require('../storage/mongodb/TransactionStorage');
-
-let _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
+const Site = require('./Site');
 
 class User {
 	constructor(user) {
@@ -291,7 +286,7 @@ class User {
 	async getSites(withCompany=false, withSiteAreas=false,
 			withChargeBoxes=false, withUsers=false) {
 		// Get Sites
-		let sites = await SiteStorage.getSites({'userID': this.getID(),
+		let sites = await Site.getSites({'userID': this.getID(),
 			withCompany, withSiteAreas, withChargeBoxes, withUsers});
 		// Return the array
 		return sites.result;
@@ -334,28 +329,6 @@ class User {
 			// Delete physically
 			return UserStorage.deleteUser(this.getID());
 		}
-	}
-
-	static getEndUserLicenseAgreement(language='en') {
-		// Get it
-		let eulaText = eula[language];
-		// Check
-		if (!eulaText) {
-			// Backup to EN
-			eulaText = eula['en'];
-		}
-		// Build Front End URL
-		let frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
-			_centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port; 
-		// Parse the auth and replace values
-		eulaText = Mustache.render(
-			eulaText,
-			{
-				'chargeAngelsURL': frontEndURL
-			}
-		);
-		// Parse
-		return eulaText;
 	}
 
 	static checkIfUserValid(filteredRequest, request) {
@@ -521,6 +494,42 @@ class User {
 	// Hash password (old version kept for compatibility reason)
 	static hashPassword(password) {
 		return crypto.createHash('sha256').update(password).digest('hex');
+	}
+
+	static getUser(id) {
+		return UserStorage.getUser(id);
+	}
+
+	static getUserByEmail(email) {
+		return UserStorage.getUserByEmail(email);
+	}
+
+	static getUserByTagId(tagID) {
+		return UserStorage.getUserByTagId(tagID);
+	}
+
+	static getUserImage(id) {
+		return UserStorage.getUserImage(id);
+	}
+
+	static getUserImages() {
+		return UserStorage.getUserImages()
+	}
+
+	static getUsers(params, limit, skip, sort) {
+		return UserStorage.getUsers(params, limit, skip, sort)
+	}
+
+	static getEndUserLicenseAgreement(language) {
+		return UserStorage.getEndUserLicenseAgreement(language);
+	}
+
+	static addSitesToUser(id, siteIDs) {
+		return UserStorage.addSitesToUser(id, siteIDs);
+	}
+
+	static removeSitesFromUser(id, siteIDs) {
+		return UserStorage.removeSitesFromUser(id, siteIDs);
 	}
 }
 

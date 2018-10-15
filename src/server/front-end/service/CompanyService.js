@@ -7,7 +7,6 @@ const Company = require('../../../model/Company');
 const User = require('../../../model/User');
 const Authorizations = require('../../../authorization/Authorizations');
 const CompanySecurity = require('./security/CompanySecurity');
-const CompanyStorage = require('../../../storage/mongodb/CompanyStorage'); 
 
 class CompanyService {
 	static async handleDeleteCompany(action, req, res, next) {
@@ -20,17 +19,17 @@ class CompanyService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Company's ID must be provided`, 500, 
+					`The Company's ID must be provided`, 500,
 					'CompanyService', 'handleDeleteCompany', req.user);
 			}
 			// Get
-			let company = await CompanyStorage.getCompany(filteredRequest.ID);
+			let company = await Company.getCompany(filteredRequest.ID);
 			// Found?
 			if (!company) {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Company with ID '${filteredRequest.ID}' does not exist`, 550, 
+					`Company with ID '${filteredRequest.ID}' does not exist`, 550,
 					'CompanyService', 'handleDeleteCompany', req.user);
 			}
 			// Check auth
@@ -68,15 +67,15 @@ class CompanyService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Company's ID must be provided`, 500, 
+					`The Company's ID must be provided`, 500,
 					'CompanyService', 'handleGetCompany', req.user);
 			}
 			// Get it
-			let company = await CompanyStorage.getCompany(filteredRequest.ID);
+			let company = await Company.getCompany(filteredRequest.ID);
 			if (!company) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Company with ID '${filteredRequest.ID}' does not exist anymore`, 550, 
+					`The Company with ID '${filteredRequest.ID}' does not exist anymore`, 550,
 					'CompanyService', 'handleGetCompany', req.user);
 			}
 			// Check auth
@@ -111,15 +110,15 @@ class CompanyService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Company's ID must be provided`, 500, 
+					`The Company's ID must be provided`, 500,
 					'CompanyService', 'handleGetCompanyLogo', req.user);
 			}
 			// Get it
-			let company = await CompanyStorage.getCompany(filteredRequest.ID);
+			let company = await Company.getCompany(filteredRequest.ID);
 			if (!company) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Company with ID '${filteredRequest.ID}' does not exist anymore`, 550, 
+					`The Company with ID '${filteredRequest.ID}' does not exist anymore`, 550,
 					'CompanyService', 'handleGetCompanyLogo', req.user);
 			}
 			// Check auth
@@ -133,7 +132,7 @@ class CompanyService {
 					req.user);
 			}
 			// Get the logo
-			let companyLogo = await CompanyStorage.getCompanyLogo(filteredRequest.ID);
+			let companyLogo = await Company.getCompanyLogo(filteredRequest.ID);
 			// Return
 			res.json(companyLogo);
 			next();
@@ -156,7 +155,7 @@ class CompanyService {
 					req.user);
 			}
 			// Get the company logo
-			let companyLogos = await CompanyStorage.getCompanyLogos();
+			let companyLogos = await Company.getCompanyLogos();
 			res.json(companyLogos);
 			next();
 		} catch (error) {
@@ -181,7 +180,7 @@ class CompanyService {
 			// Filter
 			let filteredRequest = CompanySecurity.filterCompaniesRequest(req.query, req.user);
 			// Get the companies
-			let companies = await CompanyStorage.getCompanies(
+			let companies = await Company.getCompanies(
 				{ search: filteredRequest.Search, withSites: filteredRequest.WithSites },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
@@ -231,7 +230,7 @@ class CompanyService {
 				message: `Company '${newCompany.getName()}' has been created successfully`,
 				action: action, detailedMessages: newCompany});
 			// Ok
-			res.json(Constants.REST_RESPONSE_SUCCESS);
+			res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS, { id: newCompany.getID() }));
 			next();
 		} catch (error) {
 			// Log
@@ -244,11 +243,11 @@ class CompanyService {
 			// Filter
 			let filteredRequest = CompanySecurity.filterCompanyUpdateRequest( req.body, req.user );
 			// Check email
-			let company = await CompanyStorage.getCompany(filteredRequest.id);
+			let company = await Company.getCompany(filteredRequest.id);
 			if (!company) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Company with ID '${filteredRequest.id}' does not exist anymore`, 550, 
+					`The Company with ID '${filteredRequest.id}' does not exist anymore`, 550,
 					'CompanyService', 'handleUpdateCompany', req.user);
 			}
 			// Check Mandatory fields

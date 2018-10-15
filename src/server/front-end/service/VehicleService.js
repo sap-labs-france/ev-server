@@ -7,7 +7,6 @@ const Authorizations = require('../../../authorization/Authorizations');
 const Constants = require('../../../utils/Constants');
 const Vehicle = require('../../../model/Vehicle');
 const VehicleSecurity = require('./security/VehicleSecurity');
-const VehicleStorage = require('../../../storage/mongodb/VehicleStorage'); 
 
 class VehicleService {
 	static async handleDeleteVehicle(action, req, res, next) {
@@ -19,16 +18,16 @@ class VehicleService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Vehicle's ID must be provided`, 500, 
+					`The Vehicle's ID must be provided`, 500,
 					'VehicleService', 'handleDeleteVehicle', req.user);
 			}
 			// Get
-			let vehicle = await VehicleStorage.getVehicle(filteredRequest.ID);
+			let vehicle = await Vehicle.getVehicle(filteredRequest.ID);
 			if (!vehicle) {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`Vehicle with ID '${filteredRequest.ID}' does not exist`, 550, 
+					`Vehicle with ID '${filteredRequest.ID}' does not exist`, 550,
 					'VehicleService', 'handleDeleteVehicle', req.user);
 			}
 			// Check auth
@@ -38,7 +37,7 @@ class VehicleService {
 					Constants.ACTION_DELETE,
 					Constants.ENTITY_VEHICLE,
 					vehicle.getID(),
-					560, 
+					560,
 					'VehicleService', 'handleDeleteVehicle',
 					req.user);
 			}
@@ -67,15 +66,15 @@ class VehicleService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Vehicle's ID must be provided`, 500, 
+					`The Vehicle's ID must be provided`, 500,
 					'VehicleService', 'handleGetVehicle', req.user);
 			}
 			// Get it
-			let vehicle = await VehicleStorage.getVehicle(filteredRequest.ID);
+			let vehicle = await Vehicle.getVehicle(filteredRequest.ID);
 			if (!vehicle) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Vehicle with ID '${filteredRequest.ID}' does not exist anymore`, 550, 
+					`The Vehicle with ID '${filteredRequest.ID}' does not exist anymore`, 550,
 					'VehicleService', 'handleGetVehicle', req.user);
 			}
 			// Return
@@ -100,16 +99,16 @@ class VehicleService {
 					Constants.ACTION_LIST,
 					Constants.ENTITY_VEHICLES,
 					null,
-					560, 
+					560,
 					'VehicleService', 'handleGetVehicles',
 					req.user);
 			}
 			// Filter
 			let filteredRequest = VehicleSecurity.filterVehiclesRequest(req.query, req.user);
 			// Get the vehicles
-			let vehicles = await VehicleStorage.getVehicles(
-				{ 'search': filteredRequest.Search, 'vehicleType': filteredRequest.Type, 
-					'vehicleManufacturerID': filteredRequest.VehicleManufacturerID }, 
+			let vehicles = await Vehicle.getVehicles(
+				{ 'search': filteredRequest.Search, 'vehicleType': filteredRequest.Type,
+					'vehicleManufacturerID': filteredRequest.VehicleManufacturerID },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
 			vehicles.result = vehicles.result.map((vehicle) => vehicle.getModel());
@@ -134,15 +133,15 @@ class VehicleService {
 				// Not Found!
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Vehicle's ID must be provided`, 500, 
+					`The Vehicle's ID must be provided`, 500,
 					'VehicleService', 'handleGetVehicleImage', req.user);
 			}
 			// Get it
-			let vehicle = await VehicleStorage.getVehicle(filteredRequest.ID);
+			let vehicle = await Vehicle.getVehicle(filteredRequest.ID);
 			if (!vehicle) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Vehicle with ID '${filteredRequest.ID}' does not exist anymore`, 550, 
+					`The Vehicle with ID '${filteredRequest.ID}' does not exist anymore`, 550,
 					'VehicleService', 'handleGetVehicleImage', req.user);
 			}
 			// Check auth
@@ -152,12 +151,12 @@ class VehicleService {
 					Constants.ACTION_READ,
 					Constants.ENTITY_VEHICLE,
 					vehicle.getID(),
-					560, 
+					560,
 					'VehicleService', 'handleGetVehicleImage',
 					req.user);
 			}
 			// Get the image
-			let vehicleImage = await VehicleStorage.getVehicleImage(filteredRequest.ID);
+			let vehicleImage = await Vehicle.getVehicleImage(filteredRequest.ID);
 			// Return
 			res.json(vehicleImage);
 			next();
@@ -176,12 +175,12 @@ class VehicleService {
 					Constants.ACTION_LIST,
 					Constants.ENTITY_VEHICLES,
 					null,
-					560, 
+					560,
 					'VehicleService', 'handleGetVehicleImages',
 					req.user);
 			}
 			// Get the vehicle image
-			let vehicleImages = await VehicleStorage.getVehicleImages();
+			let vehicleImages = await Vehicle.getVehicleImages();
 			// Return
 			res.json(vehicleImages);
 			next();
@@ -200,7 +199,7 @@ class VehicleService {
 					Constants.ACTION_CREATE,
 					Constants.ENTITY_VEHICLE,
 					null,
-					560, 
+					560,
 					'VehicleService', 'handleCreateVehicle',
 					req.user);
 			}
@@ -229,7 +228,7 @@ class VehicleService {
 				message: `Vehicle '${newVehicle.getName()}' has been created successfully`,
 				action: action, detailedMessages: newVehicle});
 			// Ok
-			res.json(Constants.REST_RESPONSE_SUCCESS);
+			res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS, { id: newVehicle.getID() }));
 			next();
 		} catch (error) {
 			// Log
@@ -242,11 +241,11 @@ class VehicleService {
 			// Filter
 			let filteredRequest = VehicleSecurity.filterVehicleUpdateRequest( req.body, req.user );
 			// Check email
-			let vehicle = await VehicleStorage.getVehicle(filteredRequest.id);
+			let vehicle = await Vehicle.getVehicle(filteredRequest.id);
 			if (!vehicle) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The Vehicle with ID '${filteredRequest.id}' does not exist anymore`, 550, 
+					`The Vehicle with ID '${filteredRequest.id}' does not exist anymore`, 550,
 					'VehicleService', 'handleUpdateVehicle', req.user);
 			}
 			// Check Mandatory fields
@@ -258,7 +257,7 @@ class VehicleService {
 					Constants.ACTION_UPDATE,
 					Constants.ENTITY_VEHICLE,
 					vehicle.getID(),
-					560, 
+					560,
 					'VehicleService', 'handleUpdateVehicle',
 					req.user);
 			}
