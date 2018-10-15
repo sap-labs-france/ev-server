@@ -159,8 +159,8 @@ class SiteArea {
 		}
 	}
 
-	static getSiteArea(id) {
-		return SiteAreaStorage.getSiteArea(id);
+	static getSiteArea(id, withChargeBoxes, withSite) {
+		return SiteAreaStorage.getSiteArea(id, withChargeBoxes, withSite);
 	}
 
 	static getSiteAreas(params, limit, skip, sort) {
