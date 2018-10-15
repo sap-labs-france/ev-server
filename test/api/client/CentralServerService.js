@@ -18,7 +18,8 @@ class CentralServerService {
     this.user = new UserApi(authenticatedBaseApi);
     this.chargingStation = new ChargingStationApi(authenticatedBaseApi);
     this.transaction = new TransactionApi(authenticatedBaseApi);
+    this.url = authenticatedBaseApi.url;
   }
 }
 
-module.exports = CentralServerService;
+module.exports = new CentralServerService();

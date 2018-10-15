@@ -70,6 +70,7 @@
 		"json-loader": "^0.5.7",
 		"mocha": "^5.2.0",
 		"mocha-parallel-tests": "^2.0.4",
+		"mochawesome": "^3.0.3",
 		"node-sass": "^4.9.2",
 		"nodemon": "^1.18.3",
 		"request": "^2.88.0",
@@ -93,8 +94,8 @@
 		"build": "npm run build:dev",
 		"build:dev": "webpack --watch --env.env=dev",
 		"build:prod": "webpack --env.env=prod",
-		"test": "mocha test/**/*_test.js",
-		"test:parallel": "mocha-parallel-tests test/**/*_test.js"
+		"test": "mocha test/**/*_test.js --reporter mochawesome",
+		"test:parallel": "mocha-parallel-tests test/**/*_test.js --reporter mochawesome"
 	},
 	"license": "MIT"
 }

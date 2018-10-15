@@ -1,7 +1,7 @@
-const ReadApi = require('./readApi');
-const UpdateApi = require('./updateApi');
+const ReadApi = require('./ReadApi');
+const UpdateApi = require('./UpdateApi');
 
-class CRUDApi {
+class CrudApi {
 
   constructor(serviceDefinition, baseApi) {
     this.serviceDefinition = serviceDefinition;
@@ -44,4 +44,4 @@ class CRUDApi {
 
 }
 
-module.exports = CRUDApi;
+module.exports = CrudApi;

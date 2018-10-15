@@ -1,4 +1,4 @@
-const AuthenticationApi = require('../authentication');
+const AuthenticationApi = require('../AuthenticationApi');
 
 class AuthenticatedBaseApi {
 
