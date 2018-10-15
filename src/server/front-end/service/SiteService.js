@@ -5,6 +5,7 @@ const AppAuthError = require('../../../exception/AppAuthError');
 const Authorizations = require('../../../authorization/Authorizations');
 const Constants = require('../../../utils/Constants');
 const Site = require('../../../model/Site');
+const Company = require('../../../model/Company');
 const User = require('../../../model/User');
 const Company = require('../../../model/Company');
 const SiteSecurity = require('./security/SiteSecurity');

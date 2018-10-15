@@ -11,6 +11,7 @@ const NotificationHandler = require('../notification/NotificationHandler');
 const Authorizations = require('../authorization/Authorizations');
 const AppError = require('../exception/AppError');
 const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
+const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const TransactionStorage = require('../storage/mongodb/TransactionStorage');
 const PricingStorage = require('../storage/mongodb/PricingStorage');
 
@@ -85,7 +86,7 @@ class ChargingStation {
 			return new SiteArea(this._model.siteArea);
 		} else if (this._model.siteAreaID){
 			// Get from DB
-			let siteArea = await SiteArea.getSiteArea(this._model.siteAreaID, false, withSite);
+			let siteArea = await SiteAreaStorage.getSiteArea(this._model.siteAreaID, false, withSite);
 			// Set it
 			this.setSiteArea(siteArea);
 			// Return
@@ -262,8 +263,14 @@ class ChargingStation {
 	async getChargingStationClient() {
 		// Already created?
 		if (!this._chargingStationClient) {
-			// Init client
-			this._chargingStationClient = await new SoapChargingStationClient(this);
+// We can now have either a SoapClient or a JsonWs connection
+// Current easy logic is to try to get first the WS client. If there is no WS then use SoapClient 
+			this._chargingStationClient = await global.centralSystemJson.getConnection(this.getID());
+			if (!this._chargingStationClient) {
+				// Init client
+				this._chargingStationClient = await new SoapChargingStationClient(this);
+			}
+			
 		}
 		return this._chargingStationClient;
 	}
@@ -841,12 +848,27 @@ class ChargingStation {
 
 			// Check OCPP 1.6
 			if (value.sampledValue) {
-				// Normalize
-				value.value = value.sampledValue;
-			}
+				if (Array.isArray(value.sampledValue)) {
+					for (const sampledValue of value.sampledValue) {
+						// Normalize
+						value.value = sampledValue.value;
+						newMeterValue.attribute = {};
+						newMeterValue.attribute.context = (sampledValue.hasOwnProperty('context') ? sampledValue.context : "Sample.Periodic");
+						newMeterValue.attribute.format = (sampledValue.hasOwnProperty('format') ? sampledValue.format : "Raw");
+						newMeterValue.attribute.measurand = (sampledValue.hasOwnProperty('measurand') ? sampledValue.measurand : "Energy.Active.Import.Register");
+						newMeterValue.attribute.location = (sampledValue.hasOwnProperty('location') ? sampledValue.location : "Outlet");
+						newMeterValue.attribute.unit = (sampledValue.hasOwnProperty('unit') ? sampledValue.unit : "Wh");
+						newMeterValue.value = parseInt(value.value);
+						newMeterValues.values.push(newMeterValue);
+					}
+				} else {
+					// Normalize
+					value.value = value.sampledValue;
+					newMeterValue.value = parseInt(value.value);
+					newMeterValues.values.push(newMeterValue);
+				}
 
-			// Values provided?
-			if (value.value) {
+			} else if (value.value) { // Values provided?
 				// OCCP1.2: Set the values
 				if(value.value.$value) {
 					// Set
@@ -855,9 +877,10 @@ class ChargingStation {
 				} else {
 					newMeterValue.value = parseInt(value.value);
 				}
+				// Add
+				newMeterValues.values.push(newMeterValue);
 			}
-			// Add
-			newMeterValues.values.push(newMeterValue);
+			
 		}
 		// Compute consumption?
 		if (meterValues.transactionId) {
@@ -1295,11 +1318,11 @@ class ChargingStation {
 	}
 
 	// Start Transaction
-	async requestStartTransaction(tagID, connectorID) {
+	async requestStartTransaction(tagID, connectorID, chargingProfile = {}) {
 		// Get the client
 		let chargingStationClient = await this.getChargingStationClient();
 		// Start Transaction
-		let result = await chargingStationClient.startTransaction(tagID, connectorID);
+		let result = await chargingStationClient.startTransaction(tagID, connectorID, chargingProfile);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation',

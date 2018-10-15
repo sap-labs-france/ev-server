@@ -2,7 +2,7 @@ const Database = require('../utils/Database');
 const AppError = require('../exception/AppError');
 const Constants = require('../utils/Constants');
 const CompanyStorage = require('../storage/mongodb/CompanyStorage');
-const Site = require('./Site');
+const SiteStorage = require('../storage/mongodb/SiteStorage');
 
 class Company {
 	constructor(company) {
@@ -88,7 +88,7 @@ class Company {
 			return this._model.sites.map((site) => new Site(site));
 		} else {
 			// Get from DB
-			let sites = await Site.getSites({'companyID': this.getID()});
+			let sites = await SiteStorage.getSites({'companyID': this.getID()});
 			// Keep it
 			this.setSites(sites.result);
 			return sites.result;

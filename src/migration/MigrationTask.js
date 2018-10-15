@@ -1,6 +1,6 @@
 
 class MigrationTask {
-	migrate(config) {
+	migrate() {
 	}
 
 	getVersion() {

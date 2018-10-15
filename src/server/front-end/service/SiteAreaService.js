@@ -7,6 +7,7 @@ const SiteAreaSecurity = require('./security/SiteAreaSecurity');
 const Authorizations = require('../../../authorization/Authorizations');
 const User = require('../../../model/User');
 const ChargingStation = require('../../../model/ChargingStation');
+const Site = require('../../../model/Site');
 const SiteArea = require('../../../model/SiteArea');
 const Site = require('../../../model/Site');
 

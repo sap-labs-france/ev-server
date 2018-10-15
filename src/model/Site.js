@@ -1,10 +1,10 @@
 const Database = require('../utils/Database');
-const User = require('./User');
-const Company = require('./Company');
-const SiteArea = require('./SiteArea');
 const AppError = require('../exception/AppError');
 const Constants = require('../utils/Constants');
+const CompanyStorage = require('../storage/mongodb/CompanyStorage');
 const SiteStorage = require('../storage/mongodb/SiteStorage');
+const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
+const UserStorage = require('../storage/mongodb/UserStorage');
 
 class Site {
 	constructor(site) {
@@ -106,7 +106,7 @@ class Site {
 			return new Company(this._model.company);
 		} else if (this._model.companyID){
 			// Get from DB
-			let company = await Company.getCompany(this._model.companyID);
+			let company = await CompanyStorage.getCompany(this._model.companyID);
 			// Keep it
 			this.setCompany(company);
 			return company;
@@ -131,7 +131,7 @@ class Site {
 			return this._model.siteAreas.map((siteArea) => new SiteArea(siteArea));
 		} else {
 			// Get from DB
-			let siteAreas = await SiteArea.getSiteAreas({'siteID': this.getID()});
+			let siteAreas = await SiteAreaStorage.getSiteAreas({'siteID': this.getID()});
 			// Keep it
 			this.setSiteAreas(siteAreas.result);
 			return siteAreas.result;
@@ -147,7 +147,7 @@ class Site {
 			return this._model.users.map((user) => new User(user));
 		} else {
 			// Get from DB
-			let users = await User.getUsers({'siteID': this.getID()});
+			let users = await UserStorage.getUsers({'siteID': this.getID()});
 			// Keep it
 			this.setUsers(users.result);
 			return users.result;
@@ -156,7 +156,7 @@ class Site {
 
 	async getUser(userID) {
 		// Get from DB
-		let users = await User.getUsers({'siteID': this.getID(), 'userID': userID});
+		let users = await UserStorage.getUsers({'siteID': this.getID(), 'userID': userID});
 		// Check
 		if (users.count > 0) {
 			return users.result[0];
@@ -216,12 +216,8 @@ class Site {
 		}
 	}
 
-	static async getSite(id, withCompany=false, withUser=false) {
+	static getSite(id, withCompany, withUser) {
 		return SiteStorage.getSite(id, withCompany, withUser);
-	}
-
-	static async getSiteFromSiteArea(siteAreaId, withCompany=false, withUser=false) {
-		return SiteStorage.getSiteFromSiteArea(siteAreaId, withCompany, withUser);
 	}
 
 	static getSites(params, limit, skip, sort) {
