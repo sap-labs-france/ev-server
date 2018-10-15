@@ -161,7 +161,8 @@ class TenantService {
             if (foundTenant) {
                 throw new ConflictError(
                     Constants.CENTRAL_SERVER,
-                    `The tenant with name '${filteredRequest.name}' already exists`,
+                    `The tenant with name '${filteredRequest.name}' already exists`, 'tenants.name_already_used',
+                    {'name' : filteredRequest.name},
                     'TenantService', 'handleCreateTenant', req.user, action);
             }
 
@@ -169,7 +170,9 @@ class TenantService {
             if (foundTenant) {
                 throw new ConflictError(
                     Constants.CENTRAL_SERVER,
-                    `The tenant with subdomain '${filteredRequest.subdomain}' already exists`,
+                    `The tenant with subdomain '${filteredRequest.subdomain}' already exists`, 'tenants.subdomain_already_used', {
+                        'subdomain': filteredRequest.subdomain
+                    },
                     'TenantService', 'handleCreateTenant', req.user, action);
             }
 

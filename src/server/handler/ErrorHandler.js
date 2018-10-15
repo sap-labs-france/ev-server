@@ -56,6 +56,7 @@ function _handleBadRequestError(err, res) {
 
 function _handleConflictError(err, res) {
     res.status(CONFLICT).json({
-        "message": err.message
+        "message": err.messageKey,
+        "params": err.messageParams
     });
 }
