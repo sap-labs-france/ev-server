@@ -2,8 +2,8 @@ const {expect} = require('chai');
 const chai = require('chai');
 const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
-const Factory = require('./factories/Factory');
-const CentralServerService = require('./api/client/CentralServerService');
+const Factory = require('../factories/Factory');
+const CentralServerService = require('./client/CentralServerService');
 
 
 describe('SiteArea tests', function() {

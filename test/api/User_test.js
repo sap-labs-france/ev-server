@@ -2,8 +2,8 @@ const {expect} = require('chai');
 const chai = require('chai');
 const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
-const CentralServerService = require('./api/client/CentralServerService');
-const Factory = require('./factories/Factory');
+const CentralServerService = require('./client/CentralServerService');
+const Factory = require('../factories/Factory');
 
 describe('User tests', function() {
   this.timeout(10000);

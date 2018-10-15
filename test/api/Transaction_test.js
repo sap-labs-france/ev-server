@@ -3,10 +3,10 @@ const {expect} = require('chai');
 const chai = require('chai');
 const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
-const Ocpp15 = require('./api/soap/ocpp15');
-const Bootstrap = require('./api/bootstrap');
-const CentralServerService = require('./api/client/CentralServerService');
-const config = require('./config');
+const Ocpp15 = require('./soap/ocpp15');
+const Bootstrap = require('./Bootstrap');
+const CentralServerService = require('./client/CentralServerService');
+const config = require('../config');
 
 describe('transaction tests', function() {
   const ocpp = new Ocpp15();

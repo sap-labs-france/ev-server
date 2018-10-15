@@ -2,8 +2,8 @@ const {expect} = require('chai');
 const chai = require('chai');
 const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
-const BaseApi = require('./api/client/utils/BaseApi');
-const config = require('./config');
+const BaseApi = require('./client/utils/BaseApi');
+const config = require('../config');
 
 const email = config.get('admin.username');
 const password = config.get('admin.password');
