@@ -2,12 +2,14 @@ const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
+const ConflictError = require('../../../exception/ConflictError');
 const Constants = require('../../../utils/Constants');
 const Tenant = require('../../../model/Tenant');
 const User = require('../../../model/User');
 const Authorizations = require('../../../authorization/Authorizations');
 const TenantSecurity = require('./security/TenantSecurity');
 const HttpStatus = require('http-status-codes');
+const TenantValidator = require('../../../validation/TenantValidation').default;
 
 class TenantService {
     static async handleDeleteTenant(action, req, res, next) {
@@ -58,8 +60,7 @@ class TenantService {
             res.json(Constants.REST_RESPONSE_SUCCESS);
             next();
         } catch (error) {
-            // Log
-            Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+            next(error);
         }
     }
 
@@ -101,8 +102,7 @@ class TenantService {
             );
             next();
         } catch (error) {
-            // Log
-            Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+            next(error);
         }
     }
 
@@ -117,7 +117,6 @@ class TenantService {
                     null,
                     560, 'TenantService', 'handleGetTenants',
                     req.user);
-                return;
             }
             // Filter
             let filteredRequest = TenantSecurity.filterTenantsRequest(req.query, req.user);
@@ -135,8 +134,7 @@ class TenantService {
             res.json(tenants);
             next();
         } catch (error) {
-            // Log
-            Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+            next(error);
         }
     }
 
@@ -155,22 +153,24 @@ class TenantService {
             // Filter
             let filteredRequest = TenantSecurity.filterTenantCreateRequest(req.body, req.user);
             // Check Mandatory fields
-            Tenant.checkIfTenantValid(filteredRequest, req);
+            //Tenant.checkIfTenantValid(filteredRequest, req);
+
+            TenantValidator.validateTenantCreation(filteredRequest);
 
             let foundTenant = await Tenant.getTenantByName(filteredRequest.name);
             if (foundTenant) {
-                throw new AppError(
+                throw new ConflictError(
                     Constants.CENTRAL_SERVER,
-                    `The tenant with name '${filteredRequest.name}' already exists`, 510,
-                    'TenantService', 'handleCreateTenant', req.user);
+                    `The tenant with name '${filteredRequest.name}' already exists`,
+                    'TenantService', 'handleCreateTenant', req.user, action);
             }
 
             foundTenant = await Tenant.getTenantBySubdomain(filteredRequest.subdomain);
             if (foundTenant) {
-                throw new AppError(
+                throw new ConflictError(
                     Constants.CENTRAL_SERVER,
-                    `The tenant with subdomain '${filteredRequest.subdomain}' already exists`, 510,
-                    'TenantService', 'handleCreateTenant', req.user);
+                    `The tenant with subdomain '${filteredRequest.subdomain}' already exists`,
+                    'TenantService', 'handleCreateTenant', req.user, action);
             }
 
             // Create
@@ -182,6 +182,7 @@ class TenantService {
             tenant.setCreatedOn(new Date());
             // Save
             let newTenant = await tenant.save();
+
             // Log
             Logging.logSecurityInfo({
                 user: req.user,
@@ -195,8 +196,7 @@ class TenantService {
             res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS, { id: newTenant.getID() }));
             next();
         } catch (error) {
-            // Log
-            Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+            next(error);
         }
     }
 
@@ -246,8 +246,7 @@ class TenantService {
             res.json(Constants.REST_RESPONSE_SUCCESS);
             next();
         } catch (error) {
-            // Log
-            Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+            next(error);
         }
     }
 
@@ -266,7 +265,7 @@ class TenantService {
             res.status(HttpStatus.OK).send({});
             next();
         } catch (error) {
-            Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+            next(error);
         }
     }
 }

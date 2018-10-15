@@ -9,6 +9,7 @@
 	"homepage": "https://github.com/LucasBrazi06/ev-server",
 	"main": "dist/start.js",
 	"dependencies": {
+		"ajv": "^6.5.4",
 		"assert": "^1.4.1",
 		"axios": "^0.18.0",
 		"babel-polyfill": "^6.26.0",

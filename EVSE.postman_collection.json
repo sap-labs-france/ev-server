@@ -41,6 +41,11 @@
 							"type": "text"
 						},
 						{
+							"key": "tenant",
+							"value": "slf",
+							"type": "text"
+						},
+						{
 							"key": "acceptEula",
 							"value": "true",
 							"type": "text"
@@ -94,6 +99,11 @@
 						{
 							"key": "password",
 							"value": "DeM*Us$r42",
+							"type": "text"
+						},
+						{
+							"key": "tenant",
+							"value": "slf",
 							"type": "text"
 						},
 						{
@@ -153,6 +163,11 @@
 							"type": "text"
 						},
 						{
+							"key": "tenant",
+							"value": "slf",
+							"type": "text"
+						},
+						{
 							"key": "acceptEula",
 							"value": "true",
 							"type": "text"
@@ -206,6 +221,11 @@
 						{
 							"key": "password",
 							"value": "DeM*Us$r1",
+							"type": "text"
+						},
+						{
+							"key": "tenant",
+							"value": "slf",
 							"type": "text"
 						},
 						{
@@ -460,7 +480,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"name\": \"Tenant 1\",\n\t\"subdomain\": \"slf\"\n}"
+					"raw": "{\n\t\"name\": \"Tenant 1\", \n\t\"email\": \"slf@chargeangels.fr\", \n\t\"subdomain\": \"slf\"\n}"
 				},
 				"url": {
 					"raw": "{{base_url}}/client/api/TenantCreate",

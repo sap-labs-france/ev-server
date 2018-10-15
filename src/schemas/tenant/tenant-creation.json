@@ -1,0 +1,26 @@
+{
+    "title": "tenant creation",
+    "description": "describes properties required to create a tenant",
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "description": "name of the tenant",
+            "minLength": 1,
+            "maxLength": 25
+        },
+        "email": {
+            "type": "string",
+            "description": "email contact of the tenant",
+            "format": "email"
+        },
+        "subdomain": {
+            "type": "string",
+            "description": "subdomain associated to the tenant",
+            "pattern": "^[a-z0-9]*$",
+            "minLength": 1,
+            "maxLength": 20
+        }
+    },
+    "required": ["name", "email", "subdomain"]
+}

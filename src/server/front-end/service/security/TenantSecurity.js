@@ -45,6 +45,7 @@ class TenantSecurity {
         let filteredRequest = {};
         filteredRequest.name = sanitize(request.name);
         filteredRequest.subdomain = sanitize(request.subdomain);
+        filteredRequest.email = sanitize(request.email);
         return filteredRequest;
     }
 

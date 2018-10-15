@@ -515,12 +515,12 @@ class UserService {
 					`The email '${filteredRequest.email}' already exists`, 510,
 					'UserService', 'handleCreateUser', req.user);
 			}
-			// Generate a hash for the given password
-			let newPasswordHashed = await User.hashPasswordBcrypt(filteredRequest.password);
 			// Create user
 			let user = new User(filteredRequest);
 			// Set the password
 			if (filteredRequest.password) {
+				// Generate a hash for the given password
+				let newPasswordHashed = await User.hashPasswordBcrypt(filteredRequest.password);
 				// Generate a hash
 				user.setPassword(newPasswordHashed);
 			}

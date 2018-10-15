@@ -47,16 +47,16 @@ class MongoDBStorage {
 			}
 		}
 	}
-	
-	async checkDatabase(db) {
-		// Get all the collections
-		let collections = await db.listCollections({}).toArray();
-		// Check only collections with indexes
-		// Tenants
-		await this.checkAndCreateCollection(db, collections, 'tenants', [
-			{ fields: { subdomain: 1 }, options: { unique: true } },
-			{ fields: { name: 1 }, options: { unique: true } } 
-		]);
+
+	async createTenantDatabase(db, tenant) {
+		let filter = {};
+		if (tenant) {
+			filter.name = new RegExp(`^${tenant}_`);
+		} else {
+			filter.name = new RegExp(`[^_]`);
+		}
+		// Get all the tenant collections
+		let collections = await db.listCollections(filter).toArray();
 		// Users
 		await this.checkAndCreateCollection(db, collections, 'users', [
 			{ fields: { email: 1 }, options: { unique: true } } 
@@ -104,6 +104,18 @@ class MongoDBStorage {
 				}
 			);
 		}
+	}
+
+	async checkDatabase(db) {
+		// Get all the collections
+		let collections = await db.listCollections().toArray();
+		// Check only collections with indexes
+		// Tenants
+		await this.checkAndCreateCollection(db, collections, 'tenants', [
+			{ fields: { subdomain: 1 }, options: { unique: true } },
+			{ fields: { name: 1 }, options: { unique: true } } 
+		]);
+		this.createTenantDatabase(db);
 	}
 
 	async start() {

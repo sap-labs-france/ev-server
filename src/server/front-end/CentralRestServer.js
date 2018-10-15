@@ -17,6 +17,7 @@ const Database = require('../../utils/Database');
 const Configuration = require('../../utils/Configuration');
 const Logging = require('../../utils/Logging');
 const Constants = require('../../utils/Constants');
+const ErrorHandler = require('../handler/ErrorHandler');
 require('source-map-support').install();
 
 let _centralSystemRestConfig;
@@ -36,8 +37,13 @@ class CentralRestServer {
 			_chargingStationConfig.heartbeatIntervalSecs);
 
 		// Body parser
-		express.use(bodyParser.json({limit: '1mb'}));
-		express.use(bodyParser.urlencoded({ extended: false, limit: '1mb' }));
+		express.use(bodyParser.json({
+			limit: '1mb'
+		}));
+		express.use(bodyParser.urlencoded({
+			extended: false,
+			limit: '1mb'
+		}));
 		express.use(bodyParser.xml());
 
 		// Use
@@ -49,10 +55,12 @@ class CentralRestServer {
 			express.use(
 				morgan('combined', {
 					'stream': {
-						write: (message) => { 
+						write: (message) => {
 							// Log
 							Logging.logDebug({
-								module: "CentralRestServer", method: "constructor", action: "HttpRequestLog",
+								module: "CentralRestServer",
+								method: "constructor",
+								action: "HttpRequestLog",
 								message: message
 							});
 						}
@@ -72,7 +80,7 @@ class CentralRestServer {
 			// Bind to express app
 			express.use(CFLog.logNetwork);
 		}
-		
+
 		// Authentication
 		express.use(CentralRestServerAuthentication.initialize());
 
@@ -85,20 +93,23 @@ class CentralRestServer {
 		// Util API
 		express.use('/client/util', CentralRestServerService.restServiceUtil);
 
+		// Register error handler
+		express.use(ErrorHandler.errorHandler);
+
 		// Check if the front-end has to be served also
 		let centralSystemConfig = Configuration.getCentralSystemFrontEndConfig();
 		// Server it?
 		if (centralSystemConfig.distEnabled) {
 			// Serve all the static files of the front-end
-			express.get(/^\/(?!client\/)(.+)$/, function(req, res, next) {
+			express.get(/^\/(?!client\/)(.+)$/, function (req, res, next) {
 				// Filter to not handle other server requests
-				if(!res.headersSent) {
+				if (!res.headersSent) {
 					// Not already processed: serve the file
 					res.sendFile(path.join(__dirname, centralSystemConfig.distPath, sanitize(req.params[0])));
 				}
 			});
 			// Default, serve the index.html
-			express.get('/', function(req, res, next) {
+			express.get('/', function (req, res, next) {
 				// Return the index.html
 				res.sendFile(path.join(__dirname, centralSystemConfig.distPath, 'index.html'));
 			});
@@ -153,7 +164,7 @@ class CentralRestServer {
 			// Check and send notif
 			setInterval(() => {
 				// Send
-				for (var i = _currentNotifications.length-1; i >= 0; i--) {
+				for (var i = _currentNotifications.length - 1; i >= 0; i--) {
 					// console.log(`****** Notify '${_currentNotifications[i].entity}', Action '${(_currentNotifications[i].action?_currentNotifications[i].action:'')}', Data '${(_currentNotifications[i].data ? JSON.stringify(_currentNotifications[i].data, null, ' ') : '')}'`);
 					// Notify all Web Sockets
 					_socketIO.sockets.emit(_currentNotifications[i].entity, _currentNotifications[i]);
@@ -164,8 +175,11 @@ class CentralRestServer {
 
 			// Log
 			Logging.logInfo({
-				module: "CentralServerRestServer", method: "start", action: "Startup",
-				message: `Central Rest Server (Front-End) listening on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'` });
+				module: "CentralServerRestServer",
+				method: "start",
+				action: "Startup",
+				message: `Central Rest Server (Front-End) listening on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'`
+			});
 			console.log(`Central Rest Server (Front-End) listening on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'`);
 		});
 	}
@@ -301,12 +315,12 @@ class CentralRestServer {
 		for (var i = 0; i < _currentNotifications.length; i++) {
 			// Same Entity and Action?
 			if (_currentNotifications[i].entity == notification.entity &&
-					_currentNotifications[i].action == notification.action) {
+				_currentNotifications[i].action == notification.action) {
 				// Yes
 				dups = true;
 				// Data provided: Check Id and Type
 				if (_currentNotifications[i].data &&
-						(_currentNotifications[i].data.id != notification.data.id ||
+					(_currentNotifications[i].data.id != notification.data.id ||
 						_currentNotifications[i].data.type != notification.data.type)) {
 					dups = false;
 				} else {

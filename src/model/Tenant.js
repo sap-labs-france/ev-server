@@ -2,6 +2,7 @@ const Database = require('../utils/Database');
 const AppError = require('../exception/AppError');
 const Constants = require('../utils/Constants');
 const TenantStorage = require('../storage/mongodb/TenantStorage');
+const User = require('./User');
 
 class Tenant {
     constructor(tenant) {
@@ -26,6 +27,14 @@ class Tenant {
 
     getName() {
         return this._model.name;
+    }
+
+    setEmail(email) {
+        this._model.email = email;
+    }
+
+    getEmail() {
+        return this._model.email;
     }
 
     getCreatedBy() {
