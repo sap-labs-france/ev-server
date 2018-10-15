@@ -77,7 +77,6 @@
 		"request": "^2.88.0",
 		"rosie": "^2.0.1",
 		"sass-loader": "^7.1.0",
-		"superagent": "^4.0.0-beta.5",
 		"uglifyjs-webpack-plugin": "^1.2.7",
 		"webpack": "^4.16.4",
 		"webpack-cli": "^3.1.0",
