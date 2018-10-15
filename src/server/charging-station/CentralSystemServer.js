@@ -99,11 +99,7 @@ class CentralSystemServer {
 			content.timestamp = content.lastReboot;
 
 			// Get the charging station
-<<<<<<< HEAD
-			let chargingStation = await ChargingStationStorage.getChargingStation(content.chargeBoxIdentity);
-=======
-			let chargingStation = await ChargingStation.getChargingStation(headers.chargeBoxIdentity);
->>>>>>> 156ac50eeef57b527c17b98d8a221212b8e83e3b
+			let chargingStation = await ChargingStation.getChargingStation(content.chargeBoxIdentity);
 			if (!chargingStation) {
 				// Save Charging Station
 				chargingStation = new ChargingStation(content);
