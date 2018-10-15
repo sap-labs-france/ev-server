@@ -11,6 +11,7 @@ const NotificationHandler = require('../notification/NotificationHandler');
 const Authorizations = require('../authorization/Authorizations');
 const AppError = require('../exception/AppError');
 const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
+const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const TransactionStorage = require('../storage/mongodb/TransactionStorage');
 const PricingStorage = require('../storage/mongodb/PricingStorage');
 
@@ -85,7 +86,7 @@ class ChargingStation {
 			return new SiteArea(this._model.siteArea);
 		} else if (this._model.siteAreaID){
 			// Get from DB
-			let siteArea = await SiteArea.getSiteArea(this._model.siteAreaID, false, withSite);
+			let siteArea = await SiteAreaStorage.getSiteArea(this._model.siteAreaID, false, withSite);
 			// Set it
 			this.setSiteArea(siteArea);
 			// Return
