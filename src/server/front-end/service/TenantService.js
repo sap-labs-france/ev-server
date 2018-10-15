@@ -178,6 +178,8 @@ export async function handleCreateTenant(action, req, res, next) {
         // Save
         let newTenant = await tenant.save();
 
+        await tenant.createEnvironment();
+
         // Log
         Logging.logSecurityInfo({
             user: req.user,

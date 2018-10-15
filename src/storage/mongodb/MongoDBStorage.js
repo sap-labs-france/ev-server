@@ -50,40 +50,42 @@ class MongoDBStorage {
 
 	async createTenantDatabase(db, tenant) {
 		let filter = {};
+		let prefix = '';
 		if (tenant) {
 			filter.name = new RegExp(`^${tenant}_`);
+			prefix = `${tenant}_`;
 		} else {
 			filter.name = new RegExp(`[^_]`);
 		}
 		// Get all the tenant collections
 		let collections = await db.listCollections(filter).toArray();
 		// Users
-		await this.checkAndCreateCollection(db, collections, 'users', [
+		await this.checkAndCreateCollection(db, collections, `${prefix}users`, [
 			{ fields: { email: 1 }, options: { unique: true } } 
 		]);
-		await this.checkAndCreateCollection(db, collections, 'eulas');
+		await this.checkAndCreateCollection(db, collections, `${prefix}eulas`);
 		// Logs
-		await this.checkAndCreateCollection(db, collections, 'logs', [
+		await this.checkAndCreateCollection(db, collections, `${prefix}logs`, [
 			{ fields: { timestamp: 1 } },
 			{ fields: { level: 1 } },
 			{ fields: { type: 1 }	} 
 		]);
 		// MeterValues
-		await this.checkAndCreateCollection(db, collections, 'metervalues', [
+		await this.checkAndCreateCollection(db, collections, `${prefix}metervalues`, [
 			{ fields: { timestamp: 1 } },
 			{ fields: { transactionId: 1 } }
 		]);
 		// Tags
-		await this.checkAndCreateCollection(db, collections, 'tags', [
+		await this.checkAndCreateCollection(db, collections, `${prefix}tags`, [
 			{ fields: { userID: 1 } }
 		]);
 		// Sites/Users
-		await this.checkAndCreateCollection(db, collections, 'siteusers', [
+		await this.checkAndCreateCollection(db, collections, `${prefix}siteusers`, [
 			{ fields: { siteID: 1 } },
 			{ fields: { userID: 1 } }
 		]);
 		// Transactions
-		await this.checkAndCreateCollection(db, collections, 'transactions', [
+		await this.checkAndCreateCollection(db, collections, `${prefix}transactions`, [
 			{ fields: { timestamp: 1 } },
 			{ fields: { chargeBoxID: 1 } },
 			{ fields: { userID: 1 } }

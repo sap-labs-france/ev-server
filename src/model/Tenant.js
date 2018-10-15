@@ -37,6 +37,14 @@ class Tenant {
         return this._model.email;
     }
 
+    setSubdomain(subdomain) {
+        this._model.subdomain = subdomain;
+    }
+
+    getSubdomain() {
+        return this._model.subdomain;
+    }
+
     getCreatedBy() {
         if (this._model.createdBy) {
             return new User(this._model.createdBy);
@@ -78,6 +86,10 @@ class Tenant {
     async save() {
         let tenantMDB = await TenantStorage.saveTenant(this.getModel());
         return new Tenant(tenantMDB);
+    }
+
+    async createEnvironment() {
+        await TenantStorage.createTenantDB(this.getSubdomain());
     }
 
     delete() {
