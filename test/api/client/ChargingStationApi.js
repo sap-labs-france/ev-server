@@ -8,36 +8,36 @@ class TransactionApi {
     this.updateApi = new UpdateApi(baseApi);
   }
 
-  readById(id, expectations) {
-    return this.readApi.readById('/client/api/ChargingStation/', id, expectations);
+  readById(id) {
+    return this.readApi.readById('/client/api/ChargingStation/', id);
   }
 
-  readConfiguration(chargeBoxID, expectations) {
-    return this.readApi.read('/client/api/ChargingStationConfiguration/', {ChargeBoxID: chargeBoxID}, expectations);
+  readConfiguration(chargeBoxID) {
+    return this.readApi.read('/client/api/ChargingStationConfiguration/', {ChargeBoxID: chargeBoxID});
   }
 
-  readConsumptionStatistics(year, expectations) {
-    return this.readApi.read('/client/api/ChargingStationConsumptionStatistics/', {Year: year}, expectations);
+  readConsumptionStatistics(year) {
+    return this.readApi.read('/client/api/ChargingStationConsumptionStatistics/', {Year: year});
   }
 
-  readUsageStatistics(year, expectations) {
-    return this.readApi.read('/client/api/ChargingStationUsageStatistics/', {Year: year}, expectations);
+  readUsageStatistics(year) {
+    return this.readApi.read('/client/api/ChargingStationUsageStatistics/', {Year: year});
   }
 
-  readAll(query, expectations) {
-    return this.readApi.readAll('/client/api/ChargingStations/', query, expectations);
+  readAll(query) {
+    return this.readApi.readAll('/client/api/ChargingStations/', query);
   }
 
-  readAllTransactions(query, expectations) {
-    return this.readApi.readAll('/client/api/ChargingStationTransactions/', query, expectations);
+  readAllTransactions(query) {
+    return this.readApi.readAll('/client/api/ChargingStationTransactions/', query);
   }
 
-  readAllYears(query, expectations) {
-    return this.readApi.readAll('/client/api/TransactionYears/', query, expectations);
+  readAllYears(query) {
+    return this.readApi.readAll('/client/api/TransactionYears/', query);
   }
 
-  updateParams(payload, expectations) {
-    return this.updateApi.update('/client/api/ChargingStationUpdateParams/', payload, expectations);
+  updateParams(data) {
+    return this.updateApi.update('/client/api/ChargingStationUpdateParams/', data);
   }
 
 

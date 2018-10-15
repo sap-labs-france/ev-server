@@ -13,8 +13,8 @@ class AuthenticatedBaseApi {
 
   async authenticate() {
     if (!this.token) {
-      const {response} = await this.authenticationApi.login(this.user, this.password);
-      this.token = response.token;
+      const response = await this.authenticationApi.login(this.user, this.password);
+      this.token = response.data.token;
     }
   }
 

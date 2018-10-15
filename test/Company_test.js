@@ -10,46 +10,37 @@ describe('Company tests', function() {
   this.timeout(10000);
 
   it('should create a new company', async () => {
-    await CentralServerService.company.create(Factory.company.build(), (message, response) => {
-      expect(message.status).to.equal(200);
-      expect(response.status).to.eql('Success');
-      expect(response).to.have.property('id');
-      expect(response.id).to.match(/^[a-f0-9]+$/);
-    });
+    let response = await CentralServerService.company.create(Factory.company.build());
+    expect(response.status).to.equal(200);
+    expect(response.data.status).to.eql('Success');
+    expect(response.data).to.have.property('id');
+    expect(response.data.id).to.match(/^[a-f0-9]+$/);
   });
 
   it('should find a newly created company from list', async () => {
     const company = Factory.company.build();
-    await CentralServerService.company.create(company, ((message, response) => {
-      company.id = response.id;
-    }));
+    let response = await CentralServerService.company.create(company);
+    company.id = response.data.id;
 
-    await CentralServerService.company.readAll({}, (message, response) => {
-      expect(message.status).to.equal(200);
-      expect(response).to.have.property('count');
+    response = await CentralServerService.company.readAll({});
+    expect(response.status).to.equal(200);
+    expect(response.data).to.have.property('count');
 
-      expect(response).to.have.property('result');
-      const actualCompany = response.result.find((element) => element.name === company.name);
-      expect(actualCompany).to.be.an('object');
-      expect(actualCompany).to.containSubset(company);
-    });
+    expect(response.data).to.have.property('result');
+    const actualCompany = response.data.result.find((element) => element.name === company.name);
+    expect(actualCompany).to.be.an('object');
+    expect(actualCompany).to.containSubset(company);
   });
 
   it('should find a specific company by id', async () => {
     const company = Factory.company.build();
 
-    let message = await CentralServerService.company.create(company);
-    company.id = message.response.id;
+    let response = await CentralServerService.company.create(company);
+    company.id = response.data.id;
 
-    await centralServerService.company.create(company, ((message, response) => {
-      company.id = response.id;
-    }));
-
-
-    await CentralServerService.company.readById(company.id, (message, response) => {
-      expect(message.status).to.equal(200);
-      expect(response).to.containSubset(company);
-    });
+    response = await CentralServerService.company.readById(company.id);
+    expect(response.status).to.equal(200);
+    expect(response.data).to.containSubset(company);
   });
 
 });

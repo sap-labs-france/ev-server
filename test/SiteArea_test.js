@@ -14,62 +14,54 @@ describe('SiteArea tests', function() {
 
     beforeEach(async function() {
       company = Factory.company.build();
-      await CentralServerService.company.create(company, (message, response) => {
-        expect(message.status).to.equal(200);
-        company.id = response.id;
-      });
+      let response = await CentralServerService.company.create(company);
+      expect(response.status).to.equal(200);
+      company.id = response.data.id;
 
       site = Factory.site.build({companyID: company.id});
-      await CentralServerService.site.create(site, (message, response) => {
-        expect(message.status).to.equal(200);
-        site.id = response.id;
-      });
+      response = await CentralServerService.site.create(site);
+      expect(response.status).to.equal(200);
+      site.id = response.data.id;
 
     });
 
     it('should create a new SiteAreaArea', async function() {
-      await CentralServerService.siteArea.create(Factory.siteArea.build({siteID: site.id}), (message, response) => {
-        expect(message.status).to.equal(200);
-        expect(response.status).to.eql('Success');
-        expect(response).to.have.property('id');
-        expect(response.id).to.match(/^[a-f0-9]+$/);
-      });
+      let response = await CentralServerService.siteArea.create(Factory.siteArea.build({siteID: site.id}));
+      expect(response.status).to.equal(200);
+      expect(response.data.status).to.eql('Success');
+      expect(response.data).to.have.property('id');
+      expect(response.data.id).to.match(/^[a-f0-9]+$/);
     });
 
     it('should find a newly created siteArea from list', async function() {
       const siteArea = Factory.siteArea.build({siteID: site.id});
-      await CentralServerService.siteArea.create(siteArea, ((message, response) => {
-        siteArea.id = response.id;
-      }));
-      await CentralServerService.siteArea.readAll({}, (message, response) => {
-        expect(message.status).to.equal(200);
-        expect(response).to.have.property('count');
+      let response = await CentralServerService.siteArea.create(siteArea);
+      siteArea.id = response.data.id;
+      response = await CentralServerService.siteArea.readAll({});
+      expect(response.status).to.equal(200);
+      expect(response.data).to.have.property('count');
 
-        expect(response).to.have.property('result');
-        const actualSiteArea = response.result.find((element) => element.name === siteArea.name);
-        expect(actualSiteArea).to.be.an('object');
-        expect(actualSiteArea).to.containSubset(siteArea);
-      });
+      expect(response.data).to.have.property('result');
+      const actualSiteArea = response.data.result.find((element) => element.name === siteArea.name);
+      expect(actualSiteArea).to.be.an('object');
+      expect(actualSiteArea).to.containSubset(siteArea);
     });
 
     it('should find a specific siteArea by id', async function() {
       const siteArea = Factory.siteArea.build({siteID: site.id});
-      await CentralServerService.siteArea.create(siteArea, ((message, response) => {
-        expect(message.status).to.equal(200);
-        siteArea.id = response.id;
-      }));
-      await CentralServerService.siteArea.readById(siteArea.id, (message, response) => {
-        expect(message.status).to.equal(200);
-        expect(response).to.containSubset(siteArea);
-      });
+      let response = await CentralServerService.siteArea.create(siteArea);
+      expect(response.status).to.equal(200);
+      siteArea.id = response.data.id;
+      response = await CentralServerService.siteArea.readById(siteArea.id);
+      expect(response.status).to.equal(200);
+      expect(response.data).to.containSubset(siteArea);
     });
   });
   describe('Error cases', function() {
     it('should not create a siteArea without a referenced site', async function() {
       const siteArea = Factory.siteArea.build({siteID: null});
-      await CentralServerService.siteArea.create(siteArea, (message, response) => {
-        expect(message.status).to.equal(500);
-      });
+      let response = await CentralServerService.siteArea.create(siteArea);
+      expect(response.status).to.equal(500);
     });
   });
 });

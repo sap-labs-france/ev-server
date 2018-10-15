@@ -8,98 +8,88 @@ const config = require('./config');
 const email = config.get('admin.username');
 const password = config.get('admin.password');
 const baseApi = new BaseApi(`${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`);
-const login = (payload, expectations) => {
+const login = (data) => {
   return baseApi.send({
     method: 'POST',
-    path: '/client/auth/Login',
+    url: '/client/auth/Login',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded'
     },
-    payload: payload
-  }, expectations)
+    data: data
+  })
 };
 
 
 describe('Authentication Service', () => {
 
   it('should authenticate a registered user', async () => {
-    await login({
+    let response = await login({
       email: email,
       password: password,
       acceptEula: 'true'
-    }, (message, response) => {
-      expect(message.status).to.be.eql(200);
-      expect(response).to.have.property('token');
-      expect(response.token).to.be.a('string');
     });
+    expect(response.status).to.be.eql(200);
+    expect(response.data).to.have.property('token');
+    expect(response.data.token).to.be.a('string');
   });
 
   describe('Password errors', () => {
     it('should not allow authentication of known user with wrong password', async () => {
-      await login({
+      let response = await login({
         email: email,
         password: 'another',
         acceptEula: 'true'
-      }, (message, response) => {
-        expect(message.status).to.be.eql(550);
-        expect(response).to.not.have.property('token');
       });
+      expect(response.status).to.be.eql(550);
+      expect(response.data).to.not.have.property('token');
     });
     it('should not allow authentication without password', async () => {
-      await login({
+      let response = await login({
         email: email,
         acceptEula: 'true'
-      }, (message, response) => {
-        expect(message.status).to.be.eql(500);
-        expect(response).to.not.have.property('token');
       });
-
+      expect(response.status).to.be.eql(500);
+      expect(response.data).to.not.have.property('token');
     });
   });
   describe('Eula errors', () => {
     it('should not allow authentication not accepting eula', async () => {
-      await login({
+      let response = await login({
         email: email,
         password: password,
         acceptEula: false
-      }, (message, response) => {
-        expect(message.status).to.be.eql(520);
-        expect(response).to.not.have.property('token');
       });
+      expect(response.status).to.be.eql(520);
+      expect(response.data).to.not.have.property('token');
     });
-
     it('should not allow authentication without eula', async () => {
-      await login({
+      let response = await login({
         email: email,
         password: password,
-      }, (message, response) => {
-        expect(message.status).to.be.eql(520);
-        expect(response).to.not.have.property('token');
       });
+      expect(response.status).to.be.eql(520);
+      expect(response.data).to.not.have.property('token');
     });
   });
   describe('Email errors', () => {
     it('should not allow authentication without email', async () => {
-      await login({
+      let response = await login({
         password: password,
         acceptEula: 'true'
-      }, (message, response) => {
-        expect(message.status).to.be.eql(500);
-        expect(response).to.not.have.property('token');
       });
+      expect(response.status).to.be.eql(500);
+      expect(response.data).to.not.have.property('token');
     });
 
     it('should not allow authentication of unknown email', async () => {
-      await login({
+      let response = await login({
         email: 'unkown@sap.com',
         password: password,
         acceptEula: 'true'
-      }, (message, response) => {
-        expect(message.status).to.be.eql(550);
-        expect(response).to.not.have.property('token');
       });
+      expect(response.status).to.be.eql(550);
+      expect(response.data).to.not.have.property('token');
     });
-
   });
 });
 

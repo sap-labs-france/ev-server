@@ -30,7 +30,8 @@ describe('transaction tests', function() {
       errorCode: 'NoError',
       timestamp: currentTime.toISOString()
     };
-    await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState, response => expect(response).to.eql({}));
+    let response = await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState);
+    expect(response.data).to.eql({});
   });
   it('A charging station can notify its status multiple times', async () => {
     let currentTime = moment(context.currentTime);
@@ -40,46 +41,50 @@ describe('transaction tests', function() {
       errorCode: 'NoError',
       timestamp: currentTime.toISOString()
     };
-    await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState, response => expect(response).to.eql({}));
-    await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState, response => expect(response).to.eql({}));
-    await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState, response => expect(response).to.eql({}));
-    await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState, response => expect(response).to.eql({}));
-    await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState, response => expect(response).to.eql({}));
+    let response = await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState);
+    expect(response.data).to.eql({});
+    response = await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState);
+    expect(response.data).to.eql({});
+    response = await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState);
+    expect(response.data).to.eql({});
+    response = await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState);
+    expect(response.data).to.eql({});
+    response = await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState);
+    expect(response.data).to.eql({});
   });
 
   it('A charging station can start a new transaction when available', async () => {
     let currentTime = moment(context.currentTime);
     let connectorId = 1;
-    await ocpp.executeStatusNotification(context.chargeBoxIdentity,
+    let response = await ocpp.executeStatusNotification(context.chargeBoxIdentity,
       {
         connectorId: connectorId,
         status: 'Available',
         errorCode: 'NoError',
         timestamp: currentTime.toISOString()
-      }
-      , response => expect(response).to.eql({}));
+      });
+    expect(response.data).to.eql({});
 
     let transactionId = null;
     currentTime.add(1, 'minutes');
-    await ocpp.executeStartTransaction(context.chargeBoxIdentity,
+    response = await ocpp.executeStartTransaction(context.chargeBoxIdentity,
       {
         connectorId: connectorId,
         idTag: context.user.tagIDs[0],
         meterStart: 10000,
         timestamp: currentTime.toISOString()
-      }
-      , response => {
-        expect(response).to.be.an('object');
-        expect(response).to.have.nested.property('transactionId');
-        expect(response).to.deep.include({
-          idTagInfo: {
-            status: 'Accepted'
-          }
-        });
-        transactionId = response.transactionId;
       });
+    expect(response.data).to.be.an('object');
+    expect(response.data).to.have.nested.property('transactionId');
+    expect(response.data).to.deep.include({
+      idTagInfo: {
+        status: 'Accepted'
+      }
+    });
+    transactionId = response.datatransactionId;
 
-    await CentralServerService.transaction.readById(transactionId, (message) => expect(message.response).to.containSubset(
+    response = await CentralServerService.transaction.readById(transactionId);
+    expect(response.data).to.containSubset(
       {
         connectorId: connectorId,
         tagID: context.user.tagIDs[0],
@@ -109,42 +114,44 @@ describe('transaction tests', function() {
           name: context.user.name,
         }
       }
-    ));
+    )
   });
 
   it('A charging station can start a new transaction when occupied', async () => {
     let currentTime = moment(context.currentTime);
     let connectorId = 1;
 
-    await ocpp.executeStatusNotification(context.chargeBoxIdentity,
+    let response = await ocpp.executeStatusNotification(context.chargeBoxIdentity,
       {
         connectorId: connectorId,
         status: 'Occupied',
         errorCode: 'NoError',
         timestamp: currentTime.toISOString()
       }
-      , response => expect(response).to.eql({}));
+    );
+
+    expect(response.data).to.eql({});
     currentTime.add(1, 'minutes');
     let transactionId = null;
 
-    await ocpp.executeStartTransaction(context.chargeBoxIdentity,
+    response = await ocpp.executeStartTransaction(context.chargeBoxIdentity,
       {
         connectorId: connectorId,
         idTag: context.user.tagIDs[0],
         meterStart: 10000,
         timestamp: currentTime.toISOString()
-      }, response => {
-        expect(response).to.be.an('object');
-        expect(response).to.have.nested.property('transactionId');
-        expect(response).to.deep.include({
-          idTagInfo: {
-            status: 'Accepted'
-          }
-        });
-        transactionId = response.transactionId;
       });
+    expect(response.data).to.be.an('object');
+    expect(response.data).to.have.nested.property('transactionId');
+    expect(response.data).to.deep.include({
+      idTagInfo: {
+        status: 'Accepted'
+      }
+    });
+    transactionId = response.datatransactionId;
 
-    await CentralServerService.transaction.readById(transactionId, (message) => expect(message.response).to.containSubset(
+    response = await CentralServerService.transaction.readById(transactionId);
+    expect(response.data).to.containSubset(
       {
         connectorId: connectorId,
         tagID: context.user.tagIDs[0],
@@ -174,43 +181,43 @@ describe('transaction tests', function() {
           name: context.user.name,
         }
       }
-    ));
+    )
   });
 
   it('A charging station can create and complete a transaction', async () => {
     let currentTime = moment(context.currentTime);
     let connectorId = 1;
 
-    await ocpp.executeStatusNotification(context.chargeBoxIdentity,
+    let response = await ocpp.executeStatusNotification(context.chargeBoxIdentity,
       {
         connectorId: connectorId,
         status: 'Available',
         errorCode: 'NoError',
         timestamp: currentTime.toISOString()
       }
-      , response => expect(response).to.eql({}));
+    );
 
-    let transactionId = null;
+    expect(response.data).to.eql({});
 
     const transactionStartDate = currentTime.add(1, 'minutes').clone();
-    await ocpp.executeStartTransaction(context.chargeBoxIdentity,
+    response = await ocpp.executeStartTransaction(context.chargeBoxIdentity,
       {
         connectorId: connectorId,
         idTag: context.user.tagIDs[0],
         meterStart: 10000,
         timestamp: transactionStartDate.toISOString()
-      }
-      , response => {
-        expect(response).to.have.nested.property('transactionId');
-        transactionId = response.transactionId;
-        expect(response).to.containSubset({
-          idTagInfo: {
-            status: 'Accepted'
-          }
-        });
       });
 
-    await CentralServerService.transaction.readById(transactionId, (message) => expect(message.response).to.containSubset(
+    expect(response.data).to.have.nested.property('transactionId');
+    let transactionId = response.datatransactionId;
+    expect(response.data).to.containSubset({
+      idTagInfo: {
+        status: 'Accepted'
+      }
+    });
+
+    response = await CentralServerService.transaction.readById(transactionId);
+    expect(response.data).to.containSubset(
       {
         "chargeBox": {
           "connectors": [
@@ -239,18 +246,20 @@ describe('transaction tests', function() {
           name: context.user.name,
         }
       }
-    ));
+    );
 
-    await ocpp.executeStatusNotification(context.chargeBoxIdentity,
+    response = await ocpp.executeStatusNotification(context.chargeBoxIdentity,
       {
         connectorId: connectorId,
         status: 'Occupied',
         errorCode: 'NoError',
         timestamp: currentTime.add(1, 'minutes').toISOString()
       }
-      , response => expect(response).to.eql({}));
+    );
+    expect(response.data).to.eql({});
 
-    await CentralServerService.transaction.readById(transactionId, (message) => expect(message.response).to.containSubset(
+    response = await CentralServerService.transaction.readById(transactionId);
+    expect(response.data).to.containSubset(
       {
         "chargeBox": {
           "connectors": [
@@ -279,11 +288,10 @@ describe('transaction tests', function() {
           name: context.user.name,
         }
       }
-    ));
-
+    );
 
     for (let value in [...Array(10).keys()]) {
-      await ocpp.executeMeterValues(context.chargeBoxIdentity,
+      response = await ocpp.executeMeterValues(context.chargeBoxIdentity,
         {
           connectorId: connectorId,
           transactionId: transactionId,
@@ -301,9 +309,10 @@ describe('transaction tests', function() {
             }
           },
         }
-        , response => expect(response).to.eql({}));
-
-      await CentralServerService.transaction.readById(transactionId, (message) => expect(message.response).to.containSubset(
+      );
+      expect(response.data).to.eql({});
+      response = await CentralServerService.transaction.readById(transactionId);
+      expect(response.data).to.containSubset(
         {
           "chargeBox": {
             "connectors": [
@@ -332,24 +341,23 @@ describe('transaction tests', function() {
             "name": context.user.name,
           }
         }
-      ));
+      )
     }
     const transactionStopDate = currentTime.clone();
 
-    await ocpp.executeStopTransaction(context.chargeBoxIdentity,
+    response = await ocpp.executeStopTransaction(context.chargeBoxIdentity,
       {
         transactionId: transactionId,
         connectorId: connectorId,
         idTag: context.user.tagIDs[0],
         meterStart: 10000,
         timestamp: transactionStopDate.toISOString()
-      }
-      , response => {
-        expect(response.idTagInfo.status).to.eql('Accepted');
       });
+    expect(response.dataidTagInfo.status).to.eql('Accepted');
 
 
-    await CentralServerService.transaction.readById(transactionId, (message) => expect(message.response).to.containSubset(
+    response = await CentralServerService.transaction.readById(transactionId);
+    expect(response.data).to.containSubset(
       {
         "chargeBox": {
           "connectors": [
@@ -389,18 +397,19 @@ describe('transaction tests', function() {
           id: context.user.id,
           name: context.user.name,
         }
-      }));
-
-    await ocpp.executeStatusNotification(context.chargeBoxIdentity,
+      });
+    response = await ocpp.executeStatusNotification(context.chargeBoxIdentity,
       {
         connectorId: connectorId,
         status: 'Available',
         errorCode: 'NoError',
         timestamp: currentTime.add(1, "minutes").toISOString()
       }
-      , response => expect(response).to.eql({}));
+    );
+    expect(response.data).to.eql({});
 
-    await CentralServerService.transaction.readById(transactionId, (message) => expect(message.response).to.containSubset(
+    response = await CentralServerService.transaction.readById(transactionId);
+    expect(response.data).to.containSubset(
       {
         "chargeBox": {
           "connectors": [
@@ -441,8 +450,7 @@ describe('transaction tests', function() {
           name: context.user.name,
         }
       }
-    ));
-
+    );
   });
 
 });

@@ -7,11 +7,11 @@ class AuthenticationApi {
   login(email, password, acceptEula = true) {
     return this.baseApi.send({
       method: 'POST',
-      path: '/client/auth/Login',
+      url: '/client/auth/Login',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
-      payload: {
+      data: {
         email: email,
         password: password,
         acceptEula: acceptEula

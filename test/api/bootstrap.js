@@ -17,56 +17,53 @@ class Bootstrap {
     const context = {};
 
     const companyToCreate = Factory.company.build();
-    await CentralServerService.company.create(companyToCreate, async (message, response) => {
-      expect(message.status).to.equal(200);
-      expect(response.status).to.eql('Success');
-      await CentralServerService.company.readById(response.id, (message, response) => {
-        expect(message.status).to.equal(200);
-        context.company = response;
-      });
-    });
+
+    let response = await CentralServerService.company.create(companyToCreate);
+    expect(response.status).to.equal(200);
+    expect(response.data.status).to.eql('Success');
+
+    response = await CentralServerService.company.readById(response.data.id);
+    expect(response.status).to.equal(200);
+    context.company = response.data;
 
     const userToCreate = Factory.user.build();
-    await CentralServerService.user.create(userToCreate, async (message, response) => {
-      expect(message.status).to.equal(200);
-      expect(response.status).to.eql('Success');
-      await CentralServerService.user.readById(response.id, (message, response) => {
-        expect(message.status).to.equal(200);
-        context.user = response;
-      });
-    });
+    response = await CentralServerService.user.create(userToCreate);
+    expect(response.status).to.equal(200);
+    expect(response.data.status).to.eql('Success');
+
+    response = await CentralServerService.user.readById(response.data.id);
+    expect(response.status).to.equal(200);
+    context.user = response.data;
 
     const siteToCreate = Factory.site.build({companyID: context.company.id, userIDs: [context.user.id]});
-    await CentralServerService.site.create(siteToCreate, async (message, response) => {
-      expect(message.status).to.equal(200);
-      expect(response.status).to.eql('Success');
-      await CentralServerService.site.readById(response.id, (message, response) => {
-        expect(message.status).to.equal(200);
-        context.site = response;
-      });
-    });
+    response = await CentralServerService.site.create(siteToCreate);
+    expect(response.status).to.equal(200);
+    expect(response.data.status).to.eql('Success');
+
+    response = await CentralServerService.site.readById(response.data.id);
+    expect(response.status).to.equal(200);
+    context.site = response.data;
 
     context.chargePoint = Factory.chargePoint.build();
     context.chargeBoxIdentity = faker.random.alphaNumeric(12).toUpperCase();
     context.address = `${CentralServerService.url}/ChargeBox/Ocpp`;
 
-    await this.ocpp15.executeBootNotification(context.chargeBoxIdentity, context.address, context.chargePoint, response => {
-      expect(response.status).to.eql('Accepted');
-      context.currentTime = response.currentTime;
-      context.heartbeatInterval = response.heartbeatInterval;
-    });
+    response = await this.ocpp15.executeBootNotification(context.chargeBoxIdentity, context.address, context.chargePoint);
+    expect(response.data.status).to.eql('Accepted');
+    context.currentTime = response.data.currentTime;
+    context.heartbeatInterval = response.data.heartbeatInterval;
 
     const siteAreaToCreate = Factory.siteArea.build({siteID: context.site.id});
     siteAreaToCreate.chargeBoxIDs = [];
     siteAreaToCreate.chargeBoxIDs.push(context.chargeBoxIdentity);
-    await CentralServerService.siteArea.create(siteAreaToCreate, async (message, response) => {
-      expect(message.status).to.equal(200);
-      expect(response.status).to.eql('Success');
-      await CentralServerService.siteArea.readById(response.id, (message, response) => {
-        expect(message.status).to.equal(200);
-        context.siteArea = response;
-      });
-    });
+
+    response = await CentralServerService.siteArea.create(siteAreaToCreate);
+    expect(response.status).to.equal(200);
+    expect(response.data.status).to.eql('Success');
+
+    response = await CentralServerService.siteArea.readById(response.data.id);
+    expect(response.status).to.equal(200);
+    context.siteArea = response.data;
 
     return context;
   }

@@ -11,45 +11,43 @@ describe('Site tests', function() {
   let company = null;
   beforeEach(async () => {
     company = Factory.company.build();
-    await CentralServerService.company.create(company, (message, response) => {
-      expect(message.status).to.equal(200);
-      company.id = response.id;
-    });
+    let response = await CentralServerService.company.create(company);
+    expect(response.status).to.equal(200);
+    company.id = response.data.id;
   });
 
   it('should create a new site', async () => {
-    await CentralServerService.site.create(Factory.site.build({companyID: company.id}), (message, response) => {
-      expect(message.status).to.equal(200);
-      expect(response.status).to.eql('Success');
-    });
+    let response = await CentralServerService.site.create(Factory.site.build({companyID: company.id}));
+    expect(response.status).to.equal(200);
+    expect(response.data.status).to.eql('Success');
   });
 
   it('should find a newly created site from list', async () => {
     const site = Factory.site.build({companyID: company.id});
-    await CentralServerService.site.create(site, ((message, response) => {
-      site.id = response.id;
-    }));
-    await CentralServerService.site.readAll({}, (message, response) => {
-      expect(message.status).to.equal(200);
-      expect(response).to.have.property('count');
 
-      expect(response).to.have.property('result');
-      const actualSite = response.result.find((element) => element.name === site.name);
-      expect(actualSite).to.be.an('object');
-      expect(actualSite).to.containSubset(site);
-    });
+    let response = await CentralServerService.site.create(site);
+    site.id = response.data.id;
+
+    response = await CentralServerService.site.readAll({});
+    expect(response.status).to.equal(200);
+    expect(response.data).to.have.property('count');
+    expect(response.data).to.have.property('result');
+
+    const actualSite = response.data.result.find((element) => element.name === site.name);
+    expect(actualSite).to.be.an('object');
+    expect(actualSite).to.containSubset(site);
   });
 
   it('should find a specific site by id', async () => {
     const site = Factory.site.build({companyID: company.id});
-    await CentralServerService.site.create(site, (message, response) => {
-      expect(message.status).to.equal(200);
-      site.id = response.id;
-    });
-    await CentralServerService.site.readById(site.id, (message, response) => {
-      expect(message.status).to.equal(200);
-      expect(response).to.containSubset(site);
-    });
+
+    let response = await CentralServerService.site.create(site);
+    expect(response.status).to.equal(200);
+    site.id = response.data.id;
+
+    response = await CentralServerService.site.readById(site.id);
+    expect(response.status).to.equal(200);
+    expect(response.data).to.containSubset(site);
   });
 
 });

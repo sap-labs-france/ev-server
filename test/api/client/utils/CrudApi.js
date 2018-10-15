@@ -10,36 +10,36 @@ class CrudApi {
     this.updateApi = new UpdateApi(baseApi);
   }
 
-   create(payload, expectations) {
+   create(data) {
     return this.baseApi.send({
       method: 'POST',
-      path: this.serviceDefinition.create,
-      payload: payload,
-    }, expectations);
+      url: this.serviceDefinition.create,
+      data: data,
+    });
   }
 
-  readById(id, expectations) {
-    return this.readApi.readById(this.serviceDefinition.readById, id, expectations);
+  readById(id) {
+    return this.readApi.readById(this.serviceDefinition.readById, id);
   }
 
-  read(query, expectations) {
-    return this.readApi.readById(this.serviceDefinition.read, query, expectations);
+  read(query) {
+    return this.readApi.readById(this.serviceDefinition.read, query);
   }
 
-  readAll(query, expectations) {
-    return this.readApi.readAll(this.serviceDefinition.read, query, expectations);
+  readAll(query) {
+    return this.readApi.readAll(this.serviceDefinition.read, query);
   }
 
-  update(payload, expectations) {
-    return this.updateApi.update(this.serviceDefinition.read, query, expectations);
+  update(data) {
+    return this.updateApi.update(this.serviceDefinition.read, query);
   }
 
-   delete(id, expectations) {
+   delete(id) {
     return this.baseApi.send({
       method: 'DELETE',
-      path: this.serviceDefinition.delete,
-      query: {ID: id}
-    }, expectations);
+      url: this.serviceDefinition.delete,
+      params: {ID: id}
+    });
   }
 
 }

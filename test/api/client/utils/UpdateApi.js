@@ -4,12 +4,12 @@ class UpdateApi {
     this.baseApi = baseApi;
   }
 
-  update(path, payload, expectations) {
+  update(path, data) {
     return this.baseApi.send({
       method: 'PUT',
-      path: path,
-      payload: payload,
-    }, expectations);
+      url: path,
+      data: data,
+    });
   }
 }
 

@@ -6,20 +6,20 @@ class TransactionApi {
     this.readApi = new ReadApi(baseApi);
   }
 
-  readById(id, expectations) {
-    return this.readApi.readById('/client/api/Transaction/', id, expectations);
+  readById(id) {
+    return this.readApi.readById('/client/api/Transaction/', id);
   }
 
-  readAllActive(query, expectations) {
-    return this.readApi.readAll('/client/api/TransactionsActive/', query, expectations);
+  readAllActive(query) {
+    return this.readApi.readAll('/client/api/TransactionsActive/', query);
   }
 
-  readAllCompleted(query, expectations) {
-    return this.readApi.readAll('/client/api/TransactionsCompleted/', query, expectations);
+  readAllCompleted(query) {
+    return this.readApi.readAll('/client/api/TransactionsCompleted/', query);
   }
 
-  readAllYears(query, expectations) {
-    return this.readApi.readAll('/client/api/TransactionYears/', query, expectations);
+  readAllYears(query) {
+    return this.readApi.readAll('/client/api/TransactionYears/', query);
   }
 
 }

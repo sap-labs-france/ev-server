@@ -6,9 +6,10 @@ const xmlHandler = new XMLHandler();
 const config = require('../../config');
 module.exports = class Ocpp15 {
 
-  async init(url, options) {
+  async init(baseUrl, options) {
+    this.endpoint = options.endpoint;
     this.client = await new Promise(function(resolve, reject) {
-      soap.createClient(url, options, (err, client) => {
+      soap.createClient(baseUrl, options, (err, client) => {
         if (err) {
           reject(err);
         } else {
@@ -19,57 +20,57 @@ module.exports = class Ocpp15 {
     this.service = this.client['CentralSystemService']['CentralSystemServiceSoap12'];
   }
 
-  executeAuthorize(chargeBoxIdentity, payload, expectations) {
+  executeAuthorize(chargeBoxIdentity, data) {
     return this.execute({
       name: 'Authorize',
       headers: {
         chargeBoxIdentity: chargeBoxIdentity
       },
-      payload: payload
-    }, expectations);
+      data: data
+    });
   }
 
-  executeStartTransaction(chargeBoxIdentity, payload, expectations) {
+  executeStartTransaction(chargeBoxIdentity, data) {
     return this.execute({
       name: 'StartTransaction',
       headers: {
         chargeBoxIdentity: chargeBoxIdentity
       },
-      payload: payload
-    }, expectations);
+      data: data
+    });
   }
 
-  executeStopTransaction(chargeBoxIdentity, payload, expectations) {
+  executeStopTransaction(chargeBoxIdentity, data) {
     return this.execute({
       name: 'StopTransaction',
       headers: {
         chargeBoxIdentity: chargeBoxIdentity
       },
-      payload: payload
-    }, expectations);
+      data: data
+    });
   }
 
-  executeHeartbeat(chargeBoxIdentity, payload, expectations) {
+  executeHeartbeat(chargeBoxIdentity, data) {
     return this.execute({
       name: 'Heartbeat',
       headers: {
         chargeBoxIdentity: chargeBoxIdentity
       },
-      payload: payload
-    }, expectations);
+      data: data
+    });
   }
 
-  executeMeterValues(chargeBoxIdentity, payload, expectations) {
+  executeMeterValues(chargeBoxIdentity, data) {
     return this.execute({
       name: 'MeterValues',
       headers: {
         chargeBoxIdentity: chargeBoxIdentity
       },
-      payload: payload
-    }, expectations);
+      data: data
+    });
   }
 
-  executeBootNotification(chargeBoxIdentity, address, payload, expectations) {
+  executeBootNotification(chargeBoxIdentity, address, data) {
     return this.execute({
       name: 'BootNotification',
       headers: {
@@ -78,48 +79,48 @@ module.exports = class Ocpp15 {
           Address: address
         }
       },
-      payload: payload
-    }, expectations);
+      data: data
+    });
   }
 
-  executeStatusNotification(chargeBoxIdentity, payload, expectations) {
+  executeStatusNotification(chargeBoxIdentity, data) {
     return this.execute({
       name: 'StatusNotification',
       headers: {
         chargeBoxIdentity: chargeBoxIdentity
       },
-      payload: payload
-    }, expectations);
+      data: data
+    });
   }
 
-  executeFirmwareStatusNotification(chargeBoxIdentity, payload, expectations) {
+  executeFirmwareStatusNotification(chargeBoxIdentity, data) {
     return this.execute({
       name: 'FirmwareStatusNotification',
       headers: {
         chargeBoxIdentity: chargeBoxIdentity
       },
-      payload: payload
-    }, expectations);
+      data: data
+    });
   }
 
-  executeDiagnosticsStatusNotification(chargeBoxIdentity, payload, expectations) {
+  executeDiagnosticsStatusNotification(chargeBoxIdentity, data) {
     return this.execute({
       name: 'DiagnosticsStatusNotification',
       headers: {
         chargeBoxIdentity: chargeBoxIdentity
       },
-      payload: payload
-    }, expectations);
+      data: data
+    });
   }
 
-  executeDataTransfer(chargeBoxIdentity, payload, expectations) {
+  executeDataTransfer(chargeBoxIdentity, data) {
     return this.execute({
       name: 'DataTransfer',
       headers: {
         chargeBoxIdentity: chargeBoxIdentity
       },
-      payload: payload
-    }, expectations);
+      data: data
+    });
   }
 
 
@@ -127,36 +128,46 @@ module.exports = class Ocpp15 {
     return actionName.replace(/^\w/, c => c.toLowerCase()).concat("Request")
   }
 
-  async execute(action, expectations, options) {
-    const payload = {};
-    payload[this.getRequestNameFromAction(action.name)] = action.payload;
-    const response = await this.send(this.service[action.name], payload, options, action.headers);
-    await expectations(response);
+  async execute(action, options) {
+    const data = {};
+    data[this.getRequestNameFromAction(action.name)] = action.data;
+    const response = await this.send(this.service[action.name], data, options, action.headers);
     return response;
   }
 
-  async send(method, payload, options, headers) {
+  async send(method, data, options, headers) {
     this.client.clearSoapHeaders();
     this.client.addSoapHeader(headers);
-    const {result, envelope, soapHeader} = await method(payload, options, headers);
-    if (config.get('trace_logs')) {
-      console.log('<!-- Request -->');
-      console.log(this.client.lastRequest);
-      if (soapHeader) {
-        console.log('<!-- Response Header -->');
-        console.log(soapHeader)
-      }
-      console.log('<!-- Response Envelope -->');
-      console.log(envelope);
-      console.log('\n');
-    }
+    console.log(JSON.stringify(
+      {
+        endpoint: this.endpoint,
+        headers: headers,
+        ...data,
+        options: options
+      }, null, 2));
+    const {result, envelope, soapHeader} = await method(data, options, headers);
+    // if (config.get('trace_logs')) {
+    //   console.log('<!-- Request -->');
+    //   console.log(this.client.lastRequest);
+    //   if (soapHeader) {
+    //     console.log('<!-- Response Header -->');
+    //     console.log(soapHeader)
+    //   }
+    //   console.log('<!-- Response Envelope -->');
+    //   console.log(envelope);
+    //   console.log('\n');
+    // }
 
-
-    return result || {};
+    const response = {
+      headers: soapHeader || {},
+      data: result || {}
+    };
+    console.log(JSON.stringify(response, null, 2));
+    return response;
   }
 
-  xmlToJson(payload) {
-    const xml = XMLHandler.parseXml(null, payload);
+  xmlToJson(data) {
+    const xml = XMLHandler.parseXml(null, data);
     return xmlHandler.xmlToJson(null, xml, null);
   }
 
