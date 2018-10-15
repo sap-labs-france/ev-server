@@ -74,7 +74,7 @@ const config = convict({
 
 // Load environment dependent configuration
 const env = config.get('env');
-const fileName = './config/tests/' + env + '.json';
+const fileName = './test/config/' + env + '.json';
 
 if (fs.existsSync(fileName)) {
   config.loadFile(fileName);

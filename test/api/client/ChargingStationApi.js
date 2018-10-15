@@ -1,5 +1,5 @@
-const ReadApi = require('./utils/readApi');
-const UpdateApi = require('./utils/updateApi');
+const ReadApi = require('./utils/ReadApi');
+const UpdateApi = require('./utils/UpdateApi');
 
 class TransactionApi {
 

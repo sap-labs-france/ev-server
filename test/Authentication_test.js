@@ -2,7 +2,7 @@ const {expect} = require('chai');
 const chai = require('chai');
 const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
-const BaseApi = require('./api/client/utils/baseApi');
+const BaseApi = require('./api/client/utils/BaseApi');
 const config = require('./config');
 
 

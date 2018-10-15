@@ -2,23 +2,18 @@ const {expect} = require('chai');
 const chai = require('chai');
 const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
-const UserApi = require('./api/client/user');
-const UserFactory = require('./factories/user');
-const BaseApi = require('./api/client/utils/baseApi');
-const AuthenticatedBaseApi = require('./api/client/utils/authenticatedBaseApi');
-const config = require('./config');
+const CentralServerService = require('./api/client/CentralServerService');
+const Factory = require('./factories/Factory');
 
 describe('User tests', function() {
   this.timeout(10000);
-  const authenticatedBaseApi = new AuthenticatedBaseApi(config.get('admin.username'), config.get('admin.password'), new BaseApi(`${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`));
-  let userApi = null;
+  const centralServerService = new CentralServerService();
 
   before(async () => {
-    userApi = new UserApi(authenticatedBaseApi);
   });
 
   it('should create a new user', async () => {
-    await userApi.create(UserFactory.build(), (message, response) => {
+    await centralServerService.user.create(Factory.user.build(), (message, response) => {
       expect(message.status).to.equal(200);
       expect(response.status).to.eql('Success');
       expect(response).to.have.property('id');
@@ -27,9 +22,9 @@ describe('User tests', function() {
   });
 
   it('should find a newly created user from list', async () => {
-    const user = UserFactory.build();
+    const user = Factory.user.build();
 
-    await userApi.create(user, ((message, response) => {
+    await centralServerService.user.create(user, ((message, response) => {
       user.id = response.id;
     }));
 
@@ -37,7 +32,7 @@ describe('User tests', function() {
     delete user.captcha;
     delete user.passwords;
 
-    await userApi.readAll({}, (message, response) => {
+    await centralServerService.user.readAll({}, (message, response) => {
       expect(message.status).to.equal(200);
       expect(response).to.have.property('count');
       expect(response).to.have.property('result');
@@ -49,8 +44,8 @@ describe('User tests', function() {
   });
 
   it('should find a specific user by id', async () => {
-    const user = UserFactory.build();
-    await userApi.create(user, ((message, response) => {
+    const user = Factory.user.build();
+    await centralServerService.user.create(user, ((message, response) => {
       user.id = response.id;
     }));
 
@@ -58,7 +53,7 @@ describe('User tests', function() {
     delete user.captcha;
     delete user.passwords;
 
-    await userApi.readById(user.id, (message, response) => {
+    await centralServerService.user.readById(user.id, (message, response) => {
       expect(message.status).to.equal(200);
       expect(response).to.containSubset(user);
     });

@@ -2,21 +2,10 @@ const {expect} = require('chai');
 const chai = require('chai');
 const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
-const CompanyApi = require('./api/client/company');
-const SiteApi = require('./api/client/site');
-const SiteAreaApi = require('./api/client/siteArea');
-const CompanyFactory = require('./factories/company');
-const SiteAreaFactory = require('./factories/siteArea');
-const SiteFactory = require('./factories/site');
-const BaseApi = require('./api/client/utils/baseApi');
-const AuthenticatedBaseApi = require('./api/client/utils/authenticatedBaseApi');
-const config = require('./config');
+const Factory = require('./factories/Factory');
+const CentralServerService = require('./api/client/CentralServerService');
 
-const authenticatedBaseApi = new AuthenticatedBaseApi(config.get('admin.username'), config.get('admin.password'), new BaseApi(`${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`));
-let companyApi = new CompanyApi(authenticatedBaseApi);
-let siteApi = new SiteApi(authenticatedBaseApi);
-let siteAreaApi = new SiteAreaApi(authenticatedBaseApi);
-
+const centralServerService = new CentralServerService();
 
 describe('SiteArea tests', function() {
   this.timeout(10000);
@@ -25,14 +14,14 @@ describe('SiteArea tests', function() {
     let company = null;
 
     beforeEach(async function() {
-      company = CompanyFactory.build();
-      await companyApi.create(company, (message, response) => {
+      company = Factory.company.build();
+      await centralServerService.company.create(company, (message, response) => {
         expect(message.status).to.equal(200);
         company.id = response.id;
       });
 
-      site = SiteFactory.build({companyID: company.id});
-      await siteApi.create(site, (message, response) => {
+      site = Factory.site.build({companyID: company.id});
+      await centralServerService.site.create(site, (message, response) => {
         expect(message.status).to.equal(200);
         site.id = response.id;
       });
@@ -40,7 +29,7 @@ describe('SiteArea tests', function() {
     });
 
     it('should create a new SiteAreaArea', async function() {
-      await siteAreaApi.create(SiteAreaFactory.build({siteID: site.id}), (message, response) => {
+      await centralServerService.siteArea.create(Factory.siteArea.build({siteID: site.id}), (message, response) => {
         expect(message.status).to.equal(200);
         expect(response.status).to.eql('Success');
         expect(response).to.have.property('id');
@@ -49,11 +38,11 @@ describe('SiteArea tests', function() {
     });
 
     it('should find a newly created siteArea from list', async function() {
-      const siteArea = SiteAreaFactory.build({siteID: site.id});
-      await siteAreaApi.create(siteArea, ((message, response) => {
+      const siteArea = Factory.siteArea.build({siteID: site.id});
+      await centralServerService.siteArea.create(siteArea, ((message, response) => {
         siteArea.id = response.id;
       }));
-      await siteAreaApi.readAll({}, (message, response) => {
+      await centralServerService.siteArea.readAll({}, (message, response) => {
         expect(message.status).to.equal(200);
         expect(response).to.have.property('count');
 
@@ -65,12 +54,12 @@ describe('SiteArea tests', function() {
     });
 
     it('should find a specific siteArea by id', async function() {
-      const siteArea = SiteAreaFactory.build({siteID: site.id});
-      await siteAreaApi.create(siteArea, ((message, response) => {
+      const siteArea = Factory.siteArea.build({siteID: site.id});
+      await centralServerService.siteArea.create(siteArea, ((message, response) => {
         expect(message.status).to.equal(200);
         siteArea.id = response.id;
       }));
-      await siteAreaApi.readById(siteArea.id, (message, response) => {
+      await centralServerService.siteArea.readById(siteArea.id, (message, response) => {
         expect(message.status).to.equal(200);
         expect(response).to.containSubset(siteArea);
       });
@@ -78,8 +67,8 @@ describe('SiteArea tests', function() {
   });
   describe('Error cases', function() {
     it('should not create a siteArea without a referenced site', async function() {
-      const siteArea = SiteAreaFactory.build({siteID: null});
-      await siteAreaApi.create(siteArea, (message, response) => {
+      const siteArea = Factory.siteArea.build({siteID: null});
+      await centralServerService.siteArea.create(siteArea, (message, response) => {
         expect(message.status).to.equal(500);
       });
     });

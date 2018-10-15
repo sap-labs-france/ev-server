@@ -2,23 +2,16 @@ const {expect} = require('chai');
 const chai = require('chai');
 const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
-const CompanyApi = require('./api/client/company')
-const CompanyFactory = require('./factories/company')
-const BaseApi = require('./api/client/utils/baseApi')
-const AuthenticatedBaseApi = require('./api/client/utils/authenticatedBaseApi')
-const config = require('./config');
+const CentralServerService = require('./api/client/CentralServerService');
+const Factory = require('./factories/Factory');
+
 
 describe('Company tests', function() {
   this.timeout(10000);
-  const authenticatedBaseApi = new AuthenticatedBaseApi(config.get('admin.username'), config.get('admin.password'), new BaseApi(`${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`));
-  let companyApi = null;
-
-  before(async () => {
-    companyApi = new CompanyApi(authenticatedBaseApi);
-  });
+  const centralServerService = new CentralServerService();
 
   it('should create a new company', async () => {
-    await companyApi.create(CompanyFactory.build(), (message, response) => {
+    await centralServerService.company.create(Factory.company.build(), (message, response) => {
       expect(message.status).to.equal(200);
       expect(response.status).to.eql('Success');
       expect(response).to.have.property('id');
@@ -27,12 +20,12 @@ describe('Company tests', function() {
   });
 
   it('should find a newly created company from list', async () => {
-    const company = CompanyFactory.build();
-    await companyApi.create(company, ((message, response) => {
+    const company = Factory.company.build();
+    await centralServerService.company.create(company, ((message, response) => {
       company.id = response.id;
     }));
 
-    await companyApi.readAll({}, (message, response) => {
+    await centralServerService.company.readAll({}, (message, response) => {
       expect(message.status).to.equal(200);
       expect(response).to.have.property('count');
 
@@ -44,12 +37,12 @@ describe('Company tests', function() {
   });
 
   it('should find a specific company by id', async () => {
-    const company = CompanyFactory.build();
-    await companyApi.create(company, ((message, response) => {
+    const company = Factory.company.build();
+    await centralServerService.company.create(company, ((message, response) => {
       company.id = response.id;
     }));
 
-    await companyApi.readById(company.id, (message, response) => {
+    await centralServerService.company.readById(company.id, (message, response) => {
       expect(message.status).to.equal(200);
       expect(response).to.containSubset(company);
     });

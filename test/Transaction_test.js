@@ -5,17 +5,13 @@ const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
 const Ocpp15 = require('./api/soap/ocpp15');
 const Bootstrap = require('./api/bootstrap');
-const TransactionApi = require('./api/client/transaction');
-const BaseApi = require('./api/client/utils/baseApi');
-const AuthenticatedBaseApi = require('./api/client/utils/authenticatedBaseApi');
-const config = require('./config');
+const CentralServerService = require('./api/client/CentralServerService');
 
 describe('transaction tests', function() {
   const ocpp = new Ocpp15();
-  const authenticatedBaseApi = new AuthenticatedBaseApi(config.get('admin.username'), config.get('admin.password'), new BaseApi(`${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`));
-  let transactionApi = new TransactionApi(authenticatedBaseApi);
+  const centralServerService = new CentralServerService();
   let context = null;
-  let bootstrap = new Bootstrap(authenticatedBaseApi, ocpp);
+  let bootstrap = new Bootstrap();
   this.timeout(100000);
 
   before(async () => {
@@ -83,7 +79,7 @@ describe('transaction tests', function() {
         transactionId = response.transactionId;
       });
 
-    await transactionApi.readById(transactionId, (message) => expect(message.response).to.containSubset(
+    await centralServerService.transaction.readById(transactionId, (message) => expect(message.response).to.containSubset(
       {
         connectorId: connectorId,
         tagID: context.user.tagIDs[0],
@@ -148,7 +144,7 @@ describe('transaction tests', function() {
         transactionId = response.transactionId;
       });
 
-    await transactionApi.readById(transactionId, (message) => expect(message.response).to.containSubset(
+    await centralServerService.transaction.readById(transactionId, (message) => expect(message.response).to.containSubset(
       {
         connectorId: connectorId,
         tagID: context.user.tagIDs[0],
@@ -214,7 +210,7 @@ describe('transaction tests', function() {
         });
       });
 
-    await transactionApi.readById(transactionId, (message) => expect(message.response).to.containSubset(
+    await centralServerService.transaction.readById(transactionId, (message) => expect(message.response).to.containSubset(
       {
         "chargeBox": {
           "connectors": [
@@ -254,7 +250,7 @@ describe('transaction tests', function() {
       }
       , response => expect(response).to.eql({}));
 
-    await transactionApi.readById(transactionId, (message) => expect(message.response).to.containSubset(
+    await centralServerService.transaction.readById(transactionId, (message) => expect(message.response).to.containSubset(
       {
         "chargeBox": {
           "connectors": [
@@ -307,7 +303,7 @@ describe('transaction tests', function() {
         }
         , response => expect(response).to.eql({}));
 
-      await transactionApi.readById(transactionId, (message) => expect(message.response).to.containSubset(
+      await centralServerService.transaction.readById(transactionId, (message) => expect(message.response).to.containSubset(
         {
           "chargeBox": {
             "connectors": [
@@ -353,7 +349,7 @@ describe('transaction tests', function() {
       });
 
 
-    await transactionApi.readById(transactionId, (message) => expect(message.response).to.containSubset(
+    await centralServerService.transaction.readById(transactionId, (message) => expect(message.response).to.containSubset(
       {
         "chargeBox": {
           "connectors": [
@@ -404,7 +400,7 @@ describe('transaction tests', function() {
       }
       , response => expect(response).to.eql({}));
 
-    await transactionApi.readById(transactionId, (message) => expect(message.response).to.containSubset(
+    await centralServerService.transaction.readById(transactionId, (message) => expect(message.response).to.containSubset(
       {
         "chargeBox": {
           "connectors": [

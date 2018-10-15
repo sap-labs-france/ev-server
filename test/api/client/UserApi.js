@@ -1,4 +1,4 @@
-const CrudApi = require('./utils/crudApi');
+const CrudApi = require('./utils/CrudApi');
 
 class UserApi extends CrudApi {
 
