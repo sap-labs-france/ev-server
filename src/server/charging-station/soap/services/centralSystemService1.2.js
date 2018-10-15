@@ -12,7 +12,7 @@ module.exports = { /* Services */
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "Authorize", args, headers);
 				// Handle
-				global.centralSystemSoap.handleAuthorize(args, headers, req).then(function(result) {
+				global.centralSystemSoap.handleAuthorize(Object.assign(args, headers)).then(function(result) {
 					// Log
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "Authorize", {
 						"result": result
@@ -50,7 +50,7 @@ module.exports = { /* Services */
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StartTransaction", args, headers);
 				// Handle
-				global.centralSystemSoap.handleStartTransaction(args, headers, req).then(function(result) {
+				global.centralSystemSoap.handleStartTransaction(Object.assign(args, headers)).then(function(result) {
 					// Log
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StartTransaction", {
 						"result": result
@@ -91,7 +91,7 @@ module.exports = { /* Services */
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StopTransaction", args, headers);
 				// Handle
-				global.centralSystemSoap.handleStopTransaction(args, headers, req).then(function(result) {
+				global.centralSystemSoap.handleStopTransaction(Object.assign(args, headers)).then(function(result) {
 					// Log
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StopTransaction", {
 						"result": result
@@ -131,7 +131,7 @@ module.exports = { /* Services */
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "Heartbeat", args, headers);
 				// Handle
-				global.centralSystemSoap.handleHeartBeat(args, headers, req).then(function(result) {
+				global.centralSystemSoap.handleHeartBeat(Object.assign(args, headers)).then(function(result) {
 					// Log
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "Heartbeat", {
 						"result": result
@@ -161,7 +161,7 @@ module.exports = { /* Services */
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "MeterValues", args, headers);
 				// Handle
-				global.centralSystemSoap.handleMeterValues(args, headers, req).then(function(result) {
+				global.centralSystemSoap.handleMeterValues(Object.assign(args, headers)).then(function(result) {
 					// Return the result async
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "MeterValues", {
 						"result": result
@@ -194,13 +194,13 @@ module.exports = { /* Services */
 			},
 			BootNotification: function(args, callback, headers, req) {
 				// Add OCPP Version
-				args.ocppVersion = '1.2';
+				headers.ocppVersion = '1.2';
 				// Normalize Header
 				Utils.normalizeSOAPHeader(headers);
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "BootNotification", args, headers);
 				// Handle
-				global.centralSystemSoap.handleBootNotification(args, headers, req).then(function(result) {
+				global.centralSystemSoap.handleBootNotification(Object.assign(args, headers)).then(function(result) {
 					// Log
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "BootNotification", {
 						"result": result
@@ -239,7 +239,7 @@ module.exports = { /* Services */
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StatusNotification", args, headers);
 				// Handle
-				global.centralSystemSoap.handleStatusNotification(args, headers, req).then(function(result) {
+				global.centralSystemSoap.handleStatusNotification(Object.assign(args, headers)).then(function(result) {
 					// Log
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StatusNotification", {
 						"result": result
@@ -271,7 +271,7 @@ module.exports = { /* Services */
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "FirmwareStatusNotification", args, headers);
 				// Handle
-				global.centralSystemSoap.handleFirmwareStatusNotification(args, headers, req).then(function(result) {
+				global.centralSystemSoap.handleFirmwareStatusNotification(Object.assign(args, headers)).then(function(result) {
 					// Log
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "FirmwareStatusNotification", {
 						"result": result
@@ -301,7 +301,7 @@ module.exports = { /* Services */
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", args, headers);
 				// Handle
-				global.centralSystemSoap.handleDiagnosticsStatusNotification(args, headers, req).then(function(result) {
+				global.centralSystemSoap.handleDiagnosticsStatusNotification(Object.assign(args, headers)).then(function(result) {
 					// Log
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", {
 						"result": result
