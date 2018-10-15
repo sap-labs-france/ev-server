@@ -858,12 +858,27 @@ class ChargingStation {
 
 			// Check OCPP 1.6
 			if (value.sampledValue) {
-				// Normalize
-				value.value = value.sampledValue;
-			}
+				if (Array.isArray(value.sampledValue)) {
+					for (const sampledValue of value.sampledValue) {
+						// Normalize
+						value.value = sampledValue.value;
+						newMeterValue.attribute = {};
+						newMeterValue.attribute.context = (sampledValue.hasOwnProperty('context') ? sampledValue.context : "Sample.Periodic");
+						newMeterValue.attribute.format = (sampledValue.hasOwnProperty('format') ? sampledValue.format : "Raw");
+						newMeterValue.attribute.measurand = (sampledValue.hasOwnProperty('measurand') ? sampledValue.measurand : "Energy.Active.Import.Register");
+						newMeterValue.attribute.location = (sampledValue.hasOwnProperty('location') ? sampledValue.location : "Outlet");
+						newMeterValue.attribute.unit = (sampledValue.hasOwnProperty('unit') ? sampledValue.unit : "Wh");
+						newMeterValue.value = parseInt(value.value);
+						newMeterValues.values.push(newMeterValue);
+					}
+				} else {
+					// Normalize
+					value.value = value.sampledValue;
+					newMeterValue.value = parseInt(value.value);
+					newMeterValues.values.push(newMeterValue);
+				}
 
-			// Values provided?
-			if (value.value) {
+			} else if (value.value) { // Values provided?
 				// OCCP1.2: Set the values
 				if(value.value.$value) {
 					// Set
@@ -872,9 +887,10 @@ class ChargingStation {
 				} else {
 					newMeterValue.value = parseInt(value.value);
 				}
+				// Add
+				newMeterValues.values.push(newMeterValue);
 			}
-			// Add
-			newMeterValues.values.push(newMeterValue);
+			
 		}
 		// Compute consumption?
 		if (meterValues.transactionId) {

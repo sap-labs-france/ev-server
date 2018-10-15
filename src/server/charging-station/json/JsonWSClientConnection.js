@@ -12,13 +12,12 @@ const CALLERROR_MESSAGE = 4; // Server-to-Client
 const OCPPError = require('./OcppError');
 const OCPPErrorValues = require('./OcppErrorConstants');
 
-const debug = (message) => { console.log(message); };
 const _moduleName = "centralSystemJSONService";
 
 class JsonWSClientConnection {
 
     constructor(socket, req) {
-//        this._commands = new Commands();
+
         this._socket = socket;
         this._req = req;
         this._requests = {};
@@ -30,8 +29,6 @@ class JsonWSClientConnection {
                 module: _moduleName, method: "constructor", action: "connection",
                 message: `New connection from "${ip}", protocol "${socket.protocol}", url "${this._url}"`
             });
-
-            debug(`New connection from "${ip}", protocol "${socket.protocol}", url "${this._url}"`);
 
             if (this._url.startsWith("/OCPP16/") === false) { //In princple already checked in connection opening from server
                 throw new Error("invalid url");
@@ -69,16 +66,15 @@ class JsonWSClientConnection {
                 module: _moduleName, method: "OnError", action: "connectionError",
                 message: err
             });
-            debug(err);
+//            debug(err);
         });
 
         socket.on('close', (code, reason) => {
-            Logging.logInfo({
+            Logging.logWarning({
                 module: _moduleName, method: "OnClose", action: "connectionClose",
-                message: {code: code, reason: reason}
+                message: JSON.stringify({code: code, reason: reason}, null, " ")
             });
-            debug("client closed ", code, " ", reason);
-            global.centralSystemJson.closeConnection(this.getChargeBoxId());
+//            global.centralSystemJson.closeConnection(this.getChargeBoxId());
         })
     }
 
@@ -94,8 +90,8 @@ class JsonWSClientConnection {
         switch (messageType) {
             case CALL_MESSAGE:
                 // request 
-                debug(`>> url ${this._url} message: ${message} type: ${messageType} commandNameOrPayload: ${commandNameOrPayload} commandPayload: ${commandPayload}`);
-                Logging.logReceivedAction(_moduleName, this._headers.chargeBoxIdentity, commandNameOrPayload, commandPayload, message);
+//                debug(`>> url ${this._url} message: ${message} type: ${messageType} commandNameOrPayload: ${commandNameOrPayload} commandPayload: ${commandPayload}`);
+                Logging.logReceivedAction(_moduleName, this._headers.chargeBoxIdentity, commandNameOrPayload, message, this._headers);
 
                 try {
                     // Check if method exist in central server
@@ -103,7 +99,6 @@ class JsonWSClientConnection {
                         global.centralSystemJson["handle" + commandNameOrPayload](Object.assign(commandPayload, this._headers)).then( (result) => {
                             // get answer from central server
                             // response should like { commandNameRespons : { attributes of teh response } }
-                            debug("promise response to " + commandNameOrPayload + " is " + JSON.stringify(result) );
                             Logging.logReturnedAction(_moduleName, this._headers.chargeBoxIdentity, commandNameOrPayload, {
                                 "result": result
                             });
@@ -112,32 +107,35 @@ class JsonWSClientConnection {
                             if (result.hasOwnProperty(reponseNameProperty)) {
                                 this.sendMessage(messageId, result[reponseNameProperty], CALLRESULT_MESSAGE).then((result) => {
                                 }, (error) => {
-                                    debug("Response rejected");
                                     Logging.logError({ module: _moduleName, method: "sendMessage", action: "promiseError",
-                                                    message: {message: messageId, error: error}  });
+                                                    message: {message: messageId, error: JSON.stringify(error, null, " ")}  });
                                 });
                             } else {
                                 // TO DO what shall we do if we did not code it correctly :)
                             }
                         });
                     } else {
-                        return await this.sendError(messageId, new OCPPError(OCPPErrorValues.ERROR_NOTIMPLEMENTED, "")).then((result) => {
-                            debug("Error sent " + result );
+                        let error = new OCPPError(OCPPErrorValues.ERROR_NOTIMPLEMENTED, "");
+                        return await this.sendError(messageId, error).then((result) => {
+                            Logging.logError({ module: _moduleName, method: "sendMessage", action: "NOT_IMPLEMENTED",
+                                                    message: {message: messageId, error: JSON.stringify(error, null, " ")}  });
                         });    
                     }
-                    
-//                    await this.sendMessage(messageId, responseObj, CALLRESULT_MESSAGE);
                 } catch (err) {
                     // send error if payload didn't pass the validation
-                    return await this.sendError(messageId, new OCPPError(OCPPErrorValues.ERROR_FORMATIONVIOLATION, err.message)).then((result) => {
-                        debug("Error sent " + result );
+                    let error = new OCPPError(OCPPErrorValues.ERROR_FORMATIONVIOLATION, err.message);
+                    return await this.sendError(messageId, error).then((result) => {
+                        Logging.logError({ module: _moduleName, method: "sendMessage", action: "FORMATVIOLATION",
+                                                    message: {message: messageId, error: JSON.stringify(error, null, " ")}  });
                     });
                 }
                 break;
             case CALLRESULT_MESSAGE:
                 // response
 //                debug(`>> ${this._url}: ${message}`);
-
+                Logging.logReturnedAction(_moduleName, this._headers.chargeBoxIdentity, commandNameOrPayload, {
+                    "result": message
+                });
                 const [responseCallback] = this._requests[messageId];
                 if (!responseCallback) {
                     throw new Error(`Response for unknown message ${messageId}`);
@@ -149,6 +147,8 @@ class JsonWSClientConnection {
             case CALLERROR_MESSAGE:
                 // error response
 //                debug(`>> ERROR ${this._url}: ${message}`);
+                Logging.logError({ module: _moduleName, method: "sendMessage", action: "ErrorMessage",
+                            message: {message: messageId, error: JSON.stringify(message, null, " ")}  });
 
                 if (!this._requests[messageId]) {
                     throw new Error(`Response for unknown message ${messageId}`);
@@ -168,9 +168,9 @@ class JsonWSClientConnection {
     }
 
     sendError(messageId, err) {
-        debug(`Error: ${err.message}`);
-        Logging.logError({ module: _moduleName, method: "sendError", action: "OCPPError",
-        message: {message: messageId, error: err}  });
+//        debug(`Error: ${err.message}`);
+//        Logging.logError({ module: _moduleName, method: "sendError", action: "OCPPError",
+//        message: JSON.stringify({message: messageId, error: err}, null, " ")  });
 
         const error = err instanceof OCPPError ? err : new OCPPError(OCPPErrorValues.ERROR_INTERNALERROR, err.message);
 
@@ -203,7 +203,7 @@ class JsonWSClientConnection {
                     break;
             }
 
-            debug(`<< ${messageToSend}`);
+//            debug(`<< ${messageToSend}`);
             if (socket.readyState === 1) {
                 socket.send(messageToSend);
             } else {
@@ -233,27 +233,35 @@ class JsonWSClientConnection {
     }
 
     startTransaction(idTag, connectorId, chargingProfile = {}) {
-        return this.sendMessage(uuid(), { connectorId:connectorId, idTag: idTag, chargingProfile: chargingProfile}, 2, "RemoteStartTransaction").then(
+        let payload = { connectorId:connectorId, idTag: idTag};
+        chargingProfile = testProfileFlo;
+        if (chargingProfile !== null && Object.getOwnPropertyNames(chargingProfile).length > 0 ) {
+            payload.chargingProfile = chargingProfile;
+        }
+
+        return this.sendMessage(uuid(), payload, 2, "RemoteStartTransaction").then(
                 (payload)=> { 
                     return payload; 
                 }, 
                 (error)=> { 
-                    debug("sendMessage ERROR result", error);
+//                    debug("sendMessage ERROR result", error);
                     Logging.logError({ module: _moduleName, method: "startTransaction", action: "sendMessage",
-                                                    message: error  });
+                                                    message: JSON.stringify(error, null, " ")  });
+                    throw error;
                 } );
             //, meterStart: 32, timestamp: date }
     }
 
     reset(type) {
-        return this.sendMessage(uuid(), {resetType:type}, 2, "Reset").then(
+        return this.sendMessage(uuid(), {type:type}, 2, "Reset").then(
             (payload)=> { 
                 return payload; 
             }, 
             (error)=> { 
-                debug("sendMessage ERROR result", error);
+//                debug("sendMessage ERROR result", error);
                 Logging.logError({ module: _moduleName, method: "reset", action: "sendMessage",
-                                                message: error  });
+                                                message: JSON.stringify(error, null, " ")  });
+                throw error;
             } );
 	}
 
@@ -263,9 +271,10 @@ class JsonWSClientConnection {
                 return payload; 
             }, 
             (error)=> { 
-                debug("sendMessage ERROR result", error);
+//                debug("sendMessage ERROR result", error);
                 Logging.logError({ module: _moduleName, method: "clearCache", action: "sendMessage",
-                                                message: error  });
+                                                message: JSON.stringify(error, null, " ")  });
+                throw error;
             } );
 	}
 
@@ -275,9 +284,10 @@ class JsonWSClientConnection {
                 return payload; 
             }, 
             (error)=> { 
-                debug("sendMessage ERROR result", error);
+//                debug("sendMessage ERROR result", error);
                 Logging.logError({ module: _moduleName, method: "getConfiguration", action: "sendMessage",
-                                                message: error  });
+                                                message: JSON.stringify(error, null, " ")  });
+                throw error;
             } );
 	}
 
@@ -287,9 +297,10 @@ class JsonWSClientConnection {
                 return payload; 
             }, 
             (error)=> { 
-                debug("sendMessage ERROR result", error);
+//                debug("sendMessage ERROR result", error);
                 Logging.logError({ module: _moduleName, method: "ChangeConfiguration", action: "sendMessage",
-                                                message: error  });
+                                                message: JSON.stringify(error, null, " ")  });
+                throw error;
             } );
 	}
 
@@ -299,9 +310,10 @@ class JsonWSClientConnection {
                 return payload; 
             }, 
             (error)=> { 
-                debug("sendMessage ERROR result", error);
+//                debug("sendMessage ERROR result", error);
                 Logging.logError({ module: _moduleName, method: "stopTransaction", action: "sendMessage",
-                                                message: error  });
+                                                message: JSON.stringify(error, null, " ")  });
+                throw error;
             } );
 	}
 
@@ -311,9 +323,10 @@ class JsonWSClientConnection {
                 return payload; 
             }, 
             (error)=> { 
-                debug("sendMessage ERROR result", error);
+//                debug("sendMessage ERROR result", error);
                 Logging.logError({ module: _moduleName, method: "unlockConnector", action: "sendMessage",
-                                                message: error  });
+                                                message: JSON.stringify(error, null, " ")  });
+                throw error;
             } );
 	}
 }

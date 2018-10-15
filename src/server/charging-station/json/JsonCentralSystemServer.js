@@ -9,7 +9,7 @@ const JsonWSClientConnection = require ('./JsonWSClientConnection');
 let _centralSystemConfig;
 let _chargingStationConfig;
 
-const debug = (message) => { console.log(message); };
+//const debug = (message) => { console.log(message); };
 
 class JsonCentralSystemServer extends CentralSystemServer {
     
@@ -32,14 +32,22 @@ class JsonCentralSystemServer extends CentralSystemServer {
 			let options = {};
 			// Set the keys
 			options.key = fs.readFileSync(_centralSystemConfig["ssl-key"]);
-			options.cert = fs.readFileSync(_centralSystemConfig["ssl-cert"]);
+            options.cert = fs.readFileSync(_centralSystemConfig["ssl-cert"]);
+            Logging.logDebug({
+                module: "JsonCentralSystemServer", method: "start", action: "",
+                message: `Starting JSON HTTPS Server`
+            });
 			// Https server
 			server = https.createServer(options, (req, res) => {
                 res.writeHead(200);
                 res.end('No support\n');
             });
 		} else {
-            debug("JSON: Starting HTTP server");
+//            debug("JSON: Starting HTTP server");
+            Logging.logDebug({
+                module: "JsonCentralSystemServer", method: "start", action: "",
+                message: `Starting JSON HTTP Server`
+            });
 			// Http server
 			server = http.createServer((req, res) => {
                 res.writeHead(200);
@@ -48,9 +56,9 @@ class JsonCentralSystemServer extends CentralSystemServer {
 		}
 
         var verifyClient = function(info) {
-            debug("Verify connection : ", info.origin, info.req, info.secure);
+//            debug("Verify connection : ", info.origin, info.req, info.secure);
             if (info.req.url.startsWith("/OCPP16/") === false) {
-                Logging.logInfo({
+                Logging.logError({
                     module: "JsonCentralSystemServer", method: "verifyClient", action: "connection",
                     message: `Invalid connection URL ${info.req} from ${info.origin}`
                 });              
@@ -89,7 +97,7 @@ class JsonCentralSystemServer extends CentralSystemServer {
                     module: "JsonCentralSystemServer", method: "onConnection", action: "socketError",
                     message: `Connection Error ${error}`
                 });
-                debug("On Connection error : " + error.message);
+//                debug("On Connection error : " + error.message);
                 ws.close(1007, error.message);
             }
         });
@@ -100,7 +108,7 @@ class JsonCentralSystemServer extends CentralSystemServer {
                 module: "JsonCentralSystemServer", method: "start", action: "Startup",
                 message: `JSON Central System Server (Charging Stations) listening on '${_centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`
             });
-            debug(`JSON Central System Server (Charging Stations) listening on '${_centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`);
+//            debug(`JSON Central System Server (Charging Stations) listening on '${_centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`);
         });
         
     }
