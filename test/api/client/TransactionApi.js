@@ -10,16 +10,16 @@ class TransactionApi {
     return this.readApi.readById('/client/api/Transaction/', id);
   }
 
-  readAllActive(query) {
-    return this.readApi.readAll('/client/api/TransactionsActive/', query);
+  readAllActive(params) {
+    return this.readApi.readAll('/client/api/TransactionsActive/', params);
   }
 
-  readAllCompleted(query) {
-    return this.readApi.readAll('/client/api/TransactionsCompleted/', query);
+  readAllCompleted(params) {
+    return this.readApi.readAll('/client/api/TransactionsCompleted/', params);
   }
 
-  readAllYears(query) {
-    return this.readApi.readAll('/client/api/TransactionYears/', query);
+  readAllYears(params) {
+    return this.readApi.readAll('/client/api/TransactionYears/', params);
   }
 
 }

@@ -22,16 +22,16 @@ class CrudApi {
     return this.readApi.readById(this.serviceDefinition.readById, id);
   }
 
-  read(query) {
-    return this.readApi.readById(this.serviceDefinition.read, query);
+  read(params) {
+    return this.readApi.readById(this.serviceDefinition.read, params);
   }
 
-  readAll(query) {
-    return this.readApi.readAll(this.serviceDefinition.read, query);
+  readAll(params) {
+    return this.readApi.readAll(this.serviceDefinition.read, params);
   }
 
   update(data) {
-    return this.updateApi.update(this.serviceDefinition.read, query);
+    return this.updateApi.update(this.serviceDefinition.read, data);
   }
 
    delete(id) {

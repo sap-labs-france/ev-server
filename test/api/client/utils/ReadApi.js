@@ -16,23 +16,23 @@ class ReadApi {
     });
   }
 
-  read(path, query) {
+  read(path, params) {
     return this.baseApi.send({
       method: 'GET',
       url: path,
-      params: query
+      params: params
     });
   }
 
-  readAll(path, query) {
+  readAll(path, params = {}) {
     let request = this.pageableApi;
-    if (query.Limit || query.Skip) {
+    if (params.Limit || params.Skip) {
       request = this.baseApi;
     }
     return request.send({
       method: 'GET',
       url: path,
-      params: query
+      params: params
     });
   }
 }

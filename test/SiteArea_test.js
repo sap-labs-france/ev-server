@@ -37,7 +37,7 @@ describe('SiteArea tests', function() {
       const siteArea = Factory.siteArea.build({siteID: site.id});
       let response = await CentralServerService.siteArea.create(siteArea);
       siteArea.id = response.data.id;
-      response = await CentralServerService.siteArea.readAll({});
+      response = await CentralServerService.siteArea.readAll();
       expect(response.status).to.equal(200);
       expect(response.data).to.have.property('count');
 

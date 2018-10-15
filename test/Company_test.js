@@ -22,7 +22,7 @@ describe('Company tests', function() {
     let response = await CentralServerService.company.create(company);
     company.id = response.data.id;
 
-    response = await CentralServerService.company.readAll({});
+    response = await CentralServerService.company.readAll();
     expect(response.status).to.equal(200);
     expect(response.data).to.have.property('count');
 

@@ -28,7 +28,7 @@ describe('Site tests', function() {
     let response = await CentralServerService.site.create(site);
     site.id = response.data.id;
 
-    response = await CentralServerService.site.readAll({});
+    response = await CentralServerService.site.readAll();
     expect(response.status).to.equal(200);
     expect(response.data).to.have.property('count');
     expect(response.data).to.have.property('result');

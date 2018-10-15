@@ -81,7 +81,7 @@ describe('transaction tests', function() {
         status: 'Accepted'
       }
     });
-    transactionId = response.datatransactionId;
+    transactionId = response.data.transactionId;
 
     response = await CentralServerService.transaction.readById(transactionId);
     expect(response.data).to.containSubset(
@@ -148,7 +148,7 @@ describe('transaction tests', function() {
         status: 'Accepted'
       }
     });
-    transactionId = response.datatransactionId;
+    transactionId = response.data.transactionId;
 
     response = await CentralServerService.transaction.readById(transactionId);
     expect(response.data).to.containSubset(
@@ -209,7 +209,7 @@ describe('transaction tests', function() {
       });
 
     expect(response.data).to.have.nested.property('transactionId');
-    let transactionId = response.datatransactionId;
+    let transactionId = response.data.transactionId;
     expect(response.data).to.containSubset({
       idTagInfo: {
         status: 'Accepted'
@@ -353,7 +353,7 @@ describe('transaction tests', function() {
         meterStart: 10000,
         timestamp: transactionStopDate.toISOString()
       });
-    expect(response.dataidTagInfo.status).to.eql('Accepted');
+    expect(response.data.idTagInfo.status).to.eql('Accepted');
 
 
     response = await CentralServerService.transaction.readById(transactionId);

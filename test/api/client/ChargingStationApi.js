@@ -24,16 +24,16 @@ class TransactionApi {
     return this.readApi.read('/client/api/ChargingStationUsageStatistics/', {Year: year});
   }
 
-  readAll(query) {
-    return this.readApi.readAll('/client/api/ChargingStations/', query);
+  readAll(params) {
+    return this.readApi.readAll('/client/api/ChargingStations/', params);
   }
 
-  readAllTransactions(query) {
-    return this.readApi.readAll('/client/api/ChargingStationTransactions/', query);
+  readAllTransactions(params) {
+    return this.readApi.readAll('/client/api/ChargingStationTransactions/', params);
   }
 
-  readAllYears(query) {
-    return this.readApi.readAll('/client/api/TransactionYears/', query);
+  readAllYears(params) {
+    return this.readApi.readAll('/client/api/TransactionYears/', params);
   }
 
   updateParams(data) {
