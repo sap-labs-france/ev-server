@@ -2,9 +2,12 @@ const Utils = require('./Utils');
 const Constants = require('./Constants');
 const AppError = require('../exception/AppError');
 const AppAuthError = require('../exception/AppAuthError');
+const BadRequestError = require('../exception/BadRequestError');
+const ConflictError = require('../exception/ConflictError');
+const NotFoundError = require('../exception/NotFoundError');
 const CFLog = require('cf-nodejs-logging-support');
 const Configuration = require('../utils/Configuration');
-const LoggingStorage = require('../storage/mongodb/LoggingStorage'); 
+const LoggingStorage = require('../storage/mongodb/LoggingStorage');
 require('source-map-support').install();
 
 let LogLevel = {
@@ -80,7 +83,9 @@ class Logging {
 	static logReceivedAction(module, chargeBoxID, action, args, headers) {
 		// Log
 		Logging.logDebug({
-			source: chargeBoxID, module: module, method: action,
+			source: chargeBoxID,
+			module: module,
+			method: action,
 			message: `>> OCPP Request Received`,
 			action: action,
 			detailedMessages: {
@@ -94,7 +99,9 @@ class Logging {
 	static logSendAction(module, chargeBoxID, action, args) {
 		// Log
 		Logging.logDebug({
-			source: chargeBoxID, module: module, method: action,
+			source: chargeBoxID,
+			module: module,
+			method: action,
 			message: `>> OCPP Request Sent`,
 			action: action,
 			detailedMessages: args
@@ -105,11 +112,31 @@ class Logging {
 	static logReturnedAction(module, chargeBoxID, action, detailedMessages) {
 		// Log
 		Logging.logDebug({
-			source: chargeBoxID, module: module, method: action,
+			source: chargeBoxID,
+			module: module,
+			method: action,
 			message: `<< OCPP Request Returned`,
 			action: action,
 			detailedMessages: detailedMessages
 		});
+	}
+
+	// Used to log exception in catch(...) only
+	static logException(error, action, source, module, method, user) {
+		let log = Logging._buildLog(error, action, source, module, method, user);
+		if (error instanceof AppAuthError) {
+			Logging.logSecurityError(log);
+		} else if (error instanceof BadRequestError) {
+			Logging.logDebug(log);
+		} else if (error instanceof ConflictError) {
+			Logging.logWarning(log);
+		} else if (error instanceof NotFoundError) {
+			Logging.logWarning(log);
+		} else if (error instanceof AppError) {
+			Logging.logError(log);
+		} else {
+			Logging.logError(log);
+		}
 	}
 
 	// Used to log exception in catch(...) only
@@ -143,15 +170,19 @@ class Logging {
 			Logging._logActionExceptionMessage(action, exception);
 		}
 		// Send error
-		res.status((exception.errorCode ? exception.errorCode : 500)).send({"message": Utils.hideShowMessage(exception.message)});
+		res.status((exception.errorCode ? exception.errorCode : 500)).send({
+			"message": Utils.hideShowMessage(exception.message)
+		});
 		next();
 	}
 
 	static _logActionExceptionMessage(action, exception) {
 		Logging.logSecurityError({
 			source: exception.source,
-			module: exception.module, method: exception.method,
-			action: action, message: exception.message,
+			module: exception.module,
+			method: exception.method,
+			action: action,
+			message: exception.message,
 			detailedMessages: [{
 				"stack": exception.stack
 			}]
@@ -163,8 +194,10 @@ class Logging {
 			source: exception.source,
 			user: exception.user,
 			actionOnUser: exception.actionOnUser,
-			module: exception.module, method: exception.method,
-			action: action, message: exception.message,
+			module: exception.module,
+			method: exception.method,
+			action: action,
+			message: exception.message,
 			detailedMessages: [{
 				"stack": exception.stack
 			}]
@@ -176,12 +209,29 @@ class Logging {
 		Logging.logSecurityError({
 			user: exception.user,
 			actionOnUser: exception.actionOnUser,
-			module: exception.module, method: exception.method,
-			action: action, message: exception.message,
+			module: exception.module,
+			method: exception.method,
+			action: action,
+			message: exception.message,
 			detailedMessages: [{
 				"stack": exception.stack
 			}]
 		});
+	}
+
+	static _buildLog(error, action, source, module, method, user) {
+		return {
+			source: source,
+			user: user,
+			actionOnUser: error.actionOnUser,
+			module: module,
+			method: method,
+			action: action,
+			message: error.message,
+			detailedMessages: [{
+				"stack": error.stack
+			}]
+		}
 	}
 
 	// Used to check URL params (not in catch)
@@ -191,12 +241,14 @@ class Logging {
 			try {
 				// Check that every detailedMessages is parsed
 				return JSON.stringify(detailedMessage);
-			} catch(err) {
+			} catch (err) {
 				// Log
 				Logging.logWarning({
-					module: "Logging", method: "_format",
+					module: "Logging",
+					method: "_format",
 					message: `Error when formatting a Log (stringify): '${err.message}'`,
-					detailedMessages: detailedMessage });
+					detailedMessages: detailedMessage
+				});
 			}
 		}
 	}
@@ -214,7 +266,7 @@ class Logging {
 		// Check
 		if (log.detailedMessages) {
 			// Array?
-			if (!Array.isArray(log.detailedMessages)){
+			if (!Array.isArray(log.detailedMessages)) {
 				// Set array
 				log.detailedMessages = [log.detailedMessages];
 			}
@@ -241,13 +293,13 @@ class Logging {
 		// Log level
 		switch (logLevel) {
 			case LogLevel.DEBUG:
-				return "debug";		
+				return "debug";
 			case LogLevel.INFO:
-				return "info";		
+				return "info";
 			case LogLevel.WARNING:
-				return "warning";		
+				return "warning";
 			case LogLevel.ERROR:
-				return "error";		
+				return "error";
 		}
 	}
 
@@ -260,4 +312,4 @@ class Logging {
 	}
 }
 
-module.exports=Logging;
+module.exports = Logging;
