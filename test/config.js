@@ -34,6 +34,12 @@ const config = convict({
       env: 'OCPP_PORT',
       arg: 'ocpp_port'
     },
+    logs: {
+      doc: '"json"/"xml" to trace ocpp communication according to type, "none" to not trace them',
+      format: ['json', 'xml', 'none'],
+      default: 'none',
+      env: 'OCPP_LOGS'
+    },
   },
   server: {
     scheme: {
@@ -54,6 +60,12 @@ const config = convict({
       default: 8081,
       env: 'SERVER_PORT',
       arg: 'server_port'
+    },
+    logs: {
+      doc: '"json" to trace central server communication, "none" to not trace them',
+      format: ['json', 'none'],
+      default: 'none',
+      env: 'SERVER_LOGS'
     }
   },
   admin: {

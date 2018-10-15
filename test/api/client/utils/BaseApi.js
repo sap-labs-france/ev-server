@@ -15,7 +15,7 @@ class BaseApi {
       requestConfig.data = querystring.stringify(requestConfig.data);
     }
 
-    if (config.get('trace_logs')) {
+    if (config.get('server.logs') === 'json') {
       console.log(JSON.stringify(requestConfig, null, 2));
     }
     let response;
@@ -39,13 +39,9 @@ class BaseApi {
       data: response.data
     };
 
-    if (config.get('trace_logs')) {
+    if (config.get('server.logs') === 'json') {
       console.log(JSON.stringify(response, null, 2));
     }
-    // if (requestConfig.headers.Accept === 'application/json') {
-    //   response = JSON.parse(message.text);
-    //   message['response'] = response;
-    // }
 
     return response;
   }

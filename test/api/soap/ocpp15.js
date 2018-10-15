@@ -138,7 +138,7 @@ module.exports = class Ocpp15 {
   async send(method, data, options, headers) {
     this.client.clearSoapHeaders();
     this.client.addSoapHeader(headers);
-    if (config.get('trace_logs')) {
+    if (config.get('ocpp.logs') === 'json') {
       console.log(JSON.stringify(
         {
           endpoint: this.endpoint,
@@ -148,23 +148,23 @@ module.exports = class Ocpp15 {
         }, null, 2));
     }
     const {result, envelope, soapHeader} = await method(data, options, headers);
-    // if (config.get('trace_logs')) {
-    //   console.log('<!-- Request -->');
-    //   console.log(this.client.lastRequest);
-    //   if (soapHeader) {
-    //     console.log('<!-- Response Header -->');
-    //     console.log(soapHeader)
-    //   }
-    //   console.log('<!-- Response Envelope -->');
-    //   console.log(envelope);
-    //   console.log('\n');
-    // }
+    if (config.get('ocpp.logs') === 'xml') {
+      console.log('<!-- Request -->');
+      console.log(this.client.lastRequest);
+      if (soapHeader) {
+        console.log('<!-- Response Header -->');
+        console.log(soapHeader)
+      }
+      console.log('<!-- Response Envelope -->');
+      console.log(envelope);
+      console.log('\n');
+    }
 
     const response = {
       headers: soapHeader || {},
       data: result || {}
     };
-    if (config.get('trace_logs')) {
+    if (config.get('ocpp.logs') === 'json') {
       console.log(JSON.stringify(response, null, 2));
     }
     return response;
