@@ -4,6 +4,7 @@ const UserFactory = require('./UserFactory');
 const ChargePointFactory = require('./ChargePointFactory');
 const AddressFactory = require('./AddressFactory');
 const SiteAreaFactory = require('./SiteAreaFactory');
+const TenantFactory = require('./TenantFactory');
 
 class Factory {
   constructor() {
@@ -13,6 +14,7 @@ class Factory {
     this.chargePoint = ChargePointFactory;
     this.address = AddressFactory;
     this.siteArea = SiteAreaFactory;
+    this.tenant = TenantFactory;
   }
 }
 

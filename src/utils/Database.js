@@ -343,6 +343,7 @@ class Database {
 		}
 		dest.name = src.name;
 		dest.subdomain = src.subdomain;
+		dest.email = src.email;
 		Database.updateCreatedAndLastChanged(src, dest);
 	}
 

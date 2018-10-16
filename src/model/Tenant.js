@@ -2,6 +2,7 @@ const Database = require('../utils/Database');
 const AppError = require('../exception/AppError');
 const Constants = require('../utils/Constants');
 const TenantStorage = require('../storage/mongodb/TenantStorage');
+const User = require('./User');
 
 class Tenant {
     constructor(tenant) {
@@ -26,6 +27,22 @@ class Tenant {
 
     getName() {
         return this._model.name;
+    }
+
+    setEmail(email) {
+        this._model.email = email;
+    }
+
+    getEmail() {
+        return this._model.email;
+    }
+
+    setSubdomain(subdomain) {
+        this._model.subdomain = subdomain;
+    }
+
+    getSubdomain() {
+        return this._model.subdomain;
     }
 
     getCreatedBy() {
@@ -66,41 +83,16 @@ class Tenant {
         this._model.lastChangedOn = lastChangedOn;
     }
 
-    async save() {
-        let tenantMDB = await TenantStorage.saveTenant(this.getModel());
-        return new Tenant(tenantMDB);
+    save() {
+        return TenantStorage.saveTenant(this.getModel());
+    }
+
+    async createEnvironment() {
+        await TenantStorage.createTenantDB(this.getSubdomain());
     }
 
     delete() {
         return TenantStorage.deleteTenant(this.getID());
-    }
-
-    static checkIfTenantValid(filteredRequest, req) {
-        // Update model?
-        if (req.method !== 'POST' && !filteredRequest.id) {
-            throw new AppError(
-                Constants.CENTRAL_SERVER,
-                `The Tenant ID is mandatory`, 500,
-                'Tenant', 'checkIfTenantValid');
-        }
-        if (!filteredRequest.name) {
-            throw new AppError(
-                Constants.CENTRAL_SERVER,
-                `The Tenant Name is mandatory`, 500,
-                'Tenant', 'checkIfTenantValid');
-        }
-        if (!filteredRequest.subdomain) {
-            throw new AppError(
-                Constants.CENTRAL_SERVER,
-                `The Tenant Subdomain is mandatory`, 500,
-                'Tenant', 'checkIfTenantValid');
-        }
-        if (!/^[a-z0-9]*$/.test(filteredRequest.subdomain)) {
-            throw new AppError(
-                Constants.CENTRAL_SERVER,
-                `The Tenant Subdomain is not valid`, 500,
-                'Tenant', 'checkIfTenantValid');
-        }
     }
 
     static getTenant(id) {
