@@ -24,7 +24,7 @@ import {
     OK,
     CREATED
 } from 'http-status-codes';
-import TenantValidator from '../../../validation/TenantValidation';
+import TenantValidator from '../validation/TenantValidation';
 
 export async function handleDeleteTenant(action, req, res, next) {
     try {

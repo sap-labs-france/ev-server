@@ -1,5 +1,5 @@
 import Ajv from 'ajv';
-import BadRequestError from '../exception/BadRequestError';
+import BadRequestError from '../../../exception/BadRequestError';
 
 class SchemaValidator {
     constructor(moduleName) {
