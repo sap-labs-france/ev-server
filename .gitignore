@@ -56,5 +56,6 @@ tmp
 
 # intellij
 /.idea
+/outputs
 /docker/mongo
 build/config.gypi
