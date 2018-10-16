@@ -11,7 +11,7 @@ class PageableApi {
   async send(data) {
     data.params.Limit = 1;
     data.params.Skip = 0;
-    let response = await this.baseApi.send(data,);
+    let response = await this.baseApi.send(data);
     expect(response.status).to.equal(200);
     expect(response.data).to.have.property('count');
     let count = response.data.count;
@@ -20,7 +20,6 @@ class PageableApi {
     if ((pages * this.pageSize) < count) {
       pages++;
     }
-
 
     const promises = [...Array(pages).keys()].map(async page => {
       const innerData = JSON.parse(JSON.stringify(data));
@@ -45,7 +44,6 @@ class PageableApi {
 
     return response
   }
-
 }
 
 module.exports = PageableApi;
