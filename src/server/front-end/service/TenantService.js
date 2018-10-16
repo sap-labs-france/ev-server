@@ -1,10 +1,10 @@
-const Logging = require( '../../../utils/Logging');
-const Database = require( '../../../utils/Database');
-const AppError = require( '../../../exception/AppError');
-const AppAuthError = require( '../../../exception/AppAuthError');
-const BadRequestError = require( '../../../exception/BadRequestError');
-const ConflictError = require( '../../../exception/ConflictError');
-const NotFoundError = require( '../../../exception/NotFoundError');
+const Logging = require('../../../utils/Logging');
+const Database = require('../../../utils/Database');
+const AppError = require('../../../exception/AppError');
+const AppAuthError = require('../../../exception/AppAuthError');
+const BadRequestError = require('../../../exception/BadRequestError');
+const ConflictError = require('../../../exception/ConflictError');
+const NotFoundError = require('../../../exception/NotFoundError');
 const {
     ACTION_CREATE,
     ACTION_DELETE,
@@ -15,15 +15,18 @@ const {
     ENTITY_TENANT,
     ENTITY_TENANTS,
     REST_RESPONSE_SUCCESS
-} = require( '../../../utils/Constants');
-const Tenant = require( '../../../model/Tenant');
-const User = require( '../../../model/User');
-const Authorizations = require( '../../../authorization/Authorizations');
-const TenantSecurity = require( './security/TenantSecurity');
-const {CREATED, OK} = require( 'http-status-codes');
-const TenantValidator = require( '../validation/TenantValidation').default;
+} = require('../../../utils/Constants');
+const Tenant = require('../../../model/Tenant');
+const User = require('../../../model/User');
+const Authorizations = require('../../../authorization/Authorizations');
+const TenantSecurity = require('./security/TenantSecurity');
+const {CREATED, OK} = require('http-status-codes');
+const TenantValidator = require('../validation/TenantValidation').default;
+const AbstractService = require('./AbstractService');
 
-class TenantService {
+const MODULE_NAME = 'TenantService';
+
+class TenantService extends AbstractService {
     static async handleDeleteTenant(action, req, res, next){
         try {
             // Filter
@@ -68,7 +71,7 @@ class TenantService {
             res.json(REST_RESPONSE_SUCCESS);
             next();
         } catch (error) {
-            TenantService._handleError(error, req, next, action, 'handleDeleteTenant');
+            TenantService._handleError(error, req, next, action, MODULE_NAME, 'handleDeleteTenant');
         }
     }
 
@@ -103,7 +106,7 @@ class TenantService {
             );
             next();
         } catch (error) {
-            TenantService._handleError(error, req, next, action, 'handleGetTenant');
+            TenantService._handleError(error, req, next, action, MODULE_NAME, 'handleGetTenant');
         }
     }
 
@@ -133,7 +136,7 @@ class TenantService {
             res.json(tenants);
             next();
         } catch (error) {
-            TenantService._handleError(error, req, next, action, 'handleGetTenants');
+            TenantService._handleError(error, req, next, action, MODULE_NAME, 'handleGetTenants');
         }
     }
 
@@ -193,7 +196,7 @@ class TenantService {
             });
             next();
         } catch (error) {
-            TenantService._handleError(error, req, next, action, 'handleCreateTenant');
+            TenantService._handleError(error, req, next, action, MODULE_NAME, 'handleCreateTenant');
         }
     }
 
@@ -240,7 +243,7 @@ class TenantService {
             res.json(REST_RESPONSE_SUCCESS);
             next();
         } catch (error) {
-            TenantService._handleError(error, req, next, action, 'handleUpdateTenant');
+            TenantService._handleError(error, req, next, action, MODULE_NAME, 'handleUpdateTenant');
         }
     }
 
@@ -257,13 +260,8 @@ class TenantService {
             res.status(OK).send({});
             next();
         } catch (error) {
-            TenantService._handleError(error, req, next, action, 'handleVerifyTenant');
+            TenantService._handleError(error, req, next, action, MODULE_NAME, 'handleVerifyTenant');
         }
-    }
-
-    static _handleError(error, req, next, action, method){
-        Logging.logException(error, action, CENTRAL_SERVER, 'TenantService', method, req.user);
-        next(error);
     }
 }
 
