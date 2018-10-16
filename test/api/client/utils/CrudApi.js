@@ -10,7 +10,7 @@ class CrudApi {
     this.updateApi = new UpdateApi(baseApi);
   }
 
-   create(data) {
+  create(data) {
     return this.baseApi.send({
       method: 'POST',
       url: this.serviceDefinition.create,
@@ -34,11 +34,13 @@ class CrudApi {
     return this.updateApi.update(this.serviceDefinition.read, data);
   }
 
-   delete(id) {
+  delete(id) {
     return this.baseApi.send({
       method: 'DELETE',
       url: this.serviceDefinition.delete,
-      params: {ID: id}
+      params: {
+        ID: id
+      }
     });
   }
 

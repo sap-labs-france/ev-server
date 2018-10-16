@@ -83,9 +83,8 @@ class Tenant {
         this._model.lastChangedOn = lastChangedOn;
     }
 
-    async save() {
-        let tenantMDB = await TenantStorage.saveTenant(this.getModel());
-        return new Tenant(tenantMDB);
+    save() {
+        return TenantStorage.saveTenant(this.getModel());
     }
 
     async createEnvironment() {

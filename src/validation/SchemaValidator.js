@@ -1,6 +1,5 @@
 import Ajv from 'ajv';
 import BadRequestError from '../exception/BadRequestError';
-import { CENTRAL_SERVER } from '../utils/Constants';
 
 class SchemaValidator {
     constructor(moduleName) {
@@ -15,7 +14,7 @@ class SchemaValidator {
     validate(schema, content) {
         let fnValidate = this.ajv.compile(schema);
         if (!fnValidate(content)) {
-            throw new BadRequestError(CENTRAL_SERVER, "Invalid content", fnValidate.errors, this.moduleName);
+            throw new BadRequestError(fnValidate.errors);
         }
     }
 }

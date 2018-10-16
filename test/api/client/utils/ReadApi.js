@@ -16,11 +16,12 @@ class ReadApi {
     });
   }
 
-  read(path, params) {
+  read(path, params = {}, headers = {}) {
     return this.baseApi.send({
       method: 'GET',
       url: path,
-      params: params
+      params: params,
+      headers: headers
     });
   }
 

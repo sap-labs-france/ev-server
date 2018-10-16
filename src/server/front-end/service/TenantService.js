@@ -2,6 +2,7 @@ import Logging from '../../../utils/Logging';
 import Database from '../../../utils/Database';
 import AppError from '../../../exception/AppError';
 import AppAuthError from '../../../exception/AppAuthError';
+import BadRequestError from '../../../exception/BadRequestError';
 import ConflictError from '../../../exception/ConflictError';
 import NotFoundError from '../../../exception/NotFoundError';
 import {
@@ -20,7 +21,8 @@ import User from '../../../model/User';
 import Authorizations from '../../../authorization/Authorizations';
 import TenantSecurity from './security/TenantSecurity';
 import {
-    OK
+    OK,
+    CREATED
 } from 'http-status-codes';
 import TenantValidator from '../../../validation/TenantValidation';
 
@@ -79,9 +81,7 @@ export async function handleGetTenant(action, req, res, next) {
         // Charge Box is mandatory
         if (!filteredRequest.ID) {
             // Not Found!
-            throw new AppError(
-                CENTRAL_SERVER,
-                `The Tenant's ID must be provided`, 400);
+            throw new BadRequestError([]);
         }
         // Get it
         let tenant = await Tenant.getTenant(filteredRequest.ID);
@@ -190,9 +190,9 @@ export async function handleCreateTenant(action, req, res, next) {
             detailedMessages: newTenant
         });
         // Ok
-        res.json(Object.assign(REST_RESPONSE_SUCCESS, {
+        res.status(CREATED).json({
             id: newTenant.getID()
-        }));
+        });
         next();
     } catch (error) {
         _handleError(error, req, next, action, 'handleCreateTenant');

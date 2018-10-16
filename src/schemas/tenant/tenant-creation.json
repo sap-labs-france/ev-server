@@ -17,7 +17,7 @@
         "subdomain": {
             "type": "string",
             "description": "subdomain associated to the tenant",
-            "pattern": "^[a-z0-9]*$",
+            "pattern": "^[a-z0-9]+$",
             "minLength": 1,
             "maxLength": 20
         }
