@@ -15,47 +15,48 @@ let _chargingStationConfig;
 
 class CentralSystemServer {
 	// Common constructor for Central System Server
-	constructor(centralSystemConfig, chargingStationConfig, express) {
+	constructor(centralSystemConfig, chargingStationConfig, express = null) {
 		// Check
 		if (new.target === CentralSystemServer) {
 			throw new TypeError('Cannot construct CentralSystemServer instances directly');
 		}
 
-		// Body parser
-		express.use(bodyParser.json());
-		express.use(bodyParser.urlencoded({ extended: false }));
-		express.use(bodyParser.xml());
+		if ( express !== null) {
+			// Body parser
+			express.use(bodyParser.json());
+			express.use(bodyParser.urlencoded({ extended: false }));
+			express.use(bodyParser.xml());
 
-		// Enable debug?
-		if (centralSystemConfig.debug) {
-			// Log
-			express.use(
-				morgan('combined', {
-					'stream': {
-						write: (message) => { 
-							// Log
-							Logging.logDebug({
-								module: "CentralSystemServer", method: "constructor", action: "HttpRequestLog",
-								message: message
-							});
+			// Enable debug?
+			if (centralSystemConfig.debug) {
+				// Log
+				express.use(
+					morgan('combined', {
+						'stream': {
+							write: (message) => { 
+								// Log
+								Logging.logDebug({
+									module: "CentralSystemServer", method: "constructor", action: "HttpRequestLog",
+									message: message
+								});
+							}
 						}
-					}
-				})
-			);
+					})
+				);
+			}
+
+			// Cross origin headers
+			express.use(cors());
+
+			// Secure the application
+			express.use(helmet());
+
+			// Check Cloud Foundry
+			if (Configuration.isCloudFoundry()) {
+				// Bind to express app
+				express.use(CFLog.logNetwork);
+			}
 		}
-
-		// Cross origin headers
-		express.use(cors());
-
-		// Secure the application
-		express.use(helmet());
-
-		// Check Cloud Foundry
-		if (Configuration.isCloudFoundry()) {
-			// Bind to express app
-			express.use(CFLog.logNetwork);
-		}
-		
 		// Keep params
 		_centralSystemConfig = centralSystemConfig;
 		_chargingStationConfig = chargingStationConfig;
@@ -86,22 +87,22 @@ class CentralSystemServer {
 		return chargingStation;
 	}
 
-	async handleBootNotification(args, headers, req) {
+	async handleBootNotification(content) {
 		try{
 				// Set the endpoint
-			args.endpoint = headers.From.Address;
+			content.endpoint = content.From.Address;
 			// Set the ChargeBox ID
-			args.id = headers.chargeBoxIdentity;
+			content.id = content.chargeBoxIdentity;
 			// Set the default Heart Beat
-			args.lastReboot = new Date();
-			args.lastHeartBeat = args.lastReboot;
-			args.timestamp = args.lastReboot;
+			content.lastReboot = new Date();
+			content.lastHeartBeat = content.lastReboot;
+			content.timestamp = content.lastReboot;
 
 			// Get the charging station
-			let chargingStation = await ChargingStation.getChargingStation(headers.chargeBoxIdentity);
+			let chargingStation = await ChargingStation.getChargingStation(content.chargeBoxIdentity);
 			if (!chargingStation) {
 				// Save Charging Station
-				chargingStation = new ChargingStation(args);
+				chargingStation = new ChargingStation(content);
 				// Set the URL = enpoint
 				chargingStation.setChargingStationURL(chargingStation.getEndPoint());
 				// Update timestamp
@@ -113,12 +114,12 @@ class CentralSystemServer {
 					chargingStation.setChargingStationURL(chargingStation.getEndPoint())
 				}
 				// Update data
-				chargingStation.setChargePointVendor(args.chargePointVendor);
-				chargingStation.setChargePointModel(args.chargePointModel);
-				chargingStation.setChargePointSerialNumber(args.chargePointSerialNumber);
-				chargingStation.setChargeBoxSerialNumber(args.chargeBoxSerialNumber);
-				chargingStation.setFirmwareVersion(args.firmwareVersion);
-				chargingStation.setOcppVersion(args.ocppVersion);
+				chargingStation.setChargePointVendor(content.chargePointVendor);
+				chargingStation.setChargePointModel(content.chargePointModel);
+				chargingStation.setChargePointSerialNumber(content.chargePointSerialNumber);
+				chargingStation.setChargeBoxSerialNumber(content.chargeBoxSerialNumber);
+				chargingStation.setFirmwareVersion(content.firmwareVersion);
+				chargingStation.setOcppVersion(content.ocppVersion);
 				chargingStation.setLastHeartBeat(new Date());
 				// Back again
 				chargingStation.setDeleted(false);
@@ -126,10 +127,10 @@ class CentralSystemServer {
 			// Save Charging Station
 			let updatedChargingStation = await chargingStation.save();
 			// Save the Boot Notification
-			await updatedChargingStation.handleBootNotification(args);
+			await updatedChargingStation.handleBootNotification(content);
 			// Return the result
 			// OCPP 1.6
-			if (args.ocppVersion === '1.6') {
+			if (content.ocppVersion === '1.6') {
 				return {
 					'bootNotificationResponse': {
 						'status': 'Accepted',
@@ -149,7 +150,7 @@ class CentralSystemServer {
 			}
 		} catch(error) {
 			// Set the source
-			error.source = headers.chargeBoxIdentity;
+			error.source = content.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('BootNotification', error);
 			// Reject
@@ -163,10 +164,10 @@ class CentralSystemServer {
 		}
 	}
 
-	async handleHeartBeat(args, headers, req) {
+	async handleHeartbeat(content) {
 		try {
 			// Get the charging station
-			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
+			let chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
 			// Save
 			await chargingStation.handleHeartBeat();
 			// Return			
@@ -177,7 +178,7 @@ class CentralSystemServer {
 			};
 		} catch(error) {
 			// Set the source
-			error.source = headers.chargeBoxIdentity;
+			error.source = content.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('HeartBeat', error);
 			// Send the response
@@ -189,12 +190,12 @@ class CentralSystemServer {
 		}
 	}
 
-	async handleStatusNotification(args, headers, req) {
+	async handleStatusNotification(content) {
 		try {
 			// Get the charging station
-			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
+			let chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
 			// Handle
-			await chargingStation.handleStatusNotification(args);
+			await chargingStation.handleStatusNotification(content);
 			// Respond
 			return {
 				'statusNotificationResponse': {
@@ -202,7 +203,7 @@ class CentralSystemServer {
 			};
 		} catch(error) {
 			// Set the source
-			error.source = headers.chargeBoxIdentity;
+			error.source = content.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('StatusNotification', error);
 			// Return
@@ -213,12 +214,12 @@ class CentralSystemServer {
 		}
 	}
 
-	async handleMeterValues(args, headers, req) {
+	async handleMeterValues(content) {
 		try {
 			// Get the charging station
-			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
+			let chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
 			// Save
-			await chargingStation.handleMeterValues(args);
+			await chargingStation.handleMeterValues(content);
 			// Return
 			return {
 				'meterValuesResponse': {
@@ -226,7 +227,7 @@ class CentralSystemServer {
 			};
 		} catch(error) {
 			// Set the source
-			error.source = headers.chargeBoxIdentity;
+			error.source = content.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('MeterValues', error);
 			// Response
@@ -237,12 +238,12 @@ class CentralSystemServer {
 		}
 	}
 
-	async handleAuthorize(args, headers, req) {
+	async handleAuthorize(content) {
 		try {
 			// Get the charging station
-			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
+			let chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
 			// Handle
-			await chargingStation.handleAuthorize(args);
+			await chargingStation.handleAuthorize(content);
 			// Return
 			return {
 				'authorizeResponse': {
@@ -253,7 +254,7 @@ class CentralSystemServer {
 			};
 		} catch(error) {
 			// Set the source
-			error.source = headers.chargeBoxIdentity;
+			error.source = content.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('Authorize', error);
 			return {
@@ -266,12 +267,12 @@ class CentralSystemServer {
 		}
 	}
 
-	async handleDiagnosticsStatusNotification(args, headers, req) {
+	async handleDiagnosticsStatusNotification(content) {
 		try {
 			// Get the charging station
-			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
+			let chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
 			// Save
-			await chargingStation.handleDiagnosticsStatusNotification(args);
+			await chargingStation.handleDiagnosticsStatusNotification(content);
 			// Return
 			return {
 				'diagnosticsStatusNotificationResponse': {
@@ -279,7 +280,7 @@ class CentralSystemServer {
 			};
 		} catch(error) {
 			// Set the source
-			error.source = headers.chargeBoxIdentity;
+			error.source = content.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('DiagnosticsStatusNotification', error);
 			return {
@@ -289,12 +290,12 @@ class CentralSystemServer {
 		}
 	}
 
-	async handleFirmwareStatusNotification(args, headers, req) {
+	async handleFirmwareStatusNotification(content) {
 		try {
 			// Get the charging station
-			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
+			let chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
 			// Save
-			await chargingStation.handleFirmwareStatusNotification(args);
+			await chargingStation.handleFirmwareStatusNotification(content);
 			// Return
 			return {
 				'firmwareStatusNotificationResponse': {
@@ -310,12 +311,12 @@ class CentralSystemServer {
 		}
 	}
 
-	async handleStartTransaction(args, headers, req) {
+	async handleStartTransaction(content) {
 		try {
 			// Get the charging station
-			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
+			let chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
 			// Save
-			let transaction = await chargingStation.handleStartTransaction(args);
+			let transaction = await chargingStation.handleStartTransaction(content);
 			// Return
 			return {
 				'startTransactionResponse': {
@@ -327,7 +328,7 @@ class CentralSystemServer {
 			};
 		} catch(error) {
 			// Set the source
-			error.source = headers.chargeBoxIdentity;
+			error.source = content.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('StartTransaction', error);
 			return {
@@ -341,12 +342,12 @@ class CentralSystemServer {
 		}
 	}
 
-	async handleDataTransfer(args, headers, req) {
+	async handleDataTransfer(content) {
 		try {
 			// Get the charging station
-			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
+			let chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
 			// Save
-			await chargingStation.handleDataTransfer(args);
+			await chargingStation.handleDataTransfer(content);
 			// Return
 			return {
 				'dataTransferResponse': {
@@ -355,7 +356,7 @@ class CentralSystemServer {
 			};
 		} catch(error) {
 			// Set the source
-			error.source = headers.chargeBoxIdentity;
+			error.source = content.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('DataTransfer', error);
 			return {
@@ -366,12 +367,12 @@ class CentralSystemServer {
 		}
 	}
 
-	async handleStopTransaction(args, headers, req) {
+	async handleStopTransaction(content) {
 		try {
 			// Get the charging station
-			let chargingStation = await this.checkAndGetChargingStation(headers.chargeBoxIdentity);
+			let chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
 			// Handle
-			await chargingStation.handleStopTransaction(args);
+			await chargingStation.handleStopTransaction(content);
 			// Success
 			return {
 				'stopTransactionResponse': {
@@ -382,7 +383,7 @@ class CentralSystemServer {
 			};
 		} catch(error) {
 			// Set the source
-			error.source = headers.chargeBoxIdentity;
+			error.source = content.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('StopTransaction', error);
 			// Error

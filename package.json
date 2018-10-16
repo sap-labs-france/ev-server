@@ -71,13 +71,13 @@
 		"json-loader": "^0.5.7",
 		"mocha": "^5.2.0",
 		"mocha-parallel-tests": "^2.0.4",
+		"mochawesome": "^3.0.3",
 		"node-sass": "^4.9.2",
 		"nodemon": "^1.18.3",
+		"querystring": "^0.2.0",
 		"request": "^2.88.0",
 		"rosie": "^2.0.1",
 		"sass-loader": "^7.1.0",
-		"superagent": "^4.0.0-beta.5",
-		"supertest": "^3.3.0",
 		"uglifyjs-webpack-plugin": "^1.2.7",
 		"webpack": "^4.16.4",
 		"webpack-cli": "^3.1.0",
@@ -94,8 +94,8 @@
 		"build": "npm run build:dev",
 		"build:dev": "webpack --watch --env.env=dev",
 		"build:prod": "webpack --env.env=prod",
-		"test": "mocha test/**/*_test.js",
-		"test:parallel": "mocha-parallel-tests test/**/*_test.js"
+		"test": "mocha test/**/*_test.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false ",
+		"test:parallel": "mocha-parallel-tests test/**/*_test.js --reporter mochawesome"
 	},
 	"license": "MIT"
 }

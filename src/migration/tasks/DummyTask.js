@@ -1,5 +1,7 @@
-class DummyTask {
-	migrate(config={}) {
+const MigrationTask = require('../MigrationTask');
+
+class DummyTask extends MigrationTask {
+	migrate() {
 	}
 
 	getVersion() {

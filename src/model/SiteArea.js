@@ -1,9 +1,9 @@
 const Database = require('../utils/Database');
 const Constants = require('../utils/Constants');
 const AppError = require('../exception/AppError');
+const SiteStorage = require('../storage/mongodb/SiteStorage');
 const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
-const ChargingStation = require('./ChargingStation');
-const Site = require('./Site');
+const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
 
 class SiteArea {
 	constructor(siteArea) {
@@ -85,11 +85,12 @@ class SiteArea {
 	}
 
 	async getSite(withCompany=false, withUser=false) {
+
 		if (this._model.site) {
 			return new Site(this._model.site);
 		} else if (this._model.siteID){
 			// Get from DB
-			let site = await Site.getSite(this._model.siteID, withCompany, withUser);
+			let site = await SiteStorage.getSite(this._model.siteID, withCompany, withUser);
 			// Keep it
 			this.setSite(site);
 			return site;
@@ -122,7 +123,7 @@ class SiteArea {
 			return this._model.chargeBoxes.map((chargeBox) => new ChargingStation(chargeBox));
 		} else {
 			// Get from DB
-			let chargingStations = await ChargingStation.getChargingStations(
+			let chargingStations = await ChargingStationStorage.getChargingStations(
 				{ siteAreaID: this.getID() }, Constants.NO_LIMIT);
 			// Keep it
 			this.setChargingStations(chargingStations.result);
@@ -139,19 +140,19 @@ class SiteArea {
 		if(request.method !== 'POST' && !filteredRequest.id) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The Site Area ID is mandatory`, 500, 
+				`The Site Area ID is mandatory`, 500,
 				'SiteArea', 'checkIfSiteAreaValid');
 		}
 		if(!filteredRequest.name) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The Site Area Name is mandatory`, 500, 
+				`The Site Area Name is mandatory`, 500,
 				'SiteArea', 'checkIfSiteAreaValid');
 		}
 		if(!filteredRequest.siteID) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The Site ID is mandatory`, 500, 
+				`The Site ID is mandatory`, 500,
 				'SiteArea', 'checkIfSiteAreaValid');
 		}
 		if (!filteredRequest.chargeBoxIDs) {
@@ -159,8 +160,8 @@ class SiteArea {
 		}
 	}
 
-	static getSiteArea(id) {
-		return SiteAreaStorage.getSiteArea(id);
+	static getSiteArea(id, withChargeBoxes, withSite) {
+		return SiteAreaStorage.getSiteArea(id, withChargeBoxes, withSite);
 	}
 
 	static getSiteAreas(params, limit, skip, sort) {

@@ -1,6 +1,7 @@
 const MongoDBStorage = require('./storage/mongodb/MongoDBStorage');
 const Configuration = require('./utils/Configuration');
 const SoapCentralSystemServer = require('./server/charging-station/soap/SoapCentralSystemServer');
+const JsonCentralSystemServer = require('./server/charging-station/json/JsonCentralSystemServer');
 const CentralRestServer = require('./server/front-end/CentralRestServer');
 const SchedulerManager = require('./scheduler/SchedulerManager');
 const MigrationHandler = require('./migration/MigrationHandler');
@@ -61,6 +62,7 @@ class Bootstrap {
 				// Start
 				for (const centralSystemConfig of centralSystemsConfig) {
 					let centralSystemServer;
+					let centralSystemServerJson;
 					// Check implementation
 					switch (centralSystemConfig.implementation) {
 						// SOAP
@@ -69,6 +71,12 @@ class Bootstrap {
 							centralSystemServer = new SoapCentralSystemServer(centralSystemConfig, chargingStationConfig);
 							// Start
 							await centralSystemServer.start();
+							break;
+						case 'json':
+							// Create implementation
+							centralSystemServerJson = new JsonCentralSystemServer(centralSystemConfig, chargingStationConfig);
+							// Start
+							await centralSystemServerJson.start();
 							break;
 						// Not Found
 						default:

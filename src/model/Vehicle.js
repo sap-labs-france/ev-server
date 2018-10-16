@@ -1,8 +1,8 @@
 const Database = require('../utils/Database');
-const User = require('./User');
 const Constants = require('../utils/Constants');
 const AppError = require('../exception/AppError');
 const VehicleStorage = require('../storage/mongodb/VehicleStorage');
+const User = require('./User');
 
 class Vehicle {
 	constructor(vehicle) {

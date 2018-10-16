@@ -430,20 +430,29 @@ In another console, start the application (restarts if any changes is detected):
 npm run start:dev
 ```
 ### Tests
+**Prerequisite:** The database must contain an admin user. 
 
-* Create a local configuration file located in '/config/tests/local.json' with the parameters to override like 
+* Create a local configuration file located in '/test/config/local.json' with the parameters to override like 
          
         {
           "admin": {
-            "username": "bla",
-            "password": "bli"
+            "username": "YOUR_ADMIN_USERNAME",
+            "password": "YOUR_ADMIN_PASSWORD"
           },
-          "trace_logs": false
+          "server": {
+            "logs": "json"
+          },
+          "ocpp": {
+            "logs": "json"
+          }
         }
+
 
   For further parameters, check the [`config`](./test/config.js) content. It is also possible to use environment variables as defined in the [`config`](./test/config.js) file
 * Start a server containing the configured admin user in the database
 * run the command `npm test`
+
+You can 
 
 ### Docker Mode
 Depending on the need it is possible to start different docker containers.
