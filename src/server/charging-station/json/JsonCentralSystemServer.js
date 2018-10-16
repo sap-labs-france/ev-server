@@ -13,7 +13,6 @@ let _chargingStationConfig;
 
 class JsonCentralSystemServer extends CentralSystemServer {
     
-
     constructor(centralSystemConfig, chargingStationConfig) {
 		// Call parent
 		super(centralSystemConfig, chargingStationConfig);

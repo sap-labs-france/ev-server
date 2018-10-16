@@ -1,6 +1,7 @@
 const uuid = require('uuid/v4');
 const Logging = require('../../../utils/Logging'); 
 const WebSocket = require('ws');
+const Tenant = require('../../../model/Tenant');
 
 //const Commands = require('./Commands');
 const SOCKET_TIMEOUT = 30000; // 30 sec
@@ -31,27 +32,42 @@ class JsonWSClientConnection {
             });
 
             if (this._url.startsWith("/OCPP16/") === false) { //In princple already checked in connection opening from server
-                throw new Error("invalid url");
+                throw new Error(`Invalid URL ${this._url}`);
             }
 
 // Fill in standard JSON object for communication with central server
             try {
-                let chargeBoxIdWithNameSpace = this._url.split("/")[2];
+                // Determine tenant
+                let splittedURL = this._url.split("/"); //URL should like /OCPP16/TENANTNAME/CHARGEBOXID
+                let tenantName = "";
+                let chargboxId = ""; 
+                if (splittedURL.length === 4) {
+                    tenantName = splittedURL[2];
+                    let checkTenant = Tenant.getTenantByName(tenantName);
+                    if (checkTenant === null) {
+                        throw new Error(`Invalid tenant URL ${this._url}`);
+                    }
+                    chargboxId = splittedURL[3];
+                } else {
+                    chargboxId = splittedURL[2];
+                }
 
                 this._headers = {
-                    chargeBoxIdentity: this._url.split("/")[2],
+                    chargeBoxIdentity: chargboxId, // URL must be /OCPP16/CHARGEBOXID as defined by the standard
                     ocppVersion: (socket.protocol.startsWith("ocpp") ? socket.protocol.replace("ocpp", "") : socket.protocol),
+                    tenant: tenantName,
                     From : {
                         Address: ip
+                    }
                 }
-            }; 
+                
             } catch (error) {
-                throw new Error("invalid url");
+                throw new Error(`Invalid URL ${this._url}`);
             }
             
         } else {
 // should not happen as connection is initiated by the box always
-            throw new Error("invalid url");
+            throw new Error(`Invalid URL ${this._url}`);
         }
 
         // Check protocol
@@ -90,7 +106,6 @@ class JsonWSClientConnection {
         switch (messageType) {
             case CALL_MESSAGE:
                 // request 
-//                debug(`>> url ${this._url} message: ${message} type: ${messageType} commandNameOrPayload: ${commandNameOrPayload} commandPayload: ${commandPayload}`);
                 Logging.logReceivedAction(_moduleName, this._headers.chargeBoxIdentity, commandNameOrPayload, message, this._headers);
 
                 try {
