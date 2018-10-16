@@ -12,4 +12,4 @@ class TenantFactory {
     }
 }
 
-module.exports = new TenantFactory();
+module.exports = TenantFactory;
