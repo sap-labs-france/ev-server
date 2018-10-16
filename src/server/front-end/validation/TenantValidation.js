@@ -1,6 +1,6 @@
-import SchemaValidator from './SchemaValidator';
-import tenantCreation from '../schemas/tenant/tenant-creation.json';
-import tenantUpdate from '../schemas/tenant/tenant-update.json';
+const SchemaValidator = require('./SchemaValidator');
+const tenantCreation = require('../schemas/tenant/tenant-creation.json');
+const tenantUpdate = require('../schemas/tenant/tenant-update.json');
 
 class TenantValidator extends SchemaValidator{
 
@@ -25,4 +25,4 @@ class TenantValidator extends SchemaValidator{
 const instance = new TenantValidator();
 Object.freeze(instance);
 
-export default instance;
+module.exports = instance;

@@ -1,5 +1,5 @@
-import Ajv from 'ajv';
-import BadRequestError from '../../../exception/BadRequestError';
+const Ajv = require('ajv');
+const BadRequestError = require('../../../exception/BadRequestError');
 
 class SchemaValidator {
     constructor(moduleName) {
@@ -19,4 +19,4 @@ class SchemaValidator {
     }
 }
 
-export default SchemaValidator;
+module.exports = SchemaValidator;

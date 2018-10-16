@@ -21,7 +21,7 @@ const User = require('../../../model/User');
 const Authorizations = require('../../../authorization/Authorizations');
 const TenantSecurity = require('./security/TenantSecurity');
 const {CREATED, OK} = require('http-status-codes');
-const TenantValidator = require('../validation/TenantValidation').default;
+const TenantValidator = require('../validation/TenantValidation');
 const AbstractService = require('./AbstractService');
 
 const MODULE_NAME = 'TenantService';
