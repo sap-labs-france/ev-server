@@ -7,7 +7,7 @@ const AppError = require('../exception/AppError');
 const Utils = require('../utils/Utils');
 const UserStorage = require('../storage/mongodb/UserStorage');
 const TransactionStorage = require('../storage/mongodb/TransactionStorage');
-const Site = require('./Site');
+const SiteStorage = require('../storage/mongodb/SiteStorage');
 
 class User {
 	constructor(user) {
@@ -286,7 +286,7 @@ class User {
 	async getSites(withCompany=false, withSiteAreas=false,
 			withChargeBoxes=false, withUsers=false) {
 		// Get Sites
-		let sites = await Site.getSites({'userID': this.getID(),
+		let sites = await SiteStorage.getSites({'userID': this.getID(),
 			withCompany, withSiteAreas, withChargeBoxes, withUsers});
 		// Return the array
 		return sites.result;

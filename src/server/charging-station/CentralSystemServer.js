@@ -150,7 +150,7 @@ class CentralSystemServer {
 			}
 		} catch(error) {
 			// Set the source
-			error.source = headers.chargeBoxIdentity;
+			error.source = content.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('BootNotification', error);
 			// Reject
@@ -178,7 +178,7 @@ class CentralSystemServer {
 			};
 		} catch(error) {
 			// Set the source
-			error.source = headers.chargeBoxIdentity;
+			error.source = content.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('HeartBeat', error);
 			// Send the response
@@ -203,7 +203,7 @@ class CentralSystemServer {
 			};
 		} catch(error) {
 			// Set the source
-			error.source = headers.chargeBoxIdentity;
+			error.source = content.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('StatusNotification', error);
 			// Return
@@ -227,7 +227,7 @@ class CentralSystemServer {
 			};
 		} catch(error) {
 			// Set the source
-			error.source = headers.chargeBoxIdentity;
+			error.source = content.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('MeterValues', error);
 			// Response
@@ -254,7 +254,7 @@ class CentralSystemServer {
 			};
 		} catch(error) {
 			// Set the source
-			error.source = headers.chargeBoxIdentity;
+			error.source = content.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('Authorize', error);
 			return {
@@ -280,7 +280,7 @@ class CentralSystemServer {
 			};
 		} catch(error) {
 			// Set the source
-			error.source = headers.chargeBoxIdentity;
+			error.source = content.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('DiagnosticsStatusNotification', error);
 			return {
@@ -328,7 +328,7 @@ class CentralSystemServer {
 			};
 		} catch(error) {
 			// Set the source
-			error.source = headers.chargeBoxIdentity;
+			error.source = content.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('StartTransaction', error);
 			return {
@@ -356,7 +356,7 @@ class CentralSystemServer {
 			};
 		} catch(error) {
 			// Set the source
-			error.source = headers.chargeBoxIdentity;
+			error.source = content.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('DataTransfer', error);
 			return {
@@ -383,7 +383,7 @@ class CentralSystemServer {
 			};
 		} catch(error) {
 			// Set the source
-			error.source = headers.chargeBoxIdentity;
+			error.source = content.chargeBoxIdentity;
 			// Log error
 			Logging.logActionExceptionMessage('StopTransaction', error);
 			// Error
