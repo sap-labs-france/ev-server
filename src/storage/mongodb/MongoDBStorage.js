@@ -52,10 +52,10 @@ class MongoDBStorage {
 		let filter = {};
 		let prefix = '';
 		if (tenant) {
-			filter.name = new RegExp(`^${tenant}_`);
-			prefix = `${tenant}_`;
+			filter.name = new RegExp(`^${tenant}\.`);
+			prefix = `${tenant}.`;
 		} else {
-			filter.name = new RegExp(`[^_]`);
+			filter.name = new RegExp(`[^\.]`);
 		}
 		// Get all the tenant collections
 		let collections = await db.listCollections(filter).toArray();
