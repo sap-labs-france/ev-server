@@ -3,6 +3,7 @@ const AppAuthError = require('../../exception/AppAuthError');
 const BadRequestError = require('../../exception/BadRequestError');
 const ConflictError = require('../../exception/ConflictError');
 const NotFoundError = require('../../exception/NotFoundError');
+const UnauthorizedError = require('../../exception/UnauthorizedError');
 const {
     hideShowMessage
 } = require('../../utils/Utils');
@@ -15,16 +16,16 @@ const {
 
 class ErrorHandler {
     static async errorHandler(err, req, res, next) {
-        if (err instanceof AppAuthError) {
-            ErrorHandler._handleAppAuthError(err, res);
+        if (err instanceof AppAuthError || err instanceof UnauthorizedError) {
+            await ErrorHandler._handleUnauthorizedError(err, res);
         } else if (err instanceof BadRequestError) {
-            ErrorHandler._handleBadRequestError(err, res);
+            await ErrorHandler._handleBadRequestError(err, res);
         } else if (err instanceof ConflictError) {
-            ErrorHandler._handleConflictError(err, res);
+            await ErrorHandler._handleConflictError(err, res);
         } else if (err instanceof NotFoundError) {
-            ErrorHandler._handleNotFoundError(err, res);
+            await ErrorHandler._handleNotFoundError(err, res);
         } else if (err instanceof AppError) {
-            ErrorHandler._handleAppError(err, res);
+            await ErrorHandler._handleAppError(err, res);
         } else {
             res.status(500).send({});
         }
@@ -33,16 +34,16 @@ class ErrorHandler {
 
     static async _handleAppError(err, res) {
         res.status((err.errorCode ? err.errorCode : 500)).send({
-            "message": hideShowMessage(exception.message)
+            "message": hideShowMessage(err.message)
         });
     }
 
-    static async _handleAppAuthError(err, res) {
+    static async _handleUnauthorizedError(err, res) {
         res.status(UNAUTHORIZED).send({});
     }
 
     static async _handleBadRequestError(err, res) {
-        let details = err.schemaErrors.map((error) => {
+        const details = err.schemaErrors.map((error) => {
             return {
                 path: error.dataPath,
                 message: error.message

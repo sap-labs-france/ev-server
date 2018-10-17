@@ -1,7 +1,7 @@
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
-const AppAuthError = require('../../../exception/AppAuthError');
+const UnauthorizedError = require('../../../exception/UnauthorizedError');
 const BadRequestError = require('../../../exception/BadRequestError');
 const ConflictError = require('../../../exception/ConflictError');
 const NotFoundError = require('../../../exception/NotFoundError');
@@ -30,7 +30,7 @@ class TenantService extends AbstractService {
     static async handleDeleteTenant(action, req, res, next){
         try {
             // Filter
-            let filteredRequest = TenantSecurity.filterTenantDeleteRequest(
+            const filteredRequest = TenantSecurity.filterTenantDeleteRequest(
             req.query, req.user);
             // Check Mandatory fields
             if (!filteredRequest.ID) {
@@ -40,7 +40,7 @@ class TenantService extends AbstractService {
                 `The Tenant's ID must be provided`, 400);
             }
             // Get
-            let tenant = await Tenant.getTenant(filteredRequest.ID);
+            const tenant = await Tenant.getTenant(filteredRequest.ID);
             // Found?
             if (!tenant) {
                 // Not Found!
@@ -50,11 +50,11 @@ class TenantService extends AbstractService {
             // Check auth
             if (!Authorizations.canDeleteTenant(req.user, tenant.getModel())) {
                 // Not Authorized!
-                throw new AppAuthError(
+                throw new UnauthorizedError(
                 ACTION_DELETE,
                 ENTITY_TENANT,
                 tenant.getID(),
-                user = req.user);
+                req.user);
             }
             // Delete
             await tenant.delete();
@@ -78,14 +78,14 @@ class TenantService extends AbstractService {
     static async handleGetTenant(action, req, res, next){
         try {
             // Filter
-            let filteredRequest = TenantSecurity.filterTenantRequest(req.query, req.user);
+            const filteredRequest = TenantSecurity.filterTenantRequest(req.query, req.user);
             // Charge Box is mandatory
             if (!filteredRequest.ID) {
                 // Not Found!
                 throw new BadRequestError([]);
             }
             // Get it
-            let tenant = await Tenant.getTenant(filteredRequest.ID);
+            const tenant = await Tenant.getTenant(filteredRequest.ID);
             if (!tenant) {
                 throw new NotFoundError(
                 `The Tenant with ID '${filteredRequest.id}' does not exist`);
@@ -93,10 +93,10 @@ class TenantService extends AbstractService {
             // Check auth
             if (!Authorizations.canReadTenant(req.user, tenant.getModel())) {
                 // Not Authorized!
-                throw new AppAuthError(
+                throw new UnauthorizedError(
                 ACTION_READ,
                 ENTITY_TENANT,
-                user = req.user);
+                req.user);
             }
             // Return
             res.json(
@@ -115,15 +115,15 @@ class TenantService extends AbstractService {
             // Check auth
             if (!Authorizations.canListTenants(req.user)) {
                 // Not Authorized!
-                throw new AppAuthError(
+                throw new UnauthorizedError(
                 ACTION_LIST,
                 ENTITY_TENANTS,
-                user = req.user);
+                req.user);
             }
             // Filter
-            let filteredRequest = TenantSecurity.filterTenantsRequest(req.query, req.user);
+            const filteredRequest = TenantSecurity.filterTenantsRequest(req.query, req.user);
             // Get the tenants
-            let tenants = await Tenant.getTenants({
+            const tenants = await Tenant.getTenants({
                 search: filteredRequest.Search
             },
             filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
@@ -145,14 +145,14 @@ class TenantService extends AbstractService {
             // Check auth
             if (!Authorizations.canCreateTenant(req.user)) {
                 // Not Authorized!
-                throw new AppAuthError(
+                throw new UnauthorizedError(
                 ACTION_CREATE,
                 ENTITY_TENANT,
-                user = req.user);
+                req.user);
             }
             TenantValidator.validateTenantCreation(req.body);
             // Filter
-            let filteredRequest = TenantSecurity.filterTenantCreateRequest(req.body, req.user);
+            const filteredRequest = TenantSecurity.filterTenantCreateRequest(req.body, req.user);
 
             let foundTenant = await Tenant.getTenantByName(filteredRequest.name);
             if (foundTenant) {
@@ -170,14 +170,14 @@ class TenantService extends AbstractService {
             }
 
             // Create
-            let tenant = new Tenant(filteredRequest);
+            const tenant = new Tenant(filteredRequest);
             // Update timestamp
             tenant.setCreatedBy(new User({
                 'id': req.user.id
             }));
             tenant.setCreatedOn(new Date());
             // Save
-            let newTenant = await tenant.save();
+            const newTenant = await tenant.save();
 
             await tenant.createEnvironment();
 
@@ -204,10 +204,10 @@ class TenantService extends AbstractService {
         try {
             // Filter
             TenantValidator.validateTenantUpdate(req.body);
-            let filteredRequest = TenantSecurity.filterTenantUpdateRequest(req.body, req.user);
+            const filteredRequest = TenantSecurity.filterTenantUpdateRequest(req.body, req.user);
 
             // Check email
-            let tenant = await Tenant.getTenant(filteredRequest.id);
+            const tenant = await Tenant.getTenant(filteredRequest.id);
             if (!tenant) {
                 throw new NotFoundError(
                 `The Tenant with ID '${filteredRequest.id}' does not exist`);
@@ -215,11 +215,11 @@ class TenantService extends AbstractService {
             // Check auth
             if (!Authorizations.canUpdateTenant(req.user, tenant.getModel())) {
                 // Not Authorized!
-                throw new AppAuthError(
+                throw new UnauthorizedError(
                 ACTION_UPDATE,
                 ENTITY_TENANT,
                 tenant.getID(),
-                user = req.user);
+                req.user);
             }
             // Update
             Database.updateTenant(filteredRequest, tenant.getModel());
@@ -229,7 +229,7 @@ class TenantService extends AbstractService {
             }));
             tenant.setLastChangedOn(new Date());
             // Update Tenant
-            let updatedTenant = await tenant.save();
+            const updatedTenant = await tenant.save();
             // Log
             Logging.logSecurityInfo({
                 user: req.user,
@@ -250,9 +250,9 @@ class TenantService extends AbstractService {
     static async handleVerifyTenant(action, req, res, next){
         try {
             // Filter
-            let filteredRequest = TenantSecurity.filterVerifyTenantRequest(req.headers);
+            const filteredRequest = TenantSecurity.filterVerifyTenantRequest(req.headers);
             // Check email
-            let tenant = await Tenant.getTenantBySubdomain(filteredRequest.tenant);
+            const tenant = await Tenant.getTenantBySubdomain(filteredRequest.tenant);
             if (!tenant) {
                 throw new NotFoundError(
                 `The Tenant with subdomain '${filteredRequest.subdomain}' does not exist`);
