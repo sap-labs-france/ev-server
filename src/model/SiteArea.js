@@ -85,6 +85,7 @@ class SiteArea {
 	}
 
 	async getSite(withCompany=false, withUser=false) {
+
 		if (this._model.site) {
 			return new Site(this._model.site);
 		} else if (this._model.siteID){
@@ -139,19 +140,19 @@ class SiteArea {
 		if(request.method !== 'POST' && !filteredRequest.id) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The Site Area ID is mandatory`, 500, 
+				`The Site Area ID is mandatory`, 500,
 				'SiteArea', 'checkIfSiteAreaValid');
 		}
 		if(!filteredRequest.name) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The Site Area Name is mandatory`, 500, 
+				`The Site Area Name is mandatory`, 500,
 				'SiteArea', 'checkIfSiteAreaValid');
 		}
 		if(!filteredRequest.siteID) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The Site ID is mandatory`, 500, 
+				`The Site ID is mandatory`, 500,
 				'SiteArea', 'checkIfSiteAreaValid');
 		}
 		if (!filteredRequest.chargeBoxIDs) {

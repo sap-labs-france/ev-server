@@ -92,6 +92,10 @@ class TenantStorage {
         return new Tenant(result.value);
     }
 
+    static async createTenantDB(tenant) {
+        await global.database.createTenantDatabase(global.db, tenant);
+    }
+
     // Delegate
     static async getTenants(params = {}, limit, skip, sort) {
 		const Tenant = require('../../model/Tenant'); // Avoid fucking circular deps!!!

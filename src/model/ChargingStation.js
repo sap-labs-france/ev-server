@@ -1195,7 +1195,7 @@ class ChargingStation {
 		// Save Charging Station
 		await this.save();
 		// Compute total consumption (optimization)
-		let consumption = await this.getConsumptionsFromTransaction(transaction, true);
+		let consumption = await this.getConsumptionsFromTransaction(transaction, false);
 		// Compute total inactivity seconds
 		stopTransaction.totalInactivitySecs = 0;
 		for (let index = 0; index < consumption.values.length; index++) {

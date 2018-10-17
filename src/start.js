@@ -33,6 +33,7 @@ class Bootstrap {
 
 			// Connect to the the DB
 			await database.start();
+			global.database = database;
 			
 			// Check and trigger migration
 			await MigrationHandler.migrate();

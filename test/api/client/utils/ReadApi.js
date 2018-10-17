@@ -8,32 +8,33 @@ class ReadApi {
   }
 
 
-  readById(path, id, expectations) {
+  readById(path, id) {
     return this.baseApi.send({
       method: 'GET',
-      path: path,
-      query: {ID: id}
-    }, expectations);
+      url: path,
+      params: {ID: id}
+    });
   }
 
-  read(path, query, expectations) {
+  read(path, params = {}, headers = {}) {
     return this.baseApi.send({
       method: 'GET',
-      path: path,
-      query: query
-    }, expectations);
+      url: path,
+      params: params,
+      headers: headers
+    });
   }
 
-  readAll(path, query, expectations) {
+  readAll(path, params = {}) {
     let request = this.pageableApi;
-    if (query.Limit || query.Skip) {
+    if (params.Limit || params.Skip) {
       request = this.baseApi;
     }
     return request.send({
       method: 'GET',
-      path: path,
-      query: query
-    }, expectations);
+      url: path,
+      params: params
+    });
   }
 }
 

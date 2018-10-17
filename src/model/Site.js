@@ -199,19 +199,19 @@ class Site {
 		if(request.method !== 'POST' && !filteredRequest.id) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The Site ID is mandatory`, 500, 
+				`The Site ID is mandatory`, 500,
 				'Site', 'checkIfSiteValid');
 		}
 		if(!filteredRequest.name) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The Site Name is mandatory`, 500, 
+				`The Site Name is mandatory`, 500,
 				'Site', 'checkIfSiteValid');
 		}
 		if(!filteredRequest.companyID) {
 			throw new AppError(
 				Constants.CENTRAL_SERVER,
-				`The Company ID is mandatory for the Site`, 500, 
+				`The Company ID is mandatory for the Site`, 500,
 				'Sites', 'checkIfSiteValid');
 		}
 	}
