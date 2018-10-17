@@ -1,269 +1,268 @@
-import Logging from '../../../utils/Logging';
-import Database from '../../../utils/Database';
-import AppError from '../../../exception/AppError';
-import AppAuthError from '../../../exception/AppAuthError';
-import BadRequestError from '../../../exception/BadRequestError';
-import ConflictError from '../../../exception/ConflictError';
-import NotFoundError from '../../../exception/NotFoundError';
-import {
-    CENTRAL_SERVER,
-    ACTION_DELETE,
-    ENTITY_TENANT,
-    REST_RESPONSE_SUCCESS,
-    ACTION_READ,
-    ACTION_LIST,
-    ENTITY_TENANTS,
+const Logging = require('../../../utils/Logging');
+const Database = require('../../../utils/Database');
+const AppError = require('../../../exception/AppError');
+const UnauthorizedError = require('../../../exception/UnauthorizedError');
+const BadRequestError = require('../../../exception/BadRequestError');
+const ConflictError = require('../../../exception/ConflictError');
+const NotFoundError = require('../../../exception/NotFoundError');
+const {
     ACTION_CREATE,
-    ACTION_UPDATE
-} from '../../../utils/Constants';
-import Tenant from '../../../model/Tenant';
-import User from '../../../model/User';
-import Authorizations from '../../../authorization/Authorizations';
-import TenantSecurity from './security/TenantSecurity';
-import {
-    OK,
-    CREATED
-} from 'http-status-codes';
-import TenantValidator from '../../../validation/TenantValidation';
+    ACTION_DELETE,
+    ACTION_LIST,
+    ACTION_READ,
+    ACTION_UPDATE,
+    CENTRAL_SERVER,
+    ENTITY_TENANT,
+    ENTITY_TENANTS,
+    REST_RESPONSE_SUCCESS
+} = require('../../../utils/Constants');
+const Tenant = require('../../../model/Tenant');
+const User = require('../../../model/User');
+const Authorizations = require('../../../authorization/Authorizations');
+const TenantSecurity = require('./security/TenantSecurity');
+const {CREATED, OK} = require('http-status-codes');
+const TenantValidator = require('../validation/TenantValidation');
+const AbstractService = require('./AbstractService');
 
-export async function handleDeleteTenant(action, req, res, next) {
-    try {
-        // Filter
-        let filteredRequest = TenantSecurity.filterTenantDeleteRequest(
+const MODULE_NAME = 'TenantService';
+
+class TenantService extends AbstractService {
+    static async handleDeleteTenant(action, req, res, next){
+        try {
+            // Filter
+            const filteredRequest = TenantSecurity.filterTenantDeleteRequest(
             req.query, req.user);
-        // Check Mandatory fields
-        if (!filteredRequest.ID) {
-            // Not Found!
-            throw new AppError(
+            // Check Mandatory fields
+            if (!filteredRequest.ID) {
+                // Not Found!
+                throw new AppError(
                 CENTRAL_SERVER,
                 `The Tenant's ID must be provided`, 400);
-        }
-        // Get
-        let tenant = await Tenant.getTenant(filteredRequest.ID);
-        // Found?
-        if (!tenant) {
-            // Not Found!
-            throw new NotFoundError(
+            }
+            // Get
+            const tenant = await Tenant.getTenant(filteredRequest.ID);
+            // Found?
+            if (!tenant) {
+                // Not Found!
+                throw new NotFoundError(
                 `The Tenant with ID '${filteredRequest.id}' does not exist`);
-        }
-        // Check auth
-        if (!Authorizations.canDeleteTenant(req.user, tenant.getModel())) {
-            // Not Authorized!
-            throw new AppAuthError(
+            }
+            // Check auth
+            if (!Authorizations.canDeleteTenant(req.user, tenant.getModel())) {
+                // Not Authorized!
+                throw new UnauthorizedError(
                 ACTION_DELETE,
                 ENTITY_TENANT,
                 tenant.getID(),
-                user = req.user);
+                req.user);
+            }
+            // Delete
+            await tenant.delete();
+            // Log
+            Logging.logSecurityInfo({
+                user: req.user,
+                module: 'TenantService',
+                method: 'handleDeleteTenant',
+                message: `Tenant '${tenant.getName()}' has been deleted successfully`,
+                action: action,
+                detailedMessages: tenant
+            });
+            // Ok
+            res.json(REST_RESPONSE_SUCCESS);
+            next();
+        } catch (error) {
+            TenantService._handleError(error, req, next, action, MODULE_NAME, 'handleDeleteTenant');
         }
-        // Delete
-        await tenant.delete();
-        // Log
-        Logging.logSecurityInfo({
-            user: req.user,
-            module: 'TenantService',
-            method: 'handleDeleteTenant',
-            message: `Tenant '${tenant.getName()}' has been deleted successfully`,
-            action: action,
-            detailedMessages: tenant
-        });
-        // Ok
-        res.json(REST_RESPONSE_SUCCESS);
-        next();
-    } catch (error) {
-        _handleError(error, req, next, action, 'handleDeleteTenant');
     }
-}
 
-export async function handleGetTenant(action, req, res, next) {
-    try {
-        // Filter
-        let filteredRequest = TenantSecurity.filterTenantRequest(req.query, req.user);
-        // Charge Box is mandatory
-        if (!filteredRequest.ID) {
-            // Not Found!
-            throw new BadRequestError([]);
-        }
-        // Get it
-        let tenant = await Tenant.getTenant(filteredRequest.ID);
-        if (!tenant) {
-            throw new NotFoundError(
+    static async handleGetTenant(action, req, res, next){
+        try {
+            // Filter
+            const filteredRequest = TenantSecurity.filterTenantRequest(req.query, req.user);
+            // Charge Box is mandatory
+            if (!filteredRequest.ID) {
+                // Not Found!
+                throw new BadRequestError([]);
+            }
+            // Get it
+            const tenant = await Tenant.getTenant(filteredRequest.ID);
+            if (!tenant) {
+                throw new NotFoundError(
                 `The Tenant with ID '${filteredRequest.id}' does not exist`);
-        }
-        // Check auth
-        if (!Authorizations.canReadTenant(req.user, tenant.getModel())) {
-            // Not Authorized!
-            throw new AppAuthError(
+            }
+            // Check auth
+            if (!Authorizations.canReadTenant(req.user, tenant.getModel())) {
+                // Not Authorized!
+                throw new UnauthorizedError(
                 ACTION_READ,
                 ENTITY_TENANT,
-                user = req.user);
-        }
-        // Return
-        res.json(
+                req.user);
+            }
+            // Return
+            res.json(
             // Filter
             TenantSecurity.filterTenantResponse(
-                tenant.getModel(), req.user)
-        );
-        next();
-    } catch (error) {
-        _handleError(error, req, next, action, 'handleGetTenant');
+            tenant.getModel(), req.user)
+            );
+            next();
+        } catch (error) {
+            TenantService._handleError(error, req, next, action, MODULE_NAME, 'handleGetTenant');
+        }
     }
-}
 
-export async function handleGetTenants(action, req, res, next) {
-    try {
-        // Check auth
-        if (!Authorizations.canListTenants(req.user)) {
-            // Not Authorized!
-            throw new AppAuthError(
+    static async handleGetTenants(action, req, res, next){
+        try {
+            // Check auth
+            if (!Authorizations.canListTenants(req.user)) {
+                // Not Authorized!
+                throw new UnauthorizedError(
                 ACTION_LIST,
                 ENTITY_TENANTS,
-                user = req.user);
-        }
-        // Filter
-        let filteredRequest = TenantSecurity.filterTenantsRequest(req.query, req.user);
-        // Get the tenants
-        let tenants = await Tenant.getTenants({
+                req.user);
+            }
+            // Filter
+            const filteredRequest = TenantSecurity.filterTenantsRequest(req.query, req.user);
+            // Get the tenants
+            const tenants = await Tenant.getTenants({
                 search: filteredRequest.Search
             },
             filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
-        // Set
-        tenants.result = tenants.result.map((tenant) => tenant.getModel());
-        // Filter
-        tenants.result = TenantSecurity.filterTenantsResponse(
+            // Set
+            tenants.result = tenants.result.map((tenant) => tenant.getModel());
+            // Filter
+            tenants.result = TenantSecurity.filterTenantsResponse(
             tenants.result, req.user);
-        // Return
-        res.json(tenants);
-        next();
-    } catch (error) {
-        _handleError(error, req, next, action, 'handleGetTenants');
+            // Return
+            res.json(tenants);
+            next();
+        } catch (error) {
+            TenantService._handleError(error, req, next, action, MODULE_NAME, 'handleGetTenants');
+        }
     }
-}
 
-export async function handleCreateTenant(action, req, res, next) {
-    try {
-        // Check auth
-        if (!Authorizations.canCreateTenant(req.user)) {
-            // Not Authorized!
-            throw new AppAuthError(
+    static async handleCreateTenant(action, req, res, next){
+        try {
+            // Check auth
+            if (!Authorizations.canCreateTenant(req.user)) {
+                // Not Authorized!
+                throw new UnauthorizedError(
                 ACTION_CREATE,
                 ENTITY_TENANT,
-                user = req.user);
-        }
-        TenantValidator.validateTenantCreation(req.body);
-        // Filter
-        let filteredRequest = TenantSecurity.filterTenantCreateRequest(req.body, req.user);
+                req.user);
+            }
+            TenantValidator.validateTenantCreation(req.body);
+            // Filter
+            const filteredRequest = TenantSecurity.filterTenantCreateRequest(req.body, req.user);
 
-        let foundTenant = await Tenant.getTenantByName(filteredRequest.name);
-        if (foundTenant) {
-            throw new ConflictError(`The tenant with name '${filteredRequest.name}' already exists`, 'tenants.name_already_used', {
+            let foundTenant = await Tenant.getTenantByName(filteredRequest.name);
+            if (foundTenant) {
+                throw new ConflictError(`The tenant with name '${filteredRequest.name}' already exists`, 'tenants.name_already_used', {
                     'name': filteredRequest.name
                 },
                 'TenantService', 'handleCreateTenant', req.user, action);
-        }
+            }
 
-        foundTenant = await Tenant.getTenantBySubdomain(filteredRequest.subdomain);
-        if (foundTenant) {
-            throw new ConflictError(`The tenant with subdomain '${filteredRequest.subdomain}' already exists`, 'tenants.subdomain_already_used', {
-                'subdomain': filteredRequest.subdomain
+            foundTenant = await Tenant.getTenantBySubdomain(filteredRequest.subdomain);
+            if (foundTenant) {
+                throw new ConflictError(`The tenant with subdomain '${filteredRequest.subdomain}' already exists`, 'tenants.subdomain_already_used', {
+                    'subdomain': filteredRequest.subdomain
+                });
+            }
+
+            // Create
+            const tenant = new Tenant(filteredRequest);
+            // Update timestamp
+            tenant.setCreatedBy(new User({
+                'id': req.user.id
+            }));
+            tenant.setCreatedOn(new Date());
+            // Save
+            const newTenant = await tenant.save();
+
+            await tenant.createEnvironment();
+
+            // Log
+            Logging.logSecurityInfo({
+                user: req.user,
+                module: 'TenantService',
+                method: 'handleCreateTenant',
+                message: `Tenant '${newTenant.getName()}' has been created successfully`,
+                action: action,
+                detailedMessages: newTenant
             });
+            // Ok
+            res.status(CREATED).json({
+                id: newTenant.getID()
+            });
+            next();
+        } catch (error) {
+            TenantService._handleError(error, req, next, action, MODULE_NAME, 'handleCreateTenant');
         }
-
-        // Create
-        let tenant = new Tenant(filteredRequest);
-        // Update timestamp
-        tenant.setCreatedBy(new User({
-            'id': req.user.id
-        }));
-        tenant.setCreatedOn(new Date());
-        // Save
-        let newTenant = await tenant.save();
-
-        await tenant.createEnvironment();
-
-        // Log
-        Logging.logSecurityInfo({
-            user: req.user,
-            module: 'TenantService',
-            method: 'handleCreateTenant',
-            message: `Tenant '${newTenant.getName()}' has been created successfully`,
-            action: action,
-            detailedMessages: newTenant
-        });
-        // Ok
-        res.status(CREATED).json({
-            id: newTenant.getID()
-        });
-        next();
-    } catch (error) {
-        _handleError(error, req, next, action, 'handleCreateTenant');
     }
-}
 
-export async function handleUpdateTenant(action, req, res, next) {
-    try {
-        // Filter
-        TenantValidator.validateTenantUpdate(req.body);
-        let filteredRequest = TenantSecurity.filterTenantUpdateRequest(req.body, req.user);
+    static async handleUpdateTenant(action, req, res, next){
+        try {
+            // Filter
+            TenantValidator.validateTenantUpdate(req.body);
+            const filteredRequest = TenantSecurity.filterTenantUpdateRequest(req.body, req.user);
 
-        // Check email
-        let tenant = await Tenant.getTenant(filteredRequest.id);
-        if (!tenant) {
-            throw new NotFoundError(
+            // Check email
+            const tenant = await Tenant.getTenant(filteredRequest.id);
+            if (!tenant) {
+                throw new NotFoundError(
                 `The Tenant with ID '${filteredRequest.id}' does not exist`);
-        }
-        // Check auth
-        if (!Authorizations.canUpdateTenant(req.user, tenant.getModel())) {
-            // Not Authorized!
-            throw new AppAuthError(
+            }
+            // Check auth
+            if (!Authorizations.canUpdateTenant(req.user, tenant.getModel())) {
+                // Not Authorized!
+                throw new UnauthorizedError(
                 ACTION_UPDATE,
                 ENTITY_TENANT,
                 tenant.getID(),
-                user = req.user);
+                req.user);
+            }
+            // Update
+            Database.updateTenant(filteredRequest, tenant.getModel());
+            // Update timestamp
+            tenant.setLastChangedBy(new User({
+                'id': req.user.id
+            }));
+            tenant.setLastChangedOn(new Date());
+            // Update Tenant
+            const updatedTenant = await tenant.save();
+            // Log
+            Logging.logSecurityInfo({
+                user: req.user,
+                module: 'TenantService',
+                method: 'handleUpdateTenant',
+                message: `Tenant '${updatedTenant.getName()}' has been updated successfully`,
+                action: action,
+                detailedMessages: updatedTenant
+            });
+            // Ok
+            res.json(REST_RESPONSE_SUCCESS);
+            next();
+        } catch (error) {
+            TenantService._handleError(error, req, next, action, MODULE_NAME, 'handleUpdateTenant');
         }
-        // Update
-        Database.updateTenant(filteredRequest, tenant.getModel());
-        // Update timestamp
-        tenant.setLastChangedBy(new User({
-            'id': req.user.id
-        }));
-        tenant.setLastChangedOn(new Date());
-        // Update Tenant
-        let updatedTenant = await tenant.save();
-        // Log
-        Logging.logSecurityInfo({
-            user: req.user,
-            module: 'TenantService',
-            method: 'handleUpdateTenant',
-            message: `Tenant '${updatedTenant.getName()}' has been updated successfully`,
-            action: action,
-            detailedMessages: updatedTenant
-        });
-        // Ok
-        res.json(REST_RESPONSE_SUCCESS);
-        next();
-    } catch (error) {
-        _handleError(error, req, next, action, 'handleUpdateTenant');
     }
-}
 
-export async function handleVerifyTenant(action, req, res, next) {
-    try {
-        // Filter
-        let filteredRequest = TenantSecurity.filterVerifyTenantRequest(req.headers);
-        // Check email
-        let tenant = await Tenant.getTenantBySubdomain(filteredRequest.tenant);
-        if (!tenant) {
-            throw new NotFoundError(
+    static async handleVerifyTenant(action, req, res, next){
+        try {
+            // Filter
+            const filteredRequest = TenantSecurity.filterVerifyTenantRequest(req.headers);
+            // Check email
+            const tenant = await Tenant.getTenantBySubdomain(filteredRequest.tenant);
+            if (!tenant) {
+                throw new NotFoundError(
                 `The Tenant with subdomain '${filteredRequest.subdomain}' does not exist`);
+            }
+            res.status(OK).send({});
+            next();
+        } catch (error) {
+            TenantService._handleError(error, req, next, action, MODULE_NAME, 'handleVerifyTenant');
         }
-        res.status(OK).send({});
-        next();
-    } catch (error) {
-        _handleError(error, req, next, action, 'handleVerifyTenant');
     }
 }
 
-function _handleError(error, req, next, action, method) {
-    Logging.logException(error, action, CENTRAL_SERVER, 'TenantService', method, req.user);
-    next(error);
-}
+module.exports = TenantService;

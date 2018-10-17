@@ -64,9 +64,7 @@
 		"convict": "^4.4.0",
 		"copy-webpack-plugin": "^4.5.2",
 		"easysoap": "^2.0.1",
-		"eslint": "^5.6.1",
-		"eslint-config-airbnb-base": "^13.1.0",
-		"eslint-plugin-import": "^2.14.0",
+		"eslint": "^5.7.0",
 		"faker": "^4.1.0",
 		"json-loader": "^0.5.7",
 		"json-schema-faker": "^0.5.0-rc16",
@@ -95,6 +93,7 @@
 		"build": "npm run build:dev",
 		"build:dev": "webpack --watch --env.env=dev",
 		"build:prod": "webpack --env.env=prod",
+		"lint": "eslint src",
 		"test": "mocha test/**/*_test.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false ",
 		"test:parallel": "mocha-parallel-tests test/**/*_test.js --reporter mochawesome"
 	},

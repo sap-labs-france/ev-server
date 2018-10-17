@@ -37,8 +37,6 @@ module.exports = {
 	},
 
 	restServiceSecured(req, res, next) {
-		let filter;
-		let filteredRequest;
 		// Parse the action
 		var action = /^\/\w*/g.exec(req.url)[0].substring(1);
 		// Check Context
