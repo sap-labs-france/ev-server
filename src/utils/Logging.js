@@ -14,14 +14,14 @@ require('source-map-support').install();
 const loggingConfigPath = require.resolve('../logging.json');
 let _loggingConfig;
 
-let LogLevel = {
+const LogLevel = {
 	"INFO": 'I',
 	"DEBUG": 'D',
 	"WARNING": 'W',
 	"ERROR": 'E'
 }
 
-let LoggingType = {
+const LoggingType = {
 	"SECURITY": 'S',
 	"REGULAR": 'R'
 }
@@ -131,7 +131,7 @@ class Logging {
 
 	// Used to log exception in catch(...) only
 	static logException(error, action, source, module, method, user) {
-		let log = Logging._buildLog(error, action, source, module, method, user);
+		const log = Logging._buildLog(error, action, source, module, method, user);
 		if (error instanceof AppAuthError) {
 			Logging.logSecurityError(log);
 		} else if (error instanceof BadRequestError) {
@@ -248,13 +248,8 @@ class Logging {
 		if (typeof detailedMessage === "object") {
 			try {
 				// Check that every detailedMessages is parsed
-<<<<<<< HEAD
 				return JSON.stringify(detailedMessage, null, " ");
 			} catch(err) {
-=======
-				return JSON.stringify(detailedMessage);
-			} catch (err) {
->>>>>>> ba4916f0a813a31e1cf029d1d458d7f255bf43c1
 				// Log
 				Logging.logWarning({
 					module: "Logging",
