@@ -1,5 +1,6 @@
 const Logging = require('../../../../utils/Logging');
 const Utils = require('../../../../utils/Utils');
+const Constants = require('../../../../utils/Constants');
 
 var _moduleName = "centralSystemService1.6";
 
@@ -12,7 +13,7 @@ module.exports = { /* Services */
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "Authorize", args, headers);
 				// Handle
-				global.centralSystemSoap.handleAuthorize(Object.assign(args, headers)).then(function(result) {
+				global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION16).handleAuthorize(Object.assign(args, headers)).then(function(result) {
 					// Log
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "Authorize", {
 						"result": result
@@ -52,7 +53,7 @@ module.exports = { /* Services */
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "BootNotification", args, headers);
 				// Handle
-				global.centralSystemSoap.handleBootNotification(Object.assign(args, headers)).then(function(result) {
+				global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION16).handleBootNotification(headers).then(function(result) {
 					// Log
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "BootNotification", {
 						"result": result
@@ -91,7 +92,7 @@ module.exports = { /* Services */
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "DataTransfer", args, headers);
 				// Handle
-				global.centralSystemSoap.handleDataTransfer(Object.assign(args, headers)).then(function(result) {
+				global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION16).handleDataTransfer(Object.assign(args, headers)).then(function(result) {
 					// Log
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "DataTransfer", {
 						"result": result
@@ -125,7 +126,7 @@ module.exports = { /* Services */
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", args, headers);
 				// Handle
-				global.centralSystemSoap.handleDiagnosticsStatusNotification(Object.assign(args, headers)).then(function(result) {
+				global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION16).handleDiagnosticsStatusNotification(Object.assign(args, headers)).then(function(result) {
 					// Log
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", {
 						"result": result
@@ -155,7 +156,7 @@ module.exports = { /* Services */
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "FirmwareStatusNotification", args, headers);
 				// Handle
-				global.centralSystemSoap.handleFirmwareStatusNotification(Object.assign(args, headers)).then(function(result) {
+				global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION16).handleFirmwareStatusNotification(Object.assign(args, headers)).then(function(result) {
 					// Log
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "FirmwareStatusNotification", {
 						"result": result
@@ -185,7 +186,7 @@ module.exports = { /* Services */
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "Heartbeat", args, headers);
 				// Handle
-				global.centralSystemSoap.handleHeartBeat(Object.assign(args, headers)).then(function(result) {
+				global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION16).handleHeartBeat(Object.assign(args, headers)).then(function(result) {
 					// Log
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "Heartbeat", {
 						"result": result
@@ -215,7 +216,7 @@ module.exports = { /* Services */
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "MeterValues", args, headers);
 				// Handle
-				global.centralSystemSoap.handleMeterValues(Object.assign(args, headers)).then(function(result) {
+				global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION16).handleMeterValues(Object.assign(args, headers)).then(function(result) {
 					// Return the result async
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "MeterValues", {
 						"result": result
@@ -263,7 +264,7 @@ module.exports = { /* Services */
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StartTransaction", args, headers);
 				// Handle
-				global.centralSystemSoap.handleStartTransaction(Object.assign(args, headers)).then(function(result) {
+				global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION16).handleStartTransaction(Object.assign(args, headers)).then(function(result) {
 					// Log
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StartTransaction", {
 						"result": result
@@ -305,7 +306,7 @@ module.exports = { /* Services */
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StatusNotification", args, headers);
 				// Handle
-				global.centralSystemSoap.handleStatusNotification(Object.assign(args, headers)).then(function(result) {
+				global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION16).handleStatusNotification(Object.assign(args, headers)).then(function(result) {
 					// Log
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StatusNotification", {
 						"result": result
@@ -341,7 +342,7 @@ module.exports = { /* Services */
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StopTransaction", args, headers);
 				// Handle
-				global.centralSystemSoap.handleStopTransaction(Object.assign(args, headers)).then(function(result) {
+				global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION16).handleStopTransaction(Object.assign(args, headers)).then(function(result) {
 					// Log
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StopTransaction", {
 						"result": result

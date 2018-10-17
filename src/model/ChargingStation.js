@@ -1,5 +1,5 @@
 const Utils = require('../utils/Utils');
-const SoapChargingStationClient = require('../client/soap/SoapChargingStationClient');
+const ChargingStationClient = require('../client/ChargingStationClient');
 const Logging = require('../utils/Logging');
 const User = require('./User');
 const SiteArea = require('./SiteArea');
@@ -263,14 +263,7 @@ class ChargingStation {
 	async getChargingStationClient() {
 		// Already created?
 		if (!this._chargingStationClient) {
-// We can now have either a SoapClient or a JsonWs connection
-// Current easy logic is to try to get first the WS client. If there is no WS then use SoapClient 
-			this._chargingStationClient = await global.centralSystemJson.getConnection(this.getID());
-			if (!this._chargingStationClient) {
-				// Init client
-				this._chargingStationClient = await new SoapChargingStationClient(this);
-			}
-			
+			this._chargingStationClient = await ChargingStationClient.getChargingStationClient(this);
 		}
 		return this._chargingStationClient;
 	}

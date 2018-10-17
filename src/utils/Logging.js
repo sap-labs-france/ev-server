@@ -1,4 +1,5 @@
 const Utils = require('./Utils');
+const fs = require('fs');
 const Constants = require('./Constants');
 const AppError = require('../exception/AppError');
 const AppAuthError = require('../exception/AppAuthError');
@@ -6,6 +7,9 @@ const CFLog = require('cf-nodejs-logging-support');
 const Configuration = require('../utils/Configuration');
 const LoggingStorage = require('../storage/mongodb/LoggingStorage'); 
 require('source-map-support').install();
+
+const loggingConfigPath = require.resolve('../logging.json');
+let _loggingConfig;
 
 let LogLevel = {
 	"INFO": 'I',
@@ -20,8 +24,12 @@ let LoggingType = {
 }
 
 class Logging {
+
 	// Log Debug
 	static logDebug(log) {
+		if (typeof log !== 'object') {
+			log = { simpleMessage: log }
+		}
 		// Log
 		log.level = LogLevel.DEBUG;
 		// Log it
@@ -190,7 +198,7 @@ class Logging {
 		if (typeof detailedMessage === "object") {
 			try {
 				// Check that every detailedMessages is parsed
-				return JSON.stringify(detailedMessage);
+				return JSON.stringify(detailedMessage, null, " ");
 			} catch(err) {
 				// Log
 				Logging.logWarning({
@@ -203,6 +211,72 @@ class Logging {
 
 	// Log
 	static _log(log) {
+		// Load conifguration
+		Logging.loadConfiguration();
+		let moduleConfig = null;
+		let logLevel = (_loggingConfig.hasOwnProperty('logLevel') ? _loggingConfig.logLevel : "INFO");
+		let consoleLog = (_loggingConfig.hasOwnProperty('consoleLog') ? _loggingConfig.consoleLog : "NONE");
+
+		if (log.hasOwnProperty('module') && _loggingConfig.hasOwnProperty('moduleDetails')) {
+			if (_loggingConfig.moduleDetails.hasOwnProperty(log.module)) {
+				moduleConfig = _loggingConfig.moduleDetails[log.module];
+				if (moduleConfig.hasOwnProperty('logLevel')) {
+					if (moduleConfig.logLevel !== 'DEFAULT')
+						logLevel = moduleConfig.logLevel;
+				}
+				if (moduleConfig.hasOwnProperty('consoleLog')) {
+					if (moduleConfig.consoleLog !== 'DEFAULT')
+						consoleLog = moduleConfig.consoleLog;
+				}
+			}
+		}
+
+		switch (consoleLog) {
+			case 'NONE':
+				break;
+			case 'ERROR': // Keep up to error filter out debug
+				if (log.level === 'I' || log.level === 'W' || log.level === 'D') {
+					break;
+				}
+			case 'WARNING': // Keep up to warning filter out debug
+				if (log.level === 'I' || log.level === 'D') {
+					break;
+				}
+			case 'INFO': // Keep all log messages just filter out DEBUG
+				if (log.level === 'D') {
+					break;
+				}
+			case 'DEBUG': //Keep all messages
+			default: // If we did not break then it means we have to console log it
+				Logging._consoleLog(log);
+				break;
+		}
+		if (log.hasOwnProperty('simpleMessage')) { // Do not log to DB simple string messages
+			return;
+		}
+
+		switch (logLevel) {
+			case 'NONE': // No logging at all
+				return;
+			case 'INFO': // Keep all log messages just filter out DEBUG
+				if (log.level === 'D') {
+					return;
+				}
+				break;
+			case 'WARNING': // Keep up to warning filter out debug
+				if (log.level === 'I' || log.level === 'D') {
+					return;
+				}
+				break;
+			case 'ERROR': // Keep up to error filter out debug
+				if (log.level === 'I' || log.level === 'W' || log.level === 'D') {
+					return;
+				}
+				break;
+			case 'DEBUG': //Keep ALL
+			default:
+				break;
+		}
 		// Log
 		log.timestamp = new Date();
 
@@ -214,7 +288,7 @@ class Logging {
 		// Check
 		if (log.detailedMessages) {
 			// Array?
-			if (!Array.isArray(log.detailedMessages)){
+			if (!Array.isArray(log.detailedMessages)) {
 				// Set array
 				log.detailedMessages = [log.detailedMessages];
 			}
@@ -233,6 +307,38 @@ class Logging {
 		if (Configuration.isCloudFoundry()) {
 			// Bind to express app
 			CFLog.logMessage(Logging.getCFLogLevel(log.level), log.message);
+		}
+	}
+
+	//console Log
+	static _consoleLog(log) {
+		let logFn;
+		switch (log.level) {
+			case 'D':
+				logFn = console.debug;
+				break;
+			case 'E':
+				logFn = console.error;
+				break;
+			case 'W':
+				logFn = console.warn;
+				break;
+			case 'I':
+				logFn = console.info;
+				break;
+			default:
+				logFn = console.log;
+				break;
+		}
+		// Log
+		log.timestamp = new Date();
+		if (log.hasOwnProperty('simpleMessage')) {
+			logFn(log.timestamp.toISOString() + " " + log.simpleMessage);
+		} else {			
+			if (typeof log === 'object' && log.hasOwnProperty('message')) {
+				logFn(log.message);
+			}
+			logFn(log);
 		}
 	}
 
@@ -259,9 +365,34 @@ class Logging {
 		return LoggingStorage.getLogs(params, limit, skip, sort)
 	}
 
-	static configure() {
-		
+	static loadConfiguration(forceLoad = false) {
+		if (!_loggingConfig || forceLoad) {
+			if (fs.existsSync(loggingConfigPath)) {
+				try {
+					_loggingConfig = JSON.parse(fs.readFileSync(loggingConfigPath));
+				} catch (err) {
+					Logging.logError(err);
+					_loggingConfig = {};	
+				}
+				if (!forceLoad) { // register the watch on file change
+					fs.watch(loggingConfigPath, (eventType) =>{
+						if (eventType === 'change') {
+							try {
+								_loggingConfig = JSON.parse(fs.readFileSync(loggingConfigPath));
+							} catch (err) {
+								Logging.logError(err);
+							}
+						}
+					})
+				}
+				
+			} else {
+				_loggingConfig = {};
+			}
+		}
 	}
+
+
 }
 
 module.exports=Logging;

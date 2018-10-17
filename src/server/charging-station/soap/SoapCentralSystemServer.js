@@ -2,9 +2,14 @@ const fs = require('fs');
 const soap = require('strong-soap').soap;
 const http = require('http');
 const https = require('https');
+const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
 const express = require('express')();
+const CFLog = require('cf-nodejs-logging-support');
 const CentralSystemServer = require('../CentralSystemServer');
 const Logging = require('../../../utils/Logging');
+const Configuration = require('../../../utils/Configuration');
 const centralSystemService12 = require('./services/centralSystemService1.2');
 const centralSystemService12Wsdl = require('./wsdl/OCPP_CentralSystemService1.2.wsdl');
 const centralSystemService15 = require('./services/centralSystemService1.5');
@@ -15,15 +20,54 @@ const chargePointService12Wsdl = require('../../../client/soap/wsdl/OCPP_ChargeP
 const chargePointService15Wsdl = require('../../../client/soap/wsdl/OCPP_ChargePointService1.5.wsdl');
 const chargePointService16Wsdl = require('../../../client/soap/wsdl/OCPP_ChargePointService1.6.wsdl');
 const sanitize = require('mongo-sanitize');
+const bodyParser = require('body-parser');
+require('body-parser-xml')(bodyParser);
 require('source-map-support').install();
+
+const CentralChargingStationService = require('../CentralChargingStationService');
 
 let _centralSystemConfig;
 let _chargingStationConfig;
+let _centralChargingStationService;
 
 class SoapCentralSystemServer extends CentralSystemServer {
 	constructor(centralSystemConfig, chargingStationConfig) {
 		// Call parent
-		super(centralSystemConfig, chargingStationConfig, express);
+		super(centralSystemConfig, chargingStationConfig);
+		
+		// Body parser
+		express.use(bodyParser.json());
+		express.use(bodyParser.urlencoded({ extended: false }));
+		express.use(bodyParser.xml());
+
+		// Enable debug?
+		if (centralSystemConfig.debug) {
+			// Log
+			express.use(
+				morgan('combined', {
+					'stream': {
+						write: (message) => { 
+							// Log
+							Logging.logDebug({
+								module: "CentralSystemServer", method: "constructor", action: "HttpRequestLog",
+								message: message
+							});
+						}
+					}
+				})
+			);
+			}
+		// Cross origin headers
+		express.use(cors());
+
+		// Secure the application
+		express.use(helmet());
+
+		// Check Cloud Foundry
+		if (Configuration.isCloudFoundry()) {
+			// Bind to express app
+			express.use(CFLog.logNetwork);
+		}
 
 		// Keep local
 		_centralSystemConfig = centralSystemConfig;
@@ -50,6 +94,8 @@ class SoapCentralSystemServer extends CentralSystemServer {
 					res.status(500).send(`${sanitize(req.params["0"])} does not exist!`);
 			}
 		});
+
+
 	}
 
 	/*
@@ -180,6 +226,25 @@ class SoapCentralSystemServer extends CentralSystemServer {
 				});
 				console.log(`Central System Server (Charging Stations) listening on '${_centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`);
 			});
+	}
+
+
+	/**
+	 * 
+	 *
+	 * @param protocol: string containing protocol version 1.2 || 1.5 || 1.6
+	 * @memberof SoapCentralSystemServer
+	 */
+	getSoapCentralChargingStationService(protocol){
+		switch (protocol) {
+			case '1.2':
+			case '1.5':
+			case '1.6':
+			default:
+				if (!_centralChargingStationService)
+					_centralChargingStationService = new CentralChargingStationService(_centralSystemConfig, _chargingStationConfig);
+				return _centralChargingStationService;
+		}
 	}
 }
 
