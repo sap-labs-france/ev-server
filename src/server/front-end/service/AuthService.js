@@ -87,7 +87,7 @@ class AuthService {
 							550, 'AuthService', 'handleIsAuthorized');
 					}
 					// Get Transaction
-					const transaction = await TransactionStorage.getTransaction(filteredRequest.Arg2);
+					const transaction = await TransactionStorage.getTransaction(req.user.tenant, filteredRequest.Arg2);
 					if (!transaction) {
 						throw new AppError(
 							Constants.CENTRAL_SERVER,
@@ -230,7 +230,7 @@ class AuthService {
 					'AuthService', 'handleRegisterUser');
 			}
 			// Check email
-			const user = await User.getUserByEmail(req.user.tenant, filteredRequest.email);
+			const user = await User.getUserByEmail(filteredRequest.tenant, filteredRequest.email);
 			// Check Mandatory fields
 			User.checkIfUserValid(filteredRequest, req);
 			if (user) {
@@ -243,7 +243,7 @@ class AuthService {
 			// Generate a password
 			const newPasswordHashed = await User.hashPasswordBcrypt(filteredRequest.password);
 			// Create the user
-			let newUser = new User(req.user.tenant, filteredRequest);
+			let newUser = new User(filteredRequest.tenant, filteredRequest);
 			// Set data
 			newUser.setStatus(Constants.USER_STATUS_PENDING);
 			newUser.setRole(Constants.ROLE_BASIC);
@@ -253,11 +253,11 @@ class AuthService {
 			// Set BadgeID (eg.: 'SF20170131')
 			newUser.setTagIDs([newUser.getName()[0] + newUser.getFirstName()[0] + Utils.getRandomInt()])
 			// Assign user to all sites
-			const sites = await Site.getSites(req.user.tenant);
+			const sites = await Site.getSites(filteredRequest.tenant);
 			// Set
 			newUser.setSites(sites.result);
 			// Get EULA
-			const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(newUser.getLanguage());
+			const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(filteredRequest.tenant, newUser.getLanguage());
 			// Set Eula Info on Login Only
 			newUser.setEulaAcceptedOn(new Date());
 			newUser.setEulaAcceptedVersion(endUserLicenseAgreement.version);
@@ -276,7 +276,7 @@ class AuthService {
 				detailedMessages: req.body
 			});
 			// Send notification
-			const evseDashboardVerifyEmailURL = Utils.buildEvseURL() +
+			const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
 				'/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
 			newUser.getEMail();
 			NotificationHandler.sendNewRegisteredUser(
@@ -284,7 +284,7 @@ class AuthService {
 				newUser.getModel(),
 				{
 					'user': newUser.getModel(),
-					'evseDashboardURL' : Utils.buildEvseURL(),
+					'evseDashboardURL' : Utils.buildEvseURL(filteredRequest.tenant),
 					'evseDashboardVerifyEmailURL' : evseDashboardVerifyEmailURL
 				},
 				newUser.getLocale()
@@ -320,7 +320,7 @@ class AuthService {
 			// Yes: Generate new password
 			const resetHash = Utils.generateGUID();
 			// Generate a new password
-			const user = await User.getUserByEmail(filteredRequest.email);
+			const user = await User.getUserByEmail(filteredRequest.tenant, filteredRequest.email);
 			// Found?
 			if (!user) {
 				throw new AppError(
@@ -347,7 +347,7 @@ class AuthService {
 				message: `User with Email '${req.body.email}' will receive an email to reset his password`
 			});
 			// Send notification
-			const evseDashboardResetPassURL = Utils.buildEvseURL() +
+			const evseDashboardResetPassURL = Utils.buildEvseURL(filteredRequest.tenant) +
 				'/#/reset-password?hash=' + resetHash + '&email=' +
 				savedUser.getEMail();
 			// Send email
@@ -356,7 +356,7 @@ class AuthService {
 				savedUser.getModel(),
 				{
 					'user': savedUser.getModel(),
-					'evseDashboardURL' : Utils.buildEvseURL(),
+					'evseDashboardURL' : Utils.buildEvseURL(filteredRequest.tenant),
 					'evseDashboardResetPassURL' : evseDashboardResetPassURL
 				},
 				savedUser.getLocale()
@@ -377,7 +377,7 @@ class AuthService {
 			// Hash it
 			const newHashedPassword = await User.hashPasswordBcrypt(newPassword);
 			// Get the user
-			const user = await User.getUserByEmail(filteredRequest.email);
+			const user = await User.getUserByEmail(filteredRequest.tenant, filteredRequest.email);
 			// Found?
 			if (!user) {
 				throw new AppError(
@@ -430,7 +430,7 @@ class AuthService {
 					'user': newUser.getModel(),
 					'hash': null,
 					'newPassword': newPassword,
-					'evseDashboardURL' : Utils.buildEvseURL()
+					'evseDashboardURL' : Utils.buildEvseURL(filteredRequest.tenant)
 				},
 				newUser.getLocale()
 			);
@@ -474,8 +474,15 @@ class AuthService {
 					`Verification Token is mandatory`, 500, 
 					'AuthService', 'handleVerifyEmail');
 			}
+            // Check tenant
+            if (filteredRequest.tenant === undefined) {
+              throw new AppError(
+                Constants.CENTRAL_SERVER,
+                `Tenant is mandatory`, 500,
+                'AuthService', 'handleVerifyEmail');
+            }
 			// Check email
-			const user = await User.getUserByEmail(filteredRequest.Email);
+			const user = await User.getUserByEmail(filteredRequest.tenant, filteredRequest.Email);
 			// User exists?
 			if (!user) {
 				throw new AppError(
@@ -547,6 +554,13 @@ class AuthService {
 					`The captcha is mandatory`, 500, 
 					'AuthService', 'handleResendVerificationEmail');
 			}
+			// Check tenant
+            if (filteredRequest.tenant === undefined) {
+              throw new AppError(
+                Constants.CENTRAL_SERVER,
+                `Tenant is mandatory`, 500,
+                'AuthService', 'handleVerifyEmail');
+            }
 			// Is valid captcha?
 			const response = await axios.get(
 				`https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
@@ -557,7 +571,7 @@ class AuthService {
 					'AuthService', 'handleResendVerificationEmail');
 			}
 			// Is valid email?
-			let user = await User.getUserByEmail(filteredRequest.email);
+			let user = await User.getUserByEmail(filteredRequest.tenant, filteredRequest.email);
 			// User exists?
 			if (!user) {
 				throw new AppError(
@@ -602,7 +616,7 @@ class AuthService {
 				detailedMessages: req.body
 			});
 			// Send notification
-			const evseDashboardVerifyEmailURL = Utils.buildEvseURL() +
+			const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
 			'/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
 			user.getEMail();
 			NotificationHandler.sendVerificationEmail(
@@ -610,7 +624,7 @@ class AuthService {
 				user.getModel(),
 				{
 					'user': user.getModel(),
-					'evseDashboardURL' : Utils.buildEvseURL(),
+					'evseDashboardURL' : Utils.buildEvseURL(filteredRequest.tenant),
 					'evseDashboardVerifyEmailURL' : evseDashboardVerifyEmailURL
 				},
 				user.getLocale()

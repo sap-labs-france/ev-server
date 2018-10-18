@@ -18,6 +18,7 @@ class AuthSecurity {
 		const filteredRequest = {};
 		// Set
 		filteredRequest.email = sanitize(request.email);
+      	filteredRequest.tenant = sanitize(request.tenant);
 		filteredRequest.captcha = sanitize(request.captcha);
 		filteredRequest.hash = sanitize(request.hash);
 		return filteredRequest;
@@ -27,6 +28,7 @@ class AuthSecurity {
 		const filteredRequest = {};
 		// Set
 		filteredRequest.name = sanitize(request.name);
+      	filteredRequest.tenant = sanitize(request.tenant);
 		filteredRequest.firstName = sanitize(request.firstName);
 		filteredRequest.email = sanitize(request.email);
 		filteredRequest.password = sanitize(request.passwords.password);
@@ -50,6 +52,7 @@ class AuthSecurity {
 		const filteredRequest = {};
 		// Set
 		filteredRequest.Email = sanitize(request.Email);
+      	filteredRequest.tenant = sanitize(request.tenant);
 		filteredRequest.VerificationToken = sanitize(request.VerificationToken);
 		return filteredRequest;
 	}
@@ -58,6 +61,7 @@ class AuthSecurity {
 		const filteredRequest = {};
 		// Set
 		filteredRequest.email = sanitize(request.email);
+      	filteredRequest.tenant = sanitize(request.tenant);
 		filteredRequest.captcha = sanitize(request.captcha);
 		return filteredRequest;
 	}

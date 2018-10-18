@@ -380,7 +380,7 @@ class ChargingStation {
 					'chargeBoxID': this.getID(),
 					'connectorId': statusNotification.connectorId,
 					'error': `${statusNotification.status} - ${statusNotification.errorCode} - ${statusNotification.info}`,
-					'evseDashboardURL' : Utils.buildEvseURL(),
+					'evseDashboardURL' : Utils.buildEvseURL(this._tenant),
 					'evseDashboardChargingStationURL' : Utils.buildEvseChargingStationURL(this, statusNotification.connectorId)
 				}
 			);
@@ -462,7 +462,7 @@ class ChargingStation {
 			this.getModel(),
 			{
 				'chargeBoxID': this.getID(),
-				'evseDashboardURL' : Utils.buildEvseURL(),
+				'evseDashboardURL' : Utils.buildEvseURL(this._tenant),
 				'evseDashboardChargingStationURL' : Utils.buildEvseChargingStationURL(this)
 			}
 		);
@@ -678,7 +678,7 @@ class ChargingStation {
 									{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
 								'totalDuration': this._buildCurrentTransactionDuration(transaction, lastTimestamp),
 								'evseDashboardChargingStationURL' : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
-								'evseDashboardURL' : Utils.buildEvseURL()
+								'evseDashboardURL' : Utils.buildEvseURL(this._tenant)
 							},
 							transaction.user.locale
 						);
@@ -1125,7 +1125,7 @@ class ChargingStation {
 					'user': user.getModel(),
 					'chargingBoxID': this.getID(),
 					'connectorId': transaction.connectorId,
-					'evseDashboardURL' : Utils.buildEvseURL(),
+					'evseDashboardURL' : Utils.buildEvseURL(this._tenant),
 					'evseDashboardChargingStationURL' :
 						Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id)
 				},
@@ -1245,7 +1245,7 @@ class ChargingStation {
 					'totalDuration': this._buildCurrentTransactionDuration(transaction, transaction.stop.timestamp),
 					'totalInactivity': this._buildCurrentTransactionInactivity(transaction),
 					'evseDashboardChargingStationURL' : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
-					'evseDashboardURL' : Utils.buildEvseURL()
+					'evseDashboardURL' : Utils.buildEvseURL(this._tenant)
 				},
 				transaction.user.locale
 			);

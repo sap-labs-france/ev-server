@@ -172,7 +172,7 @@ class Authorizations {
 				{
 					"chargingBoxID": chargingStation.getID(),
 					"badgeId": tagID,
-					"evseDashboardURL" : Utils.buildEvseURL(),
+					"evseDashboardURL" : Utils.buildEvseURL(user.getTenant()),
 					"evseDashboardUserURL" : Utils.buildEvseUserURL(user)
 				}
 			);

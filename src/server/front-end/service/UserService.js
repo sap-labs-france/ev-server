@@ -316,7 +316,7 @@ class UserService {
 					updatedUser.getModel(),
 					{
 						'user': updatedUser.getModel(),
-						'evseDashboardURL' : Utils.buildEvseURL()
+						'evseDashboardURL' : Utils.buildEvseURL(req.user.tenant)
 					},
 					updatedUser.getLocale()
 				);
