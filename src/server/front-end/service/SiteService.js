@@ -223,7 +223,7 @@ class SiteService {
 			// Create site
 			const site = new Site(req.user.tenant, filteredRequest);
 			// Update timestamp
-			site.setCreatedBy(req.user.tenant, new User({'id': req.user.id}));
+			site.setCreatedBy(new User(req.user.tenant, {'id': req.user.id}));
 			site.setCreatedOn(new Date());
 			// Get the users
 			const users = [];

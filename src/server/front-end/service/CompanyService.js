@@ -175,10 +175,9 @@ class CompanyService {
 					null,
 					560, 'CompanyService', 'handleGetCompanies',
 					req.user);
-				return;
 			}
 			// Filter
-			const filteredRequest = CompanySecurity.filterCompaniesRequest(req.user.tenant, req.query, req.user);
+			const filteredRequest = CompanySecurity.filterCompaniesRequest(req.query, req.user);
 			// Get the companies
 			const companies = await Company.getCompanies(req.user.tenant,
             { search: filteredRequest.Search, withSites: filteredRequest.WithSites },
@@ -216,7 +215,7 @@ class CompanyService {
 			// Create
 			const company = new Company(req.user.tenant, filteredRequest);
 			// Update timestamp
-			company.setCreatedBy(req.user.tenant, new User({'id': req.user.id}));
+			company.setCreatedBy(new User(req.user.tenant, {'id': req.user.id}));
 			company.setCreatedOn(new Date());
 			// Save
 			const newCompany = await company.save();

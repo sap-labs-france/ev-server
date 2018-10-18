@@ -210,7 +210,7 @@ class VehicleService {
 			// Create vehicle
 			const vehicle = new Vehicle(req.user.tenant, filteredRequest);
 			// Update timestamp
-			vehicle.setCreatedBy(req.user.tenant, new User({'id': req.user.id}));
+			vehicle.setCreatedBy(new User(req.user.tenant, {'id': req.user.id}));
 			vehicle.setCreatedOn(new Date());
 			// Save
 			const newVehicle = await vehicle.save();

@@ -525,7 +525,7 @@ class UserService {
 				user.setPassword(newPasswordHashed);
 			}
 			// Update timestamp
-			user.setCreatedBy(req.user.tenant, new User({'id': req.user.id}));
+			user.setCreatedBy(new User(req.user.tenant, {'id': req.user.id}));
 			user.setCreatedOn(new Date());
 			// Save User
 			const newUser = await user.save();

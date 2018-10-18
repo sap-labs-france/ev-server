@@ -144,7 +144,7 @@ class VehicleManufacturerService {
 			// Create vehicleManufacturer
 			const vehicleManufacturer = new VehicleManufacturer(req.user.tenant, filteredRequest);
 			// Update timestamp
-			vehicleManufacturer.setCreatedBy(req.user.tenant, new User({'id': req.user.id}));
+			vehicleManufacturer.setCreatedBy(new User(req.user.tenant, {'id': req.user.id}));
 			vehicleManufacturer.setCreatedOn(new Date());
 			// Save
 			const newVehicleManufacturer = await vehicleManufacturer.save();

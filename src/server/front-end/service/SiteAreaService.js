@@ -40,7 +40,7 @@ class SiteAreaService {
 			// Create site
 			const siteArea = new SiteArea(req.user.tenant, filteredRequest);
 			// Update timestamp
-			siteArea.setCreatedBy(req.user.tenant, new User({'id': req.user.id}));
+			siteArea.setCreatedBy(new User(req.user.tenant, {'id': req.user.id}));
 			siteArea.setCreatedOn(new Date());
 			// Save
 			const newSiteArea = await siteArea.save();
