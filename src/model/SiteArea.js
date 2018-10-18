@@ -84,13 +84,13 @@ class SiteArea {
 		return this._model.image;
 	}
 
-	async getSite(withCompany=false, withUser=false) {
+	async getSite(tenant, withCompany=false, withUser=false) {
 
 		if (this._model.site) {
 			return new Site(this._model.site);
 		} else if (this._model.siteID){
 			// Get from DB
-			let site = await SiteStorage.getSite(this._model.siteID, withCompany, withUser);
+			let site = await SiteStorage.getSite(tenant, this._model.siteID, withCompany, withUser);
 			// Keep it
 			this.setSite(site);
 			return site;
@@ -106,25 +106,25 @@ class SiteArea {
 		}
 	}
 
-	save() {
-		return SiteAreaStorage.saveSiteArea(this.getModel());
+	save(tenant) {
+		return SiteAreaStorage.saveSiteArea(tenant, this.getModel());
 	}
 
-	saveImage() {
-		return SiteAreaStorage.saveSiteAreaImage(this.getModel());
+	saveImage(tenant) {
+		return SiteAreaStorage.saveSiteAreaImage(tenant, this.getModel());
 	}
 
-	delete() {
-		return SiteAreaStorage.deleteSiteArea(this.getID());
+	delete(tenant) {
+		return SiteAreaStorage.deleteSiteArea(tenant, this.getID());
 	}
 
-	async getChargingStations() {
+	async getChargingStations(tenant) {
 		if (this._model.chargeBoxes) {
 			return this._model.chargeBoxes.map((chargeBox) => new ChargingStation(chargeBox));
 		} else {
 			// Get from DB
-			let chargingStations = await ChargingStationStorage.getChargingStations(
-				{ siteAreaID: this.getID() }, Constants.NO_LIMIT);
+			let chargingStations = await ChargingStationStorage.getChargingStations(tenant,
+              { siteAreaID: this.getID() }, Constants.NO_LIMIT);
 			// Keep it
 			this.setChargingStations(chargingStations.result);
 			return chargingStations.result;
@@ -160,20 +160,20 @@ class SiteArea {
 		}
 	}
 
-	static getSiteArea(id, withChargeBoxes, withSite) {
-		return SiteAreaStorage.getSiteArea(id, withChargeBoxes, withSite);
+	static getSiteArea(tenant, id, withChargeBoxes, withSite) {
+		return SiteAreaStorage.getSiteArea(tenant, id, withChargeBoxes, withSite);
 	}
 
-	static getSiteAreas(params, limit, skip, sort) {
-		return SiteAreaStorage.getSiteAreas(params, limit, skip, sort)
+	static getSiteAreas(tenant, params, limit, skip, sort) {
+		return SiteAreaStorage.getSiteAreas(tenant, params, limit, skip, sort)
 	}
 
-	static getSiteAreaImage(id) {
-		return SiteAreaStorage.getSiteAreaImage(id);
+	static getSiteAreaImage(tenant, id) {
+		return SiteAreaStorage.getSiteAreaImage(tenant, id);
 	}
 
-	static getSiteAreaImages() {
-		return SiteAreaStorage.getSiteAreaImages()
+	static getSiteAreaImages(tenant) {
+		return SiteAreaStorage.getSiteAreaImages(tenant)
 	}
 }
 

@@ -123,20 +123,20 @@ class VehicleManufacturer {
 		}
 	}
 
-	static getVehicleManufacturer(id) {
-		return VehicleManufacturerStorage.getVehicleManufacturer(id);
+	static getVehicleManufacturer(tenant, id) {
+		return VehicleManufacturerStorage.getVehicleManufacturer(tenant, id);
 	}
 
-	static getVehicleManufacturers(params, limit, skip, sort) {
-		return VehicleManufacturerStorage.getVehicleManufacturers(params, limit, skip, sort)
+	static getVehicleManufacturers(tenant, params, limit, skip, sort) {
+		return VehicleManufacturerStorage.getVehicleManufacturers(tenant, params, limit, skip, sort)
 	}
 
-	static getVehicleManufacturerLogo(id) {
-		return VehicleManufacturerStorage.getVehicleManufacturerLogo(id);
+	static getVehicleManufacturerLogo(tenant, id) {
+		return VehicleManufacturerStorage.getVehicleManufacturerLogo(tenant, id);
 	}
 
-	static getVehicleManufacturerLogos() {
-		return VehicleManufacturerStorage.getVehicleManufacturerLogos()
+	static getVehicleManufacturerLogos(tenant) {
+		return VehicleManufacturerStorage.getVehicleManufacturerLogos(tenant);
 	}
 }
 

@@ -182,16 +182,16 @@ class Vehicle {
 		this._model.lastChangedOn = lastChangedOn;
 	}
 
-	save() {
-		return VehicleStorage.saveVehicle(this.getModel());
+	save(tenant) {
+		return VehicleStorage.saveVehicle(tenant, this.getModel());
 	}
 
-	saveImages() {
-		return VehicleStorage.saveVehicleImages(this.getModel());
+	saveImages(tenant) {
+		return VehicleStorage.saveVehicleImages(tenant, this.getModel());
 	}
 
-	delete() {
-		return VehicleStorage.deleteVehicle(this.getID());
+	delete(tenant) {
+		return VehicleStorage.deleteVehicle(tenant, this.getID());
 	}
 
 	static checkIfVehicleValid(request, httpRequest) {
@@ -222,20 +222,20 @@ class Vehicle {
 		}
 	}
 
-	static getVehicle(id) {
-		return VehicleStorage.getVehicle(id);
+	static getVehicle(tenant, id) {
+		return VehicleStorage.getVehicle(tenant, id);
 	}
 
-	static getVehicles(params, limit, skip, sort) {
-		return VehicleStorage.getVehicles(params, limit, skip, sort)
+	static getVehicles(tenant, params, limit, skip, sort) {
+		return VehicleStorage.getVehicles(tenant, params, limit, skip, sort)
 	}
 
-	static getVehicleImage(id) {
-		return VehicleStorage.getVehicleImage(id);
+	static getVehicleImage(tenant, id) {
+		return VehicleStorage.getVehicleImage(tenant, id);
 	}
 
-	static getVehicleImages() {
-		return VehicleStorage.getVehicleImages()
+	static getVehicleImages(tenant) {
+		return VehicleStorage.getVehicleImages(tenant)
 	}
 }
 

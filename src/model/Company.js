@@ -83,12 +83,12 @@ class Company {
 		this._model.lastChangedOn = lastChangedOn;
 	}
 
-	async getSites() {
+	async getSites(tenant) {
 		if (this._model.sites) {
 			return this._model.sites.map((site) => new Site(site));
 		} else {
 			// Get from DB
-			let sites = await SiteStorage.getSites({'companyID': this.getID()});
+			let sites = await SiteStorage.getSites(tenant, {'companyID': this.getID()});
 			// Keep it
 			this.setSites(sites.result);
 			return sites.result;
@@ -99,16 +99,16 @@ class Company {
 		this._model.sites = sites.map((site) => site.getModel());
 	}
 
-	save() {
-		return CompanyStorage.saveCompany(this.getModel());
+	save(tenant) {
+		return CompanyStorage.saveCompany(tenant, this.getModel());
 	}
 
-	saveLogo() {
-		return CompanyStorage.saveCompanyLogo(this.getModel());
+	saveLogo(tenant) {
+		return CompanyStorage.saveCompanyLogo(tenant, this.getModel());
 	}
 
-	delete() {
-		return CompanyStorage.deleteCompany(this.getID());
+	delete(tenant) {
+		return CompanyStorage.deleteCompany(tenant, this.getID());
 	}
 
 	static checkIfCompanyValid(filteredRequest, req) {
@@ -127,20 +127,20 @@ class Company {
 		}
 	}
 
-	static getCompany(id) {
-		return CompanyStorage.getCompany(id);
+	static getCompany(tenant, id) {
+		return CompanyStorage.getCompany(tenant, id);
 	}
 
-	static getCompanies(params, limit, skip, sort) {
-		return CompanyStorage.getCompanies(params, limit, skip, sort)
+	static getCompanies(tenant, params, limit, skip, sort) {
+		return CompanyStorage.getCompanies(tenant, params, limit, skip, sort)
 	}
 
-	static getCompanyLogo(id) {
-		return CompanyStorage.getCompanyLogo(id);
+	static getCompanyLogo(tenant, id) {
+		return CompanyStorage.getCompanyLogo(tenant, id);
 	}
 
-	static getCompanyLogos() {
-		return CompanyStorage.getCompanyLogos();
+	static getCompanyLogos(tenant) {
+		return CompanyStorage.getCompanyLogos(tenant);
 	}
 }
 

@@ -87,7 +87,7 @@ class CentralSystemServer {
 		return chargingStation;
 	}
 
-	async handleBootNotification(content) {
+	async handleBootNotification(tenant, content) {
 		try{
 				// Set the endpoint
 			content.endpoint = content.From.Address;
