@@ -5,7 +5,7 @@ const CentralChargingStationService = require('../CentralChargingStationService'
 
 const _moduleName = "JSONServerService";
 
-class JsonChargingStationServer16 extends CentralChargingStationService {
+class JsonChargingStationService16 extends CentralChargingStationService {
 
     constructor(wsHandler, chargingStationConfig) {
         super({}, chargingStationConfig);
@@ -23,7 +23,7 @@ class JsonChargingStationServer16 extends CentralChargingStationService {
                     "result": result
                 });
                 // Check if response contains proper attribute
-                let reponseNameProperty = commandNameOrPayload.charAt(0).toLowerCase() + commandNameOrPayload.slice(1) + "Response";
+                const reponseNameProperty = commandNameOrPayload.charAt(0).toLowerCase() + commandNameOrPayload.slice(1) + "Response";
                 if (result.hasOwnProperty(reponseNameProperty)) {
                     // Send Response
                     result = await this._wsHandler.sendMessage(messageId, result[reponseNameProperty], Constants.OCPP_JSON_CALLRESULT_MESSAGE);
@@ -32,8 +32,8 @@ class JsonChargingStationServer16 extends CentralChargingStationService {
                     // Sacrifice Gerald to the gods ? :)
                 }
             } else {
-                let error = new OCPPError(Constants.OCPP_ERROR_NOTIMPLEMENTED, "");
-                let result = await this._wsHandler.sendError(messageId, error);
+                const error = new OCPPError(Constants.OCPP_ERROR_NOTIMPLEMENTED, "");
+                const result = await this._wsHandler.sendError(messageId, error);
 
                 Logging.logError({
                     module: _moduleName,
@@ -47,8 +47,8 @@ class JsonChargingStationServer16 extends CentralChargingStationService {
             }
         } catch (err) {
             // send error if payload didn't pass the validation
-            let error = new OCPPError(Constants.OCPP_ERROR_FORMATIONVIOLATION, err.message);
-            let result = await this._wsHandler.sendError(messageId, error);
+            const error = new OCPPError(Constants.OCPP_ERROR_FORMATIONVIOLATION, err.message);
+            const result = await this._wsHandler.sendError(messageId, error);
             Logging.logError({
                 module: _moduleName,
                 method: "sendMessage",
@@ -66,18 +66,26 @@ class JsonChargingStationServer16 extends CentralChargingStationService {
     }
 
     async handleBootNotification(content){
-        let bootNotificationResponse = await super.handleBootNotification(content);
-        if (!bootNotificationResponse.hasOwnProperty('interval')) {
-            bootNotificationResponse.bootNotificationResponse.interval = bootNotificationResponse.bootNotificationResponse.heartbeatInterval;
-            delete bootNotificationResponse.bootNotificationResponse.heartbeatInterval;
+        try {
+            const ignoreResponse = await super.handleBootNotification(content);
+            return {
+                'bootNotificationResponse': {
+                    'status': 'Accepted',
+                    'currentTime': new Date().toISOString(),
+                    'interval': this.chargingStationConfig.heartbeatIntervalSecs
+                }
+            };
+        } catch (error) {
+            return {
+                'bootNotificationResponse': {
+                    'status': 'Rejected',
+                    'currentTime': new Date().toISOString(),
+                    'interval': this.chargingStationConfig.heartbeatIntervalSecs
+                }
+            };
         }
-        return bootNotificationResponse;
-    }
-
-    async handleHeartbeat(content) {
-        return await super.handleHeartbeat(content);
     }
 
 }
 
-module.exports = JsonChargingStationServer16;
+module.exports = JsonChargingStationService16;

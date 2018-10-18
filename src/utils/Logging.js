@@ -387,9 +387,9 @@ class Logging {
 		if (log.hasOwnProperty('simpleMessage')) {
 			logFn(log.timestamp.toISOString() + " " + log.simpleMessage);
 		} else {			
-			if (typeof log === 'object' && log.hasOwnProperty('message')) {
-				logFn(log.message);
-			}
+//			if (typeof log === 'object' && log.hasOwnProperty('message')) {
+//				logFn(log.message);
+//			}
 			logFn(log);
 		}
 	}

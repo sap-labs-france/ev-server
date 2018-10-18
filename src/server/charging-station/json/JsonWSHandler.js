@@ -5,7 +5,7 @@ const Tenant = require('../../../model/Tenant');
 const Constants = require('../../../utils/Constants');
 const OCPPError = require('../../../exception/OcppError');
 const JsonChargingStationClient16 = require('../../../client/json/JsonChargingStationClient16');
-const JsonChargingStationServer16 = require('./JsonChargingStationServer16');
+const JsonChargingStationService16 = require('./JsonChargingStationService16');
 
 const _moduleName = "centralSystemJSONService";
 
@@ -36,7 +36,7 @@ class JsonWSHandler {
         switch (this._socket.protocol) { //it is a require field of OCPP spec
             case 'ocpp1.6':
                 this._wsClient = new JsonChargingStationClient16(this);
-                this._wsServer = new JsonChargingStationServer16(this, chargingStationConfig);
+                this._wsServer = new JsonChargingStationService16(this, chargingStationConfig);
                 break;        
             default:
                 throw new Error("protocol not supported");
@@ -65,6 +65,7 @@ class JsonWSHandler {
                 module: _moduleName, method: "OnClose", action: "ConnectionClose",
                 message: JSON.stringify({code: code, reason: reason}, null, " ")
             });
+            global.centralWSServer.closeConnection(this.getChargeBoxId());
         })
     }
 
@@ -75,12 +76,12 @@ class JsonWSHandler {
         // Fill in standard JSON object for communication with central server
         try {
             // Determine tenant
-            let splittedURL = this._url.split("/"); //URL should like /OCPP16/TENANTNAME/CHARGEBOXID
+            const splittedURL = this._url.split("/"); //URL should like /OCPP16/TENANTNAME/CHARGEBOXID
             let tenantName = "";
             let chargboxId = ""; 
             if (splittedURL.length === 4) {
                 tenantName = splittedURL[2];
-                let checkTenant = await Tenant.getTenantByName(tenantName);
+                const checkTenant = await Tenant.getTenantByName(tenantName);
                 if (checkTenant === null) {
                     throw new Error(`Invalid tenant URL ${this._url}`);
                 }
@@ -216,7 +217,8 @@ class JsonWSHandler {
     }
 
     getWSClient() {
-        return this._wsClient;
+        if (this._socket.readyState !== 1) // only return client if WS is open
+            return this._wsClient;
     }
 
 }

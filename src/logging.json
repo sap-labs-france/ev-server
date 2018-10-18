@@ -1,6 +1,6 @@
 {
     "logLevel": "INFO",
-    "consoleLog": "NONE",
+    "consoleLog": "DEBUG",
     "moduleDetails": 
         {
         "ChargingStation": { "logLevel": "NONE", "consoleLog": "DEFAULT" },

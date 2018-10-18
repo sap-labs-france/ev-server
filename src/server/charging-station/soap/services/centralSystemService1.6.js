@@ -2,7 +2,7 @@ const Logging = require('../../../../utils/Logging');
 const Utils = require('../../../../utils/Utils');
 const Constants = require('../../../../utils/Constants');
 
-var _moduleName = "centralSystemService1.6";
+const _moduleName = "centralSystemService1.6";
 
 module.exports = { /* Services */
 	CentralSystemService: { /* Ports */
@@ -54,6 +54,14 @@ module.exports = { /* Services */
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "BootNotification", args, headers);
 				// Handle
 				global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION16).handleBootNotification(headers).then(function(result) {
+// Build 1.6 compatible answer and ignore 1.5
+					result = {
+						'bootNotificationResponse': {
+							'status': 'Accepted',
+							'currentTime': new Date().toISOString(),
+							'interval': global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION16).chargingStationConfig.heartbeatIntervalSecs
+						}
+					};
 					// Log
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "BootNotification", {
 						"result": result

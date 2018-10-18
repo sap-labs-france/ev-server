@@ -15,8 +15,8 @@ const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const TransactionStorage = require('../storage/mongodb/TransactionStorage');
 const PricingStorage = require('../storage/mongodb/PricingStorage');
 
-let _configAdvanced = Configuration.getAdvancedConfig();
-let _configChargingStation = Configuration.getChargingStationConfig();
+const _configAdvanced = Configuration.getAdvancedConfig();
+const _configChargingStation = Configuration.getChargingStationConfig();
 
 class ChargingStation {
 	constructor(chargingStation) {
@@ -86,7 +86,7 @@ class ChargingStation {
 			return new SiteArea(this._model.siteArea);
 		} else if (this._model.siteAreaID){
 			// Get from DB
-			let siteArea = await SiteAreaStorage.getSiteArea(this._model.siteAreaID, false, withSite);
+			const siteArea = await SiteAreaStorage.getSiteArea(this._model.siteAreaID, false, withSite);
 			// Set it
 			this.setSiteArea(siteArea);
 			// Return
@@ -261,10 +261,12 @@ class ChargingStation {
 	}
 
 	async getChargingStationClient() {
-		// Already created?
-		if (!this._chargingStationClient) {
+		// Already created or it is a soap client
+/*		if (!this._chargingStationClient) {
 			this._chargingStationClient = await ChargingStationClient.getChargingStationClient(this);
-		}
+		}*/
+// Delegate responsibility to interface. It might be possibel that protocol changed 
+		this._chargingStationClient = await ChargingStationClient.getChargingStationClient(this, this._chargingStationClient);
 		return this._chargingStationClient;
 	}
 
@@ -323,7 +325,7 @@ class ChargingStation {
 		}
 		// Update the connector -----------------------------------------
 		// Get the connectors
-		let connectors = this.getConnectors();
+		const connectors = this.getConnectors();
 		// Init previous connector status
 		for (let i = 0; i < statusNotification.connectorId; i++) {
 			// Check if former connector can be set
@@ -385,11 +387,11 @@ class ChargingStation {
 		// Only for Schneider
 		if (this.getChargePointVendor() === 'Schneider Electric') {
 			// Get the configuration
-			let configuration = await this.getConfiguration();
+			const configuration = await this.getConfiguration();
 			// Config Provided?
 			if (configuration && configuration.configuration) {
 				// Search for params
-				for (var i = 0; i < configuration.configuration.length; i++) {
+				for (let i = 0; i < configuration.configuration.length; i++) {
 					// Check
 					switch (configuration.configuration[i].key) {
 						// Voltage
@@ -511,7 +513,7 @@ class ChargingStation {
 		// Set default?
 		if (!configuration) {
 			// Check if there is an already existing config
-			let existingConfiguration = await this.getConfiguration();
+			const existingConfiguration = await this.getConfiguration();
 			if (!existingConfiguration) {
 				// No config at all: Set default OCCP configuration
 				configuration = {
@@ -581,15 +583,15 @@ class ChargingStation {
 
 	async updateChargingStationConsumption(transactionId) {
 		// Get the last transaction first
-		let transaction = await this.getTransaction(transactionId);
+		const transaction = await this.getTransaction(transactionId);
 		// Found?
 		if (transaction) {
 			// Get connectorId
-			let connector = this.getConnectors()[transaction.connectorId-1];
+			const connector = this.getConnectors()[transaction.connectorId-1];
 			// Found?
 			if (!transaction.stop) {
 				// Get the consumption
-				let consumption = await this.getConsumptionsFromTransaction(transaction, false);
+				const consumption = await this.getConsumptionsFromTransaction(transaction, false);
 				let currentConsumption = 0;
 				let totalConsumption = 0;
 				// Check
@@ -642,9 +644,9 @@ class ChargingStation {
 			// Has consumption?
 			if (consumption && consumption.values && consumption.values.length > 1) {
 				// Last timestamp
-				let lastTimestamp = consumption.values[consumption.values.length-1].date;
+				const lastTimestamp = consumption.values[consumption.values.length-1].date;
 				// Compute avg of last two values
-				let avgConsumption = (consumption.values[consumption.values.length-1].value +
+				const avgConsumption = (consumption.values[consumption.values.length-1].value +
 					consumption.values[consumption.values.length-2].value) / 2;
 				// --------------------------------------------------------------------
 				// Notification END of charge
@@ -724,17 +726,17 @@ class ChargingStation {
 			return '0h00 (0%)';
 		}
 		// Compute duration from now
-		let totalDurationSecs = moment.duration(
+		const totalDurationSecs = moment.duration(
 			moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
 		// Compute the percentage
-		let totalInactivityPercent = Math.round(
+		const totalInactivityPercent = Math.round(
 			parseInt(transaction.stop.totalInactivitySecs) * 100 / totalDurationSecs);
 		// Create Moment
-		let totalInactivitySecs = moment.duration(transaction.stop.totalInactivitySecs, 'seconds');
+		const totalInactivitySecs = moment.duration(transaction.stop.totalInactivitySecs, 'seconds');
 		// Get Minutes
-		let mins = Math.floor(totalInactivitySecs.minutes());
+		const mins = Math.floor(totalInactivitySecs.minutes());
 		// Build Inactivity
-		let inactivityString =
+		const inactivityString =
 			Math.floor(totalInactivitySecs.asHours()).toString() + i18nHourShort +
 			(mins < 10 ? ('0' + mins) : mins.toString()) +
 			' (' + totalInactivityPercent + '%)';
@@ -746,12 +748,12 @@ class ChargingStation {
 	_buildCurrentTransactionDuration(transaction, lastTimestamp) {
 		// Build date
 		let dateTimeString, timeDiffDuration;
-		let i18nHourShort = 'h';
+		const i18nHourShort = 'h';
 		// Compute duration from now
 		timeDiffDuration = moment.duration(
 			moment(lastTimestamp).diff(moment(transaction.timestamp)));
 		// Set duration
-		let mins = Math.floor(timeDiffDuration.minutes());
+		const mins = Math.floor(timeDiffDuration.minutes());
 		// Set duration
 		dateTimeString =
 			Math.floor(timeDiffDuration.asHours()).toString() + i18nHourShort +
@@ -762,7 +764,7 @@ class ChargingStation {
 
 	async handleMeterValues(meterValues) {
 		// Create model
-		let newMeterValues = {};
+		const newMeterValues = {};
 		let meterValuesContext;
 		// Check Meter Value Context
 		if (meterValues && meterValues.values && meterValues.values.value && !Array.isArray(meterValues.values) && meterValues.values.value.attributes) {
@@ -787,7 +789,7 @@ class ChargingStation {
 			meterValues.connectorId = 1;
 		}
 		// Check if the transaction ID matches
-		let chargerTransactionId = this.getConnectors()[meterValues.connectorId-1].activeTransactionID;
+		const chargerTransactionId = this.getConnectors()[meterValues.connectorId-1].activeTransactionID;
 		// Same?
 		if (meterValues.hasOwnProperty('transactionId')) {
 			// BUG ABB: Check ID
@@ -830,7 +832,7 @@ class ChargingStation {
 		}
 		// For each value
 		for (const value of meterValues.values) {
-			var newMeterValue = {};
+			const newMeterValue = {};
 			// Set the ID
 			newMeterValue.chargeBoxID = newMeterValues.chargeBoxID;
 			newMeterValue.connectorId = meterValues.connectorId;
@@ -921,7 +923,7 @@ class ChargingStation {
 
 	async delete() {
 		// Check if the user has a transaction
-		let result = await this.hasAtLeastOneTransaction();
+		const result = await this.hasAtLeastOneTransaction();
 		if (result) {
 			// Delete logically
 			// Set deleted
@@ -979,7 +981,7 @@ class ChargingStation {
 		authorize.chargeBoxID = this.getID();
 		authorize.timestamp = new Date();
 		// Execute
-		let users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
+		const users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
 				Constants.ACTION_AUTHORIZE, this, authorize.idTag);
 		// Check
 		if (users) {
@@ -1005,25 +1007,25 @@ class ChargingStation {
 
 	async getSite() {
 		// Get Site Area
-		let siteArea = await this.getSiteArea();
+		const siteArea = await this.getSiteArea();
 		// Check Site Area
 		if (!siteArea) {
 			return null;
 		}
 		// Get Site
-		let site = await siteArea.getSite();
+		const site = await siteArea.getSite();
 		return site;
 	}
 
 	async getCompany() {
 		// Get the Site
-		let site = await this.getSite();
+		const site = await this.getSite();
 		// Check Site
 		if (!site) {
 			return null;
 		}
 		// Get the Company
-		let company = await site.getCompany();
+		const company = await site.getCompany();
 		return company;
 	}
 
@@ -1036,7 +1038,7 @@ class ChargingStation {
 		// Set the charger ID
 		transaction.chargeBoxID = this.getID();
 		// Check user and save
-		let users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
+		const users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
 			Constants.ACTION_START_TRANSACTION, this, transaction.idTag);
 		// Check
 		let user;
@@ -1081,7 +1083,7 @@ class ChargingStation {
 		// Set the tag ID
 		transaction.tagID = transaction.idTag;
 		// Ok: Save Transaction
-		let newTransaction = await TransactionStorage.saveTransaction(transaction);
+		const newTransaction = await TransactionStorage.saveTransaction(transaction);
 		// Check if Charger can charge in //
 		if (!this.canChargeInParallel()) {
 			// Set all the other connectors to occupied
@@ -1138,7 +1140,7 @@ class ChargingStation {
 		// Set the charger ID
 		stopTransaction.chargeBoxID = this.getID();
 		// Get the transaction first (to get the connector id)
-		let transaction = await this.getTransaction(stopTransaction.transactionId);
+		const transaction = await this.getTransaction(stopTransaction.transactionId);
 		// Found?
 		if (!transaction) {
 			throw new Error(`Transaction ID '${stopTransaction.transactionId}' does not exist`);
@@ -1147,7 +1149,7 @@ class ChargingStation {
 		if (transaction.remotestop) {
 			// Check Timestamp
 			// Add the inactivity in secs
-			let secs = moment.duration(moment().diff(
+			const secs = moment.duration(moment().diff(
 				moment(transaction.remotestop.timestamp))).asSeconds();
 			// In a minute
 			if (secs < 60) {
@@ -1163,18 +1165,18 @@ class ChargingStation {
 		// Set Tag ID to a new property
 		stopTransaction.tagID = stopTransaction.idTag;
 		// Check User
-		let users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
+		const users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
 			Constants.ACTION_STOP_TRANSACTION, this, transaction.tagID, stopTransaction.tagID);
 		// Check
 		let user;
 		if (users) {
 			// Set current user
-			let user = (users.alternateUser ? users.alternateUser : users.user);
+			const user = (users.alternateUser ? users.alternateUser : users.user);
 			// Set the User ID
 			stopTransaction.userID = user.getID();
 		}
 		// Get the connector
-		let connector = this.getConnectors()[transaction.connectorId-1];
+		const connector = this.getConnectors()[transaction.connectorId-1];
 		// Init the charging station
 		connector.currentConsumption = 0;
 		connector.totalConsumption = 0;
@@ -1195,7 +1197,7 @@ class ChargingStation {
 		// Save Charging Station
 		await this.save();
 		// Compute total consumption (optimization)
-		let consumption = await this.getConsumptionsFromTransaction(transaction, false);
+		const consumption = await this.getConsumptionsFromTransaction(transaction, false);
 		// Compute total inactivity seconds
 		stopTransaction.totalInactivitySecs = 0;
 		for (let index = 0; index < consumption.values.length; index++) {
@@ -1239,7 +1241,7 @@ class ChargingStation {
 			);
 		}
 		// Save Transaction
-		let newTransaction = await TransactionStorage.saveTransaction(transaction);
+		const newTransaction = await TransactionStorage.saveTransaction(transaction);
 		// Check
 		if (users) {
 			// Set the user
@@ -1281,9 +1283,9 @@ class ChargingStation {
 	// Restart the charger
 	async requestReset(type) {
 		// Get the client
-		let chargingStationClient = await this.getChargingStationClient();
+		const chargingStationClient = await this.getChargingStationClient();
 		// Restart
-		let result = await chargingStationClient.reset(type);
+		const result = await chargingStationClient.reset(type);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation',
@@ -1297,9 +1299,9 @@ class ChargingStation {
 	// Stop Transaction
 	async requestStopTransaction(transactionId) {
 		// Get the client
-		let chargingStationClient = await this.getChargingStationClient();
+		const chargingStationClient = await this.getChargingStationClient();
 		// Stop Transaction
-		let result = await chargingStationClient.stopTransaction(transactionId);
+		const result = await chargingStationClient.stopTransaction(transactionId);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation',
@@ -1313,9 +1315,9 @@ class ChargingStation {
 	// Start Transaction
 	async requestStartTransaction(tagID, connectorID, chargingProfile = {}) {
 		// Get the client
-		let chargingStationClient = await this.getChargingStationClient();
+		const chargingStationClient = await this.getChargingStationClient();
 		// Start Transaction
-		let result = await chargingStationClient.startTransaction(tagID, connectorID, chargingProfile);
+		const result = await chargingStationClient.startTransaction(tagID, connectorID, chargingProfile);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation',
@@ -1329,9 +1331,9 @@ class ChargingStation {
 	// Clear the cache
 	async requestClearCache() {
 		// Get the client
-		let chargingStationClient = await this.getChargingStationClient();
+		const chargingStationClient = await this.getChargingStationClient();
 		// Clear
-		let result = await chargingStationClient.clearCache();
+		const result = await chargingStationClient.clearCache();
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation',
@@ -1345,9 +1347,9 @@ class ChargingStation {
 	// Get the configuration for the EVSE
 	async requestGetConfiguration(configParamNames) {
 		// Get the client
-		let chargingStationClient = await this.getChargingStationClient();
+		const chargingStationClient = await this.getChargingStationClient();
 		// Get config
-		let result = await chargingStationClient.getConfiguration(configParamNames);
+		const result = await chargingStationClient.getConfiguration(configParamNames);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation',
@@ -1361,9 +1363,9 @@ class ChargingStation {
 	// Get the configuration for the EVSE
 	async requestChangeConfiguration(key, value) {
 		// Get the client
-		let chargingStationClient = await this.getChargingStationClient();
+		const chargingStationClient = await this.getChargingStationClient();
 		// Get config
-		let result = await chargingStationClient.changeConfiguration(key, value);
+		const result = await chargingStationClient.changeConfiguration(key, value);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation',
@@ -1384,9 +1386,9 @@ class ChargingStation {
 	// Unlock connector
 	async requestUnlockConnector(connectorId) {
 		// Get the client
-		let chargingStationClient = await this.getChargingStationClient();
+		const chargingStationClient = await this.getChargingStationClient();
 		// Get config
-		let result = await chargingStationClient.unlockConnector(connectorId);
+		const result = await chargingStationClient.unlockConnector(connectorId);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation',
@@ -1407,7 +1409,7 @@ class ChargingStation {
 
 	async hasAtLeastOneTransaction() {
 		// Get the consumption
-		let transactions = await TransactionStorage.getTransactions(
+		const transactions = await TransactionStorage.getTransactions(
 			{ 'chargeBoxID': this.getID() }, 1);
 		// Return
 		return (transactions.count > 0);
@@ -1415,7 +1417,7 @@ class ChargingStation {
 
 	async getTransactions(connectorId, startDateTime, endDateTime, withChargeBoxes=false) {
 		// Get the consumption
-		let transactions = await TransactionStorage.getTransactions(
+		const transactions = await TransactionStorage.getTransactions(
 			{ 'chargeBoxID': this.getID(), 'connectorId': connectorId, 'startDateTime': startDateTime,
 				'endDateTime' : endDateTime, 'withChargeBoxes': withChargeBoxes },
 			Constants.NO_LIMIT);
@@ -1425,11 +1427,11 @@ class ChargingStation {
 
 	async getConsumptionsFromTransaction(transaction, optimizeNbrOfValues) {
 		// Get the last 5 meter values
-		let meterValues = await TransactionStorage.getMeterValuesFromTransaction(transaction.id);
+		const meterValues = await TransactionStorage.getMeterValuesFromTransaction(transaction.id);
 		// Read the pricing
-		let pricing = await PricingStorage.getPricing();
+		const pricing = await PricingStorage.getPricing();
 		// Build the header
-		let chargingStationConsumption = {};
+		const chargingStationConsumption = {};
 		if (pricing) {
 			chargingStationConsumption.priceUnit = pricing.priceUnit;
 			chargingStationConsumption.totalPrice = 0;
@@ -1454,11 +1456,11 @@ class ChargingStation {
 
 	async getConsumptionsFromDateTimeRange(transaction, startDateTime) {
 		// Get all from the transaction (not optimized)
-		let consumptions = await this.getConsumptionsFromTransaction(transaction, false);
+		const consumptions = await this.getConsumptionsFromTransaction(transaction, false);
 		// Found?
 		if (consumptions && consumptions.values) {
 			// Start date
-			let startDateMoment = moment(startDateTime);
+			const startDateMoment = moment(startDateTime);
 			// Filter value per date
 			consumptions.values = consumptions.values.filter((consumption) => {
 				// Filter
@@ -1477,7 +1479,7 @@ class ChargingStation {
 		// Set first value from transaction
 		if (meterValues && meterValues.length > 0 && transaction) {
 			// Set last meter value
-			let meterValueFromTransactionStart = {
+			const meterValueFromTransactionStart = {
 				id: '666',
 				connectorId: transaction.connectorId,
 				transactionId: transaction.transactionId,
@@ -1497,7 +1499,7 @@ class ChargingStation {
 			// Set last value from transaction
 			if (transaction.stop) {
 				// Set last meter value
-				let meterValueFromTransactionStop = {
+				const meterValueFromTransactionStop = {
 					id: '6969',
 					connectorId: transaction.connectorId,
 					transactionId: transaction.transactionId,
@@ -1519,13 +1521,13 @@ class ChargingStation {
 		for (let meterValueIndex = 0; meterValueIndex < meterValues.length; meterValueIndex++) {
 			const meterValue = meterValues[meterValueIndex];
 			// Get the stored values
-			let numberOfReturnedMeters = chargingStationConsumption.values.length;
+			const numberOfReturnedMeters = chargingStationConsumption.values.length;
 
 			// Filter on consumption value
 			if (meterValue.attribute && meterValue.attribute.measurand &&
 					meterValue.attribute.measurand === 'Energy.Active.Import.Register') {
 				// Get the moment
-				let currentTimestamp = moment(meterValue.timestamp);
+				const currentTimestamp = moment(meterValue.timestamp);
 				// First value?
 				if (!firstMeterValueSet) {
 					// No: Keep the first value
@@ -1543,7 +1545,7 @@ class ChargingStation {
 							lastMeterValue.value = 0;
 						}
 						// Get the moment
-						let currentTimestamp = moment(meterValue.timestamp);
+						const currentTimestamp = moment(meterValue.timestamp);
 						// Check if it will be added
 						let addValue = false;
 						// Start to return the value after the requested date
@@ -1554,11 +1556,11 @@ class ChargingStation {
 							// Count
 							totalNbrOfMetrics++;
 							// Get the diff
-							var diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, 'seconds');
+							const diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, 'seconds');
 							// Sample multiplier
-							let sampleMultiplier = 3600 / diffSecs;
+							const sampleMultiplier = 3600 / diffSecs;
 							// compute
-							let currentConsumption = (meterValue.value - lastMeterValue.value) * sampleMultiplier;
+							const currentConsumption = (meterValue.value - lastMeterValue.value) * sampleMultiplier;
 							// At least one value returned
 							if (numberOfReturnedMeters > 0) {
 								// Consumption?
@@ -1585,7 +1587,7 @@ class ChargingStation {
 								}
 							}
 							// Counting
-							let consumptionWh = meterValue.value - lastMeterValue.value;
+							const consumptionWh = meterValue.value - lastMeterValue.value;
 							chargingStationConsumption.totalConsumption += consumptionWh;
 							// Compute the price
 							if (pricing) {
@@ -1594,7 +1596,7 @@ class ChargingStation {
 							// Add it?
 							if (addValue) {
 								// Create
-								let consumption = {
+								const consumption = {
 									date: meterValue.timestamp,
 									value: currentConsumption,
 									cumulated: chargingStationConsumption.totalConsumption };

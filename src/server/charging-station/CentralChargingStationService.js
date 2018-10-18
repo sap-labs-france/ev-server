@@ -24,9 +24,13 @@ class CentralChargingStationService {
 		_chargingStationConfig = chargingStationConfig;
 	}
 
+	get chargingStationConfig() {
+		return _chargingStationConfig;
+	}
+
 	async checkAndGetChargingStation(chargeBoxIdentity) {
 		// Get the charging station
-		let chargingStation = await ChargingStation.getChargingStation(chargeBoxIdentity);
+		const chargingStation = await ChargingStation.getChargingStation(chargeBoxIdentity);
 		// Found?
 		if (!chargingStation) {
 			throw new AppError(
@@ -91,29 +95,17 @@ class CentralChargingStationService {
 				chargingStation.setDeleted(false);
 			}
 			// Save Charging Station
-			let updatedChargingStation = await chargingStation.save();
+			const updatedChargingStation = await chargingStation.save();
 			// Save the Boot Notification
 			await updatedChargingStation.handleBootNotification(content);
 			// Return the result
-/*			// OCPP 1.6
-			if (content.ocppVersion === '1.6') {
-				return {
-					'bootNotificationResponse': {
-						'status': 'Accepted',
-						'currentTime': new Date().toISOString(),
-						'interval': _chargingStationConfig.heartbeatIntervalSecs
-					}
-				};
-				// OCPP 1.2 && 1.5
-			} else {*/
-				return {
-					'bootNotificationResponse': {
-						'status': 'Accepted',
-						'currentTime': new Date().toISOString(),
-						'heartbeatInterval': _chargingStationConfig.heartbeatIntervalSecs
-					}
-				};
-//			}
+			return {
+				'bootNotificationResponse': {
+					'status': 'Accepted',
+					'currentTime': new Date().toISOString(),
+					'heartbeatInterval': _chargingStationConfig.heartbeatIntervalSecs
+				}
+			};
 		} catch(error) {
 			// Set the source
 			error.source = content.chargeBoxIdentity;
@@ -133,7 +125,7 @@ class CentralChargingStationService {
 	async handleHeartbeat(content) {
 		try {
 			// Get the charging station
-			let chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
+			const chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
 			// Save
 			await chargingStation.handleHeartBeat();
 			// Return			
@@ -159,7 +151,7 @@ class CentralChargingStationService {
 	async handleStatusNotification(content) {
 		try {
 			// Get the charging station
-			let chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
+			const chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
 			// Handle
 			await chargingStation.handleStatusNotification(content);
 			// Respond
@@ -183,7 +175,7 @@ class CentralChargingStationService {
 	async handleMeterValues(content) {
 		try {
 			// Get the charging station
-			let chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
+			const chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
 			// Save
 			await chargingStation.handleMeterValues(content);
 			// Return
@@ -207,7 +199,7 @@ class CentralChargingStationService {
 	async handleAuthorize(content) {
 		try {
 			// Get the charging station
-			let chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
+			const chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
 			// Handle
 			await chargingStation.handleAuthorize(content);
 			// Return
@@ -236,7 +228,7 @@ class CentralChargingStationService {
 	async handleDiagnosticsStatusNotification(content) {
 		try {
 			// Get the charging station
-			let chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
+			const chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
 			// Save
 			await chargingStation.handleDiagnosticsStatusNotification(content);
 			// Return
@@ -259,7 +251,7 @@ class CentralChargingStationService {
 	async handleFirmwareStatusNotification(content) {
 		try {
 			// Get the charging station
-			let chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
+			const chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
 			// Save
 			await chargingStation.handleFirmwareStatusNotification(content);
 			// Return
@@ -280,9 +272,9 @@ class CentralChargingStationService {
 	async handleStartTransaction(content) {
 		try {
 			// Get the charging station
-			let chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
+			const chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
 			// Save
-			let transaction = await chargingStation.handleStartTransaction(content);
+			const transaction = await chargingStation.handleStartTransaction(content);
 			// Return
 			return {
 				'startTransactionResponse': {
@@ -311,7 +303,7 @@ class CentralChargingStationService {
 	async handleDataTransfer(content) {
 		try {
 			// Get the charging station
-			let chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
+			const chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
 			// Save
 			await chargingStation.handleDataTransfer(content);
 			// Return
@@ -336,7 +328,7 @@ class CentralChargingStationService {
 	async handleStopTransaction(content) {
 		try {
 			// Get the charging station
-			let chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
+			const chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
 			// Handle
 			await chargingStation.handleStopTransaction(content);
 			// Success
