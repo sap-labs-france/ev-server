@@ -42,7 +42,7 @@ class VehicleService {
 					req.user);
 			}
 			// Delete
-			await vehicle.delete(req.user.tenant);
+			await vehicle.delete();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'VehicleService', method: 'handleDeleteVehicle',
@@ -208,12 +208,12 @@ class VehicleService {
 			// Check Mandatory fields
 			Vehicle.checkIfVehicleValid(filteredRequest, req);
 			// Create vehicle
-			const vehicle = new Vehicle(filteredRequest);
+			const vehicle = new Vehicle(req.user.tenant, filteredRequest);
 			// Update timestamp
-			vehicle.setCreatedBy(new User({'id': req.user.id}));
+			vehicle.setCreatedBy(req.user.tenant, new User({'id': req.user.id}));
 			vehicle.setCreatedOn(new Date());
 			// Save
-			const newVehicle = await vehicle.save(req.user.tenant);
+			const newVehicle = await vehicle.save();
 			// Save Site's Image
 			if (vehicle.getImages()) {
 				newVehicle.setImages(vehicle.getImages());
@@ -221,7 +221,7 @@ class VehicleService {
 				newVehicle.setImages([]);
 			}
 			// Save
-			await newVehicle.saveImages(req.user.tenant);
+			await newVehicle.saveImages();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'VehicleService', method: 'handleCreateVehicle',
@@ -264,13 +264,13 @@ class VehicleService {
 			// Update
 			Database.updateVehicle(filteredRequest, vehicle.getModel());
 			// Update timestamp
-			vehicle.setLastChangedBy(new User({'id': req.user.id}));
+			vehicle.setLastChangedBy(req.user.tenant, new User({'id': req.user.id}));
 			vehicle.setLastChangedOn(new Date());
 			// Update Vehicle
-			const updatedVehicle = await vehicle.save(req.user.tenant);
+			const updatedVehicle = await vehicle.save();
 			// Update Vehicle's Image
 			if (filteredRequest.withVehicleImages) {
-				await vehicle.saveImages(req.user.tenant);
+				await vehicle.saveImages();
 			}
 			// Log
 			Logging.logSecurityInfo({

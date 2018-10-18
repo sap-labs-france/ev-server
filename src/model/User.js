@@ -10,12 +10,17 @@ const TransactionStorage = require('../storage/mongodb/TransactionStorage');
 const SiteStorage = require('../storage/mongodb/SiteStorage');
 
 class User {
-	constructor(user) {
+	constructor(tenant, user) {
 		// Init model
 		this._model = {};
+		this._tenant = tenant;
 
 		// Set it
 		Database.updateUser(user, this._model);
+	}
+
+	getTenant() {
+		return this._tenant;
 	}
 
 	setAuthorisations(auths) {
@@ -199,7 +204,7 @@ class User {
 
 	getCreatedBy() {
 		if (this._model.createdBy) {
-			return new User(this._model.createdBy);
+			return new User(this._tenant, this._model.createdBy);
 		}
 		return null;
 	}
@@ -226,7 +231,7 @@ class User {
 
 	getLastChangedBy() {
 		if (this._model.lastChangedBy) {
-			return new User(this._model.lastChangedBy);
+			return new User(this._tenant, this._model.lastChangedBy);
 		}
 		return null;
 	}
@@ -267,14 +272,14 @@ class User {
 		this._model.verifiedAt = verifiedAt;
 	}
 
-	async getTransactions(tenant, filter) {
+	async getTransactions(filter) {
 		if (!filter) {
 			filter = {};
 		}
 		// Set the user ID
 		filter.userId = this.getID();
 		// Get the consumption
-		let transactions = await TransactionStorage.getTransactions(tenant, filter, Constants.NO_LIMIT);
+		let transactions = await TransactionStorage.getTransactions(this._tenant, filter, Constants.NO_LIMIT);
 		// Return
 		return transactions;
 	}
@@ -283,26 +288,26 @@ class User {
 		this._model.sites = sites.map((site) => site.getModel());
 	}
 
-	async getSites(tenant, withCompany=false, withSiteAreas=false,
+	async getSites(withCompany=false, withSiteAreas=false,
 			withChargeBoxes=false, withUsers=false) {
 		// Get Sites
-		let sites = await SiteStorage.getSites(tenant, {'userID': this.getID(),
+		let sites = await SiteStorage.getSites(this._tenant, {'userID': this.getID(),
 			withCompany, withSiteAreas, withChargeBoxes, withUsers});
 		// Return the array
 		return sites.result;
 	}
 
-	save(tenant) {
-		return UserStorage.saveUser(tenant, this.getModel());
+	save() {
+		return UserStorage.saveUser(this._tenant, this.getModel());
 	}
 
-	saveImage(tenant) {
-		return UserStorage.saveUserImage(tenant, this.getModel());
+	saveImage() {
+		return UserStorage.saveUserImage(this._tenant, this.getModel());
 	}
 
-	async delete(tenant) {
+	async delete() {
 		// Check if the user has a transaction
-		let transactions = await this.getTransactions(tenant);
+		let transactions = await this.getTransactions();
 		// Check
 		if (transactions.count > 0) {
 			// Delete logically
@@ -324,10 +329,10 @@ class User {
 			// Save User Image
 			await this.saveImage();
 			// Save User
-			return this.save(tenant);
+			return this.save();
 		} else {
 			// Delete physically
-			return UserStorage.deleteUser(tenant, this.getID());
+			return UserStorage.deleteUser(this._tenant, this.getID());
 		}
 	}
 

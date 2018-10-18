@@ -77,7 +77,7 @@ class VehicleManufacturerStorage {
 		// Check
 		if (vehicleManufacturersMDB && vehicleManufacturersMDB.length > 0) {
 			// Create
-			vehicleManufacturer = new VehicleManufacturer(vehicleManufacturersMDB[0]);
+			vehicleManufacturer = new VehicleManufacturer(tenant, vehicleManufacturersMDB[0]);
 		}
 		return vehicleManufacturer;
 	}
@@ -111,7 +111,7 @@ class VehicleManufacturerStorage {
 			{$set: vehicleManufacturer},
 			{upsert: true, new: true, returnOriginal: false});
 		// Create
-		return new VehicleManufacturer(result.value);
+		return new VehicleManufacturer(tenant, result.value);
 	}
 
 	// Delegate
@@ -195,12 +195,12 @@ class VehicleManufacturerStorage {
 			// Create
 			for (const vehicleManufacturerMDB of vehiclemanufacturersMDB) {
 				// Create
-				const vehicleManufacturer = new VehicleManufacturer(vehicleManufacturerMDB);
+				const vehicleManufacturer = new VehicleManufacturer(tenant, vehicleManufacturerMDB);
 				// Set Vehicles
 				if (params.withVehicles && vehicleManufacturerMDB.vehicles) {
 					// Add vehicles
 					vehicleManufacturer.setVehicles(vehicleManufacturerMDB.vehicles.map((vehicle) => {
-						return new Vehicle(vehicle);
+						return new Vehicle(tenant, vehicle);
 					}));
 				}
 				// Add

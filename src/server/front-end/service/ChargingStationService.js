@@ -57,10 +57,10 @@ class ChargingStationService {
 				}
 			}
 			// Update timestamp
-			chargingStation.setLastChangedBy(new User({'id': req.user.id}));
+			chargingStation.setLastChangedBy(req.user.tenant, new User({'id': req.user.id}));
 			chargingStation.setLastChangedOn(new Date());
 			// Update
-			const updatedChargingStation = await chargingStation.save(req.user.tenant);
+			const updatedChargingStation = await chargingStation.save();
 			// Log
 			Logging.logSecurityInfo({
 				source: updatedChargingStation.getID(),
@@ -113,7 +113,7 @@ class ChargingStationService {
 					req.user);
 			}
 			// Get the Config
-			const configuration = await chargingStation.getConfiguration(req.user.tenant);
+			const configuration = await chargingStation.getConfiguration();
 			// Return the result
 			res.json(configuration);
 			next();
@@ -156,7 +156,7 @@ class ChargingStationService {
 					req.user);
 			}
 			// Get the Config
-			const result = await chargingStation.requestAndSaveConfiguration(req.user.tenant);
+			const result = await chargingStation.requestAndSaveConfiguration();
 			// Return the result
 			res.json(result);
 			next();
@@ -201,7 +201,7 @@ class ChargingStationService {
 			// Remove Site Area
 			chargingStation.setSiteArea(null);
 			// Delete
-			await chargingStation.delete(req.user.tenant);
+			await chargingStation.delete();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'ChargingStationService', method: 'handleDeleteChargingStation',
@@ -367,7 +367,7 @@ class ChargingStationService {
 						'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
 			}
 			// Get the Charging station
-			const chargingStation = await ChargingStation.getChargingStation(filteredRequest.chargeBoxID);
+			const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, filteredRequest.chargeBoxID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!

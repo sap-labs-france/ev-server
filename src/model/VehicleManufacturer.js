@@ -7,9 +7,10 @@ const VehicleManufacturerStorage = require('../storage/mongodb/VehicleManufactur
 const VehicleStorage = require('../storage/mongodb/VehicleStorage');
 
 class VehicleManufacturer {
-	constructor(vehicleManufacturer) {
+	constructor(tenant, vehicleManufacturer) {
 		// Init model
 		this._model = {};
+		this._tenant = tenant;
 		// Set it
 		Database.updateVehicleManufacturer(vehicleManufacturer, this._model);
 	}
@@ -40,7 +41,7 @@ class VehicleManufacturer {
 
 	getCreatedBy() {
 		if (this._model.createdBy) {
-			return new User(this._model.createdBy);
+			return new User(this._tenant, this._model.createdBy);
 		}
 		return null;
 	}
@@ -59,7 +60,7 @@ class VehicleManufacturer {
 
 	getLastChangedBy() {
 		if (this._model.lastChangedBy) {
-			return new User(this._model.lastChangedBy);
+			return new User(this._tenant, this._model.lastChangedBy);
 		}
 		return null;
 	}
@@ -78,10 +79,10 @@ class VehicleManufacturer {
 
 	async getVehicles() {
 		if (this._model.vehicles) {
-			return this._model.vehicles.map((vehicle) => new Vehicle(vehicle));
+			return this._model.vehicles.map((vehicle) => new Vehicle(this._tenant, vehicle));
 		} else {
 			// Get from DB
-			let vehicles = await VehicleStorage.getVehicles({'vehicleManufacturerID': this.getID()});
+			let vehicles = await VehicleStorage.getVehicles(this._tenant, {'vehicleManufacturerID': this.getID()});
 			// Keep it
 			this.setVehicles(vehicles.result);
 			// Return
@@ -96,15 +97,15 @@ class VehicleManufacturer {
 	}
 
 	save() {
-		return VehicleManufacturerStorage.saveVehicleManufacturer(this.getModel());
+		return VehicleManufacturerStorage.saveVehicleManufacturer(this._tenant, this.getModel());
 	}
 
 	saveLogo() {
-		return VehicleManufacturerStorage.saveVehicleManufacturerLogo(this.getModel());
+		return VehicleManufacturerStorage.saveVehicleManufacturerLogo(this._tenant, this.getModel());
 	}
 
 	delete() {
-		return VehicleManufacturerStorage.deleteVehicleManufacturer(this.getID());
+		return VehicleManufacturerStorage.deleteVehicleManufacturer(this._tenant, this.getID());
 	}
 
 	static checkIfVehicleManufacturerValid(filteredRequest, request) {

@@ -72,20 +72,20 @@ class SiteStorage {
 		// Create
 		if (sitesMDB && sitesMDB.length > 0) {
 			// Create
-			site = new Site(sitesMDB[0]);
+			site = new Site(tenant, sitesMDB[0]);
 			// Set Site Areas
 			site.setSiteAreas(sitesMDB[0].siteAreas.map((siteArea) => {
-				return new SiteArea(siteArea);
+				return new SiteArea(tenant, siteArea);
 			}));
 			// Set Company
 			if (withCompany) {
-				site.setCompany(new Company(sitesMDB[0].company));
+				site.setCompany(new Company(tenant, sitesMDB[0].company));
 			}
 			// Set users
 			if (withUsers && sitesMDB[0].users) {
 				// Create Users
 				sitesMDB[0].users = sitesMDB[0].users.map((user) => {
-					return new User(user);
+					return new User(tenant, user);
 				});
 				site.setUsers(sitesMDB[0].users)
 			}
@@ -158,7 +158,7 @@ class SiteStorage {
 			{$set: site},
 			{upsert: true, new: true, returnOriginal: false});
 		// Create
-		const updatedSite = new Site(result.value);
+		const updatedSite = new Site(tenant, result.value);
 		// Update Users?`
 		if (siteToSave.users) {
 			// Delete first
@@ -333,11 +333,11 @@ class SiteStorage {
 			// Create
 			for (const siteMDB of sitesMDB) {
 				// Create
-				const site = new Site(siteMDB);
+				const site = new Site(tenant, siteMDB);
 				// Set Users
 				if ((params.userID || params.withUsers) && siteMDB.users) {
 					// Set Users
-					site.setUsers(siteMDB.users.map((user) => new User(user)));
+					site.setUsers(siteMDB.users.map((user) => new User(tenant, user)));
 				}
 				// Count Available Charger
 				if (params.withAvailableChargers) {
@@ -365,7 +365,7 @@ class SiteStorage {
 					});
 					// Set
 					site.setSiteAreas(siteMDB.siteAreas.map((siteArea) => {
-						const siteAreaObj = new SiteArea(siteArea);
+						const siteAreaObj = new SiteArea(tenant, siteArea);
 						// Set Site Areas
 						if (siteMDB.chargeBoxes) {
 							// Filter with Site Area`
@@ -379,9 +379,9 @@ class SiteStorage {
 							// Set Charger to Site Area
 							siteAreaObj.setChargingStations(chargeBoxesPerSiteArea.map((chargeBoxPerSiteArea) => {
 								// Create the Charger
-								const chargingStation = new ChargingStation(chargeBoxPerSiteArea);
+								const chargingStation = new ChargingStation(tenant, chargeBoxPerSiteArea);
 								// Set Site Area to Charger
-								chargingStation.setSiteArea(new SiteArea(siteAreaObj.getModel())); // To avoid circular deps Charger -> Site Area -> Charger
+								chargingStation.setSiteArea(new SiteArea(tenant, siteAreaObj.getModel())); // To avoid circular deps Charger -> Site Area -> Charger
 								// Return
 								return chargingStation;
 							}));
@@ -391,7 +391,7 @@ class SiteStorage {
 				}
 				// Set Company?
 				if (siteMDB.company) {
-					site.setCompany(new Company(siteMDB.company));
+					site.setCompany(new Company(tenant, siteMDB.company));
 				}
 				// Add
 				sites.push(site);

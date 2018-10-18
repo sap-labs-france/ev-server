@@ -88,7 +88,7 @@ class SiteAreaStorage {
 		// Create
 		if (siteAreasMDB && siteAreasMDB.length > 0) {
 			// Create
-			siteArea = new SiteArea(siteAreasMDB[0]);
+			siteArea = new SiteArea(tenant, siteAreasMDB[0]);
 			// Set Charging Station
 			if (siteAreasMDB[0].chargingStations) {
 				// Sort Charging Stations
@@ -98,16 +98,16 @@ class SiteAreaStorage {
 				// Set
 				siteArea.setChargingStations(siteAreasMDB[0].chargingStations.map((chargingStation) => {
 					// Create the Charging Station
-					const chargingStationObj = new ChargingStation(chargingStation);
+					const chargingStationObj = new ChargingStation(tenant, chargingStation);
 					// Set the Site Area to it
-					chargingStationObj.setSiteArea(new SiteArea(siteArea.getModel())); // To avoid circular deps Charger -> Site Area -> Charger
+					chargingStationObj.setSiteArea(new SiteArea(tenant, siteArea.getModel())); // To avoid circular deps Charger -> Site Area -> Charger
 					// Return
 					return chargingStationObj;
 				}));
 			}
 			// Set Site
 			if (siteAreasMDB[0].site) {
-				siteArea.setSite(new Site(siteAreasMDB[0].site));
+				siteArea.setSite(new Site(tenant, siteAreasMDB[0].site));
 			}
 		}
 		return siteArea;
@@ -142,7 +142,7 @@ class SiteAreaStorage {
 			{$set: siteArea},
 			{upsert: true, new: true, returnOriginal: false});
 		// Create
-		return new SiteArea(result.value);
+		return new SiteArea(tenant, result.value);
 	}
 
 	static async saveSiteAreaImage(tenant, siteAreaImageToSave) {
@@ -254,17 +254,17 @@ class SiteAreaStorage {
 			// Create
 			for (const siteAreaMDB of siteAreasMDB) {
 				// Create
-				const siteArea = new SiteArea(siteAreaMDB);
+				const siteArea = new SiteArea(tenant, siteAreaMDB);
 				// Set Site Areas
 				if (params.withChargeBoxes && siteAreaMDB.chargeBoxes) {
 					siteArea.setChargingStations(siteAreaMDB.chargeBoxes.map((chargeBox) => {
-						return new ChargingStation(chargeBox);
+						return new ChargingStation(tenant, chargeBox);
 					}));
 				}
 				// Set Site
 				if (params.withSite && siteAreaMDB.site) {
 					// Set
-					siteArea.setSite(new Site(siteAreaMDB.site));
+					siteArea.setSite(new Site(tenant, siteAreaMDB.site));
 				}
 				// Add
 				siteAreas.push(siteArea);

@@ -15,7 +15,7 @@ describe('transaction tests', function() {
   this.timeout(100000);
 
   before(async () => {
-    await ocpp.init('test/api/soap/ocpp15.wsdl', {endpoint: `${config.get('ocpp.scheme')}://${config.get('ocpp.host')}:${config.get('ocpp.port')}/OCPP15`});
+    await ocpp.init('test/api/soap/ocpp15.wsdl', {endpoint: `${config.get('ocpp.scheme')}://${config.get('ocpp.host')}:${config.get('ocpp.port')}/OCPP15?tenant=${config.get('admin.tenant')}`});
   });
 
   beforeEach(async () => {

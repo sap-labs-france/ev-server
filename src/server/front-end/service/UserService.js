@@ -214,15 +214,15 @@ class UserService {
 					req.user);
 			}
 			// Delete
-			const sites = await user.getSites(req.user.tenant, false, false, false, true);
+			const sites = await user.getSites(false, false, false, true);
 			for (const site of sites) {
 				// Remove User
-				site.removeUser(req.user.tenant, user);
+				site.removeUser(user);
 				// Save
-				await site.save(req.user.tenant);
+				await site.save();
 			}
 			// Delete User
-			await user.delete(req.user.tenant);
+			await user.delete();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, actionOnUser: user.getModel(),
@@ -296,12 +296,12 @@ class UserService {
 				user.setPassword(newPasswordHashed);
 			}
 			// Update timestamp
-			user.setLastChangedBy(new User({'id': req.user.id}));
+			user.setLastChangedBy(req.user.tenant, new User({'id': req.user.id}));
 			user.setLastChangedOn(new Date());
 			// Update User
-			const updatedUser = await user.save(req.user.tenant);
+			const updatedUser = await user.save();
 			// Update User's Image
-			await user.saveImage(req.user.tenant);
+			await user.saveImage();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, actionOnUser: updatedUser.getModel(),
@@ -508,7 +508,7 @@ class UserService {
 			// Check Mandatory fields
 			User.checkIfUserValid(filteredRequest, req);
 			// Get the email
-			const foundUser = await User.getUserByEmail(filteredRequest.email);
+			const foundUser = await User.getUserByEmail(req.user.tenant, filteredRequest.email);
 			if (foundUser) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -516,7 +516,7 @@ class UserService {
 					'UserService', 'handleCreateUser', req.user);
 			}
 			// Create user
-			const user = new User(filteredRequest);
+			const user = new User(req.user.tenant, filteredRequest);
 			// Set the password
 			if (filteredRequest.password) {
 				// Generate a hash for the given password
@@ -525,14 +525,14 @@ class UserService {
 				user.setPassword(newPasswordHashed);
 			}
 			// Update timestamp
-			user.setCreatedBy(new User({'id': req.user.id}));
+			user.setCreatedBy(req.user.tenant, new User({'id': req.user.id}));
 			user.setCreatedOn(new Date());
 			// Save User
-			const newUser = await user.save(req.user.tenant);
+			const newUser = await user.save();
 			// Update User's Image
 			newUser.setImage(user.getImage());
 			// Save
-			await newUser.saveImage(req.user.tenant);
+			await newUser.saveImage();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, actionOnUser: newUser.getModel(),

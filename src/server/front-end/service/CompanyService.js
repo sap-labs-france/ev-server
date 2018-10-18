@@ -43,7 +43,7 @@ class CompanyService {
 					req.user);
 			}
 			// Delete
-			await company.delete(req.user.tenant);
+			await company.delete();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'CompanyService', method: 'handleDeleteCompany',
@@ -214,16 +214,16 @@ class CompanyService {
 			// Check Mandatory fields
 			Company.checkIfCompanyValid(filteredRequest, req);
 			// Create
-			const company = new Company(filteredRequest);
+			const company = new Company(req.user.tenant, filteredRequest);
 			// Update timestamp
-			company.setCreatedBy(new User({'id': req.user.id}));
+			company.setCreatedBy(req.user.tenant, new User({'id': req.user.id}));
 			company.setCreatedOn(new Date());
 			// Save
-			const newCompany = await company.save(req.user.tenant);
+			const newCompany = await company.save();
 			// Update Company's Logo
 			newCompany.setLogo(company.getLogo());
 			// Save
-			await newCompany.saveLogo(req.user.tenant);
+			await newCompany.saveLogo();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'CompanyService', method: 'handleCreateCompany',
@@ -265,12 +265,12 @@ class CompanyService {
 			// Update
 			Database.updateCompany(filteredRequest, company.getModel());
 			// Update timestamp
-			company.setLastChangedBy(new User({'id': req.user.id}));
+			company.setLastChangedBy(req.user.tenant, new User({'id': req.user.id}));
 			company.setLastChangedOn(new Date());
 			// Update Company
-			const updatedCompany = await company.save(req.user.tenant);
+			const updatedCompany = await company.save();
 			// Update Company's Logo
-			await company.saveLogo(req.user.tenant);
+			await company.saveLogo();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'CompanyService', method: 'handleUpdateCompany',

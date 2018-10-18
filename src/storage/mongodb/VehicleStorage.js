@@ -59,7 +59,7 @@ class VehicleStorage {
 		let vehicle = null;
 		if (vehiclesMDB && vehiclesMDB.length > 0) {
 			// Create
-			vehicle = new Vehicle(vehiclesMDB[0]);
+			vehicle = new Vehicle(tenant, vehiclesMDB[0]);
 		}
 		return vehicle;
 	}
@@ -93,7 +93,7 @@ class VehicleStorage {
 			{$set: vehicle},
 			{upsert: true, new: true, returnOriginal: false});
 		// Create
-		return new Vehicle(result.value);
+		return new Vehicle(tenant, result.value);
 	}
 
 	static async saveVehicleImages(tenant, vehicleImagesToSave) {
@@ -182,7 +182,7 @@ class VehicleStorage {
 			// Create
 			for (const vehicleMDB of vehiclesMDB) {
 				// Add
-				vehicles.push(new Vehicle(vehicleMDB));
+				vehicles.push(new Vehicle(tenant, vehicleMDB));
 			}
 		}
 		// Ok

@@ -7,9 +7,10 @@ const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const UserStorage = require('../storage/mongodb/UserStorage');
 
 class Site {
-	constructor(site) {
+	constructor(tenant, site) {
 		// Init model
 		this._model = {};
+		this._tenant = tenant;
 
 		// Set it
 		Database.updateSite(site, this._model);
@@ -65,7 +66,7 @@ class Site {
 
 	getCreatedBy() {
 		if (this._model.createdBy) {
-			return new User(this._model.createdBy);
+			return new User(this._tenant, this._model.createdBy);
 		}
 		return null;
 	}
@@ -84,7 +85,7 @@ class Site {
 
 	getLastChangedBy() {
 		if (this._model.lastChangedBy) {
-			return new User(this._model.lastChangedBy);
+			return new User(this._tenant, this._model.lastChangedBy);
 		}
 		return null;
 	}
@@ -101,12 +102,12 @@ class Site {
 		this._model.lastChangedOn = lastChangedOn;
 	}
 
-	async getCompany(tenant) {
+	async getCompany() {
 		if (this._model.company) {
-			return new Company(this._model.company);
+			return new Company(this._tenant, this._model.company);
 		} else if (this._model.companyID){
 			// Get from DB
-			let company = await CompanyStorage.getCompany(tenant, this._model.companyID);
+			let company = await CompanyStorage.getCompany(this._tenant, this._model.companyID);
 			// Keep it
 			this.setCompany(company);
 			return company;
@@ -126,12 +127,12 @@ class Site {
 		}
 	}
 
-	async getSiteAreas(tenant) {
+	async getSiteAreas() {
 		if (this._model.sites) {
-			return this._model.siteAreas.map((siteArea) => new SiteArea(siteArea));
+			return this._model.siteAreas.map((siteArea) => new SiteArea(this._tenant, siteArea));
 		} else {
 			// Get from DB
-			let siteAreas = await SiteAreaStorage.getSiteAreas(tenant, {'siteID': this.getID()});
+			let siteAreas = await SiteAreaStorage.getSiteAreas(this._tenant, {'siteID': this.getID()});
 			// Keep it
 			this.setSiteAreas(siteAreas.result);
 			return siteAreas.result;
@@ -142,21 +143,21 @@ class Site {
 		this._model.siteAreas = siteAreas.map((siteArea) => siteArea.getModel());
 	}
 
-	async getUsers(tenant) {
+	async getUsers() {
 		if (this._model.users) {
-			return this._model.users.map((user) => new User(user));
+			return this._model.users.map((user) => new User(this._tenant, user));
 		} else {
 			// Get from DB
-			let users = await UserStorage.getUsers(tenant, {'siteID': this.getID()});
+			let users = await UserStorage.getUsers(this._tenant, {'siteID': this.getID()});
 			// Keep it
 			this.setUsers(users.result);
 			return users.result;
 		}
 	}
 
-	async getUser(tenant, userID) {
+	async getUser(userID) {
 		// Get from DB
-		let users = await UserStorage.getUsers(tenant, {'siteID': this.getID(), 'userID': userID});
+		let users = await UserStorage.getUsers(this._tenant, {'siteID': this.getID(), 'userID': userID});
 		// Check
 		if (users.count > 0) {
 			return users.result[0];
@@ -182,16 +183,16 @@ class Site {
 		this._model.users = users.map((user) => user.getModel());
 	}
 
-	save(tenant) {
-		return SiteStorage.saveSite(tenant, this.getModel());
+	save() {
+		return SiteStorage.saveSite(this._tenant, this.getModel());
 	}
 
-	saveImage(tenant) {
-		return SiteStorage.saveSiteImage(tenant, this.getModel());
+	saveImage() {
+		return SiteStorage.saveSiteImage(this._tenant, this.getModel());
 	}
 
-	delete(tenant) {
-		return SiteStorage.deleteSite(tenant, this.getID());
+	delete() {
+		return SiteStorage.deleteSite(this._tenant, this.getID());
 	}
 
 	static checkIfSiteValid(filteredRequest, request) {

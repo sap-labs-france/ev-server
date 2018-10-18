@@ -25,7 +25,7 @@ class CompanyStorage {
 		// Check
 		if (companiesMDB && companiesMDB.length > 0) {
 			// Create
-			company = new Company(companiesMDB[0]);
+			company = new Company(tenant, companiesMDB[0]);
 		}
 		return company;
 	}
@@ -95,7 +95,7 @@ class CompanyStorage {
 			{$set: company},
 			{upsert: true, new: true, returnOriginal: false});
 		// Create
-		return new Company(result.value);
+		return new Company(tenant, result.value);
 	}
 
 	static async saveCompanyLogo(tenant, companyLogoToSave) {
@@ -187,11 +187,11 @@ class CompanyStorage {
 		if (companiesMDB && companiesMDB.length > 0) {
 			for (const companyMDB of companiesMDB) {
 				// Create
-				const company = new Company(companyMDB);
+				const company = new Company(tenant, companyMDB);
 				// Set site
 				if (params.withSites && companyMDB.sites) {
 					company.setSites(companyMDB.sites.map((site) => {
-						return new Site(site);
+						return new Site(tenant, site);
 					}));
 				}
 				// Add

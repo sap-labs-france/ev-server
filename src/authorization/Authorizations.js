@@ -64,7 +64,7 @@ class Authorizations {
 		if (!Authorizations.isAdmin(user.getModel())) {
 			// Not Admin: Get Auth data
 			// Get All Companies
-			let allCompanies = await Company.getCompanies();
+			let allCompanies = await Company.getCompanies(user.getTenant());
 			// Get Sites
 			sites = await user.getSites();
 			// Get all the companies and site areas
@@ -122,11 +122,11 @@ class Authorizations {
 	static async getOrCreateUserByTagID(chargingStation, siteArea, tagID, action) {
 		let newUserCreated = false;
 		// Get the user
-		let user = await User.getUserByTagId(tagID);
+		let user = await User.getUserByTagId(chargingStation.getTenant(), tagID);
 		// Found?
 		if (!user) {
 			// No: Create an empty user
-			let newUser = new User({
+			let newUser = new User(chargingStation.getTenant(), {
 				name: (siteArea.isAccessControlEnabled() ? "Unknown" : "Anonymous"),
 				firstName: "User",
 				status: (siteArea.isAccessControlEnabled() ? Constants.USER_STATUS_INACTIVE : Constants.USER_STATUS_ACTIVE),

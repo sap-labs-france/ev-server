@@ -132,7 +132,7 @@ class TransactionService {
 				}
 			}
 			// Delete Transaction
-			let result = await chargingStation.deleteTransaction(req.user.tenant, transaction);
+			let result = await chargingStation.deleteTransaction(transaction);
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, actionOnUser: (user ? user.getModel() : null),

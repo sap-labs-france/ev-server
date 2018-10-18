@@ -19,11 +19,16 @@ let _configAdvanced = Configuration.getAdvancedConfig();
 let _configChargingStation = Configuration.getChargingStationConfig();
 
 class ChargingStation {
-	constructor(chargingStation) {
+	constructor(tenant, chargingStation) {
 		// Init model
 		this._model = {};
+		this._tenant = tenant;
 		// Set it
 		Database.updateChargingStation(chargingStation, this._model);
+	}
+
+	getTenant() {
+		return this._tenant;
 	}
 
 	handleAction(action, params) {
@@ -81,12 +86,12 @@ class ChargingStation {
 		}
 	}
 
-	async getSiteArea(tenant, withSite=false) {
+	async getSiteArea(withSite=false) {
 		if (this._model.siteArea) {
-			return new SiteArea(this._model.siteArea);
+			return new SiteArea(this._tenant, this._model.siteArea);
 		} else if (this._model.siteAreaID){
 			// Get from DB
-			let siteArea = await SiteAreaStorage.getSiteArea(tenant, this._model.siteAreaID, false, withSite);
+			let siteArea = await SiteAreaStorage.getSiteArea(this._tenant, this._model.siteAreaID, false, withSite);
 			// Set it
 			this.setSiteArea(siteArea);
 			// Return
@@ -200,7 +205,7 @@ class ChargingStation {
 
 	getCreatedBy() {
 		if (this._model.createdBy) {
-			return new User(this._model.createdBy);
+			return new User(this._tenant, this._model.createdBy);
 		}
 		return null;
 	}
@@ -219,7 +224,7 @@ class ChargingStation {
 
 	getLastChangedBy() {
 		if (this._model.lastChangedBy) {
-			return new User(this._model.lastChangedBy);
+			return new User(this._tenant, this._model.lastChangedBy);
 		}
 		return null;
 	}
@@ -303,26 +308,26 @@ class ChargingStation {
 		return this._model;
 	}
 
-	save(tenant) {
+	save() {
 		// Init Connectors
 		if (!this.getConnectors()) {
 			this.setConnectors([]);
 		}
 		// Save
-		return ChargingStationStorage.saveChargingStation(tenant, this.getModel());
+		return ChargingStationStorage.saveChargingStation(this._tenant, this.getModel());
 	}
 
-	saveHeartBeat(tenant) {
+	saveHeartBeat() {
 		// Save
-		return ChargingStationStorage.saveChargingStationHeartBeat(tenant, this.getModel());
+		return ChargingStationStorage.saveChargingStationHeartBeat(this._tenant, this.getModel());
 	}
 
-	saveChargingStationSiteArea(tenant) {
+	saveChargingStationSiteArea() {
 		// Save
-		return ChargingStationStorage.saveChargingStationSiteArea(tenant, this.getModel());
+		return ChargingStationStorage.saveChargingStationSiteArea(this._tenant, this.getModel());
 	}
 
-	async handleStatusNotification(tenant, statusNotification) {
+	async handleStatusNotification(statusNotification) {
 		// Set the Station ID
 		statusNotification.chargeBoxID = this.getID();
 		if (!statusNotification.timestamp) {
@@ -353,9 +358,9 @@ class ChargingStation {
 			this.updateConnectorsPower();
 		}
 		// Save Status Notif
-		await ChargingStationStorage.saveStatusNotification(tenant, statusNotification);
+		await ChargingStationStorage.saveStatusNotification(this._tenant, statusNotification);
 		// Save Connector
-		await ChargingStationStorage.saveChargingStationConnector(tenant, this.getModel(), statusNotification.connectorId);
+		await ChargingStationStorage.saveChargingStationConnector(this._tenant, this.getModel(), statusNotification.connectorId);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation', method: 'handleStatusNotification',
@@ -392,7 +397,7 @@ class ChargingStation {
 		// Only for Schneider
 		if (this.getChargePointVendor() === 'Schneider Electric') {
 			// Get the configuration
-			let configuration = await this.getConfiguration();
+			const configuration = await this.getConfiguration();
 			// Config Provided?
 			if (configuration && configuration.configuration) {
 				// Search for params
@@ -448,7 +453,7 @@ class ChargingStation {
 		}
 	}
 
-	async handleBootNotification(tenant, bootNotification) {
+	async handleBootNotification(bootNotification) {
 		// Set the Station ID
 		bootNotification.chargeBoxID = this.getID();
 		// Send Notification
@@ -462,7 +467,7 @@ class ChargingStation {
 			}
 		);
 		// Save Boot Notification
-		await ChargingStationStorage.saveBootNotification(tenant, bootNotification);
+		await ChargingStationStorage.saveBootNotification(this._tenant, bootNotification);
 		// Log
 		Logging.logInfo({
 			source: this.getID(),
@@ -767,7 +772,7 @@ class ChargingStation {
 		return dateTimeString;
 	}
 
-	async handleMeterValues(tenant, meterValues) {
+	async handleMeterValues(meterValues) {
 		// Create model
 		let newMeterValues = {};
 		let meterValuesContext;
@@ -885,7 +890,7 @@ class ChargingStation {
 		// Compute consumption?
 		if (meterValues.transactionId) {
 			// Save Meter Values
-			await TransactionStorage.saveMeterValues(tenant, newMeterValues);
+			await TransactionStorage.saveMeterValues(this._tenant, newMeterValues);
 			// Update Charging Station Consumption
 			await this.updateChargingStationConsumption(meterValues.transactionId);
 			// Save
@@ -904,13 +909,13 @@ class ChargingStation {
 		}
 	}
 
-	saveConfiguration(tenant, configuration) {
+	saveConfiguration(configuration) {
 		// Set the charger ID
 		configuration.chargeBoxID = this.getID();
 		configuration.timestamp = new Date();
 
 		// Save config
-		return ChargingStationStorage.saveConfiguration(tenant, configuration);
+		return ChargingStationStorage.saveConfiguration(this._tenant, configuration);
 	}
 
 	setDeleted(deleted) {
@@ -921,12 +926,12 @@ class ChargingStation {
 		return this._model.deleted;
 	}
 
-	deleteTransaction(tenant, transaction) {
+	deleteTransaction(transaction) {
 		// Yes: save it
-		return TransactionStorage.deleteTransaction(tenant, transaction);
+		return TransactionStorage.deleteTransaction(this._tenant, transaction);
 	}
 
-	async delete(tenant) {
+	async delete() {
 		// Check if the user has a transaction
 		let result = await this.hasAtLeastOneTransaction();
 		if (result) {
@@ -937,51 +942,51 @@ class ChargingStation {
 			await this.save();
 		} else {
 			// Delete physically
-			await ChargingStationStorage.deleteChargingStation(tenant, this.getID());
+			await ChargingStationStorage.deleteChargingStation(this._tenant, this.getID());
 		}
 	}
 
-	getActiveTransaction(tenant, connectorId) {
-		return TransactionStorage.getActiveTransaction(tenant, this.getID(), connectorId);
+	getActiveTransaction(connectorId) {
+		return TransactionStorage.getActiveTransaction(this._tenant, this.getID(), connectorId);
 	}
 
-	async handleDataTransfer(tenant, dataTransfer) {
+	async handleDataTransfer(dataTransfer) {
 		// Set the charger ID
 		dataTransfer.chargeBoxID = this.getID();
 		dataTransfer.timestamp = new Date();
 		// Save it
-		await ChargingStationStorage.saveDataTransfer(tenant, dataTransfer);
+		await ChargingStationStorage.saveDataTransfer(this._tenant, dataTransfer);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'CharingStation', method: 'handleDataTransfer',
 			action: 'DataTransfer', message: `Data Transfer has been saved` });
 	}
 
-	async handleDiagnosticsStatusNotification(tenant, diagnosticsStatusNotification) {
+	async handleDiagnosticsStatusNotification(diagnosticsStatusNotification) {
 		// Set the charger ID
 		diagnosticsStatusNotification.chargeBoxID = this.getID();
 		diagnosticsStatusNotification.timestamp = new Date();
 		// Save it
-		await ChargingStationStorage.saveDiagnosticsStatusNotification(tenant, diagnosticsStatusNotification);
+		await ChargingStationStorage.saveDiagnosticsStatusNotification(this._tenant, diagnosticsStatusNotification);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation', method: 'handleDiagnosticsStatusNotification',
 			action: 'DiagnosticsStatusNotification', message: `Diagnostics Status Notification has been saved` });
 	}
 
-	async handleFirmwareStatusNotification(tenant, firmwareStatusNotification) {
+	async handleFirmwareStatusNotification(firmwareStatusNotification) {
 		// Set the charger ID
 		firmwareStatusNotification.chargeBoxID = this.getID();
 		firmwareStatusNotification.timestamp = new Date();
 		// Save it
-		await ChargingStationStorage.saveFirmwareStatusNotification(tenant, firmwareStatusNotification);
+		await ChargingStationStorage.saveFirmwareStatusNotification(this._tenant, firmwareStatusNotification);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation', method: 'handleFirmwareStatusNotification',
 			action: 'FirmwareStatusNotification', message: `Firmware Status Notification has been saved` });
 	}
 
-	async handleAuthorize(tenant, authorize) {
+	async handleAuthorize(authorize) {
 		// Set the charger ID
 		authorize.chargeBoxID = this.getID();
 		authorize.timestamp = new Date();
@@ -994,7 +999,7 @@ class ChargingStation {
 			authorize.user = users.user;
 		}
 		// Save
-		await ChargingStationStorage.saveAuthorize(tenant, authorize);
+		await ChargingStationStorage.saveAuthorize(this._tenant, authorize);
 		// Log
 		if (authorize.user) {
 			// Log
@@ -1010,36 +1015,36 @@ class ChargingStation {
 		}
 	}
 
-	async getSite(tenant) {
+	async getSite() {
 		// Get Site Area
-		let siteArea = await this.getSiteArea(tenant);
+		let siteArea = await this.getSiteArea();
 		// Check Site Area
 		if (!siteArea) {
 			return null;
 		}
 		// Get Site
-		let site = await siteArea.getSite(tenant);
+		let site = await siteArea.getSite();
 		return site;
 	}
 
-	async getCompany(tenant) {
+	async getCompany() {
 		// Get the Site
-		let site = await this.getSite(tenant);
+		let site = await this.getSite();
 		// Check Site
 		if (!site) {
 			return null;
 		}
 		// Get the Company
-		let company = await site.getCompany(tenant);
+		let company = await site.getCompany();
 		return company;
 	}
 
-	getTransaction(tenant, transactionId) {
+	getTransaction(transactionId) {
 		// Get the tranasction first (to get the connector id)
-		return TransactionStorage.getTransaction(tenant, transactionId);
+		return TransactionStorage.getTransaction(this._tenant, transactionId);
 	}
 
-	async handleStartTransaction(tenant, transaction) {
+	async handleStartTransaction(transaction) {
 		// Set the charger ID
 		transaction.chargeBoxID = this.getID();
 		// Check user and save
@@ -1057,7 +1062,7 @@ class ChargingStation {
 		let activeTransaction;
 		do {
 			// Check if the charging station has already a transaction
-			activeTransaction = await this.getActiveTransaction(tenant, transaction.connectorId);
+			activeTransaction = await this.getActiveTransaction(transaction.connectorId);
 			// Exists already?
 			if (activeTransaction) {
 				Logging.logInfo({
@@ -1065,7 +1070,7 @@ class ChargingStation {
 					action: 'StartTransaction', user: (user ? user.getModel() : null), actionOnUser: (users && users.alternateUser ? users.alternateUser : null),
 					message: `Active Transaction ID '${activeTransaction.id}' has been deleted on Connector '${activeTransaction.connectorId}'` });
 				// Delete
-				await this.deleteTransaction(tenant, activeTransaction);
+				await this.deleteTransaction(activeTransaction);
 			}
 		} while(activeTransaction);
 		// Check transaction ID is not yet used
@@ -1074,7 +1079,7 @@ class ChargingStation {
 			// Generate new transaction ID
 			transaction.id = Utils.getRandomInt();
 			// Check if the charging station has already a transaction
-			existingTransaction = await this.getTransaction(tenant, transaction.id);
+			existingTransaction = await this.getTransaction(transaction.id);
 			// Found?
 			if (existingTransaction) {
 				// Log
@@ -1088,7 +1093,7 @@ class ChargingStation {
 		// Set the tag ID
 		transaction.tagID = transaction.idTag;
 		// Ok: Save Transaction
-		let newTransaction = await TransactionStorage.saveTransaction(tenant, transaction);
+		let newTransaction = await TransactionStorage.saveTransaction(this._tenant, transaction);
 		// Check if Charger can charge in //
 		if (!this.canChargeInParallel()) {
 			// Set all the other connectors to occupied
@@ -1106,9 +1111,9 @@ class ChargingStation {
 			newTransaction.user = user.getModel();
 		}
 		// Update Consumption
-		await this.updateChargingStationConsumption(tenant, transaction.id);
+		await this.updateChargingStationConsumption(transaction.id);
 		// Save
-		await this.save(tenant);
+		await this.save();
 		// Log
 		if (newTransaction.user) {
 			// Notify
@@ -1141,11 +1146,11 @@ class ChargingStation {
 		return newTransaction;
 	}
 
-	async handleStopTransaction(tenant, stopTransaction) {
+	async handleStopTransaction(stopTransaction) {
 		// Set the charger ID
 		stopTransaction.chargeBoxID = this.getID();
 		// Get the transaction first (to get the connector id)
-		let transaction = await this.getTransaction(tenant, stopTransaction.transactionId);
+		let transaction = await this.getTransaction(stopTransaction.transactionId);
 		// Found?
 		if (!transaction) {
 			throw new Error(`Transaction ID '${stopTransaction.transactionId}' does not exist`);
@@ -1200,9 +1205,9 @@ class ChargingStation {
 			});
 		}
 		// Save Charging Station
-		await this.save(tenant);
+		await this.save();
 		// Compute total consumption (optimization)
-		let consumption = await this.getConsumptionsFromTransaction(tenant, transaction, true);
+		let consumption = await this.getConsumptionsFromTransaction(transaction, true);
 		// Compute total inactivity seconds
 		stopTransaction.totalInactivitySecs = 0;
 		for (let index = 0; index < consumption.values.length; index++) {
@@ -1246,7 +1251,7 @@ class ChargingStation {
 			);
 		}
 		// Save Transaction
-		let newTransaction = await TransactionStorage.saveTransaction(tenant, transaction);
+		let newTransaction = await TransactionStorage.saveTransaction(this._tenant, transaction);
 		// Check
 		if (users) {
 			// Set the user
@@ -1404,25 +1409,25 @@ class ChargingStation {
 		return result;
 	}
 
-	getConfiguration(tenant) {
-		return ChargingStationStorage.getConfiguration(tenant, this.getID());
+	getConfiguration() {
+		return ChargingStationStorage.getConfiguration(this._tenant, this.getID());
 	}
 
-	getConfigurationParamValue(tenant, paramName) {
-		return ChargingStationStorage.getConfigurationParamValue(tenant, this.getID(), paramName);
+	getConfigurationParamValue(paramName) {
+		return ChargingStationStorage.getConfigurationParamValue(this._tenant, this.getID(), paramName);
 	}
 
-	async hasAtLeastOneTransaction(tenant) {
+	async hasAtLeastOneTransaction() {
 		// Get the consumption
-		let transactions = await TransactionStorage.getTransactions(tenant,
+		let transactions = await TransactionStorage.getTransactions(this._tenant,
           { 'chargeBoxID': this.getID() }, 1);
 		// Return
 		return (transactions.count > 0);
 	}
 
-	async getTransactions(tenant, connectorId, startDateTime, endDateTime, withChargeBoxes=false) {
+	async getTransactions(connectorId, startDateTime, endDateTime, withChargeBoxes=false) {
 		// Get the consumption
-		let transactions = await TransactionStorage.getTransactions(tenant,
+		let transactions = await TransactionStorage.getTransactions(this._tenant,
           { 'chargeBoxID': this.getID(), 'connectorId': connectorId, 'startDateTime': startDateTime,
 				'endDateTime' : endDateTime, 'withChargeBoxes': withChargeBoxes },
 			Constants.NO_LIMIT);
@@ -1430,11 +1435,11 @@ class ChargingStation {
 		return transactions;
 	}
 
-	async getConsumptionsFromTransaction(tenant, transaction, optimizeNbrOfValues) {
+	async getConsumptionsFromTransaction(transaction, optimizeNbrOfValues) {
 		// Get the last 5 meter values
-		let meterValues = await TransactionStorage.getMeterValuesFromTransaction(tenant, transaction.id);
+		let meterValues = await TransactionStorage.getMeterValuesFromTransaction(this._tenant, transaction.id);
 		// Read the pricing
-		let pricing = await PricingStorage.getPricing(tenant);
+		let pricing = await PricingStorage.getPricing(this._tenant);
 		// Build the header
 		let chargingStationConsumption = {};
 		if (pricing) {
@@ -1445,7 +1450,7 @@ class ChargingStation {
 		chargingStationConsumption.totalConsumption = 0;
 		chargingStationConsumption.chargeBoxID = this.getID();
 		// Populate Site Area
-		await this.getSiteArea(tenant);
+		await this.getSiteArea();
 		// Set the model
 		chargingStationConsumption.chargeBox = this.getModel();
 		chargingStationConsumption.connectorId = transaction.connectorId;

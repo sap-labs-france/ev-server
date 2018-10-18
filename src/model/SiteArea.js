@@ -6,9 +6,10 @@ const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
 
 class SiteArea {
-	constructor(siteArea) {
+	constructor(tenant, siteArea) {
 		// Init model
 		this._model = {};
+		this._tenant = tenant;
 
 		// Set it
 		Database.updateSiteArea(siteArea, this._model);
@@ -40,7 +41,7 @@ class SiteArea {
 
 	getCreatedBy() {
 		if (this._model.createdBy) {
-			return new User(this._model.createdBy);
+			return new User(this._tenant, this._model.createdBy);
 		}
 		return null;
 	}
@@ -59,7 +60,7 @@ class SiteArea {
 
 	getLastChangedBy() {
 		if (this._model.lastChangedBy) {
-			return new User(this._model.lastChangedBy);
+			return new User(this._tenant, this._model.lastChangedBy);
 		}
 		return null;
 	}
@@ -84,13 +85,13 @@ class SiteArea {
 		return this._model.image;
 	}
 
-	async getSite(tenant, withCompany=false, withUser=false) {
+	async getSite(withCompany=false, withUser=false) {
 
 		if (this._model.site) {
-			return new Site(this._model.site);
+			return new Site(this._tenant, this._model.site);
 		} else if (this._model.siteID){
 			// Get from DB
-			let site = await SiteStorage.getSite(tenant, this._model.siteID, withCompany, withUser);
+			let site = await SiteStorage.getSite(this._tenant, this._model.siteID, withCompany, withUser);
 			// Keep it
 			this.setSite(site);
 			return site;
@@ -106,24 +107,24 @@ class SiteArea {
 		}
 	}
 
-	save(tenant) {
-		return SiteAreaStorage.saveSiteArea(tenant, this.getModel());
+	save() {
+		return SiteAreaStorage.saveSiteArea(this._tenant, this.getModel());
 	}
 
-	saveImage(tenant) {
-		return SiteAreaStorage.saveSiteAreaImage(tenant, this.getModel());
+	saveImage() {
+		return SiteAreaStorage.saveSiteAreaImage(this._tenant, this.getModel());
 	}
 
-	delete(tenant) {
-		return SiteAreaStorage.deleteSiteArea(tenant, this.getID());
+	delete() {
+		return SiteAreaStorage.deleteSiteArea(this._tenant, this.getID());
 	}
 
-	async getChargingStations(tenant) {
+	async getChargingStations() {
 		if (this._model.chargeBoxes) {
-			return this._model.chargeBoxes.map((chargeBox) => new ChargingStation(chargeBox));
+			return this._model.chargeBoxes.map((chargeBox) => new ChargingStation(this._tenant, chargeBox));
 		} else {
 			// Get from DB
-			let chargingStations = await ChargingStationStorage.getChargingStations(tenant,
+			let chargingStations = await ChargingStationStorage.getChargingStations(this._tenant,
               { siteAreaID: this.getID() }, Constants.NO_LIMIT);
 			// Keep it
 			this.setChargingStations(chargingStations.result);

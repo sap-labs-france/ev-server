@@ -255,7 +255,7 @@ class UserStorage {
 			{$set: user},
 			{upsert: true, new: true, returnOriginal: false});
 		// Create
-		const updatedUser = new User(result.value);
+		const updatedUser = new User(tenant, result.value);
 		// Add tags
 		if (userToSave.tagIDs) {
 			// Delete Tag IDs
@@ -433,7 +433,7 @@ class UserStorage {
 		// Create
 		for (const userMDB of usersMDB) {
 			// Create
-			const user = new User(userMDB);
+			const user = new User(tenant, userMDB);
 			// Set
 			user.setTagIDs(userMDB.tags.map((tag) => {
 				return tag._id
@@ -466,7 +466,7 @@ class UserStorage {
 		// Check
 		if (userMDB) {
 			// Create
-			user = new User(userMDB);
+			user = new User(tenant, userMDB);
 			// Get the Tags
 			const tagsMDB = await global.database.getCollection(tenant, 'tags')
 				.find({"userID": Utils.convertToObjectID(user.getID())})

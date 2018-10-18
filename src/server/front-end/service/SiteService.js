@@ -43,7 +43,7 @@ class SiteService {
 					req.user);
 			}
 			// Delete
-			await site.delete(req.user.tenant);
+			await site.delete();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'SiteService', method: 'handleDeleteSite',
@@ -221,9 +221,9 @@ class SiteService {
 					'SiteService', 'handleCreateSite', req.user);
 			}
 			// Create site
-			const site = new Site(filteredRequest);
+			const site = new Site(req.user.tenant, filteredRequest);
 			// Update timestamp
-			site.setCreatedBy(new User({'id': req.user.id}));
+			site.setCreatedBy(req.user.tenant, new User({'id': req.user.id}));
 			site.setCreatedOn(new Date());
 			// Get the users
 			const users = [];
@@ -238,11 +238,11 @@ class SiteService {
 			// Set Users
 			site.setUsers(users);
 			// Save Site
-			const newSite = await site.save(req.user.tenant);
+			const newSite = await site.save();
 			// Save Site's Image
 			newSite.setImage(site.getImage());
 			// Save
-			await newSite.saveImage(req.user.tenant);
+			await newSite.saveImage();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'SiteService', method: 'handleCreateSite',
@@ -285,10 +285,10 @@ class SiteService {
 			// Update
 			Database.updateSite(filteredRequest, site.getModel());
 			// Update timestamp
-			site.setLastChangedBy(new User({'id': req.user.id}));
+			site.setLastChangedBy(req.user.tenant, new User({'id': req.user.id}));
 			site.setLastChangedOn(new Date());
 			// Update Site's Image
-			await site.saveImage(req.user.tenant);
+			await site.saveImage();
 			// Get the users
 			const users = [];
 			for (const userID of filteredRequest.userIDs) {
@@ -302,7 +302,7 @@ class SiteService {
 			// Set Users
 			site.setUsers(users);
 			// Update Site
-			const updatedSite = await site.save(req.user.tenant);
+			const updatedSite = await site.save();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'SiteService', method: 'handleUpdateSite',

@@ -5,9 +5,10 @@ const VehicleStorage = require('../storage/mongodb/VehicleStorage');
 const User = require('./User');
 
 class Vehicle {
-	constructor(vehicle) {
+	constructor(tenant, vehicle) {
 		// Init model
 		this._model = {};
+		this._tenant = tenant;
 		// Set it
 		Database.updateVehicle(vehicle, this._model);
 	}
@@ -146,7 +147,7 @@ class Vehicle {
 
 	getCreatedBy() {
 		if (this._model.createdBy) {
-			return new User(this._model.createdBy);
+			return new User(this._tenant, this._model.createdBy);
 		}
 		return null;
 	}
@@ -165,7 +166,7 @@ class Vehicle {
 
 	getLastChangedBy() {
 		if (this._model.lastChangedBy) {
-			return new User(this._model.lastChangedBy);
+			return new User(this._tenant, this._model.lastChangedBy);
 		}
 		return null;
 	}
@@ -182,16 +183,16 @@ class Vehicle {
 		this._model.lastChangedOn = lastChangedOn;
 	}
 
-	save(tenant) {
-		return VehicleStorage.saveVehicle(tenant, this.getModel());
+	save() {
+		return VehicleStorage.saveVehicle(this._tenant, this.getModel());
 	}
 
-	saveImages(tenant) {
-		return VehicleStorage.saveVehicleImages(tenant, this.getModel());
+	saveImages() {
+		return VehicleStorage.saveVehicleImages(this._tenant, this.getModel());
 	}
 
-	delete(tenant) {
-		return VehicleStorage.deleteVehicle(tenant, this.getID());
+	delete() {
+		return VehicleStorage.deleteVehicle(this._tenant, this.getID());
 	}
 
 	static checkIfVehicleValid(request, httpRequest) {

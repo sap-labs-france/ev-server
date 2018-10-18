@@ -47,7 +47,7 @@ class Tenant {
 
     getCreatedBy() {
         if (this._model.createdBy) {
-            return new User(this._model.createdBy);
+            return new User(this._tenant, this._model.createdBy);
         }
         return null;
     }
@@ -66,7 +66,7 @@ class Tenant {
 
     getLastChangedBy() {
         if (this._model.lastChangedBy) {
-            return new User(this._model.lastChangedBy);
+            return new User(this._tenant, this._model.lastChangedBy);
         }
         return null;
     }

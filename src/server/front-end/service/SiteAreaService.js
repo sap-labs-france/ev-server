@@ -38,28 +38,28 @@ class SiteAreaService {
 					'SiteAreaService', 'handleCreateSiteArea', req.user);
 			}
 			// Create site
-			const siteArea = new SiteArea(filteredRequest);
+			const siteArea = new SiteArea(req.user.tenant, filteredRequest);
 			// Update timestamp
-			siteArea.setCreatedBy(new User({'id': req.user.id}));
+			siteArea.setCreatedBy(req.user.tenant, new User({'id': req.user.id}));
 			siteArea.setCreatedOn(new Date());
 			// Save
-			const newSiteArea = await siteArea.save(req.user.tenant);
+			const newSiteArea = await siteArea.save();
 			// Save Site's Image
 			newSiteArea.setImage(siteArea.getImage());
 			// Save
-			await newSiteArea.saveImage(req.user.tenant);
+			await newSiteArea.saveImage();
 			// Get the assigned Charge Boxes
 			for (const chargeBoxID of filteredRequest.chargeBoxIDs) {
 				// Get the charging stations
 				const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, chargeBoxID);
 				if (chargingStation) {
 					// Update timestamp
-					chargingStation.setLastChangedBy(new User({'id': req.user.id}));
+					chargingStation.setLastChangedBy(req.user.tenant, new User({'id': req.user.id}));
 					chargingStation.setLastChangedOn(new Date());
 					// Set
 					chargingStation.setSiteArea(newSiteArea);
 					// Save
-					chargingStation.saveChargingStationSiteArea(req.user.tenant)
+					chargingStation.saveChargingStationSiteArea()
 				}
 			}
 			// Ok
@@ -143,7 +143,7 @@ class SiteAreaService {
 					req.user);
 			}
 			// Delete
-			await siteArea.delete(req.user.tenant);
+			await siteArea.delete();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'SiteAreaService', method: 'handleDeleteSiteArea',
@@ -294,16 +294,16 @@ class SiteAreaService {
 					req.user);
 			}
 			// Get Charging Stations
-			const chargingStations = await siteArea.getChargingStations(req.user.tenant);
+			const chargingStations = await siteArea.getChargingStations();
 			// Clear Site Area from Existing Charging Station
 			for (const chargingStation of chargingStations) {
 				// Update timestamp
-				chargingStation.setLastChangedBy(new User({'id': req.user.id}));
+				chargingStation.setLastChangedBy(req.user.tenant, new User({'id': req.user.id}));
 				chargingStation.setLastChangedOn(new Date());
 				// Set
 				chargingStation.setSiteArea(null);
 				// Save
-				await chargingStation.saveChargingStationSiteArea(req.user.tenant);
+				await chargingStation.saveChargingStationSiteArea();
 			}
 			// Assign Site Area to Charging Stations
 			for (const chargeBoxID of filteredRequest.chargeBoxIDs) {
@@ -311,23 +311,23 @@ class SiteAreaService {
 				const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, chargeBoxID);
 				if (chargingStation) {
 					// Update timestamp
-					chargingStation.setLastChangedBy(new User({'id': req.user.id}));
+					chargingStation.setLastChangedBy(req.user.tenant, new User({'id': req.user.id}));
 					chargingStation.setLastChangedOn(new Date());
 					// Set
 					chargingStation.setSiteArea(siteArea);
 					// Save
-					await chargingStation.saveChargingStationSiteArea(req.user.tenant)
+					await chargingStation.saveChargingStationSiteArea()
 				}
 			}
 			// Update
 			Database.updateSiteArea(filteredRequest, siteArea.getModel());
 			// Update timestamp
-			siteArea.setLastChangedBy(new User({'id': req.user.id}));
+			siteArea.setLastChangedBy(req.user.tenant, new User({'id': req.user.id}));
 			siteArea.setLastChangedOn(new Date());
 			// Update Site Area
-			const updatedSiteArea = await siteArea.save(req.user.tenant);
+			const updatedSiteArea = await siteArea.save();
 			// Update Site Area's Image
-			await siteArea.saveImage(req.user.tenant);
+			await siteArea.saveImage();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'SiteAreaService', method: 'handleUpdateSiteArea',

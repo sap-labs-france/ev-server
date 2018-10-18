@@ -77,7 +77,7 @@ class AuthService {
 							550, 'AuthService', 'handleIsAuthorized');
 					}
 					// Get the Charging station
-					const chargingStation = await ChargingStation.getChargingStation(filteredRequest.Arg1);
+					const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, filteredRequest.Arg1);
 					// Found?
 					if (!chargingStation) {
 						// Not Found!
@@ -230,7 +230,7 @@ class AuthService {
 					'AuthService', 'handleRegisterUser');
 			}
 			// Check email
-			const user = await User.getUserByEmail(filteredRequest.email);
+			const user = await User.getUserByEmail(req.user.tenant, filteredRequest.email);
 			// Check Mandatory fields
 			User.checkIfUserValid(filteredRequest, req);
 			if (user) {
@@ -243,7 +243,7 @@ class AuthService {
 			// Generate a password
 			const newPasswordHashed = await User.hashPasswordBcrypt(filteredRequest.password);
 			// Create the user
-			let newUser = new User(filteredRequest);
+			let newUser = new User(req.user.tenant, filteredRequest);
 			// Set data
 			newUser.setStatus(Constants.USER_STATUS_PENDING);
 			newUser.setRole(Constants.ROLE_BASIC);
@@ -253,7 +253,7 @@ class AuthService {
 			// Set BadgeID (eg.: 'SF20170131')
 			newUser.setTagIDs([newUser.getName()[0] + newUser.getFirstName()[0] + Utils.getRandomInt()])
 			// Assign user to all sites
-			const sites = await Site.getSites();
+			const sites = await Site.getSites(req.user.tenant);
 			// Set
 			newUser.setSites(sites.result);
 			// Get EULA
@@ -630,7 +630,7 @@ class AuthService {
 		res.status(200).send({});
 	}
 
-	static async userLoginWrongPassword(action, user, tenant, req, res, next) {
+	static async userLoginWrongPassword(action, user, req, res, next) {
 		// Add wrong trial + 1
 		user.setPasswordWrongNbrTrials(user.getPasswordWrongNbrTrials() + 1);
 		// Check if the number of trial is reached
@@ -748,7 +748,7 @@ class AuthService {
 			await AuthService.userLoginSucceeded(action, user, filteredRequest.tenant, req, res, next);
 		} else {
 			// Login KO
-			await AuthService.userLoginWrongPassword(action, user, filteredRequest.tenant, req, res, next);
+			await AuthService.userLoginWrongPassword(action, user, req, res, next);
 		}
 	}
 }

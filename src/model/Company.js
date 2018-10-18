@@ -5,9 +5,10 @@ const CompanyStorage = require('../storage/mongodb/CompanyStorage');
 const SiteStorage = require('../storage/mongodb/SiteStorage');
 
 class Company {
-	constructor(company) {
+	constructor(tenant, company) {
 		// Init model
 		this._model = {};
+		this._tenant = tenant;
 
 		// Set it
 		Database.updateCompany(company, this._model);
@@ -47,7 +48,7 @@ class Company {
 
 	getCreatedBy() {
 		if (this._model.createdBy) {
-			return new User(this._model.createdBy);
+			return new User(this._tenant, this._model.createdBy);
 		}
 		return null;
 	}
@@ -66,7 +67,7 @@ class Company {
 
 	getLastChangedBy() {
 		if (this._model.lastChangedBy) {
-			return new User(this._model.lastChangedBy);
+			return new User(this._tenant, this._model.lastChangedBy);
 		}
 		return null;
 	}
@@ -83,12 +84,12 @@ class Company {
 		this._model.lastChangedOn = lastChangedOn;
 	}
 
-	async getSites(tenant) {
+	async getSites() {
 		if (this._model.sites) {
-			return this._model.sites.map((site) => new Site(site));
+			return this._model.sites.map((site) => new Site(this._tenant, site));
 		} else {
 			// Get from DB
-			let sites = await SiteStorage.getSites(tenant, {'companyID': this.getID()});
+			let sites = await SiteStorage.getSites(this._tenant, {'companyID': this.getID()});
 			// Keep it
 			this.setSites(sites.result);
 			return sites.result;
@@ -99,16 +100,16 @@ class Company {
 		this._model.sites = sites.map((site) => site.getModel());
 	}
 
-	save(tenant) {
-		return CompanyStorage.saveCompany(tenant, this.getModel());
+	save() {
+		return CompanyStorage.saveCompany(this._tenant, this.getModel());
 	}
 
-	saveLogo(tenant) {
-		return CompanyStorage.saveCompanyLogo(tenant, this.getModel());
+	saveLogo() {
+		return CompanyStorage.saveCompanyLogo(this._tenant, this.getModel());
 	}
 
-	delete(tenant) {
-		return CompanyStorage.deleteCompany(tenant, this.getID());
+	delete() {
+		return CompanyStorage.deleteCompany(this._tenant, this.getID());
 	}
 
 	static checkIfCompanyValid(filteredRequest, req) {

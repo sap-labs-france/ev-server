@@ -39,11 +39,11 @@ class ChargingStationStorage {
 		// Found
 		if (chargingStationMDB && chargingStationMDB.length > 0) {
 			// Create
-			chargingStation = new ChargingStation(chargingStationMDB[0]);
+			chargingStation = new ChargingStation(tenant, chargingStationMDB[0]);
 			// Set Site Area
 			if (chargingStationMDB[0].siteArea) {
 				chargingStation.setSiteArea(
-					new SiteArea(chargingStationMDB[0].siteArea));
+					new SiteArea(tenant, chargingStationMDB[0].siteArea));
 			}
 		}
 		return chargingStation;
@@ -157,11 +157,11 @@ class ChargingStationStorage {
 		// Create
 		for (const chargingStationMDB of chargingStationsMDB) {
 			// Create the Charger
-			const chargingStation = new ChargingStation(chargingStationMDB)
+			const chargingStation = new ChargingStation(tenant, chargingStationMDB)
 			// Add the Site Area?
 			if (chargingStationMDB.siteArea) {
 				// Set
-				chargingStation.setSiteArea(new SiteArea(chargingStationMDB.siteArea))
+				chargingStation.setSiteArea(new SiteArea(tenant, chargingStationMDB.siteArea))
 			}
 			// Add
 			chargingStations.push(chargingStation);
@@ -198,7 +198,7 @@ class ChargingStationStorage {
 			returnOriginal: false
 		});
 		// Create
-		return new ChargingStation(result.value);
+		return new ChargingStation(tenant, result.value);
 	}
 
 	static async saveChargingStationConnector(tenant, chargingStation, connectorId) {
@@ -216,7 +216,7 @@ class ChargingStationStorage {
 			returnOriginal: false
 		});
 		// Create
-		return new ChargingStation(result.value);
+		return new ChargingStation(tenant, result.value);
 	}
 
 	static async saveChargingStationHeartBeat(tenant, chargingStation) {
@@ -234,7 +234,7 @@ class ChargingStationStorage {
 			returnOriginal: false
 		});
 		// Create
-		return new ChargingStation(result.value);
+		return new ChargingStation(tenant, result.value);
 	}
 
 	static async saveChargingStationSiteArea(tenant, chargingStation) {
@@ -258,7 +258,7 @@ class ChargingStationStorage {
 			returnOriginal: false
 		});
 		// Create
-		return new ChargingStation(result.value);
+		return new ChargingStation(tenant, result.value);
 	}
 
 	static async deleteChargingStation(tenant, id) {

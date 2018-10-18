@@ -43,7 +43,7 @@ class VehicleManufacturerService {
 					req.user);
 			}
 			// Delete
-			await vehicleManufacturer.delete(req.user.tenant);
+			await vehicleManufacturer.delete();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'VehicleManufacturerService', method: 'handleDeleteVehicleManufacturer',
@@ -142,16 +142,16 @@ class VehicleManufacturerService {
 			// Check Mandatory fields
 			VehicleManufacturer.checkIfVehicleManufacturerValid(filteredRequest, req);
 			// Create vehicleManufacturer
-			const vehicleManufacturer = new VehicleManufacturer(filteredRequest);
+			const vehicleManufacturer = new VehicleManufacturer(req.user.tenant, filteredRequest);
 			// Update timestamp
-			vehicleManufacturer.setCreatedBy(new User({'id': req.user.id}));
+			vehicleManufacturer.setCreatedBy(req.user.tenant, new User({'id': req.user.id}));
 			vehicleManufacturer.setCreatedOn(new Date());
 			// Save
-			const newVehicleManufacturer = await vehicleManufacturer.save(req.user.tenant);
+			const newVehicleManufacturer = await vehicleManufacturer.save();
 			// Update VehicleManufacturer's Logo
 			newVehicleManufacturer.setLogo(vehicleManufacturer.getLogo());
 			// Save
-			await newVehicleManufacturer.saveLogo(req.user.tenant);
+			await newVehicleManufacturer.saveLogo();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'VehicleManufacturerService', method: 'handleCreateVehicleManufacturer',
@@ -194,12 +194,12 @@ class VehicleManufacturerService {
 			// Update
 			Database.updateVehicleManufacturer(filteredRequest, vehicleManufacturer.getModel());
 			// Update timestamp
-			vehicleManufacturer.setLastChangedBy(new User({'id': req.user.id}));
+			vehicleManufacturer.setLastChangedBy(req.user.tenant, new User({'id': req.user.id}));
 			vehicleManufacturer.setLastChangedOn(new Date());
 			// Update VehicleManufacturer
-			const updatedVehicleManufacturer = await vehicleManufacturer.save(req.user.tenant);
+			const updatedVehicleManufacturer = await vehicleManufacturer.save();
 			// Update VehicleManufacturer's Logo
-			await vehicleManufacturer.saveLogo(req.user.tenant);
+			await vehicleManufacturer.saveLogo();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'VehicleManufacturerService', method: 'handleUpdateVehicleManufacturer',
