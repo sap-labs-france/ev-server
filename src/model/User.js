@@ -267,14 +267,14 @@ class User {
 		this._model.verifiedAt = verifiedAt;
 	}
 
-	async getTransactions(filter) {
+	async getTransactions(tenant, filter) {
 		if (!filter) {
 			filter = {};
 		}
 		// Set the user ID
 		filter.userId = this.getID();
 		// Get the consumption
-		let transactions = await TransactionStorage.getTransactions(filter, Constants.NO_LIMIT);
+		let transactions = await TransactionStorage.getTransactions(tenant, filter, Constants.NO_LIMIT);
 		// Return
 		return transactions;
 	}
@@ -283,26 +283,26 @@ class User {
 		this._model.sites = sites.map((site) => site.getModel());
 	}
 
-	async getSites(withCompany=false, withSiteAreas=false,
+	async getSites(tenant, withCompany=false, withSiteAreas=false,
 			withChargeBoxes=false, withUsers=false) {
 		// Get Sites
-		let sites = await SiteStorage.getSites({'userID': this.getID(),
+		let sites = await SiteStorage.getSites(tenant, {'userID': this.getID(),
 			withCompany, withSiteAreas, withChargeBoxes, withUsers});
 		// Return the array
 		return sites.result;
 	}
 
-	save() {
-		return UserStorage.saveUser(this.getModel());
+	save(tenant) {
+		return UserStorage.saveUser(tenant, this.getModel());
 	}
 
-	saveImage() {
-		return UserStorage.saveUserImage(this.getModel());
+	saveImage(tenant) {
+		return UserStorage.saveUserImage(tenant, this.getModel());
 	}
 
-	async delete() {
+	async delete(tenant) {
 		// Check if the user has a transaction
-		let transactions = await this.getTransactions();
+		let transactions = await this.getTransactions(tenant);
 		// Check
 		if (transactions.count > 0) {
 			// Delete logically
@@ -324,10 +324,10 @@ class User {
 			// Save User Image
 			await this.saveImage();
 			// Save User
-			return this.save();
+			return this.save(tenant);
 		} else {
 			// Delete physically
-			return UserStorage.deleteUser(this.getID());
+			return UserStorage.deleteUser(tenant, this.getID());
 		}
 	}
 
@@ -496,40 +496,40 @@ class User {
 		return crypto.createHash('sha256').update(password).digest('hex');
 	}
 
-	static getUser(id) {
-		return UserStorage.getUser(id);
+	static getUser(tenant, id) {
+		return UserStorage.getUser(tenant, id);
 	}
 
-	static getUserByEmail(email) {
-		return UserStorage.getUserByEmail(email);
+	static getUserByEmail(tenant, email) {
+		return UserStorage.getUserByEmail(tenant, email);
 	}
 
-	static getUserByTagId(tagID) {
-		return UserStorage.getUserByTagId(tagID);
+	static getUserByTagId(tenant, tagID) {
+		return UserStorage.getUserByTagId(tenant, tagID);
 	}
 
-	static getUserImage(id) {
-		return UserStorage.getUserImage(id);
+	static getUserImage(tenant, id) {
+		return UserStorage.getUserImage(tenant, id);
 	}
 
-	static getUserImages() {
-		return UserStorage.getUserImages()
+	static getUserImages(tenant) {
+		return UserStorage.getUserImages(tenant);
 	}
 
-	static getUsers(params, limit, skip, sort) {
-		return UserStorage.getUsers(params, limit, skip, sort)
+	static getUsers(tenant, params, limit, skip, sort) {
+		return UserStorage.getUsers(tenant, params, limit, skip, sort)
 	}
 
-	static getEndUserLicenseAgreement(language) {
-		return UserStorage.getEndUserLicenseAgreement(language);
+	static getEndUserLicenseAgreement(tenant, language) {
+		return UserStorage.getEndUserLicenseAgreement(tenant, language);
 	}
 
-	static addSitesToUser(id, siteIDs) {
-		return UserStorage.addSitesToUser(id, siteIDs);
+	static addSitesToUser(tenant, id, siteIDs) {
+		return UserStorage.addSitesToUser(tenant, id, siteIDs);
 	}
 
-	static removeSitesFromUser(id, siteIDs) {
-		return UserStorage.removeSitesFromUser(id, siteIDs);
+	static removeSitesFromUser(tenant, id, siteIDs) {
+		return UserStorage.removeSitesFromUser(tenant, id, siteIDs);
 	}
 }
 

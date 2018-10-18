@@ -101,12 +101,12 @@ class Site {
 		this._model.lastChangedOn = lastChangedOn;
 	}
 
-	async getCompany() {
+	async getCompany(tenant) {
 		if (this._model.company) {
 			return new Company(this._model.company);
 		} else if (this._model.companyID){
 			// Get from DB
-			let company = await CompanyStorage.getCompany(this._model.companyID);
+			let company = await CompanyStorage.getCompany(tenant, this._model.companyID);
 			// Keep it
 			this.setCompany(company);
 			return company;
@@ -126,12 +126,12 @@ class Site {
 		}
 	}
 
-	async getSiteAreas() {
+	async getSiteAreas(tenant) {
 		if (this._model.sites) {
 			return this._model.siteAreas.map((siteArea) => new SiteArea(siteArea));
 		} else {
 			// Get from DB
-			let siteAreas = await SiteAreaStorage.getSiteAreas({'siteID': this.getID()});
+			let siteAreas = await SiteAreaStorage.getSiteAreas(tenant, {'siteID': this.getID()});
 			// Keep it
 			this.setSiteAreas(siteAreas.result);
 			return siteAreas.result;
@@ -142,21 +142,21 @@ class Site {
 		this._model.siteAreas = siteAreas.map((siteArea) => siteArea.getModel());
 	}
 
-	async getUsers() {
+	async getUsers(tenant) {
 		if (this._model.users) {
 			return this._model.users.map((user) => new User(user));
 		} else {
 			// Get from DB
-			let users = await UserStorage.getUsers({'siteID': this.getID()});
+			let users = await UserStorage.getUsers(tenant, {'siteID': this.getID()});
 			// Keep it
 			this.setUsers(users.result);
 			return users.result;
 		}
 	}
 
-	async getUser(userID) {
+	async getUser(tenant, userID) {
 		// Get from DB
-		let users = await UserStorage.getUsers({'siteID': this.getID(), 'userID': userID});
+		let users = await UserStorage.getUsers(tenant, {'siteID': this.getID(), 'userID': userID});
 		// Check
 		if (users.count > 0) {
 			return users.result[0];
@@ -182,16 +182,16 @@ class Site {
 		this._model.users = users.map((user) => user.getModel());
 	}
 
-	save() {
-		return SiteStorage.saveSite(this.getModel());
+	save(tenant) {
+		return SiteStorage.saveSite(tenant, this.getModel());
 	}
 
-	saveImage() {
-		return SiteStorage.saveSiteImage(this.getModel());
+	saveImage(tenant) {
+		return SiteStorage.saveSiteImage(tenant, this.getModel());
 	}
 
-	delete() {
-		return SiteStorage.deleteSite(this.getID());
+	delete(tenant) {
+		return SiteStorage.deleteSite(tenant, this.getID());
 	}
 
 	static checkIfSiteValid(filteredRequest, request) {
@@ -216,20 +216,20 @@ class Site {
 		}
 	}
 
-	static getSite(id, withCompany, withUser) {
-		return SiteStorage.getSite(id, withCompany, withUser);
+	static getSite(tenant, id, withCompany, withUser) {
+		return SiteStorage.getSite(tenant, id, withCompany, withUser);
 	}
 
-	static getSites(params, limit, skip, sort) {
-		return SiteStorage.getSites(params, limit, skip, sort)
+	static getSites(tenant, params, limit, skip, sort) {
+		return SiteStorage.getSites(tenant, params, limit, skip, sort)
 	}
 
-	static getSiteImage(id) {
-		return SiteStorage.getSiteImage(id);
+	static getSiteImage(tenant, id) {
+		return SiteStorage.getSiteImage(tenant, id);
 	}
 
-	static getSiteImages() {
-		return SiteStorage.getSiteImages()
+	static getSiteImages(tenant) {
+		return SiteStorage.getSiteImages(tenant)
 	}
 }
 

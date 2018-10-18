@@ -2,9 +2,9 @@ const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 
 class PricingStorage {
-	static async getPricing() {
+	static async getPricing(tenant) {
 		// Read DB
-		let pricingsMDB = await global.db.collection('pricings')
+		const pricingsMDB = await global.database.getCollection(tenant, 'pricings')
 			.find({})
 			.limit(1)
 			.toArray();
@@ -19,14 +19,14 @@ class PricingStorage {
 		return pricing;
 	}
 
-	static async savePricing(pricingToSave) {
+	static async savePricing(tenant, pricingToSave) {
 		// Check date
 		pricingToSave.timestamp = Utils.convertToDate(pricingToSave.timestamp);
 		// Transfer
-		let pricing = {};
+		const pricing = {};
 		Database.updatePricing(pricingToSave, pricing, false)
 		// Modify
-	    await global.db.collection('pricings').findOneAndUpdate(
+	    await global.database.getCollection(tenant, 'pricings').findOneAndUpdate(
 			{},
 			{$set: pricing},
 			{upsert: true, new: true, returnOriginal: false});

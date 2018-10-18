@@ -4,20 +4,20 @@ const UtilsSecurity = require('./UtilsSecurity');
 
 class VehicleManufacturerSecurity {
 	static filterVehicleManufacturerDeleteRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.ID = sanitize(request.ID);
 		return filteredRequest;
 	}
 
 	static filterVehicleManufacturerRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		filteredRequest.ID = sanitize(request.ID);
 		return filteredRequest;
 	}
 
 	static filterVehicleManufacturersRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.WithVehicles = UtilsSecurity.filterBoolean(request.WithVehicles);
 		filteredRequest.VehicleType = sanitize(request.VehicleType);
@@ -28,18 +28,18 @@ class VehicleManufacturerSecurity {
 
 	static filterVehicleManufacturerUpdateRequest(request, loggedUser) {
 		// Set
-		let filteredRequest = VehicleManufacturerSecurity._filterVehicleManufacturerRequest(request, loggedUser);
+		const filteredRequest = VehicleManufacturerSecurity._filterVehicleManufacturerRequest(request, loggedUser);
 		filteredRequest.id = sanitize(request.id);
 		return filteredRequest;
 	}
 
 	static filterVehicleManufacturerCreateRequest(request, loggedUser) {
-		let filteredRequest = VehicleManufacturerSecurity._filterVehicleManufacturerRequest(request, loggedUser);
+		const filteredRequest = VehicleManufacturerSecurity._filterVehicleManufacturerRequest(request, loggedUser);
 		return filteredRequest;
 	}
 
 	static _filterVehicleManufacturerRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		filteredRequest.name = sanitize(request.name);
 		filteredRequest.logo = sanitize(request.logo);
 		return filteredRequest;
@@ -69,7 +69,7 @@ class VehicleManufacturerSecurity {
 	}
 
 	static filterVehicleManufacturersResponse(vehicleManufacturers, loggedUser) {
-		let filteredVehicleManufacturers = [];
+		const filteredVehicleManufacturers = [];
 
 		if (!vehicleManufacturers) {
 			return null;
@@ -79,7 +79,7 @@ class VehicleManufacturerSecurity {
 		}
 		for (const vehicleManufacturer of vehicleManufacturers) {
 			// Filter
-			let filteredVehicleManufacturer = VehicleManufacturerSecurity.filterVehicleManufacturerResponse(vehicleManufacturer, loggedUser);
+			const filteredVehicleManufacturer = VehicleManufacturerSecurity.filterVehicleManufacturerResponse(vehicleManufacturer, loggedUser);
 			// Ok?
 			if (filteredVehicleManufacturer) {
 				// Add

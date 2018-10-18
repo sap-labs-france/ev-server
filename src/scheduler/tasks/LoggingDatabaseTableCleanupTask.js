@@ -8,7 +8,7 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 		super();
 	}
 
-	async run(config) {
+	async run(tenant, config) {
 		try {
 			Logging.logInfo({
 				module: "LoggingDatabaseTableCleanupTask",
@@ -18,7 +18,7 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 			// Delete date
 			let deleteUpToDate = moment().subtract(config.retentionPeriodWeeks, "w").startOf("week").toDate().toISOString();
 			// Delete
-			let result = await LoggingStorage.deleteLogs(deleteUpToDate);
+			let result = await LoggingStorage.deleteLogs(tenant, deleteUpToDate);
 			// Ok?
 			if (result.ok === 1) {
 				// Ok
@@ -39,7 +39,7 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 			// Delete date
 			let securityDeleteUpToDate = moment().subtract(config.securityRetentionPeriodWeeks, "w").startOf("week").toDate().toISOString();
 			// Delete Security Logs
-			result = await LoggingStorage.deleteSecurityLogs(securityDeleteUpToDate);
+			result = await LoggingStorage.deleteSecurityLogs(tenant, securityDeleteUpToDate);
 			// Ok?
 			if (result.ok === 1) {
 				// Ok

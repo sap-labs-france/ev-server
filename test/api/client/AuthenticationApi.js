@@ -14,7 +14,7 @@ class AuthenticationApi {
             data: {
                 email: email,
                 password: password,
-                tenant: 'cfr',
+                tenant: '',
                 acceptEula: acceptEula
             }
         });

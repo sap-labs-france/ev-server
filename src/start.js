@@ -31,9 +31,9 @@ class Bootstrap {
 					console.log(`Storage Server implementation '${storageConfig.implementation}' not supported!`);
 			}
 
+            global.database = database;
 			// Connect to the the DB
 			await database.start();
-			global.database = database;
 			
 			// Check and trigger migration
 			await MigrationHandler.migrate();

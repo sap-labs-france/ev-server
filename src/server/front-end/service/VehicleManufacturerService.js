@@ -12,7 +12,7 @@ class VehicleManufacturerService {
 	static async handleDeleteVehicleManufacturer(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerDeleteRequest(
+			const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerDeleteRequest(
 				req.query, req.user);
 			// Check Mandatory fields
 			if(!filteredRequest.ID) {
@@ -23,7 +23,7 @@ class VehicleManufacturerService {
 					'VehicleManufacturerService', 'handleDeleteVehicleManufacturer', req.user);
 			}
 			// Get
-			let vehicleManufacturer = await VehicleManufacturer.getVehicleManufacturer(filteredRequest.ID);
+			const vehicleManufacturer = await VehicleManufacturer.getVehicleManufacturer(req.user.tenant, filteredRequest.ID);
 			if (!vehicleManufacturer) {
 				// Not Found!
 				throw new AppError(
@@ -43,7 +43,7 @@ class VehicleManufacturerService {
 					req.user);
 			}
 			// Delete
-			await vehicleManufacturer.delete();
+			await vehicleManufacturer.delete(req.user.tenant);
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'VehicleManufacturerService', method: 'handleDeleteVehicleManufacturer',
@@ -61,7 +61,7 @@ class VehicleManufacturerService {
 	static async handleGetVehicleManufacturer(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerRequest(req.query, req.user);
+			const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerRequest(req.query, req.user);
 			// Charge Box is mandatory
 			if(!filteredRequest.ID) {
 				// Not Found!
@@ -71,7 +71,7 @@ class VehicleManufacturerService {
 					'VehicleManufacturerService', 'handleGetVehicleManufacturer', req.user);
 			}
 			// Get it
-			let vehicleManufacturer = await VehicleManufacturer.getVehicleManufacturer(filteredRequest.ID);
+			const vehicleManufacturer = await VehicleManufacturer.getVehicleManufacturer(req.user.tenant, filteredRequest.ID);
 			if (!vehicleManufacturer) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -105,10 +105,10 @@ class VehicleManufacturerService {
 					req.user);
 			}
 			// Filter
-			let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturersRequest(req.query, req.user);
+			const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturersRequest(req.query, req.user);
 			// Get the vehicle Manufacturers
-			let vehicleManufacturers = await VehicleManufacturer.getVehicleManufacturers(
-				{ 'search': filteredRequest.Search, 'withVehicles': filteredRequest.WithVehicles, 'vehicleType': filteredRequest.VehicleType},
+			const vehicleManufacturers = await VehicleManufacturer.getVehicleManufacturers(req.user.tenant,
+            { 'search': filteredRequest.Search, 'withVehicles': filteredRequest.WithVehicles, 'vehicleType': filteredRequest.VehicleType},
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
 			vehicleManufacturers.result = vehicleManufacturers.result.map((vehicleManufacturer) => vehicleManufacturer.getModel());
@@ -138,20 +138,20 @@ class VehicleManufacturerService {
 					req.user);
 			}
 			// Filter
-			let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerCreateRequest( req.body, req.user );
+			const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerCreateRequest( req.body, req.user );
 			// Check Mandatory fields
 			VehicleManufacturer.checkIfVehicleManufacturerValid(filteredRequest, req);
 			// Create vehicleManufacturer
-			let vehicleManufacturer = new VehicleManufacturer(filteredRequest);
+			const vehicleManufacturer = new VehicleManufacturer(filteredRequest);
 			// Update timestamp
 			vehicleManufacturer.setCreatedBy(new User({'id': req.user.id}));
 			vehicleManufacturer.setCreatedOn(new Date());
 			// Save
-			let newVehicleManufacturer = await vehicleManufacturer.save();
+			const newVehicleManufacturer = await vehicleManufacturer.save(req.user.tenant);
 			// Update VehicleManufacturer's Logo
 			newVehicleManufacturer.setLogo(vehicleManufacturer.getLogo());
 			// Save
-			await newVehicleManufacturer.saveLogo();
+			await newVehicleManufacturer.saveLogo(req.user.tenant);
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'VehicleManufacturerService', method: 'handleCreateVehicleManufacturer',
@@ -169,9 +169,9 @@ class VehicleManufacturerService {
 	static async handleUpdateVehicleManufacturer(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerUpdateRequest( req.body, req.user );
+			const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerUpdateRequest( req.body, req.user );
 			// Check email
-			let vehicleManufacturer = await	VehicleManufacturer.getVehicleManufacturer(filteredRequest.id);
+			const vehicleManufacturer = await	VehicleManufacturer.getVehicleManufacturer(req.user.tenant, filteredRequest.id);
 			if (!vehicleManufacturer) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -197,9 +197,9 @@ class VehicleManufacturerService {
 			vehicleManufacturer.setLastChangedBy(new User({'id': req.user.id}));
 			vehicleManufacturer.setLastChangedOn(new Date());
 			// Update VehicleManufacturer
-			let updatedVehicleManufacturer = await vehicleManufacturer.save();
+			const updatedVehicleManufacturer = await vehicleManufacturer.save(req.user.tenant);
 			// Update VehicleManufacturer's Logo
-			await vehicleManufacturer.saveLogo();
+			await vehicleManufacturer.saveLogo(req.user.tenant);
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'VehicleManufacturerService', method: 'handleUpdateVehicleManufacturer',
@@ -217,7 +217,7 @@ class VehicleManufacturerService {
 	static async handleGetVehicleManufacturerLogo(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerRequest(req.query, req.user);
+			const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerRequest(req.query, req.user);
 			// Charge Box is mandatory
 			if(!filteredRequest.ID) {
 				// Not Found!
@@ -227,7 +227,7 @@ class VehicleManufacturerService {
 					'VehicleManufacturerService', 'handleGetVehicleManufacturerLogo', req.user);
 			}
 			// Get it
-			let vehicleManufacturer = await VehicleManufacturer.getVehicleManufacturer(filteredRequest.ID);
+			const vehicleManufacturer = await VehicleManufacturer.getVehicleManufacturer(req.user.tenant, filteredRequest.ID);
 			if (!vehicleManufacturer) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -246,7 +246,7 @@ class VehicleManufacturerService {
 					req.user);
 			}
 			// Get the logo
-			let vehicleManufacturerLogo = await VehicleManufacturer.getVehicleManufacturerLogo(filteredRequest.ID);
+			const vehicleManufacturerLogo = await VehicleManufacturer.getVehicleManufacturerLogo(req.user.tenant, filteredRequest.ID);
 			// Return
 			res.json(vehicleManufacturerLogo);
 			next();
@@ -270,7 +270,7 @@ class VehicleManufacturerService {
 					req.user);
 			}
 			// Get the vehicle manufacturer logo
-			let vehicleManufacturerLogos = await VehicleManufacturer.getVehicleManufacturerLogos();
+			const vehicleManufacturerLogos = await VehicleManufacturer.getVehicleManufacturerLogos(req.user.tenant);
 			// Return
 			res.json(vehicleManufacturerLogos);
 			next();

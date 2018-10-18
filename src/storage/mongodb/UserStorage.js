@@ -7,7 +7,7 @@ const Utils = require('../../utils/Utils');
 const AppError = require('../../exception/AppError');
 const eula = require('../../end-user-agreement');
 
-let _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
+const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 
 class UserStorage {
 	static getLatestEndUserLicenseAgreement(language='en') {
@@ -19,7 +19,7 @@ class UserStorage {
 			eulaText = eula['en'];
 		}
 		// Build Front End URL
-		let frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
+		const frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
 			_centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port; 
 		// Parse the auth and replace values
 		eulaText = Mustache.render(
@@ -32,13 +32,12 @@ class UserStorage {
 		return eulaText;
 	}
 
-	static async getEndUserLicenseAgreement(language="en") {
-		const User = require('../../model/User'); // Avoid fucking circular deps!!!
+	static async getEndUserLicenseAgreement(tenant, language="en") {
 		let languageFound = false;
 		let currentEula;
 		let currentEulaHash;
 		let eula = null;
-		let supportLanguages = Configuration.getLocalesConfig().supported;
+		const supportLanguages = Configuration.getLocalesConfig().supported;
 
 		// Search for language
 		for (const supportLanguage of supportLanguages) {
@@ -50,9 +49,9 @@ class UserStorage {
 			language = "en";
 		}
 		// Get current eula
-		currentEula = await UserStorage.getLatestEndUserLicenseAgreement(language);
+		currentEula = await UserStorage.getLatestEndUserLicenseAgreement(tenant, language);
 		// Read DB
-		let eulasMDB = await global.db.collection('eulas')
+		const eulasMDB = await global.database.getCollection(tenant, 'eulas')
 			.find({'language':language})
 			.sort({'version': -1})
 			.limit(1)
@@ -60,7 +59,7 @@ class UserStorage {
 		// Found?
 		if (eulasMDB && eulasMDB.length > 0) {
 			// Get
-			let eulaMDB = eulasMDB[0];
+			const eulaMDB = eulasMDB[0];
 			// Check if eula has changed
 			console.log(currentEula);
 			
@@ -76,7 +75,7 @@ class UserStorage {
 				eula.text = currentEula;
 				eula.hash = currentEulaHash;
 				// Create
-				let result = await global.db.collection('eulas')
+				const result = await global.database.getCollection(tenant, 'eulas')
 					.insertOne(eula);
 				// Update object
 				eula = {};
@@ -100,7 +99,7 @@ class UserStorage {
 				.update(currentEula)
 				.digest("hex");
 			// Create
-			let result = await global.db.collection('eulas').insertOne(eula);
+			const result = await global.database.getCollection(tenant, 'eulas').insertOne(eula);
 			// Update object
 			eula = {};
 			Database.updateEula(result.ops[0], eula);
@@ -109,35 +108,35 @@ class UserStorage {
 		}
 	}
 
-	static async getUserByTagId(tagID) {
+	static async getUserByTagId(tenant, tagID) {
 		// Read DB
-		let tagsMDB = await global.db.collection('tags')
+		const tagsMDB = await global.database.getCollection(tenant, 'tags')
 			.find({'_id': tagID})
 			.limit(1)
 			.toArray();
 		// Check
 		if (tagsMDB && tagsMDB.length > 0) {
 			// Ok
-			return UserStorage.getUser(tagsMDB[0].userID);
+			return UserStorage.getUser(tenant, tagsMDB[0].userID);
 		}
 	}
 
-	static async getUserByEmail(email) {
+	static async getUserByEmail(tenant, email) {
 		// Read DB
-		let usersMDB = await global.db.collection('users')
+		const usersMDB = await global.database.getCollection(tenant, 'users')
 			.find({'email': email})
 			.limit(1)
 			.toArray();
 		// Check deleted
 		if (usersMDB && usersMDB.length > 0) {
 			// Ok
-			return UserStorage._createUser(usersMDB[0]);
+			return UserStorage._createUser(tenant, usersMDB[0]);
 		}
 	}
 
-	static async getUser(id) {
+	static async getUser(tenant, id) {
 		// Create Aggregation
-		let aggregation = [];
+		const aggregation = [];
 		// Filters
 		aggregation.push({
 			$match: { '_id': Utils.convertToObjectID(id) }
@@ -145,20 +144,20 @@ class UserStorage {
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Read DB
-		let usersMDB = await global.db.collection('users')
+		const usersMDB = await global.database.getCollection(tenant, 'users')
 			.aggregate(aggregation)
 			.limit(1)
 			.toArray();
 		// Check deleted
 		if (usersMDB && usersMDB.length > 0) {
 			// Ok
-			return UserStorage._createUser(usersMDB[0]);
+			return UserStorage._createUser(tenant, usersMDB[0]);
 		}
 	}
 
-	static async getUserImage(id) {
+	static async getUserImage(tenant, id) {
 		// Read DB
-		let userImagesMDB = await global.db.collection('userimages')
+		const userImagesMDB = await global.database.getCollection(tenant, 'userimages')
 			.find({'_id': Utils.convertToObjectID(id)})
 			.limit(1)
 			.toArray();
@@ -174,12 +173,12 @@ class UserStorage {
 		return userImage;
 	}
 
-	static async getUserImages() {
+	static async getUserImages(tenant) {
 		// Read DB
-		let userImagesMDB = await global.db.collection('userimages')
+		const userImagesMDB = await global.database.getCollection(tenant, 'userimages')
 			.find({})
 			.toArray();
-		let userImages = [];
+		const userImages = [];
 		// Add
 		for (const userImageMDB of userImagesMDB) {
 			userImages.push({
@@ -190,16 +189,15 @@ class UserStorage {
 		return userImages;
 	}
 
-	static async removeSitesFromUser(userID, siteIDs) {
+	static async removeSitesFromUser(tenant, userID, siteIDs) {
 		// User provided?
 		if (userID) {
 			// At least one Site
 			if (siteIDs && siteIDs.length > 0) {
-				let siteUsers = [];
 				// Create the list
 				for (const siteID of siteIDs) {
 					// Execute
-					await global.db.collection('siteusers').deleteMany({
+					await global.database.getCollection(tenant, 'siteusers').deleteMany({
 						"userID": Utils.convertToObjectID(userID),
 						"siteID": Utils.convertToObjectID(siteID)
 					});
@@ -208,12 +206,12 @@ class UserStorage {
 		}
 	}
 
-	static async addSitesToUser(userID, siteIDs) {
+	static async addSitesToUser(tenant, userID, siteIDs) {
 		// User provided?
 		if (userID) {
 			// At least one Site
 			if (siteIDs && siteIDs.length > 0) {
-				let siteUsers = [];
+				const siteUsers = [];
 				// Create the list
 				for (const siteID of siteIDs) {
 					// Add
@@ -223,12 +221,12 @@ class UserStorage {
 					});
 				}
 				// Execute
-				await global.db.collection('siteusers').insertMany(siteUsers);
+				await global.database.getCollection(tenant, 'siteusers').insertMany(siteUsers);
 			}
 		}
 	}
 
-	static async saveUser(userToSave) {
+	static async saveUser(tenant, userToSave) {
 		const User = require('../../model/User'); // Avoid fucking circular deps!!!
 		// Check if ID or email is provided
 		if (!userToSave.id && !userToSave.email) {
@@ -239,7 +237,7 @@ class UserStorage {
 				550, "UserStorage", "saveUser");
 		}
 		// Build Request
-		let userFilter = {};
+		const userFilter = {};
 		if (userToSave.id) {
 			userFilter._id = Utils.convertToObjectID(userToSave.id);
 		} else {
@@ -249,26 +247,26 @@ class UserStorage {
 		userToSave.createdBy = Utils.convertUserToObjectID(userToSave.createdBy);
 		userToSave.lastChangedBy = Utils.convertUserToObjectID(userToSave.lastChangedBy);
 		// Transfer
-		let user = {};
+		const user = {};
 		Database.updateUser(userToSave, user, false);
 		// Modify and return the modified document
-	    let result = await global.db.collection('users').findOneAndUpdate(
+	    const result = await global.database.getCollection(tenant, 'users').findOneAndUpdate(
 			userFilter,
 			{$set: user},
 			{upsert: true, new: true, returnOriginal: false});
 		// Create
-		let updatedUser = new User(result.value);
+		const updatedUser = new User(result.value);
 		// Add tags
 		if (userToSave.tagIDs) {
 			// Delete Tag IDs
-			await global.db.collection('tags')
+			await global.database.getCollection(tenant, 'tags')
 				.deleteMany( {'userID': Utils.convertToObjectID(updatedUser.getID())} );
 			// At least one tag
 			if (userToSave.tagIDs.length > 0) {
 				// Create the list
 				for (const tag of userToSave.tagIDs) {
 					// Modify
-					await global.db.collection('tags').findOneAndUpdate(
+					await global.database.getCollection(tenant, 'tags').findOneAndUpdate(
 						{'_id': tag},
 						{$set: {'userID': Utils.convertToObjectID(updatedUser.getID())}},
 						{upsert: true, new: true, returnOriginal: false});
@@ -278,11 +276,11 @@ class UserStorage {
 		// Update Sites?`
 		if (userToSave.sites) {
 			// Delete first
-			await global.db.collection('siteusers')
+			await global.database.getCollection(tenant, 'siteusers')
 				.deleteMany( {'userID': Utils.convertToObjectID(updatedUser.getID())} );
 			// At least one?
 			if (userToSave.sites.length > 0) {
-				let siteUsersMDB = [];
+				const siteUsersMDB = [];
 				// Create the list
 				for (const site of userToSave.sites) {
 					// Add
@@ -292,13 +290,13 @@ class UserStorage {
 					});
 				}
 				// Execute
-				await global.db.collection('siteusers').insertMany(siteUsersMDB);
+				await global.database.getCollection(tenant, 'siteusers').insertMany(siteUsersMDB);
 			}
 		}
 		return updatedUser;
 	}
 
-	static async saveUserImage(userImageToSave) {
+	static async saveUserImage(tenant, userImageToSave) {
 		// Check if ID is provided
 		if (!userImageToSave.id) {
 			// ID must be provided!
@@ -308,19 +306,19 @@ class UserStorage {
 				550, "UserStorage", "saveUserImage");
 		}
 		// Modify and return the modified document
-	    let result = await global.db.collection('userimages').findOneAndUpdate(
+	    const result = await global.database.getCollection(tenant, 'userimages').findOneAndUpdate(
 			{'_id': Utils.convertToObjectID(userImageToSave.id)},
 			{$set: {image: userImageToSave.image}},
 			{upsert: true, new: true, returnOriginal: false});
 	}
 
-	static async getUsers(params={}, limit, skip, sort) {
+	static async getUsers(tenant, params={}, limit, skip, sort) {
 		const User = require('../../model/User'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip
 		skip = Utils.checkRecordSkip(skip);
-		let filters = {
+		const filters = {
 			"$and": [
 				{
 					"$or": [
@@ -352,7 +350,7 @@ class UserStorage {
 			});
 		}
 		// Create Aggregation
-		let aggregation = [];
+		const aggregation = [];
 		// Add TagIDs
 		aggregation.push({
 			$lookup: {
@@ -386,7 +384,7 @@ class UserStorage {
 			});
 		}
 		// Count Records
-		let usersCountMDB = await global.db.collection('users')
+		const usersCountMDB = await global.database.getCollection(tenant, 'users')
 			.aggregate([...aggregation, { $count: "count" }])
 			.toArray();
 		// Project
@@ -428,14 +426,14 @@ class UserStorage {
 			$limit: limit
 		});
 		// Read DB
-		let usersMDB = await global.db.collection('users')
+		const usersMDB = await global.database.getCollection(tenant, 'users')
 			.aggregate(aggregation, { collation: { locale :"en_US", strength: 2 }})
 			.toArray();
-		let users = [];
+		const users = [];
 		// Create
 		for (const userMDB of usersMDB) {
 			// Create
-			let user = new User(userMDB);
+			const user = new User(userMDB);
 			// Set
 			user.setTagIDs(userMDB.tags.map((tag) => {
 				return tag._id
@@ -450,19 +448,19 @@ class UserStorage {
 		};
 	}
 
-	static async deleteUser(id) {
+	static async deleteUser(tenant, id) {
 		// Delete User
-		await global.db.collection('users')
+		await global.database.getCollection(tenant, 'users')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 		// Delete Image
-		await global.db.collection('userimages')
+		await global.database.getCollection(tenant, 'userimages')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 		// Delete Tags
-		await global.db.collection('tags')
+		await global.database.getCollection(tenant, 'tags')
 			.deleteMany( {'userID': Utils.convertToObjectID(id)} );
 	}
 
-	static async _createUser(userMDB) {
+	static async _createUser(tenant, userMDB) {
 		const User = require('../../model/User'); // Avoid fucking circular deps!!!
 		let user = null;
 		// Check
@@ -470,13 +468,13 @@ class UserStorage {
 			// Create
 			user = new User(userMDB);
 			// Get the Tags
-			let tagsMDB = await global.db.collection('tags')
+			const tagsMDB = await global.database.getCollection(tenant, 'tags')
 				.find({"userID": Utils.convertToObjectID(user.getID())})
 				.toArray();
 			// Check
 			if (tagsMDB) {
 				// Get the Tags
-				let tags = tagsMDB.map((tagMDB) => { return tagMDB._id; });
+				const tags = tagsMDB.map((tagMDB) => { return tagMDB._id; });
 				// Get IDs`
 				user.setTagIDs(tags);
 			}

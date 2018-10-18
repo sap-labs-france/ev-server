@@ -3,17 +3,17 @@ const Utils = require('../../utils/Utils');
 const crypto = require('crypto');
 
 class NotificationStorage {
-	static async getNotification(sourceId) {
+	static async getNotification(tenant, sourceId) {
 		// Read DB
-		let notificationsMDB = await global.db.collection('notifications')
+		const notificationsMDB = await global.database.getCollection(tenant, 'notifications')
 			.find({"sourceId": sourceId})
 			.toArray();
-		let notifications = [];
+		const notifications = [];
 		// Check
 		if (notificationsMDB && notificationsMDB.length > 0) {
 			// Create
 			for (const notificationMDB of notificationsMDB) {
-				let notification = {};
+				const notification = {};
 				// Set values
 				Database.updateNotification(notificationMDB, notification);
 				// Add
@@ -24,18 +24,18 @@ class NotificationStorage {
 		return notifications;
 	}
 
-	static async saveNotification(notificationToSave) {
+	static async saveNotification(tenant, notificationToSave) {
 		// Ensure Date
 		notificationToSave.timestamp = Utils.convertToDate(notificationToSave.timestamp);
 		// Transfer
-		let notification = {};
+		const notification = {};
 		Database.updateNotification(notificationToSave, notification, false);
 		// Set the ID
 		notification._id = crypto.createHash('sha256')
 			.update(`${notificationToSave.sourceId}~${notificationToSave.channel}`)
 			.digest("hex");
 		// Create
-		await global.db.collection('notifications')
+		await global.database.getCollection(tenant, 'notifications')
 			.insertOne(notification);
 	}
 }

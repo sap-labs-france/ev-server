@@ -13,7 +13,7 @@ class SiteService {
 	static async handleDeleteSite(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = SiteSecurity.filterSiteDeleteRequest(req.query, req.user);
+			const filteredRequest = SiteSecurity.filterSiteDeleteRequest(req.query, req.user);
 			// Check Mandatory fields
 			if(!filteredRequest.ID) {
 				// Not Found!
@@ -23,7 +23,7 @@ class SiteService {
 					'SiteService', 'handleDeleteSite', req.user);
 			}
 			// Get
-			let site = await Site.getSite(filteredRequest.ID);
+			const site = await Site.getSite(req.user.tenant, filteredRequest.ID);
 			if (!site) {
 				// Not Found!
 				throw new AppError(
@@ -43,7 +43,7 @@ class SiteService {
 					req.user);
 			}
 			// Delete
-			await site.delete();
+			await site.delete(req.user.tenant);
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'SiteService', method: 'handleDeleteSite',
@@ -61,7 +61,7 @@ class SiteService {
 	static async handleGetSite(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = SiteSecurity.filterSiteRequest(req.query, req.user);
+			const filteredRequest = SiteSecurity.filterSiteRequest(req.query, req.user);
 			// Charge Box is mandatory
 			if(!filteredRequest.ID) {
 				// Not Found!
@@ -71,7 +71,7 @@ class SiteService {
 					'SiteService', 'handleGetSite', req.user);
 			}
 			// Get it
-			let site = await Site.getSite(filteredRequest.ID, null, filteredRequest.WithUsers);
+			const site = await Site.getSite(req.user.tenant, filteredRequest.ID, null, filteredRequest.WithUsers);
 			if (!site) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -105,10 +105,10 @@ class SiteService {
 					req.user);
 			}
 			// Filter
-			let filteredRequest = SiteSecurity.filterSitesRequest(req.query, req.user);
+			const filteredRequest = SiteSecurity.filterSitesRequest(req.query, req.user);
 			// Get the sites
-			let sites = await Site.getSites(
-				{ 'search': filteredRequest.Search, 'userID': filteredRequest.UserID, 'withCompany': filteredRequest.WithCompany,
+			const sites = await Site.getSites(req.user.tenant,
+            { 'search': filteredRequest.Search, 'userID': filteredRequest.UserID, 'withCompany': filteredRequest.WithCompany,
 					'withSiteAreas': filteredRequest.WithSiteAreas, 'withChargeBoxes': filteredRequest.WithChargeBoxes,
 					'withUsers': filteredRequest.WithUsers, 'excludeSitesOfUserID': filteredRequest.ExcludeSitesOfUserID,
 					'withAvailableChargers': filteredRequest.WithAvailableChargers },
@@ -130,7 +130,7 @@ class SiteService {
 	static async handleGetSiteImage(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = SiteSecurity.filterSiteRequest(req.query, req.user);
+			const filteredRequest = SiteSecurity.filterSiteRequest(req.query, req.user);
 			// Charge Box is mandatory
 			if(!filteredRequest.ID) {
 				// Not Found!
@@ -140,7 +140,7 @@ class SiteService {
 					'SiteService', 'handleGetSiteImage', req.user);
 			}
 			// Get it
-			let site = await Site.getSite(filteredRequest.ID);
+			const site = await Site.getSite(req.user.tenant, filteredRequest.ID);
 			if (!site) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -159,7 +159,7 @@ class SiteService {
 					req.user);
 			}
 			// Get the image
-			let siteImage = await Site.getSiteImage(filteredRequest.ID);
+			const siteImage = await Site.getSiteImage(req.user.tenant, filteredRequest.ID);
 			// Return
 			res.json(siteImage);
 			next();
@@ -183,7 +183,7 @@ class SiteService {
 					req.user);
 			}
 			// Get the site image
-			let siteImages = await Site.getSiteImages();
+			const siteImages = await Site.getSiteImages(req.user.tenant);
 			// Return
 			res.json(siteImages);
 			next();
@@ -207,9 +207,9 @@ class SiteService {
 					req.user);
 			}
 			// Filter
-			let filteredRequest = SiteSecurity.filterSiteCreateRequest( req.body, req.user );
+			const filteredRequest = SiteSecurity.filterSiteCreateRequest( req.body, req.user );
 			// Check Company
-			let company = await Company.getCompany(filteredRequest.companyID);
+			const company = await Company.getCompany(req.user.tenant, filteredRequest.companyID);
 			// Check Mandatory fields
 			Site.checkIfSiteValid(filteredRequest, req);
 			// Found?
@@ -221,16 +221,16 @@ class SiteService {
 					'SiteService', 'handleCreateSite', req.user);
 			}
 			// Create site
-			let site = new Site(filteredRequest);
+			const site = new Site(filteredRequest);
 			// Update timestamp
 			site.setCreatedBy(new User({'id': req.user.id}));
 			site.setCreatedOn(new Date());
 			// Get the users
-			let users = [];
+			const users = [];
 			if(filteredRequest.userIDs){
 				for (const userID of filteredRequest.userIDs) {
 					// Get User
-					let user = await User.getUser(userID);
+					const user = await User.getUser(req.user.tenant, userID);
 					// Add
 					users.push(user);
 				}
@@ -238,11 +238,11 @@ class SiteService {
 			// Set Users
 			site.setUsers(users);
 			// Save Site
-			let newSite = await site.save();
+			const newSite = await site.save(req.user.tenant);
 			// Save Site's Image
 			newSite.setImage(site.getImage());
 			// Save
-			await newSite.saveImage();
+			await newSite.saveImage(req.user.tenant);
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'SiteService', method: 'handleCreateSite',
@@ -260,9 +260,9 @@ class SiteService {
 	static async handleUpdateSite(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = SiteSecurity.filterSiteUpdateRequest( req.body, req.user );
+			const filteredRequest = SiteSecurity.filterSiteUpdateRequest( req.body, req.user );
 			// Get Site
-			let site = await Site.getSite(filteredRequest.id);
+			const site = await Site.getSite(req.user.tenant, filteredRequest.id);
 			if (!site) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -288,12 +288,12 @@ class SiteService {
 			site.setLastChangedBy(new User({'id': req.user.id}));
 			site.setLastChangedOn(new Date());
 			// Update Site's Image
-			await site.saveImage();
+			await site.saveImage(req.user.tenant);
 			// Get the users
-			let users = [];
+			const users = [];
 			for (const userID of filteredRequest.userIDs) {
 				// Get User
-				let user = await User.getUser(userID);
+				const user = await User.getUser(req.user.tenant, userID);
 				if (user) {
 					// Add
 					users.push(user);
@@ -302,7 +302,7 @@ class SiteService {
 			// Set Users
 			site.setUsers(users);
 			// Update Site
-			let updatedSite = await site.save();
+			const updatedSite = await site.save(req.user.tenant);
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'SiteService', method: 'handleUpdateSite',

@@ -12,7 +12,7 @@ class VehicleService {
 	static async handleDeleteVehicle(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = VehicleSecurity.filterVehicleDeleteRequest(req.query, req.user);
+			const filteredRequest = VehicleSecurity.filterVehicleDeleteRequest(req.query, req.user);
 			// Check Mandatory fields
 			if(!filteredRequest.ID) {
 				// Not Found!
@@ -22,7 +22,7 @@ class VehicleService {
 					'VehicleService', 'handleDeleteVehicle', req.user);
 			}
 			// Get
-			let vehicle = await Vehicle.getVehicle(filteredRequest.ID);
+			const vehicle = await Vehicle.getVehicle(req.user.tenant, filteredRequest.ID);
 			if (!vehicle) {
 				// Not Found!
 				throw new AppError(
@@ -42,7 +42,7 @@ class VehicleService {
 					req.user);
 			}
 			// Delete
-			await vehicle.delete();
+			await vehicle.delete(req.user.tenant);
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'VehicleService', method: 'handleDeleteVehicle',
@@ -60,7 +60,7 @@ class VehicleService {
 	static async handleGetVehicle(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = VehicleSecurity.filterVehicleRequest(req.query, req.user);
+			const filteredRequest = VehicleSecurity.filterVehicleRequest(req.query, req.user);
 			// Charge Box is mandatory
 			if(!filteredRequest.ID) {
 				// Not Found!
@@ -70,7 +70,7 @@ class VehicleService {
 					'VehicleService', 'handleGetVehicle', req.user);
 			}
 			// Get it
-			let vehicle = await Vehicle.getVehicle(filteredRequest.ID);
+			const vehicle = await Vehicle.getVehicle(req.user.tenant, filteredRequest.ID);
 			if (!vehicle) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -104,10 +104,10 @@ class VehicleService {
 					req.user);
 			}
 			// Filter
-			let filteredRequest = VehicleSecurity.filterVehiclesRequest(req.query, req.user);
+			const filteredRequest = VehicleSecurity.filterVehiclesRequest(req.query, req.user);
 			// Get the vehicles
-			let vehicles = await Vehicle.getVehicles(
-				{ 'search': filteredRequest.Search, 'vehicleType': filteredRequest.Type,
+			const vehicles = await Vehicle.getVehicles(req.user.tenant,
+            { 'search': filteredRequest.Search, 'vehicleType': filteredRequest.Type,
 					'vehicleManufacturerID': filteredRequest.VehicleManufacturerID },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
@@ -127,7 +127,7 @@ class VehicleService {
 	static async handleGetVehicleImage(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = VehicleSecurity.filterVehicleRequest(req.query, req.user);
+			const filteredRequest = VehicleSecurity.filterVehicleRequest(req.query, req.user);
 			// Charge Box is mandatory
 			if(!filteredRequest.ID) {
 				// Not Found!
@@ -137,7 +137,7 @@ class VehicleService {
 					'VehicleService', 'handleGetVehicleImage', req.user);
 			}
 			// Get it
-			let vehicle = await Vehicle.getVehicle(filteredRequest.ID);
+			const vehicle = await Vehicle.getVehicle(req.user.tenant, filteredRequest.ID);
 			if (!vehicle) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -156,7 +156,7 @@ class VehicleService {
 					req.user);
 			}
 			// Get the image
-			let vehicleImage = await Vehicle.getVehicleImage(filteredRequest.ID);
+			const vehicleImage = await Vehicle.getVehicleImage(req.user.tenant, filteredRequest.ID);
 			// Return
 			res.json(vehicleImage);
 			next();
@@ -180,7 +180,7 @@ class VehicleService {
 					req.user);
 			}
 			// Get the vehicle image
-			let vehicleImages = await Vehicle.getVehicleImages();
+			const vehicleImages = await Vehicle.getVehicleImages(req.user.tenant);
 			// Return
 			res.json(vehicleImages);
 			next();
@@ -204,16 +204,16 @@ class VehicleService {
 					req.user);
 			}
 			// Filter
-			let filteredRequest = VehicleSecurity.filterVehicleCreateRequest( req.body, req.user );
+			const filteredRequest = VehicleSecurity.filterVehicleCreateRequest( req.body, req.user );
 			// Check Mandatory fields
 			Vehicle.checkIfVehicleValid(filteredRequest, req);
 			// Create vehicle
-			let vehicle = new Vehicle(filteredRequest);
+			const vehicle = new Vehicle(filteredRequest);
 			// Update timestamp
 			vehicle.setCreatedBy(new User({'id': req.user.id}));
 			vehicle.setCreatedOn(new Date());
 			// Save
-			let newVehicle = await vehicle.save();
+			const newVehicle = await vehicle.save(req.user.tenant);
 			// Save Site's Image
 			if (vehicle.getImages()) {
 				newVehicle.setImages(vehicle.getImages());
@@ -221,7 +221,7 @@ class VehicleService {
 				newVehicle.setImages([]);
 			}
 			// Save
-			await newVehicle.saveImages();
+			await newVehicle.saveImages(req.user.tenant);
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'VehicleService', method: 'handleCreateVehicle',
@@ -239,9 +239,9 @@ class VehicleService {
 	static async handleUpdateVehicle(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = VehicleSecurity.filterVehicleUpdateRequest( req.body, req.user );
+			const filteredRequest = VehicleSecurity.filterVehicleUpdateRequest( req.body, req.user );
 			// Check email
-			let vehicle = await Vehicle.getVehicle(filteredRequest.id);
+			const vehicle = await Vehicle.getVehicle(req.user.tenant, filteredRequest.id);
 			if (!vehicle) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -267,10 +267,10 @@ class VehicleService {
 			vehicle.setLastChangedBy(new User({'id': req.user.id}));
 			vehicle.setLastChangedOn(new Date());
 			// Update Vehicle
-			let updatedVehicle = await vehicle.save();
+			const updatedVehicle = await vehicle.save(req.user.tenant);
 			// Update Vehicle's Image
 			if (filteredRequest.withVehicleImages) {
-				await vehicle.saveImages();
+				await vehicle.saveImages(req.user.tenant);
 			}
 			// Log
 			Logging.logSecurityInfo({

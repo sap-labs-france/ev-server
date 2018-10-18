@@ -10,11 +10,11 @@ class StatisticService {
 	static async handleUserUsageStatistics(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = StatisticSecurity.filterUserStatisticsRequest(req.query, req.user);
+			const filteredRequest = StatisticSecurity.filterUserStatisticsRequest(req.query, req.user);
 			// Build filter
-			let filter = StatisticService.buildFilter(filteredRequest, req.user);
+			const filter = StatisticService.buildFilter(filteredRequest, req.user);
 			// Get Stats
-			let transactions = await StatisticsStorage.getUserStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_USAGE);
+			const transactions = await StatisticsStorage.getUserStats(req.user.tenant, filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_USAGE);
 			// Return
 			res.json(transactions);
 			next();
@@ -27,11 +27,11 @@ class StatisticService {
 	static async handleGetUserConsumptionStatistics(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = StatisticSecurity.filterUserStatisticsRequest(req.query, req.user);
+			const filteredRequest = StatisticSecurity.filterUserStatisticsRequest(req.query, req.user);
 			// Build filter
-			let filter = StatisticService.buildFilter(filteredRequest, req.user);
+			const filter = StatisticService.buildFilter(filteredRequest, req.user);
 			// Get Stats
-			let transactions = await StatisticsStorage.getUserStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_CONSUMPTION);
+			const transactions = await StatisticsStorage.getUserStats(req.user.tenant, filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_CONSUMPTION);
 			// Return
 			res.json(transactions);
 			next();
@@ -44,11 +44,11 @@ class StatisticService {
 	static async handleGetChargingStationUsageStatistics(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = StatisticSecurity.filterChargingStationStatisticsRequest(req.query, req.user);
+			const filteredRequest = StatisticSecurity.filterChargingStationStatisticsRequest(req.query, req.user);
 			// Build filter
-			let filter = StatisticService.buildFilter(filteredRequest, req.user);
+			const filter = StatisticService.buildFilter(filteredRequest, req.user);
 			// Get Stats
-			let transactions = await StatisticsStorage.getChargingStationStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_USAGE);
+			const transactions = await StatisticsStorage.getChargingStationStats(req.user.tenant, filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_USAGE);
 			// Return
 			res.json(transactions);
 			next();
@@ -61,11 +61,11 @@ class StatisticService {
 	static async handleGetChargingStationConsumptionStatistics(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = StatisticSecurity.filterChargingStationStatisticsRequest(req.query, req.user);
+			const filteredRequest = StatisticSecurity.filterChargingStationStatisticsRequest(req.query, req.user);
 			// Build filter
-			let filter = StatisticService.buildFilter(filteredRequest, req.user);
+			const filter = StatisticService.buildFilter(filteredRequest, req.user);
 			// Get Stats
-			let transactions = await StatisticsStorage.getChargingStationStats(filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_CONSUMPTION);
+			const transactions = await StatisticsStorage.getChargingStationStats(req.user.tenant, filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_CONSUMPTION);
 			// Return
 			res.json(transactions);
 			next();
@@ -77,7 +77,7 @@ class StatisticService {
 
 	static buildFilter(filteredRequest, loggedUser) {
 		// Only completed transactions
-		let filter = { stop: {$exists: true} };
+		const filter = { stop: {$exists: true} };
 		// Date
 		if (filteredRequest.Year) {
 			filter.startDateTime = moment().year(filteredRequest.Year).startOf('year').toDate().toISOString();

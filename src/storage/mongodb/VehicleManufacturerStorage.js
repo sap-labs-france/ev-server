@@ -6,9 +6,9 @@ const AppError = require('../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
 
 class VehicleManufacturerStorage {
-	static async getVehicleManufacturerLogo(id) {
+	static async getVehicleManufacturerLogo(tenant, id) {
 		// Read DB
-		let vehicleManufacturerLogosMDB = await global.db.collection('vehiclemanufacturerlogos')
+		const vehicleManufacturerLogosMDB = await global.database.getCollection(tenant, 'vehiclemanufacturerlogos')
 			.find({_id: Utils.convertToObjectID(id)})
 			.limit(1)
 			.toArray();
@@ -23,12 +23,12 @@ class VehicleManufacturerStorage {
 		return vehicleManufacturerLogo;
 	}
 
-	static async getVehicleManufacturerLogos() {
+	static async getVehicleManufacturerLogos(tenant) {
 		// Read DB
-		let vehicleManufacturerLogosMDB = await global.db.collection('vehiclemanufacturerlogos')
+		const vehicleManufacturerLogosMDB = await global.database.getCollection(tenant, 'vehiclemanufacturerlogos')
 			.find()
 			.toArray();
-		let vehicleManufacturerLogos = [];
+		const vehicleManufacturerLogos = [];
 		// Check
 		if (vehicleManufacturerLogosMDB && vehicleManufacturerLogosMDB.length > 0) {
 			// Add
@@ -42,7 +42,7 @@ class VehicleManufacturerStorage {
 		return vehicleManufacturerLogos;
 	}
 
-	static async saveVehicleManufacturerLogo(vehicleManufacturerLogoToSave) {
+	static async saveVehicleManufacturerLogo(tenant, vehicleManufacturerLogoToSave) {
 		// Check if ID/Name is provided
 		if (!vehicleManufacturerLogoToSave.id) {
 			// ID must be provided!
@@ -52,16 +52,16 @@ class VehicleManufacturerStorage {
 				550, "VehicleManufacturerStorage", "saveVehicleManufacturerLogo");
 		}
 		// Modify
-	    await global.db.collection('vehiclemanufacturerlogos').findOneAndUpdate(
+	    await global.database.getCollection(tenant, 'vehiclemanufacturerlogos').findOneAndUpdate(
 			{'_id': Utils.convertToObjectID(vehicleManufacturerLogoToSave.id)},
 			{$set: {logo: vehicleManufacturerLogoToSave.logo}},
 			{upsert: true, new: true, returnOriginal: false});
 	}
 
-	static async getVehicleManufacturer(id) {
+	static async getVehicleManufacturer(tenant, id) {
 		const VehicleManufacturer = require('../../model/VehicleManufacturer'); // Avoid fucking circular deps!!!
 		// Create Aggregation
-		let aggregation = [];
+		const aggregation = [];
 		// Filters
 		aggregation.push({
 			$match: { _id: Utils.convertToObjectID(id) }
@@ -69,7 +69,7 @@ class VehicleManufacturerStorage {
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Read DB
-		let vehicleManufacturersMDB = await global.db.collection('vehiclemanufacturers')
+		const vehicleManufacturersMDB = await global.database.getCollection(tenant, 'vehiclemanufacturers')
 			.aggregate(aggregation)
 			.limit(1)
 			.toArray();
@@ -82,7 +82,7 @@ class VehicleManufacturerStorage {
 		return vehicleManufacturer;
 	}
 
-	static async saveVehicleManufacturer(vehicleManufacturerToSave) {
+	static async saveVehicleManufacturer(tenant, vehicleManufacturerToSave) {
 		const VehicleManufacturer = require('../../model/VehicleManufacturer'); // Avoid fucking circular deps!!!
 		// Check if ID/Model is provided
 		if (!vehicleManufacturerToSave.id && !vehicleManufacturerToSave.name) {
@@ -92,7 +92,7 @@ class VehicleManufacturerStorage {
 				`Vehicle Manufacturer has no ID and no Name`,
 				550, "VehicleManufacturerStorage", "saveVehicleManufacturer");
 		}
-		let vehicleManufacturerFilter = {};
+		const vehicleManufacturerFilter = {};
 		// Build Request
 		if (vehicleManufacturerToSave.id) {
 			vehicleManufacturerFilter._id = Utils.convertToObjectID(vehicleManufacturerToSave.id);
@@ -103,10 +103,10 @@ class VehicleManufacturerStorage {
 		vehicleManufacturerToSave.createdBy = Utils.convertUserToObjectID(vehicleManufacturerToSave.createdBy);
 		vehicleManufacturerToSave.lastChangedBy = Utils.convertUserToObjectID(vehicleManufacturerToSave.lastChangedBy);
 		// Transfer
-		let vehicleManufacturer = {};
+		const vehicleManufacturer = {};
 		Database.updateVehicleManufacturer(vehicleManufacturerToSave, vehicleManufacturer, false);
 		// Modify
-	    let result = await global.db.collection('vehiclemanufacturers').findOneAndUpdate(
+	    const result = await global.database.getCollection(tenant, 'vehiclemanufacturers').findOneAndUpdate(
 			vehicleManufacturerFilter,
 			{$set: vehicleManufacturer},
 			{upsert: true, new: true, returnOriginal: false});
@@ -115,7 +115,7 @@ class VehicleManufacturerStorage {
 	}
 
 	// Delegate
-	static async getVehicleManufacturers(params={}, limit, skip, sort) {
+	static async getVehicleManufacturers(tenant, params={}, limit, skip, sort) {
 		const VehicleManufacturer = require('../../model/VehicleManufacturer'); // Avoid fucking circular deps!!!
 		const Vehicle = require('../../model/Vehicle'); // Avoid fucking circular deps!!!
 		// Check Limit
@@ -123,7 +123,7 @@ class VehicleManufacturerStorage {
 		// Check Skip
 		skip = Utils.checkRecordSkip(skip);
 		// Set the filters
-		let filters = {};
+		const filters = {};
 		// Source?
 		if (params.search) {
 			// Build filter
@@ -132,7 +132,7 @@ class VehicleManufacturerStorage {
 			];
 		}
 		// Create Aggregation
-		let aggregation = [];
+		const aggregation = [];
 		// Filters
 		if (filters) {
 			aggregation.push({
@@ -158,7 +158,7 @@ class VehicleManufacturerStorage {
 			});
 		}
 		// Count Records
-		let vehiclemanufacturersCountMDB = await global.db.collection('vehiclemanufacturers')
+		const vehiclemanufacturersCountMDB = await global.database.getCollection(tenant, 'vehiclemanufacturers')
 			.aggregate([...aggregation, { $count: "count" }])
 			.toArray();
 		// Add Created By / Last Changed By
@@ -186,16 +186,16 @@ class VehicleManufacturerStorage {
 			$limit: limit
 		});
 		// Read DB
-		let vehiclemanufacturersMDB = await global.db.collection('vehiclemanufacturers')
+		const vehiclemanufacturersMDB = await global.database.getCollection(tenant, 'vehiclemanufacturers')
 			.aggregate(aggregation, { collation: { locale : Constants.DEFAULT_LOCALE, strength: 2 }})
 			.toArray();
-		let vehicleManufacturers = [];
+		const vehicleManufacturers = [];
 		// Check
 		if (vehiclemanufacturersMDB && vehiclemanufacturersMDB.length > 0) {
 			// Create
 			for (const vehicleManufacturerMDB of vehiclemanufacturersMDB) {
 				// Create
-				let vehicleManufacturer = new VehicleManufacturer(vehicleManufacturerMDB);
+				const vehicleManufacturer = new VehicleManufacturer(vehicleManufacturerMDB);
 				// Set Vehicles
 				if (params.withVehicles && vehicleManufacturerMDB.vehicles) {
 					// Add vehicles
@@ -214,19 +214,19 @@ class VehicleManufacturerStorage {
 		};
 	}
 
-	static async deleteVehicleManufacturer(id) {
+	static async deleteVehicleManufacturer(tenant, id) {
 		// Delete Vehicles
-		let vehicles = await VehicleStorage.getVehicles(null, id);
+		const vehicles = await VehicleStorage.getVehicles(null, id);
 		// Delete
 		for (const vehicle of vehicles.result) {
 			//	Delete Vehicle
 			await vehicle.delete();
 		}
 		// Delete the Vehicle Manufacturers
-		await global.db.collection('vehiclemanufacturers')
+		await global.database.getCollection(tenant, 'vehiclemanufacturers')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 		// Delete Vehicle Manufacturer Logo
-		await global.db.collection('vehiclemanufacturerlogos')
+		await global.database.getCollection(tenant, 'vehiclemanufacturerlogos')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 	}
 }

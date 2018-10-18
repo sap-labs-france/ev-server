@@ -2,9 +2,9 @@ const Utils = require('../../utils/Utils');
 const Constants = require('../../utils/Constants');
 
 class StatisticsStorage {
-	static async getChargingStationStats(filter, siteID, groupBy) {
+	static async getChargingStationStats(tenant, filter, siteID, groupBy) {
 		// Build filter
-		let match = {};
+		const match = {};
 		// Date provided?
 		if (filter.startDateTime || filter.endDateTime) {
 			match.timestamp = {};
@@ -26,7 +26,7 @@ class StatisticsStorage {
 			match.userID = Utils.convertToObjectID(filter.userID);
 		}
 		// Create Aggregation
-		let aggregation = [];
+		const aggregation = [];
 		// Filters
 		aggregation.push({
 			$match: match
@@ -91,11 +91,11 @@ class StatisticsStorage {
 			$sort: { "_id.month": 1, "_id.chargeBox": 1 }
 		});
 		// Read DB
-		let transactionStatsMDB = await global.db.collection('transactions')
+		const transactionStatsMDB = await global.database.getCollection(tenant, 'transactions')
 			.aggregate(aggregation)
 			.toArray();
 		// Set
-		let transactions = [];
+		const transactions = [];
 		// Create
 		if (transactionStatsMDB && transactionStatsMDB.length > 0) {
 			// Create
@@ -122,9 +122,9 @@ class StatisticsStorage {
 		return transactions;
 	}
 
-	static async getUserStats(filter, siteID, groupBy) {
+	static async getUserStats(tenant, filter, siteID, groupBy) {
 		// Build filter
-		let match = {};
+		const match = {};
 		// Date provided?
 		if (filter.startDateTime || filter.endDateTime) {
 			match.timestamp = {};
@@ -146,7 +146,7 @@ class StatisticsStorage {
 			match.userID = Utils.convertToObjectID(filter.userID);
 		}
 		// Create Aggregation
-		let aggregation = [];
+		const aggregation = [];
 		// Filters
 		aggregation.push({
 			$match: match
@@ -224,11 +224,11 @@ class StatisticsStorage {
 			$sort: { "_id.month": 1, "_id.chargeBox": 1 }
 		});
 		// Read DB
-		let transactionStatsMDB = await global.db.collection('transactions')
+		const transactionStatsMDB = await global.database.getCollection(tenant, 'transactions')
 			.aggregate(aggregation)
 			.toArray();
 		// Set
-		let transactions = [];
+		const transactions = [];
 		// Create
 		if (transactionStatsMDB && transactionStatsMDB.length > 0) {
 			// Create

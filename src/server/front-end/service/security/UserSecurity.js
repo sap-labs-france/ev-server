@@ -4,7 +4,7 @@ const UtilsSecurity = require('./UtilsSecurity');
 
 class UserSecurity {
 	static filterAddSitesToUserRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.userID = sanitize(request.userID);
 		if (request.siteIDs) {
@@ -14,7 +14,7 @@ class UserSecurity {
 	}
 
 	static filterRemoveSitesFromUserRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.userID = sanitize(request.userID);
 		if (request.siteIDs) {
@@ -24,21 +24,21 @@ class UserSecurity {
 	}
 
 	static filterUserDeleteRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.ID = sanitize(request.ID);
 		return filteredRequest;
 	}
 
 	static filterUserRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.ID = sanitize(request.ID);
 		return filteredRequest;
 	}
 
 	static filterUsersRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Handle picture
 		filteredRequest.Search = request.Search;
 		filteredRequest.SiteID = request.SiteID;
@@ -49,7 +49,7 @@ class UserSecurity {
 
 	static filterUserUpdateRequest(request, loggedUser) {
 		// Set
-		let filteredRequest = UserSecurity._filterUserRequest(request, loggedUser);
+		const filteredRequest = UserSecurity._filterUserRequest(request, loggedUser);
 		filteredRequest.id = sanitize(request.id);
 		return filteredRequest;
 	}
@@ -59,7 +59,7 @@ class UserSecurity {
 	}
 
 	static _filterUserRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		if (request.costCenter) {
 			filteredRequest.costCenter = sanitize(request.costCenter);
 		}
@@ -111,7 +111,7 @@ class UserSecurity {
 
 	// User
 	static filterUserResponse(user, loggedUser) {
-		let filteredUser={};
+		const filteredUser={};
 
 		if (!user) {
 			return null;
@@ -162,7 +162,7 @@ class UserSecurity {
 
 	// User
 	static filterMinimalUserResponse(user, loggedUser) {
-		let filteredUser={};
+		const filteredUser={};
 
 		if (!user) {
 			return null;
@@ -185,14 +185,14 @@ class UserSecurity {
 	}
 
 	static filterUsersResponse(users, loggedUser) {
-		let filteredUsers = [];
+		const filteredUsers = [];
 
 		if (!users) {
 			return null;
 		}
 		for (const user of users) {
 			// Filter
-			let filteredUser = UserSecurity.filterUserResponse(user, loggedUser);
+			const filteredUser = UserSecurity.filterUserResponse(user, loggedUser);
 			// Ok?
 			if (filteredUser) {
 				// Add
@@ -203,14 +203,14 @@ class UserSecurity {
 	}
 
 	static filterEndUserLicenseAgreementRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.Language = sanitize(request.Language);
 		return filteredRequest;
 	}
 
 	static filterEndUserLicenseAgreementResponse(endUserLicenseAgreement, loggedUser) {
-		let filteredEndUserLicenseAgreement = {};
+		const filteredEndUserLicenseAgreement = {};
 
 		if (!endUserLicenseAgreement) {
 			return null;

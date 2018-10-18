@@ -12,9 +12,9 @@ class ChargingStationService {
 	static async handleUpdateChargingStationParams(action, req, res, next) {
 		try {
 				// Filter
-			let filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest( req.body, req.user );
+			const filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest( req.body, req.user );
 			// Check email
-			let chargingStation = await ChargingStation.getChargingStation(filteredRequest.id);
+			const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, filteredRequest.id);
 			if (!chargingStation) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -26,7 +26,7 @@ class ChargingStationService {
 				// Not Authorized!
 				throw new AppAuthError(
 					Constants.ACTION_UPDATE, Constants.ENTITY_CHARGING_STATION,
-					site.getID(), 560, 
+                	chargingStation.getID(), 560,
 					'ChargingStationService', 'handleUpdateChargingStationParams',
 					req.user);
 			}
@@ -48,7 +48,7 @@ class ChargingStationService {
 			}
 			// Update Connectors
 			if (filteredRequest.connectors) {
-				let chargerConnectors = chargingStation.getConnectors();
+				const chargerConnectors = chargingStation.getConnectors();
 				// Assign to Charger's connector
 				for (const connector of filteredRequest.connectors) {
 					// Set
@@ -60,7 +60,7 @@ class ChargingStationService {
 			chargingStation.setLastChangedBy(new User({'id': req.user.id}));
 			chargingStation.setLastChangedOn(new Date());
 			// Update
-			let updatedChargingStation = await chargingStation.save();
+			const updatedChargingStation = await chargingStation.save(req.user.tenant);
 			// Log
 			Logging.logSecurityInfo({
 				source: updatedChargingStation.getID(),
@@ -84,7 +84,7 @@ class ChargingStationService {
 	static async handleGetChargingStationConfiguration(action, req, res, next) {
 		try {
 				// Filter
-			let filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query, req.user);
+			const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query, req.user);
 			// Charge Box is mandatory
 			if(!filteredRequest.ChargeBoxID) {
 				// Not Found!
@@ -94,7 +94,7 @@ class ChargingStationService {
 					'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
 			}
 			// Get the Charging Station`
-			let chargingStation = await ChargingStation.getChargingStation(filteredRequest.ChargeBoxID);
+			const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, filteredRequest.ChargeBoxID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -113,7 +113,7 @@ class ChargingStationService {
 					req.user);
 			}
 			// Get the Config
-			let configuration = await chargingStation.getConfiguration();
+			const configuration = await chargingStation.getConfiguration(req.user.tenant);
 			// Return the result
 			res.json(configuration);
 			next();
@@ -126,7 +126,7 @@ class ChargingStationService {
 	static async handleRequestChargingStationConfiguration(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query, req.user);
+			const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query, req.user);
 			// Charge Box is mandatory
 			if(!filteredRequest.ChargeBoxID) {
 				// Not Found!
@@ -136,7 +136,7 @@ class ChargingStationService {
 					'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
 			}
 			// Get the Charging Station
-			let chargingStation = await ChargingStation.getChargingStation(filteredRequest.ChargeBoxID);
+			const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, filteredRequest.ChargeBoxID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -156,7 +156,7 @@ class ChargingStationService {
 					req.user);
 			}
 			// Get the Config
-			let result = await chargingStation.requestAndSaveConfiguration();
+			const result = await chargingStation.requestAndSaveConfiguration(req.user.tenant);
 			// Return the result
 			res.json(result);
 			next();
@@ -169,7 +169,7 @@ class ChargingStationService {
 	static async handleDeleteChargingStation(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = ChargingStationSecurity.filterChargingStationDeleteRequest(req.query, req.user);
+			const filteredRequest = ChargingStationSecurity.filterChargingStationDeleteRequest(req.query, req.user);
 			// Check Mandatory fields
 			if(!filteredRequest.ID) {
 				// Not Found!
@@ -179,7 +179,7 @@ class ChargingStationService {
 					'ChargingStationService', 'handleDeleteChargingStation', req.user);
 			}
 			// Get
-			let chargingStation = await ChargingStation.getChargingStation(filteredRequest.ID);
+			const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, filteredRequest.ID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -201,7 +201,7 @@ class ChargingStationService {
 			// Remove Site Area
 			chargingStation.setSiteArea(null);
 			// Delete
-			await chargingStation.delete();
+			await chargingStation.delete(req.user.tenant);
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'ChargingStationService', method: 'handleDeleteChargingStation',
@@ -219,7 +219,7 @@ class ChargingStationService {
 	static async handleGetChargingStation(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = ChargingStationSecurity.filterChargingStationRequest(req.query, req.user);
+			const filteredRequest = ChargingStationSecurity.filterChargingStationRequest(req.query, req.user);
 			// Charge Box is mandatory
 			if(!filteredRequest.ID) {
 				// Not Found!
@@ -229,7 +229,7 @@ class ChargingStationService {
 					'ChargingStationService', 'handleGetChargingStation', req.user);
 			}
 			// Get it
-			let chargingStation = await ChargingStation.getChargingStation(filteredRequest.ID);
+			const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, filteredRequest.ID);
 			if (chargingStation) {
 				// Return
 				res.json(
@@ -260,10 +260,10 @@ class ChargingStationService {
 					req.user);
 			}
 			// Filter
-			let filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query, req.user);
+			const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query, req.user);
 			// Get the charging Charging Stations
-			let chargingStations = await ChargingStation.getChargingStations(
-				{ 'search': filteredRequest.Search, 'withNoSiteArea': filteredRequest.WithNoSiteArea, 'siteID': filteredRequest.SiteID },
+			const chargingStations = await ChargingStation.getChargingStations(req.user.tenant,
+            { 'search': filteredRequest.Search, 'withNoSiteArea': filteredRequest.WithNoSiteArea, 'siteID': filteredRequest.SiteID },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
 			chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
@@ -281,7 +281,7 @@ class ChargingStationService {
 	static async handleAction(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = ChargingStationSecurity.filterChargingStationActionRequest( req.body, action, req.user );
+			const filteredRequest = ChargingStationSecurity.filterChargingStationActionRequest( req.body, action, req.user );
 			// Charge Box is mandatory
 			if(!filteredRequest.chargeBoxID) {
 				Logging.logActionExceptionMessageAndSendResponse(
@@ -289,7 +289,7 @@ class ChargingStationService {
 				return;
 			}
 			// Get the Charging station
-			let chargingStation = await ChargingStation.getChargingStation(filteredRequest.chargeBoxID);
+			const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, filteredRequest.chargeBoxID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -302,7 +302,7 @@ class ChargingStationService {
 			if (action === 'StopTransaction' ||
 					action === 'UnlockConnector') {
 				// Get Transaction
-				let transaction = await TransactionStorage.getTransaction(filteredRequest.args.transactionId);
+				const transaction = await TransactionStorage.getTransaction(req.user.tenant, filteredRequest.args.transactionId);
 				if (!transaction) {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
@@ -318,7 +318,7 @@ class ChargingStationService {
 				transaction.remotestop.tagID = req.user.tagIDs[0];
 				transaction.remotestop.timestamp = new Date().toISOString();
 				// Save Transaction
-				await TransactionStorage.saveTransaction(transaction);
+				await TransactionStorage.saveTransaction(req.user.tenant, transaction);
 				// Ok: Execute it
 				result = await chargingStation.handleAction(action, filteredRequest.args);
 			} else if (action === 'StartTransaction') {
@@ -357,7 +357,7 @@ class ChargingStationService {
 	static async handleActionSetMaxIntensitySocket(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = ChargingStationSecurity.filterChargingStationSetMaxIntensitySocketRequest( req.body, req.user );
+			const filteredRequest = ChargingStationSecurity.filterChargingStationSetMaxIntensitySocketRequest( req.body, req.user );
 			// Charge Box is mandatory
 			if(!filteredRequest.chargeBoxID) {
 					// Not Found!
@@ -367,7 +367,7 @@ class ChargingStationService {
 						'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
 			}
 			// Get the Charging station
-			let chargingStation = await ChargingStation.getChargingStation(filteredRequest.chargeBoxID);
+			const chargingStation = await ChargingStation.getChargingStation(filteredRequest.chargeBoxID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -386,7 +386,7 @@ class ChargingStationService {
 					req.user);
 			}
 			// Get the Config
-			let chargerConfiguration = await chargingStation.getConfiguration();
+			const chargerConfiguration = await chargingStation.getConfiguration();
 			// Check
 			if (!chargerConfiguration) {
 				// Not Found!

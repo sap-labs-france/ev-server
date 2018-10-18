@@ -1,17 +1,18 @@
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
+const Constants = require('../../utils/Constants');
 
 class MigrationStorage {
 	static async getMigrations() {
 		// Read DB
-		let migrationsMDB = await global.db.collection('migrations')
+		const migrationsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'migrations')
 			.find({})
 			.toArray();
-		let migrations = [];
+		const migrations = [];
 		// Check
 		if (migrationsMDB && migrationsMDB.length > 0) {
 			for (const migrationMDB of migrationsMDB) {
-				let migration = {};
+				const migration = {};
 				// Set values
 				Database.updateMigration(migrationMDB, migration);
 				// Add
@@ -26,12 +27,12 @@ class MigrationStorage {
 		// Ensure Date
 		migrationToSave.timestamp = Utils.convertToDate(migrationToSave.timestamp);
 		// Transfer
-		let migration = {};
+		const migration = {};
 		Database.updateMigration(migrationToSave, migration, false);
 		// Set the ID
 		migration._id = migrationToSave.name + "~" + migrationToSave.version;
 		// Create
-		await global.db.collection('migrations')
+		await global.database.getCollection(Constants.DEFAULT_TENANT, 'migrations')
 			.insertOne(migration);
 	}
 }

@@ -21,14 +21,14 @@ class SiteAreaSecurity {
 	}
 
 	static filterSiteAreaDeleteRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.ID = sanitize(request.ID);
 		return filteredRequest;
 	}
 
 	static filterSiteAreaRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		filteredRequest.ID = sanitize(request.ID);
 		filteredRequest.WithChargeBoxes = sanitize(request.WithChargeBoxes);
 		filteredRequest.WithSite = sanitize(request.WithSite);
@@ -36,7 +36,7 @@ class SiteAreaSecurity {
 	}
 
 	static filterSiteAreasRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.WithSite = UtilsSecurity.filterBoolean(request.WithSite);
 		filteredRequest.WithChargeBoxes = UtilsSecurity.filterBoolean(request.WithChargeBoxes);
@@ -48,7 +48,7 @@ class SiteAreaSecurity {
 
 	static filterSiteAreaUpdateRequest(request, loggedUser) {
 		// Set
-		let filteredRequest = SiteAreaSecurity._filterSiteAreaRequest(request, loggedUser);
+		const filteredRequest = SiteAreaSecurity._filterSiteAreaRequest(request, loggedUser);
 		filteredRequest.id = sanitize(request.id);
 		return filteredRequest;
 	}
@@ -58,7 +58,7 @@ class SiteAreaSecurity {
 	}
 
 	static _filterSiteAreaRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		filteredRequest.name = sanitize(request.name);
 		filteredRequest.image = sanitize(request.image);
 		filteredRequest.accessControl = UtilsSecurity.filterBoolean(request.accessControl);
@@ -102,7 +102,7 @@ class SiteAreaSecurity {
 	}
 
 	static filterSiteAreasResponse(siteAreas, loggedUser) {
-		let filteredSiteAreas = [];
+		const filteredSiteAreas = [];
 
 		if (!siteAreas) {
 			return null;
@@ -112,7 +112,7 @@ class SiteAreaSecurity {
 		}
 		for (const siteArea of siteAreas) {
 			// Filter
-			let filteredSiteArea = SiteAreaSecurity.filterSiteAreaResponse(siteArea, loggedUser);
+			const filteredSiteArea = SiteAreaSecurity.filterSiteAreaResponse(siteArea, loggedUser);
 			// Ok?
 			if (filteredSiteArea) {
 				// Add

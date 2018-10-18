@@ -53,7 +53,7 @@ class ChargingStationSecurity {
 	}
 
 	static filterChargingStationsResponse(chargingStations, loggedUser) {
-		let filteredChargingStations = [];
+		const filteredChargingStations = [];
 
 		// Check
 		if (!chargingStations) {
@@ -64,7 +64,7 @@ class ChargingStationSecurity {
 		}
 		for (const chargingStation of chargingStations) {
 			// Filter
-			let filteredChargingStation = ChargingStationSecurity.filterChargingStationResponse(chargingStation, loggedUser);
+			const filteredChargingStation = ChargingStationSecurity.filterChargingStationResponse(chargingStation, loggedUser);
 			// Ok?
 			if (filteredChargingStation) {
 				// Add
@@ -75,27 +75,27 @@ class ChargingStationSecurity {
 	}
 
 	static filterChargingStationDeleteRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.ID = sanitize(request.ID);
 		return filteredRequest;
 	}
 
 	static filterChargingStationConfigurationRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
 		return filteredRequest;
 	}
 
 	static filterChargingStationRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		filteredRequest.ID = sanitize(request.ID);
 		return filteredRequest;
 	}
 
 	static filterChargingStationsRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.WithNoSiteArea = UtilsSecurity.filterBoolean(request.WithNoSiteArea);
 		filteredRequest.SiteID = sanitize(request.SiteID);
@@ -106,7 +106,7 @@ class ChargingStationSecurity {
 
 	static filterChargingStationParamsUpdateRequest(request, loggedUser) {
 		// Set
-		let filteredRequest = {};
+		const filteredRequest = {};
 		filteredRequest.id = sanitize(request.id);
 		if (request.hasOwnProperty('chargingStationURL')) {
 			filteredRequest.chargingStationURL = sanitize(request.chargingStationURL);
@@ -134,7 +134,7 @@ class ChargingStationSecurity {
 	}
 
 	static filterChargingStationActionRequest(request, action, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Check
 		filteredRequest.chargeBoxID = sanitize(request.chargeBoxID);
 		// Do not check action?
@@ -143,7 +143,7 @@ class ChargingStationSecurity {
 	}
 
 	static filterChargingStationSetMaxIntensitySocketRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Check
 		filteredRequest.chargeBoxID = sanitize(request.chargeBoxID);
 		filteredRequest.maxIntensity =  sanitize(request.args.maxIntensity);

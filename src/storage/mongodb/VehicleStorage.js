@@ -5,9 +5,9 @@ const Utils = require('../../utils/Utils');
 const AppError = require('../../exception/AppError');
 
 class VehicleStorage {
-	static async getVehicleImage(id) {
+	static async getVehicleImage(tenant, id) {
 		// Read DB
-		let vehicleImagesMDB = await global.db.collection('vehicleimages')
+		const vehicleImagesMDB = await global.database.getCollection(tenant, 'vehicleimages')
 			.find({_id: Utils.convertToObjectID(id)})
 			.limit(1)
 			.toArray();
@@ -22,12 +22,12 @@ class VehicleStorage {
 		return vehicleImage;
 	}
 
-	static async getVehicleImages() {
+	static async getVehicleImages(tenant) {
 		// Read DB
-		let vehicleImagesMDB = await global.db.collection('vehicleimages')
+		const vehicleImagesMDB = await global.database.getCollection(tenant, 'vehicleimages')
 			.find({})
 			.toArray();
-		let vehicleImages = [];
+		const vehicleImages = [];
 		// Set
 		if (vehicleImagesMDB && vehicleImagesMDB.length > 0) {
 			// Add
@@ -41,10 +41,10 @@ class VehicleStorage {
 		return vehicleImages;
 	}
 
-	static async getVehicle(id) {
+	static async getVehicle(tenant, id) {
 		const Vehicle = require('../../model/Vehicle'); // Avoid fucking circular deps!!!
 		// Create Aggregation
-		let aggregation = [];
+		const aggregation = [];
 		// Filters
 		aggregation.push({
 			$match: { _id: Utils.convertToObjectID(id) }
@@ -52,7 +52,7 @@ class VehicleStorage {
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Read DB
-		let vehiclesMDB = await global.db.collection('vehicles')
+		const vehiclesMDB = await global.database.getCollection(tenant, 'vehicles')
 			.aggregate(aggregation)
 			.toArray();
 		// Set
@@ -64,7 +64,7 @@ class VehicleStorage {
 		return vehicle;
 	}
 
-	static async saveVehicle(vehicleToSave) {
+	static async saveVehicle(tenant, vehicleToSave) {
 		const Vehicle = require('../../model/Vehicle'); // Avoid fucking circular deps!!!
 		// Check if ID/Model is provided
 		if (!vehicleToSave.id && !vehicleToSave.model) {
@@ -74,7 +74,7 @@ class VehicleStorage {
 				`Vehicle has no ID and no Model`,
 				550, "VehicleStorage", "saveVehicle");
 		}
-		let vehicleFilter = {};
+		const vehicleFilter = {};
 		// Build Request
 		if (vehicleToSave.id) {
 			vehicleFilter._id = Utils.convertUserToObjectID(vehicleToSave.id);
@@ -85,10 +85,10 @@ class VehicleStorage {
 		vehicleToSave.createdBy = Utils.convertUserToObjectID(vehicleToSave.createdBy);
 		vehicleToSave.lastChangedBy = Utils.convertUserToObjectID(vehicleToSave.lastChangedBy);
 		// Transfer
-		let vehicle = {};
+		const vehicle = {};
 		Database.updateVehicle(vehicleToSave, vehicle, false);
 		// Modify
-	    let result = await global.db.collection('vehicles').findOneAndUpdate(
+	    const result = await global.database.getCollection(tenant, 'vehicles').findOneAndUpdate(
 			vehicleFilter,
 			{$set: vehicle},
 			{upsert: true, new: true, returnOriginal: false});
@@ -96,7 +96,7 @@ class VehicleStorage {
 		return new Vehicle(result.value);
 	}
 
-	static async saveVehicleImages(vehicleImagesToSave) {
+	static async saveVehicleImages(tenant, vehicleImagesToSave) {
 		// Check if ID is provided
 		if (!vehicleImagesToSave.id) {
 			// ID must be provided!
@@ -106,21 +106,21 @@ class VehicleStorage {
 				550, "VehicleStorage", "saveVehicleImages");
 		}
 		// Modify
-	    await global.db.collection('vehicleimages').findOneAndUpdate(
+	    await global.database.getCollection(tenant, 'vehicleimages').findOneAndUpdate(
 			{'_id': Utils.convertToObjectID(vehicleImagesToSave.id)},
 			{$set: {images: vehicleImagesToSave.images}},
 			{upsert: true, new: true, returnOriginal: false});
 	}
 
 	// Delegate
-	static async getVehicles(params={}, limit, skip, sort) {
+	static async getVehicles(tenant, params={}, limit, skip, sort) {
 		const Vehicle = require('../../model/Vehicle'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip
 		skip = Utils.checkRecordSkip(skip);
 		// Set the filters
-		let filters = {};
+		const filters = {};
 		// Source?
 		if (params.search) {
 			// Build filter
@@ -137,7 +137,7 @@ class VehicleStorage {
 			filters.type = params.vehicleType;
 		}
 		// Create Aggregation
-		let aggregation = [];
+		const aggregation = [];
 		// Filters
 		if (filters) {
 			aggregation.push({
@@ -145,7 +145,7 @@ class VehicleStorage {
 			});
 		}
 		// Count Records
-		let vehiclesCountMDB = await global.db.collection('vehicles')
+		const vehiclesCountMDB = await global.database.getCollection(tenant, 'vehicles')
 			.aggregate([...aggregation, { $count: "count" }])
 			.toArray();
 		// Add Created By / Last Changed By
@@ -173,10 +173,10 @@ class VehicleStorage {
 			$limit: limit
 		});
 		// Read DB
-		let vehiclesMDB = await global.db.collection('vehicles')
+		const vehiclesMDB = await global.database.getCollection(tenant, 'vehicles')
 			.aggregate(aggregation, { collation: { locale : Constants.DEFAULT_LOCALE, strength: 2 }})
 			.toArray();
-		let vehicles = [];
+		const vehicles = [];
 		// Check
 		if (vehiclesMDB && vehiclesMDB.length > 0) {
 			// Create
@@ -192,12 +192,12 @@ class VehicleStorage {
 		};
 	}
 
-	static async deleteVehicle(id) {
+	static async deleteVehicle(tenant, id) {
 		// Delete Vehicle
-		await global.db.collection('vehicles')
+		await global.database.getCollection(tenant, 'vehicles')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 		// Delete Images
-		await global.db.collection('vehicleimages')
+		await global.database.getCollection(tenant, 'vehicleimages')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 	}
 }

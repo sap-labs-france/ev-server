@@ -49,11 +49,11 @@ class MongoDBStorageNotification {
 
   async watchCollection(name, pipeline, options, notifyCallback, notifyWithID) {
     // Users
-		let collectionWatcher = await _evseDB.collection(name).watch(pipeline, options);
+		const collectionWatcher = await _evseDB.collection(name).watch(pipeline, options);
     // Change Handling
     collectionWatcher.on("change", (change) => {
 			// Check for permitted operation
-			let action = this.getActionFromOperation(change.operationType);
+			const action = this.getActionFromOperation(change.operationType);
 			// Notify
       if (notifyWithID) {
         notifyCallback(action, {
@@ -77,8 +77,8 @@ class MongoDBStorageNotification {
 
 	async checkChangedCollections() {
 		let action, notification;
-    let pipeline = [];
-    let options = {
+    const pipeline = [];
+    const options = {
       'fullDocument': 'updateLookup'
     };
 		// Check
@@ -117,13 +117,13 @@ class MongoDBStorageNotification {
 		// Site Images
     this.watchCollection("siteimages", pipeline, options, _centralRestServer.notifySite.bind(_centralRestServer), true);
 		// Transaction
-		let transactionsWatcher = await _evseDB.collection("transactions").watch(pipeline, options);
+		const transactionsWatcher = await _evseDB.collection("transactions").watch(pipeline, options);
     // Change Handling
     transactionsWatcher.on("change", (change) => {
 			// Check for permitted operation
-			let action = this.getActionFromOperation(change.operationType);
+			const action = this.getActionFromOperation(change.operationType);
 			// Notify
-			let notification = {
+			const notification = {
 				"id": change.documentKey._id.toString()
 			};
 			// Operation
@@ -143,13 +143,13 @@ class MongoDBStorageNotification {
 		});
 
 		// Meter Values
-		let meterValuesWatcher = await _evseDB.collection("metervalues").watch(pipeline, options);
+		const meterValuesWatcher = await _evseDB.collection("metervalues").watch(pipeline, options);
     // Change Handling
     meterValuesWatcher.on("change", (change) => {
 			// Check for permitted operation
-			let action = this.getActionFromOperation(change.operationType);
+			const action = this.getActionFromOperation(change.operationType);
 			// Notify
-			let notification = {};
+			const notification = {};
       // Insert/Create?
 			if (change.operationType == 'insert') {
 				notification.id = change.fullDocument.transactionId;
@@ -162,11 +162,11 @@ class MongoDBStorageNotification {
 		});
 
 		// Charging Stations Configuration
-		let configurationsWatcher = await _evseDB.collection("configurations").watch(pipeline, options);
+		const configurationsWatcher = await _evseDB.collection("configurations").watch(pipeline, options);
     // Change Handling
     configurationsWatcher.on("change", (change) => {
 			// Check for permitted operation
-			let action = this.getActionFromOperation(change.operationType);
+			const action = this.getActionFromOperation(change.operationType);
       // Notify
 			_centralRestServer.notifyChargingStation(action, {
 				"type": Constants.NOTIF_TYPE_CHARGING_STATION_CONFIGURATION,

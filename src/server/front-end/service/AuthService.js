@@ -17,7 +17,7 @@ const NotificationHandler = require('../../../notification/NotificationHandler')
 const AuthSecurity = require('./security/AuthSecurity');
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage');
 
-let _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
+const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
 
 // Init JWT auth options
@@ -48,9 +48,9 @@ class AuthService {
 	static async handleIsAuthorized(action, req, res, next) {
 		try {
 			// Default
-			let result = {'IsAuthorized' : false};
+			const result = {'IsAuthorized' : false};
 			// Filter
-			let filteredRequest = AuthSecurity.filterIsAuthorizedRequest(req.query);
+			const filteredRequest = AuthSecurity.filterIsAuthorizedRequest(req.query);
 			// Check
 			if (!filteredRequest.Action) {
 				throw new AppError(
@@ -77,7 +77,7 @@ class AuthService {
 							550, 'AuthService', 'handleIsAuthorized');
 					}
 					// Get the Charging station
-					let chargingStation = await ChargingStation.getChargingStation(filteredRequest.Arg1);
+					const chargingStation = await ChargingStation.getChargingStation(filteredRequest.Arg1);
 					// Found?
 					if (!chargingStation) {
 						// Not Found!
@@ -87,7 +87,7 @@ class AuthService {
 							550, 'AuthService', 'handleIsAuthorized');
 					}
 					// Get Transaction
-					let transaction = await TransactionStorage.getTransaction(filteredRequest.Arg2);
+					const transaction = await TransactionStorage.getTransaction(filteredRequest.Arg2);
 					if (!transaction) {
 						throw new AppError(
 							Constants.CENTRAL_SERVER,
@@ -118,7 +118,7 @@ class AuthService {
 	static async handleLogIn(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = AuthSecurity.filterLoginRequest(req.body);
+			const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
 			// Check
 			if (!filteredRequest.email) {
 				throw new AppError(
@@ -132,6 +132,12 @@ class AuthService {
 					`The Password is mandatory`, 500, 
 					'AuthService', 'handleLogIn');
 			}
+            if (filteredRequest.tenant === undefined) {
+                throw new AppError(
+                Constants.CENTRAL_SERVER,
+                `The Tenant is mandatory`, 500,
+                'AuthService', 'handleLogIn');
+            }
 			if (!filteredRequest.acceptEula) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -139,11 +145,11 @@ class AuthService {
 					'AuthService', 'handleLogIn');
 			}
 			// Check email
-			let user = await User.getUserByEmail(filteredRequest.email);
+			const user = await User.getUserByEmail(filteredRequest.tenant, filteredRequest.email);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
-					`The user with email '${filteredRequest.email}' does not exist`, 
+					`The user with email '${filteredRequest.email}' does not exist for tenant '${filteredRequest.tenant}'`,
 					550, 'AuthService', 'handleLogIn');
 			}
 			if (user.isDeleted()) {
@@ -168,7 +174,7 @@ class AuthService {
 						user.setPasswordBlockedUntil(null);
 						user.setStatus(Constants.USER_STATUS_ACTIVE);
 						// Save
-						await user.save();
+						await user.save(filteredRequest.tenant);
 						// Check user
 						await AuthService.checkUserLogin(action, user, filteredRequest, req, res, next);
 					} else {
@@ -198,7 +204,7 @@ class AuthService {
 	static async handleRegisterUser(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = AuthSecurity.filterRegisterUserRequest(req.body);
+			const filteredRequest = AuthSecurity.filterRegisterUserRequest(req.body);
 			// Check EULA
 			if (!filteredRequest.acceptEula) {
 				throw new AppError(
@@ -214,7 +220,7 @@ class AuthService {
 					'AuthService', 'handleRegisterUser');
 			}
 			// Check captcha
-			let response = await axios.get(
+			const response = await axios.get(
 				`https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
 			// Check
 			if (!response.data.success) {
@@ -224,7 +230,7 @@ class AuthService {
 					'AuthService', 'handleRegisterUser');
 			}
 			// Check email
-			let user = await User.getUserByEmail(filteredRequest.email);
+			const user = await User.getUserByEmail(filteredRequest.email);
 			// Check Mandatory fields
 			User.checkIfUserValid(filteredRequest, req);
 			if (user) {
@@ -235,7 +241,7 @@ class AuthService {
 					null, user.getModel());
 			}
 			// Generate a password
-			let newPasswordHashed = await User.hashPasswordBcrypt(filteredRequest.password);
+			const newPasswordHashed = await User.hashPasswordBcrypt(filteredRequest.password);
 			// Create the user
 			let newUser = new User(filteredRequest);
 			// Set data
@@ -251,13 +257,13 @@ class AuthService {
 			// Set
 			newUser.setSites(sites.result);
 			// Get EULA
-			let endUserLicenseAgreement = await User.getEndUserLicenseAgreement(newUser.getLanguage());
+			const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(newUser.getLanguage());
 			// Set Eula Info on Login Only
 			newUser.setEulaAcceptedOn(new Date());
 			newUser.setEulaAcceptedVersion(endUserLicenseAgreement.version);
 			newUser.setEulaAcceptedHash(endUserLicenseAgreement.hash);
 			// Generate Verification Token
-			let verificationToken = Utils.generateToken(req.body.email);
+			const verificationToken = Utils.generateToken(req.body.email);
 			newUser.setVerificationToken(verificationToken);
 			// Save
 			newUser = await newUser.save();
@@ -270,7 +276,7 @@ class AuthService {
 				detailedMessages: req.body
 			});
 			// Send notification
-			let evseDashboardVerifyEmailURL = Utils.buildEvseURL() +
+			const evseDashboardVerifyEmailURL = Utils.buildEvseURL() +
 				'/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
 			newUser.getEMail();
 			NotificationHandler.sendNewRegisteredUser(
@@ -302,7 +308,7 @@ class AuthService {
 					'AuthService', 'handleUserPasswordReset');
 			}
 			// Check captcha
-			let response = await axios.get(
+			const response = await axios.get(
 				`https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
 			// Check
 			if (!response.data.success) {
@@ -312,9 +318,9 @@ class AuthService {
 					'AuthService', 'handleRegisterUser');
 			}
 			// Yes: Generate new password
-			let resetHash = Utils.generateGUID();
+			const resetHash = Utils.generateGUID();
 			// Generate a new password
-			let user = await User.getUserByEmail(filteredRequest.email);
+			const user = await User.getUserByEmail(filteredRequest.email);
 			// Found?
 			if (!user) {
 				throw new AppError(
@@ -332,7 +338,7 @@ class AuthService {
 			// Hash it
 			user.setPasswordResetHash(resetHash);
 			// Save the user
-			let savedUser = await user.save();
+			const savedUser = await user.save();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, action: action,
@@ -341,7 +347,7 @@ class AuthService {
 				message: `User with Email '${req.body.email}' will receive an email to reset his password`
 			});
 			// Send notification
-			let evseDashboardResetPassURL = Utils.buildEvseURL() +
+			const evseDashboardResetPassURL = Utils.buildEvseURL() +
 				'/#/reset-password?hash=' + resetHash + '&email=' +
 				savedUser.getEMail();
 			// Send email
@@ -367,11 +373,11 @@ class AuthService {
 	static async generateNewPasswordAndSendEmail(filteredRequest, action, req, res, next) {
 		try {
 			// Create the password
-			let newPassword = User.generatePassword();
+			const newPassword = User.generatePassword();
 			// Hash it
-			let newHashedPassword = await User.hashPasswordBcrypt(newPassword);
+			const newHashedPassword = await User.hashPasswordBcrypt(newPassword);
 			// Get the user
-			let user = await User.getUserByEmail(filteredRequest.email);
+			const user = await User.getUserByEmail(filteredRequest.email);
 			// Found?
 			if (!user) {
 				throw new AppError(
@@ -407,7 +413,7 @@ class AuthService {
 			// Reset the hash
 			user.setPasswordResetHash(null);
 			// Save the user
-			let newUser = await user.save();
+			const newUser = await user.save();
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, action: action,
@@ -439,7 +445,7 @@ class AuthService {
 
 	static async handleUserPasswordReset(action, req, res, next) {
 		// Filter
-		let filteredRequest = AuthSecurity.filterResetPasswordRequest(req.body);
+		const filteredRequest = AuthSecurity.filterResetPasswordRequest(req.body);
 		// Check hash
 		if (!filteredRequest.hash) {
 			// Send Confirmation Email for requesting a new password
@@ -452,7 +458,7 @@ class AuthService {
 
 	static async handleVerifyEmail(action, req, res, next) {
 		// Filter
-		let filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
+		const filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
 		try{
 			// Check email
 			if (!filteredRequest.Email) {
@@ -469,7 +475,7 @@ class AuthService {
 					'AuthService', 'handleVerifyEmail');
 			}
 			// Check email
-			let user = await User.getUserByEmail(filteredRequest.Email);
+			const user = await User.getUserByEmail(filteredRequest.Email);
 			// User exists?
 			if (!user) {
 				throw new AppError(
@@ -525,7 +531,7 @@ class AuthService {
 	static async handleResendVerificationEmail(action, req, res, next) {
 		let verificationToken;
 		// Filter
-		let filteredRequest = AuthSecurity.filterResendVerificationEmail(req.body);			
+		const filteredRequest = AuthSecurity.filterResendVerificationEmail(req.body);			
 		try{
 			// Check email
 			if (!filteredRequest.email) {
@@ -542,7 +548,7 @@ class AuthService {
 					'AuthService', 'handleResendVerificationEmail');
 			}
 			// Is valid captcha?
-			let response = await axios.get(
+			const response = await axios.get(
 				`https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
 			if (!response.data.success) {
 				throw new AppError(
@@ -596,7 +602,7 @@ class AuthService {
 				detailedMessages: req.body
 			});
 			// Send notification
-			let evseDashboardVerifyEmailURL = Utils.buildEvseURL() +
+			const evseDashboardVerifyEmailURL = Utils.buildEvseURL() +
 			'/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
 			user.getEMail();
 			NotificationHandler.sendVerificationEmail(
@@ -664,7 +670,7 @@ class AuthService {
 			module: 'AuthService', method: 'checkUserLogin',
 			action: action, message: `User logged in successfully`});
 		// Get EULA
-		let endUserLicenseAgreement = await User.getEndUserLicenseAgreement(user.getLanguage());
+		const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(user.getLanguage());
 		// Set Eula Info on Login Only
 		if (action == 'Login') {
 			user.setEulaAcceptedOn(new Date());
@@ -678,9 +684,9 @@ class AuthService {
 		// Save
 		await user.save();
 		// Build Authorization
-		let auths = await Authorizations.buildAuthorizations(user);
+		const auths = await Authorizations.buildAuthorizations(user);
 		// Yes: build payload
-		let payload = {
+		const payload = {
 			'id': user.getID(),
 			'role': user.getRole(),
 			'name': user.getName(),
@@ -719,7 +725,7 @@ class AuthService {
 				user.getModel());
 		}
 		// Check password
-		let match = await User.checkPasswordBCrypt(filteredRequest.password, user.getPassword());
+		const match = await User.checkPasswordBCrypt(filteredRequest.password, user.getPassword());
 		// Check new and old version of hashing the password
 		if (match || (user.getPassword() === User.hashPassword(filteredRequest.password))) {
 				// Check if the account is pending

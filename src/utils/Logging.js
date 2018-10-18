@@ -35,7 +35,7 @@ class Logging {
 		// Log
 		log.level = LogLevel.DEBUG;
 		// Log it
-		Logging._log(log);
+		Logging._log(Constants.DEFAULT_TENANT, log);
 	}
 
 	// Log Info
@@ -51,7 +51,7 @@ class Logging {
 		// Log
 		log.level = LogLevel.INFO;
 		// Log it
-		Logging._log(log);
+		Logging._log(Constants.DEFAULT_TENANT, log);
 	}
 
 	// Log Warning
@@ -59,7 +59,7 @@ class Logging {
 		// Log
 		log.level = LogLevel.WARNING;
 		// Log it
-		Logging._log(log);
+		Logging._log(Constants.DEFAULT_TENANT, log);
 	}
 
 	// Log Warning
@@ -83,7 +83,7 @@ class Logging {
 		// Log
 		log.level = LogLevel.ERROR;
 		// Log it
-		Logging._log(log);
+		Logging._log(Constants.DEFAULT_TENANT, log);
 	}
 
 	// Log
@@ -261,7 +261,7 @@ class Logging {
 	}
 
 	// Log
-	static _log(log) {
+	static _log(tenant, log) {
 		// Log
 		log.timestamp = new Date();
 
@@ -286,7 +286,7 @@ class Logging {
 			log.type = LoggingType.REGULAR;
 		}
 		// Log
-		LoggingStorage.saveLog(log);
+		LoggingStorage.saveLog(tenant, log);
 
 		// Log in Cloud Foundry
 		if (Configuration.isCloudFoundry()) {
@@ -311,11 +311,11 @@ class Logging {
 	}
 
 	static getLog(id) {
-		return LoggingStorage.getLog(id);
+		return LoggingStorage.getLog(Constants.DEFAULT_TENANT, id);
 	}
 
 	static getLogs(params, limit, skip, sort) {
-		return LoggingStorage.getLogs(params, limit, skip, sort)
+		return LoggingStorage.getLogs(Constants.DEFAULT_TENANT, params, limit, skip, sort)
 	}
 }
 

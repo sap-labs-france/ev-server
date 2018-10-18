@@ -6,13 +6,13 @@ const AppError = require('../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
 
 class SiteStorage {
-	static async getSite(id, withCompany, withUsers) {
+	static async getSite(tenant, id, withCompany, withUsers) {
 		const Site = require('../../model/Site'); // Avoid fucking circular deps!!!
 		const Company = require('../../model/Company'); // Avoid fucking circular deps!!!
 		const SiteArea = require('../../model/SiteArea'); // Avoid fucking circular deps!!!
 		const User = require('../../model/User'); // Avoid fucking circular deps!!!
 		// Create Aggregation
-		let aggregation = [];
+		const aggregation = [];
 		// Filters
 		aggregation.push({
 			$match: { _id: Utils.convertToObjectID(id) }
@@ -65,7 +65,7 @@ class SiteStorage {
 			});
 		}
 		// Read DB
-		let sitesMDB = await global.db.collection('sites')
+		const sitesMDB = await global.database.getCollection(tenant, 'sites')
 			.aggregate(aggregation)
 			.toArray();
 		let site = null;
@@ -93,9 +93,9 @@ class SiteStorage {
 		return site;
 	}
 
-	static async getSiteImage(id) {
+	static async getSiteImage(tenant, id) {
 		// Read DB
-		let siteImagesMDB = await global.db.collection('siteimages')
+		const siteImagesMDB = await global.database.getCollection(tenant, 'siteimages')
 			.find({_id: Utils.convertToObjectID(id)})
 			.limit(1)
 			.toArray();
@@ -110,12 +110,12 @@ class SiteStorage {
 		return siteImage;
 	}
 
-	static async getSiteImages() {
+	static async getSiteImages(tenant) {
 		// Read DB
-		let siteImagesMDB = await global.db.collection('siteimages')
+		const siteImagesMDB = await global.database.getCollection(tenant, 'siteimages')
 			.find({})
 			.toArray();
-		let siteImages = [];
+		const siteImages = [];
 		// Set
 		if (siteImagesMDB && siteImagesMDB.length > 0) {
 			// Add
@@ -129,7 +129,7 @@ class SiteStorage {
 		return siteImages;
 	}
 
-	static async saveSite(siteToSave) {
+	static async saveSite(tenant, siteToSave) {
 		const Site = require('../../model/Site'); // Avoid fucking circular deps!!!
 		// Check if ID/Name is provided
 		if (!siteToSave.id && !siteToSave.name) {
@@ -139,7 +139,7 @@ class SiteStorage {
 				`Site has no ID and no Name`,
 				550, "SiteStorage", "saveSite");
 		}
-		let siteFilter = {};
+		const siteFilter = {};
 		// Build Request
 		if (siteToSave.id) {
 			siteFilter._id = Utils.convertUserToObjectID(siteToSave.id);
@@ -150,23 +150,23 @@ class SiteStorage {
 		siteToSave.createdBy = Utils.convertUserToObjectID(siteToSave.createdBy);
 		siteToSave.lastChangedBy = Utils.convertUserToObjectID(siteToSave.lastChangedBy);
 		// Transfer
-		let site = {};
+		const site = {};
 		Database.updateSite(siteToSave, site, false);
 		// Modify
-	    let result = await global.db.collection('sites').findOneAndUpdate(
+	    const result = await global.database.getCollection(tenant, 'sites').findOneAndUpdate(
 			siteFilter,
 			{$set: site},
 			{upsert: true, new: true, returnOriginal: false});
 		// Create
-		let updatedSite = new Site(result.value);
+		const updatedSite = new Site(result.value);
 		// Update Users?`
 		if (siteToSave.users) {
 			// Delete first
-			await global.db.collection('siteusers')
+			await global.database.getCollection(tenant, 'siteusers')
 				.deleteMany( {'siteID': Utils.convertToObjectID(updatedSite.getID())} );
 			// At least one?
 			if (siteToSave.users.length > 0) {
-				let siteUsersMDB = [];
+				const siteUsersMDB = [];
 				// Create the list
 				for (const user of siteToSave.users) {
 					// Add
@@ -176,13 +176,13 @@ class SiteStorage {
 					});
 				}
 				// Execute
-				await global.db.collection('siteusers').insertMany(siteUsersMDB);
+				await global.database.getCollection(tenant, 'siteusers').insertMany(siteUsersMDB);
 			}
 		}
 		return updatedSite;
 	}
 
-	static async saveSiteImage(siteImageToSave) {
+	static async saveSiteImage(tenant, siteImageToSave) {
 		// Check if ID is provided
 		if (!siteImageToSave.id) {
 			// ID must be provided!
@@ -192,13 +192,13 @@ class SiteStorage {
 				550, "SiteStorage", "saveSiteImage");
 		}
 		// Modify
-	    await global.db.collection('siteimages').findOneAndUpdate(
+	    await global.database.getCollection(tenant, 'siteimages').findOneAndUpdate(
 			{'_id': Utils.convertToObjectID(siteImageToSave.id)},
 			{$set: {image: siteImageToSave.image}},
 			{upsert: true, new: true, returnOriginal: false});
 	}
 
-	static async getSites(params={}, limit, skip, sort) {
+	static async getSites(tenant, params={}, limit, skip, sort) {
 		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
 		const Company = require('../../model/Company'); // Avoid fucking circular deps!!!
 		const Site = require('../../model/Site'); // Avoid fucking circular deps!!!
@@ -209,7 +209,7 @@ class SiteStorage {
 		// Check Skip
 		skip = Utils.checkRecordSkip(skip);
 		// Set the filters
-		let filters = {};
+		const filters = {};
 		// Source?
 		if (params.search) {
 			// Build filter
@@ -222,7 +222,7 @@ class SiteStorage {
 			filters.companyID = Utils.convertToObjectID(params.companyID);
 		}
 		// Create Aggregation
-		let aggregation = [];
+		const aggregation = [];
 		// Set User?
 		if (params.withUsers || params.userID || params.excludeSitesOfUserID) {
 				// Add Users
@@ -283,7 +283,7 @@ class SiteStorage {
 			});
 		}
 		// Count Records
-		let sitesCountMDB = await global.db.collection('sites')
+		const sitesCountMDB = await global.database.getCollection(tenant, 'sites')
 			.aggregate([...aggregation, { $count: "count" }])
 			.toArray();
 		// Add Created By / Last Changed By
@@ -324,16 +324,16 @@ class SiteStorage {
 			$limit: limit
 		});
 		// Read DB
-		let sitesMDB = await global.db.collection('sites')
+		const sitesMDB = await global.database.getCollection(tenant, 'sites')
 			.aggregate(aggregation, { collation: { locale : Constants.DEFAULT_LOCALE, strength: 2 }})
 			.toArray();
-		let sites = [];
+		const sites = [];
 		// Check
 		if (sitesMDB && sitesMDB.length > 0) {
 			// Create
 			for (const siteMDB of sitesMDB) {
 				// Create
-				let site = new Site(siteMDB);
+				const site = new Site(siteMDB);
 				// Set Users
 				if ((params.userID || params.withUsers) && siteMDB.users) {
 					// Set Users
@@ -365,11 +365,11 @@ class SiteStorage {
 					});
 					// Set
 					site.setSiteAreas(siteMDB.siteAreas.map((siteArea) => {
-						let siteAreaObj = new SiteArea(siteArea);
+						const siteAreaObj = new SiteArea(siteArea);
 						// Set Site Areas
 						if (siteMDB.chargeBoxes) {
 							// Filter with Site Area`
-							let chargeBoxesPerSiteArea = siteMDB.chargeBoxes.filter((chargeBox) => {
+							const chargeBoxesPerSiteArea = siteMDB.chargeBoxes.filter((chargeBox) => {
 								return !chargeBox.deleted && chargeBox.siteAreaID.toString() == siteArea._id;
 							});
 							// Sort Charging Stations
@@ -379,7 +379,7 @@ class SiteStorage {
 							// Set Charger to Site Area
 							siteAreaObj.setChargingStations(chargeBoxesPerSiteArea.map((chargeBoxPerSiteArea) => {
 								// Create the Charger
-								let chargingStation = new ChargingStation(chargeBoxPerSiteArea);
+								const chargingStation = new ChargingStation(chargeBoxPerSiteArea);
 								// Set Site Area to Charger
 								chargingStation.setSiteArea(new SiteArea(siteAreaObj.getModel())); // To avoid circular deps Charger -> Site Area -> Charger
 								// Return
@@ -404,22 +404,22 @@ class SiteStorage {
 		};
 	}
 
-	static async deleteSite(id) {
+	static async deleteSite(tenant, id) {
 		// Delete Site Areas
-		let siteAreas = await SiteAreaStorage.getSiteAreas({'siteID': id})
+		const siteAreas = await SiteAreaStorage.getSiteAreas({'siteID': id})
 		// Delete
 		for (const siteArea of siteAreas.result) {
 			//	Delete Site Area
 			await siteArea.delete();
 		}
 		// Delete Site
-		await global.db.collection('sites')
+		await global.database.getCollection(tenant, 'sites')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 		// Delete Image
-		await global.db.collection('siteimages')
+		await global.database.getCollection(tenant, 'siteimages')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 		// Delete Site's Users
-		await global.db.collection('siteusers')
+		await global.database.getCollection(tenant, 'siteusers')
 			.deleteMany( {'siteID': Utils.convertToObjectID(id)} );
 	}
 }

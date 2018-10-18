@@ -5,10 +5,10 @@ const ObjectID = require('mongodb').ObjectID;
 const AppError = require('../../exception/AppError');
 
 class TenantStorage {
-    static async getTenant(id) {
-		const Tenant = require('../../model/Tenant'); // Avoid fucking circular deps!!!
+    static async getTenant(id){
+        const Tenant = require('../../model/Tenant'); // Avoid fucking circular deps!!!
         // Create Aggregation
-        let aggregation = [];
+        const aggregation = [];
         // Filters
         aggregation.push({
             $match: {
@@ -18,10 +18,10 @@ class TenantStorage {
         // Add Created By / Last Changed By
         Utils.pushCreatedLastChangedInAggregation(aggregation);
         // Read DB
-        let tenantsMDB = await global.db.collection('tenants')
-            .aggregate(aggregation)
-            .limit(1)
-            .toArray();
+        const tenantsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
+        .aggregate(aggregation)
+        .limit(1)
+        .toArray();
         let tenant = null;
         // Found?
         if (tenantsMDB && tenantsMDB.length > 0) {
@@ -31,42 +31,42 @@ class TenantStorage {
         return tenant;
     }
 
-    static async getTenantByName(name) {
+    static async getTenantByName(name){
         // Get
-        return await TenantStorage.getTenantByFilter({ 'name': name });
+        return await TenantStorage.getTenantByFilter({'name': name});
     }
 
-    static async getTenantBySubdomain(subdomain) {
+    static async getTenantBySubdomain(subdomain){
         // Get
-        return await TenantStorage.getTenantByFilter({ 'subdomain': subdomain });
+        return await TenantStorage.getTenantByFilter({'subdomain': subdomain});
     }
 
-    static async getTenantByFilter(filter) {
-		const Tenant = require('../../model/Tenant'); // Avoid fucking circular deps!!!
+    static async getTenantByFilter(filter){
+        const Tenant = require('../../model/Tenant'); // Avoid fucking circular deps!!!
         // Read DB
-        let tenantsMDB = await global.db.collection('tenants')
-            .find(filter)
-            .limit(1)
-            .toArray();
+        const tenantsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
+        .find(filter)
+        .limit(1)
+        .toArray();
         let tenant = null;
         // Found?
         if (tenantsMDB && tenantsMDB.length > 0) {
-			// Create
+            // Create
             tenant = new Tenant(tenantsMDB[0]);
         }
         return tenant;
     }
 
-    static async saveTenant(tenantToSave) {
-		const Tenant = require('../../model/Tenant'); // Avoid fucking circular deps!!!
+    static async saveTenant(tenantToSave){
+        const Tenant = require('../../model/Tenant'); // Avoid fucking circular deps!!!
         // Check
         if (!tenantToSave.id && !tenantToSave.name) {
             throw new AppError(
-                Constants.CENTRAL_SERVER,
-                `Tenant has no ID and no Name`,
-                550, "TenantStorage", "saveTenant");
+            Constants.CENTRAL_SERVER,
+            `Tenant has no ID and no Name`,
+            550, "TenantStorage", "saveTenant");
         }
-        let tenantFilter = {};
+        const tenantFilter = {};
         // Build Request
         if (tenantToSave.id) {
             tenantFilter._id = Utils.convertToObjectID(tenantToSave.id);
@@ -77,34 +77,34 @@ class TenantStorage {
         tenantToSave.createdBy = Utils.convertUserToObjectID(tenantToSave.createdBy);
         tenantToSave.lastChangedBy = Utils.convertUserToObjectID(tenantToSave.lastChangedBy);
         // Transfer
-        let tenant = {};
+        const tenant = {};
         Database.updateTenant(tenantToSave, tenant, false);
         // Modify
-        let result = await global.db.collection('tenants').findOneAndUpdate(
-            tenantFilter, {
-                $set: tenant
-            }, {
-                upsert: true,
-                new: true,
-                returnOriginal: false
-            });
+        const result = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
+        tenantFilter, {
+            $set: tenant
+        }, {
+            upsert: true,
+            new: true,
+            returnOriginal: false
+        });
         // Create
         return new Tenant(result.value);
     }
 
-    static async createTenantDB(tenant) {
-        await global.database.createTenantDatabase(global.db, tenant);
+    static async createTenantDB(tenant){
+        await global.database.createTenantDatabase(tenant);
     }
 
     // Delegate
-    static async getTenants(params = {}, limit, skip, sort) {
-		const Tenant = require('../../model/Tenant'); // Avoid fucking circular deps!!!
-	    // Check Limit
-	    limit = Utils.checkRecordLimit(limit);
-		// Check Skip
+    static async getTenants(params = {}, limit, skip, sort){
+        const Tenant = require('../../model/Tenant'); // Avoid fucking circular deps!!!
+        // Check Limit
+        limit = Utils.checkRecordLimit(limit);
+        // Check Skip
         skip = Utils.checkRecordSkip(skip);
         // Set the filters
-        let filters = {};
+        const filters = {};
         // Source?
         if (params.search) {
             // Build filter
@@ -116,7 +116,7 @@ class TenantStorage {
             }];
         }
         // Create Aggregation
-        let aggregation = [];
+        const aggregation = [];
         // Filters
         if (filters) {
             aggregation.push({
@@ -124,11 +124,11 @@ class TenantStorage {
             });
         }
         // Count Records
-        let tenantsCountMDB = await global.db.collection('tenants')
-            .aggregate([...aggregation, {
-                $count: "count"
-            }])
-            .toArray();
+        const tenantsCountMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
+        .aggregate([...aggregation, {
+            $count: "count"
+        }])
+        .toArray();
         // Add Created By / Last Changed By
         Utils.pushCreatedLastChangedInAggregation(aggregation);
         // Sort
@@ -154,16 +154,16 @@ class TenantStorage {
             $limit: limit
         });
         // Read DB
-        let tenantsMDB = await global.db.collection('tenants')
-            .aggregate(aggregation, {
-                collation: {
-                    locale: Constants.DEFAULT_LOCALE,
-                    strength: 2
-                }
-            })
-            .toArray();
+        const tenantsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
+        .aggregate(aggregation, {
+            collation: {
+                locale: Constants.DEFAULT_LOCALE,
+                strength: 2
+            }
+        })
+        .toArray();
 
-        let tenants = [];
+        const tenants = [];
         // Create
         for (const tenantMDB of tenantsMDB) {
             // Add
@@ -176,11 +176,11 @@ class TenantStorage {
         };
     }
 
-    static async deleteTenant(id) {
-        await global.db.collection('tenants')
-            .findOneAndDelete({
-                '_id': Utils.convertToObjectID(id)
-            });
+    static async deleteTenant(id){
+        await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
+        .findOneAndDelete({
+            '_id': Utils.convertToObjectID(id)
+        });
     }
 }
 

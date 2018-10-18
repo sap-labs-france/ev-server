@@ -6,10 +6,10 @@ const ObjectID = require('mongodb').ObjectID;
 const AppError = require('../../exception/AppError');
 
 class CompanyStorage {
-	static async getCompany(id) {
+	static async getCompany(tenant, id) {
 		const Company = require('../../model/Company'); // Avoid fucking circular deps!!!
 		// Create Aggregation
-		let aggregation = [];
+		const aggregation = [];
 		// Filters
 		aggregation.push({
 			$match: { _id: Utils.convertToObjectID(id) }
@@ -17,7 +17,7 @@ class CompanyStorage {
 		// Add Created By / Last Changed By
 		Utils.pushCreatedLastChangedInAggregation(aggregation);
 		// Read DB
-		let companiesMDB = await global.db.collection('companies')
+		const companiesMDB = await global.database.getCollection(tenant, 'companies')
 			.aggregate(aggregation)
 			.limit(1)
 			.toArray();
@@ -30,9 +30,9 @@ class CompanyStorage {
 		return company;
 	}
 
-	static async getCompanyLogo(id) {
+	static async getCompanyLogo(tenant, id) {
 		// Read DB
-		let companyLogosMDB = await global.db.collection('companylogos')
+		const companyLogosMDB = await global.database.getCollection(tenant, 'companylogos')
 			.find({_id: Utils.convertToObjectID(id)})
 			.limit(1)
 			.toArray();
@@ -47,14 +47,13 @@ class CompanyStorage {
 		return companyLogo;
 	}
 
-	static async getCompanyLogos() {
+	static async getCompanyLogos(tenant) {
 		// Read DB
-		let companyLogosMDB = await global.db.collection('companylogos')
+		const companyLogosMDB = await global.database.getCollection(tenant, 'companylogos')
 			.find({})
 			.toArray();
-		let companyLogo = null;
 		// Set
-		let companyLogos = [];
+		const companyLogos = [];
 		if (companyLogosMDB && companyLogosMDB.length > 0) {
 			// Add
 			for (const companyLogoMDB of companyLogosMDB) {
@@ -67,7 +66,7 @@ class CompanyStorage {
 		return companyLogos;
 	}
 
-	static async saveCompany(companyToSave) {
+	static async saveCompany(tenant, companyToSave) {
 		const Company = require('../../model/Company'); // Avoid fucking circular deps!!!
 		// Check if ID/Name is provided
 		if (!companyToSave.id && !companyToSave.name) {
@@ -77,7 +76,7 @@ class CompanyStorage {
 				`Company has no ID and no Name`,
 				550, "CompanyStorage", "saveCompany");
 		}
-		let companyFilter = {};
+		const companyFilter = {};
 		// Build Request
 		if (companyToSave.id) {
 			companyFilter._id = Utils.convertToObjectID(companyToSave.id);
@@ -88,10 +87,10 @@ class CompanyStorage {
 		companyToSave.createdBy = Utils.convertUserToObjectID(companyToSave.createdBy);
 		companyToSave.lastChangedBy = Utils.convertUserToObjectID(companyToSave.lastChangedBy);
 		// Transfer
-		let company = {};
+		const company = {};
 		Database.updateCompany(companyToSave, company, false);
 		// Modify
-	    let result = await global.db.collection('companies').findOneAndUpdate(
+	    const result = await global.database.getCollection(tenant, 'companies').findOneAndUpdate(
 			companyFilter,
 			{$set: company},
 			{upsert: true, new: true, returnOriginal: false});
@@ -99,7 +98,7 @@ class CompanyStorage {
 		return new Company(result.value);
 	}
 
-	static async saveCompanyLogo(companyLogoToSave) {
+	static async saveCompanyLogo(tenant, companyLogoToSave) {
 		// Check if ID is provided
 		if (!companyLogoToSave.id) {
 			// ID must be provided!
@@ -109,14 +108,14 @@ class CompanyStorage {
 				550, "CompanyStorage", "saveCompanyLogo");
 		}
 		// Modify
-	    await global.db.collection('companylogos').findOneAndUpdate(
+	    await global.database.getCollection(tenant, 'companylogos').findOneAndUpdate(
 			{'_id': Utils.convertToObjectID(companyLogoToSave.id)},
 			{$set: {logo: companyLogoToSave.logo}},
 			{upsert: true, new: true, returnOriginal: false});
 	}
 
 	// Delegate
-	static async getCompanies(params={}, limit, skip, sort) {
+	static async getCompanies(tenant, params={}, limit, skip, sort) {
 		const Company = require('../../model/Company'); // Avoid fucking circular deps!!!
 		const Site = require('../../model/Site');  // Avoid fucking circular deps!!!
 		// Check Limit
@@ -124,7 +123,7 @@ class CompanyStorage {
 		// Check Skip
 		skip = Utils.checkRecordSkip(skip);
 		// Set the filters
-		let filters = {};
+		const filters = {};
 		// Source?
 		if (params.search) {
 			// Build filter
@@ -135,7 +134,7 @@ class CompanyStorage {
 			];
 		}
 		// Create Aggregation
-		let aggregation = [];
+		const aggregation = [];
 		// Filters
 		if (filters) {
 			aggregation.push({
@@ -154,7 +153,7 @@ class CompanyStorage {
 			});
 		}
 		// Count Records
-		let companiesCountMDB = await global.db.collection('companies')
+		const companiesCountMDB = await global.database.getCollection(tenant, 'companies')
 			.aggregate([...aggregation, { $count: "count" }])
 			.toArray();
 		// Add Created By / Last Changed By
@@ -180,15 +179,15 @@ class CompanyStorage {
 			$limit: limit
 		});
 		// Read DB
-		let companiesMDB = await global.db.collection('companies')
+		const companiesMDB = await global.database.getCollection(tenant, 'companies')
 			.aggregate(aggregation, { collation: { locale : Constants.DEFAULT_LOCALE, strength: 2 }})
 			.toArray();
-		let companies = [];
+		const companies = [];
 		// Check
 		if (companiesMDB && companiesMDB.length > 0) {
 			for (const companyMDB of companiesMDB) {
 				// Create
-				let company = new Company(companyMDB);
+				const company = new Company(companyMDB);
 				// Set site
 				if (params.withSites && companyMDB.sites) {
 					company.setSites(companyMDB.sites.map((site) => {
@@ -206,19 +205,19 @@ class CompanyStorage {
 		};
 	}
 
-	static async deleteCompany(id) {
+	static async deleteCompany(tenant, id) {
 		// Delete Sites
-		let sites = await SiteStorage.getSites({'companyID': id});
+		const sites = await SiteStorage.getSites({'companyID': id});
 		// Delete
 		for (const site of sites.result) {
 			//	Delete Site
 			await site.delete();
 		}
 		// Delete the Company
-		await global.db.collection('companies')
+		await global.database.getCollection(tenant, 'companies')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 		// Delete Logo
-		await global.db.collection('companylogos')
+		await global.database.getCollection(tenant, 'companylogos')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 	}
 }

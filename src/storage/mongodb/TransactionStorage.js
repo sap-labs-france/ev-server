@@ -4,31 +4,31 @@ const Utils = require('../../utils/Utils');
 const crypto = require('crypto');
 
 class TransactionStorage {
-	static async deleteTransaction(transaction) {
+	static async deleteTransaction(tenant, transaction) {
 		// Delete Transactions
-		await global.db.collection('transactions')
+		await global.database.getCollection(tenant, 'transactions')
 			.findOneAndDelete( {'_id': transaction.id} );
 		// Delete Meter Values
-		await global.db.collection('metervalues')
+		await global.database.getCollection(tenant, 'metervalues')
 			.deleteMany( {'transactionId': transaction.id} );
 	}
 
-	static async getMeterValuesFromTransaction(transactionId) {
+	static async getMeterValuesFromTransaction(tenant, transactionId) {
 		// Build filter
-		let filter = {};
+		const filter = {};
 		// Mandatory filters
 		filter.transactionId = Utils.convertToInt(transactionId);
 		// Read DB
-		let meterValuesMDB = await global.db.collection('metervalues')
+		const meterValuesMDB = await global.database.getCollection(tenant, 'metervalues')
 			.find(filter)
 			.sort( {timestamp: 1, value: -1} )
 			.toArray();
-		let meterValues = [];
+		const meterValues = [];
 		// Set
 		if (meterValuesMDB && meterValuesMDB.length > 0) {
 			// Create
 			for (const meterValueMDB of meterValuesMDB) {
-				let meterValue = {};
+				const meterValue = {};
 				// Set values
 				Database.updateMeterValue(meterValueMDB, meterValue);
 				// Add
@@ -39,28 +39,28 @@ class TransactionStorage {
 		return meterValues;
 	}
 
-	static async saveTransaction(transactionToSave) {
+	static async saveTransaction(tenant, transactionToSave) {
 		// Set
-		let transaction = {};
+		const transaction = {};
 		Database.updateTransaction(transactionToSave, transaction, false);
 		// Modify
-	    let result = await global.db.collection('transactions').findOneAndUpdate(
+	    const result = await global.database.getCollection(tenant, 'transactions').findOneAndUpdate(
 			{"_id": Utils.convertToInt(transactionToSave.id)},
 			{$set: transaction},
 			{upsert: true, new: true, returnOriginal: false});
 		// Create
-		let updatedTransaction = {};
+		const updatedTransaction = {};
 		// Update
 		Database.updateTransaction(result.value, updatedTransaction);
 		// Return
 		return updatedTransaction;
 	}
 
-	static async saveMeterValues(meterValuesToSave) {
-		let meterValuesMDB = [];
+	static async saveMeterValues(tenant, meterValuesToSave) {
+		const meterValuesMDB = [];
 		// Save all
 		for (const meterValueToSave of meterValuesToSave.values) {
-			let meterValue = {}
+			const meterValue = {}
 			// Id
 			meterValue._id = crypto.createHash('sha256')
 				.update(`${meterValueToSave.chargeBoxID}~${meterValueToSave.connectorId}~${meterValueToSave.timestamp}~${meterValueToSave.value}~${JSON.stringify(meterValueToSave.attribute)}`)
@@ -71,12 +71,12 @@ class TransactionStorage {
 			meterValuesMDB.push(meterValue);
 		}
 		// Execute
-		await global.db.collection('metervalues').insertMany(meterValuesMDB);
+		await global.database.getCollection(tenant, 'metervalues').insertMany(meterValuesMDB);
 	}
 
-	static async getTransactionYears() {
+	static async getTransactionYears(tenant) {
 		// Read DB
-		let firstTransactionsMDB = await global.db.collection('transactions')
+		const firstTransactionsMDB = await global.database.getCollection(tenant, 'transactions')
 			.find({})
 			.sort({timestamp:1})
 			.limit(1)
@@ -85,9 +85,9 @@ class TransactionStorage {
 		if (!firstTransactionsMDB || firstTransactionsMDB.length == 0) {
 			return null;
 		}
-		let transactionYears = [];
+		const transactionYears = [];
 		// Push the rest of the years up to now
-		for (var i = new Date(firstTransactionsMDB[0].timestamp).getFullYear();
+		for (let i = new Date(firstTransactionsMDB[0].timestamp).getFullYear();
 				i <= new Date().getFullYear(); i++) {
 			// Add
 			transactionYears.push(i);
@@ -95,13 +95,13 @@ class TransactionStorage {
 		return transactionYears;
 	}
 
-	static async getTransactions(params={}, limit, skip, sort) {
+	static async getTransactions(tenant, params={}, limit, skip, sort) {
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip
 		skip = Utils.checkRecordSkip(skip);
 		// Build filter
-		let match = {};
+		const match = {};
 		// Filter?
 		if (params.search) {
 			// Build filter
@@ -140,7 +140,7 @@ class TransactionStorage {
 			match.stop = params.stop;
 		}
 		// Create Aggregation
-		let aggregation = [];
+		const aggregation = [];
 		// Filters
 		if (match) {
 			aggregation.push({
@@ -189,7 +189,7 @@ class TransactionStorage {
 			});
 		}
 		// Count Records
-		let transactionsCountMDB = await global.db.collection('transactions')
+		const transactionsCountMDB = await global.database.getCollection(tenant, 'transactions')
 			.aggregate([...aggregation, { $count: "count" }])
 			.toArray();
 		// Sort
@@ -239,17 +239,17 @@ class TransactionStorage {
 			$unwind: { "path": "$stop.user", "preserveNullAndEmptyArrays": true }
 		});
 		// Read DB
-		let transactionsMDB = await global.db.collection('transactions')
+		const transactionsMDB = await global.database.getCollection(tenant, 'transactions')
 			.aggregate(aggregation, { collation: { locale : Constants.DEFAULT_LOCALE, strength: 2 }})
 			.toArray();
 		// Set
-		let transactions = [];
+		const transactions = [];
 		// Create
 		if (transactionsMDB && transactionsMDB.length > 0) {
 			// Create
 			for (const transactionMDB of transactionsMDB) {
 				// Set
-				let transaction = {};
+				const transaction = {};
 				Database.updateTransaction(transactionMDB, transaction);
 				// Add
 				transactions.push(transaction);
@@ -262,9 +262,9 @@ class TransactionStorage {
 		};
 	}
 
-	static async getTransaction(id) {
+	static async getTransaction(tenant, id) {
 		// Create Aggregation
-		let aggregation = [];
+		const aggregation = [];
 		// Filters
 		aggregation.push({
 			$match: { _id: Utils.convertToInt(id) }
@@ -309,7 +309,7 @@ class TransactionStorage {
 			$unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
 		});
 		// Read DB
-		let transactionsMDB = await global.db.collection('transactions')
+		const transactionsMDB = await global.database.getCollection(tenant, 'transactions')
 			.aggregate(aggregation)
 			.toArray();
 		// Set
@@ -324,9 +324,9 @@ class TransactionStorage {
 		return transaction;
 	}
 
-	static async getActiveTransaction(chargeBoxID, connectorId) {
+	static async getActiveTransaction(tenant, chargeBoxID, connectorId) {
 		// Create Aggregation
-		let aggregation = [];
+		const aggregation = [];
 		// Filters
 		aggregation.push({
 			$match: {
@@ -349,7 +349,7 @@ class TransactionStorage {
 			$unwind: { "path": "$user", "preserveNullAndEmptyArrays": true }
 		});
 		// Read DB
-		let transactionsMDB = await global.db.collection('transactions')
+		const transactionsMDB = await global.database.getCollection(tenant, 'transactions')
 			.aggregate(aggregation)
 			.toArray();
 		// Set

@@ -5,9 +5,9 @@ const AppError = require('../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
 
 class SiteAreaStorage {
-	static async getSiteAreaImage(id) {
+	static async getSiteAreaImage(tenant, id) {
 		// Read DB
-		let siteAreaImagesMDB = await global.db.collection('siteareaimages')
+		const siteAreaImagesMDB = await global.database.getCollection(tenant, 'siteareaimages')
 			.find({_id: Utils.convertToObjectID(id)})
 			.limit(1)
 			.toArray();
@@ -22,12 +22,12 @@ class SiteAreaStorage {
 		return siteAreaImage;
 	}
 
-	static async getSiteAreaImages() {
+	static async getSiteAreaImages(tenant) {
 		// Read DB
-		let siteAreaImagesMDB = await global.db.collection('siteareaimages')
+		const siteAreaImagesMDB = await global.database.getCollection(tenant, 'siteareaimages')
 			.find({})
 			.toArray();
-		let siteAreaImages = [];
+		const siteAreaImages = [];
 		// Add
 		if (siteAreaImagesMDB && siteAreaImagesMDB.length > 0) {
 			for (const siteAreaImageMDB of siteAreaImagesMDB) {
@@ -40,12 +40,12 @@ class SiteAreaStorage {
 		return siteAreaImages;
 	}
 
-	static async getSiteArea(id, withChargeBoxes, withSite) {
+	static async getSiteArea(tenant, id, withChargeBoxes, withSite) {
 		const Site = require('../../model/Site');  // Avoid fucking circular deps!!!
 		const SiteArea = require('../../model/SiteArea'); // Avoid fucking circular deps!!!
 		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
 		// Create Aggregation
-		let aggregation = [];
+		const aggregation = [];
 		// Filters
 		aggregation.push({
 			$match: { _id: Utils.convertToObjectID(id) }
@@ -81,7 +81,7 @@ class SiteAreaStorage {
 			});
 		}
 		// Read DB
-		let siteAreasMDB = await global.db.collection('siteareas')
+		const siteAreasMDB = await global.database.getCollection(tenant, 'siteareas')
 			.aggregate(aggregation)
 			.toArray();
 		let siteArea = null;
@@ -98,7 +98,7 @@ class SiteAreaStorage {
 				// Set
 				siteArea.setChargingStations(siteAreasMDB[0].chargingStations.map((chargingStation) => {
 					// Create the Charging Station
-					let chargingStationObj = new ChargingStation(chargingStation);
+					const chargingStationObj = new ChargingStation(chargingStation);
 					// Set the Site Area to it
 					chargingStationObj.setSiteArea(new SiteArea(siteArea.getModel())); // To avoid circular deps Charger -> Site Area -> Charger
 					// Return
@@ -113,7 +113,7 @@ class SiteAreaStorage {
 		return siteArea;
 	}
 
-	static async saveSiteArea(siteAreaToSave) {
+	static async saveSiteArea(tenant, siteAreaToSave) {
 		const SiteArea = require('../../model/SiteArea'); // Avoid fucking circular deps!!!
 		// Check if ID/Name is provided
 		if (!siteAreaToSave.id && !siteAreaToSave.name) {
@@ -123,7 +123,7 @@ class SiteAreaStorage {
 				`Site Area has no ID and no Name`,
 				550, "SiteAreaStorage", "saveSiteArea");
 		}
-		let siteAreaFilter = {};
+		const siteAreaFilter = {};
 		// Build Request
 		if (siteAreaToSave.id) {
 			siteAreaFilter._id = Utils.convertToObjectID(siteAreaToSave.id);
@@ -134,10 +134,10 @@ class SiteAreaStorage {
 		siteAreaToSave.createdBy = Utils.convertUserToObjectID(siteAreaToSave.createdBy);
 		siteAreaToSave.lastChangedBy = Utils.convertUserToObjectID(siteAreaToSave.lastChangedBy);
 		// Transfer
-		let siteArea = {};
+		const siteArea = {};
 		Database.updateSiteArea(siteAreaToSave, siteArea, false);
 		// Modify
-	    let result = await global.db.collection('siteareas').findOneAndUpdate(
+	    const result = await global.database.getCollection(tenant, 'siteareas').findOneAndUpdate(
 			siteAreaFilter,
 			{$set: siteArea},
 			{upsert: true, new: true, returnOriginal: false});
@@ -145,7 +145,7 @@ class SiteAreaStorage {
 		return new SiteArea(result.value);
 	}
 
-	static async saveSiteAreaImage(siteAreaImageToSave) {
+	static async saveSiteAreaImage(tenant, siteAreaImageToSave) {
 		// Check if ID is provided
 		if (!siteAreaImageToSave.id) {
 			// ID must be provided!
@@ -155,13 +155,13 @@ class SiteAreaStorage {
 				550, "SiteAreaStorage", "saveSiteAreaImage");
 		}
 		// Modify
-	    await global.db.collection('siteareaimages').findOneAndUpdate(
+	    await global.database.getCollection(tenant, 'siteareaimages').findOneAndUpdate(
 			{'_id': Utils.convertToObjectID(siteAreaImageToSave.id)},
 			{$set: {image: siteAreaImageToSave.image}},
 			{upsert: true, new: true, returnOriginal: false});
 	}
 
-	static async getSiteAreas(params={}, limit, skip, sort) {
+	static async getSiteAreas(tenant, params={}, limit, skip, sort) {
 		const Site = require('../../model/Site');  // Avoid fucking circular deps!!!
 		const SiteArea = require('../../model/SiteArea'); // Avoid fucking circular deps!!!
 		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
@@ -170,7 +170,7 @@ class SiteAreaStorage {
 		// Check Skip
 		skip = Utils.checkRecordSkip(skip);
 		// Set the filters
-		let filters = {};
+		const filters = {};
 		// Source?
 		if (params.search) {
 			// Build filter
@@ -183,7 +183,7 @@ class SiteAreaStorage {
 			filters.siteID = Utils.convertToObjectID(params.siteID);
 		}
 		// Create Aggregation
-		let aggregation = [];
+		const aggregation = [];
 		// Filters
 		if (filters) {
 			aggregation.push({
@@ -191,7 +191,7 @@ class SiteAreaStorage {
 			});
 		}
 		// Count Records
-		let siteAreasCountMDB = await global.db.collection('siteareas')
+		const siteAreasCountMDB = await global.database.getCollection(tenant, 'siteareas')
 			.aggregate([...aggregation, { $count: "count" }])
 			.toArray();
 		// Sites
@@ -245,16 +245,16 @@ class SiteAreaStorage {
 			$limit: limit
 		});
 		// Read DB
-		let siteAreasMDB = await global.db.collection('siteareas')
+		const siteAreasMDB = await global.database.getCollection(tenant, 'siteareas')
 			.aggregate(aggregation, { collation: { locale : Constants.DEFAULT_LOCALE, strength: 2 }})
 			.toArray();
-		let siteAreas = [];
+		const siteAreas = [];
 		// Check
 		if (siteAreasMDB && siteAreasMDB.length > 0) {
 			// Create
 			for (const siteAreaMDB of siteAreasMDB) {
 				// Create
-				let siteArea = new SiteArea(siteAreaMDB);
+				const siteArea = new SiteArea(siteAreaMDB);
 				// Set Site Areas
 				if (params.withChargeBoxes && siteAreaMDB.chargeBoxes) {
 					siteArea.setChargingStations(siteAreaMDB.chargeBoxes.map((chargeBox) => {
@@ -277,17 +277,17 @@ class SiteAreaStorage {
 		};
 	}
 
-	static async deleteSiteArea(id) {
+	static async deleteSiteArea(tenant, id) {
 		// Remove Charging Station's Site Area
-	    await global.db.collection('chargingstations').updateMany(
+	    await global.database.getCollection(tenant, 'chargingstations').updateMany(
 			{ siteAreaID: Utils.convertToObjectID(id) },
 			{ $set: { siteAreaID: null } },
 			{ upsert: false, new: true, returnOriginal: false });
 		// Delete Site
-		await global.db.collection('siteareas')
+		await global.database.getCollection(tenant, 'siteareas')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 		// Delete Image
-		await global.db.collection('sitesareaimages')
+		await global.database.getCollection(tenant, 'sitesareaimages')
 			.findOneAndDelete( {'_id': Utils.convertToObjectID(id)} );
 	}
 }

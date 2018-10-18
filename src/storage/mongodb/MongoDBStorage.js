@@ -1,4 +1,5 @@
 const Logging = require('../../utils/Logging');
+const Constants = require('../../utils/Constants');
 const MongoClient = require('mongodb').MongoClient;
 const mongoUriBuilder = require('mongo-uri-builder');
 const urlencode = require('urlencode');
@@ -6,99 +7,107 @@ const MongoDBStorageNotification = require('./MongoDBStorageNotification');
 
 require('source-map-support').install();
 
-let _dbConfig;
-let _mongoDBClient;
-let _db;
-let _mongoDBStorageNotification;
+const FIXED_COLLECTION = ['tenants'];
 
 class MongoDBStorage {
+
 	// Create database access
 	constructor(dbConfig) {
 		// Keep local
-		_dbConfig = dbConfig;
+		this._dbConfig = dbConfig;
 	}
 
-	async checkAndCreateCollection(db, allCollections, name, indexes) {
+	getCollection(tenant, collectionName) {
+        return this._db.collection(MongoDBStorage.getCollectionName(tenant, collectionName));
+	}
+
+	static getCollectionName(tenant, collectionName) {
+        if (!tenant || FIXED_COLLECTION.includes(collectionName)) {
+            return collectionName;
+        }
+        return `${tenant}.${collectionName}`;
+	}
+
+	async checkAndCreateCollection(allCollections, tenant, name, indexes) {
 		// Check Logs
-		let foundCollection = allCollections.find((collection) => {
-			return collection.name == name;
+		const tenantCollectionName = MongoDBStorage.getCollectionName(tenant, name);
+		const foundCollection = allCollections.find((collection) => {
+			return collection.name === tenantCollectionName;
 		});
 		// Check if it exists
 		if (!foundCollection) {
 			// Create
-			await db.createCollection(name);
+			await this._db.createCollection(tenantCollectionName);
 		}
 		// Indexes?
 		if (indexes) {
 			// Get current indexes
-			let existingIndexes = await db.collection(name).listIndexes().toArray();
+			const existingIndexes = await this._db.collection(tenantCollectionName).listIndexes().toArray();
 			// Check each index
 			for (const index of indexes) {
 				// Create
 				// Check if it exists
-				let foundIndex = existingIndexes.find((existingIndex) => {
+				const foundIndex = existingIndexes.find((existingIndex) => {
 					return (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields));
 				});
 				// Found?
 				if (!foundIndex) {
 					// No: Create Index
-					await db.collection(name).createIndex(index.fields, index.options);
+					await this._db.collection(tenantCollectionName).createIndex(index.fields, index.options);
 				}
 			}
 		}
 	}
 
-	async createTenantDatabase(db, tenant) {
-		let filter = {};
-		let prefix = '';
+	async createTenantDatabase(tenant) {
+		const filter = {};
 		if (tenant) {
 			filter.name = new RegExp(`^${tenant}\.`);
-			prefix = `${tenant}.`;
 		} else {
 			filter.name = new RegExp(`[^\.]`);
 		}
 		// Get all the tenant collections
-		let collections = await db.listCollections(filter).toArray();
+		const collections = await this._db.listCollections(filter).toArray();
 		// Users
-		await this.checkAndCreateCollection(db, collections, `${prefix}users`, [
+		await this.checkAndCreateCollection(collections, tenant, 'users', [
 			{ fields: { email: 1 }, options: { unique: true } } 
 		]);
-		await this.checkAndCreateCollection(db, collections, `${prefix}eulas`);
+		await this.checkAndCreateCollection(collections, tenant, 'eulas');
 		// Logs
-		await this.checkAndCreateCollection(db, collections, `${prefix}logs`, [
+		await this.checkAndCreateCollection(collections, tenant, 'logs', [
 			{ fields: { timestamp: 1 } },
 			{ fields: { level: 1 } },
 			{ fields: { type: 1 }	} 
 		]);
 		// MeterValues
-		await this.checkAndCreateCollection(db, collections, `${prefix}metervalues`, [
+		await this.checkAndCreateCollection(collections, tenant, 'metervalues', [
 			{ fields: { timestamp: 1 } },
 			{ fields: { transactionId: 1 } }
 		]);
 		// Tags
-		await this.checkAndCreateCollection(db, collections, `${prefix}tags`, [
+		await this.checkAndCreateCollection(collections, tenant, 'tags', [
 			{ fields: { userID: 1 } }
 		]);
 		// Sites/Users
-		await this.checkAndCreateCollection(db, collections, `${prefix}siteusers`, [
+		await this.checkAndCreateCollection(collections, tenant, 'siteusers', [
 			{ fields: { siteID: 1 } },
 			{ fields: { userID: 1 } }
 		]);
 		// Transactions
-		await this.checkAndCreateCollection(db, collections, `${prefix}transactions`, [
+		await this.checkAndCreateCollection(collections, tenant, 'transactions', [
 			{ fields: { timestamp: 1 } },
 			{ fields: { chargeBoxID: 1 } },
 			{ fields: { userID: 1 } }
 		]);
 	}
 
-	async checkDatabaseDefaultContent(db) {
+	async checkDatabaseDefaultContent() {
 		// Tenant
-		let tenantsMDB = await db.collection('tenants').find({ subdomain: '' }).toArray();
+		const tenantsMDB = await this._db.collection('tenants').find({ subdomain: Constants.DEFAULT_TENANT }).toArray();
 		// Found?
 		if (tenantsMDB.length === 0) {
 			// No: Create it
-			await db.collection('tenants').insert(
+			await this._db.collection('tenants').insert(
 				{ 
 					"createdOn" : new Date(), 
 					"name": "Master Tenant", 
@@ -108,82 +117,79 @@ class MongoDBStorage {
 		}
 	}
 
-	async checkDatabase(db) {
+	async checkDatabase() {
 		// Get all the collections
-		let collections = await db.listCollections().toArray();
+		const collections = await this._db.listCollections().toArray();
 		// Check only collections with indexes
 		// Tenants
-		await this.checkAndCreateCollection(db, collections, 'tenants', [
+		await this.checkAndCreateCollection(collections, Constants.DEFAULT_TENANT, 'tenants', [
 			{ fields: { subdomain: 1 }, options: { unique: true } },
 			{ fields: { name: 1 }, options: { unique: true } } 
 		]);
-		this.createTenantDatabase(db);
+		await this.createTenantDatabase(Constants.DEFAULT_TENANT);
 	}
 
 	async start() {
 		// Log
-		console.log(`Connecting to '${_dbConfig.implementation}'...`);
+		console.log(`Connecting to '${this._dbConfig.implementation}'...`);
 		// Build EVSE URL
 		let mongoUrl;
 		// URI provided?
-		if (_dbConfig.uri) {
+		if (this._dbConfig.uri) {
 			// Yes: use it
-			mongoUrl = _dbConfig.uri;
+			mongoUrl = this._dbConfig.uri;
 		} else {
 			// No: Build it
 			mongoUrl = mongoUriBuilder({
-				host: urlencode(_dbConfig.host),
-				port: urlencode(_dbConfig.port),
-				username: urlencode(_dbConfig.user),
-				password: urlencode(_dbConfig.password),
-				database: urlencode(_dbConfig.database),
+				host: urlencode(this._dbConfig.host),
+				port: urlencode(this._dbConfig.port),
+				username: urlencode(this._dbConfig.user),
+				password: urlencode(this._dbConfig.password),
+				database: urlencode(this._dbConfig.database),
 				options: {
-					replicaSet: _dbConfig.replicaSet
+					replicaSet: this._dbConfig.replicaSet
 				}
 			});
 		}
 		// Connect to EVSE
-		_mongoDBClient = await MongoClient.connect(
+		this._mongoDBClient = await MongoClient.connect(
 			mongoUrl,
 			{
 				useNewUrlParser: true,
-				poolSize: _dbConfig.poolSize,
-				replicaSet: _dbConfig.replicaSet,
-				loggerLevel: (_dbConfig.debug ? 'debug' : null),
+				poolSize: this._dbConfig.poolSize,
+				replicaSet: this._dbConfig.replicaSet,
+				loggerLevel: (this._dbConfig.debug ? 'debug' : null),
 				reconnectTries: Number.MAX_VALUE,
 				reconnectInterval: 1000,
 				autoReconnect: true
 			}
 		);
 		// Get the EVSE DB
-		_db = _mongoDBClient.db(_dbConfig.schema);
+		this._db = this._mongoDBClient.db(this._dbConfig.schema);
 
 		// Check Database
-		await this.checkDatabase(_db);
+		await this.checkDatabase();
 
 		// Check Database Default Content
-		await this.checkDatabaseDefaultContent(_db);
-
-		// Keep the DB access global
-		global.db = _db;
+		await this.checkDatabaseDefaultContent();
 
 		// Log
 		Logging.logInfo({
 			module: 'MongoDBStorage', method: 'start', action: 'Startup',
-			message: `Connected to '${_dbConfig.implementation}' successfully`
+			message: `Connected to '${this._dbConfig.implementation}' successfully`
 		});
-		console.log(`Connected to '${_dbConfig.implementation}' successfully`);
+		console.log(`Connected to '${this._dbConfig.implementation}' successfully`);
 	}
 
 	async setCentralRestServer(centralRestServer) {
-		if (_dbConfig.monitorDBChange) {
+		if (this._dbConfig.monitorDBChange) {
 			// Monitor MongoDB for Notifications
-			_mongoDBStorageNotification = new MongoDBStorageNotification(
-				_dbConfig, _db);
+			this._mongoDBStorageNotification = new MongoDBStorageNotification(
+				this._dbConfig, this._db);
 			// Set Central Rest Server
-			_mongoDBStorageNotification.setCentralRestServer(centralRestServer);
+			this._mongoDBStorageNotification.setCentralRestServer(centralRestServer);
 			// Start
-			await _mongoDBStorageNotification.start();
+			await this._mongoDBStorageNotification.start();
 		}
 	}
 }

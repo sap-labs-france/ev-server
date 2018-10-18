@@ -5,26 +5,26 @@ const UtilsSecurity = require('./UtilsSecurity');
 class TenantSecurity {
 
     static filterTenantDeleteRequest(request, loggedUser) {
-        let filteredRequest = {};
+        const filteredRequest = {};
         // Set
         filteredRequest.ID = sanitize(request.ID);
         return filteredRequest;
     }
 
     static filterTenantRequest(request, loggedUser) {
-        let filteredRequest = {};
+        const filteredRequest = {};
         filteredRequest.ID = sanitize(request.ID);
         return filteredRequest;
     }
 
     static filterVerifyTenantRequest(request) {
-        let filteredRequest = {};
+        const filteredRequest = {};
         filteredRequest.tenant = sanitize(request.tenant);
         return filteredRequest;
     }
 
     static filterTenantsRequest(request, loggedUser) {
-        let filteredRequest = {};
+        const filteredRequest = {};
         filteredRequest.Search = sanitize(request.Search);
         UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
         UtilsSecurity.filterSort(request, filteredRequest);
@@ -32,7 +32,7 @@ class TenantSecurity {
     }
 
     static filterTenantUpdateRequest(request, loggedUser) {
-        let filteredRequest = TenantSecurity._filterTenantRequest(request, loggedUser);
+        const filteredRequest = TenantSecurity._filterTenantRequest(request, loggedUser);
         filteredRequest.id = sanitize(request.id);
         return filteredRequest;
     }
@@ -42,7 +42,7 @@ class TenantSecurity {
     }
 
     static _filterTenantRequest(request, loggedUser) {
-        let filteredRequest = {};
+        const filteredRequest = {};
         filteredRequest.name = sanitize(request.name);
         filteredRequest.subdomain = sanitize(request.subdomain);
         filteredRequest.email = sanitize(request.email);
@@ -72,7 +72,7 @@ class TenantSecurity {
     }
 
     static filterTenantsResponse(tenants, loggedUser) {
-        let filteredTenants = [];
+        const filteredTenants = [];
 
         if (!tenants) {
             return null;
@@ -82,7 +82,7 @@ class TenantSecurity {
         }
         for (const tenant of tenants) {
             // Filter
-            let filteredTenant = TenantSecurity.filterTenantResponse(tenant, loggedUser);
+            const filteredTenant = TenantSecurity.filterTenantResponse(tenant, loggedUser);
             // Ok?
             if (filteredTenant) {
                 // Add

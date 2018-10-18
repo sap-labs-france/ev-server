@@ -5,7 +5,7 @@ const UtilsSecurity = require('./UtilsSecurity');
 class AuthSecurity {
 
 	static filterIsAuthorizedRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.Action = sanitize(request.Action);
 		filteredRequest.Arg1 = sanitize(request.Arg1);
@@ -15,7 +15,7 @@ class AuthSecurity {
 	}
 
 	static filterResetPasswordRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.email = sanitize(request.email);
 		filteredRequest.captcha = sanitize(request.captcha);
@@ -24,7 +24,7 @@ class AuthSecurity {
 	}
 
 	static filterRegisterUserRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.name = sanitize(request.name);
 		filteredRequest.firstName = sanitize(request.firstName);
@@ -37,7 +37,7 @@ class AuthSecurity {
 	}
 
 	static filterLoginRequest(request) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.email = sanitize(request.email);
 		filteredRequest.password = sanitize(request.password);
@@ -47,7 +47,7 @@ class AuthSecurity {
 	}
 
 	static filterVerifyEmailRequest(request) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.Email = sanitize(request.Email);
 		filteredRequest.VerificationToken = sanitize(request.VerificationToken);
@@ -55,7 +55,7 @@ class AuthSecurity {
 	}
 
 	static filterResendVerificationEmail(request) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.email = sanitize(request.email);
 		filteredRequest.captcha = sanitize(request.captcha);

@@ -921,9 +921,9 @@ class ChargingStation {
 		return this._model.deleted;
 	}
 
-	deleteTransaction(transaction) {
+	deleteTransaction(tenant, transaction) {
 		// Yes: save it
-		return TransactionStorage.deleteTransaction(transaction);
+		return TransactionStorage.deleteTransaction(tenant, transaction);
 	}
 
 	async delete() {

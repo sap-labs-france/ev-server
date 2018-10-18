@@ -14,9 +14,9 @@ class UserService {
 	static async handleGetEndUserLicenseAgreement(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = UserSecurity.filterEndUserLicenseAgreementRequest(req.query, req.user);
+			const filteredRequest = UserSecurity.filterEndUserLicenseAgreementRequest(req.query, req.user);
 			// Get it
-			let endUserLicenseAgreement = await User.getEndUserLicenseAgreement(filteredRequest.Language);
+			const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(req.user.tenant, filteredRequest.Language);
 			res.json(
 				// Filter
 				UserSecurity.filterEndUserLicenseAgreementResponse(
@@ -32,7 +32,7 @@ class UserService {
 	static async handleAddSitesToUser(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = UserSecurity.filterAddSitesToUserRequest( req.body, req.user );
+			const filteredRequest = UserSecurity.filterAddSitesToUserRequest( req.body, req.user );
 			// Check Mandatory fields
 			if(!filteredRequest.userID) {
 				// Not Found!
@@ -49,7 +49,7 @@ class UserService {
 					'UserService', 'handleAddSitesToUser', req.user);
 			}
 			// Get the User
-			let user = await User.getUser(filteredRequest.userID);
+			const user = await User.getUser(req.user.tenant, filteredRequest.userID);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -69,7 +69,7 @@ class UserService {
 			// Get Sites
 			for (const siteID of filteredRequest.siteIDs) {
 				// Check the site
-				let site = await Site.getSite(siteID);
+				const site = await Site.getSite(req.user.tenant, siteID);
 				if (!site) {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
@@ -88,7 +88,7 @@ class UserService {
 				}
 			}
 			// Save
-			await User.addSitesToUser(filteredRequest.userID, filteredRequest.siteIDs);
+			await User.addSitesToUser(req.user.tenant, filteredRequest.userID, filteredRequest.siteIDs);
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'UserService', method: 'handleAddSitesToUser',
@@ -105,7 +105,7 @@ class UserService {
 	static async handleRemoveSitesFromUser(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = UserSecurity.filterRemoveSitesFromUserRequest( req.body, req.user );
+			const filteredRequest = UserSecurity.filterRemoveSitesFromUserRequest( req.body, req.user );
 			// Check Mandatory fields
 			if(!filteredRequest.userID) {
 				// Not Found!
@@ -122,7 +122,7 @@ class UserService {
 					'UserService', 'handleAddSitesToUser', req.user);
 			}
 			// Get the User
-			let user = await User.getUser(filteredRequest.userID);
+			const user = await User.getUser(req.user.tenant, filteredRequest.userID);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -142,7 +142,7 @@ class UserService {
 			// Get Sites
 			for (const siteID of filteredRequest.siteIDs) {
 				// Check the site
-				let site = await Site.getSite(siteID);
+				const site = await Site.getSite(req.user.tenant, siteID);
 				if (!site) {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
@@ -161,7 +161,7 @@ class UserService {
 				}
 			}
 			// Save
-			await User.removeSitesFromUser(filteredRequest.userID, filteredRequest.siteIDs);
+			await User.removeSitesFromUser(req.user.tenant, filteredRequest.userID, filteredRequest.siteIDs);
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'UserService', method: 'handleAddSitesToUser',
@@ -178,7 +178,7 @@ class UserService {
 	static async handleDeleteUser(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = UserSecurity.filterUserDeleteRequest(req.query, req.user);
+			const filteredRequest = UserSecurity.filterUserDeleteRequest(req.query, req.user);
 			// Check Mandatory fields
 			if(!filteredRequest.ID) {
 					// Not Found!
@@ -188,7 +188,7 @@ class UserService {
 						'UserService', 'handleDeleteUser', req.user);
 			}
 			// Check email
-			let user = await User.getUser(filteredRequest.ID);
+			const user = await User.getUser(req.user.tenant, filteredRequest.ID);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -214,15 +214,15 @@ class UserService {
 					req.user);
 			}
 			// Delete
-			let sites = await user.getSites(false, false, false, true);
+			const sites = await user.getSites(req.user.tenant, false, false, false, true);
 			for (const site of sites) {
 				// Remove User
-				site.removeUser(user);
+				site.removeUser(req.user.tenant, user);
 				// Save
-				await site.save();
+				await site.save(req.user.tenant);
 			}
 			// Delete User
-			await user.delete();
+			await user.delete(req.user.tenant);
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, actionOnUser: user.getModel(),
@@ -242,11 +242,11 @@ class UserService {
 		try {
 			let statusHasChanged = false;
 			// Filter
-			let filteredRequest = UserSecurity.filterUserUpdateRequest( req.body, req.user );
+			const filteredRequest = UserSecurity.filterUserUpdateRequest( req.body, req.user );
 			// Check Mandatory fields
 			User.checkIfUserValid(filteredRequest, req);
 			// Check email
-			let user = await User.getUser(filteredRequest.id);
+			const user = await User.getUser(req.user.tenant, filteredRequest.id);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -261,7 +261,7 @@ class UserService {
 					'UserService', 'handleUpdateUser', req.user);
 			}
 			// Check email
-			let userWithEmail = await User.getUserByEmail(filteredRequest.email);
+			const userWithEmail = await User.getUserByEmail(req.user.tenant, filteredRequest.email);
 			// Check if EMail is already taken
 			if (userWithEmail && user.getID() !== userWithEmail.getID()) {
 				// Yes!
@@ -291,7 +291,7 @@ class UserService {
 			// Check the password
 			if (filteredRequest.password && filteredRequest.password.length > 0) {
 				// Generate the password hash
-				let newPasswordHashed = await User.hashPasswordBcrypt(filteredRequest.password);
+				const newPasswordHashed = await User.hashPasswordBcrypt(filteredRequest.password);
 				// Update the password
 				user.setPassword(newPasswordHashed);
 			}
@@ -299,9 +299,9 @@ class UserService {
 			user.setLastChangedBy(new User({'id': req.user.id}));
 			user.setLastChangedOn(new Date());
 			// Update User
-			let updatedUser = await user.save();
+			const updatedUser = await user.save(req.user.tenant);
 			// Update User's Image
-			await user.saveImage();
+			await user.saveImage(req.user.tenant);
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, actionOnUser: updatedUser.getModel(),
@@ -333,7 +333,7 @@ class UserService {
 	static async handleGetUser(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = UserSecurity.filterUserRequest(req.query, req.user);
+			const filteredRequest = UserSecurity.filterUserRequest(req.query, req.user);
 			// User mandatory
 			if(!filteredRequest.ID) {
 				// Not Found!
@@ -343,7 +343,7 @@ class UserService {
 					'UserService', 'handleGetUser', req.user);
 			}
 			// Get the user
-			let user = await User.getUser(filteredRequest.ID);
+			const user = await User.getUser(req.user.tenant, filteredRequest.ID);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -383,7 +383,7 @@ class UserService {
 	static async handleGetUserImage(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = UserSecurity.filterUserRequest(req.query, req.user);
+			const filteredRequest = UserSecurity.filterUserRequest(req.query, req.user);
 			// User mandatory
 			if(!filteredRequest.ID) {
 				// Not Found!
@@ -393,7 +393,7 @@ class UserService {
 					'UserService', 'handleGetUser', req.user);
 			}
 			// Get the logged user
-			let user = await User.getUser(filteredRequest.ID)
+			const user = await User.getUser(req.user.tenant, filteredRequest.ID);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -418,7 +418,7 @@ class UserService {
 					req.user);
 			}
 			// Get the user image
-			let userImage = await User.getUserImage(filteredRequest.ID);
+			const userImage = await User.getUserImage(req.user.tenant, filteredRequest.ID);
 			// Return
 			res.json(userImage);
 			next();
@@ -442,7 +442,7 @@ class UserService {
 					req.user);
 			}
 			// Get the user image
-			let userImages = await User.getUserImages();
+			const userImages = await User.getUserImages(req.user.tenant);
 			// Return
 			res.json(userImages);
 			next();
@@ -466,9 +466,9 @@ class UserService {
 					req.user);
 			}
 			// Filter
-			let filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
+			const filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
 			// Get users
-			let users = await User.getUsers(
+			const users = await User.getUsers(req.user.tenant,
 				{ 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
@@ -499,7 +499,7 @@ class UserService {
 					req.user);
 			}
 			// Filter
-			let filteredRequest = UserSecurity.filterUserCreateRequest( req.body, req.user );
+			const filteredRequest = UserSecurity.filterUserCreateRequest( req.body, req.user );
 			if (!filteredRequest.role) {
 				// Set to default role
 				filteredRequest.role = Constants.ROLE_BASIC;
@@ -508,7 +508,7 @@ class UserService {
 			// Check Mandatory fields
 			User.checkIfUserValid(filteredRequest, req);
 			// Get the email
-			let foundUser = await User.getUserByEmail(filteredRequest.email);
+			const foundUser = await User.getUserByEmail(filteredRequest.email);
 			if (foundUser) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -516,11 +516,11 @@ class UserService {
 					'UserService', 'handleCreateUser', req.user);
 			}
 			// Create user
-			let user = new User(filteredRequest);
+			const user = new User(filteredRequest);
 			// Set the password
 			if (filteredRequest.password) {
 				// Generate a hash for the given password
-				let newPasswordHashed = await User.hashPasswordBcrypt(filteredRequest.password);
+				const newPasswordHashed = await User.hashPasswordBcrypt(filteredRequest.password);
 				// Generate a hash
 				user.setPassword(newPasswordHashed);
 			}
@@ -528,11 +528,11 @@ class UserService {
 			user.setCreatedBy(new User({'id': req.user.id}));
 			user.setCreatedOn(new Date());
 			// Save User
-			let newUser = await user.save();
+			const newUser = await user.save(req.user.tenant);
 			// Update User's Image
 			newUser.setImage(user.getImage());
 			// Save
-			await newUser.saveImage();
+			await newUser.saveImage(req.user.tenant);
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, actionOnUser: newUser.getModel(),
