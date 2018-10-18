@@ -8,23 +8,22 @@ class ChargingStationClient {
 	
 	/**
 	 *
-	 *	Return the proper Client instance interface to handle request actions
+	 * Return the proper Client instance interface to handle request actions
 	 * @static
 	 * @param {*} chargingStation: instance of ChargingStation
-	 * @param {*} currentClient: current instance of ChargingStationClient used by the ChargingStation
 	 * @returns the ChargingStationClient instance for the proper OCPP protocol
 	 * @memberof ChargingStationClient
 	 */
-	static async getChargingStationClient(chargingStation, currentClient) {
+	static async getChargingStationClient(chargingStation) {
 		// by default try to get the JSON client
 		let chargingClient = await global.centralWSServer.getChargingStationClient(chargingStation.getID());
 		if (!chargingClient) { // not a JSON client
-			if (!currentClient) { // not assigned yet so take a new SOAP client
+			if (!chargingStation._chargingStationClient) { // not assigned yet so take a new SOAP client
 				const SoapChargingStationClient = require('./soap/SoapChargingStationClient');
 				// Init client
 				chargingClient = await new SoapChargingStationClient(chargingStation);
 			} else {
-				chargingClient = currentClient;
+				chargingClient = chargingStation._chargingStationClient;
 			}
 		}
 		return chargingClient;

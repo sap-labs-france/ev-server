@@ -28,9 +28,11 @@ class CentralChargingStationService {
 		return _chargingStationConfig;
 	}
 
-	async checkAndGetChargingStation(chargeBoxIdentity) {
+	async checkAndGetChargingStation(chargeBoxIdentity, tenant = null) {
 		// Get the charging station
-		const chargingStation = await ChargingStation.getChargingStation(chargeBoxIdentity);
+		const chargingStation = ((tenant !== null && tenant.lenght > 0) ? 
+										await ChargingStation.getChargingStation(tenant, chargeBoxIdentity) : 
+										await ChargingStation.getChargingStation(chargeBoxIdentity));
 		// Found?
 		if (!chargingStation) {
 			throw new AppError(
@@ -69,7 +71,9 @@ class CentralChargingStationService {
 			content.timestamp = content.lastReboot;
 
 			// Get the charging station
-			let chargingStation = await ChargingStation.getChargingStation(content.chargeBoxIdentity);
+			let chargingStation = (content.hasOwnProperty('tenant') ? 
+										await ChargingStation.getChargingStation(content.chargeBoxIdentity, content.tenant) : 
+										await ChargingStation.getChargingStation(content.chargeBoxIdentity));
 			if (!chargingStation) {
 				// Save Charging Station
 				chargingStation = new ChargingStation(content);
@@ -125,7 +129,9 @@ class CentralChargingStationService {
 	async handleHeartbeat(content) {
 		try {
 			// Get the charging station
-			const chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
+			const chargingStation = (content.hasOwnProperty('tenant') ? 
+										await ChargingStation.getChargingStation(content.chargeBoxIdentity, content.tenant) : 
+										await ChargingStation.getChargingStation(content.chargeBoxIdentity));
 			// Save
 			await chargingStation.handleHeartBeat();
 			// Return			
@@ -151,7 +157,9 @@ class CentralChargingStationService {
 	async handleStatusNotification(content) {
 		try {
 			// Get the charging station
-			const chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
+			const chargingStation = (content.hasOwnProperty('tenant') ? 
+										await ChargingStation.getChargingStation(content.chargeBoxIdentity, content.tenant) : 
+										await ChargingStation.getChargingStation(content.chargeBoxIdentity));
 			// Handle
 			await chargingStation.handleStatusNotification(content);
 			// Respond
@@ -175,7 +183,9 @@ class CentralChargingStationService {
 	async handleMeterValues(content) {
 		try {
 			// Get the charging station
-			const chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
+			const chargingStation = (content.hasOwnProperty('tenant') ? 
+										await ChargingStation.getChargingStation(content.chargeBoxIdentity, content.tenant) : 
+										await ChargingStation.getChargingStation(content.chargeBoxIdentity));
 			// Save
 			await chargingStation.handleMeterValues(content);
 			// Return
@@ -199,7 +209,9 @@ class CentralChargingStationService {
 	async handleAuthorize(content) {
 		try {
 			// Get the charging station
-			const chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
+			const chargingStation = (content.hasOwnProperty('tenant') ? 
+										await ChargingStation.getChargingStation(content.chargeBoxIdentity, content.tenant) : 
+										await ChargingStation.getChargingStation(content.chargeBoxIdentity));
 			// Handle
 			await chargingStation.handleAuthorize(content);
 			// Return
@@ -228,7 +240,9 @@ class CentralChargingStationService {
 	async handleDiagnosticsStatusNotification(content) {
 		try {
 			// Get the charging station
-			const chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
+			const chargingStation = (content.hasOwnProperty('tenant') ? 
+										await ChargingStation.getChargingStation(content.chargeBoxIdentity, content.tenant) : 
+										await ChargingStation.getChargingStation(content.chargeBoxIdentity));
 			// Save
 			await chargingStation.handleDiagnosticsStatusNotification(content);
 			// Return
@@ -251,7 +265,9 @@ class CentralChargingStationService {
 	async handleFirmwareStatusNotification(content) {
 		try {
 			// Get the charging station
-			const chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
+			const chargingStation = (content.hasOwnProperty('tenant') ? 
+										await ChargingStation.getChargingStation(content.chargeBoxIdentity, content.tenant) : 
+										await ChargingStation.getChargingStation(content.chargeBoxIdentity));
 			// Save
 			await chargingStation.handleFirmwareStatusNotification(content);
 			// Return
@@ -272,7 +288,9 @@ class CentralChargingStationService {
 	async handleStartTransaction(content) {
 		try {
 			// Get the charging station
-			const chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
+			const chargingStation = (content.hasOwnProperty('tenant') ? 
+										await ChargingStation.getChargingStation(content.chargeBoxIdentity, content.tenant) : 
+										await ChargingStation.getChargingStation(content.chargeBoxIdentity));
 			// Save
 			const transaction = await chargingStation.handleStartTransaction(content);
 			// Return
@@ -303,7 +321,9 @@ class CentralChargingStationService {
 	async handleDataTransfer(content) {
 		try {
 			// Get the charging station
-			const chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
+			const chargingStation = (content.hasOwnProperty('tenant') ? 
+										await ChargingStation.getChargingStation(content.chargeBoxIdentity, content.tenant) : 
+										await ChargingStation.getChargingStation(content.chargeBoxIdentity));
 			// Save
 			await chargingStation.handleDataTransfer(content);
 			// Return
@@ -328,7 +348,9 @@ class CentralChargingStationService {
 	async handleStopTransaction(content) {
 		try {
 			// Get the charging station
-			const chargingStation = await this.checkAndGetChargingStation(content.chargeBoxIdentity);
+			const chargingStation = (content.hasOwnProperty('tenant') ? 
+										await ChargingStation.getChargingStation(content.chargeBoxIdentity, content.tenant) : 
+										await ChargingStation.getChargingStation(content.chargeBoxIdentity));
 			// Handle
 			await chargingStation.handleStopTransaction(content);
 			// Success

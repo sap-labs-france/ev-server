@@ -25,7 +25,7 @@ class JsonWSSystemServer extends CentralSystemServer {
         global.centralWSServer = this;
         if (_centralSystemConfig.protocol === "wss") {
 			// Create the options
-			let options = {};
+			const options = {};
 			// Set the keys
 			options.key = fs.readFileSync(_centralSystemConfig["ssl-key"]);
             options.cert = fs.readFileSync(_centralSystemConfig["ssl-cert"]);
@@ -50,7 +50,7 @@ class JsonWSSystemServer extends CentralSystemServer {
             });
 		}
 
-        var verifyClient = function(info) {
+        const verifyClient = function(info) {
             if (info.req.url.startsWith("/OCPP16/") === false) {
                 Logging.logError({
                     module: "JsonCentralSystemServer", method: "verifyClient", action: "connection",
@@ -80,10 +80,11 @@ class JsonWSSystemServer extends CentralSystemServer {
 
             try {
 // construct the WS manager
-                let connection = new JsonWSHandler(ws, req, _chargingStationConfig);
+                const connection = new JsonWSHandler(ws, req, _chargingStationConfig);
                 connection.initialize();
 // Store the WS manager linked to its ChargeBoxId
-                this._jsonClients[connection.getChargeBoxId()] = connection;
+                if (connection.getChargeBoxId())
+                    this._jsonClients[connection.getChargeBoxId()] = connection;
             } catch (error) {
                 Logging.logError({
                     module: "JsonCentralSystemServer", method: "onConnection", action: "socketError",
@@ -104,7 +105,8 @@ class JsonWSSystemServer extends CentralSystemServer {
     }
 
     closeConnection(chargeBoxId) {
-        delete this._jsonClients[chargeBoxId];
+        if (this._jsonClients[chargeBoxId])
+            delete this._jsonClients[chargeBoxId];
     }
 
     getChargingStationClient(chargeBoxId) {

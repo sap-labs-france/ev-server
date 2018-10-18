@@ -2,7 +2,7 @@ const Logging = require('../../../../utils/Logging');
 const Utils = require('../../../../utils/Utils');
 const Constants = require('../../../../utils/Constants');
 
-var _moduleName = "centralSystemService1.2";
+const _moduleName = "centralSystemService1.2";
 
 module.exports = { /* Services */
 	CentralSystemService: { /* Ports */

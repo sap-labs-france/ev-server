@@ -266,7 +266,7 @@ class ChargingStation {
 			this._chargingStationClient = await ChargingStationClient.getChargingStationClient(this);
 		}*/
 // Delegate responsibility to interface. It might be possibel that protocol changed 
-		this._chargingStationClient = await ChargingStationClient.getChargingStationClient(this, this._chargingStationClient);
+		this._chargingStationClient = await ChargingStationClient.getChargingStationClient(this);
 		return this._chargingStationClient;
 	}
 

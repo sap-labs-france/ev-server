@@ -5,10 +5,11 @@ const Constants = require('./Constants');
 const crypto = require('crypto');
 const ClientOAuth2 = require('client-oauth2');
 const axios = require('axios');
+const url = require('url');
 
 require('source-map-support').install();
 
-let _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
+const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 
 class Utils {
 	static generateGUID() {
@@ -20,15 +21,15 @@ class Utils {
 			const Logging = require('./Logging'); // Avoid fucking circular deps
 
 			// Refund Transaction
-			let cloudRevenueAuth = new ClientOAuth2({
+			const cloudRevenueAuth = new ClientOAuth2({
 			  clientId: 'sb-revenue-cloud!b1122|revenue-cloud!b1532',
 			  clientSecret: 'BtuZkWlC/58HmEMoqBCHc0jBoVg=',
 			  accessTokenUri: 'https://seed-innovation.authentication.eu10.hana.ondemand.com/oauth/token'
 			})
 			// Get the token
-			let authResponse = await cloudRevenueAuth.credentials.getToken();
+			const authResponse = await cloudRevenueAuth.credentials.getToken();
 			// Send HTTP request
-			let result = await axios.post(
+			const result = await axios.post(
 				'https://eu10.revenue.cloud.sap/api/usage-record/v1/usage-records',
 				{
 					'metricId': 'ChargeCurrent_Trial',
@@ -54,6 +55,10 @@ class Utils {
 	}
 
 	static normalizeSOAPHeader(headers) {
+		const urlBox = new url.URL(headers.To.$value);
+        const tenant = urlBox.searchParams.get('tenant');
+		headers.tenant = (tenant === null ? "" : tenant);
+		
 		// ChargeBox Identity
 		Utils.normalizeOneSOAPHeader(headers, 'chargeBoxIdentity');
 		// Action
@@ -97,7 +102,7 @@ class Utils {
 
 	static removeExtraEmptyLines(tab) {
 		// Start from the end
-		for (var i = tab.length-1; i > 0 ; i--) {
+		for (let i = tab.length-1; i > 0 ; i--) {
 			// Two consecutive empty lines?
 			if (tab[i].length == 0 && tab[i-1].length == 0) {
 				// Remove the last one
@@ -170,7 +175,7 @@ class Utils {
 
 	static pushCreatedLastChangedInAggregation(aggregation) {
 		// Filter
-		let filterUserFields = {
+		const filterUserFields = {
 			"email" : 0,
 			"phone" : 0,
 			"mobile" : 0,
@@ -267,13 +272,13 @@ class Utils {
 	}
 
 	static buildEvseUserURL(user) {
-		let _evseBaseURL = Utils.buildEvseURL();
+		const _evseBaseURL = Utils.buildEvseURL();
 		// Add
 		return _evseBaseURL + "/#/pages/users/user/" + user.getID();
 	}
 
 	static buildEvseChargingStationURL(chargingStation, connectorId=null) {
-		let _evseBaseURL = Utils.buildEvseURL();
+		const _evseBaseURL = Utils.buildEvseURL();
 
 		// Connector provided?
 		if (connectorId > 0) {
@@ -287,14 +292,14 @@ class Utils {
 	}
 
 	static buildEvseTransactionURL(chargingStation, connectorId, transactionId) {
-		let _evseBaseURL = Utils.buildEvseURL();
+		const _evseBaseURL = Utils.buildEvseURL();
 		// Add
 		return _evseBaseURL + "/#/pages/chargers/charger/" + chargingStation.getID() +
 			"/connector/" + connectorId + "/transaction/" + transactionId;
 	}
 
 	static isServerInProductionMode() {
-		var env = process.env.NODE_ENV || 'dev';
+		const env = process.env.NODE_ENV || 'dev';
 		return (env !== "dev");
 	}
 

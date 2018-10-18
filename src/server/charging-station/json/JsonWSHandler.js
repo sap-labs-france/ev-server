@@ -74,7 +74,6 @@ class JsonWSHandler {
             throw new Error(`Has already been initialized`);
         }
         // Fill in standard JSON object for communication with central server
-        try {
             // Determine tenant
             const splittedURL = this._url.split("/"); //URL should like /OCPP16/TENANTNAME/CHARGEBOXID
             let tenantName = "";
@@ -82,7 +81,11 @@ class JsonWSHandler {
             if (splittedURL.length === 4) {
                 tenantName = splittedURL[2];
                 const checkTenant = await Tenant.getTenantByName(tenantName);
-                if (checkTenant === null) {
+                if (checkTenant === null) { // It is not allowed to connect with an unknown tenant
+                    Logging.logError({
+                        module: _moduleName, method: "initialize", action: "",
+                        message: `Invalid tenant URL ${this._url}`
+                    });
                     throw new Error(`Invalid tenant URL ${this._url}`);
                 }
                 chargboxId = splittedURL[3];
@@ -98,9 +101,6 @@ class JsonWSHandler {
                     Address: this._ip
                 }
             }
-        } catch (error) {
-            throw new Error(`Invalid URL ${this._url}`);
-        }
     }
 
     async onMessage(message) {
@@ -213,11 +213,12 @@ class JsonWSHandler {
     }
 
     getChargeBoxId () {
-        return this._headers.chargeBoxIdentity;
+        if ( this._headers && typeof this._headers === 'object' && this._headers.hasOwnProperty('chargeBoxIdentity'))
+            return this._headers.chargeBoxIdentity;
     }
 
     getWSClient() {
-        if (this._socket.readyState !== 1) // only return client if WS is open
+        if (this._socket.readyState === 1) // only return client if WS is open
             return this._wsClient;
     }
 
