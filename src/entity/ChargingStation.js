@@ -1,3 +1,4 @@
+const AbstractTenantEntity = require('./AbstractTenantEntity');
 const Utils = require('../utils/Utils');
 const SoapChargingStationClient = require('../client/soap/SoapChargingStationClient');
 const Logging = require('../utils/Logging');
@@ -18,17 +19,11 @@ const PricingStorage = require('../storage/mongodb/PricingStorage');
 let _configAdvanced = Configuration.getAdvancedConfig();
 let _configChargingStation = Configuration.getChargingStationConfig();
 
-class ChargingStation {
+class ChargingStation extends AbstractTenantEntity {
 	constructor(tenant, chargingStation) {
-		// Init model
-		this._model = {};
-		this._tenant = tenant;
+		super(tenant);
 		// Set it
 		Database.updateChargingStation(chargingStation, this._model);
-	}
-
-	getTenant() {
-		return this._tenant;
 	}
 
 	handleAction(action, params) {
@@ -302,10 +297,6 @@ class ChargingStation {
 
 	setLastReboot(lastReboot) {
 		this._model.lastReboot = lastReboot;
-	}
-
-	getModel() {
-		return this._model;
 	}
 
 	save() {

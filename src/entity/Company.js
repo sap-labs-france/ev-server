@@ -1,21 +1,16 @@
+const AbstractTenantEntity = require('./AbstractTenantEntity');
 const Database = require('../utils/Database');
 const AppError = require('../exception/AppError');
 const Constants = require('../utils/Constants');
 const CompanyStorage = require('../storage/mongodb/CompanyStorage');
 const SiteStorage = require('../storage/mongodb/SiteStorage');
 
-class Company {
+class Company extends AbstractTenantEntity {
 	constructor(tenant, company) {
-		// Init model
-		this._model = {};
-		this._tenant = tenant;
+      super(tenant);
 
 		// Set it
 		Database.updateCompany(company, this._model);
-	}
-
-	getModel() {
-		return this._model;
 	}
 
 	getID() {

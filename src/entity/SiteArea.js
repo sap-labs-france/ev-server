@@ -1,3 +1,4 @@
+const AbstractTenantEntity = require('./AbstractTenantEntity');
 const Database = require('../utils/Database');
 const Constants = require('../utils/Constants');
 const AppError = require('../exception/AppError');
@@ -5,18 +6,12 @@ const SiteStorage = require('../storage/mongodb/SiteStorage');
 const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
 
-class SiteArea {
+class SiteArea extends AbstractTenantEntity {
 	constructor(tenant, siteArea) {
-		// Init model
-		this._model = {};
-		this._tenant = tenant;
+      super(tenant);
 
 		// Set it
 		Database.updateSiteArea(siteArea, this._model);
-	}
-
-	getModel() {
-		return this._model;
 	}
 
 	getID() {

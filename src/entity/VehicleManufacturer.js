@@ -1,3 +1,4 @@
+const AbstractTenantEntity = require('./AbstractTenantEntity');
 const Database = require('../utils/Database');
 const User = require('./User');
 const Vehicle = require('./Vehicle');
@@ -6,17 +7,11 @@ const AppError = require('../exception/AppError');
 const VehicleManufacturerStorage = require('../storage/mongodb/VehicleManufacturerStorage');
 const VehicleStorage = require('../storage/mongodb/VehicleStorage');
 
-class VehicleManufacturer {
+class VehicleManufacturer extends AbstractTenantEntity {
 	constructor(tenant, vehicleManufacturer) {
-		// Init model
-		this._model = {};
-		this._tenant = tenant;
+      	super(tenant);
 		// Set it
 		Database.updateVehicleManufacturer(vehicleManufacturer, this._model);
-	}
-
-	getModel() {
-		return this._model;
 	}
 
 	getID() {

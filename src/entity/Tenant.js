@@ -1,6 +1,4 @@
 const Database = require('../utils/Database');
-const AppError = require('../exception/AppError');
-const Constants = require('../utils/Constants');
 const TenantStorage = require('../storage/mongodb/TenantStorage');
 const User = require('./User');
 

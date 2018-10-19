@@ -1,3 +1,4 @@
+const AbstractTenantEntity = require('./AbstractTenantEntity');
 const crypto = require('crypto');
 const passwordGenerator = require('password-generator');
 const bcrypt = require('bcrypt');
@@ -9,11 +10,9 @@ const UserStorage = require('../storage/mongodb/UserStorage');
 const TransactionStorage = require('../storage/mongodb/TransactionStorage');
 const SiteStorage = require('../storage/mongodb/SiteStorage');
 
-class User {
+class User extends AbstractTenantEntity {
 	constructor(tenant, user) {
-		// Init model
-		this._model = {};
-		this._tenant = tenant;
+      super(tenant);
 
 		// Set it
 		Database.updateUser(user, this._model);
@@ -49,10 +48,6 @@ class User {
 
 	getEulaAcceptedOn() {
 		return this._model.eulaAcceptedOn;
-	}
-
-	getModel() {
-		return this._model;
 	}
 
 	getID() {
