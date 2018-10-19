@@ -96,7 +96,7 @@
 		"build:dev": "webpack --watch --env.env=dev",
 		"build:prod": "webpack --env.env=prod",
 		"lint": "eslint src",
-		"test": "mocha test/**/*_test.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false ",
+		"test": "mocha test/**/*Test.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false ",
 		"test:parallel": "mocha-parallel-tests test/**/*_test.js --reporter mochawesome"
 	},
 	"license": "MIT"
