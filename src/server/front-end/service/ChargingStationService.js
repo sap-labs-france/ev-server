@@ -1,4 +1,4 @@
-const User = require('../../../model/User');
+const User = require('../../../entity/User');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const AppError = require('../../../exception/AppError');
@@ -6,7 +6,7 @@ const AppAuthError = require('../../../exception/AppAuthError');
 const Authorizations = require('../../../authorization/Authorizations');
 const ChargingStationSecurity = require('./security/ChargingStationSecurity');
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage'); 
-const ChargingStation = require('../../../model/ChargingStation');
+const ChargingStation = require('../../../entity/ChargingStation');
 class ChargingStationService {
 
 	static async handleUpdateChargingStationParams(action, req, res, next) {

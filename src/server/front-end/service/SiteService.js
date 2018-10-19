@@ -4,9 +4,9 @@ const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Authorizations = require('../../../authorization/Authorizations');
 const Constants = require('../../../utils/Constants');
-const Site = require('../../../model/Site');
-const Company = require('../../../model/Company');
-const User = require('../../../model/User');
+const Site = require('../../../entity/Site');
+const Company = require('../../../entity/Company');
+const User = require('../../../entity/User');
 const SiteSecurity = require('./security/SiteSecurity');
 
 class SiteService {

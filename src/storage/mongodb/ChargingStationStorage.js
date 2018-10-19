@@ -5,8 +5,8 @@ const crypto = require('crypto');
 
 class ChargingStationStorage {
 	static async getChargingStation(tenant, id) {
-		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
-		const SiteArea = require('../../model/SiteArea'); // Avoid fucking circular deps!!!
+		const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
+		const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
 		// Create Aggregation
 		const aggregation = [];
 		// Filters
@@ -50,8 +50,8 @@ class ChargingStationStorage {
 	}
 
 	static async getChargingStations(tenant, params={}, limit, skip, sort) {
-		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
-		const SiteArea = require('../../model/SiteArea'); // Avoid fucking circular deps!!!
+		const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
+		const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip
@@ -174,7 +174,7 @@ class ChargingStationStorage {
 	}
 
 	static async saveChargingStation(tenant, chargingStationToSave) {
-		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
+		const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
 		// Check Site Area
 		chargingStationToSave.siteAreaID = null;
 		if (chargingStationToSave.siteArea && chargingStationToSave.siteArea.id) {
@@ -202,7 +202,7 @@ class ChargingStationStorage {
 	}
 
 	static async saveChargingStationConnector(tenant, chargingStation, connectorId) {
-		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
+		const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
 		const updatedFields = {};
 		updatedFields["connectors." + (connectorId - 1)] = chargingStation.connectors[connectorId - 1];
 		// Modify and return the modified document
@@ -220,7 +220,7 @@ class ChargingStationStorage {
 	}
 
 	static async saveChargingStationHeartBeat(tenant, chargingStation) {
-		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
+		const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
 		const updatedFields = {};
 		updatedFields["lastHeartBeat"] = Utils.convertToDate(chargingStation.lastHeartBeat);
 		// Modify and return the modified document
@@ -238,7 +238,7 @@ class ChargingStationStorage {
 	}
 
 	static async saveChargingStationSiteArea(tenant, chargingStation) {
-		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
+		const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
 		const updatedFields = {};
 		updatedFields["siteAreaID"] = (chargingStation.siteArea ? Utils.convertToObjectID(chargingStation.siteArea.id) : null);
 		// Check Last Changed By

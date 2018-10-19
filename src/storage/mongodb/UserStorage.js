@@ -227,7 +227,7 @@ class UserStorage {
 	}
 
 	static async saveUser(tenant, userToSave) {
-		const User = require('../../model/User'); // Avoid fucking circular deps!!!
+		const User = require('../../entity/User'); // Avoid fucking circular deps!!!
 		// Check if ID or email is provided
 		if (!userToSave.id && !userToSave.email) {
 			// ID must be provided!
@@ -313,7 +313,7 @@ class UserStorage {
 	}
 
 	static async getUsers(tenant, params={}, limit, skip, sort) {
-		const User = require('../../model/User'); // Avoid fucking circular deps!!!
+		const User = require('../../entity/User'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip
@@ -461,7 +461,7 @@ class UserStorage {
 	}
 
 	static async _createUser(tenant, userMDB) {
-		const User = require('../../model/User'); // Avoid fucking circular deps!!!
+		const User = require('../../entity/User'); // Avoid fucking circular deps!!!
 		let user = null;
 		// Check
 		if (userMDB) {

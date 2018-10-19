@@ -59,7 +59,7 @@ class VehicleManufacturerStorage {
 	}
 
 	static async getVehicleManufacturer(tenant, id) {
-		const VehicleManufacturer = require('../../model/VehicleManufacturer'); // Avoid fucking circular deps!!!
+		const VehicleManufacturer = require('../../entity/VehicleManufacturer'); // Avoid fucking circular deps!!!
 		// Create Aggregation
 		const aggregation = [];
 		// Filters
@@ -83,7 +83,7 @@ class VehicleManufacturerStorage {
 	}
 
 	static async saveVehicleManufacturer(tenant, vehicleManufacturerToSave) {
-		const VehicleManufacturer = require('../../model/VehicleManufacturer'); // Avoid fucking circular deps!!!
+		const VehicleManufacturer = require('../../entity/VehicleManufacturer'); // Avoid fucking circular deps!!!
 		// Check if ID/Model is provided
 		if (!vehicleManufacturerToSave.id && !vehicleManufacturerToSave.name) {
 			// ID must be provided!
@@ -116,8 +116,8 @@ class VehicleManufacturerStorage {
 
 	// Delegate
 	static async getVehicleManufacturers(tenant, params={}, limit, skip, sort) {
-		const VehicleManufacturer = require('../../model/VehicleManufacturer'); // Avoid fucking circular deps!!!
-		const Vehicle = require('../../model/Vehicle'); // Avoid fucking circular deps!!!
+		const VehicleManufacturer = require('../../entity/VehicleManufacturer'); // Avoid fucking circular deps!!!
+		const Vehicle = require('../../entity/Vehicle'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip

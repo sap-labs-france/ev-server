@@ -7,7 +7,7 @@ const AppError = require('../../exception/AppError');
 
 class CompanyStorage {
 	static async getCompany(tenant, id) {
-		const Company = require('../../model/Company'); // Avoid fucking circular deps!!!
+		const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
 		// Create Aggregation
 		const aggregation = [];
 		// Filters
@@ -67,7 +67,7 @@ class CompanyStorage {
 	}
 
 	static async saveCompany(tenant, companyToSave) {
-		const Company = require('../../model/Company'); // Avoid fucking circular deps!!!
+		const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
 		// Check if ID/Name is provided
 		if (!companyToSave.id && !companyToSave.name) {
 			// ID must be provided!
@@ -116,8 +116,8 @@ class CompanyStorage {
 
 	// Delegate
 	static async getCompanies(tenant, params={}, limit, skip, sort) {
-		const Company = require('../../model/Company'); // Avoid fucking circular deps!!!
-		const Site = require('../../model/Site');  // Avoid fucking circular deps!!!
+		const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
+		const Site = require('../../entity/Site');  // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip

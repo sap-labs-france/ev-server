@@ -16,8 +16,8 @@ const {
     ENTITY_TENANTS,
     REST_RESPONSE_SUCCESS
 } = require('../../../utils/Constants');
-const Tenant = require('../../../model/Tenant');
-const User = require('../../../model/User');
+const Tenant = require('../../../entity/Tenant');
+const User = require('../../../entity/User');
 const Authorizations = require('../../../authorization/Authorizations');
 const TenantSecurity = require('./security/TenantSecurity');
 const {CREATED, OK} = require('http-status-codes');

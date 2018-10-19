@@ -7,10 +7,10 @@ const ObjectID = require('mongodb').ObjectID;
 
 class SiteStorage {
 	static async getSite(tenant, id, withCompany, withUsers) {
-		const Site = require('../../model/Site'); // Avoid fucking circular deps!!!
-		const Company = require('../../model/Company'); // Avoid fucking circular deps!!!
-		const SiteArea = require('../../model/SiteArea'); // Avoid fucking circular deps!!!
-		const User = require('../../model/User'); // Avoid fucking circular deps!!!
+		const Site = require('../../entity/Site'); // Avoid fucking circular deps!!!
+		const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
+		const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
+		const User = require('../../entity/User'); // Avoid fucking circular deps!!!
 		// Create Aggregation
 		const aggregation = [];
 		// Filters
@@ -130,7 +130,7 @@ class SiteStorage {
 	}
 
 	static async saveSite(tenant, siteToSave) {
-		const Site = require('../../model/Site'); // Avoid fucking circular deps!!!
+		const Site = require('../../entity/Site'); // Avoid fucking circular deps!!!
 		// Check if ID/Name is provided
 		if (!siteToSave.id && !siteToSave.name) {
 			// ID must be provided!
@@ -199,11 +199,11 @@ class SiteStorage {
 	}
 
 	static async getSites(tenant, params={}, limit, skip, sort) {
-		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
-		const Company = require('../../model/Company'); // Avoid fucking circular deps!!!
-		const Site = require('../../model/Site'); // Avoid fucking circular deps!!!
-		const SiteArea = require('../../model/SiteArea'); // Avoid fucking circular deps!!!
-		const User = require('../../model/User'); // Avoid fucking circular deps!!!
+		const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
+		const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
+		const Site = require('../../entity/Site'); // Avoid fucking circular deps!!!
+		const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
+		const User = require('../../entity/User'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip

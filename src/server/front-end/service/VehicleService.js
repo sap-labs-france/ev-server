@@ -1,11 +1,11 @@
-const User = require('../../../model/User');
+const User = require('../../../entity/User');
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Authorizations = require('../../../authorization/Authorizations');
 const Constants = require('../../../utils/Constants');
-const Vehicle = require('../../../model/Vehicle');
+const Vehicle = require('../../../entity/Vehicle');
 const VehicleSecurity = require('./security/VehicleSecurity');
 
 class VehicleService {

@@ -8,8 +8,8 @@ const moment = require('moment');
 const TransactionSecurity = require('./security/TransactionSecurity');
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage');
 const PricingStorage = require('../../../storage/mongodb/PricingStorage');
-const ChargingStation = require('../../../model/ChargingStation');
-const User = require('../../../model/User');
+const ChargingStation = require('../../../entity/ChargingStation');
+const User = require('../../../entity/User');
 
 class TransactionService {
 	static async handleRefundTransaction(action, req, res, next) {

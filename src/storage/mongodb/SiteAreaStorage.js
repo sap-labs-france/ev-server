@@ -41,9 +41,9 @@ class SiteAreaStorage {
 	}
 
 	static async getSiteArea(tenant, id, withChargeBoxes, withSite) {
-		const Site = require('../../model/Site');  // Avoid fucking circular deps!!!
-		const SiteArea = require('../../model/SiteArea'); // Avoid fucking circular deps!!!
-		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
+		const Site = require('../../entity/Site');  // Avoid fucking circular deps!!!
+		const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
+		const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
 		// Create Aggregation
 		const aggregation = [];
 		// Filters
@@ -114,7 +114,7 @@ class SiteAreaStorage {
 	}
 
 	static async saveSiteArea(tenant, siteAreaToSave) {
-		const SiteArea = require('../../model/SiteArea'); // Avoid fucking circular deps!!!
+		const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
 		// Check if ID/Name is provided
 		if (!siteAreaToSave.id && !siteAreaToSave.name) {
 			// ID must be provided!
@@ -162,9 +162,9 @@ class SiteAreaStorage {
 	}
 
 	static async getSiteAreas(tenant, params={}, limit, skip, sort) {
-		const Site = require('../../model/Site');  // Avoid fucking circular deps!!!
-		const SiteArea = require('../../model/SiteArea'); // Avoid fucking circular deps!!!
-		const ChargingStation = require('../../model/ChargingStation'); // Avoid fucking circular deps!!!
+		const Site = require('../../entity/Site');  // Avoid fucking circular deps!!!
+		const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
+		const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip

@@ -4,7 +4,7 @@ require('body-parser-xml')(bodyParser);
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const ChargingStation = require('../../model/ChargingStation');
+const ChargingStation = require('../../entity/ChargingStation');
 const AppError = require('../../exception/AppError');
 const Logging = require('../../utils/Logging');
 const Configuration = require('../../utils/Configuration');

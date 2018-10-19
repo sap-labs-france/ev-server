@@ -6,7 +6,7 @@ const AppError = require('../../exception/AppError');
 
 class TenantStorage {
     static async getTenant(id){
-        const Tenant = require('../../model/Tenant'); // Avoid fucking circular deps!!!
+        const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
         // Create Aggregation
         const aggregation = [];
         // Filters
@@ -42,7 +42,7 @@ class TenantStorage {
     }
 
     static async getTenantByFilter(filter){
-        const Tenant = require('../../model/Tenant'); // Avoid fucking circular deps!!!
+        const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
         // Read DB
         const tenantsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
         .find(filter)
@@ -58,7 +58,7 @@ class TenantStorage {
     }
 
     static async saveTenant(tenantToSave){
-        const Tenant = require('../../model/Tenant'); // Avoid fucking circular deps!!!
+        const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
         // Check
         if (!tenantToSave.id && !tenantToSave.name) {
             throw new AppError(
@@ -98,7 +98,7 @@ class TenantStorage {
 
     // Delegate
     static async getTenants(params = {}, limit, skip, sort){
-        const Tenant = require('../../model/Tenant'); // Avoid fucking circular deps!!!
+        const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
         // Check Limit
         limit = Utils.checkRecordLimit(limit);
         // Check Skip

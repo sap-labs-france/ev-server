@@ -3,8 +3,8 @@ const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Constants = require('../../../utils/Constants');
-const Company = require('../../../model/Company');
-const User = require('../../../model/User');
+const Company = require('../../../entity/Company');
+const User = require('../../../entity/User');
 const Authorizations = require('../../../authorization/Authorizations');
 const CompanySecurity = require('./security/CompanySecurity');
 

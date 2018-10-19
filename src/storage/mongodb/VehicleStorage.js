@@ -42,7 +42,7 @@ class VehicleStorage {
 	}
 
 	static async getVehicle(tenant, id) {
-		const Vehicle = require('../../model/Vehicle'); // Avoid fucking circular deps!!!
+		const Vehicle = require('../../entity/Vehicle'); // Avoid fucking circular deps!!!
 		// Create Aggregation
 		const aggregation = [];
 		// Filters
@@ -65,7 +65,7 @@ class VehicleStorage {
 	}
 
 	static async saveVehicle(tenant, vehicleToSave) {
-		const Vehicle = require('../../model/Vehicle'); // Avoid fucking circular deps!!!
+		const Vehicle = require('../../entity/Vehicle'); // Avoid fucking circular deps!!!
 		// Check if ID/Model is provided
 		if (!vehicleToSave.id && !vehicleToSave.model) {
 			// ID must be provided!
@@ -114,7 +114,7 @@ class VehicleStorage {
 
 	// Delegate
 	static async getVehicles(tenant, params={}, limit, skip, sort) {
-		const Vehicle = require('../../model/Vehicle'); // Avoid fucking circular deps!!!
+		const Vehicle = require('../../entity/Vehicle'); // Avoid fucking circular deps!!!
 		// Check Limit
 		limit = Utils.checkRecordLimit(limit);
 		// Check Skip

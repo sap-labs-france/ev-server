@@ -5,10 +5,10 @@ const AppAuthError = require('../../../exception/AppAuthError');
 const Constants = require('../../../utils/Constants');
 const SiteAreaSecurity = require('./security/SiteAreaSecurity');
 const Authorizations = require('../../../authorization/Authorizations');
-const User = require('../../../model/User');
-const ChargingStation = require('../../../model/ChargingStation');
-const Site = require('../../../model/Site');
-const SiteArea = require('../../../model/SiteArea');
+const User = require('../../../entity/User');
+const ChargingStation = require('../../../entity/ChargingStation');
+const Site = require('../../../entity/Site');
+const SiteArea = require('../../../entity/SiteArea');
 
 class SiteAreaService {
 	static async handleCreateSiteArea(action, req, res, next) {

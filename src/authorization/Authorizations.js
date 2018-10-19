@@ -8,8 +8,8 @@ const compileProfile = require('node-authorization').profileCompiler;
 const AppError = require('../exception/AppError');
 const AppAuthError = require('../exception/AppAuthError');
 const Utils = require('../utils/Utils');
-const User = require('../model/User');
-const Company = require('../model/Company');
+const User = require('../entity/User');
+const Company = require('../entity/Company');
 const AuthorizationsDefinition = require('./AuthorizationsDefinition');
 require('source-map-support').install();
 
