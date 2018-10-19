@@ -26,7 +26,7 @@ describe('Company tests', function() {
     this.newCompany = company;
   });
 
-  it('should find a specific company by id', async () => {
+  it('should find the created company by id', async () => {
     // Check first if created
     expect(this.newCompany).to.not.be.null;
     // Create it in the backend
@@ -38,7 +38,7 @@ describe('Company tests', function() {
     this.newCompany = response.data;
   });
 
-  it('should find a newly created company from list', async () => {
+  it('should find a created company in the company list', async () => {
     // Check first if created
     expect(this.newCompany).to.not.be.null;
     // Retrieve from the backend
@@ -53,4 +53,42 @@ describe('Company tests', function() {
     // Check created company
     expect(response.data.result).to.containSubset([this.newCompany]);  
   });
+
+  it('should delete the created company', async () => {
+    // Check first if created
+    expect(this.newCompany).to.not.be.null;
+    // Create it in the backend
+    let response = await CentralServerService.company.delete(this.newCompany.id);
+    // Check
+    expect(response.status).to.equal(200);
+    expect(response.data.status).to.eql('Success');
+  });
+
+  it('should not find the deleted company with its id', async () => {
+    // Check first if created
+    expect(this.newCompany).to.not.be.null;
+    // Create it in the backend
+    let response = await CentralServerService.company.readById(this.newCompany.id);
+    // Check if not found
+    expect(response.status).to.equal(550);
+    // Keep the one retrieved from the backend (with params like created by/on...)
+    this.newCompany = response.data;
+  });
+
+  it('should not find the deleted company in the company list', async () => {
+    // Check first if created
+    expect(this.newCompany).to.not.be.null;
+    // Retrieve from the backend
+    response = await CentralServerService.company.readAll({}, { limit: Constants.UNLIMITED, skip: 0 });
+    // Check
+    expect(response.status).to.equal(200);
+    // Contains props
+    expect(response.data).to.have.property('count');
+    expect(response.data).to.have.property('result');
+    // All record retrieved
+    expect(response.data.count).to.eql(response.data.result.length);
+    // Check created company
+    expect(response.data.result).to.not.containSubset([this.newCompany]);  
+  });
+
 });

@@ -25,7 +25,7 @@ class BaseApi {
     } catch (error) {
       // Handle errors
       if (error.response) {
-        response = error.response;
+        httpResponse = error.response;
       } else if (error.request) {
         console.log(error.request);
         throw error;
