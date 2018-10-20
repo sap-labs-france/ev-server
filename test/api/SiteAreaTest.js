@@ -5,10 +5,10 @@ chai.use(chaiSubset);
 const Factory = require('../factories/Factory');
 const CentralServerService = require('./client/CentralServerService');
 
-describe('Site Area tests', function() {
+describe('Site Area tests', () => {
   this.timeout(10000);
 
-  describe('Green cases', function() {
+  describe('Green cases', () => {
     before(async () => {
       // Create the Company
       this.newCompany = await CentralServerService.createEntity(

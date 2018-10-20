@@ -2,10 +2,10 @@ const {expect} = require('chai');
 const CentralServerService = require('./client/CentralServerService');
 const Factory = require('../factories/Factory');
 
-describe('Site tests', function() {
+describe('Site tests', () => {
   this.timeout(10000);
 
-  describe('Green cases', function() {
+  describe('Green cases', () => {
     before(async () => {
       // Create the Company
       this.newCompany = await CentralServerService.createEntity(

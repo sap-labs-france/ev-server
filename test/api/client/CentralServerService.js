@@ -8,7 +8,7 @@ const chaiSubset = require('chai-subset');
 const CompanyApi = require('./CompanyApi');
 const SiteApi = require('./SiteApi');
 const SiteAreaApi = require('./SiteAreaApi');
-// const UserApi = require('./UserApi');
+const UserApi = require('./UserApi');
 // const ChargingStationApi = require('./ChargingStationApi');
 // const TenantApi = require('./TenantApi');
 // const TransactionApi = require('./TransactionApi');
@@ -27,7 +27,7 @@ class CentralServerService {
     this.company = new CompanyApi(authenticatedApi);
     this.site = new SiteApi(authenticatedApi);
     this.siteArea = new SiteAreaApi(authenticatedApi);
-    // this.user = new UserApi(authenticatedApi);
+    this.user = new UserApi(authenticatedApi);
     // this.chargingStation = new ChargingStationApi(authenticatedApi);
     // this.transaction = new TransactionApi(authenticatedApi);
     // this.tenant = new TenantApi(authenticatedApi);

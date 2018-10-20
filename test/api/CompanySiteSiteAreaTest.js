@@ -5,7 +5,7 @@ chai.use(chaiSubset);
 const Factory = require('../factories/Factory');
 const CentralServerService = require('./client/CentralServerService');
 
-describe('Site Area tests', function() {
+describe('Company, Site, Site Area tests', function() {
   this.timeout(10000);
 
   describe('Green cases', function() {
