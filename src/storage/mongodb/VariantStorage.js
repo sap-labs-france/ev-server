@@ -70,6 +70,7 @@ class VariantStorage {
     }
     if (variantToSave.userID) {
       variantToSave.userID = Utils.convertUserToObjectID(variantToSave.userID);
+      variantFilter.userID = variantToSave.userID;
     }
     // Transfer
     let variant = {};
