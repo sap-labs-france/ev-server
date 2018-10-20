@@ -1,5 +1,6 @@
 const CentralServerService = require('./client/CentralServerService');
 const Factory = require('../factories/Factory');
+const {expect} = require('chai');
 
 describe('Company tests', function() {
   this.timeout(10000);
@@ -13,7 +14,7 @@ describe('Company tests', function() {
 
     it('Should find the created company by id', async () => {
       // Check if the created entity can be retrieved with its id
-      await CentralServerService.checkCreatedEntityById(
+      await CentralServerService.checkEntityById(
         CentralServerService.company, this.newCompany);
     });
 
@@ -21,6 +22,22 @@ describe('Company tests', function() {
       // Check if the created entity is in the list
       await CentralServerService.checkCreatedEntityInList(
         CentralServerService.company, this.newCompany);
+    });
+
+    it('Should update the company', async () => {
+      // Change entity
+      this.newCompany.name = "New Name";
+      // Update
+      await CentralServerService.updateEntity(
+        CentralServerService.company, this.newCompany);
+    });
+
+    it('Should find the updated company by id', async () => {
+      // Check if the updated entity can be retrieved with its id
+      let updatedCompany = await CentralServerService.checkEntityById(
+        CentralServerService.company, this.newCompany);
+      // Check
+      expect(updatedCompany.name).to.equal(this.newCompany.name);
     });
 
     it('Should delete the created company', async () => {

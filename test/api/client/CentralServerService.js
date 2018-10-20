@@ -53,7 +53,7 @@ class CentralServerService {
     }
   }
 
-  async checkCreatedEntityById(entityApi, entity, performCheck=true) {
+  async checkEntityById(entityApi, entity, performCheck=true) {
     // Check first if created
     expect(entity).to.not.be.null;
     // Retrieve it from the backend
@@ -99,6 +99,22 @@ class CentralServerService {
     expect(entity).to.not.be.null;
     // Delete it in the backend
     let response = await entityApi.delete(entity.id);
+    // Check
+    if (performCheck) {
+      // Check
+      expect(response.status).to.equal(200);
+      expect(response.data.status).to.eql('Success');
+    } else {
+      // Let the caller to handle response
+      return response;
+    }
+  }
+
+  async updateEntity(entityApi, entity, performCheck=true) {
+    // Check first if created
+    expect(entity).to.not.be.null;
+    // Delete it in the backend
+    let response = await entityApi.update(entity);
     // Check
     if (performCheck) {
       // Check
