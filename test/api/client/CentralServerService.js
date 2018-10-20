@@ -7,7 +7,7 @@ const chai = require('chai');
 const chaiSubset = require('chai-subset');
 const CompanyApi = require('./CompanyApi');
 const SiteApi = require('./SiteApi');
-// const SiteAreaApi = require('./SiteAreaApi');
+const SiteAreaApi = require('./SiteAreaApi');
 // const UserApi = require('./UserApi');
 // const ChargingStationApi = require('./ChargingStationApi');
 // const TenantApi = require('./TenantApi');
@@ -26,7 +26,7 @@ class CentralServerService {
     // Create the Company
     this.company = new CompanyApi(authenticatedApi);
     this.site = new SiteApi(authenticatedApi);
-    // this.siteArea = new SiteAreaApi(authenticatedApi);
+    this.siteArea = new SiteAreaApi(authenticatedApi);
     // this.user = new UserApi(authenticatedApi);
     // this.chargingStation = new ChargingStationApi(authenticatedApi);
     // this.transaction = new TransactionApi(authenticatedApi);
@@ -35,17 +35,22 @@ class CentralServerService {
     // this.url = authenticatedApi.url;
   }
 
-  async createEntity(entityApi, entity) {
+  async createEntity(entityApi, entity, performCheck=true) {
     // Create it in the backend
     let response = await entityApi.create(entity);
     // Check
-    expect(response.status).to.equal(200);
-    expect(response.data.status).to.eql('Success');
-    expect(response.data).to.have.property('id');
-    expect(response.data.id).to.match(/^[a-f0-9]+$/);
-    // Set the id
-    entity.id = response.data.id;
-    return entity;
+    if (performCheck) {
+      expect(response.status).to.equal(200);
+      expect(response.data.status).to.eql('Success');
+      expect(response.data).to.have.property('id');
+      expect(response.data.id).to.match(/^[a-f0-9]+$/);
+      // Set the id
+      entity.id = response.data.id;
+      return entity;
+    } else {
+      // Let the caller to handle response
+      return response;
+    }
   }
 
   async checkCreatedEntityById(entityApi, entity) {
