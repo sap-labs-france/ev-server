@@ -2,17 +2,16 @@ const CrudApi = require('./utils/CrudApi');
 const Constants = require('./utils/Constants')
 
 class CompanyApi extends CrudApi {
-
   constructor(authenticatedApi) {
     super(authenticatedApi);
   }
 
   readById(id) {
-    return super.readById('/client/api/Company/', id);
+    return super.readById('/client/api/Company', id);
   }
 
   readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
-    return super.readAll('/client/api/Companies/', params, paging, ordering);
+    return super.readAll('/client/api/Companies', params, paging, ordering);
   }
 
   create(data) {
@@ -20,11 +19,11 @@ class CompanyApi extends CrudApi {
   }
 
   update(data) {
-    return super.update('/client/api/CompanyUpdate/', data);
+    return super.update('/client/api/CompanyUpdate', data);
   }
 
   delete(id) {
-    return super.delete('/client/api/CompanyDelete/', id);
+    return super.delete('/client/api/CompanyDelete', id);
   }
 }
 
