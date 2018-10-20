@@ -53,52 +53,76 @@ class CentralServerService {
     }
   }
 
-  async checkCreatedEntityById(entityApi, entity) {
+  async checkCreatedEntityById(entityApi, entity, performCheck=true) {
     // Check first if created
     expect(entity).to.not.be.null;
     // Retrieve it from the backend
     let response = await entityApi.readById(entity.id);
-    // Check if ok
-    expect(response.status).to.equal(200);
-    expect(response.data.id).is.eql(entity.id);
-    expect(response.data).to.deep.include(entity);
-    // Return the entity
-    return response.data;
+    // Check
+    if (performCheck) {
+      // Check if ok
+      expect(response.status).to.equal(200);
+      expect(response.data.id).is.eql(entity.id);
+      expect(response.data).to.deep.include(entity);
+      // Return the entity
+      return response.data;
+    } else {
+      // Let the caller to handle response
+      return response;
+    }
   }
 
-  async checkCreatedEntityInList(entityApi, entity) {
+  async checkCreatedEntityInList(entityApi, entity, performCheck=true) {
     // Check first if created
     expect(entity).to.not.be.null;
     // Retrieve from the backend
     let response = await entityApi.readAll({}, { limit: Constants.UNLIMITED, skip: 0 });
     // Check
-    expect(response.status).to.equal(200);
-    // Contains props
-    expect(response.data).to.have.property('count');
-    expect(response.data).to.have.property('result');
-    // All record retrieved
-    expect(response.data.count).to.eql(response.data.result.length);
-    // Check created company
-    expect(response.data.result).to.containSubset([entity]);  
+    if (performCheck) {
+      // Check
+      expect(response.status).to.equal(200);
+      // Contains props
+      expect(response.data).to.have.property('count');
+      expect(response.data).to.have.property('result');
+      // All record retrieved
+      expect(response.data.count).to.eql(response.data.result.length);
+      // Check created company
+      expect(response.data.result).to.containSubset([entity]);  
+    } else {
+      // Let the caller to handle response
+      return response;
+    }
   }
 
-  async deleteEntity(entityApi, entity) {
+  async deleteEntity(entityApi, entity, performCheck=true) {
     // Check first if created
     expect(entity).to.not.be.null;
     // Delete it in the backend
     let response = await entityApi.delete(entity.id);
     // Check
-    expect(response.status).to.equal(200);
-    expect(response.data.status).to.eql('Success');
+    if (performCheck) {
+      // Check
+      expect(response.status).to.equal(200);
+      expect(response.data.status).to.eql('Success');
+    } else {
+      // Let the caller to handle response
+      return response;
+    }
   }
 
-  async checkDeletedEntityById(entityApi, entity) {
+  async checkDeletedEntityById(entityApi, entity, performCheck=true) {
     // Check first if created
     expect(entity).to.not.be.null;
     // Create it in the backend
     let response = await entityApi.readById(entity.id);
-    // Check if not found
-    expect(response.status).to.equal(550);
+    // Check
+    if (performCheck) {
+      // Check if not found
+      expect(response.status).to.equal(550);
+    } else {
+      // Let the caller to handle response
+      return response;
+    }
   }
 }
 
