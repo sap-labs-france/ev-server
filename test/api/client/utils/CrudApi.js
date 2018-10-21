@@ -33,16 +33,6 @@ class CrudApi {
       params: {ID: id}
     });
   }
-
-  // read(path, params = {}, headers = {}) {
-  //   return this.baseApi.send({
-  //     method: 'GET',
-  //     url: path,
-  //     params: params,
-  //     headers: headers
-  //   });
-  // }
-
   
   /**
    * Request a list of objects from the backend

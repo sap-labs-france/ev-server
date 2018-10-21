@@ -10,8 +10,8 @@ const SiteApi = require('./SiteApi');
 const SiteAreaApi = require('./SiteAreaApi');
 const UserApi = require('./UserApi');
 const AuthenticationApi = require('./AuthenticationApi');
+const TenantApi = require('./TenantApi');
 // const ChargingStationApi = require('./ChargingStationApi');
-// const TenantApi = require('./TenantApi');
 // const TransactionApi = require('./TransactionApi');
 
 // Set
@@ -30,10 +30,9 @@ class CentralServerService {
     this.siteAreaApi = new SiteAreaApi(this.authenticatedApi);
     this.userApi = new UserApi(this.authenticatedApi);
     this.authenticationApi = new AuthenticationApi(this.baseApi);
+    this.tenantApi = new TenantApi(this.authenticatedApi, this.baseApi);
     // this.chargingStationApi = new ChargingStationApi(this.authenticatedApi);
     // this.transactionApi = new TransactionApi(this.authenticatedApi);
-    // this.tenantApi = new TenantApi(this.authenticatedApi);
-    // this.tenantNoAuth = new TenantApi(this.baseApi);
     // this.url = authenticatedApi.url;
   }
 

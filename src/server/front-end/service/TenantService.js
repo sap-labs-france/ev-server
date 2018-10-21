@@ -5,6 +5,7 @@ const UnauthorizedError = require('../../../exception/UnauthorizedError');
 const BadRequestError = require('../../../exception/BadRequestError');
 const ConflictError = require('../../../exception/ConflictError');
 const NotFoundError = require('../../../exception/NotFoundError');
+const Constants = require('../../../utils/Constants');
 const {
     ACTION_CREATE,
     ACTION_DELETE,
@@ -20,7 +21,7 @@ const Tenant = require('../../../model/Tenant');
 const User = require('../../../model/User');
 const Authorizations = require('../../../authorization/Authorizations');
 const TenantSecurity = require('./security/TenantSecurity');
-const {CREATED, OK} = require('http-status-codes');
+const { OK } = require('http-status-codes');
 const TenantValidator = require('../validation/TenantValidation');
 const AbstractService = require('./AbstractService');
 
@@ -191,9 +192,7 @@ class TenantService extends AbstractService {
                 detailedMessages: newTenant
             });
             // Ok
-            res.status(CREATED).json({
-                id: newTenant.getID()
-            });
+            res.status(OK).json(Object.assign(Constants.REST_RESPONSE_SUCCESS, { id: newTenant.getID() }));
             next();
         } catch (error) {
             TenantService._handleError(error, req, next, action, MODULE_NAME, 'handleCreateTenant');
