@@ -1,5 +1,5 @@
-const AuthenticationApi = require('../AuthenticationApi');
 const BaseApi = require('./BaseApi');
+const AuthenticationApi = require('../AuthenticationApi');
 
 class AuthenticatedBaseApi extends BaseApi {
   constructor(baseURL, user, password) {

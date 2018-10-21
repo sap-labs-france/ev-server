@@ -9,6 +9,7 @@ const CompanyApi = require('./CompanyApi');
 const SiteApi = require('./SiteApi');
 const SiteAreaApi = require('./SiteAreaApi');
 const UserApi = require('./UserApi');
+const AuthenticationApi = require('./AuthenticationApi');
 // const ChargingStationApi = require('./ChargingStationApi');
 // const TenantApi = require('./TenantApi');
 // const TransactionApi = require('./TransactionApi');
@@ -20,18 +21,19 @@ class CentralServerService {
   constructor() {
     const baseURL = `${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`;
     // Create the Base API
-    const baseApi = new BaseApi(baseURL);
+    this.baseApi = new BaseApi(baseURL);
     // Create the Authenticated API
-    const authenticatedApi = new AuthenticatedBaseApi(baseURL, config.get('admin.username'), config.get('admin.password'));
+    this.authenticatedApi = new AuthenticatedBaseApi(baseURL, config.get('admin.username'), config.get('admin.password'));
     // Create the Company
-    this.company = new CompanyApi(authenticatedApi);
-    this.site = new SiteApi(authenticatedApi);
-    this.siteArea = new SiteAreaApi(authenticatedApi);
-    this.user = new UserApi(authenticatedApi);
-    // this.chargingStation = new ChargingStationApi(authenticatedApi);
-    // this.transaction = new TransactionApi(authenticatedApi);
-    // this.tenant = new TenantApi(authenticatedApi);
-    // this.tenantNoAuth = new TenantApi(baseApi);
+    this.companyApi = new CompanyApi(this.authenticatedApi);
+    this.siteApi = new SiteApi(this.authenticatedApi);
+    this.siteAreaApi = new SiteAreaApi(this.authenticatedApi);
+    this.userApi = new UserApi(this.authenticatedApi);
+    this.authenticationApi = new AuthenticationApi(this.baseApi);
+    // this.chargingStationApi = new ChargingStationApi(this.authenticatedApi);
+    // this.transactionApi = new TransactionApi(this.authenticatedApi);
+    // this.tenantApi = new TenantApi(this.authenticatedApi);
+    // this.tenantNoAuth = new TenantApi(this.baseApi);
     // this.url = authenticatedApi.url;
   }
 
