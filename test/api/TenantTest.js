@@ -1,6 +1,4 @@
-const {
-  expect
-} = require('chai');
+const { expect } = require('chai');
 const chai = require('chai');
 const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
@@ -18,21 +16,100 @@ describe('Tenant tests', function () {
         CentralServerService.tenantApi, TenantFactory.buildTenantCreate());
     });
 
-    it('Should find the created site by id', async () => {
+    it('Should find the created tenant by id', async () => {
       // Check if the created entity can be retrieved with its id
       await CentralServerService.checkEntityById(
         CentralServerService.tenantApi, this.newTenant);
     });
 
-    it('should be possible to verify an existing tenant', async () => {
+    it('Should find the created tenant in the tenant list', async () => {
+      // Check if the created entity is in the list
+      await CentralServerService.checkCreatedEntityInList(
+        CentralServerService.tenantApi, this.newTenant);
+    });
+
+    it('Should update the tenant', async () => {
+      // Change entity
+      this.newTenant.name = "New Name";
+      // Update
+      await CentralServerService.updateEntity(
+        CentralServerService.tenantApi, this.newTenant);
+    });
+
+    it('Should find the updated tenant by id', async () => {
+      // Check if the updated entity can be retrieved with its id
+      let updatedTenant = await CentralServerService.checkEntityById(
+        CentralServerService.tenantApi, this.newTenant);
       // Check
-      response = await CentralServerService.tenantApi.verify(this.newTenant.subdomain);
+      expect(updatedTenant.name).to.equal(this.newTenant.name);
+    });
+
+    it('Should be possible to verify an existing tenant', async () => {
+      // Exec
+      let response = await CentralServerService.tenantApi.verify(this.newTenant.subdomain);
       // Check
       expect(response.status).to.equal(HttpStatus.OK);
+    });
+
+    it('Should be possible to verify empty tenant', async () => {
+      // Exec
+      let response = await CentralServerService.tenantApi.verify('');
+      // Check
+      expect(response.status).to.equal(HttpStatus.OK);
+    });    
+
+    it('Should delete the created tenant', async () => {
+      // Delete the created entity
+      await CentralServerService.deleteEntity(
+        CentralServerService.tenantApi, this.newTenant);
+    });
+
+    it('Should not find the deleted tenant with its id', async () => {
+      // Check if the deleted entity cannot be retrieved with its id
+      await CentralServerService.checkDeletedEntityById(
+        CentralServerService.tenantApi, this.newTenant);
     });
   });
 
   describe('Error cases', () => {
+    it('Should not be possible to read an empty tenant', async () => {
+      // Exec
+      let response = await CentralServerService.checkEntityById(
+        CentralServerService.tenantApi, {id: ''}, false);
+      // Check
+      expect(response.status).to.equal(500);
+    });
+
+    it('Should not be possible to read an invalid tenant', async () => {
+      // Exec
+      let response = await CentralServerService.checkEntityById(
+        CentralServerService.tenantApi, {id: 'youAreInvalid'}, false);
+      // Check
+      expect(response.status).to.equal(500);
+    });
+
+    it('Should not be possible to read an unknown tenant', async () => {
+      // Exec
+      let response = await CentralServerService.checkEntityById(
+        CentralServerService.tenantApi, {id: '123456789012345678901234'}, false);
+      // Check
+      expect(response.status).to.equal(550);
+    });
+
+    it('Should not be possible to verify invalid tenant', async () => {
+      // Exec
+      let response = await CentralServerService.tenantApi.verify('invalid tenant');
+      // Check
+      expect(response.status).to.equal(550);
+    });
+
+    it('Should not be possible to verify an unknown tenant', async () => {
+      // Exec
+      let response = await CentralServerService.tenantApi.verify('youAreUnknown');
+      // Check
+      expect(response.status).to.equal(550);
+    });
+
     it('Should not be possible to create a tenant without email', async () => {
       // Create
       let tenant = TenantFactory.buildTenantCreate();
@@ -132,73 +209,4 @@ describe('Tenant tests', function () {
       expect(response.status).to.equal(HttpStatus.BAD_REQUEST);
     });
   });
-
-  // describe('Tenant Verify', function () {
-  //   it('should be possible to verify an existing tenant', async () => {
-  //     let tenant = TenantFactory.buildTenantCreate();
-  //     let response = await CentralServerService.tenant.create(tenant);
-  //     expect(response.status).to.equal(HttpStatus.CREATED);
-
-  //     response = await CentralServerService.tenantNoAuth.verify(tenant.subdomain);
-  //     expect(response.status).to.equal(HttpStatus.OK);
-  //   });
-
-  //   it('should be possible to verify empty tenant', async () => {
-  //     let response = await CentralServerService.tenantNoAuth.verify('');
-  //     expect(response.status).to.equal(HttpStatus.OK);
-  //   });
-
-  //   it('should not be possible to verify invalid tenant', async () => {
-  //     let response = await CentralServerService.tenantNoAuth.verify('invalid tenant');
-  //     expect(response.status).to.equal(HttpStatus.NOT_FOUND);
-  //   });
-
-  //   it('should not be possible to verify an unknown tenant', async () => {
-  //     let response = await CentralServerService.tenantNoAuth.verify('youAreUnknown');
-  //     expect(response.status).to.equal(HttpStatus.NOT_FOUND);
-  //   });
-  // })
-
-  // describe('Tenant Read', function () {
-  //   it('should be possible to read an existing tenant', async () => {
-  //     let tenant = TenantFactory.buildTenantCreate();
-  //     let response = await CentralServerService.tenant.create(tenant);
-  //     expect(response.status).to.equal(HttpStatus.CREATED);
-
-  //     let tenantId = response.data.id;
-  //     response = await CentralServerService.tenant.readById(tenantId);
-  //     expect(response.status).to.equal(HttpStatus.OK);
-  //     expect(response.data.id).to.equal(tenantId);
-  //     expect(response.data.name).to.equal(tenant.name);
-  //     expect(response.data.email).to.equal(tenant.email);
-  //     expect(response.data.subdomain).to.equal(tenant.subdomain);
-  //   });
-
-  //   it('should not be possible to read an empty tenant', async () => {
-  //     response = await CentralServerService.tenant.readById('');
-  //     expect(response.status).to.equal(HttpStatus.BAD_REQUEST);
-  //   });
-
-  //   it('should not be possible to read an invalid tenant', async () => {
-  //     response = await CentralServerService.tenant.readById('youAreInvalid');
-  //     expect(response.status).to.equal(HttpStatus.INTERNAL_SERVER_ERROR);
-  //   });
-
-  //   it('should not be possible to read an unknown tenant', async () => {
-  //     response = await CentralServerService.tenant.readById('123456789012345678901234');
-  //     expect(response.status).to.equal(HttpStatus.NOT_FOUND);
-  //   });
-  // })
-
-  // describe('Tenants Read', function () {
-  //   it('should be possible to list existing tenants', async () => {
-  //     let tenant = TenantFactory.buildTenantCreate();
-  //     let response = await CentralServerService.tenant.create(tenant);
-  //     expect(response.status).to.equal(HttpStatus.CREATED);
-
-  //     response = await CentralServerService.tenant.read(tenant.id);
-  //     expect(response.status).to.equal(HttpStatus.OK);
-  //     expect(response.data.count).to.match(/[0-9]*/);
-  //   });
-  // })
 });
