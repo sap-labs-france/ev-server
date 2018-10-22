@@ -362,14 +362,18 @@ class Authorizations {
 			return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
 				{ "Action": action, "SiteID": chargingStation.siteArea.siteID });  
 		} else {
-			// Log
-			Logging.logSecurityWarning({
-				user: loggedUser,
-				source: chargingStation.id,
-				module: "Authorizations", method: "checkChargingStationSite",
-				message: `Cannot check Site authorization`,
-				action: action
-			});
+      // Check
+      if (!Authorizations.isAdmin(loggedUser)) {
+        // Log
+        Logging.logSecurityWarning({
+          user: loggedUser,
+          source: chargingStation.id,
+          module: "Authorizations", method: "checkChargingStationSite",
+          message: `Cannot check Site authorization`,
+          action: action,
+          detailedMessages: { "stack": new Error().stack }
+        });
+      }
 			// No: Must be an admin
 			return Authorizations.isAdmin(loggedUser);
 		}
