@@ -224,7 +224,7 @@ class TenantService extends AbstractService {
             // Update
             Database.updateTenant(filteredRequest, tenant.getModel());
             // Update timestamp
-            tenant.setLastChangedBy(req.user.tenant, new User({
+            tenant.setLastChangedBy(new User(req.user.tenant, {
                 'id': req.user.id
             }));
             tenant.setLastChangedOn(new Date());
