@@ -1,5 +1,5 @@
 const CrudApi = require('./utils/CrudApi');
-const Constants = require('./utils/Constants')
+const Constants = require('./utils/Constants');
 class SiteAreaApi extends CrudApi {
   constructor(authenticatedApi) {
     super(authenticatedApi);

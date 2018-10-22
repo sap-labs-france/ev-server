@@ -10,12 +10,20 @@ describe('Site tests', function () {
       // Create the Company
       this.newCompany = await CentralServerService.createEntity(
         CentralServerService.companyApi, Factory.company.build());
+      expect(this.newCompany).to.not.be.null;
+      // Create User
+      this.newUser = await CentralServerService.createEntity(
+        CentralServerService.userApi, Factory.user.build());
+      expect(this.newUser).to.not.be.null;
     });
 
     after(async () => {
       // Delete the Company
       await CentralServerService.deleteEntity(
         CentralServerService.companyApi, this.newCompany);
+      // Delete User
+      await CentralServerService.deleteEntity(
+        CentralServerService.userApi, this.newUser);
     });
 
     it('Should create a new site', async () => {
@@ -23,7 +31,8 @@ describe('Site tests', function () {
       expect(this.newCompany).to.not.be.null;
       // Create the entity
       this.newSite = await CentralServerService.createEntity(
-        CentralServerService.siteApi, Factory.site.build({ companyID: this.newCompany.id }));
+        CentralServerService.siteApi, Factory.site.build(
+          { companyID: this.newCompany.id }));
     });
 
     it('Should find the created site by id', async () => {

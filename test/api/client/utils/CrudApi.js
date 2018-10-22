@@ -27,13 +27,26 @@ class CrudApi {
    * @memberof CrudApi
    */
   readById(path, id) {
+    // Execute
+    return this.read(path, { ID: id });
+  }
+  
+  /**
+   * Generic Read
+   *
+   * @param {*} path The URL path
+   * @param {*} params
+   * @returns The HTTP response
+   * @memberof CrudApi
+   */
+  read(path, params) {
     return this.authenticatedApi.send({
       method: 'GET',
       url: path,
-      params: {ID: id}
+      params
     });
   }
-  
+
   /**
    * Request a list of objects from the backend
    *

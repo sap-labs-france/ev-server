@@ -1,5 +1,5 @@
 const ReadApi = require('./utils/ReadApi');
-const Constants = require('./utils/Constants')
+const Constants = require('./utils/Constants');
 
 class TransactionApi {
 

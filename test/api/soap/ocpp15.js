@@ -1,15 +1,16 @@
-"use strict";
-
 const soap = require('strong-soap').soap;
 const XMLHandler = soap.XMLHandler;
 const xmlHandler = new XMLHandler();
 const config = require('../../config');
+
 module.exports = class Ocpp15 {
 
-  async init(baseUrl, options) {
-    this.endpoint = options.endpoint;
+  async constructor(wsdlUrl, serverUrl) {
+    // End point 
+    this.serverUrl = serverUrl;
+    // Create the client
     this.client = await new Promise(function(resolve, reject) {
-      soap.createClient(baseUrl, options, (err, client) => {
+      soap.createClient(wsdlUrl, options, (err, client) => {
         if (err) {
           reject(err);
         } else {
@@ -141,7 +142,7 @@ module.exports = class Ocpp15 {
     if (config.get('ocpp.logs') === 'json') {
       console.log(JSON.stringify(
         {
-          endpoint: this.endpoint,
+          endpoint: this.serverUrl,
           headers: headers,
           ...data,
           options: options

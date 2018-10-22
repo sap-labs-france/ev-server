@@ -1,5 +1,5 @@
 const CrudApi = require('./utils/CrudApi');
-const Constants = require('./utils/Constants')
+const Constants = require('./utils/Constants');
 
 class TenantApi extends CrudApi {
   constructor(authenticatedApi, baseApi) {

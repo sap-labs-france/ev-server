@@ -11,19 +11,18 @@ const SiteAreaApi = require('./SiteAreaApi');
 const UserApi = require('./UserApi');
 const AuthenticationApi = require('./AuthenticationApi');
 const TenantApi = require('./TenantApi');
-// const ChargingStationApi = require('./ChargingStationApi');
-// const TransactionApi = require('./TransactionApi');
+const ChargingStationApi = require('./ChargingStationApi');
 
 // Set
 chai.use(chaiSubset);
 class CentralServerService {
 
   constructor() {
-    const baseURL = `${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`;
+    this.baseURL = `${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`;
     // Create the Base API
-    this.baseApi = new BaseApi(baseURL);
+    this.baseApi = new BaseApi(this.baseURL);
     // Create the Authenticated API
-    this.authenticatedApi = new AuthenticatedBaseApi(baseURL, config.get('admin.username'), config.get('admin.password'));
+    this.authenticatedApi = new AuthenticatedBaseApi(this.baseURL, config.get('admin.username'), config.get('admin.password'));
     // Create the Company
     this.companyApi = new CompanyApi(this.authenticatedApi);
     this.siteApi = new SiteApi(this.authenticatedApi);
@@ -31,9 +30,7 @@ class CentralServerService {
     this.userApi = new UserApi(this.authenticatedApi);
     this.authenticationApi = new AuthenticationApi(this.baseApi);
     this.tenantApi = new TenantApi(this.authenticatedApi, this.baseApi);
-    // this.chargingStationApi = new ChargingStationApi(this.authenticatedApi);
-    // this.transactionApi = new TransactionApi(this.authenticatedApi);
-    // this.url = authenticatedApi.url;
+    this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this.baseApi);
   }
 
   async createEntity(entityApi, entity, performCheck=true) {
