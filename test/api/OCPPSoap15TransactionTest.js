@@ -31,6 +31,10 @@ describe('OCPP Transaction tests', function () {
       errorCode: 'NoError',
       timestamp: new Date().toISOString()
     };
+    // Set meter value start
+    this.transactionStartMeterValue = 10000;
+    this.transactionCurrentMeterValue = this.transactionStartMeterValue;
+    this.meterValueStep = 200;
   });
 
   after(async () => {
@@ -38,7 +42,7 @@ describe('OCPP Transaction tests', function () {
     await this.bootstrap.destroyContext(this.context);
   });
 
-  it('A charging station can notify its status', async () => {
+  it('Both connectors of the charging station are set to Available', async () => {
     // Update Status of Connector 1
     let response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector1);
     // Check
@@ -55,7 +59,7 @@ describe('OCPP Transaction tests', function () {
       this.context.newChargingStation, 2, this.chargingStationConnector2);
   });
 
-  it('A charging station can notify its status multiple times', async () => {
+  it('Change the connector status', async () => {
     // Set it to Occupied
     this.chargingStationConnector1.status = 'Occupied';
     this.chargingStationConnector1.timestamp = new Date().toISOString();
@@ -82,15 +86,14 @@ describe('OCPP Transaction tests', function () {
   });
 
   it('Start a new transaction', async () => {
-    let currentTime = moment().subtract(1, "h");
-    let connectorId = 1;
-
+    let transactionConnectorId = 1;
+    let transactionCurrentTime = moment().subtract(1, "h");
     // Start the transaction
     let response = await this.ocpp.executeStartTransaction(this.context.newChargingStation.id, {
-      connectorId: connectorId,
+      connectorId: transactionConnectorId,
       idTag: this.context.newUser.tagIDs[0],
-      meterStart: 10000,
-      timestamp: currentTime.toISOString()
+      meterStart: this.transactionStartMeterValue,
+      timestamp: transactionCurrentTime.toISOString()
     });
     // Check
     expect(response.data).to.be.an('object');
@@ -100,22 +103,236 @@ describe('OCPP Transaction tests', function () {
     expect(response.data.idTagInfo.status).to.equal('Accepted');
     // Keep it
     let transactionId = response.data.transactionId;
+    // Set it to Occupied
+    this.chargingStationConnector1.status = 'Occupied';
+    this.chargingStationConnector1.timestamp = new Date().toISOString();
+    // Update
+    response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector1);
+    // Check
+    expect(response.data).to.eql({});
     // Check if the Transaction exists
     response = await CentralServerService.transactionApi.readById(transactionId);
     // Check
     expect(response.data).to.deep.include({
       id: transactionId,
-      timestamp: currentTime.toISOString(),
-      connectorId: connectorId,
+      timestamp: transactionCurrentTime.toISOString(),
+      connectorId: transactionConnectorId,
       tagID: this.context.newUser.tagIDs[0],
       chargeBoxID: this.context.newChargingStation.id,
+      meterStart: this.transactionStartMeterValue,
       chargeBox: {
         id: this.context.newChargingStation.id,
         connectors: [{
           activeTransactionID: transactionId,
-          connectorId: connectorId,
+          connectorId: transactionConnectorId,
           currentConsumption: 0,
           totalConsumption: 0,
+          status: 'Occupied',
+          errorCode: 'NoError',
+          vendorErrorCode: '',
+          info: '',
+          type: null,
+          power: 0
+        }]
+      },
+      user: {
+        id: this.context.newUser.id,
+        firstName: this.context.newUser.firstName,
+        name: this.context.newUser.name,
+      }
+    })
+    // Keep
+    this.newTransaction = response.data;
+  });
+
+  it('Start again a new transaction', async () => {
+    // Check on Transaction
+    expect(this.newTransaction).to.not.be.null;
+    // Set
+    let transactionConnectorId = this.newTransaction.connectorId;
+    let transactionId = this.newTransaction.id;
+    let transactionCurrentTime = moment().subtract(1, "h");
+    // Clear old one
+    this.newTransaction = null;
+    // Start a new transaction
+    let response = await this.ocpp.executeStartTransaction(this.context.newChargingStation.id, {
+      connectorId: transactionConnectorId,
+      idTag: this.context.newUser.tagIDs[0],
+      meterStart: this.transactionStartMeterValue,
+      timestamp: transactionCurrentTime.toISOString()
+    });
+    // Check
+    expect(response.data).to.be.an('object');
+    expect(response.data).to.have.property('transactionId');
+    expect(response.data.transactionId).to.not.equal(0);
+    expect(response.data.transactionId).to.not.equal(transactionId);
+    expect(response.data).to.have.property('idTagInfo');
+    expect(response.data.idTagInfo.status).to.equal('Accepted');
+    // Keep it
+    transactionId = response.data.transactionId;
+    // Set it to Occupied
+    this.chargingStationConnector1.status = 'Occupied';
+    this.chargingStationConnector1.timestamp = new Date().toISOString();
+    // Update
+    response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector1);
+    // Check
+    expect(response.data).to.eql({});
+    // Check if the Transaction exists
+    response = await CentralServerService.transactionApi.readById(transactionId);
+    // Check
+    expect(response.data).to.deep.include({
+      id: transactionId,
+      timestamp: transactionCurrentTime.toISOString(),
+      connectorId: transactionConnectorId,
+      tagID: this.context.newUser.tagIDs[0],
+      chargeBoxID: this.context.newChargingStation.id,
+      meterStart: this.transactionStartMeterValue,
+      chargeBox: {
+        id: this.context.newChargingStation.id,
+        connectors: [{
+          activeTransactionID: transactionId,
+          connectorId: transactionConnectorId,
+          currentConsumption: 0,
+          totalConsumption: 0,
+          status: 'Occupied',
+          errorCode: 'NoError',
+          vendorErrorCode: '',
+          info: '',
+          type: null,
+          power: 0
+        }]
+      },
+      user: {
+        id: this.context.newUser.id,
+        firstName: this.context.newUser.firstName,
+        name: this.context.newUser.name,
+      }
+    })
+    // Keep
+    this.newTransaction = response.data;
+  });
+
+  it('Send meter values', async () => {
+    // Check on Transaction
+    expect(this.newTransaction).to.not.be.null;
+    // Init
+    this.transactionCurrentTime = moment(this.newTransaction.timestamp);
+    // Send Meter Values
+    for (let index = 1; index <= 10; index++) {
+      // Compute
+      this.transactionCurrentMeterValue += this.meterValueStep;
+      // Call OCPP
+      response = await this.ocpp.executeMeterValues(this.context.newChargingStation.id, {
+        connectorId: this.newTransaction.connectorId,
+        transactionId: this.newTransaction.id,
+        values: {
+          timestamp: this.transactionCurrentTime.add(1, "m").toISOString(),
+          value: {
+            $attributes: {
+              unit: 'Wh',
+              location: "Outlet",
+              measurand: "Energy.Active.Import.Register",
+              format: "Raw",
+              context: "Sample.Periodic"
+            },
+            $value: this.transactionCurrentMeterValue
+          }
+        },
+      });
+      // Check
+      expect(response.data).to.eql({});
+      // Check the Transaction
+      response = await CentralServerService.transactionApi.readById(this.newTransaction.id);
+      console.log("Meter Value");
+      console.log(JSON.stringify(response, null, 2));
+        // Check Consumption
+      expect(response.data).to.deep.include({
+        id: this.newTransaction.id,
+        timestamp: this.newTransaction.timestamp,
+        connectorId: this.newTransaction.connectorId,
+        tagID: this.context.newUser.tagIDs[0],
+        chargeBoxID: this.context.newChargingStation.id,
+        meterStart: this.transactionStartMeterValue,
+        chargeBox: {
+          id: this.context.newChargingStation.id,
+          connectors: [{
+            activeTransactionID: this.newTransaction.id,
+            connectorId: this.newTransaction.connectorId,
+            currentConsumption: this.meterValueStep * 60,
+            totalConsumption: (this.transactionCurrentMeterValue - this.transactionStartMeterValue),
+            status: 'Occupied',
+            errorCode: 'NoError',
+            vendorErrorCode: '',
+            info: '',
+            type: null,
+            power: 0
+          }]
+        },
+        user: {
+          id: this.context.newUser.id,
+          firstName: this.context.newUser.firstName,
+          name: this.context.newUser.name,
+        }
+      })
+    }
+  });
+
+  it('Stop the transaction', async () => {
+    // Check on Transaction
+    expect(this.newTransaction).to.not.be.null;
+    expect(this.transactionCurrentTime).to.not.be.null;
+    // Init
+    // Compute last meter value
+    this.transactionCurrentMeterValue += this.meterValueStep;
+    // Stop the transaction
+    let response = await this.ocpp.executeStopTransaction(this.context.newChargingStation.id, {
+      transactionId: this.newTransaction.id,
+      idTag: this.context.newUser.tagIDs[0],
+      meterStop: this.transactionCurrentMeterValue,
+      timestamp: this.transactionCurrentTime.add(1, "m").toISOString()
+    });
+    // Check
+    expect(response.data).to.have.property('idTagInfo');
+    expect(response.data.idTagInfo.status).to.equal('Accepted');
+
+    // Set the connector to Available
+    this.chargingStationConnector1.status = 'Available';
+    this.chargingStationConnector1.timestamp = new Date().toISOString();
+    // Update
+    response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector1);
+    // Check
+    expect(response.data).to.eql({});
+
+    // Check the Transaction
+    response = await CentralServerService.transactionApi.readById(this.newTransaction.id);
+    console.log("Stop Transaction");
+    console.log(JSON.stringify(response, null, 2));
+    // Check Consumption
+    expect(response.data).to.deep.include({
+      id: this.newTransaction.id,
+      timestamp: this.newTransaction.timestamp,
+      connectorId: this.newTransaction.connectorId,
+      tagID: this.context.newUser.tagIDs[0],
+      chargeBoxID: this.context.newChargingStation.id,
+      meterStart: this.transactionStartMeterValue,
+      "stop": {
+        "tagID": this.context.newUser.tagIDs[0],
+        "timestamp": this.transactionCurrentTime.toISOString(),
+        "totalConsumption": (this.transactionCurrentMeterValue - this.transactionStartMeterValue),
+        "totalInactivitySecs": 0,
+        "user": {
+          "firstName": this.context.newUser.firstName,
+          "id": this.context.newUser.id,
+          "name": this.context.newUser.name,
+        },
+      },
+      chargeBox: {
+        id: this.context.newChargingStation.id,
+        connectors: [{
+          activeTransactionID: this.newTransaction.id,
+          connectorId: this.newTransaction.connectorId,
+          currentConsumption: this.meterValueStep * 60,
+          totalConsumption: (this.transactionCurrentMeterValue - this.transactionStartMeterValue),
           status: 'Available',
           errorCode: 'NoError',
           vendorErrorCode: '',
@@ -131,305 +348,4 @@ describe('OCPP Transaction tests', function () {
       }
     })
   });
-
-  // it('A charging station can start a new transaction when occupied', async () => {
-  //   let currentTime = moment(context.currentTime);
-  //   let connectorId = 1;
-
-  //   let response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, {
-  //     connectorId: connectorId,
-  //     status: 'Occupied',
-  //     errorCode: 'NoError',
-  //     timestamp: currentTime.toISOString()
-  //   });
-
-  //   expect(response.data).to.eql({});
-  //   currentTime.add(1, 'minutes');
-  //   let transactionId = null;
-
-  //   response = await this.ocpp.executeStartTransaction(this.context.newChargingStation.id, {
-  //     connectorId: connectorId,
-  //     idTag: this.context.newUser.tagIDs[0],
-  //     meterStart: 10000,
-  //     timestamp: currentTime.toISOString()
-  //   });
-  //   expect(response.data).to.be.an('object');
-  //   expect(response.data).to.have.nested.property('transactionId');
-  //   expect(response.data).to.deep.include({
-  //     idTagInfo: {
-  //       status: 'Accepted'
-  //     }
-  //   });
-  //   transactionId = response.data.transactionId;
-
-  //   response = await CentralServerService.transaction.readById(transactionId);
-  //   expect(response.data).to.containSubset({
-  //     connectorId: connectorId,
-  //     tagID: this.context.newUser.tagIDs[0],
-  //     chargeBoxID: this.context.newChargingStation.id,
-  //     chargeBox: {
-  //       id: this.context.newChargingStation.id,
-  //       connectors: [{
-  //         activeTransactionID: transactionId,
-  //         connectorId: connectorId,
-  //         currentConsumption: 0,
-  //         totalConsumption: 0,
-  //         status: 'Occupied',
-  //         errorCode: 'NoError',
-  //         info: null,
-  //         type: null,
-  //         "power": 0,
-  //         vendorErrorCode: null
-  //       }]
-  //     },
-  //     id: transactionId,
-  //     timestamp: currentTime.toISOString(),
-  //     user: {
-  //       firstName: this.context.newUser.firstName,
-  //       id: this.context.newUser.id,
-  //       name: this.context.newUser.name,
-  //     }
-  //   })
-  // });
-
-  // it('A charging station can create and complete a transaction', async () => {
-  //   let currentTime = moment(context.currentTime);
-  //   let connectorId = 1;
-
-  //   let response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, {
-  //     connectorId: connectorId,
-  //     status: 'Available',
-  //     errorCode: 'NoError',
-  //     timestamp: currentTime.toISOString()
-  //   });
-
-  //   expect(response.data).to.eql({});
-
-  //   const transactionStartDate = currentTime.add(1, 'minutes').clone();
-  //   response = await this.ocpp.executeStartTransaction(this.context.newChargingStation.id, {
-  //     connectorId: connectorId,
-  //     idTag: this.context.newUser.tagIDs[0],
-  //     meterStart: 10000,
-  //     timestamp: transactionStartDate.toISOString()
-  //   });
-
-  //   expect(response.data).to.have.nested.property('transactionId');
-  //   let transactionId = response.data.transactionId;
-  //   expect(response.data).to.containSubset({
-  //     idTagInfo: {
-  //       status: 'Accepted'
-  //     }
-  //   });
-
-  //   response = await CentralServerService.transaction.readById(transactionId);
-  //   expect(response.data).to.containSubset({
-  //     "chargeBox": {
-  //       "connectors": [{
-  //         "activeTransactionID": transactionId,
-  //         "connectorId": connectorId,
-  //         "currentConsumption": 0,
-  //         "errorCode": "NoError",
-  //         "info": null,
-  //         "power": 0,
-  //         "status": "Available",
-  //         "totalConsumption": 0,
-  //         "vendorErrorCode": null,
-  //       }],
-  //       "id": this.context.newChargingStation.id,
-  //     },
-  //     connectorId: connectorId,
-  //     tagID: this.context.newUser.tagIDs[0],
-  //     chargeBoxID: this.context.newChargingStation.id,
-  //     "id": transactionId,
-  //     "timestamp": transactionStartDate.toISOString(),
-  //     user: {
-  //       firstName: this.context.newUser.firstName,
-  //       id: this.context.newUser.id,
-  //       name: this.context.newUser.name,
-  //     }
-  //   });
-
-  //   response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, {
-  //     connectorId: connectorId,
-  //     status: 'Occupied',
-  //     errorCode: 'NoError',
-  //     timestamp: currentTime.add(1, 'minutes').toISOString()
-  //   });
-  //   expect(response.data).to.eql({});
-
-  //   response = await CentralServerService.transaction.readById(transactionId);
-  //   expect(response.data).to.containSubset({
-  //     "chargeBox": {
-  //       "connectors": [{
-  //         "activeTransactionID": transactionId,
-  //         "connectorId": connectorId,
-  //         "currentConsumption": 0,
-  //         "errorCode": "NoError",
-  //         "info": null,
-  //         "power": 0,
-  //         "status": "Occupied",
-  //         "totalConsumption": 0,
-  //         "vendorErrorCode": null,
-  //       }],
-  //       "id": this.context.newChargingStation.id,
-  //     },
-  //     connectorId: connectorId,
-  //     tagID: this.context.newUser.tagIDs[0],
-  //     chargeBoxID: this.context.newChargingStation.id,
-  //     "id": transactionId,
-  //     "timestamp": transactionStartDate.toISOString(),
-  //     user: {
-  //       firstName: this.context.newUser.firstName,
-  //       id: this.context.newUser.id,
-  //       name: this.context.newUser.name,
-  //     }
-  //   });
-
-  //   for (let value in [...Array(10).keys()]) {
-  //     response = await this.ocpp.executeMeterValues(this.context.newChargingStation.id, {
-  //       connectorId: connectorId,
-  //       transactionId: transactionId,
-  //       values: {
-  //         timestamp: currentTime.add(1, "minutes").toISOString(),
-  //         value: {
-  //           $attributes: {
-  //             unit: 'Wh',
-  //             location: "Outlet",
-  //             measurand: "Energy.Active.Import.Register",
-  //             format: "Raw",
-  //             context: "Sample.Periodic"
-  //           },
-  //           $value: (200 * value)
-  //         }
-  //       },
-  //     });
-  //     expect(response.data).to.eql({});
-  //     response = await CentralServerService.transaction.readById(transactionId);
-  //     expect(response.data).to.containSubset({
-  //       "chargeBox": {
-  //         "connectors": [{
-  //           "activeTransactionID": transactionId,
-  //           "connectorId": connectorId,
-  //           "currentConsumption": value == 0 ? 0 : 12000,
-  //           "errorCode": "NoError",
-  //           "info": null,
-  //           "power": 0,
-  //           "status": "Occupied",
-  //           "totalConsumption": 200 * value,
-  //           "vendorErrorCode": null,
-  //         }],
-  //         "id": this.context.newChargingStation.id,
-  //       },
-  //       connectorId: connectorId,
-  //       tagID: this.context.newUser.tagIDs[0],
-  //       chargeBoxID: this.context.newChargingStation.id,
-  //       "id": transactionId,
-  //       "timestamp": transactionStartDate.toISOString(),
-  //       "user": {
-  //         "firstName": this.context.newUser.firstName,
-  //         "id": this.context.newUser.id,
-  //         "name": this.context.newUser.name,
-  //       }
-  //     })
-  //   }
-  //   const transactionStopDate = currentTime.clone();
-
-  //   response = await this.ocpp.executeStopTransaction(this.context.newChargingStation.id, {
-  //     transactionId: transactionId,
-  //     connectorId: connectorId,
-  //     idTag: this.context.newUser.tagIDs[0],
-  //     meterStart: 10000,
-  //     timestamp: transactionStopDate.toISOString()
-  //   });
-  //   expect(response.data.idTagInfo.status).to.eql('Accepted');
-
-
-  //   response = await CentralServerService.transaction.readById(transactionId);
-  //   expect(response.data).to.containSubset({
-  //     "chargeBox": {
-  //       "connectors": [{
-  //         "activeTransactionID": 0,
-  //         "connectorId": connectorId,
-  //         "currentConsumption": 0,
-  //         "errorCode": "NoError",
-  //         "info": null,
-  //         "type": null,
-  //         "power": 0,
-  //         "status": "Occupied",
-  //         "totalConsumption": 0,
-  //         "vendorErrorCode": null
-  //       }],
-  //       "id": this.context.newChargingStation.id
-  //     },
-  //     "chargeBoxID": this.context.newChargingStation.id,
-  //     "connectorId": connectorId,
-  //     "id": transactionId,
-  //     "stop": {
-  //       "tagID": this.context.newUser.tagIDs[0],
-  //       "timestamp": transactionStopDate.toISOString(),
-  //       "totalConsumption": 1800,
-  //       "totalInactivitySecs": 0,
-  //       "user": {
-  //         "firstName": this.context.newUser.firstName,
-  //         "id": this.context.newUser.id,
-  //         "name": this.context.newUser.name,
-  //       },
-  //     },
-  //     "tagID": this.context.newUser.tagIDs[0],
-  //     "timestamp": transactionStartDate.toISOString(),
-  //     user: {
-  //       firstName: this.context.newUser.firstName,
-  //       id: this.context.newUser.id,
-  //       name: this.context.newUser.name,
-  //     }
-  //   });
-  //   response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, {
-  //     connectorId: connectorId,
-  //     status: 'Available',
-  //     errorCode: 'NoError',
-  //     timestamp: currentTime.add(1, "minutes").toISOString()
-  //   });
-  //   expect(response.data).to.eql({});
-
-  //   response = await CentralServerService.transaction.readById(transactionId);
-  //   expect(response.data).to.containSubset({
-  //     "chargeBox": {
-  //       "connectors": [{
-  //         "activeTransactionID": 0,
-  //         "connectorId": connectorId,
-  //         "currentConsumption": 0,
-  //         "errorCode": "NoError",
-  //         "info": null,
-  //         "type": null,
-  //         "power": 0,
-  //         "status": "Available",
-  //         "totalConsumption": 0,
-  //         "vendorErrorCode": null
-  //       }],
-  //       "id": this.context.newChargingStation.id
-  //     },
-  //     "chargeBoxID": this.context.newChargingStation.id,
-  //     "connectorId": connectorId,
-  //     "id": transactionId,
-  //     "stop": {
-  //       "tagID": this.context.newUser.tagIDs[0],
-  //       "timestamp": transactionStopDate.toISOString(),
-  //       "totalConsumption": 1800,
-  //       "totalInactivitySecs": 0,
-  //       "user": {
-  //         "firstName": this.context.newUser.firstName,
-  //         "id": this.context.newUser.id,
-  //         "name": this.context.newUser.name,
-  //       },
-  //     },
-  //     "tagID": this.context.newUser.tagIDs[0],
-  //     "timestamp": transactionStartDate.toISOString(),
-  //     user: {
-  //       firstName: this.context.newUser.firstName,
-  //       id: this.context.newUser.id,
-  //       name: this.context.newUser.name,
-  //     }
-  //   });
-  // });
-
 });

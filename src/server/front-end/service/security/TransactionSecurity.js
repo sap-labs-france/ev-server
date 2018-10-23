@@ -71,6 +71,7 @@ class TransactionSecurity {
 			filteredTransaction.id = transaction.id;
 			filteredTransaction.transactionId = transaction.transactionId;
 			filteredTransaction.connectorId = transaction.connectorId;
+			filteredTransaction.meterStart = transaction.meterStart;
 			if (transaction.totalDurationSecs) {
 				filteredTransaction.totalDurationSecs = transaction.totalDurationSecs;
 			}

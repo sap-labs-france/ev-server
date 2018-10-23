@@ -36,7 +36,7 @@ class CentralServerService {
   }
 
   async createEntity(entityApi, entity, performCheck=true) {
-    // Create it in the backend
+    // Create
     let response = await entityApi.create(entity);
     // Check
     if (performCheck) {
@@ -73,7 +73,7 @@ class CentralServerService {
   }
 
   async checkEntityInList(entityApi, entity, performCheck=true) {
-    // Check first if created
+    // Check
     expect(entity).to.not.be.null;
     // Retrieve from the backend
     let response = await entityApi.readAll({}, { limit: Constants.UNLIMITED, skip: 0 });
@@ -95,7 +95,7 @@ class CentralServerService {
   }
 
   async deleteEntity(entityApi, entity, performCheck=true) {
-    // Check first if created
+    // Check
     expect(entity).to.not.be.null;
     // Delete it in the backend
     let response = await entityApi.delete(entity.id);
@@ -111,7 +111,7 @@ class CentralServerService {
   }
 
   async updateEntity(entityApi, entity, performCheck=true) {
-    // Check first if created
+    // Check
     expect(entity).to.not.be.null;
     // Delete it in the backend
     let response = await entityApi.update(entity);
@@ -127,7 +127,7 @@ class CentralServerService {
   }
 
   async checkDeletedEntityById(entityApi, entity, performCheck=true) {
-    // Check first if created
+    // Check
     expect(entity).to.not.be.null;
     // Create it in the backend
     let response = await entityApi.readById(entity.id);
