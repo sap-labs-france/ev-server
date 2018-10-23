@@ -1,10 +1,11 @@
 const soap = require('strong-soap').soap;
+const OCPPService = require('./OCPPService');
 const config = require('../../config');
 
-class OCPPSoapService15 {
+class OCPPSoapService15 extends OCPPService {
   constructor(serverUrl) {
-    // Keep
-    this.serverUrl = serverUrl;
+    super(serverUrl);
+    // Init
     this.client = null;
   }
 
