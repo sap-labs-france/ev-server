@@ -33,7 +33,8 @@ describe('OCPP Transaction tests', function () {
       errorCode: 'NoError',
       timestamp: new Date()
     };
-    let response = await this.ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState1);
+    let response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, chargePointState1);
+    // Check
     expect(response.data).to.eql({});
     // Notify Status of Connector 2
     let chargePointState2 = {
@@ -42,41 +43,55 @@ describe('OCPP Transaction tests', function () {
       errorCode: 'NoError',
       timestamp: new Date()
     };
-    response = await this.ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState2);
-    expect(response.data).to.eql({});
-    // Check that statuses have been changed
-    let chargingStation = await CentralServerService.checkEntityById(
-      CentralServerService.chargingStationApi, this.context.newChargingStation);
-    // Remove timestamp
-    delete chargePointState1.timestamp;
-    delete chargePointState2.timestamp;
+    response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, chargePointState2);
     // Check
-    expect(chargingStation).to.not.be.null;
-    expect(chargingStation.connectors).to.not.be.null;
-    expect(chargingStation.connectors).to.have.lengthOf(2);
-    expect(chargingStation.connectors[0]).to.include(chargePointState1);
-    expect(chargingStation.connectors[1]).to.include(chargePointState2);
+    expect(response.data).to.eql({});
+    // Check Connector 1
+    delete chargePointState1.timestamp;
+    await CentralServerService.chargingStationApi.checkConnector(
+      this.context.newChargingStation, 1, chargePointState1);
+    // Check Connector 2
+    delete chargePointState2.timestamp;
+    await CentralServerService.chargingStationApi.checkConnector(
+      this.context.newChargingStation, 2, chargePointState2);
   });
 
-  // it('A charging station can notify its status multiple times', async () => {
-  //   let currentTime = moment(context.currentTime);
-  //   let chargePointState = {
-  //     connectorId: 1,
-  //     status: 'Available',
-  //     errorCode: 'NoError',
-  //     timestamp: currentTime.toISOString()
-  //   };
-  //   let response = await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState);
-  //   expect(response.data).to.eql({});
-  //   response = await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState);
-  //   expect(response.data).to.eql({});
-  //   response = await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState);
-  //   expect(response.data).to.eql({});
-  //   response = await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState);
-  //   expect(response.data).to.eql({});
-  //   response = await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState);
-  //   expect(response.data).to.eql({});
-  // });
+  it('A charging station can notify its status multiple times', async () => {
+    // Set it to Occupied
+    // Notify Status of Connector 1
+    let chargePointState1 = {
+      connectorId: 1,
+      status: 'Occupied',
+      errorCode: 'NoError',
+      timestamp: new Date()
+    };
+    let response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, chargePointState1);
+    // Check
+    expect(response.data).to.eql({});
+    // Check Connector 1
+    delete chargePointState1.timestamp;
+    await CentralServerService.chargingStationApi.checkConnector(
+      this.context.newChargingStation, 1, chargePointState1);
+    // Connector 2 should be still available
+    let chargePointState2 = {
+      connectorId: 2,
+      status: 'Available',
+      errorCode: 'NoError'
+    };
+    // Check
+    await CentralServerService.chargingStationApi.checkConnector(
+      this.context.newChargingStation, 2, chargePointState2);
+    // Reset Status of Connector 1
+    chargePointState1.status = 'Available';
+    // Update
+    response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, chargePointState1);
+    // Check
+    expect(response.data).to.eql({});
+    // Check Connector 1
+    delete chargePointState1.timestamp;
+    await CentralServerService.chargingStationApi.checkConnector(
+      this.context.newChargingStation, 1, chargePointState1);
+  });
 
   // it('A charging station can start a new transaction when available', async () => {
   //   let currentTime = moment(context.currentTime);

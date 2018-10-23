@@ -51,7 +51,7 @@ class CentralServerService {
     }
   }
 
-  async checkEntityById(entityApi, entity, performCheck=true) {
+  async getEntityById(entityApi, entity, performCheck=true) {
     // Check first if created
     expect(entity).to.not.be.null;
   // Retrieve it from the backend
@@ -70,7 +70,7 @@ class CentralServerService {
     }
   }
 
-  async checkCreatedEntityInList(entityApi, entity, performCheck=true) {
+  async checkEntityInList(entityApi, entity, performCheck=true) {
     // Check first if created
     expect(entity).to.not.be.null;
     // Retrieve from the backend

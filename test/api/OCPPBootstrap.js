@@ -100,21 +100,22 @@ class OCPPBootstrap {
       expect(response).to.not.be.null;
       expect(response.data).to.eql({});
 
-      // Build the new object
-      context.newChargingStation = chargingStation;
-      context.newChargingStation.id = chargingStationID;
-      // Get the new Charger
-      context.newChargingStation = await CentralServerService.checkEntityById(
-        CentralServerService.chargingStationApi, context.newChargingStation);
-        
       // Create the Site Area 
       context.newSiteArea = await CentralServerService.createEntity(
         CentralServerService.siteAreaApi, Factory.siteArea.build({
           siteID: context.newSite.id,
-          chargeBoxIDs: [context.chargeBoxIdentity]
+          chargeBoxIDs: [chargingStationID]
         }));
       expect(context.newSiteArea).to.not.be.null;
 
+      // Retrieve the latest Charger object with the Site Area ID 
+      context.newChargingStation = chargingStation;
+      context.newChargingStation.id = chargingStationID;
+      context.newChargingStation.siteAreaID = context.newSiteArea.id;
+      // Get the new Charger
+      context.newChargingStation = await CentralServerService.getEntityById(
+        CentralServerService.chargingStationApi, context.newChargingStation);
+        
     } catch (error) {
       // Error: Clean up!
       this.destroyContext(context);

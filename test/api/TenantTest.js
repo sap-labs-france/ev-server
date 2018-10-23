@@ -18,13 +18,13 @@ describe('Tenant tests', function () {
 
     it('Should find the created tenant by id', async () => {
       // Check if the created entity can be retrieved with its id
-      await CentralServerService.checkEntityById(
+      await CentralServerService.getEntityById(
         CentralServerService.tenantApi, this.newTenant);
     });
 
     it('Should find the created tenant in the tenant list', async () => {
       // Check if the created entity is in the list
-      await CentralServerService.checkCreatedEntityInList(
+      await CentralServerService.checkEntityInList(
         CentralServerService.tenantApi, this.newTenant);
     });
 
@@ -38,7 +38,7 @@ describe('Tenant tests', function () {
 
     it('Should find the updated tenant by id', async () => {
       // Check if the updated entity can be retrieved with its id
-      let updatedTenant = await CentralServerService.checkEntityById(
+      let updatedTenant = await CentralServerService.getEntityById(
         CentralServerService.tenantApi, this.newTenant);
       // Check
       expect(updatedTenant.name).to.equal(this.newTenant.name);
@@ -74,7 +74,7 @@ describe('Tenant tests', function () {
   describe('Error cases', () => {
     it('Should not be possible to read an empty tenant', async () => {
       // Exec
-      let response = await CentralServerService.checkEntityById(
+      let response = await CentralServerService.getEntityById(
         CentralServerService.tenantApi, {id: ''}, false);
       // Check
       expect(response.status).to.equal(500);
@@ -82,7 +82,7 @@ describe('Tenant tests', function () {
 
     it('Should not be possible to read an invalid tenant', async () => {
       // Exec
-      let response = await CentralServerService.checkEntityById(
+      let response = await CentralServerService.getEntityById(
         CentralServerService.tenantApi, {id: 'youAreInvalid'}, false);
       // Check
       expect(response.status).to.equal(500);
@@ -90,7 +90,7 @@ describe('Tenant tests', function () {
 
     it('Should not be possible to read an unknown tenant', async () => {
       // Exec
-      let response = await CentralServerService.checkEntityById(
+      let response = await CentralServerService.getEntityById(
         CentralServerService.tenantApi, {id: '123456789012345678901234'}, false);
       // Check
       expect(response.status).to.equal(550);

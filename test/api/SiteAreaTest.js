@@ -41,13 +41,13 @@ describe('Site Area tests', function() {
 
     it('Should find the created site area by id', async () => {
       // Check if the created entity can be retrieved with its id
-      await CentralServerService.checkEntityById(
+      await CentralServerService.getEntityById(
         CentralServerService.siteAreaApi, this.newSiteArea);
     });
 
     it('Should find the created site area in the site list', async () => {
       // Check if the created entity is in the list
-      await CentralServerService.checkCreatedEntityInList(
+      await CentralServerService.checkEntityInList(
         CentralServerService.siteAreaApi, this.newSiteArea);
     });
 
@@ -61,7 +61,7 @@ describe('Site Area tests', function() {
 
     it('Should find the updated site area by id', async () => {
       // Check if the updated entity can be retrieved with its id
-      let updatedSiteArea = await CentralServerService.checkEntityById(
+      let updatedSiteArea = await CentralServerService.getEntityById(
         CentralServerService.siteAreaApi, this.newSiteArea);
       // Check
       expect(updatedSiteArea.name).to.equal(this.newSiteArea.name);

@@ -14,13 +14,13 @@ describe('Company tests', function() {
 
     it('Should find the created company by id', async () => {
       // Check if the created entity can be retrieved with its id
-      await CentralServerService.checkEntityById(
+      await CentralServerService.getEntityById(
         CentralServerService.companyApi, this.newCompany);
     });
 
     it('Should find the created company in the company list', async () => {
       // Check if the created entity is in the list
-      await CentralServerService.checkCreatedEntityInList(
+      await CentralServerService.checkEntityInList(
         CentralServerService.companyApi, this.newCompany);
     });
 
@@ -34,7 +34,7 @@ describe('Company tests', function() {
 
     it('Should find the updated company by id', async () => {
       // Check if the updated entity can be retrieved with its id
-      let updatedCompany = await CentralServerService.checkEntityById(
+      let updatedCompany = await CentralServerService.getEntityById(
         CentralServerService.companyApi, this.newCompany);
       // Check
       expect(updatedCompany.name).to.equal(this.newCompany.name);

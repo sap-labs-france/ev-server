@@ -1,3 +1,4 @@
+const {expect} = require('chai');
 const CrudApi = require('./utils/CrudApi');
 const Constants = require('./utils/Constants');
 
@@ -47,6 +48,20 @@ class ChargingStationApi  extends CrudApi {
 
   updateParams(data) {
     return super.update('/client/api/ChargingStationUpdateParams', data);
+  }
+
+  async checkConnector(chargingStation, connectorId, connectorData) {
+    expect(chargingStation).to.not.be.null;
+    // Retrieve it from the backend
+    let response = await this.readById(chargingStation.id);
+    // Check if ok
+    expect(response.status).to.equal(200);
+    expect(response.data.id).is.eql(chargingStation.id);
+    // Check Connector
+    const foundChargingStation = response.data;
+    // Check
+    expect(foundChargingStation.connectors).to.not.be.null;
+    expect(foundChargingStation.connectors[connectorId-1]).to.include(connectorData);
   }
 }
 

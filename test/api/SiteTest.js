@@ -37,13 +37,13 @@ describe('Site tests', function () {
 
     it('Should find the created site by id', async () => {
       // Check if the created entity can be retrieved with its id
-      await CentralServerService.checkEntityById(
+      await CentralServerService.getEntityById(
         CentralServerService.siteApi, this.newSite);
     });
 
     it('Should find the created site in the site list', async () => {
       // Check if the created entity is in the list
-      await CentralServerService.checkCreatedEntityInList(
+      await CentralServerService.checkEntityInList(
         CentralServerService.siteApi, this.newSite);
     });
 
@@ -57,7 +57,7 @@ describe('Site tests', function () {
 
     it('Should find the updated site by id', async () => {
       // Check if the updated entity can be retrieved with its id
-      let updatedSite = await CentralServerService.checkEntityById(
+      let updatedSite = await CentralServerService.getEntityById(
         CentralServerService.siteApi, this.newSite);
       // Check
       expect(updatedSite.name).to.equal(this.newSite.name);

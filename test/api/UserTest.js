@@ -19,13 +19,13 @@ describe('User tests', function() {
 
     it('Should find the created user by id', async () => {
       // Check if the created entity can be retrieved with its id
-      await CentralServerService.checkEntityById(
+      await CentralServerService.getEntityById(
         CentralServerService.userApi, this.newUser);
     });
 
     it('Should find the created user in the user list', async () => {
       // Check if the created entity is in the list
-      await CentralServerService.checkCreatedEntityInList(
+      await CentralServerService.checkEntityInList(
         CentralServerService.userApi, this.newUser);
     });
 
@@ -39,7 +39,7 @@ describe('User tests', function() {
 
     it('Should find the updated user by id', async () => {
       // Check if the updated entity can be retrieved with its id
-      let updatedUser = await CentralServerService.checkEntityById(
+      let updatedUser = await CentralServerService.getEntityById(
         CentralServerService.userApi, this.newUser);
       // Check
       expect(updatedUser.name).to.equal(this.newUser.name);
