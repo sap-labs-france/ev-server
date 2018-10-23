@@ -105,7 +105,6 @@ class OCPPBootstrap {
       context.newChargingStation = await CentralServerService.checkEntityById(
         CentralServerService.chargingStationApi, context.newChargingStation);
       // Check
-      console.log(context.newChargingStation);
       expect(context.newChargingStation).to.not.be.null;
       expect(context.newChargingStation.connectors).to.not.be.null;
       expect(context.newChargingStation.connectors).to.have.lengthOf(2);

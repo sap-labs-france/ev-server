@@ -20,7 +20,6 @@ describe('OCPP Transaction tests', function () {
     this.bootstrap = new OCPPBootstrap(ocpp);
     // Create data
     this.context = await this.bootstrap.createContext();
-    console.log(this.context);
   });
 
   before(async () => {

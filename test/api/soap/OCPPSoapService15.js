@@ -84,9 +84,6 @@ class OCPPSoapService15 {
     // Build the SOAP Request
     const data = {};
     data[this._getRequestNameFromAction(request.name)] = request.data;
-    console.log(data);
-    console.log(request);
-    console.log(this.service);
     // Execute it
     const { result, envelope, soapHeader } = await this.service[request.name](data);
     // Log
