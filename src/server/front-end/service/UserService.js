@@ -296,7 +296,7 @@ class UserService {
 				user.setPassword(newPasswordHashed);
 			}
 			// Update timestamp
-			user.setLastChangedBy(req.user.tenant, new User({'id': req.user.id}));
+			user.setLastChangedBy(new User(req.user.tenant, {'id': req.user.id}));
 			user.setLastChangedOn(new Date());
 			// Update User
 			const updatedUser = await user.save();

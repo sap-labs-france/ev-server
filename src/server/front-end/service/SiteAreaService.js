@@ -54,7 +54,7 @@ class SiteAreaService {
 				const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, chargeBoxID);
 				if (chargingStation) {
 					// Update timestamp
-					chargingStation.setLastChangedBy(req.user.tenant, new User({'id': req.user.id}));
+					chargingStation.setLastChangedBy(new User(req.user.tenant, {'id': req.user.id}));
 					chargingStation.setLastChangedOn(new Date());
 					// Set
 					chargingStation.setSiteArea(newSiteArea);
@@ -298,7 +298,7 @@ class SiteAreaService {
 			// Clear Site Area from Existing Charging Station
 			for (const chargingStation of chargingStations) {
 				// Update timestamp
-				chargingStation.setLastChangedBy(req.user.tenant, new User({'id': req.user.id}));
+				chargingStation.setLastChangedBy(new User(req.user.tenant, {'id': req.user.id}));
 				chargingStation.setLastChangedOn(new Date());
 				// Set
 				chargingStation.setSiteArea(null);
@@ -311,7 +311,7 @@ class SiteAreaService {
 				const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, chargeBoxID);
 				if (chargingStation) {
 					// Update timestamp
-					chargingStation.setLastChangedBy(req.user.tenant, new User({'id': req.user.id}));
+					chargingStation.setLastChangedBy(new User(req.user.tenant, {'id': req.user.id}));
 					chargingStation.setLastChangedOn(new Date());
 					// Set
 					chargingStation.setSiteArea(siteArea);
@@ -322,7 +322,7 @@ class SiteAreaService {
 			// Update
 			Database.updateSiteArea(filteredRequest, siteArea.getModel());
 			// Update timestamp
-			siteArea.setLastChangedBy(req.user.tenant, new User({'id': req.user.id}));
+			siteArea.setLastChangedBy(new User(req.user.tenant, {'id': req.user.id}));
 			siteArea.setLastChangedOn(new Date());
 			// Update Site Area
 			const updatedSiteArea = await siteArea.save();

@@ -264,7 +264,7 @@ class VehicleService {
 			// Update
 			Database.updateVehicle(filteredRequest, vehicle.getModel());
 			// Update timestamp
-			vehicle.setLastChangedBy(req.user.tenant, new User({'id': req.user.id}));
+			vehicle.setLastChangedBy(new User(req.user.tenant, {'id': req.user.id}));
 			vehicle.setLastChangedOn(new Date());
 			// Update Vehicle
 			const updatedVehicle = await vehicle.save();

@@ -57,7 +57,7 @@ class ChargingStationService {
 				}
 			}
 			// Update timestamp
-			chargingStation.setLastChangedBy(req.user.tenant, new User({'id': req.user.id}));
+			chargingStation.setLastChangedBy(new User(req.user.tenant, {'id': req.user.id}));
 			chargingStation.setLastChangedOn(new Date());
 			// Update
 			const updatedChargingStation = await chargingStation.save();

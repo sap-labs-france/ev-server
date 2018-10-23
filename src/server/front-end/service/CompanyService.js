@@ -264,7 +264,7 @@ class CompanyService {
 			// Update
 			Database.updateCompany(filteredRequest, company.getModel());
 			// Update timestamp
-			company.setLastChangedBy(req.user.tenant, new User({'id': req.user.id}));
+			company.setLastChangedBy(new User(req.user.tenant, {'id': req.user.id}));
 			company.setLastChangedOn(new Date());
 			// Update Company
 			const updatedCompany = await company.save();

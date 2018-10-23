@@ -285,7 +285,7 @@ class SiteService {
 			// Update
 			Database.updateSite(filteredRequest, site.getModel());
 			// Update timestamp
-			site.setLastChangedBy(req.user.tenant, new User({'id': req.user.id}));
+			site.setLastChangedBy(new User(req.user.tenant, {'id': req.user.id}));
 			site.setLastChangedOn(new Date());
 			// Update Site's Image
 			await site.saveImage();
