@@ -344,8 +344,8 @@ class ChargingStation {
 		// Error Code?
 		connectors[statusNotification.connectorId-1].status = statusNotification.status;
 		connectors[statusNotification.connectorId-1].errorCode = statusNotification.errorCode;
-		connectors[statusNotification.connectorId-1].info = statusNotification.info;
-		connectors[statusNotification.connectorId-1].vendorErrorCode = statusNotification.vendorErrorCode;
+		connectors[statusNotification.connectorId-1].info = (statusNotification.info ? statusNotification.info : '');
+		connectors[statusNotification.connectorId-1].vendorErrorCode = (statusNotification.vendorErrorCode ? statusNotification.vendorErrorCode : '');
 		// Set
 		this.setConnectors(connectors);
 		if (!connectors[statusNotification.connectorId-1].power) {
@@ -359,7 +359,7 @@ class ChargingStation {
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation', method: 'handleStatusNotification',
-			action: 'StatusNotification', message: `'${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}' on Connector '${statusNotification.connectorId}' has been saved` });
+			action: 'StatusNotification', message: `'${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}' on Connector '${statusNotification.connectorId}' has been saved` });
 		// Notify if error
 		if (statusNotification.status === 'Faulted') {
 			// Log

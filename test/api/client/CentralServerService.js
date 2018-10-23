@@ -54,7 +54,7 @@ class CentralServerService {
   async checkEntityById(entityApi, entity, performCheck=true) {
     // Check first if created
     expect(entity).to.not.be.null;
-    // Retrieve it from the backend
+  // Retrieve it from the backend
     let response = await entityApi.readById(entity.id);
     // Check
     if (performCheck) {

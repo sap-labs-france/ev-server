@@ -88,6 +88,7 @@ class OCPPBootstrap {
       });
       // Check
       expect(response).to.not.be.null;
+      expect(response.data).to.eql({});
       // Send Status Notif for Connector B
       response = await this.ocpp.executeStatusNotification(chargingStationID, {
         connectorId: 2,
@@ -97,27 +98,14 @@ class OCPPBootstrap {
       });
       // Check
       expect(response).to.not.be.null;
+      expect(response.data).to.eql({});
 
       // Build the new object
       context.newChargingStation = chargingStation;
       context.newChargingStation.id = chargingStationID;
-      // Check the new Charger
+      // Get the new Charger
       context.newChargingStation = await CentralServerService.checkEntityById(
         CentralServerService.chargingStationApi, context.newChargingStation);
-      // Check
-      expect(context.newChargingStation).to.not.be.null;
-      expect(context.newChargingStation.connectors).to.not.be.null;
-      expect(context.newChargingStation.connectors).to.have.lengthOf(2);
-      expect(context.newChargingStation.connectors[0]).to.include({ 
-        connectorId: 1,
-        status: 'Available',
-        errorCode: 'NoError',
-      });
-      expect(context.newChargingStation.connectors[1]).to.include({ 
-        connectorId: 2,
-        status: 'Available',
-        errorCode: 'NoError',
-      });
         
       // Create the Site Area 
       context.newSiteArea = await CentralServerService.createEntity(
