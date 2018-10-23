@@ -23,7 +23,7 @@ class CompanyService {
 					'CompanyService', 'handleDeleteCompany', req.user);
 			}
 			// Get
-			const company = await Company.getCompany(req.user.tenant, filteredRequest.ID);
+			const company = await Company.getCompany(req.user.tenantID, filteredRequest.ID);
 			// Found?
 			if (!company) {
 				// Not Found!
@@ -71,7 +71,7 @@ class CompanyService {
 					'CompanyService', 'handleGetCompany', req.user);
 			}
 			// Get it
-			const company = await Company.getCompany(req.user.tenant, filteredRequest.ID);
+			const company = await Company.getCompany(req.user.tenantID, filteredRequest.ID);
 			if (!company) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -114,7 +114,7 @@ class CompanyService {
 					'CompanyService', 'handleGetCompanyLogo', req.user);
 			}
 			// Get it
-			const company = await Company.getCompany(req.user.tenant, filteredRequest.ID);
+			const company = await Company.getCompany(req.user.tenantID, filteredRequest.ID);
 			if (!company) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -132,7 +132,7 @@ class CompanyService {
 					req.user);
 			}
 			// Get the logo
-			const companyLogo = await Company.getCompanyLogo(req.user.tenant, filteredRequest.ID);
+			const companyLogo = await Company.getCompanyLogo(req.user.tenantID, filteredRequest.ID);
 			// Return
 			res.json(companyLogo);
 			next();
@@ -179,7 +179,7 @@ class CompanyService {
 			// Filter
 			const filteredRequest = CompanySecurity.filterCompaniesRequest(req.query, req.user);
 			// Get the companies
-			const companies = await Company.getCompanies(req.user.tenant,
+			const companies = await Company.getCompanies(req.user.tenantID,
             { search: filteredRequest.Search, withSites: filteredRequest.WithSites },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
@@ -213,9 +213,9 @@ class CompanyService {
 			// Check Mandatory fields
 			Company.checkIfCompanyValid(filteredRequest, req);
 			// Create
-			const company = new Company(req.user.tenant, filteredRequest);
+			const company = new Company(req.user.tenantID, filteredRequest);
 			// Update timestamp
-			company.setCreatedBy(new User(req.user.tenant, {'id': req.user.id}));
+			company.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
 			company.setCreatedOn(new Date());
 			// Save
 			const newCompany = await company.save();
@@ -242,7 +242,7 @@ class CompanyService {
 			// Filter
 			const filteredRequest = CompanySecurity.filterCompanyUpdateRequest( req.body, req.user );
 			// Check email
-			const company = await Company.getCompany(req.user.tenant, filteredRequest.id);
+			const company = await Company.getCompany(req.user.tenantID, filteredRequest.id);
 			if (!company) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -264,7 +264,7 @@ class CompanyService {
 			// Update
 			Database.updateCompany(filteredRequest, company.getModel());
 			// Update timestamp
-			company.setLastChangedBy(new User(req.user.tenant, {'id': req.user.id}));
+			company.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
 			company.setLastChangedOn(new Date());
 			// Update Company
 			const updatedCompany = await company.save();

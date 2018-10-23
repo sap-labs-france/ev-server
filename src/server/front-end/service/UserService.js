@@ -16,7 +16,7 @@ class UserService {
 			// Filter
 			const filteredRequest = UserSecurity.filterEndUserLicenseAgreementRequest(req.query, req.user);
 			// Get it
-			const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(req.user.tenant, filteredRequest.Language);
+			const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(req.user.tenantID, filteredRequest.Language);
 			res.json(
 				// Filter
 				UserSecurity.filterEndUserLicenseAgreementResponse(
@@ -49,7 +49,7 @@ class UserService {
 					'UserService', 'handleAddSitesToUser', req.user);
 			}
 			// Get the User
-			const user = await User.getUser(req.user.tenant, filteredRequest.userID);
+			const user = await User.getUser(req.user.tenantID, filteredRequest.userID);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -69,7 +69,7 @@ class UserService {
 			// Get Sites
 			for (const siteID of filteredRequest.siteIDs) {
 				// Check the site
-				const site = await Site.getSite(req.user.tenant, siteID);
+				const site = await Site.getSite(req.user.tenantID, siteID);
 				if (!site) {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
@@ -88,7 +88,7 @@ class UserService {
 				}
 			}
 			// Save
-			await User.addSitesToUser(req.user.tenant, filteredRequest.userID, filteredRequest.siteIDs);
+			await User.addSitesToUser(req.user.tenantID, filteredRequest.userID, filteredRequest.siteIDs);
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'UserService', method: 'handleAddSitesToUser',
@@ -122,7 +122,7 @@ class UserService {
 					'UserService', 'handleAddSitesToUser', req.user);
 			}
 			// Get the User
-			const user = await User.getUser(req.user.tenant, filteredRequest.userID);
+			const user = await User.getUser(req.user.tenantID, filteredRequest.userID);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -142,7 +142,7 @@ class UserService {
 			// Get Sites
 			for (const siteID of filteredRequest.siteIDs) {
 				// Check the site
-				const site = await Site.getSite(req.user.tenant, siteID);
+				const site = await Site.getSite(req.user.tenantID, siteID);
 				if (!site) {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
@@ -161,7 +161,7 @@ class UserService {
 				}
 			}
 			// Save
-			await User.removeSitesFromUser(req.user.tenant, filteredRequest.userID, filteredRequest.siteIDs);
+			await User.removeSitesFromUser(req.user.tenantID, filteredRequest.userID, filteredRequest.siteIDs);
 			// Log
 			Logging.logSecurityInfo({
 				user: req.user, module: 'UserService', method: 'handleAddSitesToUser',
@@ -188,7 +188,7 @@ class UserService {
 						'UserService', 'handleDeleteUser', req.user);
 			}
 			// Check email
-			const user = await User.getUser(req.user.tenant, filteredRequest.ID);
+			const user = await User.getUser(req.user.tenantID, filteredRequest.ID);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -246,7 +246,7 @@ class UserService {
 			// Check Mandatory fields
 			User.checkIfUserValid(filteredRequest, req);
 			// Check email
-			const user = await User.getUser(req.user.tenant, filteredRequest.id);
+			const user = await User.getUser(req.user.tenantID, filteredRequest.id);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -261,7 +261,7 @@ class UserService {
 					'UserService', 'handleUpdateUser', req.user);
 			}
 			// Check email
-			const userWithEmail = await User.getUserByEmail(req.user.tenant, filteredRequest.email);
+			const userWithEmail = await User.getUserByEmail(req.user.tenantID, filteredRequest.email);
 			// Check if EMail is already taken
 			if (userWithEmail && user.getID() !== userWithEmail.getID()) {
 				// Yes!
@@ -296,7 +296,7 @@ class UserService {
 				user.setPassword(newPasswordHashed);
 			}
 			// Update timestamp
-			user.setLastChangedBy(new User(req.user.tenant, {'id': req.user.id}));
+			user.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
 			user.setLastChangedOn(new Date());
 			// Update User
 			const updatedUser = await user.save();
@@ -343,7 +343,7 @@ class UserService {
 					'UserService', 'handleGetUser', req.user);
 			}
 			// Get the user
-			const user = await User.getUser(req.user.tenant, filteredRequest.ID);
+			const user = await User.getUser(req.user.tenantID, filteredRequest.ID);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -393,7 +393,7 @@ class UserService {
 					'UserService', 'handleGetUser', req.user);
 			}
 			// Get the logged user
-			const user = await User.getUser(req.user.tenant, filteredRequest.ID);
+			const user = await User.getUser(req.user.tenantID, filteredRequest.ID);
 			if (!user) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -418,7 +418,7 @@ class UserService {
 					req.user);
 			}
 			// Get the user image
-			const userImage = await User.getUserImage(req.user.tenant, filteredRequest.ID);
+			const userImage = await User.getUserImage(req.user.tenantID, filteredRequest.ID);
 			// Return
 			res.json(userImage);
 			next();
@@ -468,7 +468,7 @@ class UserService {
 			// Filter
 			const filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
 			// Get users
-			const users = await User.getUsers(req.user.tenant,
+			const users = await User.getUsers(req.user.tenantID,
 				{ 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
@@ -508,7 +508,7 @@ class UserService {
 			// Check Mandatory fields
 			User.checkIfUserValid(filteredRequest, req);
 			// Get the email
-			const foundUser = await User.getUserByEmail(req.user.tenant, filteredRequest.email);
+			const foundUser = await User.getUserByEmail(req.user.tenantID, filteredRequest.email);
 			if (foundUser) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -516,7 +516,7 @@ class UserService {
 					'UserService', 'handleCreateUser', req.user);
 			}
 			// Create user
-			const user = new User(req.user.tenant, filteredRequest);
+			const user = new User(req.user.tenantID, filteredRequest);
 			// Set the password
 			if (filteredRequest.password) {
 				// Generate a hash for the given password
@@ -525,7 +525,7 @@ class UserService {
 				user.setPassword(newPasswordHashed);
 			}
 			// Update timestamp
-			user.setCreatedBy(new User(req.user.tenant, {'id': req.user.id}));
+			user.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
 			user.setCreatedOn(new Date());
 			// Save User
 			const newUser = await user.save();

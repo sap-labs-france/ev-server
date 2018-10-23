@@ -14,7 +14,7 @@ class ChargingStationService {
 				// Filter
 			const filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest( req.body, req.user );
 			// Check email
-			const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, filteredRequest.id);
+			const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.id);
 			if (!chargingStation) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -57,7 +57,7 @@ class ChargingStationService {
 				}
 			}
 			// Update timestamp
-			chargingStation.setLastChangedBy(new User(req.user.tenant, {'id': req.user.id}));
+			chargingStation.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
 			chargingStation.setLastChangedOn(new Date());
 			// Update
 			const updatedChargingStation = await chargingStation.save();
@@ -94,7 +94,7 @@ class ChargingStationService {
 					'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
 			}
 			// Get the Charging Station`
-			const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, filteredRequest.ChargeBoxID);
+			const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -136,7 +136,7 @@ class ChargingStationService {
 					'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
 			}
 			// Get the Charging Station
-			const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, filteredRequest.ChargeBoxID);
+			const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -179,7 +179,7 @@ class ChargingStationService {
 					'ChargingStationService', 'handleDeleteChargingStation', req.user);
 			}
 			// Get
-			const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, filteredRequest.ID);
+			const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.ID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -229,7 +229,7 @@ class ChargingStationService {
 					'ChargingStationService', 'handleGetChargingStation', req.user);
 			}
 			// Get it
-			const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, filteredRequest.ID);
+			const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.ID);
 			if (chargingStation) {
 				// Return
 				res.json(
@@ -262,7 +262,7 @@ class ChargingStationService {
 			// Filter
 			const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query, req.user);
 			// Get the charging Charging Stations
-			const chargingStations = await ChargingStation.getChargingStations(req.user.tenant,
+			const chargingStations = await ChargingStation.getChargingStations(req.user.tenantID,
             { 'search': filteredRequest.Search, 'withNoSiteArea': filteredRequest.WithNoSiteArea, 'siteID': filteredRequest.SiteID },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
@@ -289,7 +289,7 @@ class ChargingStationService {
 				return;
 			}
 			// Get the Charging station
-			const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, filteredRequest.chargeBoxID);
+			const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!
@@ -302,7 +302,7 @@ class ChargingStationService {
 			if (action === 'StopTransaction' ||
 					action === 'UnlockConnector') {
 				// Get Transaction
-				const transaction = await TransactionStorage.getTransaction(req.user.tenant, filteredRequest.args.transactionId);
+				const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.args.transactionId);
 				if (!transaction) {
 					throw new AppError(
 						Constants.CENTRAL_SERVER,
@@ -318,7 +318,7 @@ class ChargingStationService {
 				transaction.remotestop.tagID = req.user.tagIDs[0];
 				transaction.remotestop.timestamp = new Date().toISOString();
 				// Save Transaction
-				await TransactionStorage.saveTransaction(req.user.tenant, transaction);
+				await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
 				// Ok: Execute it
 				result = await chargingStation.handleAction(action, filteredRequest.args);
 			} else if (action === 'StartTransaction') {
@@ -367,7 +367,7 @@ class ChargingStationService {
 						'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
 			}
 			// Get the Charging station
-			const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, filteredRequest.chargeBoxID);
+			const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
 			// Found?
 			if (!chargingStation) {
 				// Not Found!

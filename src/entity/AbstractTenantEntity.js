@@ -1,15 +1,15 @@
 class AbstractTenantEntity {
 
-  constructor(tenant) {
+  constructor(tenantID) {
     if (this.constructor === AbstractTenantEntity) {
       throw new TypeError('Abstract class cannot be instantiated directly');
     }
-    this._tenant = tenant;
+    this._tenantID = tenantID;
     this._model = {};
   }
 
-  getTenant() {
-    return this._tenant;
+  getTenantID() {
+    return this._tenantID;
   }
 
   getModel() {

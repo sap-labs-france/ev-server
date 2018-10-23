@@ -14,7 +14,7 @@ class StatisticService {
 			// Build filter
 			const filter = StatisticService.buildFilter(filteredRequest, req.user);
 			// Get Stats
-			const transactions = await StatisticsStorage.getUserStats(req.user.tenant, filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_USAGE);
+			const transactions = await StatisticsStorage.getUserStats(req.user.tenantID, filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_USAGE);
 			// Return
 			res.json(transactions);
 			next();
@@ -31,7 +31,7 @@ class StatisticService {
 			// Build filter
 			const filter = StatisticService.buildFilter(filteredRequest, req.user);
 			// Get Stats
-			const transactions = await StatisticsStorage.getUserStats(req.user.tenant, filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_CONSUMPTION);
+			const transactions = await StatisticsStorage.getUserStats(req.user.tenantID, filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_CONSUMPTION);
 			// Return
 			res.json(transactions);
 			next();
@@ -48,7 +48,7 @@ class StatisticService {
 			// Build filter
 			const filter = StatisticService.buildFilter(filteredRequest, req.user);
 			// Get Stats
-			const transactions = await StatisticsStorage.getChargingStationStats(req.user.tenant, filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_USAGE);
+			const transactions = await StatisticsStorage.getChargingStationStats(req.user.tenantID, filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_USAGE);
 			// Return
 			res.json(transactions);
 			next();
@@ -65,7 +65,7 @@ class StatisticService {
 			// Build filter
 			const filter = StatisticService.buildFilter(filteredRequest, req.user);
 			// Get Stats
-			const transactions = await StatisticsStorage.getChargingStationStats(req.user.tenant, filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_CONSUMPTION);
+			const transactions = await StatisticsStorage.getChargingStationStats(req.user.tenantID, filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_CONSUMPTION);
 			// Return
 			res.json(transactions);
 			next();

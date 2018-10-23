@@ -23,7 +23,7 @@ class VehicleManufacturerService {
 					'VehicleManufacturerService', 'handleDeleteVehicleManufacturer', req.user);
 			}
 			// Get
-			const vehicleManufacturer = await VehicleManufacturer.getVehicleManufacturer(req.user.tenant, filteredRequest.ID);
+			const vehicleManufacturer = await VehicleManufacturer.getVehicleManufacturer(req.user.tenantID, filteredRequest.ID);
 			if (!vehicleManufacturer) {
 				// Not Found!
 				throw new AppError(
@@ -71,7 +71,7 @@ class VehicleManufacturerService {
 					'VehicleManufacturerService', 'handleGetVehicleManufacturer', req.user);
 			}
 			// Get it
-			const vehicleManufacturer = await VehicleManufacturer.getVehicleManufacturer(req.user.tenant, filteredRequest.ID);
+			const vehicleManufacturer = await VehicleManufacturer.getVehicleManufacturer(req.user.tenantID, filteredRequest.ID);
 			if (!vehicleManufacturer) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -107,7 +107,7 @@ class VehicleManufacturerService {
 			// Filter
 			const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturersRequest(req.query, req.user);
 			// Get the vehicle Manufacturers
-			const vehicleManufacturers = await VehicleManufacturer.getVehicleManufacturers(req.user.tenant,
+			const vehicleManufacturers = await VehicleManufacturer.getVehicleManufacturers(req.user.tenantID,
             { 'search': filteredRequest.Search, 'withVehicles': filteredRequest.WithVehicles, 'vehicleType': filteredRequest.VehicleType},
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
@@ -142,9 +142,9 @@ class VehicleManufacturerService {
 			// Check Mandatory fields
 			VehicleManufacturer.checkIfVehicleManufacturerValid(filteredRequest, req);
 			// Create vehicleManufacturer
-			const vehicleManufacturer = new VehicleManufacturer(req.user.tenant, filteredRequest);
+			const vehicleManufacturer = new VehicleManufacturer(req.user.tenantID, filteredRequest);
 			// Update timestamp
-			vehicleManufacturer.setCreatedBy(new User(req.user.tenant, {'id': req.user.id}));
+			vehicleManufacturer.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
 			vehicleManufacturer.setCreatedOn(new Date());
 			// Save
 			const newVehicleManufacturer = await vehicleManufacturer.save();
@@ -171,7 +171,7 @@ class VehicleManufacturerService {
 			// Filter
 			const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerUpdateRequest( req.body, req.user );
 			// Check email
-			const vehicleManufacturer = await	VehicleManufacturer.getVehicleManufacturer(req.user.tenant, filteredRequest.id);
+			const vehicleManufacturer = await	VehicleManufacturer.getVehicleManufacturer(req.user.tenantID, filteredRequest.id);
 			if (!vehicleManufacturer) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -194,7 +194,7 @@ class VehicleManufacturerService {
 			// Update
 			Database.updateVehicleManufacturer(filteredRequest, vehicleManufacturer.getModel());
 			// Update timestamp
-			vehicleManufacturer.setLastChangedBy(new User(req.user.tenant, {'id': req.user.id}));
+			vehicleManufacturer.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
 			vehicleManufacturer.setLastChangedOn(new Date());
 			// Update VehicleManufacturer
 			const updatedVehicleManufacturer = await vehicleManufacturer.save();
@@ -227,7 +227,7 @@ class VehicleManufacturerService {
 					'VehicleManufacturerService', 'handleGetVehicleManufacturerLogo', req.user);
 			}
 			// Get it
-			const vehicleManufacturer = await VehicleManufacturer.getVehicleManufacturer(req.user.tenant, filteredRequest.ID);
+			const vehicleManufacturer = await VehicleManufacturer.getVehicleManufacturer(req.user.tenantID, filteredRequest.ID);
 			if (!vehicleManufacturer) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -246,7 +246,7 @@ class VehicleManufacturerService {
 					req.user);
 			}
 			// Get the logo
-			const vehicleManufacturerLogo = await VehicleManufacturer.getVehicleManufacturerLogo(req.user.tenant, filteredRequest.ID);
+			const vehicleManufacturerLogo = await VehicleManufacturer.getVehicleManufacturerLogo(req.user.tenantID, filteredRequest.ID);
 			// Return
 			res.json(vehicleManufacturerLogo);
 			next();

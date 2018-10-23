@@ -23,7 +23,7 @@ class SiteService {
 					'SiteService', 'handleDeleteSite', req.user);
 			}
 			// Get
-			const site = await Site.getSite(req.user.tenant, filteredRequest.ID);
+			const site = await Site.getSite(req.user.tenantID, filteredRequest.ID);
 			if (!site) {
 				// Not Found!
 				throw new AppError(
@@ -71,7 +71,7 @@ class SiteService {
 					'SiteService', 'handleGetSite', req.user);
 			}
 			// Get it
-			const site = await Site.getSite(req.user.tenant, filteredRequest.ID, null, filteredRequest.WithUsers);
+			const site = await Site.getSite(req.user.tenantID, filteredRequest.ID, null, filteredRequest.WithUsers);
 			if (!site) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -107,7 +107,7 @@ class SiteService {
 			// Filter
 			const filteredRequest = SiteSecurity.filterSitesRequest(req.query, req.user);
 			// Get the sites
-			const sites = await Site.getSites(req.user.tenant,
+			const sites = await Site.getSites(req.user.tenantID,
             { 'search': filteredRequest.Search, 'userID': filteredRequest.UserID, 'withCompany': filteredRequest.WithCompany,
 					'withSiteAreas': filteredRequest.WithSiteAreas, 'withChargeBoxes': filteredRequest.WithChargeBoxes,
 					'withUsers': filteredRequest.WithUsers, 'excludeSitesOfUserID': filteredRequest.ExcludeSitesOfUserID,
@@ -140,7 +140,7 @@ class SiteService {
 					'SiteService', 'handleGetSiteImage', req.user);
 			}
 			// Get it
-			const site = await Site.getSite(req.user.tenant, filteredRequest.ID);
+			const site = await Site.getSite(req.user.tenantID, filteredRequest.ID);
 			if (!site) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -159,7 +159,7 @@ class SiteService {
 					req.user);
 			}
 			// Get the image
-			const siteImage = await Site.getSiteImage(req.user.tenant, filteredRequest.ID);
+			const siteImage = await Site.getSiteImage(req.user.tenantID, filteredRequest.ID);
 			// Return
 			res.json(siteImage);
 			next();
@@ -209,7 +209,7 @@ class SiteService {
 			// Filter
 			const filteredRequest = SiteSecurity.filterSiteCreateRequest( req.body, req.user );
 			// Check Company
-			const company = await Company.getCompany(req.user.tenant, filteredRequest.companyID);
+			const company = await Company.getCompany(req.user.tenantID, filteredRequest.companyID);
 			// Check Mandatory fields
 			Site.checkIfSiteValid(filteredRequest, req);
 			// Found?
@@ -221,16 +221,16 @@ class SiteService {
 					'SiteService', 'handleCreateSite', req.user);
 			}
 			// Create site
-			const site = new Site(req.user.tenant, filteredRequest);
+			const site = new Site(req.user.tenantID, filteredRequest);
 			// Update timestamp
-			site.setCreatedBy(new User(req.user.tenant, {'id': req.user.id}));
+			site.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
 			site.setCreatedOn(new Date());
 			// Get the users
 			const users = [];
 			if(filteredRequest.userIDs){
 				for (const userID of filteredRequest.userIDs) {
 					// Get User
-					const user = await User.getUser(req.user.tenant, userID);
+					const user = await User.getUser(req.user.tenantID, userID);
 					// Add
 					users.push(user);
 				}
@@ -262,7 +262,7 @@ class SiteService {
 			// Filter
 			const filteredRequest = SiteSecurity.filterSiteUpdateRequest( req.body, req.user );
 			// Get Site
-			const site = await Site.getSite(req.user.tenant, filteredRequest.id);
+			const site = await Site.getSite(req.user.tenantID, filteredRequest.id);
 			if (!site) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -285,7 +285,7 @@ class SiteService {
 			// Update
 			Database.updateSite(filteredRequest, site.getModel());
 			// Update timestamp
-			site.setLastChangedBy(new User(req.user.tenant, {'id': req.user.id}));
+			site.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
 			site.setLastChangedOn(new Date());
 			// Update Site's Image
 			await site.saveImage();
@@ -293,7 +293,7 @@ class SiteService {
 			const users = [];
 			for (const userID of filteredRequest.userIDs) {
 				// Get User
-				const user = await User.getUser(req.user.tenant, userID);
+				const user = await User.getUser(req.user.tenantID, userID);
 				if (user) {
 					// Add
 					users.push(user);

@@ -49,7 +49,7 @@ class TenantSecurity {
         return filteredRequest;
     }
 
-    static filterTenantResponse(tenant, loggedUser) {
+    static filterTenantResponse(tenantID, loggedUser) {
         let filteredTenant;
 
         if (!tenant) {
@@ -66,7 +66,7 @@ class TenantSecurity {
 
             // Created By / Last Changed By
             UtilsSecurity.filterCreatedAndLastChanged(
-                filteredTenant, tenant, loggedUser);
+                filteredTenant, tenantID, loggedUser);
         }
         return filteredTenant;
     }
@@ -82,7 +82,7 @@ class TenantSecurity {
         }
         for (const tenant of tenants) {
             // Filter
-            const filteredTenant = TenantSecurity.filterTenantResponse(tenant, loggedUser);
+            const filteredTenant = TenantSecurity.filterTenantResponse(tenantID, loggedUser);
             // Ok?
             if (filteredTenant) {
                 // Add

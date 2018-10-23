@@ -28,7 +28,7 @@ class SiteAreaService {
 			// Check Mandatory fields
 			SiteArea.checkIfSiteAreaValid(filteredRequest, req);
 			// Check Site
-			const site = await Site.getSite(req.user.tenant, filteredRequest.siteID);
+			const site = await Site.getSite(req.user.tenantID, filteredRequest.siteID);
 			// Found?
 			if (!site) {
 				// Not Found!
@@ -38,9 +38,9 @@ class SiteAreaService {
 					'SiteAreaService', 'handleCreateSiteArea', req.user);
 			}
 			// Create site
-			const siteArea = new SiteArea(req.user.tenant, filteredRequest);
+			const siteArea = new SiteArea(req.user.tenantID, filteredRequest);
 			// Update timestamp
-			siteArea.setCreatedBy(new User(req.user.tenant, {'id': req.user.id}));
+			siteArea.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
 			siteArea.setCreatedOn(new Date());
 			// Save
 			const newSiteArea = await siteArea.save();
@@ -51,10 +51,10 @@ class SiteAreaService {
 			// Get the assigned Charge Boxes
 			for (const chargeBoxID of filteredRequest.chargeBoxIDs) {
 				// Get the charging stations
-				const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, chargeBoxID);
+				const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, chargeBoxID);
 				if (chargingStation) {
 					// Update timestamp
-					chargingStation.setLastChangedBy(new User(req.user.tenant, {'id': req.user.id}));
+					chargingStation.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
 					chargingStation.setLastChangedOn(new Date());
 					// Set
 					chargingStation.setSiteArea(newSiteArea);
@@ -91,7 +91,7 @@ class SiteAreaService {
 			// Filter
 			const filteredRequest = SiteAreaSecurity.filterSiteAreasRequest(req.query, req.user);
 			// Get the sites
-			const siteAreas = await SiteArea.getSiteAreas(req.user.tenant,
+			const siteAreas = await SiteArea.getSiteAreas(req.user.tenantID,
             { 'search': filteredRequest.Search, 'withSite': filteredRequest.WithSite,
 					'withChargeBoxes': filteredRequest.WithChargeBoxes, 'siteID': filteredRequest.SiteID },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
@@ -122,7 +122,7 @@ class SiteAreaService {
 					'SiteAreaService', 'handleDeleteSiteArea', req.user);
 			}
 			// Get
-			const siteArea = await SiteArea.getSiteArea(req.user.tenant, filteredRequest.ID);
+			const siteArea = await SiteArea.getSiteArea(req.user.tenantID, filteredRequest.ID);
 			// Found?
 			if (!siteArea) {
 				// Not Found!
@@ -171,7 +171,7 @@ class SiteAreaService {
 					'SiteAreaService', 'handleGetSiteArea', req.user);
 			}
 			// Get it
-			const siteArea = await SiteArea.getSiteArea(req.user.tenant,
+			const siteArea = await SiteArea.getSiteArea(req.user.tenantID,
             filteredRequest.ID, filteredRequest.WithChargeBoxes, filteredRequest.WithSite);
 			// Found?
 			if (!siteArea) {
@@ -218,7 +218,7 @@ class SiteAreaService {
 					'SiteAreaService', 'handleGetSiteAreaImage', req.user);
 			}
 			// Get it
-			const siteArea = await SiteArea.getSiteArea(req.user.tenant, filteredRequest.ID);
+			const siteArea = await SiteArea.getSiteArea(req.user.tenantID, filteredRequest.ID);
 			if (!siteArea) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -236,7 +236,7 @@ class SiteAreaService {
 					req.user);
 			}
 			// Get the image
-			const siteAreaImage = await SiteArea.getSiteAreaImage(req.user.tenant, filteredRequest.ID);
+			const siteAreaImage = await SiteArea.getSiteAreaImage(req.user.tenantID, filteredRequest.ID);
 			// Return
 			res.json(siteAreaImage);
 			next();
@@ -274,7 +274,7 @@ class SiteAreaService {
 			// Filter
 			const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest( req.body, req.user );
 			// Check
-			const siteArea = await SiteArea.getSiteArea(req.user.tenant, filteredRequest.id);
+			const siteArea = await SiteArea.getSiteArea(req.user.tenantID, filteredRequest.id);
 			if (!siteArea) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -298,7 +298,7 @@ class SiteAreaService {
 			// Clear Site Area from Existing Charging Station
 			for (const chargingStation of chargingStations) {
 				// Update timestamp
-				chargingStation.setLastChangedBy(new User(req.user.tenant, {'id': req.user.id}));
+				chargingStation.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
 				chargingStation.setLastChangedOn(new Date());
 				// Set
 				chargingStation.setSiteArea(null);
@@ -308,10 +308,10 @@ class SiteAreaService {
 			// Assign Site Area to Charging Stations
 			for (const chargeBoxID of filteredRequest.chargeBoxIDs) {
 				// Get the charging stations
-				const chargingStation = await ChargingStation.getChargingStation(req.user.tenant, chargeBoxID);
+				const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, chargeBoxID);
 				if (chargingStation) {
 					// Update timestamp
-					chargingStation.setLastChangedBy(new User(req.user.tenant, {'id': req.user.id}));
+					chargingStation.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
 					chargingStation.setLastChangedOn(new Date());
 					// Set
 					chargingStation.setSiteArea(siteArea);
@@ -322,7 +322,7 @@ class SiteAreaService {
 			// Update
 			Database.updateSiteArea(filteredRequest, siteArea.getModel());
 			// Update timestamp
-			siteArea.setLastChangedBy(new User(req.user.tenant, {'id': req.user.id}));
+			siteArea.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
 			siteArea.setLastChangedOn(new Date());
 			// Update Site Area
 			const updatedSiteArea = await siteArea.save();

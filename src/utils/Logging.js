@@ -261,7 +261,7 @@ class Logging {
 	}
 
 	// Log
-	static _log(tenant, log) {
+	static _log(tenantID, log) {
 		// Log
 		log.timestamp = new Date();
 
@@ -286,7 +286,7 @@ class Logging {
 			log.type = LoggingType.REGULAR;
 		}
 		// Log
-		LoggingStorage.saveLog(tenant, log);
+		LoggingStorage.saveLog(tenantID, log);
 
 		// Log in Cloud Foundry
 		if (Configuration.isCloudFoundry()) {

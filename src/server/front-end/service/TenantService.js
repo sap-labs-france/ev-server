@@ -162,7 +162,7 @@ class TenantService extends AbstractService {
       // Create
       const tenant = new Tenant(filteredRequest);
       // Update timestamp
-      tenant.setCreatedBy(new User(req.user.tenant, {
+      tenant.setCreatedBy(new User(req.user.tenantID, {
         'id': req.user.id
       }));
       tenant.setCreatedOn(new Date());
@@ -214,7 +214,7 @@ class TenantService extends AbstractService {
       // Update
       Database.updateTenant(filteredRequest, tenant.getModel());
       // Update timestamp
-      tenant.setLastChangedBy(new User(req.user.tenant, {
+      tenant.setLastChangedBy(new User(req.user.tenantID, {
         'id': req.user.id
       }));
       tenant.setLastChangedOn(new Date());
