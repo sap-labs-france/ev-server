@@ -14,6 +14,6 @@
         "no-var": "warn",
         "prefer-const": "warn",
         "no-mixed-spaces-and-tabs": "warn",
-        "indent": ["off", 2]
+        "indent": ["warn", 2]
     }
 }
