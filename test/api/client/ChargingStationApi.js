@@ -51,7 +51,10 @@ class ChargingStationApi  extends CrudApi {
   }
 
   async checkConnector(chargingStation, connectorId, connectorData) {
+    // Check
     expect(chargingStation).to.not.be.null;
+    // Always remove the timestamp
+    delete connectorData.timestamp;
     // Retrieve it from the backend
     let response = await this.readById(chargingStation.id);
     // Check if ok

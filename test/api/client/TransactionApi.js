@@ -1,28 +1,30 @@
-const ReadApi = require('./utils/ReadApi');
+const CrudApi = require('./utils/CrudApi');
 const Constants = require('./utils/Constants');
 
-class TransactionApi {
-
-  constructor(baseApi) {
-    this.readApi = new ReadApi(baseApi);
+class TransactionApi extends CrudApi {
+  constructor(authenticatedApi) {
+    super(authenticatedApi);
   }
 
   readById(id) {
-    return this.readApi.readById('/client/api/Transaction/', id);
+    return super.readById('/client/api/Transaction', id);
   }
 
-  readAllActive(params) {
-    return this.readApi.readAll('/client/api/TransactionsActive/', params);
+  readAllActive(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+    return super.readAll('/client/api/TransactionsActive', params, paging, ordering);
   }
 
-  readAllCompleted(params) {
-    return this.readApi.readAll('/client/api/TransactionsCompleted/', params);
+  readAllCompleted(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+    return super.readAll('/client/api/TransactionsCompleted', params, paging, ordering);
   }
 
   readAllYears(params) {
-    return this.readApi.readAll('/client/api/TransactionYears/', params);
+    return super.readAll('/client/api/TransactionYears', params);
   }
 
+  delete(id) {
+    return super.delete('/client/api/TransactionDelete', id);
+  }
 }
 
 module.exports = TransactionApi;

@@ -84,7 +84,7 @@ class OCPPBootstrap {
         connectorId: 1,
         status: 'Available',
         errorCode: 'NoError',
-        timestamp: new Date()
+        timestamp: new Date().toISOString()
       });
       // Check
       expect(response).to.not.be.null;
@@ -94,7 +94,7 @@ class OCPPBootstrap {
         connectorId: 2,
         status: 'Available',
         errorCode: 'NoError',
-        timestamp: new Date()
+        timestamp: new Date().toISOString()
       });
       // Check
       expect(response).to.not.be.null;

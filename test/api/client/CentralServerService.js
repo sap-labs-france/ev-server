@@ -12,6 +12,7 @@ const UserApi = require('./UserApi');
 const AuthenticationApi = require('./AuthenticationApi');
 const TenantApi = require('./TenantApi');
 const ChargingStationApi = require('./ChargingStationApi');
+const TransactionApi = require('./TransactionApi');
 
 // Set
 chai.use(chaiSubset);
@@ -31,6 +32,7 @@ class CentralServerService {
     this.authenticationApi = new AuthenticationApi(this.baseApi);
     this.tenantApi = new TenantApi(this.authenticatedApi, this.baseApi);
     this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this.baseApi);
+    this.transactionApi = new TransactionApi(this.authenticatedApi);
   }
 
   async createEntity(entityApi, entity, performCheck=true) {
