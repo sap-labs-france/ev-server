@@ -17,10 +17,6 @@ class ChargingStationApi  extends CrudApi {
     return super.readAll('/client/api/ChargingStations', params, paging, ordering);
   }
 
-  create(data) {
-    return super.create('/client/api/ChargingStationCreate', data);
-  }
-
   update(data) {
     return super.update('/client/api/ChargingStationUpdate', data);
   }

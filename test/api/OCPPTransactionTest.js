@@ -5,8 +5,8 @@ const {
 const chai = require('chai');
 const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
-const Ocpp15 = require('./soap/ocpp15');
-const ChargerBootstrap = require('./ChargerBootstrap');
+const OCPPSoapService15 = require('./soap/OCPPSoapService15');
+const OCPPBootstrap = require('./OCPPBootstrap');
 const CentralServerService = require('./client/CentralServerService');
 const config = require('../config');
 
@@ -15,14 +15,12 @@ describe('OCPP Transaction tests', function () {
 
   before(async () => {
     // Create OCPP 1.5
-    const ocpp = new Ocpp15(
-      'test/api/soap/ocpp15.wsdl', 
-      `${config.get('ocpp.scheme')}://${config.get('ocpp.host')}:${config.get('ocpp.port')}/OCPP15`
-    );
+    const ocpp = new OCPPSoapService15(`${config.get('ocpp.scheme')}://${config.get('ocpp.host')}:${config.get('ocpp.port')}/OCPP15`);
     // Create Bootstrap with OCPP
-    this.bootstrap = new ChargerBootstrap(ocpp);
+    this.bootstrap = new OCPPBootstrap(ocpp);
     // Create data
     this.context = await this.bootstrap.createContext();
+    console.log(this.context);
   });
 
   before(async () => {
@@ -30,17 +28,17 @@ describe('OCPP Transaction tests', function () {
     await this.bootstrap.destroyContext(this.context);
   });
 
-  // it('A charging station can notify its status', async () => {
-  //   let currentTime = moment(context.currentTime);
-  //   let chargePointState = {
-  //     connectorId: 1,
-  //     status: 'Available',
-  //     errorCode: 'NoError',
-  //     timestamp: currentTime.toISOString()
-  //   };
-  //   let response = await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState);
-  //   expect(response.data).to.eql({});
-  // });
+  it('A charging station can notify its status', async () => {
+    // let currentTime = moment(context.currentTime);
+    // let chargePointState = {
+    //   connectorId: 1,
+    //   status: 'Available',
+    //   errorCode: 'NoError',
+    //   timestamp: currentTime.toISOString()
+    // };
+    // let response = await ocpp.executeStatusNotification(context.chargeBoxIdentity, chargePointState);
+    // expect(response.data).to.eql({});
+  });
 
   // it('A charging station can notify its status multiple times', async () => {
   //   let currentTime = moment(context.currentTime);
