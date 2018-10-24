@@ -4,6 +4,7 @@ const Utils = require('../../utils/Utils');
 const SiteAreaStorage = require('./SiteAreaStorage');
 const AppError = require('../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
+const MongoDBStorage = require('./MongoDBStorage');
 
 class SiteStorage {
   static async getSite(tenantID, id, withCompany, withUsers){
@@ -24,7 +25,7 @@ class SiteStorage {
       // Add
       aggregation.push({
         $lookup: {
-          from: "siteusers",
+          from: MongoDBStorage.getCollectionName(tenantID, "siteusers"),
           localField: "_id",
           foreignField: "siteID",
           as: "siteusers"
@@ -33,7 +34,7 @@ class SiteStorage {
       // Add
       aggregation.push({
         $lookup: {
-          from: "users",
+          from: MongoDBStorage.getCollectionName(tenantID, "users"),
           localField: "siteusers.userID",
           foreignField: "_id",
           as: "users"
@@ -43,7 +44,7 @@ class SiteStorage {
     // Add SiteAreas
     aggregation.push({
       $lookup: {
-        from: "siteareas",
+        from: MongoDBStorage.getCollectionName(tenantID, "siteareas"),
         localField: "_id",
         foreignField: "siteID",
         as: "siteAreas"
@@ -53,7 +54,7 @@ class SiteStorage {
       // Add Company
       aggregation.push({
         $lookup: {
-          from: "companies",
+          from: MongoDBStorage.getCollectionName(tenantID, "companies"),
           localField: "companyID",
           foreignField: "_id",
           as: "company"
@@ -228,7 +229,7 @@ class SiteStorage {
       // Add Users
       aggregation.push({
         $lookup: {
-          from: "siteusers",
+          from: MongoDBStorage.getCollectionName(tenantID, "siteusers"),
           localField: "_id",
           foreignField: "siteID",
           as: "siteusers"
@@ -246,7 +247,7 @@ class SiteStorage {
         // Add
         aggregation.push({
           $lookup: {
-            from: "users",
+            from: MongoDBStorage.getCollectionName(tenantID, "users"),
             localField: "siteusers.userID",
             foreignField: "_id",
             as: "users"
@@ -258,7 +259,7 @@ class SiteStorage {
       // Add SiteAreas
       aggregation.push({
         $lookup: {
-          from: "siteareas",
+          from: MongoDBStorage.getCollectionName(tenantID, "siteareas"),
           localField: "_id",
           foreignField: "siteID",
           as: "siteAreas"
@@ -269,7 +270,7 @@ class SiteStorage {
     if (params.withChargeBoxes || params.withAvailableChargers) {
       aggregation.push({
         $lookup: {
-          from: "chargingstations",
+          from: MongoDBStorage.getCollectionName(tenantID, "chargingstations"),
           localField: "siteAreas._id",
           foreignField: "siteAreaID",
           as: "chargeBoxes"
@@ -292,7 +293,7 @@ class SiteStorage {
     if (params.withCompany) {
       aggregation.push({
         $lookup: {
-          from: "companies",
+          from: MongoDBStorage.getCollectionName(tenantID, "companies"),
           localField: "companyID",
           foreignField: "_id",
           as: "company"

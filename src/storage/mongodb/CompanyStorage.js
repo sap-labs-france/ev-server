@@ -4,6 +4,7 @@ const Utils = require('../../utils/Utils');
 const SiteStorage = require('./SiteStorage');
 const ObjectID = require('mongodb').ObjectID;
 const AppError = require('../../exception/AppError');
+const MongoDBStorage = require('./MongoDBStorage');
 
 class CompanyStorage {
   static async getCompany(tenantID, id){
@@ -145,7 +146,7 @@ class CompanyStorage {
       // Add Sites
       aggregation.push({
         $lookup: {
-          from: "sites",
+          from: MongoDBStorage.getCollectionName(tenantID, "sites"),
           localField: "_id",
           foreignField: "companyID",
           as: "sites"

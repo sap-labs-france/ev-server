@@ -4,6 +4,7 @@ const Utils = require('../../utils/Utils');
 const VehicleStorage = require('./VehicleStorage');
 const AppError = require('../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
+const MongoDBStorage = require('./MongoDBStorage');
 
 class VehicleManufacturerStorage {
   static async getVehicleManufacturerLogo(tenantID, id){
@@ -144,7 +145,7 @@ class VehicleManufacturerStorage {
       //  Vehicles
       aggregation.push({
         $lookup: {
-          from: "vehicles",
+          from: MongoDBStorage.getCollectionName(tenantID, "vehicles"),
           localField: "_id",
           foreignField: "vehicleManufacturerID",
           as: "vehicles"

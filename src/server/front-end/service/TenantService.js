@@ -146,7 +146,8 @@ class TenantService extends AbstractService {
 
       let foundTenant = await Tenant.getTenantByName(filteredRequest.name);
       if (foundTenant) {
-        throw new ConflictError(`The tenant with name '${filteredRequest.name}' already exists`, 'tenants.name_already_used', {
+        throw new ConflictError(`The tenant with name '${filteredRequest.name}' already exists`, 'tenants.name_already_used',
+          {
             'name': filteredRequest.name
           },
           'TenantService', 'handleCreateTenant', req.user, action);
@@ -169,7 +170,7 @@ class TenantService extends AbstractService {
       // Save
       const newTenant = await tenant.save();
 
-      await tenant.createEnvironment();
+      await newTenant.createEnvironment();
 
       // Log
       Logging.logSecurityInfo({

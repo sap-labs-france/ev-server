@@ -2,6 +2,7 @@ const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const crypto = require('crypto');
+const MongoDBStorage = require('./MongoDBStorage');
 
 class TransactionStorage {
   static async deleteTransaction(tenantID, transaction){
@@ -272,7 +273,7 @@ class TransactionStorage {
     // Add User
     aggregation.push({
       $lookup: {
-        from: "users",
+        from: MongoDBStorage.getCollectionName(tenantID, "users"),
         localField: "userID",
         foreignField: "_id",
         as: "user"
@@ -285,7 +286,7 @@ class TransactionStorage {
     // Add Stop User
     aggregation.push({
       $lookup: {
-        from: "users",
+        from: MongoDBStorage.getCollectionName(tenantID, "users"),
         localField: "stop.userID",
         foreignField: "_id",
         as: "stop.user"
@@ -298,7 +299,7 @@ class TransactionStorage {
     // Add
     aggregation.push({
       $lookup: {
-        from: "chargingstations",
+        from: MongoDBStorage.getCollectionName(tenantID, "chargingstations"),
         localField: "chargeBoxID",
         foreignField: "_id",
         as: "chargeBox"
@@ -338,7 +339,7 @@ class TransactionStorage {
     // Add User
     aggregation.push({
       $lookup: {
-        from: "users",
+        from: MongoDBStorage.getCollectionName(tenantID, "users"),
         localField: "userID",
         foreignField: "_id",
         as: "user"

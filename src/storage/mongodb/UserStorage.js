@@ -6,6 +6,7 @@ const Configuration = require('../../utils/Configuration');
 const Utils = require('../../utils/Utils');
 const AppError = require('../../exception/AppError');
 const eula = require('../../end-user-agreement');
+const MongoDBStorage = require('./MongoDBStorage');
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 
@@ -354,7 +355,7 @@ class UserStorage {
     // Add TagIDs
     aggregation.push({
       $lookup: {
-        from: "tags",
+        from: MongoDBStorage.getCollectionName(tenantID, "tags"),
         localField: "_id",
         foreignField: "userID",
         as: "tags"
@@ -373,7 +374,7 @@ class UserStorage {
       // Add Site
       aggregation.push({
         $lookup: {
-          from: "siteusers",
+          from: MongoDBStorage.getCollectionName(tenantID, "siteusers"),
           localField: "_id",
           foreignField: "userID",
           as: "siteusers"

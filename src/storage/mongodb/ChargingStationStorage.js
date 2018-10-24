@@ -2,6 +2,7 @@ const Constants = require('../../utils/Constants');
 const Utils = require('../../utils/Utils');
 const Database = require('../../utils/Database');
 const crypto = require('crypto');
+const MongoDBStorage = require('./MongoDBStorage');
 
 class ChargingStationStorage {
   static async getChargingStation(tenantID, id){
@@ -20,7 +21,7 @@ class ChargingStationStorage {
     // Add
     aggregation.push({
       $lookup: {
-        from: "siteareas",
+        from: MongoDBStorage.getCollectionName(tenantID, "siteareas"),
         localField: "siteAreaID",
         foreignField: "_id",
         as: "siteArea"
@@ -102,7 +103,7 @@ class ChargingStationStorage {
       // Always get the Site Area
       aggregation.push({
         $lookup: {
-          from: "siteareas",
+          from: MongoDBStorage.getCollectionName(tenantID, "siteareas"),
           localField: "siteAreaID",
           foreignField: "_id",
           as: "siteArea"

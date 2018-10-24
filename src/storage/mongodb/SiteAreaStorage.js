@@ -3,6 +3,7 @@ const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const AppError = require('../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
+const MongoDBStorage = require('./MongoDBStorage');
 
 class SiteAreaStorage {
   static async getSiteAreaImage(tenantID, id){
@@ -57,7 +58,7 @@ class SiteAreaStorage {
       // Add
       aggregation.push({
         $lookup: {
-          from: "chargingstations",
+          from: MongoDBStorage.getCollectionName(tenantID, "chargingstations"),
           localField: "_id",
           foreignField: "siteAreaID",
           as: "chargingStations"
@@ -69,7 +70,7 @@ class SiteAreaStorage {
       // Add
       aggregation.push({
         $lookup: {
-          from: "sites",
+          from: MongoDBStorage.getCollectionName(tenantID, "sites"),
           localField: "siteID",
           foreignField: "_id",
           as: "site"
@@ -199,7 +200,7 @@ class SiteAreaStorage {
       // Add Sites
       aggregation.push({
         $lookup: {
-          from: "sites",
+          from: MongoDBStorage.getCollectionName(tenantID, "sites"),
           localField: "siteID",
           foreignField: "_id",
           as: "site"
@@ -215,7 +216,7 @@ class SiteAreaStorage {
       // Add Charging Stations
       aggregation.push({
         $lookup: {
-          from: "chargingstations",
+          from: MongoDBStorage.getCollectionName(tenantID, "chargingstations"),
           localField: "_id",
           foreignField: "siteAreaID",
           as: "chargeBoxes"
