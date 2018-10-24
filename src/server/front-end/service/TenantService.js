@@ -189,9 +189,7 @@ class TenantService extends AbstractService {
         detailedMessages: newTenant
       });
       // Ok
-      res.status(HttpStatus.OK).json(Object.assign(Constants.REST_RESPONSE_SUCCESS, {
-        id: newTenant.getID()
-      }));
+      res.status(HttpStatus.OK).json(Object.assign({ id: newTenant.getID() }, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       TenantService._handleError(error, req, next, action, MODULE_NAME, 'handleCreateTenant');
