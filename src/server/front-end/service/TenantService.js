@@ -4,7 +4,6 @@ const AppError = require('../../../exception/AppError');
 const UnauthorizedError = require('../../../exception/UnauthorizedError');
 const BadRequestError = require('../../../exception/BadRequestError');
 const ConflictError = require('../../../exception/ConflictError');
-const NotFoundError = require('../../../exception/NotFoundError');
 const Constants = require('../../../utils/Constants');
 const Tenant = require('../../../entity/Tenant');
 const User = require('../../../entity/User');
@@ -27,15 +26,18 @@ class TenantService extends AbstractService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Tenant's ID must be provided`, 400);
+          `The Tenant's ID must be provided`, 500,
+          MODULE_NAME, 'handleDeleteTenant', req.user);
       }
       // Get
       const tenant = await Tenant.getTenant(filteredRequest.ID);
       // Found?
       if (!tenant) {
         // Not Found!
-        throw new NotFoundError(
-          `The Tenant with ID '${filteredRequest.id}' does not exist`);
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `Tenant with ID '${filteredRequest.ID}' does not exist`, 550,
+          MODULE_NAME, 'handleDeleteTenant', req.user);
       }
       // Check auth
       if (!Authorizations.canDeleteTenant(req.user, tenant.getModel())) {
@@ -51,7 +53,7 @@ class TenantService extends AbstractService {
       // Log
       Logging.logSecurityInfo({
         user: req.user,
-        module: 'TenantService',
+        module: MODULE_NAME,
         method: 'handleDeleteTenant',
         message: `Tenant '${tenant.getName()}' has been deleted successfully`,
         action: action,
@@ -72,13 +74,18 @@ class TenantService extends AbstractService {
       // Charge Box is mandatory
       if (!filteredRequest.ID) {
         // Not Found!
-        throw new BadRequestError([]);
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Tenant's ID must be provided`, 500,
+          MODULE_NAME, 'handleGetTenant', req.user);
       }
       // Get it
       const tenant = await Tenant.getTenant(filteredRequest.ID);
       if (!tenant) {
-        throw new NotFoundError(
-          `The Tenant with ID '${filteredRequest.id}' does not exist`);
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `Tenant with ID '${filteredRequest.ID}' does not exist`, 550,
+          MODULE_NAME, 'handleGetTenant', req.user);
       }
       // Check auth
       if (!Authorizations.canReadTenant(req.user, tenant.getModel())) {
@@ -150,7 +157,7 @@ class TenantService extends AbstractService {
           {
             'name': filteredRequest.name
           },
-          'TenantService', 'handleCreateTenant', req.user, action);
+          MODULE_NAME, 'handleCreateTenant', req.user, action);
       }
 
       foundTenant = await Tenant.getTenantBySubdomain(filteredRequest.subdomain);
@@ -175,16 +182,16 @@ class TenantService extends AbstractService {
       // Log
       Logging.logSecurityInfo({
         user: req.user,
-        module: 'TenantService',
+        module: MODULE_NAME,
         method: 'handleCreateTenant',
         message: `Tenant '${newTenant.getName()}' has been created successfully`,
         action: action,
         detailedMessages: newTenant
       });
       // Ok
-      res.status(HttpStatusCodes.CREATED).json({
+      res.status(HttpStatusCodes.OK).json(Object.assign(Constants.REST_RESPONSE_SUCCESS, {
         id: newTenant.getID()
-      });
+      }));
       next();
     } catch (error) {
       AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleCreateTenant');
@@ -200,8 +207,10 @@ class TenantService extends AbstractService {
       // Check email
       const tenant = await Tenant.getTenant(filteredRequest.id);
       if (!tenant) {
-        throw new NotFoundError(
-          `The Tenant with ID '${filteredRequest.id}' does not exist`);
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `Tenant with ID '${filteredRequest.ID}' does not exist`, 550,
+          MODULE_NAME, 'handleUpdateTenant', req.user);
       }
       // Check auth
       if (!Authorizations.canUpdateTenant(req.user, tenant.getModel())) {
@@ -224,7 +233,7 @@ class TenantService extends AbstractService {
       // Log
       Logging.logSecurityInfo({
         user: req.user,
-        module: 'TenantService',
+        module: MODULE_NAME,
         method: 'handleUpdateTenant',
         message: `Tenant '${updatedTenant.getName()}' has been updated successfully`,
         action: action,
@@ -245,8 +254,11 @@ class TenantService extends AbstractService {
       // Check email
       const tenant = await Tenant.getTenantBySubdomain(filteredRequest.tenant);
       if (!tenant) {
-        throw new NotFoundError(
-          `The Tenant with subdomain '${filteredRequest.subdomain}' does not exist`);
+        // Not Found!
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Tenant with subdomain '${filteredRequest.subdomain}' does not exist`, 550,
+          MODULE_NAME, 'handleVerifyTenant', req.user);
       }
       res.status(HttpStatusCodes.OK).send({});
       next();

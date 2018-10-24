@@ -133,7 +133,7 @@ class MongoDBStorageNotification {
           notification.chargeBoxID = change.fullDocument.chargeBoxID;
           break;
         case 'update': // Update
-          if (change.fullDocument.stop) {
+          if (change.fullDocument && change.fullDocument.stop) {
             notification.type = Constants.ENTITY_TRANSACTION_STOP;
           }
           break;

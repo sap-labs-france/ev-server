@@ -27,7 +27,7 @@
 		"webSocketNotificationIntervalSecs": 2,
 		"passwordWrongNumberOfTrial": 3,
 		"passwordBlockedWaitTimeMin": 5,
-		"captchaSecretKey": "YourCaptchaSecretKey",
+		"captchaSecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
 		"debug": false
 	},
 	"CentralSystemFrontEnd": {

@@ -1,28 +1,144 @@
-SiteAreaApi = require('./SiteAreaApi');
-CompanyApi = require('./CompanyApi');
-SiteApi = require('./SiteApi');
-UserApi = require('./UserApi');
-ChargingStationApi = require('./ChargingStationApi');
-TenantApi = require('./TenantApi');
-TransactionApi = require('./TransactionApi');
+const {expect} = require('chai');
 const BaseApi = require('./utils/BaseApi');
 const AuthenticatedBaseApi = require('./utils/AuthenticatedBaseApi');
 const config = require('../../config');
+const Constants = require('./utils/Constants');
+const chai = require('chai');
+const chaiSubset = require('chai-subset');
+const CompanyApi = require('./CompanyApi');
+const SiteApi = require('./SiteApi');
+const SiteAreaApi = require('./SiteAreaApi');
+const UserApi = require('./UserApi');
+const AuthenticationApi = require('./AuthenticationApi');
+const TenantApi = require('./TenantApi');
+const ChargingStationApi = require('./ChargingStationApi');
+const TransactionApi = require('./TransactionApi');
 
+// Set
+chai.use(chaiSubset);
 class CentralServerService {
 
   constructor() {
-    const baseApi = new BaseApi(`${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`);
-    const authenticatedBaseApi = new AuthenticatedBaseApi(config.get('admin.username'), config.get('admin.password'), baseApi);
-    this.siteArea = new SiteAreaApi(authenticatedBaseApi);
-    this.company = new CompanyApi(authenticatedBaseApi);
-    this.site = new SiteApi(authenticatedBaseApi);
-    this.user = new UserApi(authenticatedBaseApi);
-    this.chargingStation = new ChargingStationApi(authenticatedBaseApi);
-    this.transaction = new TransactionApi(authenticatedBaseApi);
-    this.tenant = new TenantApi(authenticatedBaseApi);
-    this.tenantNoAuth = new TenantApi(baseApi);
-    this.url = authenticatedBaseApi.url;
+    this.baseURL = `${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`;
+    // Create the Base API
+    this.baseApi = new BaseApi(this.baseURL);
+    // Create the Authenticated API
+    this.authenticatedApi = new AuthenticatedBaseApi(this.baseURL, config.get('admin.username'), config.get('admin.password'));
+    // Create the Company
+    this.companyApi = new CompanyApi(this.authenticatedApi);
+    this.siteApi = new SiteApi(this.authenticatedApi);
+    this.siteAreaApi = new SiteAreaApi(this.authenticatedApi);
+    this.userApi = new UserApi(this.authenticatedApi);
+    this.authenticationApi = new AuthenticationApi(this.baseApi);
+    this.tenantApi = new TenantApi(this.authenticatedApi, this.baseApi);
+    this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this.baseApi);
+    this.transactionApi = new TransactionApi(this.authenticatedApi);
+  }
+
+  async createEntity(entityApi, entity, performCheck=true) {
+    // Create
+    let response = await entityApi.create(entity);
+    // Check
+    if (performCheck) {
+      expect(response.status).to.equal(200);
+      expect(response.data.status).to.eql('Success');
+      expect(response.data).to.have.property('id');
+      expect(response.data.id).to.match(/^[a-f0-9]+$/);
+      // Set the id
+      entity.id = response.data.id;
+      return entity;
+    } else {
+      // Let the caller to handle response
+      return response;
+    }
+  }
+
+  async getEntityById(entityApi, entity, performCheck=true) {
+    // Check first if created
+    expect(entity).to.not.be.null;
+  // Retrieve it from the backend
+    let response = await entityApi.readById(entity.id);
+    // Check
+    if (performCheck) {
+      // Check if ok
+      expect(response.status).to.equal(200);
+      expect(response.data.id).is.eql(entity.id);
+      expect(response.data).to.deep.include(entity);
+      // Return the entity
+      return response.data;
+    } else {
+      // Let the caller to handle response
+      return response;
+    }
+  }
+
+  async checkEntityInList(entityApi, entity, performCheck=true) {
+    // Check
+    expect(entity).to.not.be.null;
+    // Retrieve from the backend
+    let response = await entityApi.readAll({}, { limit: Constants.UNLIMITED, skip: 0 });
+    // Check
+    if (performCheck) {
+      // Check
+      expect(response.status).to.equal(200);
+      // Contains props
+      expect(response.data).to.have.property('count');
+      expect(response.data).to.have.property('result');
+      // All record retrieved
+      expect(response.data.count).to.eql(response.data.result.length);
+      // Check created company
+      expect(response.data.result).to.containSubset([entity]);  
+    } else {
+      // Let the caller to handle response
+      return response;
+    }
+  }
+
+  async deleteEntity(entityApi, entity, performCheck=true) {
+    // Check
+    expect(entity).to.not.be.null;
+    // Delete it in the backend
+    let response = await entityApi.delete(entity.id);
+    // Check
+    if (performCheck) {
+      // Check
+      expect(response.status).to.equal(200);
+      expect(response.data.status).to.eql('Success');
+    } else {
+      // Let the caller to handle response
+      return response;
+    }
+  }
+
+  async updateEntity(entityApi, entity, performCheck=true) {
+    // Check
+    expect(entity).to.not.be.null;
+    // Delete it in the backend
+    let response = await entityApi.update(entity);
+    // Check
+    if (performCheck) {
+      // Check
+      expect(response.status).to.equal(200);
+      expect(response.data.status).to.eql('Success');
+    } else {
+      // Let the caller to handle response
+      return response;
+    }
+  }
+
+  async checkDeletedEntityById(entityApi, entity, performCheck=true) {
+    // Check
+    expect(entity).to.not.be.null;
+    // Create it in the backend
+    let response = await entityApi.readById(entity.id);
+    // Check
+    if (performCheck) {
+      // Check if not found
+      expect(response.status).to.equal(550);
+    } else {
+      // Let the caller to handle response
+      return response;
+    }
   }
 }
 

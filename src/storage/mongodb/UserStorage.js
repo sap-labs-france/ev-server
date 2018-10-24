@@ -62,8 +62,6 @@ class UserStorage {
       // Get
       const eulaMDB = eulasMDB[0];
       // Check if eula has changed
-      console.log(currentEula);
-
       currentEulaHash = crypto.createHash('sha256')
         .update(currentEula)
         .digest("hex");

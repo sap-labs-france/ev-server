@@ -77,6 +77,8 @@
 		"request": "^2.88.0",
 		"rosie": "^2.0.1",
 		"sass-loader": "^7.1.0",
+		"sinon": "^7.0.0",
+		"sinon-chai": "^3.2.0",
 		"uglifyjs-webpack-plugin": "^1.2.7",
 		"webpack": "^4.16.4",
 		"webpack-cli": "^3.1.0",
@@ -94,7 +96,7 @@
 		"build:dev": "webpack --watch --env.env=dev",
 		"build:prod": "webpack --env.env=prod",
 		"lint": "eslint src",
-		"test": "mocha test/**/*_test.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false ",
+		"test": "mocha test/**/*Test.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false ",
 		"test:parallel": "mocha-parallel-tests test/**/*_test.js --reporter mochawesome"
 	},
 	"license": "MIT"

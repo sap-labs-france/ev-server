@@ -291,7 +291,7 @@ class TransactionService {
 			let consumptions;
 			if(!filteredRequest.StartDateTime && !filteredRequest.EndDateTime) {
 				// No: Get the Consumption from the transaction
-				consumptions = await chargingStation.getConsumptionsFromTransaction(transaction, true);
+				consumptions = await chargingStation.getConsumptionsFromTransaction(transaction);
 			} else {
 				// Yes: Get the Consumption from dates within the transaction
 				consumptions = await chargingStation.getConsumptionsFromDateTimeRange(transaction, filteredRequest.StartDateTime);

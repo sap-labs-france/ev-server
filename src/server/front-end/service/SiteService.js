@@ -299,12 +299,14 @@ class SiteService {
       await site.saveImage();
       // Get the users
       const users = [];
-      for (const userID of filteredRequest.userIDs) {
-        // Get User
-        const user = await User.getUser(req.user.tenantID, userID);
-        if (user) {
-          // Add
-          users.push(user);
+      if (filteredRequest.userIDs) {
+        for (const userID of filteredRequest.userIDs) {
+          // Get User
+          const user = await User.getUser(req.user.tenantID, userID);
+          if (user) {
+            // Add
+            users.push(user);
+          }
         }
       }
       // Set Users
