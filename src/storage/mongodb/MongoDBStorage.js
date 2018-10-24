@@ -22,10 +22,10 @@ class MongoDBStorage {
 		// Check Logs
 		let foundCollection = allCollections.find((collection) => {
 			return collection.name == name;
-		});
+    });
 		// Check if it exists
 		if (!foundCollection) {
-			// Create
+      // Create
 			await db.createCollection(name);
 		}
 		// Indexes?
@@ -116,8 +116,9 @@ class MongoDBStorage {
 		await this.checkAndCreateCollection(db, collections, 'tenants', [
 			{ fields: { subdomain: 1 }, options: { unique: true } },
 			{ fields: { name: 1 }, options: { unique: true } } 
-		]);
-		this.createTenantDatabase(db);
+    ]);
+    // Create Tenant DB
+		await this.createTenantDatabase(db);
 	}
 
 	async start() {

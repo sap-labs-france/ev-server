@@ -1,29 +1,31 @@
-const config = require('../../../config');
 const axios = require('axios');
 const querystring = require('querystring');
+const config = require('../../../config');
 
 class BaseApi {
-
-
   constructor(baseURL) {
     this.baseURL = baseURL;
   }
 
-  async send(requestConfig) {
-    requestConfig.baseURL = this.baseURL;
-    if (requestConfig.data && requestConfig.headers['Content-Type'] === 'application/x-www-form-urlencoded') {
-      requestConfig.data = querystring.stringify(requestConfig.data);
+  async send(httpRequest) {
+    let httpResponse;
+    // Set the base URL
+    httpRequest.baseURL = this.baseURL;
+    // Set the Query String
+    if (httpRequest.data && httpRequest.headers['Content-Type'] === 'application/x-www-form-urlencoded') {
+      httpRequest.data = querystring.stringify(httpRequest.data);
     }
-
+    // Log
     if (config.get('server.logs') === 'json') {
-      console.log(JSON.stringify(requestConfig, null, 2));
+      console.log(JSON.stringify(httpRequest, null, 2));
     }
-    let response;
     try {
-      response = await axios(requestConfig);
+      // Execute with Axios
+      httpResponse = await axios(httpRequest);
     } catch (error) {
+      // Handle errors
       if (error.response) {
-        response = error.response;
+        httpResponse = error.response;
       } else if (error.request) {
         console.log(error.request);
         throw error;
@@ -32,17 +34,17 @@ class BaseApi {
         throw error;
       }
     }
-    response = {
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers,
-      data: response.data
+    // Set response
+    let response = {
+      status: httpResponse.status,
+      statusText: httpResponse.statusText,
+      headers: httpResponse.headers,
+      data: httpResponse.data
     };
-
+    // Log
     if (config.get('server.logs') === 'json') {
       console.log(JSON.stringify(response, null, 2));
     }
-
     return response;
   }
 }

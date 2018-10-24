@@ -1,25 +1,36 @@
+
 class AuthenticationApi {
 
-    constructor(baseApi){
-        this.baseApi = baseApi;
-    }
+  constructor(baseApi) {
+    this.baseApi = baseApi;
+  }
 
-    login(email, password, acceptEula = true){
-        return this.baseApi.send({
-            method: 'POST',
-            url: '/client/auth/Login',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            data: {
-                email: email,
-                password: password,
-                tenant: 'cfr',
-                acceptEula: acceptEula
-            }
-        });
+  async login(email, password, acceptEula = true, tenant = '') {
+    let data = {};
+    // Allow caller to not pass param for the tests
+    if (email) {
+      data.email = email;
     }
-
+    if (password) {
+      data.password = password;
+    }
+    if (acceptEula) {
+      data.acceptEula = acceptEula;
+    }
+    if (tenant) {
+      data.tenant = tenant;
+    }
+    // Send
+    let response = await this.baseApi.send({
+      method: 'POST',
+      url: '/client/auth/Login',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      data
+    });
+    return response;
+  }
 }
 
 module.exports = AuthenticationApi;

@@ -249,7 +249,7 @@ class SiteService {
 				message: `Site '${newSite.getName()}' has been created successfully`,
 				action: action, detailedMessages: newSite});
 			// Ok
-			res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS, { id: newSite.getID() }));
+			res.json(Object.assign({ id: newSite.getID() }, Constants.REST_RESPONSE_SUCCESS));
 			next();
 		} catch (error) {
 			// Log
@@ -291,12 +291,14 @@ class SiteService {
 			await site.saveImage();
 			// Get the users
 			let users = [];
-			for (const userID of filteredRequest.userIDs) {
-				// Get User
-				let user = await User.getUser(userID);
-				if (user) {
-					// Add
-					users.push(user);
+			if (filteredRequest.userIDs) {
+				for (const userID of filteredRequest.userIDs) {
+					// Get User
+					let user = await User.getUser(userID);
+					if (user) {
+						// Add
+						users.push(user);
+					}
 				}
 			}
 			// Set Users
