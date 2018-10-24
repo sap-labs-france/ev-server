@@ -263,14 +263,17 @@ class ChargingStation {
 	async getChargingStationClient() {
 		// Already created?
 		if (!this._chargingStationClient) {
-// We can now have either a SoapClient or a JsonWs connection
-// Current easy logic is to try to get first the WS client. If there is no WS then use SoapClient 
-			this._chargingStationClient = await global.centralSystemJson.getConnection(this.getID());
-			if (!this._chargingStationClient) {
-				// Init client
-				this._chargingStationClient = await new SoapChargingStationClient(this);
-			}
-			
+      if (global.centralSystemJson) {
+        // Get the client from the JSon server first
+        this._chargingStationClient = await global.centralSystemJson.getConnection(this.getID());
+        if (!this._chargingStationClient) {
+          // Init SOAP client
+          this._chargingStationClient = await new SoapChargingStationClient(this);
+        }
+      } else {
+        // Init SOAP client
+        this._chargingStationClient = await new SoapChargingStationClient(this);
+      }
 		}
 		return this._chargingStationClient;
 	}
