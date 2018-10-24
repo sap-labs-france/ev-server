@@ -257,7 +257,7 @@ class SiteService {
         action: action, detailedMessages: newSite
       });
       // Ok
-      res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS, {id: newSite.getID()}));
+      res.json(Object.assign({ id: newSite.getID() }, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       // Log

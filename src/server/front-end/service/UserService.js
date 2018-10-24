@@ -545,7 +545,7 @@ class UserService {
         action: action
       });
       // Ok
-      res.json(Object.assign(Constants.REST_RESPONSE_SUCCESS, {id: newUser.getID()}));
+      res.json(Object.assign({id: newUser.getID()}, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       // Log

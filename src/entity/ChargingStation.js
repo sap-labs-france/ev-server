@@ -263,11 +263,15 @@ class ChargingStation extends AbstractTenantEntity {
   async getChargingStationClient(){
     // Already created?
     if (!this._chargingStationClient) {
-      // We can now have either a SoapClient or a JsonWs connection
-      // Current easy logic is to try to get first the WS client. If there is no WS then use SoapClient 
-      this._chargingStationClient = await global.centralSystemJson.getConnection(this.getID());
-      if (!this._chargingStationClient) {
-        // Init client
+      if (global.centralSystemJson) {
+        // Get the client from the JSon server first
+        this._chargingStationClient = await global.centralSystemJson.getConnection(this.getID());
+        if (!this._chargingStationClient) {
+          // Init SOAP client
+          this._chargingStationClient = await new SoapChargingStationClient(this);
+        }
+      } else {
+        // Init SOAP client
         this._chargingStationClient = await new SoapChargingStationClient(this);
       }
 
@@ -1279,7 +1283,7 @@ class ChargingStation extends AbstractTenantEntity {
             (transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
             {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
           'totalDuration': this._buildCurrentTransactionDuration(transaction, transaction.stop.timestamp),
-          'totalInactivity': this._buildCurrentTransactionInactivity(transaction),
+          'totalInactivity': this._buildCurrentTransactionInactivity(newTransaction),
           'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
           'evseDashboardURL': Utils.buildEvseURL(this.getTenantID())
         },
@@ -1527,7 +1531,6 @@ class ChargingStation extends AbstractTenantEntity {
   // Method to build the consumption
   buildConsumption(chargingStationConsumption, meterValues, transaction, pricing){
     // Init
-    let totalNbrOfMetrics = 0;
     let lastMeterValue;
     let firstMeterValueSet = false;
     // Set first value from transaction
@@ -1598,8 +1601,6 @@ class ChargingStation extends AbstractTenantEntity {
           // Start to return the value after the requested date
           if (!chargingStationConsumption.startDateTime ||
             currentTimestamp.isAfter(chargingStationConsumption.startDateTime)) {
-            // Count
-            totalNbrOfMetrics++;
             // Get the diff
             const diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, 'seconds');
             // Sample multiplier
@@ -1633,14 +1634,6 @@ class ChargingStation extends AbstractTenantEntity {
           lastMeterValue = meterValue;
         }
       }
-    }
-    if (totalNbrOfMetrics) {
-      // Log
-      Logging.logDebug({
-        source: this.getID(), module: 'ChargingStation',
-        method: 'buildConsumption', action: 'BuildConsumption',
-        message: `Consumption - ${meterValues.length} metrics, ${totalNbrOfMetrics} relevant, ${chargingStationConsumption.values.length} returned`
-      });
     }
     // Return the result
     return chargingStationConsumption;
