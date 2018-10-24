@@ -1480,7 +1480,6 @@ class ChargingStation {
 	// Method to build the consumption
 	buildConsumption(chargingStationConsumption, meterValues, transaction, pricing) {
 		// Init
-		let totalNbrOfMetrics = 0;
 		let lastMeterValue;
 		let firstMeterValueSet = false;
 		// Set first value from transaction
@@ -1553,8 +1552,6 @@ class ChargingStation {
           // Start to return the value after the requested date
           if (!chargingStationConsumption.startDateTime ||
               currentTimestamp.isAfter(chargingStationConsumption.startDateTime) ) {
-            // Count
-            totalNbrOfMetrics++;
             // Get the diff
             var diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, 'seconds');
             // Sample multiplier
@@ -1587,13 +1584,6 @@ class ChargingStation {
 					lastMeterValue = meterValue;
 				}
 			}
-		}
-		if (totalNbrOfMetrics) {
-			// Log
-			Logging.logDebug({
-				source: this.getID(), module: 'ChargingStation',
-				method: 'buildConsumption', action:'BuildConsumption',
-				message: `Consumption - ${meterValues.length} metrics, ${totalNbrOfMetrics} relevant, ${chargingStationConsumption.values.length} returned` });
 		}
 		// Return the result
 		return chargingStationConsumption;
