@@ -217,7 +217,7 @@ class VehicleManufacturerStorage {
 
   static async deleteVehicleManufacturer(tenantID, id){
     // Delete Vehicles
-    const vehicles = await VehicleStorage.getVehicles(null, id);
+    const vehicles = await VehicleStorage.getVehicles(tenantID, {'vehicleManufacturerID': id});
     // Delete
     for (const vehicle of vehicles.result) {
       //	Delete Vehicle

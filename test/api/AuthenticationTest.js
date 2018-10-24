@@ -72,7 +72,7 @@ describe('Authentication Service', () => {
     });
 
     it('should not allow authentication without tenant', async () => {
-      let response = await CentralServerService.authenticationApi.login('unkown@sap.com', this.adminPassword, true, undefined);
+      let response = await CentralServerService.authenticationApi.login('unkown@sap.com', this.adminPassword, true, null);
       expect(response.status).to.be.eql(500);
       expect(response.data).to.not.have.property('token');
     });

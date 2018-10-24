@@ -208,7 +208,7 @@ class CompanyStorage {
 
   static async deleteCompany(tenantID, id){
     // Delete Sites
-    const sites = await SiteStorage.getSites({'companyID': id});
+    const sites = await SiteStorage.getSites(tenantID, {'companyID': id});
     // Delete
     for (const site of sites.result) {
       //	Delete Site

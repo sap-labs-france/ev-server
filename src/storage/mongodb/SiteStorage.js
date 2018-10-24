@@ -407,7 +407,7 @@ class SiteStorage {
 
   static async deleteSite(tenantID, id){
     // Delete Site Areas
-    const siteAreas = await SiteAreaStorage.getSiteAreas({'siteID': id})
+    const siteAreas = await SiteAreaStorage.getSiteAreas(tenantID, {'siteID': id})
     // Delete
     for (const siteArea of siteAreas.result) {
       //	Delete Site Area
