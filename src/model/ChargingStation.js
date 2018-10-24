@@ -1226,8 +1226,6 @@ class ChargingStation {
 		}
 		// Save Transaction's consumption
     newTransaction = await TransactionStorage.saveTransaction(newTransaction);
-    console.log(JSON.stringify(newTransaction, null, 2));
-    
 		// Notify User
 		if (transaction.user) {
 			// Send Notification
