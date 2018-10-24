@@ -1173,7 +1173,6 @@ class ChargingStation {
 		let users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
 			Constants.ACTION_STOP_TRANSACTION, this, transaction.tagID, stopTransaction.tagID);
 		// Check
-		let user;
 		if (users) {
 			// Set current user
 			let user = (users.alternateUser ? users.alternateUser : users.user);
@@ -1201,25 +1200,6 @@ class ChargingStation {
 		}
 		// Save Charging Station
 		await this.save();
-		// Compute total consumption (optimization)
-		let consumption = await this.getConsumptionsFromTransaction(transaction, false);
-		// Compute total inactivity seconds
-		stopTransaction.totalInactivitySecs = 0;
-		for (let index = 0; index < consumption.values.length; index++) {
-			const value = consumption.values[index];
-			// Don't check the first
-			if (index > 0) {
-				// Check value + Check Previous value
-				if (value.value == 0 && consumption.values[index-1].value == 0) {
-					// Add the inactivity in secs
-					stopTransaction.totalInactivitySecs += moment.duration(
-						moment(value.date).diff(moment(consumption.values[index-1].date))
-					).asSeconds();
-				}
-			}
-		}
-		// Set the total consumption (optimization)
-		stopTransaction.totalConsumption = consumption.totalConsumption;
 		// Set the stop
 		transaction.stop = stopTransaction;
 		// Notify User
@@ -1247,6 +1227,28 @@ class ChargingStation {
 		}
 		// Save Transaction
 		let newTransaction = await TransactionStorage.saveTransaction(transaction);
+    // Only after saving the Stop Transaction we can compute the total consumption
+    // Compute total consumption
+		let consumption = await this.getConsumptionsFromTransaction(transaction, false);
+		// Set the total consumption
+		newTransaction.stop.totalConsumption = consumption.totalConsumption;
+		// Compute total inactivity seconds
+		newTransaction.stop.totalInactivitySecs = 0;
+		for (let index = 0; index < consumption.values.length; index++) {
+			const value = consumption.values[index];
+			// Don't check the first
+			if (index > 0) {
+				// Check value + Check Previous value
+				if (value.value == 0 && consumption.values[index-1].value == 0) {
+					// Add the inactivity in secs
+					newTransaction.stop.totalInactivitySecs += moment.duration(
+						moment(value.date).diff(moment(consumption.values[index-1].date))
+					).asSeconds();
+				}
+			}
+		}
+		// Save Transaction's consumption
+		newTransaction = await TransactionStorage.saveTransaction(newTransaction);
 		// Check
 		if (users) {
 			// Set the user

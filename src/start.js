@@ -35,9 +35,6 @@ class Bootstrap {
 			await database.start();
 			global.database = database;
 			
-			// Check and trigger migration
-			await MigrationHandler.migrate();
-		
 			// Get all configs
 			let centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 			let centralSystemsConfig = Configuration.getCentralSystemsConfig();
@@ -47,6 +44,8 @@ class Bootstrap {
 			// REST Server (Front-End)
 			// -------------------------------------------------------------------------
 			if (centralSystemRestConfig) {
+        // Check and trigger migration (only Central REST Server can run the migration)
+        await MigrationHandler.migrate();
 				// Create the server
 				let centralRestServer = new CentralRestServer(centralSystemRestConfig, chargingStationConfig);
 				// Set to database for Web Socket Notifications

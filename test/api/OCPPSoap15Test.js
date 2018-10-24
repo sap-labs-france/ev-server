@@ -243,9 +243,7 @@ describe('OCPP Transaction tests', function () {
       expect(response.data).to.eql({});
       // Check the Transaction
       response = await CentralServerService.transactionApi.readById(this.newTransaction.id);
-      console.log("Meter Value");
-      console.log(JSON.stringify(response, null, 2));
-        // Check Consumption
+      // Check Consumption
       expect(response.data).to.deep.include({
         id: this.newTransaction.id,
         timestamp: this.newTransaction.timestamp,
@@ -305,8 +303,6 @@ describe('OCPP Transaction tests', function () {
 
     // Check the Transaction
     response = await CentralServerService.transactionApi.readById(this.newTransaction.id);
-    console.log("Stop Transaction");
-    console.log(JSON.stringify(response, null, 2));
     // Check Consumption
     expect(response.data).to.deep.include({
       id: this.newTransaction.id,
@@ -329,10 +325,10 @@ describe('OCPP Transaction tests', function () {
       chargeBox: {
         id: this.context.newChargingStation.id,
         connectors: [{
-          activeTransactionID: this.newTransaction.id,
+          activeTransactionID: 0,
           connectorId: this.newTransaction.connectorId,
-          currentConsumption: this.meterValueStep * 60,
-          totalConsumption: (this.transactionCurrentMeterValue - this.transactionStartMeterValue),
+          currentConsumption: 0,
+          totalConsumption: 0,
           status: 'Available',
           errorCode: 'NoError',
           vendorErrorCode: '',
@@ -347,5 +343,11 @@ describe('OCPP Transaction tests', function () {
         name: this.context.newUser.name,
       }
     })
+  });
+
+  it('Delete the transaction', async () => {
+    // Delete the created entity
+    await CentralServerService.deleteEntity(
+      CentralServerService.transactionApi, this.newTransaction);
   });
 });
