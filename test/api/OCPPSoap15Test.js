@@ -8,7 +8,7 @@ const OCPPBootstrap = require('./OCPPBootstrap');
 const CentralServerService = require('./client/CentralServerService');
 const config = require('../config');
 
-describe('OCPP Transaction tests', function () {
+describe('OCPP Tests', function () {
   this.timeout(100000);
 
   before(async () => {
@@ -34,10 +34,16 @@ describe('OCPP Transaction tests', function () {
     // Set meter value start
     this.transactionStartTime = moment().subtract(1, "h")
     this.transactionStartMeterValue = 10000;
-    this.transactionCurrentMeterValue = this.transactionStartMeterValue;
-    this.meterValueStep = 200;
-    this.totalInactivity = 0;
-    this.totalConsumption = 0;
+    this.transactionMeterValueIntervalSecs = 60;
+    this.transactionMeterValues = [200, 10, 500, 250, 120, 50, 0, 0, 0, 100];
+    this.transactionTotalConsumption = this.transactionMeterValues.reduce((sum, meterValue) => sum + meterValue);
+    this.transactionEndMeterValue = this.transactionStartMeterValue + this.transactionTotalConsumption;
+    this.transactionTotalInactivity = this.transactionMeterValues.reduce(
+      (sum, meterValue, index) => (meterValue === 0 ? sum + this.transactionMeterValueIntervalSecs : (index === 1 ? 0 : sum)));
+    if (this.transactionTotalInactivity > 0) {
+      // Remove one
+      this.transactionTotalInactivity -= this.transactionMeterValueIntervalSecs; 
+    }
   });
 
   after(async () => {
@@ -133,26 +139,26 @@ describe('OCPP Transaction tests', function () {
   it('Send meter values', async () => {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
-    // Init
+    // Current Time matches Transaction one
     this.transactionCurrentTime = moment(this.newTransaction.timestamp);
-    // Send Meter Values
-    for (let index = 1; index <= 10; index++) {
-      // Total Consumption
-      this.totalConsumption += this.meterValueStep;
+    // Start Meter Value matches Transaction one
+    let transactionCurrentMeterValue = this.transactionStartMeterValue; 
+    // Send Meter Values (except the last one which will be used in Stop Transaction)
+    for (let index = 0; index <= this.transactionMeterValues.length-2; index++) {
       // Set new meter value
-      this.transactionCurrentMeterValue += this.meterValueStep;
+      transactionCurrentMeterValue += this.transactionMeterValues[index];
       // Add time
-      this.transactionCurrentTime.add(1, "m");
+      this.transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, "s");
       // Send Meter Values
       await CentralServerService.transactionApi.sendTransactionMeterValue(
         this.ocpp,
         this.newTransaction,
         this.context.newChargingStation,
         this.context.newUser,
-        this.transactionCurrentMeterValue,
+        transactionCurrentMeterValue,
         this.transactionCurrentTime,
-        this.meterValueStep * 60,
-        this.transactionCurrentMeterValue - this.transactionStartMeterValue);
+        this.transactionMeterValues[index] * 60,
+        transactionCurrentMeterValue - this.transactionStartMeterValue);
     }
   });
 
@@ -161,12 +167,8 @@ describe('OCPP Transaction tests', function () {
     expect(this.newTransaction).to.not.be.null;
     expect(this.transactionCurrentTime).to.not.be.null;
 
-    // Compute last meter value
-    this.transactionCurrentMeterValue += this.meterValueStep;
-    // Total Consumption
-    this.totalConsumption += this.meterValueStep;
     // Set end time
-    this.transactionCurrentTime.add(1, "m");
+    this.transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, "s");
 
     // Stop the Transaction
     await CentralServerService.transactionApi.stopTransaction(
@@ -174,11 +176,11 @@ describe('OCPP Transaction tests', function () {
       this.newTransaction,
       this.context.newUser,
       this.context.newUser,
-      this.transactionCurrentMeterValue,
+      this.transactionEndMeterValue,
       this.transactionCurrentTime,
       this.chargingStationConnector1,
-      this.totalConsumption,
-      this.totalInactivity);
+      this.transactionTotalConsumption,
+      this.transactionTotalInactivity);
   });
 
   it('Delete the transaction', async () => {

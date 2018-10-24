@@ -596,7 +596,7 @@ class ChargingStation {
 			// Found?
 			if (!transaction.stop) {
 				// Get the consumption
-				let consumption = await this.getConsumptionsFromTransaction(transaction, false);
+				let consumption = await this.getConsumptionsFromTransaction(transaction);
 				let currentConsumption = 0;
 				let totalConsumption = 0;
 				// Check
@@ -1229,7 +1229,7 @@ class ChargingStation {
 		let newTransaction = await TransactionStorage.saveTransaction(transaction);
     // Only after saving the Stop Transaction we can compute the total consumption
     // Compute total consumption
-		let consumption = await this.getConsumptionsFromTransaction(transaction, false);
+		let consumption = await this.getConsumptionsFromTransaction(transaction);
 		// Set the total consumption
 		newTransaction.stop.totalConsumption = consumption.totalConsumption;
 		// Compute total inactivity seconds
@@ -1432,7 +1432,7 @@ class ChargingStation {
 		return transactions;
 	}
 
-	async getConsumptionsFromTransaction(transaction, optimizeNbrOfValues) {
+	async getConsumptionsFromTransaction(transaction) {
 		// Get the last 5 meter values
 		let meterValues = await TransactionStorage.getMeterValuesFromTransaction(transaction.id);
 		// Read the pricing
@@ -1458,12 +1458,12 @@ class ChargingStation {
 			chargingStationConsumption.stop.user = transaction.stop.user;
 		}
 		// Compute consumption
-		return this.buildConsumption(chargingStationConsumption, meterValues, transaction, pricing, optimizeNbrOfValues);
+		return this.buildConsumption(chargingStationConsumption, meterValues, transaction, pricing);
 	}
 
 	async getConsumptionsFromDateTimeRange(transaction, startDateTime) {
 		// Get all from the transaction (not optimized)
-		let consumptions = await this.getConsumptionsFromTransaction(transaction, false);
+		let consumptions = await this.getConsumptionsFromTransaction(transaction);
 		// Found?
 		if (consumptions && consumptions.values) {
 			// Start date
@@ -1478,7 +1478,7 @@ class ChargingStation {
 	}
 
 	// Method to build the consumption
-	buildConsumption(chargingStationConsumption, meterValues, transaction, pricing, optimizeNbrOfValues) {
+	buildConsumption(chargingStationConsumption, meterValues, transaction, pricing) {
 		// Init
 		let totalNbrOfMetrics = 0;
 		let lastMeterValue;
@@ -1543,85 +1543,45 @@ class ChargingStation {
 					firstMeterValueSet = true;
 				// Calculate the consumption with the last value provided
 				} else {
-					// Value provided?
-					if ((meterValue.value > 0 || lastMeterValue.value > 0) &&
-							(meterValue.value !== lastMeterValue.value)) {
-						// Last value is > ?
-						if (lastMeterValue.value > meterValue.value) {
-							// Yes: reinit it (the value has started over from 0)
-							lastMeterValue.value = 0;
-						}
-						// Get the moment
-						let currentTimestamp = moment(meterValue.timestamp);
-						// Check if it will be added
-						let addValue = false;
-						// Start to return the value after the requested date
-						if (!chargingStationConsumption.startDateTime ||
-								currentTimestamp.isAfter(chargingStationConsumption.startDateTime) ) {
-							// Set default
-							addValue = true;
-							// Count
-							totalNbrOfMetrics++;
-							// Get the diff
-							var diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, 'seconds');
-							// Sample multiplier
-							let sampleMultiplier = 3600 / diffSecs;
-							// compute
-							let currentConsumption = (meterValue.value - lastMeterValue.value) * sampleMultiplier;
-							// At least one value returned
-							if (numberOfReturnedMeters > 0) {
-								// Consumption?
-								if (currentConsumption > 0) {
-									// 0..123 -> Current value is positive and n-1 is 0: add 0 before the end graph is drawn
-									if (chargingStationConsumption.values[numberOfReturnedMeters-1].value === 0) {
-										// Check the timeframe: should be just before: if not add one
-										if (currentTimestamp.diff(chargingStationConsumption.values[numberOfReturnedMeters-1].date, 'seconds') > diffSecs) {
-											// Add a 0 just before
-											chargingStationConsumption.values.push({date: currentTimestamp.clone().subtract(diffSecs, 'seconds').toDate(), value: 0 });
-										}
-									// Return one value every 'n' time intervals
-									} else if (optimizeNbrOfValues && currentTimestamp.diff(chargingStationConsumption.values[numberOfReturnedMeters-1].date, 'seconds') < _configAdvanced.chargeCurveTimeFrameSecsPoint) {
-										// Do not add
-										addValue = false;
-									}
-								} else {
-									// Check if last but one consumption was 0 and not the last meter value
-									if (optimizeNbrOfValues && (chargingStationConsumption.values[numberOfReturnedMeters-1].value === 0) &&
-											(meterValueIndex !== meterValues.length-1)) {
-										// Do not add
-										addValue = false;
-									}
-								}
-							}
-							// Counting
-							let consumptionWh = meterValue.value - lastMeterValue.value;
-							chargingStationConsumption.totalConsumption += consumptionWh;
-							// Compute the price
-							if (pricing) {
-								chargingStationConsumption.totalPrice += (consumptionWh/1000) * pricing.priceKWH;
-							}
-							// Add it?
-							if (addValue) {
-								// Create
-								let consumption = {
-									date: meterValue.timestamp,
-									value: currentConsumption,
-									cumulated: chargingStationConsumption.totalConsumption };
-								// Compute the price
-								if (pricing) {
-									// Set the consumption with price
-									consumption.price = (consumptionWh/1000) * pricing.priceKWH;
-								}
-								// Set the consumption
-								chargingStationConsumption.values.push(consumption);
-							}
-						}
-					} else {
-						// Last one is 0, set it to 0
-						if (!optimizeNbrOfValues || meterValueIndex === meterValues.length-1) {
-							// Add a 0 just before
-							chargingStationConsumption.values.push({date: currentTimestamp.toDate(), value: 0 });
-						}
+          // Last value is > ?
+          if (lastMeterValue.value > meterValue.value) {
+            // Yes: reinit it (the value has started over from 0)
+            lastMeterValue.value = 0;
+          }
+          // Get the moment
+          let currentTimestamp = moment(meterValue.timestamp);
+          // Start to return the value after the requested date
+          if (!chargingStationConsumption.startDateTime ||
+              currentTimestamp.isAfter(chargingStationConsumption.startDateTime) ) {
+            // Count
+            totalNbrOfMetrics++;
+            // Get the diff
+            var diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, 'seconds');
+            // Sample multiplier
+            let sampleMultiplier = 3600 / diffSecs;
+            // compute
+            let currentConsumption = (meterValue.value - lastMeterValue.value) * sampleMultiplier;
+            // Counting
+            let consumptionWh = meterValue.value - lastMeterValue.value;
+            // Set total consumption
+            chargingStationConsumption.totalConsumption += consumptionWh;
+            // Compute the price?
+            if (pricing) {
+              // Yes
+              chargingStationConsumption.totalPrice += (consumptionWh/1000) * pricing.priceKWH;
+            }
+            // Create
+            let consumption = {
+              date: meterValue.timestamp,
+              value: currentConsumption,
+              cumulated: chargingStationConsumption.totalConsumption };
+            // Compute the price
+            if (pricing) {
+              // Set the consumption with price
+              consumption.price = (consumptionWh/1000) * pricing.priceKWH;
+            }
+            // Set the consumption
+            chargingStationConsumption.values.push(consumption);
 					}
 					// Set Last Value
 					lastMeterValue = meterValue;
