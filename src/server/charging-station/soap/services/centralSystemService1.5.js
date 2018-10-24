@@ -142,7 +142,7 @@ module.exports = { /* Services */
 				// Log
 				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "Heartbeat", args, headers);
 				// Handle
-				global.centralSystemSoap.handleHeartBeat(Object.assign(args, headers)).then(function(result) {
+				global.centralSystemSoap.handleHeartbeat(headers).then(function(result) {
 					// Log
 					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "Heartbeat", {
 						"result": result

@@ -40,11 +40,10 @@ class TransactionApi extends CrudApi {
       timestamp: startTime.toISOString()
     });
     // Check
-    expect(response.data).to.be.an('object');
-    expect(response.data).to.have.property('transactionId');
-    expect(response.data.transactionId).to.not.equal(0);
     expect(response.data).to.have.property('idTagInfo');
     expect(response.data.idTagInfo.status).to.equal('Accepted');
+    expect(response.data).to.have.property('transactionId');
+    expect(response.data.transactionId).to.not.equal(0);
     // Keep it
     let transactionId = response.data.transactionId;
 
