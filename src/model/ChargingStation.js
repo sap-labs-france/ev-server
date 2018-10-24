@@ -1202,29 +1202,6 @@ class ChargingStation {
 		await this.save();
 		// Set the stop
 		transaction.stop = stopTransaction;
-		// Notify User
-		if (transaction.user) {
-			// Send Notification
-			NotificationHandler.sendEndOfSession(
-				transaction.id + '-EOS',
-				transaction.user,
-				this.getModel(),
-				{
-					'user': users.user.getModel(),
-					'alternateUser': (users.user.getID() != users.alternateUser.getID() ? users.alternateUser.getModel() : null),
-					'chargingBoxID': this.getID(),
-					'connectorId': transaction.connectorId,
-					'totalConsumption': (stopTransaction.totalConsumption/1000).toLocaleString(
-						(transaction.user.locale ? transaction.user.locale.replace('_','-') : Constants.DEFAULT_LOCALE.replace('_','-')),
-						{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
-					'totalDuration': this._buildCurrentTransactionDuration(transaction, transaction.stop.timestamp),
-					'totalInactivity': this._buildCurrentTransactionInactivity(transaction),
-					'evseDashboardChargingStationURL' : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
-					'evseDashboardURL' : Utils.buildEvseURL()
-				},
-				transaction.user.locale
-			);
-		}
 		// Save Transaction
 		let newTransaction = await TransactionStorage.saveTransaction(transaction);
     // Only after saving the Stop Transaction we can compute the total consumption
@@ -1248,7 +1225,32 @@ class ChargingStation {
 			}
 		}
 		// Save Transaction's consumption
-		newTransaction = await TransactionStorage.saveTransaction(newTransaction);
+    newTransaction = await TransactionStorage.saveTransaction(newTransaction);
+    console.log(JSON.stringify(newTransaction, null, 2));
+    
+		// Notify User
+		if (transaction.user) {
+			// Send Notification
+			NotificationHandler.sendEndOfSession(
+				transaction.id + '-EOS',
+				transaction.user,
+				this.getModel(),
+				{
+					'user': users.user.getModel(),
+					'alternateUser': (users.user.getID() != users.alternateUser.getID() ? users.alternateUser.getModel() : null),
+					'chargingBoxID': this.getID(),
+					'connectorId': transaction.connectorId,
+					'totalConsumption': (newTransaction.stop.totalConsumption/1000).toLocaleString(
+						(transaction.user.locale ? transaction.user.locale.replace('_','-') : Constants.DEFAULT_LOCALE.replace('_','-')),
+						{minimumIntegerDigits:1, minimumFractionDigits:0, maximumFractionDigits:2}),
+					'totalDuration': this._buildCurrentTransactionDuration(transaction, transaction.stop.timestamp),
+					'totalInactivity': this._buildCurrentTransactionInactivity(newTransaction),
+					'evseDashboardChargingStationURL' : Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
+					'evseDashboardURL' : Utils.buildEvseURL()
+				},
+				transaction.user.locale
+			);
+		}
 		// Check
 		if (users) {
 			// Set the user
