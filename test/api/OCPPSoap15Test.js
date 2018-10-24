@@ -32,6 +32,8 @@ describe('OCPP Tests', function () {
       timestamp: new Date().toISOString()
     };
     // Set meter value start
+    this.transactionStartUser = this.context.newUser;
+    this.transactionStopUser = this.context.newUser;
     this.transactionStartTime = moment().subtract(1, "h")
     this.transactionStartMeterValue = 10000;
     this.transactionMeterValueIntervalSecs = 60;
@@ -107,7 +109,7 @@ describe('OCPP Tests', function () {
       this.ocpp,
       this.context.newChargingStation,
       this.chargingStationConnector1, 
-      this.context.newUser,
+      this.transactionStartUser,
       this.transactionStartMeterValue,
       this.transactionStartTime);
     // Check on Transaction
@@ -128,7 +130,7 @@ describe('OCPP Tests', function () {
       this.ocpp,
       this.context.newChargingStation,
       this.chargingStationConnector1, 
-      this.context.newUser,
+      this.transactionStartUser,
       this.transactionStartMeterValue,
       this.transactionStartTime);
     // Check
@@ -154,10 +156,10 @@ describe('OCPP Tests', function () {
         this.ocpp,
         this.newTransaction,
         this.context.newChargingStation,
-        this.context.newUser,
+        this.transactionStartUser,
         transactionCurrentMeterValue,
         this.transactionCurrentTime,
-        this.transactionMeterValues[index] * 60,
+        this.transactionMeterValues[index] * this.transactionMeterValueIntervalSecs,
         transactionCurrentMeterValue - this.transactionStartMeterValue);
     }
   });
@@ -174,13 +176,52 @@ describe('OCPP Tests', function () {
     await CentralServerService.transactionApi.stopTransaction(
       this.ocpp,
       this.newTransaction,
-      this.context.newUser,
-      this.context.newUser,
+      this.transactionStartUser,
+      this.transactionStopUser,
       this.transactionEndMeterValue,
       this.transactionCurrentTime,
       this.chargingStationConnector1,
       this.transactionTotalConsumption,
       this.transactionTotalInactivity);
+  });
+
+  it('Check consumption metrics of the transaction', async () => {
+    // Check on Transaction
+    expect(this.newTransaction).to.not.be.null;
+
+    // Get the consumption
+    let response = await CentralServerService.transactionApi.readAllConsumption(this.newTransaction.id);
+    expect(response.status).to.equal(200);
+    // Check Headers
+    expect(response.data).to.deep.include({
+      "chargeBoxID": this.newTransaction.chargeBoxID,
+      "connectorId": this.newTransaction.connectorId,
+      "totalConsumption": this.transactionTotalConsumption,
+      "transactionId": this.newTransaction.id,
+      "user": {
+        "id": this.transactionStartUser.id,
+        "name": this.transactionStartUser.name,
+        "firstName": this.transactionStartUser.firstName
+      }
+    });
+    // Init
+    let transactionCurrentTime = moment(this.newTransaction.timestamp);
+    let transactionCumulatedConsumption = 0;
+    // Check Consumption
+    for (let i = 0; i < response.data.values.length; i++) {
+      // Get the value
+      const value = response.data.values[i];
+      // Add time
+      transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, "s");
+      // Sum
+      transactionCumulatedConsumption += this.transactionMeterValues[i];
+      // Check
+      expect(value).to.include({
+        "date": transactionCurrentTime.toISOString(),
+        "value": this.transactionMeterValues[i] * this.transactionMeterValueIntervalSecs,
+        "cumulated": transactionCumulatedConsumption
+      });      
+    }
   });
 
   it('Delete the transaction', async () => {

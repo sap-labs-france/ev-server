@@ -19,6 +19,10 @@ class TransactionApi extends CrudApi {
     return super.readAll('/client/api/TransactionsCompleted', params, paging, ordering);
   }
 
+  readAllConsumption(id) {
+    return super.read('/client/api/ChargingStationConsumptionFromTransaction', { TransactionId: id });
+  }
+
   readAllYears(params) {
     return super.readAll('/client/api/TransactionYears', params);
   }
@@ -55,6 +59,7 @@ class TransactionApi extends CrudApi {
     // Check if the Transaction exists
     response = await this.readById(transactionId);
     // Check
+    expect(response.status).to.equal(200);
     expect(response.data).to.deep.include({
       id: transactionId,
       timestamp: startTime.toISOString(),
@@ -110,6 +115,7 @@ class TransactionApi extends CrudApi {
     // Check the Transaction
     response = await this.readById(transaction.id);
     // Check Consumption
+    expect(response.status).to.equal(200);
     expect(response.data).to.deep.include({
       id: transaction.id,
       timestamp: transaction.timestamp,
@@ -163,6 +169,7 @@ class TransactionApi extends CrudApi {
     // Check the Transaction
     response = await this.readById(transaction.id);
     // Check Transaction
+    expect(response.status).to.equal(200);
     expect(response.data).to.deep.include({
       id: transaction.id,
       timestamp: transaction.timestamp,
