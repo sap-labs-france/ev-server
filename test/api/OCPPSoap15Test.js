@@ -36,6 +36,8 @@ describe('OCPP Transaction tests', function () {
     this.transactionStartMeterValue = 10000;
     this.transactionCurrentMeterValue = this.transactionStartMeterValue;
     this.meterValueStep = 200;
+    this.totalInactivity = 0;
+    this.totalConsumption = 0;
   });
 
   after(async () => {
@@ -94,7 +96,7 @@ describe('OCPP Transaction tests', function () {
   });
 
   it('Start a new transaction', async () => {
-    // Connector 2 should be still available
+    // Start a new Transaction
     this.newTransaction = await CentralServerService.transactionApi.startTransaction(
       this.ocpp,
       this.context.newChargingStation,
@@ -102,7 +104,6 @@ describe('OCPP Transaction tests', function () {
       this.context.newUser,
       this.transactionStartMeterValue,
       this.transactionStartTime);
-
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
   });
@@ -110,15 +111,13 @@ describe('OCPP Transaction tests', function () {
   it('Start again a new transaction', async () => {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
-
     // Set
-    let transactionConnectorId = this.newTransaction.connectorId;
     let transactionId = this.newTransaction.id;
     this.transactionStartTime = moment().subtract(1, "h");
     // Clear old one
     this.newTransaction = null;
 
-    // Connector 2 should be still available
+    // Start the Transaction
     this.newTransaction = await CentralServerService.transactionApi.startTransaction(
       this.ocpp,
       this.context.newChargingStation,
@@ -138,59 +137,22 @@ describe('OCPP Transaction tests', function () {
     this.transactionCurrentTime = moment(this.newTransaction.timestamp);
     // Send Meter Values
     for (let index = 1; index <= 10; index++) {
-      // Compute
+      // Total Consumption
+      this.totalConsumption += this.meterValueStep;
+      // Set new meter value
       this.transactionCurrentMeterValue += this.meterValueStep;
-      // Call OCPP
-      response = await this.ocpp.executeMeterValues(this.context.newChargingStation.id, {
-        connectorId: this.newTransaction.connectorId,
-        transactionId: this.newTransaction.id,
-        values: {
-          timestamp: this.transactionCurrentTime.add(1, "m").toISOString(),
-          value: {
-            $attributes: {
-              unit: 'Wh',
-              location: "Outlet",
-              measurand: "Energy.Active.Import.Register",
-              format: "Raw",
-              context: "Sample.Periodic"
-            },
-            $value: this.transactionCurrentMeterValue
-          }
-        },
-      });
-      // Check
-      expect(response.data).to.eql({});
-      // Check the Transaction
-      response = await CentralServerService.transactionApi.readById(this.newTransaction.id);
-      // Check Consumption
-      expect(response.data).to.deep.include({
-        id: this.newTransaction.id,
-        timestamp: this.newTransaction.timestamp,
-        connectorId: this.newTransaction.connectorId,
-        tagID: this.context.newUser.tagIDs[0],
-        chargeBoxID: this.context.newChargingStation.id,
-        meterStart: this.transactionStartMeterValue,
-        chargeBox: {
-          id: this.context.newChargingStation.id,
-          connectors: [{
-            activeTransactionID: this.newTransaction.id,
-            connectorId: this.newTransaction.connectorId,
-            currentConsumption: this.meterValueStep * 60,
-            totalConsumption: (this.transactionCurrentMeterValue - this.transactionStartMeterValue),
-            status: 'Occupied',
-            errorCode: 'NoError',
-            vendorErrorCode: '',
-            info: '',
-            type: null,
-            power: 0
-          }]
-        },
-        user: {
-          id: this.context.newUser.id,
-          firstName: this.context.newUser.firstName,
-          name: this.context.newUser.name,
-        }
-      })
+      // Add time
+      this.transactionCurrentTime.add(1, "m");
+      // Send Meter Values
+      await CentralServerService.transactionApi.sendTransactionMeterValue(
+        this.ocpp,
+        this.newTransaction,
+        this.context.newChargingStation,
+        this.context.newUser,
+        this.transactionCurrentMeterValue,
+        this.transactionCurrentTime,
+        this.meterValueStep * 60,
+        this.transactionCurrentMeterValue - this.transactionStartMeterValue);
     }
   });
 
@@ -198,70 +160,25 @@ describe('OCPP Transaction tests', function () {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     expect(this.transactionCurrentTime).to.not.be.null;
-    // Init
+
     // Compute last meter value
     this.transactionCurrentMeterValue += this.meterValueStep;
-    // Stop the transaction
-    let response = await this.ocpp.executeStopTransaction(this.context.newChargingStation.id, {
-      transactionId: this.newTransaction.id,
-      idTag: this.context.newUser.tagIDs[0],
-      meterStop: this.transactionCurrentMeterValue,
-      timestamp: this.transactionCurrentTime.add(1, "m").toISOString()
-    });
-    // Check
-    expect(response.data).to.have.property('idTagInfo');
-    expect(response.data.idTagInfo.status).to.equal('Accepted');
+    // Total Consumption
+    this.totalConsumption += this.meterValueStep;
+    // Set end time
+    this.transactionCurrentTime.add(1, "m");
 
-    // Set the connector to Available
-    this.chargingStationConnector1.status = 'Available';
-    this.chargingStationConnector1.timestamp = new Date().toISOString();
-    // Update
-    response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector1);
-    // Check
-    expect(response.data).to.eql({});
-
-    // Check the Transaction
-    response = await CentralServerService.transactionApi.readById(this.newTransaction.id);
-    // Check Consumption
-    expect(response.data).to.deep.include({
-      id: this.newTransaction.id,
-      timestamp: this.newTransaction.timestamp,
-      connectorId: this.newTransaction.connectorId,
-      tagID: this.context.newUser.tagIDs[0],
-      chargeBoxID: this.context.newChargingStation.id,
-      meterStart: this.transactionStartMeterValue,
-      "stop": {
-        "tagID": this.context.newUser.tagIDs[0],
-        "timestamp": this.transactionCurrentTime.toISOString(),
-        "totalConsumption": (this.transactionCurrentMeterValue - this.transactionStartMeterValue),
-        "totalInactivitySecs": 0,
-        "user": {
-          "firstName": this.context.newUser.firstName,
-          "id": this.context.newUser.id,
-          "name": this.context.newUser.name,
-        },
-      },
-      chargeBox: {
-        id: this.context.newChargingStation.id,
-        connectors: [{
-          activeTransactionID: 0,
-          connectorId: this.newTransaction.connectorId,
-          currentConsumption: 0,
-          totalConsumption: 0,
-          status: 'Available',
-          errorCode: 'NoError',
-          vendorErrorCode: '',
-          info: '',
-          type: null,
-          power: 0
-        }]
-      },
-      user: {
-        id: this.context.newUser.id,
-        firstName: this.context.newUser.firstName,
-        name: this.context.newUser.name,
-      }
-    })
+    // Stop the Transaction
+    await CentralServerService.transactionApi.stopTransaction(
+      this.ocpp,
+      this.newTransaction,
+      this.context.newUser,
+      this.context.newUser,
+      this.transactionCurrentMeterValue,
+      this.transactionCurrentTime,
+      this.chargingStationConnector1,
+      this.totalConsumption,
+      this.totalInactivity);
   });
 
   it('Delete the transaction', async () => {
