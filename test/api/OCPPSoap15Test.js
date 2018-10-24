@@ -8,7 +8,7 @@ const OCPPBootstrap = require('./OCPPBootstrap');
 const CentralServerService = require('./client/CentralServerService');
 const config = require('../config');
 
-describe('OCPP Tests', function () {
+describe('OCPP 1.5 SOAP Tests', function () {
   this.timeout(100000);
 
   before(async () => {
