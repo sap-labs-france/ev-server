@@ -32,6 +32,7 @@ describe('OCPP Transaction tests', function () {
       timestamp: new Date().toISOString()
     };
     // Set meter value start
+    this.transactionStartTime = moment().subtract(1, "h")
     this.transactionStartMeterValue = 10000;
     this.transactionCurrentMeterValue = this.transactionStartMeterValue;
     this.meterValueStep = 200;
@@ -47,14 +48,17 @@ describe('OCPP Transaction tests', function () {
     let response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector1);
     // Check
     expect(response.data).to.eql({});
+
     // Update Status of Connector 2
     response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector2);
     // Check
     expect(response.data).to.eql({});
+
     // Check Connector 1
     await CentralServerService.chargingStationApi.checkConnector(
       this.context.newChargingStation, 1, this.chargingStationConnector1);
-    // Check Connector 2
+
+      // Check Connector 2
     await CentralServerService.chargingStationApi.checkConnector(
       this.context.newChargingStation, 2, this.chargingStationConnector2);
   });
@@ -67,149 +71,64 @@ describe('OCPP Transaction tests', function () {
     let response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector1);
     // Check
     expect(response.data).to.eql({});
+
     // Check Connector 1
     await CentralServerService.chargingStationApi.checkConnector(
       this.context.newChargingStation, 1, this.chargingStationConnector1);
-    // Connector 2 should be still available
+
+      // Connector 2 should be still available
     await CentralServerService.chargingStationApi.checkConnector(
       this.context.newChargingStation, 2, this.chargingStationConnector2);
-    // Reset Status of Connector 1
+
+      // Reset Status of Connector 1
     this.chargingStationConnector1.status = 'Available';
     this.chargingStationConnector1.timestamp = new Date().toISOString();
     // Update
     response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector1);
     // Check
     expect(response.data).to.eql({});
+
     // Check Connector 1
     await CentralServerService.chargingStationApi.checkConnector(
       this.context.newChargingStation, 1, this.chargingStationConnector1);
   });
 
   it('Start a new transaction', async () => {
-    let transactionConnectorId = 1;
-    let transactionCurrentTime = moment().subtract(1, "h");
-    // Start the transaction
-    let response = await this.ocpp.executeStartTransaction(this.context.newChargingStation.id, {
-      connectorId: transactionConnectorId,
-      idTag: this.context.newUser.tagIDs[0],
-      meterStart: this.transactionStartMeterValue,
-      timestamp: transactionCurrentTime.toISOString()
-    });
-    // Check
-    expect(response.data).to.be.an('object');
-    expect(response.data).to.have.property('transactionId');
-    expect(response.data.transactionId).to.not.equal(0);
-    expect(response.data).to.have.property('idTagInfo');
-    expect(response.data.idTagInfo.status).to.equal('Accepted');
-    // Keep it
-    let transactionId = response.data.transactionId;
-    // Set it to Occupied
-    this.chargingStationConnector1.status = 'Occupied';
-    this.chargingStationConnector1.timestamp = new Date().toISOString();
-    // Update
-    response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector1);
-    // Check
-    expect(response.data).to.eql({});
-    // Check if the Transaction exists
-    response = await CentralServerService.transactionApi.readById(transactionId);
-    // Check
-    expect(response.data).to.deep.include({
-      id: transactionId,
-      timestamp: transactionCurrentTime.toISOString(),
-      connectorId: transactionConnectorId,
-      tagID: this.context.newUser.tagIDs[0],
-      chargeBoxID: this.context.newChargingStation.id,
-      meterStart: this.transactionStartMeterValue,
-      chargeBox: {
-        id: this.context.newChargingStation.id,
-        connectors: [{
-          activeTransactionID: transactionId,
-          connectorId: transactionConnectorId,
-          currentConsumption: 0,
-          totalConsumption: 0,
-          status: 'Occupied',
-          errorCode: 'NoError',
-          vendorErrorCode: '',
-          info: '',
-          type: null,
-          power: 0
-        }]
-      },
-      user: {
-        id: this.context.newUser.id,
-        firstName: this.context.newUser.firstName,
-        name: this.context.newUser.name,
-      }
-    })
-    // Keep
-    this.newTransaction = response.data;
+    // Connector 2 should be still available
+    this.newTransaction = await CentralServerService.transactionApi.startTransaction(
+      this.ocpp,
+      this.context.newChargingStation,
+      this.chargingStationConnector1, 
+      this.context.newUser,
+      this.transactionStartMeterValue,
+      this.transactionStartTime);
+
+    // Check on Transaction
+    expect(this.newTransaction).to.not.be.null;
   });
 
   it('Start again a new transaction', async () => {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
+
     // Set
     let transactionConnectorId = this.newTransaction.connectorId;
     let transactionId = this.newTransaction.id;
-    let transactionCurrentTime = moment().subtract(1, "h");
+    this.transactionStartTime = moment().subtract(1, "h");
     // Clear old one
     this.newTransaction = null;
-    // Start a new transaction
-    let response = await this.ocpp.executeStartTransaction(this.context.newChargingStation.id, {
-      connectorId: transactionConnectorId,
-      idTag: this.context.newUser.tagIDs[0],
-      meterStart: this.transactionStartMeterValue,
-      timestamp: transactionCurrentTime.toISOString()
-    });
+
+    // Connector 2 should be still available
+    this.newTransaction = await CentralServerService.transactionApi.startTransaction(
+      this.ocpp,
+      this.context.newChargingStation,
+      this.chargingStationConnector1, 
+      this.context.newUser,
+      this.transactionStartMeterValue,
+      this.transactionStartTime);
     // Check
-    expect(response.data).to.be.an('object');
-    expect(response.data).to.have.property('transactionId');
-    expect(response.data.transactionId).to.not.equal(0);
-    expect(response.data.transactionId).to.not.equal(transactionId);
-    expect(response.data).to.have.property('idTagInfo');
-    expect(response.data.idTagInfo.status).to.equal('Accepted');
-    // Keep it
-    transactionId = response.data.transactionId;
-    // Set it to Occupied
-    this.chargingStationConnector1.status = 'Occupied';
-    this.chargingStationConnector1.timestamp = new Date().toISOString();
-    // Update
-    response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector1);
-    // Check
-    expect(response.data).to.eql({});
-    // Check if the Transaction exists
-    response = await CentralServerService.transactionApi.readById(transactionId);
-    // Check
-    expect(response.data).to.deep.include({
-      id: transactionId,
-      timestamp: transactionCurrentTime.toISOString(),
-      connectorId: transactionConnectorId,
-      tagID: this.context.newUser.tagIDs[0],
-      chargeBoxID: this.context.newChargingStation.id,
-      meterStart: this.transactionStartMeterValue,
-      chargeBox: {
-        id: this.context.newChargingStation.id,
-        connectors: [{
-          activeTransactionID: transactionId,
-          connectorId: transactionConnectorId,
-          currentConsumption: 0,
-          totalConsumption: 0,
-          status: 'Occupied',
-          errorCode: 'NoError',
-          vendorErrorCode: '',
-          info: '',
-          type: null,
-          power: 0
-        }]
-      },
-      user: {
-        id: this.context.newUser.id,
-        firstName: this.context.newUser.firstName,
-        name: this.context.newUser.name,
-      }
-    })
-    // Keep
-    this.newTransaction = response.data;
+    expect(this.newTransaction).to.not.be.null;
+    expect(this.newTransaction.id).to.not.equal(transactionId);
   });
 
   it('Send meter values', async () => {
