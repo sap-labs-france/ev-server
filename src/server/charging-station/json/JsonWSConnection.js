@@ -5,11 +5,11 @@ const Tenant = require('../../../model/Tenant');
 const Constants = require('../../../utils/Constants');
 const OCPPError = require('../../../exception/OcppError');
 const JsonChargingStationClient16 = require('../../../client/json/JsonChargingStationClient16');
-const JsonChargingStationService16 = require('./JsonChargingStationService16');
+const JsonChargingStationService16 = require('./services/JsonChargingStationService16');
 
 const _moduleName = "centralSystemJSONService";
 
-class JsonWSHandler {
+class JsonWSConnection {
 
   constructor(socket, req, chargingStationConfig) {
     this._socket = socket;
@@ -75,7 +75,7 @@ class JsonWSHandler {
           reason: reason
         }, null, " ")
       });
-      global.centralWSServer.closeConnection(this.getChargeBoxId());
+      global.centralSystemJson.closeConnection(this.getChargeBoxId());
     })
   }
 
@@ -242,4 +242,4 @@ class JsonWSHandler {
 
 }
 
-module.exports = JsonWSHandler;
+module.exports = JsonWSConnection;

@@ -1,4 +1,6 @@
 require('source-map-support').install();
+const ChargingStationService16 = require('./services/ChargingStationService16');
+const Constants = require('../../utils/Constants');
 
 /**
  * Main interface for starting servers
@@ -11,7 +13,11 @@ class CentralSystemServer {
 		// Check
 		if (new.target === CentralSystemServer) {
 			throw new TypeError('Cannot construct CentralSystemServer instances directly');
-		}
+    }
+    // Init
+    this._centralSystemConfig = centralSystemConfig;
+    this._chargingStationConfig = chargingStationConfig;
+    this._chargingStationService = null;
   }
 
 
@@ -21,6 +27,26 @@ class CentralSystemServer {
 	 * @memberof CentralSystemServer
 	 */
 	start() {
+	}
+
+	/**
+   * Get the service that will handle the Charger's requests
+   * 
+	 * @param protocol: string containing protocol version 1.2 || 1.5 || 1.6
+	 * @memberof CentralSystemServer
+	 */
+	getCentralChargingStationService(protocol) {
+		switch (protocol) {
+			case Constants.OCPP_VERSION_12:
+			case Constants.OCPP_VERSION_15:
+			case Constants.OCPP_VERSION_16:
+			default:
+				if (!this._chargingStationService) {
+          // OCCP 1.6 handles all protocols from 1.2 to 1.6
+					this._chargingStationService = new ChargingStationService16(this._centralSystemConfig, this._chargingStationConfig);
+        }
+				return this._chargingStationService;
+		}
 	}
 }
 

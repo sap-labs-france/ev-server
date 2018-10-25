@@ -3,32 +3,29 @@ const WebSocket = require('ws');
 const https = require('https');
 const http = require('http');
 const Logging = require('../../../utils/Logging');
-const JsonWSHandler = require('./JsonWSHandler');
+const JsonWSConnection = require('./JsonWSConnection');
 const CentralSystemServer = require('../CentralSystemServer');
 
-let _centralSystemConfig;
-let _chargingStationConfig;
-
-class JsonWSSystemServer extends CentralSystemServer {
+class JsonCentralSystemServer extends CentralSystemServer {
 
   constructor(centralSystemConfig, chargingStationConfig) {
     // Call parent
     super(centralSystemConfig, chargingStationConfig);
     // Keep local
-    _centralSystemConfig = centralSystemConfig;
-    _chargingStationConfig = chargingStationConfig;
     this._jsonClients = [];
   }
 
   start() {
     let server;
-    global.centralWSServer = this;
-    if (_centralSystemConfig.protocol === "wss") {
+    // Keep it global
+    global.centralSystemJson = this;
+    // Secured protocol?
+    if (this._centralSystemConfig.protocol === "wss") {
       // Create the options
       const options = {};
       // Set the keys
-      options.key = fs.readFileSync(_centralSystemConfig["ssl-key"]);
-      options.cert = fs.readFileSync(_centralSystemConfig["ssl-cert"]);
+      options.key = fs.readFileSync(this._centralSystemConfig["ssl-key"]);
+      options.cert = fs.readFileSync(this._centralSystemConfig["ssl-cert"]);
       Logging.logDebug({
         module: "JsonCentralSystemServer",
         method: "start",
@@ -86,7 +83,7 @@ class JsonWSSystemServer extends CentralSystemServer {
 
       try {
         // construct the WS manager
-        const connection = new JsonWSHandler(ws, req, _chargingStationConfig);
+        const connection = new JsonWSConnection(ws, req, this._chargingStationConfig);
         connection.initialize();
         // Store the WS manager linked to its ChargeBoxId
         if (connection.getChargeBoxId())
@@ -102,13 +99,13 @@ class JsonWSSystemServer extends CentralSystemServer {
       }
     });
 
-    server.listen(_centralSystemConfig.port, _centralSystemConfig.host, () => {
+    server.listen(this._centralSystemConfig.port, this._centralSystemConfig.host, () => {
       // Log
       Logging.logInfo({
         module: "JsonCentralSystemServer",
         method: "start",
         action: "Startup",
-        message: `JSON Central System Server (Charging Stations) listening on '${_centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`
+        message: `JSON Central System Server (Charging Stations) listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`
       });
     });
 
@@ -126,4 +123,4 @@ class JsonWSSystemServer extends CentralSystemServer {
   }
 
 }
-module.exports = JsonWSSystemServer;
+module.exports = JsonCentralSystemServer;

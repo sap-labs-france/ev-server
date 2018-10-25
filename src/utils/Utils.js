@@ -343,7 +343,7 @@ class Utils {
 
 	static generateToken(email) {
 		return crypto.createHash('sha1').update(`${new Date().toISOString()}~${email}`).digest('hex');
-	}
+  }  
 }
 
 module.exports=Utils;

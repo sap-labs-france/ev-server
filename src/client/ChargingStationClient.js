@@ -16,7 +16,7 @@ class ChargingStationClient {
 	 */
 	static async getChargingStationClient(chargingStation) {
 		// by default try to get the JSON client
-		let chargingClient = await global.centralWSServer.getChargingStationClient(chargingStation.getID());
+		let chargingClient = await global.centralSystemJson.getChargingStationClient(chargingStation.getID());
 		if (!chargingClient) { // not a JSON client
 			if (!chargingStation._chargingStationClient) { // not assigned yet so take a new SOAP client
 				const SoapChargingStationClient = require('./soap/SoapChargingStationClient');
