@@ -85,31 +85,35 @@ class OCPPSoapService15 extends OCPPService {
     // Build the SOAP Request
     const data = {};
     data[this._getRequestNameFromAction(request.name)] = request.data;
-    // Execute it
-    const { result, envelope, soapHeader } = await this.service[request.name](data);
-    // Log
-    if (config.get('ocpp.logs') === 'xml') {
-      console.log('<!-- Request -->');
-      console.log(this.client.lastRequest);
-      if (soapHeader) {
-        console.log('<!-- Response Header -->');
-        console.log(soapHeader)
+    try {
+      // Execute it
+      const { result, envelope, soapHeader } = await this.service[request.name](data);
+      // Log
+      if (config.get('ocpp.logs') === 'xml') {
+        console.log('<!-- Request -->');
+        console.log(this.client.lastRequest);
+        if (soapHeader) {
+          console.log('<!-- Response Header -->');
+          console.log(soapHeader)
+        }
+        console.log('<!-- Response Envelope -->');
+        console.log(envelope);
+        console.log('\n');
       }
-      console.log('<!-- Response Envelope -->');
-      console.log(envelope);
-      console.log('\n');
+      // Respond
+      const response = {
+        headers: soapHeader || {},
+        data: result || {}
+      };
+      // Log Response
+      if (config.get('ocpp.logs') === 'json') {
+        console.log(JSON.stringify(response, null, 2));
+      }
+      // Return response
+      return response;
+    } catch (error) {
+      console.log(error);      
     }
-    // Respond
-    const response = {
-      headers: soapHeader || {},
-      data: result || {}
-    };
-    // Log Response
-    if (config.get('ocpp.logs') === 'json') {
-      console.log(JSON.stringify(response, null, 2));
-    }
-    // Return response
-    return response;
   }
 
   _buildSOAPRequest(chargeBoxIdentity, action, data) {
@@ -118,7 +122,11 @@ class OCPPSoapService15 extends OCPPService {
       headers: {
         chargeBoxIdentity: chargeBoxIdentity,
         From: {
-          Address: this.serverUrl
+          Address: "http://www.w3.org/2005/08/addressing/anonymous"
+        },
+        To: this.serverUrl,
+        ReplyTo: {
+          "Address": "http://www.w3.org/2005/08/addressing/anonymous"
         }
       },
       data

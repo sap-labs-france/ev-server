@@ -8,19 +8,26 @@ module.exports = { /* Services */
 	CentralSystemService: { /* Ports */
 		CentralSystemServiceSoap12: { /* Methods */
 			Authorize: function(args, callback, headers, req) {
-				// Normalize Header
-				Utils.normalizeSOAPHeader(headers);
-				// Log
-				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "Authorize", args, headers);
-				// Handle
-				global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION12).handleAuthorize(Object.assign(args, headers)).then(function(result) {
-					// Log
-					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "Authorize", {
-						"result": result
-					});
-					// Answer
-					callback(result);
-				});
+        try {
+          // Normalize Header
+          Utils.normalizeSOAPHeader(headers);
+          // Log
+          Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "Authorize", args, headers);
+          // Handle
+          global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION_12).handleAuthorize(Object.assign(args, headers)).then(function(result) {
+            // Log
+            Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "Authorize", {
+              "result": result
+            });
+            // Answer
+            callback(result);
+          });
+        } catch(error) {
+          // Log
+          Logging.logException(error, "Authorize", headers.chargeBoxIdentity, MODULE_NAME, "Authorize");
+          // Rethrow
+          throw error;
+        }
 
 				/*
 					args = {
@@ -46,18 +53,25 @@ module.exports = { /* Services */
 				}; */
 			},
 			StartTransaction: function(args, callback, headers, req) {
-				// Normalize Header
-				Utils.normalizeSOAPHeader(headers);
-				// Log
-				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StartTransaction", args, headers);
-				// Handle
-				global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION12).handleStartTransaction(Object.assign(args, headers)).then(function(result) {
-					// Log
-					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StartTransaction", {
-						"result": result
-					});
-					callback(result);
-				});
+        try {
+          // Normalize Header
+          Utils.normalizeSOAPHeader(headers);
+          // Log
+          Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StartTransaction", args, headers);
+          // Handle
+          global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION_12).handleStartTransaction(Object.assign(args, headers)).then(function(result) {
+            // Log
+            Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StartTransaction", {
+              "result": result
+            });
+            callback(result);
+          });
+        } catch(error) {
+          // Log
+          Logging.logException(error, "StartTransaction", headers.chargeBoxIdentity, MODULE_NAME, "StartTransaction");
+          // Rethrow
+          throw error;
+        }
 
 				/*
 					args = {
@@ -87,18 +101,25 @@ module.exports = { /* Services */
 				}; */
 			},
 			StopTransaction: function(args, callback, headers, req) {
-				// Normalize Header
-				Utils.normalizeSOAPHeader(headers);
-				// Log
-				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StopTransaction", args, headers);
-				// Handle
-				global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION12).handleStopTransaction(Object.assign(args, headers)).then(function(result) {
-					// Log
-					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StopTransaction", {
-						"result": result
-					});
-					callback(result);
-				});
+        try {
+          // Normalize Header
+          Utils.normalizeSOAPHeader(headers);
+          // Log
+          Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StopTransaction", args, headers);
+          // Handle
+          global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION_12).handleStopTransaction(Object.assign(args, headers)).then(function(result) {
+            // Log
+            Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StopTransaction", {
+              "result": result
+            });
+            callback(result);
+          });
+        } catch(error) {
+          // Log
+          Logging.logException(error, "StopTransaction", headers.chargeBoxIdentity, MODULE_NAME, "StopTransaction");
+          // Rethrow
+          throw error;
+        }
 
 				/*
 					args = {
@@ -127,18 +148,25 @@ module.exports = { /* Services */
 				}; */
 			},
 			Heartbeat: function(args, callback, headers, req) {
-				// Normalize Header
-				Utils.normalizeSOAPHeader(headers);
-				// Log
-				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "Heartbeat", args, headers);
-				// Handle
-				global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION12).handleHeartbeat(headers).then(function(result) {
-					// Log
-					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "Heartbeat", {
-						"result": result
-					});
-					callback(result);
-				});
+        try {
+          // Normalize Header
+          Utils.normalizeSOAPHeader(headers);
+          // Log
+          Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "Heartbeat", args, headers);
+          // Handle
+          global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION_12).handleHeartbeat(headers).then(function(result) {
+            // Log
+            Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "Heartbeat", {
+              "result": result
+            });
+            callback(result);
+          });
+        } catch(error) {
+          // Log
+          Logging.logException(error, "Heartbeat", headers.chargeBoxIdentity, MODULE_NAME, "Heartbeat");
+          // Rethrow
+          throw error;
+        }
 
 				/*
 					args = {
@@ -157,18 +185,25 @@ module.exports = { /* Services */
 				}; */
 			},
 			MeterValues: function(args, callback, headers, req) {
-				// Normalize Header
-				Utils.normalizeSOAPHeader(headers);
-				// Log
-				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "MeterValues", args, headers);
-				// Handle
-				global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION12).handleMeterValues(Object.assign(args, headers)).then(function(result) {
-					// Return the result async
-					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "MeterValues", {
-						"result": result
-					});
-					callback(result);
-				});
+        try {
+          // Normalize Header
+          Utils.normalizeSOAPHeader(headers);
+          // Log
+          Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "MeterValues", args, headers);
+          // Handle
+          global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION_12).handleMeterValues(Object.assign(args, headers)).then(function(result) {
+            // Return the result async
+            Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "MeterValues", {
+              "result": result
+            });
+            callback(result);
+          });
+        } catch(error) {
+          // Log
+          Logging.logException(error, "MeterValues", headers.chargeBoxIdentity, MODULE_NAME, "MeterValues");
+          // Rethrow
+          throw error;
+        }
 
 
 				/*
@@ -194,20 +229,27 @@ module.exports = { /* Services */
 				}; */
 			},
 			BootNotification: function(args, callback, headers, req) {
-				// Add OCPP Version
-				headers.ocppVersion = '1.2';
-				// Normalize Header
-				Utils.normalizeSOAPHeader(headers);
-				// Log
-				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "BootNotification", args, headers);
-				// Handle
-				global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION12).handleBootNotification(Object.assign(args, headers)).then(function(result) {
-					// Log
-					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "BootNotification", {
-						"result": result
-					});
-					callback(result);
-				});
+        try {
+          // Add OCPP Version
+          headers.ocppVersion = '1.2';
+          // Normalize Header
+          Utils.normalizeSOAPHeader(headers);
+          // Log
+          Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "BootNotification", args, headers);
+          // Handle
+          global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION_12).handleBootNotification(Object.assign(args, headers)).then(function(result) {
+            // Log
+            Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "BootNotification", {
+              "result": result
+            });
+            callback(result);
+          });
+        } catch(error) {
+          // Log
+          Logging.logException(error, "BootNotification", headers.chargeBoxIdentity, MODULE_NAME, "BootNotification");
+          // Rethrow
+          throw error;
+        }
 
 				/*
 					args = {
@@ -235,18 +277,25 @@ module.exports = { /* Services */
 				}; */
 			},
 			StatusNotification: function(args, callback, headers, req) {
-				// Normalize Header
-				Utils.normalizeSOAPHeader(headers);
-				// Log
-				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StatusNotification", args, headers);
-				// Handle
-				global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION12).handleStatusNotification(Object.assign(args, headers)).then(function(result) {
-					// Log
-					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StatusNotification", {
-						"result": result
-					});
-					callback(result);
-				});
+        try {
+          // Normalize Header
+          Utils.normalizeSOAPHeader(headers);
+          // Log
+          Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StatusNotification", args, headers);
+          // Handle
+          global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION_12).handleStatusNotification(Object.assign(args, headers)).then(function(result) {
+            // Log
+            Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StatusNotification", {
+              "result": result
+            });
+            callback(result);
+          });
+        } catch(error) {
+          // Log
+          Logging.logException(error, "StatusNotification", headers.chargeBoxIdentity, MODULE_NAME, "StatusNotification");
+          // Rethrow
+          throw error;
+        }
 
 				/*
 					args = {
@@ -267,18 +316,25 @@ module.exports = { /* Services */
 				}; */
 			},
 			FirmwareStatusNotification: function(args, callback, headers, req) {
-				// Normalize Header
-				Utils.normalizeSOAPHeader(headers);
-				// Log
-				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "FirmwareStatusNotification", args, headers);
-				// Handle
-				global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION12).handleFirmwareStatusNotification(Object.assign(args, headers)).then(function(result) {
-					// Log
-					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "FirmwareStatusNotification", {
-						"result": result
-					});
-					callback(result);
-				});
+        try {
+          // Normalize Header
+          Utils.normalizeSOAPHeader(headers);
+          // Log
+          Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "FirmwareStatusNotification", args, headers);
+          // Handle
+          global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION_12).handleFirmwareStatusNotification(Object.assign(args, headers)).then(function(result) {
+            // Log
+            Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "FirmwareStatusNotification", {
+              "result": result
+            });
+            callback(result);
+          });
+        } catch(error) {
+          // Log
+          Logging.logException(error, "FirmwareStatusNotification", headers.chargeBoxIdentity, MODULE_NAME, "FirmwareStatusNotification");
+          // Rethrow
+          throw error;
+        }
 
 				/*
 					args = {
@@ -297,18 +353,25 @@ module.exports = { /* Services */
 				}; */
 			},
 			DiagnosticsStatusNotification: function(args, callback, headers, req) {
-				// Normalize Header
-				Utils.normalizeSOAPHeader(headers);
-				// Log
-				Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", args, headers);
-				// Handle
-				global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION12).handleDiagnosticsStatusNotification(Object.assign(args, headers)).then(function(result) {
-					// Log
-					Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", {
-						"result": result
-					});
-					callback(result);
-				});
+        try {
+          // Normalize Header
+          Utils.normalizeSOAPHeader(headers);
+          // Log
+          Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", args, headers);
+          // Handle
+          global.centralSystemSoap.getSoapCentralChargingStationService(Constants.OCPP_VERSION_12).handleDiagnosticsStatusNotification(Object.assign(args, headers)).then(function(result) {
+            // Log
+            Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", {
+              "result": result
+            });
+            callback(result);
+          });
+        } catch(error) {
+          // Log
+          Logging.logException(error, "DiagnosticsStatusNotification", headers.chargeBoxIdentity, MODULE_NAME, "DiagnosticsStatusNotification");
+          // Rethrow
+          throw error;
+        }
 
 				/*
 					args = {

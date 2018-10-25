@@ -230,8 +230,6 @@ class SoapCentralSystemServer extends CentralSystemServer {
 
 
 	/**
-	 * 
-	 *
 	 * @param protocol: string containing protocol version 1.2 || 1.5 || 1.6
 	 * @memberof SoapCentralSystemServer
 	 */
@@ -241,8 +239,9 @@ class SoapCentralSystemServer extends CentralSystemServer {
 			case '1.5':
 			case '1.6':
 			default:
-				if (!_centralChargingStationService)
+				if (!_centralChargingStationService) {
 					_centralChargingStationService = new CentralChargingStationService(_centralSystemConfig, _chargingStationConfig);
+        }
 				return _centralChargingStationService;
 		}
 	}

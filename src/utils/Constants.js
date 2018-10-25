@@ -128,8 +128,8 @@ module.exports = {
 	OCPP_ERROR_TYPERAINTVIOLATION : 'TyperaintViolation',
 	// Any other error not covered by the previous ones
 	OCPP_ERROR_GENERICERROR : 'GenericError',
-	OCPP_VERSION12: '1.2',
-	OCPP_VERSION15: '1.5',
-	OCPP_VERSION16: '1.6',
-	OCPP_VERSION20: '2.0'
+	OCPP_VERSION_12: '1.2',
+	OCPP_VERSION_15: '1.5',
+	OCPP_VERSION_16: '1.6',
+	OCPP_VERSION_20: '2.0'
 };

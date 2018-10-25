@@ -55,16 +55,19 @@ class Utils {
 	}
 
 	static normalizeSOAPHeader(headers) {
-		const urlBox = new url.URL(headers.To.$value);
-        const tenant = urlBox.searchParams.get('tenant');
-		headers.tenant = (tenant === null ? "" : tenant);
-		
 		// ChargeBox Identity
 		Utils.normalizeOneSOAPHeader(headers, 'chargeBoxIdentity');
 		// Action
 		Utils.normalizeOneSOAPHeader(headers, 'Action');
 		// To
 		Utils.normalizeOneSOAPHeader(headers, 'To');
+    // Extract the Tenant
+    // Get the registration URL
+    const urlBox = new url.URL(headers.To);
+    // Get the Tenant param
+    const tenant = urlBox.searchParams.get('tenant');
+    // Set it in the HEader
+		headers.tenant = (tenant === null ? "" : tenant);
 	}
 
 	static normalizeOneSOAPHeader(headers, name) {
