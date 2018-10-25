@@ -2,7 +2,7 @@ const Logging = require('../../../../utils/Logging');
 const Utils = require('../../../../utils/Utils');
 const Constants = require('../../../../utils/Constants');
 
-const _moduleName = "SoapCentralSystemService12";
+const MODULE_NAME = "SoapCentralSystemService12";
 
 module.exports = { /* Services */
   CentralSystemService: { /* Ports */
@@ -11,12 +11,14 @@ module.exports = { /* Services */
         try {
           // Normalize Header
           Utils.normalizeSOAPHeader(headers);
+          // Payload
+          const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "Authorize", args, headers);
+          Logging.logReceivedAction(MODULE_NAME, headers.chargeBoxIdentity, "Authorize", payload);
           // Handle
-          global.centralSystemSoap.getCentralChargingStationService(Constants.OCPP_VERSION_12).handleAuthorize(Object.assign(args, headers)).then(function (result) {
+          global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleAuthorize(payload).then(function (result) {
             // Log
-            Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "Authorize", {
+            Logging.logReturnedAction(MODULE_NAME, headers.chargeBoxIdentity, "Authorize", {
               "result": result
             });
             // Answer
@@ -62,12 +64,14 @@ module.exports = { /* Services */
         try {
           // Normalize Header
           Utils.normalizeSOAPHeader(headers);
+          // Payload
+          const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StartTransaction", args, headers);
+          Logging.logReceivedAction(MODULE_NAME, headers.chargeBoxIdentity, "StartTransaction", payload);
           // Handle
-          global.centralSystemSoap.getCentralChargingStationService(Constants.OCPP_VERSION_12).handleStartTransaction(Object.assign(args, headers)).then(function (result) {
+          global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleStartTransaction(payload).then(function (result) {
             // Log
-            Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StartTransaction", {
+            Logging.logReturnedAction(MODULE_NAME, headers.chargeBoxIdentity, "StartTransaction", {
               "result": result
             });
             callback({
@@ -117,12 +121,14 @@ module.exports = { /* Services */
         try {
           // Normalize Header
           Utils.normalizeSOAPHeader(headers);
+          // Payload
+          const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StopTransaction", args, headers);
+          Logging.logReceivedAction(MODULE_NAME, headers.chargeBoxIdentity, "StopTransaction", payload);
           // Handle
-          global.centralSystemSoap.getCentralChargingStationService(Constants.OCPP_VERSION_12).handleStopTransaction(Object.assign(args, headers)).then(function (result) {
+          global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleStopTransaction(payload).then(function (result) {
             // Log
-            Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StopTransaction", {
+            Logging.logReturnedAction(MODULE_NAME, headers.chargeBoxIdentity, "StopTransaction", {
               "result": result
             });
             callback({
@@ -170,12 +176,14 @@ module.exports = { /* Services */
         try {
           // Normalize Header
           Utils.normalizeSOAPHeader(headers);
+          // Payload
+          const payload = headers;
           // Log
-          Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "Heartbeat", args, headers);
+          Logging.logReceivedAction(MODULE_NAME, headers.chargeBoxIdentity, "Heartbeat", payload);
           // Handle
-          global.centralSystemSoap.getCentralChargingStationService(Constants.OCPP_VERSION_12).handleHeartbeat(headers).then(function (result) {
+          global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleHeartbeat(payload).then(function (result) {
             // Log
-            Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "Heartbeat", {
+            Logging.logReturnedAction(MODULE_NAME, headers.chargeBoxIdentity, "Heartbeat", {
               "result": result
             });
             callback({
@@ -211,12 +219,14 @@ module.exports = { /* Services */
         try {
           // Normalize Header
           Utils.normalizeSOAPHeader(headers);
+          // Payload
+          const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "MeterValues", args, headers);
+          Logging.logReceivedAction(MODULE_NAME, headers.chargeBoxIdentity, "MeterValues", payload);
           // Handle
-          global.centralSystemSoap.getCentralChargingStationService(Constants.OCPP_VERSION_12).handleMeterValues(Object.assign(args, headers)).then(function (result) {
+          global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleMeterValues(payload).then(function (result) {
             // Return the result async
-            Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "MeterValues", {
+            Logging.logReturnedAction(MODULE_NAME, headers.chargeBoxIdentity, "MeterValues", {
               "result": result
             });
             callback({
@@ -256,15 +266,17 @@ module.exports = { /* Services */
       BootNotification: function (args, callback, headers, req) {
         try {
           // Add OCPP Version
-          headers.ocppVersion = '1.2';
+          headers.ocppVersion = Constants.OCPP_VERSION_12;
           // Normalize Header
           Utils.normalizeSOAPHeader(headers);
+          // Payload
+          const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "BootNotification", args, headers);
+          Logging.logReceivedAction(MODULE_NAME, headers.chargeBoxIdentity, "BootNotification", payload);
           // Handle
-          global.centralSystemSoap.getCentralChargingStationService(Constants.OCPP_VERSION_12).handleBootNotification(Object.assign(args, headers)).then(function (result) {
+          global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleBootNotification(payload).then(function (result) {
             // Log
-            Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "BootNotification", {
+            Logging.logReturnedAction(MODULE_NAME, headers.chargeBoxIdentity, "BootNotification", {
               "result": result
             });
             callback({
@@ -311,12 +323,14 @@ module.exports = { /* Services */
         try {
           // Normalize Header
           Utils.normalizeSOAPHeader(headers);
+          // Payload
+          const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "StatusNotification", args, headers);
+          Logging.logReceivedAction(MODULE_NAME, headers.chargeBoxIdentity, "StatusNotification", payload);
           // Handle
-          global.centralSystemSoap.getCentralChargingStationService(Constants.OCPP_VERSION_12).handleStatusNotification(Object.assign(args, headers)).then(function (result) {
+          global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleStatusNotification(payload).then(function (result) {
             // Log
-            Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "StatusNotification", {
+            Logging.logReturnedAction(MODULE_NAME, headers.chargeBoxIdentity, "StatusNotification", {
               "result": result
             });
             callback({
@@ -352,12 +366,14 @@ module.exports = { /* Services */
         try {
           // Normalize Header
           Utils.normalizeSOAPHeader(headers);
+          // Payload
+          const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "FirmwareStatusNotification", args, headers);
+          Logging.logReceivedAction(MODULE_NAME, headers.chargeBoxIdentity, "FirmwareStatusNotification", payload);
           // Handle
-          global.centralSystemSoap.getCentralChargingStationService(Constants.OCPP_VERSION_12).handleFirmwareStatusNotification(Object.assign(args, headers)).then(function (result) {
+          global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleFirmwareStatusNotification(payload).then(function (result) {
             // Log
-            Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "FirmwareStatusNotification", {
+            Logging.logReturnedAction(MODULE_NAME, headers.chargeBoxIdentity, "FirmwareStatusNotification", {
               "result": result
             });
             callback({
@@ -391,12 +407,14 @@ module.exports = { /* Services */
         try {
           // Normalize Header
           Utils.normalizeSOAPHeader(headers);
+          // Payload
+          const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(_moduleName, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", args, headers);
+          Logging.logReceivedAction(MODULE_NAME, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", payload);
           // Handle
-          global.centralSystemSoap.getCentralChargingStationService(Constants.OCPP_VERSION_12).handleDiagnosticsStatusNotification(Object.assign(args, headers)).then(function (result) {
+          global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleDiagnosticsStatusNotification(payload).then(function (result) {
             // Log
-            Logging.logReturnedAction(_moduleName, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", {
+            Logging.logReturnedAction(MODULE_NAME, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", {
               "result": result
             });
             callback({

@@ -19,6 +19,7 @@ class JsonCentralSystemServer extends CentralSystemServer {
     let server;
     // Keep it global
     global.centralSystemJson = this;
+    // Create HTTP server
     // Secured protocol?
     if (this._centralSystemConfig.protocol === "wss") {
       // Create the options
@@ -51,19 +52,19 @@ class JsonCentralSystemServer extends CentralSystemServer {
       });
     }
 
-    const verifyClient = function (info) {
+    const verifyClient = (info) => {
       if (info.req.url.startsWith("/OCPP16/") === false) {
         Logging.logError({
           module: "JsonCentralSystemServer",
           method: "verifyClient",
-          action: "connection",
+          action: "Connection",
           message: `Invalid connection URL ${info.req} from ${info.origin}`
         });
         return false;
       }
       return true;
     }
-
+    // Create the Web Socket Server
     this._wss = new WebSocket.Server({
       server: server,
       verifyClient: verifyClient,
@@ -78,16 +79,18 @@ class JsonCentralSystemServer extends CentralSystemServer {
         }
       }
     });
-
+    // Listen to new connections
     this._wss.on('connection', (ws, req) => {
-
       try {
-        // construct the WS manager
-        const connection = new JsonWSConnection(ws, req, this._chargingStationConfig);
-        connection.initialize();
+        // Create a Web Socket connection object
+        const wsConnection = new JsonWSConnection(ws, req, this._chargingStationConfig);
+        // Initialize        
+        wsConnection.initialize();
         // Store the WS manager linked to its ChargeBoxId
-        if (connection.getChargeBoxId())
-          this._jsonClients[connection.getChargeBoxId()] = connection;
+        if (wsConnection.getChargeBoxId()) {
+          // Keep the connection
+          this._jsonClients[wsConnection.getChargeBoxId()] = wsConnection;
+        }
       } catch (error) {
         Logging.logError({
           module: "JsonCentralSystemServer",
@@ -108,19 +111,25 @@ class JsonCentralSystemServer extends CentralSystemServer {
         message: `JSON Central System Server (Charging Stations) listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`
       });
     });
-
   }
 
   closeConnection(chargeBoxId) {
-    if (this._jsonClients[chargeBoxId])
+    // Charging Station exists?
+    if (this._jsonClients[chargeBoxId]) {
+      // Remove from cache
       delete this._jsonClients[chargeBoxId];
+    }
   }
 
   getChargingStationClient(chargeBoxId) {
-    if (this._jsonClients[chargeBoxId])
+    // Charging Station exists?
+    if (this._jsonClients[chargeBoxId]) {
+      // Return from the cache
       return this._jsonClients[chargeBoxId].getWSClient();
+    }
+    // Not found!
     return null;
   }
-
 }
+
 module.exports = JsonCentralSystemServer;

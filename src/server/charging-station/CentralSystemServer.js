@@ -35,7 +35,7 @@ class CentralSystemServer {
 	 * @param protocol: string containing protocol version 1.2 || 1.5 || 1.6
 	 * @memberof CentralSystemServer
 	 */
-	getCentralChargingStationService(protocol) {
+	getChargingStationService(protocol) {
 		switch (protocol) {
 			case Constants.OCPP_VERSION_12:
 			case Constants.OCPP_VERSION_15:

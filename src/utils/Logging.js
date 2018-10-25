@@ -91,7 +91,7 @@ class Logging {
   }
 
   // Log
-  static logReceivedAction(module, chargeBoxID, action, args, headers) {
+  static logReceivedAction(module, chargeBoxID, action, payload) {
     // Log
     Logging.logDebug({
       source: chargeBoxID,
@@ -100,8 +100,7 @@ class Logging {
       message: `>> OCPP Request Received`,
       action: action,
       detailedMessages: {
-        "args": args,
-        "headers": headers
+        payload
       }
     });
   }

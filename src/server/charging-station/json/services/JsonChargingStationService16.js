@@ -2,88 +2,237 @@ const Logging = require('../../../../utils/Logging');
 const Constants = require('../../../../utils/Constants');
 const OCPPError = require('../../../../exception/OcppError');
 
-const _moduleName = "JSONServerService";
+const MODULE_NAME = "JsonChargingStationService16";
 
 class JsonChargingStationService16 {
+  constructor(chargingStationConfig) {
+    this._chargingStationConfig = chargingStationConfig;
+    // Get the OCPP service
+    this.chargingStationService = global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_16);
+  }
 
-  // constructor(wsHandler, chargingStationConfig) {
-  //   super({}, chargingStationConfig);
-  //   this._wsHandler = wsHandler;
-  // }
+  async handleBootNotification(payload) {
+    try {
+      // Add OCPP Version
+      headers.ocppVersion = Constants.OCPP_VERSION_16;
+      // Log
+      Logging.logReceivedAction(MODULE_NAME, payload.chargeBoxIdentity, "BootNotification", payload);
+      // Handle
+      global.centralSystemJson.getChargingStationService(Constants.OCPP_VERSION_16).handleBootNotification(payload).then(function (result) {
+        // Log
+        Logging.logReturnedAction(MODULE_NAME, payload.chargeBoxIdentity, "BootNotification", {
+          "result": result
+        });
+        return {
+          'currentTime': result.currentTime,
+          'status': result.status,
+          'heartbeatInterval': result.heartbeatInterval
+        };
+      });
+    } catch (error) {
+      // Log
+      Logging.logException(error, "BootNotification", payload.chargeBoxIdentity, MODULE_NAME, "BootNotification");
+      // Rethrow
+      throw error;
+    }
+  }
 
-  // async onCallMessage(messageType, messageId, commandNameOrPayload, commandPayload, errorDetails) {
-  //   try {
-  //     // Check if method exist in central server
-  //     if (typeof this["handle" + commandNameOrPayload] === 'function') {
-  //       let result = await this["handle" + commandNameOrPayload](Object.assign(commandPayload, this._wsHandler._headers));
-  //       // Get answer from central server
-  //       // Response should like { commandNameRespons : { attributes of the response } }
-  //       Logging.logReturnedAction(_moduleName, this._wsHandler.getChargeBoxId(), commandNameOrPayload, {
-  //         "result": result
-  //       });
-  //       // Check if response contains proper attribute
-  //       const reponseNameProperty = commandNameOrPayload.charAt(0).toLowerCase() + commandNameOrPayload.slice(1) + "Response";
-  //       if (result.hasOwnProperty(reponseNameProperty)) {
-  //         // Send Response
-  //         result = await this._wsHandler.sendMessage(messageId, result[reponseNameProperty], Constants.OCPP_JSON_CALLRESULT_MESSAGE);
-  //       } else {
-  //         // TO DO what shall we do if we did not code it correctly :)
-  //         // Sacrifice Gerald to the gods ? :)
-  //       }
-  //     } else {
-  //       const error = new OCPPError(Constants.OCPP_ERROR_NOTIMPLEMENTED, "");
-  //       const result = await this._wsHandler.sendError(messageId, error);
+  async handleHeartbeat(payload) {
+    try {
+      // Log
+      Logging.logReceivedAction(MODULE_NAME, payload.chargeBoxIdentity, "Heartbeat", payload);
+      // Handle
+      global.centralSystemJson.getChargingStationService(Constants.OCPP_VERSION_16).handleHeartbeat(payload).then(function (result) {
+        // Log
+        Logging.logReturnedAction(MODULE_NAME, payload.chargeBoxIdentity, "Heartbeat", {
+          "result": result
+        });
+        return {
+          'currentTime': result.currentTime
+        };
+      });
+    } catch (error) {
+      // Log
+      Logging.logException(error, "Heartbeat", payload.chargeBoxIdentity, MODULE_NAME, "Heartbeat");
+      // Rethrow
+      throw error;
+    }
+  }
 
-  //       Logging.logError({
-  //         module: _moduleName,
-  //         method: "sendMessage",
-  //         action: "NOT_IMPLEMENTED",
-  //         message: {
-  //           message: messageId,
-  //           error: JSON.stringify(error, null, " ")
-  //         }
-  //       });
-  //     }
-  //   } catch (err) {
-  //     // send error if payload didn't pass the validation
-  //     const error = new OCPPError(Constants.OCPP_ERROR_FORMATIONVIOLATION, err.message);
-  //     const result = await this._wsHandler.sendError(messageId, error);
-  //     Logging.logError({
-  //       module: _moduleName,
-  //       method: "sendMessage",
-  //       action: "FORMATVIOLATION",
-  //       message: {
-  //         message: messageId,
-  //         error: JSON.stringify(error, null, " ")
-  //       }
-  //     });
-  //   }
-  // }
+  async handleStatusNotification(payload) {
+    try {
+      // Log
+      Logging.logReceivedAction(MODULE_NAME, payload.chargeBoxIdentity, "StatusNotification", payload);
+      // Handle
+      global.centralSystemJson.getChargingStationService(Constants.OCPP_VERSION_16).handleStatusNotification(payload).then(function (result) {
+        // Log
+        Logging.logReturnedAction(MODULE_NAME, payload.chargeBoxIdentity, "StatusNotification", {
+          "result": result
+        });
+        return {};
+      });
+    } catch (error) {
+      // Log
+      Logging.logException(error, "StatusNotification", payload.chargeBoxIdentity, MODULE_NAME, "StatusNotification");
+      // Rethrow
+      throw error;
+    }
+  }
 
-  // getChargeBoxId() {
-  //   return this._wsHandler._headers.chargeBoxIdentity;
-  // }
+  async handleMeterValues(payload) {
+    try {
+      // Log
+      Logging.logReceivedAction(MODULE_NAME, payload.chargeBoxIdentity, "MeterValues", payload);
+      // Handle
+      global.centralSystemJson.getChargingStationService(Constants.OCPP_VERSION_16).handleMeterValues(payload).then(function (result) {
+        // Log
+        Logging.logReturnedAction(MODULE_NAME, payload.chargeBoxIdentity, "MeterValues", {
+          "result": result
+        });
+        return {};
+      });
+    } catch (error) {
+      // Log
+      Logging.logException(error, "MeterValues", payload.chargeBoxIdentity, MODULE_NAME, "MeterValues");
+      // Rethrow
+      throw error;
+    }
+  }
 
-  // async handleBootNotification(content) {
-  //   try {
-  //     const ignoreResponse = await super.handleBootNotification(content);
-  //     return {
-  //       'bootNotificationResponse': {
-  //         'status': 'Accepted',
-  //         'currentTime': new Date().toISOString(),
-  //         'interval': this.chargingStationConfig.heartbeatIntervalSecs
-  //       }
-  //     };
-  //   } catch (error) {
-  //     return {
-  //       'bootNotificationResponse': {
-  //         'status': 'Rejected',
-  //         'currentTime': new Date().toISOString(),
-  //         'interval': this.chargingStationConfig.heartbeatIntervalSecs
-  //       }
-  //     };
-  //   }
-  // }
+  async handleAuthorize(payload) {
+    try {
+      // Log
+      Logging.logReceivedAction(MODULE_NAME, payload.chargeBoxIdentity, "Authorize", payload);
+      // Handle
+      global.centralSystemJson.getChargingStationService(Constants.OCPP_VERSION_16).handleAuthorize(payload).then(function (result) {
+        // Log
+        Logging.logReturnedAction(MODULE_NAME, payload.chargeBoxIdentity, "Authorize", {
+          "result": result
+        });
+        return {
+          'idTagInfo': {
+            'status': result.status
+          }
+        };
+      });
+    } catch (error) {
+      // Log
+      Logging.logException(error, "Authorize", payload.chargeBoxIdentity, MODULE_NAME, "Authorize");
+      // Rethrow
+      throw error;
+    }
+  }
+
+  async handleDiagnosticsStatusNotification(payload) {
+    try {
+      // Log
+      Logging.logReceivedAction(MODULE_NAME, payload.chargeBoxIdentity, "DiagnosticsStatusNotification", payload);
+      // Handle
+      global.centralSystemJson.getChargingStationService(Constants.OCPP_VERSION_16).handleDiagnosticsStatusNotification(payload).then(function (result) {
+        // Log
+        Logging.logReturnedAction(MODULE_NAME, payload.chargeBoxIdentity, "DiagnosticsStatusNotification", {
+          "result": result
+        });
+        return {};
+      });
+    } catch (error) {
+      // Log
+      Logging.logException(error, "DiagnosticsStatusNotification", payload.chargeBoxIdentity, MODULE_NAME, "DiagnosticsStatusNotification");
+      // Rethrow
+      throw error;
+    }
+  }
+
+  async handleFirmwareStatusNotification(payload) {
+    try {
+      // Log
+      Logging.logReceivedAction(MODULE_NAME, payload.chargeBoxIdentity, "FirmwareStatusNotification", payload);
+      // Handle
+      global.centralSystemJson.getChargingStationService(Constants.OCPP_VERSION_16).handleFirmwareStatusNotification(payload).then(function (result) {
+        // Log
+        Logging.logReturnedAction(MODULE_NAME, payload.chargeBoxIdentity, "FirmwareStatusNotification", {
+          "result": result
+        });
+        return {};
+      });
+    } catch (error) {
+      // Log
+      Logging.logException(error, "FirmwareStatusNotification", payload.chargeBoxIdentity, MODULE_NAME, "FirmwareStatusNotification");
+      // Rethrow
+      throw error;
+    }
+  }
+
+  async handleStartTransaction(payload) {
+    try {
+      // Log
+      Logging.logReceivedAction(MODULE_NAME, payload.chargeBoxIdentity, "StartTransaction", payload);
+      // Handle
+      global.centralSystemJson.getChargingStationService(Constants.OCPP_VERSION_16).handleStartTransaction(payload).then(function (result) {
+        // Log
+        Logging.logReturnedAction(MODULE_NAME, payload.chargeBoxIdentity, "StartTransaction", {
+          "result": result
+        });
+        return {
+          'transactionId': result.transactionId,
+          'idTagInfo': {
+            'status': result.status
+          }
+        };
+      });
+    } catch (error) {
+      // Log
+      Logging.logException(error, "StartTransaction", payload.chargeBoxIdentity, MODULE_NAME, "StartTransaction");
+      // Rethrow
+      throw error;
+    }
+  }
+
+  async handleDataTransfer(payload) {
+    try {
+      // Log
+      Logging.logReceivedAction(MODULE_NAME, payload.chargeBoxIdentity, "DataTransfer", payload);
+      // Handle
+      global.centralSystemJson.getChargingStationService(Constants.OCPP_VERSION_16).handleDataTransfer(payload).then(function (result) {
+        // Log
+        Logging.logReturnedAction(MODULE_NAME, payload.chargeBoxIdentity, "DataTransfer", {
+          "result": result
+        });
+        return {
+          'status': result.status
+        };
+      });
+    } catch (error) {
+      // Log
+      Logging.logException(error, "DataTransfer", payload.chargeBoxIdentity, MODULE_NAME, "DataTransfer");
+      // Rethrow
+      throw error;
+    }
+  }
+
+  async handleStopTransaction(payload) {
+    try {
+      // Log
+      Logging.logReceivedAction(MODULE_NAME, payload.chargeBoxIdentity, "StopTransaction", payload);
+      // Handle
+      global.centralSystemJson.getChargingStationService(Constants.OCPP_VERSION_16).handleStopTransaction(payload).then(function (result) {
+        // Log
+        Logging.logReturnedAction(MODULE_NAME, payload.chargeBoxIdentity, "StopTransaction", {
+          "result": result
+        });
+        return {
+          'idTagInfo': {
+            'status': result.status
+          }
+        };
+      });
+    } catch (error) {
+      // Log
+      Logging.logException(error, "StopTransaction", payload.chargeBoxIdentity, MODULE_NAME, "StopTransaction");
+      // Rethrow
+      throw error;
+    }
+  }
 }
 
 module.exports = JsonChargingStationService16;
