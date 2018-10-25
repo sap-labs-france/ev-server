@@ -93,7 +93,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
     // Create the server
     let server;
     // Log
-    console.log(`Starting Central System Server (Charging Stations)...`);
+    console.log(`Starting Soap Central System Server (Charging Stations)...`);
     // Make it global for SOAP Services
     global.centralSystemSoap = this;
     // Create the HTTP server
@@ -223,9 +223,9 @@ class SoapCentralSystemServer extends CentralSystemServer {
         module: "SoapCentralSystemServer",
         method: "start",
         action: "Startup",
-        message: `Central System Server (Charging Stations) listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`
+        message: `Soap Central System Server (Charging Stations) listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`
       });
-      console.log(`Central System Server (Charging Stations) listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`);
+      console.log(`Soap Central System Server (Charging Stations) listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`);
     });
   }
 }

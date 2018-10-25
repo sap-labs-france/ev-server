@@ -104,6 +104,8 @@ module.exports = {
 	METER_VALUE_CTX_SAMPLE_PERIODIC: 'Sample.Periodic',
 	METER_VALUE_CTX_SAMPLE_CLOCK: 'Sample.Clock',
 
+  WS_UNSUPPORTED_DATA: 1007,
+
 	OCPP_SOCKET_TIMEOUT: 30000, // 30 sec
 	OCPP_JSON_CALL_MESSAGE: 2, // Client-to-Server
 	OCPP_JSON_CALL_RESULT_MESSAGE: 3, // Server-to-Client

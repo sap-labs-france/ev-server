@@ -12,21 +12,48 @@ const MODULE_NAME = "JsonWSConnection";
 class JsonWSConnection {
 
   constructor(socket, req, chargingStationConfig) {
+    this._url = req.url;
+    this._ip = req && ((req.connection && req.connection.remoteAddress) || req.headers['x-forwarded-for']);
     this._socket = socket;
     this._req = req;
     this._requests = {};
+    this.tenantName = null;
+    this.chargeBoxID = null;
 
-    // Get URL and IP
-    this._url = req && req.url;
-    this._ip = req && ((req.connection && req.connection.remoteAddress) || req.headers['x-forwarded-for']);
+    // Check URL: remove starting and trailing '/'
+    if (this._url.endsWith('/')) {
+      // Remove '/'
+      this._url = this._url.substring(0, this._url.length - 1);
+    }
+    if (this._url.startsWith('/')) {
+      // Remove '/'
+      this._url = this._url.substring(1, this._url.length);
+    }
+    // Parse URL: should like /OCPP16/TENANTNAME/CHARGEBOXID
+    const splittedURL = this._url.split("/");
+    console.log(splittedURL);
+    // URL with 4 parts?
+    if (splittedURL.length === 3) {
+      // Yes: Tenant is then provided in the third part
+      this.tenantName = splittedURL[1];
+      // The Charger is in the 4th position
+      this.chargeBoxID = splittedURL[2];
+    } else if (splittedURL.length === 2) {
+      // 3 parts: no Tenant provided, get the Charging Station
+      // Should not be supported when switched to tenant
+      this.chargeBoxID = splittedURL[1];
+    } else {
+      // Throw
+      throw new Error(`The URL '${req.url }' must contain the Charging Station ID (/OCPPxx/TENANT_NAME/CHARGEBOX_ID)`);
+    }
     // Log
     Logging.logInfo({
       module: MODULE_NAME,
+      source: this.chargeBoxID,
       method: "constructor",
-      action: "Connection",
+      action: "WSConnection",
       message: `New connection from '${this._ip}', Protocol '${socket.protocol}', URL '${this._url}'`
     });
-
     // Check Protocol (required field of OCPP spec)
     switch (this._socket.protocol) {
       // OCPP 1.6?
@@ -40,13 +67,11 @@ class JsonWSConnection {
       default:
         throw new Error(`Protocol ${this._socket.protocol} not supported`);
     }
-
     // Handle incoming messages
     socket.on('message', (msg) => {
       // Forward
       this.onMessage(msg);
     });
-
     // Handle Error on Socket
     socket.on('error', (error) => {
       // Log
@@ -57,18 +82,15 @@ class JsonWSConnection {
         message: error
       });
     });
-
     // Handle Socket close
     socket.on('close', (code, reason) => {
       // Log
-      Logging.logWarning({
+      Logging.logInfo({
         module: MODULE_NAME,
+        source: (this.chargeBoxID ? this.chargeBoxID : ""),
         method: "OnClose",
-        action: "ConnectionClose",
-        message: JSON.stringify({
-          code: code,
-          reason: reason
-        }, null, " ")
+        action: "WSConnectionClose",
+        message: `Connection has been closed, Reason '${reason}', Code '${code}'`
       });
       // Close the connection
       global.centralSystemJson.closeConnection(this.getChargeBoxID());
@@ -80,43 +102,29 @@ class JsonWSConnection {
     if (this.hasOwnProperty('_headers')) {
       throw new Error(`Has already been initialized`);
     }
-    // Fill in standard JSON object for communication with central server
-    // Determine tenant
-    let tenantName = "";
-    let chargeBoxID = "";
-    // URL should like /OCPP16/TENANTNAME/CHARGEBOXID
-    const splittedURL = this._url.split("/");
-    // URL with 4 parts?
-    if (splittedURL.length === 4) {
-      // Yes: Tenant is then provided in the third part
-      tenantName = splittedURL[2];
+    // Check Tenant?
+    if (this.tenantName) {
       // Check if the Tenant exists
-      const checkTenant = await Tenant.getTenantByName(tenantName);
+      const tenant = await Tenant.getTenantByName(this.tenantName);
       // Found?
-      if (checkTenant === null) {
+      if (!tenant) {
         // No: It is not allowed to connect with an unknown tenant
         Logging.logError({
           source: splittedURL[3],
           module: MODULE_NAME,
           method: "initialize",
-          action: "RegiterWSConnection",
+          action: "WSRegiterConnection",
           message: `Invalid Tenant in URL ${this._url}`
         });
         // Throw
-        throw new Error(`Invalid tenant URL ${this._url}`);
+        throw new Error(`Invalid Tenant '${this.tenantName}' in URL '${this._url}'`);
       }
-      // The Charger is in the 4th position
-      chargeBoxID = splittedURL[3];
-    } else {
-      // 3 parts: no Tenant provided, get the Charging Station
-      // Should not be supported when switched to tenant
-      chargeBoxID = splittedURL[2];
     }
     // Initialize the default Headers
     this._headers = {
-      chargeBoxIdentity: chargeBoxID,
+      chargeBoxIdentity: this.chargeBoxID,
       ocppVersion: (this._socket.protocol.startsWith("ocpp") ? this._socket.protocol.replace("ocpp", "") : this._socket.protocol),
-      tenant: tenantName,
+      tenant: this.tenantName,
       From: {
         Address: this._ip
       }
@@ -160,7 +168,7 @@ class JsonWSConnection {
           Logging.logError({
             module: MODULE_NAME,
             method: "sendMessage",
-            action: "ErrorMessage",
+            action: "WSError",
             message: {
               message: messageId,
               error: JSON.stringify(message, null, " ")
