@@ -67,11 +67,9 @@ class ChargingStationService16 extends ChargingStationService {
       await updatedChargingStation.handleBootNotification(payload);
       // Return the result
       return {
-        'bootNotificationResponse': {
-          'status': 'Accepted',
-          'currentTime': new Date().toISOString(),
-          'heartbeatInterval': this._chargingStationConfig.heartbeatIntervalSecs
-        }
+        'currentTime': new Date().toISOString(),
+        'status': 'Accepted',
+        'heartbeatInterval': this._chargingStationConfig.heartbeatIntervalSecs
       };
     } catch (error) {
       // Set the source
@@ -80,11 +78,9 @@ class ChargingStationService16 extends ChargingStationService {
       Logging.logActionExceptionMessage('BootNotification', error);
       // Reject
       return {
-        'bootNotificationResponse': {
-          'status': 'Rejected',
-          'currentTime': new Date().toISOString(),
-          'heartbeatInterval': this._chargingStationConfig.heartbeatIntervalSecs
-        }
+        'status': 'Rejected',
+        'currentTime': new Date().toISOString(),
+        'heartbeatInterval': this._chargingStationConfig.heartbeatIntervalSecs
       };
     }
   }
@@ -99,9 +95,7 @@ class ChargingStationService16 extends ChargingStationService {
       await chargingStation.handleHeartBeat();
       // Return			
       return {
-        'heartbeatResponse': {
-          'currentTime': chargingStation.getLastHeartBeat().toISOString()
-        }
+        'currentTime': chargingStation.getLastHeartBeat().toISOString()
       };
     } catch (error) {
       // Set the source
@@ -110,9 +104,7 @@ class ChargingStationService16 extends ChargingStationService {
       Logging.logActionExceptionMessage('HeartBeat', error);
       // Send the response
       return {
-        'heartbeatResponse': {
-          'currentTime': new Date().toISOString()
-        }
+        'currentTime': new Date().toISOString()
       };
     }
   }
@@ -126,18 +118,14 @@ class ChargingStationService16 extends ChargingStationService {
       // Handle
       await chargingStation.handleStatusNotification(payload);
       // Respond
-      return {
-        'statusNotificationResponse': {}
-      };
+      return {};
     } catch (error) {
       // Set the source
       error.source = payload.chargeBoxIdentity;
       // Log error
       Logging.logActionExceptionMessage('StatusNotification', error);
       // Return
-      return {
-        'statusNotificationResponse': {}
-      };
+      return {};
     }
   }
 
@@ -150,18 +138,14 @@ class ChargingStationService16 extends ChargingStationService {
       // Save
       await chargingStation.handleMeterValues(payload);
       // Return
-      return {
-        'meterValuesResponse': {}
-      };
+      return {};
     } catch (error) {
       // Set the source
       error.source = payload.chargeBoxIdentity;
       // Log error
       Logging.logActionExceptionMessage('MeterValues', error);
       // Response
-      return {
-        'meterValuesResponse': {}
-      };
+      return {};
     }
   }
 
@@ -175,11 +159,7 @@ class ChargingStationService16 extends ChargingStationService {
       await chargingStation.handleAuthorize(payload);
       // Return
       return {
-        'authorizeResponse': {
-          'idTagInfo': {
-            'status': 'Accepted'
-          }
-        }
+        'status': 'Accepted'
       };
     } catch (error) {
       // Set the source
@@ -187,11 +167,7 @@ class ChargingStationService16 extends ChargingStationService {
       // Log error
       Logging.logActionExceptionMessage('Authorize', error);
       return {
-        'authorizeResponse': {
-          'idTagInfo': {
-            'status': 'Invalid'
-          }
-        }
+        'status': 'Invalid'
       };
     }
   }
@@ -205,17 +181,13 @@ class ChargingStationService16 extends ChargingStationService {
       // Save
       await chargingStation.handleDiagnosticsStatusNotification(payload);
       // Return
-      return {
-        'diagnosticsStatusNotificationResponse': {}
-      };
+      return {};
     } catch (error) {
       // Set the source
       error.source = payload.chargeBoxIdentity;
       // Log error
       Logging.logActionExceptionMessage('DiagnosticsStatusNotification', error);
-      return {
-        'diagnosticsStatusNotificationResponse': {}
-      };
+      return {};
     }
   }
 
@@ -228,15 +200,11 @@ class ChargingStationService16 extends ChargingStationService {
       // Save
       await chargingStation.handleFirmwareStatusNotification(payload);
       // Return
-      return {
-        'firmwareStatusNotificationResponse': {}
-      };
+      return {};
     } catch (error) {
       // Log error
       Logging.logActionExceptionMessage('FirmwareStatusNotification', error);
-      return {
-        'firmwareStatusNotificationResponse': {}
-      };
+      return {};
     }
   }
 
@@ -250,12 +218,8 @@ class ChargingStationService16 extends ChargingStationService {
       const transaction = await chargingStation.handleStartTransaction(payload);
       // Return
       return {
-        'startTransactionResponse': {
-          'transactionId': transaction.id,
-          'idTagInfo': {
-            'status': 'Accepted'
-          }
-        }
+        'transactionId': transaction.id,
+        'status': 'Accepted'
       };
     } catch (error) {
       // Set the source
@@ -263,12 +227,8 @@ class ChargingStationService16 extends ChargingStationService {
       // Log error
       Logging.logActionExceptionMessage('StartTransaction', error);
       return {
-        'startTransactionResponse': {
-          'transactionId': 0,
-          'idTagInfo': {
-            'status': 'Invalid'
-          }
-        }
+        'transactionId': 0,
+        'status': 'Invalid'
       };
     }
   }
@@ -283,9 +243,7 @@ class ChargingStationService16 extends ChargingStationService {
       await chargingStation.handleDataTransfer(payload);
       // Return
       return {
-        'dataTransferResponse': {
-          'status': 'Accepted'
-        }
+        'status': 'Accepted'
       };
     } catch (error) {
       // Set the source
@@ -293,9 +251,7 @@ class ChargingStationService16 extends ChargingStationService {
       // Log error
       Logging.logActionExceptionMessage('DataTransfer', error);
       return {
-        'dataTransferResponse': {
-          'status': 'Rejected'
-        }
+        'status': 'Rejected'
       };
     }
   }
@@ -310,11 +266,7 @@ class ChargingStationService16 extends ChargingStationService {
       await chargingStation.handleStopTransaction(payload);
       // Success
       return {
-        'stopTransactionResponse': {
-          'idTagInfo': {
-            'status': 'Accepted'
-          }
-        }
+        'status': 'Accepted'
       };
     } catch (error) {
       // Set the source
@@ -323,11 +275,7 @@ class ChargingStationService16 extends ChargingStationService {
       Logging.logActionExceptionMessage('StopTransaction', error);
       // Error
       return {
-        'stopTransactionResponse': {
-          'idTagInfo': {
-            'status': 'Invalid'
-          }
-        }
+        'status': 'Invalid'
       };
     }
   }
