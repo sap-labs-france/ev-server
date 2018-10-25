@@ -31,7 +31,6 @@ class JsonWSConnection {
     }
     // Parse URL: should like /OCPP16/TENANTNAME/CHARGEBOXID
     const splittedURL = this._url.split("/");
-    console.log(splittedURL);
     // URL with 4 parts?
     if (splittedURL.length === 3) {
       // Yes: Tenant is then provided in the third part
@@ -132,24 +131,25 @@ class JsonWSConnection {
   }
 
   async onMessage(message) {
-    let messageType, messageId, commandNameOrPayload, commandPayload, errorDetails;
+    let messageType, messageId, commandName, commandPayload, errorDetails;
+    console.log(message);
 
     try {
       // Parse the message
-      [messageType, messageId, commandNameOrPayload, commandPayload, errorDetails] = JSON.parse(message);
+      [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(message);
       // Check the Type of message
       switch (messageType) {
         // Incoming Message
         case Constants.OCPP_JSON_CALL_MESSAGE:
           // Log 
-          Logging.logReceivedAction(MODULE_NAME, this._headers.chargeBoxIdentity, commandNameOrPayload, message, this._headers);
+          Logging.logReceivedAction(MODULE_NAME, this._headers.chargeBoxIdentity, commandName, message, this._headers);
           // Process the call
-          await this.handleRequest(messageId, commandNameOrPayload, commandPayload);
+          await this.handleRequest(messageId, commandName, commandPayload);
           break;
         // Outcome Message
         case Constants.OCPP_JSON_CALL_RESULT_MESSAGE:
           // Log
-          Logging.logReturnedAction(MODULE_NAME, this._headers.chargeBoxIdentity, commandNameOrPayload, {
+          Logging.logReturnedAction(MODULE_NAME, this._headers.chargeBoxIdentity, commandName, {
             "result": message
           });
           // Respond
@@ -160,7 +160,7 @@ class JsonWSConnection {
           }
           delete this._requests[messageId];
 
-          responseCallback(commandNameOrPayload);
+          responseCallback(commandName);
           break;
         // Error Message
         case Constants.OCPP_JSON_CALL_ERROR_MESSAGE:
@@ -181,7 +181,7 @@ class JsonWSConnection {
           const [, rejectCallback] = this._requests[messageId];
           delete this._requests[messageId];
 
-          rejectCallback(new OCPPError(commandNameOrPayload, commandPayload, errorDetails));
+          rejectCallback(new OCPPError(commandName, commandPayload, errorDetails));
           break;
         // Error
         default:
@@ -189,25 +189,25 @@ class JsonWSConnection {
       }
     } catch (error) {
       // Log
-      Logging.logException(error, "", headers.chargeBoxIdentity, JsonWSConnection, "onMessage");
+      Logging.logException(error, "", this._headers.chargeBoxIdentity, MODULE_NAME, "onMessage");
     }
   }
 
-  async handleRequest(messageId, commandNameOrPayload, commandPayload) {
+  async handleRequest(messageId, commandName, commandPayload) {
     try {
       // Check if method exist in the service
-      if (typeof this._chargingStationService["handle" + commandNameOrPayload] === 'function') {
+      if (typeof this._chargingStationService["handle" + commandName] === 'function') {
         // Call it
-        let result = await this._chargingStationService["handle" + commandNameOrPayload](Object.assign(commandPayload, this._wsConnection._headers));
+        let result = await this._chargingStationService["handle" + commandName](Object.assign(commandPayload, this._wsConnection._headers));
         // Log
-        Logging.logReturnedAction(MODULE_NAME, this.getChargeBoxID(), commandNameOrPayload, {
+        Logging.logReturnedAction(MODULE_NAME, this.getChargeBoxID(), commandName, {
           "result": result
         });
         // Send Response
         await this.sendMessage(messageId, result, Constants.OCPP_JSON_CALL_RESULT_MESSAGE);
       } else {
         // Throw Exception
-        throw new OCPPError(Constants.OCPP_ERROR_NOT_IMPLEMENTED, `The OCPP method 'handle${commandNameOrPayload}' has not been implemented`);
+        throw new OCPPError(Constants.OCPP_ERROR_NOT_IMPLEMENTED, `The OCPP method 'handle${commandName}' has not been implemented`);
       }
     } catch (error) {
       // Log error
