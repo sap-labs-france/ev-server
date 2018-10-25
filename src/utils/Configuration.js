@@ -128,6 +128,12 @@ class Configuration {
 		// Read conf
 		return Configuration.getConfig().ChargingStation;
 	}
+
+	// Logging
+	static getLoggingConfig() {
+		// Read conf
+		return Configuration.getConfig().Logging;
+	}
 }
 
 module.exports=Configuration;

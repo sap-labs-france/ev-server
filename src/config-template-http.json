@@ -103,5 +103,19 @@
 				}
 			}
 		]
+  },
+  "Logging": {
+    "logLevel": "D",
+    "consoleLogLevel": "NONE",
+    "moduleDetails": {
+      "ChargingStation": {
+        "logLevel": "DEFAULT",
+        "consoleLogLevel": "DEFAULT"
+      },
+      "Authorizations": {
+        "logLevel": "DEFAULT",
+        "consoleLogLevel": "DEFAULT"
+      }
+    }
 	}
 }
