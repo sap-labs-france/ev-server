@@ -1,5 +1,4 @@
 const Logging = require('../../utils/Logging');
-const Constants = require('../../utils/Constants');
 const MongoClient = require('mongodb').MongoClient;
 const mongoUriBuilder = require('mongo-uri-builder');
 const urlencode = require('urlencode');
@@ -8,6 +7,7 @@ const MongoDBStorageNotification = require('./MongoDBStorageNotification');
 require('source-map-support').install();
 
 const FIXED_COLLECTION = ['tenants'];
+let masterTenantID;
 
 class MongoDBStorage {
 
@@ -22,8 +22,11 @@ class MongoDBStorage {
   }
 
   static getCollectionName(tenantID, collectionName){
-    if (!tenantID || FIXED_COLLECTION.includes(collectionName)) {
+    if (FIXED_COLLECTION.includes(collectionName)) {
       return collectionName;
+    }
+    if (!tenantID) {
+      tenantID = masterTenantID;
     }
     return `${tenantID}.${collectionName}`;
   }
@@ -99,7 +102,7 @@ class MongoDBStorage {
 
   async checkDatabaseDefaultContent(){
     // Tenant
-    const tenantsMDB = await this._db.collection('tenants').find({subdomain: Constants.DEFAULT_TENANT}).toArray();
+    const tenantsMDB = await this._db.collection('tenants').find({masterTenant: true}).toArray();
     // Found?
     if (tenantsMDB.length === 0) {
       // No: Create it
@@ -107,24 +110,26 @@ class MongoDBStorage {
         {
           "createdOn": new Date(),
           "name": "Master Tenant",
-          "subdomain": ""
+          "subdomain": "",
+          "masterTenant": true
         }
       );
-      const tenantID = result.insertedId;
-      // Migrate not prefixed collections
-      const collections = await this._db.listCollections().toArray();
-
-      for (const collection of collections) {
-        if (!FIXED_COLLECTION.includes(collection.name) && !collection.name.includes('.')) {
-          await this._db.collection(collection.name).rename(MongoDBStorage.getCollectionName(tenantID, collection.name));
-        }
-      }
-
-      // Create missing collections if required
-      await this.createTenantDatabase(tenantID);
+      masterTenantID = result.insertedId;
     } else {
-      await this.createTenantDatabase(tenantsMDB[0]._id);
+      masterTenantID = tenantsMDB[0]._id;
     }
+
+    // Migrate not prefixed collections
+    const collections = await this._db.listCollections().toArray();
+
+    for (const collection of collections) {
+      if (!FIXED_COLLECTION.includes(collection.name) && !collection.name.includes('.')) {
+        await this._db.collection(collection.name).rename(MongoDBStorage.getCollectionName(masterTenantID, collection.name));
+      }
+    }
+
+    // Create missing collections if required
+    await this.createTenantDatabase(masterTenantID);
   }
 
   async checkDatabase(){
@@ -132,7 +137,7 @@ class MongoDBStorage {
     const collections = await this._db.listCollections().toArray();
     // Check only collections with indexes
     // Tenants
-    await this.checkAndCreateCollection(collections, Constants.DEFAULT_TENANT, 'tenants', [
+    await this.checkAndCreateCollection(collections, null, 'tenants', [
       {fields: {subdomain: 1}, options: {unique: true}},
       {fields: {name: 1}, options: {unique: true}}
     ]);

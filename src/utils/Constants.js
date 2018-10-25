@@ -92,7 +92,6 @@ module.exports = {
 	PWD_SPECIAL_CHAR_RE: /([!#\$%\^&\*\.\?\-])/g,
 
 	DEFAULT_LOCALE: 'en_US',
-	DEFAULT_TENANT: '',
 
 	ANONIMIZED_VALUE: '####',
 

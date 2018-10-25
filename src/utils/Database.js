@@ -344,6 +344,11 @@ class Database {
 		dest.name = src.name;
 		dest.subdomain = src.subdomain;
 		dest.email = src.email;
+		if (src.masterTenant) {
+			dest.masterTenant = true;
+		} else {
+			dest.masterTenant = false;
+		}
 		Database.updateCreatedAndLastChanged(src, dest);
 	}
 

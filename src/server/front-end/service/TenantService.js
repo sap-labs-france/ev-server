@@ -48,6 +48,12 @@ class TenantService extends AbstractService {
           tenant.getID(),
           req.user);
       }
+      if (tenant.isMasterTenant()) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The master tenant with ID '${filteredRequest.ID}' cannot be deleted`, 550,
+          MODULE_NAME, 'handleDeleteTenant', req.user);
+      }
       // Delete
       await tenant.delete();
       // Log
