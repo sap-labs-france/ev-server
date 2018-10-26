@@ -1,6 +1,6 @@
 const soap = require('strong-soap').soap;
-const OCPPService = require('./OCPPService');
-const config = require('../../config');
+const OCPPService = require('../OCPPService');
+const config = require('../../../config');
 
 class OCPPSoapService15 extends OCPPService {
   constructor(serverUrl) {
@@ -9,63 +9,63 @@ class OCPPSoapService15 extends OCPPService {
     this.client = null;
   }
 
-  executeAuthorize(chargeBoxIdentity, data) {
+  executeAuthorize(chargeBoxIdentity, payload) {
     return this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'Authorize', data)
+      this._buildSOAPRequest(chargeBoxIdentity, 'Authorize', payload)
     );
   }
 
-  executeStartTransaction(chargeBoxIdentity, data) {
+  executeStartTransaction(chargeBoxIdentity, payload) {
     return this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'StartTransaction', data)
+      this._buildSOAPRequest(chargeBoxIdentity, 'StartTransaction', payload)
     );
   }
 
-  executeStopTransaction(chargeBoxIdentity, data) {
+  executeStopTransaction(chargeBoxIdentity, payload) {
     return this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'StopTransaction', data)
+      this._buildSOAPRequest(chargeBoxIdentity, 'StopTransaction', payload)
     );
   }
 
-  executeHeartbeat(chargeBoxIdentity, data) {
+  executeHeartbeat(chargeBoxIdentity, payload) {
     return this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'Heartbeat', data)
+      this._buildSOAPRequest(chargeBoxIdentity, 'Heartbeat', payload)
     );
   }
 
-  executeMeterValues(chargeBoxIdentity, data) {
+  executeMeterValues(chargeBoxIdentity, payload) {
     return this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'MeterValues', data)
+      this._buildSOAPRequest(chargeBoxIdentity, 'MeterValues', payload)
     );
   }
 
-  executeBootNotification(chargeBoxIdentity, data) {
+  executeBootNotification(chargeBoxIdentity, payload) {
     return this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'BootNotification', data)
+      this._buildSOAPRequest(chargeBoxIdentity, 'BootNotification', payload)
     );
   }
 
-  executeStatusNotification(chargeBoxIdentity, data) {
+  executeStatusNotification(chargeBoxIdentity, payload) {
     return this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'StatusNotification', data)
+      this._buildSOAPRequest(chargeBoxIdentity, 'StatusNotification', payload)
     );
   }
 
-  executeFirmwareStatusNotification(chargeBoxIdentity, data) {
+  executeFirmwareStatusNotification(chargeBoxIdentity, payload) {
     return this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'FirmwareStatusNotification', data)
+      this._buildSOAPRequest(chargeBoxIdentity, 'FirmwareStatusNotification', payload)
     );
   }
 
-  executeDiagnosticsStatusNotification(chargeBoxIdentity, data) {
+  executeDiagnosticsStatusNotification(chargeBoxIdentity, payload) {
     return this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'DiagnosticsStatusNotification', data)
+      this._buildSOAPRequest(chargeBoxIdentity, 'DiagnosticsStatusNotification', payload)
     );
   }
 
-  executeDataTransfer(chargeBoxIdentity, data) {
+  executeDataTransfer(chargeBoxIdentity, payload) {
     return this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'DataTransfer', data)
+      this._buildSOAPRequest(chargeBoxIdentity, 'DataTransfer', payload)
     );
   }
 
@@ -83,11 +83,11 @@ class OCPPSoapService15 extends OCPPService {
     this.client.clearSoapHeaders();
     this.client.addSoapHeader(request.headers);
     // Build the SOAP Request
-    const data = {};
-    data[this._getRequestNameFromAction(request.name)] = request.data;
+    const payload = {};
+    payload[this._getRequestNameFromAction(request.name)] = request.data;
     try {
       // Execute it
-      const { result, envelope, soapHeader } = await this.service[request.name](data);
+      const { result, envelope, soapHeader } = await this.service[request.name](payload);
       // Log
       if (config.get('ocpp.logs') === 'xml') {
         console.log('<!-- Request -->');
@@ -116,7 +116,7 @@ class OCPPSoapService15 extends OCPPService {
     }
   }
 
-  _buildSOAPRequest(chargeBoxIdentity, action, data) {
+  _buildSOAPRequest(chargeBoxIdentity, action, payload) {
     return {
       name: action,
       headers: {
@@ -129,7 +129,7 @@ class OCPPSoapService15 extends OCPPService {
           "Address": "http://www.w3.org/2005/08/addressing/anonymous"
         }
       },
-      data
+      data: payload
     }
   }
 
@@ -145,7 +145,7 @@ class OCPPSoapService15 extends OCPPService {
       // Create the Promise
       this.client = await new Promise(function (resolve, reject) {
         // Create the client
-        soap.createClient('test/api/soap/OCPPCentralSystemService1.5.wsdl', options, (err, client) => {
+        soap.createClient('test/api/ocpp/soap/OCPPCentralSystemService1.5.wsdl', options, (err, client) => {
           if (err) {
             reject(err);
           } else {
