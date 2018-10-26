@@ -56,6 +56,9 @@ class TenantService extends AbstractService {
       }
       // Delete
       await tenant.delete();
+      if (filteredRequest.forced) {
+        await tenant.deleteEnvironment();
+      }
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,

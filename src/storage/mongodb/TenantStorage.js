@@ -182,6 +182,10 @@ class TenantStorage {
         '_id': Utils.convertToObjectID(id)
       });
   }
+
+  static async deleteTenantDB(id){
+    await global.database.deleteTenantDatabase(id);
+  }
 }
 
 module.exports = TenantStorage;

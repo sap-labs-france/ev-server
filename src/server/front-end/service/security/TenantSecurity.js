@@ -8,6 +8,7 @@ class TenantSecurity {
     const filteredRequest = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
+    filteredRequest.forced = sanitize(request.forced);
     return filteredRequest;
   }
 

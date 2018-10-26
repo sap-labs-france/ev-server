@@ -100,6 +100,27 @@ class MongoDBStorage {
     ]);
   }
 
+  async deleteTenantDatabase(tenantID){
+    if (tenantID === masterTenantID) {
+      Logging.logError({tenantID: masterTenantID,
+        module: 'MongoDBStorage', method: 'deleteTenantDatabase',
+        message: `The master tenant cannot be deleted`
+      });
+    } else {
+      Logging.logWarning({tenantID: masterTenantID,
+        module: 'MongoDBStorage', method: 'deleteTenantDatabase',
+        message: `Deleting collections for tenant ${tenantID}`
+      });
+    }
+    const collections = await this._db.listCollections().toArray();
+
+    for (const collection of collections) {
+      if (collection.name.startsWith(`${tenantID}.`)) {
+        await this._db.collection(collection.name).drop();
+      }
+    }
+  }
+
   async checkDatabaseDefaultContent(){
     // Tenant
     const tenantsMDB = await this._db.collection('tenants').find({masterTenant: true}).toArray();

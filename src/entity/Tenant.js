@@ -106,6 +106,10 @@ class Tenant {
     await tenantUser.save();
   }
 
+  async deleteEnvironment(){
+    await TenantStorage.deleteTenantDB(this.getID());
+  }
+
   delete(){
     return TenantStorage.deleteTenant(this.getID());
   }
