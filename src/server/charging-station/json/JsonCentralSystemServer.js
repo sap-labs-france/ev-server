@@ -2,124 +2,126 @@ const fs = require('fs');
 const WebSocket = require('ws');
 const https = require('https');
 const http = require('http');
-const CentralSystemServer = require('../CentralSystemServer');
 const Logging = require('../../../utils/Logging');
-const JsonWSClientConnection = require ('./JsonWSClientConnection');
+const Constants = require('../../../utils/Constants');
+const JsonWSConnection = require('./JsonWSConnection');
+const CentralSystemServer = require('../CentralSystemServer');
 
-let _centralSystemConfig;
-let _chargingStationConfig;
-
-//const debug = (message) => { console.log(message); };
-
+const MODULE_NAME = "JsonCentralSystemServer";
 class JsonCentralSystemServer extends CentralSystemServer {
-    
 
-    constructor(centralSystemConfig, chargingStationConfig) {
-		// Call parent
-		super(centralSystemConfig, chargingStationConfig);
+  constructor(centralSystemConfig, chargingStationConfig) {
+    // Call parent
+    super(centralSystemConfig, chargingStationConfig);
+    // Keep local
+    this._jsonClients = [];
+  }
 
-		// Keep local
-		_centralSystemConfig = centralSystemConfig;
-        _chargingStationConfig = chargingStationConfig;
-        this._jsonClients = [];
-    }   
-    
-    start(){
-        let server;
-        global.centralSystemJson = this;
-        if (_centralSystemConfig.protocol === "wss") {
-			// Create the options
-			let options = {};
-			// Set the keys
-			options.key = fs.readFileSync(_centralSystemConfig["ssl-key"]);
-            options.cert = fs.readFileSync(_centralSystemConfig["ssl-cert"]);
-            Logging.logDebug({
-                module: "JsonCentralSystemServer", method: "start", action: "",
-                message: `Starting JSON HTTPS Server`
-            });
-			// Https server
-			server = https.createServer(options, (req, res) => {
-                res.writeHead(200);
-                res.end('No support\n');
-            });
-		} else {
-//            debug("JSON: Starting HTTP server");
-            Logging.logDebug({
-                module: "JsonCentralSystemServer", method: "start", action: "",
-                message: `Starting JSON HTTP Server`
-            });
-			// Http server
-			server = http.createServer((req, res) => {
-                res.writeHead(200);
-                res.end('No support\n');
-            });
-		}
+  start() {
+    let server;
+    // Log
+    console.log(`Starting JSon Central System Server (Charging Stations)...`);
+    // Keep it global
+    global.centralSystemJson = this;
+    // Create HTTP server
+    // Secured protocol?
+    if (this._centralSystemConfig.protocol === "wss") {
+      // Create the options
+      const options = {};
+      // Set the keys
+      options.key = fs.readFileSync(this._centralSystemConfig["ssl-key"]);
+      options.cert = fs.readFileSync(this._centralSystemConfig["ssl-cert"]);
+      // Https server
+      server = https.createServer(options, (req, res) => {
+        res.writeHead(200);
+        res.end('No support\n');
+      });
+    } else {
+      // Http server
+      server = http.createServer((req, res) => {
+        res.writeHead(200);
+        res.end('No support\n');
+      });
+    }
 
-        var verifyClient = function(info) {
-//            debug("Verify connection : ", info.origin, info.req, info.secure);
-            if (info.req.url.startsWith("/OCPP16/") === false) {
-                Logging.logError({
-                    module: "JsonCentralSystemServer", method: "verifyClient", action: "connection",
-                    message: `Invalid connection URL ${info.req} from ${info.origin}`
-                });              
-                return false;
-            }
-/*            if (info.req.headers["sec-websocket-protocol"] !== "ocpp1.6") {
-                return false;
-            }*/
-            return true;
+    const verifyClient = (info) => {
+      // Check the URI
+      if (!info.req.url.startsWith("/OCPP16")) {
+        Logging.logError({
+          module: MODULE_NAME,
+          method: "verifyClient",
+          action: "Connection",
+          message: `Invalid connection URL ${info.req} from ${info.origin}`
+        });
+        return false;
+      }
+      return true;
+    }
+    // Create the Web Socket Server
+    this._wss = new WebSocket.Server({
+      server: server,
+      verifyClient: verifyClient,
+      handleProtocols: (protocols, request) => {
+        // Check the protocols
+        // Ensure protocol used as ocpp1.6 or nothing (should create an error)
+        if (Array.isArray(protocols)) {
+          return (protocols.indexOf("ocpp1.6") >= 0 ? protocols[protocols.indexOf("ocpp1.6")] : false);
+        } else if (protocols === "ocpp1.6") {
+          return protocols;
+        } else {
+          return false;
         }
+      }
+    });
+    // Listen to new connections
+    this._wss.on('connection', async (ws, req) => {
+      try {
+        // Create a Web Socket connection object
+        const wsConnection = new JsonWSConnection(ws, req, this._chargingStationConfig);
+        // Initialize        
+        await wsConnection.initialize();
+        // Store the WS manager linked to its ChargeBoxId
+        if (wsConnection.getChargeBoxID()) {
+          // Keep the connection
+          this._jsonClients[wsConnection.getChargeBoxID()] = wsConnection;
+        }
+      } catch (error) {
+        // Log
+        Logging.logException(error, "Connection", "", MODULE_NAME, "connection");
+        // Respond
+        ws.close(Constants.WS_UNSUPPORTED_DATA, error.message);
+      }
+    });
 
-        this._wss = new WebSocket.Server({
-            server: server,
-            verifyClient: verifyClient,
-            handleProtocols: (protocols, request) => {
-// Ensure protocol used as ocpp1.6 or nothing (should create an error)
-                if (Array.isArray(protocols)) {
-                    return (protocols.indexOf("ocpp1.6") >= 0 ?  protocols[protocols.indexOf("ocpp1.6")] : false);
-                } else if (protocols === "ocpp1.6") {
-                    return protocols;
-                } else {
-                    return false;
-                }
-            }
-        });
+    server.listen(this._centralSystemConfig.port, this._centralSystemConfig.host, () => {
+      // Log
+      Logging.logInfo({
+        module: MODULE_NAME,
+        method: "start",
+        action: "Startup",
+        message: `Json Central System Server (Charging Stations) listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`
+      });
+      console.log(`Json Central System Server (Charging Stations) listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`);
+    });
+  }
 
-        this._wss.on('connection', (ws, req) => {
-//            debug(Date().toString() + ' ' + JSON.stringify(this._wss.clients));
-            try {
-// construct the WS manager
-                let connection = new JsonWSClientConnection(ws, req);
-// Store the WS manager linked to its ChargeBoxId
-                this._jsonClients[connection.getChargeBoxId()] = connection;
-            } catch (error) {
-                Logging.logError({
-                    module: "JsonCentralSystemServer", method: "onConnection", action: "socketError",
-                    message: `Connection Error ${error}`
-                });
-//                debug("On Connection error : " + error.message);
-                ws.close(1007, error.message);
-            }
-        });
-
-        server.listen(_centralSystemConfig.port, _centralSystemConfig.host, () => {
-            // Log
-            Logging.logInfo({
-                module: "JsonCentralSystemServer", method: "start", action: "Startup",
-                message: `JSON Central System Server (Charging Stations) listening on '${_centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`
-            });
-//            debug(`JSON Central System Server (Charging Stations) listening on '${_centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`);
-        });
-        
+  closeConnection(chargeBoxId) {
+    // Charging Station exists?
+    if (this._jsonClients[chargeBoxId]) {
+      // Remove from cache
+      delete this._jsonClients[chargeBoxId];
     }
+  }
 
-    closeConnection(chargeBoxId) {
-        delete this._jsonClients[chargeBoxId];
+  getChargingStationClient(chargeBoxId) {
+    // Charging Station exists?
+    if (this._jsonClients[chargeBoxId]) {
+      // Return from the cache
+      return this._jsonClients[chargeBoxId].getWSClient();
     }
-
-    getConnection(chargeBoxId) {
-        return this._jsonClients[chargeBoxId];
-    }
-
+    // Not found!
+    return null;
+  }
 }
+
 module.exports = JsonCentralSystemServer;

@@ -20,13 +20,13 @@ class SoapChargingStationClient extends ChargingStationClient {
 			switch(this.chargingStation.getOcppVersion()) {
 				// OCPP V1.2
 				case "1.2":
-					chargingStationWdsl = _wsdlEndpointConfig.baseUrl + '/wsdl/OCPP_ChargePointService1.2.wsdl';
+					chargingStationWdsl = _wsdlEndpointConfig.baseUrl + '/wsdl/OCPPChargePointService12.wsdl';
 					break;
 				case "1.5":
-					chargingStationWdsl = _wsdlEndpointConfig.baseUrl + '/wsdl/OCPP_ChargePointService1.5.wsdl';
+					chargingStationWdsl = _wsdlEndpointConfig.baseUrl + '/wsdl/OCPPChargePointService15.wsdl';
 					break;
 				case "1.6":
-					chargingStationWdsl = _wsdlEndpointConfig.baseUrl + '/wsdl/OCPP_ChargePointService1.6.wsdl';
+					chargingStationWdsl = _wsdlEndpointConfig.baseUrl + '/wsdl/OCPPChargePointService16.wsdl';
 					break;
 				default:
 					// Log

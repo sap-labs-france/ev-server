@@ -261,21 +261,9 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   async getChargingStationClient(){
-    // Already created?
-    if (!this._chargingStationClient) {
-      if (global.centralSystemJson) {
-        // Get the client from the JSon server first
-        this._chargingStationClient = await global.centralSystemJson.getConnection(this.getID());
-        if (!this._chargingStationClient) {
-          // Init SOAP client
-          this._chargingStationClient = await new SoapChargingStationClient(this);
-        }
-      } else {
-        // Init SOAP client
-        this._chargingStationClient = await new SoapChargingStationClient(this);
-      }
-
-    }
+		// Already created or it is a soap client
+    // Delegate responsibility to interface. It might be possibel that protocol changed
+		this._chargingStationClient = await ChargingStationClient.getChargingStationClient(this);
     return this._chargingStationClient;
   }
 

@@ -67,7 +67,8 @@ class OCPPBootstrap {
           userIDs: [context.newUser.id]
         }));
       expect(context.newSite).to.not.be.null;
-
+      
+      console.log("Boot notif");
       // Generate ID
       const chargingStationID = faker.random.alphaNumeric(12);
       // Create Charger Object
@@ -79,6 +80,7 @@ class OCPPBootstrap {
       expect(response).to.not.be.null;
       expect(response.data.status).to.eql('Accepted');
 
+      console.log("Status notif");
       // Send Status Notif for Connector A
       response = await this.ocpp.executeStatusNotification(chargingStationID, {
         connectorId: 1,

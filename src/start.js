@@ -61,7 +61,7 @@ class Bootstrap {
 				// Start
 				for (const centralSystemConfig of centralSystemsConfig) {
 					let centralSystemServer;
-					let centralSystemServerJson;
+					let centralWSSystemServer;
 					// Check implementation
 					switch (centralSystemConfig.implementation) {
 						// SOAP
@@ -73,9 +73,9 @@ class Bootstrap {
 							break;
 						case 'json':
 							// Create implementation
-							centralSystemServerJson = new JsonCentralSystemServer(centralSystemConfig, chargingStationConfig);
+							centralSystemServer = new JsonCentralSystemServer(centralSystemConfig, chargingStationConfig);
 							// Start
-							await centralSystemServerJson.start();
+							await centralSystemServer.start();
 							break;
 						// Not Found
 						default:
