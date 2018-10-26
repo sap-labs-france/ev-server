@@ -87,10 +87,7 @@ class ChargingStationService16 extends ChargingStationService {
 
   async handleHeartbeat(payload) {
     try {
-      // Get the charging station
-      const chargingStation = (payload.hasOwnProperty('tenant') ?
-        await ChargingStation.getChargingStation(payload.chargeBoxIdentity, payload.tenant) :
-        await ChargingStation.getChargingStation(payload.chargeBoxIdentity));
+      const chargingStation = await this._checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenant);
       // Save
       await chargingStation.handleHeartBeat();
       // Return			
@@ -111,10 +108,7 @@ class ChargingStationService16 extends ChargingStationService {
 
   async handleStatusNotification(payload) {
     try {
-      // Get the charging station
-      const chargingStation = (payload.hasOwnProperty('tenant') ?
-        await ChargingStation.getChargingStation(payload.chargeBoxIdentity, payload.tenant) :
-        await ChargingStation.getChargingStation(payload.chargeBoxIdentity));
+      const chargingStation = await this._checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenant);
       // Handle
       await chargingStation.handleStatusNotification(payload);
       // Respond
@@ -132,9 +126,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleMeterValues(payload) {
     try {
       // Get the charging station
-      const chargingStation = (payload.hasOwnProperty('tenant') ?
-        await ChargingStation.getChargingStation(payload.chargeBoxIdentity, payload.tenant) :
-        await ChargingStation.getChargingStation(payload.chargeBoxIdentity));
+      const chargingStation = await this._checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenant);
       // Save
       await chargingStation.handleMeterValues(payload);
       // Return
@@ -152,9 +144,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleAuthorize(payload) {
     try {
       // Get the charging station
-      const chargingStation = (payload.hasOwnProperty('tenant') ?
-        await ChargingStation.getChargingStation(payload.chargeBoxIdentity, payload.tenant) :
-        await ChargingStation.getChargingStation(payload.chargeBoxIdentity));
+      const chargingStation = await this._checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenant);
       // Handle
       await chargingStation.handleAuthorize(payload);
       // Return
@@ -166,6 +156,7 @@ class ChargingStationService16 extends ChargingStationService {
       error.source = payload.chargeBoxIdentity;
       // Log error
       Logging.logActionExceptionMessage('Authorize', error);
+      // Return
       return {
         'status': 'Invalid'
       };
@@ -175,9 +166,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleDiagnosticsStatusNotification(payload) {
     try {
       // Get the charging station
-      const chargingStation = (payload.hasOwnProperty('tenant') ?
-        await ChargingStation.getChargingStation(payload.chargeBoxIdentity, payload.tenant) :
-        await ChargingStation.getChargingStation(payload.chargeBoxIdentity));
+      const chargingStation = await this._checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenant);
       // Save
       await chargingStation.handleDiagnosticsStatusNotification(payload);
       // Return
@@ -194,9 +183,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleFirmwareStatusNotification(payload) {
     try {
       // Get the charging station
-      const chargingStation = (payload.hasOwnProperty('tenant') ?
-        await ChargingStation.getChargingStation(payload.chargeBoxIdentity, payload.tenant) :
-        await ChargingStation.getChargingStation(payload.chargeBoxIdentity));
+      const chargingStation = await this._checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenant);
       // Save
       await chargingStation.handleFirmwareStatusNotification(payload);
       // Return
@@ -211,9 +198,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleStartTransaction(payload) {
     try {
       // Get the charging station
-      const chargingStation = (payload.hasOwnProperty('tenant') ?
-        await ChargingStation.getChargingStation(payload.chargeBoxIdentity, payload.tenant) :
-        await ChargingStation.getChargingStation(payload.chargeBoxIdentity));
+      const chargingStation = await this._checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenant);
       // Save
       const transaction = await chargingStation.handleStartTransaction(payload);
       // Return
@@ -236,9 +221,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleDataTransfer(payload) {
     try {
       // Get the charging station
-      const chargingStation = (payload.hasOwnProperty('tenant') ?
-        await ChargingStation.getChargingStation(payload.chargeBoxIdentity, payload.tenant) :
-        await ChargingStation.getChargingStation(payload.chargeBoxIdentity));
+      const chargingStation = await this._checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenant);
       // Save
       await chargingStation.handleDataTransfer(payload);
       // Return
@@ -259,9 +242,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleStopTransaction(payload) {
     try {
       // Get the charging station
-      const chargingStation = (payload.hasOwnProperty('tenant') ?
-        await ChargingStation.getChargingStation(payload.chargeBoxIdentity, payload.tenant) :
-        await ChargingStation.getChargingStation(payload.chargeBoxIdentity));
+      const chargingStation = await this._checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenant);
       // Handle
       await chargingStation.handleStopTransaction(payload);
       // Success

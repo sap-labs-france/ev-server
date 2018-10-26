@@ -15,8 +15,10 @@ class JsonChargingStationService16 {
     try {
       // Log
       Logging.logReceivedAction(MODULE_NAME, payload.chargeBoxIdentity, command, payload);
+      // Get the service
+      const chargingStationService = global.centralSystemJson.getChargingStationService(Constants.OCPP_VERSION_16)
       // Handle
-      const result = await global.centralSystemJson.getChargingStationService(Constants.OCPP_VERSION_16).handleAuthorize(payload);
+      const result = await chargingStationService["handle" + command](payload);
       // Log
       Logging.logReturnedAction(MODULE_NAME, payload.chargeBoxIdentity, command, {
         "result": result
