@@ -87,12 +87,13 @@ class JsonCentralSystemServer extends CentralSystemServer {
         }
       } catch (error) {
         // Log
-        Logging.logException(error, "Connection", "", MODULE_NAME, "connection");
+        Logging.logException(error, "WSConnection", "", MODULE_NAME, "connection");
         // Respond
         ws.close(Constants.WS_UNSUPPORTED_DATA, error.message);
       }
     });
 
+    // Start listening
     server.listen(this._centralSystemConfig.port, this._centralSystemConfig.host, () => {
       // Log
       Logging.logInfo({
@@ -105,7 +106,7 @@ class JsonCentralSystemServer extends CentralSystemServer {
     });
   }
 
-  closeConnection(chargeBoxId) {
+  removeConnection(chargeBoxId) {
     // Charging Station exists?
     if (this._jsonClients[chargeBoxId]) {
       // Remove from cache

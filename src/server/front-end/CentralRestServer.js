@@ -17,7 +17,7 @@ const Database = require('../../utils/Database');
 const Configuration = require('../../utils/Configuration');
 const Logging = require('../../utils/Logging');
 const Constants = require('../../utils/Constants');
-const ErrorHandler = require('../handler/ErrorHandler');
+const ErrorHandler = require('./ErrorHandler');
 require('source-map-support').install();
 
 let _centralSystemRestConfig;

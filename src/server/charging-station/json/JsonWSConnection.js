@@ -50,7 +50,7 @@ class JsonWSConnection {
       module: MODULE_NAME,
       source: this.chargeBoxID,
       method: "constructor",
-      action: "WSConnection",
+      action: "WSConnectionOpened",
       message: `New connection from '${this._ip}', Protocol '${socket.protocol}', URL '${this._url}'`
     });
     // Check Protocol (required field of OCPP spec)
@@ -92,7 +92,7 @@ class JsonWSConnection {
         message: `Connection has been closed, Reason '${reason}', Code '${code}'`
       });
       // Close the connection
-      global.centralSystemJson.closeConnection(this.getChargeBoxID());
+      global.centralSystemJson.removeConnection(this.getChargeBoxID());
     })
   }
 
@@ -132,7 +132,6 @@ class JsonWSConnection {
 
   async onMessage(message) {
     let messageType, messageId, commandName, commandPayload, errorDetails;
-
     try {
       // Parse the message
       [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(message);
@@ -257,7 +256,7 @@ class JsonWSConnection {
           break;
       }
       // Check if socket in ready
-      if (socket.readyState === 1) {
+      if (socket.readyState === WebSocket.OPEN) {
         // Yes: Send Message
         socket.send(messageToSend);
       } else {

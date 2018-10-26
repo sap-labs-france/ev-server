@@ -1,6 +1,5 @@
 const Logging = require('../../../../utils/Logging');
 const Constants = require('../../../../utils/Constants');
-const OCPPError = require('../../../../exception/OcppError');
 
 const MODULE_NAME = "JsonChargingStationService16";
 

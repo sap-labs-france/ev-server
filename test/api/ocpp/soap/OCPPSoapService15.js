@@ -69,14 +69,13 @@ class OCPPSoapService15 extends OCPPService {
     );
   }
 
-  async _execute(request, options) {
+  async _execute(request) {
     // Init Client (Done only once)
     await this._initSOAPClient();
     // Log
-    if (config.get('ocpp.logs') === 'json') {
+    if (config.get('ocpp.soap.logs') === 'json') {
       console.log(JSON.stringify({
-        request,
-        options
+        request
       }, null, 2));
     }
     // Init SOAP header
@@ -89,7 +88,7 @@ class OCPPSoapService15 extends OCPPService {
       // Execute it
       const { result, envelope, soapHeader } = await this.service[request.name](payload);
       // Log
-      if (config.get('ocpp.logs') === 'xml') {
+      if (config.get('ocpp.soap.logs') === 'xml') {
         console.log('<!-- Request -->');
         console.log(this.client.lastRequest);
         if (soapHeader) {
@@ -106,7 +105,7 @@ class OCPPSoapService15 extends OCPPService {
         data: result || {}
       };
       // Log Response
-      if (config.get('ocpp.logs') === 'json') {
+      if (config.get('ocpp.soap.logs') === 'json') {
         console.log(JSON.stringify(response, null, 2));
       }
       // Return response
