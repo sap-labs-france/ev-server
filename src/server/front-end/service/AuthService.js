@@ -175,6 +175,7 @@ class AuthService {
           if (moment(user.getPasswordBlockedUntil()).isBefore(moment())) {
             // Time elapsed: activate the account again
             Logging.logSecurityInfo({
+              tenantID: user.getTenantID(),
               actionOnUser: user.getModel(),
               module: 'AuthService', method: 'handleLogIn', action: action,
               message: `User has been unlocked and can try to login again`
@@ -279,7 +280,8 @@ class AuthService {
       newUser = await newUser.save();
       // Log
       Logging.logSecurityInfo({
-        user: req.user, action: action,
+        tenantID: newUser.getTenantID(),
+        user: newUser.getModel(), action: action,
         module: 'AuthService',
         method: 'handleRegisterUser',
         message: `User with Email '${req.body.email}' has been created successfully`,
@@ -351,7 +353,8 @@ class AuthService {
       const savedUser = await user.save();
       // Log
       Logging.logSecurityInfo({
-        user: req.user, action: action,
+        tenantID: savedUser.getTenantID(),
+        user: savedUser.getModel(), action: action,
         module: 'AuthService',
         method: 'handleUserPasswordReset',
         message: `User with Email '${req.body.email}' will receive an email to reset his password`
@@ -426,7 +429,8 @@ class AuthService {
       const newUser = await user.save();
       // Log
       Logging.logSecurityInfo({
-        user: req.user, action: action,
+        tenantID: newUser.getTenantID(),
+        user: newUser.getModel(), action: action,
         module: 'AuthService',
         method: 'handleUserPasswordReset',
         message: `User's password has been reset successfully`,
@@ -531,6 +535,7 @@ class AuthService {
       await user.save();
       // Log
       Logging.logSecurityInfo({
+        tenantID: user.getTenantID(),
         user: user.getModel(), action: action,
         module: 'AuthService', method: 'handleVerifyEmail',
         message: `User account has been successfully verified and activated`,
@@ -618,7 +623,8 @@ class AuthService {
       }
       // Log
       Logging.logSecurityInfo({
-        user: user,
+        tenantID: user.getTenantID(),
+        user: user.getModel(),
         action: action,
         module: 'AuthService',
         method: 'handleResendVerificationEmail',
@@ -690,6 +696,7 @@ class AuthService {
   static async userLoginSucceeded(action, user, req, res, next){
     // Password / Login OK
     Logging.logSecurityInfo({
+      tenantID: user.getTenantID(),
       user: user.getModel(),
       module: 'AuthService', method: 'checkUserLogin',
       action: action, message: `User logged in successfully`

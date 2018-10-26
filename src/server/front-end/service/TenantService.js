@@ -58,6 +58,7 @@ class TenantService extends AbstractService {
       await tenant.delete();
       // Log
       Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
         user: req.user,
         module: MODULE_NAME,
         method: 'handleDeleteTenant',
@@ -187,6 +188,7 @@ class TenantService extends AbstractService {
 
       // Log
       Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
         user: req.user,
         module: MODULE_NAME,
         method: 'handleCreateTenant',
@@ -236,6 +238,7 @@ class TenantService extends AbstractService {
       const updatedTenant = await tenant.save();
       // Log
       Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
         user: req.user,
         module: MODULE_NAME,
         method: 'handleUpdateTenant',
@@ -261,7 +264,7 @@ class TenantService extends AbstractService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Tenant with subdomain '${filteredRequest.subdomain}' does not exist`, 550,
+          `The Tenant with subdomain '${filteredRequest.tenant}' does not exist`, 550,
           MODULE_NAME, 'handleVerifyTenant', req.user);
       }
       res.status(HttpStatusCodes.OK).send({});

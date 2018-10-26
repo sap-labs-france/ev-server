@@ -46,6 +46,7 @@ class SiteService {
       await site.delete();
       // Log
       Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
         user: req.user, module: 'SiteService', method: 'handleDeleteSite',
         message: `Site '${site.getName()}' has been deleted successfully`,
         action: action, detailedMessages: site
@@ -252,6 +253,7 @@ class SiteService {
       await newSite.saveImage();
       // Log
       Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
         user: req.user, module: 'SiteService', method: 'handleCreateSite',
         message: `Site '${newSite.getName()}' has been created successfully`,
         action: action, detailedMessages: newSite
@@ -315,6 +317,7 @@ class SiteService {
       const updatedSite = await site.save();
       // Log
       Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
         user: req.user, module: 'SiteService', method: 'handleUpdateSite',
         message: `Site '${updatedSite.getName()}' has been updated successfully`,
         action: action, detailedMessages: updatedSite

@@ -16,7 +16,7 @@ class JsonWSConnection {
     this._socket = socket;
     this._req = req;
     this._requests = {};
-    this.tenantName = null;
+    this.tenantID = null;
     this.chargeBoxID = null;
 
     // Check URL: remove starting and trailing '/'
@@ -33,19 +33,16 @@ class JsonWSConnection {
     // URL with 4 parts?
     if (splittedURL.length === 3) {
       // Yes: Tenant is then provided in the third part
-      this.tenantName = splittedURL[1];
+      this.tenantID = splittedURL[1];
       // The Charger is in the 4th position
       this.chargeBoxID = splittedURL[2];
-    } else if (splittedURL.length === 2) {
-      // 3 parts: no Tenant provided, get the Charging Station
-      // Should not be supported when switched to tenant
-      this.chargeBoxID = splittedURL[1];
     } else {
       // Throw
-      throw new Error(`The URL '${req.url }' must contain the Charging Station ID (/OCPPxx/TENANT_NAME/CHARGEBOX_ID)`);
+      throw new Error(`The URL '${req.url }' must contain the Charging Station ID (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`);
     }
     // Log
     Logging.logInfo({
+      tenantID: this.tenantID,
       module: MODULE_NAME,
       source: this.chargeBoxID,
       method: "constructor",
@@ -74,6 +71,7 @@ class JsonWSConnection {
     socket.on('error', (error) => {
       // Log
       Logging.logError({
+        tenantID: this.tenantID,
         module: MODULE_NAME,
         method: "OnError",
         action: "WSErrorReceived",
@@ -84,6 +82,7 @@ class JsonWSConnection {
     socket.on('close', (code, reason) => {
       // Log
       Logging.logInfo({
+        tenantID: this.tenantID,
         module: MODULE_NAME,
         source: (this.chargeBoxID ? this.chargeBoxID : ""),
         method: "OnClose",
@@ -101,9 +100,9 @@ class JsonWSConnection {
       throw new Error(`Has already been initialized`);
     }
     // Check Tenant?
-    if (this.tenantName) {
+    if (this.tenantID) {
       // Check if the Tenant exists
-      const tenant = await Tenant.getTenantByName(this.tenantName);
+      const tenant = await Tenant.getTenant(this.tenantID);
       // Found?
       if (!tenant) {
         // No: It is not allowed to connect with an unknown tenant
@@ -115,14 +114,16 @@ class JsonWSConnection {
           message: `Invalid Tenant in URL ${this._url}`
         });
         // Throw
-        throw new Error(`Invalid Tenant '${this.tenantName}' in URL '${this._url}'`);
+        throw new Error(`Invalid Tenant '${this.tenantID}' in URL '${this._url}'`);
       }
+    } else {
+      throw new Error(`Invalid Tenant '${this.tenantID}' in URL '${this._url}'`);
     }
     // Initialize the default Headers
     this._headers = {
       chargeBoxIdentity: this.chargeBoxID,
       ocppVersion: (this._socket.protocol.startsWith("ocpp") ? this._socket.protocol.replace("ocpp", "") : this._socket.protocol),
-      tenant: this.tenantName,
+      tenantID: this.tenantID,
       From: {
         Address: this._ip
       }
@@ -141,14 +142,14 @@ class JsonWSConnection {
         // Incoming Message
         case Constants.OCPP_JSON_CALL_MESSAGE:
           // Log 
-          Logging.logReceivedAction(MODULE_NAME, this._headers.chargeBoxIdentity, commandName, message, this._headers);
+          Logging.logReceivedAction(MODULE_NAME, this.getTenantID(), this.getChargeBoxID(), commandName, message, this._headers);
           // Process the call
           await this.handleRequest(messageId, commandName, commandPayload);
           break;
         // Outcome Message
         case Constants.OCPP_JSON_CALL_RESULT_MESSAGE:
           // Log
-          Logging.logReturnedAction(MODULE_NAME, this._headers.chargeBoxIdentity, commandName, {
+          Logging.logReturnedAction(MODULE_NAME, this.getTenantID(), this.getChargeBoxID(), commandName, {
             "result": message
           });
           // Respond
@@ -165,6 +166,7 @@ class JsonWSConnection {
         case Constants.OCPP_JSON_CALL_ERROR_MESSAGE:
           // error response
           Logging.logError({
+            tenantID: this.getTenantID(),
             module: MODULE_NAME,
             method: "sendMessage",
             action: "WSError",
@@ -188,7 +190,7 @@ class JsonWSConnection {
       }
     } catch (error) {
       // Log
-      Logging.logException(error, "", this._headers.chargeBoxIdentity, MODULE_NAME, "onMessage");
+      Logging.logException(error, "", this.getChargeBoxID(), MODULE_NAME, "onMessage", this.getTenantID());
     }
   }
 
@@ -199,7 +201,7 @@ class JsonWSConnection {
         // Call it
         let result = await this._chargingStationService["handle" + commandName](Object.assign(commandPayload, this._wsConnection._headers));
         // Log
-        Logging.logReturnedAction(MODULE_NAME, this.getChargeBoxID(), commandName, {
+        Logging.logReturnedAction(MODULE_NAME, this.getTenantID(), this.getChargeBoxID(), commandName, {
           "result": result
         });
         // Send Response
@@ -210,7 +212,7 @@ class JsonWSConnection {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(commandPayload, error);
+      Logging.logActionExceptionMessage(this.getTenantID(), commandPayload, error);
       // Send error
       await this.sendError(messageId, error);
     }
@@ -293,6 +295,11 @@ class JsonWSConnection {
   getChargeBoxID() {
     if (this._headers && typeof this._headers === 'object' && this._headers.hasOwnProperty('chargeBoxIdentity'))
       return this._headers.chargeBoxIdentity;
+  }
+
+  getTenantID() {
+    if (this._headers && typeof this._headers === 'object' && this._headers.hasOwnProperty('tenantID'))
+      return this._headers.tenantID;
   }
 
   getWSClient() {

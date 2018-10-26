@@ -91,6 +91,7 @@ class UserService {
       await User.addSitesToUser(req.user.tenantID, filteredRequest.userID, filteredRequest.siteIDs);
       // Log
       Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
         user: req.user, module: 'UserService', method: 'handleAddSitesToUser',
         message: `User's Sites have been added successfully`, action: action
       });
@@ -165,6 +166,7 @@ class UserService {
       await User.removeSitesFromUser(req.user.tenantID, filteredRequest.userID, filteredRequest.siteIDs);
       // Log
       Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
         user: req.user, module: 'UserService', method: 'handleAddSitesToUser',
         message: `User's Sites have been removed successfully`, action: action
       });
@@ -227,6 +229,7 @@ class UserService {
       await user.delete();
       // Log
       Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
         user: req.user, actionOnUser: user.getModel(),
         module: 'UserService', method: 'handleDeleteUser',
         message: `User with ID '${user.getID()}' has been deleted successfully`,
@@ -307,6 +310,7 @@ class UserService {
       await user.saveImage();
       // Log
       Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
         user: req.user, actionOnUser: updatedUser.getModel(),
         module: 'UserService', method: 'handleUpdateUser',
         message: `User has been updated successfully`,
@@ -539,6 +543,7 @@ class UserService {
       await newUser.saveImage();
       // Log
       Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
         user: req.user, actionOnUser: newUser.getModel(),
         module: 'UserService', method: 'handleCreateUser',
         message: `User with ID '${newUser.getID()}' has been created successfully`,

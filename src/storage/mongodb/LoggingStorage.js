@@ -48,6 +48,7 @@ class LoggingStorage {
     // Check User
     logToSave.userID = Utils.convertUserToObjectID(logToSave.user);
     logToSave.actionOnUserID = Utils.convertUserToObjectID(logToSave.actionOnUser);
+
     // Transfer
     const log = {};
     Database.updateLogging(logToSave, log, false);

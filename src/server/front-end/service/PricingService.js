@@ -66,6 +66,7 @@ class PricingService {
 			const pricingMDB = await PricingStorage.savePricing(req.user.tenantID, pricing);
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, action: action,
 				module: 'PricingService',
 				method: 'handleUpdatePricing',

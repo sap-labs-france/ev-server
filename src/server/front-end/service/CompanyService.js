@@ -46,6 +46,7 @@ class CompanyService {
 			await company.delete();
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'CompanyService', method: 'handleDeleteCompany',
 				message: `Company '${company.getName()}' has been deleted successfully`,
 				action: action, detailedMessages: company});
@@ -225,6 +226,7 @@ class CompanyService {
 			await newCompany.saveLogo();
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'CompanyService', method: 'handleCreateCompany',
 				message: `Company '${newCompany.getName()}' has been created successfully`,
 				action: action, detailedMessages: newCompany});
@@ -272,6 +274,7 @@ class CompanyService {
 			await company.saveLogo();
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'CompanyService', method: 'handleUpdateCompany',
 				message: `Company '${updatedCompany.getName()}' has been updated successfully`,
 				action: action, detailedMessages: updatedCompany});

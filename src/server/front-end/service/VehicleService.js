@@ -45,6 +45,7 @@ class VehicleService {
 			await vehicle.delete();
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'VehicleService', method: 'handleDeleteVehicle',
 				message: `Vehicle '${vehicle.getName()}' has been deleted successfully`,
 				action: action, detailedMessages: vehicle});
@@ -224,6 +225,7 @@ class VehicleService {
 			await newVehicle.saveImages();
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'VehicleService', method: 'handleCreateVehicle',
 				message: `Vehicle '${newVehicle.getName()}' has been created successfully`,
 				action: action, detailedMessages: newVehicle});
@@ -274,6 +276,7 @@ class VehicleService {
 			}
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'VehicleService', method: 'handleUpdateVehicle',
 				message: `Vehicle '${updatedVehicle.getName()}' has been updated successfully`,
 				action: action, detailedMessages: updatedVehicle});

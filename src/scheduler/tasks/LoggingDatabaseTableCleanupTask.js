@@ -11,6 +11,7 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 	async run(tenantID, config) {
 		try {
 			Logging.logInfo({
+			  	tenantID: tenantID,
 				module: "LoggingDatabaseTableCleanupTask",
 				method: "run", action: "LogsCleanup",
 				message: `The task 'loggingDatabaseTableCleanupTask' is being run` });
@@ -23,6 +24,7 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 			if (result.ok === 1) {
 				// Ok
 				Logging.logSecurityInfo({
+                  tenantID: tenantID,
 					module: "LoggingDatabaseTableCleanupTask",
 					method: "run", action: "LogsCleanup",
 					message: `${result.n} Log(s) have been deleted before '${moment(deleteUpToDate).format("DD/MM/YYYY h:mm A")}'`
@@ -30,6 +32,7 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 			} else {
 				// Error
 				Logging.logError({
+                  tenantID: tenantID,
 					module: "LoggingDatabaseTableCleanupTask",
 					method: "run", action: "LogsCleanup",
 					message: `An error occurred when deleting Logs before '${moment(deleteUpToDate).format("DD/MM/YYYY h:mm A")}'`,
@@ -44,6 +47,7 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 			if (result.ok === 1) {
 				// Ok
 				Logging.logSecurityInfo({
+                  tenantID: tenantID,
 					module: "LoggingDatabaseTableCleanupTask",
 					method: "run", action: "LogsCleanup",
 					message: `${result.n} Security Log(s) have been deleted before '${moment(securityDeleteUpToDate).format("DD/MM/YYYY h:mm A")}'`
@@ -51,6 +55,7 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 			} else {
 				// Error
 				Logging.logSecurityError({
+                  tenantID: tenantID,
 					module: "LoggingDatabaseTableCleanupTask",
 					method: "run", action: "LogsCleanup",
 					message: `An error occurred when deleting Security Logs before '${moment(securityDeleteUpToDate).format("DD/MM/YYYY h:mm A")}'`,
@@ -59,7 +64,7 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 			}
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage("LogsCleanup", error);
+			Logging.logActionExceptionMessage(tenantID, "LogsCleanup", error);
 		}
 	}
 }

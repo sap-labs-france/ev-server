@@ -34,10 +34,10 @@ class ChargingStationService16 extends ChargingStationService {
       payload.timestamp = payload.lastReboot;
 
       // Get the charging station
-      let chargingStation = await ChargingStation.getChargingStation(payload.tenant, payload.chargeBoxIdentity);
+      let chargingStation = await ChargingStation.getChargingStation(payload.tenantID, payload.chargeBoxIdentity);
       if (!chargingStation) {
         // Save Charging Station
-        chargingStation = new ChargingStation(payload.tenant, payload);
+        chargingStation = new ChargingStation(payload.tenantID, payload);
         // Set the URL = enpoint
         chargingStation.setChargingStationURL(chargingStation.getEndPoint());
         // Update timestamp
@@ -73,7 +73,7 @@ class ChargingStationService16 extends ChargingStationService {
       // Set the source
       error.source = payload.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage('BootNotification', error);
+      Logging.logActionExceptionMessage(payload.tenantID, 'BootNotification', error);
       // Reject
       return {
         'status': 'Rejected',
@@ -86,7 +86,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleHeartbeat(payload) {
     try {
       // Get the charging station
-      const chargingStation = await ChargingStation.getChargingStation(payload.tenant, payload.chargeBoxIdentity);
+      const chargingStation = await ChargingStation.getChargingStation(payload.tenantID, payload.chargeBoxIdentity);
       // Save
       await chargingStation.handleHeartBeat();
       // Return			
@@ -97,7 +97,7 @@ class ChargingStationService16 extends ChargingStationService {
       // Set the source
       error.source = payload.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage('HeartBeat', error);
+      Logging.logActionExceptionMessage(payload.tenantID, 'HeartBeat', error);
       // Send the response
       return {
         'currentTime': new Date().toISOString()
@@ -108,7 +108,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleStatusNotification(payload) {
     try {
       // Get the charging station
-      const chargingStation = await ChargingStation.getChargingStation(payload.tenant, payload.chargeBoxIdentity);
+      const chargingStation = await ChargingStation.getChargingStation(payload.tenantID, payload.chargeBoxIdentity);
       // Handle
       await chargingStation.handleStatusNotification(payload);
       // Respond
@@ -117,7 +117,7 @@ class ChargingStationService16 extends ChargingStationService {
       // Set the source
       error.source = payload.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage('StatusNotification', error);
+      Logging.logActionExceptionMessage(payload.tenantID, 'StatusNotification', error);
       // Return
       return {};
     }
@@ -126,7 +126,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleMeterValues(payload) {
     try {
       // Get the charging station
-      const chargingStation = await ChargingStation.getChargingStation(payload.tenant, payload.chargeBoxIdentity);
+      const chargingStation = await ChargingStation.getChargingStation(payload.tenantID, payload.chargeBoxIdentity);
       // Save
       await chargingStation.handleMeterValues(payload);
       // Return
@@ -135,7 +135,7 @@ class ChargingStationService16 extends ChargingStationService {
       // Set the source
       error.source = payload.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage('MeterValues', error);
+      Logging.logActionExceptionMessage(payload.tenantID, 'MeterValues', error);
       // Response
       return {};
     }
@@ -144,7 +144,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleAuthorize(payload) {
     try {
       // Get the charging station
-      const chargingStation = await ChargingStation.getChargingStation(payload.tenant, payload.chargeBoxIdentity);
+      const chargingStation = await ChargingStation.getChargingStation(payload.tenantID, payload.chargeBoxIdentity);
       // Handle
       await chargingStation.handleAuthorize(payload);
       // Return
@@ -155,7 +155,7 @@ class ChargingStationService16 extends ChargingStationService {
       // Set the source
       error.source = payload.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage('Authorize', error);
+      Logging.logActionExceptionMessage(payload.tenantID, 'Authorize', error);
       return {
         'status': 'Invalid'
       };
@@ -165,7 +165,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleDiagnosticsStatusNotification(payload) {
     try {
       // Get the charging station
-      const chargingStation = await ChargingStation.getChargingStation(payload.tenant, payload.chargeBoxIdentity);
+      const chargingStation = await ChargingStation.getChargingStation(payload.tenantID, payload.chargeBoxIdentity);
       // Save
       await chargingStation.handleDiagnosticsStatusNotification(payload);
       // Return
@@ -174,7 +174,7 @@ class ChargingStationService16 extends ChargingStationService {
       // Set the source
       error.source = payload.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage('DiagnosticsStatusNotification', error);
+      Logging.logActionExceptionMessage(payload.tenantID, 'DiagnosticsStatusNotification', error);
       return {};
     }
   }
@@ -182,14 +182,14 @@ class ChargingStationService16 extends ChargingStationService {
   async handleFirmwareStatusNotification(payload) {
     try {
       // Get the charging station
-      const chargingStation = await ChargingStation.getChargingStation(payload.tenant, payload.chargeBoxIdentity);
+      const chargingStation = await ChargingStation.getChargingStation(payload.tenantID, payload.chargeBoxIdentity);
       // Save
       await chargingStation.handleFirmwareStatusNotification(payload);
       // Return
       return {};
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage('FirmwareStatusNotification', error);
+      Logging.logActionExceptionMessage(payload.tenantID, 'FirmwareStatusNotification', error);
       return {};
     }
   }
@@ -197,7 +197,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleStartTransaction(payload) {
     try {
       // Get the charging station
-      const chargingStation = await ChargingStation.getChargingStation(payload.tenant, payload.chargeBoxIdentity);
+      const chargingStation = await ChargingStation.getChargingStation(payload.tenantID, payload.chargeBoxIdentity);
       // Save
       const transaction = await chargingStation.handleStartTransaction(payload);
       // Return
@@ -209,7 +209,7 @@ class ChargingStationService16 extends ChargingStationService {
       // Set the source
       error.source = payload.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage('StartTransaction', error);
+      Logging.logActionExceptionMessage(payload.tenantID, 'StartTransaction', error);
       return {
         'transactionId': 0,
         'status': 'Invalid'
@@ -220,7 +220,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleDataTransfer(payload) {
     try {
       // Get the charging station
-      const chargingStation = await ChargingStation.getChargingStation(payload.tenant, payload.chargeBoxIdentity);
+      const chargingStation = await ChargingStation.getChargingStation(payload.tenantID, payload.chargeBoxIdentity);
       // Save
       await chargingStation.handleDataTransfer(payload);
       // Return
@@ -231,7 +231,7 @@ class ChargingStationService16 extends ChargingStationService {
       // Set the source
       error.source = payload.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage('DataTransfer', error);
+      Logging.logActionExceptionMessage(payload.tenantID, 'DataTransfer', error);
       return {
         'status': 'Rejected'
       };
@@ -241,7 +241,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleStopTransaction(payload) {
     try {
       // Get the charging station
-      const chargingStation = await ChargingStation.getChargingStation(payload.tenant, payload.chargeBoxIdentity);
+      const chargingStation = await ChargingStation.getChargingStation(payload.tenantID, payload.chargeBoxIdentity);
       // Handle
       await chargingStation.handleStopTransaction(payload);
       // Success
@@ -252,7 +252,7 @@ class ChargingStationService16 extends ChargingStationService {
       // Set the source
       error.source = payload.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage('StopTransaction', error);
+      Logging.logActionExceptionMessage(payload.tenantID, 'StopTransaction', error);
       // Error
       return {
         'status': 'Invalid'

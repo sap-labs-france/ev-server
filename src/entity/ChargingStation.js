@@ -1,6 +1,6 @@
 const AbstractTenantEntity = require('./AbstractTenantEntity');
+const ChargingStationClient = require('../client/ChargingStationClient');
 const Utils = require('../utils/Utils');
-const SoapChargingStationClient = require('../client/soap/SoapChargingStationClient');
 const Logging = require('../utils/Logging');
 const User = require('./User');
 const SiteArea = require('./SiteArea');
@@ -61,6 +61,7 @@ class ChargingStation extends AbstractTenantEntity {
       default:
         // Log
         Logging.logError({
+          tenantID: this.getTenantID(),
           source: this.getID(), module: 'ChargingStation', method: 'handleAction',
           message: `Action does not exist: ${action}`
         });
@@ -346,6 +347,7 @@ class ChargingStation extends AbstractTenantEntity {
     await ChargingStationStorage.saveChargingStationConnector(this.getTenantID(), this.getModel(), statusNotification.connectorId);
     // Log
     Logging.logInfo({
+      tenantID: this.getTenantID(),
       source: this.getID(),
       module: 'ChargingStation',
       method: 'handleStatusNotification',
@@ -356,6 +358,7 @@ class ChargingStation extends AbstractTenantEntity {
     if (statusNotification.status === 'Faulted') {
       // Log
       Logging.logError({
+        tenantID: this.getTenantID(),
         source: this.getID(), module: 'ChargingStation',
         method: 'handleStatusNotification', action: 'StatusNotification',
         message: `Error on connector ${statusNotification.connectorId}: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
@@ -458,6 +461,7 @@ class ChargingStation extends AbstractTenantEntity {
     await ChargingStationStorage.saveBootNotification(this.getTenantID(), bootNotification);
     // Log
     Logging.logInfo({
+      tenantID: this.getTenantID(),
       source: this.getID(),
       module: 'ChargingStation', method: 'handleBootNotification',
       action: 'BootNotification', message: `Boot notification saved`
@@ -483,6 +487,7 @@ class ChargingStation extends AbstractTenantEntity {
     }
     // Log
     Logging.logInfo({
+      tenantID: this.getTenantID(),
       source: this.getID(),
       module: 'ChargingStation', method: 'handleHeartBeat',
       action: 'Heartbeat', message: `Heartbeat saved`
@@ -496,6 +501,7 @@ class ChargingStation extends AbstractTenantEntity {
       configuration = await this.requestGetConfiguration();
       // Log
       Logging.logInfo({
+        tenantID: this.getTenantID(),
         source: this.getID(), module: 'ChargingStation',
         method: 'requestAndSaveConfiguration', action: 'RequestConfiguration',
         message: `Command sent with success`,
@@ -507,7 +513,7 @@ class ChargingStation extends AbstractTenantEntity {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage('RequestConfiguration', error);
+      Logging.logActionExceptionMessage(this.getTenantID(), 'RequestConfiguration', error);
     }
     // Set default?
     if (!configuration) {
@@ -571,6 +577,7 @@ class ChargingStation extends AbstractTenantEntity {
     await this.saveConfiguration(configuration);
     // Ok
     Logging.logInfo({
+      tenantID: this.getTenantID(),
       source: this.getID(), module: 'ChargingStation',
       method: 'requestAndSaveConfiguration', action: 'RequestConfiguration',
       message: `Configuration has been saved`
@@ -607,6 +614,7 @@ class ChargingStation extends AbstractTenantEntity {
           connector.totalConsumption = Math.floor(totalConsumption);
           // Log
           Logging.logInfo({
+            tenantID: this.getTenantID(),
             source: this.getID(), module: 'ChargingStation',
             method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
             message: `Connector '${connector.connectorId}' - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}`
@@ -626,6 +634,7 @@ class ChargingStation extends AbstractTenantEntity {
         connector.activeTransactionID = 0;
         // Log
         Logging.logInfo({
+          tenantID: this.getTenantID(),
           source: this.getID(), module: 'ChargingStation',
           method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
           message: `Connector '${connector.connectorId}' - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}`
@@ -634,6 +643,7 @@ class ChargingStation extends AbstractTenantEntity {
     } else {
       // Log
       Logging.logError({
+        tenantID: this.getTenantID(),
         source: this.getID(), module: 'ChargingStation',
         method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
         message: `Transaction ID '${transactionId}' not found`
@@ -686,6 +696,7 @@ class ChargingStation extends AbstractTenantEntity {
               if (result && result.status === 'Accepted') {
                 // Cannot unlock the connector
                 Logging.logInfo({
+                  tenantID: this.getTenantID(),
                   source: this.getID(), module: 'ChargingStation', method: 'handleNotificationEndOfCharge',
                   action: 'NotifyEndOfCharge', message: `Transaction ID '${transaction.id}' has been stopped`,
                   detailedMessages: transaction
@@ -696,6 +707,7 @@ class ChargingStation extends AbstractTenantEntity {
                 if (result && result.status === 'Accepted') {
                   // Cannot unlock the connector
                   Logging.logInfo({
+                    tenantID: this.getTenantID(),
                     source: this.getID(), module: 'ChargingStation', method: 'handleNotificationEndOfCharge',
                     action: 'NotifyEndOfCharge', message: `Connector '${transaction.connectorId}' has been unlocked`,
                     detailedMessages: transaction
@@ -703,6 +715,7 @@ class ChargingStation extends AbstractTenantEntity {
                 } else {
                   // Cannot unlock the connector
                   Logging.logError({
+                    tenantID: this.getTenantID(),
                     source: this.getID(), module: 'ChargingStation', method: 'handleNotificationEndOfCharge',
                     action: 'NotifyEndOfCharge', message: `Cannot unlock the connector '${transaction.connectorId}'`,
                     detailedMessages: transaction
@@ -711,6 +724,7 @@ class ChargingStation extends AbstractTenantEntity {
               } else {
                 // Cannot stop the transaction
                 Logging.logError({
+                  tenantID: this.getTenantID(),
                   source: this.getID(), module: 'ChargingStation', method: 'handleNotificationEndOfCharge',
                   action: 'NotifyEndOfCharge', message: `Cannot stop the transaction`,
                   detailedMessages: transaction
@@ -718,7 +732,7 @@ class ChargingStation extends AbstractTenantEntity {
               }
             } catch (error) {
               // Log error
-              Logging.logActionExceptionMessage('EndOfCharge', error);
+              Logging.logActionExceptionMessage(this.getTenantID(), 'EndOfCharge', error);
             }
           }
         }
@@ -789,6 +803,7 @@ class ChargingStation extends AbstractTenantEntity {
     if (meterValues.connectorId == 0) {
       // BUG KEBA: Connector ID must be > 0 according OCPP
       Logging.logWarning({
+        tenantID: this.getTenantID(),
         source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
         action: 'MeterValues', message: `Connector ID cannot be equal to '0' and has been reset to '1'`
       });
@@ -803,6 +818,7 @@ class ChargingStation extends AbstractTenantEntity {
       if (parseInt(meterValues.transactionId) !== parseInt(chargerTransactionId)) {
         // No: Log
         Logging.logWarning({
+          tenantID: this.getTenantID(),
           source: this.getID(),
           module: 'ChargingStation',
           method: 'handleMeterValues',
@@ -815,6 +831,7 @@ class ChargingStation extends AbstractTenantEntity {
     } else if (chargerTransactionId > 0) {
       // No Transaction ID, retrieve it
       Logging.logWarning({
+        tenantID: this.getTenantID(),
         source: this.getID(),
         module: 'ChargingStation',
         method: 'handleMeterValues',
@@ -828,6 +845,7 @@ class ChargingStation extends AbstractTenantEntity {
     if (meterValues.transactionId && parseInt(meterValues.transactionId) === 0) {
       // Wrong Transaction ID!
       Logging.logError({
+        tenantID: this.getTenantID(),
         source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
         action: 'MeterValues', message: `Transaction ID must not be equal to '0'`
       });
@@ -900,6 +918,7 @@ class ChargingStation extends AbstractTenantEntity {
       await this.save();
       // Log
       Logging.logInfo({
+        tenantID: this.getTenantID(),
         source: this.getID(),
         module: 'ChargingStation',
         method: 'handleMeterValues',
@@ -910,6 +929,7 @@ class ChargingStation extends AbstractTenantEntity {
     } else {
       // Log
       Logging.logWarning({
+        tenantID: this.getTenantID(),
         source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
         action: 'MeterValues', message: `'${meterValuesContext}' not saved (not linked to a Transaction)`,
         detailedMessages: meterValues
@@ -966,6 +986,7 @@ class ChargingStation extends AbstractTenantEntity {
     await ChargingStationStorage.saveDataTransfer(this.getTenantID(), dataTransfer);
     // Log
     Logging.logInfo({
+      tenantID: this.getTenantID(),
       source: this.getID(), module: 'CharingStation', method: 'handleDataTransfer',
       action: 'DataTransfer', message: `Data Transfer has been saved`
     });
@@ -979,6 +1000,7 @@ class ChargingStation extends AbstractTenantEntity {
     await ChargingStationStorage.saveDiagnosticsStatusNotification(this.getTenantID(), diagnosticsStatusNotification);
     // Log
     Logging.logInfo({
+      tenantID: this.getTenantID(),
       source: this.getID(), module: 'ChargingStation', method: 'handleDiagnosticsStatusNotification',
       action: 'DiagnosticsStatusNotification', message: `Diagnostics Status Notification has been saved`
     });
@@ -992,6 +1014,7 @@ class ChargingStation extends AbstractTenantEntity {
     await ChargingStationStorage.saveFirmwareStatusNotification(this.getTenantID(), firmwareStatusNotification);
     // Log
     Logging.logInfo({
+      tenantID: this.getTenantID(),
       source: this.getID(), module: 'ChargingStation', method: 'handleFirmwareStatusNotification',
       action: 'FirmwareStatusNotification', message: `Firmware Status Notification has been saved`
     });
@@ -1015,6 +1038,7 @@ class ChargingStation extends AbstractTenantEntity {
     if (authorize.user) {
       // Log
       Logging.logInfo({
+        tenantID: this.getTenantID(),
         source: this.getID(), module: 'ChargingStation', method: 'handleAuthorize',
         action: 'Authorize', user: authorize.user.getModel(),
         message: `User has been authorized to use Charging Station`
@@ -1022,6 +1046,7 @@ class ChargingStation extends AbstractTenantEntity {
     } else {
       // Log
       Logging.logInfo({
+        tenantID: this.getTenantID(),
         source: this.getID(), module: 'ChargingStation', method: 'handleAuthorize',
         action: 'Authorize', message: `Anonymous user has been authorized to use the Charging Station`
       });
@@ -1079,6 +1104,7 @@ class ChargingStation extends AbstractTenantEntity {
       // Exists already?
       if (activeTransaction) {
         Logging.logInfo({
+          tenantID: this.getTenantID(),
           source: this.getID(),
           module: 'ChargingStation',
           method: 'handleStartTransaction',
@@ -1102,6 +1128,7 @@ class ChargingStation extends AbstractTenantEntity {
       if (existingTransaction) {
         // Log
         Logging.logWarning({
+          tenantID: this.getTenantID(),
           source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
           action: 'StartTransaction', user: (user ? user.getModel() : null),
           actionOnUser: (existingTransaction.user ? existingTransaction.user : null),
@@ -1152,6 +1179,7 @@ class ChargingStation extends AbstractTenantEntity {
       );
       // Log
       Logging.logInfo({
+        tenantID: this.getTenantID(),
         source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
         action: 'StartTransaction', user: newTransaction.user,
         message: `Transaction ID '${newTransaction.id}' has been started on Connector '${newTransaction.connectorId}'`
@@ -1159,6 +1187,7 @@ class ChargingStation extends AbstractTenantEntity {
     } else {
       // Log
       Logging.logInfo({
+        tenantID: this.getTenantID(),
         source: this.getID(),
         module: 'ChargingStation',
         method: 'handleStartTransaction',
@@ -1286,6 +1315,7 @@ class ChargingStation extends AbstractTenantEntity {
     }
     // Log
     Logging.logInfo({
+      tenantID: this.getTenantID(),
       source: this.getID(), module: 'ChargingStation', method: 'handleStopTransaction',
       action: 'StopTransaction', user: (newTransaction.stop.user ? newTransaction.stop.user : null),
       actionOnUser: (newTransaction.user ? newTransaction.user : null),
@@ -1325,6 +1355,7 @@ class ChargingStation extends AbstractTenantEntity {
     const result = await chargingStationClient.reset(type);
     // Log
     Logging.logInfo({
+      tenantID: this.getTenantID(),
       source: this.getID(), module: 'ChargingStation',
       method: 'requestReset', action: 'Reset',
       message: `Command sent with success`,
@@ -1342,6 +1373,7 @@ class ChargingStation extends AbstractTenantEntity {
     const result = await chargingStationClient.stopTransaction(transactionId);
     // Log
     Logging.logInfo({
+      tenantID: this.getTenantID(),
       source: this.getID(), module: 'ChargingStation',
       method: 'requestStopTransaction', action: 'StopTransaction',
       message: `Command sent with success`,
@@ -1359,6 +1391,7 @@ class ChargingStation extends AbstractTenantEntity {
     const result = await chargingStationClient.startTransaction(tagID, connectorID, chargingProfile);
     // Log
     Logging.logInfo({
+      tenantID: this.getTenantID(),
       source: this.getID(), module: 'ChargingStation',
       method: 'requestStartTransaction', action: 'StartTransaction',
       message: `Command sent with success`,
@@ -1376,6 +1409,7 @@ class ChargingStation extends AbstractTenantEntity {
     const result = await chargingStationClient.clearCache();
     // Log
     Logging.logInfo({
+      tenantID: this.getTenantID(),
       source: this.getID(), module: 'ChargingStation',
       method: 'requestClearCache', action: 'ClearCache',
       message: `Command sent with success`,
@@ -1393,6 +1427,7 @@ class ChargingStation extends AbstractTenantEntity {
     const result = await chargingStationClient.getConfiguration(configParamNames);
     // Log
     Logging.logInfo({
+      tenantID: this.getTenantID(),
       source: this.getID(), module: 'ChargingStation',
       method: 'requestGetConfiguration', action: 'GetConfiguration',
       message: `Command sent with success`,
@@ -1410,6 +1445,7 @@ class ChargingStation extends AbstractTenantEntity {
     const result = await chargingStationClient.changeConfiguration(key, value);
     // Log
     Logging.logInfo({
+      tenantID: this.getTenantID(),
       source: this.getID(), module: 'ChargingStation',
       method: 'requestChangeConfiguration', action: 'ChangeConfiguration',
       message: `Command sent with success`,
@@ -1434,6 +1470,7 @@ class ChargingStation extends AbstractTenantEntity {
     const result = await chargingStationClient.unlockConnector(connectorId);
     // Log
     Logging.logInfo({
+      tenantID: this.getTenantID(),
       source: this.getID(), module: 'ChargingStation',
       method: 'requestUnlockConnector', action: 'UnlockConnector',
       message: `Command sent with success`,

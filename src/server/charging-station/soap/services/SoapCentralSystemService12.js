@@ -14,11 +14,11 @@ module.exports = { /* Services */
           // Payload
           const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.chargeBoxIdentity, "Authorize", payload);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "Authorize", payload);
           // Handle
           global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleAuthorize(payload).then(function (result) {
             // Log
-            Logging.logReturnedAction(MODULE_NAME, headers.chargeBoxIdentity, "Authorize", {
+            Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "Authorize", {
               "result": result
             });
             // Answer
@@ -32,7 +32,7 @@ module.exports = { /* Services */
           });
         } catch (error) {
           // Log
-          Logging.logException(error, "Authorize", headers.chargeBoxIdentity, MODULE_NAME, "Authorize");
+          Logging.logException(error, "Authorize", headers.chargeBoxIdentity, MODULE_NAME, "Authorize", headers.tenantID);
           // Rethrow
           throw error;
         }
@@ -67,11 +67,11 @@ module.exports = { /* Services */
           // Payload
           const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.chargeBoxIdentity, "StartTransaction", payload);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "StartTransaction", payload);
           // Handle
           global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleStartTransaction(payload).then(function (result) {
             // Log
-            Logging.logReturnedAction(MODULE_NAME, headers.chargeBoxIdentity, "StartTransaction", {
+            Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "StartTransaction", {
               "result": result
             });
             callback({
@@ -85,7 +85,7 @@ module.exports = { /* Services */
           });
         } catch (error) {
           // Log
-          Logging.logException(error, "StartTransaction", headers.chargeBoxIdentity, MODULE_NAME, "StartTransaction");
+          Logging.logException(error, "StartTransaction", headers.chargeBoxIdentity, MODULE_NAME, "StartTransaction", headers.tenantID);
           // Rethrow
           throw error;
         }
@@ -124,11 +124,11 @@ module.exports = { /* Services */
           // Payload
           const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.chargeBoxIdentity, "StopTransaction", payload);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "StopTransaction", payload);
           // Handle
           global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleStopTransaction(payload).then(function (result) {
             // Log
-            Logging.logReturnedAction(MODULE_NAME, headers.chargeBoxIdentity, "StopTransaction", {
+            Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "StopTransaction", {
               "result": result
             });
             callback({
@@ -141,7 +141,7 @@ module.exports = { /* Services */
           });
         } catch (error) {
           // Log
-          Logging.logException(error, "StopTransaction", headers.chargeBoxIdentity, MODULE_NAME, "StopTransaction");
+          Logging.logException(error, "StopTransaction", headers.chargeBoxIdentity, MODULE_NAME, "StopTransaction", headers.tenantID);
           // Rethrow
           throw error;
         }
@@ -179,11 +179,11 @@ module.exports = { /* Services */
           // Payload
           const payload = headers;
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.chargeBoxIdentity, "Heartbeat", payload);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "Heartbeat", payload);
           // Handle
           global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleHeartbeat(payload).then(function (result) {
             // Log
-            Logging.logReturnedAction(MODULE_NAME, headers.chargeBoxIdentity, "Heartbeat", {
+            Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "Heartbeat", {
               "result": result
             });
             callback({
@@ -194,7 +194,7 @@ module.exports = { /* Services */
           });
         } catch (error) {
           // Log
-          Logging.logException(error, "Heartbeat", headers.chargeBoxIdentity, MODULE_NAME, "Heartbeat");
+          Logging.logException(error, "Heartbeat", headers.chargeBoxIdentity, MODULE_NAME, "Heartbeat", headers.tenantID);
           // Rethrow
           throw error;
         }
@@ -222,11 +222,11 @@ module.exports = { /* Services */
           // Payload
           const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.chargeBoxIdentity, "MeterValues", payload);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "MeterValues", payload);
           // Handle
           global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleMeterValues(payload).then(function (result) {
             // Return the result async
-            Logging.logReturnedAction(MODULE_NAME, headers.chargeBoxIdentity, "MeterValues", {
+            Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "MeterValues", {
               "result": result
             });
             callback({
@@ -235,7 +235,7 @@ module.exports = { /* Services */
           });
         } catch (error) {
           // Log
-          Logging.logException(error, "MeterValues", headers.chargeBoxIdentity, MODULE_NAME, "MeterValues");
+          Logging.logException(error, "MeterValues", headers.chargeBoxIdentity, MODULE_NAME, "MeterValues", headers.tenantID);
           // Rethrow
           throw error;
         }
@@ -272,11 +272,11 @@ module.exports = { /* Services */
           // Payload
           const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.chargeBoxIdentity, "BootNotification", payload);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "BootNotification", payload);
           // Handle
           global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleBootNotification(payload).then(function (result) {
             // Log
-            Logging.logReturnedAction(MODULE_NAME, headers.chargeBoxIdentity, "BootNotification", {
+            Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "BootNotification", {
               "result": result
             });
             callback({
@@ -289,7 +289,7 @@ module.exports = { /* Services */
           });
         } catch (error) {
           // Log
-          Logging.logException(error, "BootNotification", headers.chargeBoxIdentity, MODULE_NAME, "BootNotification");
+          Logging.logException(error, "BootNotification", headers.chargeBoxIdentity, MODULE_NAME, "BootNotification", headers.tenantID);
           // Rethrow
           throw error;
         }
@@ -326,11 +326,11 @@ module.exports = { /* Services */
           // Payload
           const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.chargeBoxIdentity, "StatusNotification", payload);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "StatusNotification", payload);
           // Handle
           global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleStatusNotification(payload).then(function (result) {
             // Log
-            Logging.logReturnedAction(MODULE_NAME, headers.chargeBoxIdentity, "StatusNotification", {
+            Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "StatusNotification", {
               "result": result
             });
             callback({
@@ -339,7 +339,7 @@ module.exports = { /* Services */
           });
         } catch (error) {
           // Log
-          Logging.logException(error, "StatusNotification", headers.chargeBoxIdentity, MODULE_NAME, "StatusNotification");
+          Logging.logException(error, "StatusNotification", headers.chargeBoxIdentity, MODULE_NAME, "StatusNotification", headers.tenantID);
           // Rethrow
           throw error;
         }
@@ -369,11 +369,11 @@ module.exports = { /* Services */
           // Payload
           const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.chargeBoxIdentity, "FirmwareStatusNotification", payload);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "FirmwareStatusNotification", payload);
           // Handle
           global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleFirmwareStatusNotification(payload).then(function (result) {
             // Log
-            Logging.logReturnedAction(MODULE_NAME, headers.chargeBoxIdentity, "FirmwareStatusNotification", {
+            Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "FirmwareStatusNotification", {
               "result": result
             });
             callback({
@@ -382,7 +382,7 @@ module.exports = { /* Services */
           });
         } catch (error) {
           // Log
-          Logging.logException(error, "FirmwareStatusNotification", headers.chargeBoxIdentity, MODULE_NAME, "FirmwareStatusNotification");
+          Logging.logException(error, "FirmwareStatusNotification", headers.chargeBoxIdentity, MODULE_NAME, "FirmwareStatusNotification", headers.tenantID);
           // Rethrow
           throw error;
         }
@@ -410,11 +410,11 @@ module.exports = { /* Services */
           // Payload
           const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", payload);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", payload);
           // Handle
           global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleDiagnosticsStatusNotification(payload).then(function (result) {
             // Log
-            Logging.logReturnedAction(MODULE_NAME, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", {
+            Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", {
               "result": result
             });
             callback({
@@ -423,7 +423,7 @@ module.exports = { /* Services */
           });
         } catch (error) {
           // Log
-          Logging.logException(error, "DiagnosticsStatusNotification", headers.chargeBoxIdentity, MODULE_NAME, "DiagnosticsStatusNotification");
+          Logging.logException(error, "DiagnosticsStatusNotification", headers.chargeBoxIdentity, MODULE_NAME, "DiagnosticsStatusNotification", headers.tenantID);
           // Rethrow
           throw error;
         }

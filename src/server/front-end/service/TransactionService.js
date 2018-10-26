@@ -135,6 +135,7 @@ class TransactionService {
 			let result = await chargingStation.deleteTransaction(transaction);
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, actionOnUser: (user ? user.getModel() : null),
 				module: 'TransactionService', method: 'handleDeleteTransaction',
 				message: `Transaction ID '${filteredRequest.ID}' on '${transaction.chargeBox.id}'-'${transaction.connectorId}' has been deleted successfully`,
@@ -213,6 +214,7 @@ class TransactionService {
 			let result = await chargingStation.handleStopTransaction(stopTransaction);
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, actionOnUser: (user?user.getModel():null),
 				module: 'TransactionService', method: 'handleTransactionSoftStop',
 				message: `Transaction ID '${transaction.id}' on '${transaction.chargeBox.id}'-'${transaction.connectorId}' has been stopped successfully`,

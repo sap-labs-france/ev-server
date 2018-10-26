@@ -30,7 +30,7 @@ const LoggingType = {
 class Logging {
 
   // Log Debug
-  static logDebug(log) {
+  static logDebug(log){
     if (typeof log !== 'object') {
       log = {
         simpleMessage: log
@@ -39,35 +39,35 @@ class Logging {
     // Log
     log.level = LogLevel.DEBUG;
     // Log it
-    Logging._log(Constants.DEFAULT_TENANT, log);
+    Logging._log(log);
   }
 
   // Log Info
-  static logSecurityInfo(log) {
+  static logSecurityInfo(log){
     // Set
     log.type = LoggingType.SECURITY;
     // Log it
     Logging.logInfo(log);
   }
 
-	// Log Info
-	static logInfo(log) {
-		// Log
-		log.level = LogLevel.INFO;
-		// Log it
-		Logging._log(Constants.DEFAULT_TENANT, log);
-	}
-
-	// Log Warning
-	static logWarning(log) {
-		// Log
-		log.level = LogLevel.WARNING;
-		// Log it
-		Logging._log(Constants.DEFAULT_TENANT, log);
-	}
+  // Log Info
+  static logInfo(log){
+    // Log
+    log.level = LogLevel.INFO;
+    // Log it
+    Logging._log(log);
+  }
 
   // Log Warning
-  static logSecurityWarning(log) {
+  static logWarning(log){
+    // Log
+    log.level = LogLevel.WARNING;
+    // Log it
+    Logging._log(log);
+  }
+
+  // Log Warning
+  static logSecurityWarning(log){
     // Set
     log.type = LoggingType.SECURITY;
     // Log it
@@ -75,25 +75,26 @@ class Logging {
   }
 
   // Log Error
-  static logSecurityError(log) {
+  static logSecurityError(log){
     // Set
     log.type = LoggingType.SECURITY;
     // Log it
     Logging.logError(log);
   }
 
-	// Log Error
-	static logError(log) {
-		// Log
-		log.level = LogLevel.ERROR;
-		// Log it
-		Logging._log(Constants.DEFAULT_TENANT, log);
-	}
+  // Log Error
+  static logError(log){
+    // Log
+    log.level = LogLevel.ERROR;
+    // Log it
+    Logging._log(log);
+  }
 
   // Log
-  static logReceivedAction(module, chargeBoxID, action, payload) {
+  static logReceivedAction(module, tenantID, chargeBoxID, action, payload){
     // Log
     Logging.logDebug({
+      tenantID: tenantID,
       source: chargeBoxID,
       module: module,
       method: action,
@@ -106,9 +107,10 @@ class Logging {
   }
 
   // Log
-  static logSendAction(module, chargeBoxID, action, args) {
+  static logSendAction(module, tenantID, chargeBoxID, action, args){
     // Log
     Logging.logDebug({
+      tenantID: tenantID,
       source: chargeBoxID,
       module: module,
       method: action,
@@ -119,9 +121,10 @@ class Logging {
   }
 
   // Log
-  static logReturnedAction(module, chargeBoxID, action, detailedMessages) {
+  static logReturnedAction(module, tenantID, chargeBoxID, action, detailedMessages){
     // Log
     Logging.logDebug({
+      tenantID: tenantID,
       source: chargeBoxID,
       module: module,
       method: action,
@@ -132,8 +135,8 @@ class Logging {
   }
 
   // Used to log exception in catch(...) only
-  static logException(error, action, source, module, method, user) {
-    const log = Logging._buildLog(error, action, source, module, method, user);
+  static logException(error, action, source, module, method, tenantID, user){
+    const log = Logging._buildLog(error, action, source, module, method, tenantID, user);
     if (error instanceof AppAuthError) {
       Logging.logSecurityError(log);
     } else if (error instanceof BadRequestError) {
@@ -150,34 +153,38 @@ class Logging {
   }
 
   // Used to log exception in catch(...) only
-  static logActionExceptionMessage(action, exception) {
+  static logActionExceptionMessage(tenantID, action, exception){
     if (exception instanceof AppError) {
       // Log Error
-      Logging._logActionAppExceptionMessage(action, exception);
+      Logging._logActionAppExceptionMessage(tenantID, action, exception);
     } else if (exception instanceof AppAuthError) {
       // Log Auth Error
-      Logging._logActionAppAuthExceptionMessage(action, exception);
+      Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
     } else {
       // Log Unexpected
-      Logging._logActionExceptionMessage(action, exception);
+      Logging._logActionExceptionMessage(tenantID, action, exception);
     }
   }
 
   // Used to log exception in catch(...) only
-  static logActionExceptionMessageAndSendResponse(action, exception, req, res, next) {
+  static logActionExceptionMessageAndSendResponse(action, exception, req, res, next){
     // Clear password
     if (action === "login" && req.body.password) {
       req.body.password = "####";
     }
+    let tenantID = '';
+    if (req.user && req.user.tenantID) {
+      tenantID = req.user.tenantID;
+    }
     if (exception instanceof AppError) {
       // Log App Error
-      Logging._logActionAppExceptionMessage(action, exception);
+      Logging._logActionAppExceptionMessage(tenantID, action, exception);
     } else if (exception instanceof AppAuthError) {
       // Log Auth Error
-      Logging._logActionAppAuthExceptionMessage(action, exception);
+      Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
     } else {
       // Log Generic Error
-      Logging._logActionExceptionMessage(action, exception);
+      Logging._logActionExceptionMessage(tenantID, action, exception);
     }
     // Send error
     res.status((exception.errorCode ? exception.errorCode : 500)).send({
@@ -186,8 +193,9 @@ class Logging {
     next();
   }
 
-  static _logActionExceptionMessage(action, exception) {
+  static _logActionExceptionMessage(tenantID, action, exception){
     Logging.logSecurityError({
+      tenantID: tenantID,
       source: exception.source,
       module: exception.module,
       method: exception.method,
@@ -199,8 +207,9 @@ class Logging {
     });
   }
 
-  static _logActionAppExceptionMessage(action, exception) {
+  static _logActionAppExceptionMessage(tenantID, action, exception){
     Logging.logSecurityError({
+      tenantID: tenantID,
       source: exception.source,
       user: exception.user,
       actionOnUser: exception.actionOnUser,
@@ -215,8 +224,9 @@ class Logging {
   }
 
   // Used to check URL params (not in catch)
-  static _logActionAppAuthExceptionMessage(action, exception) {
+  static _logActionAppAuthExceptionMessage(tenantID, action, exception){
     Logging.logSecurityError({
+      tenantID: tenantID,
       user: exception.user,
       actionOnUser: exception.actionOnUser,
       module: exception.module,
@@ -229,10 +239,20 @@ class Logging {
     });
   }
 
-  static _buildLog(error, action, source, module, method, user) {
+  static _buildLog(error, action, source, module, method, tenantID, user){
+    let tenant = tenantID ? tenantID : '';
+    if (!tenantID && user) {
+      // Check if the log can be attached to a tenant
+      if (user.hasOwnProperty("tenantID")) {
+        tenant = user.tenantID;
+      } else if (user.hasOwnProperty("_tenantID")) {
+        tenant = user._tenantID;
+      }
+    }
     return {
       source: source,
       user: user,
+      tenantID: tenant,
       actionOnUser: error.actionOnUser,
       module: module,
       method: method,
@@ -245,7 +265,7 @@ class Logging {
   }
 
   // Used to check URL params (not in catch)
-  static _format(detailedMessage) {
+  static _format(detailedMessage){
     // JSON?
     if (typeof detailedMessage === "object") {
       try {
@@ -264,7 +284,7 @@ class Logging {
   }
 
   // Log
-  static _log(tenantID, log) {
+  static _log(log){
     let moduleConfig = null;
 
     // Default Log Level
@@ -373,12 +393,13 @@ class Logging {
       log.detailedMessages = Logging._format(log.detailedMessages);
     }
 
-		// Check Type
-		if (!log.type) {
-			log.type = LoggingType.REGULAR;
-		}
-		// Log
-		LoggingStorage.saveLog(tenantID, log);
+    // Check Type
+    if (!log.type) {
+      log.type = LoggingType.REGULAR;
+    }
+
+    // Log
+    LoggingStorage.saveLog(log.tenantID, log);
 
     // Log in Cloud Foundry
     if (Configuration.isCloudFoundry()) {
@@ -388,7 +409,7 @@ class Logging {
   }
 
   //console Log
-  static _consoleLog(log) {
+  static _consoleLog(log){
     let logFn;
     // Set the function to log
     switch (log.level) {
@@ -418,7 +439,7 @@ class Logging {
   }
 
   // Log
-  static getCFLogLevel(logLevel) {
+  static getCFLogLevel(logLevel){
     // Log level
     switch (logLevel) {
       case LogLevel.DEBUG:
@@ -432,13 +453,13 @@ class Logging {
     }
   }
 
-	static getLog(id) {
-		return LoggingStorage.getLog(Constants.DEFAULT_TENANT, id);
-	}
+  static getLog(tenantID, id){
+    return LoggingStorage.getLog(tenantID, id);
+  }
 
-	static getLogs(params, limit, skip, sort) {
-		return LoggingStorage.getLogs(Constants.DEFAULT_TENANT, params, limit, skip, sort)
-	}
+  static getLogs(tenantID, params, limit, skip, sort){
+    return LoggingStorage.getLogs(tenantID, params, limit, skip, sort)
+  }
 }
 
 module.exports = Logging;

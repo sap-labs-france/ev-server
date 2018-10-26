@@ -64,6 +64,7 @@ class SiteAreaService {
 			}
 			// Ok
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'SiteAreaService', method: 'handleCreateSiteArea',
 				message: `Site Area '${newSiteArea.getName()}' has been created successfully`,
 				action: action, detailedMessages: newSiteArea});
@@ -146,6 +147,7 @@ class SiteAreaService {
 			await siteArea.delete();
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'SiteAreaService', method: 'handleDeleteSiteArea',
 				message: `Site Area '${siteArea.getName()}' has been deleted successfully`,
 				action: action, detailedMessages: siteArea});
@@ -330,6 +332,7 @@ class SiteAreaService {
 			await siteArea.saveImage();
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'SiteAreaService', method: 'handleUpdateSiteArea',
 				message: `Site Area '${updatedSiteArea.getName()}' has been updated successfully`,
 				action: action, detailedMessages: updatedSiteArea});

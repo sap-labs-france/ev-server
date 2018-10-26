@@ -22,9 +22,9 @@ const SOURCE_TRANSACTION_STARTED = "NotifyTransactionStarted";
 const SOURCE_VERIFICATION_EMAIL= "NotifyVerificationEmail";
 
 class NotificationHandler {
-	static async saveNotification(channel, sourceId, sourceDescr, user, chargingStation) {
+	static async saveNotification(tenantID, channel, sourceId, sourceDescr, user, chargingStation) {
 		// Save it
-		await NotificationStorage.saveNotification({
+		await NotificationStorage.saveNotification(tenantID, {
 			timestamp: new Date(),
 			channel: channel,
 			sourceId: sourceId,
@@ -36,6 +36,7 @@ class NotificationHandler {
 		if (user) {
 			// User
 			Logging.logInfo({
+			  tenantID: tenantID,
 				module: "Notification", method: "saveNotification",
 				action: sourceDescr, actionOnUser: user,
 				message: `User is being notified`
@@ -43,16 +44,17 @@ class NotificationHandler {
 		} else {
 			// Admin
 			Logging.logInfo({
+              tenantID: tenantID,
 				module: "Notification", method: "saveNotification",
 				action: sourceDescr, message: `Admin users is being notified`
 			});
 		}
 	}
 
-	static async hasNotifiedSource(sourceId) {
+	static async hasNotifiedSource(tenantID, sourceId) {
 		try {
 			// Save it
-			let notifications = await NotificationStorage.getNotification(sourceId);
+			let notifications = await NotificationStorage.getNotification(tenantID, sourceId);
 			// Filter by source id
 			let notificationsFiltered = notifications.filter(notification => {
 				return (notification.sourceId === sourceId);
@@ -61,20 +63,20 @@ class NotificationHandler {
 			return notificationsFiltered.length > 0;
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage("HasNotification", error);
+			Logging.logActionExceptionMessage(tenantID, "HasNotification", error);
 		}
 	}
 
 	static async sendEndOfCharge(sourceId, user, chargingStation, sourceData, locale) {
 		try {
 			// Check notification
-			let hasBeenNotified = await NotificationHandler.hasNotifiedSource(sourceId);
+			let hasBeenNotified = await NotificationHandler.hasNotifiedSource(user.getTenantID(), sourceId);
 			// Notified?
 			if (!hasBeenNotified) {
 				// Email enabled?
 				if (_notificationConfig.Email.enabled) {
 					// Save notif
-					await NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+					await NotificationHandler.saveNotification(user.getTenantID(), CHANNEL_EMAIL, sourceId,
 							SOURCE_END_OF_CHARGE,	user, chargingStation);
 					// Send email
 					return _email.sendEndOfCharge(sourceData, locale);
@@ -82,20 +84,20 @@ class NotificationHandler {
 			}
 		} catch(err) {
 			// Log error
-			Logging.logActionExceptionMessage(SOURCE_END_OF_CHARGE, error);
+			Logging.logActionExceptionMessage(user.getTenantID(), SOURCE_END_OF_CHARGE, err);
 		}
 	}
 
 	static async sendEndOfSession(sourceId, user, chargingStation, sourceData, locale) {
 		try {
 			// Check notification
-			let hasBeenNotified = await NotificationHandler.hasNotifiedSource(sourceId);
+			let hasBeenNotified = await NotificationHandler.hasNotifiedSource(user.getTenantID(), sourceId);
 			// Notified?
 			if (!hasBeenNotified) {
 				// Email enabled?
 				if (_notificationConfig.Email.enabled) {
 					// Save notif
-					await NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+					await NotificationHandler.saveNotification(user.getTenantID(), CHANNEL_EMAIL, sourceId,
 							SOURCE_END_OF_SESSION, user, chargingStation);
 					// Send email
 					return _email.sendEndOfSession(sourceData, locale);
@@ -103,7 +105,7 @@ class NotificationHandler {
 			}
 		} catch(err) {
 			// Log error
-			Logging.logActionExceptionMessage(SOURCE_END_OF_SESSION, error);
+			Logging.logActionExceptionMessage(user.getTenantID(), SOURCE_END_OF_SESSION, err);
 		}
 	}
 
@@ -112,14 +114,14 @@ class NotificationHandler {
 			// Email enabled?
 			if (_notificationConfig.Email.enabled) {
 				// Save notif
-				await NotificationHandler.saveNotification(
-					CHANNEL_EMAIL, sourceId, SOURCE_REQUEST_PASSWORD, user, null);
+				await NotificationHandler.saveNotification(user.getTenantID(),
+                  CHANNEL_EMAIL, sourceId, SOURCE_REQUEST_PASSWORD, user, null);
 				// Send email
 				return _email.sendRequestPassword(sourceData, locale);
 			}
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage(SOURCE_REQUEST_PASSWORD, error);
+			Logging.logActionExceptionMessage(user.getTenantID(), SOURCE_REQUEST_PASSWORD, error);
 		}
 	}
 
@@ -128,13 +130,13 @@ class NotificationHandler {
 			// Email enabled?
 			if (_notificationConfig.Email.enabled) {
 				// Save notif
-				await NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId, SOURCE_NEW_PASSWORD, user, null);
+				await NotificationHandler.saveNotification(user.getTenantID(), CHANNEL_EMAIL, sourceId, SOURCE_NEW_PASSWORD, user, null);
 				// Send email
 				return _email.sendNewPassword(sourceData, locale);
 			}
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage(SOURCE_NEW_PASSWORD, error);
+			Logging.logActionExceptionMessage(user.getTenantID(), SOURCE_NEW_PASSWORD, error);
 		}
 	}
 
@@ -143,14 +145,14 @@ class NotificationHandler {
 			// Email enabled?
 			if (_notificationConfig.Email.enabled) {
 				// Save notif
-				await NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+				await NotificationHandler.saveNotification(user.getTenantID(), CHANNEL_EMAIL, sourceId,
 						SOURCE_USER_ACCOUNT_STATUS_CHANGED, user, null);
 				// Send email
 				return _email.sendUserAccountStatusChanged(sourceData, locale);
 			}
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage(SOURCE_USER_ACCOUNT_STATUS_CHANGED, error);
+			Logging.logActionExceptionMessage(user.getTenantID(), SOURCE_USER_ACCOUNT_STATUS_CHANGED, error);
 		}
 	}
 
@@ -159,14 +161,14 @@ class NotificationHandler {
 			// Email enabled?
 			if (_notificationConfig.Email.enabled) {
 				// Save notif
-				await NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+				await NotificationHandler.saveNotification(user.getTenantID(), CHANNEL_EMAIL, sourceId,
 						SOURCE_NEW_REGISTERED_USER, user, null);
 				// Send email
 				return _email.sendNewRegisteredUser(sourceData, locale);
 			}
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage(SOURCE_NEW_REGISTERED_USER, error);
+			Logging.logActionExceptionMessage(user.getTenantID(), SOURCE_NEW_REGISTERED_USER, error);
 		}
 	}
 
@@ -175,14 +177,14 @@ class NotificationHandler {
 			// Email enabled?
 			if (_notificationConfig.Email.enabled) {
 				// Save notif
-				await NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+				await NotificationHandler.saveNotification(user.getTenantID(), CHANNEL_EMAIL, sourceId,
 					SOURCE_VERIFICATION_EMAIL, user, null);
 				// Send email
 				return _email.sendVerificationEmail(sourceData, locale);
 			}
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage(SOURCE_VERIFICATION_EMAIL, error);
+			Logging.logActionExceptionMessage(user.getTenantID(), SOURCE_VERIFICATION_EMAIL, error);
 		}
 	}
 
@@ -191,14 +193,14 @@ class NotificationHandler {
 			// Email enabled?
 			if (_notificationConfig.Email.enabled) {
 				// Save notif
-				await NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+				await NotificationHandler.saveNotification(chargingStation.getTenantID(), CHANNEL_EMAIL, sourceId,
 						SOURCE_CHARGING_STATION_STATUS_ERROR, null, chargingStation);
 				// Send email
 				return _email.sendChargingStationStatusError(sourceData, Constants.DEFAULT_LOCALE);
 			}
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage(SOURCE_CHARGING_STATION_STATUS_ERROR, error);
+			Logging.logActionExceptionMessage(chargingStation.getTenantID(), SOURCE_CHARGING_STATION_STATUS_ERROR, error);
 		}
 	}
 
@@ -207,14 +209,14 @@ class NotificationHandler {
 			// Email enabled?
 			if (_notificationConfig.Email.enabled) {
 				// Save notif
-				await NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+				await NotificationHandler.saveNotification(chargingStation.getTenantID(), CHANNEL_EMAIL, sourceId,
 						SOURCE_CHARGING_STATION_REGISTERED, null, chargingStation);
 				// Send email
 				return _email.sendChargingStationRegistered(sourceData, Constants.DEFAULT_LOCALE);
 			}
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage(SOURCE_CHARGING_STATION_REGISTERED, error);
+			Logging.logActionExceptionMessage(chargingStation.getTenantID(), SOURCE_CHARGING_STATION_REGISTERED, error);
 		}
 	}
 
@@ -223,14 +225,14 @@ class NotificationHandler {
 			// Email enabled?
 			if (_notificationConfig.Email.enabled) {
 				// Save notif
-				await NotificationHandler.saveNotification(CHANNEL_EMAIL, sourceId,
+				await NotificationHandler.saveNotification(chargingStation.getTenantID(), CHANNEL_EMAIL, sourceId,
 						SOURCE_UNKNOWN_USER_BADGED, null, chargingStation);
 				// Send email
 				return _email.sendUnknownUserBadged(sourceData, Constants.DEFAULT_LOCALE);
 			}
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage(SOURCE_UNKNOWN_USER_BADGED, error);
+			Logging.logActionExceptionMessage(chargingStation.getTenantID(), SOURCE_UNKNOWN_USER_BADGED, error);
 		}
 	}
 
@@ -243,7 +245,7 @@ class NotificationHandler {
 					// Email enabled?
 				if (_notificationConfig.Email.enabled) {
 					// Save notif
-					await NotificationHandler.saveNotification(
+					await NotificationHandler.saveNotification(user.getTenantID(),
 							CHANNEL_EMAIL, sourceId, SOURCE_TRANSACTION_STARTED, user, chargingStation);
 					// Send email
 					return _email.sendTransactionStarted(sourceData, locale);
@@ -251,7 +253,7 @@ class NotificationHandler {
 			}
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage(SOURCE_TRANSACTION_STARTED, error);
+			Logging.logActionExceptionMessage(user.getTenantID(), SOURCE_TRANSACTION_STARTED, error);
 		}
 	}
 }

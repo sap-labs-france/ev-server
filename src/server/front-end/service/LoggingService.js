@@ -20,7 +20,7 @@ class LoggingService {
 			// Filter
 			const filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query, req.user);
 			// Get logs
-			const loggings = await Logging.getLogs({
+			const loggings = await Logging.getLogs(req.user.tenantID, {
 				'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'userID': filteredRequest.UserID, 
 				'level': filteredRequest.Level, 'type': filteredRequest.Type, 'source': filteredRequest.Source, 
 				'action': filteredRequest.Action}, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
@@ -41,7 +41,7 @@ class LoggingService {
 			// Filter
 			const filteredRequest = LoggingSecurity.filterLoggingRequest(req.query, req.user);
 			// Get logs
-			const logging = await Logging.getLog(filteredRequest.ID);
+			const logging = await Logging.getLog(req.user.tenantID, filteredRequest.ID);
 			// Check auth
 			if (!Authorizations.canReadLogging(req.user, logging)) {
 				// Not Authorized!

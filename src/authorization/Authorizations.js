@@ -155,6 +155,7 @@ class Authorizations {
 			user.setCostCenter("");
 			// Log
 			Logging.logSecurityInfo({
+			  tenantID: user.getTenantID(),
 				user: user,
 				module: "Authorizations", method: "getOrCreateUserByTagID",
 				message: `User with ID '${user.getID()}' has been restored`,

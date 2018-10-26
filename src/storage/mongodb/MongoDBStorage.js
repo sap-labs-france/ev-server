@@ -188,7 +188,7 @@ class MongoDBStorage {
     await this.checkDatabaseDefaultContent();
 
     // Log
-    Logging.logInfo({
+    Logging.logInfo({tenantID: masterTenantID,
       module: 'MongoDBStorage', method: 'start', action: 'Startup',
       message: `Connected to '${this._dbConfig.implementation}' successfully`
     });

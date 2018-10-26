@@ -46,6 +46,7 @@ class VehicleManufacturerService {
 			await vehicleManufacturer.delete();
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'VehicleManufacturerService', method: 'handleDeleteVehicleManufacturer',
 				message: `Vehicle Manufacturer '${vehicleManufacturer.getName()}' has been deleted successfully`,
 				action: action, detailedMessages: vehicleManufacturer});
@@ -154,6 +155,7 @@ class VehicleManufacturerService {
 			await newVehicleManufacturer.saveLogo();
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'VehicleManufacturerService', method: 'handleCreateVehicleManufacturer',
 				message: `Vehicle Manufacturer '${newVehicleManufacturer.getName()}' has been created successfully`,
 				action: action, detailedMessages: newVehicleManufacturer});
@@ -202,6 +204,7 @@ class VehicleManufacturerService {
 			await vehicleManufacturer.saveLogo();
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'VehicleManufacturerService', method: 'handleUpdateVehicleManufacturer',
 				message: `Vehicle Manufacturer '${updatedVehicleManufacturer.getName()}' has been updated successfully`,
 				action: action, detailedMessages: updatedVehicleManufacturer});

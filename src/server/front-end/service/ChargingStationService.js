@@ -63,6 +63,7 @@ class ChargingStationService {
 			const updatedChargingStation = await chargingStation.save();
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				source: updatedChargingStation.getID(),
 				user: req.user, module: 'ChargingStationService',
 				method: 'handleUpdateChargingStationParams',
@@ -204,6 +205,7 @@ class ChargingStationService {
 			await chargingStation.delete();
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'ChargingStationService', method: 'handleDeleteChargingStation',
 				message: `Charging Station '${chargingStation.getID()}' has been deleted successfully`,
 				action: action, detailedMessages: chargingStation});
@@ -341,6 +343,7 @@ class ChargingStationService {
 			}
 			// Ok
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				source: chargingStation.getID(), user: req.user, action: action,
 				module: 'ChargingStationService', method: 'handleAction',
 				message: `'${action}' has been executed successfully`,
@@ -416,6 +419,7 @@ class ChargingStationService {
 			if (filteredRequest.maxIntensity && filteredRequest.maxIntensity >= 0 && filteredRequest.maxIntensity <= maxIntensitySocketMax) {
 				// Log
 				Logging.logSecurityInfo({
+                  tenantID: req.user.tenantID,
 					user: req.user, module: 'ChargingStationService', method: 'handleActionSetMaxIntensitySocket',
 					action: action, source: chargingStation.getID(),
 					message: `Max Instensity Socket has been set to '${filteredRequest.maxIntensity}'`});

@@ -121,6 +121,7 @@ class OCPPSoapService15 extends OCPPService {
       name: action,
       headers: {
         chargeBoxIdentity: chargeBoxIdentity,
+        tenant: '5bcf48c289c7e209a426fb63',
         From: {
           Address: "http://www.w3.org/2005/08/addressing/anonymous"
         },
