@@ -14,20 +14,20 @@ class JsonChargingStationService16 {
   async _handle(command, payload) {
     try {
       // Log
-      Logging.logReceivedAction(MODULE_NAME, payload.chargeBoxIdentity, command, payload);
+      Logging.logReceivedAction(MODULE_NAME, payload.tenantID, payload.chargeBoxIdentity, command, payload);
       // Get the service
-      const chargingStationService = global.centralSystemJson.getChargingStationService(Constants.OCPP_VERSION_16)
+      const chargingStationService = global.centralSystemJson.getChargingStationService(Constants.OCPP_VERSION_16);
       // Handle
       const result = await chargingStationService["handle" + command](payload);
       // Log
-      Logging.logReturnedAction(MODULE_NAME, payload.chargeBoxIdentity, command, {
+      Logging.logReturnedAction(MODULE_NAME, payload.tenantID, payload.chargeBoxIdentity, command, {
         "result": result
       });
       // Return
       return result;
     } catch (error) {
       // Log
-      Logging.logException(error, command, payload.chargeBoxIdentity, MODULE_NAME, command);
+      Logging.logException(error, command, payload.tenantID, payload.chargeBoxIdentity, MODULE_NAME, command);
       // Rethrow
       throw error;
     }
