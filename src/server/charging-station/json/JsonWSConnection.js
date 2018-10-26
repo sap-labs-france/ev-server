@@ -132,7 +132,6 @@ class JsonWSConnection {
 
   async onMessage(message) {
     let messageType, messageId, commandName, commandPayload, errorDetails;
-    console.log(message);
 
     try {
       // Parse the message
@@ -198,7 +197,7 @@ class JsonWSConnection {
       // Check if method exist in the service
       if (typeof this._chargingStationService["handle" + commandName] === 'function') {
         // Call it
-        let result = await this._chargingStationService["handle" + commandName](Object.assign(commandPayload, this._wsConnection._headers));
+        let result = await this._chargingStationService["handle" + commandName](Object.assign({}, commandPayload, this._headers));
         // Log
         Logging.logReturnedAction(MODULE_NAME, this.getChargeBoxID(), commandName, {
           "result": result
@@ -211,7 +210,7 @@ class JsonWSConnection {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(commandPayload, error);
+      Logging.logActionExceptionMessage(commandName, error);
       // Send error
       await this.sendError(messageId, error);
     }
