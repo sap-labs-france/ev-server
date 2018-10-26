@@ -23,7 +23,7 @@ class ChargingStationService {
    * @returns a Charging Station object
    * @memberof ChargingStationService
    */
-  async checkAndGetChargingStation(chargeBoxIdentity, tenantID) {
+  async _checkAndGetChargingStation(chargeBoxIdentity, tenantID) {
     // Get the charging station
     const chargingStation = await ChargingStation.getChargingStation(tenantID, chargeBoxIdentity);
     // Found?

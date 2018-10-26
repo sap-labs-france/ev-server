@@ -85,8 +85,7 @@ class ChargingStationService16 extends ChargingStationService {
 
   async handleHeartbeat(payload) {
     try {
-      // Get the charging station
-      const chargingStation = await ChargingStation.getChargingStation(payload.tenantID, payload.chargeBoxIdentity);
+      const chargingStation = await this._checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenantID);
       // Save
       await chargingStation.handleHeartBeat();
       // Return			
@@ -107,8 +106,7 @@ class ChargingStationService16 extends ChargingStationService {
 
   async handleStatusNotification(payload) {
     try {
-      // Get the charging station
-      const chargingStation = await ChargingStation.getChargingStation(payload.tenantID, payload.chargeBoxIdentity);
+      const chargingStation = await this._checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenantID);
       // Handle
       await chargingStation.handleStatusNotification(payload);
       // Respond
@@ -126,7 +124,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleMeterValues(payload) {
     try {
       // Get the charging station
-      const chargingStation = await ChargingStation.getChargingStation(payload.tenantID, payload.chargeBoxIdentity);
+      const chargingStation = await this._checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenantID);
       // Save
       await chargingStation.handleMeterValues(payload);
       // Return
@@ -144,7 +142,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleAuthorize(payload) {
     try {
       // Get the charging station
-      const chargingStation = await ChargingStation.getChargingStation(payload.tenantID, payload.chargeBoxIdentity);
+      const chargingStation = await this._checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenantID);
       // Handle
       await chargingStation.handleAuthorize(payload);
       // Return
@@ -165,7 +163,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleDiagnosticsStatusNotification(payload) {
     try {
       // Get the charging station
-      const chargingStation = await ChargingStation.getChargingStation(payload.tenantID, payload.chargeBoxIdentity);
+      const chargingStation = await this._checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenantID);
       // Save
       await chargingStation.handleDiagnosticsStatusNotification(payload);
       // Return
@@ -182,7 +180,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleFirmwareStatusNotification(payload) {
     try {
       // Get the charging station
-      const chargingStation = await ChargingStation.getChargingStation(payload.tenantID, payload.chargeBoxIdentity);
+      const chargingStation = await this._checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenantID);
       // Save
       await chargingStation.handleFirmwareStatusNotification(payload);
       // Return
@@ -197,7 +195,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleStartTransaction(payload) {
     try {
       // Get the charging station
-      const chargingStation = await ChargingStation.getChargingStation(payload.tenantID, payload.chargeBoxIdentity);
+      const chargingStation = await this._checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenantID);
       // Save
       const transaction = await chargingStation.handleStartTransaction(payload);
       // Return
@@ -220,7 +218,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleDataTransfer(payload) {
     try {
       // Get the charging station
-      const chargingStation = await ChargingStation.getChargingStation(payload.tenantID, payload.chargeBoxIdentity);
+      const chargingStation = await this._checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenantID);
       // Save
       await chargingStation.handleDataTransfer(payload);
       // Return
@@ -241,7 +239,7 @@ class ChargingStationService16 extends ChargingStationService {
   async handleStopTransaction(payload) {
     try {
       // Get the charging station
-      const chargingStation = await ChargingStation.getChargingStation(payload.tenantID, payload.chargeBoxIdentity);
+      const chargingStation = await this._checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenantID);
       // Handle
       await chargingStation.handleStopTransaction(payload);
       // Success
