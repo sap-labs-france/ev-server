@@ -77,6 +77,15 @@ class OCPPBootstrap {
       // Check
       expect(response.data).to.not.be.null;
       expect(response.data.status).to.eql('Accepted');
+      expect(response.data).to.have.property('currentTime');      
+      // Check according the OCPP version
+      if (this.ocpp.getVersion() === "1.6") {
+        // OCPP 1.6
+        expect(response.data).to.have.property('interval');      
+      } else {
+        // OCPP 1.2, 1.5
+        expect(response.data).to.have.property('heartbeatInterval');      
+      }
 
       // Send Status Notif for Connector A
       response = await this.ocpp.executeStatusNotification(chargingStationID, {

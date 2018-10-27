@@ -169,7 +169,6 @@ class JsonWSConnection {
           }
           const [, rejectCallback] = this._requests[messageId];
           delete this._requests[messageId];
-
           rejectCallback(new OCPPError(commandName, commandPayload, errorDetails));
           break;
         // Error
@@ -186,12 +185,12 @@ class JsonWSConnection {
     try {
       // Check if method exist in the service
       if (typeof this._chargingStationService["handle" + commandName] === 'function') {
+        // Log
+        Logging.logReceivedAction(MODULE_NAME, this.getChargeBoxID(), commandName, commandPayload);
         // Call it
         let result = await this._chargingStationService["handle" + commandName](Object.assign({}, commandPayload, this._headers));
         // Log
-        Logging.logReturnedAction(MODULE_NAME, this.getChargeBoxID(), commandName, {
-          "result": result
-        });
+        Logging.logReturnedAction(MODULE_NAME, this.getChargeBoxID(), commandName, result);
         // Send Response
         await this.sendMessage(messageId, result, Constants.OCPP_JSON_CALL_RESULT_MESSAGE);
       } else {

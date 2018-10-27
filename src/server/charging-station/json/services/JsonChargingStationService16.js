@@ -12,14 +12,8 @@ class JsonChargingStationService16 {
 
   async _handle(command, payload) {
     try {
-      // Log
-      Logging.logReceivedAction(MODULE_NAME, payload.chargeBoxIdentity, command, payload);
       // Handle
       const result = await this.chargingStationService["handle" + command](payload);
-      // Log
-      Logging.logReturnedAction(MODULE_NAME, payload.chargeBoxIdentity, command, {
-        "result": result
-      });
       // Return
       return result;
     } catch (error) {
@@ -37,7 +31,7 @@ class JsonChargingStationService16 {
     return {
       'currentTime': result.currentTime,
       'status': result.status,
-      'heartbeatInterval': result.heartbeatInterval
+      'interval': result.heartbeatInterval
     };
   }
 
