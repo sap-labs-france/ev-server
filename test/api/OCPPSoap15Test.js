@@ -60,17 +60,17 @@ describe('OCPP 1.5 SOAP Tests', function () {
       await this.ocppCommonTests.testSendMeterValues();
     });
 
-    it('Stop User should stop the transaction', async () => {
+    it('User should stop the transaction', async () => {
       // Delegate
       await this.ocppCommonTests.testStopTransaction();
     });
 
-    it('Transaction must have the same consumption metrics', async () => {
+    it('Transaction must have the right consumption metrics and inactivity', async () => {
       // Delegate
       await this.ocppCommonTests.testTransactionMetrics();
     });
 
-    it('User should delete the transaction', async () => {
+    it('User should delete his transaction', async () => {
       // Delegate
       await this.ocppCommonTests.testDeleteTransaction();
     });
