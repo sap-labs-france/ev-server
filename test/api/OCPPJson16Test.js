@@ -72,9 +72,9 @@ describe('OCPP 1.6 JSON Tests', function () {
       await this.ocppCommonTests.testTransactionMetrics();
     });
 
-    // it('User should delete the transaction', async () => {
-    //   // Delegate
-    //   await this.ocppCommonTests.testDeleteTransaction();
-    // });
+    it('User should delete the transaction', async () => {
+      // Delegate
+      await this.ocppCommonTests.testDeleteTransaction();
+    });
   });
 });
