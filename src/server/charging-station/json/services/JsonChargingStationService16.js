@@ -7,17 +7,15 @@ class JsonChargingStationService16 {
   constructor(chargingStationConfig) {
     this._chargingStationConfig = chargingStationConfig;
     // Get the OCPP service
-    this.chargingStationService = global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_16);
+    this.chargingStationService = global.centralSystemJson.getChargingStationService(Constants.OCPP_VERSION_16);
   }
 
   async _handle(command, payload) {
     try {
       // Log
       Logging.logReceivedAction(MODULE_NAME, payload.chargeBoxIdentity, command, payload);
-      // Get the service
-      const chargingStationService = global.centralSystemJson.getChargingStationService(Constants.OCPP_VERSION_16)
       // Handle
-      const result = await chargingStationService["handle" + command](payload);
+      const result = await this.chargingStationService["handle" + command](payload);
       // Log
       Logging.logReturnedAction(MODULE_NAME, payload.chargeBoxIdentity, command, {
         "result": result
