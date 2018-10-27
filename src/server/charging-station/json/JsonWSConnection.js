@@ -11,7 +11,7 @@ const MODULE_NAME = "JsonWSConnection";
 
 class JsonWSConnection {
 
-  constructor(socket, req, chargingStationConfig) {
+  constructor(socket, req, chargingStationConfig, serverURL) {
     this._url = req.url;
     this._ip = req && ((req.connection && req.connection.remoteAddress) || req.headers['x-forwarded-for']);
     this._socket = socket;
@@ -19,6 +19,7 @@ class JsonWSConnection {
     this._requests = {};
     this.tenantName = null;
     this.chargeBoxID = null;
+    this.serverURL = serverURL;
 
     // Check URL: remove starting and trailing '/'
     if (this._url.endsWith('/')) {
@@ -124,6 +125,7 @@ class JsonWSConnection {
       chargeBoxIdentity: this.chargeBoxID,
       ocppVersion: (this._socket.protocol.startsWith("ocpp") ? this._socket.protocol.replace("ocpp", "") : this._socket.protocol),
       ocppProtocol: Constants.OCPP_PROTOCOL_JSON,
+      chargingStationURL: this.serverURL,
       tenant: this.tenantName,
       From: {
         Address: this._ip

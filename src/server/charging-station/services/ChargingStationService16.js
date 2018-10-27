@@ -1,6 +1,7 @@
 const ChargingStationService = require('./ChargingStationService');
 const ChargingStation = require('../../../model/ChargingStation');
 const Logging = require('../../../utils/Logging');
+const Constants = require('../../../utils/Constants');
 require('source-map-support').install();
 
 /**
@@ -40,15 +41,22 @@ class ChargingStationService16 extends ChargingStationService {
       if (!chargingStation) {
         // Save Charging Station
         chargingStation = new ChargingStation(payload);
-        // Set the URL = enpoint
-        chargingStation.setChargingStationURL(chargingStation.getEndPoint());
+        // Set the charger URL?
+        if (!chargingStation.getChargingStationURL()) {
+          // Default is endpoint
+          chargingStation.setChargingStationURL(chargingStation.getEndPoint());
+        }
         // Update timestamp
         chargingStation.setCreatedOn(new Date());
         chargingStation.setLastHeartBeat(new Date());
       } else {
-        // Set the URL = enpoint
+        // Set the charger URL?
         if (!chargingStation.getChargingStationURL()) {
           chargingStation.setChargingStationURL(chargingStation.getEndPoint())
+        }
+        if (chargingStation.getOcppProtocol() === Constants.OCPP_PROTOCOL_JSON) {
+          // Always override the URL
+          chargingStation.setChargingStationURL(payload.chargingStationURL);
         }
         // Update data
         chargingStation.setChargePointVendor(payload.chargePointVendor);

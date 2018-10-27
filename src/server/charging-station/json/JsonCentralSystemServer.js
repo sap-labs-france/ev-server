@@ -18,6 +18,7 @@ class JsonCentralSystemServer extends CentralSystemServer {
   }
 
   start() {
+    const serverURL = `${this._centralSystemConfig.protocol}://${this._centralSystemConfig.host}:${this._centralSystemConfig.port}`
     let server;
     // Log
     console.log(`Starting JSon Central System Server (Charging Stations)...`);
@@ -77,7 +78,7 @@ class JsonCentralSystemServer extends CentralSystemServer {
     this._wss.on('connection', async (ws, req) => {
       try {
         // Create a Web Socket connection object
-        const wsConnection = new JsonWSConnection(ws, req, this._chargingStationConfig);
+        const wsConnection = new JsonWSConnection(ws, req, this._chargingStationConfig, serverURL);
         // Initialize        
         await wsConnection.initialize();
         // Store the WS manager linked to its ChargeBoxId
