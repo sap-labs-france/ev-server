@@ -260,6 +260,14 @@ class ChargingStation {
 		this._model.ocppVersion = ocppVersion;
 	}
 
+	getOcppProtocol() {
+		return this._model.ocppProtocol;
+	}
+
+	setOcppProtocol(ocppProtocol) {
+		this._model.ocppProtocol = ocppProtocol;
+	}
+
 	async getChargingStationClient() {
 		// Already created or it is a soap client
     // Delegate responsibility to interface. It might be possibel that protocol changed 

@@ -123,6 +123,7 @@ class JsonWSConnection {
     this._headers = {
       chargeBoxIdentity: this.chargeBoxID,
       ocppVersion: (this._socket.protocol.startsWith("ocpp") ? this._socket.protocol.replace("ocpp", "") : this._socket.protocol),
+      ocppProtocol: Constants.OCPP_PROTOCOL_JSON,
       tenant: this.tenantName,
       From: {
         Address: this._ip

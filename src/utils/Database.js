@@ -1,4 +1,6 @@
 const Utils = require('./Utils');
+const Constants = require('./Constants');
+
 require('source-map-support').install();
 
 let _heartbeatIntervalSecs;
@@ -50,8 +52,13 @@ class Database {
 		dest.firmwareVersion = src.firmwareVersion;
 		dest.meterSerialNumber = src.meterSerialNumber;
 		dest.endpoint = src.endpoint;
-		dest.ocppVersion = src.ocppVersion;
-		dest.lastHeartBeat = Utils.convertToDate(src.lastHeartBeat);
+    dest.ocppVersion = src.ocppVersion;
+    if (dest.ocppProtocol) {
+      dest.ocppProtocol = src.ocppProtocol;
+    } else {
+      dest.ocppProtocol = Constants.OCPP_PROTOCOL_SOAP;
+    }
+    dest.lastHeartBeat = Utils.convertToDate(src.lastHeartBeat);
 		dest.deleted = src.deleted;
 		// Check Inactive Chargers
 		if (forFrontEnd) {

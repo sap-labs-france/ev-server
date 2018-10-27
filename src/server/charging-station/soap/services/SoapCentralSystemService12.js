@@ -267,6 +267,7 @@ module.exports = { /* Services */
         try {
           // Add OCPP Version
           headers.ocppVersion = Constants.OCPP_VERSION_12;
+          headers.ocppProtocol = Constants.OCPP_PROTOCOL_SOAP;
           // Normalize Header
           Utils.normalizeSOAPHeader(headers);
           // Payload

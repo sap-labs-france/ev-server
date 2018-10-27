@@ -342,6 +342,7 @@ class ChargingStationStorage {
 				chargeBoxSerialNumber: bootNotification.chargeBoxSerialNumber,
 				firmwareVersion: bootNotification.firmwareVersion,
 				ocppVersion: bootNotification.ocppVersion,
+				ocppProtocol: bootNotification.ocppProtocol,
 				endpoint: bootNotification.endpoint,
 				chargeBoxIdentity: bootNotification.chargeBoxIdentity,
 				timestamp: Utils.convertToDate(bootNotification.timestamp)

@@ -57,6 +57,7 @@ class ChargingStationService16 extends ChargingStationService {
         chargingStation.setChargeBoxSerialNumber(payload.chargeBoxSerialNumber);
         chargingStation.setFirmwareVersion(payload.firmwareVersion);
         chargingStation.setOcppVersion(payload.ocppVersion);
+        chargingStation.setOcppProtocol(payload.ocppProtocol);
         chargingStation.setLastHeartBeat(new Date());
         // Back again
         chargingStation.setDeleted(false);
