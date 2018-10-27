@@ -9,6 +9,10 @@ class OCPPSoapService15 extends OCPPService {
     this.client = null;
   }
 
+  getVersion() {
+    return "1.5";
+  }
+
   executeAuthorize(chargeBoxIdentity, payload) {
     return this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'Authorize', payload)

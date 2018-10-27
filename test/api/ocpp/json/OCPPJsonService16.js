@@ -11,6 +11,10 @@ class OCPPJsonService16 extends OCPPService {
     this.promises = {};
   }
 
+  getVersion() {
+    return "1.6";
+  }
+
   openConnection(chargeBoxIdentity) {
     return new Promise(resolve => {
       // Create WS
@@ -120,7 +124,7 @@ class OCPPJsonService16 extends OCPPService {
     );
   }
 
-  executepayloadTransfer(chargeBoxIdentity, payload) {
+  executeDataTransfer(chargeBoxIdentity, payload) {
     return this._execute(
       chargeBoxIdentity,
       this._buildRequest('DataTransfer', payload)

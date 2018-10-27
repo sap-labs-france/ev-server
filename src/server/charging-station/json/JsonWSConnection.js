@@ -139,30 +139,22 @@ class JsonWSConnection {
       switch (messageType) {
         // Incoming Message
         case Constants.OCPP_JSON_CALL_MESSAGE:
-          // Log 
-          Logging.logReceivedAction(MODULE_NAME, this._headers.chargeBoxIdentity, commandName, message, this._headers);
           // Process the call
           await this.handleRequest(messageId, commandName, commandPayload);
           break;
         // Outcome Message
         case Constants.OCPP_JSON_CALL_RESULT_MESSAGE:
-          // Log
-          Logging.logReturnedAction(MODULE_NAME, this._headers.chargeBoxIdentity, commandName, {
-            "result": message
-          });
           // Respond
           const [responseCallback] = this._requests[messageId];
-          
           if (!responseCallback) {
             throw new Error(`Response for unknown message ${messageId}`);
           }
           delete this._requests[messageId];
-
           responseCallback(commandName);
           break;
         // Error Message
         case Constants.OCPP_JSON_CALL_ERROR_MESSAGE:
-          // error response
+          // Log
           Logging.logError({
             module: MODULE_NAME,
             method: "sendMessage",
@@ -172,7 +164,6 @@ class JsonWSConnection {
               error: JSON.stringify(message, null, " ")
             }
           });
-
           if (!this._requests[messageId]) {
             throw new Error(`Response for unknown message ${messageId}`);
           }

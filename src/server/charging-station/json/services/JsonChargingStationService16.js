@@ -117,7 +117,9 @@ class JsonChargingStationService16 {
     const result = await this._handle("StopTransaction", payload);
     // Return the response
     return {
-      'status': result.status
+      'idTagInfo': {
+        'status': result.status
+      }
     };
   }
 }

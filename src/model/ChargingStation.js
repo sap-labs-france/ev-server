@@ -1514,18 +1514,13 @@ class ChargingStation {
 				// Append
 				meterValues.push(meterValueFromTransactionStop);
 			}
-		}
+    }
 		// Build the model
 		for (let meterValueIndex = 0; meterValueIndex < meterValues.length; meterValueIndex++) {
 			const meterValue = meterValues[meterValueIndex];
-			// Get the stored values
-			const numberOfReturnedMeters = chargingStationConsumption.values.length;
-
 			// Filter on consumption value
 			if (meterValue.attribute && meterValue.attribute.measurand &&
 					meterValue.attribute.measurand === 'Energy.Active.Import.Register') {
-				// Get the moment
-				const currentTimestamp = moment(meterValue.timestamp);
 				// First value?
 				if (!firstMeterValueSet) {
 					// No: Keep the first value
