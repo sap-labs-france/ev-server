@@ -15,18 +15,20 @@ class ChargingStationClient {
 	 * @memberof ChargingStationClient
 	 */
 	static async getChargingStationClient(chargingStation) {
-		// by default try to get the JSON client
-		let chargingClient = await global.centralSystemJson.getChargingStationClient(chargingStation.getID());
-		if (!chargingClient) { // not a JSON client
-			if (!chargingStation._chargingStationClient) { // not assigned yet so take a new SOAP client
-				const SoapChargingStationClient = require('./soap/SoapChargingStationClient');
-				// Init client
-				chargingClient = await new SoapChargingStationClient(chargingStation);
-			} else {
-				chargingClient = chargingStation._chargingStationClient;
-			}
-		}
-		return chargingClient;
+    let chargingClient = null;
+    // Try to get the JSON Client first 
+    if (global.centralSystemJson) {
+      // Get the client from JSon Server
+      chargingClient = await global.centralSystemJson.getChargingStationClient(chargingStation.getID());
+    }
+    // Not Found?
+    if (!chargingClient) {
+      // Get the Soap one by default
+      const SoapChargingStationClient = require('./soap/SoapChargingStationClient');
+      // Init client
+      chargingClient = await new SoapChargingStationClient(chargingStation);
+    }
+    return chargingClient;
 	}
 
 	/**
