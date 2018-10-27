@@ -269,9 +269,8 @@ class ChargingStation {
 	}
 
 	async getChargingStationClient() {
-		// Already created or it is a soap client
-    // Delegate responsibility to interface. It might be possibel that protocol changed 
-		this._chargingStationClient = await ChargingStationClient.getChargingStationClient(this);
+    // Get the client
+    this._chargingStationClient = await ChargingStationClient.getChargingStationClient(this);
 		return this._chargingStationClient;
 	}
 

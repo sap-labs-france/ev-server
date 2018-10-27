@@ -54,6 +54,7 @@ class ChargingStationService16 extends ChargingStationService {
         if (!chargingStation.getChargingStationURL()) {
           chargingStation.setChargingStationURL(chargingStation.getEndPoint())
         }
+        // For JSon
         if (chargingStation.getOcppProtocol() === Constants.OCPP_PROTOCOL_JSON) {
           // Always override the URL
           chargingStation.setChargingStationURL(payload.chargingStationURL);

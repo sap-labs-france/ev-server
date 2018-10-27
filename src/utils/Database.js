@@ -53,7 +53,7 @@ class Database {
 		dest.meterSerialNumber = src.meterSerialNumber;
 		dest.endpoint = src.endpoint;
     dest.ocppVersion = src.ocppVersion;
-    if (dest.ocppProtocol) {
+    if (src.ocppProtocol) {
       dest.ocppProtocol = src.ocppProtocol;
     } else {
       dest.ocppProtocol = Constants.OCPP_PROTOCOL_SOAP;
