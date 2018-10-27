@@ -80,7 +80,7 @@ class NotificationHandler {
 					return _email.sendEndOfCharge(sourceData, locale);
 				}
 			}
-		} catch(err) {
+		} catch(error) {
 			// Log error
 			Logging.logActionExceptionMessage(SOURCE_END_OF_CHARGE, error);
 		}
@@ -101,7 +101,7 @@ class NotificationHandler {
 					return _email.sendEndOfSession(sourceData, locale);
 				}
 			}
-		} catch(err) {
+		} catch(error) {
 			// Log error
 			Logging.logActionExceptionMessage(SOURCE_END_OF_SESSION, error);
 		}
