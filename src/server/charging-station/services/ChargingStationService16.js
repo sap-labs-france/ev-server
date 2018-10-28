@@ -41,24 +41,10 @@ class ChargingStationService16 extends ChargingStationService {
       if (!chargingStation) {
         // Save Charging Station
         chargingStation = new ChargingStation(payload);
-        // Set the charger URL?
-        if (!chargingStation.getChargingStationURL()) {
-          // Default is endpoint
-          chargingStation.setChargingStationURL(chargingStation.getEndPoint());
-        }
         // Update timestamp
         chargingStation.setCreatedOn(new Date());
         chargingStation.setLastHeartBeat(new Date());
       } else {
-        // Set the charger URL?
-        if (!chargingStation.getChargingStationURL()) {
-          chargingStation.setChargingStationURL(chargingStation.getEndPoint())
-        }
-        // For JSon
-        if (chargingStation.getOcppProtocol() === Constants.OCPP_PROTOCOL_JSON) {
-          // Always override the URL
-          chargingStation.setChargingStationURL(payload.chargingStationURL);
-        }
         // Update data
         chargingStation.setChargePointVendor(payload.chargePointVendor);
         chargingStation.setChargePointModel(payload.chargePointModel);
@@ -68,6 +54,10 @@ class ChargingStationService16 extends ChargingStationService {
         chargingStation.setOcppVersion(payload.ocppVersion);
         chargingStation.setOcppProtocol(payload.ocppProtocol);
         chargingStation.setLastHeartBeat(new Date());
+        // Set the charger URL?
+        if (payload.chargingStationURL) {
+          chargingStation.setChargingStationURL(payload.chargingStationURL)
+        }
         // Back again
         chargingStation.setDeleted(false);
       }

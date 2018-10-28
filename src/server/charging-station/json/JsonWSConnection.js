@@ -2,6 +2,7 @@ const uuid = require('uuid/v4');
 const Logging = require('../../../utils/Logging');
 const WebSocket = require('ws');
 const Tenant = require('../../../model/Tenant');
+const ChargingStation = require('../../../model/ChargingStation');
 const Constants = require('../../../utils/Constants');
 const OCPPError = require('../../../exception/OcppError');
 const JsonChargingStationClient16 = require('../../../client/json/JsonChargingStationClient16');
@@ -94,7 +95,7 @@ class JsonWSConnection {
       });
       // Close the connection
       global.centralSystemJson.removeConnection(this.getChargeBoxID());
-    })
+    });
   }
 
   async initialize() {
@@ -119,6 +120,15 @@ class JsonWSConnection {
         // Throw
         throw new Error(`Invalid Tenant '${this.tenantName}' in URL '${this._url}'`);
       }
+    }
+    // Update Server URL
+    let chargingStation = await ChargingStation.getChargingStation(this.chargeBoxID);
+    // Found?
+    if (chargingStation) {
+      // Update Server URL
+      chargingStation.setChargingStationURL(this.serverURL);
+      // Save it
+      await chargingStation.save();
     }
     // Initialize the default Headers
     this._headers = {
@@ -283,12 +293,11 @@ class JsonWSConnection {
   }
 
   getChargeBoxID() {
-    if (this._headers && typeof this._headers === 'object' && this._headers.hasOwnProperty('chargeBoxIdentity'))
-      return this._headers.chargeBoxIdentity;
+    return this.chargeBoxID;
   }
 
   getWSClient() {
-    if (this._socket.readyState === 1) // only return client if WS is open
+    if (this._socket.readyState === WebSocket.OPEN) // only return client if WS is open
       return this._chargingStationClient;
   }
 }
