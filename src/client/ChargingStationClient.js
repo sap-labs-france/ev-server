@@ -1,3 +1,4 @@
+const Constants = require('../utils/Constants');
 
 class ChargingStationClient {
 	constructor() {
@@ -16,17 +17,21 @@ class ChargingStationClient {
 	 */
 	static async getChargingStationClient(chargingStation) {
     let chargingClient = null;
-    // Try to get the JSON Client first 
-    if (global.centralSystemJson) {
-      // Get the client from JSon Server
-      chargingClient = await global.centralSystemJson.getChargingStationClient(chargingStation.getID());
-    }
-    // Not Found?
-    if (!chargingClient) {
-      // Get the Soap one by default
-      const SoapChargingStationClient = require('./soap/SoapChargingStationClient');
-      // Init client
-      chargingClient = await new SoapChargingStationClient(chargingStation);
+    // Check protocol
+    switch (chargingStation.getOcppProtocol()) {
+      // JSON
+      case Constants.OCPP_PROTOCOL_JSON:
+        // Get the client from JSon Server
+        chargingClient = await global.centralSystemJson.getChargingStationClient(chargingStation.getID());
+        break;
+      // SOAP
+      case Constants.OCPP_PROTOCOL_SOAP:
+      default:
+        // Get the Soap one by default
+        const SoapChargingStationClient = require('./soap/SoapChargingStationClient');
+        // Init client
+        chargingClient = await new SoapChargingStationClient(chargingStation);
+        break;
     }
     return chargingClient;
 	}
