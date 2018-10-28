@@ -24,15 +24,6 @@ class Configuration {
 		let centralSystems = Configuration.getConfig().CentralSystems;
 		// Check Cloud Foundry
 		if (centralSystems && !_appEnv.isLocal) {
-      console.log("=======================================");
-      console.log("Host: " + _appEnv.host);
-      console.log("=======================================");
-      console.log("Bind: " + _appEnv.bind);
-      console.log("=======================================");
-      console.log("Env");
-      console.log(_appEnv);
-      console.log("=======================================");
-            
 			// Change host/port
 			for (const centralSystem of centralSystems) {
         // CF Environment: Override
