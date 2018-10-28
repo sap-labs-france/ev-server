@@ -15,6 +15,7 @@ class WSConnection {
     this._req = req;
     this._requests = {};
     this._chargingStationID = null;
+    this._initialized = false;
 
     // Check URL: remove starting and trailing '/'
     if (this._url.endsWith('/')) {
@@ -43,11 +44,15 @@ class WSConnection {
   }
 
   async initialize() {
+    this._initialized = true;
   }
 
   async onMessage(message) {
     // Parse the message
     let [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(message);
+
+    // Initialize: done in the message as init could be lengthy and first message may be lost
+    await this.initialize();
 
     try {
       // Check the Type of message

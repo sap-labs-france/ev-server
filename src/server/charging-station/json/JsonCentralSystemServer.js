@@ -97,8 +97,6 @@ class JsonCentralSystemServer extends CentralSystemServer {
         } else {
           // Create a Json Web Socket connection object
           const wsConnection = new JsonWSConnection(ws, req, this._chargingStationConfig, serverURL);
-          // Initialize        
-          await wsConnection.initialize();
           // Store the WS manager linked to its ChargeBoxId
           if (wsConnection.getChargingStationID()) {
             // Keep the connection

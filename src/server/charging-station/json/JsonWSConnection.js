@@ -18,7 +18,7 @@ class JsonWSConnection extends WSConnection {
     this._tenantName = null;
     this._chargingStationID = null;
     this._serverURL = serverURL;
-
+    
     // Parse URL: should like /OCPP16/TENANTNAME/CHARGEBOXID
     const splittedURL = this._url.split("/");
     // URL with 4 parts?
@@ -59,43 +59,48 @@ class JsonWSConnection extends WSConnection {
   }
 
   async initialize() {
-    // Check Tenant?
-    if (this._tenantName) {
-      // Check if the Tenant exists
-      const tenant = await Tenant.getTenantByName(this._tenantName);
-      // Found?
-      if (!tenant) {
-        // No: It is not allowed to connect with an unknown tenant
-        Logging.logError({
-          source: splittedURL[3],
-          module: MODULE_NAME,
-          method: "initialize",
-          action: "WSJsonRegiterJsonConnection",
-          message: `Invalid Tenant in URL ${this._url}`
-        });
-        // Throw
-        throw new Error(`Invalid Tenant '${this._tenantName}' in URL '${this._url}'`);
+    // Already initialized?
+    if (!this._initialized) {
+      // Check Tenant?
+      if (this._tenantName) {
+        // Check if the Tenant exists
+        const tenant = await Tenant.getTenantByName(this._tenantName);
+        // Found?
+        if (!tenant) {
+          // No: It is not allowed to connect with an unknown tenant
+          Logging.logError({
+            source: splittedURL[3],
+            module: MODULE_NAME,
+            method: "initialize",
+            action: "WSJsonRegiterJsonConnection",
+            message: `Invalid Tenant in URL ${this._url}`
+          });
+          // Throw
+          throw new Error(`Invalid Tenant '${this._tenantName}' in URL '${this._url}'`);
+        }
       }
-    }
-    // Initialize the default Headers
-    this._headers = {
-      chargeBoxIdentity: this._chargingStationID,
-      ocppVersion: (this._socket.protocol.startsWith("ocpp") ? this._socket.protocol.replace("ocpp", "") : this._socket.protocol),
-      ocppProtocol: Constants.OCPP_PROTOCOL_JSON,
-      chargingStationURL: this._serverURL,
-      tenant: this._tenantName,
-      From: {
-        Address: this._ip
+      // Initialize the default Headers
+      this._headers = {
+        chargeBoxIdentity: this._chargingStationID,
+        ocppVersion: (this._socket.protocol.startsWith("ocpp") ? this._socket.protocol.replace("ocpp", "") : this._socket.protocol),
+        ocppProtocol: Constants.OCPP_PROTOCOL_JSON,
+        chargingStationURL: this._serverURL,
+        tenant: this._tenantName,
+        From: {
+          Address: this._ip
+        }
       }
-    }
-    // Update Server URL
-    let chargingStation = await ChargingStation.getChargingStation(this._chargingStationID);
-    // Found?
-    if (chargingStation) {
       // Update Server URL
-      chargingStation.setChargingStationURL(this._serverURL);
-      // Save it
-      await chargingStation.save();
+      let chargingStation = await ChargingStation.getChargingStation(this._chargingStationID);
+      // Found?
+      if (chargingStation) {
+        // Update Server URL
+        chargingStation.setChargingStationURL(this._serverURL);
+        // Save it
+        await chargingStation.save();
+      }
+      // Ok
+      this._initialized = true;
     }
   }
 
