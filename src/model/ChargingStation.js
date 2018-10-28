@@ -268,10 +268,9 @@ class ChargingStation {
 		this._model.ocppProtocol = ocppProtocol;
 	}
 
-	async getChargingStationClient() {
+	getChargingStationClient() {
     // Get the client
-    this._chargingStationClient = await ChargingStationClient.getChargingStationClient(this);
-		return this._chargingStationClient;
+    return ChargingStationClient.getChargingStationClient(this);
 	}
 
 	getLastHeartBeat() {

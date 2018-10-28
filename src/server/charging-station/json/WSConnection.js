@@ -8,7 +8,8 @@ const MODULE_NAME = "WSConnection";
 
 class WSConnection {
 
-  constructor(socket, req) {
+  constructor(socket, req, wsServer) {
+    // Init
     this._url = req.url;
     this._ip = req && ((req.connection && req.connection.remoteAddress) || req.headers['x-forwarded-for']);
     this._socket = socket;
@@ -16,6 +17,7 @@ class WSConnection {
     this._requests = {};
     this._chargingStationID = null;
     this._initialized = false;
+    this._wsServer = wsServer;
 
     // Check URL: remove starting and trailing '/'
     if (this._url.endsWith('/')) {
@@ -62,7 +64,7 @@ class WSConnection {
           // Process the call
           await this.handleRequest(messageId, commandName, commandPayload);
           break;
-        // Outcome Message
+          // Outcome Message
         case Constants.OCPP_JSON_CALL_RESULT_MESSAGE:
           // Respond
           const [responseCallback] = this._requests[messageId];
@@ -72,7 +74,7 @@ class WSConnection {
           delete this._requests[messageId];
           responseCallback(commandName);
           break;
-        // Error Message
+          // Error Message
         case Constants.OCPP_JSON_CALL_ERROR_MESSAGE:
           // Log
           Logging.logError({
@@ -91,13 +93,13 @@ class WSConnection {
           delete this._requests[messageId];
           rejectCallback(new OCPPError(commandName, commandPayload, errorDetails));
           break;
-        // Error
+          // Error
         default:
           throw new Error(`Wrong message type ${messageType}`);
       }
     } catch (error) {
       // Log
-      Logging.logException(error, "", this._chargingStationID, MODULE_NAME, "onMessage");
+      Logging.logException(error, "", this.getChargingStationID(), MODULE_NAME, "onMessage");
       // Send error
       await this.sendError(messageId, error);
     }
@@ -108,26 +110,26 @@ class WSConnection {
   }
 
   async onClose(code, reason) {
-      // Log
-      Logging.logInfo({
-        module: MODULE_NAME,
-        source: (this._chargingStationID ? this._chargingStationID : ""),
-        method: "OnClose",
-        action: "WSConnectionClose",
-        message: `Connection has been closed, Reason '${reason}', Code '${code}'`
-      });
-      // Close the connection
-      global.centralSystemJson.removeConnection(this._chargingStationID);
+    // Log
+    Logging.logInfo({
+      module: MODULE_NAME,
+      source: (this.getChargingStationID() ? this.getChargingStationID() : ""),
+      method: "OnClose",
+      action: "WSConnectionClose",
+      message: `Connection has been closed, Reason '${reason}', Code '${code}'`
+    });
+    // Close the connection
+    this._wsServer.removeConnection(this.getChargingStationID());
   }
 
   async onError(error) {
-      // Log
-      Logging.logError({
-        module: MODULE_NAME,
-        method: "OnError",
-        action: "WSErrorReceived",
-        message: error
-      });
+    // Log
+    Logging.logError({
+      module: MODULE_NAME,
+      method: "OnError",
+      action: "WSErrorReceived",
+      message: error
+    });
   }
 
   send(command, messageType = Constants.OCPP_JSON_CALL_MESSAGE) {
@@ -157,15 +159,19 @@ class WSConnection {
           this._requests[messageId] = [responseCallback, rejectCallback];
           messageToSend = JSON.stringify([messageType, messageId, commandName, command]);
           break;
-        // Response
+          // Response
         case Constants.OCPP_JSON_CALL_RESULT_MESSAGE:
           // Build response
           messageToSend = JSON.stringify([messageType, messageId, command]);
           break;
-        // Error Message
+          // Error Message
         case Constants.OCPP_JSON_CALL_ERROR_MESSAGE:
           // Build Message
-          const { code, message, details } = command;
+          const {
+            code,
+            message,
+            details
+          } = command;
           messageToSend = JSON.stringify([messageType, messageId, code, message, details]);
           break;
       }
@@ -205,6 +211,10 @@ class WSConnection {
 
   getChargingStationID() {
     return this._chargingStationID;
+  }
+
+  setChargingStationID(chargingStationID) {
+    this._chargingStationID = chargingStationID;
   }
 }
 

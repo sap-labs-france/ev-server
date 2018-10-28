@@ -12,13 +12,13 @@ const MODULE_NAME = "JsonWSConnection";
 
 class JsonWSConnection extends WSConnection {
 
-  constructor(socket, req, chargingStationConfig, serverURL) {
-    super(socket, req);
+  constructor(socket, req, chargingStationConfig, serverURL, wsServer) {
+    // Call super
+    super(socket, req, wsServer);
+    // Init
     this._requests = {};
     this._tenantName = null;
-    this._chargingStationID = null;
     this._serverURL = serverURL;
-    
     // Parse URL: should like /OCPP16/TENANTNAME/CHARGEBOXID
     const splittedURL = this._url.split("/");
     // URL with 4 parts?
@@ -26,11 +26,11 @@ class JsonWSConnection extends WSConnection {
       // Yes: Tenant is then provided in the third part
       this._tenantName = splittedURL[1];
       // The Charger is in the 4th position
-      this._chargingStationID = splittedURL[2];
+      this.setChargingStationID(splittedURL[2]);
     } else if (splittedURL.length === 2) {
       // 3 parts: no Tenant provided, get the Charging Station
       // Should not be supported when switched to tenant
-      this._chargingStationID = splittedURL[1];
+      this.setChargingStationID(splittedURL[1]);
     } else {
       // Throw
       throw new Error(`The URL '${req.url }' must contain the Charging Station ID (/OCPPxx/TENANT_NAME/CHARGEBOX_ID)`);
@@ -38,7 +38,7 @@ class JsonWSConnection extends WSConnection {
     // Log
     Logging.logInfo({
       module: MODULE_NAME,
-      source: this._chargingStationID,
+      source: this.getChargingStationID(),
       method: "constructor",
       action: "WSJsonConnectionOpened",
       message: `New Json connection from '${this._ip}', Protocol '${socket.protocol}', URL '${this._url}'`
@@ -79,9 +79,18 @@ class JsonWSConnection extends WSConnection {
           throw new Error(`Invalid Tenant '${this._tenantName}' in URL '${this._url}'`);
         }
       }
+      // Update Server URL
+      let chargingStation = await ChargingStation.getChargingStation(this.getChargingStationID());
+      // Found?
+      if (chargingStation) {
+        // Update Server URL
+        chargingStation.setChargingStationURL(this._serverURL);
+        // Save it
+        await chargingStation.save();
+      }
       // Initialize the default Headers
       this._headers = {
-        chargeBoxIdentity: this._chargingStationID,
+        chargeBoxIdentity: this.getChargingStationID(),
         ocppVersion: (this._socket.protocol.startsWith("ocpp") ? this._socket.protocol.replace("ocpp", "") : this._socket.protocol),
         ocppProtocol: Constants.OCPP_PROTOCOL_JSON,
         chargingStationURL: this._serverURL,
@@ -89,15 +98,6 @@ class JsonWSConnection extends WSConnection {
         From: {
           Address: this._ip
         }
-      }
-      // Update Server URL
-      let chargingStation = await ChargingStation.getChargingStation(this._chargingStationID);
-      // Found?
-      if (chargingStation) {
-        // Update Server URL
-        chargingStation.setChargingStationURL(this._serverURL);
-        // Save it
-        await chargingStation.save();
       }
       // Ok
       this._initialized = true;
@@ -128,7 +128,7 @@ class JsonWSConnection extends WSConnection {
     }
   }
 
-  getWSClient() {
+  getChargingStationClient() {
     if (this._socket.readyState === WebSocket.OPEN) // only return client if WS is open
       return this._chargingStationClient;
   }

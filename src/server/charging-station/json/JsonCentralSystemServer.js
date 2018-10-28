@@ -15,7 +15,8 @@ class JsonCentralSystemServer extends CentralSystemServer {
     // Call parent
     super(centralSystemConfig, chargingStationConfig);
     // Keep local
-    this._jsonClients = [];
+    this._jsonChargingStationClients = [];
+    this._jsonRestClients = [];
   }
 
   start() {
@@ -93,14 +94,18 @@ class JsonCentralSystemServer extends CentralSystemServer {
         if (req.url.startsWith('/REST')) {
           // Create a Rest Web Socket connection object
           const wsConnection = new RestWSConnection(ws, req, this);
-
-        } else {
-          // Create a Json Web Socket connection object
-          const wsConnection = new JsonWSConnection(ws, req, this._chargingStationConfig, serverURL);
           // Store the WS manager linked to its ChargeBoxId
           if (wsConnection.getChargingStationID()) {
             // Keep the connection
-            this._jsonClients[wsConnection.getChargingStationID()] = wsConnection;
+            this._jsonRestClients[wsConnection.getChargingStationID()] = wsConnection;
+          }
+        } else {
+          // Create a Json Web Socket connection object
+          const wsConnection = new JsonWSConnection(ws, req, this._chargingStationConfig, serverURL, this);
+          // Store the WS manager linked to its ChargeBoxId
+          if (wsConnection.getChargingStationID()) {
+            // Keep the connection
+            this._jsonChargingStationClients[wsConnection.getChargingStationID()] = wsConnection;
           }
         } 
       } catch (error) {
@@ -110,7 +115,6 @@ class JsonCentralSystemServer extends CentralSystemServer {
         ws.close(Constants.WS_UNSUPPORTED_DATA, error.message);
       }
     });
-
     // Start listening
     server.listen(this._centralSystemConfig.port, this._centralSystemConfig.host, () => {
       // Log
@@ -125,18 +129,27 @@ class JsonCentralSystemServer extends CentralSystemServer {
   }
 
   removeConnection(chargingStationID) {
-    // Charging Station exists?
-    if (this._jsonClients[chargingStationID]) {
+    // Charging Station
+    if (this._jsonChargingStationClients[chargingStationID]) {
       // Remove from cache
-      delete this._jsonClients[chargingStationID];
+      delete this._jsonChargingStationClients[chargingStationID];
+    }
+    // Rest
+    if (this._jsonRestClients[chargingStationID]) {
+      // Remove from cache
+      delete this._jsonRestClients[chargingStationID];
     }
   }
 
   getChargingStationClient(chargingStationID) {
+    console.log("getChargingStationClient");
+    console.log(this._jsonChargingStationClients[chargingStationID]);
+    console.log(this._jsonChargingStationClients[chargingStationID].getChargingStationClient());
+    
     // Charging Station exists?
-    if (this._jsonClients[chargingStationID]) {
+    if (this._jsonChargingStationClients[chargingStationID]) {
       // Return from the cache
-      return this._jsonClients[chargingStationID].getWSClient();
+      return this._jsonChargingStationClients[chargingStationID].getChargingStationClient();
     }
     // Not found!
     return null;
