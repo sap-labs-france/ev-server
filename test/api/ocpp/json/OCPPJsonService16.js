@@ -16,7 +16,7 @@ class OCPPJsonService16 extends OCPPService {
   }
 
   openConnection(chargeBoxIdentity) {
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
       // Create WS
       this.wsConnection = new WebSocket(`${this.serverUrl}/${chargeBoxIdentity}`, {
         protocol: 'ocpp1.6'
@@ -43,7 +43,7 @@ class OCPPJsonService16 extends OCPPService {
             // Set the data
             response.data = messageJson[2];
             // Respond to the request
-            this.promises[messageJson[1]](response);
+            this.promises[messageJson[1]].resolve(response);
           }
         } catch (error) {
           console.log(`Error occurred when receiving the message ${message.data}`);
@@ -144,9 +144,9 @@ class OCPPJsonService16 extends OCPPService {
     // Send
     await this.wsConnection.send(JSON.stringify(request));
     // Return a promise
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       // Set the resolve function
-      this.promises[request[1]] = resolve;
+      this.promises[request[1]] = { resolve, reject };
     });
   }
 

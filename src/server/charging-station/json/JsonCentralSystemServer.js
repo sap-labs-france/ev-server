@@ -5,6 +5,7 @@ const http = require('http');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const JsonWSConnection = require('./JsonWSConnection');
+const RestWSConnection = require('./RestWSConnection');
 const CentralSystemServer = require('../CentralSystemServer');
 
 const MODULE_NAME = "JsonCentralSystemServer";
@@ -47,16 +48,19 @@ class JsonCentralSystemServer extends CentralSystemServer {
 
     const verifyClient = (info) => {
       // Check the URI
-      if (!info.req.url.startsWith("/OCPP16")) {
-        Logging.logError({
-          module: MODULE_NAME,
-          method: "verifyClient",
-          action: "Connection",
-          message: `Invalid connection URL ${info.req} from ${info.origin}`
-        });
-        return false;
+      if (info.req.url.startsWith("/OCPP16")) {
+        return true;
+      } 
+      if (info.req.url.startsWith("/REST")) {
+        return true;
       }
-      return true;
+      Logging.logError({
+        module: MODULE_NAME,
+        method: "verifyClient",
+        action: "Connection",
+        message: `Invalid connection URL ${info.req} from ${info.origin}`
+      });
+      return false;
     }
     // Create the Web Socket Server
     this._wss = new WebSocket.Server({
@@ -66,8 +70,16 @@ class JsonCentralSystemServer extends CentralSystemServer {
         // Check the protocols
         // Ensure protocol used as ocpp1.6 or nothing (should create an error)
         if (Array.isArray(protocols)) {
-          return (protocols.indexOf("ocpp1.6") >= 0 ? protocols[protocols.indexOf("ocpp1.6")] : false);
+          if (protocols.indexOf("ocpp1.6") >= 0) {
+            return "ocpp1.6"; 
+          } 
+          if (protocols.indexOf("rest") >= 0) {
+            return "rest"; 
+          } 
+          return false;
         } else if (protocols === "ocpp1.6") {
+          return protocols;
+        } else if (protocols === "rest") {
           return protocols;
         } else {
           return false;
@@ -77,15 +89,22 @@ class JsonCentralSystemServer extends CentralSystemServer {
     // Listen to new connections
     this._wss.on('connection', async (ws, req) => {
       try {
-        // Create a Web Socket connection object
-        const wsConnection = new JsonWSConnection(ws, req, this._chargingStationConfig, serverURL);
-        // Initialize        
-        await wsConnection.initialize();
-        // Store the WS manager linked to its ChargeBoxId
-        if (wsConnection.getChargeBoxID()) {
-          // Keep the connection
-          this._jsonClients[wsConnection.getChargeBoxID()] = wsConnection;
-        }
+        // Check Rest calls
+        if (req.url.startsWith('/REST')) {
+          // Create a Rest Web Socket connection object
+          const wsConnection = new RestWSConnection(ws, req, this);
+
+        } else {
+          // Create a Json Web Socket connection object
+          const wsConnection = new JsonWSConnection(ws, req, this._chargingStationConfig, serverURL);
+          // Initialize        
+          await wsConnection.initialize();
+          // Store the WS manager linked to its ChargeBoxId
+          if (wsConnection.getChargingStationID()) {
+            // Keep the connection
+            this._jsonClients[wsConnection.getChargingStationID()] = wsConnection;
+          }
+        } 
       } catch (error) {
         // Log
         Logging.logException(error, "WSConnection", "", MODULE_NAME, "connection");
@@ -107,19 +126,19 @@ class JsonCentralSystemServer extends CentralSystemServer {
     });
   }
 
-  removeConnection(chargeBoxId) {
+  removeConnection(chargingStationID) {
     // Charging Station exists?
-    if (this._jsonClients[chargeBoxId]) {
+    if (this._jsonClients[chargingStationID]) {
       // Remove from cache
-      delete this._jsonClients[chargeBoxId];
+      delete this._jsonClients[chargingStationID];
     }
   }
 
-  getChargingStationClient(chargeBoxId) {
+  getChargingStationClient(chargingStationID) {
     // Charging Station exists?
-    if (this._jsonClients[chargeBoxId]) {
+    if (this._jsonClients[chargingStationID]) {
       // Return from the cache
-      return this._jsonClients[chargeBoxId].getWSClient();
+      return this._jsonClients[chargingStationID].getWSClient();
     }
     // Not found!
     return null;

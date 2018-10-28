@@ -26,7 +26,9 @@ class ChargingStationService16 extends ChargingStationService {
   async handleBootNotification(payload) {
     try {
       // Set the endpoint
-      payload.endpoint = payload.From.Address;
+      if (payload.From) {
+        payload.endpoint = payload.From.Address;
+      }
       // Set the ChargeBox ID
       payload.id = payload.chargeBoxIdentity;
       // Set the default Heart Beat

@@ -1,5 +1,4 @@
 const cfenv = require('cfenv');
-const url = require('url');
 let config = require('../config.json');
 
 require('source-map-support').install();
