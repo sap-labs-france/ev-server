@@ -24,9 +24,6 @@ class ChargingStationClient {
       // JSON
       case Constants.OCPP_PROTOCOL_JSON:
         // Get the client from JSon Server
-        console.log("getChargingStationClient");
-        console.log(global.centralSystemJson);
-        
         chargingClient = global.centralSystemJson.getChargingStationClient(chargingStation.getID());
         // // Cloud Foundry?
         // if (!chargingClient && Configuration.isCloudFoundry()) {
@@ -37,7 +34,6 @@ class ChargingStationClient {
       // SOAP
       case Constants.OCPP_PROTOCOL_SOAP:
       default:
-        console.log("SoapChargingStationClient");
         // Get the Soap one by default
         const SoapChargingStationClient = require('./soap/SoapChargingStationClient');
         // Init client

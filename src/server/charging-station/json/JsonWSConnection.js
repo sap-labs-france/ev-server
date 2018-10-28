@@ -105,26 +105,19 @@ class JsonWSConnection extends WSConnection {
   }
 
   async handleRequest(messageId, commandName, commandPayload) {
-    try {
-      // Check if method exist in the service
-      if (typeof this._chargingStationService["handle" + commandName] === 'function') {
-        // Log
-        Logging.logReceivedAction(MODULE_NAME, this.getChargingStationID(), commandName, commandPayload);
-        // Call it
-        let result = await this._chargingStationService["handle" + commandName](Object.assign({}, commandPayload, this._headers));
-        // Log
-        Logging.logReturnedAction(MODULE_NAME, this.getChargingStationID(), commandName, result);
-        // Send Response
-        await this.sendMessage(messageId, result, Constants.OCPP_JSON_CALL_RESULT_MESSAGE);
-      } else {
-        // Throw Exception
-        throw new OCPPError(Constants.OCPP_ERROR_NOT_IMPLEMENTED, `The OCPP method 'handle${commandName}' has not been implemented`);
-      }
-    } catch (error) {
-      // Log error
-      Logging.logActionExceptionMessage(commandName, error);
-      // Send error
-      await this.sendError(messageId, error);
+    // Log
+    Logging.logReceivedAction(MODULE_NAME, this.getChargingStationID(), commandName, commandPayload);
+    // Check if method exist in the service
+    if (typeof this._chargingStationService["handle" + commandName] === 'function') {
+      // Call it
+      let result = await this._chargingStationService["handle" + commandName](Object.assign({}, commandPayload, this._headers));
+      // Log
+      Logging.logReturnedAction(MODULE_NAME, this.getChargingStationID(), commandName, result);
+      // Send Response
+      await this.sendMessage(messageId, result, Constants.OCPP_JSON_CALL_RESULT_MESSAGE);
+    } else {
+      // Throw Exception
+      throw new OCPPError(Constants.OCPP_ERROR_NOT_IMPLEMENTED, `The OCPP method 'handle${commandName}' has not been implemented`);
     }
   }
 

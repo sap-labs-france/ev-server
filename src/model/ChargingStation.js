@@ -26,7 +26,9 @@ class ChargingStation {
 		Database.updateChargingStation(chargingStation, this._model);
 	}
 
-	handleAction(action, params) {
+	handleAction(action, params={}) {
+    console.log({action, params});
+    
 		// Handle Client Requests
 		switch (action) {
 			// Reset

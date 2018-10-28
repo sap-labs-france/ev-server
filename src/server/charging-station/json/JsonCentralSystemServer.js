@@ -142,10 +142,6 @@ class JsonCentralSystemServer extends CentralSystemServer {
   }
 
   getChargingStationClient(chargingStationID) {
-    console.log("getChargingStationClient");
-    console.log(this._jsonChargingStationClients[chargingStationID]);
-    console.log(this._jsonChargingStationClients[chargingStationID].getChargingStationClient());
-    
     // Charging Station exists?
     if (this._jsonChargingStationClients[chargingStationID]) {
       // Return from the cache
