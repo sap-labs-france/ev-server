@@ -30,7 +30,7 @@ class Configuration {
 			for (const centralSystem of centralSystems) {
 				// CF Environment: Override
 				centralSystem.port = _appEnv.port;
-				centralSystem.host = null;
+				centralSystem.host = '0:0:0:0';
 			}
 		}
 		// Read conf
@@ -61,7 +61,7 @@ class Configuration {
 			// CF Environment: Override
 			centralSystemRestService.port = _appEnv.port;
 			// Set URL
-			centralSystemRestService.host = null;
+			centralSystemRestService.host = '0:0:0:0';
 		}
 		// Read conf
 		return centralSystemRestService;
