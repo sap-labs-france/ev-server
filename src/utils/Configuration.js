@@ -28,9 +28,10 @@ class Configuration {
 			let urlParsed = url.parse(_appEnv.url, true);
 			// Change host/port
 			for (const centralSystem of centralSystems) {
-				// CF Environment: Override
+        // CF Environment: Override
+        console.log(_appEnv);
 				centralSystem.port = _appEnv.port;
-				centralSystem.host = '0:0:0:0';
+				centralSystem.host = null;
 			}
 		}
 		// Read conf
@@ -58,10 +59,11 @@ class Configuration {
 		let centralSystemRestService = Configuration.getConfig().CentralSystemRestService;
 		// Check Cloud Foundry
 		if (centralSystemRestService && !_appEnv.isLocal) {
+      console.log(_appEnv);
 			// CF Environment: Override
 			centralSystemRestService.port = _appEnv.port;
 			// Set URL
-			centralSystemRestService.host = '0:0:0:0';
+			centralSystemRestService.host = null;
 		}
 		// Read conf
 		return centralSystemRestService;
