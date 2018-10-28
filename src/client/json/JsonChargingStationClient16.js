@@ -13,10 +13,11 @@ class JsonChargingStationClient16 extends ChargingStationClient {
     return this._wsConnection.getChargeBoxId();
   }
 
-  startTransaction(idTag, connectorId, chargingProfile = {}) {
+  startTransaction(params) {
+    const { tagID, connectorID, chargingProfile = {} } = params;
     const payload = {
-      connectorId: connectorId,
-      idTag: idTag
+      connectorId: connectorID,
+      idTag: tagID
     };
     if (chargingProfile !== null && Object.getOwnPropertyNames(chargingProfile).length > 0) {
       payload.chargingProfile = chargingProfile;
@@ -24,7 +25,8 @@ class JsonChargingStationClient16 extends ChargingStationClient {
     return this._wsConnection.sendMessage(uuid(), payload, 2, "RemoteStartTransaction");
   }
 
-  reset(type) {
+  reset(params) {
+    const { type } = params;
     return this._wsConnection.sendMessage(uuid(), {
       type: type
     }, 2, "Reset");
@@ -34,26 +36,30 @@ class JsonChargingStationClient16 extends ChargingStationClient {
     return this._wsConnection.sendMessage(uuid(), {}, 2, "ClearCache");
   }
 
-  getConfiguration(keys) {
+  getConfiguration(params) {
+    const { keys } = params;
     return this._wsConnection.sendMessage(uuid(), ((keys === null) ? {} : {
       key: keys
     }), 2, "GetConfiguration");
   }
 
-  changeConfiguration(key, value) {
+  changeConfiguration(params) {
+    const { key, value } = params;
     return this._wsConnection.sendMessage(uuid(), {
       key: key,
       value: value
     }, 2, "ChangeConfiguration");
   }
 
-  stopTransaction(transactionId) {
+  stopTransaction(params) {
+    const { transactionId } = params;
     return this._wsConnection.sendMessage(uuid(), {
       transactionId: transactionId
     }, 2, "RemoteStopTransaction");
   }
 
-  unlockConnector(connectorId) {
+  unlockConnector(params) {
+    const { connectorId } = params;
     return this._wsConnection.sendMessage(uuid(), {
       connectorId: connectorId
     }, 2, "UnlockConnector");

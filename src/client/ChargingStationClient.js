@@ -49,25 +49,25 @@ class ChargingStationClient {
 	 * @param {*} type
 	 * @memberof ChargingStationClient
 	 */
-	reset(type) {
+	reset(params) {
 	}
 
 	clearCache() {
 	}
 
-	getConfiguration(keys) {
+	getConfiguration(params) {
 	}
 
-	changeConfiguration(key, value) {
+	changeConfiguration(params) {
 	}
 
-	startTransaction(tagID, connectorID) {
+	startTransaction(params) {
 	}
 
-	stopTransaction(transactionId) {
+	stopTransaction(params) {
 	}
 
-	unlockConnector(connectorId) {
+	unlockConnector(params) {
 	}
 }
 

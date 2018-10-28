@@ -67,7 +67,8 @@ class SoapChargingStationClient extends ChargingStationClient {
 		this._client.addSoapHeader(`<a:Action xmlns:a="http://www.w3.org/2005/08/addressing">/${action}</a:Action>`);
 	}
 
-	async stopTransaction(transactionId) {
+	async stopTransaction(params) {
+    const { transactionId } = params;
     // Init SOAP Headers with the action
     this.initSoapHeaders("RemoteStopTransaction");
     // Log
@@ -99,10 +100,8 @@ class SoapChargingStationClient extends ChargingStationClient {
     return result;
 	}
 
-	async startTransaction(tagID, connectorID) {
-    let meterStart = 0;
-    let timestamp = new Date().toISOString();
-
+	async startTransaction(params) {
+    const { tagID, connectorID } = params;
     // Init SOAP Headers with the action
     this.initSoapHeaders("RemoteStartTransaction");
     // Log
@@ -139,7 +138,8 @@ class SoapChargingStationClient extends ChargingStationClient {
     return result;
 	}
 
-	async unlockConnector(connectorId) {
+	async unlockConnector(params) {
+    const { connectorId } = params;
     // Init SOAP Headers with the action
     this.initSoapHeaders("UnlockConnector");
     // Log
@@ -171,7 +171,8 @@ class SoapChargingStationClient extends ChargingStationClient {
     return result;
 	}
 
-	async reset(type) {
+	async reset(params) {
+    const { type } = params;
     // Init SOAP Headers with the action
     this.initSoapHeaders("Reset");
     // Log
@@ -231,7 +232,8 @@ class SoapChargingStationClient extends ChargingStationClient {
     return result;
 	}
 
-	async getConfiguration(keys) {
+	async getConfiguration(params) {
+    const { keys } = params;
     // Init SOAP Headers with the action
     this.initSoapHeaders("GetConfiguration");
     // Log
@@ -268,7 +270,8 @@ class SoapChargingStationClient extends ChargingStationClient {
     return result;
 	}
 
-	async changeConfiguration(key, value) {
+	async changeConfiguration(params) {
+    const { key, value } = params;
     // Init SOAP Headers with the action
     this.initSoapHeaders("ChangeConfiguration");
     // Log

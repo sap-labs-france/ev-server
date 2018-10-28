@@ -33,7 +33,7 @@ class ChargingStation {
 		switch (action) {
 			// Reset
 			case 'Reset':
-				return this.requestReset(params.type);
+				return this.requestReset(params);
 
 			// Clear cache
 			case 'ClearCache':
@@ -41,24 +41,24 @@ class ChargingStation {
 
 			// Get Configuration
 			case 'GetConfiguration':
-				return this.requestGetConfiguration(params.keys);
+				return this.requestGetConfiguration(params);
 
 			// Set Configuration
 			case 'ChangeConfiguration':
 				// Change the config
-				return this.requestChangeConfiguration(params.key, params.value);
+				return this.requestChangeConfiguration(params);
 
 			// Unlock Connector
 			case 'UnlockConnector':
-				return this.requestUnlockConnector(params.connectorId);
+				return this.requestUnlockConnector(params);
 
 			// Start Transaction
 			case 'StartTransaction':
-				return this.requestStartTransaction(params.tagID, params.connectorID);
+				return this.requestStartTransaction(params);
 
 			// Stop Transaction
 			case 'StopTransaction':
-				return this.requestStopTransaction(params.transactionId);
+				return this.requestStopTransaction(params);
 
 			// Not Exists!
 			default:
@@ -1288,11 +1288,11 @@ class ChargingStation {
 	}
 
 	// Restart the charger
-	async requestReset(type) {
+	async requestReset(params) {
 		// Get the client
 		const chargingStationClient = await this.getChargingStationClient();
 		// Restart
-		const result = await chargingStationClient.reset(type);
+		const result = await chargingStationClient.reset(params);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation',
@@ -1304,11 +1304,11 @@ class ChargingStation {
 	}
 
 	// Stop Transaction
-	async requestStopTransaction(transactionId) {
+	async requestStopTransaction(params) {
 		// Get the client
 		const chargingStationClient = await this.getChargingStationClient();
 		// Stop Transaction
-		const result = await chargingStationClient.stopTransaction(transactionId);
+		const result = await chargingStationClient.stopTransaction(params);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation',
@@ -1320,11 +1320,11 @@ class ChargingStation {
 	}
 
 	// Start Transaction
-	async requestStartTransaction(tagID, connectorID, chargingProfile = {}) {
+	async requestStartTransaction(params) {
 		// Get the client
 		const chargingStationClient = await this.getChargingStationClient();
 		// Start Transaction
-		const result = await chargingStationClient.startTransaction(tagID, connectorID, chargingProfile);
+		const result = await chargingStationClient.startTransaction(params);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation',
@@ -1352,11 +1352,11 @@ class ChargingStation {
 	}
 
 	// Get the configuration for the EVSE
-	async requestGetConfiguration(configParamNames) {
+	async requestGetConfiguration(params) {
 		// Get the client
 		const chargingStationClient = await this.getChargingStationClient();
 		// Get config
-		const result = await chargingStationClient.getConfiguration(configParamNames);
+		const result = await chargingStationClient.getConfiguration(params);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation',
@@ -1368,11 +1368,11 @@ class ChargingStation {
 	}
 
 	// Get the configuration for the EVSE
-	async requestChangeConfiguration(key, value) {
+	async requestChangeConfiguration(params) {
 		// Get the client
 		const chargingStationClient = await this.getChargingStationClient();
 		// Get config
-		const result = await chargingStationClient.changeConfiguration(key, value);
+		const result = await chargingStationClient.changeConfiguration(params);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation',
@@ -1391,11 +1391,11 @@ class ChargingStation {
 	}
 
 	// Unlock connector
-	async requestUnlockConnector(connectorId) {
+	async requestUnlockConnector(params) {
 		// Get the client
 		const chargingStationClient = await this.getChargingStationClient();
 		// Get config
-		const result = await chargingStationClient.unlockConnector(connectorId);
+		const result = await chargingStationClient.unlockConnector(params);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation',
