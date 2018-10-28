@@ -29,14 +29,15 @@ class Configuration {
       console.log("=======================================");
       console.log("Bind: " + _appEnv.bind);
       console.log("=======================================");
-      console.log("Bind: " + _appEnv);
+      console.log("Env");
+      console.log(_appEnv);
       console.log("=======================================");
             
 			// Change host/port
 			for (const centralSystem of centralSystems) {
         // CF Environment: Override
 				centralSystem.port = _appEnv.port;
-				centralSystem.host = _appEnv.host;
+				centralSystem.host = _appEnv.bind;
 			}
 		}
 		// Read conf
@@ -66,7 +67,7 @@ class Configuration {
 		if (centralSystemRestService && !_appEnv.isLocal) {
 			// CF Environment: Override
 			centralSystemRestService.port = _appEnv.port;
-			centralSystemRestService.host = _appEnv.host;
+			centralSystemRestService.host = _appEnv.bind;
 		}
 		// Read conf
 		return centralSystemRestService;
