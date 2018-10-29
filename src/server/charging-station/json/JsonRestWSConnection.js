@@ -23,7 +23,7 @@ class JsonRestWSConnection extends WSConnection {
     Logging.logInfo({
       module: MODULE_NAME,
       source: this.getChargingStationID(),
-      method: "constructor",
+      method: "onOpen",
       action: "WSRestConnectionOpened",
       message: `New Rest connection from '${this.getIP()}', Protocol '${wsConnection.protocol}', URL '${this.getURL()}'`
     });

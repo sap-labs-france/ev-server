@@ -38,7 +38,7 @@ class WSConnection {
       // Log
       Logging.logError({
         module: MODULE_NAME,
-        method: "OnError",
+        method: "onError",
         action: "WSErrorReceived",
         message: error
       });
@@ -49,7 +49,7 @@ class WSConnection {
       Logging.logInfo({
         module: MODULE_NAME,
         source: (this.getChargingStationID() ? this.getChargingStationID() : ""),
-        method: "OnClose",
+        method: "onClose",
         action: "WSConnectionClose",
         message: `Connection has been closed, Reason '${reason}', Code '${code}'`
       });

@@ -65,18 +65,34 @@ class JsonRestChargingStationClient extends ChargingStationClient {
       });
       // Opened
       this._wsConnection.onopen = () => {
+        // Log
+        Logging.logInfo({
+          module: MODULE_NAME,
+          source: this._chargingStation.getID(),
+          method: "onOpen",
+          action: "WSRestConnectionOpened",
+          message: `Connection opened to '${this._serverURL}'`
+        });
+        // connection is opened and ready to use
+        resolve();
+      };
+      // Closed
+      this._wsConnection.onclose = () => {
+        // Log
+        Logging.logInfo({
+          module: MODULE_NAME,
+          source: this._chargingStation.getID(),
+          method: "onClose",
+          action: "WSRestConnectionClosed",
+          message: `Connection closed from '${this._serverURL}'`
+        });
         // connection is opened and ready to use
         resolve();
       };
       // Handle Error Message
       this._wsConnection.onerror = (error) => {
         // Log
-        Logging.logError({
-          module: MODULE_NAME,
-          method: "OnError",
-          action: "WSErrorReceived",
-          message: error
-        });
+        Logging.logException(error, "", this._chargingStation.getID(), MODULE_NAME, "onError");
       };
       // Handle Server Message
       this._wsConnection.onmessage = async (message) => {
