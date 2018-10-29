@@ -8,11 +8,11 @@ const MODULE_NAME = "WSConnection";
 
 class WSConnection {
 
-  constructor(socket, req, wsServer) {
+  constructor(wsConnection, req, wsServer) {
     // Init
     this._url = req.url;
     this._ip = req && ((req.connection && req.connection.remoteAddress) || req.headers['x-forwarded-for']);
-    this._socket = socket;
+    this._wsConnection = wsConnection;
     this._req = req;
     this._requests = {};
     this._chargingStationID = null;
@@ -29,20 +29,49 @@ class WSConnection {
       this._url = this._url.substring(1, this._url.length);
     }
     // Handle incoming messages
-    this._socket.on('message', (message) => {
+    this._wsConnection.on('message', (message) => {
       // Forward
       this.onMessage(message);
     });
     // Handle Error on Socket
-    this._socket.on('error', (error) => {
-      // Forward
-      this.onError(error);
+    this._wsConnection.on('error', (error) => {
+      // Log
+      Logging.logError({
+        module: MODULE_NAME,
+        method: "OnError",
+        action: "WSErrorReceived",
+        message: error
+      });
     });
     // Handle Socket close
-    this._socket.on('close', (code, reason) => {
-      // Forward
-      this.onClose(code, reason);
+    this._wsConnection.on('close', (code, reason) => {
+      // Log
+      Logging.logInfo({
+        module: MODULE_NAME,
+        source: (this.getChargingStationID() ? this.getChargingStationID() : ""),
+        method: "OnClose",
+        action: "WSConnectionClose",
+        message: `Connection has been closed, Reason '${reason}', Code '${code}'`
+      });
+      // Close the connection
+      this._wsServer.removeConnection(this.getChargingStationID());
     });
+  }
+
+  getWSConnection() {
+    return this._wsConnection;
+  }
+
+  getWSServer() {
+    return this._wsServer;
+  }
+
+  getURL() {
+    return this._url;
+  }
+
+  getIP() {
+    return this._ip;
   }
 
   async initialize() {
@@ -109,29 +138,6 @@ class WSConnection {
     // To implement in sub-class
   }
 
-  async onClose(code, reason) {
-    // Log
-    Logging.logInfo({
-      module: MODULE_NAME,
-      source: (this.getChargingStationID() ? this.getChargingStationID() : ""),
-      method: "OnClose",
-      action: "WSConnectionClose",
-      message: `Connection has been closed, Reason '${reason}', Code '${code}'`
-    });
-    // Close the connection
-    this._wsServer.removeConnection(this.getChargingStationID());
-  }
-
-  async onError(error) {
-    // Log
-    Logging.logError({
-      module: MODULE_NAME,
-      method: "OnError",
-      action: "WSErrorReceived",
-      message: error
-    });
-  }
-
   send(command, messageType = Constants.OCPP_JSON_CALL_MESSAGE) {
     // Send Message
     return this.sendMessage(uuid(), command, messageType);
@@ -145,8 +151,8 @@ class WSConnection {
   }
 
   sendMessage(messageId, command, messageType = Constants.OCPP_JSON_CALL_RESULT_MESSAGE, commandName = "") {
-    // send a message through websocket
-    const socket = this._socket;
+    // send a message through webwsConnection
+    const wsConnection = this.getWSConnection();
     const self = this;
     // Create a promise
     return new Promise((resolve, reject) => {
@@ -175,10 +181,10 @@ class WSConnection {
           messageToSend = JSON.stringify([messageType, messageId, code, message, details]);
           break;
       }
-      // Check if socket in ready
-      if (socket.readyState === WebSocket.OPEN) {
+      // Check if wsConnection in ready
+      if (wsConnection.readyState === WebSocket.OPEN) {
         // Yes: Send Message
-        socket.send(messageToSend);
+        wsConnection.send(messageToSend);
       } else {
         // Reject it
         return rejectCallback(`Socket closed ${messageId}`);

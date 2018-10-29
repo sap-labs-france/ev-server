@@ -27,8 +27,6 @@ class ChargingStation {
 	}
 
 	handleAction(action, params={}) {
-    console.log({action, params});
-    
 		// Handle Client Requests
 		switch (action) {
 			// Reset

@@ -1,6 +1,5 @@
 const Constants = require('../utils/Constants');
 const Configuration = require('../utils/Configuration');
-const RemoteJsonChargingStationClient = require('./json/RemoteJsonChargingStationClient');
 
 class ChargingStationClient {
 	constructor() {
@@ -18,6 +17,7 @@ class ChargingStationClient {
 	 * @memberof ChargingStationClient
 	 */
 	static async getChargingStationClient(chargingStation) {
+    const JsonRestChargingStationClient = require('./json/JsonRestChargingStationClient');
     let chargingClient = null;
     // Check protocol
     switch (chargingStation.getOcppProtocol()) {
@@ -25,11 +25,11 @@ class ChargingStationClient {
       case Constants.OCPP_PROTOCOL_JSON:
         // Get the client from JSon Server
         chargingClient = global.centralSystemJson.getChargingStationClient(chargingStation.getID());
-        // // Cloud Foundry?
-        // if (!chargingClient && Configuration.isCloudFoundry()) {
-        //   // Use the remote client
-        //   chargingClient = new RemoteJsonChargingStationClient(chargingStation);
-        // }
+        // Cloud Foundry?
+        if (!chargingClient && Configuration.isCloudFoundry()) {
+          // Use the remote client
+          chargingClient = new JsonRestChargingStationClient(chargingStation);
+        }
         break;
       // SOAP
       case Constants.OCPP_PROTOCOL_SOAP:

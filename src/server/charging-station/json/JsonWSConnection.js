@@ -12,15 +12,15 @@ const MODULE_NAME = "JsonWSConnection";
 
 class JsonWSConnection extends WSConnection {
 
-  constructor(socket, req, chargingStationConfig, serverURL, wsServer) {
+  constructor(wsConnection, req, chargingStationConfig, serverURL, wsServer) {
     // Call super
-    super(socket, req, wsServer);
+    super(wsConnection, req, wsServer);
     // Init
     this._requests = {};
     this._tenantName = null;
     this._serverURL = serverURL;
     // Parse URL: should like /OCPP16/TENANTNAME/CHARGEBOXID
-    const splittedURL = this._url.split("/");
+    const splittedURL = this.getURL().split("/");
     // URL with 4 parts?
     if (splittedURL.length === 3) {
       // Yes: Tenant is then provided in the third part
@@ -41,10 +41,10 @@ class JsonWSConnection extends WSConnection {
       source: this.getChargingStationID(),
       method: "constructor",
       action: "WSJsonConnectionOpened",
-      message: `New Json connection from '${this._ip}', Protocol '${socket.protocol}', URL '${this._url}'`
+      message: `New Json connection from '${this.getIP()}', Protocol '${wsConnection.protocol}', URL '${this.getURL()}'`
     });
     // Check Protocol (required field of OCPP spec)
-    switch (this._socket.protocol) {
+    switch (this.getWSConnection().protocol) {
       // OCPP 1.6?
       case 'ocpp1.6':
         // Create the Json Client
@@ -54,7 +54,7 @@ class JsonWSConnection extends WSConnection {
         break;
       // Not Found
       default:
-        throw new Error(`Protocol ${this._socket.protocol} not supported`);
+        throw new Error(`Protocol ${this.getWSConnection().protocol} not supported`);
     }
   }
 
@@ -73,10 +73,10 @@ class JsonWSConnection extends WSConnection {
             module: MODULE_NAME,
             method: "initialize",
             action: "WSJsonRegiterJsonConnection",
-            message: `Invalid Tenant in URL ${this._url}`
+            message: `Invalid Tenant in URL ${this.getURL()}`
           });
           // Throw
-          throw new Error(`Invalid Tenant '${this._tenantName}' in URL '${this._url}'`);
+          throw new Error(`Invalid Tenant '${this._tenantName}' in URL '${this.getURL()}'`);
         }
       }
       // Update Server URL
@@ -91,12 +91,12 @@ class JsonWSConnection extends WSConnection {
       // Initialize the default Headers
       this._headers = {
         chargeBoxIdentity: this.getChargingStationID(),
-        ocppVersion: (this._socket.protocol.startsWith("ocpp") ? this._socket.protocol.replace("ocpp", "") : this._socket.protocol),
+        ocppVersion: (this.getWSConnection().protocol.startsWith("ocpp") ? this.getWSConnection().protocol.replace("ocpp", "") : this.getWSConnection().protocol),
         ocppProtocol: Constants.OCPP_PROTOCOL_JSON,
         chargingStationURL: this._serverURL,
         tenant: this._tenantName,
         From: {
-          Address: this._ip
+          Address: this.getIP()
         }
       }
       // Ok
@@ -122,7 +122,7 @@ class JsonWSConnection extends WSConnection {
   }
 
   getChargingStationClient() {
-    if (this._socket.readyState === WebSocket.OPEN) // only return client if WS is open
+    if (this.getWSConnection().readyState === WebSocket.OPEN) // only return client if WS is open
       return this._chargingStationClient;
   }
 }
