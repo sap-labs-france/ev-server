@@ -127,7 +127,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
 
   async _send(request) {
     // Return a promise
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       // Open WS Connection
       await this._openConnection();
       // Check if wsConnection in ready
