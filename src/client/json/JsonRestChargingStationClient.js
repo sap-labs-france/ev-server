@@ -126,14 +126,20 @@ class JsonRestChargingStationClient extends ChargingStationClient {
   }
 
   async _send(request) {
-    // Open WS
-    await this._openConnection();
-    // Send
-    await this._wsConnection.send(JSON.stringify(request));
     // Return a promise
     return new Promise((resolve, reject) => {
-      // Set the resolve function
-      this._requests[request[1]] = { resolve, reject };
+      // Open WS Connection
+      await this._openConnection();
+      // Check if wsConnection in ready
+      if (this._wsConnection.readyState === WebSocket.OPEN) {
+        // Send
+        await this._wsConnection.send(JSON.stringify(request));
+        // Set the resolve function
+        this._requests[request[1]] = { resolve, reject };
+      } else {
+        // Reject it
+        return reject(`Socket is closed for message ${messageId}`);
+      }
     });
   }
 
