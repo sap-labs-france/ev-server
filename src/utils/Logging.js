@@ -100,9 +100,7 @@ class Logging {
       method: action,
       message: `>> OCPP Request Received`,
       action: action,
-      detailedMessages: {
-        payload
-      }
+      detailedMessages: payload
     });
   }
 

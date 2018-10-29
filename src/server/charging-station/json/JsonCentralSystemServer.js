@@ -5,7 +5,7 @@ const http = require('http');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const JsonWSConnection = require('./JsonWSConnection');
-const RestWSConnection = require('./RestWSConnection');
+const JsonRestWSConnection = require('./JsonRestWSConnection');
 const CentralSystemServer = require('../CentralSystemServer');
 
 const MODULE_NAME = "JsonCentralSystemServer";
@@ -93,7 +93,7 @@ class JsonCentralSystemServer extends CentralSystemServer {
         // Check Rest calls
         if (req.url.startsWith('/REST')) {
           // Create a Rest Web Socket connection object
-          const wsConnection = new RestWSConnection(ws, req, this);
+          const wsConnection = new JsonRestWSConnection(ws, req, this);
           // Store the WS manager linked to its ChargeBoxId
           if (wsConnection.getChargingStationID()) {
             // Keep the connection
