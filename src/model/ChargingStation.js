@@ -498,7 +498,7 @@ class ChargingStation {
 		let configuration = null;
 		try {
 			// In case of error. the boot should no be denied
-			configuration = await this.requestGetConfiguration();
+			configuration = await this.requestGetConfiguration({});
 			// Log
 			Logging.logInfo({
 				source: this.getID(), module: 'ChargingStation',
