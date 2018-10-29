@@ -168,6 +168,7 @@ class Authorizations {
 		if (newUserCreated) {
 			// Notify
 			NotificationHandler.sendUnknownUserBadged(
+				chargingStation.getTenantID,
 				Utils.generateGUID(),
 				chargingStation.getModel(),
 				{

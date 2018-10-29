@@ -292,6 +292,7 @@ class AuthService {
         '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
         newUser.getEMail();
       NotificationHandler.sendNewRegisteredUser(
+        newUser.getTenantID(),
         Utils.generateGUID(),
         newUser.getModel(),
         {
@@ -365,6 +366,7 @@ class AuthService {
         savedUser.getEMail();
       // Send email
       NotificationHandler.sendRequestPassword(
+        savedUser.getTenantID,
         Utils.generateGUID(),
         savedUser.getModel(),
         {
@@ -438,6 +440,7 @@ class AuthService {
       });
       // Send notification
       NotificationHandler.sendNewPassword(
+        newUser.getTenantID(),
         Utils.generateGUID(),
         newUser.getModel(),
         {
@@ -636,6 +639,7 @@ class AuthService {
         '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
         user.getEMail();
       NotificationHandler.sendVerificationEmail(
+        user.getTenantID(),
         Utils.generateGUID(),
         user.getModel(),
         {

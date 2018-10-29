@@ -371,6 +371,7 @@ class ChargingStation extends AbstractTenantEntity {
       });
       // Send Notification
       NotificationHandler.sendChargingStationStatusError(
+        this.getTenantID(),
         Utils.generateGUID(),
         this.getModel(),
         {
@@ -455,6 +456,7 @@ class ChargingStation extends AbstractTenantEntity {
     bootNotification.chargeBoxID = this.getID();
     // Send Notification
     NotificationHandler.sendChargingStationRegistered(
+      this.getTenantID(),
       Utils.generateGUID(),
       this.getModel(),
       {
@@ -675,6 +677,7 @@ class ChargingStation extends AbstractTenantEntity {
           if (transaction.user) {
             // Send Notification
             NotificationHandler.sendEndOfCharge(
+              this.getTenantID(),
               transaction.id + '-EOC',
               transaction.user,
               this.getModel(),
@@ -1170,6 +1173,7 @@ class ChargingStation extends AbstractTenantEntity {
     if (newTransaction.user) {
       // Notify
       NotificationHandler.sendTransactionStarted(
+        this.getTenantID(),
         transaction.id,
         user.getModel(),
         this.getModel(),
@@ -1294,6 +1298,7 @@ class ChargingStation extends AbstractTenantEntity {
     if (transaction.user) {
       // Send Notification
       NotificationHandler.sendEndOfSession(
+        this.getTenantID(),
         transaction.id + '-EOS',
         transaction.user,
         this.getModel(),

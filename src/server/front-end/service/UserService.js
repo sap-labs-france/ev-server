@@ -320,6 +320,7 @@ class UserService {
       if (statusHasChanged) {
         // Send notification
         NotificationHandler.sendUserAccountStatusChanged(
+          updatedUser.getTenantID(),
           Utils.generateGUID(),
           updatedUser.getModel(),
           {

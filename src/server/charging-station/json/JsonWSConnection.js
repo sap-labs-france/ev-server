@@ -1,7 +1,7 @@
 const Logging = require('../../../utils/Logging');
 const WebSocket = require('ws');
 const Tenant = require('../../../entity/Tenant');
-const ChargingStation = require('../../../model/ChargingStation');
+const ChargingStation = require('../../../entity/ChargingStation');
 const Constants = require('../../../utils/Constants');
 const OCPPError = require('../../../exception/OcppError');
 const JsonChargingStationClient16 = require('../../../client/json/JsonChargingStationClient16');
@@ -33,7 +33,6 @@ class JsonWSConnection extends WSConnection {
     }
     // Log
     Logging.logInfo({
-      tenantID: this._tenantID,
       module: MODULE_NAME,
       source: this.getChargingStationID(),
       method: "constructor",
@@ -66,7 +65,7 @@ class JsonWSConnection extends WSConnection {
         if (!tenant) {
           // No: It is not allowed to connect with an unknown tenant
           Logging.logError({
-            source: splittedURL[3],
+            source: this.getURL(),
             module: MODULE_NAME,
             method: "initialize",
             action: "WSJsonRegiterJsonConnection",

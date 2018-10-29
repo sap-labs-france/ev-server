@@ -1,5 +1,5 @@
 const Logging = require('../../../utils/Logging');
-const ChargingStation = require('../../../model/ChargingStation');
+const ChargingStation = require('../../../entity/ChargingStation');
 const Constants = require('../../../utils/Constants');
 const WSConnection = require('./WSConnection');
 
