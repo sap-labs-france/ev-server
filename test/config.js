@@ -15,31 +15,60 @@ const config = convict({
     env: 'TRACE_LOGS'
   },
   ocpp: {
-    scheme: {
-      doc: 'The OCPP server scheme.',
-      format: ['http', 'https'],
-      default: 'http',
-      env: 'OCPP_SCHEME',
-    },
-    host: {
-      doc: 'The OCPP server IP address to bind.',
-      format: String,
-      default: '127.0.0.1',
-      env: 'OCPP_HOSTNAME'
-    },
-    port: {
-      doc: 'The OCPP server port to bind.',
-      format: 'port',
-      default: 8000,
-      env: 'OCPP_PORT',
-      arg: 'ocpp_port'
-    },
-    logs: {
-      doc: '"json"/"xml" to trace ocpp communication according to type, "none" to not trace them',
-      format: ['json', 'xml', 'none'],
-      default: 'none',
-      env: 'OCPP_LOGS'
-    },
+    soap: {
+      scheme: {
+        doc: 'The OCPP server scheme.',
+        format: ['http', 'https'],
+        default: 'http',
+        env: 'OCPP_SOAP_SCHEME',
+      },
+      host: {
+        doc: 'The OCPP server IP address to bind.',
+        format: String,
+        default: '127.0.0.1',
+        env: 'OCPP_SOAP_HOSTNAME'
+      },
+      port: {
+        doc: 'The OCPP server port to bind.',
+        format: 'port',
+        default: 8000,
+        env: 'OCPP_SOAP_PORT',
+        arg: 'ocpp_soap_port'
+      },
+      logs: {
+        doc: '"json"/"xml" to trace ocpp communication according to type, "none" to not trace them',
+        format: ['json', 'xml', 'none'],
+        default: 'none',
+        env: 'OCPP_SOAP_LOGS'
+      }
+    }, 
+    json: {
+      scheme: {
+        doc: 'The OCPP server scheme.',
+        format: ['ws', 'wss'],
+        default: 'ws',
+        env: 'OCPP_JSON_SCHEME',
+      },
+      host: {
+        doc: 'The OCPP server IP address to bind.',
+        format: String,
+        default: '127.0.0.1',
+        env: 'OCPP_JSON_HOSTNAME'
+      },
+      port: {
+        doc: 'The OCPP server port to bind.',
+        format: 'port',
+        default: 8010,
+        env: 'OCPP_JSON_PORT',
+        arg: 'ocpp_json_port'
+      },
+      logs: {
+        doc: '"json"/"xml" to trace ocpp communication according to type, "none" to not trace them',
+        format: ['json', 'none'],
+        default: 'none',
+        env: 'OCPP_JSON_LOGS'
+      }
+    }
   },
   server: {
     scheme: {

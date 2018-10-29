@@ -1,5 +1,4 @@
 const cfenv = require('cfenv');
-const url = require('url');
 let config = require('../config.json');
 
 require('source-map-support').install();
@@ -24,13 +23,11 @@ class Configuration {
 		let centralSystems = Configuration.getConfig().CentralSystems;
 		// Check Cloud Foundry
 		if (centralSystems && !_appEnv.isLocal) {
-			// Parse the URL
-			let urlParsed = url.parse(_appEnv.url, true);
 			// Change host/port
 			for (const centralSystem of centralSystems) {
-				// CF Environment: Override
+        // CF Environment: Override
 				centralSystem.port = _appEnv.port;
-				centralSystem.host = null;
+				centralSystem.host = _appEnv.bind;
 			}
 		}
 		// Read conf
@@ -60,8 +57,7 @@ class Configuration {
 		if (centralSystemRestService && !_appEnv.isLocal) {
 			// CF Environment: Override
 			centralSystemRestService.port = _appEnv.port;
-			// Set URL
-			centralSystemRestService.host = null;
+			centralSystemRestService.host = _appEnv.bind;
 		}
 		// Read conf
 		return centralSystemRestService;

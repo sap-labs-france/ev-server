@@ -91,24 +91,45 @@ class TransactionApi extends CrudApi {
   }
 
   async sendTransactionMeterValue(ocpp, transaction, chargingStation, user, meterValue, currentTime, currentConsumption, totalConsumption) {
-    // Call OCPP
-    let response = await ocpp.executeMeterValues(chargingStation.id, {
-      connectorId: transaction.connectorId,
-      transactionId: transaction.id,
-      values: {
-        timestamp: currentTime.toISOString(),
-        value: {
-          $attributes: {
+    let response;
+    // OCPP 1.6?
+    if (ocpp.getVersion() === "1.6") {
+      // Yes
+      response = await ocpp.executeMeterValues(chargingStation.id, {
+        connectorId: transaction.connectorId,
+        transactionId: transaction.id,
+        values: {
+          timestamp: currentTime.toISOString(),
+          sampledValue: [{ 
+            value: meterValue,
+            format: "Raw",
+            measurand: "Energy.Active.Import.Register",
             unit: 'Wh',
             location: "Outlet",
-            measurand: "Energy.Active.Import.Register",
-            format: "Raw",
             context: "Sample.Periodic"
-          },
-          $value: meterValue
-        }
-      },
-    });
+          }]
+        },
+      });
+    // OCPP 1.5
+    } else {
+      response = await ocpp.executeMeterValues(chargingStation.id, {
+        connectorId: transaction.connectorId,
+        transactionId: transaction.id,
+        values: {
+          timestamp: currentTime.toISOString(),
+          value: {
+            $attributes: {
+              unit: 'Wh',
+              location: "Outlet",
+              measurand: "Energy.Active.Import.Register",
+              format: "Raw",
+              context: "Sample.Periodic"
+            },
+            $value: meterValue
+          }
+        },
+      });
+    }
     // Check
     expect(response.data).to.eql({});
     // Check the Transaction

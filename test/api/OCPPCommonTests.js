@@ -262,7 +262,7 @@ class OCPPCommonTests {
       }
   }
 
-  async testDeleteTransaction() {
+    async testDeleteTransaction() {
     // Delete the created entity
     await CentralServerService.deleteEntity(
       CentralServerService.transactionApi, this.newTransaction);

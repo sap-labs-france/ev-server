@@ -25,12 +25,12 @@ class ChargingStation extends AbstractTenantEntity {
     Database.updateChargingStation(chargingStation, this._model);
   }
 
-  handleAction(action, params){
+  handleAction(action, params = {}){
     // Handle Client Requests
     switch (action) {
       // Reset
       case 'Reset':
-        return this.requestReset(params.type);
+        return this.requestReset(params);
 
       // Clear cache
       case 'ClearCache':
@@ -38,12 +38,12 @@ class ChargingStation extends AbstractTenantEntity {
 
       // Get Configuration
       case 'GetConfiguration':
-        return this.requestGetConfiguration(params.keys);
+        return this.requestGetConfiguration(params);
 
       // Set Configuration
       case 'ChangeConfiguration':
         // Change the config
-        return this.requestChangeConfiguration(params.key, params.value);
+        return this.requestChangeConfiguration(params);
 
       // Unlock Connector
       case 'UnlockConnector':
@@ -51,11 +51,11 @@ class ChargingStation extends AbstractTenantEntity {
 
       // Start Transaction
       case 'StartTransaction':
-        return this.requestStartTransaction(params.tagID, params.connectorID);
+        return this.requestStartTransaction(params);
 
       // Stop Transaction
       case 'StopTransaction':
-        return this.requestStopTransaction(params.transactionId);
+        return this.requestStopTransaction(params);
 
       // Not Exists!
       default:
@@ -261,11 +261,17 @@ class ChargingStation extends AbstractTenantEntity {
     this._model.ocppVersion = ocppVersion;
   }
 
-  async getChargingStationClient(){
-		// Already created or it is a soap client
-    // Delegate responsibility to interface. It might be possibel that protocol changed
-		this._chargingStationClient = await ChargingStationClient.getChargingStationClient(this);
-    return this._chargingStationClient;
+  getOcppProtocol(){
+    return this._model.ocppProtocol;
+  }
+
+  setOcppProtocol(ocppProtocol){
+    this._model.ocppProtocol = ocppProtocol;
+  }
+
+  getChargingStationClient(){
+    // Get the client
+    return ChargingStationClient.getChargingStationClient(this);
   }
 
   getLastHeartBeat(){
@@ -1348,11 +1354,11 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   // Restart the charger
-  async requestReset(type){
+  async requestReset(params){
     // Get the client
     const chargingStationClient = await this.getChargingStationClient();
     // Restart
-    const result = await chargingStationClient.reset(type);
+    const result = await chargingStationClient.reset(params);
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
@@ -1366,11 +1372,11 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   // Stop Transaction
-  async requestStopTransaction(transactionId){
+  async requestStopTransaction(params){
     // Get the client
     const chargingStationClient = await this.getChargingStationClient();
     // Stop Transaction
-    const result = await chargingStationClient.stopTransaction(transactionId);
+    const result = await chargingStationClient.stopTransaction(params);
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
@@ -1384,11 +1390,11 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   // Start Transaction
-  async requestStartTransaction(tagID, connectorID, chargingProfile = {}){
+  async requestStartTransaction(params){
     // Get the client
     const chargingStationClient = await this.getChargingStationClient();
     // Start Transaction
-    const result = await chargingStationClient.startTransaction(tagID, connectorID, chargingProfile);
+    const result = await chargingStationClient.startTransaction(params);
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
@@ -1420,11 +1426,11 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   // Get the configuration for the EVSE
-  async requestGetConfiguration(configParamNames){
+  async requestGetConfiguration(params){
     // Get the client
     const chargingStationClient = await this.getChargingStationClient();
     // Get config
-    const result = await chargingStationClient.getConfiguration(configParamNames);
+    const result = await chargingStationClient.getConfiguration(params);
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
@@ -1438,11 +1444,11 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   // Get the configuration for the EVSE
-  async requestChangeConfiguration(key, value){
+  async requestChangeConfiguration(params){
     // Get the client
     const chargingStationClient = await this.getChargingStationClient();
     // Get config
-    const result = await chargingStationClient.changeConfiguration(key, value);
+    const result = await chargingStationClient.changeConfiguration(params);
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
@@ -1463,11 +1469,11 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   // Unlock connector
-  async requestUnlockConnector(connectorId){
+  async requestUnlockConnector(params){
     // Get the client
     const chargingStationClient = await this.getChargingStationClient();
     // Get config
-    const result = await chargingStationClient.unlockConnector(connectorId);
+    const result = await chargingStationClient.unlockConnector(params);
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
@@ -1602,14 +1608,9 @@ class ChargingStation extends AbstractTenantEntity {
     // Build the model
     for (let meterValueIndex = 0; meterValueIndex < meterValues.length; meterValueIndex++) {
       const meterValue = meterValues[meterValueIndex];
-      // Get the stored values
-      const numberOfReturnedMeters = chargingStationConsumption.values.length;
-
       // Filter on consumption value
       if (meterValue.attribute && meterValue.attribute.measurand &&
         meterValue.attribute.measurand === 'Energy.Active.Import.Register') {
-        // Get the moment
-        const currentTimestamp = moment(meterValue.timestamp);
         // First value?
         if (!firstMeterValueSet) {
           // No: Keep the first value
@@ -1623,6 +1624,8 @@ class ChargingStation extends AbstractTenantEntity {
             // Yes: reinit it (the value has started over from 0)
             lastMeterValue.value = 0;
           }
+          // Get the moment
+          let currentTimestamp = moment(meterValue.timestamp);
           // Start to return the value after the requested date
           if (!chargingStationConsumption.startDateTime ||
             currentTimestamp.isAfter(chargingStationConsumption.startDateTime)) {

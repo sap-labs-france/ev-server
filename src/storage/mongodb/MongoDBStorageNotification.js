@@ -52,15 +52,17 @@ class MongoDBStorageNotification {
     const collectionWatcher = await _evseDB.collection(name).watch(pipeline, options);
     // Change Handling
     collectionWatcher.on("change", (change) => {
-      // Check for permitted operation
-      const action = this.getActionFromOperation(change.operationType);
-      // Notify
-      if (notifyWithID) {
-        notifyCallback(action, {
-          "id": change.documentKey._id.toString()
-        });
-      } else {
-        notifyCallback(action);
+      if (change.documentKey._id) {
+        // Check for permitted operation
+        const action = this.getActionFromOperation(change.operationType);
+        // Notify
+        if (notifyWithID) {
+          notifyCallback(action, {
+            "id": change.documentKey._id.toString()
+          });
+        } else {
+          notifyCallback(action);
+        }
       }
     });
     // Error Handling
@@ -165,13 +167,15 @@ class MongoDBStorageNotification {
     const configurationsWatcher = await _evseDB.collection("configurations").watch(pipeline, options);
     // Change Handling
     configurationsWatcher.on("change", (change) => {
-      // Check for permitted operation
-      const action = this.getActionFromOperation(change.operationType);
-      // Notify
-      _centralRestServer.notifyChargingStation(action, {
-        "type": Constants.NOTIF_TYPE_CHARGING_STATION_CONFIGURATION,
-        "id": change.documentKey._id.toString()
-      });
+      if (change.documentKey._id) {
+        // Check for permitted operation
+        const action = this.getActionFromOperation(change.operationType);
+        // Notify
+        _centralRestServer.notifyChargingStation(action, {
+          "type": Constants.NOTIF_TYPE_CHARGING_STATION_CONFIGURATION,
+          "id": change.documentKey._id.toString()
+        });
+      }
     });
   }
 }

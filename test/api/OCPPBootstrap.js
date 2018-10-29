@@ -48,7 +48,6 @@ class OCPPBootstrap {
 
   async createContext() {
     const context = {};
-
     try {
       // Create User
       context.newUser = await CentralServerService.createEntity(
@@ -68,7 +67,6 @@ class OCPPBootstrap {
         }));
       expect(context.newSite).to.not.be.null;
       
-      console.log("Boot notif");
       // Generate ID
       const chargingStationID = faker.random.alphaNumeric(12);
       // Create Charger Object
@@ -77,10 +75,18 @@ class OCPPBootstrap {
       let response = await this.ocpp.executeBootNotification(
         chargingStationID, chargingStation);
       // Check
-      expect(response).to.not.be.null;
+      expect(response.data).to.not.be.null;
       expect(response.data.status).to.eql('Accepted');
+      expect(response.data).to.have.property('currentTime');      
+      // Check according the OCPP version
+      if (this.ocpp.getVersion() === "1.6") {
+        // OCPP 1.6
+        expect(response.data).to.have.property('interval');      
+      } else {
+        // OCPP 1.2, 1.5
+        expect(response.data).to.have.property('heartbeatInterval');      
+      }
 
-      console.log("Status notif");
       // Send Status Notif for Connector A
       response = await this.ocpp.executeStatusNotification(chargingStationID, {
         connectorId: 1,

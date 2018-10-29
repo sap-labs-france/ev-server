@@ -1,51 +1,69 @@
 const uuid = require('uuid/v4');
-const Logging = require('../../utils/Logging'); 
 const ChargingStationClient = require('../ChargingStationClient');
 
-const _moduleName = "JSONClientService";
+const MODULE_NAME = "JsonChargingStationClient16";
 
 class JsonChargingStationClient16 extends ChargingStationClient {
+  constructor(wsConnection) {
+    super();
+    this._wsConnection = wsConnection;
+  }
 
-    constructor(wsHandler) {
-        super();
-        this._wsHandler = wsHandler;
+  getChargeBoxId() {
+    return this._wsConnection.getChargeBoxId();
+  }
+
+  startTransaction(params) {
+    const { tagID, connectorID, chargingProfile = {} } = params;
+    const payload = {
+      connectorId: connectorID,
+      idTag: tagID
+    };
+    if (chargingProfile !== null && Object.getOwnPropertyNames(chargingProfile).length > 0) {
+      payload.chargingProfile = chargingProfile;
     }
+    return this._wsConnection.sendMessage(uuid(), payload, 2, "RemoteStartTransaction");
+  }
 
-    getChargeBoxId () {
-        return this._wsHandler.getChargeBoxId();
-    }
+  reset(params) {
+    const { type } = params;
+    return this._wsConnection.sendMessage(uuid(), {
+      type: type
+    }, 2, "Reset");
+  }
 
-    startTransaction(idTag, connectorId, chargingProfile = {}) {
-        const payload = { connectorId:connectorId, idTag: idTag };
-        if (chargingProfile !== null && Object.getOwnPropertyNames(chargingProfile).length > 0 ) {
-            payload.chargingProfile = chargingProfile;
-        }
-        return this._wsHandler.sendMessage(uuid(), payload, 2, "RemoteStartTransaction");
-    }
+  clearCache() {
+    return this._wsConnection.sendMessage(uuid(), {}, 2, "ClearCache");
+  }
 
-    reset(type) {
-        return this._wsHandler.sendMessage(uuid(), {type:type}, 2, "Reset");
-	}
+  getConfiguration(params) {
+    const { keys } = params;
+    return this._wsConnection.sendMessage(uuid(), ((keys === null) ? {} : {
+      key: keys
+    }), 2, "GetConfiguration");
+  }
 
-	clearCache() {
-        return this._wsHandler.sendMessage(uuid(), {}, 2, "ClearCache");
-	}
+  changeConfiguration(params) {
+    const { key, value } = params;
+    return this._wsConnection.sendMessage(uuid(), {
+      key: key,
+      value: value
+    }, 2, "ChangeConfiguration");
+  }
 
-	getConfiguration(keys) {
-        return this._wsHandler.sendMessage(uuid(), ((keys === null)? {} : {key:keys}), 2, "GetConfiguration");
-	}
+  stopTransaction(params) {
+    const { transactionId } = params;
+    return this._wsConnection.sendMessage(uuid(), {
+      transactionId: transactionId
+    }, 2, "RemoteStopTransaction");
+  }
 
-	changeConfiguration(key, value) {
-        return this._wsHandler.sendMessage(uuid(), {key:key, value: value}, 2, "ChangeConfiguration");
-	}
-
-	stopTransaction(transactionId) {
-        return this._wsHandler.sendMessage(uuid(), {transactionId:transactionId}, 2, "RemoteStopTransaction");
-	}
-
-	unlockConnector(connectorId) {
-        return this._wsHandler.sendMessage(uuid(), {connectorId:connectorId}, 2, "UnlockConnector");
-	}
+  unlockConnector(params) {
+    const { connectorId } = params;
+    return this._wsConnection.sendMessage(uuid(), {
+      connectorId: connectorId
+    }, 2, "UnlockConnector");
+  }
 }
 
 module.exports = JsonChargingStationClient16;

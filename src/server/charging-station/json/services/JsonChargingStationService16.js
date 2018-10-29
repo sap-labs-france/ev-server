@@ -1,6 +1,5 @@
 const Logging = require('../../../../utils/Logging');
 const Constants = require('../../../../utils/Constants');
-const OCPPError = require('../../../../exception/OcppError');
 
 const MODULE_NAME = "JsonChargingStationService16";
 
@@ -8,21 +7,13 @@ class JsonChargingStationService16 {
   constructor(chargingStationConfig) {
     this._chargingStationConfig = chargingStationConfig;
     // Get the OCPP service
-    this.chargingStationService = global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_16);
+    this.chargingStationService = global.centralSystemJson.getChargingStationService(Constants.OCPP_VERSION_16);
   }
 
   async _handle(command, payload) {
     try {
-      // Log
-      Logging.logReceivedAction(MODULE_NAME, payload.tenantID, payload.chargeBoxIdentity, command, payload);
-      // Get the service
-      const chargingStationService = global.centralSystemJson.getChargingStationService(Constants.OCPP_VERSION_16);
       // Handle
-      const result = await chargingStationService["handle" + command](payload);
-      // Log
-      Logging.logReturnedAction(MODULE_NAME, payload.tenantID, payload.chargeBoxIdentity, command, {
-        "result": result
-      });
+      const result = await this.chargingStationService["handle" + command](payload);
       // Return
       return result;
     } catch (error) {
@@ -40,7 +31,7 @@ class JsonChargingStationService16 {
     return {
       'currentTime': result.currentTime,
       'status': result.status,
-      'heartbeatInterval': result.heartbeatInterval
+      'interval': result.heartbeatInterval
     };
   }
 
@@ -118,7 +109,9 @@ class JsonChargingStationService16 {
     const result = await this._handle("StopTransaction", payload);
     // Return the response
     return {
-      'status': result.status
+      'idTagInfo': {
+        'status': result.status
+      }
     };
   }
 }

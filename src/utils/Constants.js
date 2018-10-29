@@ -126,6 +126,9 @@ module.exports = {
 	OCPP_ERROR_TYPERAINT_VIOLATION : 'TyperaintViolation',
 	// Any other error not covered by the previous ones
 	OCPP_ERROR_GENERIC_ERROR : 'GenericError',
+
+	OCPP_PROTOCOL_JSON: 'json',
+  OCPP_PROTOCOL_SOAP: 'soap',
 	OCPP_VERSION_12: '1.2',
 	OCPP_VERSION_15: '1.5',
 	OCPP_VERSION_16: '1.6',

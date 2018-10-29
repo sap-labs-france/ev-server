@@ -7,7 +7,7 @@ describe('OCPP 1.5 SOAP Tests', function () {
 
   before(async () => {
     // Create OCPP 1.5
-    this.ocpp = new OCPPSoapService15(`${config.get('ocpp.scheme')}://${config.get('ocpp.host')}:${config.get('ocpp.port')}/OCPP15`);
+    this.ocpp = new OCPPSoapService15(`${config.get('ocpp.soap.scheme')}://${config.get('ocpp.soap.host')}:${config.get('ocpp.soap.port')}/OCPP15`);
     // Init Common tests
     this.ocppCommonTests = new OCPPCommonTests(this.ocpp);
     // Delegate
@@ -60,17 +60,17 @@ describe('OCPP 1.5 SOAP Tests', function () {
       await this.ocppCommonTests.testSendMeterValues();
     });
 
-    it('Stop User should stop the transaction', async () => {
+    it('User should stop the transaction', async () => {
       // Delegate
       await this.ocppCommonTests.testStopTransaction();
     });
 
-    it('Transaction must have the same consumption metrics', async () => {
+    it('Transaction must have the right consumption metrics and inactivity', async () => {
       // Delegate
       await this.ocppCommonTests.testTransactionMetrics();
     });
 
-    it('User should delete the transaction', async () => {
+    it('User should delete his transaction', async () => {
       // Delegate
       await this.ocppCommonTests.testDeleteTransaction();
     });

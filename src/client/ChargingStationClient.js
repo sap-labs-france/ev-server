@@ -1,3 +1,5 @@
+const Constants = require('../utils/Constants');
+const Configuration = require('../utils/Configuration');
 
 class ChargingStationClient {
 	constructor() {
@@ -15,18 +17,30 @@ class ChargingStationClient {
 	 * @memberof ChargingStationClient
 	 */
 	static async getChargingStationClient(chargingStation) {
-		// by default try to get the JSON client
-		let chargingClient = await global.centralSystemJson.getChargingStationClient(chargingStation.getID());
-		if (!chargingClient) { // not a JSON client
-			if (!chargingStation._chargingStationClient) { // not assigned yet so take a new SOAP client
-				const SoapChargingStationClient = require('./soap/SoapChargingStationClient');
-				// Init client
-				chargingClient = await new SoapChargingStationClient(chargingStation);
-			} else {
-				chargingClient = chargingStation._chargingStationClient;
-			}
-		}
-		return chargingClient;
+    const JsonRestChargingStationClient = require('./json/JsonRestChargingStationClient');
+    let chargingClient = null;
+    // Check protocol
+    switch (chargingStation.getOcppProtocol()) {
+      // JSON
+      case Constants.OCPP_PROTOCOL_JSON:
+        // Get the client from JSon Server
+        chargingClient = global.centralSystemJson.getChargingStationClient(chargingStation.getID());
+        // Cloud Foundry?
+        if (!chargingClient && Configuration.isCloudFoundry()) {
+          // Use the remote client
+          chargingClient = new JsonRestChargingStationClient(chargingStation);
+        }
+        break;
+      // SOAP
+      case Constants.OCPP_PROTOCOL_SOAP:
+      default:
+        // Get the Soap one by default
+        const SoapChargingStationClient = require('./soap/SoapChargingStationClient');
+        // Init client
+        chargingClient = await new SoapChargingStationClient(chargingStation);
+        break;
+    }
+    return chargingClient;
 	}
 
 	/**
@@ -35,25 +49,25 @@ class ChargingStationClient {
 	 * @param {*} type
 	 * @memberof ChargingStationClient
 	 */
-	reset(type) {
+	reset(params) {
 	}
 
 	clearCache() {
 	}
 
-	getConfiguration(keys) {
+	getConfiguration(params) {
 	}
 
-	changeConfiguration(key, value) {
+	changeConfiguration(params) {
 	}
 
-	startTransaction(tagID, connectorID) {
+	startTransaction(params) {
 	}
 
-	stopTransaction(transactionId) {
+	stopTransaction(params) {
 	}
 
-	unlockConnector(connectorId) {
+	unlockConnector(params) {
 	}
 }
 

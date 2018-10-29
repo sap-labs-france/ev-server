@@ -1,6 +1,7 @@
 const ChargingStationService = require('./ChargingStationService');
 const ChargingStation = require('../../../entity/ChargingStation');
 const Logging = require('../../../utils/Logging');
+const Constants = require('../../../utils/Constants');
 require('source-map-support').install();
 
 /**
@@ -25,7 +26,9 @@ class ChargingStationService16 extends ChargingStationService {
   async handleBootNotification(payload) {
     try {
       // Set the endpoint
-      payload.endpoint = payload.From.Address;
+      if (payload.From) {
+        payload.endpoint = payload.From.Address;
+      }
       // Set the ChargeBox ID
       payload.id = payload.chargeBoxIdentity;
       // Set the default Heart Beat
@@ -38,16 +41,10 @@ class ChargingStationService16 extends ChargingStationService {
       if (!chargingStation) {
         // Save Charging Station
         chargingStation = new ChargingStation(payload.tenantID, payload);
-        // Set the URL = enpoint
-        chargingStation.setChargingStationURL(chargingStation.getEndPoint());
         // Update timestamp
         chargingStation.setCreatedOn(new Date());
         chargingStation.setLastHeartBeat(new Date());
       } else {
-        // Set the URL = enpoint
-        if (!chargingStation.getChargingStationURL()) {
-          chargingStation.setChargingStationURL(chargingStation.getEndPoint())
-        }
         // Update data
         chargingStation.setChargePointVendor(payload.chargePointVendor);
         chargingStation.setChargePointModel(payload.chargePointModel);
@@ -55,7 +52,12 @@ class ChargingStationService16 extends ChargingStationService {
         chargingStation.setChargeBoxSerialNumber(payload.chargeBoxSerialNumber);
         chargingStation.setFirmwareVersion(payload.firmwareVersion);
         chargingStation.setOcppVersion(payload.ocppVersion);
+        chargingStation.setOcppProtocol(payload.ocppProtocol);
         chargingStation.setLastHeartBeat(new Date());
+        // Set the charger URL?
+        if (payload.chargingStationURL) {
+          chargingStation.setChargingStationURL(payload.chargingStationURL)
+        }
         // Back again
         chargingStation.setDeleted(false);
       }

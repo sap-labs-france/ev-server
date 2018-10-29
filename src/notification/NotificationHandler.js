@@ -82,7 +82,7 @@ class NotificationHandler {
 					return _email.sendEndOfCharge(sourceData, locale);
 				}
 			}
-		} catch(err) {
+		} catch(error) {
 			// Log error
 			Logging.logActionExceptionMessage(user.getTenantID(), SOURCE_END_OF_CHARGE, err);
 		}
@@ -103,7 +103,7 @@ class NotificationHandler {
 					return _email.sendEndOfSession(sourceData, locale);
 				}
 			}
-		} catch(err) {
+		} catch(error) {
 			// Log error
 			Logging.logActionExceptionMessage(user.getTenantID(), SOURCE_END_OF_SESSION, err);
 		}
