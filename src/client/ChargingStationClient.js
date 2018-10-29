@@ -23,13 +23,15 @@ class ChargingStationClient {
     switch (chargingStation.getOcppProtocol()) {
       // JSON
       case Constants.OCPP_PROTOCOL_JSON:
-        // Get the client from JSon Server
-        chargingClient = global.centralSystemJson.getChargingStationClient(chargingStation.getID());
-        // Cloud Foundry?
-        if (!chargingClient && Configuration.isCloudFoundry()) {
-          // Use the remote client
-          chargingClient = new JsonRestChargingStationClient(chargingStation);
-        }
+        // Use the remote client
+        chargingClient = new JsonRestChargingStationClient(chargingStation);
+        // // Get the client from JSon Server
+        // chargingClient = global.centralSystemJson.getChargingStationClient(chargingStation.getID());
+        // // Cloud Foundry?
+        // if (!chargingClient && Configuration.isCloudFoundry()) {
+        //   // Use the remote client
+        //   chargingClient = new JsonRestChargingStationClient(chargingStation);
+        // }
         break;
       // SOAP
       case Constants.OCPP_PROTOCOL_SOAP:

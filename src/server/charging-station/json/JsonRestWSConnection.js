@@ -3,9 +3,9 @@ const ChargingStation = require('../../../model/ChargingStation');
 const Constants = require('../../../utils/Constants');
 const WSConnection = require('./WSConnection');
 
-const MODULE_NAME = "RestWSConnection";
+const MODULE_NAME = "JsonRestWSConnection";
 
-class RestWSConnection extends WSConnection {
+class JsonRestWSConnection extends WSConnection {
   constructor(wsConnection, req, wsServer) {
     // Call super
     super(wsConnection, req, wsServer);
@@ -37,10 +37,26 @@ class RestWSConnection extends WSConnection {
     // Found?
     if (!chargingStation) {
       // Throw
-      throw new Error(`Charging Station '${this.getChargingStationID()}' not found for Rest request '${commandName}'`);
+      throw new Error(`'${this.getChargingStationID()}' > '${commandName}': Charging Station not found`);
     }
-    // Handle action
-    let result = await chargingStation.handleAction(commandName, commandPayload);
+    // Get the client from JSon Server
+    let chargingStationClient = global.centralSystemJson.getChargingStationClient(chargingStation.getID());
+    if (!chargingStationClient) {
+      // Throw
+      throw new Error(`'${this.getChargingStationID()}' > '${commandName}': Charging Station is not connected to this server'`);
+    }
+    // Call the client
+    let result; 
+    // Build the method
+    const actionMethod = commandName[0].toLowerCase() + commandName.substring(1);
+    // Call
+    if (typeof chargingStationClient[actionMethod] === 'function') {
+      // Call the method
+      result = chargingStationClient[actionMethod](commandPayload);
+    } else {
+      // Throw Exception
+      throw new Error(`'${this.getChargingStationID()}' > '${commandName}' is not implemented`);
+    }
     // Log
     Logging.logReturnedAction(MODULE_NAME, this.getChargingStationID(), commandName, result);
     // Send Response
@@ -48,4 +64,4 @@ class RestWSConnection extends WSConnection {
   }
 }
 
-module.exports = RestWSConnection;
+module.exports = JsonRestWSConnection;
