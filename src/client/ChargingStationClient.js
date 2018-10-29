@@ -24,8 +24,10 @@ class ChargingStationClient {
       // JSON
       case Constants.OCPP_PROTOCOL_JSON:
         // Get the client from JSon Server
-        chargingClient = global.centralSystemJson.getChargingStationClient(chargingStation.getID());
-        // Cloud Foundry?
+        if (global.centralSystemJson) {
+          chargingClient = global.centralSystemJson.getChargingStationClient(chargingStation.getID());
+        }
+        // Not Found and deployed in Cloud Foundry?
         if (!chargingClient && Configuration.isCloudFoundry()) {
           // Use the remote client
           chargingClient = new JsonRestChargingStationClient(chargingStation);
