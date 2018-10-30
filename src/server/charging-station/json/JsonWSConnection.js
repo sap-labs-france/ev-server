@@ -104,6 +104,29 @@ class JsonWSConnection extends WSConnection {
     }
   }
 
+  onError(error) {
+    // Log
+    Logging.logError({
+      module: MODULE_NAME,
+      method: "onError",
+      action: "WSJsonErrorReceived",
+      message: error
+    });
+  }
+  
+  onClose(code, reason) {
+    // Log
+    Logging.logInfo({
+      module: MODULE_NAME,
+      source: (this.getChargingStationID() ? this.getChargingStationID() : ""),
+      method: "onClose",
+      action: "WSJsonConnectionClose",
+      message: `Connection has been closed, Reason '${reason}', Code '${code}'`
+    });
+    // Close the connection
+    this._wsServer.removeConnection(this.getChargingStationID());
+  }
+
   async handleRequest(messageId, commandName, commandPayload) {
     // Log
     Logging.logReceivedAction(MODULE_NAME, this.getChargingStationID(), commandName, commandPayload);

@@ -29,6 +29,27 @@ class JsonRestWSConnection extends WSConnection {
     });
   }
 
+  onError(error) {
+    // Log
+    Logging.logError({
+      module: MODULE_NAME,
+      method: "onError",
+      action: "WSRestErrorReceived",
+      message: error
+    });
+  }
+  
+  onClose(code, reason) {
+    // Log
+    Logging.logInfo({
+      module: MODULE_NAME,
+      source: (this.getChargingStationID() ? this.getChargingStationID() : ""),
+      method: "onClose",
+      action: "WSRestConnectionClose",
+      message: `Connection has been closed, Reason '${reason}', Code '${code}'`
+    });
+  }
+
   async handleRequest(messageId, commandName, commandPayload) {
     // Log
     Logging.logReceivedAction(MODULE_NAME, this.getChargingStationID(), commandName, commandPayload);
@@ -52,7 +73,7 @@ class JsonRestWSConnection extends WSConnection {
     // Call
     if (typeof chargingStationClient[actionMethod] === 'function') {
       // Call the method
-      result = chargingStationClient[actionMethod](commandPayload);
+      result = await chargingStationClient[actionMethod](commandPayload);
     } else {
       // Throw Exception
       throw new Error(`'${this.getChargingStationID()}' > '${commandName}' is not implemented`);
