@@ -4,7 +4,7 @@ let config = require('../config.json');
 require('source-map-support').install();
 
 // Cloud Foundry App Env
-let _appEnv = cfenv.getAppEnv();
+const _appEnv = cfenv.getAppEnv();
 
 class Configuration {
 	// Read the config file
