@@ -70,7 +70,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
       module: MODULE_NAME,
       source: this._chargingStation.getID(),
       method: "onOpen",
-      action: "WSRestConnectionOpen",
+      action: "WSRestClientConnectionOpen",
       message: `Try to connect to '${this._serverURL}'`
     });
     // Create Promise
@@ -86,7 +86,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
           module: MODULE_NAME,
           source: this._chargingStation.getID(),
           method: "onOpen",
-          action: "WSRestConnectionOpened",
+          action: "WSRestClientConnectionOpened",
           message: `Connection opened to '${this._serverURL}'`
         });
         // connection is opened and ready to use
@@ -99,7 +99,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
           module: MODULE_NAME,
           source: this._chargingStation.getID(),
           method: "onClose",
-          action: "WSRestConnectionClosed",
+          action: "WSRestClientConnectionClosed",
           message: `Connection closed from '${this._serverURL}'`
         });
       };
@@ -120,7 +120,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
             module: MODULE_NAME,
             source: this._chargingStation.getID(),
             method: "onMessage",
-            action: "WSRestMessage",
+            action: "WSRestClientMessage",
             message: `Received message '${message.data}'`,
             detailedMessages: messageJson
           });
@@ -159,7 +159,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
           module: MODULE_NAME,
           source: this._chargingStation.getID(),
           method: "SendMessage",
-          action: "WSRestSendMessage",
+          action: "WSRestClientSendMessage",
           message: `Send message '${request[2]}'`,
           detailedMessages: request
         });

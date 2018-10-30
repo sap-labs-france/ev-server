@@ -24,7 +24,7 @@ class JsonRestWSConnection extends WSConnection {
       module: MODULE_NAME,
       source: this.getChargingStationID(),
       method: "onOpen",
-      action: "WSRestConnectionOpened",
+      action: "WSRestServerConnectionOpened",
       message: `New Rest connection from '${this.getIP()}', Protocol '${wsConnection.protocol}', URL '${this.getURL()}'`
     });
   }
@@ -34,7 +34,7 @@ class JsonRestWSConnection extends WSConnection {
     Logging.logError({
       module: MODULE_NAME,
       method: "onError",
-      action: "WSRestErrorReceived",
+      action: "WSRestServerErrorReceived",
       message: error
     });
   }
@@ -45,7 +45,7 @@ class JsonRestWSConnection extends WSConnection {
       module: MODULE_NAME,
       source: (this.getChargingStationID() ? this.getChargingStationID() : ""),
       method: "onClose",
-      action: "WSRestConnectionClose",
+      action: "WSRestServerConnectionClosed",
       message: `Connection has been closed, Reason '${reason}', Code '${code}'`
     });
   }
