@@ -7,6 +7,10 @@ require('source-map-support').install();
 let _appEnv = cfenv.getAppEnv();
 
 if (_appEnv) {
+  console.log("----------------------------------------------------------");
+  console.log("InstanceIndex" + _appEnv.instance_index);
+  console.log("InstanceID" + _appEnv.instance_id);
+  console.log("----------------------------------------------------------");
   console.log(JSON.stringify(_appEnv, null, 2));
 }
 
