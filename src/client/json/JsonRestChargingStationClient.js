@@ -71,7 +71,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
       source: this._chargingStation.getID(),
       method: "onOpen",
       action: "WSRestConnectionOpen",
-      message: `Try to connect to URL '${this._serverURL}'`
+      message: `Try to connect to '${this._serverURL}'`
     });
     // Create Promise
     return new Promise((resolve, reject) => {
@@ -141,9 +141,9 @@ class JsonRestChargingStationClient extends ChargingStationClient {
 
   _closeConnection() {
     // Close
-    if (this.wsConnection) {
-      this.wsConnection.close();
-      this.wsConnection = null;
+    if (this._wsConnection) {
+      this._wsConnection.close();
+      this._wsConnection = null;
     }
   }
 
