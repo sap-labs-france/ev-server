@@ -29,53 +29,17 @@ class WSConnection {
       this._url = this._url.substring(1, this._url.length);
     }
     // Handle incoming messages
-    this._wsConnection.on('message', (message) => {
-      // Forward
-      this.onMessage(message);
-    });
+    this._wsConnection.on('message', this.onMessage.bind(this));
     // Handle Error on Socket
-    this._wsConnection.on('error', (error) => {
-      // Log
-      Logging.logError({
-        module: MODULE_NAME,
-        method: "OnError",
-        action: "WSErrorReceived",
-        message: error
-      });
-    });
+    this._wsConnection.on('error', this.onError.bind(this));
     // Handle Socket close
-    this._wsConnection.on('close', (code, reason) => {
-      // Log
-      Logging.logInfo({
-        module: MODULE_NAME,
-        source: (this.getChargingStationID() ? this.getChargingStationID() : ""),
-        method: "OnClose",
-        action: "WSConnectionClose",
-        message: `Connection has been closed, Reason '${reason}', Code '${code}'`
-      });
-      // Close the connection
-      this._wsServer.removeConnection(this.getChargingStationID());
-    });
+    this._wsConnection.on('close', this.onClose.bind(this));
   }
 
-  getWSConnection() {
-    return this._wsConnection;
+  onError(error) {
   }
-
-  getWSServer() {
-    return this._wsServer;
-  }
-
-  getURL() {
-    return this._url;
-  }
-
-  getIP() {
-    return this._ip;
-  }
-
-  async initialize() {
-    this._initialized = true;
+  
+  onClose(code, reason) {
   }
 
   async onMessage(message) {
@@ -134,8 +98,28 @@ class WSConnection {
     }
   }
 
+  async initialize() {
+    this._initialized = true;
+  }
+
   async handleRequest(messageId, commandName, commandPayload) {
     // To implement in sub-class
+  }
+
+  getWSConnection() {
+    return this._wsConnection;
+  }
+
+  getWSServer() {
+    return this._wsServer;
+  }
+
+  getURL() {
+    return this._url;
+  }
+
+  getIP() {
+    return this._ip;
   }
 
   send(command, messageType = Constants.OCPP_JSON_CALL_MESSAGE) {

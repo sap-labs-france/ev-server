@@ -23,9 +23,30 @@ class JsonRestWSConnection extends WSConnection {
     Logging.logInfo({
       module: MODULE_NAME,
       source: this.getChargingStationID(),
-      method: "constructor",
-      action: "WSRestConnectionOpened",
+      method: "onOpen",
+      action: "WSRestServerConnectionOpened",
       message: `New Rest connection from '${this.getIP()}', Protocol '${wsConnection.protocol}', URL '${this.getURL()}'`
+    });
+  }
+
+  onError(error) {
+    // Log
+    Logging.logError({
+      module: MODULE_NAME,
+      method: "onError",
+      action: "WSRestServerErrorReceived",
+      message: error
+    });
+  }
+  
+  onClose(code, reason) {
+    // Log
+    Logging.logInfo({
+      module: MODULE_NAME,
+      source: (this.getChargingStationID() ? this.getChargingStationID() : ""),
+      method: "onClose",
+      action: "WSRestServerConnectionClosed",
+      message: `Connection has been closed, Reason '${reason}', Code '${code}'`
     });
   }
 
@@ -52,7 +73,7 @@ class JsonRestWSConnection extends WSConnection {
     // Call
     if (typeof chargingStationClient[actionMethod] === 'function') {
       // Call the method
-      result = chargingStationClient[actionMethod](commandPayload);
+      result = await chargingStationClient[actionMethod](commandPayload);
     } else {
       // Throw Exception
       throw new Error(`'${this.getChargingStationID()}' > '${commandName}' is not implemented`);
