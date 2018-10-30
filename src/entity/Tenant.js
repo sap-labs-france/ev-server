@@ -1,138 +1,119 @@
 const Database = require('../utils/Database');
+const AppError = require('../exception/AppError');
+const Constants = require('../utils/Constants');
 const TenantStorage = require('../storage/mongodb/TenantStorage');
 const User = require('./User');
-const Constants = require('../utils/Constants');
 
 class Tenant {
-  constructor(tenant){
-    // Init model
-    this._model = {};
+    constructor(tenant) {
+        // Init model
+        this._model = {};
 
-    // Set it
-    Database.updateTenant(tenant, this._model);
-  }
-
-  getModel(){
-    return this._model;
-  }
-
-  getID(){
-    return this._model.id;
-  }
-
-  isMasterTenant() {
-    return this._model.masterTenant;
-  }
-
-  setName(name){
-    this._model.name = name;
-  }
-
-  getName(){
-    return this._model.name;
-  }
-
-  setEmail(email){
-    this._model.email = email;
-  }
-
-  getEmail(){
-    return this._model.email;
-  }
-
-  setSubdomain(subdomain){
-    this._model.subdomain = subdomain;
-  }
-
-  getSubdomain(){
-    return this._model.subdomain;
-  }
-
-  getCreatedBy(){
-    if (this._model.createdBy) {
-      return new User(this.getID(), this._model.createdBy);
+        // Set it
+        Database.updateTenant(tenant, this._model);
     }
-    return null;
-  }
 
-  setCreatedBy(user){
-    this._model.createdBy = user.getModel();
-  }
-
-  getCreatedOn(){
-    return this._model.createdOn;
-  }
-
-  setCreatedOn(createdOn){
-    this._model.createdOn = createdOn;
-  }
-
-  getLastChangedBy(){
-    if (this._model.lastChangedBy) {
-      return new User(this.getID(), this._model.lastChangedBy);
+    getModel() {
+        return this._model;
     }
-    return null;
-  }
 
-  setLastChangedBy(user){
-    this._model.lastChangedBy = user.getModel();
-  }
+    getID() {
+        return this._model.id;
+    }
 
-  getLastChangedOn(){
-    return this._model.lastChangedOn;
-  }
+    setName(name) {
+        this._model.name = name;
+    }
 
-  setLastChangedOn(lastChangedOn){
-    this._model.lastChangedOn = lastChangedOn;
-  }
+    getName() {
+        return this._model.name;
+    }
 
-  save(){
-    return TenantStorage.saveTenant(this.getModel());
-  }
+    setEmail(email) {
+        this._model.email = email;
+    }
 
-  async createEnvironment(){
-    await TenantStorage.createTenantDB(this.getID());
+    getEmail() {
+        return this._model.email;
+    }
 
-    const password = await User.hashPasswordBcrypt(User.generatePassword());
-    const tenantUser = new User(this.getID(), {
-      name: this.getName(),
-      firstName: "Admin",
-      password: password,
-      status: Constants.USER_STATUS_PENDING,
-      role: Constants.ROLE_ADMIN,
-      email: this.getEmail(),
-      createdOn: new Date().toISOString()
-    });
-    await tenantUser.save();
-  }
+    setSubdomain(subdomain) {
+        this._model.subdomain = subdomain;
+    }
 
-  async deleteEnvironment(){
-    await TenantStorage.deleteTenantDB(this.getID());
-  }
+    getSubdomain() {
+        return this._model.subdomain;
+    }
 
-  delete(){
-    return TenantStorage.deleteTenant(this.getID());
-  }
+    getCreatedBy() {
+        if (this._model.createdBy) {
+            return new User(this._model.createdBy);
+        }
+        return null;
+    }
 
-  static getTenant(id){
-    // Get Tenant
-    return TenantStorage.getTenant(id)
-  }
+    setCreatedBy(user) {
+        this._model.createdBy = user.getModel();
+    }
 
-  static getTenantByName(name){
-    // Get Tenant
-    return TenantStorage.getTenantByName(name);
-  }
+    getCreatedOn() {
+        return this._model.createdOn;
+    }
 
-  static getTenantBySubdomain(subdomain){
-    // Get Tenant
-    return TenantStorage.getTenantBySubdomain(subdomain);
-  }
+    setCreatedOn(createdOn) {
+        this._model.createdOn = createdOn;
+    }
 
-  static getTenants(params = {}, limit, skip, sort){
-    // Get Tenants
-    return TenantStorage.getTenants(params, limit, skip, sort);
-  }
+    getLastChangedBy() {
+        if (this._model.lastChangedBy) {
+            return new User(this._model.lastChangedBy);
+        }
+        return null;
+    }
+
+    setLastChangedBy(user) {
+        this._model.lastChangedBy = user.getModel();
+    }
+
+    getLastChangedOn() {
+        return this._model.lastChangedOn;
+    }
+
+    setLastChangedOn(lastChangedOn) {
+        this._model.lastChangedOn = lastChangedOn;
+    }
+
+    save() {
+        return TenantStorage.saveTenant(this.getModel());
+    }
+
+    async createEnvironment() {
+        await TenantStorage.createTenantDB(this.getSubdomain());
+    }
+
+    delete() {
+        return TenantStorage.deleteTenant(this.getID());
+    }
+
+    static getTenant(id) {
+        // Get Tenant
+        return TenantStorage.getTenant(id)
+    }
+
+    static getTenantByName(name) {
+        // Get Tenant
+        return TenantStorage.getTenantByName(name);
+    }
+
+    static getTenantBySubdomain(subdomain) {
+        // Get Tenant
+        return TenantStorage.getTenantBySubdomain(subdomain);
+    }
+
+    static getTenants(params = {}, limit, skip, sort) {
+        // Get Tenants
+        return TenantStorage.getTenants(params, limit, skip, sort);
+    }
 }
 
 module.exports = Tenant;

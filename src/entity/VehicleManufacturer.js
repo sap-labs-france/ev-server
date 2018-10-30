@@ -1,4 +1,3 @@
-const AbstractTenantEntity = require('./AbstractTenantEntity');
 const Database = require('../utils/Database');
 const User = require('./User');
 const Vehicle = require('./Vehicle');
@@ -7,133 +6,138 @@ const AppError = require('../exception/AppError');
 const VehicleManufacturerStorage = require('../storage/mongodb/VehicleManufacturerStorage');
 const VehicleStorage = require('../storage/mongodb/VehicleStorage');
 
-class VehicleManufacturer extends AbstractTenantEntity {
-  constructor(tenantID, vehicleManufacturer){
-    super(tenantID);
-    // Set it
-    Database.updateVehicleManufacturer(vehicleManufacturer, this._model);
-  }
+class VehicleManufacturer {
+	constructor(vehicleManufacturer) {
+		// Init model
+		this._model = {};
+		// Set it
+		Database.updateVehicleManufacturer(vehicleManufacturer, this._model);
+	}
 
-  getID(){
-    return this._model.id;
-  }
+	getModel() {
+		return this._model;
+	}
 
-  setName(name){
-    this._model.name = name;
-  }
+	getID() {
+		return this._model.id;
+	}
 
-  getName(){
-    return this._model.name;
-  }
+	setName(name) {
+		this._model.name = name;
+	}
 
-  getLogo(){
-    return this._model.logo;
-  }
+	getName() {
+		return this._model.name;
+	}
 
-  setLogo(logo){
-    this._model.logo = logo;
-  }
+	getLogo() {
+		return this._model.logo;
+	}
 
-  getCreatedBy(){
-    if (this._model.createdBy) {
-      return new User(this.getTenantID(), this._model.createdBy);
-    }
-    return null;
-  }
+	setLogo(logo) {
+		this._model.logo = logo;
+	}
 
-  setCreatedBy(user){
-    this._model.createdBy = user.getModel();
-  }
+	getCreatedBy() {
+		if (this._model.createdBy) {
+			return new User(this._model.createdBy);
+		}
+		return null;
+	}
 
-  getCreatedOn(){
-    return this._model.createdOn;
-  }
+	setCreatedBy(user) {
+		this._model.createdBy = user.getModel();
+	}
 
-  setCreatedOn(createdOn){
-    this._model.createdOn = createdOn;
-  }
+	getCreatedOn() {
+		return this._model.createdOn;
+	}
 
-  getLastChangedBy(){
-    if (this._model.lastChangedBy) {
-      return new User(this.getTenantID(), this._model.lastChangedBy);
-    }
-    return null;
-  }
+	setCreatedOn(createdOn) {
+		this._model.createdOn = createdOn;
+	}
 
-  setLastChangedBy(user){
-    this._model.lastChangedBy = user.getModel();
-  }
+	getLastChangedBy() {
+		if (this._model.lastChangedBy) {
+			return new User(this._model.lastChangedBy);
+		}
+		return null;
+	}
 
-  getLastChangedOn(){
-    return this._model.lastChangedOn;
-  }
+	setLastChangedBy(user) {
+		this._model.lastChangedBy = user.getModel();
+	}
 
-  setLastChangedOn(lastChangedOn){
-    this._model.lastChangedOn = lastChangedOn;
-  }
+	getLastChangedOn() {
+		return this._model.lastChangedOn;
+	}
 
-  async getVehicles(){
-    if (this._model.vehicles) {
-      return this._model.vehicles.map((vehicle) => new Vehicle(this.getTenantID(), vehicle));
-    } else {
-      // Get from DB
-      const vehicles = await VehicleStorage.getVehicles(this.getTenantID(), {'vehicleManufacturerID': this.getID()});
-      // Keep it
-      this.setVehicles(vehicles.result);
-      // Return
-      return vehicles.result;
-    }
-  }
+	setLastChangedOn(lastChangedOn) {
+		this._model.lastChangedOn = lastChangedOn;
+	}
 
-  setVehicles(vehicles){
-    this._model.vehicles = vehicles.map((vehicle) => {
-      return vehicle.getModel();
-    });
-  }
+	async getVehicles() {
+		if (this._model.vehicles) {
+			return this._model.vehicles.map((vehicle) => new Vehicle(vehicle));
+		} else {
+			// Get from DB
+			let vehicles = await VehicleStorage.getVehicles({'vehicleManufacturerID': this.getID()});
+			// Keep it
+			this.setVehicles(vehicles.result);
+			// Return
+			return vehicles.result;
+		}
+	}
 
-  save(){
-    return VehicleManufacturerStorage.saveVehicleManufacturer(this.getTenantID(), this.getModel());
-  }
+	setVehicles(vehicles) {
+		this._model.vehicles = vehicles.map((vehicle) => {
+			return vehicle.getModel();
+		});
+	}
 
-  saveLogo(){
-    return VehicleManufacturerStorage.saveVehicleManufacturerLogo(this.getTenantID(), this.getModel());
-  }
+	save() {
+		return VehicleManufacturerStorage.saveVehicleManufacturer(this.getModel());
+	}
 
-  delete(){
-    return VehicleManufacturerStorage.deleteVehicleManufacturer(this.getTenantID(), this.getID());
-  }
+	saveLogo() {
+		return VehicleManufacturerStorage.saveVehicleManufacturerLogo(this.getModel());
+	}
 
-  static checkIfVehicleManufacturerValid(filteredRequest, request){
-    // Update model?
-    if (request.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Vehicle Manufacturer ID is mandatory`, 500,
-        'VehicleManufacturer', 'checkIfVehicleManufacturerValid');
-    }
-    if (!filteredRequest.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Vehicle Manufacturer Name is mandatory`, 500,
-        'VehicleManufacturer', 'checkIfVehicleManufacturerValid');
-    }
-  }
+	delete() {
+		return VehicleManufacturerStorage.deleteVehicleManufacturer(this.getID());
+	}
 
-  static getVehicleManufacturer(tenantID, id){
-    return VehicleManufacturerStorage.getVehicleManufacturer(tenantID, id);
-  }
+	static checkIfVehicleManufacturerValid(filteredRequest, request) {
+		// Update model?
+		if(request.method !== 'POST' && !filteredRequest.id) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Vehicle Manufacturer ID is mandatory`, 500, 
+				'VehicleManufacturer', 'checkIfVehicleManufacturerValid');
+		}
+		if(!filteredRequest.name) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Vehicle Manufacturer Name is mandatory`, 500, 
+				'VehicleManufacturer', 'checkIfVehicleManufacturerValid');
+		}
+	}
 
-  static getVehicleManufacturers(tenantID, params, limit, skip, sort){
-    return VehicleManufacturerStorage.getVehicleManufacturers(tenantID, params, limit, skip, sort)
-  }
+	static getVehicleManufacturer(id) {
+		return VehicleManufacturerStorage.getVehicleManufacturer(id);
+	}
 
-  static getVehicleManufacturerLogo(tenantID, id){
-    return VehicleManufacturerStorage.getVehicleManufacturerLogo(tenantID, id);
-  }
+	static getVehicleManufacturers(params, limit, skip, sort) {
+		return VehicleManufacturerStorage.getVehicleManufacturers(params, limit, skip, sort)
+	}
 
-  static getVehicleManufacturerLogos(tenantID){
-    return VehicleManufacturerStorage.getVehicleManufacturerLogos(tenantID);
-  }
+	static getVehicleManufacturerLogo(id) {
+		return VehicleManufacturerStorage.getVehicleManufacturerLogo(id);
+	}
+
+	static getVehicleManufacturerLogos() {
+		return VehicleManufacturerStorage.getVehicleManufacturerLogos()
+	}
 }
 
 module.exports = VehicleManufacturer;

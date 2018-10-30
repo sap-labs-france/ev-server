@@ -1,4 +1,3 @@
-const AbstractTenantEntity = require('./AbstractTenantEntity');
 const Database = require('../utils/Database');
 const Constants = require('../utils/Constants');
 const AppError = require('../exception/AppError');
@@ -6,171 +5,176 @@ const SiteStorage = require('../storage/mongodb/SiteStorage');
 const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
 
-class SiteArea extends AbstractTenantEntity {
-  constructor(tenantID, siteArea) {
-    super(tenantID);
+class SiteArea {
+	constructor(siteArea) {
+		// Init model
+		this._model = {};
 
-    // Set it
-    Database.updateSiteArea(siteArea, this._model);
-  }
+		// Set it
+		Database.updateSiteArea(siteArea, this._model);
+	}
 
-  getID() {
-    return this._model.id;
-  }
+	getModel() {
+		return this._model;
+	}
 
-  setName(name) {
-    this._model.name = name;
-  }
+	getID() {
+		return this._model.id;
+	}
 
-  getName() {
-    return this._model.name;
-  }
+	setName(name) {
+		this._model.name = name;
+	}
 
-  setAccessControlEnabled(accessControl) {
-    this._model.accessControl = accessControl;
-  }
+	getName() {
+		return this._model.name;
+	}
 
-  isAccessControlEnabled() {
-    return this._model.accessControl;
-  }
+	setAccessControlEnabled(accessControl) {
+		this._model.accessControl = accessControl;
+	}
 
-  getCreatedBy() {
-    if (this._model.createdBy) {
-      return new User(this.getTenantID(), this._model.createdBy);
-    }
-    return null;
-  }
+	isAccessControlEnabled() {
+		return this._model.accessControl;
+	}
 
-  setCreatedBy(user) {
-    this._model.createdBy = user.getModel();
-  }
+	getCreatedBy() {
+		if (this._model.createdBy) {
+			return new User(this._model.createdBy);
+		}
+		return null;
+	}
 
-  getCreatedOn() {
-    return this._model.createdOn;
-  }
+	setCreatedBy(user) {
+		this._model.createdBy = user.getModel();
+	}
 
-  setCreatedOn(createdOn) {
-    this._model.createdOn = createdOn;
-  }
+	getCreatedOn() {
+		return this._model.createdOn;
+	}
 
-  getLastChangedBy() {
-    if (this._model.lastChangedBy) {
-      return new User(this.getTenantID(), this._model.lastChangedBy);
-    }
-    return null;
-  }
+	setCreatedOn(createdOn) {
+		this._model.createdOn = createdOn;
+	}
 
-  setLastChangedBy(user) {
-    this._model.lastChangedBy = user.getModel();
-  }
+	getLastChangedBy() {
+		if (this._model.lastChangedBy) {
+			return new User(this._model.lastChangedBy);
+		}
+		return null;
+	}
 
-  getLastChangedOn() {
-    return this._model.lastChangedOn;
-  }
+	setLastChangedBy(user) {
+		this._model.lastChangedBy = user.getModel();
+	}
 
-  setLastChangedOn(lastChangedOn) {
-    this._model.lastChangedOn = lastChangedOn;
-  }
+	getLastChangedOn() {
+		return this._model.lastChangedOn;
+	}
 
-  setImage(image) {
-    this._model.image = image;
-  }
+	setLastChangedOn(lastChangedOn) {
+		this._model.lastChangedOn = lastChangedOn;
+	}
 
-  getImage() {
-    return this._model.image;
-  }
+	setImage(image) {
+		this._model.image = image;
+	}
 
-  async getSite(withCompany=false, withUser=false) {
+	getImage() {
+		return this._model.image;
+	}
 
-    if (this._model.site) {
-      return new Site(this.getTenantID(), this._model.site);
-    } else if (this._model.siteID){
-      // Get from DB
-      const site = await SiteStorage.getSite(this.getTenantID(), this._model.siteID, withCompany, withUser);
-      // Keep it
-      this.setSite(site);
-      return site;
-    }
-  }
+	async getSite(withCompany=false, withUser=false) {
 
-  setSite(site) {
-    if (site) {
-      this._model.site = site.getModel();
-      this._model.siteID = site.getID();
-    } else {
-      this._model.site = null;
-    }
-  }
+		if (this._model.site) {
+			return new Site(this._model.site);
+		} else if (this._model.siteID){
+			// Get from DB
+			let site = await SiteStorage.getSite(this._model.siteID, withCompany, withUser);
+			// Keep it
+			this.setSite(site);
+			return site;
+		}
+	}
 
-  save() {
-    return SiteAreaStorage.saveSiteArea(this.getTenantID(), this.getModel());
-  }
+	setSite(site) {
+		if (site) {
+			this._model.site = site.getModel();
+			this._model.siteID = site.getID();
+		} else {
+			this._model.site = null;
+		}
+	}
 
-  saveImage() {
-    return SiteAreaStorage.saveSiteAreaImage(this.getTenantID(), this.getModel());
-  }
+	save() {
+		return SiteAreaStorage.saveSiteArea(this.getModel());
+	}
 
-  delete() {
-    return SiteAreaStorage.deleteSiteArea(this.getTenantID(), this.getID());
-  }
+	saveImage() {
+		return SiteAreaStorage.saveSiteAreaImage(this.getModel());
+	}
 
-  async getChargingStations() {
-    if (this._model.chargeBoxes) {
-      return this._model.chargeBoxes.map((chargeBox) => new ChargingStation(this.getTenantID(), chargeBox));
-    } else {
-      // Get from DB
-      const chargingStations = await ChargingStationStorage.getChargingStations(this.getTenantID(),
-        { siteAreaID: this.getID() }, Constants.NO_LIMIT);
-      // Keep it
-      this.setChargingStations(chargingStations.result);
-      return chargingStations.result;
-    }
-  }
+	delete() {
+		return SiteAreaStorage.deleteSiteArea(this.getID());
+	}
 
-  setChargingStations(chargeBoxes) {
-    this._model.chargeBoxes = chargeBoxes.map((chargeBox) => chargeBox.getModel());
-  }
+	async getChargingStations() {
+		if (this._model.chargeBoxes) {
+			return this._model.chargeBoxes.map((chargeBox) => new ChargingStation(chargeBox));
+		} else {
+			// Get from DB
+			let chargingStations = await ChargingStationStorage.getChargingStations(
+				{ siteAreaID: this.getID() }, Constants.NO_LIMIT);
+			// Keep it
+			this.setChargingStations(chargingStations.result);
+			return chargingStations.result;
+		}
+	}
 
-  static checkIfSiteAreaValid(filteredRequest, request) {
-    // Update model?
-    if(request.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Site Area ID is mandatory`, 500,
-        'SiteArea', 'checkIfSiteAreaValid');
-    }
-    if(!filteredRequest.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Site Area Name is mandatory`, 500,
-        'SiteArea', 'checkIfSiteAreaValid');
-    }
-    if(!filteredRequest.siteID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Site ID is mandatory`, 500,
-        'SiteArea', 'checkIfSiteAreaValid');
-    }
-    if (!filteredRequest.chargeBoxIDs) {
-      filteredRequest.chargeBoxIDs = [];
-    }
-  }
+	setChargingStations(chargeBoxes) {
+		this._model.chargeBoxes = chargeBoxes.map((chargeBox) => chargeBox.getModel());
+	}
 
-  static getSiteArea(tenantID, id, withChargeBoxes, withSite) {
-    return SiteAreaStorage.getSiteArea(tenantID, id, withChargeBoxes, withSite);
-  }
+	static checkIfSiteAreaValid(filteredRequest, request) {
+		// Update model?
+		if(request.method !== 'POST' && !filteredRequest.id) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Site Area ID is mandatory`, 500,
+				'SiteArea', 'checkIfSiteAreaValid');
+		}
+		if(!filteredRequest.name) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Site Area Name is mandatory`, 500,
+				'SiteArea', 'checkIfSiteAreaValid');
+		}
+		if(!filteredRequest.siteID) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Site ID is mandatory`, 500,
+				'SiteArea', 'checkIfSiteAreaValid');
+		}
+		if (!filteredRequest.chargeBoxIDs) {
+			filteredRequest.chargeBoxIDs = [];
+		}
+	}
 
-  static getSiteAreas(tenantID, params, limit, skip, sort) {
-    return SiteAreaStorage.getSiteAreas(tenantID, params, limit, skip, sort)
-  }
+	static getSiteArea(id, withChargeBoxes, withSite) {
+		return SiteAreaStorage.getSiteArea(id, withChargeBoxes, withSite);
+	}
 
-  static getSiteAreaImage(tenantID, id) {
-    return SiteAreaStorage.getSiteAreaImage(tenantID, id);
-  }
+	static getSiteAreas(params, limit, skip, sort) {
+		return SiteAreaStorage.getSiteAreas(params, limit, skip, sort)
+	}
 
-  static getSiteAreaImages(tenantID) {
-    return SiteAreaStorage.getSiteAreaImages(tenantID)
-  }
+	static getSiteAreaImage(id) {
+		return SiteAreaStorage.getSiteAreaImage(id);
+	}
+
+	static getSiteAreaImages() {
+		return SiteAreaStorage.getSiteAreaImages()
+	}
 }
 
 module.exports = SiteArea;

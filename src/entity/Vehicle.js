@@ -1,238 +1,242 @@
-const AbstractTenantEntity = require('./AbstractTenantEntity');
 const Database = require('../utils/Database');
 const Constants = require('../utils/Constants');
 const AppError = require('../exception/AppError');
 const VehicleStorage = require('../storage/mongodb/VehicleStorage');
 const User = require('./User');
 
-class Vehicle extends AbstractTenantEntity {
-  constructor(tenantID, vehicle) {
-    super(tenantID);
-    // Set it
-    Database.updateVehicle(vehicle, this._model);
-  }
+class Vehicle {
+	constructor(vehicle) {
+		// Init model
+		this._model = {};
+		// Set it
+		Database.updateVehicle(vehicle, this._model);
+	}
 
-  getName() {
-    return `${this.getManufacturer()} ${this.getVehicleModel()}`;
-  }
+	getModel() {
+		return this._model;
+	}
 
-  getID() {
-    return this._model.id;
-  }
+	getName() {
+		return `${this.getManufacturer()} ${this.getVehicleModel()}`;
+	}
 
-  getType() {
-    return this._model.type;
-  }
+	getID() {
+		return this._model.id;
+	}
 
-  setType(type) {
-    this._model.type = type;
-  }
+	getType() {
+		return this._model.type;
+	}
 
-  getManufacturer() {
-    return this._model.manufacturer;
-  }
+	setType(type) {
+		this._model.type = type;
+	}
 
-  setManufacturer(manufacturer) {
-    this._model.manufacturer = manufacturer;
-  }
+	getManufacturer() {
+		return this._model.manufacturer;
+	}
 
-  getBatteryKW() {
-    return this._model.batteryKW;
-  }
+	setManufacturer(manufacturer) {
+		this._model.manufacturer = manufacturer;
+	}
 
-  setBatteryKW(batteryKW) {
-    this._model.batteryKW = batteryKW;
-  }
+	getBatteryKW() {
+		return this._model.batteryKW;
+	}
 
-  getAutonomyKmWLTP() {
-    return this._model.autonomyKmWLTP;
-  }
+	setBatteryKW(batteryKW) {
+		this._model.batteryKW = batteryKW;
+	}
 
-  setAutonomyKmWLTP(autonomyKmWLTP) {
-    this._model.autonomyKmWLTP = autonomyKmWLTP;
-  }
+	getAutonomyKmWLTP() {
+		return this._model.autonomyKmWLTP;
+	}
 
-  setAutonomyKmReal(autonomyKmReal) {
-    this._model.autonomyKmReal = autonomyKmReal;
-  }
+	setAutonomyKmWLTP(autonomyKmWLTP) {
+		this._model.autonomyKmWLTP = autonomyKmWLTP;
+	}
 
-  getAutonomyKmReal() {
-    return this._model.autonomyKmReal;
-  }
+	setAutonomyKmReal(autonomyKmReal) {
+		this._model.autonomyKmReal = autonomyKmReal;
+	}
 
-  setHorsePower(horsePower) {
-    this._model.horsePower = horsePower;
-  }
+	getAutonomyKmReal() {
+		return this._model.autonomyKmReal;
+	}
 
-  getHorsePower() {
-    return this._model.horsePower;
-  }
+	setHorsePower(horsePower) {
+		this._model.horsePower = horsePower;
+	}
 
-  setTorqueNm(torqueNm) {
-    this._model.torqueNm = torqueNm;
-  }
+	getHorsePower() {
+		return this._model.horsePower;
+	}
 
-  getTorqueNm() {
-    return this._model.torqueNm;
-  }
+	setTorqueNm(torqueNm) {
+		this._model.torqueNm = torqueNm;
+	}
 
-  setPerformance0To100kmh(torqueNm) {
-    this._model.performance0To100kmh = performance0To100kmh;
-  }
+	getTorqueNm() {
+		return this._model.torqueNm;
+	}
 
-  getPerformance0To100kmh() {
-    return this._model.performance0To100kmh;
-  }
+	setPerformance0To100kmh(torqueNm) {
+		this._model.performance0To100kmh = performance0To100kmh;
+	}
 
-  setWeightKg(torqueNm) {
-    this._model.weightKg = weightKg;
-  }
+	getPerformance0To100kmh() {
+		return this._model.performance0To100kmh;
+	}
 
-  getWeightKg() {
-    return this._model.weightKg;
-  }
+	setWeightKg(torqueNm) {
+		this._model.weightKg = weightKg;
+	}
 
-  setLengthMeter(lengthMeter) {
-    this._model.lengthMeter = lengthMeter;
-  }
+	getWeightKg() {
+		return this._model.weightKg;
+	}
 
-  getLengthMeter() {
-    return this._model.lengthMeter;
-  }
+	setLengthMeter(lengthMeter) {
+		this._model.lengthMeter = lengthMeter;
+	}
 
-  setWidthMeter(widthMeter) {
-    this._model.widthMeter = widthMeter;
-  }
+	getLengthMeter() {
+		return this._model.lengthMeter;
+	}
 
-  getWidthMeter() {
-    return this._model.widthMeter;
-  }
+	setWidthMeter(widthMeter) {
+		this._model.widthMeter = widthMeter;
+	}
 
-  setHeightMeter(heightMeter) {
-    this._model.heightMeter = heightMeter;
-  }
+	getWidthMeter() {
+		return this._model.widthMeter;
+	}
 
-  getHeightMeter() {
-    return this._model.heightMeter;
-  }
+	setHeightMeter(heightMeter) {
+		this._model.heightMeter = heightMeter;
+	}
 
-  setVehicleModel(model) {
-    this._model.model = model;
-  }
+	getHeightMeter() {
+		return this._model.heightMeter;
+	}
 
-  getVehicleModel() {
-    return this._model.model;
-  }
+	setVehicleModel(model) {
+		this._model.model = model;
+	}
 
-  setImages(images) {
-    this._model.images = images;
-  }
+	getVehicleModel() {
+		return this._model.model;
+	}
 
-  getImages() {
-    return this._model.images;
-  }
+	setImages(images) {
+		this._model.images = images;
+	}
 
-  getLogo() {
-    return this._model.logo;
-  }
+	getImages() {
+		return this._model.images;
+	}
 
-  setLogo(logo) {
-    this._model.logo = logo;
-  }
+	getLogo() {
+		return this._model.logo;
+	}
 
-  getCreatedBy() {
-    if (this._model.createdBy) {
-      return new User(this.getTenantID(), this._model.createdBy);
-    }
-    return null;
-  }
+	setLogo(logo) {
+		this._model.logo = logo;
+	}
 
-  setCreatedBy(user) {
-    this._model.createdBy = user.getModel();
-  }
+	getCreatedBy() {
+		if (this._model.createdBy) {
+			return new User(this._model.createdBy);
+		}
+		return null;
+	}
 
-  getCreatedOn() {
-    return this._model.createdOn;
-  }
+	setCreatedBy(user) {
+		this._model.createdBy = user.getModel();
+	}
 
-  setCreatedOn(createdOn) {
-    this._model.createdOn = createdOn;
-  }
+	getCreatedOn() {
+		return this._model.createdOn;
+	}
 
-  getLastChangedBy() {
-    if (this._model.lastChangedBy) {
-      return new User(this.getTenantID(), this._model.lastChangedBy);
-    }
-    return null;
-  }
+	setCreatedOn(createdOn) {
+		this._model.createdOn = createdOn;
+	}
 
-  setLastChangedBy(user) {
-    this._model.lastChangedBy = user.getModel();
-  }
+	getLastChangedBy() {
+		if (this._model.lastChangedBy) {
+			return new User(this._model.lastChangedBy);
+		}
+		return null;
+	}
 
-  getLastChangedOn() {
-    return this._model.lastChangedOn;
-  }
+	setLastChangedBy(user) {
+		this._model.lastChangedBy = user.getModel();
+	}
 
-  setLastChangedOn(lastChangedOn) {
-    this._model.lastChangedOn = lastChangedOn;
-  }
+	getLastChangedOn() {
+		return this._model.lastChangedOn;
+	}
 
-  save() {
-    return VehicleStorage.saveVehicle(this.getTenantID(), this.getModel());
-  }
+	setLastChangedOn(lastChangedOn) {
+		this._model.lastChangedOn = lastChangedOn;
+	}
 
-  saveImages() {
-    return VehicleStorage.saveVehicleImages(this.getTenantID(), this.getModel());
-  }
+	save() {
+		return VehicleStorage.saveVehicle(this.getModel());
+	}
 
-  delete() {
-    return VehicleStorage.deleteVehicle(this.getTenantID(), this.getID());
-  }
+	saveImages() {
+		return VehicleStorage.saveVehicleImages(this.getModel());
+	}
 
-  static checkIfVehicleValid(request, httpRequest) {
-    // Update model?
-    if(httpRequest.method !== 'POST' && !request.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Vehicle ID is mandatory`, 500, 
-        'Vehicle', 'checkIfVehicleValid');
-    }
-    if(!request.type) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Vehicle Type is mandatory`, 500, 
-        'Vehicle', 'checkIfVehicleValid');
-    }
-    if(!request.model) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Vehicle Model is mandatory`, 500, 
-        'Vehicle', 'checkIfVehicleValid');
-    }
-    if(!request.vehicleManufacturerID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Vehicle Manufacturer is mandatory`, 500, 
-        'Vehicle', 'checkIfVehicleValid');
-    }
-  }
+	delete() {
+		return VehicleStorage.deleteVehicle(this.getID());
+	}
 
-  static getVehicle(tenantID, id) {
-    return VehicleStorage.getVehicle(tenantID, id);
-  }
+	static checkIfVehicleValid(request, httpRequest) {
+		// Update model?
+		if(httpRequest.method !== 'POST' && !request.id) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Vehicle ID is mandatory`, 500, 
+				'Vehicle', 'checkIfVehicleValid');
+		}
+		if(!request.type) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Vehicle Type is mandatory`, 500, 
+				'Vehicle', 'checkIfVehicleValid');
+		}
+		if(!request.model) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Vehicle Model is mandatory`, 500, 
+				'Vehicle', 'checkIfVehicleValid');
+		}
+		if(!request.vehicleManufacturerID) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Vehicle Manufacturer is mandatory`, 500, 
+				'Vehicle', 'checkIfVehicleValid');
+		}
+	}
 
-  static getVehicles(tenantID, params, limit, skip, sort) {
-    return VehicleStorage.getVehicles(tenantID, params, limit, skip, sort)
-  }
+	static getVehicle(id) {
+		return VehicleStorage.getVehicle(id);
+	}
 
-  static getVehicleImage(tenantID, id) {
-    return VehicleStorage.getVehicleImage(tenantID, id);
-  }
+	static getVehicles(params, limit, skip, sort) {
+		return VehicleStorage.getVehicles(params, limit, skip, sort)
+	}
 
-  static getVehicleImages(tenantID) {
-    return VehicleStorage.getVehicleImages(tenantID)
-  }
+	static getVehicleImage(id) {
+		return VehicleStorage.getVehicleImage(id);
+	}
+
+	static getVehicleImages() {
+		return VehicleStorage.getVehicleImages()
+	}
 }
 
 module.exports = Vehicle;

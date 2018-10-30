@@ -1,4 +1,3 @@
-const AbstractTenantEntity = require('./AbstractTenantEntity');
 const Database = require('../utils/Database');
 const AppError = require('../exception/AppError');
 const Constants = require('../utils/Constants');
@@ -7,226 +6,231 @@ const SiteStorage = require('../storage/mongodb/SiteStorage');
 const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const UserStorage = require('../storage/mongodb/UserStorage');
 
-class Site extends AbstractTenantEntity {
-  constructor(tenantID, site) {
-    super(tenantID);
+class Site {
+	constructor(site) {
+		// Init model
+		this._model = {};
 
-    // Set it
-    Database.updateSite(site, this._model);
-  }
+		// Set it
+		Database.updateSite(site, this._model);
+	}
 
-  getID() {
-    return this._model.id;
-  }
+	getModel() {
+		return this._model;
+	}
 
-  setName(name) {
-    this._model.name = name;
-  }
+	getID() {
+		return this._model.id;
+	}
 
-  getName() {
-    return this._model.name;
-  }
+	setName(name) {
+		this._model.name = name;
+	}
 
-  setAvailableChargers(availableChargers) {
-    this._model.availableChargers = availableChargers;
-  }
+	getName() {
+		return this._model.name;
+	}
 
-  getAvailableChargers() {
-    return this._model.availableChargers;
-  }
+	setAvailableChargers(availableChargers) {
+		this._model.availableChargers = availableChargers;
+	}
 
-  setAddress(address) {
-    this._model.address = address;
-  }
+	getAvailableChargers() {
+		return this._model.availableChargers;
+	}
 
-  getAddress() {
-    return this._model.address;
-  }
+	setAddress(address) {
+		this._model.address = address;
+	}
 
-  setAllowAllUsersToStopTransactionsEnabled(allowAllUsersToStopTransactions) {
-    this._model.allowAllUsersToStopTransactions = allowAllUsersToStopTransactions;
-  }
+	getAddress() {
+		return this._model.address;
+	}
 
-  isAllowAllUsersToStopTransactionsEnabled() {
-    return this._model.allowAllUsersToStopTransactions;
-  }
+	setAllowAllUsersToStopTransactionsEnabled(allowAllUsersToStopTransactions) {
+		this._model.allowAllUsersToStopTransactions = allowAllUsersToStopTransactions;
+	}
 
-  setImage(image) {
-    this._model.image = image;
-  }
+	isAllowAllUsersToStopTransactionsEnabled() {
+		return this._model.allowAllUsersToStopTransactions;
+	}
 
-  getImage() {
-    return this._model.image;
-  }
+	setImage(image) {
+		this._model.image = image;
+	}
 
-  getCreatedBy() {
-    if (this._model.createdBy) {
-      return new User(this.getTenantID(), this._model.createdBy);
-    }
-    return null;
-  }
+	getImage() {
+		return this._model.image;
+	}
 
-  setCreatedBy(user) {
-    this._model.createdBy = user.getModel();
-  }
+	getCreatedBy() {
+		if (this._model.createdBy) {
+			return new User(this._model.createdBy);
+		}
+		return null;
+	}
 
-  getCreatedOn() {
-    return this._model.createdOn;
-  }
+	setCreatedBy(user) {
+		this._model.createdBy = user.getModel();
+	}
 
-  setCreatedOn(createdOn) {
-    this._model.createdOn = createdOn;
-  }
+	getCreatedOn() {
+		return this._model.createdOn;
+	}
 
-  getLastChangedBy() {
-    if (this._model.lastChangedBy) {
-      return new User(this.getTenantID(), this._model.lastChangedBy);
-    }
-    return null;
-  }
+	setCreatedOn(createdOn) {
+		this._model.createdOn = createdOn;
+	}
 
-  setLastChangedBy(user) {
-    this._model.lastChangedBy = user.getModel();
-  }
+	getLastChangedBy() {
+		if (this._model.lastChangedBy) {
+			return new User(this._model.lastChangedBy);
+		}
+		return null;
+	}
 
-  getLastChangedOn() {
-    return this._model.lastChangedOn;
-  }
+	setLastChangedBy(user) {
+		this._model.lastChangedBy = user.getModel();
+	}
 
-  setLastChangedOn(lastChangedOn) {
-    this._model.lastChangedOn = lastChangedOn;
-  }
+	getLastChangedOn() {
+		return this._model.lastChangedOn;
+	}
 
-  async getCompany() {
-    if (this._model.company) {
-      return new Company(this.getTenantID(), this._model.company);
-    } else if (this._model.companyID){
-      // Get from DB
-      const company = await CompanyStorage.getCompany(this.getTenantID(), this._model.companyID);
-      // Keep it
-      this.setCompany(company);
-      return company;
-    }
-  }
+	setLastChangedOn(lastChangedOn) {
+		this._model.lastChangedOn = lastChangedOn;
+	}
 
-  getCompanyID() {
-    return this._model.companyID;
-  }
+	async getCompany() {
+		if (this._model.company) {
+			return new Company(this._model.company);
+		} else if (this._model.companyID){
+			// Get from DB
+			let company = await CompanyStorage.getCompany(this._model.companyID);
+			// Keep it
+			this.setCompany(company);
+			return company;
+		}
+	}
 
-  setCompany(company) {
-    if (company) {
-      this._model.company = company.getModel();
-      this._model.companyID = company.getID();
-    } else {
-      this._model.company = null;
-    }
-  }
+	getCompanyID() {
+		return this._model.companyID;
+	}
 
-  async getSiteAreas() {
-    if (this._model.sites) {
-      return this._model.siteAreas.map((siteArea) => new SiteArea(this.getTenantID(), siteArea));
-    } else {
-      // Get from DB
-      const siteAreas = await SiteAreaStorage.getSiteAreas(this.getTenantID(), {'siteID': this.getID()});
-      // Keep it
-      this.setSiteAreas(siteAreas.result);
-      return siteAreas.result;
-    }
-  }
+	setCompany(company) {
+		if (company) {
+			this._model.company = company.getModel();
+			this._model.companyID = company.getID();
+		} else {
+			this._model.company = null;
+		}
+	}
 
-  setSiteAreas(siteAreas) {
-    this._model.siteAreas = siteAreas.map((siteArea) => siteArea.getModel());
-  }
+	async getSiteAreas() {
+		if (this._model.sites) {
+			return this._model.siteAreas.map((siteArea) => new SiteArea(siteArea));
+		} else {
+			// Get from DB
+			let siteAreas = await SiteAreaStorage.getSiteAreas({'siteID': this.getID()});
+			// Keep it
+			this.setSiteAreas(siteAreas.result);
+			return siteAreas.result;
+		}
+	}
 
-  async getUsers() {
-    if (this._model.users) {
-      return this._model.users.map((user) => new User(this.getTenantID(), user));
-    } else {
-      // Get from DB
-      const users = await UserStorage.getUsers(this.getTenantID(), {'siteID': this.getID()});
-      // Keep it
-      this.setUsers(users.result);
-      return users.result;
-    }
-  }
+	setSiteAreas(siteAreas) {
+		this._model.siteAreas = siteAreas.map((siteArea) => siteArea.getModel());
+	}
 
-  async getUser(userID) {
-    // Get from DB
-    const users = await UserStorage.getUsers(this.getTenantID(), {'siteID': this.getID(), 'userID': userID});
-    // Check
-    if (users.count > 0) {
-      return users.result[0];
-    }
-    // None
-    return null;
-  }
+	async getUsers() {
+		if (this._model.users) {
+			return this._model.users.map((user) => new User(user));
+		} else {
+			// Get from DB
+			let users = await UserStorage.getUsers({'siteID': this.getID()});
+			// Keep it
+			this.setUsers(users.result);
+			return users.result;
+		}
+	}
 
-  removeUser(user) {
-    if (this._model.users) {
-      // Search
-      for (let i = 0; i < this._model.users.length; i++) {
-        if (this._model.users[i].id == user.getID()) {
-          // Remove
-          this._model.users.splice(i, 1);
-          break;
-        }
-      }
-    }
-  }
+	async getUser(userID) {
+		// Get from DB
+		let users = await UserStorage.getUsers({'siteID': this.getID(), 'userID': userID});
+		// Check
+		if (users.count > 0) {
+			return users.result[0];
+		}
+		// None
+		return null;
+	}
 
-  setUsers(users) {
-    this._model.users = users.map((user) => user.getModel());
-  }
+	removeUser(user) {
+		if (this._model.users) {
+			// Search
+			for (var i = 0; i < this._model.users.length; i++) {
+				if (this._model.users[i].id == user.getID()) {
+					// Remove
+					this._model.users.splice(i, 1);
+					break;
+				}
+			}
+		}
+	}
 
-  save() {
-    return SiteStorage.saveSite(this.getTenantID(), this.getModel());
-  }
+	setUsers(users) {
+		this._model.users = users.map((user) => user.getModel());
+	}
 
-  saveImage() {
-    return SiteStorage.saveSiteImage(this.getTenantID(), this.getModel());
-  }
+	save() {
+		return SiteStorage.saveSite(this.getModel());
+	}
 
-  delete() {
-    return SiteStorage.deleteSite(this.getTenantID(), this.getID());
-  }
+	saveImage() {
+		return SiteStorage.saveSiteImage(this.getModel());
+	}
 
-  static checkIfSiteValid(filteredRequest, request) {
-    // Update model?
-    if(request.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Site ID is mandatory`, 500,
-        'Site', 'checkIfSiteValid');
-    }
-    if(!filteredRequest.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Site Name is mandatory`, 500,
-        'Site', 'checkIfSiteValid');
-    }
-    if(!filteredRequest.companyID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Company ID is mandatory for the Site`, 500,
-        'Sites', 'checkIfSiteValid');
-    }
-  }
+	delete() {
+		return SiteStorage.deleteSite(this.getID());
+	}
 
-  static getSite(tenantID, id, withCompany, withUser) {
-    return SiteStorage.getSite(tenantID, id, withCompany, withUser);
-  }
+	static checkIfSiteValid(filteredRequest, request) {
+		// Update model?
+		if(request.method !== 'POST' && !filteredRequest.id) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Site ID is mandatory`, 500,
+				'Site', 'checkIfSiteValid');
+		}
+		if(!filteredRequest.name) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Site Name is mandatory`, 500,
+				'Site', 'checkIfSiteValid');
+		}
+		if(!filteredRequest.companyID) {
+			throw new AppError(
+				Constants.CENTRAL_SERVER,
+				`The Company ID is mandatory for the Site`, 500,
+				'Sites', 'checkIfSiteValid');
+		}
+	}
 
-  static getSites(tenantID, params, limit, skip, sort) {
-    return SiteStorage.getSites(tenantID, params, limit, skip, sort)
-  }
+	static getSite(id, withCompany, withUser) {
+		return SiteStorage.getSite(id, withCompany, withUser);
+	}
 
-  static getSiteImage(tenantID, id) {
-    return SiteStorage.getSiteImage(tenantID, id);
-  }
+	static getSites(params, limit, skip, sort) {
+		return SiteStorage.getSites(params, limit, skip, sort)
+	}
 
-  static getSiteImages(tenantID) {
-    return SiteStorage.getSiteImages(tenantID)
-  }
+	static getSiteImage(id) {
+		return SiteStorage.getSiteImage(id);
+	}
+
+	static getSiteImages() {
+		return SiteStorage.getSiteImages()
+	}
 }
 
 module.exports = Site;
