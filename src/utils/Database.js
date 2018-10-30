@@ -58,6 +58,9 @@ class Database {
     } else {
       dest.ocppProtocol = Constants.OCPP_PROTOCOL_SOAP;
     }
+    if (src.cfApplicationIDAndInstanceIndex) {
+      dest.cfApplicationIDAndInstanceIndex = src.cfApplicationIDAndInstanceIndex;
+    }
     dest.lastHeartBeat = Utils.convertToDate(src.lastHeartBeat);
 		dest.deleted = src.deleted;
 		// Check Inactive Chargers

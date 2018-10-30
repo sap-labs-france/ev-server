@@ -108,9 +108,17 @@ class ChargingStation {
 
 	setChargePointModel(chargePointModel) {
 		this._model.chargePointModel = chargePointModel;
-	}
+  }
+  
+  getCFApplicationIDAndInstanceIndex() {
+		return this._model.cfApplicationIDAndInstanceIndex;
+  }
 
-	getChargePointSerialNumber() {
+  setCFApplicationIDAndInstanceIndex(cfApplicationIDAndInstanceIndex) {
+		this._model.cfApplicationIDAndInstanceIndex = cfApplicationIDAndInstanceIndex;
+  }
+
+  getChargePointSerialNumber() {
 		return this._model.chargePointSerialNumber;
 	}
 

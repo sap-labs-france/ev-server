@@ -71,13 +71,14 @@ class JsonRestChargingStationClient extends ChargingStationClient {
       source: this._chargingStation.getID(),
       method: "onOpen",
       action: "WSRestClientConnectionOpen",
-      message: `Try to connect to '${this._serverURL}'`
+      message: `Try to connect to '${this._serverURL}', CF Instance '${chargingStation.getCFApplicationIDAndInstanceIndex()}'`
     });
     // Create Promise
     return new Promise((resolve, reject) => {
       // Create WS
       this._wsConnection = new WebSocket(this._serverURL, {
-        protocol: 'rest'
+        protocol: 'rest',
+        headers: { 'X-CF-APP-INSTANCE': chargingStation.getCFApplicationIDAndInstanceIndex() }
       });
       // Opened
       this._wsConnection.onopen = () => {
