@@ -4,6 +4,7 @@ const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
 const CentralServerService = require('./client/CentralServerService');
 const config = require('../config');
+const jwt = require('jsonwebtoken');
 
 describe('Authentication Service', () => {
   describe('Success cases', () => {
@@ -16,11 +17,14 @@ describe('Authentication Service', () => {
 
     it('Should authenticate a registered user', async () => {
       // Check Login
-      let response = await CentralServerService.authenticationApi.login(this.adminEmail, this.adminPassword, true, this.adminTenant);
+      const response = await CentralServerService.authenticationApi.login(this.adminEmail, this.adminPassword, true, this.adminTenant);
       // Check
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('token');
       expect(response.data.token).to.be.a('string');
+      const tenantID = jwt.decode(response.data.token).tenantID;
+      const tenant = await CentralServerService.getEntityById(CentralServerService.tenantApi, {id : tenantID});
+      expect(tenant).to.have.property('subdomain', this.adminTenant);
     });
   });
 

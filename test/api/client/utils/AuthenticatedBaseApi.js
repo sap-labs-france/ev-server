@@ -1,5 +1,7 @@
+const {expect} = require('chai');
 const BaseApi = require('./BaseApi');
 const AuthenticationApi = require('../AuthenticationApi');
+const jwt = require('jsonwebtoken');
 
 class AuthenticatedBaseApi extends BaseApi {
   constructor(baseURL, user, password, tenant) {
@@ -9,6 +11,14 @@ class AuthenticatedBaseApi extends BaseApi {
     this.password = password;
     this.tenant = tenant;
     this.token = null;
+    this.tenantID = null
+  }
+
+  async getTenantID() {
+    if (!this.tenantID) {
+      await this.authenticate();
+    }
+    return this.tenantID;
   }
 
   async authenticate() {
@@ -17,7 +27,10 @@ class AuthenticatedBaseApi extends BaseApi {
       // No, try to log in
       const response = await this.authenticationApi.login(this.user, this.password, true, this.tenant);
       // Keep the token
+      expect(response.status).to.be.eql(200);
+      expect(response.data).to.have.property('token');
       this.token = response.data.token;
+      this.tenantID = jwt.decode(this.token).tenantID;
     }
   }
 

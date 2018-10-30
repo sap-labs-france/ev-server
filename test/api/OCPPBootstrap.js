@@ -6,7 +6,6 @@ chai.use(chaiSubset);
 
 const CentralServerService = require('./client/CentralServerService');
 const Factory = require('../factories/Factory');
-const config = require('../config');
 
 class OCPPBootstrap {
 
@@ -50,7 +49,7 @@ class OCPPBootstrap {
   async createContext() {
     const context = {};
     try {
-      context.tenantID = config.get("admin.tenantID");
+      context.tenantID = await CentralServerService.authenticatedApi.getTenantID();
 
       // Create User
       context.newUser = await CentralServerService.createEntity(

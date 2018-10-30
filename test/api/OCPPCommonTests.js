@@ -145,7 +145,6 @@ class OCPPCommonTests {
     // Start a new Transaction
     this.newTransaction = await CentralServerService.transactionApi.startTransaction(
       this.ocpp,
-      this.context.tenantID,
       this.context.newChargingStation,
       this.chargingStationConnector1,
       this.transactionStartUser,
@@ -167,7 +166,6 @@ class OCPPCommonTests {
       // Start the Transaction
       this.newTransaction = await CentralServerService.transactionApi.startTransaction(
         this.ocpp,
-        this.context.tenantID,
         this.context.newChargingStation,
         this.chargingStationConnector1, 
         this.transactionStartUser,
@@ -194,7 +192,6 @@ class OCPPCommonTests {
         // Send Meter Values
         await CentralServerService.transactionApi.sendTransactionMeterValue(
           this.ocpp,
-          this.context.tenantID,
           this.newTransaction,
           this.context.newChargingStation,
           this.transactionStartUser,
@@ -216,7 +213,6 @@ class OCPPCommonTests {
       // Stop the Transaction
       await CentralServerService.transactionApi.stopTransaction(
         this.ocpp,
-        this.context.tenantID,
         this.newTransaction,
         this.transactionStartUser,
         this.transactionStopUser,
