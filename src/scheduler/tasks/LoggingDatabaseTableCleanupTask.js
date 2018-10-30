@@ -8,9 +8,10 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 		super();
 	}
 
-	async run(config) {
+	async run(tenantID, config) {
 		try {
 			Logging.logInfo({
+			  	tenantID: tenantID,
 				module: "LoggingDatabaseTableCleanupTask",
 				method: "run", action: "LogsCleanup",
 				message: `The task 'loggingDatabaseTableCleanupTask' is being run` });
@@ -18,11 +19,12 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 			// Delete date
 			let deleteUpToDate = moment().subtract(config.retentionPeriodWeeks, "w").startOf("week").toDate().toISOString();
 			// Delete
-			let result = await LoggingStorage.deleteLogs(deleteUpToDate);
+			let result = await LoggingStorage.deleteLogs(tenantID, deleteUpToDate);
 			// Ok?
 			if (result.ok === 1) {
 				// Ok
 				Logging.logSecurityInfo({
+                  tenantID: tenantID,
 					module: "LoggingDatabaseTableCleanupTask",
 					method: "run", action: "LogsCleanup",
 					message: `${result.n} Log(s) have been deleted before '${moment(deleteUpToDate).format("DD/MM/YYYY h:mm A")}'`
@@ -30,6 +32,7 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 			} else {
 				// Error
 				Logging.logError({
+                  tenantID: tenantID,
 					module: "LoggingDatabaseTableCleanupTask",
 					method: "run", action: "LogsCleanup",
 					message: `An error occurred when deleting Logs before '${moment(deleteUpToDate).format("DD/MM/YYYY h:mm A")}'`,
@@ -39,11 +42,12 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 			// Delete date
 			let securityDeleteUpToDate = moment().subtract(config.securityRetentionPeriodWeeks, "w").startOf("week").toDate().toISOString();
 			// Delete Security Logs
-			result = await LoggingStorage.deleteSecurityLogs(securityDeleteUpToDate);
+			result = await LoggingStorage.deleteSecurityLogs(tenantID, securityDeleteUpToDate);
 			// Ok?
 			if (result.ok === 1) {
 				// Ok
 				Logging.logSecurityInfo({
+                  tenantID: tenantID,
 					module: "LoggingDatabaseTableCleanupTask",
 					method: "run", action: "LogsCleanup",
 					message: `${result.n} Security Log(s) have been deleted before '${moment(securityDeleteUpToDate).format("DD/MM/YYYY h:mm A")}'`
@@ -51,6 +55,7 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 			} else {
 				// Error
 				Logging.logSecurityError({
+                  tenantID: tenantID,
 					module: "LoggingDatabaseTableCleanupTask",
 					method: "run", action: "LogsCleanup",
 					message: `An error occurred when deleting Security Logs before '${moment(securityDeleteUpToDate).format("DD/MM/YYYY h:mm A")}'`,
@@ -59,7 +64,7 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 			}
 		} catch(error) {
 			// Log error
-			Logging.logActionExceptionMessage("LogsCleanup", error);
+			Logging.logActionExceptionMessage(tenantID, "LogsCleanup", error);
 		}
 	}
 }

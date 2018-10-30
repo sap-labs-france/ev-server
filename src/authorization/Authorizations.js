@@ -8,8 +8,8 @@ const compileProfile = require('node-authorization').profileCompiler;
 const AppError = require('../exception/AppError');
 const AppAuthError = require('../exception/AppAuthError');
 const Utils = require('../utils/Utils');
-const User = require('../model/User');
-const Company = require('../model/Company');
+const User = require('../entity/User');
+const Company = require('../entity/Company');
 const AuthorizationsDefinition = require('./AuthorizationsDefinition');
 require('source-map-support').install();
 
@@ -64,7 +64,7 @@ class Authorizations {
 		if (!Authorizations.isAdmin(user.getModel())) {
 			// Not Admin: Get Auth data
 			// Get All Companies
-			let allCompanies = await Company.getCompanies();
+			let allCompanies = await Company.getCompanies(user.getTenantID());
 			// Get Sites
 			sites = await user.getSites();
 			// Get all the companies and site areas
@@ -122,11 +122,11 @@ class Authorizations {
 	static async getOrCreateUserByTagID(chargingStation, siteArea, tagID, action) {
 		let newUserCreated = false;
 		// Get the user
-		let user = await User.getUserByTagId(tagID);
+		let user = await User.getUserByTagId(chargingStation.getTenantID(), tagID);
 		// Found?
 		if (!user) {
 			// No: Create an empty user
-			let newUser = new User({
+			let newUser = new User(chargingStation.getTenantID(), {
 				name: (siteArea.isAccessControlEnabled() ? "Unknown" : "Anonymous"),
 				firstName: "User",
 				status: (siteArea.isAccessControlEnabled() ? Constants.USER_STATUS_INACTIVE : Constants.USER_STATUS_ACTIVE),
@@ -155,6 +155,7 @@ class Authorizations {
 			user.setCostCenter("");
 			// Log
 			Logging.logSecurityInfo({
+			  tenantID: user.getTenantID(),
 				user: user,
 				module: "Authorizations", method: "getOrCreateUserByTagID",
 				message: `User with ID '${user.getID()}' has been restored`,
@@ -167,12 +168,13 @@ class Authorizations {
 		if (newUserCreated) {
 			// Notify
 			NotificationHandler.sendUnknownUserBadged(
+				chargingStation.getTenantID,
 				Utils.generateGUID(),
 				chargingStation.getModel(),
 				{
 					"chargingBoxID": chargingStation.getID(),
 					"badgeId": tagID,
-					"evseDashboardURL" : Utils.buildEvseURL(),
+					"evseDashboardURL" : Utils.buildEvseURL(user.getTenantID()),
 					"evseDashboardUserURL" : Utils.buildEvseUserURL(user)
 				}
 			);

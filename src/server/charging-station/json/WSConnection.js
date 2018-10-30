@@ -46,10 +46,10 @@ class WSConnection {
     // Parse the message
     let [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(message);
 
-    // Initialize: done in the message as init could be lengthy and first message may be lost
-    await this.initialize();
-
     try {
+      // Initialize: done in the message as init could be lengthy and first message may be lost
+      await this.initialize();
+
       // Check the Type of message
       switch (messageType) {
         // Incoming Message

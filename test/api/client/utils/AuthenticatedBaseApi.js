@@ -2,11 +2,12 @@ const BaseApi = require('./BaseApi');
 const AuthenticationApi = require('../AuthenticationApi');
 
 class AuthenticatedBaseApi extends BaseApi {
-  constructor(baseURL, user, password) {
+  constructor(baseURL, user, password, tenant) {
     super(baseURL);
     this.authenticationApi = new AuthenticationApi(new BaseApi(baseURL));
     this.user = user;
     this.password = password;
+    this.tenant = tenant;
     this.token = null;
   }
 
@@ -14,7 +15,7 @@ class AuthenticatedBaseApi extends BaseApi {
     // Already logged?
     if (!this.token) {
       // No, try to log in
-      const response = await this.authenticationApi.login(this.user, this.password);
+      const response = await this.authenticationApi.login(this.user, this.password, true, this.tenant);
       // Keep the token
       this.token = response.data.token;
     }

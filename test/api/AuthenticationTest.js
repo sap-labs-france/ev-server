@@ -11,11 +11,12 @@ describe('Authentication Service', () => {
       // Get credentials
       this.adminEmail = config.get('admin.username');
       this.adminPassword = config.get('admin.password');
+      this.adminTenant = config.get('admin.tenant');
     });
 
     it('Should authenticate a registered user', async () => {
       // Check Login
-      let response = await CentralServerService.authenticationApi.login(this.adminEmail, this.adminPassword, true);
+      let response = await CentralServerService.authenticationApi.login(this.adminEmail, this.adminPassword, true, this.adminTenant);
       // Check
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('token');
@@ -67,6 +68,18 @@ describe('Authentication Service', () => {
     it('Should not allow authentication of unknown email', async () => {
       // Call
       let response = await CentralServerService.authenticationApi.login('unkown@sap.com', this.adminPassword, true);
+      expect(response.status).to.be.eql(550);
+      expect(response.data).to.not.have.property('token');
+    });
+
+    it('should not allow authentication without tenant', async () => {
+      let response = await CentralServerService.authenticationApi.login('unkown@sap.com', this.adminPassword, true, null);
+      expect(response.status).to.be.eql(500);
+      expect(response.data).to.not.have.property('token');
+    });
+
+    it('should not allow authentication of unknown tenant', async () => {
+      let response = await CentralServerService.authenticationApi.login('unkown@sap.com', this.adminPassword, true, 'unkown');
       expect(response.status).to.be.eql(550);
       expect(response.data).to.not.have.property('token');
     });

@@ -4,20 +4,20 @@ const UtilsSecurity = require('./UtilsSecurity');
 
 class VehicleSecurity {
 	static filterVehicleDeleteRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.ID = sanitize(request.ID);
 		return filteredRequest;
 	}
 
 	static filterVehicleRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		filteredRequest.ID = sanitize(request.ID);
 		return filteredRequest;
 	}
 
 	static filterVehiclesRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.Type = sanitize(request.Type);
 		filteredRequest.VehicleManufacturerID = sanitize(request.VehicleManufacturerID);
@@ -28,19 +28,19 @@ class VehicleSecurity {
 
 	static filterVehicleUpdateRequest(request, loggedUser) {
 		// Set
-		let filteredRequest = VehicleSecurity._filterVehicleRequest(request, loggedUser);
+		const filteredRequest = VehicleSecurity._filterVehicleRequest(request, loggedUser);
 		filteredRequest.id = sanitize(request.id);
 		filteredRequest.withVehicleImages = UtilsSecurity.filterBoolean(request.withVehicleImages);
 		return filteredRequest;
 	}
 
 	static filterVehicleCreateRequest(request, loggedUser) {
-		let filteredRequest = VehicleSecurity._filterVehicleRequest(request, loggedUser);
+		const filteredRequest = VehicleSecurity._filterVehicleRequest(request, loggedUser);
 		return filteredRequest;
 	}
 
 	static _filterVehicleRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		filteredRequest.type = sanitize(request.type);
 		filteredRequest.model = sanitize(request.model);
 		filteredRequest.batteryKW = sanitize(request.batteryKW);
@@ -84,7 +84,7 @@ class VehicleSecurity {
 	}
 
 	static filterVehiclesResponse(vehicles, loggedUser) {
-		let filteredVehicles = [];
+		const filteredVehicles = [];
 
 		if (!vehicles) {
 			return null;
@@ -94,7 +94,7 @@ class VehicleSecurity {
 		}
 		for (const vehicle of vehicles) {
 			// Filter
-			let filteredVehicle = VehicleSecurity.filterVehicleResponse(vehicle, loggedUser);
+			const filteredVehicle = VehicleSecurity.filterVehicleResponse(vehicle, loggedUser);
 			// Ok?
 			if (filteredVehicle) {
 				// Add

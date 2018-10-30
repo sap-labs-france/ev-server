@@ -1,4 +1,4 @@
-const ChargingStation = require('../../../model/ChargingStation');
+const ChargingStation = require('../../../entity/ChargingStation');
 const AppError = require('../../../exception/AppError');
 require('source-map-support').install();
 
@@ -19,15 +19,13 @@ class ChargingStationService {
    * Get the Charging Station object from ID
    *
    * @param {*} chargeBoxIdentity Charging Station ID 
-   * @param {*} [tenant=null] Tenant
+   * @param {*} tenantID Tenant ID
    * @returns a Charging Station object
    * @memberof ChargingStationService
    */
-  async _checkAndGetChargingStation(chargeBoxIdentity, tenant = null) {
+  async _checkAndGetChargingStation(chargeBoxIdentity, tenantID) {
     // Get the charging station
-    const chargingStation = ((tenant !== null && tenant.lenght > 0) ?
-      await ChargingStation.getChargingStation(tenant, chargeBoxIdentity) :
-      await ChargingStation.getChargingStation(chargeBoxIdentity));
+    const chargingStation = await ChargingStation.getChargingStation(tenantID, chargeBoxIdentity);
     // Found?
     if (!chargingStation) {
       throw new AppError(

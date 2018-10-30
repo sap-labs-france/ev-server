@@ -13,20 +13,20 @@ class CompanySecurity {
 	}
 
 	static filterCompanyDeleteRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.ID = sanitize(request.ID);
 		return filteredRequest;
 	}
 
 	static filterCompanyRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		filteredRequest.ID = sanitize(request.ID);
 		return filteredRequest;
 	}
 
 	static filterCompaniesRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.WithSites = UtilsSecurity.filterBoolean(request.WithSites);
 		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
@@ -36,7 +36,7 @@ class CompanySecurity {
 
 	static filterCompanyUpdateRequest(request, loggedUser) {
 		// Set
-		let filteredRequest = CompanySecurity._filterCompanyRequest(request, loggedUser);
+		const filteredRequest = CompanySecurity._filterCompanyRequest(request, loggedUser);
 		filteredRequest.id = sanitize(request.id);
 		return filteredRequest;
 	}
@@ -46,7 +46,7 @@ class CompanySecurity {
 	}
 
 	static _filterCompanyRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		filteredRequest.name = sanitize(request.name);
 		filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
 		filteredRequest.logo = sanitize(request.logo);
@@ -87,7 +87,7 @@ class CompanySecurity {
 	}
 
 	static filterCompaniesResponse(companies, loggedUser) {
-		let filteredCompanies = [];
+		const filteredCompanies = [];
 
 		if (!companies) {
 			return null;
@@ -97,7 +97,7 @@ class CompanySecurity {
 		}
 		for (const company of companies) {
 			// Filter
-			let filteredCompany = CompanySecurity.filterCompanyResponse(company, loggedUser);
+			const filteredCompany = CompanySecurity.filterCompanyResponse(company, loggedUser);
 			// Ok?
 			if (filteredCompany) {
 				// Add

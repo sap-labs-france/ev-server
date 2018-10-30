@@ -13,63 +13,63 @@ class OCPPSoapService15 extends OCPPService {
     return "1.5";
   }
 
-  executeAuthorize(chargeBoxIdentity, payload) {
+  executeAuthorize(tenantID, chargeBoxIdentity, payload) {
     return this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'Authorize', payload)
+      this._buildSOAPRequest(tenantID, chargeBoxIdentity, 'Authorize', payload)
     );
   }
 
-  executeStartTransaction(chargeBoxIdentity, payload) {
+  executeStartTransaction(tenantID, chargeBoxIdentity, payload) {
     return this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'StartTransaction', payload)
+      this._buildSOAPRequest(tenantID, chargeBoxIdentity, 'StartTransaction', payload)
     );
   }
 
-  executeStopTransaction(chargeBoxIdentity, payload) {
+  executeStopTransaction(tenantID, chargeBoxIdentity, payload) {
     return this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'StopTransaction', payload)
+      this._buildSOAPRequest(tenantID, chargeBoxIdentity, 'StopTransaction', payload)
     );
   }
 
-  executeHeartbeat(chargeBoxIdentity, payload) {
+  executeHeartbeat(tenantID, chargeBoxIdentity, payload) {
     return this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'Heartbeat', payload)
+      this._buildSOAPRequest(tenantID, chargeBoxIdentity, 'Heartbeat', payload)
     );
   }
 
-  executeMeterValues(chargeBoxIdentity, payload) {
+  executeMeterValues(tenantID, chargeBoxIdentity, payload) {
     return this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'MeterValues', payload)
+      this._buildSOAPRequest(tenantID, chargeBoxIdentity, 'MeterValues', payload)
     );
   }
 
-  executeBootNotification(chargeBoxIdentity, payload) {
+  executeBootNotification(tenantID, chargeBoxIdentity, payload) {
     return this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'BootNotification', payload)
+      this._buildSOAPRequest(tenantID, chargeBoxIdentity, 'BootNotification', payload)
     );
   }
 
-  executeStatusNotification(chargeBoxIdentity, payload) {
+  executeStatusNotification(tenantID, chargeBoxIdentity, payload) {
     return this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'StatusNotification', payload)
+      this._buildSOAPRequest(tenantID, chargeBoxIdentity, 'StatusNotification', payload)
     );
   }
 
-  executeFirmwareStatusNotification(chargeBoxIdentity, payload) {
+  executeFirmwareStatusNotification(tenantID, chargeBoxIdentity, payload) {
     return this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'FirmwareStatusNotification', payload)
+      this._buildSOAPRequest(tenantID, chargeBoxIdentity, 'FirmwareStatusNotification', payload)
     );
   }
 
-  executeDiagnosticsStatusNotification(chargeBoxIdentity, payload) {
+  executeDiagnosticsStatusNotification(tenantID, chargeBoxIdentity, payload) {
     return this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'DiagnosticsStatusNotification', payload)
+      this._buildSOAPRequest(tenantID, chargeBoxIdentity, 'DiagnosticsStatusNotification', payload)
     );
   }
 
-  executeDataTransfer(chargeBoxIdentity, payload) {
+  executeDataTransfer(tenantID, chargeBoxIdentity, payload) {
     return this._execute(
-      this._buildSOAPRequest(chargeBoxIdentity, 'DataTransfer', payload)
+      this._buildSOAPRequest(tenantID, chargeBoxIdentity, 'DataTransfer', payload)
     );
   }
 
@@ -119,11 +119,12 @@ class OCPPSoapService15 extends OCPPService {
     }
   }
 
-  _buildSOAPRequest(chargeBoxIdentity, action, payload) {
+  _buildSOAPRequest(tenantID, chargeBoxIdentity, action, payload) {
     return {
       name: action,
       headers: {
         chargeBoxIdentity: chargeBoxIdentity,
+        tenantID: tenantID,
         From: {
           Address: "http://www.w3.org/2005/08/addressing/anonymous"
         },

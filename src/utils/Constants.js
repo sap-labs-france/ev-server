@@ -36,10 +36,6 @@ module.exports = {
 
 	NOTIF_TYPE_CHARGING_STATION_CONFIGURATION: "Configuration",
 
-	ACTION_CREATE: "Create",
-	ACTION_UPDATE: "Update",
-	ACTION_DELETE: "Delete",
-
 	NO_LIMIT: 0,
 
 	CENTRAL_SERVER: "Central Server",

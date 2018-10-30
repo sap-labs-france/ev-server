@@ -6,6 +6,7 @@ chai.use(chaiSubset);
 
 const CentralServerService = require('./client/CentralServerService');
 const Factory = require('../factories/Factory');
+const config = require('../config');
 
 class OCPPBootstrap {
 
@@ -49,6 +50,8 @@ class OCPPBootstrap {
   async createContext() {
     const context = {};
     try {
+      context.tenantID = config.get("admin.tenantID");
+
       // Create User
       context.newUser = await CentralServerService.createEntity(
         CentralServerService.userApi, Factory.user.build());
@@ -72,7 +75,7 @@ class OCPPBootstrap {
       // Create Charger Object
       const chargingStation = Factory.chargingStation.build();
       // Simulate a Boot Notification
-      let response = await this.ocpp.executeBootNotification(
+      let response = await this.ocpp.executeBootNotification(context.tenantID,
         chargingStationID, chargingStation);
       // Check
       expect(response.data).to.not.be.null;
@@ -88,7 +91,7 @@ class OCPPBootstrap {
       }
 
       // Send Status Notif for Connector A
-      response = await this.ocpp.executeStatusNotification(chargingStationID, {
+      response = await this.ocpp.executeStatusNotification(context.tenantID, chargingStationID, {
         connectorId: 1,
         status: 'Available',
         errorCode: 'NoError',
@@ -98,7 +101,7 @@ class OCPPBootstrap {
       expect(response).to.not.be.null;
       expect(response.data).to.eql({});
       // Send Status Notif for Connector B
-      response = await this.ocpp.executeStatusNotification(chargingStationID, {
+      response = await this.ocpp.executeStatusNotification(context.tenantID, chargingStationID, {
         connectorId: 2,
         status: 'Available',
         errorCode: 'NoError',

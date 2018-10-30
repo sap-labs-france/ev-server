@@ -18,7 +18,7 @@ class JsonChargingStationService16 {
       return result;
     } catch (error) {
       // Log
-      Logging.logException(error, command, payload.chargeBoxIdentity, MODULE_NAME, command);
+      Logging.logException(error, command, payload.tenantID, payload.chargeBoxIdentity, MODULE_NAME, command);
       // Rethrow
       throw error;
     }

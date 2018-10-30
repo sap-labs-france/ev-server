@@ -55,7 +55,7 @@ class OCPPCommonTests {
 
   async testConnectorStatus() {
     // Update Status of Connector 1
-    let response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector1);
+    let response = await this.ocpp.executeStatusNotification(this.context.tenantID, this.context.newChargingStation.id,this.chargingStationConnector1);
     // Check
     expect(response.data).to.eql({});
     // Check Connector 1
@@ -64,7 +64,7 @@ class OCPPCommonTests {
 
 
     // Update Status of Connector 2
-    response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector2);
+    response = await this.ocpp.executeStatusNotification(this.context.tenantID, this.context.newChargingStation.id,this.chargingStationConnector2);
     // Check
     expect(response.data).to.eql({});
     // Check Connector 2
@@ -77,7 +77,7 @@ class OCPPCommonTests {
     this.chargingStationConnector1.status = 'Occupied';
     this.chargingStationConnector1.timestamp = new Date().toISOString();
     // Update
-    let response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector1);
+    let response = await this.ocpp.executeStatusNotification(this.context.tenantID, this.context.newChargingStation.id,this.chargingStationConnector1);
     // Check
     expect(response.data).to.eql({});
 
@@ -93,7 +93,7 @@ class OCPPCommonTests {
     this.chargingStationConnector1.status = 'Available';
     this.chargingStationConnector1.timestamp = new Date().toISOString();
     // Update
-    response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector1);
+    response = await this.ocpp.executeStatusNotification(this.context.tenantID, this.context.newChargingStation.id,this.chargingStationConnector1);
     // Check
     expect(response.data).to.eql({});
 
@@ -104,14 +104,14 @@ class OCPPCommonTests {
 
   async testHeartbeat() {
     // Update Status of Connector 1
-    let response = await this.ocpp.executeHeartbeat(this.context.newChargingStation.id, {});
+    let response = await this.ocpp.executeHeartbeat(this.context.tenantID, this.context.newChargingStation.id,{});
     // Check
     expect(response.data).to.have.property('currentTime');
   }
 
   async testDataTransfer() {
     // Check
-    let response = await this.ocpp.executeDataTransfer(this.context.newChargingStation.id, {
+    let response = await this.ocpp.executeDataTransfer(this.context.tenantID, this.context.newChargingStation.id,{
       "vendorId": "Schneider Electric",
       "messageId": "Detection loop",
       "data": "{\\\"connectorId\\\":2,\\\"name\\\":\\\"Vehicle\\\",\\\"state\\\":\\\"0\\\",\\\"timestamp\\\":\\\"2018-08-08T10:21:11Z:\\\"}",
@@ -125,7 +125,7 @@ class OCPPCommonTests {
 
   async testAuhtorize() {
     // Check
-    let response = await this.ocpp.executeAuthorize(this.context.newChargingStation.id, {
+    let response = await this.ocpp.executeAuthorize(this.context.tenantID, this.context.newChargingStation.id,{
       idTag: this.transactionStartUser.tagIDs[0]
     });
     // Check
@@ -133,7 +133,7 @@ class OCPPCommonTests {
     expect(response.data.idTagInfo.status).to.equal('Accepted');
 
     // Check
-    response = await this.ocpp.executeAuthorize(this.context.newChargingStation.id, {
+    response = await this.ocpp.executeAuthorize(this.context.tenantID, this.context.newChargingStation.id,{
       idTag: this.transactionStopUser.tagIDs[0]
     });
     // Check
@@ -145,6 +145,7 @@ class OCPPCommonTests {
     // Start a new Transaction
     this.newTransaction = await CentralServerService.transactionApi.startTransaction(
       this.ocpp,
+      this.context.tenantID,
       this.context.newChargingStation,
       this.chargingStationConnector1,
       this.transactionStartUser,
@@ -166,6 +167,7 @@ class OCPPCommonTests {
       // Start the Transaction
       this.newTransaction = await CentralServerService.transactionApi.startTransaction(
         this.ocpp,
+        this.context.tenantID,
         this.context.newChargingStation,
         this.chargingStationConnector1, 
         this.transactionStartUser,
@@ -192,6 +194,7 @@ class OCPPCommonTests {
         // Send Meter Values
         await CentralServerService.transactionApi.sendTransactionMeterValue(
           this.ocpp,
+          this.context.tenantID,
           this.newTransaction,
           this.context.newChargingStation,
           this.transactionStartUser,
@@ -213,6 +216,7 @@ class OCPPCommonTests {
       // Stop the Transaction
       await CentralServerService.transactionApi.stopTransaction(
         this.ocpp,
+        this.context.tenantID,
         this.newTransaction,
         this.transactionStartUser,
         this.transactionStopUser,

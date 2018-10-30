@@ -5,35 +5,35 @@ const UtilsSecurity = require('./UtilsSecurity');
 
 class TransactionSecurity {
 	static filterTransactionRefund(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.id = sanitize(request.id);
 		return filteredRequest;
 	}
 
 	static filterTransactionDelete(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.ID = sanitize(request.ID);
 		return filteredRequest;
 	}
 
 	static filterTransactionSoftStop(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.transactionId = sanitize(request.transactionId);
 		return filteredRequest;
 	}
 
 	static filterTransactionRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.ID = sanitize(request.ID);
 		return filteredRequest;
 	}
 
 	static filterTransactionsActiveRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
 		filteredRequest.ConnectorId = sanitize(request.ConnectorId);
 		UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
@@ -42,7 +42,7 @@ class TransactionSecurity {
 	}
 
 	static filterTransactionsCompletedRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Handle picture
         filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
 		filteredRequest.StartDateTime = sanitize(request.StartDateTime);
@@ -125,7 +125,7 @@ class TransactionSecurity {
 	}
 
 	static filterTransactionsResponse(transactions, loggedUser, withConnector=false) {
-		let filteredTransactions = [];
+		const filteredTransactions = [];
 
 		if (!transactions) {
 			return null;
@@ -135,7 +135,7 @@ class TransactionSecurity {
 		}
 		for (const transaction of transactions) {
 			// Filter
-			let filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser, withConnector);
+			const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser, withConnector);
 			// Ok?
 			if (filteredTransaction) {
 				// Add
@@ -146,7 +146,7 @@ class TransactionSecurity {
 	}
 
 	static _filterUserInTransactionResponse(user, loggedUser) {
-		let userID = {};
+		const userID = {};
 
 		if (!user) {
 			return null;
@@ -168,7 +168,7 @@ class TransactionSecurity {
 	}
 
 	static filterChargingStationConsumptionFromTransactionRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.TransactionId = sanitize(request.TransactionId);
 		filteredRequest.StartDateTime = sanitize(request.StartDateTime);
@@ -177,7 +177,7 @@ class TransactionSecurity {
 	}
 
 	static filterChargingStationTransactionsRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
 		filteredRequest.ConnectorId = sanitize(request.ConnectorId);
@@ -189,7 +189,7 @@ class TransactionSecurity {
 	}
 
 	static filterConsumptionsFromTransactionResponse(consumption, loggedUser) {
-		let filteredConsumption = {};
+		const filteredConsumption = {};
 
 		if (!consumption) {
 			return null;
