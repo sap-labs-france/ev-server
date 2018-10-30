@@ -85,7 +85,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
       // Create WS
       this._wsConnection = new WebSocket(this._serverURL, {
         protocol: 'rest',
-        headers: { 'X-CF-APP-INSTANCE': chargingStation.getCFApplicationIDAndInstanceIndex() }
+        headers: { 'X-CF-APP-INSTANCE': this._chargingStation.getCFApplicationIDAndInstanceIndex() }
       });
       // Opened
       this._wsConnection.onopen = () => {
