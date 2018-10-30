@@ -18,6 +18,9 @@ class JsonRestChargingStationClient extends ChargingStationClient {
     }
     // Keep
     this._serverURL = `${chargingStationURL}/REST/${chargingStation.getID()}`;
+    console.log('-------------------------------------------');
+    console.log(this._serverURL);
+    console.log('-------------------------------------------');
     this._chargingStation = chargingStation;
     this._requests = {};
   }
@@ -65,13 +68,17 @@ class JsonRestChargingStationClient extends ChargingStationClient {
   }
 
   _openConnection() {
+    console.log('_openConnection -------------------------------------------');
+    console.log(this._serverURL);
+    console.log(this._chargingStation.getCFApplicationIDAndInstanceIndex());
+    console.log('-------------------------------------------');
     // Log
     Logging.logInfo({
       module: MODULE_NAME,
       source: this._chargingStation.getID(),
       method: "onOpen",
       action: "WSRestClientConnectionOpen",
-      message: `Try to connect to '${this._serverURL}', CF Instance '${chargingStation.getCFApplicationIDAndInstanceIndex()}'`
+      message: `Try to connect to '${this._serverURL}', CF Instance '${this._chargingStation.getCFApplicationIDAndInstanceIndex()}'`
     });
     // Create Promise
     return new Promise((resolve, reject) => {
