@@ -58,8 +58,8 @@ class JsonCentralSystemServer extends CentralSystemServer {
       Logging.logError({
         module: MODULE_NAME,
         method: "verifyClient",
-        action: "Connection",
-        message: `Invalid connection URL ${info.req} from ${info.origin}`
+        action: "WSVerifyClient",
+        message: `Invalid connection URL ${info.req.url}`
       });
       return false;
     }
