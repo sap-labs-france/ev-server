@@ -9,50 +9,57 @@ const OCPP_JSON_CALL_MESSAGE = 2;
 class JsonRestChargingStationClient extends ChargingStationClient {
   constructor(chargingStation) {
     super();
+    // Get URL
+    let chargingStationURL = chargingStation.getChargingStationURL();
+    // Check URL: remove starting and trailing '/'
+    if (chargingStationURL.endsWith('/')) {
+      // Remove '/'
+      chargingStationURL = chargingStationURL.substring(0, chargingStationURL.length - 1);
+    }
     // Keep
+    this._serverURL = `${chargingStationURL}/REST/${chargingStation.getID()}`;
     this._chargingStation = chargingStation;
-    this._serverURL = `${this._chargingStation.getChargingStationURL()}/REST/${chargingStation.getID()}`;
     this._requests = {};
   }
 
   startTransaction(params) {
-    return this._send(
+    return this._sendMessage(
       this._buildRequest('StartTransaction', params)
     );
   }
 
   reset(params) {
-    return this._send(
+    return this._sendMessage(
       this._buildRequest('Reset', params)
     );
   }
 
   clearCache() {
-    return this._send(
+    return this._sendMessage(
       this._buildRequest('ClearCache')
     );
   }
 
   getConfiguration(params) {
-    return this._send(
+    return this._sendMessage(
       this._buildRequest('GetConfiguration', params)
     );
   }
 
   changeConfiguration(params) {
-    return this._send(
+    return this._sendMessage(
       this._buildRequest('ChangeConfiguration', params)
     );
   }
 
   stopTransaction(params) {
-    return this._send(
+    return this._sendMessage(
       this._buildRequest('RemoteStopTransaction', params)
     );
   }
 
   unlockConnector(params) {
-    return this._send(
+    return this._sendMessage(
       this._buildRequest('UnlockConnector', params)
     );
   }
@@ -108,13 +115,19 @@ class JsonRestChargingStationClient extends ChargingStationClient {
         try {
           // Parse the message 
           const messageJson = JSON.parse(message.data);
+          // Log
+          Logging.logDebug({
+            module: MODULE_NAME,
+            source: this._chargingStation.getID(),
+            method: "onMessage",
+            action: "WSRestMessage",
+            message: `Received message '${message.data}'`,
+            detailedMessages: messageJson
+          });
           // Check if this corresponds to a request
           if (this._requests[messageJson[1]]) {
-            const response = {};
-            // Set the data
-            response.data = messageJson[2];
             // Respond to the request
-            this._requests[messageJson[1]].resolve(response);
+            this._requests[messageJson[1]].resolve(messageJson[2]);
             // Close WS
             await this._closeConnection();
           }
@@ -134,13 +147,22 @@ class JsonRestChargingStationClient extends ChargingStationClient {
     }
   }
 
-  async _send(request) {
+  async _sendMessage(request) {
     // Return a promise
     return new Promise(async (resolve, reject) => {
       // Open WS Connection
       await this._openConnection();
       // Check if wsConnection in ready
       if (this._wsConnection.readyState === WebSocket.OPEN) {
+        // Log
+        Logging.logDebug({
+          module: MODULE_NAME,
+          source: this._chargingStation.getID(),
+          method: "SendMessage",
+          action: "WSRestSendMessage",
+          message: `Send message '${request[2]}'`,
+          detailedMessages: request
+        });
         // Send
         await this._wsConnection.send(JSON.stringify(request));
         // Set the resolve function
