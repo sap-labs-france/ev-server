@@ -58,6 +58,15 @@ class JsonRestChargingStationClient extends ChargingStationClient {
   }
 
   _openConnection() {
+    // Log
+    Logging.logInfo({
+      module: MODULE_NAME,
+      source: this._chargingStation.getID(),
+      method: "onOpen",
+      action: "WSRestConnectionOpen",
+      message: `Try to connect to URL '${this._serverURL}'`
+    });
+    // Create Promise
     return new Promise((resolve, reject) => {
       // Create WS
       this._wsConnection = new WebSocket(this._serverURL, {
