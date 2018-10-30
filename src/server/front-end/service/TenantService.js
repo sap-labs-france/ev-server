@@ -2,7 +2,6 @@ const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
 const UnauthorizedError = require('../../../exception/UnauthorizedError');
-const BadRequestError = require('../../../exception/BadRequestError');
 const ConflictError = require('../../../exception/ConflictError');
 const Constants = require('../../../utils/Constants');
 const Tenant = require('../../../entity/Tenant');
@@ -130,7 +129,8 @@ class TenantService extends AbstractService {
       // Filter
       const filteredRequest = TenantSecurity.filterTenantsRequest(req.query, req.user);
       // Get the tenants
-      const tenants = await Tenant.getTenants({
+      const tenants = await Tenant.getTenants(
+        {
           search: filteredRequest.Search
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
@@ -200,7 +200,7 @@ class TenantService extends AbstractService {
         detailedMessages: newTenant
       });
       // Ok
-      res.status(HttpStatusCodes.OK).json(Object.assign({ id: newTenant.getID() }, Constants.REST_RESPONSE_SUCCESS));
+      res.status(HttpStatusCodes.OK).json(Object.assign({id: newTenant.getID()}, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleCreateTenant');

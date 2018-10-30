@@ -47,7 +47,7 @@ class ChargingStation extends AbstractTenantEntity {
 
       // Unlock Connector
       case 'UnlockConnector':
-        return this.requestUnlockConnector(params.connectorId);
+				return this.requestUnlockConnector(params);
 
       // Start Transaction
       case 'StartTransaction':
@@ -506,7 +506,7 @@ class ChargingStation extends AbstractTenantEntity {
     let configuration = null;
     try {
       // In case of error. the boot should no be denied
-      configuration = await this.requestGetConfiguration();
+			configuration = await this.requestGetConfiguration({});
       // Log
       Logging.logInfo({
         tenantID: this.getTenantID(),

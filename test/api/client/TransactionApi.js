@@ -31,9 +31,9 @@ class TransactionApi extends CrudApi {
     return super.delete('/client/api/TransactionDelete', id);
   }
 
-  async startTransaction(ocpp, chargingStation, chargingStationConnector, user, meterStart, startTime) {
+  async startTransaction(ocpp, tenantID, chargingStation, chargingStationConnector, user, meterStart, startTime) {
     // Start the transaction
-    let response = await ocpp.executeStartTransaction(chargingStation.id, {
+    let response = await ocpp.executeStartTransaction(tenantID, chargingStation.id, {
       connectorId: chargingStationConnector.connectorId,
       idTag: user.tagIDs[0],
       meterStart: meterStart,
@@ -51,7 +51,7 @@ class TransactionApi extends CrudApi {
     chargingStationConnector.status = 'Occupied';
     chargingStationConnector.timestamp = new Date().toISOString();
     // Update
-    response = await ocpp.executeStatusNotification(chargingStation.id, chargingStationConnector);
+    response = await ocpp.executeStatusNotification(tenantID, chargingStation.id, chargingStationConnector);
     // Check
     expect(response.data).to.eql({});
 
@@ -90,12 +90,12 @@ class TransactionApi extends CrudApi {
     return response.data;
   }
 
-  async sendTransactionMeterValue(ocpp, transaction, chargingStation, user, meterValue, currentTime, currentConsumption, totalConsumption) {
+  async sendTransactionMeterValue(ocpp, tenantID, transaction, chargingStation, user, meterValue, currentTime, currentConsumption, totalConsumption) {
     let response;
     // OCPP 1.6?
     if (ocpp.getVersion() === "1.6") {
       // Yes
-      response = await ocpp.executeMeterValues(chargingStation.id, {
+      response = await ocpp.executeMeterValues(tenantID, chargingStation.id, {
         connectorId: transaction.connectorId,
         transactionId: transaction.id,
         values: {
@@ -112,7 +112,7 @@ class TransactionApi extends CrudApi {
       });
     // OCPP 1.5
     } else {
-      response = await ocpp.executeMeterValues(chargingStation.id, {
+      response = await ocpp.executeMeterValues(tenantID, chargingStation.id, {
         connectorId: transaction.connectorId,
         transactionId: transaction.id,
         values: {
@@ -166,9 +166,9 @@ class TransactionApi extends CrudApi {
     })
   }
 
-  async stopTransaction(ocpp, transaction, userStart, userStop, meterStop, stopTime, chargingStationConnector, totalConsumption, totalInactivity) {
+  async stopTransaction(ocpp, tenantID, transaction, userStart, userStop, meterStop, stopTime, chargingStationConnector, totalConsumption, totalInactivity) {
     // Stop the transaction
-    let response = await ocpp.executeStopTransaction(transaction.chargeBoxID, {
+    let response = await ocpp.executeStopTransaction(tenantID, transaction.chargeBoxID, {
       transactionId: transaction.id,
       idTag: userStop.tagIDs[0],
       meterStop: meterStop,
@@ -182,7 +182,7 @@ class TransactionApi extends CrudApi {
     chargingStationConnector.status = 'Available';
     chargingStationConnector.timestamp = new Date().toISOString();
     // Update
-    response = await ocpp.executeStatusNotification(transaction.chargeBoxID, chargingStationConnector);
+    response = await ocpp.executeStatusNotification(tenantID, transaction.chargeBoxID, chargingStationConnector);
     // Check
     expect(response.data).to.eql({});
 

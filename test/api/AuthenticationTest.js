@@ -11,11 +11,12 @@ describe('Authentication Service', () => {
       // Get credentials
       this.adminEmail = config.get('admin.username');
       this.adminPassword = config.get('admin.password');
+      this.adminTenant = config.get('admin.tenant');
     });
 
     it('Should authenticate a registered user', async () => {
       // Check Login
-      let response = await CentralServerService.authenticationApi.login(this.adminEmail, this.adminPassword, true);
+      let response = await CentralServerService.authenticationApi.login(this.adminEmail, this.adminPassword, true, this.adminTenant);
       // Check
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('token');
