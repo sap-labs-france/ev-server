@@ -145,13 +145,12 @@ class AuthService {
           `The End-user License Agreement is mandatory`, 520,
           'AuthService', 'handleLogIn');
       }
-      // Check email
       const tenant = await Tenant.getTenantBySubdomain(filteredRequest.tenant);
       if (!tenant) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The user with email '${filteredRequest.email}' does not exist for tenant '${filteredRequest.tenant}'`,
-          550, 'AuthService', 'handleLogIn');
+          `The Tenant is mandatory`, 500,
+          'AuthService', 'handleLogIn');
       }
 
       const user = await User.getUserByEmail(tenant.getID(), filteredRequest.email);
@@ -230,6 +229,19 @@ class AuthService {
           `The captcha is mandatory`, 500,
           'AuthService', 'handleRegisterUser');
       }
+      if (filteredRequest.tenant === undefined) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Tenant is mandatory`, 500,
+          'AuthService', 'handleRegisterUser');
+      }
+      const tenant = await Tenant.getTenantBySubdomain(filteredRequest.tenant);
+      if (!tenant) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Tenant is mandatory`, 500,
+          'AuthService', 'handleRegisterUser');
+      }
       // Check captcha
       const response = await axios.get(
         `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
@@ -241,7 +253,7 @@ class AuthService {
           'AuthService', 'handleRegisterUser');
       }
       // Check email
-      const user = await User.getUserByEmail(filteredRequest.tenantID, filteredRequest.email);
+      const user = await User.getUserByEmail(tenant.getID(), filteredRequest.email);
       // Check Mandatory fields
       User.checkIfUserValid(filteredRequest, req);
       if (user) {
@@ -254,7 +266,7 @@ class AuthService {
       // Generate a password
       const newPasswordHashed = await User.hashPasswordBcrypt(filteredRequest.password);
       // Create the user
-      let newUser = new User(filteredRequest.tenantID, filteredRequest);
+      let newUser = new User(tenant.getID(), filteredRequest);
       // Set data
       newUser.setStatus(Constants.USER_STATUS_PENDING);
       newUser.setRole(Constants.ROLE_BASIC);
@@ -311,7 +323,7 @@ class AuthService {
     }
   }
 
-  static async checkAndSendResetPasswordConfirmationEmail(filteredRequest, action, req, res, next){
+  static async checkAndSendResetPasswordConfirmationEmail(tenant, filteredRequest, action, req, res, next){
     try {
       // No hash: Send email with init pass hash link
       if (!filteredRequest.captcha) {
@@ -333,7 +345,7 @@ class AuthService {
       // Yes: Generate new password
       const resetHash = Utils.generateGUID();
       // Generate a new password
-      const user = await User.getUserByEmail(filteredRequest.tenantID, filteredRequest.email);
+      const user = await User.getUserByEmail(tenant.getID(), filteredRequest.email);
       // Found?
       if (!user) {
         throw new AppError(
@@ -385,14 +397,14 @@ class AuthService {
     }
   }
 
-  static async generateNewPasswordAndSendEmail(filteredRequest, action, req, res, next){
+  static async generateNewPasswordAndSendEmail(tenant, filteredRequest, action, req, res, next){
     try {
       // Create the password
       const newPassword = User.generatePassword();
       // Hash it
       const newHashedPassword = await User.hashPasswordBcrypt(newPassword);
       // Get the user
-      const user = await User.getUserByEmail(filteredRequest.tenantID, filteredRequest.email);
+      const user = await User.getUserByEmail(tenant.getID(), filteredRequest.email);
       // Found?
       if (!user) {
         throw new AppError(
@@ -463,13 +475,32 @@ class AuthService {
   static async handleUserPasswordReset(action, req, res, next){
     // Filter
     const filteredRequest = AuthSecurity.filterResetPasswordRequest(req.body);
-    // Check hash
-    if (!filteredRequest.hash) {
-      // Send Confirmation Email for requesting a new password
-      await AuthService.checkAndSendResetPasswordConfirmationEmail(filteredRequest, action, req, res, next);
-    } else {
-      // Send the new password
-      await AuthService.generateNewPasswordAndSendEmail(filteredRequest, action, req, res, next);
+
+    try {
+      if (filteredRequest.tenant === undefined) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Tenant is mandatory`, 500,
+          'AuthService', 'handleUserPasswordReset');
+      }
+      const tenant = await Tenant.getTenantBySubdomain(filteredRequest.tenant);
+      if (!tenant) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Tenant is mandatory`, 500,
+          'AuthService', 'handleUserPasswordReset');
+      }
+      // Check hash
+      if (!filteredRequest.hash) {
+        // Send Confirmation Email for requesting a new password
+        await AuthService.checkAndSendResetPasswordConfirmationEmail(tenant, filteredRequest, action, req, res, next);
+      } else {
+        // Send the new password
+        await AuthService.generateNewPasswordAndSendEmail(tenant, filteredRequest, action, req, res, next);
+      }
+    } catch (err) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
     }
   }
 
@@ -495,11 +526,18 @@ class AuthService {
       if (filteredRequest.tenant === undefined) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Tenant is mandatory`, 500,
+          `The Tenant is mandatory`, 500,
+          'AuthService', 'handleVerifyEmail');
+      }
+      const tenant = await Tenant.getTenantBySubdomain(filteredRequest.tenant);
+      if (!tenant) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Tenant is mandatory`, 500,
           'AuthService', 'handleVerifyEmail');
       }
       // Check email
-      const user = await User.getUserByEmail(filteredRequest.tenantID, filteredRequest.Email);
+      const user = await User.getUserByEmail(tenant.getID(), filteredRequest.Email);
       // User exists?
       if (!user) {
         throw new AppError(
@@ -576,8 +614,15 @@ class AuthService {
       if (filteredRequest.tenant === undefined) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Tenant is mandatory`, 500,
-          'AuthService', 'handleVerifyEmail');
+          `The Tenant is mandatory`, 500,
+          'AuthService', 'handleResendVerificationEmail');
+      }
+      const tenant = await Tenant.getTenantBySubdomain(filteredRequest.tenant);
+      if (!tenant) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Tenant is mandatory`, 500,
+          'AuthService', 'handleResendVerificationEmail');
       }
       // Is valid captcha?
       const response = await axios.get(
@@ -589,7 +634,7 @@ class AuthService {
           'AuthService', 'handleResendVerificationEmail');
       }
       // Is valid email?
-      let user = await User.getUserByEmail(filteredRequest.tenantID, filteredRequest.email);
+      let user = await User.getUserByEmail(tenant.getID(), filteredRequest.email);
       // User exists?
       if (!user) {
         throw new AppError(
