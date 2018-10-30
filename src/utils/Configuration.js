@@ -11,6 +11,10 @@ if (_appEnv) {
   console.log("InstanceIndex : " + _appEnv.instance_index);
   console.log("InstanceID : " + _appEnv.instance_id);
   console.log("----------------------------------------------------------");
+  console.log("----------------------------------------------------------");
+  console.log("InstanceIndex : " + _appEnv.app.instance_index);
+  console.log("InstanceID : " + _appEnv.app.instance_id);
+  console.log("----------------------------------------------------------");
   console.log(JSON.stringify(_appEnv, null, 2));
 }
 
