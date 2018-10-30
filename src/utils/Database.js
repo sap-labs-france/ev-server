@@ -437,9 +437,9 @@ class Database {
 	static updateTransaction(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
 			Database.updateID(src, dest);
-			if (src.totalDurationSecs) {
+			if (src.hasOwnProperty('totalDurationSecs')) {
 				dest.totalDurationSecs = src.totalDurationSecs;
-			}
+      }
 			dest.userID = Database.validateId(src.userID);
 		} else {
 			dest.userID = Utils.convertToObjectID(src.userID);

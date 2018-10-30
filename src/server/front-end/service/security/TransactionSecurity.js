@@ -72,7 +72,7 @@ class TransactionSecurity {
 			filteredTransaction.transactionId = transaction.transactionId;
 			filteredTransaction.connectorId = transaction.connectorId;
 			filteredTransaction.meterStart = transaction.meterStart;
-			if (transaction.totalDurationSecs) {
+			if (transaction.hasOwnProperty('totalDurationSecs')) {
 				filteredTransaction.totalDurationSecs = transaction.totalDurationSecs;
 			}
 			// Demo user?
