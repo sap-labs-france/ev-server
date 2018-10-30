@@ -90,7 +90,9 @@ class JsonWSConnection extends WSConnection {
           chargingStation.setCFApplicationIDAndInstanceIndex(Configuration.getCFApplicationIDAndInstanceIndex());
           // Save it
           let cs = await chargingStation.save();
+          console.log("--------------------------------------");
           console.log(cs.getModel());          
+          console.log("--------------------------------------");
         }
       }
       // Initialize the default Headers

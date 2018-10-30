@@ -89,6 +89,9 @@ class JsonCentralSystemServer extends CentralSystemServer {
     });
     // Listen to new connections
     this._wss.on('connection', async (ws, req) => {
+      console.log("--------------------------------------");
+      console.log(req.headers);
+      console.log("--------------------------------------");
       try {
         // Check Rest calls
         if (req.url.startsWith('/REST')) {
