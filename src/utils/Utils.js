@@ -276,14 +276,16 @@ class Utils {
     return `${_centralSystemFrontEndConfig.protocol}://${subdomain}.${_centralSystemFrontEndConfig.host}:${_centralSystemFrontEndConfig.port}`;
   }
 
-  static buildEvseUserURL(user){
-    const _evseBaseURL = Utils.buildEvseURL(user.getTenant().getSubdomain());
+  static async buildEvseUserURL(user){
+    const tenant = await user.getTenant();
+    const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
     // Add
     return _evseBaseURL + "/#/pages/users/user/" + user.getID();
   }
 
-  static buildEvseChargingStationURL(chargingStation, connectorId = null){
-    const _evseBaseURL = Utils.buildEvseURL(chargingStation.getTenant().getSubdomain());
+  static async buildEvseChargingStationURL(chargingStation, connectorId = null){
+    const tenant = await chargingStation.getTenant();
+    const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
 
     // Connector provided?
     if (connectorId > 0) {
@@ -296,8 +298,9 @@ class Utils {
     }
   }
 
-  static buildEvseTransactionURL(chargingStation, connectorId, transactionId){
-    const _evseBaseURL = Utils.buildEvseURL(chargingStation.getTenant().getSubdomain());
+  static async buildEvseTransactionURL(chargingStation, connectorId, transactionId){
+    const tenant = await chargingStation.getTenant();
+    const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
     // Add
     return _evseBaseURL + "/#/pages/chargers/charger/" + chargingStation.getID() +
       "/connector/" + connectorId + "/transaction/" + transactionId;

@@ -1,4 +1,4 @@
-const Tenant = require('./Tenant');
+const TenantStorage = require('../storage/mongodb/TenantStorage');
 
 class AbstractTenantEntity {
 
@@ -17,7 +17,7 @@ class AbstractTenantEntity {
 
   async getTenant() {
     if (!this._tenant) {
-      this._tenant = await Tenant.getTenant(this._tenantID);
+      this._tenant = await TenantStorage.getTenant(this._tenantID);
     }
     return this._tenant;
   }

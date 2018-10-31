@@ -386,8 +386,8 @@ class ChargingStation extends AbstractTenantEntity {
           'chargeBoxID': this.getID(),
           'connectorId': statusNotification.connectorId,
           'error': `${statusNotification.status} - ${statusNotification.errorCode} - ${statusNotification.info}`,
-          'evseDashboardURL': Utils.buildEvseURL(this.getTenant().getSubdomain()),
-          'evseDashboardChargingStationURL': Utils.buildEvseChargingStationURL(this, statusNotification.connectorId)
+          'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain()),
+          'evseDashboardChargingStationURL': await Utils.buildEvseChargingStationURL(this, statusNotification.connectorId)
         }
       );
     }
@@ -469,8 +469,8 @@ class ChargingStation extends AbstractTenantEntity {
       this.getModel(),
       {
         'chargeBoxID': this.getID(),
-        'evseDashboardURL': Utils.buildEvseURL(this.getTenant().getSubdomain()),
-        'evseDashboardChargingStationURL': Utils.buildEvseChargingStationURL(this)
+        'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain()),
+        'evseDashboardChargingStationURL': await Utils.buildEvseChargingStationURL(this)
       }
     );
     // Save Boot Notification
@@ -697,8 +697,8 @@ class ChargingStation extends AbstractTenantEntity {
                   (transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
                   {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
                 'totalDuration': this._buildCurrentTransactionDuration(transaction, lastTimestamp),
-                'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
-                'evseDashboardURL': Utils.buildEvseURL(this.getTenant().getSubdomain())
+                'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
+                'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
               },
               transaction.user.locale
             );
@@ -1189,9 +1189,8 @@ class ChargingStation extends AbstractTenantEntity {
           'user': user.getModel(),
           'chargingBoxID': this.getID(),
           'connectorId': transaction.connectorId,
-          'evseDashboardURL': Utils.buildEvseURL(this.getTenant().getSubdomain()),
-          'evseDashboardChargingStationURL':
-            Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id)
+          'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain()),
+          'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id)
         },
         user.getLocale()
       );
@@ -1320,8 +1319,8 @@ class ChargingStation extends AbstractTenantEntity {
             {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
           'totalDuration': this._buildCurrentTransactionDuration(transaction, transaction.stop.timestamp),
           'totalInactivity': this._buildCurrentTransactionInactivity(newTransaction),
-          'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
-          'evseDashboardURL': Utils.buildEvseURL(this.getTenant().getSubdomain())
+          'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
+          'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
         },
         transaction.user.locale
       );

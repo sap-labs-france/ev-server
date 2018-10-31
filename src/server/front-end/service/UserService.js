@@ -325,7 +325,7 @@ class UserService {
           updatedUser.getModel(),
           {
             'user': updatedUser.getModel(),
-            'evseDashboardURL': Utils.buildEvseURL(updatedUser.getTenant().getSubdomain())
+            'evseDashboardURL': Utils.buildEvseURL((await updatedUser.getTenant()).getSubdomain())
           },
           updatedUser.getLocale()
         );
