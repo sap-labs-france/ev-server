@@ -275,20 +275,21 @@ The Demo users can have a longer lifetime for demo purposes with key **userDemoT
 #### Authorization
 
 The users can have differents roles:
+* SuperAdmin (**S**)
 * Admin (**A**)
 * Basic (**B**)
 * Demo (**D**)
 
 ##### Authorisation Matrix
 
-|                  |                                                       Admin                                                       |                   Basic                 |      Demo     |
-|------------------|:-----------------------------------------------------------------------------------------------------------------:|:---------------------------------------:|:-------------:|
-| Users            |                                                        List                                                       |                    -                    |       -       |
-| User             |                                        Create, Read, Update, Delete, Logout                                       | Read, Update (Only logged user), Logout | (user hidden) |
-| ChargingStations |                                                        List                                                       |                   List                  |      List     |
-| ChargingStation  | Read, Update, Delete, Reset, ClearCache,  GetConfiguration, ChangeConfiguration, StopTransaction, UnlockConnector |                   Read                  |      Read     |
-| Logging          |                                                        List                                                       |                    -                    |               |
-
+|                  |            SuperAdmin          |                                                       Admin                                                       |                   Basic                 |      Demo     |
+|------------------|:------------------------------:|:-----------------------------------------------------------------------------------------------------------------:|:---------------------------------------:|:-------------:|
+| Users            |                                |                                                        List                                                       |                    -                    |       -       |
+| User             |                                |                                        Create, Read, Update, Delete, Logout                                       | Read, Update (Only logged user), Logout | (user hidden) |
+| ChargingStations |                                |                                                        List                                                       |                   List                  |      List     |
+| ChargingStation  |                                | Read, Update, Delete, Reset, ClearCache,  GetConfiguration, ChangeConfiguration, StopTransaction, UnlockConnector |                   Read                  |      Read     |
+| Logging          |               List             |                                                        List                                                       |                    -                    |               |
+| Tenant           |  Create, Read, Update, Delete  |                                                                                                                   |                    -                    |               |
 
 ### Notifications
 
