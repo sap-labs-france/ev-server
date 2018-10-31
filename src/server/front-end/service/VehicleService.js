@@ -181,7 +181,7 @@ class VehicleService {
 					req.user);
 			}
 			// Get the vehicle image
-			const vehicleImages = await Vehicle.getVehicleImages(req.user.tenant);
+			const vehicleImages = await Vehicle.getVehicleImages(req.user.tenantID);
 			// Return
 			res.json(vehicleImages);
 			next();

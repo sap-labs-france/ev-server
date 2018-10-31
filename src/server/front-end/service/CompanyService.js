@@ -156,7 +156,7 @@ class CompanyService {
 					req.user);
 			}
 			// Get the company logo
-			const companyLogos = await Company.getCompanyLogos(req.user.tenant);
+			const companyLogos = await Company.getCompanyLogos(req.user.tenantID);
 			res.json(companyLogos);
 			next();
 		} catch (error) {

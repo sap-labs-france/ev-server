@@ -191,7 +191,7 @@ class SiteService {
           req.user);
       }
       // Get the site image
-      const siteImages = await Site.getSiteImages(req.user.tenant);
+      const siteImages = await Site.getSiteImages(req.user.tenantID);
       // Return
       res.json(siteImages);
       next();

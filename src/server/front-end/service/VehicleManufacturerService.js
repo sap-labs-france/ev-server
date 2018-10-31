@@ -273,7 +273,7 @@ class VehicleManufacturerService {
 					req.user);
 			}
 			// Get the vehicle manufacturer logo
-			const vehicleManufacturerLogos = await VehicleManufacturer.getVehicleManufacturerLogos(req.user.tenant);
+			const vehicleManufacturerLogos = await VehicleManufacturer.getVehicleManufacturerLogos(req.user.tenantID);
 			// Return
 			res.json(vehicleManufacturerLogos);
 			next();

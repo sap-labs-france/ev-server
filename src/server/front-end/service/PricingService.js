@@ -18,7 +18,7 @@ class PricingService {
 					req.user);
 			}
 			// Get the Pricing
-			const pricing = await PricingStorage.getPricing(req.user.tenant);
+			const pricing = await PricingStorage.getPricing(req.user.tenantID);
 			// Return
 			if (pricing) {
 				res.json(

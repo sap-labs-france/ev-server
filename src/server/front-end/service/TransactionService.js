@@ -419,7 +419,7 @@ class TransactionService {
 	static async handleGetTransactionYears(action, req, res, next) {
 		try {
 			// Get Transactions
-			let transactionsYears = await TransactionStorage.getTransactionYears(req.user.tenant);
+			let transactionsYears = await TransactionStorage.getTransactionYears(req.user.tenantID);
 			let result = {};
 			if (transactionsYears) {
 				result.years = [];
@@ -502,7 +502,7 @@ class TransactionService {
 				filter.userId = filteredRequest.UserID;
 			}
 			// Read the pricing
-			let pricing = await PricingStorage.getPricing(req.user.tenant);
+			let pricing = await PricingStorage.getPricing(req.user.tenantID);
 			// Check email
 			let transactions = await TransactionStorage.getTransactions(req.user.tenantID,
             { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },

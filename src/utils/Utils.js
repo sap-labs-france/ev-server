@@ -272,18 +272,18 @@ class Utils {
     return Math.floor((Math.random() * 2147483648) + 1); // INT32 (signed: issue in Schneider)
   }
 
-  static buildEvseURL(tenantID){
-    return `${_centralSystemFrontEndConfig.protocol}://${tenantID}.${_centralSystemFrontEndConfig.host}:${_centralSystemFrontEndConfig.port}`;
+  static buildEvseURL(subdomain){
+    return `${_centralSystemFrontEndConfig.protocol}://${subdomain}.${_centralSystemFrontEndConfig.host}:${_centralSystemFrontEndConfig.port}`;
   }
 
   static buildEvseUserURL(user){
-    const _evseBaseURL = Utils.buildEvseURL(user.getTenantID());
+    const _evseBaseURL = Utils.buildEvseURL(user.getTenant().getSubdomain());
     // Add
     return _evseBaseURL + "/#/pages/users/user/" + user.getID();
   }
 
   static buildEvseChargingStationURL(chargingStation, connectorId = null){
-    const _evseBaseURL = Utils.buildEvseURL(chargingStation.getTenantID());
+    const _evseBaseURL = Utils.buildEvseURL(chargingStation.getTenant().getSubdomain());
 
     // Connector provided?
     if (connectorId > 0) {
@@ -297,7 +297,7 @@ class Utils {
   }
 
   static buildEvseTransactionURL(chargingStation, connectorId, transactionId){
-    const _evseBaseURL = Utils.buildEvseURL(chargingStation.getTenantID());
+    const _evseBaseURL = Utils.buildEvseURL(chargingStation.getTenant().getSubdomain());
     // Add
     return _evseBaseURL + "/#/pages/chargers/charger/" + chargingStation.getID() +
       "/connector/" + connectorId + "/transaction/" + transactionId;

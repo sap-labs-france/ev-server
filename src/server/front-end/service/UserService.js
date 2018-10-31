@@ -325,7 +325,7 @@ class UserService {
           updatedUser.getModel(),
           {
             'user': updatedUser.getModel(),
-            'evseDashboardURL': Utils.buildEvseURL(req.user.tenant)
+            'evseDashboardURL': Utils.buildEvseURL(updatedUser.getTenant().getSubdomain())
           },
           updatedUser.getLocale()
         );
@@ -451,7 +451,7 @@ class UserService {
           req.user);
       }
       // Get the user image
-      const userImages = await User.getUserImages(req.user.tenant);
+      const userImages = await User.getUserImages(req.user.tenantID);
       // Return
       res.json(userImages);
       next();

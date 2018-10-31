@@ -261,7 +261,7 @@ class SiteAreaService {
 					req.user);
 			}
 			// Get the Site Area image
-			const siteAreaImages = await SiteArea.getSiteAreaImages(req.user.tenant);
+			const siteAreaImages = await SiteArea.getSiteAreaImages(req.user.tenantID);
 			// Return
 			res.json(siteAreaImages);
 			next();
