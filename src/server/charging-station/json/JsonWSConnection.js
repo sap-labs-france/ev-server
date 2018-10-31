@@ -1,4 +1,5 @@
 const Logging = require('../../../utils/Logging');
+const Configuration = require('../../../utils/Configuration');
 const WebSocket = require('ws');
 const Tenant = require('../../../entity/Tenant');
 const ChargingStation = require('../../../entity/ChargingStation');
@@ -77,14 +78,17 @@ class JsonWSConnection extends WSConnection {
       } else {
         throw new Error(`Invalid Tenant '${this._tenantID}' in URL '${this._url}'`);
       }
-      // Update Server URL
-      const chargingStation = await ChargingStation.getChargingStation(this._tenantID, this.getChargingStationID());
+      // Cloud Foundry?
+      if (Configuration.isCloudFoundry()) {
+        // Yes: Update the CF App and Instance ID to call the charger from the Rest server
+        const chargingStation = await ChargingStation.getChargingStation(this._tenantID, this.getChargingStationID());
       // Found?
       if (chargingStation) {
-        // Update Server URL
-        chargingStation.setChargingStationURL(this._serverURL);
-        // Save it
-        await chargingStation.save();
+        // Update CF Instance
+          chargingStation.setCFApplicationIDAndInstanceIndex(Configuration.getCFApplicationIDAndInstanceIndex());
+          // Save it
+          let cs = await chargingStation.save();
+        }
       }
       // Initialize the default Headers
       this._headers = {

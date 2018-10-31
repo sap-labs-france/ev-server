@@ -58,6 +58,9 @@ class Database {
     } else {
       dest.ocppProtocol = Constants.OCPP_PROTOCOL_SOAP;
     }
+    if (src.cfApplicationIDAndInstanceIndex) {
+      dest.cfApplicationIDAndInstanceIndex = src.cfApplicationIDAndInstanceIndex;
+    }
     dest.lastHeartBeat = Utils.convertToDate(src.lastHeartBeat);
 		dest.deleted = src.deleted;
 		// Check Inactive Chargers
@@ -443,9 +446,9 @@ class Database {
 	static updateTransaction(src, dest, forFrontEnd=true) {
 		if (forFrontEnd) {
 			Database.updateID(src, dest);
-			if (src.totalDurationSecs) {
+			if (src.hasOwnProperty('totalDurationSecs')) {
 				dest.totalDurationSecs = src.totalDurationSecs;
-			}
+      }
 			dest.userID = Database.validateId(src.userID);
 		} else {
 			dest.userID = Utils.convertToObjectID(src.userID);

@@ -4,7 +4,7 @@ let config = require('../config.json');
 require('source-map-support').install();
 
 // Cloud Foundry App Env
-let _appEnv = cfenv.getAppEnv();
+const _appEnv = cfenv.getAppEnv();
 
 class Configuration {
 	// Read the config file
@@ -22,7 +22,7 @@ class Configuration {
 	static getCentralSystemsConfig() {
 		let centralSystems = Configuration.getConfig().CentralSystems;
 		// Check Cloud Foundry
-		if (centralSystems && !_appEnv.isLocal) {
+		if (centralSystems && Configuration.isCloudFoundry()) {
 			// Change host/port
 			for (const centralSystem of centralSystems) {
         // CF Environment: Override
@@ -50,11 +50,29 @@ class Configuration {
 		return !_appEnv.isLocal;
 	}
 
-	// Central System REST config
+	static getCFInstanceIndex() {
+		if (Configuration.isCloudFoundry()) {
+      return _appEnv.app.instance_index;
+    }
+	}
+
+  static getCFApplicationID() {
+		if (Configuration.isCloudFoundry()) {
+      return _appEnv.app.application_id;
+    }
+	}
+
+  static getCFApplicationIDAndInstanceIndex() {
+		if (Configuration.isCloudFoundry()) {
+      return Configuration.getCFApplicationID() + ':' + Configuration.getCFInstanceIndex();
+    }
+	}
+
+  // Central System REST config
 	static getCentralSystemRestServiceConfig() {
 		let centralSystemRestService = Configuration.getConfig().CentralSystemRestService;
 		// Check Cloud Foundry
-		if (centralSystemRestService && !_appEnv.isLocal) {
+		if (centralSystemRestService && Configuration.isCloudFoundry()) {
 			// CF Environment: Override
 			centralSystemRestService.port = _appEnv.port;
 			centralSystemRestService.host = _appEnv.bind;
@@ -105,7 +123,7 @@ class Configuration {
 	static getStorageConfig() {
 		let storage = Configuration.getConfig().Storage;
 		// Check Cloud Foundry
-		if (storage && !_appEnv.isLocal) {
+		if (storage && Configuration.isCloudFoundry()) {
 			// CF Environment: Override
 			let mongoDBService = _appEnv.services.mongodb[0];
 			// Set MongoDB URI
