@@ -111,6 +111,14 @@ class ChargingStation extends AbstractTenantEntity {
     this._model.chargePointModel = chargePointModel;
   }
 
+  getCFApplicationIDAndInstanceIndex() {
+		return this._model.cfApplicationIDAndInstanceIndex;
+  }
+
+  setCFApplicationIDAndInstanceIndex(cfApplicationIDAndInstanceIndex) {
+		this._model.cfApplicationIDAndInstanceIndex = cfApplicationIDAndInstanceIndex;
+  }
+
   getChargePointSerialNumber(){
     return this._model.chargePointSerialNumber;
   }
