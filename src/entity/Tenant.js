@@ -92,18 +92,6 @@ class Tenant {
 
   async createEnvironment(){
     await TenantStorage.createTenantDB(this.getID());
-
-    const password = await User.hashPasswordBcrypt(User.generatePassword());
-    const tenantUser = new User(this.getID(), {
-      name: this.getName(),
-      firstName: "Admin",
-      password: password,
-      status: Constants.USER_STATUS_PENDING,
-      role: Constants.ROLE_ADMIN,
-      email: this.getEmail(),
-      createdOn: new Date().toISOString()
-    });
-    await tenantUser.save();
   }
 
   async deleteEnvironment(){

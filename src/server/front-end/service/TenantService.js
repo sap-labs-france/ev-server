@@ -11,6 +11,8 @@ const TenantSecurity = require('./security/TenantSecurity');
 const HttpStatusCodes = require('http-status-codes');
 const TenantValidator = require('../validation/TenantValidation');
 const AbstractService = require('./AbstractService');
+const NotificationHandler = require('../../../notification/NotificationHandler');
+const Utils = require('../../../utils/Utils');
 
 const MODULE_NAME = 'TenantService';
 
@@ -188,6 +190,49 @@ class TenantService extends AbstractService {
       const newTenant = await tenant.save();
 
       await newTenant.createEnvironment();
+
+      const password = User.generatePassword();
+      const verificationToken = Utils.generateToken(newTenant.getEmail());
+      const tenantUser = new User(newTenant.getID(), {
+        name: newTenant.getName(),
+        firstName: "Admin",
+        password: await User.hashPasswordBcrypt(password),
+        status: Constants.USER_STATUS_PENDING,
+        role: Constants.ROLE_ADMIN,
+        email: newTenant.getEmail(),
+        createdOn: new Date().toISOString(),
+        verificationToken: verificationToken
+      });
+
+      const newUser = await tenantUser.save();
+      // Send activation link
+      const evseDashboardVerifyEmailURL = Utils.buildEvseURL(newTenant.getSubdomain()) +
+        '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
+        newUser.getEMail();
+      NotificationHandler.sendNewRegisteredUser(
+        newUser.getTenantID(),
+        Utils.generateGUID(),
+        newUser.getModel(),
+        {
+          'user': newUser.getModel(),
+          'evseDashboardURL': Utils.buildEvseURL(newTenant.getSubdomain()),
+          'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
+        },
+        newUser.getLocale()
+      );
+      // Send temporary password
+      NotificationHandler.sendNewPassword(
+        newUser.getTenantID(),
+        Utils.generateGUID(),
+        newUser.getModel(),
+        {
+          'user': newUser.getModel(),
+          'hash': null,
+          'newPassword': password,
+          'evseDashboardURL': Utils.buildEvseURL(newTenant.getSubdomain())
+        },
+        newUser.getLocale()
+      );
 
       // Log
       Logging.logSecurityInfo({
