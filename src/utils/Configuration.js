@@ -86,7 +86,12 @@ class Configuration {
 		return Configuration.getConfig().WSDLEndpoint;
 	}
 
-	// Central System Front-End config
+	// Central System Json config
+	static getJsonEndpointConfig() {
+		return Configuration.getConfig().JsonEndpoint;
+	}
+
+  // Central System Front-End config
 	static getCentralSystemFrontEndConfig() {
 		// Read conf
 		return Configuration.getConfig().CentralSystemFrontEnd;

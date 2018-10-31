@@ -13,13 +13,12 @@ const MODULE_NAME = "JsonWSConnection";
 
 class JsonWSConnection extends WSConnection {
 
-  constructor(wsConnection, req, chargingStationConfig, serverURL, wsServer) {
+  constructor(wsConnection, req, chargingStationConfig, wsServer) {
     // Call super
     super(wsConnection, req, wsServer);
     // Init
     this._requests = {};
     this._tenantName = null;
-    this._serverURL = serverURL;
     // Parse URL: should like /OCPP16/TENANTNAME/CHARGEBOXID
     const splittedURL = this.getURL().split("/");
     // URL with 4 parts?
@@ -97,7 +96,7 @@ class JsonWSConnection extends WSConnection {
         chargeBoxIdentity: this.getChargingStationID(),
         ocppVersion: (this.getWSConnection().protocol.startsWith("ocpp") ? this.getWSConnection().protocol.replace("ocpp", "") : this.getWSConnection().protocol),
         ocppProtocol: Constants.OCPP_PROTOCOL_JSON,
-        chargingStationURL: this._serverURL,
+        chargingStationURL: Configuration.getJsonEndpointConfig().baseUrl,
         tenant: this._tenantName,
         From: {
           Address: this.getIP()
