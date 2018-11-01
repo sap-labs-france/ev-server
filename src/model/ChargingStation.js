@@ -1267,10 +1267,12 @@ class ChargingStation {
 			if (this.getID() === 'PERNICE-WB-01' ||
 					this.getID() === 'HANNO-WB-01' ||
 					this.getID() === 'WINTER-WB-01' ||
+					this.getID() === 'GIMENO-WB-01' ||
 					this.getID() === 'HANNO-WB-02') {
 				// Check Users
 				if (newTransaction.tagID === '5D38ED8F' || // Hanno 1
 						newTransaction.tagID === 'B31FB2DD' || // Hanno 2
+						newTransaction.tagID === '43329EF7' || // Gimeno
 						newTransaction.tagID === 'WJ00001' || // Winter Juergen
 						newTransaction.tagID === 'C3E4B3DD') { // Florent
 					// Ok
