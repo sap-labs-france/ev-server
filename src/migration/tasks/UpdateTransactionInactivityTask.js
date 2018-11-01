@@ -1,7 +1,6 @@
 const moment = require('moment');
 const Database = require('../../utils/Database');
 const ChargingStation = require('../../model/ChargingStation');
-
 class UpdateTransactionInactivityTask {
   async migrate() {
     // Create Aggregation
@@ -42,38 +41,50 @@ class UpdateTransactionInactivityTask {
     for (const transactionMDB of transactionsMDB) {
       let transaction = {};
       // Update
-      Database.updateTransaction(transactionMDB, transaction);
+      Database.updateTransaction(transactionMDB, transaction, false);
+      // Set the Transaction ID
+      Database.updateID(transactionMDB, transaction);
       // Get the Charging Station
       let chargingStation = new ChargingStation(transactionMDB.chargeBox);
       // Get Consumption
       let consumption = await chargingStation.getConsumptionsFromTransaction(transaction);
       // Set the total consumption
-      transactionMDB.stop.totalConsumption = consumption.totalConsumption;
+      transaction.stop.totalConsumption = consumption.totalConsumption;
       // Compute total inactivity seconds
-      transactionMDB.stop.totalInactivitySecs = 0;
-      consumption.values.forEach((value, index) => {
+      transaction.stop.totalInactivitySecs = 0;
+      for (let index = 0; index < consumption.values.length; index++) {
+        const value = consumption.values[index];
         // Don't check the first
         if (index > 0) {
           // Check value + Check Previous value
           if (value.value == 0 && consumption.values[index - 1].value == 0) {
             // Add the inactivity in secs
-            transactionMDB.stop.totalInactivitySecs += moment.duration(
+            transaction.stop.totalInactivitySecs += moment.duration(
               moment(value.date).diff(moment(consumption.values[index - 1].date))
             ).asSeconds();
           }
         }
-      });
+      }
+		  // Delete Transactions
+      await global.db.collection('transactions')
+        .findOneAndDelete( {'_id': transaction.id} );
+      // Remove Id
+      delete transaction.id;
       // Save it
       await global.db.collection('transactions').findOneAndUpdate({
         "_id": transactionMDB._id
       }, {
-        $set: transactionMDB
+        $set: transaction
+      }, {
+        upsert: true, 
+        new: true, 
+        returnOriginal: false
       });
     }
   }
 
   getVersion() {
-    return "2";
+    return "3";
   }
 
   getName() {

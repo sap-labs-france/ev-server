@@ -1490,8 +1490,35 @@ class ChargingStation {
 		let firstMeterValueSet = false;
 		// Set first value from transaction
 		if (meterValues && meterValues.length > 0 && transaction) {
+      // Check if the MeterValue are provided until the end of the Transaction (ABB bug)
+      // Add the two last MeterValue Timestamp
+      if (meterValues.length > 2) {
+        const lastMeterValue = meterValues[meterValues.length-1]; 
+        const lastButOneMeterValue = meterValues[meterValues.length-2];
+        // Get the diff between them
+        const diffSecs = moment(lastMeterValue.timestamp).diff(moment(lastButOneMeterValue.timestamp), 'seconds');
+        const nextValueTimestamp = moment(lastMeterValue.timestamp).add(diffSecs, "s");
+        // Check if last meter value + diff < Stop Transaction timestamp
+        if (nextValueTimestamp.isBefore(moment(transaction.stop.timestamp))) {
+          // Add the missing Meter Value
+          meterValues.push({
+            id: '666696969',
+            connectorId: transaction.connectorId,
+            transactionId: transaction.transactionId,
+            timestamp: nextValueTimestamp.toDate(),
+            value: lastMeterValue.value,
+            attribute: {
+              unit: 'Wh',
+              location: 'Outlet',
+              measurand: 'Energy.Active.Import.Register',
+              format: 'Raw',
+              context: 'Sample.Periodic'
+            }
+          });
+        }
+      }
 			// Set last meter value
-			const meterValueFromTransactionStart = {
+			meterValues.splice(0, 0, {
 				id: '666',
 				connectorId: transaction.connectorId,
 				transactionId: transaction.transactionId,
@@ -1504,14 +1531,12 @@ class ChargingStation {
 					format: 'Raw',
 					context: 'Sample.Periodic'
 				}
-			};
-			// Append
-			meterValues.splice(0, 0, meterValueFromTransactionStart);
+			});
 
 			// Set last value from transaction
 			if (transaction.stop) {
 				// Set last meter value
-				const meterValueFromTransactionStop = {
+				meterValues.push({
 					id: '6969',
 					connectorId: transaction.connectorId,
 					transactionId: transaction.transactionId,
@@ -1524,9 +1549,7 @@ class ChargingStation {
 						format: 'Raw',
 						context: 'Sample.Periodic'
 					}
-				};
-				// Append
-				meterValues.push(meterValueFromTransactionStop);
+				});
 			}
     }
 		// Build the model
@@ -1534,7 +1557,10 @@ class ChargingStation {
 			const meterValue = meterValues[meterValueIndex];
 			// Filter on consumption value
 			if (meterValue.attribute && meterValue.attribute.measurand &&
-					meterValue.attribute.measurand === 'Energy.Active.Import.Register') {
+          meterValue.attribute.measurand === 'Energy.Active.Import.Register' &&
+          (meterValue.attribute.context === "Sample.Periodic" ||
+          // ABB only uses Sample.Clock!!!!!
+          this.getChargePointVendor() === 'ABB')) {
 				// First value?
 				if (!firstMeterValueSet) {
 					// No: Keep the first value
@@ -1573,10 +1599,13 @@ class ChargingStation {
               date: meterValue.timestamp,
               value: currentConsumption,
               cumulated: chargingStationConsumption.totalConsumption };
-            // Compute the price
-            if (pricing) {
-              // Set the consumption with price
-              consumption.price = (consumptionWh/1000) * pricing.priceKWH;
+            // Check for 0
+            if (chargingStationConsumption.values.length > 1 && // At least one transaction
+                meterValueIndex+1 !== meterValues.length &&  // Not the last one!
+                chargingStationConsumption.values[chargingStationConsumption.values.length-1].value === 0 && // Last one is 0
+                consumption.value === 0) { // Current is 0
+              // Bypass
+              continue;
             }
             // Set the consumption
             chargingStationConsumption.values.push(consumption);
