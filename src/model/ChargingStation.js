@@ -858,12 +858,6 @@ class ChargingStation {
 					for (const sampledValue of value.sampledValue) {
 						// Normalize
 						value.value = sampledValue.value;
-						newMeterValue.attribute = {};
-						newMeterValue.attribute.context = (sampledValue.hasOwnProperty('context') ? sampledValue.context : "Sample.Periodic");
-						newMeterValue.attribute.format = (sampledValue.hasOwnProperty('format') ? sampledValue.format : "Raw");
-						newMeterValue.attribute.measurand = (sampledValue.hasOwnProperty('measurand') ? sampledValue.measurand : "Energy.Active.Import.Register");
-						newMeterValue.attribute.location = (sampledValue.hasOwnProperty('location') ? sampledValue.location : "Outlet");
-						newMeterValue.attribute.unit = (sampledValue.hasOwnProperty('unit') ? sampledValue.unit : "Wh");
 						newMeterValue.value = parseInt(value.value);
 						newMeterValues.values.push(newMeterValue);
 					}
@@ -1506,14 +1500,7 @@ class ChargingStation {
             connectorId: transaction.connectorId,
             transactionId: transaction.transactionId,
             timestamp: nextValueTimestamp.toDate(),
-            value: lastMeterValue.value,
-            attribute: {
-              unit: 'Wh',
-              location: 'Outlet',
-              measurand: 'Energy.Active.Import.Register',
-              format: 'Raw',
-              context: 'Sample.Periodic'
-            }
+            value: lastMeterValue.value
           });
         }
       }
@@ -1523,14 +1510,7 @@ class ChargingStation {
 				connectorId: transaction.connectorId,
 				transactionId: transaction.transactionId,
 				timestamp: transaction.timestamp,
-				value: transaction.meterStart,
-				attribute: {
-					unit: 'Wh',
-					location: 'Outlet',
-					measurand: 'Energy.Active.Import.Register',
-					format: 'Raw',
-					context: 'Sample.Periodic'
-				}
+				value: transaction.meterStart
 			});
 
 			// Set last value from transaction
@@ -1541,14 +1521,7 @@ class ChargingStation {
 					connectorId: transaction.connectorId,
 					transactionId: transaction.transactionId,
 					timestamp: transaction.stop.timestamp,
-					value: transaction.stop.meterStop,
-					attribute: {
-						unit: 'Wh',
-						location: 'Outlet',
-						measurand: 'Energy.Active.Import.Register',
-						format: 'Raw',
-						context: 'Sample.Periodic'
-					}
+					value: transaction.stop.meterStop
 				});
 			}
     }
@@ -1556,11 +1529,11 @@ class ChargingStation {
 		for (let meterValueIndex = 0; meterValueIndex < meterValues.length; meterValueIndex++) {
 			const meterValue = meterValues[meterValueIndex];
 			// Filter on consumption value
-			if (meterValue.attribute && meterValue.attribute.measurand &&
+			if (!meterValue.attribute || (meterValue.attribute.measurand &&
           meterValue.attribute.measurand === 'Energy.Active.Import.Register' &&
           (meterValue.attribute.context === "Sample.Periodic" ||
           // ABB only uses Sample.Clock!!!!!
-          this.getChargePointVendor() === 'ABB')) {
+          this.getChargePointVendor() === 'ABB'))) {
 				// First value?
 				if (!firstMeterValueSet) {
 					// No: Keep the first value
