@@ -1167,6 +1167,19 @@ class ChargingStation {
 			// Set Tag ID with user that started the transaction
 			stopTransaction.idTag = transaction.tagID;
 		}
+		// Handle Transaction Data
+		if (stopTransaction.transactionData) {
+      // Remove $ from values
+      for (let index = 0; index < stopTransaction.transactionData.values.length; index++) {
+        // Get the value structure 
+        const value = stopTransaction.transactionData.values[index].value;
+        if (value['$value']) {
+          // Clear it
+          value.value = value['$value'];
+          delete value['$value'];
+        }
+      }
+    }
 		// Set Tag ID to a new property
 		stopTransaction.tagID = stopTransaction.idTag;
 		// Check User
