@@ -84,7 +84,7 @@ class UpdateTransactionInactivityTask {
   }
 
   getVersion() {
-    return "3";
+    return "3.1";
   }
 
   getName() {

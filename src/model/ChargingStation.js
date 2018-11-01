@@ -1485,7 +1485,7 @@ class ChargingStation {
 		// Set first value from transaction
 		if (meterValues && meterValues.length > 0 && transaction) {
       // Check if the MeterValue are provided until the end of the Transaction (ABB bug)
-      // Add the two last MeterValue Timestamp
+      // Add a MeterValue Timestamp when the charger stopped providing energy to the car
       if (transaction.stop && meterValues.length > 2) {
         const lastMeterValue = meterValues[meterValues.length-1]; 
         const lastButOneMeterValue = meterValues[meterValues.length-2];
@@ -1572,14 +1572,6 @@ class ChargingStation {
               date: meterValue.timestamp,
               value: currentConsumption,
               cumulated: chargingStationConsumption.totalConsumption };
-            // Check for 0
-            if (chargingStationConsumption.values.length > 1 && // At least one transaction
-                meterValueIndex+1 !== meterValues.length &&  // Not the last one!
-                chargingStationConsumption.values[chargingStationConsumption.values.length-1].value === 0 && // Last one is 0
-                consumption.value === 0) { // Current is 0
-              // Bypass
-              continue;
-            }
             // Set the consumption
             chargingStationConsumption.values.push(consumption);
 					}
