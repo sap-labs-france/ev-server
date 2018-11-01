@@ -1,8 +1,8 @@
 class BadRequestError extends Error {
-    constructor(schemaErrors) {
-        super("Invalid content");
-        this.schemaErrors = schemaErrors;
-    }
+  constructor(errorDetails){
+    super("Invalid content");
+    this.details = errorDetails;
+  }
 }
 
 module.exports = BadRequestError;

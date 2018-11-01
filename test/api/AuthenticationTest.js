@@ -7,7 +7,9 @@ const config = require('../config');
 const UserFactory = require('../factories/UserFactory');
 const jwt = require('jsonwebtoken');
 
-describe('Authentication Service', () => {
+describe('Authentication Service', function() {
+  this.timeout(10000);
+
   describe('Success cases', () => {
     before(async () => {
       // Get credentials

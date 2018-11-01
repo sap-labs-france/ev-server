@@ -1,5 +1,4 @@
 const Utils = require('./Utils');
-const fs = require('fs');
 const Constants = require('./Constants');
 const AppError = require('../exception/AppError');
 const AppAuthError = require('../exception/AppAuthError');
@@ -11,7 +10,7 @@ const Configuration = require('../utils/Configuration');
 const LoggingStorage = require('../storage/mongodb/LoggingStorage');
 require('source-map-support').install();
 
-let _loggingConfig = Configuration.getLoggingConfig();
+const _loggingConfig = Configuration.getLoggingConfig();
 
 const LogLevel = {
   "INFO": 'I',
