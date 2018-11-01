@@ -1486,7 +1486,7 @@ class ChargingStation {
 		if (meterValues && meterValues.length > 0 && transaction) {
       // Check if the MeterValue are provided until the end of the Transaction (ABB bug)
       // Add the two last MeterValue Timestamp
-      if (meterValues.length > 2) {
+      if (transaction.stop && meterValues.length > 2) {
         const lastMeterValue = meterValues[meterValues.length-1]; 
         const lastButOneMeterValue = meterValues[meterValues.length-2];
         // Get the diff between them
