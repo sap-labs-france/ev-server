@@ -287,7 +287,56 @@ describe('Transaction entity tests', () => {
         }]
       );
     });
+    it('a started transaction with multiple meterValues', () => {
+      const model = EmptyTransactionFactory.build({meterStart: 10000});
+      model.meterValues = [];
+      const timestamp = moment(model.timestamp);
+      model.meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'hours').toDate(),
+          value: 10200
+        }
+      ));
+      model.meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 10250
+        }
+      ));
+      model.meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 10350
+        }
+      ));
 
+      const transaction = new Transaction(model);
+      expect(transaction.consumptions).to.deep.equal(
+        [
+          {
+            cumulated: 10200,
+            date: model.meterValues[0].timestamp,
+            value: 200
+          },
+          {
+            cumulated: 10250,
+            date: model.meterValues[1].timestamp,
+            value: 50*60
+          },
+          {
+            cumulated: 10350,
+            date: model.meterValues[2].timestamp,
+            value: 100*60
+          }
+        ]
+      );
+    });
     it('a started transaction with multiple meterValues', () => {
       const model = EmptyTransactionFactory.build({meterStart: 0});
       model.meterValues = [];
@@ -338,6 +387,7 @@ describe('Transaction entity tests', () => {
         ]
       );
     });
+
     it('a stopped transaction with multiple meterValues', () => {
       const model = EmptyTransactionFactory.build({meterStart: 0});
       model.meterValues = [];
@@ -368,7 +418,7 @@ describe('Transaction entity tests', () => {
       ));
 
       const transaction = new Transaction(model);
-      transaction.stop(transaction.startedBy, transaction.tagID, 11, timestamp.add(1, 'minutes').toDate());
+      transaction.stop(transaction.initiator, transaction.tagID, 11, timestamp.add(1, 'minutes').toDate());
       expect(transaction.consumptions).to.deep.equal(
         [
           {
@@ -535,7 +585,7 @@ describe('Transaction entity tests', () => {
       ));
 
       const transaction = new Transaction(model, {priceKWH: 1.5});
-      transaction.stop(transaction.startedBy, transaction.tagID, 11, timestamp.add(1, 'minutes').toDate());
+      transaction.stop(transaction.initiator, transaction.tagID, 11, timestamp.add(1, 'minutes').toDate());
       expect(transaction.consumptions).to.deep.equal(
         [
           {
@@ -697,7 +747,7 @@ describe('Transaction entity tests', () => {
         }
       ));
       const transaction = new Transaction(model);
-      transaction.stop(transaction.startedBy, transaction.tagID, 11, timestamp.add(1, 'minutes').toDate());
+      transaction.stop(transaction.initiator, transaction.tagID, 11, timestamp.add(1, 'minutes').toDate());
       expect(transaction.currentConsumption).to.equal(0);
     });
   });
@@ -819,7 +869,7 @@ describe('Transaction entity tests', () => {
         connectorId: faker.random.number({min: 0, max: 5})
       };
       const transaction = new Transaction(model);
-      transaction.start(user,tagId, 555, now);
+      transaction.start(user, tagId, 555, now);
       expect(transaction.model).to.deep.equal(
         {
           id: model.id,
@@ -922,7 +972,7 @@ describe('Transaction entity tests', () => {
         }
       ));
       const transaction = new Transaction(model);
-      transaction.stop(transaction.startedBy, transaction.tagID, 11, timestamp.add(1, 'minutes').toDate());
+      transaction.stop(transaction.initiator, transaction.tagID, 11, timestamp.add(1, 'minutes').toDate());
       expect(transaction.model).to.deep.equal(
         {
           id: model.id,
@@ -956,7 +1006,7 @@ describe('Transaction entity tests', () => {
       model.meterValues = [];
       const timestamp = moment(model.timestamp);
       const transaction = new Transaction(model);
-      transaction.stop(transaction.startedBy, transaction.tagID, 11, timestamp.add(1, 'minutes').toDate());
+      transaction.stop(transaction.initiator, transaction.tagID, 11, timestamp.add(1, 'minutes').toDate());
       expect(transaction.totalDurationInSecs).to.equal(60);
     });
     it('test on active transaction', () => {

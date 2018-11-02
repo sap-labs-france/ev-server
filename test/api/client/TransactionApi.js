@@ -1,6 +1,6 @@
 const CrudApi = require('./utils/CrudApi');
 const Constants = require('./utils/Constants');
-const { expect } = require('chai');
+const {expect} = require('chai');
 
 class TransactionApi extends CrudApi {
   constructor(authenticatedApi) {
@@ -20,7 +20,7 @@ class TransactionApi extends CrudApi {
   }
 
   readAllConsumption(id) {
-    return super.read('/client/api/ChargingStationConsumptionFromTransaction', { TransactionId: id });
+    return super.read('/client/api/ChargingStationConsumptionFromTransaction', {TransactionId: id});
   }
 
   readAllYears(params) {
@@ -65,28 +65,15 @@ class TransactionApi extends CrudApi {
       connectorId: chargingStationConnector.connectorId,
       tagID: user.tagIDs[0],
       chargeBoxID: chargingStation.id,
+      currentConsumption: 0,
+      totalConsumption: 0,
       meterStart: meterStart,
-      chargeBox: {
-        id: chargingStation.id,
-        connectors: [{
-          activeTransactionID: transactionId,
-          connectorId: chargingStationConnector.connectorId,
-          currentConsumption: 0,
-          totalConsumption: 0,
-          status: 'Occupied',
-          errorCode: 'NoError',
-          vendorErrorCode: '',
-          info: '',
-          type: null,
-          power: 0
-        }]
-      },
       user: {
         id: user.id,
         firstName: user.firstName,
         name: user.name,
       }
-    })
+    });
     return response.data;
   }
 
@@ -100,7 +87,7 @@ class TransactionApi extends CrudApi {
         transactionId: transaction.id,
         values: {
           timestamp: currentTime.toISOString(),
-          sampledValue: [{ 
+          sampledValue: [{
             value: meterValue,
             format: "Raw",
             measurand: "Energy.Active.Import.Register",
@@ -110,7 +97,7 @@ class TransactionApi extends CrudApi {
           }]
         },
       });
-    // OCPP 1.5
+      // OCPP 1.5
     } else {
       response = await ocpp.executeMeterValues(chargingStation.id, {
         connectorId: transaction.connectorId,
@@ -143,21 +130,8 @@ class TransactionApi extends CrudApi {
       tagID: transaction.tagID,
       chargeBoxID: transaction.chargeBoxID,
       meterStart: transaction.meterStart,
-      chargeBox: {
-        id: transaction.chargeBoxID,
-        connectors: [{
-          activeTransactionID: transaction.id,
-          connectorId: transaction.connectorId,
-          currentConsumption: currentConsumption,
-          totalConsumption: totalConsumption,
-          status: 'Occupied',
-          errorCode: 'NoError',
-          vendorErrorCode: '',
-          info: '',
-          type: null,
-          power: 0
-        }]
-      },
+      currentConsumption: currentConsumption,
+      totalConsumption: totalConsumption,
       user: {
         id: user.id,
         firstName: user.firstName,
@@ -197,31 +171,16 @@ class TransactionApi extends CrudApi {
       tagID: transaction.tagID,
       chargeBoxID: transaction.chargeBoxID,
       meterStart: transaction.meterStart,
-      "stop": {
-        "tagID": userStop.tagIDs[0],
-        "timestamp": stopTime.toISOString(),
-        "totalConsumption": totalConsumption,
-        "totalInactivitySecs": totalInactivity,
-        "user": {
-          "id": userStop.id,
-          "name": userStop.name,
-          "firstName": userStop.firstName
+      totalConsumption: totalConsumption,
+      totalInactivitySecs: totalInactivity,
+      stop: {
+        tagID: userStop.tagIDs[0],
+        timestamp: stopTime.toISOString(),
+        user: {
+          id: userStop.id,
+          name: userStop.name,
+          firstName: userStop.firstName
         },
-      },
-      chargeBox: {
-        id: transaction.chargeBoxID,
-        connectors: [{
-          activeTransactionID: 0,
-          connectorId: transaction.connectorId,
-          currentConsumption: 0,
-          totalConsumption: 0,
-          status: 'Available',
-          errorCode: 'NoError',
-          vendorErrorCode: '',
-          info: '',
-          type: null,
-          power: 0
-        }]
       },
       user: {
         id: userStart.id,

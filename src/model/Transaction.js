@@ -22,7 +22,7 @@ class Transaction {
       this._model.stop.totalInactivitySecs = this.totalInactivitySecs;
       this._model.stop.totalConsumption = this._model.totalConsumption;
     }
-    if(this.totalDurationInSecs){
+    if (this.totalDurationInSecs) {
       this._model.totalDurationInSecs = this.totalDurationInSecs;
     }
     if (this._model.user) {
@@ -34,6 +34,16 @@ class Transaction {
     const copy = Utils.duplicateJSON(this._model);
     delete copy.meterValues;
     return copy;
+  }
+
+  get fullModel() {
+    const model = this.model;
+    model.user = Utils.duplicateJSON(this._model.user);
+    if (this._model.stop) {
+      this._model.stop.user = Utils.duplicateJSON(this._model.stop.user);
+    }
+    model.meterValues = Utils.duplicateJSON(this._model.meterValues);
+    return model;
   }
 
   get id() {
@@ -64,15 +74,21 @@ class Transaction {
     return this._model.stop.timestamp;
   }
 
-  get startedBy() {
-    return this._model.user;
+  get initiator() {
+    if (this._model.user) {
+      return this._model.user;
+    }
+    return null;
   }
 
-  get stoppedBy() {
-    return this._model.stop.user;
+  get finisher() {
+    if (this._model.stop.user) {
+      return this._model.stop.user;
+    }
+    return null;
   }
 
-  get stoppedByTag() {
+  get finisherTagId() {
     return this._model.stop.tagID;
   }
 
@@ -85,8 +101,10 @@ class Transaction {
   }
 
   get totalConsumption() {
-    const meterValues = this.meterValues;
-    return meterValues[meterValues.length - 1].value;
+    if (this._hasMeterValues()) {
+      return Math.floor(this._latestConsumption.cumulated);
+    }
+    return 0;
   }
 
   get totalDurationInSecs() {
@@ -98,6 +116,24 @@ class Transaction {
 
   get totalPrice() {
     return this.consumptions.reduce((totalPrice, consumption) => totalPrice + consumption.price, 0);
+  }
+
+  get lastUpdateDate() {
+    return this._latestMeterValue.date;
+  }
+
+  get duration() {
+    return moment.duration(moment(this.lastUpdateDate).diff(moment(this.startDate)));
+  }
+
+  get _latestMeterValue() {
+    const meterValues = this.meterValues;
+    return meterValues[meterValues.length - 1];
+  }
+
+  get _latestConsumption() {
+    const consumptions = this.consumptions;
+    return consumptions[consumptions.length - 1];
   }
 
   get totalInactivitySecs() {
@@ -116,8 +152,7 @@ class Transaction {
 
   get currentConsumption() {
     if (this.isActive() && this._hasMeterValues()) {
-      const consumptions = this.consumptions;
-      return consumptions[consumptions.length - 1].value;
+      return Math.floor(this._latestConsumption.value);
     }
     return 0;
   }
@@ -186,8 +221,25 @@ class Transaction {
     };
   }
 
+  hasMultipleConsumptions() {
+    return this.consumptions.length > 1;
+  }
+
+  getAverageConsumptionOnLast(numberOfConsumptions) {
+    const consumptions = this.consumptions;
+    let cumulatedConsumption = 0;
+    for (let i = numberOfConsumptions.length - 1; i < numberOfConsumptions.length; i++) {
+      cumulatedConsumption += consumptions[i].value;
+    }
+    return cumulatedConsumption / numberOfConsumptions;
+  }
+
   isActive() {
     return !this._model.stop;
+  }
+
+  isRemotelyStopped() {
+    return !!this._model.remotestop;
   }
 
   stop(user, tagId, meterStop, timestamp) {
@@ -198,6 +250,13 @@ class Transaction {
     this._model.stop.tagID = tagId;
     this._model.stop.totalInactivitySecs = this.totalInactivitySecs;
     this._model.stop.totalConsumption = this.totalConsumption;
+  }
+
+  remoteStop(tagId, timestamp) {
+    this._model.remotestop = {};
+    this._model.remotestop.tagID = tagId;
+    this._model.remotestop.timestamp = timestamp;
+
   }
 
   start(user, tagID, meterStart, timestamp) {
@@ -217,14 +276,14 @@ class Transaction {
     const diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, 'seconds');
     const sampleMultiplier = 3600 / diffSecs;
     const currentConsumption = (meterValue.value - lastMeterValue.value) * sampleMultiplier;
-    const consumptionWh = meterValue.value - lastMeterValue.value;
 
     const consumption = {
       date: meterValue.timestamp,
       value: currentConsumption,
-      cumulated: meterValue.value
+      cumulated: meterValue.value - this.meterStart
     };
     if (this._pricing) {
+      const consumptionWh = meterValue.value - lastMeterValue.value;
       consumption.price = (consumptionWh / 1000) * this._pricing.priceKWH;
     }
     return consumption;

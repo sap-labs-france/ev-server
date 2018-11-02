@@ -41,7 +41,7 @@ const config = convict({
         default: 'none',
         env: 'OCPP_SOAP_LOGS'
       }
-    }, 
+    },
     json: {
       scheme: {
         doc: 'The OCPP server scheme.',
@@ -63,7 +63,7 @@ const config = convict({
         arg: 'ocpp_json_port'
       },
       logs: {
-        doc: '"json"/"xml" to trace ocpp communication according to type, "none" to not trace them',
+        doc: '"json" to trace ocpp communication according to type, "none" to not trace them',
         format: ['json', 'none'],
         default: 'none',
         env: 'OCPP_JSON_LOGS'

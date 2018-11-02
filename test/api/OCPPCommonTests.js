@@ -34,7 +34,7 @@ class OCPPCommonTests {
     // Set meter value start
     this.transactionStartUser = this.context.newUser;
     this.transactionStopUser = this.context.newUser;
-    this.transactionStartTime = moment().subtract(1, "h")
+    this.transactionStartTime = moment().subtract(1, "h");
     this.transactionStartMeterValue = 10000;
     this.transactionMeterValueIntervalSecs = 60;
     this.transactionMeterValues = [200, 10, 500, 250, 120, 50, 0, 0, 0, 100];
@@ -104,14 +104,14 @@ class OCPPCommonTests {
 
   async testHeartbeat() {
     // Update Status of Connector 1
-    let response = await this.ocpp.executeHeartbeat(this.context.newChargingStation.id, {});
+    const response = await this.ocpp.executeHeartbeat(this.context.newChargingStation.id, {});
     // Check
     expect(response.data).to.have.property('currentTime');
   }
 
   async testDataTransfer() {
     // Check
-    let response = await this.ocpp.executeDataTransfer(this.context.newChargingStation.id, {
+    const response = await this.ocpp.executeDataTransfer(this.context.newChargingStation.id, {
       "vendorId": "Schneider Electric",
       "messageId": "Detection loop",
       "data": "{\\\"connectorId\\\":2,\\\"name\\\":\\\"Vehicle\\\",\\\"state\\\":\\\"0\\\",\\\"timestamp\\\":\\\"2018-08-08T10:21:11Z:\\\"}",
@@ -155,114 +155,114 @@ class OCPPCommonTests {
   }
 
   async testStartAgainTransaction() {
-      // Check on Transaction
-      expect(this.newTransaction).to.not.be.null;
-      // Set
-      let transactionId = this.newTransaction.id;
-      this.transactionStartTime = moment().subtract(1, "h");
-      // Clear old one
-      this.newTransaction = null;
+    // Check on Transaction
+    expect(this.newTransaction).to.not.be.null;
+    // Set
+    const transactionId = this.newTransaction.id;
+    this.transactionStartTime = moment().subtract(1, "h");
+    // Clear old one
+    this.newTransaction = null;
 
-      // Start the Transaction
-      this.newTransaction = await CentralServerService.transactionApi.startTransaction(
-        this.ocpp,
-        this.context.newChargingStation,
-        this.chargingStationConnector1, 
-        this.transactionStartUser,
-        this.transactionStartMeterValue,
-        this.transactionStartTime);
-      // Check
-      expect(this.newTransaction).to.not.be.null;
-      expect(this.newTransaction.id).to.not.equal(transactionId);
+    // Start the Transaction
+    this.newTransaction = await CentralServerService.transactionApi.startTransaction(
+      this.ocpp,
+      this.context.newChargingStation,
+      this.chargingStationConnector1,
+      this.transactionStartUser,
+      this.transactionStartMeterValue,
+      this.transactionStartTime);
+    // Check
+    expect(this.newTransaction).to.not.be.null;
+    expect(this.newTransaction.id).to.not.equal(transactionId);
   }
 
   async testSendMeterValues() {
-      // Check on Transaction
-      expect(this.newTransaction).to.not.be.null;
-      // Current Time matches Transaction one
-      this.transactionCurrentTime = moment(this.newTransaction.timestamp);
-      // Start Meter Value matches Transaction one
-      let transactionCurrentMeterValue = this.transactionStartMeterValue; 
-      // Send Meter Values (except the last one which will be used in Stop Transaction)
-      for (let index = 0; index <= this.transactionMeterValues.length-2; index++) {
-        // Set new meter value
-        transactionCurrentMeterValue += this.transactionMeterValues[index];
-        // Add time
-        this.transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, "s");
-        // Send Meter Values
-        await CentralServerService.transactionApi.sendTransactionMeterValue(
-          this.ocpp,
-          this.newTransaction,
-          this.context.newChargingStation,
-          this.transactionStartUser,
-          transactionCurrentMeterValue,
-          this.transactionCurrentTime,
-          this.transactionMeterValues[index] * this.transactionMeterValueIntervalSecs,
-          transactionCurrentMeterValue - this.transactionStartMeterValue);
-      }
+    // Check on Transaction
+    expect(this.newTransaction).to.not.be.null;
+    // Current Time matches Transaction one
+    this.transactionCurrentTime = moment(this.newTransaction.timestamp);
+    // Start Meter Value matches Transaction one
+    let transactionCurrentMeterValue = this.transactionStartMeterValue;
+    // Send Meter Values (except the last one which will be used in Stop Transaction)
+    for (let index = 0; index <= this.transactionMeterValues.length - 2; index++) {
+      // Set new meter value
+      transactionCurrentMeterValue += this.transactionMeterValues[index];
+      // Add time
+      this.transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, "s");
+      // Send Meter Values
+      await CentralServerService.transactionApi.sendTransactionMeterValue(
+        this.ocpp,
+        this.newTransaction,
+        this.context.newChargingStation,
+        this.transactionStartUser,
+        transactionCurrentMeterValue,
+        this.transactionCurrentTime,
+        this.transactionMeterValues[index] * this.transactionMeterValueIntervalSecs,
+        transactionCurrentMeterValue - this.transactionStartMeterValue);
+    }
   }
 
   async testStopTransaction() {
-      // Check on Transaction
-      expect(this.newTransaction).to.not.be.null;
-      expect(this.transactionCurrentTime).to.not.be.null;
+    // Check on Transaction
+    expect(this.newTransaction).to.not.be.null;
+    expect(this.transactionCurrentTime).to.not.be.null;
 
-      // Set end time
-      this.transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, "s");
+    // Set end time
+    this.transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, "s");
 
-      // Stop the Transaction
-      await CentralServerService.transactionApi.stopTransaction(
-        this.ocpp,
-        this.newTransaction,
-        this.transactionStartUser,
-        this.transactionStopUser,
-        this.transactionEndMeterValue,
-        this.transactionCurrentTime,
-        this.chargingStationConnector1,
-        this.transactionTotalConsumption,
-        this.transactionTotalInactivity);
+    // Stop the Transaction
+    await CentralServerService.transactionApi.stopTransaction(
+      this.ocpp,
+      this.newTransaction,
+      this.transactionStartUser,
+      this.transactionStopUser,
+      this.transactionEndMeterValue,
+      this.transactionCurrentTime,
+      this.chargingStationConnector1,
+      this.transactionTotalConsumption,
+      this.transactionTotalInactivity);
   }
 
   async testTransactionMetrics() {
-      // Check on Transaction
-      expect(this.newTransaction).to.not.be.null;
+    // Check on Transaction
+    expect(this.newTransaction).to.not.be.null;
 
-      // Get the consumption
-      let response = await CentralServerService.transactionApi.readAllConsumption(this.newTransaction.id);
-      expect(response.status).to.equal(200);
-      // Check Headers
-      expect(response.data).to.deep.include({
-        "chargeBoxID": this.newTransaction.chargeBoxID,
-        "connectorId": this.newTransaction.connectorId,
-        "totalConsumption": this.transactionTotalConsumption,
-        "transactionId": this.newTransaction.id,
-        "user": {
-          "id": this.transactionStartUser.id,
-          "name": this.transactionStartUser.name,
-          "firstName": this.transactionStartUser.firstName
-        }
-      });
-      // Init
-      let transactionCurrentTime = moment(this.newTransaction.timestamp);
-      let transactionCumulatedConsumption = 0;
-      // Check Consumption
-      for (let i = 0; i < response.data.values.length; i++) {
-        // Get the value
-        const value = response.data.values[i];
-        // Add time
-        transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, "s");
-        // Sum
-        transactionCumulatedConsumption += this.transactionMeterValues[i];
-        // Check
-        expect(value).to.include({
-          "date": transactionCurrentTime.toISOString(),
-          "value": this.transactionMeterValues[i] * this.transactionMeterValueIntervalSecs,
-          "cumulated": transactionCumulatedConsumption
-        });      
+    // Get the consumption
+    const response = await CentralServerService.transactionApi.readAllConsumption(this.newTransaction.id);
+    expect(response.status).to.equal(200);
+    // Check Headers
+    expect(response.data).to.deep.include({
+      "chargeBoxID": this.newTransaction.chargeBoxID,
+      "connectorId": this.newTransaction.connectorId,
+      "totalConsumption": this.transactionTotalConsumption,
+      "transactionId": this.newTransaction.id,
+      "user": {
+        "id": this.transactionStartUser.id,
+        "name": this.transactionStartUser.name,
+        "firstName": this.transactionStartUser.firstName
       }
+    });
+    // Init
+    const transactionCurrentTime = moment(this.newTransaction.timestamp);
+    let transactionCumulatedConsumption = 0;
+    // Check Consumption
+    for (let i = 0; i < response.data.values.length; i++) {
+      // Get the value
+      const value = response.data.values[i];
+      // Add time
+      transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, "s");
+      // Sum
+      transactionCumulatedConsumption += this.transactionMeterValues[i];
+      // Check
+      expect(value).to.include({
+        "date": transactionCurrentTime.toISOString(),
+        "value": this.transactionMeterValues[i] * this.transactionMeterValueIntervalSecs,
+        "cumulated": transactionCumulatedConsumption
+      });
+    }
   }
 
-    async testDeleteTransaction() {
+  async testDeleteTransaction() {
     // Delete the created entity
     await CentralServerService.deleteEntity(
       CentralServerService.transactionApi, this.newTransaction);

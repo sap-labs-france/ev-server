@@ -33,9 +33,9 @@ class Utils {
       'https://eu10.revenue.cloud.sap/api/usage-record/v1/usage-records',
       {
         'metricId': 'ChargeCurrent_Trial',
-        'quantity': transaction.stop.totalConsumption / 1000,
-        'startedAt': transaction.timestamp,
-        'endedAt': transaction.stop.timestamp,
+        'quantity': transaction.totalConsumption / 1000,
+        'startedAt': transaction.startedAt,
+        'endedAt': transaction.endedAt,
         'userTechnicalId': transaction.tagID
       },
       {
@@ -48,7 +48,7 @@ class Utils {
     // Log
     Logging.logSecurityInfo({
       user, actionOnUser, action,
-      source: transaction.chargeBox.id,
+      source: transaction.chargeBoxID,
       module: 'Utils', method: 'pushTransactionToRevenueCloud',
       message: `Transaction ID '${transaction.id}' has been refunded successfully`,
       detailedMessages: result.data
