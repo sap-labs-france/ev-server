@@ -18,12 +18,8 @@ class JsonWSConnection extends WSConnection {
     super(wsConnection, req, wsServer);
     // Init
     this._requests = {};
-<<<<<<< HEAD
     this._tenantID = null;
     this._serverURL = serverURL;
-=======
-    this._tenantName = null;
->>>>>>> 723ec4a59673aa8a5622235ef8fe7c9323408b6f
     // Parse URL: should like /OCPP16/TENANTNAME/CHARGEBOXID
     const splittedURL = this.getURL().split("/");
     // URL with 4 parts?
