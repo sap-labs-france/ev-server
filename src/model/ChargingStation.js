@@ -1173,7 +1173,7 @@ class ChargingStation {
       for (let index = 0; index < stopTransaction.transactionData.values.length; index++) {
         // Get the value structure 
         const value = stopTransaction.transactionData.values[index].value;
-        if (value['$value']) {
+        if (value.hasOwnProperty('$value')) {
           // Clear it
           value.value = value['$value'];
           delete value['$value'];
