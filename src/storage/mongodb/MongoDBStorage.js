@@ -123,7 +123,7 @@ class MongoDBStorage {
 
     for (const collection of collections) {
       if (!DatabaseUtils.getFixedCollections().includes(collection.name) && !collection.name.includes('.')) {
-        await this._db.collection(collection.name).rename(MongoDBStorage.getCollectionName(DatabaseUtils.getMasterTenant(), collection.name));
+        await this._db.collection(collection.name).rename(DatabaseUtils.getCollectionName(DatabaseUtils.getMasterTenant(), collection.name));
       }
     }
 

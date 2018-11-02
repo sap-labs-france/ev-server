@@ -96,11 +96,11 @@ class Bootstrap {
 			SchedulerManager.init();
 		
 		} catch (error) {
-			// Log
+      // Log
+      console.error(error);
 			Logging.logError({
 				source: 'BootStrap', module: 'start', method: '-', action: 'StartServer',
 				message: `Unexpected exception: ${error.toString()}` });
-			console.log(`Unexpected exception: ${error.toString()}`);
 		}
 	}
 }
