@@ -1,13 +1,10 @@
-const Logging = require('../../utils/Logging');
 const MongoClient = require('mongodb').MongoClient;
 const mongoUriBuilder = require('mongo-uri-builder');
 const urlencode = require('urlencode');
 const MongoDBStorageNotification = require('./MongoDBStorageNotification');
+const DatabaseUtils = require('./DatabaseUtils');
 
 require('source-map-support').install();
-
-const FIXED_COLLECTION = ['tenants'];
-let masterTenantID;
 
 class MongoDBStorage {
 
@@ -18,22 +15,12 @@ class MongoDBStorage {
   }
 
   getCollection(tenantID, collectionName){
-    return this._db.collection(MongoDBStorage.getCollectionName(tenantID, collectionName));
-  }
-
-  static getCollectionName(tenantID, collectionName){
-    if (FIXED_COLLECTION.includes(collectionName)) {
-      return collectionName;
-    }
-    if (!tenantID) {
-      tenantID = masterTenantID;
-    }
-    return `${tenantID}.${collectionName}`;
+    return this._db.collection(DatabaseUtils.getCollectionName(tenantID, collectionName));
   }
 
   async checkAndCreateCollection(allCollections, tenantID, name, indexes){
     // Check Logs
-    const tenantCollectionName = MongoDBStorage.getCollectionName(tenantID, name);
+    const tenantCollectionName = DatabaseUtils.getCollectionName(tenantID, name);
     const foundCollection = allCollections.find((collection) => {
       return collection.name === tenantCollectionName;
     });
@@ -101,22 +88,13 @@ class MongoDBStorage {
   }
 
   async deleteTenantDatabase(tenantID){
-    if (tenantID === masterTenantID) {
-      Logging.logError({tenantID: masterTenantID,
-        module: 'MongoDBStorage', method: 'deleteTenantDatabase',
-        message: `The master tenant cannot be deleted`
-      });
-    } else {
-      Logging.logWarning({tenantID: masterTenantID,
-        module: 'MongoDBStorage', method: 'deleteTenantDatabase',
-        message: `Deleting collections for tenant ${tenantID}`
-      });
-    }
-    const collections = await this._db.listCollections().toArray();
+    if (tenantID !== DatabaseUtils.getMasterTenant()) {
+      const collections = await this._db.listCollections().toArray();
 
-    for (const collection of collections) {
-      if (collection.name.startsWith(`${tenantID}.`)) {
-        await this._db.collection(collection.name).drop();
+      for (const collection of collections) {
+        if (collection.name.startsWith(`${tenantID}.`)) {
+          await this._db.collection(collection.name).drop();
+        }
       }
     }
   }
@@ -135,22 +113,22 @@ class MongoDBStorage {
           "masterTenant": true
         }
       );
-      masterTenantID = result.insertedId;
+      DatabaseUtils.setMasterTenant(result.insertedId);
     } else {
-      masterTenantID = tenantsMDB[0]._id;
+      DatabaseUtils.setMasterTenant(tenantsMDB[0]._id);
     }
 
     // Migrate not prefixed collections
     const collections = await this._db.listCollections().toArray();
 
     for (const collection of collections) {
-      if (!FIXED_COLLECTION.includes(collection.name) && !collection.name.includes('.')) {
-        await this._db.collection(collection.name).rename(MongoDBStorage.getCollectionName(masterTenantID, collection.name));
+      if (!DatabaseUtils.getFixedCollections().includes(collection.name) && !collection.name.includes('.')) {
+        await this._db.collection(collection.name).rename(MongoDBStorage.getCollectionName(DatabaseUtils.getMasterTenant(), collection.name));
       }
     }
 
     // Create missing collections if required
-    await this.createTenantDatabase(masterTenantID);
+    await this.createTenantDatabase(DatabaseUtils.getMasterTenant());
   }
 
   async checkDatabase(){
@@ -207,12 +185,6 @@ class MongoDBStorage {
 
     // Check Database Default Content
     await this.checkDatabaseDefaultContent();
-
-    // Log
-    Logging.logInfo({tenantID: masterTenantID,
-      module: 'MongoDBStorage', method: 'start', action: 'Startup',
-      message: `Connected to '${this._dbConfig.implementation}' successfully`
-    });
     console.log(`Connected to '${this._dbConfig.implementation}' successfully`);
   }
 

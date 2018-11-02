@@ -4,7 +4,7 @@ const Utils = require('../../utils/Utils');
 const SiteStorage = require('./SiteStorage');
 const ObjectID = require('mongodb').ObjectID;
 const AppError = require('../../exception/AppError');
-const MongoDBStorage = require('./MongoDBStorage');
+const DatabaseUtils = require('./DatabaseUtils');
 
 class CompanyStorage {
   static async getCompany(tenantID, id){
@@ -16,7 +16,7 @@ class CompanyStorage {
       $match: {_id: Utils.convertToObjectID(id)}
     });
     // Add Created By / Last Changed By
-    Utils.pushCreatedLastChangedInAggregation(aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
     // Read DB
     const companiesMDB = await global.database.getCollection(tenantID, 'companies')
       .aggregate(aggregation)
@@ -146,7 +146,7 @@ class CompanyStorage {
       // Add Sites
       aggregation.push({
         $lookup: {
-          from: MongoDBStorage.getCollectionName(tenantID, "sites"),
+          from: DatabaseUtils.getCollectionName(tenantID, "sites"),
           localField: "_id",
           foreignField: "companyID",
           as: "sites"
@@ -158,7 +158,7 @@ class CompanyStorage {
       .aggregate([...aggregation, {$count: "count"}])
       .toArray();
     // Add Created By / Last Changed By
-    Utils.pushCreatedLastChangedInAggregation(aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
     // Sort
     if (sort) {
       // Sort

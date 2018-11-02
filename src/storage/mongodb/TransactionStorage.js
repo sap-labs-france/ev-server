@@ -2,7 +2,7 @@ const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const crypto = require('crypto');
-const MongoDBStorage = require('./MongoDBStorage');
+const DatabaseUtils = require('./DatabaseUtils');
 
 class TransactionStorage {
   static async deleteTransaction(tenantID, transaction){
@@ -159,7 +159,7 @@ class TransactionStorage {
       // Add Charge Box
       aggregation.push({
         $lookup: {
-          from: 'chargingstations',
+          from: DatabaseUtils.getCollectionName(tenantID, "chargingstations"),
           localField: 'chargeBoxID',
           foreignField: '_id',
           as: 'chargeBox'
@@ -174,7 +174,7 @@ class TransactionStorage {
       // Add Site Area
       aggregation.push({
         $lookup: {
-          from: 'siteareas',
+          from: DatabaseUtils.getCollectionName(tenantID, "siteareas"),
           localField: 'chargeBox.siteAreaID',
           foreignField: '_id',
           as: 'siteArea'
@@ -216,7 +216,7 @@ class TransactionStorage {
     // Add User that started the transaction
     aggregation.push({
       $lookup: {
-        from: 'users',
+        from: DatabaseUtils.getCollectionName(tenantID, "users"),
         localField: 'userID',
         foreignField: '_id',
         as: 'user'
@@ -229,7 +229,7 @@ class TransactionStorage {
     // Add User that stopped the transaction
     aggregation.push({
       $lookup: {
-        from: 'users',
+        from: DatabaseUtils.getCollectionName(tenantID, "users"),
         localField: 'stop.userID',
         foreignField: '_id',
         as: 'stop.user'
@@ -273,7 +273,7 @@ class TransactionStorage {
     // Add User
     aggregation.push({
       $lookup: {
-        from: MongoDBStorage.getCollectionName(tenantID, "users"),
+        from: DatabaseUtils.getCollectionName(tenantID, "users"),
         localField: "userID",
         foreignField: "_id",
         as: "user"
@@ -286,7 +286,7 @@ class TransactionStorage {
     // Add Stop User
     aggregation.push({
       $lookup: {
-        from: MongoDBStorage.getCollectionName(tenantID, "users"),
+        from: DatabaseUtils.getCollectionName(tenantID, "users"),
         localField: "stop.userID",
         foreignField: "_id",
         as: "stop.user"
@@ -299,7 +299,7 @@ class TransactionStorage {
     // Add
     aggregation.push({
       $lookup: {
-        from: MongoDBStorage.getCollectionName(tenantID, "chargingstations"),
+        from: DatabaseUtils.getCollectionName(tenantID, "chargingstations"),
         localField: "chargeBoxID",
         foreignField: "_id",
         as: "chargeBox"
@@ -339,7 +339,7 @@ class TransactionStorage {
     // Add User
     aggregation.push({
       $lookup: {
-        from: MongoDBStorage.getCollectionName(tenantID, "users"),
+        from: DatabaseUtils.getCollectionName(tenantID, "users"),
         localField: "userID",
         foreignField: "_id",
         as: "user"

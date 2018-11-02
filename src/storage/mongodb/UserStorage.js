@@ -6,7 +6,7 @@ const Configuration = require('../../utils/Configuration');
 const Utils = require('../../utils/Utils');
 const AppError = require('../../exception/AppError');
 const eula = require('../../end-user-agreement');
-const MongoDBStorage = require('./MongoDBStorage');
+const DatabaseUtils = require('./DatabaseUtils');
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 
@@ -141,7 +141,7 @@ class UserStorage {
       $match: {'_id': Utils.convertToObjectID(id)}
     });
     // Add Created By / Last Changed By
-    Utils.pushCreatedLastChangedInAggregation(aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
     // Read DB
     const usersMDB = await global.database.getCollection(tenantID, 'users')
       .aggregate(aggregation)
@@ -353,7 +353,7 @@ class UserStorage {
     // Add TagIDs
     aggregation.push({
       $lookup: {
-        from: MongoDBStorage.getCollectionName(tenantID, "tags"),
+        from: DatabaseUtils.getCollectionName(tenantID, "tags"),
         localField: "_id",
         foreignField: "userID",
         as: "tags"
@@ -366,13 +366,13 @@ class UserStorage {
       });
     }
     // Add Created By / Last Changed By
-    Utils.pushCreatedLastChangedInAggregation(aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
     // Site ID?
     if (params.siteID) {
       // Add Site
       aggregation.push({
         $lookup: {
-          from: MongoDBStorage.getCollectionName(tenantID, "siteusers"),
+          from: DatabaseUtils.getCollectionName(tenantID, "siteusers"),
           localField: "_id",
           foreignField: "userID",
           as: "siteusers"

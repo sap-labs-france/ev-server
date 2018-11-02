@@ -55,9 +55,19 @@ class TenantService extends AbstractService {
           `The master tenant with ID '${filteredRequest.ID}' cannot be deleted`, 550,
           MODULE_NAME, 'handleDeleteTenant', req.user);
       }
+      if (tenant.getID() === req.user.tenantID) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `Your own tenant with id '${tenant.getID()}' cannot be deleted`, 550,
+          MODULE_NAME, 'handleDeleteTenant', req.user);
+      }
       // Delete
       await tenant.delete();
       if (filteredRequest.forced) {
+        Logging.logWarning({tenantID: req.user.tenantID,
+          module: 'MongoDBStorage', method: 'deleteTenantDatabase',
+          message: `Deleting collections for tenant ${tenant.getID()}`
+        });
         await tenant.deleteEnvironment();
       }
       // Log

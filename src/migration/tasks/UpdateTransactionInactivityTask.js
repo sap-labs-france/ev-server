@@ -2,7 +2,7 @@ const moment = require('moment');
 const Database = require('../../utils/Database');
 const ChargingStation = require('../../entity/ChargingStation');
 const Tenant = require('../../entity/Tenant');
-const MongoDBStorage = require('../../storage/mongodb/MongoDBStorage');
+const DatabaseUtils = require('../../storage/mongodb/DatabaseUtils');
 
 class UpdateTransactionInactivityTask {
   async migrate(){
@@ -27,7 +27,7 @@ class UpdateTransactionInactivityTask {
     // Add Charger
     aggregation.push({
       $lookup: {
-        from: MongoDBStorage.getCollectionName(tenant.getID(), 'chargingstations'),
+        from: DatabaseUtils.getCollectionName(tenant.getID(), 'chargingstations'),
         localField: 'chargeBoxID',
         foreignField: '_id',
         as: 'chargeBox'

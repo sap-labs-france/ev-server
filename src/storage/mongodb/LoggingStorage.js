@@ -1,6 +1,7 @@
 const Utils = require('../../utils/Utils');
 const Database = require('../../utils/Database');
 const Constants = require('../../utils/Constants');
+const DatabaseUtils = require('./DatabaseUtils');
 
 class LoggingStorage {
   static async deleteLogs(tenantID, deleteUpToDate){
@@ -178,7 +179,7 @@ class LoggingStorage {
     // User
     aggregation.push({
       $lookup: {
-        from: 'users',
+        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
         localField: 'userID',
         foreignField: '_id',
         as: 'user'
@@ -191,7 +192,7 @@ class LoggingStorage {
     // Action on User
     aggregation.push({
       $lookup: {
-        from: 'users',
+        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
         localField: 'actionOnUserID',
         foreignField: '_id',
         as: 'actionOnUser'

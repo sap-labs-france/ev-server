@@ -3,6 +3,7 @@ const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const ObjectID = require('mongodb').ObjectID;
 const AppError = require('../../exception/AppError');
+const DatabaseUtils = require('./DatabaseUtils');
 
 class TenantStorage {
   static async getTenant(id){
@@ -16,9 +17,9 @@ class TenantStorage {
       }
     });
     // Add Created By / Last Changed By
-    Utils.pushCreatedLastChangedInAggregation(aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation('', aggregation);
     // Read DB
-    const tenantsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
+    const tenantsMDB = await global.database.getCollection('', 'tenants')
       .aggregate(aggregation)
       .limit(1)
       .toArray();
@@ -44,7 +45,7 @@ class TenantStorage {
   static async getTenantByFilter(filter){
     const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
     // Read DB
-    const tenantsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
+    const tenantsMDB = await global.database.getCollection('', 'tenants')
       .find(filter)
       .limit(1)
       .toArray();
@@ -80,7 +81,7 @@ class TenantStorage {
     const tenant = {};
     Database.updateTenant(tenantToSave, tenant, false);
     // Modify
-    const result = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
+    const result = await global.database.getCollection('', 'tenants').findOneAndUpdate(
       tenantFilter, {
         $set: tenant
       }, {
@@ -124,13 +125,13 @@ class TenantStorage {
       });
     }
     // Count Records
-    const tenantsCountMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
+    const tenantsCountMDB = await global.database.getCollection('', 'tenants')
       .aggregate([...aggregation, {
         $count: "count"
       }])
       .toArray();
     // Add Created By / Last Changed By
-    Utils.pushCreatedLastChangedInAggregation(aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation('',aggregation);
     // Sort
     if (sort) {
       // Sort
@@ -154,7 +155,7 @@ class TenantStorage {
       $limit: limit
     });
     // Read DB
-    const tenantsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
+    const tenantsMDB = await global.database.getCollection('', 'tenants')
       .aggregate(aggregation, {
         collation: {
           locale: Constants.DEFAULT_LOCALE,
@@ -177,7 +178,7 @@ class TenantStorage {
   }
 
   static async deleteTenant(id){
-    await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
+    await global.database.getCollection('', 'tenants')
       .findOneAndDelete({
         '_id': Utils.convertToObjectID(id)
       });

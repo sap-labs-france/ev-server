@@ -3,6 +3,7 @@ const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const AppError = require('../../exception/AppError');
+const DatabaseUtils = require('./DatabaseUtils');
 
 class VehicleStorage {
   static async getVehicleImage(tenantID, id){
@@ -50,7 +51,7 @@ class VehicleStorage {
       $match: {_id: Utils.convertToObjectID(id)}
     });
     // Add Created By / Last Changed By
-    Utils.pushCreatedLastChangedInAggregation(aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
     // Read DB
     const vehiclesMDB = await global.database.getCollection(tenantID, 'vehicles')
       .aggregate(aggregation)
@@ -149,7 +150,7 @@ class VehicleStorage {
       .aggregate([...aggregation, {$count: "count"}])
       .toArray();
     // Add Created By / Last Changed By
-    Utils.pushCreatedLastChangedInAggregation(aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
     // Sort
     if (sort) {
       // Sort

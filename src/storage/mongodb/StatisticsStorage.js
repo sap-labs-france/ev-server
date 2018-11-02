@@ -1,5 +1,6 @@
 const Utils = require('../../utils/Utils');
 const Constants = require('../../utils/Constants');
+const DatabaseUtils = require('./DatabaseUtils');
 
 class StatisticsStorage {
   static async getChargingStationStats(tenantID, filter, siteID, groupBy){
@@ -36,7 +37,7 @@ class StatisticsStorage {
       // Add Charge Box
       aggregation.push({
         $lookup: {
-          from: 'chargingstations',
+          from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
           localField: 'chargeBoxID',
           foreignField: '_id',
           as: 'chargeBox'
@@ -49,7 +50,7 @@ class StatisticsStorage {
       // Add Site Area
       aggregation.push({
         $lookup: {
-          from: 'siteareas',
+          from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
           localField: 'chargeBox.siteAreaID',
           foreignField: '_id',
           as: 'siteArea'
@@ -156,7 +157,7 @@ class StatisticsStorage {
       // Add Charge Box
       aggregation.push({
         $lookup: {
-          from: 'chargingstations',
+          from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
           localField: 'chargeBoxID',
           foreignField: '_id',
           as: 'chargeBox'
@@ -169,7 +170,7 @@ class StatisticsStorage {
       // Add Site Area
       aggregation.push({
         $lookup: {
-          from: 'siteareas',
+          from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
           localField: 'chargeBox.siteAreaID',
           foreignField: '_id',
           as: 'siteArea'
@@ -209,7 +210,7 @@ class StatisticsStorage {
     // Resolve Users
     aggregation.push({
       $lookup: {
-        from: 'users',
+        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
         localField: '_id.userID',
         foreignField: '_id',
         as: 'user'

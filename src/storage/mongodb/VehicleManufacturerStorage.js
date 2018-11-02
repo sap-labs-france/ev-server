@@ -4,7 +4,7 @@ const Utils = require('../../utils/Utils');
 const VehicleStorage = require('./VehicleStorage');
 const AppError = require('../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
-const MongoDBStorage = require('./MongoDBStorage');
+const DatabaseUtils = require('./DatabaseUtils');
 
 class VehicleManufacturerStorage {
   static async getVehicleManufacturerLogo(tenantID, id){
@@ -68,7 +68,7 @@ class VehicleManufacturerStorage {
       $match: {_id: Utils.convertToObjectID(id)}
     });
     // Add Created By / Last Changed By
-    Utils.pushCreatedLastChangedInAggregation(aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
     // Read DB
     const vehicleManufacturersMDB = await global.database.getCollection(tenantID, 'vehiclemanufacturers')
       .aggregate(aggregation)
@@ -145,7 +145,7 @@ class VehicleManufacturerStorage {
       //  Vehicles
       aggregation.push({
         $lookup: {
-          from: MongoDBStorage.getCollectionName(tenantID, "vehicles"),
+          from: DatabaseUtils.getCollectionName(tenantID, "vehicles"),
           localField: "_id",
           foreignField: "vehicleManufacturerID",
           as: "vehicles"
@@ -163,7 +163,7 @@ class VehicleManufacturerStorage {
       .aggregate([...aggregation, {$count: "count"}])
       .toArray();
     // Add Created By / Last Changed By
-    Utils.pushCreatedLastChangedInAggregation(aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
     // Sort
     if (sort) {
       // Sort

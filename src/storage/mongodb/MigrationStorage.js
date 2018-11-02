@@ -1,11 +1,10 @@
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
-const Constants = require('../../utils/Constants');
 
 class MigrationStorage {
   static async getMigrations(){
     // Read DB
-    const migrationsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'migrations')
+    const migrationsMDB = await global.database.getCollection('', 'migrations')
       .find({})
       .toArray();
     const migrations = [];
@@ -32,7 +31,7 @@ class MigrationStorage {
     // Set the ID
     migration._id = migrationToSave.name + "~" + migrationToSave.version;
     // Create
-    await global.database.getCollection(Constants.DEFAULT_TENANT, 'migrations')
+    await global.database.getCollection('', 'migrations')
       .insertOne(migration);
   }
 }

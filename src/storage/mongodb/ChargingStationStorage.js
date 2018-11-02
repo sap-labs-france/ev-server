@@ -2,7 +2,7 @@ const Constants = require('../../utils/Constants');
 const Utils = require('../../utils/Utils');
 const Database = require('../../utils/Database');
 const crypto = require('crypto');
-const MongoDBStorage = require('./MongoDBStorage');
+const DatabaseUtils = require('./DatabaseUtils');
 
 class ChargingStationStorage {
   static async getChargingStation(tenantID, id){
@@ -17,11 +17,11 @@ class ChargingStationStorage {
       }
     });
     // Add Created By / Last Changed By
-    Utils.pushCreatedLastChangedInAggregation(aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
     // Add
     aggregation.push({
       $lookup: {
-        from: MongoDBStorage.getCollectionName(tenantID, "siteareas"),
+        from: DatabaseUtils.getCollectionName(tenantID, "siteareas"),
         localField: "siteAreaID",
         foreignField: "_id",
         as: "siteArea"
@@ -103,7 +103,7 @@ class ChargingStationStorage {
       // Always get the Site Area
       aggregation.push({
         $lookup: {
-          from: MongoDBStorage.getCollectionName(tenantID, "siteareas"),
+          from: DatabaseUtils.getCollectionName(tenantID, "siteareas"),
           localField: "siteAreaID",
           foreignField: "_id",
           as: "siteArea"
@@ -130,7 +130,7 @@ class ChargingStationStorage {
       .aggregate([...aggregation, {$count: "count"}])
       .toArray();
     // Add Created By / Last Changed By
-    Utils.pushCreatedLastChangedInAggregation(aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
     // Sort
     if (sort) {
       // Sort

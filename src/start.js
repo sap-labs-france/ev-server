@@ -34,6 +34,12 @@ class Bootstrap {
             global.database = database;
 			// Connect to the the DB
 			await database.start();
+
+          // Log
+          Logging.logInfo({
+            module: 'Bootstrap', method: 'start', action: 'Startup',
+            message: `Database connected to '${storageConfig.implementation}' successfully`
+          });
 			
 			// Get all configs
 			let centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
