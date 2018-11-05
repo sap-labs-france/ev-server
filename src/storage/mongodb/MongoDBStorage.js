@@ -89,7 +89,7 @@ class MongoDBStorage {
   }
 
   async deleteTenantDatabase(tenantID){
-    if (tenantID !== DatabaseUtils.getMasterTenant()) {
+    if (tenantID !== Constants.DEFAULT_TENANT) {
       const collections = await this._db.listCollections().toArray();
 
       for (const collection of collections) {

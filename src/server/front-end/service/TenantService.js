@@ -49,12 +49,6 @@ class TenantService extends AbstractService {
           tenant.getID(),
           req.user);
       }
-      if (tenant.isMasterTenant()) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The master tenant with ID '${filteredRequest.ID}' cannot be deleted`, 550,
-          MODULE_NAME, 'handleDeleteTenant', req.user);
-      }
       if (tenant.getID() === req.user.tenantID) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -63,7 +57,7 @@ class TenantService extends AbstractService {
       }
       // Delete
       await tenant.delete();
-      if (filteredRequest.forced) {
+      if (filteredRequest.forced && !Utils.isServerInProductionMode()) {
         Logging.logWarning({tenantID: req.user.tenantID,
           module: 'MongoDBStorage', method: 'deleteTenantDatabase',
           message: `Deleting collections for tenant ${tenant.getID()}`
@@ -318,7 +312,7 @@ class TenantService extends AbstractService {
       const filteredRequest = TenantSecurity.filterVerifyTenantRequest(req.headers);
       // Check email
       const tenant = await Tenant.getTenantBySubdomain(filteredRequest.tenant);
-      if (!tenant) {
+      if (!tenant && filteredRequest.tenant !== '') {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,

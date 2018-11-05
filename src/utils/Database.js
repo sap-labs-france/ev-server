@@ -350,12 +350,6 @@ class Database {
 	static updateTenant(src, dest, forFrontEnd = true) {
 		if (forFrontEnd) {
 			Database.updateID(src, dest);
-			//we can't update the masterTenant flag
-          if (src.masterTenant) {
-            dest.masterTenant = true;
-          } else {
-            dest.masterTenant = false;
-          }
 		}
 		dest.name = src.name;
 		dest.subdomain = src.subdomain;

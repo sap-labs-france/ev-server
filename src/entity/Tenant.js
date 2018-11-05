@@ -19,10 +19,6 @@ class Tenant {
     return this._model.id;
   }
 
-  isMasterTenant() {
-    return this._model.masterTenant;
-  }
-
   setName(name){
     this._model.name = name;
   }

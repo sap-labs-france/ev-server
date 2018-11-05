@@ -207,7 +207,10 @@ class Utils {
   }
 
   static buildEvseURL(subdomain){
-    return `${_centralSystemFrontEndConfig.protocol}://${subdomain}.${_centralSystemFrontEndConfig.host}:${_centralSystemFrontEndConfig.port}`;
+    if (subdomain) {
+      return `${_centralSystemFrontEndConfig.protocol}://${subdomain}.${_centralSystemFrontEndConfig.host}:${_centralSystemFrontEndConfig.port}`;
+    }
+    return `${_centralSystemFrontEndConfig.protocol}://${_centralSystemFrontEndConfig.host}:${_centralSystemFrontEndConfig.port}`;
   }
 
   static async buildEvseUserURL(user){
