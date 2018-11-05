@@ -1,7 +1,6 @@
 const Database = require('../utils/Database');
 const TenantStorage = require('../storage/mongodb/TenantStorage');
 const User = require('./User');
-const Constants = require('../utils/Constants');
 
 class Tenant {
   constructor(tenant){

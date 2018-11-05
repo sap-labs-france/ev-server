@@ -3,6 +3,7 @@ const mongoUriBuilder = require('mongo-uri-builder');
 const urlencode = require('urlencode');
 const MongoDBStorageNotification = require('./MongoDBStorageNotification');
 const DatabaseUtils = require('./DatabaseUtils');
+const Constants = require('../../utils/Constants');
 
 require('source-map-support').install();
 
@@ -99,36 +100,15 @@ class MongoDBStorage {
     }
   }
 
-  async checkDatabaseDefaultContent(){
-    // Tenant
-    const tenantsMDB = await this._db.collection('tenants').find({masterTenant: true}).toArray();
-    // Found?
-    if (tenantsMDB.length === 0) {
-      // No: Create it
-      const result = await this._db.collection('tenants').insertOne(
-        {
-          "createdOn": new Date(),
-          "name": "Master Tenant",
-          "subdomain": "",
-          "masterTenant": true
-        }
-      );
-      DatabaseUtils.setMasterTenant(result.insertedId);
-    } else {
-      DatabaseUtils.setMasterTenant(tenantsMDB[0]._id);
-    }
-
+  async migrateTenantDatabase(tenantID){
     // Migrate not prefixed collections
     const collections = await this._db.listCollections().toArray();
 
     for (const collection of collections) {
       if (!DatabaseUtils.getFixedCollections().includes(collection.name) && !collection.name.includes('.')) {
-        await this._db.collection(collection.name).rename(DatabaseUtils.getCollectionName(DatabaseUtils.getMasterTenant(), collection.name));
+        await this._db.collection(collection.name).rename(DatabaseUtils.getCollectionName(tenantID, collection.name));
       }
     }
-
-    // Create missing collections if required
-    await this.createTenantDatabase(DatabaseUtils.getMasterTenant());
   }
 
   async checkDatabase(){
@@ -136,10 +116,26 @@ class MongoDBStorage {
     const collections = await this._db.listCollections().toArray();
     // Check only collections with indexes
     // Tenants
-    await this.checkAndCreateCollection(collections, null, 'tenants', [
+    await this.checkAndCreateCollection(collections, Constants.DEFAULT_TENANT, 'tenants', [
       {fields: {subdomain: 1}, options: {unique: true}},
       {fields: {name: 1}, options: {unique: true}}
     ]);
+    // Users
+    await this.checkAndCreateCollection(collections, Constants.DEFAULT_TENANT, 'users', [
+      {fields: {email: 1}, options: {unique: true}}
+    ]);
+    // Logs
+    await this.checkAndCreateCollection(collections, Constants.DEFAULT_TENANT, 'logs', [
+      {fields: {timestamp: 1}},
+      {fields: {level: 1}},
+      {fields: {type: 1}}
+    ]);
+
+    for (const collection of collections) {
+      if (collection.name === 'migrations') {
+        await this._db.collection(collection.name).rename(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, collection.name), {dropTarget: true});
+      }
+    }
   }
 
   async start(){
@@ -182,9 +178,6 @@ class MongoDBStorage {
 
     // Check Database
     await this.checkDatabase();
-
-    // Check Database Default Content
-    await this.checkDatabaseDefaultContent();
     console.log(`Connected to '${this._dbConfig.implementation}' successfully`);
   }
 

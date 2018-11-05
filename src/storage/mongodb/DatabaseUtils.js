@@ -1,16 +1,9 @@
+const Constants = require('../../utils/Constants');
+const ObjectID = require('mongodb').ObjectID;
+
 const FIXED_COLLECTIONS = ['tenants', 'migrations'];
-let masterTenantID;
 
 class DatabaseUtils {
-
-  static setMasterTenant(tenantID) {
-    masterTenantID = tenantID;
-  }
-
-  static getMasterTenant() {
-    return masterTenantID;
-  }
-
   static getFixedCollections() {
     return FIXED_COLLECTIONS;
   }
@@ -81,14 +74,19 @@ class DatabaseUtils {
     });
   }
 
-  static getCollectionName(tenantID, collectionName){
-    if (FIXED_COLLECTIONS.includes(collectionName)) {
-      return collectionName;
+  /**
+   * Computes and returns the name of a collection.
+   *
+   * @param tenantID the tenant identifier of the collection
+   * @param collectionNameSuffix the collection name suffix
+   * @returns {string} the collection name prefixed by the tenant identifier if the collection is specific to a tenant. Returns the collection name suffix elsewhere.
+   */
+  static getCollectionName(tenantID, collectionNameSuffix){
+    let prefix = Constants.DEFAULT_TENANT;
+    if (!FIXED_COLLECTIONS.includes(collectionNameSuffix) && ObjectID.isValid(tenantID)) {
+      prefix = tenantID;
     }
-    if (!tenantID) {
-      tenantID = masterTenantID;
-    }
-    return `${tenantID}.${collectionName}`;
+    return `${prefix}.${collectionNameSuffix}`;
   }
 }
 

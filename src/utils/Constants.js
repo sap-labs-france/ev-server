@@ -1,6 +1,8 @@
 require('source-map-support').install();
 
 module.exports = {
+	DEFAULT_TENANT: 'default',
+
 	REST_RESPONSE_SUCCESS: { status: 'Success' },
 
 	CONN_STATUS_AVAILABLE: "Available",

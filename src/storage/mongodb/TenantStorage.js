@@ -19,7 +19,7 @@ class TenantStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation('', aggregation);
     // Read DB
-    const tenantsMDB = await global.database.getCollection('', 'tenants')
+    const tenantsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
       .aggregate(aggregation)
       .limit(1)
       .toArray();
@@ -45,7 +45,7 @@ class TenantStorage {
   static async getTenantByFilter(filter){
     const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
     // Read DB
-    const tenantsMDB = await global.database.getCollection('', 'tenants')
+    const tenantsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
       .find(filter)
       .limit(1)
       .toArray();
@@ -81,7 +81,7 @@ class TenantStorage {
     const tenant = {};
     Database.updateTenant(tenantToSave, tenant, false);
     // Modify
-    const result = await global.database.getCollection('', 'tenants').findOneAndUpdate(
+    const result = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
       tenantFilter, {
         $set: tenant
       }, {
@@ -125,7 +125,7 @@ class TenantStorage {
       });
     }
     // Count Records
-    const tenantsCountMDB = await global.database.getCollection('', 'tenants')
+    const tenantsCountMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
       .aggregate([...aggregation, {
         $count: "count"
       }])
@@ -155,7 +155,7 @@ class TenantStorage {
       $limit: limit
     });
     // Read DB
-    const tenantsMDB = await global.database.getCollection('', 'tenants')
+    const tenantsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
       .aggregate(aggregation, {
         collation: {
           locale: Constants.DEFAULT_LOCALE,
@@ -178,7 +178,7 @@ class TenantStorage {
   }
 
   static async deleteTenant(id){
-    await global.database.getCollection('', 'tenants')
+    await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
       .findOneAndDelete({
         '_id': Utils.convertToObjectID(id)
       });

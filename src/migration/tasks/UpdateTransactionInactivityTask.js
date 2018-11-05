@@ -76,9 +76,8 @@ class UpdateTransactionInactivityTask {
           }
         }
       }
-		  // Delete Transactions
-      await global.db.collection('transactions')
-        .findOneAndDelete( {'_id': transaction.id} );
+      // Delete Transactions
+      await global.database.getCollection(tenant.getID(), 'transactions').findOneAndDelete({'_id': transaction.id});
       // Remove Id
       delete transaction.id;
       // Save it
@@ -87,14 +86,14 @@ class UpdateTransactionInactivityTask {
       }, {
         $set: transaction
       }, {
-        upsert: true, 
-        new: true, 
+        upsert: true,
+        new: true,
         returnOriginal: false
       });
     }
   }
 
-  getVersion() {
+  getVersion(){
     return "3.1";
   }
 
