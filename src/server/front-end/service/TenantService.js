@@ -108,6 +108,7 @@ class TenantService extends AbstractService {
         throw new UnauthorizedError(
           Constants.ACTION_READ,
           Constants.ENTITY_TENANT,
+          tenant.getID(),
           req.user);
       }
       // Return
@@ -130,6 +131,7 @@ class TenantService extends AbstractService {
         throw new UnauthorizedError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TENANTS,
+          null,
           req.user);
       }
       // Filter
@@ -161,6 +163,7 @@ class TenantService extends AbstractService {
         throw new UnauthorizedError(
           Constants.ACTION_CREATE,
           Constants.ENTITY_TENANT,
+          null,
           req.user);
       }
       TenantValidator.validateTenantCreation(req.body);
