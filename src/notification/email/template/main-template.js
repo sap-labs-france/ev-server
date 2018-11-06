@@ -1,6 +1,7 @@
 module.exports.subject = "Charge-Angels - <%- subject %>";
 module.exports.html = `
 <html>
+  <head id="<%- body.template %>"></head>
 	<body align="center" bgcolor="cadetblue" background="<%- baseURL %>/assets/img/charge-angels-bg.jpg" style="margin: 15px;">
 		<center>
 			<!-- Header -->

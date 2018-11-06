@@ -2,7 +2,7 @@ const uuid = require('uuid/v4');
 const OCPPService = require('../OCPPService');
 const WebSocket = require('ws');
 const config = require('../../../config');
-
+const {performance} = require('perf_hooks');
 const OCPP_JSON_CALL_MESSAGE = 2;
 
 class OCPPJsonService16 extends OCPPService {
@@ -36,15 +36,20 @@ class OCPPJsonService16 extends OCPPService {
       };
       // Handle Server Message
       wsConnection.onmessage = (message) => {
+        const t1 = performance.now();
         try {
           // Parse the message
           const messageJson = JSON.parse(message.data);
-          console.log(messageJson);
           // Check if this corresponds to a request
           if (requests[messageJson[1]]) {
             const response = {};
             // Set the data
+            response.responseMessageId = messageJson[1];
+            response.executionTime = t1 - requests[messageJson[1]].t0;
             response.data = messageJson[2];
+            if (config.get('ocpp.json.logs') === 'json') {
+              console.log(JSON.stringify(response, null, 2));
+            }
             // Respond to the request
             requests[messageJson[1]].resolve(response);
           }
@@ -130,18 +135,19 @@ class OCPPJsonService16 extends OCPPService {
     // WS Opened?
     if (!this._wsSessions.get(chargeBoxIdentity)) {
       // Open WS
-      this._wsSessions.set(chargeBoxIdentity,await this.openConnection(chargeBoxIdentity));
+      this._wsSessions.set(chargeBoxIdentity, await this.openConnection(chargeBoxIdentity));
     }
     // Log
     if (config.get('ocpp.json.logs') === 'json') {
-      console.log(request);
+      console.log(JSON.stringify({requestMessageId: request[1], action: request[2], data: request[3]}, null, 2));
     }
     // Send
+    const t0 = performance.now();
     await this._wsSessions.get(chargeBoxIdentity).connection.send(JSON.stringify(request));
     // Return a promise
     return new Promise((resolve, reject) => {
       // Set the resolve function
-      this._wsSessions.get(chargeBoxIdentity).requests[request[1]] = {resolve, reject};
+      this._wsSessions.get(chargeBoxIdentity).requests[request[1]] = {resolve, reject, t0: t0};
     });
   }
 

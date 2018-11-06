@@ -235,7 +235,7 @@ class OCPPCommonTests {
       "chargeBoxID": this.newTransaction.chargeBoxID,
       "connectorId": this.newTransaction.connectorId,
       "totalConsumption": this.transactionTotalConsumption,
-      "transactionId": this.newTransaction.id,
+      "id": this.newTransaction.id,
       "user": {
         "id": this.transactionStartUser.id,
         "name": this.transactionStartUser.name,

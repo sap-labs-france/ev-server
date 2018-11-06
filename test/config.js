@@ -110,6 +110,18 @@ const config = convict({
       default: 'EQPQLwBIC0XgUgX@1Aa',
       env: 'ADMIN_PASSWORD'
     }
+  },
+  mailServer:{
+    host: {
+      doc: 'The mail server IP address to bind.',
+      format: String,
+      default: '127.0.0.1',
+    },
+    port: {
+      doc: 'The SERVER server port to bind.',
+      format: 'port',
+      default: 1080,
+    },
   }
 });
 

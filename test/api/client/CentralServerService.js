@@ -13,6 +13,7 @@ const AuthenticationApi = require('./AuthenticationApi');
 const TenantApi = require('./TenantApi');
 const ChargingStationApi = require('./ChargingStationApi');
 const TransactionApi = require('./TransactionApi');
+const MailApi = require('./MailApi');
 
 // Set
 chai.use(chaiSubset);
@@ -33,6 +34,7 @@ class CentralServerService {
     this.tenantApi = new TenantApi(this.authenticatedApi, this.baseApi);
     this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this.baseApi);
     this.transactionApi = new TransactionApi(this.authenticatedApi);
+    this.mailApi= new MailApi(new BaseApi(`http://${config.get('mailServer.host')}:${config.get('mailServer.port')}`));
   }
 
   async createEntity(entityApi, entity, performCheck=true) {
@@ -87,7 +89,7 @@ class CentralServerService {
       // All record retrieved
       expect(response.data.count).to.eql(response.data.result.length);
       // Check created company
-      expect(response.data.result).to.containSubset([entity]);  
+      expect(response.data.result).to.containSubset([entity]);
     } else {
       // Let the caller to handle response
       return response;

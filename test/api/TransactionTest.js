@@ -161,6 +161,7 @@ describe('Transaction tests', function() {
           tagID: tagId,
         }
       });
+
     });
     it('read a closed transaction without meter values and a meterStart different from meterStop', async () => {
       const user = await this.dataHelper.createUser();
@@ -724,7 +725,49 @@ describe('Transaction tests', function() {
       expect(response.status).to.equal(550);
     });
   });
+  it('a mail notification should be received when starting a transaction', async () => {
+    const user = await this.dataHelper.createUser();
+    const company = await this.dataHelper.createCompany();
+    const site = await this.dataHelper.createSite(company, [user]);
+    const chargingStation = await this.dataHelper.createChargingStation();
+    await this.dataHelper.createSiteArea(site, [chargingStation]);
+    const connectorId = 1;
+    const tagId = user.tagIDs[0];
+    const meterStart = 180;
+    const meterStop = 1000;
+    const startDate = moment('2018-11-06T08:00:00.000Z');
+    const stopDate = startDate.clone().add(1, 'hour');
+    const transactionId = await this.dataHelper.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
+    const currentDate = startDate.clone();
 
+    const meterValues = [
+      {
+        value: 100,
+        instant: currentDate.add(1, 'hour').clone()
+      },
+      {
+        value: 50,
+        instant: currentDate.add(1, 'hour').clone()
+      },
+      {
+        value: 0,
+        instant: currentDate.add(1, 'hour').clone()
+      },
+      {
+        value: 0,
+        instant: currentDate.add(1, 'hour').clone()
+      }
+    ];
+
+    let cumulated = meterStart;
+    for (const meterValue of meterValues) {
+      cumulated += meterValue.value;
+      await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.instant);
+    }
+
+    expect(await CentralServerService.mailApi.isMailReceived(user.email, 'transaction-started')).is.equal(true,"no transaction-started mail received");
+    expect(await CentralServerService.mailApi.isMailReceived(user.email, 'end-of-charge')).is.equal(true,"no end-of-charge mail received");
+  });
 
 });
 

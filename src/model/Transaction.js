@@ -10,6 +10,7 @@ class Transaction {
     if (pricing) {
       this._pricing = pricing;
     }
+
   }
 
   get model() {
@@ -128,13 +129,11 @@ class Transaction {
   }
 
   get _latestMeterValue() {
-    const meterValues = this.meterValues;
-    return meterValues[meterValues.length - 1];
+    return this.meterValues[this.meterValues.length - 1];
   }
 
   get _latestConsumption() {
-    const consumptions = this.consumptions;
-    return consumptions[consumptions.length - 1];
+    return this.consumptions[this.consumptions.length - 1];
   }
 
   get totalInactivitySecs() {
@@ -159,22 +158,17 @@ class Transaction {
   }
 
   get meterValues() {
-    const meterValues = [this._firstMeterValue, ...(this._model.meterValues)]
-    if (!this.isActive()) {
-      meterValues.push(this._lastMeterValue);
+    if (!this._meterValues) {
+      this._meterValues = this._computeMeterValues();
     }
-    return meterValues.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    return this._meterValues;
   }
 
   get consumptions() {
-    const consumptions = [];
-    this.meterValues.forEach((meterValue, index, array) => {
-      if (index === 0) {
-        return;
-      }
-      consumptions.push(this._aggregateAsConsumption(array[index - 1], meterValue));
-    });
-    return consumptions;
+    if (!this._consumptions) {
+      this._consumptions = this._computeConsumptions();
+    }
+    return this._consumptions;
   }
 
   get _firstMeterValue() {
@@ -222,6 +216,30 @@ class Transaction {
     };
   }
 
+  _computeConsumptions() {
+    const consumptions = [];
+    this.meterValues.forEach((meterValue, index, array) => {
+      if (index === 0) {
+        return;
+      }
+      consumptions.push(this._aggregateAsConsumption(array[index - 1], meterValue));
+    });
+    return consumptions;
+  }
+
+  _computeMeterValues() {
+    const meterValues = [this._firstMeterValue, ...(this._model.meterValues)]
+    if (!this.isActive()) {
+      meterValues.push(this._lastMeterValue);
+    }
+    return meterValues.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+  }
+
+  _invalidateComputations(){
+    delete this._meterValues;
+    delete this._consumptions;
+  }
+
   hasMultipleConsumptions() {
     return this.consumptions.length > 1;
   }
@@ -249,6 +267,7 @@ class Transaction {
     this._model.stop.timestamp = timestamp;
     this._model.stop.user = user;
     this._model.stop.tagID = tagId;
+    this._invalidateComputations();
     this._model.stop.totalInactivitySecs = this.totalInactivitySecs;
     this._model.stop.totalConsumption = this.totalConsumption;
   }
@@ -257,7 +276,6 @@ class Transaction {
     this._model.remotestop = {};
     this._model.remotestop.tagID = tagId;
     this._model.remotestop.timestamp = timestamp;
-
   }
 
   start(user, tagID, meterStart, timestamp) {
