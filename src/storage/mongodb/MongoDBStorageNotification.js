@@ -84,7 +84,7 @@ class MongoDBStorageNotification {
           break;
       }
       // Notify
-      this.centralRestServer.notifyTenant(action, {id: tenantId});
+      this.centralRestServer.notifyTenant(Constants.DEFAULT_TENANT, action, {id: tenantId});
     });
   }
 
@@ -123,9 +123,9 @@ class MongoDBStorageNotification {
     this.watchConfigurations(tenantId);
   }
 
-  async watchCollection(tenantId, name, notifyCallback, notifyWithID){
+  async watchCollection(tenantID, name, notifyCallback, notifyWithID){
     // Users
-    const collectionWatcher = await this.database.getCollection(tenantId, name).watch(_pipeline, _options);
+    const collectionWatcher = await this.database.getCollection(tenantID, name).watch(_pipeline, _options);
     // Change Handling
     collectionWatcher.on("change", (change) => {
       if (change.documentKey._id) {
@@ -133,11 +133,11 @@ class MongoDBStorageNotification {
         const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
         // Notify
         if (notifyWithID) {
-          notifyCallback(action, {
+          notifyCallback(tenantID, action, {
             "id": change.documentKey._id.toString()
           });
         } else {
-          notifyCallback(action);
+          notifyCallback(tenantID, action);
         }
       }
     });
@@ -153,9 +153,9 @@ class MongoDBStorageNotification {
     });
   }
 
-  async watchTransactions(tenantId){
+  async watchTransactions(tenantID){
     // Transaction
-    const transactionsWatcher = await this.database.getCollection(tenantId, "transactions").watch(_pipeline, _options);
+    const transactionsWatcher = await this.database.getCollection(tenantID, "transactions").watch(_pipeline, _options);
     // Change Handling
     transactionsWatcher.on("change", (change) => {
       // Check for permitted operation
@@ -177,13 +177,13 @@ class MongoDBStorageNotification {
           break;
       }
       // Notify
-      this.centralRestServer.notifyTransaction(action, notification);
+      this.centralRestServer.notifyTransaction(tenantID, action, notification);
     });
   }
 
-  async watchMeterValues(tenantId){
+  async watchMeterValues(tenantID){
     // Meter Values
-    const meterValuesWatcher = await this.database.getCollection(tenantId, "metervalues").watch(_pipeline, _options);
+    const meterValuesWatcher = await this.database.getCollection(tenantID, "metervalues").watch(_pipeline, _options);
     // Change Handling
     meterValuesWatcher.on("change", (change) => {
       // Check for permitted operation
@@ -197,21 +197,21 @@ class MongoDBStorageNotification {
         notification.chargeBoxID = change.fullDocument.chargeBoxID;
         notification.connectorId = change.fullDocument.connectorId;
         // Notify, Force Transaction Update
-        this.centralRestServer.notifyTransaction(Constants.ACTION_UPDATE, notification);
+        this.centralRestServer.notifyTransaction(tenantID, Constants.ACTION_UPDATE, notification);
       }
     });
   }
 
-  async watchConfigurations(tenantId){
+  async watchConfigurations(tenantID){
     // Charging Stations Configuration
-    const configurationsWatcher = await this.database.getCollection(tenantId, "configurations").watch(_pipeline, _options);
+    const configurationsWatcher = await this.database.getCollection(tenantID, "configurations").watch(_pipeline, _options);
     // Change Handling
     configurationsWatcher.on("change", (change) => {
       if (change.documentKey._id) {
         // Check for permitted operation
         const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
         // Notify
-        this.centralRestServer.notifyChargingStation(action, {
+        this.centralRestServer.notifyChargingStation(tenantID, action, {
           "type": Constants.NOTIF_TYPE_CHARGING_STATION_CONFIGURATION,
           "id": change.documentKey._id.toString()
         });

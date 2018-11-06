@@ -153,6 +153,7 @@ class CentralRestServer {
     _socketIO = require("socket.io")(server);
     // Handle Socket IO connection
     _socketIO.on("connection", (socket) => {
+      socket.join(socket.handshake.query.tenantID);
       // Handle Socket IO connection
       socket.on("disconnect", () => {
         // Nothing to do
@@ -167,7 +168,7 @@ class CentralRestServer {
         for (var i = _currentNotifications.length - 1; i >= 0; i--) {
           // console.log(`****** Notify '${_currentNotifications[i].entity}', Action '${(_currentNotifications[i].action?_currentNotifications[i].action:'')}', Data '${(_currentNotifications[i].data ? JSON.stringify(_currentNotifications[i].data, null, ' ') : '')}'`);
           // Notify all Web Sockets
-          _socketIO.sockets.emit(_currentNotifications[i].entity, _currentNotifications[i]);
+          _socketIO.to(_currentNotifications[i].tenantID).emit(_currentNotifications[i].entity, _currentNotifications[i]);
           // Remove
           _currentNotifications.splice(i, 1);
         }
@@ -184,126 +185,145 @@ class CentralRestServer {
     });
   }
 
-  notifyUser(action, data){
+  notifyUser(tenantID, action, data){
     // Add in buffer
     this.addNotificationInBuffer({
+      "tenantID": tenantID,
       "entity": Constants.ENTITY_USER,
       "action": action,
       "data": data
     });
     // Add in buffer
     this.addNotificationInBuffer({
+      "tenantID": tenantID,
       "entity": Constants.ENTITY_USERS
     });
   }
 
-  notifyVehicle(action, data){
+  notifyVehicle(tenantID, action, data){
     // Add in buffer
     this.addNotificationInBuffer({
+      "tenantID": tenantID,
       "entity": Constants.ENTITY_VEHICLE,
       "action": action,
       "data": data
     });
     // Add in buffer
     this.addNotificationInBuffer({
+      "tenantID": tenantID,
       "entity": Constants.ENTITY_VEHICLES
     });
   }
 
-  notifyVehicleManufacturer(action, data){
+  notifyVehicleManufacturer(tenantID, action, data){
     // Add in buffer
     this.addNotificationInBuffer({
+      "tenantID": tenantID,
       "entity": Constants.ENTITY_VEHICLE_MANUFACTURER,
       "action": action,
       "data": data
     });
     // Add in buffer
     this.addNotificationInBuffer({
+      "tenantID": tenantID,
       "entity": Constants.ENTITY_VEHICLE_MANUFACTURERS
     });
   }
 
-  notifyTenant(action, data){
+  notifyTenant(tenantID, action, data){
     // Add in buffer
     this.addNotificationInBuffer({
+      "tenantID": tenantID,
       "entity": Constants.ENTITY_TENANT,
       "action": action,
       "data": data
     });
     // Add in buffer
     this.addNotificationInBuffer({
+      "tenantID": tenantID,
       "entity": Constants.ENTITY_TENANTS
     });
   }
 
-  notifySite(action, data){
+  notifySite(tenantID, action, data){
     // Add in buffer
     this.addNotificationInBuffer({
+      "tenantID": tenantID,
       "entity": Constants.ENTITY_SITE,
       "action": action,
       "data": data
     });
     // Add in buffer
     this.addNotificationInBuffer({
+      "tenantID": tenantID,
       "entity": Constants.ENTITY_SITES
     });
   }
 
-  notifySiteArea(action, data){
+  notifySiteArea(tenantID, action, data){
     // Add in buffer
     this.addNotificationInBuffer({
+      "tenantID": tenantID,
       "entity": Constants.ENTITY_SITE_AREA,
       "action": action,
       "data": data
     });
     // Add in buffer
     this.addNotificationInBuffer({
+      "tenantID": tenantID,
       "entity": Constants.ENTITY_SITE_AREAS
     });
   }
 
-  notifyCompany(action, data){
+  notifyCompany(tenantID, action, data){
     // Add in buffer
     this.addNotificationInBuffer({
+      "tenantID": tenantID,
       "entity": Constants.ENTITY_COMPANY,
       "action": action,
       "data": data
     });
     // Add in buffer
     this.addNotificationInBuffer({
+      "tenantID": tenantID,
       "entity": Constants.ENTITY_COMPANIES
     });
   }
 
-  notifyTransaction(aaction, data){
+  notifyTransaction(tenantID, action, data){
     // Add in buffer
     this.addNotificationInBuffer({
+      "tenantID": tenantID,
       "entity": Constants.ENTITY_TRANSACTION,
-      "action": aaction,
+      "action": action,
       "data": data
     });
     // Add in buffer
     this.addNotificationInBuffer({
+      "tenantID": tenantID,
       "entity": Constants.ENTITY_TRANSACTIONS
     });
   }
 
-  notifyChargingStation(action, data){
+  notifyChargingStation(tenantID, action, data){
     // Add in buffer
     this.addNotificationInBuffer({
+      "tenantID": tenantID,
       "entity": Constants.ENTITY_CHARGING_STATION,
       "action": action,
       "data": data
     });
     // Add in buffer
     this.addNotificationInBuffer({
+      "tenantID": tenantID,
       "entity": Constants.ENTITY_CHARGING_STATIONS
     });
   }
 
-  notifyLogging(action){
+  notifyLogging(tenantID, action){
     // Add in buffer
     this.addNotificationInBuffer({
+      "tenantID": tenantID,
       "entity": Constants.ENTITY_LOGGINGS,
       "action": action
     });
@@ -314,14 +334,15 @@ class CentralRestServer {
     // Add in buffer
     for (var i = 0; i < _currentNotifications.length; i++) {
       // Same Entity and Action?
-      if (_currentNotifications[i].entity == notification.entity &&
-        _currentNotifications[i].action == notification.action) {
+      if (_currentNotifications[i].tenantID === notification.tenantID
+        && _currentNotifications[i].entity === notification.entity
+        && _currentNotifications[i].action === notification.action) {
         // Yes
         dups = true;
         // Data provided: Check Id and Type
         if (_currentNotifications[i].data &&
-          (_currentNotifications[i].data.id != notification.data.id ||
-            _currentNotifications[i].data.type != notification.data.type)) {
+          (_currentNotifications[i].data.id !== notification.data.id ||
+            _currentNotifications[i].data.type !== notification.data.type)) {
           dups = false;
         } else {
           break;
