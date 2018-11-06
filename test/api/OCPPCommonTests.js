@@ -228,7 +228,7 @@ class OCPPCommonTests {
     expect(this.newTransaction).to.not.be.null;
 
     // Get the consumption
-    const response = await CentralServerService.transactionApi.readAllConsumption(this.newTransaction.id);
+    const response = await CentralServerService.transactionApi.readAllConsumption({TransactionId: this.newTransaction.id});
     expect(response.status).to.equal(200);
     // Check Headers
     expect(response.data).to.deep.include({

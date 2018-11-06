@@ -49,95 +49,6 @@ const MeterValueFactory = Factory.define('meterValue')
   .attr('timestamp', new Date());
 
 describe('Transaction entity tests', () => {
-  // describe('Create from Database Model', () => {
-  //   it('Cannot Create without any data', () => {
-  //     expect(() => Transaction.fromDB()).to.throw(TypeError);
-  //   });
-  //   it('Create with empty transaction', () => {
-  //     const transaction = Transaction.fromDB({});
-  //     expect(transaction).to.deep.equal({
-  //       _model: {
-  //         chargeBoxID: undefined,
-  //         connectorId: 0,
-  //         id: undefined,
-  //         meterStart: 0,
-  //         tagID: undefined,
-  //         timestamp: undefined,
-  //         userID: undefined
-  //       }
-  //     });
-  //   });
-  //   it('Create with empty transaction and empty pricing', () => {
-  //     const transaction = Transaction.fromDB({}, {});
-  //     expect(transaction).to.deep.equal({
-  //       _model: {
-  //         chargeBoxID: undefined,
-  //         connectorId: 0,
-  //         id: undefined,
-  //         meterStart: 0,
-  //         tagID: undefined,
-  //         timestamp: undefined,
-  //         userID: undefined
-  //       },
-  //       _pricing: {
-  //         id: undefined,
-  //         priceKWH: 0,
-  //         priceUnit: undefined,
-  //         timestamp: undefined
-  //       }
-  //     });
-  //   });
-  //   it('Create with empty transaction, empty pricing and empty meter values array', () => {
-  //     const transaction = Transaction.fromDB({}, {}, []);
-  //     expect(transaction).to.deep.equal({
-  //       _model: {
-  //         chargeBoxID: undefined,
-  //         connectorId: 0,
-  //         id: undefined,
-  //         meterStart: 0,
-  //         tagID: undefined,
-  //         timestamp: undefined,
-  //         userID: undefined
-  //       },
-  //       _pricing: {
-  //         id: undefined,
-  //         priceKWH: 0,
-  //         priceUnit: undefined,
-  //         timestamp: undefined
-  //       },
-  //       _meterValues: []
-  //     });
-  //   });
-  //   it('Create with empty transaction, empty pricing and an empty meter value', () => {
-  //     const transaction = Transaction.fromDB({}, {}, [{}]);
-  //     expect(transaction).to.deep.equal({
-  //       _model: {
-  //         chargeBoxID: undefined,
-  //         connectorId: 0,
-  //         id: undefined,
-  //         meterStart: 0,
-  //         tagID: undefined,
-  //         timestamp: undefined,
-  //         userID: undefined
-  //       },
-  //       _pricing: {
-  //         id: undefined,
-  //         priceKWH: 0,
-  //         priceUnit: undefined,
-  //         timestamp: undefined
-  //       },
-  //       _meterValues: [{
-  //         attribute: undefined,
-  //         chargeBoxID: undefined,
-  //         connectorId: 0,
-  //         id: undefined,
-  //         timestamp: undefined,
-  //         transactionId: 0,
-  //         value: 0
-  //       }]
-  //     });
-  //   });
-  // });
 
   it('Should be an active transaction', () => {
     const transaction = new Transaction({});
@@ -320,17 +231,17 @@ describe('Transaction entity tests', () => {
       expect(transaction.consumptions).to.deep.equal(
         [
           {
-            cumulated: 10200,
+            cumulated: 200,
             date: model.meterValues[0].timestamp,
             value: 200
           },
           {
-            cumulated: 10250,
+            cumulated: 250,
             date: model.meterValues[1].timestamp,
             value: 50*60
           },
           {
-            cumulated: 10350,
+            cumulated: 350,
             date: model.meterValues[2].timestamp,
             value: 100*60
           }
@@ -772,7 +683,7 @@ describe('Transaction entity tests', () => {
           currentConsumption: 0,
           meterStart: 555,
           timestamp: now,
-          totalConsumption: 555,
+          totalConsumption: 0,
           user: user,
           userID: user.id,
           tagID: tagId
@@ -800,7 +711,7 @@ describe('Transaction entity tests', () => {
           currentConsumption: 0,
           meterStart: 555,
           timestamp: now,
-          totalConsumption: 555,
+          totalConsumption: 0,
           user: user,
           userID: user.id,
           tagID: tagId
@@ -818,7 +729,7 @@ describe('Transaction entity tests', () => {
           currentConsumption: 0,
           meterStart: 565,
           timestamp: now,
-          totalConsumption: 565,
+          totalConsumption: 0,
           user: user,
           userID: user.id,
           tagID: tagId
@@ -849,7 +760,7 @@ describe('Transaction entity tests', () => {
           currentConsumption: 26700,
           meterStart: 555,
           timestamp: now,
-          totalConsumption: 1000,
+          totalConsumption: 445,
           user: user,
           userID: user.id,
           tagID: tagId
@@ -878,7 +789,7 @@ describe('Transaction entity tests', () => {
           currentConsumption: 0,
           meterStart: 555,
           timestamp: now,
-          totalConsumption: 555,
+          totalConsumption: 0,
           user: user,
           userID: user.id,
           tagID: tagId
@@ -980,6 +891,7 @@ describe('Transaction entity tests', () => {
           connectorId: model.connectorId,
           currentConsumption: 0,
           meterStart: model.meterStart,
+          meterStop: 11,
           timestamp: model.timestamp,
           totalConsumption: 11,
           totalDurationInSecs: 180,

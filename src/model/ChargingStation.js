@@ -314,6 +314,10 @@ class ChargingStation {
     return this._model.connectors;
   }
 
+  getConnector(identifier) {
+    return this._model.connectors[identifier - 1];
+  }
+
   setConnectors(connectors) {
     this._model.connectors = connectors;
   }
@@ -634,7 +638,7 @@ class ChargingStation {
     }
 
 
-    const connector = this.getConnectors()[transaction.connectorId - 1];
+    const connector = this.getConnector(transaction.connectorId);
 
     if (transaction.isActive()) {
       const newCurrentConsumption = transaction.currentConsumption;
@@ -693,7 +697,7 @@ class ChargingStation {
                 'user': transaction.initiator,
                 'chargingBoxID': this.getID(),
                 'connectorId': transaction.connectorId,
-                'totalConsumption': (this.getConnectors()[transaction.connectorId - 1].totalConsumption / 1000).toLocaleString(
+                'totalConsumption': (this.getConnector(transaction.connectorId).totalConsumption / 1000).toLocaleString(
                   (transaction.initiator.locale ? transaction.initiator.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
                   {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
                 'totalDuration': this._buildCurrentTransactionDuration(transaction),
@@ -798,7 +802,7 @@ class ChargingStation {
       meterValues.connectorId = 1;
     }
     // Check if the transaction ID matches
-    const chargerTransactionId = this.getConnectors()[meterValues.connectorId - 1].activeTransactionID;
+    const chargerTransactionId = this.getConnector(meterValues.connectorId).activeTransactionID;
     // Same?
     if (meterValues.hasOwnProperty('transactionId')) {
       // BUG ABB: Check ID
@@ -1148,7 +1152,7 @@ class ChargingStation {
   }
 
   async freeConnector(connectorId) {
-    const connector = this.getConnectors()[connectorId];
+    const connector = this.getConnector(connectorId);
 
     connector.currentConsumption = 0;
     connector.totalConsumption = 0;

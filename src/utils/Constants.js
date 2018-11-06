@@ -44,9 +44,6 @@ module.exports = {
 
   CENTRAL_SERVER: "Central Server",
 
-  WITH_CONNECTORS: true,
-  WITHOUT_CONNECTORS: false,
-
   WITH_CHARGING_STATIONS: true,
   WITHOUT_CHARGING_STATIONS: false,
   WITH_SITE: true,

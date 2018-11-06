@@ -19,8 +19,8 @@ class TransactionApi extends CrudApi {
     return super.readAll('/client/api/TransactionsCompleted', params, paging, ordering);
   }
 
-  readAllConsumption(id) {
-    return super.read('/client/api/ChargingStationConsumptionFromTransaction', {TransactionId: id});
+  readAllConsumption(params) {
+    return super.read('/client/api/ChargingStationConsumptionFromTransaction', params);
   }
 
   readAllYears(params) {

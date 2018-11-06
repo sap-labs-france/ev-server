@@ -21,6 +21,7 @@ class Transaction {
     if (!this.isActive()) {
       this._model.stop.totalInactivitySecs = this.totalInactivitySecs;
       this._model.stop.totalConsumption = this._model.totalConsumption;
+      this._model.meterStop = this.meterStop;
     }
     if (this.totalDurationInSecs) {
       this._model.totalDurationInSecs = this.totalDurationInSecs;
@@ -101,7 +102,7 @@ class Transaction {
   }
 
   get totalConsumption() {
-    if (this._hasMeterValues()) {
+    if (this._hasMeterValues() || !this.isActive()) {
       return Math.floor(this._latestConsumption.cumulated);
     }
     return 0;

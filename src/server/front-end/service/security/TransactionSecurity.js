@@ -58,7 +58,7 @@ class TransactionSecurity {
   }
 
   // Transaction
-  static filterTransactionResponse(transaction, loggedUser, withConnector = false) {
+  static filterTransactionResponse(transaction, loggedUser) {
     let filteredTransaction;
 
     if (!transaction) {
@@ -93,6 +93,7 @@ class TransactionSecurity {
       // Transaction Stop
       if (!transaction.isActive()) {
         filteredTransaction.stop = {};
+        filteredTransaction.meterStop = transaction.meterStop;
         filteredTransaction.stop.timestamp = transaction.endDate;
         // Demo user?
         if (Authorizations.isDemo(loggedUser)) {
@@ -127,7 +128,7 @@ class TransactionSecurity {
     }
     for (const transaction of transactions) {
       // Filter
-      let filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser, withConnector);
+      let filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);
       // Ok?
       if (filteredTransaction) {
         // Add
@@ -196,7 +197,7 @@ class TransactionSecurity {
         filteredConsumption.totalPrice = transaction.totalPrice;
       }
       filteredConsumption.totalConsumption = transaction.totalConsumption;
-      filteredConsumption.transactionId = transaction.id;
+      filteredConsumption.id = transaction.id;
       // Check user
       if (transaction.initiator) {
         if (!Authorizations.canReadUser(loggedUser, transaction.initiator)) {

@@ -20,7 +20,7 @@ class TransactionService {
       if (!filteredRequest.id) {
         // Not Found!
         throw new AppError(
-          Constants.CENTRAL_SERVER, c
+          Constants.CENTRAL_SERVER,
             `The Transaction's ID must be provided`, 500,
           'TransactionService', 'handleRefundTransaction', req.user);
       }
@@ -107,20 +107,6 @@ class TransactionService {
           560, 'TransactionService', 'handleDeleteTransaction',
           req.user);
       }
-      // Get Transaction User
-      let user;
-      if (transaction.userID) {
-        // Check
-        user = await User.getUser(transaction.userID);
-        // Check
-        if (!user) {
-          // Not Found!
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `The user with ID '${req.user.id}' does not exist`, 550,
-            'TransactionService', 'handleDeleteTransaction', req.user);
-        }
-      }
       if (transaction.isActive()) {
         let chargingStation = await ChargingStation.getChargingStation(transaction.chargeBoxID);
         if (!chargingStation) {
@@ -129,7 +115,7 @@ class TransactionService {
             `Charging Station with ID ${transaction.chargeBox.id} does not exist`, 550,
             'TransactionService', 'handleDeleteTransaction', req.user);
         }
-        if (transaction.id === chargingStation.getConnectors()[connectorId].activeTransactionID) {
+        if (transaction.id === chargingStation.getConnector(transaction.connectorId).activeTransactionID) {
           await chargingStation.freeConnector(transaction.connectorId);
           await chargingStation.save();
         }
@@ -139,7 +125,7 @@ class TransactionService {
       const result = transaction.model;
       // Log
       Logging.logSecurityInfo({
-        user: req.user, actionOnUser: (user ? user.getModel() : null),
+        user: req.user, actionOnUser: (transaction.initiator ? transaction.initiator : null),
         module: 'TransactionService', method: 'handleDeleteTransaction',
         message: `Transaction ID '${filteredRequest.ID}' on '${transaction.chargeBoxID}'-'${transaction.connectorId}' has been deleted successfully`,
         action: action, detailedMessages: result
@@ -274,7 +260,7 @@ class TransactionService {
       // Dates provided?
       const startDateTime = filteredRequest.StartDateTime ? filteredRequest.StartDateTime : Constants.MIN_DATE;
       const endDateTime = filteredRequest.EndDateTime ? filteredRequest.EndDateTime : Constants.MAX_DATE;
-      const consumptions = transaction.consumptions.filter(consumption => moment(consumption.date).isBetween(startDateTime, endDateTime, null, '[)'));
+      const consumptions = transaction.consumptions.filter(consumption => moment(consumption.date).isBetween(startDateTime, endDateTime, null, '[]'));
       // Return the result
       res.json(TransactionSecurity.filterConsumptionsFromTransactionResponse(transaction, consumptions, req.user));
       next();
@@ -321,7 +307,7 @@ class TransactionService {
       res.json(
         // Filter
         TransactionSecurity.filterTransactionResponse(
-          transaction, req.user, true)
+          transaction, req.user)
       );
       next();
     } catch (error) {
@@ -379,7 +365,7 @@ class TransactionService {
         true);
       // Filter
       transactions.result = TransactionSecurity.filterTransactionsResponse(
-        transactions.result, req.user, Constants.WITH_CONNECTORS);
+        transactions.result, req.user);
       // Return
       res.json(transactions);
       next();
@@ -435,7 +421,7 @@ class TransactionService {
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       transactions.result = TransactionSecurity.filterTransactionsResponse(
-        transactions.result, req.user, Constants.WITH_CONNECTORS);
+        transactions.result, req.user);
       // Return
       res.json(transactions);
       next();
@@ -491,7 +477,7 @@ class TransactionService {
       }
       // Filter
       transactions.result = TransactionSecurity.filterTransactionsResponse(
-        transactions.result, req.user, Constants.WITHOUT_CONNECTORS);
+        transactions.result, req.user);
       // Return
       res.json(transactions);
       next();
