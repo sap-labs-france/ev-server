@@ -1,7 +1,6 @@
 const MongoClient = require('mongodb').MongoClient;
 const mongoUriBuilder = require('mongo-uri-builder');
 const urlencode = require('urlencode');
-const MongoDBStorageNotification = require('./MongoDBStorageNotification');
 const DatabaseUtils = require('./DatabaseUtils');
 const Constants = require('../../utils/Constants');
 
@@ -179,18 +178,6 @@ class MongoDBStorage {
     // Check Database
     await this.checkDatabase();
     console.log(`Connected to '${this._dbConfig.implementation}' successfully`);
-  }
-
-  async setCentralRestServer(centralRestServer){
-    if (this._dbConfig.monitorDBChange) {
-      // Monitor MongoDB for Notifications
-      this._mongoDBStorageNotification = new MongoDBStorageNotification(
-        this._dbConfig, this._db);
-      // Set Central Rest Server
-      this._mongoDBStorageNotification.setCentralRestServer(centralRestServer);
-      // Start
-      await this._mongoDBStorageNotification.start();
-    }
   }
 }
 
