@@ -33,7 +33,7 @@ class JsonWSConnection extends WSConnection {
       this.setChargingStationID(splittedURL[1]);
     } else {
       // Throw
-      throw new Error(`The URL '${req.url }' must contain the Charging Station ID (/OCPPxx/TENANT_NAME/CHARGEBOX_ID)`);
+      throw new Error(`The URL '${req.url}' must contain the Charging Station ID (/OCPPxx/TENANT_NAME/CHARGEBOX_ID)`);
     }
     // Log
     Logging.logInfo({
@@ -126,8 +126,8 @@ class JsonWSConnection extends WSConnection {
       action: "WSJsonConnectionClose",
       message: `Connection has been closed, Reason '${reason}', Code '${code}'`
     });
-    // Close the connection
-    this._wsServer.removeConnection(this.getChargingStationID());
+    // Remove the connection
+    this._wsServer.removeJsonConnection(this.getChargingStationID());
   }
 
   async handleRequest(messageId, commandName, commandPayload) {

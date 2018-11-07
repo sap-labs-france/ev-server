@@ -93,19 +93,13 @@ class JsonCentralSystemServer extends CentralSystemServer {
         if (req.url.startsWith('/REST')) {
           // Create a Rest Web Socket connection object
           const wsConnection = new JsonRestWSConnection(ws, req, this);
-          // Store the WS manager linked to its ChargeBoxId
-          if (wsConnection.getChargingStationID()) {
-            // Keep the connection
-            this._jsonRestClients[wsConnection.getChargingStationID()] = wsConnection;
-          }
+          // Add
+          this.addRestConnection(wsConnection);
         } else {
           // Create a Json Web Socket connection object
           const wsConnection = new JsonWSConnection(ws, req, this._chargingStationConfig, this);
-          // Store the WS manager linked to its ChargeBoxId
-          if (wsConnection.getChargingStationID()) {
-            // Keep the connection
-            this._jsonChargingStationClients[wsConnection.getChargingStationID()] = wsConnection;
-          }
+          // Add
+          this.addJsonConnection(wsConnection);
         } 
       } catch (error) {
         // Log
@@ -127,17 +121,24 @@ class JsonCentralSystemServer extends CentralSystemServer {
     });
   }
 
-  removeConnection(chargingStationID) {
-    // Charging Station
-    if (this._jsonChargingStationClients[chargingStationID]) {
-      // Remove from cache
-      delete this._jsonChargingStationClients[chargingStationID];
-    }
-    // Rest
-    if (this._jsonRestClients[chargingStationID]) {
-      // Remove from cache
-      delete this._jsonRestClients[chargingStationID];
-    }
+  addJsonConnection(wsConnection) {
+    // Keep the connection
+    this._jsonChargingStationClients[wsConnection.getChargingStationID()] = wsConnection;
+  }
+
+  removeJsonConnection(chargingStationID) {
+    // Remove from cache
+    delete this._jsonChargingStationClients[chargingStationID];
+  }
+
+  addRestConnection(wsConnection) {
+    // Keep the connection
+    this._jsonRestClients[wsConnection.getChargingStationID()] = wsConnection;
+  }
+
+  removeRestConnection(chargingStationID) {
+    // Remove from cache
+    delete this._jsonRestClients[chargingStationID];
   }
 
   getChargingStationClient(chargingStationID) {
