@@ -76,7 +76,7 @@ class JsonRestWSConnection extends WSConnection {
       result = await chargingStationClient[actionMethod](commandPayload);
     } else {
       // Throw Exception
-      throw new Error(`'${this.getChargingStationID()}' > '${commandName}' is not implemented`);
+      throw new Error(`'${this.getChargingStationID()}' > '${actionMethod}' is not implemented`);
     }
     // Log
     Logging.logReturnedAction(MODULE_NAME, this.getChargingStationID(), commandName, result);

@@ -67,7 +67,7 @@ class SoapChargingStationClient extends ChargingStationClient {
 		this._client.addSoapHeader(`<a:Action xmlns:a="http://www.w3.org/2005/08/addressing">/${action}</a:Action>`);
 	}
 
-	async stopTransaction(params) {
+	async remoteStopTransaction(params) {
     const { transactionId } = params;
     // Init SOAP Headers with the action
     this.initSoapHeaders("RemoteStopTransaction");

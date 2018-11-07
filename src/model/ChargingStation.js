@@ -1323,7 +1323,7 @@ class ChargingStation {
 		// Get the client
 		const chargingStationClient = await this.getChargingStationClient();
 		// Stop Transaction
-		const result = await chargingStationClient.stopTransaction(params);
+		const result = await chargingStationClient.remoteStopTransaction(params);
 		// Log
 		Logging.logInfo({
 			source: this.getID(), module: 'ChargingStation',

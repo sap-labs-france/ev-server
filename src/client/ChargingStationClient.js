@@ -66,7 +66,7 @@ class ChargingStationClient {
 	startTransaction(params) {
 	}
 
-	stopTransaction(params) {
+	remoteStopTransaction(params) {
 	}
 
 	unlockConnector(params) {
