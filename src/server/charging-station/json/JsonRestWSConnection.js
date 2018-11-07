@@ -58,13 +58,13 @@ class JsonRestWSConnection extends WSConnection {
     // Found?
     if (!chargingStation) {
       // Throw
-      throw new Error(`'${this.getChargingStationID()}' > '${commandName}': Charging Station not found`);
+      throw new Error(`'${this.getChargingStationID()}' > '${commandName}': Not found`);
     }
     // Get the client from JSon Server
     let chargingStationClient = global.centralSystemJson.getChargingStationClient(chargingStation.getID());
     if (!chargingStationClient) {
       // Throw
-      throw new Error(`'${this.getChargingStationID()}' > '${commandName}': Charging Station is not connected to this server'`);
+      throw new Error(`'${this.getChargingStationID()}' > '${commandName}': Not connected to this instance'`);
     }
     // Call the client
     let result; 

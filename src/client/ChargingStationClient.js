@@ -1,5 +1,6 @@
 const Constants = require('../utils/Constants');
 const Configuration = require('../utils/Configuration');
+const BackendError = require('../exception/BackendError');
 
 class ChargingStationClient {
 	constructor() {
@@ -41,6 +42,11 @@ class ChargingStationClient {
         // Init client
         chargingClient = await new SoapChargingStationClient(chargingStation);
         break;
+    }
+    // Check
+    if (!chargingClient) {
+      throw new BackendError(chargingStation.getID(), "Client has not been found", 
+        "ChargingStationClient", "getChargingStationClient");
     }
     return chargingClient;
 	}

@@ -1,7 +1,7 @@
 const Utils = require('./Utils');
-const fs = require('fs');
 const Constants = require('./Constants');
 const AppError = require('../exception/AppError');
+const BackendError = require('../exception/BackendError');
 const AppAuthError = require('../exception/AppAuthError');
 const BadRequestError = require('../exception/BadRequestError');
 const ConflictError = require('../exception/ConflictError');
@@ -142,6 +142,8 @@ class Logging {
       Logging.logWarning(log);
     } else if (error instanceof AppError) {
       Logging.logError(log);
+    } else if (error instanceof BackendError) {
+      Logging.logError(log);
     } else {
       Logging.logError(log);
     }
@@ -149,14 +151,17 @@ class Logging {
 
   // Used to log exception in catch(...) only
   static logActionExceptionMessage(action, exception) {
+    // Log App Error
     if (exception instanceof AppError) {
-      // Log Error
       Logging._logActionAppExceptionMessage(action, exception);
+    // Log Backend Error
+    } else if (exception instanceof BackendError) {
+      Logging._logActionBackendExceptionMessage(action, exception);
+    // Log Auth Error
     } else if (exception instanceof AppAuthError) {
-      // Log Auth Error
       Logging._logActionAppAuthExceptionMessage(action, exception);
+    // Log Unexpected
     } else {
-      // Log Unexpected
       Logging._logActionExceptionMessage(action, exception);
     }
   }
@@ -167,14 +172,17 @@ class Logging {
     if (action === "login" && req.body.password) {
       req.body.password = "####";
     }
+    // Log App Error
     if (exception instanceof AppError) {
-      // Log App Error
       Logging._logActionAppExceptionMessage(action, exception);
+    // Log Backend Error
+    } else if (exception instanceof BackendError) {
+      Logging._logActionBackendExceptionMessage(action, exception);
+    // Log Auth Error
     } else if (exception instanceof AppAuthError) {
-      // Log Auth Error
       Logging._logActionAppAuthExceptionMessage(action, exception);
+    // Log Generic Error
     } else {
-      // Log Generic Error
       Logging._logActionExceptionMessage(action, exception);
     }
     // Send error
@@ -185,7 +193,7 @@ class Logging {
   }
 
   static _logActionExceptionMessage(action, exception) {
-    Logging.logSecurityError({
+    Logging.logError({
       source: exception.source,
       module: exception.module,
       method: exception.method,
@@ -198,10 +206,23 @@ class Logging {
   }
 
   static _logActionAppExceptionMessage(action, exception) {
-    Logging.logSecurityError({
+    Logging.logError({
       source: exception.source,
       user: exception.user,
       actionOnUser: exception.actionOnUser,
+      module: exception.module,
+      method: exception.method,
+      action: action,
+      message: exception.message,
+      detailedMessages: [{
+        "stack": exception.stack
+      }]
+    });
+  }
+
+  static _logActionBackendExceptionMessage(action, exception) {
+    Logging.logError({
+      source: exception.source,
       module: exception.module,
       method: exception.method,
       action: action,
