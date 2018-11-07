@@ -49,7 +49,7 @@ class JsonRestWSConnection extends WSConnection {
       message: `Connection has been closed, Reason '${reason}', Code '${code}'`
     });
     // Remove the connection
-    this._wsServer.removeRestConnection(this.getChargingStationID());
+    this._wsServer.removeRestConnection(this);
   }
 
   async handleRequest(messageId, commandName, commandPayload) {

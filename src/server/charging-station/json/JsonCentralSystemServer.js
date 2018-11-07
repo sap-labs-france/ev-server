@@ -1,4 +1,5 @@
 const fs = require('fs');
+const uuid = require('uuid/v4');
 const WebSocket = require('ws');
 const https = require('https');
 const http = require('http');
@@ -89,6 +90,8 @@ class JsonCentralSystemServer extends CentralSystemServer {
     // Listen to new connections
     this._wss.on('connection', async (ws, req) => {
       try {
+        // Set an ID
+        ws.id = uuid();
         // Check Rest calls
         if (req.url.startsWith('/REST')) {
           // Create a Rest Web Socket connection object
@@ -126,9 +129,12 @@ class JsonCentralSystemServer extends CentralSystemServer {
     this._jsonChargingStationClients[wsConnection.getChargingStationID()] = wsConnection;
   }
 
-  removeJsonConnection(chargingStationID) {
-    // Remove from cache
-    delete this._jsonChargingStationClients[chargingStationID];
+  removeJsonConnection(wsConnection) {
+    // Check first
+    if (this._jsonChargingStationClients[wsConnection.getChargingStationID()].getWSConnection().id === wsConnection.getWSConnection().id) {
+      // Remove from cache    
+      delete this._jsonChargingStationClients[wsConnection.getChargingStationID()];
+    }
   }
 
   addRestConnection(wsConnection) {
@@ -136,9 +142,12 @@ class JsonCentralSystemServer extends CentralSystemServer {
     this._jsonRestClients[wsConnection.getChargingStationID()] = wsConnection;
   }
 
-  removeRestConnection(chargingStationID) {
-    // Remove from cache
-    delete this._jsonRestClients[chargingStationID];
+  removeRestConnection(wsConnection) {
+    // Check first
+    if (this._jsonRestClients[wsConnection.getChargingStationID()].getWSConnection().id === wsConnection.getWSConnection().id) {
+      // Remove from cache
+      delete this._jsonRestClients[wsConnection.getChargingStationID()];
+    }
   }
 
   getChargingStationClient(chargingStationID) {
