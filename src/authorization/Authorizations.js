@@ -264,7 +264,7 @@ class Authorizations {
 		}
 		// Check if users are differents
 		if (alternateUser && (user.getID() != alternateUser.getID()) &&
-				!Authorizations.isAdmin(alternateUser) && !site.isAllowAllUsersToStopTransactionsEnabled()) {
+				!Authorizations.isAdmin(alternateUser.getModel()) && !site.isAllowAllUsersToStopTransactionsEnabled()) {
 			// Reject the User
 			throw new AppError(
 				chargingStation.getID(),
