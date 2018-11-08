@@ -8,7 +8,7 @@ const Factory = require('../factories/Factory');
 const CentralServerService = require('./client/CentralServerService');
 
 describe('Company, Site, Site Area tests', function () {
-  this.timeout(10000);
+  this.timeout(30000);
 
   describe('Success cases', function () {
     beforeEach(async () => {

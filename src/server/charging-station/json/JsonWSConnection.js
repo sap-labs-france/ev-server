@@ -29,7 +29,7 @@ class JsonWSConnection extends WSConnection {
       this.setChargingStationID(splittedURL[2]);
     } else {
       // Throw
-      throw new Error(`The URL '${req.url}' must contain the Charging Station ID (/OCPPxx/TENANT_NAME/CHARGEBOX_ID)`);
+      throw new Error(`The URL '${req.url}' must contain the Charging Station ID (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`);
     }
     // Log
     Logging.logInfo({
