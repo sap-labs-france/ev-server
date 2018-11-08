@@ -356,14 +356,14 @@ class UserService {
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The user with ID '${filteredRequest.id}' does not exist anymore`, 550,
+          `The user with ID '${filteredRequest.ID}' does not exist anymore`, 550,
           'UserService', 'handleGetUser', req.user);
       }
       // Deleted?
       if (user.deleted) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The user with ID '${filteredRequest.id}' is logically deleted`, 550,
+          `The user with ID '${filteredRequest.ID}' is logically deleted`, 550,
           'UserService', 'handleGetUser', req.user);
       }
       // Check auth

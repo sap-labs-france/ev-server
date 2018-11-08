@@ -77,50 +77,50 @@ class MongoDBStorageNotification {
     const tenantsWatcher = await this.database.getCollection(Constants.DEFAULT_TENANT, "tenants").watch(_pipeline, _options);
     tenantsWatcher.on("change", (change) => {
       const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
-      const tenantId = change.documentKey._id.toString();
+      const tenantID = change.documentKey._id.toString();
       switch (action) {
         case Constants.ACTION_CREATE:
-          this.watchTenantCollections(tenantId);
+          this.watchTenantCollections(tenantID);
           break;
       }
       // Notify
-      this.centralRestServer.notifyTenant(Constants.DEFAULT_TENANT, action, {id: tenantId});
+      this.centralRestServer.notifyTenant(Constants.DEFAULT_TENANT, action, {id: tenantID});
     });
   }
 
-  async watchTenantCollections(tenantId){
+  async watchTenantCollections(tenantID){
     // Logs
-    this.watchCollection(tenantId, "logs", this.centralRestServer.notifyLogging.bind(this.centralRestServer), false);
+    this.watchCollection(tenantID, "logs", this.centralRestServer.notifyLogging.bind(this.centralRestServer), false);
     // Users
-    this.watchCollection(tenantId, "users", this.centralRestServer.notifyUser.bind(this.centralRestServer), true);
+    this.watchCollection(tenantID, "users", this.centralRestServer.notifyUser.bind(this.centralRestServer), true);
     // User Images
-    this.watchCollection(tenantId, "userimages", this.centralRestServer.notifyUser.bind(this.centralRestServer), true);
+    this.watchCollection(tenantID, "userimages", this.centralRestServer.notifyUser.bind(this.centralRestServer), true);
     // Charging Stations
-    this.watchCollection(tenantId, "chargingstations", this.centralRestServer.notifyChargingStation.bind(this.centralRestServer), true);
+    this.watchCollection(tenantID, "chargingstations", this.centralRestServer.notifyChargingStation.bind(this.centralRestServer), true);
     // Vehicle Manufacturers
-    this.watchCollection(tenantId, "vehiclemanufacturers", this.centralRestServer.notifyVehicleManufacturer.bind(this.centralRestServer), true);
+    this.watchCollection(tenantID, "vehiclemanufacturers", this.centralRestServer.notifyVehicleManufacturer.bind(this.centralRestServer), true);
     // Vehicle Manufacturer Logos
-    this.watchCollection(tenantId, "vehiclemanufacturerlogos", this.centralRestServer.notifyVehicleManufacturer.bind(this.centralRestServer), true);
+    this.watchCollection(tenantID, "vehiclemanufacturerlogos", this.centralRestServer.notifyVehicleManufacturer.bind(this.centralRestServer), true);
     // Vehicles
-    this.watchCollection(tenantId, "vehicles", this.centralRestServer.notifyVehicle.bind(this.centralRestServer), true);
+    this.watchCollection(tenantID, "vehicles", this.centralRestServer.notifyVehicle.bind(this.centralRestServer), true);
     // Vehicle Images
-    this.watchCollection(tenantId, "vehicleimages", this.centralRestServer.notifyVehicle.bind(this.centralRestServer), true);
+    this.watchCollection(tenantID, "vehicleimages", this.centralRestServer.notifyVehicle.bind(this.centralRestServer), true);
     // Companies
-    this.watchCollection(tenantId, "companies", this.centralRestServer.notifyCompany.bind(this.centralRestServer), true);
+    this.watchCollection(tenantID, "companies", this.centralRestServer.notifyCompany.bind(this.centralRestServer), true);
     // Company Logos
-    this.watchCollection(tenantId, "companylogos", this.centralRestServer.notifyCompany.bind(this.centralRestServer), true);
+    this.watchCollection(tenantID, "companylogos", this.centralRestServer.notifyCompany.bind(this.centralRestServer), true);
     // Site Areas
-    this.watchCollection(tenantId, "siteareas", this.centralRestServer.notifySiteArea.bind(this.centralRestServer), true);
+    this.watchCollection(tenantID, "siteareas", this.centralRestServer.notifySiteArea.bind(this.centralRestServer), true);
     // Site Area Images
-    this.watchCollection(tenantId, "siteareaimages", this.centralRestServer.notifySiteArea.bind(this.centralRestServer), true);
+    this.watchCollection(tenantID, "siteareaimages", this.centralRestServer.notifySiteArea.bind(this.centralRestServer), true);
     // Sites
-    this.watchCollection(tenantId, "sites", this.centralRestServer.notifySite.bind(this.centralRestServer), true);
+    this.watchCollection(tenantID, "sites", this.centralRestServer.notifySite.bind(this.centralRestServer), true);
     // Site Images
-    this.watchCollection(tenantId, "siteimages", this.centralRestServer.notifySite.bind(this.centralRestServer), true);
+    this.watchCollection(tenantID, "siteimages", this.centralRestServer.notifySite.bind(this.centralRestServer), true);
 
-    this.watchTransactions(tenantId);
-    this.watchMeterValues(tenantId);
-    this.watchConfigurations(tenantId);
+    this.watchTransactions(tenantID);
+    this.watchMeterValues(tenantID);
+    this.watchConfigurations(tenantID);
   }
 
   async watchCollection(tenantID, name, notifyCallback, notifyWithID){

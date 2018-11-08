@@ -69,9 +69,7 @@ class Utils {
     // Get the registration URL
     const urlBox = new url.URL(headers.To);
     // Get the Tenant param
-    const tenant = urlBox.searchParams.get('tenant');
-    // Set it in the HEader
-    headers.tenant = (tenant === null ? "" : tenant);
+    headers.tenantID = urlBox.searchParams.get('tenantID');
   }
 
   static normalizeOneSOAPHeader(headers, name){
