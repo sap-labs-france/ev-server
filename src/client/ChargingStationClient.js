@@ -1,5 +1,6 @@
 const Constants = require('../utils/Constants');
 const Configuration = require('../utils/Configuration');
+const BackendError = require('../exception/BackendError');
 
 class ChargingStationClient {
 	constructor() {
@@ -42,11 +43,16 @@ class ChargingStationClient {
         chargingClient = await new SoapChargingStationClient(chargingStation);
         break;
     }
+    // Check
+    if (!chargingClient) {
+      throw new BackendError(chargingStation.getID(), "Client has not been found", 
+        "ChargingStationClient", "getChargingStationClient");
+    }
     return chargingClient;
 	}
 
 	/**
-	 * triffer a reset/reboot on a charging station
+	 * Trigger a reset/reboot on a charging station
 	 *
 	 * @param {*} type
 	 * @memberof ChargingStationClient
@@ -66,7 +72,7 @@ class ChargingStationClient {
 	startTransaction(params) {
 	}
 
-	stopTransaction(params) {
+	remoteStopTransaction(params) {
 	}
 
 	unlockConnector(params) {

@@ -51,7 +51,7 @@ class JsonChargingStationClient16 extends ChargingStationClient {
     }, 2, "ChangeConfiguration");
   }
 
-  stopTransaction(params) {
+  remoteStopTransaction(params) {
     const { transactionId } = params;
     return this._wsConnection.sendMessage(uuid(), {
       transactionId: transactionId
