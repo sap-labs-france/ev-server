@@ -76,15 +76,23 @@ class MongoDBStorageNotification {
     // Watch tenant collection
     const tenantsWatcher = await this.database.getCollection(Constants.DEFAULT_TENANT, "tenants").watch(_pipeline, _options);
     tenantsWatcher.on("change", (change) => {
-      const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
-      const tenantID = change.documentKey._id.toString();
-      switch (action) {
-        case Constants.ACTION_CREATE:
-          this.watchTenantCollections(tenantID);
-          break;
+      if (change.documentKey && change.documentKey._id) {
+        const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
+        const tenantID = change.documentKey._id.toString();
+        switch (action) {
+          case Constants.ACTION_CREATE:
+            this.watchTenantCollections(tenantID);
+            break;
+        }
+        // Notify
+        this.centralRestServer.notifyTenant(Constants.DEFAULT_TENANT, action, {id: tenantID});
+      } else {
+        MongoDBStorageNotification.handleInvalidChange(Constants.DEFAULT_TENANT, "tenants", change);
       }
-      // Notify
-      this.centralRestServer.notifyTenant(Constants.DEFAULT_TENANT, action, {id: tenantID});
+    });
+    // Error Handling
+    tenantsWatcher.on("error", (error) => {
+      MongoDBStorageNotification.handleError(Constants.DEFAULT_TENANT, "tenants", error);
     });
   }
 
@@ -128,7 +136,7 @@ class MongoDBStorageNotification {
     const collectionWatcher = await this.database.getCollection(tenantID, name).watch(_pipeline, _options);
     // Change Handling
     collectionWatcher.on("change", (change) => {
-      if (change.documentKey._id) {
+      if (change.documentKey && change.documentKey._id) {
         // Check for permitted operation
         const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
         // Notify
@@ -139,17 +147,13 @@ class MongoDBStorageNotification {
         } else {
           notifyCallback(tenantID, action);
         }
+      } else {
+        MongoDBStorageNotification.handleInvalidChange(tenantID, "meterValues", change);
       }
     });
     // Error Handling
     collectionWatcher.on("error", (error) => {
-      // Log
-      Logging.logError({
-        module: "MongoDBStorageNotification",
-        method: "watchCollection", action: `Watch`,
-        message: `Error occurred in watching collection ${name}: ${error}`,
-        detailedMessages: error
-      });
+      MongoDBStorageNotification.handleError(tenantID, name, error);
     });
   }
 
@@ -158,26 +162,34 @@ class MongoDBStorageNotification {
     const transactionsWatcher = await this.database.getCollection(tenantID, "transactions").watch(_pipeline, _options);
     // Change Handling
     transactionsWatcher.on("change", (change) => {
-      // Check for permitted operation
-      const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
-      // Notify
-      const notification = {
-        "id": change.documentKey._id.toString()
-      };
-      // Operation
-      switch (change.operationType) {
-        case 'insert': // Insert/Create
-          notification.connectorId = change.fullDocument.connectorId;
-          notification.chargeBoxID = change.fullDocument.chargeBoxID;
-          break;
-        case 'update': // Update
-          if (change.fullDocument && change.fullDocument.stop) {
-            notification.type = Constants.ENTITY_TRANSACTION_STOP;
-          }
-          break;
+      if (change.documentKey && change.documentKey._id) {
+        // Check for permitted operation
+        const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
+        // Notify
+        const notification = {
+          "id": change.documentKey._id.toString()
+        };
+        // Operation
+        switch (change.operationType) {
+          case 'insert': // Insert/Create
+            notification.connectorId = change.fullDocument.connectorId;
+            notification.chargeBoxID = change.fullDocument.chargeBoxID;
+            break;
+          case 'update': // Update
+            if (change.fullDocument && change.fullDocument.stop) {
+              notification.type = Constants.ENTITY_TRANSACTION_STOP;
+            }
+            break;
+        }
+        // Notify
+        this.centralRestServer.notifyTransaction(tenantID, action, notification);
+      } else {
+        MongoDBStorageNotification.handleInvalidChange(tenantID, "transactions", change);
       }
-      // Notify
-      this.centralRestServer.notifyTransaction(tenantID, action, notification);
+    });
+    // Error Handling
+    transactionsWatcher.on("error", (error) => {
+      MongoDBStorageNotification.handleError(tenantID, name, error);
     });
   }
 
@@ -186,19 +198,27 @@ class MongoDBStorageNotification {
     const meterValuesWatcher = await this.database.getCollection(tenantID, "metervalues").watch(_pipeline, _options);
     // Change Handling
     meterValuesWatcher.on("change", (change) => {
-      // Check for permitted operation
-      const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
-      // Notify
-      const notification = {};
-      // Insert/Create?
-      if (action === Constants.ACTION_CREATE) {
-        notification.id = change.fullDocument.transactionId;
-        notification.type = Constants.ENTITY_TRANSACTION_METER_VALUES;
-        notification.chargeBoxID = change.fullDocument.chargeBoxID;
-        notification.connectorId = change.fullDocument.connectorId;
-        // Notify, Force Transaction Update
-        this.centralRestServer.notifyTransaction(tenantID, Constants.ACTION_UPDATE, notification);
+      if (change.documentKey && change.documentKey._id) {
+        // Check for permitted operation
+        const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
+        // Notify
+        const notification = {};
+        // Insert/Create?
+        if (action === Constants.ACTION_CREATE) {
+          notification.id = change.fullDocument.transactionId;
+          notification.type = Constants.ENTITY_TRANSACTION_METER_VALUES;
+          notification.chargeBoxID = change.fullDocument.chargeBoxID;
+          notification.connectorId = change.fullDocument.connectorId;
+          // Notify, Force Transaction Update
+          this.centralRestServer.notifyTransaction(tenantID, Constants.ACTION_UPDATE, notification);
+        }
+      } else {
+        MongoDBStorageNotification.handleInvalidChange(tenantID, "meterValues", change);
       }
+    });
+    // Error Handling
+    meterValuesWatcher.on("error", (error) => {
+      MongoDBStorageNotification.handleError(tenantID, name, error);
     });
   }
 
@@ -207,7 +227,7 @@ class MongoDBStorageNotification {
     const configurationsWatcher = await this.database.getCollection(tenantID, "configurations").watch(_pipeline, _options);
     // Change Handling
     configurationsWatcher.on("change", (change) => {
-      if (change.documentKey._id) {
+      if (change.documentKey && change.documentKey._id) {
         // Check for permitted operation
         const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
         // Notify
@@ -215,7 +235,33 @@ class MongoDBStorageNotification {
           "type": Constants.NOTIF_TYPE_CHARGING_STATION_CONFIGURATION,
           "id": change.documentKey._id.toString()
         });
+      } else {
+        MongoDBStorageNotification.handleInvalidChange(tenantID, "configurations", change);
       }
+    });
+    // Error Handling
+    configurationsWatcher.on("error", (error) => {
+      MongoDBStorageNotification.handleError(tenantID, name, error);
+    });
+  }
+
+  static handleInvalidChange(tenantID, collection, change){
+    Logging.logError({
+      tenantID: tenantID,
+      module: "MongoDBStorageNotification",
+      method: "handleInvalidChange",
+      action: `Watch`,
+      message: `Invalid change received on collection ${collection}`,
+      detailedMessages: JSON.stringify(change)
+    });
+  }
+
+  static handleError(tenantID, collection, error){    // Log
+    Logging.logError({
+      module: "MongoDBStorageNotification",
+      method: "watchCollection", action: `Watch`,
+      message: `Error occurred in watching collection ${collection}: ${error}`,
+      detailedMessages: error
     });
   }
 }
