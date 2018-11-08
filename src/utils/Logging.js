@@ -1,6 +1,7 @@
 const Utils = require('./Utils');
 const Constants = require('./Constants');
 const AppError = require('../exception/AppError');
+const BackendError = require('../exception/BackendError');
 const AppAuthError = require('../exception/AppAuthError');
 const BadRequestError = require('../exception/BadRequestError');
 const ConflictError = require('../exception/ConflictError');
@@ -144,21 +145,26 @@ class Logging {
       Logging.logWarning(log);
     } else if (error instanceof AppError) {
       Logging.logError(log);
+    } else if (error instanceof BackendError) {
+      Logging.logError(log);
     } else {
       Logging.logError(log);
     }
   }
 
   // Used to log exception in catch(...) only
-  static logActionExceptionMessage(tenantID, action, exception){
+  static logActionExceptionMessage(tenantID, action, exception) {
+    // Log App Error
     if (exception instanceof AppError) {
-      // Log Error
       Logging._logActionAppExceptionMessage(tenantID, action, exception);
+    // Log Backend Error
+    } else if (exception instanceof BackendError) {
+      Logging._logActionBackendExceptionMessage(tenantID, action, exception);
+    // Log Auth Error
     } else if (exception instanceof AppAuthError) {
-      // Log Auth Error
       Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
+    // Log Unexpected
     } else {
-      // Log Unexpected
       Logging._logActionExceptionMessage(tenantID, action, exception);
     }
   }
@@ -173,14 +179,17 @@ class Logging {
     if (req.user && req.user.tenantID) {
       tenantID = req.user.tenantID;
     }
+    // Log App Error
     if (exception instanceof AppError) {
-      // Log App Error
       Logging._logActionAppExceptionMessage(tenantID, action, exception);
+    // Log Backend Error
+    } else if (exception instanceof BackendError) {
+      Logging._logActionBackendExceptionMessage(tenantID, action, exception);
+    // Log Auth Error
     } else if (exception instanceof AppAuthError) {
-      // Log Auth Error
       Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
+    // Log Generic Error
     } else {
-      // Log Generic Error
       Logging._logActionExceptionMessage(tenantID, action, exception);
     }
     // Send error
@@ -190,8 +199,8 @@ class Logging {
     next();
   }
 
-  static _logActionExceptionMessage(tenantID, action, exception){
-    Logging.logSecurityError({
+  static _logActionExceptionMessage(tenantID, action, exception) {
+    Logging.logError({
       tenantID: tenantID,
       source: exception.source,
       module: exception.module,
@@ -204,12 +213,26 @@ class Logging {
     });
   }
 
-  static _logActionAppExceptionMessage(tenantID, action, exception){
-    Logging.logSecurityError({
+  static _logActionAppExceptionMessage(tenantID, action, exception) {
+    Logging.logError({
       tenantID: tenantID,
       source: exception.source,
       user: exception.user,
       actionOnUser: exception.actionOnUser,
+      module: exception.module,
+      method: exception.method,
+      action: action,
+      message: exception.message,
+      detailedMessages: [{
+        "stack": exception.stack
+      }]
+    });
+  }
+
+  static _logActionBackendExceptionMessage(tenantID, action, exception) {
+    Logging.logError({
+      tenantID: tenantID,
+      source: exception.source,
       module: exception.module,
       method: exception.method,
       action: action,

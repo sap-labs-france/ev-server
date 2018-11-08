@@ -17,7 +17,7 @@ class JsonRestWSConnection extends WSConnection {
       this.setChargingStationID(splittedURL[1]);
     } else {
       // Throw
-      throw new Error(`The URL '${req.url }' must contain the Charging Station ID (/REST/CHARGEBOX_ID)`);
+      throw new Error(`The URL '${req.url}' must contain the Charging Station ID (/REST/CHARGEBOX_ID)`);
     }
     // Log
     Logging.logInfo({
@@ -48,6 +48,8 @@ class JsonRestWSConnection extends WSConnection {
       action: "WSRestServerConnectionClosed",
       message: `Connection has been closed, Reason '${reason}', Code '${code}'`
     });
+    // Remove the connection
+    this._wsServer.removeRestConnection(this);
   }
 
   async handleRequest(messageId, commandName, commandPayload) {
@@ -58,13 +60,13 @@ class JsonRestWSConnection extends WSConnection {
     // Found?
     if (!chargingStation) {
       // Throw
-      throw new Error(`'${this.getChargingStationID()}' > '${commandName}': Charging Station not found`);
+      throw new Error(`'${this.getChargingStationID()}' > '${commandName}': Not found`);
     }
     // Get the client from JSon Server
     let chargingStationClient = global.centralSystemJson.getChargingStationClient(chargingStation.getID());
     if (!chargingStationClient) {
       // Throw
-      throw new Error(`'${this.getChargingStationID()}' > '${commandName}': Charging Station is not connected to this server'`);
+      throw new Error(`'${this.getChargingStationID()}' > '${commandName}': Not connected to this instance'`);
     }
     // Call the client
     let result; 
@@ -76,7 +78,7 @@ class JsonRestWSConnection extends WSConnection {
       result = await chargingStationClient[actionMethod](commandPayload);
     } else {
       // Throw Exception
-      throw new Error(`'${this.getChargingStationID()}' > '${commandName}' is not implemented`);
+      throw new Error(`'${this.getChargingStationID()}' > '${actionMethod}' is not implemented`);
     }
     // Log
     Logging.logReturnedAction(MODULE_NAME, this.getChargingStationID(), commandName, result);

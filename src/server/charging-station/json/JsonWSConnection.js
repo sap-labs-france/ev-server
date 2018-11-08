@@ -29,7 +29,7 @@ class JsonWSConnection extends WSConnection {
       this.setChargingStationID(splittedURL[2]);
     } else {
       // Throw
-      throw new Error(`The URL '${req.url }' must contain the Charging Station ID (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`);
+      throw new Error(`The URL '${req.url}' must contain the Charging Station ID (/OCPPxx/TENANT_NAME/CHARGEBOX_ID)`);
     }
     // Log
     Logging.logInfo({
@@ -40,7 +40,7 @@ class JsonWSConnection extends WSConnection {
       message: `New Json connection from '${this.getIP()}', Protocol '${wsConnection.protocol}', URL '${this.getURL()}'`
     });
     // Check Protocol (required field of OCPP spec)
-    switch (this.getWSConnection().protocol) {
+    switch (wsConnection.protocol) {
       // OCPP 1.6?
       case 'ocpp1.6':
         // Create the Json Client
@@ -50,7 +50,7 @@ class JsonWSConnection extends WSConnection {
         break;
       // Not Found
       default:
-        throw new Error(`Protocol ${this.getWSConnection().protocol} not supported`);
+        throw new Error(`Protocol ${wsConnection.protocol} not supported`);
     }
   }
 
@@ -124,8 +124,8 @@ class JsonWSConnection extends WSConnection {
       action: "WSJsonConnectionClose",
       message: `Connection has been closed, Reason '${reason}', Code '${code}'`
     });
-    // Close the connection
-    this._wsServer.removeConnection(this.getChargingStationID());
+    // Remove the connection
+    this._wsServer.removeJsonConnection(this);
   }
 
   async handleRequest(messageId, commandName, commandPayload) {

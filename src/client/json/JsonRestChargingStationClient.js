@@ -52,7 +52,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
     );
   }
 
-  stopTransaction(params) {
+  remoteStopTransaction(params) {
     return this._sendMessage(
       this._buildRequest('RemoteStopTransaction', params)
     );
