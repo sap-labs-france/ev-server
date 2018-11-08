@@ -7,7 +7,7 @@ const TenantFactory = require('../factories/TenantFactory');
 const HttpStatus = require('http-status-codes');
 
 describe('Tenant tests', function () {
-  this.timeout(10000);
+  this.timeout(30000);
 
   describe('Success cases', () => {
     it('Should be possible to create a valid tenant', async () => {

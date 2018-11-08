@@ -84,7 +84,7 @@ class NotificationHandler {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenantID, SOURCE_END_OF_CHARGE, err);
+      Logging.logActionExceptionMessage(tenantID, SOURCE_END_OF_CHARGE, error);
     }
   }
 
@@ -105,7 +105,7 @@ class NotificationHandler {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenantID, SOURCE_END_OF_SESSION, err);
+      Logging.logActionExceptionMessage(tenantID, SOURCE_END_OF_SESSION, error);
     }
   }
 

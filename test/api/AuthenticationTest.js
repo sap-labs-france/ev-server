@@ -8,7 +8,7 @@ const UserFactory = require('../factories/UserFactory');
 const jwt = require('jsonwebtoken');
 
 describe('Authentication Service', function() {
-  this.timeout(10000);
+  this.timeout(30000);
 
   describe('Success cases', () => {
     before(async () => {
