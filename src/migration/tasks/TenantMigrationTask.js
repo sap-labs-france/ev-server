@@ -28,11 +28,12 @@ class TenantMigrationTask extends MigrationTask {
         password: await User.hashPasswordBcrypt(password),
         status: Constants.USER_STATUS_ACTIVE,
         role: Constants.ROLE_SUPER_ADMIN,
-        email: 'superadmin@chargeangels.fr',
+        email: 'super.admin@sap.com',
         createdOn: new Date().toISOString()
       });
-
+      // Save
       user = await user.save();
+      // Log
       Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT, module: 'TenantMigrationTask', method: 'createSuperAdmin',
         actionOnUser: user.getModel(), action: "Migration",
