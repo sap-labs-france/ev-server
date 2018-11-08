@@ -36,7 +36,7 @@ class TenantMigrationTask extends MigrationTask {
       Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT, module: 'TenantMigrationTask', method: 'createSuperAdmin',
         actionOnUser: user.getModel(), action: "Migration",
-        message: `Super admin user '${user.getID()}' created with initial password '${password}', please update it...`
+        message: `Super admin user '${user.getEMail()}' created with initial password '${password}', please update it...`
       });
     }
   }
