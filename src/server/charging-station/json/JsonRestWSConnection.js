@@ -17,7 +17,7 @@ class JsonRestWSConnection extends WSConnection {
       this.setChargingStationID(splittedURL[1]);
     } else {
       // Throw
-      throw new Error(`The URL '${req.url }' must contain the Charging Station ID (/REST/CHARGEBOX_ID)`);
+      throw new Error(`The URL '${req.url}' must contain the Charging Station ID (/REST/CHARGEBOX_ID)`);
     }
     // Log
     Logging.logInfo({

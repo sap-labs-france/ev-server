@@ -52,7 +52,7 @@ class ChargingStationClient {
 	}
 
 	/**
-	 * triffer a reset/reboot on a charging station
+	 * Trigger a reset/reboot on a charging station
 	 *
 	 * @param {*} type
 	 * @memberof ChargingStationClient
