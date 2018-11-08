@@ -65,11 +65,8 @@ class Utils {
     Utils.normalizeOneSOAPHeader(headers, 'Action');
     // To
     Utils.normalizeOneSOAPHeader(headers, 'To');
-    // Extract the Tenant
-    // Get the registration URL
-    const urlBox = new url.URL(headers.To);
-    // Get the Tenant param
-    headers.tenantID = urlBox.searchParams.get('tenantID');
+    // TenantID
+    Utils.normalizeOneSOAPHeader(headers, 'tenantID');
   }
 
   static normalizeOneSOAPHeader(headers, name){
