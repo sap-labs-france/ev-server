@@ -157,7 +157,7 @@ class AuthService {
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The user with email '${filteredRequest.email}' does not exist for tenant '${tenantID}'`,
+          `The user with email '${filteredRequest.email}' does not exist for tenant '${(filteredRequest.tenant ? filteredRequest.tenant : tenantID)}'`,
           550, 'AuthService', 'handleLogIn');
       }
       if (user.isDeleted()) {
