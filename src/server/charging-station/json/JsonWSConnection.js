@@ -8,6 +8,7 @@ const OCPPError = require('../../../exception/OcppError');
 const JsonChargingStationClient16 = require('../../../client/json/JsonChargingStationClient16');
 const JsonChargingStationService16 = require('./services/JsonChargingStationService16');
 const WSConnection = require('./WSConnection');
+const BackendError = require('../../../exception/BackendError');
 
 const MODULE_NAME = "JsonWSConnection";
 
@@ -28,8 +29,9 @@ class JsonWSConnection extends WSConnection {
       // The Charger is in the 4th position
       this.setChargingStationID(splittedURL[2]);
     } else {
-      // Throw
-      throw new Error(`The URL '${req.url}' must contain the Charging Station ID (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`);
+      // Error
+      throw new BackendError(null, `The URL '${req.url}' must contain the Charging Station ID (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`,
+        "JsonWSConnection", "constructor");
     }
     // Log
     Logging.logInfo({
@@ -50,7 +52,9 @@ class JsonWSConnection extends WSConnection {
         break;
       // Not Found
       default:
-        throw new Error(`Protocol ${wsConnection.protocol} not supported`);
+        // Error
+        throw new BackendError(null, `Protocol ${wsConnection.protocol} not supported`,
+          "JsonWSConnection", "constructor");
     }
   }
 
@@ -71,11 +75,14 @@ class JsonWSConnection extends WSConnection {
             action: "WSJsonRegiterJsonConnection",
             message: `Invalid Tenant in URL ${this.getURL()}`
           });
-          // Throw
-          throw new Error(`Invalid Tenant '${this._tenantID}' in URL '${this.getURL()}'`);
+          // Error
+          throw new BackendError(this.getChargingStationID(), `Invalid Tenant '${this._tenantID}' in URL '${this.getURL()}'`,
+            "JsonWSConnection", "initialize");
         }
       } else {
-        throw new Error(`Invalid Tenant '${this._tenantID}' in URL '${this._url}'`);
+          // Error
+          throw new BackendError(this.getChargingStationID(), `Tenant is not provided in URL '${this.getURL()}'`,
+            "JsonWSConnection", "initialize");
       }
       // Cloud Foundry?
       if (Configuration.isCloudFoundry()) {

@@ -1,8 +1,9 @@
+const email = require("emailjs");
+const ejs = require('ejs');
+const BackendError = require('../../exception/BackendError');
 const Configuration = require('../../utils/Configuration');
 const Logging = require('../../utils/Logging');
 const Utils = require('../../utils/Utils');
-const email = require("emailjs");
-const ejs = require('ejs');
 const mainTemplate = require('./template/main-template.js');
 const requestPassword = require('./template/request-password.js');
 const chargingStationRegistered = require('./template/charging-station-registered.js');
@@ -142,8 +143,9 @@ class EMailNotificationTask extends NotificationTask {
     }
     // Template found?
     if (!emailTemplate) {
-      // No
-      throw new Error(`No Email template found for '${templateName}'`);
+      // Error
+      throw new BackendError(null, `No Email template found for '${templateName}'`,
+        "EMailNotificationTask", "_prepareAndSendEmail");
     }
     // Check for localized template?
     if (emailTemplate[locale]) {

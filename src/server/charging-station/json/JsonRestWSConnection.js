@@ -1,6 +1,7 @@
 const Logging = require('../../../utils/Logging');
 const ChargingStation = require('../../../entity/ChargingStation');
 const Constants = require('../../../utils/Constants');
+const BackendError = require('../../../exception/BackendError');
 const WSConnection = require('./WSConnection');
 
 const MODULE_NAME = "JsonRestWSConnection";
@@ -16,8 +17,9 @@ class JsonRestWSConnection extends WSConnection {
       // Set Charger ID
       this.setChargingStationID(splittedURL[1]);
     } else {
-      // Throw
-      throw new Error(`The URL '${req.url}' must contain the Charging Station ID (/REST/CHARGEBOX_ID)`);
+      // Error
+      throw new BackendError(null, `The URL '${req.url}' must contain the Charging Station ID (/REST/CHARGEBOX_ID)`,
+        "JsonRestWSConnection", "constructor");
     }
     // Log
     Logging.logInfo({
@@ -59,14 +61,16 @@ class JsonRestWSConnection extends WSConnection {
     let chargingStation = await ChargingStation.getChargingStation(this.getChargingStationID());
     // Found?
     if (!chargingStation) {
-      // Throw
-      throw new Error(`'${this.getChargingStationID()}' > '${commandName}': Not found`);
+      // Error
+      throw new BackendError(this.getChargingStationID(), `'${commandName}' not found`,
+        "JsonRestWSConnection", "handleRequest", commandName);
     }
     // Get the client from JSon Server
     let chargingStationClient = global.centralSystemJson.getChargingStationClient(chargingStation.getID());
     if (!chargingStationClient) {
-      // Throw
-      throw new Error(`'${this.getChargingStationID()}' > '${commandName}': Not connected to this instance'`);
+      // Error
+      throw new BackendError(this.getChargingStationID(), `Charger not connected to this instance`,
+        "JsonRestWSConnection", "handleRequest", commandName);
     }
     // Call the client
     let result; 
@@ -77,8 +81,9 @@ class JsonRestWSConnection extends WSConnection {
       // Call the method
       result = await chargingStationClient[actionMethod](commandPayload);
     } else {
-      // Throw Exception
-      throw new Error(`'${this.getChargingStationID()}' > '${actionMethod}' is not implemented`);
+      // Error
+      throw new BackendError(this.getChargingStationID(), `'${actionMethod}' is not implemented`,
+        "JsonRestWSConnection", "handleRequest", commandName);
     }
     // Log
     Logging.logReturnedAction(MODULE_NAME, this.getChargingStationID(), commandName, result);

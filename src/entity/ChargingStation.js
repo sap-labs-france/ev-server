@@ -11,6 +11,7 @@ const Configuration = require('../utils/Configuration');
 const NotificationHandler = require('../notification/NotificationHandler');
 const Authorizations = require('../authorization/Authorizations');
 const AppError = require('../exception/AppError');
+const BackendError = require('../exception/BackendError');
 const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
 const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const TransactionStorage = require('../storage/mongodb/TransactionStorage');
@@ -59,13 +60,9 @@ class ChargingStation extends AbstractTenantEntity {
 
       // Not Exists!
       default:
-        // Log
-        Logging.logError({
-          tenantID: this.getTenantID(),
-          source: this.getID(), module: 'ChargingStation', method: 'handleAction',
-          message: `Action does not exist: ${action}`
-        });
-        throw new Error(`Action does not exist: ${action}`);
+        // Error
+        throw new BackendError(this.getID(), `Action does not exist: ${action}`,
+          "ChargingStation", "handleAction")
     }
   }
 
@@ -1217,7 +1214,9 @@ class ChargingStation extends AbstractTenantEntity {
     const transaction = await this.getTransaction(stopTransaction.transactionId);
     // Found?
     if (!transaction) {
-      throw new Error(`Transaction ID '${stopTransaction.transactionId}' does not exist`);
+      // Error
+      throw new BackendError(this.getID(), `Transaction ID '${stopTransaction.transactionId}' does not exist`,
+        "ChargingStation", "handleStopTransaction")
     }
     // Remote Stop Transaction?
     if (transaction.remotestop) {
@@ -1480,8 +1479,9 @@ class ChargingStation extends AbstractTenantEntity {
     });
     // Request the new Configuration?
     if (result.status !== 'Accepted') {
-      // Log
-      throw new Error(`Cannot set the configuration param ${key} with value ${value} to ${this.getID()}`);
+      // Error
+      throw new BackendError(this.getID(), `Cannot set the configuration param ${key} with value ${value} to ${this.getID()}`,
+        "ChargingStation", "requestChangeConfiguration")
     }
     // Update
     await this.requestAndSaveConfiguration();

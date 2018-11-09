@@ -1,5 +1,5 @@
 const ChargingStation = require('../../../entity/ChargingStation');
-const AppError = require('../../../exception/AppError');
+const BackendError = require('../../../exception/BackendError');
 require('source-map-support').install();
 
 /**
@@ -28,59 +28,77 @@ class ChargingStationService {
     const chargingStation = await ChargingStation.getChargingStation(tenantID, chargeBoxIdentity);
     // Found?
     if (!chargingStation) {
-      throw new AppError(
-        chargeBoxIdentity,
-        `Charging Station does not exist`, 550,
-        'CentralSystemServer', 'checkAndGetChargingStation');
+      // Error
+      throw new BackendError(chargeBoxIdentity, `Charging Station does not exist`,
+        "ChargingStationService", "_checkAndGetChargingStation");
     }
     // Found?
     if (chargingStation.isDeleted()) {
-      throw new AppError(
-        chargeBoxIdentity,
-        `Charging Station is deleted`, 550,
-        'CentralSystemServer', 'checkAndGetChargingStation');
+      // Error
+      throw new BackendError(chargeBoxIdentity, `Charging Station is deleted`,
+        "ChargingStationService", "_checkAndGetChargingStation");
     }
     return chargingStation;
   }
 
   async handleBootNotification(payload) {
-    throw new Error("Method not Implemented");
+    // Error
+    throw new BackendError(payload.chargeBoxIdentity, `Method not Implemented`,
+      "ChargingStationService", "handleBootNotification", "BootNotification");
   }
 
   async handleHeartbeat(payload) {
-    throw new Error("Method not Implemented");
+    // Error
+    throw new BackendError(payload.chargeBoxIdentity, `Method not Implemented`,
+      "ChargingStationService", "handleHeartbeat", "Heartbeat");
   }
 
   async handleStatusNotification(payload) {
-    throw new Error("Method not Implemented");
+    // Error
+    throw new BackendError(payload.chargeBoxIdentity, `Method not Implemented`,
+      "ChargingStationService", "handleStatusNotification", "StatusNotification");
   }
 
   async handleMeterValues(payload) {
-    throw new Error("Method not Implemented");
+    // Error
+    throw new BackendError(payload.chargeBoxIdentity, `Method not Implemented`,
+      "ChargingStationService", "handleMeterValues", "MeterValues");
   }
 
   async handleAuthorize(payload) {
-    throw new Error("Method not Implemented");
+    // Error
+    throw new BackendError(payload.chargeBoxIdentity, `Method not Implemented`,
+      "ChargingStationService", "handleAuthorize", "Authorize");
   }
 
   async handleDiagnosticsStatusNotification(payload) {
-    throw new Error("Method not Implemented");
+    // Error
+    throw new BackendError(payload.chargeBoxIdentity, `Method not Implemented`,
+      "ChargingStationService", "handleDiagnosticsStatusNotification", "DiagnosticsStatusNotification");
   }
 
   async handleFirmwareStatusNotification(payload) {
-    throw new Error("Method not Implemented");
+    // Error
+    throw new BackendError(payload.chargeBoxIdentity, `Method not Implemented`,
+      "ChargingStationService", "handleFirmwareStatusNotification", "FirmwareStatusNotification");
   }
 
   async handleStartTransaction(payload) {
-    throw new Error("Method not Implemented");
+    // Error
+    throw new BackendError(payload.chargeBoxIdentity, `Method not Implemented`,
+      "ChargingStationService", "handleStartTransaction", "StartTransaction");
   }
 
   async handleDataTransfer(payload) {
-    throw new Error("Method not Implemented");
+    // Error
+    throw new BackendError(payload.chargeBoxIdentity, `Method not Implemented`,
+      "ChargingStationService", "handleDataTransfer", "DataTransfer");
   }
 
   async handleStopTransaction(payload) {
-    throw new Error("Method not Implemented");
+    // Error
+    throw new BackendError(payload.chargeBoxIdentity, `Method not Implemented`,
+      "ChargingStationService", "handleStopTransaction", "StopTransaction");
   }
 }
 

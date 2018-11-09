@@ -3,6 +3,7 @@ const Logging = require('../../../utils/Logging');
 const WebSocket = require('ws');
 const Constants = require('../../../utils/Constants');
 const OCPPError = require('../../../exception/OcppError');
+const BackendError = require('../../../exception/BackendError');
 
 const MODULE_NAME = "WSConnection";
 
@@ -62,7 +63,9 @@ class WSConnection {
           // Respond
           const [responseCallback] = this._requests[messageId];
           if (!responseCallback) {
-            throw new Error(`Response for unknown message ${messageId}`);
+            // Error
+            throw new BackendError(this.getChargingStationID(), `Response for unknown message ${messageId}`,
+              "WSConnection", "onMessage", commandName);
           }
           delete this._requests[messageId];
           responseCallback(commandName);
@@ -80,7 +83,9 @@ class WSConnection {
             }
           });
           if (!this._requests[messageId]) {
-            throw new Error(`Error for unknown message ${messageId}`);
+            // Error
+            throw new BackendError(this.getChargingStationID(), `Error for unknown message ${messageId}`,
+              "WSConnection", "onMessage", commandName);
           }
           const [, rejectCallback] = this._requests[messageId];
           delete this._requests[messageId];
@@ -88,7 +93,9 @@ class WSConnection {
           break;
           // Error
         default:
-          throw new Error(`Wrong message type ${messageType}`);
+          // Error
+          throw new BackendError(this.getChargingStationID(), `Wrong message type ${messageType}`,
+            "WSConnection", "onMessage", commandName);
       }
     } catch (error) {
       // Log
