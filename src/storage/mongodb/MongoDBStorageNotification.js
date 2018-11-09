@@ -1,18 +1,18 @@
 const Logging = require('../../utils/Logging');
 const Constants = require('../../utils/Constants');
 const TenantStorage = require('./TenantStorage');
+const MongoDBStorage = require('./MongoDBStorage');
 
 require('source-map-support').install();
 
 const _pipeline = [];
 const _options = {
-  'fullDocument': 'updateLookup'
+  'fullDocument': 'default'
 };
 
 class MongoDBStorageNotification {
-  constructor(dbConfig, database, centralRestServer){
+  constructor(dbConfig, centralRestServer){
     this.dbConfig = dbConfig;
-    this.database = database;
     this.centralRestServer = centralRestServer;
   }
 
@@ -30,6 +30,9 @@ class MongoDBStorageNotification {
 
   async start(){
     if (this.dbConfig.monitorDBChange) {
+      this.database = new MongoDBStorage(this.dbConfig);
+      await this.database.start();
+
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: "MongoDBStorageNotification", method: "start", action: "Startup",
@@ -180,7 +183,7 @@ class MongoDBStorageNotification {
             notification.chargeBoxID = change.fullDocument.chargeBoxID;
             break;
           case 'update': // Update
-            if (change.fullDocument && change.fullDocument.stop) {
+            if (change.updateDescription && change.updateDescription.updatedFields && change.updateDescription.updatedFields.stop) {
               notification.type = Constants.ENTITY_TRANSACTION_STOP;
             }
             break;
