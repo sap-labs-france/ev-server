@@ -5,9 +5,16 @@ const VehicleStorage = require('./VehicleStorage');
 const AppError = require('../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
 const DatabaseUtils = require('./DatabaseUtils');
+const BackendError = require('../../exception/BackendError');
 
 class VehicleManufacturerStorage {
   static async getVehicleManufacturerLogo(tenantID, id){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "VehicleManufacturerStorage", "getVehicleManufacturerLogo");
+    }
     // Read DB
     const vehicleManufacturerLogosMDB = await global.database.getCollection(tenantID, 'vehiclemanufacturerlogos')
       .find({_id: Utils.convertToObjectID(id)})
@@ -25,6 +32,12 @@ class VehicleManufacturerStorage {
   }
 
   static async getVehicleManufacturerLogos(tenantID){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "VehicleManufacturerStorage", "getVehicleManufacturerLogos");
+    }
     // Read DB
     const vehicleManufacturerLogosMDB = await global.database.getCollection(tenantID, 'vehiclemanufacturerlogos')
       .find()
@@ -44,6 +57,12 @@ class VehicleManufacturerStorage {
   }
 
   static async saveVehicleManufacturerLogo(tenantID, vehicleManufacturerLogoToSave){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "VehicleManufacturerStorage", "saveVehicleManufacturerLogo");
+    }
     // Check if ID/Name is provided
     if (!vehicleManufacturerLogoToSave.id) {
       // ID must be provided!
@@ -60,6 +79,12 @@ class VehicleManufacturerStorage {
   }
 
   static async getVehicleManufacturer(tenantID, id){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "VehicleManufacturerStorage", "getVehicleManufacturer");
+    }
     const VehicleManufacturer = require('../../entity/VehicleManufacturer'); // Avoid fucking circular deps!!!
     // Create Aggregation
     const aggregation = [];
@@ -84,6 +109,12 @@ class VehicleManufacturerStorage {
   }
 
   static async saveVehicleManufacturer(tenantID, vehicleManufacturerToSave){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "VehicleManufacturerStorage", "saveVehicleManufacturer");
+    }
     const VehicleManufacturer = require('../../entity/VehicleManufacturer'); // Avoid fucking circular deps!!!
     // Check if ID/Model is provided
     if (!vehicleManufacturerToSave.id && !vehicleManufacturerToSave.name) {
@@ -117,6 +148,12 @@ class VehicleManufacturerStorage {
 
   // Delegate
   static async getVehicleManufacturers(tenantID, params = {}, limit, skip, sort){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "VehicleManufacturerStorage", "getVehicleManufacturers");
+    }
     const VehicleManufacturer = require('../../entity/VehicleManufacturer'); // Avoid fucking circular deps!!!
     const Vehicle = require('../../entity/Vehicle'); // Avoid fucking circular deps!!!
     // Check Limit
@@ -216,6 +253,12 @@ class VehicleManufacturerStorage {
   }
 
   static async deleteVehicleManufacturer(tenantID, id){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "VehicleManufacturerStorage", "deleteVehicleManufacturer");
+    }
     // Delete Vehicles
     const vehicles = await VehicleStorage.getVehicles(tenantID, {'vehicleManufacturerID': id});
     // Delete

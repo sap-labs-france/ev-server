@@ -4,9 +4,16 @@ const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const AppError = require('../../exception/AppError');
 const DatabaseUtils = require('./DatabaseUtils');
+const BackendError = require('../../exception/BackendError');
 
 class VehicleStorage {
   static async getVehicleImage(tenantID, id){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "VehicleStorage", "getVehicleImage");
+    }
     // Read DB
     const vehicleImagesMDB = await global.database.getCollection(tenantID, 'vehicleimages')
       .find({_id: Utils.convertToObjectID(id)})
@@ -24,6 +31,12 @@ class VehicleStorage {
   }
 
   static async getVehicleImages(tenantID){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "VehicleStorage", "getVehicleImages");
+    }
     // Read DB
     const vehicleImagesMDB = await global.database.getCollection(tenantID, 'vehicleimages')
       .find({})
@@ -43,6 +56,12 @@ class VehicleStorage {
   }
 
   static async getVehicle(tenantID, id){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "VehicleStorage", "getVehicle");
+    }
     const Vehicle = require('../../entity/Vehicle'); // Avoid fucking circular deps!!!
     // Create Aggregation
     const aggregation = [];
@@ -66,6 +85,12 @@ class VehicleStorage {
   }
 
   static async saveVehicle(tenantID, vehicleToSave){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "VehicleStorage", "saveVehicle");
+    }
     const Vehicle = require('../../entity/Vehicle'); // Avoid fucking circular deps!!!
     // Check if ID/Model is provided
     if (!vehicleToSave.id && !vehicleToSave.model) {
@@ -98,6 +123,12 @@ class VehicleStorage {
   }
 
   static async saveVehicleImages(tenantID, vehicleImagesToSave){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "VehicleStorage", "saveVehicleImages");
+    }
     // Check if ID is provided
     if (!vehicleImagesToSave.id) {
       // ID must be provided!
@@ -115,6 +146,12 @@ class VehicleStorage {
 
   // Delegate
   static async getVehicles(tenantID, params = {}, limit, skip, sort){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "VehicleStorage", "getVehicles");
+    }
     const Vehicle = require('../../entity/Vehicle'); // Avoid fucking circular deps!!!
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
@@ -194,6 +231,12 @@ class VehicleStorage {
   }
 
   static async deleteVehicle(tenantID, id){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "VehicleStorage", "deleteVehicle");
+    }
     // Delete Vehicle
     await global.database.getCollection(tenantID, 'vehicles')
       .findOneAndDelete({'_id': Utils.convertToObjectID(id)});

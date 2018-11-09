@@ -2,9 +2,16 @@ const Utils = require('../../utils/Utils');
 const Database = require('../../utils/Database');
 const Constants = require('../../utils/Constants');
 const DatabaseUtils = require('./DatabaseUtils');
+const BackendError = require('../../exception/BackendError');
 
 class LoggingStorage {
   static async deleteLogs(tenantID, deleteUpToDate){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "LoggingStorage", "deleteLogs");
+    }
     // Build filter
     const filters = {};
     // Do Not Delete Security Logs
@@ -25,6 +32,12 @@ class LoggingStorage {
   }
 
   static async deleteSecurityLogs(tenantID, deleteUpToDate){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "LoggingStorage", "deleteSecurityLogs");
+    }
     // Build filter
     const filters = {};
     // Delete Only Security Logs
@@ -45,6 +58,12 @@ class LoggingStorage {
   }
 
   static async saveLog(tenantID, logToSave){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "LoggingStorage", "saveLog");
+    }
     // Check User
     logToSave.userID = Utils.convertUserToObjectID(logToSave.user);
     logToSave.actionOnUserID = Utils.convertUserToObjectID(logToSave.actionOnUser);
@@ -57,6 +76,12 @@ class LoggingStorage {
   }
 
   static async getLog(tenantID, id){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "LoggingStorage", "getLog");
+    }
     // Read DB
     const loggingMDB = await global.database.getCollection(tenantID, 'logs')
       .find({_id: Utils.convertToObjectID(id)})
@@ -73,6 +98,12 @@ class LoggingStorage {
   }
 
   static async getLogs(tenantID, params = {}, limit, skip, sort){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "LoggingStorage", "getLogs");
+    }
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip

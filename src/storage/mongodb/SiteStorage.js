@@ -5,9 +5,16 @@ const SiteAreaStorage = require('./SiteAreaStorage');
 const AppError = require('../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
 const DatabaseUtils = require('./DatabaseUtils');
+const BackendError = require('../../exception/BackendError');
 
 class SiteStorage {
   static async getSite(tenantID, id, withCompany, withUsers){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "SiteStorage", "getSite");
+    }
     const Site = require('../../entity/Site'); // Avoid fucking circular deps!!!
     const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
     const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
@@ -95,6 +102,12 @@ class SiteStorage {
   }
 
   static async getSiteImage(tenantID, id){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "SiteStorage", "getSiteImage");
+    }
     // Read DB
     const siteImagesMDB = await global.database.getCollection(tenantID, 'siteimages')
       .find({_id: Utils.convertToObjectID(id)})
@@ -112,6 +125,12 @@ class SiteStorage {
   }
 
   static async getSiteImages(tenantID){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "SiteStorage", "getSiteImages");
+    }
     // Read DB
     const siteImagesMDB = await global.database.getCollection(tenantID, 'siteimages')
       .find({})
@@ -131,6 +150,12 @@ class SiteStorage {
   }
 
   static async saveSite(tenantID, siteToSave){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "SiteStorage", "saveSite");
+    }
     const Site = require('../../entity/Site'); // Avoid fucking circular deps!!!
     // Check if ID/Name is provided
     if (!siteToSave.id && !siteToSave.name) {
@@ -184,6 +209,12 @@ class SiteStorage {
   }
 
   static async saveSiteImage(tenantID, siteImageToSave){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "SiteStorage", "saveSiteImage");
+    }
     // Check if ID is provided
     if (!siteImageToSave.id) {
       // ID must be provided!
@@ -200,6 +231,12 @@ class SiteStorage {
   }
 
   static async getSites(tenantID, params = {}, limit, skip, sort){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "SiteStorage", "getSites");
+    }
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
     const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
     const Site = require('../../entity/Site'); // Avoid fucking circular deps!!!
@@ -406,6 +443,12 @@ class SiteStorage {
   }
 
   static async deleteSite(tenantID, id){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "SiteStorage", "deleteSite");
+    }
     // Delete Site Areas
     const siteAreas = await SiteAreaStorage.getSiteAreas(tenantID, {'siteID': id})
     // Delete

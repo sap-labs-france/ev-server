@@ -1,11 +1,18 @@
 const Constants = require('../../utils/Constants');
 const Utils = require('../../utils/Utils');
 const Database = require('../../utils/Database');
+const BackendError = require('../../exception/BackendError');
 const crypto = require('crypto');
 const DatabaseUtils = require('./DatabaseUtils');
 
 class ChargingStationStorage {
   static async getChargingStation(tenantID, id){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "ChargingStationStorage", "getChargingStation");
+    }
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
     const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
     // Create Aggregation
@@ -51,6 +58,12 @@ class ChargingStationStorage {
   }
 
   static async getChargingStations(tenantID, params = {}, limit, skip, sort){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "ChargingStationStorage", "getChargingStations");
+    }
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
     const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
     // Check Limit
@@ -176,6 +189,12 @@ class ChargingStationStorage {
   }
 
   static async saveChargingStation(tenantID, chargingStationToSave){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+      "ChargingStationStorage", "saveChargingStation");
+    }
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
     // Check Site Area
     chargingStationToSave.siteAreaID = null;
@@ -204,6 +223,12 @@ class ChargingStationStorage {
   }
 
   static async saveChargingStationConnector(tenantID, chargingStation, connectorId){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+      "ChargingStationStorage", "saveChargingStationConnector");
+    }
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
     const updatedFields = {};
     updatedFields["connectors." + (connectorId - 1)] = chargingStation.connectors[connectorId - 1];
@@ -222,6 +247,12 @@ class ChargingStationStorage {
   }
 
   static async saveChargingStationHeartBeat(tenantID, chargingStation){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+      "ChargingStationStorage", "saveChargingStationHeartBeat");
+    }
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
     const updatedFields = {};
     updatedFields["lastHeartBeat"] = Utils.convertToDate(chargingStation.lastHeartBeat);
@@ -240,6 +271,12 @@ class ChargingStationStorage {
   }
 
   static async saveChargingStationSiteArea(tenantID, chargingStation){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+      "ChargingStationStorage", "saveChargingStationSiteArea");
+    }
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
     const updatedFields = {};
     updatedFields["siteAreaID"] = (chargingStation.siteArea ? Utils.convertToObjectID(chargingStation.siteArea.id) : null);
@@ -264,6 +301,12 @@ class ChargingStationStorage {
   }
 
   static async deleteChargingStation(tenantID, id){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "ChargingStationStorage", "deleteChargingStation");
+    }
     // Delete Configuration
     await global.database.getCollection(tenantID, 'configurations')
       .findOneAndDelete({
@@ -278,6 +321,12 @@ class ChargingStationStorage {
   }
 
   static async saveAuthorize(tenantID, authorize){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "ChargingStationStorage", "saveAuthorize");
+    }
     // Set the ID
     authorize.id = crypto.createHash('sha256')
       .update(`${authorize.chargeBoxID}~${authorize.timestamp.toISOString()}`)
@@ -298,6 +347,12 @@ class ChargingStationStorage {
   }
 
   static async saveConfiguration(tenantID, configuration){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "ChargingStationStorage", "saveConfiguration");
+    }
     // Modify
     await global.database.getCollection(tenantID, 'configurations').findOneAndUpdate({
       "_id": configuration.chargeBoxID
@@ -314,6 +369,12 @@ class ChargingStationStorage {
   }
 
   static async saveDataTransfer(tenantID, dataTransfer){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "ChargingStationStorage", "saveDataTransfer");
+    }
     // Set the ID
     dataTransfer.id = crypto.createHash('sha256')
       .update(`${dataTransfer.chargeBoxID}~${dataTransfer.data}~${dataTransfer.timestamp}`)
@@ -331,6 +392,12 @@ class ChargingStationStorage {
   }
 
   static async saveBootNotification(tenantID, bootNotification){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "ChargingStationStorage", "saveBootNotification");
+    }
     // Insert
     const result = await global.database.getCollection(tenantID, 'bootnotifications')
       .insertOne({
@@ -352,6 +419,12 @@ class ChargingStationStorage {
   }
 
   static async saveDiagnosticsStatusNotification(tenantID, diagnosticsStatusNotification){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "ChargingStationStorage", "saveDiagnosticsStatusNotification");
+    }
     // Set the ID
     diagnosticsStatusNotification.id = crypto.createHash('sha256')
       .update(`${diagnosticsStatusNotification.chargeBoxID}~${diagnosticsStatusNotification.timestamp.toISOString()}`)
@@ -367,6 +440,12 @@ class ChargingStationStorage {
   }
 
   static async saveFirmwareStatusNotification(tenantID, firmwareStatusNotification){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "ChargingStationStorage", "saveFirmwareStatusNotification");
+    }
     // Set the ID
     firmwareStatusNotification.id = crypto.createHash('sha256')
       .update(`${firmwareStatusNotification.chargeBoxID}~${firmwareStatusNotification.timestamp.toISOString()}`)
@@ -382,6 +461,12 @@ class ChargingStationStorage {
   }
 
   static async saveStatusNotification(tenantID, statusNotificationToSave){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "ChargingStationStorage", "saveStatusNotification");
+    }
     const statusNotification = {};
     // Set the ID
     statusNotification._id = crypto.createHash('sha256')
@@ -395,6 +480,12 @@ class ChargingStationStorage {
   }
 
   static async getConfigurationParamValue(tenantID, chargeBoxID, paramName){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "ChargingStationStorage", "getConfigurationParamValue");
+    }
     // Get the config
     const configuration = await ChargingStationStorage.getConfiguration(tenantID, chargeBoxID);
     let value = null;
@@ -417,6 +508,12 @@ class ChargingStationStorage {
   }
 
   static async getConfiguration(tenantID, chargeBoxID){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "ChargingStationStorage", "getConfiguration");
+    }
     // Read DB
     const configurationsMDB = await global.database.getCollection(tenantID, 'configurations')
       .find({

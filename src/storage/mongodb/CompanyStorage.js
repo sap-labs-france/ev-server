@@ -1,13 +1,20 @@
+const ObjectID = require('mongodb').ObjectID;
 const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const SiteStorage = require('./SiteStorage');
-const ObjectID = require('mongodb').ObjectID;
 const AppError = require('../../exception/AppError');
 const DatabaseUtils = require('./DatabaseUtils');
+const BackendError = require('../../exception/BackendError');
 
 class CompanyStorage {
   static async getCompany(tenantID, id){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "CompanyStorage", "getCompany");
+    }
     const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
     // Create Aggregation
     const aggregation = [];
@@ -32,6 +39,12 @@ class CompanyStorage {
   }
 
   static async getCompanyLogo(tenantID, id){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "CompanyStorage", "getCompanyLogo");
+    }
     // Read DB
     const companyLogosMDB = await global.database.getCollection(tenantID, 'companylogos')
       .find({_id: Utils.convertToObjectID(id)})
@@ -49,6 +62,12 @@ class CompanyStorage {
   }
 
   static async getCompanyLogos(tenantID){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "CompanyStorage", "getCompanyLogos");
+    }
     // Read DB
     const companyLogosMDB = await global.database.getCollection(tenantID, 'companylogos')
       .find({})
@@ -68,6 +87,12 @@ class CompanyStorage {
   }
 
   static async saveCompany(tenantID, companyToSave){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "CompanyStorage", "saveCompany");
+    }
     const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
     // Check if ID/Name is provided
     if (!companyToSave.id && !companyToSave.name) {
@@ -100,6 +125,12 @@ class CompanyStorage {
   }
 
   static async saveCompanyLogo(tenantID, companyLogoToSave){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "CompanyStorage", "saveCompanyLogo");
+    }
     // Check if ID is provided
     if (!companyLogoToSave.id) {
       // ID must be provided!
@@ -117,6 +148,12 @@ class CompanyStorage {
 
   // Delegate
   static async getCompanies(tenantID, params = {}, limit, skip, sort){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "CompanyStorage", "getCompanies");
+    }
     const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
     const Site = require('../../entity/Site');  // Avoid fucking circular deps!!!
     // Check Limit
@@ -207,6 +244,12 @@ class CompanyStorage {
   }
 
   static async deleteCompany(tenantID, id){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "CompanyStorage", "deleteCompany");
+    }
     // Delete Sites
     const sites = await SiteStorage.getSites(tenantID, {'companyID': id});
     // Delete

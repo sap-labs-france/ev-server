@@ -3,9 +3,16 @@ const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const crypto = require('crypto');
 const DatabaseUtils = require('./DatabaseUtils');
+const BackendError = require('../../exception/BackendError');
 
 class TransactionStorage {
   static async deleteTransaction(tenantID, transaction){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "TransactionStorage", "deleteTransaction");
+    }
     // Delete Transactions
     await global.database.getCollection(tenantID, 'transactions')
       .findOneAndDelete({'_id': transaction.id});
@@ -15,6 +22,12 @@ class TransactionStorage {
   }
 
   static async getMeterValuesFromTransaction(tenantID, transactionId){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "TransactionStorage", "getMeterValuesFromTransaction");
+    }
     // Build filter
     const filter = {};
     // Mandatory filters
@@ -41,6 +54,12 @@ class TransactionStorage {
   }
 
   static async saveTransaction(tenantID, transactionToSave){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "TransactionStorage", "saveTransaction");
+    }
     // Set
     const transaction = {};
     Database.updateTransaction(transactionToSave, transaction, false);
@@ -58,6 +77,12 @@ class TransactionStorage {
   }
 
   static async saveMeterValues(tenantID, meterValuesToSave){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "TransactionStorage", "saveMeterValues");
+    }
     const meterValuesMDB = [];
     // Save all
     for (const meterValueToSave of meterValuesToSave.values) {
@@ -76,6 +101,12 @@ class TransactionStorage {
   }
 
   static async getTransactionYears(tenantID){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "TransactionStorage", "getTransactionYears");
+    }
     // Read DB
     const firstTransactionsMDB = await global.database.getCollection(tenantID, 'transactions')
       .find({})
@@ -97,6 +128,12 @@ class TransactionStorage {
   }
 
   static async getTransactions(tenantID, params = {}, limit, skip, sort){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "TransactionStorage", "getTransactions");
+    }
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -264,6 +301,12 @@ class TransactionStorage {
   }
 
   static async getTransaction(tenantID, id){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "TransactionStorage", "getTransaction");
+    }
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -326,6 +369,12 @@ class TransactionStorage {
   }
 
   static async getActiveTransaction(tenantID, chargeBoxID, connectorId){
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`,
+        "TransactionStorage", "getActiveTransaction");
+    }
     // Create Aggregation
     const aggregation = [];
     // Filters
