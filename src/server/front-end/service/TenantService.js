@@ -62,7 +62,7 @@ class TenantService extends AbstractService {
           module: 'MongoDBStorage', method: 'deleteTenantDatabase',
           message: `Deleting collections for tenant ${tenant.getID()}`
         });
-        await tenant.deleteEnvironment();
+        tenant.deleteEnvironment();
       }
       // Log
       Logging.logSecurityInfo({
@@ -196,7 +196,7 @@ class TenantService extends AbstractService {
       // Save
       const newTenant = await tenant.save();
 
-      await newTenant.createEnvironment();
+      newTenant.createEnvironment();
 
       const password = User.generatePassword();
       const verificationToken = Utils.generateToken(newTenant.getEmail());
