@@ -17,6 +17,7 @@ class WSConnection {
     this._req = req;
     this._requests = {};
     this._chargingStationID = null;
+    this._tenantID = null;
     this._initialized = false;
     this._wsServer = wsServer;
 
@@ -28,6 +29,19 @@ class WSConnection {
     if (this._url.startsWith('/')) {
       // Remove '/'
       this._url = this._url.substring(1, this._url.length);
+    }
+    // Parse URL: should like /OCPP16/TENANTNAME/CHARGEBOXID
+    const splittedURL = this.getURL().split("/");
+    // URL with 4 parts?
+    if (splittedURL.length === 3) {
+      // Yes: Tenant is then provided in the third part
+      this.setTenantID(splittedURL[1]);
+      // The Charger is in the 4th position
+      this.setChargingStationID(splittedURL[2]);
+    } else {
+      // Error
+      throw new BackendError(null, `The URL '${req.url}' must contain the Charging Station ID (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`,
+        "WSConnection", "constructor");
     }
     // Handle incoming messages
     this._wsConnection.on('message', this.onMessage.bind(this));
@@ -212,6 +226,14 @@ class WSConnection {
 
   setChargingStationID(chargingStationID) {
     this._chargingStationID = chargingStationID;
+  }
+
+  getTenantID() {
+    return this._tenantID;
+  }
+
+  setTenantID(tenantID) {
+    this._tenantID = tenantID;
   }
 }
 

@@ -25,7 +25,7 @@ const _emailConfig = Configuration.getEmailConfig();
 
 // https://nodemailer.com/smtp/
 class EMailNotificationTask extends NotificationTask {
-  constructor(){
+  constructor() {
     super();
     // Connect to the server
     this.server = email.server.connect({
@@ -38,62 +38,62 @@ class EMailNotificationTask extends NotificationTask {
     });
   }
 
-  sendNewRegisteredUser(data, locale){
+  sendNewRegisteredUser(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('new-registered-user', data, locale);
+    return this._prepareAndSendEmail('new-registered-user', data, locale, tenantID);
   }
 
-  sendRequestPassword(data, locale){
+  sendRequestPassword(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('request-password', data, locale);
+    return this._prepareAndSendEmail('request-password', data, locale, tenantID);
   }
 
-  sendNewPassword(data, locale){
+  sendNewPassword(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('new-password', data, locale);
+    return this._prepareAndSendEmail('new-password', data, locale, tenantID);
   }
 
-  sendEndOfCharge(data, locale){
+  sendEndOfCharge(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('end-of-charge', data, locale);
+    return this._prepareAndSendEmail('end-of-charge', data, locale, tenantID);
   }
 
-  sendEndOfSession(data, locale){
+  sendEndOfSession(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('end-of-session', data, locale);
+    return this._prepareAndSendEmail('end-of-session', data, locale, tenantID);
   }
 
-  sendChargingStationStatusError(data, locale){
+  sendChargingStationStatusError(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('charging-station-status-error', data, locale);
+    return this._prepareAndSendEmail('charging-station-status-error', data, locale, tenantID);
   }
 
-  sendChargingStationRegistered(data, locale){
+  sendChargingStationRegistered(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('charging-station-registered', data, locale);
+    return this._prepareAndSendEmail('charging-station-registered', data, locale, tenantID);
   }
 
-  sendUserAccountStatusChanged(data, locale){
+  sendUserAccountStatusChanged(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('user-account-status-changed', data, locale);
+    return this._prepareAndSendEmail('user-account-status-changed', data, locale, tenantID);
   }
 
-  sendUnknownUserBadged(data, locale){
+  sendUnknownUserBadged(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('unknown-user-badged', data, locale);
+    return this._prepareAndSendEmail('unknown-user-badged', data, locale, tenantID);
   }
 
-  sendTransactionStarted(data, locale){
+  sendTransactionStarted(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('transaction-started', data, locale);
+    return this._prepareAndSendEmail('transaction-started', data, locale, tenantID);
   }
 
-  sendVerificationEmail(data, locale){
+  sendVerificationEmail(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('verification-email', data, locale);
+    return this._prepareAndSendEmail('verification-email', data, locale, tenantID);
   }
 
-  async _prepareAndSendEmail(templateName, data, locale){
+  async _prepareAndSendEmail(templateName, data, locale, tenantID) {
     // Create email
     let emailTemplate;
 
@@ -203,9 +203,10 @@ class EMailNotificationTask extends NotificationTask {
       subject: subject,
       text: html,
       html: html
-    });
+    }, tenantID);
     // User
     Logging.logInfo({
+      tenantID: tenantID,
       module: "EMailNotificationTask", method: "_prepareAndSendEmail",
       action: "SendEmail", actionOnUser: data.user,
       message: `Email has been sent successfully`,
@@ -218,7 +219,7 @@ class EMailNotificationTask extends NotificationTask {
     return message;
   }
 
-  async sendEmail(email){
+  async sendEmail(email, tenantID) {
     // Add Admins in BCC
     if (_emailConfig.admins && _emailConfig.admins.length > 0) {
       // Add
@@ -241,9 +242,10 @@ class EMailNotificationTask extends NotificationTask {
       ]
     };
     // send the message and get a callback with an error or details of the message that was sent
-    return await this.server.send(message, function(err, message){
+    return await this.server.send(message, function(err, message) {
       if (err) {
         Logging.logError({
+          tenantID: tenantID,
           module: "EMailNotificationTask", method: "sendEmail",
           action: "SendEmail",
           message: `An error occurred while sending an email`,

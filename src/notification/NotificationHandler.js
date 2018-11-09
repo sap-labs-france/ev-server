@@ -22,7 +22,7 @@ const SOURCE_TRANSACTION_STARTED = "NotifyTransactionStarted";
 const SOURCE_VERIFICATION_EMAIL = "NotifyVerificationEmail";
 
 class NotificationHandler {
-  static async saveNotification(tenantID, channel, sourceId, sourceDescr, user, chargingStation){
+  static async saveNotification(tenantID, channel, sourceId, sourceDescr, user, chargingStation) {
     // Save it
     await NotificationStorage.saveNotification(tenantID, {
       timestamp: new Date(),
@@ -51,7 +51,7 @@ class NotificationHandler {
     }
   }
 
-  static async hasNotifiedSource(tenantID, sourceId){
+  static async hasNotifiedSource(tenantID, sourceId) {
     try {
       // Save it
       let notifications = await NotificationStorage.getNotification(tenantID, sourceId);
@@ -67,7 +67,7 @@ class NotificationHandler {
     }
   }
 
-  static async sendEndOfCharge(tenantID, sourceId, user, chargingStation, sourceData, locale){
+  static async sendEndOfCharge(tenantID, sourceId, user, chargingStation, sourceData, locale) {
     try {
       // Check notification
       let hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
@@ -79,7 +79,7 @@ class NotificationHandler {
           await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
             SOURCE_END_OF_CHARGE, user, chargingStation);
           // Send email
-          return _email.sendEndOfCharge(sourceData, locale);
+          return _email.sendEndOfCharge(sourceData, locale, tenantID);
         }
       }
     } catch (error) {
@@ -88,7 +88,7 @@ class NotificationHandler {
     }
   }
 
-  static async sendEndOfSession(tenantID, sourceId, user, chargingStation, sourceData, locale){
+  static async sendEndOfSession(tenantID, sourceId, user, chargingStation, sourceData, locale) {
     try {
       // Check notification
       let hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
@@ -100,7 +100,7 @@ class NotificationHandler {
           await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
             SOURCE_END_OF_SESSION, user, chargingStation);
           // Send email
-          return _email.sendEndOfSession(sourceData, locale);
+          return _email.sendEndOfSession(sourceData, locale, tenantID);
         }
       }
     } catch (error) {
@@ -109,7 +109,7 @@ class NotificationHandler {
     }
   }
 
-  static async sendRequestPassword(tenantID, sourceId, user, sourceData, locale){
+  static async sendRequestPassword(tenantID, sourceId, user, sourceData, locale) {
     try {
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
@@ -117,7 +117,7 @@ class NotificationHandler {
         await NotificationHandler.saveNotification(tenantID,
           CHANNEL_EMAIL, sourceId, SOURCE_REQUEST_PASSWORD, user, null);
         // Send email
-        return _email.sendRequestPassword(sourceData, locale);
+        return _email.sendRequestPassword(sourceData, locale, tenantID);
       }
     } catch (error) {
       // Log error
@@ -125,14 +125,14 @@ class NotificationHandler {
     }
   }
 
-  static async sendNewPassword(tenantID, sourceId, user, sourceData, locale){
+  static async sendNewPassword(tenantID, sourceId, user, sourceData, locale) {
     try {
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
         await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId, SOURCE_NEW_PASSWORD, user, null);
         // Send email
-        return _email.sendNewPassword(sourceData, locale);
+        return _email.sendNewPassword(sourceData, locale, tenantID);
       }
     } catch (error) {
       // Log error
@@ -140,7 +140,7 @@ class NotificationHandler {
     }
   }
 
-  static async sendUserAccountStatusChanged(tenantID, sourceId, user, sourceData, locale){
+  static async sendUserAccountStatusChanged(tenantID, sourceId, user, sourceData, locale) {
     try {
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
@@ -148,7 +148,7 @@ class NotificationHandler {
         await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
           SOURCE_USER_ACCOUNT_STATUS_CHANGED, user, null);
         // Send email
-        return _email.sendUserAccountStatusChanged(sourceData, locale);
+        return _email.sendUserAccountStatusChanged(sourceData, locale, tenantID);
       }
     } catch (error) {
       // Log error
@@ -156,7 +156,7 @@ class NotificationHandler {
     }
   }
 
-  static async sendNewRegisteredUser(tenantID, sourceId, user, sourceData, locale){
+  static async sendNewRegisteredUser(tenantID, sourceId, user, sourceData, locale) {
     try {
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
@@ -164,7 +164,7 @@ class NotificationHandler {
         await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
           SOURCE_NEW_REGISTERED_USER, user, null);
         // Send email
-        return _email.sendNewRegisteredUser(sourceData, locale);
+        return _email.sendNewRegisteredUser(sourceData, locale, tenantID);
       }
     } catch (error) {
       // Log error
@@ -172,7 +172,7 @@ class NotificationHandler {
     }
   }
 
-  static async sendVerificationEmail(tenantID, sourceId, user, sourceData, locale){
+  static async sendVerificationEmail(tenantID, sourceId, user, sourceData, locale) {
     try {
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
@@ -180,7 +180,7 @@ class NotificationHandler {
         await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
           SOURCE_VERIFICATION_EMAIL, user, null);
         // Send email
-        return _email.sendVerificationEmail(sourceData, locale);
+        return _email.sendVerificationEmail(sourceData, locale, tenantID);
       }
     } catch (error) {
       // Log error
@@ -188,7 +188,7 @@ class NotificationHandler {
     }
   }
 
-  static async sendChargingStationStatusError(tenantID, sourceId, chargingStation, sourceData){
+  static async sendChargingStationStatusError(tenantID, sourceId, chargingStation, sourceData) {
     try {
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
@@ -196,7 +196,7 @@ class NotificationHandler {
         await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
           SOURCE_CHARGING_STATION_STATUS_ERROR, null, chargingStation);
         // Send email
-        return _email.sendChargingStationStatusError(sourceData, Constants.DEFAULT_LOCALE);
+        return _email.sendChargingStationStatusError(sourceData, Constants.DEFAULT_LOCALE, tenantID);
       }
     } catch (error) {
       // Log error
@@ -204,7 +204,7 @@ class NotificationHandler {
     }
   }
 
-  static async sendChargingStationRegistered(tenantID, sourceId, chargingStation, sourceData){
+  static async sendChargingStationRegistered(tenantID, sourceId, chargingStation, sourceData) {
     try {
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
@@ -212,7 +212,7 @@ class NotificationHandler {
         await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
           SOURCE_CHARGING_STATION_REGISTERED, null, chargingStation);
         // Send email
-        return _email.sendChargingStationRegistered(sourceData, Constants.DEFAULT_LOCALE);
+        return _email.sendChargingStationRegistered(sourceData, Constants.DEFAULT_LOCALE, tenantID);
       }
     } catch (error) {
       // Log error
@@ -220,7 +220,7 @@ class NotificationHandler {
     }
   }
 
-  static async sendUnknownUserBadged(tenantID, sourceId, chargingStation, sourceData){
+  static async sendUnknownUserBadged(tenantID, sourceId, chargingStation, sourceData) {
     try {
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
@@ -228,7 +228,7 @@ class NotificationHandler {
         await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
           SOURCE_UNKNOWN_USER_BADGED, null, chargingStation);
         // Send email
-        return _email.sendUnknownUserBadged(sourceData, Constants.DEFAULT_LOCALE);
+        return _email.sendUnknownUserBadged(sourceData, Constants.DEFAULT_LOCALE, tenantID);
       }
     } catch (error) {
       // Log error
@@ -236,7 +236,7 @@ class NotificationHandler {
     }
   }
 
-  static async sendTransactionStarted(tenantID, sourceId, user, chargingStation, sourceData, locale){
+  static async sendTransactionStarted(tenantID, sourceId, user, chargingStation, sourceData, locale) {
     try {
       // Check notification
       let hasBeenNotified = await NotificationHandler.hasNotifiedSource(sourceId);
@@ -248,7 +248,7 @@ class NotificationHandler {
           await NotificationHandler.saveNotification(tenantID,
             CHANNEL_EMAIL, sourceId, SOURCE_TRANSACTION_STARTED, user, chargingStation);
           // Send email
-          return _email.sendTransactionStarted(sourceData, locale);
+          return _email.sendTransactionStarted(sourceData, locale, tenantID);
         }
       }
     } catch (error) {

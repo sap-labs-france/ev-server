@@ -10,17 +10,6 @@ class JsonRestWSConnection extends WSConnection {
   constructor(wsConnection, req, wsServer) {
     // Call super
     super(wsConnection, req, wsServer);
-    // Parse URL: should like /OCPP16/TENANTNAME/CHARGEBOXID
-    const splittedURL = this.getURL().split("/");
-    // Check
-    if (splittedURL.length === 2) {
-      // Set Charger ID
-      this.setChargingStationID(splittedURL[1]);
-    } else {
-      // Error
-      throw new BackendError(null, `The URL '${req.url}' must contain the Charging Station ID (/REST/CHARGEBOX_ID)`,
-        "JsonRestWSConnection", "constructor");
-    }
     // Log
     Logging.logInfo({
       module: MODULE_NAME,

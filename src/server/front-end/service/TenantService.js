@@ -58,7 +58,8 @@ class TenantService extends AbstractService {
       // Delete
       await tenant.delete();
       if (filteredRequest.forced && !Utils.isServerInProductionMode()) {
-        Logging.logWarning({tenantID: req.user.tenantID,
+        Logging.logWarning({
+          tenantID: req.user.tenantID,
           module: 'MongoDBStorage', method: 'deleteTenantDatabase',
           message: `Deleting collections for tenant ${tenant.getID()}`
         });
@@ -66,10 +67,8 @@ class TenantService extends AbstractService {
       }
       // Log
       Logging.logSecurityInfo({
-        tenantID: req.user.tenantID,
-        user: req.user,
-        module: MODULE_NAME,
-        method: 'handleDeleteTenant',
+        tenantID: req.user.tenantID, user: req.user,
+        module: MODULE_NAME, method: 'handleDeleteTenant',
         message: `Tenant '${tenant.getName()}' has been deleted successfully`,
         action: action,
         detailedMessages: tenant
@@ -243,10 +242,8 @@ class TenantService extends AbstractService {
 
       // Log
       Logging.logSecurityInfo({
-        tenantID: req.user.tenantID,
-        user: req.user,
-        module: MODULE_NAME,
-        method: 'handleCreateTenant',
+        tenantID: req.user.tenantID, user: req.user,
+        module: MODULE_NAME, method: 'handleCreateTenant',
         message: `Tenant '${newTenant.getName()}' has been created successfully`,
         action: action,
         detailedMessages: newTenant
@@ -293,10 +290,8 @@ class TenantService extends AbstractService {
       const updatedTenant = await tenant.save();
       // Log
       Logging.logSecurityInfo({
-        tenantID: req.user.tenantID,
-        user: req.user,
-        module: MODULE_NAME,
-        method: 'handleUpdateTenant',
+        tenantID: req.user.tenantID, user: req.user,
+        module: MODULE_NAME, method: 'handleUpdateTenant',
         message: `Tenant '${updatedTenant.getName()}' has been updated successfully`,
         action: action,
         detailedMessages: updatedTenant

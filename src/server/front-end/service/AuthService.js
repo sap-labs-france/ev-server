@@ -112,7 +112,7 @@ class AuthService {
       next();
     } catch (err) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, Constants.DEFAULT_TENANT);
     }
   }
 
@@ -207,7 +207,7 @@ class AuthService {
       }
     } catch (err) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, Constants.DEFAULT_TENANT);
     }
   }
 
@@ -319,7 +319,7 @@ class AuthService {
       next();
     } catch (err) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, Constants.DEFAULT_TENANT);
     }
   }
 
@@ -393,7 +393,7 @@ class AuthService {
       next();
     } catch (err) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, Constants.DEFAULT_TENANT);
     }
   }
 
@@ -468,7 +468,7 @@ class AuthService {
       next();
     } catch (err) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, Constants.DEFAULT_TENANT);
     }
   }
 
@@ -500,7 +500,7 @@ class AuthService {
       }
     } catch (err) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, Constants.DEFAULT_TENANT);
     }
   }
 
@@ -587,7 +587,7 @@ class AuthService {
       next();
     } catch (err) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, Constants.DEFAULT_TENANT);
     }
   }
 
@@ -699,7 +699,7 @@ class AuthService {
       next();
     } catch (err) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, Constants.DEFAULT_TENANT);
     }
 
   }

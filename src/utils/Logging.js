@@ -170,12 +170,11 @@ class Logging {
   }
 
   // Used to log exception in catch(...) only
-  static logActionExceptionMessageAndSendResponse(action, exception, req, res, next){
+  static logActionExceptionMessageAndSendResponse(action, exception, req, res, next, tenantID){
     // Clear password
     if (action === "login" && req.body.password) {
       req.body.password = "####";
     }
-    let tenantID = '';
     if (req.user && req.user.tenantID) {
       tenantID = req.user.tenantID;
     }

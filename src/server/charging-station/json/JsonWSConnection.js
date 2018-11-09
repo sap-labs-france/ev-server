@@ -17,27 +17,11 @@ class JsonWSConnection extends WSConnection {
   constructor(wsConnection, req, chargingStationConfig, wsServer) {
     // Call super
     super(wsConnection, req, wsServer);
-    // Init
-    this._requests = {};
-    this._tenantID = null;
-    // Parse URL: should like /OCPP16/TENANTNAME/CHARGEBOXID
-    const splittedURL = this.getURL().split("/");
-    // URL with 4 parts?
-    if (splittedURL.length === 3) {
-      // Yes: Tenant is then provided in the third part
-      this._tenantID = splittedURL[1];
-      // The Charger is in the 4th position
-      this.setChargingStationID(splittedURL[2]);
-    } else {
-      // Error
-      throw new BackendError(null, `The URL '${req.url}' must contain the Charging Station ID (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`,
-        "JsonWSConnection", "constructor");
-    }
     // Log
     Logging.logInfo({
-      module: MODULE_NAME,
+      tenantID: this.getTenantID(),
+      module: MODULE_NAME, method: "constructor",
       source: this.getChargingStationID(),
-      method: "constructor",
       action: "WSJsonConnectionOpened",
       message: `New Json connection from '${this.getIP()}', Protocol '${wsConnection.protocol}', URL '${this.getURL()}'`
     });
@@ -62,21 +46,21 @@ class JsonWSConnection extends WSConnection {
     // Already initialized?
     if (!this._initialized) {
       // Check Tenant?
-      if (this._tenantID) {
+      if (this.getTenantID()) {
         // Check if the Tenant exists
-        const tenant = await Tenant.getTenant(this._tenantID);
+        const tenant = await Tenant.getTenant(this.getTenantID());
         // Found?
         if (!tenant) {
           // No: It is not allowed to connect with an unknown tenant
           Logging.logError({
+            tenantID: this.getTenantID(),
             source: this.getURL(),
-            module: MODULE_NAME,
-            method: "initialize",
+            module: MODULE_NAME, method: "initialize",
             action: "WSJsonRegiterJsonConnection",
             message: `Invalid Tenant in URL ${this.getURL()}`
           });
           // Error
-          throw new BackendError(this.getChargingStationID(), `Invalid Tenant '${this._tenantID}' in URL '${this.getURL()}'`,
+          throw new BackendError(this.getChargingStationID(), `Invalid Tenant '${this.getTenantID()}' in URL '${this.getURL()}'`,
             "JsonWSConnection", "initialize");
         }
       } else {
@@ -87,7 +71,7 @@ class JsonWSConnection extends WSConnection {
       // Cloud Foundry?
       if (Configuration.isCloudFoundry()) {
         // Yes: Update the CF App and Instance ID to call the charger from the Rest server
-        const chargingStation = await ChargingStation.getChargingStation(this._tenantID, this.getChargingStationID());
+        const chargingStation = await ChargingStation.getChargingStation(this.getTenantID(), this.getChargingStationID());
       // Found?
       if (chargingStation) {
         // Update CF Instance
@@ -102,7 +86,7 @@ class JsonWSConnection extends WSConnection {
         ocppVersion: (this.getWSConnection().protocol.startsWith("ocpp") ? this.getWSConnection().protocol.replace("ocpp", "") : this.getWSConnection().protocol),
         ocppProtocol: Constants.OCPP_PROTOCOL_JSON,
         chargingStationURL: this._serverURL,
-        tenantID: this._tenantID,
+        tenantID: this.getTenantID(),
         From: {
           Address: this.getIP()
         }
@@ -115,8 +99,8 @@ class JsonWSConnection extends WSConnection {
   onError(error) {
     // Log
     Logging.logError({
-      module: MODULE_NAME,
-      method: "onError",
+      tenantID: this.getTenantID(),
+      module: MODULE_NAME, method: "onError",
       action: "WSJsonErrorReceived",
       message: error
     });
@@ -125,10 +109,10 @@ class JsonWSConnection extends WSConnection {
   onClose(code, reason) {
     // Log
     Logging.logInfo({
+      tenantID: this.getTenantID(),
       module: MODULE_NAME,
       source: (this.getChargingStationID() ? this.getChargingStationID() : ""),
-      method: "onClose",
-      action: "WSJsonConnectionClose",
+      method: "onClose", action: "WSJsonConnectionClose",
       message: `Connection has been closed, Reason '${reason}', Code '${code}'`
     });
     // Remove the connection
@@ -152,14 +136,10 @@ class JsonWSConnection extends WSConnection {
     }
   }
 
-  getTenantID() {
-    if (this._headers && typeof this._headers === 'object' && this._headers.hasOwnProperty('tenantID'))
-      return this._headers.tenantID;
-  }
-
   getChargingStationClient() {
-    if (this.getWSConnection().readyState === WebSocket.OPEN) // only return client if WS is open
+    if (this.getWSConnection().readyState === WebSocket.OPEN) {
       return this._chargingStationClient;
+    } // only return client if WS is open
   }
 }
 
