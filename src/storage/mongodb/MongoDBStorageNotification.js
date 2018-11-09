@@ -31,6 +31,7 @@ class MongoDBStorageNotification {
   async start(){
     if (this.dbConfig.monitorDBChange) {
       Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
         module: "MongoDBStorageNotification", method: "start", action: "Startup",
         message: `Starting to monitor changes on database ''${this.dbConfig.implementation}'...`
       });
@@ -44,11 +45,13 @@ class MongoDBStorageNotification {
       this.watchTenants();
 
       Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
         module: "MongoDBStorageNotification", method: "start", action: "Startup",
         message: `The monitoring on database '${this.dbConfig.implementation}' is active`
       });
     } else {
       Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
         module: "MongoDBStorageNotification", method: "start", action: "Startup",
         message: `The monitoring on database '${this.dbConfig.implementation}' is disabled`
       });
@@ -68,6 +71,7 @@ class MongoDBStorageNotification {
     const tenants = await TenantStorage.getTenants();
     for (const tenant of tenants.result) {
       Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
         module: "MongoDBStorageNotification", method: "watchTenants", action: "Startup",
         message: `Watching collections of tenant ${tenant.getName()}`
       });

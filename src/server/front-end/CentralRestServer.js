@@ -58,6 +58,7 @@ class CentralRestServer {
             write: (message) => {
               // Log
               Logging.logDebug({
+                tenantID: Constants.DEFAULT_TENANT,
                 module: "CentralRestServer",
                 method: "constructor",
                 action: "HttpRequestLog",
@@ -176,9 +177,9 @@ class CentralRestServer {
 
       // Log
       Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
         module: "CentralServerRestServer",
-        method: "start",
-        action: "Startup",
+        method: "start", action: "Startup",
         message: `Central Rest Server (Front-End) listening on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'`
       });
       console.log(`Central Rest Server (Front-End) listening on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'`);

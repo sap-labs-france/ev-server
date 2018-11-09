@@ -1,4 +1,5 @@
 const Logging = require('../utils/Logging');
+const Constants = require('../utils/Constants');
 const DummyTask = require('./tasks/DummyTask');
 const moment = require('moment');
 const MigrationStorage = require('../storage/mongodb/MigrationStorage')
@@ -14,6 +15,7 @@ class MigrationHandler {
 
       // Log
       Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
         source: "Migration", action: "Migration",
         module: "MigrationHandler", method: "migrate",
         message: `Checking migration tasks...`
@@ -39,6 +41,7 @@ class MigrationHandler {
         if (migrationTaskDone) {
           // Yes
           Logging.logInfo({
+            tenantID: Constants.DEFAULT_TENANT,
             source: "Migration", action: "Migration",
             module: "MigrationHandler", method: "migrate",
             message: `Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has already been processed`
@@ -49,6 +52,7 @@ class MigrationHandler {
         // Execute Migration Task
         // Log Start Task
         Logging.logInfo({
+          tenantID: Constants.DEFAULT_TENANT,
           source: "Migration", action: "Migration",
           module: "MigrationHandler", method: "migrate",
           message: `Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`
@@ -67,6 +71,7 @@ class MigrationHandler {
 
         // End
         Logging.logInfo({
+          tenantID: Constants.DEFAULT_TENANT,
           source: "Migration", action: "Migration",
           module: "MigrationHandler", method: "migrate",
           message: `Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`
@@ -85,6 +90,7 @@ class MigrationHandler {
       // Log Total Processing Time
       const totalMigrationTimeSecs = moment.duration(moment().diff(startMigrationTime)).asSeconds();
       Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
         source: "Migration", action: "Migration",
         module: "MigrationHandler", method: "migrate",
         message: `All migration tasks have been run with success in ${totalMigrationTimeSecs} secs`
@@ -94,6 +100,7 @@ class MigrationHandler {
       console.log(error);
       // Log
       Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
         source: "Migration", action: "Migration",
         module: "MigrationHandler", method: "migrate",
         message: error.toString(),

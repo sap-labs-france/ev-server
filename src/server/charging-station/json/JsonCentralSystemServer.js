@@ -56,6 +56,7 @@ class JsonCentralSystemServer extends CentralSystemServer {
         return true;
       }
       Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME,
         method: "verifyClient",
         action: "WSVerifyClient",
@@ -106,7 +107,8 @@ class JsonCentralSystemServer extends CentralSystemServer {
         } 
       } catch (error) {
         // Log
-        Logging.logException(error, "WSConnection", "", MODULE_NAME, "connection");
+        Logging.logException(
+          error, "WSConnection", "", MODULE_NAME, "connection", Constants.DEFAULT_TENANT);
         // Respond
         ws.close(Constants.WS_UNSUPPORTED_DATA, error.message);
       }
@@ -115,9 +117,9 @@ class JsonCentralSystemServer extends CentralSystemServer {
     server.listen(this._centralSystemConfig.port, this._centralSystemConfig.host, () => {
       // Log
       Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME,
-        method: "start",
-        action: "Startup",
+        method: "start", action: "Startup",
         message: `Json Central System Server (Charging Stations) listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`
       });
       console.log(`Json Central System Server (Charging Stations) listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`);

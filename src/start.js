@@ -7,6 +7,7 @@ const CentralRestServer = require('./server/front-end/CentralRestServer');
 const SchedulerManager = require('./scheduler/SchedulerManager');
 const MigrationHandler = require('./migration/MigrationHandler');
 const Logging = require('./utils/Logging');
+const Constants = require('./utils/Constants');
 
 require('source-map-support').install();
 
@@ -38,6 +39,7 @@ class Bootstrap {
 
       // Log
       Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
         module: 'Bootstrap', method: 'start', action: 'Startup',
         message: `Database connected to '${storageConfig.implementation}' successfully`
       });
@@ -103,6 +105,7 @@ class Bootstrap {
       // Log
       console.error(error);
       Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
         source: 'BootStrap', module: 'start', method: '-', action: 'StartServer',
         message: `Unexpected exception: ${error.toString()}`
       });
