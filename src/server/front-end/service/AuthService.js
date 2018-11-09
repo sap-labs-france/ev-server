@@ -235,6 +235,7 @@ class AuthService {
           `The Tenant is mandatory`, 500,
           'AuthService', 'handleRegisterUser');
       }
+      // Get ID from subdomain
       const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
       if (!tenantID) {
         throw new AppError(
@@ -280,7 +281,7 @@ class AuthService {
       // Set
       newUser.setSites(sites.result);
       // Get EULA
-      const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(filteredRequest.tenantID, newUser.getLanguage());
+      const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(tenantID, newUser.getLanguage());
       // Set Eula Info on Login Only
       newUser.setEulaAcceptedOn(new Date());
       newUser.setEulaAcceptedVersion(endUserLicenseAgreement.version);
@@ -797,11 +798,14 @@ class AuthService {
   }
 
   static async getTenantID(subdomain) {
+    // Check
     if (!subdomain) {
       return Constants.DEFAULT_TENANT;
     }
+    // Get it
     const tenant = await Tenant.getTenantBySubdomain(subdomain);
-    return tenant ? tenant.getID() : undefined;
+    // Return
+    return (tenant ? tenant.getID() : null);
   }
 
   static async checkUserLogin(action, user, filteredRequest, req, res, next){
