@@ -57,7 +57,7 @@ class Bootstrap {
         const centralRestServer = new CentralRestServer(centralSystemRestConfig, chargingStationConfig);
         // Set to database for Web Socket Notifications
 
-        const storageNotification = new MongoDBStorageNotification(storageConfig, database, centralRestServer);
+        const storageNotification = new MongoDBStorageNotification(storageConfig, centralRestServer);
         storageNotification.start();
 
         // Start it
