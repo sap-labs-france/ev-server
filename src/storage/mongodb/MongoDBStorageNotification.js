@@ -34,6 +34,11 @@ class MongoDBStorageNotification {
         module: "MongoDBStorageNotification", method: "start", action: "Startup",
         message: `Starting to monitor changes on database ''${this.dbConfig.implementation}'...`
       });
+
+      // Check
+      if (!this.centralRestServer) {
+        return;
+      }
       // Start Listening
       this.watchDefaultTenant();
       this.watchTenants();
@@ -60,11 +65,6 @@ class MongoDBStorageNotification {
   }
 
   async watchTenants(){
-    // Check
-    if (!this.centralRestServer) {
-      return;
-    }
-
     const tenants = await TenantStorage.getTenants();
     for (const tenant of tenants.result) {
       Logging.logInfo({
@@ -148,7 +148,7 @@ class MongoDBStorageNotification {
           notifyCallback(tenantID, action);
         }
       } else {
-        MongoDBStorageNotification.handleInvalidChange(tenantID, "meterValues", change);
+        MongoDBStorageNotification.handleInvalidChange(tenantID, name, change);
       }
     });
     // Error Handling
@@ -189,7 +189,7 @@ class MongoDBStorageNotification {
     });
     // Error Handling
     transactionsWatcher.on("error", (error) => {
-      MongoDBStorageNotification.handleError(tenantID, name, error);
+      MongoDBStorageNotification.handleError(tenantID, "transactions", error);
     });
   }
 
@@ -218,7 +218,7 @@ class MongoDBStorageNotification {
     });
     // Error Handling
     meterValuesWatcher.on("error", (error) => {
-      MongoDBStorageNotification.handleError(tenantID, name, error);
+      MongoDBStorageNotification.handleError(tenantID, "meterValues", error);
     });
   }
 
@@ -241,7 +241,7 @@ class MongoDBStorageNotification {
     });
     // Error Handling
     configurationsWatcher.on("error", (error) => {
-      MongoDBStorageNotification.handleError(tenantID, name, error);
+      MongoDBStorageNotification.handleError(tenantID, "configurations", error);
     });
   }
 
@@ -258,6 +258,7 @@ class MongoDBStorageNotification {
 
   static handleError(tenantID, collection, error){    // Log
     Logging.logError({
+      tenantID: tenantID,
       module: "MongoDBStorageNotification",
       method: "watchCollection", action: `Watch`,
       message: `Error occurred in watching collection ${collection}: ${error}`,
