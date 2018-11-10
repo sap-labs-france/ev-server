@@ -88,19 +88,23 @@ class MongoDBStorage {
   }
 
   async deleteTenantDatabase(tenantID) {
-    // Not the Default tenant
-    if (tenantID !== Constants.DEFAULT_TENANT) {
-      // Get all the collections
-      const collections = await this._db.listCollections().toArray();
-      // Check and Delete
-      for (const collection of collections) {
-        // Check
-        if (collection.name.startsWith(`${tenantID}.`)) {
-          // Delete
-          await this._db.collection(collection.name).drop();
+    // Done only in Dev environment!
+    // Delay the deletion: there are some collections remaining after Unit Test execution
+    setTimeout(async () => {
+      // Not the Default tenant
+      if (tenantID !== Constants.DEFAULT_TENANT) {
+        // Get all the collections
+        const collections = await this._db.listCollections().toArray();
+        // Check and Delete
+        for (const collection of collections) {
+          // Check
+          if (collection.name.startsWith(`${tenantID}.`)) {
+            // Delete
+            await this._db.collection(collection.name).drop();
+          }
         }
       }
-    }
+    }, 500);
   }
 
   async migrateTenantDatabase(tenantID) {
