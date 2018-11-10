@@ -15,6 +15,12 @@ const config = convict({
     env: 'TRACE_LOGS'
   },
   ocpp: {
+    tenantID: {
+      doc: 'The ocpp tenant',
+      format: String,
+      default: '',
+      env: 'OCPP_TENANT'
+    },
     soap: {
       scheme: {
         doc: 'The OCPP server scheme.',
@@ -129,12 +135,6 @@ const config = convict({
       format: String,
       default: 'EQPQLwBIC0XgUgX@1Aa',
       env: 'SUPERADMIN_PASSWORD'
-    },
-    tenant: {
-      doc: 'The super admin tenant',
-      format: String,
-      default: '',
-      env: 'SUPERADMIN_TENANT'
     }
   }
 });

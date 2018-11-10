@@ -5,7 +5,7 @@ const Tenant = require('../../entity/Tenant');
 const DatabaseUtils = require('../../storage/mongodb/DatabaseUtils');
 
 class UpdateTransactionInactivityTask {
-  async migrate(){
+  async migrate() {
     const tenants = await Tenant.getTenants();
 
     for (const tenant of tenants.result) {
@@ -13,7 +13,7 @@ class UpdateTransactionInactivityTask {
     }
   }
 
-  async migrateTenant(tenant){
+  async migrateTenant(tenant) {
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -93,11 +93,11 @@ class UpdateTransactionInactivityTask {
     }
   }
 
-  getVersion(){
+  getVersion() {
     return "3.1";
   }
 
-  getName(){
+  getName() {
     return "TransactionInactivityTask";
   }
 }

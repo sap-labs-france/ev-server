@@ -3,7 +3,7 @@ const TenantStorage = require('../storage/mongodb/TenantStorage');
 const User = require('./User');
 
 class Tenant {
-  constructor(tenant){
+  constructor(tenant) {
     // Init model
     this._model = {};
 
@@ -11,108 +11,108 @@ class Tenant {
     Database.updateTenant(tenant, this._model);
   }
 
-  getModel(){
+  getModel() {
     return this._model;
   }
 
-  getID(){
+  getID() {
     return this._model.id;
   }
 
-  setName(name){
+  setName(name) {
     this._model.name = name;
   }
 
-  getName(){
+  getName() {
     return this._model.name;
   }
 
-  setEmail(email){
+  setEmail(email) {
     this._model.email = email;
   }
 
-  getEmail(){
+  getEmail() {
     return this._model.email;
   }
 
-  setSubdomain(subdomain){
+  setSubdomain(subdomain) {
     this._model.subdomain = subdomain;
   }
 
-  getSubdomain(){
+  getSubdomain() {
     return this._model.subdomain;
   }
 
-  getCreatedBy(){
+  getCreatedBy() {
     if (this._model.createdBy) {
       return new User(this.getID(), this._model.createdBy);
     }
     return null;
   }
 
-  setCreatedBy(user){
+  setCreatedBy(user) {
     this._model.createdBy = user.getModel();
   }
 
-  getCreatedOn(){
+  getCreatedOn() {
     return this._model.createdOn;
   }
 
-  setCreatedOn(createdOn){
+  setCreatedOn(createdOn) {
     this._model.createdOn = createdOn;
   }
 
-  getLastChangedBy(){
+  getLastChangedBy() {
     if (this._model.lastChangedBy) {
       return new User(this.getID(), this._model.lastChangedBy);
     }
     return null;
   }
 
-  setLastChangedBy(user){
+  setLastChangedBy(user) {
     this._model.lastChangedBy = user.getModel();
   }
 
-  getLastChangedOn(){
+  getLastChangedOn() {
     return this._model.lastChangedOn;
   }
 
-  setLastChangedOn(lastChangedOn){
+  setLastChangedOn(lastChangedOn) {
     this._model.lastChangedOn = lastChangedOn;
   }
 
-  save(){
+  save() {
     return TenantStorage.saveTenant(this.getModel());
   }
 
-  async createEnvironment(){
+  async createEnvironment() {
     await TenantStorage.createTenantDB(this.getID());
   }
 
-  async deleteEnvironment(){
+  async deleteEnvironment() {
     await TenantStorage.deleteTenantDB(this.getID());
   }
 
-  delete(){
+  delete() {
     return TenantStorage.deleteTenant(this.getID());
   }
 
-  static getTenant(id){
+  static getTenant(id) {
     // Get Tenant
     return TenantStorage.getTenant(id)
   }
 
-  static getTenantByName(name){
+  static getTenantByName(name) {
     // Get Tenant
     return TenantStorage.getTenantByName(name);
   }
 
-  static getTenantBySubdomain(subdomain){
+  static getTenantBySubdomain(subdomain) {
     // Get Tenant
     return TenantStorage.getTenantBySubdomain(subdomain);
   }
 
-  static getTenants(params = {}, limit, skip, sort){
+  static getTenants(params = {}, limit, skip, sort) {
     // Get Tenants
     return TenantStorage.getTenants(params, limit, skip, sort);
   }

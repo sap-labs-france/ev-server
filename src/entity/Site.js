@@ -100,7 +100,7 @@ class Site extends AbstractTenantEntity {
   async getCompany() {
     if (this._model.company) {
       return new Company(this.getTenantID(), this._model.company);
-    } else if (this._model.companyID){
+    } else if (this._model.companyID) {
       // Get from DB
       const company = await CompanyStorage.getCompany(this.getTenantID(), this._model.companyID);
       // Keep it

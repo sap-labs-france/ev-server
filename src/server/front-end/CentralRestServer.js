@@ -27,7 +27,7 @@ let _currentNotifications = [];
 
 class CentralRestServer {
   // Create the rest server
-  constructor(centralSystemRestConfig, chargingStationConfig){
+  constructor(centralSystemRestConfig, chargingStationConfig) {
     // Keep params
     _centralSystemRestConfig = centralSystemRestConfig;
     _chargingStationConfig = chargingStationConfig;
@@ -102,7 +102,7 @@ class CentralRestServer {
     // Server it?
     if (centralSystemConfig.distEnabled) {
       // Serve all the static files of the front-end
-      express.get(/^\/(?!client\/)(.+)$/, function(req, res, next){
+      express.get(/^\/(?!client\/)(.+)$/, function(req, res, next) {
         // Filter to not handle other server requests
         if (!res.headersSent) {
           // Not already processed: serve the file
@@ -110,7 +110,7 @@ class CentralRestServer {
         }
       });
       // Default, serve the index.html
-      express.get('/', function(req, res, next){
+      express.get('/', function(req, res, next) {
         // Return the index.html
         res.sendFile(path.join(__dirname, centralSystemConfig.distPath, 'index.html'));
       });
@@ -118,7 +118,7 @@ class CentralRestServer {
   }
 
   // Start the server (to be defined in sub-classes)
-  start(){
+  start() {
     let server;
     // Log
     console.log(`Starting Central Rest Server (Front-End)...`);
@@ -186,7 +186,7 @@ class CentralRestServer {
     });
   }
 
-  notifyUser(tenantID, action, data){
+  notifyUser(tenantID, action, data) {
     // Add in buffer
     this.addNotificationInBuffer({
       "tenantID": tenantID,
@@ -201,7 +201,7 @@ class CentralRestServer {
     });
   }
 
-  notifyVehicle(tenantID, action, data){
+  notifyVehicle(tenantID, action, data) {
     // Add in buffer
     this.addNotificationInBuffer({
       "tenantID": tenantID,
@@ -216,7 +216,7 @@ class CentralRestServer {
     });
   }
 
-  notifyVehicleManufacturer(tenantID, action, data){
+  notifyVehicleManufacturer(tenantID, action, data) {
     // Add in buffer
     this.addNotificationInBuffer({
       "tenantID": tenantID,
@@ -231,7 +231,7 @@ class CentralRestServer {
     });
   }
 
-  notifyTenant(tenantID, action, data){
+  notifyTenant(tenantID, action, data) {
     // Add in buffer
     this.addNotificationInBuffer({
       "tenantID": tenantID,
@@ -246,7 +246,7 @@ class CentralRestServer {
     });
   }
 
-  notifySite(tenantID, action, data){
+  notifySite(tenantID, action, data) {
     // Add in buffer
     this.addNotificationInBuffer({
       "tenantID": tenantID,
@@ -261,7 +261,7 @@ class CentralRestServer {
     });
   }
 
-  notifySiteArea(tenantID, action, data){
+  notifySiteArea(tenantID, action, data) {
     // Add in buffer
     this.addNotificationInBuffer({
       "tenantID": tenantID,
@@ -276,7 +276,7 @@ class CentralRestServer {
     });
   }
 
-  notifyCompany(tenantID, action, data){
+  notifyCompany(tenantID, action, data) {
     // Add in buffer
     this.addNotificationInBuffer({
       "tenantID": tenantID,
@@ -291,7 +291,7 @@ class CentralRestServer {
     });
   }
 
-  notifyTransaction(tenantID, action, data){
+  notifyTransaction(tenantID, action, data) {
     // Add in buffer
     this.addNotificationInBuffer({
       "tenantID": tenantID,
@@ -306,7 +306,7 @@ class CentralRestServer {
     });
   }
 
-  notifyChargingStation(tenantID, action, data){
+  notifyChargingStation(tenantID, action, data) {
     // Add in buffer
     this.addNotificationInBuffer({
       "tenantID": tenantID,
@@ -321,7 +321,7 @@ class CentralRestServer {
     });
   }
 
-  notifyLogging(tenantID, action){
+  notifyLogging(tenantID, action) {
     // Add in buffer
     this.addNotificationInBuffer({
       "tenantID": tenantID,
@@ -330,7 +330,7 @@ class CentralRestServer {
     });
   }
 
-  addNotificationInBuffer(notification){
+  addNotificationInBuffer(notification) {
     let dups = false;
     // Add in buffer
     for (var i = 0; i < _currentNotifications.length; i++) {

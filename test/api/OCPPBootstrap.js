@@ -49,8 +49,6 @@ class OCPPBootstrap {
   async createContext() {
     const context = {};
     try {
-      context.tenantID = await CentralServerService.authenticatedApi.getTenantID();
-
       // Create User
       context.newUser = await CentralServerService.createEntity(
         CentralServerService.userApi, Factory.user.build());
@@ -74,8 +72,7 @@ class OCPPBootstrap {
       // Create Charger Object
       const chargingStation = Factory.chargingStation.build();
       // Simulate a Boot Notification
-      let response = await this.ocpp.executeBootNotification(context.tenantID,
-        chargingStationID, chargingStation);
+      let response = await this.ocpp.executeBootNotification(chargingStationID, chargingStation);
       // Check
       expect(response.data).to.not.be.null;
       expect(response.data.status).to.eql('Accepted');
@@ -90,7 +87,7 @@ class OCPPBootstrap {
       }
 
       // Send Status Notif for Connector A
-      response = await this.ocpp.executeStatusNotification(context.tenantID, chargingStationID, {
+      response = await this.ocpp.executeStatusNotification(chargingStationID, {
         connectorId: 1,
         status: 'Available',
         errorCode: 'NoError',
@@ -100,7 +97,7 @@ class OCPPBootstrap {
       expect(response).to.not.be.null;
       expect(response.data).to.eql({});
       // Send Status Notif for Connector B
-      response = await this.ocpp.executeStatusNotification(context.tenantID, chargingStationID, {
+      response = await this.ocpp.executeStatusNotification(chargingStationID, {
         connectorId: 2,
         status: 'Available',
         errorCode: 'NoError',

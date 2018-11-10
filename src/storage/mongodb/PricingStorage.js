@@ -3,13 +3,9 @@ const Utils = require('../../utils/Utils');
 const BackendError = require('../../exception/BackendError');
 
 class PricingStorage {
-  static async getPricing(tenantID){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "PricingStorage", "getPricing");
-    }
+  static async getPricing(tenantID) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Read DB
     const pricingsMDB = await global.database.getCollection(tenantID, 'pricings')
       .find({})
@@ -26,13 +22,9 @@ class PricingStorage {
     return pricing;
   }
 
-  static async savePricing(tenantID, pricingToSave){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "PricingStorage", "savePricing");
-    }
+  static async savePricing(tenantID, pricingToSave) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Check date
     pricingToSave.timestamp = Utils.convertToDate(pricingToSave.timestamp);
     // Transfer

@@ -20,6 +20,16 @@ class JsonRestWSConnection extends WSConnection {
     });
   }
 
+  async initialize() {
+    // Already initialized?
+    if (!this._initialized) {
+      // Call super class
+      super.initialize();
+      // Ok
+      this._initialized = true;
+    }
+  }
+
   onError(error) {
     // Log
     Logging.logError({

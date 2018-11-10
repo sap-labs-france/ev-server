@@ -1,5 +1,5 @@
 class AppError extends Error {
-  constructor(source, message, errorCode = 500, module = "N/A", method = "N/A", user, actionOnUser, action){
+  constructor(source, message, errorCode = 500, module = "N/A", method = "N/A", user, actionOnUser, action) {
     super(message);
     this.errorCode = errorCode;
     this.module = module;

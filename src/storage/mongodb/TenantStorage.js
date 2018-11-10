@@ -6,7 +6,7 @@ const AppError = require('../../exception/AppError');
 const DatabaseUtils = require('./DatabaseUtils');
 
 class TenantStorage {
-  static async getTenant(id){
+  static async getTenant(id) {
     const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
     // Create Aggregation
     const aggregation = [];
@@ -32,17 +32,17 @@ class TenantStorage {
     return tenant;
   }
 
-  static async getTenantByName(name){
+  static async getTenantByName(name) {
     // Get
     return await TenantStorage.getTenantByFilter({'name': name});
   }
 
-  static async getTenantBySubdomain(subdomain){
+  static async getTenantBySubdomain(subdomain) {
     // Get
     return await TenantStorage.getTenantByFilter({'subdomain': subdomain});
   }
 
-  static async getTenantByFilter(filter){
+  static async getTenantByFilter(filter) {
     const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
     // Read DB
     const tenantsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
@@ -58,7 +58,7 @@ class TenantStorage {
     return tenant;
   }
 
-  static async saveTenant(tenantToSave){
+  static async saveTenant(tenantToSave) {
     const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
     // Check
     if (!tenantToSave.id && !tenantToSave.name) {
@@ -93,12 +93,12 @@ class TenantStorage {
     return new Tenant(result.value);
   }
 
-  static async createTenantDB(tenantID){
+  static async createTenantDB(tenantID) {
     await global.database.createTenantDatabase(tenantID);
   }
 
   // Delegate
-  static async getTenants(params = {}, limit, skip, sort){
+  static async getTenants(params = {}, limit, skip, sort) {
     const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
@@ -177,14 +177,14 @@ class TenantStorage {
     };
   }
 
-  static async deleteTenant(id){
+  static async deleteTenant(id) {
     await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
       .findOneAndDelete({
         '_id': Utils.convertToObjectID(id)
       });
   }
 
-  static async deleteTenantDB(id){
+  static async deleteTenantDB(id) {
     await global.database.deleteTenantDatabase(id);
   }
 }

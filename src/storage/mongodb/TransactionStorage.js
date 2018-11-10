@@ -6,13 +6,9 @@ const DatabaseUtils = require('./DatabaseUtils');
 const BackendError = require('../../exception/BackendError');
 
 class TransactionStorage {
-  static async deleteTransaction(tenantID, transaction){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "TransactionStorage", "deleteTransaction");
-    }
+  static async deleteTransaction(tenantID, transaction) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Delete Transactions
     await global.database.getCollection(tenantID, 'transactions')
       .findOneAndDelete({'_id': transaction.id});
@@ -21,13 +17,9 @@ class TransactionStorage {
       .deleteMany({'transactionId': transaction.id});
   }
 
-  static async getMeterValuesFromTransaction(tenantID, transactionId){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "TransactionStorage", "getMeterValuesFromTransaction");
-    }
+  static async getMeterValuesFromTransaction(tenantID, transactionId) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Build filter
     const filter = {};
     // Mandatory filters
@@ -53,13 +45,9 @@ class TransactionStorage {
     return meterValues;
   }
 
-  static async saveTransaction(tenantID, transactionToSave){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "TransactionStorage", "saveTransaction");
-    }
+  static async saveTransaction(tenantID, transactionToSave) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Set
     const transaction = {};
     Database.updateTransaction(transactionToSave, transaction, false);
@@ -76,13 +64,9 @@ class TransactionStorage {
     return updatedTransaction;
   }
 
-  static async saveMeterValues(tenantID, meterValuesToSave){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "TransactionStorage", "saveMeterValues");
-    }
+  static async saveMeterValues(tenantID, meterValuesToSave) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     const meterValuesMDB = [];
     // Save all
     for (const meterValueToSave of meterValuesToSave.values) {
@@ -100,13 +84,9 @@ class TransactionStorage {
     await global.database.getCollection(tenantID, 'metervalues').insertMany(meterValuesMDB);
   }
 
-  static async getTransactionYears(tenantID){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "TransactionStorage", "getTransactionYears");
-    }
+  static async getTransactionYears(tenantID) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Read DB
     const firstTransactionsMDB = await global.database.getCollection(tenantID, 'transactions')
       .find({})
@@ -127,13 +107,9 @@ class TransactionStorage {
     return transactionYears;
   }
 
-  static async getTransactions(tenantID, params = {}, limit, skip, sort){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "TransactionStorage", "getTransactions");
-    }
+  static async getTransactions(tenantID, params = {}, limit, skip, sort) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -300,13 +276,9 @@ class TransactionStorage {
     };
   }
 
-  static async getTransaction(tenantID, id){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "TransactionStorage", "getTransaction");
-    }
+  static async getTransaction(tenantID, id) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -368,13 +340,9 @@ class TransactionStorage {
     return transaction;
   }
 
-  static async getActiveTransaction(tenantID, chargeBoxID, connectorId){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "TransactionStorage", "getActiveTransaction");
-    }
+  static async getActiveTransaction(tenantID, chargeBoxID, connectorId) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Create Aggregation
     const aggregation = [];
     // Filters

@@ -7,13 +7,9 @@ const DatabaseUtils = require('./DatabaseUtils');
 const BackendError = require('../../exception/BackendError');
 
 class SiteAreaStorage {
-  static async getSiteAreaImage(tenantID, id){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "SiteAreaStorage", "getSiteAreaImage");
-    }
+  static async getSiteAreaImage(tenantID, id) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Read DB
     const siteAreaImagesMDB = await global.database.getCollection(tenantID, 'siteareaimages')
       .find({_id: Utils.convertToObjectID(id)})
@@ -30,13 +26,9 @@ class SiteAreaStorage {
     return siteAreaImage;
   }
 
-  static async getSiteAreaImages(tenantID){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "SiteAreaStorage", "getSiteAreaImages");
-    }
+  static async getSiteAreaImages(tenantID) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Read DB
     const siteAreaImagesMDB = await global.database.getCollection(tenantID, 'siteareaimages')
       .find({})
@@ -54,13 +46,9 @@ class SiteAreaStorage {
     return siteAreaImages;
   }
 
-  static async getSiteArea(tenantID, id, withChargeBoxes, withSite){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "SiteAreaStorage", "getSiteArea");
-    }
+  static async getSiteArea(tenantID, id, withChargeBoxes, withSite) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     const Site = require('../../entity/Site');  // Avoid fucking circular deps!!!
     const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
@@ -133,13 +121,9 @@ class SiteAreaStorage {
     return siteArea;
   }
 
-  static async saveSiteArea(tenantID, siteAreaToSave){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "SiteAreaStorage", "saveSiteArea");
-    }
+  static async saveSiteArea(tenantID, siteAreaToSave) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
     // Check if ID/Name is provided
     if (!siteAreaToSave.id && !siteAreaToSave.name) {
@@ -171,13 +155,9 @@ class SiteAreaStorage {
     return new SiteArea(tenantID, result.value);
   }
 
-  static async saveSiteAreaImage(tenantID, siteAreaImageToSave){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "SiteAreaStorage", "saveSiteAreaImage");
-    }
+  static async saveSiteAreaImage(tenantID, siteAreaImageToSave) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Check if ID is provided
     if (!siteAreaImageToSave.id) {
       // ID must be provided!
@@ -193,13 +173,9 @@ class SiteAreaStorage {
       {upsert: true, new: true, returnOriginal: false});
   }
 
-  static async getSiteAreas(tenantID, params = {}, limit, skip, sort){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "SiteAreaStorage", "getSiteAreas");
-    }
+  static async getSiteAreas(tenantID, params = {}, limit, skip, sort) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     const Site = require('../../entity/Site');  // Avoid fucking circular deps!!!
     const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
@@ -315,13 +291,9 @@ class SiteAreaStorage {
     };
   }
 
-  static async deleteSiteArea(tenantID, id){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "SiteAreaStorage", "deleteSiteArea");
-    }
+  static async deleteSiteArea(tenantID, id) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Remove Charging Station's Site Area
     await global.database.getCollection(tenantID, 'chargingstations').updateMany(
       {siteAreaID: Utils.convertToObjectID(id)},

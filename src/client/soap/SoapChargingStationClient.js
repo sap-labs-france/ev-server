@@ -9,7 +9,7 @@ const _moduleName = "SoapChargingStationClient";
 const _wsdlEndpointConfig = Configuration.getWSDLEndpointConfig();
 
 class SoapChargingStationClient extends ChargingStationClient {
-  constructor(chargingStation){
+  constructor(chargingStation) {
     super();
     // Keep the charger
     this._chargingStation = chargingStation;
@@ -63,7 +63,7 @@ class SoapChargingStationClient extends ChargingStationClient {
     });
   }
 
-  initSoapHeaders(action){
+  initSoapHeaders(action) {
     // Clear the SOAP Headers`
     this._client.clearSoapHeaders();
     // Add them
@@ -75,7 +75,7 @@ class SoapChargingStationClient extends ChargingStationClient {
     this._client.addSoapHeader(`<a:From xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>${_wsdlEndpointConfig.baseUrl}</a:Address></a:From>`);
   }
 
-  async remoteStopTransaction(params){
+  async remoteStopTransaction(params) {
     const {transactionId} = params;
     // Init SOAP Headers with the action
     this.initSoapHeaders("RemoteStopTransaction");
@@ -109,7 +109,7 @@ class SoapChargingStationClient extends ChargingStationClient {
     return result;
   }
 
-  async startTransaction(params){
+  async startTransaction(params) {
     const {tagID, connectorID} = params;
     // Init SOAP Headers with the action
     this.initSoapHeaders("RemoteStartTransaction");
@@ -148,7 +148,7 @@ class SoapChargingStationClient extends ChargingStationClient {
     return result;
   }
 
-  async unlockConnector(params){
+  async unlockConnector(params) {
     const {connectorId} = params;
     // Init SOAP Headers with the action
     this.initSoapHeaders("UnlockConnector");
@@ -182,7 +182,7 @@ class SoapChargingStationClient extends ChargingStationClient {
     return result;
   }
 
-  async reset(params){
+  async reset(params) {
     const {type} = params;
     // Init SOAP Headers with the action
     this.initSoapHeaders("Reset");
@@ -216,7 +216,7 @@ class SoapChargingStationClient extends ChargingStationClient {
     return result;
   }
 
-  async clearCache(){
+  async clearCache() {
     // Init SOAP Headers with the action
     this.initSoapHeaders("ClearCache");
     // Log
@@ -245,7 +245,7 @@ class SoapChargingStationClient extends ChargingStationClient {
     return result;
   }
 
-  async getConfiguration(params){
+  async getConfiguration(params) {
     const {keys} = params;
     // Init SOAP Headers with the action
     this.initSoapHeaders("GetConfiguration");
@@ -284,7 +284,7 @@ class SoapChargingStationClient extends ChargingStationClient {
     return result;
   }
 
-  async changeConfiguration(params){
+  async changeConfiguration(params) {
     const {key, value} = params;
     // Init SOAP Headers with the action
     this.initSoapHeaders("ChangeConfiguration");
@@ -322,7 +322,7 @@ class SoapChargingStationClient extends ChargingStationClient {
     return result;
   }
 
-  getChargingStation(){
+  getChargingStation() {
     return this._chargingStation;
   }
 }

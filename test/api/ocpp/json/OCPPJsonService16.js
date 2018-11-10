@@ -15,10 +15,10 @@ class OCPPJsonService16 extends OCPPService {
     return "1.6";
   }
 
-  openConnection(tenantID, chargeBoxIdentity) {
+  openConnection(chargeBoxIdentity) {
     return new Promise((resolve, reject) => {
       // Create WS
-      this._wsConnection = new WebSocket(`${this.serverUrl}/${tenantID}/${chargeBoxIdentity}`, {
+      this._wsConnection = new WebSocket(`${this.serverUrl}/${chargeBoxIdentity}`, {
         protocol: 'ocpp1.6'
       });
       // Opened
@@ -61,71 +61,71 @@ class OCPPJsonService16 extends OCPPService {
     }
   }
 
-  executeAuthorize(tenantID, chargeBoxIdentity, payload) {
-    return this._send(tenantID, chargeBoxIdentity,
+  executeAuthorize(chargeBoxIdentity, payload) {
+    return this._send(chargeBoxIdentity,
       this._buildRequest('Authorize', payload)
     );
   }
 
-  executeStartTransaction(tenantID, chargeBoxIdentity, payload) {
-    return this._send(tenantID, chargeBoxIdentity,
+  executeStartTransaction(chargeBoxIdentity, payload) {
+    return this._send(chargeBoxIdentity,
       this._buildRequest('StartTransaction', payload)
     );
   }
 
-  executeStopTransaction(tenantID, chargeBoxIdentity, payload) {
-    return this._send(tenantID, chargeBoxIdentity,
+  executeStopTransaction(chargeBoxIdentity, payload) {
+    return this._send(chargeBoxIdentity,
       this._buildRequest('StopTransaction', payload)
     );
   }
 
-  executeHeartbeat(tenantID, chargeBoxIdentity, payload) {
-    return this._send(tenantID, chargeBoxIdentity,
+  executeHeartbeat(chargeBoxIdentity, payload) {
+    return this._send(chargeBoxIdentity,
       this._buildRequest('Heartbeat', payload)
     );
   }
 
-  executeMeterValues(tenantID, chargeBoxIdentity, payload) {
-    return this._send(tenantID, chargeBoxIdentity,
+  executeMeterValues(chargeBoxIdentity, payload) {
+    return this._send(chargeBoxIdentity,
       this._buildRequest('MeterValues', payload)
     );
   }
 
-  executeBootNotification(tenantID, chargeBoxIdentity, payload) {
-    return this._send(tenantID, chargeBoxIdentity,
+  executeBootNotification(chargeBoxIdentity, payload) {
+    return this._send(chargeBoxIdentity,
       this._buildRequest('BootNotification', payload)
     );
   }
 
-  executeStatusNotification(tenantID, chargeBoxIdentity, payload) {
-    return this._send(tenantID, chargeBoxIdentity,
+  executeStatusNotification(chargeBoxIdentity, payload) {
+    return this._send(chargeBoxIdentity,
       this._buildRequest('StatusNotification', payload)
     );
   }
 
-  executeFirmwareStatusNotification(tenantID, chargeBoxIdentity, payload) {
-    return this._send(tenantID, chargeBoxIdentity,
+  executeFirmwareStatusNotification(chargeBoxIdentity, payload) {
+    return this._send(chargeBoxIdentity,
       this._buildRequest('FirmwareStatusNotification', payload)
     );
   }
 
-  executeDiagnosticsStatusNotification(tenantID, chargeBoxIdentity, payload) {
-    return this._send(tenantID, chargeBoxIdentity,
+  executeDiagnosticsStatusNotification(chargeBoxIdentity, payload) {
+    return this._send(chargeBoxIdentity,
       this._buildRequest('DiagnosticsStatusNotification', payload)
     );
   }
 
-  executeDataTransfer(tenantID, chargeBoxIdentity, payload) {
-    return this._send(tenantID, chargeBoxIdentity,
+  executeDataTransfer(chargeBoxIdentity, payload) {
+    return this._send(chargeBoxIdentity,
       this._buildRequest('DataTransfer', payload)
     );
   }
 
-  async _send(tenantID, chargeBoxIdentity, request) {
+  async _send(chargeBoxIdentity, request) {
     // WS Opened?
     if (!this._wsConnection) {
       // Open WS
-      await this.openConnection(tenantID, chargeBoxIdentity);
+      await this.openConnection(chargeBoxIdentity);
     }
     // Log
     if (config.get('ocpp.json.logs') === 'json') {

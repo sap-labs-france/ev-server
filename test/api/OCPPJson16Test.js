@@ -7,7 +7,8 @@ describe('OCPP 1.6 JSON Tests', function () {
 
   before(async () => {
     // Create OCPP 1.5
-    this.ocpp = new OCPPJsonService16(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16`);
+    this.ocpp = new OCPPJsonService16(
+      `${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${config.get('ocpp.tenantID')}`);
     // Init Common tests
     this.ocppCommonTests = new OCPPCommonTests(this.ocpp);
     // Delegate

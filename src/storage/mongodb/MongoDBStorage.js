@@ -9,16 +9,16 @@ require('source-map-support').install();
 class MongoDBStorage {
 
   // Create database access
-  constructor(dbConfig){
+  constructor(dbConfig) {
     // Keep local
     this._dbConfig = dbConfig;
   }
 
-  getCollection(tenantID, collectionName){
+  getCollection(tenantID, collectionName) {
     return this._db.collection(DatabaseUtils.getCollectionName(tenantID, collectionName));
   }
 
-  async checkAndCreateCollection(allCollections, tenantID, name, indexes){
+  async checkAndCreateCollection(allCollections, tenantID, name, indexes) {
     // Check Logs
     const tenantCollectionName = DatabaseUtils.getCollectionName(tenantID, name);
     const foundCollection = allCollections.find((collection) => {
@@ -49,7 +49,7 @@ class MongoDBStorage {
     }
   }
 
-  async createTenantDatabase(tenantID){
+  async createTenantDatabase(tenantID) {
     const filter = {};
     filter.name = new RegExp(`^${tenantID}.`);
     // Get all the tenant collections
@@ -87,19 +87,23 @@ class MongoDBStorage {
     ]);
   }
 
-  async deleteTenantDatabase(tenantID){
+  async deleteTenantDatabase(tenantID) {
+    // Not the Default tenant
     if (tenantID !== Constants.DEFAULT_TENANT) {
+      // Get all the collections
       const collections = await this._db.listCollections().toArray();
-
+      // Check and Delete
       for (const collection of collections) {
+        // Check
         if (collection.name.startsWith(`${tenantID}.`)) {
+          // Delete
           await this._db.collection(collection.name).drop();
         }
       }
     }
   }
 
-  async migrateTenantDatabase(tenantID){
+  async migrateTenantDatabase(tenantID) {
     // Migrate not prefixed collections
     const collections = await this._db.listCollections().toArray();
 
@@ -110,7 +114,7 @@ class MongoDBStorage {
     }
   }
 
-  async checkDatabase(){
+  async checkDatabase() {
     // Get all the collections
     const collections = await this._db.listCollections().toArray();
     // Check only collections with indexes
@@ -137,7 +141,7 @@ class MongoDBStorage {
     }
   }
 
-  async start(){
+  async start() {
     // Log
     console.log(`Connecting to '${this._dbConfig.implementation}'...`);
     // Build EVSE URL

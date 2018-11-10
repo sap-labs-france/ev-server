@@ -4,7 +4,7 @@ const UtilsSecurity = require('./UtilsSecurity');
 
 class TenantSecurity {
 
-  static filterTenantDeleteRequest(request, loggedUser){
+  static filterTenantDeleteRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
@@ -12,19 +12,19 @@ class TenantSecurity {
     return filteredRequest;
   }
 
-  static filterTenantRequest(request, loggedUser){
+  static filterTenantRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
-  static filterVerifyTenantRequest(request){
+  static filterVerifyTenantRequest(request) {
     const filteredRequest = {};
     filteredRequest.tenant = sanitize(request.tenant);
     return filteredRequest;
   }
 
-  static filterTenantsRequest(request, loggedUser){
+  static filterTenantsRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.Search = sanitize(request.Search);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
@@ -32,17 +32,17 @@ class TenantSecurity {
     return filteredRequest;
   }
 
-  static filterTenantUpdateRequest(request, loggedUser){
+  static filterTenantUpdateRequest(request, loggedUser) {
     const filteredRequest = TenantSecurity._filterTenantRequest(request, loggedUser);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  static filterTenantCreateRequest(request, loggedUser){
+  static filterTenantCreateRequest(request, loggedUser) {
     return TenantSecurity._filterTenantRequest(request, loggedUser);
   }
 
-  static _filterTenantRequest(request, loggedUser){
+  static _filterTenantRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.name = sanitize(request.name);
     filteredRequest.subdomain = sanitize(request.subdomain);
@@ -50,7 +50,7 @@ class TenantSecurity {
     return filteredRequest;
   }
 
-  static filterTenantResponse(tenant, loggedUser){
+  static filterTenantResponse(tenant, loggedUser) {
     let filteredTenant;
 
     if (!tenant) {
@@ -72,7 +72,7 @@ class TenantSecurity {
     return filteredTenant;
   }
 
-  static filterTenantsResponse(tenants, loggedUser){
+  static filterTenantsResponse(tenants, loggedUser) {
     const filteredTenants = [];
 
     if (!tenants) {

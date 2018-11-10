@@ -2,7 +2,7 @@ const Ajv = require('ajv');
 const BadRequestError = require('../../../exception/BadRequestError');
 
 class SchemaValidator {
-  constructor(moduleName){
+  constructor(moduleName) {
     this.moduleName = moduleName;
     this.ajv = new Ajv({
       allErrors: true,
@@ -11,7 +11,7 @@ class SchemaValidator {
     });
   }
 
-  validate(schema, content){
+  validate(schema, content) {
     const fnValidate = this.ajv.compile(schema);
     if (!fnValidate(content)) {
       const errors = fnValidate.errors.map((error) => {

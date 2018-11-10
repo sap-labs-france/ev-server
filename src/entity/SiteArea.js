@@ -84,7 +84,7 @@ class SiteArea extends AbstractTenantEntity {
 
     if (this._model.site) {
       return new Site(this.getTenantID(), this._model.site);
-    } else if (this._model.siteID){
+    } else if (this._model.siteID) {
       // Get from DB
       const site = await SiteStorage.getSite(this.getTenantID(), this._model.siteID, withCompany, withUser);
       // Keep it

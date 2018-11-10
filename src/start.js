@@ -12,7 +12,7 @@ const Constants = require('./utils/Constants');
 require('source-map-support').install();
 
 class Bootstrap {
-  static async start(){
+  static async start() {
     try {
       // Start the connection to the Database
       const storageConfig = Configuration.getStorageConfig();

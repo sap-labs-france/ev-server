@@ -4,6 +4,9 @@ const WebSocket = require('ws');
 const Constants = require('../../../utils/Constants');
 const OCPPError = require('../../../exception/OcppError');
 const BackendError = require('../../../exception/BackendError');
+const Configuration = require('../../../utils/Configuration');
+const Tenant = require('../../../entity/Tenant');
+const ChargingStation = require('../../../entity/ChargingStation');
 
 const MODULE_NAME = "WSConnection";
 
@@ -113,14 +116,40 @@ class WSConnection {
       }
     } catch (error) {
       // Log
-      Logging.logException(error, "", this.getChargingStationID(), MODULE_NAME, "onMessage");
+      Logging.logException(error, "", this.getChargingStationID(), MODULE_NAME, "onMessage", this.getTenantID());
       // Send error
       await this.sendError(messageId, error);
     }
   }
 
   async initialize() {
-    this._initialized = true;
+    // Check Tenant?
+    if (this.getTenantID()) {
+      // Check if the Tenant exists
+      const tenant = await Tenant.getTenant(this.getTenantID());
+      // Found?
+      if (!tenant) {
+        // Error
+        throw new BackendError(this.getChargingStationID(), `Invalid Tenant '${this.getTenantID()}' in URL '${this.getURL()}'`,
+          "JsonWSConnection", "initialize");
+      }
+    } else {
+        // Error
+        throw new BackendError(this.getChargingStationID(), `Tenant is not provided in URL '${this.getURL()}'`,
+          "JsonWSConnection", "initialize");
+    }
+    // Cloud Foundry?
+    if (Configuration.isCloudFoundry()) {
+      // Yes: Save the CF App and Instance ID to call the charger from the Rest server
+      const chargingStation = await ChargingStation.getChargingStation(this.getTenantID(), this.getChargingStationID());
+      // Found?
+      if (chargingStation) {
+        // Update CF Instance
+        chargingStation.setCFApplicationIDAndInstanceIndex(Configuration.getCFApplicationIDAndInstanceIndex());
+        // Save it
+        let cs = await chargingStation.save();
+      }
+    }
   }
 
   async handleRequest(messageId, commandName, commandPayload) {

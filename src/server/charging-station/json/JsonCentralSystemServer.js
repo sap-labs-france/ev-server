@@ -97,11 +97,15 @@ class JsonCentralSystemServer extends CentralSystemServer {
         if (req.url.startsWith('/REST')) {
           // Create a Rest Web Socket connection object
           const wsConnection = new JsonRestWSConnection(ws, req, this);
+          // Init
+          await wsConnection.initialize();
           // Add
           this.addRestConnection(wsConnection);
         } else {
           // Create a Json Web Socket connection object
           const wsConnection = new JsonWSConnection(ws, req, this._chargingStationConfig, this);
+          // Init
+          await wsConnection.initialize();
           // Add
           this.addJsonConnection(wsConnection);
         } 

@@ -1,8 +1,5 @@
 const Logging = require('../../../utils/Logging');
-const Configuration = require('../../../utils/Configuration');
 const WebSocket = require('ws');
-const Tenant = require('../../../entity/Tenant');
-const ChargingStation = require('../../../entity/ChargingStation');
 const Constants = require('../../../utils/Constants');
 const OCPPError = require('../../../exception/OcppError');
 const JsonChargingStationClient16 = require('../../../client/json/JsonChargingStationClient16');
@@ -45,41 +42,8 @@ class JsonWSConnection extends WSConnection {
   async initialize() {
     // Already initialized?
     if (!this._initialized) {
-      // Check Tenant?
-      if (this.getTenantID()) {
-        // Check if the Tenant exists
-        const tenant = await Tenant.getTenant(this.getTenantID());
-        // Found?
-        if (!tenant) {
-          // No: It is not allowed to connect with an unknown tenant
-          Logging.logError({
-            tenantID: this.getTenantID(),
-            source: this.getURL(),
-            module: MODULE_NAME, method: "initialize",
-            action: "WSJsonRegiterJsonConnection",
-            message: `Invalid Tenant in URL ${this.getURL()}`
-          });
-          // Error
-          throw new BackendError(this.getChargingStationID(), `Invalid Tenant '${this.getTenantID()}' in URL '${this.getURL()}'`,
-            "JsonWSConnection", "initialize");
-        }
-      } else {
-          // Error
-          throw new BackendError(this.getChargingStationID(), `Tenant is not provided in URL '${this.getURL()}'`,
-            "JsonWSConnection", "initialize");
-      }
-      // Cloud Foundry?
-      if (Configuration.isCloudFoundry()) {
-        // Yes: Update the CF App and Instance ID to call the charger from the Rest server
-        const chargingStation = await ChargingStation.getChargingStation(this.getTenantID(), this.getChargingStationID());
-      // Found?
-      if (chargingStation) {
-        // Update CF Instance
-          chargingStation.setCFApplicationIDAndInstanceIndex(Configuration.getCFApplicationIDAndInstanceIndex());
-          // Save it
-          let cs = await chargingStation.save();
-        }
-      }
+      // Call super class
+      super.initialize();
       // Initialize the default Headers
       this._headers = {
         chargeBoxIdentity: this.getChargingStationID(),

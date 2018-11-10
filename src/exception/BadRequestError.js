@@ -1,5 +1,5 @@
 class BadRequestError extends Error {
-  constructor(errorDetails){
+  constructor(errorDetails) {
     super("Invalid content");
     this.details = errorDetails;
   }

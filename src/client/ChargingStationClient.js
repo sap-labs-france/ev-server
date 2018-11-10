@@ -3,7 +3,7 @@ const Configuration = require('../utils/Configuration');
 const BackendError = require('../exception/BackendError');
 
 class ChargingStationClient {
-  constructor(){
+  constructor() {
     if (new.target === ChargingStationClient) {
       throw new TypeError("Cannot construct ChargingStationClient instances directly");
     }
@@ -17,7 +17,7 @@ class ChargingStationClient {
    * @returns the ChargingStationClient instance for the proper OCPP protocol
    * @memberof ChargingStationClient
    */
-  static async getChargingStationClient(chargingStation){
+  static async getChargingStationClient(chargingStation) {
     const JsonRestChargingStationClient = require('./json/JsonRestChargingStationClient');
     let chargingClient = null;
     // Check protocol
@@ -57,25 +57,25 @@ class ChargingStationClient {
    * @param {*} type
    * @memberof ChargingStationClient
    */
-  reset(params){
+  reset(params) {
   }
 
-  clearCache(){
+  clearCache() {
   }
 
-  getConfiguration(params){
+  getConfiguration(params) {
   }
 
-  changeConfiguration(params){
+  changeConfiguration(params) {
   }
 
-  startTransaction(params){
+  startTransaction(params) {
   }
 
-  remoteStopTransaction(params){
+  remoteStopTransaction(params) {
   }
 
-  unlockConnector(params){
+  unlockConnector(params) {
   }
 }
 

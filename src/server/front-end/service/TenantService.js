@@ -17,7 +17,7 @@ const Utils = require('../../../utils/Utils');
 const MODULE_NAME = 'TenantService';
 
 class TenantService extends AbstractService {
-  static async handleDeleteTenant(action, req, res, next){
+  static async handleDeleteTenant(action, req, res, next) {
     try {
       // Filter
       const filteredRequest = TenantSecurity.filterTenantDeleteRequest(
@@ -81,7 +81,7 @@ class TenantService extends AbstractService {
     }
   }
 
-  static async handleGetTenant(action, req, res, next){
+  static async handleGetTenant(action, req, res, next) {
     try {
       // Filter
       const filteredRequest = TenantSecurity.filterTenantRequest(req.query, req.user);
@@ -122,7 +122,7 @@ class TenantService extends AbstractService {
     }
   }
 
-  static async handleGetTenants(action, req, res, next){
+  static async handleGetTenants(action, req, res, next) {
     try {
       // Check auth
       if (!Authorizations.canListTenants(req.user)) {
@@ -154,7 +154,7 @@ class TenantService extends AbstractService {
     }
   }
 
-  static async handleCreateTenant(action, req, res, next){
+  static async handleCreateTenant(action, req, res, next) {
     try {
       // Check auth
       if (!Authorizations.canCreateTenant(req.user)) {
@@ -256,7 +256,7 @@ class TenantService extends AbstractService {
     }
   }
 
-  static async handleUpdateTenant(action, req, res, next){
+  static async handleUpdateTenant(action, req, res, next) {
     try {
       // Filter
       TenantValidator.validateTenantUpdate(req.body);
@@ -304,7 +304,7 @@ class TenantService extends AbstractService {
     }
   }
 
-  static async handleVerifyTenant(action, req, res, next){
+  static async handleVerifyTenant(action, req, res, next) {
     try {
       // Filter
       const filteredRequest = TenantSecurity.filterVerifyTenantRequest(req.headers);

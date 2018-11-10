@@ -1,7 +1,9 @@
+const {ObjectId} = require('mongodb');
 const Configuration = require('./Configuration');
 const uuidV4 = require('uuid/v4');
 const ObjectID = require('mongodb').ObjectID;
 const Constants = require('./Constants');
+const BackendError = require('../exception/BackendError');
 const crypto = require('crypto');
 const ClientOAuth2 = require('client-oauth2');
 const axios = require('axios');
@@ -14,12 +16,12 @@ require('source-map-support').install();
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 
 class Utils {
-  static generateGUID(){
+  static generateGUID() {
     return uuidV4();
   }
 
   // Temporary method for Revenue Cloud concept
-  static async pushTransactionToRevenueCloud(action, transaction, user, actionOnUser){
+  static async pushTransactionToRevenueCloud(action, transaction, user, actionOnUser) {
     const Logging = require('./Logging'); // Avoid fucking circular deps
 
     // Refund Transaction
@@ -58,18 +60,23 @@ class Utils {
     });
   }
 
-  static normalizeSOAPHeader(headers){
+  static async normalizeAndCheckSOAPParams(headers, req) {
     // ChargeBox Identity
-    Utils.normalizeOneSOAPHeader(headers, 'chargeBoxIdentity');
+    Utils._normalizeOneSOAPParam(headers, 'chargeBoxIdentity');
     // Action
-    Utils.normalizeOneSOAPHeader(headers, 'Action');
+    Utils._normalizeOneSOAPParam(headers, 'Action');
     // To
-    Utils.normalizeOneSOAPHeader(headers, 'To');
-    // TenantID
-    Utils.normalizeOneSOAPHeader(headers, 'tenantID');
+    Utils._normalizeOneSOAPParam(headers, 'To');
+    // Parse the request
+    const urlParts = url.parse(req.url, true);
+    const tenantID = urlParts.query.tenantID;
+    // Check
+    await Utils.checkTenant(tenantID);
+    // Set the Tenant ID
+    headers.tenantID = tenantID;
   }
 
-  static normalizeOneSOAPHeader(headers, name){
+  static _normalizeOneSOAPParam(headers, name) {
     // Object?
     if (typeof headers[name] === 'object' && headers[name].$value) {
       // Yes: Set header
@@ -77,7 +84,31 @@ class Utils {
     }
   }
 
-  static convertToDate(date){
+  static async checkTenant(tenantID) {
+    const Tenant = require('../entity/Tenant'); // Avoid fucking circular deps
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`);
+    }
+    // Check if not default tenant?
+    if (tenantID !== Constants.DEFAULT_TENANT) {
+      // Check if object id is valid
+      if (!ObjectId.isValid(tenantID)) {
+        // Error
+        throw new BackendError(null, `Invalid Tenant ID '${tenantID}'`);
+      }
+      // Check if the Tenant exists
+      const tenant = await Tenant.getTenant(tenantID);
+      // Found?
+      if (!tenant) {
+        // Error
+        throw new BackendError(null, `Invalid Tenant ID '${tenantID}'`);
+      }
+    }
+  }
+
+  static convertToDate(date) {
     // Check
     if (!date) {
       return date;
@@ -89,7 +120,7 @@ class Utils {
     return date;
   }
 
-  static isEmptyJSon(document){
+  static isEmptyJSon(document) {
     // Empty?
     if (!document) {
       return true;
@@ -102,7 +133,7 @@ class Utils {
     return Object.keys(document).length == 0;
   }
 
-  static removeExtraEmptyLines(tab){
+  static removeExtraEmptyLines(tab) {
     // Start from the end
     for (let i = tab.length - 1; i > 0; i--) {
       // Two consecutive empty lines?
@@ -118,7 +149,7 @@ class Utils {
     }
   }
 
-  static convertToObjectID(id){
+  static convertToObjectID(id) {
     let changedID = id;
     // Check
     if (typeof id == "string") {
@@ -128,7 +159,7 @@ class Utils {
     return changedID;
   }
 
-  static convertToInt(id){
+  static convertToInt(id) {
     let changedID = id;
     if (!id) {
       return 0;
@@ -141,7 +172,7 @@ class Utils {
     return changedID;
   }
 
-  static convertToFloat(id){
+  static convertToFloat(id) {
     let changedID = id;
     if (!id) {
       return 0;
@@ -154,7 +185,7 @@ class Utils {
     return changedID;
   }
 
-  static convertUserToObjectID(user){
+  static convertUserToObjectID(user) {
     let userID = null;
     // Check Created By
     if (user) {
@@ -175,7 +206,7 @@ class Utils {
     return userID;
   }
 
-  static buildUserFullName(user, withID = true){
+  static buildUserFullName(user, withID = true) {
     if (!user) {
       return "Unknown";
     }
@@ -192,30 +223,30 @@ class Utils {
   }
 
   // Save the users in file
-  static saveFile(filename, content){
+  static saveFile(filename, content) {
     // Save
     fs.writeFileSync(path.join(__dirname, filename), content, 'UTF-8');
   }
 
-  static getRandomInt(){
+  static getRandomInt() {
     return Math.floor((Math.random() * 2147483648) + 1); // INT32 (signed: issue in Schneider)
   }
 
-  static buildEvseURL(subdomain){
+  static buildEvseURL(subdomain) {
     if (subdomain) {
       return `${_centralSystemFrontEndConfig.protocol}://${subdomain}.${_centralSystemFrontEndConfig.host}:${_centralSystemFrontEndConfig.port}`;
     }
     return `${_centralSystemFrontEndConfig.protocol}://${_centralSystemFrontEndConfig.host}:${_centralSystemFrontEndConfig.port}`;
   }
 
-  static async buildEvseUserURL(user){
+  static async buildEvseUserURL(user) {
     const tenant = await user.getTenant();
     const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
     // Add
     return _evseBaseURL + "/#/pages/users/user/" + user.getID();
   }
 
-  static async buildEvseChargingStationURL(chargingStation, connectorId = null){
+  static async buildEvseChargingStationURL(chargingStation, connectorId = null) {
     const tenant = await chargingStation.getTenant();
     const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
 
@@ -230,7 +261,7 @@ class Utils {
     }
   }
 
-  static async buildEvseTransactionURL(chargingStation, connectorId, transactionId){
+  static async buildEvseTransactionURL(chargingStation, connectorId, transactionId) {
     const tenant = await chargingStation.getTenant();
     const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
     // Add
@@ -238,12 +269,12 @@ class Utils {
       "/connector/" + connectorId + "/transaction/" + transactionId;
   }
 
-  static isServerInProductionMode(){
+  static isServerInProductionMode() {
     const env = process.env.NODE_ENV || 'dev';
-    return (env !== "dev");
+    return (env === "production");
   }
 
-  static hideShowMessage(message){
+  static hideShowMessage(message) {
     // Check Prod
     if (Utils.isServerInProductionMode()) {
       return "An unexpected server error occurred. Check the server's logs!";
@@ -252,7 +283,7 @@ class Utils {
     }
   }
 
-  static checkRecordLimit(recordLimit){
+  static checkRecordLimit(recordLimit) {
     // String?
     if (typeof recordLimit == "string") {
       recordLimit = parseInt(recordLimit);
@@ -265,7 +296,7 @@ class Utils {
     return recordLimit;
   }
 
-  static checkRecordSkip(recordSkip){
+  static checkRecordSkip(recordSkip) {
     // String?
     if (typeof recordSkip == "string") {
       recordSkip = parseInt(recordSkip);
@@ -278,7 +309,7 @@ class Utils {
     return recordSkip;
   }
 
-  static generateToken(email){
+  static generateToken(email) {
     return crypto.createHash('sha1').update(`${new Date().toISOString()}~${email}`).digest('hex');
   }
 }

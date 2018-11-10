@@ -239,7 +239,7 @@ class NotificationHandler {
   static async sendTransactionStarted(tenantID, sourceId, user, chargingStation, sourceData, locale) {
     try {
       // Check notification
-      let hasBeenNotified = await NotificationHandler.hasNotifiedSource(sourceId);
+      let hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?

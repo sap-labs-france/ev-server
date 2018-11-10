@@ -18,7 +18,7 @@ require('source-map-support').install();
 
 module.exports = {
   // Util Service
-  restServiceUtil(req, res, next){
+  restServiceUtil(req, res, next) {
     // Parse the action
     var action = /^\/\w*/g.exec(req.url)[0].substring(1);
     // Check Context
@@ -36,7 +36,7 @@ module.exports = {
     }
   },
 
-  restServiceSecured(req, res, next){
+  restServiceSecured(req, res, next) {
     // Parse the action
     var action = /^\/\w*/g.exec(req.url)[0].substring(1);
     // Check Context

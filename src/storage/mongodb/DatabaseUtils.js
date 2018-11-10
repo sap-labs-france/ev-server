@@ -8,7 +8,7 @@ class DatabaseUtils {
     return FIXED_COLLECTIONS;
   }
 
-  static pushCreatedLastChangedInAggregation(tenantID, aggregation){
+  static pushCreatedLastChangedInAggregation(tenantID, aggregation) {
     // Filter
     const filterUserFields = {
       "email": 0,
@@ -81,7 +81,7 @@ class DatabaseUtils {
    * @param collectionNameSuffix the collection name suffix
    * @returns {string} the collection name prefixed by the tenant identifier if the collection is specific to a tenant. Returns the collection name suffix elsewhere.
    */
-  static getCollectionName(tenantID, collectionNameSuffix){
+  static getCollectionName(tenantID, collectionNameSuffix) {
     let prefix = Constants.DEFAULT_TENANT;
     if (!FIXED_COLLECTIONS.includes(collectionNameSuffix) && ObjectID.isValid(tenantID)) {
       prefix = tenantID;

@@ -371,7 +371,7 @@ class TransactionService {
 					req.user);
 			}
 			// Filter
-			let filteredRequest = TransactionSecurity.filterChargingStationTransactionsRequest(req.user.tenantID, req.query, req.user);
+      let filteredRequest = TransactionSecurity.filterChargingStationTransactionsRequest(req.query, req.user);
 			// Charge Box is mandatory
 			if(!filteredRequest.ChargeBoxID) {
 				// Not Found!

@@ -38,15 +38,15 @@ if (_centralSystemRestConfig) {
 }
 
 class AuthService {
-  static initialize(){
+  static initialize() {
     return passport.initialize();
   }
 
-  static authenticate(){
+  static authenticate() {
     return passport.authenticate('jwt', {session: false});
   }
 
-  static async handleIsAuthorized(action, req, res, next){
+  static async handleIsAuthorized(action, req, res, next) {
     try {
       // Default
       const result = {'IsAuthorized': false};
@@ -116,7 +116,7 @@ class AuthService {
     }
   }
 
-  static async handleLogIn(action, req, res, next){
+  static async handleLogIn(action, req, res, next) {
     try {
       // Filter
       const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
@@ -211,7 +211,7 @@ class AuthService {
     }
   }
 
-  static async handleRegisterUser(action, req, res, next){
+  static async handleRegisterUser(action, req, res, next) {
     try {
       // Filter
       const filteredRequest = AuthSecurity.filterRegisterUserRequest(req.body);
@@ -277,7 +277,7 @@ class AuthService {
       // Set BadgeID (eg.: 'SF20170131')
       newUser.setTagIDs([newUser.getName()[0] + newUser.getFirstName()[0] + Utils.getRandomInt()])
       // Assign user to all sites
-      const sites = await Site.getSites(filteredRequest.tenant);
+      const sites = await Site.getSites(tenantID);
       // Set
       newUser.setSites(sites.result);
       // Get EULA
@@ -324,7 +324,7 @@ class AuthService {
     }
   }
 
-  static async checkAndSendResetPasswordConfirmationEmail(tenantID, filteredRequest, action, req, res, next){
+  static async checkAndSendResetPasswordConfirmationEmail(tenantID, filteredRequest, action, req, res, next) {
     try {
       // No hash: Send email with init pass hash link
       if (!filteredRequest.captcha) {
@@ -379,7 +379,7 @@ class AuthService {
         savedUser.getEMail();
       // Send email
       NotificationHandler.sendRequestPassword(
-        savedUser.getTenantID,
+        savedUser.getTenantID(),
         Utils.generateGUID(),
         savedUser.getModel(),
         {
@@ -398,7 +398,7 @@ class AuthService {
     }
   }
 
-  static async generateNewPasswordAndSendEmail(tenantID, filteredRequest, action, req, res, next){
+  static async generateNewPasswordAndSendEmail(tenantID, filteredRequest, action, req, res, next) {
     try {
       // Create the password
       const newPassword = User.generatePassword();
@@ -473,7 +473,7 @@ class AuthService {
     }
   }
 
-  static async handleUserPasswordReset(action, req, res, next){
+  static async handleUserPasswordReset(action, req, res, next) {
     // Filter
     const filteredRequest = AuthSecurity.filterResetPasswordRequest(req.body);
 
@@ -505,7 +505,7 @@ class AuthService {
     }
   }
 
-  static async handleVerifyEmail(action, req, res, next){
+  static async handleVerifyEmail(action, req, res, next) {
     // Filter
     const filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
     try {
@@ -592,7 +592,7 @@ class AuthService {
     }
   }
 
-  static async handleResendVerificationEmail(action, req, res, next){
+  static async handleResendVerificationEmail(action, req, res, next) {
     let verificationToken;
     // Filter
     const filteredRequest = AuthSecurity.filterResendVerificationEmail(req.body);
@@ -705,12 +705,12 @@ class AuthService {
 
   }
 
-  static handleUserLogOut(action, req, res, next){
+  static handleUserLogOut(action, req, res, next) {
     req.logout();
     res.status(200).send({});
   }
 
-  static async userLoginWrongPassword(action, user, req, res, next){
+  static async userLoginWrongPassword(action, user, req, res, next) {
     // Add wrong trial + 1
     user.setPasswordWrongNbrTrials(user.getPasswordWrongNbrTrials() + 1);
     // Check if the number of trial is reached
@@ -743,7 +743,7 @@ class AuthService {
     }
   }
 
-  static async userLoginSucceeded(action, user, req, res, next){
+  static async userLoginSucceeded(action, user, req, res, next) {
     // Password / Login OK
     Logging.logSecurityInfo({
       tenantID: user.getTenantID(),
@@ -808,7 +808,7 @@ class AuthService {
     return (tenant ? tenant.getID() : null);
   }
 
-  static async checkUserLogin(action, user, filteredRequest, req, res, next){
+  static async checkUserLogin(action, user, filteredRequest, req, res, next) {
     // User Found?
     if (!user) {
       throw new AppError(

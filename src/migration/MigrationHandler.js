@@ -8,7 +8,7 @@ const TenantMigrationTask = require('./tasks/TenantMigrationTask');
 
 class MigrationHandler {
   // Migrate method
-  static async migrate(){
+  static async migrate() {
     try {
       const startMigrationTime = moment();
       const currentMigrationTasks = [];

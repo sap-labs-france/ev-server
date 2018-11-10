@@ -5,13 +5,9 @@ const DatabaseUtils = require('./DatabaseUtils');
 const BackendError = require('../../exception/BackendError');
 
 class LoggingStorage {
-  static async deleteLogs(tenantID, deleteUpToDate){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "LoggingStorage", "deleteLogs");
-    }
+  static async deleteLogs(tenantID, deleteUpToDate) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Build filter
     const filters = {};
     // Do Not Delete Security Logs
@@ -31,13 +27,9 @@ class LoggingStorage {
     return result.result;
   }
 
-  static async deleteSecurityLogs(tenantID, deleteUpToDate){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "LoggingStorage", "deleteSecurityLogs");
-    }
+  static async deleteSecurityLogs(tenantID, deleteUpToDate) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Build filter
     const filters = {};
     // Delete Only Security Logs
@@ -57,13 +49,9 @@ class LoggingStorage {
     return result.result;
   }
 
-  static async saveLog(tenantID, logToSave){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "LoggingStorage", "saveLog");
-    }
+  static async saveLog(tenantID, logToSave) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Check User
     logToSave.userID = Utils.convertUserToObjectID(logToSave.user);
     logToSave.actionOnUserID = Utils.convertUserToObjectID(logToSave.actionOnUser);
@@ -75,13 +63,9 @@ class LoggingStorage {
     await global.database.getCollection(tenantID, 'logs').insertOne(log);
   }
 
-  static async getLog(tenantID, id){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "LoggingStorage", "getLog");
-    }
+  static async getLog(tenantID, id) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Read DB
     const loggingMDB = await global.database.getCollection(tenantID, 'logs')
       .find({_id: Utils.convertToObjectID(id)})
@@ -97,13 +81,9 @@ class LoggingStorage {
     return logging;
   }
 
-  static async getLogs(tenantID, params = {}, limit, skip, sort){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "LoggingStorage", "getLogs");
-    }
+  static async getLogs(tenantID, params = {}, limit, skip, sort) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip

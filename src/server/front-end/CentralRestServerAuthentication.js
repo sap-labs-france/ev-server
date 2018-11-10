@@ -7,15 +7,15 @@ require('source-map-support').install();
 
 module.exports = {
   // Init Passport
-  initialize(){
+  initialize() {
     return AuthService.initialize();
   },
 
-  authenticate(){
+  authenticate() {
     return AuthService.authenticate();
   },
 
-  authService(req, res, next){
+  authService(req, res, next) {
     // Parse the action
     var action = /^\/\w*/g.exec(req.url)[0].substring(1);
     // Check Context

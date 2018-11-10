@@ -5,11 +5,11 @@ const LoggingStorage = require('../../storage/mongodb/LoggingStorage');
 const Tenant = require('../../entity/Tenant');
 
 class LoggingDatabaseTableCleanupTask extends SchedulerTask {
-  constructor(){
+  constructor() {
     super();
   }
 
-  async run(config){
+  async run(config) {
     const tenants = await Tenant.getTenants();
     for (const tenant of tenants) {
       LoggingDatabaseTableCleanupTask.processTenant(tenant, config);

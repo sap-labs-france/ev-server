@@ -11,12 +11,12 @@ const SLF_TENANT = {
 };
 
 class TenantMigrationTask extends MigrationTask {
-  async migrate(){
+  async migrate() {
     await this.createSuperAdmin();
     await this.migrateTenant();
   }
 
-  async createSuperAdmin(){
+  async createSuperAdmin() {
     const users = await User.getUsers(Constants.DEFAULT_TENANT);
 
     if (users.count === 0) {
@@ -42,7 +42,7 @@ class TenantMigrationTask extends MigrationTask {
     }
   }
 
-  async migrateTenant(){
+  async migrateTenant() {
     let tenant = await Tenant.getTenantBySubdomain(SLF_TENANT.subdomain);
     if (!tenant) {
       tenant = new Tenant(SLF_TENANT);
@@ -65,11 +65,11 @@ class TenantMigrationTask extends MigrationTask {
     await tenant.createEnvironment();
   }
 
-  getVersion(){
+  getVersion() {
     return "1";
   }
 
-  getName(){
+  getName() {
     return "TenantMigrationTask";
   }
 }

@@ -10,7 +10,7 @@ const User = require('../../../entity/User');
 const SiteSecurity = require('./security/SiteSecurity');
 
 class SiteService {
-  static async handleDeleteSite(action, req, res, next){
+  static async handleDeleteSite(action, req, res, next) {
     try {
       // Filter
       const filteredRequest = SiteSecurity.filterSiteDeleteRequest(req.query, req.user);
@@ -60,7 +60,7 @@ class SiteService {
     }
   }
 
-  static async handleGetSite(action, req, res, next){
+  static async handleGetSite(action, req, res, next) {
     try {
       // Filter
       const filteredRequest = SiteSecurity.filterSiteRequest(req.query, req.user);
@@ -93,7 +93,7 @@ class SiteService {
     }
   }
 
-  static async handleGetSites(action, req, res, next){
+  static async handleGetSites(action, req, res, next) {
     try {
       // Check auth
       if (!Authorizations.canListSites(req.user)) {
@@ -135,7 +135,7 @@ class SiteService {
     }
   }
 
-  static async handleGetSiteImage(action, req, res, next){
+  static async handleGetSiteImage(action, req, res, next) {
     try {
       // Filter
       const filteredRequest = SiteSecurity.filterSiteRequest(req.query, req.user);
@@ -177,7 +177,7 @@ class SiteService {
     }
   }
 
-  static async handleGetSiteImages(action, req, res, next){
+  static async handleGetSiteImages(action, req, res, next) {
     try {
       // Check auth
       if (!Authorizations.canListSites(req.user)) {
@@ -201,7 +201,7 @@ class SiteService {
     }
   }
 
-  static async handleCreateSite(action, req, res, next){
+  static async handleCreateSite(action, req, res, next) {
     try {
       // Check auth
       if (!Authorizations.canCreateSite(req.user)) {
@@ -267,7 +267,7 @@ class SiteService {
     }
   }
 
-  static async handleUpdateSite(action, req, res, next){
+  static async handleUpdateSite(action, req, res, next) {
     try {
       // Filter
       const filteredRequest = SiteSecurity.filterSiteUpdateRequest(req.body, req.user);

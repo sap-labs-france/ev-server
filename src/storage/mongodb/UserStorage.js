@@ -12,7 +12,7 @@ const BackendError = require('../../exception/BackendError');
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 
 class UserStorage {
-  static getLatestEndUserLicenseAgreement(language = 'en'){
+  static getLatestEndUserLicenseAgreement(language = 'en') {
     // Get it
     let eulaText = eula[language];
     // Check
@@ -34,13 +34,9 @@ class UserStorage {
     return eulaText;
   }
 
-  static async getEndUserLicenseAgreement(tenantID, language = "en"){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "UserStorage", "getEndUserLicenseAgreement");
-    }
+  static async getEndUserLicenseAgreement(tenantID, language = "en") {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     let languageFound = false;
     let currentEula;
     let currentEulaHash;
@@ -114,13 +110,9 @@ class UserStorage {
     }
   }
 
-  static async getUserByTagId(tenantID, tagID){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "UserStorage", "getUserByTagId");
-    }
+  static async getUserByTagId(tenantID, tagID) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Read DB
     const tagsMDB = await global.database.getCollection(tenantID, 'tags')
       .find({'_id': tagID})
@@ -133,13 +125,9 @@ class UserStorage {
     }
   }
 
-  static async getUserByEmail(tenantID, email){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "UserStorage", "getUserByEmail");
-    }
+  static async getUserByEmail(tenantID, email) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Read DB
     const usersMDB = await global.database.getCollection(tenantID, 'users')
       .find({'email': email})
@@ -152,13 +140,9 @@ class UserStorage {
     }
   }
 
-  static async getUser(tenantID, id){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "UserStorage", "getUser");
-    }
+  static async getUser(tenantID, id) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -179,13 +163,9 @@ class UserStorage {
     }
   }
 
-  static async getUserImage(tenantID, id){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "UserStorage", "getUserImage");
-    }
+  static async getUserImage(tenantID, id) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Read DB
     const userImagesMDB = await global.database.getCollection(tenantID, 'userimages')
       .find({'_id': Utils.convertToObjectID(id)})
@@ -203,13 +183,9 @@ class UserStorage {
     return userImage;
   }
 
-  static async getUserImages(tenantID){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "UserStorage", "getUserImages");
-    }
+  static async getUserImages(tenantID) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Read DB
     const userImagesMDB = await global.database.getCollection(tenantID, 'userimages')
       .find({})
@@ -225,13 +201,9 @@ class UserStorage {
     return userImages;
   }
 
-  static async removeSitesFromUser(tenantID, userID, siteIDs){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "UserStorage", "removeSitesFromUser");
-    }
+  static async removeSitesFromUser(tenantID, userID, siteIDs) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // User provided?
     if (userID) {
       // At least one Site
@@ -248,13 +220,9 @@ class UserStorage {
     }
   }
 
-  static async addSitesToUser(tenantID, userID, siteIDs){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "UserStorage", "addSitesToUser");
-    }
+  static async addSitesToUser(tenantID, userID, siteIDs) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // User provided?
     if (userID) {
       // At least one Site
@@ -274,13 +242,9 @@ class UserStorage {
     }
   }
 
-  static async saveUser(tenantID, userToSave){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "UserStorage", "saveUser");
-    }
+  static async saveUser(tenantID, userToSave) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     const User = require('../../entity/User'); // Avoid fucking circular deps!!!
     // Check if ID or email is provided
     if (!userToSave.id && !userToSave.email) {
@@ -350,13 +314,9 @@ class UserStorage {
     return updatedUser;
   }
 
-  static async saveUserImage(tenantID, userImageToSave){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "UserStorage", "saveUserImage");
-    }
+  static async saveUserImage(tenantID, userImageToSave) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Check if ID is provided
     if (!userImageToSave.id) {
       // ID must be provided!
@@ -372,13 +332,9 @@ class UserStorage {
       {upsert: true, new: true, returnOriginal: false});
   }
 
-  static async getUsers(tenantID, params = {}, limit, skip, sort){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "UserStorage", "getUsers");
-    }
+  static async getUsers(tenantID, params = {}, limit, skip, sort) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     const User = require('../../entity/User'); // Avoid fucking circular deps!!!
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
@@ -514,13 +470,9 @@ class UserStorage {
     };
   }
 
-  static async deleteUser(tenantID, id){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "UserStorage", "deleteUser");
-    }
+  static async deleteUser(tenantID, id) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Delete User
     await global.database.getCollection(tenantID, 'users')
       .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
@@ -532,7 +484,7 @@ class UserStorage {
       .deleteMany({'userID': Utils.convertToObjectID(id)});
   }
 
-  static async _createUser(tenantID, userMDB){
+  static async _createUser(tenantID, userMDB) {
     const User = require('../../entity/User'); // Avoid fucking circular deps!!!
     let user = null;
     // Check

@@ -3,11 +3,11 @@ const tenantCreation = require('../../src/server/front-end/schemas/tenant/tenant
 const tenantUpdate = require('../../src/server/front-end/schemas/tenant/tenant-update.json');
 
 class TenantFactory {
-  static buildTenantCreate(){
+  static buildTenantCreate() {
     return jsf.generate(tenantCreation);
   }
 
-  static buildTenantUpdate(){
+  static buildTenantUpdate() {
     return jsf.generate(tenantUpdate);
   }
 }

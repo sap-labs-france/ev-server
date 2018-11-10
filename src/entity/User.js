@@ -11,259 +11,259 @@ const TransactionStorage = require('../storage/mongodb/TransactionStorage');
 const SiteStorage = require('../storage/mongodb/SiteStorage');
 
 class User extends AbstractTenantEntity {
-  constructor(tenantID, user){
+  constructor(tenantID, user) {
     super(tenantID);
 
     // Set it
     Database.updateUser(user, this._model);
   }
 
-  setAuthorisations(auths){
+  setAuthorisations(auths) {
     this._model.auths = auths;
   }
 
-  setEulaAcceptedHash(eulaAcceptedHash){
+  setEulaAcceptedHash(eulaAcceptedHash) {
     this._model.eulaAcceptedHash = eulaAcceptedHash;
   }
 
-  getEulaAcceptedHash(){
+  getEulaAcceptedHash() {
     return this._model.eulaAcceptedHash;
   }
 
-  setEulaAcceptedVersion(eulaAcceptedVersion){
+  setEulaAcceptedVersion(eulaAcceptedVersion) {
     this._model.eulaAcceptedVersion = eulaAcceptedVersion;
   }
 
-  getEulaAcceptedVersion(){
+  getEulaAcceptedVersion() {
     return this._model.eulaAcceptedVersion;
   }
 
-  setEulaAcceptedOn(eulaAcceptedOn){
+  setEulaAcceptedOn(eulaAcceptedOn) {
     this._model.eulaAcceptedOn = eulaAcceptedOn;
   }
 
-  getEulaAcceptedOn(){
+  getEulaAcceptedOn() {
     return this._model.eulaAcceptedOn;
   }
 
-  getID(){
+  getID() {
     return this._model.id;
   }
 
-  getName(){
+  getName() {
     return this._model.name;
   }
 
-  setName(name){
+  setName(name) {
     this._model.name = name;
   }
 
-  getPassword(){
+  getPassword() {
     return this._model.password;
   }
 
-  setPassword(password){
+  setPassword(password) {
     this._model.password = password;
   }
 
-  getPasswordResetHash(){
+  getPasswordResetHash() {
     return this._model.passwordResetHash;
   }
 
-  setPasswordResetHash(passwordResetHash){
+  setPasswordResetHash(passwordResetHash) {
     this._model.passwordResetHash = passwordResetHash;
   }
 
-  getPasswordWrongNbrTrials(){
+  getPasswordWrongNbrTrials() {
     return this._model.passwordWrongNbrTrials;
   }
 
-  setPasswordWrongNbrTrials(passwordWrongNbrTrials){
+  setPasswordWrongNbrTrials(passwordWrongNbrTrials) {
     this._model.passwordWrongNbrTrials = passwordWrongNbrTrials;
   }
 
-  getPasswordBlockedUntil(){
+  getPasswordBlockedUntil() {
     return this._model.passwordBlockedUntil;
   }
 
-  setPasswordBlockedUntil(passwordBlockedUntil){
+  setPasswordBlockedUntil(passwordBlockedUntil) {
     this._model.passwordBlockedUntil = passwordBlockedUntil;
   }
 
-  getLocale(){
+  getLocale() {
     return (this._model.locale ? this._model.locale : Constants.DEFAULT_LOCALE);
   }
 
-  getLanguage(){
+  getLanguage() {
     return this.getLocale().substring(0, 2);
   }
 
-  setLocale(locale){
+  setLocale(locale) {
     this._model.locale = locale;
   }
 
-  getRole(){
+  getRole() {
     return this._model.role;
   }
 
-  setRole(role){
+  setRole(role) {
     this._model.role = role;
   }
 
-  getFirstName(){
+  getFirstName() {
     return this._model.firstName;
   }
 
-  setFirstName(firstName){
+  setFirstName(firstName) {
     this._model.firstName = firstName;
   }
 
-  getFullName(withID = false){
+  getFullName(withID = false) {
     return Utils.buildUserFullName(this.getModel(), withID)
   }
 
-  getTagIDs(){
+  getTagIDs() {
     return this._model.tagIDs;
   }
 
-  setTagIDs(tagIDs){
+  setTagIDs(tagIDs) {
     this._model.tagIDs = tagIDs;
   }
 
-  addTagID(tagID){
+  addTagID(tagID) {
     if (!this._model.tagIDs) {
       this._model.tagIDs = [];
     }
     this._model.tagIDs.push(tagID);
   }
 
-  getImage(){
+  getImage() {
     return this._model.image;
   }
 
-  setImage(image){
+  setImage(image) {
     this._model.image = image;
   }
 
-  getEMail(){
+  getEMail() {
     return this._model.email;
   }
 
-  setEMail(email){
+  setEMail(email) {
     this._model.email = email;
   }
 
-  getPhone(){
+  getPhone() {
     return this._model.phone;
   }
 
-  setPhone(phone){
+  setPhone(phone) {
     this._model.phone = phone;
   }
 
-  getMobile(){
+  getMobile() {
     return this._model.mobile;
   }
 
-  setMobile(mobile){
+  setMobile(mobile) {
     this._model.mobile = mobile;
   }
 
-  getINumber(){
+  getINumber() {
     return this._model.iNumber;
   }
 
-  setINumber(iNumber){
+  setINumber(iNumber) {
     this._model.iNumber = iNumber;
   }
 
-  getCostCenter(){
+  getCostCenter() {
     return this._model.costCenter;
   }
 
-  setCostCenter(costCenter){
+  setCostCenter(costCenter) {
     this._model.costCenter = costCenter;
   }
 
-  getStatus(){
+  getStatus() {
     return this._model.status;
   }
 
-  setStatus(status){
+  setStatus(status) {
     this._model.status = status;
   }
 
-  getCreatedBy(){
+  getCreatedBy() {
     if (this._model.createdBy) {
       return new User(this.getTenantID(), this._model.createdBy);
     }
     return null;
   }
 
-  setCreatedBy(user){
+  setCreatedBy(user) {
     this._model.createdBy = user.getModel();
   }
 
-  getCreatedOn(){
+  getCreatedOn() {
     return this._model.createdOn;
   }
 
-  setCreatedOn(createdOn){
+  setCreatedOn(createdOn) {
     this._model.createdOn = createdOn;
   }
 
-  getAddress(){
+  getAddress() {
     return this._model.address;
   }
 
-  setAddress(address){
+  setAddress(address) {
     this._model.address = address;
   }
 
-  getLastChangedBy(){
+  getLastChangedBy() {
     if (this._model.lastChangedBy) {
       return new User(this.getTenantID(), this._model.lastChangedBy);
     }
     return null;
   }
 
-  setLastChangedBy(user){
+  setLastChangedBy(user) {
     this._model.lastChangedBy = user.getModel();
   }
 
-  getLastChangedOn(){
+  getLastChangedOn() {
     return this._model.lastChangedOn;
   }
 
-  setLastChangedOn(lastChangedOn){
+  setLastChangedOn(lastChangedOn) {
     this._model.lastChangedOn = lastChangedOn;
   }
 
-  setDeleted(deleted){
+  setDeleted(deleted) {
     this._model.deleted = deleted;
   }
 
-  isDeleted(){
+  isDeleted() {
     return this._model.deleted;
   }
 
-  getVerificationToken(){
+  getVerificationToken() {
     return this._model.verificationToken;
   }
 
-  setVerificationToken(verificationToken){
+  setVerificationToken(verificationToken) {
     this._model.verificationToken = verificationToken;
   }
 
-  getVerifiedAt(){
+  getVerifiedAt() {
     return this._model.verifiedAt;
   }
 
-  setVerifiedAt(verifiedAt){
+  setVerifiedAt(verifiedAt) {
     this._model.verifiedAt = verifiedAt;
   }
 
-  async getTransactions(filter){
+  async getTransactions(filter) {
     if (!filter) {
       filter = {};
     }
@@ -275,12 +275,12 @@ class User extends AbstractTenantEntity {
     return transactions;
   }
 
-  setSites(sites){
+  setSites(sites) {
     this._model.sites = sites.map((site) => site.getModel());
   }
 
   async getSites(withCompany = false, withSiteAreas = false,
-    withChargeBoxes = false, withUsers = false){
+    withChargeBoxes = false, withUsers = false) {
     // Get Sites
     const sites = await SiteStorage.getSites(this.getTenantID(), {
       'userID': this.getID(),
@@ -290,15 +290,15 @@ class User extends AbstractTenantEntity {
     return sites.result;
   }
 
-  save(){
+  save() {
     return UserStorage.saveUser(this.getTenantID(), this.getModel());
   }
 
-  saveImage(){
+  saveImage() {
     return UserStorage.saveUserImage(this.getTenantID(), this.getModel());
   }
 
-  async delete(){
+  async delete() {
     // Check if the user has a transaction
     const transactions = await this.getTransactions();
     // Check
@@ -329,7 +329,7 @@ class User extends AbstractTenantEntity {
     }
   }
 
-  static checkIfUserValid(filteredRequest, request){
+  static checkIfUserValid(filteredRequest, request) {
     // Update model?
     if (request.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
@@ -396,23 +396,23 @@ class User extends AbstractTenantEntity {
   }
 
   // Check email
-  static isUserEmailValid(email){
+  static isUserEmailValid(email) {
     return /^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
   }
 
-  static isTagIDValid(tagID){
+  static isTagIDValid(tagID) {
     return /^[A-Za-z0-9,]*$/.test(tagID);
   }
 
-  static isPhoneValid(phone){
-    return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
+  static isPhoneValid(phone) {
+    return /^\+?([0-9] ?) {9,14}[0-9]$/.test(phone);
   }
 
-  static isINumberValid(iNumber){
+  static isINumberValid(iNumber) {
     return /^[A-Z]{1}[0-9]{6}$/.test(iNumber);
   }
 
-  static hashPasswordBcrypt(password){
+  static hashPasswordBcrypt(password) {
     return new Promise((fulfill, reject) => {
       // Generate a salt with 15 rounds
       bcrypt.genSalt(10, (err, salt) => {
@@ -429,7 +429,7 @@ class User extends AbstractTenantEntity {
     });
   }
 
-  static checkPasswordBCrypt(password, hash){
+  static checkPasswordBCrypt(password, hash) {
     return new Promise((fulfill, reject) => {
       // Compare
       bcrypt.compare(password, hash, (err, match) => {
@@ -443,7 +443,7 @@ class User extends AbstractTenantEntity {
     });
   }
 
-  static getStatusDescription(status){
+  static getStatusDescription(status) {
     switch (status) {
       case Constants.USER_STATUS_PENDING:
         return 'Pending';
@@ -462,7 +462,7 @@ class User extends AbstractTenantEntity {
     }
   }
 
-  static isPasswordStrongEnough(password){
+  static isPasswordStrongEnough(password) {
     const uc = password.match(Constants.PWD_UPPERCASE_RE);
     const lc = password.match(Constants.PWD_LOWERCASE_RE);
     const n = password.match(Constants.PWD_NUMBER_RE);
@@ -474,7 +474,7 @@ class User extends AbstractTenantEntity {
       sc && sc.length >= Constants.PWD_SPECIAL_MIN_COUNT;
   }
 
-  static generatePassword(){
+  static generatePassword() {
     let password = '';
     const randomLength = Math.floor(Math.random() * (Constants.PWD_MAX_LENGTH - Constants.PWD_MIN_LENGTH)) + Constants.PWD_MIN_LENGTH;
     while (!User.isPasswordStrongEnough(password)) {
@@ -484,49 +484,49 @@ class User extends AbstractTenantEntity {
   }
 
   // Check password
-  static isPasswordValid(password){
+  static isPasswordValid(password) {
     // Check
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
   }
 
   // Hash password (old version kept for compatibility reason)
-  static hashPassword(password){
+  static hashPassword(password) {
     return crypto.createHash('sha256').update(password).digest('hex');
   }
 
-  static getUser(tenantID, id){
+  static getUser(tenantID, id) {
     return UserStorage.getUser(tenantID, id);
   }
 
-  static getUserByEmail(tenantID, email){
+  static getUserByEmail(tenantID, email) {
     return UserStorage.getUserByEmail(tenantID, email);
   }
 
-  static getUserByTagId(tenantID, tagID){
+  static getUserByTagId(tenantID, tagID) {
     return UserStorage.getUserByTagId(tenantID, tagID);
   }
 
-  static getUserImage(tenantID, id){
+  static getUserImage(tenantID, id) {
     return UserStorage.getUserImage(tenantID, id);
   }
 
-  static getUserImages(tenantID){
+  static getUserImages(tenantID) {
     return UserStorage.getUserImages(tenantID);
   }
 
-  static getUsers(tenantID, params, limit, skip, sort){
+  static getUsers(tenantID, params, limit, skip, sort) {
     return UserStorage.getUsers(tenantID, params, limit, skip, sort)
   }
 
-  static getEndUserLicenseAgreement(tenantID, language){
+  static getEndUserLicenseAgreement(tenantID, language) {
     return UserStorage.getEndUserLicenseAgreement(tenantID, language);
   }
 
-  static addSitesToUser(tenantID, id, siteIDs){
+  static addSitesToUser(tenantID, id, siteIDs) {
     return UserStorage.addSitesToUser(tenantID, id, siteIDs);
   }
 
-  static removeSitesFromUser(tenantID, id, siteIDs){
+  static removeSitesFromUser(tenantID, id, siteIDs) {
     return UserStorage.removeSitesFromUser(tenantID, id, siteIDs);
   }
 }

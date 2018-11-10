@@ -11,12 +11,12 @@ const _options = {
 };
 
 class MongoDBStorageNotification {
-  constructor(dbConfig, centralRestServer){
+  constructor(dbConfig, centralRestServer) {
     this.dbConfig = dbConfig;
     this.centralRestServer = centralRestServer;
   }
 
-  static getActionFromOperation(operation){
+  static getActionFromOperation(operation) {
     switch (operation) {
       case 'insert': // Insert/Create
         return Constants.ACTION_CREATE;
@@ -28,7 +28,7 @@ class MongoDBStorageNotification {
     return null;
   }
 
-  async start(){
+  async start() {
     if (this.dbConfig.monitorDBChange) {
       this.database = new MongoDBStorage(this.dbConfig);
       await this.database.start();
@@ -61,7 +61,7 @@ class MongoDBStorageNotification {
     }
   }
 
-  async watchDefaultTenant(){
+  async watchDefaultTenant() {
     // Logs
     this.watchCollection(Constants.DEFAULT_TENANT, "logs", this.centralRestServer.notifyLogging.bind(this.centralRestServer), false);
     // Users
@@ -70,7 +70,7 @@ class MongoDBStorageNotification {
     this.watchCollection(Constants.DEFAULT_TENANT, "userimages", this.centralRestServer.notifyUser.bind(this.centralRestServer), true);
   }
 
-  async watchTenants(){
+  async watchTenants() {
     const tenants = await TenantStorage.getTenants();
     for (const tenant of tenants.result) {
       Logging.logInfo({
@@ -103,7 +103,7 @@ class MongoDBStorageNotification {
     });
   }
 
-  async watchTenantCollections(tenantID){
+  async watchTenantCollections(tenantID) {
     // Logs
     this.watchCollection(tenantID, "logs", this.centralRestServer.notifyLogging.bind(this.centralRestServer), false);
     // Users
@@ -138,7 +138,7 @@ class MongoDBStorageNotification {
     this.watchConfigurations(tenantID);
   }
 
-  async watchCollection(tenantID, name, notifyCallback, notifyWithID){
+  async watchCollection(tenantID, name, notifyCallback, notifyWithID) {
     // Users
     const collectionWatcher = await this.database.getCollection(tenantID, name).watch(_pipeline, _options);
     // Change Handling
@@ -164,7 +164,7 @@ class MongoDBStorageNotification {
     });
   }
 
-  async watchTransactions(tenantID){
+  async watchTransactions(tenantID) {
     // Transaction
     const transactionsWatcher = await this.database.getCollection(tenantID, "transactions").watch(_pipeline, _options);
     // Change Handling
@@ -200,7 +200,7 @@ class MongoDBStorageNotification {
     });
   }
 
-  async watchMeterValues(tenantID){
+  async watchMeterValues(tenantID) {
     // Meter Values
     const meterValuesWatcher = await this.database.getCollection(tenantID, "metervalues").watch(_pipeline, _options);
     // Change Handling
@@ -229,7 +229,7 @@ class MongoDBStorageNotification {
     });
   }
 
-  async watchConfigurations(tenantID){
+  async watchConfigurations(tenantID) {
     // Charging Stations Configuration
     const configurationsWatcher = await this.database.getCollection(tenantID, "configurations").watch(_pipeline, _options);
     // Change Handling
@@ -252,23 +252,23 @@ class MongoDBStorageNotification {
     });
   }
 
-  static handleInvalidChange(tenantID, collection, change){
+  static handleInvalidChange(tenantID, collection, change) {
     Logging.logError({
-      tenantID: tenantID,
+      tenantID: Constants.DEFAULT_TENANT,
       module: "MongoDBStorageNotification",
       method: "handleInvalidChange",
       action: `Watch`,
-      message: `Invalid change received on collection ${collection}`,
+      message: `Invalid change received on collection ${tenantID}.${collection}`,
       detailedMessages: JSON.stringify(change)
     });
   }
 
-  static handleError(tenantID, collection, error){    // Log
+  static handleError(tenantID, collection, error) {    // Log
     Logging.logError({
-      tenantID: tenantID,
+      tenantID: Constants.DEFAULT_TENANT,
       module: "MongoDBStorageNotification",
       method: "watchCollection", action: `Watch`,
-      message: `Error occurred in watching collection ${collection}: ${error}`,
+      message: `Error occurred in watching collection ${tenantID}.${collection}: ${error}`,
       detailedMessages: error
     });
   }

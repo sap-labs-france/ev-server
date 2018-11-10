@@ -4,13 +4,9 @@ const DatabaseUtils = require('./DatabaseUtils');
 const BackendError = require('../../exception/BackendError');
 
 class StatisticsStorage {
-  static async getChargingStationStats(tenantID, filter, siteID, groupBy){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "StatisticsStorage", "getChargingStationStats");
-    }
+  static async getChargingStationStats(tenantID, filter, siteID, groupBy) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Build filter
     const match = {};
     // Date provided?
@@ -130,13 +126,9 @@ class StatisticsStorage {
     return transactions;
   }
 
-  static async getUserStats(tenantID, filter, siteID, groupBy){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "StatisticsStorage", "getUserStats");
-    }
+  static async getUserStats(tenantID, filter, siteID, groupBy) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Build filter
     const match = {};
     // Date provided?

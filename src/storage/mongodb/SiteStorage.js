@@ -8,13 +8,9 @@ const DatabaseUtils = require('./DatabaseUtils');
 const BackendError = require('../../exception/BackendError');
 
 class SiteStorage {
-  static async getSite(tenantID, id, withCompany, withUsers){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "SiteStorage", "getSite");
-    }
+  static async getSite(tenantID, id, withCompany, withUsers) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     const Site = require('../../entity/Site'); // Avoid fucking circular deps!!!
     const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
     const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
@@ -101,13 +97,9 @@ class SiteStorage {
     return site;
   }
 
-  static async getSiteImage(tenantID, id){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "SiteStorage", "getSiteImage");
-    }
+  static async getSiteImage(tenantID, id) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Read DB
     const siteImagesMDB = await global.database.getCollection(tenantID, 'siteimages')
       .find({_id: Utils.convertToObjectID(id)})
@@ -124,13 +116,9 @@ class SiteStorage {
     return siteImage;
   }
 
-  static async getSiteImages(tenantID){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "SiteStorage", "getSiteImages");
-    }
+  static async getSiteImages(tenantID) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Read DB
     const siteImagesMDB = await global.database.getCollection(tenantID, 'siteimages')
       .find({})
@@ -149,13 +137,9 @@ class SiteStorage {
     return siteImages;
   }
 
-  static async saveSite(tenantID, siteToSave){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "SiteStorage", "saveSite");
-    }
+  static async saveSite(tenantID, siteToSave) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     const Site = require('../../entity/Site'); // Avoid fucking circular deps!!!
     // Check if ID/Name is provided
     if (!siteToSave.id && !siteToSave.name) {
@@ -208,13 +192,9 @@ class SiteStorage {
     return updatedSite;
   }
 
-  static async saveSiteImage(tenantID, siteImageToSave){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "SiteStorage", "saveSiteImage");
-    }
+  static async saveSiteImage(tenantID, siteImageToSave) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Check if ID is provided
     if (!siteImageToSave.id) {
       // ID must be provided!
@@ -230,13 +210,9 @@ class SiteStorage {
       {upsert: true, new: true, returnOriginal: false});
   }
 
-  static async getSites(tenantID, params = {}, limit, skip, sort){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "SiteStorage", "getSites");
-    }
+  static async getSites(tenantID, params = {}, limit, skip, sort) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
     const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
     const Site = require('../../entity/Site'); // Avoid fucking circular deps!!!
@@ -442,13 +418,9 @@ class SiteStorage {
     };
   }
 
-  static async deleteSite(tenantID, id){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "SiteStorage", "deleteSite");
-    }
+  static async deleteSite(tenantID, id) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Delete Site Areas
     const siteAreas = await SiteAreaStorage.getSiteAreas(tenantID, {'siteID': id})
     // Delete

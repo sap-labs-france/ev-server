@@ -24,7 +24,7 @@ class CentralServerService {
     this.baseApi = new BaseApi(this.baseURL);
     // Create the Authenticated API
     this.authenticatedApi = new AuthenticatedBaseApi(this.baseURL, config.get('admin.username'), config.get('admin.password'), config.get('admin.tenant'));
-    this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this.baseURL, config.get('superadmin.username'), config.get('superadmin.password'), config.get('superadmin.tenant'));
+    this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this.baseURL, config.get('superadmin.username'), config.get('superadmin.password'), "");
     // Create the Company
     this.companyApi = new CompanyApi(this.authenticatedApi);
     this.siteApi = new SiteApi(this.authenticatedApi);

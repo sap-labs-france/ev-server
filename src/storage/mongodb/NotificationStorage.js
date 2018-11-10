@@ -4,13 +4,9 @@ const crypto = require('crypto');
 const BackendError = require('../../exception/BackendError');
 
 class NotificationStorage {
-  static async getNotification(tenantID, sourceId){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "NotificationStorage", "getNotification");
-    }
+  static async getNotification(tenantID, sourceId) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Read DB
     const notificationsMDB = await global.database.getCollection(tenantID, 'notifications')
       .find({"sourceId": sourceId})
@@ -31,13 +27,9 @@ class NotificationStorage {
     return notifications;
   }
 
-  static async saveNotification(tenantID, notificationToSave){
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`,
-        "NotificationStorage", "saveNotification");
-    }
+  static async saveNotification(tenantID, notificationToSave) {
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Ensure Date
     notificationToSave.timestamp = Utils.convertToDate(notificationToSave.timestamp);
     // Transfer

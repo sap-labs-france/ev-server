@@ -9,11 +9,11 @@ const CentralServerService = require('./client/CentralServerService');
 const OCPPBootstrap = require('./OCPPBootstrap');
 
 class OCPPCommonTests {
-  constructor(ocpp){
+  constructor(ocpp) {
     this.ocpp = ocpp;
   }
 
-  async before(){
+  async before() {
     // Create Bootstrap with OCPP
     this.bootstrap = new OCPPBootstrap(this.ocpp);
     // Create data
@@ -48,14 +48,14 @@ class OCPPCommonTests {
     }
   }
 
-  async after(){
+  async after() {
     // Destroy context
     await this.bootstrap.destroyContext(this.context);
   }
 
-  async testConnectorStatus(){
+  async testConnectorStatus() {
     // Update Status of Connector 1
-    let response = await this.ocpp.executeStatusNotification(this.context.tenantID, this.context.newChargingStation.id, this.chargingStationConnector1);
+    let response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector1);
     // Check
     expect(response.data).to.eql({});
     // Check Connector 1
@@ -64,7 +64,7 @@ class OCPPCommonTests {
 
 
     // Update Status of Connector 2
-    response = await this.ocpp.executeStatusNotification(this.context.tenantID, this.context.newChargingStation.id, this.chargingStationConnector2);
+    response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector2);
     // Check
     expect(response.data).to.eql({});
     // Check Connector 2
@@ -72,12 +72,12 @@ class OCPPCommonTests {
       this.context.newChargingStation, 2, this.chargingStationConnector2);
   }
 
-  async testChangeConnectorStatus(){
+  async testChangeConnectorStatus() {
     // Set it to Occupied
     this.chargingStationConnector1.status = 'Occupied';
     this.chargingStationConnector1.timestamp = new Date().toISOString();
     // Update
-    let response = await this.ocpp.executeStatusNotification(this.context.tenantID, this.context.newChargingStation.id, this.chargingStationConnector1);
+    let response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector1);
     // Check
     expect(response.data).to.eql({});
 
@@ -93,7 +93,7 @@ class OCPPCommonTests {
     this.chargingStationConnector1.status = 'Available';
     this.chargingStationConnector1.timestamp = new Date().toISOString();
     // Update
-    response = await this.ocpp.executeStatusNotification(this.context.tenantID, this.context.newChargingStation.id, this.chargingStationConnector1);
+    response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector1);
     // Check
     expect(response.data).to.eql({});
 
@@ -102,16 +102,16 @@ class OCPPCommonTests {
       this.context.newChargingStation, 1, this.chargingStationConnector1);
   }
 
-  async testHeartbeat(){
+  async testHeartbeat() {
     // Update Status of Connector 1
-    let response = await this.ocpp.executeHeartbeat(this.context.tenantID, this.context.newChargingStation.id, {});
+    let response = await this.ocpp.executeHeartbeat(this.context.newChargingStation.id, {});
     // Check
     expect(response.data).to.have.property('currentTime');
   }
 
-  async testDataTransfer(){
+  async testDataTransfer() {
     // Check
-    let response = await this.ocpp.executeDataTransfer(this.context.tenantID, this.context.newChargingStation.id, {
+    let response = await this.ocpp.executeDataTransfer(this.context.newChargingStation.id, {
       "vendorId": "Schneider Electric",
       "messageId": "Detection loop",
       "data": "{\\\"connectorId\\\":2,\\\"name\\\":\\\"Vehicle\\\",\\\"state\\\":\\\"0\\\",\\\"timestamp\\\":\\\"2018-08-08T10:21:11Z:\\\"}",
@@ -123,9 +123,9 @@ class OCPPCommonTests {
     expect(response.data.status).to.equal('Accepted');
   }
 
-  async testAuhtorize(){
+  async testAuhtorize() {
     // Check
-    let response = await this.ocpp.executeAuthorize(this.context.tenantID, this.context.newChargingStation.id, {
+    let response = await this.ocpp.executeAuthorize(this.context.newChargingStation.id, {
       idTag: this.transactionStartUser.tagIDs[0]
     });
     // Check
@@ -133,7 +133,7 @@ class OCPPCommonTests {
     expect(response.data.idTagInfo.status).to.equal('Accepted');
 
     // Check
-    response = await this.ocpp.executeAuthorize(this.context.tenantID, this.context.newChargingStation.id, {
+    response = await this.ocpp.executeAuthorize(this.context.newChargingStation.id, {
       idTag: this.transactionStopUser.tagIDs[0]
     });
     // Check
@@ -141,7 +141,7 @@ class OCPPCommonTests {
     expect(response.data.idTagInfo.status).to.equal('Accepted');
   }
 
-  async testStartTransaction(){
+  async testStartTransaction() {
     // Start a new Transaction
     this.newTransaction = await CentralServerService.transactionApi.startTransaction(
       this.ocpp,
@@ -154,7 +154,7 @@ class OCPPCommonTests {
     expect(this.newTransaction).to.not.be.null;
   }
 
-  async testStartAgainTransaction(){
+  async testStartAgainTransaction() {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     // Set
@@ -176,7 +176,7 @@ class OCPPCommonTests {
     expect(this.newTransaction.id).to.not.equal(transactionId);
   }
 
-  async testSendMeterValues(){
+  async testSendMeterValues() {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     // Current Time matches Transaction one
@@ -202,7 +202,7 @@ class OCPPCommonTests {
     }
   }
 
-  async testStopTransaction(){
+  async testStopTransaction() {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     expect(this.transactionCurrentTime).to.not.be.null;
@@ -223,7 +223,7 @@ class OCPPCommonTests {
       this.transactionTotalInactivity);
   }
 
-  async testTransactionMetrics(){
+  async testTransactionMetrics() {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
 
@@ -262,7 +262,7 @@ class OCPPCommonTests {
     }
   }
 
-  async testDeleteTransaction(){
+  async testDeleteTransaction() {
     // Delete the created entity
     await CentralServerService.deleteEntity(
       CentralServerService.transactionApi, this.newTransaction);

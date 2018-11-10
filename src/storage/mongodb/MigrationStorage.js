@@ -3,7 +3,7 @@ const Utils = require('../../utils/Utils');
 const Constants = require('../../utils/Constants');
 
 class MigrationStorage {
-  static async getMigrations(){
+  static async getMigrations() {
     // Read DB
     const migrationsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'migrations')
       .find({})
@@ -23,7 +23,7 @@ class MigrationStorage {
     return migrations;
   }
 
-  static async saveMigration(migrationToSave){
+  static async saveMigration(migrationToSave) {
     // Ensure Date
     migrationToSave.timestamp = Utils.convertToDate(migrationToSave.timestamp);
     // Transfer
