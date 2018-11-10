@@ -69,7 +69,7 @@ class Utils {
     Utils._normalizeOneSOAPParam(headers, 'To');
     // Parse the request
     const urlParts = url.parse(req.url, true);
-    const tenantID = urlParts.query.tenantID;
+    const tenantID = urlParts.query.TenantID;
     // Check
     await Utils.checkTenant(tenantID);
     // Set the Tenant ID

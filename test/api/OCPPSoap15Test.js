@@ -8,7 +8,7 @@ describe('OCPP 1.5 SOAP Tests', function () {
   before(async () => {
     // Create OCPP 1.5
     this.ocpp = new OCPPSoapService15(
-      `${config.get('ocpp.soap.scheme')}://${config.get('ocpp.soap.host')}:${config.get('ocpp.soap.port')}/OCPP15?tenantID=${config.get('ocpp.tenantID')}`);
+      `${config.get('ocpp.soap.scheme')}://${config.get('ocpp.soap.host')}:${config.get('ocpp.soap.port')}/OCPP15?TenantID=${config.get('ocpp.tenantID')}`);
     // Init Common tests
     this.ocppCommonTests = new OCPPCommonTests(this.ocpp);
     // Delegate
