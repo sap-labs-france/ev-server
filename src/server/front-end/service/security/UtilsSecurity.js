@@ -99,7 +99,7 @@ class UtilsSecurity {
 	}
 
 	static filterAddressRequest(address, loggedUser) {
-		let filteredAddress = {};
+		const filteredAddress = {};
 		if (address) {
 			filteredAddress.address1 = sanitize(address.address1);
 			filteredAddress.address2 = sanitize(address.address2);

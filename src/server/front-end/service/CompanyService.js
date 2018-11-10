@@ -3,8 +3,8 @@ const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Constants = require('../../../utils/Constants');
-const Company = require('../../../model/Company');
-const User = require('../../../model/User');
+const Company = require('../../../entity/Company');
+const User = require('../../../entity/User');
 const Authorizations = require('../../../authorization/Authorizations');
 const CompanySecurity = require('./security/CompanySecurity');
 
@@ -12,7 +12,7 @@ class CompanyService {
 	static async handleDeleteCompany(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = CompanySecurity.filterCompanyDeleteRequest(
+			const filteredRequest = CompanySecurity.filterCompanyDeleteRequest(
 				req.query, req.user);
 			// Check Mandatory fields
 			if(!filteredRequest.ID) {
@@ -23,7 +23,7 @@ class CompanyService {
 					'CompanyService', 'handleDeleteCompany', req.user);
 			}
 			// Get
-			let company = await Company.getCompany(filteredRequest.ID);
+			const company = await Company.getCompany(req.user.tenantID, filteredRequest.ID);
 			// Found?
 			if (!company) {
 				// Not Found!
@@ -46,6 +46,7 @@ class CompanyService {
 			await company.delete();
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'CompanyService', method: 'handleDeleteCompany',
 				message: `Company '${company.getName()}' has been deleted successfully`,
 				action: action, detailedMessages: company});
@@ -61,7 +62,7 @@ class CompanyService {
 	static async handleGetCompany(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = CompanySecurity.filterCompanyRequest(req.query, req.user);
+			const filteredRequest = CompanySecurity.filterCompanyRequest(req.query, req.user);
 			// Charge Box is mandatory
 			if(!filteredRequest.ID) {
 				// Not Found!
@@ -71,7 +72,7 @@ class CompanyService {
 					'CompanyService', 'handleGetCompany', req.user);
 			}
 			// Get it
-			let company = await Company.getCompany(filteredRequest.ID);
+			const company = await Company.getCompany(req.user.tenantID, filteredRequest.ID);
 			if (!company) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -104,7 +105,7 @@ class CompanyService {
 	static async handleGetCompanyLogo(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = CompanySecurity.filterCompanyRequest(req.query, req.user);
+			const filteredRequest = CompanySecurity.filterCompanyRequest(req.query, req.user);
 			// Charge Box is mandatory
 			if(!filteredRequest.ID) {
 				// Not Found!
@@ -114,7 +115,7 @@ class CompanyService {
 					'CompanyService', 'handleGetCompanyLogo', req.user);
 			}
 			// Get it
-			let company = await Company.getCompany(filteredRequest.ID);
+			const company = await Company.getCompany(req.user.tenantID, filteredRequest.ID);
 			if (!company) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -132,7 +133,7 @@ class CompanyService {
 					req.user);
 			}
 			// Get the logo
-			let companyLogo = await Company.getCompanyLogo(filteredRequest.ID);
+			const companyLogo = await Company.getCompanyLogo(req.user.tenantID, filteredRequest.ID);
 			// Return
 			res.json(companyLogo);
 			next();
@@ -155,7 +156,7 @@ class CompanyService {
 					req.user);
 			}
 			// Get the company logo
-			let companyLogos = await Company.getCompanyLogos();
+			const companyLogos = await Company.getCompanyLogos(req.user.tenantID);
 			res.json(companyLogos);
 			next();
 		} catch (error) {
@@ -175,13 +176,12 @@ class CompanyService {
 					null,
 					560, 'CompanyService', 'handleGetCompanies',
 					req.user);
-				return;
 			}
 			// Filter
-			let filteredRequest = CompanySecurity.filterCompaniesRequest(req.query, req.user);
+			const filteredRequest = CompanySecurity.filterCompaniesRequest(req.query, req.user);
 			// Get the companies
-			let companies = await Company.getCompanies(
-				{ search: filteredRequest.Search, withSites: filteredRequest.WithSites },
+			const companies = await Company.getCompanies(req.user.tenantID,
+            { search: filteredRequest.Search, withSites: filteredRequest.WithSites },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
 			companies.result = companies.result.map((company) => company.getModel());
@@ -210,22 +210,23 @@ class CompanyService {
 					req.user);
 			}
 			// Filter
-			let filteredRequest = CompanySecurity.filterCompanyCreateRequest( req.body, req.user );
+			const filteredRequest = CompanySecurity.filterCompanyCreateRequest( req.body, req.user );
 			// Check Mandatory fields
 			Company.checkIfCompanyValid(filteredRequest, req);
 			// Create
-			let company = new Company(filteredRequest);
+			const company = new Company(req.user.tenantID, filteredRequest);
 			// Update timestamp
-			company.setCreatedBy(new User({'id': req.user.id}));
+			company.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
 			company.setCreatedOn(new Date());
 			// Save
-			let newCompany = await company.save();
+			const newCompany = await company.save();
 			// Update Company's Logo
 			newCompany.setLogo(company.getLogo());
 			// Save
 			await newCompany.saveLogo();
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'CompanyService', method: 'handleCreateCompany',
 				message: `Company '${newCompany.getName()}' has been created successfully`,
 				action: action, detailedMessages: newCompany});
@@ -241,9 +242,9 @@ class CompanyService {
 	static async handleUpdateCompany(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = CompanySecurity.filterCompanyUpdateRequest( req.body, req.user );
+			const filteredRequest = CompanySecurity.filterCompanyUpdateRequest( req.body, req.user );
 			// Check email
-			let company = await Company.getCompany(filteredRequest.id);
+			const company = await Company.getCompany(req.user.tenantID, filteredRequest.id);
 			if (!company) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -265,14 +266,15 @@ class CompanyService {
 			// Update
 			Database.updateCompany(filteredRequest, company.getModel());
 			// Update timestamp
-			company.setLastChangedBy(new User({'id': req.user.id}));
+			company.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
 			company.setLastChangedOn(new Date());
 			// Update Company
-			let updatedCompany = await company.save();
+			const updatedCompany = await company.save();
 			// Update Company's Logo
 			await company.saveLogo();
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'CompanyService', method: 'handleUpdateCompany',
 				message: `Company '${updatedCompany.getName()}' has been updated successfully`,
 				action: action, detailedMessages: updatedCompany});

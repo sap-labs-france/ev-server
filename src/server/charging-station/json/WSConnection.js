@@ -1,8 +1,13 @@
 const uuid = require('uuid/v4');
 const Logging = require('../../../utils/Logging');
+const Utils = require('../../../utils/Utils');
 const WebSocket = require('ws');
 const Constants = require('../../../utils/Constants');
 const OCPPError = require('../../../exception/OcppError');
+const BackendError = require('../../../exception/BackendError');
+const Configuration = require('../../../utils/Configuration');
+const Tenant = require('../../../entity/Tenant');
+const ChargingStation = require('../../../entity/ChargingStation');
 
 const MODULE_NAME = "WSConnection";
 
@@ -16,9 +21,12 @@ class WSConnection {
     this._req = req;
     this._requests = {};
     this._chargingStationID = null;
+    this._tenantID = null;
     this._initialized = false;
     this._wsServer = wsServer;
 
+    // Default
+    this.setTenantValid(false);
     // Check URL: remove starting and trailing '/'
     if (this._url.endsWith('/')) {
       // Remove '/'
@@ -28,12 +36,50 @@ class WSConnection {
       // Remove '/'
       this._url = this._url.substring(1, this._url.length);
     }
+    // Parse URL: should like /OCPP16/TENANTID/CHARGEBOXID
+    const splittedURL = this.getURL().split("/");
+    // URL with 4 parts?
+    if (splittedURL.length === 3) {
+      // Yes: Tenant is then provided in the third part
+      this.setTenantID(splittedURL[1]);
+      // The Charger is in the 4th position
+      this.setChargingStationID(splittedURL[2]);
+    } else {
+      // Error
+      throw new BackendError(null, `The URL '${req.url}' is invalid (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`,
+        "WSConnection", "constructor");
+    }
     // Handle incoming messages
     this._wsConnection.on('message', this.onMessage.bind(this));
     // Handle Error on Socket
     this._wsConnection.on('error', this.onError.bind(this));
     // Handle Socket close
     this._wsConnection.on('close', this.onClose.bind(this));
+  }
+
+  async initialize() {
+    try {
+      // Check Tenant?
+      await Utils.checkTenant(this._tenantID);
+      // Ok
+      this.setTenantValid(true);
+      // Cloud Foundry?
+      if (Configuration.isCloudFoundry()) {
+        // Yes: Save the CF App and Instance ID to call the charger from the Rest server
+        const chargingStation = await ChargingStation.getChargingStation(this.getTenantID(), this.getChargingStationID());
+        // Found?
+        if (chargingStation) {
+          // Update CF Instance
+          chargingStation.setCFApplicationIDAndInstanceIndex(Configuration.getCFApplicationIDAndInstanceIndex());
+          // Save it
+          let cs = await chargingStation.save();
+        }
+      }
+    } catch(error) {
+      // Custom Error
+      throw new BackendError(this.getChargingStationID(), `Invalid Tenant '${this._tenantID}' in URL '${this.getURL()}'`,
+        "WSConnection", "initialize");
+    }
   }
 
   onError(error) {
@@ -46,10 +92,10 @@ class WSConnection {
     // Parse the message
     let [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(message);
 
-    // Initialize: done in the message as init could be lengthy and first message may be lost
-    await this.initialize();
-
     try {
+      // Initialize: done in the message as init could be lengthy and first message may be lost
+      await this.initialize();
+
       // Check the Type of message
       switch (messageType) {
         // Incoming Message
@@ -62,7 +108,9 @@ class WSConnection {
           // Respond
           const [responseCallback] = this._requests[messageId];
           if (!responseCallback) {
-            throw new Error(`Response for unknown message ${messageId}`);
+            // Error
+            throw new BackendError(this.getChargingStationID(), `Response for unknown message ${messageId}`,
+              "WSConnection", "onMessage", commandName);
           }
           delete this._requests[messageId];
           responseCallback(commandName);
@@ -80,7 +128,9 @@ class WSConnection {
             }
           });
           if (!this._requests[messageId]) {
-            throw new Error(`Error for unknown message ${messageId}`);
+            // Error
+            throw new BackendError(this.getChargingStationID(), `Error for unknown message ${messageId}`,
+              "WSConnection", "onMessage", commandName);
           }
           const [, rejectCallback] = this._requests[messageId];
           delete this._requests[messageId];
@@ -88,18 +138,16 @@ class WSConnection {
           break;
           // Error
         default:
-          throw new Error(`Wrong message type ${messageType}`);
+          // Error
+          throw new BackendError(this.getChargingStationID(), `Wrong message type ${messageType}`,
+            "WSConnection", "onMessage", commandName);
       }
     } catch (error) {
       // Log
-      Logging.logException(error, "", this.getChargingStationID(), MODULE_NAME, "onMessage");
+      Logging.logException(error, "", this.getChargingStationID(), MODULE_NAME, "onMessage", this.getTenantID());
       // Send error
       await this.sendError(messageId, error);
     }
-  }
-
-  async initialize() {
-    this._initialized = true;
   }
 
   async handleRequest(messageId, commandName, commandPayload) {
@@ -205,6 +253,33 @@ class WSConnection {
 
   setChargingStationID(chargingStationID) {
     this._chargingStationID = chargingStationID;
+  }
+
+  getTenantID() {
+    // Check
+    if (this.isTenantValid()) {
+      // Ok verified
+      return this._tenantID;
+    } else {
+      // No go to the master tenant
+      return Constants.DEFAULT_TENANT;
+    }
+  }
+
+  setTenantID(tenantID) {
+    this._tenantID = tenantID;
+  }
+
+  getID() {
+    return `${this.getTenantID()}~${this.getChargingStationID()}}`;
+  }
+
+  setTenantValid(valid) {
+    this.tenantIsValid = valid; 
+  }
+
+  isTenantValid() {
+    return this.tenantIsValid; 
   }
 }
 

@@ -29,21 +29,21 @@ class SiteSecurity {
 	}
 
 	static filterSiteDeleteRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.ID = sanitize(request.ID);
 		return filteredRequest;
 	}
 
 	static filterSiteRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		filteredRequest.ID = sanitize(request.ID);
 		filteredRequest.WithUsers = UtilsSecurity.filterBoolean(request.WithUsers);
 		return filteredRequest;
 	}
 
 	static filterSitesRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		filteredRequest.Search = sanitize(request.Search);
 		filteredRequest.UserID = sanitize(request.UserID);
 		filteredRequest.ExcludeSitesOfUserID = sanitize(request.ExcludeSitesOfUserID);
@@ -59,7 +59,7 @@ class SiteSecurity {
 
 	static filterSiteUpdateRequest(request, loggedUser) {
 		// SetSites
-		let filteredRequest = SiteSecurity._filterSiteRequest(request, loggedUser);
+		const filteredRequest = SiteSecurity._filterSiteRequest(request, loggedUser);
 		filteredRequest.id = sanitize(request.id);
 		return filteredRequest;
 	}
@@ -69,7 +69,7 @@ class SiteSecurity {
 	}
 
 	static _filterSiteRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		filteredRequest.name = sanitize(request.name);
 		filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
 		filteredRequest.image = sanitize(request.image);
@@ -117,7 +117,7 @@ class SiteSecurity {
 				filteredSite.address = UtilsSecurity.filterAddressRequest(site.address, loggedUser);
 			}
 			if (site.company) {
-				filteredSite.company = SiteSecurity.getCompanySecurity().filterCompanyResponse(site.company, loggedUser);;
+				filteredSite.company = SiteSecurity.getCompanySecurity().filterCompanyResponse(site.company, loggedUser);
 			}
 			if (site.siteAreas) {
 				filteredSite.siteAreas = SiteSecurity.getSiteAreaSecurity().filterSiteAreasResponse(site.siteAreas, loggedUser);
@@ -138,7 +138,7 @@ class SiteSecurity {
 	}
 
 	static filterSitesResponse(sites, loggedUser) {
-		let filteredSites = [];
+		const filteredSites = [];
 
 		if (!sites) {
 			return null;
@@ -148,7 +148,7 @@ class SiteSecurity {
 		}
 		for (const site of sites) {
 			// Filter
-			let filteredSite = SiteSecurity.filterSiteResponse(site, loggedUser);
+			const filteredSite = SiteSecurity.filterSiteResponse(site, loggedUser);
 			// Ok?
 			if (filteredSite) {
 				// Add

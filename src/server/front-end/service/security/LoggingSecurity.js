@@ -5,7 +5,7 @@ const UtilsSecurity = require('./UtilsSecurity');
 
 class LoggingSecurity {
 	static filterLoggingsRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Get logs
 		filteredRequest.DateFrom = sanitize(request.DateFrom);
 		filteredRequest.Level = sanitize(request.Level);
@@ -21,14 +21,14 @@ class LoggingSecurity {
 	}
 
 	static filterLoggingRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Get logs
 		filteredRequest.ID = sanitize(request.ID);
 		return filteredRequest;
 	}
 
 	static filterLoggingResponse(logging, loggedUser, withDetailedMessage=false) {
-		let filteredLogging = {};
+		const filteredLogging = {};
 
 		if (!logging) {
 			return null;
@@ -62,14 +62,14 @@ class LoggingSecurity {
 	}
 
 	static filterLoggingsResponse(loggings, loggedUser) {
-		let filteredLoggings = [];
+		const filteredLoggings = [];
 		
 		if (!loggings) {
 			return null;
 		}
 		for (const logging of loggings) {
 			// Filter
-			let filteredLogging = LoggingSecurity.filterLoggingResponse(logging, loggedUser);
+			const filteredLogging = LoggingSecurity.filterLoggingResponse(logging, loggedUser);
 			// Ok?
 			if (filteredLogging) {
 				// Add

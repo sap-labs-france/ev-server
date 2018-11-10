@@ -5,10 +5,10 @@ const AppAuthError = require('../../../exception/AppAuthError');
 const Constants = require('../../../utils/Constants');
 const SiteAreaSecurity = require('./security/SiteAreaSecurity');
 const Authorizations = require('../../../authorization/Authorizations');
-const User = require('../../../model/User');
-const ChargingStation = require('../../../model/ChargingStation');
-const Site = require('../../../model/Site');
-const SiteArea = require('../../../model/SiteArea');
+const User = require('../../../entity/User');
+const ChargingStation = require('../../../entity/ChargingStation');
+const Site = require('../../../entity/Site');
+const SiteArea = require('../../../entity/SiteArea');
 
 class SiteAreaService {
 	static async handleCreateSiteArea(action, req, res, next) {
@@ -24,11 +24,11 @@ class SiteAreaService {
 					req.user);
 			}
 			// Filter
-			let filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest( req.body, req.user );
+			const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest( req.body, req.user );
 			// Check Mandatory fields
 			SiteArea.checkIfSiteAreaValid(filteredRequest, req);
 			// Check Site
-			let site = await Site.getSite(filteredRequest.siteID);
+			const site = await Site.getSite(req.user.tenantID, filteredRequest.siteID);
 			// Found?
 			if (!site) {
 				// Not Found!
@@ -38,12 +38,12 @@ class SiteAreaService {
 					'SiteAreaService', 'handleCreateSiteArea', req.user);
 			}
 			// Create site
-			let siteArea = new SiteArea(filteredRequest);
+			const siteArea = new SiteArea(req.user.tenantID, filteredRequest);
 			// Update timestamp
-			siteArea.setCreatedBy(new User({'id': req.user.id}));
+			siteArea.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
 			siteArea.setCreatedOn(new Date());
 			// Save
-			let newSiteArea = await siteArea.save();
+			const newSiteArea = await siteArea.save();
 			// Save Site's Image
 			newSiteArea.setImage(siteArea.getImage());
 			// Save
@@ -51,10 +51,10 @@ class SiteAreaService {
 			// Get the assigned Charge Boxes
 			for (const chargeBoxID of filteredRequest.chargeBoxIDs) {
 				// Get the charging stations
-				let chargingStation = await ChargingStation.getChargingStation(chargeBoxID);
+				const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, chargeBoxID);
 				if (chargingStation) {
 					// Update timestamp
-					chargingStation.setLastChangedBy(new User({'id': req.user.id}));
+					chargingStation.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
 					chargingStation.setLastChangedOn(new Date());
 					// Set
 					chargingStation.setSiteArea(newSiteArea);
@@ -64,6 +64,7 @@ class SiteAreaService {
 			}
 			// Ok
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'SiteAreaService', method: 'handleCreateSiteArea',
 				message: `Site Area '${newSiteArea.getName()}' has been created successfully`,
 				action: action, detailedMessages: newSiteArea});
@@ -89,10 +90,10 @@ class SiteAreaService {
 					req.user);
 			}
 			// Filter
-			let filteredRequest = SiteAreaSecurity.filterSiteAreasRequest(req.query, req.user);
+			const filteredRequest = SiteAreaSecurity.filterSiteAreasRequest(req.query, req.user);
 			// Get the sites
-			let siteAreas = await SiteArea.getSiteAreas(
-				{ 'search': filteredRequest.Search, 'withSite': filteredRequest.WithSite,
+			const siteAreas = await SiteArea.getSiteAreas(req.user.tenantID,
+            { 'search': filteredRequest.Search, 'withSite': filteredRequest.WithSite,
 					'withChargeBoxes': filteredRequest.WithChargeBoxes, 'siteID': filteredRequest.SiteID },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
@@ -112,7 +113,7 @@ class SiteAreaService {
 	static async handleDeleteSiteArea(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = SiteAreaSecurity.filterSiteAreaDeleteRequest(req.query, req.user);
+			const filteredRequest = SiteAreaSecurity.filterSiteAreaDeleteRequest(req.query, req.user);
 			// Check Mandatory fields
 			if(!filteredRequest.ID) {
 				// Not Found!
@@ -122,7 +123,7 @@ class SiteAreaService {
 					'SiteAreaService', 'handleDeleteSiteArea', req.user);
 			}
 			// Get
-			let siteArea = await SiteArea.getSiteArea(filteredRequest.ID);
+			const siteArea = await SiteArea.getSiteArea(req.user.tenantID, filteredRequest.ID);
 			// Found?
 			if (!siteArea) {
 				// Not Found!
@@ -146,6 +147,7 @@ class SiteAreaService {
 			await siteArea.delete();
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'SiteAreaService', method: 'handleDeleteSiteArea',
 				message: `Site Area '${siteArea.getName()}' has been deleted successfully`,
 				action: action, detailedMessages: siteArea});
@@ -161,7 +163,7 @@ class SiteAreaService {
 	static async handleGetSiteArea(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query, req.user);
+			const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query, req.user);
 			// Charge Box is mandatory
 			if(!filteredRequest.ID) {
 				// Not Found!
@@ -171,8 +173,8 @@ class SiteAreaService {
 					'SiteAreaService', 'handleGetSiteArea', req.user);
 			}
 			// Get it
-			let siteArea = await SiteArea.getSiteArea(
-				filteredRequest.ID, filteredRequest.WithChargeBoxes, filteredRequest.WithSite);
+			const siteArea = await SiteArea.getSiteArea(req.user.tenantID,
+            filteredRequest.ID, filteredRequest.WithChargeBoxes, filteredRequest.WithSite);
 			// Found?
 			if (!siteArea) {
 				// Not Found!
@@ -208,7 +210,7 @@ class SiteAreaService {
 	static async handleGetSiteAreaImage(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query, req.user);
+			const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query, req.user);
 			// Charge Box is mandatory
 			if(!filteredRequest.ID) {
 				// Not Found!
@@ -218,7 +220,7 @@ class SiteAreaService {
 					'SiteAreaService', 'handleGetSiteAreaImage', req.user);
 			}
 			// Get it
-			let siteArea = await SiteArea.getSiteArea(filteredRequest.ID);
+			const siteArea = await SiteArea.getSiteArea(req.user.tenantID, filteredRequest.ID);
 			if (!siteArea) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -236,7 +238,7 @@ class SiteAreaService {
 					req.user);
 			}
 			// Get the image
-			let siteAreaImage = await SiteArea.getSiteAreaImage(filteredRequest.ID);
+			const siteAreaImage = await SiteArea.getSiteAreaImage(req.user.tenantID, filteredRequest.ID);
 			// Return
 			res.json(siteAreaImage);
 			next();
@@ -259,7 +261,7 @@ class SiteAreaService {
 					req.user);
 			}
 			// Get the Site Area image
-			let siteAreaImages = await SiteArea.getSiteAreaImages();
+			const siteAreaImages = await SiteArea.getSiteAreaImages(req.user.tenantID);
 			// Return
 			res.json(siteAreaImages);
 			next();
@@ -272,9 +274,9 @@ class SiteAreaService {
 	static async handleUpdateSiteArea(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest( req.body, req.user );
+			const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest( req.body, req.user );
 			// Check
-			let siteArea = await SiteArea.getSiteArea(filteredRequest.id);
+			const siteArea = await SiteArea.getSiteArea(req.user.tenantID, filteredRequest.id);
 			if (!siteArea) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -294,11 +296,11 @@ class SiteAreaService {
 					req.user);
 			}
 			// Get Charging Stations
-			let chargingStations = await siteArea.getChargingStations();
+			const chargingStations = await siteArea.getChargingStations();
 			// Clear Site Area from Existing Charging Station
 			for (const chargingStation of chargingStations) {
 				// Update timestamp
-				chargingStation.setLastChangedBy(new User({'id': req.user.id}));
+				chargingStation.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
 				chargingStation.setLastChangedOn(new Date());
 				// Set
 				chargingStation.setSiteArea(null);
@@ -308,10 +310,10 @@ class SiteAreaService {
 			// Assign Site Area to Charging Stations
 			for (const chargeBoxID of filteredRequest.chargeBoxIDs) {
 				// Get the charging stations
-				let chargingStation = await ChargingStation.getChargingStation(chargeBoxID);
+				const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, chargeBoxID);
 				if (chargingStation) {
 					// Update timestamp
-					chargingStation.setLastChangedBy(new User({'id': req.user.id}));
+					chargingStation.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
 					chargingStation.setLastChangedOn(new Date());
 					// Set
 					chargingStation.setSiteArea(siteArea);
@@ -322,14 +324,15 @@ class SiteAreaService {
 			// Update
 			Database.updateSiteArea(filteredRequest, siteArea.getModel());
 			// Update timestamp
-			siteArea.setLastChangedBy(new User({'id': req.user.id}));
+			siteArea.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
 			siteArea.setLastChangedOn(new Date());
 			// Update Site Area
-			let updatedSiteArea = await siteArea.save();
+			const updatedSiteArea = await siteArea.save();
 			// Update Site Area's Image
 			await siteArea.saveImage();
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'SiteAreaService', method: 'handleUpdateSiteArea',
 				message: `Site Area '${updatedSiteArea.getName()}' has been updated successfully`,
 				action: action, detailedMessages: updatedSiteArea});

@@ -1,18 +1,18 @@
-const User = require('../../../model/User');
+const User = require('../../../entity/User');
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Authorizations = require('../../../authorization/Authorizations');
 const Constants = require('../../../utils/Constants');
-const Vehicle = require('../../../model/Vehicle');
+const Vehicle = require('../../../entity/Vehicle');
 const VehicleSecurity = require('./security/VehicleSecurity');
 
 class VehicleService {
 	static async handleDeleteVehicle(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = VehicleSecurity.filterVehicleDeleteRequest(req.query, req.user);
+			const filteredRequest = VehicleSecurity.filterVehicleDeleteRequest(req.query, req.user);
 			// Check Mandatory fields
 			if(!filteredRequest.ID) {
 				// Not Found!
@@ -22,7 +22,7 @@ class VehicleService {
 					'VehicleService', 'handleDeleteVehicle', req.user);
 			}
 			// Get
-			let vehicle = await Vehicle.getVehicle(filteredRequest.ID);
+			const vehicle = await Vehicle.getVehicle(req.user.tenantID, filteredRequest.ID);
 			if (!vehicle) {
 				// Not Found!
 				throw new AppError(
@@ -45,6 +45,7 @@ class VehicleService {
 			await vehicle.delete();
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'VehicleService', method: 'handleDeleteVehicle',
 				message: `Vehicle '${vehicle.getName()}' has been deleted successfully`,
 				action: action, detailedMessages: vehicle});
@@ -60,7 +61,7 @@ class VehicleService {
 	static async handleGetVehicle(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = VehicleSecurity.filterVehicleRequest(req.query, req.user);
+			const filteredRequest = VehicleSecurity.filterVehicleRequest(req.query, req.user);
 			// Charge Box is mandatory
 			if(!filteredRequest.ID) {
 				// Not Found!
@@ -70,7 +71,7 @@ class VehicleService {
 					'VehicleService', 'handleGetVehicle', req.user);
 			}
 			// Get it
-			let vehicle = await Vehicle.getVehicle(filteredRequest.ID);
+			const vehicle = await Vehicle.getVehicle(req.user.tenantID, filteredRequest.ID);
 			if (!vehicle) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -104,10 +105,10 @@ class VehicleService {
 					req.user);
 			}
 			// Filter
-			let filteredRequest = VehicleSecurity.filterVehiclesRequest(req.query, req.user);
+			const filteredRequest = VehicleSecurity.filterVehiclesRequest(req.query, req.user);
 			// Get the vehicles
-			let vehicles = await Vehicle.getVehicles(
-				{ 'search': filteredRequest.Search, 'vehicleType': filteredRequest.Type,
+			const vehicles = await Vehicle.getVehicles(req.user.tenantID,
+            { 'search': filteredRequest.Search, 'vehicleType': filteredRequest.Type,
 					'vehicleManufacturerID': filteredRequest.VehicleManufacturerID },
 				filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 			// Set
@@ -127,7 +128,7 @@ class VehicleService {
 	static async handleGetVehicleImage(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = VehicleSecurity.filterVehicleRequest(req.query, req.user);
+			const filteredRequest = VehicleSecurity.filterVehicleRequest(req.query, req.user);
 			// Charge Box is mandatory
 			if(!filteredRequest.ID) {
 				// Not Found!
@@ -137,7 +138,7 @@ class VehicleService {
 					'VehicleService', 'handleGetVehicleImage', req.user);
 			}
 			// Get it
-			let vehicle = await Vehicle.getVehicle(filteredRequest.ID);
+			const vehicle = await Vehicle.getVehicle(req.user.tenantID, filteredRequest.ID);
 			if (!vehicle) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -156,7 +157,7 @@ class VehicleService {
 					req.user);
 			}
 			// Get the image
-			let vehicleImage = await Vehicle.getVehicleImage(filteredRequest.ID);
+			const vehicleImage = await Vehicle.getVehicleImage(req.user.tenantID, filteredRequest.ID);
 			// Return
 			res.json(vehicleImage);
 			next();
@@ -180,7 +181,7 @@ class VehicleService {
 					req.user);
 			}
 			// Get the vehicle image
-			let vehicleImages = await Vehicle.getVehicleImages();
+			const vehicleImages = await Vehicle.getVehicleImages(req.user.tenantID);
 			// Return
 			res.json(vehicleImages);
 			next();
@@ -204,16 +205,16 @@ class VehicleService {
 					req.user);
 			}
 			// Filter
-			let filteredRequest = VehicleSecurity.filterVehicleCreateRequest( req.body, req.user );
+			const filteredRequest = VehicleSecurity.filterVehicleCreateRequest( req.body, req.user );
 			// Check Mandatory fields
 			Vehicle.checkIfVehicleValid(filteredRequest, req);
 			// Create vehicle
-			let vehicle = new Vehicle(filteredRequest);
+			const vehicle = new Vehicle(req.user.tenantID, filteredRequest);
 			// Update timestamp
-			vehicle.setCreatedBy(new User({'id': req.user.id}));
+			vehicle.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
 			vehicle.setCreatedOn(new Date());
 			// Save
-			let newVehicle = await vehicle.save();
+			const newVehicle = await vehicle.save();
 			// Save Site's Image
 			if (vehicle.getImages()) {
 				newVehicle.setImages(vehicle.getImages());
@@ -224,6 +225,7 @@ class VehicleService {
 			await newVehicle.saveImages();
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'VehicleService', method: 'handleCreateVehicle',
 				message: `Vehicle '${newVehicle.getName()}' has been created successfully`,
 				action: action, detailedMessages: newVehicle});
@@ -239,9 +241,9 @@ class VehicleService {
 	static async handleUpdateVehicle(action, req, res, next) {
 		try {
 			// Filter
-			let filteredRequest = VehicleSecurity.filterVehicleUpdateRequest( req.body, req.user );
+			const filteredRequest = VehicleSecurity.filterVehicleUpdateRequest( req.body, req.user );
 			// Check email
-			let vehicle = await Vehicle.getVehicle(filteredRequest.id);
+			const vehicle = await Vehicle.getVehicle(req.user.tenantID, filteredRequest.id);
 			if (!vehicle) {
 				throw new AppError(
 					Constants.CENTRAL_SERVER,
@@ -264,16 +266,17 @@ class VehicleService {
 			// Update
 			Database.updateVehicle(filteredRequest, vehicle.getModel());
 			// Update timestamp
-			vehicle.setLastChangedBy(new User({'id': req.user.id}));
+			vehicle.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
 			vehicle.setLastChangedOn(new Date());
 			// Update Vehicle
-			let updatedVehicle = await vehicle.save();
+			const updatedVehicle = await vehicle.save();
 			// Update Vehicle's Image
 			if (filteredRequest.withVehicleImages) {
 				await vehicle.saveImages();
 			}
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, module: 'VehicleService', method: 'handleUpdateVehicle',
 				message: `Vehicle '${updatedVehicle.getName()}' has been updated successfully`,
 				action: action, detailedMessages: updatedVehicle});

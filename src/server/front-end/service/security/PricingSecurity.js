@@ -4,7 +4,7 @@ const Authorizations = require('../../../../authorization/Authorizations');
 class PricingSecurity {
 	// Pricing
 	static filterPricingResponse(pricing, loggedUser) {
-		let filteredPricing = {};
+		const filteredPricing = {};
 		if (!pricing) {
 			return null;
 		}
@@ -20,7 +20,7 @@ class PricingSecurity {
 	}
 
 	static filterPricingUpdateRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.priceKWH = sanitize(request.priceKWH);
 		filteredRequest.priceUnit = sanitize(request.priceUnit);

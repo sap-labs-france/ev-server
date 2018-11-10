@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "9f4af7ab-7857-488a-bc41-58862516e598",
+		"_postman_id": "e95fad4c-08c9-4fdf-a3eb-6708b7872364",
 		"name": "EVSE",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -497,6 +497,44 @@
 			"response": []
 		},
 		{
+			"name": "FE-TenantCreate Copy",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"subdomain\": \"slf\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/client/api/TenantCreate",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"client",
+						"api",
+						"TenantCreate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "FE-VehicleManufacturerCreate",
 			"request": {
 				"auth": {
@@ -860,7 +898,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/client/api/Tenant?ID=5bbd06cd4598d76ea07dd3cf",
+					"raw": "{{base_url}}/client/api/Tenant?ID=5bc1c3c17af641a8985a39c6",
 					"host": [
 						"{{base_url}}"
 					],
@@ -872,7 +910,7 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5bbd06cd4598d76ea07dd3cf"
+							"value": "5bc1c3c17af641a8985a39c6"
 						}
 					]
 				}
@@ -1246,7 +1284,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/client/api/Site?ID=5af1ba7cee5dc0cd3bc7fd14&WithUsers=true",
+					"raw": "{{base_url}}/client/api/Site?ID=5abeba9e4bae1457eb565e66&WithUsers=false",
 					"host": [
 						"{{base_url}}"
 					],
@@ -1258,11 +1296,11 @@
 					"query": [
 						{
 							"key": "ID",
-							"value": "5af1ba7cee5dc0cd3bc7fd14"
+							"value": "5abeba9e4bae1457eb565e66"
 						},
 						{
 							"key": "WithUsers",
-							"value": "true"
+							"value": "false"
 						}
 					]
 				}
@@ -1609,7 +1647,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/client/api/ChargingStationConsumptionFromTransaction?TransactionId=424470619",
+					"raw": "{{base_url}}/client/api/ChargingStationConsumptionFromTransaction?TransactionId=79391322",
 					"host": [
 						"{{base_url}}"
 					],
@@ -1621,7 +1659,7 @@
 					"query": [
 						{
 							"key": "TransactionId",
-							"value": "424470619"
+							"value": "79391322"
 						}
 					]
 				}
@@ -1802,14 +1840,20 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/client/api/TransactionsActive",
+					"raw": "{{base_url}}/client/api/Transaction?ID=534515743",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"client",
 						"api",
-						"TransactionsActive"
+						"Transaction"
+					],
+					"query": [
+						{
+							"key": "ID",
+							"value": "534515743"
+						}
 					]
 				}
 			},
@@ -2983,10 +3027,10 @@
 					"listen": "prerequest",
 					"script": {
 						"id": "e5325e50-3568-4fc0-9e82-9b5e43153935",
-						"type": "text/javascript",
 						"exec": [
 							""
-						]
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -2995,46 +3039,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/Authorize</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\" mustUnderstand=\"true\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <heartbeatRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n    </heartbeatRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/Authorize</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\" mustUnderstand=\"true\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <heartbeatRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n    </heartbeatRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "CB - Reset SAP",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/Authorize</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <resetRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n    \t<type>Hard</type>\r\n    </resetRequest>\r\n  </s:Body>\r\n</s:Envelope>"
-				},
-				"url": {
-					"raw": "http://37.71.38.94:10001/",
-					"protocol": "http",
-					"host": [
-						"37",
-						"71",
-						"38",
-						"94"
 					],
-					"port": "10001",
-					"path": [
-						""
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3047,20 +3066,60 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/Authorize</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\" mustUnderstand=\"true\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <authorizeRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <idTag>{{tagId1}}</idTag>\r\n    </authorizeRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/Authorize</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\" mustUnderstand=\"true\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <authorizeRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <idTag>{{tagId1}}</idTag>\r\n    </authorizeRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DataTransfer",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "c1cc812b-324a-4fbd-ae5c-070d64c7db33",
+						"exec": [
+							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/DataTransfer</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\" mustUnderstand=\"true\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <dataTransferRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <vendorId>Schneider Electric</vendorId>\r\n      <messageId>Detection loop</messageId>\r\n      <data>{\\\"connectorId\\\":2,\\\"name\\\":\\\"Vehicle\\\",\\\"state\\\":\\\"0\\\",\\\"timestamp\\\":\\\"2018-08-08T10:21:11Z:\\\"}</data>\r\n      <chargeBoxID>{{chargingStation}}</chargeBoxID>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </dataTransferRequest>\r\n  </s:Body>\r\n</s:Envelope>\r\n"
+				},
+				"url": {
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
+					"host": [
+						"{{server_url}}"
+					],
+					"path": [
+						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3073,20 +3132,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/Authorize</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <authorizeRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <idTag>{{tagIdUnknown}}</idTag>\r\n    </authorizeRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/Authorize</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <authorizeRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <idTag>{{tagIdUnknown}}</idTag>\r\n    </authorizeRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3099,20 +3159,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/BootNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <bootNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <chargePointVendor>Schneider Electric</chargePointVendor>\r\n      <chargePointModel>MONOBLOCK</chargePointModel>\r\n      <chargePointSerialNumber>1234</chargePointSerialNumber>\r\n      <chargeBoxSerialNumber>6789</chargeBoxSerialNumber>\r\n      <firmwareVersion>666</firmwareVersion>\r\n      <ocppVersion>1.5</ocppVersion>\r\n      <endpoint>http://192.168.0.110:8080</endpoint>\r\n    </bootNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/BootNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">NEW_CHARGER</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <bootNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <chargePointVendor>Schneider Electric</chargePointVendor>\r\n      <chargePointModel>MONOBLOCK</chargePointModel>\r\n      <chargePointSerialNumber>1234</chargePointSerialNumber>\r\n      <chargeBoxSerialNumber>6789</chargeBoxSerialNumber>\r\n      <firmwareVersion>666</firmwareVersion>\r\n      <ocppVersion>1.5</ocppVersion>\r\n      <endpoint>http://192.168.0.110:8080</endpoint>\r\n    </bootNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3125,19 +3186,18 @@
 					"listen": "test",
 					"script": {
 						"id": "2917529c-43d1-4b1f-acc0-2556fa01de67",
-						"type": "text/javascript",
 						"exec": [
 							"var responseJson = xml2Json(responseBody);",
 							"var transactionId = responseJson[\"soap:Envelope\"][\"soap:Body\"][\"ns1:startTransactionResponse\"][\"ns1:transactionId\"];",
 							"postman.setEnvironmentVariable(\"transactionId\", transactionId);"
-						]
+						],
+						"type": "text/javascript"
 					}
 				},
 				{
 					"listen": "prerequest",
 					"script": {
 						"id": "16a70974-08d9-4db2-8638-0a4f2b96d820",
-						"type": "text/javascript",
 						"exec": [
 							"var dateTransaction = new Date();",
 							"",
@@ -3157,7 +3217,8 @@
 							"// Set Stop Transaction",
 							"postman.setEnvironmentVariable(\"dateStopTransaction\", dateTransaction.toISOString());",
 							""
-						]
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -3166,20 +3227,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "\r\n<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StartTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2010/08/\" xmlns:h=\"urn://Ocpp/Cs/2010/08/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:eb0fa6dc-7f93-47c8-9774-ff3ed4a2baba</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <startTransactionRequest xmlns=\"urn://Ocpp/Cs/2010/08/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <idTag>{{tagId1}}</idTag>\r\n      <timestamp>{{dateStartTransaction}}</timestamp>\r\n      <meterStart>10000</meterStart>\r\n    </startTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>\r\n"
+					"raw": "\r\n<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StartTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2010/08/\" xmlns:h=\"urn://Ocpp/Cs/2010/08/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:eb0fa6dc-7f93-47c8-9774-ff3ed4a2baba</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <startTransactionRequest xmlns=\"urn://Ocpp/Cs/2010/08/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <idTag>{{tagId1}}</idTag>\r\n      <timestamp>{{dateStartTransaction}}</timestamp>\r\n      <meterStart>10000</meterStart>\r\n    </startTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>\r\n"
 				},
 				"url": {
-					"raw": "http://82.165.163.132:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"82",
-						"165",
-						"163",
-						"132"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3192,19 +3254,18 @@
 					"listen": "test",
 					"script": {
 						"id": "17188956-328f-4100-833a-1e6e42eb5f19",
-						"type": "text/javascript",
 						"exec": [
 							"var responseJson = xml2Json(responseBody);",
 							"var transactionId = responseJson[\"soap:Envelope\"][\"soap:Body\"][\"ns1:startTransactionResponse\"][\"ns1:transactionId\"];",
 							"postman.setEnvironmentVariable(\"transactionId\", transactionId);"
-						]
+						],
+						"type": "text/javascript"
 					}
 				},
 				{
 					"listen": "prerequest",
 					"script": {
 						"id": "c0796d6f-308b-4cee-9f4e-bd5326b8691f",
-						"type": "text/javascript",
 						"exec": [
 							"var dateTransaction = new Date();",
 							"",
@@ -3224,7 +3285,8 @@
 							"// Set Stop Transaction",
 							"postman.setEnvironmentVariable(\"dateStopTransaction\", dateTransaction.toISOString());",
 							""
-						]
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -3233,20 +3295,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "\r\n<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StartTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2010/08/\" xmlns:h=\"urn://Ocpp/Cs/2010/08/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:eb0fa6dc-7f93-47c8-9774-ff3ed4a2baba</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <startTransactionRequest xmlns=\"urn://Ocpp/Cs/2010/08/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <idTag>{{tagIdUnknown}}</idTag>\r\n      <timestamp>{{dateStartTransaction}}</timestamp>\r\n      <meterStart>10000</meterStart>\r\n    </startTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>\r\n"
+					"raw": "\r\n<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StartTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2010/08/\" xmlns:h=\"urn://Ocpp/Cs/2010/08/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:eb0fa6dc-7f93-47c8-9774-ff3ed4a2baba</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <startTransactionRequest xmlns=\"urn://Ocpp/Cs/2010/08/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <idTag>{{tagIdUnknown}}</idTag>\r\n      <timestamp>{{dateStartTransaction}}</timestamp>\r\n      <meterStart>10000</meterStart>\r\n    </startTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>\r\n"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3259,10 +3322,10 @@
 					"listen": "prerequest",
 					"script": {
 						"id": "fb7b3aa7-5660-443e-8c0a-f50731b0740a",
-						"type": "text/javascript",
 						"exec": [
 							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
-						]
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -3271,20 +3334,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <status>Available</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <status>Available</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3297,10 +3361,10 @@
 					"listen": "prerequest",
 					"script": {
 						"id": "fb7b3aa7-5660-443e-8c0a-f50731b0740a",
-						"type": "text/javascript",
 						"exec": [
 							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
-						]
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -3309,20 +3373,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <status>Faulted</status>\r\n      <errorCode>PowerMeterFailure</errorCode>\r\n      <vendorErrorCode>14</vendorErrorCode>\r\n      <info>[Un]Plug_Process</info>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <status>Faulted</status>\r\n      <errorCode>PowerMeterFailure</errorCode>\r\n      <vendorErrorCode>14</vendorErrorCode>\r\n      <info>[Un]Plug_Process</info>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3335,10 +3400,10 @@
 					"listen": "prerequest",
 					"script": {
 						"id": "fb7b3aa7-5660-443e-8c0a-f50731b0740a",
-						"type": "text/javascript",
 						"exec": [
 							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
-						]
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -3347,20 +3412,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <status>Available</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <status>Available</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3373,10 +3439,10 @@
 					"listen": "prerequest",
 					"script": {
 						"id": "fb7b3aa7-5660-443e-8c0a-f50731b0740a",
-						"type": "text/javascript",
 						"exec": [
 							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
-						]
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -3385,20 +3451,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <status>Faulted</status>\r\n      <errorCode>PowerMeterFailure</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <status>Faulted</status>\r\n      <errorCode>PowerMeterFailure</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3411,20 +3478,20 @@
 					"listen": "test",
 					"script": {
 						"id": "607d16dc-6bb2-43a7-9b7f-6bbdec7956b5",
-						"type": "text/javascript",
 						"exec": [
 							""
-						]
+						],
+						"type": "text/javascript"
 					}
 				},
 				{
 					"listen": "prerequest",
 					"script": {
 						"id": "93c3f36b-90fe-4201-a886-80737ac0af28",
-						"type": "text/javascript",
 						"exec": [
 							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
-						]
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -3433,20 +3500,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>0</connectorId>\r\n      <values>\r\n        <timestamp>{{currentDate}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Clock\">\r\n        \t10400\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>0</connectorId>\r\n      <values>\r\n        <timestamp>{{currentDate}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Clock\">\r\n        \t10400\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3459,19 +3527,18 @@
 					"listen": "test",
 					"script": {
 						"id": "b8240c95-1446-4071-b609-b54f33a3bd9c",
-						"type": "text/javascript",
 						"exec": [
 							"var responseJson = xml2Json(responseBody);",
 							"var transactionId = responseJson[\"soap:Envelope\"][\"soap:Body\"][\"ns1:startTransactionResponse\"][\"ns1:transactionId\"];",
 							"postman.setEnvironmentVariable(\"transactionId\", transactionId);"
-						]
+						],
+						"type": "text/javascript"
 					}
 				},
 				{
 					"listen": "prerequest",
 					"script": {
 						"id": "62e05ba9-b683-422f-9f96-f09c59087f1a",
-						"type": "text/javascript",
 						"exec": [
 							"var dateTransaction = new Date();",
 							"",
@@ -3491,7 +3558,8 @@
 							"// Set Stop Transaction",
 							"postman.setEnvironmentVariable(\"dateStopTransaction\", dateTransaction.toISOString());",
 							""
-						]
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -3500,20 +3568,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "\r\n<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StartTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2010/08/\" xmlns:h=\"urn://Ocpp/Cs/2010/08/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:eb0fa6dc-7f93-47c8-9774-ff3ed4a2baba</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <startTransactionRequest xmlns=\"urn://Ocpp/Cs/2010/08/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <idTag>{{tagId1}}</idTag>\r\n      <timestamp>{{dateStartTransaction}}</timestamp>\r\n      <meterStart>10000</meterStart>\r\n    </startTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>\r\n"
+					"raw": "\r\n<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StartTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2010/08/\" xmlns:h=\"urn://Ocpp/Cs/2010/08/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:eb0fa6dc-7f93-47c8-9774-ff3ed4a2baba</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <startTransactionRequest xmlns=\"urn://Ocpp/Cs/2010/08/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <idTag>{{tagId1}}</idTag>\r\n      <timestamp>{{dateStartTransaction}}</timestamp>\r\n      <meterStart>10000</meterStart>\r\n    </startTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>\r\n"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3526,10 +3595,10 @@
 					"listen": "prerequest",
 					"script": {
 						"id": "e13402a7-7400-4237-83bb-3260476ac1fe",
-						"type": "text/javascript",
 						"exec": [
 							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
-						]
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -3538,20 +3607,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <status>Occupied</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <status>Occupied</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3564,20 +3634,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>0</connectorId>\r\n      <values>\r\n        <timestamp>{{dateTransaction1}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t10022\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>0</connectorId>\r\n      <values>\r\n        <timestamp>{{dateTransaction1}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t10022\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3590,20 +3661,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <transactionId>-123456798</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction2}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t10400\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <transactionId>-123456798</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction2}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t10400\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3616,20 +3688,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>0</connectorId>\r\n      <values>\r\n        <timestamp>{{dateTransaction3}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Perodic\">\r\n        \t11412\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>0</connectorId>\r\n      <values>\r\n        <timestamp>{{dateTransaction3}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Perodic\">\r\n        \t11412\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3642,20 +3715,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <transactionId>-255686</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction4}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Clock\">\r\n        \t11414\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <transactionId>-255686</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction4}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Clock\">\r\n        \t11414\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3668,20 +3742,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <transactionId>{{transactionId}}</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction5}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t11414\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <transactionId>{{transactionId}}</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction5}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t11414\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3694,20 +3769,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <transactionId>{{transactionId}}</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction6}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t11414\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <transactionId>{{transactionId}}</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction6}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t11414\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3720,20 +3796,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StopTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:469b9586-5e2a-4113-ae73-eab03d515730</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <stopTransactionRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <transactionId>{{transactionId}}</transactionId>\r\n      <idTag>{{tagId1}}</idTag>\r\n      <timestamp>{{dateStopTransaction}}</timestamp>\r\n      <meterStop>0</meterStop>\r\n    </stopTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StopTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:469b9586-5e2a-4113-ae73-eab03d515730</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <stopTransactionRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <transactionId>{{transactionId}}</transactionId>\r\n      <idTag>{{tagId1}}</idTag>\r\n      <timestamp>{{dateStopTransaction}}</timestamp>\r\n      <meterStop>11414</meterStop>\r\n      <transactionData>\r\n        <values>\r\n\t      <timestamp>{{dateStartTransaction}}</timestamp>\r\n\t      <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Transaction.Begin\">\r\n\t      \t10000\r\n\t      </value>\r\n\t    </values>\r\n        <values>\r\n\t      <timestamp>{{dateStopTransaction}}</timestamp>\r\n\t      <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Transaction.Begin\">\r\n\t      \t11414\r\n\t      </value>\r\n\t    </values>\r\n      </transactionData>\r\n    </stopTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3746,10 +3823,10 @@
 					"listen": "prerequest",
 					"script": {
 						"id": "7b585d41-25bf-48d3-8b21-b8fd22e63df6",
-						"type": "text/javascript",
 						"exec": [
 							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
-						]
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -3758,20 +3835,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <status>Available</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <status>Available</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3784,20 +3862,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StopTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:469b9586-5e2a-4113-ae73-eab03d515730</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <stopTransactionRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <transactionId>{{transactionId}}</transactionId>\r\n      <idTag>{{tagIdOtherUser}}</idTag>\r\n      <timestamp>{{dateStopTransaction}}</timestamp>\r\n      <meterStop>0</meterStop>\r\n    </stopTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StopTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:469b9586-5e2a-4113-ae73-eab03d515730</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <stopTransactionRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <transactionId>{{transactionId}}</transactionId>\r\n      <idTag>{{tagIdOtherUser}}</idTag>\r\n      <timestamp>{{dateStopTransaction}}</timestamp>\r\n      <meterStop>0</meterStop>\r\n    </stopTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3810,20 +3889,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StopTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:469b9586-5e2a-4113-ae73-eab03d515730</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <stopTransactionRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <transactionId>{{transactionId}}</transactionId>\r\n      <idTag>{{tagIdUnknown}}</idTag>\r\n      <timestamp>{{dateStopTransaction}}</timestamp>\r\n      <meterStop>0</meterStop>\r\n    </stopTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StopTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:469b9586-5e2a-4113-ae73-eab03d515730</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <stopTransactionRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <transactionId>{{transactionId}}</transactionId>\r\n      <idTag>{{tagIdUnknown}}</idTag>\r\n      <timestamp>{{dateStopTransaction}}</timestamp>\r\n      <meterStop>0</meterStop>\r\n    </stopTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3836,20 +3916,19 @@
 					"listen": "test",
 					"script": {
 						"id": "196803e3-618f-4491-9067-1a2578d89c3e",
-						"type": "text/javascript",
 						"exec": [
 							"var responseJson = xml2Json(responseBody);",
 							"var transactionId = responseJson[\"soap:Envelope\"][\"soap:Body\"][\"ns1:startTransactionResponse\"][\"ns1:transactionId\"];",
 							"console.log(transactionId);",
 							"postman.setEnvironmentVariable(\"transactionId2\", transactionId);"
-						]
+						],
+						"type": "text/javascript"
 					}
 				},
 				{
 					"listen": "prerequest",
 					"script": {
 						"id": "09a467b9-3def-47fd-bede-bced77ca6f42",
-						"type": "text/javascript",
 						"exec": [
 							"var dateTransaction = new Date();",
 							"",
@@ -3869,7 +3948,8 @@
 							"// Set Stop Transaction",
 							"postman.setEnvironmentVariable(\"dateStopTransaction\", dateTransaction.toISOString());",
 							""
-						]
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -3878,20 +3958,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StartTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2010/08/\" xmlns:h=\"urn://Ocpp/Cs/2010/08/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:eb0fa6dc-7f93-47c8-9774-ff3ed4a2baba</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <startTransactionRequest xmlns=\"urn://Ocpp/Cs/2010/08/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <idTag>{{tagId2}}</idTag>\r\n      <timestamp>{{dateStartTransaction}}</timestamp>\r\n      <meterStart>10000</meterStart>\r\n    </startTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>\r\n"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StartTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2010/08/\" xmlns:h=\"urn://Ocpp/Cs/2010/08/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:eb0fa6dc-7f93-47c8-9774-ff3ed4a2baba</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <startTransactionRequest xmlns=\"urn://Ocpp/Cs/2010/08/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <idTag>{{tagId2}}</idTag>\r\n      <timestamp>{{dateStartTransaction}}</timestamp>\r\n      <meterStart>10000</meterStart>\r\n    </startTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>\r\n"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3904,10 +3985,10 @@
 					"listen": "prerequest",
 					"script": {
 						"id": "6f4df3bb-af15-4ed5-9873-66174b58c31c",
-						"type": "text/javascript",
 						"exec": [
 							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
-						]
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -3916,20 +3997,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <status>Occupied</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <status>Occupied</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3942,20 +4024,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <transactionId>{{transactionId2}}</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction1}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t10400\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <transactionId>{{transactionId2}}</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction1}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t10400\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3968,20 +4051,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <transactionId>{{transactionId2}}</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction2}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t10600\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <transactionId>{{transactionId2}}</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction2}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t10600\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -3994,20 +4078,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <transactionId>{{transactionId2}}</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction3}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t11200\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <transactionId>{{transactionId2}}</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction3}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t11200\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -4020,20 +4105,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <transactionId>{{transactionId2}}</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction4}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t11450\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <transactionId>{{transactionId2}}</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction4}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t11450\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -4046,20 +4132,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <transactionId>{{transactionId2}}</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction5}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t0\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <transactionId>{{transactionId2}}</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction5}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t0\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -4072,20 +4159,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <transactionId>{{transactionId2}}</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction6}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t0\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <transactionId>{{transactionId2}}</transactionId>\r\n      <values>\r\n        <timestamp>{{dateTransaction6}}</timestamp>\r\n        <value unit=\"Wh\" location=\"Outlet\" measurand=\"Energy.Active.Import.Register\" format=\"Raw\" context=\"Sample.Periodic\">\r\n        \t0\r\n        </value>\r\n      </values>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -4098,20 +4186,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StopTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:469b9586-5e2a-4113-ae73-eab03d515730</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <stopTransactionRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <transactionId>{{transactionId2}}</transactionId>\r\n      <idTag>{{tagId2}}</idTag>\r\n      <timestamp>{{dateStopTransaction}}</timestamp>\r\n      <meterStop>0</meterStop>\r\n    </stopTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StopTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:469b9586-5e2a-4113-ae73-eab03d515730</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <stopTransactionRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <transactionId>{{transactionId2}}</transactionId>\r\n      <idTag>{{tagId2}}</idTag>\r\n      <timestamp>{{dateStopTransaction}}</timestamp>\r\n      <meterStop>0</meterStop>\r\n    </stopTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -4124,10 +4213,10 @@
 					"listen": "prerequest",
 					"script": {
 						"id": "869852eb-06e1-4b5d-8e4d-610b3b14e0b5",
-						"type": "text/javascript",
 						"exec": [
 							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
-						]
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -4136,20 +4225,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <status>Available</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <status>Available</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},
@@ -4162,20 +4252,21 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StopTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:469b9586-5e2a-4113-ae73-eab03d515730</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <stopTransactionRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <transactionId>{{transactionId2}}</transactionId>\r\n      <idTag>{{tagIdOtherUser}}</idTag>\r\n      <timestamp>{{dateStopTransaction}}</timestamp>\r\n      <meterStop>0</meterStop>\r\n    </stopTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StopTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:469b9586-5e2a-4113-ae73-eab03d515730</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <stopTransactionRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <transactionId>{{transactionId2}}</transactionId>\r\n      <idTag>{{tagIdOtherUser}}</idTag>\r\n      <timestamp>{{dateStopTransaction}}</timestamp>\r\n      <meterStop>0</meterStop>\r\n    </stopTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
-					"raw": "http://127.0.0.1:8000/OCPP15",
-					"protocol": "http",
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
 					"host": [
-						"127",
-						"0",
-						"0",
-						"1"
+						"{{server_url}}"
 					],
-					"port": "8000",
 					"path": [
 						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
 					]
 				}
 			},

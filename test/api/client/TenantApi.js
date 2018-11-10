@@ -25,7 +25,14 @@ class TenantApi extends CrudApi {
   }
 
   delete(id) {
-    return super.delete('/client/api/TenantDelete', id);
+    return this.authenticatedApi.send({
+      method: 'DELETE',
+      url: '/client/api/TenantDelete',
+      params: {
+        ID: id,
+        forced: true
+      }
+    });
   }
 
   verify(tenant) {

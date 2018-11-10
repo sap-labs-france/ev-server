@@ -1,10 +1,21 @@
 const moment = require('moment');
 const Database = require('../../utils/Database');
-const ChargingStation = require('../../model/ChargingStation');
+const ChargingStation = require('../../entity/ChargingStation');
+const Tenant = require('../../entity/Tenant');
+const DatabaseUtils = require('../../storage/mongodb/DatabaseUtils');
+
 class UpdateTransactionInactivityTask {
   async migrate() {
+    const tenants = await Tenant.getTenants();
+
+    for (const tenant of tenants.result) {
+      await this.migrateTenant(tenant);
+    }
+  }
+
+  async migrateTenant(tenant) {
     // Create Aggregation
-    let aggregation = [];
+    const aggregation = [];
     // Filters
     aggregation.push({
       $match: {
@@ -16,7 +27,7 @@ class UpdateTransactionInactivityTask {
     // Add Charger
     aggregation.push({
       $lookup: {
-        from: 'chargingstations',
+        from: DatabaseUtils.getCollectionName(tenant.getID(), 'chargingstations'),
         localField: 'chargeBoxID',
         foreignField: '_id',
         as: 'chargeBox'
@@ -31,23 +42,23 @@ class UpdateTransactionInactivityTask {
     });
     // Sort
     aggregation.push({
-      $sort: { timestamp: -1 }
+      $sort: {timestamp: -1}
     });
     // Read DB
-    let transactionsMDB = await global.db.collection('transactions')
+    const transactionsMDB = await global.database.getCollection(tenant.getID(), 'transactions')
       .aggregate(aggregation)
       .toArray();
     // Process each transaction
     for (const transactionMDB of transactionsMDB) {
-      let transaction = {};
+      const transaction = {};
       // Update
       Database.updateTransaction(transactionMDB, transaction, false);
       // Set the Transaction ID
       Database.updateID(transactionMDB, transaction);
       // Get the Charging Station
-      let chargingStation = new ChargingStation(transactionMDB.chargeBox);
+      const chargingStation = new ChargingStation(tenant.getID, transactionMDB.chargeBox);
       // Get Consumption
-      let consumption = await chargingStation.getConsumptionsFromTransaction(transaction);
+      const consumption = await chargingStation.getConsumptionsFromTransaction(transaction);
       // Set the total consumption
       transaction.stop.totalConsumption = consumption.totalConsumption;
       // Compute total inactivity seconds
@@ -65,19 +76,18 @@ class UpdateTransactionInactivityTask {
           }
         }
       }
-		  // Delete Transactions
-      await global.db.collection('transactions')
-        .findOneAndDelete( {'_id': transaction.id} );
+      // Delete Transactions
+      await global.database.getCollection(tenant.getID(), 'transactions').findOneAndDelete({'_id': transaction.id});
       // Remove Id
       delete transaction.id;
       // Save it
-      await global.db.collection('transactions').findOneAndUpdate({
+      await global.database.getCollection(tenant.getID(), 'transactions').findOneAndUpdate({
         "_id": transactionMDB._id
       }, {
         $set: transaction
       }, {
-        upsert: true, 
-        new: true, 
+        upsert: true,
+        new: true,
         returnOriginal: false
       });
     }
@@ -91,4 +101,5 @@ class UpdateTransactionInactivityTask {
     return "TransactionInactivityTask";
   }
 }
+
 module.exports = UpdateTransactionInactivityTask;

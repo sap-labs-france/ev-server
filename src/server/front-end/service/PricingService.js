@@ -18,7 +18,7 @@ class PricingService {
 					req.user);
 			}
 			// Get the Pricing
-			let pricing = await PricingStorage.getPricing();
+			const pricing = await PricingStorage.getPricing(req.user.tenantID);
 			// Return
 			if (pricing) {
 				res.json(
@@ -48,7 +48,7 @@ class PricingService {
 					req.user);
 			}
 			// Filter
-			let filteredRequest = PricingSecurity.filterPricingUpdateRequest(req.body, req.user);
+			const filteredRequest = PricingSecurity.filterPricingUpdateRequest(req.user.tenantID, req.body, req.user);
 			// Check
 			if (!filteredRequest.priceKWH || isNaN(filteredRequest.priceKWH)) {
 				// Not Found!
@@ -58,14 +58,15 @@ class PricingService {
 					'PricingService', 'handleUpdatePricing', req.user);
 			}
 			// Update
-			let pricing = {};
+			const pricing = {};
 			Database.updatePricing(filteredRequest, pricing);
 			// Set timestamp
 			pricing.timestamp = new Date();
 			// Get
-			let pricingMDB = await PricingStorage.savePricing(pricing);
+			const pricingMDB = await PricingStorage.savePricing(req.user.tenantID, pricing);
 			// Log
 			Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
 				user: req.user, action: action,
 				module: 'PricingService',
 				method: 'handleUpdatePricing',

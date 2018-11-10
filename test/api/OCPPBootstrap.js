@@ -72,8 +72,7 @@ class OCPPBootstrap {
       // Create Charger Object
       const chargingStation = Factory.chargingStation.build();
       // Simulate a Boot Notification
-      let response = await this.ocpp.executeBootNotification(
-        chargingStationID, chargingStation);
+      let response = await this.ocpp.executeBootNotification(chargingStationID, chargingStation);
       // Check
       expect(response.data).to.not.be.null;
       expect(response.data.status).to.eql('Accepted');

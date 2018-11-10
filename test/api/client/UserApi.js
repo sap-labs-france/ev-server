@@ -25,6 +25,10 @@ class UserApi extends CrudApi {
   delete(id) {
     return super.delete('/client/api/UserDelete', id);
   }
+
+  getByEmail(email) {
+    return this.readAll({Search : email});
+  }
 }
 
 module.exports = UserApi;

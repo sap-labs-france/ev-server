@@ -2,7 +2,7 @@ const sanitize = require('mongo-sanitize');
 
 class StatisticSecurity {
 	static filterUserStatisticsRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.Year = sanitize(request.Year);
 		filteredRequest.SiteID = sanitize(request.SiteID);
@@ -10,7 +10,7 @@ class StatisticSecurity {
 	}
 
 	static filterChargingStationStatisticsRequest(request, loggedUser) {
-		let filteredRequest = {};
+		const filteredRequest = {};
 		// Set
 		filteredRequest.Year = sanitize(request.Year);
 		filteredRequest.SiteID = sanitize(request.SiteID);

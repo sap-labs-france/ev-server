@@ -36,16 +36,9 @@ class ErrorHandler {
   }
 
   static async _handleBadRequestError(err, res) {
-    const details = err.schemaErrors.map((error) => {
-      return {
-        path: error.dataPath,
-        message: error.message
-      }
-    });
-
     res.status(HttpStatus.BAD_REQUEST).json({
       "message": err.message,
-      "details": details
+      "details": err.details ? err.details : []
     });
   }
 

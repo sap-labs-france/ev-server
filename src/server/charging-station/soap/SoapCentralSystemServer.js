@@ -9,6 +9,7 @@ const express = require('express')();
 const CFLog = require('cf-nodejs-logging-support');
 const CentralSystemServer = require('../CentralSystemServer');
 const Logging = require('../../../utils/Logging');
+const Constants = require('../../../utils/Constants');
 const Configuration = require('../../../utils/Configuration');
 const centralSystemService12 = require('./services/SoapCentralSystemService12');
 const centralSystemService12Wsdl = require('./wsdl/OCPPCentralSystemService12.wsdl');
@@ -43,8 +44,8 @@ class SoapCentralSystemServer extends CentralSystemServer {
             write: (message) => {
               // Log
               Logging.logDebug({
-                module: "CentralSystemServer",
-                method: "constructor",
+                tenantID: Constants.DEFAULT_TENANT,
+                module: "CentralSystemServer", method: "constructor",
                 action: "HttpRequestLog",
                 message: message
               });
@@ -135,9 +136,9 @@ class SoapCentralSystemServer extends CentralSystemServer {
         if (type === 'replied') {
           // Log
           Logging.logDebug({
+            tenantID: Constants.DEFAULT_TENANT,
             module: "SoapCentralSystemServer",
-            method: "start",
-            action: "SoapRequest",
+            method: "start", action: "SoapRequest",
             message: `OCPP 1.2 - Request Replied`,
             detailedMessages: data
           });
@@ -147,9 +148,9 @@ class SoapCentralSystemServer extends CentralSystemServer {
       soapServer12.on('request', (request, methodName) => {
         // Log
         Logging.logDebug({
+          tenantID: Constants.DEFAULT_TENANT,
           module: "SoapCentralSystemServer",
-          method: "start",
-          action: "SoapRequest",
+          method: "start", action: "SoapRequest",
           message: `OCPP 1.2 - Request '${methodName}' Received`,
           detailedMessages: request
         });
@@ -165,9 +166,9 @@ class SoapCentralSystemServer extends CentralSystemServer {
         if (type === 'replied') {
           // Log
           Logging.logDebug({
+            tenantID: Constants.DEFAULT_TENANT,
             module: "SoapCentralSystemServer",
-            method: "start",
-            action: "SoapRequest",
+            method: "start", action: "SoapRequest",
             message: `OCPP 1.5 - Request Replied`,
             detailedMessages: data
           });
@@ -177,9 +178,9 @@ class SoapCentralSystemServer extends CentralSystemServer {
       soapServer15.on('request', (request, methodName) => {
         // Log
         Logging.logDebug({
+          tenantID: Constants.DEFAULT_TENANT,
           module: "SoapCentralSystemServer",
-          method: "start",
-          action: "SoapRequest",
+          method: "start", action: "SoapRequest",
           message: `OCPP 1.5 - Request '${methodName}' Received`,
           detailedMessages: request
         });
@@ -195,9 +196,9 @@ class SoapCentralSystemServer extends CentralSystemServer {
         if (type === 'replied') {
           // Log
           Logging.logDebug({
+            tenantID: Constants.DEFAULT_TENANT,
             module: "SoapCentralSystemServer",
-            method: "start",
-            action: "SoapRequest",
+            method: "start", action: "SoapRequest",
             message: `OCPP 1.6 - Request Replied`,
             detailedMessages: data
           });
@@ -207,8 +208,8 @@ class SoapCentralSystemServer extends CentralSystemServer {
       soapServer16.on('request', (request, methodName) => {
         // Log
         Logging.logDebug({
-          module: "SoapCentralSystemServer",
-          method: "start",
+          tenantID: Constants.DEFAULT_TENANT,
+          module: "SoapCentralSystemServer", method: "start",
           action: "SoapRequest",
           message: `OCPP 1.6 - Request '${methodName}' Received`,
           detailedMessages: request
@@ -220,8 +221,8 @@ class SoapCentralSystemServer extends CentralSystemServer {
     server.listen(this._centralSystemConfig.port, this._centralSystemConfig.host, () => {
       // Log
       Logging.logInfo({
-        module: "SoapCentralSystemServer",
-        method: "start",
+        tenantID: Constants.DEFAULT_TENANT,
+        module: "SoapCentralSystemServer", method: "start",
         action: "Startup",
         message: `Soap Central System Server (Charging Stations) listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`
       });
