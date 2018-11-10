@@ -14,14 +14,6 @@ class JsonWSConnection extends WSConnection {
   constructor(wsConnection, req, chargingStationConfig, wsServer) {
     // Call super
     super(wsConnection, req, wsServer);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      module: MODULE_NAME, method: "constructor",
-      source: this.getChargingStationID(),
-      action: "WSJsonConnectionOpened",
-      message: `New Json connection from '${this.getIP()}', Protocol '${wsConnection.protocol}', URL '${this.getURL()}'`
-    });
     // Check Protocol (required field of OCPP spec)
     switch (wsConnection.protocol) {
       // OCPP 1.6?
@@ -43,7 +35,7 @@ class JsonWSConnection extends WSConnection {
     // Already initialized?
     if (!this._initialized) {
       // Call super class
-      super.initialize();
+      await super.initialize();
       // Initialize the default Headers
       this._headers = {
         chargeBoxIdentity: this.getChargingStationID(),
@@ -57,6 +49,14 @@ class JsonWSConnection extends WSConnection {
       }
       // Ok
       this._initialized = true;
+      // Log
+      Logging.logInfo({
+        tenantID: this.getTenantID(),
+        module: MODULE_NAME, method: "initialize",
+        source: this.getChargingStationID(),
+        action: "WSJsonConnectionOpened",
+        message: `New Json connection from '${this.getIP()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`
+      });
     }
   }
 

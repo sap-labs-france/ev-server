@@ -138,7 +138,8 @@ class JsonCentralSystemServer extends CentralSystemServer {
 
   removeJsonConnection(wsConnection) {
     // Check first
-    if (this._jsonChargingStationClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection().id) {
+    if (this._jsonChargingStationClients[wsConnection.getID()] && 
+        this._jsonChargingStationClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection().id) {
       console.log('Remove Json from cache ' + wsConnection.getID());
       // Remove from cache    
       delete this._jsonChargingStationClients[wsConnection.getID()];
@@ -153,7 +154,8 @@ class JsonCentralSystemServer extends CentralSystemServer {
 
   removeRestConnection(wsConnection) {
     // Check first
-    if (this._jsonRestClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection().id) {
+    if (this._jsonRestClients[wsConnection.getID()] &&
+        this._jsonRestClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection().id) {
       console.log('Remove REST from cache ' + wsConnection.getID());
       // Remove from cache
       delete this._jsonRestClients[wsConnection.getID()];

@@ -10,29 +10,30 @@ class JsonRestWSConnection extends WSConnection {
   constructor(wsConnection, req, wsServer) {
     // Call super
     super(wsConnection, req, wsServer);
-    // Log
-    Logging.logInfo({
-      module: MODULE_NAME,
-      source: this.getChargingStationID(),
-      method: "onOpen",
-      action: "WSRestServerConnectionOpened",
-      message: `New Rest connection from '${this.getIP()}', Protocol '${wsConnection.protocol}', URL '${this.getURL()}'`
-    });
   }
 
   async initialize() {
     // Already initialized?
     if (!this._initialized) {
       // Call super class
-      super.initialize();
+      await super.initialize();
       // Ok
       this._initialized = true;
+      // Log
+      Logging.logInfo({
+        tenantID: this.getTenantID(),
+        module: MODULE_NAME, method: "initialize",
+        source: this.getChargingStationID(),
+        action: "WSRestServerConnectionOpened",
+        message: `New Rest connection from '${this.getIP()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`
+      });
     }
   }
 
   onError(error) {
     // Log
     Logging.logError({
+      tenantID: this.getTenantID(),
       module: MODULE_NAME,
       method: "onError",
       action: "WSRestServerErrorReceived",
@@ -43,6 +44,7 @@ class JsonRestWSConnection extends WSConnection {
   onClose(code, reason) {
     // Log
     Logging.logInfo({
+      tenantID: this.getTenantID(),
       module: MODULE_NAME,
       source: (this.getChargingStationID() ? this.getChargingStationID() : ""),
       method: "onClose",
@@ -55,9 +57,9 @@ class JsonRestWSConnection extends WSConnection {
 
   async handleRequest(messageId, commandName, commandPayload) {
     // Log
-    Logging.logReceivedAction(MODULE_NAME, this.getChargingStationID(), commandName, commandPayload);
+    Logging.logReceivedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Get the Charging Station
-    let chargingStation = await ChargingStation.getChargingStation(this.getChargingStationID());
+    let chargingStation = await ChargingStation.getChargingStation(this.getTenantID(), this.getChargingStationID());
     // Found?
     if (!chargingStation) {
       // Error
@@ -85,7 +87,7 @@ class JsonRestWSConnection extends WSConnection {
         "JsonRestWSConnection", "handleRequest", commandName);
     }
     // Log
-    Logging.logReturnedAction(MODULE_NAME, this.getChargingStationID(), commandName, result);
+    Logging.logReturnedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
     // Send Response
     await this.sendMessage(messageId, result, Constants.OCPP_JSON_CALL_RESULT_MESSAGE);
   }

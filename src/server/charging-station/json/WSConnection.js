@@ -1,5 +1,6 @@
 const uuid = require('uuid/v4');
 const Logging = require('../../../utils/Logging');
+const Utils = require('../../../utils/Utils');
 const WebSocket = require('ws');
 const Constants = require('../../../utils/Constants');
 const OCPPError = require('../../../exception/OcppError');
@@ -24,6 +25,8 @@ class WSConnection {
     this._initialized = false;
     this._wsServer = wsServer;
 
+    // Default
+    this.setTenantValid(false);
     // Check URL: remove starting and trailing '/'
     if (this._url.endsWith('/')) {
       // Remove '/'
@@ -43,7 +46,7 @@ class WSConnection {
       this.setChargingStationID(splittedURL[2]);
     } else {
       // Error
-      throw new BackendError(null, `The URL '${req.url}' must contain the Charging Station ID (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`,
+      throw new BackendError(null, `The URL '${req.url}' is invalid (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`,
         "WSConnection", "constructor");
     }
     // Handle incoming messages
@@ -52,6 +55,31 @@ class WSConnection {
     this._wsConnection.on('error', this.onError.bind(this));
     // Handle Socket close
     this._wsConnection.on('close', this.onClose.bind(this));
+  }
+
+  async initialize() {
+    try {
+      // Check Tenant?
+      await Utils.checkTenant(this._tenantID);
+      // Ok
+      this.setTenantValid(true);
+      // Cloud Foundry?
+      if (Configuration.isCloudFoundry()) {
+        // Yes: Save the CF App and Instance ID to call the charger from the Rest server
+        const chargingStation = await ChargingStation.getChargingStation(this.getTenantID(), this.getChargingStationID());
+        // Found?
+        if (chargingStation) {
+          // Update CF Instance
+          chargingStation.setCFApplicationIDAndInstanceIndex(Configuration.getCFApplicationIDAndInstanceIndex());
+          // Save it
+          let cs = await chargingStation.save();
+        }
+      }
+    } catch(error) {
+      // Custom Error
+      throw new BackendError(this.getChargingStationID(), `Invalid Tenant '${this._tenantID}' in URL '${this.getURL()}'`,
+        "WSConnection", "initialize");
+    }
   }
 
   onError(error) {
@@ -119,36 +147,6 @@ class WSConnection {
       Logging.logException(error, "", this.getChargingStationID(), MODULE_NAME, "onMessage", this.getTenantID());
       // Send error
       await this.sendError(messageId, error);
-    }
-  }
-
-  async initialize() {
-    // Check Tenant?
-    if (this.getTenantID()) {
-      // Check if the Tenant exists
-      const tenant = await Tenant.getTenant(this.getTenantID());
-      // Found?
-      if (!tenant) {
-        // Error
-        throw new BackendError(this.getChargingStationID(), `Invalid Tenant '${this.getTenantID()}' in URL '${this.getURL()}'`,
-          "JsonWSConnection", "initialize");
-      }
-    } else {
-        // Error
-        throw new BackendError(this.getChargingStationID(), `Tenant is not provided in URL '${this.getURL()}'`,
-          "JsonWSConnection", "initialize");
-    }
-    // Cloud Foundry?
-    if (Configuration.isCloudFoundry()) {
-      // Yes: Save the CF App and Instance ID to call the charger from the Rest server
-      const chargingStation = await ChargingStation.getChargingStation(this.getTenantID(), this.getChargingStationID());
-      // Found?
-      if (chargingStation) {
-        // Update CF Instance
-        chargingStation.setCFApplicationIDAndInstanceIndex(Configuration.getCFApplicationIDAndInstanceIndex());
-        // Save it
-        let cs = await chargingStation.save();
-      }
     }
   }
 
@@ -258,7 +256,14 @@ class WSConnection {
   }
 
   getTenantID() {
-    return this._tenantID;
+    // Check
+    if (this.isTenantValid()) {
+      // Ok verified
+      return this._tenantID;
+    } else {
+      // No go to the master tenant
+      return Constants.DEFAULT_TENANT;
+    }
   }
 
   setTenantID(tenantID) {
@@ -267,6 +272,14 @@ class WSConnection {
 
   getID() {
     return `${this.getTenantID()}~${this.getChargingStationID()}}`;
+  }
+
+  setTenantValid(valid) {
+    this.tenantIsValid = valid; 
+  }
+
+  isTenantValid() {
+    return this.tenantIsValid; 
   }
 }
 
