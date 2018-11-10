@@ -131,8 +131,7 @@ class JsonCentralSystemServer extends CentralSystemServer {
   }
 
   addJsonConnection(wsConnection) {
-      console.log('Add Json in cache ' + wsConnection.getID());
-      // Keep the connection
+    // Keep the connection
     this._jsonChargingStationClients[wsConnection.getID()] = wsConnection;
   }
 
@@ -140,15 +139,13 @@ class JsonCentralSystemServer extends CentralSystemServer {
     // Check first
     if (this._jsonChargingStationClients[wsConnection.getID()] && 
         this._jsonChargingStationClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection().id) {
-      console.log('Remove Json from cache ' + wsConnection.getID());
       // Remove from cache    
       delete this._jsonChargingStationClients[wsConnection.getID()];
     }
   }
 
   addRestConnection(wsConnection) {
-      console.log('Add REST in cache ' + wsConnection.getID());
-      // Keep the connection
+    // Keep the connection
     this._jsonRestClients[wsConnection.getID()] = wsConnection;
   }
 
@@ -156,7 +153,6 @@ class JsonCentralSystemServer extends CentralSystemServer {
     // Check first
     if (this._jsonRestClients[wsConnection.getID()] &&
         this._jsonRestClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection().id) {
-      console.log('Remove REST from cache ' + wsConnection.getID());
       // Remove from cache
       delete this._jsonRestClients[wsConnection.getID()];
     }
@@ -167,8 +163,6 @@ class JsonCentralSystemServer extends CentralSystemServer {
     const id = `${tenantID}~${chargingStationID}}`;
     // Charging Station exists?
     if (this._jsonChargingStationClients[id]) {
-      console.log('Found in cache ' + id);
-      
       // Return from the cache
       return this._jsonChargingStationClients[id].getChargingStationClient();
     }
