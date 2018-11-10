@@ -1,0 +1,38 @@
+{
+  "env": "local",
+  "trace_logs": false,
+  "ocpp": {
+    "tenantID": "5be6f349e036ec7fa4743d98",
+    "soap": {
+      "scheme": "http",
+      "host": "127.0.0.1",
+      "port": 8000,
+      "logs": "none"
+    },
+    "json": {
+      "scheme": "ws",
+      "host": "127.0.0.1",
+      "port": 8010,
+      "logs": "none"
+    }
+  },
+  "server": {
+    "scheme": "http",
+    "host": "127.0.0.1",
+    "port": 8081,
+    "logs": "none"
+  },
+  "superadmin": {
+    "username": "super.admin@sap.com",
+    "password": ""
+  },
+  "admin": {
+    "username": "admin@sap.com",
+    "password": "",
+    "tenant": "slf"
+  },
+  "server": {
+    "logs": "none",
+    "port": 80
+  }
+}
