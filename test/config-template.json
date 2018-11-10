@@ -2,7 +2,6 @@
   "env": "local",
   "trace_logs": false,
   "ocpp": {
-    "tenantID": "5be6f349e036ec7fa4743d98",
     "soap": {
       "scheme": "http",
       "host": "127.0.0.1",

@@ -1,14 +1,17 @@
 const OCPPCommonTests = require('./OCPPCommonTests');
 const OCPPJsonService16 = require('./ocpp/json/OCPPJsonService16');
+const CentralServerService = require('./client/CentralServerService');
 const config = require('../config');
 
 describe('OCPP 1.6 JSON Tests', function () {
   this.timeout(100000);
 
   before(async () => {
+    // Get Tenant ID
+    const tenantID = await CentralServerService.authenticatedApi.getTenantID();
     // Create OCPP 1.5
     this.ocpp = new OCPPJsonService16(
-      `${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${config.get('ocpp.tenantID')}`);
+      `${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${tenantID}`);
     // Init Common tests
     this.ocppCommonTests = new OCPPCommonTests(this.ocpp);
     // Delegate
