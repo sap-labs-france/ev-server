@@ -8,7 +8,7 @@ module.exports = { /* Services */
   CentralSystemService: { /* Ports */
     CentralSystemServiceSoap12: { /* Methods */
       Authorize: function (args, callback, headers, req) {
-        // Normalize Header
+        // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Payload
           const payload = Object.assign({}, args, headers);
@@ -43,7 +43,7 @@ module.exports = { /* Services */
       },
 
       StartTransaction: function (args, callback, headers, req) {
-        // Normalize Header
+        // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Payload
           const payload = Object.assign({}, args, headers);
@@ -79,7 +79,7 @@ module.exports = { /* Services */
       },
 
       StopTransaction: function (args, callback, headers, req) {
-        // Normalize Header
+        // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Payload
           const payload = Object.assign({}, args, headers);
@@ -113,7 +113,7 @@ module.exports = { /* Services */
       },
 
       Heartbeat: function (args, callback, headers, req) {
-        // Normalize Header
+        // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Payload
           const payload = headers;
@@ -143,7 +143,7 @@ module.exports = { /* Services */
       },
 
       MeterValues: function (args, callback, headers, req) {
-        // Normalize Header
+        // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Payload
           const payload = Object.assign({}, args, headers);
@@ -169,7 +169,7 @@ module.exports = { /* Services */
       },
 
       BootNotification: function (args, callback, headers, req) {
-        // Normalize Header
+        // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Add OCPP Version
           headers.ocppVersion = Constants.OCPP_VERSION_15;
@@ -206,7 +206,7 @@ module.exports = { /* Services */
       },
 
       StatusNotification: function (args, callback, headers, req) {
-        // Normalize Header
+        // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Payload
           const payload = Object.assign({}, args, headers);
@@ -233,7 +233,7 @@ module.exports = { /* Services */
       },
       
       FirmwareStatusNotification: function (args, callback, headers, req) {
-        // Normalize Header
+        // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Payload
           const payload = Object.assign({}, args, headers);
@@ -259,7 +259,7 @@ module.exports = { /* Services */
       },
 
       DiagnosticsStatusNotification: function (args, callback, headers, req) {
-        // Normalize Header
+        // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Payload
           const payload = Object.assign({}, args, headers);
@@ -285,7 +285,7 @@ module.exports = { /* Services */
       },
 
       DataTransfer: function (args, callback, headers, req) {
-        // Normalize Header
+        // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Payload
           const payload = Object.assign({}, args, headers);
