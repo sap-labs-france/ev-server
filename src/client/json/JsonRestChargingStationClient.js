@@ -17,7 +17,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
       chargingStationURL = chargingStationURL.substring(0, chargingStationURL.length - 1);
     }
     // Keep
-    this._serverURL = `${chargingStationURL}/REST/${chargingStation.getID()}`;
+    this._serverURL = `${chargingStationURL}/REST/${chargingStation.getTenantID()}/${chargingStation.getID()}`;
     this._chargingStation = chargingStation;
     this._requests = {};
   }

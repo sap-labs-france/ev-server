@@ -131,36 +131,44 @@ class JsonCentralSystemServer extends CentralSystemServer {
   }
 
   addJsonConnection(wsConnection) {
-    // Keep the connection
-    this._jsonChargingStationClients[wsConnection.getChargingStationID()] = wsConnection;
+      console.log('Add Json in cache ' + wsConnection.getID());
+      // Keep the connection
+    this._jsonChargingStationClients[wsConnection.getID()] = wsConnection;
   }
 
   removeJsonConnection(wsConnection) {
     // Check first
-    if (this._jsonChargingStationClients[wsConnection.getChargingStationID()].getWSConnection().id === wsConnection.getWSConnection().id) {
+    if (this._jsonChargingStationClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection().id) {
+      console.log('Remove Json from cache ' + wsConnection.getID());
       // Remove from cache    
-      delete this._jsonChargingStationClients[wsConnection.getChargingStationID()];
+      delete this._jsonChargingStationClients[wsConnection.getID()];
     }
   }
 
   addRestConnection(wsConnection) {
-    // Keep the connection
-    this._jsonRestClients[wsConnection.getChargingStationID()] = wsConnection;
+      console.log('Add REST in cache ' + wsConnection.getID());
+      // Keep the connection
+    this._jsonRestClients[wsConnection.getID()] = wsConnection;
   }
 
   removeRestConnection(wsConnection) {
     // Check first
-    if (this._jsonRestClients[wsConnection.getChargingStationID()].getWSConnection().id === wsConnection.getWSConnection().id) {
+    if (this._jsonRestClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection().id) {
+      console.log('Remove REST from cache ' + wsConnection.getID());
       // Remove from cache
-      delete this._jsonRestClients[wsConnection.getChargingStationID()];
+      delete this._jsonRestClients[wsConnection.getID()];
     }
   }
 
-  getChargingStationClient(chargingStationID) {
+  getChargingStationClient(tenantID, chargingStationID) {
+    // Build ID
+    const id = `${tenantID}~${chargingStationID}}`;
     // Charging Station exists?
-    if (this._jsonChargingStationClients[chargingStationID]) {
+    if (this._jsonChargingStationClients[id]) {
+      console.log('Found in cache ' + id);
+      
       // Return from the cache
-      return this._jsonChargingStationClients[chargingStationID].getChargingStationClient();
+      return this._jsonChargingStationClients[id].getChargingStationClient();
     }
     // Not found!
     return null;

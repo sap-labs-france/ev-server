@@ -33,7 +33,7 @@ class WSConnection {
       // Remove '/'
       this._url = this._url.substring(1, this._url.length);
     }
-    // Parse URL: should like /OCPP16/TENANTNAME/CHARGEBOXID
+    // Parse URL: should like /OCPP16/TENANTID/CHARGEBOXID
     const splittedURL = this.getURL().split("/");
     // URL with 4 parts?
     if (splittedURL.length === 3) {
@@ -263,6 +263,10 @@ class WSConnection {
 
   setTenantID(tenantID) {
     this._tenantID = tenantID;
+  }
+
+  getID() {
+    return `${this.getTenantID()}~${this.getChargingStationID()}}`;
   }
 }
 

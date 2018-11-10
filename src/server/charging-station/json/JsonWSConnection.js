@@ -101,9 +101,10 @@ class JsonWSConnection extends WSConnection {
   }
 
   getChargingStationClient() {
+    // only return client if WS is open
     if (this.getWSConnection().readyState === WebSocket.OPEN) {
       return this._chargingStationClient;
-    } // only return client if WS is open
+    }
   }
 }
 
