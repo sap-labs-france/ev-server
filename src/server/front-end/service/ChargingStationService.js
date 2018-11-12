@@ -432,7 +432,9 @@ class ChargingStationService {
           message: `Max Instensity Socket has been set to '${filteredRequest.maxIntensity}'`
         });
         // Change the config
-        result = await chargingStation.requestChangeConfiguration('maxintensitysocket', filteredRequest.maxIntensity);
+        result = await chargingStation.requestChangeConfiguration(
+          { key: 'maxintensitysocket', value: filteredRequest.maxIntensity }
+        );
       } else {
         // Invalid value
         throw new AppError(

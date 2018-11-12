@@ -782,19 +782,15 @@ class ChargingStation extends AbstractTenantEntity {
   // Build duration
   _buildCurrentTransactionDuration(transaction, lastTimestamp) {
     // Build date
-    let dateTimeString, timeDiffDuration;
     const i18nHourShort = 'h';
     // Compute duration from now
-    timeDiffDuration = moment.duration(
+    const timeDiffDuration = moment.duration(
       moment(lastTimestamp).diff(moment(transaction.timestamp)));
     // Set duration
     const mins = Math.floor(timeDiffDuration.minutes());
-    // Set duration
-    dateTimeString =
-      Math.floor(timeDiffDuration.asHours()).toString() + i18nHourShort +
+    // Return Duration
+    return Math.floor(timeDiffDuration.asHours()).toString() + i18nHourShort +
       (mins < 10 ? ('0' + mins) : mins.toString());
-    // End
-    return dateTimeString;
   }
 
   async handleMeterValues(meterValues) {
@@ -1480,7 +1476,7 @@ class ChargingStation extends AbstractTenantEntity {
     // Request the new Configuration?
     if (result.status !== 'Accepted') {
       // Error
-      throw new BackendError(this.getID(), `Cannot set the configuration param ${key} with value ${value} to ${this.getID()}`,
+      throw new BackendError(this.getID(), `Cannot set the configuration param ${params.key} with value ${params.value} to ${this.getID()}`,
         "ChargingStation", "requestChangeConfiguration")
     }
     // Update
