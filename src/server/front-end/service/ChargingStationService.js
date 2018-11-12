@@ -5,20 +5,21 @@ const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Authorizations = require('../../../authorization/Authorizations');
 const ChargingStationSecurity = require('./security/ChargingStationSecurity');
-const TransactionStorage = require('../../../storage/mongodb/TransactionStorage'); 
+const TransactionStorage = require('../../../storage/mongodb/TransactionStorage');
 const ChargingStation = require('../../../entity/ChargingStation');
+
 class ChargingStationService {
 
   static async handleUpdateChargingStationParams(action, req, res, next) {
     try {
       // Filter
-      const filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest( req.body, req.user );
+      const filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest(req.body, req.user);
       // Check email
       const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.id);
       if (!chargingStation) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Charging Station with ID '${filteredRequest.id}' does not exist`, 550, 
+          `The Charging Station with ID '${filteredRequest.id}' does not exist`, 550,
           'ChargingStationService', 'handleUpdateChargingStationParams', req.user);
       }
       // Check Auth
@@ -26,7 +27,7 @@ class ChargingStationService {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE, Constants.ENTITY_CHARGING_STATION,
-                	chargingStation.getID(), 560,
+          chargingStation.getID(), 560,
           'ChargingStationService', 'handleUpdateChargingStationParams',
           req.user);
       }
@@ -52,8 +53,8 @@ class ChargingStationService {
         // Assign to Charger's connector
         for (const connector of filteredRequest.connectors) {
           // Set
-          chargerConnectors[connector.connectorId-1].power = connector.power;
-          chargerConnectors[connector.connectorId-1].type = connector.type;
+          chargerConnectors[connector.connectorId - 1].power = connector.power;
+          chargerConnectors[connector.connectorId - 1].type = connector.type;
         }
       }
       // Update timestamp
@@ -87,11 +88,11 @@ class ChargingStationService {
       // Filter
       const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query, req.user);
       // Charge Box is mandatory
-      if(!filteredRequest.ChargeBoxID) {
+      if (!filteredRequest.ChargeBoxID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Charging Station ID is mandatory`, 500, 
+          `The Charging Station ID is mandatory`, 500,
           'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
       }
       // Get the Charging Station`
@@ -101,7 +102,7 @@ class ChargingStationService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Charging Station with ID '${filteredRequest.ChargeBoxID}' does not exist`,	550, 
+          `Charging Station with ID '${filteredRequest.ChargeBoxID}' does not exist`, 550,
           'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
       }
       // Check auth
@@ -109,7 +110,7 @@ class ChargingStationService {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_READ, Constants.ENTITY_CHARGING_STATION,
-          chargingStation.getID(), 560, 
+          chargingStation.getID(), 560,
           'ChargingStationService', 'handleGetChargingStationConfiguration',
           req.user);
       }
@@ -129,11 +130,11 @@ class ChargingStationService {
       // Filter
       const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query, req.user);
       // Charge Box is mandatory
-      if(!filteredRequest.ChargeBoxID) {
+      if (!filteredRequest.ChargeBoxID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Charging Station ID is mandatory`, 500, 
+          `The Charging Station ID is mandatory`, 500,
           'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
       }
       // Get the Charging Station
@@ -143,7 +144,7 @@ class ChargingStationService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Charging Station with ID '${filteredRequest.ChargeBoxID}' does not exist`,	550, 
+          `Charging Station with ID '${filteredRequest.ChargeBoxID}' does not exist`, 550,
           'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
       }
       // Check auth
@@ -152,7 +153,7 @@ class ChargingStationService {
         throw new AppAuthError(
           Constants.ACTION_READ,
           Constants.ENTITY_CHARGING_STATION,
-          chargingStation.getID(), 560, 
+          chargingStation.getID(), 560,
           'ChargingStationService', 'handleGetChargingStationConfiguration',
           req.user);
       }
@@ -172,11 +173,11 @@ class ChargingStationService {
       // Filter
       const filteredRequest = ChargingStationSecurity.filterChargingStationDeleteRequest(req.query, req.user);
       // Check Mandatory fields
-      if(!filteredRequest.ID) {
+      if (!filteredRequest.ID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Charging Station ID is mandatory`, 500, 
+          `The Charging Station ID is mandatory`, 500,
           'ChargingStationService', 'handleDeleteChargingStation', req.user);
       }
       // Get
@@ -186,7 +187,7 @@ class ChargingStationService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Charging Station with ID '${filteredRequest.ID}' does not exist`, 550, 
+          `Charging Station with ID '${filteredRequest.ID}' does not exist`, 550,
           'ChargingStationService', 'handleDeleteChargingStation', req.user);
       }
       // Check auth
@@ -195,7 +196,7 @@ class ChargingStationService {
         throw new AppAuthError(
           Constants.ACTION_DELETE,
           Constants.ENTITY_CHARGING_STATION,
-          chargingStation.getID(), 560, 
+          chargingStation.getID(), 560,
           'ChargingStationService', 'handleDeleteChargingStation',
           req.user);
       }
@@ -208,7 +209,8 @@ class ChargingStationService {
         tenantID: req.user.tenantID,
         user: req.user, module: 'ChargingStationService', method: 'handleDeleteChargingStation',
         message: `Charging Station '${chargingStation.getID()}' has been deleted successfully`,
-        action: action, detailedMessages: chargingStation});
+        action: action, detailedMessages: chargingStation
+      });
       // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);
       next();
@@ -223,11 +225,11 @@ class ChargingStationService {
       // Filter
       const filteredRequest = ChargingStationSecurity.filterChargingStationRequest(req.query, req.user);
       // Charge Box is mandatory
-      if(!filteredRequest.ID) {
+      if (!filteredRequest.ID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Charging Station ID is mandatory`, 500, 
+          `The Charging Station ID is mandatory`, 500,
           'ChargingStationService', 'handleGetChargingStation', req.user);
       }
       // Get it
@@ -257,7 +259,7 @@ class ChargingStationService {
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_CHARGING_STATIONS,
-          null, 560, 
+          null, 560,
           'ChargingStationService', 'handleGetChargingStations',
           req.user);
       }
@@ -265,7 +267,11 @@ class ChargingStationService {
       const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query, req.user);
       // Get the charging Charging Stations
       const chargingStations = await ChargingStation.getChargingStations(req.user.tenantID,
-        { 'search': filteredRequest.Search, 'withNoSiteArea': filteredRequest.WithNoSiteArea, 'siteID': filteredRequest.SiteID },
+        {
+          'search': filteredRequest.Search,
+          'withNoSiteArea': filteredRequest.WithNoSiteArea,
+          'siteID': filteredRequest.SiteID
+        },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
       chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
@@ -283,9 +289,9 @@ class ChargingStationService {
   static async handleAction(action, req, res, next) {
     try {
       // Filter
-      const filteredRequest = ChargingStationSecurity.filterChargingStationActionRequest( req.body, action, req.user );
+      const filteredRequest = ChargingStationSecurity.filterChargingStationActionRequest(req.body, action, req.user);
       // Charge Box is mandatory
-      if(!filteredRequest.chargeBoxID) {
+      if (!filteredRequest.chargeBoxID) {
         Logging.logActionExceptionMessageAndSendResponse(
           action, new Error(`The Charging Station ID is mandatory`), req, res, next);
         return;
@@ -297,18 +303,18 @@ class ChargingStationService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`, 550, 
+          `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`, 550,
           'ChargingStationService', 'handleAction', req.user);
       }
       let result;
       if (action === 'StopTransaction' ||
-					action === 'UnlockConnector') {
+        action === 'UnlockConnector') {
         // Get Transaction
         const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.args.transactionId);
         if (!transaction) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `Transaction with ID '${filteredRequest.TransactionId}' does not exist`, 560, 
+            `Transaction with ID '${filteredRequest.TransactionId}' does not exist`, 560,
             'ChargingStationService', 'handleAction', req.user);
         }
         // Add connector ID
@@ -347,11 +353,12 @@ class ChargingStationService {
         source: chargingStation.getID(), user: req.user, action: action,
         module: 'ChargingStationService', method: 'handleAction',
         message: `'${action}' has been executed successfully`,
-        detailedMessages: result });
+        detailedMessages: result
+      });
       // Return the result
       res.json(result);
       next();
-    } catch(err) {
+    } catch (err) {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next);
     }
@@ -360,13 +367,13 @@ class ChargingStationService {
   static async handleActionSetMaxIntensitySocket(action, req, res, next) {
     try {
       // Filter
-      const filteredRequest = ChargingStationSecurity.filterChargingStationSetMaxIntensitySocketRequest( req.body, req.user );
+      const filteredRequest = ChargingStationSecurity.filterChargingStationSetMaxIntensitySocketRequest(req.body, req.user);
       // Charge Box is mandatory
-      if(!filteredRequest.chargeBoxID) {
+      if (!filteredRequest.chargeBoxID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Charging Station ID is mandatory`, 500, 
+          `The Charging Station ID is mandatory`, 500,
           'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
       }
       // Get the Charging station
@@ -376,7 +383,7 @@ class ChargingStationService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`, 550, 
+          `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`, 550,
           'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
       }
       // Check auth
@@ -395,7 +402,7 @@ class ChargingStationService {
         // Not Found!
         throw new AppError(
           chargingStation.getID(),
-          `Cannot retrieve the configuration`, 550, 
+          `Cannot retrieve the configuration`, 550,
           'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
       }
       let maxIntensitySocketMax = null;
@@ -411,7 +418,7 @@ class ChargingStationService {
         // Not Found!
         throw new AppError(
           chargingStation.getID(),
-          `Cannot retrieve the max intensity socket from the configuration`, 550, 
+          `Cannot retrieve the max intensity socket from the configuration`, 550,
           'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
       }
       // Check
@@ -422,14 +429,15 @@ class ChargingStationService {
           tenantID: req.user.tenantID,
           user: req.user, module: 'ChargingStationService', method: 'handleActionSetMaxIntensitySocket',
           action: action, source: chargingStation.getID(),
-          message: `Max Instensity Socket has been set to '${filteredRequest.maxIntensity}'`});
+          message: `Max Instensity Socket has been set to '${filteredRequest.maxIntensity}'`
+        });
         // Change the config
         result = await chargingStation.requestChangeConfiguration('maxintensitysocket', filteredRequest.maxIntensity);
       } else {
         // Invalid value
         throw new AppError(
           chargingStation.getID(),
-          `Invalid value for Max Intensity Socket: '${filteredRequest.maxIntensity}'`, 500, 
+          `Invalid value for Max Intensity Socket: '${filteredRequest.maxIntensity}'`, 500,
           'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
       }
       // Return the result
@@ -441,4 +449,5 @@ class ChargingStationService {
     }
   }
 }
+
 module.exports = ChargingStationService;

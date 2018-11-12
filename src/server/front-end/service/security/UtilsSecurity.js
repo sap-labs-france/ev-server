@@ -34,14 +34,14 @@ class UtilsSecurity {
         filteredRequest.Sort = {};
         // Build
         for (let i = 0; i < request.SortFields.length; i++) {
-          const sortField = request.SortFields[index];
+          let sortField = request.SortFields[i];
           // Check field ID
           if (sortField === 'id') {
             // In MongoDB it's '_id'
             sortField = '_id';
           }
           // Set
-          filteredRequest.Sort[sortField] = (request.SortDirs[i] === "asc" ? 1 : -1);  
+          filteredRequest.Sort[sortField] = (request.SortDirs[i] === "asc" ? 1 : -1);
         }
       } else {
         // Init
@@ -52,7 +52,7 @@ class UtilsSecurity {
           request.SortFields = '_id';
         }
         // Set
-        filteredRequest.Sort[request.SortFields] = (request.SortDirs === "asc" ? 1 : -1);  
+        filteredRequest.Sort[request.SortFields] = (request.SortDirs === "asc" ? 1 : -1);
       }
     }
   }

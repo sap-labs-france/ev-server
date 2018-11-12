@@ -2,7 +2,7 @@ const SchemaValidator = require('./SchemaValidator');
 const tenantCreation = require('../schemas/tenant/tenant-creation.json');
 const tenantUpdate = require('../schemas/tenant/tenant-update.json');
 
-class TenantValidator extends SchemaValidator{
+class TenantValidator extends SchemaValidator {
 
   constructor() {
     if (!TenantValidator.instance) {

@@ -7,7 +7,6 @@ const Utils = require('../../utils/Utils');
 const AppError = require('../../exception/AppError');
 const eula = require('../../end-user-agreement');
 const DatabaseUtils = require('./DatabaseUtils');
-const BackendError = require('../../exception/BackendError');
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 
@@ -38,7 +37,6 @@ class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     let languageFound = false;
-    let currentEula;
     let currentEulaHash;
     let eula = null;
     const supportLanguages = Configuration.getLocalesConfig().supported;
@@ -53,7 +51,7 @@ class UserStorage {
       language = "en";
     }
     // Get current eula
-    currentEula = await UserStorage.getLatestEndUserLicenseAgreement(tenantID, language);
+    const currentEula = await UserStorage.getLatestEndUserLicenseAgreement(tenantID, language);
     // Read DB
     const eulasMDB = await global.database.getCollection(tenantID, 'eulas')
       .find({'language': language})
@@ -326,7 +324,7 @@ class UserStorage {
         550, "UserStorage", "saveUserImage");
     }
     // Modify and return the modified document
-    const result = await global.database.getCollection(tenantID, 'userimages').findOneAndUpdate(
+    await global.database.getCollection(tenantID, 'userimages').findOneAndUpdate(
       {'_id': Utils.convertToObjectID(userImageToSave.id)},
       {$set: {image: userImageToSave.image}},
       {upsert: true, new: true, returnOriginal: false});

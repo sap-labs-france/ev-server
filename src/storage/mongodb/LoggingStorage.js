@@ -2,7 +2,6 @@ const Utils = require('../../utils/Utils');
 const Database = require('../../utils/Database');
 const Constants = require('../../utils/Constants');
 const DatabaseUtils = require('./DatabaseUtils');
-const BackendError = require('../../exception/BackendError');
 
 class LoggingStorage {
   static async deleteLogs(tenantID, deleteUpToDate) {

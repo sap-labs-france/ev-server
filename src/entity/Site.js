@@ -6,6 +6,7 @@ const CompanyStorage = require('../storage/mongodb/CompanyStorage');
 const SiteStorage = require('../storage/mongodb/SiteStorage');
 const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const UserStorage = require('../storage/mongodb/UserStorage');
+const User = require('./User');
 
 class Site extends AbstractTenantEntity {
   constructor(tenantID, site) {
@@ -98,15 +99,11 @@ class Site extends AbstractTenantEntity {
   }
 
   async getCompany() {
-    if (this._model.company) {
-      return new Company(this.getTenantID(), this._model.company);
-    } else if (this._model.companyID) {
-      // Get from DB
-      const company = await CompanyStorage.getCompany(this.getTenantID(), this._model.companyID);
-      // Keep it
-      this.setCompany(company);
-      return company;
-    }
+    // Get from DB
+    const company = await CompanyStorage.getCompany(this.getTenantID(), this._model.companyID);
+    // Keep it
+    this.setCompany(company);
+    return company;
   }
 
   getCompanyID() {
@@ -123,15 +120,11 @@ class Site extends AbstractTenantEntity {
   }
 
   async getSiteAreas() {
-    if (this._model.sites) {
-      return this._model.siteAreas.map((siteArea) => new SiteArea(this.getTenantID(), siteArea));
-    } else {
-      // Get from DB
-      const siteAreas = await SiteAreaStorage.getSiteAreas(this.getTenantID(), {'siteID': this.getID()});
-      // Keep it
-      this.setSiteAreas(siteAreas.result);
-      return siteAreas.result;
-    }
+    // Get from DB
+    const siteAreas = await SiteAreaStorage.getSiteAreas(this.getTenantID(), {'siteID': this.getID()});
+    // Keep it
+    this.setSiteAreas(siteAreas.result);
+    return siteAreas.result;
   }
 
   setSiteAreas(siteAreas) {
@@ -192,19 +185,19 @@ class Site extends AbstractTenantEntity {
 
   static checkIfSiteValid(filteredRequest, request) {
     // Update model?
-    if(request.method !== 'POST' && !filteredRequest.id) {
+    if (request.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `The Site ID is mandatory`, 500,
         'Site', 'checkIfSiteValid');
     }
-    if(!filteredRequest.name) {
+    if (!filteredRequest.name) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `The Site Name is mandatory`, 500,
         'Site', 'checkIfSiteValid');
     }
-    if(!filteredRequest.companyID) {
+    if (!filteredRequest.companyID) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `The Company ID is mandatory for the Site`, 500,

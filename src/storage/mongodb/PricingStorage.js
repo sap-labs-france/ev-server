@@ -1,6 +1,5 @@
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
-const BackendError = require('../../exception/BackendError');
 
 class PricingStorage {
   static async getPricing(tenantID) {

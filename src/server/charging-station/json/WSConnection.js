@@ -6,7 +6,6 @@ const Constants = require('../../../utils/Constants');
 const OCPPError = require('../../../exception/OcppError');
 const BackendError = require('../../../exception/BackendError');
 const Configuration = require('../../../utils/Configuration');
-const Tenant = require('../../../entity/Tenant');
 const ChargingStation = require('../../../entity/ChargingStation');
 
 const MODULE_NAME = "WSConnection";
@@ -72,7 +71,7 @@ class WSConnection {
           // Update CF Instance
           chargingStation.setCFApplicationIDAndInstanceIndex(Configuration.getCFApplicationIDAndInstanceIndex());
           // Save it
-          const cs = await chargingStation.save();
+          await chargingStation.save();
         }
       }
     } catch(error) {
@@ -84,7 +83,7 @@ class WSConnection {
 
   onError(error) {
   }
-  
+
   onClose(code, reason) {
   }
 
@@ -275,11 +274,11 @@ class WSConnection {
   }
 
   setTenantValid(valid) {
-    this.tenantIsValid = valid; 
+    this.tenantIsValid = valid;
   }
 
   isTenantValid() {
-    return this.tenantIsValid; 
+    return this.tenantIsValid;
   }
 }
 
