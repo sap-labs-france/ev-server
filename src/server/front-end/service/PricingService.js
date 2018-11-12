@@ -50,7 +50,7 @@ class PricingService {
           req.user);
       }
       // Filter
-      const filteredRequest = PricingSecurity.filterPricingUpdateRequest(req.user.tenantID, req.body, req.user);
+      const filteredRequest = PricingSecurity.filterPricingUpdateRequest(req.body, req.user);
       // Check
       if (!filteredRequest.priceKWH || isNaN(filteredRequest.priceKWH)) {
         // Not Found!
