@@ -190,7 +190,7 @@ describe('Tenant tests', function () {
     it('Should not be possible to create a tenant with an invalid name', async () => {
       // Create
       let tenant = TenantFactory.buildTenantCreate();
-      tenant.name = 'A very long name impossible to store in database';
+      tenant.name = 'A very long name impossible to store in database - A very long name impossible to store in database - A very long name impossible to store in database';
       // Call
       let response = await CentralServerService.createEntity(
         CentralServerService.tenantApi, tenant, false);
