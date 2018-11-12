@@ -328,8 +328,7 @@ class ChargingStation extends AbstractTenantEntity {
     if (!statusNotification.timestamp) {
       statusNotification.timestamp = new Date().toISOString();
     }
-    // Get the connectors
-    const connectors = this.getConnectors();
+    
     // Handle connectorId = 0 case => Currently status is distributed to each individual connectors
     if (statusNotification.connectorId == 0) {
       // Log
@@ -339,6 +338,8 @@ class ChargingStation extends AbstractTenantEntity {
         method: 'handleStatusNotification', action: 'StatusNotification',
         message: `Warning due to connector ${statusNotification.connectorId}: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
       });
+      // Get the connectors
+      const connectors = this.getConnectors();
       // Update ALL connectors -----------------------------------------
       for (let i = 0; i < connectors.length; i++) {
         // Check if former connector can be set
@@ -827,11 +828,11 @@ class ChargingStation extends AbstractTenantEntity {
     // Create model
     const newMeterValues = {};
     let meterValuesContext;
-    if (this.getOcppProtocol() === Constants.OCPP_VERSION_16) {
+    if (this.getOcppVersion() === Constants.OCPP_VERSION_16) {
       meterValuesContext = ( meterValues && 
                              Array.isArray(meterValues.meterValue) && 
                              Array.isArray(meterValues.meterValue[0].sampledValue) && 
-                             meterValues.meterValue[0].sampledValue.hasOwnProperty('context') ?
+                             meterValues.meterValue[0].sampledValue[0].hasOwnProperty('context') ?
         meterValues.meterValue[0].sampledValue[0].context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC) 
     } else {
       // Check Meter Value Context
@@ -899,7 +900,7 @@ class ChargingStation extends AbstractTenantEntity {
     }
     // Handle Values
     // Check if OCPP 1.6
-    if (meterValues.meterValue) {
+    if (this.getOcppVersion() === Constants.OCPP_VERSION_16) { //meterValues.meterValue
       // Set it to 'values'
       meterValues.values = meterValues.meterValue;
     }
@@ -920,7 +921,7 @@ class ChargingStation extends AbstractTenantEntity {
       newMeterValue.timestamp = value.timestamp;
 
       // Check OCPP 1.6
-      if (value.sampledValue) {
+      if (this.getOcppVersion() === Constants.OCPP_VERSION_16) { //value.sampledValue 
         if (Array.isArray(value.sampledValue)) {
           for (const sampledValue of value.sampledValue) {
             // Normalize
