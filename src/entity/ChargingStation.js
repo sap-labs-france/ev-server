@@ -328,7 +328,34 @@ class ChargingStation extends AbstractTenantEntity {
     if (!statusNotification.timestamp) {
       statusNotification.timestamp = new Date().toISOString();
     }
-    // Update the connector -----------------------------------------
+    
+    // Handle connectorId = 0 case => Currently status is distributed to each individual connectors
+    if (statusNotification.connectorId == 0) {
+      // Log
+      Logging.logWarning({
+        tenantID: this.getTenantID(),
+        source: this.getID(), module: 'ChargingStation',
+        method: 'handleStatusNotification', action: 'StatusNotification',
+        message: `Warning due to connector ${statusNotification.connectorId}: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
+      });
+      // Get the connectors
+      const connectors = this.getConnectors();
+      // Update ALL connectors -----------------------------------------
+      for (let i = 0; i < connectors.length; i++) {
+        // Check if former connector can be set
+        if (connectors[i]) {
+          // update message with proper connectorId
+          statusNotification.connectorId = i+1;
+          await this.updateConnectorStatus(statusNotification);
+        }
+      }
+    } else {
+      // update only the given connectorId
+      await this.updateConnectorStatus(statusNotification);
+    }
+  }
+    
+  async updateConnectorStatus(statusNotification) {
     // Get the connectors
     const connectors = this.getConnectors();
     // Init previous connector status
@@ -797,13 +824,20 @@ class ChargingStation extends AbstractTenantEntity {
     // Create model
     const newMeterValues = {};
     let meterValuesContext;
-    // Check Meter Value Context
-    if (meterValues && meterValues.values && meterValues.values.value && !Array.isArray(meterValues.values) && meterValues.values.value.attributes) {
-      // Get the Context: Sample.Clock, Sample.Periodic
-      meterValuesContext = meterValues.values.value.attributes.context;
+    if (this.getOcppVersion() === Constants.OCPP_VERSION_16) {
+      meterValuesContext = ( meterValues && 
+                             Array.isArray(meterValues.meterValue) && 
+                             Array.isArray(meterValues.meterValue[0].sampledValue) && 
+                             meterValues.meterValue[0].sampledValue[0].hasOwnProperty('context') ?
+        meterValues.meterValue[0].sampledValue[0].context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC) 
     } else {
-      // Default
-      meterValuesContext = Constants.METER_VALUE_CTX_SAMPLE_PERIODIC;
+      // Check Meter Value Context
+      meterValuesContext = ( meterValues && 
+                             meterValues.values && 
+                            meterValues.values.value && 
+                            !Array.isArray(meterValues.values) && 
+                            meterValues.values.value.attributes ?
+        meterValues.values.value.attributes.context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC);
     }
     // Init
     newMeterValues.values = [];
@@ -862,7 +896,7 @@ class ChargingStation extends AbstractTenantEntity {
     }
     // Handle Values
     // Check if OCPP 1.6
-    if (meterValues.meterValue) {
+    if (this.getOcppVersion() === Constants.OCPP_VERSION_16) { //meterValues.meterValue
       // Set it to 'values'
       meterValues.values = meterValues.meterValue;
     }
@@ -883,7 +917,7 @@ class ChargingStation extends AbstractTenantEntity {
       newMeterValue.timestamp = value.timestamp;
 
       // Check OCPP 1.6
-      if (value.sampledValue) {
+      if (this.getOcppVersion() === Constants.OCPP_VERSION_16) { //value.sampledValue 
         if (Array.isArray(value.sampledValue)) {
           for (const sampledValue of value.sampledValue) {
             // Normalize
