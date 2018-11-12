@@ -81,15 +81,12 @@ class Company extends AbstractTenantEntity {
   }
 
   async getSites() {
-    if (this._model.sites) {
-      return this._model.sites.map((site) => new Site(this.getTenantID(), site));
-    } else {
-      // Get from DB
-      const sites = await SiteStorage.getSites(this.getTenantID(), {'companyID': this.getID()});
-      // Keep it
-      this.setSites(sites.result);
-      return sites.result;
-    }
+    // Get from DB
+    const sites = await SiteStorage.getSites(this.getTenantID(), {'companyID': this.getID()});
+    // Keep it
+    this.setSites(sites.result);
+    // Return
+    return sites.result;
   }
 
   setSites(sites) {
