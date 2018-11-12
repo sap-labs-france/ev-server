@@ -4,6 +4,7 @@ const Configuration = require('./utils/Configuration');
 const SoapCentralSystemServer = require('./server/charging-station/soap/SoapCentralSystemServer');
 const JsonCentralSystemServer = require('./server/charging-station/json/JsonCentralSystemServer');
 const CentralRestServer = require('./server/front-end/CentralRestServer');
+const OCPIServer = require('/server/ocpi-server/OCPIServer');
 const SchedulerManager = require('./scheduler/SchedulerManager');
 const MigrationHandler = require('./migration/MigrationHandler');
 const Logging = require('./utils/Logging');
@@ -48,6 +49,7 @@ class Bootstrap {
       const centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
       const centralSystemsConfig = Configuration.getCentralSystemsConfig();
       const chargingStationConfig = Configuration.getChargingStationConfig();
+      const ocpiConfig = Configuration.getOCPIServiceConfig();
 
       // -------------------------------------------------------------------------
       // REST Server (Front-End)
@@ -94,6 +96,16 @@ class Bootstrap {
           }
         }
         
+      }
+
+      // -------------------------------------------------------------------------
+      // OCPI Server
+      // -------------------------------------------------------------------------
+      if (ocpiConfig) {
+        // create server instance
+        const ocpiServer = new OCPIServer(ocpiConfig);
+
+        await ocpiServer.start();
       }
 
       // -------------------------------------------------------------------------
