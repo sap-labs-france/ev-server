@@ -515,14 +515,14 @@ class AuthService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Tenant is mandatory`, 500,
-          'AuthService', 'handleVerifyEmail');
+          'AuthService', 'handleGetEndUserLicenseAgreement');
       }
       const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
       if (!tenantID) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Tenant is mandatory`, 500,
-          'AuthService', 'handleVerifyEmail');
+          'AuthService', 'handleGetEndUserLicenseAgreement');
       }
       // Get it
       const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(tenantID, filteredRequest.Language);
