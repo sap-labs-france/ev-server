@@ -89,7 +89,7 @@ class JsonWSConnection extends WSConnection {
     // Check if method exist in the service
     if (typeof this._chargingStationService["handle" + commandName] === 'function') {
       // Call it
-      let result = await this._chargingStationService["handle" + commandName](Object.assign({}, commandPayload, this._headers));
+      const result = await this._chargingStationService["handle" + commandName](Object.assign({}, commandPayload, this._headers));
       // Log
       Logging.logReturnedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
       // Send Response

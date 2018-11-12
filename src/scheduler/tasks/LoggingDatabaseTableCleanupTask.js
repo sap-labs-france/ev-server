@@ -26,7 +26,7 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
       });
 
       // Delete date
-      let deleteUpToDate = moment().subtract(config.retentionPeriodWeeks, "w").startOf("week").toDate().toISOString();
+      const deleteUpToDate = moment().subtract(config.retentionPeriodWeeks, "w").startOf("week").toDate().toISOString();
       // Delete
       let result = await LoggingStorage.deleteLogs(tenant.getID(), deleteUpToDate);
       // Ok?
@@ -49,7 +49,7 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
         });
       }
       // Delete date
-      let securityDeleteUpToDate = moment().subtract(config.securityRetentionPeriodWeeks, "w").startOf("week").toDate().toISOString();
+      const securityDeleteUpToDate = moment().subtract(config.securityRetentionPeriodWeeks, "w").startOf("week").toDate().toISOString();
       // Delete Security Logs
       result = await LoggingStorage.deleteSecurityLogs(tenant.getID(), securityDeleteUpToDate);
       // Ok?

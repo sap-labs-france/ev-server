@@ -100,7 +100,7 @@ class TransactionStorage {
     const transactionYears = [];
     // Push the rest of the years up to now
     for (let i = new Date(firstTransactionsMDB[0].timestamp).getFullYear();
-         i <= new Date().getFullYear(); i++) {
+      i <= new Date().getFullYear(); i++) {
       // Add
       transactionYears.push(i);
     }

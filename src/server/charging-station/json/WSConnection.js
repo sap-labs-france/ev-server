@@ -72,7 +72,7 @@ class WSConnection {
           // Update CF Instance
           chargingStation.setCFApplicationIDAndInstanceIndex(Configuration.getCFApplicationIDAndInstanceIndex());
           // Save it
-          let cs = await chargingStation.save();
+          const cs = await chargingStation.save();
         }
       }
     } catch(error) {
@@ -90,7 +90,7 @@ class WSConnection {
 
   async onMessage(message) {
     // Parse the message
-    let [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(message);
+    const [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(message);
 
     try {
       // Initialize: done in the message as init could be lengthy and first message may be lost

@@ -1,8 +1,6 @@
 const uuid = require('uuid/v4');
 const ChargingStationClient = require('../ChargingStationClient');
 
-const MODULE_NAME = "JsonChargingStationClient16";
-
 class JsonChargingStationClient16 extends ChargingStationClient {
   constructor(wsConnection) {
     super();

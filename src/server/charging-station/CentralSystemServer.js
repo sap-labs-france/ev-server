@@ -8,11 +8,11 @@ const Constants = require('../../utils/Constants');
  * @class CentralSystemServer
  */
 class CentralSystemServer {
-	// Common constructor for Central System Server
-	constructor(centralSystemConfig, chargingStationConfig) {
-		// Check
-		if (new.target === CentralSystemServer) {
-			throw new TypeError('Cannot construct CentralSystemServer instances directly');
+  // Common constructor for Central System Server
+  constructor(centralSystemConfig, chargingStationConfig) {
+    // Check
+    if (new.target === CentralSystemServer) {
+      throw new TypeError('Cannot construct CentralSystemServer instances directly');
     }
     // Init
     this._centralSystemConfig = centralSystemConfig;
@@ -21,33 +21,33 @@ class CentralSystemServer {
   }
 
 
-	/**
+  /**
 	 * Starting the server==> Implemented in sub classes
 	 *
 	 * @memberof CentralSystemServer
 	 */
-	start() {
-	}
+  start() {
+  }
 
-	/**
+  /**
    * Get the service that will handle the Charger's requests
    * 
 	 * @param protocol: string containing protocol version 1.2 || 1.5 || 1.6
 	 * @memberof CentralSystemServer
 	 */
-	getChargingStationService(protocol) {
-		switch (protocol) {
-			case Constants.OCPP_VERSION_12:
-			case Constants.OCPP_VERSION_15:
-			case Constants.OCPP_VERSION_16:
-			default:
-				if (!this._chargingStationService) {
+  getChargingStationService(protocol) {
+    switch (protocol) {
+      case Constants.OCPP_VERSION_12:
+      case Constants.OCPP_VERSION_15:
+      case Constants.OCPP_VERSION_16:
+      default:
+        if (!this._chargingStationService) {
           // OCCP 1.6 handles all protocols from 1.2 to 1.6
-					this._chargingStationService = new ChargingStationService16(this._centralSystemConfig, this._chargingStationConfig);
+          this._chargingStationService = new ChargingStationService16(this._centralSystemConfig, this._chargingStationConfig);
         }
-				return this._chargingStationService;
-		}
-	}
+        return this._chargingStationService;
+    }
+  }
 }
 
 module.exports = CentralSystemServer;

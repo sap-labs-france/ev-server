@@ -5,8 +5,8 @@ const Constants = require('../utils/Constants');
 const NotificationStorage = require('../storage/mongodb/NotificationStorage');
 require('source-map-support').install();
 
-let _notificationConfig = Configuration.getNotificationConfig();
-let _email = new EMailNotificationTask();
+const _notificationConfig = Configuration.getNotificationConfig();
+const _email = new EMailNotificationTask();
 
 const CHANNEL_EMAIL = "email";
 const SOURCE_CHARGING_STATION_STATUS_ERROR = "NotifyChargingStationStatusError";
@@ -54,9 +54,9 @@ class NotificationHandler {
   static async hasNotifiedSource(tenantID, sourceId) {
     try {
       // Save it
-      let notifications = await NotificationStorage.getNotification(tenantID, sourceId);
+      const notifications = await NotificationStorage.getNotification(tenantID, sourceId);
       // Filter by source id
-      let notificationsFiltered = notifications.filter(notification => {
+      const notificationsFiltered = notifications.filter(notification => {
         return (notification.sourceId === sourceId);
       });
       // return
@@ -70,7 +70,7 @@ class NotificationHandler {
   static async sendEndOfCharge(tenantID, sourceId, user, chargingStation, sourceData, locale) {
     try {
       // Check notification
-      let hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
@@ -91,7 +91,7 @@ class NotificationHandler {
   static async sendEndOfSession(tenantID, sourceId, user, chargingStation, sourceData, locale) {
     try {
       // Check notification
-      let hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
@@ -239,7 +239,7 @@ class NotificationHandler {
   static async sendTransactionStarted(tenantID, sourceId, user, chargingStation, sourceData, locale) {
     try {
       // Check notification
-      let hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?

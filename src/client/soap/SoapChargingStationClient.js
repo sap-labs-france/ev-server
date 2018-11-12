@@ -115,9 +115,9 @@ class SoapChargingStationClient extends ChargingStationClient {
     this.initSoapHeaders("RemoteStartTransaction");
     // Log
     Logging.logSendAction(_moduleName, this._chargingStation.getTenantID(), this._chargingStation.getID(), "RemoteStartTransaction", [{
-        "idTag": tagID,
-        "connectorId": connectorID
-      }, {headers: this._client.getSoapHeaders()}]
+      "idTag": tagID,
+      "connectorId": connectorID
+    }, {headers: this._client.getSoapHeaders()}]
     );
     // Execute
     const {error, result, envelope} = await this._client.RemoteStartTransaction({
@@ -252,7 +252,7 @@ class SoapChargingStationClient extends ChargingStationClient {
     // Log
     Logging.logSendAction(_moduleName, this._chargingStation.getTenantID(), this._chargingStation.getID(), "GetConfiguration", [keys, {headers: this._client.getSoapHeaders()}]);
     // Set request
-    let request = {
+    const request = {
       "getConfigurationRequest": {}
     };
     // Key provided?
