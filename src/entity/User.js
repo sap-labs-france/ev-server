@@ -405,7 +405,7 @@ class User extends AbstractTenantEntity {
   }
 
   static isPhoneValid(phone) {
-    return /^\+?([0-9] ?) {9,14}[0-9]$/.test(phone);
+    return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
   }
 
   static isINumberValid(iNumber) {
