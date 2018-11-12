@@ -206,6 +206,7 @@ class UserSecurity {
     const filteredRequest = {};
     // Set
     filteredRequest.Language = sanitize(request.Language);
+    filteredRequest.tenant = sanitize(request.tenant);
     return filteredRequest;
   }
 

@@ -16,7 +16,7 @@ class UserService {
       // Filter
       const filteredRequest = UserSecurity.filterEndUserLicenseAgreementRequest(req.query, req.user);
       // Get it
-      const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(req.user.tenantID, filteredRequest.Language);
+      const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(filteredRequest.tenant, filteredRequest.Language);
       res.json(
         // Filter
         UserSecurity.filterEndUserLicenseAgreementResponse(
