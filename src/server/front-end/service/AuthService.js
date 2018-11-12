@@ -505,6 +505,39 @@ class AuthService {
     }
   }
 
+  static async handleGetEndUserLicenseAgreement(action, req, res, next) {
+    try {
+      // Filter
+      const filteredRequest = AuthSecurity.filterEndUserLicenseAgreementRequest(req);
+
+      // Check tenant
+      if (filteredRequest.tenant === undefined) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Tenant is mandatory`, 500,
+          'AuthService', 'handleVerifyEmail');
+      }
+      const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+      if (!tenantID) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Tenant is mandatory`, 500,
+          'AuthService', 'handleVerifyEmail');
+      }
+      // Get it
+      const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(tenantID, filteredRequest.Language);
+      res.json(
+        // Filter
+        AuthSecurity.filterEndUserLicenseAgreementResponse(
+          endUserLicenseAgreement)
+      );
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
   static async handleVerifyEmail(action, req, res, next) {
     // Filter
     const filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);

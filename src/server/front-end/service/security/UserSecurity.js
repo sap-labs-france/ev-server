@@ -201,25 +201,6 @@ class UserSecurity {
     }
     return filteredUsers;
   }
-
-  static filterEndUserLicenseAgreementRequest(request, loggedUser) {
-    const filteredRequest = {};
-    // Set
-    filteredRequest.Language = sanitize(request.Language);
-    filteredRequest.tenant = sanitize(request.tenant);
-    return filteredRequest;
-  }
-
-  static filterEndUserLicenseAgreementResponse(endUserLicenseAgreement, loggedUser) {
-    const filteredEndUserLicenseAgreement = {};
-
-    if (!endUserLicenseAgreement) {
-      return null;
-    }
-    // Set
-    filteredEndUserLicenseAgreement.text = endUserLicenseAgreement.text;
-    return filteredEndUserLicenseAgreement;
-  }
 }
 
 module.exports = UserSecurity;

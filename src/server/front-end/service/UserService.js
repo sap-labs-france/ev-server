@@ -11,25 +11,7 @@ const Database = require('../../../utils/Database');
 const UserSecurity = require('./security/UserSecurity');
 
 class UserService {
-  static async handleGetEndUserLicenseAgreement(action, req, res, next) {
-    try {
-      // Filter
-      const filteredRequest = UserSecurity.filterEndUserLicenseAgreementRequest(req.query, req.user);
-      // Get it
-      const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(filteredRequest.tenant, filteredRequest.Language);
-      res.json(
-        // Filter
-        UserSecurity.filterEndUserLicenseAgreementResponse(
-          endUserLicenseAgreement, req.user)
-      );
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
-    }
-  }
-
-  static async handleAddSitesToUser(action, req, res, next) {
+  static async handleAddSitesToUser(action, req, res, next){
     try {
       // Filter
       const filteredRequest = UserSecurity.filterAddSitesToUserRequest(req.body, req.user);
@@ -104,7 +86,7 @@ class UserService {
     }
   }
 
-  static async handleRemoveSitesFromUser(action, req, res, next) {
+  static async handleRemoveSitesFromUser(action, req, res, next){
     try {
       // Filter
       const filteredRequest = UserSecurity.filterRemoveSitesFromUserRequest(req.body, req.user);
@@ -179,7 +161,7 @@ class UserService {
     }
   }
 
-  static async handleDeleteUser(action, req, res, next) {
+  static async handleDeleteUser(action, req, res, next){
     try {
       // Filter
       const filteredRequest = UserSecurity.filterUserDeleteRequest(req.query, req.user);
@@ -244,7 +226,7 @@ class UserService {
     }
   }
 
-  static async handleUpdateUser(action, req, res, next) {
+  static async handleUpdateUser(action, req, res, next){
     try {
       let statusHasChanged = false;
       // Filter
@@ -339,7 +321,7 @@ class UserService {
     }
   }
 
-  static async handleGetUser(action, req, res, next) {
+  static async handleGetUser(action, req, res, next){
     try {
       // Filter
       const filteredRequest = UserSecurity.filterUserRequest(req.query, req.user);
@@ -389,7 +371,7 @@ class UserService {
     }
   }
 
-  static async handleGetUserImage(action, req, res, next) {
+  static async handleGetUserImage(action, req, res, next){
     try {
       // Filter
       const filteredRequest = UserSecurity.filterUserRequest(req.query, req.user);
@@ -437,7 +419,7 @@ class UserService {
     }
   }
 
-  static async handleGetUserImages(action, req, res, next) {
+  static async handleGetUserImages(action, req, res, next){
     try {
       // Check auth
       if (!Authorizations.canListUsers(req.user)) {
@@ -461,7 +443,7 @@ class UserService {
     }
   }
 
-  static async handleGetUsers(action, req, res, next) {
+  static async handleGetUsers(action, req, res, next){
     try {
       // Check auth
       if (!Authorizations.canListUsers(req.user)) {
@@ -494,7 +476,7 @@ class UserService {
     }
   }
 
-  static async handleCreateUser(action, req, res, next) {
+  static async handleCreateUser(action, req, res, next){
     try {
       // Check auth
       if (!Authorizations.canCreateUser(req.user)) {
