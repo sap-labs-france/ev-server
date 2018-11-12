@@ -23,7 +23,7 @@ require('source-map-support').install();
 let _centralSystemRestConfig;
 let _chargingStationConfig;
 let _socketIO;
-let _currentNotifications = [];
+const _currentNotifications = [];
 
 class CentralRestServer {
   // Create the rest server
@@ -98,7 +98,7 @@ class CentralRestServer {
     express.use(ErrorHandler.errorHandler);
 
     // Check if the front-end has to be served also
-    let centralSystemConfig = Configuration.getCentralSystemFrontEndConfig();
+    const centralSystemConfig = Configuration.getCentralSystemFrontEndConfig();
     // Server it?
     if (centralSystemConfig.distEnabled) {
       // Serve all the static files of the front-end
@@ -125,7 +125,7 @@ class CentralRestServer {
     // Create the HTTP server
     if (_centralSystemRestConfig.protocol == "https") {
       // Create the options
-      var options = {};
+      const options = {};
       // Set the keys
       options.key = fs.readFileSync(_centralSystemRestConfig["ssl-key"]);
       options.cert = fs.readFileSync(_centralSystemRestConfig["ssl-cert"]);
@@ -135,7 +135,7 @@ class CentralRestServer {
         if (Array.isArray(_centralSystemRestConfig["ssl-ca"])) {
           options.ca = [];
           // Add all
-          for (var i = 0; i < _centralSystemRestConfig["ssl-ca"].length; i++) {
+          for (let i = 0; i < _centralSystemRestConfig["ssl-ca"].length; i++) {
             options.ca.push(fs.readFileSync(_centralSystemRestConfig["ssl-ca"][i]));
           }
         } else {
@@ -166,7 +166,7 @@ class CentralRestServer {
       // Check and send notif
       setInterval(() => {
         // Send
-        for (var i = _currentNotifications.length - 1; i >= 0; i--) {
+        for (let i = _currentNotifications.length - 1; i >= 0; i--) {
           // console.log(`****** Notify '${_currentNotifications[i].entity}', Action '${(_currentNotifications[i].action?_currentNotifications[i].action:'')}', Data '${(_currentNotifications[i].data ? JSON.stringify(_currentNotifications[i].data, null, ' ') : '')}'`);
           // Notify all Web Sockets
           _socketIO.to(_currentNotifications[i].tenantID).emit(_currentNotifications[i].entity, _currentNotifications[i]);
@@ -333,7 +333,7 @@ class CentralRestServer {
   addNotificationInBuffer(notification) {
     let dups = false;
     // Add in buffer
-    for (var i = 0; i < _currentNotifications.length; i++) {
+    for (let i = 0; i < _currentNotifications.length; i++) {
       // Same Entity and Action?
       if (_currentNotifications[i].tenantID === notification.tenantID
         && _currentNotifications[i].entity === notification.entity

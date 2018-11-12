@@ -59,7 +59,7 @@ class JsonRestWSConnection extends WSConnection {
     // Log
     Logging.logReceivedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Get the Charging Station
-    let chargingStation = await ChargingStation.getChargingStation(this.getTenantID(), this.getChargingStationID());
+    const chargingStation = await ChargingStation.getChargingStation(this.getTenantID(), this.getChargingStationID());
     // Found?
     if (!chargingStation) {
       // Error
@@ -67,7 +67,7 @@ class JsonRestWSConnection extends WSConnection {
         "JsonRestWSConnection", "handleRequest", commandName);
     }
     // Get the client from JSon Server
-    let chargingStationClient = global.centralSystemJson.getChargingStationClient(chargingStation.getTenantID(), chargingStation.getID());
+    const chargingStationClient = global.centralSystemJson.getChargingStationClient(chargingStation.getTenantID(), chargingStation.getID());
     if (!chargingStationClient) {
       // Error
       throw new BackendError(this.getChargingStationID(), `Charger not connected to this instance`,

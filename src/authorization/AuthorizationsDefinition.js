@@ -3,28 +3,28 @@ require('source-map-support').install();
 
 class AuthorizationsDefinition {
 
-	static getAuthorizations(role) {
-		// Role
-		switch (role) {
-			case Constants.ROLE_SUPER_ADMIN:
-				return AuthorizationsDefinition.getSuperAdminAuthorizations();
-			// Admin
-			case Constants.ROLE_ADMIN:
-				return AuthorizationsDefinition.getAdminAuthorizations();
-			// Basic
-			case Constants.ROLE_BASIC:
-				return AuthorizationsDefinition.getBasicAuthorizations();
-			// Demo
-			case Constants.ROLE_DEMO:
-				return AuthorizationsDefinition.getDemoAuthorizations();
-			// Default
-			default:
-				throw new Error(`Unknown Role '${role}'`);
-		}
-	}
+  static getAuthorizations(role) {
+    // Role
+    switch (role) {
+      case Constants.ROLE_SUPER_ADMIN:
+        return AuthorizationsDefinition.getSuperAdminAuthorizations();
+        // Admin
+      case Constants.ROLE_ADMIN:
+        return AuthorizationsDefinition.getAdminAuthorizations();
+        // Basic
+      case Constants.ROLE_BASIC:
+        return AuthorizationsDefinition.getBasicAuthorizations();
+        // Demo
+      case Constants.ROLE_DEMO:
+        return AuthorizationsDefinition.getDemoAuthorizations();
+        // Default
+      default:
+        throw new Error(`Unknown Role '${role}'`);
+    }
+  }
 
-	static getBasicAuthorizations() {
-		return `
+  static getBasicAuthorizations() {
+    return `
 			{
 				"id": "B",
 				"name": "Basic",
@@ -190,10 +190,10 @@ class AuthorizationsDefinition {
 				]
 			}
 		`;
-	}
+  }
 
-	static getDemoAuthorizations() {
-		return `
+  static getDemoAuthorizations() {
+    return `
 			{
 				"id": "D",
 				"name": "Demo",
@@ -335,10 +335,10 @@ class AuthorizationsDefinition {
 				]
 			}
 		`;
-	}
+  }
 
-	static getAdminAuthorizations() {
-		return `
+  static getAdminAuthorizations() {
+    return `
 			{
 				"id": "A",
 				"name": "Admin",
@@ -480,10 +480,10 @@ class AuthorizationsDefinition {
 				]
 			}
 		`;
-	}
+  }
 
-	static getSuperAdminAuthorizations() {
-		return `
+  static getSuperAdminAuthorizations() {
+    return `
 			{
 				"id": "S",
 				"name": "SuperAdmin",
@@ -625,7 +625,7 @@ class AuthorizationsDefinition {
 				]
 			}
 		`;
-	}
+  }
 }
 
 module.exports = AuthorizationsDefinition;

@@ -1,15 +1,15 @@
 const MigrationTask = require('../MigrationTask');
 
 class DummyTask extends MigrationTask {
-	migrate() {
-	}
+  migrate() {
+  }
 
-	getVersion() {
-		return "1";
-	}
+  getVersion() {
+    return "1";
+  }
 
-	getName() {
-		return "DummyTask";
-	}
+  getName() {
+    return "DummyTask";
+  }
 }
 module.exports=DummyTask;

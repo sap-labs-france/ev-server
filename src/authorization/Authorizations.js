@@ -64,17 +64,17 @@ class Authorizations {
     if (!Authorizations.isAdmin(user.getModel())) {
       // Not Admin: Get Auth data
       // Get All Companies
-      let allCompanies = await Company.getCompanies(user.getTenantID());
+      const allCompanies = await Company.getCompanies(user.getTenantID());
       // Get Sites
       sites = await user.getSites();
       // Get all the companies and site areas
       for (const site of sites) {
         // Get the company
-        let company = allCompanies.result.find((company) => company.getID() === site.getCompanyID());
+        const company = allCompanies.result.find((company) => company.getID() === site.getCompanyID());
         // Found?
         if (company) {
           // Check
-          let foundCompany = companies.find((existingCompany) => {
+          const foundCompany = companies.find((existingCompany) => {
             return existingCompany.getID() === company.getID();
           });
           // Found?
@@ -86,18 +86,18 @@ class Authorizations {
       }
     }
     // Convert to IDs
-    let companyIDs = companies.map((company) => {
+    const companyIDs = companies.map((company) => {
       return company.getID();
     });
-    let siteIDs = sites.map((site) => {
+    const siteIDs = sites.map((site) => {
       return site.getID();
     });
     // Get authorisation
-    let authsDefinition = AuthorizationsDefinition.getAuthorizations(user.getRole());
+    const authsDefinition = AuthorizationsDefinition.getAuthorizations(user.getRole());
     // Add user
     users.push(user.getID());
     // Parse the auth and replace values
-    let authsDefinitionParsed = Mustache.render(
+    const authsDefinitionParsed = Mustache.render(
       authsDefinition,
       {
         "userID": users,
@@ -112,9 +112,9 @@ class Authorizations {
       }
     );
     // Make it Json
-    let userAuthDefinition = JSON.parse(authsDefinitionParsed);
+    const userAuthDefinition = JSON.parse(authsDefinitionParsed);
     // Compile auths of the role
-    let compiledAuths = compileProfile(userAuthDefinition.auths);
+    const compiledAuths = compileProfile(userAuthDefinition.auths);
     // Return
     return compiledAuths;
   }
@@ -126,7 +126,7 @@ class Authorizations {
     // Found?
     if (!user) {
       // No: Create an empty user
-      let newUser = new User(chargingStation.getTenantID(), {
+      const newUser = new User(chargingStation.getTenantID(), {
         name: (siteArea.isAccessControlEnabled() ? "Unknown" : "Anonymous"),
         firstName: "User",
         status: (siteArea.isAccessControlEnabled() ? Constants.USER_STATUS_INACTIVE : Constants.USER_STATUS_ACTIVE),
@@ -194,7 +194,7 @@ class Authorizations {
 
   static async checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, tagID, alternateTagID) {
     // Site Area -----------------------------------------------
-    let siteArea = await chargingStation.getSiteArea();
+    const siteArea = await chargingStation.getSiteArea();
     // Site is mandatory
     if (!siteArea) {
       // Reject Site Not Found
@@ -209,7 +209,7 @@ class Authorizations {
       return null;
     }
     // Site -----------------------------------------------------
-    let site = await siteArea.getSite(null, true);
+    const site = await siteArea.getSite(null, true);
     if (!site) {
       // Reject Site Not Found
       throw new AppError(
@@ -237,11 +237,11 @@ class Authorizations {
         user.getModel());
     }
     // Build Authorizations -----------------------------------------------------
-    let auths = await Authorizations.buildAuthorizations(currentUser);
+    const auths = await Authorizations.buildAuthorizations(currentUser);
     // Set
     currentUser.setAuthorisations(auths);
     // Check if User belongs to a Site ------------------------------------------
-    let foundUser = await site.getUser(user.getID());
+    const foundUser = await site.getUser(user.getID());
     // User not found and Access Control Enabled?
     if (!foundUser) {
       // Yes: Reject the User
@@ -253,7 +253,7 @@ class Authorizations {
     }
     // Check if Alternate User belongs to a Site --------------------------------
     if (alternateUser) {
-      let foundAlternateUser = await site.getUser(alternateUser.getID());
+      const foundAlternateUser = await site.getUser(alternateUser.getID());
       // Alternate User not found and Access Control Enabled?
       if (!foundAlternateUser) {
         // Reject the User
@@ -383,7 +383,7 @@ class Authorizations {
 
   static canPerformActionOnChargingStation(loggedUser, chargingStation, action) {
     // Check Charging Station
-    let result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+    const result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
       {"Action": action, "ChargingStationID": chargingStation.id});
 
     // Return
@@ -392,7 +392,7 @@ class Authorizations {
 
   static canReadChargingStation(loggedUser, chargingStation) {
     // Check Charging Station
-    let result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+    const result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
       {"Action": Constants.ACTION_READ, "ChargingStationID": chargingStation.id});
 
     // Return
@@ -401,7 +401,7 @@ class Authorizations {
 
   static canUpdateChargingStation(loggedUser, chargingStation) {
     // Check Charging Station
-    let result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+    const result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
       {"Action": Constants.ACTION_UPDATE, "ChargingStationID": chargingStation.id});
 
     // Return
@@ -410,7 +410,7 @@ class Authorizations {
 
   static canDeleteChargingStation(loggedUser, chargingStation) {
     // Check Charging Station
-    let result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+    const result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
       {"Action": Constants.ACTION_DELETE, "ChargingStationID": chargingStation.id});
 
     // Return

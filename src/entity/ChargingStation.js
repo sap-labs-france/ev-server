@@ -1235,8 +1235,8 @@ class ChargingStation extends AbstractTenantEntity {
       // Set Tag ID with user that started the transaction
       stopTransaction.idTag = transaction.tagID;
     }
-		// Handle Transaction Data
-		if (stopTransaction.transactionData) {
+    // Handle Transaction Data
+    if (stopTransaction.transactionData) {
       // Remove $ from values
       for (let index = 0; index < stopTransaction.transactionData.values.length; index++) {
         // Get the value structure 
@@ -1287,7 +1287,7 @@ class ChargingStation extends AbstractTenantEntity {
     let newTransaction = await TransactionStorage.saveTransaction(this.getTenantID(), transaction);
     // Only after saving the Stop Transaction we can compute the total consumption
     // Compute total consumption
-    let consumption = await this.getConsumptionsFromTransaction(transaction);
+    const consumption = await this.getConsumptionsFromTransaction(transaction);
     // Set the total consumption
     newTransaction.stop.totalConsumption = consumption.totalConsumption;
     // Compute total inactivity seconds
@@ -1566,7 +1566,7 @@ class ChargingStation extends AbstractTenantEntity {
 
   async getConsumptionsFromDateTimeRange(transaction, startDateTime) {
     // Get all from the transaction (not optimized)
-    let consumptions = await this.getConsumptionsFromTransaction(transaction);
+    const consumptions = await this.getConsumptionsFromTransaction(transaction);
     // Found?
     if (consumptions && consumptions.values) {
       // Start date
@@ -1608,31 +1608,31 @@ class ChargingStation extends AbstractTenantEntity {
         }
       }
       // Set last meter value
-			meterValues.splice(0, 0, {
-				id: '666',
-				connectorId: transaction.connectorId,
-				transactionId: transaction.transactionId,
-				timestamp: transaction.timestamp,
-				value: transaction.meterStart
-			});
+      meterValues.splice(0, 0, {
+        id: '666',
+        connectorId: transaction.connectorId,
+        transactionId: transaction.transactionId,
+        timestamp: transaction.timestamp,
+        value: transaction.meterStart
+      });
 
       // Set last value from transaction
       if (transaction.stop) {
-				// Set last meter value
-				meterValues.push({
-					id: '6969',
-					connectorId: transaction.connectorId,
-					transactionId: transaction.transactionId,
-					timestamp: transaction.stop.timestamp,
-					value: transaction.stop.meterStop
-				});
+        // Set last meter value
+        meterValues.push({
+          id: '6969',
+          connectorId: transaction.connectorId,
+          transactionId: transaction.transactionId,
+          timestamp: transaction.stop.timestamp,
+          value: transaction.stop.meterStop
+        });
       }
     }
     // Build the model
     for (let meterValueIndex = 0; meterValueIndex < meterValues.length; meterValueIndex++) {
       const meterValue = meterValues[meterValueIndex];
       // Filter on consumption value
-			if (!meterValue.attribute || (meterValue.attribute.measurand &&
+      if (!meterValue.attribute || (meterValue.attribute.measurand &&
         meterValue.attribute.measurand === 'Energy.Active.Import.Register' &&
         (meterValue.attribute.context === "Sample.Periodic" ||
         // ABB only uses Sample.Clock!!!!!
@@ -1651,7 +1651,7 @@ class ChargingStation extends AbstractTenantEntity {
             lastMeterValue.value = 0;
           }
           // Get the moment
-          let currentTimestamp = moment(meterValue.timestamp);
+          const currentTimestamp = moment(meterValue.timestamp);
           // Start to return the value after the requested date
           if (!chargingStationConsumption.startDateTime ||
             currentTimestamp.isAfter(chargingStationConsumption.startDateTime)) {

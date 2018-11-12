@@ -17,7 +17,7 @@ module.exports = {
 
   authService(req, res, next) {
     // Parse the action
-    var action = /^\/\w*/g.exec(req.url)[0].substring(1);
+    const action = /^\/\w*/g.exec(req.url)[0].substring(1);
     // Check Context
     switch (req.method) {
       // Create Request

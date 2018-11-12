@@ -1,12 +1,12 @@
 
 class MigrationTask {
-	migrate() {
-	}
+  migrate() {
+  }
 
-	getVersion() {
-	}
+  getVersion() {
+  }
 
-	getName() {
-	}
+  getName() {
+  }
 }
 module.exports=MigrationTask;

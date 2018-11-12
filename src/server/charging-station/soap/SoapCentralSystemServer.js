@@ -100,7 +100,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
     // Create the HTTP server
     if (this._centralSystemConfig.protocol === "https") {
       // Create the options
-      let options = {};
+      const options = {};
       // Set the keys
       options.key = fs.readFileSync(this._centralSystemConfig["ssl-key"]);
       options.cert = fs.readFileSync(this._centralSystemConfig["ssl-cert"]);
@@ -127,7 +127,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
 
     // Create Soap Servers
     // OCPP 1.2 -----------------------------------------
-    let soapServer12 = soap.listen(server, '/OCPP12', centralSystemService12, centralSystemService12Wsdl);
+    const soapServer12 = soap.listen(server, '/OCPP12', centralSystemService12, centralSystemService12Wsdl);
     // Log
     if (this._centralSystemConfig.debug) {
       // Listen
@@ -157,7 +157,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
       });
     }
     // OCPP 1.5 -----------------------------------------
-    let soapServer15 = soap.listen(server, '/OCPP15', centralSystemService15, centralSystemService15Wsdl);
+    const soapServer15 = soap.listen(server, '/OCPP15', centralSystemService15, centralSystemService15Wsdl);
     // Log
     if (this._centralSystemConfig.debug) {
       // Listen
@@ -187,7 +187,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
       });
     }
     // OCPP 1.6 -----------------------------------------
-    let soapServer16 = soap.listen(server, '/OCPP16', centralSystemService16, centralSystemService16Wsdl);
+    const soapServer16 = soap.listen(server, '/OCPP16', centralSystemService16, centralSystemService16Wsdl);
     // Log
     if (this._centralSystemConfig.debug) {
       // Listen
