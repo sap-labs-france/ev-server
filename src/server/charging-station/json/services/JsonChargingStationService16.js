@@ -46,14 +46,14 @@ class JsonChargingStationService16 {
 
   async handleStatusNotification(payload) {
     // Forward
-    const result = await this._handle("StatusNotification", payload);
+    await this._handle("StatusNotification", payload);
     // Return the response
     return {};
   }
 
   async handleMeterValues(payload) {
     // Forward
-    const result = await this._handle("MeterValues", payload);
+    await this._handle("MeterValues", payload);
     // Return the response
     return {};
   }
@@ -71,14 +71,14 @@ class JsonChargingStationService16 {
 
   async handleDiagnosticsStatusNotification(payload) {
     // Forward
-    const result = await this._handle("DiagnosticsStatusNotification", payload);
+    await this._handle("DiagnosticsStatusNotification", payload);
     // Return the response
     return {};
   }
 
   async handleFirmwareStatusNotification(payload) {
     // Forward
-    const result = await this._handle("FirmwareStatusNotification", payload);
+    await this._handle("FirmwareStatusNotification", payload);
     // Return the response
     return {};
   }

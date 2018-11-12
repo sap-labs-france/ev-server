@@ -1,7 +1,6 @@
 const Utils = require('../../utils/Utils');
 const Constants = require('../../utils/Constants');
 const DatabaseUtils = require('./DatabaseUtils');
-const BackendError = require('../../exception/BackendError');
 
 class StatisticsStorage {
   static async getChargingStationStats(tenantID, filter, siteID, groupBy) {

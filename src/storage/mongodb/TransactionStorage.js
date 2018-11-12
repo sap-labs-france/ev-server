@@ -3,7 +3,6 @@ const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const crypto = require('crypto');
 const DatabaseUtils = require('./DatabaseUtils');
-const BackendError = require('../../exception/BackendError');
 
 class TransactionStorage {
   static async deleteTransaction(tenantID, transaction) {

@@ -76,7 +76,7 @@ class Vehicle extends AbstractTenantEntity {
     return this._model.torqueNm;
   }
 
-  setPerformance0To100kmh(torqueNm) {
+  setPerformance0To100kmh(performance0To100kmh) {
     this._model.performance0To100kmh = performance0To100kmh;
   }
 
@@ -84,7 +84,7 @@ class Vehicle extends AbstractTenantEntity {
     return this._model.performance0To100kmh;
   }
 
-  setWeightKg(torqueNm) {
+  setWeightKg(weightKg) {
     this._model.weightKg = weightKg;
   }
 
@@ -195,25 +195,25 @@ class Vehicle extends AbstractTenantEntity {
     if(httpRequest.method !== 'POST' && !request.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Vehicle ID is mandatory`, 500, 
+        `The Vehicle ID is mandatory`, 500,
         'Vehicle', 'checkIfVehicleValid');
     }
     if(!request.type) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Vehicle Type is mandatory`, 500, 
+        `The Vehicle Type is mandatory`, 500,
         'Vehicle', 'checkIfVehicleValid');
     }
     if(!request.model) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Vehicle Model is mandatory`, 500, 
+        `The Vehicle Model is mandatory`, 500,
         'Vehicle', 'checkIfVehicleValid');
     }
     if(!request.vehicleManufacturerID) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Vehicle Manufacturer is mandatory`, 500, 
+        `The Vehicle Manufacturer is mandatory`, 500,
         'Vehicle', 'checkIfVehicleValid');
     }
   }

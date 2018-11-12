@@ -4,7 +4,6 @@ const Utils = require('../../utils/Utils');
 const AppError = require('../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
 const DatabaseUtils = require('./DatabaseUtils');
-const BackendError = require('../../exception/BackendError');
 
 class SiteAreaStorage {
   static async getSiteAreaImage(tenantID, id) {
