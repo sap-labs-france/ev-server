@@ -336,7 +336,7 @@ class ChargingStation extends AbstractTenantEntity {
         tenantID: this.getTenantID(),
         source: this.getID(), module: 'ChargingStation',
         method: 'handleStatusNotification', action: 'StatusNotification',
-        message: `Warning due to connector ${statusNotification.connectorId}: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
+        message: `Connector '${statusNotification.connectorId}': '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
       });
       // Get the connectors
       const connectors = this.getConnectors();
