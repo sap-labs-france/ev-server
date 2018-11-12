@@ -11,24 +11,6 @@ const Database = require('../../../utils/Database');
 const UserSecurity = require('./security/UserSecurity');
 
 class UserService {
-  static async handleGetEndUserLicenseAgreement(action, req, res, next) {
-    try {
-      // Filter
-      const filteredRequest = UserSecurity.filterEndUserLicenseAgreementRequest(req.query, req.user);
-      // Get it
-      const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(req.user.tenantID, filteredRequest.Language);
-      res.json(
-        // Filter
-        UserSecurity.filterEndUserLicenseAgreementResponse(
-          endUserLicenseAgreement, req.user)
-      );
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
-    }
-  }
-
   static async handleAddSitesToUser(action, req, res, next) {
     try {
       // Filter
