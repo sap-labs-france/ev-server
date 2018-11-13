@@ -17,6 +17,7 @@ require('body-parser-xml')(bodyParser);
 const Configuration = require('../../utils/Configuration');
 const Logging = require('../../utils/Logging');
 const Constants = require('../../utils/Constants');
+const OCPIServices = require('./OCPIServices');
 // const ErrorHandler = require('./ErrorHandler');
 require('source-map-support').install();
 
@@ -73,6 +74,19 @@ class OCPIServer {
       express.use(CFLog.logNetwork);
     }
 
+    // new OCPI Services Instances
+    const ocpiServices = new OCPIServices(_ocpiRestConfig);
+
+    // OCPI versions
+    express.use('/ocpi/cpo/versions', ocpiServices.getVersions);
+
+    // Register all services in express
+    ocpiServices.getOCPIServiceImplementations().forEach(ocpiService => {
+      express.use(ocpiService.getPath(), ocpiService.restService.bind(ocpiService));
+    });
+
+
+
     // Authentication
     // express.use(CentralRestServerAuthentication.initialize());
 
@@ -84,6 +98,11 @@ class OCPIServer {
 
     // Util API
     // express.use('/client/util', CentralRestServerService.restServiceUtil);
+
+    // Test express
+    // express.get("/", function(req,res,next) {
+    //   res.sendStatus(201);
+    // })
 
     // Register error handler
     // express.use(ErrorHandler.errorHandler);
@@ -110,9 +129,8 @@ class OCPIServer {
 
   // Start the server (to be defined in sub-classes)
   start() {
-    let server;
     // Log
-    console.log(`Starting OCPI Server ...`);
+    console.log(`Starting OCPI Server ...`); // eslint-disable-line
     // Create the HTTP server
     // if (_centralSystemRestConfig.protocol == "https") {
     //   // Create the options
@@ -137,8 +155,8 @@ class OCPIServer {
     //   // Https server
     //   server = https.createServer(options, express);
     // } else {
-      // Http server
-    server = http.createServer(express);
+    // Http server
+    const server = http.createServer(express);
     // }
 
     // Init Socket IO
@@ -153,7 +171,16 @@ class OCPIServer {
     // });
 
     // Listen
-    server.listen(_ocpiRestConfig.port, _ocpiRestConfig.host);
+    server.listen(_ocpiRestConfig.port, _ocpiRestConfig.host, () => {
+      // Log
+      Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
+        module: "OCPIRestServer",
+        method: "start", action: "Startup",
+        message: `OCPI Rest Server listening on '${_ocpiRestConfig.protocol}://${server.address().address}:${server.address().port}'`
+      });
+      console.log(`OCPI Rest Server listening on '${_ocpiRestConfig.protocol}://${server.address().address}:${server.address().port}'`); // eslint-disable-line
+    });
     // server.listen(_centralSystemRestConfig.port, _centralSystemRestConfig.host, () => {
     //   // Check and send notif
     //   setInterval(() => {
@@ -168,18 +195,18 @@ class OCPIServer {
     //   }, _centralSystemRestConfig.webSocketNotificationIntervalSecs * 1000);
 
     //   // Log
-    Logging.logInfo({
-      tenantID: Constants.DEFAULT_TENANT,
-      module: "CentralServerRestServer",
-      method: "start", action: "Startup",
-      message: `Central Rest Server (Front-End) listening on '${_ocpiRestConfig.protocol}://${server.address().address}:${server.address().port}'`
-    });
-    
-    console.log(`Central Rest Server (Front-End) listening on '${_ocpiRestConfig.protocol}://${server.address().address}:${server.address().port}'`);
+    // Logging.logInfo({
+    //   tenantID: Constants.DEFAULT_TENANT,
+    //   module: "CentralServerRestServer",
+    //   method: "start", action: "Startup",
+    //   message: `Central Rest Server (Front-End) listening on '${_ocpiRestConfig.protocol}://${server.address().address}:${server.address().port}'`
+    // });
+
+    //console.log(`Central Rest Server (Front-End) listening on '${_ocpiRestConfig.protocol}://${server.address().address}:${server.address().port}'`);
     // });
   }
 
- 
+
 }
 
 module.exports = OCPIServer;
