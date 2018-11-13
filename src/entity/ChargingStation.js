@@ -924,10 +924,21 @@ class ChargingStation extends AbstractTenantEntity {
       if (this.getOcppVersion() === Constants.OCPP_VERSION_16) { //value.sampledValue 
         if (Array.isArray(value.sampledValue)) {
           for (const sampledValue of value.sampledValue) {
+            // clone header
+            // eslint-disable-next-line prefer-const
+            let newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
             // Normalize
             value.value = sampledValue.value;
-            newMeterValue.value = parseInt(value.value);
-            newMeterValues.values.push(newMeterValue);
+            newLocalMeterValue.attribute = {};
+            // enrich with OCPP16 attributes
+            newLocalMeterValue.attribute.context = ( sampledValue.context ? sampledValue.context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC);
+            newLocalMeterValue.attribute.format = ( sampledValue.format ? sampledValue.format : Constants.METER_VALUE_FORMAT_RAW);
+            newLocalMeterValue.attribute.measurand = ( sampledValue.measurand ? sampledValue.measurand : Constants.METER_VALUE_MEASURAND_IMPREG);
+            newLocalMeterValue.attribute.location = ( sampledValue.location ? sampledValue.location : Constants.METER_VALUE_LOCATION_OUTLET);
+            newLocalMeterValue.attribute.unit = ( sampledValue.unit ? sampledValue.unit : Constants.METER_VALUE_UNIT_WH);
+            newLocalMeterValue.attribute.phase = ( sampledValue.phase ? sampledValue.phase : '');
+            newLocalMeterValue.value = parseInt(value.value);
+            newMeterValues.values.push(newLocalMeterValue);
           }
         } else {
           // Normalize

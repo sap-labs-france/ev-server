@@ -101,6 +101,11 @@ module.exports = {
 
   METER_VALUE_CTX_SAMPLE_PERIODIC: 'Sample.Periodic',
   METER_VALUE_CTX_SAMPLE_CLOCK: 'Sample.Clock',
+  METER_VALUE_FORMAT_RAW: 'Raw',
+  METER_VALUE_MEASURAND_IMPREG: 'Energy.Active.Import.Register',
+  METER_VALUE_LOCATION_OUTLET: 'Outlet',
+  METER_VALUE_UNIT_WH: 'Wh',
+  
 
   WS_UNSUPPORTED_DATA: 1007,
 
