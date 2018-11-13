@@ -5,7 +5,6 @@ const Utils = require('../../utils/Utils');
 const SiteStorage = require('./SiteStorage');
 const AppError = require('../../exception/AppError');
 const DatabaseUtils = require('./DatabaseUtils');
-const BackendError = require('../../exception/BackendError');
 
 class CompanyStorage {
   static async getCompany(tenantID, id) {

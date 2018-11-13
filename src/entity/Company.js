@@ -4,6 +4,7 @@ const AppError = require('../exception/AppError');
 const Constants = require('../utils/Constants');
 const CompanyStorage = require('../storage/mongodb/CompanyStorage');
 const SiteStorage = require('../storage/mongodb/SiteStorage');
+const User = require('./User');
 
 class Company extends AbstractTenantEntity {
   constructor(tenantID, company) {
@@ -80,15 +81,12 @@ class Company extends AbstractTenantEntity {
   }
 
   async getSites() {
-    if (this._model.sites) {
-      return this._model.sites.map((site) => new Site(this.getTenantID(), site));
-    } else {
-      // Get from DB
-      const sites = await SiteStorage.getSites(this.getTenantID(), {'companyID': this.getID()});
-      // Keep it
-      this.setSites(sites.result);
-      return sites.result;
-    }
+    // Get from DB
+    const sites = await SiteStorage.getSites(this.getTenantID(), {'companyID': this.getID()});
+    // Keep it
+    this.setSites(sites.result);
+    // Return
+    return sites.result;
   }
 
   setSites(sites) {
@@ -112,13 +110,13 @@ class Company extends AbstractTenantEntity {
     if(req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Company ID is mandatory`, 500, 
+        `The Company ID is mandatory`, 500,
         'Company', 'checkIfCompanyValid');
     }
     if(!filteredRequest.name) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Company Name is mandatory`, 500, 
+        `The Company Name is mandatory`, 500,
         'Company', 'checkIfCompanyValid');
     }
   }

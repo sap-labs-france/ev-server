@@ -1,7 +1,6 @@
 const ChargingStationService = require('./ChargingStationService');
 const ChargingStation = require('../../../entity/ChargingStation');
 const Logging = require('../../../utils/Logging');
-const Constants = require('../../../utils/Constants');
 require('source-map-support').install();
 
 /**
@@ -18,7 +17,7 @@ class ChargingStationService16 extends ChargingStationService {
    * On bootNotification from charge box
    * It should create a charging station if it does not exist
    * Otherwise it will update existing stations with bmessage information
-   * 
+   *
    * @param {*} payload
    * @returns status, current time and heartbeatInterval in second
    * @memberof CentralChargingStationService
@@ -90,7 +89,7 @@ class ChargingStationService16 extends ChargingStationService {
       const chargingStation = await this._checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenantID);
       // Save
       await chargingStation.handleHeartBeat();
-      // Return			
+      // Return
       return {
         'currentTime': chargingStation.getLastHeartBeat().toISOString()
       };

@@ -20,6 +20,9 @@
             {
                 "SwitchCase": 1
             }
+        ],
+        "space-before-blocks": [
+            "warn", "always"
         ]
     }
 }

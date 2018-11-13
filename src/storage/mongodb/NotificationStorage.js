@@ -1,7 +1,6 @@
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const crypto = require('crypto');
-const BackendError = require('../../exception/BackendError');
 
 class NotificationStorage {
   static async getNotification(tenantID, sourceId) {

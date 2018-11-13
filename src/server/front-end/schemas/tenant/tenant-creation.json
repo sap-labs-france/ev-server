@@ -7,7 +7,7 @@
             "type": "string",
             "description": "name of the tenant",
             "minLength": 1,
-            "maxLength": 25
+            "maxLength": 100
         },
         "email": {
             "type": "string",

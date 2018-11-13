@@ -65,6 +65,29 @@ class AuthSecurity {
     filteredRequest.captcha = sanitize(request.captcha);
     return filteredRequest;
   }
+
+  static filterEndUserLicenseAgreementRequest(request) {
+    const filteredRequest = {};
+    // Set
+    if (request.query) {
+      filteredRequest.Language = sanitize(request.query.Language);
+    }
+    if (request.headers) {
+      filteredRequest.tenant = sanitize(request.headers.tenant);
+    }
+    return filteredRequest;
+  }
+
+  static filterEndUserLicenseAgreementResponse(endUserLicenseAgreement) {
+    const filteredEndUserLicenseAgreement = {};
+
+    if (!endUserLicenseAgreement) {
+      return null;
+    }
+    // Set
+    filteredEndUserLicenseAgreement.text = endUserLicenseAgreement.text;
+    return filteredEndUserLicenseAgreement;
+  }
 }
 
 module.exports = AuthSecurity;

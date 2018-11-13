@@ -7,6 +7,7 @@ const axios = require('axios');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const AppError = require('../../../exception/AppError');
+const BadRequestError = require('../../../exception/BadRequestError');
 const User = require('../../../entity/User');
 const Tenant = require('../../../entity/Tenant');
 const ChargingStation = require('../../../entity/ChargingStation');
@@ -117,9 +118,21 @@ class AuthService {
   }
 
   static async handleLogIn(action, req, res, next) {
+    // Filter
+    const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
+
+    const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+    if (!tenantID) {
+      const error = new BadRequestError({
+        path: "tenant",
+        message: "The Tenant is mandatory"
+      });
+      // Log Error
+      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleLogIn', Constants.DEFAULT_TENANT);
+      next(error);
+      return;
+    }
     try {
-      // Filter
-      const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
       // Check
       if (!filteredRequest.email) {
         throw new AppError(
@@ -133,23 +146,10 @@ class AuthService {
           `The Password is mandatory`, 500,
           'AuthService', 'handleLogIn');
       }
-      if (filteredRequest.tenant === undefined) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Tenant is mandatory`, 500,
-          'AuthService', 'handleLogIn');
-      }
       if (!filteredRequest.acceptEula) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The End-user License Agreement is mandatory`, 520,
-          'AuthService', 'handleLogIn');
-      }
-      const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-      if (!tenantID) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Tenant is mandatory`, 500,
           'AuthService', 'handleLogIn');
       }
 
@@ -207,14 +207,26 @@ class AuthService {
       }
     } catch (err) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, Constants.DEFAULT_TENANT);
+      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, tenantID);
     }
   }
 
   static async handleRegisterUser(action, req, res, next) {
+    // Filter
+    const filteredRequest = AuthSecurity.filterRegisterUserRequest(req.body);
+
+    const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+    if (!tenantID) {
+      const error = new BadRequestError({
+        path: "tenant",
+        message: "The Tenant is mandatory"
+      });
+      // Log Error
+      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleRegisterUser', Constants.DEFAULT_TENANT);
+      next(error);
+      return;
+    }
     try {
-      // Filter
-      const filteredRequest = AuthSecurity.filterRegisterUserRequest(req.body);
       // Check EULA
       if (!filteredRequest.acceptEula) {
         throw new AppError(
@@ -229,20 +241,7 @@ class AuthService {
           `The captcha is mandatory`, 500,
           'AuthService', 'handleRegisterUser');
       }
-      if (filteredRequest.tenant === undefined) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Tenant is mandatory`, 500,
-          'AuthService', 'handleRegisterUser');
-      }
-      // Get ID from subdomain
-      const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-      if (!tenantID) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Tenant is mandatory`, 500,
-          'AuthService', 'handleRegisterUser');
-      }
+
       // Check captcha
       const response = await axios.get(
         `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
@@ -320,7 +319,7 @@ class AuthService {
       next();
     } catch (err) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, Constants.DEFAULT_TENANT);
+      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, tenantID);
     }
   }
 
@@ -477,20 +476,19 @@ class AuthService {
     // Filter
     const filteredRequest = AuthSecurity.filterResetPasswordRequest(req.body);
 
+    const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+    if (!tenantID) {
+      const error = new BadRequestError({
+        path: "tenant",
+        message: "The Tenant is mandatory"
+      });
+      // Log Error
+      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleUserPasswordReset', Constants.DEFAULT_TENANT);
+      next(error);
+      return;
+    }
+
     try {
-      if (filteredRequest.tenant === undefined) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Tenant is mandatory`, 500,
-          'AuthService', 'handleUserPasswordReset');
-      }
-      const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-      if (!tenantID) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Tenant is mandatory`, 500,
-          'AuthService', 'handleUserPasswordReset');
-      }
       // Check hash
       if (!filteredRequest.hash) {
         // Send Confirmation Email for requesting a new password
@@ -501,13 +499,56 @@ class AuthService {
       }
     } catch (err) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, Constants.DEFAULT_TENANT);
+      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, tenantID);
+    }
+  }
+
+  static async handleGetEndUserLicenseAgreement(action, req, res, next) {
+    // Filter
+    const filteredRequest = AuthSecurity.filterEndUserLicenseAgreementRequest(req);
+
+    const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+    if (!tenantID) {
+      const error = new BadRequestError({
+        path: "tenant",
+        message: "The Tenant is mandatory"
+      });
+      // Log Error
+      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleGetEndUserLicenseAgreement', Constants.DEFAULT_TENANT);
+      next(error);
+      return;
+    }
+    try {
+      // Get it
+      const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(tenantID, filteredRequest.Language);
+      res.json(
+        // Filter
+        AuthSecurity.filterEndUserLicenseAgreementResponse(
+          endUserLicenseAgreement)
+      );
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next, tenantID);
     }
   }
 
   static async handleVerifyEmail(action, req, res, next) {
     // Filter
     const filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
+
+    const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+    if (!tenantID) {
+      const error = new BadRequestError({
+        path: "tenant",
+        message: "The Tenant is mandatory"
+      });
+      // Log Error
+      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleVerifyEmail', Constants.DEFAULT_TENANT);
+      next(error);
+      return;
+    }
+
     try {
       // Check email
       if (!filteredRequest.Email) {
@@ -521,20 +562,6 @@ class AuthService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `Verification Token is mandatory`, 500,
-          'AuthService', 'handleVerifyEmail');
-      }
-      // Check tenant
-      if (filteredRequest.tenant === undefined) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Tenant is mandatory`, 500,
-          'AuthService', 'handleVerifyEmail');
-      }
-      const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-      if (!tenantID) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Tenant is mandatory`, 500,
           'AuthService', 'handleVerifyEmail');
       }
       // Check email
@@ -588,14 +615,25 @@ class AuthService {
       next();
     } catch (err) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, Constants.DEFAULT_TENANT);
+      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, tenantID);
     }
   }
 
   static async handleResendVerificationEmail(action, req, res, next) {
-    let verificationToken;
     // Filter
     const filteredRequest = AuthSecurity.filterResendVerificationEmail(req.body);
+
+    const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+    if (!tenantID) {
+      const error = new BadRequestError({
+        path: "tenant",
+        message: "The Tenant is mandatory"
+      });
+      // Log Error
+      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleResendVerificationEmail', Constants.DEFAULT_TENANT);
+      next(error);
+      return;
+    }
     try {
       // Check email
       if (!filteredRequest.email) {
@@ -611,20 +649,7 @@ class AuthService {
           `The captcha is mandatory`, 500,
           'AuthService', 'handleResendVerificationEmail');
       }
-      // Check tenant
-      if (filteredRequest.tenant === undefined) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Tenant is mandatory`, 500,
-          'AuthService', 'handleResendVerificationEmail');
-      }
-      const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-      if (!tenantID) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Tenant is mandatory`, 500,
-          'AuthService', 'handleResendVerificationEmail');
-      }
+
       // Is valid captcha?
       const response = await axios.get(
         `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
@@ -657,6 +682,8 @@ class AuthService {
           `Account is already active`, 530,
           'AuthService', 'handleResendVerificationEmail', user.getModel());
       }
+
+      let verificationToken;
       // Check verificationToken
       if (user.getVerificationToken() === null) {
         // Verification token was not created after registration
@@ -700,7 +727,7 @@ class AuthService {
       next();
     } catch (err) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, Constants.DEFAULT_TENANT);
+      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, tenantID);
     }
 
   }
@@ -798,6 +825,9 @@ class AuthService {
   }
 
   static async getTenantID(subdomain) {
+    if (subdomain === undefined) {
+      return null;
+    }
     // Check
     if (!subdomain) {
       return Constants.DEFAULT_TENANT;

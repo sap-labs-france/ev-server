@@ -5,7 +5,6 @@ const VehicleStorage = require('./VehicleStorage');
 const AppError = require('../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
 const DatabaseUtils = require('./DatabaseUtils');
-const BackendError = require('../../exception/BackendError');
 
 class VehicleManufacturerStorage {
   static async getVehicleManufacturerLogo(tenantID, id) {

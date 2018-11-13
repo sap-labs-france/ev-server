@@ -1,5 +1,4 @@
 const AuthService = require('./service/AuthService');
-const UserService = require('./service/UserService');
 const UtilsService = require('./service/UtilsService');
 const TenantService = require('./service/TenantService');
 
@@ -67,7 +66,7 @@ module.exports = {
           // End-user license agreement
           case "EndUserLicenseAgreement":
             // Delegate
-            UserService.handleGetEndUserLicenseAgreement(action, req, res, next);
+            AuthService.handleGetEndUserLicenseAgreement(action, req, res, next);
             break;
 
           // Verify Email

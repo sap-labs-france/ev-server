@@ -2,8 +2,10 @@ const Authorizations = require('../../../authorization/Authorizations');
 const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const PricingSecurity = require('./security/PricingSecurity');
-const PricingStorage = require('../../../storage/mongodb/PricingStorage'); 
+const PricingStorage = require('../../../storage/mongodb/PricingStorage');
 const Constants = require('../../../utils/Constants');
+const AppAuthError = require('../../../exception/AppAuthError');
+const AppError = require('../../../exception/AppError');
 
 class PricingService {
   static async handleGetPricing(action, req, res, next) {
@@ -48,13 +50,13 @@ class PricingService {
           req.user);
       }
       // Filter
-      const filteredRequest = PricingSecurity.filterPricingUpdateRequest(req.user.tenantID, req.body, req.user);
+      const filteredRequest = PricingSecurity.filterPricingUpdateRequest(req.body, req.user);
       // Check
       if (!filteredRequest.priceKWH || isNaN(filteredRequest.priceKWH)) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The price ${filteredRequest.priceKWH} has not a correct format`, 500, 
+          `The price ${filteredRequest.priceKWH} has not a correct format`, 500,
           'PricingService', 'handleUpdatePricing', req.user);
       }
       // Update
@@ -63,7 +65,7 @@ class PricingService {
       // Set timestamp
       pricing.timestamp = new Date();
       // Get
-      const pricingMDB = await PricingStorage.savePricing(req.user.tenantID, pricing);
+      await PricingStorage.savePricing(req.user.tenantID, pricing);
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,

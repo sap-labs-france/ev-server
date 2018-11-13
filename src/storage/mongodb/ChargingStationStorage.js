@@ -1,7 +1,6 @@
 const Constants = require('../../utils/Constants');
 const Utils = require('../../utils/Utils');
 const Database = require('../../utils/Database');
-const BackendError = require('../../exception/BackendError');
 const crypto = require('crypto');
 const DatabaseUtils = require('./DatabaseUtils');
 
@@ -355,7 +354,7 @@ class ChargingStationStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Insert
-    const result = await global.database.getCollection(tenantID, 'bootnotifications')
+    await global.database.getCollection(tenantID, 'bootnotifications')
       .insertOne({
         _id: crypto.createHash('sha256')
           .update(`${bootNotification.chargeBoxID}~${bootNotification.timestamp}`)

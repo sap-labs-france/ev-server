@@ -5,6 +5,7 @@ const AppError = require('../exception/AppError');
 const SiteStorage = require('../storage/mongodb/SiteStorage');
 const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
+const User = require('./User');
 
 class SiteArea extends AbstractTenantEntity {
   constructor(tenantID, siteArea) {
@@ -80,17 +81,12 @@ class SiteArea extends AbstractTenantEntity {
     return this._model.image;
   }
 
-  async getSite(withCompany=false, withUser=false) {
-
-    if (this._model.site) {
-      return new Site(this.getTenantID(), this._model.site);
-    } else if (this._model.siteID) {
-      // Get from DB
-      const site = await SiteStorage.getSite(this.getTenantID(), this._model.siteID, withCompany, withUser);
-      // Keep it
-      this.setSite(site);
-      return site;
-    }
+  async getSite(withCompany = false, withUser = false) {
+    // Get from DB
+    const site = await SiteStorage.getSite(this.getTenantID(), this._model.siteID, withCompany, withUser);
+    // Keep it
+    this.setSite(site);
+    return site;
   }
 
   setSite(site) {
@@ -115,16 +111,12 @@ class SiteArea extends AbstractTenantEntity {
   }
 
   async getChargingStations() {
-    if (this._model.chargeBoxes) {
-      return this._model.chargeBoxes.map((chargeBox) => new ChargingStation(this.getTenantID(), chargeBox));
-    } else {
-      // Get from DB
-      const chargingStations = await ChargingStationStorage.getChargingStations(this.getTenantID(),
-        { siteAreaID: this.getID() }, Constants.NO_LIMIT);
-      // Keep it
-      this.setChargingStations(chargingStations.result);
-      return chargingStations.result;
-    }
+    // Get from DB
+    const chargingStations = await ChargingStationStorage.getChargingStations(this.getTenantID(),
+      {siteAreaID: this.getID()}, Constants.NO_LIMIT);
+    // Keep it
+    this.setChargingStations(chargingStations.result);
+    return chargingStations.result;
   }
 
   setChargingStations(chargeBoxes) {
@@ -133,19 +125,19 @@ class SiteArea extends AbstractTenantEntity {
 
   static checkIfSiteAreaValid(filteredRequest, request) {
     // Update model?
-    if(request.method !== 'POST' && !filteredRequest.id) {
+    if (request.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `The Site Area ID is mandatory`, 500,
         'SiteArea', 'checkIfSiteAreaValid');
     }
-    if(!filteredRequest.name) {
+    if (!filteredRequest.name) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `The Site Area Name is mandatory`, 500,
         'SiteArea', 'checkIfSiteAreaValid');
     }
-    if(!filteredRequest.siteID) {
+    if (!filteredRequest.siteID) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `The Site ID is mandatory`, 500,

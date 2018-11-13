@@ -115,7 +115,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
           }
         } else {
           // Add one
-          options.ca = fs.readFileSync(_centralSystemRestConfig["ssl-ca"]);
+          options.ca = fs.readFileSync(this._centralSystemRestConfig["ssl-ca"]);
         }
       }
       // Https server
