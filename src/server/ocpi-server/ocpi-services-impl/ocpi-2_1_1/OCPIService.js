@@ -9,7 +9,7 @@ require('source-map-support').install();
 /**
  * OCPI Service 2.1.1  - Implementation
  */
-class OCPIServices2_1_1 extends AbstractOCPIService {
+class OCPIServices extends AbstractOCPIService {
   // Create OCPI Service
   constructor(ocpiRestConfig) {
     super(ocpiRestConfig, VERSION);
@@ -19,7 +19,7 @@ class OCPIServices2_1_1 extends AbstractOCPIService {
     this.registerEndpoint(new LocationsEndpoint());
   }
 
-
+  
 }
 
-module.exports = OCPIServices2_1_1;
+module.exports = OCPIServices;

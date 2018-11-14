@@ -1,16 +1,13 @@
 require('source-map-support').install();
 
-// let VERSION = "0.0.0";
-let _ocpiRestConfig;
-
 class AbstractOCPIService {
   // Create OCPI Service
   constructor(ocpiRestConfig, version = "0.0.0") {
-    _ocpiRestConfig = ocpiRestConfig;
+    this._ocpiRestConfig = ocpiRestConfig;
     this._version = version;
 
     // endpoint as Map
-    this._endpoints = [];
+    this._endpoints = {};
   }
 
 
@@ -19,23 +16,19 @@ class AbstractOCPIService {
    * @param {*} endpoint AbstractEndpoint
    */
   registerEndpoint(endpoint) {
-    this._endpoints.push(endpoint);
+    this._endpoints[endpoint.getIdentifier()] = endpoint;
   }
 
   // Get All Registered Endpoint
   getRegisteredEndpoint() {
-    const tests = this._endpoints.map((endpoint) => {
-      return { "id": endpoint.getIdentifier(), "endpoint": endpoint };
-    });
-
     return this._endpoints;
   }
 
   // Return based URL of OCPI Service
   getServiceUrl() {
-    const protocol = _ocpiRestConfig.protocol;
-    const host = _ocpiRestConfig.host;
-    const port = _ocpiRestConfig.port;
+    const protocol = this._ocpiRestConfig.protocol;
+    const host = this._ocpiRestConfig.host;
+    const port = this._ocpiRestConfig.port;
     const path = this.getPath();
     return `${protocol}://${host}:${port}${path}`;
   }
@@ -70,29 +63,41 @@ class AbstractOCPIService {
         this.getSupportedEndpoints(req, res, next);
         break;
       default:
-        res.sendStatus(200);
+        this.processEndpointAction(action, req, res, next);
         break;
     }
-
-
   }
+
 
   // Send Supported Endpoints
   getSupportedEndpoints(req, res, next) { // eslint-disable-line
     const supportedEndpoints = [];
     const fullUrl = this.getServiceUrl();
+    const registeredEndpointsArray = Object.values(this.getRegisteredEndpoint());
 
-    this.getRegisteredEndpoint().forEach(endpoint => {
+    // build payload
+    registeredEndpointsArray.forEach(endpoint => {
       const identifier = endpoint.getIdentifier();
       supportedEndpoints.push({ "identifier": `${identifier}`, "url": `${fullUrl}${identifier}/` });
     })
-    // this._endpoints.forEach(endpoint => {
-    //   const identifier = endpoint.getIdentifier();
-    //   supportedEndpoints.push({ "identifier": `${identifier}`, "url": `${fullUrl}${identifier}/`});
-    // })
 
+    // return payload
     res.json({ "version": this.getVersion(), "endpoints": supportedEndpoints });
   }
+
+  // Process Endpoint action
+  processEndpointAction(action, req, res, next) { // eslint-disable-line
+    const registeredEndpoints = this.getRegisteredEndpoint();
+
+    if (registeredEndpoints[action]) {
+      registeredEndpoints[action].process(req,res,next);
+    } else {
+      res.sendStatus(501);
+    }
+  }
+
+
+
 }
 
 module.exports = AbstractOCPIService;

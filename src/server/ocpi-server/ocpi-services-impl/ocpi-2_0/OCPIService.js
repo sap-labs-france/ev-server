@@ -7,7 +7,7 @@ require('source-map-support').install();
 /**
  * OCPI Service 2.0 - Not Implemented - Only used for testing multiple Services declaration
  */
-class OCPIServices2_0 extends AbstractOCPIService {
+class OCPIServices extends AbstractOCPIService {
   // Create OCPI Service
   constructor(ocpiRestConfig) {
     super(ocpiRestConfig, VERSION);
@@ -20,4 +20,4 @@ class OCPIServices2_0 extends AbstractOCPIService {
   }
 }
 
-module.exports = OCPIServices2_0;
+module.exports = OCPIServices;

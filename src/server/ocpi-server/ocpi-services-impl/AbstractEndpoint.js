@@ -13,6 +13,11 @@ class AbstractEndpoint {
   getIdentifier() {
     return this._identifier;
   }
+
+  // Abstract - Process endpoint
+  process(req,res,next) { // eslint-disable-line
+    res.sendStatus(501);
+  }
 }
 
 module.exports = AbstractEndpoint;

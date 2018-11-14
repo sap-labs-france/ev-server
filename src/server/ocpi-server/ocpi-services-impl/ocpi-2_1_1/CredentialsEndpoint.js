@@ -10,8 +10,6 @@ class CredentialsEndpoint extends AbstractEndpoint {
   constructor() { 
     super(EP_IDENTIFIER);
   }
-
-
 }
 
 
