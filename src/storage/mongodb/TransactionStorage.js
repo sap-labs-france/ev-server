@@ -286,6 +286,18 @@ class TransactionStorage {
         as: 'meterValues'
       }
     });
+    aggregation.push({
+      $lookup: {
+        from: 'chargingstations',
+        localField: 'chargeBoxID',
+        foreignField: '_id',
+        as: 'chargeBox'
+      }
+    });
+    // Single Record
+    aggregation.push({
+      $unwind: {"path": "$chargeBox", "preserveNullAndEmptyArrays": true}
+    });
 
     // Read DB
     const transactionsMDB = await global.db.collection('transactions')

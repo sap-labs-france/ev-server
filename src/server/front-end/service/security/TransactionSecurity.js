@@ -93,6 +93,10 @@ class TransactionSecurity {
         filteredTransaction.stop.totalConsumption = transaction.totalConsumption;
         filteredTransaction.stop.totalInactivitySecs = transaction.totalInactivitySecs;
         filteredTransaction.stop.totalDurationSecs = transaction.totalDurationSecs;
+        if (Authorizations.isAdmin(loggedUser)) {
+          filteredTransaction.stop.price = transaction.price;
+          filteredTransaction.stop.priceUnit = transaction.priceUnit;
+        }
       }
       // retro compatibility OFF
 
