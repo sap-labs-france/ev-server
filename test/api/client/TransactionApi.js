@@ -1,5 +1,6 @@
 const CrudApi = require('./utils/CrudApi');
 const Constants = require('./utils/Constants');
+const moment = require('moment');
 const {expect} = require('chai');
 
 class TransactionApi extends CrudApi {
@@ -173,7 +174,11 @@ class TransactionApi extends CrudApi {
       meterStart: transaction.meterStart,
       totalConsumption: totalConsumption,
       totalInactivitySecs: totalInactivity,
+      totalDurationSecs: moment.duration(moment(stopTime).diff(transaction.timestamp)).asSeconds(),
       stop: {
+        totalConsumption: totalConsumption,
+        totalInactivitySecs: totalInactivity,
+        totalDurationSecs: moment.duration(moment(stopTime).diff(transaction.timestamp)).asSeconds(),
         tagID: userStop.tagIDs[0],
         timestamp: stopTime.toISOString(),
         user: {

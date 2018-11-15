@@ -69,17 +69,33 @@ class TransactionSecurity {
       // Set only necessary info
       filteredTransaction = {};
       filteredTransaction.id = transaction.id;
-      filteredTransaction.transactionId = transaction.id;
       filteredTransaction.chargeBoxID = transaction.chargeBoxID;
       filteredTransaction.connectorId = transaction.connectorId;
       filteredTransaction.meterStart = transaction.meterStart;
       filteredTransaction.currentConsumption = transaction.currentConsumption;
       filteredTransaction.totalConsumption = transaction.totalConsumption;
       filteredTransaction.totalInactivitySecs = transaction.totalInactivitySecs;
+      filteredTransaction.totalDurationSecs = transaction.totalDurationSecs;
+      filteredTransaction.status = transaction.chargerStatus;
+      filteredTransaction.isLoading = transaction.isLoading;
 
-      if (transaction.hasOwnProperty('totalDurationSecs')) {
-        filteredTransaction.totalDurationSecs = transaction.totalDurationSecs;
+      // retro compatibility ON
+      filteredTransaction.transactionId = transaction.id;
+      if (transaction.isActive()) {
+        if (transaction.chargeBox) {
+          filteredTransaction.chargeBox = {};
+          filteredTransaction.chargeBox.id = transaction.chargeBox.id;
+          filteredTransaction.chargeBox.connectors = [];
+          filteredTransaction.chargeBox.connectors[transaction.connectorId - 1] = transaction.chargeBox.connectors[transaction.connectorId - 1];
+        }
+      } else {
+        filteredTransaction.stop = {};
+        filteredTransaction.stop.totalConsumption = transaction.totalConsumption;
+        filteredTransaction.stop.totalInactivitySecs = transaction.totalInactivitySecs;
+        filteredTransaction.stop.totalDurationSecs = transaction.totalDurationSecs;
       }
+      // retro compatibility OFF
+
       // Demo user?
       if (Authorizations.isDemo(loggedUser)) {
         filteredTransaction.tagID = Constants.ANONIMIZED_VALUE;
@@ -92,7 +108,6 @@ class TransactionSecurity {
         transaction.initiator, loggedUser);
       // Transaction Stop
       if (!transaction.isActive()) {
-        filteredTransaction.stop = {};
         filteredTransaction.meterStop = transaction.meterStop;
         filteredTransaction.stop.timestamp = transaction.endDate;
         // Demo user?
@@ -103,8 +118,8 @@ class TransactionSecurity {
         }
         // Admin?
         if (Authorizations.isAdmin(loggedUser)) {
-          filteredTransaction.stop.price = transaction.stop.price;
-          filteredTransaction.stop.priceUnit = transaction.stop.priceUnit;
+          filteredTransaction.price = transaction.price;
+          filteredTransaction.priceUnit = transaction.priceUnit;
         }
         // Stop User
         if (transaction.finisher) {
@@ -117,7 +132,7 @@ class TransactionSecurity {
     return filteredTransaction;
   }
 
-  static filterTransactionsResponse(transactions, loggedUser, withConnector = false) {
+  static filterTransactionsResponse(transactions, loggedUser) {
     let filteredTransactions = [];
 
     if (!transactions) {
@@ -181,7 +196,7 @@ class TransactionSecurity {
     return filteredRequest;
   }
 
-  static filterConsumptionsFromTransactionResponse(transaction,consumptions, loggedUser) {
+  static filterConsumptionsFromTransactionResponse(transaction, consumptions, loggedUser) {
     let filteredConsumption = {};
 
     if (!consumptions) {
@@ -194,7 +209,7 @@ class TransactionSecurity {
       // Admin?
       if (Authorizations.isAdmin(loggedUser)) {
         filteredConsumption.priceUnit = transaction.priceUnit;
-        filteredConsumption.totalPrice = transaction.totalPrice;
+        filteredConsumption.totalPrice = transaction.price;
       }
       filteredConsumption.totalConsumption = transaction.totalConsumption;
       filteredConsumption.id = transaction.id;

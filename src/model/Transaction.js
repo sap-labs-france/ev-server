@@ -2,30 +2,21 @@ const moment = require('moment');
 const Utils = require('../utils/Utils');
 
 class Transaction {
-  constructor(model, pricing) {
+  constructor(model) {
     this._model = model;
     if (!model.meterValues) {
       model.meterValues = [];
     }
-    if (pricing) {
-      this._pricing = pricing;
-    }
-
   }
 
   get model() {
-    if (this._pricing) {
-      this._model.totalPrice = this.totalPrice;
-    }
     this._model.totalConsumption = this.totalConsumption;
-    this._model.currentConsumption = this.currentConsumption;
-    if (!this.isActive()) {
-      this._model.stop.totalInactivitySecs = this.totalInactivitySecs;
-      this._model.stop.totalConsumption = this._model.totalConsumption;
-      this._model.meterStop = this.meterStop;
+    if (this.isActive()) {
+      this._model.currentConsumption = this.currentConsumption;
     }
-    if (this.totalDurationInSecs) {
-      this._model.totalDurationInSecs = this.totalDurationInSecs;
+    if (this._hasPricing()) {
+      this._model.priceUnit = this._model.pricing.priceUnit;
+      this._model.price = this.price;
     }
     if (this._model.user) {
       this._model.userID = this._model.user.id;
@@ -33,8 +24,10 @@ class Transaction {
     if (this._model.stop && this._model.stop.user) {
       this._model.stop.userID = this._model.stop.user.id;
     }
+
     const copy = Utils.duplicateJSON(this._model);
     delete copy.meterValues;
+    delete copy.pricing;
     return copy;
   }
 
@@ -45,7 +38,15 @@ class Transaction {
       this._model.stop.user = Utils.duplicateJSON(this._model.stop.user);
     }
     model.meterValues = Utils.duplicateJSON(this._model.meterValues);
+    model.pricing = Utils.duplicateJSON(this._model.pricing);
     return model;
+  }
+
+  get chargerStatus() {
+    if (this.isActive() && this._model.chargeBox) {
+      return this._model.chargeBox.connectors[this.connectorId - 1].status;
+    }
+    return undefined;
   }
 
   get id() {
@@ -95,7 +96,7 @@ class Transaction {
   }
 
   get meterStop() {
-    return this._model.stop.meterStop;
+    return this._model.meterStop;
   }
 
   get transactionData() {
@@ -109,19 +110,42 @@ class Transaction {
     return 0;
   }
 
-  get totalDurationInSecs() {
-    if (this.isActive()) {
-      return undefined;
-    }
-    return moment.duration(moment(this._model.stop.timestamp).diff(this._model.timestamp)).asSeconds()
+  get chargeBox() {
+    return this._model.chargeBox;
   }
 
-  get totalPrice() {
-    return this.consumptions.reduce((totalPrice, consumption) => totalPrice + consumption.price, 0);
+  get totalDurationSecs() {
+    return moment.duration(moment(this.lastUpdateDate).diff(this.startDate)).asSeconds()
+  }
+
+  get totalInactivitySecs() {
+    let totalInactivitySecs = 0;
+    this.consumptions.forEach((consumption, index, array) => {
+      if (index === 0) {
+        return;
+      }
+      const lastConsumption = array[index - 1];
+      if (consumption.value === 0 && lastConsumption.value === 0) {
+        totalInactivitySecs += moment.duration(moment(consumption.date).diff(lastConsumption.date)).asSeconds();
+      }
+    });
+    return totalInactivitySecs;
+  }
+
+  get price() {
+    const price = this.consumptions.map(consumption => consumption.price).reduce((totalPrice, price) => totalPrice + price, 0);
+    return isNaN(price) ? 0 : price;
+  }
+
+  get priceUnit() {
+    if (this._hasPricing()) {
+      return this._model.pricing.priceUnit;
+    }
+    return undefined;
   }
 
   get lastUpdateDate() {
-    return this._latestMeterValue.date;
+    return this._latestMeterValue.timestamp;
   }
 
   get duration() {
@@ -134,20 +158,6 @@ class Transaction {
 
   get _latestConsumption() {
     return this.consumptions[this.consumptions.length - 1];
-  }
-
-  get totalInactivitySecs() {
-    let totalInactivitySecs = 0;
-    this.consumptions.forEach((consumption, index, array) => {
-      if (index === 0) {
-        return;
-      }
-      const lastConsumption = array[index - 1];
-      if (consumption.value == 0 && lastConsumption.value == 0) {
-        totalInactivitySecs += moment.duration(moment(consumption.date).diff(lastConsumption.date)).asSeconds();
-      }
-    });
-    return totalInactivitySecs;
   }
 
   get currentConsumption() {
@@ -216,6 +226,20 @@ class Transaction {
     };
   }
 
+  get _pricing() {
+    if (this._hasPricing()) {
+      return this._model.pricing;
+    }
+    return undefined;
+  }
+
+  get isLoading() {
+    if (this.isActive()) {
+      return this.getAverageConsumptionOnLast(2) > 0;
+    }
+    return false;
+  }
+
   _computeConsumptions() {
     const consumptions = [];
     this.meterValues.forEach((meterValue, index, array) => {
@@ -228,14 +252,14 @@ class Transaction {
   }
 
   _computeMeterValues() {
-    const meterValues = [this._firstMeterValue, ...(this._model.meterValues)]
+    const meterValues = [this._firstMeterValue, ...(this._model.meterValues)];
     if (!this.isActive()) {
       meterValues.push(this._lastMeterValue);
     }
     return meterValues.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
   }
 
-  _invalidateComputations(){
+  _invalidateComputations() {
     delete this._meterValues;
     delete this._consumptions;
   }
@@ -245,10 +269,12 @@ class Transaction {
   }
 
   getAverageConsumptionOnLast(numberOfConsumptions) {
-    const consumptions = this.consumptions;
+    if (numberOfConsumptions > this.consumptions.length) {
+      return 1;
+    }
     let cumulatedConsumption = 0;
-    for (let i = numberOfConsumptions.length - 1; i < numberOfConsumptions.length; i++) {
-      cumulatedConsumption += consumptions[i].value;
+    for (let i = this.consumptions.length - numberOfConsumptions; i < this.consumptions.length; i++) {
+      cumulatedConsumption += this.consumptions[i].value;
     }
     return cumulatedConsumption / numberOfConsumptions;
   }
@@ -263,13 +289,18 @@ class Transaction {
 
   stop(user, tagId, meterStop, timestamp) {
     this._model.stop = {};
-    this._model.stop.meterStop = meterStop;
+    this._model.meterStop = meterStop;
     this._model.stop.timestamp = timestamp;
     this._model.stop.user = user;
     this._model.stop.tagID = tagId;
     this._invalidateComputations();
-    this._model.stop.totalInactivitySecs = this.totalInactivitySecs;
-    this._model.stop.totalConsumption = this.totalConsumption;
+    if (this._hasPricing()) {
+      this._model.priceUnit = this._model.pricing.priceUnit;
+      this._model.price = this.price;
+    }
+    this._model.totalConsumption = this.totalConsumption;
+    this._model.totalInactivitySecs = this.totalInactivitySecs;
+    this._model.totalDurationSecs = this.totalDurationSecs;
   }
 
   remoteStop(tagId, timestamp) {
@@ -289,11 +320,10 @@ class Transaction {
     }
   }
 
-
   _aggregateAsConsumption(lastMeterValue, meterValue) {
     const currentTimestamp = moment(meterValue.timestamp);
     const diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, 'seconds');
-    const sampleMultiplier = 3600 / diffSecs;
+    const sampleMultiplier = diffSecs > 0 ? 3600 / diffSecs : 0;
     const currentConsumption = (meterValue.value - lastMeterValue.value) * sampleMultiplier;
 
     const consumption = {
@@ -301,7 +331,7 @@ class Transaction {
       value: currentConsumption,
       cumulated: meterValue.value - this.meterStart
     };
-    if (this._pricing) {
+    if (this._hasPricing()) {
       const consumptionWh = meterValue.value - lastMeterValue.value;
       consumption.price = (consumptionWh / 1000) * this._pricing.priceKWH;
     }
@@ -312,6 +342,9 @@ class Transaction {
     return this._model.meterValues != null && this._model.meterValues.length > 0;
   }
 
+  _hasPricing() {
+    return !!(this._model.pricing && this._model.pricing.priceKWH >= 0)
+  }
 }
 
 module.exports = Transaction;

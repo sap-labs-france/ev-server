@@ -439,45 +439,63 @@ class Database {
     }
   }
 
-  static updateTransaction(src, dest, forFrontEnd = true) {
+  static updateTransactionForDB(src, dest) {
     Database.updateID(src, dest);
-    if (src.hasOwnProperty('totalDurationSecs')) {
-      dest.totalDurationSecs = src.totalDurationSecs;
-    }
-    if (forFrontEnd) {
-      dest.userID = Database.validateId(src.userID);
-    } else {
-      dest.userID = Utils.convertToObjectID(src.userID);
-    }
+    // dest._id = dest.id;
+    // delete dest.id;
     dest.chargeBoxID = src.chargeBoxID;
-    // User
-    if (!Utils.isEmptyJSon(src.user)) {
-      if (forFrontEnd) {
-        dest.user = {};
-        Database.updateUser(src.user, dest.user);
-      } else {
-        dest.userID = Utils.convertToObjectID(src.user.id);
-      }
-    }
     dest.connectorId = Utils.convertToInt(src.connectorId);
-    dest.timestamp = Utils.convertToDate(src.timestamp);
-    dest.tagID = src.tagID;
     dest.meterStart = Utils.convertToInt(src.meterStart);
+    dest.tagID = src.tagID;
+    dest.timestamp = Utils.convertToDate(src.timestamp);
+    dest.userID = Utils.convertToObjectID(src.userID);
+    if (!Utils.isEmptyJSon(src.stop)) {
+      dest.stop = {};
+      dest.stop.userID = Utils.convertToObjectID(src.stop.userID);
+      dest.stop.timestamp = Utils.convertToDate(src.stop.timestamp);
+      dest.stop.tagID = src.stop.tagID;
+      dest.stop.meterStop = Utils.convertToInt(src.meterStop);
+      dest.stop.transactionData = src.transactionData;
+      dest.stop.totalConsumption = Utils.convertToInt(src.totalConsumption);
+      dest.stop.totalInactivitySecs = Utils.convertToInt(src.totalInactivitySecs);
+      dest.stop.totalDurationSecs = Utils.convertToInt(src.totalDurationSecs);
+    }
+    if (!Utils.isEmptyJSon(src.remotestop)) {
+      dest.remotestop = {};
+      dest.remotestop.timestamp = src.remotestop.timestamp;
+      dest.remotestop.tagID = src.remotestop.tagID;
+    }
+  }
+
+  static updateTransactionForFrontEnd(src, dest) {
+    Database.updateID(src, dest);
+    dest.chargeBoxID = src.chargeBoxID;
+    dest.connectorId = Utils.convertToInt(src.connectorId);
+    dest.meterStart = Utils.convertToInt(src.meterStart);
+    dest.tagID = src.tagID;
+    dest.timestamp = Utils.convertToDate(src.timestamp);
+    //User
+    dest.userID = Database.validateId(src.userID);
+    if (!Utils.isEmptyJSon(src.user)) {
+      dest.user = {};
+      Database.updateUser(src.user, dest.user);
+    }
     // Stop?
     if (!Utils.isEmptyJSon(src.stop)) {
       dest.stop = {};
       // User
-      dest.stop.userID = Utils.convertToObjectID(src.stop.userID);
-      if (forFrontEnd && !Utils.isEmptyJSon(src.stop.user)) {
+      dest.stop.userID = Database.validateId(src.stop.userID);
+      if (!Utils.isEmptyJSon(src.stop.user)) {
         dest.stop.user = {};
         Database.updateUser(src.stop.user, dest.stop.user);
       }
       dest.stop.timestamp = Utils.convertToDate(src.stop.timestamp);
       dest.stop.tagID = src.stop.tagID;
-      dest.stop.meterStop = Utils.convertToInt(src.stop.meterStop);
-      dest.stop.transactionData = src.stop.transactionData;
-      dest.stop.totalConsumption = Utils.convertToInt(src.stop.totalConsumption);
-      dest.stop.totalInactivitySecs = Utils.convertToInt(src.stop.totalInactivitySecs);
+      dest.meterStop = Utils.convertToInt(src.stop.meterStop);
+      dest.transactionData = src.stop.transactionData;
+      dest.totalConsumption = Utils.convertToInt(src.stop.totalConsumption);
+      dest.totalInactivitySecs = Utils.convertToInt(src.stop.totalInactivitySecs);
+      dest.totalDurationSecs = Utils.convertToInt(src.stop.totalDurationSecs);
     }
     // Remote Stop?
     if (!Utils.isEmptyJSon(src.remotestop)) {
@@ -486,7 +504,7 @@ class Database {
       dest.remotestop.tagID = src.remotestop.tagID;
     }
 
-    if (forFrontEnd && !Utils.isEmptyJSon(src.meterValues)) {
+    if (!Utils.isEmptyJSon(src.meterValues)) {
       dest.meterValues = [];
       src.meterValues.forEach(meterValue => {
         const destMeterValue = {};
@@ -494,7 +512,13 @@ class Database {
         dest.meterValues.push(destMeterValue);
       });
     }
+    if (!Utils.isEmptyJSon(src.chargeBox)) {
+      dest.chargeBox = {};
+      Database.updateChargingStation(src.chargeBox, dest.chargeBox);
+    }
   }
+
+
 }
 
 module.exports = Database;

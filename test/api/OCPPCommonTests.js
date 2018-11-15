@@ -4,6 +4,7 @@ const {
 } = require('chai');
 const chai = require('chai');
 const chaiSubset = require('chai-subset');
+const faker = require('faker');
 chai.use(chaiSubset);
 const CentralServerService = require('./client/CentralServerService');
 const OCPPBootstrap = require('./OCPPBootstrap');
@@ -34,10 +35,10 @@ class OCPPCommonTests {
     // Set meter value start
     this.transactionStartUser = this.context.newUser;
     this.transactionStopUser = this.context.newUser;
-    this.transactionStartTime = moment().subtract(1, "h");
-    this.transactionStartMeterValue = 10000;
+    this.transactionStartMeterValue = 0;
+    this.transactionMeterValues = Array.from({length: 10}, () => faker.random.number({min: 200, max: 500}));
     this.transactionMeterValueIntervalSecs = 60;
-    this.transactionMeterValues = [200, 10, 500, 250, 120, 50, 0, 0, 0, 100];
+    this.transactionStartTime = moment().subtract(this.transactionMeterValues.length * this.transactionMeterValueIntervalSecs, "seconds");
     this.transactionTotalConsumption = this.transactionMeterValues.reduce((sum, meterValue) => sum + meterValue);
     this.transactionEndMeterValue = this.transactionStartMeterValue + this.transactionTotalConsumption;
     this.transactionTotalInactivity = this.transactionMeterValues.reduce(

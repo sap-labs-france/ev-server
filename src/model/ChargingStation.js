@@ -14,7 +14,6 @@ const AppError = require('../exception/AppError');
 const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
 const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const TransactionStorage = require('../storage/mongodb/TransactionStorage');
-const PricingStorage = require('../storage/mongodb/PricingStorage');
 const momentDurationFormatSetup = require("moment-duration-format");
 momentDurationFormatSetup(moment);
 const _configAdvanced = Configuration.getAdvancedConfig();
@@ -1172,7 +1171,7 @@ class ChargingStation {
     }
   }
 
-  async handleStopTransaction(stopTransactionData) {
+  async handleStopTransaction(stopTransactionData, isSoftStop = false) {
     // Set the charger ID
     stopTransactionData.chargeBoxID = this.getID();
     // Get the transaction first (to get the connector id)
@@ -1197,6 +1196,9 @@ class ChargingStation {
     await this.freeConnector(transactionEntity.connectorId);
     await this.save();
 
+    if (isSoftStop) {
+      stopTransactionData.meterStop = transactionEntity._latestMeterValue.value;
+    }
     transactionEntity.stop(stoppingUserModel, stoppingTagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp));
     transactionEntity = await TransactionStorage.saveTransaction(transactionEntity);
 

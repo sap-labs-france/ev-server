@@ -734,9 +734,52 @@ describe('Transaction tests', function() {
     const connectorId = 1;
     const tagId = user.tagIDs[0];
     const meterStart = 180;
-    const meterStop = 1000;
-    const startDate = moment('2018-11-06T08:00:00.000Z');
-    const stopDate = startDate.clone().add(1, 'hour');
+    const startDate = moment();
+    const transactionId = await this.dataHelper.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
+    const currentDate = startDate.clone();
+
+    const meterValues = [
+      {
+        value: 100,
+        instant: currentDate.add(1, 'hour').clone()
+      },
+      {
+        value: 50,
+        instant: currentDate.add(23, 'minutes').clone()
+      },
+      {
+        value: 0,
+        instant: currentDate.add(1, 'hour').clone()
+      },
+      {
+        value: 0,
+        instant: currentDate.add(1, 'hour').clone()
+      }
+    ];
+
+    let cumulated = meterStart;
+    for (const meterValue of meterValues) {
+      cumulated += meterValue.value;
+      await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.instant);
+    }
+    await timeout(2000);
+    expect(await CentralServerService.mailApi.isMailReceived(user.email, 'transaction-started')).is.equal(true, "transaction-started mail");
+    expect(await CentralServerService.mailApi.isMailReceived(user.email, 'end-of-charge')).is.equal(true, "end-of-charge mail");
+
+    await this.dataHelper.stopTransaction(chargingStation, transactionId, tagId, cumulated + 50, currentDate.add(1, 'hour'));
+
+  });
+
+  it('inactivity should be computed', async () => {
+    const user = await this.dataHelper.createUser();
+    const company = await this.dataHelper.createCompany();
+    const site = await this.dataHelper.createSite(company, [user]);
+    const chargingStation = await this.dataHelper.createChargingStation();
+    await this.dataHelper.createSiteArea(site, [chargingStation]);
+    const connectorId = 1;
+    const tagId = user.tagIDs[0];
+    const meterStart = 180;
+    const startDate = moment();
     const transactionId = await this.dataHelper.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
     const currentDate = startDate.clone();
 
@@ -756,6 +799,14 @@ describe('Transaction tests', function() {
       {
         value: 0,
         instant: currentDate.add(1, 'hour').clone()
+      },
+      {
+        value: 0,
+        instant: currentDate.add(1, 'hour').clone()
+      },
+      {
+        value: 0,
+        instant: currentDate.add(1, 'hour').clone()
       }
     ];
 
@@ -765,9 +816,77 @@ describe('Transaction tests', function() {
       await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.instant);
     }
 
-    expect(await CentralServerService.mailApi.isMailReceived(user.email, 'transaction-started')).is.equal(true,"no transaction-started mail received");
-    expect(await CentralServerService.mailApi.isMailReceived(user.email, 'end-of-charge')).is.equal(true,"no end-of-charge mail received");
+    await this.dataHelper.stopTransaction(chargingStation, transactionId, tagId, cumulated, currentDate.add(1, 'hour'));
+    const response = await CentralServerService.transactionApi.readById(transactionId);
+    expect(response.status).to.equal(200);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      totalDurationSecs: 7 * 3600,
+      totalInactivitySecs: 4 * 3600
+    });
   });
+  describe('pricing', () => {
+    it('total price', async () => {
+      const user = await this.dataHelper.createUser();
+      const company = await this.dataHelper.createCompany();
+      const site = await this.dataHelper.createSite(company, [user]);
+      const chargingStation = await this.dataHelper.createChargingStation();
+      await this.dataHelper.createSiteArea(site, [chargingStation]);
+      const connectorId = 1;
+      const tagId = user.tagIDs[0];
+      const meterStart = 180;
+      const startDate = moment();
+      const transactionId = await this.dataHelper.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
+      await CentralServerService.pricingApi.update({priceKWH: 1.5, priceUnit: 'EUR'});
 
+      const currentDate = startDate.clone();
+
+      const meterValues = [
+        {
+          value: 100,
+          instant: currentDate.add(1, 'hour').clone()
+        },
+        {
+          value: 50,
+          instant: currentDate.add(1, 'hour').clone()
+        },
+        {
+          value: 0,
+          instant: currentDate.add(1, 'hour').clone()
+        },
+        {
+          value: 0,
+          instant: currentDate.add(1, 'hour').clone()
+        },
+        {
+          value: 0,
+          instant: currentDate.add(1, 'hour').clone()
+        },
+        {
+          value: 0,
+          instant: currentDate.add(1, 'hour').clone()
+        }
+      ];
+
+      let cumulated = meterStart;
+      for (const meterValue of meterValues) {
+        cumulated += meterValue.value;
+        await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.instant);
+      }
+
+      await this.dataHelper.stopTransaction(chargingStation, transactionId, tagId, cumulated, currentDate.add(1, 'hour'));
+      const response = await CentralServerService.transactionApi.readById(transactionId);
+      expect(response.status).to.equal(200);
+      expect(response.data).to.containSubset({
+        id: transactionId,
+        totalDurationSecs: 7 * 3600,
+        totalInactivitySecs: 4 * 3600
+      });
+    });
+  });
 });
 
+
+function timeout(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}

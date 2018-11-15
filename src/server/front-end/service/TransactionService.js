@@ -21,7 +21,7 @@ class TransactionService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-            `The Transaction's ID must be provided`, 500,
+          `The Transaction's ID must be provided`, 500,
           'TransactionService', 'handleRefundTransaction', req.user);
       }
       // Get Transaction
@@ -171,13 +171,13 @@ class TransactionService {
           req.user);
       }
       // Get the Charging Station
-      let chargingStation = await ChargingStation.getChargingStation(transaction.chargeBox.id);
+      let chargingStation = await ChargingStation.getChargingStation(transaction.chargeBoxID);
       // Found?
       if (!chargingStation) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Charging Station with ID '${transaction.chargeBox.id}' does not exist`, 550,
+          `Charging Station with ID '${transaction.chargeBoxID}' does not exist`, 550,
           'TransactionService', 'handleTransactionSoftStop', req.user);
       }
       // Check User
@@ -198,15 +198,15 @@ class TransactionService {
       let stopTransaction = {};
       stopTransaction.transactionId = transaction.id;
       stopTransaction.user = req.user.id;
-      stoptransaction.startedAt = new Date().toISOString();
+      stopTransaction.timestamp = new Date().toISOString();
       stopTransaction.meterStop = 0;
       // Save
-      let result = await chargingStation.handleStopTransaction(stopTransaction);
+      let result = await chargingStation.handleStopTransaction(stopTransaction, true);
       // Log
       Logging.logSecurityInfo({
         user: req.user, actionOnUser: (user ? user.getModel() : null),
         module: 'TransactionService', method: 'handleTransactionSoftStop',
-        message: `Transaction ID '${transaction.id}' on '${transaction.chargeBox.id}'-'${transaction.connectorId}' has been stopped successfully`,
+        message: `Transaction ID '${transaction.id}' on '${transaction.chargeBoxID}'-'${transaction.connectorId}' has been stopped successfully`,
         action: action, detailedMessages: result
       });
       // Ok

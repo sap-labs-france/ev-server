@@ -14,6 +14,7 @@ const TenantApi = require('./TenantApi');
 const ChargingStationApi = require('./ChargingStationApi');
 const TransactionApi = require('./TransactionApi');
 const MailApi = require('./MailApi');
+const PricingApi = require('./PricingApi');
 
 // Set
 chai.use(chaiSubset);
@@ -33,6 +34,7 @@ class CentralServerService {
     this.authenticationApi = new AuthenticationApi(this.baseApi);
     this.tenantApi = new TenantApi(this.authenticatedApi, this.baseApi);
     this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this.baseApi);
+    this.pricingApi = new PricingApi(this.authenticatedApi, this.baseApi);
     this.transactionApi = new TransactionApi(this.authenticatedApi);
     this.mailApi= new MailApi(new BaseApi(`http://${config.get('mailServer.host')}:${config.get('mailServer.port')}`));
   }
