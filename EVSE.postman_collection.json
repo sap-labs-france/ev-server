@@ -11,11 +11,12 @@
 				{
 					"listen": "test",
 					"script": {
-						"type": "text/javascript",
+						"id": "c7b2edd4-7d8d-4157-be0a-7defebd2a501",
 						"exec": [
 							"var responseJson = JSON.parse(responseBody);",
 							"postman.setEnvironmentVariable(\"token\", responseJson[\"token\"]);"
-						]
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -32,22 +33,22 @@
 					"urlencoded": [
 						{
 							"key": "email",
-							"value": "demo.super.admin@sap.com",
+							"value": "super.admin@sap.com",
 							"type": "text"
 						},
 						{
 							"key": "password",
-							"value": "DeM*Us$r42",
-							"type": "text"
-						},
-						{
-							"key": "tenant",
-							"value": "slf",
+							"value": "pass",
 							"type": "text"
 						},
 						{
 							"key": "acceptEula",
 							"value": "true",
+							"type": "text"
+						},
+						{
+							"key": "tenant",
+							"value": "",
 							"type": "text"
 						}
 					]
@@ -72,11 +73,12 @@
 				{
 					"listen": "test",
 					"script": {
-						"type": "text/javascript",
+						"id": "bcc36a27-6d77-4d7d-840c-e6325347a729",
 						"exec": [
 							"var responseJson = JSON.parse(responseBody);",
 							"postman.setEnvironmentVariable(\"token\", responseJson[\"token\"]);"
-						]
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -103,7 +105,7 @@
 						},
 						{
 							"key": "tenant",
-							"value": "slf",
+							"value": "{{tenant}}",
 							"type": "text"
 						},
 						{
@@ -133,11 +135,12 @@
 				{
 					"listen": "test",
 					"script": {
-						"type": "text/javascript",
+						"id": "f7b0381f-3439-4a74-a6ae-c69b7966ff81",
 						"exec": [
 							"var responseJson = JSON.parse(responseBody);",
 							"postman.setEnvironmentVariable(\"token\", responseJson[\"token\"]);"
-						]
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -164,7 +167,7 @@
 						},
 						{
 							"key": "tenant",
-							"value": "slf",
+							"value": "{{tenant}}",
 							"type": "text"
 						},
 						{
@@ -194,11 +197,12 @@
 				{
 					"listen": "test",
 					"script": {
-						"type": "text/javascript",
+						"id": "9d1d0d6e-f845-4758-b04e-80d095cdc93b",
 						"exec": [
 							"var responseJson = JSON.parse(responseBody);",
 							"postman.setEnvironmentVariable(\"token\", responseJson[\"token\"]);"
-						]
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -225,7 +229,7 @@
 						},
 						{
 							"key": "tenant",
-							"value": "slf",
+							"value": "{{tenant}}",
 							"type": "text"
 						},
 						{
@@ -255,11 +259,12 @@
 				{
 					"listen": "test",
 					"script": {
-						"type": "text/javascript",
+						"id": "4ad93fb8-89af-4aa1-8c35-10d3f848d9a1",
 						"exec": [
 							"var responseJson = JSON.parse(responseBody);",
 							"postman.setEnvironmentVariable(\"token\", responseJson[\"token\"]);"
-						]
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -282,6 +287,11 @@
 						{
 							"key": "captcha",
 							"value": "captcha",
+							"type": "text"
+						},
+						{
+							"key": "tenant",
+							"value": "{{tenant}}",
 							"type": "text"
 						}
 					]
@@ -306,11 +316,12 @@
 				{
 					"listen": "test",
 					"script": {
-						"type": "text/javascript",
+						"id": "c7056e2f-8085-4a23-986f-020cd5ea02af",
 						"exec": [
 							"var responseJson = JSON.parse(responseBody);",
 							"postman.setEnvironmentVariable(\"token\", responseJson[\"token\"]);"
-						]
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -333,6 +344,11 @@
 						{
 							"key": "hash",
 							"value": "hash",
+							"type": "text"
+						},
+						{
+							"key": "tenant",
+							"value": "{{tenant}}",
 							"type": "text"
 						}
 					]
@@ -366,7 +382,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"ssssssss\",\r\n  \"firstName\": \"sdfsdf\",\r\n  \"email\": \"sdf3.sdf.sdfssss@free.fr\",\r\n  \"captcha\": \"03AHqfIOkrqjt2RAg3fYA5zheYBKQKwPGppT69OdbWEFaMAXpe-dAcTsAZi-G7Lwdb6BYhKT_hJxIvDktmZ7EB9i3Ifq8LmeDrr5KMFy5tJ_6cuqT1T0MwuYe_uOkvZ9bH07nCaI6P0fWwaUZcoar_-0rKefUVLipvO4thr3-zQjIk5OO6dEY16H5JF1b1EdOoORGzPkXdUbIRH-QcfkykhfAf7UOHpB7V4_Y8P3ZRUXkoS7RQREFfT8tYU4ZWN4LbUPRqi8jxhi2Ye_i7frsFOIDuvOwVwgB77LZSaPOLpkH8lTpm3Na_dT9BPH-WwX7jDk40zpa0wp00ozcpb-7vrPRNZtEnmTSfl7jJpHAbzA5DbkSRgZLphkS6s6x4TfEtWv4dyC8ECZofasu098KMFDgR8_4xLkZ7X18rCAFS77MAyLi7CyHIys0\",\r\n  \"passwords\": {\r\n    \"password\": \"SDF.1sdf.2\",\r\n    \"repeatPassword\": \"SDF.1sdf.2\"\r\n  },\r\n  \"role\": \"A\",\r\n  \"status\": \"A\",\r\n  \"acceptEula\": true\r\n}\r\n"
+					"raw": "{\r\n  \"name\": \"ssssssss\",\r\n  \"firstName\": \"sdfsdf\",\r\n  \"email\": \"sdf3.sdf.sdfssss@free.fr\",\r\n  \"captcha\": \"03AHqfIOkrqjt2RAg3fYA5zheYBKQKwPGppT69OdbWEFaMAXpe-dAcTsAZi-G7Lwdb6BYhKT_hJxIvDktmZ7EB9i3Ifq8LmeDrr5KMFy5tJ_6cuqT1T0MwuYe_uOkvZ9bH07nCaI6P0fWwaUZcoar_-0rKefUVLipvO4thr3-zQjIk5OO6dEY16H5JF1b1EdOoORGzPkXdUbIRH-QcfkykhfAf7UOHpB7V4_Y8P3ZRUXkoS7RQREFfT8tYU4ZWN4LbUPRqi8jxhi2Ye_i7frsFOIDuvOwVwgB77LZSaPOLpkH8lTpm3Na_dT9BPH-WwX7jDk40zpa0wp00ozcpb-7vrPRNZtEnmTSfl7jJpHAbzA5DbkSRgZLphkS6s6x4TfEtWv4dyC8ECZofasu098KMFDgR8_4xLkZ7X18rCAFS77MAyLi7CyHIys0\",\r\n  \"passwords\": {\r\n    \"password\": \"SDF.1sdf.2\",\r\n    \"repeatPassword\": \"SDF.1sdf.2\"\r\n  },\r\n  \"role\": \"A\",\r\n  \"status\": \"A\",\r\n  \"acceptEula\": true,\r\n  \"tenant\": {{tenant}}\r\n}\r\n"
 				},
 				"url": {
 					"raw": "{{base_url}}/client/auth/RegisterUser",
@@ -1647,7 +1663,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "{{base_url}}/client/api/ChargingStationConsumptionFromTransaction?TransactionId=79391322",
+					"raw": "{{base_url}}/client/api/ChargingStationConsumptionFromTransaction?TransactionId=1110372138",
 					"host": [
 						"{{base_url}}"
 					],
@@ -1659,7 +1675,7 @@
 					"query": [
 						{
 							"key": "TransactionId",
-							"value": "79391322"
+							"value": "1110372138"
 						}
 					]
 				}
@@ -3608,6 +3624,33 @@
 				"body": {
 					"mode": "raw",
 					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <status>Occupied</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+				},
+				"url": {
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
+					"host": [
+						"{{server_url}}"
+					],
+					"path": [
+						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "MeterValue0-OCPP-1.6",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/MeterValues</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:b31235d2-42dc-4195-8e01-50f508593ce1</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <meterValuesRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>0</connectorId>\r\n      <transactionId>{{transactionId}}</transactionId>\r\n      <meterValue>\r\n        <timestamp>{{dateTransaction1}}</timestamp>\r\n        <sampledValue>\r\n        \t<unit>Percent</unit>\r\n        \t<location>EV</location>\r\n        \t<measurand>SoC</measurand>\r\n        \t<format>Raw</format>\r\n        \t<context>Transaction.Begin</context>\r\n        \t<value>25</value>\r\n        \t<phase></phase>\r\n        </sampledValue>\r\n      </meterValue>\r\n    </meterValuesRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
 					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",

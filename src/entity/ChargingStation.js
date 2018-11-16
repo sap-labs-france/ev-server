@@ -823,22 +823,6 @@ class ChargingStation extends AbstractTenantEntity {
   async handleMeterValues(meterValues) {
     // Create model
     const newMeterValues = {};
-    let meterValuesContext;
-    if (this.getOcppVersion() === Constants.OCPP_VERSION_16) {
-      meterValuesContext = ( meterValues && 
-                             Array.isArray(meterValues.meterValue) && 
-                             Array.isArray(meterValues.meterValue[0].sampledValue) && 
-                             meterValues.meterValue[0].sampledValue[0].hasOwnProperty('context') ?
-        meterValues.meterValue[0].sampledValue[0].context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC) 
-    } else {
-      // Check Meter Value Context
-      meterValuesContext = ( meterValues && 
-                             meterValues.values && 
-                            meterValues.values.value && 
-                            !Array.isArray(meterValues.values) && 
-                            meterValues.values.value.attributes ?
-        meterValues.values.value.attributes.context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC);
-    }
     // Init
     newMeterValues.values = [];
     // Set the charger ID
@@ -915,35 +899,47 @@ class ChargingStation extends AbstractTenantEntity {
         newMeterValue.transactionId = meterValues.transactionId;
       }
       newMeterValue.timestamp = value.timestamp;
-
       // Check OCPP 1.6
-      if (this.getOcppVersion() === Constants.OCPP_VERSION_16) { //value.sampledValue 
+      if (this.getOcppVersion() === Constants.OCPP_VERSION_16) {
+        // Multiple Values? 
         if (Array.isArray(value.sampledValue)) {
+          // Create one record per value
           for (const sampledValue of value.sampledValue) {
-            // clone header
+            // Clone header
             // eslint-disable-next-line prefer-const
             let newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
             // Normalize
-            value.value = sampledValue.value;
             newLocalMeterValue.attribute = {};
-            // enrich with OCPP16 attributes
+            // Enrich with OCPP16 attributes
             newLocalMeterValue.attribute.context = ( sampledValue.context ? sampledValue.context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC);
             newLocalMeterValue.attribute.format = ( sampledValue.format ? sampledValue.format : Constants.METER_VALUE_FORMAT_RAW);
             newLocalMeterValue.attribute.measurand = ( sampledValue.measurand ? sampledValue.measurand : Constants.METER_VALUE_MEASURAND_IMPREG);
             newLocalMeterValue.attribute.location = ( sampledValue.location ? sampledValue.location : Constants.METER_VALUE_LOCATION_OUTLET);
             newLocalMeterValue.attribute.unit = ( sampledValue.unit ? sampledValue.unit : Constants.METER_VALUE_UNIT_WH);
             newLocalMeterValue.attribute.phase = ( sampledValue.phase ? sampledValue.phase : '');
-            newLocalMeterValue.value = parseInt(value.value);
+            newLocalMeterValue.value = parseInt(sampledValue.value);
+            // Add
             newMeterValues.values.push(newLocalMeterValue);
           }
         } else {
-          // Normalize
-          value.value = value.sampledValue;
-          newMeterValue.value = parseInt(value.value);
-          newMeterValues.values.push(newMeterValue);
+            // Clone header
+            // eslint-disable-next-line prefer-const
+            let newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
+            // Normalize
+            newLocalMeterValue.attribute = {};
+            // Enrich with OCPP16 attributes
+            newLocalMeterValue.attribute.context = ( value.sampledValue.context ? value.sampledValue.context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC);
+            newLocalMeterValue.attribute.format = ( value.sampledValue.format ? value.sampledValue.format : Constants.METER_VALUE_FORMAT_RAW);
+            newLocalMeterValue.attribute.measurand = ( value.sampledValue.measurand ? value.sampledValue.measurand : Constants.METER_VALUE_MEASURAND_IMPREG);
+            newLocalMeterValue.attribute.location = ( value.sampledValue.location ? value.sampledValue.location : Constants.METER_VALUE_LOCATION_OUTLET);
+            newLocalMeterValue.attribute.unit = ( value.sampledValue.unit ? value.sampledValue.unit : Constants.METER_VALUE_UNIT_WH);
+            newLocalMeterValue.attribute.phase = ( value.sampledValue.phase ? value.sampledValue.phase : '');
+            newLocalMeterValue.value = parseInt(value.sampledValue.value);
+            // Add
+            newMeterValues.values.push(newLocalMeterValue);
         }
-
-      } else if (value.value) { // Values provided?
+      // Values provided?
+      } else if (value.value) {
         // OCCP1.2: Set the values
         if (value.value.$value) {
           // Set
@@ -955,10 +951,28 @@ class ChargingStation extends AbstractTenantEntity {
         // Add
         newMeterValues.values.push(newMeterValue);
       }
-
     }
     // Compute consumption?
     if (meterValues.transactionId) {
+      // Check for the first State of Charge to update the Transaction
+      for (const value of newMeterValues.values) {
+        // Check
+        if (value.attribute && 
+            value.attribute.context === 'Transaction.Begin' &&
+            value.attribute.measurand === 'SoC') {
+          // Set the SoC to the transaction
+          // Get the Transaction
+          let transaction = await TransactionStorage.getTransaction(
+            this.getTenantID(), meterValues.transactionId);
+          if (transaction) {
+            // Set the SoC
+            transaction.stateOfCharge = value.value;
+            // Save
+            await TransactionStorage.saveTransaction(this.getTenantID(), transaction);
+          }
+          break;
+        }
+      }
       // Save Meter Values
       await TransactionStorage.saveMeterValues(this.getTenantID(), newMeterValues);
       // Update Charging Station Consumption
@@ -972,7 +986,7 @@ class ChargingStation extends AbstractTenantEntity {
         module: 'ChargingStation',
         method: 'handleMeterValues',
         action: 'MeterValues',
-        message: `'${meterValuesContext}' have been saved for Transaction ID '${meterValues.transactionId}'`,
+        message: `MeterValue have been saved for Transaction ID '${meterValues.transactionId}'`,
         detailedMessages: meterValues
       });
     } else {
@@ -980,7 +994,7 @@ class ChargingStation extends AbstractTenantEntity {
       Logging.logWarning({
         tenantID: this.getTenantID(),
         source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-        action: 'MeterValues', message: `'${meterValuesContext}' not saved (not linked to a Transaction)`,
+        action: 'MeterValues', message: `MeterValue not saved (not linked to a Transaction)`,
         detailedMessages: meterValues
       });
     }
@@ -1331,6 +1345,7 @@ class ChargingStation extends AbstractTenantEntity {
     const consumption = await this.getConsumptionsFromTransaction(transaction);
     // Set the total consumption
     newTransaction.stop.totalConsumption = consumption.totalConsumption;
+    newTransaction.stop.stateOfCharge = (consumption.stateOfCharge ? consumption.stateOfCharge : 0);
     // Compute total inactivity seconds
     newTransaction.stop.totalInactivitySecs = 0;
     for (let index = 0; index < consumption.values.length; index++) {
@@ -1589,6 +1604,7 @@ class ChargingStation extends AbstractTenantEntity {
     }
     chargingStationConsumption.values = [];
     chargingStationConsumption.totalConsumption = 0;
+    chargingStationConsumption.stateOfCharge = 0;
     chargingStationConsumption.chargeBoxID = this.getID();
     // Populate Site Area
     await this.getSiteArea();
@@ -1653,7 +1669,7 @@ class ChargingStation extends AbstractTenantEntity {
         id: '666',
         connectorId: transaction.connectorId,
         transactionId: transaction.transactionId,
-        timestamp: transaction.timestamp,
+        timestamp: Utils.convertToDate(transaction.timestamp),
         value: transaction.meterStart
       });
 
@@ -1664,7 +1680,7 @@ class ChargingStation extends AbstractTenantEntity {
           id: '6969',
           connectorId: transaction.connectorId,
           transactionId: transaction.transactionId,
-          timestamp: transaction.stop.timestamp,
+          timestamp: Utils.convertToDate(transaction.stop.timestamp),
           value: transaction.stop.meterStop
         });
       }
@@ -1672,7 +1688,7 @@ class ChargingStation extends AbstractTenantEntity {
     // Build the model
     for (let meterValueIndex = 0; meterValueIndex < meterValues.length; meterValueIndex++) {
       const meterValue = meterValues[meterValueIndex];
-      // Filter on consumption value
+      // Meter Value Consumption?
       if (!meterValue.attribute || (meterValue.attribute.measurand &&
         meterValue.attribute.measurand === 'Energy.Active.Import.Register' &&
         (meterValue.attribute.context === "Sample.Periodic" ||
@@ -1711,17 +1727,41 @@ class ChargingStation extends AbstractTenantEntity {
               // Yes
               chargingStationConsumption.totalPrice += (consumptionWh / 1000) * pricing.priceKWH;
             }
-            // Create
-            const consumption = {
-              date: meterValue.timestamp,
-              value: currentConsumption,
-              cumulated: chargingStationConsumption.totalConsumption
-            };
-            // Set the consumption
-            chargingStationConsumption.values.push(consumption);
+            // Check last Meter Value
+            if (lastMeterValue.timestamp.getTime() === meterValue.timestamp.getTime()) {
+              // Same timestamp: Update the latest
+              chargingStationConsumption.values[chargingStationConsumption.values.length-1].value = currentConsumption;
+            } else {
+              // Add the consumption
+              chargingStationConsumption.values.push({
+                date: meterValue.timestamp,
+                value: currentConsumption,
+                stateOfCharge: 0,
+                cumulated: chargingStationConsumption.totalConsumption
+              });
+            }
           }
           // Set Last Value
           lastMeterValue = meterValue;
+        }
+      // Meter Value State of Charge?
+      } else if (meterValue.attribute && 
+        (meterValue.attribute.context === 'Sample.Periodic' || meterValue.attribute.context === 'Transaction.Begin') &&
+        meterValue.attribute.measurand === 'SoC') {
+        // Set the last SoC
+        chargingStationConsumption.stateOfCharge = meterValue.value;
+        // Check last Meter Value
+        if (lastMeterValue.timestamp.getTime() === meterValue.timestamp.getTime()) {
+          // Same timestamp: Update the latest
+          chargingStationConsumption.values[chargingStationConsumption.values.length-1].stateOfCharge = meterValue.value;
+        } else {
+          // Add the consumption
+          chargingStationConsumption.values.push({
+            date: meterValue.timestamp,
+            value: 0,
+            stateOfCharge: meterValue.value,
+            cumulated: 0
+          });
         }
       }
     }
