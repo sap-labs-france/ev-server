@@ -1,6 +1,7 @@
 const Logging = require('../../../utils/Logging');
-const ChargingStation = require('../../../model/ChargingStation');
+const ChargingStation = require('../../../entity/ChargingStation');
 const Constants = require('../../../utils/Constants');
+const BackendError = require('../../../exception/BackendError');
 const WSConnection = require('./WSConnection');
 
 const MODULE_NAME = "JsonRestWSConnection";
@@ -9,29 +10,30 @@ class JsonRestWSConnection extends WSConnection {
   constructor(wsConnection, req, wsServer) {
     // Call super
     super(wsConnection, req, wsServer);
-    // Parse URL: should like /OCPP16/TENANTNAME/CHARGEBOXID
-    const splittedURL = this.getURL().split("/");
-    // Check
-    if (splittedURL.length === 2) {
-      // Set Charger ID
-      this.setChargingStationID(splittedURL[1]);
-    } else {
-      // Throw
-      throw new Error(`The URL '${req.url }' must contain the Charging Station ID (/REST/CHARGEBOX_ID)`);
+  }
+
+  async initialize() {
+    // Already initialized?
+    if (!this._initialized) {
+      // Call super class
+      await super.initialize();
+      // Ok
+      this._initialized = true;
+      // Log
+      Logging.logInfo({
+        tenantID: this.getTenantID(),
+        module: MODULE_NAME, method: "initialize",
+        source: this.getChargingStationID(),
+        action: "WSRestServerConnectionOpened",
+        message: `New Rest connection from '${this.getIP()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`
+      });
     }
-    // Log
-    Logging.logInfo({
-      module: MODULE_NAME,
-      source: this.getChargingStationID(),
-      method: "onOpen",
-      action: "WSRestServerConnectionOpened",
-      message: `New Rest connection from '${this.getIP()}', Protocol '${wsConnection.protocol}', URL '${this.getURL()}'`
-    });
   }
 
   onError(error) {
     // Log
     Logging.logError({
+      tenantID: this.getTenantID(),
       module: MODULE_NAME,
       method: "onError",
       action: "WSRestServerErrorReceived",
@@ -42,29 +44,34 @@ class JsonRestWSConnection extends WSConnection {
   onClose(code, reason) {
     // Log
     Logging.logInfo({
+      tenantID: this.getTenantID(),
       module: MODULE_NAME,
       source: (this.getChargingStationID() ? this.getChargingStationID() : ""),
       method: "onClose",
       action: "WSRestServerConnectionClosed",
       message: `Connection has been closed, Reason '${reason}', Code '${code}'`
     });
+    // Remove the connection
+    this._wsServer.removeRestConnection(this);
   }
 
   async handleRequest(messageId, commandName, commandPayload) {
     // Log
-    Logging.logReceivedAction(MODULE_NAME, this.getChargingStationID(), commandName, commandPayload);
+    Logging.logReceivedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Get the Charging Station
-    let chargingStation = await ChargingStation.getChargingStation(this.getChargingStationID());
+    const chargingStation = await ChargingStation.getChargingStation(this.getTenantID(), this.getChargingStationID());
     // Found?
     if (!chargingStation) {
-      // Throw
-      throw new Error(`'${this.getChargingStationID()}' > '${commandName}': Charging Station not found`);
+      // Error
+      throw new BackendError(this.getChargingStationID(), `'${commandName}' not found`,
+        "JsonRestWSConnection", "handleRequest", commandName);
     }
     // Get the client from JSon Server
-    let chargingStationClient = global.centralSystemJson.getChargingStationClient(chargingStation.getID());
+    const chargingStationClient = global.centralSystemJson.getChargingStationClient(chargingStation.getTenantID(), chargingStation.getID());
     if (!chargingStationClient) {
-      // Throw
-      throw new Error(`'${this.getChargingStationID()}' > '${commandName}': Charging Station is not connected to this server'`);
+      // Error
+      throw new BackendError(this.getChargingStationID(), `Charger not connected to this instance`,
+        "JsonRestWSConnection", "handleRequest", commandName);
     }
     // Call the client
     let result; 
@@ -75,11 +82,12 @@ class JsonRestWSConnection extends WSConnection {
       // Call the method
       result = await chargingStationClient[actionMethod](commandPayload);
     } else {
-      // Throw Exception
-      throw new Error(`'${this.getChargingStationID()}' > '${commandName}' is not implemented`);
+      // Error
+      throw new BackendError(this.getChargingStationID(), `'${actionMethod}' is not implemented`,
+        "JsonRestWSConnection", "handleRequest", commandName);
     }
     // Log
-    Logging.logReturnedAction(MODULE_NAME, this.getChargingStationID(), commandName, result);
+    Logging.logReturnedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
     // Send Response
     await this.sendMessage(messageId, result, Constants.OCPP_JSON_CALL_RESULT_MESSAGE);
   }

@@ -40,6 +40,9 @@
 	"WSDLEndpoint": {
 		"baseUrl": ""
 	},
+	"JsonEndpoint": {
+		"baseUrl": ""
+	},
 	"Storage": {
 		"implementation": "mongodb",
 		"uri": null,

@@ -25,14 +25,15 @@ class CentralServerService {
     // Create the Base API
     this.baseApi = new BaseApi(this.baseURL);
     // Create the Authenticated API
-    this.authenticatedApi = new AuthenticatedBaseApi(this.baseURL, config.get('admin.username'), config.get('admin.password'));
+    this.authenticatedApi = new AuthenticatedBaseApi(this.baseURL, config.get('admin.username'), config.get('admin.password'), config.get('admin.tenant'));
+    this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this.baseURL, config.get('superadmin.username'), config.get('superadmin.password'), "");
     // Create the Company
     this.companyApi = new CompanyApi(this.authenticatedApi);
     this.siteApi = new SiteApi(this.authenticatedApi);
     this.siteAreaApi = new SiteAreaApi(this.authenticatedApi);
     this.userApi = new UserApi(this.authenticatedApi);
     this.authenticationApi = new AuthenticationApi(this.baseApi);
-    this.tenantApi = new TenantApi(this.authenticatedApi, this.baseApi);
+    this.tenantApi = new TenantApi(this.authenticatedSuperAdminApi, this.baseApi);
     this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this.baseApi);
     this.pricingApi = new PricingApi(this.authenticatedApi, this.baseApi);
     this.transactionApi = new TransactionApi(this.authenticatedApi);

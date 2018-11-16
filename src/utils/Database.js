@@ -67,7 +67,7 @@ class Database {
     if (forFrontEnd) {
       // Default
       dest.inactive = false;
-      let inactivitySecs = Math.floor((Date.now() - dest.lastHeartBeat.getTime()) / 1000);
+      const inactivitySecs = Math.floor((Date.now() - dest.lastHeartBeat.getTime()) / 1000);
       // Inactive?
       if (inactivitySecs > (_heartbeatIntervalSecs * 5)) {
         dest.inactive = true;
@@ -517,7 +517,6 @@ class Database {
       Database.updateChargingStation(src.chargeBox, dest.chargeBox);
     }
   }
-
 
 }
 

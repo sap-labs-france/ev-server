@@ -101,7 +101,7 @@ const config = convict({
     username: {
       doc: 'The admin username',
       format: String,
-      default: 'super.admin@ev.com',
+      default: 'admin@ev.com',
       env: 'ADMIN_USERNAME'
     },
     password: {
@@ -109,6 +109,26 @@ const config = convict({
       format: String,
       default: 'EQPQLwBIC0XgUgX@1Aa',
       env: 'ADMIN_PASSWORD'
+    },
+    tenant: {
+      doc: 'The admin tenant',
+      format: String,
+      default: '',
+      env: 'ADMIN_TENANT'
+    }
+  },
+  superadmin: {
+    username: {
+      doc: 'The super admin email',
+      format: String,
+      default: 'super.admin@ev.com',
+      env: 'SUPERADMIN_USERNAME'
+    },
+    password: {
+      doc: 'The super admin password',
+      format: String,
+      default: 'EQPQLwBIC0XgUgX@1Aa',
+      env: 'SUPERADMIN_PASSWORD'
     }
   },
   mailServer:{

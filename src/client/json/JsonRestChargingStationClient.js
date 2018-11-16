@@ -17,7 +17,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
       chargingStationURL = chargingStationURL.substring(0, chargingStationURL.length - 1);
     }
     // Keep
-    this._serverURL = `${chargingStationURL}/REST/${chargingStation.getID()}`;
+    this._serverURL = `${chargingStationURL}/REST/${chargingStation.getTenantID()}/${chargingStation.getID()}`;
     this._chargingStation = chargingStation;
     this._requests = {};
   }
@@ -52,7 +52,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
     );
   }
 
-  stopTransaction(params) {
+  remoteStopTransaction(params) {
     return this._sendMessage(
       this._buildRequest('RemoteStopTransaction', params)
     );
@@ -114,7 +114,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
       // Handle Server Message
       this._wsConnection.onmessage = async (message) => {
         try {
-          // Parse the message 
+          // Parse the message
           const messageJson = JSON.parse(message.data);
           // Log
           Logging.logDebug({
@@ -170,7 +170,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
         this._requests[request[1]] = { resolve, reject };
       } else {
         // Reject it
-        return reject(`Socket is closed for message ${messageId}`);
+        return reject(`Socket is closed for message ${request[2]}`);
       }
     });
   }

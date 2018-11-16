@@ -1,4 +1,5 @@
 const fs = require('fs');
+const uuid = require('uuid/v4');
 const WebSocket = require('ws');
 const https = require('https');
 const http = require('http');
@@ -20,7 +21,6 @@ class JsonCentralSystemServer extends CentralSystemServer {
   }
 
   start() {
-    const serverURL = `${this._centralSystemConfig.protocol}://${this._centralSystemConfig.host}:${this._centralSystemConfig.port}`
     let server;
     // Log
     console.log(`Starting JSon Central System Server (Charging Stations)...`);
@@ -56,6 +56,7 @@ class JsonCentralSystemServer extends CentralSystemServer {
         return true;
       }
       Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME,
         method: "verifyClient",
         action: "WSVerifyClient",
@@ -90,27 +91,28 @@ class JsonCentralSystemServer extends CentralSystemServer {
     // Listen to new connections
     this._wss.on('connection', async (ws, req) => {
       try {
+        // Set an ID
+        ws.id = uuid();
         // Check Rest calls
         if (req.url.startsWith('/REST')) {
           // Create a Rest Web Socket connection object
           const wsConnection = new JsonRestWSConnection(ws, req, this);
-          // Store the WS manager linked to its ChargeBoxId
-          if (wsConnection.getChargingStationID()) {
-            // Keep the connection
-            this._jsonRestClients[wsConnection.getChargingStationID()] = wsConnection;
-          }
+          // Init
+          await wsConnection.initialize();
+          // Add
+          this.addRestConnection(wsConnection);
         } else {
           // Create a Json Web Socket connection object
-          const wsConnection = new JsonWSConnection(ws, req, this._chargingStationConfig, serverURL, this);
-          // Store the WS manager linked to its ChargeBoxId
-          if (wsConnection.getChargingStationID()) {
-            // Keep the connection
-            this._jsonChargingStationClients[wsConnection.getChargingStationID()] = wsConnection;
-          }
+          const wsConnection = new JsonWSConnection(ws, req, this._chargingStationConfig, this);
+          // Init
+          await wsConnection.initialize();
+          // Add
+          this.addJsonConnection(wsConnection);
         } 
       } catch (error) {
         // Log
-        Logging.logException(error, "WSConnection", "", MODULE_NAME, "connection");
+        Logging.logException(
+          error, "WSConnection", "", MODULE_NAME, "connection", Constants.DEFAULT_TENANT);
         // Respond
         ws.close(Constants.WS_UNSUPPORTED_DATA, error.message);
       }
@@ -119,33 +121,50 @@ class JsonCentralSystemServer extends CentralSystemServer {
     server.listen(this._centralSystemConfig.port, this._centralSystemConfig.host, () => {
       // Log
       Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME,
-        method: "start",
-        action: "Startup",
+        method: "start", action: "Startup",
         message: `Json Central System Server (Charging Stations) listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`
       });
       console.log(`Json Central System Server (Charging Stations) listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`);
     });
   }
 
-  removeConnection(chargingStationID) {
-    // Charging Station
-    if (this._jsonChargingStationClients[chargingStationID]) {
-      // Remove from cache
-      delete this._jsonChargingStationClients[chargingStationID];
-    }
-    // Rest
-    if (this._jsonRestClients[chargingStationID]) {
-      // Remove from cache
-      delete this._jsonRestClients[chargingStationID];
+  addJsonConnection(wsConnection) {
+    // Keep the connection
+    this._jsonChargingStationClients[wsConnection.getID()] = wsConnection;
+  }
+
+  removeJsonConnection(wsConnection) {
+    // Check first
+    if (this._jsonChargingStationClients[wsConnection.getID()] && 
+        this._jsonChargingStationClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection().id) {
+      // Remove from cache    
+      delete this._jsonChargingStationClients[wsConnection.getID()];
     }
   }
 
-  getChargingStationClient(chargingStationID) {
+  addRestConnection(wsConnection) {
+    // Keep the connection
+    this._jsonRestClients[wsConnection.getID()] = wsConnection;
+  }
+
+  removeRestConnection(wsConnection) {
+    // Check first
+    if (this._jsonRestClients[wsConnection.getID()] &&
+        this._jsonRestClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection().id) {
+      // Remove from cache
+      delete this._jsonRestClients[wsConnection.getID()];
+    }
+  }
+
+  getChargingStationClient(tenantID, chargingStationID) {
+    // Build ID
+    const id = `${tenantID}~${chargingStationID}}`;
     // Charging Station exists?
-    if (this._jsonChargingStationClients[chargingStationID]) {
+    if (this._jsonChargingStationClients[id]) {
       // Return from the cache
-      return this._jsonChargingStationClients[chargingStationID].getChargingStationClient();
+      return this._jsonChargingStationClients[id].getChargingStationClient();
     }
     // Not found!
     return null;

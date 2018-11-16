@@ -1,7 +1,7 @@
 require('source-map-support').install();
 
 module.exports = {
-  REST_RESPONSE_SUCCESS: {status: 'Success'},
+  DEFAULT_TENANT: 'default',REST_RESPONSE_SUCCESS: {status: 'Success'},
 
   CONN_STATUS_AVAILABLE: "Available",
   CONN_STATUS_OCCUPIED: "Occupied",
@@ -36,9 +36,7 @@ module.exports = {
 
   NOTIF_TYPE_CHARGING_STATION_CONFIGURATION: "Configuration",
 
-  ACTION_CREATE: "Create",
-  ACTION_UPDATE: "Update",
-  ACTION_DELETE: "Delete",
+
 
   NO_LIMIT: 0,
 
@@ -100,6 +98,11 @@ module.exports = {
 
   METER_VALUE_CTX_SAMPLE_PERIODIC: 'Sample.Periodic',
   METER_VALUE_CTX_SAMPLE_CLOCK: 'Sample.Clock',
+  METER_VALUE_FORMAT_RAW: 'Raw',
+  METER_VALUE_MEASURAND_IMPREG: 'Energy.Active.Import.Register',
+  METER_VALUE_LOCATION_OUTLET: 'Outlet',
+  METER_VALUE_UNIT_WH: 'Wh',
+
 
   WS_UNSUPPORTED_DATA: 1007,
 

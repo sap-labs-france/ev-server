@@ -8,8 +8,8 @@ const moment = require('moment');
 const TransactionSecurity = require('./security/TransactionSecurity');
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage');
 const PricingStorage = require('../../../storage/mongodb/PricingStorage');
-const ChargingStation = require('../../../model/ChargingStation');
-const User = require('../../../model/User');
+const ChargingStation = require('../../../entity/ChargingStation');
+const User = require('../../../entity/User');
 
 class TransactionService {
   static async handleRefundTransaction(action, req, res, next) {
@@ -25,7 +25,7 @@ class TransactionService {
           'TransactionService', 'handleRefundTransaction', req.user);
       }
       // Get Transaction
-      let transaction = await TransactionStorage.getTransaction(filteredRequest.id);
+      let transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.id);
       // Found?
       if (!transaction) {
         // Not Found!
@@ -45,7 +45,7 @@ class TransactionService {
           req.user);
       }
       // Get the Charging Station
-      let chargingStation = await ChargingStation.getChargingStation(transaction.chargeBox.id);
+      let chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, transaction.chargeBox.id);
       // Found?
       if (!chargingStation) {
         // Not Found!
@@ -55,7 +55,7 @@ class TransactionService {
           'TransactionService', 'handleRefundTransaction', req.user);
       }
       // Get Transaction User
-      let user = await User.getUser(transaction.userID);
+      let user = await User.getUser(req.user.tenantID, transaction.userID);
       // Check
       if (!user) {
         // Not Found!
@@ -88,7 +88,7 @@ class TransactionService {
           'TransactionService', 'handleDeleteTransaction', req.user);
       }
       // Get Transaction
-      let transaction = await TransactionStorage.getTransaction(filteredRequest.ID);
+      let transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID);
       // Found?
       if (!transaction) {
         // Not Found!
@@ -108,7 +108,7 @@ class TransactionService {
           req.user);
       }
       if (transaction.isActive()) {
-        let chargingStation = await ChargingStation.getChargingStation(transaction.chargeBoxID);
+        let chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
         if (!chargingStation) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
@@ -116,7 +116,7 @@ class TransactionService {
             'TransactionService', 'handleDeleteTransaction', req.user);
         }
         if (transaction.id === chargingStation.getConnector(transaction.connectorId).activeTransactionID) {
-          await chargingStation.freeConnector(transaction.connectorId);
+          await chargingStation.freeConnector(req.user.tenantID, transaction.connectorId);
           await chargingStation.save();
         }
       }
@@ -125,6 +125,7 @@ class TransactionService {
       const result = transaction.model;
       // Log
       Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
         user: req.user, actionOnUser: (transaction.initiator ? transaction.initiator : null),
         module: 'TransactionService', method: 'handleDeleteTransaction',
         message: `Transaction ID '${filteredRequest.ID}' on '${transaction.chargeBoxID}'-'${transaction.connectorId}' has been deleted successfully`,
@@ -152,7 +153,7 @@ class TransactionService {
           'TransactionService', 'handleTransactionSoftStop', req.user);
       }
       // Get Transaction
-      let transaction = await TransactionStorage.getTransaction(filteredRequest.transactionId);
+      let transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.transactionId);
       if (!transaction) {
         // Not Found!
         throw new AppError(
@@ -171,7 +172,7 @@ class TransactionService {
           req.user);
       }
       // Get the Charging Station
-      let chargingStation = await ChargingStation.getChargingStation(transaction.chargeBoxID);
+      let chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
       // Found?
       if (!chargingStation) {
         // Not Found!
@@ -184,7 +185,7 @@ class TransactionService {
       let user;
       if (transaction.userID) {
         // Get Transaction User
-        let user = await User.getUser(transaction.userID);
+        let user = await User.getUser(req.user.tenantID, transaction.userID);
         // Check
         if (!user) {
           // Not Found!
@@ -204,6 +205,7 @@ class TransactionService {
       let result = await chargingStation.handleStopTransaction(stopTransaction, true);
       // Log
       Logging.logSecurityInfo({
+              tenantID: req.user.tenantID,
         user: req.user, actionOnUser: (user ? user.getModel() : null),
         module: 'TransactionService', method: 'handleTransactionSoftStop',
         message: `Transaction ID '${transaction.id}' on '${transaction.chargeBoxID}'-'${transaction.connectorId}' has been stopped successfully`,
@@ -231,7 +233,7 @@ class TransactionService {
           'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
       }
       // Get Transaction
-      let transaction = await TransactionStorage.getTransaction(filteredRequest.TransactionId);
+      let transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.TransactionId);
       if (!transaction) {
         // Not Found!
         throw new AppError(
@@ -283,7 +285,7 @@ class TransactionService {
           'TransactionService', 'handleRefundTransaction', req.user);
       }
       // Get Transaction
-      let transaction = await TransactionStorage.getTransaction(filteredRequest.ID);
+      let transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID);
       // Found?
       if (!transaction) {
         // Not Found!
@@ -348,7 +350,7 @@ class TransactionService {
           'TransactionService', 'handleGetChargingStationTransactions', req.user);
       }
       // Get Charge Box
-      let chargingStation = await ChargingStation.getChargingStation(filteredRequest.ChargeBoxID);
+      let chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
       // Found?
       if (!chargingStation) {
         // Not Found!
@@ -378,7 +380,7 @@ class TransactionService {
   static async handleGetTransactionYears(action, req, res, next) {
     try {
       // Get Transactions
-      let transactionsYears = await TransactionStorage.getTransactionYears();
+      let transactionsYears = await TransactionStorage.getTransactionYears(req.user.tenantID);
       let result = {};
       if (transactionsYears) {
         result.years = [];
@@ -416,7 +418,7 @@ class TransactionService {
         filter.connectorId = filteredRequest.ConnectorId;
       }
       // Get Transactions
-      let transactions = await TransactionStorage.getTransactions(
+      let transactions = await TransactionStorage.getTransactions(req.user.tenantID,
         {...filter, 'withChargeBoxes': true},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
@@ -461,9 +463,9 @@ class TransactionService {
         filter.userId = filteredRequest.UserID;
       }
       // Read the pricing
-      let pricing = await PricingStorage.getPricing();
+      let pricing = await PricingStorage.getPricing(req.user.tenantID);
       // Check email
-      let transactions = await TransactionStorage.getTransactions(
+      let transactions = await TransactionStorage.getTransactions(req.user.tenantID,
         {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Found?

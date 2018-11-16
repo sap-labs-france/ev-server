@@ -3,28 +3,30 @@ const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const crypto = require('crypto');
 const Logging = require('../../utils/Logging');
-const Transaction = require('../../model/Transaction');
+const Transaction = require('../../entity/Transaction');
 const deepmerge = require('deepmerge');
 const PricingStorage = require('./PricingStorage');
 
 class TransactionStorage {
-  static async deleteTransaction(transaction) {
-    // Delete Transactions
-    await global.db.collection('transactions')
+  static async deleteTransaction(tenantID, transaction) {
+// Check Tenant
+    await Utils.checkTenant(tenantID);    // Delete Transactions
+    await global.database.getCollection(tenantID, 'transactions')
       .findOneAndDelete({'_id': transaction.id});
     // Delete Meter Values
-    await global.db.collection('metervalues')
+    await global.database.getCollection(tenantID, 'metervalues')
       .deleteMany({'transactionId': transaction.id});
   }
 
-  static async saveTransaction(transactionEntityToSave) {
-    const transactionMDB = {};
+  static async saveTransaction(tenantID, transactionEntityToSave) {
+// Check Tenant
+    await Utils.checkTenant(tenantID);    const transactionMDB = {};
     Database.updateTransactionForDB(transactionEntityToSave.model, transactionMDB, false);
     if (!transactionMDB.id) {
       transactionMDB.id = await TransactionStorage.nextAvailableID();
     }
     // Modify
-    const result = await global.db.collection('transactions').findOneAndUpdate(
+    const result = await global.database.getCollection(tenantID, 'transactions').findOneAndUpdate(
       {"_id": Utils.convertToInt(transactionMDB.id)},
       {$set: transactionMDB},
       {upsert: true, new: true, returnOriginal: false});
@@ -32,8 +34,9 @@ class TransactionStorage {
     return deepmerge(transactionEntityToSave.fullModel, result.value);
   }
 
-  static async saveMeterValues(meterValuesToSave) {
-    const meterValuesMDB = [];
+  static async saveMeterValues(tenantID, meterValuesToSave) {
+// Check Tenant
+    await Utils.checkTenant(tenantID);    const meterValuesMDB = [];
     // Save all
     for (const meterValueToSave of meterValuesToSave.values) {
       const meterValue = {};
@@ -47,12 +50,13 @@ class TransactionStorage {
       meterValuesMDB.push(meterValue);
     }
     // Execute
-    await global.db.collection('metervalues').insertMany(meterValuesMDB);
+    await global.database.getCollection(tenantID, 'metervalues').insertMany(meterValuesMDB);
   }
 
-  static async getTransactionYears() {
-    // Read DB
-    const firstTransactionsMDB = await global.db.collection('transactions')
+  static async getTransactionYears(tenantID, ) {
+// Check Tenant
+    await Utils.checkTenant(tenantID);    // Read DB
+    const firstTransactionsMDB = await global.database.getCollection(tenantID, 'transactions')
       .find({})
       .sort({timestamp: 1})
       .limit(1)
@@ -70,8 +74,9 @@ class TransactionStorage {
     return transactionYears;
   }
 
-  static async getTransactions(params = {}, limit, skip, sort) {
-    const pricing = await PricingStorage.getPricing();
+  static async getTransactions(tenantID, params = {}, limit, skip, sort) {
+// Check Tenant
+    await Utils.checkTenant(tenantID);    const pricing = await PricingStorage.getPricing();
 
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
@@ -135,7 +140,7 @@ class TransactionStorage {
       // Add Charge Box
       aggregation.push({
         $lookup: {
-          from: 'chargingstations',
+          from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
           localField: 'chargeBoxID',
           foreignField: '_id',
           as: 'chargeBox'
@@ -150,7 +155,7 @@ class TransactionStorage {
       // Add Site Area
       aggregation.push({
         $lookup: {
-          from: 'siteareas',
+          from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
           localField: 'chargeBox.siteAreaID',
           foreignField: '_id',
           as: 'siteArea'
@@ -166,7 +171,7 @@ class TransactionStorage {
       });
     }
     // Count Records
-    const transactionsCountMDB = await global.db.collection('transactions')
+    const transactionsCountMDB = await global.database.getCollection(tenantID, 'transactions')
       .aggregate([...aggregation, {$count: "count"}])
       .toArray();
     // Sort
@@ -192,7 +197,7 @@ class TransactionStorage {
     // Add User that started the transaction
     aggregation.push({
       $lookup: {
-        from: 'users',
+        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
         localField: 'userID',
         foreignField: '_id',
         as: 'user'
@@ -205,7 +210,7 @@ class TransactionStorage {
     // Add User that stopped the transaction
     aggregation.push({
       $lookup: {
-        from: 'users',
+        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
         localField: 'stop.userID',
         foreignField: '_id',
         as: 'stop.user'
@@ -216,16 +221,16 @@ class TransactionStorage {
       $unwind: {"path": "$stop.user", "preserveNullAndEmptyArrays": true}
     });
     // Add MeterValues
-      aggregation.push({
-        $lookup: {
-          from: 'metervalues',
-          localField: '_id',
-          foreignField: 'transactionId',
-          as: 'meterValues'
-        }
-      });
+    aggregation.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenantID, 'metervalues'),
+        localField: '_id',
+        foreignField: 'transactionId',
+        as: 'meterValues'
+      }
+    });
     // Read DB
-    const transactionsMDB = await global.db.collection('transactions')
+    const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
       .aggregate(aggregation, {collation: {locale: Constants.DEFAULT_LOCALE, strength: 2}})
       .toArray();
     // Set
@@ -244,8 +249,9 @@ class TransactionStorage {
     };
   }
 
-  static async getTransaction(id) {
-    const pricing = await PricingStorage.getPricing();
+  static async getTransaction(tenantID, id) {
+// Check Tenant
+    await Utils.checkTenant(tenantID);    const pricing = await PricingStorage.getPricing();
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -280,7 +286,7 @@ class TransactionStorage {
     });
     aggregation.push({
       $lookup: {
-        from: 'metervalues',
+        from: DatabaseUtils.getCollectionName(tenantID, 'metervalues'),
         localField: '_id',
         foreignField: 'transactionId',
         as: 'meterValues'
@@ -288,7 +294,7 @@ class TransactionStorage {
     });
     aggregation.push({
       $lookup: {
-        from: 'chargingstations',
+        from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
         localField: 'chargeBoxID',
         foreignField: '_id',
         as: 'chargeBox'
@@ -300,7 +306,7 @@ class TransactionStorage {
     });
 
     // Read DB
-    const transactionsMDB = await global.db.collection('transactions')
+    const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
       .aggregate(aggregation)
       .toArray();
     // Found?
@@ -310,8 +316,9 @@ class TransactionStorage {
     return null;
   }
 
-  static async getActiveTransaction(chargeBoxID, connectorId) {
-    // Create Aggregation
+  static async getActiveTransaction(tenantID, chargeBoxID, connectorId) {
+// Check Tenant
+    await Utils.checkTenant(tenantID);    // Create Aggregation
     const aggregation = [];
     // Filters
     aggregation.push({
@@ -336,14 +343,14 @@ class TransactionStorage {
     });
     aggregation.push({
       $lookup: {
-        from: 'metervalues',
+        from: DatabaseUtils.getCollectionName(tenantID, 'metervalues'),
         localField: '_id',
         foreignField: 'transactionId',
         as: 'meterValues'
       }
     });
     // Read DB
-    const transactionsMDB = await global.db.collection('transactions')
+    const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
       .aggregate(aggregation)
       .toArray();
     // Found?
@@ -353,8 +360,9 @@ class TransactionStorage {
     return null;
   }
 
-  static async nextAvailableID() {
-    let existingTransaction;
+  static async nextAvailableID(tenantID, ) {
+// Check Tenant
+    await Utils.checkTenant(tenantID);    let existingTransaction;
     do {
       // Generate new transaction ID
       const id = Utils.getRandomInt();
@@ -371,8 +379,9 @@ class TransactionStorage {
     } while (existingTransaction);
   }
 
-  static async cleanupRemainingActiveTransactions(chargeBoxId, connectorId) {
-    // Check for active transaction
+  static async cleanupRemainingActiveTransactions(tenantID, chargeBoxId, connectorId) {
+// Check Tenant
+    await Utils.checkTenant(tenantID);    // Check for active transaction
     let activeTransaction;
     do {
       // Check if the charging station has already a transaction

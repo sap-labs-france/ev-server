@@ -1,5 +1,5 @@
 module.exports = {
-	"en": `
+  "en": `
 		<h3>End-user Agreement Usage of the Charge-Angels Software</h3>
 		<h4>General Data Protection Regulation (GDPR)</h4>
 		<p><cite> The General Data Protection Regulation (GDPR) is a regulation in EU law on data protection and privacy for
@@ -130,7 +130,7 @@ module.exports = {
 			of your personal data in a file which is readable.</p>
 	`,
 
-	"fr": `
+  "fr": `
 		<h3>Conditions G&eacute;n&eacute;rales d'Utilisation de l&rsquo;application Charge-Angels</h3>
 
 		<h4>R&egrave;glement G&eacute;n&eacute;ral sur la Protection des Donn&eacute;es (RGPD)</h4>

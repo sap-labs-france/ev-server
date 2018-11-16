@@ -1,31 +1,31 @@
 
 class NotificationTask {
-	sendNewRegisteredUser(data, locale) {
-	}
+  sendNewRegisteredUser(data, locale, tenantID) {
+  }
 
-	sendRequestPassword(data, locale) {
-	}
+  sendRequestPassword(data, locale, tenantID) {
+  }
 
-	sendNewPassword(data, locale) {
-	}
+  sendNewPassword(data, locale, tenantID) {
+  }
 
-	sendEndOfCharge(data, locale) {
-	}
+  sendEndOfCharge(data, locale, tenantID) {
+  }
 
-	sendEndOfSession(data, locale) {
-	}
+  sendEndOfSession(data, locale, tenantID) {
+  }
 
-	sendChargingStationStatusError(data, locale) {
-	}
+  sendChargingStationStatusError(data, locale, tenantID) {
+  }
 
-	sendUnknownUserBadged(data, locale) {
-	}
+  sendUnknownUserBadged(data, locale, tenantID) {
+  }
 
-	sendTransactionStarted(data, locale) {
-	}
+  sendTransactionStarted(data, locale, tenantID) {
+  }
 
-	sendChargingStationRegistered(data, locale) {
-	}
+  sendChargingStationRegistered(data, locale, tenantID) {
+  }
 }
 
 module.exports = NotificationTask;

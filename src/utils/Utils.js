@@ -1,11 +1,15 @@
+const {ObjectId} = require('mongodb');
 const Configuration = require('./Configuration');
 const uuidV4 = require('uuid/v4');
 const ObjectID = require('mongodb').ObjectID;
 const Constants = require('./Constants');
+const BackendError = require('../exception/BackendError');
 const crypto = require('crypto');
 const ClientOAuth2 = require('client-oauth2');
 const axios = require('axios');
 const url = require('url');
+const fs = require('fs');
+const path = require('path');
 
 require('source-map-support').install();
 
@@ -48,6 +52,7 @@ class Utils {
     // Log
     Logging.logSecurityInfo({
       user, actionOnUser, action,
+      tenantID: transaction.getTenantID(),
       source: transaction.chargeBoxID,
       module: 'Utils', method: 'pushTransactionToRevenueCloud',
       message: `Transaction ID '${transaction.id}' has been refunded successfully`,
@@ -55,23 +60,23 @@ class Utils {
     });
   }
 
-  static normalizeSOAPHeader(headers) {
+  static async normalizeAndCheckSOAPParams(headers, req) {
     // ChargeBox Identity
-    Utils.normalizeOneSOAPHeader(headers, 'chargeBoxIdentity');
+    Utils._normalizeOneSOAPParam(headers, 'chargeBoxIdentity');
     // Action
-    Utils.normalizeOneSOAPHeader(headers, 'Action');
+    Utils._normalizeOneSOAPParam(headers, 'Action');
     // To
-    Utils.normalizeOneSOAPHeader(headers, 'To');
-    // Extract the Tenant
-    // Get the registration URL
-    const urlBox = new url.URL(headers.To);
-    // Get the Tenant param
-    const tenant = urlBox.searchParams.get('tenant');
-    // Set it in the HEader
-    headers.tenant = (tenant === null ? "" : tenant);
+    Utils._normalizeOneSOAPParam(headers, 'To');
+    // Parse the request
+    const urlParts = url.parse(req.url, true);
+    const tenantID = urlParts.query.TenantID;
+    // Check
+    await Utils.checkTenant(tenantID);
+    // Set the Tenant ID
+    headers.tenantID = tenantID;
   }
 
-  static normalizeOneSOAPHeader(headers, name) {
+  static _normalizeOneSOAPParam(headers, name) {
     // Object?
     if (typeof headers[name] === 'object' && headers[name].$value) {
       // Yes: Set header
@@ -79,7 +84,29 @@ class Utils {
     }
   }
 
-  static convertToDate(date) {
+  static async checkTenant(tenantID) {
+    const Tenant = require('../entity/Tenant'); // Avoid fucking circular deps
+    // Check Tenant ID
+    if (!tenantID) {
+      // Error
+      throw new BackendError(null, `The Tenant ID is mandatory`);
+    }
+    // Check if not default tenant?
+    if (tenantID !== Constants.DEFAULT_TENANT) {
+      // Check if object id is valid
+      if (!ObjectId.isValid(tenantID)) {
+        // Error
+        throw new BackendError(null, `Invalid Tenant ID '${tenantID}'`);
+      }
+      // Check if the Tenant exists
+      const tenant = await Tenant.getTenant(tenantID);
+      // Found?
+      if (!tenant) {
+        // Error
+        throw new BackendError(null, `Invalid Tenant ID '${tenantID}'`);
+      }
+    }
+  }static convertToDate(date) {
     // Check
     if (!date) {
       return date;
@@ -177,71 +204,7 @@ class Utils {
     return userID;
   }
 
-  static pushCreatedLastChangedInAggregation(aggregation) {
-    // Filter
-    const filterUserFields = {
-      "email": 0,
-      "phone": 0,
-      "mobile": 0,
-      "iNumber": 0,
-      "costCenter": 0,
-      "status": 0,
-      "createdBy": 0,
-      "createdOn": 0,
-      "lastChangedBy": 0,
-      "lastChangedOn": 0,
-      "role": 0,
-      "password": 0,
-      "locale": 0,
-      "deleted": 0,
-      "passwordWrongNbrTrials": 0,
-      "passwordBlockedUntil": 0,
-      "passwordResetHash": 0,
-      "eulaAcceptedOn": 0,
-      "eulaAcceptedVersion": 0,
-      "eulaAcceptedHash": 0,
-      "image": 0,
-      "address": 0
-    };
-    // Created By
-    aggregation.push({
-      $lookup: {
-        from: "users",
-        localField: "createdBy",
-        foreignField: "_id",
-        as: "createdBy"
-      }
-    });
-    // Single Record
-    aggregation.push({
-      $unwind: {"path": "$createdBy", "preserveNullAndEmptyArrays": true}
-    });
-    // Filter
-    aggregation.push({
-      $project: {
-        "createdBy": filterUserFields
-      }
-    });
-    // Last Changed By
-    aggregation.push({
-      $lookup: {
-        from: "users",
-        localField: "lastChangedBy",
-        foreignField: "_id",
-        as: "lastChangedBy"
-      }
-    });
-    // Single Record
-    aggregation.push({
-      $unwind: {"path": "$lastChangedBy", "preserveNullAndEmptyArrays": true}
-    });
-    // Filter
-    aggregation.push({
-      $project: {
-        "lastChangedBy": filterUserFields
-      }
-    });
-  }
+
 
   static buildUserFullName(user, withID = true) {
     if (!user) {
@@ -269,20 +232,24 @@ class Utils {
     return Math.floor((Math.random() * 2147483648) + 1); // INT32 (signed: issue in Schneider)
   }
 
-  static buildEvseURL() {
-    return _centralSystemFrontEndConfig.protocol + "://" +
-      _centralSystemFrontEndConfig.host + ":" +
-      _centralSystemFrontEndConfig.port;
+  static buildEvseURL(subdomain) {
+    if (subdomain) {
+    return `${_centralSystemFrontEndConfig.protocol}://${subdomain}.${_centralSystemFrontEndConfig.host}:${_centralSystemFrontEndConfig.port}`;
+      }
+    return `${_centralSystemFrontEndConfig.protocol}://${_centralSystemFrontEndConfig.host}:${
+      _centralSystemFrontEndConfig.port}`;
   }
 
-  static buildEvseUserURL(user) {
-    const _evseBaseURL = Utils.buildEvseURL();
+  static async buildEvseUserURL(user) {
+    const tenant = await user.getTenant();
+    const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
     // Add
     return _evseBaseURL + "/#/pages/users/user/" + user.getID();
   }
 
-  static buildEvseChargingStationURL(chargingStation, connectorId = null) {
-    const _evseBaseURL = Utils.buildEvseURL();
+  static async buildEvseChargingStationURL(chargingStation, connectorId = null) {
+    const tenant = await chargingStation.getTenant();
+    const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
 
     // Connector provided?
     if (connectorId > 0) {
@@ -295,8 +262,9 @@ class Utils {
     }
   }
 
-  static buildEvseTransactionURL(chargingStation, connectorId, transactionId) {
-    const _evseBaseURL = Utils.buildEvseURL();
+  static async buildEvseTransactionURL(chargingStation, connectorId, transactionId) {
+    const tenant = await chargingStation.getTenant();
+    const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
     // Add
     return _evseBaseURL + "/#/pages/chargers/charger/" + chargingStation.getID() +
       "/connector/" + connectorId + "/transaction/" + transactionId;
@@ -304,7 +272,7 @@ class Utils {
 
   static isServerInProductionMode() {
     const env = process.env.NODE_ENV || 'dev';
-    return (env !== "dev");
+    return (env === "production");
   }
 
   static hideShowMessage(message) {

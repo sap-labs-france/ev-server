@@ -1,8 +1,6 @@
 const uuid = require('uuid/v4');
 const ChargingStationClient = require('../ChargingStationClient');
 
-const MODULE_NAME = "JsonChargingStationClient16";
-
 class JsonChargingStationClient16 extends ChargingStationClient {
   constructor(wsConnection) {
     super();
@@ -51,7 +49,7 @@ class JsonChargingStationClient16 extends ChargingStationClient {
     }, 2, "ChangeConfiguration");
   }
 
-  stopTransaction(params) {
+  remoteStopTransaction(params) {
     const { transactionId } = params;
     return this._wsConnection.sendMessage(uuid(), {
       transactionId: transactionId

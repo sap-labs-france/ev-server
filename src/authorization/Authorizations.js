@@ -8,8 +8,8 @@ const compileProfile = require('node-authorization').profileCompiler;
 const AppError = require('../exception/AppError');
 const AppAuthError = require('../exception/AppAuthError');
 const Utils = require('../utils/Utils');
-const User = require('../model/User');
-const Company = require('../model/Company');
+const User = require('../entity/User');
+const Company = require('../entity/Company');
 const AuthorizationsDefinition = require('./AuthorizationsDefinition');
 require('source-map-support').install();
 
@@ -64,17 +64,17 @@ class Authorizations {
     if (!Authorizations.isAdmin(user.getModel())) {
       // Not Admin: Get Auth data
       // Get All Companies
-      let allCompanies = await Company.getCompanies();
+      const allCompanies = await Company.getCompanies(user.getTenantID());
       // Get Sites
       sites = await user.getSites();
       // Get all the companies and site areas
       for (const site of sites) {
         // Get the company
-        let company = allCompanies.result.find((company) => company.getID() === site.getCompanyID());
+        const company = allCompanies.result.find((company) => company.getID() === site.getCompanyID());
         // Found?
         if (company) {
           // Check
-          let foundCompany = companies.find((existingCompany) => {
+          const foundCompany = companies.find((existingCompany) => {
             return existingCompany.getID() === company.getID();
           });
           // Found?
@@ -86,18 +86,18 @@ class Authorizations {
       }
     }
     // Convert to IDs
-    let companyIDs = companies.map((company) => {
+    const companyIDs = companies.map((company) => {
       return company.getID();
     });
-    let siteIDs = sites.map((site) => {
+    const siteIDs = sites.map((site) => {
       return site.getID();
     });
     // Get authorisation
-    let authsDefinition = AuthorizationsDefinition.getAuthorizations(user.getRole());
+    const authsDefinition = AuthorizationsDefinition.getAuthorizations(user.getRole());
     // Add user
     users.push(user.getID());
     // Parse the auth and replace values
-    let authsDefinitionParsed = Mustache.render(
+    const authsDefinitionParsed = Mustache.render(
       authsDefinition,
       {
         "userID": users,
@@ -112,9 +112,9 @@ class Authorizations {
       }
     );
     // Make it Json
-    let userAuthDefinition = JSON.parse(authsDefinitionParsed);
+    const userAuthDefinition = JSON.parse(authsDefinitionParsed);
     // Compile auths of the role
-    let compiledAuths = compileProfile(userAuthDefinition.auths);
+    const compiledAuths = compileProfile(userAuthDefinition.auths);
     // Return
     return compiledAuths;
   }
@@ -122,11 +122,11 @@ class Authorizations {
   static async getOrCreateUserByTagID(chargingStation, siteArea, tagID, action) {
     let newUserCreated = false;
     // Get the user
-    let user = await User.getUserByTagId(tagID);
+    let user = await User.getUserByTagId(chargingStation.getTenantID(),tagID);
     // Found?
     if (!user) {
       // No: Create an empty user
-      let newUser = new User({
+      const newUser = new User(chargingStation.getTenantID(),{
         name: (siteArea.isAccessControlEnabled() ? "Unknown" : "Anonymous"),
         firstName: "User",
         status: (siteArea.isAccessControlEnabled() ? Constants.USER_STATUS_INACTIVE : Constants.USER_STATUS_ACTIVE),
@@ -155,7 +155,7 @@ class Authorizations {
       user.setCostCenter("");
       // Log
       Logging.logSecurityInfo({
-        user: user,
+        tenantID: user.getTenantID(),user: user,
         module: "Authorizations", method: "getOrCreateUserByTagID",
         message: `User with ID '${user.getID()}' has been restored`,
         action: action
@@ -167,13 +167,13 @@ class Authorizations {
     if (newUserCreated) {
       // Notify
       NotificationHandler.sendUnknownUserBadged(
-        Utils.generateGUID(),
+        chargingStation.getTenantID,Utils.generateGUID(),
         chargingStation.getModel(),
         {
           "chargingBoxID": chargingStation.getID(),
           "badgeId": tagID,
-          "evseDashboardURL": Utils.buildEvseURL(),
-          "evseDashboardUserURL": Utils.buildEvseUserURL(user)
+          "evseDashboardURL": Utils.buildEvseURL((await user.getTenant()).getSubdomain()),
+          "evseDashboardUserURL": awaitUtils.buildEvseUserURL(user)
         }
       );
     }
@@ -192,7 +192,7 @@ class Authorizations {
 
   static async checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, tagID, alternateTagID) {
     // Site Area -----------------------------------------------
-    let siteArea = await chargingStation.getSiteArea();
+    const siteArea = await chargingStation.getSiteArea();
     // Site is mandatory
     if (!siteArea) {
       // Reject Site Not Found
@@ -207,7 +207,7 @@ class Authorizations {
       return null;
     }
     // Site -----------------------------------------------------
-    let site = await siteArea.getSite(null, true);
+    const site = await siteArea.getSite(null, true);
     if (!site) {
       // Reject Site Not Found
       throw new AppError(
@@ -235,11 +235,11 @@ class Authorizations {
         user.getModel());
     }
     // Build Authorizations -----------------------------------------------------
-    let auths = await Authorizations.buildAuthorizations(currentUser);
+    const auths = await Authorizations.buildAuthorizations(currentUser);
     // Set
     currentUser.setAuthorisations(auths);
     // Check if User belongs to a Site ------------------------------------------
-    let foundUser = await site.getUser(user.getID());
+    const foundUser = await site.getUser(user.getID());
     // User not found and Access Control Enabled?
     if (!foundUser) {
       // Yes: Reject the User
@@ -251,7 +251,7 @@ class Authorizations {
     }
     // Check if Alternate User belongs to a Site --------------------------------
     if (alternateUser) {
-      let foundAlternateUser = await site.getUser(alternateUser.getID());
+      const foundAlternateUser = await site.getUser(alternateUser.getID());
       // Alternate User not found and Access Control Enabled?
       if (!foundAlternateUser) {
         // Reject the User
@@ -263,8 +263,8 @@ class Authorizations {
       }
     }
     // Check if users are differents
-    if (alternateUser && (user.getID() != alternateUser.getID()) &&
-      !Authorizations.isAdmin(alternateUser) && !site.isAllowAllUsersToStopTransactionsEnabled()) {
+    if (alternateUser && (user.getID() !== alternateUser.getID()) &&
+      !Authorizations.isAdmin(alternateUser.getModel()) && !site.isAllowAllUsersToStopTransactionsEnabled()) {
       // Reject the User
       throw new AppError(
         chargingStation.getID(),
@@ -381,7 +381,7 @@ class Authorizations {
 
   static canPerformActionOnChargingStation(loggedUser, chargingStation, action) {
     // Check Charging Station
-    let result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+    const result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
       {"Action": action, "ChargingStationID": chargingStation.id});
 
     // Return
@@ -396,7 +396,7 @@ class Authorizations {
 
   static canUpdateChargingStation(loggedUser, chargingStation) {
     // Check Charging Station
-    let result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+    const result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
       {"Action": Constants.ACTION_UPDATE, "ChargingStationID": chargingStation.id});
 
     // Return
@@ -405,7 +405,7 @@ class Authorizations {
 
   static canDeleteChargingStation(loggedUser, chargingStation) {
     // Check Charging Station
-    let result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+    const result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
       {"Action": Constants.ACTION_DELETE, "ChargingStationID": chargingStation.id});
 
     // Return

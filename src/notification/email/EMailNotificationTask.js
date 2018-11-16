@@ -1,8 +1,9 @@
+const email = require("emailjs");
+const ejs = require('ejs');
+const BackendError = require('../../exception/BackendError');
 const Configuration = require('../../utils/Configuration');
 const Logging = require('../../utils/Logging');
 const Utils = require('../../utils/Utils');
-const email = require("emailjs");
-const ejs = require('ejs');
 const mainTemplate = require('./template/main-template.js');
 const requestPassword = require('./template/request-password.js');
 const chargingStationRegistered = require('./template/charging-station-registered.js');
@@ -20,7 +21,7 @@ const NotificationTask = require('../NotificationTask');
 require('source-map-support').install();
 
 // Email
-let _emailConfig = Configuration.getEmailConfig();
+const _emailConfig = Configuration.getEmailConfig();
 
 // https://nodemailer.com/smtp/
 class EMailNotificationTask extends NotificationTask {
@@ -37,62 +38,62 @@ class EMailNotificationTask extends NotificationTask {
     });
   }
 
-  sendNewRegisteredUser(data, locale) {
+  sendNewRegisteredUser(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('new-registered-user', data, locale);
+    return this._prepareAndSendEmail('new-registered-user', data, locale, tenantID);
   }
 
-  sendRequestPassword(data, locale) {
+  sendRequestPassword(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('request-password', data, locale);
+    return this._prepareAndSendEmail('request-password', data, locale, tenantID);
   }
 
-  sendNewPassword(data, locale) {
+  sendNewPassword(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('new-password', data, locale);
+    return this._prepareAndSendEmail('new-password', data, locale, tenantID);
   }
 
-  sendEndOfCharge(data, locale) {
+  sendEndOfCharge(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('end-of-charge', data, locale);
+    return this._prepareAndSendEmail('end-of-charge', data, locale, tenantID);
   }
 
-  sendEndOfSession(data, locale) {
+  sendEndOfSession(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('end-of-session', data, locale);
+    return this._prepareAndSendEmail('end-of-session', data, locale, tenantID);
   }
 
-  sendChargingStationStatusError(data, locale) {
+  sendChargingStationStatusError(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('charging-station-status-error', data, locale);
+    return this._prepareAndSendEmail('charging-station-status-error', data, locale, tenantID);
   }
 
-  sendChargingStationRegistered(data, locale) {
+  sendChargingStationRegistered(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('charging-station-registered', data, locale);
+    return this._prepareAndSendEmail('charging-station-registered', data, locale, tenantID);
   }
 
-  sendUserAccountStatusChanged(data, locale) {
+  sendUserAccountStatusChanged(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('user-account-status-changed', data, locale);
+    return this._prepareAndSendEmail('user-account-status-changed', data, locale, tenantID);
   }
 
-  sendUnknownUserBadged(data, locale) {
+  sendUnknownUserBadged(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('unknown-user-badged', data, locale);
+    return this._prepareAndSendEmail('unknown-user-badged', data, locale, tenantID);
   }
 
-  sendTransactionStarted(data, locale) {
+  sendTransactionStarted(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('transaction-started', data, locale);
+    return this._prepareAndSendEmail('transaction-started', data, locale, tenantID);
   }
 
-  sendVerificationEmail(data, locale) {
+  sendVerificationEmail(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('verification-email', data, locale);
+    return this._prepareAndSendEmail('verification-email', data, locale, tenantID);
   }
 
-  async _prepareAndSendEmail(templateName, data, locale) {
+  async _prepareAndSendEmail(templateName, data, locale, tenantID) {
     // Create email
     let emailTemplate;
 
@@ -142,8 +143,9 @@ class EMailNotificationTask extends NotificationTask {
     }
     // Template found?
     if (!emailTemplate) {
-      // No
-      throw new Error(`No Email template found for '${templateName}'`);
+      // Error
+      throw new BackendError(null, `No Email template found for '${templateName}'`,
+        "EMailNotificationTask", "_prepareAndSendEmail");
     }
     // Check for localized template?
     if (emailTemplate[locale]) {
@@ -161,7 +163,7 @@ class EMailNotificationTask extends NotificationTask {
     emailTemplate.email.body.header.title = ejs.render(emailTemplate.email.body.header.title, data);
     // Charge Angels Logo
     emailTemplate.email.body.header.image.left.url = ejs.render(emailTemplate.email.body.header.image.left.url, data);
-    ;
+
     // Company Logo
     emailTemplate.email.body.header.image.right.url = ejs.render(emailTemplate.email.body.header.image.right.url, data);
     // Render Lines Before Action
@@ -195,17 +197,17 @@ class EMailNotificationTask extends NotificationTask {
     // Remove extra empty lines
     Utils.removeExtraEmptyLines(emailTemplate.email.body.afterActionLines);
     // Render the final HTML -----------------------------------------------
-    let subject = ejs.render(mainTemplate.subject, emailTemplate.email);
-    let html = ejs.render(mainTemplate.html, emailTemplate.email);
+    const subject = ejs.render(mainTemplate.subject, emailTemplate.email);
+    const html = ejs.render(mainTemplate.html, emailTemplate.email);
     // Send the email
-    let message = await this.sendEmail({
+    const message = await this.sendEmail({
       to: (data.user ? data.user.email : null),
       subject: subject,
       text: html,
       html: html
-    });
+    }, tenantID);
     // User
-    Logging.logInfo({
+    Logging.logInfo({tenantID: tenantID,
       module: "EMailNotificationTask", method: "_prepareAndSendEmail",
       action: "SendEmail", actionOnUser: data.user,
       message: `Email has been sent successfully`,
@@ -218,7 +220,7 @@ class EMailNotificationTask extends NotificationTask {
     return message;
   }
 
-  sendEmail(email) {
+  async sendEmail(email, tenantID) {
     // Add Admins in BCC
     if (_emailConfig.admins && _emailConfig.admins.length > 0) {
       // Add
@@ -229,7 +231,7 @@ class EMailNotificationTask extends NotificationTask {
       }
     }
     // Create the message
-    var message = {
+    const message = {
       from: (!email.from ? _emailConfig.from : email.from),
       to: email.to,
       cc: email.cc,
@@ -241,7 +243,26 @@ class EMailNotificationTask extends NotificationTask {
       ]
     };
     // send the message and get a callback with an error or details of the message that was sent
-    return this.server.send(message);
+    return await this.server.send(message, function(err, message) {
+      if (err) {
+        try {
+          Logging.logError({
+            tenantID: tenantID,
+            module: "EMailNotificationTask", method: "sendEmail",
+            action: "SendEmail",
+            message: `An error occurred while sending an email`,
+            detailedMessages: {
+              error: err,
+              message: message
+            }
+          });
+        } catch (error) {
+          // For Unit Tests only: Tenant is deleted and email is not know thus this Logging statement is always failing with an invalid Tenant
+        }
+      } else {
+        return message;
+      }
+    });
   }
 }
 

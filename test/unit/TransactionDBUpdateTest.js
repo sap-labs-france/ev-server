@@ -2,7 +2,7 @@ const moment = require('moment');
 const {expect} = require('chai');
 const chai = require('chai');
 const chaiSubset = require('chai-subset');
-const Transaction = require('../../src/model/Transaction');
+const Transaction = require('../../src/entity/Transaction');
 const Database = require('../../src/utils/Database');
 chai.use(chaiSubset);
 

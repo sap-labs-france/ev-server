@@ -2,16 +2,17 @@ const Logging = require('../../../utils/Logging');
 const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
 const UnauthorizedError = require('../../../exception/UnauthorizedError');
-const BadRequestError = require('../../../exception/BadRequestError');
 const ConflictError = require('../../../exception/ConflictError');
 const Constants = require('../../../utils/Constants');
-const Tenant = require('../../../model/Tenant');
-const User = require('../../../model/User');
+const Tenant = require('../../../entity/Tenant');
+const User = require('../../../entity/User');
 const Authorizations = require('../../../authorization/Authorizations');
 const TenantSecurity = require('./security/TenantSecurity');
-const HttpStatus = require('http-status-codes');
+const HttpStatusCodes = require('http-status-codes');
 const TenantValidator = require('../validation/TenantValidation');
 const AbstractService = require('./AbstractService');
+const NotificationHandler = require('../../../notification/NotificationHandler');
+const Utils = require('../../../utils/Utils');
 
 const MODULE_NAME = 'TenantService';
 
@@ -48,13 +49,26 @@ class TenantService extends AbstractService {
           tenant.getID(),
           req.user);
       }
+      if (tenant.getID() === req.user.tenantID) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `Your own tenant with id '${tenant.getID()}' cannot be deleted`, 550,
+          MODULE_NAME, 'handleDeleteTenant', req.user);
+      }
       // Delete
       await tenant.delete();
+      if (filteredRequest.forced && !Utils.isServerInProductionMode()) {
+        Logging.logWarning({
+          tenantID: req.user.tenantID,
+          module: 'MongoDBStorage', method: 'deleteTenantDatabase',
+          message: `Deleting collections for tenant ${tenant.getID()}`
+        });
+        tenant.deleteEnvironment();
+      }
       // Log
       Logging.logSecurityInfo({
-        user: req.user,
-        module: MODULE_NAME,
-        method: 'handleDeleteTenant',
+        tenantID: req.user.tenantID, user: req.user,
+        module: MODULE_NAME, method: 'handleDeleteTenant',
         message: `Tenant '${tenant.getName()}' has been deleted successfully`,
         action: action,
         detailedMessages: tenant
@@ -63,7 +77,7 @@ class TenantService extends AbstractService {
       res.json(Constants.REST_RESPONSE_SUCCESS);
       next();
     } catch (error) {
-      TenantService._handleError(error, req, next, action, MODULE_NAME, 'handleDeleteTenant');
+      AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleDeleteTenant');
     }
   }
 
@@ -82,7 +96,6 @@ class TenantService extends AbstractService {
       // Get it
       const tenant = await Tenant.getTenant(filteredRequest.ID);
       if (!tenant) {
-        // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `Tenant with ID '${filteredRequest.ID}' does not exist`, 550,
@@ -94,6 +107,7 @@ class TenantService extends AbstractService {
         throw new UnauthorizedError(
           Constants.ACTION_READ,
           Constants.ENTITY_TENANT,
+          tenant.getID(),
           req.user);
       }
       // Return
@@ -104,7 +118,7 @@ class TenantService extends AbstractService {
       );
       next();
     } catch (error) {
-      TenantService._handleError(error, req, next, action, MODULE_NAME, 'handleGetTenant');
+      AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleGetTenant');
     }
   }
 
@@ -116,12 +130,14 @@ class TenantService extends AbstractService {
         throw new UnauthorizedError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TENANTS,
+          null,
           req.user);
       }
       // Filter
       const filteredRequest = TenantSecurity.filterTenantsRequest(req.query, req.user);
       // Get the tenants
-      const tenants = await Tenant.getTenants({
+      const tenants = await Tenant.getTenants(
+        {
           search: filteredRequest.Search
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
@@ -134,7 +150,7 @@ class TenantService extends AbstractService {
       res.json(tenants);
       next();
     } catch (error) {
-      TenantService._handleError(error, req, next, action, MODULE_NAME, 'handleGetTenants');
+      AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleGetTenants');
     }
   }
 
@@ -146,6 +162,7 @@ class TenantService extends AbstractService {
         throw new UnauthorizedError(
           Constants.ACTION_CREATE,
           Constants.ENTITY_TENANT,
+          null,
           req.user);
       }
       TenantValidator.validateTenantCreation(req.body);
@@ -154,7 +171,8 @@ class TenantService extends AbstractService {
 
       let foundTenant = await Tenant.getTenantByName(filteredRequest.name);
       if (foundTenant) {
-        throw new ConflictError(`The tenant with name '${filteredRequest.name}' already exists`, 'tenants.name_already_used', {
+        throw new ConflictError(`The tenant with name '${filteredRequest.name}' already exists`, 'tenants.name_already_used',
+          {
             'name': filteredRequest.name
           },
           MODULE_NAME, 'handleCreateTenant', req.user, action);
@@ -170,29 +188,71 @@ class TenantService extends AbstractService {
       // Create
       const tenant = new Tenant(filteredRequest);
       // Update timestamp
-      tenant.setCreatedBy(new User({
+      tenant.setCreatedBy(new User(req.user.tenantID, {
         'id': req.user.id
       }));
       tenant.setCreatedOn(new Date());
       // Save
       const newTenant = await tenant.save();
 
-      await tenant.createEnvironment();
+      newTenant.createEnvironment();
+
+      const password = User.generatePassword();
+      const verificationToken = Utils.generateToken(newTenant.getEmail());
+      const tenantUser = new User(newTenant.getID(), {
+        name: newTenant.getName(),
+        firstName: "Admin",
+        password: await User.hashPasswordBcrypt(password),
+        status: Constants.USER_STATUS_PENDING,
+        role: Constants.ROLE_ADMIN,
+        email: newTenant.getEmail(),
+        createdOn: new Date().toISOString(),
+        verificationToken: verificationToken
+      });
+
+      const newUser = await tenantUser.save();
+      // Send activation link
+      const evseDashboardVerifyEmailURL = Utils.buildEvseURL(newTenant.getSubdomain()) +
+        '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
+        newUser.getEMail();
+      NotificationHandler.sendNewRegisteredUser(
+        newUser.getTenantID(),
+        Utils.generateGUID(),
+        newUser.getModel(),
+        {
+          'user': newUser.getModel(),
+          'evseDashboardURL': Utils.buildEvseURL(newTenant.getSubdomain()),
+          'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
+        },
+        newUser.getLocale()
+      );
+      // Send temporary password
+      NotificationHandler.sendNewPassword(
+        newUser.getTenantID(),
+        Utils.generateGUID(),
+        newUser.getModel(),
+        {
+          'user': newUser.getModel(),
+          'hash': null,
+          'newPassword': password,
+          'evseDashboardURL': Utils.buildEvseURL(newTenant.getSubdomain())
+        },
+        newUser.getLocale()
+      );
 
       // Log
       Logging.logSecurityInfo({
-        user: req.user,
-        module: MODULE_NAME,
-        method: 'handleCreateTenant',
+        tenantID: req.user.tenantID, user: req.user,
+        module: MODULE_NAME, method: 'handleCreateTenant',
         message: `Tenant '${newTenant.getName()}' has been created successfully`,
         action: action,
         detailedMessages: newTenant
       });
       // Ok
-      res.status(HttpStatus.OK).json(Object.assign({ id: newTenant.getID() }, Constants.REST_RESPONSE_SUCCESS));
+      res.status(HttpStatusCodes.OK).json(Object.assign({id: newTenant.getID()}, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
-      TenantService._handleError(error, req, next, action, MODULE_NAME, 'handleCreateTenant');
+      AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleCreateTenant');
     }
   }
 
@@ -205,7 +265,6 @@ class TenantService extends AbstractService {
       // Check email
       const tenant = await Tenant.getTenant(filteredRequest.id);
       if (!tenant) {
-        // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `Tenant with ID '${filteredRequest.ID}' does not exist`, 550,
@@ -223,7 +282,7 @@ class TenantService extends AbstractService {
       // Update
       Database.updateTenant(filteredRequest, tenant.getModel());
       // Update timestamp
-      tenant.setLastChangedBy(new User({
+      tenant.setLastChangedBy(new User(req.user.tenantID, {
         'id': req.user.id
       }));
       tenant.setLastChangedOn(new Date());
@@ -231,9 +290,8 @@ class TenantService extends AbstractService {
       const updatedTenant = await tenant.save();
       // Log
       Logging.logSecurityInfo({
-        user: req.user,
-        module: MODULE_NAME,
-        method: 'handleUpdateTenant',
+        tenantID: req.user.tenantID, user: req.user,
+        module: MODULE_NAME, method: 'handleUpdateTenant',
         message: `Tenant '${updatedTenant.getName()}' has been updated successfully`,
         action: action,
         detailedMessages: updatedTenant
@@ -242,7 +300,7 @@ class TenantService extends AbstractService {
       res.json(Constants.REST_RESPONSE_SUCCESS);
       next();
     } catch (error) {
-      TenantService._handleError(error, req, next, action, MODULE_NAME, 'handleUpdateTenant');
+      AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleUpdateTenant');
     }
   }
 
@@ -252,17 +310,17 @@ class TenantService extends AbstractService {
       const filteredRequest = TenantSecurity.filterVerifyTenantRequest(req.headers);
       // Check email
       const tenant = await Tenant.getTenantBySubdomain(filteredRequest.tenant);
-      if (!tenant) {
+      if (!tenant && filteredRequest.tenant !== '') {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Tenant with subdomain '${filteredRequest.subdomain}' does not exist`, 550,
+          `The Tenant with subdomain '${filteredRequest.tenant}' does not exist`, 550,
           MODULE_NAME, 'handleVerifyTenant', req.user);
       }
-      res.status(HttpStatus.OK).send({});
+      res.status(HttpStatusCodes.OK).send({});
       next();
     } catch (error) {
-      TenantService._handleError(error, req, next, action, MODULE_NAME, 'handleVerifyTenant');
+      AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleVerifyTenant');
     }
   }
 }

@@ -86,7 +86,7 @@ class TransactionApi extends CrudApi {
       response = await ocpp.executeMeterValues(chargingStation.id, {
         connectorId: transaction.connectorId,
         transactionId: transaction.id,
-        values: {
+        meterValue: {
           timestamp: currentTime.toISOString(),
           sampledValue: [{
             value: meterValue,
