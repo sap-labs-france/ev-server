@@ -1677,8 +1677,8 @@ class ChargingStation extends AbstractTenantEntity {
         meterValue.attribute.measurand === 'Energy.Active.Import.Register' &&
         (meterValue.attribute.context === "Sample.Periodic" ||
         // ABB only uses Sample.Clock!!!!!
-        this.getChargePointVendor() === 'ABB'))) {
-      // First value?
+        (this.getChargePointVendor() === 'ABB' && meterValue.attribute.context === "Sample.Clock")))) {
+        // First value?
         if (!firstMeterValueSet) {
           // No: Keep the first value
           lastMeterValue = meterValue;
