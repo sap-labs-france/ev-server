@@ -15,6 +15,9 @@ class OCPPCommonTests {
   }
 
   async before() {
+    this.priceKWH= 1;
+    await CentralServerService.pricingApi.update({priceKWH: this.priceKWH, priceUnit: 'EUR'});
+
     // Create Bootstrap with OCPP
     this.bootstrap = new OCPPBootstrap(this.ocpp);
     // Create data
@@ -47,6 +50,7 @@ class OCPPCommonTests {
       // Remove one
       this.transactionTotalInactivity -= this.transactionMeterValueIntervalSecs;
     }
+    this.totalPrice = this.transactionTotalConsumption / 1000;
   }
 
   async after() {
@@ -221,7 +225,8 @@ class OCPPCommonTests {
       this.transactionCurrentTime,
       this.chargingStationConnector1,
       this.transactionTotalConsumption,
-      this.transactionTotalInactivity);
+      this.transactionTotalInactivity,
+      this.totalPrice);
   }
 
   async testTransactionMetrics() {

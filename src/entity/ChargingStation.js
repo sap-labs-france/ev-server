@@ -26,6 +26,14 @@ class ChargingStation extends AbstractTenantEntity {
     Database.updateChargingStation(chargingStation, this._model);
   }
 
+  static getChargingStation(tenantID, id) {
+    return ChargingStationStorage.getChargingStation(tenantID, id);
+  }
+
+  static getChargingStations(tenantID, params, limit, skip, sort) {
+    return ChargingStationStorage.getChargingStations(tenantID, params, limit, skip, sort)
+  }
+
   handleAction(action, params = {}) {
     // Handle Client Requests
     switch (action) {
@@ -305,10 +313,6 @@ class ChargingStation extends AbstractTenantEntity {
 
   setLastReboot(lastReboot) {
     this._model.lastReboot = lastReboot;
-  }
-
-  getModel() {
-    return this._model;
   }
 
   save() {
@@ -638,7 +642,7 @@ class ChargingStation extends AbstractTenantEntity {
 
   async updateChargingStationConsumption(transactionId) {
     // Get the last transaction first
-    const transaction = await TransactionStorage.getTransaction(this.getTenantID(), transactionId);
+    const transaction = await this.getTransaction(transactionId);
 
     if (!transaction) {
       Logging.logError({
@@ -648,7 +652,6 @@ class ChargingStation extends AbstractTenantEntity {
       });
       return;
     }
-
 
     const connector = this.getConnector(transaction.connectorId);
 
@@ -716,8 +719,8 @@ class ChargingStation extends AbstractTenantEntity {
                   (transaction.initiator.locale ? transaction.initiator.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
                   {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
                 'totalDuration': this._buildCurrentTransactionDuration(transaction),
-                'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
-                'evseDashboardURL': Utils.buildEvseURL()
+                'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
+                'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
               },
               transaction.initiator.locale
             );
@@ -977,6 +980,11 @@ class ChargingStation extends AbstractTenantEntity {
     return this._model.deleted;
   }
 
+  deleteTransaction(transaction) {
+    // Yes: save it
+    return TransactionStorage.deleteTransaction(this.getTenantID(), transaction);
+  }
+
   async delete() {
     // Check if the user has a transaction
     const result = await this.hasAtLeastOneTransaction();
@@ -1117,8 +1125,8 @@ class ChargingStation extends AbstractTenantEntity {
       transactionData.user = user.getModel();
     }
     let transactionEntity = new Transaction(transactionData);
-    await TransactionStorage.cleanupRemainingActiveTransactions(this.getID(), transactionEntity.connectorId);
-    transactionEntity = await TransactionStorage.saveTransaction(transactionEntity);
+    await TransactionStorage.cleanupRemainingActiveTransactions(this.getTenantID(), this.getID(), transactionEntity.connectorId);
+    transactionEntity = await TransactionStorage.saveTransaction(this.getTenantID(), transactionEntity);
 
     if (!this.canChargeInParallel()) {
       this.lockAllConnectors();
@@ -1128,7 +1136,7 @@ class ChargingStation extends AbstractTenantEntity {
     // Save
     await this.save();
     // Log
-    if (transactionEntity.user) {
+    if (transactionEntity.initiator) {
       // Notify
       NotificationHandler.sendTransactionStarted(
         this.getTenantID(),
@@ -1139,9 +1147,9 @@ class ChargingStation extends AbstractTenantEntity {
           'user': user.getModel(),
           'chargingBoxID': this.getID(),
           'connectorId': transactionEntity.connectorId,
-          'evseDashboardURL': Utils.buildEvseURL(),
+          'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain()),
           'evseDashboardChargingStationURL':
-            Utils.buildEvseTransactionURL(this, transactionEntity.connectorId, transactionEntity.id)
+            await Utils.buildEvseTransactionURL(this, transactionEntity.connectorId, transactionEntity.id)
         },
         user.getLocale()
       );
@@ -1149,7 +1157,7 @@ class ChargingStation extends AbstractTenantEntity {
       Logging.logInfo({
         tenantID: this.getTenantID(),
         source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
-        action: 'StartTransaction', user: transactionEntity.user,
+        action: 'StartTransaction', user: transactionEntity.initiator,
         message: `Transaction ID '${transactionEntity.id}' has been started on Connector '${transactionEntity.connectorId}'`
       });
     } else {
@@ -1166,7 +1174,6 @@ class ChargingStation extends AbstractTenantEntity {
     // Return
     return transactionEntity;
   }
-
 
   lockAllConnectors() {
     this.getConnectors().forEach(async (connector) => {
@@ -1245,7 +1252,7 @@ class ChargingStation extends AbstractTenantEntity {
       stopTransactionData.meterStop = transactionEntity._latestMeterValue.value;
     }
     transactionEntity.stop(stoppingUserModel, stoppingTagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp));
-    transactionEntity = await TransactionStorage.saveTransaction(transactionEntity);
+    transactionEntity = await TransactionStorage.saveTransaction(this.getTenantID(), transactionEntity);
 
     // Notify User
     if (transactionEntity.initiator) {
@@ -1265,8 +1272,8 @@ class ChargingStation extends AbstractTenantEntity {
             {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
           'totalDuration': this._buildCurrentTransactionDuration(transactionEntity),
           'totalInactivity': this._buildCurrentTransactionInactivity(transactionEntity),
-          'evseDashboardChargingStationURL': Utils.buildEvseTransactionURL(this, transactionEntity.connectorId, transactionEntity.id),
-          'evseDashboardURL': Utils.buildEvseURL()
+          'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transactionEntity.connectorId, transactionEntity.id),
+          'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
         },
         transactionEntity.initiator.locale
       );
@@ -1291,6 +1298,7 @@ class ChargingStation extends AbstractTenantEntity {
         // Check Users
         if (transactionEntity.tagID === '5D38ED8F' || // Hanno 1
           transactionEntity.tagID === 'B31FB2DD' || // Hanno 2
+          transactionEntity.tagID === '43329EF7' || // Gimeno
           transactionEntity.tagID === 'WJ00001' || // Winter Juergen
           transactionEntity.tagID === 'C3E4B3DD') { // Florent
           // Transfer it to the Revenue Cloud async

@@ -259,7 +259,7 @@ describe('Transaction DB Update test', () => {
       "id": 112940,
       "meterStart": 0,
       "meterStop": 4996,
-      "price": 0.6210028,
+      "price": 0.621003,
       "priceUnit": "EUR",
       "stop": {
         "tagID": "7099C291",

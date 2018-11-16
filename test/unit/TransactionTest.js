@@ -457,17 +457,17 @@ describe('Transaction entity tests', () => {
             cumulated: 4,
             date: model.meterValues[1].timestamp,
             value: 180,
-            price: 0.0045000000000000005
+            price: 0.0045
           },
           {
             cumulated: 10,
             date: model.meterValues[2].timestamp,
             value: 360,
-            price: 0.009000000000000001
+            price: 0.009
           }
         ]
       );
-      expect(transaction.price).to.equal(0.015000000000000001);
+      expect(transaction.price).to.equal(0.015);
     });
     it('a stopped transaction with multiple meterValues with pricing', () => {
       const model = EmptyTransactionFactory.build({meterStart: 0, pricing: {priceKWH: 1.5}});
@@ -512,13 +512,13 @@ describe('Transaction entity tests', () => {
             cumulated: 4,
             date: transaction.meterValues[2].timestamp,
             value: 180,
-            price: 0.0045000000000000005
+            price: 0.0045
           },
           {
             cumulated: 10,
             date: transaction.meterValues[3].timestamp,
             value: 360,
-            price: 0.009000000000000001
+            price: 0.009
           },
           {
             cumulated: 11,
@@ -984,7 +984,7 @@ describe('Transaction entity tests', () => {
           },
           {
             cumulated: 4,
-            price: 3 / 1000 * 1.5,
+            price: +(3 / 1000 * 1.5).toFixed(6),
             value: 180
           },
           {

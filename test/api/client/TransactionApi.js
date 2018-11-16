@@ -141,7 +141,7 @@ class TransactionApi extends CrudApi {
     })
   }
 
-  async stopTransaction(ocpp, transaction, userStart, userStop, meterStop, stopTime, chargingStationConnector, totalConsumption, totalInactivity) {
+  async stopTransaction(ocpp, transaction, userStart, userStop, meterStop, stopTime, chargingStationConnector, totalConsumption, totalInactivity, totalPrice) {
     // Stop the transaction
     let response = await ocpp.executeStopTransaction(transaction.chargeBoxID, {
       transactionId: transaction.id,
@@ -167,6 +167,7 @@ class TransactionApi extends CrudApi {
     expect(response.status).to.equal(200);
     expect(response.data).to.deep.include({
       id: transaction.id,
+      price: totalPrice,
       timestamp: transaction.timestamp,
       connectorId: transaction.connectorId,
       tagID: transaction.tagID,
@@ -176,6 +177,8 @@ class TransactionApi extends CrudApi {
       totalInactivitySecs: totalInactivity,
       totalDurationSecs: moment.duration(moment(stopTime).diff(transaction.timestamp)).asSeconds(),
       stop: {
+        price: totalPrice,
+        priceUnit: 'EUR',
         totalConsumption: totalConsumption,
         totalInactivitySecs: totalInactivity,
         totalDurationSecs: moment.duration(moment(stopTime).diff(transaction.timestamp)).asSeconds(),

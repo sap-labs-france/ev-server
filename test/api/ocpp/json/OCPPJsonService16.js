@@ -139,7 +139,7 @@ class OCPPJsonService16 extends OCPPService {
     }
     // Log
     if (config.get('ocpp.json.logs') === 'json') {
-      console.log(JSON.stringify({requestMessageId: request[1], action: request[2], data: request[3]}, null, 2));
+      console.log(JSON.stringify({url: this.serverUrl, requestMessageId: request[1], action: request[2], data: request[3]}, null, 2));
     }
     // Send
     const t0 = performance.now();

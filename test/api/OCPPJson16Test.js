@@ -20,7 +20,7 @@ describe('OCPP 1.6 JSON Tests', function () {
 
   after(async () => {
     // Delegate
-    await this.ocppCommonTests.after();
+    // await this.ocppCommonTests.after();
     // Close WS
     this.ocpp.closeConnection();
   });

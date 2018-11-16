@@ -10,7 +10,8 @@ const CentralServerService = require('../api/client/CentralServerService');
 describe('Transaction tests', function() {
   this.timeout(10000);
   before(async () => {
-    this.dataHelper = new DataHelper('1.6');
+    this.tenantID = await CentralServerService.authenticatedApi.getTenantID();
+    this.dataHelper = new DataHelper('1.6', this.tenantID);
   });
 
   after(async () => {
@@ -297,17 +298,17 @@ describe('Transaction tests', function() {
       const meterValues = [
         {
           value: 100,
-          instant: currentTime.add(1, 'hour').clone()
+          timestamp: currentTime.add(1, 'hour').clone()
         },
         {
           value: 50,
-          instant: currentTime.add(1, 'hour').clone()
+          timestamp: currentTime.add(1, 'hour').clone()
         }
       ];
 
       for (const meterValue of meterValues) {
         cumulated += meterValue.value;
-        await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.instant);
+        await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
       }
 
       const response = await CentralServerService.transactionApi.readAllConsumption({TransactionId: transactionId});
@@ -316,12 +317,12 @@ describe('Transaction tests', function() {
         id: transactionId,
         values: [
           {
-            date: meterValues[0].instant.toISOString(),
+            date: meterValues[0].timestamp.toISOString(),
             value: meterValues[0].value,
             cumulated: meterValues[0].value
           },
           {
-            date: meterValues[1].instant.toISOString(),
+            date: meterValues[1].timestamp.toISOString(),
             value: meterValues[1].value,
             cumulated: cumulated - meterStart
           }
@@ -345,17 +346,17 @@ describe('Transaction tests', function() {
       const meterValues = [
         {
           value: 100,
-          instant: startDate.clone().add(1, 'hour')
+          timestamp: startDate.clone().add(1, 'hour')
         },
         {
           value: 50,
-          instant: startDate.clone().add(2, 'hour')
+          timestamp: startDate.clone().add(2, 'hour')
         }
       ];
 
       for (const meterValue of meterValues) {
         cumulated += meterValue.value;
-        await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.instant);
+        await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
       }
 
       let response = await CentralServerService.transactionApi.readAllConsumption({
@@ -367,12 +368,12 @@ describe('Transaction tests', function() {
         id: transactionId,
         values: [
           {
-            date: meterValues[0].instant.toISOString(),
+            date: meterValues[0].timestamp.toISOString(),
             value: meterValues[0].value,
             cumulated: meterValues[0].value
           },
           {
-            date: meterValues[1].instant.toISOString(),
+            date: meterValues[1].timestamp.toISOString(),
             value: meterValues[1].value,
             cumulated: cumulated - meterStart
           }
@@ -422,7 +423,7 @@ describe('Transaction tests', function() {
         id: transactionId,
         values: [
           {
-            date: meterValues[0].instant.toISOString(),
+            date: meterValues[0].timestamp.toISOString(),
             value: meterValues[0].value,
             cumulated: meterValues[0].value
           }
@@ -439,7 +440,7 @@ describe('Transaction tests', function() {
         id: transactionId,
         values: [
           {
-            date: meterValues[0].instant.toISOString(),
+            date: meterValues[0].timestamp.toISOString(),
             value: meterValues[0].value,
             cumulated: meterValues[0].value
           }
@@ -456,12 +457,12 @@ describe('Transaction tests', function() {
         id: transactionId,
         values: [
           {
-            date: meterValues[0].instant.toISOString(),
+            date: meterValues[0].timestamp.toISOString(),
             value: meterValues[0].value,
             cumulated: meterValues[0].value
           },
           {
-            date: meterValues[1].instant.toISOString(),
+            date: meterValues[1].timestamp.toISOString(),
             value: meterValues[1].value,
             cumulated: meterValues[1].value + meterValues[0].value
           }
@@ -478,12 +479,12 @@ describe('Transaction tests', function() {
         id: transactionId,
         values: [
           {
-            date: meterValues[0].instant.toISOString(),
+            date: meterValues[0].timestamp.toISOString(),
             value: meterValues[0].value,
             cumulated: meterValues[0].value
           },
           {
-            date: meterValues[1].instant.toISOString(),
+            date: meterValues[1].timestamp.toISOString(),
             value: meterValues[1].value,
             cumulated: meterValues[1].value + meterValues[0].value
           }
@@ -500,7 +501,7 @@ describe('Transaction tests', function() {
         id: transactionId,
         values: [
           {
-            date: meterValues[1].instant.toISOString(),
+            date: meterValues[1].timestamp.toISOString(),
             value: meterValues[1].value,
             cumulated: meterValues[1].value + meterValues[0].value
           }
@@ -517,7 +518,7 @@ describe('Transaction tests', function() {
         id: transactionId,
         values: [
           {
-            date: meterValues[1].instant.toISOString(),
+            date: meterValues[1].timestamp.toISOString(),
             value: meterValues[1].value,
             cumulated: meterValues[1].value + meterValues[0].value
           }
@@ -554,7 +555,7 @@ describe('Transaction tests', function() {
         id: transactionId,
         values: [
           {
-            date: meterValues[0].instant.toISOString(),
+            date: meterValues[0].timestamp.toISOString(),
             value: meterValues[0].value,
             cumulated: meterValues[0].value
           }
@@ -569,12 +570,12 @@ describe('Transaction tests', function() {
         id: transactionId,
         values: [
           {
-            date: meterValues[0].instant.toISOString(),
+            date: meterValues[0].timestamp.toISOString(),
             value: meterValues[0].value,
             cumulated: meterValues[0].value
           },
           {
-            date: meterValues[1].instant.toISOString(),
+            date: meterValues[1].timestamp.toISOString(),
             value: meterValues[1].value,
             cumulated: meterValues[1].value + meterValues[0].value
           }
@@ -589,12 +590,12 @@ describe('Transaction tests', function() {
         id: transactionId,
         values: [
           {
-            date: meterValues[0].instant.toISOString(),
+            date: meterValues[0].timestamp.toISOString(),
             value: meterValues[0].value,
             cumulated: meterValues[0].value
           },
           {
-            date: meterValues[1].instant.toISOString(),
+            date: meterValues[1].timestamp.toISOString(),
             value: meterValues[1].value,
             cumulated: meterValues[1].value + meterValues[0].value
           }
@@ -741,26 +742,26 @@ describe('Transaction tests', function() {
     const meterValues = [
       {
         value: 100,
-        instant: currentDate.add(1, 'hour').clone()
+        timestamp: currentDate.add(1, 'hour').clone()
       },
       {
         value: 50,
-        instant: currentDate.add(23, 'minutes').clone()
+        timestamp: currentDate.add(23, 'minutes').clone()
       },
       {
         value: 0,
-        instant: currentDate.add(1, 'hour').clone()
+        timestamp: currentDate.add(1, 'hour').clone()
       },
       {
         value: 0,
-        instant: currentDate.add(1, 'hour').clone()
+        timestamp: currentDate.add(1, 'hour').clone()
       }
     ];
 
     let cumulated = meterStart;
     for (const meterValue of meterValues) {
       cumulated += meterValue.value;
-      await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.instant);
+      await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
     }
     await timeout(2000);
     expect(await CentralServerService.mailApi.isMailReceived(user.email, 'transaction-started')).is.equal(true, "transaction-started mail");
@@ -786,34 +787,34 @@ describe('Transaction tests', function() {
     const meterValues = [
       {
         value: 100,
-        instant: currentDate.add(1, 'hour').clone()
+        timestamp: currentDate.add(1, 'hour').clone()
       },
       {
         value: 50,
-        instant: currentDate.add(1, 'hour').clone()
+        timestamp: currentDate.add(1, 'hour').clone()
       },
       {
         value: 0,
-        instant: currentDate.add(1, 'hour').clone()
+        timestamp: currentDate.add(1, 'hour').clone()
       },
       {
         value: 0,
-        instant: currentDate.add(1, 'hour').clone()
+        timestamp: currentDate.add(1, 'hour').clone()
       },
       {
         value: 0,
-        instant: currentDate.add(1, 'hour').clone()
+        timestamp: currentDate.add(1, 'hour').clone()
       },
       {
         value: 0,
-        instant: currentDate.add(1, 'hour').clone()
+        timestamp: currentDate.add(1, 'hour').clone()
       }
     ];
 
     let cumulated = meterStart;
     for (const meterValue of meterValues) {
       cumulated += meterValue.value;
-      await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.instant);
+      await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
     }
 
     await this.dataHelper.stopTransaction(chargingStation, transactionId, tagId, cumulated, currentDate.add(1, 'hour'));
@@ -844,34 +845,34 @@ describe('Transaction tests', function() {
       const meterValues = [
         {
           value: 100,
-          instant: currentDate.add(1, 'hour').clone()
+          timestamp: currentDate.add(1, 'hour').clone()
         },
         {
           value: 50,
-          instant: currentDate.add(1, 'hour').clone()
+          timestamp: currentDate.add(1, 'hour').clone()
         },
         {
           value: 0,
-          instant: currentDate.add(1, 'hour').clone()
+          timestamp: currentDate.add(1, 'hour').clone()
         },
         {
           value: 0,
-          instant: currentDate.add(1, 'hour').clone()
+          timestamp: currentDate.add(1, 'hour').clone()
         },
         {
           value: 0,
-          instant: currentDate.add(1, 'hour').clone()
+          timestamp: currentDate.add(1, 'hour').clone()
         },
         {
           value: 0,
-          instant: currentDate.add(1, 'hour').clone()
+          timestamp: currentDate.add(1, 'hour').clone()
         }
       ];
 
       let cumulated = meterStart;
       for (const meterValue of meterValues) {
         cumulated += meterValue.value;
-        await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.instant);
+        await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
       }
 
       await this.dataHelper.stopTransaction(chargingStation, transactionId, tagId, cumulated, currentDate.add(1, 'hour'));

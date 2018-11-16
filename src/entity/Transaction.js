@@ -134,7 +134,7 @@ class Transaction {
 
   get price() {
     const price = this.consumptions.map(consumption => consumption.price).reduce((totalPrice, price) => totalPrice + price, 0);
-    return isNaN(price) ? 0 : price;
+    return isNaN(price) ? 0 : +(price.toFixed(6));
   }
 
   get priceUnit() {
@@ -333,7 +333,7 @@ class Transaction {
     };
     if (this._hasPricing()) {
       const consumptionWh = meterValue.value - lastMeterValue.value;
-      consumption.price = (consumptionWh / 1000) * this._pricing.priceKWH;
+      consumption.price = +((consumptionWh / 1000) * this._pricing.priceKWH).toFixed(6);
     }
     return consumption;
   }

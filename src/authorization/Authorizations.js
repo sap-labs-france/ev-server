@@ -388,10 +388,13 @@ class Authorizations {
     return result && Authorizations.checkChargingStationSite(loggedUser, chargingStation, Constants.ACTION_READ);
   }
 
-  static canReadChargingStation(loggedUser, chargingStationId) {
+  static canReadChargingStation(loggedUser, chargingStation) {
     // Check Charging Station
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
-      {"Action": Constants.ACTION_READ, "ChargingStationID": chargingStationId});
+    const result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+      {"Action": Constants.ACTION_READ, "ChargingStationID": chargingStation.id});
+
+    // Return
+    return result && Authorizations.checkChargingStationSite(loggedUser, chargingStation, Constants.ACTION_READ);
   }
 
   static canUpdateChargingStation(loggedUser, chargingStation) {

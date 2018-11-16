@@ -12,12 +12,12 @@ const Utils = require('../../src/utils/Utils');
 
 class DataHelper {
 
-  constructor(ocppVersion) {
+  constructor(ocppVersion, tenantID) {
 
     if (ocppVersion === '1.6') {
-      this.ocpp = new OCPPJsonService16(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16`);
+      this.ocpp = new OCPPJsonService16(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${tenantID}`);
     } else if (ocppVersion === '1.5') {
-      this.ocpp = new OCPPJsonService15(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16`);
+      this.ocpp = new OCPPJsonService15(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${tenantID}`);
     } else {
       throw  new Error('unkown ocpp version');
     }
@@ -137,31 +137,30 @@ class DataHelper {
   }
 
 
-  async sendMeterValue(chargingStation, connectorId, transactionId, meterValue, instant) {
+  async sendMeterValue(chargingStation, connectorId, transactionId, meterValue, timestamp) {
     const response = await this.ocpp.executeMeterValues(chargingStation.id, {
       connectorId: connectorId,
       transactionId: transactionId,
-      values: {
-        timestamp: instant.toISOString(),
-        value: {
-          $attributes: {
-            unit: 'Wh',
-            location: "Outlet",
-            measurand: "Energy.Active.Import.Register",
-            format: "Raw",
-            context: "Sample.Periodic"
-          },
-          $value: meterValue
-        }
+      meterValue: {
+        timestamp: timestamp.toISOString(),
+        sampledValue: [{
+          value: meterValue,
+          format: "Raw",
+          measurand: "Energy.Active.Import.Register",
+          unit: 'Wh',
+          location: "Outlet",
+          context: "Sample.Periodic"
+        }]
+
       },
     });
     expect(response.data).to.eql({});
   }
 
-  async setConnectorStatus(ocpp, chargingStation, connectorId, status, instant) {
+  async setConnectorStatus(ocpp, chargingStation, connectorId, status, timestamp) {
     const connector = Utils.duplicateJSON(chargingStation.connectors[connectorId]);
     connector.status = status;
-    connector.timestamp = instant.toISOString();
+    connector.timestamp = timestamp.toISOString();
     const response = await ocpp.executeStatusNotification(chargingStation.id, connector);
     expect(response.data).to.eql({});
     chargingStation.connectors[connectorId].status = connector.status;

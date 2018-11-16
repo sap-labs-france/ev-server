@@ -107,8 +107,8 @@ class TransactionService {
           560, 'TransactionService', 'handleDeleteTransaction',
           req.user);
       }
+      let chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
       if (transaction.isActive()) {
-        let chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
         if (!chargingStation) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
@@ -116,20 +116,20 @@ class TransactionService {
             'TransactionService', 'handleDeleteTransaction', req.user);
         }
         if (transaction.id === chargingStation.getConnector(transaction.connectorId).activeTransactionID) {
-          await chargingStation.freeConnector(req.user.tenantID, transaction.connectorId);
+          await chargingStation.freeConnector(transaction.connectorId);
           await chargingStation.save();
         }
       }
       // Delete Transaction
-      await TransactionStorage.deleteTransaction(transaction);
-      const result = transaction.model;
+			await chargingStation.deleteTransaction(transaction);
+
       // Log
       Logging.logSecurityInfo({
               tenantID: req.user.tenantID,
         user: req.user, actionOnUser: (transaction.initiator ? transaction.initiator : null),
         module: 'TransactionService', method: 'handleDeleteTransaction',
         message: `Transaction ID '${filteredRequest.ID}' on '${transaction.chargeBoxID}'-'${transaction.connectorId}' has been deleted successfully`,
-        action: action, detailedMessages: result
+        action: action, detailedMessages: transaction.model
       });
       // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);

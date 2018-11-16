@@ -320,7 +320,7 @@ class ChargingStationService {
         // Check if user is authorized
         await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, transaction.tagID, req.user.tagIDs[0]);
         // Set the tag ID to handle the Stop Transaction afterwards
-        transaction.remotestop(req.user.tagIDs[0], new Date().toISOString());
+        transaction.remoteStop(req.user.tagIDs[0], new Date().toISOString());
         // Save Transaction
         await TransactionStorage.saveTransaction(req.user.tenantID,transaction);
         // Ok: Execute it
