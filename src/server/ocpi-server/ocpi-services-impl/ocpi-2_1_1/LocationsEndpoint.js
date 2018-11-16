@@ -1,5 +1,6 @@
 const AbstractEndpoint = require('../AbstractEndpoint');
 const SiteArea = require('../../../../entity/SiteArea');
+const Site = require('../../../../entity/Site');
 const OCPIUtils = require('./OCPIUtils');
 const OCPIResponse = require('../../OCPIResponse');
 const OCPIConstants = require('../../OCPIConstants');
@@ -20,11 +21,11 @@ class LocationsEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  process(req, res, next) { // eslint-disable-line
+  process(req, res, next, tenant) { // eslint-disable-line
     switch (req.method) {
       case "GET":
         // call method
-        this.getLocationRequest(req, res, next);
+        this.getLocationRequest(req, res, next, tenant);
         break;
       default:
         res.sendStatus(501);
@@ -35,7 +36,7 @@ class LocationsEndpoint extends AbstractEndpoint {
   /**
    * Get Locations according to the requested url Segement
    */
-  async getLocationRequest(req, res, next) { // eslint-disable-line
+  async getLocationRequest(req, res, next, tenant) { // eslint-disable-line
     // Split URL Segments
     //    /ocpi/cpo/2.0/locations/{location_id}
     //    /ocpi/cpo/2.0/locations/{location_id}/{evse_uid}
@@ -49,26 +50,40 @@ class LocationsEndpoint extends AbstractEndpoint {
     const connector_id = urlSegment.shift();
 
     // Get the siteAreas
-    const siteAreas = await SiteArea.getSiteAreas(
-      // TODO: get tenant
-      "5be96fffe6a4681c5fccb7c1",
+    // const siteAreas = await SiteArea.getSiteAreas(
+    //   // TODO: get tenant
+    //   tenant.getID(),
+    //   {
+    //     // 'search': filteredRequest.Search, 
+    //     'withSite': true,
+    //     'withChargeBoxes': true,
+    //     // 'siteID': filteredRequest.SiteID
+    //   },
+    //   100, 0, null);
+    // Get all sites
+    const sites = await Site.getSites(
+      tenant.getID(),
       {
-        // 'search': filteredRequest.Search, 
-        'withSite': true,
         'withChargeBoxes': true,
-        // 'siteID': filteredRequest.SiteID
+        "withSiteAreas": true
       },
       100, 0, null);
 
     // convert Site Areas to Locations
-    const locations = await Promise.all(siteAreas.result.map(async siteArea => { // eslint-disable-line
-      // convert SiteArea to Location
-      return await OCPIUtils.convertSiteArea2Location(siteArea);
+    // const locations = await Promise.all(siteAreas.result.map(async siteArea => { // eslint-disable-line
+    //   // convert SiteArea to Location
+    //   return await OCPIUtils.convertSiteArea2Location(siteArea);
+    // }));
+
+    // convert Sites to Locations
+    const locations = await Promise.all(sites.result.map(async site => { // eslint-disable-line
+      // convert Site to Location
+      return await OCPIUtils.convertSite2Location(site);
     }));
 
     // return Payload
     //res.json(locations);
-    res.json(new OCPIResponse(locations).toString());
+    res.json(OCPIResponse.success(locations));
   }
 
 }

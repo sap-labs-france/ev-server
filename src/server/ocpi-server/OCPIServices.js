@@ -19,10 +19,8 @@ class OCPIServices {
    * Get all implemented versions of OCPI
    */
   getVersions(req, res) {
-    const versions = [];
-
-    _ocpiServices.forEach(ocpiService => {
-      versions.push({ "version": ocpiService.getVersion() , "url": ocpiService.getServiceUrl()});
+    const versions = _ocpiServices.map(ocpiService => {
+      return { "version": ocpiService.getVersion() , "url": ocpiService.getServiceUrl()};
     })
 
     // send available versions

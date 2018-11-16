@@ -7,7 +7,6 @@ require('source-map-support').install();
  * Mainly contains helper functions to convert internal entity to OCPI 2.1.1 Entity
  */
 class OCPIUtils {
-
   /**
    * Convert SiteArea to OCPI Location
    * @param {SiteArea} siteArea 
@@ -32,8 +31,29 @@ class OCPIUtils {
       },
       "evses": await this.getEvsesFromSiteaArea(siteArea)
     };
+  }
 
-
+  /**
+   * Convert Site to OCPI Location
+   * @param {Site} site 
+   * @return OCPI Location
+   */
+  static async convertSite2Location(site) {
+    // build object
+    return {
+      "id": site.getID(),
+      "type": "UNKNOWN",
+      "name": site.getName(),
+      "address": `${site.getAddress().address1} ${site.getAddress().address2}`,
+      "city": site.getAddress().city,
+      "postal_code": site.getAddress().postalCode,
+      "country": site.getAddress().country,
+      " coordinates": {
+        "latitude": site.getAddress().latitude,
+        "longitude": site.getAddress().longitude
+      },
+      "evses": await this.getEvsesFromSite(site)
+    };
   }
 
   /**
@@ -51,11 +71,30 @@ class OCPIUtils {
     // convert charging stations to evse(s)
     chargingStations.forEach(chargingStation => {
       if (chargingStation.canChargeInParallel()) {
-        evses.push(this.convetCharginStation2MultipleEvses(chargingStation));
+        evses.push(...this.convertCharginStation2MultipleEvses(chargingStation));
       } else {
-        evses.push(this.convertChargingStation2UniqueEvse(chargingStation));
+        evses.push(...this.convertChargingStation2UniqueEvse(chargingStation));
       }
     });
+
+    // return evses
+    return evses;
+  }
+
+  /**
+ * Get Evses from Site
+ * @param {Site} site
+ * @return Array of OCPI EVSES
+ */
+  static async getEvsesFromSite(site) {
+    // build evses array
+    const evses = [];
+    const siteAreas = await site.getSiteAreas();
+
+    for (const siteArea of siteAreas) {
+      // get charging stations from SiteArea
+      evses.push(...await this.getEvsesFromSiteaArea(siteArea));
+    }
 
     // return evses
     return evses;
@@ -67,17 +106,15 @@ class OCPIUtils {
    * @param {*} chargingStation 
    * @return Array of OCPI EVSES
    */
-  static convetCharginStation2MultipleEvses(chargingStation) {
-    const evses = [];
-
+  static convertCharginStation2MultipleEvses(chargingStation) {
     // loop through connectors and send one evse per connector
-    chargingStation.getConnectors().forEach(connector => {
-      evses.push({
+    const evses = chargingStation.getConnectors().map(connector => {
+      return {
         "uid": `${chargingStation.getID()}_${connector.connectorId}`,
-        "id": `FR-SLF-E${chargingStation.getID()}_${connector.connectorId}`,
+        "id": `FR*SLF*E${chargingStation.getID()}*${connector.connectorId}`,
         "status": OCPIConstants.MAPPING_EVSE_STATUS[connector.status],
-        "connectors": [ this.convertConnector2OCPIConnector(connector) ]
-      })
+        "connectors": [this.convertConnector2OCPIConnector(connector)]
+      }
     });
 
     // return all evses
@@ -98,7 +135,7 @@ class OCPIUtils {
     // build evse
     return [{
       "uid": `${chargingStation.getID()}`,
-      "id": `FR-SLF-E${chargingStation.getID()}`,
+      "id": `FR*SLF*E${chargingStation.getID()}`,
       "status": "AVAILABLE", // TODO: get status of connector
       "connectors": connectors
     }];

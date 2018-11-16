@@ -1,6 +1,9 @@
 require('source-map-support').install();
 
 module.exports = {
+  // Constant
+  OCPI_SERVER: "OCPI Server",
+
   // OCPI Available Response Status
   OCPI_STATUS_CODE: {
     // 1*** SUCCESS
@@ -37,6 +40,8 @@ module.exports = {
     "CHADEMO": "CHADEMO",
     "T2": "IEC_62196_T2"
   }
+
+
 
   
 

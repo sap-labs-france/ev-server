@@ -1,3 +1,11 @@
+const Tenant = require('../../entity/Tenant');
+const OCPIServerError = require('./exception/OCPIServerError');
+// const OCPIClientError = require('./exception/OCPIClientError');
+const OCPIConstants = require('./OCPIConstants');
+const OCPIResponse = require('./OCPIResponse');
+
+const MODULE_NAME = "OCPIService";
+
 require('source-map-support').install();
 
 class AbstractOCPIService {
@@ -9,7 +17,6 @@ class AbstractOCPIService {
     // endpoint as Map
     this._endpoints = {};
   }
-
 
   /**
    * Register Endpoint to this service
@@ -68,35 +75,64 @@ class AbstractOCPIService {
     }
   }
 
-
-  // Send Supported Endpoints
+  /**
+   * Send Supported Endpoints
+   */
   getSupportedEndpoints(req, res, next) { // eslint-disable-line
-    const supportedEndpoints = [];
     const fullUrl = this.getServiceUrl();
     const registeredEndpointsArray = Object.values(this.getRegisteredEndpoint());
 
     // build payload
-    registeredEndpointsArray.forEach(endpoint => {
+    const supportedEndpoints = registeredEndpointsArray.map(endpoint => {
       const identifier = endpoint.getIdentifier();
-      supportedEndpoints.push({ "identifier": `${identifier}`, "url": `${fullUrl}${identifier}/` });
+      return { "identifier": `${identifier}`, "url": `${fullUrl}${identifier}/` };
     })
 
     // return payload
     res.json({ "version": this.getVersion(), "endpoints": supportedEndpoints });
   }
 
-  // Process Endpoint action
-  processEndpointAction(action, req, res, next) { // eslint-disable-line
-    const registeredEndpoints = this.getRegisteredEndpoint();
+  /**
+   * Process Endpoint action
+   */
+  async processEndpointAction(action, req, res, next) { // eslint-disable-line
+    try {
+      const registeredEndpoints = this.getRegisteredEndpoint();
 
-    if (registeredEndpoints[action]) {
-      registeredEndpoints[action].process(req,res,next);
-    } else {
-      res.sendStatus(501);
+      // get tenant from the called URL
+      const tenantSubdomain = req.hostname.split('.')[0];
+
+      // get tenant from database
+      const tenant = await Tenant.getTenantBySubdomain(tenantSubdomain);
+
+      // check if tenant is found
+      if (!tenant && tenantSubdomain !== '') {
+        throw new OCPIServerError(
+          OCPIConstants.OCPI_SERVER,
+          `The Tenant with subdomain '${tenantSubdomain}' does not exist`, 500,
+          MODULE_NAME, 'handleVerifyTenant', null);
+      }
+
+      // handle request action (endpoint)
+      if (registeredEndpoints[action]) {
+        registeredEndpoints[action].process(req, res, next, tenant);
+      } else {
+        res.sendStatus(501);
+      }
+    } catch (error) {
+      this._handleError(error, req, res, next, action, MODULE_NAME, 'restService');
     }
   }
 
+  /**
+   * Handle error and return correct payload
+   */
+  _handleError(error, req, res, next, action, module, method) { // eslint-disable-line
+    // TODO: add logging
 
+    // return response with error
+    res.status(error.errorCode).json(OCPIResponse.error(error));
+  }
 
 }
 
