@@ -75,6 +75,9 @@ class TransactionSecurity {
       if (transaction.hasOwnProperty('totalDurationSecs')) {
         filteredTransaction.totalDurationSecs = transaction.totalDurationSecs;
       }
+      if (transaction.hasOwnProperty('stateOfCharge')) {
+        filteredTransaction.stateOfCharge = transaction.stateOfCharge;
+      }
       // Demo user?
       if (Authorizations.isDemo(loggedUser)) {
         filteredTransaction.tagID = Constants.ANONIMIZED_VALUE;
@@ -91,7 +94,10 @@ class TransactionSecurity {
         filteredTransaction.stop.timestamp = transaction.stop.timestamp;
         filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
         filteredTransaction.stop.totalInactivitySecs = transaction.stop.totalInactivitySecs;
-        // Demo user?
+        if (transaction.stop.hasOwnProperty('stateOfCharge')) {
+          filteredTransaction.stop.stateOfCharge = transaction.stop.stateOfCharge;
+        }
+          // Demo user?
         if (Authorizations.isDemo(loggedUser)) {
           filteredTransaction.stop.tagID = Constants.ANONIMIZED_VALUE;
         } else {
