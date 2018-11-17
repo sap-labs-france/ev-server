@@ -641,23 +641,27 @@ class ChargingStation extends AbstractTenantEntity {
         const consumption = await this.getConsumptionsFromTransaction(transaction);
         let currentConsumption = 0;
         let totalConsumption = 0;
+        let currentStateOfCharge = 0;
         // Check
         if (consumption) {
           currentConsumption = (consumption.values.length > 0 ? consumption.values[consumption.values.length - 1].value : 0);
           totalConsumption = consumption.totalConsumption;
+          currentStateOfCharge = consumption.stateOfCharge;
         }
         // Changed?
         if (connector.currentConsumption !== currentConsumption ||
-          connector.totalConsumption !== totalConsumption) {
+            connector.totalConsumption !== totalConsumption ||
+            connector.currentStateOfCharge !== currentStateOfCharge) {
           // Set consumption
           connector.currentConsumption = Math.floor(currentConsumption);
           connector.totalConsumption = Math.floor(totalConsumption);
+          connector.currentStateOfCharge = currentStateOfCharge;
           // Log
           Logging.logInfo({
             tenantID: this.getTenantID(),
             source: this.getID(), module: 'ChargingStation',
             method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
-            message: `Connector '${connector.connectorId}' - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}`
+            message: `Connector '${connector.connectorId}' - Consumption ${connector.currentConsumption}, Total: ${connector.totalConsumption}, SoC: ${connector.currentStateOfCharge}`
           });
         }
         // Update Transaction ID
@@ -670,6 +674,7 @@ class ChargingStation extends AbstractTenantEntity {
         // Set consumption
         connector.currentConsumption = 0;
         connector.totalConsumption = 0;
+        connector.currentStateOfCharge = 0;
         // Reset Transaction ID
         connector.activeTransactionID = 0;
         // Log
@@ -677,7 +682,7 @@ class ChargingStation extends AbstractTenantEntity {
           tenantID: this.getTenantID(),
           source: this.getID(), module: 'ChargingStation',
           method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
-          message: `Connector '${connector.connectorId}' - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}`
+          message: `Connector '${connector.connectorId}' - Consumption ${connector.currentConsumption}, Total: ${connector.totalConsumption}, SoC: ${connector.currentStateOfCharge}`
         });
       }
     } else {

@@ -94,6 +94,7 @@ class Database {
           dest.connectors.push({
             "connectorId": Utils.convertToInt(connector.connectorId),
             "currentConsumption": Utils.convertToFloat(connector.currentConsumption),
+            "currentStateOfCharge": Utils.convertToInt(connector.currentStateOfCharge),
             "totalConsumption": Utils.convertToFloat(connector.totalConsumption),
             "status": connector.status,
             "errorCode": connector.errorCode,
