@@ -1728,38 +1728,43 @@ class ChargingStation extends AbstractTenantEntity {
               chargingStationConsumption.totalPrice += (consumptionWh / 1000) * pricing.priceKWH;
             }
             // Check last Meter Value
-            if (lastMeterValue.timestamp.getTime() === meterValue.timestamp.getTime()) {
+            if (chargingStationConsumption.values.length > 0 &&
+                chargingStationConsumption.values[chargingStationConsumption.values.length-1].date.getTime() === meterValue.timestamp.getTime()) {
               // Same timestamp: Update the latest
               chargingStationConsumption.values[chargingStationConsumption.values.length-1].value = currentConsumption;
+              chargingStationConsumption.values[chargingStationConsumption.values.length-1].cumulated = chargingStationConsumption.totalConsumption;
             } else {
               // Add the consumption
               chargingStationConsumption.values.push({
                 date: meterValue.timestamp,
                 value: currentConsumption,
-                stateOfCharge: 0,
-                cumulated: chargingStationConsumption.totalConsumption
+                cumulated: chargingStationConsumption.totalConsumption,
+                stateOfCharge: 0
               });
+              // Set Last Value (only for Consumption)
+              lastMeterValue = meterValue;
             }
           }
-          // Set Last Value
-          lastMeterValue = meterValue;
         }
       // Meter Value State of Charge?
       } else if (meterValue.attribute && 
-        (meterValue.attribute.context === 'Sample.Periodic' || meterValue.attribute.context === 'Transaction.Begin') &&
+        (meterValue.attribute.context === 'Sample.Periodic' || 
+         meterValue.attribute.context === 'Transaction.Begin' ||
+         meterValue.attribute.context === 'Transaction.End') &&
         meterValue.attribute.measurand === 'SoC') {
         // Set the last SoC
         chargingStationConsumption.stateOfCharge = meterValue.value;
         // Check last Meter Value
-        if (lastMeterValue.timestamp.getTime() === meterValue.timestamp.getTime()) {
+        if (chargingStationConsumption.values.length > 0 && 
+            chargingStationConsumption.values[chargingStationConsumption.values.length-1].date.getTime() === meterValue.timestamp.getTime()) {
           // Same timestamp: Update the latest
           chargingStationConsumption.values[chargingStationConsumption.values.length-1].stateOfCharge = meterValue.value;
         } else {
           // Add the consumption
           chargingStationConsumption.values.push({
             date: meterValue.timestamp,
-            value: 0,
             stateOfCharge: meterValue.value,
+            value: 0,
             cumulated: 0
           });
         }
