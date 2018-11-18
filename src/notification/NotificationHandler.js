@@ -12,6 +12,7 @@ const CHANNEL_EMAIL = "email";
 const SOURCE_CHARGING_STATION_STATUS_ERROR = "NotifyChargingStationStatusError";
 const SOURCE_CHARGING_STATION_REGISTERED = "NotifyChargingStationRegistered";
 const SOURCE_END_OF_CHARGE = "NotifyEndOfCharge";
+const SOURCE_OPTIMAL_CHARGE_REACHED = "NotifyOptimalChargeReached";
 const SOURCE_END_OF_SESSION = "NotifyEndOfSession";
 const SOURCE_NEW_PASSWORD = "NotifyNewPassword";
 const SOURCE_REQUEST_PASSWORD = "NotifyRequestPassword";
@@ -87,6 +88,28 @@ class NotificationHandler {
       Logging.logActionExceptionMessage(tenantID, SOURCE_END_OF_CHARGE, error);
     }
   }
+
+  static async sendOptimalChargeReached(tenantID, sourceId, user, chargingStation, sourceData, locale) {
+    try {
+      // Check notification
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
+      // Notified?
+      if (!hasBeenNotified) {
+        // Email enabled?
+        if (_notificationConfig.Email.enabled) {
+          // Save notif
+          await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
+            SOURCE_OPTIMAL_CHARGE_REACHED, user, chargingStation);
+          // Send email
+          return _email.sendOptimalChargeReached(sourceData, locale, tenantID);
+        }
+      }
+    } catch (error) {
+      // Log error
+      Logging.logActionExceptionMessage(tenantID, SOURCE_OPTIMAL_CHARGE_REACHED, error);
+    }
+  }
+ 
 
   static async sendEndOfSession(tenantID, sourceId, user, chargingStation, sourceData, locale) {
     try {

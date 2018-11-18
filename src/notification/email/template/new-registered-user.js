@@ -1,9 +1,9 @@
 module.exports.email = {
-  "subject": "Account created!",
+  "subject": "Account created",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Account Created!",
+      "title": "Account Created",
       "image": {
         "left": {
           "height": 60,
@@ -37,11 +37,11 @@ module.exports.email = {
 
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
-  "subject": "Compte créé!",
+  "subject": "Compte créé",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Compte Créé!",
+      "title": "Compte Créé",
       "image": {
         "left": {
           "height": 60,

@@ -707,7 +707,7 @@ class ChargingStation extends AbstractTenantEntity {
         const avgConsumption = (consumption.values[consumption.values.length - 1].value +
           consumption.values[consumption.values.length - 2].value) / 2;
         // --------------------------------------------------------------------
-        // Notification END of charge
+        // Notification End of charge
         // --------------------------------------------------------------------
         if (_configChargingStation.notifEndOfChargeEnabled && avgConsumption === 0) {
           // Notify User?
@@ -725,6 +725,7 @@ class ChargingStation extends AbstractTenantEntity {
                 'totalConsumption': (this.getConnectors()[transaction.connectorId - 1].totalConsumption / 1000).toLocaleString(
                   (transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
                   {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
+                'stateOfCharge': consumption.stateOfCharge,
                 'totalDuration': this._buildCurrentTransactionDuration(transaction, lastTimestamp),
                 'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
                 'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
@@ -780,6 +781,31 @@ class ChargingStation extends AbstractTenantEntity {
               // Log error
               Logging.logActionExceptionMessage(this.getTenantID(), 'EndOfCharge', error);
             }
+          }
+        // Check the SoC
+        } else if (_configChargingStation.notifBeforeEndOfChargeEnabled && 
+            this.getConnectors()[transaction.connectorId - 1].currentStateOfCharge >= _configChargingStation.notifBeforeEndOfChargePercent) {
+          // Notify User?
+          if (transaction.user) {
+              // Notifcation Before End Of Charge
+            NotificationHandler.sendOptimalChargeReached(
+              this.getTenantID(),
+              transaction.id + '-OCR',
+              transaction.user,
+              this.getModel(),
+              {
+                'user': transaction.user,
+                'chargingBoxID': this.getID(),
+                'connectorId': transaction.connectorId,
+                'totalConsumption': (consumption.totalConsumption / 1000).toLocaleString(
+                  (transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+                  {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
+                'stateOfCharge': consumption.stateOfCharge,
+                'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
+                'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
+              },
+              transaction.user.locale
+            );
           }
         }
       }
@@ -959,6 +985,9 @@ class ChargingStation extends AbstractTenantEntity {
     }
     // Compute consumption?
     if (meterValues.transactionId) {
+      // Get the Transaction
+      let transaction = await TransactionStorage.getTransaction(
+        this.getTenantID(), meterValues.transactionId);
       // Check for the first State of Charge to update the Transaction
       for (const value of newMeterValues.values) {
         // Check
@@ -966,9 +995,6 @@ class ChargingStation extends AbstractTenantEntity {
             value.attribute.context === 'Transaction.Begin' &&
             value.attribute.measurand === 'SoC') {
           // Set the SoC to the transaction
-          // Get the Transaction
-          let transaction = await TransactionStorage.getTransaction(
-            this.getTenantID(), meterValues.transactionId);
           if (transaction) {
             // Set the SoC
             transaction.stateOfCharge = value.value;
@@ -1386,6 +1412,7 @@ class ChargingStation extends AbstractTenantEntity {
             {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
           'totalDuration': this._buildCurrentTransactionDuration(transaction, transaction.stop.timestamp),
           'totalInactivity': this._buildCurrentTransactionInactivity(newTransaction),
+          'stateOfCharge': transaction.stop.stateOfCharge,
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
           'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
         },

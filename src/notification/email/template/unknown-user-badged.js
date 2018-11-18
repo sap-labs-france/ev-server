@@ -3,7 +3,7 @@ module.exports.email = {
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Unknown User!",
+      "title": "Unknown User",
       "image": {
         "left": {
           "height": 60,
@@ -39,7 +39,7 @@ module.exports.fr_FR.email = {
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Utilisateur Inconnu!",
+      "title": "Utilisateur Inconnu",
       "image": {
         "left": {
           "height": 60,
