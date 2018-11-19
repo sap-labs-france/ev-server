@@ -656,7 +656,6 @@ class ChargingStation extends AbstractTenantEntity {
     const connector = this.getConnector(transaction.connectorId);
 
     if (transaction.isActive()) {
-
       // Changed?
       if (connector.currentConsumption !== transaction.currentConsumption ||
         connector.totalConsumption !== transaction.totalConsumption ||
@@ -665,13 +664,6 @@ class ChargingStation extends AbstractTenantEntity {
         connector.currentConsumption = transaction.currentConsumption;
         connector.totalConsumption = transaction.totalConsumption;
         connector.currentStateOfCharge = transaction.stateOfCharge;
-        // Log
-        Logging.logInfo({
-          tenantID: this.getTenantID(),
-          source: this.getID(), module: 'ChargingStation',
-          method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
-          message: `Connector '${connector.connectorId}' - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}`
-        });
       }
       // Update Transaction ID
       connector.activeTransactionID = transactionId;
@@ -686,14 +678,14 @@ class ChargingStation extends AbstractTenantEntity {
       connector.currentStateOfCharge = 0;
       // Reset Transaction ID
       connector.activeTransactionID = 0;
-      // Log
-      Logging.logInfo({
-        tenantID: this.getTenantID(),
-        source: this.getID(), module: 'ChargingStation',
-        method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
-        message: `Connector '${connector.connectorId}' - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}`
-      });
     }
+    // Log
+    Logging.logInfo({
+      tenantID: this.getTenantID(),
+      source: this.getID(), module: 'ChargingStation',
+      method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
+      message: `Connector '${connector.connectorId}' - Consumption ${connector.currentConsumption}, Total: ${connector.totalConsumption}, SoC: ${connector.currentStateOfCharge}`
+    });
   }
 
   async handleNotificationEndOfCharge(transaction) {
@@ -792,7 +784,7 @@ class ChargingStation extends AbstractTenantEntity {
                 'user': transaction.initiator,
                 'chargingBoxID': this.getID(),
                 'connectorId': transaction.connectorId,
-                'totalConsumption': (consumption.totalConsumption / 1000).toLocaleString(
+                'totalConsumption': (transaction.totalConsumption / 1000).toLocaleString(
                   (transaction.initiator.locale ? transaction.initiator.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
                   {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
                 'stateOfCharge': transaction.stateOfCharge,
@@ -828,22 +820,6 @@ class ChargingStation extends AbstractTenantEntity {
   async handleMeterValues(meterValues) {
     // Create model
     const newMeterValues = {};
-    let meterValuesContext;
-    if (this.getOcppVersion() === Constants.OCPP_VERSION_16) {
-      meterValuesContext = (meterValues &&
-      Array.isArray(meterValues.meterValue) &&
-      Array.isArray(meterValues.meterValue[0].sampledValue) &&
-      meterValues.meterValue[0].sampledValue[0].hasOwnProperty('context') ?
-        meterValues.meterValue[0].sampledValue[0].context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC)
-    } else {
-      // Check Meter Value Context
-      meterValuesContext = (meterValues &&
-      meterValues.values &&
-      meterValues.values.value &&
-      !Array.isArray(meterValues.values) &&
-      meterValues.values.value.attributes ?
-        meterValues.values.value.attributes.context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC);
-    }
     // Init
     newMeterValues.values = [];
     // Set the charger ID
@@ -996,7 +972,7 @@ class ChargingStation extends AbstractTenantEntity {
       Logging.logWarning({
         tenantID: this.getTenantID(),
         source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-        action: 'MeterValues', message: `'${meterValuesContext}' not saved (not linked to a Transaction)`,
+        action: 'MeterValues', message: `MeterValue not saved (not linked to a Transaction)`,
         detailedMessages: meterValues
       });
     }
@@ -1037,10 +1013,6 @@ class ChargingStation extends AbstractTenantEntity {
       // Delete physically
       await ChargingStationStorage.deleteChargingStation(this.getTenantID(), this.getID());
     }
-  }
-
-  getActiveTransaction(connectorId) {
-    return TransactionStorage.getActiveTransaction(this.getTenantID(), this.getID(), connectorId);
   }
 
   async handleDataTransfer(dataTransfer) {

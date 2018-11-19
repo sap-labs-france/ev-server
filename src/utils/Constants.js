@@ -1,7 +1,9 @@
 require('source-map-support').install();
 
 module.exports = {
-  DEFAULT_TENANT: 'default',REST_RESPONSE_SUCCESS: {status: 'Success'},
+  DEFAULT_TENANT: 'default',
+
+  REST_RESPONSE_SUCCESS: {status: 'Success'},
 
   CONN_STATUS_AVAILABLE: "Available",
   CONN_STATUS_OCCUPIED: "Occupied",
@@ -35,7 +37,6 @@ module.exports = {
   ENTITY_PRICING: "Pricing",
 
   NOTIF_TYPE_CHARGING_STATION_CONFIGURATION: "Configuration",
-
 
 
   NO_LIMIT: 0,

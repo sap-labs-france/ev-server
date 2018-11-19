@@ -168,7 +168,7 @@ class EMailNotificationTask extends NotificationTask {
     emailTemplate.email.subject = ejs.render(emailTemplate.email.subject, data);
     // Render Base URL
     emailTemplate.email.baseURL = ejs.render(emailTemplate.email.baseURL, data);
-    emailTemplate.email.body.template=templateName;
+    emailTemplate.email.body.template = templateName;
     // Render the title
     emailTemplate.email.body.header.title = ejs.render(emailTemplate.email.body.header.title, data);
     // Charge Angels Logo
@@ -217,7 +217,8 @@ class EMailNotificationTask extends NotificationTask {
       html: html
     }, tenantID);
     // User
-    Logging.logInfo({tenantID: tenantID,
+    Logging.logInfo({
+      tenantID: tenantID,
       module: "EMailNotificationTask", method: "_prepareAndSendEmail",
       action: "SendEmail", actionOnUser: data.user,
       message: `Email has been sent successfully`,

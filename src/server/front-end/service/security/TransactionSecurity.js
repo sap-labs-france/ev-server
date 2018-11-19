@@ -213,7 +213,7 @@ class TransactionSecurity {
       return null;
     }
     // Check
-    if (Authorizations.canReadChargingStation(loggedUser, transaction.chargeBoxID)) {
+    if (Authorizations.canReadChargingStation(loggedUser, transaction.chargeBox)) {
       filteredConsumption.chargeBoxID = transaction.chargeBoxID;
       filteredConsumption.connectorId = transaction.connectorId;
       // Admin?

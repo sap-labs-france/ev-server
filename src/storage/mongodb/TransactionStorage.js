@@ -56,7 +56,7 @@ class TransactionStorage {
     await global.database.getCollection(tenantID, 'metervalues').insertMany(meterValuesMDB);
   }
 
-  static async getTransactionYears(tenantID,) {
+  static async getTransactionYears(tenantID) {
 
     await Utils.checkTenant(tenantID);
     const firstTransactionsMDB = await global.database.getCollection(tenantID, 'transactions')

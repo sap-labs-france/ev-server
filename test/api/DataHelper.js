@@ -23,11 +23,11 @@ class DataHelper {
     }
 
     this.context = {
-      users: [],
-      companies: [],
       chargingStations: [],
+      siteAreas: [],
       sites: [],
-      siteAreas: []
+      companies: [],
+      users: []
     };
   }
 
