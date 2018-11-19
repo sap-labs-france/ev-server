@@ -3,7 +3,7 @@ module.exports.email = {
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Charge Finished!",
+      "title": "Charge Finished",
       "image": {
         "left": {
           "height": 60,
@@ -22,7 +22,8 @@ module.exports.email = {
     ],
     "stats": [
       { "label": "Consumption", "value": "<%- totalConsumption %> kW.h" },
-      { "label": "Estimated Duration", "value": "<%- totalDuration %>" }
+      { "label": "Estimated Duration", "value": "<%- totalDuration %>" },
+      { "label": "Battery Level", "value": "<%- (stateOfCharge ? stateOfCharge + ' %' : '-') %>" }
     ],
     "action": {
       "title": "View Session",
@@ -45,7 +46,7 @@ module.exports.fr_FR.email = {
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Charge Terminée!",
+      "title": "Charge Terminée",
       "image": {
         "left": {
           "height": 60,
@@ -64,7 +65,8 @@ module.exports.fr_FR.email = {
     ],
     "stats": [
       { "label": "Consommation", "value": "<%- totalConsumption %> kW.h" },
-      { "label": "Durée Estimée", "value": "<%- totalDuration %>" }
+      { "label": "Durée Estimée", "value": "<%- totalDuration %>" },
+      { "label": "Niveau Batterie", "value": "<%- (stateOfCharge ? stateOfCharge + ' %' : '-') %>" }
     ],
     "action": {
       "title": "Voir Session",

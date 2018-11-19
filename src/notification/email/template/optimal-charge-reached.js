@@ -1,9 +1,9 @@
 module.exports.email = {
-  "subject": "Account <%- (user.status === 'A' ? 'activated' : 'suspended'); %>",
+  "subject": "Optimal charge reached",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Account <%- (user.status === 'A' ? 'Active' : 'Supended'); %>",
+      "title": "Optimal Charge Reached",
       "image": {
         "left": {
           "height": 60,
@@ -16,13 +16,16 @@ module.exports.email = {
       }
     },
     "beforeActionLines": [
-      "Hi <%- (user.firstName ? user.firstName : user.name) %>,",
+      "Hi <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Your account has been <b><%- (user.status === 'A' ? 'activated' : 'suspended'); %></b> by an administrator."
+      "Your electric vehicle, which is connected to <b><%- chargingBoxID %></b>, reached its optimal charge."
+    ],
+    "stats": [
+      { "label": "Battery Level", "value": "<%- stateOfCharge %> %" }
     ],
     "action": {
-      "title": "Charge-Angels",
-      "url": "<%- evseDashboardURL %>"
+      "title": "View Session",
+      "url": "<%- evseDashboardChargingStationURL %>"
     },
     "afterActionLines": [
       "Best Regards,",
@@ -35,11 +38,11 @@ module.exports.email = {
 
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
-  "subject": "Compte <%- (user.status==='A'?'activé':'suspendu'); %>",
+  "subject": "Charge optimale atteinte",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Compte <%- (user.status === 'A' ? 'Activé' : 'Suspendu'); %>",
+      "title": "Charge Optimale Atteinte",
       "image": {
         "left": {
           "height": 60,
@@ -52,13 +55,16 @@ module.exports.fr_FR.email = {
       }
     },
     "beforeActionLines": [
-      "Bonjour <%- (user.firstName ? user.firstName : user.name) %>,",
+      "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Votre compte a été <b><%- (user.status === 'A' ? 'activé' : 'suspendu'); %></b> par un administrateur."
+      "Votre véhicule électrique, qui est connecté sur <b><%- chargingBoxID %></b>, a atteint sa charge optimale."
+    ],
+    "stats": [
+      { "label": "Niveau Batterie", "value": "<%- stateOfCharge %> %" }
     ],
     "action": {
-      "title": "Charge-Angels",
-      "url": "<%- evseDashboardURL %>"
+      "title": "Voir Session",
+      "url": "<%- evseDashboardChargingStationURL %>"
     },
     "afterActionLines": [
       "Cordialement,",

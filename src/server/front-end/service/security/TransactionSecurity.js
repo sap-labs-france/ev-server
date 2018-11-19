@@ -99,6 +99,9 @@ class TransactionSecurity {
         }
       }
       // retro compatibility OFF
+      if (transaction.hasOwnProperty('stateOfCharge')) {
+        filteredTransaction.stateOfCharge = transaction.stateOfCharge;
+      }
 
       // Demo user?
       if (Authorizations.isDemo(loggedUser)) {
@@ -119,6 +122,9 @@ class TransactionSecurity {
           filteredTransaction.stop.tagID = Constants.ANONIMIZED_VALUE;
         } else {
           filteredTransaction.stop.tagID = transaction.finisherTagId;
+        }
+        if (transaction.stop.hasOwnProperty('stateOfCharge')) {
+          filteredTransaction.stop.stateOfCharge = transaction.stop.stateOfCharge;
         }
         // Admin?
         if (Authorizations.isAdmin(loggedUser)) {

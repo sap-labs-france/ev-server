@@ -3,7 +3,7 @@ module.exports.email = {
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Session Finished!",
+      "title": "Session Finished",
       "image": {
         "left": {
           "height": 60,
@@ -23,7 +23,8 @@ module.exports.email = {
     "stats": [
       { "label": "Consumption", "value": "<%- totalConsumption %> kW.h" },
       { "label": "Total Duration", "value": "<%- totalDuration %>" },
-      { "label": "Total Inactivity", "value": "<%- totalInactivity %>" }
+      { "label": "Total Inactivity", "value": "<%- totalInactivity %>" },
+      { "label": "Battery Level", "value": "<%- (stateOfCharge ? stateOfCharge + ' %' : '-') %>" }
     ],
     "action": {
       "title": "View Session",
@@ -46,7 +47,7 @@ module.exports.fr_FR.email = {
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Session Terminée!",
+      "title": "Session Terminée",
       "image": {
         "left": {
           "height": 60,
@@ -66,7 +67,8 @@ module.exports.fr_FR.email = {
     "stats": [
       { "label": "Consommation", "value": "<%- totalConsumption %> kW.h" },
       { "label": "Durée Totale", "value": "<%- totalDuration %>" },
-      { "label": "Inactivité Totale", "value": "<%- totalInactivity %>" }
+      { "label": "Inactivité Totale", "value": "<%- totalInactivity %>" },
+      { "label": "Niveau Batterie", "value": "<%- (stateOfCharge ? stateOfCharge + ' %' : '-') %>" }
     ],
     "action": {
       "title": "Voir Session",

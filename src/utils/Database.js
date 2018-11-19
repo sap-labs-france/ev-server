@@ -94,6 +94,7 @@ class Database {
           dest.connectors.push({
             "connectorId": Utils.convertToInt(connector.connectorId),
             "currentConsumption": Utils.convertToFloat(connector.currentConsumption),
+            "currentStateOfCharge": Utils.convertToInt(connector.currentStateOfCharge),
             "totalConsumption": Utils.convertToFloat(connector.totalConsumption),
             "status": connector.status,
             "errorCode": connector.errorCode,
@@ -449,6 +450,7 @@ class Database {
     dest.tagID = src.tagID;
     dest.timestamp = Utils.convertToDate(src.timestamp);
     dest.userID = Utils.convertToObjectID(src.userID);
+    dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);
     if (!Utils.isEmptyJSon(src.stop)) {
       dest.stop = {};
       dest.stop.userID = Utils.convertToObjectID(src.stop.userID);
@@ -459,6 +461,7 @@ class Database {
       dest.stop.totalConsumption = Utils.convertToInt(src.totalConsumption);
       dest.stop.totalInactivitySecs = Utils.convertToInt(src.totalInactivitySecs);
       dest.stop.totalDurationSecs = Utils.convertToInt(src.totalDurationSecs);
+      dest.stop.stateOfCharge = Utils.convertToInt(src.stop.stateOfCharge);
     }
     if (!Utils.isEmptyJSon(src.remotestop)) {
       dest.remotestop = {};
@@ -476,6 +479,7 @@ class Database {
     dest.timestamp = Utils.convertToDate(src.timestamp);
     //User
     dest.userID = Database.validateId(src.userID);
+    dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);
     if (!Utils.isEmptyJSon(src.user)) {
       dest.user = {};
       Database.updateUser(src.user, dest.user);
@@ -496,6 +500,7 @@ class Database {
       dest.totalConsumption = Utils.convertToInt(src.stop.totalConsumption);
       dest.totalInactivitySecs = Utils.convertToInt(src.stop.totalInactivitySecs);
       dest.totalDurationSecs = Utils.convertToInt(src.stop.totalDurationSecs);
+      dest.stop.stateOfCharge = Utils.convertToInt(src.stop.stateOfCharge);
     }
     // Remote Stop?
     if (!Utils.isEmptyJSon(src.remotestop)) {

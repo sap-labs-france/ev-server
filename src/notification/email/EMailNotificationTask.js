@@ -12,6 +12,7 @@ const newRegisteredUser = require('./template/new-registered-user.js');
 const userAccountStatusChanged = require('./template/user-account-status-changed.js');
 const verificationEmail = require('./template/verification-email.js');
 const endOfCharge = require('./template/end-of-charge.js');
+const optimalChargeReached = require('./template/optimal-charge-reached.js');
 const endOfSession = require('./template/end-of-session.js');
 const chargingStationStatusError = require('./template/charging-station-status-error.js');
 const transactionStarted = require('./template/transaction-started');
@@ -51,6 +52,11 @@ class EMailNotificationTask extends NotificationTask {
   sendNewPassword(data, locale, tenantID) {
     // Send it
     return this._prepareAndSendEmail('new-password', data, locale, tenantID);
+  }
+
+  sendOptimalChargeReached(data, locale, tenantID) {
+    // Send it
+    return this._prepareAndSendEmail('optimal-charge-reached', data, locale, tenantID);
   }
 
   sendEndOfCharge(data, locale, tenantID) {
@@ -119,6 +125,10 @@ class EMailNotificationTask extends NotificationTask {
       // End of charge
       case 'end-of-charge':
         emailTemplate = JSON.parse(JSON.stringify(endOfCharge));
+        break;
+      // Optimal Charge Reached
+      case 'optimal-charge-reached':
+        emailTemplate = JSON.parse(JSON.stringify(optimalChargeReached));
         break;
       // End of session
       case 'end-of-session':

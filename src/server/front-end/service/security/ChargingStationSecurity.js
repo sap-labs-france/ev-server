@@ -34,6 +34,7 @@ class ChargingStationSecurity {
             'activeTransactionID': connector.activeTransactionID,
             'connectorId': connector.connectorId,
             'currentConsumption': connector.currentConsumption,
+            'currentStateOfCharge': connector.currentStateOfCharge,
             'errorCode': connector.errorCode,
             'type': connector.type,
             'power': connector.power,
