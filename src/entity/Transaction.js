@@ -196,18 +196,13 @@ class Transaction {
   }
 
   get _firstMeterValue() {
-    let attribute;
-    if (this._hasMeterValues()) {
-      attribute = this._model.meterValues[0].attribute;
-    } else {
-      attribute = {
-        unit: 'Wh',
-        location: 'Outlet',
-        measurand: 'Energy.Active.Import.Register',
-        format: 'Raw',
-        context: 'Sample.Periodic'
-      };
-    }
+    let attribute = {
+      unit: 'Wh',
+      location: 'Outlet',
+      measurand: 'Energy.Active.Import.Register',
+      format: 'Raw',
+      context: 'Sample.Periodic'
+    };
     return {
       id: '666',
       connectorId: this.connectorId,
@@ -219,18 +214,13 @@ class Transaction {
   }
 
   get _lastMeterValue() {
-    let attribute;
-    if (this._hasMeterValues()) {
-      attribute = this._model.meterValues[0].attribute;
-    } else {
-      attribute = {
-        unit: 'Wh',
-        location: 'Outlet',
-        measurand: 'Energy.Active.Import.Register',
-        format: 'Raw',
-        context: 'Sample.Periodic'
-      };
-    }
+    let attribute = {
+      unit: 'Wh',
+      location: 'Outlet',
+      measurand: 'Energy.Active.Import.Register',
+      format: 'Raw',
+      context: 'Sample.Periodic'
+    };
     return {
       id: '6969', connectorId: this.connectorId,
       transactionId: this.id,
@@ -256,7 +246,7 @@ class Transaction {
 
   get stateOfCharge() {
     if (this._hasStateOfCharges()) {
-      return this._latestStateOfCharge;
+      return this._latestStateOfCharge.value;
     }
     return undefined;
   }

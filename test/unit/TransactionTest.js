@@ -31,6 +31,8 @@ const TransactionFactory = Factory.define('transaction')
         timestamp: timestamp,
       });
     });
+
+
   });
 
 const EmptyTransactionFactory = Factory.define('empty-transaction').extend('transaction').attr('meterValues', undefined);
@@ -48,6 +50,12 @@ const MeterValueFactory = Factory.define('meterValue')
   })
   .attr('timestamp', new Date());
 
+const SoCValueFactory = Factory.define('soc-meterValue').extend('meterValue').attr('attribute', {
+  measurand: 'SoC',
+  format: 'Raw',
+  context: 'Sample.Periodic'
+});
+
 describe('Transaction entity tests', () => {
 
   it('Should be an active transaction', () => {
@@ -57,6 +65,40 @@ describe('Transaction entity tests', () => {
   it('Should not be an active transaction', () => {
     const transaction = new Transaction({stop: {}});
     expect(transaction.isActive()).to.equal(false);
+  });
+  describe('test _hasStateOfCharges', () => {
+    it('without stateOfCharges', () => {
+      const transaction = new Transaction(EmptyTransactionFactory.build());
+      expect(transaction._hasStateOfCharges()).to.equal(false);
+    });
+    it('with meterValues but withtout stateOfCharges', () => {
+      const transaction = new Transaction(TransactionFactory.build());
+      expect(transaction._hasStateOfCharges()).to.equal(false);
+    });
+    it('with stateOfCharges', () => {
+      const socAtStart = SoCValueFactory.build();
+      const model = EmptyTransactionFactory.build();
+      model.meterValues = [];
+      model.meterValues.push(socAtStart);
+      const transaction = new Transaction(model);
+      expect(transaction._hasStateOfCharges()).to.equal(true);
+    });
+  });
+  describe('test stateOfCharge', () => {
+    it('without state', () => {
+      const model = EmptyTransactionFactory.build();
+      model.meterValues = [];
+      const transaction = new Transaction(model);
+      expect(transaction.stateOfCharge).to.not.be.an('object');
+    });
+    it('with state', () => {
+      const socAtStart = SoCValueFactory.build();
+      const model = EmptyTransactionFactory.build();
+      model.meterValues = [];
+      model.meterValues.push(socAtStart);
+      const transaction = new Transaction(model);
+      expect(transaction.stateOfCharge).to.equal(socAtStart.value);
+    });
   });
   describe('test _hasMeterValues', () => {
     it('without meterValues', () => {
