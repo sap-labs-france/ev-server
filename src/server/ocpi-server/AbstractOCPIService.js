@@ -1,6 +1,6 @@
 const Tenant = require('../../entity/Tenant');
 const OCPIServerError = require('./exception/OCPIServerError');
-// const OCPIClientError = require('./exception/OCPIClientError');
+const OCPIClientError = require('./exception/OCPIClientError');
 const OCPIConstants = require('./OCPIConstants');
 const OCPIResponse = require('./OCPIResponse');
 
@@ -32,11 +32,15 @@ class AbstractOCPIService {
   }
 
   // Return based URL of OCPI Service
-  getServiceUrl() {
+  getServiceUrl(req) {
     const protocol = this._ocpiRestConfig.protocol;
-    const host = this._ocpiRestConfig.host;
     const port = this._ocpiRestConfig.port;
     const path = this.getPath();
+
+    // get host from the req in order to handle the tenants
+    const host = req.hostname;
+
+    // return Service url
     return `${protocol}://${host}:${port}${path}`;
   }
 
@@ -79,7 +83,7 @@ class AbstractOCPIService {
    * Send Supported Endpoints
    */
   getSupportedEndpoints(req, res, next) { // eslint-disable-line
-    const fullUrl = this.getServiceUrl();
+    const fullUrl = this.getServiceUrl(req);
     const registeredEndpointsArray = Object.values(this.getRegisteredEndpoint());
 
     // build payload
@@ -110,6 +114,38 @@ class AbstractOCPIService {
         throw new OCPIServerError(
           OCPIConstants.OCPI_SERVER,
           `The Tenant with subdomain '${tenantSubdomain}' does not exist`, 500,
+          MODULE_NAME, 'handleVerifyTenant', null);
+      }
+
+      // check if service is enabled for tenant
+      if (!this._ocpiRestConfig.tenantEnabled.includes(tenantSubdomain)) {
+        throw new OCPIServerError(
+          OCPIConstants.OCPI_SERVER,
+          `The Tenant with subdomain '${tenantSubdomain}' is not enabled for OCPI`, 500,
+          MODULE_NAME, 'handleVerifyTenant', null);
+      }
+
+      // TODO: Temporary properties in config: add eMI3 country_id/party_id
+      // TODO: to be moved to database
+      if (this._ocpiRestConfig.eMI3id != null &&
+        this._ocpiRestConfig.eMI3id[tenantSubdomain] != null &&
+        this._ocpiRestConfig.eMI3id[tenantSubdomain].country_id != null &&
+        this._ocpiRestConfig.eMI3id[tenantSubdomain].party_id != null) {
+        tenant._eMI3 = {};
+        tenant._eMI3.country_id = this._ocpiRestConfig.eMI3id[tenantSubdomain].country_id;
+        tenant._eMI3.party_id = this._ocpiRestConfig.eMI3id[tenantSubdomain].party_id;
+      } else {
+        throw new OCPIServerError(
+          OCPIConstants.OCPI_SERVER,
+          `The Tenant with subdomain '${tenantSubdomain}' doesn't have country_id and/or party_id defined`, 500,
+          MODULE_NAME, 'handleVerifyTenant', null);
+      }
+
+      // check token
+      if (req.headers == null || `Token ${this._ocpiRestConfig.eMI3id[tenantSubdomain].token}` != req.headers.authorization ) {
+        throw new OCPIClientError(
+          OCPIConstants.OCPI_CLIENT,
+          "Unauthorized : Check credentials failed", 401,
           MODULE_NAME, 'handleVerifyTenant', null);
       }
 

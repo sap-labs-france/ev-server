@@ -78,11 +78,10 @@ class LocationsEndpoint extends AbstractEndpoint {
     // convert Sites to Locations
     const locations = await Promise.all(sites.result.map(async site => { // eslint-disable-line
       // convert Site to Location
-      return await OCPIUtils.convertSite2Location(site);
+      return await OCPIUtils.convertSite2Location(tenant, site);
     }));
 
     // return Payload
-    //res.json(locations);
     res.json(OCPIResponse.success(locations));
   }
 

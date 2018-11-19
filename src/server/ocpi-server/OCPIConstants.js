@@ -23,12 +23,12 @@ module.exports = {
   },
 
   // OCPI EVSE STATUS
-  MAPPING_EVSE_STATUS: {
-    "Available": "AVAILABLE",
-    "Occupied": "BLOCKED",
+  EVSE_STATUS: {
+    AVAILABLE: "AVAILABLE",
+    BLOCKED: "BLOCKED",
     CHARGING: "CHARGING",
-    "Faulted": "INOPERATIVE",
-    // "Faulted": "OUTOFORDER",
+    INOPERATIVE: "INOPERATIVE",
+    OUTOFORDER: "OUTOFORDER",
     PLANNED: "PLANNED",
     REMOVED: "REMOVED",
     RESERVED: "RESERVED",
