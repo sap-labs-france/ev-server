@@ -94,6 +94,7 @@ class Database {
           dest.connectors.push({
             "connectorId": Utils.convertToInt(connector.connectorId),
             "currentConsumption": Utils.convertToFloat(connector.currentConsumption),
+            "currentStateOfCharge": Utils.convertToInt(connector.currentStateOfCharge),
             "totalConsumption": Utils.convertToFloat(connector.totalConsumption),
             "status": connector.status,
             "errorCode": connector.errorCode,
@@ -462,6 +463,7 @@ class Database {
     dest.timestamp = Utils.convertToDate(src.timestamp);
     dest.tagID = src.tagID;
     dest.meterStart = Utils.convertToInt(src.meterStart);
+    dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);
     // Stop?
     if (!Utils.isEmptyJSon(src.stop)) {
       dest.stop = {};
@@ -476,6 +478,7 @@ class Database {
       dest.stop.meterStop = Utils.convertToInt(src.stop.meterStop);
       dest.stop.transactionData = src.stop.transactionData;
       dest.stop.totalConsumption = Utils.convertToInt(src.stop.totalConsumption);
+      dest.stop.stateOfCharge = Utils.convertToInt(src.stop.stateOfCharge);
       dest.stop.totalInactivitySecs = Utils.convertToInt(src.stop.totalInactivitySecs);
     }
     // Remote Stop?

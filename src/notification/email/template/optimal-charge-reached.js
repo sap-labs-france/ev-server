@@ -1,9 +1,9 @@
 module.exports.email = {
-  "subject": "Successfully connected",
+  "subject": "Optimal charge reached",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Successfully Connected",
+      "title": "Optimal Charge Reached",
       "image": {
         "left": {
           "height": 60,
@@ -18,7 +18,10 @@ module.exports.email = {
     "beforeActionLines": [
       "Hi <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Your electric vehicle is successfully connected to <b><%- chargingBoxID %></b>."
+      "Your electric vehicle, which is connected to <b><%- chargingBoxID %></b>, reached its optimal charge."
+    ],
+    "stats": [
+      { "label": "Battery Level", "value": "<%- stateOfCharge %> %" }
     ],
     "action": {
       "title": "View Session",
@@ -35,11 +38,11 @@ module.exports.email = {
 
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
-  "subject": "Connecté avec succès",
+  "subject": "Charge optimale atteinte",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Connecté avec Succès",
+      "title": "Charge Optimale Atteinte",
       "image": {
         "left": {
           "height": 60,
@@ -54,7 +57,10 @@ module.exports.fr_FR.email = {
     "beforeActionLines": [
       "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Votre véhicule électrique est correctement connecté sur <b><%- chargingBoxID %></b>."
+      "Votre véhicule électrique, qui est connecté sur <b><%- chargingBoxID %></b>, a atteint sa charge optimale."
+    ],
+    "stats": [
+      { "label": "Niveau Batterie", "value": "<%- stateOfCharge %> %" }
     ],
     "action": {
       "title": "Voir Session",

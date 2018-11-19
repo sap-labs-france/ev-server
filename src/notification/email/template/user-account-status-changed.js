@@ -3,7 +3,7 @@ module.exports.email = {
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Account <%- (user.status === 'A' ? 'Active' : 'Supended'); %>!",
+      "title": "Account <%- (user.status === 'A' ? 'Active' : 'Supended'); %>",
       "image": {
         "left": {
           "height": 60,
@@ -39,7 +39,7 @@ module.exports.fr_FR.email = {
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Compte <%- (user.status === 'A' ? 'Activé' : 'Suspendu'); %>!",
+      "title": "Compte <%- (user.status === 'A' ? 'Activé' : 'Suspendu'); %>",
       "image": {
         "left": {
           "height": 60,

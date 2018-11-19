@@ -3,7 +3,7 @@ module.exports.email = {
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Charger Connected!",
+      "title": "Charger Connected",
       "image": {
         "left": {
           "height": 60,
@@ -39,7 +39,7 @@ module.exports.fr_FR.email = {
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Borne Connectée!",
+      "title": "Borne Connectée",
       "image": {
         "left": {
           "height": 60,

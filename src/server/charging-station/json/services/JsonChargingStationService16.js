@@ -1,5 +1,6 @@
 const Logging = require('../../../../utils/Logging');
 const Constants = require('../../../../utils/Constants');
+const Configuration = require('../../../../utils/Configuration');
 
 const MODULE_NAME = "JsonChargingStationService16";
 
@@ -25,6 +26,8 @@ class JsonChargingStationService16 {
   }
 
   async handleBootNotification(payload) {
+    // Override URL
+    payload.chargingStationURL = Configuration.getJsonEndpointConfig().baseUrl; 
     // Forward
     const result = await this._handle("BootNotification", payload);
     // Return the response

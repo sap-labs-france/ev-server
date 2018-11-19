@@ -5,6 +5,8 @@ const moment = require('moment');
 const MigrationStorage = require('../storage/mongodb/MigrationStorage')
 const UpdateTransactionInactivityTask = require('./tasks/UpdateTransactionInactivityTask');
 const TenantMigrationTask = require('./tasks/TenantMigrationTask');
+const UpdateTransactionSoCTask = require('./tasks/UpdateTransactionSoCTask');
+
 
 class MigrationHandler {
   // Migrate method
@@ -25,6 +27,7 @@ class MigrationHandler {
       currentMigrationTasks.push(new DummyTask());
       currentMigrationTasks.push(new UpdateTransactionInactivityTask());
       currentMigrationTasks.push(new TenantMigrationTask());
+      currentMigrationTasks.push(new UpdateTransactionSoCTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();

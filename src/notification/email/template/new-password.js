@@ -3,7 +3,7 @@ module.exports.email = {
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "New Password!",
+      "title": "New Password",
       "image": {
         "left": {
           "height": 60,
@@ -41,7 +41,7 @@ module.exports.fr_FR.email = {
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Nouveau Mot De Passe!",
+      "title": "Nouveau Mot De Passe",
       "image": {
         "left": {
           "height": 60,

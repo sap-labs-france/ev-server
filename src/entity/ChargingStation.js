@@ -641,23 +641,27 @@ class ChargingStation extends AbstractTenantEntity {
         const consumption = await this.getConsumptionsFromTransaction(transaction);
         let currentConsumption = 0;
         let totalConsumption = 0;
+        let currentStateOfCharge = 0;
         // Check
         if (consumption) {
           currentConsumption = (consumption.values.length > 0 ? consumption.values[consumption.values.length - 1].value : 0);
           totalConsumption = consumption.totalConsumption;
+          currentStateOfCharge = consumption.stateOfCharge;
         }
         // Changed?
         if (connector.currentConsumption !== currentConsumption ||
-          connector.totalConsumption !== totalConsumption) {
+            connector.totalConsumption !== totalConsumption ||
+            connector.currentStateOfCharge !== currentStateOfCharge) {
           // Set consumption
           connector.currentConsumption = Math.floor(currentConsumption);
           connector.totalConsumption = Math.floor(totalConsumption);
+          connector.currentStateOfCharge = currentStateOfCharge;
           // Log
           Logging.logInfo({
             tenantID: this.getTenantID(),
             source: this.getID(), module: 'ChargingStation',
             method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
-            message: `Connector '${connector.connectorId}' - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}`
+            message: `Connector '${connector.connectorId}' - Consumption ${connector.currentConsumption}, Total: ${connector.totalConsumption}, SoC: ${connector.currentStateOfCharge}`
           });
         }
         // Update Transaction ID
@@ -670,6 +674,7 @@ class ChargingStation extends AbstractTenantEntity {
         // Set consumption
         connector.currentConsumption = 0;
         connector.totalConsumption = 0;
+        connector.currentStateOfCharge = 0;
         // Reset Transaction ID
         connector.activeTransactionID = 0;
         // Log
@@ -677,7 +682,7 @@ class ChargingStation extends AbstractTenantEntity {
           tenantID: this.getTenantID(),
           source: this.getID(), module: 'ChargingStation',
           method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
-          message: `Connector '${connector.connectorId}' - Consumption changed to ${connector.currentConsumption}, Total: ${connector.totalConsumption}`
+          message: `Connector '${connector.connectorId}' - Consumption ${connector.currentConsumption}, Total: ${connector.totalConsumption}, SoC: ${connector.currentStateOfCharge}`
         });
       }
     } else {
@@ -702,7 +707,7 @@ class ChargingStation extends AbstractTenantEntity {
         const avgConsumption = (consumption.values[consumption.values.length - 1].value +
           consumption.values[consumption.values.length - 2].value) / 2;
         // --------------------------------------------------------------------
-        // Notification END of charge
+        // Notification End of charge
         // --------------------------------------------------------------------
         if (_configChargingStation.notifEndOfChargeEnabled && avgConsumption === 0) {
           // Notify User?
@@ -720,6 +725,7 @@ class ChargingStation extends AbstractTenantEntity {
                 'totalConsumption': (this.getConnectors()[transaction.connectorId - 1].totalConsumption / 1000).toLocaleString(
                   (transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
                   {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
+                'stateOfCharge': consumption.stateOfCharge,
                 'totalDuration': this._buildCurrentTransactionDuration(transaction, lastTimestamp),
                 'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
                 'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
@@ -776,6 +782,31 @@ class ChargingStation extends AbstractTenantEntity {
               Logging.logActionExceptionMessage(this.getTenantID(), 'EndOfCharge', error);
             }
           }
+        // Check the SoC
+        } else if (_configChargingStation.notifBeforeEndOfChargeEnabled && 
+            this.getConnectors()[transaction.connectorId - 1].currentStateOfCharge >= _configChargingStation.notifBeforeEndOfChargePercent) {
+          // Notify User?
+          if (transaction.user) {
+              // Notifcation Before End Of Charge
+            NotificationHandler.sendOptimalChargeReached(
+              this.getTenantID(),
+              transaction.id + '-OCR',
+              transaction.user,
+              this.getModel(),
+              {
+                'user': transaction.user,
+                'chargingBoxID': this.getID(),
+                'connectorId': transaction.connectorId,
+                'totalConsumption': (consumption.totalConsumption / 1000).toLocaleString(
+                  (transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+                  {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
+                'stateOfCharge': consumption.stateOfCharge,
+                'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
+                'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
+              },
+              transaction.user.locale
+            );
+          }
         }
       }
     }
@@ -823,22 +854,6 @@ class ChargingStation extends AbstractTenantEntity {
   async handleMeterValues(meterValues) {
     // Create model
     const newMeterValues = {};
-    let meterValuesContext;
-    if (this.getOcppVersion() === Constants.OCPP_VERSION_16) {
-      meterValuesContext = ( meterValues && 
-                             Array.isArray(meterValues.meterValue) && 
-                             Array.isArray(meterValues.meterValue[0].sampledValue) && 
-                             meterValues.meterValue[0].sampledValue[0].hasOwnProperty('context') ?
-        meterValues.meterValue[0].sampledValue[0].context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC) 
-    } else {
-      // Check Meter Value Context
-      meterValuesContext = ( meterValues && 
-                             meterValues.values && 
-                            meterValues.values.value && 
-                            !Array.isArray(meterValues.values) && 
-                            meterValues.values.value.attributes ?
-        meterValues.values.value.attributes.context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC);
-    }
     // Init
     newMeterValues.values = [];
     // Set the charger ID
@@ -915,24 +930,47 @@ class ChargingStation extends AbstractTenantEntity {
         newMeterValue.transactionId = meterValues.transactionId;
       }
       newMeterValue.timestamp = value.timestamp;
-
       // Check OCPP 1.6
-      if (this.getOcppVersion() === Constants.OCPP_VERSION_16) { //value.sampledValue 
+      if (this.getOcppVersion() === Constants.OCPP_VERSION_16) {
+        // Multiple Values? 
         if (Array.isArray(value.sampledValue)) {
+          // Create one record per value
           for (const sampledValue of value.sampledValue) {
+            // Clone header
+            // eslint-disable-next-line prefer-const
+            let newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
             // Normalize
-            value.value = sampledValue.value;
-            newMeterValue.value = parseInt(value.value);
-            newMeterValues.values.push(newMeterValue);
+            newLocalMeterValue.attribute = {};
+            // Enrich with OCPP16 attributes
+            newLocalMeterValue.attribute.context = ( sampledValue.context ? sampledValue.context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC);
+            newLocalMeterValue.attribute.format = ( sampledValue.format ? sampledValue.format : Constants.METER_VALUE_FORMAT_RAW);
+            newLocalMeterValue.attribute.measurand = ( sampledValue.measurand ? sampledValue.measurand : Constants.METER_VALUE_MEASURAND_IMPREG);
+            newLocalMeterValue.attribute.location = ( sampledValue.location ? sampledValue.location : Constants.METER_VALUE_LOCATION_OUTLET);
+            newLocalMeterValue.attribute.unit = ( sampledValue.unit ? sampledValue.unit : Constants.METER_VALUE_UNIT_WH);
+            newLocalMeterValue.attribute.phase = ( sampledValue.phase ? sampledValue.phase : '');
+            newLocalMeterValue.value = parseInt(sampledValue.value);
+            // Add
+            newMeterValues.values.push(newLocalMeterValue);
           }
         } else {
-          // Normalize
-          value.value = value.sampledValue;
-          newMeterValue.value = parseInt(value.value);
-          newMeterValues.values.push(newMeterValue);
+            // Clone header
+            // eslint-disable-next-line prefer-const
+            let newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
+            // Normalize
+            newLocalMeterValue.attribute = {};
+            // Enrich with OCPP16 attributes
+            newLocalMeterValue.attribute.context = ( value.sampledValue.context ? value.sampledValue.context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC);
+            newLocalMeterValue.attribute.format = ( value.sampledValue.format ? value.sampledValue.format : Constants.METER_VALUE_FORMAT_RAW);
+            newLocalMeterValue.attribute.measurand = ( value.sampledValue.measurand ? value.sampledValue.measurand : Constants.METER_VALUE_MEASURAND_IMPREG);
+            newLocalMeterValue.attribute.location = ( value.sampledValue.location ? value.sampledValue.location : Constants.METER_VALUE_LOCATION_OUTLET);
+            newLocalMeterValue.attribute.unit = ( value.sampledValue.unit ? value.sampledValue.unit : Constants.METER_VALUE_UNIT_WH);
+            newLocalMeterValue.attribute.phase = ( value.sampledValue.phase ? value.sampledValue.phase : '');
+            newLocalMeterValue.value = parseInt(value.sampledValue.value);
+            // Add
+            newMeterValues.values.push(newLocalMeterValue);
         }
-
-      } else if (value.value) { // Values provided?
+      // Values provided?
+      } else if (value.value) {
         // OCCP1.2: Set the values
         if (value.value.$value) {
           // Set
@@ -944,10 +982,28 @@ class ChargingStation extends AbstractTenantEntity {
         // Add
         newMeterValues.values.push(newMeterValue);
       }
-
     }
     // Compute consumption?
     if (meterValues.transactionId) {
+      // Get the Transaction
+      let transaction = await TransactionStorage.getTransaction(
+        this.getTenantID(), meterValues.transactionId);
+      // Check for the first State of Charge to update the Transaction
+      for (const value of newMeterValues.values) {
+        // Check
+        if (value.attribute && 
+            value.attribute.context === 'Transaction.Begin' &&
+            value.attribute.measurand === 'SoC') {
+          // Set the SoC to the transaction
+          if (transaction) {
+            // Set the SoC
+            transaction.stateOfCharge = value.value;
+            // Save
+            await TransactionStorage.saveTransaction(this.getTenantID(), transaction);
+          }
+          break;
+        }
+      }
       // Save Meter Values
       await TransactionStorage.saveMeterValues(this.getTenantID(), newMeterValues);
       // Update Charging Station Consumption
@@ -961,7 +1017,7 @@ class ChargingStation extends AbstractTenantEntity {
         module: 'ChargingStation',
         method: 'handleMeterValues',
         action: 'MeterValues',
-        message: `'${meterValuesContext}' have been saved for Transaction ID '${meterValues.transactionId}'`,
+        message: `MeterValue have been saved for Transaction ID '${meterValues.transactionId}'`,
         detailedMessages: meterValues
       });
     } else {
@@ -969,7 +1025,7 @@ class ChargingStation extends AbstractTenantEntity {
       Logging.logWarning({
         tenantID: this.getTenantID(),
         source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-        action: 'MeterValues', message: `'${meterValuesContext}' not saved (not linked to a Transaction)`,
+        action: 'MeterValues', message: `MeterValue not saved (not linked to a Transaction)`,
         detailedMessages: meterValues
       });
     }
@@ -1320,6 +1376,7 @@ class ChargingStation extends AbstractTenantEntity {
     const consumption = await this.getConsumptionsFromTransaction(transaction);
     // Set the total consumption
     newTransaction.stop.totalConsumption = consumption.totalConsumption;
+    newTransaction.stop.stateOfCharge = (consumption.stateOfCharge ? consumption.stateOfCharge : 0);
     // Compute total inactivity seconds
     newTransaction.stop.totalInactivitySecs = 0;
     for (let index = 0; index < consumption.values.length; index++) {
@@ -1355,6 +1412,7 @@ class ChargingStation extends AbstractTenantEntity {
             {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
           'totalDuration': this._buildCurrentTransactionDuration(transaction, transaction.stop.timestamp),
           'totalInactivity': this._buildCurrentTransactionInactivity(newTransaction),
+          'stateOfCharge': transaction.stop.stateOfCharge,
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
           'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
         },
@@ -1578,6 +1636,7 @@ class ChargingStation extends AbstractTenantEntity {
     }
     chargingStationConsumption.values = [];
     chargingStationConsumption.totalConsumption = 0;
+    chargingStationConsumption.stateOfCharge = 0;
     chargingStationConsumption.chargeBoxID = this.getID();
     // Populate Site Area
     await this.getSiteArea();
@@ -1642,7 +1701,7 @@ class ChargingStation extends AbstractTenantEntity {
         id: '666',
         connectorId: transaction.connectorId,
         transactionId: transaction.transactionId,
-        timestamp: transaction.timestamp,
+        timestamp: Utils.convertToDate(transaction.timestamp),
         value: transaction.meterStart
       });
 
@@ -1653,7 +1712,7 @@ class ChargingStation extends AbstractTenantEntity {
           id: '6969',
           connectorId: transaction.connectorId,
           transactionId: transaction.transactionId,
-          timestamp: transaction.stop.timestamp,
+          timestamp: Utils.convertToDate(transaction.stop.timestamp),
           value: transaction.stop.meterStop
         });
       }
@@ -1661,13 +1720,13 @@ class ChargingStation extends AbstractTenantEntity {
     // Build the model
     for (let meterValueIndex = 0; meterValueIndex < meterValues.length; meterValueIndex++) {
       const meterValue = meterValues[meterValueIndex];
-      // Filter on consumption value
+      // Meter Value Consumption?
       if (!meterValue.attribute || (meterValue.attribute.measurand &&
         meterValue.attribute.measurand === 'Energy.Active.Import.Register' &&
         (meterValue.attribute.context === "Sample.Periodic" ||
         // ABB only uses Sample.Clock!!!!!
-        this.getChargePointVendor() === 'ABB'))) {
-      // First value?
+        (this.getChargePointVendor() === 'ABB' && meterValue.attribute.context === "Sample.Clock")))) {
+        // First value?
         if (!firstMeterValueSet) {
           // No: Keep the first value
           lastMeterValue = meterValue;
@@ -1700,17 +1759,46 @@ class ChargingStation extends AbstractTenantEntity {
               // Yes
               chargingStationConsumption.totalPrice += (consumptionWh / 1000) * pricing.priceKWH;
             }
-            // Create
-            const consumption = {
-              date: meterValue.timestamp,
-              value: currentConsumption,
-              cumulated: chargingStationConsumption.totalConsumption
-            };
-            // Set the consumption
-            chargingStationConsumption.values.push(consumption);
+            // Check last Meter Value
+            if (chargingStationConsumption.values.length > 0 &&
+                chargingStationConsumption.values[chargingStationConsumption.values.length-1].date.getTime() === meterValue.timestamp.getTime()) {
+              // Same timestamp: Update the latest
+              chargingStationConsumption.values[chargingStationConsumption.values.length-1].value = currentConsumption;
+              chargingStationConsumption.values[chargingStationConsumption.values.length-1].cumulated = chargingStationConsumption.totalConsumption;
+            } else {
+              // Add the consumption
+              chargingStationConsumption.values.push({
+                date: meterValue.timestamp,
+                value: currentConsumption,
+                cumulated: chargingStationConsumption.totalConsumption,
+                stateOfCharge: 0
+              });
+              // Set Last Value (only for Consumption)
+              lastMeterValue = meterValue;
+            }
           }
-          // Set Last Value
-          lastMeterValue = meterValue;
+        }
+      // Meter Value State of Charge?
+      } else if (meterValue.attribute && 
+        (meterValue.attribute.context === 'Sample.Periodic' || 
+         meterValue.attribute.context === 'Transaction.Begin' ||
+         meterValue.attribute.context === 'Transaction.End') &&
+        meterValue.attribute.measurand === 'SoC') {
+        // Set the last SoC
+        chargingStationConsumption.stateOfCharge = meterValue.value;
+        // Check last Meter Value
+        if (chargingStationConsumption.values.length > 0 && 
+            chargingStationConsumption.values[chargingStationConsumption.values.length-1].date.getTime() === meterValue.timestamp.getTime()) {
+          // Same timestamp: Update the latest
+          chargingStationConsumption.values[chargingStationConsumption.values.length-1].stateOfCharge = meterValue.value;
+        } else {
+          // Add the consumption
+          chargingStationConsumption.values.push({
+            date: meterValue.timestamp,
+            stateOfCharge: meterValue.value,
+            value: 0,
+            cumulated: 0
+          });
         }
       }
     }
