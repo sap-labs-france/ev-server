@@ -60,6 +60,7 @@ describe('Transaction DB Update test', () => {
       "tagID": "7099C291",
       "timestamp": "2018-08-03T14:24:02.000Z",
       "userID": ObjectId("592e969f89d8e07a2b16a7b2"),
+      "stateOfCharge": 0,
       "stop": {
         "userID": ObjectId("592e969f89d8e07a2b16a7b2"),
         "timestamp": "2018-08-03T17:47:49.000Z",
@@ -86,7 +87,9 @@ describe('Transaction DB Update test', () => {
       "id": 112940,
       "meterStart": 0,
       "meterStop": 4996,
+      "stateOfCharge": 0,
       "stop": {
+        "stateOfCharge": 0,
         "tagID": "7099C291",
         "timestamp": new Date('2018-08-03T17:47:49.000Z'),
         "userID": "592e969f89d8e07a2b16a7b2",
@@ -106,7 +109,9 @@ describe('Transaction DB Update test', () => {
       "id": 112940,
       "meterStart": 0,
       "meterStop": 4996,
+      "stateOfCharge": 0,
       "stop": {
+        "stateOfCharge": 0,
         "tagID": "7099C291",
         "timestamp": new Date('2018-08-03T17:47:49.000Z'),
         "userID": "592e969f89d8e07a2b16a7b2",
@@ -261,6 +266,7 @@ describe('Transaction DB Update test', () => {
       "meterStop": 4996,
       "price": 0.621003,
       "priceUnit": "EUR",
+      "stateOfCharge": 0,
       "stop": {
         "tagID": "7099C291",
         "timestamp": new Date('2018-08-03T17:47:49.000Z'),
@@ -302,7 +308,9 @@ describe('Transaction DB Update test', () => {
       "tagID": "7099C291",
       "timestamp": new Date("2018-08-03T14:24:02.000Z"),
       "userID": ObjectId("592e969f89d8e07a2b16a7b2"),
+      "stateOfCharge": 0,
       "stop": {
+        "stateOfCharge": 0,
         "userID": ObjectId("592e969f89d8e07a2b16a7b2"),
         "timestamp": new Date("2018-08-03T17:47:49.000Z"),
         "tagID": "7099C291",

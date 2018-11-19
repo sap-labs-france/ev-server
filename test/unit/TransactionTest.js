@@ -42,7 +42,7 @@ const MeterValueFactory = Factory.define('meterValue')
   .attr('attribute', {
     unit: 'Wh',
     location: 'Outlet',
-    measurand: faker.random.alphaNumeric(10),
+    measurand: 'Energy.Active.Import.Register',
     format: 'Raw',
     context: 'Sample.Periodic'
   })
@@ -105,7 +105,6 @@ describe('Transaction entity tests', () => {
           value: 10
         }
       );
-      expect(transaction._firstMeterValue.attribute.measurand).to.not.equal('Energy.Active.Import.Register');
     });
   });
 
@@ -149,7 +148,6 @@ describe('Transaction entity tests', () => {
           value: 10
         }
       );
-      expect(transaction._lastMeterValue.attribute.measurand).to.not.equal('Energy.Active.Import.Register');
     });
   });
 

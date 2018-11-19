@@ -13,6 +13,9 @@ class Transaction {
     this._model.totalConsumption = this.totalConsumption;
     if (this.isActive()) {
       this._model.currentConsumption = this.currentConsumption;
+      if (this.stateOfCharge >= 0) {
+        this._model.stateOfCharge = this.stateOfCharge;
+      }
     }
     if (this._hasPricing()) {
       this._model.priceUnit = this._model.pricing.priceUnit;
@@ -160,6 +163,10 @@ class Transaction {
     return this.consumptions[this.consumptions.length - 1];
   }
 
+  get _latestStateOfCharge() {
+    return this.stateOfCharges[this.stateOfCharges.length - 1];
+  }
+
   get currentConsumption() {
     if (this.isActive() && this._hasMeterValues()) {
       return Math.floor(this._latestConsumption.value);
@@ -179,6 +186,13 @@ class Transaction {
       this._consumptions = this._computeConsumptions();
     }
     return this._consumptions;
+  }
+
+  get stateOfCharges() {
+    if (!this._stateOfCharges) {
+      this._stateOfCharges = this._computeStateOfCharges();
+    }
+    return this._stateOfCharges;
   }
 
   get _firstMeterValue() {
@@ -240,6 +254,33 @@ class Transaction {
     return false;
   }
 
+  get stateOfCharge() {
+    if (this._hasStateOfCharges()) {
+      return this._latestStateOfCharge;
+    }
+    return undefined;
+  }
+
+
+  get stateEndOfCharge() {
+    return this._model.stop.stateOfCharge;
+  }
+
+  _computeStateOfCharges() {
+    const meterValues = [this._firstMeterValue, ...(this._model.meterValues)];
+    if (!this.isActive()) {
+      meterValues.push(this._lastMeterValue);
+    }
+
+    return meterValues
+      .filter(meterValue => meterValue.attribute
+        && (meterValue.attribute.context === 'Sample.Periodic'
+          || meterValue.attribute.context === 'Transaction.Begin'
+          || meterValue.attribute.context === 'Transaction.End')
+        && meterValue.attribute.measurand === 'SoC')
+      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+  }
+
   _computeConsumptions() {
     const consumptions = [];
     this.meterValues.forEach((meterValue, index, array) => {
@@ -256,12 +297,19 @@ class Transaction {
     if (!this.isActive()) {
       meterValues.push(this._lastMeterValue);
     }
-    return meterValues.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+
+    return meterValues
+      .filter(meterValue => meterValue.attribute
+        && meterValue.attribute.measurand
+        && meterValue.attribute.measurand === 'Energy.Active.Import.Register'
+        && (meterValue.attribute.context === "Sample.Periodic" || meterValue.attribute.context === "Sample.Clock"))
+      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
   }
 
   _invalidateComputations() {
     delete this._meterValues;
     delete this._consumptions;
+    delete this._stateOfCharges;
   }
 
   hasMultipleConsumptions() {
@@ -294,6 +342,9 @@ class Transaction {
     this._model.stop.user = user;
     this._model.stop.tagID = tagId;
     this._invalidateComputations();
+    if (this._latestStateOfCharge >= 0) {
+      this._model.stop.stateOfCharge = this._latestStateOfCharge;
+    }
     if (this._hasPricing()) {
       this._model.priceUnit = this._model.pricing.priceUnit;
       this._model.price = this.price;
@@ -340,6 +391,10 @@ class Transaction {
 
   _hasMeterValues() {
     return this._model.meterValues != null && this._model.meterValues.length > 0;
+  }
+
+  _hasStateOfCharges() {
+    return this.stateOfCharges.length > 0;
   }
 
   _hasPricing() {

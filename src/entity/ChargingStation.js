@@ -642,7 +642,6 @@ class ChargingStation extends AbstractTenantEntity {
 
   async updateChargingStationConsumption(transactionId) {
     // Get the last transaction first
-    // TODO a changer ajout du soc dans la charging station
     const transaction = await this.getTransaction(transactionId);
 
     if (!transaction) {
@@ -657,16 +656,14 @@ class ChargingStation extends AbstractTenantEntity {
     const connector = this.getConnector(transaction.connectorId);
 
     if (transaction.isActive()) {
-      const newCurrentConsumption = transaction.currentConsumption;
-      const newTotalConsumption = transaction.totalConsumption;
 
       // Changed?
-      if (connector.currentConsumption !== newCurrentConsumption ||
-        connector.totalConsumption !== newTotalConsumption||
-        connector.currentStateOfCharge !== transaction.stateOfCharge) {) {
+      if (connector.currentConsumption !== transaction.currentConsumption ||
+        connector.totalConsumption !== transaction.totalConsumption ||
+        connector.currentStateOfCharge !== transaction.stateOfCharge) {
         // Set consumption
-        connector.currentConsumption = newCurrentConsumption;
-        connector.totalConsumption = newTotalConsumption;
+        connector.currentConsumption = transaction.currentConsumption;
+        connector.totalConsumption = transaction.totalConsumption;
         connector.currentStateOfCharge = transaction.stateOfCharge;
         // Log
         Logging.logInfo({
@@ -723,7 +720,7 @@ class ChargingStation extends AbstractTenantEntity {
                 'totalConsumption': (transaction.totalConsumption / 1000).toLocaleString(
                   (transaction.initiator.locale ? transaction.initiator.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
                   {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
-                'stateOfCharge': consumption.stateOfCharge,
+                'stateOfCharge': transaction.stateOfCharge,
                 'totalDuration': this._buildCurrentTransactionDuration(transaction),
                 'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
                 'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
@@ -780,12 +777,12 @@ class ChargingStation extends AbstractTenantEntity {
               Logging.logActionExceptionMessage(this.getTenantID(), 'EndOfCharge', error);
             }
           }
-        // Check the SoC
+          // Check the SoC
         } else if (_configChargingStation.notifBeforeEndOfChargeEnabled &&
           transaction.stateOfCharge >= _configChargingStation.notifBeforeEndOfChargePercent) {
           // Notify User?
           if (transaction.initiator) {
-              // Notifcation Before End Of Charge
+            // Notifcation Before End Of Charge
             NotificationHandler.sendOptimalChargeReached(
               this.getTenantID(),
               transaction.id + '-OCR',
@@ -946,23 +943,23 @@ class ChargingStation extends AbstractTenantEntity {
             newMeterValues.values.push(newLocalMeterValue);
           }
         } else {
-            // Clone header
-            // eslint-disable-next-line prefer-const
-            let newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
-            // Normalize
-            newLocalMeterValue.attribute = {};
-            // Enrich with OCPP16 attributes
-            newLocalMeterValue.attribute.context = ( value.sampledValue.context ? value.sampledValue.context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC);
-            newLocalMeterValue.attribute.format = ( value.sampledValue.format ? value.sampledValue.format : Constants.METER_VALUE_FORMAT_RAW);
-            newLocalMeterValue.attribute.measurand = ( value.sampledValue.measurand ? value.sampledValue.measurand : Constants.METER_VALUE_MEASURAND_IMPREG);
-            newLocalMeterValue.attribute.location = ( value.sampledValue.location ? value.sampledValue.location : Constants.METER_VALUE_LOCATION_OUTLET);
-            newLocalMeterValue.attribute.unit = ( value.sampledValue.unit ? value.sampledValue.unit : Constants.METER_VALUE_UNIT_WH);
-            newLocalMeterValue.attribute.phase = ( value.sampledValue.phase ? value.sampledValue.phase : '');
-            newLocalMeterValue.value = parseInt(value.sampledValue.value);
-            // Add
-            newMeterValues.values.push(newLocalMeterValue);
+          // Clone header
+          // eslint-disable-next-line prefer-const
+          let newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
+          // Normalize
+          newLocalMeterValue.attribute = {};
+          // Enrich with OCPP16 attributes
+          newLocalMeterValue.attribute.context = (value.sampledValue.context ? value.sampledValue.context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC);
+          newLocalMeterValue.attribute.format = (value.sampledValue.format ? value.sampledValue.format : Constants.METER_VALUE_FORMAT_RAW);
+          newLocalMeterValue.attribute.measurand = (value.sampledValue.measurand ? value.sampledValue.measurand : Constants.METER_VALUE_MEASURAND_IMPREG);
+          newLocalMeterValue.attribute.location = (value.sampledValue.location ? value.sampledValue.location : Constants.METER_VALUE_LOCATION_OUTLET);
+          newLocalMeterValue.attribute.unit = (value.sampledValue.unit ? value.sampledValue.unit : Constants.METER_VALUE_UNIT_WH);
+          newLocalMeterValue.attribute.phase = (value.sampledValue.phase ? value.sampledValue.phase : '');
+          newLocalMeterValue.value = parseInt(value.sampledValue.value);
+          // Add
+          newMeterValues.values.push(newLocalMeterValue);
         }
-      // Values provided?
+        // Values provided?
       } else if (value.value) {
         // OCCP1.2: Set the values
         if (value.value.$value) {
@@ -978,27 +975,6 @@ class ChargingStation extends AbstractTenantEntity {
     }
     // Compute consumption?
     if (meterValues.transactionId) {
-      // Get the Transaction
-      
-      //TODO a changer
-      let transaction = await TransactionStorage.getTransaction(
-        this.getTenantID(), meterValues.transactionId);
-      // Check for the first State of Charge to update the Transaction
-      for (const value of newMeterValues.values) {
-        // Check
-        if (value.attribute && 
-            value.attribute.context === 'Transaction.Begin' &&
-            value.attribute.measurand === 'SoC') {
-          // Set the SoC to the transaction
-          if (transaction) {
-            // Set the SoC
-            transaction.stateOfCharge = value.value;
-            // Save
-            await TransactionStorage.saveTransaction(this.getTenantID(), transaction);
-          }
-          break;
-        }
-      }
       // Save Meter Values
       await TransactionStorage.saveMeterValues(this.getTenantID(), newMeterValues);
       // Update Charging Station Consumption
@@ -1020,7 +996,7 @@ class ChargingStation extends AbstractTenantEntity {
       Logging.logWarning({
         tenantID: this.getTenantID(),
         source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-        action: 'MeterValues', message: `MeterValue not saved (not linked to a Transaction)`,
+        action: 'MeterValues', message: `'${meterValuesContext}' not saved (not linked to a Transaction)`,
         detailedMessages: meterValues
       });
     }
@@ -1312,7 +1288,6 @@ class ChargingStation extends AbstractTenantEntity {
     await this.save();
 
     if (isSoftStop) {
-      //TODO a changer ajout du parametre state of charge
       stopTransactionData.meterStop = transactionEntity._latestMeterValue.value;
     }
     transactionEntity.stop(stoppingUserModel, stoppingTagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp));
@@ -1336,7 +1311,7 @@ class ChargingStation extends AbstractTenantEntity {
             {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
           'totalDuration': this._buildCurrentTransactionDuration(transactionEntity),
           'totalInactivity': this._buildCurrentTransactionInactivity(transactionEntity),
-          'stateOfCharge': transaction.stop.stateOfCharge,
+          'stateOfCharge': transactionEntity.stateEndOfCharge,
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transactionEntity.connectorId, transactionEntity.id),
           'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
         },

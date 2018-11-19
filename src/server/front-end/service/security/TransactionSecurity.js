@@ -124,7 +124,7 @@ class TransactionSecurity {
           filteredTransaction.stop.tagID = transaction.finisherTagId;
         }
         if (transaction.stop.hasOwnProperty('stateOfCharge')) {
-          filteredTransaction.stop.stateOfCharge = transaction.stop.stateOfCharge;
+          filteredTransaction.stop.stateOfCharge = transaction.stateEndOfCharge;
         }
         // Admin?
         if (Authorizations.isAdmin(loggedUser)) {
