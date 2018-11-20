@@ -20,7 +20,7 @@ class OCPIServices {
    */
   getVersions(req, res) {
     const versions = _ocpiServices.map(ocpiService => {
-      return { "version": ocpiService.getVersion() , "url": ocpiService.getServiceUrl()};
+      return { "version": ocpiService.getVersion() , "url": ocpiService.getServiceUrl(req)};
     })
 
     // send available versions
