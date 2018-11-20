@@ -35,6 +35,13 @@ module.exports = {
     UNKNOWN: "UNKNOWN"
   },
 
+  // OCPI CONNECTOR POWER TYPE
+  CONNECTOR_POWER_TYPE: {
+    AC_1_PHASE: "AC_1_PHASE",
+    AC_3_PHASE: "AC_3_PHASE",
+    DC: "DC"
+  },
+
   // CONNECTOR TYPE
   MAPPING_CONNECTOR_TYPE: {
     "CHADEMO": "CHADEMO",

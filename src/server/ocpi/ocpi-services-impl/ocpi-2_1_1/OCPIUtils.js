@@ -20,7 +20,7 @@ class OCPIUtils {
     // build object
     return {
       "id": siteArea.getID(),
-      "type": "UNKNOWN",
+      // "type": "UNKNOWN",
       "name": siteArea.getName(),
       "address": `${site.getAddress().address1} ${site.getAddress().address2}`,
       "city": site.getAddress().city,
@@ -44,7 +44,7 @@ class OCPIUtils {
     // build object
     return {
       "id": site.getID(),
-      "type": "UNKNOWN",
+      // "type": "UNKNOWN",
       "name": site.getName(),
       "address": `${site.getAddress().address1} ${site.getAddress().address2}`,
       "city": site.getAddress().city,
@@ -56,7 +56,7 @@ class OCPIUtils {
       },
       "evses": await this.getEvsesFromSite(tenant, site),
       // "charging_when_closed": false,
-      "last_updated": new Date().toISOString()
+      "last_updated": site.getLastChangedOn()
     };
   }
 
@@ -120,7 +120,7 @@ class OCPIUtils {
         "uid": `${chargingStation.getID()}_${connector.connectorId}`,
         "id": this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}*${connector.connectorId}`),
         "status": this.convertStatus2OCPIStatus(connector.status),
-        "connectors": [this.convertConnector2OCPIConnector(connector)]
+        "connectors": [this.convertConnector2OCPIConnector(chargingStation, connector)]
       }
     });
 
@@ -137,26 +137,66 @@ class OCPIUtils {
   static convertChargingStation2UniqueEvse(tenant, chargingStation) {
     // Get all connectors
     const connectors = chargingStation.getConnectors().map(connector => {
-      return this.convertConnector2OCPIConnector(connector);
+      return this.convertConnector2OCPIConnector(chargingStation, connector);
     })
 
     // build evse
     return [{
       "uid": `${chargingStation.getID()}`,
       "id": this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`),
-      "status": "AVAILABLE", // TODO: get status of connector
+      "status": this.convertStatus2OCPIStatus(this.aggregateConnectorsStatus(connectors)),
       "connectors": connectors
     }];
   }
 
   /**
+   * As the status is located at EVSE object, it is necessary to aggregate status from the list
+   * of connectors
+   * The logic may need to be reviewed based on the list of handled status per connector
+   * @param {*} connectors 
+   */
+  static aggregateConnectorsStatus(connectors) {
+    // Build array with charging station ordered by priority
+    const statusesOrdered = [ Constants.CONN_STATUS_AVAILABLE, Constants.CONN_STATUS_OCCUPIED, 
+      Constants.CONN_STATUS_CHARGING, Constants.CONN_STATUS_FAULTED];
+
+    let aggregatedConnectorStatusIndex = 0;
+
+    // loop through connector
+    for (const connector of connectors) {
+      if ( statusesOrdered.indexOf(connector.status) > aggregatedConnectorStatusIndex ) {
+        aggregatedConnectorStatusIndex = statusesOrdered.indexOf(connector.status);
+      }
+    }
+
+    // return value
+    return statusesOrdered[aggregatedConnectorStatusIndex];
+  }
+
+  /**
    * Converter Connector to OCPI Connector
+   * @param {ChargingStation} chargingStation
    * @param {*} connector 
    */
-  static convertConnector2OCPIConnector(connector) {
+  static convertConnector2OCPIConnector(chargingStation, connector) {
     return {
       "id": connector.connectorId,
-      "type": OCPIConstants.MAPPING_CONNECTOR_TYPE[connector.type]
+      "type": OCPIConstants.MAPPING_CONNECTOR_TYPE[connector.type],
+      "power_type": this.convertNumberofConnectedPhase2PowerType(chargingStation.getNumberOfConnectedPhase()),
+      "last_update": chargingStation.getLastHeartBeat()
+    }
+  }
+
+  /**
+   * Convert internal Power (1/3 Phase) to PowerType
+   * @param {*} power 
+   */
+  static convertNumberofConnectedPhase2PowerType(numberOfConnectedPhase) {
+    switch(numberOfConnectedPhase) {
+      case 1:
+        return OCPIConstants.CONNECTOR_POWER_TYPE.AC_1_PHASE;
+      case 3:
+        return OCPIConstants.CONNECTOR_POWER_TYPE.AC_3_PHASE;
     }
   }
 
@@ -165,7 +205,7 @@ class OCPIUtils {
    */
   static convert2evseid(id) {
     if (id != null && id != "") {
-      return id.replace(/[\W_]+/g,"*").toLowerCase();
+      return id.replace(/[\W_]+/g,"*").toUpperCase();
     }
   }
 
@@ -179,16 +219,16 @@ class OCPIUtils {
         return OCPIConstants.EVSE_STATUS.AVAILABLE;
       case Constants.CONN_STATUS_OCCUPIED:
         return OCPIConstants.EVSE_STATUS.BLOCKED;
-      case "Charging":
+      case Constants.CONN_STATUS_CHARGING:
         return OCPIConstants.EVSE_STATUS.CHARGING;
-      case "Faulted":
+      case Constants.CONN_STATUS_FAULTED:
         return OCPIConstants.EVSE_STATUS.INOPERATIVE;
       case "Preparing":
       case "SuspendedEV":
       case "SuspendedEVSE":
       case "Finishing":
       case "Reserved":
-        return OCPIConstants.EVSE_STATUS.UNKNOWN;
+        return OCPIConstants.EVSE_STATUS.BLOCKED;
       default:
         return OCPIConstants.EVSE_STATUS.UNKNOWN;
     }

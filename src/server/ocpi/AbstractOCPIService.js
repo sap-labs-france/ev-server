@@ -142,11 +142,14 @@ class AbstractOCPIService {
       }
 
       // check token
-      if (req.headers == null || `Token ${this._ocpiRestConfig.eMI3id[tenantSubdomain].token}` != req.headers.authorization ) {
-        throw new OCPIClientError(
-          OCPIConstants.OCPI_CLIENT,
-          "Unauthorized : Check credentials failed", 401,
-          MODULE_NAME, 'handleVerifyTenant', null);
+      // TODO: remove temporary checkToken in futur - only use to test in chrome without token
+      if (this._ocpiRestConfig.eMI3id[tenantSubdomain].checkToken) {
+        if (req.headers == null || `Token ${this._ocpiRestConfig.eMI3id[tenantSubdomain].token}` != req.headers.authorization) {
+          throw new OCPIClientError(
+            OCPIConstants.OCPI_CLIENT,
+            "Unauthorized : Check credentials failed", 401,
+            MODULE_NAME, 'handleVerifyTenant', null);
+        }
       }
 
       // handle request action (endpoint)
