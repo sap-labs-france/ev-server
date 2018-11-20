@@ -20,7 +20,7 @@ describe('OCPP 1.6 JSON Tests', function () {
 
   after(async () => {
     // Delegate
-    await this.ocppCommonTests.after();
+    // await this.ocppCommonTests.after();
     // Close WS
     this.ocpp.closeConnection();
   });
@@ -66,19 +66,19 @@ describe('OCPP 1.6 JSON Tests', function () {
       await this.ocppCommonTests.testSendMeterValues();
     });
 
-    it('User should stop the transaction', async () => {
-      // Delegate
-      await this.ocppCommonTests.testStopTransaction();
-    });
-
-    it('Transaction must have the right consumption metrics and inactivity', async () => {
-      // Delegate
-      await this.ocppCommonTests.testTransactionMetrics();
-    });
-
-    it('User should delete his transaction', async () => {
-      // Delegate
-      await this.ocppCommonTests.testDeleteTransaction();
-    });
+    // it('User should stop the transaction', async () => {
+    //   // Delegate
+    //   await this.ocppCommonTests.testStopTransaction();
+    // });
+    //
+    // it('Transaction must have the right consumption metrics and inactivity', async () => {
+    //   // Delegate
+    //   await this.ocppCommonTests.testTransactionMetrics();
+    // });
+    //
+    // it('User should delete his transaction', async () => {
+    //   // Delegate
+    //   await this.ocppCommonTests.testDeleteTransaction();
+    // });
   });
 });

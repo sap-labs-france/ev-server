@@ -1283,7 +1283,7 @@ class ChargingStation extends AbstractTenantEntity {
             {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
           'totalDuration': this._buildCurrentTransactionDuration(transactionEntity),
           'totalInactivity': this._buildCurrentTransactionInactivity(transactionEntity),
-          'stateOfCharge': transactionEntity.stateEndOfCharge,
+          'stateOfCharge': transactionEntity.endStateOfCharge,
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transactionEntity.connectorId, transactionEntity.id),
           'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
         },

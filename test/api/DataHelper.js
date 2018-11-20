@@ -61,28 +61,23 @@ class DataHelper {
     return createdSiteArea;
   }
 
-  async createChargingStation(chargingStation = Factory.chargingStation.build({id: faker.random.alphaNumeric(12)})) {
+  async createChargingStation(chargingStation = Factory.chargingStation.build({id: faker.random.alphaNumeric(12)}), numberOfConnectors = 2) {
     const response = await this.ocpp.executeBootNotification(
       chargingStation.id, chargingStation);
-    console.log(response);
     expect(response.data).to.not.be.null;
     expect(response.data.status).to.eql('Accepted');
     expect(response.data).to.have.property('currentTime');
     const createdChargingStation = await CentralServerService.getEntityById(
       CentralServerService.chargingStationApi, chargingStation);
     chargingStation.connectors = [];
-    createdChargingStation.connectors[0] = {
-      connectorId: 1,
-      status: 'Available',
-      errorCode: 'NoError',
-      timestamp: new Date().toISOString()
-    };
-    createdChargingStation.connectors[1] = {
-      connectorId: 2,
-      status: 'Available',
-      errorCode: 'NoError',
-      timestamp: new Date().toISOString()
-    };
+    for (let i = 0; i < numberOfConnectors; i++) {
+      createdChargingStation.connectors[i] = {
+        connectorId: i + 1,
+        status: 'Available',
+        errorCode: 'NoError',
+        timestamp: new Date().toISOString()
+      };
+    }
     for (const connector of createdChargingStation.connectors) {
       await this.ocpp.executeStatusNotification(createdChargingStation.id, connector);
       expect(response).to.not.be.null;
@@ -137,7 +132,7 @@ class DataHelper {
   }
 
 
-  async sendMeterValue(chargingStation, connectorId, transactionId, meterValue, timestamp) {
+  async sendConsumptionMeterValue(chargingStation, connectorId, transactionId, meterValue, timestamp) {
     const response = await this.ocpp.executeMeterValues(chargingStation.id, {
       connectorId: connectorId,
       transactionId: transactionId,
@@ -149,6 +144,24 @@ class DataHelper {
           measurand: "Energy.Active.Import.Register",
           unit: 'Wh',
           location: "Outlet",
+          context: "Sample.Periodic"
+        }]
+
+      },
+    });
+    expect(response.data).to.eql({});
+  }
+
+  async sendSoCMeterValue(chargingStation, connectorId, transactionId, meterValue, timestamp) {
+    const response = await this.ocpp.executeMeterValues(chargingStation.id, {
+      connectorId: connectorId,
+      transactionId: transactionId,
+      meterValue: {
+        timestamp: timestamp.toISOString(),
+        sampledValue: [{
+          value: meterValue,
+          format: "Raw",
+          measurand: "SoC",
           context: "Sample.Periodic"
         }]
 

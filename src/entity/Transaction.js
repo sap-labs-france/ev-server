@@ -167,6 +167,10 @@ class Transaction {
     return this.stateOfCharges[this.stateOfCharges.length - 1];
   }
 
+  get _initialStateOfCharge() {
+    return this.stateOfCharges[0];
+  }
+
   get currentConsumption() {
     if (this.isActive() && this._hasMeterValues()) {
       return Math.floor(this._latestConsumption.value);
@@ -244,6 +248,13 @@ class Transaction {
     return false;
   }
 
+  get initialStateOfCharge() {
+    if (!this._model.stateOfCharge && this._hasStateOfCharges()) {
+      this._model.stateOfCharge = this._initialStateOfCharge.value;
+    }
+    return this._model.stateOfCharge
+  }
+
   get stateOfCharge() {
     if (this._hasStateOfCharges()) {
       return this._latestStateOfCharge.value;
@@ -251,8 +262,7 @@ class Transaction {
     return undefined;
   }
 
-
-  get stateEndOfCharge() {
+  get endStateOfCharge() {
     return this._model.stop.stateOfCharge;
   }
 

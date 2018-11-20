@@ -77,7 +77,7 @@ describe('Transaction tests', function() {
 
       const load = 100;
       const currentTime = startDate.clone().add(1, 'hour');
-      await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, meterStart + load, currentTime);
+      await this.dataHelper.sendConsumptionMeterValue(chargingStation, connectorId, transactionId, meterStart + load, currentTime);
 
       const response = await CentralServerService.transactionApi.readById(transactionId);
       expect(response.status).to.equal(200);
@@ -116,12 +116,12 @@ describe('Transaction tests', function() {
       load = 100;
       cumulated += load;
       currentTime.add(1, 'hour');
-      await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, currentTime);
+      await this.dataHelper.sendConsumptionMeterValue(chargingStation, connectorId, transactionId, cumulated, currentTime);
 
       load = 50;
       cumulated += load;
       currentTime.add(1, 'hour');
-      await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, currentTime);
+      await this.dataHelper.sendConsumptionMeterValue(chargingStation, connectorId, transactionId, cumulated, currentTime);
 
       const response = await CentralServerService.transactionApi.readById(transactionId);
       expect(response.status).to.equal(200);
@@ -308,7 +308,7 @@ describe('Transaction tests', function() {
 
       for (const meterValue of meterValues) {
         cumulated += meterValue.value;
-        await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
+        await this.dataHelper.sendConsumptionMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
       }
 
       const response = await CentralServerService.transactionApi.readAllConsumption({TransactionId: transactionId});
@@ -356,7 +356,7 @@ describe('Transaction tests', function() {
 
       for (const meterValue of meterValues) {
         cumulated += meterValue.value;
-        await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
+        await this.dataHelper.sendConsumptionMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
       }
 
       let response = await CentralServerService.transactionApi.readAllConsumption({
@@ -761,7 +761,7 @@ describe('Transaction tests', function() {
     let cumulated = meterStart;
     for (const meterValue of meterValues) {
       cumulated += meterValue.value;
-      await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
+      await this.dataHelper.sendConsumptionMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
     }
     await timeout(2000);
     expect(await CentralServerService.mailApi.isMailReceived(user.email, 'transaction-started')).is.equal(true, "transaction-started mail");
@@ -814,7 +814,7 @@ describe('Transaction tests', function() {
     let cumulated = meterStart;
     for (const meterValue of meterValues) {
       cumulated += meterValue.value;
-      await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
+      await this.dataHelper.sendConsumptionMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
     }
 
     await this.dataHelper.stopTransaction(chargingStation, transactionId, tagId, cumulated, currentDate.add(1, 'hour'));
@@ -872,7 +872,7 @@ describe('Transaction tests', function() {
       let cumulated = meterStart;
       for (const meterValue of meterValues) {
         cumulated += meterValue.value;
-        await this.dataHelper.sendMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
+        await this.dataHelper.sendConsumptionMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
       }
 
       await this.dataHelper.stopTransaction(chargingStation, transactionId, tagId, cumulated, currentDate.add(1, 'hour'));
