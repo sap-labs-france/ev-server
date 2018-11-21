@@ -57,6 +57,7 @@ class ChargingStationStorage {
     await Utils.checkTenant(tenantID);
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
     const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
+    const Site = require('../../entity/Site'); // Avoid fucking circular deps!!!
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -85,9 +86,11 @@ class ChargingStationStorage {
     if (params.search) {
       // Build filter
       filters.$and.push({
-        "$or": [{
-          "_id": {$regex: params.search, $options: 'i'}
-        }]
+        "$or": [
+          {"_id": {$regex: params.search, $options: 'i'}},
+          {"chargePointModel": {$regex: params.search, $options: 'i'}},
+          {"chargePointVendor": {$regex: params.search, $options: 'i'}}
+        ]
       });
     }
     // Source?
@@ -122,6 +125,21 @@ class ChargingStationStorage {
         // Build filter
         filters.$and.push({
           "siteArea.siteID": Utils.convertToObjectID(params.siteID)
+        });
+      } 
+      if (params.withSite) {
+        // Get the site from the sitearea
+        aggregation.push({
+          $lookup: {
+            from: DatabaseUtils.getCollectionName(tenantID, "sites"),
+            localField: "siteArea.siteID",
+            foreignField: "_id",
+            as: "site"
+          }
+        });
+        // Single Record
+        aggregation.push({
+          $unwind: {"path": "$site", "preserveNullAndEmptyArrays": true}
         });
       }
     }
@@ -166,8 +184,13 @@ class ChargingStationStorage {
       const chargingStation = new ChargingStation(tenantID, chargingStationMDB)
       // Add the Site Area?
       if (chargingStationMDB.siteArea) {
+        const siteArea = new SiteArea(tenantID, chargingStationMDB.siteArea)
         // Set
-        chargingStation.setSiteArea(new SiteArea(tenantID, chargingStationMDB.siteArea))
+        chargingStation.setSiteArea(siteArea);
+        if (chargingStationMDB.site) {
+          // Add site
+          siteArea.setSite(new Site(tenantID, chargingStationMDB.site));
+        }
       }
       // Add
       chargingStations.push(chargingStation);
