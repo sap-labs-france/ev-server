@@ -211,6 +211,9 @@ class TransactionSecurity {
       }
       filteredConsumption.totalConsumption = consumption.totalConsumption;
       filteredConsumption.transactionId = consumption.transactionId;
+      if (consumption.hasOwnProperty('stateOfCharge')) {
+        filteredConsumption.stateOfCharge = consumption.stateOfCharge;
+      }
       // Check user
       if (consumption.user) {
         if (!Authorizations.canReadUser(loggedUser, consumption.user)) {
