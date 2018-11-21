@@ -88,7 +88,7 @@ class AbstractOCPIService {
     })
 
     // return payload
-    res.json({ "version": this.getVersion(), "endpoints": supportedEndpoints });
+    res.json(OCPIUtils.success({ "version": this.getVersion(), "endpoints": supportedEndpoints }));
   }
 
   /**
