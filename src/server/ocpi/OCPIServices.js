@@ -1,5 +1,6 @@
 const OCPIService2_1_1 = require('./ocpi-services-impl/ocpi-2.1.1/OCPIService.js');
 const OCPIService2_0 = require('./ocpi-services-impl/ocpi-2.0/OCPIService.js');
+const OCPIUtils = require('../ocpi/OCPIUtils');
 
 require('source-map-support').install();
 
@@ -24,7 +25,7 @@ class OCPIServices {
     })
 
     // send available versions
-    res.json(versions);
+    res.json(OCPIUtils.success(versions));
   }
 
   // Return all OCPI Service Implementation
