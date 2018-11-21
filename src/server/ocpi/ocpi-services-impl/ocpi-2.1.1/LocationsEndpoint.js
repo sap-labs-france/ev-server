@@ -1,9 +1,7 @@
 const AbstractEndpoint = require('../AbstractEndpoint');
-const SiteArea = require('../../../../entity/SiteArea');
 const Site = require('../../../../entity/Site');
-const OCPIUtils = require('./OCPIUtils');
-const OCPIResponse = require('../../OCPIResponse');
-const OCPIConstants = require('../../OCPIConstants');
+const OCPIMapping = require('./OCPIMapping');
+const OCPIUtils = require('../../OCPIUtils');
 
 require('source-map-support').install();
 
@@ -49,17 +47,6 @@ class LocationsEndpoint extends AbstractEndpoint {
     const evse_id = urlSegment.shift();
     const connector_id = urlSegment.shift();
 
-    // Get the siteAreas
-    // const siteAreas = await SiteArea.getSiteAreas(
-    //   // TODO: get tenant
-    //   tenant.getID(),
-    //   {
-    //     // 'search': filteredRequest.Search, 
-    //     'withSite': true,
-    //     'withChargeBoxes': true,
-    //     // 'siteID': filteredRequest.SiteID
-    //   },
-    //   100, 0, null);
     // Get all sites
     const sites = await Site.getSites(
       tenant.getID(),
@@ -69,20 +56,14 @@ class LocationsEndpoint extends AbstractEndpoint {
       },
       100, 0, null);
 
-    // convert Site Areas to Locations
-    // const locations = await Promise.all(siteAreas.result.map(async siteArea => { // eslint-disable-line
-    //   // convert SiteArea to Location
-    //   return await OCPIUtils.convertSiteArea2Location(siteArea);
-    // }));
-
     // convert Sites to Locations
     const locations = await Promise.all(sites.result.map(async site => { // eslint-disable-line
       // convert Site to Location
-      return await OCPIUtils.convertSite2Location(tenant, site);
+      return await OCPIMapping.convertSite2Location(tenant, site);
     }));
 
     // return Payload
-    res.json(OCPIResponse.success(locations));
+    res.json(OCPIUtils.success(locations));
   }
 
 }

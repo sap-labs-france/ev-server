@@ -1,8 +1,8 @@
 const Tenant = require('../../entity/Tenant');
-const OCPIServerError = require('./exception/OCPIServerError');
-const OCPIClientError = require('./exception/OCPIClientError');
-const OCPIConstants = require('./OCPIConstants');
-const OCPIResponse = require('./OCPIResponse');
+const OCPIServerError = require('../../exception/OCPIServerError');
+const OCPIClientError = require('../../exception/OCPIClientError');
+const Constants = require('../../utils/Constants');
+const OCPIUtils = require('./OCPIUtils');
 
 const MODULE_NAME = "OCPIService";
 
@@ -57,11 +57,6 @@ class AbstractOCPIService {
     return this._version;
   }
 
-  // Rest Service Abstract Method
-  // restService(req, res, next) { // eslint-disable-line
-
-  // }
-
   // Rest Service Implementation
   restService(req, res, next) { // eslint-disable-line
     // Parse the action
@@ -112,7 +107,7 @@ class AbstractOCPIService {
       // check if tenant is found
       if (!tenant && tenantSubdomain !== '') {
         throw new OCPIServerError(
-          OCPIConstants.OCPI_SERVER,
+          Constants.OCPI_SERVER,
           `The Tenant with subdomain '${tenantSubdomain}' does not exist`, 500,
           MODULE_NAME, 'handleVerifyTenant', null);
       }
@@ -120,7 +115,7 @@ class AbstractOCPIService {
       // check if service is enabled for tenant
       if (!this._ocpiRestConfig.tenantEnabled.includes(tenantSubdomain)) {
         throw new OCPIServerError(
-          OCPIConstants.OCPI_SERVER,
+          Constants.OCPI_SERVER,
           `The Tenant with subdomain '${tenantSubdomain}' is not enabled for OCPI`, 500,
           MODULE_NAME, 'handleVerifyTenant', null);
       }
@@ -136,7 +131,7 @@ class AbstractOCPIService {
         tenant._eMI3.party_id = this._ocpiRestConfig.eMI3id[tenantSubdomain].party_id;
       } else {
         throw new OCPIServerError(
-          OCPIConstants.OCPI_SERVER,
+          Constants.OCPI_SERVER,
           `The Tenant with subdomain '${tenantSubdomain}' doesn't have country_id and/or party_id defined`, 500,
           MODULE_NAME, 'handleVerifyTenant', null);
       }
@@ -146,7 +141,7 @@ class AbstractOCPIService {
       if (this._ocpiRestConfig.eMI3id[tenantSubdomain].checkToken) {
         if (req.headers == null || `Token ${this._ocpiRestConfig.eMI3id[tenantSubdomain].token}` != req.headers.authorization) {
           throw new OCPIClientError(
-            OCPIConstants.OCPI_CLIENT,
+            Constants.OCPI_SERVER,
             "Unauthorized : Check credentials failed", 401,
             MODULE_NAME, 'handleVerifyTenant', null);
         }
@@ -170,7 +165,7 @@ class AbstractOCPIService {
     // TODO: add logging
 
     // return response with error
-    res.status(error.errorCode).json(OCPIResponse.error(error));
+    res.status(error.errorCode).json(OCPIUtils.error(error));
   }
 
 }

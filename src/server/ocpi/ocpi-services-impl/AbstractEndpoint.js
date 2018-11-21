@@ -1,4 +1,4 @@
-const OCPIResponse = require('../OCPIResponse');
+const OCPIUtils = require('../OCPIUtils');
 
 require('source-map-support').install();
 
@@ -28,7 +28,7 @@ class AbstractEndpoint {
     // TODO: add logging
 
     // return response with error
-    res.status(error.errorCode).json(OCPIResponse.error(error));
+    res.status(error.errorCode).json(OCPIUtils.error(error));
   }
 }
 
