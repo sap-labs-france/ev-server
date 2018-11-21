@@ -81,6 +81,19 @@ class Configuration {
     return centralSystemRestService;
   }
 
+  // OCPI Server Configuration
+  static getOCPIServiceConfig() {
+    const ocpiService = Configuration.getConfig().OCPIService;
+    // Check Cloud Foundry
+    if (ocpiService && Configuration.isCloudFoundry()) {
+      // CF Environment: Override
+      ocpiService.port = _appEnv.port;
+      ocpiService.host = _appEnv.bind;
+    }
+    // Read conf
+    return ocpiService;
+  }
+
   // Central System REST config
   static getWSDLEndpointConfig() {
     return Configuration.getConfig().WSDLEndpoint;
