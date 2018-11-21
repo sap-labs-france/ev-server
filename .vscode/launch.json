@@ -16,7 +16,7 @@
                 "--timeout",
                 "999999",
                 "--colors",
-                "${workspaceFolder}/test/api/OCPITest.js"
+                "${workspaceFolder}/test/api/OCPIBasicTest.js"
             ],
             "internalConsoleOptions": "openOnSessionStart"
         },
