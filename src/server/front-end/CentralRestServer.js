@@ -38,11 +38,11 @@ class CentralRestServer {
 
     // Body parser
     express.use(bodyParser.json({
-      limit: '1mb'
+      limit: '2mb'
     }));
     express.use(bodyParser.urlencoded({
       extended: false,
-      limit: '1mb'
+      limit: '2mb'
     }));
     express.use(bodyParser.xml());
 
