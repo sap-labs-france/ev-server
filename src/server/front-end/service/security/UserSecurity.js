@@ -42,6 +42,8 @@ class UserSecurity {
     // Handle picture
     filteredRequest.Search = request.Search;
     filteredRequest.SiteID = request.SiteID;
+    filteredRequest.Role = request.Role;
+    filteredRequest.Status = request.Status;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
