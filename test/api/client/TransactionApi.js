@@ -72,6 +72,7 @@ class TransactionApi extends CrudApi {
           activeTransactionID: transactionId,
           connectorId: chargingStationConnector.connectorId,
           currentConsumption: 0,
+          currentStateOfCharge: 0,
           totalConsumption: 0,
           status: 'Occupied',
           errorCode: 'NoError',
@@ -149,6 +150,7 @@ class TransactionApi extends CrudApi {
           activeTransactionID: transaction.id,
           connectorId: transaction.connectorId,
           currentConsumption: currentConsumption,
+          currentStateOfCharge: 0,
           totalConsumption: totalConsumption,
           status: 'Occupied',
           errorCode: 'NoError',
@@ -191,42 +193,45 @@ class TransactionApi extends CrudApi {
     // Check Transaction
     expect(response.status).to.equal(200);
     expect(response.data).to.deep.include({
-      id: transaction.id,
-      timestamp: transaction.timestamp,
-      connectorId: transaction.connectorId,
-      tagID: transaction.tagID,
-      chargeBoxID: transaction.chargeBoxID,
-      meterStart: transaction.meterStart,
+      "id": transaction.id,
+      "timestamp": transaction.timestamp,
+      "connectorId": transaction.connectorId,
+      "tagID": transaction.tagID,
+      "chargeBoxID": transaction.chargeBoxID,
+      "stateOfCharge": 0,
+      "meterStart": transaction.meterStart,
       "stop": {
         "tagID": userStop.tagIDs[0],
         "timestamp": stopTime.toISOString(),
         "totalConsumption": totalConsumption,
         "totalInactivitySecs": totalInactivity,
+        "stateOfCharge": 0,
         "user": {
           "id": userStop.id,
           "name": userStop.name,
           "firstName": userStop.firstName
         },
       },
-      chargeBox: {
-        id: transaction.chargeBoxID,
-        connectors: [{
-          activeTransactionID: 0,
-          connectorId: transaction.connectorId,
-          currentConsumption: 0,
-          totalConsumption: 0,
-          status: 'Available',
-          errorCode: 'NoError',
-          vendorErrorCode: '',
-          info: '',
-          type: null,
-          power: 0
+      "chargeBox": {
+        "id": transaction.chargeBoxID,
+        "connectors": [{
+          "activeTransactionID": 0,
+          "connectorId": transaction.connectorId,
+          "currentConsumption": 0,
+          "currentStateOfCharge": 0,
+          "totalConsumption": 0,
+          "status": 'Available',
+          "errorCode": 'NoError',
+          "vendorErrorCode": '',
+          "info": '',
+          "type": null,
+          "power": 0
         }]
       },
-      user: {
-        id: userStart.id,
-        name: userStart.name,
-        firstName: userStart.firstName
+      "user": {
+        "id": userStart.id,
+        "name": userStart.name,
+        "firstName": userStart.firstName
       }
     })
   }
