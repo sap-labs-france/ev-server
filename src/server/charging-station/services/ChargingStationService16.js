@@ -1,6 +1,7 @@
 const ChargingStationService = require('./ChargingStationService');
 const ChargingStation = require('../../../entity/ChargingStation');
 const Logging = require('../../../utils/Logging');
+const Configuration = require('../../../utils/Configuration');
 require('source-map-support').install();
 
 /**
@@ -64,6 +65,17 @@ class ChargingStationService16 extends ChargingStationService {
       const updatedChargingStation = await chargingStation.save();
       // Save the Boot Notification
       await updatedChargingStation.handleBootNotification(payload);
+
+      if (Configuration.getTestConfig() && Configuration.getTestConfig().automaticChargerAssignment) {
+        const SiteArea = require('../../../entity/SiteArea');
+        const siteAreas = await SiteArea.getSiteAreas(payload.tenantID);
+        if (Array.isArray(siteAreas.result) && siteAreas.result.length > 0) {
+          // Set
+          chargingStation.setSiteArea(siteAreas.result[0]);
+          // Save
+          await chargingStation.saveChargingStationSiteArea()
+        }
+      }
       // Return the result
       return {
         'currentTime': new Date().toISOString(),
