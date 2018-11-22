@@ -1,4 +1,5 @@
 const Constants = require("../../../../utils/Constants");
+const Site = require("../../../../entity/Site");
 
 require('source-map-support').install();
 
@@ -14,21 +15,23 @@ class OCPIMapping {
    * @return OCPI Location
    */
   static async convertSite2Location(tenant, site) {
-    // build object
-    return {
-      "id": site.getID(),
-      "name": site.getName(),
-      "address": `${site.getAddress().address1} ${site.getAddress().address2}`,
-      "city": site.getAddress().city,
-      "postal_code": site.getAddress().postalCode,
-      "country": site.getAddress().country,
-      "coordinates": {
-        "latitude": site.getAddress().latitude,
-        "longitude": site.getAddress().longitude
-      },
-      "evses": await this.getEvsesFromSite(tenant, site),
-      "last_updated": site.getLastChangedOn()
-    };
+    if (site instanceof Site) {
+      // build object
+      return {
+        "id": site.getID(),
+        "name": site.getName(),
+        "address": `${site.getAddress().address1} ${site.getAddress().address2}`,
+        "city": site.getAddress().city,
+        "postal_code": site.getAddress().postalCode,
+        "country": site.getAddress().country,
+        "coordinates": {
+          "latitude": site.getAddress().latitude,
+          "longitude": site.getAddress().longitude
+        },
+        "evses": await this.getEvsesFromSite(tenant, site),
+        "last_updated": site.getLastChangedOn()
+      };
+    }
   }
 
   /**
