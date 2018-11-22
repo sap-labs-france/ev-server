@@ -68,74 +68,75 @@ class TransactionSecurity {
     if (Authorizations.canReadTransaction(loggedUser, transaction)) {
       // Set only necessary info
       filteredTransaction = {};
-      filteredTransaction.id = transaction.id;
-      filteredTransaction.chargeBoxID = transaction.chargeBoxID;
-      filteredTransaction.connectorId = transaction.connectorId;
-      filteredTransaction.meterStart = transaction.meterStart;
-      filteredTransaction.currentConsumption = transaction.currentConsumption;
-      filteredTransaction.totalConsumption = transaction.totalConsumption;
-      filteredTransaction.totalInactivitySecs = transaction.totalInactivitySecs;
-      filteredTransaction.totalDurationSecs = transaction.totalDurationSecs;
-      filteredTransaction.status = transaction.chargerStatus;
-      filteredTransaction.isLoading = transaction.isLoading;
+      filteredTransaction.id = transaction.getID();
+      filteredTransaction.chargeBoxID = transaction.getChargeBoxID();
+      filteredTransaction.connectorId = transaction.getConnectorId();
+      filteredTransaction.meterStart = transaction.getMeterStart();
+      filteredTransaction.currentConsumption = transaction.getCurrentConsumption();
+      filteredTransaction.totalConsumption = transaction.getTotalConsumption();
+      filteredTransaction.totalInactivitySecs = transaction.getTotalInactivitySecs();
+      filteredTransaction.totalDurationSecs = transaction.getTotalDurationSecs();
+      filteredTransaction.status = transaction.getChargerStatus();
+      filteredTransaction.isLoading = transaction.isLoading();
 
       // retro compatibility ON
-      filteredTransaction.transactionId = transaction.id;
+      filteredTransaction.transactionId = transaction.getID();
       if (transaction.isActive()) {
-        if (transaction.chargeBox) {
+        if (transaction.getChargeBox()) {
           filteredTransaction.chargeBox = {};
-          filteredTransaction.chargeBox.id = transaction.chargeBox.id;
+          filteredTransaction.chargeBox.id = transaction.getChargeBox().id;
           filteredTransaction.chargeBox.connectors = [];
-          filteredTransaction.chargeBox.connectors[transaction.connectorId - 1] = transaction.chargeBox.connectors[transaction.connectorId - 1];
+          filteredTransaction.chargeBox.connectors[transaction.getConnectorId() - 1] = transaction.getChargeBox().connectors[transaction.getConnectorId() - 1];
         }
       } else {
         filteredTransaction.stop = {};
-        filteredTransaction.stop.totalConsumption = transaction.totalConsumption;
-        filteredTransaction.stop.totalInactivitySecs = transaction.totalInactivitySecs;
-        filteredTransaction.stop.totalDurationSecs = transaction.totalDurationSecs;
+        filteredTransaction.stop.meterStop = transaction.getMeterStop();
+        filteredTransaction.stop.totalConsumption = transaction.getTotalConsumption();
+        filteredTransaction.stop.totalInactivitySecs = transaction.getTotalInactivitySecs();
+        filteredTransaction.stop.totalDurationSecs = transaction.getTotalDurationSecs();
         if (Authorizations.isAdmin(loggedUser)) {
-          filteredTransaction.stop.price = transaction.price;
-          filteredTransaction.stop.priceUnit = transaction.priceUnit;
+          filteredTransaction.stop.price = transaction.getPrice();
+          filteredTransaction.stop.priceUnit = transaction.getPriceUnit();
         }
       }
       // retro compatibility OFF
-      if (transaction.hasOwnProperty('stateOfCharge')) {
-        filteredTransaction.stateOfCharge = transaction.stateOfCharge;
+      if (transaction.hasStateOfCharges()) {
+        filteredTransaction.stateOfCharge = transaction.getStateOfCharge();
       }
 
       // Demo user?
       if (Authorizations.isDemo(loggedUser)) {
         filteredTransaction.tagID = Constants.ANONIMIZED_VALUE;
       } else {
-        filteredTransaction.tagID = transaction.tagID;
+        filteredTransaction.tagID = transaction.getTagID();
       }
-      filteredTransaction.timestamp = transaction.startDate;
+      filteredTransaction.timestamp = transaction.getStartDate();
       // Filter user
       filteredTransaction.user = TransactionSecurity._filterUserInTransactionResponse(
-        transaction.initiator, loggedUser);
+        transaction.getUser(), loggedUser);
       // Transaction Stop
       if (!transaction.isActive()) {
-        filteredTransaction.meterStop = transaction.meterStop;
-        filteredTransaction.stop.timestamp = transaction.endDate;
+        filteredTransaction.meterStop = transaction.getMeterStop();
+        filteredTransaction.stop.timestamp = transaction.getEndDate();
         // Demo user?
         if (Authorizations.isDemo(loggedUser)) {
           filteredTransaction.stop.tagID = Constants.ANONIMIZED_VALUE;
         } else {
-          filteredTransaction.stop.tagID = transaction.finisherTagId;
+          filteredTransaction.stop.tagID = transaction.getFinisherTagId();
         }
-        if (transaction.stop.hasOwnProperty('stateOfCharge')) {
-          filteredTransaction.stop.stateOfCharge = transaction.endStateOfCharge;
+        if (transaction.getEndStateOfCharge()) {
+          filteredTransaction.stop.stateOfCharge = transaction.getEndStateOfCharge();
         }
         // Admin?
         if (Authorizations.isAdmin(loggedUser)) {
-          filteredTransaction.price = transaction.price;
-          filteredTransaction.priceUnit = transaction.priceUnit;
+          filteredTransaction.price = transaction.getPrice();
+          filteredTransaction.priceUnit = transaction.getPriceUnit();
         }
         // Stop User
-        if (transaction.finisher) {
+        if (transaction.getFinisher()) {
           // Filter user
           filteredTransaction.stop.user = TransactionSecurity._filterUserInTransactionResponse(
-            transaction.finisher, loggedUser);
+            transaction.getFinisher(), loggedUser);
         }
       }
     }
@@ -213,19 +214,19 @@ class TransactionSecurity {
       return null;
     }
     // Check
-    if (Authorizations.canReadChargingStation(loggedUser, transaction.chargeBox)) {
-      filteredConsumption.chargeBoxID = transaction.chargeBoxID;
-      filteredConsumption.connectorId = transaction.connectorId;
+    if (Authorizations.canReadChargingStation(loggedUser, transaction.getChargeBox())) {
+      filteredConsumption.chargeBoxID = transaction.getChargeBoxID();
+      filteredConsumption.connectorId = transaction.getConnectorId();
       // Admin?
       if (Authorizations.isAdmin(loggedUser)) {
-        filteredConsumption.priceUnit = transaction.priceUnit;
-        filteredConsumption.totalPrice = transaction.price;
+        filteredConsumption.priceUnit = transaction.getPriceUnit();
+        filteredConsumption.totalPrice = transaction.getPrice();
       }
-      filteredConsumption.totalConsumption = transaction.totalConsumption;
-      filteredConsumption.id = transaction.id;
+      filteredConsumption.totalConsumption = transaction.getTotalConsumption();
+      filteredConsumption.id = transaction.getID();
       // Check user
-      if (transaction.initiator) {
-        if (!Authorizations.canReadUser(loggedUser, transaction.initiator)) {
+      if (transaction.getUser()) {
+        if (!Authorizations.canReadUser(loggedUser, transaction.getUser())) {
           return null;
         }
       } else {
@@ -235,7 +236,7 @@ class TransactionSecurity {
       }
       // Set user
       filteredConsumption.user = TransactionSecurity._filterUserInTransactionResponse(
-        transaction.initiator, loggedUser);
+        transaction.getUser(), loggedUser);
       // Admin?
       if (Authorizations.isAdmin(loggedUser)) {
         // Set them all

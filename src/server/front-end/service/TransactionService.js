@@ -40,22 +40,22 @@ class TransactionService {
         throw new AppAuthError(
           Constants.ACTION_REFUND_TRANSACTION,
           Constants.ENTITY_TRANSACTION,
-          transaction.id,
+          transaction.getID(),
           560, 'TransactionService', 'handleRefundTransaction',
           req.user);
       }
       // Get the Charging Station
-      let chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, transaction.chargeBox.id);
+      let chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, transaction.getChargeBox().id);
       // Found?
       if (!chargingStation) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Charging Station with ID ${transaction.chargeBox.id} does not exist`, 550,
+          `Charging Station with ID ${transaction.getChargeBox().id} does not exist`, 550,
           'TransactionService', 'handleRefundTransaction', req.user);
       }
       // Get Transaction User
-      let user = await User.getUser(req.user.tenantID, transaction.userID);
+      let user = await User.getUser(req.user.tenantID, transaction.getuserID());
       // Check
       if (!user) {
         // Not Found!
@@ -65,7 +65,7 @@ class TransactionService {
           'TransactionService', 'handleRefundTransaction', req.user);
       }
       // Transfer it to the Revenue Cloud
-      await Utils.pushTransactionToRevenueCloud(action, transaction, req.user, transaction.initiator);
+      await Utils.pushTransactionToRevenueCloud(action, transaction, req.user, transaction.getUser());
       // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);
       next();
@@ -103,20 +103,20 @@ class TransactionService {
         throw new AppAuthError(
           Constants.ACTION_DELETE,
           Constants.ENTITY_TRANSACTION,
-          transaction.id,
+          transaction.getID(),
           560, 'TransactionService', 'handleDeleteTransaction',
           req.user);
       }
-      let chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
+      let chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, transaction.getChargeBoxID());
       if (transaction.isActive()) {
         if (!chargingStation) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `Charging Station with ID ${transaction.chargeBox.id} does not exist`, 550,
+            `Charging Station with ID ${transaction.getChargeBox().id} does not exist`, 550,
             'TransactionService', 'handleDeleteTransaction', req.user);
         }
-        if (transaction.id === chargingStation.getConnector(transaction.connectorId).activeTransactionID) {
-          await chargingStation.freeConnector(transaction.connectorId);
+        if (transaction.getID() === chargingStation.getConnector(transaction.getConnectorId()).activeTransactionID) {
+          await chargingStation.freeConnector(transaction.getConnectorId());
           await chargingStation.save();
         }
       }
@@ -126,10 +126,10 @@ class TransactionService {
       // Log
       Logging.logSecurityInfo({
               tenantID: req.user.tenantID,
-        user: req.user, actionOnUser: (transaction.initiator ? transaction.initiator : null),
+        user: req.user, actionOnUser: (transaction.getUser() ? transaction.getUser() : null),
         module: 'TransactionService', method: 'handleDeleteTransaction',
-        message: `Transaction ID '${filteredRequest.ID}' on '${transaction.chargeBoxID}'-'${transaction.connectorId}' has been deleted successfully`,
-        action: action, detailedMessages: transaction.model
+        message: `Transaction ID '${filteredRequest.ID}' on '${transaction.getChargeBoxID()}'-'${transaction.getConnectorId()}' has been deleted successfully`,
+        action: action, detailedMessages: transaction.getModel()
       });
       // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -167,25 +167,25 @@ class TransactionService {
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_TRANSACTION,
-          transaction.id,
+          transaction.getID(),
           560, 'TransactionService', 'handleTransactionSoftStop',
           req.user);
       }
       // Get the Charging Station
-      let chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
+      let chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, transaction.getChargeBoxID());
       // Found?
       if (!chargingStation) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Charging Station with ID '${transaction.chargeBoxID}' does not exist`, 550,
+          `Charging Station with ID '${transaction.getChargeBoxID()}' does not exist`, 550,
           'TransactionService', 'handleTransactionSoftStop', req.user);
       }
       // Check User
       let user;
-      if (transaction.userID) {
+      if (transaction.getuserID()) {
         // Get Transaction User
-        let user = await User.getUser(req.user.tenantID, transaction.userID);
+        let user = await User.getUser(req.user.tenantID, transaction.getuserID());
         // Check
         if (!user) {
           // Not Found!
@@ -197,7 +197,7 @@ class TransactionService {
       }
       // Stop Transaction
       let stopTransaction = {};
-      stopTransaction.transactionId = transaction.id;
+      stopTransaction.transactionId = transaction.getID();
       stopTransaction.user = req.user.id;
       stopTransaction.timestamp = new Date().toISOString();
       stopTransaction.meterStop = 0;
@@ -208,7 +208,7 @@ class TransactionService {
               tenantID: req.user.tenantID,
         user: req.user, actionOnUser: (user ? user.getModel() : null),
         module: 'TransactionService', method: 'handleTransactionSoftStop',
-        message: `Transaction ID '${transaction.id}' on '${transaction.chargeBoxID}'-'${transaction.connectorId}' has been stopped successfully`,
+        message: `Transaction ID '${transaction.getID()}' on '${transaction.getChargeBoxID()}'-'${transaction.getConnectorId()}' has been stopped successfully`,
         action: action, detailedMessages: result
       });
       // Ok
@@ -247,7 +247,7 @@ class TransactionService {
         throw new AppAuthError(
           Constants.ACTION_READ,
           Constants.ENTITY_TRANSACTION,
-          transaction.id,
+          transaction.getID(),
           560, 'TransactionService', 'handleGetChargingStationConsumptionFromTransaction',
           req.user);
       }
@@ -262,7 +262,7 @@ class TransactionService {
       // Dates provided?
       const startDateTime = filteredRequest.StartDateTime ? filteredRequest.StartDateTime : Constants.MIN_DATE;
       const endDateTime = filteredRequest.EndDateTime ? filteredRequest.EndDateTime : Constants.MAX_DATE;
-      const consumptions = transaction.consumptions.filter(consumption => moment(consumption.date).isBetween(startDateTime, endDateTime, null, '[]'));
+      const consumptions = transaction.getConsumptions().filter(consumption => moment(consumption.date).isBetween(startDateTime, endDateTime, null, '[]'));
       // Return the result
       res.json(TransactionSecurity.filterConsumptionsFromTransactionResponse(transaction, consumptions, req.user));
       next();
@@ -300,7 +300,7 @@ class TransactionService {
         throw new AppAuthError(
           Constants.ACTION_READ,
           Constants.ENTITY_TRANSACTION,
-          transaction.id,
+          transaction.getID(),
           560,
           'TransactionService', 'handleGetTransaction',
           req.user);
@@ -462,21 +462,9 @@ class TransactionService {
       if (filteredRequest.UserID) {
         filter.userId = filteredRequest.UserID;
       }
-      // Read the pricing
-      let pricing = await PricingStorage.getPricing(req.user.tenantID);
-      // Check email
       let transactions = await TransactionStorage.getTransactions(req.user.tenantID,
         {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
-      // Found?
-      if (transactions && pricing) {
-        // List the transactions
-        for (const transaction of transactions.result) {
-          // Compute the price
-          transaction.stop.price = (transaction.stop.totalConsumption / 1000) * pricing.priceKWH;
-          transaction.stop.priceUnit = pricing.priceUnit;
-        }
-      }
       // Filter
       transactions.result = TransactionSecurity.filterTransactionsResponse(
         transactions.result, req.user);

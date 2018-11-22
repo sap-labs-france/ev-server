@@ -319,13 +319,13 @@ class ChargingStationService {
             'ChargingStationService', 'handleAction', req.user);
         }
         // Add connector ID
-        filteredRequest.args.connectorId = transaction.connectorId;
+        filteredRequest.args.connectorId = transaction.getConnectorId();
         // Check if user is authorized
-        await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, transaction.tagID, req.user.tagIDs[0]);
+        await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, transaction.getTagID(), req.user.tagIDs[0]);
         // Set the tag ID to handle the Stop Transaction afterwards
         transaction.remoteStop(req.user.tagIDs[0], new Date().toISOString());
         // Save Transaction
-        await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
+        await TransactionStorage.saveTransaction(transaction);
         // Ok: Execute it
         result = await chargingStation.handleAction(action, filteredRequest.args);
       } else if (action === 'StartTransaction') {

@@ -99,7 +99,7 @@ class AuthService {
           try {
             // Check
             await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
-              filteredRequest.Action, chargingStation, transaction.tagID, req.user.tagIDs[0]);
+              filteredRequest.Action, chargingStation, transaction.getTagID(), req.user.tagIDs[0]);
             // Ok
             result.IsAuthorized = true;
           } catch (e) {

@@ -237,22 +237,22 @@ describe('Transaction tests', function() {
       expect(response.data.result).to.containSubset([{
         id: transactionId1,
         currentConsumption: 0,
-        totalConsumption: 1000,
-        totalInactivitySecs: 0,
         meterStart: meterStart,
-        meterStop: meterStop,
         stop: {
+          totalConsumption: 1000,
+          totalInactivitySecs: 0,
+          meterStop: meterStop,
           timestamp: stopDate.toISOString(),
           tagID: tagId,
         }
       }, {
         id: transactionId2,
-        currentConsumption: 0,
-        totalConsumption: 1000,
-        totalInactivitySecs: 0,
         meterStart: meterStart,
-        meterStop: meterStop,
+        currentConsumption: 0,
         stop: {
+          meterStop: meterStop,
+          totalConsumption: 1000,
+          totalInactivitySecs: 0,
           timestamp: stopDate.toISOString(),
           tagID: tagId,
         }

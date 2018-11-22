@@ -5,10 +5,7 @@
     "mocha": true
   },
   "parserOptions": {
-    "ecmaVersion": 8,
-    "ecmaFeatures": {
-      "spread": true
-    }
+    "ecmaVersion": 9
   },
   "rules": {
     "no-var": "warn",

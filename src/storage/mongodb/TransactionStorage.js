@@ -13,27 +13,27 @@ class TransactionStorage {
 
     await Utils.checkTenant(tenantID);
     await global.database.getCollection(tenantID, 'transactions')
-      .findOneAndDelete({'_id': transaction.id});
+      .findOneAndDelete({'_id': transaction.getID()});
     // Delete Meter Values
     await global.database.getCollection(tenantID, 'metervalues')
-      .deleteMany({'transactionId': transaction.id});
+      .deleteMany({'transactionId': transaction.getID()});
   }
 
-  static async saveTransaction(tenantID, transactionEntityToSave) {
+  static async saveTransaction(transactionEntityToSave) {
 
-    await Utils.checkTenant(tenantID);
+    await Utils.checkTenant(transactionEntityToSave.getTenantID());
     const transactionMDB = {};
-    Database.updateTransactionForDB(transactionEntityToSave.model, transactionMDB, false);
+    Database.updateTransaction(transactionEntityToSave.getModel(), transactionMDB, false);
     if (!transactionMDB.id) {
-      transactionMDB.id = await TransactionStorage._findAvailableID(tenantID);
+      transactionMDB.id = await TransactionStorage._findAvailableID(transactionEntityToSave.getTenantID());
     }
     // Modify
-    const result = await global.database.getCollection(tenantID, 'transactions').findOneAndUpdate(
+    const result = await global.database.getCollection(transactionEntityToSave.getTenantID(), 'transactions').findOneAndUpdate(
       {"_id": Utils.convertToInt(transactionMDB.id)},
       {$set: transactionMDB},
       {upsert: true, new: true, returnOriginal: false});
     // Return
-    return new Transaction(deepmerge(transactionEntityToSave.fullModel, result.value));
+    return new Transaction(transactionEntityToSave.getTenantID(), deepmerge(transactionEntityToSave.getFullModel(), result.value));
   }
 
   static async saveMeterValues(tenantID, meterValuesToSave) {
@@ -224,15 +224,17 @@ class TransactionStorage {
     aggregation.push({
       $unwind: {"path": "$stop.user", "preserveNullAndEmptyArrays": true}
     });
-    // Add MeterValues
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'metervalues'),
-        localField: '_id',
-        foreignField: 'transactionId',
-        as: 'meterValues'
-      }
-    });
+    // Add MeterValues only for not completed transactions
+    if (!params.stop || params.stop.$exists == false) {
+      aggregation.push({
+        $lookup: {
+          from: DatabaseUtils.getCollectionName(tenantID, 'metervalues'),
+          localField: '_id',
+          foreignField: 'transactionId',
+          as: 'meterValues'
+        }
+      });
+    }
     // Read DB
     const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
       .aggregate(aggregation, {collation: {locale: Constants.DEFAULT_LOCALE, strength: 2}})
@@ -243,7 +245,7 @@ class TransactionStorage {
     if (transactionsMDB && transactionsMDB.length > 0) {
       // Create
       for (const transactionMDB of transactionsMDB) {
-        transactions.push(TransactionStorage.updateToEntity(transactionMDB, pricing));
+        transactions.push(new Transaction(tenantID, {...transactionMDB, pricing: pricing}));
       }
     }
     // Ok
@@ -315,7 +317,7 @@ class TransactionStorage {
       .toArray();
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
-      return TransactionStorage.updateToEntity(transactionsMDB[0], pricing);
+      return new Transaction(tenantID, {...(transactionsMDB[0]), pricing: pricing});
     }
     return null;
   }
@@ -360,7 +362,7 @@ class TransactionStorage {
       .toArray();
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
-      return TransactionStorage.updateToEntity(transactionsMDB[0], pricing);
+      return new Transaction(tenantID, {...(transactionsMDB[0]), pricing: pricing});
     }
     return null;
   }
@@ -399,21 +401,12 @@ class TransactionStorage {
           tenantID: tenantID,
           source: chargeBoxId, module: 'ChargingStation', method: 'cleanupRemainingActiveTransactions',
           action: 'StartTransaction',
-          message: `Active Transaction ID '${activeTransaction.id}' has been deleted on Connector '${activeTransaction.connectorId}'`
+          message: `Active Transaction ID '${activeTransaction.getID()}' has been deleted on Connector '${activeTransaction.getConnectorId()}'`
         });
         // Delete
         await this.deleteTransaction(tenantID, activeTransaction);
       }
     } while (activeTransaction);
-  }
-
-  static updateToEntity(transaction, pricing) {
-    let _model = {};
-    Database.updateTransactionForFrontEnd(transaction, _model);
-    if (pricing) {
-      _model.pricing = pricing;
-    }
-    return new Transaction(_model);
   }
 }
 

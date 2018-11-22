@@ -177,6 +177,7 @@ class TransactionApi extends CrudApi {
       totalInactivitySecs: totalInactivity,
       totalDurationSecs: moment.duration(moment(stopTime).diff(transaction.timestamp)).asSeconds(),
       stop: {
+        meterStop: meterStop,
         price: totalPrice,
         priceUnit: 'EUR',
         totalConsumption: totalConsumption,
