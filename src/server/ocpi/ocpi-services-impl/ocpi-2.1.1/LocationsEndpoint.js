@@ -66,6 +66,33 @@ class LocationsEndpoint extends AbstractEndpoint {
     res.json(OCPIUtils.success(locations));
   }
 
+  async getAllLocations(tenant) {
+    // locations
+    const locations = [];
+    
+    // Get all sites
+    const sites = await Site.getSites(
+      tenant.getID(),
+      {
+        'withChargeBoxes': true,
+        "withSiteAreas": true
+      },
+      100, 0, null);
+
+    // convert Sites to Locations
+    for (const site of sites) {
+      locations.push(await OCPIMapping.convertSite2Location(tenant, site));
+    }
+  }
+
+  async getLocation(tenant, locationId) {
+    // get site
+    const site = await Site.getSite(tenant.getID(), locationId);
+
+    // convert
+    return await OCPIMapping.convertSite2Location(tenant, site);
+  }
+
 }
 
 module.exports = LocationsEndpoint;

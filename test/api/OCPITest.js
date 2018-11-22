@@ -197,7 +197,7 @@ describe('OCPI tests', function () {
       });
 
       // write number of Locations/Evses/Connectors scanned
-      console.log(`${locationsNbr}/${evsesNbr}/${connectorsNbr}`);
+      // console.log(`${locationsNbr}/${evsesNbr}/${connectorsNbr}`);
     });
   });
 });
