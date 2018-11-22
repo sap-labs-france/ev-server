@@ -143,6 +143,12 @@ class ChargingStationStorage {
         });
       }
     }
+    if (params.chargeBoxId) {
+      // Build filter
+      filters.$and.push({
+        "_id": params.chargeBoxId
+      });
+    }
     // Filters
     aggregation.push({
       $match: filters
