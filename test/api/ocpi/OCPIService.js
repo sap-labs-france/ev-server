@@ -13,7 +13,7 @@ class OCPIService {
     // Create the Base API
     this.baseApi = new BaseApi(this.baseURL);
   }
-  
+
   /**
    * Get Version url
    */
@@ -45,6 +45,18 @@ class OCPIService {
   }
 
   /**
+   * Access path with specific method
+   * @param {*} method 
+   * @param {*} path 
+   */
+  async accessPathWithoutToken(method, path) {
+    return this.baseApi.send({
+      method: method,
+      url: path
+    });
+  }
+
+  /**
    * Check basic structure for OCPI Response
    * @param {*} ocpiResponse 
    */
@@ -55,9 +67,43 @@ class OCPIService {
     expect(ocpiResponse).to.have.property('data');
     expect(ocpiResponse).to.have.property('timestamp').that.is.not.empty;
   }
-  
 
-  
+  /**
+   * Check basic structure for OCPI Error Response
+   * @param {*} ocpiErrorResponse 
+   */
+  checkOCPIErrorResponseStructure(ocpiErrorResponse) {
+    expect(ocpiErrorResponse).to.not.be.empty;
+    expect(ocpiErrorResponse).to.have.property('status_code');
+    expect(ocpiErrorResponse).to.have.property('status_message').that.is.not.empty;
+    expect(ocpiErrorResponse).to.have.property('timestamp').that.is.not.empty;
+  }
+
+  /**
+   * Validate Location Entity
+   * @param {*} location 
+   */
+  validateLocationEntity(location) {
+    return expect(location).to.have.property('id').that.is.not.empty &&
+      expect(location).to.have.property('name').that.is.not.empty;
+  }
+
+  /**
+   * Validate EVSE Entity
+   * @param {*} evse 
+   */
+  validateEvseEntity(evse) {
+    return expect(evse).to.have.property('uid').that.is.not.empty &&
+    expect(evse).to.have.property('id').that.is.not.empty &&
+    expect(evse).to.have.property('status').that.is.not.empty &&
+    expect(evse).to.have.property('connectors').to.be.an('array').that.is.not.empty;
+
+  }
+
+
+
+
+
 }
 
 module.exports = OCPIService;

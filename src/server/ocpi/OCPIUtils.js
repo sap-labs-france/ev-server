@@ -33,9 +33,9 @@ class OCPIUtils {
 
     // check type of OCPI error Client vs Server
     if (error instanceof OCPIClientError) {
-      errorBody.status_code = Constants.OCPI_STATUS_CODE.CODE_2000_GENERIC_CLIENT_ERROR.status_code;
+      errorBody.status_code = error.ocpiError.status_code;
     } else if (error instanceof OCPIServerError) {
-      errorBody.status_code = Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR.status_code;
+      errorBody.status_code = error.ocpiError.status_code;
     }
 
     // return error Body

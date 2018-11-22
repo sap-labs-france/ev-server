@@ -13,7 +13,7 @@ const Configuration = require('../../utils/Configuration');
 const Logging = require('../../utils/Logging');
 const Constants = require('../../utils/Constants');
 const OCPIServices = require('./OCPIServices');
-// const ErrorHandler = require('./ErrorHandler');
+const OCPIErrorHandler = require('./OCPIErrorHandler');
 require('source-map-support').install();
 
 let _ocpiRestConfig;
@@ -79,6 +79,9 @@ class OCPIServer {
     ocpiServices.getOCPIServiceImplementations().forEach(ocpiService => {
       express.use(ocpiService.getPath(), ocpiService.restService.bind(ocpiService));
     });
+
+    // Register Error Handler
+    express.use(OCPIErrorHandler.errorHandler);
   }
 
   // Start the server (to be defined in sub-classes)

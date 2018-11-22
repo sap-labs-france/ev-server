@@ -1,10 +1,9 @@
 const Tenant = require('../../entity/Tenant');
 const OCPIServerError = require('../../exception/OCPIServerError');
 const OCPIClientError = require('../../exception/OCPIClientError');
-const Constants = require('../../utils/Constants');
 const OCPIUtils = require('./OCPIUtils');
 
-const MODULE_NAME = "OCPIService";
+const MODULE_NAME = "AbstractOCPIService";
 
 require('source-map-support').install();
 
@@ -107,7 +106,8 @@ class AbstractOCPIService {
       // check if tenant is found
       if (!tenant && tenantSubdomain !== '') {
         throw new OCPIServerError(
-          Constants.OCPI_SERVER,
+          'default',
+          'Login',
           `The Tenant with subdomain '${tenantSubdomain}' does not exist`, 500,
           MODULE_NAME, 'handleVerifyTenant', null);
       }
@@ -115,9 +115,10 @@ class AbstractOCPIService {
       // check if service is enabled for tenant
       if (!this._ocpiRestConfig.tenantEnabled.includes(tenantSubdomain)) {
         throw new OCPIServerError(
-          Constants.OCPI_SERVER,
+          tenant.getID(),
+          'Login',
           `The Tenant with subdomain '${tenantSubdomain}' is not enabled for OCPI`, 500,
-          MODULE_NAME, 'handleVerifyTenant', null);
+          MODULE_NAME, 'processEndpointAction', null);
       }
 
       // TODO: Temporary properties in config: add eMI3 country_id/party_id
@@ -131,9 +132,10 @@ class AbstractOCPIService {
         tenant._eMI3.party_id = this._ocpiRestConfig.eMI3id[tenantSubdomain].party_id;
       } else {
         throw new OCPIServerError(
-          Constants.OCPI_SERVER,
+          tenant.getID(),
+          'Login',
           `The Tenant with subdomain '${tenantSubdomain}' doesn't have country_id and/or party_id defined`, 500,
-          MODULE_NAME, 'handleVerifyTenant', null);
+          MODULE_NAME, 'processEndpointAction', null);
       }
 
       // check token
@@ -141,9 +143,10 @@ class AbstractOCPIService {
       if (this._ocpiRestConfig.eMI3id[tenantSubdomain].checkToken) {
         if (req.headers == null || `Token ${this._ocpiRestConfig.eMI3id[tenantSubdomain].token}` != req.headers.authorization) {
           throw new OCPIClientError(
-            Constants.OCPI_SERVER,
+            tenant.getID(),
+            'Login',
             "Unauthorized : Check credentials failed", 401,
-            MODULE_NAME, 'handleVerifyTenant', null);
+            MODULE_NAME, 'processEndpointAction');
         }
       }
 
@@ -151,23 +154,17 @@ class AbstractOCPIService {
       if (registeredEndpoints[action]) {
         registeredEndpoints[action].process(req, res, next, tenant);
       } else {
-        res.sendStatus(501);
+        // res.sendStatus(501);
+        throw new OCPIServerError(
+          tenant.getID(),
+          'Process Endpoint',
+          `Endpoint ${action} not implemented`, 501,
+          MODULE_NAME, 'processEndpointAction');
       }
     } catch (error) {
-      this._handleError(error, req, res, next, action, MODULE_NAME, 'restService');
+      next(error);
     }
   }
-
-  /**
-   * Handle error and return correct payload
-   */
-  _handleError(error, req, res, next, action, module, method) { // eslint-disable-line
-    // TODO: add logging
-
-    // return response with error
-    res.status(error.errorCode).json(OCPIUtils.error(error));
-  }
-
 }
 
 module.exports = AbstractOCPIService;
