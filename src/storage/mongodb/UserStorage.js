@@ -122,6 +122,7 @@ class UserStorage {
   }
 
   static async getUserByTagId(tenantID, tagID) {
+    let user;
     // Debug
     Logging.traceStart('UserStorage', 'getUserByTagId');
     // Check Tenant
@@ -131,16 +132,18 @@ class UserStorage {
       .find({'_id': tagID})
       .limit(1)
       .toArray();
-    // Debug
-    Logging.traceEnd('UserStorage', 'getUserByTagId');
     // Check
     if (tagsMDB && tagsMDB.length > 0) {
       // Ok
-      return UserStorage.getUser(tenantID, tagsMDB[0].userID);
+      user = await UserStorage.getUser(tenantID, tagsMDB[0].userID);
     }
+    // Debug
+    Logging.traceEnd('UserStorage', 'getUserByTagId');
+    return user;
   }
 
   static async getUserByEmail(tenantID, email) {
+    let user;
     // Debug
     Logging.traceStart('UserStorage', 'getUserByEmail');
     // Check Tenant
@@ -150,16 +153,18 @@ class UserStorage {
       .find({'email': email})
       .limit(1)
       .toArray();
-    // Debug
-    Logging.traceEnd('UserStorage', 'getUserByEmail');
     // Check deleted
     if (usersMDB && usersMDB.length > 0) {
       // Ok
-      return UserStorage._createUser(tenantID, usersMDB[0]);
+      user = await UserStorage._createUser(tenantID, usersMDB[0]);
     }
+    // Debug
+    Logging.traceEnd('UserStorage', 'getUserByEmail');
+    return user;
   }
 
   static async getUser(tenantID, id) {
+    let user;
     // Debug
     Logging.traceStart('UserStorage', 'getUser');
     // Check Tenant
@@ -177,13 +182,14 @@ class UserStorage {
       .aggregate(aggregation)
       .limit(1)
       .toArray();
-    // Debug
-    Logging.traceEnd('UserStorage', 'getUser');
     // Check deleted
     if (usersMDB && usersMDB.length > 0) {
       // Ok
-      return UserStorage._createUser(tenantID, usersMDB[0]);
+      user = await UserStorage._createUser(tenantID, usersMDB[0]);
     }
+    // Debug
+    Logging.traceEnd('UserStorage', 'getUser');
+    return user;
   }
 
   static async getUserImage(tenantID, id) {
