@@ -4,6 +4,7 @@ const Configuration = require('./utils/Configuration');
 const SoapCentralSystemServer = require('./server/charging-station/soap/SoapCentralSystemServer');
 const JsonCentralSystemServer = require('./server/charging-station/json/JsonCentralSystemServer');
 const CentralRestServer = require('./server/front-end/CentralRestServer');
+const OCPIServer = require('./server/ocpi/OCPIServer');
 const SchedulerManager = require('./scheduler/SchedulerManager');
 const MigrationHandler = require('./migration/MigrationHandler');
 const Logging = require('./utils/Logging');
@@ -18,7 +19,7 @@ class Bootstrap {
       const storageConfig = Configuration.getStorageConfig();
 
       const nodejs_env = process.env.NODE_ENV || 'dev';
-      console.log(`NodeJS is started in '${nodejs_env}' mode`);
+      console.log(`NodeJS is started in '${nodejs_env}' mode`); // eslint-disable-line
 
       // Check implementation
       let database;
@@ -30,7 +31,7 @@ class Bootstrap {
           break;
 
         default:
-          console.log(`Storage Server implementation '${storageConfig.implementation}' not supported!`);
+          console.log(`Storage Server implementation '${storageConfig.implementation}' not supported!`); // eslint-disable-line
       }
 
       global.database = database;
@@ -48,6 +49,7 @@ class Bootstrap {
       const centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
       const centralSystemsConfig = Configuration.getCentralSystemsConfig();
       const chargingStationConfig = Configuration.getChargingStationConfig();
+      const ocpiConfig = Configuration.getOCPIServiceConfig();
 
       // -------------------------------------------------------------------------
       // REST Server (Front-End)
@@ -90,10 +92,20 @@ class Bootstrap {
               break;
             // Not Found
             default:
-              console.log(`Central System Server implementation '${centralSystemConfig.implementation}' not found!`);
+              console.log(`Central System Server implementation '${centralSystemConfig.implementation}' not found!`); // eslint-disable-line
           }
         }
         
+      }
+
+      // -------------------------------------------------------------------------
+      // OCPI Server
+      // -------------------------------------------------------------------------
+      if (ocpiConfig) {
+        // create server instance
+        const ocpiServer = new OCPIServer(ocpiConfig);
+
+        await ocpiServer.start();
       }
 
       // -------------------------------------------------------------------------
@@ -103,7 +115,7 @@ class Bootstrap {
 
     } catch (error) {
       // Log
-      console.error(error);
+      console.error(error); // eslint-disable-line
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         source: 'BootStrap', module: 'start', method: '-', action: 'StartServer',

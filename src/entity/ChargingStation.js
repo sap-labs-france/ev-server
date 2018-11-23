@@ -405,7 +405,7 @@ class ChargingStation extends AbstractTenantEntity {
       message: `'${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}' on Connector '${statusNotification.connectorId}' has been saved`
     });
     // Notify if error
-    if (statusNotification.status === 'Faulted') {
+    if (statusNotification.status === Constants.CONN_STATUS_FAULTED) {
       // Log
       Logging.logError({
         tenantID: this.getTenantID(),
