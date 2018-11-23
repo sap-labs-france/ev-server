@@ -55,7 +55,7 @@ class TransactionService {
           'TransactionService', 'handleRefundTransaction', req.user);
       }
       // Get Transaction User
-      let user = await User.getUser(req.user.tenantID, transaction.getuserID());
+      let user = await User.getUser(req.user.tenantID, transaction.getUserID());
       // Check
       if (!user) {
         // Not Found!
@@ -183,9 +183,9 @@ class TransactionService {
       }
       // Check User
       let user;
-      if (transaction.getuserID()) {
+      if (transaction.getUserID()) {
         // Get Transaction User
-        let user = await User.getUser(req.user.tenantID, transaction.getuserID());
+        let user = await User.getUser(req.user.tenantID, transaction.getUserID());
         // Check
         if (!user) {
           // Not Found!

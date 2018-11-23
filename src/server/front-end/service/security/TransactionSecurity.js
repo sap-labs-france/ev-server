@@ -224,6 +224,9 @@ class TransactionSecurity {
       }
       filteredConsumption.totalConsumption = transaction.getTotalConsumption();
       filteredConsumption.id = transaction.getID();
+      if (transaction.hasStateOfCharges()) {
+        filteredConsumption.stateOfCharge = transaction.getStateOfCharge();
+      }
       // Check user
       if (transaction.getUser()) {
         if (!Authorizations.canReadUser(loggedUser, transaction.getUser())) {

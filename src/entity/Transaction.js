@@ -153,6 +153,10 @@ class Transaction extends AbstractTenantEntity {
     return null;
   }
 
+  getUserID() {
+    return this._model.userID;
+  }
+
   getFinisher() {
     if (!this._model.stop) {
       return undefined;
