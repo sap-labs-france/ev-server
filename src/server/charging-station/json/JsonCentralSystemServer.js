@@ -23,7 +23,7 @@ class JsonCentralSystemServer extends CentralSystemServer {
   start() {
     let server;
     // Log
-    console.log(`Starting JSon Central System Server (Charging Stations)...`);
+    console.log(`Starting OCPP JSon Server...`); // eslint-disable-line
     // Keep it global
     global.centralSystemJson = this;
     // Create HTTP server
@@ -68,7 +68,7 @@ class JsonCentralSystemServer extends CentralSystemServer {
     this._wss = new WebSocket.Server({
       server: server,
       verifyClient: verifyClient,
-      handleProtocols: (protocols, request) => {
+      handleProtocols: (protocols, request) => { // eslint-disable-line
         // Check the protocols
         // Ensure protocol used as ocpp1.6 or nothing (should create an error)
         if (Array.isArray(protocols)) {
@@ -124,9 +124,9 @@ class JsonCentralSystemServer extends CentralSystemServer {
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME,
         method: "start", action: "Startup",
-        message: `Json Central System Server (Charging Stations) listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`
+        message: `OCPP Json Server listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`
       });
-      console.log(`Json Central System Server (Charging Stations) listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`);
+      console.log(`OCPP Json Server listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`); // eslint-disable-line
     });
   }
 

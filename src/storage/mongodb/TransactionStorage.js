@@ -10,17 +10,24 @@ const PricingStorage = require('./PricingStorage');
 
 class TransactionStorage {
   static async deleteTransaction(tenantID, transaction) {
-
+    // Debug
+    Logging.traceStart('TransactionStorage', 'deleteTransaction');
+    // Check
     await Utils.checkTenant(tenantID);
+    // Delete
     await global.database.getCollection(tenantID, 'transactions')
       .findOneAndDelete({'_id': transaction.getID()});
     // Delete Meter Values
     await global.database.getCollection(tenantID, 'metervalues')
       .deleteMany({'transactionId': transaction.getID()});
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'deleteTransaction');
   }
 
   static async saveTransaction(transactionEntityToSave) {
-
+    // Debug
+    Logging.traceStart('TransactionStorage', 'saveTransaction');
+    // Check
     await Utils.checkTenant(transactionEntityToSave.getTenantID());
     const transactionMDB = {};
     Database.updateTransaction(transactionEntityToSave.getModel(), transactionMDB, false);
@@ -32,12 +39,16 @@ class TransactionStorage {
       {"_id": Utils.convertToInt(transactionMDB.id)},
       {$set: transactionMDB},
       {upsert: true, new: true, returnOriginal: false});
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'saveTransaction');
     // Return
     return new Transaction(transactionEntityToSave.getTenantID(), deepmerge(transactionEntityToSave.getFullModel(), result.value));
   }
 
   static async saveMeterValues(tenantID, meterValuesToSave) {
-
+    // Debug
+    Logging.traceStart('TransactionStorage', 'saveMeterValues');
+    // Check
     await Utils.checkTenant(tenantID);
     const meterValuesMDB = [];
     // Save all
@@ -54,10 +65,14 @@ class TransactionStorage {
     }
     // Execute
     await global.database.getCollection(tenantID, 'metervalues').insertMany(meterValuesMDB);
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'saveMeterValues');
   }
 
   static async getTransactionYears(tenantID) {
-
+    // Debug
+    Logging.traceStart('TransactionStorage', 'getTransactionYears');
+    // Check
     await Utils.checkTenant(tenantID);
     const firstTransactionsMDB = await global.database.getCollection(tenantID, 'transactions')
       .find({})
@@ -74,11 +89,15 @@ class TransactionStorage {
       // Add
       transactionYears.push(i);
     }
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'getTransactionYears');
     return transactionYears;
   }
 
   static async getTransactions(tenantID, params = {}, limit, skip, sort) {
-
+    // Debug
+    Logging.traceStart('TransactionStorage', 'getTransactions');
+    // Check
     await Utils.checkTenant(tenantID);
     const pricing = await PricingStorage.getPricing(tenantID);
 
@@ -248,6 +267,8 @@ class TransactionStorage {
         transactions.push(new Transaction(tenantID, {...transactionMDB, pricing: pricing}));
       }
     }
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'getTransactions');
     // Ok
     return {
       count: (transactionsCountMDB.length > 0 ? transactionsCountMDB[0].count : 0),
@@ -256,6 +277,9 @@ class TransactionStorage {
   }
 
   static async getTransaction(tenantID, id) {
+    // Debug
+    Logging.traceStart('TransactionStorage', 'getTransaction');
+    // Check
     await Utils.checkTenant(tenantID);
     const pricing = await PricingStorage.getPricing(tenantID);
     // Create Aggregation
@@ -315,6 +339,8 @@ class TransactionStorage {
     const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
       .aggregate(aggregation)
       .toArray();
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'getTransaction');
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
       return new Transaction(tenantID, {...(transactionsMDB[0]), pricing: pricing});
@@ -323,7 +349,9 @@ class TransactionStorage {
   }
 
   static async getActiveTransaction(tenantID, chargeBoxID, connectorId) {
-
+    // Debug
+    Logging.traceStart('TransactionStorage', 'getActiveTransaction');
+    // Check
     await Utils.checkTenant(tenantID);
     const pricing = await PricingStorage.getPricing(tenantID);
     const aggregation = [];
@@ -360,6 +388,8 @@ class TransactionStorage {
     const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
       .aggregate(aggregation)
       .toArray();
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'getActiveTransaction');
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
       return new Transaction(tenantID, {...(transactionsMDB[0]), pricing: pricing});
@@ -368,7 +398,9 @@ class TransactionStorage {
   }
 
   static async _findAvailableID(tenantID) {
-
+    // Debug
+    Logging.traceStart('TransactionStorage', '_findAvailableID');
+    // Check
     await Utils.checkTenant(tenantID);
     let existingTransaction;
     do {
@@ -386,10 +418,14 @@ class TransactionStorage {
         return id;
       }
     } while (existingTransaction);
+    // Debug
+    Logging.traceEnd('TransactionStorage', '_findAvailableID');
   }
 
   static async cleanupRemainingActiveTransactions(tenantID, chargeBoxId, connectorId) {
-
+    // Debug
+    Logging.traceStart('TransactionStorage', 'cleanupRemainingActiveTransactions');
+    // Check
     await Utils.checkTenant(tenantID);
     let activeTransaction;
     do {
@@ -407,6 +443,8 @@ class TransactionStorage {
         await this.deleteTransaction(tenantID, activeTransaction);
       }
     } while (activeTransaction);
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'cleanupRemainingActiveTransactions');
   }
 }
 

@@ -1,9 +1,12 @@
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const Constants = require('../../utils/Constants');
+const Logging = require('../../utils/Logging');
 
 class MigrationStorage {
   static async getMigrations() {
+    // Debug
+    Logging.traceStart('MigrationStorage', 'getMigrations');
     // Read DB
     const migrationsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'migrations')
       .find({})
@@ -19,11 +22,15 @@ class MigrationStorage {
         migrations.push(migration);
       }
     }
+    // Debug
+    Logging.traceEnd('MigrationStorage', 'getMigrations');
     // Ok
     return migrations;
   }
 
   static async saveMigration(migrationToSave) {
+    // Debug
+    Logging.traceStart('MigrationStorage', 'saveMigration');
     // Ensure Date
     migrationToSave.timestamp = Utils.convertToDate(migrationToSave.timestamp);
     // Transfer
@@ -34,6 +41,8 @@ class MigrationStorage {
     // Create
     await global.database.getCollection(Constants.DEFAULT_TENANT, 'migrations')
       .insertOne(migration);
+    // Debug
+    Logging.traceEnd('MigrationStorage', 'saveMigration');
   }
 }
 

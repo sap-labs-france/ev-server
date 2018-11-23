@@ -108,6 +108,7 @@
   "Logging": {
     "logLevel": "D",
     "consoleLogLevel": "NONE",
+    "trace": false,
     "moduleDetails": {
       "ChargingStation": {
         "logLevel": "DEFAULT",

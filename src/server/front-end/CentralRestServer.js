@@ -102,7 +102,7 @@ class CentralRestServer {
     // Server it?
     if (centralSystemConfig.distEnabled) {
       // Serve all the static files of the front-end
-      express.get(/^\/(?!client\/)(.+)$/, function(req, res, next) {
+      express.get(/^\/(?!client\/)(.+)$/, function(req, res, next) { // eslint-disable-line
         // Filter to not handle other server requests
         if (!res.headersSent) {
           // Not already processed: serve the file
@@ -110,7 +110,7 @@ class CentralRestServer {
         }
       });
       // Default, serve the index.html
-      express.get('/', function(req, res, next) {
+      express.get('/', function(req, res, next) { // eslint-disable-line
         // Return the index.html
         res.sendFile(path.join(__dirname, centralSystemConfig.distPath, 'index.html'));
       });
@@ -121,7 +121,7 @@ class CentralRestServer {
   start() {
     let server;
     // Log
-    console.log(`Starting Central Rest Server (Front-End)...`);
+    console.log(`Starting REST Server...`); // eslint-disable-line
     // Create the HTTP server
     if (_centralSystemRestConfig.protocol == "https") {
       // Create the options
@@ -180,9 +180,9 @@ class CentralRestServer {
         tenantID: Constants.DEFAULT_TENANT,
         module: "CentralServerRestServer",
         method: "start", action: "Startup",
-        message: `Central Rest Server (Front-End) listening on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'`
+        message: `REST Server listening on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'`
       });
-      console.log(`Central Rest Server (Front-End) listening on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'`);
+      console.log(`REST Server listening on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'`); // eslint-disable-line
     });
   }
 

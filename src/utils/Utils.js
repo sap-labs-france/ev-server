@@ -14,7 +14,7 @@ const path = require('path');
 require('source-map-support').install();
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
-
+const _tenants = [];
 class Utils {
   static generateGUID() {
     return uuidV4();
@@ -86,6 +86,10 @@ class Utils {
 
   static async checkTenant(tenantID) {
     const Tenant = require('../entity/Tenant'); // Avoid fucking circular deps
+    // Check in cache
+    if (_tenants.indexOf(tenantID) >= 0) {
+      return;
+    }
     // Check Tenant ID
     if (!tenantID) {
       // Error
@@ -106,7 +110,11 @@ class Utils {
         throw new BackendError(null, `Invalid Tenant ID '${tenantID}'`);
       }
     }
-  }static convertToDate(date) {
+    // Ok
+    _tenants.push(tenantID);
+  }
+  
+  static convertToDate(date) {
     // Check
     if (!date) {
       return date;

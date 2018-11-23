@@ -5,9 +5,12 @@ const Utils = require('../../utils/Utils');
 const SiteStorage = require('./SiteStorage');
 const AppError = require('../../exception/AppError');
 const DatabaseUtils = require('./DatabaseUtils');
+const Logging = require('../../utils/Logging');
 
 class CompanyStorage {
   static async getCompany(tenantID, id) {
+    // Debug
+    Logging.traceStart('CompanyStorage', 'getCompany');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
@@ -30,10 +33,14 @@ class CompanyStorage {
       // Create
       company = new Company(tenantID, companiesMDB[0]);
     }
+    // Debug
+    Logging.traceEnd('CompanyStorage', 'getCompany');
     return company;
   }
 
   static async getCompanyLogo(tenantID, id) {
+    // Debug
+    Logging.traceStart('CompanyStorage', 'getCompanyLogo');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -49,10 +56,14 @@ class CompanyStorage {
         logo: companyLogosMDB[0].logo
       };
     }
+    // Debug
+    Logging.traceEnd('CompanyStorage', 'getCompanyLogo');
     return companyLogo;
   }
 
   static async getCompanyLogos(tenantID) {
+    // Debug
+    Logging.traceStart('CompanyStorage', 'getCompanyLogos');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -70,10 +81,14 @@ class CompanyStorage {
         });
       }
     }
+    // Debug
+    Logging.traceEnd('CompanyStorage', 'getCompanyLogos');
     return companyLogos;
   }
 
   static async saveCompany(tenantID, companyToSave) {
+    // Debug
+    Logging.traceStart('CompanyStorage', 'saveCompany');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
@@ -103,11 +118,14 @@ class CompanyStorage {
       companyFilter,
       {$set: company},
       {upsert: true, new: true, returnOriginal: false});
-    // Create
+    // Debug
+    Logging.traceEnd('CompanyStorage', 'saveCompany');
     return new Company(tenantID, result.value);
   }
 
   static async saveCompanyLogo(tenantID, companyLogoToSave) {
+    // Debug
+    Logging.traceStart('CompanyStorage', 'saveCompanyLogo');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID is provided
@@ -123,10 +141,14 @@ class CompanyStorage {
       {'_id': Utils.convertToObjectID(companyLogoToSave.id)},
       {$set: {logo: companyLogoToSave.logo}},
       {upsert: true, new: true, returnOriginal: false});
+    // Debug
+    Logging.traceEnd('CompanyStorage', 'saveCompanyLogo');
   }
 
   // Delegate
   static async getCompanies(tenantID, params = {}, limit, skip, sort) {
+    // Debug
+    Logging.traceStart('CompanyStorage', 'getCompanies');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
@@ -211,6 +233,8 @@ class CompanyStorage {
         companies.push(company);
       }
     }
+    // Debug
+    Logging.traceEnd('CompanyStorage', 'getCompanies');
     // Ok
     return {
       count: (companiesCountMDB.length > 0 ? companiesCountMDB[0].count : 0),
@@ -219,6 +243,8 @@ class CompanyStorage {
   }
 
   static async deleteCompany(tenantID, id) {
+    // Debug
+    Logging.traceStart('CompanyStorage', 'deleteCompany');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Sites
@@ -234,6 +260,8 @@ class CompanyStorage {
     // Delete Logo
     await global.database.getCollection(tenantID, 'companylogos')
       .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
+    // Debug
+    Logging.traceEnd('CompanyStorage', 'deleteCompany');
   }
 }
 
