@@ -1,8 +1,7 @@
 const Constants = require('../utils/Constants');
 class OCPIServerError extends Error {
-  constructor(tenantID = 'default', action, message, httpErrorCode = 500, module = "N/A", method = "N/A", ocpiError ) {
+  constructor(action, message, httpErrorCode = 500, module = "N/A", method = "N/A", ocpiError ) {
     super(message);
-    this.tenantID = tenantID;
     this.action = action;
     this.source = 'OCPI Server';
     this.httpErrorCode = httpErrorCode;

@@ -42,7 +42,20 @@ class OCPIUtils {
     return errorBody;
   }
 
-
+  /**
+   * Build Next Url
+   * @param {*} req request in order to get url
+   * @param {*} offset  offset
+   * @param {*} limit limit of query
+   * @param {*} total total number of records
+   */
+  static buildNextUrl(req, offset, limit, total) {
+    // check if next link should be generated
+    if (offset + limit < total ) {
+      // build url
+      return req.protocol + '://' + req.get('host') + req.originalUrl.split('?')[0] + '?offset=' + (offset + limit) + '&limit=' + limit;
+    }
+  }
 
 }
 
