@@ -193,9 +193,6 @@ class Transaction extends AbstractTenantEntity {
   }
 
   getTotalDurationSecs() {
-    if (!this.isActive()) {
-      return this._model.stop.totalDurationSecs
-    }
     return moment.duration(moment(this._getLastUpdateDate()).diff(this.getStartDate())).asSeconds()
   }
 
