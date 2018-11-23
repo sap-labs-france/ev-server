@@ -106,8 +106,7 @@ class AbstractOCPIService {
       // check if tenant is found
       if (!tenant && tenantSubdomain !== '') {
         throw new OCPIServerError(
-          'default',
-          'Login',
+          'default', 'Login',
           `The Tenant with subdomain '${tenantSubdomain}' does not exist`, 500,
           MODULE_NAME, 'handleVerifyTenant', null);
       }
@@ -115,8 +114,7 @@ class AbstractOCPIService {
       // check if service is enabled for tenant
       if (!this._ocpiRestConfig.tenantEnabled.includes(tenantSubdomain)) {
         throw new OCPIServerError(
-          tenant.getID(),
-          'Login',
+          tenant.getID(), 'Login',
           `The Tenant with subdomain '${tenantSubdomain}' is not enabled for OCPI`, 500,
           MODULE_NAME, 'processEndpointAction', null);
       }
@@ -132,8 +130,7 @@ class AbstractOCPIService {
         tenant._eMI3.party_id = this._ocpiRestConfig.eMI3id[tenantSubdomain].party_id;
       } else {
         throw new OCPIServerError(
-          tenant.getID(),
-          'Login',
+          tenant.getID(), 'Login',
           `The Tenant with subdomain '${tenantSubdomain}' doesn't have country_id and/or party_id defined`, 500,
           MODULE_NAME, 'processEndpointAction', null);
       }

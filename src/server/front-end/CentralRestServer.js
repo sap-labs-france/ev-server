@@ -121,7 +121,7 @@ class CentralRestServer {
   start() {
     let server;
     // Log
-    console.log(`Starting Central Rest Server (Front-End)...`);
+    console.log(`Starting REST Server...`); // eslint-disable-line
     // Create the HTTP server
     if (_centralSystemRestConfig.protocol == "https") {
       // Create the options
@@ -180,9 +180,9 @@ class CentralRestServer {
         tenantID: Constants.DEFAULT_TENANT,
         module: "CentralServerRestServer",
         method: "start", action: "Startup",
-        message: `Central Rest Server (Front-End) listening on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'`
+        message: `REST Server listening on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'`
       });
-      console.log(`Central Rest Server (Front-End) listening on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'`);
+      console.log(`REST Server listening on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'`);// eslint-disable-line
     });
   }
 

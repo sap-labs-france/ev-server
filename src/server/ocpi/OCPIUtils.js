@@ -41,9 +41,6 @@ class OCPIUtils {
     // return error Body
     return errorBody;
   }
-
-
-
 }
 
 module.exports = OCPIUtils;
