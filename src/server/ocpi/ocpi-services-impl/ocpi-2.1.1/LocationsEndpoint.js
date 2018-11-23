@@ -197,7 +197,6 @@ class LocationsEndpoint extends AbstractEndpoint {
         if (connector.id == connectorId) return connector;
       }
     }
-
   }
 }
 

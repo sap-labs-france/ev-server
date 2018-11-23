@@ -23,7 +23,6 @@ class OCPIServer {
   constructor(ocpiRestConfig) {
     // Keep params
     _ocpiRestConfig = ocpiRestConfig;
-
     // Body parser
     express.use(bodyParser.json({
       limit: '1mb'
@@ -33,10 +32,8 @@ class OCPIServer {
       limit: '1mb'
     }));
     express.use(bodyParser.xml());
-
     // Use
     express.use(locale(Configuration.getLocalesConfig().supported));
-
     // log to console
     if (ocpiRestConfig.debug) {
       // Log
@@ -56,30 +53,23 @@ class OCPIServer {
         })
       );
     }
-
     // Cross origin headers
     express.use(cors());
-
     // Secure the application
     express.use(helmet());
-
     // Check Cloud Foundry
     if (Configuration.isCloudFoundry()) {
       // Bind to express app
       express.use(CFLog.logNetwork);
     }
-
     // new OCPI Services Instances
     const ocpiServices = new OCPIServices(_ocpiRestConfig);
-
     // OCPI versions
     express.use('/ocpi/cpo/versions', ocpiServices.getVersions);
-
     // Register all services in express
     ocpiServices.getOCPIServiceImplementations().forEach(ocpiService => {
       express.use(ocpiService.getPath(), ocpiService.restService.bind(ocpiService));
     });
-
     // Register Error Handler
     express.use(OCPIErrorHandler.errorHandler);
   }
@@ -89,7 +79,6 @@ class OCPIServer {
     let server;
     // Log
     console.log(`Starting OCPI Server ...`); // eslint-disable-line
-
     // Create the HTTP server
     if (_ocpiRestConfig.protocol == "https") {
       // Create the options
@@ -123,15 +112,13 @@ class OCPIServer {
       // Log
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        module: "OCPIRestServer",
+        module: "OCPIServer",
         method: "start", action: "Startup",
-        message: `OCPI Rest Server listening on '${_ocpiRestConfig.protocol}://${server.address().address}:${server.address().port}'`
+        message: `OCPI Server listening on '${_ocpiRestConfig.protocol}://${server.address().address}:${server.address().port}'`
       });
-      console.log(`OCPI Rest Server listening on '${_ocpiRestConfig.protocol}://${server.address().address}:${server.address().port}'`); // eslint-disable-line
+      console.log(`OCPI Server listening on '${_ocpiRestConfig.protocol}://${server.address().address}:${server.address().port}'`); // eslint-disable-line
     });
   }
-
-
 }
 
 module.exports = OCPIServer;
