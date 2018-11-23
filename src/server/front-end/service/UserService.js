@@ -460,7 +460,12 @@ class UserService {
       const filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
       // Get users
       const users = await User.getUsers(req.user.tenantID,
-        {'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID},
+        {
+          'search': filteredRequest.Search,
+          'siteID': filteredRequest.SiteID,
+          'role': filteredRequest.Role,
+          'status': filteredRequest.Status
+        },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
       users.result = users.result.map((user) => user.getModel());

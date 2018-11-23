@@ -369,6 +369,18 @@ class UserStorage {
         '_id': Utils.convertToObjectID(params.userID)
       });
     }
+
+    if (params.role) {
+      filters.$and.push({
+        'role': params.role
+      });
+    }
+
+    if (params.status) {
+      filters.$and.push({
+        'status': params.status
+      });
+    }
     // Create Aggregation
     const aggregation = [];
     // Add TagIDs

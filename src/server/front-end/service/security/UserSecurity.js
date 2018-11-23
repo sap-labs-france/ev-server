@@ -40,8 +40,10 @@ class UserSecurity {
   static filterUsersRequest(request, loggedUser) {
     const filteredRequest = {};
     // Handle picture
-    filteredRequest.Search = request.Search;
-    filteredRequest.SiteID = request.SiteID;
+    filteredRequest.Search = sanitize(request.Search);
+    filteredRequest.SiteID = sanitize(request.SiteID);
+    filteredRequest.Role = sanitize(request.Role);
+    filteredRequest.Status = sanitize(request.Status);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
