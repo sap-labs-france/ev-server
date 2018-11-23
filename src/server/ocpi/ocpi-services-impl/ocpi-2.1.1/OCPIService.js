@@ -18,8 +18,6 @@ class OCPIServices extends AbstractOCPIService {
     this.registerEndpoint(new CredentialsEndpoint());
     this.registerEndpoint(new LocationsEndpoint());
   }
-
-  
 }
 
 module.exports = OCPIServices;

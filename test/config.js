@@ -70,6 +70,33 @@ const config = convict({
       }
     }
   },
+  ocpi: {
+    scheme: {
+      doc: 'The OCPI server scheme.',
+      format: ['http', 'https'],
+      default: 'http',
+      env: 'OCPI_SCHEME',
+    },
+    host: {
+      doc: 'The OCPI server host address to bind.',
+      format: String,
+      default: 'slf.localhost',
+      env: 'OCPI_HOSTNAME'
+    },
+    port: {
+      doc: 'The OCPI server port to bind.',
+      format: 'port',
+      default: 9090,
+      env: 'OCPI_PORT',
+      arg: 'ocpi_port'
+    },
+    logs: {
+      doc: '"json" to trace ocpi communication, "none" to not trace them',
+      format: ['json', 'none'],
+      default: 'none',
+      env: 'OCPI_LOGS'
+    }
+  },
   server: {
     scheme: {
       doc: 'The SERVER server scheme.',
