@@ -94,7 +94,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
     // Create the server
     let server;
     // Log
-    console.log(`Starting Soap Central System Server (Charging Stations)...`);
+    console.log(`Starting OCPP Soap Server...`); // eslint-disable-line
     // Make it global for SOAP Services
     global.centralSystemSoap = this;
     // Create the HTTP server
@@ -224,9 +224,9 @@ class SoapCentralSystemServer extends CentralSystemServer {
         tenantID: Constants.DEFAULT_TENANT,
         module: "SoapCentralSystemServer", method: "start",
         action: "Startup",
-        message: `Soap Central System Server (Charging Stations) listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`
+        message: `OCPP Soap Server listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`
       });
-      console.log(`Soap Central System Server (Charging Stations) listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`);
+      console.log(`OCPP Soap Server listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`); // eslint-disable-line
     });
   }
 }
