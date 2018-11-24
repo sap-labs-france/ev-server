@@ -3,7 +3,7 @@ require('source-map-support').install();
 module.exports = {
   DEFAULT_TENANT: 'default',
 
-  REST_RESPONSE_SUCCESS: { status: 'Success' },
+  REST_RESPONSE_SUCCESS: {status: 'Success'},
 
   CONN_STATUS_AVAILABLE: "Available",
   CONN_STATUS_OCCUPIED: "Occupied",
@@ -40,12 +40,10 @@ module.exports = {
 
   NOTIF_TYPE_CHARGING_STATION_CONFIGURATION: "Configuration",
 
+
   NO_LIMIT: 0,
 
   CENTRAL_SERVER: "Central Server",
-
-  WITH_CONNECTORS: true,
-  WITHOUT_CONNECTORS: false,
 
   WITH_CHARGING_STATIONS: true,
   WITHOUT_CHARGING_STATIONS: false,
@@ -107,7 +105,7 @@ module.exports = {
   METER_VALUE_MEASURAND_IMPREG: 'Energy.Active.Import.Register',
   METER_VALUE_LOCATION_OUTLET: 'Outlet',
   METER_VALUE_UNIT_WH: 'Wh',
-  
+
 
   WS_UNSUPPORTED_DATA: 1007,
 
@@ -116,25 +114,25 @@ module.exports = {
   OCPP_JSON_CALL_RESULT_MESSAGE: 3, // Server-to-Client
   OCPP_JSON_CALL_ERROR_MESSAGE: 4, // Server-to-Client
   // Requested Action is not known by receiver
-  OCPP_ERROR_NOT_IMPLEMENTED : 'NotImplemented',
+  OCPP_ERROR_NOT_IMPLEMENTED: 'NotImplemented',
   // Requested Action is recognized but not supported by the receiver
-  OCPP_ERROR_NOT_SUPPORTED : 'NotSupported',
+  OCPP_ERROR_NOT_SUPPORTED: 'NotSupported',
   // An internal error occurred and the receiver was not able to process the requested Action successfully
-  OCPP_ERROR_INTERNAL_ERROR : 'InternalError',
+  OCPP_ERROR_INTERNAL_ERROR: 'InternalError',
   // Payload for Action is incomplete
-  OCPP_ERROR_PROTOCOL_ERROR : 'ProtocolError',
+  OCPP_ERROR_PROTOCOL_ERROR: 'ProtocolError',
   // During the processing of Action a security issue occurred preventing receiver from completing the Action successfully
-  OCPP_ERROR_SECURITY_ERROR : 'SecurityError',
+  OCPP_ERROR_SECURITY_ERROR: 'SecurityError',
   // Payload for Action is syntactically incorrect or not conform the PDU structure for Action
-  OCPP_ERROR_FORMATION_VIOLATION : 'FormationViolation',
+  OCPP_ERROR_FORMATION_VIOLATION: 'FormationViolation',
   // Payload is syntactically correct but at least one field contains an invalid value
-  OCPP_ERROR_PROPERTY_RAINT_VIOLATION : 'PropertyraintViolation',
+  OCPP_ERROR_PROPERTY_RAINT_VIOLATION: 'PropertyraintViolation',
   // Payload for Action is syntactically correct but at least one of the fields violates occurence raints
-  OCPP_ERROR_OCCURENCE_RAINT_VIOLATION : 'OccurenceraintViolation',
+  OCPP_ERROR_OCCURENCE_RAINT_VIOLATION: 'OccurenceraintViolation',
   // Payload for Action is syntactically correct but at least one of the fields violates data type raints (e.g. “somestring”: 12)
-  OCPP_ERROR_TYPERAINT_VIOLATION : 'TyperaintViolation',
+  OCPP_ERROR_TYPERAINT_VIOLATION: 'TyperaintViolation',
   // Any other error not covered by the previous ones
-  OCPP_ERROR_GENERIC_ERROR : 'GenericError',
+  OCPP_ERROR_GENERIC_ERROR: 'GenericError',
 
   OCPP_PROTOCOL_JSON: 'json',
   OCPP_PROTOCOL_SOAP: 'soap',
@@ -142,6 +140,9 @@ module.exports = {
   OCPP_VERSION_15: '1.5',
   OCPP_VERSION_16: '1.6',
   OCPP_VERSION_20: '2.0',
+  
+  MAX_DATE: new Date('9999-12-31Z23:59:59:999'),
+  MIN_DATE: new Date('1970-01-01Z00:00:00:000'),
 
   // --------------------------------------------------------------------
   // OCPI Constants

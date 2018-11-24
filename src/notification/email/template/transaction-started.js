@@ -28,8 +28,7 @@ module.exports.email = {
       "Best Regards,",
       "EV Admin."
     ],
-    "footer": {
-    }
+    "footer": {}
   }
 };
 
@@ -64,7 +63,6 @@ module.exports.fr_FR.email = {
       "Cordialement,",
       "EV Admin."
     ],
-    "footer": {
-    }
+    "footer": {}
   }
 };

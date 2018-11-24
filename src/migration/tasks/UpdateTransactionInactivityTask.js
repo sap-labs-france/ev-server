@@ -77,7 +77,7 @@ class UpdateTransactionInactivityTask {
         }
       }
       // Delete Transactions
-      await global.database.getCollection(tenant.getID(), 'transactions').findOneAndDelete({'_id': transaction.id});
+      await global.database.getCollection(tenant.getID(), 'transactions').findOneAndDelete({'_id': transaction.getID()});
       // Remove Id
       delete transaction.id;
       // Save it

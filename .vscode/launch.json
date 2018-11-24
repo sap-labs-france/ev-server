@@ -24,6 +24,7 @@
             "type": "node",
             "request": "launch",
             // "runtimeExecutable": "nodemon",
+            // "runtimeExecutable": "nodemon",
             // "restart": true,
             "name": "Launch Program",
             "program": "${workspaceFolder}/src/start.js"

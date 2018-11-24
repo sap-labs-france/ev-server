@@ -201,7 +201,7 @@ class ChargingStationService16 extends ChargingStationService {
       const transaction = await chargingStation.handleStartTransaction(payload);
       // Return
       return {
-        'transactionId': transaction.id,
+        'transactionId': transaction.getID(),
         'status': 'Accepted'
       };
     } catch (error) {

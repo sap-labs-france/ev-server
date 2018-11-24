@@ -64,7 +64,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
       express.use(CFLog.logNetwork);
     }
     // Default, serve the index.html
-    express.get(/^\/wsdl(.+)$/, function (req, res, next) {
+    express.get(/^\/wsdl(.+)$/, function (req, res, next) { // eslint-disable-line
       // WDSL file?
       switch (req.params["0"]) {
         // Charge Point WSDL 1.2

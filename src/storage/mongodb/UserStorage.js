@@ -7,11 +7,14 @@ const Utils = require('../../utils/Utils');
 const AppError = require('../../exception/AppError');
 const eula = require('../../end-user-agreement');
 const DatabaseUtils = require('./DatabaseUtils');
+const Logging = require('../../utils/Logging');
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 
 class UserStorage {
   static getLatestEndUserLicenseAgreement(language = 'en') {
+    // Debug
+    Logging.traceStart('UserStorage', 'getLatestEndUserLicenseAgreement');
     // Get it
     let eulaText = eula[language];
     // Check
@@ -29,11 +32,15 @@ class UserStorage {
         'chargeAngelsURL': frontEndURL
       }
     );
+    // Debug
+    Logging.traceEnd('UserStorage', 'getLatestEndUserLicenseAgreement');
     // Parse
     return eulaText;
   }
 
   static async getEndUserLicenseAgreement(tenantID, language = "en") {
+    // Debug
+    Logging.traceStart('UserStorage', 'getEndUserLicenseAgreement');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     let languageFound = false;
@@ -80,12 +87,16 @@ class UserStorage {
         // Update object
         eula = {};
         Database.updateEula(result.ops[0], eula);
+        // Debug
+        Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement');
         // Return
         return eula;
       } else {
         // Ok: Transfer
         eula = {};
         Database.updateEula(eulaMDB, eula);
+        // Debug
+        Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement');
         return eula;
       }
     } else {
@@ -103,12 +114,17 @@ class UserStorage {
       // Update object
       eula = {};
       Database.updateEula(result.ops[0], eula);
+      // Debug
+      Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement');
       // Return
       return eula;
     }
   }
 
   static async getUserByTagId(tenantID, tagID) {
+    let user;
+    // Debug
+    Logging.traceStart('UserStorage', 'getUserByTagId');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -119,11 +135,17 @@ class UserStorage {
     // Check
     if (tagsMDB && tagsMDB.length > 0) {
       // Ok
-      return UserStorage.getUser(tenantID, tagsMDB[0].userID);
+      user = await UserStorage.getUser(tenantID, tagsMDB[0].userID);
     }
+    // Debug
+    Logging.traceEnd('UserStorage', 'getUserByTagId');
+    return user;
   }
 
   static async getUserByEmail(tenantID, email) {
+    let user;
+    // Debug
+    Logging.traceStart('UserStorage', 'getUserByEmail');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -134,11 +156,17 @@ class UserStorage {
     // Check deleted
     if (usersMDB && usersMDB.length > 0) {
       // Ok
-      return UserStorage._createUser(tenantID, usersMDB[0]);
+      user = await UserStorage._createUser(tenantID, usersMDB[0]);
     }
+    // Debug
+    Logging.traceEnd('UserStorage', 'getUserByEmail');
+    return user;
   }
 
   static async getUser(tenantID, id) {
+    let user;
+    // Debug
+    Logging.traceStart('UserStorage', 'getUser');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Create Aggregation
@@ -157,11 +185,16 @@ class UserStorage {
     // Check deleted
     if (usersMDB && usersMDB.length > 0) {
       // Ok
-      return UserStorage._createUser(tenantID, usersMDB[0]);
+      user = await UserStorage._createUser(tenantID, usersMDB[0]);
     }
+    // Debug
+    Logging.traceEnd('UserStorage', 'getUser');
+    return user;
   }
 
   static async getUserImage(tenantID, id) {
+    // Debug
+    Logging.traceStart('UserStorage', 'getUserImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -178,10 +211,14 @@ class UserStorage {
         image: userImagesMDB[0].image
       };
     }
+    // Debug
+    Logging.traceEnd('UserStorage', 'getUserImage');
     return userImage;
   }
 
   static async getUserImages(tenantID) {
+    // Debug
+    Logging.traceStart('UserStorage', 'getUserImages');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -196,10 +233,14 @@ class UserStorage {
         image: userImageMDB.image
       });
     }
+    // Debug
+    Logging.traceEnd('UserStorage', 'getUserImages');
     return userImages;
   }
 
   static async removeSitesFromUser(tenantID, userID, siteIDs) {
+    // Debug
+    Logging.traceStart('UserStorage', 'removeSitesFromUser');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // User provided?
@@ -216,9 +257,13 @@ class UserStorage {
         }
       }
     }
+    // Debug
+    Logging.traceEnd('UserStorage', 'removeSitesFromUser');
   }
 
   static async addSitesToUser(tenantID, userID, siteIDs) {
+    // Debug
+    Logging.traceStart('UserStorage', 'addSitesToUser');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // User provided?
@@ -238,9 +283,13 @@ class UserStorage {
         await global.database.getCollection(tenantID, 'siteusers').insertMany(siteUsers);
       }
     }
+    // Debug
+    Logging.traceEnd('UserStorage', 'addSitesToUser');
   }
 
   static async saveUser(tenantID, userToSave) {
+    // Debug
+    Logging.traceStart('UserStorage', 'saveUser');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const User = require('../../entity/User'); // Avoid fucking circular deps!!!
@@ -309,10 +358,14 @@ class UserStorage {
         await global.database.getCollection(tenantID, 'siteusers').insertMany(siteUsersMDB);
       }
     }
+    // Debug
+    Logging.traceEnd('UserStorage', 'saveUser');
     return updatedUser;
   }
 
   static async saveUserImage(tenantID, userImageToSave) {
+    // Debug
+    Logging.traceStart('UserStorage', 'saveUserImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID is provided
@@ -328,9 +381,13 @@ class UserStorage {
       {'_id': Utils.convertToObjectID(userImageToSave.id)},
       {$set: {image: userImageToSave.image}},
       {upsert: true, new: true, returnOriginal: false});
+    // Debug
+    Logging.traceEnd('UserStorage', 'saveUserImage');
   }
 
   static async getUsers(tenantID, params = {}, limit, skip, sort) {
+    // Debug
+    Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const User = require('../../entity/User'); // Avoid fucking circular deps!!!
@@ -473,6 +530,8 @@ class UserStorage {
       // Add
       users.push(user);
     }
+    // Debug
+    Logging.traceEnd('UserStorage', 'getUsers');
     // Ok
     return {
       count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
@@ -481,6 +540,8 @@ class UserStorage {
   }
 
   static async deleteUser(tenantID, id) {
+    // Debug
+    Logging.traceStart('UserStorage', 'deleteUser');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete User
@@ -492,6 +553,8 @@ class UserStorage {
     // Delete Tags
     await global.database.getCollection(tenantID, 'tags')
       .deleteMany({'userID': Utils.convertToObjectID(id)});
+    // Debug
+    Logging.traceEnd('UserStorage', 'deleteUser');
   }
 
   static async _createUser(tenantID, userMDB) {

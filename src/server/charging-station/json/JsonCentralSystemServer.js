@@ -68,7 +68,7 @@ class JsonCentralSystemServer extends CentralSystemServer {
     this._wss = new WebSocket.Server({
       server: server,
       verifyClient: verifyClient,
-      handleProtocols: (protocols, request) => {
+      handleProtocols: (protocols, request) => { // eslint-disable-line
         // Check the protocols
         // Ensure protocol used as ocpp1.6 or nothing (should create an error)
         if (Array.isArray(protocols)) {

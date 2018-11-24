@@ -1,9 +1,12 @@
 const Utils = require('../../utils/Utils');
 const Constants = require('../../utils/Constants');
 const DatabaseUtils = require('./DatabaseUtils');
+const Logging = require('../../utils/Logging');
 
 class StatisticsStorage {
   static async getChargingStationStats(tenantID, filter, siteID, groupBy) {
+    // Debug
+    Logging.traceStart('StatisticsStorage', 'getChargingStationStats');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
@@ -122,10 +125,14 @@ class StatisticsStorage {
         transaction[transactionStatMDB._id.chargeBox] = transactionStatMDB.total;
       }
     }
+    // Debug
+    Logging.traceEnd('StatisticsStorage', 'getChargingStationStats');
     return transactions;
   }
 
   static async getUserStats(tenantID, filter, siteID, groupBy) {
+    // Debug
+    Logging.traceStart('StatisticsStorage', 'getUserStats');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
@@ -256,6 +263,8 @@ class StatisticsStorage {
         transaction[Utils.buildUserFullName(transactionStatMDB.user)] = transactionStatMDB.total;
       }
     }
+    // Debug
+    Logging.traceEnd('StatisticsStorage', 'getUserStats');
     return transactions;
   }
 }

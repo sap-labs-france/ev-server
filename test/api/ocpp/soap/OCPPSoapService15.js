@@ -1,6 +1,7 @@
 const soap = require('strong-soap').soap;
 const OCPPService = require('../OCPPService');
 const config = require('../../../config');
+const {performance} = require('perf_hooks');
 
 class OCPPSoapService15 extends OCPPService {
   constructor(serverUrl) {
@@ -88,9 +89,13 @@ class OCPPSoapService15 extends OCPPService {
     // Build the SOAP Request
     const payload = {};
     payload[this._getRequestNameFromAction(request.name)] = request.data;
+    let t0 = 0;
+    let t1 = 0;
     try {
       // Execute it
+      t0 = performance.now();
       const { result, envelope, soapHeader } = await this.service[request.name](payload);
+      t1 = performance.now();
       // Log
       if (config.get('ocpp.soap.logs') === 'xml') {
         console.log('<!-- Request -->');
@@ -105,6 +110,7 @@ class OCPPSoapService15 extends OCPPService {
       }
       // Respond
       const response = {
+        executionTime: (t1 - t0),
         headers: soapHeader || {},
         data: result || {}
       };
@@ -115,7 +121,7 @@ class OCPPSoapService15 extends OCPPService {
       // Return response
       return response;
     } catch (error) {
-      console.log(error);      
+      console.log(error);
     }
   }
 

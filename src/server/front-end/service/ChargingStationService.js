@@ -268,6 +268,7 @@ class ChargingStationService {
       // Get the charging Charging Stations
       const chargingStations = await ChargingStation.getChargingStations(req.user.tenantID,
         {
+
           'search': filteredRequest.Search,
           'withNoSiteArea': filteredRequest.WithNoSiteArea,
           'withSite': filteredRequest.WithSite,
@@ -321,15 +322,13 @@ class ChargingStationService {
             'ChargingStationService', 'handleAction', req.user);
         }
         // Add connector ID
-        filteredRequest.args.connectorId = transaction.connectorId;
+        filteredRequest.args.connectorId = transaction.getConnectorId();
         // Check if user is authorized
-        await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, transaction.tagID, req.user.tagIDs[0]);
+        await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, transaction.getTagID(), req.user.tagIDs[0]);
         // Set the tag ID to handle the Stop Transaction afterwards
-        transaction.remotestop = {};
-        transaction.remotestop.tagID = req.user.tagIDs[0];
-        transaction.remotestop.timestamp = new Date().toISOString();
+        transaction.remoteStop(req.user.tagIDs[0], new Date().toISOString());
         // Save Transaction
-        await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
+        await TransactionStorage.saveTransaction(transaction);
         // Ok: Execute it
         result = await chargingStation.handleAction(action, filteredRequest.args);
       } else if (action === 'StartTransaction') {
@@ -430,14 +429,18 @@ class ChargingStationService {
         // Log
         Logging.logSecurityInfo({
           tenantID: req.user.tenantID,
-          user: req.user, module: 'ChargingStationService', method: 'handleActionSetMaxIntensitySocket',
-          action: action, source: chargingStation.getID(),
+          user: req.user,
+          module: 'ChargingStationService',
+          method: 'handleActionSetMaxIntensitySocket',
+          action: action,
+          source: chargingStation.getID(),
           message: `Max Instensity Socket has been set to '${filteredRequest.maxIntensity}'`
         });
         // Change the config
-        result = await chargingStation.requestChangeConfiguration(
-          { key: 'maxintensitysocket', value: filteredRequest.maxIntensity }
-        );
+        result = await chargingStation.requestChangeConfiguration({
+          key: 'maxintensitysocket',
+          value: filteredRequest.maxIntensity
+        });
       } else {
         // Invalid value
         throw new AppError(

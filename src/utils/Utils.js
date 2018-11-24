@@ -14,7 +14,7 @@ const path = require('path');
 require('source-map-support').install();
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
-
+const _tenants = [];
 class Utils {
   static generateGUID() {
     return uuidV4();
@@ -37,10 +37,10 @@ class Utils {
       'https://eu10.revenue.cloud.sap/api/usage-record/v1/usage-records',
       {
         'metricId': 'ChargeCurrent_Trial',
-        'quantity': transaction.stop.totalConsumption / 1000,
-        'startedAt': transaction.timestamp,
-        'endedAt': transaction.stop.timestamp,
-        'userTechnicalId': transaction.tagID
+        'quantity': transaction.getTotalConsumption() / 1000,
+        'startedAt': transaction.getstartedAt(),
+        'endedAt': transaction.getendedAt(),
+        'userTechnicalId': transaction.getTagID()
       },
       {
         'headers': {
@@ -53,9 +53,9 @@ class Utils {
     Logging.logSecurityInfo({
       user, actionOnUser, action,
       tenantID: transaction.getTenantID(),
-      source: transaction.chargeBox.id,
+      source: transaction.getChargeBoxID(),
       module: 'Utils', method: 'pushTransactionToRevenueCloud',
-      message: `Transaction ID '${transaction.id}' has been refunded successfully`,
+      message: `Transaction ID '${transaction.getID()}' has been refunded successfully`,
       detailedMessages: result.data
     });
   }
@@ -86,6 +86,10 @@ class Utils {
 
   static async checkTenant(tenantID) {
     const Tenant = require('../entity/Tenant'); // Avoid fucking circular deps
+    // Check in cache
+    if (_tenants.indexOf(tenantID) >= 0) {
+      return;
+    }
     // Check Tenant ID
     if (!tenantID) {
       // Error
@@ -106,8 +110,10 @@ class Utils {
         throw new BackendError(null, `Invalid Tenant ID '${tenantID}'`);
       }
     }
+    // Ok
+    _tenants.push(tenantID);
   }
-
+  
   static convertToDate(date) {
     // Check
     if (!date) {
@@ -206,6 +212,8 @@ class Utils {
     return userID;
   }
 
+
+
   static buildUserFullName(user, withID = true) {
     if (!user) {
       return "Unknown";
@@ -234,9 +242,10 @@ class Utils {
 
   static buildEvseURL(subdomain) {
     if (subdomain) {
-      return `${_centralSystemFrontEndConfig.protocol}://${subdomain}.${_centralSystemFrontEndConfig.host}:${_centralSystemFrontEndConfig.port}`;
-    }
-    return `${_centralSystemFrontEndConfig.protocol}://${_centralSystemFrontEndConfig.host}:${_centralSystemFrontEndConfig.port}`;
+    return `${_centralSystemFrontEndConfig.protocol}://${subdomain}.${_centralSystemFrontEndConfig.host}:${_centralSystemFrontEndConfig.port}`;
+      }
+    return `${_centralSystemFrontEndConfig.protocol}://${_centralSystemFrontEndConfig.host}:${
+      _centralSystemFrontEndConfig.port}`;
   }
 
   static async buildEvseUserURL(user) {
@@ -311,6 +320,30 @@ class Utils {
 
   static generateToken(email) {
     return crypto.createHash('sha1').update(`${new Date().toISOString()}~${email}`).digest('hex');
+  }
+
+  /**
+   * Duplicate a json object
+   * @param src
+   * @returns a copy of the source
+   */
+  static duplicateJSON(src) {
+    if (src === null || src === undefined || typeof src !== 'object') {
+      return src
+    }
+    if (src instanceof Date) {
+      return new Date(src.getTime());
+    }
+    let dest = {};
+    if (src instanceof Array) {
+      dest = [];
+    }
+    for (const index in src) {
+      if (src.hasOwnProperty(index)) {
+        dest[index] = Utils.duplicateJSON(src[index]);
+      }
+    }
+    return dest;
   }
 }
 
