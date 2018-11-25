@@ -49,7 +49,7 @@ class OCPIService {
    * @param {*} method 
    * @param {*} path 
    */
-  async accessPathWithoutToken(method, path) {
+  async accessPath(method, path) {
     return this.baseApi.send({
       method: method,
       url: path
@@ -94,12 +94,19 @@ class OCPIService {
    */
   validateEvseEntity(evse) {
     return expect(evse).to.have.property('uid').that.is.not.empty &&
-    expect(evse).to.have.property('id').that.is.not.empty &&
-    expect(evse).to.have.property('status').that.is.not.empty &&
-    expect(evse).to.have.property('connectors').to.be.an('array').that.is.not.empty;
-
+      expect(evse).to.have.property('id').that.is.not.empty &&
+      expect(evse).to.have.property('status').that.is.not.empty &&
+      expect(evse).to.have.property('connectors').to.be.an('array').that.is.not.empty;
   }
 
+  /**
+   * Validate Connector Entity
+   * @param {*} connector
+   */
+  validateConnectorEntity(connector) {
+    return expect(connector).to.have.property('id') &&
+      expect(connector).to.have.property('last_update').that.is.not.empty;
+  }
 
 
 

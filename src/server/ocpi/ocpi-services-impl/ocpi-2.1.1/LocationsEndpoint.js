@@ -8,6 +8,7 @@ require('source-map-support').install();
 
 const EP_IDENTIFIER = "locations";
 const MODULE_NAME = "locations"
+const RECORDS_LIMIT = 20;
 
 /**
  * Locations Endpoint
@@ -48,6 +49,7 @@ class LocationsEndpoint extends AbstractEndpoint {
     const urlSegment = req.path.substring(1).split('/');
     // remove action
     urlSegment.shift();
+
     // get filters
     const locationId = urlSegment.shift();
     const evseUid = urlSegment.shift();
@@ -61,9 +63,8 @@ class LocationsEndpoint extends AbstractEndpoint {
       // check if at least of site found
       if (!payload) {
         throw new OCPIServerError(
-          tenant.getID(),
           'GET locations',
-          `Connector with id '${connectorId}' on evse uid '${evseUid}' on location id '${locationId}' is not found`, 500,
+          `Connector id '${connectorId}' not found on EVSE uid '${evseUid}' and location id '${locationId}'`, 500,
           MODULE_NAME, 'getLocationRequest', null);
       }
 
@@ -73,9 +74,8 @@ class LocationsEndpoint extends AbstractEndpoint {
       // check if at least of site found
       if (!payload) {
         throw new OCPIServerError(
-          tenant.getID(),
           'GET locations',
-          `EVSE with evse uid '${evseUid}' on location id '${locationId}' is not found`, 500,
+          `EVSE uid not found '${evseUid}' on location id '${locationId}'`, 500,
           MODULE_NAME, 'getLocationRequest', null);
       }
     } else if (locationId) {
@@ -85,14 +85,32 @@ class LocationsEndpoint extends AbstractEndpoint {
       // check if at least of site found
       if (!payload) {
         throw new OCPIServerError(
-          tenant.getID(),
           'GET locations',
-          `Site with id '${locationId}' is not found`, 500,
+          `Site id '${locationId}' not found`, 500,
           MODULE_NAME, 'getLocationRequest', null);
       }
     } else {
+      // get query parameters
+      let offset = (req.query.offset)?parseInt(req.query.offset):0;
+      let limit  = (req.query.limit && req.query.limit < RECORDS_LIMIT)?parseInt(req.query.limit):RECORDS_LIMIT;
+
       // get all locations
-      payload = await this.getAllLocations(tenant);
+      const result = await this.getAllLocations(tenant,limit,offset);
+      payload = result.locations;
+
+      // set header
+      res.set({
+        'X-Total-Count': result.count,
+        'X-Limit': RECORDS_LIMIT
+      })
+
+      // return next link
+      const nextUrl = OCPIUtils.buildNextUrl(req, offset, limit, result.count);
+      if (nextUrl) {
+        res.links({
+          next: nextUrl
+        });
+      }
     }
 
     // return Payload
@@ -103,9 +121,9 @@ class LocationsEndpoint extends AbstractEndpoint {
    * Get All OCPI Locations from given tenant
    * @param {Tenant} tenant 
    */
-  async getAllLocations(tenant) {
-    // locations
-    const locations = [];
+  async getAllLocations(tenant,limit,skip) {
+    // result
+    const result = { count: 0, locations: []};
 
     // Get all sites
     const sites = await Site.getSites(
@@ -114,15 +132,18 @@ class LocationsEndpoint extends AbstractEndpoint {
         'withChargeBoxes': true,
         "withSiteAreas": true
       },
-      100, 0, null);
+      limit, skip, null);
 
     // convert Sites to Locations
     for (const site of sites.result) {
-      locations.push(await OCPIMapping.convertSite2Location(tenant, site));
+      result.locations.push(await OCPIMapping.convertSite2Location(tenant, site));
     }
 
+    // set count
+    result.count = sites.count;
+
     // return locations
-    return locations;
+    return result;
   }
 
   /**
@@ -173,7 +194,7 @@ class LocationsEndpoint extends AbstractEndpoint {
     // loop through Connector
     if (evse) {
       for (const connector of evse.connectors) {
-        if (connector.id === connectorId) return connector;
+        if (connector.id == connectorId) return connector;
       }
     }
   }

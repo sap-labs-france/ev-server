@@ -106,15 +106,18 @@ class AbstractOCPIService {
       // check if tenant is found
       if (!tenant && tenantSubdomain !== '') {
         throw new OCPIServerError(
-          'default', 'Login',
+          'Login',
           `The Tenant with subdomain '${tenantSubdomain}' does not exist`, 500,
           MODULE_NAME, 'handleVerifyTenant', null);
       }
 
+      // pass tenant id to req
+      req.tenantID = tenant.getID();
+
       // check if service is enabled for tenant
       if (!this._ocpiRestConfig.tenantEnabled.includes(tenantSubdomain)) {
         throw new OCPIServerError(
-          tenant.getID(), 'Login',
+          'Login',
           `The Tenant with subdomain '${tenantSubdomain}' is not enabled for OCPI`, 500,
           MODULE_NAME, 'processEndpointAction', null);
       }
@@ -130,7 +133,7 @@ class AbstractOCPIService {
         tenant._eMI3.party_id = this._ocpiRestConfig.eMI3id[tenantSubdomain].party_id;
       } else {
         throw new OCPIServerError(
-          tenant.getID(), 'Login',
+          'Login',
           `The Tenant with subdomain '${tenantSubdomain}' doesn't have country_id and/or party_id defined`, 500,
           MODULE_NAME, 'processEndpointAction', null);
       }
@@ -140,7 +143,6 @@ class AbstractOCPIService {
       if (this._ocpiRestConfig.eMI3id[tenantSubdomain].checkToken) {
         if (req.headers == null || `Token ${this._ocpiRestConfig.eMI3id[tenantSubdomain].token}` != req.headers.authorization) {
           throw new OCPIClientError(
-            tenant.getID(),
             'Login',
             "Unauthorized : Check credentials failed", 401,
             MODULE_NAME, 'processEndpointAction');
@@ -153,7 +155,6 @@ class AbstractOCPIService {
       } else {
         // res.sendStatus(501);
         throw new OCPIServerError(
-          tenant.getID(),
           'Process Endpoint',
           `Endpoint ${action} not implemented`, 501,
           MODULE_NAME, 'processEndpointAction');
