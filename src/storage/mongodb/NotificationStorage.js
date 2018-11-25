@@ -1,9 +1,12 @@
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const crypto = require('crypto');
+const Logging = require('../../utils/Logging');
 
 class NotificationStorage {
   static async getNotification(tenantID, sourceId) {
+    // Debug
+    Logging.traceStart('NotificationStorage', 'getNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -22,11 +25,15 @@ class NotificationStorage {
         notifications.push(notification);
       }
     }
+    // Debug
+    Logging.traceEnd('NotificationStorage', 'getNotification');
     // Ok
     return notifications;
   }
 
   static async saveNotification(tenantID, notificationToSave) {
+    // Debug
+    Logging.traceStart('NotificationStorage', 'saveNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Ensure Date
@@ -41,6 +48,8 @@ class NotificationStorage {
     // Create
     await global.database.getCollection(tenantID, 'notifications')
       .insertOne(notification);
+    // Debug
+    Logging.traceEnd('NotificationStorage', 'saveNotification');
   }
 }
 

@@ -168,10 +168,12 @@ class EMailNotificationTask extends NotificationTask {
     emailTemplate.email.subject = ejs.render(emailTemplate.email.subject, data);
     // Render Base URL
     emailTemplate.email.baseURL = ejs.render(emailTemplate.email.baseURL, data);
+    emailTemplate.email.body.template = templateName;
     // Render the title
     emailTemplate.email.body.header.title = ejs.render(emailTemplate.email.body.header.title, data);
     // Charge Angels Logo
     emailTemplate.email.body.header.image.left.url = ejs.render(emailTemplate.email.body.header.image.left.url, data);
+
     // Company Logo
     emailTemplate.email.body.header.image.right.url = ejs.render(emailTemplate.email.body.header.image.right.url, data);
     // Render Lines Before Action
@@ -266,7 +268,7 @@ class EMailNotificationTask extends NotificationTask {
             }
           });
         } catch (error) {
-          // For Unit Tests only: Tenant is deleted and email is not know thus this Logging statement is always failing with an invalid Tenant         
+          // For Unit Tests only: Tenant is deleted and email is not know thus this Logging statement is always failing with an invalid Tenant
         }
       } else {
         return message;

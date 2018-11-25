@@ -58,7 +58,7 @@ class TransactionSecurity {
   }
 
   // Transaction
-  static filterTransactionResponse(transaction, loggedUser, withConnector=false) {
+  static filterTransactionResponse(transaction, loggedUser) {
     let filteredTransaction;
 
     if (!transaction) {
@@ -68,69 +68,82 @@ class TransactionSecurity {
     if (Authorizations.canReadTransaction(loggedUser, transaction)) {
       // Set only necessary info
       filteredTransaction = {};
-      filteredTransaction.id = transaction.id;
-      filteredTransaction.transactionId = transaction.transactionId;
-      filteredTransaction.connectorId = transaction.connectorId;
-      filteredTransaction.meterStart = transaction.meterStart;
-      if (transaction.hasOwnProperty('totalDurationSecs')) {
-        filteredTransaction.totalDurationSecs = transaction.totalDurationSecs;
+      filteredTransaction.id = transaction.getID();
+      filteredTransaction.chargeBoxID = transaction.getChargeBoxID();
+      filteredTransaction.connectorId = transaction.getConnectorId();
+      filteredTransaction.meterStart = transaction.getMeterStart();
+      filteredTransaction.currentConsumption = transaction.getCurrentConsumption();
+      filteredTransaction.totalConsumption = transaction.getTotalConsumption();
+      filteredTransaction.totalInactivitySecs = transaction.getTotalInactivitySecs();
+      filteredTransaction.totalDurationSecs = transaction.getTotalDurationSecs();
+      filteredTransaction.status = transaction.getChargerStatus();
+      filteredTransaction.isLoading = transaction.isLoading();
+
+      // retro compatibility ON
+      filteredTransaction.transactionId = transaction.getID();
+      if (transaction.isActive()) {
+        if (transaction.getChargeBox()) {
+          filteredTransaction.chargeBox = {};
+          filteredTransaction.chargeBox.id = transaction.getChargeBox().id;
+          filteredTransaction.chargeBox.connectors = [];
+          filteredTransaction.chargeBox.connectors[transaction.getConnectorId() - 1] = transaction.getChargeBox().connectors[transaction.getConnectorId() - 1];
+        }
+      } else {
+        filteredTransaction.stop = {};
+        filteredTransaction.stop.meterStop = transaction.getMeterStop();
+        filteredTransaction.stop.totalConsumption = transaction.getTotalConsumption();
+        filteredTransaction.stop.totalInactivitySecs = transaction.getTotalInactivitySecs();
+        filteredTransaction.stop.totalDurationSecs = transaction.getTotalDurationSecs();
+        if (Authorizations.isAdmin(loggedUser)) {
+          filteredTransaction.stop.price = transaction.getPrice();
+          filteredTransaction.stop.priceUnit = transaction.getPriceUnit();
+        }
       }
-      if (transaction.hasOwnProperty('stateOfCharge')) {
-        filteredTransaction.stateOfCharge = transaction.stateOfCharge;
+      // retro compatibility OFF
+      if (transaction.hasStateOfCharges()) {
+        filteredTransaction.stateOfCharge = transaction.getStateOfCharge();
       }
+
       // Demo user?
       if (Authorizations.isDemo(loggedUser)) {
         filteredTransaction.tagID = Constants.ANONIMIZED_VALUE;
       } else {
-        filteredTransaction.tagID = transaction.tagID;
+        filteredTransaction.tagID = transaction.getTagID();
       }
-      filteredTransaction.timestamp = transaction.timestamp;
+      filteredTransaction.timestamp = transaction.getStartDate();
       // Filter user
       filteredTransaction.user = TransactionSecurity._filterUserInTransactionResponse(
-        transaction.user, loggedUser);
+        transaction.getUser(), loggedUser);
       // Transaction Stop
-      if (transaction.stop) {
-        filteredTransaction.stop = {};
-        filteredTransaction.stop.timestamp = transaction.stop.timestamp;
-        filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
-        filteredTransaction.stop.totalInactivitySecs = transaction.stop.totalInactivitySecs;
-        if (transaction.stop.hasOwnProperty('stateOfCharge')) {
-          filteredTransaction.stop.stateOfCharge = transaction.stop.stateOfCharge;
-        }
-          // Demo user?
+      if (!transaction.isActive()) {
+        filteredTransaction.meterStop = transaction.getMeterStop();
+        filteredTransaction.stop.timestamp = transaction.getEndDate();
+        // Demo user?
         if (Authorizations.isDemo(loggedUser)) {
           filteredTransaction.stop.tagID = Constants.ANONIMIZED_VALUE;
         } else {
-          filteredTransaction.stop.tagID = transaction.stop.tagID;
+          filteredTransaction.stop.tagID = transaction.getFinisherTagId();
+        }
+        if (transaction.getEndStateOfCharge()) {
+          filteredTransaction.stop.stateOfCharge = transaction.getEndStateOfCharge();
         }
         // Admin?
         if (Authorizations.isAdmin(loggedUser)) {
-          filteredTransaction.stop.price = transaction.stop.price;
-          filteredTransaction.stop.priceUnit = transaction.stop.priceUnit;
+          filteredTransaction.price = transaction.getPrice();
+          filteredTransaction.priceUnit = transaction.getPriceUnit();
         }
         // Stop User
-        if (transaction.stop.user) {
+        if (transaction.getFinisher()) {
           // Filter user
           filteredTransaction.stop.user = TransactionSecurity._filterUserInTransactionResponse(
-            transaction.stop.user, loggedUser);
-        }
-      }
-      // Charging Station
-      filteredTransaction.chargeBoxID = transaction.chargeBoxID;
-      if (transaction.chargeBox) {
-        filteredTransaction.chargeBox = {};
-        filteredTransaction.chargeBox.id = transaction.chargeBox.id;
-        // Connector?
-        if (withConnector) {
-          filteredTransaction.chargeBox.connectors = [];
-          filteredTransaction.chargeBox.connectors[transaction.connectorId-1] = transaction.chargeBox.connectors[transaction.connectorId-1];
+            transaction.getFinisher(), loggedUser);
         }
       }
     }
     return filteredTransaction;
   }
 
-  static filterTransactionsResponse(transactions, loggedUser, withConnector=false) {
+  static filterTransactionsResponse(transactions, loggedUser) {
     const filteredTransactions = [];
 
     if (!transactions) {
@@ -141,7 +154,7 @@ class TransactionSecurity {
     }
     for (const transaction of transactions) {
       // Filter
-      const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser, withConnector);
+      const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);
       // Ok?
       if (filteredTransaction) {
         // Add
@@ -194,29 +207,29 @@ class TransactionSecurity {
     return filteredRequest;
   }
 
-  static filterConsumptionsFromTransactionResponse(consumption, loggedUser) {
+  static filterConsumptionsFromTransactionResponse(transaction, consumptions, loggedUser) {
     const filteredConsumption = {};
 
-    if (!consumption) {
+    if (!consumptions) {
       return null;
     }
     // Check
-    if (Authorizations.canReadChargingStation(loggedUser, consumption.chargeBox)) {
-      filteredConsumption.chargeBoxID = consumption.chargeBoxID;
-      filteredConsumption.connectorId = consumption.connectorId;
+    if (Authorizations.canReadChargingStation(loggedUser, transaction.getChargeBox())) {
+      filteredConsumption.chargeBoxID = transaction.getChargeBoxID();
+      filteredConsumption.connectorId = transaction.getConnectorId();
       // Admin?
       if (Authorizations.isAdmin(loggedUser)) {
-        filteredConsumption.priceUnit = consumption.priceUnit;
-        filteredConsumption.totalPrice = consumption.totalPrice;
+        filteredConsumption.priceUnit = transaction.getPriceUnit();
+        filteredConsumption.totalPrice = transaction.getPrice();
       }
-      filteredConsumption.totalConsumption = consumption.totalConsumption;
-      filteredConsumption.transactionId = consumption.transactionId;
-      if (consumption.hasOwnProperty('stateOfCharge')) {
-        filteredConsumption.stateOfCharge = consumption.stateOfCharge;
+      filteredConsumption.totalConsumption = transaction.getTotalConsumption();
+      filteredConsumption.id = transaction.getID();
+      if (transaction.hasStateOfCharges()) {
+        filteredConsumption.stateOfCharge = transaction.getStateOfCharge();
       }
       // Check user
-      if (consumption.user) {
-        if (!Authorizations.canReadUser(loggedUser, consumption.user)) {
+      if (transaction.getUser()) {
+        if (!Authorizations.canReadUser(loggedUser, transaction.getUser())) {
           return null;
         }
       } else {
@@ -226,15 +239,15 @@ class TransactionSecurity {
       }
       // Set user
       filteredConsumption.user = TransactionSecurity._filterUserInTransactionResponse(
-        consumption.user, loggedUser);
+        transaction.getUser(), loggedUser);
       // Admin?
       if (Authorizations.isAdmin(loggedUser)) {
         // Set them all
-        filteredConsumption.values = consumption.values;
+        filteredConsumption.values = consumptions;
       } else {
         // Clean
         filteredConsumption.values = [];
-        for (const value of consumption.values) {
+        for (const value of consumptions) {
           // Set
           filteredConsumption.values.push({
             date: value.date,

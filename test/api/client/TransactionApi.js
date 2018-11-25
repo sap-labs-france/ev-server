@@ -1,6 +1,7 @@
 const CrudApi = require('./utils/CrudApi');
 const Constants = require('./utils/Constants');
-const { expect } = require('chai');
+const moment = require('moment');
+const {expect} = require('chai');
 
 class TransactionApi extends CrudApi {
   constructor(authenticatedApi) {
@@ -19,8 +20,8 @@ class TransactionApi extends CrudApi {
     return super.readAll('/client/api/TransactionsCompleted', params, paging, ordering);
   }
 
-  readAllConsumption(id) {
-    return super.read('/client/api/ChargingStationConsumptionFromTransaction', { TransactionId: id });
+  readAllConsumption(params) {
+    return super.read('/client/api/ChargingStationConsumptionFromTransaction', params);
   }
 
   readAllYears(params) {
@@ -65,29 +66,15 @@ class TransactionApi extends CrudApi {
       connectorId: chargingStationConnector.connectorId,
       tagID: user.tagIDs[0],
       chargeBoxID: chargingStation.id,
+      currentConsumption: 0,
+      totalConsumption: 0,
       meterStart: meterStart,
-      chargeBox: {
-        id: chargingStation.id,
-        connectors: [{
-          activeTransactionID: transactionId,
-          connectorId: chargingStationConnector.connectorId,
-          currentConsumption: 0,
-          currentStateOfCharge: 0,
-          totalConsumption: 0,
-          status: 'Occupied',
-          errorCode: 'NoError',
-          vendorErrorCode: '',
-          info: '',
-          type: null,
-          power: 0
-        }]
-      },
       user: {
         id: user.id,
         firstName: user.firstName,
         name: user.name,
       }
-    })
+    });
     return response.data;
   }
 
@@ -101,7 +88,7 @@ class TransactionApi extends CrudApi {
         transactionId: transaction.id,
         meterValue: {
           timestamp: currentTime.toISOString(),
-          sampledValue: [{ 
+          sampledValue: [{
             value: meterValue,
             format: "Raw",
             measurand: "Energy.Active.Import.Register",
@@ -111,7 +98,7 @@ class TransactionApi extends CrudApi {
           }]
         },
       });
-    // OCPP 1.5
+      // OCPP 1.5
     } else {
       response = await ocpp.executeMeterValues(chargingStation.id, {
         connectorId: transaction.connectorId,
@@ -144,22 +131,8 @@ class TransactionApi extends CrudApi {
       tagID: transaction.tagID,
       chargeBoxID: transaction.chargeBoxID,
       meterStart: transaction.meterStart,
-      chargeBox: {
-        id: transaction.chargeBoxID,
-        connectors: [{
-          activeTransactionID: transaction.id,
-          connectorId: transaction.connectorId,
-          currentConsumption: currentConsumption,
-          currentStateOfCharge: 0,
-          totalConsumption: totalConsumption,
-          status: 'Occupied',
-          errorCode: 'NoError',
-          vendorErrorCode: '',
-          info: '',
-          type: null,
-          power: 0
-        }]
-      },
+      currentConsumption: currentConsumption,
+      totalConsumption: totalConsumption,
       user: {
         id: user.id,
         firstName: user.firstName,
@@ -168,7 +141,7 @@ class TransactionApi extends CrudApi {
     })
   }
 
-  async stopTransaction(ocpp, transaction, userStart, userStop, meterStop, stopTime, chargingStationConnector, totalConsumption, totalInactivity) {
+  async stopTransaction(ocpp, transaction, userStart, userStop, meterStop, stopTime, chargingStationConnector, totalConsumption, totalInactivity, totalPrice) {
     // Stop the transaction
     let response = await ocpp.executeStopTransaction(transaction.chargeBoxID, {
       transactionId: transaction.id,
@@ -193,45 +166,35 @@ class TransactionApi extends CrudApi {
     // Check Transaction
     expect(response.status).to.equal(200);
     expect(response.data).to.deep.include({
-      "id": transaction.id,
-      "timestamp": transaction.timestamp,
-      "connectorId": transaction.connectorId,
-      "tagID": transaction.tagID,
-      "chargeBoxID": transaction.chargeBoxID,
-      "stateOfCharge": 0,
-      "meterStart": transaction.meterStart,
-      "stop": {
-        "tagID": userStop.tagIDs[0],
-        "timestamp": stopTime.toISOString(),
-        "totalConsumption": totalConsumption,
-        "totalInactivitySecs": totalInactivity,
-        "stateOfCharge": 0,
-        "user": {
-          "id": userStop.id,
-          "name": userStop.name,
-          "firstName": userStop.firstName
+      id: transaction.id,
+      price: totalPrice,
+      timestamp: transaction.timestamp,
+      connectorId: transaction.connectorId,
+      tagID: transaction.tagID,
+      chargeBoxID: transaction.chargeBoxID,
+      meterStart: transaction.meterStart,
+      totalConsumption: totalConsumption,
+      totalInactivitySecs: totalInactivity,
+      totalDurationSecs: moment.duration(moment(stopTime).diff(transaction.timestamp)).asSeconds(),
+      stop: {
+        meterStop: meterStop,
+        price: totalPrice,
+        priceUnit: 'EUR',
+        totalConsumption: totalConsumption,
+        totalInactivitySecs: totalInactivity,
+        totalDurationSecs: moment.duration(moment(stopTime).diff(transaction.timestamp)).asSeconds(),
+        tagID: userStop.tagIDs[0],
+        timestamp: stopTime.toISOString(),
+        user: {
+          id: userStop.id,
+          name: userStop.name,
+          firstName: userStop.firstName
         },
       },
-      "chargeBox": {
-        "id": transaction.chargeBoxID,
-        "connectors": [{
-          "activeTransactionID": 0,
-          "connectorId": transaction.connectorId,
-          "currentConsumption": 0,
-          "currentStateOfCharge": 0,
-          "totalConsumption": 0,
-          "status": 'Available',
-          "errorCode": 'NoError',
-          "vendorErrorCode": '',
-          "info": '',
-          "type": null,
-          "power": 0
-        }]
-      },
-      "user": {
-        "id": userStart.id,
-        "name": userStart.name,
-        "firstName": userStart.firstName
+      user: {
+        id: userStart.id,
+        name: userStart.name,
+        firstName: userStart.firstName
       }
     })
   }

@@ -5,9 +5,12 @@ const SiteAreaStorage = require('./SiteAreaStorage');
 const AppError = require('../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
 const DatabaseUtils = require('./DatabaseUtils');
+const Logging = require('../../utils/Logging');
 
 class SiteStorage {
   static async getSite(tenantID, id, withCompany, withUsers) {
+    // Debug
+    Logging.traceStart('SiteStorage', 'getSite');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Site = require('../../entity/Site'); // Avoid fucking circular deps!!!
@@ -93,10 +96,14 @@ class SiteStorage {
         site.setUsers(sitesMDB[0].users)
       }
     }
+    // Debug
+    Logging.traceEnd('SiteStorage', 'getSite');
     return site;
   }
 
   static async getSiteImage(tenantID, id) {
+    // Debug
+    Logging.traceStart('SiteStorage', 'getSiteImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -112,10 +119,14 @@ class SiteStorage {
         image: siteImagesMDB[0].image
       };
     }
+    // Debug
+    Logging.traceEnd('SiteStorage', 'getSiteImage');
     return siteImage;
   }
 
   static async getSiteImages(tenantID) {
+    // Debug
+    Logging.traceStart('SiteStorage', 'getSiteImages');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -133,10 +144,14 @@ class SiteStorage {
         });
       }
     }
+    // Debug
+    Logging.traceEnd('SiteStorage', 'getSiteImages');
     return siteImages;
   }
 
   static async saveSite(tenantID, siteToSave) {
+    // Debug
+    Logging.traceStart('SiteStorage', 'saveSite');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Site = require('../../entity/Site'); // Avoid fucking circular deps!!!
@@ -188,10 +203,14 @@ class SiteStorage {
         await global.database.getCollection(tenantID, 'siteusers').insertMany(siteUsersMDB);
       }
     }
+    // Debug
+    Logging.traceEnd('SiteStorage', 'saveSite');
     return updatedSite;
   }
 
   static async saveSiteImage(tenantID, siteImageToSave) {
+    // Debug
+    Logging.traceStart('SiteStorage', 'saveSiteImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID is provided
@@ -207,9 +226,13 @@ class SiteStorage {
       {'_id': Utils.convertToObjectID(siteImageToSave.id)},
       {$set: {image: siteImageToSave.image}},
       {upsert: true, new: true, returnOriginal: false});
+    // Debug
+    Logging.traceEnd('SiteStorage', 'saveSiteImage');
   }
 
   static async getSites(tenantID, params = {}, limit, skip, sort) {
+    // Debug
+    Logging.traceStart('SiteStorage', 'getSites');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
@@ -410,6 +433,8 @@ class SiteStorage {
         sites.push(site);
       }
     }
+    // Debug
+    Logging.traceEnd('SiteStorage', 'getSites');
     // Ok
     return {
       count: (sitesCountMDB.length > 0 ? sitesCountMDB[0].count : 0),
@@ -418,6 +443,8 @@ class SiteStorage {
   }
 
   static async deleteSite(tenantID, id) {
+    // Debug
+    Logging.traceStart('SiteStorage', 'deleteSite');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Site Areas
@@ -436,6 +463,8 @@ class SiteStorage {
     // Delete Site's Users
     await global.database.getCollection(tenantID, 'siteusers')
       .deleteMany({'siteID': Utils.convertToObjectID(id)});
+    // Debug
+    Logging.traceEnd('SiteStorage', 'deleteSite');
   }
 }
 

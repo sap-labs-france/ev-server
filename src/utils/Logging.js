@@ -42,6 +42,24 @@ class Logging {
     Logging._log(log);
   }
 
+  // Debug DB
+  static traceStart(module, method) {
+    // Check
+    if (_loggingConfig.trace) {
+      // Log
+      console.time(`${module}.${method}()`); // eslint-disable-line
+    }
+  }
+
+  // Debug DB
+  static traceEnd(module, method) {
+    // Check
+    if (_loggingConfig.trace) {
+      // Log
+      console.timeEnd(`${module}.${method}()`); // eslint-disable-line
+    }
+  }
+
   // Log Info
   static logSecurityInfo(log) {
     // Set
@@ -303,7 +321,7 @@ class Logging {
   }
 
   // Log
-  static _log(log) {
+  static async _log(log) {
     let moduleConfig = null;
 
     // Default Log Level
@@ -344,17 +362,17 @@ class Logging {
           break;
         }
       // Keep up to warning filter out debug
-      case LogLevel.WARNING:
+      case LogLevel.WARNING: // eslint-disable-line
         if (log.level === LogLevel.INFO || log.level === LogLevel.DEBUG) {
           break;
         }
       // Keep all log messages just filter out DEBUG
-      case LogLevel.INFO:
+      case LogLevel.INFO: // eslint-disable-line
         if (log.level === LogLevel.DEBUG) {
           break;
         }
       // Keep all messages
-      case LogLevel.DEBUG:
+      case LogLevel.DEBUG: // eslint-disable-line
       default: // If we did not break then it means we have to console log it
         Logging._consoleLog(log);
         break;
@@ -418,7 +436,7 @@ class Logging {
     }
 
     // Log
-    LoggingStorage.saveLog(log.tenantID, log);
+    await LoggingStorage.saveLog(log.tenantID, log);
 
     // Log in Cloud Foundry
     if (Configuration.isCloudFoundry()) {
@@ -433,19 +451,19 @@ class Logging {
     // Set the function to log
     switch (log.level) {
       case LogLevel.DEBUG:
-        logFn = console.debug;
+        logFn = console.debug; // eslint-disable-line
         break;
       case LogLevel.ERROR:
-        logFn = console.error;
+        logFn = console.error; // eslint-disable-line
         break;
       case LogLevel.WARNING:
-        logFn = console.warn;
+        logFn = console.warn; // eslint-disable-line
         break;
       case LogLevel.INFO:
-        logFn = console.info;
+        logFn = console.info; // eslint-disable-line
         break;
       default:
-        logFn = console.log;
+        logFn = console.log; // eslint-disable-line
         break;
     }
     // Log

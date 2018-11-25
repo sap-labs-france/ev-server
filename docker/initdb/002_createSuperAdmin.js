@@ -1,5 +1,5 @@
 db = db.getSiblingDB('evse');
-db.users.insert({
+db.getCollection('default.users').insert({
   _id: ObjectId(),
   email: 'super.admin@ev.com',
   address: {

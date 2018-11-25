@@ -4,6 +4,7 @@ const {
 } = require('chai');
 const chai = require('chai');
 const chaiSubset = require('chai-subset');
+const faker = require('faker');
 chai.use(chaiSubset);
 const CentralServerService = require('./client/CentralServerService');
 const OCPPBootstrap = require('./OCPPBootstrap');
@@ -14,6 +15,9 @@ class OCPPCommonTests {
   }
 
   async before() {
+    this.priceKWH= 1;
+    await CentralServerService.pricingApi.update({priceKWH: this.priceKWH, priceUnit: 'EUR'});
+
     // Create Bootstrap with OCPP
     this.bootstrap = new OCPPBootstrap(this.ocpp);
     // Create data
@@ -34,10 +38,10 @@ class OCPPCommonTests {
     // Set meter value start
     this.transactionStartUser = this.context.newUser;
     this.transactionStopUser = this.context.newUser;
-    this.transactionStartTime = moment().subtract(1, "h")
-    this.transactionStartMeterValue = 10000;
+    this.transactionStartMeterValue = 0;
+    this.transactionMeterValues = Array.from({length: 10}, () => faker.random.number({min: 200, max: 500})).concat([0,0,0,0]);
     this.transactionMeterValueIntervalSecs = 60;
-    this.transactionMeterValues = [200, 10, 500, 250, 120, 50, 0, 0, 0, 100];
+    this.transactionStartTime = moment().subtract(this.transactionMeterValues.length * this.transactionMeterValueIntervalSecs, "seconds");
     this.transactionTotalConsumption = this.transactionMeterValues.reduce((sum, meterValue) => sum + meterValue);
     this.transactionEndMeterValue = this.transactionStartMeterValue + this.transactionTotalConsumption;
     this.transactionTotalInactivity = this.transactionMeterValues.reduce(
@@ -46,6 +50,7 @@ class OCPPCommonTests {
       // Remove one
       this.transactionTotalInactivity -= this.transactionMeterValueIntervalSecs;
     }
+    this.totalPrice = this.transactionTotalConsumption / 1000;
   }
 
   async after() {
@@ -104,14 +109,14 @@ class OCPPCommonTests {
 
   async testHeartbeat() {
     // Update Status of Connector 1
-    let response = await this.ocpp.executeHeartbeat(this.context.newChargingStation.id, {});
+    const response = await this.ocpp.executeHeartbeat(this.context.newChargingStation.id, {});
     // Check
     expect(response.data).to.have.property('currentTime');
   }
 
   async testDataTransfer() {
     // Check
-    let response = await this.ocpp.executeDataTransfer(this.context.newChargingStation.id, {
+    const response = await this.ocpp.executeDataTransfer(this.context.newChargingStation.id, {
       "vendorId": "Schneider Electric",
       "messageId": "Detection loop",
       "data": "{\\\"connectorId\\\":2,\\\"name\\\":\\\"Vehicle\\\",\\\"state\\\":\\\"0\\\",\\\"timestamp\\\":\\\"2018-08-08T10:21:11Z:\\\"}",
@@ -158,7 +163,7 @@ class OCPPCommonTests {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     // Set
-    let transactionId = this.newTransaction.id;
+    const transactionId = this.newTransaction.id;
     this.transactionStartTime = moment().subtract(1, "h");
     // Clear old one
     this.newTransaction = null;
@@ -220,7 +225,8 @@ class OCPPCommonTests {
       this.transactionCurrentTime,
       this.chargingStationConnector1,
       this.transactionTotalConsumption,
-      this.transactionTotalInactivity);
+      this.transactionTotalInactivity,
+      this.totalPrice);
   }
 
   async testTransactionMetrics() {
@@ -228,14 +234,14 @@ class OCPPCommonTests {
     expect(this.newTransaction).to.not.be.null;
 
     // Get the consumption
-    let response = await CentralServerService.transactionApi.readAllConsumption(this.newTransaction.id);
+    const response = await CentralServerService.transactionApi.readAllConsumption({TransactionId: this.newTransaction.id});
     expect(response.status).to.equal(200);
     // Check Headers
     expect(response.data).to.deep.include({
       "chargeBoxID": this.newTransaction.chargeBoxID,
       "connectorId": this.newTransaction.connectorId,
       "totalConsumption": this.transactionTotalConsumption,
-      "transactionId": this.newTransaction.id,
+      "id": this.newTransaction.id,
       "user": {
         "id": this.transactionStartUser.id,
         "name": this.transactionStartUser.name,
@@ -243,7 +249,7 @@ class OCPPCommonTests {
       }
     });
     // Init
-    let transactionCurrentTime = moment(this.newTransaction.timestamp);
+    const transactionCurrentTime = moment(this.newTransaction.timestamp);
     let transactionCumulatedConsumption = 0;
     // Check Consumption
     for (let i = 0; i < response.data.values.length; i++) {

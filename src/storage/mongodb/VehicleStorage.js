@@ -4,9 +4,12 @@ const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const AppError = require('../../exception/AppError');
 const DatabaseUtils = require('./DatabaseUtils');
+const Logging = require('../../utils/Logging');
 
 class VehicleStorage {
   static async getVehicleImage(tenantID, id) {
+    // Debug
+    Logging.traceStart('VehicleStorage', 'getVehicleImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -22,10 +25,14 @@ class VehicleStorage {
         images: vehicleImagesMDB[0].images
       };
     }
+    // Debug
+    Logging.traceEnd('VehicleStorage', 'getVehicleImage');
     return vehicleImage;
   }
 
   static async getVehicleImages(tenantID) {
+    // Debug
+    Logging.traceStart('VehicleStorage', 'getVehicleImages');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -43,10 +50,14 @@ class VehicleStorage {
         });
       }
     }
+    // Debug
+    Logging.traceEnd('VehicleStorage', 'getVehicleImages');
     return vehicleImages;
   }
 
   static async getVehicle(tenantID, id) {
+    // Debug
+    Logging.traceStart('VehicleStorage', 'getVehicle');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Vehicle = require('../../entity/Vehicle'); // Avoid fucking circular deps!!!
@@ -68,10 +79,14 @@ class VehicleStorage {
       // Create
       vehicle = new Vehicle(tenantID, vehiclesMDB[0]);
     }
+    // Debug
+    Logging.traceEnd('VehicleStorage', 'getVehicle');
     return vehicle;
   }
 
   static async saveVehicle(tenantID, vehicleToSave) {
+    // Debug
+    Logging.traceStart('VehicleStorage', 'saveVehicle');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Vehicle = require('../../entity/Vehicle'); // Avoid fucking circular deps!!!
@@ -101,11 +116,15 @@ class VehicleStorage {
       vehicleFilter,
       {$set: vehicle},
       {upsert: true, new: true, returnOriginal: false});
+    // Debug
+    Logging.traceEnd('VehicleStorage', 'saveVehicle');
     // Create
     return new Vehicle(tenantID, result.value);
   }
 
   static async saveVehicleImages(tenantID, vehicleImagesToSave) {
+    // Debug
+    Logging.traceStart('VehicleStorage', 'saveVehicleImages');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID is provided
@@ -121,10 +140,14 @@ class VehicleStorage {
       {'_id': Utils.convertToObjectID(vehicleImagesToSave.id)},
       {$set: {images: vehicleImagesToSave.images}},
       {upsert: true, new: true, returnOriginal: false});
+    // Debug
+    Logging.traceEnd('VehicleStorage', 'saveVehicleImages');
   }
 
   // Delegate
   static async getVehicles(tenantID, params = {}, limit, skip, sort) {
+    // Debug
+    Logging.traceStart('VehicleStorage', 'getVehicles');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Vehicle = require('../../entity/Vehicle'); // Avoid fucking circular deps!!!
@@ -198,6 +221,8 @@ class VehicleStorage {
         vehicles.push(new Vehicle(tenantID, vehicleMDB));
       }
     }
+    // Debug
+    Logging.traceEnd('VehicleStorage', 'getVehicles');
     // Ok
     return {
       count: (vehiclesCountMDB.length > 0 ? vehiclesCountMDB[0].count : 0),
@@ -206,6 +231,8 @@ class VehicleStorage {
   }
 
   static async deleteVehicle(tenantID, id) {
+    // Debug
+    Logging.traceStart('VehicleStorage', 'deleteVehicle');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Vehicle
@@ -214,6 +241,8 @@ class VehicleStorage {
     // Delete Images
     await global.database.getCollection(tenantID, 'vehicleimages')
       .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
+    // Debug
+    Logging.traceEnd('VehicleStorage', 'deleteVehicle');
   }
 }
 
