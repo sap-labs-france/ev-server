@@ -11,7 +11,7 @@ class LoggingDatabaseTableCleanupTask extends SchedulerTask {
 
   async run(config) {
     const tenants = await Tenant.getTenants();
-    for (const tenant of tenants) {
+    for (const tenant of tenants.result) {
       LoggingDatabaseTableCleanupTask.processTenant(tenant, config);
     }
   }
