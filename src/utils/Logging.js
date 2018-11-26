@@ -353,7 +353,7 @@ class Logging {
     }
 
     // Log Level takes precedence over console log
-    switch (consoleLogLevel) {
+    switch (LogLevel[consoleLogLevel]) {
       case LogLevel.NONE:
         break;
       // Keep up to error filter out debug
@@ -384,7 +384,7 @@ class Logging {
     }
 
     // Log Level
-    switch (logLevel) {
+    switch (LogLevel[logLevel]) {
       // No logging at all
       case LogLevel.NONE:
         return;
