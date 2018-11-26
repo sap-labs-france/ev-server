@@ -91,7 +91,7 @@ class OCPIMapping {
     // loop through connectors and send one evse per connector
     const evses = chargingStation.getConnectors().map(connector => {
       return {
-        "uid": `${chargingStation.getID()}_${connector.connectorId}`,
+        "uid": `${chargingStation.getID()}*${connector.connectorId}`,
         "id": this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}*${connector.connectorId}`),
         "status": this.convertStatus2OCPIStatus(connector.status),
         "connectors": [this.convertConnector2OCPIConnector(chargingStation, connector)]
@@ -131,8 +131,7 @@ class OCPIMapping {
    */
   static aggregateConnectorsStatus(connectors) {
     // Build array with charging station ordered by priority
-    const statusesOrdered = [Constants.CONN_STATUS_AVAILABLE, Constants.CONN_STATUS_OCCUPIED,
-    Constants.CONN_STATUS_CHARGING, Constants.CONN_STATUS_FAULTED];
+    const statusesOrdered = [Constants.CONN_STATUS_AVAILABLE, Constants.CONN_STATUS_OCCUPIED,Constants.CONN_STATUS_CHARGING, Constants.CONN_STATUS_FAULTED];
 
     let aggregatedConnectorStatusIndex = 0;
 
