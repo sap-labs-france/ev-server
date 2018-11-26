@@ -80,7 +80,7 @@ const config = convict({
     host: {
       doc: 'The OCPI server host address to bind.',
       format: String,
-      default: 'slf.localhost',
+      default: 'localhost',
       env: 'OCPI_HOSTNAME'
     },
     port: {
@@ -89,6 +89,12 @@ const config = convict({
       default: 9090,
       env: 'OCPI_PORT',
       arg: 'ocpi_port'
+    },
+    token: {
+      doc: "OCPI token",
+      format: String,
+      default: 'eyAiYSI6IDEgLCAidGVuYW50IjogInNsZiIgfQ==',
+      env: 'OCPI_TOKEN'
     },
     logs: {
       doc: '"json" to trace ocpi communication, "none" to not trace them',

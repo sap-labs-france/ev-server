@@ -1,8 +1,8 @@
 const Tenant = require('../../entity/Tenant');
 const OCPIServerError = require('../../exception/OCPIServerError');
-const OCPIClientError = require('../../exception/OCPIClientError');
 const OCPIUtils = require('./OCPIUtils');
 const Constants = require('../../utils/Constants');
+const atob = require('atob');
 
 const MODULE_NAME = "AbstractOCPIService";
 
@@ -61,6 +61,9 @@ class AbstractOCPIService {
     // Parse the action
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
 
+    // set default tenant in case of exception
+    req.tenantID = Constants.DEFAULT_TENANT;
+
     // check action
     switch (action) {
       // if empty - return available endpoints
@@ -97,15 +100,35 @@ class AbstractOCPIService {
     try {
       const registeredEndpoints = this.getRegisteredEndpoint();
 
+      // get token from header
+      if (!req.headers || !req.headers.authorization) {
+        throw new OCPIServerError(
+          'Login',
+          `Missing authorization token`, 500,
+          MODULE_NAME, 'handleVerifyTenant', null);
+      }
+
+      // get token
+      let decodedToken = {};
+      try {
+        const token = req.headers.authorization.split(" ")[1];
+        decodedToken = JSON.parse(atob(token));
+      } catch (error) {
+        throw new OCPIServerError(
+          'Login',
+          `Invalid authorization token`, 500,
+          MODULE_NAME, 'handleVerifyTenant', null);
+      }
+
+
       // get tenant from the called URL
-      const tenantSubdomain = req.hostname.split('.')[0];
+      const tenantSubdomain = decodedToken.tenant;
 
       // get tenant from database
       const tenant = await Tenant.getTenantBySubdomain(tenantSubdomain);
 
       // check if tenant is found
       if (!tenant && tenantSubdomain !== '') {
-        req.tenantID = Constants.DEFAULT_TENANT;
         throw new OCPIServerError(
           'Login',
           `The Tenant with subdomain '${tenantSubdomain}' does not exist`, 500,
@@ -137,17 +160,6 @@ class AbstractOCPIService {
           'Login',
           `The Tenant with subdomain '${tenantSubdomain}' doesn't have country_id and/or party_id defined`, 500,
           MODULE_NAME, 'processEndpointAction', null);
-      }
-
-      // check token
-      // TODO: remove temporary checkToken in futur - only use to test in chrome without token
-      if (this._ocpiRestConfig.eMI3id[tenantSubdomain].checkToken) {
-        if (req.headers == null || `Token ${this._ocpiRestConfig.eMI3id[tenantSubdomain].token}` != req.headers.authorization) {
-          throw new OCPIClientError(
-            'Login',
-            "Unauthorized : Check credentials failed", 401,
-            MODULE_NAME, 'processEndpointAction');
-        }
       }
 
       // handle request action (endpoint)

@@ -10,6 +10,10 @@ chai.use(chaiSubset);
 class OCPIService {
   constructor() {
     this.baseURL = `${config.get('ocpi.scheme')}://${config.get('ocpi.host')}:${config.get('ocpi.port')}`;
+
+    // build token
+    this.token = `Token ${config.get('ocpi.token')}`;
+
     // Create the Base API
     this.baseApi = new BaseApi(this.baseURL);
   }
@@ -48,7 +52,10 @@ class OCPIService {
   async getLocations2_1_1() {
     return this.baseApi.send({
       method: 'GET',
-      url: 'ocpi/cpo/2.1.1/locations'
+      url: 'ocpi/cpo/2.1.1/locations',
+      headers: {
+        Authorization: this.token
+      }
     });
   }
 
@@ -60,7 +67,10 @@ class OCPIService {
   async accessPath(method, path) {
     return this.baseApi.send({
       method: method,
-      url: path
+      url: path,
+      headers: {
+        Authorization: this.token
+      }
     });
   }
 
