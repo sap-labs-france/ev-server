@@ -3,6 +3,7 @@ const ChargingStationClient = require('../client/ChargingStationClient');
 const Utils = require('../utils/Utils');
 const Logging = require('../utils/Logging');
 const User = require('./User');
+const Transaction = require('./Transaction');
 const SiteArea = require('./SiteArea');
 const Constants = require('../utils/Constants');
 const Database = require('../utils/Database');
@@ -10,13 +11,12 @@ const moment = require('moment');
 const Configuration = require('../utils/Configuration');
 const NotificationHandler = require('../notification/NotificationHandler');
 const Authorizations = require('../authorization/Authorizations');
-const AppError = require('../exception/AppError');
 const BackendError = require('../exception/BackendError');
 const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
 const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const TransactionStorage = require('../storage/mongodb/TransactionStorage');
-const PricingStorage = require('../storage/mongodb/PricingStorage');
-
+const momentDurationFormatSetup = require("moment-duration-format");
+momentDurationFormatSetup(moment);
 const _configChargingStation = Configuration.getChargingStationConfig();
 
 class ChargingStation extends AbstractTenantEntity {
@@ -24,6 +24,14 @@ class ChargingStation extends AbstractTenantEntity {
     super(tenantID);
     // Set it
     Database.updateChargingStation(chargingStation, this._model);
+  }
+
+  static getChargingStation(tenantID, id) {
+    return ChargingStationStorage.getChargingStation(tenantID, id);
+  }
+
+  static getChargingStations(tenantID, params, limit, skip, sort) {
+    return ChargingStationStorage.getChargingStations(tenantID, params, limit, skip, sort)
   }
 
   handleAction(action, params = {}) {
@@ -291,6 +299,10 @@ class ChargingStation extends AbstractTenantEntity {
     return this._model.connectors;
   }
 
+  getConnector(identifier) {
+    return this._model.connectors[identifier - 1];
+  }
+
   setConnectors(connectors) {
     this._model.connectors = connectors;
   }
@@ -328,7 +340,7 @@ class ChargingStation extends AbstractTenantEntity {
     if (!statusNotification.timestamp) {
       statusNotification.timestamp = new Date().toISOString();
     }
-    
+
     // Handle connectorId = 0 case => Currently status is distributed to each individual connectors
     if (statusNotification.connectorId == 0) {
       // Log
@@ -345,7 +357,7 @@ class ChargingStation extends AbstractTenantEntity {
         // Check if former connector can be set
         if (connectors[i]) {
           // update message with proper connectorId
-          statusNotification.connectorId = i+1;
+          statusNotification.connectorId = i + 1;
           await this.updateConnectorStatus(statusNotification);
         }
       }
@@ -354,7 +366,7 @@ class ChargingStation extends AbstractTenantEntity {
       await this.updateConnectorStatus(statusNotification);
     }
   }
-    
+
   async updateConnectorStatus(statusNotification) {
     // Get the connectors
     const connectors = this.getConnectors();
@@ -631,106 +643,82 @@ class ChargingStation extends AbstractTenantEntity {
   async updateChargingStationConsumption(transactionId) {
     // Get the last transaction first
     const transaction = await this.getTransaction(transactionId);
-    // Found?
-    if (transaction) {
-      // Get connectorId
-      const connector = this.getConnectors()[transaction.connectorId - 1];
-      // Found?
-      if (!transaction.stop) {
-        // Get the consumption
-        const consumption = await this.getConsumptionsFromTransaction(transaction);
-        let currentConsumption = 0;
-        let totalConsumption = 0;
-        let currentStateOfCharge = 0;
-        // Check
-        if (consumption) {
-          currentConsumption = (consumption.values.length > 0 ? consumption.values[consumption.values.length - 1].value : 0);
-          totalConsumption = consumption.totalConsumption;
-          currentStateOfCharge = consumption.stateOfCharge;
-        }
-        // Changed?
-        if (connector.currentConsumption !== currentConsumption ||
-            connector.totalConsumption !== totalConsumption ||
-            connector.currentStateOfCharge !== currentStateOfCharge) {
-          // Set consumption
-          connector.currentConsumption = Math.floor(currentConsumption);
-          connector.totalConsumption = Math.floor(totalConsumption);
-          connector.currentStateOfCharge = currentStateOfCharge;
-          // Log
-          Logging.logInfo({
-            tenantID: this.getTenantID(),
-            source: this.getID(), module: 'ChargingStation',
-            method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
-            message: `Connector '${connector.connectorId}' - Consumption ${connector.currentConsumption}, Total: ${connector.totalConsumption}, SoC: ${connector.currentStateOfCharge}`
-          });
-        }
-        // Update Transaction ID
-        connector.activeTransactionID = transactionId;
-        // Update Heartbeat
-        this.setLastHeartBeat(new Date());
-        // Handle End Of charge
-        this.handleNotificationEndOfCharge(transaction, consumption);
-      } else {
-        // Set consumption
-        connector.currentConsumption = 0;
-        connector.totalConsumption = 0;
-        connector.currentStateOfCharge = 0;
-        // Reset Transaction ID
-        connector.activeTransactionID = 0;
-        // Log
-        Logging.logInfo({
-          tenantID: this.getTenantID(),
-          source: this.getID(), module: 'ChargingStation',
-          method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
-          message: `Connector '${connector.connectorId}' - Consumption ${connector.currentConsumption}, Total: ${connector.totalConsumption}, SoC: ${connector.currentStateOfCharge}`
-        });
-      }
-    } else {
-      // Log
+
+    if (!transaction) {
       Logging.logError({
         tenantID: this.getTenantID(),
         source: this.getID(), module: 'ChargingStation',
         method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
         message: `Transaction ID '${transactionId}' not found`
       });
+      return;
     }
+
+    const connector = this.getConnector(transaction.getConnectorId());
+
+    if (transaction.isActive()) {
+      // Changed?
+      if (connector.currentConsumption !== transaction.getCurrentConsumption() ||
+        connector.totalConsumption !== transaction.getTotalConsumption() ||
+        connector.currentStateOfCharge !== transaction.getStateOfCharge()) {
+        // Set consumption
+        connector.currentConsumption = transaction.getCurrentConsumption();
+        connector.totalConsumption = transaction.getTotalConsumption();
+        connector.currentStateOfCharge = transaction.getStateOfCharge();
+      }
+      // Update Transaction ID
+      connector.activeTransactionID = transactionId;
+      // Update Heartbeat
+      this.setLastHeartBeat(new Date());
+      // Handle End Of charge
+      this.handleNotificationEndOfCharge(transaction);
+    } else {
+      // Set consumption
+      connector.currentConsumption = 0;
+      connector.totalConsumption = 0;
+      connector.currentStateOfCharge = 0;
+      // Reset Transaction ID
+      connector.activeTransactionID = 0;
+    }
+    // Log
+    Logging.logInfo({
+      tenantID: this.getTenantID(),
+      source: this.getID(), module: 'ChargingStation',
+      method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
+      message: `Connector '${connector.connectorId}' - Consumption ${connector.currentConsumption}, Total: ${connector.totalConsumption}, SoC: ${connector.currentStateOfCharge}`
+    });
   }
 
-  async handleNotificationEndOfCharge(transaction, consumption) {
+  async handleNotificationEndOfCharge(transaction) {
     // Transaction in progress?
-    if (transaction && !transaction.stop) {
+    if (transaction && transaction.isActive()) {
       // Has consumption?
-      if (consumption && consumption.values && consumption.values.length > 1) {
-        // Last timestamp
-        const lastTimestamp = consumption.values[consumption.values.length - 1].date;
-        // Compute avg of last two values
-        const avgConsumption = (consumption.values[consumption.values.length - 1].value +
-          consumption.values[consumption.values.length - 2].value) / 2;
+      if (transaction.hasMultipleConsumptions()) {
         // --------------------------------------------------------------------
         // Notification End of charge
         // --------------------------------------------------------------------
-        if (_configChargingStation.notifEndOfChargeEnabled && avgConsumption === 0) {
+        if (_configChargingStation.notifEndOfChargeEnabled && transaction.getAverageConsumptionOnLast(2) === 0) {
           // Notify User?
-          if (transaction.user) {
+          if (transaction.getUser()) {
             // Send Notification
             NotificationHandler.sendEndOfCharge(
               this.getTenantID(),
-              transaction.id + '-EOC',
-              transaction.user,
+              transaction.getID() + '-EOC',
+              transaction.getUser(),
               this.getModel(),
               {
-                'user': transaction.user,
+                'user': transaction.getUser(),
                 'chargingBoxID': this.getID(),
-                'connectorId': transaction.connectorId,
-                'totalConsumption': (this.getConnectors()[transaction.connectorId - 1].totalConsumption / 1000).toLocaleString(
-                  (transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+                'connectorId': transaction.getConnectorId(),
+                'totalConsumption': (transaction.getTotalConsumption() / 1000).toLocaleString(
+                  (transaction.getUser().locale ? transaction.getUser().locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
                   {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
-                'stateOfCharge': consumption.stateOfCharge,
-                'totalDuration': this._buildCurrentTransactionDuration(transaction, lastTimestamp),
-                'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
+                'stateOfCharge': transaction.getStateOfCharge(),
+                'totalDuration': this._buildCurrentTransactionDuration(transaction),
+                'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.getConnectorId(), transaction.getID()),
                 'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
               },
-              transaction.user.locale
+              transaction.getUser().locale
             );
           }
 
@@ -738,34 +726,40 @@ class ChargingStation extends AbstractTenantEntity {
           if (_configChargingStation.notifStopTransactionAndUnlockConnector) {
             try {
               // Yes: Stop the transaction
-              let result = await this.requestStopTransaction(transaction.id);
+              let result = await this.requestStopTransaction(transaction.getID());
               // Ok?
               if (result && result.status === 'Accepted') {
                 // Cannot unlock the connector
                 Logging.logInfo({
                   tenantID: this.getTenantID(),
                   source: this.getID(), module: 'ChargingStation', method: 'handleNotificationEndOfCharge',
-                  action: 'NotifyEndOfCharge', message: `Transaction ID '${transaction.id}' has been stopped`,
-                  detailedMessages: transaction
+                  action: 'NotifyEndOfCharge', message: `Transaction ID '${transaction.getID()}' has been stopped`,
+                  detailedMessages: transaction.getModel()
                 });
                 // Unlock the connector
-                result = await this.requestUnlockConnector(transaction.connectorId);
+                result = await this.requestUnlockConnector(transaction.getConnectorId());
                 // Ok?
                 if (result && result.status === 'Accepted') {
                   // Cannot unlock the connector
                   Logging.logInfo({
                     tenantID: this.getTenantID(),
-                    source: this.getID(), module: 'ChargingStation', method: 'handleNotificationEndOfCharge',
-                    action: 'NotifyEndOfCharge', message: `Connector '${transaction.connectorId}' has been unlocked`,
-                    detailedMessages: transaction
+                    source: this.getID(),
+                    module: 'ChargingStation',
+                    method: 'handleNotificationEndOfCharge',
+                    action: 'NotifyEndOfCharge',
+                    message: `Connector '${transaction.getConnectorId()}' has been unlocked`,
+                    detailedMessages: transaction.getModel()
                   });
                 } else {
                   // Cannot unlock the connector
                   Logging.logError({
                     tenantID: this.getTenantID(),
-                    source: this.getID(), module: 'ChargingStation', method: 'handleNotificationEndOfCharge',
-                    action: 'NotifyEndOfCharge', message: `Cannot unlock the connector '${transaction.connectorId}'`,
-                    detailedMessages: transaction
+                    source: this.getID(),
+                    module: 'ChargingStation',
+                    method: 'handleNotificationEndOfCharge',
+                    action: 'NotifyEndOfCharge',
+                    message: `Cannot unlock the connector '${transaction.getConnectorId()}'`,
+                    detailedMessages: transaction.getModel()
                   });
                 }
               } else {
@@ -774,7 +768,7 @@ class ChargingStation extends AbstractTenantEntity {
                   tenantID: this.getTenantID(),
                   source: this.getID(), module: 'ChargingStation', method: 'handleNotificationEndOfCharge',
                   action: 'NotifyEndOfCharge', message: `Cannot stop the transaction`,
-                  detailedMessages: transaction
+                  detailedMessages: transaction.getModel()
                 });
               }
             } catch (error) {
@@ -782,29 +776,29 @@ class ChargingStation extends AbstractTenantEntity {
               Logging.logActionExceptionMessage(this.getTenantID(), 'EndOfCharge', error);
             }
           }
-        // Check the SoC
-        } else if (_configChargingStation.notifBeforeEndOfChargeEnabled && 
-            this.getConnectors()[transaction.connectorId - 1].currentStateOfCharge >= _configChargingStation.notifBeforeEndOfChargePercent) {
+          // Check the SoC
+        } else if (_configChargingStation.notifBeforeEndOfChargeEnabled &&
+          transaction.getStateOfCharge() >= _configChargingStation.notifBeforeEndOfChargePercent) {
           // Notify User?
-          if (transaction.user) {
-              // Notifcation Before End Of Charge
+          if (transaction.getUser()) {
+            // Notifcation Before End Of Charge
             NotificationHandler.sendOptimalChargeReached(
               this.getTenantID(),
-              transaction.id + '-OCR',
-              transaction.user,
+              transaction.getID() + '-OCR',
+              transaction.getUser(),
               this.getModel(),
               {
-                'user': transaction.user,
+                'user': transaction.getUser(),
                 'chargingBoxID': this.getID(),
-                'connectorId': transaction.connectorId,
-                'totalConsumption': (consumption.totalConsumption / 1000).toLocaleString(
-                  (transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+                'connectorId': transaction.getConnectorId(),
+                'totalConsumption': (transaction.getTotalConsumption() / 1000).toLocaleString(
+                  (transaction.getUser().locale ? transaction.getUser().locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
                   {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
-                'stateOfCharge': consumption.stateOfCharge,
-                'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
+                'stateOfCharge': transaction.getStateOfCharge(),
+                'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.getConnectorId(), transaction.getID()),
                 'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
               },
-              transaction.user.locale
+              transaction.getUser().locale
             );
           }
         }
@@ -814,41 +808,20 @@ class ChargingStation extends AbstractTenantEntity {
 
   // Build Inactivity
   _buildCurrentTransactionInactivity(transaction, i18nHourShort = 'h') {
-    // Check
-    if (!transaction.stop || !transaction.stop.totalInactivitySecs) {
-      return '0h00 (0%)';
+    const totalInactivitySecs = transaction.getTotalInactivitySecs();
+
+    if (transaction.isActive() || totalInactivitySecs === 0) {
+      return `0${i18nHourShort}00 (0%)`;
     }
-    // Compute duration from now
-    const totalDurationSecs = moment.duration(
-      moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
-    // Compute the percentage
-    const totalInactivityPercent = Math.round(
-      parseInt(transaction.stop.totalInactivitySecs) * 100 / totalDurationSecs);
-    // Create Moment
-    const totalInactivitySecs = moment.duration(transaction.stop.totalInactivitySecs, 'seconds');
-    // Get Minutes
-    const mins = Math.floor(totalInactivitySecs.minutes());
-    // Build Inactivity
-    const inactivityString =
-      Math.floor(totalInactivitySecs.asHours()).toString() + i18nHourShort +
-      (mins < 10 ? ('0' + mins) : mins.toString()) +
-      ' (' + totalInactivityPercent + '%)';
-    // End
-    return inactivityString;
+
+    const duration = transaction.getDuration();
+    const totalInactivityPercent = Math.round(parseInt(totalInactivitySecs) * 100 / duration.asSeconds());
+    return transaction.getDuration().format(`h[${i18nHourShort}]mm`) + `(${totalInactivityPercent})%`;
   }
 
   // Build duration
-  _buildCurrentTransactionDuration(transaction, lastTimestamp) {
-    // Build date
-    const i18nHourShort = 'h';
-    // Compute duration from now
-    const timeDiffDuration = moment.duration(
-      moment(lastTimestamp).diff(moment(transaction.timestamp)));
-    // Set duration
-    const mins = Math.floor(timeDiffDuration.minutes());
-    // Return Duration
-    return Math.floor(timeDiffDuration.asHours()).toString() + i18nHourShort +
-      (mins < 10 ? ('0' + mins) : mins.toString());
+  _buildCurrentTransactionDuration(transaction) {
+    return transaction.getDuration().format(`h[h]mm`);
   }
 
   async handleMeterValues(meterValues) {
@@ -870,7 +843,7 @@ class ChargingStation extends AbstractTenantEntity {
       meterValues.connectorId = 1;
     }
     // Check if the transaction ID matches
-    const chargerTransactionId = this.getConnectors()[meterValues.connectorId - 1].activeTransactionID;
+    const chargerTransactionId = this.getConnector(meterValues.connectorId).activeTransactionID;
     // Same?
     if (meterValues.hasOwnProperty('transactionId')) {
       // BUG ABB: Check ID
@@ -932,7 +905,7 @@ class ChargingStation extends AbstractTenantEntity {
       newMeterValue.timestamp = value.timestamp;
       // Check OCPP 1.6
       if (this.getOcppVersion() === Constants.OCPP_VERSION_16) {
-        // Multiple Values? 
+        // Multiple Values?
         if (Array.isArray(value.sampledValue)) {
           // Create one record per value
           for (const sampledValue of value.sampledValue) {
@@ -942,34 +915,34 @@ class ChargingStation extends AbstractTenantEntity {
             // Normalize
             newLocalMeterValue.attribute = {};
             // Enrich with OCPP16 attributes
-            newLocalMeterValue.attribute.context = ( sampledValue.context ? sampledValue.context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC);
-            newLocalMeterValue.attribute.format = ( sampledValue.format ? sampledValue.format : Constants.METER_VALUE_FORMAT_RAW);
-            newLocalMeterValue.attribute.measurand = ( sampledValue.measurand ? sampledValue.measurand : Constants.METER_VALUE_MEASURAND_IMPREG);
-            newLocalMeterValue.attribute.location = ( sampledValue.location ? sampledValue.location : Constants.METER_VALUE_LOCATION_OUTLET);
-            newLocalMeterValue.attribute.unit = ( sampledValue.unit ? sampledValue.unit : Constants.METER_VALUE_UNIT_WH);
-            newLocalMeterValue.attribute.phase = ( sampledValue.phase ? sampledValue.phase : '');
+            newLocalMeterValue.attribute.context = (sampledValue.context ? sampledValue.context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC);
+            newLocalMeterValue.attribute.format = (sampledValue.format ? sampledValue.format : Constants.METER_VALUE_FORMAT_RAW);
+            newLocalMeterValue.attribute.measurand = (sampledValue.measurand ? sampledValue.measurand : Constants.METER_VALUE_MEASURAND_IMPREG);
+            newLocalMeterValue.attribute.location = (sampledValue.location ? sampledValue.location : Constants.METER_VALUE_LOCATION_OUTLET);
+            newLocalMeterValue.attribute.unit = (sampledValue.unit ? sampledValue.unit : Constants.METER_VALUE_UNIT_WH);
+            newLocalMeterValue.attribute.phase = (sampledValue.phase ? sampledValue.phase : '');
             newLocalMeterValue.value = parseInt(sampledValue.value);
             // Add
             newMeterValues.values.push(newLocalMeterValue);
           }
         } else {
-            // Clone header
-            // eslint-disable-next-line prefer-const
-            let newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
-            // Normalize
-            newLocalMeterValue.attribute = {};
-            // Enrich with OCPP16 attributes
-            newLocalMeterValue.attribute.context = ( value.sampledValue.context ? value.sampledValue.context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC);
-            newLocalMeterValue.attribute.format = ( value.sampledValue.format ? value.sampledValue.format : Constants.METER_VALUE_FORMAT_RAW);
-            newLocalMeterValue.attribute.measurand = ( value.sampledValue.measurand ? value.sampledValue.measurand : Constants.METER_VALUE_MEASURAND_IMPREG);
-            newLocalMeterValue.attribute.location = ( value.sampledValue.location ? value.sampledValue.location : Constants.METER_VALUE_LOCATION_OUTLET);
-            newLocalMeterValue.attribute.unit = ( value.sampledValue.unit ? value.sampledValue.unit : Constants.METER_VALUE_UNIT_WH);
-            newLocalMeterValue.attribute.phase = ( value.sampledValue.phase ? value.sampledValue.phase : '');
-            newLocalMeterValue.value = parseInt(value.sampledValue.value);
-            // Add
-            newMeterValues.values.push(newLocalMeterValue);
+          // Clone header
+          // eslint-disable-next-line prefer-const
+          let newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
+          // Normalize
+          newLocalMeterValue.attribute = {};
+          // Enrich with OCPP16 attributes
+          newLocalMeterValue.attribute.context = (value.sampledValue.context ? value.sampledValue.context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC);
+          newLocalMeterValue.attribute.format = (value.sampledValue.format ? value.sampledValue.format : Constants.METER_VALUE_FORMAT_RAW);
+          newLocalMeterValue.attribute.measurand = (value.sampledValue.measurand ? value.sampledValue.measurand : Constants.METER_VALUE_MEASURAND_IMPREG);
+          newLocalMeterValue.attribute.location = (value.sampledValue.location ? value.sampledValue.location : Constants.METER_VALUE_LOCATION_OUTLET);
+          newLocalMeterValue.attribute.unit = (value.sampledValue.unit ? value.sampledValue.unit : Constants.METER_VALUE_UNIT_WH);
+          newLocalMeterValue.attribute.phase = (value.sampledValue.phase ? value.sampledValue.phase : '');
+          newLocalMeterValue.value = parseInt(value.sampledValue.value);
+          // Add
+          newMeterValues.values.push(newLocalMeterValue);
         }
-      // Values provided?
+        // Values provided?
       } else if (value.value) {
         // OCCP1.2: Set the values
         if (value.value.$value) {
@@ -985,25 +958,6 @@ class ChargingStation extends AbstractTenantEntity {
     }
     // Compute consumption?
     if (meterValues.transactionId) {
-      // Get the Transaction
-      let transaction = await TransactionStorage.getTransaction(
-        this.getTenantID(), meterValues.transactionId);
-      // Check for the first State of Charge to update the Transaction
-      for (const value of newMeterValues.values) {
-        // Check
-        if (value.attribute && 
-            value.attribute.context === 'Transaction.Begin' &&
-            value.attribute.measurand === 'SoC') {
-          // Set the SoC to the transaction
-          if (transaction) {
-            // Set the SoC
-            transaction.stateOfCharge = value.value;
-            // Save
-            await TransactionStorage.saveTransaction(this.getTenantID(), transaction);
-          }
-          break;
-        }
-      }
       // Save Meter Values
       await TransactionStorage.saveMeterValues(this.getTenantID(), newMeterValues);
       // Update Charging Station Consumption
@@ -1066,10 +1020,6 @@ class ChargingStation extends AbstractTenantEntity {
       // Delete physically
       await ChargingStationStorage.deleteChargingStation(this.getTenantID(), this.getID());
     }
-  }
-
-  getActiveTransaction(connectorId) {
-    return TransactionStorage.getActiveTransaction(this.getTenantID(), this.getID(), connectorId);
   }
 
   async handleDataTransfer(dataTransfer) {
@@ -1176,98 +1126,48 @@ class ChargingStation extends AbstractTenantEntity {
     return TransactionStorage.getTransaction(this.getTenantID(), transactionId);
   }
 
-  async handleStartTransaction(transaction) {
+  async handleStartTransaction(transactionData) {
     // Set the charger ID
-    transaction.chargeBoxID = this.getID();
+    transactionData.chargeBoxID = this.getID();
+    transactionData.tagID = transactionData.idTag;
+
     // Check user and save
     const users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
-      Constants.ACTION_START_TRANSACTION, this, transaction.idTag);
+      Constants.ACTION_START_TRANSACTION, this, transactionData.tagID);
     // Check
     let user;
     if (users) {
       // Set current user
       user = (users.alternateUser ? users.alternateUser : users.user);
       // Set the user
-      transaction.userID = user.getID();
+      transactionData.user = user.getModel();
     }
-    // Check for active transaction
-    let activeTransaction;
-    do {
-      // Check if the charging station has already a transaction
-      activeTransaction = await this.getActiveTransaction(transaction.connectorId);
-      // Exists already?
-      if (activeTransaction) {
-        Logging.logInfo({
-          tenantID: this.getTenantID(),
-          source: this.getID(),
-          module: 'ChargingStation',
-          method: 'handleStartTransaction',
-          action: 'StartTransaction',
-          user: (user ? user.getModel() : null),
-          actionOnUser: (users && users.alternateUser ? users.alternateUser : null),
-          message: `Active Transaction ID '${activeTransaction.id}' has been deleted on Connector '${activeTransaction.connectorId}'`
-        });
-        // Delete
-        await this.deleteTransaction(activeTransaction);
-      }
-    } while (activeTransaction);
-    // Check transaction ID is not yet used
-    let existingTransaction;
-    do {
-      // Generate new transaction ID
-      transaction.id = Utils.getRandomInt();
-      // Check if the charging station has already a transaction
-      existingTransaction = await this.getTransaction(transaction.id);
-      // Found?
-      if (existingTransaction) {
-        // Log
-        Logging.logWarning({
-          tenantID: this.getTenantID(),
-          source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
-          action: 'StartTransaction', user: (user ? user.getModel() : null),
-          actionOnUser: (existingTransaction.user ? existingTransaction.user : null),
-          message: `Transaction ID '${transaction.id}' already exists, generating a new one...`
-        });
-      }
-    } while (existingTransaction);
-    // Set the tag ID
-    transaction.tagID = transaction.idTag;
-    // Ok: Save Transaction
-    const newTransaction = await TransactionStorage.saveTransaction(this.getTenantID(), transaction);
-    // Check if Charger can charge in //
+    let transactionEntity = new Transaction(this.getTenantID(), transactionData);
+    await TransactionStorage.cleanupRemainingActiveTransactions(this.getTenantID(), this.getID(), transactionEntity.getConnectorId());
+    transactionEntity = await TransactionStorage.saveTransaction(transactionEntity);
+
     if (!this.canChargeInParallel()) {
-      // Set all the other connectors to occupied
-      this.getConnectors().forEach(async (connector) => {
-        // Check
-        if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
-          // Set Occupied
-          connector.status = Constants.CONN_STATUS_OCCUPIED;
-        }
-      });
+      this.lockAllConnectors();
     }
-    // Check
-    if (user) {
-      // Set the user
-      newTransaction.user = user.getModel();
-    }
-    // Update Consumption
-    await this.updateChargingStationConsumption(transaction.id);
+
+    await this.updateChargingStationConsumption(transactionEntity.getID());
     // Save
     await this.save();
     // Log
-    if (newTransaction.user) {
+    if (transactionEntity.getUser()) {
       // Notify
       NotificationHandler.sendTransactionStarted(
         this.getTenantID(),
-        transaction.id,
+        transactionEntity.getID(),
         user.getModel(),
         this.getModel(),
         {
           'user': user.getModel(),
           'chargingBoxID': this.getID(),
-          'connectorId': transaction.connectorId,
+          'connectorId': transactionEntity.getConnectorId(),
           'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain()),
-          'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id)
+          'evseDashboardChargingStationURL':
+            await Utils.buildEvseTransactionURL(this, transactionEntity.getConnectorId(), transactionEntity.getID())
         },
         user.getLocale()
       );
@@ -1275,8 +1175,8 @@ class ChargingStation extends AbstractTenantEntity {
       Logging.logInfo({
         tenantID: this.getTenantID(),
         source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
-        action: 'StartTransaction', user: newTransaction.user,
-        message: `Transaction ID '${newTransaction.id}' has been started on Connector '${newTransaction.connectorId}'`
+        action: 'StartTransaction', user: transactionEntity.getUser(),
+        message: `Transaction ID '${transactionEntity.getID()}' has been started on Connector '${transactionEntity.getConnectorId()}'`
       });
     } else {
       // Log
@@ -1286,72 +1186,46 @@ class ChargingStation extends AbstractTenantEntity {
         module: 'ChargingStation',
         method: 'handleStartTransaction',
         action: 'StartTransaction',
-        message: `Transaction ID '${newTransaction.id}' has been started by an anonymous user on Connector '${newTransaction.connectorId}'`
+        message: `Transaction ID '${transactionEntity.getID()}' has been started by an anonymous user on Connector '${transactionEntity.getConnectorId()}'`
       });
     }
     // Return
-    return newTransaction;
+    return transactionEntity;
   }
 
-  async handleStopTransaction(stopTransaction) {
-    // Set the charger ID
-    stopTransaction.chargeBoxID = this.getID();
-    // Get the transaction first (to get the connector id)
-    const transaction = await this.getTransaction(stopTransaction.transactionId);
-    // Found?
-    if (!transaction) {
-      // Error
-      throw new BackendError(this.getID(), `Transaction ID '${stopTransaction.transactionId}' does not exist`,
-        "ChargingStation", "handleStopTransaction")
-    }
-    // Remote Stop Transaction?
-    if (transaction.remotestop) {
-      // Check Timestamp
-      // Add the inactivity in secs
+  lockAllConnectors() {
+    this.getConnectors().forEach(async (connector) => {
+      // Check
+      if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+        // Set Occupied
+        connector.status = Constants.CONN_STATUS_OCCUPIED;
+      }
+    });
+  }
+
+  _getStoppingTransactionTagId(stopTransactionData, transactionEntity) {
+    if (transactionEntity.isRemotelyStopped()) {
       const secs = moment.duration(moment().diff(
-        moment(transaction.remotestop.timestamp))).asSeconds();
+        moment(transactionEntity.getremotestop().timestamp))).asSeconds();
       // In a minute
       if (secs < 60) {
-        // Set Tag ID with user that remotely stopped the transaction
-        stopTransaction.idTag = transaction.remotestop.tagID;
+        // return tag that remotely stopped the transaction
+        return transactionEntity.getremotestop().tagID;
       }
     }
-    // Stop Transaction with the same user
-    if (!stopTransaction.idTag) {
-      // Set Tag ID with user that started the transaction
-      stopTransaction.idTag = transaction.tagID;
+    if (stopTransactionData.idTag) {
+      // return tag that stopped the transaction
+      return stopTransactionData.idTag
     }
-    // Handle Transaction Data
-    if (stopTransaction.transactionData) {
-      // Remove $ from values
-      for (let index = 0; index < stopTransaction.transactionData.values.length; index++) {
-        // Get the value structure 
-        const value = stopTransaction.transactionData.values[index].value;
-        if (value.hasOwnProperty('$value')) {
-          // Clear it
-          value.value = value['$value'];
-          delete value['$value'];
-        }
-      }
-    }
-    // Set Tag ID to a new property
-    stopTransaction.tagID = stopTransaction.idTag;
-    // Check User
-    const users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
-      Constants.ACTION_STOP_TRANSACTION, this, transaction.tagID, stopTransaction.tagID);
-    // Check
-    if (users) {
-      // Set current user
-      const user = (users.alternateUser ? users.alternateUser : users.user);
-      // Set the User ID
-      stopTransaction.userID = user.getID();
-    }
-    // Get the connector
-    const connector = this.getConnectors()[transaction.connectorId - 1];
-    // Init the charging station
+    // return tag that started the transaction
+    return transactionEntity.getTagID();
+  }
+
+  async freeConnector(connectorId) {
+    const connector = this.getConnector(connectorId);
+
     connector.currentConsumption = 0;
     connector.totalConsumption = 0;
-    // Reset Transaction ID
     connector.activeTransactionID = 0;
     // Check if Charger can charge in //
     if (!this.canChargeInParallel()) {
@@ -1359,79 +1233,78 @@ class ChargingStation extends AbstractTenantEntity {
       this.getConnectors().forEach(async (connector) => {
         // Only other Occupied connectors
         if ((connector.status === Constants.CONN_STATUS_OCCUPIED) &&
-          (connector.connectorId !== transaction.connectorId)) {
+          (connector.connectorId !== connectorId)) {
           // Set connector Available again
           connector.status = Constants.CONN_STATUS_AVAILABLE;
         }
       });
     }
-    // Save Charging Station
-    await this.save();
-    // Set the stop
-    transaction.stop = stopTransaction;
-    // Save Transaction
-    let newTransaction = await TransactionStorage.saveTransaction(this.getTenantID(), transaction);
-    // Only after saving the Stop Transaction we can compute the total consumption
-    // Compute total consumption
-    const consumption = await this.getConsumptionsFromTransaction(transaction);
-    // Set the total consumption
-    newTransaction.stop.totalConsumption = consumption.totalConsumption;
-    newTransaction.stop.stateOfCharge = (consumption.stateOfCharge ? consumption.stateOfCharge : 0);
-    // Compute total inactivity seconds
-    newTransaction.stop.totalInactivitySecs = 0;
-    for (let index = 0; index < consumption.values.length; index++) {
-      const value = consumption.values[index];
-      // Don't check the first
-      if (index > 0) {
-        // Check value + Check Previous value
-        if (value.value == 0 && consumption.values[index - 1].value == 0) {
-          // Add the inactivity in secs
-          newTransaction.stop.totalInactivitySecs += moment.duration(
-            moment(value.date).diff(moment(consumption.values[index - 1].date))
-          ).asSeconds();
-        }
-      }
+  }
+
+  async handleStopTransaction(stopTransactionData, isSoftStop = false) {
+    // Set the charger ID
+    stopTransactionData.chargeBoxID = this.getID();
+    // Get the transaction first (to get the connector id)
+    let transactionEntity = await this.getTransaction(stopTransactionData.transactionId);
+    // Found?
+    if (!transactionEntity) {
+      throw new Error(`Transaction ID '${stopTransactionData.transactionId}' does not exist`);
     }
-    // Save Transaction's consumption
-    newTransaction = await TransactionStorage.saveTransaction(this.getTenantID(), newTransaction);
+
+    const stoppingTagId = this._getStoppingTransactionTagId(stopTransactionData, transactionEntity);
+    let stoppingUserModel = undefined;
+    // Check User
+    const users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
+      Constants.ACTION_STOP_TRANSACTION, this, transactionEntity.getTagID(), stoppingTagId);
+    if (users) {
+      // Set current user
+      const user = (users.alternateUser ? users.alternateUser : users.user);
+      // Set the User ID
+      stoppingUserModel = user.getModel();
+    }
+
+    await this.freeConnector(transactionEntity.getConnectorId());
+    await this.save();
+
+    if (isSoftStop) {
+      stopTransactionData.meterStop = transactionEntity._getLatestMeterValue().value;
+    }
+    transactionEntity.stopTransaction(stoppingUserModel, stoppingTagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp));
+    transactionEntity = await TransactionStorage.saveTransaction(transactionEntity);
+
     // Notify User
-    if (transaction.user) {
+    if (transactionEntity.getUser()) {
       // Send Notification
       NotificationHandler.sendEndOfSession(
         this.getTenantID(),
-        transaction.id + '-EOS',
-        transaction.user,
+        transactionEntity.getID() + '-EOS',
+        transactionEntity.getUser(),
         this.getModel(),
         {
           'user': users.user.getModel(),
           'alternateUser': (users.user.getID() != users.alternateUser.getID() ? users.alternateUser.getModel() : null),
           'chargingBoxID': this.getID(),
-          'connectorId': transaction.connectorId,
-          'totalConsumption': (newTransaction.stop.totalConsumption / 1000).toLocaleString(
-            (transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+          'connectorId': transactionEntity.getConnectorId(),
+          'totalConsumption': (transactionEntity.getTotalConsumption() / 1000).toLocaleString(
+            (transactionEntity.getUser().locale ? transactionEntity.getUser().locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
             {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
-          'totalDuration': this._buildCurrentTransactionDuration(transaction, transaction.stop.timestamp),
-          'totalInactivity': this._buildCurrentTransactionInactivity(newTransaction),
-          'stateOfCharge': newTransaction.stop.stateOfCharge,
-          'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.connectorId, transaction.id),
+          'totalDuration': this._buildCurrentTransactionDuration(transactionEntity),
+          'totalInactivity': this._buildCurrentTransactionInactivity(transactionEntity),
+          'stateOfCharge': transactionEntity.getEndStateOfCharge(),
+          'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transactionEntity.getConnectorId(), transactionEntity.getID()),
           'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
         },
-        transaction.user.locale
+        transactionEntity.getUser().locale
       );
     }
-    // Check
-    if (users) {
-      // Set the user
-      newTransaction.user = users.user.getModel();
-      newTransaction.stop.user = users.alternateUser.getModel();
-    }
+
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
       source: this.getID(), module: 'ChargingStation', method: 'handleStopTransaction',
-      action: 'StopTransaction', user: (newTransaction.stop.user ? newTransaction.stop.user : null),
-      actionOnUser: (newTransaction.user ? newTransaction.user : null),
-      message: `Transaction ID '${newTransaction.id}' has been stopped`
+      action: 'StopTransaction', user: transactionEntity.getFinisher(),
+      actionOnUser: transactionEntity.getUser(),
+      message: `Transaction ID '${transactionEntity.getID()}' has been stopped`
     });
     // Publish to Cloud Revenue
     setTimeout(() => {
@@ -1442,23 +1315,19 @@ class ChargingStation extends AbstractTenantEntity {
         this.getID() === 'GIMENO-WB-01' ||
         this.getID() === 'HANNO-WB-02') {
         // Check Users
-        if (newTransaction.tagID === '5D38ED8F' || // Hanno 1
-          newTransaction.tagID === 'B31FB2DD' || // Hanno 2
-          newTransaction.tagID === '43329EF7' || // Gimeno
-          newTransaction.tagID === 'WJ00001' || // Winter Juergen
-          newTransaction.tagID === 'C3E4B3DD') { // Florent
-          // Ok
-          // Set Charger
-          newTransaction.chargeBox = {};
-          newTransaction.chargeBox.id = this.getID();
+        if (transactionEntity.getTagID() === '5D38ED8F' || // Hanno 1
+          transactionEntity.getTagID() === 'B31FB2DD' || // Hanno 2
+          transactionEntity.getTagID() === '43329EF7' || // Gimeno
+          transactionEntity.getTagID() === 'WJ00001' || // Winter Juergen
+          transactionEntity.getTagID() === 'C3E4B3DD') { // Florent
           // Transfer it to the Revenue Cloud async
-          Utils.pushTransactionToRevenueCloud('StopTransaction', newTransaction,
-            newTransaction.stop.user, newTransaction.user);
+          Utils.pushTransactionToRevenueCloud('StopTransaction', transactionEntity,
+            transactionEntity.getFinisher(), transactionEntity.getUser());
         }
       }
     }, 3000);
     // Return
-    return newTransaction;
+    return transactionEntity;
   }
 
   // Restart the charger
@@ -1621,207 +1490,6 @@ class ChargingStation extends AbstractTenantEntity {
       Constants.NO_LIMIT);
     // Return list of transactions
     return transactions;
-  }
-
-  async getConsumptionsFromTransaction(transaction) {
-    // Get the last 5 meter values
-    const meterValues = await TransactionStorage.getMeterValuesFromTransaction(this.getTenantID(), transaction.id);
-    // Read the pricing
-    const pricing = await PricingStorage.getPricing(this.getTenantID());
-    // Build the header
-    const chargingStationConsumption = {};
-    if (pricing) {
-      chargingStationConsumption.priceUnit = pricing.priceUnit;
-      chargingStationConsumption.totalPrice = 0;
-    }
-    chargingStationConsumption.values = [];
-    chargingStationConsumption.totalConsumption = 0;
-    chargingStationConsumption.stateOfCharge = 0;
-    chargingStationConsumption.chargeBoxID = this.getID();
-    // Populate Site Area
-    await this.getSiteArea();
-    // Set the model
-    chargingStationConsumption.chargeBox = this.getModel();
-    chargingStationConsumption.connectorId = transaction.connectorId;
-    chargingStationConsumption.transactionId = transaction.id;
-    chargingStationConsumption.user = transaction.user;
-    if (transaction.stop && transaction.stop.user) {
-      chargingStationConsumption.stop = {};
-      chargingStationConsumption.stop.user = transaction.stop.user;
-    }
-    // Compute consumption
-    return this.buildConsumption(chargingStationConsumption, meterValues, transaction, pricing);
-  }
-
-  async getConsumptionsFromDateTimeRange(transaction, startDateTime) {
-    // Get all from the transaction (not optimized)
-    const consumptions = await this.getConsumptionsFromTransaction(transaction);
-    // Found?
-    if (consumptions && consumptions.values) {
-      // Start date
-      const startDateMoment = moment(startDateTime);
-      // Filter value per date
-      consumptions.values = consumptions.values.filter((consumption) => {
-        // Filter
-        return moment(consumption.date).isAfter(startDateMoment);
-      });
-    }
-    return consumptions;
-  }
-
-  // Method to build the consumption
-  buildConsumption(chargingStationConsumption, meterValues, transaction, pricing) {
-    // Init
-    let lastMeterValue;
-    let firstMeterValueSet = false;
-    // Set first value from transaction
-    if (meterValues && meterValues.length > 0 && transaction) {
-      // Check if the MeterValue are provided until the end of the Transaction (ABB bug)
-      // Add a MeterValue Timestamp when the charger stopped providing energy to the car
-      if (transaction.stop && meterValues.length > 2) {
-        const lastMeterValue = meterValues[meterValues.length-1]; 
-        const lastButOneMeterValue = meterValues[meterValues.length-2];
-        // Get the diff between them
-        const diffSecs = moment(lastMeterValue.timestamp).diff(moment(lastButOneMeterValue.timestamp), 'seconds');
-        const nextValueTimestamp = moment(lastMeterValue.timestamp).add(diffSecs, "s");
-        // Check if last meter value + diff < Stop Transaction timestamp
-        if (nextValueTimestamp.isBefore(moment(transaction.stop.timestamp))) {
-          // Add the missing Meter Value
-          meterValues.push({
-            id: '666696969',
-            connectorId: transaction.connectorId,
-            transactionId: transaction.transactionId,
-            timestamp: nextValueTimestamp.toDate(),
-            value: lastMeterValue.value
-          });
-        }
-      }
-      // Set last meter value
-      meterValues.splice(0, 0, {
-        id: '666',
-        connectorId: transaction.connectorId,
-        transactionId: transaction.transactionId,
-        timestamp: Utils.convertToDate(transaction.timestamp),
-        value: transaction.meterStart
-      });
-
-      // Set last value from transaction
-      if (transaction.stop) {
-        // Set last meter value
-        meterValues.push({
-          id: '6969',
-          connectorId: transaction.connectorId,
-          transactionId: transaction.transactionId,
-          timestamp: Utils.convertToDate(transaction.stop.timestamp),
-          value: transaction.stop.meterStop
-        });
-      }
-    }
-    // Build the model
-    for (let meterValueIndex = 0; meterValueIndex < meterValues.length; meterValueIndex++) {
-      const meterValue = meterValues[meterValueIndex];
-      // Meter Value Consumption?
-      if (!meterValue.attribute || (meterValue.attribute.measurand &&
-        meterValue.attribute.measurand === 'Energy.Active.Import.Register' &&
-        (meterValue.attribute.context === "Sample.Periodic" ||
-        // ABB only uses Sample.Clock!!!!!
-        (this.getChargePointVendor() === 'ABB' && meterValue.attribute.context === "Sample.Clock")))) {
-        // First value?
-        if (!firstMeterValueSet) {
-          // No: Keep the first value
-          lastMeterValue = meterValue;
-          // Ok
-          firstMeterValueSet = true;
-          // Calculate the consumption with the last value provided
-        } else {
-          // Last value is > ?
-          if (lastMeterValue.value > meterValue.value) {
-            // Yes: reinit it (the value has started over from 0)
-            lastMeterValue.value = 0;
-          }
-          // Get the moment
-          const currentTimestamp = moment(meterValue.timestamp);
-          // Start to return the value after the requested date
-          if (!chargingStationConsumption.startDateTime ||
-            currentTimestamp.isAfter(chargingStationConsumption.startDateTime)) {
-            // Get the diff
-            const diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, 'seconds');
-            // Sample multiplier
-            const sampleMultiplier = 3600 / diffSecs;
-            // compute
-            const currentConsumption = (meterValue.value - lastMeterValue.value) * sampleMultiplier;
-            // Counting
-            const consumptionWh = meterValue.value - lastMeterValue.value;
-            // Set total consumption
-            chargingStationConsumption.totalConsumption += consumptionWh;
-            // Compute the price?
-            if (pricing) {
-              // Yes
-              chargingStationConsumption.totalPrice += (consumptionWh / 1000) * pricing.priceKWH;
-            }
-            // Check last Meter Value
-            if (chargingStationConsumption.values.length > 0 &&
-                chargingStationConsumption.values[chargingStationConsumption.values.length-1].date.getTime() === meterValue.timestamp.getTime()) {
-              // Same timestamp: Update the latest
-              chargingStationConsumption.values[chargingStationConsumption.values.length-1].value = currentConsumption;
-              chargingStationConsumption.values[chargingStationConsumption.values.length-1].cumulated = chargingStationConsumption.totalConsumption;
-            } else {
-              // Add the consumption
-              chargingStationConsumption.values.push({
-                date: meterValue.timestamp,
-                value: currentConsumption,
-                cumulated: chargingStationConsumption.totalConsumption,
-                stateOfCharge: 0
-              });
-              // Set Last Value (only for Consumption)
-              lastMeterValue = meterValue;
-            }
-          }
-        }
-      // Meter Value State of Charge?
-      } else if (meterValue.attribute && 
-        (meterValue.attribute.context === 'Sample.Periodic' || 
-         meterValue.attribute.context === 'Transaction.Begin' ||
-         meterValue.attribute.context === 'Transaction.End') &&
-        meterValue.attribute.measurand === 'SoC') {
-        // Set the last SoC
-        chargingStationConsumption.stateOfCharge = meterValue.value;
-        // Check last Meter Value
-        if (chargingStationConsumption.values.length > 0 && 
-            chargingStationConsumption.values[chargingStationConsumption.values.length-1].date.getTime() === meterValue.timestamp.getTime()) {
-          // Same timestamp: Update the latest
-          chargingStationConsumption.values[chargingStationConsumption.values.length-1].stateOfCharge = meterValue.value;
-        } else {
-          // Add the consumption
-          chargingStationConsumption.values.push({
-            date: meterValue.timestamp,
-            stateOfCharge: meterValue.value,
-            value: 0,
-            cumulated: 0
-          });
-        }
-      }
-    }
-    // Return the result
-    return chargingStationConsumption;
-  }
-
-  static checkIfChargingStationValid(filteredRequest, request) {
-    // Update mode?
-    if (request.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Charging Station ID is mandatory`, 500,
-        'ChargingStations', 'checkIfChargingStationValid');
-    }
-  }
-
-  static getChargingStation(tenantID, id) {
-    return ChargingStationStorage.getChargingStation(tenantID, id);
-  }
-
-  static getChargingStations(tenantID, params, limit, skip, sort) {
-    return ChargingStationStorage.getChargingStations(tenantID, params, limit, skip, sort)
   }
 }
 

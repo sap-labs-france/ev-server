@@ -35,7 +35,7 @@ class Database {
     _heartbeatIntervalSecs = heartbeatIntervalSecs;
   }
 
-  static updateChargingStation(src, dest, forFrontEnd=true) {
+  static updateChargingStation(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
       dest.siteAreaID = Database.validateId(src.siteAreaID);
@@ -117,7 +117,7 @@ class Database {
     }
   }
 
-  static updateEula(src, dest, forFrontEnd=true) {
+  static updateEula(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
     }
@@ -128,7 +128,7 @@ class Database {
     dest.hash = src.hash;
   }
 
-  static updatePricing(src, dest, forFrontEnd=true) {
+  static updatePricing(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
     }
@@ -137,7 +137,7 @@ class Database {
     dest.priceUnit = src.priceUnit;
   }
 
-  static updateMigration(src, dest, forFrontEnd=true) {
+  static updateMigration(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
     }
@@ -147,7 +147,7 @@ class Database {
     dest.durationSecs = Utils.convertToFloat(src.durationSecs);
   }
 
-  static updateConfiguration(src, dest, forFrontEnd=true) {
+  static updateConfiguration(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
     }
@@ -155,7 +155,7 @@ class Database {
     dest.configuration = src.configuration;
   }
 
-  static updateStatusNotification(src, dest, forFrontEnd=true) {
+  static updateStatusNotification(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
     }
@@ -169,7 +169,7 @@ class Database {
     dest.vendorErrorCode = src.vendorErrorCode;
   }
 
-  static updateNotification(src, dest, forFrontEnd=true) {
+  static updateNotification(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
     }
@@ -191,7 +191,7 @@ class Database {
     }
   }
 
-  static updateMeterValue(src, dest, forFrontEnd=true) {
+  static updateMeterValue(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
     }
@@ -203,7 +203,7 @@ class Database {
     dest.attribute = src.attribute;
   }
 
-  static updateUser(src, dest, forFrontEnd=true) {
+  static updateUser(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
       if (src.image) {
@@ -269,7 +269,7 @@ class Database {
     dest.verificationToken = src.verificationToken;
   }
 
-  static updateSite(src, dest, forFrontEnd=true) {
+  static updateSite(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
       dest.image = src.image;
@@ -284,7 +284,7 @@ class Database {
     Database.updateCreatedAndLastChanged(src, dest);
   }
 
-  static updateVehicleManufacturer(src, dest, forFrontEnd=true) {
+  static updateVehicleManufacturer(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
       dest.logo = src.logo;
@@ -301,14 +301,15 @@ class Database {
       dest.createdBy = src.createdBy;
       // User model?
       if (typeof dest.createdBy == "object" &&
-					dest.createdBy.constructor.name != "ObjectID") {
+        dest.createdBy.constructor.name != "ObjectID") {
         // Yes
         dest.createdBy = {};
         Database.updateUser(src.createdBy, dest.createdBy);
       } else {
         try {
           dest.createdBy = Utils.convertToObjectID(dest.createdBy);
-        } catch (e) {} // Not an Object ID
+        } catch (e) {
+        } // Not an Object ID
       }
     }
     // Check
@@ -321,14 +322,15 @@ class Database {
       dest.lastChangedBy = src.lastChangedBy;
       // User model?
       if (typeof dest.lastChangedBy == "object" &&
-					dest.lastChangedBy.constructor.name != "ObjectID") {
+        dest.lastChangedBy.constructor.name != "ObjectID") {
         // Yes
         dest.lastChangedBy = {};
         Database.updateUser(src.lastChangedBy, dest.lastChangedBy);
       } else {
         try {
           dest.lastChangedBy = Utils.convertToObjectID(dest.lastChangedBy);
-        } catch (e) {} // Not an Object ID
+        } catch (e) {
+        } // Not an Object ID
       }
     }
     // Check
@@ -337,7 +339,7 @@ class Database {
     }
   }
 
-  static updateCompany(src, dest, forFrontEnd=true) {
+  static updateCompany(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
       dest.logo = src.logo;
@@ -358,7 +360,7 @@ class Database {
     Database.updateCreatedAndLastChanged(src, dest);
   }
 
-  static updateVehicle(src, dest, forFrontEnd=true) {
+  static updateVehicle(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
       dest.images = src.images;
@@ -397,7 +399,7 @@ class Database {
     }
   }
 
-  static updateSiteArea(src, dest, forFrontEnd=true) {
+  static updateSiteArea(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
       dest.image = src.image;
@@ -410,7 +412,7 @@ class Database {
     Database.updateCreatedAndLastChanged(src, dest);
   }
 
-  static updateLogging(src, dest, forFrontEnd=true) {
+  static updateLogging(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
       dest.userID = Database.validateId(src.userID);
@@ -438,56 +440,64 @@ class Database {
     }
   }
 
-  static updateTransaction(src, dest, forFrontEnd=true) {
-    if (forFrontEnd) {
-      Database.updateID(src, dest);
-      if (src.hasOwnProperty('totalDurationSecs')) {
-        dest.totalDurationSecs = src.totalDurationSecs;
-      }
-      dest.userID = Database.validateId(src.userID);
-    } else {
-      dest.userID = Utils.convertToObjectID(src.userID);
-    }
-    // ChargeBox
-    dest.chargeBoxID = src.chargeBoxID
-    if (forFrontEnd && !Utils.isEmptyJSon(src.chargeBox)) {
-      dest.chargeBox = {};
-      Database.updateChargingStation(src.chargeBox, dest.chargeBox);
-    }
-    // User
-    if (forFrontEnd && !Utils.isEmptyJSon(src.user)) {
+  static updateTransaction(src, dest, forFrontEnd = true) {
+    Database.updateID(src, dest);
+    //User
+    if (!Utils.isEmptyJSon(src.user) && forFrontEnd) {
       dest.user = {};
-      Database.updateUser(src.user, dest.user);
+      Database.updateUser(src.user, dest.user, forFrontEnd);
     }
+    forFrontEnd && src.userID ? dest.userID = Database.validateId(src.userID) : dest.userID = Utils.convertToObjectID(src.userID);
+    dest.chargeBoxID = src.chargeBoxID;
     dest.connectorId = Utils.convertToInt(src.connectorId);
-    dest.timestamp = Utils.convertToDate(src.timestamp);
-    dest.tagID = src.tagID;
     dest.meterStart = Utils.convertToInt(src.meterStart);
-    dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);
-    // Stop?
+    dest.tagID = src.tagID;
+    dest.timestamp = Utils.convertToDate(src.timestamp);
+    if (src.stateOfCharge) {
+      dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);
+    }
     if (!Utils.isEmptyJSon(src.stop)) {
       dest.stop = {};
-      // User
-      dest.stop.userID = Utils.convertToObjectID(src.stop.userID);
-      if (forFrontEnd && !Utils.isEmptyJSon(src.stop.user)) {
+      if (!Utils.isEmptyJSon(src.stop.user) && forFrontEnd) {
         dest.stop.user = {};
-        Database.updateUser(src.stop.user, dest.stop.user);
+        Database.updateUser(src.stop.user, dest.stop.user, forFrontEnd);
       }
+      forFrontEnd && src.stop.userID ? dest.stop.userID = Database.validateId(src.stop.userID) : dest.stop.userID = Utils.convertToObjectID(src.stop.userID);
       dest.stop.timestamp = Utils.convertToDate(src.stop.timestamp);
       dest.stop.tagID = src.stop.tagID;
       dest.stop.meterStop = Utils.convertToInt(src.stop.meterStop);
       dest.stop.transactionData = src.stop.transactionData;
+      if (src.stop.stateOfCharge) {
+        dest.stop.stateOfCharge = Utils.convertToInt(src.stop.stateOfCharge);
+      }
       dest.stop.totalConsumption = Utils.convertToInt(src.stop.totalConsumption);
-      dest.stop.stateOfCharge = Utils.convertToInt(src.stop.stateOfCharge);
       dest.stop.totalInactivitySecs = Utils.convertToInt(src.stop.totalInactivitySecs);
+      dest.stop.totalDurationSecs = Utils.convertToInt(src.stop.totalDurationSecs);
     }
-    // Remote Stop?
     if (!Utils.isEmptyJSon(src.remotestop)) {
       dest.remotestop = {};
       dest.remotestop.timestamp = src.remotestop.timestamp;
       dest.remotestop.tagID = src.remotestop.tagID;
     }
+    if (forFrontEnd) {
+      dest.meterValues = [];
+      if (!Utils.isEmptyJSon(src.meterValues)) {
+        src.meterValues.forEach(meterValue => {
+          const destMeterValue = {};
+          Database.updateMeterValue(meterValue, destMeterValue);
+          dest.meterValues.push(destMeterValue);
+        });
+      }
+      if (!Utils.isEmptyJSon(src.pricing)) {
+        dest.pricing = {};
+        Database.updatePricing(src.pricing, dest.pricing);
+      }
+      if (!Utils.isEmptyJSon(src.chargeBox)) {
+        dest.chargeBox = {};
+        Database.updateChargingStation(src.chargeBox, dest.chargeBox);
+      }
+    }
   }
 }
 
-module.exports=Database;
+module.exports = Database;

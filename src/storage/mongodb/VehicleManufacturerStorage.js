@@ -5,9 +5,12 @@ const VehicleStorage = require('./VehicleStorage');
 const AppError = require('../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
 const DatabaseUtils = require('./DatabaseUtils');
+const Logging = require('../../utils/Logging');
 
 class VehicleManufacturerStorage {
   static async getVehicleManufacturerLogo(tenantID, id) {
+    // Debug
+    Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturerLogo');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -23,10 +26,14 @@ class VehicleManufacturerStorage {
         logo: vehicleManufacturerLogosMDB[0].logo
       };
     }
+    // Debug
+    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturerLogo');
     return vehicleManufacturerLogo;
   }
 
   static async getVehicleManufacturerLogos(tenantID) {
+    // Debug
+    Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturerLogos');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -44,10 +51,14 @@ class VehicleManufacturerStorage {
         });
       }
     }
+    // Debug
+    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturerLogos');
     return vehicleManufacturerLogos;
   }
 
   static async saveVehicleManufacturerLogo(tenantID, vehicleManufacturerLogoToSave) {
+    // Debug
+    Logging.traceStart('VehicleManufacturerStorage', 'saveVehicleManufacturerLogo');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID/Name is provided
@@ -63,9 +74,13 @@ class VehicleManufacturerStorage {
       {'_id': Utils.convertToObjectID(vehicleManufacturerLogoToSave.id)},
       {$set: {logo: vehicleManufacturerLogoToSave.logo}},
       {upsert: true, new: true, returnOriginal: false});
+    // Debug
+    Logging.traceEnd('VehicleManufacturerStorage', 'saveVehicleManufacturerLogo');
   }
 
   static async getVehicleManufacturer(tenantID, id) {
+    // Debug
+    Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturer');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const VehicleManufacturer = require('../../entity/VehicleManufacturer'); // Avoid fucking circular deps!!!
@@ -88,10 +103,14 @@ class VehicleManufacturerStorage {
       // Create
       vehicleManufacturer = new VehicleManufacturer(tenantID, vehicleManufacturersMDB[0]);
     }
+    // Debug
+    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturer');
     return vehicleManufacturer;
   }
 
   static async saveVehicleManufacturer(tenantID, vehicleManufacturerToSave) {
+    // Debug
+    Logging.traceStart('VehicleManufacturerStorage', 'saveVehicleManufacturer');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const VehicleManufacturer = require('../../entity/VehicleManufacturer'); // Avoid fucking circular deps!!!
@@ -121,12 +140,16 @@ class VehicleManufacturerStorage {
       vehicleManufacturerFilter,
       {$set: vehicleManufacturer},
       {upsert: true, new: true, returnOriginal: false});
+    // Debug
+    Logging.traceEnd('VehicleManufacturerStorage', 'saveVehicleManufacturer');
     // Create
     return new VehicleManufacturer(tenantID, result.value);
   }
 
   // Delegate
   static async getVehicleManufacturers(tenantID, params = {}, limit, skip, sort) {
+    // Debug
+    Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const VehicleManufacturer = require('../../entity/VehicleManufacturer'); // Avoid fucking circular deps!!!
@@ -220,6 +243,8 @@ class VehicleManufacturerStorage {
         vehicleManufacturers.push(vehicleManufacturer);
       }
     }
+    // Debug
+    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturers');
     // Ok
     return {
       count: (vehiclemanufacturersCountMDB.length > 0 ? vehiclemanufacturersCountMDB[0].count : 0),
@@ -228,6 +253,8 @@ class VehicleManufacturerStorage {
   }
 
   static async deleteVehicleManufacturer(tenantID, id) {
+    // Debug
+    Logging.traceStart('VehicleManufacturerStorage', 'deleteVehicleManufacturer');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Vehicles
@@ -243,6 +270,8 @@ class VehicleManufacturerStorage {
     // Delete Vehicle Manufacturer Logo
     await global.database.getCollection(tenantID, 'vehiclemanufacturerlogos')
       .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
+    // Debug
+    Logging.traceEnd('VehicleManufacturerStorage', 'deleteVehicleManufacturer');
   }
 }
 

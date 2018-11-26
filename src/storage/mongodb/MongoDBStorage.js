@@ -147,7 +147,7 @@ class MongoDBStorage {
 
   async start() {
     // Log
-    console.log(`Connecting to '${this._dbConfig.implementation}'...`);
+    console.log(`Connecting to '${this._dbConfig.implementation}'...`); // eslint-disable-line
     // Build EVSE URL
     let mongoUrl;
     // URI provided?
@@ -185,7 +185,7 @@ class MongoDBStorage {
 
     // Check Database
     await this.checkDatabase();
-    console.log(`Connected to '${this._dbConfig.implementation}' successfully`);
+    console.log(`Connected to '${this._dbConfig.implementation}' successfully`); // eslint-disable-line
   }
 }
 

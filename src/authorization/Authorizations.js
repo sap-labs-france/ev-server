@@ -18,10 +18,10 @@ let _configuration;
 class Authorizations {
   static canRefundTransaction(loggedUser, transaction) {
     // Check auth
-    if (transaction.user) {
+    if (transaction.getUser()) {
       // Check
       return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
-        {"Action": Constants.ACTION_REFUND_TRANSACTION, "UserID": transaction.user.id.toString()});
+        {"Action": Constants.ACTION_REFUND_TRANSACTION, "UserID": transaction.getUser().id.toString()});
       // Admin?
     } else if (!Authorizations.isAdmin(loggedUser)) {
       return false;
@@ -122,11 +122,11 @@ class Authorizations {
   static async getOrCreateUserByTagID(chargingStation, siteArea, tagID, action) {
     let newUserCreated = false;
     // Get the user
-    let user = await User.getUserByTagId(chargingStation.getTenantID(), tagID);
+    let user = await User.getUserByTagId(chargingStation.getTenantID(),tagID);
     // Found?
     if (!user) {
       // No: Create an empty user
-      const newUser = new User(chargingStation.getTenantID(), {
+      const newUser = new User(chargingStation.getTenantID(),{
         name: (siteArea.isAccessControlEnabled() ? "Unknown" : "Anonymous"),
         firstName: "User",
         status: (siteArea.isAccessControlEnabled() ? Constants.USER_STATUS_INACTIVE : Constants.USER_STATUS_ACTIVE),
@@ -155,8 +155,7 @@ class Authorizations {
       user.setCostCenter("");
       // Log
       Logging.logSecurityInfo({
-        tenantID: user.getTenantID(),
-        user: user,
+        tenantID: user.getTenantID(),user: user,
         module: "Authorizations", method: "getOrCreateUserByTagID",
         message: `User with ID '${user.getID()}' has been restored`,
         action: action
@@ -168,14 +167,13 @@ class Authorizations {
     if (newUserCreated) {
       // Notify
       NotificationHandler.sendUnknownUserBadged(
-        chargingStation.getTenantID,
-        Utils.generateGUID(),
+        chargingStation.getTenantID,Utils.generateGUID(),
         chargingStation.getModel(),
         {
           "chargingBoxID": chargingStation.getID(),
           "badgeId": tagID,
           "evseDashboardURL": Utils.buildEvseURL((await user.getTenant()).getSubdomain()),
-          "evseDashboardUserURL": await Utils.buildEvseUserURL(user)
+          "evseDashboardUserURL": awaitUtils.buildEvseUserURL(user)
         }
       );
     }
@@ -314,10 +312,10 @@ class Authorizations {
 
   static canReadTransaction(loggedUser, transaction) {
     // Check auth
-    if (transaction.user && transaction.user.id) {
+    if (transaction.getUser() && transaction.getUser().id) {
       // Check
       return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
-        {"Action": Constants.ACTION_READ, "UserID": transaction.user.id.toString()});
+        {"Action": Constants.ACTION_READ, "UserID": transaction.getUser().id.toString()});
       // Admin?
     } else if (!Authorizations.isAdmin(loggedUser)) {
       return false;
@@ -327,10 +325,10 @@ class Authorizations {
 
   static canUpdateTransaction(loggedUser, transaction) {
     // Check auth
-    if (transaction.user) {
+    if (transaction.getUser()) {
       // Check
       return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
-        {"Action": Constants.ACTION_UPDATE, "UserID": transaction.user.id.toString()});
+        {"Action": Constants.ACTION_UPDATE, "UserID": transaction.getUser().id.toString()});
       // Admin?
     } else if (!Authorizations.isAdmin(loggedUser)) {
       return false;
@@ -340,10 +338,10 @@ class Authorizations {
 
   static canDeleteTransaction(loggedUser, transaction) {
     // Check auth
-    if (transaction.user) {
+    if (transaction.getUser()) {
       // Check
       return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
-        {"Action": Constants.ACTION_DELETE, "UserID": transaction.user.id.toString()});
+        {"Action": Constants.ACTION_DELETE, "UserID": transaction.getUser().id.toString()});
       // Admin?
     } else if (!Authorizations.isAdmin(loggedUser)) {
       return false;

@@ -1,75 +1,59 @@
 const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
+const DatabaseUtils = require('./DatabaseUtils');
 const Utils = require('../../utils/Utils');
 const crypto = require('crypto');
-const DatabaseUtils = require('./DatabaseUtils');
+const Logging = require('../../utils/Logging');
+const Transaction = require('../../entity/Transaction');
+const deepmerge = require('deepmerge');
+const PricingStorage = require('./PricingStorage');
 
 class TransactionStorage {
   static async deleteTransaction(tenantID, transaction) {
-    // Check Tenant
+    // Debug
+    Logging.traceStart('TransactionStorage', 'deleteTransaction');
+    // Check
     await Utils.checkTenant(tenantID);
-    // Delete Transactions
+    // Delete
     await global.database.getCollection(tenantID, 'transactions')
-      .findOneAndDelete({'_id': transaction.id});
+      .findOneAndDelete({'_id': transaction.getID()});
     // Delete Meter Values
     await global.database.getCollection(tenantID, 'metervalues')
-      .deleteMany({'transactionId': transaction.id});
+      .deleteMany({'transactionId': transaction.getID()});
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'deleteTransaction');
   }
 
-  static async getMeterValuesFromTransaction(tenantID, transactionId) {
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Build filter
-    const filter = {};
-    // Mandatory filters
-    filter.transactionId = Utils.convertToInt(transactionId);
-    // Read DB
-    const meterValuesMDB = await global.database.getCollection(tenantID, 'metervalues')
-      .find(filter)
-      .sort({timestamp: 1, value: -1})
-      .toArray();
-    const meterValues = [];
-    // Set
-    if (meterValuesMDB && meterValuesMDB.length > 0) {
-      // Create
-      for (const meterValueMDB of meterValuesMDB) {
-        const meterValue = {};
-        // Set values
-        Database.updateMeterValue(meterValueMDB, meterValue);
-        // Add
-        meterValues.push(meterValue);
-      }
+  static async saveTransaction(transactionEntityToSave) {
+    // Debug
+    Logging.traceStart('TransactionStorage', 'saveTransaction');
+    // Check
+    await Utils.checkTenant(transactionEntityToSave.getTenantID());
+    const transactionMDB = {};
+    Database.updateTransaction(transactionEntityToSave.getModel(), transactionMDB, false);
+    if (!transactionMDB.id) {
+      transactionMDB.id = await TransactionStorage._findAvailableID(transactionEntityToSave.getTenantID());
     }
-    // Ok
-    return meterValues;
-  }
-
-  static async saveTransaction(tenantID, transactionToSave) {
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Set
-    const transaction = {};
-    Database.updateTransaction(transactionToSave, transaction, false);
     // Modify
-    const result = await global.database.getCollection(tenantID, 'transactions').findOneAndUpdate(
-      {"_id": Utils.convertToInt(transactionToSave.id)},
-      {$set: transaction},
+    const result = await global.database.getCollection(transactionEntityToSave.getTenantID(), 'transactions').findOneAndUpdate(
+      {"_id": Utils.convertToInt(transactionMDB.id)},
+      {$set: transactionMDB},
       {upsert: true, new: true, returnOriginal: false});
-    // Create
-    const updatedTransaction = {};
-    // Update
-    Database.updateTransaction(result.value, updatedTransaction);
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'saveTransaction');
     // Return
-    return updatedTransaction;
+    return new Transaction(transactionEntityToSave.getTenantID(), deepmerge(transactionEntityToSave.getFullModel(), result.value));
   }
 
   static async saveMeterValues(tenantID, meterValuesToSave) {
-    // Check Tenant
+    // Debug
+    Logging.traceStart('TransactionStorage', 'saveMeterValues');
+    // Check
     await Utils.checkTenant(tenantID);
     const meterValuesMDB = [];
     // Save all
     for (const meterValueToSave of meterValuesToSave.values) {
-      const meterValue = {}
+      const meterValue = {};
       // Id
       meterValue._id = crypto.createHash('sha256')
         .update(`${meterValueToSave.chargeBoxID}~${meterValueToSave.connectorId}~${meterValueToSave.timestamp}~${meterValueToSave.value}~${JSON.stringify(meterValueToSave.attribute)}`)
@@ -81,12 +65,15 @@ class TransactionStorage {
     }
     // Execute
     await global.database.getCollection(tenantID, 'metervalues').insertMany(meterValuesMDB);
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'saveMeterValues');
   }
 
   static async getTransactionYears(tenantID) {
-    // Check Tenant
+    // Debug
+    Logging.traceStart('TransactionStorage', 'getTransactionYears');
+    // Check
     await Utils.checkTenant(tenantID);
-    // Read DB
     const firstTransactionsMDB = await global.database.getCollection(tenantID, 'transactions')
       .find({})
       .sort({timestamp: 1})
@@ -98,17 +85,22 @@ class TransactionStorage {
     }
     const transactionYears = [];
     // Push the rest of the years up to now
-    for (let i = new Date(firstTransactionsMDB[0].timestamp).getFullYear();
-      i <= new Date().getFullYear(); i++) {
+    for (let i = new Date(firstTransactionsMDB[0].timestamp).getFullYear(); i <= new Date().getFullYear(); i++) {
       // Add
       transactionYears.push(i);
     }
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'getTransactionYears');
     return transactionYears;
   }
 
   static async getTransactions(tenantID, params = {}, limit, skip, sort) {
-    // Check Tenant
+    // Debug
+    Logging.traceStart('TransactionStorage', 'getTransactions');
+    // Check
     await Utils.checkTenant(tenantID);
+    const pricing = await PricingStorage.getPricing(tenantID);
+
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -171,7 +163,7 @@ class TransactionStorage {
       // Add Charge Box
       aggregation.push({
         $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "chargingstations"),
+          from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
           localField: 'chargeBoxID',
           foreignField: '_id',
           as: 'chargeBox'
@@ -186,7 +178,7 @@ class TransactionStorage {
       // Add Site Area
       aggregation.push({
         $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "siteareas"),
+          from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
           localField: 'chargeBox.siteAreaID',
           foreignField: '_id',
           as: 'siteArea'
@@ -228,7 +220,7 @@ class TransactionStorage {
     // Add User that started the transaction
     aggregation.push({
       $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, "users"),
+        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
         localField: 'userID',
         foreignField: '_id',
         as: 'user'
@@ -241,7 +233,7 @@ class TransactionStorage {
     // Add User that stopped the transaction
     aggregation.push({
       $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, "users"),
+        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
         localField: 'stop.userID',
         foreignField: '_id',
         as: 'stop.user'
@@ -251,6 +243,17 @@ class TransactionStorage {
     aggregation.push({
       $unwind: {"path": "$stop.user", "preserveNullAndEmptyArrays": true}
     });
+    // Add MeterValues only for not completed transactions
+    if (!params.stop || params.stop.$exists == false) {
+      aggregation.push({
+        $lookup: {
+          from: DatabaseUtils.getCollectionName(tenantID, 'metervalues'),
+          localField: '_id',
+          foreignField: 'transactionId',
+          as: 'meterValues'
+        }
+      });
+    }
     // Read DB
     const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
       .aggregate(aggregation, {collation: {locale: Constants.DEFAULT_LOCALE, strength: 2}})
@@ -261,13 +264,11 @@ class TransactionStorage {
     if (transactionsMDB && transactionsMDB.length > 0) {
       // Create
       for (const transactionMDB of transactionsMDB) {
-        // Set
-        const transaction = {};
-        Database.updateTransaction(transactionMDB, transaction);
-        // Add
-        transactions.push(transaction);
+        transactions.push(new Transaction(tenantID, {...transactionMDB, pricing: pricing}));
       }
     }
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'getTransactions');
     // Ok
     return {
       count: (transactionsCountMDB.length > 0 ? transactionsCountMDB[0].count : 0),
@@ -276,8 +277,11 @@ class TransactionStorage {
   }
 
   static async getTransaction(tenantID, id) {
-    // Check Tenant
+    // Debug
+    Logging.traceStart('TransactionStorage', 'getTransaction');
+    // Check
     await Utils.checkTenant(tenantID);
+    const pricing = await PricingStorage.getPricing(tenantID);
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -287,7 +291,7 @@ class TransactionStorage {
     // Add User
     aggregation.push({
       $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, "users"),
+        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
         localField: "userID",
         foreignField: "_id",
         as: "user"
@@ -300,7 +304,7 @@ class TransactionStorage {
     // Add Stop User
     aggregation.push({
       $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, "users"),
+        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
         localField: "stop.userID",
         foreignField: "_id",
         as: "stop.user"
@@ -310,39 +314,46 @@ class TransactionStorage {
     aggregation.push({
       $unwind: {"path": "$stop.user", "preserveNullAndEmptyArrays": true}
     });
-    // Add
     aggregation.push({
       $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, "chargingstations"),
-        localField: "chargeBoxID",
-        foreignField: "_id",
-        as: "chargeBox"
+        from: DatabaseUtils.getCollectionName(tenantID, 'metervalues'),
+        localField: '_id',
+        foreignField: 'transactionId',
+        as: 'meterValues'
       }
     });
-    // Add
+    aggregation.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
+        localField: 'chargeBoxID',
+        foreignField: '_id',
+        as: 'chargeBox'
+      }
+    });
+    // Single Record
     aggregation.push({
       $unwind: {"path": "$chargeBox", "preserveNullAndEmptyArrays": true}
     });
+
     // Read DB
     const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
       .aggregate(aggregation)
       .toArray();
-    // Set
-    let transaction = null;
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'getTransaction');
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
-      // Set data
-      transaction = {};
-      Database.updateTransaction(transactionsMDB[0], transaction);
+      return new Transaction(tenantID, {...(transactionsMDB[0]), pricing: pricing});
     }
-    // Ok
-    return transaction;
+    return null;
   }
 
   static async getActiveTransaction(tenantID, chargeBoxID, connectorId) {
-    // Check Tenant
+    // Debug
+    Logging.traceStart('TransactionStorage', 'getActiveTransaction');
+    // Check
     await Utils.checkTenant(tenantID);
-    // Create Aggregation
+    const pricing = await PricingStorage.getPricing(tenantID);
     const aggregation = [];
     // Filters
     aggregation.push({
@@ -355,7 +366,7 @@ class TransactionStorage {
     // Add User
     aggregation.push({
       $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, "users"),
+        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
         localField: "userID",
         foreignField: "_id",
         as: "user"
@@ -365,20 +376,75 @@ class TransactionStorage {
     aggregation.push({
       $unwind: {"path": "$user", "preserveNullAndEmptyArrays": true}
     });
+    aggregation.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenantID, 'metervalues'),
+        localField: '_id',
+        foreignField: 'transactionId',
+        as: 'meterValues'
+      }
+    });
     // Read DB
     const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
       .aggregate(aggregation)
       .toArray();
-    // Set
-    let transaction = null;
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'getActiveTransaction');
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
-      // Set data
-      transaction = {};
-      Database.updateTransaction(transactionsMDB[0], transaction);
+      return new Transaction(tenantID, {...(transactionsMDB[0]), pricing: pricing});
     }
-    // Ok
-    return transaction;
+    return null;
+  }
+
+  static async _findAvailableID(tenantID) {
+    // Debug
+    Logging.traceStart('TransactionStorage', '_findAvailableID');
+    // Check
+    await Utils.checkTenant(tenantID);
+    let existingTransaction;
+    do {
+      // Generate new transaction ID
+      const id = Utils.getRandomInt();
+      existingTransaction = await TransactionStorage.getTransaction(tenantID, id);
+      if (existingTransaction) {
+        Logging.logWarning({
+          tenantID: tenantID,
+          module: "TransactionStorage",
+          method: "_findAvailableID", action: `nextID`,
+          message: `Transaction ID '${id}' already exists, generating a new one...`
+        });
+      } else {
+        return id;
+      }
+    } while (existingTransaction);
+    // Debug
+    Logging.traceEnd('TransactionStorage', '_findAvailableID');
+  }
+
+  static async cleanupRemainingActiveTransactions(tenantID, chargeBoxId, connectorId) {
+    // Debug
+    Logging.traceStart('TransactionStorage', 'cleanupRemainingActiveTransactions');
+    // Check
+    await Utils.checkTenant(tenantID);
+    let activeTransaction;
+    do {
+      // Check if the charging station has already a transaction
+      activeTransaction = await TransactionStorage.getActiveTransaction(tenantID, chargeBoxId, connectorId);
+      // Exists already?
+      if (activeTransaction) {
+        Logging.logInfo({
+          tenantID: tenantID,
+          source: chargeBoxId, module: 'ChargingStation', method: 'cleanupRemainingActiveTransactions',
+          action: 'StartTransaction',
+          message: `Active Transaction ID '${activeTransaction.getID()}' has been deleted on Connector '${activeTransaction.getConnectorId()}'`
+        });
+        // Delete
+        await this.deleteTransaction(tenantID, activeTransaction);
+      }
+    } while (activeTransaction);
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'cleanupRemainingActiveTransactions');
   }
 }
 

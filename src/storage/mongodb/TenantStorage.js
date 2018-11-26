@@ -4,10 +4,13 @@ const Utils = require('../../utils/Utils');
 const ObjectID = require('mongodb').ObjectID;
 const AppError = require('../../exception/AppError');
 const DatabaseUtils = require('./DatabaseUtils');
+const Logging = require('../../utils/Logging');
 
 class TenantStorage {
   static async getTenant(id) {
     const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
+    // Debug
+    Logging.traceStart('TenantStorage', 'getTenant');
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -29,6 +32,8 @@ class TenantStorage {
       // Create
       tenant = new Tenant(tenantsMDB[0]);
     }
+    // Debug
+    Logging.traceEnd('TenantStorage', 'getTenant');
     return tenant;
   }
 
@@ -44,6 +49,8 @@ class TenantStorage {
 
   static async getTenantByFilter(filter) {
     const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
+    // Debug
+    Logging.traceStart('TenantStorage', 'getTenantByFilter');
     // Read DB
     const tenantsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
       .find(filter)
@@ -55,11 +62,15 @@ class TenantStorage {
       // Create
       tenant = new Tenant(tenantsMDB[0]);
     }
+    // Debug
+    Logging.traceEnd('TenantStorage', 'getTenantByFilter');
     return tenant;
   }
 
   static async saveTenant(tenantToSave) {
     const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
+    // Debug
+    Logging.traceStart('TenantStorage', 'saveTenant');
     // Check
     if (!tenantToSave.id && !tenantToSave.name) {
       throw new AppError(
@@ -89,17 +100,26 @@ class TenantStorage {
         new: true,
         returnOriginal: false
       });
+    // Debug
+    Logging.traceEnd('TenantStorage', 'saveTenant');
     // Create
     return new Tenant(result.value);
   }
 
   static async createTenantDB(tenantID) {
+    // Debug
+    Logging.traceStart('TenantStorage', 'createTenantDB');
+    // Create DB
     await global.database.createTenantDatabase(tenantID);
+    // Debug
+    Logging.traceEnd('TenantStorage', 'createTenantDB');
   }
 
   // Delegate
   static async getTenants(params = {}, limit, skip, sort) {
     const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
+    // Debug
+    Logging.traceStart('TenantStorage', 'getTenants');
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -170,6 +190,8 @@ class TenantStorage {
       // Add
       tenants.push(new Tenant(tenantMDB));
     }
+    // Debug
+    Logging.traceEnd('TenantStorage', 'getTenants');
     // Ok
     return {
       count: (tenantsCountMDB.length > 0 ? tenantsCountMDB[0].count : 0),
@@ -178,14 +200,24 @@ class TenantStorage {
   }
 
   static async deleteTenant(id) {
+    // Debug
+    Logging.traceStart('TenantStorage', 'deleteTenant');
+    // Delete
     await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
       .findOneAndDelete({
         '_id': Utils.convertToObjectID(id)
       });
+    // Debug
+    Logging.traceEnd('TenantStorage', 'deleteTenant');
   }
 
   static async deleteTenantDB(id) {
+    // Debug
+    Logging.traceStart('TenantStorage', 'deleteTenantDB');
+    // Delete
     await global.database.deleteTenantDatabase(id);
+    // Debug
+    Logging.traceEnd('TenantStorage', 'deleteTenantDB');
   }
 }
 

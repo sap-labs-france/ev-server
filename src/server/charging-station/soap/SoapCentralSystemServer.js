@@ -64,7 +64,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
       express.use(CFLog.logNetwork);
     }
     // Default, serve the index.html
-    express.get(/^\/wsdl(.+)$/, function (req, res, next) {
+    express.get(/^\/wsdl(.+)$/, function (req, res, next) { // eslint-disable-line
       // WDSL file?
       switch (req.params["0"]) {
         // Charge Point WSDL 1.2
@@ -94,7 +94,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
     // Create the server
     let server;
     // Log
-    console.log(`Starting Soap Central System Server (Charging Stations)...`);
+    console.log(`Starting OCPP Soap Server...`); // eslint-disable-line
     // Make it global for SOAP Services
     global.centralSystemSoap = this;
     // Create the HTTP server
@@ -224,9 +224,9 @@ class SoapCentralSystemServer extends CentralSystemServer {
         tenantID: Constants.DEFAULT_TENANT,
         module: "SoapCentralSystemServer", method: "start",
         action: "Startup",
-        message: `Soap Central System Server (Charging Stations) listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`
+        message: `OCPP Soap Server listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`
       });
-      console.log(`Soap Central System Server (Charging Stations) listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`);
+      console.log(`OCPP Soap Server listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`); // eslint-disable-line
     });
   }
 }

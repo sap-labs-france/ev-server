@@ -1,6 +1,7 @@
 const axios = require('axios');
 const querystring = require('querystring');
 const config = require('../../../config');
+const {performance} = require('perf_hooks');
 
 class BaseApi {
   constructor(baseURL) {
@@ -19,9 +20,13 @@ class BaseApi {
     if (config.get('server.logs') === 'json') {
       console.log(JSON.stringify(httpRequest, null, 2));
     }
+    let t0 = 0;
+    let t1 = 0;
     try {
+      t0 = performance.now();
       // Execute with Axios
       httpResponse = await axios(httpRequest);
+      t1 = performance.now();
     } catch (error) {
       // Handle errors
       if (error.response) {
@@ -36,6 +41,7 @@ class BaseApi {
     }
     // Set response
     let response = {
+      executionTime: (t1 - t0),
       status: httpResponse.status,
       statusText: httpResponse.statusText,
       headers: httpResponse.headers,

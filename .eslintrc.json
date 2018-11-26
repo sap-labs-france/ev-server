@@ -1,27 +1,24 @@
 {
-    "extends": "eslint:recommended",
-    "env": {
-        "node": true,
-        "mocha": true
-    },
-    "parserOptions": {
-        "ecmaVersion": 8,
-        "ecmaFeatures": {
-            "spread": true
-        }
-    },
-    "rules": {
-        "no-var": "warn",
-        "prefer-const": "warn",
-        "no-mixed-spaces-and-tabs": "warn",
-        "indent": [
-            "warn",
-            2,
-            {
-                "SwitchCase": 1
-            }
-        ],
-        "space-before-blocks": [
+  "extends": "eslint:recommended",
+  "env": {
+    "node": true,
+    "mocha": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 9
+  },
+  "rules": {
+    "no-var": "warn",
+    "prefer-const": "warn",
+    "no-mixed-spaces-and-tabs": "warn",
+    "indent": [
+      "warn",
+      2,
+      {
+        "SwitchCase": 1
+      }
+    ],
+  "space-before-blocks": [
             "warn", "always"
         ]
     }

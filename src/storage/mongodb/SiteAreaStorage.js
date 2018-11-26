@@ -4,9 +4,12 @@ const Utils = require('../../utils/Utils');
 const AppError = require('../../exception/AppError');
 const ObjectID = require('mongodb').ObjectID;
 const DatabaseUtils = require('./DatabaseUtils');
+const Logging = require('../../utils/Logging');
 
 class SiteAreaStorage {
   static async getSiteAreaImage(tenantID, id) {
+    // Debug
+    Logging.traceStart('SiteAreaStorage', 'getSiteAreaImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -22,10 +25,14 @@ class SiteAreaStorage {
         image: siteAreaImagesMDB[0].image
       };
     }
+    // Debug
+    Logging.traceEnd('SiteAreaStorage', 'getSiteAreaImage');
     return siteAreaImage;
   }
 
   static async getSiteAreaImages(tenantID) {
+    // Debug
+    Logging.traceStart('SiteAreaStorage', 'getSiteAreaImages');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -42,10 +49,14 @@ class SiteAreaStorage {
         });
       }
     }
+    // Debug
+    Logging.traceEnd('SiteAreaStorage', 'getSiteAreaImages');
     return siteAreaImages;
   }
 
   static async getSiteArea(tenantID, id, withChargeBoxes, withSite) {
+    // Debug
+    Logging.traceStart('SiteAreaStorage', 'getSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Site = require('../../entity/Site');  // Avoid fucking circular deps!!!
@@ -117,10 +128,14 @@ class SiteAreaStorage {
         siteArea.setSite(new Site(tenantID, siteAreasMDB[0].site));
       }
     }
+    // Debug
+    Logging.traceEnd('SiteAreaStorage', 'getSiteArea');
     return siteArea;
   }
 
   static async saveSiteArea(tenantID, siteAreaToSave) {
+    // Debug
+    Logging.traceStart('SiteAreaStorage', 'saveSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
@@ -150,11 +165,15 @@ class SiteAreaStorage {
       siteAreaFilter,
       {$set: siteArea},
       {upsert: true, new: true, returnOriginal: false});
+    // Debug
+    Logging.traceEnd('SiteAreaStorage', 'saveSiteArea');
     // Create
     return new SiteArea(tenantID, result.value);
   }
 
   static async saveSiteAreaImage(tenantID, siteAreaImageToSave) {
+    // Debug
+    Logging.traceStart('SiteAreaStorage', 'saveSiteAreaImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID is provided
@@ -170,9 +189,13 @@ class SiteAreaStorage {
       {'_id': Utils.convertToObjectID(siteAreaImageToSave.id)},
       {$set: {image: siteAreaImageToSave.image}},
       {upsert: true, new: true, returnOriginal: false});
+    // Debug
+    Logging.traceEnd('SiteAreaStorage', 'saveSiteAreaImage');
   }
 
   static async getSiteAreas(tenantID, params = {}, limit, skip, sort) {
+    // Debug
+    Logging.traceStart('SiteAreaStorage', 'getSiteAreas');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Site = require('../../entity/Site');  // Avoid fucking circular deps!!!
@@ -283,6 +306,8 @@ class SiteAreaStorage {
         siteAreas.push(siteArea);
       }
     }
+    // Debug
+    Logging.traceEnd('SiteAreaStorage', 'getSiteAreas');
     // Ok
     return {
       count: (siteAreasCountMDB.length > 0 ? siteAreasCountMDB[0].count : 0),
@@ -291,6 +316,8 @@ class SiteAreaStorage {
   }
 
   static async deleteSiteArea(tenantID, id) {
+    // Debug
+    Logging.traceStart('SiteAreaStorage', 'deleteSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Remove Charging Station's Site Area
@@ -304,6 +331,8 @@ class SiteAreaStorage {
     // Delete Image
     await global.database.getCollection(tenantID, 'sitesareaimages')
       .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
+    // Debug
+    Logging.traceEnd('SiteAreaStorage', 'deleteSiteArea');
   }
 }
 

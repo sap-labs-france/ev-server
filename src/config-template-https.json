@@ -40,6 +40,20 @@
 		"distEnabled": false,
 		"distPath": "../dist/front-end"
 	},
+	"OCPIService": {
+		"protocol": "https",
+		"host": "localhost",
+		"port": 9090,
+		"ssl-key": "ssl/localhost.key",
+		"ssl-cert": "ssl/localhost.cert",
+		"ssl-ca": [],
+		"debug": false,
+		// below properties are used for 1st implementation only - to be moved to database
+		"tenantEnabled": [ "slf"],
+		"eMI3id": { 
+			"slf": { "country_id": "FR", "party_id": "SLF", "token": "4a349ad7-b2cd-453d-8ae7-ab5d99e8259b", "checkToken": false }
+		}
+	},
 	"WSDLEndpoint": {
 		"baseUrl": ""
 	},
@@ -111,6 +125,7 @@
   "Logging": {
     "logLevel": "D",
     "consoleLogLevel": "NONE",
+    "trace": false,
     "moduleDetails": {
       "ChargingStation": {
         "logLevel": "DEFAULT",
