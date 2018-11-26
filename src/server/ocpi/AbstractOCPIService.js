@@ -2,6 +2,7 @@ const Tenant = require('../../entity/Tenant');
 const OCPIServerError = require('../../exception/OCPIServerError');
 const OCPIClientError = require('../../exception/OCPIClientError');
 const OCPIUtils = require('./OCPIUtils');
+const Constants = require('../../utils/Constants');
 
 const MODULE_NAME = "AbstractOCPIService";
 
@@ -32,15 +33,14 @@ class AbstractOCPIService {
 
   // Return based URL of OCPI Service
   getServiceUrl(req) {
-    const protocol = this._ocpiRestConfig.protocol;
-    const port = this._ocpiRestConfig.port;
+    const protocol = req.protocol;
     const path = this.getPath();
 
     // get host from the req in order to handle the tenants
-    const host = req.hostname;
+    const host = req.get('host');
 
     // return Service url
-    return `${protocol}://${host}:${port}${path}`;
+    return `${protocol}://${host}${path}`;
   }
 
   // Get Relative path of the service
@@ -105,6 +105,7 @@ class AbstractOCPIService {
 
       // check if tenant is found
       if (!tenant && tenantSubdomain !== '') {
+        req.tenantID = Constants.DEFAULT_TENANT;
         throw new OCPIServerError(
           'Login',
           `The Tenant with subdomain '${tenantSubdomain}' does not exist`, 500,

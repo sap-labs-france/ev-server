@@ -95,6 +95,12 @@ const config = convict({
       format: ['json', 'none'],
       default: 'none',
       env: 'OCPI_LOGS'
+    },
+    enabled: {
+      doc: 'Tests enabled flag',
+      format: Boolean,
+      default: false,
+      env: 'OCPI_TESTS_ENABLED'
     }
   },
   server: {

@@ -25,6 +25,14 @@ class OCPIService {
   }
 
   /**
+   * Check if Configuration Exist
+   */
+  static isConfigAvailable() {
+    return (config.get('ocpi.enabled'))?true:false;
+
+  }
+
+  /**
    * Get Implementation for 2.1.1
    */
   async getImplementation2_1_1() {

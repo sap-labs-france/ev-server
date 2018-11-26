@@ -5,11 +5,18 @@ const chai = require('chai');
 const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
 
-describe('OCPI tests', function () {
+describe('OCPI tests', function() {
   this.timeout(100000);
 
-  before(async () => {
+
+  before( async () => {
+    if (!OCPIService.isConfigAvailable()) {
+      this.pending = 1;
+    }
+
     this.ocpiService = new OCPIService();
+
+  
   });
 
   after(async () => {
