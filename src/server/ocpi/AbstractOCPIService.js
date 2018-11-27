@@ -2,7 +2,6 @@ const Tenant = require('../../entity/Tenant');
 const OCPIServerError = require('../../exception/OCPIServerError');
 const OCPIUtils = require('./OCPIUtils');
 const Constants = require('../../utils/Constants');
-const atob = require('atob');
 const Logging = require('../../utils/Logging');
 
 const MODULE_NAME = "AbstractOCPIService";
@@ -136,7 +135,7 @@ class AbstractOCPIService {
           detailedMessages: { "Token": token }
         });
 
-        decodedToken = JSON.parse(atob(token));
+        decodedToken = JSON.parse(OCPIUtils.atob(token));
       } catch (error) {
         throw new OCPIServerError(
           'Login',
