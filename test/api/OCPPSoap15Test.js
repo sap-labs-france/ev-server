@@ -9,8 +9,6 @@ describe('OCPP 1.5 SOAP Tests', function () {
   before(async () => {
     // Get Tenant ID
     const tenantID = await CentralServerService.authenticatedApi.getTenantID();
-    console.log('tenantID');
-    console.log(tenantID);
     // Create OCPP 1.5
     this.ocpp = new OCPPSoapService15(
       `${config.get('ocpp.soap.scheme')}://${config.get('ocpp.soap.host')}:${config.get('ocpp.soap.port')}/OCPP15?TenantID=${tenantID}`);
