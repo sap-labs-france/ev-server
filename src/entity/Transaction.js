@@ -178,6 +178,13 @@ class Transaction extends AbstractTenantEntity {
     return this._model.stop.meterStop;
   }
 
+  _hasMeterStop() {
+    if (!this._model.stop) {
+      return false;
+    }
+    return this._model.stop.hasOwnProperty('meterStop');
+  }
+
   getTotalConsumption() {
     if (!this.isActive()) {
       return this._model.stop.totalConsumption
@@ -323,17 +330,37 @@ class Transaction extends AbstractTenantEntity {
   }
 
   _computeMeterValues() {
-    const meterValues = [this._getFirstMeterValue(), ...(this._model.meterValues)];
-    if (this.getMeterStop()) {
+    let meterValues = [this._getFirstMeterValue(), ...(this._model.meterValues)];
+    if (this._hasMeterStop()) {
       meterValues.push(this._getLastMeterValue());
     }
 
-    return meterValues
+    meterValues = meterValues
       .filter(meterValue => meterValue.attribute
         && meterValue.attribute.measurand === 'Energy.Active.Import.Register'
         && (meterValue.attribute.context === "Sample.Periodic" || meterValue.attribute.context === "Sample.Clock"))
       .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+
+    return this._alignMeterValues(meterValues);
   }
+
+  _alignMeterValues(meterValues) {
+    let delta = 0;
+    meterValues.forEach((meterValue, index) => {
+      if (index === 0) {
+        meterValue.registeredValue = meterValue.value;
+        return;
+      }
+      const previousMeterValue = meterValues[index - 1];
+      if (previousMeterValue.registeredValue > meterValue.value) {
+        delta = previousMeterValue.value;
+      }
+      meterValue.registeredValue = meterValue.value;
+      meterValue.value = +meterValue.value + delta;
+    });
+    return meterValues;
+  }
+
 
   _invalidateComputations() {
     delete this._meterValues;
