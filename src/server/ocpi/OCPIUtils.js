@@ -51,11 +51,21 @@ class OCPIUtils {
    */
   static buildNextUrl(req, offset, limit, total) {
     // check if next link should be generated
-    if (offset + limit < total ) {
+    if (offset + limit < total) {
       // build url
       return req.protocol + '://' + req.get('host') + req.originalUrl.split('?')[0] + '?offset=' + (offset + limit) + '&limit=' + limit;
     }
   }
+
+  /**
+   * Convert from base64 bask to String.
+   * @param {*} string encoded base64
+   */
+  static atob(base64) {
+    return Buffer.from(base64, 'base64').toString('binary');
+  }
+
+
 
 }
 

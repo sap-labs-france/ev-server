@@ -45,7 +45,7 @@
 		// below properties are used for 1st implementation only - to be moved to database
 		"tenantEnabled": [ "slf"],
 		"eMI3id": { 
-			"slf": { "country_id": "FR", "party_id": "SLF", "token": "4a349ad7-b2cd-453d-8ae7-ab5d99e8259b", "checkToken": true }
+			"slf": { "country_id": "FR", "party_id": "SLF" }
 		}
 	},
 	"WSDLEndpoint": {

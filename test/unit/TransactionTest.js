@@ -402,6 +402,198 @@ describe('Transaction entity tests', () => {
         ]
       );
     });
+
+    it('a stopped transaction with multiple meterValues and some reset do 0', () => {
+      const model = EmptyTransactionFactory.build({meterStart: 0});
+      model.meterValues = [];
+      const timestamp = moment(model.timestamp);
+      model.meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 1
+        }
+      ));
+      model.meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 4
+        }
+      ));
+      model.meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 10
+        }
+      ));
+      model.meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 0
+        }
+      ));
+      model.meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 0
+        }
+      ));
+
+      const transaction = new Transaction("1234", model);
+      transaction.stopTransaction(transaction.getUser(), transaction.getTagID(), 0, timestamp.add(1, 'minutes').toDate());
+      expect(transaction.getConsumptions()).to.deep.equal(
+        [
+          {
+            cumulated: 1,
+            date: transaction.getMeterValues()[1].timestamp,
+            value: 60
+          },
+          {
+            cumulated: 4,
+            date: transaction.getMeterValues()[2].timestamp,
+            value: 180
+          },
+          {
+            cumulated: 10,
+            date: transaction.getMeterValues()[3].timestamp,
+            value: 360
+          },
+          {
+            cumulated: 10,
+            date: transaction.getMeterValues()[4].timestamp,
+            value: 0
+          },
+          {
+            cumulated: 10,
+            date: transaction.getMeterValues()[5].timestamp,
+            value: 0
+          },
+          {
+            cumulated: 10,
+            date: transaction.getMeterValues()[6].timestamp,
+            value: 0
+          }
+        ]
+      );
+    });
+    it('a stopped transaction with multiple meterValues and a reset of the meter value in between', () => {
+      const model = EmptyTransactionFactory.build({meterStart: 0});
+      model.meterValues = [];
+      const timestamp = moment(model.timestamp);
+      model.meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 1
+        }
+      ));
+      model.meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 4
+        }
+      ));
+      model.meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 10
+        }
+      ));
+      model.meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 0
+        }
+      ));
+      model.meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 5
+        }
+      ));
+      model.meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 10
+        }
+      ));
+      model.meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 2
+        }
+      ));
+
+      const transaction = new Transaction("1234", model);
+      transaction.stopTransaction(transaction.getUser(), transaction.getTagID(), 4, timestamp.add(1, 'minutes').toDate());
+      let i = 1;
+      expect(transaction.getConsumptions()).to.deep.equal(
+        [
+          {
+            cumulated: 1,
+            date: transaction.getMeterValues()[i++].timestamp,
+            value: 60
+          },
+          {
+            cumulated: 4,
+            date: transaction.getMeterValues()[i++].timestamp,
+            value: 180
+          },
+          {
+            cumulated: 10,
+            date: transaction.getMeterValues()[i++].timestamp,
+            value: 360
+          },
+          {
+            cumulated: 10,
+            date: transaction.getMeterValues()[i++].timestamp,
+            value: 0
+          },
+          {
+            cumulated: 15,
+            date: transaction.getMeterValues()[i++].timestamp,
+            value: 300
+          },
+          {
+            cumulated: 20,
+            date: transaction.getMeterValues()[i++].timestamp,
+            value: 300
+          },
+          {
+            cumulated: 22,
+            date: transaction.getMeterValues()[i++].timestamp,
+            value: 120
+          },
+          {
+            cumulated: 24,
+            date: transaction.getMeterValues()[i++].timestamp,
+            value: 120
+          }
+        ]
+      );
+    });
   });
 
   describe('test consumption computation', () => {

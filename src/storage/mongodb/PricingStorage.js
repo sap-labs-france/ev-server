@@ -1,3 +1,4 @@
+const uuid = require('uuid/v4');
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const Logging = require('../../utils/Logging');
@@ -5,7 +6,8 @@ const Logging = require('../../utils/Logging');
 class PricingStorage {
   static async getPricing(tenantID) {
     // Debug
-    Logging.traceStart('NotificationStorage', 'getPricing');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('NotificationStorage', 'getPricing', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -21,14 +23,15 @@ class PricingStorage {
       Database.updatePricing(pricingsMDB[0], pricing);
     }
     // Debug
-    Logging.traceEnd('NotificationStorage', 'getPricing');
+    Logging.traceEnd('NotificationStorage', 'getPricing', uniqueTimerID);
     // Ok
     return pricing;
   }
 
   static async savePricing(tenantID, pricingToSave) {
     // Debug
-    Logging.traceStart('NotificationStorage', 'savePricing');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('NotificationStorage', 'savePricing', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check date
@@ -42,7 +45,7 @@ class PricingStorage {
       {$set: pricing},
       {upsert: true, new: true, returnOriginal: false});
     // Debug
-    Logging.traceEnd('NotificationStorage', 'savePricing');
+    Logging.traceEnd('NotificationStorage', 'savePricing', uniqueTimerID);
   }
 }
 

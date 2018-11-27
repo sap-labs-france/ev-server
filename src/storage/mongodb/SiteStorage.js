@@ -1,3 +1,4 @@
+const uuid = require('uuid/v4');
 const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
@@ -10,7 +11,8 @@ const Logging = require('../../utils/Logging');
 class SiteStorage {
   static async getSite(tenantID, id, withCompany, withUsers) {
     // Debug
-    Logging.traceStart('SiteStorage', 'getSite');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('SiteStorage', 'getSite', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Site = require('../../entity/Site'); // Avoid fucking circular deps!!!
@@ -97,13 +99,14 @@ class SiteStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteStorage', 'getSite');
+    Logging.traceEnd('SiteStorage', 'getSite', uniqueTimerID);
     return site;
   }
 
   static async getSiteImage(tenantID, id) {
     // Debug
-    Logging.traceStart('SiteStorage', 'getSiteImage');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('SiteStorage', 'getSiteImage', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -120,13 +123,14 @@ class SiteStorage {
       };
     }
     // Debug
-    Logging.traceEnd('SiteStorage', 'getSiteImage');
+    Logging.traceEnd('SiteStorage', 'getSiteImage', uniqueTimerID);
     return siteImage;
   }
 
   static async getSiteImages(tenantID) {
     // Debug
-    Logging.traceStart('SiteStorage', 'getSiteImages');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('SiteStorage', 'getSiteImages', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -145,13 +149,14 @@ class SiteStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteStorage', 'getSiteImages');
+    Logging.traceEnd('SiteStorage', 'getSiteImages', uniqueTimerID);
     return siteImages;
   }
 
   static async saveSite(tenantID, siteToSave) {
     // Debug
-    Logging.traceStart('SiteStorage', 'saveSite');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('SiteStorage', 'saveSite', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Site = require('../../entity/Site'); // Avoid fucking circular deps!!!
@@ -204,13 +209,14 @@ class SiteStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteStorage', 'saveSite');
+    Logging.traceEnd('SiteStorage', 'saveSite', uniqueTimerID);
     return updatedSite;
   }
 
   static async saveSiteImage(tenantID, siteImageToSave) {
     // Debug
-    Logging.traceStart('SiteStorage', 'saveSiteImage');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('SiteStorage', 'saveSiteImage', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID is provided
@@ -227,12 +233,13 @@ class SiteStorage {
       {$set: {image: siteImageToSave.image}},
       {upsert: true, new: true, returnOriginal: false});
     // Debug
-    Logging.traceEnd('SiteStorage', 'saveSiteImage');
+    Logging.traceEnd('SiteStorage', 'saveSiteImage', uniqueTimerID);
   }
 
   static async getSites(tenantID, params = {}, limit, skip, sort) {
     // Debug
-    Logging.traceStart('SiteStorage', 'getSites');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('SiteStorage', 'getSites', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
@@ -434,7 +441,7 @@ class SiteStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteStorage', 'getSites');
+    Logging.traceEnd('SiteStorage', 'getSites', uniqueTimerID);
     // Ok
     return {
       count: (sitesCountMDB.length > 0 ? sitesCountMDB[0].count : 0),
@@ -444,7 +451,8 @@ class SiteStorage {
 
   static async deleteSite(tenantID, id) {
     // Debug
-    Logging.traceStart('SiteStorage', 'deleteSite');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('SiteStorage', 'deleteSite', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Site Areas
@@ -464,7 +472,7 @@ class SiteStorage {
     await global.database.getCollection(tenantID, 'siteusers')
       .deleteMany({'siteID': Utils.convertToObjectID(id)});
     // Debug
-    Logging.traceEnd('SiteStorage', 'deleteSite');
+    Logging.traceEnd('SiteStorage', 'deleteSite', uniqueTimerID);
   }
 }
 

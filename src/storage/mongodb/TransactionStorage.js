@@ -1,3 +1,4 @@
+const uuid = require('uuid/v4');
 const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const DatabaseUtils = require('./DatabaseUtils');
@@ -11,7 +12,8 @@ const PricingStorage = require('./PricingStorage');
 class TransactionStorage {
   static async deleteTransaction(tenantID, transaction) {
     // Debug
-    Logging.traceStart('TransactionStorage', 'deleteTransaction');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('TransactionStorage', 'deleteTransaction', uniqueTimerID);
     // Check
     await Utils.checkTenant(tenantID);
     // Delete
@@ -21,12 +23,13 @@ class TransactionStorage {
     await global.database.getCollection(tenantID, 'metervalues')
       .deleteMany({'transactionId': transaction.getID()});
     // Debug
-    Logging.traceEnd('TransactionStorage', 'deleteTransaction');
+    Logging.traceEnd('TransactionStorage', 'deleteTransaction', uniqueTimerID);
   }
 
   static async saveTransaction(transactionEntityToSave) {
     // Debug
-    Logging.traceStart('TransactionStorage', 'saveTransaction');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('TransactionStorage', 'saveTransaction', uniqueTimerID);
     // Check
     await Utils.checkTenant(transactionEntityToSave.getTenantID());
     const transactionMDB = {};
@@ -40,14 +43,15 @@ class TransactionStorage {
       {$set: transactionMDB},
       {upsert: true, new: true, returnOriginal: false});
     // Debug
-    Logging.traceEnd('TransactionStorage', 'saveTransaction');
+    Logging.traceEnd('TransactionStorage', 'saveTransaction', uniqueTimerID);
     // Return
     return new Transaction(transactionEntityToSave.getTenantID(), deepmerge(transactionEntityToSave.getFullModel(), result.value));
   }
 
   static async saveMeterValues(tenantID, meterValuesToSave) {
     // Debug
-    Logging.traceStart('TransactionStorage', 'saveMeterValues');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('TransactionStorage', 'saveMeterValues', uniqueTimerID);
     // Check
     await Utils.checkTenant(tenantID);
     const meterValuesMDB = [];
@@ -66,12 +70,13 @@ class TransactionStorage {
     // Execute
     await global.database.getCollection(tenantID, 'metervalues').insertMany(meterValuesMDB);
     // Debug
-    Logging.traceEnd('TransactionStorage', 'saveMeterValues');
+    Logging.traceEnd('TransactionStorage', 'saveMeterValues', uniqueTimerID);
   }
 
   static async getTransactionYears(tenantID) {
     // Debug
-    Logging.traceStart('TransactionStorage', 'getTransactionYears');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('TransactionStorage', 'getTransactionYears', uniqueTimerID);
     // Check
     await Utils.checkTenant(tenantID);
     const firstTransactionsMDB = await global.database.getCollection(tenantID, 'transactions')
@@ -90,13 +95,14 @@ class TransactionStorage {
       transactionYears.push(i);
     }
     // Debug
-    Logging.traceEnd('TransactionStorage', 'getTransactionYears');
+    Logging.traceEnd('TransactionStorage', 'getTransactionYears', uniqueTimerID);
     return transactionYears;
   }
 
   static async getTransactions(tenantID, params = {}, limit, skip, sort) {
     // Debug
-    Logging.traceStart('TransactionStorage', 'getTransactions');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('TransactionStorage', 'getTransactions', uniqueTimerID);
     // Check
     await Utils.checkTenant(tenantID);
     const pricing = await PricingStorage.getPricing(tenantID);
@@ -268,7 +274,7 @@ class TransactionStorage {
       }
     }
     // Debug
-    Logging.traceEnd('TransactionStorage', 'getTransactions');
+    Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID);
     // Ok
     return {
       count: (transactionsCountMDB.length > 0 ? transactionsCountMDB[0].count : 0),
@@ -278,7 +284,8 @@ class TransactionStorage {
 
   static async getTransaction(tenantID, id) {
     // Debug
-    Logging.traceStart('TransactionStorage', 'getTransaction');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('TransactionStorage', 'getTransaction', uniqueTimerID);
     // Check
     await Utils.checkTenant(tenantID);
     const pricing = await PricingStorage.getPricing(tenantID);
@@ -340,7 +347,7 @@ class TransactionStorage {
       .aggregate(aggregation)
       .toArray();
     // Debug
-    Logging.traceEnd('TransactionStorage', 'getTransaction');
+    Logging.traceEnd('TransactionStorage', 'getTransaction', uniqueTimerID);
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
       return new Transaction(tenantID, {...(transactionsMDB[0]), pricing: pricing});
@@ -350,7 +357,8 @@ class TransactionStorage {
 
   static async getActiveTransaction(tenantID, chargeBoxID, connectorId) {
     // Debug
-    Logging.traceStart('TransactionStorage', 'getActiveTransaction');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('TransactionStorage', 'getActiveTransaction', uniqueTimerID);
     // Check
     await Utils.checkTenant(tenantID);
     const pricing = await PricingStorage.getPricing(tenantID);
@@ -389,7 +397,7 @@ class TransactionStorage {
       .aggregate(aggregation)
       .toArray();
     // Debug
-    Logging.traceEnd('TransactionStorage', 'getActiveTransaction');
+    Logging.traceEnd('TransactionStorage', 'getActiveTransaction', uniqueTimerID);
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
       return new Transaction(tenantID, {...(transactionsMDB[0]), pricing: pricing});
@@ -399,7 +407,8 @@ class TransactionStorage {
 
   static async _findAvailableID(tenantID) {
     // Debug
-    Logging.traceStart('TransactionStorage', '_findAvailableID');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('TransactionStorage', '_findAvailableID', uniqueTimerID);
     // Check
     await Utils.checkTenant(tenantID);
     let existingTransaction;
@@ -419,12 +428,13 @@ class TransactionStorage {
       }
     } while (existingTransaction);
     // Debug
-    Logging.traceEnd('TransactionStorage', '_findAvailableID');
+    Logging.traceEnd('TransactionStorage', '_findAvailableID', uniqueTimerID);
   }
 
   static async cleanupRemainingActiveTransactions(tenantID, chargeBoxId, connectorId) {
     // Debug
-    Logging.traceStart('TransactionStorage', 'cleanupRemainingActiveTransactions');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('TransactionStorage', 'cleanupRemainingActiveTransactions', uniqueTimerID);
     // Check
     await Utils.checkTenant(tenantID);
     let activeTransaction;
@@ -444,7 +454,7 @@ class TransactionStorage {
       }
     } while (activeTransaction);
     // Debug
-    Logging.traceEnd('TransactionStorage', 'cleanupRemainingActiveTransactions');
+    Logging.traceEnd('TransactionStorage', 'cleanupRemainingActiveTransactions', uniqueTimerID);
   }
 }
 
