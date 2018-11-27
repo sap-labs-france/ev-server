@@ -1,3 +1,4 @@
+const uuid = require('uuid/v4');
 const crypto = require('crypto');
 const Mustache = require('mustache');
 const Constants = require('../../utils/Constants');
@@ -14,7 +15,8 @@ const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfi
 class UserStorage {
   static getLatestEndUserLicenseAgreement(language = 'en') {
     // Debug
-    Logging.traceStart('UserStorage', 'getLatestEndUserLicenseAgreement');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('UserStorage', 'getLatestEndUserLicenseAgreement', uniqueTimerID);
     // Get it
     let eulaText = eula[language];
     // Check
@@ -33,14 +35,15 @@ class UserStorage {
       }
     );
     // Debug
-    Logging.traceEnd('UserStorage', 'getLatestEndUserLicenseAgreement');
+    Logging.traceEnd('UserStorage', 'getLatestEndUserLicenseAgreement', uniqueTimerID);
     // Parse
     return eulaText;
   }
 
   static async getEndUserLicenseAgreement(tenantID, language = "en") {
     // Debug
-    Logging.traceStart('UserStorage', 'getEndUserLicenseAgreement');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     let languageFound = false;
@@ -88,7 +91,7 @@ class UserStorage {
         eula = {};
         Database.updateEula(result.ops[0], eula);
         // Debug
-        Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement');
+        Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID);
         // Return
         return eula;
       } else {
@@ -96,7 +99,7 @@ class UserStorage {
         eula = {};
         Database.updateEula(eulaMDB, eula);
         // Debug
-        Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement');
+        Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID);
         return eula;
       }
     } else {
@@ -115,7 +118,7 @@ class UserStorage {
       eula = {};
       Database.updateEula(result.ops[0], eula);
       // Debug
-      Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement');
+      Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID);
       // Return
       return eula;
     }
@@ -124,7 +127,8 @@ class UserStorage {
   static async getUserByTagId(tenantID, tagID) {
     let user;
     // Debug
-    Logging.traceStart('UserStorage', 'getUserByTagId');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('UserStorage', 'getUserByTagId', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -138,14 +142,15 @@ class UserStorage {
       user = await UserStorage.getUser(tenantID, tagsMDB[0].userID);
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUserByTagId');
+    Logging.traceEnd('UserStorage', 'getUserByTagId', uniqueTimerID);
     return user;
   }
 
   static async getUserByEmail(tenantID, email) {
     let user;
     // Debug
-    Logging.traceStart('UserStorage', 'getUserByEmail');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('UserStorage', 'getUserByEmail', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -159,14 +164,15 @@ class UserStorage {
       user = await UserStorage._createUser(tenantID, usersMDB[0]);
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUserByEmail');
+    Logging.traceEnd('UserStorage', 'getUserByEmail', uniqueTimerID);
     return user;
   }
 
   static async getUser(tenantID, id) {
     let user;
     // Debug
-    Logging.traceStart('UserStorage', 'getUser');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('UserStorage', 'getUser', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Create Aggregation
@@ -188,13 +194,14 @@ class UserStorage {
       user = await UserStorage._createUser(tenantID, usersMDB[0]);
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUser');
+    Logging.traceEnd('UserStorage', 'getUser', uniqueTimerID);
     return user;
   }
 
   static async getUserImage(tenantID, id) {
     // Debug
-    Logging.traceStart('UserStorage', 'getUserImage');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('UserStorage', 'getUserImage', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -212,13 +219,14 @@ class UserStorage {
       };
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUserImage');
+    Logging.traceEnd('UserStorage', 'getUserImage', uniqueTimerID);
     return userImage;
   }
 
   static async getUserImages(tenantID) {
     // Debug
-    Logging.traceStart('UserStorage', 'getUserImages');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('UserStorage', 'getUserImages', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -234,13 +242,14 @@ class UserStorage {
       });
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUserImages');
+    Logging.traceEnd('UserStorage', 'getUserImages', uniqueTimerID);
     return userImages;
   }
 
   static async removeSitesFromUser(tenantID, userID, siteIDs) {
     // Debug
-    Logging.traceStart('UserStorage', 'removeSitesFromUser');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('UserStorage', 'removeSitesFromUser', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // User provided?
@@ -258,12 +267,13 @@ class UserStorage {
       }
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'removeSitesFromUser');
+    Logging.traceEnd('UserStorage', 'removeSitesFromUser', uniqueTimerID);
   }
 
   static async addSitesToUser(tenantID, userID, siteIDs) {
     // Debug
-    Logging.traceStart('UserStorage', 'addSitesToUser');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('UserStorage', 'addSitesToUser', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // User provided?
@@ -284,12 +294,13 @@ class UserStorage {
       }
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'addSitesToUser');
+    Logging.traceEnd('UserStorage', 'addSitesToUser', uniqueTimerID);
   }
 
   static async saveUser(tenantID, userToSave) {
     // Debug
-    Logging.traceStart('UserStorage', 'saveUser');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('UserStorage', 'saveUser', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const User = require('../../entity/User'); // Avoid fucking circular deps!!!
@@ -359,13 +370,14 @@ class UserStorage {
       }
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'saveUser');
+    Logging.traceEnd('UserStorage', 'saveUser', uniqueTimerID);
     return updatedUser;
   }
 
   static async saveUserImage(tenantID, userImageToSave) {
     // Debug
-    Logging.traceStart('UserStorage', 'saveUserImage');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('UserStorage', 'saveUserImage', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID is provided
@@ -382,12 +394,13 @@ class UserStorage {
       {$set: {image: userImageToSave.image}},
       {upsert: true, new: true, returnOriginal: false});
     // Debug
-    Logging.traceEnd('UserStorage', 'saveUserImage');
+    Logging.traceEnd('UserStorage', 'saveUserImage', uniqueTimerID);
   }
 
   static async getUsers(tenantID, params = {}, limit, skip, sort) {
     // Debug
-    Logging.traceStart('UserStorage', 'getUsers');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('UserStorage', 'getUsers', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const User = require('../../entity/User'); // Avoid fucking circular deps!!!
@@ -531,7 +544,7 @@ class UserStorage {
       users.push(user);
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUsers');
+    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID);
     // Ok
     return {
       count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
@@ -541,7 +554,8 @@ class UserStorage {
 
   static async deleteUser(tenantID, id) {
     // Debug
-    Logging.traceStart('UserStorage', 'deleteUser');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('UserStorage', 'deleteUser', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete User
@@ -554,7 +568,7 @@ class UserStorage {
     await global.database.getCollection(tenantID, 'tags')
       .deleteMany({'userID': Utils.convertToObjectID(id)});
     // Debug
-    Logging.traceEnd('UserStorage', 'deleteUser');
+    Logging.traceEnd('UserStorage', 'deleteUser', uniqueTimerID);
   }
 
   static async _createUser(tenantID, userMDB) {

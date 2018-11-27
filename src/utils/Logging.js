@@ -11,7 +11,13 @@ const Configuration = require('../utils/Configuration');
 const LoggingStorage = require('../storage/mongodb/LoggingStorage');
 require('source-map-support').install();
 
+const {
+  performance
+} = require('perf_hooks');
+
 const _loggingConfig = Configuration.getLoggingConfig();
+
+let _traceStatistics = null;
 
 const LogLevel = {
   "INFO": 'I',
@@ -43,20 +49,66 @@ class Logging {
   }
 
   // Debug DB
-  static traceStart(module, method) {
+  static traceStart(module, method, uniqueID) {
     // Check
     if (_loggingConfig.trace) {
       // Log
-      console.time(`${module}.${method}()`); // eslint-disable-line
+      console.time(`${module}.${method}(${uniqueID})`); // eslint-disable-line
+      performance.mark(`Start ${module}.${method}(${uniqueID})`);
+    }
+  }
+
+  static addStatistic(module, method, duration) {
+    let currentStatistics;
+    const name = `${module}-${method}`;
+    if (_traceStatistics[name]) {
+      currentStatistics = _traceStatistics[name];
+    } else {
+      _traceStatistics[name] = {};
+      currentStatistics = _traceStatistics[name];
+    }
+
+    if (currentStatistics) {
+// update current statistics timers
+      currentStatistics.countTime = (currentStatistics.countTime ? currentStatistics.countTime + 1 : 1);
+      currentStatistics.minTime = (currentStatistics.minTime ? (currentStatistics.minTime > duration ? duration : currentStatistics.minTime) :  duration);
+      currentStatistics.maxTime = (currentStatistics.maxTime ? (currentStatistics.maxTime < duration ? duration : currentStatistics.maxTime) :  duration);
+      currentStatistics.totalTime = (currentStatistics.totalTime ? currentStatistics.totalTime + duration : duration);
+      currentStatistics.avgTime = currentStatistics.totalTime / currentStatistics.countTime;
     }
   }
 
   // Debug DB
-  static traceEnd(module, method) {
+  static traceEnd(module, method, uniqueID) {
     // Check
     if (_loggingConfig.trace) {
       // Log
-      console.timeEnd(`${module}.${method}()`); // eslint-disable-line
+//      console.timeEnd(`${module}.${method}(${uniqueID})`); // eslint-disable-line
+      performance.mark(`End ${module}.${method}(${uniqueID})`);
+      performance.measure(`${module}.${method}(${uniqueID})`, `Start ${module}.${method}(${uniqueID})`, `End ${module}.${method}(${uniqueID})`)
+      const performanceEntry = performance.getEntriesByName(`${module}.${method}(${uniqueID})`)[0];
+      if (!_loggingConfig.traceLogOnlyStatistics) {
+        console.log(`Performance ${module}.${method}(${uniqueID}) ${performanceEntry.duration} ms`);
+      }
+      
+      // Add statistics
+      if (_traceStatistics === null) {
+        _traceStatistics = {};
+        //start interval to display statistics
+        if (_loggingConfig.traceStatisticInterval) {
+          setInterval(() => {
+            const date=new Date();
+            console.log(date.toISOString().substr(0, 19) + " STATISTICS START");
+            console.log(JSON.stringify(_traceStatistics, null, " "));
+            console.log(date.toISOString().substr(0, 19) + " STATISTICS END");
+          }, _loggingConfig.traceStatisticInterval * 1000);
+        }
+      }
+      Logging.addStatistic(module, method, performanceEntry.duration);        
+      // remove marks
+      performance.clearMeasures(`${module}.${method}(${uniqueID})`);
+      performance.clearMarks(`Start ${module}.${method}(${uniqueID})`);
+      performance.clearMarks(`End ${module}.${method}(${uniqueID})`);
     }
   }
 

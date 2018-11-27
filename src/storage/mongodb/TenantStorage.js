@@ -1,3 +1,4 @@
+const uuid = require('uuid/v4');
 const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
@@ -10,7 +11,8 @@ class TenantStorage {
   static async getTenant(id) {
     const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
     // Debug
-    Logging.traceStart('TenantStorage', 'getTenant');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('TenantStorage', 'getTenant', uniqueTimerID);
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -33,7 +35,7 @@ class TenantStorage {
       tenant = new Tenant(tenantsMDB[0]);
     }
     // Debug
-    Logging.traceEnd('TenantStorage', 'getTenant');
+    Logging.traceEnd('TenantStorage', 'getTenant', uniqueTimerID);
     return tenant;
   }
 
@@ -50,7 +52,8 @@ class TenantStorage {
   static async getTenantByFilter(filter) {
     const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
     // Debug
-    Logging.traceStart('TenantStorage', 'getTenantByFilter');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('TenantStorage', 'getTenantByFilter', uniqueTimerID);
     // Read DB
     const tenantsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
       .find(filter)
@@ -63,14 +66,15 @@ class TenantStorage {
       tenant = new Tenant(tenantsMDB[0]);
     }
     // Debug
-    Logging.traceEnd('TenantStorage', 'getTenantByFilter');
+    Logging.traceEnd('TenantStorage', 'getTenantByFilter', uniqueTimerID);
     return tenant;
   }
 
   static async saveTenant(tenantToSave) {
     const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
     // Debug
-    Logging.traceStart('TenantStorage', 'saveTenant');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('TenantStorage', 'saveTenant', uniqueTimerID);
     // Check
     if (!tenantToSave.id && !tenantToSave.name) {
       throw new AppError(
@@ -101,25 +105,27 @@ class TenantStorage {
         returnOriginal: false
       });
     // Debug
-    Logging.traceEnd('TenantStorage', 'saveTenant');
+    Logging.traceEnd('TenantStorage', 'saveTenant', uniqueTimerID);
     // Create
     return new Tenant(result.value);
   }
 
   static async createTenantDB(tenantID) {
     // Debug
-    Logging.traceStart('TenantStorage', 'createTenantDB');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('TenantStorage', 'createTenantDB', uniqueTimerID);
     // Create DB
     await global.database.createTenantDatabase(tenantID);
     // Debug
-    Logging.traceEnd('TenantStorage', 'createTenantDB');
+    Logging.traceEnd('TenantStorage', 'createTenantDB', uniqueTimerID);
   }
 
   // Delegate
   static async getTenants(params = {}, limit, skip, sort) {
     const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
     // Debug
-    Logging.traceStart('TenantStorage', 'getTenants');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('TenantStorage', 'getTenants', uniqueTimerID);
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -191,7 +197,7 @@ class TenantStorage {
       tenants.push(new Tenant(tenantMDB));
     }
     // Debug
-    Logging.traceEnd('TenantStorage', 'getTenants');
+    Logging.traceEnd('TenantStorage', 'getTenants', uniqueTimerID);
     // Ok
     return {
       count: (tenantsCountMDB.length > 0 ? tenantsCountMDB[0].count : 0),
@@ -201,23 +207,25 @@ class TenantStorage {
 
   static async deleteTenant(id) {
     // Debug
-    Logging.traceStart('TenantStorage', 'deleteTenant');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('TenantStorage', 'deleteTenant', uniqueTimerID);
     // Delete
     await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
       .findOneAndDelete({
         '_id': Utils.convertToObjectID(id)
       });
     // Debug
-    Logging.traceEnd('TenantStorage', 'deleteTenant');
+    Logging.traceEnd('TenantStorage', 'deleteTenant', uniqueTimerID);
   }
 
   static async deleteTenantDB(id) {
     // Debug
-    Logging.traceStart('TenantStorage', 'deleteTenantDB');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('TenantStorage', 'deleteTenantDB', uniqueTimerID);
     // Delete
     await global.database.deleteTenantDatabase(id);
     // Debug
-    Logging.traceEnd('TenantStorage', 'deleteTenantDB');
+    Logging.traceEnd('TenantStorage', 'deleteTenantDB', uniqueTimerID);
   }
 }
 
