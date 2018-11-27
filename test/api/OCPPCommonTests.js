@@ -15,7 +15,7 @@ class OCPPCommonTests {
   }
 
   async before() {
-    this.priceKWH= 1;
+    this.priceKWH = 1;
     await CentralServerService.pricingApi.update({priceKWH: this.priceKWH, priceUnit: 'EUR'});
 
     // Create Bootstrap with OCPP

@@ -2,7 +2,7 @@ const Tenant = require('../../entity/Tenant');
 const OCPIServerError = require('../../exception/OCPIServerError');
 const OCPIUtils = require('./OCPIUtils');
 const Constants = require('../../utils/Constants');
-const atob = require('atob');
+const Logging = require('../../utils/Logging');
 
 const MODULE_NAME = "AbstractOCPIService";
 
@@ -105,19 +105,42 @@ class AbstractOCPIService {
         throw new OCPIServerError(
           'Login',
           `Missing authorization token`, 500,
-          MODULE_NAME, 'handleVerifyTenant', null);
+          MODULE_NAME, 'processEndpointAction', null);
       }
+
+      // log authorization token
+      Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
+        action: 'Login',
+        message: "Authorization Header",
+        source: 'OCPI Server',
+        module: MODULE_NAME,
+        method: `processEndpointAction`,
+        detailedMessages: { "Authorization": req.headers.authorization }
+      });
 
       // get token
       let decodedToken = {};
       try {
         const token = req.headers.authorization.split(" ")[1];
-        decodedToken = JSON.parse(atob(token));
+
+        // log token
+        Logging.logInfo({
+          tenantID: Constants.DEFAULT_TENANT,
+          action: 'Login',
+          message: "Authorization Token",
+          source: 'OCPI Server',
+          module: MODULE_NAME,
+          method: `processEndpointAction`,
+          detailedMessages: { "Token": token }
+        });
+
+        decodedToken = JSON.parse(OCPIUtils.atob(token));
       } catch (error) {
         throw new OCPIServerError(
           'Login',
           `Invalid authorization token`, 500,
-          MODULE_NAME, 'handleVerifyTenant', null);
+          MODULE_NAME, 'processEndpointAction', null);
       }
 
 
@@ -128,11 +151,11 @@ class AbstractOCPIService {
       const tenant = await Tenant.getTenantBySubdomain(tenantSubdomain);
 
       // check if tenant is found
-      if (!tenant && tenantSubdomain !== '') {
+      if (!tenant) {
         throw new OCPIServerError(
           'Login',
-          `The Tenant with subdomain '${tenantSubdomain}' does not exist`, 500,
-          MODULE_NAME, 'handleVerifyTenant', null);
+          `The Tenant '${tenantSubdomain}' does not exist`, 500,
+          MODULE_NAME, 'processEndpointAction', null);
       }
 
       // pass tenant id to req
@@ -142,7 +165,7 @@ class AbstractOCPIService {
       if (!this._ocpiRestConfig.tenantEnabled.includes(tenantSubdomain)) {
         throw new OCPIServerError(
           'Login',
-          `The Tenant with subdomain '${tenantSubdomain}' is not enabled for OCPI`, 500,
+          `The Tenant '${tenantSubdomain}' is not enabled for OCPI`, 500,
           MODULE_NAME, 'processEndpointAction', null);
       }
 
@@ -158,7 +181,7 @@ class AbstractOCPIService {
       } else {
         throw new OCPIServerError(
           'Login',
-          `The Tenant with subdomain '${tenantSubdomain}' doesn't have country_id and/or party_id defined`, 500,
+          `The Tenant '${tenantSubdomain}' doesn't have country_id and/or party_id defined`, 500,
           MODULE_NAME, 'processEndpointAction', null);
       }
 
