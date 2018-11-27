@@ -59,3 +59,4 @@ tmp
 /outputs
 /docker/mongo
 build/config.gypi
+package.json
