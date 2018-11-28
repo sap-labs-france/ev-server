@@ -108,7 +108,7 @@ class Logging {
       // Log
       //      console.timeEnd(`${module}.${method}(${uniqueID})`); // eslint-disable-line
       performance.mark(`End ${module}.${method}(${uniqueID})`);
-      performance.measure(`${module}.${method}(${uniqueID})`, `Start ${module}.${method}(${uniqueID})`, `End ${module}.${method}(${uniqueID})`)
+      performance.measure(`${module}.${method}()`, `Start ${module}.${method}(${uniqueID})`, `End ${module}.${method}(${uniqueID})`)
       /*      const performanceEntry = performance.getEntriesByName(`${module}.${method}(${uniqueID})`)[0];
       if (!_loggingConfig.traceLogOnlyStatistics) {
         console.log(`Performance ${module}.${method}(${uniqueID}) ${performanceEntry.duration} ms`);
