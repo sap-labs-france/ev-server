@@ -12,12 +12,36 @@ const LoggingStorage = require('../storage/mongodb/LoggingStorage');
 require('source-map-support').install();
 
 const {
-  performance
+  performance,
+  PerformanceObserver
 } = require('perf_hooks');
 
 const _loggingConfig = Configuration.getLoggingConfig();
 
 let _traceStatistics = null;
+
+const obs = new PerformanceObserver((items) => {
+  if (!_loggingConfig.traceLogOnlyStatistics) {
+    console.log(`Performance ${items.getEntries()[0].name}) ${items.getEntries()[0].duration} ms`);
+  }
+  
+  // Add statistics
+  if (_traceStatistics === null) {
+    _traceStatistics = {};
+    //start interval to display statistics
+    if (_loggingConfig.traceStatisticInterval) {
+      setInterval(() => {
+        const date=new Date();
+        console.log(date.toISOString().substr(0, 19) + " STATISTICS START");
+        console.log(JSON.stringify(_traceStatistics, null, " "));
+        console.log(date.toISOString().substr(0, 19) + " STATISTICS END");
+      }, _loggingConfig.traceStatisticInterval * 1000);
+    }
+  }
+  Logging.addStatistic(items.getEntries()[0].name, items.getEntries()[0].duration);
+  performance.clearMarks();
+});
+obs.observe({ entryTypes: ['measure'] });
 
 const LogLevel = {
   "INFO": 'I',
@@ -58,9 +82,8 @@ class Logging {
     }
   }
 
-  static addStatistic(module, method, duration) {
+  static addStatistic(name, duration) {
     let currentStatistics;
-    const name = `${module}-${method}`;
     if (_traceStatistics[name]) {
       currentStatistics = _traceStatistics[name];
     } else {
@@ -69,7 +92,7 @@ class Logging {
     }
 
     if (currentStatistics) {
-// update current statistics timers
+      // update current statistics timers
       currentStatistics.countTime = (currentStatistics.countTime ? currentStatistics.countTime + 1 : 1);
       currentStatistics.minTime = (currentStatistics.minTime ? (currentStatistics.minTime > duration ? duration : currentStatistics.minTime) :  duration);
       currentStatistics.maxTime = (currentStatistics.maxTime ? (currentStatistics.maxTime < duration ? duration : currentStatistics.maxTime) :  duration);
@@ -83,10 +106,10 @@ class Logging {
     // Check
     if (_loggingConfig.trace) {
       // Log
-//      console.timeEnd(`${module}.${method}(${uniqueID})`); // eslint-disable-line
+      //      console.timeEnd(`${module}.${method}(${uniqueID})`); // eslint-disable-line
       performance.mark(`End ${module}.${method}(${uniqueID})`);
       performance.measure(`${module}.${method}(${uniqueID})`, `Start ${module}.${method}(${uniqueID})`, `End ${module}.${method}(${uniqueID})`)
-      const performanceEntry = performance.getEntriesByName(`${module}.${method}(${uniqueID})`)[0];
+      /*      const performanceEntry = performance.getEntriesByName(`${module}.${method}(${uniqueID})`)[0];
       if (!_loggingConfig.traceLogOnlyStatistics) {
         console.log(`Performance ${module}.${method}(${uniqueID}) ${performanceEntry.duration} ms`);
       }
@@ -108,7 +131,7 @@ class Logging {
       // remove marks
       performance.clearMeasures(`${module}.${method}(${uniqueID})`);
       performance.clearMarks(`Start ${module}.${method}(${uniqueID})`);
-      performance.clearMarks(`End ${module}.${method}(${uniqueID})`);
+      performance.clearMarks(`End ${module}.${method}(${uniqueID})`);*/
     }
   }
 
