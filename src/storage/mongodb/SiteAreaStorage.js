@@ -1,3 +1,4 @@
+const uuid = require('uuid/v4');
 const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
@@ -9,7 +10,8 @@ const Logging = require('../../utils/Logging');
 class SiteAreaStorage {
   static async getSiteAreaImage(tenantID, id) {
     // Debug
-    Logging.traceStart('SiteAreaStorage', 'getSiteAreaImage');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('SiteAreaStorage', 'getSiteAreaImage', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -26,13 +28,14 @@ class SiteAreaStorage {
       };
     }
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'getSiteAreaImage');
+    Logging.traceEnd('SiteAreaStorage', 'getSiteAreaImage', uniqueTimerID);
     return siteAreaImage;
   }
 
   static async getSiteAreaImages(tenantID) {
     // Debug
-    Logging.traceStart('SiteAreaStorage', 'getSiteAreaImages');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('SiteAreaStorage', 'getSiteAreaImages', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -50,13 +53,14 @@ class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'getSiteAreaImages');
+    Logging.traceEnd('SiteAreaStorage', 'getSiteAreaImages', uniqueTimerID);
     return siteAreaImages;
   }
 
   static async getSiteArea(tenantID, id, withChargeBoxes, withSite) {
     // Debug
-    Logging.traceStart('SiteAreaStorage', 'getSiteArea');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('SiteAreaStorage', 'getSiteArea', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Site = require('../../entity/Site');  // Avoid fucking circular deps!!!
@@ -129,13 +133,14 @@ class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'getSiteArea');
+    Logging.traceEnd('SiteAreaStorage', 'getSiteArea', uniqueTimerID);
     return siteArea;
   }
 
   static async saveSiteArea(tenantID, siteAreaToSave) {
     // Debug
-    Logging.traceStart('SiteAreaStorage', 'saveSiteArea');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('SiteAreaStorage', 'saveSiteArea', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
@@ -166,14 +171,15 @@ class SiteAreaStorage {
       {$set: siteArea},
       {upsert: true, new: true, returnOriginal: false});
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'saveSiteArea');
+    Logging.traceEnd('SiteAreaStorage', 'saveSiteArea', uniqueTimerID);
     // Create
     return new SiteArea(tenantID, result.value);
   }
 
   static async saveSiteAreaImage(tenantID, siteAreaImageToSave) {
     // Debug
-    Logging.traceStart('SiteAreaStorage', 'saveSiteAreaImage');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('SiteAreaStorage', 'saveSiteAreaImage', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID is provided
@@ -190,12 +196,13 @@ class SiteAreaStorage {
       {$set: {image: siteAreaImageToSave.image}},
       {upsert: true, new: true, returnOriginal: false});
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'saveSiteAreaImage');
+    Logging.traceEnd('SiteAreaStorage', 'saveSiteAreaImage', uniqueTimerID);
   }
 
   static async getSiteAreas(tenantID, params = {}, limit, skip, sort) {
     // Debug
-    Logging.traceStart('SiteAreaStorage', 'getSiteAreas');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('SiteAreaStorage', 'getSiteAreas', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Site = require('../../entity/Site');  // Avoid fucking circular deps!!!
@@ -307,7 +314,7 @@ class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'getSiteAreas');
+    Logging.traceEnd('SiteAreaStorage', 'getSiteAreas', uniqueTimerID);
     // Ok
     return {
       count: (siteAreasCountMDB.length > 0 ? siteAreasCountMDB[0].count : 0),
@@ -317,7 +324,8 @@ class SiteAreaStorage {
 
   static async deleteSiteArea(tenantID, id) {
     // Debug
-    Logging.traceStart('SiteAreaStorage', 'deleteSiteArea');
+    const uniqueTimerID = uuid();
+    Logging.traceStart('SiteAreaStorage', 'deleteSiteArea', uniqueTimerID);
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Remove Charging Station's Site Area
@@ -332,7 +340,7 @@ class SiteAreaStorage {
     await global.database.getCollection(tenantID, 'sitesareaimages')
       .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'deleteSiteArea');
+    Logging.traceEnd('SiteAreaStorage', 'deleteSiteArea', uniqueTimerID);
   }
 }
 
