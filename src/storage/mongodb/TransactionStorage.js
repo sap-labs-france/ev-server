@@ -30,7 +30,7 @@ class TransactionStorage {
     // Check
     await Utils.checkTenant(transactionEntityToSave.getTenantID());
     const transactionMDB = {};
-    Database.updateTransaction(transactionEntityToSave.getModel(), transactionMDB, false);
+    Database.updateTransaction(transactionEntityToSave.getModel(true), transactionMDB, false);
     if (!transactionMDB.id) {
       transactionMDB.id = await TransactionStorage._findAvailableID(transactionEntityToSave.getTenantID());
     }

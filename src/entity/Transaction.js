@@ -75,7 +75,7 @@ class Transaction extends AbstractTenantEntity {
     return undefined;
   }
 
-  getModel() {
+  getModel(forDB = false) {
     if (this.isActive()) {
       this._model.totalConsumption = this.getTotalConsumption();
       this._model.currentConsumption = this.getCurrentConsumption();
@@ -96,7 +96,9 @@ class Transaction extends AbstractTenantEntity {
 
     const copy = Utils.duplicateJSON(this._model);
     delete copy.meterValues;
-    delete copy.internalMeterValues;
+    if (!forDB) {
+      delete copy.internalMeterValues;
+    }
     delete copy.pricing;
     return copy;
   }
@@ -211,14 +213,14 @@ class Transaction extends AbstractTenantEntity {
     if (!this.isActive()) {
       return this._model.stop.totalInactivitySecs
     }
-    let totalInactivitySecs = 0;
-    this.getConsumptions().forEach((consumption, index, array) => {
+    let totalInactivitySecs = this._getInternalInactivity();
+    this.getMeterValues().forEach((meterValue, index, array) => {
       if (index === 0) {
         return;
       }
-      const lastConsumption = array[index - 1];
-      if (consumption.value === 0 && lastConsumption.value === 0) {
-        totalInactivitySecs += moment.duration(moment(consumption.date).diff(lastConsumption.date)).asSeconds();
+      const lastMeterValue = array[index - 1];
+      if (meterValue.value === lastMeterValue.value) {
+        totalInactivitySecs += moment.duration(moment(meterValue.timestamp).diff(lastMeterValue.timestamp)).asSeconds();
       }
     });
     return totalInactivitySecs;
@@ -388,14 +390,15 @@ class Transaction extends AbstractTenantEntity {
   }
 
   getAverageConsumptionOnLast(numberOfConsumptions) {
-    if (numberOfConsumptions > this.getConsumptions().length) {
+    if (numberOfConsumptions > this.getMeterValues().length) {
       return 1;
     }
-    let cumulatedConsumption = 0;
-    for (let i = this.getConsumptions().length - numberOfConsumptions; i < this.getConsumptions().length; i++) {
-      cumulatedConsumption += this.getConsumptions()[i].value;
+    for (let i = this.getMeterValues().length - numberOfConsumptions; i < this.getMeterValues().length - 1; i++) {
+      if (this.getMeterValues()[i].value !== this.getMeterValues()[i + 1].value) {
+        return 1
+      }
     }
-    return cumulatedConsumption / numberOfConsumptions;
+    return 0;
   }
 
   isActive() {
@@ -428,23 +431,38 @@ class Transaction extends AbstractTenantEntity {
   }
 
   updateWithMeterValue(meterValue) {
+    meterValue.timestamp = new Date(meterValue.timestamp);
     if (this._isConsumptionMeterValue(meterValue)) {
-      this.updateInternalMeterValue(meterValue, this._isConsumptionMeterValue);
+      this._updateInternalMeterValue(meterValue, this._isConsumptionMeterValue);
     }
     this._invalidateComputations();
   }
 
-  updateInternalMeterValue(newMeterValue, condition) {
-    const oldMeterValue = this.popInternalMeterValue(condition);
+  _updateInternalMeterValue(newMeterValue, condition) {
+
+    const totalInactivitySecs = this.getTotalInactivitySecs();
+
+    const oldMeterValue = this._popInternalMeterValue(condition);
     const meterValues = [this._getFirstMeterValue(), newMeterValue];
     if (oldMeterValue) {
       meterValues.splice(1, 0, oldMeterValue);
     }
     const alignedMeterValue = this._alignMeterValues(meterValues).pop();
+    alignedMeterValue.totalInactivitySecs = totalInactivitySecs;
     this._model.internalMeterValues.push(alignedMeterValue);
   }
 
-  popInternalMeterValue(condition) {
+  _getInternalInactivity() {
+    let index = this._model.internalMeterValues.length - 1;
+    for (; index >= 0; index--) {
+      if (this._model.internalMeterValues[index].hasOwnProperty('totalInactivitySecs')) {
+        return this._model.internalMeterValues[index].totalInactivitySecs;
+      }
+    }
+    return 0;
+  }
+
+  _popInternalMeterValue(condition) {
     const index = this._model.internalMeterValues.findIndex(condition);
     const count = this._model.internalMeterValues.reduce((count, currentValue) => condition(currentValue) ? count + 1 : count, 0);
     const value = this._model.internalMeterValues[index];

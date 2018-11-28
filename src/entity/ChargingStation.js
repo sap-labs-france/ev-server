@@ -960,6 +960,10 @@ class ChargingStation extends AbstractTenantEntity {
     if (meterValues.transactionId) {
       // Save Meter Values
       await TransactionStorage.saveMeterValues(this.getTenantID(), newMeterValues);
+      const transaction = await TransactionStorage.getTransaction(this.getTenantID(), meterValues.transactionId);
+      newMeterValues.values.forEach(meterValue => transaction.updateWithMeterValue(meterValue));
+      await TransactionStorage.saveTransaction(transaction);
+
       // Update Charging Station Consumption
       await this.updateChargingStationConsumption(meterValues.transactionId);
       // Save

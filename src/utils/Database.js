@@ -203,6 +203,9 @@ class Database {
     if (src.hasOwnProperty("registeredValue")) {
       dest.registeredValue = Utils.convertToInt(src.registeredValue);
     }
+    if (src.hasOwnProperty("totalInactivitySecs")) {
+      dest.totalInactivitySecs = Utils.convertToInt(src.totalInactivitySecs);
+    }
     dest.attribute = src.attribute;
   }
 

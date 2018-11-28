@@ -154,7 +154,7 @@ describe('Transaction tests', function() {
         id: transactionId,
         currentConsumption: 0,
         totalConsumption: 0,
-        totalInactivitySecs: 0,
+        totalInactivitySecs: 3600,
         meterStart: meterStart,
         meterStop: meterStop,
         stop: {
@@ -823,7 +823,7 @@ describe('Transaction tests', function() {
     expect(response.data).to.containSubset({
       id: transactionId,
       totalDurationSecs: 7 * 3600,
-      totalInactivitySecs: 4 * 3600
+      totalInactivitySecs: 5 * 3600
     });
   });
   describe('pricing', () => {
@@ -881,7 +881,7 @@ describe('Transaction tests', function() {
       expect(response.data).to.containSubset({
         id: transactionId,
         totalDurationSecs: 7 * 3600,
-        totalInactivitySecs: 4 * 3600
+        totalInactivitySecs: 5 * 3600
       });
     });
   });
