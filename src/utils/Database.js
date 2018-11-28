@@ -200,6 +200,9 @@ class Database {
     dest.transactionId = Utils.convertToInt(src.transactionId);
     dest.timestamp = Utils.convertToDate(src.timestamp);
     dest.value = Utils.convertToInt(src.value);
+    if (src.hasOwnProperty("registeredValue")) {
+      dest.registeredValue = Utils.convertToInt(src.registeredValue);
+    }
     dest.attribute = src.attribute;
   }
 
@@ -478,6 +481,14 @@ class Database {
       dest.remotestop = {};
       dest.remotestop.timestamp = src.remotestop.timestamp;
       dest.remotestop.tagID = src.remotestop.tagID;
+    }
+    if (!Utils.isEmptyJSon(src.internalMeterValues)) {
+      dest.internalMeterValues = [];
+      src.internalMeterValues.forEach(meterValue => {
+        const destMeterValue = {};
+        Database.updateMeterValue(meterValue, destMeterValue);
+        dest.internalMeterValues.push(destMeterValue);
+      });
     }
     if (forFrontEnd) {
       dest.meterValues = [];

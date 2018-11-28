@@ -1232,4 +1232,302 @@ describe('Transaction entity tests', () => {
       );
     });
   });
+
+  describe('test updateMeterValue', () => {
+    it('test on started transaction', () => {
+      const model = EmptyTransactionFactory.build({meterStart: 0, pricing: {priceKWH: 1.5, priceUnit: 'EUR'}});
+      const timestamp = moment(model.timestamp);
+      const transaction = new Transaction("1234", model);
+
+      const meterValue = MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 100
+        }
+      );
+      transaction.updateWithMeterValue(meterValue);
+      expect(transaction.getModel()).to.deep.equal(
+        {
+          id: model.id,
+          chargeBoxID: model.chargeBoxID,
+          connectorId: model.connectorId,
+          meterStart: model.meterStart,
+          timestamp: model.timestamp,
+          currentConsumption: meterValue.value * 60,
+          totalConsumption: meterValue.value,
+          price: +((meterValue.value / 1000 * 1.5).toFixed(6)),
+          priceUnit: 'EUR',
+          user: model.user,
+          userID: model.user.id,
+          tagID: model.tagID,
+        }
+      );
+      expect(transaction.getConsumptions()).to.containSubset(
+        [
+          {
+            cumulated: meterValue.value,
+            price: +((meterValue.value / 1000 * 1.5).toFixed(6)),
+            value: meterValue.value * 60
+          }
+        ]
+      );
+    });
+    it('test on started transaction with meterStart', () => {
+      const model = EmptyTransactionFactory.build({meterStart: 5, pricing: {priceKWH: 1.5, priceUnit: 'EUR'}});
+      const timestamp = moment(model.timestamp);
+      const transaction = new Transaction("1234", model);
+
+      const meterValue = MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 100
+        }
+      );
+      const consumption = meterValue.value - model.meterStart;
+      transaction.updateWithMeterValue(meterValue);
+      expect(transaction.getModel()).to.deep.equal(
+        {
+          id: model.id,
+          chargeBoxID: model.chargeBoxID,
+          connectorId: model.connectorId,
+          meterStart: model.meterStart,
+          timestamp: model.timestamp,
+          currentConsumption: (consumption) * 60,
+          totalConsumption: consumption,
+          price: +((consumption / 1000 * 1.5).toFixed(6)),
+          priceUnit: 'EUR',
+          user: model.user,
+          userID: model.user.id,
+          tagID: model.tagID,
+        }
+      );
+      expect(transaction.getConsumptions()).to.containSubset(
+        [
+          {
+            cumulated: consumption,
+            price: +((consumption / 1000 * 1.5).toFixed(6)),
+            value: consumption * 60
+          }
+        ]
+      );
+    });
+
+    it('test on started transaction with a present meterValue', () => {
+      const model = EmptyTransactionFactory.build({meterStart: 0, pricing: {priceKWH: 1.5, priceUnit: 'EUR'}});
+      const timestamp = moment(model.timestamp);
+      model.internalMeterValues = [];
+      model.internalMeterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 20,
+          registeredValue: 20
+        }
+      ));
+      const transaction = new Transaction("1234", model);
+
+      const meterValue = MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 100
+        }
+      );
+      const consumption = meterValue.value - model.meterStart;
+      transaction.updateWithMeterValue(meterValue);
+      expect(transaction.getModel()).to.deep.equal(
+        {
+          id: model.id,
+          chargeBoxID: model.chargeBoxID,
+          connectorId: model.connectorId,
+          meterStart: model.meterStart,
+          timestamp: model.timestamp,
+          currentConsumption: 80 * 60,
+          totalConsumption: consumption,
+          price: +((consumption / 1000 * 1.5).toFixed(6)),
+          priceUnit: 'EUR',
+          user: model.user,
+          userID: model.user.id,
+          tagID: model.tagID,
+        }
+      );
+      expect(transaction.getConsumptions()).to.containSubset(
+        [
+          {
+            cumulated: 20,
+            price: +((20 / 1000 * 1.5).toFixed(6)),
+            value: 20 * 60
+          },
+          {
+            cumulated: 100,
+            price: +((80 / 1000 * 1.5).toFixed(6)),
+            value: 80 * 60
+          }
+        ]
+      );
+    });
+    it('test on started transaction with  multiple updates', () => {
+      const model = EmptyTransactionFactory.build({meterStart: 0, pricing: {priceKWH: 1.5, priceUnit: 'EUR'}});
+      const timestamp = moment(model.timestamp);
+      const transaction = new Transaction("1234", model);
+      const meterValues = [];
+      meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 20
+        }
+      ));
+      meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 100
+        }
+      ));
+      meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 150
+        }
+      ));
+
+      meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 180
+        }
+      ));
+      meterValues.forEach((meterValue) => transaction.updateWithMeterValue(meterValue));
+      expect(transaction.getModel()).to.deep.equal(
+        {
+          id: model.id,
+          chargeBoxID: model.chargeBoxID,
+          connectorId: model.connectorId,
+          meterStart: model.meterStart,
+          timestamp: model.timestamp,
+          currentConsumption: 30 * 60,
+          totalConsumption: 180,
+          price: +((180 / 1000 * 1.5).toFixed(6)),
+          priceUnit: 'EUR',
+          user: model.user,
+          userID: model.user.id,
+          tagID: model.tagID,
+        }
+      );
+
+      expect(transaction.getConsumptions()).to.containSubset(
+        [
+          {
+            cumulated: 150,
+            price: +((150 / 1000 * 1.5).toFixed(6)),
+            value: 150 * (60 / 3)
+          },
+          {
+            cumulated: 180,
+            price: +((30 / 1000 * 1.5).toFixed(6)),
+            value: 30 * 60
+          }
+        ]
+      );
+    });
+    it('test on stopped transaction with  multiple updates', () => {
+      const model = EmptyTransactionFactory.build({meterStart: 0, pricing: {priceKWH: 1.5, priceUnit: 'EUR'}});
+      const timestamp = moment(model.timestamp);
+      const transaction = new Transaction("1234", model);
+      const meterValues = [];
+      meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 20
+        }
+      ));
+      meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 100
+        }
+      ));
+      meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 150
+        }
+      ));
+
+      meterValues.push(MeterValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 180
+        }
+      ));
+      meterValues.forEach((meterValue) => transaction.updateWithMeterValue(meterValue));
+      transaction.stopTransaction(transaction.getUser(), transaction.getTagID(), 200, timestamp.add(1, 'minutes').toDate());
+      expect(transaction.getModel()).to.deep.equal(
+        {
+          id: model.id,
+          chargeBoxID: model.chargeBoxID,
+          connectorId: model.connectorId,
+          meterStart: model.meterStart,
+          timestamp: model.timestamp,
+          price: +((200 / 1000 * 1.5).toFixed(6)),
+          priceUnit: 'EUR',
+          user: model.user,
+          userID: model.user.id,
+          tagID: model.tagID,
+          stop: {
+            meterStop: 200,
+            totalConsumption: 200,
+            totalDurationSecs: 5 * 60,
+            totalInactivitySecs: 0,
+            timestamp: timestamp.toDate(),
+            user: model.user,
+            userID: model.user.id,
+            tagID: model.tagID,
+          }
+        }
+      );
+
+      expect(transaction.getConsumptions()).to.containSubset(
+        [
+          {
+            cumulated: 150,
+            price: +((150 / 1000 * 1.5).toFixed(6)),
+            value: 150 * (60 / 3)
+          },
+          {
+            cumulated: 180,
+            price: +((30 / 1000 * 1.5).toFixed(6)),
+            value: 30 * 60
+          },
+          {
+            cumulated: 200,
+            price: +((20 / 1000 * 1.5).toFixed(6)),
+            value: 20 * 60
+          }
+        ]
+      );
+    });
+  });
+
 });

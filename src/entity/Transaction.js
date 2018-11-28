@@ -12,6 +12,9 @@ class Transaction extends AbstractTenantEntity {
     if (transaction) {
       Database.updateTransaction(transaction, this._model);
     }
+    if (!this._model.internalMeterValues) {
+      this._model.internalMeterValues = [];
+    }
     if (this._model.user) {
       delete this._model.user.address;
       delete this._model.user.deleted;
@@ -93,6 +96,7 @@ class Transaction extends AbstractTenantEntity {
 
     const copy = Utils.duplicateJSON(this._model);
     delete copy.meterValues;
+    delete copy.internalMeterValues;
     delete copy.pricing;
     return copy;
   }
@@ -304,18 +308,21 @@ class Transaction extends AbstractTenantEntity {
   }
 
   _computeStateOfCharges() {
-    const meterValues = [this._getFirstMeterValue(), ...(this._model.meterValues)];
-    if (!this.isActive()) {
-      meterValues.push(this._getLastMeterValue());
-    }
+    return this._getMeterValues(this._isSocMeterValue);
+  }
 
-    return meterValues
-      .filter(meterValue => meterValue.attribute
-        && (meterValue.attribute.context === 'Sample.Periodic'
-          || meterValue.attribute.context === 'Transaction.Begin'
-          || meterValue.attribute.context === 'Transaction.End')
-        && meterValue.attribute.measurand === 'SoC')
-      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+  _isSocMeterValue(meterValue) {
+    return meterValue.attribute
+      && (meterValue.attribute.context === 'Sample.Periodic'
+        || meterValue.attribute.context === 'Transaction.Begin'
+        || meterValue.attribute.context === 'Transaction.End')
+      && meterValue.attribute.measurand === 'SoC'
+  }
+
+  _isConsumptionMeterValue(meterValue) {
+    return meterValue.attribute
+      && meterValue.attribute.measurand === 'Energy.Active.Import.Register'
+      && (meterValue.attribute.context === "Sample.Periodic" || meterValue.attribute.context === "Sample.Clock")
   }
 
   _computeConsumptions() {
@@ -330,18 +337,24 @@ class Transaction extends AbstractTenantEntity {
   }
 
   _computeMeterValues() {
-    let meterValues = [this._getFirstMeterValue(), ...(this._model.meterValues)];
+    const meterValues = this._getMeterValues(this._isConsumptionMeterValue);
+    return this._alignMeterValues(meterValues);
+  }
+
+  _getMeterValues(typeFunction) {
+    let meterValues;
+    if (this._model.meterValues.length > 0) {
+      meterValues = [this._getFirstMeterValue(), ...(this._model.meterValues)];
+    } else {
+      meterValues = [this._getFirstMeterValue(), ...(this._model.internalMeterValues)];
+    }
     if (this._hasMeterStop()) {
       meterValues.push(this._getLastMeterValue());
     }
 
-    meterValues = meterValues
-      .filter(meterValue => meterValue.attribute
-        && meterValue.attribute.measurand === 'Energy.Active.Import.Register'
-        && (meterValue.attribute.context === "Sample.Periodic" || meterValue.attribute.context === "Sample.Clock"))
+    return meterValues
+      .filter(typeFunction)
       .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-
-    return this._alignMeterValues(meterValues);
   }
 
   _alignMeterValues(meterValues) {
@@ -355,7 +368,9 @@ class Transaction extends AbstractTenantEntity {
       if (previousMeterValue.registeredValue > meterValue.value) {
         delta = previousMeterValue.value;
       }
-      meterValue.registeredValue = meterValue.value;
+      if (!meterValue.registeredValue) {
+        meterValue.registeredValue = meterValue.value;
+      }
       meterValue.value = +meterValue.value + delta;
     });
     return meterValues;
@@ -412,6 +427,34 @@ class Transaction extends AbstractTenantEntity {
     this.active = false;
   }
 
+  updateWithMeterValue(meterValue) {
+    if (this._isConsumptionMeterValue(meterValue)) {
+      this.updateInternalMeterValue(meterValue, this._isConsumptionMeterValue);
+    }
+    this._invalidateComputations();
+  }
+
+  updateInternalMeterValue(newMeterValue, condition) {
+    const oldMeterValue = this.popInternalMeterValue(condition);
+    const meterValues = [this._getFirstMeterValue(), newMeterValue];
+    if (oldMeterValue) {
+      meterValues.splice(1, 0, oldMeterValue);
+    }
+    const alignedMeterValue = this._alignMeterValues(meterValues).pop();
+    this._model.internalMeterValues.push(alignedMeterValue);
+  }
+
+  popInternalMeterValue(condition) {
+    const index = this._model.internalMeterValues.findIndex(condition);
+    const count = this._model.internalMeterValues.reduce((count, currentValue) => condition(currentValue) ? count + 1 : count, 0);
+    const value = this._model.internalMeterValues[index];
+    if (count > 1) {
+      this._model.internalMeterValues.splice(index, 1);
+    }
+    return value;
+  }
+
+
   remoteStop(tagId, timestamp) {
     this._model.remotestop = {};
     this._model.remotestop.tagID = tagId;
@@ -448,7 +491,7 @@ class Transaction extends AbstractTenantEntity {
   }
 
   _hasMeterValues() {
-    return this._model.meterValues != null && this._model.meterValues.length > 0;
+    return this._model.meterValues != null && this._model.meterValues.length > 0 || this._model.internalMeterValues && this._model.internalMeterValues.length > 0;
   }
 
   _hasConsumptions() {

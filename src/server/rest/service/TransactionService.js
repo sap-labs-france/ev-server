@@ -121,11 +121,11 @@ class TransactionService {
         }
       }
       // Delete Transaction
-			await chargingStation.deleteTransaction(transaction);
+      await chargingStation.deleteTransaction(transaction);
 
       // Log
       Logging.logSecurityInfo({
-              tenantID: req.user.tenantID,
+        tenantID: req.user.tenantID,
         user: req.user, actionOnUser: (transaction.getUser() ? transaction.getUser() : null),
         module: 'TransactionService', method: 'handleDeleteTransaction',
         message: `Transaction ID '${filteredRequest.ID}' on '${transaction.getChargeBoxID()}'-'${transaction.getConnectorId()}' has been deleted successfully`,
@@ -205,7 +205,7 @@ class TransactionService {
       let result = await chargingStation.handleStopTransaction(stopTransaction, true);
       // Log
       Logging.logSecurityInfo({
-              tenantID: req.user.tenantID,
+        tenantID: req.user.tenantID,
         user: req.user, actionOnUser: (user ? user.getModel() : null),
         module: 'TransactionService', method: 'handleTransactionSoftStop',
         message: `Transaction ID '${transaction.getID()}' on '${transaction.getChargeBoxID()}'-'${transaction.getConnectorId()}' has been stopped successfully`,
@@ -233,7 +233,7 @@ class TransactionService {
           'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
       }
       // Get Transaction
-      let transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.TransactionId);
+      let transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.TransactionId, true);
       if (!transaction) {
         // Not Found!
         throw new AppError(

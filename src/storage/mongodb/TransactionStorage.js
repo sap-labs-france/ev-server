@@ -243,8 +243,7 @@ class TransactionStorage {
     aggregation.push({
       $unwind: {"path": "$stop.user", "preserveNullAndEmptyArrays": true}
     });
-    // Add MeterValues only for not completed transactions
-    if (!params.stop || params.stop.$exists == false) {
+    if (params.withMeterValues) {
       aggregation.push({
         $lookup: {
           from: DatabaseUtils.getCollectionName(tenantID, 'metervalues'),
@@ -276,7 +275,7 @@ class TransactionStorage {
     };
   }
 
-  static async getTransaction(tenantID, id) {
+  static async getTransaction(tenantID, id, withMeterValues = false) {
     // Debug
     Logging.traceStart('TransactionStorage', 'getTransaction');
     // Check
@@ -314,14 +313,16 @@ class TransactionStorage {
     aggregation.push({
       $unwind: {"path": "$stop.user", "preserveNullAndEmptyArrays": true}
     });
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'metervalues'),
-        localField: '_id',
-        foreignField: 'transactionId',
-        as: 'meterValues'
-      }
-    });
+    if (withMeterValues) {
+      aggregation.push({
+        $lookup: {
+          from: DatabaseUtils.getCollectionName(tenantID, 'metervalues'),
+          localField: '_id',
+          foreignField: 'transactionId',
+          as: 'meterValues'
+        }
+      });
+    }
     aggregation.push({
       $lookup: {
         from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
@@ -375,14 +376,6 @@ class TransactionStorage {
     // Add
     aggregation.push({
       $unwind: {"path": "$user", "preserveNullAndEmptyArrays": true}
-    });
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'metervalues'),
-        localField: '_id',
-        foreignField: 'transactionId',
-        as: 'meterValues'
-      }
     });
     // Read DB
     const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
