@@ -105,33 +105,8 @@ class Logging {
   static traceEnd(module, method, uniqueID) {
     // Check
     if (_loggingConfig.trace) {
-      // Log
-      //      console.timeEnd(`${module}.${method}(${uniqueID})`); // eslint-disable-line
       performance.mark(`End ${module}.${method}(${uniqueID})`);
       performance.measure(`${module}.${method}()`, `Start ${module}.${method}(${uniqueID})`, `End ${module}.${method}(${uniqueID})`)
-      /*      const performanceEntry = performance.getEntriesByName(`${module}.${method}(${uniqueID})`)[0];
-      if (!_loggingConfig.traceLogOnlyStatistics) {
-        console.log(`Performance ${module}.${method}(${uniqueID}) ${performanceEntry.duration} ms`);
-      }
-      
-      // Add statistics
-      if (_traceStatistics === null) {
-        _traceStatistics = {};
-        //start interval to display statistics
-        if (_loggingConfig.traceStatisticInterval) {
-          setInterval(() => {
-            const date=new Date();
-            console.log(date.toISOString().substr(0, 19) + " STATISTICS START");
-            console.log(JSON.stringify(_traceStatistics, null, " "));
-            console.log(date.toISOString().substr(0, 19) + " STATISTICS END");
-          }, _loggingConfig.traceStatisticInterval * 1000);
-        }
-      }
-      Logging.addStatistic(module, method, performanceEntry.duration);        
-      // remove marks
-      performance.clearMeasures(`${module}.${method}(${uniqueID})`);
-      performance.clearMarks(`Start ${module}.${method}(${uniqueID})`);
-      performance.clearMarks(`End ${module}.${method}(${uniqueID})`);*/
     }
   }
 
