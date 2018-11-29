@@ -1,4 +1,4 @@
-const uuid = require('uuid/v4');
+
 const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
@@ -10,8 +10,7 @@ const Logging = require('../../utils/Logging');
 class SiteAreaStorage {
   static async getSiteAreaImage(tenantID, id) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('SiteAreaStorage', 'getSiteAreaImage', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteAreaImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -34,8 +33,7 @@ class SiteAreaStorage {
 
   static async getSiteAreaImages(tenantID) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('SiteAreaStorage', 'getSiteAreaImages', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteAreaImages');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -59,8 +57,7 @@ class SiteAreaStorage {
 
   static async getSiteArea(tenantID, id, withChargeBoxes, withSite) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('SiteAreaStorage', 'getSiteArea', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Site = require('../../entity/Site');  // Avoid fucking circular deps!!!
@@ -139,8 +136,7 @@ class SiteAreaStorage {
 
   static async saveSiteArea(tenantID, siteAreaToSave) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('SiteAreaStorage', 'saveSiteArea', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'saveSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
@@ -178,8 +174,7 @@ class SiteAreaStorage {
 
   static async saveSiteAreaImage(tenantID, siteAreaImageToSave) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('SiteAreaStorage', 'saveSiteAreaImage', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'saveSiteAreaImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID is provided
@@ -201,8 +196,7 @@ class SiteAreaStorage {
 
   static async getSiteAreas(tenantID, params = {}, limit, skip, sort) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('SiteAreaStorage', 'getSiteAreas', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteAreas');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Site = require('../../entity/Site');  // Avoid fucking circular deps!!!
@@ -324,8 +318,7 @@ class SiteAreaStorage {
 
   static async deleteSiteArea(tenantID, id) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('SiteAreaStorage', 'deleteSiteArea', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'deleteSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Remove Charging Station's Site Area

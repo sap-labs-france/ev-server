@@ -1,4 +1,4 @@
-const uuid = require('uuid/v4');
+
 const ObjectID = require('mongodb').ObjectID;
 const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
@@ -11,8 +11,7 @@ const Logging = require('../../utils/Logging');
 class CompanyStorage {
   static async getCompany(tenantID, id) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('CompanyStorage', 'getCompany', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompany');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
@@ -42,8 +41,7 @@ class CompanyStorage {
 
   static async getCompanyLogo(tenantID, id) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('CompanyStorage', 'getCompanyLogo', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanyLogo');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -66,8 +64,7 @@ class CompanyStorage {
 
   static async getCompanyLogos(tenantID) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('CompanyStorage', 'getCompanyLogos', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanyLogos');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -92,8 +89,7 @@ class CompanyStorage {
 
   static async saveCompany(tenantID, companyToSave) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('CompanyStorage', 'saveCompany', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('CompanyStorage', 'saveCompany');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
@@ -130,8 +126,7 @@ class CompanyStorage {
 
   static async saveCompanyLogo(tenantID, companyLogoToSave) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('CompanyStorage', 'saveCompanyLogo', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('CompanyStorage', 'saveCompanyLogo');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID is provided
@@ -154,8 +149,7 @@ class CompanyStorage {
   // Delegate
   static async getCompanies(tenantID, params = {}, limit, skip, sort) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('CompanyStorage', 'getCompanies', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanies');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
@@ -251,8 +245,7 @@ class CompanyStorage {
 
   static async deleteCompany(tenantID, id) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('CompanyStorage', 'deleteCompany', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('CompanyStorage', 'deleteCompany');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Sites

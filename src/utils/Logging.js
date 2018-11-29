@@ -9,6 +9,7 @@ const NotFoundError = require('../exception/NotFoundError');
 const CFLog = require('cf-nodejs-logging-support');
 const Configuration = require('../utils/Configuration');
 const LoggingStorage = require('../storage/mongodb/LoggingStorage');
+const uuid = require('uuid/v4');
 require('source-map-support').install();
 
 const {
@@ -39,6 +40,9 @@ const obs = new PerformanceObserver((items) => {
     }
   }
   Logging.addStatistic(items.getEntries()[0].name, items.getEntries()[0].duration);
+  if (typeof performance.hasOwnProperty === 'function') {
+    performance.clearMeasures(); // does not seem to exist in node 10. It's stragen because then we have no way to remove measures and we will reach the maximum quickly
+  }
   performance.clearMarks();
 });
 obs.observe({ entryTypes: ['measure'] });
@@ -73,13 +77,16 @@ class Logging {
   }
 
   // Debug DB
-  static traceStart(module, method, uniqueID) {
+  static traceStart(module, method) {
+    let uniqueID = 0;
     // Check
     if (_loggingConfig.trace) {
+      uniqueID = uuid();
       // Log
       console.time(`${module}.${method}(${uniqueID})`); // eslint-disable-line
       performance.mark(`Start ${module}.${method}(${uniqueID})`);
     }
+    return uniqueID;
   }
 
   static addStatistic(name, duration) {

@@ -1,4 +1,4 @@
-const uuid = require('uuid/v4');
+
 const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
@@ -11,8 +11,7 @@ class TenantStorage {
   static async getTenant(id) {
     const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('TenantStorage', 'getTenant', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenant');
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -52,8 +51,7 @@ class TenantStorage {
   static async getTenantByFilter(filter) {
     const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('TenantStorage', 'getTenantByFilter', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenantByFilter');
     // Read DB
     const tenantsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
       .find(filter)
@@ -73,8 +71,7 @@ class TenantStorage {
   static async saveTenant(tenantToSave) {
     const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('TenantStorage', 'saveTenant', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('TenantStorage', 'saveTenant');
     // Check
     if (!tenantToSave.id && !tenantToSave.name) {
       throw new AppError(
@@ -112,8 +109,7 @@ class TenantStorage {
 
   static async createTenantDB(tenantID) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('TenantStorage', 'createTenantDB', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('TenantStorage', 'createTenantDB');
     // Create DB
     await global.database.createTenantDatabase(tenantID);
     // Debug
@@ -124,8 +120,7 @@ class TenantStorage {
   static async getTenants(params = {}, limit, skip, sort) {
     const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('TenantStorage', 'getTenants', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenants');
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -207,8 +202,7 @@ class TenantStorage {
 
   static async deleteTenant(id) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('TenantStorage', 'deleteTenant', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('TenantStorage', 'deleteTenant');
     // Delete
     await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
       .findOneAndDelete({
@@ -220,8 +214,7 @@ class TenantStorage {
 
   static async deleteTenantDB(id) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('TenantStorage', 'deleteTenantDB', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('TenantStorage', 'deleteTenantDB');
     // Delete
     await global.database.deleteTenantDatabase(id);
     // Debug
