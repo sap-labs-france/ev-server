@@ -9,6 +9,7 @@ const NotFoundError = require('../exception/NotFoundError');
 const CFLog = require('cf-nodejs-logging-support');
 const Configuration = require('../utils/Configuration');
 const LoggingStorage = require('../storage/mongodb/LoggingStorage');
+const uuid = require('uuid/v4');
 require('source-map-support').install();
 
 const {
@@ -73,13 +74,16 @@ class Logging {
   }
 
   // Debug DB
-  static traceStart(module, method, uniqueID) {
+  static traceStart(module, method) {
+    let uniqueID = 0;
     // Check
     if (_loggingConfig.trace) {
+      uniqueID = uuid();
       // Log
       console.time(`${module}.${method}(${uniqueID})`); // eslint-disable-line
       performance.mark(`Start ${module}.${method}(${uniqueID})`);
     }
+    return uniqueID;
   }
 
   static addStatistic(name, duration) {
