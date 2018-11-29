@@ -40,6 +40,9 @@ const obs = new PerformanceObserver((items) => {
     }
   }
   Logging.addStatistic(items.getEntries()[0].name, items.getEntries()[0].duration);
+  if (typeof performance.hasOwnProperty === 'function') {
+    performance.clearMeasures();
+  }
   performance.clearMarks();
 });
 obs.observe({ entryTypes: ['measure'] });
