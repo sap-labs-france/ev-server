@@ -329,15 +329,27 @@ class Transaction extends AbstractTenantEntity {
 
   _computeConsumptions() {
     const consumptions = [];
-    const stateOfCharges = this._computeStateOfCharges();
     this.getMeterValues().forEach((meterValue, index, array) => {
       if (index === 0) {
         return;
       }
       const previousMeterValue = array[index - 1];
-      const stateOfCharge = stateOfCharges.find(stateOfCharge => moment(stateOfCharge.timestamp).isBetween(previousMeterValue.timestamp, meterValue.timestamp, null, '[]'));
-      consumptions.push(this._aggregateAsConsumption(previousMeterValue, meterValue, stateOfCharge));
+      consumptions.push(this._aggregateAsConsumption(previousMeterValue, meterValue));
     });
+
+    if (this.hasStateOfCharges()) {
+      const stateOfCharges = this._computeStateOfCharges();
+      consumptions.forEach((consumption, index, array) => {
+        if (index === 0) {
+          const stateOfCharge = stateOfCharges.find(stateOfCharge => moment(stateOfCharge.timestamp).isBetween(this.getStartDate(), consumption.date, null, '(]'));
+          consumption.stateOfCharge = stateOfCharge ? stateOfCharge.value : 0;
+          return;
+        }
+        const previousConsumption = array[index - 1];
+        const stateOfCharge = stateOfCharges.find(stateOfCharge => moment(stateOfCharge.timestamp).isBetween(previousConsumption.date, consumption.date, null, '(]'));
+        consumption.stateOfCharge = stateOfCharge ? stateOfCharge.value : previousConsumption.stateOfCharge;
+      });
+    }
     return consumptions;
   }
 
@@ -435,24 +447,25 @@ class Transaction extends AbstractTenantEntity {
 
   updateWithMeterValue(meterValue) {
     meterValue.timestamp = new Date(meterValue.timestamp);
-    if (this._isConsumptionMeterValue(meterValue)) {
-      this._updateInternalMeterValue(meterValue, this._isConsumptionMeterValue);
+
+    if (this._isSocMeterValue(meterValue)) {
+
+      this._popInternalMeterValue(this._isSocMeterValue);
+      this._model.internalMeterValues.push(meterValue);
+
+    } else if (this._isConsumptionMeterValue(meterValue)) {
+
+      const totalInactivitySecs = this.getTotalInactivitySecs();
+      const oldMeterValue = this._popInternalMeterValue(this._isConsumptionMeterValue);
+      const meterValues = [this._getFirstMeterValue(), meterValue];
+      if (oldMeterValue) {
+        meterValues.splice(1, 0, oldMeterValue);
+      }
+      const alignedMeterValue = this._alignMeterValues(meterValues).pop();
+      alignedMeterValue.totalInactivitySecs = totalInactivitySecs;
+      this._model.internalMeterValues.push(alignedMeterValue);
     }
     this._invalidateComputations();
-  }
-
-  _updateInternalMeterValue(newMeterValue, condition) {
-
-    const totalInactivitySecs = this.getTotalInactivitySecs();
-
-    const oldMeterValue = this._popInternalMeterValue(condition);
-    const meterValues = [this._getFirstMeterValue(), newMeterValue];
-    if (oldMeterValue) {
-      meterValues.splice(1, 0, oldMeterValue);
-    }
-    const alignedMeterValue = this._alignMeterValues(meterValues).pop();
-    alignedMeterValue.totalInactivitySecs = totalInactivitySecs;
-    this._model.internalMeterValues.push(alignedMeterValue);
   }
 
   _getInternalInactivity() {
@@ -493,7 +506,7 @@ class Transaction extends AbstractTenantEntity {
     }
   }
 
-  _aggregateAsConsumption(lastMeterValue, meterValue, stateOfChargeMeterValue) {
+  _aggregateAsConsumption(lastMeterValue, meterValue) {
     const currentTimestamp = moment(meterValue.timestamp);
     const diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, 'seconds');
     const sampleMultiplier = diffSecs > 0 ? 3600 / diffSecs : 0;
@@ -503,10 +516,6 @@ class Transaction extends AbstractTenantEntity {
       value: currentConsumption,
       cumulated: meterValue.value - this.getMeterStart()
     };
-    if (stateOfChargeMeterValue) {
-      consumption.stateOfCharge = stateOfChargeMeterValue.value;
-    }
-
     if (this._hasPricing()) {
       const consumptionWh = meterValue.value - lastMeterValue.value;
       consumption.price = +((consumptionWh / 1000) * this._getPricing().priceKWH).toFixed(6);
