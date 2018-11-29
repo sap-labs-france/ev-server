@@ -437,13 +437,15 @@ class Transaction extends AbstractTenantEntity {
     const diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, 'seconds');
     const sampleMultiplier = diffSecs > 0 ? 3600 / diffSecs : 0;
     const currentConsumption = (meterValue.value - lastMeterValue.value) * sampleMultiplier;
-
     const consumption = {
       date: meterValue.timestamp,
       value: currentConsumption,
-      cumulated: meterValue.value - this.getMeterStart(),
-      stateOfCharge: stateOfChargeMeterValue.value
+      cumulated: meterValue.value - this.getMeterStart()
     };
+    if (stateOfChargeMeterValue) {
+      consumption.stateOfCharge = stateOfChargeMeterValue.value;
+    }
+
     if (this._hasPricing()) {
       const consumptionWh = meterValue.value - lastMeterValue.value;
       consumption.price = +((consumptionWh / 1000) * this._getPricing().priceKWH).toFixed(6);
