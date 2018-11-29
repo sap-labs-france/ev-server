@@ -43,6 +43,27 @@ class Tenant {
     return this._model.subdomain;
   }
 
+  getService(identifier) {
+    return (this._model.services)?this._model.services[identifier]:{ "active":false, "configuration": {}};
+  }
+
+  isServiceActive(identifier) {
+    const service = this.getService(identifier);
+    return (service)?service.active:false;
+  }
+
+  setService(identifier, active, configuration) {
+    if (!this._model.services[identifier]) {
+      this._model.services[identifier] = {};
+    }
+
+    this._model.services[identifier].active = active;
+
+    if (configuration) {
+      this._model.services[identifier].configuration = configuration;
+    }
+  }
+
   getCreatedBy() {
     if (this._model.createdBy) {
       return new User(this.getID(), this._model.createdBy);
@@ -82,6 +103,7 @@ class Tenant {
   }
 
   save() {
+    // Init Services
     return TenantStorage.saveTenant(this.getModel());
   }
 
