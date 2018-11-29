@@ -1303,6 +1303,7 @@ class ChargingStation extends AbstractTenantEntity {
       // Check Chargers
       if (this.getID() === 'PERNICE-WB-01' ||
         this.getID() === 'HANNO-WB-01' ||
+        this.getID() === 'DAUDRE-WB-01' ||
         this.getID() === 'WINTER-WB-01' ||
         this.getID() === 'GIMENO-WB-01' ||
         this.getID() === 'HANNO-WB-02') {
@@ -1311,6 +1312,7 @@ class ChargingStation extends AbstractTenantEntity {
           transactionEntity.getTagID() === 'B31FB2DD' || // Hanno 2
           transactionEntity.getTagID() === '43329EF7' || // Gimeno
           transactionEntity.getTagID() === 'WJ00001' || // Winter Juergen
+          transactionEntity.getTagID() === 'DP596512770' || // DAUDRE-VIGNIER Philippe
           transactionEntity.getTagID() === 'C3E4B3DD') { // Florent
           // Transfer it to the Revenue Cloud async
           Utils.pushTransactionToRevenueCloud('StopTransaction', transactionEntity,

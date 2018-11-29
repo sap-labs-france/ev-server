@@ -9,9 +9,43 @@ const NotFoundError = require('../exception/NotFoundError');
 const CFLog = require('cf-nodejs-logging-support');
 const Configuration = require('../utils/Configuration');
 const LoggingStorage = require('../storage/mongodb/LoggingStorage');
+const uuid = require('uuid/v4');
 require('source-map-support').install();
 
+const {
+  performance,
+  PerformanceObserver
+} = require('perf_hooks');
+
 const _loggingConfig = Configuration.getLoggingConfig();
+
+let _traceStatistics = null;
+
+const obs = new PerformanceObserver((items) => {
+  if (!_loggingConfig.traceLogOnlyStatistics) {
+    console.log(`Performance ${items.getEntries()[0].name}) ${items.getEntries()[0].duration} ms`);
+  }
+  
+  // Add statistics
+  if (_traceStatistics === null) {
+    _traceStatistics = {};
+    //start interval to display statistics
+    if (_loggingConfig.traceStatisticInterval) {
+      setInterval(() => {
+        const date=new Date();
+        console.log(date.toISOString().substr(0, 19) + " STATISTICS START");
+        console.log(JSON.stringify(_traceStatistics, null, " "));
+        console.log(date.toISOString().substr(0, 19) + " STATISTICS END");
+      }, _loggingConfig.traceStatisticInterval * 1000);
+    }
+  }
+  Logging.addStatistic(items.getEntries()[0].name, items.getEntries()[0].duration);
+  if (typeof performance.hasOwnProperty === 'function') {
+    performance.clearMeasures(); // does not seem to exist in node 10. It's stragen because then we have no way to remove measures and we will reach the maximum quickly
+  }
+  performance.clearMarks();
+});
+obs.observe({ entryTypes: ['measure'] });
 
 const LogLevel = {
   "INFO": 'I',
@@ -44,19 +78,42 @@ class Logging {
 
   // Debug DB
   static traceStart(module, method) {
+    let uniqueID = 0;
     // Check
     if (_loggingConfig.trace) {
+      uniqueID = uuid();
       // Log
-      console.time(`${module}.${method}()`); // eslint-disable-line
+      console.time(`${module}.${method}(${uniqueID})`); // eslint-disable-line
+      performance.mark(`Start ${module}.${method}(${uniqueID})`);
+    }
+    return uniqueID;
+  }
+
+  static addStatistic(name, duration) {
+    let currentStatistics;
+    if (_traceStatistics[name]) {
+      currentStatistics = _traceStatistics[name];
+    } else {
+      _traceStatistics[name] = {};
+      currentStatistics = _traceStatistics[name];
+    }
+
+    if (currentStatistics) {
+      // update current statistics timers
+      currentStatistics.countTime = (currentStatistics.countTime ? currentStatistics.countTime + 1 : 1);
+      currentStatistics.minTime = (currentStatistics.minTime ? (currentStatistics.minTime > duration ? duration : currentStatistics.minTime) :  duration);
+      currentStatistics.maxTime = (currentStatistics.maxTime ? (currentStatistics.maxTime < duration ? duration : currentStatistics.maxTime) :  duration);
+      currentStatistics.totalTime = (currentStatistics.totalTime ? currentStatistics.totalTime + duration : duration);
+      currentStatistics.avgTime = currentStatistics.totalTime / currentStatistics.countTime;
     }
   }
 
   // Debug DB
-  static traceEnd(module, method) {
+  static traceEnd(module, method, uniqueID) {
     // Check
     if (_loggingConfig.trace) {
-      // Log
-      console.timeEnd(`${module}.${method}()`); // eslint-disable-line
+      performance.mark(`End ${module}.${method}(${uniqueID})`);
+      performance.measure(`${module}.${method}()`, `Start ${module}.${method}(${uniqueID})`, `End ${module}.${method}(${uniqueID})`)
     }
   }
 
@@ -353,7 +410,7 @@ class Logging {
     }
 
     // Log Level takes precedence over console log
-    switch (consoleLogLevel) {
+    switch (LogLevel[consoleLogLevel]) {
       case LogLevel.NONE:
         break;
       // Keep up to error filter out debug
@@ -384,7 +441,7 @@ class Logging {
     }
 
     // Log Level
-    switch (logLevel) {
+    switch (LogLevel[logLevel]) {
       // No logging at all
       case LogLevel.NONE:
         return;

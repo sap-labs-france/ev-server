@@ -1,3 +1,4 @@
+
 const ObjectID = require('mongodb').ObjectID;
 const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
@@ -10,7 +11,7 @@ const Logging = require('../../utils/Logging');
 class CompanyStorage {
   static async getCompany(tenantID, id) {
     // Debug
-    Logging.traceStart('CompanyStorage', 'getCompany');
+    const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompany');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
@@ -34,13 +35,13 @@ class CompanyStorage {
       company = new Company(tenantID, companiesMDB[0]);
     }
     // Debug
-    Logging.traceEnd('CompanyStorage', 'getCompany');
+    Logging.traceEnd('CompanyStorage', 'getCompany', uniqueTimerID);
     return company;
   }
 
   static async getCompanyLogo(tenantID, id) {
     // Debug
-    Logging.traceStart('CompanyStorage', 'getCompanyLogo');
+    const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanyLogo');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -57,13 +58,13 @@ class CompanyStorage {
       };
     }
     // Debug
-    Logging.traceEnd('CompanyStorage', 'getCompanyLogo');
+    Logging.traceEnd('CompanyStorage', 'getCompanyLogo', uniqueTimerID);
     return companyLogo;
   }
 
   static async getCompanyLogos(tenantID) {
     // Debug
-    Logging.traceStart('CompanyStorage', 'getCompanyLogos');
+    const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanyLogos');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -82,13 +83,13 @@ class CompanyStorage {
       }
     }
     // Debug
-    Logging.traceEnd('CompanyStorage', 'getCompanyLogos');
+    Logging.traceEnd('CompanyStorage', 'getCompanyLogos', uniqueTimerID);
     return companyLogos;
   }
 
   static async saveCompany(tenantID, companyToSave) {
     // Debug
-    Logging.traceStart('CompanyStorage', 'saveCompany');
+    const uniqueTimerID = Logging.traceStart('CompanyStorage', 'saveCompany');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
@@ -119,13 +120,13 @@ class CompanyStorage {
       {$set: company},
       {upsert: true, new: true, returnOriginal: false});
     // Debug
-    Logging.traceEnd('CompanyStorage', 'saveCompany');
+    Logging.traceEnd('CompanyStorage', 'saveCompany', uniqueTimerID);
     return new Company(tenantID, result.value);
   }
 
   static async saveCompanyLogo(tenantID, companyLogoToSave) {
     // Debug
-    Logging.traceStart('CompanyStorage', 'saveCompanyLogo');
+    const uniqueTimerID = Logging.traceStart('CompanyStorage', 'saveCompanyLogo');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID is provided
@@ -142,13 +143,13 @@ class CompanyStorage {
       {$set: {logo: companyLogoToSave.logo}},
       {upsert: true, new: true, returnOriginal: false});
     // Debug
-    Logging.traceEnd('CompanyStorage', 'saveCompanyLogo');
+    Logging.traceEnd('CompanyStorage', 'saveCompanyLogo', uniqueTimerID);
   }
 
   // Delegate
   static async getCompanies(tenantID, params = {}, limit, skip, sort) {
     // Debug
-    Logging.traceStart('CompanyStorage', 'getCompanies');
+    const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanies');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
@@ -234,7 +235,7 @@ class CompanyStorage {
       }
     }
     // Debug
-    Logging.traceEnd('CompanyStorage', 'getCompanies');
+    Logging.traceEnd('CompanyStorage', 'getCompanies', uniqueTimerID);
     // Ok
     return {
       count: (companiesCountMDB.length > 0 ? companiesCountMDB[0].count : 0),
@@ -244,7 +245,7 @@ class CompanyStorage {
 
   static async deleteCompany(tenantID, id) {
     // Debug
-    Logging.traceStart('CompanyStorage', 'deleteCompany');
+    const uniqueTimerID = Logging.traceStart('CompanyStorage', 'deleteCompany');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Sites
@@ -261,7 +262,7 @@ class CompanyStorage {
     await global.database.getCollection(tenantID, 'companylogos')
       .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
     // Debug
-    Logging.traceEnd('CompanyStorage', 'deleteCompany');
+    Logging.traceEnd('CompanyStorage', 'deleteCompany', uniqueTimerID);
   }
 }
 
