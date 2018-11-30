@@ -77,9 +77,11 @@ class Transaction extends AbstractTenantEntity {
       this._model.totalConsumption = this.getTotalConsumption();
       this._model.currentConsumption = this.getCurrentConsumption();
       if (this.hasStateOfCharges()) {
-        this._model.stateOfCharge = this.getStateOfCharge();
         this._model.currentStateOfCharge = this.getCurrentStateOfCharge();
       }
+    }
+    if (this.hasStateOfCharges()) {
+      this._model.stateOfCharge = this.getStateOfCharge();
     }
     if (this._hasPricing()) {
       this._model.priceUnit = this._model.pricing.priceUnit;
