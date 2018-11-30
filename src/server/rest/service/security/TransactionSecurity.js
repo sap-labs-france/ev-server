@@ -102,6 +102,7 @@ class TransactionSecurity {
       // retro compatibility OFF
       if (transaction.hasStateOfCharges()) {
         filteredTransaction.stateOfCharge = transaction.getStateOfCharge();
+        filteredTransaction.currentStateOfCharge = transaction.getCurrentStateOfCharge();
       }
 
       // Demo user?

@@ -78,6 +78,7 @@ class Transaction extends AbstractTenantEntity {
       this._model.currentConsumption = this.getCurrentConsumption();
       if (this.hasStateOfCharges()) {
         this._model.stateOfCharge = this.getStateOfCharge();
+        this._model.currentStateOfCharge = this.getCurrentStateOfCharge();
       }
     }
     if (this._hasPricing()) {
@@ -288,10 +289,14 @@ class Transaction extends AbstractTenantEntity {
 
   getStateOfCharge() {
     if (this.hasStateOfCharges()) {
-      if (this.isActive()) {
-        return this._getLatestStateOfCharge().value;
-      }
       return this.getStateOfCharges()[0].value;
+    }
+    return undefined;
+  }
+
+  getCurrentStateOfCharge() {
+    if (this.hasStateOfCharges() && this.isActive()) {
+      return this._getLatestStateOfCharge().value;
     }
     return undefined;
   }
