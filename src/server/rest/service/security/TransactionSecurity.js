@@ -81,14 +81,13 @@ class TransactionSecurity {
 
       // retro compatibility ON
       filteredTransaction.transactionId = transaction.getID();
-      if (transaction.isActive()) {
-        if (transaction.getChargeBox()) {
-          filteredTransaction.chargeBox = {};
-          filteredTransaction.chargeBox.id = transaction.getChargeBox().id;
-          filteredTransaction.chargeBox.connectors = [];
-          filteredTransaction.chargeBox.connectors[transaction.getConnectorId() - 1] = transaction.getChargeBox().connectors[transaction.getConnectorId() - 1];
-        }
-      } else {
+      if (transaction.getChargeBox()) {
+        filteredTransaction.chargeBox = {};
+        filteredTransaction.chargeBox.id = transaction.getChargeBox().id;
+        filteredTransaction.chargeBox.connectors = [];
+        filteredTransaction.chargeBox.connectors[transaction.getConnectorId() - 1] = transaction.getChargeBox().connectors[transaction.getConnectorId() - 1];
+      }
+      if (!transaction.isActive()) {
         filteredTransaction.stop = {};
         filteredTransaction.stop.meterStop = transaction.getMeterStop();
         filteredTransaction.stop.totalConsumption = transaction.getTotalConsumption();

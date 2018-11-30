@@ -1,4 +1,4 @@
-const uuid = require('uuid/v4');
+
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const crypto = require('crypto');
@@ -7,8 +7,7 @@ const Logging = require('../../utils/Logging');
 class NotificationStorage {
   static async getNotification(tenantID, sourceId) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('NotificationStorage', 'getNotification', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('NotificationStorage', 'getNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -35,8 +34,7 @@ class NotificationStorage {
 
   static async saveNotification(tenantID, notificationToSave) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('NotificationStorage', 'saveNotification', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('NotificationStorage', 'saveNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Ensure Date

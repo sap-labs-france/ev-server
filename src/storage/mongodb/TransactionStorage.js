@@ -1,4 +1,4 @@
-const uuid = require('uuid/v4');
+
 const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const DatabaseUtils = require('./DatabaseUtils');
@@ -12,8 +12,7 @@ const PricingStorage = require('./PricingStorage');
 class TransactionStorage {
   static async deleteTransaction(tenantID, transaction) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('TransactionStorage', 'deleteTransaction', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'deleteTransaction');
     // Check
     await Utils.checkTenant(tenantID);
     // Delete
@@ -28,8 +27,7 @@ class TransactionStorage {
 
   static async saveTransaction(transactionEntityToSave) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('TransactionStorage', 'saveTransaction', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'saveTransaction');
     // Check
     await Utils.checkTenant(transactionEntityToSave.getTenantID());
     const transactionMDB = {};
@@ -50,8 +48,7 @@ class TransactionStorage {
 
   static async saveMeterValues(tenantID, meterValuesToSave) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('TransactionStorage', 'saveMeterValues', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'saveMeterValues');
     // Check
     await Utils.checkTenant(tenantID);
     const meterValuesMDB = [];
@@ -75,8 +72,7 @@ class TransactionStorage {
 
   static async getTransactionYears(tenantID) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('TransactionStorage', 'getTransactionYears', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactionYears');
     // Check
     await Utils.checkTenant(tenantID);
     const firstTransactionsMDB = await global.database.getCollection(tenantID, 'transactions')
@@ -101,8 +97,7 @@ class TransactionStorage {
 
   static async getTransactions(tenantID, params = {}, limit, skip, sort) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('TransactionStorage', 'getTransactions', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactions');
     // Check
     await Utils.checkTenant(tenantID);
     const pricing = await PricingStorage.getPricing(tenantID);
@@ -284,8 +279,7 @@ class TransactionStorage {
 
   static async getTransaction(tenantID, id) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('TransactionStorage', 'getTransaction', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransaction');
     // Check
     await Utils.checkTenant(tenantID);
     const pricing = await PricingStorage.getPricing(tenantID);
@@ -357,8 +351,7 @@ class TransactionStorage {
 
   static async getActiveTransaction(tenantID, chargeBoxID, connectorId) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('TransactionStorage', 'getActiveTransaction', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getActiveTransaction');
     // Check
     await Utils.checkTenant(tenantID);
     const pricing = await PricingStorage.getPricing(tenantID);
@@ -407,8 +400,7 @@ class TransactionStorage {
 
   static async _findAvailableID(tenantID) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('TransactionStorage', '_findAvailableID', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', '_findAvailableID');
     // Check
     await Utils.checkTenant(tenantID);
     let existingTransaction;
@@ -433,8 +425,7 @@ class TransactionStorage {
 
   static async cleanupRemainingActiveTransactions(tenantID, chargeBoxId, connectorId) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('TransactionStorage', 'cleanupRemainingActiveTransactions', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'cleanupRemainingActiveTransactions');
     // Check
     await Utils.checkTenant(tenantID);
     let activeTransaction;

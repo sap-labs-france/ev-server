@@ -1,4 +1,4 @@
-const uuid = require('uuid/v4');
+
 const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
@@ -11,8 +11,7 @@ const Logging = require('../../utils/Logging');
 class VehicleManufacturerStorage {
   static async getVehicleManufacturerLogo(tenantID, id) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturerLogo', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturerLogo');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -35,8 +34,7 @@ class VehicleManufacturerStorage {
 
   static async getVehicleManufacturerLogos(tenantID) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturerLogos', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturerLogos');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -61,8 +59,7 @@ class VehicleManufacturerStorage {
 
   static async saveVehicleManufacturerLogo(tenantID, vehicleManufacturerLogoToSave) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('VehicleManufacturerStorage', 'saveVehicleManufacturerLogo', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'saveVehicleManufacturerLogo');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID/Name is provided
@@ -84,8 +81,7 @@ class VehicleManufacturerStorage {
 
   static async getVehicleManufacturer(tenantID, id) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturer', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturer');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const VehicleManufacturer = require('../../entity/VehicleManufacturer'); // Avoid fucking circular deps!!!
@@ -115,8 +111,7 @@ class VehicleManufacturerStorage {
 
   static async saveVehicleManufacturer(tenantID, vehicleManufacturerToSave) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('VehicleManufacturerStorage', 'saveVehicleManufacturer', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'saveVehicleManufacturer');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const VehicleManufacturer = require('../../entity/VehicleManufacturer'); // Avoid fucking circular deps!!!
@@ -155,8 +150,7 @@ class VehicleManufacturerStorage {
   // Delegate
   static async getVehicleManufacturers(tenantID, params = {}, limit, skip, sort) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturers', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const VehicleManufacturer = require('../../entity/VehicleManufacturer'); // Avoid fucking circular deps!!!
@@ -261,8 +255,7 @@ class VehicleManufacturerStorage {
 
   static async deleteVehicleManufacturer(tenantID, id) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('VehicleManufacturerStorage', 'deleteVehicleManufacturer', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'deleteVehicleManufacturer');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Vehicles

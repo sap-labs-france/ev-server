@@ -1,4 +1,4 @@
-const uuid = require('uuid/v4');
+
 const ObjectID = require('mongodb').ObjectID;
 const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
@@ -10,8 +10,7 @@ const Logging = require('../../utils/Logging');
 class VehicleStorage {
   static async getVehicleImage(tenantID, id) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('VehicleStorage', 'getVehicleImage', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('VehicleStorage', 'getVehicleImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -34,8 +33,7 @@ class VehicleStorage {
 
   static async getVehicleImages(tenantID) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('VehicleStorage', 'getVehicleImages', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('VehicleStorage', 'getVehicleImages');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -60,8 +58,7 @@ class VehicleStorage {
 
   static async getVehicle(tenantID, id) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('VehicleStorage', 'getVehicle', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('VehicleStorage', 'getVehicle');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Vehicle = require('../../entity/Vehicle'); // Avoid fucking circular deps!!!
@@ -90,8 +87,7 @@ class VehicleStorage {
 
   static async saveVehicle(tenantID, vehicleToSave) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('VehicleStorage', 'saveVehicle', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('VehicleStorage', 'saveVehicle');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Vehicle = require('../../entity/Vehicle'); // Avoid fucking circular deps!!!
@@ -129,8 +125,7 @@ class VehicleStorage {
 
   static async saveVehicleImages(tenantID, vehicleImagesToSave) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('VehicleStorage', 'saveVehicleImages', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('VehicleStorage', 'saveVehicleImages');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID is provided
@@ -153,8 +148,7 @@ class VehicleStorage {
   // Delegate
   static async getVehicles(tenantID, params = {}, limit, skip, sort) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('VehicleStorage', 'getVehicles', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('VehicleStorage', 'getVehicles');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Vehicle = require('../../entity/Vehicle'); // Avoid fucking circular deps!!!
@@ -239,8 +233,7 @@ class VehicleStorage {
 
   static async deleteVehicle(tenantID, id) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('VehicleStorage', 'deleteVehicle', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('VehicleStorage', 'deleteVehicle');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Vehicle

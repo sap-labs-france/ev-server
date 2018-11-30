@@ -1,4 +1,4 @@
-const uuid = require('uuid/v4');
+
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const Constants = require('../../utils/Constants');
@@ -7,8 +7,7 @@ const Logging = require('../../utils/Logging');
 class MigrationStorage {
   static async getMigrations() {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('MigrationStorage', 'getMigrations', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('MigrationStorage', 'getMigrations');
     // Read DB
     const migrationsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'migrations')
       .find({})
@@ -32,8 +31,7 @@ class MigrationStorage {
 
   static async saveMigration(migrationToSave) {
     // Debug
-    const uniqueTimerID = uuid();
-    Logging.traceStart('MigrationStorage', 'saveMigration', uniqueTimerID);
+    const uniqueTimerID = Logging.traceStart('MigrationStorage', 'saveMigration');
     // Ensure Date
     migrationToSave.timestamp = Utils.convertToDate(migrationToSave.timestamp);
     // Transfer
