@@ -99,6 +99,38 @@ describe('Transaction entity tests', () => {
       const transaction = new Transaction("1234", model);
       expect(transaction.getStateOfCharge()).to.equal(socAtStart.value);
     });
+    it('with multiple states', () => {
+      const model = EmptyTransactionFactory.build();
+      model.meterValues = [];
+      const timestamp = moment(model.timestamp);
+      model.meterValues.push(SoCValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 1
+        }
+      ));
+      model.meterValues.push(SoCValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 4
+        }
+      ));
+      model.meterValues.push(SoCValueFactory.build(
+        {
+          transactionId: model.id,
+          connectorId: model.connectorId,
+          timestamp: timestamp.add(1, 'minutes').toDate(),
+          value: 10
+        }
+      ));
+      const transaction = new Transaction("1234", model);
+      expect(transaction.getStateOfCharge()).to.equal(1);
+      expect(transaction.getCurrentStateOfCharge()).to.equal(10);
+    });
   });
   describe('test _hasMeterValues', () => {
     it('without meterValues', () => {
