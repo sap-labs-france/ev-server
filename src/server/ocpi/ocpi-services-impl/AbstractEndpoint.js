@@ -7,13 +7,19 @@ require('source-map-support').install();
  */
 class AbstractEndpoint {
   // Create OCPI Service
-  constructor(identifier = "default") {
+  constructor(identifier = "default", version = "0.0.0") {
     this._identifier = identifier;
+    this._version = version;
   }
 
   // get Endpoint Identifier
   getIdentifier() {
     return this._identifier;
+  }
+
+  // get Endpoint version
+  getVersion() {
+    return this._version;
   }
 
   // Abstract - Process endpoint

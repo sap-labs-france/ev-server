@@ -3,6 +3,7 @@ const Database = require('../utils/Database');
 const Constants = require('../utils/Constants');
 const AppError = require('../exception/AppError');
 const OcpiEndpointStorage = require('../storage/mongodb/OcpiEndpointStorage');
+const OCPIUtils = require('../server/ocpi/OCPIUtils');
 const User = require('./User');
 
 class OcpiEndpoint extends AbstractTenantEntity {
@@ -50,6 +51,30 @@ class OcpiEndpoint extends AbstractTenantEntity {
   }
 
   /**
+   * Set Ocpi version
+   */
+  getVersion() {
+    return this._model.version
+  }
+
+  setVersion(version) {
+    this._model.version = version;
+  }
+
+  /**
+   * manage endpoint status - TODO: to be defined by constant
+   */
+  getStatus() {
+    return this._model.status;
+  }
+
+  setStatus(status) {
+    this._model.status = status;
+  }
+
+
+
+  /**
    * available endpoints - store payload information as return by version url: eg: /ocpi/emsp/2.1.1
    */
   getAvailableEndpoints() {
@@ -69,6 +94,28 @@ class OcpiEndpoint extends AbstractTenantEntity {
 
   setLocalToken(token) {
     this._model.localToken = token;
+  }
+
+  // generate token based on tenant information.
+  generateLocalToken(tenant) {
+    const newToken = {};
+
+    // fill new Token with tenant subdmain
+    newToken.tid = tenant.getSubdomain();
+
+    // get ocpi service configuration
+    const ocpiConfiguration = tenant.getComponent(Constants.COMPONENTS.OCPI_COMPONENT);
+
+    // check if available
+    if (ocpiConfiguration && ocpiConfiguration.configuration && ocpiConfiguration.configuration.countryCode && ocpiConfiguration.configuration.partyId) {
+      newToken.id = `${ocpiConfiguration.configuration.countryCode}${ocpiConfiguration.configuration.partyId}`;
+    }
+
+    // generate random 
+    newToken.k = Math.floor(Math.random() * 100);
+
+    // Base64 encoding
+    this.setLocalToken(OCPIUtils.btoa(JSON.stringify(newToken)));
   }
 
   /**
@@ -92,6 +139,22 @@ class OcpiEndpoint extends AbstractTenantEntity {
   setToken(token) {
     this._model.token = token;
   }
+
+  getCountryCode() {
+    return this._model.countryCode;
+  }
+
+  setCountryCode(countryCode) {
+    this._model.countryCode = countryCode;
+  }
+
+  getPartyId() {
+    return this._model.partyId;
+  }
+
+  setPartyId(partyId) {
+    this._model.partyId = partyId;
+  } 
 
   getCreatedBy() {
     if (this._model.createdBy) {
@@ -153,9 +216,9 @@ class OcpiEndpoint extends AbstractTenantEntity {
     return OcpiEndpointStorage.getOcpiEndpoint(tenantID, id);
   }
 
-  // static getVehicles(tenantID, params, limit, skip, sort) {
-  //   return VehicleStorage.getVehicles(tenantID, params, limit, skip, sort)
-  // }
+  static getDefaultOcpiEndpoint(tenantID) {
+    return OcpiEndpointStorage.getDefaultOcpiEndpoint(tenantID);
+  }
 
 }
 

@@ -12,7 +12,7 @@ class OcpiEndpointStorage {
     Logging.traceStart('OcpiEndpointStorage', 'getOcpiEndpoint');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const OcpiEndpoint = require('../../entity/OcpiEndpoint'); // Avoid fucking circular deps!!!
+    const OcpiEndpoint = require('../../entity/OcpiEndpoint'); // Avoid circular deps!!!
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -41,7 +41,7 @@ class OcpiEndpointStorage {
     Logging.traceStart('OcpiEndpointStorage', 'saveOcpiEndpoint');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const OcpiEndpoint = require('../../entity/OcpiEndpoint'); // Avoid fucking circular deps!!!
+    const OcpiEndpoint = require('../../entity/OcpiEndpoint'); // Avoid circular deps!!!
     // Check if ID is provided
     if (!ocpiEndpointToSave.id && !ocpiEndpointToSave.name) {
       // ID must be provided!
@@ -72,6 +72,14 @@ class OcpiEndpointStorage {
     Logging.traceEnd('OcpiEndpointStorage', 'saveOcpiEndpoint');
     // Create
     return new OcpiEndpoint(tenantID, result.value);
+  }
+
+  // get default ocpiEndpoint - 
+  // not quite sure how multiple OcpiEndpoint will be handled in futur - for now keep use the first available
+  static async getDefaultOcpiEndpoint(tenantID) {
+    const ocpiEndpoints = await this.getOcpiEndpoints(tenantID);
+
+    return (ocpiEndpoints.result && ocpiEndpoints.result.length > 0)?ocpiEndpoints.result[0]:undefined;
   }
 
   // Delegate

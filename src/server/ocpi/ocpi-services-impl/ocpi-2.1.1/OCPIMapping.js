@@ -206,6 +206,43 @@ class OCPIMapping {
         return Constants.EVSE_STATUS.UNKNOWN;
     }
   }
+
+  /**
+   * Check if OCPI credential object contains mandatory fields
+   * @param {*} credential 
+   */
+  static isValidOCPICredential(credential) {
+    return (!credential ||
+            !credential.url ||
+            !credential.token ||
+            !credential.party_id ||
+            !credential.country_code )?false:true;
+  }
+
+  /**
+   * build OCPI Credential Object
+   * @param {*} tenant 
+   * @param {*} token 
+   */
+  static buildOCPICredentialObject(tenant,token) {
+    // credentail
+    const credential = {};
+
+    // get ocpi service configuration
+    const ocpiConfiguration = tenant.getComponent(Constants.COMPONENTS.OCPI_COMPONENT);
+
+    // check if available
+    if (ocpiConfiguration && ocpiConfiguration.configuration) {
+      credential.url = ocpiConfiguration.configuration.baseUrl;
+      credential.token = token;
+      credential.country_code = ocpiConfiguration.configuration.countryCode;
+      credential.party_id = ocpiConfiguration.configuration.partyId;
+      credential.url = ocpiConfiguration.configuration.baseUrl;
+    }
+
+    // return credential object
+    return credential;
+  }
 }
 
 

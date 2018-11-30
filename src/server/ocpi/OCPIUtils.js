@@ -58,14 +58,20 @@ class OCPIUtils {
   }
 
   /**
-   * Convert from base64 bask to String.
+   * Convert from base64 back to String.
    * @param {*} string encoded base64
    */
   static atob(base64) {
     return Buffer.from(base64, 'base64').toString('binary');
   }
 
-
+  /**
+   * Convert to base64 from String.
+   * @param {*} string encoded base64
+   */
+  static btoa(string) {
+    return Buffer.from(string).toString('base64');
+  }
 
 }
 

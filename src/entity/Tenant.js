@@ -43,24 +43,24 @@ class Tenant {
     return this._model.subdomain;
   }
 
-  getService(identifier) {
-    return (this._model.services)?this._model.services[identifier]:{ "active":false, "configuration": {}};
+  getComponent(identifier) {
+    return (this._model.components)?this._model.components[identifier]:{ "active":false, "configuration": {}};
   }
 
-  isServiceActive(identifier) {
-    const service = this.getService(identifier);
-    return (service)?service.active:false;
+  isComponentActive(identifier) {
+    const component = this.getComponent(identifier);
+    return (component)?component.active:false;
   }
 
-  setService(identifier, active, configuration) {
-    if (!this._model.services[identifier]) {
-      this._model.services[identifier] = {};
+  setComponent(identifier, active, configuration) {
+    if (!this._model.components[identifier]) {
+      this._model.components[identifier] = {};
     }
 
-    this._model.services[identifier].active = active;
+    this._model.components[identifier].active = active;
 
     if (configuration) {
-      this._model.services[identifier].configuration = configuration;
+      this._model.components[identifier].configuration = configuration;
     }
   }
 
