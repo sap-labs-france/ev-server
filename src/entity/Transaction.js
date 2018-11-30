@@ -291,7 +291,7 @@ class Transaction extends AbstractTenantEntity {
 
   getStateOfCharge() {
     if (this.hasStateOfCharges()) {
-      return this._model.stateOfCharge;
+      return this.getStateOfCharges()[0].value;
     }
     return undefined;
   }
