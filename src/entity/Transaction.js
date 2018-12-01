@@ -410,7 +410,7 @@ class Transaction extends AbstractTenantEntity {
     this._invalidateComputations();
     if (this.hasStateOfCharges()) {
       this._model.stateOfCharge = this.getStateOfCharges()[0].value;
-      this._model.stop.stateOfCharge = this._getLatestStateOfCharge();
+      this._model.stop.stateOfCharge = this._getLatestStateOfCharge().value;
     }
     if (this._hasPricing()) {
       this._model.priceUnit = this._model.pricing.priceUnit;
