@@ -241,7 +241,7 @@ class Transaction extends AbstractTenantEntity {
 
   getDuration() {
     if (!this.isActive()) {
-      moment.duration(moment(this.getEndDate()).diff(moment(this.getStartDate())));
+      return moment.duration(moment(this.getEndDate()).diff(moment(this.getStartDate())));
     }
     return moment.duration(moment(this._getLastUpdateDate()).diff(moment(this.getStartDate())));
   }
