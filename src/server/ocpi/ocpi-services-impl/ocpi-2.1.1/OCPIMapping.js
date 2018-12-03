@@ -131,7 +131,7 @@ class OCPIMapping {
    */
   static aggregateConnectorsStatus(connectors) {
     // Build array with charging station ordered by priority
-    const statusesOrdered = [Constants.CONN_STATUS_AVAILABLE, Constants.CONN_STATUS_OCCUPIED,Constants.CONN_STATUS_CHARGING, Constants.CONN_STATUS_FAULTED];
+    const statusesOrdered = [Constants.CONN_STATUS_AVAILABLE, Constants.CONN_STATUS_OCCUPIED, Constants.CONN_STATUS_CHARGING, Constants.CONN_STATUS_FAULTED];
 
     let aggregatedConnectorStatusIndex = 0;
 
@@ -205,6 +205,63 @@ class OCPIMapping {
       default:
         return Constants.EVSE_STATUS.UNKNOWN;
     }
+  }
+
+  /**
+   * Check if OCPI credential object contains mandatory fields
+   * @param {*} credential 
+   */
+  static isValidOCPICredential(credential) {
+    return (!credential ||
+      !credential.url ||
+      !credential.token ||
+      !credential.party_id ||
+      !credential.country_code) ? false : true;
+  }
+
+  /**
+   * build OCPI Credential Object
+   * @param {*} tenant 
+   * @param {*} token 
+   */
+  static buildOCPICredentialObject(tenant, token) {
+    // credentail
+    const credential = {};
+
+    // get ocpi service configuration
+    const ocpiConfiguration = tenant.getComponent(Constants.COMPONENTS.OCPI_COMPONENT);
+
+    // check if available
+    if (ocpiConfiguration && ocpiConfiguration.configuration) {
+      credential.url = ocpiConfiguration.configuration.baseUrl;
+      credential.token = token;
+      credential.country_code = ocpiConfiguration.configuration.countryCode;
+      credential.party_id = ocpiConfiguration.configuration.partyId;
+    } else {
+      // TODO: remove this - temporary configuration to handle non existing service.
+      credential.url = 'https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/cpo/versions';
+      credential.token = 'eyAiYSI6IDEgLCAidGVuYW50IjogInNsZiIgfQ==';
+      credential.country_code = 'FR';
+      credential.party_id = 'SLF';
+    }
+
+    // return credential object
+    return credential;
+  }
+
+  /**
+   * convert OCPI Endpoints
+   */
+  static convertEndpoints(endpointsEntity) {
+    const endpoints = {};
+
+    if (endpointsEntity && endpointsEntity.endpoints) {
+      for (const endpoint of endpointsEntity.endpoints) {
+        endpoints[endpoint.identifier] = endpoint.url;
+      }
+    }
+
+    return endpoints;
   }
 }
 

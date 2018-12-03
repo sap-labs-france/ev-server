@@ -43,6 +43,27 @@ class Tenant {
     return this._model.subdomain;
   }
 
+  getComponent(identifier) {
+    return (this._model.components)?this._model.components[identifier]:{ "active":false, "configuration": {}};
+  }
+
+  isComponentActive(identifier) {
+    const component = this.getComponent(identifier);
+    return (component)?component.active:false;
+  }
+
+  setComponent(identifier, active, configuration) {
+    if (!this._model.components[identifier]) {
+      this._model.components[identifier] = {};
+    }
+
+    this._model.components[identifier].active = active;
+
+    if (configuration) {
+      this._model.components[identifier].configuration = configuration;
+    }
+  }
+
   getCreatedBy() {
     if (this._model.createdBy) {
       return new User(this.getID(), this._model.createdBy);
@@ -82,6 +103,7 @@ class Tenant {
   }
 
   save() {
+    // Init Services
     return TenantStorage.saveTenant(this.getModel());
   }
 
