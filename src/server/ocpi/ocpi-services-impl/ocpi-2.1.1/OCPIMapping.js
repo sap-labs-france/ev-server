@@ -237,7 +237,12 @@ class OCPIMapping {
       credential.token = token;
       credential.country_code = ocpiConfiguration.configuration.countryCode;
       credential.party_id = ocpiConfiguration.configuration.partyId;
-      credential.url = ocpiConfiguration.configuration.baseUrl;
+    } else {
+      // TODO: remove this - temporary configuration to handle non existing service.
+      credential.url = 'https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/cpo/versions';
+      credential.token = 'eyAiYSI6IDEgLCAidGVuYW50IjogInNsZiIgfQ==';
+      credential.country_code = 'FR';
+      credential.party_id = 'SLF';
     }
 
     // return credential object
