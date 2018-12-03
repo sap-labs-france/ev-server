@@ -3,7 +3,7 @@ const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const SiteAreaStorage = require('./SiteAreaStorage');
-const AppError = require('../../exception/AppError');
+const BackendError = require('../../exception/BackendError');
 const ObjectID = require('mongodb').ObjectID;
 const DatabaseUtils = require('./DatabaseUtils');
 const Logging = require('../../utils/Logging');
@@ -159,10 +159,10 @@ class SiteStorage {
     // Check if ID/Name is provided
     if (!siteToSave.id && !siteToSave.name) {
       // ID must be provided!
-      throw new AppError(
+      throw new BackendError(
         Constants.CENTRAL_SERVER,
         `Site has no ID and no Name`,
-        550, "SiteStorage", "saveSite");
+        "SiteStorage", "saveSite");
     }
     const siteFilter = {};
     // Build Request
@@ -217,10 +217,10 @@ class SiteStorage {
     // Check if ID is provided
     if (!siteImageToSave.id) {
       // ID must be provided!
-      throw new AppError(
+      throw new BackendError(
         Constants.CENTRAL_SERVER,
         `Site Image has no ID`,
-        550, "SiteStorage", "saveSiteImage");
+        "SiteStorage", "saveSiteImage");
     }
     // Modify
     await global.database.getCollection(tenantID, 'siteimages').findOneAndUpdate(

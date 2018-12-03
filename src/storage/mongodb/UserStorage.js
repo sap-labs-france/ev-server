@@ -5,7 +5,7 @@ const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const Configuration = require('../../utils/Configuration');
 const Utils = require('../../utils/Utils');
-const AppError = require('../../exception/AppError');
+const BackendError = require('../../exception/BackendError');
 const eula = require('../../end-user-agreement');
 const DatabaseUtils = require('./DatabaseUtils');
 const Logging = require('../../utils/Logging');
@@ -297,10 +297,10 @@ class UserStorage {
     // Check if ID or email is provided
     if (!userToSave.id && !userToSave.email) {
       // ID must be provided!
-      throw new AppError(
+      throw new BackendError(
         Constants.CENTRAL_SERVER,
         `User has no ID and no Email`,
-        550, "UserStorage", "saveUser");
+        "UserStorage", "saveUser");
     }
     // Build Request
     const userFilter = {};
@@ -372,10 +372,10 @@ class UserStorage {
     // Check if ID is provided
     if (!userImageToSave.id) {
       // ID must be provided!
-      throw new AppError(
+      throw new BackendError(
         Constants.CENTRAL_SERVER,
         `User Image has no ID`,
-        550, "UserStorage", "saveUserImage");
+        "UserStorage", "saveUserImage");
     }
     // Modify and return the modified document
     await global.database.getCollection(tenantID, 'userimages').findOneAndUpdate(
