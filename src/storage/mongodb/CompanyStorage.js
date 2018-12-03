@@ -4,7 +4,7 @@ const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const SiteStorage = require('./SiteStorage');
-const AppError = require('../../exception/AppError');
+const BackendError = require('../../exception/BackendError');
 const DatabaseUtils = require('./DatabaseUtils');
 const Logging = require('../../utils/Logging');
 
@@ -96,10 +96,10 @@ class CompanyStorage {
     // Check if ID/Name is provided
     if (!companyToSave.id && !companyToSave.name) {
       // ID must be provided!
-      throw new AppError(
+      throw new BackendError(
         Constants.CENTRAL_SERVER,
         `Company has no ID and no Name`,
-        550, "CompanyStorage", "saveCompany");
+        "CompanyStorage", "saveCompany");
     }
     const companyFilter = {};
     // Build Request
@@ -132,10 +132,10 @@ class CompanyStorage {
     // Check if ID is provided
     if (!companyLogoToSave.id) {
       // ID must be provided!
-      throw new AppError(
+      throw new BackendError(
         Constants.CENTRAL_SERVER,
         `Company Logo has no ID`,
-        550, "CompanyStorage", "saveCompanyLogo");
+        "CompanyStorage", "saveCompanyLogo");
     }
     // Modify
     await global.database.getCollection(tenantID, 'companylogos').findOneAndUpdate(

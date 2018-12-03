@@ -3,7 +3,6 @@ const ObjectID = require('mongodb').ObjectID;
 const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
-// const AppError = require('../../exception/AppError');
 const BackendError = require('../../exception/BackendError');
 const DatabaseUtils = require('./DatabaseUtils');
 const Logging = require('../../utils/Logging');
