@@ -1206,11 +1206,11 @@ class ChargingStation extends AbstractTenantEntity {
   _getStoppingTransactionTagId(stopTransactionData, transactionEntity) {
     if (transactionEntity.isRemotelyStopped()) {
       const secs = moment.duration(moment().diff(
-        moment(transactionEntity.getremotestop().timestamp))).asSeconds();
+        moment(transactionEntity.getRemoteStop().timestamp))).asSeconds();
       // In a minute
       if (secs < 60) {
         // return tag that remotely stopped the transaction
-        return transactionEntity.getremotestop().tagID;
+        return transactionEntity.getRemoteStop().tagID;
       }
     }
     if (stopTransactionData.idTag) {
