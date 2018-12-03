@@ -3,7 +3,8 @@ const ObjectID = require('mongodb').ObjectID;
 const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
-const AppError = require('../../exception/AppError');
+// const AppError = require('../../exception/AppError');
+const BackendError = require('../../exception/BackendError');
 const DatabaseUtils = require('./DatabaseUtils');
 const Logging = require('../../utils/Logging');
 
@@ -94,10 +95,10 @@ class VehicleStorage {
     // Check if ID/Model is provided
     if (!vehicleToSave.id && !vehicleToSave.model) {
       // ID must be provided!
-      throw new AppError(
+      throw new BackendError(
         Constants.CENTRAL_SERVER,
         `Vehicle has no ID and no Model`,
-        550, "VehicleStorage", "saveVehicle");
+        "VehicleStorage", "saveVehicle");
     }
     const vehicleFilter = {};
     // Build Request
@@ -131,10 +132,10 @@ class VehicleStorage {
     // Check if ID is provided
     if (!vehicleImagesToSave.id) {
       // ID must be provided!
-      throw new AppError(
+      throw new BackendError(
         Constants.CENTRAL_SERVER,
         `Vehicle Images has no ID`,
-        550, "VehicleStorage", "saveVehicleImages");
+        "VehicleStorage", "saveVehicleImages");
     }
     // Modify
     await global.database.getCollection(tenantID, 'vehicleimages').findOneAndUpdate(

@@ -2,14 +2,14 @@ const ObjectID = require('mongodb').ObjectID;
 const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
-const AppError = require('../../exception/AppError');
+const BackendError = require('../../exception/BackendError');
 const DatabaseUtils = require('./DatabaseUtils');
 const Logging = require('../../utils/Logging');
 
 class OcpiEndpointStorage {
   static async getOcpiEndpoint(tenantID, id) {
     // Debug
-    Logging.traceStart('OcpiEndpointStorage', 'getOcpiEndpoint');
+    const uniqueTimerID = Logging.traceStart('OcpiEndpointStorage', 'getOcpiEndpoint');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const OcpiEndpoint = require('../../entity/OcpiEndpoint'); // Avoid circular deps!!!
@@ -32,23 +32,23 @@ class OcpiEndpointStorage {
       ocpiEndpoint = new OcpiEndpoint(tenantID, ocpiEndpointsMDB[0]);
     }
     // Debug
-    Logging.traceEnd('OcpiEndpointStorage', 'getOcpiEndpoint');
+    Logging.traceEnd('OcpiEndpointStorage', 'getOcpiEndpoint', uniqueTimerID);
     return ocpiEndpoint;
   }
 
   static async saveOcpiEndpoint(tenantID, ocpiEndpointToSave) {
     // Debug
-    Logging.traceStart('OcpiEndpointStorage', 'saveOcpiEndpoint');
+    const uniqueTimerID = Logging.traceStart('OcpiEndpointStorage', 'saveOcpiEndpoint');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const OcpiEndpoint = require('../../entity/OcpiEndpoint'); // Avoid circular deps!!!
     // Check if ID is provided
     if (!ocpiEndpointToSave.id && !ocpiEndpointToSave.name) {
       // ID must be provided!
-      throw new AppError(
+      throw new BackendError(
         Constants.CENTRAL_SERVER,
-        `OCPIEndpoint has no ID and no Name`,
-        550, "OcpiEndpointStorage", "saveOcpiEndpoint");
+        "OCPIEndpoint has no ID and no Name",
+        "OcpiEndpointStorage", "saveOcpiEndpoint");
     }
     const ocpiEndpointFilter = {};
     // Build Request
@@ -69,7 +69,7 @@ class OcpiEndpointStorage {
       {$set: ocpiEndpoint},
       {upsert: true, new: true, returnOriginal: false});
     // Debug
-    Logging.traceEnd('OcpiEndpointStorage', 'saveOcpiEndpoint');
+    Logging.traceEnd('OcpiEndpointStorage', 'saveOcpiEndpoint',uniqueTimerID);
     // Create
     return new OcpiEndpoint(tenantID, result.value);
   }
@@ -85,7 +85,7 @@ class OcpiEndpointStorage {
   // Delegate
   static async getOcpiEndpoints(tenantID, params = {}, limit, skip, sort) {
     // Debug
-    Logging.traceStart('OcpiEndpointStorage', 'getOcpiEndpoints');
+    const uniqueTimerID = Logging.traceStart('OcpiEndpointStorage', 'getOcpiEndpoints');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const OcpiEndpoint = require('../../entity/OcpiEndpoint'); // Avoid fucking circular deps!!!
@@ -157,7 +157,7 @@ class OcpiEndpointStorage {
       }
     }
     // Debug
-    Logging.traceEnd('OcpiEndpointStorage', 'getOcpiEndpoints');
+    Logging.traceEnd('OcpiEndpointStorage', 'getOcpiEndpoints',uniqueTimerID);
     // Ok
     return {
       count: (ocpiEndpointsCountMDB.length > 0 ? ocpiEndpointsCountMDB[0].count : 0),
@@ -167,14 +167,14 @@ class OcpiEndpointStorage {
 
   static async deleteOcpiEndpoint(tenantID, id) {
     // Debug
-    Logging.traceStart('OcpiEndpointStorage', 'deleteOcpiEndpoint');
+    const uniqueTimerID = Logging.traceStart('OcpiEndpointStorage', 'deleteOcpiEndpoint');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete OcpiEndpoint
     await global.database.getCollection(tenantID, 'ocpiendpoints')
       .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
     // Debug
-    Logging.traceEnd('OcpiEndpointStorage', 'deleteOcpiEndpoint');
+    Logging.traceEnd('OcpiEndpointStorage', 'deleteOcpiEndpoint', uniqueTimerID);
   }
 }
 
