@@ -60,6 +60,20 @@ class OCPIService {
   }
 
   /**
+   * POST Credentials for 2.1.1
+   */
+  async postCredentials2_1_1(credentail) {
+    return this.baseApi.send({
+      method: 'POST',
+      url: 'ocpi/cpo/2.1.1/credentials',
+      data: credentail,
+      headers: {
+        Authorization: this.token
+      }
+    });
+  }
+
+  /**
    * Access path with specific method
    * @param {*} method 
    * @param {*} path 
@@ -95,6 +109,18 @@ class OCPIService {
     expect(ocpiErrorResponse).to.have.property('status_code');
     expect(ocpiErrorResponse).to.have.property('status_message').that.is.not.empty;
     expect(ocpiErrorResponse).to.have.property('timestamp').that.is.not.empty;
+  }
+
+  /**
+   * Validate Credential Entity
+   * @param {*} credential 
+   */
+  validateCredentialEntity(credential) {
+    expect(credential).to.not.be.empty;
+    expect(credential).to.have.property('url').that.is.not.empty;
+    expect(credential).to.have.property('token').that.is.not.empty;
+    expect(credential).to.have.property('country_code').that.is.not.empty;
+    expect(credential).to.have.property('party_id').that.is.not.empty;
   }
 
   /**

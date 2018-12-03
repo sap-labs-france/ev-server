@@ -119,7 +119,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
       }
 
       // set available endpoints
-      ocpiEndpoint.setAvailableEndpoints(endpoints.data.data);
+      ocpiEndpoint.setAvailableEndpoints(OCPIMapping.convertEndpoints(endpoints.data.data));
     } catch (error) {
       throw new OCPIServerError(
         'POST credentials',
@@ -129,6 +129,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
 
     // generate new token
     ocpiEndpoint.generateLocalToken(tenant);
+    ocpiEndpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED);
 
     // save copi endpoint
     ocpiEndpoint.save();

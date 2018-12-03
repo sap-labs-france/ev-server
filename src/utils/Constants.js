@@ -194,5 +194,11 @@ module.exports = {
   // Components
   COMPONENTS: {
     OCPI_COMPONENT: "ocpi"
+  },
+
+  // Ocpi Registering status
+  OCPI_REGISTERING_STATUS: {
+    OCPI_NEW: "new",
+    OCPI_REGISTERED: "registered"
   }
 };

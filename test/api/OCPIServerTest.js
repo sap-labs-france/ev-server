@@ -5,11 +5,11 @@ const chai = require('chai');
 const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
 
-describe('OCPI Servce Tests', function() {
+describe('OCPI Servce Tests', function () {
   this.timeout(100000);
 
 
-  before( async () => {
+  before(async () => {
     if (!OCPIService.isConfigAvailable()) {
       this.pending = 1;
     }
@@ -360,9 +360,70 @@ describe('OCPI Servce Tests', function() {
         expect(locationResponse.data).to.have.property("status_code", 3000);
         expect(locationResponse.data).to.have.property("status_message", "Connector id '0' not found on EVSE uid 'SAP-Caen-01*1' and location id '5abeba9e4bae1457eb565e66'");
       });
+    });
+  });
 
+  /**
+ * Test single access to location/evse/connector: 
+ *    - /ocpi/cpo/2.1.1/locations/{locationId}
+ *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseUid}
+ *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseId}/{connectorId}
+ */
+  describe('Test registration process /ocpi/cpo/2.1.1/credentials/...', () => {
+    let response;
+    const that = this;
 
+    /**
+     * Success Cases
+     */
+    describe('Success cases', () => {
+      // check access for each evse
+      it('should be able to self-register', async () => {
+        // define credential object
+        const credential = {
+          "url": "http://localhost:9090/ocpi/cpo/versions",
+          "token": "12345",
+          "party_id": "SLF",
+          "country_code": "FR",
+          "business_details": {
+            "name": "SAP Labs France",
+            "logo": {
+              "url": "https://example.sap.com/img/logo.jpg",
+              "thumbnail": "https://example.sap.com/img/logo_thumb.jpg",
+              "category": "CPO",
+              "type": "jpeg",
+              "width": 512,
+              "height": 512
+            },
+            "website": "http://sap.com"
+          }
+        };
+
+        // Create
+        response = await that.ocpiService.postCredentials2_1_1(credential);
+
+        // Check status
+        expect(response.status).to.be.eql(200);
+        this.ocpiService.checkOCPIResponseStructure(response.data);
+        expect(response.data.status_code).to.be.eql(1000);
+        this.ocpiService.validateCredentialEntity(response.data.data);
+      });
     });
 
+    /**
+     * Failure cases
+     */
+    describe('Failure cases', () => {
+      // invalid location
+      // it('should not found this non-existing location  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67', async () => {
+      //   // call
+      //   const locationResponse = await this.ocpiService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67`);
+      //   // Check status
+      //   expect(locationResponse.status).to.be.eql(500);
+      //   expect(locationResponse.data).to.have.property("timestamp");
+      //   expect(locationResponse.data).to.have.property("status_code", 3000);
+      //   expect(locationResponse.data).to.have.property("status_message", "Site id '5abeba9e4bae1457eb565e67' not found");
+      // });
+    });
   });
 });

@@ -72,8 +72,6 @@ class OcpiEndpoint extends AbstractTenantEntity {
     this._model.status = status;
   }
 
-
-
   /**
    * available endpoints - store payload information as return by version url: eg: /ocpi/emsp/2.1.1
    */
@@ -154,7 +152,7 @@ class OcpiEndpoint extends AbstractTenantEntity {
 
   setPartyId(partyId) {
     this._model.partyId = partyId;
-  } 
+  }
 
   getCreatedBy() {
     if (this._model.createdBy) {
@@ -216,10 +214,23 @@ class OcpiEndpoint extends AbstractTenantEntity {
     return OcpiEndpointStorage.getOcpiEndpoint(tenantID, id);
   }
 
-  static getDefaultOcpiEndpoint(tenantID) {
-    return OcpiEndpointStorage.getDefaultOcpiEndpoint(tenantID);
-  }
+  // get Default Ocpi Endpoint
+  // currently only one endpoint could be defined by tenant - but the scope may change keep it open
+  static async getDefaultOcpiEndpoint(tenantID) {
+    // check if default endpoint exist
+    let ocpiendpoint = await OcpiEndpointStorage.getDefaultOcpiEndpoint(tenantID);
 
+    if (!ocpiendpoint) {
+      // create new endpoint
+      ocpiendpoint = new OcpiEndpoint(tenantID, {});
+      ocpiendpoint.setName('default');
+      ocpiendpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.NEW);
+      ocpiendpoint.setLocalToken("eyAiYSI6IDEgLCAidGVuYW50IjogInNsZiIgfQ==");
+      ocpiendpoint = await ocpiendpoint.save();
+    }
+
+    return ocpiendpoint;
+  }
 }
 
 module.exports = OcpiEndpoint;

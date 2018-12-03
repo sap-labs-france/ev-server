@@ -131,7 +131,7 @@ class OCPIMapping {
    */
   static aggregateConnectorsStatus(connectors) {
     // Build array with charging station ordered by priority
-    const statusesOrdered = [Constants.CONN_STATUS_AVAILABLE, Constants.CONN_STATUS_OCCUPIED,Constants.CONN_STATUS_CHARGING, Constants.CONN_STATUS_FAULTED];
+    const statusesOrdered = [Constants.CONN_STATUS_AVAILABLE, Constants.CONN_STATUS_OCCUPIED, Constants.CONN_STATUS_CHARGING, Constants.CONN_STATUS_FAULTED];
 
     let aggregatedConnectorStatusIndex = 0;
 
@@ -213,10 +213,10 @@ class OCPIMapping {
    */
   static isValidOCPICredential(credential) {
     return (!credential ||
-            !credential.url ||
-            !credential.token ||
-            !credential.party_id ||
-            !credential.country_code )?false:true;
+      !credential.url ||
+      !credential.token ||
+      !credential.party_id ||
+      !credential.country_code) ? false : true;
   }
 
   /**
@@ -224,7 +224,7 @@ class OCPIMapping {
    * @param {*} tenant 
    * @param {*} token 
    */
-  static buildOCPICredentialObject(tenant,token) {
+  static buildOCPICredentialObject(tenant, token) {
     // credentail
     const credential = {};
 
@@ -242,6 +242,21 @@ class OCPIMapping {
 
     // return credential object
     return credential;
+  }
+
+  /**
+   * convert OCPI Endpoints
+   */
+  static convertEndpoints(endpointsEntity) {
+    const endpoints = {};
+
+    if (endpointsEntity && endpointsEntity.endpoints) {
+      for (const endpoint of endpointsEntity.endpoints) {
+        endpoints[endpoint.identifier] = endpoint.url;
+      }
+    }
+
+    return endpoints;
   }
 }
 
