@@ -357,7 +357,7 @@ class Database {
     dest.name = src.name;
     dest.subdomain = src.subdomain;
     dest.email = src.email;
-    dest.components = (src.components)?src.components: {};
+    dest.components = (src.components?src.components: {});
     Database.updateCreatedAndLastChanged(src, dest);
   }
 

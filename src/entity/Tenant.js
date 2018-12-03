@@ -44,12 +44,12 @@ class Tenant {
   }
 
   getComponent(identifier) {
-    return (this._model.components)?this._model.components[identifier]:{ "active":false, "configuration": {}};
+    return (this._model.components?this._model.components[identifier]:{ "active":false, "configuration": {}});
   }
 
   isComponentActive(identifier) {
     const component = this.getComponent(identifier);
-    return (component)?component.active:false;
+    return (component?component.active:false);
   }
 
   setComponent(identifier, active, configuration) {
