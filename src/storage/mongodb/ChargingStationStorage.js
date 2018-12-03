@@ -5,10 +5,11 @@ const crypto = require('crypto');
 const DatabaseUtils = require('./DatabaseUtils');
 const Logging = require('../../utils/Logging');
 
+
 class ChargingStationStorage {
   static async getChargingStation(tenantID, id) {
     // Debug
-    Logging.traceStart('ChargingStationStorage', 'getChargingStation');
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStation');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
@@ -53,13 +54,13 @@ class ChargingStationStorage {
       }
     }
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'getChargingStation');
+    Logging.traceEnd('ChargingStationStorage', 'getChargingStation', uniqueTimerID);
     return chargingStation;
   }
 
   static async getChargingStations(tenantID, params = {}, limit, skip, sort) {
     // Debug
-    Logging.traceStart('ChargingStationStorage', 'getChargingStations');
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
@@ -209,7 +210,7 @@ class ChargingStationStorage {
       chargingStations.push(chargingStation);
     }
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'getChargingStations');
+    Logging.traceEnd('ChargingStationStorage', 'getChargingStations', uniqueTimerID);
     // Ok
     return {
       count: (chargingStationsCountMDB.length > 0 ? chargingStationsCountMDB[0].count : 0),
@@ -219,7 +220,7 @@ class ChargingStationStorage {
 
   static async saveChargingStation(tenantID, chargingStationToSave) {
     // Debug
-    Logging.traceStart('ChargingStationStorage', 'saveChargingStation');
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStation');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
@@ -246,13 +247,13 @@ class ChargingStationStorage {
       returnOriginal: false
     });
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'saveChargingStation');
+    Logging.traceEnd('ChargingStationStorage', 'saveChargingStation', uniqueTimerID);
     return new ChargingStation(tenantID, result.value);
   }
 
   static async saveChargingStationConnector(tenantID, chargingStation, connectorId) {
     // Debug
-    Logging.traceStart('ChargingStationStorage', 'saveChargingStationConnector');
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationConnector');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
@@ -269,13 +270,13 @@ class ChargingStationStorage {
       returnOriginal: false
     });
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'saveChargingStationConnector');
+    Logging.traceEnd('ChargingStationStorage', 'saveChargingStationConnector', uniqueTimerID);
     return new ChargingStation(tenantID, result.value);
   }
 
   static async saveChargingStationHeartBeat(tenantID, chargingStation) {
     // Debug
-    Logging.traceStart('ChargingStationStorage', 'saveChargingStationHeartBeat');
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationHeartBeat');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
@@ -292,13 +293,13 @@ class ChargingStationStorage {
       returnOriginal: false
     });
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'saveChargingStationHeartBeat');
+    Logging.traceEnd('ChargingStationStorage', 'saveChargingStationHeartBeat', uniqueTimerID);
     return new ChargingStation(tenantID, result.value);
   }
 
   static async saveChargingStationSiteArea(tenantID, chargingStation) {
     // Debug
-    Logging.traceStart('ChargingStationStorage', 'saveChargingStationSiteArea');
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
@@ -321,14 +322,14 @@ class ChargingStationStorage {
       returnOriginal: false
     });
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'saveChargingStationSiteArea');
+    Logging.traceEnd('ChargingStationStorage', 'saveChargingStationSiteArea', uniqueTimerID);
     // Create
     return new ChargingStation(tenantID, result.value);
   }
 
   static async deleteChargingStation(tenantID, id) {
     // Debug
-    Logging.traceStart('ChargingStationStorage', 'deleteChargingStation');
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'deleteChargingStation');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Configuration
@@ -343,12 +344,12 @@ class ChargingStationStorage {
       });
     // Keep the rest (bootnotif, authorize...)
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'deleteChargingStation');
+    Logging.traceEnd('ChargingStationStorage', 'deleteChargingStation', uniqueTimerID);
   }
 
   static async saveAuthorize(tenantID, authorize) {
     // Debug
-    Logging.traceStart('ChargingStationStorage', 'saveAuthorize');
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveAuthorize');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set the ID
@@ -369,12 +370,12 @@ class ChargingStationStorage {
         timestamp: Utils.convertToDate(authorize.timestamp)
       });
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'saveAuthorize');
+    Logging.traceEnd('ChargingStationStorage', 'saveAuthorize', uniqueTimerID);
   }
 
   static async saveConfiguration(tenantID, configuration) {
     // Debug
-    Logging.traceStart('ChargingStationStorage', 'saveConfiguration');
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveConfiguration');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify
@@ -391,12 +392,12 @@ class ChargingStationStorage {
       returnOriginal: false
     });
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'saveConfiguration');
+    Logging.traceEnd('ChargingStationStorage', 'saveConfiguration', uniqueTimerID);
   }
 
   static async saveDataTransfer(tenantID, dataTransfer) {
     // Debug
-    Logging.traceStart('ChargingStationStorage', 'saveDataTransfer');
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveDataTransfer');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set the ID
@@ -414,12 +415,12 @@ class ChargingStationStorage {
         timestamp: Utils.convertToDate(dataTransfer.timestamp)
       });
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'saveDataTransfer');
+    Logging.traceEnd('ChargingStationStorage', 'saveDataTransfer', uniqueTimerID);
   }
 
   static async saveBootNotification(tenantID, bootNotification) {
     // Debug
-    Logging.traceStart('ChargingStationStorage', 'saveBootNotification');
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveBootNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Insert
@@ -441,12 +442,12 @@ class ChargingStationStorage {
         timestamp: Utils.convertToDate(bootNotification.timestamp)
       });
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'saveBootNotification');
+    Logging.traceEnd('ChargingStationStorage', 'saveBootNotification', uniqueTimerID);
   }
 
   static async saveDiagnosticsStatusNotification(tenantID, diagnosticsStatusNotification) {
     // Debug
-    Logging.traceStart('ChargingStationStorage', 'saveDiagnosticsStatusNotification');
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveDiagnosticsStatusNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set the ID
@@ -462,12 +463,12 @@ class ChargingStationStorage {
         timestamp: Utils.convertToDate(diagnosticsStatusNotification.timestamp)
       });
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'saveDiagnosticsStatusNotification');
+    Logging.traceEnd('ChargingStationStorage', 'saveDiagnosticsStatusNotification', uniqueTimerID);
   }
 
   static async saveFirmwareStatusNotification(tenantID, firmwareStatusNotification) {
     // Debug
-    Logging.traceStart('ChargingStationStorage', 'saveFirmwareStatusNotification');
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveFirmwareStatusNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set the ID
@@ -483,12 +484,12 @@ class ChargingStationStorage {
         timestamp: Utils.convertToDate(firmwareStatusNotification.timestamp)
       });
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'saveFirmwareStatusNotification');
+    Logging.traceEnd('ChargingStationStorage', 'saveFirmwareStatusNotification', uniqueTimerID);
   }
 
   static async saveStatusNotification(tenantID, statusNotificationToSave) {
     // Debug
-    Logging.traceStart('ChargingStationStorage', 'saveStatusNotification');
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveStatusNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const statusNotification = {};
@@ -502,12 +503,12 @@ class ChargingStationStorage {
     await global.database.getCollection(tenantID, 'statusnotifications')
       .insertOne(statusNotification);
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'saveStatusNotification');
+    Logging.traceEnd('ChargingStationStorage', 'saveStatusNotification', uniqueTimerID);
   }
 
   static async getConfigurationParamValue(tenantID, chargeBoxID, paramName) {
     // Debug
-    Logging.traceStart('ChargingStationStorage', 'getConfigurationParamValue');
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getConfigurationParamValue');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Get the config
@@ -529,13 +530,13 @@ class ChargingStationStorage {
       });
     }
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'getConfigurationParamValue');
+    Logging.traceEnd('ChargingStationStorage', 'getConfigurationParamValue', uniqueTimerID);
     return value;
   }
 
   static async getConfiguration(tenantID, chargeBoxID) {
     // Debug
-    Logging.traceStart('ChargingStationStorage', 'getConfiguration');
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getConfiguration');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -553,7 +554,7 @@ class ChargingStationStorage {
       Database.updateConfiguration(configurationsMDB[0], configuration);
     }
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'getConfiguration');
+    Logging.traceEnd('ChargingStationStorage', 'getConfiguration', uniqueTimerID);
     return configuration;
   }
 }

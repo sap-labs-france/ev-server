@@ -77,8 +77,11 @@ class Transaction extends AbstractTenantEntity {
       this._model.totalConsumption = this.getTotalConsumption();
       this._model.currentConsumption = this.getCurrentConsumption();
       if (this.hasStateOfCharges()) {
-        this._model.stateOfCharge = this.getStateOfCharge();
+        this._model.currentStateOfCharge = this.getCurrentStateOfCharge();
       }
+    }
+    if (this.hasStateOfCharges()) {
+      this._model.stateOfCharge = this.getStateOfCharge();
     }
     if (this._hasPricing()) {
       this._model.priceUnit = this._model.pricing.priceUnit;
@@ -238,7 +241,7 @@ class Transaction extends AbstractTenantEntity {
 
   getDuration() {
     if (!this.isActive()) {
-      moment.duration(moment(this.getEndDate()).diff(moment(this.getStartDate())));
+      return moment.duration(moment(this.getEndDate()).diff(moment(this.getStartDate())));
     }
     return moment.duration(moment(this._getLastUpdateDate()).diff(moment(this.getStartDate())));
   }
@@ -288,10 +291,14 @@ class Transaction extends AbstractTenantEntity {
 
   getStateOfCharge() {
     if (this.hasStateOfCharges()) {
-      if (this.isActive()) {
-        return this._getLatestStateOfCharge().value;
-      }
       return this.getStateOfCharges()[0].value;
+    }
+    return undefined;
+  }
+
+  getCurrentStateOfCharge() {
+    if (this.hasStateOfCharges() && this.isActive()) {
+      return this._getLatestStateOfCharge().value;
     }
     return undefined;
   }
@@ -320,11 +327,14 @@ class Transaction extends AbstractTenantEntity {
 
   _computeConsumptions() {
     const consumptions = [];
+    const stateOfCharges = this._computeStateOfCharges();
     this.getMeterValues().forEach((meterValue, index, array) => {
       if (index === 0) {
         return;
       }
-      consumptions.push(this._aggregateAsConsumption(array[index - 1], meterValue));
+      const previousMeterValue = array[index - 1];
+      const stateOfCharge = stateOfCharges.find(stateOfCharge => moment(stateOfCharge.timestamp).isBetween(previousMeterValue.timestamp, meterValue.timestamp, null, '[]'));
+      consumptions.push(this._aggregateAsConsumption(previousMeterValue, meterValue, stateOfCharge));
     });
     return consumptions;
   }
@@ -400,7 +410,7 @@ class Transaction extends AbstractTenantEntity {
     this._invalidateComputations();
     if (this.hasStateOfCharges()) {
       this._model.stateOfCharge = this.getStateOfCharges()[0].value;
-      this._model.stop.stateOfCharge = this._getLatestStateOfCharge();
+      this._model.stop.stateOfCharge = this._getLatestStateOfCharge().value;
     }
     if (this._hasPricing()) {
       this._model.priceUnit = this._model.pricing.priceUnit;
@@ -429,17 +439,20 @@ class Transaction extends AbstractTenantEntity {
     }
   }
 
-  _aggregateAsConsumption(lastMeterValue, meterValue) {
+  _aggregateAsConsumption(lastMeterValue, meterValue, stateOfChargeMeterValue) {
     const currentTimestamp = moment(meterValue.timestamp);
     const diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, 'seconds');
     const sampleMultiplier = diffSecs > 0 ? 3600 / diffSecs : 0;
     const currentConsumption = (meterValue.value - lastMeterValue.value) * sampleMultiplier;
-
     const consumption = {
       date: meterValue.timestamp,
       value: currentConsumption,
       cumulated: meterValue.value - this.getMeterStart()
     };
+    if (stateOfChargeMeterValue) {
+      consumption.stateOfCharge = stateOfChargeMeterValue.value;
+    }
+
     if (this._hasPricing()) {
       const consumptionWh = meterValue.value - lastMeterValue.value;
       consumption.price = +((consumptionWh / 1000) * this._getPricing().priceKWH).toFixed(6);

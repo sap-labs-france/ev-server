@@ -166,6 +166,12 @@ class Configuration {
     // Read conf
     return Configuration.getConfig().Logging;
   }
+
+  // Logging
+  static getTestConfig() {
+    // Read conf
+    return Configuration.getConfig().Test;
+  }
 }
 
 module.exports=Configuration;

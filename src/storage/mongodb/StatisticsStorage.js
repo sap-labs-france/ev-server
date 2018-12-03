@@ -1,3 +1,4 @@
+
 const Utils = require('../../utils/Utils');
 const Constants = require('../../utils/Constants');
 const DatabaseUtils = require('./DatabaseUtils');
@@ -6,7 +7,7 @@ const Logging = require('../../utils/Logging');
 class StatisticsStorage {
   static async getChargingStationStats(tenantID, filter, siteID, groupBy) {
     // Debug
-    Logging.traceStart('StatisticsStorage', 'getChargingStationStats');
+    const uniqueTimerID = Logging.traceStart('StatisticsStorage', 'getChargingStationStats');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
@@ -126,13 +127,13 @@ class StatisticsStorage {
       }
     }
     // Debug
-    Logging.traceEnd('StatisticsStorage', 'getChargingStationStats');
+    Logging.traceEnd('StatisticsStorage', 'getChargingStationStats', uniqueTimerID);
     return transactions;
   }
 
   static async getUserStats(tenantID, filter, siteID, groupBy) {
     // Debug
-    Logging.traceStart('StatisticsStorage', 'getUserStats');
+    const uniqueTimerID = Logging.traceStart('StatisticsStorage', 'getUserStats');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
@@ -264,7 +265,7 @@ class StatisticsStorage {
       }
     }
     // Debug
-    Logging.traceEnd('StatisticsStorage', 'getUserStats');
+    Logging.traceEnd('StatisticsStorage', 'getUserStats', uniqueTimerID);
     return transactions;
   }
 }

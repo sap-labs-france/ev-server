@@ -118,6 +118,7 @@ class WSConnection {
         case Constants.OCPP_JSON_CALL_ERROR_MESSAGE:
           // Log
           Logging.logError({
+            tenantID:this.getTenantID(),
             module: MODULE_NAME,
             method: "sendMessage",
             action: "WSError",
