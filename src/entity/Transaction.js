@@ -401,6 +401,10 @@ class Transaction extends AbstractTenantEntity {
     return !!this._model.remotestop;
   }
 
+  getRemoteStop(){
+    return this._model.remotestop;
+  }
+
   stopTransaction(user, tagId, meterStop, timestamp) {
     this._model.stop = {};
     this._model.stop.meterStop = meterStop;
