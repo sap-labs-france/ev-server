@@ -70,7 +70,7 @@ class JsonRestWSConnection extends WSConnection {
     const chargingStationClient = global.centralSystemJson.getChargingStationClient(chargingStation.getTenantID(), chargingStation.getID());
     if (!chargingStationClient) {
       // Error
-      throw new BackendError(this.getChargingStationID(), `Charger not connected to this instance`,
+      throw new BackendError(this.getChargingStationID(), `Charger is not connected to the backend`,
         "JsonRestWSConnection", "handleRequest", commandName);
     }
     // Call the client
