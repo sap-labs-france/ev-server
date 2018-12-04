@@ -144,7 +144,7 @@ class WSConnection {
       }
     } catch (error) {
       // Log
-      Logging.logException(error, "", this.getChargingStationID(), MODULE_NAME, "onMessage", this.getTenantID());
+      Logging.logException(error, commandName, this.getChargingStationID(), MODULE_NAME, "onMessage", this.getTenantID());
       // Send error
       await this.sendError(messageId, error);
     }
@@ -219,7 +219,7 @@ class WSConnection {
         wsConnection.send(messageToSend);
       } else {
         // Reject it
-        return rejectCallback(`Socket closed ${messageId}`);
+        return rejectCallback(`Socket closed for Message ID '${messageId}'`);
       }
       // Request?
       if (messageType !== Constants.OCPP_JSON_CALL_MESSAGE) {
@@ -227,7 +227,7 @@ class WSConnection {
         resolve();
       } else {
         // Send timeout
-        setTimeout(() => rejectCallback(`Timeout for message ${messageId}`), Constants.OCPP_SOCKET_TIMEOUT);
+        setTimeout(() => rejectCallback(`Timeout for Message ID ${messageId}`), Constants.OCPP_SOCKET_TIMEOUT);
       }
 
       // Function that will receive the request's response
