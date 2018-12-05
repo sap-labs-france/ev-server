@@ -333,7 +333,11 @@ class Transaction extends AbstractTenantEntity {
         return;
       }
       const previousMeterValue = array[index - 1];
-      const stateOfCharge = stateOfCharges.find(stateOfCharge => moment(stateOfCharge.timestamp).isBetween(previousMeterValue.timestamp, meterValue.timestamp, null, '[]'));
+      const matchingStates = stateOfCharges.filter(stateOfCharge => moment(stateOfCharge.timestamp).isBetween(previousMeterValue.timestamp, meterValue.timestamp, null, '[]'));
+      let stateOfCharge = undefined;
+      if (matchingStates.length > 0) {
+        stateOfCharge = matchingStates[matchingStates.length - 1];
+      }
       consumptions.push(this._aggregateAsConsumption(previousMeterValue, meterValue, stateOfCharge));
     });
     return consumptions;
@@ -401,7 +405,7 @@ class Transaction extends AbstractTenantEntity {
     return !!this._model.remotestop;
   }
 
-  getRemoteStop(){
+  getRemoteStop() {
     return this._model.remotestop;
   }
 
