@@ -66,7 +66,7 @@ class Transaction extends AbstractTenantEntity {
   }
 
   _getPricing() {
-    if (this._hasPricing()) {
+    if (this.hasPricing()) {
       return this._model.pricing;
     }
     return undefined;
@@ -83,7 +83,7 @@ class Transaction extends AbstractTenantEntity {
     if (this.hasStateOfCharges()) {
       this._model.stateOfCharge = this.getStateOfCharge();
     }
-    if (this._hasPricing()) {
+    if (this.hasPricing()) {
       this._model.priceUnit = this._model.pricing.priceUnit;
       this._model.price = this.getPrice();
     }
@@ -229,7 +229,7 @@ class Transaction extends AbstractTenantEntity {
   }
 
   getPriceUnit() {
-    if (this._hasPricing()) {
+    if (this.hasPricing()) {
       return this._model.pricing.priceUnit;
     }
     return undefined;
@@ -416,7 +416,7 @@ class Transaction extends AbstractTenantEntity {
       this._model.stateOfCharge = this.getStateOfCharges()[0].value;
       this._model.stop.stateOfCharge = this._getLatestStateOfCharge().value;
     }
-    if (this._hasPricing()) {
+    if (this.hasPricing()) {
       this._model.priceUnit = this._model.pricing.priceUnit;
       this._model.price = this.getPrice();
     }
@@ -457,7 +457,7 @@ class Transaction extends AbstractTenantEntity {
       consumption.stateOfCharge = stateOfChargeMeterValue.value;
     }
 
-    if (this._hasPricing()) {
+    if (this.hasPricing()) {
       const consumptionWh = meterValue.value - lastMeterValue.value;
       consumption.price = +((consumptionWh / 1000) * this._getPricing().priceKWH).toFixed(6);
     }
@@ -476,7 +476,7 @@ class Transaction extends AbstractTenantEntity {
     return this.getStateOfCharges().length > 0;
   }
 
-  _hasPricing() {
+  hasPricing() {
     return !!(this._model.pricing && this._model.pricing.priceKWH >= 0)
   }
 }
