@@ -93,7 +93,7 @@ class TransactionSecurity {
         filteredTransaction.stop.totalConsumption = transaction.getTotalConsumption();
         filteredTransaction.stop.totalInactivitySecs = transaction.getTotalInactivitySecs();
         filteredTransaction.stop.totalDurationSecs = transaction.getTotalDurationSecs();
-        if (Authorizations.isAdmin(loggedUser)) {
+        if (Authorizations.isAdmin(loggedUser) && transaction.hasPricing()) {
           filteredTransaction.stop.price = transaction.getPrice();
           filteredTransaction.stop.priceUnit = transaction.getPriceUnit();
         }
@@ -128,7 +128,7 @@ class TransactionSecurity {
           filteredTransaction.stop.stateOfCharge = transaction.getEndStateOfCharge();
         }
         // Admin?
-        if (Authorizations.isAdmin(loggedUser)) {
+        if (Authorizations.isAdmin(loggedUser) && transaction.hasPricing()) {
           filteredTransaction.price = transaction.getPrice();
           filteredTransaction.priceUnit = transaction.getPriceUnit();
         }
