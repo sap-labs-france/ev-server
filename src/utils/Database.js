@@ -406,6 +406,17 @@ class Database {
     Database.updateCreatedAndLastChanged(src, dest);
   }
 
+  static updateComponent(src, dest, forFrontEnd = true) {
+    if (forFrontEnd) {
+      Database.updateID(src, dest);
+    } 
+
+    dest.identifier = src.identifier;
+    dest.configuration = src.configuration;
+
+    Database.updateCreatedAndLastChanged(src, dest);
+  }
+
   static updateAddress(src, dest) {
     if (src) {
       dest.address1 = src.address1;

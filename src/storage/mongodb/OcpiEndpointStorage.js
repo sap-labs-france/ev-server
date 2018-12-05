@@ -97,15 +97,11 @@ class OcpiEndpointStorage {
     const filters = {};
     // Source?
     if (params.search) {
-      // Build filter TODO: check filters
-      // filters.$or = [
-      //   {"model": {$regex: params.search, $options: 'i'}}
-      // ];
+      // Build filter
+      filters.$or = [
+        {"name": {$regex: params.search, $options: 'i'}}
+      ];
     }
-    // Set Company? TODO: check filter
-    // if (params.vehicleManufacturerID) {
-    //   filters.vehicleManufacturerID = Utils.convertToObjectID(params.vehicleManufacturerID);
-    // }
 
     // Create Aggregation
     const aggregation = [];
@@ -128,12 +124,12 @@ class OcpiEndpointStorage {
         $sort: sort
       });
     } else {
-      // Default TODO: check default sorting
-      // aggregation.push({
-      //   $sort: {
-      //     manufacturer: 1, model: 1
-      //   }
-      // });
+      // Default
+      aggregation.push({
+        $sort: {
+          name: 1
+        }
+      });
     }
     // Skip
     aggregation.push({

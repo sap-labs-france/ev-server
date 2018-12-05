@@ -1,6 +1,7 @@
 const Database = require('../utils/Database');
 const TenantStorage = require('../storage/mongodb/TenantStorage');
 const User = require('./User');
+const Component = require('../entity/Component');
 
 class Tenant {
   constructor(tenant) {
@@ -43,25 +44,42 @@ class Tenant {
     return this._model.subdomain;
   }
 
-  getComponent(identifier) {
-    return (this._model.components?this._model.components[identifier]:{ "active":false, "configuration": {}});
-  }
-
   isComponentActive(identifier) {
-    const component = this.getComponent(identifier);
-    return (component?component.active:false);
+    return (this._model.components[identifier] && this._model.components[identifier].active?true:false);
   }
 
-  setComponent(identifier, active, configuration) {
+  activateComponent(identifier) {
     if (!this._model.components[identifier]) {
       this._model.components[identifier] = {};
     }
 
-    this._model.components[identifier].active = active;
+    this._model.components[identifier].active = true; 
+  }
+
+  deactivateComponent(identifier) {
+    if (!this._model.components[identifier]) {
+      this._model.components[identifier] = {};
+    }
+
+    this._model.components[identifier].active = false; 
+  }
+
+  setComponentConfigTenantLevel(identifier, configuration) {
+    if (!this._model.components[identifier]) {
+      this._model.components[identifier] = {};
+    }
 
     if (configuration) {
       this._model.components[identifier].configuration = configuration;
     }
+  }
+  /**
+   * Return component entity
+   * @param {*} identifier 
+   * @return Component
+   */
+  async getComponent(identifier) {
+    return await Component.getComponentByIdentifier(this.getID(), identifier) ;
   }
 
   getCreatedBy() {

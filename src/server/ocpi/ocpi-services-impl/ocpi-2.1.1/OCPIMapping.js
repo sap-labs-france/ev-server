@@ -224,22 +224,23 @@ class OCPIMapping {
    * @param {*} tenant 
    * @param {*} token 
    */
-  static buildOCPICredentialObject(tenant, token) {
+  static async buildOCPICredentialObject(tenant, token) {
     // credentail
     const credential = {};
 
     // get ocpi service configuration
-    const ocpiConfiguration = tenant.getComponent(Constants.COMPONENTS.OCPI_COMPONENT);
+    const ocpiComponent = await tenant.getComponent(Constants.COMPONENTS.OCPI_COMPONENT);
 
+    credential.url = 'https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/cpo/versions';
     // check if available
-    if (ocpiConfiguration && ocpiConfiguration.configuration) {
-      credential.url = ocpiConfiguration.configuration.baseUrl;
+    if (ocpiComponent && ocpiComponent.getConfiguration()) {
+      const configuration = ocpiComponent.getConfiguration();
       credential.token = token;
-      credential.country_code = ocpiConfiguration.configuration.countryCode;
-      credential.party_id = ocpiConfiguration.configuration.partyId;
+      credential.country_code = configuration.country_code;
+      credential.party_id = configuration.party_id;
+      credential.business_details = configuration.business_details;
     } else {
       // TODO: remove this - temporary configuration to handle non existing service.
-      credential.url = 'https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/cpo/versions';
       credential.token = 'eyAiYSI6IDEgLCAidGVuYW50IjogInNsZiIgfQ==';
       credential.country_code = 'FR';
       credential.party_id = 'SLF';
