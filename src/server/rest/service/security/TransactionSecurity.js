@@ -93,7 +93,7 @@ class TransactionSecurity {
         filteredTransaction.stop.totalConsumption = transaction.getTotalConsumption();
         filteredTransaction.stop.totalInactivitySecs = transaction.getTotalInactivitySecs();
         filteredTransaction.stop.totalDurationSecs = transaction.getTotalDurationSecs();
-        if (Authorizations.isAdmin(loggedUser)) {
+        if (Authorizations.isAdmin(loggedUser) && transaction.hasPricing()) {
           filteredTransaction.stop.price = transaction.getPrice();
           filteredTransaction.stop.priceUnit = transaction.getPriceUnit();
         }
@@ -128,7 +128,7 @@ class TransactionSecurity {
           filteredTransaction.stop.stateOfCharge = transaction.getEndStateOfCharge();
         }
         // Admin?
-        if (Authorizations.isAdmin(loggedUser)) {
+        if (Authorizations.isAdmin(loggedUser) && transaction.hasPricing()) {
           filteredTransaction.price = transaction.getPrice();
           filteredTransaction.priceUnit = transaction.getPriceUnit();
         }
@@ -214,47 +214,49 @@ class TransactionSecurity {
       return null;
     }
     // Check
-    if (Authorizations.canReadChargingStation(loggedUser, transaction.getChargeBox())) {
-      filteredConsumption.chargeBoxID = transaction.getChargeBoxID();
-      filteredConsumption.connectorId = transaction.getConnectorId();
-      // Admin?
-      if (Authorizations.isAdmin(loggedUser)) {
-        filteredConsumption.priceUnit = transaction.getPriceUnit();
-        filteredConsumption.totalPrice = transaction.getPrice();
+    filteredConsumption.chargeBoxID = transaction.getChargeBoxID();
+    filteredConsumption.connectorId = transaction.getConnectorId();
+    // Admin?
+    if (Authorizations.isAdmin(loggedUser)) {
+      filteredConsumption.priceUnit = transaction.getPriceUnit();
+      filteredConsumption.totalPrice = transaction.getPrice();
+    }
+    filteredConsumption.totalConsumption = transaction.getTotalConsumption();
+    filteredConsumption.id = transaction.getID();
+    if (transaction.hasStateOfCharges()) {
+      filteredConsumption.stateOfCharge = transaction.getStateOfCharge();
+    }
+    // Check user
+    if (transaction.getUser()) {
+      if (!Authorizations.canReadUser(loggedUser, transaction.getUser())) {
+        return null;
       }
-      filteredConsumption.totalConsumption = transaction.getTotalConsumption();
-      filteredConsumption.id = transaction.getID();
-      if (transaction.hasStateOfCharges()) {
-        filteredConsumption.stateOfCharge = transaction.getStateOfCharge();
+    } else {
+      if (!Authorizations.isAdmin(loggedUser)) {
+        return null;
       }
-      // Check user
-      if (transaction.getUser()) {
-        if (!Authorizations.canReadUser(loggedUser, transaction.getUser())) {
-          return null;
+    }
+    // Set user
+    filteredConsumption.user = TransactionSecurity._filterUserInTransactionResponse(
+      transaction.getUser(), loggedUser);
+    // Admin?
+    if (Authorizations.isAdmin(loggedUser)) {
+      // Set them all
+      filteredConsumption.values = consumptions;
+    } else {
+      // Clean
+      filteredConsumption.values = [];
+      for (const value of consumptions) {
+        // Set
+        const filteredValue= {
+          date: value.date,
+          value: value.value,
+          cumulated: value.cumulated
+        };
+        if (value.hasOwnProperty('stateOfCharge')){
+          filteredValue.stateOfCharge = value.stateOfCharge;
         }
-      } else {
-        if (!Authorizations.isAdmin(loggedUser)) {
-          return null;
-        }
-      }
-      // Set user
-      filteredConsumption.user = TransactionSecurity._filterUserInTransactionResponse(
-        transaction.getUser(), loggedUser);
-      // Admin?
-      if (Authorizations.isAdmin(loggedUser)) {
-        // Set them all
-        filteredConsumption.values = consumptions;
-      } else {
-        // Clean
-        filteredConsumption.values = [];
-        for (const value of consumptions) {
-          // Set
-          filteredConsumption.values.push({
-            date: value.date,
-            value: value.value,
-            cumulated: value.cumulated
-          });
-        }
+        filteredConsumption.values.push(filteredValue);
       }
     }
 
