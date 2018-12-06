@@ -12,7 +12,7 @@ module.exports = {
   CONN_STATUS_RESERVED: "Reserved",
   CONN_STATUS_FINISHING: "Finishing",
   CONN_STATUS_PREPARING: "Preparing",
-  CONN_STATUS_SUSPENDEND_EVSE: "SuspendedEVSE",
+  CONN_STATUS_SUSPENDED_EVSE: "SuspendedEVSE",
   CONN_STATUS_SUSPENDED_EV:  "SuspendedEV",
   CONN_STATUS_UNAVAILABLE: "Unavailable",
 
