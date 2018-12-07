@@ -3,7 +3,7 @@ const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const ObjectID = require('mongodb').ObjectID;
-const AppError = require('../../exception/AppError');
+const BackendError = require('../../exception/BackendError');
 const DatabaseUtils = require('./DatabaseUtils');
 const Logging = require('../../utils/Logging');
 
@@ -74,10 +74,10 @@ class TenantStorage {
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'saveTenant');
     // Check
     if (!tenantToSave.id && !tenantToSave.name) {
-      throw new AppError(
+      throw new BackendError(
         Constants.CENTRAL_SERVER,
         `Tenant has no ID and no Name`,
-        550, "TenantStorage", "saveTenant");
+        "TenantStorage", "saveTenant");
     }
     const tenantFilter = {};
     // Build Request

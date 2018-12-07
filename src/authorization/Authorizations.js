@@ -173,7 +173,7 @@ class Authorizations {
           "chargingBoxID": chargingStation.getID(),
           "badgeId": tagID,
           "evseDashboardURL": Utils.buildEvseURL((await user.getTenant()).getSubdomain()),
-          "evseDashboardUserURL": awaitUtils.buildEvseUserURL(user)
+          "evseDashboardUserURL": await Utils.buildEvseUserURL(user)
         }
       );
     }

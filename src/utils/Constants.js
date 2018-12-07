@@ -9,6 +9,12 @@ module.exports = {
   CONN_STATUS_OCCUPIED: "Occupied",
   CONN_STATUS_CHARGING: "Charging",
   CONN_STATUS_FAULTED: "Faulted",
+  CONN_STATUS_RESERVED: "Reserved",
+  CONN_STATUS_FINISHING: "Finishing",
+  CONN_STATUS_PREPARING: "Preparing",
+  CONN_STATUS_SUSPENDED_EVSE: "SuspendedEVSE",
+  CONN_STATUS_SUSPENDED_EV:  "SuspendedEV",
+  CONN_STATUS_UNAVAILABLE: "Unavailable",
 
   STATS_GROUP_BY_CONSUMPTION: "C",
   STATS_GROUP_BY_USAGE: "U",
@@ -189,5 +195,16 @@ module.exports = {
   MAPPING_CONNECTOR_TYPE: {
     "CHADEMO": "CHADEMO",
     "T2": "IEC_62196_T2"
+  },
+
+  // Components
+  COMPONENTS: {
+    OCPI_COMPONENT: "ocpi"
+  },
+
+  // Ocpi Registering status
+  OCPI_REGISTERING_STATUS: {
+    OCPI_NEW: "new",
+    OCPI_REGISTERED: "registered"
   }
 };

@@ -7,7 +7,8 @@ const OCPIServerError = require('../../../../exception/OCPIServerError');
 require('source-map-support').install();
 
 const EP_IDENTIFIER = "locations";
-const MODULE_NAME = "locations"
+const EP_VERSION = "2.1.1";
+
 const RECORDS_LIMIT = 20;
 
 /**
@@ -16,7 +17,7 @@ const RECORDS_LIMIT = 20;
 class LocationsEndpoint extends AbstractEndpoint {
   // Create OCPI Service
   constructor() {
-    super(EP_IDENTIFIER);
+    super(EP_IDENTIFIER,EP_VERSION);
   }
 
   /**
@@ -65,7 +66,7 @@ class LocationsEndpoint extends AbstractEndpoint {
         throw new OCPIServerError(
           'GET locations',
           `Connector id '${connectorId}' not found on EVSE uid '${evseUid}' and location id '${locationId}'`, 500,
-          MODULE_NAME, 'getLocationRequest', null);
+          EP_IDENTIFIER, 'getLocationRequest', null);
       }
 
     } else if (locationId && evseUid) {
@@ -76,7 +77,7 @@ class LocationsEndpoint extends AbstractEndpoint {
         throw new OCPIServerError(
           'GET locations',
           `EVSE uid not found '${evseUid}' on location id '${locationId}'`, 500,
-          MODULE_NAME, 'getLocationRequest', null);
+          EP_IDENTIFIER, 'getLocationRequest', null);
       }
     } else if (locationId) {
       // get single location
@@ -87,12 +88,12 @@ class LocationsEndpoint extends AbstractEndpoint {
         throw new OCPIServerError(
           'GET locations',
           `Site id '${locationId}' not found`, 500,
-          MODULE_NAME, 'getLocationRequest', null);
+          EP_IDENTIFIER, 'getLocationRequest', null);
       }
     } else {
       // get query parameters
-      let offset = (req.query.offset)?parseInt(req.query.offset):0;
-      let limit  = (req.query.limit && req.query.limit < RECORDS_LIMIT)?parseInt(req.query.limit):RECORDS_LIMIT;
+      const offset = (req.query.offset)?parseInt(req.query.offset):0;
+      const limit  = (req.query.limit && req.query.limit < RECORDS_LIMIT)?parseInt(req.query.limit):RECORDS_LIMIT;
 
       // get all locations
       const result = await this.getAllLocations(tenant,limit,offset);

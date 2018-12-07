@@ -363,6 +363,7 @@ class Database {
     dest.name = src.name;
     dest.subdomain = src.subdomain;
     dest.email = src.email;
+    dest.components = (src.components?src.components: {});
     Database.updateCreatedAndLastChanged(src, dest);
   }
 
@@ -388,6 +389,26 @@ class Database {
     dest.widthMeter = Utils.convertToFloat(src.widthMeter);
     dest.heightMeter = Utils.convertToFloat(src.heightMeter);
     dest.releasedOn = Utils.convertToDate(src.releasedOn);
+    Database.updateCreatedAndLastChanged(src, dest);
+  }
+
+  static updateOcpiEndpoint(src, dest, forFrontEnd = true) {
+    if (forFrontEnd) {
+      Database.updateID(src, dest);
+    } 
+
+    dest.name = src.name;
+    dest.status = src.status;
+    dest.baseUrl = src.baseUrl;
+    dest.version = src.version;
+    dest.versionUrl = src.versionUrl;
+    dest.availableEndpoints = src.availableEndpoints;
+    dest.businessDetails = src.businessDetails;
+    dest.localToken = src.localToken;
+    dest.token = src.token;
+    dest.countryCode = src.countryCode;
+    dest.partyId = src.partyId;
+
     Database.updateCreatedAndLastChanged(src, dest);
   }
 

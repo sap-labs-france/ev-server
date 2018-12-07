@@ -1,6 +1,7 @@
 const AbstractOCPIService = require('../../AbstractOCPIService');
 const CredentialsEndpoint = require('./CredentialsEndpoint');
 const LocationsEndpoint = require('./LocationsEndpoint');
+// const TestsEndpoint = require('./TestsEndpoint');
 
 const VERSION = "2.1.1";
 
@@ -17,6 +18,7 @@ class OCPIServices extends AbstractOCPIService {
     // register Endpoints
     this.registerEndpoint(new CredentialsEndpoint());
     this.registerEndpoint(new LocationsEndpoint());
+    // this.registerEndpoint(new TestsEndpoint());
   }
 }
 

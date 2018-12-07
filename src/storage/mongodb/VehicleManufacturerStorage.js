@@ -3,7 +3,7 @@ const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const VehicleStorage = require('./VehicleStorage');
-const AppError = require('../../exception/AppError');
+const BackendError = require('../../exception/BackendError');
 const ObjectID = require('mongodb').ObjectID;
 const DatabaseUtils = require('./DatabaseUtils');
 const Logging = require('../../utils/Logging');
@@ -65,10 +65,10 @@ class VehicleManufacturerStorage {
     // Check if ID/Name is provided
     if (!vehicleManufacturerLogoToSave.id) {
       // ID must be provided!
-      throw new AppError(
+      throw new BackendError(
         Constants.CENTRAL_SERVER,
         `Vehicle Manufacturer Logo has no ID`,
-        550, "VehicleManufacturerStorage", "saveVehicleManufacturerLogo");
+        "VehicleManufacturerStorage", "saveVehicleManufacturerLogo");
     }
     // Modify
     await global.database.getCollection(tenantID, 'vehiclemanufacturerlogos').findOneAndUpdate(
@@ -118,10 +118,10 @@ class VehicleManufacturerStorage {
     // Check if ID/Model is provided
     if (!vehicleManufacturerToSave.id && !vehicleManufacturerToSave.name) {
       // ID must be provided!
-      throw new AppError(
+      throw new BackendError(
         Constants.CENTRAL_SERVER,
         `Vehicle Manufacturer has no ID and no Name`,
-        550, "VehicleManufacturerStorage", "saveVehicleManufacturer");
+        "VehicleManufacturerStorage", "saveVehicleManufacturer");
     }
     const vehicleManufacturerFilter = {};
     // Build Request
