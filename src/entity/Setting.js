@@ -2,14 +2,14 @@ const AbstractTenantEntity = require('./AbstractTenantEntity');
 const Database = require('../utils/Database');
 const Constants = require('../utils/Constants');
 const AppError = require('../exception/AppError');
-const ComponentStorage = require('../storage/mongodb/ComponentStorage');
+const SettingStorage = require('../storage/mongodb/SettingStorage');
 const User = require('./User');
 
-class Component extends AbstractTenantEntity {
-  constructor(tenantID, component) {
+class Setting extends AbstractTenantEntity {
+  constructor(tenantID, setting) {
     super(tenantID);
     // Set it
-    Database.updateComponent(component, this._model);
+    Database.updateSetting(setting, this._model);
   }
 
   getID() {
@@ -17,7 +17,7 @@ class Component extends AbstractTenantEntity {
   }
 
   /**
-   * Identifier of the component
+   * Identifier of the setting
    */
   getIdentifier() {
     return this._model.identifier;
@@ -28,14 +28,14 @@ class Component extends AbstractTenantEntity {
   }
 
   /**
-   * get Configuration
+   * get content
    */
-  getConfiguration() {
-    return this._model.configuration;
+  getContent() {
+    return this._model.content;
   }
 
-  setConfiguration(configuration) {
-    this._model.configuration = configuration;
+  setContent(content) {
+    this._model.content = content;
   }
 
   getCreatedBy() {
@@ -77,30 +77,30 @@ class Component extends AbstractTenantEntity {
   }
 
   save() {
-    return ComponentStorage.saveComponent(this.getTenantID(), this.getModel());
+    return SettingStorage.saveSetting(this.getTenantID(), this.getModel());
   }
 
   delete() {
-    return ComponentStorage.deleteComponent(this.getTenantID(), this.getID());
+    return SettingStorage.deleteSetting(this.getTenantID(), this.getID());
   }
 
-  static checkIfComponentValid(request, httpRequest) {
+  static checkIfSettingValid(request, httpRequest) {
     // Update model?
     if (httpRequest.method !== 'POST' && !request.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Component ID is mandatory`, 500,
-        'Component', 'checkIfComponentValid');
+        `The Setting ID is mandatory`, 500,
+        'Setting', 'checkIfSettingValid');
     }
   }
 
-  static getComponent(tenantID, id) {
-    return ComponentStorage.getComponent(tenantID, id);
+  static getSetting(tenantID, id) {
+    return SettingStorage.getSetting(tenantID, id);
   }
 
-  static async getComponentByIdentifier(tenantID, identifier) {
-    return await ComponentStorage.getComponentByIdentifier(tenantID, identifier);
+  static async getSettingByIdentifier(tenantID, identifier) {
+    return await SettingStorage.getSettingByIdentifier(tenantID, identifier);
   }
 }
 
-module.exports = Component;
+module.exports = Setting;

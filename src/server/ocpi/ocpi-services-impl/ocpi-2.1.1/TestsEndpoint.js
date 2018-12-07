@@ -1,6 +1,6 @@
 const AbstractEndpoint = require('../AbstractEndpoint');
 const OcpiEndpoint = require('../../../../entity/OcpiEndpoint');
-const Component = require('../../../../entity/Component');
+const Setting = require('../../../../entity/Setting');
 
 require('source-map-support').install();
 
@@ -49,9 +49,15 @@ class TestsEndpoint extends AbstractEndpoint {
     await tenant.save();
 
 
-    // test component handling
-    const component = await Component.getComponentByIdentifier(tenant.getID(),'ocpi');
-    component.setConfiguration({
+    // test setting handling
+    let setting = await Setting.getSettingByIdentifier(tenant.getID(),'ocpi');
+
+    if (!setting) {
+      setting = new Setting(tenant.getID(), {});
+      setting.setIdentifier('ocpi');
+    }
+
+    setting.setContent({
       "party_id": "SLF",
       "country_code": "FR",
       "business_details": {
@@ -67,7 +73,20 @@ class TestsEndpoint extends AbstractEndpoint {
         "website": "http://sap.com"
       }
     });
-    let componentSaved = await component.save();
+    let settingSaved = await setting.save();
+
+    let testsetting = await Setting.getSettingByIdentifier(tenant.getID(),'test');
+
+    if (testsetting) {
+      // delete
+      await testsetting.delete();
+    }
+
+    // recreate it
+    testsetting = new Setting(tenant.getID(), {});
+    testsetting.setIdentifier('test');
+    testsetting.setContent({'test': true});
+    await testsetting.save();
 
     // test ocpiEndpoint entity
     const ocpiEndpoint = await OcpiEndpoint.getDefaultOcpiEndpoint(tenant.getID());

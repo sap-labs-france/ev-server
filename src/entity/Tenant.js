@@ -1,7 +1,7 @@
 const Database = require('../utils/Database');
 const TenantStorage = require('../storage/mongodb/TenantStorage');
 const User = require('./User');
-const Component = require('../entity/Component');
+const Setting = require('../entity/Setting');
 
 class Tenant {
   constructor(tenant) {
@@ -74,12 +74,12 @@ class Tenant {
     }
   }
   /**
-   * Return component entity
+   * Return Setting entity
    * @param {*} identifier 
-   * @return Component
+   * @return Setting
    */
-  async getComponent(identifier) {
-    return await Component.getComponentByIdentifier(this.getID(), identifier) ;
+  async getSetting(identifier) {
+    return await Setting.getSettingByIdentifier(this.getID(), identifier) ;
   }
 
   getCreatedBy() {

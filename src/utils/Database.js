@@ -406,13 +406,13 @@ class Database {
     Database.updateCreatedAndLastChanged(src, dest);
   }
 
-  static updateComponent(src, dest, forFrontEnd = true) {
+  static updateSetting(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
     } 
 
     dest.identifier = src.identifier;
-    dest.configuration = src.configuration;
+    dest.content = src.content;
 
     Database.updateCreatedAndLastChanged(src, dest);
   }

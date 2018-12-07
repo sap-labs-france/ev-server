@@ -229,12 +229,12 @@ class OCPIMapping {
     const credential = {};
 
     // get ocpi service configuration
-    const ocpiComponent = await tenant.getComponent(Constants.COMPONENTS.OCPI_COMPONENT);
+    const ocpiSetting= await tenant.getSetting(Constants.COMPONENTS.OCPI_COMPONENT);
 
     credential.url = 'https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/cpo/versions';
     // check if available
-    if (ocpiComponent && ocpiComponent.getConfiguration()) {
-      const configuration = ocpiComponent.getConfiguration();
+    if (ocpiSetting && ocpiSetting.getContent()) {
+      const configuration = ocpiSetting.getContent();
       credential.token = token;
       credential.country_code = configuration.country_code;
       credential.party_id = configuration.party_id;
