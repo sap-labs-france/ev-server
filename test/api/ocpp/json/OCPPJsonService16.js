@@ -4,11 +4,13 @@ const WebSocket = require('ws');
 const config = require('../../../config');
 const {performance} = require('perf_hooks');
 const OCPP_JSON_CALL_MESSAGE = 2;
+const OCPP_JSON_CALL_RESULT_MESSAGE = 3;
 
 class OCPPJsonService16 extends OCPPService {
-  constructor(serverUrl) {
+  constructor(serverUrl, requestHandler) {
     super(serverUrl);
     this._wsSessions = new Map();
+    this.requestHandler = requestHandler;
   }
 
   getVersion() {
@@ -18,14 +20,14 @@ class OCPPJsonService16 extends OCPPService {
   openConnection(chargeBoxIdentity) {
     return new Promise((resolve, reject) => {
       // Create WS
-      const requests = [];
+      const sentRequests = [];
       const wsConnection = new WebSocket(`${this.serverUrl}/${chargeBoxIdentity}`, {
         protocol: 'ocpp1.6'
       });
       // Opened
       wsConnection.onopen = () => {
         // connection is opened and ready to use
-        resolve({connection: wsConnection, requests: requests});
+        resolve({connection: wsConnection, requests: sentRequests});
       };
       // Handle Error Message
       wsConnection.onerror = (error) => {
@@ -41,17 +43,21 @@ class OCPPJsonService16 extends OCPPService {
           // Parse the message
           const messageJson = JSON.parse(message.data);
           // Check if this corresponds to a request
-          if (requests[messageJson[1]]) {
+          if (messageJson[0] === OCPP_JSON_CALL_RESULT_MESSAGE && sentRequests[messageJson[1]]) {
             const response = {};
             // Set the data
             response.responseMessageId = messageJson[1];
-            response.executionTime = t1 - requests[messageJson[1]].t0;
+            response.executionTime = t1 - sentRequests[messageJson[1]].t0;
             response.data = messageJson[2];
             if (config.get('ocpp.json.logs') === 'json') {
               console.log(JSON.stringify(response, null, 2));
             }
             // Respond to the request
-            requests[messageJson[1]].resolve(response);
+            sentRequests[messageJson[1]].resolve(response);
+          } else if (messageJson[0] === OCPP_JSON_CALL_MESSAGE) {
+            const [messageType, messageId, commandName, commandPayload] = messageJson;
+            this.handleRequest(chargeBoxIdentity, messageId, commandName, commandPayload);
+
           }
         } catch (error) {
           console.log(`Error occurred when receiving the message ${message.data}`);
@@ -60,6 +66,18 @@ class OCPPJsonService16 extends OCPPService {
         }
       };
     })
+  }
+
+  async handleRequest(chargeBoxIdentity, messageId, commandName, commandPayload) {
+    let result = {};
+
+    if (this.requestHandler && typeof this.requestHandler["handle" + commandName] === 'function') {
+      result = await this.requestHandler["handle" + commandName](commandPayload);
+    } else {
+      console.log(`${commandName} is not implemented`);
+    }
+    await this._send(chargeBoxIdentity, this._buildResponse(messageId, result));
+
   }
 
   closeConnection() {
@@ -130,7 +148,7 @@ class OCPPJsonService16 extends OCPPService {
     );
   }
 
-  async _send(chargeBoxIdentity, request) {
+  async _send(chargeBoxIdentity, message) {
 
     // WS Opened?
     if (!this._wsSessions.get(chargeBoxIdentity)) {
@@ -139,16 +157,23 @@ class OCPPJsonService16 extends OCPPService {
     }
     // Log
     if (config.get('ocpp.json.logs') === 'json') {
-      console.log(JSON.stringify({url: this.serverUrl, requestMessageId: request[1], action: request[2], data: request[3]}, null, 2));
+      console.log(JSON.stringify({
+        url: this.serverUrl,
+        requestMessageId: message[1],
+        action: message[2],
+        data: message[3]
+      }, null, 2));
     }
     // Send
     const t0 = performance.now();
-    await this._wsSessions.get(chargeBoxIdentity).connection.send(JSON.stringify(request));
-    // Return a promise
-    return new Promise((resolve, reject) => {
-      // Set the resolve function
-      this._wsSessions.get(chargeBoxIdentity).requests[request[1]] = {resolve, reject, t0: t0};
-    });
+    await this._wsSessions.get(chargeBoxIdentity).connection.send(JSON.stringify(message));
+    if (message[0] === OCPP_JSON_CALL_MESSAGE) {
+      // Return a promise
+      return new Promise((resolve, reject) => {
+        // Set the resolve function
+        this._wsSessions.get(chargeBoxIdentity).requests[message[1]] = {resolve, reject, t0: t0};
+      });
+    }
   }
 
   _buildRequest(command, payload) {
@@ -157,6 +182,14 @@ class OCPPJsonService16 extends OCPPService {
       OCPP_JSON_CALL_MESSAGE,
       uuid(),
       command,
+      payload];
+  }
+
+  _buildResponse(messageId, payload) {
+    // Build the request
+    return [
+      OCPP_JSON_CALL_RESULT_MESSAGE,
+      messageId,
       payload];
   }
 }

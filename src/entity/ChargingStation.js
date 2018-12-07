@@ -956,8 +956,25 @@ class ChargingStation extends AbstractTenantEntity {
         newMeterValues.values.push(newMeterValue);
       }
     }
+    newMeterValues.values = this._filterClockMeterValues(newMeterValues.values);
+
     // Compute consumption?
-    if (meterValues.transactionId) {
+    if (!meterValues.transactionId) {
+      // Log
+      Logging.logWarning({
+        tenantID: this.getTenantID(),
+        source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+        action: 'MeterValues', message: `MeterValue not saved (not linked to a Transaction)`,
+        detailedMessages: meterValues
+      });
+    } else if (newMeterValues.values.length == 0) {
+      Logging.logDebug({
+        tenantID: this.getTenantID(),
+        source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
+        action: 'MeterValues', message: `No MeterValue to save (clocks only)`,
+        detailedMessages: meterValues
+      });
+    } else {
       // Save Meter Values
       await TransactionStorage.saveMeterValues(this.getTenantID(), newMeterValues);
       // Update Charging Station Consumption
@@ -974,15 +991,14 @@ class ChargingStation extends AbstractTenantEntity {
         message: `MeterValue have been saved for Transaction ID '${meterValues.transactionId}'`,
         detailedMessages: meterValues
       });
-    } else {
-      // Log
-      Logging.logWarning({
-        tenantID: this.getTenantID(),
-        source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-        action: 'MeterValues', message: `MeterValue not saved (not linked to a Transaction)`,
-        detailedMessages: meterValues
-      });
     }
+  }
+
+  _filterClockMeterValues(meterValues) {
+    if (this.getChargePointVendor() === 'ABB' && this.getOcppVersion() === Constants.OCPP_VERSION_15) {
+      return meterValues;
+    }
+    return meterValues.filter(value => value.attribute.context !== 'Sample.Clock');
   }
 
   saveConfiguration(configuration) {
