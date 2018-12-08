@@ -78,7 +78,7 @@ class UserSecurity {
       filteredRequest.mobile = sanitize(request.mobile);
     }
     if (request.name) {
-      filteredRequest.name = sanitize(request.name.toUpperCase());
+      filteredRequest.name = sanitize(request.name);
     }
     if (request.locale) {
       filteredRequest.locale = sanitize(request.locale);
