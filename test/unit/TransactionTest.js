@@ -1691,6 +1691,7 @@ describe('Transaction entity tests', () => {
           timestamp: model.timestamp,
           currentConsumption: 0,
           totalConsumption: 0,
+          currentStateOfCharge: 80,
           stateOfCharge: 80,
           price: 0,
           priceUnit: 'EUR',
@@ -1708,7 +1709,7 @@ describe('Transaction entity tests', () => {
 
       let cumulated = 0;
       for (let i = 0; i < 10; i++) {
-        const currentValue = faker.random.number({min: 200, max: 500});
+        const currentValue = 100;
         cumulated += currentValue;
         const meterValues = [];
         meterValues.push(MeterValueFactory.build(
@@ -1739,7 +1740,8 @@ describe('Transaction entity tests', () => {
             timestamp: model.timestamp,
             currentConsumption: currentValue * 60,
             totalConsumption: cumulated,
-            stateOfCharge: 10 * (i + 1),
+            currentStateOfCharge: 10 * (i + 1),
+            stateOfCharge: 10,
             price: +((cumulated / 1000 * 1.5).toFixed(6)),
             priceUnit: 'EUR',
             user: model.user,

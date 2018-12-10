@@ -453,7 +453,7 @@ class Transaction extends AbstractTenantEntity {
 
     if (this._isSocMeterValue(meterValue)) {
 
-      this._popInternalMeterValue(this._isSocMeterValue);
+      this._popInternalMeterValue(this._isSocMeterValue, true);
       this._model.internalMeterValues.push(meterValue);
 
     } else if (this._isConsumptionMeterValue(meterValue)) {
@@ -481,8 +481,9 @@ class Transaction extends AbstractTenantEntity {
     return 0;
   }
 
-  _popInternalMeterValue(condition) {
-    const index = this._model.internalMeterValues.findIndex(condition);
+  _popInternalMeterValue(condition, last = false) {
+
+    const index = !last ? this._model.internalMeterValues.findIndex(condition) : this._findLastIndexOf(this._model.internalMeterValues, condition);
     const count = this._model.internalMeterValues.reduce((count, currentValue) => condition(currentValue) ? count + 1 : count, 0);
     const value = this._model.internalMeterValues[index];
     if (count > 1) {
@@ -491,6 +492,13 @@ class Transaction extends AbstractTenantEntity {
     return value;
   }
 
+  _findLastIndexOf(array, condition) {
+    for (let index = array.length - 1; index >= 0; index--) {
+      if (condition(array[index])) {
+        return index;
+      }
+    }
+  }
 
   remoteStop(tagId, timestamp) {
     this._model.remotestop = {};
