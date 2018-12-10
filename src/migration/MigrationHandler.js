@@ -6,6 +6,7 @@ const MigrationStorage = require('../storage/mongodb/MigrationStorage')
 const UpdateTransactionInactivityTask = require('./tasks/UpdateTransactionInactivityTask');
 const TenantMigrationTask = require('./tasks/TenantMigrationTask');
 const UpdateTransactionSoCTask = require('./tasks/UpdateTransactionSoCTask');
+const UpdateABBMeterValuesTask = require('./tasks/UpdateKebaMeterValuesTask');
 
 
 class MigrationHandler {
@@ -28,6 +29,7 @@ class MigrationHandler {
       currentMigrationTasks.push(new UpdateTransactionInactivityTask());
       currentMigrationTasks.push(new TenantMigrationTask());
       currentMigrationTasks.push(new UpdateTransactionSoCTask());
+      currentMigrationTasks.push(new UpdateABBMeterValuesTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();

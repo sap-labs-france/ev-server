@@ -12,10 +12,10 @@ const Utils = require('../../src/utils/Utils');
 
 class DataHelper {
 
-  constructor(ocppVersion, tenantID) {
+  constructor(ocppVersion, tenantID, ocppRequestHandler) {
 
     if (ocppVersion === '1.6') {
-      this.ocpp = new OCPPJsonService16(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${tenantID}`);
+      this.ocpp = new OCPPJsonService16(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${tenantID}`, ocppRequestHandler);
     } else if (ocppVersion === '1.5') {
       this.ocpp = new OCPPJsonService15(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${tenantID}`);
     } else {
@@ -170,6 +170,26 @@ class DataHelper {
     expect(response.data).to.eql({});
   }
 
+  async sendClockMeterValue(chargingStation, connectorId, transactionId, meterValue, timestamp) {
+    const response = await this.ocpp.executeMeterValues(chargingStation.id, {
+      connectorId: connectorId,
+      transactionId: transactionId,
+      meterValue: {
+        timestamp: timestamp.toISOString(),
+        sampledValue: [{
+          value: meterValue,
+          format: "Raw",
+          measurand: "Energy.Active.Import.Register",
+          unit: 'Wh',
+          location: "Outlet",
+          context: "Sample.Clock"
+        }]
+
+      },
+    });
+    expect(response.data).to.eql({});
+  }
+
   async setConnectorStatus(ocpp, chargingStation, connectorId, status, timestamp) {
     const connector = Utils.duplicateJSON(chargingStation.connectors[connectorId]);
     connector.status = status;
@@ -178,6 +198,49 @@ class DataHelper {
     expect(response.data).to.eql({});
     chargingStation.connectors[connectorId].status = connector.status;
     chargingStation.connectors[connectorId].timestamp = connector.timestamp;
+  }
+
+  getConfigurationOf(chargingStation) {
+    const configuration = {
+      "stationTemplate": {
+        "baseName": "CS-" + faker.random.alphaNumeric(10),
+        "chargePointModel": chargingStation.chargePointModel,
+        "chargePointVendor": chargingStation.chargePointVendor,
+        "power": [7200, 16500, 22000, 50000],
+        "powerUnit": "W",
+        "numberOfConnectors": chargingStation.connectors.length,
+        "randomConnectors": false,
+        "Configuration": {
+          "NumberOfConnectors": chargingStation.connectors.length,
+          "param1": "test",
+          "meterValueInterval": 60
+        },
+        "AutomaticTransactionGenerator": {
+          "enable": true,
+          "minDuration": 70,
+          "maxDuration": 180,
+          "minDelayBetweenTwoTransaction": 30,
+          "maxDelayBetweenTwoTransaction": 60,
+          "probabilityOfStart": 1,
+          "stopAutomaticTransactionGeneratorAfterHours": 0.3
+        },
+        "Connectors": {}
+      }
+    };
+    chargingStation.connectors.forEach(connector => {
+      configuration.Connectors[connector.connectorId] = {
+        "MeterValues": [{
+          "unit": "Percent",
+          "context": "Sample.Periodic",
+          "measurand": "SoC",
+          "location": "EV"
+        }, {
+          "unit": "Wh",
+          "context": "Sample.Periodic"
+        }]
+      };
+    });
+    return configuration;
   }
 }
 
