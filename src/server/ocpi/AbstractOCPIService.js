@@ -33,14 +33,22 @@ class AbstractOCPIService {
 
   // Return based URL of OCPI Service
   getServiceUrl(req) {
-    const protocol = this._ocpiRestConfig.externalProtocol?this._ocpiRestConfig.externalProtocol:"https";
+    const baseUrl = this.getBaseUrl(req);
     const path = this.getPath();
+ 
+    // return Service url
+    return `${baseUrl}${path}`;
+  }
 
-    // get host from the req in order to handle the tenants
+  // Get BaseUrl ${protocol}://${host}
+  getBaseUrl(req) {
+    const protocol = (this._ocpiRestConfig.externalProtocol?this._ocpiRestConfig.externalProtocol:"https");
+
+    // get host from the req
     const host = req.get('host');
 
     // return Service url
-    return `${protocol}://${host}${path}`;
+    return `${protocol}://${host}`;
   }
 
   // Get Relative path of the service

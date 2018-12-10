@@ -16,8 +16,8 @@ const RECORDS_LIMIT = 20;
  */
 class LocationsEndpoint extends AbstractEndpoint {
   // Create OCPI Service
-  constructor() {
-    super(EP_IDENTIFIER,EP_VERSION);
+  constructor(ocpiService) {
+    super(ocpiService,EP_IDENTIFIER,EP_VERSION);
   }
 
   /**

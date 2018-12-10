@@ -7,7 +7,8 @@ require('source-map-support').install();
  */
 class AbstractEndpoint {
   // Create OCPI Service
-  constructor(identifier = "default", version = "0.0.0") {
+  constructor(ocpiService, identifier = "default", version = "0.0.0") {
+    this._ocpiService = ocpiService;
     this._identifier = identifier;
     this._version = version;
   }
@@ -20,6 +21,11 @@ class AbstractEndpoint {
   // get Endpoint version
   getVersion() {
     return this._version;
+  }
+
+  // Return based URL of OCPI Service
+  getBaseUrl(req) {
+    return this._ocpiService.getBaseUrl(req);
   }
 
   // Abstract - Process endpoint
