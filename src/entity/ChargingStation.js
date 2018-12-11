@@ -640,19 +640,7 @@ class ChargingStation extends AbstractTenantEntity {
     return {status: 'Accepted'};
   }
 
-  async updateChargingStationConsumption(transactionId) {
-    // Get the last transaction first
-    const transaction = await this.getTransaction(transactionId);
-
-    if (!transaction) {
-      Logging.logError({
-        tenantID: this.getTenantID(),
-        source: this.getID(), module: 'ChargingStation',
-        method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
-        message: `Transaction ID '${transactionId}' not found`
-      });
-      return;
-    }
+  async updateChargingStationConsumption(transaction) {
 
     const connector = this.getConnector(transaction.getConnectorId());
 
@@ -667,7 +655,7 @@ class ChargingStation extends AbstractTenantEntity {
         connector.currentStateOfCharge = transaction.getCurrentStateOfCharge();
       }
       // Update Transaction ID
-      connector.activeTransactionID = transactionId;
+      connector.activeTransactionID = transaction.getID();
       // Update Heartbeat
       this.setLastHeartBeat(new Date());
       // Handle End Of charge
@@ -977,8 +965,12 @@ class ChargingStation extends AbstractTenantEntity {
     } else {
       // Save Meter Values
       await TransactionStorage.saveMeterValues(this.getTenantID(), newMeterValues);
+      const transaction = await TransactionStorage.getTransaction(this.getTenantID(), meterValues.transactionId);
+      newMeterValues.values.forEach(meterValue => transaction.updateWithMeterValue(meterValue));
+      await TransactionStorage.saveTransaction(transaction);
+
       // Update Charging Station Consumption
-      await this.updateChargingStationConsumption(meterValues.transactionId);
+      await this.updateChargingStationConsumption(transaction);
       // Save
       await this.save();
       // Log
@@ -1166,7 +1158,7 @@ class ChargingStation extends AbstractTenantEntity {
       this.lockAllConnectors();
     }
 
-    await this.updateChargingStationConsumption(transactionEntity.getID());
+    await this.updateChargingStationConsumption(transactionEntity);
     // Save
     await this.save();
     // Log

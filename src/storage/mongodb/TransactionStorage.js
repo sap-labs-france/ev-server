@@ -31,7 +31,7 @@ class TransactionStorage {
     // Check
     await Utils.checkTenant(transactionEntityToSave.getTenantID());
     const transactionMDB = {};
-    Database.updateTransaction(transactionEntityToSave.getModel(), transactionMDB, false);
+    Database.updateTransaction(transactionEntityToSave.getModel(true), transactionMDB, false);
     if (!transactionMDB.id) {
       transactionMDB.id = await TransactionStorage._findAvailableID(transactionEntityToSave.getTenantID());
     }
@@ -244,8 +244,7 @@ class TransactionStorage {
     aggregation.push({
       $unwind: {"path": "$stop.user", "preserveNullAndEmptyArrays": true}
     });
-    // Add MeterValues only for not completed transactions
-    if (!params.stop || params.stop.$exists == false) {
+    if (params.withMeterValues) {
       aggregation.push({
         $lookup: {
           from: DatabaseUtils.getCollectionName(tenantID, 'metervalues'),
@@ -277,7 +276,7 @@ class TransactionStorage {
     };
   }
 
-  static async getTransaction(tenantID, id) {
+  static async getTransaction(tenantID, id, withMeterValues = false) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransaction');
     // Check
@@ -315,14 +314,16 @@ class TransactionStorage {
     aggregation.push({
       $unwind: {"path": "$stop.user", "preserveNullAndEmptyArrays": true}
     });
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'metervalues'),
-        localField: '_id',
-        foreignField: 'transactionId',
-        as: 'meterValues'
-      }
-    });
+    if (withMeterValues) {
+      aggregation.push({
+        $lookup: {
+          from: DatabaseUtils.getCollectionName(tenantID, 'metervalues'),
+          localField: '_id',
+          foreignField: 'transactionId',
+          as: 'meterValues'
+        }
+      });
+    }
     aggregation.push({
       $lookup: {
         from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
@@ -376,14 +377,6 @@ class TransactionStorage {
     // Add
     aggregation.push({
       $unwind: {"path": "$user", "preserveNullAndEmptyArrays": true}
-    });
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'metervalues'),
-        localField: '_id',
-        foreignField: 'transactionId',
-        as: 'meterValues'
-      }
     });
     // Read DB
     const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')

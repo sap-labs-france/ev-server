@@ -12,6 +12,9 @@ class Transaction extends AbstractTenantEntity {
     if (transaction) {
       Database.updateTransaction(transaction, this._model);
     }
+    if (!this._model.internalMeterValues) {
+      this._model.internalMeterValues = [];
+    }
     if (this._model.user) {
       delete this._model.user.address;
       delete this._model.user.deleted;
@@ -72,7 +75,7 @@ class Transaction extends AbstractTenantEntity {
     return undefined;
   }
 
-  getModel() {
+  getModel(forDB = false) {
     if (this.isActive()) {
       this._model.totalConsumption = this.getTotalConsumption();
       this._model.currentConsumption = this.getCurrentConsumption();
@@ -96,6 +99,9 @@ class Transaction extends AbstractTenantEntity {
 
     const copy = Utils.duplicateJSON(this._model);
     delete copy.meterValues;
+    if (!forDB) {
+      delete copy.internalMeterValues;
+    }
     delete copy.pricing;
     return copy;
   }
@@ -210,14 +216,14 @@ class Transaction extends AbstractTenantEntity {
     if (!this.isActive()) {
       return this._model.stop.totalInactivitySecs
     }
-    let totalInactivitySecs = 0;
-    this.getConsumptions().forEach((consumption, index, array) => {
+    let totalInactivitySecs = this._getInternalInactivity();
+    this.getMeterValues().forEach((meterValue, index, array) => {
       if (index === 0) {
         return;
       }
-      const lastConsumption = array[index - 1];
-      if (consumption.value === 0 && lastConsumption.value === 0) {
-        totalInactivitySecs += moment.duration(moment(consumption.date).diff(lastConsumption.date)).asSeconds();
+      const lastMeterValue = array[index - 1];
+      if (meterValue.value === lastMeterValue.value) {
+        totalInactivitySecs += moment.duration(moment(meterValue.timestamp).diff(lastMeterValue.timestamp)).asSeconds();
       }
     });
     return totalInactivitySecs;
@@ -311,18 +317,21 @@ class Transaction extends AbstractTenantEntity {
   }
 
   _computeStateOfCharges() {
-    const meterValues = [this._getFirstMeterValue(), ...(this._model.meterValues)];
-    if (!this.isActive()) {
-      meterValues.push(this._getLastMeterValue());
-    }
+    return this._getMeterValues(this._isSocMeterValue);
+  }
 
-    return meterValues
-      .filter(meterValue => meterValue.attribute
-        && (meterValue.attribute.context === 'Sample.Periodic'
-          || meterValue.attribute.context === 'Transaction.Begin'
-          || meterValue.attribute.context === 'Transaction.End')
-        && meterValue.attribute.measurand === 'SoC')
-      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+  _isSocMeterValue(meterValue) {
+    return meterValue.attribute
+      && (meterValue.attribute.context === 'Sample.Periodic'
+        || meterValue.attribute.context === 'Transaction.Begin'
+        || meterValue.attribute.context === 'Transaction.End')
+      && meterValue.attribute.measurand === 'SoC'
+  }
+
+  _isConsumptionMeterValue(meterValue) {
+    return meterValue.attribute
+      && meterValue.attribute.measurand === 'Energy.Active.Import.Register'
+      && (meterValue.attribute.context === "Sample.Periodic" || meterValue.attribute.context === "Sample.Clock")
   }
 
   _computeConsumptions() {
@@ -344,18 +353,24 @@ class Transaction extends AbstractTenantEntity {
   }
 
   _computeMeterValues() {
-    let meterValues = [this._getFirstMeterValue(), ...(this._model.meterValues)];
+    const meterValues = this._getMeterValues(this._isConsumptionMeterValue);
+    return this._alignMeterValues(meterValues);
+  }
+
+  _getMeterValues(typeFunction) {
+    let meterValues;
+    if (this._model.meterValues.length > 0) {
+      meterValues = [this._getFirstMeterValue(), ...(this._model.meterValues)];
+    } else {
+      meterValues = [this._getFirstMeterValue(), ...(this._model.internalMeterValues)];
+    }
     if (this._hasMeterStop()) {
       meterValues.push(this._getLastMeterValue());
     }
 
-    meterValues = meterValues
-      .filter(meterValue => meterValue.attribute
-        && meterValue.attribute.measurand === 'Energy.Active.Import.Register'
-        && (meterValue.attribute.context === "Sample.Periodic" || meterValue.attribute.context === "Sample.Clock"))
+    return meterValues
+      .filter(typeFunction)
       .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-
-    return this._alignMeterValues(meterValues);
   }
 
   _alignMeterValues(meterValues) {
@@ -369,7 +384,9 @@ class Transaction extends AbstractTenantEntity {
       if (previousMeterValue.registeredValue > meterValue.value) {
         delta = previousMeterValue.value;
       }
-      meterValue.registeredValue = meterValue.value;
+      if (!meterValue.registeredValue) {
+        meterValue.registeredValue = meterValue.value;
+      }
       meterValue.value = +meterValue.value + delta;
     });
     return meterValues;
@@ -387,14 +404,15 @@ class Transaction extends AbstractTenantEntity {
   }
 
   getAverageConsumptionOnLast(numberOfConsumptions) {
-    if (numberOfConsumptions > this.getConsumptions().length) {
+    if (numberOfConsumptions > this.getMeterValues().length) {
       return 1;
     }
-    let cumulatedConsumption = 0;
-    for (let i = this.getConsumptions().length - numberOfConsumptions; i < this.getConsumptions().length; i++) {
-      cumulatedConsumption += this.getConsumptions()[i].value;
+    for (let i = this.getMeterValues().length - numberOfConsumptions; i < this.getMeterValues().length - 1; i++) {
+      if (this.getMeterValues()[i].value !== this.getMeterValues()[i + 1].value) {
+        return 1
+      }
     }
-    return cumulatedConsumption / numberOfConsumptions;
+    return 0;
   }
 
   isActive() {
@@ -430,6 +448,58 @@ class Transaction extends AbstractTenantEntity {
     this.active = false;
   }
 
+  updateWithMeterValue(meterValue) {
+    meterValue.timestamp = new Date(meterValue.timestamp);
+
+    if (this._isSocMeterValue(meterValue)) {
+
+      this._popInternalMeterValue(this._isSocMeterValue, true);
+      this._model.internalMeterValues.push(meterValue);
+
+    } else if (this._isConsumptionMeterValue(meterValue)) {
+
+      const totalInactivitySecs = this.getTotalInactivitySecs();
+      const oldMeterValue = this._popInternalMeterValue(this._isConsumptionMeterValue);
+      const meterValues = [this._getFirstMeterValue(), meterValue];
+      if (oldMeterValue) {
+        meterValues.splice(1, 0, oldMeterValue);
+      }
+      const alignedMeterValue = this._alignMeterValues(meterValues).pop();
+      alignedMeterValue.totalInactivitySecs = totalInactivitySecs;
+      this._model.internalMeterValues.push(alignedMeterValue);
+    }
+    this._invalidateComputations();
+  }
+
+  _getInternalInactivity() {
+    let index = this._model.internalMeterValues.length - 1;
+    for (; index >= 0; index--) {
+      if (this._model.internalMeterValues[index].hasOwnProperty('totalInactivitySecs')) {
+        return this._model.internalMeterValues[index].totalInactivitySecs;
+      }
+    }
+    return 0;
+  }
+
+  _popInternalMeterValue(condition, last = false) {
+
+    const index = !last ? this._model.internalMeterValues.findIndex(condition) : this._findLastIndexOf(this._model.internalMeterValues, condition);
+    const count = this._model.internalMeterValues.reduce((count, currentValue) => condition(currentValue) ? count + 1 : count, 0);
+    const value = this._model.internalMeterValues[index];
+    if (count > 1) {
+      this._model.internalMeterValues.splice(index, 1);
+    }
+    return value;
+  }
+
+  _findLastIndexOf(array, condition) {
+    for (let index = array.length - 1; index >= 0; index--) {
+      if (condition(array[index])) {
+        return index;
+      }
+    }
+  }
+
   remoteStop(tagId, timestamp) {
     this._model.remotestop = {};
     this._model.remotestop.tagID = tagId;
@@ -460,7 +530,6 @@ class Transaction extends AbstractTenantEntity {
     if (stateOfChargeMeterValue) {
       consumption.stateOfCharge = stateOfChargeMeterValue.value;
     }
-
     if (this.hasPricing()) {
       const consumptionWh = meterValue.value - lastMeterValue.value;
       consumption.price = +((consumptionWh / 1000) * this._getPricing().priceKWH).toFixed(6);
@@ -469,7 +538,7 @@ class Transaction extends AbstractTenantEntity {
   }
 
   _hasMeterValues() {
-    return this._model.meterValues != null && this._model.meterValues.length > 0;
+    return this._model.meterValues != null && this._model.meterValues.length > 0 || this._model.internalMeterValues && this._model.internalMeterValues.length > 0;
   }
 
   _hasConsumptions() {
