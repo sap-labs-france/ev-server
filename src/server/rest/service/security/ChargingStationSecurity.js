@@ -124,6 +124,9 @@ class ChargingStationSecurity {
     if (request.hasOwnProperty('cannotChargeInParallel')) {
       filteredRequest.cannotChargeInParallel = UtilsSecurity.filterBoolean(request.cannotChargeInParallel);
     }
+    if (request.hasOwnProperty('siteArea')) {
+      filteredRequest.siteArea = sanitize(request.siteArea);
+    }
     if (request.connectors) {
       // Filter
       filteredRequest.connectors = request.connectors.map((connector) => {
