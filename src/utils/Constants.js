@@ -19,7 +19,6 @@ module.exports = {
   STATS_GROUP_BY_CONSUMPTION: "C",
   STATS_GROUP_BY_USAGE: "U",
 
-  // Statuses
   ENTITY_SITE: "Site",
   ENTITY_SITES: "Sites",
   ENTITY_SITE_AREA: "SiteArea",
@@ -45,7 +44,6 @@ module.exports = {
   ENTITY_PRICING: "Pricing",
 
   NOTIF_TYPE_CHARGING_STATION_CONFIGURATION: "Configuration",
-
 
   NO_LIMIT: 0,
 
