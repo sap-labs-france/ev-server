@@ -69,6 +69,7 @@ module.exports = {
   ROLE_ADMIN: "A",
   ROLE_BASIC: "B",
   ROLE_DEMO: "D",
+  
   ACTION_READ: "Read",
   ACTION_CREATE: "Create",
   ACTION_UPDATE: "Update",
