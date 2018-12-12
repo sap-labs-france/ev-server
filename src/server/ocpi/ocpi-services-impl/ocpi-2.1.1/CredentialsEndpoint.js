@@ -16,8 +16,8 @@ const EP_VERSION = "2.1.1";
  * Credentials Endpoint
  */
 class CredentialsEndpoint extends AbstractEndpoint {
-  constructor() {
-    super(EP_IDENTIFIER, EP_VERSION);
+  constructor(ocpiService) {
+    super(ocpiService,EP_IDENTIFIER, EP_VERSION);
   }
 
   /**
@@ -135,7 +135,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
     ocpiEndpoint.save();
 
     // build credential object
-    const respCredential = OCPIMapping.buildOCPICredentialObject(tenant, ocpiEndpoint.getLocalToken());
+    const respCredential = await OCPIMapping.buildOCPICredentialObject(tenant, ocpiEndpoint.getLocalToken());
 
     // respond with credentials
     res.json(OCPIUtils.success(respCredential));

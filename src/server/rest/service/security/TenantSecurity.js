@@ -47,6 +47,7 @@ class TenantSecurity {
     filteredRequest.name = sanitize(request.name);
     filteredRequest.subdomain = sanitize(request.subdomain);
     filteredRequest.email = sanitize(request.email);
+    filteredRequest.components = sanitize(request.components);
     return filteredRequest;
   }
 
@@ -64,6 +65,7 @@ class TenantSecurity {
       filteredTenant.name = tenant.name;
       filteredTenant.email = tenant.email;
       filteredTenant.subdomain = tenant.subdomain;
+      filteredTenant.components = tenant.components;
 
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(

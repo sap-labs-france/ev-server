@@ -12,7 +12,7 @@
             "type": "string",
             "description": "name of the tenant",
             "minLength": 1,
-            "maxLength": 25
+            "maxLength": 100
         },
         "email": {
             "type": "string",
@@ -25,6 +25,17 @@
             "pattern": "^[a-z0-9]*$",
             "minLength": 1,
             "maxLength": 20
+        },
+        "components": {
+            "type": "object",
+            "properties": {
+                "ocpi": {
+                    "type": "object",
+                    "properties": {
+                        "active": { "type": "boolean" }
+                    }
+                }
+            }
         }
     },
     "required": ["id", "name", "email", "subdomain"]

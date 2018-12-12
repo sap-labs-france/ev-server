@@ -102,11 +102,11 @@ class OcpiEndpoint extends AbstractTenantEntity {
     newToken.tid = tenant.getSubdomain();
 
     // get ocpi service configuration
-    const ocpiConfiguration = tenant.getComponent(Constants.COMPONENTS.OCPI_COMPONENT);
+    const ocpiSetting = tenant.getSetting(Constants.COMPONENTS.OCPI_COMPONENT);
 
     // check if available
-    if (ocpiConfiguration && ocpiConfiguration.configuration && ocpiConfiguration.configuration.countryCode && ocpiConfiguration.configuration.partyId) {
-      newToken.id = `${ocpiConfiguration.configuration.countryCode}${ocpiConfiguration.configuration.partyId}`;
+    if (ocpiSetting && ocpiSetting.configuration && ocpiSetting.configuration.countryCode && ocpiSetting.configuration.partyId) {
+      newToken.id = `${ocpiSetting.configuration.countryCode}${ocpiSetting.configuration.partyId}`;
     }
 
     // generate random 
