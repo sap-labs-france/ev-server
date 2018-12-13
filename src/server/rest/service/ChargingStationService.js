@@ -7,6 +7,7 @@ const Authorizations = require('../../../authorization/Authorizations');
 const ChargingStationSecurity = require('./security/ChargingStationSecurity');
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage');
 const ChargingStation = require('../../../entity/ChargingStation');
+const SiteArea = require('../../../entity/SiteArea');
 
 class ChargingStationService {
 
@@ -46,6 +47,10 @@ class ChargingStationService {
       // Update Cannot Charge in Parallel
       if (filteredRequest.hasOwnProperty('cannotChargeInParallel')) {
         chargingStation.setCannotChargeInParallel(filteredRequest.cannotChargeInParallel);
+      }
+      // Update Site Area
+      if (filteredRequest.hasOwnProperty('siteArea')) {
+        chargingStation.setSiteArea(await SiteArea.getSiteArea(req.user.tenantID, filteredRequest.siteArea.id, false, false));
       }
       // Update Connectors
       if (filteredRequest.connectors) {
