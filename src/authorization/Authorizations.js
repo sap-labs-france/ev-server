@@ -511,6 +511,36 @@ class Authorizations {
       {"Action": Constants.ACTION_UPDATE, "SettingID": setting.id.toString()});
   }
 
+  static canListOcpiendpoints(loggedUser) {
+    // Check TODO: Review auth
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINTS,
+      {"Action": Constants.ACTION_LIST});
+  }
+
+  static canReadOcpiendpoint(loggedUser, ocpiendpoint) {
+    // Check TODO: Review auth
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
+      {"Action": Constants.ACTION_READ, "OcpiendpointID": ocpiendpoint.id.toString()});
+  }
+
+  static canDeleteOcpiendpoint(loggedUser, ocpiendpoint) {
+    // Check TODO: Review auth
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
+      {"Action": Constants.ACTION_DELETE, "OcpiendpointID": ocpiendpoint.id.toString()});
+  }
+
+  static canCreateOcpiendpoint(loggedUser) {
+    // Check
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
+      {"Action": Constants.ACTION_CREATE});
+  }
+
+  static canUpdateOcpiendpoint(loggedUser, ocpiendpoint) {
+    // Check
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
+      {"Action": Constants.ACTION_UPDATE, "OcpiendpointID": ocpiendpoint.id.toString()});
+  }
+
   static canListVehicles(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VEHICLES,
