@@ -1,4 +1,3 @@
-
 const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const DatabaseUtils = require('./DatabaseUtils');
@@ -35,10 +34,14 @@ class TransactionStorage {
     if (!transactionMDB.id) {
       transactionMDB.id = await TransactionStorage._findAvailableID(transactionEntityToSave.getTenantID());
     }
+    const updateAction = {$set: transactionMDB};
+    if (!transactionEntityToSave.isActive()) {
+      updateAction.$unset = {internalMeterValues: ""};
+    }
     // Modify
     const result = await global.database.getCollection(transactionEntityToSave.getTenantID(), 'transactions').findOneAndUpdate(
       {"_id": Utils.convertToInt(transactionMDB.id)},
-      {$set: transactionMDB},
+      updateAction,
       {upsert: true, new: true, returnOriginal: false});
     // Debug
     Logging.traceEnd('TransactionStorage', 'saveTransaction', uniqueTimerID);
