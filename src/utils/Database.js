@@ -363,7 +363,7 @@ class Database {
     dest.name = src.name;
     dest.subdomain = src.subdomain;
     dest.email = src.email;
-    dest.components = (src.components?src.components: {});
+    dest.components = (src.components ? src.components : {});
     Database.updateCreatedAndLastChanged(src, dest);
   }
 
@@ -395,7 +395,7 @@ class Database {
   static updateOcpiEndpoint(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
-    } 
+    }
 
     dest.name = src.name;
     dest.status = src.status;
@@ -517,7 +517,7 @@ class Database {
       dest.remotestop.timestamp = src.remotestop.timestamp;
       dest.remotestop.tagID = src.remotestop.tagID;
     }
-    if (!Utils.isEmptyJSon(src.internalMeterValues)) {
+    if (!Utils.isEmptyJSon(src.internalMeterValues) && Utils.isEmptyJSon(src.stop)) {
       dest.internalMeterValues = [];
       src.internalMeterValues.forEach(meterValue => {
         const destMeterValue = {};
