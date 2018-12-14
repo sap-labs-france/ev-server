@@ -141,7 +141,7 @@ class SettingService {
           req.user);
       }
       // Filter
-      const filteredRequest = SettingSecurity.filterSiteCreateRequest(req.body, req.user);
+      const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body, req.user);
       // Check Mandatory fields
       Setting.checkIfSettingValid(filteredRequest, req);
       
@@ -171,7 +171,7 @@ class SettingService {
   static async handleUpdateSetting(action, req, res, next) {
     try {
       // Filter
-      const filteredRequest = SettingSecurity.filterSiteUpdateRequest(req.body, req.user);
+      const filteredRequest = SettingSecurity.filterSettingUpdateRequest(req.body, req.user);
       // Get Setting
       const setting = await Setting.getSetting(req.user.tenantID, filteredRequest.id);
       if (!setting) {

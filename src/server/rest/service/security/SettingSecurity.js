@@ -39,6 +39,7 @@ class SettingSecurity {
   static _filterSettingRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.identifier = sanitize(request.identifier);
+    filteredRequest.content    = sanitize(request.content);
     return filteredRequest;
   }
 

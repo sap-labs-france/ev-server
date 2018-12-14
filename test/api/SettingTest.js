@@ -29,6 +29,7 @@ describe('Setting tests', function () {
     it('Should update the setting', async () => {
       // Change entity
       this.newSetting.identifier = "New Identifier";
+      this.newSetting.content = JSON.parse('{ "newproperty": "newvalue" }');
       // Update
       await CentralServerService.updateEntity(
         CentralServerService.settingApi, this.newSetting);
@@ -40,6 +41,7 @@ describe('Setting tests', function () {
         CentralServerService.settingApi, this.newSetting);
       // Check
       expect(updatedSetting.identifier).to.equal(this.newSetting.identifier);
+      expect(updatedSetting.content).to.have.property('newproperty').to.be.equal("newvalue");
     });
 
     it('Should delete the created setting', async () => {

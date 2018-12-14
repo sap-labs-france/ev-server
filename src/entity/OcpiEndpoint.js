@@ -210,7 +210,7 @@ class OcpiEndpoint extends AbstractTenantEntity {
     }
   }
 
-  static getOcpiEndpoint(tenantID, id) {
+  static getOcpiendpoint(tenantID, id) {
     return OcpiEndpointStorage.getOcpiEndpoint(tenantID, id);
   }
 

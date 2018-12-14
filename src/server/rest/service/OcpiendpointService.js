@@ -141,7 +141,7 @@ class OcpiendpointService {
           req.user);
       }
       // Filter
-      const filteredRequest = OcpiendpointSecurity.filterSiteCreateRequest(req.body, req.user);
+      const filteredRequest = OcpiendpointSecurity.filterOcpiednpointCreateRequest(req.body, req.user);
       // Check Mandatory fields
       Ocpiendpoint.checkIfOcpiendpointValid(filteredRequest, req);
       
@@ -171,7 +171,7 @@ class OcpiendpointService {
   static async handleUpdateOcpiendpoint(action, req, res, next) {
     try {
       // Filter
-      const filteredRequest = OcpiendpointSecurity.filterSiteUpdateRequest(req.body, req.user);
+      const filteredRequest = OcpiendpointSecurity.filterOcpiendpointUpdateRequest(req.body, req.user);
       // Get Ocpiendpoint
       const ocpiendpoint = await Ocpiendpoint.getOcpiendpoint(req.user.tenantID, filteredRequest.id);
       if (!ocpiendpoint) {
