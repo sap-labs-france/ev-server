@@ -200,7 +200,7 @@ class OcpiEndpoint extends AbstractTenantEntity {
     return OcpiEndpointStorage.deleteOcpiEndpoint(this.getTenantID(), this.getID());
   }
 
-  static checkIfOcpiEndpointValid(request, httpRequest) {
+  static checkIfOcpiendpointValid(request, httpRequest) {
     // Update model?
     if (httpRequest.method !== 'POST' && !request.id) {
       throw new AppError(
@@ -212,6 +212,10 @@ class OcpiEndpoint extends AbstractTenantEntity {
 
   static getOcpiendpoint(tenantID, id) {
     return OcpiEndpointStorage.getOcpiEndpoint(tenantID, id);
+  }
+  
+  static getOcpiendpoints(tenantID, params, limit, skip, sort) {
+    return OcpiEndpointStorage.getOcpiEndpoints(tenantID, params, limit, skip, sort)
   }
 
   // get Default Ocpi Endpoint

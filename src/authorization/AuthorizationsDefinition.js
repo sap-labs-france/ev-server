@@ -207,7 +207,7 @@ class AuthorizationsDefinition {
 						}
 					},
 					{
-						"AuthObject": "Ocpiendpont",
+						"AuthObject": "Ocpiendpoint",
 						"AuthFieldValue": {
 							"OcpiendpointID": "*",
 							"Action": []
@@ -378,7 +378,7 @@ class AuthorizationsDefinition {
 						}
 					},
 					{
-						"AuthObject": "Ocpiendpont",
+						"AuthObject": "Ocpiendpoint",
 						"AuthFieldValue": {
 							"OcpiendpointID": "*",
 							"Action": []
@@ -549,7 +549,7 @@ class AuthorizationsDefinition {
 						}
 					},
 					{
-						"AuthObject": "Ocpiendpont",
+						"AuthObject": "Ocpiendpoint",
 						"AuthFieldValue": {
 							"OcpiendpointID": "*",
 							"Action": ["Create", "Read", "Update", "Delete"]
@@ -720,7 +720,7 @@ class AuthorizationsDefinition {
 						}
 					},
 					{
-						"AuthObject": "Ocpiendpont",
+						"AuthObject": "Ocpiendpoint",
 						"AuthFieldValue": {
 							"OcpiendpointID": "*",
 							"Action": ["Create", "Read", "Update", "Delete"]

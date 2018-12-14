@@ -369,7 +369,7 @@ module.exports = {
             OcpiendpointService.handleGetOcpiendpoints(action, req, res, next);
             break;
           // Get one ocpiendpoint
-          case "Ocpiendpont":
+          case "Ocpiendpoint":
             // Delegate
             OcpiendpointService.handleGetOcpiendpoint(action, req, res, next);
             break;

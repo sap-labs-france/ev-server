@@ -141,7 +141,7 @@ class OcpiendpointService {
           req.user);
       }
       // Filter
-      const filteredRequest = OcpiendpointSecurity.filterOcpiednpointCreateRequest(req.body, req.user);
+      const filteredRequest = OcpiendpointSecurity.filterOcpiendpointCreateRequest(req.body, req.user);
       // Check Mandatory fields
       Ocpiendpoint.checkIfOcpiendpointValid(filteredRequest, req);
       
@@ -194,7 +194,7 @@ class OcpiendpointService {
           req.user);
       }
       // Update
-      Database.updateOcpiendpoint(filteredRequest, ocpiendpoint.getModel());
+      Database.updateOcpiEndpoint(filteredRequest, ocpiendpoint.getModel());
       // Update timestamp
       ocpiendpoint.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
       ocpiendpoint.setLastChangedOn(new Date());

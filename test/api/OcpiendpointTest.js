@@ -28,7 +28,12 @@ describe('Ocpiendpoint tests', function () {
 
     it('Should update the ocpiendpoint', async () => {
       // Change entity
-      this.newOcpiendpoint.identifier = "New Identifier";
+      this.newOcpiendpoint.name = "NewName";
+      this.newOcpiendpoint.baseUrl = "http://new.url/versions";
+      this.newOcpiendpoint.countryCode = "AA";
+      this.newOcpiendpoint.partyId = "AA";
+      this.newOcpiendpoint.localToken = "newlocaltoken";
+      this.newOcpiendpoint.token = "newremotetoken";
       // Update
       await CentralServerService.updateEntity(
         CentralServerService.ocpiendpointApi, this.newOcpiendpoint);
@@ -36,10 +41,10 @@ describe('Ocpiendpoint tests', function () {
 
     it('Should find the updated ocpiendpoint by id', async () => {
       // Check if the updated entity can be retrieved with its id
-      let updatedSetting = await CentralServerService.getEntityById(
+      let updatedOcpiendpoint = await CentralServerService.getEntityById(
         CentralServerService.ocpiendpointApi, this.newOcpiendpoint);
       // Check
-      expect(updatedSetting.identifier).to.equal(this.newOcpiendpoint.identifier);
+      expect(updatedOcpiendpoint.name).to.equal(this.newOcpiendpoint.name);
     });
 
     it('Should delete the created ocpiendpoint', async () => {

@@ -38,6 +38,11 @@ class OcpiendpointSecurity {
   static _filterOcpiendpointRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.name = sanitize(request.name);
+    filteredRequest.baseUrl = sanitize(request.baseUrl);
+    filteredRequest.countryCode = sanitize(request.countryCode);
+    filteredRequest.partyId = sanitize(request.partyId);
+    filteredRequest.localToken = sanitize(request.localToken);
+    filteredRequest.token = sanitize(request.token);
     return filteredRequest;
   }
 
