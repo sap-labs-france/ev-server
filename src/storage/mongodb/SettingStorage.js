@@ -117,6 +117,13 @@ class SettingStorage {
       ];
     }
 
+    if (params.identifier) {
+      filters.$and = [];
+      filters.$and.push(
+        { 'identifier': params.identifier }
+      );
+    }
+
     // Create Aggregation
     const aggregation = [];
     // Filters

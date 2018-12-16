@@ -103,6 +103,28 @@ class CentralServerService {
     }
   }
 
+  async checkEntityInListWithParams(entityApi, entity, params={}, performCheck=true ) {
+    // Check
+    expect(entity).to.not.be.null;
+    // Retrieve from the backend
+    let response = await entityApi.readAll(params, { limit: Constants.UNLIMITED, skip: 0 });
+    // Check
+    if (performCheck) {
+      // Check
+      expect(response.status).to.equal(200);
+      // Contains props
+      expect(response.data).to.have.property('count');
+      expect(response.data).to.have.property('result');
+      // All record retrieved
+      expect(response.data.count).to.eql(response.data.result.length);
+      // Check created company
+      expect(response.data.result).to.containSubset([entity]);
+    } else {
+      // Let the caller to handle response
+      return response;
+    }
+  }
+
   async deleteEntity(entityApi, entity, performCheck=true) {
     // Check
     expect(entity).to.not.be.null;

@@ -110,7 +110,8 @@ class SettingService {
       // Get the all settings identifier
       const settings = await Setting.getSettings(req.user.tenantID,
         {
-          'search': filteredRequest.Search
+          'search': filteredRequest.Search,
+          'identifier': filteredRequest.Identifier
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set

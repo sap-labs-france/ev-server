@@ -26,6 +26,12 @@ describe('Setting tests', function () {
         CentralServerService.settingApi, this.newSetting);
     });
 
+    it('Should find the created setting in the setting list with identifier', async () => {
+      // Check if the created entity is in the list
+      await CentralServerService.checkEntityInListWithParams(
+        CentralServerService.settingApi, this.newSetting, { Identifier: this.newSetting.identifier });
+    });
+
     it('Should update the setting', async () => {
       // Change entity
       this.newSetting.identifier = "New Identifier";

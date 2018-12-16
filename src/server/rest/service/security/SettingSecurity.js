@@ -19,7 +19,7 @@ class SettingSecurity {
   static filterSettingsRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.Search = sanitize(request.Search);
-    filteredRequest.UserID = sanitize(request.UserID);
+    filteredRequest.Identifier = sanitize(request.Identifier);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
