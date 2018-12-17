@@ -519,7 +519,7 @@ class Transaction extends AbstractTenantEntity {
 
   _aggregateAsConsumption(lastMeterValue, meterValue, stateOfChargeMeterValue) {
     const currentTimestamp = moment(meterValue.timestamp);
-    const diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, 'seconds');
+    const diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, 'milliseconds') / 1000;
     const sampleMultiplier = diffSecs > 0 ? 3600 / diffSecs : 0;
     const currentConsumption = (meterValue.value - lastMeterValue.value) * sampleMultiplier;
     const consumption = {

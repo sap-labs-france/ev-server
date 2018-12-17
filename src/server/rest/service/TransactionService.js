@@ -476,6 +476,50 @@ class TransactionService {
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
   }
+
+  static async handleGetTransactionsInError(action, req, res, next) {
+    try {
+      // Check auth
+      if (!Authorizations.canListTransactionsInError(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_TRANSACTION,
+          null,
+          560,
+          'TransactionService', 'handleGetTransactionsInError',
+          req.user);
+      }
+      let filter = {stop: {$exists: true}};
+      // Filter
+      let filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query, req.user);
+      if (filteredRequest.ChargeBoxID) {
+        filter.chargeBoxID = filteredRequest.ChargeBoxID;
+      }
+      // Date
+      if (filteredRequest.StartDateTime) {
+        filter.startDateTime = filteredRequest.StartDateTime;
+      }
+      if (filteredRequest.EndDateTime) {
+        filter.endDateTime = filteredRequest.EndDateTime;
+      }
+      if (filteredRequest.UserID) {
+        filter.userId = filteredRequest.UserID;
+      }
+      let transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
+        {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID},
+        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+      // Filter
+      transactions.result = TransactionSecurity.filterTransactionsResponse(
+        transactions.result, req.user);
+      // Return
+      res.json(transactions);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
 }
 
 module.exports = TransactionService;
