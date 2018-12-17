@@ -52,7 +52,7 @@ describe('ChargingStation Keba tests', function() {
       id: transactionId,
       currentConsumption: 0,
       totalConsumption: cumulated - meterStart,
-      totalInactivitySecs: 0,
+      totalInactivitySecs: 60,
       meterStart: meterStart,
     });
 

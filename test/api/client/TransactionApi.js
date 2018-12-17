@@ -20,6 +20,10 @@ class TransactionApi extends CrudApi {
     return super.readAll('/client/api/TransactionsCompleted', params, paging, ordering);
   }
 
+  readAllInError(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+    return super.readAll('/client/api/TransactionsInError', params, paging, ordering);
+  }
+
   readAllConsumption(params) {
     return super.read('/client/api/ChargingStationConsumptionFromTransaction', params);
   }
