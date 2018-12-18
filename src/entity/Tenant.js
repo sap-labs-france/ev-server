@@ -64,6 +64,17 @@ class Tenant {
     this._model.components[identifier].active = false; 
   }
 
+  getActiveComponents() {
+    const activeComponents = [];
+
+    for (const componentName in this._model.components ) {
+      if (this._model.components.hasOwnProperty(componentName) && this._model.components[componentName].active) {
+        activeComponents.push(componentName);
+      }
+    }
+    return activeComponents;
+  }
+
   setComponentConfigTenantLevel(identifier, configuration) {
     if (!this._model.components[identifier]) {
       this._model.components[identifier] = {};
