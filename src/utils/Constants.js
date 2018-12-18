@@ -42,6 +42,11 @@ module.exports = {
   ENTITY_LOGGINGS: "Loggings",
   ENTITY_LOGGING: "Logging",
   ENTITY_PRICING: "Pricing",
+  ENTITY_SETTING: "Setting",
+  ENTITY_SETTINGS: "Settings",
+  ENTITY_OCPIENDPOINT: "Ocpiendpoint",
+  ENTITY_OCPIENDPOINTS: "Ocpiendpoints",
+
 
   NOTIF_TYPE_CHARGING_STATION_CONFIGURATION: "Configuration",
 

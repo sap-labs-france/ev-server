@@ -186,6 +186,32 @@ class AuthorizationsDefinition {
 							"TenantID": "*",
 							"Action": []
 						}
+					},
+					{
+						"AuthObject": "Settings",
+						"AuthFieldValue": {
+							"Action": []
+						}
+					},
+					{
+						"AuthObject": "Setting",
+						"AuthFieldValue": {
+							"SettingID": "*",
+							"Action": []
+						}
+					},
+					{
+						"AuthObject": "Ocpiendpoints",
+						"AuthFieldValue": {
+							"Action": []
+						}
+					},
+					{
+						"AuthObject": "Ocpiendpoint",
+						"AuthFieldValue": {
+							"OcpiendpointID": "*",
+							"Action": []
+						}
 					}
 				]
 			}
@@ -329,6 +355,32 @@ class AuthorizationsDefinition {
 						"AuthObject": "Tenant",
 						"AuthFieldValue": {
 							"TenantID": "*",
+							"Action": []
+						}
+					},
+					{
+						"AuthObject": "Settings",
+						"AuthFieldValue": {
+							"Action": []
+						}
+					},
+					{
+						"AuthObject": "Setting",
+						"AuthFieldValue": {
+							"SettingID": "*",
+							"Action": []
+						}
+					},
+					{
+						"AuthObject": "Ocpiendpoints",
+						"AuthFieldValue": {
+							"Action": []
+						}
+					},
+					{
+						"AuthObject": "Ocpiendpoint",
+						"AuthFieldValue": {
+							"OcpiendpointID": "*",
 							"Action": []
 						}
 					}
@@ -476,6 +528,32 @@ class AuthorizationsDefinition {
 							"TenantID": "*",
 							"Action": []
 						}
+					},
+					{
+						"AuthObject": "Settings",
+						"AuthFieldValue": {
+							"Action": ["List"]
+						}
+					},
+					{
+						"AuthObject": "Setting",
+						"AuthFieldValue": {
+							"SettingID": "*",
+							"Action": ["Create", "Read", "Update", "Delete"]
+						}
+					},
+					{
+						"AuthObject": "Ocpiendpoints",
+						"AuthFieldValue": {
+							"Action": ["List"]
+						}
+					},
+					{
+						"AuthObject": "Ocpiendpoint",
+						"AuthFieldValue": {
+							"OcpiendpointID": "*",
+							"Action": ["Create", "Read", "Update", "Delete"]
+						}
 					}
 				]
 			}
@@ -619,6 +697,32 @@ class AuthorizationsDefinition {
 						"AuthObject": "Tenant",
 						"AuthFieldValue": {
 							"TenantID": "*",
+							"Action": ["Create", "Read", "Update", "Delete"]
+						}
+					},
+					{
+						"AuthObject": "Settings",
+						"AuthFieldValue": {
+							"Action": ["List"]
+						}
+					},
+					{
+						"AuthObject": "Setting",
+						"AuthFieldValue": {
+							"SettingID": "*",
+							"Action": ["Create", "Read", "Update", "Delete"]
+						}
+					},
+					{
+						"AuthObject": "Ocpiendpoints",
+						"AuthFieldValue": {
+							"Action": ["List"]
+						}
+					},
+					{
+						"AuthObject": "Ocpiendpoint",
+						"AuthFieldValue": {
+							"OcpiendpointID": "*",
 							"Action": ["Create", "Read", "Update", "Delete"]
 						}
 					}

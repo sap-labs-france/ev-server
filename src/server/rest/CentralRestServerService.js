@@ -13,6 +13,8 @@ const LoggingService = require('./service/LoggingService');
 const TransactionService = require('./service/TransactionService');
 const StatisticService = require('./service/StatisticService');
 const TenantService = require('./service/TenantService');
+const SettingService = require('./service/SettingService');
+const OcpiendpointService = require('./service/OcpiendpointService');
 
 require('source-map-support').install();
 
@@ -86,7 +88,7 @@ module.exports = {
           case "VehicleManufacturerCreate":
             // Delegate
             VehicleManufacturerService.handleCreateVehicleManufacturer(action, req, res, next);
-            break;
+            break;  
           // Create Site
           case "SiteCreate":
             // Delegate
@@ -112,6 +114,16 @@ module.exports = {
             // Delegate
             TransactionService.handleRefundTransaction(action, req, res, next);
             break;
+          // Create Setting
+          case "SettingCreate":
+            // Delegate
+            SettingService.handleCreateSetting(action, req, res, next);
+            break;
+          // Create Ocpiendpoint
+          case "OcpiendpointCreate":
+            // Delegate
+            OcpiendpointService.handleCreateOcpiendpoint(action, req, res, next);
+            break;    
           // Unknown Context
           default:
             // Delegate
@@ -346,6 +358,26 @@ module.exports = {
             // Delegate
             AuthService.handleIsAuthorized(action, req, res, next);
             break;
+          // Get all the settings
+          case "Settings":
+            // Delegate
+            SettingService.handleGetSettings(action, req, res, next);
+            break;
+          // Get one setting
+          case "Setting":
+            // Delegate
+            SettingService.handleGetSetting(action, req, res, next);
+            break;
+          // Get all the ocpiendpoints
+          case "Ocpiendpoints":
+            // Delegate
+            OcpiendpointService.handleGetOcpiendpoints(action, req, res, next);
+            break;
+          // Get one ocpiendpoint
+          case "Ocpiendpoint":
+            // Delegate
+            OcpiendpointService.handleGetOcpiendpoint(action, req, res, next);
+            break;
           // Unknown Action
           default:
             // Delegate
@@ -407,6 +439,16 @@ module.exports = {
             // Delegate
             TransactionService.handleTransactionSoftStop(action, req, res, next);
             break;
+          // Setting
+          case "SettingUpdate":
+            // Delegate
+            SettingService.handleUpdateSetting(action, req, res, next);
+            break;
+          // Ocpiendpoint
+          case "OcpiendpointUpdate":
+            // Delegate
+            OcpiendpointService.handleUpdateOcpiendpoint(action, req, res, next);
+            break;
           // Not found
           default:
             // Delegate
@@ -462,6 +504,16 @@ module.exports = {
           case "TransactionDelete":
             // Delegate
             TransactionService.handleDeleteTransaction(action, req, res, next);
+            break;
+          // Setting
+          case "SettingDelete":
+            // Delegate
+            SettingService.handleDeleteSetting(action, req, res, next);
+            break;
+          // Ocpiendpoint
+          case "OcpiendpointDelete":
+            // Delegate
+            OcpiendpointService.handleDeleteOcpiendpoint(action, req, res, next);
             break;
           // Not found
           default:
