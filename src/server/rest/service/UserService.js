@@ -481,6 +481,43 @@ class UserService {
     }
   }
 
+  static async handleGetUsersInError(action, req, res, next) {
+    try {
+      // Check auth
+      if (!Authorizations.canListUsers(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_USERS,
+          null,
+          560,
+          'UserService', 'handleGetUsersInError',
+          req.user);
+      }
+      // Filter
+      const filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
+      // Get users
+      const users = await User.getUsersInError(req.user.tenantID,
+        {
+          'search': filteredRequest.Search,
+          'siteID': filteredRequest.SiteID,
+          'role': filteredRequest.Role
+        },
+        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+      // Set
+      users.result = users.result.map((user) => user.getModel());
+      // Filter
+      users.result = UserSecurity.filterUsersResponse(
+        users.result, req.user);
+      // Return
+      res.json(users);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
   static async handleCreateUser(action, req, res, next) {
     try {
       // Check auth
