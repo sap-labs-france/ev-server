@@ -57,4 +57,65 @@ describe('User tests', function() {
         CentralServerService.userApi, this.newUser);
     });
   });
+
+  describe('Find Users In Error', () => {
+    it('Should not find an active user', async () => {
+      const user = await CentralServerService.createEntity(
+        CentralServerService.userApi, Factory.user.build({status: 'A'}));
+      const response = await CentralServerService.userApi.readAllInError({}, 100);
+      expect(response.status).to.equal(200);
+      response.data.result.forEach(u => expect(u.id).to.not.equal(user.id));
+
+      await CentralServerService.deleteEntity(
+        CentralServerService.userApi, user);
+    });
+
+    it('Should find a pending user', async () => {
+      const user = await CentralServerService.createEntity(
+        CentralServerService.userApi, Factory.user.build({status: 'P'}));
+      const response = await CentralServerService.userApi.readAllInError({}, 100);
+      expect(response.status).to.equal(200);
+      const found = response.data.result.find(u => u.id === user.id);
+      expect(found).to.not.be.null;
+
+      await CentralServerService.deleteEntity(
+        CentralServerService.userApi, user);
+    });
+
+    it('Should find a blocked user', async () => {
+      const user = await CentralServerService.createEntity(
+        CentralServerService.userApi, Factory.user.build({status: 'B'}));
+      const response = await CentralServerService.userApi.readAllInError({}, 100);
+      expect(response.status).to.equal(200);
+      const found = response.data.result.find(u => u.id === user.id);
+      expect(found).to.not.be.null;
+
+      await CentralServerService.deleteEntity(
+        CentralServerService.userApi, user);
+    });
+
+    it('Should find a locked user', async () => {
+      const user = await CentralServerService.createEntity(
+        CentralServerService.userApi, Factory.user.build({status: 'L'}));
+      const response = await CentralServerService.userApi.readAllInError({}, 100);
+      expect(response.status).to.equal(200);
+      const found = response.data.result.find(u => u.id === user.id);
+      expect(found).to.not.be.null;
+
+      await CentralServerService.deleteEntity(
+        CentralServerService.userApi, user);
+    });
+
+    it('Should find an inactive user', async () => {
+      const user = await CentralServerService.createEntity(
+        CentralServerService.userApi, Factory.user.build({status: 'I'}));
+      const response = await CentralServerService.userApi.readAllInError({}, 100);
+      expect(response.status).to.equal(200);
+      const found = response.data.result.find(u => u.id === user.id);
+      expect(found).to.not.be.null;
+
+      await CentralServerService.deleteEntity(
+        CentralServerService.userApi, user);
+    });
+  });
 });
