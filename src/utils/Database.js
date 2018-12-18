@@ -398,16 +398,17 @@ class Database {
     }
 
     dest.name = src.name;
-    dest.status = src.status;
     dest.baseUrl = src.baseUrl;
-    dest.version = src.version;
-    dest.versionUrl = src.versionUrl;
-    dest.availableEndpoints = src.availableEndpoints;
-    dest.businessDetails = src.businessDetails;
     dest.localToken = src.localToken;
     dest.token = src.token;
     dest.countryCode = src.countryCode;
     dest.partyId = src.partyId;
+
+    if (src.version) { dest.version = src.version; }
+    if (src.businessDetails) { dest.businessDetails = src.businessDetails; }
+    if (src.availableEndpoints) { dest.availableEndpoints = src.availableEndpoints; }
+    if (src.status) { dest.status = src.status; }
+    if (src.versionUrl) { dest.versionUrl = src.versionUrl; }
 
     Database.updateCreatedAndLastChanged(src, dest);
   }
@@ -415,7 +416,7 @@ class Database {
   static updateSetting(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
-    } 
+    }
 
     dest.identifier = src.identifier;
     dest.content = src.content;
