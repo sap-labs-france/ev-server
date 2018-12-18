@@ -147,6 +147,8 @@ class OcpiendpointService {
       
       // Create ocpiendpoint
       const ocpiendpoint = new Ocpiendpoint(req.user.tenantID, filteredRequest);
+      // set status
+      ocpiendpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_NEW);
       // Update timestamp
       ocpiendpoint.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
       ocpiendpoint.setCreatedOn(new Date());

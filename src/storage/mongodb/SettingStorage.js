@@ -118,7 +118,9 @@ class SettingStorage {
     }
 
     if (params.identifier) {
-      filters.$and = [];
+      if (!filters.$and) {
+        filters.$and = [];
+      }
       filters.$and.push(
         { 'identifier': params.identifier }
       );
