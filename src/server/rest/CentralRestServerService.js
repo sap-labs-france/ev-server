@@ -273,6 +273,11 @@ module.exports = {
             // Delegate
             UserService.handleGetUsers(action, req, res, next);
             break;
+          // Get users in error
+          case "UsersInError":
+            // Delegate
+            UserService.handleGetUsersInError(action, req, res, next);
+            break;
           // Get the user images
           case "UserImages":
             // Delegate
@@ -525,7 +530,7 @@ module.exports = {
       default:
         // Log
         Logging.logActionExceptionMessageAndSendResponse(
-          "N/A", new Error(`Ussuported request method ${req.method}`), req, res, next);
+          "N/A", new Error(`Unsupported request method ${req.method}`), req, res, next);
         break;
     }
   }
