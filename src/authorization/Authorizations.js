@@ -310,6 +310,12 @@ class Authorizations {
       {"Action": Constants.ACTION_LIST});
   }
 
+  static canListTransactionsInError(loggedUser) {
+    // Check
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTIONS,
+      {"Action": Constants.ACTION_LIST});
+  }
+
   static canReadTransaction(loggedUser, transaction) {
     // Check auth
     if (transaction.getUser() && transaction.getUser().id) {

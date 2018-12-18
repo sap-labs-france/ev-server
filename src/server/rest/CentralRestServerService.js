@@ -293,6 +293,11 @@ module.exports = {
             // Delegate
             TransactionService.handleGetTransactionsCompleted(action, req, res, next);
             break;
+          // Get transactions in error
+          case "TransactionsInError":
+            // Delegate
+            TransactionService.handleGetTransactionsInError(action, req, res, next);
+            break;
           // Get the transaction's years
           case "TransactionYears":
             // Delegate
