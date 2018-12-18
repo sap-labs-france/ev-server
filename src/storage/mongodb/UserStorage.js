@@ -540,6 +540,159 @@ class UserStorage {
     };
   }
 
+  static async getUsersInError(tenantID, params = {}, limit, skip, sort) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    const User = require('../../entity/User'); // Avoid fucking circular deps!!!
+    // Check Limit
+    limit = Utils.checkRecordLimit(limit);
+    // Check Skip
+    skip = Utils.checkRecordSkip(skip);
+    const filters = {
+      "$and": [
+        {
+          "$or": [
+            {"deleted": {$exists: false}},
+            {deleted: false},
+            {deleted: null}
+          ]
+        }
+      ]
+    };
+    // Source?
+    if (params.search) {
+      // Build filter
+      filters.$and.push({
+        "$or": [
+          {"_id": {$regex: params.search, $options: 'i'}},
+          {"name": {$regex: params.search, $options: 'i'}},
+          {"firstName": {$regex: params.search, $options: 'i'}},
+          {"tags._id": {$regex: params.search, $options: 'i'}},
+          {"email": {$regex: params.search, $options: 'i'}}
+        ]
+      });
+    }
+    // UserID: Used only with SiteID
+    if (params.userID) {
+      // Build filter
+      filters.$and.push({
+        '_id': Utils.convertToObjectID(params.userID)
+      });
+    }
+
+    if (params.role) {
+      filters.$and.push({
+        'role': params.role
+      });
+    }
+
+    filters.$and.push({
+      'status': {$in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING]}
+    });
+
+    // Create Aggregation
+    const aggregation = [];
+    // Add TagIDs
+    aggregation.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenantID, "tags"),
+        localField: "_id",
+        foreignField: "userID",
+        as: "tags"
+      }
+    });
+    // Filters
+    if (filters) {
+      aggregation.push({
+        $match: filters
+      });
+    }
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
+    // Site ID?
+    if (params.siteID) {
+      // Add Site
+      aggregation.push({
+        $lookup: {
+          from: DatabaseUtils.getCollectionName(tenantID, "siteusers"),
+          localField: "_id",
+          foreignField: "userID",
+          as: "siteusers"
+        }
+      });
+      aggregation.push({
+        $match: {"siteusers.siteID": Utils.convertToObjectID(params.siteID)}
+      });
+    }
+    // Count Records
+    const usersCountMDB = await global.database.getCollection(tenantID, 'users')
+      .aggregate([...aggregation, {$count: "count"}])
+      .toArray();
+    // Project
+    aggregation.push({
+      "$project": {
+        "_id": 1,
+        "name": 1,
+        "firstName": 1,
+        "email": 1,
+        "status": 1,
+        "role": 1,
+        "createdOn": 1,
+        "createdBy": 1,
+        "lastChangedOn": 1,
+        "lastChangedBy": 1,
+        "eulaAcceptedOn": 1,
+        "eulaAcceptedVersion": 1,
+        "tags": 1
+      }
+    });
+    // Sort
+    if (sort) {
+      // Sort
+      aggregation.push({
+        $sort: sort
+      });
+    } else {
+      // Default
+      aggregation.push({
+        $sort: {status: -1, name: 1, firstName: 1}
+      });
+    }
+    // Skip
+    aggregation.push({
+      $skip: skip
+    });
+    // Limit
+    aggregation.push({
+      $limit: limit
+    });
+    // Read DB
+    const usersMDB = await global.database.getCollection(tenantID, 'users')
+      .aggregate(aggregation, {collation: {locale: "en_US", strength: 2}})
+      .toArray();
+    const users = [];
+    // Create
+    for (const userMDB of usersMDB) {
+      // Create
+      const user = new User(tenantID, userMDB);
+      // Set
+      user.setTagIDs(userMDB.tags.map((tag) => {
+        return tag._id
+      }));
+      // Add
+      users.push(user);
+    }
+    // Debug
+    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID);
+    // Ok
+    return {
+      count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
+      result: users
+    };
+  }
+
   static async deleteUser(tenantID, id) {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'deleteUser');
