@@ -7,6 +7,7 @@ const Constants = require('../../../utils/Constants');
 const Ocpiendpoint = require('../../../entity/OcpiEndpoint');
 const User = require('../../../entity/User');
 const OcpiendpointSecurity = require('./security/OcpiendpointSecurity');
+const OcpiClient = require('../../../client/ocpi/OcpiClient');
 
 class OcpiendpointService {
   static async handleDeleteOcpiendpoint(action, req, res, next) {
@@ -221,7 +222,7 @@ class OcpiendpointService {
   static async handlePingOcpiendpoint(action, req, res, next) {
     try {
       // Check auth
-      if (!Authorizations.canCreateOcpiendpoint(req.user)) {
+      if (!Authorizations.canPingOcpiendpoint(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_PING,
@@ -235,14 +236,12 @@ class OcpiendpointService {
       const filteredRequest = OcpiendpointSecurity.filterOcpiendpointCreateRequest(req.body, req.user);
       // Check Mandatory fields
       Ocpiendpoint.checkIfOcpiendpointValid(filteredRequest, req);
-      
       // Create temporary ocpiendpoint
       const ocpiendpoint = new Ocpiendpoint(req.user.tenantID, filteredRequest);
-      // set status
-      ocpiendpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_NEW);
-      // Update timestamp
-      ocpiendpoint.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
-      ocpiendpoint.setCreatedOn(new Date());
+      // build OCPI Client
+      const ocpiClient = new OcpiClient(ocpiendpoint);
+      // try to ping
+      const pingResult = await ocpiClient.ping();
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
@@ -250,8 +249,12 @@ class OcpiendpointService {
         message: `Ocpiendpoint '${ocpiendpoint.getName()}' can be reached successfully`,
         action: action, detailedMessages: ocpiendpoint
       });
-      // Ok
-      res.json(Object.assign({ id: ocpiendpoint.getID() }, Constants.REST_RESPONSE_SUCCESS));
+      // check ping result
+      if ( pingResult.statusCode === 200 ) {
+        res.json(Object.assign(pingResult , Constants.REST_RESPONSE_SUCCESS));
+      } else {
+        res.json(pingResult);
+      }
       next();
     } catch (error) {
       // Log
@@ -262,7 +265,7 @@ class OcpiendpointService {
   static async handleGenerateLocalTokenOcpiendpoint(action, req, res, next) {
     try {
       // Check auth
-      if (!Authorizations.canCreateOcpiendpoint(req.user)) {
+      if (!Authorizations.canGenerateLocalTokenOcpiendpoint(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_GENERATE_LOCAL_TOKEN,
@@ -276,14 +279,10 @@ class OcpiendpointService {
       const filteredRequest = OcpiendpointSecurity.filterOcpiendpointCreateRequest(req.body, req.user);
       // Check Mandatory fields
       Ocpiendpoint.checkIfOcpiendpointValid(filteredRequest, req);
-      
       // Create ocpiendpoint
       const ocpiendpoint = new Ocpiendpoint(req.user.tenantID, filteredRequest);
-      // set status
-      ocpiendpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_NEW);
-      // Update timestamp
-      ocpiendpoint.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
-      ocpiendpoint.setCreatedOn(new Date());
+      // Generate new local token
+      const localToken = await ocpiendpoint.generateLocalToken();
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
@@ -292,7 +291,7 @@ class OcpiendpointService {
         action: action, detailedMessages: ocpiendpoint
       });
       // Ok
-      res.json(Object.assign({ id: ocpiendpoint.getID() }, Constants.REST_RESPONSE_SUCCESS));
+      res.json(Object.assign({ id: ocpiendpoint.getID(), localToken: localToken }, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       // Log

@@ -488,19 +488,19 @@ class Authorizations {
   }
 
   static canListSettings(loggedUser) {
-    // Check TODO: Review auth
+    // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTINGS,
       {"Action": Constants.ACTION_LIST});
   }
 
   static canReadSetting(loggedUser, setting) {
-    // Check TODO: Review auth
+    // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTING,
       {"Action": Constants.ACTION_READ, "SettingID": setting.id.toString()});
   }
 
   static canDeleteSetting(loggedUser, setting) {
-    // Check TODO: Review auth
+    // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTING,
       {"Action": Constants.ACTION_DELETE, "SettingID": setting.id.toString()});
   }
@@ -518,19 +518,19 @@ class Authorizations {
   }
 
   static canListOcpiendpoints(loggedUser) {
-    // Check TODO: Review auth
+    // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINTS,
       {"Action": Constants.ACTION_LIST});
   }
 
   static canReadOcpiendpoint(loggedUser, ocpiendpoint) {
-    // Check TODO: Review auth
+    // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
       {"Action": Constants.ACTION_READ, "OcpiendpointID": ocpiendpoint.id.toString()});
   }
 
   static canDeleteOcpiendpoint(loggedUser, ocpiendpoint) {
-    // Check TODO: Review auth
+    // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
       {"Action": Constants.ACTION_DELETE, "OcpiendpointID": ocpiendpoint.id.toString()});
   }
@@ -545,6 +545,18 @@ class Authorizations {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
       {"Action": Constants.ACTION_UPDATE, "OcpiendpointID": ocpiendpoint.id.toString()});
+  }
+
+  static canPingOcpiendpoint(loggedUser) {
+    // Check
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
+      {"Action": Constants.ACTION_PING});
+  }
+
+  static canGenerateLocalTokenOcpiendpoint(loggedUser) {
+    // Check
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
+      {"Action": Constants.ACTION_GENERATE_LOCAL_TOKEN});
   }
 
   static canListVehicles(loggedUser) {
