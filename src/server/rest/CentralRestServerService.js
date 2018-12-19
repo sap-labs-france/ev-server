@@ -123,7 +123,17 @@ module.exports = {
           case "OcpiendpointCreate":
             // Delegate
             OcpiendpointService.handleCreateOcpiendpoint(action, req, res, next);
-            break;    
+            break;
+          // Ping Ocpiendpoint
+          case "OcpiendpointPing":
+            // Delegate
+            OcpiendpointService.handlePingOcpiendpoint(action, req, res, next);
+            break;  
+          // Generate Local Token Ocpiendpoint
+          case "OcpiendpointGenerateLocalToken":
+            // Delegate
+            OcpiendpointService.handleGenerateLocalTokenOcpiendpoint(action, req, res, next);
+            break;  
           // Unknown Context
           default:
             // Delegate

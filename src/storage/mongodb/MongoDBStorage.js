@@ -85,6 +85,10 @@ class MongoDBStorage {
       {fields: {chargeBoxID: 1}},
       {fields: {userID: 1}}
     ]);
+    // Settings
+    await this.checkAndCreateCollection(collections, tenantID, 'settings', [
+      {fields: {identifier: 1}, options: {unique: true}}
+    ]);
   }
 
   async deleteTenantDatabase(tenantID) {

@@ -217,6 +217,88 @@ class OcpiendpointService {
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
   }
+
+  static async handlePingOcpiendpoint(action, req, res, next) {
+    try {
+      // Check auth
+      if (!Authorizations.canCreateOcpiendpoint(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_PING,
+          Constants.ENTITY_OCPIENDPOINT,
+          null,
+          560,
+          'OcpiendpointService', 'handlePingOcpiendpoint',
+          req.user);
+      }
+      // Filter
+      const filteredRequest = OcpiendpointSecurity.filterOcpiendpointCreateRequest(req.body, req.user);
+      // Check Mandatory fields
+      Ocpiendpoint.checkIfOcpiendpointValid(filteredRequest, req);
+      
+      // Create temporary ocpiendpoint
+      const ocpiendpoint = new Ocpiendpoint(req.user.tenantID, filteredRequest);
+      // set status
+      ocpiendpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_NEW);
+      // Update timestamp
+      ocpiendpoint.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
+      ocpiendpoint.setCreatedOn(new Date());
+      // Log
+      Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
+        user: req.user, module: 'OcpiendpointService', method: 'handlePingOcpiendpoint',
+        message: `Ocpiendpoint '${ocpiendpoint.getName()}' can be reached successfully`,
+        action: action, detailedMessages: ocpiendpoint
+      });
+      // Ok
+      res.json(Object.assign({ id: ocpiendpoint.getID() }, Constants.REST_RESPONSE_SUCCESS));
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
+  static async handleGenerateLocalTokenOcpiendpoint(action, req, res, next) {
+    try {
+      // Check auth
+      if (!Authorizations.canCreateOcpiendpoint(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_GENERATE_LOCAL_TOKEN,
+          Constants.ENTITY_OCPIENDPOINT,
+          null,
+          560,
+          'OcpiendpointService', 'handleGenerateLocalTokenOcpiendpoint',
+          req.user);
+      }
+      // Filter
+      const filteredRequest = OcpiendpointSecurity.filterOcpiendpointCreateRequest(req.body, req.user);
+      // Check Mandatory fields
+      Ocpiendpoint.checkIfOcpiendpointValid(filteredRequest, req);
+      
+      // Create ocpiendpoint
+      const ocpiendpoint = new Ocpiendpoint(req.user.tenantID, filteredRequest);
+      // set status
+      ocpiendpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_NEW);
+      // Update timestamp
+      ocpiendpoint.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
+      ocpiendpoint.setCreatedOn(new Date());
+      // Log
+      Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
+        user: req.user, module: 'OcpiendpointService', method: 'handleGenerateLocalTokenOcpiendpoint',
+        message: `Local Token for Ocpiendpoint '${ocpiendpoint.getName()}' has been generatd successfully`,
+        action: action, detailedMessages: ocpiendpoint
+      });
+      // Ok
+      res.json(Object.assign({ id: ocpiendpoint.getID() }, Constants.REST_RESPONSE_SUCCESS));
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
 }
 
 module.exports = OcpiendpointService;
