@@ -15,7 +15,8 @@ class OcpiClient {
         headers: {
           'Authorization': `Token ${this._ocpiEndpoint.getToken()}`,
           'Content-Type': 'application/json'
-        }
+        },
+        timeout: 10000
       });
 
       // check response
