@@ -66,11 +66,15 @@ class ChargingStation extends AbstractTenantEntity {
       case 'StopTransaction':
         return this.requestStopTransaction(params);
 
+      case 'SetChargingProfile':
+        return this.requestGenericOCPPCommand('SetChargingProfile', params);
+      
+      case 'GetCompositeSchedule':
+        return this.requestGenericOCPPCommand('GetCompositeSchedule', params);
+
       // Not Exists!
       default:
-        // Error
-        throw new BackendError(this.getID(), `Action does not exist: ${action}`,
-          "ChargingStation", "handleAction")
+        return this.requestGenericOCPPCommand(action, params);
     }
   }
 
@@ -1387,6 +1391,59 @@ class ChargingStation extends AbstractTenantEntity {
       tenantID: this.getTenantID(),
       source: this.getID(), module: 'ChargingStation',
       method: 'requestStartTransaction', action: 'StartTransaction',
+      message: `Command sent with success`,
+      detailedMessages: result
+    });
+    // Return
+    return result;
+  }
+
+  // Set Charging Profile
+  async requestSetChargingProfile(params) {
+    // Get the client
+    const chargingStationClient = await this.getChargingStationClient();
+    // Set Charging Profile
+    const result = await chargingStationClient.setChargingProfile(params);
+    // Log
+    Logging.logInfo({
+      tenantID: this.getTenantID(),
+      source: this.getID(), module: 'ChargingStation',
+      method: 'requestSetChargingProfile', action: 'SetChargingProfile',
+      message: `Command sent with success`,
+      detailedMessages: result
+    });
+    // Return
+    return result;
+  }
+
+  async requestGenericOCPPCommand(commandName, params) {
+    // Get the client
+    const chargingStationClient = await this.getChargingStationClient();
+    // Set Charging Profile
+    const result = await chargingStationClient.genericOCPPCommand(commandName, params);
+    // Log
+    Logging.logInfo({
+      tenantID: this.getTenantID(),
+      source: this.getID(), module: 'ChargingStation',
+      method: 'requestGenericOCPPCommand', action: 'GenericOCPPCommand',
+      message: `Command sent with success`,
+      detailedMessages: result
+    });
+    // Return
+    return result;
+  }
+
+  // Retrieve Composite Schedule (Charging power limitation)
+  async requestGetCompositeSchedule(params) {
+    // Get the client
+    const chargingStationClient = await this.getChargingStationClient();
+    // Set Charging Profile
+    const result = await chargingStationClient.getCompositeSchedule(params);
+    // Log
+    Logging.logInfo({
+      tenantID: this.getTenantID(),
+      source: this.getID(), module: 'ChargingStation',
+      method: 'requestSetChargingProfile', action: 'SetChargingProfile',
       message: `Command sent with success`,
       detailedMessages: result
     });
