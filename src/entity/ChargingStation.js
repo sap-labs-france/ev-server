@@ -685,7 +685,7 @@ class ChargingStation extends AbstractTenantEntity {
         // --------------------------------------------------------------------
         // Notification End of charge
         // --------------------------------------------------------------------
-        if (_configChargingStation.notifEndOfChargeEnabled && transaction.getAverageConsumptionOnLast(2) === 0) {
+        if (_configChargingStation.notifEndOfChargeEnabled && (transaction.getAverageConsumptionOnLast(2) === 0 || transaction.getCurrentStateOfCharge() == 100)) {
           // Notify User?
           if (transaction.getUser()) {
             // Send Notification
