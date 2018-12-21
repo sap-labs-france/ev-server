@@ -61,6 +61,8 @@ module.exports = {
           case "ChargingStationStartTransaction":
           case "ChargingStationUnlockConnector":
           case "ChargingStationReset":
+          case "ChargingStationSetChargingProfile":
+          case "ChargingStationGetCompositeSchedule":
             // Keep the action (remove ChargingStation)
             action = action.slice(15);
             // Delegate

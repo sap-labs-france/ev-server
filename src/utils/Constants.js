@@ -146,6 +146,8 @@ module.exports = {
   // Any other error not covered by the previous ones
   OCPP_ERROR_GENERIC_ERROR: 'GenericError',
 
+  OCPP_RESPONSE_ACCEPTED: 'Accepted',
+
   OCPP_PROTOCOL_JSON: 'json',
   OCPP_PROTOCOL_SOAP: 'soap',
   OCPP_VERSION_12: '1.2',
