@@ -50,7 +50,7 @@ class AuthService {
   static async handleIsAuthorized(action, req, res, next) {
     try {
       // Default
-      const result = {'IsAuthorized': false};
+      let result = {'IsAuthorized': false};
       // Filter
       const filteredRequest = AuthSecurity.filterIsAuthorizedRequest(req.query);
       // Check
@@ -71,13 +71,6 @@ class AuthService {
               `The Charging Station ID is mandatory`,
               550, 'AuthService', 'handleIsAuthorized');
           }
-          // Check
-          if (!filteredRequest.Arg2) {
-            throw new AppError(
-              Constants.CENTRAL_SERVER,
-              `The Transaction ID is mandatory`,
-              550, 'AuthService', 'handleIsAuthorized');
-          }
           // Get the Charging station
           const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
           // Found?
@@ -88,23 +81,22 @@ class AuthService {
               `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
               550, 'AuthService', 'handleIsAuthorized');
           }
-          // Get Transaction
-          const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.Arg2);
-          if (!transaction) {
-            throw new AppError(
-              Constants.CENTRAL_SERVER,
-              `Transaction with ID '${filteredRequest.Arg2}' does not exist`,
-              560, 'ChargingStationService', 'handleAction');
-          }
-          try {
-            // Check
-            await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
-              filteredRequest.Action, chargingStation, transaction.getTagID(), req.user.tagIDs[0]);
-            // Ok
-            result.IsAuthorized = true;
-          } catch (e) {
-            // Ko
-            result.IsAuthorized = false;
+          // Check
+          if (!filteredRequest.Arg2) {
+            const results = [];
+            // check authorization for each connectors
+            for (let index = 0; index < chargingStation.getConnectors().length; index++) {
+              const connector = chargingStation.getConnector(index+1);
+              const tempResult = {'IsAuthorized': false};
+              if (connector.activeTransactionID) {
+                tempResult.IsAuthorized = await AuthService.isStopTransactionAuthorized(filteredRequest, chargingStation, connector.activeTransactionID, req.user);
+              }
+              results.push(tempResult);  
+            }
+            // return table of result (will be in the connector order)
+            result = results;
+          } else {
+            result.IsAuthorized = await AuthService.isStopTransactionAuthorized(filteredRequest, chargingStation, filteredRequest.Arg2, req.user);
           }
           break;
       }
@@ -114,6 +106,26 @@ class AuthService {
     } catch (err) {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, Constants.DEFAULT_TENANT);
+    }
+  }
+
+  static async isStopTransactionAuthorized(filteredRequest, chargingStation, transactionId, user) {
+    // Get Transaction
+    const transaction = await TransactionStorage.getTransaction(user.tenantID, transactionId);
+    if (!transaction) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Transaction with ID '${filteredRequest.Arg2}' does not exist`,
+        560, 'ChargingStationService', 'handleAction');
+    }
+    try {
+      // Check
+      await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(filteredRequest.Action, chargingStation, transaction.getTagID(), user.tagIDs[0]);
+      // Ok
+      return true;
+    } catch (e) {
+      // Ko
+      return false;
     }
   }
 
@@ -806,6 +818,12 @@ class AuthService {
       'tenantID': user.getTenantID(),
       'auths': auths
     };
+    // Get active components from tenant if not default
+    if (user.getTenantID() != Constants.DEFAULT_TENANT) {
+      const tenant = await user.getTenant();
+      payload.activeComponents = tenant.getActiveComponents();
+    }
+        
     // Build token
     let token;
     // Role Demo?

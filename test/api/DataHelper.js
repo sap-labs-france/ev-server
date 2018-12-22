@@ -9,6 +9,8 @@ const OCPPJsonService16 = require('./ocpp/json/OCPPJsonService16');
 const OCPPJsonService15 = require('./ocpp/soap/OCPPSoapService15');
 const config = require('../config');
 const Utils = require('../../src/utils/Utils');
+const {from} = require('rxjs');
+const {mergeMap} = require('rxjs/operators');
 
 class DataHelper {
 
@@ -89,7 +91,8 @@ class DataHelper {
   }
 
   async destroyData() {
-    this.context.users.forEach(user => CentralServerService.deleteEntity(
+
+    await this.executeOnAll(this.context.users, user => CentralServerService.deleteEntity(
       CentralServerService.userApi, user));
     this.context.siteAreas.forEach(siteArea => CentralServerService.deleteEntity(
       CentralServerService.siteAreaApi, siteArea));
@@ -99,6 +102,12 @@ class DataHelper {
       CentralServerService.companyApi, company));
     this.context.chargingStations.forEach(chargingStation => CentralServerService.deleteEntity(
       CentralServerService.chargingStationApi, chargingStation));
+  }
+
+  async executeOnAll(array, method) {
+    await from(array).pipe(
+      mergeMap(method, 50)
+    ).toPromise();
   }
 
   async close() {

@@ -279,6 +279,186 @@ class TransactionStorage {
     };
   }
 
+  static async getTransactionsInError(tenantID, params = {}, limit, skip, sort) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactions');
+    // Check
+    await Utils.checkTenant(tenantID);
+    const pricing = await PricingStorage.getPricing(tenantID);
+
+    // Check Limit
+    limit = Utils.checkRecordLimit(limit);
+    // Check Skip
+    skip = Utils.checkRecordSkip(skip);
+    // Build filter
+    const match = {};
+    // Filter?
+    if (params.search) {
+      // Build filter
+      match.$or = [
+        {"_id": parseInt(params.search)},
+        {"tagID": {$regex: params.search, $options: 'i'}},
+        {"chargeBoxID": {$regex: params.search, $options: 'i'}}
+      ];
+    }
+    // User
+    if (params.userId) {
+      match.userID = Utils.convertToObjectID(params.userId);
+    }
+    // Charge Box
+    if (params.chargeBoxID) {
+      match.chargeBoxID = params.chargeBoxID;
+    }
+    // Connector
+    if (params.connectorId) {
+      match.connectorId = Utils.convertToInt(params.connectorId);
+    }
+    // Date provided?
+    if (params.startDateTime || params.endDateTime) {
+      match.timestamp = {};
+    }
+    // Start date
+    if (params.startDateTime) {
+      match.timestamp.$gte = Utils.convertToDate(params.startDateTime);
+    }
+    // End date
+    if (params.endDateTime) {
+      match.timestamp.$lte = Utils.convertToDate(params.endDateTime);
+    }
+    match.stop = {$exists: true};
+    match['stop.totalConsumption'] = 0;
+    // Create Aggregation
+    const aggregation = [];
+    // Filters
+    if (match) {
+      aggregation.push({
+        $match: match
+      });
+    }
+    // Transaction Duration Secs
+    aggregation.push({
+      $addFields: {
+        "totalDurationSecs": {$divide: [{$subtract: ["$stop.timestamp", "$timestamp"]}, 1000]}
+      }
+    });
+    // Charger?
+    if (params.withChargeBoxes || params.siteID) {
+      // Add Charge Box
+      aggregation.push({
+        $lookup: {
+          from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
+          localField: 'chargeBoxID',
+          foreignField: '_id',
+          as: 'chargeBox'
+        }
+      });
+      // Single Record
+      aggregation.push({
+        $unwind: {"path": "$chargeBox", "preserveNullAndEmptyArrays": true}
+      });
+    }
+    if (params.siteID) {
+      // Add Site Area
+      aggregation.push({
+        $lookup: {
+          from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
+          localField: 'chargeBox.siteAreaID',
+          foreignField: '_id',
+          as: 'siteArea'
+        }
+      });
+      // Single Record
+      aggregation.push({
+        $unwind: {"path": "$siteArea", "preserveNullAndEmptyArrays": true}
+      });
+      // Filter
+      aggregation.push({
+        $match: {"siteArea.siteID": Utils.convertToObjectID(params.siteID)}
+      });
+    }
+    // Count Records
+    const transactionsCountMDB = await global.database.getCollection(tenantID, 'transactions')
+      .aggregate([...aggregation, {$count: "count"}])
+      .toArray();
+    // Sort
+    if (sort) {
+      // Sort
+      aggregation.push({
+        $sort: sort
+      });
+    } else {
+      // Default
+      aggregation.push({
+        $sort: {timestamp: -1}
+      });
+    }
+    // Skip
+    aggregation.push({
+      $skip: skip
+    });
+    // Limit
+    aggregation.push({
+      $limit: limit
+    });
+    // Add User that started the transaction
+    aggregation.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
+        localField: 'userID',
+        foreignField: '_id',
+        as: 'user'
+      }
+    });
+    // Single Record
+    aggregation.push({
+      $unwind: {"path": "$user", "preserveNullAndEmptyArrays": true}
+    });
+    // Add User that stopped the transaction
+    aggregation.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
+        localField: 'stop.userID',
+        foreignField: '_id',
+        as: 'stop.user'
+      }
+    });
+    // Single Record
+    aggregation.push({
+      $unwind: {"path": "$stop.user", "preserveNullAndEmptyArrays": true}
+    });
+    if (params.withMeterValues) {
+      aggregation.push({
+        $lookup: {
+          from: DatabaseUtils.getCollectionName(tenantID, 'metervalues'),
+          localField: '_id',
+          foreignField: 'transactionId',
+          as: 'meterValues'
+        }
+      });
+    }
+    // Read DB
+    const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
+      .aggregate(aggregation, {collation: {locale: Constants.DEFAULT_LOCALE, strength: 2}})
+      .toArray();
+    // Set
+    const transactions = [];
+    // Create
+    if (transactionsMDB && transactionsMDB.length > 0) {
+      // Create
+      for (const transactionMDB of transactionsMDB) {
+        transactions.push(new Transaction(tenantID, {...transactionMDB, pricing: pricing}));
+      }
+    }
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID);
+    // Ok
+    return {
+      count: (transactionsCountMDB.length > 0 ? transactionsCountMDB[0].count : 0),
+      result: transactions
+    };
+  }
+
+
   static async getTransaction(tenantID, id, withMeterValues = false) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransaction');

@@ -15,6 +15,8 @@ const ChargingStationApi = require('./ChargingStationApi');
 const TransactionApi = require('./TransactionApi');
 const MailApi = require('./MailApi');
 const PricingApi = require('./PricingApi');
+const SettingApi = require('./SettingApi');
+const OcpiendpointApi = require('./OcpiendpointApi');
 
 // Set
 chai.use(chaiSubset);
@@ -37,6 +39,8 @@ class CentralServerService {
     this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this.baseApi);
     this.pricingApi = new PricingApi(this.authenticatedApi, this.baseApi);
     this.transactionApi = new TransactionApi(this.authenticatedApi);
+    this.settingApi = new SettingApi(this.authenticatedApi);
+    this.ocpiendpointApi = new OcpiendpointApi(this.authenticatedApi);
     this.mailApi= new MailApi(new BaseApi(`http://${config.get('mailServer.host')}:${config.get('mailServer.port')}`));
   }
 
@@ -82,6 +86,28 @@ class CentralServerService {
     expect(entity).to.not.be.null;
     // Retrieve from the backend
     let response = await entityApi.readAll({}, { limit: Constants.UNLIMITED, skip: 0 });
+    // Check
+    if (performCheck) {
+      // Check
+      expect(response.status).to.equal(200);
+      // Contains props
+      expect(response.data).to.have.property('count');
+      expect(response.data).to.have.property('result');
+      // All record retrieved
+      expect(response.data.count).to.eql(response.data.result.length);
+      // Check created company
+      expect(response.data.result).to.containSubset([entity]);
+    } else {
+      // Let the caller to handle response
+      return response;
+    }
+  }
+
+  async checkEntityInListWithParams(entityApi, entity, params={}, performCheck=true ) {
+    // Check
+    expect(entity).to.not.be.null;
+    // Retrieve from the backend
+    let response = await entityApi.readAll(params, { limit: Constants.UNLIMITED, skip: 0 });
     // Check
     if (performCheck) {
       // Check

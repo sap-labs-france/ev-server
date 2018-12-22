@@ -57,6 +57,22 @@ class TransactionSecurity {
     return filteredRequest;
   }
 
+  static filterTransactionsInErrorRequest(request) {
+    const filteredRequest = {};
+    // Handle picture
+    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
+    filteredRequest.StartDateTime = sanitize(request.StartDateTime);
+    filteredRequest.EndDateTime = sanitize(request.EndDateTime);
+    filteredRequest.SiteID = sanitize(request.SiteID);
+    filteredRequest.Search = sanitize(request.Search);
+    if (request.UserID) {
+      filteredRequest.UserID = sanitize(request.UserID);
+    }
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
+  }
+
   // Transaction
   static filterTransactionResponse(transaction, loggedUser) {
     let filteredTransaction;

@@ -42,6 +42,11 @@ module.exports = {
   ENTITY_LOGGINGS: "Loggings",
   ENTITY_LOGGING: "Logging",
   ENTITY_PRICING: "Pricing",
+  ENTITY_SETTING: "Setting",
+  ENTITY_SETTINGS: "Settings",
+  ENTITY_OCPIENDPOINT: "Ocpiendpoint",
+  ENTITY_OCPIENDPOINTS: "Ocpiendpoints",
+
 
   NOTIF_TYPE_CHARGING_STATION_CONFIGURATION: "Configuration",
 
@@ -84,6 +89,8 @@ module.exports = {
   ACTION_REFUND_TRANSACTION: "RefundTransaction",
   ACTION_UNLOCK_CONNECTOR: "UnlockConnector",
   ACTION_GET_CONFIGURATION: "GetConfiguration",
+  ACTION_PING: "Ping",
+  ACTION_GENERATE_LOCAL_TOKEN: "GenerateLocalToken",
 
   // Password constants
   PWD_MIN_LENGTH: 15,
@@ -138,6 +145,8 @@ module.exports = {
   OCPP_ERROR_TYPERAINT_VIOLATION: 'TyperaintViolation',
   // Any other error not covered by the previous ones
   OCPP_ERROR_GENERIC_ERROR: 'GenericError',
+
+  OCPP_RESPONSE_ACCEPTED: 'Accepted',
 
   OCPP_PROTOCOL_JSON: 'json',
   OCPP_PROTOCOL_SOAP: 'soap',
