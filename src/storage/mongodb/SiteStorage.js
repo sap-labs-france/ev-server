@@ -378,14 +378,24 @@ class SiteStorage {
         }
         // Count Available Charger
         if (params.withAvailableChargers) {
-          let availableChargers = 0;
+          let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
           // Chargers
           for (const chargeBox of siteMDB.chargeBoxes) {
-            // Connectors
+            totalChargers++;
+            // Handle Connectors
+            for (const connector of chargeBox.connectors) {
+              totalConnectors++;
+              // Check if Available
+              if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+                // Add
+                availableConnectors++;
+              }
+            }
+            // Handle Chargers
             for (const connector of chargeBox.connectors) {
               // Check if Available
               if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
-                // Add 1
+                // Add
                 availableChargers++;
                 break;
               }
@@ -393,6 +403,9 @@ class SiteStorage {
           }
           // Set
           site.setAvailableChargers(availableChargers);
+          site.setTotalChargers(totalChargers);
+          site.setAvailableConnectors(availableConnectors);
+          site.setTotalConnectors(totalConnectors);
         }
         // Set Site Areas
         if ((params.withChargeBoxes || params.withSiteAreas) && siteMDB.siteAreas) {

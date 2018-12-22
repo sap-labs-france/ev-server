@@ -7,7 +7,6 @@ const Utils = require('../../../utils/Utils');
 const moment = require('moment');
 const TransactionSecurity = require('./security/TransactionSecurity');
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage');
-const PricingStorage = require('../../../storage/mongodb/PricingStorage');
 const ChargingStation = require('../../../entity/ChargingStation');
 const User = require('../../../entity/User');
 
