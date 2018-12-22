@@ -36,6 +36,30 @@ class Site extends AbstractTenantEntity {
     return this._model.availableChargers;
   }
 
+  setTotalChargers(totalChargers) {
+    this._model.totalChargers = totalChargers;
+  }
+
+  getTotalChargers() {
+    return this._model.totalChargers;
+  }
+
+  setAvailableConnectors(availableConnectors) {
+    this._model.availableConnectors = availableConnectors;
+  }
+
+  getAvailableConnectors() {
+    return this._model.availableConnectors;
+  }
+
+  setTotalConnectors(totalConnectors) {
+    this._model.totalConnectors = totalConnectors;
+  }
+
+  getTotalConnectors() {
+    return this._model.totalConnectors;
+  }
+
   setAddress(address) {
     this._model.address = address;
   }

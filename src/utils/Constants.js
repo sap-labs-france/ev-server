@@ -89,6 +89,8 @@ module.exports = {
   ACTION_REFUND_TRANSACTION: "RefundTransaction",
   ACTION_UNLOCK_CONNECTOR: "UnlockConnector",
   ACTION_GET_CONFIGURATION: "GetConfiguration",
+  ACTION_PING: "Ping",
+  ACTION_GENERATE_LOCAL_TOKEN: "GenerateLocalToken",
 
   // Password constants
   PWD_MIN_LENGTH: 15,

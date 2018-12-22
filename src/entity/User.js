@@ -518,6 +518,10 @@ class User extends AbstractTenantEntity {
     return UserStorage.getUsers(tenantID, params, limit, skip, sort)
   }
 
+  static getUsersInError(tenantID, params, limit, skip, sort) {
+    return UserStorage.getUsersInError(tenantID, params, limit, skip, sort)
+  }
+
   static getEndUserLicenseAgreement(tenantID, language) {
     return UserStorage.getEndUserLicenseAgreement(tenantID, language);
   }

@@ -14,6 +14,10 @@ class UserApi extends CrudApi {
     return super.readAll('/client/api/Users', params, paging, ordering);
   }
 
+  readAllInError(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+    return super.readAll('/client/api/UsersInError', params, paging, ordering);
+  }
+
   create(data) {
     return super.create('/client/api/UserCreate', data);
   }

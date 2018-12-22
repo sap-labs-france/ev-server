@@ -62,7 +62,7 @@ class OcpiEndpoint extends AbstractTenantEntity {
   }
 
   /**
-   * manage endpoint status - TODO: to be defined by constant
+   * manage endpoint status
    */
   getStatus() {
     return this._model.status;
@@ -95,25 +95,29 @@ class OcpiEndpoint extends AbstractTenantEntity {
   }
 
   // generate token based on tenant information.
-  generateLocalToken(tenant) {
+  async generateLocalToken() {
     const newToken = {};
+
+    // get tenant
+    const tenant = await this.getTenant();
+
+    // generate random 
+    newToken.ak = Math.floor(Math.random() * 100);
 
     // fill new Token with tenant subdmain
     newToken.tid = tenant.getSubdomain();
 
-    // get ocpi service configuration
-    const ocpiSetting = tenant.getSetting(Constants.COMPONENTS.OCPI_COMPONENT);
-
-    // check if available
-    if (ocpiSetting && ocpiSetting.configuration && ocpiSetting.configuration.countryCode && ocpiSetting.configuration.partyId) {
-      newToken.id = `${ocpiSetting.configuration.countryCode}${ocpiSetting.configuration.partyId}`;
-    }
-
     // generate random 
-    newToken.k = Math.floor(Math.random() * 100);
+    newToken.zk = Math.floor(Math.random() * 100);
 
     // Base64 encoding
-    this.setLocalToken(OCPIUtils.btoa(JSON.stringify(newToken)));
+    const localToken = OCPIUtils.btoa(JSON.stringify(newToken));
+
+    // set local token
+    this.setLocalToken(localToken);
+
+    // return 
+    return localToken;
   }
 
   /**

@@ -125,7 +125,17 @@ module.exports = {
           case "OcpiendpointCreate":
             // Delegate
             OcpiendpointService.handleCreateOcpiendpoint(action, req, res, next);
-            break;    
+            break;
+          // Ping Ocpiendpoint
+          case "OcpiendpointPing":
+            // Delegate
+            OcpiendpointService.handlePingOcpiendpoint(action, req, res, next);
+            break;  
+          // Generate Local Token Ocpiendpoint
+          case "OcpiendpointGenerateLocalToken":
+            // Delegate
+            OcpiendpointService.handleGenerateLocalTokenOcpiendpoint(action, req, res, next);
+            break;  
           // Unknown Context
           default:
             // Delegate
@@ -274,6 +284,11 @@ module.exports = {
           case "Users":
             // Delegate
             UserService.handleGetUsers(action, req, res, next);
+            break;
+          // Get users in error
+          case "UsersInError":
+            // Delegate
+            UserService.handleGetUsersInError(action, req, res, next);
             break;
           // Get the user images
           case "UserImages":
@@ -527,7 +542,7 @@ module.exports = {
       default:
         // Log
         Logging.logActionExceptionMessageAndSendResponse(
-          "N/A", new Error(`Ussuported request method ${req.method}`), req, res, next);
+          "N/A", new Error(`Unsupported request method ${req.method}`), req, res, next);
         break;
     }
   }
