@@ -72,7 +72,7 @@ class JsonChargingStationClient16 extends ChargingStationClient {
   }
 
   genericOCPPCommand(commandName, params) {
-    return this._sendMessage(uuid(), params, 2, commandName);
+    return this._wsConnection.sendMessage(uuid(), params, 2, commandName);
   }
 
 }
