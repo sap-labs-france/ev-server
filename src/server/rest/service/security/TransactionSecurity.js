@@ -224,37 +224,10 @@ class TransactionSecurity {
   }
 
   static filterConsumptionsFromTransactionResponse(transaction, consumptions, loggedUser) {
-    const filteredConsumption = {};
-
     if (!consumptions) {
       return null;
     }
-    // Check
-    filteredConsumption.chargeBoxID = transaction.getChargeBoxID();
-    filteredConsumption.connectorId = transaction.getConnectorId();
-    // Admin?
-    if (Authorizations.isAdmin(loggedUser)) {
-      filteredConsumption.priceUnit = transaction.getPriceUnit();
-      filteredConsumption.totalPrice = transaction.getPrice();
-    }
-    filteredConsumption.totalConsumption = transaction.getTotalConsumption();
-    filteredConsumption.id = transaction.getID();
-    if (transaction.hasStateOfCharges()) {
-      filteredConsumption.stateOfCharge = transaction.getStateOfCharge();
-    }
-    // Check user
-    if (transaction.getUser()) {
-      if (!Authorizations.canReadUser(loggedUser, transaction.getUser())) {
-        return null;
-      }
-    } else {
-      if (!Authorizations.isAdmin(loggedUser)) {
-        return null;
-      }
-    }
-    // Set user
-    filteredConsumption.user = TransactionSecurity._filterUserInTransactionResponse(
-      transaction.getUser(), loggedUser);
+    const filteredConsumption = this.filterTransactionResponse(transaction, loggedUser);
     // Admin?
     if (Authorizations.isAdmin(loggedUser)) {
       // Set them all
@@ -264,12 +237,12 @@ class TransactionSecurity {
       filteredConsumption.values = [];
       for (const value of consumptions) {
         // Set
-        const filteredValue= {
+        const filteredValue = {
           date: value.date,
           value: value.value,
           cumulated: value.cumulated
         };
-        if (value.hasOwnProperty('stateOfCharge')){
+        if (value.hasOwnProperty('stateOfCharge')) {
           filteredValue.stateOfCharge = value.stateOfCharge;
         }
         filteredConsumption.values.push(filteredValue);
