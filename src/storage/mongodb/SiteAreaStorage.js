@@ -27,7 +27,7 @@ class SiteAreaStorage {
       };
     }
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'getSiteAreaImage', uniqueTimerID);
+    Logging.traceEnd('SiteAreaStorage', 'getSiteAreaImage', uniqueTimerID, {id});
     return siteAreaImage;
   }
 
@@ -130,7 +130,7 @@ class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'getSiteArea', uniqueTimerID);
+    Logging.traceEnd('SiteAreaStorage', 'getSiteArea', uniqueTimerID, {id, withChargeBoxes, withSite});
     return siteArea;
   }
 
@@ -167,7 +167,7 @@ class SiteAreaStorage {
       {$set: siteArea},
       {upsert: true, new: true, returnOriginal: false});
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'saveSiteArea', uniqueTimerID);
+    Logging.traceEnd('SiteAreaStorage', 'saveSiteArea', uniqueTimerID, {siteAreaToSave});
     // Create
     return new SiteArea(tenantID, result.value);
   }
@@ -308,7 +308,7 @@ class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'getSiteAreas', uniqueTimerID);
+    Logging.traceEnd('SiteAreaStorage', 'getSiteAreas', uniqueTimerID, {params, limit, skip, sort});
     // Ok
     return {
       count: (siteAreasCountMDB.length > 0 ? siteAreasCountMDB[0].count : 0),
@@ -325,7 +325,7 @@ class SiteAreaStorage {
     await global.database.getCollection(tenantID, 'chargingstations').updateMany(
       {siteAreaID: Utils.convertToObjectID(id)},
       {$set: {siteAreaID: null}},
-      {upsert: false, new: true, returnOriginal: false});
+      {upsert: false, new: true, returnOriginal: false, returnOriginal: false});
     // Delete Site
     await global.database.getCollection(tenantID, 'siteareas')
       .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
@@ -333,7 +333,7 @@ class SiteAreaStorage {
     await global.database.getCollection(tenantID, 'sitesareaimages')
       .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'deleteSiteArea', uniqueTimerID);
+    Logging.traceEnd('SiteAreaStorage', 'deleteSiteArea', uniqueTimerID, {id});
   }
 }
 

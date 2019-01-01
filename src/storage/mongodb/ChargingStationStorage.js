@@ -241,10 +241,10 @@ class ChargingStationStorage {
       "_id": chargingStationToSave.id
     }, {
       $set: chargingStation
-    }, {
-      upsert: true,
-      new: true,
-      returnOriginal: false
+    }, 
+    {
+      upsert: true, 
+      new: true, returnOriginal: false
     });
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStation', uniqueTimerID);
@@ -387,7 +387,7 @@ class ChargingStationStorage {
         timestamp: Utils.convertToDate(configuration.timestamp)
       }
     }, {
-      upsert: true,
+      upsert: true, 
       new: true,
       returnOriginal: false
     });

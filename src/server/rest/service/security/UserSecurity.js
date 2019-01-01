@@ -3,6 +3,7 @@ const Authorizations = require('../../../../authorization/Authorizations');
 const UtilsSecurity = require('./UtilsSecurity');
 
 class UserSecurity {
+  // eslint-disable-next-line no-unused-vars
   static filterAddSitesToUserRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -13,6 +14,7 @@ class UserSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterRemoveSitesFromUserRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -23,6 +25,7 @@ class UserSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterUserDeleteRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -30,6 +33,7 @@ class UserSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterUserRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -37,6 +41,7 @@ class UserSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterUsersRequest(request, loggedUser) {
     const filteredRequest = {};
     // Handle picture

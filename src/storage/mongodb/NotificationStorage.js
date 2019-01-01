@@ -27,7 +27,7 @@ class NotificationStorage {
       }
     }
     // Debug
-    Logging.traceEnd('NotificationStorage', 'getNotification', uniqueTimerID);
+    Logging.traceEnd('NotificationStorage', 'getNotification', uniqueTimerID, {sourceId});
     // Ok
     return notifications;
   }
@@ -50,7 +50,7 @@ class NotificationStorage {
     await global.database.getCollection(tenantID, 'notifications')
       .insertOne(notification);
     // Debug
-    Logging.traceEnd('NotificationStorage', 'saveNotification', uniqueTimerID);
+    Logging.traceEnd('NotificationStorage', 'saveNotification', uniqueTimerID, {notificationToSave});
   }
 }
 

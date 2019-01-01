@@ -98,7 +98,7 @@ class SiteStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteStorage', 'getSite', uniqueTimerID);
+    Logging.traceEnd('SiteStorage', 'getSite', uniqueTimerID, {id, withCompany, withUsers});
     return site;
   }
 
@@ -121,7 +121,7 @@ class SiteStorage {
       };
     }
     // Debug
-    Logging.traceEnd('SiteStorage', 'getSiteImage', uniqueTimerID);
+    Logging.traceEnd('SiteStorage', 'getSiteImage', uniqueTimerID, {id});
     return siteImage;
   }
 
@@ -205,7 +205,7 @@ class SiteStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteStorage', 'saveSite', uniqueTimerID);
+    Logging.traceEnd('SiteStorage', 'saveSite', uniqueTimerID, {siteToSave});
     return updatedSite;
   }
 
@@ -448,7 +448,7 @@ class SiteStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteStorage', 'getSites', uniqueTimerID);
+    Logging.traceEnd('SiteStorage', 'getSites', uniqueTimerID, {params, limit, skip, sort});
     // Ok
     return {
       count: (sitesCountMDB.length > 0 ? sitesCountMDB[0].count : 0),
@@ -478,7 +478,7 @@ class SiteStorage {
     await global.database.getCollection(tenantID, 'siteusers')
       .deleteMany({'siteID': Utils.convertToObjectID(id)});
     // Debug
-    Logging.traceEnd('SiteStorage', 'deleteSite', uniqueTimerID);
+    Logging.traceEnd('SiteStorage', 'deleteSite', uniqueTimerID, {id});
   }
 }
 

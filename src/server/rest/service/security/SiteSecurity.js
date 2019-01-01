@@ -28,6 +28,7 @@ class SiteSecurity {
     return UserSecurity;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterSiteDeleteRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -35,6 +36,7 @@ class SiteSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterSiteRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.ID = sanitize(request.ID);
@@ -42,6 +44,7 @@ class SiteSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterSitesRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.Search = sanitize(request.Search);

@@ -3,7 +3,7 @@ const Authorizations = require('../../../../authorization/Authorizations');
 const UtilsSecurity = require('./UtilsSecurity');
 
 class TenantSecurity {
-
+  // eslint-disable-next-line no-unused-vars
   static filterTenantDeleteRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -12,6 +12,7 @@ class TenantSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterTenantRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.ID = sanitize(request.ID);
@@ -24,6 +25,7 @@ class TenantSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterTenantsRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.Search = sanitize(request.Search);
@@ -42,6 +44,7 @@ class TenantSecurity {
     return TenantSecurity._filterTenantRequest(request, loggedUser);
   }
 
+  // eslint-disable-next-line no-unused-vars
   static _filterTenantRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.name = sanitize(request.name);

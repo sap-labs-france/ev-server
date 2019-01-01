@@ -5,7 +5,6 @@ const Utils = require('../../utils/Utils');
 const crypto = require('crypto');
 const Logging = require('../../utils/Logging');
 const Transaction = require('../../entity/Transaction');
-const deepmerge = require('deepmerge');
 const PricingStorage = require('./PricingStorage');
 
 class TransactionStorage {
@@ -21,32 +20,31 @@ class TransactionStorage {
     await global.database.getCollection(tenantID, 'metervalues')
       .deleteMany({'transactionId': transaction.getID()});
     // Debug
-    Logging.traceEnd('TransactionStorage', 'deleteTransaction', uniqueTimerID);
+    Logging.traceEnd('TransactionStorage', 'deleteTransaction', uniqueTimerID, {transaction});
   }
 
-  static async saveTransaction(transactionEntityToSave) {
+  static async saveTransaction(tenantID, transactionToSave) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'saveTransaction');
     // Check
-    await Utils.checkTenant(transactionEntityToSave.getTenantID());
+    await Utils.checkTenant(tenantID);
+    // ID not provided?
+    if (!transactionToSave.id) {
+      // No: Check for a new ID
+      transactionToSave.id = await TransactionStorage._findAvailableID(tenantID);
+    }
+    // Transfer
     const transactionMDB = {};
-    Database.updateTransaction(transactionEntityToSave.getModel(true), transactionMDB, false);
-    if (!transactionMDB.id) {
-      transactionMDB.id = await TransactionStorage._findAvailableID(transactionEntityToSave.getTenantID());
-    }
-    const updateAction = {$set: transactionMDB};
-    if (!transactionEntityToSave.isActive()) {
-      updateAction.$unset = {internalMeterValues: ""};
-    }
+    Database.updateTransaction(transactionToSave, transactionMDB, false);
     // Modify
-    const result = await global.database.getCollection(transactionEntityToSave.getTenantID(), 'transactions').findOneAndUpdate(
-      {"_id": Utils.convertToInt(transactionMDB.id)},
-      updateAction,
+    const result = await global.database.getCollection(tenantID, 'transactions').findOneAndReplace(
+      {"_id": Utils.convertToInt(transactionToSave.id)},
+      transactionMDB,
       {upsert: true, new: true, returnOriginal: false});
     // Debug
-    Logging.traceEnd('TransactionStorage', 'saveTransaction', uniqueTimerID);
+    Logging.traceEnd('TransactionStorage', 'saveTransaction', uniqueTimerID, {transactionToSave});
     // Return
-    return new Transaction(transactionEntityToSave.getTenantID(), deepmerge(transactionEntityToSave.getFullModel(), result.value));
+    return new Transaction(tenantID, result.value);
   }
 
   static async saveMeterValues(tenantID, meterValuesToSave) {
@@ -70,7 +68,7 @@ class TransactionStorage {
     // Execute
     await global.database.getCollection(tenantID, 'metervalues').insertMany(meterValuesMDB);
     // Debug
-    Logging.traceEnd('TransactionStorage', 'saveMeterValues', uniqueTimerID);
+    Logging.traceEnd('TransactionStorage', 'saveMeterValues', uniqueTimerID, {meterValuesToSave});
   }
 
   static async getTransactionYears(tenantID) {
@@ -247,16 +245,6 @@ class TransactionStorage {
     aggregation.push({
       $unwind: {"path": "$stop.user", "preserveNullAndEmptyArrays": true}
     });
-    if (params.withMeterValues) {
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, 'metervalues'),
-          localField: '_id',
-          foreignField: 'transactionId',
-          as: 'meterValues'
-        }
-      });
-    }
     // Read DB
     const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
       .aggregate(aggregation, {collation: {locale: Constants.DEFAULT_LOCALE, strength: 2}})
@@ -271,7 +259,7 @@ class TransactionStorage {
       }
     }
     // Debug
-    Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID);
+    Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, {params, limit, skip, sort});
     // Ok
     return {
       count: (transactionsCountMDB.length > 0 ? transactionsCountMDB[0].count : 0),
@@ -426,16 +414,6 @@ class TransactionStorage {
     aggregation.push({
       $unwind: {"path": "$stop.user", "preserveNullAndEmptyArrays": true}
     });
-    if (params.withMeterValues) {
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, 'metervalues'),
-          localField: '_id',
-          foreignField: 'transactionId',
-          as: 'meterValues'
-        }
-      });
-    }
     // Read DB
     const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
       .aggregate(aggregation, {collation: {locale: Constants.DEFAULT_LOCALE, strength: 2}})
@@ -450,7 +428,7 @@ class TransactionStorage {
       }
     }
     // Debug
-    Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID);
+    Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, {params, limit, skip, sort});
     // Ok
     return {
       count: (transactionsCountMDB.length > 0 ? transactionsCountMDB[0].count : 0),
@@ -459,12 +437,11 @@ class TransactionStorage {
   }
 
 
-  static async getTransaction(tenantID, id, withMeterValues = false) {
+  static async getTransaction(tenantID, id) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransaction');
     // Check
     await Utils.checkTenant(tenantID);
-    const pricing = await PricingStorage.getPricing(tenantID);
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -497,16 +474,7 @@ class TransactionStorage {
     aggregation.push({
       $unwind: {"path": "$stop.user", "preserveNullAndEmptyArrays": true}
     });
-    if (withMeterValues) {
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, 'metervalues'),
-          localField: '_id',
-          foreignField: 'transactionId',
-          as: 'meterValues'
-        }
-      });
-    }
+    // Charging Station
     aggregation.push({
       $lookup: {
         from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
@@ -519,18 +487,52 @@ class TransactionStorage {
     aggregation.push({
       $unwind: {"path": "$chargeBox", "preserveNullAndEmptyArrays": true}
     });
-
     // Read DB
     const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
       .aggregate(aggregation)
       .toArray();
     // Debug
-    Logging.traceEnd('TransactionStorage', 'getTransaction', uniqueTimerID);
+    Logging.traceEnd('TransactionStorage', 'getTransaction', uniqueTimerID, {id});
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
-      return new Transaction(tenantID, {...(transactionsMDB[0]), pricing: pricing});
+      return new Transaction(tenantID, transactionsMDB[0]);
     }
     return null;
+  }
+
+  static async getMeterValues(tenantID, transactionID) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getMeterValues');
+    // Check
+    await Utils.checkTenant(tenantID);
+    // Create Aggregation
+    const aggregation = [];
+    // Filters
+    aggregation.push({
+      $match: {transactionId: Utils.convertToInt(transactionID)}
+    });
+    // Read DB
+    const meterValuesMDB = await global.database.getCollection(tenantID, 'metervalues')
+      .aggregate(aggregation)
+      .toArray();
+    // Convert to date
+    for (const meterValueMDB of meterValuesMDB) {
+      meterValueMDB.timestamp = new Date(meterValueMDB.timestamp); 
+    }
+    // Sort
+    meterValuesMDB.sort((meterValue1, meterValue2) => meterValue1.timestamp.getTime() - meterValue2.timestamp.getTime());
+    // Create
+    const meterValues = [];
+    for (const meterValueMDB of meterValuesMDB) {
+      const meterValue = {};
+      // Copy
+      Database.updateMeterValue(meterValueMDB, meterValue);
+      // Add
+      meterValues.push(meterValue);
+    }
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'getMeterValues', uniqueTimerID, {transactionID});
+    return meterValues;
   }
 
   static async getActiveTransaction(tenantID, chargeBoxID, connectorId) {
@@ -538,7 +540,6 @@ class TransactionStorage {
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getActiveTransaction');
     // Check
     await Utils.checkTenant(tenantID);
-    const pricing = await PricingStorage.getPricing(tenantID);
     const aggregation = [];
     // Filters
     aggregation.push({
@@ -566,10 +567,10 @@ class TransactionStorage {
       .aggregate(aggregation)
       .toArray();
     // Debug
-    Logging.traceEnd('TransactionStorage', 'getActiveTransaction', uniqueTimerID);
+    Logging.traceEnd('TransactionStorage', 'getActiveTransaction', uniqueTimerID, {chargeBoxID, connectorId});
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
-      return new Transaction(tenantID, {...(transactionsMDB[0]), pricing: pricing});
+      return new Transaction(tenantID, transactionsMDB[0]);
     }
     return null;
   }
@@ -621,7 +622,7 @@ class TransactionStorage {
       }
     } while (activeTransaction);
     // Debug
-    Logging.traceEnd('TransactionStorage', 'cleanupRemainingActiveTransactions', uniqueTimerID);
+    Logging.traceEnd('TransactionStorage', 'cleanupRemainingActiveTransactions', uniqueTimerID, {chargeBoxId, connectorId});
   }
 }
 

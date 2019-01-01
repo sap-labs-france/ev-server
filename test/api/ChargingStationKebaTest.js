@@ -48,16 +48,14 @@ describe('ChargingStation Keba tests', function() {
 
     const response = await CentralServerService.transactionApi.readById(transactionId);
     expect(response.status).to.equal(200);
-    expect(response.data).to.deep.include({
+    expect(response.data).to.deep.containSubset({
       id: transactionId,
-      currentConsumption: 0,
-      totalConsumption: cumulated - meterStart,
-      totalInactivitySecs: 60,
       meterStart: meterStart,
+      stop: {
+        totalConsumption: cumulated - meterStart,
+        totalInactivitySecs: 60
+      }
     });
-
-
   });
-
 });
 

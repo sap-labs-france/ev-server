@@ -109,11 +109,11 @@ class Logging {
   }
 
   // Debug DB
-  static traceEnd(module, method, uniqueID) {
+  static traceEnd(module, method, uniqueID, params={}) {
     // Check
     if (_loggingConfig.trace) {
       performance.mark(`End ${module}.${method}(${uniqueID})`);
-      performance.measure(`${module}.${method}()`, `Start ${module}.${method}(${uniqueID})`, `End ${module}.${method}(${uniqueID})`)
+      performance.measure(`${module}.${method}(${JSON.stringify(params)})`, `Start ${module}.${method}(${uniqueID})`, `End ${module}.${method}(${uniqueID})`)
     }
   }
 

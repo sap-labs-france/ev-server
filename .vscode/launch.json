@@ -16,7 +16,7 @@
                 "--timeout",
                 "999999",
                 "--colors",
-                "${workspaceFolder}/test/api/OCPIServerTest.js"
+                "${workspaceFolder}/test/api/OCPPJson16Test.js"
                 // "${workspaceFolder}/test/api/UserTest.js"
 
             ],

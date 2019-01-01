@@ -3,7 +3,7 @@ const Constants = require('../../../../utils/Constants');
 const UtilsSecurity = require('./UtilsSecurity');
 
 class AuthSecurity {
-
+  // eslint-disable-next-line no-unused-vars
   static filterIsAuthorizedRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -14,6 +14,7 @@ class AuthSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterResetPasswordRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -24,6 +25,7 @@ class AuthSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterRegisterUserRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set

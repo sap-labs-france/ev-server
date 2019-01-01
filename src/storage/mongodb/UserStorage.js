@@ -34,7 +34,7 @@ class UserStorage {
       }
     );
     // Debug
-    Logging.traceEnd('UserStorage', 'getLatestEndUserLicenseAgreement', uniqueTimerID);
+    Logging.traceEnd('UserStorage', 'getLatestEndUserLicenseAgreement', uniqueTimerID, {language});
     // Parse
     return eulaText;
   }
@@ -89,7 +89,7 @@ class UserStorage {
         eula = {};
         Database.updateEula(result.ops[0], eula);
         // Debug
-        Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID);
+        Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID, {language});
         // Return
         return eula;
       } else {
@@ -97,7 +97,7 @@ class UserStorage {
         eula = {};
         Database.updateEula(eulaMDB, eula);
         // Debug
-        Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID);
+        Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID, {language});
         return eula;
       }
     } else {
@@ -116,7 +116,7 @@ class UserStorage {
       eula = {};
       Database.updateEula(result.ops[0], eula);
       // Debug
-      Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID);
+      Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID, {language});
       // Return
       return eula;
     }
@@ -139,7 +139,7 @@ class UserStorage {
       user = await UserStorage.getUser(tenantID, tagsMDB[0].userID);
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUserByTagId', uniqueTimerID);
+    Logging.traceEnd('UserStorage', 'getUserByTagId', uniqueTimerID, {tagID});
     return user;
   }
 
@@ -160,7 +160,7 @@ class UserStorage {
       user = await UserStorage._createUser(tenantID, usersMDB[0]);
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUserByEmail', uniqueTimerID);
+    Logging.traceEnd('UserStorage', 'getUserByEmail', uniqueTimerID, {email});
     return user;
   }
 
@@ -189,7 +189,7 @@ class UserStorage {
       user = await UserStorage._createUser(tenantID, usersMDB[0]);
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUser', uniqueTimerID);
+    Logging.traceEnd('UserStorage', 'getUser', uniqueTimerID, {id});
     return user;
   }
 
@@ -213,7 +213,7 @@ class UserStorage {
       };
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUserImage', uniqueTimerID);
+    Logging.traceEnd('UserStorage', 'getUserImage', uniqueTimerID, {id});
     return userImage;
   }
 
@@ -259,7 +259,7 @@ class UserStorage {
       }
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'removeSitesFromUser', uniqueTimerID);
+    Logging.traceEnd('UserStorage', 'removeSitesFromUser', uniqueTimerID, {userID, siteIDs});
   }
 
   static async addSitesToUser(tenantID, userID, siteIDs) {
@@ -285,7 +285,7 @@ class UserStorage {
       }
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'addSitesToUser', uniqueTimerID);
+    Logging.traceEnd('UserStorage', 'addSitesToUser', uniqueTimerID, {userID, siteIDs});
   }
 
   static async saveUser(tenantID, userToSave) {
@@ -336,7 +336,7 @@ class UserStorage {
             {'_id': tag},
             {$set: {'userID': Utils.convertToObjectID(updatedUser.getID())}},
             {upsert: true, new: true, returnOriginal: false});
-        }
+          }
       }
     }
     // Update Sites?`
@@ -360,7 +360,7 @@ class UserStorage {
       }
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'saveUser', uniqueTimerID);
+    Logging.traceEnd('UserStorage', 'saveUser', uniqueTimerID, {userToSave});
     return updatedUser;
   }
 
@@ -383,7 +383,7 @@ class UserStorage {
       {$set: {image: userImageToSave.image}},
       {upsert: true, new: true, returnOriginal: false});
     // Debug
-    Logging.traceEnd('UserStorage', 'saveUserImage', uniqueTimerID);
+    Logging.traceEnd('UserStorage', 'saveUserImage', uniqueTimerID, {userImageToSave});
   }
 
   static async getUsers(tenantID, params = {}, limit, skip, sort) {
@@ -532,7 +532,7 @@ class UserStorage {
       users.push(user);
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID);
+    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, {params, limit, skip, sort});
     // Ok
     return {
       count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
@@ -685,7 +685,7 @@ class UserStorage {
       users.push(user);
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID);
+    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, {params, limit, skip, sort});
     // Ok
     return {
       count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
@@ -708,7 +708,7 @@ class UserStorage {
     await global.database.getCollection(tenantID, 'tags')
       .deleteMany({'userID': Utils.convertToObjectID(id)});
     // Debug
-    Logging.traceEnd('UserStorage', 'deleteUser', uniqueTimerID);
+    Logging.traceEnd('UserStorage', 'deleteUser', uniqueTimerID, {id});
   }
 
   static async _createUser(tenantID, userMDB) {
