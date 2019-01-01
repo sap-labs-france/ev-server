@@ -1207,7 +1207,8 @@ class ChargingStation extends AbstractTenantEntity {
       // Set all the other connectors to Available
       this.getConnectors().forEach(async (connector) => {
         // Only other Occupied connectors
-        if ((connector.status === Constants.CONN_STATUS_OCCUPIED) &&
+        if ((connector.status === Constants.CONN_STATUS_OCCUPIED || 
+             connector.status === Constants.CONN_STATUS_AVAILABLE) &&
           (connector.connectorId !== connectorId)) {
           // Set connector Available again
           connector.status = Constants.CONN_STATUS_AVAILABLE;
