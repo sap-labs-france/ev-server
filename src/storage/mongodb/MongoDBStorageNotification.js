@@ -21,6 +21,7 @@ class MongoDBStorageNotification {
       case 'insert': // Insert/Create
         return Constants.ACTION_CREATE;
       case 'update': // Update
+      case 'replace':
         return Constants.ACTION_UPDATE;
       case 'delete': // Delete
         return Constants.ACTION_DELETE;
@@ -184,6 +185,11 @@ class MongoDBStorageNotification {
             break;
           case 'update': // Update
             if (change.updateDescription && change.updateDescription.updatedFields && change.updateDescription.updatedFields.stop) {
+              notification.type = Constants.ENTITY_TRANSACTION_STOP;
+            }
+            break;
+          case 'replace': // Replace
+            if (change.fullDocument && change.fullDocument.stop) {
               notification.type = Constants.ENTITY_TRANSACTION_STOP;
             }
             break;

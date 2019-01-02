@@ -34,7 +34,7 @@ class TenantStorage {
       tenant = new Tenant(tenantsMDB[0]);
     }
     // Debug
-    Logging.traceEnd('TenantStorage', 'getTenant', uniqueTimerID);
+    Logging.traceEnd('TenantStorage', 'getTenant', uniqueTimerID, {id});
     return tenant;
   }
 
@@ -64,7 +64,7 @@ class TenantStorage {
       tenant = new Tenant(tenantsMDB[0]);
     }
     // Debug
-    Logging.traceEnd('TenantStorage', 'getTenantByFilter', uniqueTimerID);
+    Logging.traceEnd('TenantStorage', 'getTenantByFilter', uniqueTimerID, {filter});
     return tenant;
   }
 
@@ -102,7 +102,7 @@ class TenantStorage {
         returnOriginal: false
       });
     // Debug
-    Logging.traceEnd('TenantStorage', 'saveTenant', uniqueTimerID);
+    Logging.traceEnd('TenantStorage', 'saveTenant', uniqueTimerID, {tenantToSave});
     // Create
     return new Tenant(result.value);
   }
@@ -113,7 +113,7 @@ class TenantStorage {
     // Create DB
     await global.database.createTenantDatabase(tenantID);
     // Debug
-    Logging.traceEnd('TenantStorage', 'createTenantDB', uniqueTimerID);
+    Logging.traceEnd('TenantStorage', 'createTenantDB', uniqueTimerID, {tenantID});
   }
 
   // Delegate
@@ -192,7 +192,7 @@ class TenantStorage {
       tenants.push(new Tenant(tenantMDB));
     }
     // Debug
-    Logging.traceEnd('TenantStorage', 'getTenants', uniqueTimerID);
+    Logging.traceEnd('TenantStorage', 'getTenants', uniqueTimerID, {params, limit, skip, sort});
     // Ok
     return {
       count: (tenantsCountMDB.length > 0 ? tenantsCountMDB[0].count : 0),
@@ -209,7 +209,7 @@ class TenantStorage {
         '_id': Utils.convertToObjectID(id)
       });
     // Debug
-    Logging.traceEnd('TenantStorage', 'deleteTenant', uniqueTimerID);
+    Logging.traceEnd('TenantStorage', 'deleteTenant', uniqueTimerID, {id});
   }
 
   static async deleteTenantDB(id) {
@@ -218,7 +218,7 @@ class TenantStorage {
     // Delete
     await global.database.deleteTenantDatabase(id);
     // Debug
-    Logging.traceEnd('TenantStorage', 'deleteTenantDB', uniqueTimerID);
+    Logging.traceEnd('TenantStorage', 'deleteTenantDB', uniqueTimerID, {id});
   }
 }
 

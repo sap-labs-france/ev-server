@@ -27,7 +27,7 @@ class VehicleStorage {
       };
     }
     // Debug
-    Logging.traceEnd('VehicleStorage', 'getVehicleImage', uniqueTimerID);
+    Logging.traceEnd('VehicleStorage', 'getVehicleImage', uniqueTimerID, {id});
     return vehicleImage;
   }
 
@@ -81,7 +81,7 @@ class VehicleStorage {
       vehicle = new Vehicle(tenantID, vehiclesMDB[0]);
     }
     // Debug
-    Logging.traceEnd('VehicleStorage', 'getVehicle', uniqueTimerID);
+    Logging.traceEnd('VehicleStorage', 'getVehicle', uniqueTimerID, {id});
     return vehicle;
   }
 
@@ -118,7 +118,7 @@ class VehicleStorage {
       {$set: vehicle},
       {upsert: true, new: true, returnOriginal: false});
     // Debug
-    Logging.traceEnd('VehicleStorage', 'saveVehicle', uniqueTimerID);
+    Logging.traceEnd('VehicleStorage', 'saveVehicle', uniqueTimerID, {vehicleToSave});
     // Create
     return new Vehicle(tenantID, result.value);
   }
@@ -223,7 +223,7 @@ class VehicleStorage {
       }
     }
     // Debug
-    Logging.traceEnd('VehicleStorage', 'getVehicles', uniqueTimerID);
+    Logging.traceEnd('VehicleStorage', 'getVehicles', uniqueTimerID, {params, limit, skip, sort});
     // Ok
     return {
       count: (vehiclesCountMDB.length > 0 ? vehiclesCountMDB[0].count : 0),
@@ -243,7 +243,7 @@ class VehicleStorage {
     await global.database.getCollection(tenantID, 'vehicleimages')
       .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
     // Debug
-    Logging.traceEnd('VehicleStorage', 'deleteVehicle', uniqueTimerID);
+    Logging.traceEnd('VehicleStorage', 'deleteVehicle', uniqueTimerID, {id});
   }
 }
 

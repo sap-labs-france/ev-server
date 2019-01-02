@@ -333,7 +333,7 @@ class ChargingStationService {
         // Set the tag ID to handle the Stop Transaction afterwards
         transaction.remoteStop(req.user.tagIDs[0], new Date().toISOString());
         // Save Transaction
-        await TransactionStorage.saveTransaction(transaction);
+        await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
         // Ok: Execute it
         result = await chargingStation.handleAction(action, filteredRequest.args);
       } else if (action === 'StartTransaction') {

@@ -19,6 +19,7 @@ class PricingSecurity {
     return filteredPricing;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterPricingUpdateRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
