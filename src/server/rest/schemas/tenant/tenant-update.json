@@ -34,6 +34,18 @@
                     "properties": {
                         "active": { "type": "boolean" }
                     }
+                },
+                "chargeathome": {
+                    "type": "object",
+                    "properties": {
+                        "active": { "type": "boolean" }
+                    }
+                },
+                "pricing": {
+                    "type": "object",
+                    "properties": {
+                        "active": { "type": "boolean" }
+                    }
                 }
             }
         }
