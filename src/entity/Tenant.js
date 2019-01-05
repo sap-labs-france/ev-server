@@ -45,7 +45,7 @@ class Tenant {
   }
 
   isComponentActive(identifier) {
-    return (this._model.components[identifier] && this._model.components[identifier].active?true:false);
+    return (this._model.components[identifier] && this._model.components[identifier].active ? true:false);
   }
 
   activateComponent(identifier) {
@@ -53,7 +53,7 @@ class Tenant {
       this._model.components[identifier] = {};
     }
 
-    this._model.components[identifier].active = true; 
+    this._model.components[identifier].active = true;
   }
 
   deactivateComponent(identifier) {
@@ -61,7 +61,7 @@ class Tenant {
       this._model.components[identifier] = {};
     }
 
-    this._model.components[identifier].active = false; 
+    this._model.components[identifier].active = false;
   }
 
   getActiveComponents() {
@@ -86,7 +86,7 @@ class Tenant {
   }
   /**
    * Return Setting entity
-   * @param {*} identifier 
+   * @param {*} identifier
    * @return Setting
    */
   async getSetting(identifier) {
