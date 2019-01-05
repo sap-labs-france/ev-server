@@ -1202,6 +1202,7 @@ class ChargingStation extends AbstractTenantEntity {
     connector.currentConsumption = 0;
     connector.totalConsumption = 0;
     connector.activeTransactionID = 0;
+    connector.currentStateOfCharge = 0;
     // Check if Charger can charge in //
     if (!this.canChargeInParallel()) {
       // Set all the other connectors to Available
