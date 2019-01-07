@@ -172,6 +172,14 @@ class ChargingStation extends AbstractTenantEntity {
     this._model.cannotChargeInParallel = cannotChargeInParallel;
   }
 
+  setPowerLimitUnit(powerLimitUnit) {
+    this._model.powerLimitUnit = powerLimitUnit;
+  }
+
+  getPowerLimitUnit() {
+    return this._model.powerLimitUnit;
+  }
+
   canChargeInParallel() {
     return !this._model.cannotChargeInParallel;
   }

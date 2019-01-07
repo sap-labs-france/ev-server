@@ -63,6 +63,7 @@ module.exports = {
           case "ChargingStationReset":
           case "ChargingStationSetChargingProfile":
           case "ChargingStationGetCompositeSchedule":
+          case "ChargingStationClearChargingProfile":
             // Keep the action (remove ChargingStation)
             action = action.slice(15);
             // Delegate
