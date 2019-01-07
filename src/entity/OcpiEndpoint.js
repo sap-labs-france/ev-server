@@ -229,6 +229,11 @@ class OcpiEndpoint extends AbstractTenantEntity {
     return OcpiEndpointStorage.getOcpiEndpoints(tenantID, params, limit, skip, sort)
   }
 
+  // Get ocpiendpoints with token
+  static async getOcpiendpointWithToken(tenantID, token) {
+    return OcpiEndpointStorage.getOcpiEndpointWithToken(tenantID, token);
+  }
+
   // get Default Ocpi Endpoint
   // currently only one endpoint could be defined by tenant - but the scope may change keep it open
   static async getDefaultOcpiEndpoint(tenantID) {
