@@ -43,6 +43,7 @@ class SiteAreaSecurity {
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.WithSite = UtilsSecurity.filterBoolean(request.WithSite);
     filteredRequest.WithChargeBoxes = UtilsSecurity.filterBoolean(request.WithChargeBoxes);
+    filteredRequest.WithAvailableChargers = UtilsSecurity.filterBoolean(request.WithAvailableChargers);
     filteredRequest.SiteID = sanitize(request.SiteID);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
@@ -89,6 +90,18 @@ class SiteAreaSecurity {
         filteredSiteArea.id = siteArea.id;
         filteredSiteArea.name = siteArea.name;
         filteredSiteArea.siteID = siteArea.siteID;
+      }
+      if (siteArea.hasOwnProperty("availableChargers")) {
+        filteredSiteArea.availableChargers = siteArea.availableChargers;
+      }
+      if (siteArea.hasOwnProperty("totalChargers")) {
+        filteredSiteArea.totalChargers = siteArea.totalChargers;
+      }
+      if (siteArea.hasOwnProperty("availableConnectors")) {
+        filteredSiteArea.availableConnectors = siteArea.availableConnectors;
+      }
+      if (siteArea.hasOwnProperty("totalConnectors")) {
+        filteredSiteArea.totalConnectors = siteArea.totalConnectors;
       }
       if (siteArea.site) {
         // Site
