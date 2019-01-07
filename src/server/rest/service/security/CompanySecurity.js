@@ -12,6 +12,7 @@ class CompanySecurity {
     return SiteSecurity;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterCompanyDeleteRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -19,12 +20,14 @@ class CompanySecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterCompanyRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterCompaniesRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.Search = sanitize(request.Search);

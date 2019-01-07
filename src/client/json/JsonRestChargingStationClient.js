@@ -2,9 +2,11 @@ const uuid = require('uuid/v4');
 const WebSocket = require('ws');
 const ChargingStationClient = require('../ChargingStationClient');
 const Logging = require('../../utils/Logging');
+const BackendError = require('../../exception/BackendError');
 
 const MODULE_NAME = "JsonRestChargingStationClient";
 const OCPP_JSON_CALL_MESSAGE = 2;
+const OCPP_JSON_ERROR_MESSAGE = 4;
 
 class JsonRestChargingStationClient extends ChargingStationClient {
   constructor(chargingStation) {
@@ -64,9 +66,23 @@ class JsonRestChargingStationClient extends ChargingStationClient {
     );
   }
 
+  setChargingProfile(params) {
+    return this._sendMessage(this._buildRequest('SetChargingProfile', params));
+  }
+
+  getCompositeSchedule(params) {
+      return this._sendMessage(this._buildRequest('GetCompositeSchedule', params));
+  }
+
+  genericOCPPCommand(commandName, params) {
+    return this._sendMessage([OCPP_JSON_CALL_MESSAGE, uuid(), commandName, params]);
+  }
+
+  
   _openConnection() {
     // Log
     Logging.logInfo({
+      tenantID: this._chargingStation.getTenantID(),
       module: MODULE_NAME,
       source: this._chargingStation.getID(),
       method: "onOpen",
@@ -84,6 +100,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
       this._wsConnection.onopen = () => {
         // Log
         Logging.logInfo({
+          tenantID: this._chargingStation.getTenantID(),
           module: MODULE_NAME,
           source: this._chargingStation.getID(),
           method: "onOpen",
@@ -97,6 +114,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
       this._wsConnection.onclose = () => {
         // Log
         Logging.logInfo({
+          tenantID: this._chargingStation.getTenantID(),
           module: MODULE_NAME,
           source: this._chargingStation.getID(),
           method: "onClose",
@@ -107,7 +125,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
       // Handle Error Message
       this._wsConnection.onerror = (error) => {
         // Log
-        Logging.logException(error, "WSRestConnectionClosed", this._chargingStation.getID(), MODULE_NAME, "onError");
+        Logging.logException(error, "WSRestConnectionClosed", this._chargingStation.getID(), MODULE_NAME, "onError", this._chargingStation.getTenantID(),);
         // Reject
         reject();
       };
@@ -118,6 +136,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
           const messageJson = JSON.parse(message.data);
           // Log
           Logging.logDebug({
+            tenantID: this._chargingStation.getTenantID(),
             module: MODULE_NAME,
             source: this._chargingStation.getID(),
             method: "onMessage",
@@ -127,14 +146,31 @@ class JsonRestChargingStationClient extends ChargingStationClient {
           });
           // Check if this corresponds to a request
           if (this._requests[messageJson[1]]) {
-            // Respond to the request
-            this._requests[messageJson[1]].resolve(messageJson[2]);
+            // Check message type
+            if (messageJson[0] === OCPP_JSON_ERROR_MESSAGE) {
+              // Error message 
+              Logging.logError({
+                tenantID: this._chargingStation.getTenantID(),
+                module: MODULE_NAME,
+                source: this._chargingStation.getID(),
+                method: "onMessage",
+                action: "WSRestClientErrorResponse",
+                message: `OCPP error response for '${JSON.stringify(messageJson[2])}'`,
+                detailedMessages: `Details: ${JSON.stringify(messageJson[3])}`
+              });
+              
+              // Resolve with error message
+              this._requests[messageJson[1]].reject({status: 'Rejected', error: messageJson });
+            } else {
+              // Respond to the request
+              this._requests[messageJson[1]].resolve(messageJson[2]);
+            }
             // Close WS
             await this._closeConnection();
           }
         } catch (error) {
           // Log
-          Logging.logException(error, "", this._chargingStation.getID(), MODULE_NAME, "onMessage");
+          Logging.logException(error, "", this._chargingStation.getID(), MODULE_NAME, "onMessage", this._chargingStation.getTenantID(),);
         }
       };
     })
@@ -157,6 +193,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
       if (this._wsConnection.readyState === WebSocket.OPEN) {
         // Log
         Logging.logDebug({
+          tenantID: this._chargingStation.getTenantID(),
           module: MODULE_NAME,
           source: this._chargingStation.getID(),
           method: "SendMessage",

@@ -483,7 +483,7 @@ class AuthorizationsDefinition {
 						"AuthObject": "ChargingStation",
 						"AuthFieldValue": {
 							"ChargingStationID": "*",
-							"Action": ["Create", "Read", "Update", "Delete", "Reset", "ClearCache", "GetConfiguration", "ChangeConfiguration", "StartTransaction", "StopTransaction", "UnlockConnector", "Authorize"]
+							"Action": ["Create", "Read", "Update", "Delete", "Reset", "ClearCache", "GetConfiguration", "ChangeConfiguration", "StartTransaction", "StopTransaction", "UnlockConnector", "Authorize", "SetChargingProfile", "GetCompositeSchedule"]
 						}
 					},
 					{
@@ -582,27 +582,27 @@ class AuthorizationsDefinition {
 					{
 						"AuthObject": "Companies",
 						"AuthFieldValue": {
-							"Action": ["List"]
+							"Action": []
 						}
 					},
 					{
 						"AuthObject": "Company",
 						"AuthFieldValue": {
 							"CompanyID": "*",
-							"Action": ["Create", "Read", "Update", "Delete"]
+							"Action": []
 						}
 					},
 					{
 						"AuthObject": "Sites",
 						"AuthFieldValue": {
-							"Action": ["List"]
+							"Action": []
 						}
 					},
 					{
 						"AuthObject": "Site",
 						"AuthFieldValue": {
 							"SiteID": "*",
-							"Action": ["Create", "Read", "Update", "Delete"]
+							"Action": []
 						}
 					},
 					{
@@ -634,40 +634,40 @@ class AuthorizationsDefinition {
 					{
 						"AuthObject": "SiteAreas",
 						"AuthFieldValue": {
-							"Action": ["List"]
+							"Action": []
 						}
 					},
 					{
 						"AuthObject": "SiteArea",
 						"AuthFieldValue": {
 							"SiteAreaID": "*",
-							"Action": ["Create", "Read", "Update", "Delete"]
+							"Action": []
 						}
 					},
 					{
 						"AuthObject": "ChargingStations",
 						"AuthFieldValue": {
-							"Action": ["List"]
+							"Action": []
 						}
 					},
 					{
 						"AuthObject": "ChargingStation",
 						"AuthFieldValue": {
 							"ChargingStationID": "*",
-							"Action": ["Create", "Read", "Update", "Delete", "Reset", "ClearCache", "GetConfiguration", "ChangeConfiguration", "StartTransaction", "StopTransaction", "UnlockConnector", "Authorize"]
+							"Action": []
 						}
 					},
 					{
 						"AuthObject": "Transactions",
 						"AuthFieldValue": {
-							"Action": ["List"]
+							"Action": []
 						}
 					},
 					{
 						"AuthObject": "Transaction",
 						"AuthFieldValue": {
 							"UserID": "*",
-							"Action": ["Read", "Update", "Delete", "RefundTransaction"]
+							"Action": []
 						}
 					},
 					{

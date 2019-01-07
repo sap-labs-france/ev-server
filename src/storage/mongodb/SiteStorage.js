@@ -98,7 +98,7 @@ class SiteStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteStorage', 'getSite', uniqueTimerID);
+    Logging.traceEnd('SiteStorage', 'getSite', uniqueTimerID, {id, withCompany, withUsers});
     return site;
   }
 
@@ -121,7 +121,7 @@ class SiteStorage {
       };
     }
     // Debug
-    Logging.traceEnd('SiteStorage', 'getSiteImage', uniqueTimerID);
+    Logging.traceEnd('SiteStorage', 'getSiteImage', uniqueTimerID, {id});
     return siteImage;
   }
 
@@ -205,7 +205,7 @@ class SiteStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteStorage', 'saveSite', uniqueTimerID);
+    Logging.traceEnd('SiteStorage', 'saveSite', uniqueTimerID, {siteToSave});
     return updatedSite;
   }
 
@@ -378,14 +378,24 @@ class SiteStorage {
         }
         // Count Available Charger
         if (params.withAvailableChargers) {
-          let availableChargers = 0;
+          let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
           // Chargers
           for (const chargeBox of siteMDB.chargeBoxes) {
-            // Connectors
+            totalChargers++;
+            // Handle Connectors
+            for (const connector of chargeBox.connectors) {
+              totalConnectors++;
+              // Check if Available
+              if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+                // Add
+                availableConnectors++;
+              }
+            }
+            // Handle Chargers
             for (const connector of chargeBox.connectors) {
               // Check if Available
               if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
-                // Add 1
+                // Add
                 availableChargers++;
                 break;
               }
@@ -393,6 +403,9 @@ class SiteStorage {
           }
           // Set
           site.setAvailableChargers(availableChargers);
+          site.setTotalChargers(totalChargers);
+          site.setAvailableConnectors(availableConnectors);
+          site.setTotalConnectors(totalConnectors);
         }
         // Set Site Areas
         if ((params.withChargeBoxes || params.withSiteAreas) && siteMDB.siteAreas) {
@@ -435,7 +448,7 @@ class SiteStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteStorage', 'getSites', uniqueTimerID);
+    Logging.traceEnd('SiteStorage', 'getSites', uniqueTimerID, {params, limit, skip, sort});
     // Ok
     return {
       count: (sitesCountMDB.length > 0 ? sitesCountMDB[0].count : 0),
@@ -465,7 +478,7 @@ class SiteStorage {
     await global.database.getCollection(tenantID, 'siteusers')
       .deleteMany({'siteID': Utils.convertToObjectID(id)});
     // Debug
-    Logging.traceEnd('SiteStorage', 'deleteSite', uniqueTimerID);
+    Logging.traceEnd('SiteStorage', 'deleteSite', uniqueTimerID, {id});
   }
 }
 

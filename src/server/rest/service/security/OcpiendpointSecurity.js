@@ -3,6 +3,7 @@ const Authorizations = require('../../../../authorization/Authorizations');
 const UtilsSecurity = require('./UtilsSecurity');
 
 class OcpiendpointSecurity {
+  // eslint-disable-next-line no-unused-vars
   static filterOcpiendpointDeleteRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -10,12 +11,14 @@ class OcpiendpointSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterOcpiendpointRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterOcpiendpointsRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.Search = sanitize(request.Search);
@@ -50,6 +53,7 @@ class OcpiendpointSecurity {
     return OcpiendpointSecurity._filterOcpiendpointRequest(request, loggedUser);
   }
 
+  // eslint-disable-next-line no-unused-vars
   static _filterOcpiendpointRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.name = sanitize(request.name);

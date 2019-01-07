@@ -32,7 +32,7 @@ class OcpiEndpointStorage {
       ocpiEndpoint = new OcpiEndpoint(tenantID, ocpiEndpointsMDB[0]);
     }
     // Debug
-    Logging.traceEnd('OcpiEndpointStorage', 'getOcpiEndpoint', uniqueTimerID);
+    Logging.traceEnd('OcpiEndpointStorage', 'getOcpiEndpoint', uniqueTimerID, {id});
     return ocpiEndpoint;
   }
 
@@ -69,7 +69,7 @@ class OcpiEndpointStorage {
       {$set: ocpiEndpoint},
       {upsert: true, new: true, returnOriginal: false});
     // Debug
-    Logging.traceEnd('OcpiEndpointStorage', 'saveOcpiEndpoint',uniqueTimerID);
+    Logging.traceEnd('OcpiEndpointStorage', 'saveOcpiEndpoint', uniqueTimerID, {ocpiEndpointToSave});
     // Create
     return new OcpiEndpoint(tenantID, result.value);
   }
@@ -153,7 +153,7 @@ class OcpiEndpointStorage {
       }
     }
     // Debug
-    Logging.traceEnd('OcpiEndpointStorage', 'getOcpiEndpoints',uniqueTimerID);
+    Logging.traceEnd('OcpiEndpointStorage', 'getOcpiEndpoints',uniqueTimerID, {params, limit, skip, sort});
     // Ok
     return {
       count: (ocpiEndpointsCountMDB.length > 0 ? ocpiEndpointsCountMDB[0].count : 0),
@@ -170,7 +170,7 @@ class OcpiEndpointStorage {
     await global.database.getCollection(tenantID, 'ocpiendpoints')
       .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
     // Debug
-    Logging.traceEnd('OcpiEndpointStorage', 'deleteOcpiEndpoint', uniqueTimerID);
+    Logging.traceEnd('OcpiEndpointStorage', 'deleteOcpiEndpoint', uniqueTimerID, {id});
   }
 }
 

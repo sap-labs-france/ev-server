@@ -333,7 +333,7 @@ class ChargingStationService {
         // Set the tag ID to handle the Stop Transaction afterwards
         transaction.remoteStop(req.user.tagIDs[0], new Date().toISOString());
         // Save Transaction
-        await TransactionStorage.saveTransaction(transaction);
+        await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
         // Ok: Execute it
         result = await chargingStation.handleAction(action, filteredRequest.args);
       } else if (action === 'StartTransaction') {
@@ -341,6 +341,43 @@ class ChargingStationService {
         await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, filteredRequest.args.tagID);
         // Ok: Execute it
         result = await chargingStation.handleAction(action, filteredRequest.args);
+      } else if (action === 'GetCompositeSchedule') {
+        // Check auth
+        if (!Authorizations.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action)) {
+          // Not Authorized!
+          throw new AppAuthError(action,
+            Constants.ENTITY_CHARGING_STATION,
+            chargingStation.getID(),
+            560, 'ChargingStationService', 'handleAction',
+            req.user);
+        }
+        // Check if we have to load all connectors in case connector 0 fails
+        if (req.body.hasOwnProperty('loadAllConnectors')) {
+          filteredRequest.loadAllConnectors = req.body.loadAllConnectors;
+        }
+        if (filteredRequest.loadAllConnectors && filteredRequest.args.connectorId === 0) {
+          // Call for connector 0
+          result = await chargingStation.handleAction(action, filteredRequest.args);
+          if (result.status !== Constants.OCPP_RESPONSE_ACCEPTED) {
+            result = [];
+            // Call each connectors
+            for (const connector of chargingStation.getConnectors()) {
+              // Fix central reference date
+              const centralTime = new Date();
+              filteredRequest.args.connectorId = connector.connectorId;
+              // Execute request
+              const simpleResult = await chargingStation.handleAction(action, filteredRequest.args);
+              simpleResult.centralSystemTime = centralTime;
+              result.push(simpleResult);
+            }
+          }
+        } else {
+          // Fix central reference date
+          const centralTime = new Date();
+          // Execute it
+          result = await chargingStation.handleAction(action, filteredRequest.args);
+          result.centralSystemTime = centralTime;
+        }
       } else {
         // Check auth
         if (!Authorizations.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action)) {

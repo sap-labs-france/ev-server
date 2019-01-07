@@ -2,7 +2,7 @@ const {expect} = require('chai');
 const CentralServerService = require('./client/CentralServerService');
 const Factory = require('../factories/Factory');
 
-describe('Ocpiendpoint tests', function () {
+describe('OCPI Endpoint tests', function () {
   this.timeout(30000);
 
   describe('Success cases', () => {

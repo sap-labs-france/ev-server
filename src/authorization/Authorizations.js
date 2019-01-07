@@ -18,10 +18,10 @@ let _configuration;
 class Authorizations {
   static canRefundTransaction(loggedUser, transaction) {
     // Check auth
-    if (transaction.getUser()) {
+    if (transaction.getUserJson()) {
       // Check
       return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
-        {"Action": Constants.ACTION_REFUND_TRANSACTION, "UserID": transaction.getUser().id.toString()});
+        {"Action": Constants.ACTION_REFUND_TRANSACTION, "UserID": transaction.getUserJson().id.toString()});
       // Admin?
     } else if (!Authorizations.isAdmin(loggedUser)) {
       return false;
@@ -318,10 +318,10 @@ class Authorizations {
 
   static canReadTransaction(loggedUser, transaction) {
     // Check auth
-    if (transaction.getUser() && transaction.getUser().id) {
+    if (transaction.getUserJson() && transaction.getUserJson().id) {
       // Check
       return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
-        {"Action": Constants.ACTION_READ, "UserID": transaction.getUser().id.toString()});
+        {"Action": Constants.ACTION_READ, "UserID": transaction.getUserJson().id.toString()});
       // Admin?
     } else if (!Authorizations.isAdmin(loggedUser)) {
       return false;
@@ -331,10 +331,10 @@ class Authorizations {
 
   static canUpdateTransaction(loggedUser, transaction) {
     // Check auth
-    if (transaction.getUser()) {
+    if (transaction.getUserJson()) {
       // Check
       return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
-        {"Action": Constants.ACTION_UPDATE, "UserID": transaction.getUser().id.toString()});
+        {"Action": Constants.ACTION_UPDATE, "UserID": transaction.getUserJson().id.toString()});
       // Admin?
     } else if (!Authorizations.isAdmin(loggedUser)) {
       return false;
@@ -344,10 +344,10 @@ class Authorizations {
 
   static canDeleteTransaction(loggedUser, transaction) {
     // Check auth
-    if (transaction.getUser()) {
+    if (transaction.getUserJson()) {
       // Check
       return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
-        {"Action": Constants.ACTION_DELETE, "UserID": transaction.getUser().id.toString()});
+        {"Action": Constants.ACTION_DELETE, "UserID": transaction.getUserJson().id.toString()});
       // Admin?
     } else if (!Authorizations.isAdmin(loggedUser)) {
       return false;

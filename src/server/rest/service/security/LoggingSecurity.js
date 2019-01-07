@@ -4,6 +4,7 @@ const Utils = require('../../../../utils/Utils');
 const UtilsSecurity = require('./UtilsSecurity');
 
 class LoggingSecurity {
+  // eslint-disable-next-line no-unused-vars
   static filterLoggingsRequest(request, loggedUser) {
     const filteredRequest = {};
     // Get logs
@@ -20,6 +21,7 @@ class LoggingSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterLoggingRequest(request, loggedUser) {
     const filteredRequest = {};
     // Get logs

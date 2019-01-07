@@ -43,7 +43,7 @@ class MigrationStorage {
     await global.database.getCollection(Constants.DEFAULT_TENANT, 'migrations')
       .insertOne(migration);
     // Debug
-    Logging.traceEnd('MigrationStorage', 'saveMigration', uniqueTimerID);
+    Logging.traceEnd('MigrationStorage', 'saveMigration', uniqueTimerID, {migrationToSave});
   }
 }
 

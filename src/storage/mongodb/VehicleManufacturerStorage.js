@@ -28,7 +28,7 @@ class VehicleManufacturerStorage {
       };
     }
     // Debug
-    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturerLogo', uniqueTimerID);
+    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturerLogo', uniqueTimerID, {id});
     return vehicleManufacturerLogo;
   }
 
@@ -105,7 +105,7 @@ class VehicleManufacturerStorage {
       vehicleManufacturer = new VehicleManufacturer(tenantID, vehicleManufacturersMDB[0]);
     }
     // Debug
-    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturer', uniqueTimerID);
+    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturer', uniqueTimerID, {id});
     return vehicleManufacturer;
   }
 
@@ -142,7 +142,7 @@ class VehicleManufacturerStorage {
       {$set: vehicleManufacturer},
       {upsert: true, new: true, returnOriginal: false});
     // Debug
-    Logging.traceEnd('VehicleManufacturerStorage', 'saveVehicleManufacturer', uniqueTimerID);
+    Logging.traceEnd('VehicleManufacturerStorage', 'saveVehicleManufacturer', uniqueTimerID, {vehicleManufacturerToSave});
     // Create
     return new VehicleManufacturer(tenantID, result.value);
   }
@@ -245,7 +245,7 @@ class VehicleManufacturerStorage {
       }
     }
     // Debug
-    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturers', uniqueTimerID);
+    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturers', uniqueTimerID, {params, limit, skip, sort});
     // Ok
     return {
       count: (vehiclemanufacturersCountMDB.length > 0 ? vehiclemanufacturersCountMDB[0].count : 0),
@@ -272,7 +272,7 @@ class VehicleManufacturerStorage {
     await global.database.getCollection(tenantID, 'vehiclemanufacturerlogos')
       .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
     // Debug
-    Logging.traceEnd('VehicleManufacturerStorage', 'deleteVehicleManufacturer', uniqueTimerID);
+    Logging.traceEnd('VehicleManufacturerStorage', 'deleteVehicleManufacturer', uniqueTimerID, {id});
   }
 }
 

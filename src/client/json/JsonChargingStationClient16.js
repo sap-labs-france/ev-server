@@ -62,6 +62,19 @@ class JsonChargingStationClient16 extends ChargingStationClient {
       connectorId: connectorId
     }, 2, "UnlockConnector");
   }
+
+  setChargingProfile(params) {
+    return this._wsConnection.sendMessage(uuid(), params, 2, "SetChargingProfile");
+  }
+
+  getCompositeSchedule(params) {
+    return this._wsConnection.sendMessage(uuid(), params, 2, "GetCompositeSchedule");
+  }
+
+  genericOCPPCommand(commandName, params) {
+    return this._wsConnection.sendMessage(uuid(), params, 2, commandName);
+  }
+
 }
 
 module.exports = JsonChargingStationClient16;

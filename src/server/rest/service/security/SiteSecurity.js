@@ -28,6 +28,7 @@ class SiteSecurity {
     return UserSecurity;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterSiteDeleteRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -35,6 +36,7 @@ class SiteSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterSiteRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.ID = sanitize(request.ID);
@@ -42,6 +44,7 @@ class SiteSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterSitesRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.Search = sanitize(request.Search);
@@ -129,6 +132,15 @@ class SiteSecurity {
       }
       if (site.hasOwnProperty("availableChargers")) {
         filteredSite.availableChargers = site.availableChargers;
+      }
+      if (site.hasOwnProperty("totalChargers")) {
+        filteredSite.totalChargers = site.totalChargers;
+      }
+      if (site.hasOwnProperty("availableConnectors")) {
+        filteredSite.availableConnectors = site.availableConnectors;
+      }
+      if (site.hasOwnProperty("totalConnectors")) {
+        filteredSite.totalConnectors = site.totalConnectors;
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(
