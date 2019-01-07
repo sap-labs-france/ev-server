@@ -90,7 +90,7 @@ module.exports = {
           case "VehicleManufacturerCreate":
             // Delegate
             VehicleManufacturerService.handleCreateVehicleManufacturer(action, req, res, next);
-            break;  
+            break;
           // Create Site
           case "SiteCreate":
             // Delegate
@@ -130,12 +130,12 @@ module.exports = {
           case "OcpiendpointPing":
             // Delegate
             OcpiendpointService.handlePingOcpiendpoint(action, req, res, next);
-            break;  
+            break;
           // Generate Local Token Ocpiendpoint
           case "OcpiendpointGenerateLocalToken":
             // Delegate
             OcpiendpointService.handleGenerateLocalTokenOcpiendpoint(action, req, res, next);
-            break;  
+            break;
           // Unknown Context
           default:
             // Delegate
@@ -465,6 +465,10 @@ module.exports = {
           case "OcpiendpointUpdate":
             // Delegate
             OcpiendpointService.handleUpdateOcpiendpoint(action, req, res, next);
+            break;
+          case "OcpiendpointRegister":
+            // Delegate
+            OcpiendpointService.handleRegisterOcpiendpoint(action, req, res, next);
             break;
           // Not found
           default:

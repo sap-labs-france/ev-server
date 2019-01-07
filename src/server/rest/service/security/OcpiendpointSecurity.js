@@ -38,6 +38,21 @@ class OcpiendpointSecurity {
     return OcpiendpointSecurity._filterOcpiendpointRequest(request, loggedUser);
   }
 
+  static filterOcpiendpointPingRequest(request, loggedUser) {
+    return OcpiendpointSecurity._filterOcpiendpointRequest(request, loggedUser);
+  }
+
+  static filterOcpiendpointRegisterRequest(request, loggedUser) {
+    // Set Ocpiendpoint
+    const filteredRequest = OcpiendpointSecurity._filterOcpiendpointRequest(request, loggedUser);
+    filteredRequest.id = sanitize(request.id);
+    return filteredRequest;
+  }
+
+  static filterOcpiendpointGenerateLocalTokenRequest(request, loggedUser) {
+    return OcpiendpointSecurity._filterOcpiendpointRequest(request, loggedUser);
+  }
+
   // eslint-disable-next-line no-unused-vars
   static _filterOcpiendpointRequest(request, loggedUser) {
     const filteredRequest = {};
@@ -61,7 +76,7 @@ class OcpiendpointSecurity {
       // Admin?
       if (Authorizations.isAdmin(loggedUser)) {
         // Yes: set all params
-        filteredOcpiendpoint= ocpiendpoint;
+        filteredOcpiendpoint = ocpiendpoint;
       } else {
         // Set only necessary info
         return null;

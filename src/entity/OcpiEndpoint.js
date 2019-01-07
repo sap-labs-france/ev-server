@@ -74,13 +74,20 @@ class OcpiEndpoint extends AbstractTenantEntity {
 
   /**
    * available endpoints - store payload information as return by version url: eg: /ocpi/emsp/2.1.1
+   * The payload should be converted using OCPIMapping.convertEndpoints
    */
+  setAvailableEndpoints(availableEndpoints) {
+    this._model.availableEndpoints = availableEndpoints;
+  }
+
   getAvailableEndpoints() {
     return this._model.availableEndpoints;
   }
 
-  setAvailableEndpoints(availableEndpoints) {
-    this._model.availableEndpoints = availableEndpoints;
+  getEndpointUrl(service) {
+    if (this._model.availableEndpoints && this._model.availableEndpoints.hasOwnProperty(service)) {
+      return this._model.availableEndpoints[service];
+    }
   }
 
   /**
@@ -220,6 +227,11 @@ class OcpiEndpoint extends AbstractTenantEntity {
   
   static getOcpiendpoints(tenantID, params, limit, skip, sort) {
     return OcpiEndpointStorage.getOcpiEndpoints(tenantID, params, limit, skip, sort)
+  }
+
+  // Get ocpiendpoints with token
+  static async getOcpiendpointWithToken(tenantID, token) {
+    return OcpiEndpointStorage.getOcpiEndpointWithToken(tenantID, token);
   }
 
   // get Default Ocpi Endpoint

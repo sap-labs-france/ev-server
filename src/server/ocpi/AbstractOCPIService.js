@@ -151,9 +151,8 @@ class AbstractOCPIService {
           MODULE_NAME, 'processEndpointAction', null);
       }
 
-
-      // get tenant from the called URL
-      const tenantSubdomain = decodedToken.tenant;
+      // get tenant from the called URL - TODO: review this handle tenant and tid in decoded token
+      const tenantSubdomain = (decodedToken.tenant?decodedToken.tenant:decodedToken.tid);
 
       // get tenant from database
       const tenant = await Tenant.getTenantBySubdomain(tenantSubdomain);
