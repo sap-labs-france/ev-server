@@ -145,13 +145,13 @@ class OcpiendpointService {
       const filteredRequest = OcpiendpointSecurity.filterOcpiendpointCreateRequest(req.body, req.user);
       // Check Mandatory fields
       Ocpiendpoint.checkIfOcpiendpointValid(filteredRequest, req);
-      
+
       // Create ocpiendpoint
       const ocpiendpoint = new Ocpiendpoint(req.user.tenantID, filteredRequest);
       // set status
       ocpiendpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_NEW);
       // Update timestamp
-      ocpiendpoint.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
+      ocpiendpoint.setCreatedBy(new User(req.user.tenantID, { 'id': req.user.id }));
       ocpiendpoint.setCreatedOn(new Date());
       // Save Ocpiendpoint
       const newOcpiendpoint = await ocpiendpoint.save();
@@ -199,7 +199,7 @@ class OcpiendpointService {
       // Update
       Database.updateOcpiEndpoint(filteredRequest, ocpiendpoint.getModel());
       // Update timestamp
-      ocpiendpoint.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
+      ocpiendpoint.setLastChangedBy(new User(req.user.tenantID, { 'id': req.user.id }));
       ocpiendpoint.setLastChangedOn(new Date());
       // Update Ocpiendpoint
       const updatedOcpiendpoint = await ocpiendpoint.save();
@@ -233,7 +233,7 @@ class OcpiendpointService {
           req.user);
       }
       // Filter
-      const filteredRequest = OcpiendpointSecurity.filterOcpiendpointCreateRequest(req.body, req.user);
+      const filteredRequest = OcpiendpointSecurity.filterOcpiendpointPingRequest(req.body, req.user);
       // Check Mandatory fields
       Ocpiendpoint.checkIfOcpiendpointValid(filteredRequest, req);
       // Create temporary ocpiendpoint
@@ -242,17 +242,81 @@ class OcpiendpointService {
       const ocpiClient = new OcpiClient(ocpiendpoint);
       // try to ping
       const pingResult = await ocpiClient.ping();
-      // Log
-      Logging.logSecurityInfo({
-        tenantID: req.user.tenantID,
-        user: req.user, module: 'OcpiendpointService', method: 'handlePingOcpiendpoint',
-        message: `Ocpiendpoint '${ocpiendpoint.getName()}' can be reached successfully`,
-        action: action, detailedMessages: ocpiendpoint
-      });
       // check ping result
-      if ( pingResult.statusCode === 200 ) {
-        res.json(Object.assign(pingResult , Constants.REST_RESPONSE_SUCCESS));
+      if (pingResult.statusCode === 200) {
+        // Log
+        Logging.logSecurityInfo({
+          tenantID: req.user.tenantID,
+          user: req.user, module: 'OcpiendpointService', method: 'handlePingOcpiendpoint',
+          message: `Ocpiendpoint '${ocpiendpoint.getName()}' can be reached successfully`,
+          action: action, detailedMessages: pingResult
+        });
+        res.json(Object.assign(pingResult, Constants.REST_RESPONSE_SUCCESS));
       } else {
+        // Log
+        Logging.logSecurityInfo({
+          tenantID: req.user.tenantID,
+          user: req.user, module: 'OcpiendpointService', method: 'handlePingOcpiendpoint',
+          message: `Ocpiendpoint '${ocpiendpoint.getName()}' cannot be reached`,
+          action: action, detailedMessages: pingResult
+        });
+        res.json(pingResult);
+      }
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
+  static async handleRegisterOcpiendpoint(action, req, res, next) {
+    try {
+      // Filter
+      const filteredRequest = OcpiendpointSecurity.filterOcpiendpointRegisterRequest(req.body, req.user);
+      // Get Ocpiendpoint
+      const ocpiendpoint = await Ocpiendpoint.getOcpiendpoint(req.user.tenantID, filteredRequest.id);
+      if (!ocpiendpoint) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Ocpiendpoint with ID '${filteredRequest.id}' does not exist anymore`, 550,
+          'OcpiendpointService', 'handleRegisterOcpiendpoint', req.user);
+      }
+      // Check Mandatory fields
+      Ocpiendpoint.checkIfOcpiendpointValid(filteredRequest, req);
+      // Check auth
+      if (!Authorizations.canRegisterOcpiendpoint(req.user, ocpiendpoint.getModel())) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_REGISTER,
+          Constants.ENTITY_OCPIENDPOINT,
+          null,
+          560,
+          'OcpiendpointService', 'handleRegisterOcpiendpoint',
+          req.user);
+      }
+      // build OCPI Client
+      const ocpiClient = new OcpiClient(ocpiendpoint);
+      // try to ping
+      const pingResult = await ocpiClient.register();
+
+      // check ping result
+      if (pingResult.statusCode === 200) {
+        // Log
+        Logging.logSecurityInfo({
+          tenantID: req.user.tenantID,
+          user: req.user, module: 'OcpiendpointService', method: 'handleRegisterOcpiendpoint',
+          message: `Ocpiendpoint '${ocpiendpoint.getName()}' can be reached successfully`,
+          action: action, detailedMessages: pingResult
+        });
+        res.json(Object.assign(pingResult, Constants.REST_RESPONSE_SUCCESS));
+      } else {
+        // Log
+        Logging.logSecurityInfo({
+          tenantID: req.user.tenantID,
+          user: req.user, module: 'OcpiendpointService', method: 'handleRegisterOcpiendpoint',
+          message: `Ocpiendpoint '${ocpiendpoint.getName()}' cannot be reached`,
+          action: action, detailedMessages: pingResult
+        });
         res.json(pingResult);
       }
       next();
@@ -276,7 +340,7 @@ class OcpiendpointService {
           req.user);
       }
       // Filter
-      const filteredRequest = OcpiendpointSecurity.filterOcpiendpointCreateRequest(req.body, req.user);
+      const filteredRequest = OcpiendpointSecurity.filterOcpiendpointGenerateLocalTokenRequest(req.body, req.user);
       // Check Mandatory fields
       Ocpiendpoint.checkIfOcpiendpointValid(filteredRequest, req);
       // Create ocpiendpoint

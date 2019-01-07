@@ -553,6 +553,12 @@ class Authorizations {
       {"Action": Constants.ACTION_PING});
   }
 
+  static canRegisterOcpiendpoint(loggedUser, ocpiendpoint) {
+    // Check
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
+      {"Action": Constants.ACTION_REGISTER, "OcpiendpointID": ocpiendpoint.id.toString()});
+  }
+
   static canGenerateLocalTokenOcpiendpoint(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
