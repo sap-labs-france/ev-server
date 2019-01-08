@@ -556,7 +556,7 @@ class AuthorizationsDefinition {
 						"AuthObject": "Ocpiendpoint",
 						"AuthFieldValue": {
 							"OcpiendpointID": "*",
-							"Action": ["Create", "Read", "Update", "Delete", "Ping", "GenerateLocalToken"]
+							"Action": ["Create", "Read", "Update", "Delete", "Ping", "GenerateLocalToken", "Register"]
 						}
 					}
 				]

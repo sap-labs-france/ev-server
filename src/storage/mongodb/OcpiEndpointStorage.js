@@ -36,6 +36,35 @@ class OcpiEndpointStorage {
     return ocpiEndpoint;
   }
 
+  static async getOcpiEndpointWithToken(tenantID, token) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('OcpiEndpointStorage', 'getOcpiEndpointWithToken');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    const OcpiEndpoint = require('../../entity/OcpiEndpoint'); // Avoid circular deps!!!
+    // Create Aggregation
+    const aggregation = [];
+    // Filters
+    aggregation.push({
+      $match: {localToken: token}
+    });
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
+    // Read DB
+    const ocpiEndpointsMDB = await global.database.getCollection(tenantID, 'ocpiendpoints')
+      .aggregate(aggregation)
+      .toArray();
+    // Set
+    let ocpiEndpoint = null;
+    if (ocpiEndpointsMDB && ocpiEndpointsMDB.length > 0) {
+      // Create
+      ocpiEndpoint = new OcpiEndpoint(tenantID, ocpiEndpointsMDB[0]);
+    }
+    // Debug
+    Logging.traceEnd('OcpiEndpointStorage', 'getOcpiEndpointWithToken', uniqueTimerID, {token});
+    return ocpiEndpoint;
+  }
+
   static async saveOcpiEndpoint(tenantID, ocpiEndpointToSave) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OcpiEndpointStorage', 'saveOcpiEndpoint');

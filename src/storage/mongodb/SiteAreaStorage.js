@@ -195,13 +195,13 @@ class SiteAreaStorage {
   }
 
   static async getSiteAreas(tenantID, params = {}, limit, skip, sort) {
+    const Site = require('../../entity/Site');  // Avoid fucking circular deps!!!
+    const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
+    const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteAreas');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const Site = require('../../entity/Site');  // Avoid fucking circular deps!!!
-    const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
-    const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -248,7 +248,7 @@ class SiteAreaStorage {
       });
     }
     // Charging Stations
-    if (params.withChargeBoxes) {
+    if (params.withChargeBoxes || params.withAvailableChargers) {
       // Add Charging Stations
       aggregation.push({
         $lookup: {
@@ -298,6 +298,37 @@ class SiteAreaStorage {
             return new ChargingStation(tenantID, chargeBox);
           }));
         }
+        // Count Available/Occupied Chargers/Connectors
+        if (params.withAvailableChargers) {
+          let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
+          // Chargers
+          for (const chargeBox of siteAreaMDB.chargeBoxes) {
+            totalChargers++;
+            // Handle Connectors
+            for (const connector of chargeBox.connectors) {
+              totalConnectors++;
+              // Check if Available
+              if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+                // Add
+                availableConnectors++;
+              }
+            }
+            // Handle Chargers
+            for (const connector of chargeBox.connectors) {
+              // Check if Available
+              if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+                // Add
+                availableChargers++;
+                break;
+              }
+            }
+          }
+          // Set
+          siteArea.setAvailableChargers(availableChargers);
+          siteArea.setTotalChargers(totalChargers);
+          siteArea.setAvailableConnectors(availableConnectors);
+          siteArea.setTotalConnectors(totalConnectors);
+        }
         // Set Site
         if (params.withSite && siteAreaMDB.site) {
           // Set
@@ -325,7 +356,7 @@ class SiteAreaStorage {
     await global.database.getCollection(tenantID, 'chargingstations').updateMany(
       {siteAreaID: Utils.convertToObjectID(id)},
       {$set: {siteAreaID: null}},
-      {upsert: false, new: true, returnOriginal: false, returnOriginal: false});
+      {upsert: false, new: true, returnOriginal: false});
     // Delete Site
     await global.database.getCollection(tenantID, 'siteareas')
       .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
