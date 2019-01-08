@@ -28,8 +28,8 @@ class ChargingStationClient {
         if (global.centralSystemJson) {
           chargingClient = global.centralSystemJson.getChargingStationClient(chargingStation.getTenantID(), chargingStation.getID());
         }
-        // Not Found and deployed in Cloud Foundry?
-        if (!chargingClient && Configuration.isCloudFoundry()) {
+        // Not Found
+        if (!chargingClient) {
           // Use the remote client
           chargingClient = new JsonRestChargingStationClient(chargingStation);
         }
@@ -84,8 +84,18 @@ class ChargingStationClient {
   getCompositeSchedule(params) {
   }
 
-  genericOCPPCommand(commandName, params) {
+  clearChargingProfile(params) {
   }
+
+  changeAvailability(params) {
+  }
+
+  getDiagnostics(params) {
+  }
+  
+  updateFirmware(params) {
+  }
+
 
   /**
    * Default handling of OCPP command. It can be refine with some special methods in case of needs
@@ -128,17 +138,33 @@ class ChargingStationClient {
         return this.stopTransaction(params);
 
       // Set Charging Profile
-//      case 'SetChargingProfile':
-//        return this.setChargingProfile(params);
+      case 'SetChargingProfile':
+        return this.setChargingProfile(params);
       
-      // Get Compoiste Schedule (power limits)
-//      case 'GetCompositeSchedule':
-//        return this.getCompositeSchedule(params);
+      // Get Composite Schedule (power limits)
+      case 'GetCompositeSchedule':
+        return this.getCompositeSchedule(params);
+      
+      // Clear charging profiles
+      case 'ClearChargingProfile':
+        return this.clearChargingProfile(params);
+
+      // Change availibility
+      case 'ChangeAvailability':
+        return this.changeAvailability(params);
+
+      // Get diagnostic
+      case 'GetDiagnostics':
+        return this.getDiagnostics(params);
+
+      // Update Firmware
+      case 'UpdateFirmware':
+        return this.updateFirmware(params);
 
       default:
-      // In case we do not have a specific handling we try to load a generic command
-        return this.genericOCPPCommand(commandName, params);
-
+        // throw error
+        throw new BackendError('', `OCPP Command ${commandName} not supported in backend`,
+          "ChargingStationClient", "getChargingStationClient");
     }
   }
   

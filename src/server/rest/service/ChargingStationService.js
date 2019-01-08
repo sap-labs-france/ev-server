@@ -52,6 +52,10 @@ class ChargingStationService {
       if (filteredRequest.hasOwnProperty('siteArea')) {
         chargingStation.setSiteArea(await SiteArea.getSiteArea(req.user.tenantID, filteredRequest.siteArea.id, false, false));
       }
+      // Update Site Area
+      if (filteredRequest.hasOwnProperty('powerLimitUnit')) {
+        chargingStation.setPowerLimitUnit(filteredRequest.powerLimitUnit);
+      }
       // Update Connectors
       if (filteredRequest.connectors) {
         const chargerConnectors = chargingStation.getConnectors();

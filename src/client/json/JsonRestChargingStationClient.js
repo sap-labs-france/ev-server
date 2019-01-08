@@ -71,13 +71,24 @@ class JsonRestChargingStationClient extends ChargingStationClient {
   }
 
   getCompositeSchedule(params) {
-      return this._sendMessage(this._buildRequest('GetCompositeSchedule', params));
+    return this._sendMessage(this._buildRequest('GetCompositeSchedule', params));
   }
 
-  genericOCPPCommand(commandName, params) {
-    return this._sendMessage([OCPP_JSON_CALL_MESSAGE, uuid(), commandName, params]);
+  clearChargingProfile(params) {
+    return this._sendMessage(this._buildRequest('ClearChargingProfile', params));
   }
 
+  changeAvailability(params) {
+    return this._sendMessage(this._buildRequest('ChangeAvailability', params));
+  }
+
+  getDiagnostics(params) {
+    return this._sendMessage(this._buildRequest('GetDiagnostics', params));
+  }
+  
+  updateFirmware(params) {
+    return this._sendMessage(this._buildRequest('UpdateFirmware', params));
+  }
   
   _openConnection() {
     // Log
