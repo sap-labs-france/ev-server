@@ -1,7 +1,7 @@
 const CrudApi = require('./utils/CrudApi');
 const Constants = require('./utils/Constants');
 
-class OcpiendpointApi extends CrudApi {
+class OCPIEndpointApi extends CrudApi {
   constructor(authenticatedApi) {
     super(authenticatedApi);
   }
@@ -27,4 +27,4 @@ class OcpiendpointApi extends CrudApi {
   }
 }
 
-module.exports = OcpiendpointApi;
+module.exports = OCPIEndpointApi;
