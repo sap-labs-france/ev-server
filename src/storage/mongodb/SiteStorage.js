@@ -232,15 +232,15 @@ class SiteStorage {
   }
 
   static async getSites(tenantID, params = {}, limit, skip, sort) {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSites');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
     const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
     const Site = require('../../entity/Site'); // Avoid fucking circular deps!!!
     const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
     const User = require('../../entity/User'); // Avoid fucking circular deps!!!
+    // Debug
+    const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSites');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -376,7 +376,7 @@ class SiteStorage {
           // Set Users
           site.setUsers(siteMDB.users.map((user) => new User(tenantID, user)));
         }
-        // Count Available Charger
+        // Count Available/Occupied Chargers/Connectors
         if (params.withAvailableChargers) {
           let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
           // Chargers
