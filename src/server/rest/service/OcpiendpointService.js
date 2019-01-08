@@ -7,7 +7,7 @@ const Constants = require('../../../utils/Constants');
 const Ocpiendpoint = require('../../../entity/OcpiEndpoint');
 const User = require('../../../entity/User');
 const OcpiendpointSecurity = require('./security/OcpiendpointSecurity');
-const OcpiClient = require('../../../client/ocpi/OcpiClient');
+const OCPIClient = require('../../../client/ocpi/OCPIClient');
 
 class OcpiendpointService {
   static async handleDeleteOcpiendpoint(action, req, res, next) {
@@ -239,9 +239,9 @@ class OcpiendpointService {
       // Create temporary ocpiendpoint
       const ocpiendpoint = new Ocpiendpoint(req.user.tenantID, filteredRequest);
       // build OCPI Client
-      const ocpiClient = new OcpiClient(ocpiendpoint);
+      const OCPIClient = new OCPIClient(ocpiendpoint);
       // try to ping
-      const pingResult = await ocpiClient.ping();
+      const pingResult = await OCPIClient.ping();
       // check ping result
       if (pingResult.statusCode === 200) {
         // Log
@@ -295,9 +295,9 @@ class OcpiendpointService {
           req.user);
       }
       // build OCPI Client
-      const ocpiClient = new OcpiClient(ocpiendpoint);
+      const OCPIClient = new OCPIClient(ocpiendpoint);
       // try to ping
-      const pingResult = await ocpiClient.register();
+      const pingResult = await OCPIClient.register();
 
       // check ping result
       if (pingResult.statusCode === 200) {
