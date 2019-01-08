@@ -9,7 +9,7 @@ const User = require('../../../entity/User');
 const OcpiendpointSecurity = require('./security/OcpiendpointSecurity');
 const OCPIClient = require('../../../client/ocpi/OCPIClient');
 
-class OcpiendpointService {
+class OCPIEndpointService {
   static async handleDeleteOcpiendpoint(action, req, res, next) {
     try {
       // Filter
@@ -20,7 +20,7 @@ class OcpiendpointService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Ocpiendpoint's ID must be provided`, 500,
-          'OcpiendpointService', 'handleDeleteOcpiendpoint', req.user);
+          'OCPIEndpointService', 'handleDeleteOcpiendpoint', req.user);
       }
       // Get
       const ocpiendpoint = await OCPIEndpoint.getOcpiendpoint(req.user.tenantID, filteredRequest.ID);
@@ -29,7 +29,7 @@ class OcpiendpointService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `Ocpiendpoint with ID '${filteredRequest.ID}' does not exist`, 550,
-          'OcpiendpointService', 'handleDeleteOcpiendpoint', req.user);
+          'OCPIEndpointService', 'handleDeleteOcpiendpoint', req.user);
       }
       // Check auth
       if (!Authorizations.canDeleteOcpiendpoint(req.user, ocpiendpoint.getModel())) {
@@ -39,7 +39,7 @@ class OcpiendpointService {
           Constants.ENTITY_OCPIENDPOINT,
           ocpiendpoint.getID(),
           560,
-          'OcpiendpointService', 'handleDeleteOcpiendpoint',
+          'OCPIEndpointService', 'handleDeleteOcpiendpoint',
           req.user);
       }
       // Delete
@@ -47,7 +47,7 @@ class OcpiendpointService {
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
-        user: req.user, module: 'OcpiendpointService', method: 'handleDeleteOcpiendpoint',
+        user: req.user, module: 'OCPIEndpointService', method: 'handleDeleteOcpiendpoint',
         message: `Ocpiendpoint '${ocpiendpoint.getName()}' has been deleted successfully`,
         action: action, detailedMessages: ocpiendpoint
       });
@@ -70,7 +70,7 @@ class OcpiendpointService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Ocpiendpoint's ID must be provided`, 500,
-          'OcpiendpointService', 'handleGetOcpiendpoint', req.user);
+          'OCPIEndpointService', 'handleGetOcpiendpoint', req.user);
       }
       // Get it
       const ocpiendpoint = await OCPIEndpoint.getOcpiendpoint(req.user.tenantID, filteredRequest.ID);
@@ -78,7 +78,7 @@ class OcpiendpointService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Ocpiendpoint with ID '${filteredRequest.ID}' does not exist anymore`, 550,
-          'OcpiendpointService', 'handleGetOcpiendpoint', req.user);
+          'OCPIEndpointService', 'handleGetOcpiendpoint', req.user);
       }
       // Return
       res.json(
@@ -103,7 +103,7 @@ class OcpiendpointService {
           Constants.ENTITY_OCPIENDPOINTS,
           null,
           560,
-          'OcpiendpointService', 'handleGetOcpiendpoints',
+          'OCPIEndpointService', 'handleGetOcpiendpoints',
           req.user);
       }
       // Filter
@@ -138,7 +138,7 @@ class OcpiendpointService {
           Constants.ENTITY_OCPIENDPOINT,
           null,
           560,
-          'OcpiendpointService', 'handleCreateOcpiendpoint',
+          'OCPIEndpointService', 'handleCreateOcpiendpoint',
           req.user);
       }
       // Filter
@@ -158,7 +158,7 @@ class OcpiendpointService {
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
-        user: req.user, module: 'OcpiendpointService', method: 'handleCreateOcpiendpoint',
+        user: req.user, module: 'OCPIEndpointService', method: 'handleCreateOcpiendpoint',
         message: `Ocpiendpoint '${newOcpiendpoint.getName()}' has been created successfully`,
         action: action, detailedMessages: newOcpiendpoint
       });
@@ -181,7 +181,7 @@ class OcpiendpointService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Ocpiendpoint with ID '${filteredRequest.id}' does not exist anymore`, 550,
-          'OcpiendpointService', 'handleUpdateOcpiendpoint', req.user);
+          'OCPIEndpointService', 'handleUpdateOcpiendpoint', req.user);
       }
       // Check Mandatory fields
       OCPIEndpoint.checkIfOcpiendpointValid(filteredRequest, req);
@@ -193,7 +193,7 @@ class OcpiendpointService {
           Constants.ENTITY_OCPIENDPOINT,
           ocpiendpoint.getID(),
           560,
-          'OcpiendpointService', 'handleUpdateOcpiendpoint',
+          'OCPIEndpointService', 'handleUpdateOcpiendpoint',
           req.user);
       }
       // Update
@@ -206,7 +206,7 @@ class OcpiendpointService {
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
-        user: req.user, module: 'OcpiendpointService', method: 'handleUpdateOcpiendpoint',
+        user: req.user, module: 'OCPIEndpointService', method: 'handleUpdateOcpiendpoint',
         message: `Ocpiendpoint '${updatedOcpiendpoint.getName()}' has been updated successfully`,
         action: action, detailedMessages: updatedOcpiendpoint
       });
@@ -229,7 +229,7 @@ class OcpiendpointService {
           Constants.ENTITY_OCPIENDPOINT,
           null,
           560,
-          'OcpiendpointService', 'handlePingOcpiendpoint',
+          'OCPIEndpointService', 'handlePingOcpiendpoint',
           req.user);
       }
       // Filter
@@ -247,7 +247,7 @@ class OcpiendpointService {
         // Log
         Logging.logSecurityInfo({
           tenantID: req.user.tenantID,
-          user: req.user, module: 'OcpiendpointService', method: 'handlePingOcpiendpoint',
+          user: req.user, module: 'OCPIEndpointService', method: 'handlePingOcpiendpoint',
           message: `Ocpiendpoint '${ocpiendpoint.getName()}' can be reached successfully`,
           action: action, detailedMessages: pingResult
         });
@@ -256,7 +256,7 @@ class OcpiendpointService {
         // Log
         Logging.logSecurityInfo({
           tenantID: req.user.tenantID,
-          user: req.user, module: 'OcpiendpointService', method: 'handlePingOcpiendpoint',
+          user: req.user, module: 'OCPIEndpointService', method: 'handlePingOcpiendpoint',
           message: `Ocpiendpoint '${ocpiendpoint.getName()}' cannot be reached`,
           action: action, detailedMessages: pingResult
         });
@@ -279,7 +279,7 @@ class OcpiendpointService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Ocpiendpoint with ID '${filteredRequest.id}' does not exist anymore`, 550,
-          'OcpiendpointService', 'handleRegisterOcpiendpoint', req.user);
+          'OCPIEndpointService', 'handleRegisterOcpiendpoint', req.user);
       }
       // Check Mandatory fields
       OCPIEndpoint.checkIfOcpiendpointValid(filteredRequest, req);
@@ -291,7 +291,7 @@ class OcpiendpointService {
           Constants.ENTITY_OCPIENDPOINT,
           null,
           560,
-          'OcpiendpointService', 'handleRegisterOcpiendpoint',
+          'OCPIEndpointService', 'handleRegisterOcpiendpoint',
           req.user);
       }
       // build OCPI Client
@@ -304,7 +304,7 @@ class OcpiendpointService {
         // Log
         Logging.logSecurityInfo({
           tenantID: req.user.tenantID,
-          user: req.user, module: 'OcpiendpointService', method: 'handleRegisterOcpiendpoint',
+          user: req.user, module: 'OCPIEndpointService', method: 'handleRegisterOcpiendpoint',
           message: `Ocpiendpoint '${ocpiendpoint.getName()}' can be reached successfully`,
           action: action, detailedMessages: pingResult
         });
@@ -313,7 +313,7 @@ class OcpiendpointService {
         // Log
         Logging.logSecurityInfo({
           tenantID: req.user.tenantID,
-          user: req.user, module: 'OcpiendpointService', method: 'handleRegisterOcpiendpoint',
+          user: req.user, module: 'OCPIEndpointService', method: 'handleRegisterOcpiendpoint',
           message: `Ocpiendpoint '${ocpiendpoint.getName()}' cannot be reached`,
           action: action, detailedMessages: pingResult
         });
@@ -336,7 +336,7 @@ class OcpiendpointService {
           Constants.ENTITY_OCPIENDPOINT,
           null,
           560,
-          'OcpiendpointService', 'handleGenerateLocalTokenOcpiendpoint',
+          'OCPIEndpointService', 'handleGenerateLocalTokenOcpiendpoint',
           req.user);
       }
       // Filter
@@ -350,7 +350,7 @@ class OcpiendpointService {
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
-        user: req.user, module: 'OcpiendpointService', method: 'handleGenerateLocalTokenOcpiendpoint',
+        user: req.user, module: 'OCPIEndpointService', method: 'handleGenerateLocalTokenOcpiendpoint',
         message: `Local Token for Ocpiendpoint '${ocpiendpoint.getName()}' has been generatd successfully`,
         action: action, detailedMessages: ocpiendpoint
       });
@@ -364,4 +364,4 @@ class OcpiendpointService {
   }
 }
 
-module.exports = OcpiendpointService;
+module.exports = OCPIEndpointService;
