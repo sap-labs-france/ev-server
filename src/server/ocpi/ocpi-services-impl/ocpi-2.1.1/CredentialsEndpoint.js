@@ -3,7 +3,7 @@ const OCPIUtils = require('../../OCPIUtils');
 const OCPIMapping = require('./OCPIMapping');
 const OCPIClientError = require('../../../../exception/OCPIClientError');
 const OCPIServerError = require('../../../../exception/OCPIServerError');
-const OcpiEndpoint = require('../../../../entity/OcpiEndpoint');
+const OCPIEndpoint = require('../../../../entity/OCPIEndpoint');
 const Constants = require("../../../../utils/Constants");
 const axios = require('axios');
 
@@ -62,7 +62,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
     }
 
     // Get ocpiEndpoints based on the given token
-    const ocpiEndpoint = await OcpiEndpoint.getOcpiendpointWithToken(tenant.getID(), token);
+    const ocpiEndpoint = await OCPIEndpoint.getOcpiendpointWithToken(tenant.getID(), token);
 
     // check if ocpiEndpoint available
     if (!ocpiEndpoint) {

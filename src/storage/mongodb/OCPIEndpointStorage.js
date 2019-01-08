@@ -12,7 +12,7 @@ class OCPIEndpointStorage {
     const uniqueTimerID = Logging.traceStart('OCPIEndpointStorage', 'getOcpiEndpoint');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const OcpiEndpoint = require('../../entity/OcpiEndpoint'); // Avoid circular deps!!!
+    const OCPIEndpoint = require('../../entity/OCPIEndpoint'); // Avoid circular deps!!!
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -29,7 +29,7 @@ class OCPIEndpointStorage {
     let ocpiEndpoint = null;
     if (ocpiEndpointsMDB && ocpiEndpointsMDB.length > 0) {
       // Create
-      ocpiEndpoint = new OcpiEndpoint(tenantID, ocpiEndpointsMDB[0]);
+      ocpiEndpoint = new OCPIEndpoint(tenantID, ocpiEndpointsMDB[0]);
     }
     // Debug
     Logging.traceEnd('OCPIEndpointStorage', 'getOcpiEndpoint', uniqueTimerID, {id});
@@ -41,7 +41,7 @@ class OCPIEndpointStorage {
     const uniqueTimerID = Logging.traceStart('OCPIEndpointStorage', 'getOcpiEndpointWithToken');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const OcpiEndpoint = require('../../entity/OcpiEndpoint'); // Avoid circular deps!!!
+    const OCPIEndpoint = require('../../entity/OCPIEndpoint'); // Avoid circular deps!!!
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -58,7 +58,7 @@ class OCPIEndpointStorage {
     let ocpiEndpoint = null;
     if (ocpiEndpointsMDB && ocpiEndpointsMDB.length > 0) {
       // Create
-      ocpiEndpoint = new OcpiEndpoint(tenantID, ocpiEndpointsMDB[0]);
+      ocpiEndpoint = new OCPIEndpoint(tenantID, ocpiEndpointsMDB[0]);
     }
     // Debug
     Logging.traceEnd('OCPIEndpointStorage', 'getOcpiEndpointWithToken', uniqueTimerID, {token});
@@ -70,7 +70,7 @@ class OCPIEndpointStorage {
     const uniqueTimerID = Logging.traceStart('OCPIEndpointStorage', 'saveOcpiEndpoint');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const OcpiEndpoint = require('../../entity/OcpiEndpoint'); // Avoid circular deps!!!
+    const OCPIEndpoint = require('../../entity/OCPIEndpoint'); // Avoid circular deps!!!
     // Check if ID is provided
     if (!ocpiEndpointToSave.id && !ocpiEndpointToSave.name) {
       // ID must be provided!
@@ -100,7 +100,7 @@ class OCPIEndpointStorage {
     // Debug
     Logging.traceEnd('OCPIEndpointStorage', 'saveOcpiEndpoint', uniqueTimerID, {ocpiEndpointToSave});
     // Create
-    return new OcpiEndpoint(tenantID, result.value);
+    return new OCPIEndpoint(tenantID, result.value);
   }
 
   // get default ocpiEndpoint - 
@@ -117,7 +117,7 @@ class OCPIEndpointStorage {
     const uniqueTimerID = Logging.traceStart('OCPIEndpointStorage', 'getOcpiEndpoints');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const OcpiEndpoint = require('../../entity/OcpiEndpoint'); // Avoid fucking circular deps!!!
+    const OCPIEndpoint = require('../../entity/OCPIEndpoint'); // Avoid fucking circular deps!!!
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -178,7 +178,7 @@ class OCPIEndpointStorage {
       // Create
       for (const ocpiEndpointMDB of ocpiEndpointsMDB) {
         // Add
-        ocpiEndpoints.push(new OcpiEndpoint(tenantID, ocpiEndpointMDB));
+        ocpiEndpoints.push(new OCPIEndpoint(tenantID, ocpiEndpointMDB));
       }
     }
     // Debug

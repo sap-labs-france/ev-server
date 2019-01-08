@@ -4,7 +4,7 @@ const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Authorizations = require('../../../authorization/Authorizations');
 const Constants = require('../../../utils/Constants');
-const Ocpiendpoint = require('../../../entity/OcpiEndpoint');
+const OCPIEndpoint = require('../../../entity/OCPIEndpoint');
 const User = require('../../../entity/User');
 const OcpiendpointSecurity = require('./security/OcpiendpointSecurity');
 const OCPIClient = require('../../../client/ocpi/OCPIClient');
@@ -23,7 +23,7 @@ class OcpiendpointService {
           'OcpiendpointService', 'handleDeleteOcpiendpoint', req.user);
       }
       // Get
-      const ocpiendpoint = await Ocpiendpoint.getOcpiendpoint(req.user.tenantID, filteredRequest.ID);
+      const ocpiendpoint = await OCPIEndpoint.getOcpiendpoint(req.user.tenantID, filteredRequest.ID);
       if (!ocpiendpoint) {
         // Not Found!
         throw new AppError(
@@ -73,7 +73,7 @@ class OcpiendpointService {
           'OcpiendpointService', 'handleGetOcpiendpoint', req.user);
       }
       // Get it
-      const ocpiendpoint = await Ocpiendpoint.getOcpiendpoint(req.user.tenantID, filteredRequest.ID);
+      const ocpiendpoint = await OCPIEndpoint.getOcpiendpoint(req.user.tenantID, filteredRequest.ID);
       if (!ocpiendpoint) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -109,7 +109,7 @@ class OcpiendpointService {
       // Filter
       const filteredRequest = OcpiendpointSecurity.filterOcpiendpointsRequest(req.query, req.user);
       // Get all ocpiendpoints
-      const ocpiendpoints = await Ocpiendpoint.getOcpiendpoints(req.user.tenantID,
+      const ocpiendpoints = await OCPIEndpoint.getOcpiendpoints(req.user.tenantID,
         {
           'search': filteredRequest.Search
         },
@@ -144,10 +144,10 @@ class OcpiendpointService {
       // Filter
       const filteredRequest = OcpiendpointSecurity.filterOcpiendpointCreateRequest(req.body, req.user);
       // Check Mandatory fields
-      Ocpiendpoint.checkIfOcpiendpointValid(filteredRequest, req);
+      OCPIEndpoint.checkIfOcpiendpointValid(filteredRequest, req);
 
       // Create ocpiendpoint
-      const ocpiendpoint = new Ocpiendpoint(req.user.tenantID, filteredRequest);
+      const ocpiendpoint = new OCPIEndpoint(req.user.tenantID, filteredRequest);
       // set status
       ocpiendpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_NEW);
       // Update timestamp
@@ -176,7 +176,7 @@ class OcpiendpointService {
       // Filter
       const filteredRequest = OcpiendpointSecurity.filterOcpiendpointUpdateRequest(req.body, req.user);
       // Get Ocpiendpoint
-      const ocpiendpoint = await Ocpiendpoint.getOcpiendpoint(req.user.tenantID, filteredRequest.id);
+      const ocpiendpoint = await OCPIEndpoint.getOcpiendpoint(req.user.tenantID, filteredRequest.id);
       if (!ocpiendpoint) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -184,7 +184,7 @@ class OcpiendpointService {
           'OcpiendpointService', 'handleUpdateOcpiendpoint', req.user);
       }
       // Check Mandatory fields
-      Ocpiendpoint.checkIfOcpiendpointValid(filteredRequest, req);
+      OCPIEndpoint.checkIfOcpiendpointValid(filteredRequest, req);
       // Check auth
       if (!Authorizations.canUpdateOcpiendpoint(req.user, ocpiendpoint.getModel())) {
         // Not Authorized!
@@ -235,13 +235,13 @@ class OcpiendpointService {
       // Filter
       const filteredRequest = OcpiendpointSecurity.filterOcpiendpointPingRequest(req.body, req.user);
       // Check Mandatory fields
-      Ocpiendpoint.checkIfOcpiendpointValid(filteredRequest, req);
+      OCPIEndpoint.checkIfOcpiendpointValid(filteredRequest, req);
       // Create temporary ocpiendpoint
-      const ocpiendpoint = new Ocpiendpoint(req.user.tenantID, filteredRequest);
+      const ocpiendpoint = new OCPIEndpoint(req.user.tenantID, filteredRequest);
       // build OCPI Client
-      const OCPIClient = new OCPIClient(ocpiendpoint);
+      const ocpiClient = new OCPIClient(ocpiendpoint);
       // try to ping
-      const pingResult = await OCPIClient.ping();
+      const pingResult = await ocpiClient.ping();
       // check ping result
       if (pingResult.statusCode === 200) {
         // Log
@@ -274,7 +274,7 @@ class OcpiendpointService {
       // Filter
       const filteredRequest = OcpiendpointSecurity.filterOcpiendpointRegisterRequest(req.body, req.user);
       // Get Ocpiendpoint
-      const ocpiendpoint = await Ocpiendpoint.getOcpiendpoint(req.user.tenantID, filteredRequest.id);
+      const ocpiendpoint = await OCPIEndpoint.getOcpiendpoint(req.user.tenantID, filteredRequest.id);
       if (!ocpiendpoint) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -282,7 +282,7 @@ class OcpiendpointService {
           'OcpiendpointService', 'handleRegisterOcpiendpoint', req.user);
       }
       // Check Mandatory fields
-      Ocpiendpoint.checkIfOcpiendpointValid(filteredRequest, req);
+      OCPIEndpoint.checkIfOcpiendpointValid(filteredRequest, req);
       // Check auth
       if (!Authorizations.canRegisterOcpiendpoint(req.user, ocpiendpoint.getModel())) {
         // Not Authorized!
@@ -295,9 +295,9 @@ class OcpiendpointService {
           req.user);
       }
       // build OCPI Client
-      const OCPIClient = new OCPIClient(ocpiendpoint);
+      const ocpiClient = new OCPIClient(ocpiendpoint);
       // try to ping
-      const pingResult = await OCPIClient.register();
+      const pingResult = await ocpiClient.register();
 
       // check ping result
       if (pingResult.statusCode === 200) {
@@ -342,9 +342,9 @@ class OcpiendpointService {
       // Filter
       const filteredRequest = OcpiendpointSecurity.filterOcpiendpointGenerateLocalTokenRequest(req.body, req.user);
       // Check Mandatory fields
-      Ocpiendpoint.checkIfOcpiendpointValid(filteredRequest, req);
+      OCPIEndpoint.checkIfOcpiendpointValid(filteredRequest, req);
       // Create ocpiendpoint
-      const ocpiendpoint = new Ocpiendpoint(req.user.tenantID, filteredRequest);
+      const ocpiendpoint = new OCPIEndpoint(req.user.tenantID, filteredRequest);
       // Generate new local token
       const localToken = await ocpiendpoint.generateLocalToken();
       // Log

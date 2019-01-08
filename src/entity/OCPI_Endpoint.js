@@ -6,7 +6,7 @@ const OCPIEndpointStorage = require('../storage/mongodb/OCPIEndpointStorage');
 const OCPIUtils = require('../server/ocpi/OCPIUtils');
 const User = require('./User');
 
-class OcpiEndpoint extends AbstractTenantEntity {
+class OCPIEndpoint extends AbstractTenantEntity {
   constructor(tenantID, ocpiEndpoint) {
     super(tenantID);
     // Set it
@@ -253,4 +253,4 @@ class OcpiEndpoint extends AbstractTenantEntity {
   }
 }
 
-module.exports = OcpiEndpoint;
+module.exports = OCPIEndpoint;
