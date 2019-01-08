@@ -159,7 +159,6 @@ class ChargingStationClient {
         "ChargingStationClient", "sendCommand");
     }
   }
-  
 }
 
 module.exports = ChargingStationClient;
