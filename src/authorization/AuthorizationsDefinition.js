@@ -483,7 +483,11 @@ class AuthorizationsDefinition {
 						"AuthObject": "ChargingStation",
 						"AuthFieldValue": {
 							"ChargingStationID": "*",
-							"Action": ["Create", "Read", "Update", "Delete", "Reset", "ClearCache", "GetConfiguration", "ChangeConfiguration", "StartTransaction", "StopTransaction", "UnlockConnector", "Authorize", "SetChargingProfile", "GetCompositeSchedule", "ClearChargingProfile"]
+							"Action": ["Create", "Read", "Update", "Delete", 
+										"Reset", "ClearCache", "GetConfiguration", "ChangeConfiguration", 
+										"StartTransaction", "StopTransaction", "UnlockConnector", 
+										"Authorize", "SetChargingProfile", "GetCompositeSchedule", "ClearChargingProfile",
+										"GetDiagnostics", "UpdateFirmware"]
 						}
 					},
 					{
