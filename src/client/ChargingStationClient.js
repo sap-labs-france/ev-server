@@ -106,68 +106,59 @@ class ChargingStationClient {
    * @memberof ChargingStationClient
    */
   sendCommand(commandName, params) {
-    // Handle Requests
-    switch (commandName) {
-      // Reset
-      case 'Reset':
-        return this.reset(params);
-
-      // Clear cache
-      case 'ClearCache':
-        return this.clearCache();
-
-      // Get Configuration
-      case 'GetConfiguration':
-        return this.getConfiguration(params);
-
-      // Set Configuration
-      case 'ChangeConfiguration':
-        // Change the config
-        return this.changeConfiguration(params);
-
-      // Unlock Connector
-      case 'UnlockConnector':
-        return this.unlockConnector(params);
-
-      // Start Transaction
-      case 'StartTransaction':
-        return this.startTransaction(params);
-
-      // Stop Transaction
-      case 'StopTransaction':
-        return this.stopTransaction(params);
-
-      // Set Charging Profile
-      case 'SetChargingProfile':
-        return this.setChargingProfile(params);
-      
-      // Get Composite Schedule (power limits)
-      case 'GetCompositeSchedule':
-        return this.getCompositeSchedule(params);
-      
-      // Clear charging profiles
-      case 'ClearChargingProfile':
-        return this.clearChargingProfile(params);
-
-      // Change availibility
-      case 'ChangeAvailability':
-        return this.changeAvailability(params);
-
-      // Get diagnostic
-      case 'GetDiagnostics':
-        return this.getDiagnostics(params);
-
-      // Update Firmware
-      case 'UpdateFirmware':
-        return this.updateFirmware(params);
-
-      default:
-        // throw error
-        throw new BackendError('', `OCPP Command ${commandName} not supported in backend`,
-          "ChargingStationClient", "getChargingStationClient");
+    try {
+      // Handle Requests
+      switch (commandName) {
+        // Reset
+        case 'Reset':
+          return this.reset(params);
+        // Clear cache
+        case 'ClearCache':
+          return this.clearCache();
+        // Get Configuration
+        case 'GetConfiguration':
+          return this.getConfiguration(params);
+        // Set Configuration
+        case 'ChangeConfiguration':
+          // Change the config
+          return this.changeConfiguration(params);
+        // Unlock Connector
+        case 'UnlockConnector':
+          return this.unlockConnector(params);
+        // Start Transaction
+        case 'StartTransaction':
+          return this.startTransaction(params);
+        // Stop Transaction
+        case 'StopTransaction':
+          return this.stopTransaction(params);
+        // Set Charging Profile
+        case 'SetChargingProfile':
+          return this.setChargingProfile(params);
+        // Get Composite Schedule (power limits)
+        case 'GetCompositeSchedule':
+          return this.getCompositeSchedule(params);
+        // Clear charging profiles
+        case 'ClearChargingProfile':
+          return this.clearChargingProfile(params);
+        // Change availibility
+        case 'ChangeAvailability':
+          return this.changeAvailability(params);
+        // Get diagnostic
+        case 'GetDiagnostics':
+          return this.getDiagnostics(params);
+        // Update Firmware
+        case 'UpdateFirmware':
+          return this.updateFirmware(params);
+        default:
+          // throw error
+          throw new BackendError('', `OCPP Command ${commandName} not supported in backend`,
+            "ChargingStationClient", "sendCommand");
+      }
+    } catch (error) {
+      throw new BackendError('', `OCPP Command ${commandName} error ${JSON.stringify(error, null, " ")}`,
+        "ChargingStationClient", "sendCommand");
     }
   }
-  
 }
 
 module.exports = ChargingStationClient;
