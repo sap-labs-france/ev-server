@@ -46,6 +46,12 @@
                     "properties": {
                         "active": { "type": "boolean" }
                     }
+                },
+                "organization": {
+                    "type": "object",
+                    "properties": {
+                        "active": { "type": "boolean" }
+                    }
                 }
             }
         }
