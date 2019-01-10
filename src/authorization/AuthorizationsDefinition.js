@@ -212,6 +212,12 @@ class AuthorizationsDefinition {
 							"OcpiendpointID": "*",
 							"Action": []
 						}
+					},
+					{
+						"AuthObject": "Connection",
+						"AuthFieldValue": {
+							"Action": ["Create", "Read", "Update", "Delete"]
+						}
 					}
 				]
 			}
@@ -553,6 +559,12 @@ class AuthorizationsDefinition {
 						"AuthFieldValue": {
 							"OcpiendpointID": "*",
 							"Action": ["Create", "Read", "Update", "Delete", "Ping", "GenerateLocalToken"]
+						}
+					},
+					{
+						"AuthObject": "Connection",
+						"AuthFieldValue": {
+							"Action": ["Create", "Read", "Update", "Delete"]
 						}
 					}
 				]

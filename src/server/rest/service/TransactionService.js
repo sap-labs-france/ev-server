@@ -9,6 +9,8 @@ const TransactionSecurity = require('./security/TransactionSecurity');
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage');
 const ChargingStation = require('../../../entity/ChargingStation');
 const User = require('../../../entity/User');
+const SettingStorage = require("../../../storage/mongodb/SettingStorage");
+const ConnectorService = require("./ConnectorService");
 
 class TransactionService {
   static async handleRefundTransaction(action, req, res, next) {
@@ -43,16 +45,6 @@ class TransactionService {
           560, 'TransactionService', 'handleRefundTransaction',
           req.user);
       }
-      // Get the Charging Station
-      let chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, transaction.getChargeBox().id);
-      // Found?
-      if (!chargingStation) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `Charging Station with ID ${transaction.getChargeBox().id} does not exist`, 550,
-          'TransactionService', 'handleRefundTransaction', req.user);
-      }
       // Get Transaction User
       let user = await User.getUser(req.user.tenantID, transaction.getUserID());
       // Check
@@ -63,6 +55,10 @@ class TransactionService {
           `The user with ID '${req.user.id}' does not exist`, 550,
           'TransactionService', 'handleRefundTransaction', req.user);
       }
+      let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID,'chargeathome');
+      setting = setting.content['concur'];
+      ConnectorService.instantiateConnector(req.user.tenantID, 'concur', setting);
+
       // Transfer it to the Revenue Cloud
       await Utils.pushTransactionToRevenueCloud(action, transaction, req.user, transaction.getUser());
       // Ok

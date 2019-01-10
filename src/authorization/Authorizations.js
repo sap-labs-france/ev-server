@@ -713,6 +713,13 @@ class Authorizations {
     });
   }
 
+  static canCreateConnection(loggedUser) {
+    // Check
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION, {
+      "Action": Constants.ACTION_CREATE
+    });
+  }
+
   static canUpdateTenant(loggedUser, tenant) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TENANT, {

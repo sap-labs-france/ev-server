@@ -46,6 +46,8 @@ module.exports = {
   ENTITY_SETTINGS: "Settings",
   ENTITY_OCPIENDPOINT: "Ocpiendpoint",
   ENTITY_OCPIENDPOINTS: "Ocpiendpoints",
+  ENTITY_CONNECTION: "Connection",
+  ENTITY_CONNECTIONS: "Connections",
 
 
   NOTIF_TYPE_CHARGING_STATION_CONFIGURATION: "Configuration",
@@ -74,7 +76,7 @@ module.exports = {
   ROLE_ADMIN: "A",
   ROLE_BASIC: "B",
   ROLE_DEMO: "D",
-  
+
   ACTION_READ: "Read",
   ACTION_CREATE: "Create",
   ACTION_UPDATE: "Update",
@@ -154,7 +156,7 @@ module.exports = {
   OCPP_VERSION_15: '1.5',
   OCPP_VERSION_16: '1.6',
   OCPP_VERSION_20: '2.0',
-  
+
   MAX_DATE: new Date('9999-12-31Z23:59:59:999'),
   MIN_DATE: new Date('1970-01-01Z00:00:00:000'),
 

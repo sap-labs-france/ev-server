@@ -89,6 +89,10 @@ class MongoDBStorage {
     await this.checkAndCreateCollection(collections, tenantID, 'settings', [
       {fields: {identifier: 1}, options: {unique: true}}
     ]);
+    await this.checkAndCreateCollection(collections, tenantID, 'connections', [
+      {fields: {connectorId: 1, userId: 1}, options: {unique: true}}
+    ]);
+
   }
 
   async deleteTenantDatabase(tenantID) {

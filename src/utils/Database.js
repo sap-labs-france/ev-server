@@ -367,6 +367,18 @@ class Database {
     Database.updateCreatedAndLastChanged(src, dest);
   }
 
+  static updateConnection(src, dest, forFrontEnd = true) {
+    Database.updateID(src, dest);
+    dest.connectorId = src.connectorId;
+    dest.createdAt = src.createdAt;
+    if (forFrontEnd) {
+      dest.userId = Database.validateId(src.userId);
+    } else {
+      dest.userId = Utils.convertToObjectID(src.userId);
+    }
+    dest.data = src.data;
+  }
+
   static updateVehicle(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
@@ -404,11 +416,21 @@ class Database {
     dest.countryCode = src.countryCode;
     dest.partyId = src.partyId;
 
-    if (src.version) { dest.version = src.version; }
-    if (src.businessDetails) { dest.businessDetails = src.businessDetails; }
-    if (src.availableEndpoints) { dest.availableEndpoints = src.availableEndpoints; }
-    if (src.status) { dest.status = src.status; }
-    if (src.versionUrl) { dest.versionUrl = src.versionUrl; }
+    if (src.version) {
+      dest.version = src.version;
+    }
+    if (src.businessDetails) {
+      dest.businessDetails = src.businessDetails;
+    }
+    if (src.availableEndpoints) {
+      dest.availableEndpoints = src.availableEndpoints;
+    }
+    if (src.status) {
+      dest.status = src.status;
+    }
+    if (src.versionUrl) {
+      dest.versionUrl = src.versionUrl;
+    }
 
     Database.updateCreatedAndLastChanged(src, dest);
   }
