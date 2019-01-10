@@ -86,6 +86,9 @@ class Database {
     if (src.hasOwnProperty('cannotChargeInParallel')) {
       dest.cannotChargeInParallel = src.cannotChargeInParallel;
     }
+    if (src.hasOwnProperty('powerLimitUnit')) {
+      dest.powerLimitUnit = src.powerLimitUnit;
+    }
     dest.connectors = [];
     if (src.connectors) {
       // Set

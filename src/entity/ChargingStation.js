@@ -67,14 +67,26 @@ class ChargingStation extends AbstractTenantEntity {
         return this.requestStopTransaction(params);
 
       case 'SetChargingProfile':
-        return this.requestGenericOCPPCommand('SetChargingProfile', params);
+        return this.requestSetChargingProfile(params);
       
       case 'GetCompositeSchedule':
-        return this.requestGenericOCPPCommand('GetCompositeSchedule', params);
+        return this.requestGetCompositeSchedule(params);
+      
+      case 'GetDiagnostics':
+        return this.requestGetDiagnostics(params);
+
+      case 'UpdateFirmware':
+        return this.requestUpdateFirmware(params);
+
+      case 'ChangeAvailability':
+        return this.requestChangeAvailability(params);
+      
+      case 'ClearChargingProfile':
+        return this.requestClearChargingProfile(params);
 
       // Not Exists!
       default:
-        return this.requestGenericOCPPCommand(action, params);
+        throw new BackendError(this.getID(), `Unhandled action ${action}`, "ChargingStation", "handleAction");
     }
   }
 
@@ -170,6 +182,14 @@ class ChargingStation extends AbstractTenantEntity {
 
   setCannotChargeInParallel(cannotChargeInParallel) {
     this._model.cannotChargeInParallel = cannotChargeInParallel;
+  }
+
+  setPowerLimitUnit(powerLimitUnit) {
+    this._model.powerLimitUnit = powerLimitUnit;
+  }
+
+  getPowerLimitUnit() {
+    return this._model.powerLimitUnit;
   }
 
   canChargeInParallel() {
@@ -1359,6 +1379,75 @@ class ChargingStation extends AbstractTenantEntity {
       tenantID: this.getTenantID(),
       source: this.getID(), module: 'ChargingStation',
       method: 'requestSetChargingProfile', action: 'SetChargingProfile',
+      message: `Command sent with success`,
+      detailedMessages: result
+    });
+    // Return
+    return result;
+  }
+
+  // Clear Profiles
+  async requestClearChargingProfile(params) {
+    // Get the client
+    const chargingStationClient = await this.getChargingStationClient();
+    // Clear Profiles
+    const result = await chargingStationClient.clearChargingProfile(params);
+    // Log
+    Logging.logInfo({
+      tenantID: this.getTenantID(),
+      source: this.getID(), module: 'ChargingStation',
+      method: 'requestClearChargingProfiles', action: 'ClearChargingProfile',
+      message: `Command sent with success`,
+      detailedMessages: result
+    });
+    // Return
+    return result;
+  }
+
+  async requestGetDiagnostics(params) {
+    // Get the client
+    const chargingStationClient = await this.getChargingStationClient();
+    // Get Diagnostics
+    const result = await chargingStationClient.getDiagnostics(params);
+    // Log
+    Logging.logInfo({
+      tenantID: this.getTenantID(),
+      source: this.getID(), module: 'ChargingStation',
+      method: 'requestGetDiagnostics', action: 'GetDiagnostics',
+      message: `Command sent with success`,
+      detailedMessages: result
+    });
+    // Return
+    return result;
+  }
+
+  async requestUpdateFirmware(params) {
+    // Get the client
+    const chargingStationClient = await this.getChargingStationClient();
+    // Update Firmware
+    const result = await chargingStationClient.updateFirmware(params);
+    // Log
+    Logging.logInfo({
+      tenantID: this.getTenantID(),
+      source: this.getID(), module: 'ChargingStation',
+      method: 'requestUpdateFirmware', action: 'UpdateFirmware',
+      message: `Command sent with success`,
+      detailedMessages: result
+    });
+    // Return
+    return result;
+  }
+
+  async requestChangeAvailability(params) {
+    // Get the client
+    const chargingStationClient = await this.getChargingStationClient();
+    // Change Availibility
+    const result = await chargingStationClient.changeAvailability(params);
+    // Log
+    Logging.logInfo({
+      tenantID: this.getTenantID(),
+      source: this.getID(), module: 'ChargingStation',
+      method: 'requestChangeAvailability', action: 'ChangeAvailability',
       message: `Command sent with success`,
       detailedMessages: result
     });
