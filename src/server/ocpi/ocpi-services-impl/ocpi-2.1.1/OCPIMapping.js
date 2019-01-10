@@ -88,13 +88,17 @@ class OCPIMapping {
    * @return Array of OCPI EVSES
    */
   static convertCharginStation2MultipleEvses(tenant, chargingStation) {
+    // evse_id
+    const evse_id = this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`);
+
+
     // loop through connectors and send one evse per connector
     const evses = chargingStation.getConnectors().map(connector => {
       return {
         "uid": `${chargingStation.getID()}*${connector.connectorId}`,
-        "id": this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}*${connector.connectorId}`),
+        "id": this.convert2evseid(`${evse_id}*${connector.connectorId}`),
         "status": this.convertStatus2OCPIStatus(connector.status),
-        "connectors": [this.convertConnector2OCPIConnector(chargingStation, connector)]
+        "connectors": [this.convertConnector2OCPIConnector(chargingStation, connector, evse_id)]
       }
     });
 
@@ -109,15 +113,19 @@ class OCPIMapping {
    * @return OCPI EVSE
    */
   static convertChargingStation2UniqueEvse(tenant, chargingStation) {
+    // build evse_id
+    const evse_id = this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`);
+
     // Get all connectors
     const connectors = chargingStation.getConnectors().map(connector => {
-      return this.convertConnector2OCPIConnector(chargingStation, connector);
+      return this.convertConnector2OCPIConnector(chargingStation, connector, evse_id);
     })
 
     // build evse
     return [{
       "uid": `${chargingStation.getID()}`,
-      "id": this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`),
+      // "id": this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`),
+      "id": evse_id,
       "status": this.convertStatus2OCPIStatus(this.aggregateConnectorsStatus(connectors)),
       "connectors": connectors
     }];
@@ -149,11 +157,13 @@ class OCPIMapping {
   /**
    * Converter Connector to OCPI Connector
    * @param {ChargingStation} chargingStation
+   * @param connector
+   * @param evse_id pass evse_id in order to buid connector id (specs for Gireve)
    * @param {*} connector 
    */
-  static convertConnector2OCPIConnector(chargingStation, connector) {
+  static convertConnector2OCPIConnector(chargingStation, connector, evse_id) {
     return {
-      "id": connector.connectorId,
+      "id": `${evse_id}*${connector.connectorId}`,
       "type": Constants.MAPPING_CONNECTOR_TYPE[connector.type],
       "power_type": this.convertNumberofConnectedPhase2PowerType(chargingStation.getNumberOfConnectedPhase()),
       "last_update": chargingStation.getLastHeartBeat()
