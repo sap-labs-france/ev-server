@@ -14,7 +14,7 @@ const TransactionService = require('./service/TransactionService');
 const StatisticService = require('./service/StatisticService');
 const TenantService = require('./service/TenantService');
 const SettingService = require('./service/SettingService');
-const OcpiendpointService = require('./service/OcpiendpointService');
+const OCPIEndpointService = require('./service/OCPIEndpointService');
 
 require('source-map-support').install();
 
@@ -128,17 +128,17 @@ module.exports = {
           // Create Ocpiendpoint
           case "OcpiendpointCreate":
             // Delegate
-            OcpiendpointService.handleCreateOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handleCreateOcpiendpoint(action, req, res, next);
             break;
           // Ping Ocpiendpoint
           case "OcpiendpointPing":
             // Delegate
-            OcpiendpointService.handlePingOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handlePingOcpiendpoint(action, req, res, next);
             break;
           // Generate Local Token Ocpiendpoint
           case "OcpiendpointGenerateLocalToken":
             // Delegate
-            OcpiendpointService.handleGenerateLocalTokenOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handleGenerateLocalTokenOcpiendpoint(action, req, res, next);
             break;
           // Unknown Context
           default:
@@ -392,12 +392,12 @@ module.exports = {
           // Get all the ocpiendpoints
           case "Ocpiendpoints":
             // Delegate
-            OcpiendpointService.handleGetOcpiendpoints(action, req, res, next);
+            OCPIEndpointService.handleGetOcpiendpoints(action, req, res, next);
             break;
           // Get one ocpiendpoint
           case "Ocpiendpoint":
             // Delegate
-            OcpiendpointService.handleGetOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handleGetOcpiendpoint(action, req, res, next);
             break;
           // Unknown Action
           default:
@@ -468,11 +468,11 @@ module.exports = {
           // Ocpiendpoint
           case "OcpiendpointUpdate":
             // Delegate
-            OcpiendpointService.handleUpdateOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handleUpdateOcpiendpoint(action, req, res, next);
             break;
           case "OcpiendpointRegister":
             // Delegate
-            OcpiendpointService.handleRegisterOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handleRegisterOcpiendpoint(action, req, res, next);
             break;
           // Not found
           default:
@@ -538,7 +538,7 @@ module.exports = {
           // Ocpiendpoint
           case "OcpiendpointDelete":
             // Delegate
-            OcpiendpointService.handleDeleteOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handleDeleteOcpiendpoint(action, req, res, next);
             break;
           // Not found
           default:
