@@ -57,11 +57,10 @@ class TransactionService {
       }
       let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID,'chargeathome');
       setting = setting.content['concur'];
-      ConnectorService.instantiateConnector(req.user.tenantID, 'concur', setting);
-
-      // Transfer it to the Revenue Cloud
-      await Utils.pushTransactionToRevenueCloud(action, transaction, req.user, transaction.getUser());
-      // Ok
+      const connector = ConnectorService.instantiateConnector(req.user.tenantID, 'concur', setting);
+      connector.refund(transaction);
+      // // Transfer it to the Revenue Cloud
+      // await Utils.pushTransactionToRevenueCloud(action, transaction, req.user, transaction.getUser());
       res.json(Constants.REST_RESPONSE_SUCCESS);
       next();
     } catch (error) {

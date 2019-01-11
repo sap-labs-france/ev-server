@@ -1,5 +1,5 @@
 const Database = require('../../utils/Database');
-// const ConnectorStorage = require('../../storage/mongodb/ConnectorStorage');
+const ConnectionStorage = require('../../storage/mongodb/ConnectionStorage');
 const SettingStorage = require('../../storage/mongodb/SettingStorage');
 const AbstractTenantEntity = require('../AbstractTenantEntity');
 const User = require('../User');
@@ -56,9 +56,9 @@ class AbstractConnector extends AbstractTenantEntity {
     this._setting.lastChangedOn = lastChangedOn;
   }
 
-  // getConnectionByUserId(userId) {
-  //   return ConnectorStorage.getConnectionByUserId(this.getConnectorId(), userId);
-  // }
+  getConnectionByUserId(userId) {
+    return ConnectionStorage.getConnectionByUserId(this.getConnectorId(), userId);
+  }
   //
   // getConnections() {
   //   return ConnectorStorage.getConnections(this.getConnectorId());
