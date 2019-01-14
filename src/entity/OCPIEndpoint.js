@@ -2,11 +2,11 @@ const AbstractTenantEntity = require('./AbstractTenantEntity');
 const Database = require('../utils/Database');
 const Constants = require('../utils/Constants');
 const AppError = require('../exception/AppError');
-const OcpiEndpointStorage = require('../storage/mongodb/OcpiEndpointStorage');
+const OCPIEndpointStorage = require('../storage/mongodb/OCPIEndpointStorage');
 const OCPIUtils = require('../server/ocpi/OCPIUtils');
 const User = require('./User');
 
-class OcpiEndpoint extends AbstractTenantEntity {
+class OCPIEndpoint extends AbstractTenantEntity {
   constructor(tenantID, ocpiEndpoint) {
     super(tenantID);
     // Set it
@@ -204,11 +204,11 @@ class OcpiEndpoint extends AbstractTenantEntity {
   }
 
   save() {
-    return OcpiEndpointStorage.saveOcpiEndpoint(this.getTenantID(), this.getModel());
+    return OCPIEndpointStorage.saveOcpiEndpoint(this.getTenantID(), this.getModel());
   }
 
   delete() {
-    return OcpiEndpointStorage.deleteOcpiEndpoint(this.getTenantID(), this.getID());
+    return OCPIEndpointStorage.deleteOcpiEndpoint(this.getTenantID(), this.getID());
   }
 
   static checkIfOcpiendpointValid(request, httpRequest) {
@@ -222,23 +222,23 @@ class OcpiEndpoint extends AbstractTenantEntity {
   }
 
   static getOcpiendpoint(tenantID, id) {
-    return OcpiEndpointStorage.getOcpiEndpoint(tenantID, id);
+    return OCPIEndpointStorage.getOcpiEndpoint(tenantID, id);
   }
   
   static getOcpiendpoints(tenantID, params, limit, skip, sort) {
-    return OcpiEndpointStorage.getOcpiEndpoints(tenantID, params, limit, skip, sort)
+    return OCPIEndpointStorage.getOcpiEndpoints(tenantID, params, limit, skip, sort)
   }
 
   // Get ocpiendpoints with token
   static async getOcpiendpointWithToken(tenantID, token) {
-    return OcpiEndpointStorage.getOcpiEndpointWithToken(tenantID, token);
+    return OCPIEndpointStorage.getOcpiEndpointWithToken(tenantID, token);
   }
 
   // get Default Ocpi Endpoint
   // currently only one endpoint could be defined by tenant - but the scope may change keep it open
   static async getDefaultOcpiEndpoint(tenantID) {
     // check if default endpoint exist
-    let ocpiendpoint = await OcpiEndpointStorage.getDefaultOcpiEndpoint(tenantID);
+    let ocpiendpoint = await OCPIEndpointStorage.getDefaultOcpiEndpoint(tenantID);
 
     if (!ocpiendpoint) {
       // create new endpoint
@@ -253,4 +253,4 @@ class OcpiEndpoint extends AbstractTenantEntity {
   }
 }
 
-module.exports = OcpiEndpoint;
+module.exports = OCPIEndpoint;
