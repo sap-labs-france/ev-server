@@ -102,7 +102,12 @@ class EMailNotificationTask extends NotificationTask {
   async _prepareAndSendEmail(templateName, data, locale, tenantID) {
     // Create email
     let emailTemplate;
-
+    // Check users
+    if (!data.user && !data.users && !data.adminUsers) {
+      // Error
+      throw new BackendError(null, `No User is provided for '${templateName}'`,
+        "EMailNotificationTask", "_prepareAndSendEmail");
+    }
     // Get the template dir
     switch (templateName) {
       // Request password
@@ -209,40 +214,38 @@ class EMailNotificationTask extends NotificationTask {
     // Render the final HTML -----------------------------------------------
     const subject = ejs.render(mainTemplate.subject, emailTemplate.email);
     const html = ejs.render(mainTemplate.html, emailTemplate.email);
+    // Add Admins in BCC from Configuration
+    let adminEmails = null;
+    if (data.adminUsers && data.adminUsers.length > 0) {
+      // Add Admins
+      adminEmails = data.adminUsers.map((adminUser) => adminUser.email).join(',');
+    }
     // Send the email
     const message = await this.sendEmail({
-      to: (data.user ? data.user.email : null),
+      to: this.getUserEmailsFromData(data),
+      bcc: adminEmails,
       subject: subject,
       text: html,
       html: html
-    }, tenantID);
-    // User
-    Logging.logInfo({
-      tenantID: tenantID,
-      module: "EMailNotificationTask", method: "_prepareAndSendEmail",
-      action: "SendEmail", actionOnUser: data.user,
-      message: `Email has been sent successfully`,
-      detailedMessages: {
-        "subject": subject,
-        "body": html
-      }
-    });
+    }, data, tenantID);
     // Ok
     return message;
   }
 
-  async sendEmail(email, tenantID) {
-    // Add Admins in BCC
-    if (_emailConfig.admins && _emailConfig.admins.length > 0) {
-      // Add
-      if (!email.bcc) {
-        email.bcc = _emailConfig.admins.join(',');
-      } else {
-        email.bcc += ',' + _emailConfig.admins.join(',');
-      }
+  getUserEmailsFromData(data) {
+    // Check if user is provided
+    if (data.user) {
+      // Return one email
+      return (data.user ? data.user.email : null);
+    } else if (data.users) {
+      // Return a list of emails 
+      return data.users.map((user) => user.email).join(',');
     }
+  }
+
+  async sendEmail(email, data, tenantID) {
     // Create the message
-    const message = {
+    const messageToSend = {
       from: (!email.from ? _emailConfig.from : email.from),
       to: email.to,
       cc: email.cc,
@@ -254,24 +257,47 @@ class EMailNotificationTask extends NotificationTask {
       ]
     };
     // send the message and get a callback with an error or details of the message that was sent
-    return await this.server.send(message, function(err, message) {
+    return await this.server.send(messageToSend, function(err, messageSent) {
       if (err) {
+        // Error!
         try {
           Logging.logError({
             tenantID: tenantID,
             module: "EMailNotificationTask", method: "sendEmail",
-            action: "SendEmail",
-            message: `An error occurred while sending an email`,
+            action: "SendEmail", message: err.toString(),
             detailedMessages: {
-              error: err,
-              message: message
+              email: {
+                from: messageToSend.from,
+                to: messageToSend.to,
+                cc: messageToSend.cc,
+                bcc: messageToSend.bcc,
+                subject: messageToSend.subject
+              },
+              error: err.stack
             }
           });
         } catch (error) {
           // For Unit Tests only: Tenant is deleted and email is not know thus this Logging statement is always failing with an invalid Tenant
         }
       } else {
-        return message;
+        // Email sent successfully
+        Logging.logInfo({
+          tenantID: tenantID,
+          module: "EMailNotificationTask", method: "_prepareAndSendEmail",
+          action: "SendEmail", actionOnUser: data.user,
+          message: `Email has been sent successfully`,
+          detailedMessages: {
+            email: {
+              from: messageToSend.from,
+              to: messageToSend.to,
+              cc: messageToSend.cc,
+              bcc: messageToSend.bcc,
+              subject: messageToSend.subject
+            }
+          }
+        });
+        // Return
+        return messageSent;
       }
     });
   }

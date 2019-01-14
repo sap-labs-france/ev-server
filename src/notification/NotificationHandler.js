@@ -3,6 +3,8 @@ const EMailNotificationTask = require('./email/EMailNotificationTask');
 const Logging = require('../utils/Logging');
 const Constants = require('../utils/Constants');
 const NotificationStorage = require('../storage/mongodb/NotificationStorage');
+const UserStorage = require('../storage/mongodb/UserStorage');
+
 require('source-map-support').install();
 
 const _notificationConfig = Configuration.getNotificationConfig();
@@ -52,6 +54,16 @@ class NotificationHandler {
     }
   }
 
+  static async getAdminUsers(tenantID) {
+    // Get admin users
+    const adminUsers = await UserStorage.getUsers(tenantID, { role: Constants.ROLE_ADMIN });
+    // Found
+    if (adminUsers.count > 0) {
+      // Convert to JSon
+      return adminUsers.result.map((adminUser) => adminUser.getModel()); 
+    }
+}
+
   static async hasNotifiedSource(tenantID, sourceId) {
     try {
       // Save it
@@ -80,7 +92,9 @@ class NotificationHandler {
           await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
             SOURCE_END_OF_CHARGE, user, chargingStation);
           // Send email
-          return _email.sendEndOfCharge(sourceData, locale, tenantID);
+          const result = await _email.sendEndOfCharge(sourceData, locale, tenantID);
+          // Return
+          return result;
         }
       }
     } catch (error) {
@@ -101,7 +115,9 @@ class NotificationHandler {
           await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
             SOURCE_OPTIMAL_CHARGE_REACHED, user, chargingStation);
           // Send email
-          return _email.sendOptimalChargeReached(sourceData, locale, tenantID);
+          const result = await _email.sendOptimalChargeReached(sourceData, locale, tenantID);
+          // Return
+          return result;
         }
       }
     } catch (error) {
@@ -123,7 +139,9 @@ class NotificationHandler {
           await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
             SOURCE_END_OF_SESSION, user, chargingStation);
           // Send email
-          return _email.sendEndOfSession(sourceData, locale, tenantID);
+          const result = await _email.sendEndOfSession(sourceData, locale, tenantID);
+          // Return
+          return result;
         }
       }
     } catch (error) {
@@ -140,7 +158,9 @@ class NotificationHandler {
         await NotificationHandler.saveNotification(tenantID,
           CHANNEL_EMAIL, sourceId, SOURCE_REQUEST_PASSWORD, user, null);
         // Send email
-        return _email.sendRequestPassword(sourceData, locale, tenantID);
+        const result = await _email.sendRequestPassword(sourceData, locale, tenantID);
+        // Return
+        return result;
       }
     } catch (error) {
       // Log error
@@ -155,7 +175,9 @@ class NotificationHandler {
         // Save notif
         await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId, SOURCE_NEW_PASSWORD, user, null);
         // Send email
-        return _email.sendNewPassword(sourceData, locale, tenantID);
+        const result = await _email.sendNewPassword(sourceData, locale, tenantID);
+        // Return
+        return result;
       }
     } catch (error) {
       // Log error
@@ -171,7 +193,9 @@ class NotificationHandler {
         await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
           SOURCE_USER_ACCOUNT_STATUS_CHANGED, user, null);
         // Send email
-        return _email.sendUserAccountStatusChanged(sourceData, locale, tenantID);
+        const result = await _email.sendUserAccountStatusChanged(sourceData, locale, tenantID);
+        // Return
+        return result;
       }
     } catch (error) {
       // Log error
@@ -187,7 +211,9 @@ class NotificationHandler {
         await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
           SOURCE_NEW_REGISTERED_USER, user, null);
         // Send email
-        return _email.sendNewRegisteredUser(sourceData, locale, tenantID);
+        const result = await _email.sendNewRegisteredUser(sourceData, locale, tenantID);
+        // Return
+        return result;
       }
     } catch (error) {
       // Log error
@@ -203,7 +229,9 @@ class NotificationHandler {
         await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
           SOURCE_VERIFICATION_EMAIL, user, null);
         // Send email
-        return _email.sendVerificationEmail(sourceData, locale, tenantID);
+        const result = await _email.sendVerificationEmail(sourceData, locale, tenantID);
+        // Return
+        return result;
       }
     } catch (error) {
       // Log error
@@ -213,13 +241,17 @@ class NotificationHandler {
 
   static async sendChargingStationStatusError(tenantID, sourceId, chargingStation, sourceData) {
     try {
+      // Enrich with admins
+      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
         await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
           SOURCE_CHARGING_STATION_STATUS_ERROR, null, chargingStation);
         // Send email
-        return _email.sendChargingStationStatusError(sourceData, Constants.DEFAULT_LOCALE, tenantID);
+        const result = await _email.sendChargingStationStatusError(sourceData, Constants.DEFAULT_LOCALE, tenantID);
+        // Return
+        return result;
       }
     } catch (error) {
       // Log error
@@ -229,13 +261,17 @@ class NotificationHandler {
 
   static async sendChargingStationRegistered(tenantID, sourceId, chargingStation, sourceData) {
     try {
+      // Enrich with admins
+      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
         await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
           SOURCE_CHARGING_STATION_REGISTERED, null, chargingStation);
         // Send email
-        return _email.sendChargingStationRegistered(sourceData, Constants.DEFAULT_LOCALE, tenantID);
+        const result = await _email.sendChargingStationRegistered(sourceData, Constants.DEFAULT_LOCALE, tenantID);
+        // Return
+        return result;
       }
     } catch (error) {
       // Log error
@@ -245,13 +281,17 @@ class NotificationHandler {
 
   static async sendUnknownUserBadged(tenantID, sourceId, chargingStation, sourceData) {
     try {
+      // Enrich with admins
+      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
         await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
           SOURCE_UNKNOWN_USER_BADGED, null, chargingStation);
         // Send email
-        return _email.sendUnknownUserBadged(sourceData, Constants.DEFAULT_LOCALE, tenantID);
+        const result = await _email.sendUnknownUserBadged(sourceData, Constants.DEFAULT_LOCALE, tenantID);
+        // Return
+        return result;
       }
     } catch (error) {
       // Log error
@@ -271,7 +311,9 @@ class NotificationHandler {
           await NotificationHandler.saveNotification(tenantID,
             CHANNEL_EMAIL, sourceId, SOURCE_TRANSACTION_STARTED, user, chargingStation);
           // Send email
-          return _email.sendTransactionStarted(sourceData, locale, tenantID);
+          const result = await _email.sendTransactionStarted(sourceData, locale, tenantID);
+          // Return
+          return result;
         }
       }
     } catch (error) {
