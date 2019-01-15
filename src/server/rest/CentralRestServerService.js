@@ -15,11 +15,13 @@ const StatisticService = require('./service/StatisticService');
 const TenantService = require('./service/TenantService');
 const SettingService = require('./service/SettingService');
 const OCPIEndpointService = require('./service/OCPIEndpointService');
+const NotificationService = require('./service/NotificationService');
 
 require('source-map-support').install();
 
 module.exports = {
   // Util Service
+  // eslint-disable-next-line no-unused-vars
   restServiceUtil(req, res, next) {
     // Parse the action
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
@@ -303,6 +305,11 @@ module.exports = {
           case "User":
             // Delegate
             UserService.handleGetUser(action, req, res, next);
+            break;
+          // Get the notifications
+          case "Notifications":
+            // Delegate
+            NotificationService.handleGetNotifications(action, req, res, next);
             break;
           // Get the user image
           case "UserImage":

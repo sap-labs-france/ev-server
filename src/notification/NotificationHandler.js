@@ -26,8 +26,9 @@ const SOURCE_VERIFICATION_EMAIL = "NotifyVerificationEmail";
 
 class NotificationHandler {
   static async saveNotification(tenantID, channel, sourceId, sourceDescr, user, chargingStation) {
-    // Save it
-    await NotificationStorage.saveNotification(tenantID, {
+    const Notification = require('../entity/Notification');
+    // Create the object
+    const notification = new Notification(tenantID, {
       timestamp: new Date(),
       channel: channel,
       sourceId: sourceId,
@@ -35,6 +36,8 @@ class NotificationHandler {
       userID: (user ? user.id : null),
       chargeBoxID: (chargingStation ? chargingStation.id : null)
     });
+    // Save it
+    await notification.save();
     // Success
     if (user) {
       // User
@@ -67,13 +70,9 @@ class NotificationHandler {
   static async hasNotifiedSource(tenantID, sourceId) {
     try {
       // Save it
-      const notifications = await NotificationStorage.getNotification(tenantID, sourceId);
-      // Filter by source id
-      const notificationsFiltered = notifications.filter(notification => {
-        return (notification.sourceId === sourceId);
-      });
+      const notifications = await NotificationStorage.getNotifications(tenantID, {sourceId});
       // return
-      return notificationsFiltered.length > 0;
+      return notifications.count > 0;
     } catch (error) {
       // Log error
       Logging.logActionExceptionMessage(tenantID, "HasNotification", error);
