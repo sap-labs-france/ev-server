@@ -724,7 +724,10 @@ class ChargingStation extends AbstractTenantEntity {
                 'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.getConnectorId(), transaction.getID()),
                 'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
               },
-              transaction.getUserJson().locale
+              transaction.getUserJson().locale,
+              {
+                'transactionId': transaction.getID()
+              }
             );
           }
         // Check the SoC (Optimal Charge)
@@ -749,7 +752,10 @@ class ChargingStation extends AbstractTenantEntity {
                 'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.getConnectorId(), transaction.getID()),
                 'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
               },
-              transaction.getUserJson().locale
+              transaction.getUserJson().locale,
+              {
+                'transactionId': transaction.getID()
+              }
             );
           }
         }
@@ -1154,7 +1160,10 @@ class ChargingStation extends AbstractTenantEntity {
           'evseDashboardChargingStationURL':
             await Utils.buildEvseTransactionURL(this, transaction.getConnectorId(), transaction.getID())
         },
-        user.getLocale()
+        user.getLocale(),
+        {
+          'transactionId': transaction.getID()
+        }
       );
       // Log
       Logging.logInfo({
@@ -1299,7 +1308,10 @@ class ChargingStation extends AbstractTenantEntity {
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.getConnectorId(), transaction.getID()),
           'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
         },
-        user.getLocale()
+        user.getLocale(),
+        {
+          'transactionId': transaction.getID()
+        }
       );
     }
     // Log

@@ -25,7 +25,7 @@ const SOURCE_TRANSACTION_STARTED = "NotifyTransactionStarted";
 const SOURCE_VERIFICATION_EMAIL = "NotifyVerificationEmail";
 
 class NotificationHandler {
-  static async saveNotification(tenantID, channel, sourceId, sourceDescr, user, chargingStation) {
+  static async saveNotification(tenantID, channel, sourceId, sourceDescr, user, chargingStation, data={}) {
     const Notification = require('../entity/Notification');
     // Create the object
     const notification = new Notification(tenantID, {
@@ -34,7 +34,8 @@ class NotificationHandler {
       sourceId: sourceId,
       sourceDescr: sourceDescr,
       userID: (user ? user.id : null),
-      chargeBoxID: (chargingStation ? chargingStation.id : null)
+      chargeBoxID: (chargingStation ? chargingStation.id : null),
+      data
     });
     // Save it
     await notification.save();
@@ -79,7 +80,7 @@ class NotificationHandler {
     }
   }
 
-  static async sendEndOfCharge(tenantID, sourceId, user, chargingStation, sourceData, locale) {
+  static async sendEndOfCharge(tenantID, sourceId, user, chargingStation, sourceData, locale, data) {
     try {
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
@@ -89,7 +90,7 @@ class NotificationHandler {
         if (_notificationConfig.Email.enabled) {
           // Save notif
           await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
-            SOURCE_END_OF_CHARGE, user, chargingStation);
+            SOURCE_END_OF_CHARGE, user, chargingStation, data);
           // Send email
           const result = await _email.sendEndOfCharge(sourceData, locale, tenantID);
           // Return
@@ -102,7 +103,7 @@ class NotificationHandler {
     }
   }
 
-  static async sendOptimalChargeReached(tenantID, sourceId, user, chargingStation, sourceData, locale) {
+  static async sendOptimalChargeReached(tenantID, sourceId, user, chargingStation, sourceData, locale, data) {
     try {
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
@@ -112,7 +113,7 @@ class NotificationHandler {
         if (_notificationConfig.Email.enabled) {
           // Save notif
           await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
-            SOURCE_OPTIMAL_CHARGE_REACHED, user, chargingStation);
+            SOURCE_OPTIMAL_CHARGE_REACHED, user, chargingStation, data);
           // Send email
           const result = await _email.sendOptimalChargeReached(sourceData, locale, tenantID);
           // Return
@@ -126,7 +127,7 @@ class NotificationHandler {
   }
  
 
-  static async sendEndOfSession(tenantID, sourceId, user, chargingStation, sourceData, locale) {
+  static async sendEndOfSession(tenantID, sourceId, user, chargingStation, sourceData, locale, data) {
     try {
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
@@ -136,7 +137,7 @@ class NotificationHandler {
         if (_notificationConfig.Email.enabled) {
           // Save notif
           await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
-            SOURCE_END_OF_SESSION, user, chargingStation);
+            SOURCE_END_OF_SESSION, user, chargingStation, data);
           // Send email
           const result = await _email.sendEndOfSession(sourceData, locale, tenantID);
           // Return
@@ -298,7 +299,7 @@ class NotificationHandler {
     }
   }
 
-  static async sendTransactionStarted(tenantID, sourceId, user, chargingStation, sourceData, locale) {
+  static async sendTransactionStarted(tenantID, sourceId, user, chargingStation, sourceData, locale, data) {
     try {
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
@@ -308,7 +309,7 @@ class NotificationHandler {
         if (_notificationConfig.Email.enabled) {
           // Save notif
           await NotificationHandler.saveNotification(tenantID,
-            CHANNEL_EMAIL, sourceId, SOURCE_TRANSACTION_STARTED, user, chargingStation);
+            CHANNEL_EMAIL, sourceId, SOURCE_TRANSACTION_STARTED, user, chargingStation, data);
           // Send email
           const result = await _email.sendTransactionStarted(sourceData, locale, tenantID);
           // Return

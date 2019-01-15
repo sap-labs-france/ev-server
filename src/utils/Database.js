@@ -183,6 +183,7 @@ class Database {
     dest.channel = src.channel;
     dest.sourceId = src.sourceId;
     dest.sourceDescr = src.sourceDescr;
+    dest.data = src.data;
     // User
     if (forFrontEnd && !Utils.isEmptyJSon(src.user)) {
       dest.user = {};
