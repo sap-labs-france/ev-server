@@ -130,25 +130,20 @@ class ConnectorService extends AbstractService {
         // Not Authorized!
         throw new UnauthorizedError(
           Constants.ACTION_LIST,
-          Constants.ENTITY_TENANTS,
+          Constants.ENTITY_CONNECTIONS,
           null,
           req.user);
       }
       // Filter
       const filteredRequest = ConnectorSecurity.filterConnectionsRequest(req.query, req.user);
-      // Get the tenants
-      const tenants = await Connector.getConnections(
-        {
-          search: filteredRequest.Search
-        },
-        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+      const connections = await AbstractConnector.getConnectionsByUserId(req.user.tenantID, req.user.id);
       // Set
-      tenants.result = tenants.result.map((tenant) => tenant.getModel());
+      connections.result = connections.result.map((connection) => connection.getModel());
       // Filter
-      tenants.result = ConnectorSecurity.filterConnectionsResponse(
-        tenants.result, req.user);
+      connections.result = ConnectorSecurity.filterConnectionsResponse(
+        connections.result, req.user);
       // Return
-      res.json(tenants);
+      res.json(connections);
       next();
     } catch (error) {
       AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleGetConnections');
@@ -169,10 +164,10 @@ class ConnectorService extends AbstractService {
       ConnectionValidator.validateConnectionCreation(req.body);
       // Filter
       const filteredRequest = ConnectorSecurity.filterConnectionCreateRequest(req.body, req.user);
-      let setting = await AbstractConnector.getConnectorSetting(req.user.tenantID, filteredRequest.settingId);
+      const setting = await AbstractConnector.getConnectorSetting(req.user.tenantID, filteredRequest.settingId);
 
-      let connector = this.instantiateConnector(req.user.tenantID, filteredRequest.connectorId, setting.getContent()[filteredRequest.connectorId]);
-      let connection = await connector.createConnection(filteredRequest.userId, filteredRequest.data);
+      const connector = this.instantiateConnector(req.user.tenantID, filteredRequest.connectorId, setting.getContent()[filteredRequest.connectorId]);
+      const connection = await connector.createConnection(filteredRequest.userId, filteredRequest.data);
 
       // Log
       Logging.logSecurityInfo({
@@ -182,7 +177,7 @@ class ConnectorService extends AbstractService {
         action: action
       });
       // Ok
-      res.status(HttpStatusCodes.OK).json(Object.assign({id: newTenant.getID()}, Constants.REST_RESPONSE_SUCCESS));
+      res.status(HttpStatusCodes.OK).json(Object.assign({id: req.user.tenantID}, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleCreateTenant');

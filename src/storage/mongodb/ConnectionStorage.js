@@ -43,6 +43,27 @@ class ConnectionStorage {
     return connection;
   }
 
+  static async getConnectionsByUserId(tenantID, userId) {
+    const uniqueTimerID = Logging.traceStart('ConnectionStorage', 'getConnectionsByUserId');
+    await Utils.checkTenant(tenantID);
+    const Connection = require('../../entity/integration/Connection');
+    const aggregation = [];
+    aggregation.push({
+      $match: {userId: Utils.convertToObjectID(userId)}
+    });
+
+    const results = await global.database.getCollection(tenantID, 'connections')
+      .aggregate(aggregation)
+      .toArray();
+
+    let connection = null;
+    if (results && results.length > 0) {
+      connection = new Connection(tenantID, results[0]);
+    }
+    Logging.traceEnd('ConnectionStorage', 'getConnectionsByUserId', uniqueTimerID);
+    return connection;
+  }
+
 }
 
 module.exports = ConnectionStorage;

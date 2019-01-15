@@ -1,4 +1,3 @@
-const Database = require('../../utils/Database');
 const ConnectionStorage = require('../../storage/mongodb/ConnectionStorage');
 const SettingStorage = require('../../storage/mongodb/SettingStorage');
 const AbstractTenantEntity = require('../AbstractTenantEntity');
@@ -12,6 +11,10 @@ class AbstractConnector extends AbstractTenantEntity {
 
   static getConnectorSetting(tenantId,settingId) {
     return SettingStorage.getSetting(tenantId,settingId);
+  }
+
+  static getConnectionsByUserId(tenantId, userId) {
+    return ConnectionStorage.getConnectionsByUserId(tenantId,userId);
   }
 
   getSetting() {
