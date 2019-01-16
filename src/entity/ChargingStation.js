@@ -381,6 +381,8 @@ class ChargingStation extends AbstractTenantEntity {
         if (connectors[i]) {
           // update message with proper connectorId
           statusNotification.connectorId = i + 1;
+          // update TS to avoid duplicates in case StatusNotification are also sent in parallel for other connectors
+          statusNotification.timestamp = new Date().toISOString();
           await this.updateConnectorStatus(statusNotification);
         }
       }
