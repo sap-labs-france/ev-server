@@ -2,7 +2,7 @@ const axios = require('axios');
 const OCPIMapping = require('../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping');
 const Constants = require('../../utils/Constants');
 
-class OcpiClient {
+class OCPIClient {
   constructor(ocpiEndpoint) {
     this._ocpiEndpoint = ocpiEndpoint;
   }
@@ -165,4 +165,4 @@ class OcpiClient {
 
 }
 
-module.exports = OcpiClient;
+module.exports = OCPIClient;

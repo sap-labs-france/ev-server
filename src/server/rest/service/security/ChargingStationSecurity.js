@@ -132,6 +132,9 @@ class ChargingStationSecurity {
     if (request.hasOwnProperty('siteArea')) {
       filteredRequest.siteArea = sanitize(request.siteArea);
     }
+    if (request.hasOwnProperty('powerLimitUnit')) {
+      filteredRequest.powerLimitUnit = sanitize(request.powerLimitUnit);
+    }
     if (request.connectors) {
       // Filter
       filteredRequest.connectors = request.connectors.map((connector) => {

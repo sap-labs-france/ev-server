@@ -75,6 +75,22 @@ class JsonChargingStationClient16 extends ChargingStationClient {
     return this._wsConnection.sendMessage(uuid(), params, 2, commandName);
   }
 
+  clearChargingProfile(params) {
+    return this._wsConnection.sendMessage(uuid(), params, 2, "ClearChargingProfile");
+  }
+
+  changeAvailability(params) {
+    return this._wsConnection.sendMessage(uuid(), params, 2, "ChangeAvailability");
+  }
+
+  getDiagnostics(params) {
+    return this._wsConnection.sendMessage(uuid(), params, 2, "GetDiagnostics");
+  }
+  
+  updateFirmware(params) {
+    return this._wsConnection.sendMessage(uuid(), params, 2, "UpdateFirmware");
+  }
+
 }
 
 module.exports = JsonChargingStationClient16;

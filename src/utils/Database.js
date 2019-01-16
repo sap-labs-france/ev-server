@@ -86,6 +86,9 @@ class Database {
     if (src.hasOwnProperty('cannotChargeInParallel')) {
       dest.cannotChargeInParallel = src.cannotChargeInParallel;
     }
+    if (src.hasOwnProperty('powerLimitUnit')) {
+      dest.powerLimitUnit = src.powerLimitUnit;
+    }
     dest.connectors = [];
     if (src.connectors) {
       // Set
@@ -172,22 +175,25 @@ class Database {
   static updateNotification(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
+      dest.userID = Database.validateId(src.userID);
+    } else {
+      dest.userID = Utils.convertToObjectID(src.userID);
     }
     dest.timestamp = Utils.convertToDate(src.timestamp);
     dest.channel = src.channel;
     dest.sourceId = src.sourceId;
     dest.sourceDescr = src.sourceDescr;
+    dest.data = src.data;
     // User
-    dest.userID = Utils.convertToObjectID(src.userID);
-    if (forFrontEnd && !Utils.isEmptyJSon(dest.userID)) {
+    if (forFrontEnd && !Utils.isEmptyJSon(src.user)) {
       dest.user = {};
-      Database.updateUser(src.userID, dest.user);
+      Database.updateUser(src.user, dest.user);
     }
     // ChargeBox
     dest.chargeBoxID = src.chargeBoxID
-    if (forFrontEnd && !Utils.isEmptyJSon(dest.chargeBoxID)) {
+    if (forFrontEnd && !Utils.isEmptyJSon(src.chargeBox)) {
       dest.chargeBox = {};
-      Database.updateChargingStation(src.chargeBoxID, dest.chargeBox);
+      Database.updateChargingStation(src.chargeBox, dest.chargeBox);
     }
   }
 
@@ -307,7 +313,7 @@ class Database {
       dest.createdBy = src.createdBy;
       // User model?
       if (typeof dest.createdBy == "object" &&
-        dest.createdBy.constructor.name != "ObjectID") {
+          dest.createdBy.constructor.name != "ObjectID") {
         // Yes
         dest.createdBy = {};
         Database.updateUser(src.createdBy, dest.createdBy);
@@ -471,11 +477,11 @@ class Database {
     dest.action = src.action;
     dest.message = src.message;
     dest.detailedMessages = src.detailedMessages;
-    if (forFrontEnd && src.user && typeof src.user == "object") {
+    if (forFrontEnd && !Utils.isEmptyJSon(src.user)) {
       dest.user = {};
       Database.updateUser(src.user, dest.user);
     }
-    if (forFrontEnd && src.actionOnUser && typeof src.actionOnUser == "object") {
+    if (forFrontEnd && !Utils.isEmptyJSon(src.actionOnUser)) {
       dest.actionOnUser = {};
       Database.updateUser(src.actionOnUser, dest.actionOnUser);
     }
@@ -488,8 +494,8 @@ class Database {
     } else {
       dest.userID = Utils.convertToObjectID(src.userID);
     }
-    //User
-    if (!Utils.isEmptyJSon(src.user) && forFrontEnd) {
+    // User
+    if (forFrontEnd && !Utils.isEmptyJSon(src.user)) {
       dest.user = {};
       Database.updateUser(src.user, dest.user, forFrontEnd);
     }
@@ -519,7 +525,7 @@ class Database {
     dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);
     if (!Utils.isEmptyJSon(src.stop)) {
       dest.stop = {};
-      if (!Utils.isEmptyJSon(src.stop.user) && forFrontEnd) {
+      if (forFrontEnd && !Utils.isEmptyJSon(src.stop.user)) {
         dest.stop.user = {};
         Database.updateUser(src.stop.user, dest.stop.user, forFrontEnd);
       }

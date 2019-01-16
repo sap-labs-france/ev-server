@@ -101,8 +101,6 @@ class TransactionStorage {
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactions');
     // Check
     await Utils.checkTenant(tenantID);
-    const pricing = await PricingStorage.getPricing(tenantID);
-
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -255,7 +253,7 @@ class TransactionStorage {
     if (transactionsMDB && transactionsMDB.length > 0) {
       // Create
       for (const transactionMDB of transactionsMDB) {
-        transactions.push(new Transaction(tenantID, {...transactionMDB, pricing: pricing}));
+        transactions.push(new Transaction(tenantID, transactionMDB));
       }
     }
     // Debug
