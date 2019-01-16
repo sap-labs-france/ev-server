@@ -26,6 +26,12 @@ class ChargingStation extends AbstractTenantEntity {
     Database.updateChargingStation(chargingStation, this._model);
   }
 
+  /**
+   *
+   * @param tenantID
+   * @param id
+   * @returns {Promise<ChargingStation>}
+   */
   static getChargingStation(tenantID, id) {
     return ChargingStationStorage.getChargingStation(tenantID, id);
   }
@@ -68,7 +74,7 @@ class ChargingStation extends AbstractTenantEntity {
 
       case 'SetChargingProfile':
         return this.requestGenericOCPPCommand('SetChargingProfile', params);
-      
+
       case 'GetCompositeSchedule':
         return this.requestGenericOCPPCommand('GetCompositeSchedule', params);
 

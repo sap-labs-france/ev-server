@@ -113,9 +113,9 @@ module.exports = {
             SiteAreaService.handleCreateSiteArea(action, req, res, next);
             break;
           // Transaction Refund
-          case "TransactionRefund":
+          case "TransactionsRefund":
             // Delegate
-            TransactionService.handleRefundTransaction(action, req, res, next);
+            TransactionService.handleRefundTransactions(action, req, res, next);
             break;
           // Create Setting
           case "SettingCreate":

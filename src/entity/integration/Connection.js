@@ -8,6 +8,9 @@ class Connection extends AbstractTenantEntity {
 
     Database.updateConnection(connection, this._model);
   }
+  getModel() {
+    return this._model;
+  }
 
   getId() {
     return this._model.id;
@@ -23,6 +26,18 @@ class Connection extends AbstractTenantEntity {
 
   getData() {
     return this._model.data;
+  }
+
+  getCreatedAt() {
+    return this._model.createdAt;
+  }
+  getUpdatedAt() {
+    return this._model.updatedAt;
+  }
+
+  updateData(data, updateDate) {
+    this._model.data = data;
+    return this._model.updatedAt = updateDate;
   }
 }
 

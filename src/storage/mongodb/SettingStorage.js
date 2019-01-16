@@ -36,6 +36,12 @@ class SettingStorage {
     return setting;
   }
 
+  /**
+   *
+   * @param tenantID
+   * @param identifier
+   * @returns {Promise<Setting>}
+   */
   static async getSettingByIdentifier(tenantID, identifier) {
     const Setting = require('../../entity/Setting'); // Avoid circular deps!!!
     let setting = null;

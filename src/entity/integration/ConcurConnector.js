@@ -1,11 +1,15 @@
 const AbstractConnector = require('./AbstractConnector');
 const Logging = require('../../utils/Logging');
 const axios = require('axios');
+const querystring = require('querystring');
+const moment = require('moment');
 const ConnectionStorage = require('../../storage/mongodb/ConnectionStorage');
 const TransactionStorage = require('../../storage/mongodb/TransactionStorage');
+const ChargingStation = require("../ChargingStation");
 
 const MODULE_NAME = 'ConcurConnector';
 const CONNECTOR_ID = 'concur';
+const REPORT_NAME = 'Charge At Home';
 
 /**
  * A concur connector creates connection with the following data attributes
@@ -16,7 +20,7 @@ const CONNECTOR_ID = 'concur';
  */
 class ConcurConnector extends AbstractConnector {
   constructor(tenantID, setting) {
-    super(tenantID, setting);
+    super(tenantID, 'concur', setting);
   }
 
   getUrl() {
@@ -29,6 +33,14 @@ class ConcurConnector extends AbstractConnector {
 
   getClientSecret() {
     return this.getSetting().clientSecret;
+  }
+
+  getExpenseTypeCode() {
+    return this.getSetting().expenseTypeCode;
+  }
+
+  getPaymentTypeID() {
+    return this.getSetting().paymentTypeId;
   }
 
   /**
@@ -44,21 +56,31 @@ class ConcurConnector extends AbstractConnector {
         module: MODULE_NAME, method: 'createConnection',
         action: 'getAccessToken', message: `request concur access token for ${userId}`
       });
-      const result = await axios.get(`${this.getUrl()}/net2/oauth2/GetAccessToken.ashx?code=${data.code}&client_id=${this.getClientId()}&client_secret=${this.getClientSecret()}`, {
-        headers: {
-          Accept: 'application/json'
-        }
-      });
+      const result = await axios.post(`${this.getUrl()}/oauth2/v0/token`,
+        querystring.stringify({
+          code: data.code,
+          client_id: this.getClientId(),
+          client_secret: this.getClientSecret(),
+          redirect_uri: data.redirectUri,
+          grant_type: 'authorization_code'
+        }),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        });
       Logging.logDebug({
         tenantID: this.getTenantID(),
         module: MODULE_NAME, method: 'createConnection',
         action: 'getAccessToken', message: `Concur access token granted for ${userId}`
       });
+      const now = new Date();
       const connection = ConnectionStorage.saveConnection(this.getTenantID(), {
-        data: result.data.Access_Token,
+        data: result.data,
         userId: userId,
         connectorId: CONNECTOR_ID,
-        createdAt: new Date()
+        createdAt: now,
+        lastUpdatedAt: now
       });
       return connection;
     } catch (e) {
@@ -71,50 +93,142 @@ class ConcurConnector extends AbstractConnector {
     }
   }
 
+  async refreshConnection(userId, connection) {
+    try {
+      Logging.logDebug({
+        tenantID: this.getTenantID(),
+        module: MODULE_NAME, method: 'refreshConnection',
+        action: 'refreshAccessToken', message: `request concur refresh token for ${userId}`
+      });
+      const result = await axios.post(`${this.getUrl()}/oauth2/v0/token`,
+        querystring.stringify({
+          client_id: this.getClientId(),
+          client_secret: this.getClientSecret(),
+          refresh_token: connection.getData().refresh_token,
+          scope: connection.getData().scope,
+          grant_type: 'refresh_token'
+        }),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        });
+      Logging.logDebug({
+        tenantID: this.getTenantID(),
+        module: MODULE_NAME, method: 'refreshConnection',
+        action: 'refreshAccessToken', message: `Concur access token refreshed for ${userId}`
+      });
+      connection.updateData(result.data, new Date());
+
+      return ConnectionStorage.saveConnection(this.getTenantID(), connection.getModel());
+    } catch (e) {
+      Logging.logError({
+        tenantID: this.getTenantID(),
+        module: MODULE_NAME, method: 'refreshConnection',
+        action: 'refreshAccessToken', message: `Concur access token not refreshed for ${userId}`
+      });
+      throw e;
+    }
+  }
+
+  isConnectionExpired(connection) {
+    return moment(connection.getUpdatedAt()).add(connection.getData().expires_in, 'seconds').isBefore(moment.now());
+  }
+
   /**
    *
    * @param transaction {Transaction}
    * @returns {Promise<void>}
    */
   async refund(transaction) {
-    const connection = this.getConnectionByUserId(transaction.getUserID());
-    const response = await axios.post(`${this.getUrl()}/net2/oauth2/GetAccessToken.ashx?code=${data.code}&client_id=${this.getClientId()}&client_secret=${this.getClientSecret()}`, {
-      headers: {
-        Accept: 'application/json',
-        Authorization: `OAuth ${connection.getData().Token}`
-      }
-    });
+    let connection = await this.getConnectionByUserId(transaction.getUserID());
+    if (this.isConnectionExpired(connection)) {
+      connection = await this.refreshConnection(transaction.getUserID(), connection)
+    }
+    const chargingStation = await ChargingStation.getChargingStation(transaction.getTenantID(), transaction.getChargeBoxID());
+    const site = await chargingStation.getSite();
+    const expenseReports = await this.getExpenseReports(connection);
+    const expenseReport = expenseReports.find(report => report.Name === REPORT_NAME);
+    let expenseReportId;
+    if (expenseReport) {
+      expenseReportId = expenseReport.ID;
+    } else {
+      expenseReportId = await this.createExpenseReport(connection);
+    }
+
+    const entryId = this.createExpenseReportEntry(connection, expenseReportId, transaction, site);
+    // transaction.setRefundId(entryId);
   }
+
 
   async getExpenseReports(connection) {
-
-  }
-
-  async getExpenseReports(connection) {
-    const response = await axios.get(`${this.getUrl()}/v3.0/expense/reports`, {
+    const response = await axios.get(`${this.getUrl()}/api/v3.0/expense/reports`, {
       headers: {
         Accept: 'application/json',
-        Authorization: `OAuth ${connection.getData().Token}`
+        Authorization: `Bearer ${connection.getData().access_token}`
       }
     });
+    return response.data.Items;
   }
 
-  async createExpenseReport(transaction, connection) {
-    const response = await axios.post(`${this.getUrl()}/v3.0/expense/reports`, {
-      'Name': util.format("E-Mobility %s", sDate),
-      'Total': oModel.txn.price,
-      'CurrencyCode': oModel.global.price.currencyCode,
-      'Country': oModel.txn.ev.country.code,
-      'LedgerName': oModel.global.vendor
+  /**
+   *
+   * @param connection {Connection}
+   * @param expenseReportId {string}
+   * @param transaction {Transaction}
+   * @param site {Site}
+   * @returns {Promise<string>}
+   */
+  async createExpenseReportEntry(connection, expenseReportId, transaction, site) {
+    try {
+
+      const response = await axios.post(`${this.getUrl()}/api/v3.0/expense/entries`, {
+        'Description': `Emobility reimbursement ${moment(transaction.getStartDate()).format("YYYY-MM-DD")}`,
+        'Comment': `Session started the ${moment(transaction.getStartDate()).format("YYYY-MM-DDTHH:mm:ss")} during ${transaction.getDuration().format(`h[h]mm`, {trim: false})}`,
+        'VendorDescription': 'Charge At Home',
+        'Custom1': `${transaction.getID}`,
+        'ExpenseTypeCode': this.getExpenseTypeCode(),
+        'IsBillable': true,
+        'IsPersonal': false,
+        'PaymentTypeID': this.getPaymentTypeID(),
+        'ReportID': expenseReportId,
+        'TaxReceiptType': 'N',
+        'TransactionAmount': transaction.getPrice(),
+        'TransactionCurrencyCode': transaction.getPriceUnit(),
+        'TransactionDate': transaction.getStartDate(),
+        'SpendCategoryCode': 'COCAR',
+        'LocationCountry': site.getAddress().country,
+        'LocationName': site.getAddress().city
+      }, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${connection.getData().access_token}`
+        }
+      });
+      return response.data.ID;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  /**
+   *
+   * @param connection
+   * @returns {Promise<void>}
+   */
+  async createExpenseReport(connection) {
+    const response = await axios.post(`${this.getUrl()}/api/v3.0/expense/reports`, {
+      'Name': REPORT_NAME,
     }, {
       headers: {
         Accept: 'application/json',
-        Authorization: `OAuth ${connection.getData().Token}`
+        Authorization: `Bearer ${connection.getData().access_token}`
       }
     });
+    return response.data.ID;
   }
 
-
+//https://www-us.api.concursolutions.com/oauth2/v0/authorize?client_id=c524d36b-823f-4574-8c99-4b28dbb8f42c&redirect_uri=https://slfcah.cfapps.eu10.hana.ondemand.com&scope=EXPRPT&response_type=code
 }
 
 module.exports = ConcurConnector;

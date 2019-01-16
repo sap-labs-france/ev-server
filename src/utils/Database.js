@@ -368,10 +368,11 @@ class Database {
   }
 
   static updateConnection(src, dest, forFrontEnd = true) {
-    Database.updateID(src, dest);
     dest.connectorId = src.connectorId;
     dest.createdAt = src.createdAt;
+    dest.updatedAt = src.updatedAt;
     if (forFrontEnd) {
+      Database.updateID(src, dest);
       dest.userId = Database.validateId(src.userId);
     } else {
       dest.userId = Utils.convertToObjectID(src.userId);

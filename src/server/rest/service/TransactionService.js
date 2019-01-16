@@ -10,55 +10,56 @@ const TransactionStorage = require('../../../storage/mongodb/TransactionStorage'
 const ChargingStation = require('../../../entity/ChargingStation');
 const User = require('../../../entity/User');
 const SettingStorage = require("../../../storage/mongodb/SettingStorage");
-const ConnectorService = require("./ConnectorService");
+const ConcurConnector = require("../../../entity/integration/ConcurConnector");
 
 class TransactionService {
-  static async handleRefundTransaction(action, req, res, next) {
+  static async handleRefundTransactions(action, req, res, next) {
     try {
       // Filter
-      let filteredRequest = TransactionSecurity.filterTransactionRefund(req.body, req.user);
-      // Transaction Id is mandatory
-      if (!filteredRequest.id) {
+      let filteredRequest = TransactionSecurity.filterTransactionsRefund(req.body, req.user);
+      if (!filteredRequest.transactionIds) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Transaction's ID must be provided`, 500,
-          'TransactionService', 'handleRefundTransaction', req.user);
+          `Transaction IDs must be provided`, 500,
+          'TransactionService', 'handleRefundTransactions', req.user);
       }
-      // Get Transaction
-      let transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.id);
-      // Found?
-      if (!transaction) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `Transaction '${filteredRequest.ID}' does not exist`, 550,
-          'TransactionService', 'handleRefundTransaction', req.user);
+      for (const transactionId of filteredRequest.transactionIds) {
+        let transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
+        if (!transaction) {
+          Logging.logError({
+            tenantID: req.user.tenantID,
+            user: req.user, actionOnUser: (transaction.getUser() ? transaction.getUser() : null),
+            module: 'TransactionService', method: 'handleRefundTransactions',
+            message: `Transaction '${filteredRequest.ID}' does not exist`,
+            action: action, detailedMessages: transaction.getModel()
+          });
+        }
+        // Check auth
+        if (!Authorizations.canRefundTransaction(req.user, transaction)) {
+          // Not Authorized!
+          throw new AppAuthError(
+            Constants.ACTION_REFUND_TRANSACTION,
+            Constants.ENTITY_TRANSACTION,
+            transaction.getID(),
+            560, 'TransactionService', 'handleRefundTransactions',
+            req.user);
+        }
+        // Get Transaction User
+        let user = await User.getUser(req.user.tenantID, transaction.getUserID());
+        // Check
+        if (!user) {
+          // Not Found!
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The user with ID '${req.user.id}' does not exist`, 550,
+            'TransactionService', 'handleRefundTransactions', req.user);
+        }
+        let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, 'chargeathome');
+        setting = setting.getContent()['concur'];
+        const connector = new ConcurConnector(req.user.tenantID, setting);
+        await connector.refund(transaction);
       }
-      // Check auth
-      if (!Authorizations.canRefundTransaction(req.user, transaction)) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_REFUND_TRANSACTION,
-          Constants.ENTITY_TRANSACTION,
-          transaction.getID(),
-          560, 'TransactionService', 'handleRefundTransaction',
-          req.user);
-      }
-      // Get Transaction User
-      let user = await User.getUser(req.user.tenantID, transaction.getUserID());
-      // Check
-      if (!user) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The user with ID '${req.user.id}' does not exist`, 550,
-          'TransactionService', 'handleRefundTransaction', req.user);
-      }
-      let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID,'chargeathome');
-      setting = setting.content['concur'];
-      const connector = ConnectorService.instantiateConnector(req.user.tenantID, 'concur', setting);
-      connector.refund(transaction);
       // // Transfer it to the Revenue Cloud
       // await Utils.pushTransactionToRevenueCloud(action, transaction, req.user, transaction.getUser());
       res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -276,7 +277,7 @@ class TransactionService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Transaction's ID must be provided`, 500,
-          'TransactionService', 'handleRefundTransaction', req.user);
+          'TransactionService', 'handleRefundTransactions', req.user);
       }
       // Get Transaction
       let transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID);

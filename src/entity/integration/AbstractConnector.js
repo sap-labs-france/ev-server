@@ -4,9 +4,10 @@ const AbstractTenantEntity = require('../AbstractTenantEntity');
 const User = require('../User');
 
 class AbstractConnector extends AbstractTenantEntity {
-  constructor(tenantID, setting) {
+  constructor(tenantID,connectorId, setting) {
     super(tenantID);
     this._setting = setting;
+    this._connectorId = connectorId;
   }
 
   static getConnectorSetting(tenantId,settingId) {
@@ -60,7 +61,7 @@ class AbstractConnector extends AbstractTenantEntity {
   }
 
   getConnectionByUserId(userId) {
-    return ConnectionStorage.getConnectionByUserId(this.getConnectorId(), userId);
+    return ConnectionStorage.getConnectionByUserId(this.getTenantID(), this._connectorId, userId);
   }
   //
   // getConnections() {

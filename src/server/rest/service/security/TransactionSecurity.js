@@ -4,10 +4,10 @@ const Constants = require('../../../../utils/Constants');
 const UtilsSecurity = require('./UtilsSecurity');
 
 class TransactionSecurity {
-  static filterTransactionRefund(request, loggedUser) {
+  static filterTransactionsRefund(request, loggedUser) {
     const filteredRequest = {};
     // Set
-    filteredRequest.id = sanitize(request.id);
+    filteredRequest.transactionIds = request.transactionIds.map(id => sanitize(id));
     return filteredRequest;
   }
 
@@ -264,12 +264,12 @@ class TransactionSecurity {
       filteredConsumption.values = [];
       for (const value of consumptions) {
         // Set
-        const filteredValue= {
+        const filteredValue = {
           date: value.date,
           value: value.value,
           cumulated: value.cumulated
         };
-        if (value.hasOwnProperty('stateOfCharge')){
+        if (value.hasOwnProperty('stateOfCharge')) {
           filteredValue.stateOfCharge = value.stateOfCharge;
         }
         filteredConsumption.values.push(filteredValue);
