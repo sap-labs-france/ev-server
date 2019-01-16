@@ -18,7 +18,7 @@ module.exports.email = {
     "beforeActionLines": [
       "Hi <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Your session on <b><%- chargingBoxID %></b> is finished."
+      "Your session on <b><%- chargingBoxID %></b> has just finished."
     ],
     "stats": [
       { "label": "Consumption", "value": "<%- totalConsumption %> kW.h" },
