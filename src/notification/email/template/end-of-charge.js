@@ -1,9 +1,9 @@
 module.exports.email = {
-  "subject": "Charge finished",
+  "subject": "Maximal charge reached",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Charge Finished",
+      "title": "Maximal Charge Reached",
       "image": {
         "left": {
           "height": 60,
@@ -18,7 +18,7 @@ module.exports.email = {
     "beforeActionLines": [
       "Hi <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Your electric vehicle, which is connected to <b><%- chargingBoxID %></b>, has just finished charging."
+      "Your electric vehicle, which is connected to <b><%- chargingBoxID %></b>, has just reached its maximum charge."
     ],
     "stats": [
       { "label": "Consumption", "value": "<%- totalConsumption %> kW.h" },
@@ -42,11 +42,11 @@ module.exports.email = {
 
 module.exports.fr_FR = {};
 module.exports.fr_FR.email = {
-  "subject": "Charge terminée",
+  "subject": "Charge maximale atteinte",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Charge Terminée",
+      "title": "Charge Maximale Atteinte",
       "image": {
         "left": {
           "height": 60,

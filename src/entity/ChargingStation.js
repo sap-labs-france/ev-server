@@ -449,6 +449,10 @@ class ChargingStation extends AbstractTenantEntity {
           'error': `${statusNotification.status} - ${statusNotification.errorCode} - ${statusNotification.info}`,
           'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain()),
           'evseDashboardChargingStationURL': await Utils.buildEvseChargingStationURL(this, statusNotification.connectorId)
+        },
+        {
+          'connectorId': statusNotification.connectorId,
+          'error': `${statusNotification.status} - ${statusNotification.errorCode} - ${statusNotification.info}`,
         }
       );
     }
