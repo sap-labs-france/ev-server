@@ -49,6 +49,7 @@ class NotificationSecurity {
     if (notification.userID && Authorizations.canReadUser(loggedUser, {id: notification.userID})) {
       filteredNotification = {};
       // Set only necessary info
+      filteredNotification.id = notification.id;
       filteredNotification.timestamp = notification.timestamp;
       filteredNotification.channel = notification.channel;
       filteredNotification.sourceId = notification.sourceId;
