@@ -29,6 +29,28 @@ class SiteSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
+  static filterAddUsersToSiteRequest(request, loggedUser) {
+    const filteredRequest = {};
+    // Set
+    filteredRequest.siteID = sanitize(request.siteID);
+    if (request.userIDs) {
+      filteredRequest.userIDs = request.userIDs.map(userID => sanitize(userID));
+    }
+    return filteredRequest;
+  }
+
+  // eslint-disable-next-line no-unused-vars
+  static filterRemoveUsersFromSiteRequest(request, loggedUser) {
+    const filteredRequest = {};
+    // Set
+    filteredRequest.siteID = sanitize(request.siteID);
+    if (request.userIDs) {
+      filteredRequest.userIDs = request.userIDs.map(userID => sanitize(userID));
+    }
+    return filteredRequest;
+  }
+
+  // eslint-disable-next-line no-unused-vars
   static filterSiteDeleteRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set

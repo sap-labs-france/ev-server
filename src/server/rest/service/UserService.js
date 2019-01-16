@@ -55,7 +55,7 @@ class UserService {
         if (!site) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `The Site with ID '${filteredRequest.id}' does not exist anymore`, 550,
+            `The Site with ID '${siteID}' does not exist anymore`, 550,
             'UserService', 'handleAddSitesToUser', req.user);
         }
         // Check auth
@@ -63,7 +63,7 @@ class UserService {
           throw new AppAuthError(
             Constants.ACTION_UPDATE,
             Constants.ENTITY_SITE,
-            user.getID(),
+            siteID,
             560,
             'UserService', 'handleAddSitesToUser',
             req.user, user);
@@ -130,7 +130,7 @@ class UserService {
         if (!site) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `The Site with ID '${filteredRequest.id}' does not exist anymore`, 550,
+            `The Site with ID '${siteID}' does not exist anymore`, 550,
             'UserService', 'handleAddSitesToUser', req.user);
         }
         // Check auth
@@ -138,7 +138,7 @@ class UserService {
           throw new AppAuthError(
             Constants.ACTION_UPDATE,
             Constants.ENTITY_SITE,
-            user.getID(),
+            siteID,
             560,
             'UserService', 'handleAddSitesToUser',
             req.user, user);

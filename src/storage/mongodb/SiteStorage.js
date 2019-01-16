@@ -150,6 +150,55 @@ class SiteStorage {
     return siteImages;
   }
 
+  static async removeUsersFromSite(tenantID, siteID, userIDs) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('SiteStorage', 'removeUsersFromSite');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Site provided?
+    if (siteID) {
+      // At least one User
+      if (userIDs && userIDs.length > 0) {
+        // Create the list
+        for (const userID of userIDs) {
+          // Execute
+          await global.database.getCollection(tenantID, 'siteusers').deleteMany({
+            "userID": Utils.convertToObjectID(userID),
+            "siteID": Utils.convertToObjectID(siteID)
+          });
+        }
+      }
+    }
+    // Debug
+    Logging.traceEnd('SiteStorage', 'removeUsersFromSite', uniqueTimerID, {siteID, userIDs});
+  }
+
+  static async addUsersToSite(tenantID, siteID, userIDs) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('SiteStorage', 'addUsersToSite');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Site provided?
+    if (siteID) {
+      // At least one User
+      if (userIDs && userIDs.length > 0) {
+        const siteUsers = [];
+        // Create the list
+        for (const userID of userIDs) {
+          // Add
+          siteUsers.push({
+            "userID": Utils.convertToObjectID(userID),
+            "siteID": Utils.convertToObjectID(siteID)
+          });
+        }
+        // Execute
+        await global.database.getCollection(tenantID, 'siteusers').insertMany(siteUsers);
+      }
+    }
+    // Debug
+    Logging.traceEnd('SiteStorage', 'addUsersToSite', uniqueTimerID, {siteID, userIDs});
+  }
+
   static async saveSite(tenantID, siteToSave) {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'saveSite');

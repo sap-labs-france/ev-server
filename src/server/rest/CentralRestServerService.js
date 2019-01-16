@@ -102,6 +102,16 @@ module.exports = {
             // Delegate
             SiteService.handleCreateSite(action, req, res, next);
             break;
+          // Add Users to Site
+          case "AddUsersToSite":
+            // Delegate
+            SiteService.handleAddUsersToSite(action, req, res, next);
+            break;
+          // Remove Users to Site
+          case "RemoveUsersFromSite":
+            // Delegate
+            SiteService.handleRemoveUsersFromSite(action, req, res, next);
+            break;
           // Add Sites to User
           case "AddSitesToUser":
             // Delegate
