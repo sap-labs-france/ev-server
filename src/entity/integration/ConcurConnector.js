@@ -75,14 +75,14 @@ class ConcurConnector extends AbstractConnector {
         action: 'getAccessToken', message: `Concur access token granted for ${userId}`
       });
       const now = new Date();
-      const connection = ConnectionStorage.saveConnection(this.getTenantID(), {
+      return ConnectionStorage.saveConnection(this.getTenantID(), {
         data: result.data,
         userId: userId,
         connectorId: CONNECTOR_ID,
         createdAt: now,
-        lastUpdatedAt: now
+        updatedAt: now,
+        validUntil: ConcurConnector.computeValidUntilAt(result)
       });
-      return connection;
     } catch (e) {
       Logging.logError({
         tenantID: this.getTenantID(),
@@ -118,7 +118,8 @@ class ConcurConnector extends AbstractConnector {
         module: MODULE_NAME, method: 'refreshConnection',
         action: 'refreshAccessToken', message: `Concur access token refreshed for ${userId}`
       });
-      connection.updateData(result.data, new Date());
+      const now = new Date();
+      connection.updateData(result.data, now, ConcurConnector.computeValidUntilAt(result));
 
       return ConnectionStorage.saveConnection(this.getTenantID(), connection.getModel());
     } catch (e) {
@@ -131,8 +132,17 @@ class ConcurConnector extends AbstractConnector {
     }
   }
 
-  isConnectionExpired(connection) {
-    return moment(connection.getUpdatedAt()).add(connection.getData().expires_in, 'seconds').isBefore(moment.now());
+  /**
+   * Compute a valid until date from a date and a duration
+   * @return Date the valid until date
+   * @param result the data result returned by concur
+   */
+  static computeValidUntilAt(result) {
+    return new Date(result.data.refresh_expires_in * 1000);
+  }
+
+  static isConnectionExpired(connection) {
+    return moment(connection.data.refresh_expires_in).isBefore(moment.now());
   }
 
   /**
@@ -142,7 +152,7 @@ class ConcurConnector extends AbstractConnector {
    */
   async refund(transaction) {
     let connection = await this.getConnectionByUserId(transaction.getUserID());
-    if (this.isConnectionExpired(connection)) {
+    if (ConcurConnector.isConnectionExpired(connection)) {
       connection = await this.refreshConnection(transaction.getUserID(), connection)
     }
     const chargingStation = await ChargingStation.getChargingStation(transaction.getTenantID(), transaction.getChargeBoxID());

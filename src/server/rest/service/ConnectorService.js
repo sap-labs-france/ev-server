@@ -12,7 +12,6 @@ const ConnectorSecurity = require('./security/ConnectorSecurity');
 const HttpStatusCodes = require('http-status-codes');
 const ConnectionValidator = require('../validation/ConnectionValidator');
 const AbstractService = require('./AbstractService');
-const NotificationHandler = require('../../../notification/NotificationHandler');
 const Utils = require('../../../utils/Utils');
 
 const MODULE_NAME = 'ConnectorService';
@@ -95,7 +94,7 @@ class ConnectorService extends AbstractService {
           MODULE_NAME, 'handleGetConnection', req.user);
       }
       // Get it
-      const tenant = await Connector.getConnection(filteredRequest.ID);
+      const tenant = await AbstractConnector.getConnection(filteredRequest.ID);
       if (!tenant) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -126,7 +125,7 @@ class ConnectorService extends AbstractService {
   static async handleGetConnections(action, req, res, next) {
     try {
       // Check auth
-      if (!Authorizations.canListTenants(req.user)) {
+      if (!Authorizations.canListConnections(req.user)) {
         // Not Authorized!
         throw new UnauthorizedError(
           Constants.ACTION_LIST,
@@ -136,13 +135,16 @@ class ConnectorService extends AbstractService {
       }
       // Filter
       const filteredRequest = ConnectorSecurity.filterConnectionsRequest(req.query, req.user);
-      const connections = await AbstractConnector.getConnectionsByUserId(req.user.tenantID, req.user.id);
+      const connections = await AbstractConnector.getConnectionsByUserId(req.user.tenantID, filteredRequest.userId);
+      console.log(connections);
       // Set
       connections.result = connections.result.map((connection) => connection.getModel());
       // Filter
+      console.log(connections);
       connections.result = ConnectorSecurity.filterConnectionsResponse(
         connections.result, req.user);
       // Return
+      console.log(connections);
       res.json(connections);
       next();
     } catch (error) {

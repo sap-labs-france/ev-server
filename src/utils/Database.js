@@ -371,6 +371,7 @@ class Database {
     dest.connectorId = src.connectorId;
     dest.createdAt = src.createdAt;
     dest.updatedAt = src.updatedAt;
+    dest.validUntil = src.validUntil;
     if (forFrontEnd) {
       Database.updateID(src, dest);
       dest.userId = Database.validateId(src.userId);

@@ -20,7 +20,7 @@ class ConnectorSecurity {
 
   static filterConnectionsRequest(request, loggedUser) {
     const filteredRequest = {};
-    filteredRequest.Search = sanitize(request.Search);
+    filteredRequest.userId = sanitize(request.userId);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -55,7 +55,9 @@ class ConnectorSecurity {
     if (Authorizations.canReadConnection(loggedUser, connection)) {
       // Set only necessary info
       filteredConnection = {};
-      filteredConnection.values = connection.values;
+      filteredConnection.connectorId = connection.connectorId;
+      filteredConnection.createdAt = connection.createdAt;
+      filteredConnection.validUntil = connection.validUntil;
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(
         filteredConnection, connection, loggedUser);

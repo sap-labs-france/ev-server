@@ -35,9 +35,10 @@ class Connection extends AbstractTenantEntity {
     return this._model.updatedAt;
   }
 
-  updateData(data, updateDate) {
+  updateData(data, updateDate, validUntil) {
     this._model.data = data;
-    return this._model.updatedAt = updateDate;
+    this._model.updatedAt = updateDate;
+    this._model.validUntil = validUntil;
   }
 }
 

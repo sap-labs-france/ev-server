@@ -713,13 +713,6 @@ class Authorizations {
     });
   }
 
-  static canCreateConnection(loggedUser) {
-    // Check
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION, {
-      "Action": Constants.ACTION_CREATE
-    });
-  }
-
   static canUpdateTenant(loggedUser, tenant) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TENANT, {
@@ -734,6 +727,25 @@ class Authorizations {
       "Action": Constants.ACTION_DELETE,
       "TenantID": tenant.id.toString()
     });
+  }
+
+  static canCreateConnection(loggedUser) {
+    // Check
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION, {
+      "Action": Constants.ACTION_CREATE
+    });
+  }
+
+  static canReadConnection(loggedUser) {
+    // Check
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION,
+      {"Action": Constants.ACTION_READ});
+  }
+
+  static canListConnections(loggedUser) {
+    // Check
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTIONS,
+      {"Action": Constants.ACTION_LIST});
   }
 
   static canReadPricing(loggedUser) {

@@ -399,6 +399,12 @@ module.exports = {
             // Delegate
             OcpiendpointService.handleGetOcpiendpoint(action, req, res, next);
             break;
+          case "IntegrationConnections":
+            ConnectorService.handleGetConnections(action, req, res, next);
+            break;
+          case "IntegrationConnection":
+            ConnectorService.handleGetConnection(action, req, res, next);
+            break;
           // Unknown Action
           default:
             // Delegate

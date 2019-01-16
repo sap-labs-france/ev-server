@@ -10,12 +10,16 @@ class AbstractConnector extends AbstractTenantEntity {
     this._connectorId = connectorId;
   }
 
-  static getConnectorSetting(tenantId,settingId) {
-    return SettingStorage.getSetting(tenantId,settingId);
+  static getConnectorSetting(tenantId, settingId) {
+    return SettingStorage.getSetting(tenantId, settingId);
   }
 
   static getConnectionsByUserId(tenantId, userId) {
-    return ConnectionStorage.getConnectionsByUserId(tenantId,userId);
+    return ConnectionStorage.getConnectionsByUserId(tenantId, userId);
+  }
+
+  static getConnectionById(tenantId, id) {
+    return ConnectionStorage.getConnectionById(tenantId, id);
   }
 
   getSetting() {
@@ -63,6 +67,7 @@ class AbstractConnector extends AbstractTenantEntity {
   getConnectionByUserId(userId) {
     return ConnectionStorage.getConnectionByUserId(this.getTenantID(), this._connectorId, userId);
   }
+
   //
   // getConnections() {
   //   return ConnectorStorage.getConnections(this.getConnectorId());
