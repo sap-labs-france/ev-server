@@ -35,7 +35,7 @@ class CompanyStorage {
       company = new Company(tenantID, companiesMDB[0]);
     }
     // Debug
-    Logging.traceEnd('CompanyStorage', 'getCompany', uniqueTimerID);
+    Logging.traceEnd('CompanyStorage', 'getCompany', uniqueTimerID, {id});
     return company;
   }
 
@@ -68,7 +68,7 @@ class CompanyStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const companyLogosMDB = await global.database.getCollection(tenantID, 'companylogos')
+    const companyLogosMDB = await global.database.getCollection(tenantID, 'companylogos', {})
       .find({})
       .toArray();
     // Set
@@ -83,7 +83,7 @@ class CompanyStorage {
       }
     }
     // Debug
-    Logging.traceEnd('CompanyStorage', 'getCompanyLogos', uniqueTimerID);
+    Logging.traceEnd('CompanyStorage', 'getCompanyLogos', uniqueTimerID, {});
     return companyLogos;
   }
 
@@ -120,7 +120,7 @@ class CompanyStorage {
       {$set: company},
       {upsert: true, new: true, returnOriginal: false});
     // Debug
-    Logging.traceEnd('CompanyStorage', 'saveCompany', uniqueTimerID);
+    Logging.traceEnd('CompanyStorage', 'saveCompany', uniqueTimerID, {companyToSave});
     return new Company(tenantID, result.value);
   }
 
@@ -143,7 +143,7 @@ class CompanyStorage {
       {$set: {logo: companyLogoToSave.logo}},
       {upsert: true, new: true, returnOriginal: false});
     // Debug
-    Logging.traceEnd('CompanyStorage', 'saveCompanyLogo', uniqueTimerID);
+    Logging.traceEnd('CompanyStorage', 'saveCompanyLogo', uniqueTimerID, {});
   }
 
   // Delegate
@@ -235,7 +235,7 @@ class CompanyStorage {
       }
     }
     // Debug
-    Logging.traceEnd('CompanyStorage', 'getCompanies', uniqueTimerID);
+    Logging.traceEnd('CompanyStorage', 'getCompanies', uniqueTimerID, {params, limit, skip, sort});
     // Ok
     return {
       count: (companiesCountMDB.length > 0 ? companiesCountMDB[0].count : 0),
@@ -262,7 +262,7 @@ class CompanyStorage {
     await global.database.getCollection(tenantID, 'companylogos')
       .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
     // Debug
-    Logging.traceEnd('CompanyStorage', 'deleteCompany', uniqueTimerID);
+    Logging.traceEnd('CompanyStorage', 'deleteCompany', uniqueTimerID, {id});
   }
 }
 

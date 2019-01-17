@@ -2,7 +2,8 @@ const sanitize = require('mongo-sanitize');
 const Authorizations = require('../../../../authorization/Authorizations');
 const UtilsSecurity = require('./UtilsSecurity');
 
-class OcpiendpointSecurity {
+class OCPIEndpointSecurity {
+  // eslint-disable-next-line no-unused-vars
   static filterOcpiendpointDeleteRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -10,12 +11,14 @@ class OcpiendpointSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterOcpiendpointRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterOcpiendpointsRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.Search = sanitize(request.Search);
@@ -26,15 +29,31 @@ class OcpiendpointSecurity {
 
   static filterOcpiendpointUpdateRequest(request, loggedUser) {
     // Set Ocpiendpoint
-    const filteredRequest = OcpiendpointSecurity._filterOcpiendpointRequest(request, loggedUser);
+    const filteredRequest = OCPIEndpointSecurity._filterOcpiendpointRequest(request, loggedUser);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
   static filterOcpiendpointCreateRequest(request, loggedUser) {
-    return OcpiendpointSecurity._filterOcpiendpointRequest(request, loggedUser);
+    return OCPIEndpointSecurity._filterOcpiendpointRequest(request, loggedUser);
   }
 
+  static filterOcpiendpointPingRequest(request, loggedUser) {
+    return OCPIEndpointSecurity._filterOcpiendpointRequest(request, loggedUser);
+  }
+
+  static filterOcpiendpointRegisterRequest(request, loggedUser) {
+    // Set Ocpiendpoint
+    const filteredRequest = OCPIEndpointSecurity._filterOcpiendpointRequest(request, loggedUser);
+    filteredRequest.id = sanitize(request.id);
+    return filteredRequest;
+  }
+
+  static filterOcpiendpointGenerateLocalTokenRequest(request, loggedUser) {
+    return OCPIEndpointSecurity._filterOcpiendpointRequest(request, loggedUser);
+  }
+
+  // eslint-disable-next-line no-unused-vars
   static _filterOcpiendpointRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.name = sanitize(request.name);
@@ -57,7 +76,7 @@ class OcpiendpointSecurity {
       // Admin?
       if (Authorizations.isAdmin(loggedUser)) {
         // Yes: set all params
-        filteredOcpiendpoint= ocpiendpoint;
+        filteredOcpiendpoint = ocpiendpoint;
       } else {
         // Set only necessary info
         return null;
@@ -81,7 +100,7 @@ class OcpiendpointSecurity {
     }
     for (const ocpiendpoint of ocpiendpoints) {
       // Filter
-      const filteredOcpiendpoint = OcpiendpointSecurity.filterOcpiendpointResponse(ocpiendpoint, loggedUser);
+      const filteredOcpiendpoint = OCPIEndpointSecurity.filterOcpiendpointResponse(ocpiendpoint, loggedUser);
       // Ok?
       if (filteredOcpiendpoint) {
         // Add
@@ -92,4 +111,4 @@ class OcpiendpointSecurity {
   }
 }
 
-module.exports = OcpiendpointSecurity;
+module.exports = OCPIEndpointSecurity;

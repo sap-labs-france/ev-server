@@ -3,7 +3,7 @@ const OCPIUtils = require('../../OCPIUtils');
 const OCPIMapping = require('./OCPIMapping');
 const OCPIClientError = require('../../../../exception/OCPIClientError');
 const OCPIServerError = require('../../../../exception/OCPIServerError');
-const OcpiEndpoint = require('../../../../entity/OcpiEndpoint');
+const OCPIEndpoint = require('../../../../entity/OCPIEndpoint');
 const Constants = require("../../../../utils/Constants");
 const axios = require('axios');
 
@@ -17,7 +17,7 @@ const EP_VERSION = "2.1.1";
  */
 class CredentialsEndpoint extends AbstractEndpoint {
   constructor(ocpiService) {
-    super(ocpiService,EP_IDENTIFIER, EP_VERSION);
+    super(ocpiService, EP_IDENTIFIER, EP_VERSION);
   }
 
   /**
@@ -55,14 +55,20 @@ class CredentialsEndpoint extends AbstractEndpoint {
         EP_IDENTIFIER, 'postCredentials', null);
     }
 
-    // Get default ocpiEndpoint
-    const ocpiEndpoint = await OcpiEndpoint.getDefaultOcpiEndpoint(tenant.getID());
+    // get token from header
+    let token;
+    if (req.headers && req.headers.authorization) {
+      token = req.headers.authorization.split(" ")[1];
+    }
+
+    // Get ocpiEndpoints based on the given token
+    const ocpiEndpoint = await OCPIEndpoint.getOcpiendpointWithToken(tenant.getID(), token);
 
     // check if ocpiEndpoint available
     if (!ocpiEndpoint) {
       throw new OCPIServerError(
         'POST credentials',
-        `OCPI Endpoint not available`, 500,
+        `OCPI Endpoint not available or wrong token`, 500,
         EP_IDENTIFIER, 'postCredentials', null);
     }
 

@@ -86,6 +86,9 @@ class Database {
     if (src.hasOwnProperty('cannotChargeInParallel')) {
       dest.cannotChargeInParallel = src.cannotChargeInParallel;
     }
+    if (src.hasOwnProperty('powerLimitUnit')) {
+      dest.powerLimitUnit = src.powerLimitUnit;
+    }
     dest.connectors = [];
     if (src.connectors) {
       // Set
@@ -172,22 +175,25 @@ class Database {
   static updateNotification(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
+      dest.userID = Database.validateId(src.userID);
+    } else {
+      dest.userID = Utils.convertToObjectID(src.userID);
     }
     dest.timestamp = Utils.convertToDate(src.timestamp);
     dest.channel = src.channel;
     dest.sourceId = src.sourceId;
     dest.sourceDescr = src.sourceDescr;
+    dest.data = src.data;
     // User
-    dest.userID = Utils.convertToObjectID(src.userID);
-    if (forFrontEnd && !Utils.isEmptyJSon(dest.userID)) {
+    if (forFrontEnd && !Utils.isEmptyJSon(src.user)) {
       dest.user = {};
-      Database.updateUser(src.userID, dest.user);
+      Database.updateUser(src.user, dest.user);
     }
     // ChargeBox
     dest.chargeBoxID = src.chargeBoxID
-    if (forFrontEnd && !Utils.isEmptyJSon(dest.chargeBoxID)) {
+    if (forFrontEnd && !Utils.isEmptyJSon(src.chargeBox)) {
       dest.chargeBox = {};
-      Database.updateChargingStation(src.chargeBoxID, dest.chargeBox);
+      Database.updateChargingStation(src.chargeBox, dest.chargeBox);
     }
   }
 
@@ -200,13 +206,13 @@ class Database {
     dest.transactionId = Utils.convertToInt(src.transactionId);
     dest.timestamp = Utils.convertToDate(src.timestamp);
     dest.value = Utils.convertToInt(src.value);
-    if (src.hasOwnProperty("registeredValue")) {
-      dest.registeredValue = Utils.convertToInt(src.registeredValue);
-    }
-    if (src.hasOwnProperty("totalInactivitySecs")) {
-      dest.totalInactivitySecs = Utils.convertToInt(src.totalInactivitySecs);
-    }
     dest.attribute = src.attribute;
+    // if (src.hasOwnProperty("registeredValue")) {
+    //   dest.registeredValue = Utils.convertToInt(src.registeredValue);
+    // }
+    // if (src.hasOwnProperty("totalInactivitySecs")) {
+    //   dest.totalInactivitySecs = Utils.convertToInt(src.totalInactivitySecs);
+    // }
   }
 
   static updateUser(src, dest, forFrontEnd = true) {
@@ -307,14 +313,15 @@ class Database {
       dest.createdBy = src.createdBy;
       // User model?
       if (typeof dest.createdBy == "object" &&
-        dest.createdBy.constructor.name != "ObjectID") {
+          dest.createdBy.constructor.name != "ObjectID") {
         // Yes
         dest.createdBy = {};
         Database.updateUser(src.createdBy, dest.createdBy);
       } else {
         try {
           dest.createdBy = Utils.convertToObjectID(dest.createdBy);
-        } catch (e) {
+      // eslint-disable-next-line no-empty
+      } catch (e) {
         } // Not an Object ID
       }
     }
@@ -335,6 +342,7 @@ class Database {
       } else {
         try {
           dest.lastChangedBy = Utils.convertToObjectID(dest.lastChangedBy);
+        // eslint-disable-next-line no-empty
         } catch (e) {
         } // Not an Object ID
       }
@@ -493,36 +501,56 @@ class Database {
     dest.action = src.action;
     dest.message = src.message;
     dest.detailedMessages = src.detailedMessages;
-    if (forFrontEnd && src.user && typeof src.user == "object") {
+    if (forFrontEnd && !Utils.isEmptyJSon(src.user)) {
       dest.user = {};
       Database.updateUser(src.user, dest.user);
     }
-    if (forFrontEnd && src.actionOnUser && typeof src.actionOnUser == "object") {
+    if (forFrontEnd && !Utils.isEmptyJSon(src.actionOnUser)) {
       dest.actionOnUser = {};
       Database.updateUser(src.actionOnUser, dest.actionOnUser);
     }
   }
 
   static updateTransaction(src, dest, forFrontEnd = true) {
-    Database.updateID(src, dest);
-    //User
-    if (!Utils.isEmptyJSon(src.user) && forFrontEnd) {
+    if (forFrontEnd) {
+      Database.updateID(src, dest);
+      dest.userID = Database.validateId(src.userID);
+    } else {
+      dest.userID = Utils.convertToObjectID(src.userID);
+    }
+    // User
+    if (forFrontEnd && !Utils.isEmptyJSon(src.user)) {
       dest.user = {};
       Database.updateUser(src.user, dest.user, forFrontEnd);
     }
-    forFrontEnd && src.userID ? dest.userID = Database.validateId(src.userID) : dest.userID = Utils.convertToObjectID(src.userID);
+    if (src.hasOwnProperty('numberOfMeterValues')) {
+      dest.numberOfMeterValues = src.numberOfMeterValues;
+    }
+    if (src.hasOwnProperty('currentStateOfCharge')) {
+      dest.currentStateOfCharge = src.currentStateOfCharge;
+    }
+    if (src.hasOwnProperty('lastMeterValue')) {
+      dest.lastMeterValue = src.lastMeterValue;
+    }
+    if (src.hasOwnProperty('currentTotalInactivitySecs')) {
+      dest.currentTotalInactivitySecs = src.currentTotalInactivitySecs;
+    }
+    if (src.hasOwnProperty('currentConsumption')) {
+      dest.currentConsumption = src.currentConsumption;
+    }
+    if (src.hasOwnProperty('currentTotalConsumption')) {
+      dest.currentTotalConsumption = src.currentTotalConsumption;
+    }
     dest.chargeBoxID = src.chargeBoxID;
     dest.connectorId = Utils.convertToInt(src.connectorId);
     dest.meterStart = Utils.convertToInt(src.meterStart);
     dest.tagID = src.tagID;
     dest.refundId = src.refundId;
     dest.timestamp = Utils.convertToDate(src.timestamp);
-    if (src.stateOfCharge) {
-      dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);
-    }
+    dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);
     if (!Utils.isEmptyJSon(src.stop)) {
       dest.stop = {};
-      if (!Utils.isEmptyJSon(src.stop.user) && forFrontEnd) {
+      if (forFrontEnd && !Utils.isEmptyJSon(src.stop.user)) {
         dest.stop.user = {};
         Database.updateUser(src.stop.user, dest.stop.user, forFrontEnd);
       }
@@ -530,40 +558,22 @@ class Database {
       dest.stop.timestamp = Utils.convertToDate(src.stop.timestamp);
       dest.stop.tagID = src.stop.tagID;
       dest.stop.meterStop = Utils.convertToInt(src.stop.meterStop);
-      dest.stop.transactionData = src.stop.transactionData;
-      if (src.stop.stateOfCharge) {
-        dest.stop.stateOfCharge = Utils.convertToInt(src.stop.stateOfCharge);
+      if (src.stop.transactionData) {
+        dest.stop.transactionData = src.stop.transactionData;
       }
+      dest.stop.stateOfCharge = Utils.convertToInt(src.stop.stateOfCharge);
       dest.stop.totalConsumption = Utils.convertToInt(src.stop.totalConsumption);
       dest.stop.totalInactivitySecs = Utils.convertToInt(src.stop.totalInactivitySecs);
       dest.stop.totalDurationSecs = Utils.convertToInt(src.stop.totalDurationSecs);
+      dest.stop.price = Utils.convertToInt(src.stop.price);
+      dest.stop.priceUnit = src.stop.priceUnit;
     }
     if (!Utils.isEmptyJSon(src.remotestop)) {
       dest.remotestop = {};
       dest.remotestop.timestamp = src.remotestop.timestamp;
       dest.remotestop.tagID = src.remotestop.tagID;
     }
-    if (!Utils.isEmptyJSon(src.internalMeterValues) && Utils.isEmptyJSon(src.stop)) {
-      dest.internalMeterValues = [];
-      src.internalMeterValues.forEach(meterValue => {
-        const destMeterValue = {};
-        Database.updateMeterValue(meterValue, destMeterValue);
-        dest.internalMeterValues.push(destMeterValue);
-      });
-    }
     if (forFrontEnd) {
-      dest.meterValues = [];
-      if (!Utils.isEmptyJSon(src.meterValues)) {
-        src.meterValues.forEach(meterValue => {
-          const destMeterValue = {};
-          Database.updateMeterValue(meterValue, destMeterValue);
-          dest.meterValues.push(destMeterValue);
-        });
-      }
-      if (!Utils.isEmptyJSon(src.pricing)) {
-        dest.pricing = {};
-        Database.updatePricing(src.pricing, dest.pricing);
-      }
       if (!Utils.isEmptyJSon(src.chargeBox)) {
         dest.chargeBox = {};
         Database.updateChargingStation(src.chargeBox, dest.chargeBox);

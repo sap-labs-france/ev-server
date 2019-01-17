@@ -3,6 +3,7 @@ const Authorizations = require('../../../../authorization/Authorizations');
 const UtilsSecurity = require('./UtilsSecurity');
 
 class VehicleSecurity {
+  // eslint-disable-next-line no-unused-vars
   static filterVehicleDeleteRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -10,12 +11,14 @@ class VehicleSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterVehicleRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterVehiclesRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.Search = sanitize(request.Search);
@@ -39,6 +42,7 @@ class VehicleSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static _filterVehicleRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.type = sanitize(request.type);

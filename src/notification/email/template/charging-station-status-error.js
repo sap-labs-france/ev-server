@@ -3,7 +3,7 @@ module.exports.email = {
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Charger Error",
+      "title": "Charging Station Error",
       "image": {
         "left": {
           "height": 60,

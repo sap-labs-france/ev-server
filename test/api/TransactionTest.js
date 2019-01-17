@@ -53,8 +53,8 @@ describe('Transaction tests', function() {
         tagID: tagId,
         chargeBoxID: chargingStation.id,
         currentConsumption: 0,
-        totalConsumption: 0,
-        totalInactivitySecs: 0,
+        currentTotalConsumption: 0,
+        currentTotalInactivitySecs: 0,
         meterStart: meterStart,
         user: {
           id: user.id,
@@ -88,8 +88,8 @@ describe('Transaction tests', function() {
         tagID: tagId,
         chargeBoxID: chargingStation.id,
         currentConsumption: load,
-        totalConsumption: load,
-        totalInactivitySecs: 0,
+        currentTotalConsumption: load,
+        currentTotalInactivitySecs: 0,
         meterStart: meterStart,
         user: {
           id: user.id,
@@ -128,8 +128,8 @@ describe('Transaction tests', function() {
       expect(response.data).to.containSubset({
         id: transactionId,
         currentConsumption: load,
-        totalConsumption: cumulated - meterStart,
-        totalInactivitySecs: 0,
+        currentTotalConsumption: cumulated - meterStart,
+        currentTotalInactivitySecs: 0,
         meterStart: meterStart,
       });
     });
@@ -152,12 +152,10 @@ describe('Transaction tests', function() {
       expect(response.status).to.equal(200);
       expect(response.data).to.containSubset({
         id: transactionId,
-        currentConsumption: 0,
-        totalConsumption: 0,
-        totalInactivitySecs: 3600,
         meterStart: meterStart,
-        meterStop: meterStop,
         stop: {
+          meterStop: meterStop,
+          totalInactivitySecs: 3600,
           timestamp: stopDate.toISOString(),
           tagID: tagId,
         }
@@ -183,12 +181,11 @@ describe('Transaction tests', function() {
       expect(response.status).to.equal(200);
       expect(response.data).to.containSubset({
         id: transactionId,
-        currentConsumption: 0,
-        totalConsumption: 1000,
-        totalInactivitySecs: 0,
         meterStart: meterStart,
-        meterStop: meterStop,
         stop: {
+          meterStop: meterStop,
+          totalConsumption: 1000,
+          totalInactivitySecs: 0,
           timestamp: stopDate.toISOString(),
           tagID: tagId,
         }
@@ -236,7 +233,6 @@ describe('Transaction tests', function() {
       expect(response.data.count).to.equal(2);
       expect(response.data.result).to.containSubset([{
         id: transactionId1,
-        currentConsumption: 0,
         meterStart: meterStart,
         stop: {
           totalConsumption: 1000,
@@ -248,7 +244,6 @@ describe('Transaction tests', function() {
       }, {
         id: transactionId2,
         meterStart: meterStart,
-        currentConsumption: 0,
         stop: {
           meterStop: meterStop,
           totalConsumption: 1000,
@@ -298,7 +293,6 @@ describe('Transaction tests', function() {
       expect(response.data.count).to.equal(1);
       expect(response.data.result).to.containSubset([{
         id: transactionId1,
-        currentConsumption: 0,
         meterStart: meterStart,
         stop: {
           totalConsumption: 0,
@@ -873,8 +867,10 @@ describe('Transaction tests', function() {
     expect(response.status).to.equal(200);
     expect(response.data).to.containSubset({
       id: transactionId,
-      totalDurationSecs: 7 * 3600,
-      totalInactivitySecs: 5 * 3600
+      stop: {
+        totalDurationSecs: 7 * 3600,
+        totalInactivitySecs: 5 * 3600
+      }
     });
   });
   describe('pricing', () => {
@@ -931,8 +927,10 @@ describe('Transaction tests', function() {
       expect(response.status).to.equal(200);
       expect(response.data).to.containSubset({
         id: transactionId,
-        totalDurationSecs: 7 * 3600,
-        totalInactivitySecs: 5 * 3600
+        stop: {
+          totalDurationSecs: 7 * 3600,
+          totalInactivitySecs: 5 * 3600
+        }
       });
     });
   });

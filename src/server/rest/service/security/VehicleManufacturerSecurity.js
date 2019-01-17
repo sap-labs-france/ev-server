@@ -3,6 +3,7 @@ const Authorizations = require('../../../../authorization/Authorizations');
 const UtilsSecurity = require('./UtilsSecurity');
 
 class VehicleManufacturerSecurity {
+  // eslint-disable-next-line no-unused-vars
   static filterVehicleManufacturerDeleteRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -10,12 +11,14 @@ class VehicleManufacturerSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterVehicleManufacturerRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterVehicleManufacturersRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.Search = sanitize(request.Search);
@@ -38,6 +41,7 @@ class VehicleManufacturerSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static _filterVehicleManufacturerRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.name = sanitize(request.name);

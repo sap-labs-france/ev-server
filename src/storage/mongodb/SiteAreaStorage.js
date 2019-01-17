@@ -27,7 +27,7 @@ class SiteAreaStorage {
       };
     }
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'getSiteAreaImage', uniqueTimerID);
+    Logging.traceEnd('SiteAreaStorage', 'getSiteAreaImage', uniqueTimerID, {id});
     return siteAreaImage;
   }
 
@@ -130,7 +130,7 @@ class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'getSiteArea', uniqueTimerID);
+    Logging.traceEnd('SiteAreaStorage', 'getSiteArea', uniqueTimerID, {id, withChargeBoxes, withSite});
     return siteArea;
   }
 
@@ -167,7 +167,7 @@ class SiteAreaStorage {
       {$set: siteArea},
       {upsert: true, new: true, returnOriginal: false});
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'saveSiteArea', uniqueTimerID);
+    Logging.traceEnd('SiteAreaStorage', 'saveSiteArea', uniqueTimerID, {siteAreaToSave});
     // Create
     return new SiteArea(tenantID, result.value);
   }
@@ -195,13 +195,13 @@ class SiteAreaStorage {
   }
 
   static async getSiteAreas(tenantID, params = {}, limit, skip, sort) {
+    const Site = require('../../entity/Site');  // Avoid fucking circular deps!!!
+    const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
+    const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteAreas');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const Site = require('../../entity/Site');  // Avoid fucking circular deps!!!
-    const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
-    const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -248,7 +248,7 @@ class SiteAreaStorage {
       });
     }
     // Charging Stations
-    if (params.withChargeBoxes) {
+    if (params.withChargeBoxes || params.withAvailableChargers) {
       // Add Charging Stations
       aggregation.push({
         $lookup: {
@@ -298,6 +298,37 @@ class SiteAreaStorage {
             return new ChargingStation(tenantID, chargeBox);
           }));
         }
+        // Count Available/Occupied Chargers/Connectors
+        if (params.withAvailableChargers) {
+          let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
+          // Chargers
+          for (const chargeBox of siteAreaMDB.chargeBoxes) {
+            totalChargers++;
+            // Handle Connectors
+            for (const connector of chargeBox.connectors) {
+              totalConnectors++;
+              // Check if Available
+              if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+                // Add
+                availableConnectors++;
+              }
+            }
+            // Handle Chargers
+            for (const connector of chargeBox.connectors) {
+              // Check if Available
+              if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+                // Add
+                availableChargers++;
+                break;
+              }
+            }
+          }
+          // Set
+          siteArea.setAvailableChargers(availableChargers);
+          siteArea.setTotalChargers(totalChargers);
+          siteArea.setAvailableConnectors(availableConnectors);
+          siteArea.setTotalConnectors(totalConnectors);
+        }
         // Set Site
         if (params.withSite && siteAreaMDB.site) {
           // Set
@@ -308,7 +339,7 @@ class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'getSiteAreas', uniqueTimerID);
+    Logging.traceEnd('SiteAreaStorage', 'getSiteAreas', uniqueTimerID, {params, limit, skip, sort});
     // Ok
     return {
       count: (siteAreasCountMDB.length > 0 ? siteAreasCountMDB[0].count : 0),
@@ -333,7 +364,7 @@ class SiteAreaStorage {
     await global.database.getCollection(tenantID, 'sitesareaimages')
       .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'deleteSiteArea', uniqueTimerID);
+    Logging.traceEnd('SiteAreaStorage', 'deleteSiteArea', uniqueTimerID, {id});
   }
 }
 

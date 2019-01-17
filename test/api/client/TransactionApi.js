@@ -71,7 +71,7 @@ class TransactionApi extends CrudApi {
       tagID: user.tagIDs[0],
       chargeBoxID: chargingStation.id,
       currentConsumption: 0,
-      totalConsumption: 0,
+      currentTotalConsumption: 0,
       meterStart: meterStart,
       user: {
         id: user.id,
@@ -136,7 +136,7 @@ class TransactionApi extends CrudApi {
       chargeBoxID: transaction.chargeBoxID,
       meterStart: transaction.meterStart,
       currentConsumption: currentConsumption,
-      totalConsumption: totalConsumption,
+      currentTotalConsumption: totalConsumption,
       user: {
         id: user.id,
         firstName: user.firstName,
@@ -171,22 +171,19 @@ class TransactionApi extends CrudApi {
     expect(response.status).to.equal(200);
     expect(response.data).to.deep.include({
       id: transaction.id,
-      price: totalPrice,
       timestamp: transaction.timestamp,
       connectorId: transaction.connectorId,
       tagID: transaction.tagID,
       chargeBoxID: transaction.chargeBoxID,
       meterStart: transaction.meterStart,
-      totalConsumption: totalConsumption,
-      totalInactivitySecs: totalInactivity,
-      totalDurationSecs: moment.duration(moment(stopTime).diff(transaction.timestamp)).asSeconds(),
       stop: {
         meterStop: meterStop,
-        price: totalPrice,
-        priceUnit: 'EUR',
         totalConsumption: totalConsumption,
         totalInactivitySecs: totalInactivity,
         totalDurationSecs: moment.duration(moment(stopTime).diff(transaction.timestamp)).asSeconds(),
+        price: totalPrice,
+        priceUnit: 'EUR',
+        stateOfCharge: 0,
         tagID: userStop.tagIDs[0],
         timestamp: stopTime.toISOString(),
         user: {

@@ -23,6 +23,7 @@ let _traceStatistics = null;
 
 const obs = new PerformanceObserver((items) => {
   if (!_loggingConfig.traceLogOnlyStatistics) {
+    // eslint-disable-next-line no-console
     console.log(`Performance ${items.getEntries()[0].name}) ${items.getEntries()[0].duration} ms`);
   }
   
@@ -33,8 +34,11 @@ const obs = new PerformanceObserver((items) => {
     if (_loggingConfig.traceStatisticInterval) {
       setInterval(() => {
         const date=new Date();
+        // eslint-disable-next-line no-console
         console.log(date.toISOString().substr(0, 19) + " STATISTICS START");
+        // eslint-disable-next-line no-console
         console.log(JSON.stringify(_traceStatistics, null, " "));
+        // eslint-disable-next-line no-console
         console.log(date.toISOString().substr(0, 19) + " STATISTICS END");
       }, _loggingConfig.traceStatisticInterval * 1000);
     }
@@ -109,11 +113,11 @@ class Logging {
   }
 
   // Debug DB
-  static traceEnd(module, method, uniqueID) {
+  static traceEnd(module, method, uniqueID, params={}) {
     // Check
     if (_loggingConfig.trace) {
       performance.mark(`End ${module}.${method}(${uniqueID})`);
-      performance.measure(`${module}.${method}()`, `Start ${module}.${method}(${uniqueID})`, `End ${module}.${method}(${uniqueID})`)
+      performance.measure(`${module}.${method}(${JSON.stringify(params)})`, `Start ${module}.${method}(${uniqueID})`, `End ${module}.${method}(${uniqueID})`)
     }
   }
 

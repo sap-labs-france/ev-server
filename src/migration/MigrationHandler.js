@@ -7,7 +7,7 @@ const UpdateTransactionInactivityTask = require('./tasks/UpdateTransactionInacti
 const TenantMigrationTask = require('./tasks/TenantMigrationTask');
 const UpdateTransactionSoCTask = require('./tasks/UpdateTransactionSoCTask');
 const UpdateABBMeterValuesTask = require('./tasks/UpdateKebaMeterValuesTask');
-
+const NormalizeTransactionsTask = require('./tasks/NormalizeTransactionsTask');
 
 class MigrationHandler {
   // Migrate method
@@ -30,6 +30,7 @@ class MigrationHandler {
       currentMigrationTasks.push(new TenantMigrationTask());
       currentMigrationTasks.push(new UpdateTransactionSoCTask());
       currentMigrationTasks.push(new UpdateABBMeterValuesTask());
+      currentMigrationTasks.push(new NormalizeTransactionsTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();
@@ -63,6 +64,7 @@ class MigrationHandler {
           message: `Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`
         });
         // Log in the console also
+        // eslint-disable-next-line no-console
         console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`);
 
         // Start time
@@ -82,6 +84,7 @@ class MigrationHandler {
           message: `Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`
         });
         // Log in the console also
+        // eslint-disable-next-line no-console
         console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`);
 
         // Save to the DB
@@ -102,6 +105,7 @@ class MigrationHandler {
       });
     } catch (error) {
       // Log in the console also
+      // eslint-disable-next-line no-console
       console.log(error);
       // Log
       Logging.logError({

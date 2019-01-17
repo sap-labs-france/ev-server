@@ -1,127 +1,108 @@
 const moment = require('moment');
-const Utils = require('../utils/Utils');
 const Database = require('../utils/Database');
+const Utils = require('../utils/Utils');
 const AbstractTenantEntity = require('./AbstractTenantEntity');
+const UserStorage = require('../storage/mongodb/UserStorage');
+const PricingStorage = require('../storage/mongodb/PricingStorage');
+
+const DEFAULT_CONSUMPTION_ATTRIBUTE = {
+  unit: 'Wh',
+  location: 'Outlet',
+  measurand: 'Energy.Active.Import.Register',
+  format: 'Raw',
+  context: 'Sample.Periodic'
+};
 
 class Transaction extends AbstractTenantEntity {
 
   constructor(tenantID, transaction) {
     super(tenantID);
     this._model = {};
-    this._model.meterValues = [];
     if (transaction) {
       Database.updateTransaction(transaction, this._model);
     }
-    if (!this._model.internalMeterValues) {
-      this._model.internalMeterValues = [];
-    }
-    if (this._model.user) {
-      delete this._model.user.address;
-      delete this._model.user.deleted;
-      delete this._model.user.verificationToken;
-    }
-    if (this._model.stop && this._model.stop.user) {
-      delete this._model.stop.user.address;
-      delete this._model.stop.user.deleted;
-      delete this._model.stop.user.verificationToken;
-    }
-    this.active = !this._model.stop;
   }
 
-  _getLatestStateOfCharge() {
-    return this.getStateOfCharges()[this.getStateOfCharges().length - 1];
+  getCurrentTotalInactivitySecs() {
+    return this._model.currentTotalInactivitySecs;
   }
 
-  _getFirstMeterValue() {
-    const attribute = {
-      unit: 'Wh',
-      location: 'Outlet',
-      measurand: 'Energy.Active.Import.Register',
-      format: 'Raw',
-      context: 'Sample.Periodic'
-    };
-    return {
-      id: '666',
-      connectorId: this.getConnectorId(),
-      transactionId: this.getID(),
-      timestamp: this.getStartDate(),
-      value: this.getMeterStart(),
-      attribute: attribute
-    };
+  setCurrentTotalInactivitySecs(currentTotalInactivitySecs) {
+    this._model.currentTotalInactivitySecs = currentTotalInactivitySecs;
   }
 
-  _getLastMeterValue() {
-    const attribute = {
-      unit: 'Wh',
-      location: 'Outlet',
-      measurand: 'Energy.Active.Import.Register',
-      format: 'Raw',
-      context: 'Sample.Periodic'
-    };
-    return {
-      id: '6969',
-      connectorId: this.getConnectorId(),
-      transactionId: this.getID(),
-      timestamp: this.getEndDate(),
-      value: this.getMeterStop(),
-      attribute: attribute
-    };
+  getLastMeterValue() {
+    return this._model.lastMeterValue;
   }
 
-  _getPricing() {
-    if (this.hasPricing()) {
-      return this._model.pricing;
-    }
-    return undefined;
+  setLastMeterValue(lastMeterValue) {
+    this._model.lastMeterValue = lastMeterValue;
   }
 
-  getModel(forDB = false) {
-    if (this.isActive()) {
-      this._model.totalConsumption = this.getTotalConsumption();
-      this._model.currentConsumption = this.getCurrentConsumption();
-      if (this.hasStateOfCharges()) {
-        this._model.currentStateOfCharge = this.getCurrentStateOfCharge();
-      }
-    }
-    if (this.hasStateOfCharges()) {
-      this._model.stateOfCharge = this.getStateOfCharge();
-    }
-    if (this.hasPricing()) {
-      this._model.priceUnit = this._model.pricing.priceUnit;
-      this._model.price = this.getPrice();
-    }
-    if (this._model.user) {
-      this._model.userID = this._model.user.id;
-    }
-    if (this._model.stop && this._model.stop.user) {
-      this._model.stop.userID = this._model.stop.user.id;
-    }
-
-    const copy = Utils.duplicateJSON(this._model);
-    delete copy.meterValues;
-    if (!forDB) {
-      delete copy.internalMeterValues;
-    }
-    delete copy.pricing;
-    return copy;
+  getCurrentStateOfCharge() {
+    return this._model.currentStateOfCharge;
   }
 
-  getFullModel() {
-    const model = this.getModel();
-    if (this._model.stop) {
-      this._model.stop.user = Utils.duplicateJSON(this._model.stop.user);
-    }
-    model.user = Utils.duplicateJSON(this._model.user);
-    model.meterValues = Utils.duplicateJSON(this._model.meterValues);
-    model.pricing = Utils.duplicateJSON(this._model.pricing);
-    return model;
+  setCurrentStateOfCharge(currentStateOfCharge) {
+    this._model.currentStateOfCharge = currentStateOfCharge;
   }
 
-  getChargerStatus() {
-    if (this.isActive() && this._model.chargeBox) {
-      return this._model.chargeBox.connectors[this.getConnectorId() - 1].status;
+  getNumberOfMeterValues() {
+    return this._model.numberOfMeterValues;
+  }
+
+  setNumberOfMeterValues(numberOfMeterValues) {
+    this._model.numberOfMeterValues = numberOfMeterValues;
+  }
+
+  getCurrentConsumption() {
+    return this._model.currentConsumption;
+  }
+
+  setCurrentConsumption(currentConsumption) {
+    this._model.currentConsumption = currentConsumption;
+  }
+
+  getCurrentTotalConsumption() {
+    return this._model.currentTotalConsumption;
+  }
+
+  setCurrentTotalConsumption(currentTotalConsumption) {
+    this._model.currentTotalConsumption = currentTotalConsumption;
+  }
+
+  getTotalInactivitySecs() {
+    if (this.isFinished()) {
+      return this._model.stop.totalInactivitySecs
     }
-    return undefined;
+  }
+
+  getTotalConsumption() {
+    if (this.isFinished()) {
+      return this._model.stop.totalConsumption;
+    }
+    return 0;
+  }
+
+  getCurrentTotalDurationSecs() {
+    // Stopped already?
+    const lastMeterValue = this.getLastMeterValue();
+    if (lastMeterValue) {
+      return moment.duration(moment(lastMeterValue.timestamp).diff(moment(this.getStartDate()))).asSeconds();
+    }
+    return 0;
+  }
+
+  getTotalDurationSecs() {
+    // Stopped already?
+    if (this.isFinished()) {
+      return this._model.stop.totalDurationSecs;
+    }
+    return 0;
+  }
+
+  getModel() {
+    return this._model;
   }
 
   getID() {
@@ -140,187 +121,238 @@ class Transaction extends AbstractTenantEntity {
     return this._model.meterStart;
   }
 
-  getTagID() {
-    return this._model.tagID;
-  }
-
   getStartDate() {
     return this._model.timestamp;
   }
 
   getEndDate() {
-    if (!this._model.stop) {
-      return undefined;
+    if (this.isFinished()) {
+      return this._model.stop.timestamp;
     }
-    return this._model.stop.timestamp;
   }
 
-  getUser() {
-    if (this._model.user) {
-      return this._model.user;
-    }
-    return null;
+  getTagID() {
+    return this._model.tagID;
   }
 
   getUserID() {
     return this._model.userID;
   }
 
-  getFinisher() {
-    if (!this._model.stop) {
-      return undefined;
+  async getUser() {
+    const User = require('./User');
+    if (this._model.user) {
+      return new User(this.getTenantID(), this._model.user);
+    } else if (this._model.userID) {
+      // Get from DB
+      const user = await UserStorage.getUser(this.getTenantID(), this._model.userID);
+      // Keep it
+      this.setUser(user);
+      return user;
     }
-    return this._model.stop.user;
   }
 
-  getFinisherTagId() {
-    if (!this._model.stop) {
-      return undefined;
+  getUserJson() {
+    return this._model.user;
+  }
+
+  setUser(user) {
+    if (user) {
+      this._model.user = user.getModel();
+      this._model.userID = user.getID();
+    } else {
+      this._model.user = null;
     }
-    return this._model.stop.tagID;
+  }
+
+  getStoppedTagID() {
+    if (this.isFinished()) {
+      return this._model.stop.tagID;
+    }
+  }
+
+  getStoppedUserID() {
+    if (this.isFinished()) {
+      return this._model.stop.userID;
+    }
+  }
+
+  setStoppedUser(user) {
+    if (this.isFinished()) {
+      if (user) {
+        this._model.stop.user = user.getModel();
+        this._model.stop.userID = user.getID();
+      } else {
+        this._model.stop.user = null;
+      }
+    }
+  }
+
+  async getStoppedUser() {
+    const User = require('./User');
+    if (this.isFinished()) {
+      if (this._model.stop.user) {
+        return new User(this.getTenantID(), this._model.stop.user);
+      } else if (this._model.stop.userID) {
+        // Get from DB
+        const user = await UserStorage.getUser(this.getTenantID(), this._model.stop.userID);
+        // Keep it
+        this.setStoppedUser(user);
+        return user;
+      }
+    }
+  }
+
+  getStoppedUserJson() {
+    if (this.isFinished()) {
+      return this._model.stop.user;
+    }
   }
 
   getMeterStop() {
-    if (!this._model.stop) {
-      return undefined;
+    if (this.isFinished()) {
+      return this._model.stop.meterStop;
     }
-    return this._model.stop.meterStop;
   }
 
-  _hasMeterStop() {
-    if (!this._model.stop) {
-      return false;
-    }
-    return this._model.stop.hasOwnProperty('meterStop');
-  }
-
-  getTotalConsumption() {
-    if (!this.isActive()) {
-      return this._model.stop.totalConsumption
-    }
-    if (this._hasConsumptions()) {
-      return Math.floor(this._getLatestConsumption().cumulated);
-    }
-    return 0;
-  }
-
-  getChargeBox() {
+  getChargingStation() {
     return this._model.chargeBox;
   }
 
-  getTotalDurationSecs() {
-    return moment.duration(moment(this._getLastUpdateDate()).diff(this.getStartDate())).asSeconds()
-  }
-
-  getTotalInactivitySecs() {
-    if (!this.isActive()) {
-      return this._model.stop.totalInactivitySecs
+  getPriceUnit() {
+    if (this.isFinished()) {
+      return this._model.stop.priceUnit;
     }
-    let totalInactivitySecs = this._getInternalInactivity();
-    this.getMeterValues().forEach((meterValue, index, array) => {
-      if (index === 0) {
-        return;
-      }
-      const lastMeterValue = array[index - 1];
-      if (meterValue.value === lastMeterValue.value) {
-        totalInactivitySecs += moment.duration(moment(meterValue.timestamp).diff(lastMeterValue.timestamp)).asSeconds();
-      }
-    });
-    return totalInactivitySecs;
   }
 
   getPrice() {
-    const price = this.getConsumptions().map(consumption => consumption.price).reduce((totalPrice, price) => totalPrice + price, 0);
-    return isNaN(price) ? 0 : +(price.toFixed(6));
-  }
-
-  getPriceUnit() {
-    if (this.hasPricing()) {
-      return this._model.pricing.priceUnit;
+    if (this.isFinished()) {
+      return this._model.stop.price;
     }
-    return undefined;
   }
 
-  _getLastUpdateDate() {
-    return this._getLatestMeterValue().timestamp;
+  hasPrice() {
+    return this.isFinished() && this.getPrice() >= 0;
   }
 
-  getDuration() {
-    if (!this.isActive()) {
-      return moment.duration(moment(this.getEndDate()).diff(moment(this.getStartDate())));
+  async getConsumptions() {
+    let firstMeterValue = false;
+    let lastMeterValue;
+    let cumulatedConsumption = 0;
+    const consumptions = [];
+    // Get Meter Values
+    let meterValues = await this.getMeterValues();
+    // Add first Meter Value
+    meterValues.splice(0, 0, {
+      id: '666',
+      connectorId: this.getConnectorId(),
+      transactionId: this.getID(),
+      timestamp: this.getStartDate(),
+      value: this.getMeterStart(),
+      attribute: DEFAULT_CONSUMPTION_ATTRIBUTE
+    });
+    // Add last Meter Value
+    if (this.isFinished()) {
+      // Add the missing Meter Value
+      meterValues.push({
+        id: '6969',
+        connectorId: this.getConnectorId(),
+        transactionId: this.getID(),
+        timestamp: this.getEndDate(),
+        value: this.getMeterStop(),
+        attribute: DEFAULT_CONSUMPTION_ATTRIBUTE
+      });
     }
-    return moment.duration(moment(this._getLastUpdateDate()).diff(moment(this.getStartDate())));
-  }
-
-  getCurrentConsumption() {
-    if (this.isActive() && this._hasConsumptions()) {
-      return Math.floor(this._getLatestConsumption().value);
+    // Build the model
+    for (let meterValueIndex = 0; meterValueIndex < meterValues.length; meterValueIndex++) {
+      const meterValue = meterValues[meterValueIndex];
+      // Meter Value Consumption?
+      if (this.isConsumptionMeterValue(meterValue)) {
+        // First value?
+        if (!firstMeterValue) {
+          // No: Keep the first value
+          lastMeterValue = meterValue;
+          // Ok
+          firstMeterValue = true;
+          // Calculate the consumption with the last value provided
+        } else {
+          // Last value is > ?
+          if (lastMeterValue.value > meterValue.value) {
+            // Yes: reinit it (the value has started over from 0)
+            lastMeterValue.value = 0;
+          }
+          // Get the diff
+          const diffSecs = moment(meterValue.timestamp).diff(lastMeterValue.timestamp, 's');
+          // Sample multiplier
+          const sampleMultiplier = 3600 / diffSecs;
+          // Consumption
+          const consumptionWh = meterValue.value - lastMeterValue.value;
+          // compute
+          const currentConsumption = consumptionWh * sampleMultiplier;
+          // Set cumulated
+          cumulatedConsumption += consumptionWh;
+          // Check last Meter Value
+          if (consumptions.length > 0 &&
+              consumptions[consumptions.length-1].date.getTime() === meterValue.timestamp.getTime()) {
+            // Same timestamp: Update the latest
+            consumptions[consumptions.length-1].value = currentConsumption;
+            consumptions[consumptions.length-1].cumulated = cumulatedConsumption;
+          } else {
+            // Add the consumption
+            consumptions.push({
+              date: meterValue.timestamp,
+              value: currentConsumption,
+              cumulated: cumulatedConsumption,
+              stateOfCharge: 0
+            });
+            // Set Last Value (only for Consumption)
+            lastMeterValue = meterValue;
+          }
+        }
+      // Meter Value State of Charge?
+      } else if (this.isSocMeterValue(meterValue)) {
+        // Set the last SoC
+        consumptions.stateOfCharge = meterValue.value;
+        // Check last Meter Value
+        if (consumptions.length > 0 &&
+            consumptions[consumptions.length-1].date.getTime() === meterValue.timestamp.getTime()) {
+          // Same timestamp: Update the latest
+          consumptions[consumptions.length-1].stateOfCharge = meterValue.value;
+        } else {
+          // Add the consumption
+          consumptions.push({
+            date: meterValue.timestamp,
+            stateOfCharge: meterValue.value,
+            value: 0,
+            cumulated: 0
+          });
+        }
+      }
     }
-    return 0;
-  }
-
-  getConsumptions() {
-    if (!this._consumptions) {
-      this._consumptions = this._computeConsumptions();
-    }
-    return this._consumptions;
-  }
-
-  getStateOfCharges() {
-    if (!this._stateOfCharges) {
-      this._stateOfCharges = this._computeStateOfCharges();
-    }
-    return this._stateOfCharges;
-  }
-
-  isLoading() {
-    if (this.isActive()) {
-      return this.getAverageConsumptionOnLast(2) > 0;
-    }
-    return false;
-  }
-
-  _getLatestMeterValue() {
-    return this.getMeterValues()[this.getMeterValues().length - 1];
-  }
-
-  _getLatestConsumption() {
-    return this.getConsumptions()[this.getConsumptions().length - 1];
+    return consumptions;
   }
 
   getMeterValues() {
-    if (!this._meterValues) {
-      this._meterValues = this._computeMeterValues();
-    }
-    return this._meterValues;
+    const TransactionStorage = require('../storage/mongodb/TransactionStorage');
+    // Get Meter Values
+    return TransactionStorage.getMeterValues(this.getTenantID(), this.getID());
   }
 
   getStateOfCharge() {
-    if (this.hasStateOfCharges()) {
-      return this.getStateOfCharges()[0].value;
-    }
-    return undefined;
+    return this._model.stateOfCharge;
   }
 
-  getCurrentStateOfCharge() {
-    if (this.hasStateOfCharges() && this.isActive()) {
-      return this._getLatestStateOfCharge().value;
-    }
-    return undefined;
+  setStateOfCharge(stateOfCharge) {
+    this._model.stateOfCharge = stateOfCharge;
   }
 
   getEndStateOfCharge() {
-    if (!this._model.stop) {
-      return undefined;
+    if (this.isFinished()) {
+      return this._model.stop.stateOfCharge;
     }
-    return this._model.stop.stateOfCharge;
   }
 
-  _computeStateOfCharges() {
-    return this._getMeterValues(this._isSocMeterValue);
-  }
-
-  _isSocMeterValue(meterValue) {
+  isSocMeterValue(meterValue) {
     return meterValue.attribute
       && (meterValue.attribute.context === 'Sample.Periodic'
         || meterValue.attribute.context === 'Transaction.Begin'
@@ -328,105 +360,31 @@ class Transaction extends AbstractTenantEntity {
       && meterValue.attribute.measurand === 'SoC'
   }
 
-  _isConsumptionMeterValue(meterValue) {
-    return meterValue.attribute
-      && meterValue.attribute.measurand === 'Energy.Active.Import.Register'
-      && (meterValue.attribute.context === "Sample.Periodic" || meterValue.attribute.context === "Sample.Clock")
-  }
-
-  _computeConsumptions() {
-    const consumptions = [];
-    const stateOfCharges = this._computeStateOfCharges();
-    this.getMeterValues().forEach((meterValue, index, array) => {
-      if (index === 0) {
-        return;
-      }
-      const previousMeterValue = array[index - 1];
-      const matchingStates = stateOfCharges.filter(stateOfCharge => moment(stateOfCharge.timestamp).isBetween(previousMeterValue.timestamp, meterValue.timestamp, null, '[]'));
-      let stateOfCharge = undefined;
-      if (matchingStates.length > 0) {
-        stateOfCharge = matchingStates[matchingStates.length - 1];
-      }
-      consumptions.push(this._aggregateAsConsumption(previousMeterValue, meterValue, stateOfCharge));
-    });
-    return consumptions;
-  }
-
-  _computeMeterValues() {
-    const meterValues = this._getMeterValues(this._isConsumptionMeterValue);
-    return this._alignMeterValues(meterValues);
-  }
-
-  _getMeterValues(typeFunction) {
-    let meterValues;
-    if (this._model.meterValues.length > 0) {
-      meterValues = [this._getFirstMeterValue(), ...(this._model.meterValues)];
-    } else {
-      meterValues = [this._getFirstMeterValue(), ...(this._model.internalMeterValues)];
-    }
-    if (this._hasMeterStop()) {
-      meterValues.push(this._getLastMeterValue());
-    }
-
-    return meterValues
-      .filter(typeFunction)
-      .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-  }
-
-  _alignMeterValues(meterValues) {
-    let delta = 0;
-    meterValues.forEach((meterValue, index) => {
-      if (index === 0) {
-        meterValue.registeredValue = meterValue.value;
-        return;
-      }
-      const previousMeterValue = meterValues[index - 1];
-      if (previousMeterValue.registeredValue > meterValue.value) {
-        delta = previousMeterValue.value;
-      }
-      if (!meterValue.registeredValue) {
-        meterValue.registeredValue = meterValue.value;
-      }
-      meterValue.value = +meterValue.value + delta;
-    });
-    return meterValues;
-  }
-
-
-  _invalidateComputations() {
-    delete this._meterValues;
-    delete this._consumptions;
-    delete this._stateOfCharges;
+  isConsumptionMeterValue(meterValue) {
+    return !meterValue.attribute ||
+      (meterValue.attribute.measurand === 'Energy.Active.Import.Register'
+      && (meterValue.attribute.context === "Sample.Periodic" || meterValue.attribute.context === "Sample.Clock"));
   }
 
   hasMultipleConsumptions() {
-    return this.getConsumptions().length > 1;
-  }
-
-  getAverageConsumptionOnLast(numberOfConsumptions) {
-    if (numberOfConsumptions > this.getMeterValues().length) {
-      return 1;
-    }
-    for (let i = this.getMeterValues().length - numberOfConsumptions; i < this.getMeterValues().length - 1; i++) {
-      if (this.getMeterValues()[i].value !== this.getMeterValues()[i + 1].value) {
-        return 1
-      }
-    }
-    return 0;
+    return this.getNumberOfMeterValues() > 1;
   }
 
   isActive() {
-    return this.active;
+    return !this._model.hasOwnProperty('stop');
+  }
+
+  isFinished() {
+    return this._model.hasOwnProperty('stop');
   }
 
   isRemotelyStopped() {
-    return !!this._model.remotestop;
+    return this._model.hasOwnProperty('remotestop');
   }
 
   getRemoteStop() {
     return this._model.remotestop;
   }
-
   getRefundId() {
     return this._model.refundId;
   }
@@ -435,77 +393,111 @@ class Transaction extends AbstractTenantEntity {
     return !!this._model.refundId;
   }
 
-  stopTransaction(user, tagId, meterStop, timestamp) {
+  setRefundId(refundId) {
+    this._model.refundId = refundId;
+  }
+
+  async startTransaction(user) {
+    // Init
+    this.setNumberOfMeterValues(0);
+    this.setLastMeterValue({ value: this.getMeterStart(), timestamp: this.getStartDate() })
+    this.setCurrentTotalInactivitySecs(0);
+    this.setCurrentStateOfCharge(0);
+    this.setStateOfCharge(0);
+    this.setCurrentConsumption(0);
+    this.setCurrentTotalConsumption(0);
+    this.setUser(user);
+  }
+
+  async updateWithMeterValue(meterValue) {
+    // State of Charge?
+    if (this.isSocMeterValue(meterValue)) {
+      // Check for first SoC
+      if (this.getStateOfCharge() === 0) {
+        // Set First
+        this.setStateOfCharge(meterValue.value);
+      }
+      // Set current
+      this.setCurrentStateOfCharge(meterValue.value);
+    // Consumption?
+    } else if (this.isConsumptionMeterValue(meterValue)) {
+      // Get the last one
+      const lastMeterValue = this.getLastMeterValue();
+      // Update
+      this.setNumberOfMeterValues(this.getNumberOfMeterValues() + 1);
+      this.setLastMeterValue({ value: Utils.convertToInt(meterValue.value), timestamp: Utils.convertToDate(meterValue.timestamp).toISOString() })
+      // Compute duration
+      const diffSecs = moment(meterValue.timestamp).diff(lastMeterValue.timestamp, 'milliseconds') / 1000;
+      // Check if the new value is greater
+      if (Utils.convertToInt(meterValue.value) >= lastMeterValue.value) {
+        // Compute consumption
+        const sampleMultiplier = diffSecs > 0 ? 3600 / diffSecs : 0;
+        const consumption = meterValue.value - lastMeterValue.value;
+        const currentConsumption = consumption * sampleMultiplier;
+        // Update current consumption
+        this.setCurrentConsumption(currentConsumption);
+        this.setCurrentTotalConsumption(this.getCurrentTotalConsumption() + consumption);
+        // Inactivity?
+        if (consumption === 0) {
+          this.setCurrentTotalInactivitySecs(this.getCurrentTotalInactivitySecs() + diffSecs);
+        }
+      } else {
+        // Update current consumption
+        this.setCurrentConsumption(0);
+        this.setCurrentTotalInactivitySecs(this.getCurrentTotalInactivitySecs() + diffSecs);
+      }
+    }
+  }
+
+  async stopTransaction(user, tagId, meterStop, timestamp) {
+    // Create Stop
     this._model.stop = {};
     this._model.stop.meterStop = meterStop;
     this._model.stop.timestamp = timestamp;
-    this._model.stop.user = user;
+    this._model.stop.userID = user.getID();
     this._model.stop.tagID = tagId;
-    this._invalidateComputations();
-    if (this.hasStateOfCharges()) {
-      this._model.stateOfCharge = this.getStateOfCharges()[0].value;
-      this._model.stop.stateOfCharge = this._getLatestStateOfCharge().value;
-    }
-    if (this.hasPricing()) {
-      this._model.priceUnit = this._model.pricing.priceUnit;
-      this._model.price = this.getPrice();
-    }
-    this._model.stop.totalConsumption = this.getTotalConsumption();
-    this._model.stop.totalInactivitySecs = this.getTotalInactivitySecs();
-    this._model.stop.totalDurationSecs = this.getTotalDurationSecs();
-    this.active = false;
-  }
-
-  updateWithMeterValue(meterValue) {
-    meterValue.timestamp = new Date(meterValue.timestamp);
-
-    if (this._isSocMeterValue(meterValue)) {
-
-      this._popInternalMeterValue(this._isSocMeterValue, true);
-      this._model.internalMeterValues.push(meterValue);
-
-    } else if (this._isConsumptionMeterValue(meterValue)) {
-
-      const totalInactivitySecs = this.getTotalInactivitySecs();
-      const oldMeterValue = this._popInternalMeterValue(this._isConsumptionMeterValue);
-      const meterValues = [this._getFirstMeterValue(), meterValue];
-      if (oldMeterValue) {
-        meterValues.splice(1, 0, oldMeterValue);
+    this._model.stop.stateOfCharge = this.getCurrentStateOfCharge();
+    // Get the last one
+    const lastMeterValue = this.getLastMeterValue();
+    // Compute duration
+    const diffSecs = moment(timestamp).diff(lastMeterValue.timestamp, 'milliseconds') / 1000;
+    // Check if the new value is greater
+    if (Utils.convertToInt(meterStop) >= lastMeterValue.value) {
+      // Compute consumption
+      const consumption = meterStop - lastMeterValue.value;
+      // Update current consumption
+      this.setCurrentTotalConsumption(this.getCurrentTotalConsumption() + consumption);
+      // Inactivity?
+      if (consumption === 0) {
+        this.setCurrentTotalInactivitySecs(this.getCurrentTotalInactivitySecs() + diffSecs);
       }
-      const alignedMeterValue = this._alignMeterValues(meterValues).pop();
-      alignedMeterValue.totalInactivitySecs = totalInactivitySecs;
-      this._model.internalMeterValues.push(alignedMeterValue);
+    } else {
+      // Update current consumption
+      this.setCurrentConsumption(0);
+      this.setCurrentTotalInactivitySecs(this.getCurrentTotalInactivitySecs() + diffSecs);
     }
-    this._invalidateComputations();
-  }
-
-  _getInternalInactivity() {
-    let index = this._model.internalMeterValues.length - 1;
-    for (; index >= 0; index--) {
-      if (this._model.internalMeterValues[index].hasOwnProperty('totalInactivitySecs')) {
-        return this._model.internalMeterValues[index].totalInactivitySecs;
-      }
+    // Set Total data
+    this._model.stop.totalConsumption = this.getCurrentTotalConsumption();
+    this._model.stop.totalInactivitySecs = this.getCurrentTotalInactivitySecs();
+    this._model.stop.totalDurationSecs = Math.round(moment.duration(moment(timestamp).diff(moment(this.getStartDate()))).asSeconds());
+    // No Duration?
+    if (this._model.stop.totalDurationSecs === 0) {
+      // Compute it from now
+      this._model.stop.totalDurationSecs = Math.round(moment.duration(moment().diff(moment(this.getStartDate()))).asSeconds());
+      this._model.stop.totalInactivitySecs = this._model.stop.totalDurationSecs;
     }
-    return 0;
-  }
-
-  _popInternalMeterValue(condition, last = false) {
-
-    const index = !last ? this._model.internalMeterValues.findIndex(condition) : this._findLastIndexOf(this._model.internalMeterValues, condition);
-    const count = this._model.internalMeterValues.reduce((count, currentValue) => condition(currentValue) ? count + 1 : count, 0);
-    const value = this._model.internalMeterValues[index];
-    if (count > 1) {
-      this._model.internalMeterValues.splice(index, 1);
-    }
-    return value;
-  }
-
-  _findLastIndexOf(array, condition) {
-    for (let index = array.length - 1; index >= 0; index--) {
-      if (condition(array[index])) {
-        return index;
-      }
-    }
+    // Get the price
+    const pricing = await PricingStorage.getPricing(this.getTenantID());
+    // Set
+    this._model.stop.priceUnit = pricing.priceUnit;
+    this._model.stop.price = pricing.priceKWH * (this.getCurrentTotalConsumption() / 1000);
+    // Remove runtime data
+    delete this._model.currentConsumption;
+    delete this._model.currentStateOfCharge;
+    delete this._model.currentTotalConsumption;
+    delete this._model.currentTotalInactivitySecs;
+    delete this._model.lastMeterValue;
+    delete this._model.numberOfMeterValues;
   }
 
   remoteStop(tagId, timestamp) {
@@ -514,55 +506,21 @@ class Transaction extends AbstractTenantEntity {
     this._model.remotestop.timestamp = timestamp;
   }
 
-  startTransaction(user, tagID, meterStart, timestamp) {
-    this._model.meterStart = meterStart;
-    this._model.timestamp = timestamp;
-    if (user) {
-      this._model.user = user;
-    }
-    if (tagID) {
-      this._model.tagID = tagID;
-    }
-  }
-
-  setRefundId(refundId) {
-    this._model.refundId = refundId;
-  }
-
-  _aggregateAsConsumption(lastMeterValue, meterValue, stateOfChargeMeterValue) {
-    const currentTimestamp = moment(meterValue.timestamp);
-    const diffSecs = currentTimestamp.diff(lastMeterValue.timestamp, 'milliseconds') / 1000;
-    const sampleMultiplier = diffSecs > 0 ? 3600 / diffSecs : 0;
-    const currentConsumption = (meterValue.value - lastMeterValue.value) * sampleMultiplier;
-    const consumption = {
-      date: meterValue.timestamp,
-      value: currentConsumption,
-      cumulated: meterValue.value - this.getMeterStart()
-    };
-    if (stateOfChargeMeterValue) {
-      consumption.stateOfCharge = stateOfChargeMeterValue.value;
-    }
-    if (this.hasPricing()) {
-      const consumptionWh = meterValue.value - lastMeterValue.value;
-      consumption.price = +((consumptionWh / 1000) * this._getPricing().priceKWH).toFixed(6);
-    }
-    return consumption;
-  }
-
-  _hasMeterValues() {
-    return this._model.meterValues != null && this._model.meterValues.length > 0 || this._model.internalMeterValues && this._model.internalMeterValues.length > 0;
-  }
-
-  _hasConsumptions() {
-    return this.getConsumptions().length > 0;
-  }
-
   hasStateOfCharges() {
-    return this.getStateOfCharges().length > 0;
+    return this.getStateOfCharge() > 0;
   }
 
-  hasPricing() {
-    return !!(this._model.pricing && this._model.pricing.priceKWH >= 0)
+  getChargerStatus() {
+    if (this.isActive() && this._model.chargeBox) {
+      return this._model.chargeBox.connectors[this.getConnectorId() - 1].status;
+    }
+  }
+
+  isLoading() {
+    if (this.isActive()) {
+      return this.getCurrentTotalInactivitySecs() > 60;
+    }
+    return false;
   }
 }
 

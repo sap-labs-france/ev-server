@@ -75,6 +75,7 @@ class ChargingStationSecurity {
     return filteredChargingStations;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterChargingStationDeleteRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -82,6 +83,7 @@ class ChargingStationSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterChargingStationConfigurationRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -89,12 +91,14 @@ class ChargingStationSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterChargingStationRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterChargingStationsRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.Search = sanitize(request.Search);
@@ -108,6 +112,7 @@ class ChargingStationSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterChargingStationParamsUpdateRequest(request, loggedUser) {
     // Set
     const filteredRequest = {};
@@ -127,6 +132,9 @@ class ChargingStationSecurity {
     if (request.hasOwnProperty('siteArea')) {
       filteredRequest.siteArea = sanitize(request.siteArea);
     }
+    if (request.hasOwnProperty('powerLimitUnit')) {
+      filteredRequest.powerLimitUnit = sanitize(request.powerLimitUnit);
+    }
     if (request.connectors) {
       // Filter
       filteredRequest.connectors = request.connectors.map((connector) => {
@@ -140,6 +148,7 @@ class ChargingStationSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterChargingStationActionRequest(request, action, loggedUser) {
     const filteredRequest = {};
     // Check
@@ -149,6 +158,7 @@ class ChargingStationSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterChargingStationSetMaxIntensitySocketRequest(request, loggedUser) {
     const filteredRequest = {};
     // Check

@@ -52,6 +52,10 @@ class ChargingStationService {
       if (filteredRequest.hasOwnProperty('siteArea')) {
         chargingStation.setSiteArea(await SiteArea.getSiteArea(req.user.tenantID, filteredRequest.siteArea.id, false, false));
       }
+      // Update Site Area
+      if (filteredRequest.hasOwnProperty('powerLimitUnit')) {
+        chargingStation.setPowerLimitUnit(filteredRequest.powerLimitUnit);
+      }
       // Update Connectors
       if (filteredRequest.connectors) {
         const chargerConnectors = chargingStation.getConnectors();
@@ -333,7 +337,7 @@ class ChargingStationService {
         // Set the tag ID to handle the Stop Transaction afterwards
         transaction.remoteStop(req.user.tagIDs[0], new Date().toISOString());
         // Save Transaction
-        await TransactionStorage.saveTransaction(transaction);
+        await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
         // Ok: Execute it
         result = await chargingStation.handleAction(action, filteredRequest.args);
       } else if (action === 'StartTransaction') {
@@ -362,20 +366,20 @@ class ChargingStationService {
             result = [];
             // Call each connectors
             for (const connector of chargingStation.getConnectors()) {
-              // Fix central reference date
-              const centralTime = new Date();
               filteredRequest.args.connectorId = connector.connectorId;
               // Execute request
               const simpleResult = await chargingStation.handleAction(action, filteredRequest.args);
+              // Fix central reference date
+              const centralTime = new Date();
               simpleResult.centralSystemTime = centralTime;
               result.push(simpleResult);
             }
           }
         } else {
-          // Fix central reference date
-          const centralTime = new Date();
           // Execute it
           result = await chargingStation.handleAction(action, filteredRequest.args);
+          // Fix central reference date
+          const centralTime = new Date();
           result.centralSystemTime = centralTime;
         }
       } else {

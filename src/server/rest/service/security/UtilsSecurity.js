@@ -98,6 +98,7 @@ class UtilsSecurity {
     }
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterAddressRequest(address, loggedUser) {
     const filteredAddress = {};
     if (address) {

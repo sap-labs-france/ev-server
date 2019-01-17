@@ -14,13 +14,15 @@ const TransactionService = require('./service/TransactionService');
 const StatisticService = require('./service/StatisticService');
 const TenantService = require('./service/TenantService');
 const SettingService = require('./service/SettingService');
-const OcpiendpointService = require('./service/OcpiendpointService');
+const OCPIEndpointService = require('./service/OCPIEndpointService');
+const NotificationService = require('./service/NotificationService');
 const ConnectorService = require('./service/ConnectorService');
 
 require('source-map-support').install();
 
 module.exports = {
   // Util Service
+  // eslint-disable-next-line no-unused-vars
   restServiceUtil(req, res, next) {
     // Parse the action
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
@@ -64,6 +66,10 @@ module.exports = {
           case "ChargingStationReset":
           case "ChargingStationSetChargingProfile":
           case "ChargingStationGetCompositeSchedule":
+          case "ChargingStationClearChargingProfile":
+          case "ChargingStationGetDiagnostics":
+          case "ChargingStationChangeAvailability":
+          case "ChargingStationUpdateFirmware":
             // Keep the action (remove ChargingStation)
             action = action.slice(15);
             // Delegate
@@ -125,17 +131,17 @@ module.exports = {
           // Create Ocpiendpoint
           case "OcpiendpointCreate":
             // Delegate
-            OcpiendpointService.handleCreateOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handleCreateOcpiendpoint(action, req, res, next);
             break;
           // Ping Ocpiendpoint
           case "OcpiendpointPing":
             // Delegate
-            OcpiendpointService.handlePingOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handlePingOcpiendpoint(action, req, res, next);
             break;
           // Generate Local Token Ocpiendpoint
           case "OcpiendpointGenerateLocalToken":
             // Delegate
-            OcpiendpointService.handleGenerateLocalTokenOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handleGenerateLocalTokenOcpiendpoint(action, req, res, next);
             break;
           case "IntegrationConnectionCreate":
             ConnectorService.handleCreateConnection(action, req, res, next);
@@ -304,6 +310,11 @@ module.exports = {
             // Delegate
             UserService.handleGetUser(action, req, res, next);
             break;
+          // Get the notifications
+          case "Notifications":
+            // Delegate
+            NotificationService.handleGetNotifications(action, req, res, next);
+            break;
           // Get the user image
           case "UserImage":
             // Delegate
@@ -392,12 +403,12 @@ module.exports = {
           // Get all the ocpiendpoints
           case "Ocpiendpoints":
             // Delegate
-            OcpiendpointService.handleGetOcpiendpoints(action, req, res, next);
+            OCPIEndpointService.handleGetOcpiendpoints(action, req, res, next);
             break;
           // Get one ocpiendpoint
           case "Ocpiendpoint":
             // Delegate
-            OcpiendpointService.handleGetOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handleGetOcpiendpoint(action, req, res, next);
             break;
           case "IntegrationConnections":
             ConnectorService.handleGetConnections(action, req, res, next);
@@ -474,7 +485,11 @@ module.exports = {
           // Ocpiendpoint
           case "OcpiendpointUpdate":
             // Delegate
-            OcpiendpointService.handleUpdateOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handleUpdateOcpiendpoint(action, req, res, next);
+            break;
+          case "OcpiendpointRegister":
+            // Delegate
+            OCPIEndpointService.handleRegisterOcpiendpoint(action, req, res, next);
             break;
           // Not found
           default:
@@ -540,7 +555,7 @@ module.exports = {
           // Ocpiendpoint
           case "OcpiendpointDelete":
             // Delegate
-            OcpiendpointService.handleDeleteOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handleDeleteOcpiendpoint(action, req, res, next);
             break;
           // Not found
           default:

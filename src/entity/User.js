@@ -397,6 +397,7 @@ class User extends AbstractTenantEntity {
 
   // Check email
   static isUserEmailValid(email) {
+    // eslint-disable-next-line no-useless-escape
     return /^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
   }
 
@@ -413,6 +414,7 @@ class User extends AbstractTenantEntity {
   }
 
   static hashPasswordBcrypt(password) {
+    // eslint-disable-next-line no-undef
     return new Promise((fulfill, reject) => {
       // Generate a salt with 15 rounds
       bcrypt.genSalt(10, (err, salt) => {
@@ -430,6 +432,7 @@ class User extends AbstractTenantEntity {
   }
 
   static checkPasswordBCrypt(password, hash) {
+    // eslint-disable-next-line no-undef
     return new Promise((fulfill, reject) => {
       // Compare
       bcrypt.compare(password, hash, (err, match) => {
@@ -478,6 +481,7 @@ class User extends AbstractTenantEntity {
     let password = '';
     const randomLength = Math.floor(Math.random() * (Constants.PWD_MAX_LENGTH - Constants.PWD_MIN_LENGTH)) + Constants.PWD_MIN_LENGTH;
     while (!User.isPasswordStrongEnough(password)) {
+      // eslint-disable-next-line no-useless-escape
       password = passwordGenerator(randomLength, false, /[\w\d!#\$%\^&\*\.\?\-]/);
     }
     return password;
@@ -486,6 +490,7 @@ class User extends AbstractTenantEntity {
   // Check password
   static isPasswordValid(password) {
     // Check
+    // eslint-disable-next-line no-useless-escape
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
   }
 

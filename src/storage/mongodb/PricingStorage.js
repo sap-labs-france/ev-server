@@ -43,7 +43,7 @@ class PricingStorage {
       {$set: pricing},
       {upsert: true, new: true, returnOriginal: false});
     // Debug
-    Logging.traceEnd('NotificationStorage', 'savePricing', uniqueTimerID);
+    Logging.traceEnd('NotificationStorage', 'savePricing', uniqueTimerID, {pricingToSave});
   }
 }
 

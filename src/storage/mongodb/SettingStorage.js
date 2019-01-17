@@ -32,7 +32,7 @@ class SettingStorage {
       setting = new Setting(tenantID, settingsMDB[0]);
     }
     // Debug
-    Logging.traceEnd('SettingStorage', 'getSetting', uniqueTimerID);
+    Logging.traceEnd('SettingStorage', 'getSetting', uniqueTimerID, {id});
     return setting;
   }
 
@@ -60,7 +60,7 @@ class SettingStorage {
       setting = new Setting(tenantID, settingsMDB[0]);
     }
     // Debug
-    Logging.traceEnd('SettingStorage', 'getSettingByIdentifier', uniqueTimerID);
+    Logging.traceEnd('SettingStorage', 'getSettingByIdentifier', uniqueTimerID, {identifier});
     return setting;
   }
 
@@ -97,7 +97,7 @@ class SettingStorage {
       { $set: setting },
       { upsert: true, new: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd('SettingStorage', 'saveSetting', uniqueTimerID);
+    Logging.traceEnd('SettingStorage', 'saveSetting', uniqueTimerID, {settingToSave});
     // Create
     return new Setting(tenantID, result.value);
   }
@@ -183,7 +183,7 @@ class SettingStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SettingStorage', 'getSettings', uniqueTimerID);
+    Logging.traceEnd('SettingStorage', 'getSettings', uniqueTimerID, {params, limit, skip, sort});
     // Ok
     return {
       count: (settingsCountMDB.length > 0 ? settingsCountMDB[0].count : 0),
@@ -200,7 +200,7 @@ class SettingStorage {
     await global.database.getCollection(tenantID, 'settings')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd('SettingStorage', 'deleteSetting', uniqueTimerID);
+    Logging.traceEnd('SettingStorage', 'deleteSetting', uniqueTimerID, {id});
   }
 }
 

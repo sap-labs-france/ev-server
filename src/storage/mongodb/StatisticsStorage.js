@@ -127,7 +127,7 @@ class StatisticsStorage {
       }
     }
     // Debug
-    Logging.traceEnd('StatisticsStorage', 'getChargingStationStats', uniqueTimerID);
+    Logging.traceEnd('StatisticsStorage', 'getChargingStationStats', uniqueTimerID, {filter, siteID, groupBy});
     return transactions;
   }
 
@@ -265,7 +265,7 @@ class StatisticsStorage {
       }
     }
     // Debug
-    Logging.traceEnd('StatisticsStorage', 'getUserStats', uniqueTimerID);
+    Logging.traceEnd('StatisticsStorage', 'getUserStats', uniqueTimerID, {filter, siteID, groupBy});
     return transactions;
   }
 }

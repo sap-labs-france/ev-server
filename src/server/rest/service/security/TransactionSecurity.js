@@ -4,6 +4,7 @@ const Constants = require('../../../../utils/Constants');
 const UtilsSecurity = require('./UtilsSecurity');
 
 class TransactionSecurity {
+  // eslint-disable-next-line no-unused-vars
   static filterTransactionsRefund(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -11,6 +12,7 @@ class TransactionSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterTransactionDelete(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -18,6 +20,7 @@ class TransactionSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterTransactionSoftStop(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -25,6 +28,7 @@ class TransactionSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterTransactionRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -32,6 +36,7 @@ class TransactionSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterTransactionsActiveRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
@@ -41,6 +46,7 @@ class TransactionSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterTransactionsCompletedRequest(request, loggedUser) {
     const filteredRequest = {};
     // Handle picture
@@ -94,72 +100,52 @@ class TransactionSecurity {
       filteredTransaction.chargeBoxID = transaction.getChargeBoxID();
       filteredTransaction.connectorId = transaction.getConnectorId();
       filteredTransaction.meterStart = transaction.getMeterStart();
-      filteredTransaction.currentConsumption = transaction.getCurrentConsumption();
-      filteredTransaction.totalConsumption = transaction.getTotalConsumption();
-      filteredTransaction.totalInactivitySecs = transaction.getTotalInactivitySecs();
-      filteredTransaction.totalDurationSecs = transaction.getTotalDurationSecs();
-      filteredTransaction.status = transaction.getChargerStatus();
-      filteredTransaction.isLoading = transaction.isLoading();
-      filteredTransaction.refundId = transaction.getRefundId();
-
-      // retro compatibility ON
-      filteredTransaction.transactionId = transaction.getID();
-      if (transaction.getChargeBox()) {
-        filteredTransaction.chargeBox = {};
-        filteredTransaction.chargeBox.id = transaction.getChargeBox().id;
-        filteredTransaction.chargeBox.connectors = [];
-        filteredTransaction.chargeBox.connectors[transaction.getConnectorId() - 1] = transaction.getChargeBox().connectors[transaction.getConnectorId() - 1];
-      }
-      if (!transaction.isActive()) {
-        filteredTransaction.stop = {};
-        filteredTransaction.stop.meterStop = transaction.getMeterStop();
-        filteredTransaction.stop.totalConsumption = transaction.getTotalConsumption();
-        filteredTransaction.stop.totalInactivitySecs = transaction.getTotalInactivitySecs();
-        filteredTransaction.stop.totalDurationSecs = transaction.getTotalDurationSecs();
-        if (Authorizations.isAdmin(loggedUser) && transaction.hasPricing()) {
-          filteredTransaction.stop.price = transaction.getPrice();
-          filteredTransaction.stop.priceUnit = transaction.getPriceUnit();
-        }
-      }
-      // retro compatibility OFF
-      if (transaction.hasStateOfCharges()) {
-        filteredTransaction.stateOfCharge = transaction.getStateOfCharge();
+      filteredTransaction.timestamp = transaction.getStartDate();
+      // Runime Data
+      if (transaction.isActive()) {
+        filteredTransaction.currentConsumption = transaction.getCurrentConsumption();
+        filteredTransaction.currentTotalConsumption = transaction.getCurrentTotalConsumption();
+        filteredTransaction.currentTotalInactivitySecs = transaction.getCurrentTotalInactivitySecs();
+        filteredTransaction.currentTotalDurationSecs = transaction.getCurrentTotalDurationSecs();
         filteredTransaction.currentStateOfCharge = transaction.getCurrentStateOfCharge();
       }
-
+      filteredTransaction.status = transaction.getChargerStatus();
+      filteredTransaction.isLoading = transaction.isLoading();
+      filteredTransaction.stateOfCharge = transaction.getStateOfCharge();
+      filteredTransaction.refundId = transaction.getRefundId();
       // Demo user?
       if (Authorizations.isDemo(loggedUser)) {
         filteredTransaction.tagID = Constants.ANONIMIZED_VALUE;
       } else {
         filteredTransaction.tagID = transaction.getTagID();
       }
-      filteredTransaction.timestamp = transaction.getStartDate();
       // Filter user
       filteredTransaction.user = TransactionSecurity._filterUserInTransactionResponse(
-        transaction.getUser(), loggedUser);
+        transaction.getUserJson(), loggedUser);
       // Transaction Stop
-      if (!transaction.isActive()) {
-        filteredTransaction.meterStop = transaction.getMeterStop();
+      if (transaction.isFinished()) {
+        filteredTransaction.stop = {};
+        filteredTransaction.stop.meterStop = transaction.getMeterStop();
         filteredTransaction.stop.timestamp = transaction.getEndDate();
+        filteredTransaction.stop.totalConsumption = transaction.getTotalConsumption();
+        filteredTransaction.stop.totalInactivitySecs = transaction.getTotalInactivitySecs();
+        filteredTransaction.stop.totalDurationSecs = transaction.getTotalDurationSecs();
+        filteredTransaction.stop.stateOfCharge = transaction.getEndStateOfCharge();
+        if (Authorizations.isAdmin(loggedUser) && transaction.hasPrice()) {
+          filteredTransaction.stop.price = transaction.getPrice();
+          filteredTransaction.stop.priceUnit = transaction.getPriceUnit();
+        }
         // Demo user?
         if (Authorizations.isDemo(loggedUser)) {
           filteredTransaction.stop.tagID = Constants.ANONIMIZED_VALUE;
         } else {
-          filteredTransaction.stop.tagID = transaction.getFinisherTagId();
-        }
-        if (transaction.getEndStateOfCharge()) {
-          filteredTransaction.stop.stateOfCharge = transaction.getEndStateOfCharge();
-        }
-        // Admin?
-        if (Authorizations.isAdmin(loggedUser) && transaction.hasPricing()) {
-          filteredTransaction.price = transaction.getPrice();
-          filteredTransaction.priceUnit = transaction.getPriceUnit();
+          filteredTransaction.stop.tagID = transaction.getStoppedTagID();
         }
         // Stop User
-        if (transaction.getFinisher()) {
+        if (transaction.getStoppedUserJson()) {
           // Filter user
           filteredTransaction.stop.user = TransactionSecurity._filterUserInTransactionResponse(
-            transaction.getFinisher(), loggedUser);
+            transaction.getStoppedUserJson(), loggedUser);
         }
       }
     }
@@ -209,6 +195,7 @@ class TransactionSecurity {
     return userID;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterChargingStationConsumptionFromTransactionRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -218,6 +205,7 @@ class TransactionSecurity {
     return filteredRequest;
   }
 
+  // eslint-disable-next-line no-unused-vars
   static filterChargingStationTransactionsRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
@@ -232,26 +220,12 @@ class TransactionSecurity {
 
   static filterConsumptionsFromTransactionResponse(transaction, consumptions, loggedUser) {
     const filteredConsumption = {};
-
     if (!consumptions) {
       return null;
     }
-    // Check
-    filteredConsumption.chargeBoxID = transaction.getChargeBoxID();
-    filteredConsumption.connectorId = transaction.getConnectorId();
-    // Admin?
-    if (Authorizations.isAdmin(loggedUser)) {
-      filteredConsumption.priceUnit = transaction.getPriceUnit();
-      filteredConsumption.totalPrice = transaction.getPrice();
-    }
-    filteredConsumption.totalConsumption = transaction.getTotalConsumption();
-    filteredConsumption.id = transaction.getID();
-    if (transaction.hasStateOfCharges()) {
-      filteredConsumption.stateOfCharge = transaction.getStateOfCharge();
-    }
-    // Check user
-    if (transaction.getUser()) {
-      if (!Authorizations.canReadUser(loggedUser, transaction.getUser())) {
+    // Check Authorisation
+    if (transaction.getUserJson()) {
+      if (!Authorizations.canReadUser(loggedUser, transaction.getUserJson())) {
         return null;
       }
     } else {
@@ -259,9 +233,27 @@ class TransactionSecurity {
         return null;
       }
     }
+    // Set
+    filteredConsumption.id = transaction.getID();
+    filteredConsumption.chargeBoxID = transaction.getChargeBoxID();
+    filteredConsumption.connectorId = transaction.getConnectorId();
+    // Admin?
+    if (Authorizations.isAdmin(loggedUser) && transaction.hasPrice()) {
+      filteredConsumption.priceUnit = transaction.getPriceUnit();
+      filteredConsumption.totalPrice = transaction.getPrice();
+    }
+    if (transaction.isActive()) {
+      // On going
+      filteredConsumption.totalConsumption = transaction.getCurrentTotalConsumption();
+      filteredConsumption.stateOfCharge = transaction.getCurrentStateOfCharge();
+    } else {
+      // Finished
+      filteredConsumption.totalConsumption = transaction.getTotalConsumption();
+      filteredConsumption.stateOfCharge = transaction.getStateOfCharge();
+    }
     // Set user
     filteredConsumption.user = TransactionSecurity._filterUserInTransactionResponse(
-      transaction.getUser(), loggedUser);
+      transaction.getUserJson(), loggedUser);
     // Admin?
     if (Authorizations.isAdmin(loggedUser)) {
       // Set them all
@@ -274,15 +266,12 @@ class TransactionSecurity {
         const filteredValue = {
           date: value.date,
           value: value.value,
-          cumulated: value.cumulated
-        };
-        if (value.hasOwnProperty('stateOfCharge')) {
-          filteredValue.stateOfCharge = value.stateOfCharge;
+          cumulated: value.cumulated,
+          stateOfCharge: value.stateOfCharge
         }
         filteredConsumption.values.push(filteredValue);
       }
     }
-
     return filteredConsumption;
   }
 }

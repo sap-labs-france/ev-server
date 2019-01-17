@@ -1,5 +1,5 @@
 const AbstractEndpoint = require('../AbstractEndpoint');
-const OcpiEndpoint = require('../../../../entity/OcpiEndpoint');
+const OCPIEndpoint = require('../../../../entity/OCPIEndpoint');
 const Setting = require('../../../../entity/Setting');
 
 require('source-map-support').install();
@@ -89,7 +89,13 @@ class TestsEndpoint extends AbstractEndpoint {
     await testsetting.save();
 
     // test ocpiEndpoint entity
-    const ocpiEndpoint = await OcpiEndpoint.getDefaultOcpiEndpoint(tenant.getID());
+    const ocpiEndpoint = await OCPIEndpoint.getDefaultOcpiEndpoint(tenant.getID());
+
+    const localToken = 'eyJhayI6NDEsInRpZCI6InNsZiIsInprIjozOX0=';
+    const ocpiEndpoint2 = await OCPIEndpoint.getOcpiendpointWithToken(tenant.getID(), localToken);
+
+    let localToken3;
+    const ocpiEndpoint3 = await OCPIEndpoint.getOcpiendpointWithToken(tenant.getID(), localToken3);
     // if (ocpiEndpoint) {
     //   ocpiEndpoint.setName('Gireve');
     //   ocpiEndpoint.setBaseUrl('https://ocpi-pp-iop.gireve.com/ocpi/emsp/versions');
