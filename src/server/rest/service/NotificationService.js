@@ -10,6 +10,7 @@ class NotificationService {
       // Get the Notification
       const notifications = await Notification.getNotifications(req.user.tenantID, {
         'userID': filteredRequest.UserID,
+        'dateFrom': filteredRequest.DateFrom
       }, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
       notifications.result = notifications.result.map((notification) => notification.getModel());

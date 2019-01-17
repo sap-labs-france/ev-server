@@ -21,7 +21,16 @@ class NotificationStorage {
     const filters = {};
     // Set Site?
     if (params.userID) {
-      filters.userID = Utils.convertToObjectID(params.userID);
+      // Set User ID
+      filters["$or"] = [
+        { userID: Utils.convertToObjectID(params.userID) },
+        { userID: null }
+      ]
+    }
+    // Set Date From?
+    if (params.dateFrom) {
+      filters.timestamp = {};
+      filters.timestamp.$gte = Utils.convertToDate(params.dateFrom);
     }
     // Set SourceId?
     if (params.sourceId) {

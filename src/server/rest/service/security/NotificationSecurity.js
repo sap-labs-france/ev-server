@@ -15,6 +15,7 @@ class NotificationSecurity {
   static filterNotificationsRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.UserID = sanitize(request.UserID);
+    filteredRequest.DateFrom = sanitize(request.DateFrom);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
