@@ -32,6 +32,10 @@ class NotificationStorage {
       filters.timestamp = {};
       filters.timestamp.$gte = Utils.convertToDate(params.dateFrom);
     }
+    // Set Channel?
+    if (params.channel) {
+      filters.channel = params.channel;
+    }
     // Set SourceId?
     if (params.sourceId) {
       filters.sourceId = params.sourceId;
