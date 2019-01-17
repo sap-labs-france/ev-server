@@ -36,7 +36,7 @@ class ConnectionStorage {
       .aggregate(aggregation)
       .toArray();
 
-    let connection = null;
+    let connection = undefined;
     if (results && results.length > 0) {
       connection = new Connection(tenantID, results[0]);
     }

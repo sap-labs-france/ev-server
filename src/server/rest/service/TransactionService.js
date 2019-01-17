@@ -81,7 +81,7 @@ class TransactionService {
       if (!transactionsToRefund.every(tr => tr.getUserID() === req.user.id)) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The user with ID '${req.user.id}' cannot refund another user transaction`, 550,
+          `The user with ID '${req.user.id}' cannot refund another user's transaction`, 551,
           'TransactionService', 'handleRefundTransactions', req.user);
       }
       let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, 'chargeathome');

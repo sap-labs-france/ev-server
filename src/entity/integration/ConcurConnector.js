@@ -6,6 +6,8 @@ const moment = require('moment');
 const ConnectionStorage = require('../../storage/mongodb/ConnectionStorage');
 const TransactionStorage = require('../../storage/mongodb/TransactionStorage');
 const ChargingStation = require("../ChargingStation");
+const Constants = require('../../utils/Constants');
+const AppError = require('../../exception/AppError');
 
 const MODULE_NAME = 'ConcurConnector';
 const CONNECTOR_ID = 'concur';
@@ -21,6 +23,23 @@ const REPORT_NAME = 'Charge At Home';
 class ConcurConnector extends AbstractConnector {
   constructor(tenantID, setting) {
     super(tenantID, 'concur', setting);
+  }
+
+  /**
+   * Compute a valid until date from a date and a duration
+   * @return Date the valid until date
+   * @param result the data result returned by concur
+   */
+  static computeValidUntilAt(result) {
+    return new Date(result.data.refresh_expires_in * 1000);
+  }
+
+  static isConnectionExpired(connection) {
+    return moment(connection.data.refresh_expires_in).isBefore(moment.now());
+  }
+
+  static isTokenExpired(connection) {
+    return moment(connection.getUpdatedAt()).add(connection.getData().expires_in, 'seconds').isBefore(moment.now());
   }
 
   getUrl() {
@@ -133,22 +152,6 @@ class ConcurConnector extends AbstractConnector {
   }
 
   /**
-   * Compute a valid until date from a date and a duration
-   * @return Date the valid until date
-   * @param result the data result returned by concur
-   */
-  static computeValidUntilAt(result) {
-    return new Date(result.data.refresh_expires_in * 1000);
-  }
-
-  static isConnectionExpired(connection) {
-    return moment(connection.data.refresh_expires_in).isBefore(moment.now());
-  }
-  static isTokenExpired(connection) {
-    return moment(connection.getUpdatedAt()).add(connection.getData().expires_in, 'seconds').isBefore(moment.now());
-  }
-
-  /**
    *
    * @param user {User}
    * @param transaction {Transaction}
@@ -157,6 +160,13 @@ class ConcurConnector extends AbstractConnector {
   async refund(user, transactions) {
     const refundedTransactions = [];
     let connection = await this.getConnectionByUserId(user.getID());
+    if (connection === undefined) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `The user with ID '${user.getID()}' does not have a connection to connector '${CONNECTOR_ID}'`, 552,
+        'TransactionService', 'handleRefundTransactions', user);
+    }
+
     if (ConcurConnector.isTokenExpired(connection)) {
       connection = await this.refreshToken(user.getID(), connection)
     }
@@ -171,8 +181,8 @@ class ConcurConnector extends AbstractConnector {
     for (const transaction of transactions) {
       try {
         const chargingStation = await ChargingStation.getChargingStation(transaction.getTenantID(), transaction.getChargeBoxID());
-        const site = await chargingStation.getSite();
-        const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, site);
+        const locationId = await this.getLocationId(connection, await chargingStation.getSite());
+        const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, locationId);
         transaction.setRefundId(entryId);
         await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
         refundedTransactions.push(transaction);
@@ -199,6 +209,16 @@ class ConcurConnector extends AbstractConnector {
     return response.data.Items;
   }
 
+  async getLocationId(connection, site) {
+    const response = await axios.get(`${this.getUrl()}/api/v3.0/common/locations?city=${site.getAddress().city}`, {
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${connection.getData().access_token}`
+      }
+    });
+    return response.data.Items[0].ID;
+  }
+
   /**
    *
    * @param connection {Connection}
@@ -207,12 +227,12 @@ class ConcurConnector extends AbstractConnector {
    * @param site {Site}
    * @returns {Promise<string>}
    */
-  async createExpenseReportEntry(connection, expenseReportId, transaction, site) {
+  async createExpenseReportEntry(connection, expenseReportId, transaction, locationId) {
     try {
 
       const response = await axios.post(`${this.getUrl()}/api/v3.0/expense/entries`, {
         'Description': `Emobility reimbursement ${moment(transaction.getStartDate()).format("YYYY-MM-DD")}`,
-        'Comment': `Session started the ${moment(transaction.getStartDate()).format("YYYY-MM-DDTHH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(),'seconds').format(`h[h]mm`, {trim: false})}`,
+        'Comment': `Session started the ${moment(transaction.getStartDate()).format("YYYY-MM-DDTHH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(), 'seconds').format(`h[h]mm`, {trim: false})}`,
         'VendorDescription': 'Charge At Home',
         'Custom1': `${transaction.getID}`,
         'ExpenseTypeCode': this.getExpenseTypeCode(),
@@ -225,8 +245,8 @@ class ConcurConnector extends AbstractConnector {
         'TransactionCurrencyCode': transaction.getPriceUnit(),
         'TransactionDate': transaction.getStartDate(),
         'SpendCategoryCode': 'COCAR',
-        'LocationCountry': site.getAddress().country,
-        'LocationName': site.getAddress().city
+        'LocationID': locationId
+
       }, {
         headers: {
           Accept: 'application/json',
