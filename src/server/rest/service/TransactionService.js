@@ -93,7 +93,7 @@ class TransactionService {
 
       const response = {
         ...Constants.REST_RESPONSE_SUCCESS,
-        inSuccess: refundedTransactions
+        inSuccess: refundedTransactions.length
       };
       const notRefundedTransactions = transactionsToRefund.length - refundedTransactions.length;
       if (notRefundedTransactions > 0) {

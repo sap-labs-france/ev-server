@@ -174,7 +174,7 @@ class ConcurConnector extends AbstractConnector {
         const site = await chargingStation.getSite();
         const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, site);
         transaction.setRefundId(entryId);
-        await TransactionStorage.saveTransaction(transaction);
+        await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
         refundedTransactions.push(transaction);
       } catch (e) {
         Logging.logError({
@@ -190,7 +190,7 @@ class ConcurConnector extends AbstractConnector {
 
 
   async getExpenseReports(connection) {
-    const response = await axios.get(`${this.getUrl()}/api/v3.0/expense/reports`, {
+    const response = await axios.get(`${this.getUrl()}/api/v3.0/expense/reports?approvalStatusCode=A_NOTF`, {
       headers: {
         Accept: 'application/json',
         Authorization: `Bearer ${connection.getData().access_token}`
@@ -212,7 +212,7 @@ class ConcurConnector extends AbstractConnector {
 
       const response = await axios.post(`${this.getUrl()}/api/v3.0/expense/entries`, {
         'Description': `Emobility reimbursement ${moment(transaction.getStartDate()).format("YYYY-MM-DD")}`,
-        'Comment': `Session started the ${moment(transaction.getStartDate()).format("YYYY-MM-DDTHH:mm:ss")} during ${transaction.getDuration().format(`h[h]mm`, {trim: false})}`,
+        'Comment': `Session started the ${moment(transaction.getStartDate()).format("YYYY-MM-DDTHH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(),'seconds').format(`h[h]mm`, {trim: false})}`,
         'VendorDescription': 'Charge At Home',
         'Custom1': `${transaction.getID}`,
         'ExpenseTypeCode': this.getExpenseTypeCode(),
