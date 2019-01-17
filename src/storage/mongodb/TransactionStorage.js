@@ -458,7 +458,13 @@ class TransactionStorage {
     };
   }
 
-
+  /**
+   *
+   * @param tenantID
+   * @param id
+   * @param withMeterValues
+   * @returns {Promise<Transaction>}
+   */
   static async getTransaction(tenantID, id, withMeterValues = false) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransaction');

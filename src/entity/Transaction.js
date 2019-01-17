@@ -427,6 +427,14 @@ class Transaction extends AbstractTenantEntity {
     return this._model.remotestop;
   }
 
+  getRefundId() {
+    return this._model.refundId;
+  }
+
+  hasRefundId() {
+    return !!this._model.refundId;
+  }
+
   stopTransaction(user, tagId, meterStop, timestamp) {
     this._model.stop = {};
     this._model.stop.meterStop = meterStop;
@@ -515,6 +523,10 @@ class Transaction extends AbstractTenantEntity {
     if (tagID) {
       this._model.tagID = tagID;
     }
+  }
+
+  setRefundId(refundId) {
+    this._model.refundId = refundId;
   }
 
   _aggregateAsConsumption(lastMeterValue, meterValue, stateOfChargeMeterValue) {

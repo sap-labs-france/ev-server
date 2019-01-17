@@ -93,11 +93,11 @@ class ConcurConnector extends AbstractConnector {
     }
   }
 
-  async refreshConnection(userId, connection) {
+  async refreshToken(userId, connection) {
     try {
       Logging.logDebug({
         tenantID: this.getTenantID(),
-        module: MODULE_NAME, method: 'refreshConnection',
+        module: MODULE_NAME, method: 'refreshToken',
         action: 'refreshAccessToken', message: `request concur refresh token for ${userId}`
       });
       const result = await axios.post(`${this.getUrl()}/oauth2/v0/token`,
@@ -115,7 +115,7 @@ class ConcurConnector extends AbstractConnector {
         });
       Logging.logDebug({
         tenantID: this.getTenantID(),
-        module: MODULE_NAME, method: 'refreshConnection',
+        module: MODULE_NAME, method: 'refreshToken',
         action: 'refreshAccessToken', message: `Concur access token refreshed for ${userId}`
       });
       const now = new Date();
@@ -125,7 +125,7 @@ class ConcurConnector extends AbstractConnector {
     } catch (e) {
       Logging.logError({
         tenantID: this.getTenantID(),
-        module: MODULE_NAME, method: 'refreshConnection',
+        module: MODULE_NAME, method: 'refreshToken',
         action: 'refreshAccessToken', message: `Concur access token not refreshed for ${userId}`
       });
       throw e;
@@ -144,19 +144,22 @@ class ConcurConnector extends AbstractConnector {
   static isConnectionExpired(connection) {
     return moment(connection.data.refresh_expires_in).isBefore(moment.now());
   }
+  static isTokenExpired(connection) {
+    return moment(connection.getUpdatedAt()).add(connection.getData().expires_in, 'seconds').isBefore(moment.now());
+  }
 
   /**
    *
+   * @param user {User}
    * @param transaction {Transaction}
-   * @returns {Promise<void>}
+   * @returns {Promise<Transaction[]>}
    */
-  async refund(transaction) {
-    let connection = await this.getConnectionByUserId(transaction.getUserID());
-    if (ConcurConnector.isConnectionExpired(connection)) {
-      connection = await this.refreshConnection(transaction.getUserID(), connection)
+  async refund(user, transactions) {
+    const refundedTransactions = [];
+    let connection = await this.getConnectionByUserId(user.getID());
+    if (ConcurConnector.isTokenExpired(connection)) {
+      connection = await this.refreshToken(user.getID(), connection)
     }
-    const chargingStation = await ChargingStation.getChargingStation(transaction.getTenantID(), transaction.getChargeBoxID());
-    const site = await chargingStation.getSite();
     const expenseReports = await this.getExpenseReports(connection);
     const expenseReport = expenseReports.find(report => report.Name === REPORT_NAME);
     let expenseReportId;
@@ -165,9 +168,24 @@ class ConcurConnector extends AbstractConnector {
     } else {
       expenseReportId = await this.createExpenseReport(connection);
     }
-
-    const entryId = this.createExpenseReportEntry(connection, expenseReportId, transaction, site);
-    // transaction.setRefundId(entryId);
+    for (const transaction of transactions) {
+      try {
+        const chargingStation = await ChargingStation.getChargingStation(transaction.getTenantID(), transaction.getChargeBoxID());
+        const site = await chargingStation.getSite();
+        const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, site);
+        transaction.setRefundId(entryId);
+        await TransactionStorage.saveTransaction(transaction);
+        refundedTransactions.push(transaction);
+      } catch (e) {
+        Logging.logError({
+          tenantID: this.getTenantID(),
+          user: user, actionOnUser: (transaction.getUser() ? transaction.getUser() : null),
+          module: 'TransactionService', method: 'handleRefundTransactions',
+          message: e.message,
+        });
+      }
+    }
+    return refundedTransactions;
   }
 
 

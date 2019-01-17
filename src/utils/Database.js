@@ -515,6 +515,7 @@ class Database {
     dest.connectorId = Utils.convertToInt(src.connectorId);
     dest.meterStart = Utils.convertToInt(src.meterStart);
     dest.tagID = src.tagID;
+    dest.refundId = src.refundId;
     dest.timestamp = Utils.convertToDate(src.timestamp);
     if (src.stateOfCharge) {
       dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);

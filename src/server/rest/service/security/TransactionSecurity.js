@@ -74,6 +74,12 @@ class TransactionSecurity {
   }
 
   // Transaction
+  /**
+   *
+   * @param transaction {Transaction}
+   * @param loggedUser
+   * @returns {*}
+   */
   static filterTransactionResponse(transaction, loggedUser) {
     let filteredTransaction;
 
@@ -94,6 +100,7 @@ class TransactionSecurity {
       filteredTransaction.totalDurationSecs = transaction.getTotalDurationSecs();
       filteredTransaction.status = transaction.getChargerStatus();
       filteredTransaction.isLoading = transaction.isLoading();
+      filteredTransaction.refundId = transaction.getRefundId();
 
       // retro compatibility ON
       filteredTransaction.transactionId = transaction.getID();

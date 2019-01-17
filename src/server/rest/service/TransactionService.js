@@ -24,6 +24,7 @@ class TransactionService {
           `Transaction IDs must be provided`, 500,
           'TransactionService', 'handleRefundTransactions', req.user);
       }
+      const transactionsToRefund = [];
       for (const transactionId of filteredRequest.transactionIds) {
         let transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
         if (!transaction) {
@@ -31,9 +32,20 @@ class TransactionService {
             tenantID: req.user.tenantID,
             user: req.user, actionOnUser: (transaction.getUser() ? transaction.getUser() : null),
             module: 'TransactionService', method: 'handleRefundTransactions',
-            message: `Transaction '${filteredRequest.ID}' does not exist`,
+            message: `Transaction '${transaction.getID()}' does not exist`,
             action: action, detailedMessages: transaction.getModel()
           });
+          continue;
+        }
+        if (transaction.hasRefundId()) {
+          Logging.logError({
+            tenantID: req.user.tenantID,
+            user: req.user, actionOnUser: (transaction.getUser() ? transaction.getUser() : null),
+            module: 'TransactionService', method: 'handleRefundTransactions',
+            message: `Transaction '${transaction.getID()}' is already refunded`,
+            action: action, detailedMessages: transaction.getModel()
+          });
+          continue;
         }
         // Check auth
         if (!Authorizations.canRefundTransaction(req.user, transaction)) {
@@ -45,24 +57,49 @@ class TransactionService {
             560, 'TransactionService', 'handleRefundTransactions',
             req.user);
         }
-        // Get Transaction User
-        let user = await User.getUser(req.user.tenantID, transaction.getUserID());
-        // Check
-        if (!user) {
-          // Not Found!
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `The user with ID '${req.user.id}' does not exist`, 550,
-            'TransactionService', 'handleRefundTransactions', req.user);
-        }
-        let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, 'chargeathome');
-        setting = setting.getContent()['concur'];
-        const connector = new ConcurConnector(req.user.tenantID, setting);
-        await connector.refund(transaction);
+        transactionsToRefund.push(transaction);
       }
+      if (transactionsToRefund.length === 0) {
+        res.json({
+          ...Constants.REST_RESPONSE_SUCCESS,
+          inSuccess: 0,
+          inError: filteredRequest.transactionIds.length
+        });
+        next();
+        return;
+      }
+      // Get Transaction User
+      let user = await User.getUser(req.user.tenantID, req.user.id);
+      // Check
+      if (!user) {
+        // Not Found!
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The user with ID '${req.user.id}' does not exist`, 550,
+          'TransactionService', 'handleRefundTransactions', req.user);
+      }
+      if (!transactionsToRefund.every(tr => tr.getUserID() === req.user.id)) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The user with ID '${req.user.id}' cannot refund another user transaction`, 550,
+          'TransactionService', 'handleRefundTransactions', req.user);
+      }
+      let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, 'chargeathome');
+      setting = setting.getContent()['concur'];
+      const connector = new ConcurConnector(req.user.tenantID, setting);
+      const refundedTransactions = await connector.refund(user, transactionsToRefund);
       // // Transfer it to the Revenue Cloud
       // await Utils.pushTransactionToRevenueCloud(action, transaction, req.user, transaction.getUser());
-      res.json(Constants.REST_RESPONSE_SUCCESS);
+
+      const response = {
+        ...Constants.REST_RESPONSE_SUCCESS,
+        inSuccess: refundedTransactions
+      };
+      const notRefundedTransactions = transactionsToRefund.length - refundedTransactions.length;
+      if (notRefundedTransactions > 0) {
+        response.inError = notRefundedTransactions;
+      }
+      res.json(response);
       next();
     } catch (error) {
       // Log
@@ -135,7 +172,8 @@ class TransactionService {
     }
   }
 
-  static async handleTransactionSoftStop(action, req, res, next) {
+  static
+  async handleTransactionSoftStop(action, req, res, next) {
     try {
       // Filter
       let filteredRequest = TransactionSecurity.filterTransactionSoftStop(req.body, req.user);
@@ -215,7 +253,8 @@ class TransactionService {
     }
   }
 
-  static async handleGetChargingStationConsumptionFromTransaction(action, req, res, next) {
+  static
+  async handleGetChargingStationConsumptionFromTransaction(action, req, res, next) {
     try {
       // Filter
       let filteredRequest = TransactionSecurity.filterChargingStationConsumptionFromTransactionRequest(req.query, req.user);
@@ -267,7 +306,8 @@ class TransactionService {
     }
   }
 
-  static async handleGetTransaction(action, req, res, next) {
+  static
+  async handleGetTransaction(action, req, res, next) {
     try {
       // Filter
       let filteredRequest = TransactionSecurity.filterTransactionRequest(req.query, req.user);
@@ -313,7 +353,8 @@ class TransactionService {
     }
   }
 
-  static async handleGetChargingStationTransactions(action, req, res, next) {
+  static
+  async handleGetChargingStationTransactions(action, req, res, next) {
     try {
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -372,7 +413,8 @@ class TransactionService {
     }
   }
 
-  static async handleGetTransactionYears(action, req, res, next) {
+  static
+  async handleGetTransactionYears(action, req, res, next) {
     try {
       // Get Transactions
       let transactionsYears = await TransactionStorage.getTransactionYears(req.user.tenantID);
@@ -390,7 +432,8 @@ class TransactionService {
     }
   }
 
-  static async handleGetTransactionsActive(action, req, res, next) {
+  static
+  async handleGetTransactionsActive(action, req, res, next) {
     try {
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -428,7 +471,8 @@ class TransactionService {
     }
   }
 
-  static async handleGetTransactionsCompleted(action, req, res, next) {
+  static
+  async handleGetTransactionsCompleted(action, req, res, next) {
     try {
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -472,7 +516,8 @@ class TransactionService {
     }
   }
 
-  static async handleGetTransactionsInError(action, req, res, next) {
+  static
+  async handleGetTransactionsInError(action, req, res, next) {
     try {
       // Check auth
       if (!Authorizations.canListTransactionsInError(req.user)) {
