@@ -327,30 +327,6 @@ class SiteService {
     }
   }
 
-  static async handleGetSiteImages(action, req, res, next) {
-    try {
-      // Check auth
-      if (!Authorizations.canListSites(req.user)) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_SITES,
-          null,
-          560,
-          'SiteService', 'handleGetSiteImages',
-          req.user);
-      }
-      // Get the site image
-      const siteImages = await Site.getSiteImages(req.user.tenantID);
-      // Return
-      res.json(siteImages);
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
-    }
-  }
-
   static async handleCreateSite(action, req, res, next) {
     try {
       // Check auth

@@ -241,10 +241,6 @@ class Site extends AbstractTenantEntity {
     return SiteStorage.getSiteImage(tenantID, id);
   }
 
-  static getSiteImages(tenantID) {
-    return SiteStorage.getSiteImages(tenantID)
-  }
-
   static addUsersToSite(tenantID, id, userIDs) {
     return SiteStorage.addUsersToSite(tenantID, id, userIDs);
   }

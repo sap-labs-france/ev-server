@@ -228,11 +228,6 @@ module.exports = {
             // Delegate
             SiteService.handleGetSite(action, req, res, next);
             break;
-          // Get all the site images
-          case "SiteImages":
-            // Delegate
-            SiteService.handleGetSiteImages(action, req, res, next);
-            break;
           // Get one site image
           case "SiteImage":
             // Delegate

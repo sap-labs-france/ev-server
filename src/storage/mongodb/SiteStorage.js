@@ -125,31 +125,6 @@ class SiteStorage {
     return siteImage;
   }
 
-  static async getSiteImages(tenantID) {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSiteImages');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Read DB
-    const siteImagesMDB = await global.database.getCollection(tenantID, 'siteimages')
-      .find({})
-      .toArray();
-    const siteImages = [];
-    // Set
-    if (siteImagesMDB && siteImagesMDB.length > 0) {
-      // Add
-      for (const siteImageMDB of siteImagesMDB) {
-        siteImages.push({
-          id: siteImageMDB._id,
-          image: siteImageMDB.image
-        });
-      }
-    }
-    // Debug
-    Logging.traceEnd('SiteStorage', 'getSiteImages', uniqueTimerID);
-    return siteImages;
-  }
-
   static async removeUsersFromSite(tenantID, siteID, userIDs) {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'removeUsersFromSite');
