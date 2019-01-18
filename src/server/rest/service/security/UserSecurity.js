@@ -49,6 +49,7 @@ class UserSecurity {
     filteredRequest.SiteID = sanitize(request.SiteID);
     filteredRequest.Role = sanitize(request.Role);
     filteredRequest.Status = sanitize(request.Status);
+    filteredRequest.ExcludeSiteID = sanitize(request.ExcludeSiteID);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;

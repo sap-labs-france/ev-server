@@ -10,6 +10,155 @@ const ChargingStation = require('../../../entity/ChargingStation');
 const SiteArea = require('../../../entity/SiteArea');
 
 class ChargingStationService {
+  static async handleAddChargingStationsToSiteArea(action, req, res, next) {
+    try {
+      // Filter
+      const filteredRequest = ChargingStationSecurity.filterAddChargingStationsToSiteAreaRequest(req.body, req.user);
+      // Check Mandatory fields
+      if (!filteredRequest.siteAreaID) {
+        // Not Found!
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Site Area's ID must be provided`, 500,
+          'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
+      }
+      if (!filteredRequest.chargingStationIDs || (filteredRequest.chargingStationIDs && filteredRequest.chargingStationIDs.length <= 0)) {
+        // Not Found!
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Charging Station's IDs must be provided`, 500,
+          'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
+      }
+      // Get the Site Area
+      const siteArea = await SiteArea.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+      if (!siteArea) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Site Area with ID '${filteredRequest.siteAreaID}' does not exist anymore`, 550,
+          'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
+      }
+      // Check auth
+      if (!Authorizations.canUpdateSiteArea(req.user, siteArea.getModel())) {
+        throw new AppAuthError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_SITE_AREA,
+          siteArea.getID(),
+          560,
+          'ChargingStationService', 'handleAddChargingStationsToSiteArea',
+          req.user);
+      }
+      // Get Charging Stations
+      for (const chargingStationID of filteredRequest.chargingStationIDs) {
+        // Check the charging station
+        const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, chargingStationID);
+        if (!chargingStation) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The Charging Station with ID '${chargingStationID}' does not exist anymore`, 550,
+            'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
+        }
+        // Check auth
+        if (!Authorizations.canUpdateChargingStation(req.user, chargingStation.getModel())) {
+          throw new AppAuthError(
+            Constants.ACTION_UPDATE,
+            Constants.ENTITY_CHARGING_STATION,
+            chargingStationID,
+            560,
+            'ChargingStationService', 'handleAddChargingStationsToSiteArea',
+            req.user);
+        }
+      }
+      // Save
+      await ChargingStation.addChargingStationsToSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.chargingStationIDs);
+      // Log
+      Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
+        user: req.user, module: 'ChargingStationService', method: 'handleAddChargingStationsToSiteArea',
+        message: `Site Area's Charging Stations have been added successfully`, action: action
+      });
+      // Ok
+      res.json(Constants.REST_RESPONSE_SUCCESS);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
+  static async handleRemoveChargingStationsFromSiteArea(action, req, res, next) {
+    try {
+      // Filter
+      const filteredRequest = ChargingStationSecurity.filterRemoveChargingStationsFromSiteAreaRequest(req.body, req.user);
+      // Check Mandatory fields
+      if (!filteredRequest.siteAreaID) {
+        // Not Found!
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Site Area's ID must be provided`, 500,
+          'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea', req.user);
+      }
+      if (!filteredRequest.chargingStationIDs || (filteredRequest.chargingStationIDs && filteredRequest.chargingStationIDs.length <= 0)) {
+        // Not Found!
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Site Area's IDs must be provided`, 500,
+          'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea', req.user);
+      }
+      // Get the Site Area
+      const siteArea = await SiteArea.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+      if (!siteArea) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Site Area with ID '${filteredRequest.siteAreaID}' does not exist anymore`, 550,
+          'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea', req.user);
+      }
+      // Check auth
+      if (!Authorizations.canUpdateSite(req.user, siteArea.getModel())) {
+        throw new AppAuthError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_SITE_AREA,
+          siteArea.getID(),
+          560,
+          'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea',
+          req.user);
+      }
+      // Get Charging Stations
+      for (const chargingStationID of filteredRequest.chargingStationIDs) {
+        // Check the Charging Station
+        const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, chargingStationID);
+        if (!chargingStation) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The Charging Station with ID '${chargingStationID}' does not exist anymore`, 550,
+            'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea', req.user);
+        }
+        // Check auth
+        if (!Authorizations.canUpdateChargingStation(req.user, chargingStation.getModel())) {
+          throw new AppAuthError(
+            Constants.ACTION_UPDATE,
+            Constants.ENTITY_CHARGING_STATION,
+            chargingStationID,
+            560,
+            'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea',
+            req.user);
+        }
+      }
+      // Save
+      await ChargingStation.removeChargingStationsFromSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.chargingStationIDs);
+      // Log
+      Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
+        user: req.user, module: 'ChargingStationService', method: 'handleRemoveChargingStationsFromSiteArea',
+        message: `Site Area's Charging Stations have been removed successfully`, action: action
+      });
+      // Ok
+      res.json(Constants.REST_RESPONSE_SUCCESS);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
 
   static async handleUpdateChargingStationParams(action, req, res, next) {
     try {

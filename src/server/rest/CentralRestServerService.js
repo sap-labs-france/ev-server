@@ -74,6 +74,16 @@ module.exports = {
             // Delegate
             ChargingStationService.handleAction(action, req, res, next);
             break;
+          // Add ChargingStations to SiteArea
+          case "AddChargingStationsToSiteArea":
+            // Delegate
+            ChargingStationService.handleAddChargingStationsToSiteArea(action, req, res, next);
+            break;
+          // Remove ChargingStations from SiteArea
+          case "RemoveChargingStationsFromSiteArea":
+            // Delegate
+            ChargingStationService.handleRemoveChargingStationsFromSiteArea(action, req, res, next);
+            break;
           // Create User
           case "UserCreate":
             // Delegate

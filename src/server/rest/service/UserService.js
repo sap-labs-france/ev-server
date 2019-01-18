@@ -464,7 +464,8 @@ class UserService {
           'search': filteredRequest.Search,
           'siteID': filteredRequest.SiteID,
           'role': filteredRequest.Role,
-          'status': filteredRequest.Status
+          'status': filteredRequest.Status,
+          'excludeSiteID': filteredRequest.ExcludeSiteID
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set

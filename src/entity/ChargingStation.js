@@ -1609,6 +1609,14 @@ class ChargingStation extends AbstractTenantEntity {
     // Return list of transactions
     return transactions;
   }
+
+  static addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs) {
+    return ChargingStationStorage.addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs);
+  }
+
+  static removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs) {
+    return ChargingStationStorage.removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs);
+  }
 }
 
 module.exports = ChargingStation;
