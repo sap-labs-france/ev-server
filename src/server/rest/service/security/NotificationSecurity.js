@@ -15,6 +15,8 @@ class NotificationSecurity {
   static filterNotificationsRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.UserID = sanitize(request.UserID);
+    filteredRequest.DateFrom = sanitize(request.DateFrom);
+    filteredRequest.Channel = sanitize(request.Channel);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -46,9 +48,15 @@ class NotificationSecurity {
       return null;
     }
     // Check auth
-    if (notification.userID && Authorizations.canReadUser(loggedUser, {id: notification.userID})) {
+    if (!notification.userID || Authorizations.canReadUser(loggedUser, {id: notification.userID})) {
+      // No user provided and you are not admin?
+      if (!notification.userID && !Authorizations.isAdmin(loggedUser)) {
+        // Yes: do not send this notif
+        return null;
+      }
       filteredNotification = {};
       // Set only necessary info
+      filteredNotification.id = notification.id;
       filteredNotification.timestamp = notification.timestamp;
       filteredNotification.channel = notification.channel;
       filteredNotification.sourceId = notification.sourceId;

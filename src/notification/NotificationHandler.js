@@ -239,7 +239,7 @@ class NotificationHandler {
     }
   }
 
-  static async sendChargingStationStatusError(tenantID, sourceId, chargingStation, sourceData) {
+  static async sendChargingStationStatusError(tenantID, sourceId, chargingStation, sourceData, data) {
     try {
       // Enrich with admins
       sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
@@ -247,7 +247,7 @@ class NotificationHandler {
       if (_notificationConfig.Email.enabled) {
         // Save notif
         await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
-          SOURCE_CHARGING_STATION_STATUS_ERROR, null, chargingStation);
+          SOURCE_CHARGING_STATION_STATUS_ERROR, null, chargingStation, data);
         // Send email
         const result = await _email.sendChargingStationStatusError(sourceData, Constants.DEFAULT_LOCALE, tenantID);
         // Return

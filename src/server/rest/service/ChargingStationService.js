@@ -515,20 +515,20 @@ class ChargingStationService {
             result = [];
             // Call each connectors
             for (const connector of chargingStation.getConnectors()) {
-              // Fix central reference date
-              const centralTime = new Date();
               filteredRequest.args.connectorId = connector.connectorId;
               // Execute request
               const simpleResult = await chargingStation.handleAction(action, filteredRequest.args);
+              // Fix central reference date
+              const centralTime = new Date();
               simpleResult.centralSystemTime = centralTime;
               result.push(simpleResult);
             }
           }
         } else {
-          // Fix central reference date
-          const centralTime = new Date();
           // Execute it
           result = await chargingStation.handleAction(action, filteredRequest.args);
+          // Fix central reference date
+          const centralTime = new Date();
           result.centralSystemTime = centralTime;
         }
       } else {

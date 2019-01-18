@@ -381,6 +381,8 @@ class ChargingStation extends AbstractTenantEntity {
         if (connectors[i]) {
           // update message with proper connectorId
           statusNotification.connectorId = i + 1;
+          // update TS to avoid duplicates in case StatusNotification are also sent in parallel for other connectors
+          statusNotification.timestamp = new Date().toISOString();
           await this.updateConnectorStatus(statusNotification);
         }
       }
@@ -447,6 +449,10 @@ class ChargingStation extends AbstractTenantEntity {
           'error': `${statusNotification.status} - ${statusNotification.errorCode} - ${statusNotification.info}`,
           'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain()),
           'evseDashboardChargingStationURL': await Utils.buildEvseChargingStationURL(this, statusNotification.connectorId)
+        },
+        {
+          'connectorId': statusNotification.connectorId,
+          'error': `${statusNotification.status} - ${statusNotification.errorCode} - ${statusNotification.info}`,
         }
       );
     }
@@ -726,7 +732,8 @@ class ChargingStation extends AbstractTenantEntity {
               },
               transaction.getUserJson().locale,
               {
-                'transactionId': transaction.getID()
+                'transactionId': transaction.getID(),
+                'connectorId': transaction.getConnectorId()
               }
             );
           }
@@ -754,7 +761,8 @@ class ChargingStation extends AbstractTenantEntity {
               },
               transaction.getUserJson().locale,
               {
-                'transactionId': transaction.getID()
+                'transactionId': transaction.getID(),
+                'connectorId': transaction.getConnectorId()
               }
             );
           }
@@ -1162,7 +1170,8 @@ class ChargingStation extends AbstractTenantEntity {
         },
         user.getLocale(),
         {
-          'transactionId': transaction.getID()
+          'transactionId': transaction.getID(),
+          'connectorId': transaction.getConnectorId()
         }
       );
       // Log
@@ -1310,7 +1319,8 @@ class ChargingStation extends AbstractTenantEntity {
         },
         user.getLocale(),
         {
-          'transactionId': transaction.getID()
+          'transactionId': transaction.getID(),
+          'connectorId': transaction.getConnectorId()
         }
       );
     }
