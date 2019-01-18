@@ -191,10 +191,6 @@ class SiteArea extends AbstractTenantEntity {
   static getSiteAreaImage(tenantID, id) {
     return SiteAreaStorage.getSiteAreaImage(tenantID, id);
   }
-
-  static getSiteAreaImages(tenantID) {
-    return SiteAreaStorage.getSiteAreaImages(tenantID)
-  }
 }
 
 module.exports = SiteArea;

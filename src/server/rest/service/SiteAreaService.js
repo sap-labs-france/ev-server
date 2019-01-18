@@ -251,29 +251,6 @@ class SiteAreaService {
     }
   }
 
-  static async handleGetSiteAreaImages(action, req, res, next) {
-    try {
-      // Check auth
-      if (!Authorizations.canListSiteAreas(req.user)) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_SITE_AREAS,
-          null,
-          560, 'SiteAreaService', 'handleGetSiteAreaImages',
-          req.user);
-      }
-      // Get the Site Area image
-      const siteAreaImages = await SiteArea.getSiteAreaImages(req.user.tenantID);
-      // Return
-      res.json(siteAreaImages);
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
-    }
-  }
-
   static async handleUpdateSiteArea(action, req, res, next) {
     try {
       // Filter

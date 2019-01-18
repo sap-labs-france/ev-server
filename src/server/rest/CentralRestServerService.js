@@ -291,11 +291,6 @@ module.exports = {
             // Delegate
             SiteAreaService.handleGetSiteArea(action, req, res, next);
             break;
-          // Get all the site area images
-          case "SiteAreaImages":
-            // Delegate
-            SiteAreaService.handleGetSiteAreaImages(action, req, res, next);
-            break;
           // Get one site area image
           case "SiteAreaImage":
             // Delegate

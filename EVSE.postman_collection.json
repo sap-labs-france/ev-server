@@ -1445,39 +1445,6 @@
 			"response": []
 		},
 		{
-			"name": "FE-SiteAreaImages",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "{{base_url}}/client/api/SiteAreaImages",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"SiteAreaImages"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "FE-SiteAreaImage",
 			"request": {
 				"auth": {

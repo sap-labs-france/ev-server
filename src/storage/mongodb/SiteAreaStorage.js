@@ -31,30 +31,6 @@ class SiteAreaStorage {
     return siteAreaImage;
   }
 
-  static async getSiteAreaImages(tenantID) {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteAreaImages');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Read DB
-    const siteAreaImagesMDB = await global.database.getCollection(tenantID, 'siteareaimages')
-      .find({})
-      .toArray();
-    const siteAreaImages = [];
-    // Add
-    if (siteAreaImagesMDB && siteAreaImagesMDB.length > 0) {
-      for (const siteAreaImageMDB of siteAreaImagesMDB) {
-        siteAreaImages.push({
-          id: siteAreaImageMDB._id,
-          image: siteAreaImageMDB.image
-        });
-      }
-    }
-    // Debug
-    Logging.traceEnd('SiteAreaStorage', 'getSiteAreaImages', uniqueTimerID);
-    return siteAreaImages;
-  }
-
   static async getSiteArea(tenantID, id, withChargeBoxes, withSite) {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteArea');
