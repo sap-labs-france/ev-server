@@ -732,7 +732,8 @@ class ChargingStation extends AbstractTenantEntity {
               },
               transaction.getUserJson().locale,
               {
-                'transactionId': transaction.getID()
+                'transactionId': transaction.getID(),
+                'connectorId': transaction.getConnectorId()
               }
             );
           }
@@ -760,7 +761,8 @@ class ChargingStation extends AbstractTenantEntity {
               },
               transaction.getUserJson().locale,
               {
-                'transactionId': transaction.getID()
+                'transactionId': transaction.getID(),
+                'connectorId': transaction.getConnectorId()
               }
             );
           }
@@ -1168,7 +1170,8 @@ class ChargingStation extends AbstractTenantEntity {
         },
         user.getLocale(),
         {
-          'transactionId': transaction.getID()
+          'transactionId': transaction.getID(),
+          'connectorId': transaction.getConnectorId()
         }
       );
       // Log
@@ -1316,7 +1319,8 @@ class ChargingStation extends AbstractTenantEntity {
         },
         user.getLocale(),
         {
-          'transactionId': transaction.getID()
+          'transactionId': transaction.getID(),
+          'connectorId': transaction.getConnectorId()
         }
       );
     }
