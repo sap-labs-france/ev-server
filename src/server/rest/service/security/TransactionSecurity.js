@@ -219,7 +219,6 @@ class TransactionSecurity {
   }
 
   static filterConsumptionsFromTransactionResponse(transaction, consumptions, loggedUser) {
-    const filteredConsumption = {};
     if (!consumptions) {
       return null;
     }
@@ -233,34 +232,14 @@ class TransactionSecurity {
         return null;
       }
     }
-    // Set
-    filteredConsumption.id = transaction.getID();
-    filteredConsumption.chargeBoxID = transaction.getChargeBoxID();
-    filteredConsumption.connectorId = transaction.getConnectorId();
-    // Admin?
-    if (Authorizations.isAdmin(loggedUser) && transaction.hasPrice()) {
-      filteredConsumption.priceUnit = transaction.getPriceUnit();
-      filteredConsumption.totalPrice = transaction.getPrice();
-    }
-    if (transaction.isActive()) {
-      // On going
-      filteredConsumption.totalConsumption = transaction.getCurrentTotalConsumption();
-      filteredConsumption.stateOfCharge = transaction.getCurrentStateOfCharge();
-    } else {
-      // Finished
-      filteredConsumption.totalConsumption = transaction.getTotalConsumption();
-      filteredConsumption.stateOfCharge = transaction.getStateOfCharge();
-    }
-    // Set user
-    filteredConsumption.user = TransactionSecurity._filterUserInTransactionResponse(
-      transaction.getUserJson(), loggedUser);
+    const filteredTransaction = this.filterTransactionResponse(transaction, loggedUser);
     // Admin?
     if (Authorizations.isAdmin(loggedUser)) {
       // Set them all
-      filteredConsumption.values = consumptions;
+      filteredTransaction.values = consumptions;
     } else {
       // Clean
-      filteredConsumption.values = [];
+      filteredTransaction.values = [];
       for (const value of consumptions) {
         // Set
         const filteredValue = {
@@ -268,11 +247,11 @@ class TransactionSecurity {
           value: value.value,
           cumulated: value.cumulated,
           stateOfCharge: value.stateOfCharge
-        }
-        filteredConsumption.values.push(filteredValue);
+        };
+        filteredTransaction.values.push(filteredValue);
       }
     }
-    return filteredConsumption;
+    return filteredTransaction;
   }
 }
 
