@@ -125,29 +125,53 @@ class SiteStorage {
     return siteImage;
   }
 
-  static async getSiteImages(tenantID) {
+  static async removeUsersFromSite(tenantID, siteID, userIDs) {
     // Debug
-    const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSiteImages');
+    const uniqueTimerID = Logging.traceStart('SiteStorage', 'removeUsersFromSite');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Read DB
-    const siteImagesMDB = await global.database.getCollection(tenantID, 'siteimages')
-      .find({})
-      .toArray();
-    const siteImages = [];
-    // Set
-    if (siteImagesMDB && siteImagesMDB.length > 0) {
-      // Add
-      for (const siteImageMDB of siteImagesMDB) {
-        siteImages.push({
-          id: siteImageMDB._id,
-          image: siteImageMDB.image
-        });
+    // Site provided?
+    if (siteID) {
+      // At least one User
+      if (userIDs && userIDs.length > 0) {
+        // Create the list
+        for (const userID of userIDs) {
+          // Execute
+          await global.database.getCollection(tenantID, 'siteusers').deleteMany({
+            "userID": Utils.convertToObjectID(userID),
+            "siteID": Utils.convertToObjectID(siteID)
+          });
+        }
       }
     }
     // Debug
-    Logging.traceEnd('SiteStorage', 'getSiteImages', uniqueTimerID);
-    return siteImages;
+    Logging.traceEnd('SiteStorage', 'removeUsersFromSite', uniqueTimerID, {siteID, userIDs});
+  }
+
+  static async addUsersToSite(tenantID, siteID, userIDs) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('SiteStorage', 'addUsersToSite');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Site provided?
+    if (siteID) {
+      // At least one User
+      if (userIDs && userIDs.length > 0) {
+        const siteUsers = [];
+        // Create the list
+        for (const userID of userIDs) {
+          // Add
+          siteUsers.push({
+            "userID": Utils.convertToObjectID(userID),
+            "siteID": Utils.convertToObjectID(siteID)
+          });
+        }
+        // Execute
+        await global.database.getCollection(tenantID, 'siteusers').insertMany(siteUsers);
+      }
+    }
+    // Debug
+    Logging.traceEnd('SiteStorage', 'addUsersToSite', uniqueTimerID, {siteID, userIDs});
   }
 
   static async saveSite(tenantID, siteToSave) {

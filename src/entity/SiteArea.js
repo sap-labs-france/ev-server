@@ -55,6 +55,14 @@ class SiteArea extends AbstractTenantEntity {
     this._model.totalConnectors = totalConnectors;
   }
 
+  setMaximumPower(maximumPower) {
+    this._model.maximumPower = maximumPower;
+  }
+
+  getMaximumPower() {
+    return this._model.maximumPower;
+  }
+
   getTotalConnectors() {
     return this._model.totalConnectors;
   }
@@ -190,10 +198,6 @@ class SiteArea extends AbstractTenantEntity {
 
   static getSiteAreaImage(tenantID, id) {
     return SiteAreaStorage.getSiteAreaImage(tenantID, id);
-  }
-
-  static getSiteAreaImages(tenantID) {
-    return SiteAreaStorage.getSiteAreaImages(tenantID)
   }
 }
 

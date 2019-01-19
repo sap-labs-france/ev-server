@@ -458,8 +458,8 @@ class UserStorage {
     }
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
-    // Site ID?
-    if (params.siteID) {
+    // Site ID? or ExcludeSiteID - cannot be used together
+    if (params.siteID || params.excludeSiteID) {
       // Add Site
       aggregation.push({
         $lookup: {
@@ -469,9 +469,17 @@ class UserStorage {
           as: "siteusers"
         }
       });
-      aggregation.push({
-        $match: {"siteusers.siteID": Utils.convertToObjectID(params.siteID)}
-      });
+
+      // check which filter to use
+      if (params.siteID) {
+        aggregation.push({
+          $match: {"siteusers.siteID": Utils.convertToObjectID(params.siteID)}
+        });
+      } else if (params.excludeSiteID) {
+        aggregation.push({
+          $match: {"siteusers.siteID": { $ne: Utils.convertToObjectID(params.excludeSiteID) } }
+        });
+      }
     }
     // Count Records
     const usersCountMDB = await global.database.getCollection(tenantID, 'users')

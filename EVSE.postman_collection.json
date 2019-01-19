@@ -1324,39 +1324,6 @@
 			"response": []
 		},
 		{
-			"name": "FE-SiteImages",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "{{base_url}}/client/api/SiteImages",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"SiteImages"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "FE-SiteImage",
 			"request": {
 				"auth": {
@@ -1472,39 +1439,6 @@
 							"key": "ID",
 							"value": "5af1ba94ee5dc0cd3bc7fd50"
 						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "FE-SiteAreaImages",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "{{base_url}}/client/api/SiteAreaImages",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"client",
-						"api",
-						"SiteAreaImages"
 					]
 				}
 			},
