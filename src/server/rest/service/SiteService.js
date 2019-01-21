@@ -10,6 +10,156 @@ const User = require('../../../entity/User');
 const SiteSecurity = require('./security/SiteSecurity');
 
 class SiteService {
+  static async handleAddUsersToSite(action, req, res, next) {
+    try {
+      // Filter
+      const filteredRequest = SiteSecurity.filterAddUsersToSiteRequest(req.body, req.user);
+      // Check Mandatory fields
+      if (!filteredRequest.siteID) {
+        // Not Found!
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Site's ID must be provided`, 500,
+          'SiteService', 'handleAddUsersToSite', req.user);
+      }
+      if (!filteredRequest.userIDs || (filteredRequest.userIDs && filteredRequest.userIDs.length <= 0)) {
+        // Not Found!
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The User's IDs must be provided`, 500,
+          'SiteService', 'handleAddUsersToSite', req.user);
+      }
+      // Get the Site
+      const site = await Site.getSite(req.user.tenantID, filteredRequest.siteID);
+      if (!site) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Site with ID '${filteredRequest.siteID}' does not exist anymore`, 550,
+          'SiteService', 'handleAddUsersToSite', req.user);
+      }
+      // Check auth
+      if (!Authorizations.canUpdateSite(req.user, site.getModel())) {
+        throw new AppAuthError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_SITE,
+          site.getID(),
+          560,
+          'SiteService', 'handleAddUsersToSite',
+          req.user);
+      }
+      // Get Sites
+      for (const userID of filteredRequest.userIDs) {
+        // Check the user
+        const user = await User.getUser(req.user.tenantID, userID);
+        if (!user) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The User with ID '${userID}' does not exist anymore`, 550,
+            'SiteService', 'handleAddUsersToSite', req.user);
+        }
+        // Check auth
+        if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
+          throw new AppAuthError(
+            Constants.ACTION_UPDATE,
+            Constants.ENTITY_USER,
+            userID,
+            560,
+            'SiteService', 'handleAddUsersToSite',
+            req.user, user);
+        }
+      }
+      // Save
+      await Site.addUsersToSite(req.user.tenantID, filteredRequest.siteID, filteredRequest.userIDs);
+      // Log
+      Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
+        user: req.user, module: 'SiteService', method: 'handleAddUsersToSite',
+        message: `Site's Users have been added successfully`, action: action
+      });
+      // Ok
+      res.json(Constants.REST_RESPONSE_SUCCESS);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
+  static async handleRemoveUsersFromSite(action, req, res, next) {
+    try {
+      // Filter
+      const filteredRequest = SiteSecurity.filterRemoveUsersFromSiteRequest(req.body, req.user);
+      // Check Mandatory fields
+      if (!filteredRequest.siteID) {
+        // Not Found!
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Site's ID must be provided`, 500,
+          'SiteService', 'handleAddUsersToSite', req.user);
+      }
+      if (!filteredRequest.userIDs || (filteredRequest.userIDs && filteredRequest.userIDs.length <= 0)) {
+        // Not Found!
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Site's IDs must be provided`, 500,
+          'SiteService', 'handleAddUsersToSite', req.user);
+      }
+      // Get the Site
+      const site = await Site.getSite(req.user.tenantID, filteredRequest.siteID);
+      if (!site) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Site with ID '${filteredRequest.siteID}' does not exist anymore`, 550,
+          'SiteService', 'handleAddUsersToSite', req.user);
+      }
+      // Check auth
+      if (!Authorizations.canUpdateSite(req.user, site.getModel())) {
+        throw new AppAuthError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_SITE,
+          site.getID(),
+          560,
+          'SiteService', 'handleAddUsersToSite',
+          req.user);
+      }
+      // Get Users
+      for (const userID of filteredRequest.userIDs) {
+        // Check the user
+        const user = await User.getUser(req.user.tenantID, userID);
+        if (!user) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The User with ID '${userID}' does not exist anymore`, 550,
+            'SiteService', 'handleAddUsersToSite', req.user);
+        }
+        // Check auth
+        if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
+          throw new AppAuthError(
+            Constants.ACTION_UPDATE,
+            Constants.ENTITY_USER,
+            userID,
+            560,
+            'SiteService', 'handleAddUsersToSite',
+            req.user, user);
+        }
+      }
+      // Save
+      await Site.removeUsersFromSite(req.user.tenantID, filteredRequest.siteID, filteredRequest.userIDs);
+      // Log
+      Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
+        user: req.user, module: 'SiteService', method: 'handleAddUsersToSite',
+        message: `Site's Users have been removed successfully`, action: action
+      });
+      // Ok
+      res.json(Constants.REST_RESPONSE_SUCCESS);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
   static async handleDeleteSite(action, req, res, next) {
     try {
       // Filter
@@ -170,30 +320,6 @@ class SiteService {
       const siteImage = await Site.getSiteImage(req.user.tenantID, filteredRequest.ID);
       // Return
       res.json(siteImage);
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
-    }
-  }
-
-  static async handleGetSiteImages(action, req, res, next) {
-    try {
-      // Check auth
-      if (!Authorizations.canListSites(req.user)) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_SITES,
-          null,
-          560,
-          'SiteService', 'handleGetSiteImages',
-          req.user);
-      }
-      // Get the site image
-      const siteImages = await Site.getSiteImages(req.user.tenantID);
-      // Return
-      res.json(siteImages);
       next();
     } catch (error) {
       // Log

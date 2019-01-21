@@ -1,6 +1,7 @@
 const ChargingStationService = require('./ChargingStationService');
 const ChargingStation = require('../../../entity/ChargingStation');
 const Logging = require('../../../utils/Logging');
+const BackendError = require('../../../exception/BackendError');
 const Configuration = require('../../../utils/Configuration');
 require('source-map-support').install();
 
@@ -39,13 +40,22 @@ class ChargingStationService16 extends ChargingStationService {
       // Get the charging station
       let chargingStation = await ChargingStation.getChargingStation(payload.tenantID, payload.chargeBoxIdentity);
       if (!chargingStation) {
-        // Save Charging Station
+        // New Charging Station: Create
         chargingStation = new ChargingStation(payload.tenantID, payload);
         // Update timestamp
         chargingStation.setCreatedOn(new Date());
         chargingStation.setLastHeartBeat(new Date());
       } else {
-        // Update data
+        // Existing Charging Station: Update
+        // Check if same vendor and model
+        if (chargingStation.getChargePointVendor() !== payload.chargePointVendor ||
+            chargingStation.getChargePointModel() !== payload.chargePointModel) {
+          // Not the same charger!
+          throw new BackendError(
+            chargingStation.getID(), 
+            `Registration rejected: the Vendor '${payload.chargePointVendor}' / Model '${payload.chargePointModel}' are different! Expected Vendor '${chargingStation.getChargePointVendor()}' / Model '${chargingStation.getChargePointModel()}'`, 
+            "ChargingStationService16", "handleBootNotification", "BootNotification");
+        }
         chargingStation.setChargePointVendor(payload.chargePointVendor);
         chargingStation.setChargePointModel(payload.chargePointModel);
         chargingStation.setChargePointSerialNumber(payload.chargePointSerialNumber);

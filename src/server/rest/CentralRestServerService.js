@@ -75,6 +75,16 @@ module.exports = {
             // Delegate
             ChargingStationService.handleAction(action, req, res, next);
             break;
+          // Add ChargingStations to SiteArea
+          case "AddChargingStationsToSiteArea":
+            // Delegate
+            ChargingStationService.handleAddChargingStationsToSiteArea(action, req, res, next);
+            break;
+          // Remove ChargingStations from SiteArea
+          case "RemoveChargingStationsFromSiteArea":
+            // Delegate
+            ChargingStationService.handleRemoveChargingStationsFromSiteArea(action, req, res, next);
+            break;
           // Create User
           case "UserCreate":
             // Delegate
@@ -102,6 +112,16 @@ module.exports = {
           case "SiteCreate":
             // Delegate
             SiteService.handleCreateSite(action, req, res, next);
+            break;
+          // Add Users to Site
+          case "AddUsersToSite":
+            // Delegate
+            SiteService.handleAddUsersToSite(action, req, res, next);
+            break;
+          // Remove Users to Site
+          case "RemoveUsersFromSite":
+            // Delegate
+            SiteService.handleRemoveUsersFromSite(action, req, res, next);
             break;
           // Add Sites to User
           case "AddSitesToUser":
@@ -212,11 +232,6 @@ module.exports = {
             // Delegate
             SiteService.handleGetSite(action, req, res, next);
             break;
-          // Get all the site images
-          case "SiteImages":
-            // Delegate
-            SiteService.handleGetSiteImages(action, req, res, next);
-            break;
           // Get one site image
           case "SiteImage":
             // Delegate
@@ -279,11 +294,6 @@ module.exports = {
           case "SiteArea":
             // Delegate
             SiteAreaService.handleGetSiteArea(action, req, res, next);
-            break;
-          // Get all the site area images
-          case "SiteAreaImages":
-            // Delegate
-            SiteAreaService.handleGetSiteAreaImages(action, req, res, next);
             break;
           // Get one site area image
           case "SiteAreaImage":

@@ -32,6 +32,7 @@ class CompanySecurity {
     const filteredRequest = {};
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.WithSites = UtilsSecurity.filterBoolean(request.WithSites);
+    filteredRequest.WithLogo = UtilsSecurity.filterBoolean(request.WithLogo);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;

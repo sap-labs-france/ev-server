@@ -737,7 +737,8 @@ class ChargingStation extends AbstractTenantEntity {
               },
               transaction.getUserJson().locale,
               {
-                'transactionId': transaction.getID()
+                'transactionId': transaction.getID(),
+                'connectorId': transaction.getConnectorId()
               }
             );
           }
@@ -765,7 +766,8 @@ class ChargingStation extends AbstractTenantEntity {
               },
               transaction.getUserJson().locale,
               {
-                'transactionId': transaction.getID()
+                'transactionId': transaction.getID(),
+                'connectorId': transaction.getConnectorId()
               }
             );
           }
@@ -1173,7 +1175,8 @@ class ChargingStation extends AbstractTenantEntity {
         },
         user.getLocale(),
         {
-          'transactionId': transaction.getID()
+          'transactionId': transaction.getID(),
+          'connectorId': transaction.getConnectorId()
         }
       );
       // Log
@@ -1321,7 +1324,8 @@ class ChargingStation extends AbstractTenantEntity {
         },
         user.getLocale(),
         {
-          'transactionId': transaction.getID()
+          'transactionId': transaction.getID(),
+          'connectorId': transaction.getConnectorId()
         }
       );
     }
@@ -1619,6 +1623,14 @@ class ChargingStation extends AbstractTenantEntity {
       Constants.NO_LIMIT);
     // Return list of transactions
     return transactions;
+  }
+
+  static addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs) {
+    return ChargingStationStorage.addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs);
+  }
+
+  static removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs) {
+    return ChargingStationStorage.removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs);
   }
 }
 

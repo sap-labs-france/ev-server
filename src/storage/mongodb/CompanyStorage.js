@@ -188,6 +188,17 @@ class CompanyStorage {
         }
       });
     }
+    if (params.withLogo) {
+      // Add Logo
+      aggregation.push({
+        $lookup: {
+          from: DatabaseUtils.getCollectionName(tenantID, "companylogos"),
+          localField: "_id",
+          foreignField: "_id",
+          as: "companylogos"
+        }
+      });
+    }
     // Count Records
     const companiesCountMDB = await global.database.getCollection(tenantID, 'companies')
       .aggregate([...aggregation, {$count: "count"}])
@@ -229,6 +240,10 @@ class CompanyStorage {
           company.setSites(companyMDB.sites.map((site) => {
             return new Site(tenantID, site);
           }));
+        }
+        // Set logo
+        if (true && companyMDB.companylogos && companyMDB.companylogos[0]) {
+          company.setLogo(companyMDB.companylogos[0].logo);
         }
         // Add
         companies.push(company);

@@ -11,6 +11,28 @@ class ChargingStationSecurity {
     return SiteAreaSecurity;
   }
 
+  // eslint-disable-next-line no-unused-vars
+  static filterAddChargingStationsToSiteAreaRequest(request, loggedUser) {
+    const filteredRequest = {};
+    // Set
+    filteredRequest.siteAreaID = sanitize(request.siteAreaID);
+    if (request.chargingStationIDs) {
+      filteredRequest.chargingStationIDs = request.chargingStationIDs.map(chargingStationID => sanitize(chargingStationID));
+    }
+    return filteredRequest;
+  }
+
+  // eslint-disable-next-line no-unused-vars
+  static filterRemoveChargingStationsFromSiteAreaRequest(request, loggedUser) {
+    const filteredRequest = {};
+    // Set
+    filteredRequest.siteAreaID = sanitize(request.siteAreaID);
+    if (request.chargingStationIDs) {
+      filteredRequest.chargingStationIDs = request.chargingStationIDs.map(chargingStationID => sanitize(chargingStationID));
+    }
+    return filteredRequest;
+  }
+
   // Charging Station
   static filterChargingStationResponse(chargingStation, loggedUser) {
     let filteredChargingStation;

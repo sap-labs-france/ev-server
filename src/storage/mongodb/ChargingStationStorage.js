@@ -23,7 +23,7 @@ class ChargingStationStorage {
       }
     });
     // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Add
     aggregation.push({
       $lookup: {
@@ -35,7 +35,7 @@ class ChargingStationStorage {
     });
     // Add
     aggregation.push({
-      $unwind: {"path": "$siteArea", "preserveNullAndEmptyArrays": true}
+      $unwind: { "path": "$siteArea", "preserveNullAndEmptyArrays": true }
     });
     // Read DB
     const chargingStationMDB = await global.database.getCollection(tenantID, 'chargingstations')
@@ -95,9 +95,9 @@ class ChargingStationStorage {
       // Build filter
       filters.$and.push({
         "$or": [
-          {"_id": {$regex: params.search, $options: 'i'}},
-          {"chargePointModel": {$regex: params.search, $options: 'i'}},
-          {"chargePointVendor": {$regex: params.search, $options: 'i'}}
+          { "_id": { $regex: params.search, $options: 'i' } },
+          { "chargePointModel": { $regex: params.search, $options: 'i' } },
+          { "chargePointVendor": { $regex: params.search, $options: 'i' } }
         ]
       });
     }
@@ -126,7 +126,7 @@ class ChargingStationStorage {
       });
       // Single Record
       aggregation.push({
-        $unwind: {"path": "$siteArea", "preserveNullAndEmptyArrays": true}
+        $unwind: { "path": "$siteArea", "preserveNullAndEmptyArrays": true }
       });
       // Check Site ID
       if (params.siteID) {
@@ -134,7 +134,7 @@ class ChargingStationStorage {
         filters.$and.push({
           "siteArea.siteID": Utils.convertToObjectID(params.siteID)
         });
-      } 
+      }
       if (params.withSite) {
         // Get the site from the sitearea
         aggregation.push({
@@ -147,7 +147,7 @@ class ChargingStationStorage {
         });
         // Single Record
         aggregation.push({
-          $unwind: {"path": "$site", "preserveNullAndEmptyArrays": true}
+          $unwind: { "path": "$site", "preserveNullAndEmptyArrays": true }
         });
       }
     }
@@ -163,10 +163,10 @@ class ChargingStationStorage {
     });
     // Count Records
     const chargingStationsCountMDB = await global.database.getCollection(tenantID, 'chargingstations')
-      .aggregate([...aggregation, {$count: "count"}])
+      .aggregate([...aggregation, { $count: "count" }])
       .toArray();
     // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (sort) {
       // Sort
@@ -176,7 +176,7 @@ class ChargingStationStorage {
     } else {
       // Default
       aggregation.push({
-        $sort: {_id: 1}
+        $sort: { _id: 1 }
       });
     }
     // Skip
@@ -189,7 +189,7 @@ class ChargingStationStorage {
     });
     // Read DB
     const chargingStationsMDB = await global.database.getCollection(tenantID, 'chargingstations')
-      .aggregate(aggregation, {collation: {locale: Constants.DEFAULT_LOCALE, strength: 2}})
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     const chargingStations = [];
     // Create
@@ -240,12 +240,12 @@ class ChargingStationStorage {
     const result = await global.database.getCollection(tenantID, 'chargingstations').findOneAndUpdate({
       "_id": chargingStationToSave.id
     }, {
-      $set: chargingStation
-    }, 
-    {
-      upsert: true, 
-      new: true, returnOriginal: false
-    });
+        $set: chargingStation
+      },
+      {
+        upsert: true,
+        new: true, returnOriginal: false
+      });
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStation', uniqueTimerID);
     return new ChargingStation(tenantID, result.value);
@@ -263,12 +263,12 @@ class ChargingStationStorage {
     const result = await global.database.getCollection(tenantID, 'chargingstations').findOneAndUpdate({
       "_id": chargingStation.id
     }, {
-      $set: updatedFields
-    }, {
-      upsert: true,
-      new: true,
-      returnOriginal: false
-    });
+        $set: updatedFields
+      }, {
+        upsert: true,
+        new: true,
+        returnOriginal: false
+      });
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStationConnector', uniqueTimerID);
     return new ChargingStation(tenantID, result.value);
@@ -286,12 +286,12 @@ class ChargingStationStorage {
     const result = await global.database.getCollection(tenantID, 'chargingstations').findOneAndUpdate({
       "_id": chargingStation.id
     }, {
-      $set: updatedFields
-    }, {
-      upsert: true,
-      new: true,
-      returnOriginal: false
-    });
+        $set: updatedFields
+      }, {
+        upsert: true,
+        new: true,
+        returnOriginal: false
+      });
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStationHeartBeat', uniqueTimerID);
     return new ChargingStation(tenantID, result.value);
@@ -315,12 +315,12 @@ class ChargingStationStorage {
     const result = await global.database.getCollection(tenantID, 'chargingstations').findOneAndUpdate({
       "_id": chargingStation.id
     }, {
-      $set: updatedFields
-    }, {
-      upsert: true,
-      new: true,
-      returnOriginal: false
-    });
+        $set: updatedFields
+      }, {
+        upsert: true,
+        new: true,
+        returnOriginal: false
+      });
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStationSiteArea', uniqueTimerID);
     // Create
@@ -382,15 +382,15 @@ class ChargingStationStorage {
     await global.database.getCollection(tenantID, 'configurations').findOneAndUpdate({
       "_id": configuration.chargeBoxID
     }, {
-      $set: {
-        configuration: configuration.configuration,
-        timestamp: Utils.convertToDate(configuration.timestamp)
-      }
-    }, {
-      upsert: true, 
-      new: true,
-      returnOriginal: false
-    });
+        $set: {
+          configuration: configuration.configuration,
+          timestamp: Utils.convertToDate(configuration.timestamp)
+        }
+      }, {
+        upsert: true,
+        new: true,
+        returnOriginal: false
+      });
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveConfiguration', uniqueTimerID);
   }
@@ -556,6 +556,52 @@ class ChargingStationStorage {
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getConfiguration', uniqueTimerID);
     return configuration;
+  }
+
+  static async removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'removeChargingStationsFromSiteArea');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Site provided?
+    if (siteAreaID) {
+      // At least one User
+      if (chargingStationIDs && chargingStationIDs.length > 0) {
+        // update all chargers
+        await global.database.getCollection(tenantID, 'chargingstations').updateMany(
+          { $and: [ 
+            { "_id": { $in: chargingStationIDs } },
+            { "siteAreaID": Utils.convertToObjectID(siteAreaID) } ]
+          },
+          { $set: { siteAreaID: null } },
+          { upsert: false, new: true, returnOriginal: false });
+      }
+    }
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'removeChargingStationsFromSiteArea', uniqueTimerID, { siteAreaID, chargingStationIDs });
+  }
+
+  static async addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'addChargingStationsToSiteArea');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Site provided?
+    if (siteAreaID) {
+      // At least one User
+      if (chargingStationIDs && chargingStationIDs.length > 0) {
+        // update all chargers
+        await global.database.getCollection(tenantID, 'chargingstations').updateMany(
+          { $and: [ 
+            { "_id": { $in: chargingStationIDs } },
+            { "siteAreaID": null } ]
+          },
+          { $set: { siteAreaID: Utils.convertToObjectID(siteAreaID) } },
+          { upsert: false, new: true, returnOriginal: false });
+      }
+    }
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'addChargingStationsToSiteArea', uniqueTimerID, { siteAreaID, chargingStationIDs });
   }
 }
 
