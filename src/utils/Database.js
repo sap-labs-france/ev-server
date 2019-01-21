@@ -313,15 +313,15 @@ class Database {
       dest.createdBy = src.createdBy;
       // User model?
       if (typeof dest.createdBy == "object" &&
-          dest.createdBy.constructor.name != "ObjectID") {
+        dest.createdBy.constructor.name != "ObjectID") {
         // Yes
         dest.createdBy = {};
         Database.updateUser(src.createdBy, dest.createdBy);
       } else {
         try {
           dest.createdBy = Utils.convertToObjectID(dest.createdBy);
-      // eslint-disable-next-line no-empty
-      } catch (e) {
+          // eslint-disable-next-line no-empty
+        } catch (e) {
         } // Not an Object ID
       }
     }
@@ -342,7 +342,7 @@ class Database {
       } else {
         try {
           dest.lastChangedBy = Utils.convertToObjectID(dest.lastChangedBy);
-        // eslint-disable-next-line no-empty
+          // eslint-disable-next-line no-empty
         } catch (e) {
         } // Not an Object ID
       }
@@ -373,6 +373,20 @@ class Database {
     dest.email = src.email;
     dest.components = (src.components ? src.components : {});
     Database.updateCreatedAndLastChanged(src, dest);
+  }
+
+  static updateConnection(src, dest, forFrontEnd = true) {
+    dest.connectorId = src.connectorId;
+    dest.createdAt = src.createdAt;
+    dest.updatedAt = src.updatedAt;
+    dest.validUntil = src.validUntil;
+    if (forFrontEnd) {
+      Database.updateID(src, dest);
+      dest.userId = Database.validateId(src.userId);
+    } else {
+      dest.userId = Utils.convertToObjectID(src.userId);
+    }
+    dest.data = src.data;
   }
 
   static updateVehicle(src, dest, forFrontEnd = true) {
@@ -412,11 +426,21 @@ class Database {
     dest.countryCode = src.countryCode;
     dest.partyId = src.partyId;
 
-    if (src.version) { dest.version = src.version; }
-    if (src.businessDetails) { dest.businessDetails = src.businessDetails; }
-    if (src.availableEndpoints) { dest.availableEndpoints = src.availableEndpoints; }
-    if (src.status) { dest.status = src.status; }
-    if (src.versionUrl) { dest.versionUrl = src.versionUrl; }
+    if (src.version) {
+      dest.version = src.version;
+    }
+    if (src.businessDetails) {
+      dest.businessDetails = src.businessDetails;
+    }
+    if (src.availableEndpoints) {
+      dest.availableEndpoints = src.availableEndpoints;
+    }
+    if (src.status) {
+      dest.status = src.status;
+    }
+    if (src.versionUrl) {
+      dest.versionUrl = src.versionUrl;
+    }
 
     Database.updateCreatedAndLastChanged(src, dest);
   }
@@ -524,6 +548,11 @@ class Database {
     dest.connectorId = Utils.convertToInt(src.connectorId);
     dest.meterStart = Utils.convertToInt(src.meterStart);
     dest.tagID = src.tagID;
+    if (!Utils.isEmptyJSon(src.refundData)) {
+      dest.refundData = {};
+      dest.refundData.refundId = src.refundData.refundId;
+      dest.refundData.refundedAt = Utils.convertToDate(src.refundData.refundedAt);
+    }
     dest.timestamp = Utils.convertToDate(src.timestamp);
     dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);
     if (!Utils.isEmptyJSon(src.stop)) {
