@@ -37,7 +37,7 @@ class TransactionService {
           });
           continue;
         }
-        if (transaction.hasRefundId()) {
+        if (transaction.isRefunded()) {
           Logging.logError({
             tenantID: req.user.tenantID,
             user: req.user, actionOnUser: (transaction.getUserJson() ? transaction.getUserJson() : null),

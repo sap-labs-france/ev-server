@@ -183,7 +183,7 @@ class ConcurConnector extends AbstractConnector {
         const chargingStation = await ChargingStation.getChargingStation(transaction.getTenantID(), transaction.getChargeBoxID());
         const locationId = await this.getLocationId(connection, await chargingStation.getSite());
         const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, locationId);
-        transaction.setRefundId(entryId);
+        transaction.setRefundData({refundId: entryId, refundedAt: new Date()});
         await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
         refundedTransactions.push(transaction);
       } catch (e) {

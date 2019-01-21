@@ -112,7 +112,7 @@ class TransactionSecurity {
       filteredTransaction.status = transaction.getChargerStatus();
       filteredTransaction.isLoading = transaction.isLoading();
       filteredTransaction.stateOfCharge = transaction.getStateOfCharge();
-      filteredTransaction.refundId = transaction.getRefundId();
+      filteredTransaction.refundData = transaction.getRefundData();
       // Demo user?
       if (Authorizations.isDemo(loggedUser)) {
         filteredTransaction.tagID = Constants.ANONIMIZED_VALUE;

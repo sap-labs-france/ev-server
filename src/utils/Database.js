@@ -313,15 +313,15 @@ class Database {
       dest.createdBy = src.createdBy;
       // User model?
       if (typeof dest.createdBy == "object" &&
-          dest.createdBy.constructor.name != "ObjectID") {
+        dest.createdBy.constructor.name != "ObjectID") {
         // Yes
         dest.createdBy = {};
         Database.updateUser(src.createdBy, dest.createdBy);
       } else {
         try {
           dest.createdBy = Utils.convertToObjectID(dest.createdBy);
-      // eslint-disable-next-line no-empty
-      } catch (e) {
+          // eslint-disable-next-line no-empty
+        } catch (e) {
         } // Not an Object ID
       }
     }
@@ -342,7 +342,7 @@ class Database {
       } else {
         try {
           dest.lastChangedBy = Utils.convertToObjectID(dest.lastChangedBy);
-        // eslint-disable-next-line no-empty
+          // eslint-disable-next-line no-empty
         } catch (e) {
         } // Not an Object ID
       }
@@ -545,7 +545,11 @@ class Database {
     dest.connectorId = Utils.convertToInt(src.connectorId);
     dest.meterStart = Utils.convertToInt(src.meterStart);
     dest.tagID = src.tagID;
-    dest.refundId = src.refundId;
+    if (!Utils.isEmptyJSon(src.refundData)) {
+      dest.refundData = {};
+      dest.refundData.refundId = src.refundData.refundId;
+      dest.refundData.refundedAt = Utils.convertToDate(src.refundData.refundedAt);
+    }
     dest.timestamp = Utils.convertToDate(src.timestamp);
     dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);
     if (!Utils.isEmptyJSon(src.stop)) {
