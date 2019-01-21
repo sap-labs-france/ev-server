@@ -506,6 +506,9 @@ class TransactionService {
       if (filteredRequest.UserID) {
         filter.userId = filteredRequest.UserID;
       }
+      if (filteredRequest.Type) {
+        filter.type = filteredRequest.Type;
+      }
       let transactions = await TransactionStorage.getTransactions(req.user.tenantID,
         {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
