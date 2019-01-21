@@ -16,6 +16,7 @@ const TenantService = require('./service/TenantService');
 const SettingService = require('./service/SettingService');
 const OCPIEndpointService = require('./service/OCPIEndpointService');
 const NotificationService = require('./service/NotificationService');
+const ConnectorService = require('./service/ConnectorService');
 
 require('source-map-support').install();
 
@@ -138,9 +139,9 @@ module.exports = {
             SiteAreaService.handleCreateSiteArea(action, req, res, next);
             break;
           // Transaction Refund
-          case "TransactionRefund":
+          case "TransactionsRefund":
             // Delegate
-            TransactionService.handleRefundTransaction(action, req, res, next);
+            TransactionService.handleRefundTransactions(action, req, res, next);
             break;
           // Create Setting
           case "SettingCreate":
@@ -161,6 +162,9 @@ module.exports = {
           case "OcpiendpointGenerateLocalToken":
             // Delegate
             OCPIEndpointService.handleGenerateLocalTokenOcpiendpoint(action, req, res, next);
+            break;
+          case "IntegrationConnectionCreate":
+            ConnectorService.handleCreateConnection(action, req, res, next);
             break;
           // Unknown Context
           default:
@@ -415,6 +419,12 @@ module.exports = {
           case "Ocpiendpoint":
             // Delegate
             OCPIEndpointService.handleGetOcpiendpoint(action, req, res, next);
+            break;
+          case "IntegrationConnections":
+            ConnectorService.handleGetConnections(action, req, res, next);
+            break;
+          case "IntegrationConnection":
+            ConnectorService.handleGetConnection(action, req, res, next);
             break;
           // Unknown Action
           default:

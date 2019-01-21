@@ -144,6 +144,16 @@ class TransactionStorage {
     if (params.stop) {
       match.stop = params.stop;
     }
+    if (params.type) {
+      switch (params.type) {
+        case 'refunded':
+          match.refundData = {$exists: true};
+          break;
+        case 'notRefunded':
+          match.refundData = {$exists: false};
+          break;
+      }
+    }
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -199,10 +209,16 @@ class TransactionStorage {
       .toArray();
     // Sort
     if (sort) {
+      if (!sort.hasOwnProperty('timestamp')) {
+        aggregation.push({
+          $sort: {...sort, timestamp: -1}
+        });
+      } else {
+        aggregation.push({
+          $sort: sort
+        });
+      }
       // Sort
-      aggregation.push({
-        $sort: sort
-      });
     } else {
       // Default
       aggregation.push({
@@ -434,7 +450,13 @@ class TransactionStorage {
     };
   }
 
-
+  /**
+   *
+   * @param tenantID
+   * @param id
+   * @param withMeterValues
+   * @returns {Promise<Transaction>}
+   */
   static async getTransaction(tenantID, id) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransaction');
@@ -515,7 +537,7 @@ class TransactionStorage {
       .toArray();
     // Convert to date
     for (const meterValueMDB of meterValuesMDB) {
-      meterValueMDB.timestamp = new Date(meterValueMDB.timestamp); 
+      meterValueMDB.timestamp = new Date(meterValueMDB.timestamp);
     }
     // Sort
     meterValuesMDB.sort((meterValue1, meterValue2) => meterValue1.timestamp.getTime() - meterValue2.timestamp.getTime());
@@ -620,7 +642,10 @@ class TransactionStorage {
       }
     } while (activeTransaction);
     // Debug
-    Logging.traceEnd('TransactionStorage', 'cleanupRemainingActiveTransactions', uniqueTimerID, {chargeBoxId, connectorId});
+    Logging.traceEnd('TransactionStorage', 'cleanupRemainingActiveTransactions', uniqueTimerID, {
+      chargeBoxId,
+      connectorId
+    });
   }
 }
 

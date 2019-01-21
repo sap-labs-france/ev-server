@@ -8,16 +8,16 @@ class AuthorizationsDefinition {
     switch (role) {
       case Constants.ROLE_SUPER_ADMIN:
         return AuthorizationsDefinition.getSuperAdminAuthorizations();
-        // Admin
+      // Admin
       case Constants.ROLE_ADMIN:
         return AuthorizationsDefinition.getAdminAuthorizations();
-        // Basic
+      // Basic
       case Constants.ROLE_BASIC:
         return AuthorizationsDefinition.getBasicAuthorizations();
-        // Demo
+      // Demo
       case Constants.ROLE_DEMO:
         return AuthorizationsDefinition.getDemoAuthorizations();
-        // Default
+      // Default
       default:
         throw new Error(`Unknown Role '${role}'`);
     }
@@ -211,6 +211,18 @@ class AuthorizationsDefinition {
 						"AuthFieldValue": {
 							"OcpiendpointID": "*",
 							"Action": []
+						}
+					},
+					{
+						"AuthObject": "Connections",
+						"AuthFieldValue": {
+							"Action": ["List"]
+						}
+					},
+					{
+						"AuthObject": "Connection",
+						"AuthFieldValue": {
+							"Action": ["Create", "Read", "Update", "Delete"]
 						}
 					}
 				]
@@ -557,6 +569,18 @@ class AuthorizationsDefinition {
 						"AuthFieldValue": {
 							"OcpiendpointID": "*",
 							"Action": ["Create", "Read", "Update", "Delete", "Ping", "GenerateLocalToken", "Register"]
+						}
+					},
+					{
+						"AuthObject": "Connections",
+						"AuthFieldValue": {
+							"Action": ["List"]
+						}
+					},
+					{
+						"AuthObject": "Connection",
+						"AuthFieldValue": {
+							"Action": ["Create", "Read", "Update", "Delete"]
 						}
 					}
 				]

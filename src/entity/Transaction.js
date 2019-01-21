@@ -232,7 +232,7 @@ class Transaction extends AbstractTenantEntity {
   }
 
   hasPrice() {
-    return this.isFinished() && this.getPrice() >= 0; 
+    return this.isFinished() && this.getPrice() >= 0;
   }
 
   async getConsumptions() {
@@ -293,10 +293,10 @@ class Transaction extends AbstractTenantEntity {
           cumulatedConsumption += consumptionWh;
           // Check last Meter Value
           if (consumptions.length > 0 &&
-              consumptions[consumptions.length-1].date.getTime() === meterValue.timestamp.getTime()) {
+            consumptions[consumptions.length - 1].date.getTime() === meterValue.timestamp.getTime()) {
             // Same timestamp: Update the latest
-            consumptions[consumptions.length-1].value = currentConsumption;
-            consumptions[consumptions.length-1].cumulated = cumulatedConsumption;
+            consumptions[consumptions.length - 1].value = currentConsumption;
+            consumptions[consumptions.length - 1].cumulated = cumulatedConsumption;
           } else {
             // Add the consumption
             consumptions.push({
@@ -309,15 +309,15 @@ class Transaction extends AbstractTenantEntity {
             lastMeterValue = meterValue;
           }
         }
-      // Meter Value State of Charge?
+        // Meter Value State of Charge?
       } else if (this.isSocMeterValue(meterValue)) {
         // Set the last SoC
         consumptions.stateOfCharge = meterValue.value;
         // Check last Meter Value
-        if (consumptions.length > 0 && 
-            consumptions[consumptions.length-1].date.getTime() === meterValue.timestamp.getTime()) {
+        if (consumptions.length > 0 &&
+          consumptions[consumptions.length - 1].date.getTime() === meterValue.timestamp.getTime()) {
           // Same timestamp: Update the latest
-          consumptions[consumptions.length-1].stateOfCharge = meterValue.value;
+          consumptions[consumptions.length - 1].stateOfCharge = meterValue.value;
         } else {
           // Add the consumption
           consumptions.push({
@@ -361,9 +361,9 @@ class Transaction extends AbstractTenantEntity {
   }
 
   isConsumptionMeterValue(meterValue) {
-    return !meterValue.attribute || 
+    return !meterValue.attribute ||
       (meterValue.attribute.measurand === 'Energy.Active.Import.Register'
-      && (meterValue.attribute.context === "Sample.Periodic" || meterValue.attribute.context === "Sample.Clock"));
+        && (meterValue.attribute.context === "Sample.Periodic" || meterValue.attribute.context === "Sample.Clock"));
   }
 
   hasMultipleConsumptions() {
@@ -386,10 +386,22 @@ class Transaction extends AbstractTenantEntity {
     return this._model.remotestop;
   }
 
+  getRefundData() {
+    return this._model.refundData;
+  }
+
+  isRefunded() {
+    return this._model.refundData && !!this._model.refundData.refundId;
+  }
+
+  setRefundData(refundData) {
+    this._model.refundData = refundData;
+  }
+
   async startTransaction(user) {
     // Init
     this.setNumberOfMeterValues(0);
-    this.setLastMeterValue({ value: this.getMeterStart(), timestamp: this.getStartDate() })
+    this.setLastMeterValue({value: this.getMeterStart(), timestamp: this.getStartDate()})
     this.setCurrentTotalInactivitySecs(0);
     this.setCurrentStateOfCharge(0);
     this.setStateOfCharge(0);
@@ -408,13 +420,16 @@ class Transaction extends AbstractTenantEntity {
       }
       // Set current
       this.setCurrentStateOfCharge(meterValue.value);
-    // Consumption? 
+      // Consumption?
     } else if (this.isConsumptionMeterValue(meterValue)) {
       // Get the last one
       const lastMeterValue = this.getLastMeterValue();
       // Update
       this.setNumberOfMeterValues(this.getNumberOfMeterValues() + 1);
-      this.setLastMeterValue({ value: Utils.convertToInt(meterValue.value), timestamp: Utils.convertToDate(meterValue.timestamp).toISOString() })
+      this.setLastMeterValue({
+        value: Utils.convertToInt(meterValue.value),
+        timestamp: Utils.convertToDate(meterValue.timestamp).toISOString()
+      })
       // Compute duration
       const diffSecs = moment(meterValue.timestamp).diff(lastMeterValue.timestamp, 'milliseconds') / 1000;
       // Check if the new value is greater
