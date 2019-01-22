@@ -67,6 +67,7 @@ class ChargingStationSecurity {
         filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
         filteredChargingStation.inactive = chargingStation.inactive;
         filteredChargingStation.maximumPower = chargingStation.maximumPower;
+        filteredChargingStation.chargePointVendor = chargingStation.chargePointVendor;
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(
