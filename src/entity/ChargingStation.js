@@ -26,6 +26,12 @@ class ChargingStation extends AbstractTenantEntity {
     Database.updateChargingStation(chargingStation, this._model);
   }
 
+  /**
+   *
+   * @param tenantID
+   * @param id
+   * @returns {Promise<ChargingStation>}
+   */
   static getChargingStation(tenantID, id) {
     return ChargingStationStorage.getChargingStation(tenantID, id);
   }
@@ -72,10 +78,9 @@ class ChargingStation extends AbstractTenantEntity {
 
       case 'SetChargingProfile':
         return this.requestSetChargingProfile(params);
-      
       case 'GetCompositeSchedule':
         return this.requestGetCompositeSchedule(params);
-      
+
       case 'GetDiagnostics':
         return this.requestGetDiagnostics(params);
 
@@ -84,7 +89,7 @@ class ChargingStation extends AbstractTenantEntity {
 
       case 'ChangeAvailability':
         return this.requestChangeAvailability(params);
-      
+
       case 'ClearChargingProfile':
         return this.requestClearChargingProfile(params);
 
@@ -781,7 +786,7 @@ class ChargingStation extends AbstractTenantEntity {
     const totalInactivitySecs = transaction.getTotalInactivitySecs()
     // None?
     if (totalInactivitySecs === 0) {
-      return `0${i18nHourShort}00 (0%)`;      
+      return `0${i18nHourShort}00 (0%)`;
     }
     // Build the inactivity percentage
     const totalInactivityPercent = Math.round((totalInactivitySecs * 100) / transaction.getTotalDurationSecs());
@@ -851,7 +856,7 @@ class ChargingStation extends AbstractTenantEntity {
     // Check Transaction
     if (meterValues.transactionId && parseInt(meterValues.transactionId) === 0) {
       // Wrong Transaction ID!
-      throw new BackendError(this.getID(), 
+      throw new BackendError(this.getID(),
         `Transaction ID must not be equal to '0'`,
         "ChargingStation", "handleMeterValues")
     }
@@ -1204,7 +1209,7 @@ class ChargingStation extends AbstractTenantEntity {
     this.getConnectors().forEach(async (connector) => {
       // Check
       if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
-        // Check OCPP Version 
+        // Check OCPP Version
         if (this.getOcppVersion() === Constants.OCPP_VERSION_15) {
           // Set OCPP 1.5 Occupied
           connector.status = Constants.CONN_STATUS_OCCUPIED;
@@ -1250,7 +1255,7 @@ class ChargingStation extends AbstractTenantEntity {
       // Set all the other connectors to Available
       this.getConnectors().forEach(async (connector) => {
         // Only other Occupied connectors
-        if ((connector.status === Constants.CONN_STATUS_OCCUPIED || 
+        if ((connector.status === Constants.CONN_STATUS_OCCUPIED ||
              connector.status === Constants.CONN_STATUS_UNAVAILABLE) &&
           (connector.connectorId !== connectorId)) {
           // Set connector Available again
@@ -1269,7 +1274,7 @@ class ChargingStation extends AbstractTenantEntity {
     // Found?
     if (!transaction) {
       // Wrong Transaction ID!
-      throw new BackendError(this.getID(), 
+      throw new BackendError(this.getID(),
         `Transaction ID '${stopTransactionData.transactionId}' does not exist`,
         "ChargingStation", "handleStopTransaction")
     }
