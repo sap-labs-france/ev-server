@@ -448,6 +448,49 @@ class ChargingStationService {
     }
   }
 
+  static async handleGetChargingStationsInError(action, req, res, next) {
+    try {
+      // Check auth
+      if (!Authorizations.canListChargingStations(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_CHARGING_STATIONS,
+          null, 560,
+          'ChargingStationService', 'handleGetChargingStationsInError',
+          req.user);
+      }
+      // Filter
+      const filteredRequest = ChargingStationSecurity.filterChargingStationsInErrorRequest(req.query, req.user);
+      // Get the charging Charging Stations
+      const chargingStations = await ChargingStation.getChargingStationsInError(req.user.tenantID,
+        {
+
+          'search': filteredRequest.Search,
+          'withNoSiteArea': filteredRequest.WithNoSiteArea,
+          'withSite': filteredRequest.WithSite,
+          'siteID': filteredRequest.SiteID,
+          'chargeBoxId': filteredRequest.ChargeBoxID,
+          'siteAreaID': filteredRequest.SiteAreaID
+        },
+        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+      // Set
+      chargingStations.result = chargingStations.result.map((chargingStation) => { 
+        const station = chargingStation.getModel();
+        station.errorCode = chargingStation.errorCode;
+        return station; } );
+      // Filter
+      chargingStations.result = ChargingStationSecurity.filterChargingStationsResponse(chargingStations.result, req.user);
+      // Return
+      res.json(chargingStations);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
+
   static async handleAction(action, req, res, next) {
     try {
       // Filter

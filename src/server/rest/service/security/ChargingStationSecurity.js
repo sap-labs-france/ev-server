@@ -135,6 +135,20 @@ class ChargingStationSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
+  static filterChargingStationsInErrorRequest(request, loggedUser) {
+    const filteredRequest = {};
+    filteredRequest.Search = sanitize(request.Search);
+    filteredRequest.WithNoSiteArea = UtilsSecurity.filterBoolean(request.WithNoSiteArea);
+    filteredRequest.SiteID = sanitize(request.SiteID);
+    filteredRequest.WithSite = UtilsSecurity.filterBoolean(request.WithSite);
+    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
+    filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
+  }
+
+  // eslint-disable-next-line no-unused-vars
   static filterChargingStationParamsUpdateRequest(request, loggedUser) {
     // Set
     const filteredRequest = {};
