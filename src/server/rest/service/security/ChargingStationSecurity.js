@@ -67,6 +67,9 @@ class ChargingStationSecurity {
         filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
         filteredChargingStation.inactive = chargingStation.inactive;
         filteredChargingStation.maximumPower = chargingStation.maximumPower;
+        if (chargingStation.siteArea) {
+          filteredChargingStation.siteArea = chargingStation.siteArea;
+        }
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(
