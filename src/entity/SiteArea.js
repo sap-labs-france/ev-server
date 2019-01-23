@@ -67,6 +67,22 @@ class SiteArea extends AbstractTenantEntity {
     return this._model.totalConnectors;
   }
 
+  setAddress(address) {
+    this._model.address = address;
+  }
+
+  getAddress() {
+    return this._model.address;
+  }
+
+  setLatitude(latitude) {
+    this._model.latitude = latitude;
+  }
+
+  getLatitude() {
+    return this._model.latitude;
+  }
+
   setAccessControlEnabled(accessControl) {
     this._model.accessControl = accessControl;
   }

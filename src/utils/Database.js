@@ -479,8 +479,10 @@ class Database {
       dest.siteID = Utils.convertToObjectID(src.siteID);
     }
     dest.name = src.name;
+    dest.address = {};
     dest.maximumPower = src.maximumPower;
     dest.accessControl = src.accessControl;
+    Database.updateAddress(src.address, dest.address)
     Database.updateCreatedAndLastChanged(src, dest);
   }
 

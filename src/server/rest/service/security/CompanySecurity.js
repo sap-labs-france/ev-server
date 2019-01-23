@@ -74,6 +74,7 @@ class CompanySecurity {
         filteredCompany = {};
         filteredCompany.id = company.id;
         filteredCompany.name = company.name;
+        filteredCompany.logo = company.logo;
       }
       if (company.address) {
         filteredCompany.address = UtilsSecurity.filterAddressRequest(company.address, loggedUser);
