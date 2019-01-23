@@ -68,6 +68,7 @@ class ChargingStationSecurity {
         filteredChargingStation.inactive = chargingStation.inactive;
         filteredChargingStation.maximumPower = chargingStation.maximumPower;
         filteredChargingStation.chargePointVendor = chargingStation.chargePointVendor;
+        filteredChargingStation.siteAreaID = chargingStation.siteAreaID;
         if (chargingStation.siteArea) {
           filteredChargingStation.siteArea = chargingStation.siteArea;
         }
