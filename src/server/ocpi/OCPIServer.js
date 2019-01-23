@@ -14,6 +14,7 @@ const Logging = require('../../utils/Logging');
 const Constants = require('../../utils/Constants');
 const OCPIServices = require('./OCPIServices');
 const OCPIErrorHandler = require('./OCPIErrorHandler');
+const ODataServerFactory = require('../odata/ODataServerFactory');
 require('source-map-support').install();
 
 let _ocpiRestConfig;
@@ -69,6 +70,12 @@ class OCPIServer {
     // Register all services in express
     ocpiServices.getOCPIServiceImplementations().forEach(ocpiService => {
       express.use(ocpiService.getPath(), ocpiService.restService.bind(ocpiService));
+    });
+    // TODO: TEST ONLY Register ODATAServer
+    const oDataServerFactory= new ODataServerFactory();
+    const odataServer = oDataServerFactory.getODataServer();
+    express.use('/odata', function (req, res) {
+      odataServer.handle(req, res);
     });
     // Register Error Handler
     express.use(OCPIErrorHandler.errorHandler);
