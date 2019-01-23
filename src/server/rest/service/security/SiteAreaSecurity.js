@@ -65,6 +65,7 @@ class SiteAreaSecurity {
   static _filterSiteAreaRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.name = sanitize(request.name);
+    filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
     filteredRequest.image = sanitize(request.image);
     filteredRequest.maximumPower = sanitize(request.maximumPower);
     filteredRequest.accessControl = UtilsSecurity.filterBoolean(request.accessControl);
@@ -92,6 +93,9 @@ class SiteAreaSecurity {
         filteredSiteArea.name = siteArea.name;
         filteredSiteArea.siteID = siteArea.siteID;
         filteredSiteArea.maximumPower = siteArea.maximumPower;
+      }
+      if (siteArea.hasOwnProperty('address')) {
+        filteredSiteArea.address = UtilsSecurity.filterAddressRequest(siteArea.address, loggedUser);
       }
       if (siteArea.hasOwnProperty("availableChargers")) {
         filteredSiteArea.availableChargers = siteArea.availableChargers;
