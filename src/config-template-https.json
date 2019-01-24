@@ -55,6 +55,16 @@
 			"slf": { "country_id": "FR", "party_id": "SLF" }
 		}
 	},
+	"ODataService": {
+		"protocol": "https",
+		"host": "localhost",
+		"port": 9090,
+		"ssl-key": "ssl/localhost.key",
+		"ssl-cert": "ssl/localhost.cert",
+		"ssl-ca": [],
+		"debug": false,
+		"externalProtocol": "https"
+	},
 	"WSDLEndpoint": {
 		"baseUrl": ""
 	},
