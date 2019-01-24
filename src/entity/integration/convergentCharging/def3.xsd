@@ -1,0 +1,91 @@
+        <!--
+         Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.2.8 svn-revision#13980.
+        -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://schema.statefulcharging.ws.highdeal.com/" xmlns:core="http://schema.ws.highdeal.com/" xmlns:charging="http://schema.charging.ws.highdeal.com/" xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" version="1.0" targetNamespace="http://schema.statefulcharging.ws.highdeal.com/" jaxb:version="2.0">
+    <xs:import namespace="http://schema.ws.highdeal.com/" schemaLocation="def2.xsd"/>
+    <xs:import namespace="http://schema.charging.ws.highdeal.com/" schemaLocation="def1.xsd"/>
+    <xs:element name="activateRequest" type="tns:StatefulActivateRequest"/>
+    <xs:element name="activateResponse" type="tns:StatefulActivateResponse"/>
+    <xs:element name="statefulChargeRequest" type="tns:StatefulChargeRequest"/>
+    <xs:element name="statefulChargeResponse" type="tns:StatefulChargeResponse"/>
+    <xs:element name="getEstimatedPriceRequest" type="tns:StatefulGetEstimatedPriceRequest"/>
+    <xs:element name="getEstimatedPriceResponse" type="tns:StatefulGetEstimatedPriceResponse"/>
+    <xs:element name="blankChargeRequest" type="tns:StatefulBlankChargeRequest"/>
+    <xs:element name="blankChargeResponse" type="tns:StatefulBlankChargeResponse"/>
+    <xs:element name="statefulStartRateRequest" type="tns:StatefulStartRateRequest"/>
+    <xs:element name="statefulStartRateResponse" type="tns:StatefulStartRateResponse"/>
+    <xs:element name="statefulUpdateRateRequest" type="tns:StatefulUpdateRateRequest"/>
+    <xs:element name="statefulUpdateRateResponse" type="tns:StatefulUpdateRateResponse"/>
+    <xs:element name="statefulStopRateRequest" type="tns:StatefulStopRateRequest"/>
+    <xs:element name="statefulStopRateResponse" type="tns:StatefulStopRateResponse"/>
+    <xs:complexType name="StatefulActivateRequest">
+        <xs:complexContent>
+            <xs:extension base="charging:ActivateRequest"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="StatefulActivateResponse">
+        <xs:complexContent>
+            <xs:extension base="charging:ActivateResponse"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="StatefulChargeRequest">
+        <xs:complexContent>
+            <xs:extension base="charging:ChargingRequest"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="StatefulChargeResponse">
+        <xs:complexContent>
+            <xs:extension base="charging:ChargingResponse"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="StatefulGetEstimatedPriceRequest">
+        <xs:complexContent>
+            <xs:extension base="charging:ChargingRequest"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="StatefulGetEstimatedPriceResponse">
+        <xs:complexContent>
+            <xs:extension base="charging:ChargingResponse"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="StatefulBlankChargeRequest">
+        <xs:complexContent>
+            <xs:extension base="charging:BlankChargingRequest"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="StatefulBlankChargeResponse">
+        <xs:complexContent>
+            <xs:extension base="charging:ChargingResponse"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="StatefulStartRateRequest">
+        <xs:complexContent>
+            <xs:extension base="charging:StartRateRequest"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="StatefulStartRateResponse">
+        <xs:complexContent>
+            <xs:extension base="charging:StartRateResponse"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="StatefulUpdateRateRequest">
+        <xs:complexContent>
+            <xs:extension base="charging:UpdateRateRequest"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="StatefulUpdateRateResponse">
+        <xs:complexContent>
+            <xs:extension base="charging:UpdateRateResponse"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="StatefulStopRateRequest">
+        <xs:complexContent>
+            <xs:extension base="charging:StopRateRequest"/>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="StatefulStopRateResponse">
+        <xs:complexContent>
+            <xs:extension base="charging:StopRateResponse"/>
+        </xs:complexContent>
+    </xs:complexType>
+</xs:schema>

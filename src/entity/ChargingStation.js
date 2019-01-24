@@ -16,6 +16,8 @@ const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorag
 const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const TransactionStorage = require('../storage/mongodb/TransactionStorage');
 const momentDurationFormatSetup = require("moment-duration-format");
+const SettingStorage = require("../storage/mongodb/SettingStorage");
+const ConvergentCharging = require("./integration/convergentCharging/ConvergentCharging");
 momentDurationFormatSetup(moment);
 const _configChargingStation = Configuration.getChargingStationConfig();
 
@@ -38,6 +40,14 @@ class ChargingStation extends AbstractTenantEntity {
 
   static getChargingStations(tenantID, params, limit, skip, sort) {
     return ChargingStationStorage.getChargingStations(tenantID, params, limit, skip, sort)
+  }
+
+  static addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs) {
+    return ChargingStationStorage.addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs);
+  }
+
+  static removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs) {
+    return ChargingStationStorage.removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs);
   }
 
   handleAction(action, params = {}) {
@@ -742,7 +752,7 @@ class ChargingStation extends AbstractTenantEntity {
               }
             );
           }
-        // Check the SoC (Optimal Charge)
+          // Check the SoC (Optimal Charge)
         } else if (_configChargingStation.notifBeforeEndOfChargeEnabled &&
           transaction.getCurrentStateOfCharge() >= _configChargingStation.notifBeforeEndOfChargePercent) {
           // Notify User?
@@ -944,7 +954,7 @@ class ChargingStation extends AbstractTenantEntity {
         action: 'MeterValues', message: `MeterValue not saved (not linked to a Transaction)`,
         detailedMessages: meterValues
       });
-    // No Values
+      // No Values
     } else if (newMeterValues.values.length == 0) {
       Logging.logDebug({
         tenantID: this.getTenantID(),
@@ -952,7 +962,7 @@ class ChargingStation extends AbstractTenantEntity {
         action: 'MeterValues', message: `No MeterValue to save (clocks only)`,
         detailedMessages: meterValues
       });
-    // Process values
+      // Process values
     } else {
       // Save Meter Values
       await TransactionStorage.saveMeterValues(this.getTenantID(), newMeterValues);
@@ -966,6 +976,8 @@ class ChargingStation extends AbstractTenantEntity {
       await this.updateChargingStationConsumption(transaction);
       // Save Charging Station
       await this.save();
+      const convergentCharging = new ConvergentCharging(transaction.getTenantID());
+      convergentCharging.updateTransaction(transaction);
       // Log
       Logging.logInfo({
         tenantID: this.getTenantID(),
@@ -1142,6 +1154,9 @@ class ChargingStation extends AbstractTenantEntity {
     await TransactionStorage.cleanupRemainingActiveTransactions(this.getTenantID(), this.getID(), transaction.getConnectorId());
     // Save it
     transaction = await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
+    const convergentCharging = new ConvergentCharging(transaction.getTenantID());
+    convergentCharging.startTransaction(transaction);
+
     // Lock the other connectors?
     if (!this.canChargeInParallel()) {
       // Yes
@@ -1252,7 +1267,7 @@ class ChargingStation extends AbstractTenantEntity {
       this.getConnectors().forEach(async (connector) => {
         // Only other Occupied connectors
         if ((connector.status === Constants.CONN_STATUS_OCCUPIED ||
-             connector.status === Constants.CONN_STATUS_UNAVAILABLE) &&
+          connector.status === Constants.CONN_STATUS_UNAVAILABLE) &&
           (connector.connectorId !== connectorId)) {
           // Set connector Available again
           connector.status = Constants.CONN_STATUS_AVAILABLE;
@@ -1300,6 +1315,8 @@ class ChargingStation extends AbstractTenantEntity {
     await transaction.stopTransaction(user, tagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp));
     // Save Transaction
     transaction = await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
+    const convergentCharging = new ConvergentCharging(transaction.getTenantID());
+    convergentCharging.stopTransaction(transaction);
     // Notify User
     if (user) {
       // Send Notification
@@ -1623,14 +1640,6 @@ class ChargingStation extends AbstractTenantEntity {
       Constants.NO_LIMIT);
     // Return list of transactions
     return transactions;
-  }
-
-  static addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs) {
-    return ChargingStationStorage.addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs);
-  }
-
-  static removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs) {
-    return ChargingStationStorage.removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs);
   }
 }
 
