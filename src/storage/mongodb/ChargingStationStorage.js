@@ -262,28 +262,30 @@ class ChargingStationStorage {
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
     // Create Aggregation
-    let aggregation = [];
+    const aggregation = [];
+    let siteAreaIdJoin = null;
+    let siteAreaJoin = null;
     // Set the filters
-    const filters = {
-      "$and": [{
-        "$or": [{
-            "deleted": {
-              $exists: false
+    const basicFilters = {
+        $and: [{
+          $or: [{
+              "deleted": {
+                $exists: false
+              }
+            },
+            {
+              "deleted": null
+            },
+            {
+              "deleted": false
             }
-          },
-          {
-            "deleted": null
-          },
-          {
-            "deleted": false
-          }
-        ]
-      }]
+          ]
+        }]
     };
     // Source?
     if (params.search) {
       // Build filter
-      filters.$and.push({
+      basicFilters.$and.push({
         "$or": [{
             "_id": {
               $regex: params.search,
@@ -308,187 +310,112 @@ class ChargingStationStorage {
     // Source?
     if (params.siteAreaID) {
       // Build filter
-      filters.$and.push({
+      basicFilters.$and.push({
         "siteAreaID": Utils.convertToObjectID(params.siteAreaID)
       });
     }
     // With no Site Area
     if (params.withNoSiteArea) {
       // Build filter
-      filters.$and.push({
+      basicFilters.$and.push({
         "siteAreaID": null
       });
     } else {
+
       // Always get the Site Area
-      aggregation.push({
+      siteAreaIdJoin = [{
         $lookup: {
           from: DatabaseUtils.getCollectionName(tenantID, "siteareas"),
           localField: "siteAreaID",
           foreignField: "_id",
           as: "siteArea"
-        }
-      });
-      // Single Record
-      aggregation.push({
-        $unwind: {
+        }},
+        { $unwind: {
           "path": "$siteArea",
           "preserveNullAndEmptyArrays": true
-        }
-      });
+        }}]
+      }
       // Check Site ID
       if (params.siteID) {
         // Build filter
-        filters.$and.push({
+        basicFilters.$and.push({
           "siteArea.siteID": Utils.convertToObjectID(params.siteID)
         });
       }
       if (params.withSite) {
         // Get the site from the sitearea
-        aggregation.push({
+        siteAreaJoin = [{
           $lookup: {
             from: DatabaseUtils.getCollectionName(tenantID, "sites"),
             localField: "siteArea.siteID",
             foreignField: "_id",
             as: "site"
-          }
-        });
-        // Single Record
-        aggregation.push({
+          }}, {
           $unwind: {
             "path": "$site",
             "preserveNullAndEmptyArrays": true
-          }
-        });
-      }
+          }}
+          ]
     }
     if (params.chargeBoxId) {
       // Build filter
-      filters.$and.push({
+      basicFilters.$and.push({
         "_id": params.chargeBoxId
       });
     }
     // Filters
     aggregation.push({
-      $match: filters
+      $match: basicFilters
     });
-    // Error cases
-    const inactiveDate = new Date(new Date().getTime() - 5*60*1000);
+    // Build facets meaning each different error scenario
+    const inactiveDate = new Date(new Date().getTime() - 3 * 60 * 1000);
     const facets = {
-      "$facet" : {
-        missingSettings: 
-          [{
-            $match: {
-              "$or": [
-                {
-                  "maximumPower": {
-                    "$exists": false
-                  }
-                },
-                {
-                  maximumPower: {
-                    $lte: 0
-                  }
-                },
-                {
-                  maximumPower: null
-                },
-                {
-                  "chargePointModel": {
-                    "$exists": false
-                  }
-                },
-                {
-                  chargePointModel: {
-                    $eq: ""
-                  }
-                },
-                {
-                  "chargePointVendor": {
-                    "$exists": false
-                  }
-                },
-                {
-                  chargePointVendor: {
-                    $eq: ""
-                  }
-                },
-                {
-                  "numberOfConnectedPhase": {
-                    "$exists": false
-                  }
-                },
-                {
-                  "numberOfConnectedPhase": null
-                },
-                {
-                  numberOfConnectedPhase: {
-                    $nin: [1,3] 
-                  }
-                },
-                {
-                  "powerLimitUnit": {
-                    "$exists": false
-                  }
-                },
-                {
-                  "powerLimitUnit": null
-                },
-                {
-                  powerLimitUnit: {
-                    $nin: ['A','W'] 
-                  }
-                },
-                {
-                  "chargingStationURL": {
-                    "$exists": false
-                  }
-                },
-                {
-                  "chargingStationURL": null
-                },
-                {
-                  chargingStationURL: {
-                    $eq: ""
-                  }
-                },
-                {
-                  "cannotChargeInParallel": {
-                    "$exists": false
-                  }
-                },
-                {
-                  "cannotChargeInParallel": null
-                }
-              ]
-
-            }
-          }, ...aggregation],
-        missingSiteArea: 
-          [{
-            $match: {
-              "$or": [
-                {
-                  "siteAreaID": {
-                    "$exists": false
-                  }
-                },
-                {
-                  siteAreaID: null
-                }
-              ]
-            }
-          }, ...aggregation],
-        connectionBroken: 
-          [{
-            $match: {
-              "lastHeartBeat": {$lte: inactiveDate}
-            }
-          }, ...aggregation]
-        
+      "$facet":
+        {
+          "missingSettings":
+            [{$match:{$or:[
+              {"maximumPower":{$exists:false}},{"maximumPower":{$lte:0}},{"maximumPower":null},
+              {"chargePointModel":{$exists:false}},{"chargePointModel":{$eq:""}},
+              {"chargePointVendor":{$exists:false}},{"chargePointVendor":{$eq:""}},
+              {"numberOfConnectedPhase":{$exists:false}},{"numberOfConnectedPhase":null},{"numberOfConnectedPhase":{$nin:[1,3]}},
+              {"powerLimitUnit":{$exists:false}},{"powerLimitUnit":null},{"powerLimitUnit":{$nin:["A","W"]}},
+              {"chargingStationURL":{$exists:false}},{"chargingStationURL":null},{"chargingStationURL":{$eq:""}},
+              {"cannotChargeInParallel":{$exists:false}},{"cannotChargeInParallel":null},
+              {"connectors.type":{$exists:false}},{"connectors.type":null},{"connectors.type":{$eq:""}},
+              {"connectors.power":{$exists:false}},{"connectors.power":null},{"connectors.power":{$lte:0}}
+            ]}},
+            {$addFields: {"errorCode":"missingSettings"}}
+            ],
+          "missingSiteArea":[
+            {$match:{$or:[{"siteAreaID":{$exists:false}},{"siteAreaID":null}]}},
+            {$addFields: {"errorCode":"missingSiteArea"}}
+          ],
+          "connectionBroken":[
+            {$match:{"lastHeartBeat":{$lte:inactiveDate}}},
+            {$addFields: {"errorCode":"connectionBroken"}}
+          ],
+          "connectorError":[
+            {$match:{$or:[{"connectors.errorCode": {$ne: "NoError"}}]}},
+            {$addFields: {"errorCode":"connectorError"}}
+          ]
+        }
+    };
+    // merge in each facet the join for sitearea and siteareaid
+    for (const facet in facets.$facet) {
+      if (siteAreaIdJoin) {
+        facets.$facet[facet] = [...facets.$facet[facet], ...siteAreaIdJoin];
+      }
+      if (siteAreaJoin) {
+        facets.$facet[facet] = [...facets.$facet[facet], ...siteAreaJoin];
       }
     };
-    aggregation = [facets];
-    console.log(JSON.stringify(aggregation));
+    aggregation.push(facets);
+    // Manipulate the results to convert it to an array of document on root level
+    aggregation.push({$project: { "allItems": { $concatArrays: [ "$missingSettings", "$connectionBroken", "$missingSiteArea", "$connectorError" ] } } });
+    aggregation.push({"$unwind":{"path":"$allItems"}});
+    aggregation.push({$replaceRoot:{newRoot:"$allItems"}});
+    // Add a unique identifier as we may have the same charger several time
+    aggregation.push({$addFields: {"uniqueId":{$concat:["$_id","#", "$errorCode"]}}});
     // Count Records
     const chargingStationsCountMDB = await global.database.getCollection(tenantID, 'chargingstations')
       .aggregate([...aggregation, {
@@ -496,40 +423,29 @@ class ChargingStationStorage {
       }])
       .toArray();
     // Add Created By / Last Changed By
-    //DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (sort) {
       // Sort
-      for (const facet in facets.$facet) {
-        facets.$facet[facet].push({
-          $sort: sort
-        });
-      }
-      
+      aggregation.push({
+        $sort: sort
+      });
     } else {
       // Default
-      for (const facet in facets.$facet) {
-        facets.$facet[facet].push({
-          $sort: {
-            _id: 1
-          }
-        });
-      }
+      aggregation.push({
+        $sort: {
+          _id: 1
+        }
+      });
     }
     // Skip
-    for (const facet in facets.$facet) {
-      facets.$facet[facet].push({
-        $skip: skip
-      });
-    }
+    aggregation.push({
+      $skip: skip
+    });
     // Limit
-    for (const facet in facets.$facet) {
-      facets.$facet[facet].push({
-        $limit: limit
-      });
-    }
-    aggregation = [facets];
-    console.log(JSON.stringify(aggregation));
+    aggregation.push({
+      $limit: limit
+    });
     // Read DB
     const chargingStationsFacetMDB = await global.database.getCollection(tenantID, 'chargingstations')
       .aggregate(aggregation, {
@@ -539,42 +455,33 @@ class ChargingStationStorage {
         }
       })
       .toArray();
-    const chargingStations = [];
-    // Loop over facet
-    for (const chargingStationFacetMDB of chargingStationsFacetMDB) {      
-      // loop over facet object
-      for (const facet in chargingStationFacetMDB) {
-        for (const chargingStationMDB of chargingStationFacetMDB[facet]) {
-          let chargingStation = chargingStations.find((station) => station._id === chargingStationMDB._id);
-//          if (chargingStation) {
-//            chargingStation.errorCode.push[facet];
-//          } else {
-            // Create the Charger
-            chargingStation = new ChargingStation(tenantID, chargingStationMDB);
-            chargingStation.errorCode = facet;
-            // Add the Site Area?
-            if (chargingStationMDB.siteArea) {
-              const siteArea = new SiteArea(tenantID, chargingStationMDB.siteArea)
-              // Set
-              chargingStation.setSiteArea(siteArea);
-              if (chargingStationMDB.site) {
-                // Add site
-                siteArea.setSite(new Site(tenantID, chargingStationMDB.site));
-              }
-            }
-            // Add
-            chargingStations.push(chargingStation);
-//          }
+      const chargingStations = [];
+      // Create
+      for (const chargingStationMDB of chargingStationsFacetMDB) {
+        // Create the Charger
+        const chargingStation = new ChargingStation(tenantID, chargingStationMDB)
+        chargingStation.errorCode = chargingStationMDB.errorCode;
+        chargingStation.uniqueId = chargingStationMDB.uniqueId;
+        // Add the Site Area?
+        if (chargingStationMDB.siteArea) {
+          const siteArea = new SiteArea(tenantID, chargingStationMDB.siteArea)
+          // Set
+          chargingStation.setSiteArea(siteArea);
+          if (chargingStationMDB.site) {
+            // Add site
+            siteArea.setSite(new Site(tenantID, chargingStationMDB.site));
+          }
         }
+        // Add
+        chargingStations.push(chargingStation);
       }
-    }
-    // Debug
-    Logging.traceEnd('ChargingStationStorage', 'getChargingStations', uniqueTimerID);
-    // Ok
-    return {
-      count: (chargingStationsCountMDB.length > 0 ? chargingStationsCountMDB[0].count : 0),
-      result: chargingStations
-    };
+      // Debug
+      Logging.traceEnd('ChargingStationStorage', 'getChargingStations', uniqueTimerID);
+      // Ok
+      return {
+        count: (chargingStationsCountMDB.length > 0 ? chargingStationsCountMDB[0].count : 0),
+        result: chargingStations
+      };
   }
 
   static async saveChargingStation(tenantID, chargingStationToSave) {

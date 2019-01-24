@@ -478,6 +478,7 @@ class ChargingStationService {
       chargingStations.result = chargingStations.result.map((chargingStation) => { 
         const station = chargingStation.getModel();
         station.errorCode = chargingStation.errorCode;
+        station.uniqueId = chargingStation.uniqueId;
         return station; } );
       // Filter
       chargingStations.result = ChargingStationSecurity.filterChargingStationsResponse(chargingStations.result, req.user);
