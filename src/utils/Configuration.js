@@ -94,6 +94,19 @@ class Configuration {
     return ocpiService;
   }
 
+  // OData Server Configuration
+  static getODataServiceConfig() {
+    const oDataservice = Configuration.getConfig().ODataService;
+    // Check Cloud Foundry
+    if (oDataservice && Configuration.isCloudFoundry()) {
+      // CF Environment: Override
+      oDataservice.port = _appEnv.port;
+      oDataservice.host = _appEnv.bind;
+    }
+    // Read conf
+    return oDataservice;
+  }
+
   // Central System REST config
   static getWSDLEndpointConfig() {
     return Configuration.getConfig().WSDLEndpoint;

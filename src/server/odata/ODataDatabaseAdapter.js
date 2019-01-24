@@ -1,4 +1,5 @@
 const ODataTransactions = require('./odata-entities/ODataTransactions');
+const oDataBootNotifications = require('./odata-entities/ODataBootNotifications');
 const oDataModel = require('./odata-model');
 
 
@@ -12,8 +13,11 @@ class ODataDatabaseAdapter {
       case 'Transactions':  
         ODataTransactions.query(query, req, cb);
         break;
+      case 'BootNotifications':
+        oDataBootNotifications.query(query, req, cb);
+        break;
       default:
-        cb(null, 'test');
+        cb('Invalid Entity');
     }
     
   }
