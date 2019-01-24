@@ -401,6 +401,7 @@ class ChargingStationStorage {
         }
     };
     // merge in each facet the join for sitearea and siteareaid
+    const project = [];
     for (const facet in facets.$facet) {
       if (siteAreaIdJoin) {
         facets.$facet[facet] = [...facets.$facet[facet], ...siteAreaIdJoin];
@@ -408,10 +409,11 @@ class ChargingStationStorage {
       if (siteAreaJoin) {
         facets.$facet[facet] = [...facets.$facet[facet], ...siteAreaJoin];
       }
+      project.push(`$${facet}`);
     };
     aggregation.push(facets);
     // Manipulate the results to convert it to an array of document on root level
-    aggregation.push({$project: { "allItems": { $concatArrays: [ "$missingSettings", "$connectionBroken", "$missingSiteArea", "$connectorError" ] } } });
+    aggregation.push({$project: { "allItems": { $concatArrays: project } } });
     aggregation.push({"$unwind":{"path":"$allItems"}});
     aggregation.push({$replaceRoot:{newRoot:"$allItems"}});
     // Add a unique identifier as we may have the same charger several time
