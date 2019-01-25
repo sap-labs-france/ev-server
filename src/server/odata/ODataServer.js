@@ -13,6 +13,7 @@ const Configuration = require('../../utils/Configuration');
 const Logging = require('../../utils/Logging');
 const Constants = require('../../utils/Constants');
 const ODataServerFactory = require('../odata/ODataServerFactory');
+const ODataSchema = require('./odata-schema/ODataSchema');
 require('source-map-support').install();
 
 let _oDataServerConfig;
@@ -62,11 +63,13 @@ class ODataServer {
       express.use(CFLog.logNetwork);
     }
     //  Register ODATAServer
-    const oDataServerFactory= new ODataServerFactory();
+    const oDataServerFactory = new ODataServerFactory();
     const odataServer = oDataServerFactory.getODataServer();
-    express.use('/odata', function (req, res) {
-      odataServer.handle(req, res);
-    });
+    express.use('/odata',
+      ODataSchema.getSchema,
+      function (req, res) {
+        odataServer.handle(req, res);
+      });
     // Register Error Handler
     // express.use(OCPIErrorHandler.errorHandler);
   }
