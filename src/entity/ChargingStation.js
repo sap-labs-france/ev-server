@@ -1120,7 +1120,7 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   getTransaction(transactionId) {
-    // Get the tranasction first (to get the connector id)
+    // Get the transaction first (to get the connector id)
     return TransactionStorage.getTransaction(this.getTenantID(), transactionId);
   }
 
