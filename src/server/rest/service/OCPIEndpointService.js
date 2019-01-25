@@ -269,6 +269,39 @@ class OCPIEndpointService {
     }
   }
 
+  static async handleSendEVSEStatusesOcpiendpoint(action, req, res, next) {
+    try {
+      // Check auth
+      if (!Authorizations.canSendEVSEStatusesOcpiendpoint(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_SEND_EVSE_STATUSE,
+          Constants.ENTITY_OCPIENDPOINT,
+          null,
+          560,
+          'OCPIEndpointService', 'handleSendEVSEStatusesOcpiendpoint',
+          req.user);
+      }
+      // Filter
+      const filteredRequest = OCPIEndpointSecurity.filterOcpiendpointSendEVSEStatusesRequest(req.body, req.user);
+      // Check Mandatory fields
+      OCPIEndpoint.checkIfOcpiendpointValid(filteredRequest, req);
+      // get ocpiendpoint
+      const ocpiendpoint = await OCPIEndpoint.getOcpiendpoint(req.user.tenantID, filteredRequest.id);
+      // build OCPI Client
+      const ocpiClient = new OCPIClient(ocpiendpoint);
+      // send EVSE statuses
+      const sendResult = await ocpiClient.sendEVSEStatuses();
+      // return result
+      res.json(sendResult);
+
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
   static async handleRegisterOcpiendpoint(action, req, res, next) {
     try {
       // Filter
