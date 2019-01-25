@@ -158,6 +158,11 @@ module.exports = {
             // Delegate
             OCPIEndpointService.handlePingOcpiendpoint(action, req, res, next);
             break;
+          // SendEVSEStatuses to Ocpiendpoint
+          case "OcpiendpointSendEVSEStatuses":
+            // Delegate
+            OCPIEndpointService.handleSendEVSEStatusesOcpiendpoint(action, req, res, next);
+            break;
           // Generate Local Token Ocpiendpoint
           case "OcpiendpointGenerateLocalToken":
             // Delegate

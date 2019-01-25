@@ -553,6 +553,12 @@ class Authorizations {
       {"Action": Constants.ACTION_PING});
   }
 
+  static canSendEVSEStatusesOcpiendpoint(loggedUser) {
+    // Check
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
+      {"Action": Constants.ACTION_SEND_EVSE_STATUSE});
+  }
+  
   static canRegisterOcpiendpoint(loggedUser, ocpiendpoint) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,

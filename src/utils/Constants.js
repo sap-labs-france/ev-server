@@ -92,6 +92,7 @@ module.exports = {
   ACTION_UNLOCK_CONNECTOR: "UnlockConnector",
   ACTION_GET_CONFIGURATION: "GetConfiguration",
   ACTION_PING: "Ping",
+  ACTION_SEND_EVSE_STATUSE: "SendEVSEStatuses",
   ACTION_REGISTER: "Register",
   ACTION_GENERATE_LOCAL_TOKEN: "GenerateLocalToken",
 
