@@ -718,6 +718,95 @@ class ChargingStationStorage {
     Logging.traceEnd('ChargingStationStorage', 'saveBootNotification', uniqueTimerID);
   }
 
+  static async getBootNotifications(tenantID, params = {}, limit, skip, sort) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getBootNotifications');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
+    // Check Limit
+    limit = Utils.checkRecordLimit(limit);
+    // Check Skip
+    skip = Utils.checkRecordSkip(skip);
+    // Create Aggregation
+    const aggregation = [];
+    // Set the filters
+    const filters = {
+      "$and": [{
+        "$or": [
+          {
+            "deleted": {
+              $exists: false
+            }
+          },
+          {
+            "deleted": null
+          },
+          {
+            "deleted": false
+          }
+        ]
+      }]
+    };
+      
+    if (params.chargeBoxId) {
+      // Build filter
+      filters.$and.push({
+        "_id": params.chargeBoxId
+      });
+    }
+    // Filters
+    aggregation.push({
+      $match: filters
+    });
+    // Count Records
+    const bootNotificationsCountMDB = await global.database.getCollection(tenantID, 'bootnotifications')
+      .aggregate([...aggregation, { $count: "count" }])
+      .toArray();
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Sort
+    if (sort) {
+      // Sort
+      aggregation.push({
+        $sort: sort
+      });
+    } else {
+      // Default
+      aggregation.push({
+        $sort: { _id: 1 }
+      });
+    }
+    // Skip
+    aggregation.push({
+      $skip: skip
+    });
+    // Limit
+    aggregation.push({
+      $limit: limit
+    });
+    // Read DB
+    const bootNotificationsMDB = await global.database.getCollection(tenantID, 'bootnotifications')
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .toArray();
+    const bootNotifications = [];
+    // Create
+    for (const bootNotificationMDB of bootNotificationsMDB) {
+      // Create the Charger
+      // const chargingStation = new ChargingStation(tenantID, chargingStationMDB)
+
+      // Add
+      bootNotifications.push(bootNotificationMDB);
+    }
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'getBootNotifications', uniqueTimerID);
+    // Ok
+    return {
+      count: (bootNotificationsCountMDB.length > 0 ? bootNotificationsCountMDB[0].count : 0),
+      result: bootNotifications
+    };
+  }
+
   static async saveDiagnosticsStatusNotification(tenantID, diagnosticsStatusNotification) {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveDiagnosticsStatusNotification');
