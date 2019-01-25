@@ -207,6 +207,9 @@ class Authorizations {
       // No control
       return null;
     }
+    let alternateUser;
+    // User -------------------------------------------------
+    const user = await Authorizations.getOrCreateUserByTagID(chargingStation, siteArea, tagID, action);
     // Site -----------------------------------------------------
     const site = await siteArea.getSite(null, true);
     if (!site) {
@@ -217,9 +220,6 @@ class Authorizations {
         "Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
         user.getModel());
     }
-    let user, alternateUser;
-    // User -------------------------------------------------
-    user = await Authorizations.getOrCreateUserByTagID(chargingStation, siteArea, tagID, action);
     // Get and Check Alternate User
     if (alternateTagID) {
       alternateUser = await Authorizations.getOrCreateUserByTagID(chargingStation, siteArea, alternateTagID, action);
