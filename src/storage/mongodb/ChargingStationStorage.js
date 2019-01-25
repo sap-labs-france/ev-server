@@ -257,6 +257,7 @@ class ChargingStationStorage {
     const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
     const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
     const Site = require('../../entity/Site'); // Avoid fucking circular deps!!!
+    const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -386,20 +387,23 @@ class ChargingStationStorage {
             ]}},
             {$addFields: {"errorCode":"missingSettings"}}
             ],
-          "missingSiteArea":[
-            {$match:{$or:[{"siteAreaID":{$exists:false}},{"siteAreaID":null}]}},
-            {$addFields: {"errorCode":"missingSiteArea"}}
-          ],
           "connectionBroken":[
             {$match:{"lastHeartBeat":{$lte:inactiveDate}}},
             {$addFields: {"errorCode":"connectionBroken"}}
           ],
           "connectorError":[
-            {$match:{$or:[{"connectors.errorCode": {$ne: "NoError"}}]}},
+            {$match:{$or:[{"connectors.errorCode": {$ne: "NoError"}}, {"connectors.status": {$eq: "Faulted"}}]}},
             {$addFields: {"errorCode":"connectorError"}}
           ]
         }
     };
+    if ((await Tenant.getTenant(tenantID)).isComponentActive(Constants.COMPONENTS.ORGANIZATION)) {
+      // Add facet for missing Site Area ID
+      facets.$facet.missingSiteArea = [
+        {$match:{$or:[{"siteAreaID":{$exists:false}},{"siteAreaID":null}]}},
+        {$addFields: {"errorCode":"missingSiteArea"}}
+      ]
+    }
     // merge in each facet the join for sitearea and siteareaid
     const project = [];
     for (const facet in facets.$facet) {
@@ -410,7 +414,7 @@ class ChargingStationStorage {
         facets.$facet[facet] = [...facets.$facet[facet], ...siteAreaJoin];
       }
       project.push(`$${facet}`);
-    };
+    }
     aggregation.push(facets);
     // Manipulate the results to convert it to an array of document on root level
     aggregation.push({$project: { "allItems": { $concatArrays: project } } });
@@ -461,9 +465,10 @@ class ChargingStationStorage {
       // Create
       for (const chargingStationMDB of chargingStationsFacetMDB) {
         // Create the Charger
-        const chargingStation = new ChargingStation(tenantID, chargingStationMDB)
-        chargingStation.errorCode = chargingStationMDB.errorCode;
-        chargingStation.uniqueId = chargingStationMDB.uniqueId;
+        const chargingStation = new ChargingStation(tenantID, chargingStationMDB);
+        //enhance model with error info
+        chargingStation.getModel().errorCode = chargingStationMDB.errorCode;
+        chargingStation.getModel().uniqueId = chargingStationMDB.uniqueId;
         // Add the Site Area?
         if (chargingStationMDB.siteArea) {
           const siteArea = new SiteArea(tenantID, chargingStationMDB.siteArea)
