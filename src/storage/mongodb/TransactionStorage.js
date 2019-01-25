@@ -292,6 +292,9 @@ class TransactionStorage {
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
+    // Create Aggregation
+    const aggregation = [];
+    const toSubRequests = [];
     // Build filter
     const match = {};
     // Filter?
@@ -327,10 +330,6 @@ class TransactionStorage {
     if (params.endDateTime) {
       match.timestamp.$lte = Utils.convertToDate(params.endDateTime);
     }
-    match.stop = {$exists: true};
-    match['stop.totalConsumption'] = 0;
-    // Create Aggregation
-    const aggregation = [];
     // Filters
     if (match) {
       aggregation.push({
@@ -338,15 +337,16 @@ class TransactionStorage {
       });
     }
     // Transaction Duration Secs
-    aggregation.push({
+    toSubRequests.push({
       $addFields: {
-        "totalDurationSecs": {$divide: [{$subtract: ["$stop.timestamp", "$timestamp"]}, 1000]}
+        "totalDurationSecs": {$divide: [{$subtract: ["$stop.timestamp", "$timestamp"]}, 1000]},
+        "idAsString": {$substr: ["$_id", 0, -1]}
       }
     });
     // Charger?
     if (params.withChargeBoxes || params.siteID) {
       // Add Charge Box
-      aggregation.push({
+      toSubRequests.push({
         $lookup: {
           from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
           localField: 'chargeBoxID',
@@ -355,13 +355,13 @@ class TransactionStorage {
         }
       });
       // Single Record
-      aggregation.push({
+      toSubRequests.push({
         $unwind: {"path": "$chargeBox", "preserveNullAndEmptyArrays": true}
       });
     }
     if (params.siteID) {
       // Add Site Area
-      aggregation.push({
+      toSubRequests.push({
         $lookup: {
           from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
           localField: 'chargeBox.siteAreaID',
@@ -370,14 +370,73 @@ class TransactionStorage {
         }
       });
       // Single Record
-      aggregation.push({
+      toSubRequests.push({
         $unwind: {"path": "$siteArea", "preserveNullAndEmptyArrays": true}
       });
       // Filter
-      aggregation.push({
+      toSubRequests.push({
         $match: {"siteArea.siteID": Utils.convertToObjectID(params.siteID)}
       });
     }
+
+    // Add User that started the transaction
+    toSubRequests.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
+        localField: 'userID',
+        foreignField: '_id',
+        as: 'user'
+      }
+    });
+    // Single Record
+    toSubRequests.push({
+      $unwind: {"path": "$user", "preserveNullAndEmptyArrays": true}
+    });
+    // Add User that stopped the transaction
+    toSubRequests.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
+        localField: 'stop.userID',
+        foreignField: '_id',
+        as: 'stop.user'
+      }
+    });
+    // Single Record
+    toSubRequests.push({
+      $unwind: {"path": "$stop.user", "preserveNullAndEmptyArrays": true}
+    });
+
+    const facets = {
+      "$facet":
+        {
+          "noConsumption":
+            [{
+              $match: {
+                $and: [
+                  {"stop": {$exists: true}}, {"stop.totalConsumption": {$lte: 0}}
+                ]
+              }
+            },
+              {$addFields: {"errorCode": "noConsumption"}}
+            ]
+        }
+    };
+
+    // merge in each facet the join for sitearea and siteareaid
+    const facetNames = [];
+    for (const facet in facets.$facet) {
+      // for(const subRequest of toSubRequests){
+      facets.$facet[facet] = [...facets.$facet[facet], ...toSubRequests];
+      // }
+      facetNames.push(`$${facet}`);
+    }
+    aggregation.push(facets);
+    // Manipulate the results to convert it to an array of document on root level
+    aggregation.push({$project: {"allItems": {$concatArrays: facetNames}}});
+    aggregation.push({"$unwind": {"path": "$allItems"}});
+    aggregation.push({$replaceRoot: {newRoot: "$allItems"}});
+    // Add a unique identifier as we may have the same charger several time
+    aggregation.push({$addFields: {"uniqueId": {$concat: ["$idAsString", "#", "$errorCode"]}}});
     // Count Records
     const transactionsCountMDB = await global.database.getCollection(tenantID, 'transactions')
       .aggregate([...aggregation, {$count: "count"}])
@@ -402,32 +461,6 @@ class TransactionStorage {
     aggregation.push({
       $limit: limit
     });
-    // Add User that started the transaction
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
-        localField: 'userID',
-        foreignField: '_id',
-        as: 'user'
-      }
-    });
-    // Single Record
-    aggregation.push({
-      $unwind: {"path": "$user", "preserveNullAndEmptyArrays": true}
-    });
-    // Add User that stopped the transaction
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
-        localField: 'stop.userID',
-        foreignField: '_id',
-        as: 'stop.user'
-      }
-    });
-    // Single Record
-    aggregation.push({
-      $unwind: {"path": "$stop.user", "preserveNullAndEmptyArrays": true}
-    });
     // Read DB
     const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
       .aggregate(aggregation, {collation: {locale: Constants.DEFAULT_LOCALE, strength: 2}})
@@ -438,7 +471,10 @@ class TransactionStorage {
     if (transactionsMDB && transactionsMDB.length > 0) {
       // Create
       for (const transactionMDB of transactionsMDB) {
-        transactions.push(new Transaction(tenantID, {...transactionMDB, pricing: pricing}));
+        const transaction = new Transaction(tenantID, {...transactionMDB, pricing: pricing});
+        transaction.getModel().errorCode = transactionMDB.errorCode;
+        transaction.getModel().uniqueId = transactionMDB.uniqueId;
+        transactions.push(transaction);
       }
     }
     // Debug
