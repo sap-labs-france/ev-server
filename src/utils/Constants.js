@@ -210,7 +210,10 @@ module.exports = {
 
   // Components
   COMPONENTS: {
-    OCPI_COMPONENT: "ocpi"
+    OCPI_COMPONENT: "ocpi",
+    CHARGE_AT_HOME: "chargeathome",
+    PRICING: "pricing",
+    ORGANIZATION: "organization"
   },
 
   // Ocpi Registering status
