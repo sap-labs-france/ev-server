@@ -1,6 +1,8 @@
 const StatefulChargingService = require('./StatefulChargingService');
 const SettingStorage = require("../../../storage/mongodb/SettingStorage");
 
+const CI_NAME = '[CA] Charging Data';
+
 class ConvergentCharging {
   constructor(tenantId) {
     this.tenantId = tenantId;
@@ -19,9 +21,9 @@ class ConvergentCharging {
    */
   async startTransaction(transaction) {
     await this.initialize();
-    const reservationItem = new ReservationItem('', [new ChargeableItemProperty('consumption', Type.number, transaction.getCurrentConsumption())]);
+    const reservationItem = new ReservationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, transaction.getCurrentConsumption())]);
 
-    const startRateRequest = new StartRateRequest(reservationItem, transaction.getID(), transaction.getStartDate(), transaction.getChargeBoxID(), transaction.getUserID());
+    const startRateRequest = new StartRateRequest(reservationItem, transaction.getID(), transaction.getStartDate(), 'ENERGY', transaction.getUserID(), 'cancelled', 30, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
     await this.statefulChargingService.execute(startRateRequest);
   }
 
@@ -30,10 +32,10 @@ class ConvergentCharging {
    */
   async updateTransaction(transaction) {
     await this.initialize();
-    const confirmationItem = new ConfirmationItem('', [new ChargeableItemProperty('consumption', Type.number, transaction.getCurrentConsumption())]);
-    const reservationItem = new ReservationItem('', [new ChargeableItemProperty('consumption', Type.number, transaction.getCurrentConsumption())]);
+    const confirmationItem = new ConfirmationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, transaction.getCurrentConsumption())]);
+    const reservationItem = new ReservationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, transaction.getCurrentConsumption())]);
 
-    const request = new UpdateRateRequest(confirmationItem, reservationItem, transaction.getID(), transaction.getStartDate(), transaction.getChargeBoxID(), transaction.getUserID());
+    const request = new UpdateRateRequest(confirmationItem, reservationItem, transaction.getID(), transaction.getStartDate(), 'ENERGY', transaction.getUserID(), 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
     await this.statefulChargingService.execute(request);
   }
 
@@ -42,9 +44,9 @@ class ConvergentCharging {
    */
   async stopTransaction(transaction) {
     await this.initialize();
-    const confirmationItem = new ConfirmationItem('', [new ChargeableItemProperty('consumption', Type.number, transaction.getCurrentConsumption())]);
+    const confirmationItem = new ConfirmationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, transaction.getCurrentConsumption())]);
 
-    const request = new StopRateRequest(confirmationItem, transaction.getID(), transaction.getStartDate(), transaction.getChargeBoxID(), transaction.getUserID());
+    const request = new StopRateRequest(confirmationItem, transaction.getID(), 'ENERGY', transaction.getUserID(), '', 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
     await this.statefulChargingService.execute(request);
   }
 }
