@@ -400,6 +400,11 @@ module.exports = {
             // Delegate
             ChargingStationService.handleRequestChargingStationConfiguration(action, req, res, next);
             break;
+          // Get chargers in error
+          case "ChargingStationsInError":
+            // Delegate
+            ChargingStationService.handleGetChargingStationsInError(action, req, res, next);
+            break;            
           // Authorization
           case "IsAuthorized":
             // Delegate
