@@ -68,49 +68,49 @@ class UserSecurity {
 
   static _filterUserRequest(request, loggedUser) {
     const filteredRequest = {};
-    if (request.costCenter) {
+    if (request.hasOwnProperty("costCenter")) {
       filteredRequest.costCenter = sanitize(request.costCenter);
     }
-    if (request.firstName) {
+    if (request.hasOwnProperty("firstName")) {
       filteredRequest.firstName = sanitize(request.firstName);
     }
-    if (request.iNumber) {
+    if (request.hasOwnProperty("iNumber")) {
       filteredRequest.iNumber = sanitize(request.iNumber);
     }
-    if (request.image) {
+    if (request.hasOwnProperty("image")) {
       filteredRequest.image = sanitize(request.image);
     }
-    if (request.mobile) {
+    if (request.hasOwnProperty("mobile")) {
       filteredRequest.mobile = sanitize(request.mobile);
     }
-    if (request.name) {
+    if (request.hasOwnProperty("name")) {
       filteredRequest.name = sanitize(request.name);
     }
-    if (request.locale) {
+    if (request.hasOwnProperty("locale")) {
       filteredRequest.locale = sanitize(request.locale);
     }
-    if (request.address) {
+    if (request.hasOwnProperty("address")) {
       filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
     }
-    if (request.passwords && request.passwords.password && request.passwords.password.length > 0) {
+    if (request.hasOwnProperty("passwords") && request.passwords.hasOwnProperty("password") && request.passwords.password.length > 0) {
       filteredRequest.password = sanitize(request.passwords.password);
     }
-    if (request.phone) {
+    if (request.hasOwnProperty("phone")) {
       filteredRequest.phone = sanitize(request.phone);
     }
     // Admin?
     if (Authorizations.isAdmin(loggedUser)) {
       // Ok to set the sensitive data
-      if (request.email) {
+      if (request.hasOwnProperty("email")) {
         filteredRequest.email = sanitize(request.email);
       }
-      if (request.role) {
+      if (request.hasOwnProperty("role")) {
         filteredRequest.role = sanitize(request.role);
       }
-      if (request.status) {
+      if (request.hasOwnProperty("status")) {
         filteredRequest.status = sanitize(request.status);
       }
-      if (request.tagIDs) {
+      if (request.hasOwnProperty("tagIDs")) {
         filteredRequest.tagIDs = sanitize(request.tagIDs);
       }
     }

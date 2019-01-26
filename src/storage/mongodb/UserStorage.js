@@ -323,7 +323,7 @@ class UserStorage {
     // Create
     const updatedUser = new User(tenantID, result.value);
     // Add tags
-    if (userToSave.tagIDs) {
+    if (userToSave.hasOwnProperty("tagIDs")) {
       // Delete Tag IDs
       await global.database.getCollection(tenantID, 'tags')
         .deleteMany({'userID': Utils.convertToObjectID(updatedUser.getID())});
@@ -331,6 +331,9 @@ class UserStorage {
       if (userToSave.tagIDs.length > 0) {
         // Create the list
         for (const tag of userToSave.tagIDs) {
+          if (tag === "") {
+            continue;
+          }
           // Modify
           await global.database.getCollection(tenantID, 'tags').findOneAndUpdate(
             {'_id': tag},

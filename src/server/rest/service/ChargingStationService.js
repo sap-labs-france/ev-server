@@ -546,10 +546,10 @@ class ChargingStationService {
         result = await chargingStation.handleAction(action, filteredRequest.args);
       } else if (action === 'StartTransaction') {
         // Check Tag ID
-        if (!filteredRequest.args || !filteredRequest.args.tagID) {
+        if (!filteredRequest.args || !filteredRequest.args.tagID || filteredRequest.args.tagID === "undefined") {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `The user does not have any badge`, 560,
+            `The user does not have any badge`, 580,
             'ChargingStationService', 'handleAction', req.user, null, action);
         }
         // Check if user is authorized
