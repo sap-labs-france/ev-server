@@ -1126,6 +1126,28 @@ class ChargingStation extends AbstractTenantEntity {
 
   async handleStartTransaction(startTransaction) {
     let user;
+    // Check the timestamp
+    if (!startTransaction.hasOwnProperty("timestamp")) {
+      // Create one
+      startTransaction.timestamp = new Date().toISOString();
+      // BUG EBEE: Timestamp is mandatory according OCPP
+      Logging.logWarning({
+        tenantID: this.getTenantID(),
+        source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
+        action: 'StartTransaction', message: `The 'timestamp' property has not been provided and has been set to '${startTransaction.timestamp}'`
+      });
+    }
+    // Check the meter start
+    if (!startTransaction.hasOwnProperty("meterStart")) {
+      // Create one
+      startTransaction.meterStart = 0;
+      // BUG EBEE: MeterStart is mandatory according OCPP
+      Logging.logWarning({
+        tenantID: this.getTenantID(),
+        source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
+        action: 'StartTransaction', message: `The 'meterStart' property has not been provided and has been set to '0'`
+      });
+    }
     // Set the charger ID
     startTransaction.chargeBoxID = this.getID();
     // Check Tag ID
