@@ -1120,7 +1120,7 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   getTransaction(transactionId) {
-    // Get the tranasction first (to get the connector id)
+    // Get the transaction first (to get the connector id)
     return TransactionStorage.getTransaction(this.getTenantID(), transactionId);
   }
 
@@ -1128,6 +1128,12 @@ class ChargingStation extends AbstractTenantEntity {
     let user;
     // Set the charger ID
     startTransaction.chargeBoxID = this.getID();
+    // Check Tag ID
+    if (!startTransaction.idTag) {
+      throw new BackendError(this.getID(),
+        `The Badge ID is mandatory`,
+        "ChargingStation", "handleStartTransaction")
+    }
     startTransaction.tagID = startTransaction.idTag;
     // Check Authorization with Tag ID
     const users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(

@@ -167,7 +167,8 @@ class Authorizations {
     if (newUserCreated) {
       // Notify
       NotificationHandler.sendUnknownUserBadged(
-        chargingStation.getTenantID,Utils.generateGUID(),
+        chargingStation.getTenantID(),
+        Utils.generateGUID(),
         chargingStation.getModel(),
         {
           "chargingBoxID": chargingStation.getID(),
@@ -182,7 +183,7 @@ class Authorizations {
       // Yes
       throw new AppError(
         chargingStation.getID(),
-        `User with Tag ID '${tagID}' not found but saved as inactive user`,
+        `User with Tag ID '${tagID}' not found but saved as inactive user`, 500,
         "Authorizations", "getOrCreateUserByTagID",
         user.getModel()
       );
@@ -206,6 +207,9 @@ class Authorizations {
       // No control
       return null;
     }
+    let alternateUser;
+    // User -------------------------------------------------
+    const user = await Authorizations.getOrCreateUserByTagID(chargingStation, siteArea, tagID, action);
     // Site -----------------------------------------------------
     const site = await siteArea.getSite(null, true);
     if (!site) {
@@ -216,15 +220,12 @@ class Authorizations {
         "Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
         user.getModel());
     }
-    let user, alternateUser, currentUser;
-    // User -------------------------------------------------
-    user = await Authorizations.getOrCreateUserByTagID(chargingStation, siteArea, tagID, action);
     // Get and Check Alternate User
     if (alternateTagID) {
       alternateUser = await Authorizations.getOrCreateUserByTagID(chargingStation, siteArea, alternateTagID, action);
     }
     // Set current user
-    currentUser = (alternateUser ? alternateUser : user);
+    const currentUser = (alternateUser ? alternateUser : user);
     // Check User status
     if (currentUser.getStatus() !== Constants.USER_STATUS_ACTIVE) {
       // Reject but save ok
