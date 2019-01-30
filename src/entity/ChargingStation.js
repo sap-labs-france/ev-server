@@ -969,15 +969,17 @@ class ChargingStation extends AbstractTenantEntity {
       // Get the transaction
       const transaction = await TransactionStorage.getTransaction(this.getTenantID(), meterValues.transactionId);
       // Update
-      newMeterValues.values.forEach(async (meterValue) => await transaction.updateWithMeterValue(meterValue));
+      const convergentCharging = new ConvergentCharging(transaction.getTenantID());
+      newMeterValues.values.forEach(async (meterValue) => {
+        await transaction.updateWithMeterValue(meterValue);
+        convergentCharging.updateTransaction(transaction);
+      });
       // Save Transaction
       await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
       // Update Charging Station Consumption
       await this.updateChargingStationConsumption(transaction);
       // Save Charging Station
       await this.save();
-      const convergentCharging = new ConvergentCharging(transaction.getTenantID());
-      convergentCharging.updateTransaction(transaction);
       // Log
       Logging.logInfo({
         tenantID: this.getTenantID(),
@@ -1313,10 +1315,10 @@ class ChargingStation extends AbstractTenantEntity {
     }
     // Stop
     await transaction.stopTransaction(user, tagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp));
-    // Save Transaction
-    transaction = await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
     const convergentCharging = new ConvergentCharging(transaction.getTenantID());
     convergentCharging.stopTransaction(transaction);
+    // Save Transaction
+    transaction = await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
     // Notify User
     if (user) {
       // Send Notification

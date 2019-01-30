@@ -63,6 +63,14 @@ class Transaction extends AbstractTenantEntity {
     this._model.currentConsumption = currentConsumption;
   }
 
+  setCurrentConsumptionWh(currentConsumptionWh) {
+    this._model.currentConsumptionWh = currentConsumptionWh;
+  }
+
+  getCurrentConsumptionWh() {
+    return this._model.currentConsumptionWh ? this._model.currentConsumptionWh : 0;
+  }
+
   getCurrentTotalConsumption() {
     return this._model.currentTotalConsumption;
   }
@@ -123,6 +131,11 @@ class Transaction extends AbstractTenantEntity {
 
   getStartDate() {
     return this._model.timestamp;
+  }
+
+  getLastUpdateDate(){
+    return this._model.lastUpdate;
+
   }
 
   getEndDate() {
@@ -407,6 +420,7 @@ class Transaction extends AbstractTenantEntity {
     this.setStateOfCharge(0);
     this.setCurrentConsumption(0);
     this.setCurrentTotalConsumption(0);
+    this.setCurrentConsumptionWh(0);
     this.setUser(user);
   }
 
@@ -440,6 +454,8 @@ class Transaction extends AbstractTenantEntity {
         const currentConsumption = consumption * sampleMultiplier;
         // Update current consumption
         this.setCurrentConsumption(currentConsumption);
+        this.setCurrentConsumptionWh(consumption);
+        this.getModel().lastUpdate = meterValue.timestamp;
         this.setCurrentTotalConsumption(this.getCurrentTotalConsumption() + consumption);
         // Inactivity?
         if (consumption === 0) {
@@ -471,6 +487,7 @@ class Transaction extends AbstractTenantEntity {
       const consumption = meterStop - lastMeterValue.value;
       // Update current consumption
       this.setCurrentTotalConsumption(this.getCurrentTotalConsumption() + consumption);
+      this.setCurrentConsumptionWh(consumption);
       // Inactivity?
       if (consumption === 0) {
         this.setCurrentTotalInactivitySecs(this.getCurrentTotalInactivitySecs() + diffSecs);

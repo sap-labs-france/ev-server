@@ -1,5 +1,7 @@
 const StatefulChargingService = require('./StatefulChargingService');
 const SettingStorage = require("../../../storage/mongodb/SettingStorage");
+const TransactionStorage = require("../../../storage/mongodb/TransactionStorage");
+const moment = require('moment');
 
 const CI_NAME = '[CA] Charging Data';
 
@@ -12,43 +14,70 @@ class ConvergentCharging {
     if (!this.setting) {
       this.setting = await SettingStorage.getSettingByIdentifier(this.tenantId, 'pricing');
       this.setting = this.setting.getContent()['convergentCharging'];
+      if (!this.setting) {
+        return false
+      }
       this.statefulChargingService = new StatefulChargingService(this.setting.url, this.setting.user, this.setting.password);
     }
+    return true;
   }
 
   /**
    * @param transaction {Transaction}
    */
   async startTransaction(transaction) {
-    await this.initialize();
-    const reservationItem = new ReservationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, transaction.getCurrentConsumption())]);
+    const readyState = await this.initialize();
+    if (!readyState) {
+      return;
+    }
+    const reservationItem = new ReservationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, transaction.getCurrentConsumptionWh())]);
+    const request = new StartRateRequest(reservationItem, transaction.getID(), moment(transaction.getStartDate()).format('YYYY-MM-DDTHH:mm:ss'), 'ENERGY', transaction.getUserID(), 'cancelled', 30000, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
+    const result = await this.statefulChargingService.execute(request);
+    const startRateResult = new StartRateResult(result.data.startRateResult);
+    console.log("startRateResult");
+    console.log(JSON.stringify(startRateResult));
+  }
 
-    const startRateRequest = new StartRateRequest(reservationItem, transaction.getID(), transaction.getStartDate(), 'ENERGY', transaction.getUserID(), 'cancelled', 30, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
-    await this.statefulChargingService.execute(startRateRequest);
+  convertTransactionToMeterValue(transaction) {
+
   }
 
   /**
    * @param transaction {Transaction}
    */
   async updateTransaction(transaction) {
-    await this.initialize();
-    const confirmationItem = new ConfirmationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, transaction.getCurrentConsumption())]);
-    const reservationItem = new ReservationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, transaction.getCurrentConsumption())]);
+    const readyState = await this.initialize();
+    if (!readyState) {
+      return;
+    }
+    const confirmationItem = new ConfirmationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, transaction.getCurrentConsumptionWh())]);
+    const reservationItem = new ReservationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, transaction.getCurrentConsumptionWh())]);
 
-    const request = new UpdateRateRequest(confirmationItem, reservationItem, transaction.getID(), transaction.getStartDate(), 'ENERGY', transaction.getUserID(), 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
-    await this.statefulChargingService.execute(request);
+    const request = new UpdateRateRequest(confirmationItem, reservationItem, transaction.getID(), moment(transaction.getLastUpdateDate()).format('YYYY-MM-DDTHH:mm:ss'), 'ENERGY', transaction.getUserID(), 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
+    const result = await this.statefulChargingService.execute(request);
+    const updateRateResult = new UpdateRateResult(result.data.updateRateResult);
+    console.log("updateRateResult");
+    console.log(JSON.stringify(updateRateResult));
   }
 
   /**
    * @param transaction {Transaction}
    */
   async stopTransaction(transaction) {
-    await this.initialize();
-    const confirmationItem = new ConfirmationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, transaction.getCurrentConsumption())]);
+    const readyState = await this.initialize();
+    if (!readyState) {
+      return;
+    }
+    const confirmationItem = new ConfirmationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, transaction.getCurrentConsumptionWh())]);
 
-    const request = new StopRateRequest(confirmationItem, transaction.getID(), 'ENERGY', transaction.getUserID(), '', 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
-    await this.statefulChargingService.execute(request);
+    const request = new StopRateRequest(confirmationItem, transaction.getID(), 'ENERGY', transaction.getUserID(), 'confirmed', 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
+    const result = await this.statefulChargingService.execute(request);
+    const stopRateResult = new StopRateResult(result.data.stopRateResult);
+    console.log("stopRateResult");
+    console.log(JSON.stringify(stopRateResult));
   }
+
+
 }
 
 class ChargingRequest {
@@ -99,14 +128,29 @@ class StartRateRequest {
   }
 }
 
-class StartRateResult {
-  constructor(amountToConfirm, amountToReserve, transactionSetID, limit) {
-    this.amountToConfirm = amountToConfirm;
-    this.amountToReserve = amountToReserve;
-    this.transactionSetID = transactionSetID;
-    this.limit = limit;
+class RateResult {
+  constructor(model) {
+    if (model.transacSetToReserve) {
+      this.transactionsToReserve = new TransactionSet(model.transacSetToReserve);
+    }
+    if (model.transacSetToConfirm) {
+      this.masterTransactionToConfirm = new TransactionSet(model.transacSetToReserve);
+    }
+    if (model.transacSetToCleanup) {
+      this.masterTransactionToConfirm = new TransactionSet(model.transacSetToReserve);
+    }
   }
 }
+
+class StartRateResult extends  RateResult{
+  constructor(model) {
+    super(model);
+    this.amountToConfirm = model.$attributes.amountToConfirm;
+    this.amountToReserve = model.$attributes.amountToReserve;
+    this.transactionSetID = model.$attributes.transactionSetID;
+  }
+}
+
 
 class UpdateRateResult {
   constructor(amountToConfirm, amountToReserve, amountToCancel, accumulatedAmount, limit) {
@@ -115,6 +159,19 @@ class UpdateRateResult {
     this.amountToCancel = amountToCancel;
     this.accumulatedAmount = accumulatedAmount;
     this.limit = limit;
+    this.toConfirm = {};
+    this.toReserve = {};
+  }
+
+  static parse(model) {
+    const result = new UpdateRateResult(model.$attributes.amountToConfirm, model.$attributes.amountToReserve, model.$attributes.amountToCancel, model.$attributes.accumulatedAmount);
+    if (model.transacSetToReserve && model.transacSetToReserve.master) {
+      result.masterTransactionToReserve = new CCTransaction(model.transacSetToReserve.master);
+    }
+    if (model.transacSetToConfirm && model.transacSetToConfirm.master) {
+      result.masterTransactionToConfirm = new CCTransaction(model.transacSetToConfirm.master);
+    }
+    return result;
   }
 }
 
@@ -123,6 +180,17 @@ class StopRateResult {
     this.amountToConfirm = amountToConfirm;
     this.amountToCancel = amountToCancel;
     this.accumulatedAmount = accumulatedAmount;
+  }
+
+  static parse(model) {
+    const result = new StopRateResult(model.$attributes.amountToConfirm, model.$attributes.amountToReserve, model.$attributes.amountToCancel, model.$attributes.accumulatedAmount);
+    if (model.transacSetToReserve && model.transacSetToReserve.master) {
+      result.masterTransactionToReserve = new CCTransaction(model.transacSetToReserve.master);
+    }
+    if (model.transacSetToConfirm && model.transacSetToConfirm.master) {
+      result.masterTransactionToConfirm = new CCTransaction(model.transacSetToConfirm.master);
+    }
+    return result;
   }
 }
 
@@ -152,7 +220,7 @@ class UpdateRateRequest {
   }
 
   getName() {
-    return 'updateRate';
+    return 'statefulUpdateRate';
   }
 }
 
@@ -180,7 +248,7 @@ class StopRateRequest {
   }
 
   getName() {
-    return 'stopRate';
+    return 'statefulStopRate';
   }
 }
 
@@ -245,5 +313,113 @@ const Type = {
   string: 'string',
   date: 'date',
 };
+
+class TransactionSet {
+  constructor(model) {
+    if (Array.isArray(model)) {
+      this.ccTransactions = model.map(cctrModel => new CCTransaction(cctrModel.master));
+    } else {
+      this.ccTransactions = [new CCTransaction(model.master)];
+    }
+  }
+}
+
+class Notification {
+  constructor(model) {
+    this.instanceId = model['$attributes'].instanceId;
+    this.timestamp = model['$attributes'].timestamp;
+    this.descUid = model['$attributes'].descUid;
+    this.name = model['$attributes'].name;
+    this.prettyName = model['$attributes'].prettyName;
+    this.severityLevel = model['$attributes'].severityLevel;
+
+    model.arg.map(detail => detail['$attributes']).forEach(detail => this[detail.name] = detail.value);
+  }
+}
+
+class CCTransaction {
+  constructor(model) {
+    for (const key of Object.keys(model['$attributes'])) {
+      this[key] = model['$attributes'][key];
+    }
+    this.details = {};
+    model.detail.map(detail => detail['$attributes']).forEach(
+      detail => {
+        let value;
+        switch (detail.type) {
+          case 'decimal':
+            value = Number.parseFloat(detail.value);
+            break;
+          case 'date':
+            value = new Date(detail.value);
+            break;
+          case 'string':
+          default:
+            value = detail.value;
+        }
+        this.details[detail.name] = value;
+      });
+    if (model.notification) {
+      if (Array.isArray(model.notification)) {
+        this.notifications = model.notification.map(n => new Notification(n));
+      } else {
+        this.notifications = [new Notification(model.notification)];
+      }
+    }
+
+  }
+
+  static parse(model) {
+
+  }
+
+  getAmount() {
+    return this.amount;
+  }
+
+  getAmountValue() {
+    return Number.parseFloat(this.getAmount().substr(4));
+  }
+
+  getChargePlanId() {
+    return this.chargePlanId;
+  }
+
+  getChargingContractId() {
+    return this.chargingContractId;
+  }
+
+  getChargeCode() {
+    return this.chargeCode;
+  }
+
+  getOrigin() {
+    return this.origin;
+  }
+
+  getDate() {
+    return this.date;
+  }
+
+  getLabel() {
+    return this.label;
+  }
+
+  getRelationshipType() {
+    return this.relationshipType;
+  }
+
+  getOperationType() {
+    return this.operationType;
+  }
+
+  getSessionID() {
+    return this.sessionID;
+  }
+
+  getDetails() {
+    return this.details;
+  }
+}
 
 module.exports = ConvergentCharging;
