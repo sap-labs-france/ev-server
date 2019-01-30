@@ -6,6 +6,8 @@ module.exports = {
       "chargeBoxID": { "type": "Edm.String" },
       "connectorId": { "type": "Edm.Int32" },
       "timestamp": { "type": "Edm.DateTimeOffset"},
+      "tagID": { "type": "Edm.String" },
+      "userID": { "type": "Edm.String" },
       "stop": { 'type': 'eMobility.TransactionStop' }
     },
     "BootNotification": {
@@ -18,8 +20,7 @@ module.exports = {
       "firmwareVersion": { "type": "Edm.String" },
       "ocppVersion": { "type": "Edm.String" },
       "endpoint": { "type": "Edm.String" },
-      "timestamp":  { "type": "Edm.DateTimeOffset" },
-      
+      "timestamp":  { "type": "Edm.DateTimeOffset" }
     }
   },
   complexTypes: {
@@ -30,7 +31,9 @@ module.exports = {
       "totalDurationSecs": { "type": "Edm.Int32" },
       "stateOfCharge": { "type": "Edm.Int32" },
       "priceUnit": { "type": "Edm.String" },
-      "price": { "type": "Edm.Double" }
+      "price": { "type": "Edm.Double" },
+      "tagID": { "type": "Edm.String" },
+      "userID": { "type": "Edm.String" }
     }
   },
   entitySets: {
