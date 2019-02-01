@@ -21,10 +21,11 @@ The application:
 * Install required build tools:
   * Under Windows as an administrator:  
     ```npm install --g --production windows-build-tools```
-  * Under Debian based GNU/Linux distribution:
+  * Under Mac OS X, install Xcode from the Apple store  
+  * Under Debian based GNU/Linux distribution:  
     ```sudo apt install build-essential```
 * Go into the **ev-server** directory and run **npm install** or **yarn install**
-* In case of issue with package **bcrypt** do the following:
+* In case of issue with package **bcrypt** do the following:  
 ```npm install bcrypt```
 * Follow the rest of the setup below
 
