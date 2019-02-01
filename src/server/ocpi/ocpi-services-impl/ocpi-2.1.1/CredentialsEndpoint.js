@@ -4,6 +4,7 @@ const OCPIMapping = require('./OCPIMapping');
 const OCPIClientError = require('../../../../exception/OCPIClientError');
 const OCPIServerError = require('../../../../exception/OCPIServerError');
 const OCPIEndpoint = require('../../../../entity/OCPIEndpoint');
+const Logging = require('../../../../utils/Logging');
 const Constants = require("../../../../utils/Constants");
 const axios = require('axios');
 
@@ -11,6 +12,7 @@ require('source-map-support').install();
 
 const EP_IDENTIFIER = "credentials";
 const EP_VERSION = "2.1.1";
+const MODULE_NAME = "CredentialsEndpoint";
 
 /**
  * Credentials Endpoint
@@ -27,8 +29,10 @@ class CredentialsEndpoint extends AbstractEndpoint {
     try {
       switch (req.method) {
         case "POST":
-          // call method
           await this.postCredentials(req, res, next, tenant);
+          break;
+        case "DELETE":
+          await this.deleteCredentials(req, res, next, tenant);
           break;
         default:
           res.sendStatus(501);
@@ -41,11 +45,62 @@ class CredentialsEndpoint extends AbstractEndpoint {
 
 
   /**
-   * Get Locations according to the requested url Segement
+   * Registration process initiated by IOP
+   */
+  async deleteCredentials(req, res, next, tenant) { // eslint-disable-line
+    // get token from header
+    let token;
+    if (req.headers && req.headers.authorization) {
+      token = req.headers.authorization.split(" ")[1];
+    }
+
+    // log body
+    Logging.logDebug({
+      tenantID: tenant.getID(),
+      action: 'deleteCredentials',
+      message: "Received unregister",
+      source: 'OCPI Server',
+      module: MODULE_NAME,
+      method: `deleteCredentials`,
+      detailedMessages: token
+    });
+
+    // Get ocpiEndpoints based on the given token
+    const ocpiEndpoint = await OCPIEndpoint.getOcpiendpointWithToken(tenant.getID(), token);
+
+    // check if ocpiEndpoint available
+    if (!ocpiEndpoint || ocpiEndpoint.getStatus() === Constants.OCPI_REGISTERING_STATUS.OCPI_UNREGISTERED) {
+      throw new OCPIServerError(
+        'DELETE credentials',
+        `method not allowed if the client was not registered`, 405,
+        EP_IDENTIFIER, 'deleteCredentials', null);
+    }
+
+    // save copi endpoint
+    ocpiEndpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_UNREGISTERED);
+    await ocpiEndpoint.save();
+
+    // respond with credentials
+    res.json(OCPIUtils.success());
+  }
+
+  /**
+   * Registration process initiated by IOP
    */
   async postCredentials(req, res, next, tenant) { // eslint-disable-line
     // get payload
     const credential = req.body;
+
+    // log body
+    Logging.logDebug({
+      tenantID: tenant.getID(),
+      action: 'postCredentials',
+      message: "Received credential object",
+      source: 'OCPI Server',
+      module: MODULE_NAME,
+      method: `postCredentials`,
+      detailedMessages: credential
+    });
 
     // check if valid
     if (!OCPIMapping.isValidOCPICredential(credential)) {
@@ -60,6 +115,17 @@ class CredentialsEndpoint extends AbstractEndpoint {
     if (req.headers && req.headers.authorization) {
       token = req.headers.authorization.split(" ")[1];
     }
+
+    // log body
+    Logging.logDebug({
+      tenantID: tenant.getID(),
+      action: 'postCredentials',
+      message: "Received token",
+      source: 'OCPI Server',
+      module: MODULE_NAME,
+      method: `postCredentials`,
+      detailedMessages: token
+    });
 
     // Get ocpiEndpoints based on the given token
     const ocpiEndpoint = await OCPIEndpoint.getOcpiendpointWithToken(tenant.getID(), token);
@@ -79,6 +145,17 @@ class CredentialsEndpoint extends AbstractEndpoint {
     ocpiEndpoint.setPartyId(credential.party_id);
     ocpiEndpoint.setBusinessDetails(credential.business_details);
 
+    // log updated ocpi endpoint
+    Logging.logDebug({
+      tenantID: tenant.getID(),
+      action: 'postCredentials',
+      message: "OCPI Server found and updated with credential object",
+      source: 'OCPI Server',
+      module: MODULE_NAME,
+      method: `postCredentials`,
+      detailedMessages: ocpiEndpoint.getModel()
+    });
+
     // try to access remote ocpi service versions
     // any error here should result in a 3001 Ocpi result execption based on the specification
     try {
@@ -88,6 +165,17 @@ class CredentialsEndpoint extends AbstractEndpoint {
           'Authorization': `Token ${ocpiEndpoint.getToken()}`,
           'Content-Type': 'application/json'
         }
+      });
+
+      // log Avaialble OCPI Versions
+      Logging.logDebug({
+        tenantID: tenant.getID(),
+        action: 'postCredentials',
+        message: "Available OCPI Versions",
+        source: 'OCPI Server',
+        module: MODULE_NAME,
+        method: `postCredentials`,
+        detailedMessages: ocpiVersions.data
       });
 
       // check response
@@ -102,6 +190,17 @@ class CredentialsEndpoint extends AbstractEndpoint {
           versionFound = true;
           ocpiEndpoint.setVersion(version.version);
           ocpiEndpoint.setVersionUrl(version.url);
+
+          // log correct OCPI service found
+          Logging.logDebug({
+            tenantID: tenant.getID(),
+            action: 'postCredentials',
+            message: "Correct OCPI version found",
+            source: 'OCPI Server',
+            module: MODULE_NAME,
+            method: `postCredentials`,
+            detailedMessages: `[${ocpiEndpoint.getVersion()}]:${ocpiEndpoint.getVersionUrl()}`
+          });
         }
       }
 
@@ -119,6 +218,16 @@ class CredentialsEndpoint extends AbstractEndpoint {
         }
       });
 
+      // log Available OCPI services
+      Logging.logDebug({
+        tenantID: tenant.getID(),
+        action: 'postCredentials',
+        message: "Available OCPI services",
+        source: 'OCPI Server',
+        module: MODULE_NAME,
+        method: `postCredentials`,
+        detailedMessages: endpoints.data
+      });
       // check response
       if (!endpoints.data || !endpoints.data.data) {
         throw new Error(`Invalid response from GET ${ocpiEndpoint.getVersionUrl()}`);
@@ -134,14 +243,28 @@ class CredentialsEndpoint extends AbstractEndpoint {
     }
 
     // generate new token
-    ocpiEndpoint.generateLocalToken(tenant);
+    await ocpiEndpoint.generateLocalToken(tenant);
     ocpiEndpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED);
 
     // save copi endpoint
-    ocpiEndpoint.save();
+    await ocpiEndpoint.save();
+
+    // get base url
+    const versionUrl = this.getBaseUrl(req) + Constants.OCPI_SERVER_BASE_PATH;
 
     // build credential object
-    const respCredential = await OCPIMapping.buildOCPICredentialObject(tenant, ocpiEndpoint.getLocalToken());
+    const respCredential = await OCPIMapping.buildOCPICredentialObject(tenant, ocpiEndpoint.getLocalToken(), versionUrl);
+
+    // log Avaialble OCPI Versions
+    Logging.logDebug({
+      tenantID: tenant.getID(),
+      action: 'postCredentials',
+      message: "Response with credential object",
+      source: 'OCPI Server',
+      module: MODULE_NAME,
+      method: `postCredentials`,
+      detailedMessages: respCredential
+    });
 
     // respond with credentials
     res.json(OCPIUtils.success(respCredential));

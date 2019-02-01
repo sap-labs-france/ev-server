@@ -165,6 +165,8 @@ module.exports = {
   // --------------------------------------------------------------------
   // OCPI Constants
   // --------------------------------------------------------------------
+  // OCPI Base Path
+  OCPI_SERVER_BASE_PATH: '/ocpi/cpo/versions',
   // OCPI Available Response Status
   OCPI_STATUS_CODE: {
     // 1*** SUCCESS
@@ -220,6 +222,7 @@ module.exports = {
   // Ocpi Registering status
   OCPI_REGISTERING_STATUS: {
     OCPI_NEW: "new",
-    OCPI_REGISTERED: "registered"
+    OCPI_REGISTERED: "registered",
+    OCPI_UNREGISTERED: "unregistered"
   }
 };
