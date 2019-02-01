@@ -18,13 +18,14 @@ The application:
 * Install Python version 2.7 (not the version 3.7!)
 * Install MongoDB: https://www.mongodb.com/ (do not install the DB as a service)
 * Clone this GitHub project
-* Go into the **ev-server** directory and run **npm install** or **yarn install** (use sudo in Linux)
+* Install required build tools:
+  * Under Windows as an administrator:  
+    ```npm install --g --production windows-build-tools```
+  * Under Debian based GNU/Linux distribution:
+    ```sudo apt install build-essential```
+* Go into the **ev-server** directory and run **npm install** or **yarn install**
 * In case of issue with package **bcrypt** do the following:
-```
-  - npm install -g node-gyp
-  - npm install --g --production windows-build-tools
-  - npm install bcrypt
-```
+```npm install bcrypt```
 * Follow the rest of the setup below
 
 ## The Database
