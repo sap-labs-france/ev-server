@@ -65,7 +65,7 @@ class OCPIServer {
     // new OCPI Services Instances
     const ocpiServices = new OCPIServices(_ocpiRestConfig);
     // OCPI versions
-    express.use('/ocpi/cpo/versions', ocpiServices.getVersions);
+    express.use(Constants.OCPI_SERVER_BASE_PATH, ocpiServices.getVersions);
     // Register all services in express
     ocpiServices.getOCPIServiceImplementations().forEach(ocpiService => {
       express.use(ocpiService.getPath(), ocpiService.restService.bind(ocpiService));

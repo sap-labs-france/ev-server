@@ -1,5 +1,7 @@
 const OCPIService = require('./ocpi/OCPIService');
 // const config = require('../config');
+const CentralServerService = require('./client/CentralServerService');
+const Factory = require('../factories/Factory');
 const { expect } = require('chai');
 const chai = require('chai');
 const chaiSubset = require('chai-subset');
@@ -377,6 +379,23 @@ describe('OCPI Servce Tests', function () {
      * Success Cases
      */
     describe('Success cases', () => {
+      it('Should create a new ocpiendpoint', async () => {
+        // Check
+        expect(this.newOcpiendpoint).to.not.be.null;
+        // Create the entity
+        this.newOcpiendpoint = await CentralServerService.createEntity(
+          CentralServerService.ocpiendpointApi, Factory.ocpiendpoint.build( { }));
+      });
+
+
+      it('Should update the ocpiendpoint token', async () => {
+        // Change entity
+        this.newOcpiendpoint.localToken = OCPIService.getToken();
+        // Update
+        await CentralServerService.updateEntity(
+          CentralServerService.ocpiendpointApi, this.newOcpiendpoint);
+      });
+
       // check access for each evse
       it('should be able to self-register', async () => {
         // define credential object
@@ -407,6 +426,12 @@ describe('OCPI Servce Tests', function () {
         this.ocpiService.checkOCPIResponseStructure(response.data);
         expect(response.data.status_code).to.be.eql(1000);
         this.ocpiService.validateCredentialEntity(response.data.data);
+      });
+
+      it('Should delete the created ocpiendpoint', async () => {
+        // Delete the created entity
+        await CentralServerService.deleteEntity(
+          CentralServerService.ocpiendpointApi, this.newOcpiendpoint);
       });
     });
 

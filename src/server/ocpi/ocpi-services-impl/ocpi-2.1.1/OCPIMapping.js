@@ -262,14 +262,16 @@ class OCPIMapping {
    * @param {*} tenant 
    * @param {*} token 
    */
-  static async buildOCPICredentialObject(tenant, token) {
+  static async buildOCPICredentialObject(tenant, token, versionUrl) {
     // credentail
     const credential = {};
 
     // get ocpi service configuration
     const ocpiSetting= await tenant.getSetting(Constants.COMPONENTS.OCPI_COMPONENT);
 
-    credential.url = 'https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/cpo/versions';
+    // define version url
+    credential.url = (versionUrl?versionUrl:'https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/cpo/versions');
+
     // check if available
     if (ocpiSetting && ocpiSetting.getContent()) {
       const configuration = ocpiSetting.getContent();
