@@ -59,7 +59,7 @@ class ConvergentCharging {
     }
   }
 
-  convertTransactionToMeterValue(transaction) {
+  saveAmountData(transaction) {
 
   }
 
@@ -216,7 +216,7 @@ class StartRateResult extends RateResult {
 }
 
 
-class UpdateRateResult  extends RateResult {
+class UpdateRateResult extends RateResult {
   constructor(model) {
     super(model);
     this.amountToConfirm = model.$attributes.amountToConfirm;
@@ -227,34 +227,14 @@ class UpdateRateResult  extends RateResult {
     this.limit = model.$attributes.limit;
   }
 
-  static parse(model) {
-    const result = new UpdateRateResult(model.$attributes.amountToConfirm, model.$attributes.amountToReserve, model.$attributes.amountToCancel, model.$attributes.accumulatedAmount);
-    if (model.transacSetToReserve && model.transacSetToReserve.master) {
-      result.masterTransactionToReserve = new CCTransaction(model.transacSetToReserve.master);
-    }
-    if (model.transacSetToConfirm && model.transacSetToConfirm.master) {
-      result.masterTransactionToConfirm = new CCTransaction(model.transacSetToConfirm.master);
-    }
-    return result;
-  }
 }
 
-class StopRateResult {
-  constructor(amountToConfirm, amountToCancel, accumulatedAmount) {
-    this.amountToConfirm = amountToConfirm;
-    this.amountToCancel = amountToCancel;
-    this.accumulatedAmount = accumulatedAmount;
-  }
-
-  static parse(model) {
-    const result = new StopRateResult(model.$attributes.amountToConfirm, model.$attributes.amountToReserve, model.$attributes.amountToCancel, model.$attributes.accumulatedAmount);
-    if (model.transacSetToReserve && model.transacSetToReserve.master) {
-      result.masterTransactionToReserve = new CCTransaction(model.transacSetToReserve.master);
-    }
-    if (model.transacSetToConfirm && model.transacSetToConfirm.master) {
-      result.masterTransactionToConfirm = new CCTransaction(model.transacSetToConfirm.master);
-    }
-    return result;
+class StopRateResult extends RateResult {
+  constructor(model) {
+    super(model);
+    this.amountToConfirm = model.$attributes.amountToConfirm;
+    this.amountToCancel = model.$attributes.amountToCancel;
+    this.accumulatedAmount = model.$attributes.accumulatedAmount;
   }
 }
 
