@@ -427,8 +427,6 @@ class ChargingStation extends AbstractTenantEntity {
     }
     // Save Status Notif
     await ChargingStationStorage.saveStatusNotification(this.getTenantID(), statusNotification);
-    // Save Connector
-    await ChargingStationStorage.saveChargingStationConnector(this.getTenantID(), this.getModel(), statusNotification.connectorId);
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
@@ -438,6 +436,45 @@ class ChargingStation extends AbstractTenantEntity {
       action: 'StatusNotification',
       message: `'${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}' on Connector '${statusNotification.connectorId}' has been saved`
     });
+    // Check if connector is available and a transaction is ongoing (ABB fucking bitch bug)
+    if (statusNotification.status === Constants.CONN_STATUS_AVAILABLE && 
+        connectors[statusNotification.connectorId - 1].activeTransactionID > 0) {
+      // Clear
+      connectors[statusNotification.connectorId - 1].currentConsumption = 0;
+      connectors[statusNotification.connectorId - 1].totalConsumption = 0;
+      connectors[statusNotification.connectorId - 1].currentStateOfCharge = 0;
+      connectors[statusNotification.connectorId - 1].activeTransactionID = 0;
+      // Check transaction
+      const activeTransaction = await TransactionStorage.getActiveTransaction(this.getTenantID(), this.getID(), statusNotification.connectorId);
+      // Found?
+      if (activeTransaction) {
+        // Has consumption?
+        if (activeTransaction.getCurrentTotalConsumption() <= 0) {
+          // No consumption: delete
+          Logging.logError({
+            tenantID: this.getTenantID(),
+            source: this.getID(), module: 'ChargingStation', method: 'updateConnectorStatus',
+            action: 'StartTransaction', actionOnUser: activeTransaction.getUserID(),
+            message: `Active Transaction ID '${activeTransaction.getID()}' has been deleted on Connector '${activeTransaction.getConnectorId()}'`
+          });
+          // Delete
+          await TransactionStorage.deleteTransaction(activeTransaction.getTenantID(), activeTransaction);
+        } else {
+          // Has consumption: close it!
+          Logging.logWarning({
+            tenantID: this.getTenantID(),
+            source: this.getID(), module: 'ChargingStation', method: 'updateConnectorStatus',
+            action: 'StatusNotification', actionOnUser: activeTransaction.getUserID(),
+            message: `Active Transaction ID '${activeTransaction.getID()}' has been closed on Connector '${activeTransaction.getConnectorId()}'`
+          });
+          // Stop
+          await activeTransaction.stopTransaction(activeTransaction.getUserID(), activeTransaction.getTagID(),
+            activeTransaction.getLastMeterValue().value + 1, new Date());
+          // Save Transaction
+          await TransactionStorage.saveTransaction(activeTransaction.getTenantID(), activeTransaction.getModel());
+        }
+      }
+    }
     // Notify if error
     if (statusNotification.status === Constants.CONN_STATUS_FAULTED) {
       // Log
@@ -465,6 +502,8 @@ class ChargingStation extends AbstractTenantEntity {
         }
       );
     }
+    // Save Connector
+    await ChargingStationStorage.saveChargingStationConnector(this.getTenantID(), this.getModel(), statusNotification.connectorId);
   }
 
   async updateConnectorsPower() {
@@ -1329,7 +1368,7 @@ class ChargingStation extends AbstractTenantEntity {
       }
     }
     // Stop
-    await transaction.stopTransaction(user, tagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp));
+    await transaction.stopTransaction(user.getID(), tagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp));
     // Save Transaction
     transaction = await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
     // Notify User

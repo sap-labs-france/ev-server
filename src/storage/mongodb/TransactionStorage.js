@@ -667,14 +667,31 @@ class TransactionStorage {
       activeTransaction = await TransactionStorage.getActiveTransaction(tenantID, chargeBoxId, connectorId);
       // Exists already?
       if (activeTransaction) {
-        Logging.logInfo({
-          tenantID: tenantID,
-          source: chargeBoxId, module: 'ChargingStation', method: 'cleanupRemainingActiveTransactions',
-          action: 'StartTransaction',
-          message: `Active Transaction ID '${activeTransaction.getID()}' has been deleted on Connector '${activeTransaction.getConnectorId()}'`
-        });
-        // Delete
-        await this.deleteTransaction(tenantID, activeTransaction);
+        // Has consumption?
+        if (activeTransaction.getCurrentTotalConsumption() <= 0) {
+          // No consumption: delete
+          Logging.logError({
+            tenantID: tenantID,
+            source: chargeBoxId, module: 'ChargingStation', method: 'cleanupRemainingActiveTransactions',
+            action: 'StartTransaction', actionOnUser: activeTransaction.getUserID(),
+            message: `Active Transaction ID '${activeTransaction.getID()}' has been deleted on Connector '${activeTransaction.getConnectorId()}'`
+          });
+          // Delete
+          await this.deleteTransaction(tenantID, activeTransaction);
+        } else {
+          // Has consumption: close it!
+          Logging.logWarning({
+            tenantID: tenantID,
+            source: chargeBoxId, module: 'ChargingStation', method: 'cleanupRemainingActiveTransactions',
+            action: 'StartTransaction', actionOnUser: activeTransaction.getUserID(),
+            message: `Active Transaction ID '${activeTransaction.getID()}' has been closed on Connector '${activeTransaction.getConnectorId()}'`
+          });
+          // Stop
+          await activeTransaction.stopTransaction(activeTransaction.getUserID(), activeTransaction.getTagID(),
+            activeTransaction.getLastMeterValue().value + 1, new Date());
+          // Save Transaction
+          await TransactionStorage.saveTransaction(activeTransaction.getTenantID(), activeTransaction.getModel());
+        }
       }
     } while (activeTransaction);
     // Debug
