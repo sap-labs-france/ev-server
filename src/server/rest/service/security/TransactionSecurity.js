@@ -98,6 +98,10 @@ class TransactionSecurity {
       // Set only necessary info
       filteredTransaction = {};
       filteredTransaction.id = transaction.getID();
+      if (transaction.getModel().errorCode) {
+        filteredTransaction.uniqueId = transaction.getModel().uniqueId;
+        filteredTransaction.errorCode = transaction.getModel().errorCode;
+      }
       filteredTransaction.chargeBoxID = transaction.getChargeBoxID();
       filteredTransaction.connectorId = transaction.getConnectorId();
       filteredTransaction.meterStart = transaction.getMeterStart();

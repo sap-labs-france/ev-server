@@ -119,7 +119,7 @@ class LocationsEndpoint extends AbstractEndpoint {
   }
 
   /**
-   * Get All OCPI Locations from given tenant
+   * Get All OCPI Locations from given tenant TODO: move to OCPIMapping
    * @param {Tenant} tenant 
    */
   async getAllLocations(tenant,limit,skip) {

@@ -318,9 +318,8 @@ class Transaction extends AbstractTenantEntity {
               cumulated: cumulatedConsumption,
               stateOfCharge: 0
             });
-            // Set Last Value (only for Consumption)
-            lastMeterValue = meterValue;
           }
+          lastMeterValue = meterValue;
         }
         // Meter Value State of Charge?
       } else if (this.isSocMeterValue(meterValue)) {

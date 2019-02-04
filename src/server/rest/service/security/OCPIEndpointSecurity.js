@@ -42,6 +42,13 @@ class OCPIEndpointSecurity {
     return OCPIEndpointSecurity._filterOcpiendpointRequest(request, loggedUser);
   }
 
+  static filterOcpiendpointSendEVSEStatusesRequest(request, loggedUser) {
+    // set ocpiendpoint
+    const filteredRequest = OCPIEndpointSecurity._filterOcpiendpointRequest(request, loggedUser);
+    filteredRequest.id = sanitize(request.id);
+    return filteredRequest;
+  }
+  
   static filterOcpiendpointRegisterRequest(request, loggedUser) {
     // Set Ocpiendpoint
     const filteredRequest = OCPIEndpointSecurity._filterOcpiendpointRequest(request, loggedUser);

@@ -80,6 +80,35 @@ class OCPIMapping {
     return evses;
   }
 
+  /**
+   * Get All OCPI Locations from given tenant
+   * @param {Tenant} tenant 
+   */
+  static async getAllLocations(tenant,limit,skip) {
+    // result
+    const result = { count: 0, locations: []};
+
+    // Get all sites
+    const sites = await Site.getSites(
+      tenant.getID(),
+      {
+        'withChargeBoxes': true,
+        "withSiteAreas": true
+      },
+      limit, skip, null);
+
+    // convert Sites to Locations
+    for (const site of sites.result) {
+      result.locations.push(await this.convertSite2Location(tenant, site));
+    }
+
+    // set count
+    result.count = sites.count;
+
+    // return locations
+    return result;
+  }
+
   // 
   /**
    * Convert ChargingStation to Multiple EVSEs
@@ -90,7 +119,6 @@ class OCPIMapping {
   static convertCharginStation2MultipleEvses(tenant, chargingStation) {
     // evse_id
     const evse_id = this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`);
-
 
     // loop through connectors and send one evse per connector
     const evses = chargingStation.getConnectors().map(connector => {
@@ -234,14 +262,16 @@ class OCPIMapping {
    * @param {*} tenant 
    * @param {*} token 
    */
-  static async buildOCPICredentialObject(tenant, token) {
+  static async buildOCPICredentialObject(tenant, token, versionUrl) {
     // credentail
     const credential = {};
 
     // get ocpi service configuration
     const ocpiSetting= await tenant.getSetting(Constants.COMPONENTS.OCPI_COMPONENT);
 
-    credential.url = 'https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/cpo/versions';
+    // define version url
+    credential.url = (versionUrl?versionUrl:'https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/cpo/versions');
+
     // check if available
     if (ocpiSetting && ocpiSetting.getContent()) {
       const configuration = ocpiSetting.getContent();

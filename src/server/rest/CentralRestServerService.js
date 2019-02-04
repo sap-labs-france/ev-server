@@ -158,6 +158,11 @@ module.exports = {
             // Delegate
             OCPIEndpointService.handlePingOcpiendpoint(action, req, res, next);
             break;
+          // SendEVSEStatuses to Ocpiendpoint
+          case "OcpiendpointSendEVSEStatuses":
+            // Delegate
+            OCPIEndpointService.handleSendEVSEStatusesOcpiendpoint(action, req, res, next);
+            break;
           // Generate Local Token Ocpiendpoint
           case "OcpiendpointGenerateLocalToken":
             // Delegate
@@ -395,6 +400,11 @@ module.exports = {
             // Delegate
             ChargingStationService.handleRequestChargingStationConfiguration(action, req, res, next);
             break;
+          // Get chargers in error
+          case "ChargingStationsInError":
+            // Delegate
+            ChargingStationService.handleGetChargingStationsInError(action, req, res, next);
+            break;            
           // Authorization
           case "IsAuthorized":
             // Delegate

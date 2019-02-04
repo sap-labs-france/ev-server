@@ -42,6 +42,10 @@ class ChargingStation extends AbstractTenantEntity {
     return ChargingStationStorage.getChargingStations(tenantID, params, limit, skip, sort)
   }
 
+  static getChargingStationsInError(tenantID, params, limit, skip, sort) {
+    return ChargingStationStorage.getChargingStationsInError(tenantID, params, limit, skip, sort)
+  }
+
   static addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs) {
     return ChargingStationStorage.addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs);
   }
@@ -1130,14 +1134,42 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   getTransaction(transactionId) {
-    // Get the tranasction first (to get the connector id)
+    // Get the transaction first (to get the connector id)
     return TransactionStorage.getTransaction(this.getTenantID(), transactionId);
   }
 
   async handleStartTransaction(startTransaction) {
     let user;
+    // Check the timestamp
+    if (!startTransaction.hasOwnProperty("timestamp")) {
+      // Create one
+      startTransaction.timestamp = new Date().toISOString();
+      // BUG EBEE: Timestamp is mandatory according OCPP
+      Logging.logWarning({
+        tenantID: this.getTenantID(),
+        source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
+        action: 'StartTransaction', message: `The 'timestamp' property has not been provided and has been set to '${startTransaction.timestamp}'`
+      });
+    }
+    // Check the meter start
+    if (!startTransaction.hasOwnProperty("meterStart")) {
+      // Create one
+      startTransaction.meterStart = 0;
+      // BUG EBEE: MeterStart is mandatory according OCPP
+      Logging.logWarning({
+        tenantID: this.getTenantID(),
+        source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
+        action: 'StartTransaction', message: `The 'meterStart' property has not been provided and has been set to '0'`
+      });
+    }
     // Set the charger ID
     startTransaction.chargeBoxID = this.getID();
+    // Check Tag ID
+    if (!startTransaction.idTag) {
+      throw new BackendError(this.getID(),
+        `The Badge ID is mandatory`,
+        "ChargingStation", "handleStartTransaction")
+    }
     startTransaction.tagID = startTransaction.idTag;
     // Check Authorization with Tag ID
     const users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(

@@ -1,9 +1,9 @@
 module.exports.email = {
-  "subject": "<%- chargeBoxID %> registered",
+  "subject": "<%- chargeBoxID %> connected",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Charger Registered",
+      "title": "Charger Connected",
       "image": {
         "left": {
           "height": 60,
@@ -18,7 +18,7 @@ module.exports.email = {
     "beforeActionLines": [
       "Hi Admin,",
       "",
-      "<b><%- chargeBoxID %></b> just got registered to the central server."
+      "<b><%- chargeBoxID %></b> just got connected to the central server."
     ],
     "action": {
       "title": "View <%- chargeBoxID %>",

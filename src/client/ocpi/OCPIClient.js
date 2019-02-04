@@ -1,6 +1,7 @@
 const axios = require('axios');
 const OCPIMapping = require('../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping');
 const Constants = require('../../utils/Constants');
+const Logging = require('../../utils/Logging');
 
 class OCPIClient {
   constructor(ocpiEndpoint) {
@@ -161,6 +162,115 @@ class OCPIClient {
     }
 
     return respOcpiCredentials;
+  }
+
+  /**
+   * PATH EVSE Status
+   */
+  async patchEVSEStatus(locationId, evseId, newStatus) {
+    // check for input parameter
+    if (!locationId || !evseId || !newStatus) {
+      throw new Error('Invalid parameters');
+    }
+
+    // get locations endpoint url
+    const locationsUrl = this._ocpiEndpoint.getEndpointUrl('locations');
+
+    if (!locationsUrl) {
+      throw new Error('Locations endpoint URL undefined');
+    }
+
+    // read configuration to retrieve country_code and party_id
+    const tenant = await this._ocpiEndpoint.getTenant();
+    const ocpiSetting = await tenant.getSetting(Constants.COMPONENTS.OCPI_COMPONENT);
+
+    if (!ocpiSetting || !ocpiSetting.getContent()) {
+      throw new Error('OCPI Settings not found');
+    }
+
+    const ocpiContent = ocpiSetting.getContent();
+    if (!ocpiContent.country_code || !ocpiContent.party_id) {
+      throw new Error('OCPI Country Code and/or Party ID undefined');
+    }
+
+    const country_code = ocpiContent.country_code;
+    const party_id = ocpiContent.party_id;
+
+    // build url to EVSE
+    const fullUrl = locationsUrl + `/${country_code}/${party_id}/${locationId}/${evseId}`;
+
+    // build payload
+    const payload = { "status": newStatus };
+
+    // call IOP
+    const response = await axios.patch(fullUrl, payload,
+      {
+        headers: {
+          Authorization: `Token ${this._ocpiEndpoint.getToken()}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000
+      });
+
+    // check response
+    if (!response.data) {
+      throw new Error(`Invalid response from PATCH`);
+    }
+  }
+
+
+  /**
+   * Send all EVSEs
+   */
+  async sendEVSEStatuses() {
+    // result
+    const sendResult = { success: 0, failure: 0 };
+
+    // read configuration to retrieve country_code and party_id
+    const tenant = await this._ocpiEndpoint.getTenant();
+    // get ocpi service configuration
+    const ocpiSetting = await tenant.getSetting(Constants.COMPONENTS.OCPI_COMPONENT);
+    // TODO: replace this assignment
+    tenant._eMI3 = {};
+
+    if (ocpiSetting && ocpiSetting.getContent()) {
+      const configuration = ocpiSetting.getContent();
+      tenant._eMI3.country_id = configuration.country_code;
+      tenant._eMI3.party_id = configuration.party_id;
+    } else {
+      // TODO: remove this assignment
+      tenant._eMI3.country_id = 'FR';
+      tenant._eMI3.party_id = 'SLF';
+    }
+
+    const locationsResult = await OCPIMapping.getAllLocations(tenant);
+
+    for (const location of locationsResult.locations) {
+      if (location && location.evses) {
+        for (const evse of location.evses) {
+          if (evse && location.id && evse.id) {
+            try {
+              await this.patchEVSEStatus(location.id, evse.uid, evse.status);
+              sendResult.success++;
+            } catch (error) {
+              sendResult.failure++;
+              Logging.logError({
+                tenantID: tenant.getID(),
+                action: 'sendEVSEStatuses',
+                message: `failure updating status for locationID:${location.id} - evseID:${evse.id}`,
+                source: 'OCPIClient',
+                module: 'OCPIClient',
+                method: `sendEVSEStatuses`,
+                detailedMessages: error.message
+              });
+            }
+          }
+        }
+      }
+    }
+
+    // return result
+    return sendResult;
   }
 
 }

@@ -36,6 +36,10 @@ class OCPIService {
 
   }
 
+  static getToken() {
+    return (config.get('ocpi.token'));
+  }
+
   /**
    * Get Implementation for 2.1.1
    */

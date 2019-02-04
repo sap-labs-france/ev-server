@@ -379,7 +379,7 @@ class User extends AbstractTenantEntity {
         `The User I-Number ${filteredRequest.iNumber} is not valid`, 500,
         'Users', 'checkIfUserValid');
     }
-    if (filteredRequest.tagIDs) {
+    if (filteredRequest.hasOwnProperty("tagIDs")) {
       // Check
       if (!User.isTagIDValid(filteredRequest.tagIDs)) {
         throw new AppError(
@@ -390,7 +390,11 @@ class User extends AbstractTenantEntity {
       // Check
       if (!Array.isArray(filteredRequest.tagIDs)) {
         // Split
-        filteredRequest.tagIDs = filteredRequest.tagIDs.split(',');
+        if (filteredRequest.tagIDs !== "") {
+          filteredRequest.tagIDs = filteredRequest.tagIDs.split(',');
+        } else {
+          filteredRequest.tagIDs = [];
+        }
       }
     }
   }

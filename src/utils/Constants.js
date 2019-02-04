@@ -92,6 +92,7 @@ module.exports = {
   ACTION_UNLOCK_CONNECTOR: "UnlockConnector",
   ACTION_GET_CONFIGURATION: "GetConfiguration",
   ACTION_PING: "Ping",
+  ACTION_SEND_EVSE_STATUSE: "SendEVSEStatuses",
   ACTION_REGISTER: "Register",
   ACTION_GENERATE_LOCAL_TOKEN: "GenerateLocalToken",
 
@@ -164,6 +165,8 @@ module.exports = {
   // --------------------------------------------------------------------
   // OCPI Constants
   // --------------------------------------------------------------------
+  // OCPI Base Path
+  OCPI_SERVER_BASE_PATH: '/ocpi/cpo/versions',
   // OCPI Available Response Status
   OCPI_STATUS_CODE: {
     // 1*** SUCCESS
@@ -210,12 +213,16 @@ module.exports = {
 
   // Components
   COMPONENTS: {
-    OCPI_COMPONENT: "ocpi"
+    OCPI_COMPONENT: "ocpi",
+    CHARGE_AT_HOME: "chargeathome",
+    PRICING: "pricing",
+    ORGANIZATION: "organization"
   },
 
   // Ocpi Registering status
   OCPI_REGISTERING_STATUS: {
     OCPI_NEW: "new",
-    OCPI_REGISTERED: "registered"
+    OCPI_REGISTERED: "registered",
+    OCPI_UNREGISTERED: "unregistered"
   }
 };

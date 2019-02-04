@@ -448,15 +448,56 @@ class ChargingStationService {
     }
   }
 
+  static async handleGetChargingStationsInError(action, req, res, next) {
+    try {
+      // Check auth
+      if (!Authorizations.canListChargingStations(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_CHARGING_STATIONS,
+          null, 560,
+          'ChargingStationService', 'handleGetChargingStationsInError',
+          req.user);
+      }
+      // Filter
+      const filteredRequest = ChargingStationSecurity.filterChargingStationsInErrorRequest(req.query, req.user);
+      // Get the charging Charging Stations
+      const chargingStations = await ChargingStation.getChargingStationsInError(req.user.tenantID,
+        {
+
+          'search': filteredRequest.Search,
+          'withNoSiteArea': filteredRequest.WithNoSiteArea,
+          'withSite': filteredRequest.WithSite,
+          'siteID': filteredRequest.SiteID,
+          'chargeBoxId': filteredRequest.ChargeBoxID,
+          'siteAreaID': filteredRequest.SiteAreaID
+        },
+        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+      // Set
+      chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
+      // Filter
+      chargingStations.result = ChargingStationSecurity.filterChargingStationsResponse(chargingStations.result, req.user);
+      // Return
+      res.json(chargingStations);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
+
   static async handleAction(action, req, res, next) {
     try {
       // Filter
       const filteredRequest = ChargingStationSecurity.filterChargingStationActionRequest(req.body, action, req.user);
       // Charge Box is mandatory
       if (!filteredRequest.chargeBoxID) {
-        Logging.logActionExceptionMessageAndSendResponse(
-          action, new Error(`The Charging Station ID is mandatory`), req, res, next);
-        return;
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `Charging Station ID is mandatory`, 500,
+          'ChargingStationService', 'handleAction', req.user, null, action);
       }
       // Get the Charging station
       const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
@@ -470,17 +511,31 @@ class ChargingStationService {
       }
       let result;
       if (action === 'StopTransaction' ||
-        action === 'UnlockConnector') {
+          action === 'UnlockConnector') {
+        // Check Transaction ID
+        if (!filteredRequest.args || !filteredRequest.args.transactionId) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `Transaction ID is mandatory`, 560,
+            'ChargingStationService', 'handleAction', req.user, null, action);
+        }
         // Get Transaction
         const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.args.transactionId);
         if (!transaction) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `Transaction with ID '${filteredRequest.TransactionId}' does not exist`, 560,
-            'ChargingStationService', 'handleAction', req.user);
+            `Transaction ID '${filteredRequest.args.transactionId}' does not exist`, 560,
+            'ChargingStationService', 'handleAction', req.user, null, action);
         }
         // Add connector ID
         filteredRequest.args.connectorId = transaction.getConnectorId();
+        // Check Tag ID
+        if (!req.user.tagIDs || req.user.tagIDs.length === 0) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The user does not have any badge`, 570,
+            'ChargingStationService', 'handleAction', req.user, null, action);
+        }
         // Check if user is authorized
         await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, transaction.getTagID(), req.user.tagIDs[0]);
         // Set the tag ID to handle the Stop Transaction afterwards
@@ -490,6 +545,13 @@ class ChargingStationService {
         // Ok: Execute it
         result = await chargingStation.handleAction(action, filteredRequest.args);
       } else if (action === 'StartTransaction') {
+        // Check Tag ID
+        if (!filteredRequest.args || !filteredRequest.args.tagID || filteredRequest.args.tagID === "undefined") {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The user does not have any badge`, 580,
+            'ChargingStationService', 'handleAction', req.user, null, action);
+        }
         // Check if user is authorized
         await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, filteredRequest.args.tagID);
         // Ok: Execute it

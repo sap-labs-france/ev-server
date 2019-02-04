@@ -69,7 +69,7 @@ class Database {
       dest.inactive = false;
       const inactivitySecs = Math.floor((Date.now() - dest.lastHeartBeat.getTime()) / 1000);
       // Inactive?
-      if (inactivitySecs > (_heartbeatIntervalSecs * 5)) {
+      if (inactivitySecs > (_heartbeatIntervalSecs * 3)) {
         dest.inactive = true;
       }
     }
@@ -222,59 +222,59 @@ class Database {
         dest.image = src.image;
       }
     }
-    if (src.name) {
+    if (src.hasOwnProperty("name")) {
       dest.name = src.name;
     }
-    if (src.firstName) {
+    if (src.hasOwnProperty("firstName")) {
       dest.firstName = src.firstName;
     }
-    if (src.email) {
+    if (src.hasOwnProperty("email")) {
       dest.email = src.email;
     }
-    if (src.phone) {
+    if (src.hasOwnProperty("phone")) {
       dest.phone = src.phone;
     }
-    if (src.mobile) {
+    if (src.hasOwnProperty("mobile")) {
       dest.mobile = src.mobile;
     }
-    if (src.iNumber) {
+    if (src.hasOwnProperty("iNumber")) {
       dest.iNumber = src.iNumber;
     }
-    if (src.costCenter) {
+    if (src.hasOwnProperty("costCenter")) {
       dest.costCenter = src.costCenter;
     }
     dest.address = {};
-    if (src.address) {
+    if (src.hasOwnProperty("address")) {
       Database.updateAddress(src.address, dest.address)
     }
-    if (src.status) {
+    if (src.hasOwnProperty("status")) {
       dest.status = src.status;
     }
-    if (src.locale) {
+    if (src.hasOwnProperty("locale")) {
       dest.locale = src.locale;
     }
-    if (src.eulaAcceptedOn) {
+    if (src.hasOwnProperty("eulaAcceptedOn")) {
       dest.eulaAcceptedOn = Utils.convertToDate(src.eulaAcceptedOn);
       dest.eulaAcceptedVersion = src.eulaAcceptedVersion;
       dest.eulaAcceptedHash = src.eulaAcceptedHash;
     }
     Database.updateCreatedAndLastChanged(src, dest);
     dest.deleted = src.deleted;
-    if (forFrontEnd && src.tagIDs) {
+    if (forFrontEnd && src.hasOwnProperty("tagIDs")) {
       dest.tagIDs = src.tagIDs;
     }
-    if (src.role) {
+    if (src.hasOwnProperty("role")) {
       dest.role = src.role;
     }
-    if (src.password) {
+    if (src.hasOwnProperty("password")) {
       dest.password = src.password;
       dest.passwordWrongNbrTrials = Utils.convertToInt(src.passwordWrongNbrTrials);
       dest.passwordBlockedUntil = Utils.convertToDate(src.passwordBlockedUntil);
     }
-    if (src.passwordResetHash) {
+    if (src.hasOwnProperty("passwordResetHash")) {
       dest.passwordResetHash = src.passwordResetHash;
     }
-    if (src.verifiedAt) {
+    if (src.hasOwnProperty("verifiedAt")) {
       dest.verifiedAt = Utils.convertToDate(src.verifiedAt);
     }
     // No check of if(src.verificationToken), otherwise we cannot set it back to null (after being verified)

@@ -56,7 +56,8 @@
 		"urlencode": "^1.1.0",
 		"uuid": "^3.3.2",
 		"winston": "^3.0.0",
-		"xml-formatter": "^1.0.1"
+		"xml-formatter": "^1.0.1",
+		"simple-odata-server": "^1.1.1"
 	},
 	"devDependencies": {
 		"@types/chai": "^4.1.7",

@@ -12,17 +12,17 @@ require('body-parser-xml')(bodyParser);
 const Configuration = require('../../utils/Configuration');
 const Logging = require('../../utils/Logging');
 const Constants = require('../../utils/Constants');
-const OCPIServices = require('./OCPIServices');
-const OCPIErrorHandler = require('./OCPIErrorHandler');
+const ODataServerFactory = require('../odata/ODataServerFactory');
+const ODataSchema = require('./odata-schema/ODataSchema');
 require('source-map-support').install();
 
-let _ocpiRestConfig;
+let _oDataServerConfig;
 
-class OCPIServer {
+class ODataServer {
   // Create the rest server
-  constructor(ocpiRestConfig) {
+  constructor(oDataServerConfig) {
     // Keep params
-    _ocpiRestConfig = ocpiRestConfig;
+    _oDataServerConfig = oDataServerConfig;
     // Body parser
     express.use(bodyParser.json({
       limit: '1mb'
@@ -35,7 +35,7 @@ class OCPIServer {
     // Use
     express.use(locale(Configuration.getLocalesConfig().supported));
     // log to console
-    if (ocpiRestConfig.debug) {
+    if (oDataServerConfig.debug) {
       // Log
       express.use(
         morgan('combined', {
@@ -43,7 +43,7 @@ class OCPIServer {
             write: (message) => {
               // Log
               Logging.logDebug({
-                module: "OCPIServer",
+                module: "ODataServer",
                 method: "constructor",
                 action: "HttpRequestLog",
                 message: message
@@ -62,42 +62,42 @@ class OCPIServer {
       // Bind to express app
       express.use(CFLog.logNetwork);
     }
-    // new OCPI Services Instances
-    const ocpiServices = new OCPIServices(_ocpiRestConfig);
-    // OCPI versions
-    express.use(Constants.OCPI_SERVER_BASE_PATH, ocpiServices.getVersions);
-    // Register all services in express
-    ocpiServices.getOCPIServiceImplementations().forEach(ocpiService => {
-      express.use(ocpiService.getPath(), ocpiService.restService.bind(ocpiService));
-    });
+    //  Register ODATAServer
+    const oDataServerFactory = new ODataServerFactory();
+    const odataServer = oDataServerFactory.getODataServer();
+    express.use('/odata',
+      ODataSchema.getSchema,
+      function (req, res) {
+        odataServer.handle(req, res);
+      });
     // Register Error Handler
-    express.use(OCPIErrorHandler.errorHandler);
+    // express.use(OCPIErrorHandler.errorHandler);
   }
 
   // Start the server (to be defined in sub-classes)
   start() {
     let server;
     // Log
-    console.log(`Starting OCPI Server ...`); // eslint-disable-line
+    console.log(`Starting ODataServer ...`); // eslint-disable-line
     // Create the HTTP server
-    if (_ocpiRestConfig.protocol == "https") {
+    if (_oDataServerConfig.protocol == "https") {
       // Create the options
       const options = {};
       // Set the keys
-      options.key = fs.readFileSync(_ocpiRestConfig["ssl-key"]);
-      options.cert = fs.readFileSync(_ocpiRestConfig["ssl-cert"]);
+      options.key = fs.readFileSync(_oDataServerConfig["ssl-key"]);
+      options.cert = fs.readFileSync(_oDataServerConfig["ssl-cert"]);
       // Intermediate cert?
-      if (_ocpiRestConfig["ssl-ca"]) {
+      if (_oDataServerConfig["ssl-ca"]) {
         // Array?
-        if (Array.isArray(_ocpiRestConfig["ssl-ca"])) {
+        if (Array.isArray(_oDataServerConfig["ssl-ca"])) {
           options.ca = [];
           // Add all
-          for (let i = 0; i < _ocpiRestConfig["ssl-ca"].length; i++) {
-            options.ca.push(fs.readFileSync(_ocpiRestConfig["ssl-ca"][i]));
+          for (let i = 0; i < _oDataServerConfig["ssl-ca"].length; i++) {
+            options.ca.push(fs.readFileSync(_oDataServerConfig["ssl-ca"][i]));
           }
         } else {
           // Add one
-          options.ca = fs.readFileSync(_ocpiRestConfig["ssl-ca"]);
+          options.ca = fs.readFileSync(_oDataServerConfig["ssl-ca"]);
         }
       }
       // Https server
@@ -108,17 +108,17 @@ class OCPIServer {
     }
 
     // Listen
-    server.listen(_ocpiRestConfig.port, _ocpiRestConfig.host, () => {
+    server.listen(_oDataServerConfig.port, _oDataServerConfig.host, () => {
       // Log
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        module: "OCPIServer",
+        module: "ODataServer",
         method: "start", action: "Startup",
-        message: `OCPI Server listening on '${_ocpiRestConfig.protocol}://${server.address().address}:${server.address().port}'`
+        message: `OData Server listening on '${_oDataServerConfig.protocol}://${server.address().address}:${server.address().port}'`
       });
-      console.log(`OCPI Server listening on '${_ocpiRestConfig.protocol}://${server.address().address}:${server.address().port}'`); // eslint-disable-line
+      console.log(`OData Server listening on '${_oDataServerConfig.protocol}://${server.address().address}:${server.address().port}'`); // eslint-disable-line
     });
   }
 }
 
-module.exports = OCPIServer;
+module.exports = ODataServer;
