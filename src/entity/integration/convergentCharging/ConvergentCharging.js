@@ -2,11 +2,18 @@ const StatefulChargingService = require('./StatefulChargingService');
 const SettingStorage = require("../../../storage/mongodb/SettingStorage");
 const TransactionStorage = require("../../../storage/mongodb/TransactionStorage");
 const moment = require('moment');
+const Logging = require('../../../utils/Logging');
 
 const CI_NAME = '[CA] Charging Data';
 
 class ConvergentCharging {
-  constructor(tenantId) {
+  /**
+   *
+   * @param tenantId {string}
+   * @param chargingStation {ChargingStation}
+   */
+  constructor(tenantId, chargingStation) {
+    this.chargingStation = chargingStation;
     this.tenantId = tenantId;
   }
 
@@ -33,14 +40,51 @@ class ConvergentCharging {
     const reservationItem = new ReservationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, transaction.getCurrentConsumptionWh())]);
     const request = new StartRateRequest(reservationItem, transaction.getID(), moment(transaction.getStartDate()).format('YYYY-MM-DDTHH:mm:ss'), 'ENERGY', transaction.getUserID(), 'cancelled', 30000, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
     const result = await this.statefulChargingService.execute(request);
-    const startRateResult = new StartRateResult(result.data.startRateResult);
-    console.log("startRateResult");
-    console.log(JSON.stringify(startRateResult));
+    if (result.data.startRateResult) {
+      const startRateResult = new StartRateResult(result.data.startRateResult);
+      console.log("startRateResult");
+      console.log(JSON.stringify(startRateResult));
+      this.handleAlertNotification(transaction, startRateResult);
+    } else {
+      const chargingResult = result.data.chargingResult;
+      if (chargingResult.status === 'error') {
+        Logging.logError({
+          tenantID: this.tenantId,
+          source: transaction.getID(), module: 'ConvergentCharging',
+          method: 'startTransaction', action: 'startTransaction',
+          message: chargingResult.message,
+          detailedMessages: chargingResult
+        });
+      }
+    }
   }
 
   convertTransactionToMeterValue(transaction) {
 
   }
+
+  /**
+   *
+   * @param transaction {Transaction}
+   * @param notification {RateResult}
+   */
+  handleAlertNotification(transaction, rateResult) {
+    if (rateResult.transactionsToConfirm) {
+      for (const ccTransaction of rateResult.transactionsToConfirm.ccTransactions) {
+        if (ccTransaction.notifications) {
+          for (const notification of ccTransaction.notifications) {
+            switch (notification.code) {
+              case "LOW_CONSUMPTION":
+                this.remoteStopTransaction(transaction);
+                break;
+            }
+
+          }
+        }
+      }
+    }
+  }
+
 
   /**
    * @param transaction {Transaction}
@@ -55,9 +99,23 @@ class ConvergentCharging {
 
     const request = new UpdateRateRequest(confirmationItem, reservationItem, transaction.getID(), moment(transaction.getLastUpdateDate()).format('YYYY-MM-DDTHH:mm:ss'), 'ENERGY', transaction.getUserID(), 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
     const result = await this.statefulChargingService.execute(request);
-    const updateRateResult = new UpdateRateResult(result.data.updateRateResult);
-    console.log("updateRateResult");
-    console.log(JSON.stringify(updateRateResult));
+    if (result.data.updateRateResult) {
+      const updateRateResult = new UpdateRateResult(result.data.updateRateResult);
+      console.log("updateRateResult");
+      console.log(JSON.stringify(updateRateResult));
+      this.handleAlertNotification(transaction, updateRateResult);
+    } else {
+      const chargingResult = result.data.chargingResult;
+      if (chargingResult.status === 'error') {
+        Logging.logError({
+          tenantID: this.tenantId,
+          source: transaction.getID(), module: 'ConvergentCharging',
+          method: 'updateTransaction', action: 'updateTransaction',
+          message: chargingResult.message,
+          detailedMessages: chargingResult
+        });
+      }
+    }
   }
 
   /**
@@ -77,7 +135,13 @@ class ConvergentCharging {
     console.log(JSON.stringify(stopRateResult));
   }
 
-
+  /**
+   *
+   * @param transaction {Transaction}
+   */
+  remoteStopTransaction(transaction) {
+    this.chargingStation.requestStopTransaction({transactionId: transaction.getID()});
+  }
 }
 
 class ChargingRequest {
@@ -134,15 +198,15 @@ class RateResult {
       this.transactionsToReserve = new TransactionSet(model.transacSetToReserve);
     }
     if (model.transacSetToConfirm) {
-      this.masterTransactionToConfirm = new TransactionSet(model.transacSetToReserve);
+      this.transactionsToConfirm = new TransactionSet(model.transacSetToConfirm);
     }
     if (model.transacSetToCleanup) {
-      this.masterTransactionToConfirm = new TransactionSet(model.transacSetToReserve);
+      this.transactionsToCleanup = new TransactionSet(model.transacSetToCleanup);
     }
   }
 }
 
-class StartRateResult extends  RateResult{
+class StartRateResult extends RateResult {
   constructor(model) {
     super(model);
     this.amountToConfirm = model.$attributes.amountToConfirm;
@@ -152,15 +216,15 @@ class StartRateResult extends  RateResult{
 }
 
 
-class UpdateRateResult {
-  constructor(amountToConfirm, amountToReserve, amountToCancel, accumulatedAmount, limit) {
-    this.amountToConfirm = amountToConfirm;
-    this.amountToReserve = amountToReserve;
-    this.amountToCancel = amountToCancel;
-    this.accumulatedAmount = accumulatedAmount;
-    this.limit = limit;
-    this.toConfirm = {};
-    this.toReserve = {};
+class UpdateRateResult  extends RateResult {
+  constructor(model) {
+    super(model);
+    this.amountToConfirm = model.$attributes.amountToConfirm;
+    this.amountToReserve = model.$attributes.amountToReserve;
+    this.amountToCancel = model.$attributes.amountToCancel;
+    this.accumulatedAmount = model.$attributes.accumulatedAmount;
+    this.transactionSetID = model.$attributes.transactionSetID;
+    this.limit = model.$attributes.limit;
   }
 
   static parse(model) {

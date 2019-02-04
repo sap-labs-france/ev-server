@@ -973,7 +973,7 @@ class ChargingStation extends AbstractTenantEntity {
       // Get the transaction
       const transaction = await TransactionStorage.getTransaction(this.getTenantID(), meterValues.transactionId);
       // Update
-      const convergentCharging = new ConvergentCharging(transaction.getTenantID());
+      const convergentCharging = new ConvergentCharging(transaction.getTenantID(), this);
       newMeterValues.values.forEach(async (meterValue) => {
         await transaction.updateWithMeterValue(meterValue);
         convergentCharging.updateTransaction(transaction);
@@ -1147,8 +1147,11 @@ class ChargingStation extends AbstractTenantEntity {
       // BUG EBEE: Timestamp is mandatory according OCPP
       Logging.logWarning({
         tenantID: this.getTenantID(),
-        source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
-        action: 'StartTransaction', message: `The 'timestamp' property has not been provided and has been set to '${startTransaction.timestamp}'`
+        source: this.getID(),
+        module: 'ChargingStation',
+        method: 'handleStartTransaction',
+        action: 'StartTransaction',
+        message: `The 'timestamp' property has not been provided and has been set to '${startTransaction.timestamp}'`
       });
     }
     // Check the meter start
@@ -1188,7 +1191,7 @@ class ChargingStation extends AbstractTenantEntity {
     await TransactionStorage.cleanupRemainingActiveTransactions(this.getTenantID(), this.getID(), transaction.getConnectorId());
     // Save it
     transaction = await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
-    const convergentCharging = new ConvergentCharging(transaction.getTenantID());
+    const convergentCharging = new ConvergentCharging(transaction.getTenantID(), this);
     convergentCharging.startTransaction(transaction);
 
     // Lock the other connectors?
@@ -1347,7 +1350,7 @@ class ChargingStation extends AbstractTenantEntity {
     }
     // Stop
     await transaction.stopTransaction(user, tagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp));
-    const convergentCharging = new ConvergentCharging(transaction.getTenantID());
+    const convergentCharging = new ConvergentCharging(transaction.getTenantID(), this);
     convergentCharging.stopTransaction(transaction);
     // Save Transaction
     transaction = await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
