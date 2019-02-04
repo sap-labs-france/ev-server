@@ -482,7 +482,7 @@ class ChargingStation extends AbstractTenantEntity {
         tenantID: this.getTenantID(),
         source: this.getID(), module: 'ChargingStation',
         method: 'handleStatusNotification', action: 'StatusNotification',
-        message: `Error on connector ${statusNotification.connectorId}: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : "-")}'`
+        message: `Error on connector ${statusNotification.connectorId}: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : "N/A")}'`
       });
       // Send Notification
       NotificationHandler.sendChargingStationStatusError(
@@ -492,7 +492,7 @@ class ChargingStation extends AbstractTenantEntity {
         {
           'chargeBoxID': this.getID(),
           'connectorId': statusNotification.connectorId,
-          'error': `${statusNotification.status} - ${statusNotification.errorCode} - ${(statusNotification.info ? statusNotification.info : "-")}`,
+          'error': `${statusNotification.status} - ${statusNotification.errorCode} - ${(statusNotification.info ? statusNotification.info : "N/A")}`,
           'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain()),
           'evseDashboardChargingStationURL': await Utils.buildEvseChargingStationURL(this, statusNotification.connectorId)
         },
