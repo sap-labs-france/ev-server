@@ -69,6 +69,7 @@ class OCPIEndpointSecurity {
     filteredRequest.partyId = sanitize(request.partyId);
     filteredRequest.localToken = sanitize(request.localToken);
     filteredRequest.token = sanitize(request.token);
+    filteredRequest.backgroundPatchJob = sanitize(request.backgroundPatchJob);
     return filteredRequest;
   }
 
