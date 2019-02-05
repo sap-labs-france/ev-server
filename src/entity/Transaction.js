@@ -452,12 +452,12 @@ class Transaction extends AbstractTenantEntity {
     }
   }
 
-  async stopTransaction(user, tagId, meterStop, timestamp) {
+  async stopTransaction(userID, tagId, meterStop, timestamp) {
     // Create Stop
     this._model.stop = {};
     this._model.stop.meterStop = meterStop;
     this._model.stop.timestamp = timestamp;
-    this._model.stop.userID = user.getID();
+    this._model.stop.userID = userID;
     this._model.stop.tagID = tagId;
     this._model.stop.stateOfCharge = this.getCurrentStateOfCharge();
     // Get the last one

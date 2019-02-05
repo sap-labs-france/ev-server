@@ -40,7 +40,7 @@
 		"mustache": "^2.3.0",
 		"node-authorization": "^1.0.5",
 		"node-cron": "^1.2.1",
-		"node-pre-gyp": "^0.10.3",
+		"node-pre-gyp": "^0.12.0",
 		"nodemailer": "^4.7.0",
 		"nodemailer-smtp-transport": "^2.7.4",
 		"passport": "^0.4.0",
@@ -49,6 +49,7 @@
 		"passport-strategy": "^1.0.0",
 		"password-generator": "^2.1.0",
 		"promise": "^8.0.1",
+		"simple-odata-server": "^1.1.1",
 		"soap": "^0.24.0",
 		"socket.io": "^2.0.3",
 		"source-map-support": "^0.5.6",
@@ -56,8 +57,7 @@
 		"urlencode": "^1.1.0",
 		"uuid": "^3.3.2",
 		"winston": "^3.0.0",
-		"xml-formatter": "^1.0.1",
-		"simple-odata-server": "^1.1.1"
+		"xml-formatter": "^1.0.1"
 	},
 	"devDependencies": {
 		"@types/chai": "^4.1.7",

@@ -16,22 +16,30 @@ The application:
 ## Installation
 * Install NodeJS: https://nodejs.org/ (install the LTS version)
 * Install Python version 2.7 (not the version 3.7!)
-* Install MongoDB: https://www.mongodb.com/ (do not install the DB as a service)
+* Install MongoDB: https://www.mongodb.com/
 * Clone this GitHub project
 * Install required build tools:
   * Under Windows as an administrator:  
-    ```npm install --g --production windows-build-tools```
+    ```
+    npm install --g --production windows-build-tools
+    ```
   * Under Mac OS X, install Xcode from the Apple store  
   * Under Debian based GNU/Linux distribution:  
-    ```sudo apt install build-essential```
+    ```
+    sudo apt install build-essential
+    ```
 * Go into the **ev-server** directory and run **npm install** or **yarn install**
-* In case of issue with package **bcrypt** do the following:  
-```npm install bcrypt```
+* In case of issue with package **bcrypt** do the following:
+  ```
+  npm install bcrypt
+  ```
 * Follow the rest of the setup below
 
 ## The Database
 
 #### Start MongoDB
+
+##### Manually
 
 ```
 mongod --port <port> --dbpath <path> --replSet <replcaSetName>
@@ -41,43 +49,18 @@ For instance:
 mongod --port 27017 --dbpath "/var/lib/mongodb" --replSet "rs0"
 ```
 
-#### Create the Admin user
+##### As a Windows service
 
-This user will be used to connect to the database as an administrator with tools like MongoDB shell or RoboMongo:
+Add to /path/to/mongod.cfg:  
+```
+...
+replication:
+  replSetName: "rs0"
+...  
+```
+Restart the MongoDB service with Powershell as an administrator:
 
-Create Admin User on Admin schema:
-```
-  use admin
-  db.createUser({
-    user: "evse-admin",
-	  pwd: "<Password>",
-	  roles: [
-        "read",
-        "readWrite",
-        "dbAdmin",
-        "userAdmin",
-        "clusterAdmin",
-        "readAnyDatabase",
-        "readWriteAnyDatabase",
-        "userAdminAnyDatabase",
-        "dbAdminAnyDatabase"
-	  ]
-  })
-```
-
-#### Create the Application User
-
-Create Application User on EVSE schema
-```
-  use evse
-  db.createUser({
-    user: "evse-user",
-    pwd: "YourPassword",
-	  roles: [
-		  "readWrite"
-	  ]
-  })
-```
+    Restart-Service -Name "MongoDB"
 
 #### Activate the Replica Set
 
@@ -96,13 +79,82 @@ rs.initiate()
 Check here for more info:
 [Mongo DB Replica Set](https://docs.mongodb.com/manual/tutorial/convert-standalone-to-replica-set/)
 
+#### Create the Admin user
+
+This user will be used to connect to the database as an administrator with tools like MongoDB shell or RoboMongo:
+
+Create Admin User on Admin schema:
+```
+  use admin
+  db.createUser({
+    user: "evse-admin",
+	  pwd: "<YourPassword>",
+	  roles: [
+        "read",
+        "readWrite",
+        "dbAdmin",
+        "userAdmin",
+        "clusterAdmin",
+        "readAnyDatabase",
+        "readWriteAnyDatabase",
+        "userAdminAnyDatabase",
+        "dbAdminAnyDatabase"
+	  ]
+  })
+```
+
+On MongoDB version >= 4, you will have to set **passwordDigestor: "server"** in createUser()
+
+#### Create the Application User
+
+Create Application User on EVSE schema
+```
+  use evse
+  db.createUser({
+    user: "evse-user",
+    pwd: "<YourPassword>",
+	  roles: [
+		  "readWrite"
+	  ]
+  })
+```
+
+On MongoDB version >= 4, you will have to set **passwordDigestor: "server"** in createUser()
+
 #### Restart MongoDB with authentication enabled
+
+##### Manually
 
 This will restart MongoDB and will accept only authenticated connections from now:
 
 ```
 mongod --auth --port <port> --dbpath <path> --replSet <replcaSetName>
 ```
+
+##### As a Windows service
+
+In the following, you will need to run Powershell as an administrator.
+
+* Stop the current MongoDB service:
+    ```
+    Stop-Service -Name "MongoDB"
+    ```
+* Remove the current MongoDB service:
+    ```
+    Get-CimInstance win32_service -filter "name='MongoDB'" | Remove-CimInstance
+    ```
+* Readd the MongoDB service with authentification enabled:
+    ```
+    New-Service -Name MongoDB -BinaryPathName '"C:\Program Files\MongoDB\Server\4.0\bin\mongod.exe" --config "C:\Program Files\MongoDB\Server\4.0\bin\mongod.cfg" --auth --service' -StartupType Automatic -DisplayName "MongoDB Server" -Description "MongoDB Database Server"
+    ```
+  
+  Change the path to *mongod* and *mongod.cfg* accordingly if needed.  
+  Open the **Services** application, search for the MongoDB service, open the service properties and Log on as **Network Service** user with empty password.
+
+* Start the MongoDB service:
+    ```
+    Start-Service -Name "MongoDB"
+    ```
 
 Now your database is ready to be used.
 
@@ -111,7 +163,6 @@ Now your database is ready to be used.
 The application server consists of:
 * **Central Service Server**: Serves the charging stations
 * **Central Service REST Server**: Serves the Angular front-end dashboard
-
 
 ### The Central Service Server (CSS)
 

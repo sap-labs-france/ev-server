@@ -115,7 +115,7 @@ class AuthService {
     if (!transaction) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Transaction with ID '${filteredRequest.Arg2}' does not exist`,
+        `Transaction ID '${filteredRequest.Arg2}' does not exist`,
         560, 'ChargingStationService', 'handleAction');
     }
     try {
