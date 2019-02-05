@@ -149,7 +149,7 @@ In the following, you will need to run Powershell as an administrator.
     ```
   
   Change the path to *mongod* and *mongod.cfg* accordingly if needed.  
-  Open the **Services** application, search for MongoDB, open service properties and Log on as **Network Service** user with empty password.
+  Open the **Services** application, search for the MongoDB service, open the service properties and Log on as **Network Service** user with empty password.
 
 * Start the MongoDB service:
     ```
