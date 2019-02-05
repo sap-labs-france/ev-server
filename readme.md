@@ -158,6 +158,12 @@ In the following, you will need to run Powershell as an administrator.
 
 Now your database is ready to be used.
 
+#### Import an EVSE database dump in MongoDB
+
+```
+mongorestore /gzip /authenticationDatabase:evse /username:evse-user /password:<YourPassword> /db:evse /dir:/path/to/mongodbdump/
+```
+
 ## The Application Server
 
 The application server consists of:
@@ -312,11 +318,11 @@ The token key is provided is the **config.json** file:
 
 ```
   "CentralSystemRestService": {
-	...
-	"userTokenKey": "MySecureKeyToEncodeTokenAuth",
+    ...
+    "userTokenKey": "MySecureKeyToEncodeTokenAuth",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
-	...
+    ...
   }
 ```
 
@@ -486,7 +492,7 @@ npm run start:dev
 ### Tests
 **Prerequisite:** The database must contain an admin user. 
 
-* Create a local configuration file located in '/test/config/local.json' with the parameters to override like 
+* Create a local configuration file located in './test/config/local.json' with the parameters to override like 
          
         {
           "admin": {
