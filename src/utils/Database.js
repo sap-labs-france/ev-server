@@ -425,6 +425,7 @@ class Database {
     dest.token = src.token;
     dest.countryCode = src.countryCode;
     dest.partyId = src.partyId;
+    dest.backgroundPatchJob = src.backgroundPatchJob;
 
     if (src.version) {
       dest.version = src.version;

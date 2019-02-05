@@ -55,9 +55,9 @@ class CredentialsEndpoint extends AbstractEndpoint {
     }
 
     // log body
-    Logging.logDebug({
+    Logging.logInfo({
       tenantID: tenant.getID(),
-      action: 'deleteCredentials',
+      action: 'DELETE credentials',
       message: "Received unregister",
       source: 'OCPI Server',
       module: MODULE_NAME,
@@ -78,6 +78,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
 
     // save copi endpoint
     ocpiEndpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_UNREGISTERED);
+    ocpiEndpoint.setBackgroundPatchJobFlag(false);
     await ocpiEndpoint.save();
 
     // respond with credentials
@@ -94,7 +95,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
     // log body
     Logging.logDebug({
       tenantID: tenant.getID(),
-      action: 'postCredentials',
+      action: 'POST credentials',
       message: "Received credential object",
       source: 'OCPI Server',
       module: MODULE_NAME,
@@ -119,7 +120,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
     // log body
     Logging.logDebug({
       tenantID: tenant.getID(),
-      action: 'postCredentials',
+      action: 'POST credentials',
       message: "Received token",
       source: 'OCPI Server',
       module: MODULE_NAME,
@@ -148,7 +149,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
     // log updated ocpi endpoint
     Logging.logDebug({
       tenantID: tenant.getID(),
-      action: 'postCredentials',
+      action: 'POST credentials',
       message: "OCPI Server found and updated with credential object",
       source: 'OCPI Server',
       module: MODULE_NAME,
@@ -164,13 +165,14 @@ class CredentialsEndpoint extends AbstractEndpoint {
         headers: {
           'Authorization': `Token ${ocpiEndpoint.getToken()}`,
           'Content-Type': 'application/json'
-        }
+        },
+        timeout: 10000
       });
 
       // log Avaialble OCPI Versions
       Logging.logDebug({
         tenantID: tenant.getID(),
-        action: 'postCredentials',
+        action: 'POST credentials',
         message: "Available OCPI Versions",
         source: 'OCPI Server',
         module: MODULE_NAME,
@@ -194,7 +196,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
           // log correct OCPI service found
           Logging.logDebug({
             tenantID: tenant.getID(),
-            action: 'postCredentials',
+            action: 'POST credentials',
             message: "Correct OCPI version found",
             source: 'OCPI Server',
             module: MODULE_NAME,
@@ -221,7 +223,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
       // log Available OCPI services
       Logging.logDebug({
         tenantID: tenant.getID(),
-        action: 'postCredentials',
+        action: 'POST credentials',
         message: "Available OCPI services",
         source: 'OCPI Server',
         module: MODULE_NAME,
@@ -258,7 +260,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
     // log Avaialble OCPI Versions
     Logging.logDebug({
       tenantID: tenant.getID(),
-      action: 'postCredentials',
+      action: 'POST credentials',
       message: "Response with credential object",
       source: 'OCPI Server',
       module: MODULE_NAME,
