@@ -61,6 +61,15 @@ class OCPIEndpoint extends AbstractTenantEntity {
     this._model.version = version;
   }
 
+  // background job flag
+  setBackgroundPatchJobFlag(active) {
+    this._model.backgroundPatchJob = active;
+  }
+
+  isBackgroundPatchJobActive() {
+    return this._model.backgroundPatchJob?this._model.backgroundPatchJob:false;
+  }
+
   /**
    * manage endpoint status
    */
@@ -242,7 +251,7 @@ class OCPIEndpoint extends AbstractTenantEntity {
 
     if (!ocpiendpoint) {
       // create new endpoint
-      ocpiendpoint = new OcpiEndpoint(tenantID, {});
+      ocpiendpoint = new OCPIEndpoint(tenantID, {});
       ocpiendpoint.setName('default');
       ocpiendpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.NEW);
       ocpiendpoint.setLocalToken("eyAiYSI6IDEgLCAidGVuYW50IjogInNsZiIgfQ==");

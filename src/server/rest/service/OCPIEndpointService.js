@@ -254,7 +254,7 @@ class OCPIEndpointService {
         res.json(Object.assign(pingResult, Constants.REST_RESPONSE_SUCCESS));
       } else {
         // Log
-        Logging.logSecurityInfo({
+        Logging.logSecurityError({
           tenantID: req.user.tenantID,
           user: req.user, module: 'OCPIEndpointService', method: 'handlePingOcpiendpoint',
           message: `Ocpiendpoint '${ocpiendpoint.getName()}' cannot be reached`,
@@ -344,7 +344,7 @@ class OCPIEndpointService {
         res.json(Object.assign(pingResult, Constants.REST_RESPONSE_SUCCESS));
       } else {
         // Log
-        Logging.logSecurityInfo({
+        Logging.logSecurityError({
           tenantID: req.user.tenantID,
           user: req.user, module: 'OCPIEndpointService', method: 'handleRegisterOcpiendpoint',
           message: `Ocpiendpoint '${ocpiendpoint.getName()}' cannot be reached`,

@@ -77,7 +77,7 @@ class OCPIClient {
 
       // save endpoint
       this._ocpiEndpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED);
-      this._ocpiEndpoint.save();
+      await this._ocpiEndpoint.save();
 
       // send success
       registerResult.statusCode = 200;
@@ -95,6 +95,7 @@ class OCPIClient {
    * GET /ocpi/emsp/versions
    */
   async getVersions() {
+  
     const respOcpiVersions = await axios.get(this._ocpiEndpoint.getBaseUrl(), {
       headers: {
         'Authorization': `Token ${this._ocpiEndpoint.getToken()}`,
@@ -115,6 +116,16 @@ class OCPIClient {
    * GET /ocpi/emsp/{version}
    */
   async getServices() {
+    // log
+    Logging.logInfo({
+      tenantID: this._ocpiEndpoint.getTenantID(),
+      action: 'GET versions',
+      message: `get versions at ${this._ocpiEndpoint.getVersionUrl()}`,
+      source: 'OCPI Client',
+      module: 'OCPI Client',
+      method: `getServices`
+    });
+
     const respOcpiServices = await axios.get(this._ocpiEndpoint.getVersionUrl(), {
       headers: {
         'Authorization': `Token ${this._ocpiEndpoint.getToken()}`,
@@ -145,6 +156,17 @@ class OCPIClient {
     // build CPO credential object
     const tenant = await this._ocpiEndpoint.getTenant();
     const cpoCredentials = await OCPIMapping.buildOCPICredentialObject(tenant, await this._ocpiEndpoint.generateLocalToken());
+
+    // log
+    Logging.logInfo({
+      tenantID: tenant.getID(),
+      action: 'POST credentials',
+      message: `Post creadentials at ${credentialsUrl}`,
+      source: 'OCPI Client',
+      module: 'OCPI Client',
+      method: `postCredentials`,
+      detailedMessages: cpoCredentials
+    });
 
     // call eMSP with CPO credentials
     const respOcpiCredentials = await axios.post(credentialsUrl, cpoCredentials,
@@ -202,6 +224,17 @@ class OCPIClient {
     // build payload
     const payload = { "status": newStatus };
 
+    // log
+    Logging.logInfo({
+      tenantID: tenant.getID(),
+      action: 'PATCH locations',
+      message: `Patch location at ${fullUrl}`,
+      source: 'OCPI Client',
+      module: 'OCPI Client',
+      method: `patchEVSEStatus`,
+      detailedMessages: payload
+    });
+
     // call IOP
     const response = await axios.patch(fullUrl, payload,
       {
@@ -258,8 +291,8 @@ class OCPIClient {
                 tenantID: tenant.getID(),
                 action: 'sendEVSEStatuses',
                 message: `failure updating status for locationID:${location.id} - evseID:${evse.id}`,
-                source: 'OCPIClient',
-                module: 'OCPIClient',
+                source: 'OCPI Client',
+                module: 'OCPI Client',
                 method: `sendEVSEStatuses`,
                 detailedMessages: error.message
               });
