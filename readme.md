@@ -158,11 +158,7 @@ In the following, you will need to run Powershell as an administrator.
 
 Now your database is ready to be used.
 
-#### Import an EVSE database dump in MongoDB
-
-```
-mongorestore /gzip /authenticationDatabase:evse /username:evse-user /password:<YourPassword> /db:evse /dir:/path/to/mongodbdump/
-```
+**NOTE**: You can also use empty-db.zip or empty-db-service.zip on the share to do the initial setup of the databases required by simply deleting all files in the MongoDB databases path and then dropping its content inside instead.  
 
 ## The Application Server
 
@@ -489,6 +485,9 @@ In another console, start the application (restarts if any changes is detected):
 ```
 npm run start:dev
 ```
+
+**NOTE**: You can also use the files in the ev-config-scripts.zip on the share to have a correct initial setup of your development environment and some server startup helpers.  
+
 ### Tests
 **Prerequisite:** The database must contain an admin user. 
 
