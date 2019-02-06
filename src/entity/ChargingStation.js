@@ -374,7 +374,7 @@ class ChargingStation extends AbstractTenantEntity {
       statusNotification.timestamp = new Date().toISOString();
     }
     // Handle connectorId = 0 case => Currently status is distributed to each individual connectors
-    if (statusNotification.connectorId == 0) {
+    if (statusNotification.connectorId == 0 ) {
       // Log
       Logging.logWarning({
         tenantID: this.getTenantID(),
@@ -392,16 +392,16 @@ class ChargingStation extends AbstractTenantEntity {
           statusNotification.connectorId = i + 1;
           // update TS to avoid duplicates in case StatusNotification are also sent in parallel for other connectors
           statusNotification.timestamp = new Date().toISOString();
-          await this.updateConnectorStatus(statusNotification);
+          await this.updateConnectorStatus(statusNotification, true);
         }
       }
     } else {
       // update only the given connectorId
-      await this.updateConnectorStatus(statusNotification);
+      await this.updateConnectorStatus(statusNotification, false);
     }
   }
 
-  async updateConnectorStatus(statusNotification) {
+  async updateConnectorStatus(statusNotification, bothConnectorsUpdated) {
     // Get the connectors
     const connectors = this.getConnectors();
     // Init previous connector status
@@ -438,8 +438,9 @@ class ChargingStation extends AbstractTenantEntity {
     });
     // Check if connector is available and a transaction is ongoing (ABB fucking bitch bug)
     if ((statusNotification.status === Constants.CONN_STATUS_AVAILABLE ||
-         statusNotification.status === Constants.CONN_STATUS_FINISHING) && 
-        connectors[statusNotification.connectorId - 1].activeTransactionID > 0) {
+         statusNotification.status === Constants.CONN_STATUS_FINISHING) &&
+         !bothConnectorsUpdated && 
+         connectors[statusNotification.connectorId - 1].activeTransactionID > 0) {
       // Clear
       connectors[statusNotification.connectorId - 1].currentConsumption = 0;
       connectors[statusNotification.connectorId - 1].totalConsumption = 0;
