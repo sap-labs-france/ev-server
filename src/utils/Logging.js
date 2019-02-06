@@ -315,6 +315,7 @@ class Logging {
       method: exception.method,
       action: action,
       message: exception.message,
+      user: exception.user,
       detailedMessages: [{
         "stack": exception.stack
       }]

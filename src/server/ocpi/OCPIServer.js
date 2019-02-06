@@ -78,7 +78,7 @@ class OCPIServer {
   start() {
     let server;
     // Log
-    console.log(`Starting OCPI Server ...`); // eslint-disable-line
+    console.log(`Starting OCPI Server...`); // eslint-disable-line
     // Create the HTTP server
     if (_ocpiRestConfig.protocol == "https") {
       // Create the options

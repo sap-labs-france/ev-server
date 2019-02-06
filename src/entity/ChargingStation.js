@@ -374,7 +374,7 @@ class ChargingStation extends AbstractTenantEntity {
       statusNotification.timestamp = new Date().toISOString();
     }
     // Handle connectorId = 0 case => Currently status is distributed to each individual connectors
-    if (statusNotification.connectorId == 0 ) {
+    if (parseInt(statusNotification.connectorId) === 0 ) {
       // Log
       Logging.logWarning({
         tenantID: this.getTenantID(),
@@ -865,24 +865,28 @@ class ChargingStation extends AbstractTenantEntity {
     }
     // Check if the transaction ID matches
     const chargerTransactionId = this.getConnector(meterValues.connectorId).activeTransactionID;
-    // Same?
+    // Transaction is provided in MeterValue?
     if (meterValues.hasOwnProperty('transactionId')) {
-      // BUG ABB: Check ID
+      // Yes: Check Transaction ID (ABB)
       if (parseInt(meterValues.transactionId) !== parseInt(chargerTransactionId)) {
-        // No: Log
-        Logging.logWarning({
-          tenantID: this.getTenantID(),
-          source: this.getID(),
-          module: 'ChargingStation',
-          method: 'handleMeterValues',
-          action: 'MeterValues',
-          message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
-        });
-        // Override it
+        // Check if valid
+        if (parseInt(chargerTransactionId) !== 0) {
+          // No: Log that the transaction ID will be reused
+          Logging.logWarning({
+            tenantID: this.getTenantID(),
+            source: this.getID(),
+            module: 'ChargingStation',
+            method: 'handleMeterValues',
+            action: 'MeterValues',
+            message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
+          });
+        }
+        // Always assign, even if equals to 0
         meterValues.transactionId = chargerTransactionId;
       }
-    } else if (chargerTransactionId > 0) {
-      // No Transaction ID, retrieve it
+    // Transaction is not provided: check if there is a transaction assigned on the connector
+    } else if (parseInt(chargerTransactionId) > 0) {
+      // Yes: Use Connector's Transaction ID
       Logging.logWarning({
         tenantID: this.getTenantID(),
         source: this.getID(),
@@ -895,10 +899,10 @@ class ChargingStation extends AbstractTenantEntity {
       meterValues.transactionId = chargerTransactionId;
     }
     // Check Transaction
-    if (meterValues.transactionId && parseInt(meterValues.transactionId) === 0) {
+    if (meterValues.hasOwnProperty('transactionId') && parseInt(meterValues.transactionId) === 0) {
       // Wrong Transaction ID!
       throw new BackendError(this.getID(),
-        `Transaction ID must not be equal to '0'`,
+        `Transaction ID is invalid (must not be equal to '0')`,
         "ChargingStation", "handleMeterValues")
     }
     // Handle Values
@@ -1345,7 +1349,7 @@ class ChargingStation extends AbstractTenantEntity {
       // Wrong Transaction ID!
       throw new BackendError(this.getID(),
         `Transaction ID '${stopTransactionData.transactionId}' does not exist`,
-        "ChargingStation", "handleStopTransaction")
+        "ChargingStation", "handleStopTransaction", "StopTransaction");
     }
     // Get the TagID
     const tagId = this._getStoppingTransactionTagId(stopTransactionData, transaction);
@@ -1355,6 +1359,13 @@ class ChargingStation extends AbstractTenantEntity {
     if (users) {
       // Set current user
       user = (users.alternateUser ? users.alternateUser : users.user);
+    }
+    // Check if it still opened
+    if (!transaction.isActive()) {
+      // Wrong Transaction ID!
+      throw new BackendError(this.getID(),
+        `Transaction ID '${stopTransactionData.transactionId}' has already been stopped`,
+        "ChargingStation", "handleStopTransaction", "StopTransaction", user.getModel());
     }
     // Clean up connector
     await this.freeConnector(transaction.getConnectorId());
