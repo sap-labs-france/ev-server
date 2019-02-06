@@ -437,7 +437,8 @@ class ChargingStation extends AbstractTenantEntity {
       message: `'${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}' on Connector '${statusNotification.connectorId}' has been saved`
     });
     // Check if connector is available and a transaction is ongoing (ABB fucking bitch bug)
-    if (statusNotification.status === Constants.CONN_STATUS_AVAILABLE && 
+    if ((statusNotification.status === Constants.CONN_STATUS_AVAILABLE ||
+         statusNotification.status === Constants.CONN_STATUS_FINISHING) && 
         connectors[statusNotification.connectorId - 1].activeTransactionID > 0) {
       // Clear
       connectors[statusNotification.connectorId - 1].currentConsumption = 0;

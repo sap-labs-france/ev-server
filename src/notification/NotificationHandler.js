@@ -44,6 +44,7 @@ class NotificationHandler {
       // User
       Logging.logInfo({
         tenantID: tenantID,
+        source: (chargingStation ? chargingStation.id : null),
         module: "Notification", method: "saveNotification",
         action: sourceDescr, actionOnUser: user,
         message: `User is being notified`
@@ -52,6 +53,7 @@ class NotificationHandler {
       // Admin
       Logging.logInfo({
         tenantID: tenantID,
+        source: (chargingStation ? chargingStation.id : null),
         module: "Notification", method: "saveNotification",
         action: sourceDescr, message: `Admin users is being notified`
       });
