@@ -103,6 +103,13 @@
 					"retentionPeriodWeeks": 4,
 					"securityRetentionPeriodWeeks": 4
 				}
+			},
+			{
+				"name": "OCPIPatchLocationsTask",
+				"active": true,
+				"periodicity": "0-59/5 * * * *",
+				"config": {
+				}
 			}
 		]
 	},
