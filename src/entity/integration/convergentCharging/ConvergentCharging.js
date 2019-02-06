@@ -1,6 +1,5 @@
 const StatefulChargingService = require('./StatefulChargingService');
 const SettingStorage = require("../../../storage/mongodb/SettingStorage");
-const TransactionStorage = require("../../../storage/mongodb/TransactionStorage");
 const moment = require('moment');
 const Logging = require('../../../utils/Logging');
 
@@ -29,29 +28,26 @@ class ConvergentCharging {
     return true;
   }
 
-  /**
-   * @param transaction {Transaction}
-   */
-  async startTransaction(transaction) {
+  async StartSession(consumptionData) {
     const readyState = await this.initialize();
     if (!readyState) {
       return;
     }
-    const reservationItem = new ReservationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, transaction.getCurrentConsumptionWh())]);
-    const request = new StartRateRequest(reservationItem, transaction.getID(), moment(transaction.getStartDate()).format('YYYY-MM-DDTHH:mm:ss'), 'ENERGY', transaction.getUserID(), 'cancelled', 30000, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
+    const reservationItem = new ReservationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, consumptionData.consumption)]);
+    const request = new StartRateRequest(reservationItem, consumptionData.transactionId, moment(consumptionData.startedAt).format('YYYY-MM-DDTHH:mm:ss'), 'ENERGY', consumptionData.userID, 'cancelled', 30000, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING', null);
     const result = await this.statefulChargingService.execute(request);
     if (result.data.startRateResult) {
       const startRateResult = new StartRateResult(result.data.startRateResult);
       console.log("startRateResult");
       console.log(JSON.stringify(startRateResult));
-      this.handleAlertNotification(transaction, startRateResult);
+      this.handleAlertNotification(consumptionData, startRateResult);
     } else {
       const chargingResult = result.data.chargingResult;
       if (chargingResult.status === 'error') {
         Logging.logError({
           tenantID: this.tenantId,
-          source: transaction.getID(), module: 'ConvergentCharging',
-          method: 'startTransaction', action: 'startTransaction',
+          source: consumptionData.transactionId, module: 'ConvergentCharging',
+          method: 'StartSession', action: 'StartSession',
           message: chargingResult.message,
           detailedMessages: chargingResult
         });
@@ -59,23 +55,89 @@ class ConvergentCharging {
     }
   }
 
-  saveAmountData(transaction) {
+  async updateSession(consumptionData) {
+    const readyState = await this.initialize();
+    if (!readyState) {
+      return;
+    }
+    const confirmationItem = new ConfirmationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, consumptionData.consumption)]);
+    const reservationItem = new ReservationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, consumptionData.consumption)]);
 
+    const request = new UpdateRateRequest(confirmationItem, reservationItem, consumptionData.transactionId, moment(consumptionData.endedAt).format('YYYY-MM-DDTHH:mm:ss'), 'ENERGY', consumptionData.userID, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
+    const result = await this.statefulChargingService.execute(request);
+    if (result.data.updateRateResult) {
+      const updateRateResult = new UpdateRateResult(result.data.updateRateResult);
+      this.handleAlertNotification(consumptionData, updateRateResult);
+
+      return {
+        amount: updateRateResult.amountToConfirm,
+        cumulatedAmount: updateRateResult.accumulatedAmount,
+        currencyCode: updateRateResult.transactionsToConfirm.getCurrencyCode(),
+        unroundedAmount: updateRateResult.transactionsToConfirm.getTotalUnroundedAmount(),
+        pricingSource: 'ConvergentCharging'
+      }
+    } else {
+      const chargingResult = result.data.chargingResult;
+      if (chargingResult.status === 'error') {
+        Logging.logError({
+          tenantID: this.tenantId,
+          source: consumptionData.transactionId, module: 'ConvergentCharging',
+          method: 'updateSession', action: 'updateSession',
+          message: chargingResult.message,
+          detailedMessages: chargingResult
+        });
+        return null;
+      }
+    }
   }
+
+  async stopSession(transaction) {
+    const readyState = await this.initialize();
+    if (!readyState) {
+      return;
+    }
+    const confirmationItem = new ConfirmationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, transaction.consumption)]);
+
+    const request = new StopRateRequest(confirmationItem, transaction.transactionId, 'ENERGY', transaction.userID, 'confirmed', 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
+    const result = await this.statefulChargingService.execute(request);
+    if (result.data.stopRateResult) {
+      const stopRateResult = new StopRateResult(result.data.stopRateResult);
+      this.handleAlertNotification(transaction, stopRateResult);
+      return {
+        amount: stopRateResult.amountToConfirm,
+        cumulatedAmount: stopRateResult.accumulatedAmount,
+        currencyCode: stopRateResult.transactionsToConfirm.getCurrencyCode(),
+        unroundedAmount: stopRateResult.transactionsToConfirm.getTotalUnroundedAmount(),
+        pricingSource: 'ConvergentCharging'
+      }
+    } else {
+      const chargingResult = result.data.chargingResult;
+      if (chargingResult.status === 'error') {
+        Logging.logError({
+          tenantID: this.tenantId,
+          source: transaction.getID(), module: 'ConvergentCharging',
+          method: 'stopSession', action: 'stopSession',
+          message: chargingResult.message,
+          detailedMessages: chargingResult
+        });
+      }
+    }
+  }
+
 
   /**
    *
-   * @param transaction {Transaction}
+   * @param consumptionData
    * @param notification {RateResult}
    */
-  handleAlertNotification(transaction, rateResult) {
+  handleAlertNotification(consumptionData, rateResult) {
     if (rateResult.transactionsToConfirm) {
       for (const ccTransaction of rateResult.transactionsToConfirm.ccTransactions) {
         if (ccTransaction.notifications) {
           for (const notification of ccTransaction.notifications) {
             switch (notification.code) {
               case "LOW_CONSUMPTION":
-                this.remoteStopTransaction(transaction);
+                this.remoteStopTransaction(consumptionData);
                 break;
             }
 
@@ -87,60 +149,11 @@ class ConvergentCharging {
 
 
   /**
-   * @param transaction {Transaction}
-   */
-  async updateTransaction(transaction) {
-    const readyState = await this.initialize();
-    if (!readyState) {
-      return;
-    }
-    const confirmationItem = new ConfirmationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, transaction.getCurrentConsumptionWh())]);
-    const reservationItem = new ReservationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, transaction.getCurrentConsumptionWh())]);
-
-    const request = new UpdateRateRequest(confirmationItem, reservationItem, transaction.getID(), moment(transaction.getLastUpdateDate()).format('YYYY-MM-DDTHH:mm:ss'), 'ENERGY', transaction.getUserID(), 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
-    const result = await this.statefulChargingService.execute(request);
-    if (result.data.updateRateResult) {
-      const updateRateResult = new UpdateRateResult(result.data.updateRateResult);
-      console.log("updateRateResult");
-      console.log(JSON.stringify(updateRateResult));
-      this.handleAlertNotification(transaction, updateRateResult);
-    } else {
-      const chargingResult = result.data.chargingResult;
-      if (chargingResult.status === 'error') {
-        Logging.logError({
-          tenantID: this.tenantId,
-          source: transaction.getID(), module: 'ConvergentCharging',
-          method: 'updateTransaction', action: 'updateTransaction',
-          message: chargingResult.message,
-          detailedMessages: chargingResult
-        });
-      }
-    }
-  }
-
-  /**
-   * @param transaction {Transaction}
-   */
-  async stopTransaction(transaction) {
-    const readyState = await this.initialize();
-    if (!readyState) {
-      return;
-    }
-    const confirmationItem = new ConfirmationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, transaction.getCurrentConsumptionWh())]);
-
-    const request = new StopRateRequest(confirmationItem, transaction.getID(), 'ENERGY', transaction.getUserID(), 'confirmed', 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
-    const result = await this.statefulChargingService.execute(request);
-    const stopRateResult = new StopRateResult(result.data.stopRateResult);
-    console.log("stopRateResult");
-    console.log(JSON.stringify(stopRateResult));
-  }
-
-  /**
    *
    * @param transaction {Transaction}
    */
   remoteStopTransaction(transaction) {
-    this.chargingStation.requestStopTransaction({transactionId: transaction.getID()});
+    this.chargingStation.requestStopTransaction({transactionId: transaction.transactionId});
   }
 }
 
@@ -365,6 +378,15 @@ class TransactionSet {
     } else {
       this.ccTransactions = [new CCTransaction(model.master)];
     }
+  }
+
+  getTotalUnroundedAmount() {
+    return this.ccTransactions.map(t => parseFloat(t.details['default.unrounded_amount']))
+      .reduce((previousValue, currentValue) => previousValue + currentValue, 0);
+  }
+
+  getCurrencyCode() {
+    return this.ccTransactions[0].details['default.iso_currency_code'];
   }
 }
 

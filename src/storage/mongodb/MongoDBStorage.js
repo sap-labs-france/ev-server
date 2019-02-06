@@ -92,6 +92,13 @@ class MongoDBStorage {
     await this.checkAndCreateCollection(collections, tenantID, 'connections', [
       {fields: {connectorId: 1, userId: 1}, options: {unique: true}}
     ]);
+    await this.checkAndCreateCollection(collections, tenantID, 'consumptions', [
+      {fields: {siteID: 1}},
+      {fields: {siteAreaID: 1}},
+      {fields: {transactionId: 1}},
+      {fields: {chargeBoxID: 1, connectorId: 1}},
+      {fields: {userID: 1}}
+    ]);
 
   }
 

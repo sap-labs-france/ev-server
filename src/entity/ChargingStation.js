@@ -20,6 +20,8 @@ const SettingStorage = require("../storage/mongodb/SettingStorage");
 const ConvergentCharging = require("./integration/convergentCharging/ConvergentCharging");
 momentDurationFormatSetup(moment);
 const _configChargingStation = Configuration.getChargingStationConfig();
+const Consumption = require('./Consumption');
+const ConsumptionStorage = require('../storage/mongodb/ConsumptionStorage');
 
 class ChargingStation extends AbstractTenantEntity {
   constructor(tenantID, chargingStation) {
@@ -974,12 +976,19 @@ class ChargingStation extends AbstractTenantEntity {
       const transaction = await TransactionStorage.getTransaction(this.getTenantID(), meterValues.transactionId);
       // Update
       const convergentCharging = new ConvergentCharging(transaction.getTenantID(), this);
-      newMeterValues.values.forEach(async (meterValue) => {
-        await transaction.updateWithMeterValue(meterValue);
-        convergentCharging.updateTransaction(transaction);
-      });
+
+      const consumptions = [];
+      for (const meterValue of newMeterValues.values) {
+        let consumptionData = await transaction.updateWithMeterValue(meterValue);
+        if (transaction.isConsumptionMeterValue(meterValue)) {
+          const consumptionAmount = await convergentCharging.updateSession(consumptionData);
+          consumptionData = {...consumptionData, ...consumptionAmount};
+        }
+        consumptions.push(consumptionData);
+      }
       // Save Transaction
       await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
+      await Promise.all(consumptions.map(consumption => this.saveConsumption(consumption)));
       // Update Charging Station Consumption
       await this.updateChargingStationConsumption(transaction);
       // Save Charging Station
@@ -995,6 +1004,31 @@ class ChargingStation extends AbstractTenantEntity {
         detailedMessages: meterValues
       });
     }
+  }
+
+  isSocMeterValue(meterValue) {
+    return meterValue.attribute
+      && (meterValue.attribute.context === 'Sample.Periodic'
+        || meterValue.attribute.context === 'Transaction.Begin'
+        || meterValue.attribute.context === 'Transaction.End')
+      && meterValue.attribute.measurand === 'SoC'
+  }
+
+  async saveConsumption(consumptionData) {
+    const consumption = await ConsumptionStorage.getConsumption(this.getTenantID(), consumptionData.transactionId, consumptionData.endedAt);
+    let model;
+    if (!consumption) {
+      const siteArea = await this.getSiteArea(false);
+      model = {
+        ...consumptionData,
+        chargeBoxID: this.getID(),
+        siteID: siteArea.getSiteID(),
+        siteAreaID: siteArea.getID()
+      };
+    } else {
+      model = {...consumption.getModel(), ...consumptionData};
+    }
+    return ConsumptionStorage.saveConsumption(this.getTenantID(), model);
   }
 
   saveConfiguration(configuration) {
@@ -1109,6 +1143,10 @@ class ChargingStation extends AbstractTenantEntity {
     }
   }
 
+  /**
+   *
+   * @returns {Promise<Site>}
+   */
   async getSite() {
     // Get Site Area
     const siteArea = await this.getSiteArea();
@@ -1186,14 +1224,15 @@ class ChargingStation extends AbstractTenantEntity {
     // Create
     let transaction = new Transaction(this.getTenantID(), startTransaction);
     // Start Transaction
-    await transaction.startTransaction(user);
+    let consumptionData = await transaction.startTransaction(user);
     // Cleanup old ongoing transactions
     await TransactionStorage.cleanupRemainingActiveTransactions(this.getTenantID(), this.getID(), transaction.getConnectorId());
     // Save it
     transaction = await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
-    const convergentCharging = new ConvergentCharging(transaction.getTenantID(), this);
-    convergentCharging.startTransaction(transaction);
+    consumptionData.transactionId= transaction.getID();
 
+    const convergentCharging = new ConvergentCharging(transaction.getTenantID(), this);
+    convergentCharging.StartSession(consumptionData);
     // Lock the other connectors?
     if (!this.canChargeInParallel()) {
       // Yes
@@ -1349,11 +1388,11 @@ class ChargingStation extends AbstractTenantEntity {
       }
     }
     // Stop
-    await transaction.stopTransaction(user, tagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp));
-    const convergentCharging = new ConvergentCharging(transaction.getTenantID(), this);
-    convergentCharging.stopTransaction(transaction);
-    // Save Transaction
+    const consumptionData = await transaction.stopTransaction(user, tagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp));
     transaction = await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
+    const convergentCharging = new ConvergentCharging(transaction.getTenantID(), this);
+    const amountData = await convergentCharging.stopSession(consumptionData);
+    await this.saveConsumption({...consumptionData, ...amountData});
     // Notify User
     if (user) {
       // Send Notification
@@ -1436,7 +1475,7 @@ class ChargingStation extends AbstractTenantEntity {
     // Get the client
     const chargingStationClient = await this.getChargingStationClient();
     // Start Transaction
-    const result = await chargingStationClient.startTransaction(params);
+    const result = await chargingStationClient.StartSession(params);
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
