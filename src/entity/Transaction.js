@@ -492,8 +492,10 @@ class Transaction extends AbstractTenantEntity {
     // Get the price
     const pricing = await PricingStorage.getPricing(this.getTenantID());
     // Set
-    this._model.stop.priceUnit = pricing.priceUnit;
-    this._model.stop.price = pricing.priceKWH * (this.getCurrentTotalConsumption() / 1000);
+    if (pricing) {
+      this._model.stop.priceUnit = pricing.priceUnit;
+      this._model.stop.price = pricing.priceKWH * (this.getCurrentTotalConsumption() / 1000);
+    }
     // Remove runtime data
     delete this._model.currentConsumption;
     delete this._model.currentStateOfCharge;
