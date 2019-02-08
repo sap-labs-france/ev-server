@@ -870,7 +870,7 @@ class ChargingStation extends AbstractTenantEntity {
       // Yes: Check Transaction ID (ABB)
       if (parseInt(meterValues.transactionId) !== parseInt(chargerTransactionId)) {
         // Check if valid
-        if (parseInt(chargerTransactionId) !== 0) {
+        if (parseInt(chargerTransactionId) > 0) {
           // No: Log that the transaction ID will be reused
           Logging.logWarning({
             tenantID: this.getTenantID(),
@@ -898,12 +898,12 @@ class ChargingStation extends AbstractTenantEntity {
       // Override it
       meterValues.transactionId = chargerTransactionId;
     }
-    // Check Transaction
-    if (meterValues.hasOwnProperty('transactionId') && parseInt(meterValues.transactionId) === 0) {
+    // Check Transaction ID
+    if (!meterValues.hasOwnProperty('transactionId') || parseInt(meterValues.transactionId) === 0) {
       // Wrong Transaction ID!
       throw new BackendError(this.getID(),
-        `Transaction ID is invalid (must not be equal to '0')`,
-        "ChargingStation", "handleMeterValues")
+        `Transaction ID '${chargerTransactionId}' is invalid on Connector '${meterValues.connectorId}', Meter Values not saved`,
+        "ChargingStation", "handleMeterValues");
     }
     // Handle Values
     // Check if OCPP 1.6
@@ -984,17 +984,8 @@ class ChargingStation extends AbstractTenantEntity {
       // Filter Sample.Clock meter value for all chargers except ABB using OCPP 1.5
       newMeterValues.values = newMeterValues.values.filter(value => value.attribute.context !== 'Sample.Clock');
     }
-    // No Transaction ID
-    if (!meterValues.transactionId) {
-      // Log
-      Logging.logWarning({
-        tenantID: this.getTenantID(),
-        source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-        action: 'MeterValues', message: `MeterValue not saved (not linked to a Transaction)`,
-        detailedMessages: meterValues
-      });
     // No Values
-    } else if (newMeterValues.values.length == 0) {
+    if (newMeterValues.values.length == 0) {
       Logging.logDebug({
         tenantID: this.getTenantID(),
         source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
@@ -1219,11 +1210,6 @@ class ChargingStation extends AbstractTenantEntity {
     await TransactionStorage.cleanupRemainingActiveTransactions(this.getTenantID(), this.getID(), transaction.getConnectorId());
     // Save it
     transaction = await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
-    // Lock the other connectors?
-    if (!this.canChargeInParallel()) {
-      // Yes
-      this.lockAllConnectors();
-    }
     // Clean up connector info
     // Get the connector
     const connector = this.getConnector(transaction.getConnectorId());
@@ -1278,22 +1264,6 @@ class ChargingStation extends AbstractTenantEntity {
     return transaction;
   }
 
-  lockAllConnectors() {
-    this.getConnectors().forEach(async (connector) => {
-      // Check
-      if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
-        // Check OCPP Version
-        if (this.getOcppVersion() === Constants.OCPP_VERSION_15) {
-          // Set OCPP 1.5 Occupied
-          connector.status = Constants.CONN_STATUS_OCCUPIED;
-        } else {
-          // Set OCPP 1.6 Unavailable
-          connector.status = Constants.CONN_STATUS_UNAVAILABLE;
-        }
-      }
-    });
-  }
-
   _getStoppingTransactionTagId(stopTransactionData, transaction) {
     // Stopped Remotely?
     if (transaction.isRemotelyStopped()) {
@@ -1323,19 +1293,6 @@ class ChargingStation extends AbstractTenantEntity {
     connector.totalConsumption = 0;
     connector.activeTransactionID = 0;
     connector.currentStateOfCharge = 0;
-    // Check if Charger can charge in //
-    if (!this.canChargeInParallel()) {
-      // Set all the other connectors to Available
-      this.getConnectors().forEach(async (connector) => {
-        // Only other Occupied connectors
-        if ((connector.status === Constants.CONN_STATUS_OCCUPIED ||
-             connector.status === Constants.CONN_STATUS_UNAVAILABLE) &&
-          (connector.connectorId !== connectorId)) {
-          // Set connector Available again
-          connector.status = Constants.CONN_STATUS_AVAILABLE;
-        }
-      });
-    }
   }
 
   async handleStopTransaction(stopTransactionData, isSoftStop = false) {
