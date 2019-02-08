@@ -176,6 +176,12 @@ class ChargingStationSecurity {
     if (request.hasOwnProperty('powerLimitUnit')) {
       filteredRequest.powerLimitUnit = sanitize(request.powerLimitUnit);
     }
+    if (request.hasOwnProperty('latitude')) {
+      filteredRequest.latitude = sanitize(request.latitude);
+    }
+    if (request.hasOwnProperty('longitude')) {
+      filteredRequest.longitude = sanitize(request.longitude);
+    }
     if (request.connectors) {
       // Filter
       filteredRequest.connectors = request.connectors.map((connector) => {

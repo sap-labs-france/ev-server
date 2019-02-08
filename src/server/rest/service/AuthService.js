@@ -288,7 +288,7 @@ class AuthService {
       // Set BadgeID (eg.: 'SF20170131')
       newUser.setTagIDs([newUser.getName()[0] + newUser.getFirstName()[0] + Utils.getRandomInt()])
       // Assign user to all sites
-      const sites = await Site.getSites(tenantID);
+      const sites = await Site.getSites(tenantID, { withAutoUserAssignment: true });
       // Set
       newUser.setSites(sites.result);
       // Get EULA

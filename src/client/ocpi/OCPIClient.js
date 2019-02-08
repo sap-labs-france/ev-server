@@ -302,6 +302,19 @@ class OCPIClient {
       }
     }
 
+    // save result in ocpi endpoint
+    this._ocpiEndpoint.setLastPatchJobOn(new Date());
+
+    // set result
+    if (sendResult) {
+      this._ocpiEndpoint.setLastPatchJobResult(sendResult.success, sendResult.failure);
+    } else {
+      this._ocpiEndpoint.setLastPatchJobResult(0, 0);
+    }
+
+    // save
+    await this._ocpiEndpoint.save();
+
     // return result
     return sendResult;
   }

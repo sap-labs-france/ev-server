@@ -99,7 +99,9 @@ class SiteSecurity {
     filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
     filteredRequest.image = sanitize(request.image);
     filteredRequest.allowAllUsersToStopTransactions =
-			UtilsSecurity.filterBoolean(request.allowAllUsersToStopTransactions);
+      UtilsSecurity.filterBoolean(request.allowAllUsersToStopTransactions);
+    filteredRequest.autoUserSiteAssignment =
+      UtilsSecurity.filterBoolean(request.autoUserSiteAssignment);   
     filteredRequest.gps = sanitize(request.gps);
     if (request.userIDs) {
       // Handle Users
