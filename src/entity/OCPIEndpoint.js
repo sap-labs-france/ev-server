@@ -70,6 +70,22 @@ class OCPIEndpoint extends AbstractTenantEntity {
     return this._model.backgroundPatchJob?this._model.backgroundPatchJob:false;
   }
 
+  getLastPatchJobOn() {
+    return this._model.lastPatchJobOn;
+  }
+
+  setLastPatchJobOn(lastPatchJobOn) {
+    this._model.lastPatchJobOn = lastPatchJobOn;
+  }
+
+  setLastPatchJobResult(successNbr, failureNbr) {
+    this._model.lastPatchJobResult = { "successNbr": successNbr, "failureNbr": failureNbr};
+  }
+
+  getLastPatchJobResult() {
+    return this._model.lastPatchJobResult;
+  }
+
   /**
    * manage endpoint status
    */

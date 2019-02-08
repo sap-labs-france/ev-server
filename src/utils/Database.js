@@ -450,6 +450,12 @@ class Database {
     if (src.versionUrl) {
       dest.versionUrl = src.versionUrl;
     }
+    if (src.hasOwnProperty("lastPatchJobOn")) {
+      dest.lastPatchJobOn = src.lastPatchJobOn;
+    }
+    if (src.hasOwnProperty("lastPatchJobOn")) {
+      dest.lastPatchJobResult = src.lastPatchJobResult;
+    }
 
     Database.updateCreatedAndLastChanged(src, dest);
   }
