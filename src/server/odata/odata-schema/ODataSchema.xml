@@ -8,6 +8,12 @@ module.exports = `<?xml version="1.0" encoding="UTF-8"?>
       <collection href="BootNotifications">
          <atom:title type="text">BootNotifications</atom:title>
       </collection>
+      <collection href="Companies">
+         <atom:title type="text">Companies</atom:title>
+      </collection>
+      <collection href="Sites">
+         <atom:title type="text">Sites</atom:title>
+      </collection>
    </workspace>
 </service>
 `;

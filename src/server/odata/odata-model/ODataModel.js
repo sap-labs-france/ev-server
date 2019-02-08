@@ -1,6 +1,17 @@
 module.exports = {
   namespace: "eMobility",
   entityTypes: {
+    "Company": {
+      "id": { "type": "Edm.String", key: true },
+      "name":  { "type": "Edm.String" },
+      "address": { 'type': 'eMobility.Address' }
+    },
+    "Site": {
+      "id": { "type": "Edm.String", key: true },
+      "name":  { "type": "Edm.String" },
+      "companyID": { "type": "Edm.String" },
+      "address": { 'type': 'eMobility.Address' }
+    },
     "Transaction": {
       "id": { "type": "Edm.Int32", key: true },
       "chargeBoxID": { "type": "Edm.String" },
@@ -34,6 +45,17 @@ module.exports = {
       "price": { "type": "Edm.Double" },
       "tagID": { "type": "Edm.String" },
       "userID": { "type": "Edm.String" }
+    },
+    'Address': {
+      'country': { "type": "Edm.String" },
+      'region': { "type": "Edm.String" },
+      'department': { "type": "Edm.String" },
+      'city': { "type": "Edm.String" },
+      'postalCode': { "type": "Edm.String" },
+      'address1': { "type": "Edm.String" },
+      'address2': { "type": "Edm.String" },
+      'latitude': { "type": "Edm.Double" },
+      'longitude': { "type": "Edm.Double" }
     }
   },
   entitySets: {
@@ -42,6 +64,12 @@ module.exports = {
     },
     "BootNotifications": {
       entityType: "eMobility.BootNotification"
+    },
+    "Companies": {
+      entityType: "eMobility.Company"
+    },
+    "Sites": {
+      entityType: "eMobility.Site"
     }
   }
 };
