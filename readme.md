@@ -14,6 +14,7 @@ The application:
 **Live demo here** [Smart EVSE](https://smart-evse.com/)
 
 ## Installation
+
 * Install NodeJS: https://nodejs.org/ (install the LTS version)
 * Install Python version 2.7 (not the version 3.7!)
 * Install MongoDB: https://www.mongodb.com/
@@ -33,6 +34,19 @@ The application:
   ```
   npm install bcrypt
   ```
+
+**NOTE**: On Windows with **chocolatey** (https://chocolatey.org/),  
+do as an administrator:
+```
+choco install -y nodejs-lts python2 mongodb postman robot3t  
+```
+to install all needed dependencies  
+You can also alternatively do:
+```
+choco install -y microsoft-build-tools
+```  
+to install the required build tools
+
 * Follow the rest of the setup below
 
 ## The Database
