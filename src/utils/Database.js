@@ -89,6 +89,13 @@ class Database {
     if (src.hasOwnProperty('powerLimitUnit')) {
       dest.powerLimitUnit = src.powerLimitUnit;
     }
+    if (src.hasOwnProperty('latitude')) {
+      dest.latitude = src.latitude;
+    }
+    if (src.hasOwnProperty('longitude')) {
+      dest.longitude = src.longitude;
+    }
+
     dest.connectors = [];
     if (src.connectors) {
       // Set

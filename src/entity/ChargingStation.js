@@ -201,6 +201,22 @@ class ChargingStation extends AbstractTenantEntity {
     return this._model.powerLimitUnit;
   }
 
+  setLatitude(latitude) {
+    this._model.latitude = latitude;
+  }
+
+  getLatitude() {
+    return this._model.latitude;
+  }
+
+  setLongitude(longitude) {
+    this._model.longitude = longitude;
+  }
+
+  getLongitude() {
+    return this._model.longitude;
+  }
+
   canChargeInParallel() {
     return !this._model.cannotChargeInParallel;
   }
