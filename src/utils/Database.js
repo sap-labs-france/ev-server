@@ -292,6 +292,7 @@ class Database {
     dest.name = src.name;
     dest.address = {};
     dest.allowAllUsersToStopTransactions = src.allowAllUsersToStopTransactions;
+    dest.autoUserSiteAssignment = src.autoUserSiteAssignment;
     Database.updateAddress(src.address, dest.address)
     Database.updateCreatedAndLastChanged(src, dest);
   }

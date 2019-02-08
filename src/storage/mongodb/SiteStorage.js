@@ -282,6 +282,10 @@ class SiteStorage {
     if (params.companyID) {
       filters.companyID = Utils.convertToObjectID(params.companyID);
     }
+    // Auto User Site Assignment
+    if (params.withAutoUserAssignment) {
+      filters.autoUserSiteAssignment = true;
+    }
     // Create Aggregation
     const aggregation = [];
     // Set User?
