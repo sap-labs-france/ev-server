@@ -1234,6 +1234,8 @@ class ChargingStation extends AbstractTenantEntity {
     connector.totalConsumption = 0;
     connector.currentStateOfCharge = 0;
     connector.activeTransactionID = transaction.getID();
+    // Update Heartbeat
+    this.setLastHeartBeat(new Date());
     // Save
     await this.save();
     // Log
@@ -1342,6 +1344,8 @@ class ChargingStation extends AbstractTenantEntity {
     }
     // Clean up connector
     await this.freeConnector(transaction.getConnectorId());
+    // Update Heartbeat
+    this.setLastHeartBeat(new Date());
     // Save Charger
     await this.save();
     // Soft Stop?
