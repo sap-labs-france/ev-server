@@ -16,6 +16,12 @@ class AbstractODataEntities {
     let count = 0;
     let result = [];
 
+    // check if error
+    if (response.status != 200) {
+      cb({message: response.data.message});
+      return;
+    }
+
     // reduce returned object attribute
     if (response.data && response.data.result && response.data.count) {
       count = response.data.count;

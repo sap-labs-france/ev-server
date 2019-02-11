@@ -30,37 +30,41 @@ class ODataDatabaseAdapter {
     // build AuthenticatedApi
     const centralServiceApi = new CentralServiceApi("http://localhost:7070", authentication.name, authentication.pass, tenant);
 
-    switch (collection) {
-      case 'Transactions':
-        // get tenant TODO: test
-        req.user = {};
-        req.user.tenantID = '5be7fb271014d90008992f06';
+    // handle error
+    try {
+      switch (collection) {
+        case 'Transactions':
+          // get tenant TODO: test
+          req.user = {};
+          req.user.tenantID = '5be7fb271014d90008992f06';
 
-        ODataTransactions.query(query, req, cb);
-        break;
-      case 'BootNotifications':
-        // get tenant TODO: test
-        req.user = {};
-        req.user.tenantID = '5be7fb271014d90008992f06';
+          ODataTransactions.query(query, req, cb);
+          break;
+        case 'BootNotifications':
+          // get tenant TODO: test
+          req.user = {};
+          req.user.tenantID = '5be7fb271014d90008992f06';
 
-        oDataBootNotifications.query(query, req, cb);
-        break;
-      case 'Companies':
-        oDataCompanies.restRequest(centralServiceApi, query, req, cb);
-        break;
-      case 'Sites':
-        oDataSites.restRequest(centralServiceApi, query, req, cb);
-        break;
-      case 'SiteAreas':
-        oDataSiteAreas.restRequest(centralServiceApi, query, req, cb);
-        break;
-      case 'ChargingStations':
-        oDataChargingStations.restRequest(centralServiceApi, query, req, cb);
-        break;
-      default:
-        cb('Invalid Entity');
+          oDataBootNotifications.query(query, req, cb);
+          break;
+        case 'Companies':
+          oDataCompanies.restRequest(centralServiceApi, query, req, cb);
+          break;
+        case 'Sites':
+          oDataSites.restRequest(centralServiceApi, query, req, cb);
+          break;
+        case 'SiteAreas':
+          oDataSiteAreas.restRequest(centralServiceApi, query, req, cb);
+          break;
+        case 'ChargingStations':
+          oDataChargingStations.restRequest(centralServiceApi, query, req, cb);
+          break;
+        default:
+          cb('Invalid Entity');
+      }
+    } catch (error) {
+      cb(error);
     }
-
   }
 
   // register adapter on ODataServer
