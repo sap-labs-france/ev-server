@@ -360,6 +360,11 @@ module.exports = {
             // Delegate
             StatisticService.handleGetChargingStationUsageStatistics(action, req, res, next);
             break;
+          // Get the current metrics
+          case "CurrentMetrics":
+            // Delegate
+            StatisticService.handleGetCurrentMetrics(action, req, res, next);
+            break;
           // Get the consumption statistics
           case "UserConsumptionStatistics":
             // Delegate
