@@ -75,7 +75,7 @@ class OCPIPatchLocationsTask extends SchedulerTask {
     Logging.logInfo({
       tenantID: ocpiEndpoint.getTenantID(),
       module: "OCPIPatchLocationsTask",
-      method: "path", action: "OCPIPatchLocations",
+      method: "patch", action: "OCPIPatchLocations",
       message: `The patching Locations process for endpoint ${ocpiEndpoint.getName()} is being processed`
     });
 
@@ -88,14 +88,9 @@ class OCPIPatchLocationsTask extends SchedulerTask {
     Logging.logInfo({
       tenantID: ocpiEndpoint.getTenantID(),
       module: "OCPIPatchLocationsTask",
-      method: "path", action: "OCPIPatchLocations",
+      method: "patch", action: "OCPIPatchLocations",
       message: `The patching Locations process for endpoint ${ocpiEndpoint.getName()} is completed (Success: ${sendResult.success}/Failure: ${sendResult.failure})`
     });
-
-
-
-
-
   }
 }
 

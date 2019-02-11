@@ -257,7 +257,7 @@ class OCPIClient {
    */
   async sendEVSEStatuses() {
     // result
-    const sendResult = { success: 0, failure: 0 };
+    const sendResult = { success: 0, failure: 0, logs: [] };
 
     // read configuration to retrieve country_code and party_id
     const tenant = await this._ocpiEndpoint.getTenant();
@@ -287,19 +287,27 @@ class OCPIClient {
               sendResult.success++;
             } catch (error) {
               sendResult.failure++;
-              Logging.logError({
-                tenantID: tenant.getID(),
-                action: 'sendEVSEStatuses',
-                message: `failure updating status for locationID:${location.id} - evseID:${evse.id}`,
-                source: 'OCPI Client',
-                module: 'OCPI Client',
-                method: `sendEVSEStatuses`,
-                detailedMessages: error.message
-              });
+              sendResult.logs.push( 
+                `failure updating status for locationID:${location.id} - evseID:${evse.id}:${error.message}`
+              );
             }
           }
         }
       }
+    }
+
+    // log error if any
+    if (sendResult.failure > 0) {
+      // log error if failure
+      Logging.logError({
+        tenantID: tenant.getID(),
+        action: 'sendEVSEStatuses',
+        message: `Patching locations log details`,
+        detailedMessages: sendResult.logs,
+        source: 'OCPI Client',
+        module: 'OCPI Client',
+        method: `sendEVSEStatuses`
+      });
     }
 
     // save result in ocpi endpoint

@@ -275,30 +275,34 @@ class SiteAreaService {
           560, 'SiteAreaService', 'handleUpdateSiteArea',
           req.user);
       }
-      // Get Charging Stations
-      const chargingStations = await siteArea.getChargingStations();
-      // Clear Site Area from Existing Charging Station
-      for (const chargingStation of chargingStations) {
-        // Update timestamp
-        chargingStation.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
-        chargingStation.setLastChangedOn(new Date());
-        // Set
-        chargingStation.setSiteArea(null);
-        // Save
-        await chargingStation.saveChargingStationSiteArea();
-      }
-      // Assign Site Area to Charging Stations
-      for (const chargeBoxID of filteredRequest.chargeBoxIDs) {
-        // Get the charging stations
-        const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, chargeBoxID);
-        if (chargingStation) {
+
+      // TODO: logic to be changed when old dashboard is removed - kept for compatibility reason.
+      if (filteredRequest.chargeBoxIDs && filteredRequest.chargeBoxIDs.length > 0) {
+        // Get Charging Stations
+        const chargingStations = await siteArea.getChargingStations();
+        // Clear Site Area from Existing Charging Station
+        for (const chargingStation of chargingStations) {
           // Update timestamp
           chargingStation.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
           chargingStation.setLastChangedOn(new Date());
           // Set
-          chargingStation.setSiteArea(siteArea);
+          chargingStation.setSiteArea(null);
           // Save
-          await chargingStation.saveChargingStationSiteArea()
+          await chargingStation.saveChargingStationSiteArea();
+        }
+        // Assign Site Area to Charging Stations
+        for (const chargeBoxID of filteredRequest.chargeBoxIDs) {
+          // Get the charging stations
+          const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, chargeBoxID);
+          if (chargingStation) {
+            // Update timestamp
+            chargingStation.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
+            chargingStation.setLastChangedOn(new Date());
+            // Set
+            chargingStation.setSiteArea(siteArea);
+            // Save
+            await chargingStation.saveChargingStationSiteArea()
+          }
         }
       }
       // Update
