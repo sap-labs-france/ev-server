@@ -3,6 +3,7 @@ const Utils = require('../../utils/Utils');
 const Constants = require('../../utils/Constants');
 const DatabaseUtils = require('./DatabaseUtils');
 const Logging = require('../../utils/Logging');
+const moment = require('moment');
 
 class StatisticsStorage {
   static async getChargingStationStats(tenantID, filter, siteID, groupBy) {
@@ -268,6 +269,389 @@ class StatisticsStorage {
     Logging.traceEnd('StatisticsStorage', 'getUserStats', uniqueTimerID, {filter, siteID, groupBy});
     return transactions;
   }
+
+  static async getCurrentMetrics(tenantID, filteredRequest) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('StatisticsStorage', 'getCurrentMetrics');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // filter results of last 6 months
+    const transactionDateFilter = moment().utc().startOf('day').subtract(filteredRequest.periodInMonth, 'months').toDate();
+    // beginning of the day
+    const beginningOfTheDay = moment().utc().startOf('date').toDate();
+    // Build filter
+    const match = [
+      {
+      // Get all site area
+        "$lookup": {
+          from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
+          localField: '_id',
+          foreignField: 'siteID',
+          as: 'siteArea'
+        }
+      },
+      {
+        $unwind: '$siteArea'
+      },
+  // Get all charging stations
+      {
+        "$lookup": {
+          from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
+          localField: 'siteArea._id',
+          foreignField: 'siteAreaID',
+          as: 'chargingStation'
+        }
+      },
+      {
+        $unwind: '$chargingStation'
+      },
+      // Get today active transactions 
+      {
+        "$lookup": {
+          from: DatabaseUtils.getCollectionName(tenantID, 'transactions'),
+          let: {chargingStationName: "$chargingStation._id"},
+          pipeline: [
+            { $match: {$and: [
+              { timestamp: {$gte: beginningOfTheDay } },
+              {stop: {$exists: false}} ] } },
+            { $match: { 
+              $expr: 
+                { $eq: [ '$$chargingStationName', '$chargeBoxID']}                                
+            }                
+            },
+          ],
+          as: 'activeTransactions'
+        }
+      },
+      // Get today finished transactions 
+      {
+        "$lookup": {
+          from: DatabaseUtils.getCollectionName(tenantID, 'transactions'),
+          let: {chargingStationName: '$chargingStation._id'},
+          pipeline: [
+            { $match: {$and: [
+              { timestamp: {$gte: beginningOfTheDay } },
+              {stop: {$exists: true}} ] } },
+            { $match: { 
+              $expr: 
+                  { $eq: [ '$$chargingStationName', '$chargeBoxID']}                            
+              
+            }                
+            },
+          ],
+          as: 'finishedTransactions'
+        }
+      },
+  // Get transactions of the same week day
+      {
+        "$lookup": {
+          from: DatabaseUtils.getCollectionName(tenantID, 'transactions'),
+          let: { chargingStationName: "$chargingStation._id"},
+          pipeline: [
+            { $match: {$and: 
+              [
+                { stop: {$exists: true }}, 
+                { timestamp: {$gte: transactionDateFilter } }
+              ] 
+            } },
+            { $match: { 
+              $expr: {
+                $and: [
+                  { $eq: [ { $dayOfWeek: new Date() },{ $dayOfWeek: "$timestamp" }]},  
+                  { $eq: [ '$$chargingStationName', '$chargeBoxID']} 
+                ]
+              }
+            }
+            },
+            { $replaceRoot: { newRoot: "$stop" } }
+                
+          ],
+          as: 'transactionsTrends'
+        }
+      },
+// Reduce to necessary fields: site info, transactions and charging station power
+      {
+        "$project": {
+          _id: 1,
+          companyID: 1,
+          name: 1,
+          address: 1,
+          transactions: 1,
+          currentConsumption: {
+            $sum: '$activeTransactions.currentConsumption'
+          },
+          activeCurrentTotalConsumption: {
+            $sum: '$activeTransactions.currentTotalConsumption'
+          },
+          finishedCurrentTotalConsumption: {
+            $sum: '$finishedTransactions.stop.totalConsumption' 
+          },
+          maximumPower: {
+            "$sum": "$chargingStation.maximumPower"
+          },
+          activeCurrentTotalInactivitySecs: {
+            "$sum": "$activeTransactions.currentTotalInactivitySecs"
+          },
+          finishedCurrentTotalInactivitySecs: {
+            "$sum": "$activeTransactions.stop.totalInactivitySecs"
+          },
+          'chargingStation.maximumPower': 1,
+          maximumNumberOfChargingPoint: {
+            $cond: {
+              if: '$chargingStation.cannotChargeInParallel',
+              then: 1,
+              else: { $size: '$chargingStation.connectors' }
+            }
+          },
+          occupiedChargingPoint: {
+            $size: '$activeTransactions'
+          },
+          'chargingTrendsMinConsumption': {
+            $min: "$transactionsTrends.totalConsumption"
+          },
+          'chargingTrendsMaxConsumption': {
+            $max: "$transactionsTrends.totalConsumption"
+          },
+          'chargingTrendsAvgConsumption': {
+            $avg: "$transactionsTrends.totalConsumption"
+          },
+          'chargingTrendsMinDuration': {
+            $min: "$transactionsTrends.totalDurationSecs"
+          },
+          'chargingTrendsMaxDuration': {
+            $max: "$transactionsTrends.totalDurationSecs"
+          },
+          'chargingTrendsAvgDuration': {
+            $avg: "$transactionsTrends.totalDurationSecs"
+          },
+          'chargingTrendsMinInactivity': {
+            $min: "$transactionsTrends.totalInactivitySecs"
+          },
+          'chargingTrendsMaxInactivity': {
+            $max: "$transactionsTrends.totalInactivitySecs"
+          },
+          'chargingTrendsAvgInactivity': {
+            $avg: "$transactionsTrends.totalInactivitySecs"
+          },
+        }
+      },
+      // Aggregate data for site 
+      {
+        "$group": {
+          _id: {
+            siteID: "$_id",
+            companyID: "$companyID",
+            name: "$name",
+            address: "$address"
+          },
+          siteCurrentConsumption: {
+            "$sum": "$currentConsumption"
+          },
+          siteTotalConsumption: {
+            "$sum": {$add: ["$activeCurrentTotalConsumption", "$finishedCurrentTotalConsumption"]}
+          },
+          siteMaximumPower: {
+            "$sum": "$chargingStation.maximumPower"
+          },
+          siteCurrentTotalInactivitySecs: {
+            "$sum": {$add: ["$activeCurrentTotalInactivitySecs", "$finishedCurrentTotalInactivitySecs"]}
+          },
+          siteMaximumNumberOfChargingPoint: {
+            "$sum": "$maximumNumberOfChargingPoint"
+          },
+          siteOccupiedChargingPoint: {
+            "$sum": "$occupiedChargingPoint"
+          },
+          siteChargingTrendsMinConsumption: {
+            $min: "$chargingTrendsMinConsumption"
+          },
+          siteChargingTrendsMaxConsumption: {
+            $max: "$chargingTrendsMaxConsumption"
+          },
+          siteChargingTrendsAvgConsumption: {
+            $avg: "$chargingTrendsAvgConsumption"
+          },
+          siteChargingTrendsMinDuration: {
+            $min: "$chargingTrendsMinDuration"
+          },
+          siteChargingTrendsMaxDuration: {
+            $max: "$chargingTrendsMaxDuration"
+          },
+          siteChargingTrendsAvgDuration: {
+            $avg: "$chargingTrendsAvgDuration"
+          },
+          siteChargingTrendsMinInactivity: {
+            $min: "$chargingTrendsMinInactivity"
+          },
+          siteChargingTrendsMaxInactivity: {
+            $max: "$chargingTrendsMaxInactivity"
+          },
+          siteChargingTrendsAvgInactivity: {
+            $avg: "$chargingTrendsAvgInactivity"
+          },
+        }
+      }, // enrich with company information
+      {
+        "$lookup": {
+          from: DatabaseUtils.getCollectionName(tenantID, 'companies'),
+          localField: '_id.companyID',
+          foreignField: '_id',
+          as: 'company'
+        }
+      },
+      {
+        "$unwind": "$company"
+      },
+  // Add company logo
+      {
+        "$lookup": {
+          from: DatabaseUtils.getCollectionName(tenantID, 'companylogos'),
+          localField: '_id.companyID',
+          foreignField: '_id',
+          as: 'company.logo'
+        }
+      },
+  // enrich with site image
+      {
+        "$lookup": {
+          from: DatabaseUtils.getCollectionName(tenantID, 'siteimages'),
+          localField: '_id.siteID',
+          foreignField: '_id',
+          as: 'site.image'
+        }
+      },
+      {
+        "$unwind": "$site.image"
+      },
+  // sort
+      { $sort:  { 'company.name' : 1, '_id.name': 1}}   
+      
+    ];
+    // Create Aggregation
+    const aggregation = [];
+    // Filters
+    aggregation.push(match);
+    // Read DB
+    const transactionStatsMDB = await global.database.getCollection(tenantID, 'sites')
+      .aggregate(match)
+      .toArray();
+    // Set
+    let currentMetrics = [];
+    // Create
+    if (transactionStatsMDB && transactionStatsMDB.length > 0) {
+      // Create
+      let companyStat = null;
+      let sites = [];
+      for (const transactionStatMDB of transactionStatsMDB) {
+        // Check if we change to another company 
+        if (companyStat && companyStat.companyID !== transactionStatMDB.company._id.toString()) {
+          companyStat.trends.totalConsumption.avg = companyStat.trends.totalConsumption.avg / sites.length;
+          companyStat.trends.duration.avg = companyStat.trends.duration.avg / sites.length;
+          companyStat.trends.inactivity.avg = companyStat.trends.inactivity.avg / sites.length;
+          currentMetrics.push(companyStat);
+          currentMetrics = [...currentMetrics, ...sites];
+          sites = [];
+          companyStat = StatisticsStorage.convertDBMetricsToCompanyMetrics(transactionStatMDB);
+        } else {
+          // Initialize company as if it is a site with a fixed name ALL
+          if (!companyStat) {
+            companyStat = StatisticsStorage.convertDBMetricsToCompanyMetrics(transactionStatMDB);
+          } else {
+            // cumulate company overall results
+            companyStat.currentConsumption += transactionStatMDB.siteCurrentConsumption;
+            companyStat.totalConsumption += transactionStatMDB.siteTotalConsumption;
+            companyStat.currentTotalInactivitySecs += transactionStatMDB.siteCurrentTotalInactivitySecs;
+            companyStat.maximumPower += transactionStatMDB.siteMaximumPower;
+            companyStat.maximumNumberOfChargingPoint += transactionStatMDB.siteMaximumNumberOfChargingPoint;
+            companyStat.occupiedChargingPoint += transactionStatMDB.siteOccupiedChargingPoint;
+            companyStat.trends.totalConsumption.min = ( transactionStatMDB.siteChargingTrendsMinConsumption < companyStat.trends.totalConsumption.min ? transactionStatMDB.siteChargingTrendsMinConsumption : companyStat.trends.totalConsumption.min);
+            companyStat.trends.totalConsumption.max = ( transactionStatMDB.siteChargingTrendsMaxConsumption > companyStat.trends.totalConsumption.max ? transactionStatMDB.siteChargingTrendsMaxConsumption : companyStat.trends.totalConsumption.max);
+            companyStat.trends.totalConsumption.avg += transactionStatMDB.siteChargingTrendsAvgConsumption;
+            companyStat.trends.duration.min = ( transactionStatMDB.siteChargingTrendsMinDuration < companyStat.trends.duration.min ? transactionStatMDB.siteChargingTrendsMinDuration : companyStat.trends.duration.min);
+            companyStat.trends.duration.max = ( transactionStatMDB.siteChargingTrendsMaxDuration > companyStat.trends.duration.max ? transactionStatMDB.siteChargingTrendsMaxDuration : companyStat.trends.duration.max);
+            companyStat.trends.duration.avg += transactionStatMDB.siteChargingTrendsAvgDuration;
+            companyStat.trends.inactivity.min = ( transactionStatMDB.siteChargingTrendsMinInactivity < companyStat.trends.inactivity.min ? transactionStatMDB.siteChargingTrendsMinInactivity : companyStat.trends.inactivity.min);
+            companyStat.trends.inactivity.max = ( transactionStatMDB.siteChargingTrendsMaxInactivity > companyStat.trends.inactivity.max ? transactionStatMDB.siteChargingTrendsMaxInactivity : companyStat.trends.inactivity.max);
+            companyStat.trends.inactivity.avg += transactionStatMDB.siteChargingTrendsAvgInactivity;
+            companyStat.address.push(transactionStatMDB._id.address);
+          }
+        }
+        // push current site
+        sites.push(StatisticsStorage.convertDBMetricsToSiteMetrics(transactionStatMDB));
+      }
+      // push last values
+      companyStat.trends.totalConsumption.avg = companyStat.trends.totalConsumption.avg / sites.length;
+      companyStat.trends.duration.avg = companyStat.trends.duration.avg / sites.length;
+      companyStat.trends.inactivity.avg = companyStat.trends.inactivity.avg / sites.length;
+      currentMetrics.push(companyStat);
+      currentMetrics = [...currentMetrics, ...sites];
+    }
+    
+    // Debug
+    Logging.traceEnd('StatisticsStorage', 'getcurrentMetrics', uniqueTimerID, {filteredRequest});
+    return currentMetrics;
+  }
+
+  static convertDBMetricsToCompanyMetrics(transactionStatMDB) {
+    const companyStat = {};
+    companyStat.company = transactionStatMDB.company;
+    // fill in with current consumption and dummy site
+    companyStat.currentConsumption = transactionStatMDB.siteCurrentConsumption;
+    companyStat.totalConsumption = transactionStatMDB.siteTotalConsumption;
+    companyStat.currentTotalInactivitySecs = transactionStatMDB.siteCurrentTotalInactivitySecs;
+    companyStat.maximumPower = transactionStatMDB.siteMaximumPower;
+    companyStat.maximumNumberOfChargingPoint = transactionStatMDB.siteMaximumNumberOfChargingPoint;
+    companyStat.occupiedChargingPoint = transactionStatMDB.siteOccupiedChargingPoint;
+    companyStat.name = 'ALL';
+    companyStat.id = 'ALL';
+    companyStat.companyID = transactionStatMDB.company._id.toString();
+    companyStat.address = [transactionStatMDB._id.address];
+    if (Array.isArray(transactionStatMDB.company.logo) && transactionStatMDB.company.logo.length > 0) {
+      companyStat.image = transactionStatMDB.company.logo[0].logo
+    }
+    companyStat.trends = { totalConsumption: {}, duration: {}, inactivity: {}};
+    companyStat.trends.totalConsumption.min = transactionStatMDB.siteChargingTrendsMinConsumption;
+    companyStat.trends.totalConsumption.max = transactionStatMDB.siteChargingTrendsMaxConsumption;
+    companyStat.trends.totalConsumption.avg = transactionStatMDB.siteChargingTrendsAvgConsumption;
+    companyStat.trends.duration.min = transactionStatMDB.siteChargingTrendsMinDuration;
+    companyStat.trends.duration.max = transactionStatMDB.siteChargingTrendsMaxDuration;
+    companyStat.trends.duration.avg = transactionStatMDB.siteChargingTrendsAvgDuration;
+    companyStat.trends.inactivity.min = transactionStatMDB.siteChargingTrendsMinInactivity;
+    companyStat.trends.inactivity.max = transactionStatMDB.siteChargingTrendsMaxInactivity;
+    companyStat.trends.inactivity.avg = transactionStatMDB.siteChargingTrendsAvgInactivity;
+    return companyStat;
+  }
+
+  static convertDBMetricsToSiteMetrics(transactionStatMDB) {
+    const siteStat = {};
+    siteStat.company = transactionStatMDB.company;
+    // fill in with current consumption and dummy site
+    siteStat.currentConsumption = transactionStatMDB.siteCurrentConsumption;
+    siteStat.totalConsumption = transactionStatMDB.siteTotalConsumption;
+    siteStat.currentTotalInactivitySecs = transactionStatMDB.siteCurrentTotalInactivitySecs;
+    siteStat.maximumPower = transactionStatMDB.siteMaximumPower;
+    siteStat.maximumNumberOfChargingPoint = transactionStatMDB.siteMaximumNumberOfChargingPoint;
+    siteStat.occupiedChargingPoint = transactionStatMDB.siteOccupiedChargingPoint;
+    siteStat.name = transactionStatMDB._id.name;
+    siteStat.id = transactionStatMDB._id.siteID.toString();
+    siteStat.companyID = transactionStatMDB.company._id.toString();
+    siteStat.address = [transactionStatMDB._id.address];
+    if (transactionStatMDB.site && transactionStatMDB.site.image) {
+      siteStat.image = transactionStatMDB.site.image.image;
+    }
+    siteStat.trends = { totalConsumption: {}, duration: {}, inactivity: {}};
+    siteStat.trends.totalConsumption.min = transactionStatMDB.siteChargingTrendsMinConsumption;
+    siteStat.trends.totalConsumption.max = transactionStatMDB.siteChargingTrendsMaxConsumption;
+    siteStat.trends.totalConsumption.avg = transactionStatMDB.siteChargingTrendsAvgConsumption;
+    siteStat.trends.duration.min = transactionStatMDB.siteChargingTrendsMinDuration;
+    siteStat.trends.duration.max = transactionStatMDB.siteChargingTrendsMaxDuration;
+    siteStat.trends.duration.avg = transactionStatMDB.siteChargingTrendsAvgDuration;
+    siteStat.trends.inactivity.min = transactionStatMDB.siteChargingTrendsMinInactivity;
+    siteStat.trends.inactivity.max = transactionStatMDB.siteChargingTrendsMaxInactivity;
+    siteStat.trends.inactivity.avg = transactionStatMDB.siteChargingTrendsAvgInactivity;
+    return siteStat;
+  }
+
 }
 
 module.exports = StatisticsStorage;
