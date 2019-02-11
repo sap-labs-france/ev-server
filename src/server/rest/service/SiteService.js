@@ -263,6 +263,7 @@ class SiteService {
         {
           'search': filteredRequest.Search,
           'userID': filteredRequest.UserID,
+          'companyID': filteredRequest.CompanyID,
           'withCompany': filteredRequest.WithCompany,
           'withSiteAreas': filteredRequest.WithSiteAreas,
           'withChargeBoxes': filteredRequest.WithChargeBoxes,
