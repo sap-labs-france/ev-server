@@ -21,6 +21,22 @@ class CentralServiceApi extends AuthenticatedApi {
     });
   }
 
+  async getSiteAreas(params) {
+    return await this.send({
+      method: 'GET',
+      url: '/client/api/SiteAreas',
+      params: params
+    });
+  }
+
+  async getChargingStations(params) {
+    return await this.send({
+      method: 'GET',
+      url: '/client/api/ChargingStations',
+      params: params
+    });
+  }
+
 }
 
 module.exports = CentralServiceApi

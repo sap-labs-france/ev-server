@@ -12,6 +12,18 @@ module.exports = {
       "companyID": { "type": "Edm.String" },
       "address": { 'type': 'eMobility.Address' }
     },
+    "SiteArea": {
+      "id": { "type": "Edm.String", key: true },
+      "name":  { "type": "Edm.String" },
+      "siteID": { "type": "Edm.String" },
+      "address": { 'type': 'eMobility.Address' }
+    },
+    "ChargingStation": {
+      "id": { "type": "Edm.String", key: true },
+      "siteAreaID": { "type": "Edm.String" },
+      "latitude": { "type": "Edm.Double" },
+      "longitude": { "type": "Edm.Double" }
+    },
     "Transaction": {
       "id": { "type": "Edm.Int32", key: true },
       "chargeBoxID": { "type": "Edm.String" },
@@ -70,6 +82,12 @@ module.exports = {
     },
     "Sites": {
       entityType: "eMobility.Site"
+    },
+    "SiteAreas": {
+      entityType: "eMobility.SiteArea"
+    },
+    "ChargingStations": {
+      entityType: "eMobility.ChargingStation"
     }
   }
 };

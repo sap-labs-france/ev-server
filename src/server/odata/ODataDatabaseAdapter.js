@@ -1,7 +1,9 @@
 const ODataTransactions = require('./odata-entities/ODataTransactions');
 const oDataBootNotifications = require('./odata-entities/ODataBootNotifications');
 const oDataCompanies = require('./odata-entities/ODataCompanies');
-const oDataSites= require('./odata-entities/ODataSites');
+const oDataSites = require('./odata-entities/ODataSites');
+const oDataSiteAreas = require('./odata-entities/ODataSiteAreas');
+const oDataChargingStations = require('./odata-entities/ODataChargingStations');
 const oDataModel = require('./odata-model/ODataModel');
 const auth = require('basic-auth');
 const CentralServiceApi = require('./client/CentralServiceApi');
@@ -48,6 +50,12 @@ class ODataDatabaseAdapter {
         break;
       case 'Sites':
         oDataSites.restRequest(centralServiceApi, query, req, cb);
+        break;
+      case 'SiteAreas':
+        oDataSiteAreas.restRequest(centralServiceApi, query, req, cb);
+        break;
+      case 'ChargingStations':
+        oDataChargingStations.restRequest(centralServiceApi, query, req, cb);
         break;
       default:
         cb('Invalid Entity');
