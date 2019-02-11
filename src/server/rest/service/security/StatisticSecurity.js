@@ -18,6 +18,14 @@ class StatisticSecurity {
     filteredRequest.SiteID = sanitize(request.SiteID);
     return filteredRequest;
   }
+
+  // eslint-disable-next-line no-unused-vars
+  static filterMetricsStatisticsRequest(request, loggedUser) {
+    const filteredRequest = {};
+    // Set
+    filteredRequest.periodInMonth = sanitize(request.PeriodInMonth);
+    return filteredRequest;
+  }
 }
 
 module.exports = StatisticSecurity;

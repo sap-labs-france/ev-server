@@ -14,6 +14,7 @@ The application:
 **Live demo here** [Smart EVSE](https://smart-evse.com/)
 
 ## Installation
+
 * Install NodeJS: https://nodejs.org/ (install the LTS version)
 * Install Python version 2.7 (not the version 3.7!)
 * Install MongoDB: https://www.mongodb.com/
@@ -33,6 +34,19 @@ The application:
   ```
   npm install bcrypt
   ```
+
+**NOTE**: On Windows with **chocolatey** (https://chocolatey.org/),  
+do as an administrator:
+```
+choco install -y nodejs-lts python2 mongodb postman robot3t  
+```
+to install all needed dependencies  
+You can also alternatively do:
+```
+choco install -y microsoft-build-tools
+```  
+to install the required build tools
+
 * Follow the rest of the setup below
 
 ## The Database
@@ -158,11 +172,7 @@ In the following, you will need to run Powershell as an administrator.
 
 Now your database is ready to be used.
 
-#### Import an EVSE database dump in MongoDB
-
-```
-mongorestore /gzip /authenticationDatabase:evse /username:evse-user /password:<YourPassword> /db:evse /dir:/path/to/mongodbdump/
-```
+**NOTE**: You can also use empty-db.zip or empty-db-service.zip on the share to do the initial setup of the databases required by simply deleting all files in the MongoDB databases path and then dropping its content inside instead.  
 
 ## The Application Server
 
@@ -489,6 +499,9 @@ In another console, start the application (restarts if any changes is detected):
 ```
 npm run start:dev
 ```
+
+**NOTE**: You can also use the files in the ev-config-scripts.zip on the share to have a correct initial setup of your development environment and some server startup helpers.  
+
 ### Tests
 **Prerequisite:** The database must contain an admin user. 
 

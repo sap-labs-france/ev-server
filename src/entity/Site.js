@@ -76,6 +76,14 @@ class Site extends AbstractTenantEntity {
     return this._model.allowAllUsersToStopTransactions;
   }
 
+  setAutoUserSiteAssignment(active) {
+    this._model.autoUserSiteAssignment = active;
+  }
+
+  isAutoUserSiteAssignmentEnabled() {
+    return this._model.autoUserSiteAssignment;
+  }
+
   setImage(image) {
     this._model.image = image;
   }

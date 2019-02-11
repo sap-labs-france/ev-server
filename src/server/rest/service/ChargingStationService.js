@@ -205,6 +205,14 @@ class ChargingStationService {
       if (filteredRequest.hasOwnProperty('powerLimitUnit')) {
         chargingStation.setPowerLimitUnit(filteredRequest.powerLimitUnit);
       }
+      // Update Latitude
+      if (filteredRequest.hasOwnProperty('latitude')) {
+        chargingStation.setLatitude(filteredRequest.latitude);
+      }
+      // Update Longitude
+      if (filteredRequest.hasOwnProperty('longitude')) {
+        chargingStation.setLongitude(filteredRequest.longitude);
+      }
       // Update Connectors
       if (filteredRequest.connectors) {
         const chargerConnectors = chargingStation.getConnectors();

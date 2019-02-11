@@ -62,10 +62,8 @@ class Bootstrap {
         // Create the server
         const centralRestServer = new CentralRestServer(centralSystemRestConfig, chargingStationConfig);
         // Set to database for Web Socket Notifications
-
         const storageNotification = new MongoDBStorageNotification(storageConfig, centralRestServer);
         storageNotification.start();
-
         // Start it
         await centralRestServer.start();
       }
@@ -97,7 +95,6 @@ class Bootstrap {
               console.log(`Central System Server implementation '${centralSystemConfig.implementation}' not found!`); // eslint-disable-line
           }
         }
-        
       }
 
       // -------------------------------------------------------------------------
@@ -106,7 +103,6 @@ class Bootstrap {
       if (ocpiConfig) {
         // create server instance
         const ocpiServer = new OCPIServer(ocpiConfig);
-
         await ocpiServer.start();
       }
 
@@ -116,7 +112,6 @@ class Bootstrap {
       if (oDataServerConfig) {
         // create server instance
         const oDataServer = new ODataServer(oDataServerConfig);
-
         await oDataServer.start();
       }
 
@@ -124,7 +119,6 @@ class Bootstrap {
       // Init the Scheduler
       // -------------------------------------------------------------------------
       SchedulerManager.init();
-
     } catch (error) {
       // Log
       console.error(error); // eslint-disable-line

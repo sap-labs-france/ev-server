@@ -58,6 +58,21 @@ class StatisticService {
     }
   }
 
+  static async handleGetCurrentMetrics(action, req, res, next) {
+    try {
+      // Filter
+      const filteredRequest = StatisticSecurity.filterMetricsStatisticsRequest(req.query, req.user);
+      // Get Data
+      const metrics = await StatisticsStorage.getCurrentMetrics(req.user.tenantID, filteredRequest);
+      // Return
+      res.json(metrics);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
   static async handleGetChargingStationConsumptionStatistics(action, req, res, next) {
     try {
       // Filter
