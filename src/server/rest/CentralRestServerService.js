@@ -202,6 +202,10 @@ module.exports = {
             // Delegate
             ChargingStationService.handleGetChargingStations(action, req, res, next);
             break;
+          case "ChargingStationsExport":
+            // Delegate
+            ChargingStationService.handleGetChargingStationsExport(action, req, res, next);
+            break;
           // Get one charging station
           case "ChargingStation":
             // Delegate
@@ -340,6 +344,11 @@ module.exports = {
             // Delegate
             TransactionService.handleGetTransactionsCompleted(action, req, res, next);
             break;
+          // Get the completed transactions
+          case "TransactionsExport":
+            // Delegate
+            TransactionService.handleGetTransactionsExport(action, req, res, next);
+            break;
           // Get transactions in error
           case "TransactionsInError":
             // Delegate
@@ -409,7 +418,7 @@ module.exports = {
           case "ChargingStationsInError":
             // Delegate
             ChargingStationService.handleGetChargingStationsInError(action, req, res, next);
-            break;            
+            break;
           // Authorization
           case "IsAuthorized":
             // Delegate
