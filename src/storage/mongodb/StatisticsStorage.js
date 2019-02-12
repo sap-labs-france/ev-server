@@ -305,68 +305,63 @@ class StatisticsStorage {
       {
         $unwind: '$chargingStation'
       },
-      // Get today active transactions 
+      // Get All transactions 
       {
         "$lookup": {
-          from: DatabaseUtils.getCollectionName(tenantID, 'transactions'),
-          let: {chargingStationName: "$chargingStation._id"},
-          pipeline: [
-            { $match: {$and: [
-              { timestamp: {$gte: beginningOfTheDay } },
-              {stop: {$exists: false}} ] } },
-            { $match: { 
-              $expr: 
-                { $eq: [ '$$chargingStationName', '$chargeBoxID']}                                
-            }                
-            },
-          ],
-          as: 'activeTransactions'
+          from: '5be7fb271014d90008992f06.transactions',
+          localField: 'chargingStation._id',
+          foreignField: 'chargeBoxID',
+          as: 'allTransactions'
         }
       },
-      // Get today finished transactions 
+// Filter tables
       {
-        "$lookup": {
-          from: DatabaseUtils.getCollectionName(tenantID, 'transactions'),
-          let: {chargingStationName: '$chargingStation._id'},
-          pipeline: [
-            { $match: {$and: [
-              { timestamp: {$gte: beginningOfTheDay } },
-              {stop: {$exists: true}} ] } },
-            { $match: { 
-              $expr: 
-                  { $eq: [ '$$chargingStationName', '$chargeBoxID']}                            
-              
-            }                
-            },
-          ],
-          as: 'finishedTransactions'
-        }
-      },
-  // Get transactions of the same week day
-      {
-        "$lookup": {
-          from: DatabaseUtils.getCollectionName(tenantID, 'transactions'),
-          let: { chargingStationName: "$chargingStation._id"},
-          pipeline: [
-            { $match: {$and: 
-              [
-                { stop: {$exists: true }}, 
-                { timestamp: {$gte: transactionDateFilter } }
-              ] 
-            } },
-            { $match: { 
-              $expr: {
-                $and: [
-                  { $eq: [ { $dayOfWeek: new Date() },{ $dayOfWeek: "$timestamp" }]},  
-                  { $eq: [ '$$chargingStationName', '$chargeBoxID']} 
-                ]
+        "$project": {
+          _id: 1,
+          companyID: 1,
+          name: 1,
+          address: 1,
+          transactions: 1,
+          'chargingStation.maximumPower': 1,
+          'chargingStation.cannotChargeInParallel': 1,
+          'chargingStation.connectors': 1,
+          activeTransactions: {
+              $filter: {
+                  input: '$allTransactions',
+                  as: 'transaction',
+                  cond: {
+                      $and: [
+                          { $gte: ["$$transaction.timestamp", beginningOfTheDay] } ,
+                          { $ne: [ { $type: '$$transaction.stop' }, "object" ] }
+                          ]
+                  }
               }
-            }
-            },
-            { $replaceRoot: { newRoot: "$stop" } }
-                
-          ],
-          as: 'transactionsTrends'
+          },
+          finishedTransactions: {
+              $filter: {
+                  input: '$allTransactions',
+                  as: 'transaction',
+                  cond: {
+                      $and: [
+                          { $gte: ["$$transaction.timestamp", beginningOfTheDay] } ,
+                          { $eq: [ { $type: '$$transaction.stop' }, "object" ] }
+                          ]
+                  }
+              }
+          },
+          transactionsTrends: {
+              $filter: {
+                  input: '$allTransactions',
+                  as: 'transaction',
+                  cond: {
+                      $and: [
+                          { $gte: ["$$transaction.timestamp", transactionDateFilter] } ,
+                          { $eq: [ { $type: '$$transaction.stop' }, "object" ] },
+                          { $eq: [ { $dayOfWeek: new Date() },{ $dayOfWeek: "$$transaction.timestamp" }]}
+                          ]
+                  }
+              }
+          }
         }
       },
 // Reduce to necessary fields: site info, transactions and charging station power
@@ -407,31 +402,31 @@ class StatisticsStorage {
             $size: '$activeTransactions'
           },
           'chargingTrendsMinConsumption': {
-            $min: "$transactionsTrends.totalConsumption"
+            $min: "$transactionsTrends.stop.totalConsumption"
           },
           'chargingTrendsMaxConsumption': {
-            $max: "$transactionsTrends.totalConsumption"
+            $max: "$transactionsTrends.stop.totalConsumption"
           },
           'chargingTrendsAvgConsumption': {
-            $avg: "$transactionsTrends.totalConsumption"
+            $avg: "$transactionsTrends.stop.totalConsumption"
           },
           'chargingTrendsMinDuration': {
-            $min: "$transactionsTrends.totalDurationSecs"
+            $min: "$transactionsTrends.stop.totalDurationSecs"
           },
           'chargingTrendsMaxDuration': {
-            $max: "$transactionsTrends.totalDurationSecs"
+            $max: "$transactionsTrends.stop.totalDurationSecs"
           },
           'chargingTrendsAvgDuration': {
-            $avg: "$transactionsTrends.totalDurationSecs"
+            $avg: "$transactionsTrends.stop.totalDurationSecs"
           },
           'chargingTrendsMinInactivity': {
-            $min: "$transactionsTrends.totalInactivitySecs"
+            $min: "$transactionsTrends.stop.totalInactivitySecs"
           },
           'chargingTrendsMaxInactivity': {
-            $max: "$transactionsTrends.totalInactivitySecs"
+            $max: "$transactionsTrends.stop.totalInactivitySecs"
           },
           'chargingTrendsAvgInactivity': {
-            $avg: "$transactionsTrends.totalInactivitySecs"
+            $avg: "$transactionsTrends.stop.totalInactivitySecs"
           },
         }
       },
