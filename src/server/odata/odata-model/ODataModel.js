@@ -20,15 +20,40 @@ module.exports = {
     },
     "ChargingStation": {
       "id": { "type": "Edm.String", key: true },
+      "chargeBoxSerialNumber" : { "type": "Edm.String" },
+      "chargePointModel" : { "type": "Edm.String" },
+      "chargePointSerialNumber" : { "type": "Edm.String" },
+      "chargePointVendor" : { "type": "Edm.String" },
+      "firmwareVersion" : { "type": "Edm.String" },
+      "ocppVersion" : { "type": "Edm.String" },
+      "deleted" : { "type": "Edm.Boolean" },
+      "maximumPower" : { "type": "Edm.Int64" },
+      "numberOfConnectedPhase" : { "type": "Edm.Int64" },
+      "cannotChargeInParallel" :  { "type": "Edm.Boolean" },
       "siteAreaID": { "type": "Edm.String" },
       "latitude": { "type": "Edm.Double" },
       "longitude": { "type": "Edm.Double" }
+    },
+    "User": {
+      "id" : { "type": "Edm.String", key: true },
+      "email" : { "type": "Edm.String" },
+      "name" : { "type": "Edm.String" },
+      "firstName" : { "type": "Edm.String" },
+      "phone" : { "type": "Edm.String" },
+      "mobile" : { "type": "Edm.String" },
+      "iNumber" : { "type": "Edm.String" },
+      "costCenter" : { "type": "Edm.String" },
+      "status" : { "type": "Edm.String" },
+      "role" : { "type": "Edm.String" },
+      "deleted" : { "type": "Edm.Boolean" },
+      "address" : { 'type': 'eMobility.Address' }
     },
     "Transaction": {
       "id": { "type": "Edm.Int32", key: true },
       "chargeBoxID": { "type": "Edm.String" },
       "connectorId": { "type": "Edm.Int32" },
       "timestamp": { "type": "Edm.DateTimeOffset"},
+      "startDate": { "type": "Edm.DateTimeOffset"},
       "tagID": { "type": "Edm.String" },
       "userID": { "type": "Edm.String" },
       "stop": { 'type': 'eMobility.TransactionStop' }
@@ -49,6 +74,7 @@ module.exports = {
   complexTypes: {
     'TransactionStop': {
       "timestamp":  { "type": "Edm.DateTimeOffset" },
+      "stopDate": { "type": "Edm.DateTimeOffset"},
       "totalConsumption": { "type": "Edm.Int32" },
       "totalInactivitySecs": { "type": "Edm.Int32" },
       "totalDurationSecs": { "type": "Edm.Int32" },
@@ -73,6 +99,9 @@ module.exports = {
   entitySets: {
     "Transactions": {
       entityType: "eMobility.Transaction"
+    },    
+    "TransactionsCompleted": {
+      entityType: "eMobility.Transaction"
     },
     "BootNotifications": {
       entityType: "eMobility.BootNotification"
@@ -88,6 +117,9 @@ module.exports = {
     },
     "ChargingStations": {
       entityType: "eMobility.ChargingStation"
+    },
+    "Users": {
+      entityType: "eMobility.User"
     }
   }
 };

@@ -12,27 +12,42 @@ class AbstractODataEntities {
     return params;
   }
 
-  static returnResponse(response,query,req,cb) {
+  static convert(object) {
+    return object;
+  }
+
+  static returnResponse(response, query, req, cb) {
     let count = 0;
     let result = [];
+    let fields = [];
 
     // check if error
     if (response.status != 200) {
-      cb({message: response.data.message});
+      cb({ message: response.data.message });
       return;
+    }
+
+    // get fields to filter
+    if (query.$select) {
+      fields = Object.keys(query.$select);
     }
 
     // reduce returned object attribute
     if (response.data && response.data.result && response.data.count) {
       count = response.data.count;
       result = response.data.result;
-      const fields = Object.keys(query.$select);
 
       if (fields.length != 0) {
         if (Array.isArray(result)) {
-          result = result.map((object)=> {return _.pick(object,fields)});
+          result = result.map((object)=> {return _.pick(this.convert(object),fields)});
         } else {
-          result = _.pick(result, fields);
+          result = _.pick(this.convert(result), fields);
+        }
+      } else {
+        if (Array.isArray(result)) {
+          result = result.map((object)=> {return this.convert(object)});
+        } else {
+          result = this.convert(result);
         }
       }
     }
@@ -40,8 +55,6 @@ class AbstractODataEntities {
     // return response
     if (query.$inlinecount) {
       cb(null, {
-        // count: response.data.count,
-        // value: response.data.result
         count: count,
         value: result
       });

@@ -4,6 +4,7 @@ const oDataCompanies = require('./odata-entities/ODataCompanies');
 const oDataSites = require('./odata-entities/ODataSites');
 const oDataSiteAreas = require('./odata-entities/ODataSiteAreas');
 const oDataChargingStations = require('./odata-entities/ODataChargingStations');
+const oDataUsers = require('./odata-entities/ODataUsers');
 const oDataModel = require('./odata-model/ODataModel');
 const auth = require('basic-auth');
 const CentralServiceApi = require('./client/CentralServiceApi');
@@ -28,7 +29,7 @@ class ODataDatabaseAdapter {
     }
 
     // build AuthenticatedApi
-    const centralServiceApi = new CentralServiceApi("http://localhost:7070", authentication.name, authentication.pass, tenant);
+    const centralServiceApi = new CentralServiceApi(this.restServerUrl, authentication.name, authentication.pass, tenant);
 
     // handle error
     try {
@@ -47,17 +48,23 @@ class ODataDatabaseAdapter {
 
           oDataBootNotifications.query(query, req, cb);
           break;
+        case 'TransactionsCompleted':
+          ODataTransactions.getTransactionsCompleted(centralServiceApi, query, req, cb);
+          break;
         case 'Companies':
-          oDataCompanies.restRequest(centralServiceApi, query, req, cb);
+          oDataCompanies.getCompanies(centralServiceApi, query, req, cb);
           break;
         case 'Sites':
-          oDataSites.restRequest(centralServiceApi, query, req, cb);
+          oDataSites.getSites(centralServiceApi, query, req, cb);
           break;
         case 'SiteAreas':
-          oDataSiteAreas.restRequest(centralServiceApi, query, req, cb);
+          oDataSiteAreas.getSiteAreas(centralServiceApi, query, req, cb);
           break;
         case 'ChargingStations':
-          oDataChargingStations.restRequest(centralServiceApi, query, req, cb);
+          oDataChargingStations.getChargingStations(centralServiceApi, query, req, cb);
+          break;
+        case 'Users':
+          oDataUsers.getUsers(centralServiceApi, query, req, cb);
           break;
         default:
           cb('Invalid Entity');

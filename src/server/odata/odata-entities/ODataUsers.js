@@ -1,14 +1,14 @@
 
 const AbstractODataEntities = require('./AbstractODataEntities');
 
-class ODataConnectors extends AbstractODataEntities {
-  static async getConnectors(centralServiceApi, query, req, cb) {
+class ODataUsers extends AbstractODataEntities {
+  static async getUsers(centralServiceApi, query, req, cb) {
     try {
       // check limit parameter
       const params = this.buildParams(query);
 
       // perform rest call
-      const response = await centralServiceApi.getChargingStations(params);
+      const response = await centralServiceApi.getUsers(params);
 
       // return response
       this.returnResponse(response, query, req, cb);
@@ -19,4 +19,4 @@ class ODataConnectors extends AbstractODataEntities {
 }
 
 
-module.exports = ODataConnectors;
+module.exports = ODataUsers;

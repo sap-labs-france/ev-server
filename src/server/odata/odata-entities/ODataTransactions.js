@@ -1,7 +1,8 @@
 
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage');
+const AbstractODataEntities = require('./AbstractODataEntities');
 
-class ODataTransactions {
+class ODataTransactions extends AbstractODataEntities {
   static async query(query, req, cb) {
     // check if id is provided
     if (query && query.$filter && query.$filter.hasOwnProperty('_id')) {
@@ -36,9 +37,41 @@ class ODataTransactions {
       } else {
         cb(null, transactionsResult);
       }
-
-
     }
+  }
+
+  static async getTransactionsCompleted(centralServiceApi, query, req, cb) {
+    try {
+      // check limit parameter
+      const params = this.buildParams(query);
+
+      // perform rest call
+      const response = await centralServiceApi.getTransactionsCompleted(params);
+
+      // return response
+      this.returnResponse(response, query, req, cb);
+    } catch (error) {
+      cb(error);
+    }
+  }
+
+  static convert(transaction) {
+    if (transaction.hasOwnProperty('timestamp') && transaction.timestamp) {
+      transaction.timestamp = transaction.timestamp.split('.')[0] + "Z";
+      transaction.startDate = transaction.timestamp.split('T')[0];
+    }
+
+    if (transaction.hasOwnProperty('stop')) {
+      if (transaction.stop.hasOwnProperty('timestamp') && transaction.stop.timestamp) {
+        transaction.stop.timestamp = transaction.stop.timestamp.split('.')[0] + "Z";
+        transaction.stop.stopDate = transaction.stop.timestamp.split('T')[0];
+      }
+
+      if (transaction.stop.hasOwnProperty('price')) {
+        transaction.stop.price = transaction.stop.price.toFixed(15)
+      }
+    }
+    return transaction;
   }
 }
 

@@ -37,6 +37,22 @@ class CentralServiceApi extends AuthenticatedApi {
     });
   }
 
+  async getTransactionsCompleted(params) {
+    return await this.send({  
+      method: 'GET',
+      url: '/client/api/TransactionsCompleted',
+      params: params
+    });
+  }
+
+  async getUsers(params) {
+    return await this.send({  
+      method: 'GET',
+      url: '/client/api/Users',
+      params: params
+    });
+  }
+
 }
 
 module.exports = CentralServiceApi
