@@ -2,23 +2,27 @@ module.exports = {
   namespace: "eMobility",
   entityTypes: {
     "Company": {
+      "tenant": { "type": "Edm.String"},
       "id": { "type": "Edm.String", key: true },
       "name":  { "type": "Edm.String" },
       "address": { 'type': 'eMobility.Address' }
     },
     "Site": {
+      "tenant": { "type": "Edm.String"},
       "id": { "type": "Edm.String", key: true },
       "name":  { "type": "Edm.String" },
       "companyID": { "type": "Edm.String" },
       "address": { 'type': 'eMobility.Address' }
     },
     "SiteArea": {
+      "tenant": { "type": "Edm.String"},
       "id": { "type": "Edm.String", key: true },
       "name":  { "type": "Edm.String" },
       "siteID": { "type": "Edm.String" },
       "address": { 'type': 'eMobility.Address' }
     },
     "ChargingStation": {
+      "tenant": { "type": "Edm.String"},
       "id": { "type": "Edm.String", key: true },
       "chargeBoxSerialNumber" : { "type": "Edm.String" },
       "chargePointModel" : { "type": "Edm.String" },
@@ -35,6 +39,7 @@ module.exports = {
       "longitude": { "type": "Edm.Double" }
     },
     "User": {
+      "tenant": { "type": "Edm.String"},
       "id" : { "type": "Edm.String", key: true },
       "email" : { "type": "Edm.String" },
       "name" : { "type": "Edm.String" },
@@ -49,6 +54,7 @@ module.exports = {
       "address" : { 'type': 'eMobility.Address' }
     },
     "Transaction": {
+      "tenant": { "type": "Edm.String"},
       "id": { "type": "Edm.Int32", key: true },
       "chargeBoxID": { "type": "Edm.String" },
       "connectorId": { "type": "Edm.Int32" },
@@ -60,6 +66,7 @@ module.exports = {
     },
     "BootNotification": {
       // "id": { "type": "Edm.String", key: true },
+      "tenant": { "type": "Edm.String"},
       "chargeBoxID": { "type": "Edm.String" , key: true},
       "chargePointVendor": { "type": "Edm.String" },
       "chargePointModel": { "type": "Edm.String" },

@@ -12,8 +12,9 @@ class AbstractODataEntities {
     return params;
   }
 
-  static convert(object) {
-    return object;
+  static convert(object,tenant) {
+    // set tenant
+    return _.merge({ tenant: tenant}, object);
   }
 
   static returnResponse(response, query, req, cb) {
@@ -39,15 +40,15 @@ class AbstractODataEntities {
 
       if (fields.length != 0) {
         if (Array.isArray(result)) {
-          result = result.map((object)=> {return _.pick(this.convert(object),fields)});
+          result = result.map((object)=> {return _.pick(this.convert(object,req.tenant),fields)});
         } else {
-          result = _.pick(this.convert(result), fields);
+          result = _.pick(this.convert(result,req.tenant), fields);
         }
       } else {
         if (Array.isArray(result)) {
-          result = result.map((object)=> {return this.convert(object)});
+          result = result.map((object)=> {return this.convert(object,req.tenant)});
         } else {
-          result = this.convert(result);
+          result = this.convert(result,req.tenant);
         }
       }
     }

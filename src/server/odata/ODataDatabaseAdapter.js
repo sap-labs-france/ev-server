@@ -31,6 +31,9 @@ class ODataDatabaseAdapter {
     // build AuthenticatedApi
     const centralServiceApi = new CentralServiceApi(this.restServerUrl, authentication.name, authentication.pass, tenant);
 
+    // set tenant
+    req.tenant = tenant;
+
     // handle error
     try {
       switch (collection) {

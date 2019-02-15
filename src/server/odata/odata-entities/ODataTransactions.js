@@ -55,7 +55,8 @@ class ODataTransactions extends AbstractODataEntities {
     }
   }
 
-  static convert(transaction) {
+  static convert(object,tenant) {
+    const transaction = super.convert(object,tenant);
     if (transaction.hasOwnProperty('timestamp') && transaction.timestamp) {
       transaction.timestamp = transaction.timestamp.split('.')[0] + "Z";
       transaction.startDate = transaction.timestamp.split('T')[0];
