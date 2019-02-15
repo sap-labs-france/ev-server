@@ -15,6 +15,43 @@ class SiteArea extends AbstractTenantEntity {
     Database.updateSiteArea(siteArea, this._model);
   }
 
+  static checkIfSiteAreaValid(filteredRequest, request) {
+    // Update model?
+    if (request.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `The Site Area ID is mandatory`, 500,
+        'SiteArea', 'checkIfSiteAreaValid');
+    }
+    if (!filteredRequest.name) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `The Site Area Name is mandatory`, 500,
+        'SiteArea', 'checkIfSiteAreaValid');
+    }
+    if (!filteredRequest.siteID) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `The Site ID is mandatory`, 500,
+        'SiteArea', 'checkIfSiteAreaValid');
+    }
+    if (!filteredRequest.chargeBoxIDs) {
+      filteredRequest.chargeBoxIDs = [];
+    }
+  }
+
+  static getSiteArea(tenantID, id, withChargeBoxes, withSite) {
+    return SiteAreaStorage.getSiteArea(tenantID, id, withChargeBoxes, withSite);
+  }
+
+  static getSiteAreas(tenantID, params, limit, skip, sort) {
+    return SiteAreaStorage.getSiteAreas(tenantID, params, limit, skip, sort)
+  }
+
+  static getSiteAreaImage(tenantID, id) {
+    return SiteAreaStorage.getSiteAreaImage(tenantID, id);
+  }
+
   getID() {
     return this._model.id;
   }
@@ -137,12 +174,22 @@ class SiteArea extends AbstractTenantEntity {
     return this._model.image;
   }
 
+  /**
+   *
+   * @param withCompany
+   * @param withUser
+   * @returns {Promise<Site>}
+   */
   async getSite(withCompany = false, withUser = false) {
     // Get from DB
     const site = await SiteStorage.getSite(this.getTenantID(), this._model.siteID, withCompany, withUser);
     // Keep it
     this.setSite(site);
     return site;
+  }
+
+  getSiteID() {
+    return this._model.siteID;
   }
 
   setSite(site) {
@@ -177,43 +224,6 @@ class SiteArea extends AbstractTenantEntity {
 
   setChargingStations(chargeBoxes) {
     this._model.chargeBoxes = chargeBoxes.map((chargeBox) => chargeBox.getModel());
-  }
-
-  static checkIfSiteAreaValid(filteredRequest, request) {
-    // Update model?
-    if (request.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Site Area ID is mandatory`, 500,
-        'SiteArea', 'checkIfSiteAreaValid');
-    }
-    if (!filteredRequest.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Site Area Name is mandatory`, 500,
-        'SiteArea', 'checkIfSiteAreaValid');
-    }
-    if (!filteredRequest.siteID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Site ID is mandatory`, 500,
-        'SiteArea', 'checkIfSiteAreaValid');
-    }
-    if (!filteredRequest.chargeBoxIDs) {
-      filteredRequest.chargeBoxIDs = [];
-    }
-  }
-
-  static getSiteArea(tenantID, id, withChargeBoxes, withSite) {
-    return SiteAreaStorage.getSiteArea(tenantID, id, withChargeBoxes, withSite);
-  }
-
-  static getSiteAreas(tenantID, params, limit, skip, sort) {
-    return SiteAreaStorage.getSiteAreas(tenantID, params, limit, skip, sort)
-  }
-
-  static getSiteAreaImage(tenantID, id) {
-    return SiteAreaStorage.getSiteAreaImage(tenantID, id);
   }
 }
 

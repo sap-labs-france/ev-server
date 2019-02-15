@@ -12,6 +12,26 @@ class Tenant {
     Database.updateTenant(tenant, this._model);
   }
 
+  static getTenant(id) {
+    // Get Tenant
+    return TenantStorage.getTenant(id)
+  }
+
+  static getTenantByName(name) {
+    // Get Tenant
+    return TenantStorage.getTenantByName(name);
+  }
+
+  static getTenantBySubdomain(subdomain) {
+    // Get Tenant
+    return TenantStorage.getTenantBySubdomain(subdomain);
+  }
+
+  static getTenants(params = {}, limit, skip, sort) {
+    // Get Tenants
+    return TenantStorage.getTenants(params, limit, skip, sort);
+  }
+
   getModel() {
     return this._model;
   }
@@ -45,7 +65,7 @@ class Tenant {
   }
 
   isComponentActive(identifier) {
-    return (this._model.components[identifier] && this._model.components[identifier].active ? true:false);
+    return (this._model.components[identifier] && this._model.components[identifier].active ? true : false);
   }
 
   activateComponent(identifier) {
@@ -67,8 +87,11 @@ class Tenant {
   getActiveComponents() {
     const activeComponents = [];
 
-    for (const componentName in this._model.components ) {
+    for (const componentName in this._model.components) {
       if (this._model.components.hasOwnProperty(componentName) && this._model.components[componentName].active) {
+        if (this._model.components[componentName].type) {
+          activeComponents.push(`${componentName}_${this._model.components[componentName].type}`);
+        }
         activeComponents.push(componentName);
       }
     }
@@ -84,13 +107,14 @@ class Tenant {
       this._model.components[identifier].configuration = configuration;
     }
   }
+
   /**
    * Return Setting entity
    * @param {*} identifier
    * @return Setting
    */
   async getSetting(identifier) {
-    return await Setting.getSettingByIdentifier(this.getID(), identifier) ;
+    return await Setting.getSettingByIdentifier(this.getID(), identifier);
   }
 
   getCreatedBy() {
@@ -146,26 +170,6 @@ class Tenant {
 
   delete() {
     return TenantStorage.deleteTenant(this.getID());
-  }
-
-  static getTenant(id) {
-    // Get Tenant
-    return TenantStorage.getTenant(id)
-  }
-
-  static getTenantByName(name) {
-    // Get Tenant
-    return TenantStorage.getTenantByName(name);
-  }
-
-  static getTenantBySubdomain(subdomain) {
-    // Get Tenant
-    return TenantStorage.getTenantBySubdomain(subdomain);
-  }
-
-  static getTenants(params = {}, limit, skip, sort) {
-    // Get Tenants
-    return TenantStorage.getTenants(params, limit, skip, sort);
   }
 }
 

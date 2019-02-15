@@ -16,8 +16,13 @@ const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorag
 const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const TransactionStorage = require('../storage/mongodb/TransactionStorage');
 const momentDurationFormatSetup = require("moment-duration-format");
+const SettingStorage = require("../storage/mongodb/SettingStorage");
+const ConvergentCharging = require("./integration/convergentCharging/ConvergentCharging");
+const SimplePricing = require("./integration/simplePricing/SimplePricing");
 momentDurationFormatSetup(moment);
 const _configChargingStation = Configuration.getChargingStationConfig();
+const Consumption = require('./Consumption');
+const ConsumptionStorage = require('../storage/mongodb/ConsumptionStorage');
 
 class ChargingStation extends AbstractTenantEntity {
   constructor(tenantID, chargingStation) {
@@ -42,6 +47,14 @@ class ChargingStation extends AbstractTenantEntity {
 
   static getChargingStationsInError(tenantID, params, limit, skip, sort) {
     return ChargingStationStorage.getChargingStationsInError(tenantID, params, limit, skip, sort)
+  }
+
+  static addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs) {
+    return ChargingStationStorage.addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs);
+  }
+
+  static removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs) {
+    return ChargingStationStorage.removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs);
   }
 
   handleAction(action, params = {}) {
@@ -383,6 +396,18 @@ class ChargingStation extends AbstractTenantEntity {
     return ChargingStationStorage.saveChargingStationSiteArea(this.getTenantID(), this.getModel());
   }
 
+  async getPricingLogic() {
+    if ((await this.getTenant()).isComponentActive('pricing')) {
+      const setting = await SettingStorage.getSettingByIdentifier(this.getTenantID(), 'pricing');
+      if (setting.getContent()['convergentCharging']) {
+        return new ConvergentCharging(this.getTenantID(), this, setting.getContent()['convergentCharging']);
+      } else if (setting.getContent()['simple']) {
+        return new SimplePricing(this.getTenantID(), setting.getContent()['simple']);
+      }
+    }
+    return null;
+  }
+
   async handleStatusNotification(statusNotification) {
     // Set the Station ID
     statusNotification.chargeBoxID = this.getID();
@@ -390,7 +415,7 @@ class ChargingStation extends AbstractTenantEntity {
       statusNotification.timestamp = new Date().toISOString();
     }
     // Handle connectorId = 0 case => Currently status is distributed to each individual connectors
-    if (parseInt(statusNotification.connectorId) === 0 ) {
+    if (parseInt(statusNotification.connectorId) === 0) {
       // Log
       Logging.logWarning({
         tenantID: this.getTenantID(),
@@ -454,9 +479,9 @@ class ChargingStation extends AbstractTenantEntity {
     });
     // Check if connector is available and a transaction is ongoing (ABB fucking bitch bug)
     if ((statusNotification.status === Constants.CONN_STATUS_AVAILABLE ||
-         statusNotification.status === Constants.CONN_STATUS_FINISHING) &&
-         !bothConnectorsUpdated && 
-         connectors[statusNotification.connectorId - 1].activeTransactionID > 0) {
+      statusNotification.status === Constants.CONN_STATUS_FINISHING) &&
+      !bothConnectorsUpdated &&
+      connectors[statusNotification.connectorId - 1].activeTransactionID > 0) {
       // Clear
       connectors[statusNotification.connectorId - 1].currentConsumption = 0;
       connectors[statusNotification.connectorId - 1].totalConsumption = 0;
@@ -803,7 +828,7 @@ class ChargingStation extends AbstractTenantEntity {
               }
             );
           }
-        // Check the SoC (Optimal Charge)
+          // Check the SoC (Optimal Charge)
         } else if (_configChargingStation.notifBeforeEndOfChargeEnabled &&
           transaction.getCurrentStateOfCharge() >= _configChargingStation.notifBeforeEndOfChargePercent) {
           // Notify User?
@@ -900,7 +925,7 @@ class ChargingStation extends AbstractTenantEntity {
         // Always assign, even if equals to 0
         meterValues.transactionId = chargerTransactionId;
       }
-    // Transaction is not provided: check if there is a transaction assigned on the connector
+      // Transaction is not provided: check if there is a transaction assigned on the connector
     } else if (parseInt(chargerTransactionId) > 0) {
       // Yes: Use Connector's Transaction ID
       Logging.logWarning({
@@ -1008,16 +1033,21 @@ class ChargingStation extends AbstractTenantEntity {
         action: 'MeterValues', message: `No MeterValue to save (clocks only)`,
         detailedMessages: meterValues
       });
-    // Process values
+      // Process values
     } else {
       // Save Meter Values
       await TransactionStorage.saveMeterValues(this.getTenantID(), newMeterValues);
       // Get the transaction
       const transaction = await TransactionStorage.getTransaction(this.getTenantID(), meterValues.transactionId);
-      // Update
-      newMeterValues.values.forEach(async (meterValue) => await transaction.updateWithMeterValue(meterValue));
+      const consumptions = [];
+      for (const meterValue of newMeterValues.values) {
+        let consumptionData = await transaction.updateWithMeterValue(meterValue);
+          consumptionData.toPrice = transaction.isConsumptionMeterValue(meterValue);
+        consumptions.push(consumptionData);
+      }
       // Save Transaction
       await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
+      consumptions.forEach(c => this.saveConsumption(c, 'update', c.toPrice));
       // Update Charging Station Consumption
       await this.updateChargingStationConsumption(transaction);
       // Save Charging Station
@@ -1033,6 +1063,35 @@ class ChargingStation extends AbstractTenantEntity {
         detailedMessages: meterValues
       });
     }
+  }
+
+  async saveConsumption(consumptionData, action, withPricing = true) {
+    let consumptionAmount = {};
+    if (withPricing) {
+      const pricingLogic = await this.getPricingLogic();
+      if (pricingLogic) {
+        switch (action) {
+          case 'start':
+            consumptionAmount = await pricingLogic.startSession(consumptionData);
+            break;
+          case 'update':
+            consumptionAmount = await pricingLogic.updateSession(consumptionData);
+            break;
+          case 'stop':
+            consumptionAmount = await pricingLogic.stopSession(consumptionData);
+            break;
+        }
+      }
+    }
+    const siteArea = await this.getSiteArea(false);
+    const model = {
+      ...consumptionData,
+      ...consumptionAmount,
+      chargeBoxID: this.getID(),
+      siteID: siteArea.getSiteID(),
+      siteAreaID: siteArea.getID()
+    };
+    return ConsumptionStorage.saveConsumption(this.getTenantID(), model);
   }
 
   saveConfiguration(configuration) {
@@ -1147,6 +1206,10 @@ class ChargingStation extends AbstractTenantEntity {
     }
   }
 
+  /**
+   *
+   * @returns {Promise<Site>}
+   */
   async getSite() {
     // Get Site Area
     const siteArea = await this.getSiteArea();
@@ -1185,8 +1248,11 @@ class ChargingStation extends AbstractTenantEntity {
       // BUG EBEE: Timestamp is mandatory according OCPP
       Logging.logWarning({
         tenantID: this.getTenantID(),
-        source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
-        action: 'StartTransaction', message: `The 'timestamp' property has not been provided and has been set to '${startTransaction.timestamp}'`
+        source: this.getID(),
+        module: 'ChargingStation',
+        method: 'handleStartTransaction',
+        action: 'StartTransaction',
+        message: `The 'timestamp' property has not been provided and has been set to '${startTransaction.timestamp}'`
       });
     }
     // Check the meter start
@@ -1221,11 +1287,14 @@ class ChargingStation extends AbstractTenantEntity {
     // Create
     let transaction = new Transaction(this.getTenantID(), startTransaction);
     // Start Transaction
-    await transaction.startTransaction(user);
+    let consumptionData = await transaction.startTransaction(user);
     // Cleanup old ongoing transactions
     await TransactionStorage.cleanupRemainingActiveTransactions(this.getTenantID(), this.getID(), transaction.getConnectorId());
     // Save it
     transaction = await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
+    consumptionData.transactionId = transaction.getID();
+
+    this.saveConsumption(consumptionData, 'start');
     // Clean up connector info
     // Get the connector
     const connector = this.getConnector(transaction.getConnectorId());
@@ -1358,8 +1427,9 @@ class ChargingStation extends AbstractTenantEntity {
       }
     }
     // Stop
-    await transaction.stopTransaction(user.getID(), tagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp));
-    // Save Transaction
+    const consumptionData = await transaction.stopTransaction(user.getID(), tagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp));
+    const consumption = await this.saveConsumption(consumptionData, 'stop');
+    transaction.setTotalPrice(consumption.getCumulatedAmount(), consumption.getCurrency());
     transaction = await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
     // Notify User
     if (user) {
@@ -1443,7 +1513,7 @@ class ChargingStation extends AbstractTenantEntity {
     // Get the client
     const chargingStationClient = await this.getChargingStationClient();
     // Start Transaction
-    const result = await chargingStationClient.startTransaction(params);
+    const result = await chargingStationClient.startSession(params);
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
@@ -1684,14 +1754,6 @@ class ChargingStation extends AbstractTenantEntity {
       Constants.NO_LIMIT);
     // Return list of transactions
     return transactions;
-  }
-
-  static addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs) {
-    return ChargingStationStorage.addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs);
-  }
-
-  static removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs) {
-    return ChargingStationStorage.removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs);
   }
 }
 

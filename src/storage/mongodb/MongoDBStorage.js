@@ -49,7 +49,7 @@ class MongoDBStorage {
     }
   }
 
-  async createTenantDatabase(tenantID) {
+  async checkAndCreateTenantDatabase(tenantID) {
     const filter = {};
     filter.name = new RegExp(`^${tenantID}.`);
     // Get all the tenant collections
@@ -91,6 +91,14 @@ class MongoDBStorage {
     ]);
     await this.checkAndCreateCollection(collections, tenantID, 'connections', [
       {fields: {connectorId: 1, userId: 1}, options: {unique: true}}
+    ]);
+    await this.checkAndCreateCollection(collections, tenantID, 'consumptions', [
+      {fields: {siteID: 1}},
+      {fields: {transactionId: 1, endedAt: 1}},
+      {fields: {siteAreaID: 1}},
+      {fields: {transactionId: 1}},
+      {fields: {chargeBoxID: 1, connectorId: 1}},
+      {fields: {userID: 1}}
     ]);
 
   }
@@ -150,6 +158,14 @@ class MongoDBStorage {
       if (collection.name === 'migrations') {
         await this._db.collection(collection.name).rename(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, collection.name), {dropTarget: true});
       }
+    }
+
+    const tenantsMDB = await this._db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
+      .find({})
+      .toArray();
+    const tenantIds = tenantsMDB.map(t => t._id.toString());
+    for (const tenantId of tenantIds) {
+      this.checkAndCreateTenantDatabase(tenantId);
     }
   }
 

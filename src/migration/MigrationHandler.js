@@ -8,6 +8,7 @@ const TenantMigrationTask = require('./tasks/TenantMigrationTask');
 const UpdateTransactionSoCTask = require('./tasks/UpdateTransactionSoCTask');
 const UpdateABBMeterValuesTask = require('./tasks/UpdateKebaMeterValuesTask');
 const NormalizeTransactionsTask = require('./tasks/NormalizeTransactionsTask');
+const AddConsumptions = require('./tasks/AddConsumptions');
 
 class MigrationHandler {
   // Migrate method
@@ -31,6 +32,7 @@ class MigrationHandler {
       currentMigrationTasks.push(new UpdateTransactionSoCTask());
       currentMigrationTasks.push(new UpdateABBMeterValuesTask());
       currentMigrationTasks.push(new NormalizeTransactionsTask());
+      currentMigrationTasks.push(new AddConsumptions());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();

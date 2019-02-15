@@ -15,6 +15,10 @@ class AbstractTenantEntity {
     return this._tenantID;
   }
 
+  /**
+   *
+   * @returns {Promise<Tenant>}
+   */
   async getTenant() {
     if (!this._tenant) {
       this._tenant = await TenantStorage.getTenant(this._tenantID);

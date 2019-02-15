@@ -602,6 +602,44 @@ class Database {
       }
     }
   }
+
+  static updateConsumption(src, dest, forFrontEnd = true) {
+    if (forFrontEnd) {
+      Database.updateID(src, dest);
+      dest.userID = Database.validateId(src.userID);
+      dest.chargeBoxID = Database.validateId(src.chargeBoxID);
+      dest.siteID = Database.validateId(src.siteID);
+      dest.siteAreaID = Database.validateId(src.siteAreaID);
+    } else {
+      dest._id = Utils.convertToObjectID(src.id);
+      dest.userID = Utils.convertToObjectID(src.userID);
+      dest.chargeBoxID = src.chargeBoxID;
+      dest.siteID = Utils.convertToObjectID(src.siteID);
+      dest.siteAreaID = Utils.convertToObjectID(src.siteAreaID);
+    }
+    dest.connectorId = Utils.convertToInt(src.connectorId);
+    dest.transactionId = Utils.convertToInt(src.transactionId);
+
+    dest.startedAt = Utils.convertToDate(src.startedAt);
+    dest.endedAt = Utils.convertToDate(src.endedAt);
+
+    if (src.stateOfCharge) {
+      dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);
+    }
+
+    dest.cumulatedConsumption = Utils.convertToInt(src.cumulatedConsumption);
+    dest.consumption = Utils.convertToInt(src.consumption);
+    dest.instantPower = Utils.convertToInt(src.instantPower);
+    dest.totalInactivitySecs = Utils.convertToInt(src.totalInactivitySecs);
+
+    if (src.pricingSource) {
+      dest.pricingSource = src.pricingSource;
+      dest.amount = Utils.convertToFloat(src.amount);
+      dest.cumulatedAmount = Utils.convertToFloat(src.cumulatedAmount);
+      dest.roundedAmount = Utils.convertToFloat(src.roundedAmount);
+      dest.currencyCode = src.currencyCode;
+    }
+  }
 }
 
 module.exports = Database;

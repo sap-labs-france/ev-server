@@ -4,6 +4,8 @@ const Utils = require('../utils/Utils');
 const AbstractTenantEntity = require('./AbstractTenantEntity');
 const UserStorage = require('../storage/mongodb/UserStorage');
 const PricingStorage = require('../storage/mongodb/PricingStorage');
+const Consumption = require('./Consumption');
+const ConsumptionStorage = require('../storage/mongodb/ConsumptionStorage');
 
 const DEFAULT_CONSUMPTION_ATTRIBUTE = {
   unit: 'Wh',
@@ -61,6 +63,14 @@ class Transaction extends AbstractTenantEntity {
 
   setCurrentConsumption(currentConsumption) {
     this._model.currentConsumption = currentConsumption;
+  }
+
+  setCurrentConsumptionWh(currentConsumptionWh) {
+    this._model.currentConsumptionWh = currentConsumptionWh;
+  }
+
+  getCurrentConsumptionWh() {
+    return this._model.currentConsumptionWh ? this._model.currentConsumptionWh : 0;
   }
 
   getCurrentTotalConsumption() {
@@ -123,6 +133,11 @@ class Transaction extends AbstractTenantEntity {
 
   getStartDate() {
     return this._model.timestamp;
+  }
+
+  getLastUpdateDate() {
+    return this._model.lastUpdate;
+
   }
 
   getEndDate() {
@@ -236,98 +251,7 @@ class Transaction extends AbstractTenantEntity {
   }
 
   async getConsumptions() {
-    let firstMeterValue = false;
-    let lastMeterValue;
-    let cumulatedConsumption = 0;
-    const consumptions = [];
-    // Get Meter Values
-    let meterValues = await this.getMeterValues();
-    // Add first Meter Value
-    meterValues.splice(0, 0, {
-      id: '666',
-      connectorId: this.getConnectorId(),
-      transactionId: this.getID(),
-      timestamp: this.getStartDate(),
-      value: this.getMeterStart(),
-      attribute: DEFAULT_CONSUMPTION_ATTRIBUTE
-    });
-    // Add last Meter Value
-    if (this.isFinished()) {
-      // Add the missing Meter Value
-      meterValues.push({
-        id: '6969',
-        connectorId: this.getConnectorId(),
-        transactionId: this.getID(),
-        timestamp: this.getEndDate(),
-        value: this.getMeterStop(),
-        attribute: DEFAULT_CONSUMPTION_ATTRIBUTE
-      });
-    }
-    // Build the model
-    for (let meterValueIndex = 0; meterValueIndex < meterValues.length; meterValueIndex++) {
-      const meterValue = meterValues[meterValueIndex];
-      // Meter Value Consumption?
-      if (this.isConsumptionMeterValue(meterValue)) {
-        // First value?
-        if (!firstMeterValue) {
-          // No: Keep the first value
-          lastMeterValue = meterValue;
-          // Ok
-          firstMeterValue = true;
-          // Calculate the consumption with the last value provided
-        } else {
-          // Last value is > ?
-          if (lastMeterValue.value > meterValue.value) {
-            // Yes: reinit it (the value has started over from 0)
-            lastMeterValue.value = 0;
-          }
-          // Get the diff
-          const diffSecs = moment(meterValue.timestamp).diff(lastMeterValue.timestamp, 's');
-          // Sample multiplier
-          const sampleMultiplier = 3600 / diffSecs;
-          // Consumption
-          const consumptionWh = meterValue.value - lastMeterValue.value;
-          // compute
-          const currentConsumption = consumptionWh * sampleMultiplier;
-          // Set cumulated
-          cumulatedConsumption += consumptionWh;
-          // Check last Meter Value
-          if (consumptions.length > 0 &&
-            consumptions[consumptions.length - 1].date.getTime() === meterValue.timestamp.getTime()) {
-            // Same timestamp: Update the latest
-            consumptions[consumptions.length - 1].value = currentConsumption;
-            consumptions[consumptions.length - 1].cumulated = cumulatedConsumption;
-          } else {
-            // Add the consumption
-            consumptions.push({
-              date: meterValue.timestamp,
-              value: currentConsumption,
-              cumulated: cumulatedConsumption,
-              stateOfCharge: 0
-            });
-          }
-          lastMeterValue = meterValue;
-        }
-        // Meter Value State of Charge?
-      } else if (this.isSocMeterValue(meterValue)) {
-        // Set the last SoC
-        consumptions.stateOfCharge = meterValue.value;
-        // Check last Meter Value
-        if (consumptions.length > 0 &&
-          consumptions[consumptions.length - 1].date.getTime() === meterValue.timestamp.getTime()) {
-          // Same timestamp: Update the latest
-          consumptions[consumptions.length - 1].stateOfCharge = meterValue.value;
-        } else {
-          // Add the consumption
-          consumptions.push({
-            date: meterValue.timestamp,
-            stateOfCharge: meterValue.value,
-            value: 0,
-            cumulated: 0
-          });
-        }
-      }
-    }
+    const consumptions = await ConsumptionStorage.getConsumptions(this.getTenantID(), this.getID());
     return consumptions;
   }
 
@@ -406,10 +330,20 @@ class Transaction extends AbstractTenantEntity {
     this.setStateOfCharge(0);
     this.setCurrentConsumption(0);
     this.setCurrentTotalConsumption(0);
+    this.setCurrentConsumptionWh(0);
     this.setUser(user);
+    return this.buildTransactionDelta(this.getStartDate(), this.getStartDate());
   }
 
+  /**
+   *
+   * @param meterValue
+   * @param consumption {Consumption}
+   * @returns {Promise<*>}
+   */
   async updateWithMeterValue(meterValue) {
+    // Get the last one
+    const lastMeterValue = this.getLastMeterValue();
     // State of Charge?
     if (this.isSocMeterValue(meterValue)) {
       // Check for first SoC
@@ -419,16 +353,15 @@ class Transaction extends AbstractTenantEntity {
       }
       // Set current
       this.setCurrentStateOfCharge(meterValue.value);
+
       // Consumption?
     } else if (this.isConsumptionMeterValue(meterValue)) {
-      // Get the last one
-      const lastMeterValue = this.getLastMeterValue();
       // Update
       this.setNumberOfMeterValues(this.getNumberOfMeterValues() + 1);
       this.setLastMeterValue({
         value: Utils.convertToInt(meterValue.value),
         timestamp: Utils.convertToDate(meterValue.timestamp).toISOString()
-      })
+      });
       // Compute duration
       const diffSecs = moment(meterValue.timestamp).diff(lastMeterValue.timestamp, 'milliseconds') / 1000;
       // Check if the new value is greater
@@ -439,6 +372,8 @@ class Transaction extends AbstractTenantEntity {
         const currentConsumption = consumption * sampleMultiplier;
         // Update current consumption
         this.setCurrentConsumption(currentConsumption);
+        this.setCurrentConsumptionWh(consumption);
+        this.getModel().lastUpdate = meterValue.timestamp;
         this.setCurrentTotalConsumption(this.getCurrentTotalConsumption() + consumption);
         // Inactivity?
         if (consumption === 0) {
@@ -450,6 +385,7 @@ class Transaction extends AbstractTenantEntity {
         this.setCurrentTotalInactivitySecs(this.getCurrentTotalInactivitySecs() + diffSecs);
       }
     }
+    return this.buildTransactionDelta(lastMeterValue.timestamp, meterValue.timestamp, meterValue);
   }
 
   async stopTransaction(userID, tagId, meterStop, timestamp) {
@@ -470,6 +406,7 @@ class Transaction extends AbstractTenantEntity {
       const consumption = meterStop - lastMeterValue.value;
       // Update current consumption
       this.setCurrentTotalConsumption(this.getCurrentTotalConsumption() + consumption);
+      this.setCurrentConsumptionWh(consumption);
       // Inactivity?
       if (consumption === 0) {
         this.setCurrentTotalInactivitySecs(this.getCurrentTotalInactivitySecs() + diffSecs);
@@ -489,13 +426,7 @@ class Transaction extends AbstractTenantEntity {
       this._model.stop.totalDurationSecs = Math.round(moment.duration(moment().diff(moment(this.getStartDate()))).asSeconds());
       this._model.stop.totalInactivitySecs = this._model.stop.totalDurationSecs;
     }
-    // Get the price
-    const pricing = await PricingStorage.getPricing(this.getTenantID());
-    // Set
-    if (pricing) {
-      this._model.stop.priceUnit = pricing.priceUnit;
-      this._model.stop.price = pricing.priceKWH * (this.getCurrentTotalConsumption() / 1000);
-    }
+    const payload = this.buildTransactionDelta(lastMeterValue.timestamp, timestamp);
     // Remove runtime data
     delete this._model.currentConsumption;
     delete this._model.currentStateOfCharge;
@@ -503,6 +434,12 @@ class Transaction extends AbstractTenantEntity {
     delete this._model.currentTotalInactivitySecs;
     delete this._model.lastMeterValue;
     delete this._model.numberOfMeterValues;
+    return payload;
+  }
+
+  setTotalPrice(price, currency){
+    this._model.stop.priceUnit = currency;
+    this._model.stop.price = price;
   }
 
   remoteStop(tagId, timestamp) {
@@ -527,6 +464,32 @@ class Transaction extends AbstractTenantEntity {
     }
     return false;
   }
+
+  buildTransactionDelta(startedAt, endedAt, meterValue) {
+    const data = {
+      transactionId: this.getID(),
+      connectorId: this.getConnectorId(),
+      userID: this.getUserID(),
+      endedAt: endedAt
+    };
+
+    if (meterValue && this.isSocMeterValue(meterValue)) {
+      return {
+        ...data,
+        stateOfCharge: this.getCurrentStateOfCharge()
+      }
+    }
+    return {
+      ...data,
+      startedAt: startedAt,
+      consumption: this.getCurrentConsumptionWh(),
+      instantPower: this.getCurrentConsumption(),
+      cumulatedConsumption: this.getCurrentTotalConsumption(),
+      totalInactivitySecs: this.getCurrentTotalInactivitySecs(),
+      totalDurationSecs: this.getCurrentTotalDurationSecs()
+    }
+  }
+
 }
 
 module.exports = Transaction;

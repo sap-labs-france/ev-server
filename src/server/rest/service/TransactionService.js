@@ -300,7 +300,7 @@ class TransactionService {
       const endDateTime = filteredRequest.EndDateTime ? filteredRequest.EndDateTime : Constants.MAX_DATE;
       // Filter?
       if (filteredRequest.StartDateTime || filteredRequest.EndDateTime) {
-        consumptions = consumptions.filter(consumption => moment(consumption.date).isBetween(startDateTime, endDateTime, null, '[]'));
+        consumptions = consumptions.filter(consumption => moment(consumption.getEndedAt()).isBetween(startDateTime, endDateTime, null, '[]'));
       }
       // Return the result
       res.json(TransactionSecurity.filterConsumptionsFromTransactionResponse(transaction, consumptions, req.user));

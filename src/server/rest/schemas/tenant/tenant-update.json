@@ -44,7 +44,8 @@
                 "pricing": {
                     "type": "object",
                     "properties": {
-                        "active": { "type": "boolean" }
+                        "active": { "type": "boolean" },
+                          "type": { "type": "string" }
                     }
                 },
                 "organization": {
