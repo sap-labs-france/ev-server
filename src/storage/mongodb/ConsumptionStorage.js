@@ -70,6 +70,38 @@ class ConsumptionStorage {
     return null;
   }
 
+  /**
+   *
+   * @param tenantID
+   * @param transactionId
+   * @returns {Promise<Consumption[]>}
+   */
+  static async getConsumptions(tenantID, transactionId) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ConsumptionStorage', 'getConsumption');
+    // Check
+    await Utils.checkTenant(tenantID);
+    // Create Aggregation
+    const aggregation = [];
+    // Filters
+    aggregation.push({
+      $match: {
+        transactionId: Utils.convertToInt(transactionId)
+      }
+    });
+    // Read DB
+    const consumptionsMDB = await global.database.getCollection(tenantID, 'consumptions')
+      .aggregate(aggregation)
+      .toArray();
+    // Debug
+    Logging.traceEnd('ConsumptionStorage', 'getConsumption', uniqueTimerID, {transactionId});
+    // Found?
+    if (consumptionsMDB && consumptionsMDB.length > 0) {
+      return consumptionsMDB.map(c => new Consumption(tenantID, c));
+    }
+    return null;
+  }
+
 }
 
 module.exports = ConsumptionStorage;

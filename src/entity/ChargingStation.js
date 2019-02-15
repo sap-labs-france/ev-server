@@ -18,6 +18,7 @@ const TransactionStorage = require('../storage/mongodb/TransactionStorage');
 const momentDurationFormatSetup = require("moment-duration-format");
 const SettingStorage = require("../storage/mongodb/SettingStorage");
 const ConvergentCharging = require("./integration/convergentCharging/ConvergentCharging");
+const SimplePricing = require("./integration/simplePricing/SimplePricing");
 momentDurationFormatSetup(moment);
 const _configChargingStation = Configuration.getChargingStationConfig();
 const Consumption = require('./Consumption');
@@ -377,6 +378,18 @@ class ChargingStation extends AbstractTenantEntity {
   saveChargingStationSiteArea() {
     // Save
     return ChargingStationStorage.saveChargingStationSiteArea(this.getTenantID(), this.getModel());
+  }
+
+  async getPricingLogic() {
+    if ((await this.getTenant()).isComponentActive('pricing')) {
+      const setting = await SettingStorage.getSettingByIdentifier(this.getTenantID(), 'pricing');
+      if (setting.getContent()['convergentCharging']) {
+        return new ConvergentCharging(this.getTenantID(), this, setting.getContent()['convergentCharging']);
+      } else if (setting.getContent()['simple']) {
+        return new SimplePricing(this.getTenantID(), setting.getContent()['simple']);
+      }
+    }
+    return null;
   }
 
   async handleStatusNotification(statusNotification) {
@@ -975,13 +988,12 @@ class ChargingStation extends AbstractTenantEntity {
       // Get the transaction
       const transaction = await TransactionStorage.getTransaction(this.getTenantID(), meterValues.transactionId);
       // Update
-      const convergentCharging = new ConvergentCharging(transaction.getTenantID(), this);
-
+      const pricingLogic = await this.getPricingLogic();
       const consumptions = [];
       for (const meterValue of newMeterValues.values) {
         let consumptionData = await transaction.updateWithMeterValue(meterValue);
         if (transaction.isConsumptionMeterValue(meterValue)) {
-          const consumptionAmount = await convergentCharging.updateSession(consumptionData);
+          const consumptionAmount = pricingLogic ? await pricingLogic.updateSession(consumptionData) : {};
           consumptionData = {...consumptionData, ...consumptionAmount};
         }
         consumptions.push(consumptionData);
@@ -1229,10 +1241,11 @@ class ChargingStation extends AbstractTenantEntity {
     await TransactionStorage.cleanupRemainingActiveTransactions(this.getTenantID(), this.getID(), transaction.getConnectorId());
     // Save it
     transaction = await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
-    consumptionData.transactionId= transaction.getID();
+    consumptionData.transactionId = transaction.getID();
 
-    const convergentCharging = new ConvergentCharging(transaction.getTenantID(), this);
-    convergentCharging.StartSession(consumptionData);
+    const pricingLogic = await this.getPricingLogic();
+    const amountData = pricingLogic ? await pricingLogic.startSession(consumptionData) : {};
+    this.saveConsumption({...consumptionData, ...amountData});
     // Lock the other connectors?
     if (!this.canChargeInParallel()) {
       // Yes
@@ -1389,9 +1402,10 @@ class ChargingStation extends AbstractTenantEntity {
     }
     // Stop
     const consumptionData = await transaction.stopTransaction(user, tagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp));
+    const pricingLogic = await this.getPricingLogic();
+    const amountData = pricingLogic ? await pricingLogic.stopSession(consumptionData) : {};
+    transaction.setTotalPrice(amountData.cumulatedAmount, amountData.currency);
     transaction = await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
-    const convergentCharging = new ConvergentCharging(transaction.getTenantID(), this);
-    const amountData = await convergentCharging.stopSession(consumptionData);
     await this.saveConsumption({...consumptionData, ...amountData});
     // Notify User
     if (user) {
@@ -1475,7 +1489,7 @@ class ChargingStation extends AbstractTenantEntity {
     // Get the client
     const chargingStationClient = await this.getChargingStationClient();
     // Start Transaction
-    const result = await chargingStationClient.StartSession(params);
+    const result = await chargingStationClient.startSession(params);
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),

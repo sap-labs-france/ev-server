@@ -223,9 +223,16 @@ class TransactionSecurity {
     return filteredRequest;
   }
 
+  /**
+   *
+   * @param transaction {Transaction}
+   * @param consumptions {Consumption[]}
+   * @param loggedUser
+   * @returns {*}
+   */
   static filterConsumptionsFromTransactionResponse(transaction, consumptions, loggedUser) {
     if (!consumptions) {
-      return null;
+      consumptions = [];
     }
     // Check Authorisation
     if (transaction.getUserJson()) {
@@ -241,20 +248,23 @@ class TransactionSecurity {
     // Admin?
     if (Authorizations.isAdmin(loggedUser)) {
       // Set them all
-      filteredTransaction.values = consumptions;
+      filteredTransaction.values = consumptions.map(consumption => consumption.getModel()).map(c => ({
+        ...c,
+        date: c.endedAt,
+        value: c.consumption,
+        cumulated: c.cumulatedConsumption
+      }));
     } else {
       // Clean
-      filteredTransaction.values = [];
-      for (const value of consumptions) {
-        // Set
-        const filteredValue = {
-          date: value.date,
-          value: value.value,
-          cumulated: value.cumulated,
-          stateOfCharge: value.stateOfCharge
-        };
-        filteredTransaction.values.push(filteredValue);
-      }
+      filteredTransaction.values = consumptions.map(consumption => consumption.getModel()).map(c => ({
+        endedAt: c.endedAt,
+        consumption: c.consumption,
+        cumulatedConsumption: c.cumulatedConsumption,
+        stateOfCharge: c.stateOfCharge,
+        date: c.endedAt,
+        value: c.consumption,
+        cumulated: c.cumulatedConsumption
+      }));
     }
     return filteredTransaction;
   }

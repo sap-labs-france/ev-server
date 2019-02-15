@@ -96,6 +96,7 @@ class MongoDBStorage {
       {fields: {siteID: 1}},
       {fields: {siteAreaID: 1}},
       {fields: {transactionId: 1}},
+      {fields: {transactionId: 1, endedAt: 1}},
       {fields: {chargeBoxID: 1, connectorId: 1}},
       {fields: {userID: 1}}
     ]);

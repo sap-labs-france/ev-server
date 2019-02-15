@@ -614,13 +614,14 @@ class Database {
 
     dest.cumulatedConsumption = Utils.convertToInt(src.cumulatedConsumption);
     dest.consumption = Utils.convertToInt(src.consumption);
-    dest.currentConsumption = Utils.convertToInt(src.currentConsumption);
+    dest.instantPower = Utils.convertToInt(src.instantPower);
+    dest.totalInactivitySecs = Utils.convertToInt(src.totalInactivitySecs);
 
     if (src.pricingSource) {
       dest.pricingSource = src.pricingSource;
-      dest.amount = src.amount;
-      dest.cumulatedAmount = src.cumulatedAmount;
-      dest.unroundedAmount = Utils.convertToFloat(src.unroundedAmount);
+      dest.amount = Utils.convertToFloat(src.amount);
+      dest.cumulatedAmount = Utils.convertToFloat(src.cumulatedAmount);
+      dest.roundedAmount = Utils.convertToFloat(src.roundedAmount);
       dest.currencyCode = src.currencyCode;
     }
   }

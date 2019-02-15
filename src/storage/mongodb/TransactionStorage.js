@@ -556,6 +556,12 @@ class TransactionStorage {
     return null;
   }
 
+  /**
+   *
+   * @param tenantID
+   * @param transactionID
+   * @returns {Promise<Array>}
+   */
   static async getMeterValues(tenantID, transactionID) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getMeterValues');
