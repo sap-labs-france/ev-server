@@ -121,7 +121,10 @@ class ConvergentCharging {
           for (const notification of ccTransaction.notifications) {
             switch (notification.code) {
               case "STOP_TRANSACTION":
-                this.remoteStopTransaction(consumptionData);
+                this.chargingStation.requestStopTransaction({transactionId: consumptionData.transactionId});
+                break;
+              case "START_TRANSACTION":
+                this.chargingStation.requestStartTransaction({tagID: consumptionData.tagID, connectorID: consumptionData.connectorId});
                 break;
             }
 
@@ -131,14 +134,6 @@ class ConvergentCharging {
     }
   }
 
-
-  /**
-   *
-   * @param transaction {Transaction}
-   */
-  remoteStopTransaction(transaction) {
-    this.chargingStation.requestStopTransaction({transactionId: transaction.transactionId});
-  }
 }
 
 class ChargingRequest {
