@@ -29,7 +29,7 @@ class SimplePricing {
       pricingSource: 'simple',
       amount: parseFloat((this.setting.price * (consumptionData.consumption / 1000)).toFixed(6)),
       roundedAmount: parseFloat((this.setting.price * (consumptionData.consumption / 1000)).toFixed(2)),
-      currency: this.setting.currency
+      currencyCode: this.setting.currency
     };
 
     const previousConsumption = await ConsumptionStorage.getConsumption(this.tenantId, consumptionData.transactionId, consumptionData.startedAt);

@@ -10,12 +10,13 @@ const moment = require('moment');
 const Transaction = require('../../entity/Transaction');
 const momentDurationFormatSetup = require('moment-duration-format');
 const Logging = require('../../utils/Logging');
+const Constants = require('../../utils/Constants');
 const pLimit = require('p-limit');
 
 
 momentDurationFormatSetup(moment);
 
-class NormalizeTransactionsTaskBis {
+class AddConsumptions {
 
   async migrate() {
     const tenants = await Tenant.getTenants();
@@ -28,6 +29,7 @@ class NormalizeTransactionsTaskBis {
   async migrateTenant(tenant) {
     this.startProcess(tenant.getID());
   }
+
   async startProcess(tenantID) {
     this.totalClount = 0;
     this.done = 0;
@@ -85,7 +87,7 @@ class NormalizeTransactionsTaskBis {
     const limit = pLimit(10);
     this.totalClount = terminatedTransactionsModel.length;
     const promises = terminatedTransactionsModel.map(transactionModel => limit(() => this.replaceWithConsumptions(tenantID, pricing, transactionModel)));
-    const result = await Promise.all(promises);
+    await Promise.all(promises);
     const endTime = moment();
 
     Logging.logInfo({
@@ -98,16 +100,13 @@ class NormalizeTransactionsTaskBis {
 
 
   async replaceWithConsumptions(tenantID, pricing, transactionModel) {
-    const startConvertionTime = moment();
     const meterValues = await TransactionStorage.getMeterValues(tenantID, transactionModel.id);
     meterValues.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
     const consumptions = await this.replayTransaction(tenantID, transactionModel, meterValues, pricing);
 
     await ConsumptionStorage.deleteConsumptions(tenantID, transactionModel.id);
     await this.insertMany(tenantID, consumptions);
-    const endConvertionTime = moment();
     console.log(`done ${((this.done++ * 100) / this.totalClount).toFixed(2)}% (${this.done}/${this.totalClount}) after ${moment.duration(moment().diff(this.startTime)).format("mm:ss.SS", {trim: false})}`)
-    // console.log(`transaction ${tenantID}/${transactionModel.id} migrated ${meterValues.length} meter values after ${moment.duration(endConvertionTime.diff(startConvertionTime)).format("mm:ss.SS", {trim: false})}`);
   }
 
 
@@ -161,7 +160,8 @@ class NormalizeTransactionsTaskBis {
       pricingSource: 'simple',
       amount: (pricing.priceKWH * (consumption.consumption / 1000)).toFixed(6),
       roundedAmount: (pricing.priceKWH * (consumption.consumption / 1000)).toFixed(2),
-      currency: pricing.currency
+      currencyCode: pricing.priceUnit,
+      cumulatedAmount: (pricing.priceKWH * (consumption.cumulatedConsumption / 1000)).toFixed(2)
     };
   }
 
@@ -180,9 +180,23 @@ class NormalizeTransactionsTaskBis {
     let consumptionData = await transaction.startTransaction(transactionCopy.user);
     let amountData = this.computePriceOfConsumption(consumptionData, pricing);
     consumptions.push({...consumptionData, ...amountData, ...stationData});
+    meterValues = meterValues.filter(m => this.isConsumptionMeterValue(m) || this.isSocMeterValue(m));
     for (const meterValue of meterValues) {
+      amountData = {};
       consumptionData = await transaction.updateWithMeterValue(meterValue);
-      amountData = this.computePriceOfConsumption(consumptionData, pricing);
+      if (this.isConsumptionMeterValue(meterValue)) {
+        amountData = this.computePriceOfConsumption(consumptionData, pricing);
+      }
+      const alreadyExistingConsumption = consumptions.find(c => c.endedAt.getTime() === meterValue.timestamp.getTime());
+      if (alreadyExistingConsumption) {
+        const sameMeterValues = meterValues.filter(m => m.timestamp.getTime() === meterValue.timestamp.getTime()).filter(m => this.isConsumptionMeterValue(m));
+        if (sameMeterValues.length > 1 && meterValue.value === 0) {
+          continue;
+        } else {
+          consumptionData = {...alreadyExistingConsumption, ...consumptionData};
+          consumptions.splice(consumptions.indexOf(alreadyExistingConsumption), 1);
+        }
+      }
       consumptions.push({...consumptionData, ...amountData, ...stationData});
     }
     consumptionData = await transaction.stopTransaction(stopPayload.user, stopPayload.tagID, stopPayload.meterStop, stopPayload.timestamp);
@@ -193,14 +207,27 @@ class NormalizeTransactionsTaskBis {
     return consumptions;
   }
 
+  isSocMeterValue(meterValue) {
+    return meterValue.attribute
+      && (meterValue.attribute.context === 'Sample.Periodic'
+        || meterValue.attribute.context === 'Transaction.Begin'
+        || meterValue.attribute.context === 'Transaction.End')
+      && meterValue.attribute.measurand === 'SoC'
+  }
+
+  isConsumptionMeterValue(meterValue) {
+    return !meterValue.attribute ||
+      (meterValue.attribute.measurand === 'Energy.Active.Import.Register'
+        && (meterValue.attribute.context === "Sample.Periodic" || meterValue.attribute.context === "Sample.Clock"));
+  }
 
   getVersion() {
-    return "1.4";
+    return "1.0";
   }
 
   getName() {
-    return "NormalizeTransactionsTaskBis";
+    return "AddConsumptions";
   }
 }
 
-module.exports = NormalizeTransactionsTaskBis;
+module.exports = AddConsumptions;

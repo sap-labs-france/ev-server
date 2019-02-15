@@ -251,18 +251,18 @@ class TransactionSecurity {
       filteredTransaction.values = consumptions.map(consumption => consumption.getModel()).map(c => ({
         ...c,
         date: c.endedAt,
-        value: c.consumption,
+        value: c.instantPower,
         cumulated: c.cumulatedConsumption
       }));
     } else {
       // Clean
       filteredTransaction.values = consumptions.map(consumption => consumption.getModel()).map(c => ({
         endedAt: c.endedAt,
-        consumption: c.consumption,
+        instantPower: c.instantPower,
         cumulatedConsumption: c.cumulatedConsumption,
         stateOfCharge: c.stateOfCharge,
         date: c.endedAt,
-        value: c.consumption,
+        value: c.instantPower,
         cumulated: c.cumulatedConsumption
       }));
     }

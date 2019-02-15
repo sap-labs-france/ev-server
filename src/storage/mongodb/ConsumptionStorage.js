@@ -17,6 +17,11 @@ class ConsumptionStorage {
     const uniqueTimerID = Logging.traceStart('ConsumptionStorage', 'saveConsumption');
     // Check
     await Utils.checkTenant(tenantID);
+
+    const previousConsumption = await this.getConsumption(tenantID, consumptionModel.transactionId, consumptionModel.endedAt);
+    if (previousConsumption) {
+      consumptionModel = {...previousConsumption.getModel(), ...consumptionModel};
+    }
     if (consumptionModel.id === undefined) {
       consumptionModel.id = new ObjectID();
     }
@@ -34,6 +39,18 @@ class ConsumptionStorage {
     Logging.traceEnd('ConsumptionStorage', 'saveConsumption', uniqueTimerID, {consumptionToSave: consumptionModel});
     // Return
     return new Consumption(tenantID, result.value);
+  }
+
+  static async deleteConsumptions(tenantID, transactionId) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ConsumptionStorage', 'deleteConsumptions');
+    // Check
+    await Utils.checkTenant(tenantID);
+    // Delete
+    await global.database.getCollection(tenantID, 'consumptions')
+      .deleteMany({'transactionId': transactionId});
+    // Debug
+    Logging.traceEnd('ConsumptionStorage', 'deleteConsumptions', uniqueTimerID, {transactionId});
   }
 
   /**

@@ -44,6 +44,7 @@ class ConvergentCharging {
           detailedMessages: chargingResult
         });
       }
+      return {};
     }
   }
 
@@ -74,8 +75,8 @@ class ConvergentCharging {
           message: chargingResult.message,
           detailedMessages: chargingResult
         });
-        return null;
       }
+      return {};
     }
   }
 
@@ -105,6 +106,7 @@ class ConvergentCharging {
           detailedMessages: chargingResult
         });
       }
+      return {};
     }
   }
 
@@ -124,7 +126,10 @@ class ConvergentCharging {
                 this.chargingStation.requestStopTransaction({transactionId: consumptionData.transactionId});
                 break;
               case "START_TRANSACTION":
-                this.chargingStation.requestStartTransaction({tagID: consumptionData.tagID, connectorID: consumptionData.connectorId});
+                this.chargingStation.requestStartTransaction({
+                  tagID: consumptionData.tagID,
+                  connectorID: consumptionData.connectorId
+                });
                 break;
             }
 

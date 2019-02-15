@@ -415,7 +415,7 @@ class ChargingStation extends AbstractTenantEntity {
       statusNotification.timestamp = new Date().toISOString();
     }
     // Handle connectorId = 0 case => Currently status is distributed to each individual connectors
-    if (parseInt(statusNotification.connectorId) === 0 ) {
+    if (parseInt(statusNotification.connectorId) === 0) {
       // Log
       Logging.logWarning({
         tenantID: this.getTenantID(),
@@ -479,9 +479,9 @@ class ChargingStation extends AbstractTenantEntity {
     });
     // Check if connector is available and a transaction is ongoing (ABB fucking bitch bug)
     if ((statusNotification.status === Constants.CONN_STATUS_AVAILABLE ||
-         statusNotification.status === Constants.CONN_STATUS_FINISHING) &&
-         !bothConnectorsUpdated &&
-         connectors[statusNotification.connectorId - 1].activeTransactionID > 0) {
+      statusNotification.status === Constants.CONN_STATUS_FINISHING) &&
+      !bothConnectorsUpdated &&
+      connectors[statusNotification.connectorId - 1].activeTransactionID > 0) {
       // Clear
       connectors[statusNotification.connectorId - 1].currentConsumption = 0;
       connectors[statusNotification.connectorId - 1].totalConsumption = 0;
@@ -925,7 +925,7 @@ class ChargingStation extends AbstractTenantEntity {
         // Always assign, even if equals to 0
         meterValues.transactionId = chargerTransactionId;
       }
-    // Transaction is not provided: check if there is a transaction assigned on the connector
+      // Transaction is not provided: check if there is a transaction assigned on the connector
     } else if (parseInt(chargerTransactionId) > 0) {
       // Yes: Use Connector's Transaction ID
       Logging.logWarning({
@@ -1025,7 +1025,7 @@ class ChargingStation extends AbstractTenantEntity {
       // Filter Sample.Clock meter value for all chargers except ABB using OCPP 1.5
       newMeterValues.values = newMeterValues.values.filter(value => value.attribute.context !== 'Sample.Clock');
     }
-      // No Values
+    // No Values
     if (newMeterValues.values.length == 0) {
       Logging.logDebug({
         tenantID: this.getTenantID(),
@@ -1039,20 +1039,15 @@ class ChargingStation extends AbstractTenantEntity {
       await TransactionStorage.saveMeterValues(this.getTenantID(), newMeterValues);
       // Get the transaction
       const transaction = await TransactionStorage.getTransaction(this.getTenantID(), meterValues.transactionId);
-      // Update
-      const pricingLogic = await this.getPricingLogic();
       const consumptions = [];
       for (const meterValue of newMeterValues.values) {
         let consumptionData = await transaction.updateWithMeterValue(meterValue);
-        if (transaction.isConsumptionMeterValue(meterValue)) {
-          const consumptionAmount = pricingLogic ? await pricingLogic.updateSession(consumptionData) : {};
-          consumptionData = {...consumptionData, ...consumptionAmount};
-        }
+          consumptionData.toPrice = transaction.isConsumptionMeterValue(meterValue);
         consumptions.push(consumptionData);
       }
       // Save Transaction
       await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
-      await Promise.all(consumptions.map(consumption => this.saveConsumption(consumption)));
+      consumptions.forEach(c => this.saveConsumption(c, 'update', c.toPrice));
       // Update Charging Station Consumption
       await this.updateChargingStationConsumption(transaction);
       // Save Charging Station
@@ -1070,28 +1065,32 @@ class ChargingStation extends AbstractTenantEntity {
     }
   }
 
-  isSocMeterValue(meterValue) {
-    return meterValue.attribute
-      && (meterValue.attribute.context === 'Sample.Periodic'
-        || meterValue.attribute.context === 'Transaction.Begin'
-        || meterValue.attribute.context === 'Transaction.End')
-      && meterValue.attribute.measurand === 'SoC'
-  }
-
-  async saveConsumption(consumptionData) {
-    const consumption = await ConsumptionStorage.getConsumption(this.getTenantID(), consumptionData.transactionId, consumptionData.endedAt);
-    let model;
-    if (!consumption) {
-      const siteArea = await this.getSiteArea(false);
-      model = {
-        ...consumptionData,
-        chargeBoxID: this.getID(),
-        siteID: siteArea.getSiteID(),
-        siteAreaID: siteArea.getID()
-      };
-    } else {
-      model = {...consumption.getModel(), ...consumptionData};
+  async saveConsumption(consumptionData, action, withPricing = true) {
+    let consumptionAmount = {};
+    if (withPricing) {
+      const pricingLogic = await this.getPricingLogic();
+      if (pricingLogic) {
+        switch (action) {
+          case 'start':
+            consumptionAmount = await pricingLogic.startSession(consumptionData);
+            break;
+          case 'update':
+            consumptionAmount = await pricingLogic.updateSession(consumptionData);
+            break;
+          case 'stop':
+            consumptionAmount = await pricingLogic.stopSession(consumptionData);
+            break;
+        }
+      }
     }
+    const siteArea = await this.getSiteArea(false);
+    const model = {
+      ...consumptionData,
+      ...consumptionAmount,
+      chargeBoxID: this.getID(),
+      siteID: siteArea.getSiteID(),
+      siteAreaID: siteArea.getID()
+    };
     return ConsumptionStorage.saveConsumption(this.getTenantID(), model);
   }
 
@@ -1295,9 +1294,7 @@ class ChargingStation extends AbstractTenantEntity {
     transaction = await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
     consumptionData.transactionId = transaction.getID();
 
-    const pricingLogic = await this.getPricingLogic();
-    const amountData = pricingLogic ? await pricingLogic.startSession(consumptionData) : {};
-    this.saveConsumption({...consumptionData, ...amountData});
+    this.saveConsumption(consumptionData, 'start');
     // Clean up connector info
     // Get the connector
     const connector = this.getConnector(transaction.getConnectorId());
@@ -1431,11 +1428,9 @@ class ChargingStation extends AbstractTenantEntity {
     }
     // Stop
     const consumptionData = await transaction.stopTransaction(user.getID(), tagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp));
-    const pricingLogic = await this.getPricingLogic();
-    const amountData = pricingLogic ? await pricingLogic.stopSession(consumptionData) : {};
-    transaction.setTotalPrice(amountData.cumulatedAmount, amountData.currency);
+    const consumption = await this.saveConsumption(consumptionData, 'stop');
+    transaction.setTotalPrice(consumption.getCumulatedAmount(), consumption.getCurrency());
     transaction = await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
-    await this.saveConsumption({...consumptionData, ...amountData});
     // Notify User
     if (user) {
       // Send Notification
