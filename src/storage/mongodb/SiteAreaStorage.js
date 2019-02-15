@@ -279,6 +279,11 @@ class SiteAreaStorage {
           let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
           // Chargers
           for (const chargeBox of siteAreaMDB.chargeBoxes) {
+            // Check not deleted
+            if (chargeBox.deleted) {
+              // Forget
+              continue;
+            }
             totalChargers++;
             // Handle Connectors
             for (const connector of chargeBox.connectors) {

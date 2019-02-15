@@ -71,6 +71,7 @@ class SiteSecurity {
     const filteredRequest = {};
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.UserID = sanitize(request.UserID);
+    filteredRequest.CompanyID = sanitize(request.CompanyID);
     filteredRequest.ExcludeSitesOfUserID = sanitize(request.ExcludeSitesOfUserID);
     filteredRequest.WithSiteAreas = UtilsSecurity.filterBoolean(request.WithSiteAreas);
     filteredRequest.WithChargeBoxes = UtilsSecurity.filterBoolean(request.WithChargeBoxes);
@@ -99,7 +100,9 @@ class SiteSecurity {
     filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
     filteredRequest.image = sanitize(request.image);
     filteredRequest.allowAllUsersToStopTransactions =
-			UtilsSecurity.filterBoolean(request.allowAllUsersToStopTransactions);
+      UtilsSecurity.filterBoolean(request.allowAllUsersToStopTransactions);
+    filteredRequest.autoUserSiteAssignment =
+      UtilsSecurity.filterBoolean(request.autoUserSiteAssignment);   
     filteredRequest.gps = sanitize(request.gps);
     if (request.userIDs) {
       // Handle Users

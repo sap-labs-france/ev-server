@@ -14,24 +14,46 @@ The application:
 **Live demo here** [Smart EVSE](https://smart-evse.com/)
 
 ## Installation
+
 * Install NodeJS: https://nodejs.org/ (install the LTS version)
 * Install Python version 2.7 (not the version 3.7!)
-* Install MongoDB: https://www.mongodb.com/ (do not install the DB as a service)
+* Install MongoDB: https://www.mongodb.com/
 * Clone this GitHub project
 * Install required build tools:
   * Under Windows as an administrator:  
-    ```npm install --g --production windows-build-tools```
+    ```
+    npm install --g --production windows-build-tools
+    ```
   * Under Mac OS X, install Xcode from the Apple store  
   * Under Debian based GNU/Linux distribution:  
-    ```sudo apt install build-essential```
+    ```
+    sudo apt install build-essential
+    ```
 * Go into the **ev-server** directory and run **npm install** or **yarn install**
-* In case of issue with package **bcrypt** do the following:  
-```npm install bcrypt```
+* In case of issue with package **bcrypt** do the following:
+  ```
+  npm install bcrypt
+  ```
+
+**NOTE**: On Windows with **chocolatey** (https://chocolatey.org/),  
+do as an administrator:
+```
+choco install -y nodejs-lts python2 mongodb postman robot3t  
+```
+to install all needed dependencies  
+You can also alternatively do:
+```
+choco install -y microsoft-build-tools
+```  
+to install the required build tools
+
 * Follow the rest of the setup below
 
 ## The Database
 
 #### Start MongoDB
+
+##### Manually
 
 ```
 mongod --port <port> --dbpath <path> --replSet <replcaSetName>
@@ -41,43 +63,18 @@ For instance:
 mongod --port 27017 --dbpath "/var/lib/mongodb" --replSet "rs0"
 ```
 
-#### Create the Admin user
+##### As a Windows service
 
-This user will be used to connect to the database as an administrator with tools like MongoDB shell or RoboMongo:
+Add to /path/to/mongod.cfg:  
+```
+...
+replication:
+  replSetName: "rs0"
+...  
+```
+Restart the MongoDB service with Powershell as an administrator:
 
-Create Admin User on Admin schema:
-```
-  use admin
-  db.createUser({
-    user: "evse-admin",
-	  pwd: "<Password>",
-	  roles: [
-        "read",
-        "readWrite",
-        "dbAdmin",
-        "userAdmin",
-        "clusterAdmin",
-        "readAnyDatabase",
-        "readWriteAnyDatabase",
-        "userAdminAnyDatabase",
-        "dbAdminAnyDatabase"
-	  ]
-  })
-```
-
-#### Create the Application User
-
-Create Application User on EVSE schema
-```
-  use evse
-  db.createUser({
-    user: "evse-user",
-    pwd: "YourPassword",
-	  roles: [
-		  "readWrite"
-	  ]
-  })
-```
+    Restart-Service -Name "MongoDB"
 
 #### Activate the Replica Set
 
@@ -96,7 +93,51 @@ rs.initiate()
 Check here for more info:
 [Mongo DB Replica Set](https://docs.mongodb.com/manual/tutorial/convert-standalone-to-replica-set/)
 
+#### Create the Admin user
+
+This user will be used to connect to the database as an administrator with tools like MongoDB shell or RoboMongo:
+
+Create Admin User on Admin schema:
+```
+  use admin
+  db.createUser({
+    user: "evse-admin",
+	  pwd: "<YourPassword>",
+	  roles: [
+        "read",
+        "readWrite",
+        "dbAdmin",
+        "userAdmin",
+        "clusterAdmin",
+        "readAnyDatabase",
+        "readWriteAnyDatabase",
+        "userAdminAnyDatabase",
+        "dbAdminAnyDatabase"
+	  ]
+  })
+```
+
+On MongoDB version >= 4, you will have to set **passwordDigestor: "server"** in createUser()
+
+#### Create the Application User
+
+Create Application User on EVSE schema
+```
+  use evse
+  db.createUser({
+    user: "evse-user",
+    pwd: "<YourPassword>",
+	  roles: [
+		  "readWrite"
+	  ]
+  })
+```
+
+On MongoDB version >= 4, you will have to set **passwordDigestor: "server"** in createUser()
+
 #### Restart MongoDB with authentication enabled
+
+##### Manually
 
 This will restart MongoDB and will accept only authenticated connections from now:
 
@@ -104,14 +145,40 @@ This will restart MongoDB and will accept only authenticated connections from no
 mongod --auth --port <port> --dbpath <path> --replSet <replcaSetName>
 ```
 
+##### As a Windows service
+
+In the following, you will need to run Powershell as an administrator.
+
+* Stop the current MongoDB service:
+    ```
+    Stop-Service -Name "MongoDB"
+    ```
+* Remove the current MongoDB service:
+    ```
+    Get-CimInstance win32_service -filter "name='MongoDB'" | Remove-CimInstance
+    ```
+* Readd the MongoDB service with authentification enabled:
+    ```
+    New-Service -Name MongoDB -BinaryPathName '"C:\Program Files\MongoDB\Server\4.0\bin\mongod.exe" --config "C:\Program Files\MongoDB\Server\4.0\bin\mongod.cfg" --auth --service' -StartupType Automatic -DisplayName "MongoDB Server" -Description "MongoDB Database Server"
+    ```
+  
+  Change the path to *mongod* and *mongod.cfg* accordingly if needed.  
+  Open the **Services** application, search for the MongoDB service, open the service properties and Log on as **Network Service** user with empty password.
+
+* Start the MongoDB service:
+    ```
+    Start-Service -Name "MongoDB"
+    ```
+
 Now your database is ready to be used.
+
+**NOTE**: You can also use empty-db.zip or empty-db-service.zip on the share to do the initial setup of the databases required by simply deleting all files in the MongoDB databases path and then dropping its content inside instead.  
 
 ## The Application Server
 
 The application server consists of:
 * **Central Service Server**: Serves the charging stations
 * **Central Service REST Server**: Serves the Angular front-end dashboard
-
 
 ### The Central Service Server (CSS)
 
@@ -261,11 +328,11 @@ The token key is provided is the **config.json** file:
 
 ```
   "CentralSystemRestService": {
-	...
-	"userTokenKey": "MySecureKeyToEncodeTokenAuth",
+    ...
+    "userTokenKey": "MySecureKeyToEncodeTokenAuth",
     "userTokenLifetimeHours": 12,
     "userDemoTokenLifetimeDays": 365,
-	...
+    ...
   }
 ```
 
@@ -432,10 +499,13 @@ In another console, start the application (restarts if any changes is detected):
 ```
 npm run start:dev
 ```
+
+**NOTE**: You can also use the files in the ev-config-scripts.zip on the share to have a correct initial setup of your development environment and some server startup helpers.  
+
 ### Tests
 **Prerequisite:** The database must contain an admin user. 
 
-* Create a local configuration file located in '/test/config/local.json' with the parameters to override like 
+* Create a local configuration file located in './test/config/local.json' with the parameters to override like 
          
         {
           "admin": {

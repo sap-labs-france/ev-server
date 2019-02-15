@@ -3,7 +3,6 @@ const AppError = require('../../../exception/AppError');
 const AppAuthError = require('../../../exception/AppAuthError');
 const Authorizations = require('../../../authorization/Authorizations');
 const Constants = require('../../../utils/Constants');
-const Utils = require('../../../utils/Utils');
 const moment = require('moment');
 const TransactionSecurity = require('./security/TransactionSecurity');
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage');
@@ -11,6 +10,7 @@ const ChargingStation = require('../../../entity/ChargingStation');
 const User = require('../../../entity/User');
 const SettingStorage = require("../../../storage/mongodb/SettingStorage");
 const ConcurConnector = require("../../../entity/integration/ConcurConnector");
+const fs = require("fs");
 
 class TransactionService {
   static async handleRefundTransactions(action, req, res, next) {
@@ -524,6 +524,67 @@ class TransactionService {
     }
   }
 
+  static async handleGetTransactionsExport(action, req, res, next) {
+    try {
+      // Check auth
+      if (!Authorizations.canListTransactions(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_TRANSACTIONS,
+          null,
+          560,
+          'TransactionService', 'handleGetTransactionsExport',
+          req.user);
+      }
+      let filter = {stop: {$exists: true}};
+      // Filter
+      let filteredRequest = TransactionSecurity.filterTransactionsCompletedRequest(req.query, req.user);
+      if (filteredRequest.ChargeBoxID) {
+        filter.chargeBoxID = filteredRequest.ChargeBoxID;
+      }
+      // Date
+      if (filteredRequest.StartDateTime) {
+        filter.startDateTime = filteredRequest.StartDateTime;
+      }
+      if (filteredRequest.EndDateTime) {
+        filter.endDateTime = filteredRequest.EndDateTime;
+      }
+      if (filteredRequest.UserID) {
+        filter.userId = filteredRequest.UserID;
+      }
+      if (filteredRequest.Type) {
+        filter.type = filteredRequest.Type;
+      }
+      const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
+        {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID},
+        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+      // Filter
+      transactions.result = TransactionSecurity.filterTransactionsResponse(
+        transactions.result, req.user);
+
+      const filename = "transactions_export.csv";
+      fs.writeFile(filename, this.convertToCSV(transactions.result), (err) => {
+        if (err) {
+          throw err;
+        }
+        res.download(filename, (err) => {
+          if (err) {
+            throw err;
+          }
+          fs.unlink(filename, (err) => {
+            if (err) {
+              throw err;
+            }
+          });
+        });
+      });
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
   static
   async handleGetTransactionsInError(action, req, res, next) {
     try {
@@ -554,7 +615,7 @@ class TransactionService {
       if (filteredRequest.UserID) {
         filter.userId = filteredRequest.UserID;
       }
-      let transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
+      const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
         {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
@@ -567,6 +628,27 @@ class TransactionService {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
+  }
+
+  static convertToCSV(transactions) {
+    let csv = 'id,chargeBoxID,connectorID,userID,tagID,startDate,endDate,meterStart,meterStop,totalConsumption,totalDuration,totalInactivity,price,priceUnit\r\n';
+    for (const transaction of transactions) {
+      csv += `${transaction.id},`;
+      csv += `${transaction.chargeBoxID},`;
+      csv += `${transaction.connectorId},`;
+      csv += `${transaction.user ? transaction.user.id : ''},`;
+      csv += `${transaction.tagID},`;
+      csv += `${transaction.timestamp},`;
+      csv += `${transaction.stop ? transaction.stop.timestamp : ''},`;
+      csv += `${transaction.meterStart},`;
+      csv += `${transaction.stop ? transaction.stop.meterStop : ''},`;
+      csv += `${transaction.stop ? transaction.stop.totalConsumption : ''},`;
+      csv += `${transaction.stop ? transaction.stop.totalDurationSecs : ''},`;
+      csv += `${transaction.stop ? transaction.stop.totalInactivitySecs : ''},`;
+      csv += `${transaction.stop ? transaction.stop.price : ''},`;
+      csv += `${transaction.stop ? transaction.stop.priceUnit : ''}\r\n`;
+    }
+    return csv;
   }
 }
 

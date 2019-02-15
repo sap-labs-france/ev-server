@@ -197,10 +197,18 @@ module.exports = {
             // Delegate
             LoggingService.handleGetLogging(action, req, res, next);
             break;
+          case "LoggingsExport":
+            // Delegate
+            LoggingService.handleGetLoggingsExport(action, req, res, next);
+            break;
           // Get all the charging stations
           case "ChargingStations":
             // Delegate
             ChargingStationService.handleGetChargingStations(action, req, res, next);
+            break;
+          case "ChargingStationsExport":
+            // Delegate
+            ChargingStationService.handleGetChargingStationsExport(action, req, res, next);
             break;
           // Get one charging station
           case "ChargingStation":
@@ -340,6 +348,11 @@ module.exports = {
             // Delegate
             TransactionService.handleGetTransactionsCompleted(action, req, res, next);
             break;
+          // Get the completed transactions
+          case "TransactionsExport":
+            // Delegate
+            TransactionService.handleGetTransactionsExport(action, req, res, next);
+            break;
           // Get transactions in error
           case "TransactionsInError":
             // Delegate
@@ -359,6 +372,11 @@ module.exports = {
           case "ChargingStationUsageStatistics":
             // Delegate
             StatisticService.handleGetChargingStationUsageStatistics(action, req, res, next);
+            break;
+          // Get the current metrics
+          case "CurrentMetrics":
+            // Delegate
+            StatisticService.handleGetCurrentMetrics(action, req, res, next);
             break;
           // Get the consumption statistics
           case "UserConsumptionStatistics":
@@ -404,7 +422,7 @@ module.exports = {
           case "ChargingStationsInError":
             // Delegate
             ChargingStationService.handleGetChargingStationsInError(action, req, res, next);
-            break;            
+            break;
           // Authorization
           case "IsAuthorized":
             // Delegate

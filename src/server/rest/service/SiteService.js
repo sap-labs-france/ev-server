@@ -263,6 +263,7 @@ class SiteService {
         {
           'search': filteredRequest.Search,
           'userID': filteredRequest.UserID,
+          'companyID': filteredRequest.CompanyID,
           'withCompany': filteredRequest.WithCompany,
           'withSiteAreas': filteredRequest.WithSiteAreas,
           'withChargeBoxes': filteredRequest.WithChargeBoxes,
@@ -425,20 +426,23 @@ class SiteService {
       site.setLastChangedOn(new Date());
       // Update Site's Image
       await site.saveImage();
-      // Get the users
-      const users = [];
-      if (filteredRequest.userIDs) {
-        for (const userID of filteredRequest.userIDs) {
-          // Get User
-          const user = await User.getUser(req.user.tenantID, userID);
-          if (user) {
-            // Add
-            users.push(user);
+      // TODO: logic to be removed when old dashboard is not supported anymore - kept for compatibility reason
+      if (filteredRequest.hasOwnProperty("userIDs")) {
+        // Get the users
+        const users = [];
+        if (filteredRequest.userIDs) {
+          for (const userID of filteredRequest.userIDs) {
+            // Get User
+            const user = await User.getUser(req.user.tenantID, userID);
+            if (user) {
+              // Add
+              users.push(user);
+            }
           }
         }
+        // Set Users
+        site.setUsers(users);
       }
-      // Set Users
-      site.setUsers(users);
       // Update Site
       const updatedSite = await site.save();
       // Log

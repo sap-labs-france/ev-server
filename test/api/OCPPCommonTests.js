@@ -236,10 +236,20 @@ class OCPPCommonTests {
     const response = await CentralServerService.transactionApi.readAllConsumption({TransactionId: this.newTransaction.id});
     expect(response.status).to.equal(200);
     // Check Headers
-    expect(response.data).to.deep.include({
+    expect(response.data).to.deep.containSubset({
       "chargeBoxID": this.newTransaction.chargeBoxID,
       "connectorId": this.newTransaction.connectorId,
-      "totalConsumption": this.transactionTotalConsumption,
+      "stop": {
+        "price": this.totalPrice,
+        "tagID": this.newTransaction.tagID,
+        "totalConsumption": this.transactionTotalConsumption,
+        "totalInactivitySecs": this.transactionTotalInactivity,
+        "user": {
+          "id": this.transactionStartUser.id,
+          "name": this.transactionStartUser.name,
+          "firstName": this.transactionStartUser.firstName
+        }
+      },
       "id": this.newTransaction.id,
       "user": {
         "id": this.transactionStartUser.id,

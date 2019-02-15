@@ -8,6 +8,7 @@ const ChargingStationSecurity = require('./security/ChargingStationSecurity');
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage');
 const ChargingStation = require('../../../entity/ChargingStation');
 const SiteArea = require('../../../entity/SiteArea');
+const fs = require("fs");
 
 class ChargingStationService {
   static async handleAddChargingStationsToSiteArea(action, req, res, next) {
@@ -204,6 +205,14 @@ class ChargingStationService {
       // Update Site Area
       if (filteredRequest.hasOwnProperty('powerLimitUnit')) {
         chargingStation.setPowerLimitUnit(filteredRequest.powerLimitUnit);
+      }
+      // Update Latitude
+      if (filteredRequest.hasOwnProperty('latitude')) {
+        chargingStation.setLatitude(filteredRequest.latitude);
+      }
+      // Update Longitude
+      if (filteredRequest.hasOwnProperty('longitude')) {
+        chargingStation.setLongitude(filteredRequest.longitude);
       }
       // Update Connectors
       if (filteredRequest.connectors) {
@@ -448,6 +457,59 @@ class ChargingStationService {
     }
   }
 
+  static async handleGetChargingStationsExport(action, req, res, next) {
+    try {
+      // Check auth
+      if (!Authorizations.canListChargingStations(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_CHARGING_STATIONS,
+          null, 560,
+          'ChargingStationService', 'handleGetChargingStations',
+          req.user);
+      }
+      // Filter
+      const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query, req.user);
+      // Get the charging Charging Stations
+      const chargingStations = await ChargingStation.getChargingStations(req.user.tenantID,
+        {
+
+          'search': filteredRequest.Search,
+          'withNoSiteArea': filteredRequest.WithNoSiteArea,
+          'withSite': filteredRequest.WithSite,
+          'siteID': filteredRequest.SiteID,
+          'chargeBoxId': filteredRequest.ChargeBoxID,
+          'siteAreaID': filteredRequest.SiteAreaID
+        },
+        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+      // Set
+      chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
+      // Filter
+      chargingStations.result = ChargingStationSecurity.filterChargingStationsResponse(chargingStations.result, req.user);
+
+      const filename = "chargingStations_export.csv";
+      fs.writeFile(filename, this.convertToCSV(chargingStations.result), (err) => {
+        if (err) {
+          throw err;
+        }
+        res.download(filename, (err) => {
+          if (err) {
+            throw err;
+          }
+          fs.unlink(filename, (err) => {
+            if (err) {
+              throw err;
+            }
+          });
+        });
+      });
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
   static async handleGetChargingStationsInError(action, req, res, next) {
     try {
       // Check auth
@@ -511,7 +573,7 @@ class ChargingStationService {
       }
       let result;
       if (action === 'StopTransaction' ||
-          action === 'UnlockConnector') {
+        action === 'UnlockConnector') {
         // Check Transaction ID
         if (!filteredRequest.args || !filteredRequest.args.transactionId) {
           throw new AppError(
@@ -712,6 +774,33 @@ class ChargingStationService {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
+  }
+
+  static convertToCSV(chargingStations) {
+    let csv = 'id,createdOn,connectors,siteAreaID,chargePointSerialNumber,chargePointModel,chargeBoxSerialNumber,chargePointVendor,firmwareVersion,endpoint,ocppVersion,ocppProtocol,lastHeartBeat,deleted,inactive,lastReboot,numberOfConnectedPhase,maximumPower,cannotChargeInParallel,powerLimitUnit\r\n';
+    for (const chargingStation of chargingStations) {
+      csv += `${chargingStation.id},`;
+      csv += `${chargingStation.createdOn},`;
+      csv += `${chargingStation.connectors ? chargingStation.connectors.length : ''},`;
+      csv += `${chargingStation.siteAreaID},`;
+      csv += `${chargingStation.chargePointSerialNumber},`;
+      csv += `${chargingStation.chargePointModel},`;
+      csv += `${chargingStation.chargeBoxSerialNumber},`;
+      csv += `${chargingStation.chargePointVendor},`;
+      csv += `${chargingStation.firmwareVersion},`;
+      csv += `${chargingStation.endpoint},`;
+      csv += `${chargingStation.ocppVersion},`;
+      csv += `${chargingStation.ocppProtocol},`;
+      csv += `${chargingStation.lastHeartBeat},`;
+      csv += `${chargingStation.deleted},`;
+      csv += `${chargingStation.inactive},`;
+      csv += `${chargingStation.lastReboot},`;
+      csv += `${chargingStation.numberOfConnectedPhase},`;
+      csv += `${chargingStation.maximumPower},`;
+      csv += `${chargingStation.cannotChargeInParallel},`;
+      csv += `${chargingStation.powerLimitUnit}\r\n`;
+    }
+    return csv;
   }
 }
 

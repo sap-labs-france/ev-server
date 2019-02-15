@@ -69,7 +69,7 @@ class Database {
       dest.inactive = false;
       const inactivitySecs = Math.floor((Date.now() - dest.lastHeartBeat.getTime()) / 1000);
       // Inactive?
-      if (inactivitySecs > (_heartbeatIntervalSecs * 3)) {
+      if (inactivitySecs > (_heartbeatIntervalSecs * 5)) {
         dest.inactive = true;
       }
     }
@@ -89,6 +89,13 @@ class Database {
     if (src.hasOwnProperty('powerLimitUnit')) {
       dest.powerLimitUnit = src.powerLimitUnit;
     }
+    if (src.hasOwnProperty('latitude')) {
+      dest.latitude = src.latitude;
+    }
+    if (src.hasOwnProperty('longitude')) {
+      dest.longitude = src.longitude;
+    }
+
     dest.connectors = [];
     if (src.connectors) {
       // Set
@@ -292,6 +299,7 @@ class Database {
     dest.name = src.name;
     dest.address = {};
     dest.allowAllUsersToStopTransactions = src.allowAllUsersToStopTransactions;
+    dest.autoUserSiteAssignment = src.autoUserSiteAssignment;
     Database.updateAddress(src.address, dest.address)
     Database.updateCreatedAndLastChanged(src, dest);
   }
@@ -425,6 +433,7 @@ class Database {
     dest.token = src.token;
     dest.countryCode = src.countryCode;
     dest.partyId = src.partyId;
+    dest.backgroundPatchJob = src.backgroundPatchJob;
 
     if (src.version) {
       dest.version = src.version;
@@ -440,6 +449,12 @@ class Database {
     }
     if (src.versionUrl) {
       dest.versionUrl = src.versionUrl;
+    }
+    if (src.hasOwnProperty("lastPatchJobOn")) {
+      dest.lastPatchJobOn = src.lastPatchJobOn;
+    }
+    if (src.hasOwnProperty("lastPatchJobOn")) {
+      dest.lastPatchJobResult = src.lastPatchJobResult;
     }
 
     Database.updateCreatedAndLastChanged(src, dest);

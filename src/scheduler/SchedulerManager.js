@@ -3,6 +3,7 @@ const cron = require('node-cron');
 const Logging = require('../utils/Logging');
 const Constants = require('../utils/Constants');
 const LoggingDatabaseTableCleanupTask = require('./tasks/LoggingDatabaseTableCleanupTask');
+const OCPIPatchLocationsTask = require('./tasks/OCPIPatchLocationsTask');
 
 const _schedulerConfig = Configuration.getSchedulerConfig();
 
@@ -41,8 +42,17 @@ class SchedulerManager {
               method: "init", action: "Initialization",
               message: `The task '${task.name}' has been scheduled with periodicity ''${task.periodicity}'` });
             break;
-
-            // Unknown task
+          // Cleanup of logging table
+          case "OCPIPatchLocationsTask":
+            const ocpiPatvhLocationsTask = new OCPIPatchLocationsTask();
+            cron.schedule(task.periodicity, ocpiPatvhLocationsTask.run.bind(this, task.config));
+            Logging.logInfo({
+              tenantID: Constants.DEFAULT_TENANT,
+              module: "Scheduler",
+              method: "init", action: "Initialization",
+              message: `The task '${task.name}' has been scheduled with periodicity ''${task.periodicity}'` });
+            break;
+          // Unknown task
           default:
             // Log
             Logging.logError({
