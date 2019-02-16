@@ -17,11 +17,10 @@ const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const TransactionStorage = require('../storage/mongodb/TransactionStorage');
 const momentDurationFormatSetup = require("moment-duration-format");
 const SettingStorage = require("../storage/mongodb/SettingStorage");
-const ConvergentCharging = require("./integration/convergentCharging/ConvergentCharging");
-const SimplePricing = require("./integration/simplePricing/SimplePricing");
+const ConvergentCharging = require("../integration/pricing/convergent-charging/ConvergentCharging");
+const SimplePricing = require("../integration/pricing/simple-pricing/SimplePricing");
 momentDurationFormatSetup(moment);
 const _configChargingStation = Configuration.getChargingStationConfig();
-const Consumption = require('./Consumption');
 const ConsumptionStorage = require('../storage/mongodb/ConsumptionStorage');
 
 class ChargingStation extends AbstractTenantEntity {
