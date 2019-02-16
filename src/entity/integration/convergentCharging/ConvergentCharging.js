@@ -115,7 +115,7 @@ class ConvergentCharging {
       if (chargingResult.status === 'error') {
         Logging.logError({
           tenantID: this.tenantId,
-          source: consumptionData.getID(), module: 'ConvergentCharging',
+          source: consumptionData.transactionId, module: 'ConvergentCharging',
           method: 'stopSession', action: 'stopSession',
           message: chargingResult.message,
           detailedMessages: chargingResult
