@@ -1,11 +1,11 @@
-const AbstractConnector = require('./AbstractConnector');
+const AbstractConnector = require('../AbstractConnector');
 const Logging = require('../../utils/Logging');
 const axios = require('axios');
 const querystring = require('querystring');
 const moment = require('moment');
 const ConnectionStorage = require('../../storage/mongodb/ConnectionStorage');
 const TransactionStorage = require('../../storage/mongodb/TransactionStorage');
-const ChargingStation = require("../ChargingStation");
+const ChargingStation = require("../../entity/ChargingStation");
 const Constants = require('../../utils/Constants');
 const AppError = require('../../exception/AppError');
 
