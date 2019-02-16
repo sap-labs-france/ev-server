@@ -1,6 +1,7 @@
 const Tenant = require('../../entity/Tenant');
 const User = require('../../entity/User');
 const PricingStorage = require('../../storage/mongodb/PricingStorage');
+const SettingStorage = require('../../storage/mongodb/SettingStorage');
 const TransactionStorage = require('../../storage/mongodb/TransactionStorage');
 const ConsumptionStorage = require('../../storage/mongodb/ConsumptionStorage');
 const Database = require('../../utils/Database');
@@ -33,6 +34,7 @@ class AddConsumptions {
   async startProcess(tenantID) {
     this.totalClount = 0;
     this.done = 0;
+    this.level = 10;
     this.startTime = moment();
     // Create Aggregation
     const aggregation = [];
@@ -73,6 +75,21 @@ class AddConsumptions {
       .toArray();
     // Get the price
     const pricing = await PricingStorage.getPricing(tenantID);
+    if (pricing && !(await SettingStorage.getSettingByIdentifier(tenantID, 'pricing'))) {
+      //move pricing to settings
+      SettingStorage.saveSetting(tenantID,
+        {
+          "content": {
+            "simple": {
+              "price": pricing.priceKWH,
+              "currency": pricing.priceUnit
+            }
+          },
+          "createdBy": null,
+          "createdOn": new Date(),
+          "identifier": "pricing"
+        });
+    }
     const terminatedTransactionsModel = transactionsMDB.filter(t => t.siteArea && t.stop)
       .map(t => {
         const model = {};
@@ -90,10 +107,10 @@ class AddConsumptions {
     await Promise.all(promises);
     const endTime = moment();
 
-    Logging.logInfo({
+    Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT,
       source: "Migration", action: "Migration",
-      module: "NormalizeTransactionsTaskBis", method: "migrate",
+      module: "AddConsumptions", method: "migrate",
       message: `tenant ${tenantID} => ${terminatedTransactionsModel.length} transactions migrated after ${moment.duration(endTime.diff(this.startTime)).format("mm:ss.SS", {trim: false})}`
     });
   }
@@ -106,13 +123,23 @@ class AddConsumptions {
 
     await ConsumptionStorage.deleteConsumptions(tenantID, transactionModel.id);
     await this.insertMany(tenantID, consumptions);
-    console.log(`done ${((this.done++ * 100) / this.totalClount).toFixed(2)}% (${this.done}/${this.totalClount}) after ${moment.duration(moment().diff(this.startTime)).format("mm:ss.SS", {trim: false})}`)
+    this.done++;
+    const donePercentage = (this.done * 100) / this.totalClount;
+    if (donePercentage >= this.level) {
+      this.level += 10;
+      Logging.logDebug({
+        tenantID: Constants.DEFAULT_TENANT,
+        source: "Migration", action: "Migration",
+        module: "AddConsumptions", method: "replaceWithConsumptions",
+        message: `done ${(donePercentage).toFixed(2)}% (${this.done}/${this.totalClount}) after ${moment.duration(moment().diff(this.startTime)).format("mm:ss.SS", {trim: false})}`
+      });
+    }
   }
 
 
   async insertMany(tenantID, consumptions) {
     // Debug
-    const uniqueTimerID = Logging.traceStart('NormalizeTransactionsTaskBis', 'insertMany');
+    const uniqueTimerID = Logging.traceStart('AddConsumptions', 'insertMany');
     // Check
     await Utils.checkTenant(tenantID);
     // Transfer
@@ -124,7 +151,7 @@ class AddConsumptions {
     // Modify
     const result = await global.database.getCollection(tenantID, 'consumptions').insertMany(consumptionMDB);
     // Debug
-    Logging.traceEnd('NormalizeTransactionsTaskBis', 'insertMany', uniqueTimerID, {consumptionsCount: consumptions.length});
+    Logging.traceEnd('AddConsumptions', 'insertMany', uniqueTimerID, {consumptionsCount: consumptions.length});
     // Return
     return result.acknowledged;
   }
@@ -222,7 +249,7 @@ class AddConsumptions {
   }
 
   getVersion() {
-    return "1.0";
+    return "1.51";
   }
 
   getName() {
