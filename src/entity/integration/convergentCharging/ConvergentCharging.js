@@ -17,9 +17,24 @@ class ConvergentCharging {
     this.statefulChargingService = new StatefulChargingService(this.setting.url, this.setting.user, this.setting.password);
   }
 
+  consumptionToChargeableItemProperties(consumptionData) {
+    return [
+      new ChargeableItemProperty('userID', Type.string, consumptionData.userID),
+      new ChargeableItemProperty('chargeBoxID', Type.string, consumptionData.chargeBoxID),
+      new ChargeableItemProperty('siteID', Type.string, consumptionData.siteID),
+      new ChargeableItemProperty('siteAreaID', Type.string, consumptionData.siteAreaID),
+      new ChargeableItemProperty('connectorId', Type.number, consumptionData.connectorId),
+      new ChargeableItemProperty('transactionId', Type.number, consumptionData.transactionId),
+      new ChargeableItemProperty('startedAt', Type.date, consumptionData.startedAt),
+      new ChargeableItemProperty('endedAt', Type.date, consumptionData.endedAt),
+      new ChargeableItemProperty('cumulatedConsumption', Type.number, consumptionData.cumulatedConsumption),
+      new ChargeableItemProperty('consumption', Type.number, consumptionData.consumption),
+    ]
+  }
+
   async startSession(consumptionData) {
-    const reservationItem = new ReservationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, consumptionData.consumption)]);
-    const request = new StartRateRequest(reservationItem, consumptionData.transactionId, moment(consumptionData.startedAt).format('YYYY-MM-DDTHH:mm:ss'), 'ENERGY', consumptionData.userID, 'cancelled', 30000, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING', null);
+    const reservationItem = new ReservationItem(CI_NAME, this.consumptionToChargeableItemProperties(consumptionData));
+    const request = new StartRateRequest(reservationItem, consumptionData.transactionId, moment(consumptionData.startedAt).format('YYYY-MM-DDTHH:mm:ss'), consumptionData.chargeBoxID, consumptionData.userID, 'cancelled', 30000, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING', null);
     const result = await this.statefulChargingService.execute(request);
     if (result.data.startRateResult) {
       const rateResult = new RateResult(result.data.startRateResult);
@@ -49,10 +64,10 @@ class ConvergentCharging {
   }
 
   async updateSession(consumptionData) {
-    const confirmationItem = new ConfirmationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, consumptionData.consumption)]);
-    const reservationItem = new ReservationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, consumptionData.consumption)]);
+    const confirmationItem = new ConfirmationItem(CI_NAME, this.consumptionToChargeableItemProperties(consumptionData));
+    const reservationItem = new ReservationItem(CI_NAME, this.consumptionToChargeableItemProperties(consumptionData));
 
-    const request = new UpdateRateRequest(confirmationItem, reservationItem, consumptionData.transactionId, moment(consumptionData.endedAt).format('YYYY-MM-DDTHH:mm:ss'), 'ENERGY', consumptionData.userID, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
+    const request = new UpdateRateRequest(confirmationItem, reservationItem, consumptionData.transactionId, moment(consumptionData.endedAt).format('YYYY-MM-DDTHH:mm:ss'), consumptionData.chargeBoxID, consumptionData.userID, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
     const result = await this.statefulChargingService.execute(request);
     if (result.data.updateRateResult) {
       const rateResult = new RateResult(result.data.updateRateResult);
@@ -81,9 +96,9 @@ class ConvergentCharging {
   }
 
   async stopSession(consumptionData) {
-    const confirmationItem = new ConfirmationItem(CI_NAME, [new ChargeableItemProperty('Consumption', Type.number, consumptionData.consumption)]);
+    const confirmationItem = new ConfirmationItem(CI_NAME, this.consumptionToChargeableItemProperties(consumptionData));
 
-    const request = new StopRateRequest(confirmationItem, consumptionData.transactionId, 'ENERGY', consumptionData.userID, 'confirmed', 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
+    const request = new StopRateRequest(confirmationItem, consumptionData.transactionId, consumptionData.chargeBoxID, consumptionData.userID, 'confirmed', 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
     const result = await this.statefulChargingService.execute(request);
     if (result.data.stopRateResult) {
       const rateResult = new RateResult(result.data.stopRateResult);

@@ -1042,7 +1042,7 @@ class ChargingStation extends AbstractTenantEntity {
       const consumptions = [];
       for (const meterValue of newMeterValues.values) {
         let consumptionData = await transaction.updateWithMeterValue(meterValue);
-          consumptionData.toPrice = transaction.isConsumptionMeterValue(meterValue);
+        consumptionData.toPrice = transaction.isConsumptionMeterValue(meterValue);
         consumptions.push(consumptionData);
       }
       // Save Transaction
@@ -1066,6 +1066,11 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   async saveConsumption(consumptionData, action, withPricing = true) {
+    const siteArea = await this.getSiteArea(false);
+    consumptionData.chargeBoxID = this.getID();
+    consumptionData.siteID = siteArea.getSiteID();
+    consumptionData.siteAreaID = siteArea.getID();
+
     let consumptionAmount = {};
     if (withPricing) {
       const pricingLogic = await this.getPricingLogic();
@@ -1083,14 +1088,10 @@ class ChargingStation extends AbstractTenantEntity {
         }
       }
     }
-    const siteArea = await this.getSiteArea(false);
     const model = {
       ...consumptionData,
       ...consumptionAmount,
-      chargeBoxID: this.getID(),
-      siteID: siteArea.getSiteID(),
-      siteAreaID: siteArea.getID()
-    };
+    }
     return ConsumptionStorage.saveConsumption(this.getTenantID(), model);
   }
 

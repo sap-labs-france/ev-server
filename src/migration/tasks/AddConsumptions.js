@@ -32,10 +32,7 @@ class AddConsumptions {
   }
 
   async startProcess(tenantID) {
-    this.totalClount = 0;
-    this.done = 0;
-    this.level = 10;
-    this.startTime = moment();
+
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -98,11 +95,17 @@ class AddConsumptions {
         model.siteID = Database.validateId(t.siteArea.siteID);
         return model;
       });
-    console.log(`tenant ${tenantID} => transactions count ${transactionsMDB.length}`);
-    console.log(`tenant ${tenantID} => transactions to migrate ${terminatedTransactionsModel.length}`);
-    console.log(`tenant ${tenantID} => transactions to avoid ${transactionsMDB.length - terminatedTransactionsModel.length}`);
-    const limit = pLimit(10);
+    Logging.logDebug({
+      tenantID: Constants.DEFAULT_TENANT,
+      source: "Migration", action: "Migration",
+      module: "AddConsumptions", method: "migrate",
+      message: `tenant ${tenantID} =>  transactions count ${transactionsMDB.length}, transactions to migrate ${terminatedTransactionsModel.length},  transactions to avoid ${transactionsMDB.length - terminatedTransactionsModel.length} `
+    });
     this.totalClount = terminatedTransactionsModel.length;
+    this.done = 0;
+    this.level = 0;
+    this.startTime = moment();
+    const limit = pLimit(10);
     const promises = terminatedTransactionsModel.map(transactionModel => limit(() => this.replaceWithConsumptions(tenantID, pricing, transactionModel)));
     await Promise.all(promises);
     const endTime = moment();
@@ -131,7 +134,7 @@ class AddConsumptions {
         tenantID: Constants.DEFAULT_TENANT,
         source: "Migration", action: "Migration",
         module: "AddConsumptions", method: "replaceWithConsumptions",
-        message: `done ${(donePercentage).toFixed(2)}% (${this.done}/${this.totalClount}) after ${moment.duration(moment().diff(this.startTime)).format("mm:ss.SS", {trim: false})}`
+        message: `tenant ${tenantID}, done ${(donePercentage).toFixed(2)}% (${this.done}/${this.totalClount}) after ${moment.duration(moment().diff(this.startTime)).format("mm:ss.SS", {trim: false})}`
       });
     }
   }
@@ -249,7 +252,7 @@ class AddConsumptions {
   }
 
   getVersion() {
-    return "1.51";
+    return "1.0";
   }
 
   getName() {
