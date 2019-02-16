@@ -25,8 +25,8 @@ class ConvergentCharging {
       new ChargeableItemProperty('siteAreaID', Type.string, consumptionData.siteAreaID),
       new ChargeableItemProperty('connectorId', Type.number, consumptionData.connectorId),
       new ChargeableItemProperty('transactionId', Type.number, consumptionData.transactionId),
-      new ChargeableItemProperty('startedAt', Type.date, consumptionData.startedAt),
-      new ChargeableItemProperty('endedAt', Type.date, consumptionData.endedAt),
+      new ChargeableItemProperty('startedAt', Type.date, moment(consumptionData.startedAt).format('YYYY-MM-DDTHH:mm:ss')),
+      new ChargeableItemProperty('endedAt', Type.date, moment(consumptionData.endedAt).format('YYYY-MM-DDTHH:mm:ss')),
       new ChargeableItemProperty('cumulatedConsumption', Type.number, consumptionData.cumulatedConsumption),
       new ChargeableItemProperty('consumption', Type.number, consumptionData.consumption),
     ]
