@@ -9,7 +9,7 @@ const TransactionStorage = require('../../../storage/mongodb/TransactionStorage'
 const ChargingStation = require('../../../entity/ChargingStation');
 const User = require('../../../entity/User');
 const SettingStorage = require("../../../storage/mongodb/SettingStorage");
-const ConcurConnector = require("../../../entity/integration/ConcurConnector");
+const ConcurConnector = require("../../../integration/refund/ConcurConnector");
 const fs = require("fs");
 
 class TransactionService {
