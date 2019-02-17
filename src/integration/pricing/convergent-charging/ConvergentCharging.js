@@ -1,19 +1,18 @@
 const StatefulChargingService = require('./StatefulChargingService');
 const moment = require('moment');
 const Logging = require('../../../utils/Logging');
+const Pricing = require('../Pricing');
 
 const CI_NAME = '[CA] Charging Data';
 
-class ConvergentCharging {
+class ConvergentCharging extends Pricing {
   /**
    *
    * @param tenantId {string}
-   * @param chargingStation {ChargingStation}
+   * @param transaction {transaction}
    */
-  constructor(tenantId, chargingStation, setting) {
-    this.chargingStation = chargingStation;
-    this.tenantId = tenantId;
-    this.setting = setting;
+  constructor(tenantId, setting, transaction) {
+    super(tenantId, setting, transaction);
     this.statefulChargingService = new StatefulChargingService(this.setting.url, this.setting.user, this.setting.password);
   }
 
@@ -116,20 +115,29 @@ class ConvergentCharging {
    * @param consumptionData
    * @param notification {RateResult}
    */
-  handleAlertNotification(consumptionData, rateResult) {
+  async handleAlertNotification(consumptionData, rateResult) {
+    let chargingStation = null;
     if (rateResult.transactionsToConfirm) {
       for (const ccTransaction of rateResult.transactionsToConfirm.ccTransactions) {
         if (ccTransaction.notifications) {
           for (const notification of ccTransaction.notifications) {
             switch (notification.code) {
               case "STOP_TRANSACTION":
-                this.chargingStation.requestStopTransaction({transactionId: consumptionData.transactionId});
+                chargingStation = await this.transaction.getChargingStation();
+                if (chargingStation) {
+                  chargingStation.requestStopTransaction({
+                    transactionId: consumptionData.transactionId
+                  });
+                }
                 break;
               case "START_TRANSACTION":
-                this.chargingStation.requestStartTransaction({
-                  tagID: consumptionData.tagID,
-                  connectorID: consumptionData.connectorId
-                });
+                chargingStation = await this.transaction.getChargingStation();
+                if (chargingStation) {
+                  chargingStation.requestStartTransaction({
+                    tagID: consumptionData.tagID,
+                    connectorID: consumptionData.connectorId
+                  });
+                }
                 break;
             }
 

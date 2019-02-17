@@ -74,7 +74,7 @@ class Consumption extends AbstractTenantEntity {
   }
 
   getCurrency() {
-    return this._model.currency;
+    return this._model.currencyCode;
   }
 
 }

@@ -103,15 +103,24 @@ class TransactionSecurity {
         filteredTransaction.errorCode = transaction.getModel().errorCode;
       }
       filteredTransaction.chargeBoxID = transaction.getChargeBoxID();
+      filteredTransaction.siteID = transaction.getSiteID();
+      filteredTransaction.siteAreaID = transaction.getSiteAreaID();
       filteredTransaction.connectorId = transaction.getConnectorId();
       filteredTransaction.meterStart = transaction.getMeterStart();
       filteredTransaction.timestamp = transaction.getStartDate();
+      if (Authorizations.isAdmin(loggedUser) && transaction.getModel().hasOwnProperty('price')) {
+        filteredTransaction.price = transaction.getStartPrice();
+        filteredTransaction.roundedPrice = transaction.getStartRoundedPrice();
+        filteredTransaction.priceUnit = transaction.getStartPriceUnit();
+        filteredTransaction.pricingSource = transaction.getStartPricingSource();
+      }
       // Runime Data
       if (transaction.isActive()) {
         filteredTransaction.currentConsumption = transaction.getCurrentConsumption();
         filteredTransaction.currentTotalConsumption = transaction.getCurrentTotalConsumption();
         filteredTransaction.currentTotalInactivitySecs = transaction.getCurrentTotalInactivitySecs();
-        filteredTransaction.currentTotalDurationSecs = transaction.getCurrentTotalDurationSecs();
+        filteredTransaction.currentCumulatedPrice = transaction.getCurrentCumulatedPrice();
+        filteredTransaction.currentStateOfCharge = transaction.getCurrentStateOfCharge();
         filteredTransaction.currentStateOfCharge = transaction.getCurrentStateOfCharge();
       }
       filteredTransaction.status = transaction.getChargerStatus();
@@ -138,7 +147,9 @@ class TransactionSecurity {
         filteredTransaction.stop.stateOfCharge = transaction.getEndStateOfCharge();
         if (Authorizations.isAdmin(loggedUser) && transaction.hasPrice()) {
           filteredTransaction.stop.price = transaction.getPrice();
+          filteredTransaction.stop.roundedPrice = transaction.getRoundedPrice();
           filteredTransaction.stop.priceUnit = transaction.getPriceUnit();
+          filteredTransaction.stop.pricingSource = transaction.getPricingSource();
         }
         // Demo user?
         if (Authorizations.isDemo(loggedUser)) {
@@ -248,22 +259,22 @@ class TransactionSecurity {
     // Admin?
     if (Authorizations.isAdmin(loggedUser)) {
       // Set them all
-      filteredTransaction.values = consumptions.map(consumption => consumption.getModel()).map(c => ({
-        ...c,
-        date: c.endedAt,
-        value: c.instantPower,
-        cumulated: c.cumulatedConsumption
+      filteredTransaction.values = consumptions.map(consumption => consumption.getModel()).map(consumption => ({
+        ...consumption,
+        date: consumption.endedAt,
+        value: consumption.instantPower,
+        cumulated: consumption.cumulatedConsumption
       }));
     } else {
       // Clean
-      filteredTransaction.values = consumptions.map(consumption => consumption.getModel()).map(c => ({
-        endedAt: c.endedAt,
-        instantPower: c.instantPower,
-        cumulatedConsumption: c.cumulatedConsumption,
-        stateOfCharge: c.stateOfCharge,
-        date: c.endedAt,
-        value: c.instantPower,
-        cumulated: c.cumulatedConsumption
+      filteredTransaction.values = consumptions.map(consumption => consumption.getModel()).map(consumption => ({
+        endedAt: consumption.endedAt,
+        instantPower: consumption.instantPower,
+        cumulatedConsumption: consumption.cumulatedConsumption,
+        stateOfCharge: consumption.stateOfCharge,
+        date: consumption.endedAt,
+        value: consumption.instantPower,
+        cumulated: consumption.cumulatedConsumption
       }));
     }
     return filteredTransaction;

@@ -3,20 +3,15 @@ const Database = require('../utils/Database');
 const Utils = require('../utils/Utils');
 const AbstractTenantEntity = require('./AbstractTenantEntity');
 const UserStorage = require('../storage/mongodb/UserStorage');
-const PricingStorage = require('../storage/mongodb/PricingStorage');
-const Consumption = require('./Consumption');
 const ConsumptionStorage = require('../storage/mongodb/ConsumptionStorage');
-
-const DEFAULT_CONSUMPTION_ATTRIBUTE = {
-  unit: 'Wh',
-  location: 'Outlet',
-  measurand: 'Energy.Active.Import.Register',
-  format: 'Raw',
-  context: 'Sample.Periodic'
-};
+const TransactionStorage = require('../storage/mongodb/TransactionStorage');
+const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
+const SettingStorage = require("../storage/mongodb/SettingStorage");
+const ConvergentCharging = require("../integration/pricing/convergent-charging/ConvergentCharging");
+const SimplePricing = require("../integration/pricing/simple-pricing/SimplePricing");
+const Constants = require('../utils/Constants');
 
 class Transaction extends AbstractTenantEntity {
-
   constructor(tenantID, transaction) {
     super(tenantID);
     this._model = {};
@@ -73,6 +68,10 @@ class Transaction extends AbstractTenantEntity {
     return this._model.currentConsumptionWh ? this._model.currentConsumptionWh : 0;
   }
 
+  getCurrentCumulatedPrice() {
+    return this._model.currentCumulatedPrice ? this._model.currentCumulatedPrice : 0;
+  }
+
   getCurrentTotalConsumption() {
     return this._model.currentTotalConsumption;
   }
@@ -119,8 +118,20 @@ class Transaction extends AbstractTenantEntity {
     return this._model.id;
   }
 
-  getChargeBoxID() {
-    return this._model.chargeBoxID;
+  getSiteID() {
+    return this._model.siteID;
+  }
+
+  setSiteID(siteID) {
+    this._model.siteID = siteID;
+  }
+
+  getSiteAreaID() {
+    return this._model.siteAreaID;
+  }
+
+  setSiteAreaID(siteAreaID) {
+    this._model.siteAreaID = siteAreaID;
   }
 
   getConnectorId() {
@@ -230,8 +241,53 @@ class Transaction extends AbstractTenantEntity {
     }
   }
 
-  getChargingStation() {
-    return this._model.chargeBox;
+  getChargeBoxID() {
+    return this._model.chargeBoxID;
+  }
+
+  async getChargingStation() {
+    // Get from DB
+    const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this._model.chargeBoxID);
+    // Keep it
+    this.setChargingStation(chargingStation);
+    return chargingStation;
+  }
+
+  setChargingStation(chargingStation) {
+    if (chargingStation) {
+      this._model.chargeBox = chargingStation.getModel();
+      this._model.chargeBoxID = chargingStation.getID();
+    } else {
+      this._model.chargeBox = null;
+    }
+  }
+
+  getStartPrice() {
+    return this._model.price;
+  }
+
+  getStartRoundedPrice() {
+    return this._model.roundedPrice;
+  }
+
+  getStartPriceUnit() {
+    return this._model.priceUnit;
+  }
+
+  getStartPricingSource() {
+    return this._model.pricingSource;
+  }
+
+  getPrice() {
+    if (this.isFinished()) {
+      return this._model.stop.price;
+    }
+  }
+
+  getRoundedPrice() {
+    if (this.isFinished()) {
+      return this._model.stop.roundedPrice;
+    }
   }
 
   getPriceUnit() {
@@ -240,9 +296,9 @@ class Transaction extends AbstractTenantEntity {
     }
   }
 
-  getPrice() {
+  getPricingSource() {
     if (this.isFinished()) {
-      return this._model.stop.price;
+      return this._model.stop.pricingSource;
     }
   }
 
@@ -332,7 +388,8 @@ class Transaction extends AbstractTenantEntity {
     this.setCurrentTotalConsumption(0);
     this.setCurrentConsumptionWh(0);
     this.setUser(user);
-    return this.buildTransactionDelta(this.getStartDate(), this.getStartDate());
+    // Build consumption
+    await this.buildConsumption(this.getStartDate(), this.getStartDate(), null, 'start');
   }
 
   /**
@@ -353,7 +410,6 @@ class Transaction extends AbstractTenantEntity {
       }
       // Set current
       this.setCurrentStateOfCharge(meterValue.value);
-
       // Consumption?
     } else if (this.isConsumptionMeterValue(meterValue)) {
       // Update
@@ -385,7 +441,8 @@ class Transaction extends AbstractTenantEntity {
         this.setCurrentTotalInactivitySecs(this.getCurrentTotalInactivitySecs() + diffSecs);
       }
     }
-    return this.buildTransactionDelta(lastMeterValue.timestamp, meterValue.timestamp, meterValue);
+    // Return the last meter value
+    return lastMeterValue;
   }
 
   async stopTransaction(userID, tagId, meterStop, timestamp) {
@@ -426,20 +483,18 @@ class Transaction extends AbstractTenantEntity {
       this._model.stop.totalDurationSecs = Math.round(moment.duration(moment().diff(moment(this.getStartDate()))).asSeconds());
       this._model.stop.totalInactivitySecs = this._model.stop.totalDurationSecs;
     }
-    const payload = this.buildTransactionDelta(lastMeterValue.timestamp, timestamp);
+    // Build final consumption
+    const consumption = await this.buildConsumption(lastMeterValue.timestamp, timestamp, null, 'stop');
+    // Save the final consumption
+    await this.saveConsumption(consumption, 'stop');
     // Remove runtime data
     delete this._model.currentConsumption;
     delete this._model.currentStateOfCharge;
     delete this._model.currentTotalConsumption;
     delete this._model.currentTotalInactivitySecs;
+    delete this._model.currentCumulatedPrice;
     delete this._model.lastMeterValue;
     delete this._model.numberOfMeterValues;
-    return payload;
-  }
-
-  setTotalPrice(price, currency){
-    this._model.stop.priceUnit = currency;
-    this._model.stop.price = price;
   }
 
   remoteStop(tagId, timestamp) {
@@ -465,31 +520,147 @@ class Transaction extends AbstractTenantEntity {
     return false;
   }
 
-  buildTransactionDelta(startedAt, endedAt, meterValue) {
-    const data = {
+  async buildConsumption(startedAt, endedAt, meterValue, action) {
+    const consumption = {
       transactionId: this.getID(),
       connectorId: this.getConnectorId(),
+      chargeBoxID: this.getChargeBoxID(),
+      siteAreaID: this.getSiteAreaID(),
+      siteID: this.getSiteID(),
       userID: this.getUserID(),
       endedAt: endedAt
     };
-
+    // SoC?
     if (meterValue && this.isSocMeterValue(meterValue)) {
-      return {
-        ...data,
-        stateOfCharge: this.getCurrentStateOfCharge()
+      // Set SoC
+      consumption.stateOfCharge = this.getCurrentStateOfCharge();
+    } else {
+      // Set Consumption
+      consumption.startedAt = startedAt;
+      consumption.consumption = this.getCurrentConsumptionWh();
+      consumption.instantPower = this.getCurrentConsumption();
+      consumption.cumulatedConsumption = this.getCurrentTotalConsumption();
+      consumption.totalInactivitySecs = this.getCurrentTotalInactivitySecs();
+      consumption.totalDurationSecs = this.getCurrentTotalDurationSecs();
+    }
+    // Update the price
+    await this.computePricing(consumption, action);
+    // Return
+    return consumption;
+  }
+
+  async getPricingImpl() {
+    // Check if the pricing is active
+    if ((await this.getTenant()).isComponentActive(Constants.COMPONENTS.PRICING)) {
+      // Get the pricing's settings
+      const setting = await SettingStorage.getSettingByIdentifier(this.getTenantID(), Constants.COMPONENTS.PRICING);
+      // Check
+      if (setting) {
+        // Check if CC
+        if (setting.getContent()['convergentCharging']) {
+          // Return the CC implementation
+          return new ConvergentCharging(this.getTenantID(), setting.getContent()['convergentCharging'], this);
+        } else if (setting.getContent()['simple']) {
+          // Return the Simple Pricing implementation
+          return new SimplePricing(this.getTenantID(), setting.getContent()['simple'], this);
+        }
       }
     }
-    return {
-      ...data,
-      startedAt: startedAt,
-      consumption: this.getCurrentConsumptionWh(),
-      instantPower: this.getCurrentConsumption(),
-      cumulatedConsumption: this.getCurrentTotalConsumption(),
-      totalInactivitySecs: this.getCurrentTotalInactivitySecs(),
-      totalDurationSecs: this.getCurrentTotalDurationSecs()
+    // Pricing is not active
+    return null;
+  }
+
+  delete() {
+    // Delete
+    return TransactionStorage.deleteTransaction(this.getTenantID(), this);
+  }
+
+  save() {
+    return TransactionStorage.saveTransaction(this.getTenantID(), this.getModel());
+  }
+
+  async updateWithMeterValues(meterValues) {
+    // Save Meter Values
+    await TransactionStorage.saveMeterValues(this.getTenantID(), meterValues);
+    // Process consumption
+    for (const meterValue of meterValues.values) {
+      // Update Transaction with Meter Values
+      const lastMeterValue = await this.updateWithMeterValue(meterValue);
+      // Compute consumption
+      const consumption = await this.buildConsumption(lastMeterValue.timestamp, meterValue.timestamp, meterValue, 'update');
+      // Save Consumption
+      await this.saveConsumption(consumption);
     }
   }
 
+  async computePricing(consumptionData, action) {
+    let consumption;
+    // Get the pricing impl
+    const pricingImpl = await this.getPricingImpl();
+    switch (action) {
+      // Start Transaction
+      case 'start':
+        // Active?
+        if (pricingImpl) {
+          // Set
+          consumption = await pricingImpl.startSession(consumptionData);
+          // Set the initial pricing
+          this._model.price = consumption.amount;
+          this._model.roundedPrice = consumption.roundedAmount;
+          this._model.priceUnit = consumption.currencyCode;
+          this._model.pricingSource = consumption.pricingSource;
+          // Init the cumulated price
+          this._model.currentCumulatedPrice = consumption.amount;
+        } else {
+          // Default
+          this._model.price = 0;
+          this._model.roundedPrice = 0; 
+          this._model.priceUnit = "";
+          this._model.pricingSource = "";
+        }
+        break;
+      // Meter Values
+      case 'update':
+        // Active?
+        if (pricingImpl) {
+          // Set
+          consumption = await pricingImpl.updateSession(consumptionData);
+          // Update consumption
+          consumptionData.amount = consumption.amount;
+          consumptionData.roundedAmount = consumption.roundedAmount;
+          consumptionData.currencyCode = consumption.currencyCode;
+          consumptionData.pricingSource = consumption.pricingSource;
+          consumptionData.cumulatedAmount = this.getCurrentCumulatedPrice() + consumptionData.amount;
+          // Keep latest
+          this._model.currentCumulatedPrice = consumptionData.cumulatedAmount;
+        }
+        break;
+      // Stop Transaction
+      case 'stop':
+        // Active?
+        if (pricingImpl) {
+          // Set
+          consumption = await pricingImpl.stopSession(consumptionData);
+          // Update consumption
+          consumptionData.amount = consumption.amount;
+          consumptionData.roundedAmount = consumption.roundedAmount;
+          consumptionData.currencyCode = consumption.currencyCode;
+          consumptionData.pricingSource = consumption.pricingSource;
+          consumptionData.cumulatedAmount = this.getCurrentCumulatedPrice() + consumptionData.amount;
+          // Update Transaction
+          this._model.stop.price = this.getCurrentCumulatedPrice();
+          this._model.stop.roundedPrice = (this.getCurrentCumulatedPrice()).toFixed(6);
+          this._model.stop.priceUnit = consumption.currencyCode;
+          this._model.stop.pricingSource = consumption.pricingSource;
+        }
+        break;
+    }
+  }
+
+  async saveConsumption(consumption) {
+    // Save
+    return ConsumptionStorage.saveConsumption(this.getTenantID(), consumption);
+  }
 }
 
 module.exports = Transaction;

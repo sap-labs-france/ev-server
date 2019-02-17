@@ -1,7 +1,7 @@
-const ConnectionStorage = require('../../storage/mongodb/ConnectionStorage');
-const SettingStorage = require('../../storage/mongodb/SettingStorage');
-const AbstractTenantEntity = require('../AbstractTenantEntity');
-const User = require('../User');
+const ConnectionStorage = require('../storage/mongodb/ConnectionStorage');
+const SettingStorage = require('../storage/mongodb/SettingStorage');
+const AbstractTenantEntity = require('../entity/AbstractTenantEntity');
+const User = require('../entity/User');
 
 class AbstractConnector extends AbstractTenantEntity {
   constructor(tenantID,connectorId, setting) {

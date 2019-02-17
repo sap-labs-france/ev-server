@@ -5,38 +5,35 @@ const Consumption = require('../../entity/Consumption');
 const ObjectID = require('mongodb').ObjectID;
 
 class ConsumptionStorage {
-
   /**
    *
    * @param tenantID
-   * @param consumptionModel
+   * @param consumptionToSave
    * @returns {Promise<Consumption>}
    */
-  static async saveConsumption(tenantID, consumptionModel) {
+  static async saveConsumption(tenantID, consumptionToSave) {
     // Debug
     const uniqueTimerID = Logging.traceStart('ConsumptionStorage', 'saveConsumption');
     // Check
     await Utils.checkTenant(tenantID);
-
-    const previousConsumption = await this.getConsumption(tenantID, consumptionModel.transactionId, consumptionModel.endedAt);
-    if (previousConsumption) {
-      consumptionModel = {...previousConsumption.getModel(), ...consumptionModel};
-    }
-    if (consumptionModel.id === undefined) {
-      consumptionModel.id = new ObjectID();
+    // Set the ID
+    if (consumptionToSave.id) {
+      consumptionToSave.id = Utils.convertToObjectID(consumptionToSave.id);
+    } else {
+      consumptionToSave.id = new ObjectID();
     }
     // Transfer
-    const consumptionMDB = {};
-    Database.updateConsumption(consumptionModel, consumptionMDB, false);
+    const consumption = {};
+    Database.updateConsumption(consumptionToSave, consumption, false);
     // Modify
     const result = await global.database.getCollection(tenantID, 'consumptions').findOneAndUpdate(
-      {"transactionId": consumptionMDB.transactionId, endedAt: consumptionMDB.endedAt},
+      {"transactionId": consumption.transactionId, endedAt: consumption.endedAt},
       {
-        $set: consumptionMDB
+        $set: consumption
       },
       {upsert: true, new: true, returnOriginal: false});
     // Debug
-    Logging.traceEnd('ConsumptionStorage', 'saveConsumption', uniqueTimerID, {consumptionToSave: consumptionModel});
+    Logging.traceEnd('ConsumptionStorage', 'saveConsumption', uniqueTimerID, {consumptionToSave: consumptionToSave});
     // Return
     return new Consumption(tenantID, result.value);
   }

@@ -16,12 +16,8 @@ const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorag
 const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const TransactionStorage = require('../storage/mongodb/TransactionStorage');
 const momentDurationFormatSetup = require("moment-duration-format");
-const SettingStorage = require("../storage/mongodb/SettingStorage");
-const ConvergentCharging = require("../integration/pricing/convergent-charging/ConvergentCharging");
-const SimplePricing = require("../integration/pricing/simple-pricing/SimplePricing");
 momentDurationFormatSetup(moment);
 const _configChargingStation = Configuration.getChargingStationConfig();
-const ConsumptionStorage = require('../storage/mongodb/ConsumptionStorage');
 
 class ChargingStation extends AbstractTenantEntity {
   constructor(tenantID, chargingStation) {
@@ -135,6 +131,14 @@ class ChargingStation extends AbstractTenantEntity {
       // Return
       return siteArea;
     }
+  }
+
+  getSiteAreaID() {
+    return this._model.siteAreaID;
+  }
+
+  setSiteAreaID(siteAreaID) {
+    this._model.siteAreaID = siteAreaID;
   }
 
   getChargePointVendor() {
@@ -395,18 +399,6 @@ class ChargingStation extends AbstractTenantEntity {
     return ChargingStationStorage.saveChargingStationSiteArea(this.getTenantID(), this.getModel());
   }
 
-  async getPricingLogic() {
-    if ((await this.getTenant()).isComponentActive('pricing')) {
-      const setting = await SettingStorage.getSettingByIdentifier(this.getTenantID(), 'pricing');
-      if (setting.getContent()['convergentCharging']) {
-        return new ConvergentCharging(this.getTenantID(), this, setting.getContent()['convergentCharging']);
-      } else if (setting.getContent()['simple']) {
-        return new SimplePricing(this.getTenantID(), setting.getContent()['simple']);
-      }
-    }
-    return null;
-  }
-
   async handleStatusNotification(statusNotification) {
     // Set the Station ID
     statusNotification.chargeBoxID = this.getID();
@@ -513,7 +505,7 @@ class ChargingStation extends AbstractTenantEntity {
           await activeTransaction.stopTransaction(activeTransaction.getUserID(), activeTransaction.getTagID(),
             activeTransaction.getLastMeterValue().value + 1, new Date());
           // Save Transaction
-          await TransactionStorage.saveTransaction(activeTransaction.getTenantID(), activeTransaction.getModel());
+          await activeTransaction.save();
         }
       }
     }
@@ -1034,19 +1026,12 @@ class ChargingStation extends AbstractTenantEntity {
       });
       // Process values
     } else {
-      // Save Meter Values
-      await TransactionStorage.saveMeterValues(this.getTenantID(), newMeterValues);
       // Get the transaction
       const transaction = await TransactionStorage.getTransaction(this.getTenantID(), meterValues.transactionId);
-      const consumptions = [];
-      for (const meterValue of newMeterValues.values) {
-        let consumptionData = await transaction.updateWithMeterValue(meterValue);
-          consumptionData.toPrice = transaction.isConsumptionMeterValue(meterValue);
-        consumptions.push(consumptionData);
-      }
+      // Handle Meter Values
+      await transaction.updateWithMeterValues(newMeterValues);
       // Save Transaction
-      await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
-      consumptions.forEach(c => this.saveConsumption(c, 'update', c.toPrice));
+      await transaction.save();
       // Update Charging Station Consumption
       await this.updateChargingStationConsumption(transaction);
       // Save Charging Station
@@ -1062,35 +1047,6 @@ class ChargingStation extends AbstractTenantEntity {
         detailedMessages: meterValues
       });
     }
-  }
-
-  async saveConsumption(consumptionData, action, withPricing = true) {
-    let consumptionAmount = {};
-    if (withPricing) {
-      const pricingLogic = await this.getPricingLogic();
-      if (pricingLogic) {
-        switch (action) {
-          case 'start':
-            consumptionAmount = await pricingLogic.startSession(consumptionData);
-            break;
-          case 'update':
-            consumptionAmount = await pricingLogic.updateSession(consumptionData);
-            break;
-          case 'stop':
-            consumptionAmount = await pricingLogic.stopSession(consumptionData);
-            break;
-        }
-      }
-    }
-    const siteArea = await this.getSiteArea(false);
-    const model = {
-      ...consumptionData,
-      ...consumptionAmount,
-      chargeBoxID: this.getID(),
-      siteID: siteArea.getSiteID(),
-      siteAreaID: siteArea.getID()
-    };
-    return ConsumptionStorage.saveConsumption(this.getTenantID(), model);
   }
 
   saveConfiguration(configuration) {
@@ -1283,17 +1239,22 @@ class ChargingStation extends AbstractTenantEntity {
       // Set the user
       startTransaction.user = user.getModel();
     }
+    // Set the Site ID
+    startTransaction.siteAreaID = this.getSiteAreaID();
+    // Get the Site
+    const site = await this.getSite();
+    // Set
+    if (site) {
+      startTransaction.siteID = site.getID();
+    }
     // Create
     let transaction = new Transaction(this.getTenantID(), startTransaction);
     // Start Transaction
-    let consumptionData = await transaction.startTransaction(user);
+    await transaction.startTransaction(user);
     // Cleanup old ongoing transactions
     await TransactionStorage.cleanupRemainingActiveTransactions(this.getTenantID(), this.getID(), transaction.getConnectorId());
     // Save it
-    transaction = await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
-    consumptionData.transactionId = transaction.getID();
-
-    this.saveConsumption(consumptionData, 'start');
+    transaction = await transaction.save();
     // Clean up connector info
     // Get the connector
     const connector = this.getConnector(transaction.getConnectorId());
@@ -1426,10 +1387,9 @@ class ChargingStation extends AbstractTenantEntity {
       }
     }
     // Stop
-    const consumptionData = await transaction.stopTransaction(user.getID(), tagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp));
-    const consumption = await this.saveConsumption(consumptionData, 'stop');
-    transaction.setTotalPrice(consumption.getCumulatedAmount(), consumption.getCurrency());
-    transaction = await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
+    await transaction.stopTransaction(user.getID(), tagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp));
+    // Save the transaction
+    transaction = await transaction.save();
     // Notify User
     if (user) {
       // Send Notification

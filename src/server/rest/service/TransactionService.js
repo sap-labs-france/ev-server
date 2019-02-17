@@ -144,7 +144,7 @@ class TransactionService {
         if (!chargingStation) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `Charging Station with ID ${transaction.getChargingStation().id} does not exist`, 550,
+            `Charging Station with ID ${transaction.getChargeBoxID()} does not exist`, 550,
             'TransactionService', 'handleDeleteTransaction', req.user);
         }
         if (transaction.getID() === chargingStation.getConnector(transaction.getConnectorId()).activeTransactionID) {

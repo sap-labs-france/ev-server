@@ -8,5 +8,9 @@ class MigrationTask {
 
   getName() {
   }
+
+  isAsynchronous() {
+    return false;
+  }
 }
 module.exports=MigrationTask;
