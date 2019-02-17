@@ -4,7 +4,6 @@ const DatabaseUtils = require('./DatabaseUtils');
 const Utils = require('../../utils/Utils');
 const crypto = require('crypto');
 const Logging = require('../../utils/Logging');
-const Transaction = require('../../entity/Transaction');
 const PricingStorage = require('./PricingStorage');
 
 class TransactionStorage {
@@ -19,11 +18,15 @@ class TransactionStorage {
     // Delete Meter Values
     await global.database.getCollection(tenantID, 'metervalues')
       .deleteMany({'transactionId': transaction.getID()});
+    // Delete Consumptions
+    await global.database.getCollection(tenantID, 'consumptions')
+      .deleteMany({'transactionId': transaction.getID()});
     // Debug
     Logging.traceEnd('TransactionStorage', 'deleteTransaction', uniqueTimerID, {transaction});
   }
 
   static async saveTransaction(tenantID, transactionToSave) {
+    const Transaction = require('../../entity/Transaction');
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'saveTransaction');
     // Check
@@ -97,6 +100,7 @@ class TransactionStorage {
   }
 
   static async getTransactions(tenantID, params = {}, limit, skip, sort) {
+    const Transaction = require('../../entity/Transaction');
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactions');
     // Check
@@ -282,6 +286,7 @@ class TransactionStorage {
   }
 
   static async getTransactionsInError(tenantID, params = {}, limit, skip, sort) {
+    const Transaction = require('../../entity/Transaction');
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactions');
     // Check
@@ -417,7 +422,7 @@ class TransactionStorage {
                 ]
               }
             },
-              {$addFields: {"errorCode": "noConsumption"}}
+            { $addFields: {"errorCode": "noConsumption"} }
             ]
         }
     };
@@ -494,6 +499,7 @@ class TransactionStorage {
    * @returns {Promise<Transaction>}
    */
   static async getTransaction(tenantID, id) {
+    const Transaction = require('../../entity/Transaction');
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransaction');
     // Check
@@ -598,6 +604,7 @@ class TransactionStorage {
   }
 
   static async getActiveTransaction(tenantID, chargeBoxID, connectorId) {
+    const Transaction = require('../../entity/Transaction');
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getActiveTransaction');
     // Check

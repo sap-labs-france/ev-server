@@ -3,8 +3,9 @@ const Database = require('../../utils/Database');
 const ChargingStation = require('../../entity/ChargingStation');
 const Tenant = require('../../entity/Tenant');
 const DatabaseUtils = require('../../storage/mongodb/DatabaseUtils');
+const MigrationTask = require('../MigrationTask');
 
-class UpdateTransactionInactivityTask {
+class UpdateTransactionInactivityTask extends MigrationTask {
   async migrate() {
     const tenants = await Tenant.getTenants();
 

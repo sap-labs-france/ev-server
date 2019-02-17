@@ -144,7 +144,7 @@ class TransactionService {
         if (!chargingStation) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `Charging Station with ID ${transaction.getChargingStation().id} does not exist`, 550,
+            `Charging Station with ID ${transaction.getChargeBoxID()} does not exist`, 550,
             'TransactionService', 'handleDeleteTransaction', req.user);
         }
         if (transaction.getID() === chargingStation.getConnector(transaction.getConnectorId()).activeTransactionID) {
@@ -299,7 +299,7 @@ class TransactionService {
       const startDateTime = filteredRequest.StartDateTime ? filteredRequest.StartDateTime : Constants.MIN_DATE;
       const endDateTime = filteredRequest.EndDateTime ? filteredRequest.EndDateTime : Constants.MAX_DATE;
       // Filter?
-      if (filteredRequest.StartDateTime || filteredRequest.EndDateTime) {
+      if (consumptions && (filteredRequest.StartDateTime || filteredRequest.EndDateTime)) {
         consumptions = consumptions.filter(consumption => moment(consumption.getEndedAt()).isBetween(startDateTime, endDateTime, null, '[]'));
       }
       // Return the result

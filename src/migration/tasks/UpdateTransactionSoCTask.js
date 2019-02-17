@@ -1,8 +1,9 @@
 const Database = require('../../utils/Database');
 const Tenant = require('../../entity/Tenant');
 const DatabaseUtils = require('../../storage/mongodb/DatabaseUtils');
+const MigrationTask = require('../MigrationTask');
 
-class UpdateTransactionSoCTask {
+class UpdateTransactionSoCTask extends MigrationTask {
   async migrate() {
     const tenants = await Tenant.getTenants();
 

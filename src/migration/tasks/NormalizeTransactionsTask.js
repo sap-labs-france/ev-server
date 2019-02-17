@@ -1,8 +1,13 @@
 const Tenant = require('../../entity/Tenant');
 const PricingStorage = require('../../storage/mongodb/PricingStorage');
+const DatabaseUtils = require('../../storage/mongodb/DatabaseUtils');
 const moment = require('moment');
+const Database = require('../../utils/Database');
+const Logging = require('../../utils/Logging');
+const Constants = require('../../utils/Constants');
+const MigrationTask = require('../MigrationTask');
 
-class NormalizeTransactionsTask {
+class NormalizeTransactionsTask extends MigrationTask {
   async migrate() {
     const tenants = await Tenant.getTenants();
 
@@ -12,6 +17,12 @@ class NormalizeTransactionsTask {
   }
 
   async migrateTenant(tenant) {
+    // eslint-disable-next-line no-undef
+    const chargersWithNoSiteArea = new Set();
+    let chargersWithNoSiteAreaTransactionCount = 0;
+    // eslint-disable-next-line no-undef
+    const chargersNotExisting = new Set();
+    let chargersNotExistingTransactionCount = 0;
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -21,6 +32,30 @@ class NormalizeTransactionsTask {
           $exists: true
         }
       }
+    });
+    // Add Charger
+    aggregation.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenant.getID(), 'chargingstations'),
+        localField: 'chargeBoxID',
+        foreignField: '_id',
+        as: 'chargeBox'
+      }
+    });
+    aggregation.push({
+      $unwind: {"path": "$chargeBox", "preserveNullAndEmptyArrays": true}
+    });
+    // Add Site Area
+    aggregation.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenant.getID(), 'siteareas'),
+        localField: 'chargeBox.siteAreaID',
+        foreignField: '_id',
+        as: 'siteArea'
+      }
+    });
+    aggregation.push({
+      $unwind: {"path": "$siteArea", "preserveNullAndEmptyArrays": true}
     });
     // Get the price
     const pricing = await PricingStorage.getPricing(tenant.getID());
@@ -38,10 +73,38 @@ class NormalizeTransactionsTask {
       transaction.timestamp = transactionMDB.timestamp;
       transaction.tagID = transactionMDB.tagID;
       transaction.userID = transactionMDB.userID;
+      // ChargeBox Found?
+      if (transactionMDB.chargeBox) {
+        // Yes: Assigned to Site Area?
+        if (transactionMDB.siteArea) {
+          // yes
+          transaction.siteAreaID = Database.validateId(transactionMDB.siteArea._id);
+          transaction.siteID = Database.validateId(transactionMDB.siteArea.siteID);
+        } else {
+          // No: add and log later
+          chargersWithNoSiteArea.add(transactionMDB.chargeBoxID);
+          chargersWithNoSiteAreaTransactionCount++;
+        }
+      } else {
+        // Not found: add and log later
+        chargersNotExisting.add(transactionMDB.chargeBoxID);
+        chargersNotExistingTransactionCount++;
+      }
       if (transactionMDB.hasOwnProperty('stateOfCharge')) {
         transaction.stateOfCharge = transactionMDB.stateOfCharge;
       } else {
         transaction.stateOfCharge = 0;
+      }
+      if (pricing) {
+        transaction.price = 0;
+        transaction.roundedPrice = 0; 
+        transaction.priceUnit = pricing.priceUnit;
+        transaction.pricingSource = "simple";
+      } else {
+        transaction.price = 0;
+        transaction.roundedPrice = 0; 
+        transaction.priceUnit = "";
+        transaction.pricingSource = "";
       }
       transaction.stop = {};
       transaction.stop.meterStop = transactionMDB.stop.meterStop;
@@ -69,11 +132,15 @@ class NormalizeTransactionsTask {
         transaction.stop.stateOfCharge = 0;
       }
       if (pricing) {
-        transaction.stop.priceUnit = pricing.priceUnit;
         transaction.stop.price = pricing.priceKWH * (transactionMDB.stop.totalConsumption / 1000);
+        transaction.stop.roundedPrice = (transaction.stop.price).toFixed(6);
+        transaction.stop.priceUnit = pricing.priceUnit;
+        transaction.stop.pricingSource = "simple";
       } else {
-        transaction.stop.priceUnit = "";
         transaction.stop.price = 0;
+        transaction.stop.roundedPrice = 0;
+        transaction.stop.priceUnit = "";
+        transaction.stop.pricingSource = "";
       }
       // Save it
       await global.database.getCollection(tenant.getID(), 'transactions').findOneAndReplace(
@@ -81,10 +148,30 @@ class NormalizeTransactionsTask {
         transaction, 
         { upsert: true, new: true, returnOriginal: false });
     }
+    // Charger Not Found?
+    if (chargersNotExisting.size > 0) {
+      // Log
+      Logging.logWarning({
+        tenantID: Constants.DEFAULT_TENANT,
+        source: "NormalizeTransactionsTask", action: "Migration",
+        module: "NormalizeTransactionsTask", method: "migrate",
+        message: `Tenant ${tenant.getName()} (${tenant.getID()}): ${chargersNotExisting.size} Charger(s) not found in ${chargersNotExistingTransactionCount} Transaction(s): ${Array.from(chargersNotExisting).join(", ")}`
+      });
+    }
+    // Charger with no Site Area
+    if (chargersWithNoSiteArea.size > 0) {
+      // Log
+      Logging.logWarning({
+        tenantID: Constants.DEFAULT_TENANT,
+        source: "NormalizeTransactionsTask", action: "Migration",
+        module: "NormalizeTransactionsTask", method: "migrate",
+        message: `Tenant ${tenant.getName()} (${tenant.getID()}): ${chargersWithNoSiteArea.size} Charger(s) with no Site Area in ${chargersWithNoSiteAreaTransactionCount} Transaction(s): ${Array.from(chargersWithNoSiteArea).join(", ")}`
+      });
+    }
   }
 
   getVersion() {
-    return "1.0";
+    return "1.1";
   }
 
   getName() {
