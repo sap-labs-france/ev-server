@@ -2,9 +2,9 @@ const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const Logging = require('../../utils/Logging');
 const Consumption = require('../../entity/Consumption');
-const ObjectID = require('mongodb').ObjectID;
 
 class ConsumptionStorage {
+
   /**
    *
    * @param tenantID
@@ -17,17 +17,15 @@ class ConsumptionStorage {
     // Check
     await Utils.checkTenant(tenantID);
     // Set the ID
-    if (consumptionToSave.id) {
-      consumptionToSave.id = Utils.convertToObjectID(consumptionToSave.id);
-    } else {
-      consumptionToSave.id = new ObjectID();
+    if (!consumptionToSave.id) {
+      consumptionToSave.id = ConsumptionStorage.computeConsumptionId(consumptionToSave);
     }
     // Transfer
     const consumption = {};
     Database.updateConsumption(consumptionToSave, consumption, false);
     // Modify
     const result = await global.database.getCollection(tenantID, 'consumptions').findOneAndUpdate(
-      {"transactionId": consumption.transactionId, endedAt: consumption.endedAt},
+      {"_id": consumptionToSave.id},
       {
         $set: consumption
       },
@@ -114,6 +112,21 @@ class ConsumptionStorage {
       return consumptionsMDB.map(c => new Consumption(tenantID, c));
     }
     return null;
+  }
+
+  static computeConsumptionId(consumptionData) {
+
+    const dataId = consumptionData.transactionId + consumptionData.endedAt;
+
+    let hash = 0, i, chr;
+    if (dataId.length === 0) return hash;
+    for (i = 0; i < dataId.length; i++) {
+      chr = dataId.charCodeAt(i);
+      hash = ((hash << 5) - hash) + chr;
+      hash |= 0; // Convert to 32bit integer
+    }
+
+    return hash > 0 ? hash : hash * -1;
   }
 
 }

@@ -630,7 +630,6 @@ class Database {
       dest.siteID = Database.validateId(src.siteID);
       dest.siteAreaID = Database.validateId(src.siteAreaID);
     } else {
-      dest._id = Utils.convertToObjectID(src.id);
       dest.userID = Utils.convertToObjectID(src.userID);
       dest.chargeBoxID = src.chargeBoxID;
       dest.siteID = Utils.convertToObjectID(src.siteID);
@@ -638,15 +637,17 @@ class Database {
     }
     dest.connectorId = Utils.convertToInt(src.connectorId);
     dest.transactionId = Utils.convertToInt(src.transactionId);
-    dest.startedAt = Utils.convertToDate(src.startedAt);
     dest.endedAt = Utils.convertToDate(src.endedAt);
     if (src.stateOfCharge) {
       dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);
     }
-    dest.cumulatedConsumption = Utils.convertToInt(src.cumulatedConsumption);
-    dest.consumption = Utils.convertToInt(src.consumption);
-    dest.instantPower = Utils.convertToInt(src.instantPower);
-    dest.totalInactivitySecs = Utils.convertToInt(src.totalInactivitySecs);
+    if (src.consumption) {
+      dest.startedAt = Utils.convertToDate(src.startedAt);
+      dest.cumulatedConsumption = Utils.convertToInt(src.cumulatedConsumption);
+      dest.consumption = Utils.convertToInt(src.consumption);
+      dest.instantPower = Utils.convertToInt(src.instantPower);
+      dest.totalInactivitySecs = Utils.convertToInt(src.totalInactivitySecs);
+    }
     if (src.pricingSource) {
       dest.pricingSource = src.pricingSource;
       dest.amount = Utils.convertToFloat(src.amount);
