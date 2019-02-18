@@ -2,9 +2,9 @@ const Database = require('../../utils/Database');
 const Utils = require('../../utils/Utils');
 const Logging = require('../../utils/Logging');
 const Consumption = require('../../entity/Consumption');
+const crypto = require('crypto');
 
 class ConsumptionStorage {
-
   /**
    *
    * @param tenantID
@@ -18,7 +18,10 @@ class ConsumptionStorage {
     await Utils.checkTenant(tenantID);
     // Set the ID
     if (!consumptionToSave.id) {
-      consumptionToSave.id = ConsumptionStorage.computeConsumptionId(consumptionToSave);
+      // Set the ID
+      consumptionToSave.id = crypto.createHash('sha256')
+        .update(`${consumptionToSave.transactionId}~${consumptionToSave.endedAt}`)
+        .digest("hex");
     }
     // Transfer
     const consumption = {};
@@ -113,22 +116,6 @@ class ConsumptionStorage {
     }
     return null;
   }
-
-  static computeConsumptionId(consumptionData) {
-
-    const dataId = consumptionData.transactionId + consumptionData.endedAt;
-
-    let hash = 0, i, chr;
-    if (dataId.length === 0) return hash;
-    for (i = 0; i < dataId.length; i++) {
-      chr = dataId.charCodeAt(i);
-      hash = ((hash << 5) - hash) + chr;
-      hash |= 0; // Convert to 32bit integer
-    }
-
-    return hash > 0 ? hash : hash * -1;
-  }
-
 }
 
 module.exports = ConsumptionStorage;
