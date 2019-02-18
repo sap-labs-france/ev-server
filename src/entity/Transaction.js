@@ -678,7 +678,9 @@ class Transaction extends AbstractTenantEntity {
           consumptionData.roundedAmount = consumption.roundedAmount;
           consumptionData.currencyCode = consumption.currencyCode;
           consumptionData.pricingSource = consumption.pricingSource;
-          if (!consumption.cumulatedAmount) {
+          if (consumption.cumulatedAmount) {
+            consumptionData.cumulatedAmount = consumption.cumulatedAmount;
+          } else {
             consumptionData.cumulatedAmount = parseFloat((this.getCurrentCumulatedPrice() + consumptionData.amount).toFixed(6));
           }
           // Keep latest
@@ -696,7 +698,9 @@ class Transaction extends AbstractTenantEntity {
           consumptionData.roundedAmount = consumption.roundedAmount;
           consumptionData.currencyCode = consumption.currencyCode;
           consumptionData.pricingSource = consumption.pricingSource;
-          if (!consumption.cumulatedAmount) {
+          if (consumption.cumulatedAmount) {
+            consumptionData.cumulatedAmount = consumption.cumulatedAmount;
+          } else {
             consumptionData.cumulatedAmount = parseFloat((this.getCurrentCumulatedPrice() + consumptionData.amount).toFixed(6));
           }
           this._model.currentCumulatedPrice = consumptionData.cumulatedAmount;
