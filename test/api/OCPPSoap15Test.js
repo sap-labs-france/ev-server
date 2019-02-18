@@ -4,7 +4,7 @@ const CentralServerService = require('./client/CentralServerService');
 const config = require('../config');
 
 describe('OCPP 1.5 SOAP Tests', function () {
-  this.timeout(100000);
+  this.timeout(1000);
 
   before(async () => {
     // Get Tenant ID

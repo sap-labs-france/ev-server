@@ -4,7 +4,7 @@ const CentralServerService = require('./client/CentralServerService');
 const config = require('../config');
 
 describe('OCPP 1.6 JSON Tests', function () {
-  this.timeout(100000);
+  this.timeout(10000);
 
   before(async () => {
     // Get Tenant ID
