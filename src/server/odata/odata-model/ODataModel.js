@@ -61,8 +61,8 @@ module.exports = {
       "timestamp": { "type": "Edm.DateTimeOffset"},
       "startDate": { "type": "Edm.DateTimeOffset"},
       "tagID": { "type": "Edm.String" },
-      "userID": { "type": "Edm.String" },
-      "stop": { 'type': 'eMobility.TransactionStop' }
+      "user": { "type": "eMobility.User" },
+      "stop": { "type": "eMobility.TransactionStop" }
     },
     "BootNotification": {
       // "id": { "type": "Edm.String", key: true },
@@ -89,7 +89,7 @@ module.exports = {
       "priceUnit": { "type": "Edm.String" },
       "price": { "type": "Edm.Double" },
       "tagID": { "type": "Edm.String" },
-      "userID": { "type": "Edm.String" }
+      "user": { "type": "eMobility.User" }
     },
     'Address': {
       'country': { "type": "Edm.String" },
@@ -101,6 +101,11 @@ module.exports = {
       'address2': { "type": "Edm.String" },
       'latitude': { "type": "Edm.Double" },
       'longitude': { "type": "Edm.Double" }
+    },
+    'User': {
+      "id" : { "type": "Edm.String"},
+      "name" : { "type": "Edm.String" },
+      "firstName" : { "type": "Edm.String" }
     }
   },
   entitySets: {

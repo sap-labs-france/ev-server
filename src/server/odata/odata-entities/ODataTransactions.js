@@ -60,6 +60,10 @@ class ODataTransactions extends AbstractODataEntities {
     if (transaction.hasOwnProperty('timestamp') && transaction.timestamp) {
       transaction.timestamp = transaction.timestamp.split('.')[0] + "Z";
       transaction.startDate = transaction.timestamp.split('T')[0];
+
+      // test
+      transaction.timestamptest = this.convertTimestamp(transaction.timestamp, 'Europe/London');
+      transaction.datetest = this.buildDateObject(transaction.timestamp, 'Europe/London');
     }
 
     if (transaction.hasOwnProperty('stop')) {

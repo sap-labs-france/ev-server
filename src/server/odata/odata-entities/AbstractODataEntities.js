@@ -1,4 +1,7 @@
+// const moment = require('moment');
+const moment = require('moment-timezone');
 const _ = require('lodash');
+
 
 class AbstractODataEntities {
   static buildParams(query) {
@@ -15,6 +18,27 @@ class AbstractODataEntities {
   static convert(object,tenant) {
     // set tenant
     return _.merge({ tenant: tenant}, object);
+  }
+
+  static convertTimestamp(timestampUTC, tz) {
+    return  (tz && timestampUTC) ? moment(timestampUTC).tz(tz).format() : timestampUTC; 
+  }
+
+  static buildDateObject(timestamplocal,tz) {
+    if (!timestamplocal) {
+      return;
+    }
+    
+    // date object: Date/DayOfTheWeek/ourOfTheDay
+    const date = moment(timestamplocal);
+    date.utcOffset(0);
+    // date.local();
+    return {
+      date: date.format('YYYY-MM-DD'),
+      dayOfTheWeek: date.format("d"),
+      hourOfTheDay: date.hours(),
+      weekOfTheYear: date.format("W")
+    }
   }
 
   static returnResponse(response, query, req, cb) {

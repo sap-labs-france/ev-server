@@ -33,6 +33,7 @@
 		"locale": "^0.1.0",
 		"moment": "^2.22.2",
 		"moment-duration-format": "^2.2.2",
+		"moment-timezone": "^0.5.23",
 		"mongo-sanitize": "^1.0.1",
 		"mongo-uri-builder": "^1.0.3",
 		"mongodb": "^3.1.10",
