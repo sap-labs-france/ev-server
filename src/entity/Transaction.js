@@ -396,8 +396,20 @@ class Transaction extends AbstractTenantEntity {
     this.setCurrentTotalConsumption(0);
     this.setCurrentConsumptionWh(0);
     this.setUser(user);
+
+    const meterValue = {
+      id: '666',
+      connectorId: this.getConnectorId(),
+      transactionId: this.getID(),
+      timestamp: this.getStartDate(),
+      value: this.getMeterStart(),
+      attribute: DEFAULT_CONSUMPTION_ATTRIBUTE
+    };
+
     // Build consumption
-    await this.buildConsumption(this.getStartDate(), this.getStartDate(), null, 'start');
+    const consumption = await this.buildConsumption(this.getStartDate(), this.getStartDate(), meterValue);
+    // Update the price
+    await this.computePricing(consumption, 'start');
   }
 
   /**
@@ -504,9 +516,11 @@ class Transaction extends AbstractTenantEntity {
     };
 
     // Build final consumption
-    const consumption = await this.buildConsumption(lastMeterValue.timestamp, timestamp, meterValueData, 'stop');
-    // Save the final consumption
-    await this.saveConsumption(consumption, 'stop');
+    const consumption = await this.buildConsumption(lastMeterValue.timestamp, timestamp, meterValueData);
+    // Update the price
+    await this.computePricing(consumption, 'stop');
+    // Save Consumption
+    await this.saveConsumption(consumption);
     // Remove runtime data
     delete this._model.currentConsumption;
     delete this._model.currentStateOfCharge;
@@ -540,7 +554,8 @@ class Transaction extends AbstractTenantEntity {
     return false;
   }
 
-  async buildConsumption(startedAt, endedAt, meterValue, action) {
+
+  async buildConsumption(startedAt, endedAt, meterValue) {
     const consumption = {
       transactionId: this.getID(),
       connectorId: this.getConnectorId(),
@@ -551,7 +566,7 @@ class Transaction extends AbstractTenantEntity {
       endedAt: endedAt
     };
     // SoC?
-    if (meterValue && this.isSocMeterValue(meterValue)) {
+    if (this.isSocMeterValue(meterValue)) {
       // Set SoC
       consumption.stateOfCharge = this.getCurrentStateOfCharge();
     } else {
@@ -562,9 +577,8 @@ class Transaction extends AbstractTenantEntity {
       consumption.cumulatedConsumption = this.getCurrentTotalConsumption();
       consumption.totalInactivitySecs = this.getCurrentTotalInactivitySecs();
       consumption.totalDurationSecs = this.getCurrentTotalDurationSecs();
+      consumption.stateOfCharge = this.getCurrentStateOfCharge();
     }
-    // Update the price
-    await this.computePricing(consumption, action);
     // Return
     return consumption;
   }
@@ -603,11 +617,25 @@ class Transaction extends AbstractTenantEntity {
     // Save Meter Values
     await TransactionStorage.saveMeterValues(this.getTenantID(), meterValues);
     // Process consumption
+    const consumptions = [];
     for (const meterValue of meterValues.values) {
       // Update Transaction with Meter Values
       const lastMeterValue = await this.updateWithMeterValue(meterValue);
       // Compute consumption
-      const consumption = await this.buildConsumption(lastMeterValue.timestamp, meterValue.timestamp, meterValue, 'update');
+      let consumption = await this.buildConsumption(lastMeterValue.timestamp, meterValue.timestamp, meterValue);
+      const consumptionToUpdateWith = consumptions.find(c => c.endedAt.getTime() === consumption.endedAt.getTime());
+      consumption.toPrice = this.isConsumptionMeterValue(meterValue);
+      if (consumptionToUpdateWith) {
+        consumptions.slice(consumptions.indexOf(consumptionToUpdateWith, 1));
+        consumption = {...consumptionToUpdateWith, ...consumption};
+      }
+      consumptions.push(consumption);
+    }
+    for (const consumption of consumptions) {
+      if (consumption.toPrice) {
+        // Update the price
+        await this.computePricing(consumption, 'update');
+      }
       // Save Consumption
       await this.saveConsumption(consumption);
     }
@@ -650,7 +678,9 @@ class Transaction extends AbstractTenantEntity {
           consumptionData.roundedAmount = consumption.roundedAmount;
           consumptionData.currencyCode = consumption.currencyCode;
           consumptionData.pricingSource = consumption.pricingSource;
-          if (!consumption.cumulatedAmount) {
+          if (consumption.cumulatedAmount) {
+            consumptionData.cumulatedAmount = consumption.cumulatedAmount;
+          } else {
             consumptionData.cumulatedAmount = parseFloat((this.getCurrentCumulatedPrice() + consumptionData.amount).toFixed(6));
           }
           // Keep latest
@@ -668,7 +698,9 @@ class Transaction extends AbstractTenantEntity {
           consumptionData.roundedAmount = consumption.roundedAmount;
           consumptionData.currencyCode = consumption.currencyCode;
           consumptionData.pricingSource = consumption.pricingSource;
-          if (!consumption.cumulatedAmount) {
+          if (consumption.cumulatedAmount) {
+            consumptionData.cumulatedAmount = consumption.cumulatedAmount;
+          } else {
             consumptionData.cumulatedAmount = parseFloat((this.getCurrentCumulatedPrice() + consumptionData.amount).toFixed(6));
           }
           this._model.currentCumulatedPrice = consumptionData.cumulatedAmount;
