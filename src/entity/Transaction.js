@@ -11,6 +11,14 @@ const ConvergentCharging = require("../integration/pricing/convergent-charging/C
 const SimplePricing = require("../integration/pricing/simple-pricing/SimplePricing");
 const Constants = require('../utils/Constants');
 
+const DEFAULT_CONSUMPTION_ATTRIBUTE = {
+  unit: 'Wh',
+  location: 'Outlet',
+  measurand: 'Energy.Active.Import.Register',
+  format: 'Raw',
+  context: 'Sample.Periodic'
+};
+
 class Transaction extends AbstractTenantEntity {
   constructor(tenantID, transaction) {
     super(tenantID);
@@ -461,7 +469,10 @@ class Transaction extends AbstractTenantEntity {
     if (Utils.convertToInt(meterStop) >= lastMeterValue.value) {
       // Compute consumption
       const consumption = meterStop - lastMeterValue.value;
+      const sampleMultiplier = diffSecs > 0 ? 3600 / diffSecs : 0;
+      const currentConsumption = consumption * sampleMultiplier;
       // Update current consumption
+      this.setCurrentConsumption(currentConsumption);
       this.setCurrentTotalConsumption(this.getCurrentTotalConsumption() + consumption);
       this.setCurrentConsumptionWh(consumption);
       // Inactivity?
@@ -483,8 +494,17 @@ class Transaction extends AbstractTenantEntity {
       this._model.stop.totalDurationSecs = Math.round(moment.duration(moment().diff(moment(this.getStartDate()))).asSeconds());
       this._model.stop.totalInactivitySecs = this._model.stop.totalDurationSecs;
     }
+    const meterValueData = {
+      id: '6969',
+      connectorId: this.getConnectorId(),
+      transactionId: this.getID(),
+      timestamp: timestamp,
+      value: meterStop,
+      attribute: DEFAULT_CONSUMPTION_ATTRIBUTE
+    };
+
     // Build final consumption
-    const consumption = await this.buildConsumption(lastMeterValue.timestamp, timestamp, null, 'stop');
+    const consumption = await this.buildConsumption(lastMeterValue.timestamp, timestamp, meterValueData, 'stop');
     // Save the final consumption
     await this.saveConsumption(consumption, 'stop');
     // Remove runtime data
@@ -614,7 +634,7 @@ class Transaction extends AbstractTenantEntity {
         } else {
           // Default
           this._model.price = 0;
-          this._model.roundedPrice = 0; 
+          this._model.roundedPrice = 0;
           this._model.priceUnit = "";
           this._model.pricingSource = "";
         }
@@ -630,7 +650,9 @@ class Transaction extends AbstractTenantEntity {
           consumptionData.roundedAmount = consumption.roundedAmount;
           consumptionData.currencyCode = consumption.currencyCode;
           consumptionData.pricingSource = consumption.pricingSource;
-          consumptionData.cumulatedAmount = this.getCurrentCumulatedPrice() + consumptionData.amount;
+          if (!consumption.cumulatedAmount) {
+            consumptionData.cumulatedAmount = parseFloat((this.getCurrentCumulatedPrice() + consumptionData.amount).toFixed(6));
+          }
           // Keep latest
           this._model.currentCumulatedPrice = consumptionData.cumulatedAmount;
         }
@@ -646,15 +668,22 @@ class Transaction extends AbstractTenantEntity {
           consumptionData.roundedAmount = consumption.roundedAmount;
           consumptionData.currencyCode = consumption.currencyCode;
           consumptionData.pricingSource = consumption.pricingSource;
-          consumptionData.cumulatedAmount = this.getCurrentCumulatedPrice() + consumptionData.amount;
+          if (!consumption.cumulatedAmount) {
+            consumptionData.cumulatedAmount = parseFloat((this.getCurrentCumulatedPrice() + consumptionData.amount).toFixed(6));
+          }
+          this._model.currentCumulatedPrice = consumptionData.cumulatedAmount;
           // Update Transaction
-          this._model.stop.price = this.getCurrentCumulatedPrice();
-          this._model.stop.roundedPrice = (this.getCurrentCumulatedPrice()).toFixed(6);
+          this._model.stop.price = parseFloat(this.getCurrentCumulatedPrice().toFixed(6));
+          this._model.stop.roundedPrice = (this.getCurrentCumulatedPrice()).toFixed(2);
           this._model.stop.priceUnit = consumption.currencyCode;
           this._model.stop.pricingSource = consumption.pricingSource;
         }
         break;
     }
+  }
+
+  async roundTo(number, scale) {
+    return parseFloat(number.toFixed(scale));
   }
 
   async saveConsumption(consumption) {

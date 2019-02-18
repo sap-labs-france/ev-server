@@ -885,7 +885,7 @@ describe('Transaction tests', function() {
       const meterStart = 180;
       const startDate = moment();
       const transactionId = await this.dataHelper.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
-      await CentralServerService.pricingApi.update({priceKWH: 1.5, priceUnit: 'EUR'});
+      await CentralServerService.updatePriceSetting(1.5,'EUR');
 
       const currentDate = startDate.clone();
 

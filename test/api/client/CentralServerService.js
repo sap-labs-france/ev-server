@@ -14,12 +14,12 @@ const TenantApi = require('./TenantApi');
 const ChargingStationApi = require('./ChargingStationApi');
 const TransactionApi = require('./TransactionApi');
 const MailApi = require('./MailApi');
-const PricingApi = require('./PricingApi');
 const SettingApi = require('./SettingApi');
 const OCPIEndpointApi = require('./OCPIEndpointApi');
 
 // Set
 chai.use(chaiSubset);
+
 class CentralServerService {
 
   constructor() {
@@ -37,14 +37,36 @@ class CentralServerService {
     this.authenticationApi = new AuthenticationApi(this.baseApi);
     this.tenantApi = new TenantApi(this.authenticatedSuperAdminApi, this.baseApi);
     this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this.baseApi);
-    this.pricingApi = new PricingApi(this.authenticatedApi, this.baseApi);
     this.transactionApi = new TransactionApi(this.authenticatedApi);
     this.settingApi = new SettingApi(this.authenticatedApi);
     this.ocpiendpointApi = new OCPIEndpointApi(this.authenticatedApi);
-    this.mailApi= new MailApi(new BaseApi(`http://${config.get('mailServer.host')}:${config.get('mailServer.port')}`));
+    this.mailApi = new MailApi(new BaseApi(`http://${config.get('mailServer.host')}:${config.get('mailServer.port')}`));
   }
 
-  async createEntity(entityApi, entity, performCheck=true) {
+  async updatePriceSetting(priceKWH, priceUnit) {
+
+    const settings = await this.settingApi.readAll();
+    let newSetting = false;
+    let setting = settings.data.result.find(s => s.identifier == 'pricing');
+    if (!setting) {
+      setting = {};
+      setting.identifier = "pricing";
+      newSetting = true;
+    }
+    setting.content = {
+      simple: {
+        price: priceKWH,
+        currency: priceUnit
+      }
+    };
+    if (newSetting) {
+      return this.settingApi.create(setting);
+    } else {
+      return this.settingApi.update(setting);
+    }
+  }
+
+  async createEntity(entityApi, entity, performCheck = true) {
     // Create
     let response = await entityApi.create(entity);
     // Check
@@ -62,10 +84,10 @@ class CentralServerService {
     }
   }
 
-  async getEntityById(entityApi, entity, performCheck=true) {
+  async getEntityById(entityApi, entity, performCheck = true) {
     // Check first if created
     expect(entity).to.not.be.null;
-  // Retrieve it from the backend
+    // Retrieve it from the backend
     let response = await entityApi.readById(entity.id);
     // Check
     if (performCheck) {
@@ -81,11 +103,11 @@ class CentralServerService {
     }
   }
 
-  async checkEntityInList(entityApi, entity, performCheck=true) {
+  async checkEntityInList(entityApi, entity, performCheck = true) {
     // Check
     expect(entity).to.not.be.null;
     // Retrieve from the backend
-    let response = await entityApi.readAll({}, { limit: Constants.UNLIMITED, skip: 0 });
+    let response = await entityApi.readAll({}, {limit: Constants.UNLIMITED, skip: 0});
     // Check
     if (performCheck) {
       // Check
@@ -103,11 +125,11 @@ class CentralServerService {
     }
   }
 
-  async checkEntityInListWithParams(entityApi, entity, params={}, performCheck=true ) {
+  async checkEntityInListWithParams(entityApi, entity, params = {}, performCheck = true) {
     // Check
     expect(entity).to.not.be.null;
     // Retrieve from the backend
-    let response = await entityApi.readAll(params, { limit: Constants.UNLIMITED, skip: 0 });
+    let response = await entityApi.readAll(params, {limit: Constants.UNLIMITED, skip: 0});
     // Check
     if (performCheck) {
       // Check
@@ -125,7 +147,7 @@ class CentralServerService {
     }
   }
 
-  async deleteEntity(entityApi, entity, performCheck=true) {
+  async deleteEntity(entityApi, entity, performCheck = true) {
     // Check
     expect(entity).to.not.be.null;
     // Delete it in the backend
@@ -141,7 +163,7 @@ class CentralServerService {
     }
   }
 
-  async updateEntity(entityApi, entity, performCheck=true) {
+  async updateEntity(entityApi, entity, performCheck = true) {
     // Check
     expect(entity).to.not.be.null;
     // Delete it in the backend
@@ -157,7 +179,7 @@ class CentralServerService {
     }
   }
 
-  async checkDeletedEntityById(entityApi, entity, performCheck=true) {
+  async checkDeletedEntityById(entityApi, entity, performCheck = true) {
     // Check
     expect(entity).to.not.be.null;
     // Create it in the backend

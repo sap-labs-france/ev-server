@@ -20,8 +20,8 @@ class SimplePricing extends Pricing {
   async computePrice(consumptionData) {
     return {
       pricingSource: 'simple',
-      amount: this.setting.price * (consumptionData.consumption / 1000),
-      roundedAmount: parseFloat((this.setting.price * (consumptionData.consumption / 1000)).toFixed(6)),
+      amount: parseFloat((this.setting.price * (consumptionData.consumption / 1000)).toFixed(6)),
+      roundedAmount: parseFloat((this.setting.price * (consumptionData.consumption / 1000)).toFixed(2)),
       currencyCode: this.setting.currency
     };
   }
