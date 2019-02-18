@@ -1,5 +1,4 @@
 const ODataTransactions = require('./odata-entities/ODataTransactions');
-const oDataBootNotifications = require('./odata-entities/ODataBootNotifications');
 const oDataCompanies = require('./odata-entities/ODataCompanies');
 const oDataSites = require('./odata-entities/ODataSites');
 const oDataSiteAreas = require('./odata-entities/ODataSiteAreas');
@@ -33,24 +32,12 @@ class ODataDatabaseAdapter {
 
     // set tenant
     req.tenant = tenant;
+    // set timezone - TODO: should be provided by tenant configuraiton
+    req.timezone = 'Europe/Paris';
 
     // handle error
     try {
       switch (collection) {
-        case 'Transactions':
-          // get tenant TODO: test
-          req.user = {};
-          req.user.tenantID = '5be7fb271014d90008992f06';
-
-          ODataTransactions.query(query, req, cb);
-          break;
-        case 'BootNotifications':
-          // get tenant TODO: test
-          req.user = {};
-          req.user.tenantID = '5be7fb271014d90008992f06';
-
-          oDataBootNotifications.query(query, req, cb);
-          break;
         case 'TransactionsCompleted':
           ODataTransactions.getTransactionsCompleted(centralServiceApi, query, req, cb);
           break;

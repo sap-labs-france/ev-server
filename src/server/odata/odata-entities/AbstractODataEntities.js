@@ -15,24 +15,23 @@ class AbstractODataEntities {
     return params;
   }
 
-  static convert(object,tenant) {
+  static convert(object,req) {
     // set tenant
-    return _.merge({ tenant: tenant}, object);
+    return _.merge({ tenant: req.tenant}, object);
   }
 
-  static convertTimestamp(timestampUTC, tz) {
-    return  (tz && timestampUTC) ? moment(timestampUTC).tz(tz).format() : timestampUTC; 
+  // convert timestamp based on time eg: 'Europe/Paris'
+  static convertTimestamp(timestampUTC, req) {
+    return  (req.timezone && timestampUTC) ? moment(timestampUTC).tz(req.timezone).format() : timestampUTC; 
   }
 
-  static buildDateObject(timestamplocal,tz) {
-    if (!timestamplocal) {
+  static buildDateObject(timestamp,req) {
+    if (!timestamp) {
       return;
     }
     
     // date object: Date/DayOfTheWeek/ourOfTheDay
-    const date = moment(timestamplocal);
-    date.utcOffset(0);
-    // date.local();
+    const date = moment(timestamp).tz(req.timezone);
     return {
       date: date.format('YYYY-MM-DD'),
       dayOfTheWeek: date.format("d"),
@@ -64,15 +63,15 @@ class AbstractODataEntities {
 
       if (fields.length != 0) {
         if (Array.isArray(result)) {
-          result = result.map((object)=> {return _.pick(this.convert(object,req.tenant),fields)});
+          result = result.map((object)=> {return _.pick(this.convert(object,req),fields)});
         } else {
-          result = _.pick(this.convert(result,req.tenant), fields);
+          result = _.pick(this.convert(result,req), fields);
         }
       } else {
         if (Array.isArray(result)) {
-          result = result.map((object)=> {return this.convert(object,req.tenant)});
+          result = result.map((object)=> {return this.convert(object,req)});
         } else {
-          result = this.convert(result,req.tenant);
+          result = this.convert(result,req);
         }
       }
     }
