@@ -3,7 +3,6 @@ const moment = require('moment');
 const Logging = require('../../../utils/Logging');
 const Pricing = require('../Pricing');
 
-const CI_NAME = '[CA] Charging Data';
 
 class ConvergentCharging extends Pricing {
   /**
@@ -23,7 +22,6 @@ class ConvergentCharging extends Pricing {
       new ChargeableItemProperty('siteID', Type.string, consumptionData.siteID),
       new ChargeableItemProperty('siteAreaID', Type.string, consumptionData.siteAreaID),
       new ChargeableItemProperty('connectorId', Type.number, consumptionData.connectorId),
-      new ChargeableItemProperty('transactionId', Type.number, consumptionData.transactionId),
       new ChargeableItemProperty('startedAt', Type.date, moment(consumptionData.startedAt).format('YYYY-MM-DDTHH:mm:ss')),
       new ChargeableItemProperty('endedAt', Type.date, moment(consumptionData.endedAt).format('YYYY-MM-DDTHH:mm:ss')),
       new ChargeableItemProperty('cumulatedConsumption', Type.number, consumptionData.cumulatedConsumption),
@@ -31,14 +29,27 @@ class ConvergentCharging extends Pricing {
     ]
   }
 
+  computeSessionId(consumptionData) {
+
+    const dataId = consumptionData.userID + consumptionData.chargeBoxID + consumptionData.connectorId;
+
+    let hash = 0, i, chr;
+    if (dataId.length === 0) return hash;
+    for (i = 0; i < dataId.length; i++) {
+      chr = dataId.charCodeAt(i);
+      hash = ((hash << 5) - hash) + chr;
+      hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+  }
+
   async startSession(consumptionData) {
-    const reservationItem = new ReservationItem(CI_NAME, this.consumptionToChargeableItemProperties(consumptionData));
-    const request = new StartRateRequest(reservationItem, consumptionData.transactionId, moment(consumptionData.startedAt).format('YYYY-MM-DDTHH:mm:ss'), consumptionData.chargeBoxID, consumptionData.userID, 'cancelled', 30000, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING', null);
+    const sessionId = this.computeSessionId(consumptionData);
+    const reservationItem = new ReservationItem(this.setting.chargeableItemName, this.consumptionToChargeableItemProperties(consumptionData));
+    const request = new StartRateRequest(reservationItem, sessionId, moment(consumptionData.startedAt).format('YYYY-MM-DDTHH:mm:ss'), consumptionData.chargeBoxID, consumptionData.userID, 'cancelled', 30000, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING', null);
     const result = await this.statefulChargingService.execute(request);
     if (result.data.startRateResult) {
       const rateResult = new RateResult(result.data.startRateResult);
-      console.log("startRateResult");
-      console.log(JSON.stringify(rateResult));
       this.handleAlertNotification(consumptionData, rateResult);
       return {
         amount: 0,
@@ -63,10 +74,12 @@ class ConvergentCharging extends Pricing {
   }
 
   async updateSession(consumptionData) {
-    const confirmationItem = new ConfirmationItem(CI_NAME, this.consumptionToChargeableItemProperties(consumptionData));
-    const reservationItem = new ReservationItem(CI_NAME, this.consumptionToChargeableItemProperties(consumptionData));
 
-    const request = new UpdateRateRequest(confirmationItem, reservationItem, consumptionData.transactionId, moment(consumptionData.endedAt).format('YYYY-MM-DDTHH:mm:ss'), consumptionData.chargeBoxID, consumptionData.userID, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
+    const sessionId = this.computeSessionId(consumptionData);
+    const confirmationItem = new ConfirmationItem(this.setting.chargeableItemName, this.consumptionToChargeableItemProperties(consumptionData));
+    const reservationItem = new ReservationItem(this.setting.chargeableItemName, this.consumptionToChargeableItemProperties(consumptionData));
+
+    const request = new UpdateRateRequest(confirmationItem, reservationItem, sessionId, moment(consumptionData.endedAt).format('YYYY-MM-DDTHH:mm:ss'), consumptionData.chargeBoxID, consumptionData.userID, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
     const result = await this.statefulChargingService.execute(request);
     if (result.data.updateRateResult) {
       const rateResult = new RateResult(result.data.updateRateResult);
@@ -95,9 +108,10 @@ class ConvergentCharging extends Pricing {
   }
 
   async stopSession(consumptionData) {
-    const confirmationItem = new ConfirmationItem(CI_NAME, this.consumptionToChargeableItemProperties(consumptionData));
+    const sessionId = this.computeSessionId(consumptionData);
+    const confirmationItem = new ConfirmationItem(this.setting.chargeableItemName, this.consumptionToChargeableItemProperties(consumptionData));
 
-    const request = new StopRateRequest(confirmationItem, consumptionData.transactionId, consumptionData.chargeBoxID, consumptionData.userID, 'confirmed', 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
+    const request = new StopRateRequest(confirmationItem, sessionId, consumptionData.chargeBoxID, consumptionData.userID, 'confirmed', 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
     const result = await this.statefulChargingService.execute(request);
     if (result.data.stopRateResult) {
       const rateResult = new RateResult(result.data.stopRateResult);
@@ -437,10 +451,6 @@ class CCTransaction {
         this.notifications = [new Notification(model.notification)];
       }
     }
-
-  }
-
-  static parse(model) {
 
   }
 
