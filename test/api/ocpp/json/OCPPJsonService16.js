@@ -21,9 +21,7 @@ class OCPPJsonService16 extends OCPPService {
     return new Promise((resolve, reject) => {
       // Create WS
       const sentRequests = [];
-      const wsConnection = new WebSocket(`${this.serverUrl}/${chargeBoxIdentity}`, {
-        protocol: 'ocpp1.6'
-      });
+      const wsConnection = new WebSocket(`${this.serverUrl}/${chargeBoxIdentity}`,'ocpp1.6');
       // Opened
       wsConnection.onopen = () => {
         // connection is opened and ready to use

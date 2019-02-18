@@ -7,6 +7,12 @@ const DatabaseUtils = require('./DatabaseUtils');
 const Logging = require('../../utils/Logging');
 
 class SettingStorage {
+  /**
+   *
+   * @param tenantID
+   * @param id
+   * @returns {Promise<Setting>}
+   */
   static async getSetting(tenantID, id) {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'getSetting');

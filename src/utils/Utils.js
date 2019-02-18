@@ -331,19 +331,8 @@ class Utils {
     if (src === null || src === undefined || typeof src !== 'object') {
       return src
     }
-    if (src instanceof Date) {
-      return new Date(src.getTime());
-    }
-    let dest = {};
-    if (src instanceof Array) {
-      dest = [];
-    }
-    for (const index in src) {
-      if (src.hasOwnProperty(index)) {
-        dest[index] = Utils.duplicateJSON(src[index]);
-      }
-    }
-    return dest;
+    // Recreate all of it
+    return JSON.parse(JSON.stringify(src));
   }
 }
 

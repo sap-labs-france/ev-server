@@ -103,15 +103,24 @@ class TransactionSecurity {
         filteredTransaction.errorCode = transaction.getModel().errorCode;
       }
       filteredTransaction.chargeBoxID = transaction.getChargeBoxID();
+      filteredTransaction.siteID = transaction.getSiteID();
+      filteredTransaction.siteAreaID = transaction.getSiteAreaID();
       filteredTransaction.connectorId = transaction.getConnectorId();
       filteredTransaction.meterStart = transaction.getMeterStart();
       filteredTransaction.timestamp = transaction.getStartDate();
+      if (Authorizations.isAdmin(loggedUser) && transaction.getModel().hasOwnProperty('price')) {
+        filteredTransaction.price = transaction.getStartPrice();
+        filteredTransaction.roundedPrice = transaction.getStartRoundedPrice();
+        filteredTransaction.priceUnit = transaction.getStartPriceUnit();
+        filteredTransaction.pricingSource = transaction.getStartPricingSource();
+      }
       // Runime Data
       if (transaction.isActive()) {
         filteredTransaction.currentConsumption = transaction.getCurrentConsumption();
         filteredTransaction.currentTotalConsumption = transaction.getCurrentTotalConsumption();
         filteredTransaction.currentTotalInactivitySecs = transaction.getCurrentTotalInactivitySecs();
-        filteredTransaction.currentTotalDurationSecs = transaction.getCurrentTotalDurationSecs();
+        filteredTransaction.currentCumulatedPrice = transaction.getCurrentCumulatedPrice();
+        filteredTransaction.currentStateOfCharge = transaction.getCurrentStateOfCharge();
         filteredTransaction.currentStateOfCharge = transaction.getCurrentStateOfCharge();
       }
       filteredTransaction.status = transaction.getChargerStatus();
@@ -138,7 +147,9 @@ class TransactionSecurity {
         filteredTransaction.stop.stateOfCharge = transaction.getEndStateOfCharge();
         if (Authorizations.isAdmin(loggedUser) && transaction.hasPrice()) {
           filteredTransaction.stop.price = transaction.getPrice();
+          filteredTransaction.stop.roundedPrice = transaction.getRoundedPrice();
           filteredTransaction.stop.priceUnit = transaction.getPriceUnit();
+          filteredTransaction.stop.pricingSource = transaction.getPricingSource();
         }
         // Demo user?
         if (Authorizations.isDemo(loggedUser)) {
@@ -223,9 +234,16 @@ class TransactionSecurity {
     return filteredRequest;
   }
 
+  /**
+   *
+   * @param transaction {Transaction}
+   * @param consumptions {Consumption[]}
+   * @param loggedUser
+   * @returns {*}
+   */
   static filterConsumptionsFromTransactionResponse(transaction, consumptions, loggedUser) {
     if (!consumptions) {
-      return null;
+      consumptions = [];
     }
     // Check Authorisation
     if (transaction.getUserJson()) {
@@ -241,20 +259,23 @@ class TransactionSecurity {
     // Admin?
     if (Authorizations.isAdmin(loggedUser)) {
       // Set them all
-      filteredTransaction.values = consumptions;
+      filteredTransaction.values = consumptions.map(consumption => consumption.getModel()).map(consumption => ({
+        ...consumption,
+        date: consumption.endedAt,
+        value: consumption.instantPower,
+        cumulated: consumption.cumulatedConsumption
+      }));
     } else {
       // Clean
-      filteredTransaction.values = [];
-      for (const value of consumptions) {
-        // Set
-        const filteredValue = {
-          date: value.date,
-          value: value.value,
-          cumulated: value.cumulated,
-          stateOfCharge: value.stateOfCharge
-        };
-        filteredTransaction.values.push(filteredValue);
-      }
+      filteredTransaction.values = consumptions.map(consumption => consumption.getModel()).map(consumption => ({
+        endedAt: consumption.endedAt,
+        instantPower: consumption.instantPower,
+        cumulatedConsumption: consumption.cumulatedConsumption,
+        stateOfCharge: consumption.stateOfCharge,
+        date: consumption.endedAt,
+        value: consumption.instantPower,
+        cumulated: consumption.cumulatedConsumption
+      }));
     }
     return filteredTransaction;
   }

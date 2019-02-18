@@ -1,5 +1,5 @@
-const Database = require('../../utils/Database');
-const AbstractTenantEntity = require('../AbstractTenantEntity');
+const Database = require('../utils/Database');
+const AbstractTenantEntity = require('../entity/AbstractTenantEntity');
 
 class Connection extends AbstractTenantEntity {
   constructor(tenantID, connection) {

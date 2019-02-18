@@ -67,10 +67,12 @@ class Database {
     if (forFrontEnd) {
       // Default
       dest.inactive = false;
-      const inactivitySecs = Math.floor((Date.now() - dest.lastHeartBeat.getTime()) / 1000);
-      // Inactive?
-      if (inactivitySecs > (_heartbeatIntervalSecs * 5)) {
-        dest.inactive = true;
+      if (dest.lastHeartBeat) {
+        const inactivitySecs = Math.floor((Date.now() - dest.lastHeartBeat.getTime()) / 1000);
+        // Inactive?
+        if (inactivitySecs > (_heartbeatIntervalSecs * 5)) {
+          dest.inactive = true;
+        }
       }
     }
     dest.lastReboot = Utils.convertToDate(src.lastReboot);
@@ -532,8 +534,12 @@ class Database {
   static updateTransaction(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
+      dest.siteID = Database.validateId(src.siteID);
+      dest.siteAreaID = Database.validateId(src.siteAreaID);
       dest.userID = Database.validateId(src.userID);
     } else {
+      dest.siteID = Utils.convertToObjectID(src.siteID);
+      dest.siteAreaID = Utils.convertToObjectID(src.siteAreaID);
       dest.userID = Utils.convertToObjectID(src.userID);
     }
     // User
@@ -553,6 +559,9 @@ class Database {
     if (src.hasOwnProperty('currentTotalInactivitySecs')) {
       dest.currentTotalInactivitySecs = src.currentTotalInactivitySecs;
     }
+    if (src.hasOwnProperty('currentCumulatedPrice')) {
+      dest.currentCumulatedPrice = src.currentCumulatedPrice;
+    }
     if (src.hasOwnProperty('currentConsumption')) {
       dest.currentConsumption = src.currentConsumption;
     }
@@ -563,6 +572,12 @@ class Database {
     dest.connectorId = Utils.convertToInt(src.connectorId);
     dest.meterStart = Utils.convertToInt(src.meterStart);
     dest.tagID = src.tagID;
+    if (src.hasOwnProperty('price')) {
+      dest.price = Utils.convertToInt(src.price);
+      dest.priceUnit = src.priceUnit;
+      dest.roundedPrice = src.roundedPrice;
+      dest.pricingSource = src.pricingSource;
+    }
     if (!Utils.isEmptyJSon(src.refundData)) {
       dest.refundData = {};
       dest.refundData.refundId = src.refundData.refundId;
@@ -587,8 +602,12 @@ class Database {
       dest.stop.totalConsumption = Utils.convertToInt(src.stop.totalConsumption);
       dest.stop.totalInactivitySecs = Utils.convertToInt(src.stop.totalInactivitySecs);
       dest.stop.totalDurationSecs = Utils.convertToInt(src.stop.totalDurationSecs);
-      dest.stop.price = Utils.convertToInt(src.stop.price);
-      dest.stop.priceUnit = src.stop.priceUnit;
+      if (src.stop.hasOwnProperty('price')) {
+        dest.stop.price = Utils.convertToInt(src.stop.price);
+        dest.stop.roundedPrice = src.stop.roundedPrice;
+        dest.stop.priceUnit = src.stop.priceUnit;
+        dest.stop.pricingSource = src.stop.pricingSource;
+      }
     }
     if (!Utils.isEmptyJSon(src.remotestop)) {
       dest.remotestop = {};
@@ -600,6 +619,41 @@ class Database {
         dest.chargeBox = {};
         Database.updateChargingStation(src.chargeBox, dest.chargeBox);
       }
+    }
+  }
+
+  static updateConsumption(src, dest, forFrontEnd = true) {
+    if (forFrontEnd) {
+      Database.updateID(src, dest);
+      dest.userID = Database.validateId(src.userID);
+      dest.chargeBoxID = Database.validateId(src.chargeBoxID);
+      dest.siteID = Database.validateId(src.siteID);
+      dest.siteAreaID = Database.validateId(src.siteAreaID);
+    } else {
+      dest.userID = Utils.convertToObjectID(src.userID);
+      dest.chargeBoxID = src.chargeBoxID;
+      dest.siteID = Utils.convertToObjectID(src.siteID);
+      dest.siteAreaID = Utils.convertToObjectID(src.siteAreaID);
+    }
+    dest.connectorId = Utils.convertToInt(src.connectorId);
+    dest.transactionId = Utils.convertToInt(src.transactionId);
+    dest.endedAt = Utils.convertToDate(src.endedAt);
+    if (src.stateOfCharge) {
+      dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);
+    }
+    if (src.consumption) {
+      dest.startedAt = Utils.convertToDate(src.startedAt);
+      dest.cumulatedConsumption = Utils.convertToInt(src.cumulatedConsumption);
+      dest.consumption = Utils.convertToInt(src.consumption);
+      dest.instantPower = Utils.convertToInt(src.instantPower);
+      dest.totalInactivitySecs = Utils.convertToInt(src.totalInactivitySecs);
+    }
+    if (src.pricingSource) {
+      dest.pricingSource = src.pricingSource;
+      dest.amount = Utils.convertToFloat(src.amount);
+      dest.cumulatedAmount = Utils.convertToFloat(src.cumulatedAmount);
+      dest.roundedAmount = Utils.convertToFloat(src.roundedAmount);
+      dest.currencyCode = src.currencyCode;
     }
   }
 }

@@ -36,7 +36,7 @@ class TenantMigrationTask extends MigrationTask {
       // Log
       Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT, module: 'TenantMigrationTask', method: 'createSuperAdmin',
-        actionOnUser: user.getModel(), action: "Migration",
+        actionOnUser: user.getModel(), action: "Migration", source: 'TenantMigrationTask',
         message: `Super Admin user '${user.getEMail()}' created with initial password '${password}'`
       });
     }
@@ -49,7 +49,8 @@ class TenantMigrationTask extends MigrationTask {
       tenant = await tenant.save();
 
       Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT, module: 'TenantMigrationTask', method: 'migrateTenant', action: "Migration",
+        tenantID: Constants.DEFAULT_TENANT, module: 'TenantMigrationTask',
+        method: 'migrateTenant', action: "Migration", source: 'TenantMigrationTask',
         message: `Tenant '${tenant.getID()}' created with subdomain '${tenant.getSubdomain()}'`
       });
     }
@@ -57,7 +58,8 @@ class TenantMigrationTask extends MigrationTask {
     await global.database.migrateTenantDatabase(tenant.getID());
 
     Logging.logInfo({
-      tenantID: Constants.DEFAULT_TENANT, module: 'TenantMigrationTask', method: 'migrateTenant', action: "Migration",
+      tenantID: Constants.DEFAULT_TENANT, module: 'TenantMigrationTask',
+      method: 'migrateTenant', action: "Migration", source: 'TenantMigrationTask',
       message: `Collections migrated to tenant '${tenant.getID()}' with subdomain '${tenant.getSubdomain()}'`
     });
 

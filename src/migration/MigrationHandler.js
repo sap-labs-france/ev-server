@@ -1,6 +1,5 @@
 const Logging = require('../utils/Logging');
 const Constants = require('../utils/Constants');
-const DummyTask = require('./tasks/DummyTask');
 const moment = require('moment');
 const MigrationStorage = require('../storage/mongodb/MigrationStorage')
 const UpdateTransactionInactivityTask = require('./tasks/UpdateTransactionInactivityTask');
@@ -8,6 +7,10 @@ const TenantMigrationTask = require('./tasks/TenantMigrationTask');
 const UpdateTransactionSoCTask = require('./tasks/UpdateTransactionSoCTask');
 const UpdateABBMeterValuesTask = require('./tasks/UpdateKebaMeterValuesTask');
 const NormalizeTransactionsTask = require('./tasks/NormalizeTransactionsTask');
+const CreateConsumptionsTask = require('./tasks/CreateConsumptionsTask');
+const CleanupTransactionTask = require('./tasks/CleanupTransactionTask');
+// const CleanupMeterValuesTask = require('./tasks/CleanupMeterValuesTask');
+
 
 class MigrationHandler {
   // Migrate method
@@ -21,16 +24,18 @@ class MigrationHandler {
         tenantID: Constants.DEFAULT_TENANT,
         source: "Migration", action: "Migration",
         module: "MigrationHandler", method: "migrate",
-        message: `Checking migration tasks...`
+        message: `Running migration tasks...`
       });
 
       // Create tasks
-      currentMigrationTasks.push(new DummyTask());
       currentMigrationTasks.push(new UpdateTransactionInactivityTask());
       currentMigrationTasks.push(new TenantMigrationTask());
       currentMigrationTasks.push(new UpdateTransactionSoCTask());
       currentMigrationTasks.push(new UpdateABBMeterValuesTask());
       currentMigrationTasks.push(new NormalizeTransactionsTask());
+      currentMigrationTasks.push(new CleanupTransactionTask());
+      currentMigrationTasks.push(new CreateConsumptionsTask());
+      // currentMigrationTasks.push(new CleanupMeterValuesTask()); // 02/2019: Takes too much time for only ~7000 meter values out of 2.2 millions
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();
@@ -50,50 +55,22 @@ class MigrationHandler {
             tenantID: Constants.DEFAULT_TENANT,
             source: "Migration", action: "Migration",
             module: "MigrationHandler", method: "migrate",
-            message: `Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has already been processed`
+            message: `${currentMigrationTask.isAsynchronous()?'Asynchronous':'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has already been processed`
           });
           // Continue
           continue;
         }
-        // Execute Migration Task
-        // Log Start Task
-        Logging.logInfo({
-          tenantID: Constants.DEFAULT_TENANT,
-          source: "Migration", action: "Migration",
-          module: "MigrationHandler", method: "migrate",
-          message: `Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`
-        });
-        // Log in the console also
-        // eslint-disable-next-line no-console
-        console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`);
-
-        // Start time
-        const startTaskTime = moment();
-
-        // Execute Migration
-        await currentMigrationTask.migrate();
-
-        // End time
-        const totalTaskTimeSecs = moment.duration(moment().diff(startTaskTime)).asSeconds();
-
-        // End
-        Logging.logInfo({
-          tenantID: Constants.DEFAULT_TENANT,
-          source: "Migration", action: "Migration",
-          module: "MigrationHandler", method: "migrate",
-          message: `Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`
-        });
-        // Log in the console also
-        // eslint-disable-next-line no-console
-        console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`);
-
-        // Save to the DB
-        await MigrationStorage.saveMigration({
-          name: currentMigrationTask.getName(),
-          version: currentMigrationTask.getVersion(),
-          timestamp: new Date(),
-          durationSecs: totalTaskTimeSecs
-        });
+        // Check if async
+        if (currentMigrationTask.isAsynchronous()) {
+          // Execute async
+          setTimeout(() => { 
+            // Execute Migration Task sync
+            MigrationHandler.executeTask(currentMigrationTask);
+          }, 1000);
+        } else {
+          // Execute Migration Task sync
+          await MigrationHandler.executeTask(currentMigrationTask);
+        }
       }
       // Log Total Processing Time
       const totalMigrationTimeSecs = moment.duration(moment().diff(startMigrationTime)).asSeconds();
@@ -101,7 +78,7 @@ class MigrationHandler {
         tenantID: Constants.DEFAULT_TENANT,
         source: "Migration", action: "Migration",
         module: "MigrationHandler", method: "migrate",
-        message: `All migration tasks have been run with success in ${totalMigrationTimeSecs} secs`
+        message: `All synchronous migration tasks have been run with success in ${totalMigrationTimeSecs} secs`
       });
     } catch (error) {
       // Log in the console also
@@ -116,6 +93,47 @@ class MigrationHandler {
         detailedMessages: error
       });
     }
+  }
+
+  static async executeTask(currentMigrationTask) {
+    // Log Start Task
+    Logging.logInfo({
+      tenantID: Constants.DEFAULT_TENANT,
+      source: "Migration", action: "Migration",
+      module: "MigrationHandler", method: "migrate",
+      message: `${currentMigrationTask.isAsynchronous()?'Asynchronous':'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`
+    });
+    // Log in the console also
+    // eslint-disable-next-line no-console
+    console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`);
+
+    // Start time
+    const startTaskTime = moment();
+
+    // Execute Migration
+    await currentMigrationTask.migrate();
+
+    // End time
+    const totalTaskTimeSecs = moment.duration(moment().diff(startTaskTime)).asSeconds();
+
+    // End
+    Logging.logInfo({
+      tenantID: Constants.DEFAULT_TENANT,
+      source: "Migration", action: "Migration",
+      module: "MigrationHandler", method: "migrate",
+      message: `${currentMigrationTask.isAsynchronous()?'Asynchronous':'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`
+    });
+    // Log in the console also
+    // eslint-disable-next-line no-console
+    console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`);
+
+    // Save to the DB
+    await MigrationStorage.saveMigration({
+      name: currentMigrationTask.getName(),
+      version: currentMigrationTask.getVersion(),
+      timestamp: new Date(),
+      durationSecs: totalTaskTimeSecs
+    });
   }
 }
 

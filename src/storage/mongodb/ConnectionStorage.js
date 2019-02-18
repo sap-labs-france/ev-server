@@ -8,7 +8,7 @@ class ConnectionStorage {
   static async saveConnection(tenantID, connectionToSave) {
     const uniqueTimerID = Logging.traceStart('ConnectionStorage', 'saveConnection');
     await Utils.checkTenant(tenantID);
-    const Connection = require('../../entity/integration/Connection');
+    const Connection = require('../../integration/Connection');
     const connection = {};
     Database.updateConnection(connectionToSave, connection, false);
     const connectionFilter = {
@@ -26,7 +26,7 @@ class ConnectionStorage {
   static async getConnectionByUserId(tenantID, connectorId, userId) {
     const uniqueTimerID = Logging.traceStart('ConnectionStorage', 'getConnectionByUserId');
     await Utils.checkTenant(tenantID);
-    const Connection = require('../../entity/integration/Connection');
+    const Connection = require('../../integration/Connection');
     const aggregation = [];
     aggregation.push({
       $match: {connectorId: connectorId, userId: Utils.convertToObjectID(userId)}
@@ -47,7 +47,7 @@ class ConnectionStorage {
   static async getConnectionsByUserId(tenantID, userId) {
     const uniqueTimerID = Logging.traceStart('ConnectionStorage', 'getConnectionsByUserId');
     await Utils.checkTenant(tenantID);
-    const Connection = require('../../entity/integration/Connection');
+    const Connection = require('../../integration/Connection');
     const aggregation = [];
     aggregation.push({
       $match: {userId: Utils.convertToObjectID(userId)}
@@ -84,7 +84,7 @@ class ConnectionStorage {
   static async getConnection(tenantID, id) {
     const uniqueTimerID = Logging.traceStart('ConnectionStorage', 'getConnection');
     await Utils.checkTenant(tenantID);
-    const Connection = require('../../entity/integration/Connection');
+    const Connection = require('../../integration/Connection');
     const aggregation = [];
     // Filters
     aggregation.push({

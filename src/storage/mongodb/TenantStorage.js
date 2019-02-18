@@ -111,7 +111,7 @@ class TenantStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'createTenantDB');
     // Create DB
-    await global.database.createTenantDatabase(tenantID);
+    await global.database.checkAndCreateTenantDatabase(tenantID);
     // Debug
     Logging.traceEnd('TenantStorage', 'createTenantDB', uniqueTimerID, {tenantID});
   }

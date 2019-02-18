@@ -183,6 +183,8 @@ class TransactionApi extends CrudApi {
         totalDurationSecs: moment.duration(moment(stopTime).diff(transaction.timestamp)).asSeconds(),
         price: totalPrice,
         priceUnit: 'EUR',
+        pricingSource: 'simple',
+        roundedPrice: totalPrice.toFixed(2),
         stateOfCharge: 0,
         tagID: userStop.tagIDs[0],
         timestamp: stopTime.toISOString(),

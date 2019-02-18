@@ -44,6 +44,14 @@ class ChargingStation extends AbstractTenantEntity {
     return ChargingStationStorage.getChargingStationsInError(tenantID, params, limit, skip, sort)
   }
 
+  static addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs) {
+    return ChargingStationStorage.addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs);
+  }
+
+  static removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs) {
+    return ChargingStationStorage.removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs);
+  }
+
   handleAction(action, params = {}) {
     // Handle Client Requests
     switch (action) {
@@ -123,6 +131,14 @@ class ChargingStation extends AbstractTenantEntity {
       // Return
       return siteArea;
     }
+  }
+
+  getSiteAreaID() {
+    return this._model.siteAreaID;
+  }
+
+  setSiteAreaID(siteAreaID) {
+    this._model.siteAreaID = siteAreaID;
   }
 
   getChargePointVendor() {
@@ -390,7 +406,7 @@ class ChargingStation extends AbstractTenantEntity {
       statusNotification.timestamp = new Date().toISOString();
     }
     // Handle connectorId = 0 case => Currently status is distributed to each individual connectors
-    if (parseInt(statusNotification.connectorId) === 0 ) {
+    if (parseInt(statusNotification.connectorId) === 0) {
       // Log
       Logging.logWarning({
         tenantID: this.getTenantID(),
@@ -454,9 +470,9 @@ class ChargingStation extends AbstractTenantEntity {
     });
     // Check if connector is available and a transaction is ongoing (ABB fucking bitch bug)
     if ((statusNotification.status === Constants.CONN_STATUS_AVAILABLE ||
-         statusNotification.status === Constants.CONN_STATUS_FINISHING) &&
-         !bothConnectorsUpdated && 
-         connectors[statusNotification.connectorId - 1].activeTransactionID > 0) {
+      statusNotification.status === Constants.CONN_STATUS_FINISHING) &&
+      !bothConnectorsUpdated &&
+      connectors[statusNotification.connectorId - 1].activeTransactionID > 0) {
       // Clear
       connectors[statusNotification.connectorId - 1].currentConsumption = 0;
       connectors[statusNotification.connectorId - 1].totalConsumption = 0;
@@ -489,7 +505,7 @@ class ChargingStation extends AbstractTenantEntity {
           await activeTransaction.stopTransaction(activeTransaction.getUserID(), activeTransaction.getTagID(),
             activeTransaction.getLastMeterValue().value + 1, new Date());
           // Save Transaction
-          await TransactionStorage.saveTransaction(activeTransaction.getTenantID(), activeTransaction.getModel());
+          await activeTransaction.save();
         }
       }
     }
@@ -803,7 +819,7 @@ class ChargingStation extends AbstractTenantEntity {
               }
             );
           }
-        // Check the SoC (Optimal Charge)
+          // Check the SoC (Optimal Charge)
         } else if (_configChargingStation.notifBeforeEndOfChargeEnabled &&
           transaction.getCurrentStateOfCharge() >= _configChargingStation.notifBeforeEndOfChargePercent) {
           // Notify User?
@@ -900,7 +916,7 @@ class ChargingStation extends AbstractTenantEntity {
         // Always assign, even if equals to 0
         meterValues.transactionId = chargerTransactionId;
       }
-    // Transaction is not provided: check if there is a transaction assigned on the connector
+      // Transaction is not provided: check if there is a transaction assigned on the connector
     } else if (parseInt(chargerTransactionId) > 0) {
       // Yes: Use Connector's Transaction ID
       Logging.logWarning({
@@ -1008,16 +1024,14 @@ class ChargingStation extends AbstractTenantEntity {
         action: 'MeterValues', message: `No MeterValue to save (clocks only)`,
         detailedMessages: meterValues
       });
-    // Process values
+      // Process values
     } else {
-      // Save Meter Values
-      await TransactionStorage.saveMeterValues(this.getTenantID(), newMeterValues);
       // Get the transaction
       const transaction = await TransactionStorage.getTransaction(this.getTenantID(), meterValues.transactionId);
-      // Update
-      newMeterValues.values.forEach(async (meterValue) => await transaction.updateWithMeterValue(meterValue));
+      // Handle Meter Values
+      await transaction.updateWithMeterValues(newMeterValues);
       // Save Transaction
-      await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
+      await transaction.save();
       // Update Charging Station Consumption
       await this.updateChargingStationConsumption(transaction);
       // Save Charging Station
@@ -1147,6 +1161,10 @@ class ChargingStation extends AbstractTenantEntity {
     }
   }
 
+  /**
+   *
+   * @returns {Promise<Site>}
+   */
   async getSite() {
     // Get Site Area
     const siteArea = await this.getSiteArea();
@@ -1185,8 +1203,11 @@ class ChargingStation extends AbstractTenantEntity {
       // BUG EBEE: Timestamp is mandatory according OCPP
       Logging.logWarning({
         tenantID: this.getTenantID(),
-        source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
-        action: 'StartTransaction', message: `The 'timestamp' property has not been provided and has been set to '${startTransaction.timestamp}'`
+        source: this.getID(),
+        module: 'ChargingStation',
+        method: 'handleStartTransaction',
+        action: 'StartTransaction',
+        message: `The 'timestamp' property has not been provided and has been set to '${startTransaction.timestamp}'`
       });
     }
     // Check the meter start
@@ -1218,6 +1239,14 @@ class ChargingStation extends AbstractTenantEntity {
       // Set the user
       startTransaction.user = user.getModel();
     }
+    // Set the Site ID
+    startTransaction.siteAreaID = this.getSiteAreaID();
+    // Get the Site
+    const site = await this.getSite();
+    // Set
+    if (site) {
+      startTransaction.siteID = site.getID();
+    }
     // Create
     let transaction = new Transaction(this.getTenantID(), startTransaction);
     // Start Transaction
@@ -1225,7 +1254,7 @@ class ChargingStation extends AbstractTenantEntity {
     // Cleanup old ongoing transactions
     await TransactionStorage.cleanupRemainingActiveTransactions(this.getTenantID(), this.getID(), transaction.getConnectorId());
     // Save it
-    transaction = await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
+    transaction = await transaction.save();
     // Clean up connector info
     // Get the connector
     const connector = this.getConnector(transaction.getConnectorId());
@@ -1359,8 +1388,8 @@ class ChargingStation extends AbstractTenantEntity {
     }
     // Stop
     await transaction.stopTransaction(user.getID(), tagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp));
-    // Save Transaction
-    transaction = await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
+    // Save the transaction
+    transaction = await transaction.save();
     // Notify User
     if (user) {
       // Send Notification
@@ -1443,7 +1472,7 @@ class ChargingStation extends AbstractTenantEntity {
     // Get the client
     const chargingStationClient = await this.getChargingStationClient();
     // Start Transaction
-    const result = await chargingStationClient.startTransaction(params);
+    const result = await chargingStationClient.startSession(params);
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),
@@ -1684,14 +1713,6 @@ class ChargingStation extends AbstractTenantEntity {
       Constants.NO_LIMIT);
     // Return list of transactions
     return transactions;
-  }
-
-  static addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs) {
-    return ChargingStationStorage.addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs);
-  }
-
-  static removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs) {
-    return ChargingStationStorage.removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs);
   }
 }
 
