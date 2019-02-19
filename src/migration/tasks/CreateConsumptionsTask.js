@@ -128,7 +128,7 @@ class CreateConsumptionsTask extends MigrationTask {
         "cumulatedConsumption" : consumption.cumulated,
         "stateOfCharge": consumption.stateOfCharge,
         "consumption" : consumption.valueWh,
-        "instantPower" : consumption.value,
+        "instantPower" : Math.round(consumption.value),
         "totalInactivitySecs": (lastConsumption ? lastConsumption.totalInactivitySecs : 0)
       }
       // Check that there is a duration
@@ -144,15 +144,15 @@ class CreateConsumptionsTask extends MigrationTask {
       if (pricing) {
         // Compute
         newConsumption.pricingSource = "simple";
-        newConsumption.amount = (consumption.valueWh / 1000 ) * pricing.priceKWH;
-        newConsumption.roundedAmount = (newConsumption.amount).toFixed(6); 
+        newConsumption.amount = ((consumption.valueWh / 1000) * pricing.priceKWH).toFixed(6);
+        newConsumption.roundedAmount = (parseFloat(newConsumption.amount)).toFixed(2); 
         newConsumption.currencyCode = pricing.priceUnit;
         if (lastConsumption) {
           // Add
-          newConsumption.cumulatedAmount = lastConsumption.cumulatedAmount + newConsumption.amount; 
+          newConsumption.cumulatedAmount = (parseFloat(lastConsumption.cumulatedAmount) + parseFloat(newConsumption.amount)).toFixed(6);
         } else {
           // Init
-          newConsumption.cumulatedAmount = 0; 
+          newConsumption.cumulatedAmount = newConsumption.amount;
         }
       }
       // Keep
@@ -277,7 +277,7 @@ class CreateConsumptionsTask extends MigrationTask {
   }
 
   getVersion() {
-    return "1.1";
+    return "1.2";
   }
 
   getName() {
