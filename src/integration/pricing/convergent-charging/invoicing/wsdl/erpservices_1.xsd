@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.1.6 in JDK 6.--><xs:schema version="1.0" targetNamespace="http://schema.erpservices.ws.highdeal.com/" xmlns:tns="http://schema.erpservices.ws.highdeal.com/" xmlns:ns2="http://erpservices.ws.highdeal.com/" xmlns:ns1="http://schema.ws.highdeal.com/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://schema.ws.highdeal.com/" schemaLocation="erpservices.xsd"/>
+  <xs:import namespace="http://erpservices.ws.highdeal.com/" schemaLocation="erpservices_1_2.xsd"/>
+  <xs:element name="BITReadFullRequest" type="ns2:BITReadFullRequest"/>
+  <xs:element name="BITReadLightRequest" type="ns2:BITReadLightRequest"/>
+  <xs:element name="BITReadResponse" type="tns:BITReadResponse"/>
+  <xs:element name="BusinessPartnerMaintainFullRequest" type="ns2:BusinessPartnerMaintainFullRequest"/>
+  <xs:element name="BusinessPartnerMaintainLightRequest" type="ns2:BusinessPartnerMaintainLightRequest"/>
+  <xs:element name="BusinessPartnerMaintainResponse" type="tns:BusinessPartnerMaintainResponse"/>
+  <xs:element name="BusinessPartnerReadRequest" type="ns2:BusinessPartnerReadRequest"/>
+  <xs:element name="BusinessPartnerReadResponse" type="tns:BusinessPartnerReadResponse"/>
+  <xs:element name="ContractAccountMaintainFullRequest" type="ns2:ContractAccountMaintainFullRequest"/>
+  <xs:element name="ContractAccountMaintainLightRequest" type="ns2:ContractAccountMaintainLightRequest"/>
+  <xs:element name="ContractAccountMaintainResponse" type="tns:ContractAccountMaintainResponse"/>
+  <xs:element name="ContractAccountReadRequest" type="ns2:ContractAccountReadRequest"/>
+  <xs:element name="ContractAccountReadResponse" type="tns:ContractAccountReadResponse"/>
+  <xs:element name="InvoiceCreateRequest" type="ns2:InvoiceCreateRequest"/>
+  <xs:element name="InvoiceCreateResponse" type="tns:InvoiceCreateResponse"/>
+  <xs:element name="InvoiceDocumentPrintRequest" type="ns2:InvoiceDocumentPrintRequest"/>
+  <xs:element name="InvoiceDocumentPrintResponse" type="tns:InvoiceDocumentPrintResponse"/>
+  <xs:element name="InvoiceDocumentSelectRequest" type="ns2:InvoiceDocumentSelectRequest"/>
+  <xs:element name="InvoiceDocumentSelectResponse" type="tns:InvoiceDocumentSelectResponse"/>
+  <xs:element name="PrepaidAccountMaintainFullRequest" type="ns2:PrepaidAccountMaintainFullRequest"/>
+  <xs:element name="PrepaidAccountMaintainLightRequest" type="ns2:PrepaidAccountMaintainLightRequest"/>
+  <xs:element name="PrepaidAccountMaintainResponse" type="tns:PrepaidAccountMaintainResponse"/>
+  <xs:element name="PrepaidAccountReadRequest" type="ns2:PrepaidAccountReadRequest"/>
+  <xs:element name="PrepaidAccountReadResponse" type="tns:PrepaidAccountReadResponse"/>
+  <xs:element name="ProductMaintainFullRequest" type="ns2:ProductMaintainFullRequest"/>
+  <xs:element name="ProductMaintainLightRequest" type="ns2:ProductMaintainLightRequest"/>
+  <xs:element name="ProductMaintainResponse" type="tns:ProductMaintainResponse"/>
+  <xs:element name="ProviderContractMaintainFullRequest" type="ns2:ProviderContractMaintainFullRequest"/>
+  <xs:element name="ProviderContractMaintainLightRequest" type="ns2:ProviderContractMaintainLightRequest"/>
+  <xs:element name="ProviderContractMaintainResponse" type="tns:ProviderContractMaintainResponse"/>
+  <xs:element name="ProviderContractReadRequest" type="ns2:ProviderContractReadRequest"/>
+  <xs:element name="ProviderContractReadResponse" type="tns:ProviderContractReadResponse"/>
+  <xs:complexType name="ProductMaintainResponse">
+    <xs:complexContent>
+      <xs:extension base="ns1:Response">
+        <xs:sequence>
+          <xs:element name="ReturnedMessage" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ReturnedMessage">
+    <xs:sequence>
+      <xs:element name="detail" nillable="true" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:sequence/>
+          <xs:attribute name="name" type="xs:string"/>
+          <xs:attribute name="value" type="xs:anySimpleType"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ContractAccountMaintainResponse">
+    <xs:complexContent>
+      <xs:extension base="ns1:Response">
+        <xs:sequence>
+          <xs:element name="ContractAccountNumber" type="xs:string"/>
+          <xs:element name="ReturnedMessage" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="InvoiceCreateResponse">
+    <xs:complexContent>
+      <xs:extension base="ns1:Response">
+        <xs:sequence>
+          <xs:element name="ReturnedMessage" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="PrepaidAccountMaintainResponse">
+    <xs:complexContent>
+      <xs:extension base="ns1:Response">
+        <xs:sequence>
+          <xs:element name="PrepaidAccountNumber" type="xs:string"/>
+          <xs:element name="ReturnedMessage" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="BusinessPartnerMaintainResponse">
+    <xs:complexContent>
+      <xs:extension base="ns1:Response">
+        <xs:sequence>
+          <xs:element name="BusinessPartnerNumber" type="xs:string"/>
+          <xs:element name="ReturnedMessage" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ContractAccountReadResponse">
+    <xs:complexContent>
+      <xs:extension base="ns1:Response">
+        <xs:sequence>
+          <xs:element name="CtrAcDetail" type="ns2:CtrAcDetails" minOccurs="0"/>
+          <xs:element name="Return" type="tns:ReturnedMessage" minOccurs="0"/>
+          <xs:element name="CtrAcPartnerDetail" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="CtrAcChargesDiscounts" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="CtrAcLockDetail" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="ExtensionOut" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="InvoiceDocumentPrintResponse">
+    <xs:complexContent>
+      <xs:extension base="ns1:Response">
+        <xs:sequence>
+          <xs:element name="PDF_SAP_OBJECT" type="xs:string" minOccurs="0"/>
+          <xs:element name="PDF_OBJECT_ID" type="xs:string" minOccurs="0"/>
+          <xs:element name="INVDOCPDF" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="INVDOCPDF2" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="ReturnedMessage" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ProviderContractReadResponse">
+    <xs:complexContent>
+      <xs:extension base="ns1:Response">
+        <xs:sequence>
+          <xs:element name="ET_Headers" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="ET_Items" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="ET_Charging_Items" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="ET_Charging_Item_SharedCounter" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="ET_Charging_Item_Params" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="ET_Charging_Item_Accounts" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="ET_Charging_Item_Tech_Ident" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="ET_Additional_Info" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="ReturnedMessage" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ProviderContractMaintainResponse">
+    <xs:complexContent>
+      <xs:extension base="ns1:Response">
+        <xs:sequence>
+          <xs:element name="ProviderContractNumber" type="xs:string"/>
+          <xs:element name="ReturnedMessage" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="BITReadResponse">
+    <xs:complexContent>
+      <xs:extension base="ns1:Response">
+        <xs:sequence>
+          <xs:element name="BIT" type="tns:BIT" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="BIT">
+    <xs:sequence>
+      <xs:element name="detail" nillable="true" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:sequence/>
+          <xs:attribute name="name" type="xs:string"/>
+          <xs:attribute name="value" type="xs:anySimpleType"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="BusinessPartnerReadResponse">
+    <xs:complexContent>
+      <xs:extension base="ns1:Response">
+        <xs:sequence>
+          <xs:element name="CentralData" type="ns2:CentralData" minOccurs="0"/>
+          <xs:element name="CentralDataPerson" type="ns2:CentralDataPerson" minOccurs="0"/>
+          <xs:element name="CentralDataOrganization" type="ns2:CentralDataOrganization" minOccurs="0"/>
+          <xs:element name="CentralDataGroup" type="ns2:CentralDataGroup" minOccurs="0"/>
+          <xs:element name="CentralDataValidity" type="ns2:CentralDataValidity" minOccurs="0"/>
+          <xs:element name="TelefonDataNonAddress" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="FaxDataNonAddress" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="TeletexDataNonAddress" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="TelexDataNonAddress" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="EMailDataNonAddress" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="RMLAddressDataNonAddress" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="X400AddressDataNonAddress" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="RFCAddressDataNonAddress" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="PRTAddressDataNonAddress" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="SSFAddressDataNonAddress" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="URIAddressDataNonAddress" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="PagAddressDataNonAddress" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="CommunicationNotesNonAddress" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="CommunicationUsageNonAddress" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+          <xs:element name="ReturnedMessage" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="InvoiceDocumentSelectResponse">
+    <xs:complexContent>
+      <xs:extension base="ns1:Response">
+        <xs:sequence>
+          <xs:element name="FKKInvDoc_H" type="ns2:FKKInvDoc_H" minOccurs="0"/>
+          <xs:element name="ReturnedMessage" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="PrepaidAccountReadResponse">
+    <xs:complexContent>
+      <xs:extension base="ns1:Response">
+        <xs:sequence>
+          <xs:element name="PrepaidAccountDetail" type="ns2:PrepaidAccountData"/>
+          <xs:element name="ReturnedMessage" type="tns:ReturnedMessage" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:schema>

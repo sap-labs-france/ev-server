@@ -333,6 +333,11 @@ module.exports = {
             // Delegate
             UserService.handleGetUser(action, req, res, next);
             break;
+          // Get the user
+          case "UserInvoice":
+            // Delegate
+            UserService.handleGetUserInvoice(action, req, res, next);
+            break;
           // Get the notifications
           case "Notifications":
             // Delegate
