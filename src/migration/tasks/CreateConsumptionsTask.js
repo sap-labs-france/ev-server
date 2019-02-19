@@ -116,19 +116,20 @@ class CreateConsumptionsTask extends MigrationTask {
     // Build the new consumptions
     for (const consumption of consumptions) {
       // Create consumption
-      const newConsumption = { 
-        "userID" : transaction.getUserID(), 
-        "chargeBoxID" : transaction.getChargeBoxID(), 
-        "siteID" : transaction.getSiteID(), 
-        "siteAreaID" : transaction.getSiteAreaID(), 
-        "connectorId" : transaction.getConnectorId(), 
-        "transactionId" : transaction.getID(), 
-        "startedAt" : (lastConsumption ? lastConsumption.endedAt : transaction.getStartDate()), 
-        "endedAt" : consumption.date, 
-        "cumulatedConsumption" : consumption.cumulated, 
-        "consumption" : consumption.valueWh, 
+      const newConsumption = {
+        "userID" : transaction.getUserID(),
+        "chargeBoxID" : transaction.getChargeBoxID(),
+        "siteID" : transaction.getSiteID(),
+        "siteAreaID" : transaction.getSiteAreaID(),
+        "connectorId" : transaction.getConnectorId(),
+        "transactionId" : transaction.getID(),
+        "startedAt" : (lastConsumption ? lastConsumption.endedAt : transaction.getStartDate()),
+        "endedAt" : consumption.date,
+        "cumulatedConsumption" : consumption.cumulated,
+        "stateOfCharge": consumption.stateOfCharge,
+        "consumption" : consumption.valueWh,
         "instantPower" : consumption.value,
-        "totalInactivitySecs": (lastConsumption ? lastConsumption.totalInactivitySecs : 0) 
+        "totalInactivitySecs": (lastConsumption ? lastConsumption.totalInactivitySecs : 0)
       }
       // Check inactivity
       if (consumption.value === 0) {
@@ -275,7 +276,7 @@ class CreateConsumptionsTask extends MigrationTask {
   }
 
   getVersion() {
-    return "1.0";
+    return "1.1";
   }
 
   getName() {
