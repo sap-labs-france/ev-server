@@ -641,13 +641,11 @@ class Database {
     if (src.stateOfCharge) {
       dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);
     }
-    if (src.consumption) {
-      dest.startedAt = Utils.convertToDate(src.startedAt);
-      dest.cumulatedConsumption = Utils.convertToInt(src.cumulatedConsumption);
-      dest.consumption = Utils.convertToInt(src.consumption);
-      dest.instantPower = Utils.convertToInt(src.instantPower);
-      dest.totalInactivitySecs = Utils.convertToInt(src.totalInactivitySecs);
-    }
+    dest.startedAt = Utils.convertToDate(src.startedAt);
+    dest.cumulatedConsumption = Utils.convertToInt(src.cumulatedConsumption);
+    dest.consumption = Utils.convertToInt(src.consumption);
+    dest.instantPower = Utils.convertToInt(src.instantPower);
+    dest.totalInactivitySecs = Utils.convertToInt(src.totalInactivitySecs);
     if (src.pricingSource) {
       dest.pricingSource = src.pricingSource;
       dest.amount = Utils.convertToFloat(src.amount);

@@ -115,7 +115,7 @@ class CreateConsumptionsTask extends MigrationTask {
     const consumptions = await this.getConsumptions(transaction)
     // Build the new consumptions
     for (const consumption of consumptions) {
-      // Create consumption
+      // Create the consumption
       const newConsumption = {
         "userID" : transaction.getUserID(),
         "chargeBoxID" : transaction.getChargeBoxID(),
@@ -130,6 +130,10 @@ class CreateConsumptionsTask extends MigrationTask {
         "consumption" : consumption.valueWh,
         "instantPower" : consumption.value,
         "totalInactivitySecs": (lastConsumption ? lastConsumption.totalInactivitySecs : 0)
+      }
+      // Check that there is a duration
+      if (newConsumption.startedAt.toString() === newConsumption.endedAt.toString()) {
+        continue;
       }
       // Check inactivity
       if (consumption.value === 0) {
@@ -234,6 +238,7 @@ class CreateConsumptionsTask extends MigrationTask {
             consumptions[consumptions.length - 1].date.getTime() === meterValue.timestamp.getTime()) {
             // Same timestamp: Update the latest
             consumptions[consumptions.length - 1].value = currentConsumption;
+            consumptions[consumptions.length - 1].valueWh = consumptionWh;
             consumptions[consumptions.length - 1].cumulated = cumulatedConsumption;
           } else {
             // Add the consumption
@@ -241,8 +246,7 @@ class CreateConsumptionsTask extends MigrationTask {
               date: meterValue.timestamp,
               value: currentConsumption,
               cumulated: cumulatedConsumption,
-              valueWh: consumptionWh,
-              stateOfCharge: 0
+              valueWh: consumptionWh
             });
           }
           lastMeterValue = meterValue;
@@ -260,10 +264,7 @@ class CreateConsumptionsTask extends MigrationTask {
           // Add the consumption
           consumptions.push({
             date: meterValue.timestamp,
-            stateOfCharge: meterValue.value,
-            value: 0,
-            valueWh: 0,
-            cumulated: 0
+            stateOfCharge: meterValue.value
           });
         }
       }
