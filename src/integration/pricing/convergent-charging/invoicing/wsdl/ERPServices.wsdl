@@ -1,0 +1,325 @@
+<!--
+ Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.2.8 svn-revision#13980.
+-->
+<definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:schema="http://schema.erpservices.ws.highdeal.com/" xmlns:tns="http://erpservices.ws.highdeal.com/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.xmlsoap.org/wsdl/" name="rerating" targetNamespace="http://erpservices.ws.highdeal.com/">
+    <types>
+        <xsd:schema>
+            <xsd:import namespace="http://schema.erpservices.ws.highdeal.com/" schemaLocation="def3.xsd"/>
+        </xsd:schema>
+    </types>
+    <message name="BITReadFullRequest">
+        <part name="request" element="schema:BITReadFullRequest"/>
+    </message>
+    <message name="BITReadLightRequest">
+        <part name="request" element="schema:BITReadLightRequest"/>
+    </message>
+    <message name="BITReadResponse">
+        <part name="response" element="schema:BITReadResponse"/>
+    </message>
+    <message name="ProductMaintainFullRequest">
+        <part name="request" element="schema:ProductMaintainFullRequest"/>
+    </message>
+    <message name="ProductMaintainLightRequest">
+        <part name="request" element="schema:ProductMaintainLightRequest"/>
+    </message>
+    <message name="ProductMaintainResponse">
+        <part name="response" element="schema:ProductMaintainResponse"/>
+    </message>
+    <message name="BusinessPartnerMaintainFullRequest">
+        <part name="request" element="schema:BusinessPartnerMaintainFullRequest"/>
+    </message>
+    <message name="BusinessPartnerMaintainLightRequest">
+        <part name="request" element="schema:BusinessPartnerMaintainLightRequest"/>
+    </message>
+    <message name="BusinessPartnerMaintainResponse">
+        <part name="response" element="schema:BusinessPartnerMaintainResponse"/>
+    </message>
+    <message name="BusinessPartnerReadRequest">
+        <part name="request" element="schema:BusinessPartnerReadRequest"/>
+    </message>
+    <message name="BusinessPartnerReadResponse">
+        <part name="response" element="schema:BusinessPartnerReadResponse"/>
+    </message>
+    <message name="ContractAccountMaintainFullRequest">
+        <part name="request" element="schema:ContractAccountMaintainFullRequest"/>
+    </message>
+    <message name="ContractAccountMaintainLightRequest">
+        <part name="request" element="schema:ContractAccountMaintainLightRequest"/>
+    </message>
+    <message name="ContractAccountMaintainResponse">
+        <part name="response" element="schema:ContractAccountMaintainResponse"/>
+    </message>
+    <message name="ContractAccountReadRequest">
+        <part name="request" element="schema:ContractAccountReadRequest"/>
+    </message>
+    <message name="ContractAccountReadResponse">
+        <part name="response" element="schema:ContractAccountReadResponse"/>
+    </message>
+    <message name="PrepaidAccountMaintainFullRequest">
+        <part name="request" element="schema:PrepaidAccountMaintainFullRequest"/>
+    </message>
+    <message name="PrepaidAccountMaintainLightRequest">
+        <part name="request" element="schema:PrepaidAccountMaintainLightRequest"/>
+    </message>
+    <message name="PrepaidAccountMaintainResponse">
+        <part name="response" element="schema:PrepaidAccountMaintainResponse"/>
+    </message>
+    <message name="PrepaidAccountReadRequest">
+        <part name="request" element="schema:PrepaidAccountReadRequest"/>
+    </message>
+    <message name="PrepaidAccountReadResponse">
+        <part name="response" element="schema:PrepaidAccountReadResponse"/>
+    </message>
+    <message name="ProviderContractMaintainFullRequest">
+        <part name="request" element="schema:ProviderContractMaintainFullRequest"/>
+    </message>
+    <message name="ProviderContractMaintainLightRequest">
+        <part name="request" element="schema:ProviderContractMaintainLightRequest"/>
+    </message>
+    <message name="ProviderContractMaintainResponse">
+        <part name="response" element="schema:ProviderContractMaintainResponse"/>
+    </message>
+    <message name="ProviderContractReadRequest">
+        <part name="request" element="schema:ProviderContractReadRequest"/>
+    </message>
+    <message name="ProviderContractReadResponse">
+        <part name="response" element="schema:ProviderContractReadResponse"/>
+    </message>
+    <message name="InvoiceCreateRequest">
+        <part name="request" element="schema:InvoiceCreateRequest"/>
+    </message>
+    <message name="InvoiceCreateResponse">
+        <part name="response" element="schema:InvoiceCreateResponse"/>
+    </message>
+    <portType name="ERPServices">
+        <operation name="BITReadFull">
+            <input message="tns:BITReadFullRequest"/>
+            <output message="tns:BITReadResponse"/>
+        </operation>
+        <operation name="BITReadLight">
+            <input message="tns:BITReadLightRequest"/>
+            <output message="tns:BITReadResponse"/>
+        </operation>
+        <operation name="productMaintainFull">
+            <input message="tns:ProductMaintainFullRequest"/>
+            <output message="tns:ProductMaintainResponse"/>
+        </operation>
+        <operation name="productMaintainLight">
+            <input message="tns:ProductMaintainLightRequest"/>
+            <output message="tns:ProductMaintainResponse"/>
+        </operation>
+        <operation name="businessPartnerMaintainFull">
+            <input message="tns:BusinessPartnerMaintainFullRequest"/>
+            <output message="tns:BusinessPartnerMaintainResponse"/>
+        </operation>
+        <operation name="businessPartnerMaintainLight">
+            <input message="tns:BusinessPartnerMaintainLightRequest"/>
+            <output message="tns:BusinessPartnerMaintainResponse"/>
+        </operation>
+        <operation name="businessPartnerRead">
+            <input message="tns:BusinessPartnerReadRequest"/>
+            <output message="tns:BusinessPartnerReadResponse"/>
+        </operation>
+        <operation name="contractAccountMaintainFull">
+            <input message="tns:ContractAccountMaintainFullRequest"/>
+            <output message="tns:ContractAccountMaintainResponse"/>
+        </operation>
+        <operation name="contractAccountMaintainLight">
+            <input message="tns:ContractAccountMaintainLightRequest"/>
+            <output message="tns:ContractAccountMaintainResponse"/>
+        </operation>
+        <operation name="contractAccountRead">
+            <input message="tns:ContractAccountReadRequest"/>
+            <output message="tns:ContractAccountReadResponse"/>
+        </operation>
+        <operation name="prepaidAccountMaintainFull">
+            <input message="tns:PrepaidAccountMaintainFullRequest"/>
+            <output message="tns:PrepaidAccountMaintainResponse"/>
+        </operation>
+        <operation name="prepaidAccountMaintainLight">
+            <input message="tns:PrepaidAccountMaintainLightRequest"/>
+            <output message="tns:PrepaidAccountMaintainResponse"/>
+        </operation>
+        <operation name="prepaidAccountRead">
+            <input message="tns:PrepaidAccountReadRequest"/>
+            <output message="tns:PrepaidAccountReadResponse"/>
+        </operation>
+        <operation name="providerContractMaintainFull">
+            <input message="tns:ProviderContractMaintainFullRequest"/>
+            <output message="tns:ProviderContractMaintainResponse"/>
+        </operation>
+        <operation name="providerContractMaintainLight">
+            <input message="tns:ProviderContractMaintainLightRequest"/>
+            <output message="tns:ProviderContractMaintainResponse"/>
+        </operation>
+        <operation name="providerContractRead">
+            <input message="tns:ProviderContractReadRequest"/>
+            <output message="tns:ProviderContractReadResponse"/>
+        </operation>
+        <operation name="InvoiceCreate">
+            <input message="tns:InvoiceCreateRequest"/>
+            <output message="tns:InvoiceCreateResponse"/>
+        </operation>
+    </portType>
+    <binding name="ERPServicesBinding" type="tns:ERPServices">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <operation name="BITReadFull">
+            <soap:operation soapAction="BITReadFull"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+        <operation name="BITReadLight">
+            <soap:operation soapAction="BITReadLight"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+        <operation name="productMaintainFull">
+            <soap:operation soapAction="productMaintainFull"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+        <operation name="productMaintainLight">
+            <soap:operation soapAction="productMaintainLight"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+        <operation name="businessPartnerMaintainFull">
+            <soap:operation soapAction="businessPartnerMaintainFull"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+        <operation name="businessPartnerMaintainLight">
+            <soap:operation soapAction="businessPartnerMaintainLight"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+        <operation name="businessPartnerRead">
+            <soap:operation soapAction="businessPartnerRead"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+        <operation name="contractAccountMaintainFull">
+            <soap:operation soapAction="contractAccountMaintainFull"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+        <operation name="contractAccountMaintainLight">
+            <soap:operation soapAction="contractAccountMaintainLight"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+        <operation name="contractAccountRead">
+            <soap:operation soapAction="contractAccountRead"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+        <operation name="prepaidAccountMaintainFull">
+            <soap:operation soapAction="prepaidAccountMaintainFull"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+        <operation name="prepaidAccountMaintainLight">
+            <soap:operation soapAction="prepaidAccountMaintainLight"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+        <operation name="prepaidAccountRead">
+            <soap:operation soapAction="prepaidAccountRead"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+        <operation name="providerContractMaintainFull">
+            <soap:operation soapAction="providerContractMaintainFull"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+        <operation name="providerContractMaintainLight">
+            <soap:operation soapAction="providerContractMaintainLight"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+        <operation name="providerContractRead">
+            <soap:operation soapAction="providerContractRead"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+        <operation name="InvoiceCreate">
+            <soap:operation soapAction="InvoiceCreate"/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+    </binding>
+    <service name="ERP">
+        <port name="ERPPort" binding="tns:ERPServicesBinding">
+            <soap:address location="https://hybris-00124-9000000-emea.sapdemocloud.com:443/ARTIX/erpservices"/>
+        </port>
+    </service>
+</definitions>

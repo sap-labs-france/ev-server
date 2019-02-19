@@ -9,6 +9,10 @@ const Site = require('../../../entity/Site');
 const Utils = require('../../../utils/Utils');
 const Database = require('../../../utils/Database');
 const UserSecurity = require('./security/UserSecurity');
+const SettingStorage = require("../../../storage/mongodb/SettingStorage");
+const ERPService = require("../../../integration/pricing/convergent-charging/invoicing/ERPService");
+const RatingService = require("../../../integration/pricing/convergent-charging/rating/RatingService");
+const fs = require("fs");
 
 class UserService {
   static async handleAddSitesToUser(action, req, res, next) {
@@ -578,6 +582,104 @@ class UserService {
       // Ok
       res.json(Object.assign({id: newUser.getID()}, Constants.REST_RESPONSE_SUCCESS));
       next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
+  static async handleGetUserInvoice(action, req, res, next) {
+    try {
+      // Filter
+      const filteredRequest = UserSecurity.filterUserRequest(req.query, req.user);
+      // User mandatory
+      if (!filteredRequest.ID) {
+        // Not Found!
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The User's ID must be provided`, 500,
+          'UserService', 'handleGetUserInvoice', req.user);
+      }
+      // Get the user
+      const user = await User.getUser(req.user.tenantID, filteredRequest.ID);
+      if (!user) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The user with ID '${filteredRequest.ID}' does not exist anymore`, 550,
+          'UserService', 'handleGetUserInvoice', req.user);
+      }
+      // Deleted?
+      if (user.deleted) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The user with ID '${filteredRequest.ID}' is logically deleted`, 550,
+          'UserService', 'handleGetUserInvoice', req.user);
+      }
+      // Check auth
+      if (!Authorizations.canReadUser(req.user, user.getModel())) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_USER,
+          user.getID(),
+          560, 'UserService', 'handleGetUserInvoice',
+          req.user);
+      }
+      let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, Constants.COMPONENTS.PRICING);
+      setting = setting.getContent().convergentCharging;
+      const ratingService = new RatingService(setting.url, setting.user, setting.password);
+      const erpService = new ERPService(setting.url, setting.user, setting.password);
+      let invoiceNumber;
+      try {
+        await ratingService.loadChargedItemsToInvoicing();
+        invoiceNumber = await erpService.createInvoice(req.user.tenantID, user);
+      } catch (e) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `An issue occured while creating the invoice`, 560,
+          'UserService', 'handleGetUserInvoice', req.user);
+      }
+      if (!invoiceNumber) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `No invoices available`, 404,
+          'UserService', 'handleGetUserInvoice', req.user);
+      }
+      try {
+        const invoiceHeader = await erpService.getInvoiceDocumentHeader(invoiceNumber);
+        let invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
+        if (!invoice) {
+          //retry to get invoice
+          invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
+        }
+        if (!invoice) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `An error occured while requesting invoice ${invoiceNumber}`, 561,
+            'UserService', 'handleGetUserInvoice', req.user);
+        }
+        const filename = 'invoice.pdf';
+        fs.writeFile(filename, invoice, (err) => {
+          if (err) {
+            throw err;
+          }
+          res.download(filename, (err) => {
+            if (err) {
+              throw err;
+            }
+            fs.unlink(filename, (err) => {
+              if (err) {
+                throw err;
+              }
+            });
+          });
+        });
+      } catch (e) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `An error occured while requesting invoice ${invoiceNumber}`, 561,
+          'UserService', 'handleGetUserInvoice', req.user);
+      }
     } catch (error) {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
