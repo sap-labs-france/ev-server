@@ -1472,7 +1472,7 @@ class ChargingStation extends AbstractTenantEntity {
     // Get the client
     const chargingStationClient = await this.getChargingStationClient();
     // Start Transaction
-    const result = await chargingStationClient.startSession(params);
+    const result = await chargingStationClient.startTransaction(params);
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(),

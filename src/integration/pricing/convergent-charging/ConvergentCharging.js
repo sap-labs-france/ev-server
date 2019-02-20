@@ -2,6 +2,8 @@ const StatefulChargingService = require('./StatefulChargingService');
 const moment = require('moment');
 const Logging = require('../../../utils/Logging');
 const Pricing = require('../Pricing');
+const ERPService = require('./invoicing/ERPService');
+const fs = require("fs");
 
 
 class ConvergentCharging extends Pricing {
@@ -31,7 +33,7 @@ class ConvergentCharging extends Pricing {
 
   computeSessionId(consumptionData) {
 
-    const dataId = consumptionData.userID + consumptionData.chargeBoxID + consumptionData.connectorId;
+    const dataId = consumptionData.userID + consumptionData.chargeBoxID + consumptionData.connectorId + this.transaction.getStartDate();
 
     let hash = 0, i, chr;
     if (dataId.length === 0) return hash;
@@ -59,16 +61,7 @@ class ConvergentCharging extends Pricing {
         pricingSource: 'ConvergentCharging'
       }
     } else {
-      const chargingResult = result.data.chargingResult;
-      if (chargingResult.status === 'error') {
-        Logging.logError({
-          tenantID: this.tenantId,
-          source: consumptionData.transactionId, module: 'ConvergentCharging',
-          method: 'StartSession', action: 'StartSession',
-          message: chargingResult.message,
-          detailedMessages: chargingResult
-        });
-      }
+      this.handleError(consumptionData, result);
       return {};
     }
   }
@@ -93,16 +86,7 @@ class ConvergentCharging extends Pricing {
         pricingSource: 'ConvergentCharging'
       }
     } else {
-      const chargingResult = result.data.chargingResult;
-      if (chargingResult.status === 'error') {
-        Logging.logError({
-          tenantID: this.tenantId,
-          source: consumptionData.transactionId, module: 'ConvergentCharging',
-          method: 'updateSession', action: 'updateSession',
-          message: chargingResult.message,
-          detailedMessages: chargingResult
-        });
-      }
+      this.handleError(consumptionData, result);
       return {};
     }
   }
@@ -124,20 +108,35 @@ class ConvergentCharging extends Pricing {
         pricingSource: 'ConvergentCharging'
       }
     } else {
-      const chargingResult = result.data.chargingResult;
-      if (chargingResult.status === 'error') {
-        Logging.logError({
-          tenantID: this.tenantId,
-          source: consumptionData.transactionId, module: 'ConvergentCharging',
-          method: 'stopSession', action: 'stopSession',
-          message: chargingResult.message,
-          detailedMessages: chargingResult
-        });
-      }
+      this.handleError(consumptionData, result);
       return {};
     }
   }
 
+  async handleError(consumptionData, result) {
+    const chargingResult = result.data.chargingResult;
+    if (chargingResult.status === 'error') {
+
+      if (chargingResult.error.category === 'invalid' && chargingResult.error.message.startsWith('Not authorized')) {
+        const chargingStation = await this.transaction.getChargingStation();
+        if (chargingStation) {
+          chargingStation.requestStopTransaction({
+            tagID: consumptionData.tagID,
+            connectorID: consumptionData.connectorId
+          });
+        }
+      } else {
+        Logging.logError({
+          tenantID: this.tenantId,
+          source: consumptionData.transactionId, module: 'ConvergentCharging',
+          method: 'handleError', action: 'handleError',
+          message: chargingResult.message,
+          detailedMessages: chargingResult
+        });
+      }
+
+    }
+  }
 
   /**
    *
@@ -151,20 +150,13 @@ class ConvergentCharging extends Pricing {
         if (ccTransaction.notifications) {
           for (const notification of ccTransaction.notifications) {
             switch (notification.code) {
-              case "STOP_TRANSACTION":
+              case "CSMS_INFO":
                 chargingStation = await this.transaction.getChargingStation();
                 if (chargingStation) {
-                  chargingStation.requestStopTransaction({
-                    transactionId: consumptionData.transactionId
-                  });
-                }
-                break;
-              case "START_TRANSACTION":
-                chargingStation = await this.transaction.getChargingStation();
-                if (chargingStation) {
-                  chargingStation.requestStartTransaction({
-                    tagID: consumptionData.tagID,
-                    connectorID: consumptionData.connectorId
+                  chargingStation.requestSetChargingProfile({
+                    chargingProfileId: 42,
+                    transactionId: consumptionData.transactionId,
+                    message: JSON.stringify(notification)
                   });
                 }
                 break;
@@ -419,6 +411,15 @@ class Notification {
     this.severityLevel = model['$attributes'].severityLevel;
 
     model.arg.map(detail => detail['$attributes']).forEach(detail => this[detail.name] = detail.value);
+    if (this.properties) {
+      const props = {};
+      this.properties.split('\n').filter(s => s.length > 0)
+        .forEach(propString => {
+          const array = propString.split(' = ');
+          props[array[0]] = array[1];
+        });
+      this.properties = props;
+    }
   }
 }
 

@@ -563,7 +563,7 @@ class Transaction extends AbstractTenantEntity {
       siteAreaID: this.getSiteAreaID(),
       siteID: this.getSiteID(),
       userID: this.getUserID(),
-      endedAt: endedAt
+      endedAt: new Date(endedAt)
     };
     // SoC?
     if (this.isSocMeterValue(meterValue)) {
@@ -571,7 +571,7 @@ class Transaction extends AbstractTenantEntity {
       consumption.stateOfCharge = this.getCurrentStateOfCharge();
     } else {
       // Set Consumption
-      consumption.startedAt = startedAt;
+      consumption.startedAt = new Date(startedAt);
       consumption.consumption = this.getCurrentConsumptionWh();
       consumption.instantPower = this.getCurrentConsumption();
       consumption.cumulatedConsumption = this.getCurrentTotalConsumption();

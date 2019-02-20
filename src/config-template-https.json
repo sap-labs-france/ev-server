@@ -49,12 +49,16 @@
 		"ssl-ca": [],
 		"debug": false,
 		"externalProtocol": "https",
-		// below properties are used for 1st implementation only - to be moved to database
 		"tenantEnabled": [ "slf"],
 		"eMI3id": { 
 			"slf": { "country_id": "FR", "party_id": "SLF" }
 		}
 	},
+	"CentralSystemServer": {
+		"protocol": "https",
+		"host": "localhost",
+		"port": 443
+  },
 	"ODataService": {
 		"protocol": "https",
 		"host": "localhost",

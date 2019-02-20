@@ -115,20 +115,25 @@ class CreateConsumptionsTask extends MigrationTask {
     const consumptions = await this.getConsumptions(transaction)
     // Build the new consumptions
     for (const consumption of consumptions) {
-      // Create consumption
-      const newConsumption = { 
-        "userID" : transaction.getUserID(), 
-        "chargeBoxID" : transaction.getChargeBoxID(), 
-        "siteID" : transaction.getSiteID(), 
-        "siteAreaID" : transaction.getSiteAreaID(), 
-        "connectorId" : transaction.getConnectorId(), 
-        "transactionId" : transaction.getID(), 
-        "startedAt" : (lastConsumption ? lastConsumption.endedAt : transaction.getStartDate()), 
-        "endedAt" : consumption.date, 
-        "cumulatedConsumption" : consumption.cumulated, 
-        "consumption" : consumption.valueWh, 
-        "instantPower" : consumption.value,
-        "totalInactivitySecs": (lastConsumption ? lastConsumption.totalInactivitySecs : 0) 
+      // Create the consumption
+      const newConsumption = {
+        "userID" : transaction.getUserID(),
+        "chargeBoxID" : transaction.getChargeBoxID(),
+        "siteID" : transaction.getSiteID(),
+        "siteAreaID" : transaction.getSiteAreaID(),
+        "connectorId" : transaction.getConnectorId(),
+        "transactionId" : transaction.getID(),
+        "startedAt" : (lastConsumption ? lastConsumption.endedAt : transaction.getStartDate()),
+        "endedAt" : consumption.date,
+        "cumulatedConsumption" : consumption.cumulated,
+        "stateOfCharge": consumption.stateOfCharge,
+        "consumption" : consumption.valueWh,
+        "instantPower" : Math.round(consumption.value),
+        "totalInactivitySecs": (lastConsumption ? lastConsumption.totalInactivitySecs : 0)
+      }
+      // Check that there is a duration
+      if (newConsumption.startedAt.toString() === newConsumption.endedAt.toString()) {
+        continue;
       }
       // Check inactivity
       if (consumption.value === 0) {
@@ -139,15 +144,15 @@ class CreateConsumptionsTask extends MigrationTask {
       if (pricing) {
         // Compute
         newConsumption.pricingSource = "simple";
-        newConsumption.amount = (consumption.valueWh / 1000 ) * pricing.priceKWH;
-        newConsumption.roundedAmount = (newConsumption.amount).toFixed(6); 
+        newConsumption.amount = ((consumption.valueWh / 1000) * pricing.priceKWH).toFixed(6);
+        newConsumption.roundedAmount = (parseFloat(newConsumption.amount)).toFixed(2); 
         newConsumption.currencyCode = pricing.priceUnit;
         if (lastConsumption) {
           // Add
-          newConsumption.cumulatedAmount = lastConsumption.cumulatedAmount + newConsumption.amount; 
+          newConsumption.cumulatedAmount = (parseFloat(lastConsumption.cumulatedAmount) + parseFloat(newConsumption.amount)).toFixed(6);
         } else {
           // Init
-          newConsumption.cumulatedAmount = 0; 
+          newConsumption.cumulatedAmount = newConsumption.amount;
         }
       }
       // Keep
@@ -233,6 +238,7 @@ class CreateConsumptionsTask extends MigrationTask {
             consumptions[consumptions.length - 1].date.getTime() === meterValue.timestamp.getTime()) {
             // Same timestamp: Update the latest
             consumptions[consumptions.length - 1].value = currentConsumption;
+            consumptions[consumptions.length - 1].valueWh = consumptionWh;
             consumptions[consumptions.length - 1].cumulated = cumulatedConsumption;
           } else {
             // Add the consumption
@@ -240,8 +246,7 @@ class CreateConsumptionsTask extends MigrationTask {
               date: meterValue.timestamp,
               value: currentConsumption,
               cumulated: cumulatedConsumption,
-              valueWh: consumptionWh,
-              stateOfCharge: 0
+              valueWh: consumptionWh
             });
           }
           lastMeterValue = meterValue;
@@ -259,10 +264,7 @@ class CreateConsumptionsTask extends MigrationTask {
           // Add the consumption
           consumptions.push({
             date: meterValue.timestamp,
-            stateOfCharge: meterValue.value,
-            value: 0,
-            valueWh: 0,
-            cumulated: 0
+            stateOfCharge: meterValue.value
           });
         }
       }
@@ -275,7 +277,7 @@ class CreateConsumptionsTask extends MigrationTask {
   }
 
   getVersion() {
-    return "1.0";
+    return "1.2";
   }
 
   getName() {
