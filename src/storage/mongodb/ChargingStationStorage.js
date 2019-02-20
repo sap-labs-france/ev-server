@@ -491,6 +491,73 @@ class ChargingStationStorage {
       };
   }
 
+  static async getStatusNotifications(tenantID, params = {}, limit, skip, sort) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getStatusNotifications');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Check Limit
+    limit = Utils.checkRecordLimit(limit);
+    // Check Skip
+    skip = Utils.checkRecordSkip(skip);
+    // Create Aggregation
+    const aggregation = [];
+    // Count Records
+    const statusNotificationsCountMDB = await global.database.getCollection(tenantID, 'statusnotifications')
+      .aggregate([...aggregation, {
+        $count: "count"
+      }])
+      .toArray();
+    // Add Created By / Last Changed By
+    // DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Sort
+    if (sort) {
+      // Sort
+      aggregation.push({
+        $sort: sort
+      });
+    } else {
+      // Default
+      aggregation.push({
+        $sort: {
+          _id: 1
+        }
+      });
+    }
+    // Skip
+    aggregation.push({
+      $skip: skip
+    });
+    // Limit
+    aggregation.push({
+      $limit: limit
+    });
+    // Read DB
+    const statusNotificationsMDB = await global.database.getCollection(tenantID, 'statusnotifications')
+      .aggregate(aggregation, {
+        collation: {
+          locale: Constants.DEFAULT_LOCALE,
+          strength: 2
+        }
+      })
+      .toArray();
+    const statusNotifications = [];
+    // Create
+    for (const statusNotificationMDB of statusNotificationsMDB) {
+      // Create status notification
+      const statusNotification = statusNotificationMDB;
+      // Add
+      statusNotifications.push(statusNotification);
+    }
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'getStatusNotifications', uniqueTimerID);
+    // Ok
+    return {
+      count: (statusNotificationsCountMDB.length > 0 ? statusNotificationsCountMDB[0].count : 0),
+      result: statusNotifications
+    };
+  }
+
   static async saveChargingStation(tenantID, chargingStationToSave) {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStation');

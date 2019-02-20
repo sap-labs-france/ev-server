@@ -26,6 +26,9 @@ module.exports = `<?xml version="1.0" encoding="UTF-8"?>
       <collection href="Users">
          <atom:title type="text">Users</atom:title>
       </collection>
+      <collection href="StatusNotifications">
+         <atom:title type="text">StatusNotifications</atom:title>
+      </collection>
    </workspace>
 </service>
 `;

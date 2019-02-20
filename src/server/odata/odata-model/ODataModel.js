@@ -65,7 +65,6 @@ module.exports = {
       "stop": { "type": "eMobility.TransactionStop" }
     },
     "BootNotification": {
-      // "id": { "type": "Edm.String", key: true },
       "tenant": { "type": "Edm.String"},
       "chargeBoxID": { "type": "Edm.String" , key: true},
       "chargePointVendor": { "type": "Edm.String" },
@@ -76,6 +75,18 @@ module.exports = {
       "ocppVersion": { "type": "Edm.String" },
       "endpoint": { "type": "Edm.String" },
       "timestamp":  { "type": "Edm.DateTimeOffset" }
+    },
+    "StatusNotification": {
+      "tenant": { "type": "Edm.String" },
+      "id": { "type": "Edm.Int32" , key: true},
+      "chargeBoxID": { "type": "Edm.String" },
+      "connectorId": { "type": "Edm.Int32" },
+      "timestamp": { "type": "Edm.DateTimeOffset"},
+      "status": { "type": "Edm.String" },
+      "errorCode": { "type": "Edm.String" },
+      "info": { "type": "Edm.String" },
+      "vendorId": { "type": "Edm.String" },
+      "vendorErrorCode":{ "type": "Edm.String" }
     }
   },
   complexTypes: {
@@ -132,6 +143,9 @@ module.exports = {
     },
     "Users": {
       entityType: "eMobility.User"
+    },
+    "StatusNotifications": {
+      entityType: "eMobility.StatusNotification"
     }
   }
 };

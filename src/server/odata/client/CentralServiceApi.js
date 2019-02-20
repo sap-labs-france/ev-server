@@ -53,6 +53,14 @@ class CentralServiceApi extends AuthenticatedApi {
     });
   }
 
+  async getStatusNotifications(params) {
+    return await this.send({  
+      method: 'GET',
+      url: '/client/api/StatusNotifications',
+      params: params
+    });
+  }
+
 }
 
 module.exports = CentralServiceApi

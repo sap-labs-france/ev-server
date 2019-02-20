@@ -432,10 +432,9 @@ class ChargingStationService {
       }
       // Filter
       const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query, req.user);
-      // Get the charging Charging Stations
+      // Get Charging Stations
       const chargingStations = await ChargingStation.getChargingStations(req.user.tenantID,
         {
-
           'search': filteredRequest.Search,
           'withNoSiteArea': filteredRequest.WithNoSiteArea,
           'withSite': filteredRequest.WithSite,
@@ -524,10 +523,9 @@ class ChargingStationService {
       }
       // Filter
       const filteredRequest = ChargingStationSecurity.filterChargingStationsInErrorRequest(req.query, req.user);
-      // Get the charging Charging Stations
+      // Get Charging Stations in Error
       const chargingStations = await ChargingStation.getChargingStationsInError(req.user.tenantID,
         {
-
           'search': filteredRequest.Search,
           'withNoSiteArea': filteredRequest.WithNoSiteArea,
           'withSite': filteredRequest.WithSite,
@@ -542,6 +540,34 @@ class ChargingStationService {
       chargingStations.result = ChargingStationSecurity.filterChargingStationsResponse(chargingStations.result, req.user);
       // Return
       res.json(chargingStations);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
+  static async handleGetStatusNotifications(action, req, res, next) {
+    try {
+      // Check auth
+      if (!Authorizations.canListChargingStations(req.user)) {
+        // Not Authorized! - Use same authorization as the Charging Stations
+        throw new AppAuthError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_CHARGING_STATIONS,
+          null, 560,
+          'ChargingStationService', 'handleGetStatusNotifications',
+          req.user);
+      }
+      // Filter
+      const filteredRequest = ChargingStationSecurity.filterStatusNotificationsRequest(req.query, req.user);
+      // Get all Status Notifications
+      const statusNotifications = await ChargingStation.getStatusNotifications(req.user.tenantID, { },
+        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+      // Set
+      statusNotifications.result = ChargingStationSecurity.filterStatusNotificationsResponse(statusNotifications.result, req.user);
+      // Return
+      res.json(statusNotifications);
       next();
     } catch (error) {
       // Log
