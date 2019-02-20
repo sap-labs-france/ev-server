@@ -49,14 +49,18 @@ class ODataRestAdapter {
       //   return;
       // }
 
-      // get timezone
-      const configuration = (await tenant.getSetting(Constants.COMPONENTS.SAC)).getContent();
+      // default timezone - TODO: change back to UTC
+      req.timezone = 'UTC';
 
-      if (configuration && configuration.timezone) {
-        req.timezone = configuration.timezone;
-      } else {
-        // default timezone - TODO: change back to UTC
-        req.timezone = 'Europe/Paris';
+      // get settings
+      const sacSetting = await tenant.getSetting(Constants.COMPONENTS.SAC);
+
+      if (sacSetting) {
+        const configuration = sacSetting.getContent();
+
+        if (configuration && configuration.timezone) {
+          req.timezone = configuration.timezone;
+        }
       }
 
       // build AuthenticatedApi
