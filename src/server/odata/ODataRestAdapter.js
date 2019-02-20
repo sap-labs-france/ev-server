@@ -38,11 +38,11 @@ class ODataRestAdapter {
       return;
     }
 
-    // check if sac setting is active
-    if (!tenant.isComponentActive(Constants.COMPONENTS.SAC)) {
-      cb(Error("SAP Analytics Clound Interface not enabled"));
-      return;
-    }
+    // check if sac setting is active - TODO: to be re-introduced after UI PR
+    // if (!tenant.isComponentActive(Constants.COMPONENTS.SAC)) {
+    //   cb(Error("SAP Analytics Clound Interface not enabled"));
+    //   return;
+    // }
 
     // get timezone
     const configuration = (await tenant.getSetting(Constants.COMPONENTS.SAC)).getContent();
@@ -50,8 +50,8 @@ class ODataRestAdapter {
     if (configuration && configuration.timezone) {
       req.timezone = configuration.timezone;
     } else {
-      // default timezone
-      req.timezone = 'UTC';
+      // default timezone - TODO: change back to UTC
+      req.timezone = 'Europe/Paris';
     }
 
     // build AuthenticatedApi
