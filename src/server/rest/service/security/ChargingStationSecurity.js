@@ -102,6 +102,14 @@ class ChargingStationSecurity {
     return filteredChargingStations;
   }
 
+  static filterStatusNotificationsResponse(statusNotifications, loggedUser) {
+    // Check
+    if (!Authorizations.canListChargingStations(loggedUser)) {
+      return null;
+    }
+    return statusNotifications;
+  }
+
   // eslint-disable-next-line no-unused-vars
   static filterChargingStationDeleteRequest(request, loggedUser) {
     const filteredRequest = {};
@@ -148,6 +156,14 @@ class ChargingStationSecurity {
     filteredRequest.WithSite = UtilsSecurity.filterBoolean(request.WithSite);
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
+  }
+
+  // eslint-disable-next-line no-unused-vars
+  static filterStatusNotificationsRequest(request, loggedUser) {
+    const filteredRequest = {};
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;

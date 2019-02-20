@@ -3,12 +3,16 @@ const oDataCompanies = require('./odata-entities/ODataCompanies');
 const oDataSites = require('./odata-entities/ODataSites');
 const oDataSiteAreas = require('./odata-entities/ODataSiteAreas');
 const oDataChargingStations = require('./odata-entities/ODataChargingStations');
+const oDataStatusNotifications = require('./odata-entities/ODataStatusNotifications');
 const oDataUsers = require('./odata-entities/ODataUsers');
 const oDataModel = require('./odata-model/ODataModel');
 const auth = require('basic-auth');
 const Constants = require('../../utils/Constants');
 const CentralServiceApi = require('./client/CentralServiceApi');
 const Tenant = require('../../entity/Tenant');
+const Logging = require('../../utils/Logging');
+
+const MODULE_NAME = "ODataServer";
 
 class ODataRestAdapter {
   static async query(collection, query, req, cb) {
@@ -28,40 +32,40 @@ class ODataRestAdapter {
     if (subdomain === '109') {
       subdomain = 'slf';
     }
-
-    // get tenant
-    const tenant = await Tenant.getTenantBySubdomain(subdomain);
-
-    // check if tenant available
-    if (!tenant) {
-      cb(Error("Invalid tenant"));
-      return;
-    }
-
-    // check if sac setting is active - TODO: to be re-introduced after UI PR
-    // if (!tenant.isComponentActive(Constants.COMPONENTS.SAC)) {
-    //   cb(Error("SAP Analytics Clound Interface not enabled"));
-    //   return;
-    // }
-
-    // get timezone
-    const configuration = (await tenant.getSetting(Constants.COMPONENTS.SAC)).getContent();
-
-    if (configuration && configuration.timezone) {
-      req.timezone = configuration.timezone;
-    } else {
-      // default timezone - TODO: change back to UTC
-      req.timezone = 'Europe/Paris';
-    }
-
-    // build AuthenticatedApi
-    const centralServiceApi = new CentralServiceApi(this.restServerUrl, authentication.name, authentication.pass, subdomain);
-
-    // set tenant
-    req.tenant = subdomain;
-
     // handle error
     try {
+      // get tenant
+      const tenant = await Tenant.getTenantBySubdomain(subdomain);
+
+      // check if tenant available
+      if (!tenant) {
+        cb(Error("Invalid tenant"));
+        return;
+      }
+
+      // check if sac setting is active - TODO: to be re-introduced after UI PR
+      // if (!tenant.isComponentActive(Constants.COMPONENTS.SAC)) {
+      //   cb(Error("SAP Analytics Clound Interface not enabled"));
+      //   return;
+      // }
+
+      // get timezone
+      const configuration = (await tenant.getSetting(Constants.COMPONENTS.SAC)).getContent();
+
+      if (configuration && configuration.timezone) {
+        req.timezone = configuration.timezone;
+      } else {
+        // default timezone - TODO: change back to UTC
+        req.timezone = 'Europe/Paris';
+      }
+
+      // build AuthenticatedApi
+      const centralServiceApi = new CentralServiceApi(this.restServerUrl, authentication.name, authentication.pass, subdomain);
+
+      // set tenant
+      req.tenant = subdomain;
+      req.tenantID = tenant.getID();
+
       switch (collection) {
         case 'Transactions':
           // get tenant TODO: test
@@ -85,6 +89,9 @@ class ODataRestAdapter {
         case 'ChargingStations':
           oDataChargingStations.getChargingStations(centralServiceApi, query, req, cb);
           break;
+        case 'StatusNotifications':
+          oDataStatusNotifications.getStatusNotifications(centralServiceApi, query, req, cb);
+          break;
         case 'Users':
           oDataUsers.getUsers(centralServiceApi, query, req, cb);
           break;
@@ -92,6 +99,16 @@ class ODataRestAdapter {
           cb('Invalid Entity');
       }
     } catch (error) {
+      // add logging
+      Logging.logError({
+        tenantID: req.tenantID,
+        module: MODULE_NAME,
+        source: MODULE_NAME,
+        method: "query",
+        action: "query",
+        message: error.message,
+        detailedMessages: error.stack
+      });
       cb(error);
     }
   }

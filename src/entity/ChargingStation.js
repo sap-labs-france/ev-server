@@ -52,6 +52,10 @@ class ChargingStation extends AbstractTenantEntity {
     return ChargingStationStorage.removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs);
   }
 
+  static getStatusNotifications(tenantID, params, limit, skip, sort) {
+    return ChargingStationStorage.getStatusNotifications(tenantID, params, limit, skip, sort)
+  }
+
   handleAction(action, params = {}) {
     // Handle Client Requests
     switch (action) {
