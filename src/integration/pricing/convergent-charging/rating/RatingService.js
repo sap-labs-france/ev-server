@@ -1,6 +1,5 @@
 const soap = require('strong-soap').soap;
 const {performance} = require('perf_hooks');
-const path = require('path');
 
 class RatingService {
 

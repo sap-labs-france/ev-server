@@ -1,7 +1,6 @@
 const soap = require('strong-soap').soap;
 const {performance} = require('perf_hooks');
 const ConnectionStorage = require("../../../../storage/mongodb/ConnectionStorage");
-const path = require('path');
 
 class ERPService {
 
