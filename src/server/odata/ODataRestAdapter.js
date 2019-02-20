@@ -6,9 +6,11 @@ const oDataChargingStations = require('./odata-entities/ODataChargingStations');
 const oDataUsers = require('./odata-entities/ODataUsers');
 const oDataModel = require('./odata-model/ODataModel');
 const auth = require('basic-auth');
+const Constants = require('../../utils/Constants');
 const CentralServiceApi = require('./client/CentralServiceApi');
+const Tenant = require('../../entity/Tenant');
 
-class ODataDatabaseAdapter {
+class ODataRestAdapter {
   static async query(collection, query, req, cb) {
     // get tenant from url
     const requestedHost = req.host;
@@ -17,27 +19,57 @@ class ODataDatabaseAdapter {
     const split = requestedHost.split('.');
 
     // get tenant at first place
-    let tenant = split[0];
+    let subdomain = split[0];
 
     // get user/password
     const authentication = auth(req);
 
     // TODO: for testing at home
-    if (tenant === '109') {
-      tenant = 'slf';
+    if (subdomain === '109') {
+      subdomain = 'slf';
+    }
+
+    // get tenant
+    const tenant = await Tenant.getTenantBySubdomain(subdomain);
+
+    // check if tenant available
+    if (!tenant) {
+      cb(Error("Invalid tenant"));
+      return;
+    }
+
+    // check if sac setting is active - TODO: to be re-introduced after UI PR
+    // if (!tenant.isComponentActive(Constants.COMPONENTS.SAC)) {
+    //   cb(Error("SAP Analytics Clound Interface not enabled"));
+    //   return;
+    // }
+
+    // get timezone
+    const configuration = (await tenant.getSetting(Constants.COMPONENTS.SAC)).getContent();
+
+    if (configuration && configuration.timezone) {
+      req.timezone = configuration.timezone;
+    } else {
+      // default timezone - TODO: change back to UTC
+      req.timezone = 'Europe/Paris';
     }
 
     // build AuthenticatedApi
-    const centralServiceApi = new CentralServiceApi(this.restServerUrl, authentication.name, authentication.pass, tenant);
+    const centralServiceApi = new CentralServiceApi(this.restServerUrl, authentication.name, authentication.pass, subdomain);
 
     // set tenant
-    req.tenant = tenant;
-    // set timezone - TODO: should be provided by tenant configuraiton
-    req.timezone = 'Europe/Paris';
+    req.tenant = subdomain;
 
     // handle error
     try {
       switch (collection) {
+        case 'Transactions':
+          // get tenant TODO: test
+          req.user = {};
+          req.user.tenantID = '5be7fb271014d90008992f06';
+
+          ODataTransactions.query(query, req, cb);
+          break;
         case 'TransactionsCompleted':
           ODataTransactions.getTransactionsCompleted(centralServiceApi, query, req, cb);
           break;
@@ -67,10 +99,9 @@ class ODataDatabaseAdapter {
   // register adapter on ODataServer
   static registerAdapter(oDataServer) {
     if (!oDataServer) { return }
-    // oDataServer.model(ODataDatabaseAdapter.getModel()).query(ODataDatabaseAdapter.query);
-    oDataServer.model(oDataModel).query(ODataDatabaseAdapter.query);
+    oDataServer.model(oDataModel).query(ODataRestAdapter.query);
   }
 }
 
 
-module.exports = ODataDatabaseAdapter;
+module.exports = ODataRestAdapter;

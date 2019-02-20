@@ -53,6 +53,12 @@
                     "properties": {
                         "active": { "type": "boolean" }
                     }
+                },
+                "sac": {
+                    "type": "object",
+                    "properties": {
+                        "active": { "type": "boolean" }
+                    }
                 }
             }
         }

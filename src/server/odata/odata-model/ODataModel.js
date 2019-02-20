@@ -40,7 +40,7 @@ module.exports = {
     },
     "User": {
       "tenant": { "type": "Edm.String"},
-      "id" : { "type": "Edm.String", key: true },
+      "id" : { "type": "Edm.String" , key: true},
       "email" : { "type": "Edm.String" },
       "name" : { "type": "Edm.String" },
       "firstName" : { "type": "Edm.String" },
@@ -54,8 +54,8 @@ module.exports = {
       "address" : { 'type': 'eMobility.Address' }
     },
     "Transaction": {
-      "tenant": { "type": "Edm.String"},
-      "id": { "type": "Edm.Int32", key: true },
+      "tenant": { "type": "Edm.String" },
+      "id": { "type": "Edm.Int32" , key: true},
       "chargeBoxID": { "type": "Edm.String" },
       "connectorId": { "type": "Edm.Int32" },
       "timestamp": { "type": "Edm.DateTimeOffset"},
