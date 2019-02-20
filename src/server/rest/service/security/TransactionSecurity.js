@@ -119,6 +119,7 @@ class TransactionSecurity {
         filteredTransaction.currentConsumption = transaction.getCurrentConsumption();
         filteredTransaction.currentTotalConsumption = transaction.getCurrentTotalConsumption();
         filteredTransaction.currentTotalInactivitySecs = transaction.getCurrentTotalInactivitySecs();
+        filteredTransaction.currentTotalDurationSecs = transaction.getCurrentTotalDurationSecs();
         filteredTransaction.currentCumulatedPrice = transaction.getCurrentCumulatedPrice();
         filteredTransaction.currentStateOfCharge = transaction.getCurrentStateOfCharge();
         filteredTransaction.currentStateOfCharge = transaction.getCurrentStateOfCharge();
