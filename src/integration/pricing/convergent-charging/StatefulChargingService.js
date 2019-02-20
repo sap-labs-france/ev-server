@@ -96,7 +96,7 @@ class StatefulChargingService {
       // Create the Promise
       this.client = await new Promise(function(resolve, reject) {
         // Create the client
-        soap.createClient('src/integration/pricing/convergent-charging/wsdl/StatefulCharging.wsdl', options, (err, client) => {
+        soap.createClient(__dirname + '/wsdl/StatefulCharging.wsdl', options, (err, client) => {
           if (err) {
             reject(err);
           } else {
@@ -107,8 +107,8 @@ class StatefulChargingService {
       // Set endpoint
       this.client.setEndpoint(`${this.serverUrl}/ARTIX/statefulCharging`);
       this.client.setSecurity(new soap.ClientSSLSecurity(
-        'src/integration/pricing/convergent-charging/ssl/hybris-access.key'
-        , 'src/integration/pricing/convergent-charging/ssl/hybris-access.crt'
+        __dirname + '/ssl/hybris-access.key'
+        , __dirname + '/ssl/hybris-access.crt'
         , {rejectUnauthorized: false, strictSSL: false}
       ));
       this.service = this.client['statefulCharging']['statefulChargingPort'];
