@@ -1,6 +1,7 @@
 const soap = require('strong-soap').soap;
 const {performance} = require('perf_hooks');
 const ConnectionStorage = require("../../../../storage/mongodb/ConnectionStorage");
+const path = require('path');
 
 class ERPService {
 
@@ -134,7 +135,7 @@ class ERPService {
       // Create the Promise
       this.client = await new Promise(function(resolve, reject) {
         // Create the client
-        soap.createClient('src/integration/pricing/convergent-charging/invoicing/wsdl/erpservices_1.wsdl', options, (err, client) => {
+        soap.createClient(__dirname+'/wsdl/erpservices_1.wsdl', options, (err, client) => {
           if (err) {
             reject(err);
           } else {
@@ -145,8 +146,8 @@ class ERPService {
       // Set endpoint
       this.client.setEndpoint(`${this.serverUrl}/ARTIX/erpservices`);
       this.client.setSecurity(new soap.ClientSSLSecurity(
-        'src/integration/pricing/convergent-charging/ssl/hybris-access.key'
-        , 'src/integration/pricing/convergent-charging/ssl/hybris-access.crt'
+        __dirname+'/ssl/hybris-access.key'
+        , __dirname+'/ssl/hybris-access.crt'
         , {rejectUnauthorized: false, strictSSL: false}
       ));
       this.service = this.client['ERP']['ERPPort'];
