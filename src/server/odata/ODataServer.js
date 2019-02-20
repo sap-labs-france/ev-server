@@ -3,6 +3,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const locale = require('locale');
 const express = require('express')();
+// const compression = require('compression');
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
@@ -14,6 +15,7 @@ const Logging = require('../../utils/Logging');
 const Constants = require('../../utils/Constants');
 const ODataServerFactory = require('../odata/ODataServerFactory');
 const ODataSchema = require('./odata-schema/ODataSchema');
+
 require('source-map-support').install();
 
 let _oDataServerConfig;
@@ -57,14 +59,22 @@ class ODataServer {
     express.use(cors());
     // Secure the application
     express.use(helmet());
+    // Use Compression
+    // express.use(compression());
     // Check Cloud Foundry
     if (Configuration.isCloudFoundry()) {
       // Bind to express app
       express.use(CFLog.logNetwork);
     }
+    // get URL of the CentralSystemRestServer
+    const restConf = Configuration.getCentralSystemRestServer();
+
+    const restServerUrl = `${restConf.protocol}://${restConf.host}:${restConf.port}/`;
+
     //  Register ODATAServer
     const oDataServerFactory = new ODataServerFactory();
     const odataServer = oDataServerFactory.getODataServer();
+    odataServer.restServerUrl = restServerUrl;
     express.use('/odata',
       ODataSchema.getSchema,
       function (req, res) {

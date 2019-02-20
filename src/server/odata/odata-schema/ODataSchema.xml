@@ -5,8 +5,26 @@ module.exports = `<?xml version="1.0" encoding="UTF-8"?>
       <collection href="Transactions">
          <atom:title type="text">Transactions</atom:title>
       </collection>
+      <collection href="TransactionsCompleted">
+         <atom:title type="text">TransactionsCompleted</atom:title>
+      </collection>
       <collection href="BootNotifications">
          <atom:title type="text">BootNotifications</atom:title>
+      </collection>
+      <collection href="Companies">
+         <atom:title type="text">Companies</atom:title>
+      </collection>
+      <collection href="Sites">
+         <atom:title type="text">Sites</atom:title>
+      </collection>
+      <collection href="SiteAreas">
+         <atom:title type="text">SiteAreas</atom:title>
+      </collection>
+      <collection href="ChargingStations">
+         <atom:title type="text">ChargingStations</atom:title>
+      </collection>
+      <collection href="Users">
+         <atom:title type="text">Users</atom:title>
       </collection>
    </workspace>
 </service>

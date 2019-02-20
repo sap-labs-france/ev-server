@@ -107,6 +107,11 @@ class Configuration {
     return oDataservice;
   }
 
+  // RestService Configuration - internet view
+  static getCentralSystemRestServer() {
+    return Configuration.getConfig().CentralSystemServer;
+  }
+
   // Central System REST config
   static getWSDLEndpointConfig() {
     return Configuration.getConfig().WSDLEndpoint;
