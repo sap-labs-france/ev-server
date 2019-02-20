@@ -216,7 +216,8 @@ module.exports = {
     OCPI_COMPONENT: "ocpi",
     CHARGE_AT_HOME: "chargeathome",
     PRICING: "pricing",
-    ORGANIZATION: "organization"
+    ORGANIZATION: "organization",
+    SAC:"sac"
   },
 
   // Ocpi Registering status

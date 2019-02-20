@@ -1,11 +1,11 @@
 const ODataServer = require('simple-odata-server');
-const ODataDatabaseAdapter = require('./ODataDatabaseAdapter');
+const ODataRestAdapter = require('./ODataRestAdapter');
 require('source-map-support').install();
 
 class ODataServerFactory {
   constructor() {
     this.odataserver = ODataServer();
-    ODataDatabaseAdapter.registerAdapter(this.odataserver);
+    ODataRestAdapter.registerAdapter(this.odataserver);
   }
 
   getODataServer() {
