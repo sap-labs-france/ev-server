@@ -1,5 +1,6 @@
 
 const AbstractODataEntities = require('./AbstractODataEntities');
+const _ = require('lodash');
 
 class ODataCompanies extends AbstractODataEntities {
   static async getCompanies(centralServiceApi, query, req, cb) {
@@ -15,6 +16,13 @@ class ODataCompanies extends AbstractODataEntities {
     } catch (error) {
       cb(error);
     }
+  }
+
+  // Custom convert to:
+  // Move Adress object to same level
+  static convert(object, req) {
+    const company = super.convert(object, req);
+    return company.address ? _.merge(company, company.address) : company;
   }
 }
 

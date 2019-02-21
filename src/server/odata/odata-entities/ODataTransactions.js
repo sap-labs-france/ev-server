@@ -29,11 +29,37 @@ class ODataTransactions extends AbstractODataEntities {
       transaction.startDate = this.buildDateObject(transaction.timestamp, req);
     }
 
-    if (transaction.hasOwnProperty('stop')) {
+    // rename User
+    if (transaction.user) {
+      transaction.startUser = transaction.user;
+      transaction.startUser.fullName = `${transaction.startUser.name}, ${transaction.startUser.firstName}`;
+      delete transaction['user'];
+    }
+
+    // rename TagID
+    if (transaction.hasOwnProperty('tagID')) {
+      transaction.startTagID = transaction.tagID;
+      delete transaction['tagID'];
+    }
+
+    if (transaction.stop) {
       if (transaction.stop.hasOwnProperty('timestamp') && transaction.stop.timestamp) {
         // convert timestamp and build date object
         transaction.stop.timestamp = this.convertTimestamp(transaction.stop.timestamp, req);
-        transaction.stop.stopDate = this.buildDateObject(transaction.stop.timestamp, req);
+        transaction.stopDate = this.buildDateObject(transaction.stop.timestamp, req);
+      }
+
+      // rename User and move to transaction root
+      if (transaction.stop.user) {
+        transaction.stopUser = transaction.stop.user;
+        transaction.stopUser.fullName = `${transaction.stopUser.name}, ${transaction.stopUser.firstName}`;
+        delete transaction.stop['user'];
+      }
+
+      // rename TagID and move to transaction root
+      if (transaction.stop.hasOwnProperty('tagID')) {
+        transaction.stopTagID = transaction.stop.tagID;
+        delete transaction.stop['tagID'];
       }
 
       if (transaction.stop.hasOwnProperty('price')) {
