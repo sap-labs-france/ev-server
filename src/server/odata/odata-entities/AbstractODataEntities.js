@@ -34,9 +34,9 @@ class AbstractODataEntities {
     const date = moment(timestamp).tz(req.timezone);
     return {
       date: date.format('YYYY-MM-DD'),
-      dayOfTheWeek: date.format("d"),
+      dayOfTheWeek: parseInt(date.format("d")),
       hourOfTheDay: date.hours(),
-      weekOfTheYear: date.format("W")
+      weekOfTheYear: parseInt(date.format("W"))
     }
   }
 
