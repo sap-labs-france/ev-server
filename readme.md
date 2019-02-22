@@ -473,17 +473,10 @@ Start the application:
 ```
 npm run start:prod
 ```
-
-Make sure you set the NODE_ENV variable before:
-
-```
-export NODE_ENV=production
-```
-
-Or in Windows:
+You can also start the application with the standard nodejs profiler:
 
 ```
-SET NODE_ENV=production
+npm run start:prod:prof
 ```
 
 ### Development Mode
@@ -505,7 +498,7 @@ npm run start:dev
 ### Tests
 **Prerequisite:** The database must contain an admin user. 
 
-* Create a local configuration file located in './test/config/local.json' with the parameters to override like 
+* Create a local configuration file located in './test/config/local.json' with the parameters to override like
          
         {
           "admin": {
