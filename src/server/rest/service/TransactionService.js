@@ -16,7 +16,7 @@ class TransactionService {
   static async handleRefundTransactions(action, req, res, next) {
     try {
       // Filter
-      let filteredRequest = TransactionSecurity.filterTransactionsRefund(req.body, req.user);
+      const filteredRequest = TransactionSecurity.filterTransactionsRefund(req.body, req.user);
       if (!filteredRequest.transactionIds) {
         // Not Found!
         throw new AppError(
@@ -26,7 +26,7 @@ class TransactionService {
       }
       const transactionsToRefund = [];
       for (const transactionId of filteredRequest.transactionIds) {
-        let transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
+        const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
         if (!transaction) {
           Logging.logError({
             tenantID: req.user.tenantID,
@@ -69,7 +69,7 @@ class TransactionService {
         return;
       }
       // Get Transaction User
-      let user = await User.getUser(req.user.tenantID, req.user.id);
+      const user = await User.getUser(req.user.tenantID, req.user.id);
       // Check
       if (!user) {
         // Not Found!
@@ -110,7 +110,7 @@ class TransactionService {
   static async handleDeleteTransaction(action, req, res, next) {
     try {
       // Filter
-      let filteredRequest = TransactionSecurity.filterTransactionDelete(req.query, req.user);
+      const filteredRequest = TransactionSecurity.filterTransactionDelete(req.query, req.user);
       // Transaction Id is mandatory
       if (!filteredRequest.ID) {
         // Not Found!
@@ -120,7 +120,7 @@ class TransactionService {
           'TransactionService', 'handleDeleteTransaction', req.user);
       }
       // Get Transaction
-      let transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID);
+      const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID);
       // Found?
       if (!transaction) {
         // Not Found!
@@ -139,7 +139,7 @@ class TransactionService {
           560, 'TransactionService', 'handleDeleteTransaction',
           req.user);
       }
-      let chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, transaction.getChargeBoxID());
+      const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, transaction.getChargeBoxID());
       if (transaction.isActive()) {
         if (!chargingStation) {
           throw new AppError(
@@ -172,11 +172,10 @@ class TransactionService {
     }
   }
 
-  static
-  async handleTransactionSoftStop(action, req, res, next) {
+  static async handleTransactionSoftStop(action, req, res, next) {
     try {
       // Filter
-      let filteredRequest = TransactionSecurity.filterTransactionSoftStop(req.body, req.user);
+      const filteredRequest = TransactionSecurity.filterTransactionSoftStop(req.body, req.user);
       // Transaction Id is mandatory
       if (!filteredRequest.transactionId) {
         // Not Found!
@@ -205,7 +204,7 @@ class TransactionService {
           req.user);
       }
       // Get the Charging Station
-      let chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, transaction.getChargeBoxID());
+      const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, transaction.getChargeBoxID());
       // Found?
       if (!chargingStation) {
         // Not Found!
@@ -218,7 +217,7 @@ class TransactionService {
       let user;
       if (transaction.getUserID()) {
         // Get Transaction User
-        let user = await User.getUser(req.user.tenantID, transaction.getUserID());
+        const user = await User.getUser(req.user.tenantID, transaction.getUserID());
         // Check
         if (!user) {
           // Not Found!
@@ -229,14 +228,14 @@ class TransactionService {
         }
       }
       // Stop Transaction
-      let stopTransaction = {};
+      const stopTransaction = {};
       stopTransaction.transactionId = transaction.getID();
       stopTransaction.user = req.user.id;
       stopTransaction.idTag = req.user.tagIDs[0];
       stopTransaction.timestamp = new Date().toISOString();
       stopTransaction.meterStop = 0;
       // Save
-      let result = await chargingStation.handleStopTransaction(stopTransaction, true);
+      const result = await chargingStation.handleStopTransaction(stopTransaction, true);
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
@@ -254,11 +253,10 @@ class TransactionService {
     }
   }
 
-  static
-  async handleGetChargingStationConsumptionFromTransaction(action, req, res, next) {
+  static async handleGetChargingStationConsumptionFromTransaction(action, req, res, next) {
     try {
       // Filter
-      let filteredRequest = TransactionSecurity.filterChargingStationConsumptionFromTransactionRequest(req.query, req.user);
+      const filteredRequest = TransactionSecurity.filterChargingStationConsumptionFromTransactionRequest(req.query, req.user);
       // Transaction Id is mandatory
       if (!filteredRequest.TransactionId) {
         // Not Found!
@@ -311,11 +309,10 @@ class TransactionService {
     }
   }
 
-  static
-  async handleGetTransaction(action, req, res, next) {
+  static async handleGetTransaction(action, req, res, next) {
     try {
       // Filter
-      let filteredRequest = TransactionSecurity.filterTransactionRequest(req.query, req.user);
+      const filteredRequest = TransactionSecurity.filterTransactionRequest(req.query, req.user);
       // Charge Box is mandatory
       if (!filteredRequest.ID) {
         // Not Found!
@@ -358,8 +355,7 @@ class TransactionService {
     }
   }
 
-  static
-  async handleGetChargingStationTransactions(action, req, res, next) {
+  static async handleGetChargingStationTransactions(action, req, res, next) {
     try {
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -373,7 +369,7 @@ class TransactionService {
           req.user);
       }
       // Filter
-      let filteredRequest = TransactionSecurity.filterChargingStationTransactionsRequest(req.query, req.user);
+      const filteredRequest = TransactionSecurity.filterChargingStationTransactionsRequest(req.query, req.user);
       // Charge Box is mandatory
       if (!filteredRequest.ChargeBoxID) {
         // Not Found!
@@ -391,7 +387,7 @@ class TransactionService {
           'TransactionService', 'handleGetChargingStationTransactions', req.user);
       }
       // Get Charge Box
-      let chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
+      const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
       // Found?
       if (!chargingStation) {
         // Not Found!
@@ -401,7 +397,7 @@ class TransactionService {
           'TransactionService', 'handleGetChargingStationTransactions', req.user);
       }
       // Set the model
-      let transactions = await chargingStation.getTransactions(
+      const transactions = await chargingStation.getTransactions(
         filteredRequest.ConnectorId,
         filteredRequest.StartDateTime,
         filteredRequest.EndDateTime,
@@ -418,12 +414,11 @@ class TransactionService {
     }
   }
 
-  static
-  async handleGetTransactionYears(action, req, res, next) {
+  static async handleGetTransactionYears(action, req, res, next) {
     try {
       // Get Transactions
-      let transactionsYears = await TransactionStorage.getTransactionYears(req.user.tenantID);
-      let result = {};
+      const transactionsYears = await TransactionStorage.getTransactionYears(req.user.tenantID);
+      const result = {};
       if (transactionsYears) {
         result.years = [];
         result.years.push(new Date().getFullYear());
@@ -437,8 +432,7 @@ class TransactionService {
     }
   }
 
-  static
-  async handleGetTransactionsActive(action, req, res, next) {
+  static async handleGetTransactionsActive(action, req, res, next) {
     try {
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -451,9 +445,9 @@ class TransactionService {
           'TransactionService', 'handleGetTransactionsActive',
           req.user);
       }
-      let filter = {stop: {$exists: false}};
+      const filter = {stop: {$exists: false}};
       // Filter
-      let filteredRequest = TransactionSecurity.filterTransactionsActiveRequest(req.query, req.user);
+      const filteredRequest = TransactionSecurity.filterTransactionsActiveRequest(req.query, req.user);
       if (filteredRequest.ChargeBoxID) {
         filter.chargeBoxID = filteredRequest.ChargeBoxID;
       }
@@ -461,7 +455,7 @@ class TransactionService {
         filter.connectorId = filteredRequest.ConnectorId;
       }
       // Get Transactions
-      let transactions = await TransactionStorage.getTransactions(req.user.tenantID,
+      const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
         {...filter, 'withChargeBoxes': true},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
@@ -476,8 +470,7 @@ class TransactionService {
     }
   }
 
-  static
-  async handleGetTransactionsCompleted(action, req, res, next) {
+  static async handleGetTransactionsCompleted(action, req, res, next) {
     try {
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -490,9 +483,9 @@ class TransactionService {
           'TransactionService', 'handleGetTransactionsCompleted',
           req.user);
       }
-      let filter = {stop: {$exists: true}};
+      const filter = {stop: {$exists: true}};
       // Filter
-      let filteredRequest = TransactionSecurity.filterTransactionsCompletedRequest(req.query, req.user);
+      const filteredRequest = TransactionSecurity.filterTransactionsCompletedRequest(req.query, req.user);
       if (filteredRequest.ChargeBoxID) {
         filter.chargeBoxID = filteredRequest.ChargeBoxID;
       }
@@ -505,11 +498,14 @@ class TransactionService {
       }
       if (filteredRequest.UserID) {
         filter.userId = filteredRequest.UserID;
+      // Basic?
+      } else if (Authorizations.isBasic(req.user)) {
+        filter.userId = req.user.id;
       }
       if (filteredRequest.Type) {
         filter.type = filteredRequest.Type;
       }
-      let transactions = await TransactionStorage.getTransactions(req.user.tenantID,
+      const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
         {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
@@ -537,9 +533,9 @@ class TransactionService {
           'TransactionService', 'handleGetTransactionsExport',
           req.user);
       }
-      let filter = {stop: {$exists: true}};
+      const filter = {stop: {$exists: true}};
       // Filter
-      let filteredRequest = TransactionSecurity.filterTransactionsCompletedRequest(req.query, req.user);
+      const filteredRequest = TransactionSecurity.filterTransactionsCompletedRequest(req.query, req.user);
       if (filteredRequest.ChargeBoxID) {
         filter.chargeBoxID = filteredRequest.ChargeBoxID;
       }
@@ -585,8 +581,7 @@ class TransactionService {
     }
   }
 
-  static
-  async handleGetTransactionsInError(action, req, res, next) {
+  static async handleGetTransactionsInError(action, req, res, next) {
     try {
       // Check auth
       if (!Authorizations.canListTransactionsInError(req.user)) {
@@ -599,9 +594,9 @@ class TransactionService {
           'TransactionService', 'handleGetTransactionsInError',
           req.user);
       }
-      let filter = {stop: {$exists: true}};
+      const filter = {stop: {$exists: true}};
       // Filter
-      let filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query, req.user);
+      const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query, req.user);
       if (filteredRequest.ChargeBoxID) {
         filter.chargeBoxID = filteredRequest.ChargeBoxID;
       }
