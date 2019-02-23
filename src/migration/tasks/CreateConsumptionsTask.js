@@ -91,7 +91,20 @@ class CreateConsumptionsTask extends MigrationTask {
     this.totalCount = transactions.length;
     // Create promises
     const promises = transactions.map(
-      transaction => limit(() => this.computeConsumptions(transaction, pricing)));
+      transaction => limit(async () => {
+        try {
+          // Compute
+          await this.computeConsumptions(transaction, pricing);
+        } catch(error) {
+          Logging.logError({
+            tenantID: Constants.DEFAULT_TENANT,
+            source: "CreateConsumptionsTask", action: "Migration",
+            module: "CreateConsumptionsTask", method: "migrate",
+            message: `Tenant ${tenant.getName()} (${tenant.getID()}): Transaction ID '${transaction.getID()}' failed to migrate`
+          });
+        }
+      })
+    );
     // Execute them all
     // eslint-disable-next-line no-undef
     await Promise.all(promises);
@@ -161,7 +174,7 @@ class CreateConsumptionsTask extends MigrationTask {
       newConsumptions.push(newConsumption);
     }
     // Save All
-    this.insertMany(transaction.getTenantID(), newConsumptions);
+    await this.insertMany(transaction.getTenantID(), newConsumptions);
   }
 
   async insertMany(tenantID, consumptions) {
