@@ -29,6 +29,9 @@ module.exports = `<?xml version="1.0" encoding="UTF-8"?>
       <collection href="StatusNotifications">
          <atom:title type="text">StatusNotifications</atom:title>
       </collection>
+      <collection href="BootNotifications">
+         <atom:title type="text">BootNotifications</atom:title>
+      </collection>
    </workspace>
 </service>
 `;

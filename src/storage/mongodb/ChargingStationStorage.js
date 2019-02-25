@@ -859,9 +859,6 @@ class ChargingStationStorage {
     const bootNotifications = [];
     // Create
     for (const bootNotificationMDB of bootNotificationsMDB) {
-      // Create the Charger
-      // const chargingStation = new ChargingStation(tenantID, chargingStationMDB)
-
       // Add
       bootNotifications.push(bootNotificationMDB);
     }

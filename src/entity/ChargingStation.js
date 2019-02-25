@@ -56,6 +56,10 @@ class ChargingStation extends AbstractTenantEntity {
     return ChargingStationStorage.getStatusNotifications(tenantID, params, limit, skip, sort)
   }
 
+  static getBootNotifications(tenantID, params, limit, skip, sort) {
+    return ChargingStationStorage.getBootNotifications(tenantID, params, limit, skip, sort)
+  }
+
   handleAction(action, params = {}) {
     // Handle Client Requests
     switch (action) {

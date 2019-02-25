@@ -220,6 +220,11 @@ module.exports = {
             // Delegate
             ChargingStationService.handleGetStatusNotifications(action, req, res, next);
             break;          
+          // Get all boot notifications
+          case "BootNotifications":
+            // Delegate
+            ChargingStationService.handleGetBootNotifications(action, req, res, next);
+            break;        
           // Get all the companies
           case "Companies":
             // Delegate

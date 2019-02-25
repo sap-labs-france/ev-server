@@ -16,6 +16,19 @@ class ODataStatusNotifications extends AbstractODataEntities {
       cb(error);
     }
   }
+
+  // Custom convert to:
+  //   - add notificationDate objects
+  static convert(object, req) {
+    const statusNotification = super.convert(object, req);
+    if (statusNotification.hasOwnProperty('timestamp') && statusNotification.timestamp) {
+      // convert timestamp and build date object
+      statusNotification.timestamp = this.convertTimestamp(statusNotification.timestamp, req);
+      statusNotification.notificationDate = this.buildDateObject(statusNotification.timestamp, req);
+    }
+
+    return statusNotification;
+  }
 }
 
 
