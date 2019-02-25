@@ -101,7 +101,8 @@ module.exports = {
       "firmwareVersion": { "type": "Edm.String" },
       "ocppVersion": { "type": "Edm.String" },
       "endpoint": { "type": "Edm.String" },
-      "timestamp":  { "type": "Edm.DateTimeOffset" }
+      "timestamp":  { "type": "Edm.DateTimeOffset" },
+      "bootDate": { "type": "eMobility.ComplexDate"}
     },
     "StatusNotification": {
       "tenant": { "type": "Edm.String" },
@@ -109,6 +110,7 @@ module.exports = {
       "chargeBoxID": { "type": "Edm.String" },
       "connectorId": { "type": "Edm.Int32" },
       "timestamp": { "type": "Edm.DateTimeOffset"},
+      "notificationDate": { "type": "eMobility.ComplexDate"},
       "status": { "type": "Edm.String" },
       "errorCode": { "type": "Edm.String" },
       "info": { "type": "Edm.String" },

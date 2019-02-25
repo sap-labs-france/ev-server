@@ -61,6 +61,14 @@ class CentralServiceApi extends AuthenticatedApi {
     });
   }
 
+  async getBootNotifications(params) {
+    return await this.send({  
+      method: 'GET',
+      url: '/client/api/BootNotifications',
+      params: params
+    });
+  }
+
 }
 
 module.exports = CentralServiceApi

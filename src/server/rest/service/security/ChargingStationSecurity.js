@@ -110,6 +110,14 @@ class ChargingStationSecurity {
     return statusNotifications;
   }
 
+  static filterBootNotificationsResponse(statusNotifications, loggedUser) {
+    // Check
+    if (!Authorizations.canListChargingStations(loggedUser)) {
+      return null;
+    }
+    return statusNotifications;
+  }
+
   // eslint-disable-next-line no-unused-vars
   static filterChargingStationDeleteRequest(request, loggedUser) {
     const filteredRequest = {};
@@ -163,6 +171,14 @@ class ChargingStationSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterStatusNotificationsRequest(request, loggedUser) {
+    const filteredRequest = {};
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
+  }
+
+  // eslint-disable-next-line no-unused-vars
+  static filterBootNotificationsRequest(request, loggedUser) {
     const filteredRequest = {};
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);

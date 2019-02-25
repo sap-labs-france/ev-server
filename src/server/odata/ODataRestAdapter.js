@@ -4,6 +4,7 @@ const oDataSites = require('./odata-entities/ODataSites');
 const oDataSiteAreas = require('./odata-entities/ODataSiteAreas');
 const oDataChargingStations = require('./odata-entities/ODataChargingStations');
 const oDataStatusNotifications = require('./odata-entities/ODataStatusNotifications');
+const oDataBootNotifications = require('./odata-entities/ODataBootNotifications');
 const oDataUsers = require('./odata-entities/ODataUsers');
 const oDataModel = require('./odata-model/ODataModel');
 const auth = require('basic-auth');
@@ -72,11 +73,7 @@ class ODataRestAdapter {
 
       switch (collection) {
         case 'Transactions':
-          // get tenant TODO: test
-          req.user = {};
-          req.user.tenantID = '5be7fb271014d90008992f06';
-
-          ODataTransactions.query(query, req, cb);
+          ODataTransactions.getTransactionsCompleted(centralServiceApi, query, req, cb);
           break;
         case 'TransactionsCompleted':
           ODataTransactions.getTransactionsCompleted(centralServiceApi, query, req, cb);
@@ -95,6 +92,9 @@ class ODataRestAdapter {
           break;
         case 'StatusNotifications':
           oDataStatusNotifications.getStatusNotifications(centralServiceApi, query, req, cb);
+          break;
+        case 'BootNotifications':
+          oDataBootNotifications.getBootNotifications(centralServiceApi, query, req, cb);
           break;
         case 'Users':
           oDataUsers.getUsers(centralServiceApi, query, req, cb);

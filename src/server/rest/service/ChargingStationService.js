@@ -575,6 +575,33 @@ class ChargingStationService {
     }
   }
 
+  static async handleGetBootNotifications(action, req, res, next) {
+    try {
+      // Check auth
+      if (!Authorizations.canListChargingStations(req.user)) {
+        // Not Authorized! - Use same authorization as the Charging Stations
+        throw new AppAuthError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_CHARGING_STATIONS,
+          null, 560,
+          'ChargingStationService', 'handleGetBootNotifications',
+          req.user);
+      }
+      // Filter
+      const filteredRequest = ChargingStationSecurity.filterBootNotificationsRequest(req.query, req.user);
+      // Get all Status Notifications
+      const bootNotifications = await ChargingStation.getBootNotifications(req.user.tenantID, { },
+        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+      // Set
+      bootNotifications.result = ChargingStationSecurity.filterBootNotificationsResponse(bootNotifications.result, req.user);
+      // Return
+      res.json(bootNotifications);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
 
   static async handleAction(action, req, res, next) {
     try {
