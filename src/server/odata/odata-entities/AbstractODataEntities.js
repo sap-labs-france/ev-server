@@ -16,8 +16,19 @@ class AbstractODataEntities {
   }
 
   static convert(object,req) {
+    // get Object Key
+    // this implementation is necessary as the OData-imple-server do not support multiple key
+    // we have to build a unique key based on tenant and object real key
+    const uniqueID = this.getObjectKey(object);
+
     // set tenant
-    return _.merge({ tenant: req.tenant}, object);
+    return _.merge({ uniqueID: `${req.tenant}-${uniqueID}`, tenant: req.tenant}, object);
+  }
+
+  // Abstract - should be implemented in class
+  // eslint-disable-next-line no-unused-vars
+  static getObjectKey(object) {
+    throw new Error("Abstract Implementation");
   }
 
   // convert timestamp based on time eg: 'Europe/Paris'

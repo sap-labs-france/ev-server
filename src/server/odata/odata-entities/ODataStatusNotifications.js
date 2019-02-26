@@ -2,6 +2,10 @@
 const AbstractODataEntities = require('./AbstractODataEntities');
 
 class ODataStatusNotifications extends AbstractODataEntities {
+  static getObjectKey(statusNotification) {
+    return statusNotification._id;
+  }
+
   static async getStatusNotifications(centralServiceApi, query, req, cb) {
     try {
       // check limit parameter
@@ -21,6 +25,12 @@ class ODataStatusNotifications extends AbstractODataEntities {
   //   - add notificationDate objects
   static convert(object, req) {
     const statusNotification = super.convert(object, req);
+
+    // convert id name
+    if (statusNotification.hasOwnProperty('_id')) {
+      statusNotification.id = statusNotification._id;
+    }
+
     if (statusNotification.hasOwnProperty('timestamp') && statusNotification.timestamp) {
       // convert timestamp and build date object
       statusNotification.timestamp = this.convertTimestamp(statusNotification.timestamp, req);
