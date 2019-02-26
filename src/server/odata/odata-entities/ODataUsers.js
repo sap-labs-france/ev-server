@@ -2,6 +2,10 @@
 const AbstractODataEntities = require('./AbstractODataEntities');
 
 class ODataUsers extends AbstractODataEntities {
+  static getObjectKey(user) {
+    return user.id;
+  }
+
   static async getUsers(centralServiceApi, query, req, cb) {
     try {
       // check limit parameter

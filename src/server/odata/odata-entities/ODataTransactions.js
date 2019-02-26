@@ -2,6 +2,10 @@ const AbstractODataEntities = require('./AbstractODataEntities');
 
 class ODataTransactions extends AbstractODataEntities {
 
+  static getObjectKey(transaction) {
+    return transaction.id;
+  }
+
   static async getTransactionsCompleted(centralServiceApi, query, req, cb) {
     try {
       // check limit parameter

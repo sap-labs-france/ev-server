@@ -2,6 +2,10 @@
 const AbstractODataEntities = require('./AbstractODataEntities');
 
 class ODataChargingStations extends AbstractODataEntities {
+  static getObjectKey(chargingStation) {
+    return chargingStation.id;
+  }
+
   static async getChargingStations(centralServiceApi, query, req, cb) {
     try {
       // check limit parameter

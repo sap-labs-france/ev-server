@@ -3,6 +3,10 @@ const AbstractODataEntities = require('./AbstractODataEntities');
 const _ = require('lodash');
 
 class ODataCompanies extends AbstractODataEntities {
+  static getObjectKey(company) {
+    return company.id;
+  }
+
   static async getCompanies(centralServiceApi, query, req, cb) {
     try {
       // check limit parameter
