@@ -79,41 +79,47 @@ class ChargingStationStorage {
     const filters = {
       "$and": [{
         "$or": [{
-            "deleted": {
-              $exists: false
-            }
-          },
-          {
-            "deleted": null
-          },
-          {
-            "deleted": false
+          "deleted": {
+            $exists: false
           }
+        },
+        {
+          "deleted": null
+        },
+        {
+          "deleted": false
+        }
         ]
       }]
     };
+    // include deleted charging stations if requested
+    if (params.includeDeleted) {
+      filters.$and[0].$or.push({
+        "deleted": true
+      });
+    }
     // Source?
     if (params.search) {
       // Build filter
       filters.$and.push({
         "$or": [{
-            "_id": {
-              $regex: params.search,
-              $options: 'i'
-            }
-          },
-          {
-            "chargePointModel": {
-              $regex: params.search,
-              $options: 'i'
-            }
-          },
-          {
-            "chargePointVendor": {
-              $regex: params.search,
-              $options: 'i'
-            }
+          "_id": {
+            $regex: params.search,
+            $options: 'i'
           }
+        },
+        {
+          "chargePointModel": {
+            $regex: params.search,
+            $options: 'i'
+          }
+        },
+        {
+          "chargePointVendor": {
+            $regex: params.search,
+            $options: 'i'
+          }
+        }
         ]
       });
     }
@@ -491,6 +497,7 @@ class ChargingStationStorage {
       };
   }
 
+  // eslint-disable-next-line no-unused-vars
   static async getStatusNotifications(tenantID, params = {}, limit, skip, sort) {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getStatusNotifications');

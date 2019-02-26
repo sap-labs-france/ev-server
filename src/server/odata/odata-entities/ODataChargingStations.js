@@ -7,6 +7,9 @@ class ODataChargingStations extends AbstractODataEntities {
       // check limit parameter
       const params = this.buildParams(query);
 
+      // include deleted charging stations
+      params.IncludeDeleted = true;
+
       // perform rest call
       const response = await centralServiceApi.getChargingStations(params);
 

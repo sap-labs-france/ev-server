@@ -440,7 +440,8 @@ class ChargingStationService {
           'withSite': filteredRequest.WithSite,
           'siteID': filteredRequest.SiteID,
           'chargeBoxId': filteredRequest.ChargeBoxID,
-          'siteAreaID': filteredRequest.SiteAreaID
+          'siteAreaID': filteredRequest.SiteAreaID,
+          'includeDeleted': filteredRequest.IncludeDeleted,
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
