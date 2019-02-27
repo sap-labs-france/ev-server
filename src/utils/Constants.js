@@ -107,7 +107,7 @@ module.exports = {
   PWD_UPPERCASE_RE: /([A-Z])/g,
   PWD_LOWERCASE_RE: /([a-z])/g,
   PWD_NUMBER_RE: /([\d])/g,
-  PWD_SPECIAL_CHAR_RE: /([!#\$%\^&\*\.\?\-])/g,
+  PWD_SPECIAL_CHAR_RE: /([!#$%^&*.?-])/g,
 
   DEFAULT_LOCALE: 'en_US',
 
