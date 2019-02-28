@@ -1,5 +1,6 @@
 const commonConfig = require('./build/webpack.common');
 const webpackMerge = require('webpack-merge');
+const CopyPlugin = require('copy-webpack-plugin');
 
 const addons = (addonsArg) => {
   let addons = []
@@ -13,6 +14,11 @@ module.exports = (env) => {
   const envConfig = require(`./build/webpack.${env.env}`);
   // Merge configs`
   let config = webpackMerge(commonConfig, envConfig, addons(env.addons));
+  config.plugins = [
+    new CopyPlugin([
+      {from: 'src/assets/', to: 'assets/' },
+    ]),
+  ];
   // Return it
   return config;
 };

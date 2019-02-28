@@ -7,7 +7,7 @@ const ConsumptionStorage = require('../storage/mongodb/ConsumptionStorage');
 const TransactionStorage = require('../storage/mongodb/TransactionStorage');
 const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
 const SettingStorage = require("../storage/mongodb/SettingStorage");
-const ConvergentCharging = require("../integration/pricing/convergent-charging/ConvergentCharging");
+const ConvergentCharging = require("../integration/pricing/convergent-charging/ConvergentChargingPricing");
 const SimplePricing = require("../integration/pricing/simple-pricing/SimplePricing");
 const Constants = require('../utils/Constants');
 

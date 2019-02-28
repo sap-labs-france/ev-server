@@ -2,7 +2,7 @@
          Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.2.8 svn-revision#13980.
         -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://schema.charging.ws.highdeal.com/" xmlns:core="http://schema.ws.highdeal.com/" version="1.0" targetNamespace="http://schema.charging.ws.highdeal.com/">
-    <xs:import namespace="http://schema.ws.highdeal.com/" schemaLocation="def2.xsd"/>
+    <xs:import namespace="http://schema.ws.highdeal.com/" schemaLocation="statefulCharging_def2.xsd"/>
     <xs:complexType name="ChargeableItem">
         <xs:sequence>
             <xs:element name="name" type="core:String256" minOccurs="1" maxOccurs="1"/>

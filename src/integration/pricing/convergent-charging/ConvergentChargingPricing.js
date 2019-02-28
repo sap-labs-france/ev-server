@@ -2,11 +2,9 @@ const StatefulChargingService = require('./StatefulChargingService');
 const moment = require('moment');
 const Logging = require('../../../utils/Logging');
 const Pricing = require('../Pricing');
-const ERPService = require('./invoicing/ERPService');
-const fs = require("fs");
 
 
-class ConvergentCharging extends Pricing {
+class ConvergentChargingPricing extends Pricing {
   /**
    *
    * @param tenantId {string}
@@ -28,6 +26,7 @@ class ConvergentCharging extends Pricing {
       new ChargeableItemProperty('endedAt', Type.date, moment(consumptionData.endedAt).format('YYYY-MM-DDTHH:mm:ss')),
       new ChargeableItemProperty('cumulatedConsumption', Type.number, consumptionData.cumulatedConsumption),
       new ChargeableItemProperty('consumption', Type.number, consumptionData.consumption),
+      new ChargeableItemProperty('stateOfCharge', Type.number, consumptionData.stateOfCharge),
     ]
   }
 
@@ -47,7 +46,9 @@ class ConvergentCharging extends Pricing {
 
   async startSession(consumptionData) {
     const sessionId = this.computeSessionId(consumptionData);
-    const reservationItem = new ReservationItem(this.setting.chargeableItemName, this.consumptionToChargeableItemProperties(consumptionData));
+    const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
+    chargeableItemProperties.push(new ChargeableItemProperty('status', Type.string, 'start'));
+    const reservationItem = new ReservationItem(this.setting.chargeableItemName,chargeableItemProperties);
     const request = new StartRateRequest(reservationItem, sessionId, moment(consumptionData.startedAt).format('YYYY-MM-DDTHH:mm:ss'), consumptionData.chargeBoxID, consumptionData.userID, 'cancelled', 30000, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING', null);
     const result = await this.statefulChargingService.execute(request);
     if (result.data.startRateResult) {
@@ -69,8 +70,11 @@ class ConvergentCharging extends Pricing {
   async updateSession(consumptionData) {
 
     const sessionId = this.computeSessionId(consumptionData);
-    const confirmationItem = new ConfirmationItem(this.setting.chargeableItemName, this.consumptionToChargeableItemProperties(consumptionData));
-    const reservationItem = new ReservationItem(this.setting.chargeableItemName, this.consumptionToChargeableItemProperties(consumptionData));
+
+    const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
+    chargeableItemProperties.push(new ChargeableItemProperty('status', Type.string, 'update'));
+    const confirmationItem = new ConfirmationItem(this.setting.chargeableItemName, chargeableItemProperties);
+    const reservationItem = new ReservationItem(this.setting.chargeableItemName, chargeableItemProperties);
 
     const request = new UpdateRateRequest(confirmationItem, reservationItem, sessionId, moment(consumptionData.endedAt).format('YYYY-MM-DDTHH:mm:ss'), consumptionData.chargeBoxID, consumptionData.userID, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
     const result = await this.statefulChargingService.execute(request);
@@ -93,7 +97,10 @@ class ConvergentCharging extends Pricing {
 
   async stopSession(consumptionData) {
     const sessionId = this.computeSessionId(consumptionData);
-    const confirmationItem = new ConfirmationItem(this.setting.chargeableItemName, this.consumptionToChargeableItemProperties(consumptionData));
+    const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
+    chargeableItemProperties.push(new ChargeableItemProperty('status', Type.string, 'stop'));
+
+    const confirmationItem = new ConfirmationItem(this.setting.chargeableItemName, chargeableItemProperties);
 
     const request = new StopRateRequest(confirmationItem, sessionId, consumptionData.chargeBoxID, consumptionData.userID, 'confirmed', 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
     const result = await this.statefulChargingService.execute(request);
@@ -504,4 +511,4 @@ class CCTransaction {
   }
 }
 
-module.exports = ConvergentCharging;
+module.exports = ConvergentChargingPricing;

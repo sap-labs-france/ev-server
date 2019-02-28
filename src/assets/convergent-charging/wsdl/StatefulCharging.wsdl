@@ -4,7 +4,7 @@
 <definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:schema="http://schema.statefulcharging.ws.highdeal.com/" xmlns:tns="http://statefulcharging.ws.highdeal.com/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.xmlsoap.org/wsdl/" name="rerating" targetNamespace="http://statefulcharging.ws.highdeal.com/">
     <types>
         <xsd:schema>
-            <xsd:import namespace="http://schema.statefulcharging.ws.highdeal.com/" schemaLocation="../xsd/def3.xsd"/>
+            <xsd:import namespace="http://schema.statefulcharging.ws.highdeal.com/" schemaLocation="statefulCharging_def3.xsd"/>
         </xsd:schema>
     </types>
     <message name="activateRequest">

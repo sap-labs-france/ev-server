@@ -2,8 +2,8 @@
          Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.2.8 svn-revision#13980.
         -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://schema.statefulcharging.ws.highdeal.com/" xmlns:core="http://schema.ws.highdeal.com/" xmlns:charging="http://schema.charging.ws.highdeal.com/" xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" version="1.0" targetNamespace="http://schema.statefulcharging.ws.highdeal.com/" jaxb:version="2.0">
-    <xs:import namespace="http://schema.ws.highdeal.com/" schemaLocation="def2.xsd"/>
-    <xs:import namespace="http://schema.charging.ws.highdeal.com/" schemaLocation="def1.xsd"/>
+    <xs:import namespace="http://schema.ws.highdeal.com/" schemaLocation="statefulCharging_def2.xsd"/>
+    <xs:import namespace="http://schema.charging.ws.highdeal.com/" schemaLocation="statefulCharging_def1.xsd"/>
     <xs:element name="activateRequest" type="tns:StatefulActivateRequest"/>
     <xs:element name="activateResponse" type="tns:StatefulActivateResponse"/>
     <xs:element name="statefulChargeRequest" type="tns:StatefulChargeRequest"/>
