@@ -493,6 +493,18 @@ In another console, start the application (restarts if any changes is detected):
 npm run start:dev
 ```
 
+You can also start the application with the standard nodejs profiler:
+
+```
+npm run start:dev:prof
+```
+
+### Profiling with [clinic](https://clinicjs.org)
+
+```
+npm run start:(prod|dev):(doctorprof|flameprof|bubbleprof)
+```
+
 **NOTE**: You can also use the files in the ev-config-scripts.zip on the share to have a correct initial setup of your development environment and some server startup helpers.  
 
 ### Tests
