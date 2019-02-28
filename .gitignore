@@ -60,3 +60,6 @@ tmp
 /docker/mongo
 build/config.gypi
 package.json
+
+# Clinic
+*.clinic-*
