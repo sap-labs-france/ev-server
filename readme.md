@@ -508,7 +508,7 @@ npm run start:(prod|dev):(doctorprof|flameprof|bubbleprof)
 **NOTE**: You can also use the files in the ev-config-scripts.zip on the share to have a correct initial setup of your development environment and some server startup helpers.  
 
 ### Tests
-**Prerequisite:** The database must contain an admin user. 
+**Prerequisite:** The database must contain an admin user.
 
 * Create a local configuration file located in './test/config/local.json' with the parameters to override like
          
@@ -530,7 +530,7 @@ npm run start:(prod|dev):(doctorprof|flameprof|bubbleprof)
 * Start a server containing the configured admin user in the database
 * run the command `npm test`
 
-You can 
+You can
 
 ### Docker Mode
 Depending on the need it is possible to start different docker containers.
