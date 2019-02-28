@@ -4,7 +4,7 @@ const Database = require('../../utils/Database');
 const crypto = require('crypto');
 const DatabaseUtils = require('./DatabaseUtils');
 const Logging = require('../../utils/Logging');
-
+const BackendError = require('../../exception/BackendError');
 
 class ChargingStationStorage {
   static async getChargingStation(tenantID, id) {
@@ -328,7 +328,6 @@ class ChargingStationStorage {
         "siteAreaID": null
       });
     } else {
-
       // Always get the Site Area
       siteAreaIdJoin = [{
         $lookup: {
@@ -370,45 +369,30 @@ class ChargingStationStorage {
         "_id": params.chargeBoxId
       });
     }
-    // Filters
-    aggregation.push({
-      $match: basicFilters
-    });
     // Build facets meaning each different error scenario
-    const inactiveDate = new Date(new Date().getTime() - 3 * 60 * 1000);
-    const facets = {
+    let facets = {};
+    if (params.errorType) {
+      // check allowed
+      if (!(await Tenant.getTenant(tenantID)).isComponentActive(Constants.COMPONENTS.ORGANIZATION) && params.errorType === 'missingSiteArea') {
+        throw new BackendError(null, `Organization is not active whereas filter is on missing site.`,
+        "ChargingStationStorage", "getChargingStationsInError");
+      }
+      // build facet only for one error type
+      facets.$facet = {};
+      facets.$facet[params.errorType] = ChargingStationStorage.builChargerInErrorFacet(params.errorType);
+    } else {
+      facets = {
       "$facet":
         {
-          "missingSettings":
-            [{$match:{$or:[
-              {"maximumPower":{$exists:false}},{"maximumPower":{$lte:0}},{"maximumPower":null},
-              {"chargePointModel":{$exists:false}},{"chargePointModel":{$eq:""}},
-              {"chargePointVendor":{$exists:false}},{"chargePointVendor":{$eq:""}},
-              {"numberOfConnectedPhase":{$exists:false}},{"numberOfConnectedPhase":null},{"numberOfConnectedPhase":{$nin:[1,3]}},
-              {"powerLimitUnit":{$exists:false}},{"powerLimitUnit":null},{"powerLimitUnit":{$nin:["A","W"]}},
-              {"chargingStationURL":{$exists:false}},{"chargingStationURL":null},{"chargingStationURL":{$eq:""}},
-              {"cannotChargeInParallel":{$exists:false}},{"cannotChargeInParallel":null},
-              {"connectors.type":{$exists:false}},{"connectors.type":null},{"connectors.type":{$eq:""}},
-              {"connectors.power":{$exists:false}},{"connectors.power":null},{"connectors.power":{$lte:0}}
-            ]}},
-            {$addFields: {"errorCode":"missingSettings"}}
-            ],
-          "connectionBroken":[
-            {$match:{"lastHeartBeat":{$lte:inactiveDate}}},
-            {$addFields: {"errorCode":"connectionBroken"}}
-          ],
-          "connectorError":[
-            {$match:{$or:[{"connectors.errorCode": {$ne: "NoError"}}, {"connectors.status": {$eq: "Faulted"}}]}},
-            {$addFields: {"errorCode":"connectorError"}}
-          ]
+          "missingSettings": ChargingStationStorage.builChargerInErrorFacet("missingSettings"),
+          "connectionBroken": ChargingStationStorage.builChargerInErrorFacet("connectionBroken"),
+          "connectorError": ChargingStationStorage.builChargerInErrorFacet("connectorError"),
         }
-    };
-    if ((await Tenant.getTenant(tenantID)).isComponentActive(Constants.COMPONENTS.ORGANIZATION)) {
-      // Add facet for missing Site Area ID
-      facets.$facet.missingSiteArea = [
-        {$match:{$or:[{"siteAreaID":{$exists:false}},{"siteAreaID":null}]}},
-        {$addFields: {"errorCode":"missingSiteArea"}}
-      ]
+      };
+      if ((await Tenant.getTenant(tenantID)).isComponentActive(Constants.COMPONENTS.ORGANIZATION)) {
+        // Add facet for missing Site Area ID
+        facets.$facet.missingSiteArea = ChargingStationStorage.builChargerInErrorFacet("missingSiteArea");
+      }
     }
     // merge in each facet the join for sitearea and siteareaid
     const project = [];
@@ -418,6 +402,10 @@ class ChargingStationStorage {
       }
       if (siteAreaJoin) {
         facets.$facet[facet] = [...facets.$facet[facet], ...siteAreaJoin];
+        // Filters
+        facets.$facet[facet].push({
+          $match: basicFilters
+        });
       }
       project.push(`$${facet}`);
     }
@@ -428,6 +416,7 @@ class ChargingStationStorage {
     aggregation.push({$replaceRoot:{newRoot:"$allItems"}});
     // Add a unique identifier as we may have the same charger several time
     aggregation.push({$addFields: {"uniqueId":{$concat:["$_id","#", "$errorCode"]}}});
+
     // Count Records
     const chargingStationsCountMDB = await global.database.getCollection(tenantID, 'chargingstations')
       .aggregate([...aggregation, {
@@ -495,6 +484,45 @@ class ChargingStationStorage {
         count: (chargingStationsCountMDB.length > 0 ? chargingStationsCountMDB[0].count : 0),
         result: chargingStations
       };
+  }
+
+  static builChargerInErrorFacet(errorType) {
+    switch (errorType) {
+      case 'missingSettings':
+        return [{$match:{$or:[
+          {"maximumPower":{$exists:false}},{"maximumPower":{$lte:0}},{"maximumPower":null},
+          {"chargePointModel":{$exists:false}},{"chargePointModel":{$eq:""}},
+          {"chargePointVendor":{$exists:false}},{"chargePointVendor":{$eq:""}},
+          {"numberOfConnectedPhase":{$exists:false}},{"numberOfConnectedPhase":null},{"numberOfConnectedPhase":{$nin:[1,3]}},
+          {"powerLimitUnit":{$exists:false}},{"powerLimitUnit":null},{"powerLimitUnit":{$nin:["A","W"]}},
+          {"chargingStationURL":{$exists:false}},{"chargingStationURL":null},{"chargingStationURL":{$eq:""}},
+          {"cannotChargeInParallel":{$exists:false}},{"cannotChargeInParallel":null},
+          {"connectors.type":{$exists:false}},{"connectors.type":null},{"connectors.type":{$eq:""}},
+          {"connectors.power":{$exists:false}},{"connectors.power":null},{"connectors.power":{$lte:0}}
+        ]}},
+        {$addFields: {"errorCode":"missingSettings"}}
+        ];
+      case 'connectionBroken': 
+      {
+        const inactiveDate = new Date(new Date().getTime() - 3 * 60 * 1000);
+        return [
+          {$match:{"lastHeartBeat":{$lte:inactiveDate}}},
+          {$addFields: {"errorCode":"connectionBroken"}}
+        ];
+      }
+      case 'connectorError':
+        return [
+          {$match:{$or:[{"connectors.errorCode": {$ne: "NoError"}}, {"connectors.status": {$eq: "Faulted"}}]}},
+          {$addFields: {"errorCode":"connectorError"}}
+        ]
+      case 'missingSiteArea':
+       return [
+          {$match:{$or:[{"siteAreaID":{$exists:false}},{"siteAreaID":null}]}},
+          {$addFields: {"errorCode":"missingSiteArea"}}
+        ]
+      default:
+        return [];
+    }
   }
 
   // eslint-disable-next-line no-unused-vars
