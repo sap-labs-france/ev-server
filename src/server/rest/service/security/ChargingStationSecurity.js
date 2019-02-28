@@ -165,6 +165,7 @@ class ChargingStationSecurity {
     filteredRequest.WithSite = UtilsSecurity.filterBoolean(request.WithSite);
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
+    filteredRequest.ErrorType = sanitize(request.ErrorType);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
