@@ -2,7 +2,7 @@
 config
 users.json
 users-imported.json
-src/config.json
+src/assets/config.json
 yarn.lock
 package-lock.json
 manifest.yml

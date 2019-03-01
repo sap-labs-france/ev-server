@@ -12,11 +12,8 @@ const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const Configuration = require('../../../utils/Configuration');
 const centralSystemService12 = require('./services/SoapCentralSystemService12');
-const centralSystemService12Wsdl = require('./wsdl/OCPPCentralSystemService12.wsdl');
 const centralSystemService15 = require('./services/SoapCentralSystemService15');
-const centralSystemService15Wsdl = require('./wsdl/OCPPCentralSystemService15.wsdl');
 const centralSystemService16 = require('./services/SoapCentralSystemService16');
-const centralSystemService16Wsdl = require('./wsdl/OCPPCentralSystemService16.wsdl');
 const chargePointService12Wsdl = require('../../../client/soap/wsdl/OCPPChargePointService12.wsdl');
 const chargePointService15Wsdl = require('../../../client/soap/wsdl/OCPPChargePointService15.wsdl');
 const chargePointService16Wsdl = require('../../../client/soap/wsdl/OCPPChargePointService16.wsdl');
@@ -64,22 +61,22 @@ class SoapCentralSystemServer extends CentralSystemServer {
       express.use(CFLog.logNetwork);
     }
     // Default, serve the index.html
-    express.get(/^\/wsdl(.+)$/, function (req, res, next) { // eslint-disable-line
+    express.get(/^\/wsdl(.+)$/, function(req, res, next) { // eslint-disable-line
       // WDSL file?
       switch (req.params["0"]) {
         // Charge Point WSDL 1.2
         case '/OCPPChargePointService12.wsdl':
           res.send(chargePointService12Wsdl);
           break;
-          // Charge Point WSDL 1.5
+        // Charge Point WSDL 1.5
         case '/OCPPChargePointService15.wsdl':
           res.send(chargePointService15Wsdl);
           break;
-          // Charge Point WSDL 1.6
+        // Charge Point WSDL 1.6
         case '/OCPPChargePointService16.wsdl':
           res.send(chargePointService16Wsdl);
           break;
-          // Unknown
+        // Unknown
         default:
           res.status(500).send(`${sanitize(req.params["0"])} does not exist!`);
       }
@@ -127,7 +124,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
 
     // Create Soap Servers
     // OCPP 1.2 -----------------------------------------
-    const soapServer12 = soap.listen(server, '/OCPP12', centralSystemService12, centralSystemService12Wsdl);
+    const soapServer12 = soap.listen(server, '/OCPP12', centralSystemService12, this.readWsdl('OCPPCentralSystemService12.wsdl'));
     // Log
     if (this._centralSystemConfig.debug) {
       // Listen
@@ -157,7 +154,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
       });
     }
     // OCPP 1.5 -----------------------------------------
-    const soapServer15 = soap.listen(server, '/OCPP15', centralSystemService15, centralSystemService15Wsdl);
+    const soapServer15 = soap.listen(server, '/OCPP15', centralSystemService15, this.readWsdl('OCPPCentralSystemService15.wsdl'));
     // Log
     if (this._centralSystemConfig.debug) {
       // Listen
@@ -187,7 +184,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
       });
     }
     // OCPP 1.6 -----------------------------------------
-    const soapServer16 = soap.listen(server, '/OCPP16', centralSystemService16, centralSystemService16Wsdl);
+    const soapServer16 = soap.listen(server, '/OCPP16', centralSystemService16, this.readWsdl('OCPPCentralSystemService16.wsdl'));
     // Log
     if (this._centralSystemConfig.debug) {
       // Listen
@@ -228,6 +225,10 @@ class SoapCentralSystemServer extends CentralSystemServer {
       });
       console.log(`OCPP Soap Server listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`); // eslint-disable-line
     });
+  }
+
+  readWsdl(filename) {
+    return fs.readFileSync(`${appRoot}/assets/server/ocpp/${filename}`, 'utf8');
   }
 }
 

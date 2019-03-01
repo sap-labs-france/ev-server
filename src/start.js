@@ -1,3 +1,5 @@
+const path = require('path');
+global.appRoot = path.resolve(__dirname);
 const MongoDBStorage = require('./storage/mongodb/MongoDBStorage');
 const MongoDBStorageNotification = require('./storage/mongodb/MongoDBStorageNotification');
 const Configuration = require('./utils/Configuration');
@@ -10,14 +12,12 @@ const SchedulerManager = require('./scheduler/SchedulerManager');
 const MigrationHandler = require('./migration/MigrationHandler');
 const Logging = require('./utils/Logging');
 const Constants = require('./utils/Constants');
-const path = require('path');
 
 require('source-map-support').install();
 
 class Bootstrap {
   static async start() {
     try {
-      global.appRoot = path.resolve(__dirname);
       // Start the connection to the Database
       const storageConfig = Configuration.getStorageConfig();
 
