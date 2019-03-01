@@ -1,3 +1,5 @@
+const path = require('path');
+global.appRoot = path.resolve(__dirname);
 const MongoDBStorage = require('./storage/mongodb/MongoDBStorage');
 const MongoDBStorageNotification = require('./storage/mongodb/MongoDBStorageNotification');
 const Configuration = require('./utils/Configuration');

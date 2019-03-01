@@ -1,14 +1,18 @@
 const cfenv = require('cfenv');
-const config = require('../config.json');
+const fs = require('fs');
 
 require('source-map-support').install();
 
 // Cloud Foundry App Env
 const _appEnv = cfenv.getAppEnv();
+var config = null;
 
 class Configuration {
   // Read the config file
   static getConfig() {
+    if (!config) {
+      config = JSON.parse(fs.readFileSync(`${appRoot}/assets/config.json`, 'utf8'));
+    }
     return config;
   }
 
@@ -192,4 +196,4 @@ class Configuration {
   }
 }
 
-module.exports=Configuration;
+module.exports = Configuration;

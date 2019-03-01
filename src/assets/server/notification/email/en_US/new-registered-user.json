@@ -1,0 +1,37 @@
+{
+  "subject": "Account created",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Account Created",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Hi <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "Your account has been created successfully.",
+      "",
+      "Click on the link below to activate it."
+    ],
+    "action": {
+      "title": "Activate your Account",
+      "url": "<%- evseDashboardVerifyEmailURL %>"
+    },
+    "afterActionLines": [
+      "Best Regards,",
+      "EV Admin."
+    ],
+    "footer": {
+    }
+  }
+}
+

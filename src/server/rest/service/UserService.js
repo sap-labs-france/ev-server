@@ -10,8 +10,8 @@ const Utils = require('../../../utils/Utils');
 const Database = require('../../../utils/Database');
 const UserSecurity = require('./security/UserSecurity');
 const SettingStorage = require("../../../storage/mongodb/SettingStorage");
-const ERPService = require("../../../integration/pricing/convergent-charging/invoicing/ERPService");
-const RatingService = require("../../../integration/pricing/convergent-charging/rating/RatingService");
+const ERPService = require("../../../integration/pricing/convergent-charging/ERPService");
+const RatingService = require("../../../integration/pricing/convergent-charging/RatingService");
 const fs = require("fs");
 
 class UserService {
