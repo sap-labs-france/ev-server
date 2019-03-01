@@ -1,0 +1,36 @@
+{
+  "subject": "Activation de votre compte",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Activation Compte",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "Vous avez initié une demande d'activation de votre compte.",
+      "",
+      "Cliquez sur le lien ci-dessous pour compléter l'activation."
+    ],
+    "action": {
+      "title": "Activez votre Compte",
+      "url": "<%- evseDashboardVerifyEmailURL %>"
+    },
+    "afterActionLines": [
+      "Cordialement,",
+      "EV Admin."
+    ],
+    "footer": {
+    }
+  }
+}
