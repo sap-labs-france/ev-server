@@ -1,3 +1,5 @@
+const path = require('path');
+global.appRoot = path.resolve(__dirname, '../../src');
 const chai = require('chai');
 const {expect} = require('chai');
 const chaiSubset = require('chai-subset');
@@ -938,5 +940,6 @@ describe('Transaction tests', function() {
 
 
 function timeout(ms) {
+  // eslint-disable-next-line no-undef
   return new Promise(resolve => setTimeout(resolve, ms));
 }

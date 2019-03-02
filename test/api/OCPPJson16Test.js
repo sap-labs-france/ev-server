@@ -1,3 +1,5 @@
+const path = require('path');
+global.appRoot = path.resolve(__dirname, '../../src');
 const OCPPCommonTests = require('./OCPPCommonTests');
 const OCPPJsonService16 = require('./ocpp/json/OCPPJsonService16');
 const CentralServerService = require('./client/CentralServerService');

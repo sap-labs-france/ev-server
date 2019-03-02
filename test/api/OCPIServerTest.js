@@ -1,5 +1,6 @@
+const path = require('path');
+global.appRoot = path.resolve(__dirname, '../../src');
 const OCPIService = require('./ocpi/OCPIService');
-// const config = require('../config');
 const CentralServerService = require('./client/CentralServerService');
 const Factory = require('../factories/Factory');
 const { expect } = require('chai');
@@ -185,9 +186,6 @@ describe('OCPI Servce Tests', function () {
       });
 
       // validate content - scan entities: locations/evses/connectors
-      let locationsNbr = 0;
-      let evsesNbr = 0;
-      let connectorsNbr = 0;
       it("should have valid OCPI Location Entities", async () => {
         expect(response.data.data, 'Invalid Location Object').to.satisfy((locations) => {
           let validLocationsAndSubEntities = true;
@@ -195,27 +193,21 @@ describe('OCPI Servce Tests', function () {
           for (const location of locations) {
             // validate location
             validLocationsAndSubEntities = validLocationsAndSubEntities && this.ocpiService.validateLocationEntity(location);
-            locationsNbr++;
 
             // loop through evse
             for (const evse of location.evses) {
               // validate evse
               validLocationsAndSubEntities = validLocationsAndSubEntities && this.ocpiService.validateEvseEntity(evse);
-              evsesNbr++;
 
               // loop through connectors
               for (const connector of evse.connectors) {
                 // validate connector
                 validLocationsAndSubEntities = validLocationsAndSubEntities && this.ocpiService.validateConnectorEntity(connector);
-                connectorsNbr++;
               }
             }
           }
           return validLocationsAndSubEntities;
         });
-
-        // write number of Locations/Evses/Connectors scanned
-        // console.log(`${locationsNbr}/${evsesNbr}/${connectorsNbr}`);
       });
     });
 

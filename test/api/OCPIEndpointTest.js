@@ -1,3 +1,5 @@
+const path = require('path');
+global.appRoot = path.resolve(__dirname, '../../src');
 const {expect} = require('chai');
 const CentralServerService = require('./client/CentralServerService');
 const Factory = require('../factories/Factory');

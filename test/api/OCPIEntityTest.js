@@ -1,5 +1,5 @@
-// const config = require('../config');
-const { expect } = require('chai');
+const path = require('path');
+global.appRoot = path.resolve(__dirname, '../../src');
 const chai = require('chai');
 const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
@@ -20,16 +20,5 @@ describe('OCPI Entity Access Tests', function () {
    * Test Entity access
    */
   describe('Test acess Tenant - Services', () => {
- 
-
-
-
   });
-
-
-
-
-
-
-
 });

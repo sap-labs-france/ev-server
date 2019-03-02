@@ -1,3 +1,5 @@
+const path = require('path');
+global.appRoot = path.resolve(__dirname, '../../src');
 const chai = require('chai');
 const {expect} = require('chai');
 const chaiSubset = require('chai-subset');

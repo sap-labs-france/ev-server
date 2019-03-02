@@ -1,3 +1,5 @@
+const path = require('path');
+global.appRoot = path.resolve(__dirname, '../../src');
 const OCPPCommonTests = require('./OCPPCommonTests');
 const OCPPSoapService15 = require('./ocpp/soap/OCPPSoapService15');
 const CentralServerService = require('./client/CentralServerService');

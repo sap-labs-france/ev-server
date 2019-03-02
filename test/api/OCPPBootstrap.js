@@ -1,3 +1,5 @@
+const path = require('path');
+global.appRoot = path.resolve(__dirname, '../../src');
 const faker = require('faker');
 const { expect } = require('chai');
 const chai = require('chai');
