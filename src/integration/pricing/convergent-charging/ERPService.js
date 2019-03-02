@@ -7,14 +7,14 @@ class ERPService extends AbstractSoapClient {
   constructor(serverUrl, user, password) {
     super(
       `${serverUrl}/ARTIX/erpservices`,
-      `${appRoot}/assets/convergent-charging/wsdl/erpservices_1.wsdl`,
+      `${global.appRoot}/assets/convergent-charging/wsdl/erpservices_1.wsdl`,
       'ERP',
       'ERPPort',
       user,
       password,
       new soap.ClientSSLSecurity(
-        `${appRoot}/assets/convergent-charging/ssl/hybris-access.key`,
-        `${appRoot}/assets/convergent-charging/ssl/hybris-access.crt`,
+        `${global.appRoot}/assets/convergent-charging/ssl/hybris-access.key`,
+        `${global.appRoot}/assets/convergent-charging/ssl/hybris-access.crt`,
         {rejectUnauthorized: false, strictSSL: false}
       )
     );

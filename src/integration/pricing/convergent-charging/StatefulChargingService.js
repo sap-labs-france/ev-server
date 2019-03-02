@@ -7,14 +7,14 @@ class StatefulChargingService extends AbstractSoapClient {
   constructor(serverUrl, user, password) {
     super(
       `${serverUrl}/ARTIX/statefulCharging`,
-      `${appRoot}/assets/convergent-charging/wsdl/StatefulCharging.wsdl`,
+      `${global.appRoot}/assets/convergent-charging/wsdl/StatefulCharging.wsdl`,
       'statefulCharging',
       'statefulChargingPort',
       user,
       password,
       new soap.ClientSSLSecurity(
-        `${appRoot}/assets/convergent-charging/ssl/hybris-access.key`,
-        `${appRoot}/assets/convergent-charging/ssl/hybris-access.crt`,
+        `${global.appRoot}/assets/convergent-charging/ssl/hybris-access.key`,
+        `${global.appRoot}/assets/convergent-charging/ssl/hybris-access.crt`,
         {rejectUnauthorized: false, strictSSL: false}
       )
     );

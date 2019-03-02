@@ -228,7 +228,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
   }
 
   readWsdl(filename) {
-    return fs.readFileSync(`${appRoot}/assets/server/ocpp/${filename}`, 'utf8');
+    return fs.readFileSync(`${global.appRoot}/assets/server/ocpp/${filename}`, 'utf8');
   }
 }
 
