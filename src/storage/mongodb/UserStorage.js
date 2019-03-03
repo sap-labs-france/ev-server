@@ -339,7 +339,7 @@ class UserStorage {
             {'_id': tag},
             {$set: {'userID': Utils.convertToObjectID(updatedUser.getID())}},
             {upsert: true, new: true, returnOriginal: false});
-          }
+        }
       }
     }
     // Update Sites?`

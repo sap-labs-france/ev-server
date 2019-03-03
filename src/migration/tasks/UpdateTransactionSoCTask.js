@@ -26,26 +26,26 @@ class UpdateTransactionSoCTask extends MigrationTask {
     });
     // Add Transaction
     aggregation.push({
-			$lookup: {
-			  "from": DatabaseUtils.getCollectionName(tenant.getID(), 'transactions'),
-			  "localField": "transactionId",
-			  "foreignField": "_id",
-			  "as": "transaction"
-			}
+      $lookup: {
+        "from": DatabaseUtils.getCollectionName(tenant.getID(), 'transactions'),
+        "localField": "transactionId",
+        "foreignField": "_id",
+        "as": "transaction"
+      }
     });
     aggregation.push({
-			$unwind: {
+      $unwind: {
         path : "$transaction",
         preserveNullAndEmptyArrays : false
       }
     });
     // Filters
     aggregation.push({
-			$match: {
-			  "transaction.stop": {
-			    "$exists": true
-			  }
-			}
+      $match: {
+        "transaction.stop": {
+          "$exists": true
+        }
+      }
     });
     // Sort
     aggregation.push({

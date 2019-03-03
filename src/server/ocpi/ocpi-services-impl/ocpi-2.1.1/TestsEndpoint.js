@@ -73,7 +73,7 @@ class TestsEndpoint extends AbstractEndpoint {
         "website": "http://sap.com"
       }
     });
-    let settingSaved = await setting.save();
+    const settingSaved = await setting.save();
 
     let testsetting = await Setting.getSettingByIdentifier(tenant.getID(),'test');
 
