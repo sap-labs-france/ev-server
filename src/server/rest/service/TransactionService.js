@@ -505,6 +505,9 @@ class TransactionService {
       if (filteredRequest.Type) {
         filter.type = filteredRequest.Type;
       }
+      if (filteredRequest.SiteAreaID) {
+        filter.siteAreaID = filteredRequest.SiteAreaID;
+      }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
         {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
@@ -551,6 +554,9 @@ class TransactionService {
       }
       if (filteredRequest.Type) {
         filter.type = filteredRequest.Type;
+      }
+      if (filteredRequest.SiteAreaID) {
+        filter.siteAreaID = filteredRequest.SiteAreaID;
       }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
         {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID},
