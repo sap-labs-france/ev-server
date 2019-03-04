@@ -196,7 +196,7 @@ class CreateConsumptionsTask extends MigrationTask {
     let cumulatedConsumption = 0;
     const consumptions = [];
     // Get Meter Values
-    let meterValues = await transaction.getMeterValues();
+    const meterValues = await transaction.getMeterValues();
     // Add first Meter Value
     meterValues.splice(0, 0, {
       id: '666',

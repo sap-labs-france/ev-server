@@ -88,16 +88,14 @@ class EMailNotificationTask extends NotificationTask {
   }
 
   async _prepareAndSendEmail(templateName, data, locale, tenantID) {
-    // Create email
-    let emailTemplate;
     // Check users
     if (!data.user && !data.users && !data.adminUsers) {
       // Error
       throw new BackendError(null, `No User is provided for '${templateName}'`,
         "EMailNotificationTask", "_prepareAndSendEmail");
     }
-
-    emailTemplate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/${locale}/${templateName}.json`, 'utf8'));
+    // Create email
+    const emailTemplate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/${locale}/${templateName}.json`, 'utf8'));
     // Template found?
     if (!emailTemplate) {
       // Error

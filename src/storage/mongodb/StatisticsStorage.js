@@ -293,7 +293,7 @@ class StatisticsStorage {
       {
         $unwind: '$siteArea'
       },
-  // Get all charging stations
+      // Get all charging stations
       {
         "$lookup": {
           from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
@@ -314,7 +314,7 @@ class StatisticsStorage {
           as: 'allTransactions'
         }
       },
-// Filter tables
+      // Filter tables
       {
         "$project": {
           _id: 1,
@@ -326,45 +326,45 @@ class StatisticsStorage {
           'chargingStation.cannotChargeInParallel': 1,
           'chargingStation.connectors': 1,
           activeTransactions: {
-              $filter: {
-                  input: '$allTransactions',
-                  as: 'transaction',
-                  cond: {
-                      $and: [
-                          { $gte: ["$$transaction.timestamp", beginningOfTheDay] } ,
-                          { $ne: [ { $type: '$$transaction.stop' }, "object" ] }
-                          ]
-                  }
+            $filter: {
+              input: '$allTransactions',
+              as: 'transaction',
+              cond: {
+                $and: [
+                  { $gte: ["$$transaction.timestamp", beginningOfTheDay] } ,
+                  { $ne: [ { $type: '$$transaction.stop' }, "object" ] }
+                ]
               }
+            }
           },
           finishedTransactions: {
-              $filter: {
-                  input: '$allTransactions',
-                  as: 'transaction',
-                  cond: {
-                      $and: [
-                          { $gte: ["$$transaction.timestamp", beginningOfTheDay] } ,
-                          { $eq: [ { $type: '$$transaction.stop' }, "object" ] }
-                          ]
-                  }
+            $filter: {
+              input: '$allTransactions',
+              as: 'transaction',
+              cond: {
+                $and: [
+                  { $gte: ["$$transaction.timestamp", beginningOfTheDay] } ,
+                  { $eq: [ { $type: '$$transaction.stop' }, "object" ] }
+                ]
               }
+            }
           },
           transactionsTrends: {
-              $filter: {
-                  input: '$allTransactions',
-                  as: 'transaction',
-                  cond: {
-                      $and: [
-                          { $gte: ["$$transaction.timestamp", transactionDateFilter] } ,
-                          { $eq: [ { $type: '$$transaction.stop' }, "object" ] },
-                          { $eq: [ { $dayOfWeek: new Date() },{ $dayOfWeek: "$$transaction.timestamp" }]}
-                          ]
-                  }
+            $filter: {
+              input: '$allTransactions',
+              as: 'transaction',
+              cond: {
+                $and: [
+                  { $gte: ["$$transaction.timestamp", transactionDateFilter] } ,
+                  { $eq: [ { $type: '$$transaction.stop' }, "object" ] },
+                  { $eq: [ { $dayOfWeek: new Date() },{ $dayOfWeek: "$$transaction.timestamp" }]}
+                ]
               }
+            }
           }
         }
       },
-// Reduce to necessary fields: site info, transactions and charging station power
+      // Reduce to necessary fields: site info, transactions and charging station power
       {
         "$project": {
           _id: 1,
@@ -497,7 +497,7 @@ class StatisticsStorage {
       {
         "$unwind": "$company"
       },
-  // Add company logo
+      // Add company logo
       {
         "$lookup": {
           from: DatabaseUtils.getCollectionName(tenantID, 'companylogos'),
@@ -506,7 +506,7 @@ class StatisticsStorage {
           as: 'company.logo'
         }
       },
-  // enrich with site image
+      // enrich with site image
       {
         "$lookup": {
           from: DatabaseUtils.getCollectionName(tenantID, 'siteimages'),
@@ -518,7 +518,7 @@ class StatisticsStorage {
       {
         "$unwind": "$site.image"
       },
-  // sort
+      // sort
       { $sort:  { 'company.name' : 1, '_id.name': 1}}   
       
     ];

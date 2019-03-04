@@ -58,8 +58,9 @@ class Authorizations {
   // Build Auth
   static async buildAuthorizations(user) {
     // Password OK
-    let companies = [], sites = [], users = [];
-
+    const companies = [], users = [];
+    let sites = []
+    
     // Check Admin
     if (!Authorizations.isAdmin(user.getModel())) {
       // Not Admin: Get Auth data

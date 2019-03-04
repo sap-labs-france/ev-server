@@ -68,7 +68,7 @@ class NotificationHandler {
       // Convert to JSon
       return adminUsers.result.map((adminUser) => adminUser.getModel()); 
     }
-}
+  }
 
   static async hasNotifiedSource(tenantID, sourceId) {
     try {
