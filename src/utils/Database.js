@@ -92,10 +92,10 @@ class Database {
       dest.powerLimitUnit = src.powerLimitUnit;
     }
     if (src.hasOwnProperty('latitude')) {
-      dest.latitude = src.latitude;
+      dest.latitude = Utils.convertToFloat(src.latitude);
     }
     if (src.hasOwnProperty('longitude')) {
-      dest.longitude = src.longitude;
+      dest.longitude = Utils.convertToFloat(src.longitude);
     }
 
     dest.connectors = [];
@@ -482,8 +482,8 @@ class Database {
       dest.department = src.department;
       dest.region = src.region;
       dest.country = src.country;
-      dest.latitude = src.latitude;
-      dest.longitude = src.longitude;
+      dest.latitude = Utils.convertToFloat(src.latitude);
+      dest.longitude = Utils.convertToFloat(src.longitude);
     }
   }
 
