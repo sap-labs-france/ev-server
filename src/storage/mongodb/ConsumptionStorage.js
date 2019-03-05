@@ -104,6 +104,7 @@ class ConsumptionStorage {
         transactionId: Utils.convertToInt(transactionId)
       }
     });
+    aggregation.push({$sort: {endedAt: 1}});
     // Read DB
     const consumptionsMDB = await global.database.getCollection(tenantID, 'consumptions')
       .aggregate(aggregation)
