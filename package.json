@@ -104,15 +104,15 @@
 		"start": "npm run start:prod",
 		"start:dev:debug": "node --inspect-brk src/start.js",
 		"start:dev": "nodemon -w dist dist/start.js",
-		"start:dev:prof": "cross-env NODE_ENV=development node --prof dist/start.js",
-		"start:dev:doctorprof": "cross-env NODE_ENV=development clinic doctor -- node dist/start.js",
-		"start:dev:flameprof": "cross-env NODE_ENV=development clinic flame -- node dist/start.js",
-		"start:dev:bubbleprof": "cross-env NODE_ENV=development clinic bubbleprof -- node dist/start.js",
+		"start:dev:prof": "cross-env NODE_ENV=development node --prof src/start.js",
+		"start:dev:doctorprof": "cross-env NODE_ENV=development clinic doctor -- node src/start.js",
+		"start:dev:flameprof": "cross-env NODE_ENV=development clinic flame -- node src/start.js",
+		"start:dev:bubbleprof": "cross-env NODE_ENV=development clinic bubbleprof -- node src/start.js",
 		"start:prod": "cross-env NODE_ENV=production node dist/start.js",
-		"start:prod:prof": "cross-env NODE_ENV=production node --prof dist/start.js",
-		"start:prod:doctorprof": "cross-env NODE_ENV=production clinic doctor -- node dist/start.js",
-		"start:prod:flameprof": "cross-env NODE_ENV=production clinic flame -- node dist/start.js",
-		"start:prod:bubbleprof": "cross-env NODE_ENV=production clinic bubbleprof -- node dist/start.js",
+		"start:prod:prof": "cross-env NODE_ENV=production node --prof src/start.js",
+		"start:prod:doctorprof": "cross-env NODE_ENV=production clinic doctor -- node src/start.js",
+		"start:prod:flameprof": "cross-env NODE_ENV=production clinic flame -- node src/start.js",
+		"start:prod:bubbleprof": "cross-env NODE_ENV=production clinic bubbleprof -- node src/start.js",
 		"build": "npm run build:prod",
 		"build:dev": "webpack --watch --env.env=dev",
 		"build:prod": "webpack --env.env=prod",
@@ -121,7 +121,8 @@
 		"lint": "eslint src",
 		"lint-fix": "eslint src --fix",
 		"test": "mocha test/**/*Test.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false ",
-		"test:parallel": "mocha-parallel-tests test/**/*_test.js --reporter mochawesome"
+		"test:parallel": "mocha-parallel-tests test/**/*_test.js --reporter mochawesome",
+		"clinic:clean": "clinic clean"
 	},
 	"license": "MIT"
 }
