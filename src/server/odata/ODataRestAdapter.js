@@ -44,13 +44,13 @@ class ODataRestAdapter {
         return;
       }
 
-      // check if sac setting is active - TODO: to be re-introduced after UI PR
-      // if (!tenant.isComponentActive(Constants.COMPONENTS.SAC)) {
-      //   cb(Error("SAP Analytics Clound Interface not enabled"));
-      //   return;
-      // }
+      // check if sac setting is active
+      if (!tenant.isComponentActive(Constants.COMPONENTS.SAC)) {
+        cb(Error("SAP Analytics Clound Interface not enabled"));
+        return;
+      }
 
-      // default timezone - TODO: change back to UTC
+      // default timezone
       req.timezone = 'UTC';
 
       // get settings
