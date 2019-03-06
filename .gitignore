@@ -53,6 +53,17 @@ tmp
 
 # vscode
 .vscode
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# vim
+# Persistent undo
+[._]*.un~
+# Temporary
+.netrwhist
+*~
 
 # intellij
 /.idea
