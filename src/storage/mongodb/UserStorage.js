@@ -1,4 +1,3 @@
-
 const crypto = require('crypto');
 const Mustache = require('mustache');
 const Constants = require('../../utils/Constants');
@@ -6,9 +5,9 @@ const Database = require('../../utils/Database');
 const Configuration = require('../../utils/Configuration');
 const Utils = require('../../utils/Utils');
 const BackendError = require('../../exception/BackendError');
-const eula = require('../../end-user-agreement');
 const DatabaseUtils = require('./DatabaseUtils');
 const Logging = require('../../utils/Logging');
+const fs = require('fs');
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 
@@ -16,13 +15,14 @@ class UserStorage {
   static getLatestEndUserLicenseAgreement(language = 'en') {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getLatestEndUserLicenseAgreement');
-    // Get it
-    let eulaText = eula[language];
-    // Check
-    if (!eulaText) {
-      // Backup to EN
-      eulaText = eula['en'];
+
+    let eulaText = null;
+    try {
+      eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/${language}/end-user-agreement.html`, 'utf8');
+    } catch (e) {
+      eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/en/end-user-agreement.html`, 'utf8');
     }
+
     // Build Front End URL
     const frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
       _centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port;
@@ -177,7 +177,7 @@ class UserStorage {
       $match: {'_id': Utils.convertToObjectID(id)}
     });
     // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Read DB
     const usersMDB = await global.database.getCollection(tenantID, 'users')
       .aggregate(aggregation)
@@ -460,7 +460,7 @@ class UserStorage {
       });
     }
     // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Site ID? or ExcludeSiteID - cannot be used together
     if (params.siteID || params.excludeSiteID) {
       // Add Site
@@ -480,7 +480,7 @@ class UserStorage {
         });
       } else if (params.excludeSiteID) {
         aggregation.push({
-          $match: {"siteusers.siteID": { $ne: Utils.convertToObjectID(params.excludeSiteID) } }
+          $match: {"siteusers.siteID": {$ne: Utils.convertToObjectID(params.excludeSiteID)}}
         });
       }
     }
@@ -621,7 +621,7 @@ class UserStorage {
       });
     }
     // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Site ID?
     if (params.siteID) {
       // Add Site
