@@ -7,6 +7,14 @@
 			"host": "localhost",
 			"port": 8000,
 			"debug": false
+		},
+		{
+			"type": "ocpp",
+			"implementation": "json",
+			"protocol": "ws",
+			"host": "localhost",
+			"port": 8010,
+			"debug": false
 		}
 	],
 	"CentralSystemRestService": {
@@ -28,6 +36,11 @@
 		"port": 45000,
 		"distEnabled": false,
 		"distPath": "../dist/front-end"
+	},
+	"CentralSystemServer": {
+		"protocol": "http",
+		"host": "localhost",
+		"port": 80
 	},
 	"WSDLEndpoint": {
 		"baseUrl": "http://localhost:8000"

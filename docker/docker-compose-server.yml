@@ -10,6 +10,7 @@ services:
     ports:
     - 8081:8081
     - 8000:8000
+    - 8010:8010
     external_links:
     - evse_mongodb_1
     - evse_mailserver_1

@@ -6,6 +6,6 @@ applications:
   buildpack: https://github.com/cloudfoundry/nodejs-buildpack
   random-route: true
   command: node dist/start.js
-  host: charge-angels-server
+  host: e-mobility-server
   services:
   - ev-mongodb

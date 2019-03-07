@@ -1,7 +1,7 @@
 version: "3.5"
 networks:
-    ev_network:
-      driver: bridge
+  ev_network:
+    driver: bridge
 services:
   mongo-express:
     image: mongo-express
@@ -15,5 +15,5 @@ services:
       ME_CONFIG_MONGODB_AUTH_DATABASE: admin
       ME_CONFIG_MONGODB_AUTH_USERNAME: admin-user
       ME_CONFIG_MONGODB_AUTH_PASSWORD: admin-user-pwd
-      networks:
-      - ev_network
+    networks:
+    - ev_network
