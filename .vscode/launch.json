@@ -4,7 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
         {
             "type": "node",
             "request": "launch",
@@ -16,20 +15,20 @@
                 "--timeout",
                 "999999",
                 "--colors",
-                "${workspaceFolder}/test/api/OCPPJson16Test.js"
-                // "${workspaceFolder}/test/api/UserTest.js"
-
+                "${workspaceFolder}/test/**/*Test.js"
             ],
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
             "type": "node",
             "request": "launch",
-            // "runtimeExecutable": "nodemon",
-            // "runtimeExecutable": "nodemon",
-            // "restart": true,
-            "name": "Launch Program",
-            "program": "${workspaceFolder}/src/start.js"
+            "name": "Launch Program via npm",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run-script", "start:dev:debug"
+            ],
+            "port": 9229
         }
     ]
 }
