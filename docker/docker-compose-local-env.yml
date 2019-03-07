@@ -2,6 +2,8 @@ version: "3.5"
 networks:
   ev_network:
     driver: bridge
+volumes:
+  mongo-data: {}
 
 services:
   mongodb:
@@ -10,7 +12,7 @@ services:
     - 27017:27017
     volumes:
     - ./initdb:/docker-entrypoint-initdb.d
-    - ./mongo:/data/db
+    - "mongo-data:/data/db"
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin

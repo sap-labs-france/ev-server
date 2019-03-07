@@ -2,7 +2,7 @@ FROM mongo
 
 COPY script.js ./
 
-ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.3.0/wait /wait
+ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.5.0/wait /wait
 RUN chmod +x /wait
 
 CMD /wait && mongo admin --host ev_mongo -u evse-admin -p evse-admin-pwd script.js
