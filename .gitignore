@@ -52,7 +52,7 @@ config/default.json
 tmp
 
 # vscode
-.vscode
+.vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json

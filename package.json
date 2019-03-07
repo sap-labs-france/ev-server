@@ -72,7 +72,7 @@
 		"babel-loader": "^7.1.5",
 		"chai": "^4.2.0",
 		"chai-subset": "^1.6.0",
-		"clinic": "^3.0.0",
+		"clinic": "^3.1.0",
 		"convict": "^4.4.0",
 		"copy-webpack-plugin": "^4.5.2",
 		"cross-env": "^5.2.0",
