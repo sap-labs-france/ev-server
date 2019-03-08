@@ -13,7 +13,7 @@ local-env:
 server:
 	docker-compose -p $(PROJECT_NAME) -f docker-compose-server.yml up -d
 
-all: local-env server 
+all: local-env server
 
 clean:
 	-docker-compose -p $(PROJECT_NAME) -f docker-compose-local-env.yml down
