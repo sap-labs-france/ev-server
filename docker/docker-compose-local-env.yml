@@ -39,9 +39,9 @@ services:
   mailserver:
     image: djfarrelly/maildev
     ports:
-    - 1025:70
+    - 1025:25
     - 1080:80
     networks:
     - ev_network
-    command: bin/maildev --web 80 --smtp 70 --verbose --incoming-user evse-mail-user --incoming-pass evse-mail-pwd
+    command: bin/maildev --web 80 --smtp 25 --verbose --incoming-user evse-mail-user --incoming-pass evse-mail-pwd
 
