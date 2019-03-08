@@ -1,6 +1,8 @@
 const commonConfig = require('./build/webpack.common');
 const webpackMerge = require('webpack-merge');
 const CopyPlugin = require('copy-webpack-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+const webpack = require('webpack')
 
 const addons = (addonsArg) => {
   let addons = []
@@ -15,6 +17,8 @@ module.exports = (env) => {
   // Merge configs`
   let config = webpackMerge(commonConfig, envConfig, addons(env.addons));
   config.plugins = [
+    new webpack.ProgressPlugin(),
+    new CleanWebpackPlugin(),
     new CopyPlugin([
       {from: 'src/assets/', to: 'assets/', ignore: ['**/configs/**']},
     ]),
