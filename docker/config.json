@@ -40,7 +40,7 @@
 	"CentralSystemServer": {
 		"protocol": "http",
 		"host": "localhost",
-		"port": 90
+		"port": 80
 	},
 	"OCPIService": {
 		"protocol": "http",
