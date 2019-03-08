@@ -40,7 +40,25 @@
 	"CentralSystemServer": {
 		"protocol": "http",
 		"host": "localhost",
-		"port": 80
+		"port": 90
+	},
+	"OCPIService": {
+		"protocol": "http",
+		"host": "localhost",
+		"port": 9090,
+		"debug": false,
+		"externalProtocol": "http",
+		"tenantEnabled": [ "slf"],
+		"eMI3id": {
+			"slf": { "country_id": "FR", "party_id": "SLF" }
+		}
+	},
+	"ODataService": {
+		"protocol": "http",
+		"host": "localhost",
+		"port": 9292,
+		"debug": false,
+		"externalProtocol": "http"
 	},
 	"WSDLEndpoint": {
 		"baseUrl": "http://localhost:8000"
@@ -63,7 +81,7 @@
 		"admins": ["fabiano.serge@chargeangels.fr"],
 		"smtp" : {
 			"host": "mailserver",
-			"port": 70,
+			"port": 25,
 			"secure": false,
 			"requireTLS": false,
 			"user": "evse-mail-user",

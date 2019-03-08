@@ -8,9 +8,12 @@ services:
       context: ..
       dockerfile: Dockerfile.production
     ports:
+    - 90:90
     - 8081:8081
     - 8000:8000
     - 8010:8010
+    - 9090:9090
+    - 9292:9292
     external_links:
     - evse_mongodb_1
     - evse_mailserver_1
