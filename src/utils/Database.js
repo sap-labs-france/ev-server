@@ -216,12 +216,6 @@ class Database {
     dest.timestamp = Utils.convertToDate(src.timestamp);
     dest.value = Utils.convertToInt(src.value);
     dest.attribute = src.attribute;
-    // if (src.hasOwnProperty("registeredValue")) {
-    //   dest.registeredValue = Utils.convertToInt(src.registeredValue);
-    // }
-    // if (src.hasOwnProperty("totalInactivitySecs")) {
-    //   dest.totalInactivitySecs = Utils.convertToInt(src.totalInactivitySecs);
-    // }
   }
 
   static updateUser(src, dest, forFrontEnd = true) {
@@ -386,10 +380,10 @@ class Database {
   }
 
   static updateConnection(src, dest, forFrontEnd = true) {
-    dest.connectorId = src.connectorId;
-    dest.createdAt = src.createdAt;
-    dest.updatedAt = src.updatedAt;
-    dest.validUntil = src.validUntil;
+    dest.connectorId = Utils.convertToInt(src.connectorId);
+    dest.createdAt = Utils.convertToDate(src.createdAt);
+    dest.updatedAt = Utils.convertToDate(src.updatedAt);
+    dest.validUntil = Utils.convertToDate(src.validUntil);
     if (forFrontEnd) {
       Database.updateID(src, dest);
       dest.userId = Database.validateId(src.userId);

@@ -123,6 +123,7 @@
 		"lint-fix": "eslint src --fix",
 		"test": "mocha test/**/*Test.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false ",
 		"test:parallel": "mocha-parallel-tests test/**/*_test.js --reporter mochawesome",
+		"test:charging-stations": "mocha test/**/OCPP*Test.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false ",
 		"clinic:clean": "clinic clean"
 	},
 	"license": "MIT"
