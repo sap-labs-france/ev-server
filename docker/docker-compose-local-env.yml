@@ -10,13 +10,18 @@ services:
     build:
       context: .
       dockerfile: ev_mongo.Dockerfile
+      args:
+        mongodb_name: evse
+        mongodb_user: mongodb
+        mongodb_home: /home/mongodb
+        export_file: export-empty-evse-db.zip
     image: mongo:3.6
     ports:
     - 27017:27017
     volumes:
     - "mongo-data:/data/db"
     env_file:
-      - ev_mongo.env
+    - ev_mongo.env
     command: --replSet 'rs0'
     networks:
       ev_network:
