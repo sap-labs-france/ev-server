@@ -6,7 +6,7 @@ services:
   server:
     build:
       context: ..
-      dockerfile: docker/production.Dockerfile
+      dockerfile: docker/ev_server-production.Dockerfile
     ports:
     - 80:80
     - 8081:8081
