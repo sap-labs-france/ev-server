@@ -63,6 +63,9 @@
 	"WSDLEndpoint": {
 		"baseUrl": "http://localhost:8000"
 	},
+	"JsonEndpoint": {
+		"baseUrl": ""
+	},
 	"Storage": {
 		"implementation": "mongodb",
 		"uri": null,
@@ -71,7 +74,7 @@
 		"user": "evse-user",
 		"password": "evse-user-pwd",
 		"database": "evse",
-		"poolSize": 20,
+		"poolSize": 200,
 		"replicaSet": "rs0",
 		"monitorDBChange": true,
 		"debug": false
@@ -81,7 +84,7 @@
 		"admins": ["fabiano.serge@chargeangels.fr"],
 		"smtp" : {
 			"host": "mailserver",
-			"port": 25,
+			"port": 1025,
 			"secure": false,
 			"requireTLS": false,
 			"user": "evse-mail-user",

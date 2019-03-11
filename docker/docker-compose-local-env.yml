@@ -7,11 +7,13 @@ volumes:
 
 services:
   mongodb:
+    build:
+      context: .
+      dockerfile: ev_mongo.Dockerfile
     image: mongo:3.6
     ports:
     - 27017:27017
     volumes:
-    - ./initdb:/docker-entrypoint-initdb.d
     - "mongo-data:/data/db"
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
@@ -40,7 +42,7 @@ services:
     image: djfarrelly/maildev
     ports:
     - 1025:25
-    - 1080:80
+    - 8080:80
     networks:
     - ev_network
     command: bin/maildev --web 80 --smtp 25 --verbose --incoming-user evse-mail-user --incoming-pass evse-mail-pwd
