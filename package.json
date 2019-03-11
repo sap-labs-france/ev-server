@@ -81,7 +81,7 @@
 		"eslint": "^5.9.0",
 		"faker": "^4.1.0",
 		"json-loader": "^0.5.7",
-		"json-schema-faker": "^0.5.0-rc9",
+		"json-schema-faker": "^0.5.0-rc16",
 		"mocha": "^5.2.0",
 		"mocha-parallel-tests": "^2.0.4",
 		"mochawesome": "^3.0.3",
