@@ -18,7 +18,6 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin
-      MONGO_INITDB_DATABASE: evse
     command: --replSet 'rs0'
     networks:
       ev_network:
