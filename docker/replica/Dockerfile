@@ -1,4 +1,4 @@
-FROM mongo:3.6
+FROM mongo:4.0
 
 COPY script.js ./
 
