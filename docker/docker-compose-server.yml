@@ -8,10 +8,10 @@ services:
       context: ..
       dockerfile: docker/ev_server-production.Dockerfile
     ports:
-    - 80:80
-    - 8081:8081
+    - 81:81
     - 8000:8000
     - 8010:8010
+    - 8080:8080
     - 9090:9090
     - 9292:9292
     external_links:
@@ -22,4 +22,8 @@ services:
       WAIT_HOSTS_TIMEOUT: 90
       WAIT_AFTER_HOSTS: 3
     networks:
-    - ev_network
+      ev_network:
+        aliases:
+        - ev_server
+    extra_hosts:
+    - ev_server:127.0.0.1

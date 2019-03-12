@@ -20,7 +20,7 @@
 	"CentralSystemRestService": {
 		"protocol": "http",
 		"host": "localhost",
-		"port": 8081,
+		"port": 81,
 		"userTokenKey": "s3A9js135sdf384hgj384ku38lilckjflskdjf2797boeiBhxQDM1GInRith",
 		"userTokenLifetimeHours": 12,
 		"userDemoTokenLifetimeDays": 365,
@@ -33,14 +33,14 @@
 	"CentralSystemFrontEnd": {
 		"protocol": "http",
 		"host": "localhost",
-		"port": 45000,
+		"port": 8080,
 		"distEnabled": false,
 		"distPath": "../dist/front-end"
 	},
 	"CentralSystemServer": {
 		"protocol": "http",
 		"host": "localhost",
-		"port": 80
+		"port": 81
 	},
 	"OCPIService": {
 		"protocol": "http",
