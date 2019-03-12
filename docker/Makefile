@@ -4,7 +4,7 @@ PROJECT_NAME:=evse
 
 default: all
 
-mongoexpress:
+mongo-express:
 	docker-compose -p $(PROJECT_NAME) -f docker-compose-mongo-express.yml up -d
 
 local-env:

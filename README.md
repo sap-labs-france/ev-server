@@ -102,18 +102,18 @@ Create Admin User on Admin schema:
   use admin
   db.createUser({
     user: "evse-admin",
-	  pwd: "<YourPassword>",
-	  roles: [
-        "read",
-        "readWrite",
-        "dbAdmin",
-        "userAdmin",
-        "clusterAdmin",
-        "readAnyDatabase",
-        "readWriteAnyDatabase",
-        "userAdminAnyDatabase",
-        "dbAdminAnyDatabase"
-	  ]
+    pwd: "<YourPassword>",
+    roles: [
+      "read",
+      "readWrite",
+      "dbAdmin",
+      "userAdmin",
+      "clusterAdmin",
+      "readAnyDatabase",
+      "readWriteAnyDatabase",
+      "userAdminAnyDatabase",
+      "dbAdminAnyDatabase"
+    ]
   })
 ```
 
@@ -127,9 +127,9 @@ Create Application User on EVSE schema
   db.createUser({
     user: "evse-user",
     pwd: "<YourPassword>",
-	  roles: [
-		  "readWrite"
-	  ]
+    roles: [
+      "readWrite"
+    ]
   })
 ```
 
