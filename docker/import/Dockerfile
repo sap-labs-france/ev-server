@@ -1,4 +1,4 @@
-FROM mongo
+FROM mongo:4.0
 
 MAINTAINER Serge FABIANO serge.fabiano@sap.com
 

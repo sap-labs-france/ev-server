@@ -15,7 +15,7 @@ services:
         mongodb_user: mongodb
         mongodb_home: /home/mongodb
         export_file: export-empty-evse-db.zip
-    image: mongo:3.6
+    image: mongo:4.0
     ports:
     - 27017:27017
     volumes:
