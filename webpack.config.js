@@ -18,7 +18,7 @@ module.exports = (env) => {
   let config = webpackMerge(commonConfig, envConfig, addons(env.addons));
   config.plugins = [
     new webpack.ProgressPlugin(),
-    new CleanWebpackPlugin(),
+    // new CleanWebpackPlugin(),
     new CopyPlugin([
       {from: 'src/assets/', to: 'assets/', ignore: ['**/configs/**']},
     ]),
