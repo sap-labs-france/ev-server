@@ -297,15 +297,25 @@ class StatisticsStorage {
       {
         "$lookup": {
           from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
-          localField: 'siteArea._id',
-          foreignField: 'siteAreaID',
+          let: {siteAreaID: "$siteArea._id"},
+          pipeline: [ // Exclude deleted chargers
+            { $match: {$or: [
+                { deleted: false},
+                {deleted: {$exists: false}} ] } },
+             { $match: { 
+                  $expr: 
+                  { $eq: [ '$$siteAreaID', '$siteAreaID']}                            
+                            
+                  }                
+              },
+          ],
           as: 'chargingStation'
         }
       },
       {
         $unwind: '$chargingStation'
       },
-      // Get All transactions 
+/*      // Get All transactions 
       {
         "$lookup": {
           from: '5be7fb271014d90008992f06.transactions',
@@ -427,6 +437,140 @@ class StatisticsStorage {
           },
           'chargingTrendsAvgInactivity': {
             $avg: "$transactionsTrends.stop.totalInactivitySecs"
+          },
+        }
+      },*/
+      // Get today active transactions 
+      {
+        "$lookup": {
+          from: DatabaseUtils.getCollectionName(tenantID, 'transactions'),
+          let: {chargingStationName: "$chargingStation._id"},
+          pipeline: [
+              { $match: {$and: [
+                  { timestamp: {$gte: beginningOfTheDay } },
+                  {stop: {$exists: false}} ] } },
+              { $match: { 
+                    $expr: 
+                        { $eq: [ '$$chargingStationName', '$chargeBoxID']}                            
+                    
+                        }                
+              },
+            ],
+          as: 'activeTransactions'
+        }
+      },
+// Get today finished transactions 
+      {
+        "$lookup": {
+          from: DatabaseUtils.getCollectionName(tenantID, 'transactions'),
+          let: {chargingStationName: '$chargingStation._id'},
+          pipeline: [
+              { $match: {$and: [
+                  { timestamp: {$gte: beginningOfTheDay } },
+                  {stop: {$exists: true}} ] } },
+              { $match: { 
+                    $expr: 
+                        { $eq: [ '$$chargingStationName', '$chargeBoxID']}                            
+                    
+                        }                
+              },
+            ],
+          as: 'finishedTransactions'
+        }
+      },
+// Get transactions of the same week day
+      {
+        "$lookup": {
+          from: DatabaseUtils.getCollectionName(tenantID, 'transactions'),
+          let: { chargingStationName: "$chargingStation._id"},
+          pipeline: [
+              { $match: {$and: 
+                  [
+                    { stop: {$exists: true }}, 
+                    { timestamp: {$gte: transactionDateFilter } }
+                    ] } },
+              { $match: { 
+                            $expr: {
+                            $and: [
+                                { $eq: [ { $dayOfWeek: new Date() },{ $dayOfWeek: "$timestamp" }]},  
+                                { $eq: [ '$$chargingStationName', '$chargeBoxID']} ,                            
+                            ]
+                                }
+                }
+                },
+                  
+                { $replaceRoot: { newRoot: "$stop" } }
+                
+            ],
+          as: 'transactionsTrends'
+        }
+      },
+// Reduce to necessary fields: site info, transactions and charging station power
+      {
+        "$project": {
+          _id: 1,
+          companyID: 1,
+          name: 1,
+          address: 1,
+          transactions: 1,
+          currentConsumption: {
+              $sum: '$activeTransactions.currentConsumption'  
+          },
+          activeCurrentTotalConsumption: {
+              $sum: '$activeTransactions.currentTotalConsumption'
+          },
+          finishedCurrentTotalConsumption: {
+              $sum: '$finishedTransactions.stop.totalConsumption' 
+              },
+          maximumPower: {
+            "$sum": "$chargingStation.maximumPower"
+          },
+          activeCurrentTotalInactivitySecs: {
+            "$sum": "$activeTransactions.currentTotalInactivitySecs"
+          },
+          finishedCurrentTotalInactivitySecs: {
+            "$sum": "$activeTransactions.stop.totalInactivitySecs"
+          },
+          'chargingStation.maximumPower': 1,
+          maximumNumberOfChargingPoint: {
+  //             $cond: {
+  //                 if: '$chargingStation.cannotChargeInParallel',
+  //                 then: 1,
+  //                 else: { 
+                      $size: '$chargingStation.connectors' 
+  //                     }
+  //             }
+            
+          },
+          occupiedChargingPoint: {
+            $size: '$activeTransactions'
+          },
+          'chargingTrendsMinConsumption': {
+              $min: "$transactionsTrends.totalConsumption"
+          },
+          'chargingTrendsMaxConsumption': {
+              $max: "$transactionsTrends.totalConsumption"
+          },
+          'chargingTrendsAvgConsumption': {
+              $avg: "$transactionsTrends.totalConsumption"
+          },
+          'chargingTrendsMinDuration': {
+              $min: "$transactionsTrends.totalDurationSecs"
+          },
+          'chargingTrendsMaxDuration': {
+              $max: "$transactionsTrends.totalDurationSecs"
+          },
+          'chargingTrendsAvgDuration': {
+              $avg: "$transactionsTrends.totalDurationSecs"
+          },
+          'chargingTrendsMinInactivity': {
+              $min: "$transactionsTrends.totalInactivitySecs"
+          },
+          'chargingTrendsMaxInactivity': {
+              $max: "$transactionsTrends.totalInactivitySecs"
+          },
+          'chargingTrendsAvgInactivity': {
+              $avg: "$transactionsTrends.totalInactivitySecs"
           },
         }
       },
