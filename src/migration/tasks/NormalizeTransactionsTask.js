@@ -2,7 +2,7 @@ const Tenant = require('../../entity/Tenant');
 const PricingStorage = require('../../storage/mongodb/PricingStorage');
 const DatabaseUtils = require('../../storage/mongodb/DatabaseUtils');
 const moment = require('moment');
-const Database = require('../../utils/Database');
+const Utils = require('../../utils/Utils');
 const Logging = require('../../utils/Logging');
 const Constants = require('../../utils/Constants');
 const MigrationTask = require('../MigrationTask');
@@ -78,8 +78,8 @@ class NormalizeTransactionsTask extends MigrationTask {
         // Yes: Assigned to Site Area?
         if (transactionMDB.siteArea) {
           // yes
-          transaction.siteAreaID = Database.validateId(transactionMDB.siteArea._id);
-          transaction.siteID = Database.validateId(transactionMDB.siteArea.siteID);
+          transaction.siteAreaID = transactionMDB.siteArea._id;
+          transaction.siteID = transactionMDB.siteArea.siteID;
         } else {
           // No: add and log later
           chargersWithNoSiteArea.add(transactionMDB.chargeBoxID);
@@ -171,7 +171,7 @@ class NormalizeTransactionsTask extends MigrationTask {
   }
 
   getVersion() {
-    return "1.1";
+    return "1.2";
   }
 
   getName() {
