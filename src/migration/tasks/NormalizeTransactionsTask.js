@@ -132,8 +132,8 @@ class NormalizeTransactionsTask extends MigrationTask {
         transaction.stop.stateOfCharge = 0;
       }
       if (pricing) {
-        transaction.stop.price = pricing.priceKWH * (transactionMDB.stop.totalConsumption / 1000);
-        transaction.stop.roundedPrice = (transaction.stop.price).toFixed(6);
+        transaction.stop.price = parseFloat((pricing.priceKWH * (transactionMDB.stop.totalConsumption / 1000)).toFixed(6));
+        transaction.stop.roundedPrice = parseFloat((parseFloat(transaction.stop.price)).toFixed(2));
         transaction.stop.priceUnit = pricing.priceUnit;
         transaction.stop.pricingSource = "simple";
       } else {
