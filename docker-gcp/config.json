@@ -1,0 +1,139 @@
+{
+    "CentralSystems": [{
+            "type": "ocpp",
+            "implementation": "soap",
+            "protocol": "http",
+            "host": "server",
+            "port": 8000,
+            "debug": false
+        },
+        {
+            "type": "ocpp",
+            "implementation": "json",
+            "protocol": "ws",
+            "host": "server",
+            "port": 8010,
+            "debug": false
+        }
+    ],
+    "CentralSystemRestService": {
+        "protocol": "http",
+        "host": "localhost",
+        "port": 81,
+        "userTokenKey": "s3A9js135sdf384hgj384ku38lilckjflskdjf2797boeiBhxQDM1GInRith",
+        "userTokenLifetimeHours": 12,
+        "userDemoTokenLifetimeDays": 365,
+        "webSocketNotificationIntervalSecs": 5,
+        "passwordWrongNumberOfTrial": 3,
+        "passwordBlockedWaitTimeMin": 5,
+        "captchaSecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
+        "debug": false
+    },
+    "CentralSystemFrontEnd": {
+        "protocol": "http",
+        "host": "server",
+        "port": 8080,
+        "distEnabled": false,
+        "distPath": "../dist/front-end"
+    },
+    "CentralSystemServer": {
+        "protocol": "http",
+        "host": "localhost",
+        "port": 81
+    },
+    "OCPIService": {
+        "protocol": "http",
+        "host": "server",
+        "port": 9090,
+        "debug": false,
+        "externalProtocol": "http",
+        "tenantEnabled": ["slf"],
+        "eMI3id": {
+            "slf": {
+                "country_id": "FR",
+                "party_id": "SLF"
+            }
+        }
+    },
+    "ODataService": {
+        "protocol": "http",
+        "host": "server",
+        "port": 9292,
+        "debug": false,
+        "externalProtocol": "http"
+    },
+    "WSDLEndpoint": {
+        "baseUrl": "http://server:8000"
+    },
+    "JsonEndpoint": {
+        "baseUrl": ""
+    },
+    "Storage": {
+        "implementation": "mongodb",
+        "uri": null,
+        "host": "mongodb",
+        "port": 27017,
+        "user": "evse-user",
+        "password": "evse-user-pwd",
+        "database": "evse",
+        "poolSize": 200,
+        "replicaSet": "rs0",
+        "monitorDBChange": true,
+        "debug": false
+    },
+    "Email": {
+        "from": "donotreply@charge-angels.fr",
+        "admins": ["fabiano.serge@chargeangels.fr"],
+        "smtp": {
+            "host": "mailserver",
+            "port": 1025,
+            "secure": false,
+            "requireTLS": false,
+            "user": "evse-mail-user",
+            "password": "evse-mail-pwd"
+        }
+    },
+    "Notification": {
+        "Email": {
+            "enabled": true
+        }
+    },
+    "Authorization": {
+        "debug": false
+    },
+    "ChargingStation": {
+        "heartbeatIntervalSecs": 60,
+        "checkEndOfChargeNotificationAfterMin": 5,
+        "notifBeforeEndOfChargePercent": 50,
+        "notifBeforeEndOfChargeEnabled": false,
+        "notifEndOfChargePercent": 0,
+        "notifEndOfChargeEnabled": true,
+        "notifStopTransactionAndUnlockConnector": false
+    },
+    "Locales": {
+        "default": "en_US",
+        "supported": ["en_US", "fr_FR"]
+    },
+    "Advanced": {
+        "chargeCurveTimeFrameSecsPoint": 60
+    },
+    "Scheduler": {
+        "active": true,
+        "tasks": [{
+            "name": "loggingDatabaseTableCleanup",
+            "active": true,
+            "periodicity": "0 0 * * 1",
+            "config": {
+                "retentionPeriodWeeks": 4,
+                "securityRetentionPeriodWeeks": 4
+            }
+        }]
+    },
+    "Logging": {
+        "logLevel": "DEBUG",
+        "consoleLogLevel": "DEBUG",
+        "trace": false,
+        "traceLogOnlyStatistics": false,
+        "traceStatisticInterval": 60
+    }
+}

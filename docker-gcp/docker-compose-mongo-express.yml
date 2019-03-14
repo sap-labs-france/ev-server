@@ -1,7 +1,8 @@
 version: "3.5"
 networks:
   ev_network:
-    driver: bridge
+    driver: overlay
+    external: false
 services:
   mongo-express:
     image: mongo-express
