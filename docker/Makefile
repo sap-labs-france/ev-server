@@ -5,13 +5,13 @@ PROJECT_NAME:=evse
 default: all
 
 mongo-express:
-	docker-compose -p $(PROJECT_NAME) -f docker-compose-mongo-express.yml up -d
+	docker stack deploy -c docker-compose-mongo-express.yml $(PROJECT_NAME)
 
 local-env:
-	docker-compose -p $(PROJECT_NAME) -f docker-compose-local-env.yml up -d
+	docker stack deploy -c docker-compose-local-env.yml $(PROJECT_NAME)
 
 server:
-	docker-compose -p $(PROJECT_NAME) -f docker-compose-server.yml up -d
+	docker stack deploy -c docker-compose-server.yml $(PROJECT_NAME)
 
 all: local-env server
 
@@ -25,9 +25,7 @@ clean-mongo-data:
 	-docker volume rm $(PROJECT_NAME)_mongo-data
 
 clean-containers:
-	-docker-compose -p $(PROJECT_NAME) -f docker-compose-local-env.yml down
-	-docker-compose -p $(PROJECT_NAME) -f docker-compose-server.yml down
-	-docker-compose -p $(PROJECT_NAME) -f docker-compose-mongo-express.yml down
+		docker stack rm $(PROJECT_NAME)
 
 dist-clean: clean-containers clean-mongo-data clean-volumes
 	docker image prune -a -f
