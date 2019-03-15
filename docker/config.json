@@ -19,7 +19,7 @@
 	],
 	"CentralSystemRestService": {
 		"protocol": "http",
-		"host": "server",
+		"host": "",
 		"port": 81,
 		"userTokenKey": "s3A9js135sdf384hgj384ku38lilckjflskdjf2797boeiBhxQDM1GInRith",
 		"userTokenLifetimeHours": 12,
@@ -32,8 +32,8 @@
 	},
 	"CentralSystemFrontEnd": {
 		"protocol": "http",
-		"host": "server",
-		"port": 8080,
+		"host": "localhost",
+		"port": 3080,
 		"distEnabled": false,
 		"distPath": "../dist/front-end"
 	},
@@ -61,7 +61,7 @@
 		"externalProtocol": "http"
 	},
 	"WSDLEndpoint": {
-		"baseUrl": "http://server:8000"
+		"baseUrl": ""
 	},
 	"JsonEndpoint": {
 		"baseUrl": ""
