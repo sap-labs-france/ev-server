@@ -257,13 +257,13 @@ class OCPIClient {
    */
   async sendEVSEStatuses() {
     // result
-    const sendResult = { success: 0, failure: 0, logs: [] };
+    const sendResult = { success: 0, failure: 0, logs: [], chargeBoxIDsInFailure: [] };
 
     // read configuration to retrieve country_code and party_id
     const tenant = await this._ocpiEndpoint.getTenant();
     // get ocpi service configuration
     const ocpiSetting = await tenant.getSetting(Constants.COMPONENTS.OCPI_COMPONENT);
-    // TODO: replace this assignment
+    // define eMI3
     tenant._eMI3 = {};
 
     if (ocpiSetting && ocpiSetting.getContent()) {
@@ -271,12 +271,26 @@ class OCPIClient {
       tenant._eMI3.country_id = configuration.country_code;
       tenant._eMI3.party_id = configuration.party_id;
     } else {
-      // TODO: remove this assignment
-      tenant._eMI3.country_id = 'FR';
-      tenant._eMI3.party_id = 'SLF';
+      // log error if failure
+      Logging.logError({
+        tenantID: tenant.getID(),
+        action: 'sendEVSEStatuses',
+        message: `OCPI Configuration not active`,
+        source: 'OCPI Client',
+        module: 'OCPI Client',
+        method: `sendEVSEStatuses`
+      });
+      return;
     }
 
-    const locationsResult = await OCPIMapping.getAllLocations(tenant);
+    // define get option
+    const options = { "addChargeBoxID": true };
+
+    // get timestamp before starting process - to be saved in DB
+    const startDate = new Date();
+
+    // get all EVSES from all locations
+    const locationsResult = await OCPIMapping.getAllLocations(tenant, null, null, options);
 
     for (const location of locationsResult.locations) {
       if (location && location.evses) {
@@ -287,6 +301,7 @@ class OCPIClient {
               sendResult.success++;
             } catch (error) {
               sendResult.failure++;
+              sendResult.chargeBoxIDsInFailure.push(evse.chargeBoxId);
               sendResult.logs.push( 
                 `failure updating status for locationID:${location.id} - evseID:${evse.id}:${error.message}`
               );
@@ -311,7 +326,7 @@ class OCPIClient {
     }
 
     // save result in ocpi endpoint
-    this._ocpiEndpoint.setLastPatchJobOn(new Date());
+    this._ocpiEndpoint.setLastPatchJobOn(startDate);
 
     // set result
     if (sendResult) {
