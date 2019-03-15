@@ -15,7 +15,6 @@ services:
        traefik.frontend.rule: "Host:evserver.pwn2learn.io;"
        traefik.docker.network: "traefik"
     ports:
-    #- 81:81
     - 8000:8000
     - 8010:8010
     - 8080:8080

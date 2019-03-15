@@ -2,7 +2,7 @@ FROM node:lts-alpine as builder
 
 WORKDIR /usr/builder
 
-COPY package.json package-lock.json ./
+COPY package.json ./
 
 RUN npm set progress=false && npm config set depth 0 && npm cache clean --force
 RUN apk add --no-cache --virtual .gyp \

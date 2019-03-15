@@ -315,7 +315,7 @@ class StatisticsStorage {
       {
         $unwind: '$chargingStation'
       },
-      /*      // Get All transactions 
+      /* // Get All transactions 
       {
         "$lookup": {
           from: '5be7fb271014d90008992f06.transactions',
@@ -439,7 +439,7 @@ class StatisticsStorage {
             $avg: "$transactionsTrends.stop.totalInactivitySecs"
           },
         }
-      },*/
+      }, */
       // Get today active transactions 
       {
         "$lookup": {
@@ -533,13 +533,13 @@ class StatisticsStorage {
           },
           'chargingStation.maximumPower': 1,
           maximumNumberOfChargingPoint: {
-            //             $cond: {
-            //                 if: '$chargingStation.cannotChargeInParallel',
-            //                 then: 1,
-            //                 else: { 
-            $size: '$chargingStation.connectors' 
-            //                     }
-            //             }
+            // $cond: {
+            //   if: '$chargingStation.cannotChargeInParallel',
+            //   then: 1,
+            //   else: { 
+                $size: '$chargingStation.connectors' 
+            //   }
+            // }
             
           },
           occupiedChargingPoint: {
@@ -629,7 +629,8 @@ class StatisticsStorage {
             $avg: "$chargingTrendsAvgInactivity"
           },
         }
-      }, // enrich with company information
+      },
+      // enrich with company information
       {
         "$lookup": {
           from: DatabaseUtils.getCollectionName(tenantID, 'companies'),

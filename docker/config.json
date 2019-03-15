@@ -19,7 +19,7 @@
 	],
 	"CentralSystemRestService": {
 		"protocol": "http",
-		"host": "server",
+		"host": "",
 		"port": 81,
 		"userTokenKey": "s3A9js135sdf384hgj384ku38lilckjflskdjf2797boeiBhxQDM1GInRith",
 		"userTokenLifetimeHours": 12,
