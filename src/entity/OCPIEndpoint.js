@@ -78,8 +78,8 @@ class OCPIEndpoint extends AbstractTenantEntity {
     this._model.lastPatchJobOn = lastPatchJobOn;
   }
 
-  setLastPatchJobResult(successNbr, failureNbr) {
-    this._model.lastPatchJobResult = { "successNbr": successNbr, "failureNbr": failureNbr};
+  setLastPatchJobResult(successNbr, failureNbr, chargeBoxIDsInFailure = [], chargeBoxIDsInSuccess = []) {
+    this._model.lastPatchJobResult = { "successNbr": successNbr, "failureNbr": failureNbr, "chargeBoxIDsInFailure": chargeBoxIDsInFailure, "chargeBoxIDsInSuccess": chargeBoxIDsInSuccess};
   }
 
   getLastPatchJobResult() {

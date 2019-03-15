@@ -50,6 +50,7 @@ class OCPIPatchLocationsTask extends SchedulerTask {
     }
   }
 
+  // eslint-disable-next-line no-unused-vars
   static async processOCPIEndpoint(ocpiEndpoint, config) {
     // check if OCPI endpoint is registered
     if (ocpiEndpoint.getStatus() != Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED) {
@@ -83,7 +84,7 @@ class OCPIPatchLocationsTask extends SchedulerTask {
     const ocpiClient = new OCPIClient(ocpiEndpoint);
 
     // send EVSE statuses
-    const sendResult = await ocpiClient.sendEVSEStatuses();
+    const sendResult = await ocpiClient.sendEVSEStatuses(false);
 
     Logging.logInfo({
       tenantID: ocpiEndpoint.getTenantID(),
