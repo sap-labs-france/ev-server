@@ -535,8 +535,22 @@ class ChargingStationStorage {
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
+    // Set the filters
+    const filters = {};
+    // Date from provided?
+    if (params.dateFrom) {
+      // Yes, add in filter
+      filters.timestamp = {};
+      filters.timestamp.$gte = new Date(params.dateFrom);
+    }
     // Create Aggregation
     const aggregation = [];
+    // Filters
+    if (filters) {
+      aggregation.push({
+        $match: filters
+      });
+    }
     // Count Records
     const statusNotificationsCountMDB = await global.database.getCollection(tenantID, 'statusnotifications')
       .aggregate([...aggregation, {
