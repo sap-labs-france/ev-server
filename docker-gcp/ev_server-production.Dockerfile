@@ -2,7 +2,7 @@ FROM node:lts-alpine as builder
 
 WORKDIR /usr/builder
 
-COPY package.json ./
+COPY package.json ./package.json
 
 RUN npm set progress=false && npm config set depth 0 && npm cache clean --force
 RUN apk add --no-cache --virtual .gyp \
@@ -24,7 +24,7 @@ WORKDIR /usr/app
 COPY --from=builder /usr/builder/node_modules ./node_modules
 COPY --from=builder /usr/builder/dist ./dist
 
-EXPOSE 81 8000 8010 8080 9090 9292
+EXPOSE 80 81 8000 8010 8081 9090 9292
 
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.5.0/wait /wait
 RUN chmod +x /wait

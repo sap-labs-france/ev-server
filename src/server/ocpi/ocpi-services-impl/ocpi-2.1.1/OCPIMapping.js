@@ -12,9 +12,10 @@ class OCPIMapping {
    * Convert Site to OCPI Location
    * @param {Tenant} tenant
    * @param {Site} site 
+   * @param options
    * @return OCPI Location
    */
-  static async convertSite2Location(tenant, site) {
+  static async convertSite2Location(tenant, site, options = {}) {
     if (site instanceof Site) {
       // build object
       return {
@@ -28,7 +29,7 @@ class OCPIMapping {
           "latitude": site.getAddress().latitude,
           "longitude": site.getAddress().longitude
         },
-        "evses": await this.getEvsesFromSite(tenant, site),
+        "evses": await this.getEvsesFromSite(tenant, site, options),
         "last_updated": site.getLastChangedOn()
       };
     }
@@ -40,7 +41,7 @@ class OCPIMapping {
    * @param {SiteArea} siteArea 
    * @return Array of OCPI EVSES
    */
-  static async getEvsesFromSiteaArea(tenant, siteArea) {
+  static async getEvsesFromSiteaArea(tenant, siteArea,options) {
     // build evses array
     const evses = [];
 
@@ -50,9 +51,9 @@ class OCPIMapping {
     // convert charging stations to evse(s)
     chargingStations.forEach(chargingStation => {
       if (chargingStation.canChargeInParallel()) {
-        evses.push(...this.convertCharginStation2MultipleEvses(tenant, chargingStation));
+        evses.push(...this.convertCharginStation2MultipleEvses(tenant, chargingStation,options));
       } else {
-        evses.push(...this.convertChargingStation2UniqueEvse(tenant, chargingStation));
+        evses.push(...this.convertChargingStation2UniqueEvse(tenant, chargingStation,options));
       }
     });
 
@@ -64,16 +65,17 @@ class OCPIMapping {
  * Get Evses from Site
  * @param {Tenant} tenant
  * @param {Site} site
+ * @param options
  * @return Array of OCPI EVSES
  */
-  static async getEvsesFromSite(tenant, site) {
+  static async getEvsesFromSite(tenant, site, options) {
     // build evses array
     const evses = [];
     const siteAreas = await site.getSiteAreas();
 
     for (const siteArea of siteAreas) {
       // get charging stations from SiteArea
-      evses.push(...await this.getEvsesFromSiteaArea(tenant, siteArea));
+      evses.push(...await this.getEvsesFromSiteaArea(tenant, siteArea, options));
     }
 
     // return evses
@@ -84,7 +86,7 @@ class OCPIMapping {
    * Get All OCPI Locations from given tenant
    * @param {Tenant} tenant 
    */
-  static async getAllLocations(tenant,limit,skip) {
+  static async getAllLocations(tenant,limit,skip, options) {
     // result
     const result = { count: 0, locations: []};
 
@@ -99,7 +101,7 @@ class OCPIMapping {
 
     // convert Sites to Locations
     for (const site of sites.result) {
-      result.locations.push(await this.convertSite2Location(tenant, site));
+      result.locations.push(await this.convertSite2Location(tenant, site, options));
     }
 
     // set count
@@ -116,18 +118,25 @@ class OCPIMapping {
    * @param {*} chargingStation 
    * @return Array of OCPI EVSES
    */
-  static convertCharginStation2MultipleEvses(tenant, chargingStation) {
+  static convertCharginStation2MultipleEvses(tenant, chargingStation, options) {
     // evse_id
     const evse_id = this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`);
 
     // loop through connectors and send one evse per connector
     const evses = chargingStation.getConnectors().map(connector => {
-      return {
+      const evse = {
         "uid": `${chargingStation.getID()}*${connector.connectorId}`,
         "id": this.convert2evseid(`${evse_id}*${connector.connectorId}`),
         "status": this.convertStatus2OCPIStatus(connector.status),
         "connectors": [this.convertConnector2OCPIConnector(chargingStation, connector, evse_id)]
       }
+
+      // check addChargeBoxID flag
+      if (options && options.addChargeBoxID) {
+        evse.chargeBoxId = chargingStation.getID();
+      }
+
+      return evse;
     });
 
     // return all evses
@@ -138,9 +147,10 @@ class OCPIMapping {
    * Convert ChargingStation to Unique EVSE
    * @param {Tenant} tenant
    * @param {ChargingStation} chargingStation 
+   * @param options
    * @return OCPI EVSE
    */
-  static convertChargingStation2UniqueEvse(tenant, chargingStation) {
+  static convertChargingStation2UniqueEvse(tenant, chargingStation, options) {
     // build evse_id
     const evse_id = this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`);
 
@@ -150,13 +160,20 @@ class OCPIMapping {
     })
 
     // build evse
-    return [{
+    const evse = {
       "uid": `${chargingStation.getID()}`,
       // "id": this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`),
       "id": evse_id,
       "status": this.convertStatus2OCPIStatus(this.aggregateConnectorsStatus(connectors)),
       "connectors": connectors
-    }];
+    }
+
+    // check addChargeBoxID flag
+    if (options && options.addChargeBoxID) {
+      evse.chargeBoxId = chargingStation.getID();
+    }
+
+    return [evse];
   }
 
   /**

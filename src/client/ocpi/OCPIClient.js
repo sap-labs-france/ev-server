@@ -1,7 +1,10 @@
 const axios = require('axios');
 const OCPIMapping = require('../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping');
+const ChargingStation = require('../../entity/ChargingStation');
 const Constants = require('../../utils/Constants');
 const Logging = require('../../utils/Logging');
+const _ = require('lodash');
+
 
 class OCPIClient {
   constructor(ocpiEndpoint) {
@@ -255,15 +258,15 @@ class OCPIClient {
   /**
    * Send all EVSEs
    */
-  async sendEVSEStatuses() {
+  async sendEVSEStatuses(processAllEVSEs = true) {
     // result
-    const sendResult = { success: 0, failure: 0, logs: [] };
+    const sendResult = { success: 0, failure: 0, logs: [], chargeBoxIDsInFailure: [], chargeBoxIDsInSuccess: [] };
 
     // read configuration to retrieve country_code and party_id
     const tenant = await this._ocpiEndpoint.getTenant();
     // get ocpi service configuration
     const ocpiSetting = await tenant.getSetting(Constants.COMPONENTS.OCPI_COMPONENT);
-    // TODO: replace this assignment
+    // define eMI3
     tenant._eMI3 = {};
 
     if (ocpiSetting && ocpiSetting.getContent()) {
@@ -271,22 +274,62 @@ class OCPIClient {
       tenant._eMI3.country_id = configuration.country_code;
       tenant._eMI3.party_id = configuration.party_id;
     } else {
-      // TODO: remove this assignment
-      tenant._eMI3.country_id = 'FR';
-      tenant._eMI3.party_id = 'SLF';
+      // log error if failure
+      Logging.logError({
+        tenantID: tenant.getID(),
+        action: 'sendEVSEStatuses',
+        message: `OCPI Configuration not active`,
+        source: 'OCPI Client',
+        module: 'OCPI Client',
+        method: `sendEVSEStatuses`
+      });
+      return;
     }
 
-    const locationsResult = await OCPIMapping.getAllLocations(tenant);
+    // define get option
+    const options = { "addChargeBoxID": true };
 
+    // get timestamp before starting process - to be saved in DB at the end of the process
+    const startDate = new Date();
+
+    // check if all EVSEs should be processed - in case of delta send - process only following EVSEs:
+    //    - EVSEs (ChargingStations) in error from previous push
+    //    - EVSEs (ChargingStations) with status notification from latest pushDate
+    let chargeBoxIDsToProcess = [];
+
+    if (!processAllEVSEs) {
+      // get ChargingStation in Failure from previous run
+      chargeBoxIDsToProcess.push(...this.getChargeBoxIDsInFailure());
+
+      // get ChargingStation with new status notification
+      chargeBoxIDsToProcess.push(...await this.getChargeBoxIDsWithNewStatusNotifications(tenant));
+
+      // remove duplicates
+      chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
+    }
+
+    // get all EVSES from all locations
+    const locationsResult = await OCPIMapping.getAllLocations(tenant, 0, 0, options);
+
+    // loop through locations
     for (const location of locationsResult.locations) {
       if (location && location.evses) {
+        // loop through EVSE
         for (const evse of location.evses) {
+          // check if EVSE should be processed
+          if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evse.chargeBoxId)) {
+            continue;
+          }
+
+          // Process it if not empty
           if (evse && location.id && evse.id) {
             try {
               await this.patchEVSEStatus(location.id, evse.uid, evse.status);
               sendResult.success++;
+              sendResult.chargeBoxIDsInSuccess.push(evse.chargeBoxId);
             } catch (error) {
               sendResult.failure++;
+              sendResult.chargeBoxIDsInFailure.push(evse.chargeBoxId);
               sendResult.logs.push( 
                 `failure updating status for locationID:${location.id} - evseID:${evse.id}:${error.message}`
               );
@@ -311,11 +354,11 @@ class OCPIClient {
     }
 
     // save result in ocpi endpoint
-    this._ocpiEndpoint.setLastPatchJobOn(new Date());
+    this._ocpiEndpoint.setLastPatchJobOn(startDate);
 
     // set result
     if (sendResult) {
-      this._ocpiEndpoint.setLastPatchJobResult(sendResult.success, sendResult.failure);
+      this._ocpiEndpoint.setLastPatchJobResult(sendResult.success, sendResult.failure, _.uniq(sendResult.chargeBoxIDsInFailure), _.uniq(sendResult.chargeBoxIDsInSuccess));
     } else {
       this._ocpiEndpoint.setLastPatchJobResult(0, 0);
     }
@@ -325,6 +368,34 @@ class OCPIClient {
 
     // return result
     return sendResult;
+  }
+
+  // Get ChargeBoxIDs in failure from previous job
+  getChargeBoxIDsInFailure() {
+    if (this._ocpiEndpoint.getLastPatchJobResult() && this._ocpiEndpoint.getLastPatchJobResult().chargeBoxIDsInFailure) {
+      return this._ocpiEndpoint.getLastPatchJobResult().chargeBoxIDsInFailure;
+    } else {
+      return [];
+    }
+  }
+
+  // Get ChargeBoxIds with new status notifications
+  async getChargeBoxIDsWithNewStatusNotifications(tenant) {
+    // get last job
+    const lastPatchJobOn = this._ocpiEndpoint.getLastPatchJobOn()?this._ocpiEndpoint.getLastPatchJobOn():new Date();
+
+    // build params
+    const params = { "dateFrom": lastPatchJobOn };
+
+    // get last status notifications
+    const statusNotificationsResult = await ChargingStation.getStatusNotifications(tenant.getID(), params);
+
+    // loop through notifications
+    if (statusNotificationsResult.count > 0) {
+      return statusNotificationsResult.result.map( statusNotification => { return statusNotification.chargeBoxID} );
+    } else {
+      return [];
+    }
   }
 
 }

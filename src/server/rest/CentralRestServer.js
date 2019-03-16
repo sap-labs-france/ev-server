@@ -162,28 +162,41 @@ class CentralRestServer {
     });
 
     // Listen
-    server.listen(_centralSystemRestConfig.port, _centralSystemRestConfig.host, () => {
-      // Check and send notif
-      setInterval(() => {
-        // Send
-        for (let i = _currentNotifications.length - 1; i >= 0; i--) {
-          // console.log(`****** Notify '${_currentNotifications[i].entity}', Action '${(_currentNotifications[i].action?_currentNotifications[i].action:'')}', Data '${(_currentNotifications[i].data ? JSON.stringify(_currentNotifications[i].data, null, ' ') : '')}'`);
-          // Notify all Web Sockets
-          _socketIO.to(_currentNotifications[i].tenantID).emit(_currentNotifications[i].entity, _currentNotifications[i]);
-          // Remove
-          _currentNotifications.splice(i, 1);
-        }
-      }, _centralSystemRestConfig.webSocketNotificationIntervalSecs * 1000);
+    if (_centralSystemRestConfig.host && _centralSystemRestConfig.port) {
+      server.listen(_centralSystemRestConfig.port, _centralSystemRestConfig.host, this._listen_cb(_centralSystemRestConfig.protocol,
+        _centralSystemRestConfig.host,
+        _centralSystemRestConfig.port));
+    } else if (!_centralSystemRestConfig.host && _centralSystemRestConfig.port) {
+      server.listen(_centralSystemRestConfig.port, this._listen_cb(_centralSystemRestConfig.protocol,
+        '0.0.0.0',
+        _centralSystemRestConfig.port));
+    }  else {
+      console.log(`Fail to start the REST Server, missing required port configuration`) // eslint-disable-line
+    }
+  }
 
-      // Log
-      Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        module: "CentralServerRestServer",
-        method: "start", action: "Startup",
-        message: `REST Server listening on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'`
-      });
-      console.log(`REST Server listening on '${_centralSystemRestConfig.protocol}://${server.address().address}:${server.address().port}'`); // eslint-disable-line
+  // Listen callback 
+  _listen_cb(protocol, address, port) {
+    // Check and send notif
+    setInterval(() => {
+      // Send
+      for (let i = _currentNotifications.length - 1; i >= 0; i--) {
+        // console.log(`****** Notify '${_currentNotifications[i].entity}', Action '${(_currentNotifications[i].action?_currentNotifications[i].action:'')}', Data '${(_currentNotifications[i].data ? JSON.stringify(_currentNotifications[i].data, null, ' ') : '')}'`);
+        // Notify all Web Sockets
+        _socketIO.to(_currentNotifications[i].tenantID).emit(_currentNotifications[i].entity, _currentNotifications[i]);
+        // Remove
+        _currentNotifications.splice(i, 1);
+      }
+    }, _centralSystemRestConfig.webSocketNotificationIntervalSecs * 1000);
+    // Log
+    Logging.logInfo({
+      tenantID: Constants.DEFAULT_TENANT,
+      module: "CentralserverRestserver",
+      method: "start",
+      action: "Startup",
+      message: `REST Server listening on '${protocol}://${address}:${port}'`
     });
+    console.log(`REST Server listening on '${protocol}://${address}:${port}'`); // eslint-disable-line
   }
 
   notifyUser(tenantID, action, data) {
@@ -335,15 +348,15 @@ class CentralRestServer {
     // Add in buffer
     for (let i = 0; i < _currentNotifications.length; i++) {
       // Same Entity and Action?
-      if (_currentNotifications[i].tenantID === notification.tenantID
-        && _currentNotifications[i].entity === notification.entity
-        && _currentNotifications[i].action === notification.action) {
+      if (_currentNotifications[i].tenantID === notification.tenantID &&
+                _currentNotifications[i].entity === notification.entity &&
+                _currentNotifications[i].action === notification.action) {
         // Yes
         dups = true;
         // Data provided: Check Id and Type
         if (_currentNotifications[i].data &&
-          (_currentNotifications[i].data.id !== notification.data.id ||
-            _currentNotifications[i].data.type !== notification.data.type)) {
+                    (_currentNotifications[i].data.id !== notification.data.id ||
+                        _currentNotifications[i].data.type !== notification.data.type)) {
           dups = false;
         } else {
           break;
