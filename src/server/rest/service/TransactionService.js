@@ -451,6 +451,12 @@ class TransactionService {
       if (filteredRequest.ChargeBoxID) {
         filter.chargeBoxID = filteredRequest.ChargeBoxID;
       }
+      if (filteredRequest.SiteAreaID) {
+        filter.siteAreaID = filteredRequest.SiteAreaID;
+      }
+      if (filteredRequest.UserID) {
+        filter.userId = filteredRequest.UserID;
+      }
       if (filteredRequest.ConnectorId) {
         filter.connectorId = filteredRequest.ConnectorId;
       }

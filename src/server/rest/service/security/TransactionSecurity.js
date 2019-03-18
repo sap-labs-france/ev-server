@@ -41,6 +41,10 @@ class TransactionSecurity {
     const filteredRequest = {};
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.ConnectorId = sanitize(request.ConnectorId);
+    filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
+    if (request.UserID) {
+      filteredRequest.UserID = sanitize(request.UserID);
+    }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
