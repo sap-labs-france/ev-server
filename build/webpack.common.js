@@ -1,9 +1,9 @@
-const path = require('path');
 const nodeExternals = require('webpack-node-externals');
 const commonPaths = require('./webpack.common.paths');
 const webpack = require('webpack');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const JavaScriptObfuscator = require('webpack-obfuscator');
+const CopyPlugin = require('copy-webpack-plugin');
 
 const config = {
   entry: commonPaths.srcPath + "/start.js",
@@ -32,7 +32,10 @@ const config = {
     }),
     new JavaScriptObfuscator ({
       rotateUnicodeArray: true
-    }, [])
+    }, []),
+    new CopyPlugin([
+      {from: 'src/assets/', to: 'assets/', ignore: ['**/configs/**']}
+    ])
   ]
 };
 
