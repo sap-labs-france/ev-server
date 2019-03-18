@@ -4,7 +4,7 @@
 			"type": "ocpp",
 			"implementation": "soap",
 			"protocol": "http",
-			"host": "localhost",
+			"host": "server",
 			"port": 8000,
 			"debug": false
 		},
@@ -12,15 +12,15 @@
 			"type": "ocpp",
 			"implementation": "json",
 			"protocol": "ws",
-			"host": "localhost",
+			"host": "server",
 			"port": 8010,
 			"debug": false
 		}
 	],
 	"CentralSystemRestService": {
 		"protocol": "http",
-		"host": "localhost",
-		"port": 8081,
+		"host": "",
+		"port": 81,
 		"userTokenKey": "s3A9js135sdf384hgj384ku38lilckjflskdjf2797boeiBhxQDM1GInRith",
 		"userTokenLifetimeHours": 12,
 		"userDemoTokenLifetimeDays": 365,
@@ -33,17 +33,38 @@
 	"CentralSystemFrontEnd": {
 		"protocol": "http",
 		"host": "localhost",
-		"port": 45000,
+		"port": 3080,
 		"distEnabled": false,
 		"distPath": "../dist/front-end"
 	},
 	"CentralSystemServer": {
 		"protocol": "http",
-		"host": "localhost",
-		"port": 80
+		"host": "server",
+		"port": 81
+	},
+	"OCPIService": {
+		"protocol": "http",
+		"host": "server",
+		"port": 9090,
+		"debug": false,
+		"externalProtocol": "http",
+		"tenantEnabled": [ "slf"],
+		"eMI3id": {
+			"slf": { "country_id": "FR", "party_id": "SLF" }
+		}
+	},
+	"ODataService": {
+		"protocol": "http",
+		"host": "server",
+		"port": 9292,
+		"debug": false,
+		"externalProtocol": "http"
 	},
 	"WSDLEndpoint": {
-		"baseUrl": "http://localhost:8000"
+		"baseUrl": ""
+	},
+	"JsonEndpoint": {
+		"baseUrl": ""
 	},
 	"Storage": {
 		"implementation": "mongodb",
@@ -53,7 +74,7 @@
 		"user": "evse-user",
 		"password": "evse-user-pwd",
 		"database": "evse",
-		"poolSize": 20,
+		"poolSize": 200,
 		"replicaSet": "rs0",
 		"monitorDBChange": true,
 		"debug": false
@@ -63,7 +84,7 @@
 		"admins": ["fabiano.serge@chargeangels.fr"],
 		"smtp" : {
 			"host": "mailserver",
-			"port": 70,
+			"port": 1025,
 			"secure": false,
 			"requireTLS": false,
 			"user": "evse-mail-user",

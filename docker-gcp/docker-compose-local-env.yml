@@ -1,7 +1,8 @@
 version: "3.5"
 networks:
   ev_network:
-    driver: bridge
+    driver: overlay
+    external: false
 volumes:
   mongo-data: {}
 
@@ -49,4 +50,3 @@ services:
     networks:
     - ev_network
     command: bin/maildev --web 80 --smtp 25 --verbose --incoming-user evse-mail-user --incoming-pass evse-mail-pwd
-

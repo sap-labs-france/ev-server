@@ -718,6 +718,22 @@ class Transaction extends AbstractTenantEntity {
     // Save
     return ConsumptionStorage.saveConsumption(this.getTenantID(), consumption);
   }
+
+  static getTransaction(tenantID, id) {
+    return TransactionStorage.getTransaction(tenantID, id);
+  }
+
+  static getTransactions(tenantID, filter, limit) {
+    return TransactionStorage.getTransactions(tenantID, filter, limit)
+  }
+
+  static getActiveTransaction(tenantID, chargeBoxID, connectorId) {
+    return TransactionStorage.getActiveTransaction(tenantID, chargeBoxID, connectorId);    
+  }
+
+  static cleanupRemainingActiveTransactions(tenantID, chargeBoxID, connectorId) {
+    return TransactionStorage.cleanupRemainingActiveTransactions(tenantID, chargeBoxID, connectorId);
+  }
 }
 
 module.exports = Transaction;

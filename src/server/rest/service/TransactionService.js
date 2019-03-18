@@ -153,8 +153,7 @@ class TransactionService {
         }
       }
       // Delete Transaction
-      await chargingStation.deleteTransaction(transaction);
-
+      await transaction.delete();
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,

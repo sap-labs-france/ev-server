@@ -1,27 +1,33 @@
 version: "3.5"
 networks:
   ev_network:
-    driver: bridge
+      external: false
+  traefik:
+      external: true
+
 services:
   server:
-    build:
-      context: ..
-      dockerfile: docker/ev_server-production.Dockerfile
+    image: evserver:1.0
+    deploy:
+     replicas: 1
+     labels:
+       traefik.port: "81"
+       traefik.frontend.rule: "Host:evserver.pwn2learn.io;"
+       traefik.docker.network: "traefik"
     ports:
-    - 81:81
     - 8000:8000
     - 8010:8010
     - 8080:8080
     - 9090:9090
     - 9292:9292
-    external_links:
-    - evse_mongodb_1
-    - evse_mailserver_1
     environment:
       WAIT_HOSTS: ev_mongo:27017
       WAIT_HOSTS_TIMEOUT: 90
       WAIT_AFTER_HOSTS: 3
     networks:
+      traefik:
+        aliases:
+        - traefik
       ev_network:
         aliases:
         - ev_server

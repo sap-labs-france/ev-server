@@ -14,7 +14,6 @@ const Authorizations = require('../authorization/Authorizations');
 const BackendError = require('../exception/BackendError');
 const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
 const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
-const TransactionStorage = require('../storage/mongodb/TransactionStorage');
 const momentDurationFormatSetup = require("moment-duration-format");
 momentDurationFormatSetup(moment);
 const _configChargingStation = Configuration.getChargingStationConfig();
@@ -26,12 +25,6 @@ class ChargingStation extends AbstractTenantEntity {
     Database.updateChargingStation(chargingStation, this._model);
   }
 
-  /**
-   *
-   * @param tenantID
-   * @param id
-   * @returns {Promise<ChargingStation>}
-   */
   static getChargingStation(tenantID, id) {
     return ChargingStationStorage.getChargingStation(tenantID, id);
   }
@@ -453,7 +446,7 @@ class ChargingStation extends AbstractTenantEntity {
       }
     }
     // Set the status
-    connectors[statusNotification.connectorId - 1].connectorId = statusNotification.connectorId;
+    connectors[statusNotification.connectorId - 1].connectorId = Utils.convertToInt(statusNotification.connectorId);
     // Error Code?
     connectors[statusNotification.connectorId - 1].status = statusNotification.status;
     connectors[statusNotification.connectorId - 1].errorCode = statusNotification.errorCode;
@@ -487,7 +480,7 @@ class ChargingStation extends AbstractTenantEntity {
       connectors[statusNotification.connectorId - 1].currentStateOfCharge = 0;
       connectors[statusNotification.connectorId - 1].activeTransactionID = 0;
       // Check transaction
-      const activeTransaction = await TransactionStorage.getActiveTransaction(this.getTenantID(), this.getID(), statusNotification.connectorId);
+      const activeTransaction = await Transaction.getActiveTransaction(this.getTenantID(), this.getID(), statusNotification.connectorId);
       // Found?
       if (activeTransaction) {
         // Has consumption?
@@ -497,10 +490,10 @@ class ChargingStation extends AbstractTenantEntity {
             tenantID: this.getTenantID(),
             source: this.getID(), module: 'ChargingStation', method: 'updateConnectorStatus',
             action: 'StartTransaction', actionOnUser: activeTransaction.getUserID(),
-            message: `Active Transaction ID '${activeTransaction.getID()}' has been deleted on Connector '${activeTransaction.getConnectorId()}'`
+            message: `Pending Transaction ID '${activeTransaction.getID()}' has been deleted on Connector '${activeTransaction.getConnectorId()}'`
           });
           // Delete
-          await TransactionStorage.deleteTransaction(activeTransaction.getTenantID(), activeTransaction);
+          await activeTransaction.delete();
         } else {
           // Has consumption: close it!
           Logging.logWarning({
@@ -514,6 +507,18 @@ class ChargingStation extends AbstractTenantEntity {
             activeTransaction.getLastMeterValue().value + 1, new Date());
           // Save Transaction
           await activeTransaction.save();
+        }
+        // Clean up connector
+        const otherConnectorsFreed = await this.freeConnector(activeTransaction.getConnectorId());
+        if (otherConnectorsFreed) {
+          // Save all other connectors
+          this.getConnectors().forEach(async (connector) => {
+            // Do not update Transaction's connector
+            if (connector.connectorId !== activeTransaction.getConnectorId()) {
+              // Save
+              await ChargingStationStorage.saveChargingStationConnector(this.getTenantID(), this.getModel(), connector.connectorId);
+            }
+          });
         }
       }
     }
@@ -961,7 +966,7 @@ class ChargingStation extends AbstractTenantEntity {
       const newMeterValue = {};
       // Set the ID
       newMeterValue.chargeBoxID = newMeterValues.chargeBoxID;
-      newMeterValue.connectorId = meterValues.connectorId;
+      newMeterValue.connectorId = Utils.convertToInt(meterValues.connectorId);
       if (meterValues.transactionId) {
         newMeterValue.transactionId = meterValues.transactionId;
       }
@@ -1035,7 +1040,7 @@ class ChargingStation extends AbstractTenantEntity {
       // Process values
     } else {
       // Get the transaction
-      const transaction = await TransactionStorage.getTransaction(this.getTenantID(), meterValues.transactionId);
+      const transaction = await Transaction.getTransaction(this.getTenantID(), meterValues.transactionId);
       // Handle Meter Values
       await transaction.updateWithMeterValues(newMeterValues);
       // Save Transaction
@@ -1072,11 +1077,6 @@ class ChargingStation extends AbstractTenantEntity {
 
   isDeleted() {
     return this._model.deleted;
-  }
-
-  deleteTransaction(transaction) {
-    // Yes: save it
-    return TransactionStorage.deleteTransaction(this.getTenantID(), transaction);
   }
 
   async delete() {
@@ -1197,11 +1197,6 @@ class ChargingStation extends AbstractTenantEntity {
     return company;
   }
 
-  getTransaction(transactionId) {
-    // Get the transaction first (to get the connector id)
-    return TransactionStorage.getTransaction(this.getTenantID(), transactionId);
-  }
-
   async handleStartTransaction(startTransaction) {
     let user;
     // Check the timestamp
@@ -1260,9 +1255,14 @@ class ChargingStation extends AbstractTenantEntity {
     // Start Transaction
     await transaction.startTransaction(user);
     // Cleanup old ongoing transactions
-    await TransactionStorage.cleanupRemainingActiveTransactions(this.getTenantID(), this.getID(), transaction.getConnectorId());
+    await Transaction.cleanupRemainingActiveTransactions(this.getTenantID(), this.getID(), transaction.getConnectorId());
     // Save it
     transaction = await transaction.save();
+    // Lock the other connectors?
+    if (!this.canChargeInParallel()) {
+      // Yes
+      this.lockAllConnectors();
+    }
     // Clean up connector info
     // Get the connector
     const connector = this.getConnector(transaction.getConnectorId());
@@ -1319,6 +1319,22 @@ class ChargingStation extends AbstractTenantEntity {
     return transaction;
   }
 
+  lockAllConnectors() {
+    this.getConnectors().forEach(async (connector) => {
+      // Check
+      if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+        // Check OCPP Version
+        if (this.getOcppVersion() === Constants.OCPP_VERSION_15) {
+          // Set OCPP 1.5 Occupied
+          connector.status = Constants.CONN_STATUS_OCCUPIED;
+        } else {
+          // Set OCPP 1.6 Unavailable
+          connector.status = Constants.CONN_STATUS_UNAVAILABLE;
+        }
+      }
+    });
+  }
+
   _getStoppingTransactionTagId(stopTransactionData, transaction) {
     // Stopped Remotely?
     if (transaction.isRemotelyStopped()) {
@@ -1341,6 +1357,7 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   async freeConnector(connectorId) {
+    let otherConnectorsFreed = false;
     // Get the connector
     const connector = this.getConnector(connectorId);
     // Cleanup
@@ -1348,6 +1365,22 @@ class ChargingStation extends AbstractTenantEntity {
     connector.totalConsumption = 0;
     connector.activeTransactionID = 0;
     connector.currentStateOfCharge = 0;
+    // Check if Charger can charge in //
+    if (!this.canChargeInParallel()) {
+      // Set all the other connectors to Available
+      this.getConnectors().forEach(async (connector) => {
+        // Only other Occupied connectors
+        if ((connector.status === Constants.CONN_STATUS_OCCUPIED ||
+             connector.status === Constants.CONN_STATUS_UNAVAILABLE) &&
+            connector.connectorId !== connectorId) {
+          // Set connector Available again
+          connector.status = Constants.CONN_STATUS_AVAILABLE;
+          // Updated other connectors
+          otherConnectorsFreed = true;
+        }
+      });
+    }
+    return otherConnectorsFreed;
   }
 
   async handleStopTransaction(stopTransactionData, isSoftStop = false) {
@@ -1355,7 +1388,7 @@ class ChargingStation extends AbstractTenantEntity {
     // Set the charger ID
     stopTransactionData.chargeBoxID = this.getID();
     // Get the transaction first (to get the connector id)
-    let transaction = await this.getTransaction(stopTransactionData.transactionId);
+    let transaction = await Transaction.getTransaction(this.getTenantID(), stopTransactionData.transactionId);
     // Found?
     if (!transaction) {
       // Wrong Transaction ID!
@@ -1705,15 +1738,14 @@ class ChargingStation extends AbstractTenantEntity {
 
   async hasAtLeastOneTransaction() {
     // Get the consumption
-    const transactions = await TransactionStorage.getTransactions(this.getTenantID(),
-      {'chargeBoxID': this.getID()}, 1);
+    const transactions = await Transaction.getTransactions(this.getTenantID(), {'chargeBoxID': this.getID()}, 1);
     // Return
     return (transactions.count > 0);
   }
 
   async getTransactions(connectorId, startDateTime, endDateTime, withChargeBoxes = false) {
     // Get the consumption
-    const transactions = await TransactionStorage.getTransactions(this.getTenantID(),
+    const transactions = await Transaction.getTransactions(this.getTenantID(),
       {
         'chargeBoxID': this.getID(), 'connectorId': connectorId, 'startDateTime': startDateTime,
         'endDateTime': endDateTime, 'withChargeBoxes': withChargeBoxes

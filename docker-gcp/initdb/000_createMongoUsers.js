@@ -13,7 +13,8 @@ db.createUser(
       'readWriteAnyDatabase',
       'userAdminAnyDatabase',
       'dbAdminAnyDatabase'
-    ]
+    ],
+    passwordDigestor: "server"
   }
 );
 
@@ -24,6 +25,7 @@ db.createUser(
     pwd: 'evse-user-pwd',
     roles: [
       'readWrite'
-    ]
+    ],
+    passwordDigestor: "server"
   }
 );
