@@ -7,7 +7,7 @@ const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const sanitize = require('mongo-sanitize');
+const sanitize = require('express-sanitizer');
 const bodyParser = require("body-parser");
 const CFLog = require('cf-nodejs-logging-support');
 require('body-parser-xml')(bodyParser);
@@ -45,6 +45,9 @@ class CentralRestServer {
       limit: '2mb'
     }));
     express.use(bodyParser.xml());
+
+    // Mount express-sanitizer middleware
+    express.use(sanitize())
 
     // Use
     express.use(locale(Configuration.getLocalesConfig().supported));
@@ -106,7 +109,7 @@ class CentralRestServer {
         // Filter to not handle other server requests
         if (!res.headersSent) {
           // Not already processed: serve the file
-          res.sendFile(path.join(__dirname, centralSystemConfig.distPath, sanitize(req.params[0])));
+          res.sendFile(path.join(__dirname, centralSystemConfig.distPath, req.sanitize(req.params[0])));
         }
       });
       // Default, serve the index.html

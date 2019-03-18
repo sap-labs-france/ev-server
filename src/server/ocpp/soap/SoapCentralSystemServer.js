@@ -17,7 +17,7 @@ const centralSystemService16 = require('./services/SoapCentralSystemService16');
 const chargePointService12Wsdl = require('../../../client/soap/wsdl/OCPPChargePointService12.wsdl');
 const chargePointService15Wsdl = require('../../../client/soap/wsdl/OCPPChargePointService15.wsdl');
 const chargePointService16Wsdl = require('../../../client/soap/wsdl/OCPPChargePointService16.wsdl');
-const sanitize = require('mongo-sanitize');
+const sanitize = require('express-sanitizer');
 const bodyParser = require('body-parser');
 require('body-parser-xml')(bodyParser);
 require('source-map-support').install();
@@ -26,12 +26,17 @@ class SoapCentralSystemServer extends CentralSystemServer {
   constructor(centralSystemConfig, chargingStationConfig) {
     // Call parent
     super(centralSystemConfig, chargingStationConfig);
+
     // Body parser
     express.use(bodyParser.json());
     express.use(bodyParser.urlencoded({
       extended: false
     }));
     express.use(bodyParser.xml());
+
+    // Mount express-sanitizer middleware
+    express.use(sanitize())
+
     // Enable debug?
     if (centralSystemConfig.debug) {
       // Log
@@ -78,7 +83,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
           break;
         // Unknown
         default:
-          res.status(500).send(`${sanitize(req.params["0"])} does not exist!`);
+          res.status(500).send(`${req.sanitize(req.params["0"])} does not exist!`);
       }
     });
   }
