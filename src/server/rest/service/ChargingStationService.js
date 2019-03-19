@@ -367,6 +367,16 @@ class ChargingStationService {
           'ChargingStationService', 'handleDeleteChargingStation',
           req.user);
       }
+      // Check no active transaction
+      if (chargingStation.getConnectors().findIndex((connector) => connector.activeTransactionID > 0) >= 0) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_DELETE,
+          Constants.ENTITY_CHARGING_STATION,
+          chargingStation.getID(), 570,
+          'ChargingStationService', 'handleDeleteChargingStation',
+          req.user);
+      }
       // Remove Site Area
       chargingStation.setSiteArea(null);
       // Delete
