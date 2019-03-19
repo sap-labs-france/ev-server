@@ -61,10 +61,10 @@
 		"externalProtocol": "http"
 	},
 	"WSDLEndpoint": {
-		"baseUrl": ""
+		"baseUrl": "http://server:8000"
 	},
 	"JsonEndpoint": {
-		"baseUrl": ""
+		"baseUrl": "http://server:8000"
 	},
 	"Storage": {
 		"implementation": "mongodb",
