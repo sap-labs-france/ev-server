@@ -1,7 +1,7 @@
 {
 	"name": "ev-server",
 	"engines": {
-		"node": "8.x.x"
+		"node": "10.x.x"
 	},
 	"version": "1.8.0",
 	"description": "Backend for Electric Vehicule charging station",
