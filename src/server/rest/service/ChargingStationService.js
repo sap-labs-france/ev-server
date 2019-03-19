@@ -832,12 +832,14 @@ class ChargingStationService {
   }
 
   static convertToCSV(chargingStations) {
-    let csv = 'id,createdOn,connectors,siteAreaID,chargePointSerialNumber,chargePointModel,chargeBoxSerialNumber,chargePointVendor,firmwareVersion,endpoint,ocppVersion,ocppProtocol,lastHeartBeat,deleted,inactive,lastReboot,numberOfConnectedPhase,maximumPower,cannotChargeInParallel,powerLimitUnit\r\n';
+    let csv = 'id,createdOn,connectors,siteAreaID,latitude,longitude,chargePointSerialNumber,chargePointModel,chargeBoxSerialNumber,chargePointVendor,firmwareVersion,endpoint,ocppVersion,ocppProtocol,lastHeartBeat,deleted,inactive,lastReboot,numberOfConnectedPhase,maximumPower,cannotChargeInParallel,powerLimitUnit\r\n';
     for (const chargingStation of chargingStations) {
       csv += `${chargingStation.id},`;
       csv += `${chargingStation.createdOn},`;
       csv += `${chargingStation.connectors ? chargingStation.connectors.length : ''},`;
       csv += `${chargingStation.siteAreaID},`;
+      csv += `${chargingStation.latitude ? chargingStation.latitude : ''},`;
+      csv += `${chargingStation.longitude ? chargingStation.longitude : ''},`;
       csv += `${chargingStation.chargePointSerialNumber},`;
       csv += `${chargingStation.chargePointModel},`;
       csv += `${chargingStation.chargeBoxSerialNumber},`;
