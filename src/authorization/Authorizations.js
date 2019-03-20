@@ -9,6 +9,8 @@ const AppError = require('../exception/AppError');
 const AppAuthError = require('../exception/AppAuthError');
 const Utils = require('../utils/Utils');
 const User = require('../entity/User');
+const Tenant = require('../entity/Tenant');
+const Transaction = require('../entity/Transaction');
 const Company = require('../entity/Company');
 const AuthorizationsDefinition = require('./AuthorizationsDefinition');
 require('source-map-support').install();
@@ -190,6 +192,91 @@ class Authorizations {
       );
     }
     return user;
+  }
+
+  static async getConnectorActionAuthorizations(tenantID, user, chargingStation, connector, siteArea, site) {
+    const tenant = await Tenant.getTenant(tenantID);
+    const isOrganizationComponentActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+    if (isOrganizationComponentActive && (!siteArea || !site)) {
+      throw new AppError(
+        chargingStation.getID(),
+        `Site area and site not provided for Charging Station '${chargingStation.getID()}'!`, 500,
+        "Authorizations", "getConnectorActionAuthorizations",
+        user.getModel()
+      );
+    }
+    // set default value
+    let isUserAssignedToSite = false;
+    let accessControlEnable = true;
+    let userAllowedToStopAllTransactions = false;
+    let isSameUserAsTransaction = false;
+    if (isOrganizationComponentActive) {
+      // Acces Control Enabled?
+      accessControlEnable = siteArea.isAccessControlEnabled();
+      // Allow to stop all transactions
+      userAllowedToStopAllTransactions = site.isAllowAllUsersToStopTransactionsEnabled(); 
+      // Check if User belongs to the charging station Site
+      const foundUser = await site.getUser(user.getID());
+      isUserAssignedToSite = (foundUser ? true : false);
+    } 
+    if (connector.activeTransactionID > 0) {
+      // Get Transaction
+      const transaction = await Transaction.getTransaction(tenantID, connector.activeTransactionID);
+      if (!transaction) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `Transaction ID '${connector.activeTransactionID}' does not exist`,
+          560, 'Authorizations', 'getConnectorActionAuthorizations');
+      }
+      // Check if transaction user is the same as request user 
+      isSameUserAsTransaction = transaction.getUserID() === user.getID();
+    }
+    // Add user authorisations
+    user.setAuthorisations(await Authorizations.buildAuthorizations(user));
+    // Prepare default authorizations
+    const result = {
+      'isStartAuthorized': Authorizations.canStartTransaction(user, chargingStation),
+      'isStopAuthorized': Authorizations.canStopTransaction(user, chargingStation),
+      'isTransactionDisplayAuthorized': false};
+    if (user.getRole() === Constants.ROLE_ADMIN) {
+      // An admin has all authorizations except for site where he is not assigned and in case site management is not active
+      const defaultAuthorization = ( isOrganizationComponentActive && isUserAssignedToSite ) || ( !isOrganizationComponentActive );
+      result.isStartAuthorized = result.isStartAuthorized && defaultAuthorization;
+      result.isStopAuthorized = result.isStopAuthorized && defaultAuthorization;
+      result.isTransactionDisplayAuthorized = defaultAuthorization;
+    }
+    if (user.getRole() === Constants.ROLE_DEMO) {
+      // Demon user can never start nor stop transaction and can display details only for assigned site
+      const defaultAuthorization = ( isOrganizationComponentActive && isUserAssignedToSite ) || ( !isOrganizationComponentActive );
+      result.isStartAuthorized = false;
+      result.isStopAuthorized = false;
+      result.isTransactionDisplayAuthorized = defaultAuthorization;
+    }
+    if (user.getRole() === Constants.ROLE_BASIC) {
+      // Basic user can start a transaction if he is assigned to the site or site management is not active
+      result.isStartAuthorized =  result.isStartAuthorized && 
+        ( isOrganizationComponentActive && isUserAssignedToSite ) || ( !isOrganizationComponentActive );
+      // Basic user can start a transaction if he is assigned to the site or site management is not active
+      result.isStopAuthorized = result.isStopAuthorized &&
+        // Site Management is active  and user assigned to site and anyone allowed to stop or same user as transaction
+        // or access control disable
+        ( isOrganizationComponentActive && isUserAssignedToSite && 
+          (userAllowedToStopAllTransactions || isSameUserAsTransaction || !accessControlEnable) ) || 
+        // Site management inactive and badge access control and user identical to transaction
+        ( !isOrganizationComponentActive && accessControlEnable && isSameUserAsTransaction) || 
+        // Site management inactive and no badge access control
+        ( !isOrganizationComponentActive && !accessControlEnable);
+      result.isTransactionDisplayAuthorized =
+      // Site Management is active  and user assigned to site and same user as transaction
+      // or access control disable
+      ( isOrganizationComponentActive && isUserAssignedToSite && 
+        (isSameUserAsTransaction || !accessControlEnable) ) || 
+      // Site management inactive and badge access control and user identical to transaction
+      ( !isOrganizationComponentActive && accessControlEnable && isSameUserAsTransaction) || 
+      // Site management inactive and no badge access control
+      ( !isOrganizationComponentActive && !accessControlEnable);;
+    }
+    return result;
   }
 
   static async checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, tagID, alternateTagID) {
