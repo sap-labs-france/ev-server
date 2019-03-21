@@ -1,7 +1,7 @@
 {
 	"name": "ev-server",
 	"engines": {
-		"node": "8.x.x"
+		"node": "10.x.x"
 	},
 	"version": "1.8.0",
 	"description": "Backend for Electric Vehicule charging station",
@@ -79,11 +79,11 @@
 		"copy-webpack-plugin": "^4.5.2",
 		"cross-env": "^5.2.0",
 		"easysoap": "^2.0.1",
-		"eslint": "^5.9.0",
+		"eslint": "^5.15.3",
 		"faker": "^4.1.0",
 		"json-loader": "^0.5.7",
 		"json-schema-faker": "^0.5.0-rc16",
-		"maildev": "^1.0.0-rc3",
+		"maildev": "^1.0.0",
 		"mocha": "^5.2.0",
 		"mocha-parallel-tests": "^2.0.4",
 		"mochawesome": "^3.0.3",

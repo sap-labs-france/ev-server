@@ -367,6 +367,16 @@ class ChargingStationService {
           'ChargingStationService', 'handleDeleteChargingStation',
           req.user);
       }
+      // Check no active transaction
+      if (chargingStation.getConnectors().findIndex((connector) => connector.activeTransactionID > 0) >= 0) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_DELETE,
+          Constants.ENTITY_CHARGING_STATION,
+          chargingStation.getID(), 570,
+          'ChargingStationService', 'handleDeleteChargingStation',
+          req.user);
+      }
       // Remove Site Area
       chargingStation.setSiteArea(null);
       // Delete
@@ -832,12 +842,14 @@ class ChargingStationService {
   }
 
   static convertToCSV(chargingStations) {
-    let csv = 'id,createdOn,connectors,siteAreaID,chargePointSerialNumber,chargePointModel,chargeBoxSerialNumber,chargePointVendor,firmwareVersion,endpoint,ocppVersion,ocppProtocol,lastHeartBeat,deleted,inactive,lastReboot,numberOfConnectedPhase,maximumPower,cannotChargeInParallel,powerLimitUnit\r\n';
+    let csv = 'id,createdOn,connectors,siteAreaID,latitude,longitude,chargePointSerialNumber,chargePointModel,chargeBoxSerialNumber,chargePointVendor,firmwareVersion,endpoint,ocppVersion,ocppProtocol,lastHeartBeat,deleted,inactive,lastReboot,numberOfConnectedPhase,maximumPower,cannotChargeInParallel,powerLimitUnit\r\n';
     for (const chargingStation of chargingStations) {
       csv += `${chargingStation.id},`;
       csv += `${chargingStation.createdOn},`;
       csv += `${chargingStation.connectors ? chargingStation.connectors.length : ''},`;
       csv += `${chargingStation.siteAreaID},`;
+      csv += `${chargingStation.latitude ? chargingStation.latitude : ''},`;
+      csv += `${chargingStation.longitude ? chargingStation.longitude : ''},`;
       csv += `${chargingStation.chargePointSerialNumber},`;
       csv += `${chargingStation.chargePointModel},`;
       csv += `${chargingStation.chargeBoxSerialNumber},`;
