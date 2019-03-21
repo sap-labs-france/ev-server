@@ -369,13 +369,11 @@ class ChargingStationService {
       }
       // Check no active transaction
       if (chargingStation.getConnectors().findIndex((connector) => connector.activeTransactionID > 0) >= 0) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_DELETE,
-          Constants.ENTITY_CHARGING_STATION,
-          `${chargingStation.getID()} with active transaction(s)`, 570,
-          'ChargingStationService', 'handleDeleteChargingStation',
-          req.user);
+        // Can' t be deleted
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `Charging station '${chargingStation.getID()}' can't be deleted due to existing active transactions`, 570,
+          "ChargingStationService", "handleDeleteChargingStation", req.user);
       }
       // Remove Site Area
       chargingStation.setSiteArea(null);
