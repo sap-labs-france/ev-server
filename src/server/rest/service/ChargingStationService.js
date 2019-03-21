@@ -373,7 +373,7 @@ class ChargingStationService {
         throw new AppAuthError(
           Constants.ACTION_DELETE,
           Constants.ENTITY_CHARGING_STATION,
-          chargingStation.getID(), 570,
+          `${chargingStation.getID()} with active transaction(s)`, 570,
           'ChargingStationService', 'handleDeleteChargingStation',
           req.user);
       }

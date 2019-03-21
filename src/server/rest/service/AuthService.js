@@ -60,6 +60,7 @@ class AuthService {
           `The Action is mandatory`,
           550, 'AuthService', 'handleIsAuthorized');
       }
+      let chargingStation = null;
       // Action
       switch (filteredRequest.Action) {
         // Action on charger
@@ -72,7 +73,7 @@ class AuthService {
               550, 'AuthService', 'handleIsAuthorized');
           }
           // Get the Charging station
-          const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
+          chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
           // Found?
           if (!chargingStation) {
             // Not Found!
@@ -99,6 +100,37 @@ class AuthService {
             result.IsAuthorized = await AuthService.isStopTransactionAuthorized(filteredRequest, chargingStation, filteredRequest.Arg2, req.user);
           }
           break;
+        // Action on conenctors of a charger
+        case 'ConnectorsAction':
+          // Arg1 contains the charger ID
+          // Check
+          if (!filteredRequest.Arg1) {
+            throw new AppError(
+              Constants.CENTRAL_SERVER,
+              `The Charging Station ID is mandatory`,
+              550, 'AuthService', 'handleIsAuthorized');
+          }
+          // Get the Charging station
+          chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
+          // Found?
+          if (!chargingStation) {
+            // Not Found!
+            throw new AppError(
+              Constants.CENTRAL_SERVER,
+              `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
+              550, 'AuthService', 'handleIsAuthorized');
+          }
+          const user = await User.getUser(req.user.tenantID, req.user.id);
+          // Found?
+          if (!user) {
+            // Not Found!
+            throw new AppError(
+              Constants.CENTRAL_SERVER,
+              `User with ID '${filteredRequest.Arg1}' does not exist`,
+              550, 'AuthService', 'handleIsAuthorized');
+          }
+          result = await AuthService.checkConnectorsActionAuthorizations(req.user.tenantID, user, chargingStation);
+          break;
       }
       // Return the result
       res.json(result);
@@ -107,6 +139,59 @@ class AuthService {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, Constants.DEFAULT_TENANT);
     }
+  }
+
+  static async checkConnectorsActionAuthorizations(tenantID, user, chargingStation) {
+    const results = [];
+    // check if organization component is active
+    const tenant = await Tenant.getTenant(tenantID);
+    const isOrganizationComponentActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+    let siteArea;
+    let site;
+    if (isOrganizationComponentActive) {
+      // Get charging station site 
+      // Site Area -----------------------------------------------
+      siteArea = await chargingStation.getSiteArea();
+      try {
+        // Site is mandatory
+        if (!siteArea) {
+          // Reject Site Not Found
+          throw new AppError(
+            chargingStation.getID(),
+            `Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`, 525,
+            "AuthService", "checkConnectorsActionAuthorizations");
+        }
+        
+        // Site -----------------------------------------------------
+        site = await siteArea.getSite(null, true);
+        if (!site) {
+          // Reject Site Not Found
+          throw new AppError(
+            chargingStation.getID(),
+            `Site Area '${siteArea.getName()}' is not assigned to a Site!`, 525,
+            "AuthService", "checkConnectorsActionAuthorizations",
+            user.getModel());
+        }
+      } catch (error) {
+        // Problem with site assignment so do not allow any action
+        for (let index = 0; index < chargingStation.getConnectors().length; index++) {
+          results.push(
+            {
+              'isStartAuthorized': false,
+              'isStopAuthorized': false,
+              'isTransactionDisplayAuthorized': false
+            }
+          );
+        }
+        return results;
+      }
+    }
+    // check authorization for each connectors
+    for (let index = 0; index < chargingStation.getConnectors().length; index++) {
+      const connector = chargingStation.getConnector(index+1);
+      results.push(await Authorizations.getConnectorActionAuthorizations(tenantID, user, chargingStation, connector, siteArea, site));
+    }
+    return results;
   }
 
   static async isStopTransactionAuthorized(filteredRequest, chargingStation, transactionId, user) {
