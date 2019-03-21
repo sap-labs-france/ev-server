@@ -277,7 +277,7 @@ class OCPIClient {
       // log error if failure
       Logging.logError({
         tenantID: tenant.getID(),
-        action: 'sendEVSEStatuses',
+        action: 'SendEVSEStatuses',
         message: `OCPI Configuration not active`,
         source: 'OCPI Client',
         module: 'OCPI Client',
@@ -344,7 +344,7 @@ class OCPIClient {
       // log error if failure
       Logging.logError({
         tenantID: tenant.getID(),
-        action: 'sendEVSEStatuses',
+        action: 'SendEVSEStatuses',
         message: `Patching locations log details`,
         detailedMessages: sendResult.logs,
         source: 'OCPI Client',
