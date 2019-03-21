@@ -37,6 +37,9 @@ class ODataBootNotifications extends AbstractODataEntities {
       bootNotification.bootDate = this.buildDateObject(bootNotification.timestamp, req);
     }
 
+    // add count property - this is necessary for SAC as it needs at least one numeric measure
+    bootNotification.count = 1;
+
     return bootNotification;
   }
 }

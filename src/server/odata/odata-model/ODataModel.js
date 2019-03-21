@@ -110,7 +110,8 @@ module.exports = {
       "ocppVersion": { "type": "Edm.String" },
       "endpoint": { "type": "Edm.String" },
       "timestamp":  { "type": "Edm.DateTimeOffset" },
-      "bootDate": { "type": "eMobility.ComplexDate"}
+      "bootDate": { "type": "eMobility.ComplexDate"},
+      "count": { "type": "Edm.Int32" }
     },
     "StatusNotification": {
       "uniqueID": { "type": "Edm.String", key: true },
@@ -124,7 +125,8 @@ module.exports = {
       "errorCode": { "type": "Edm.String" },
       "info": { "type": "Edm.String" },
       "vendorId": { "type": "Edm.String" },
-      "vendorErrorCode":{ "type": "Edm.String" }
+      "vendorErrorCode":{ "type": "Edm.String" },
+      "count": { "type": "Edm.Int32" }
     }
   },
   complexTypes: {
