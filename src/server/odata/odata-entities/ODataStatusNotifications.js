@@ -37,6 +37,9 @@ class ODataStatusNotifications extends AbstractODataEntities {
       statusNotification.notificationDate = this.buildDateObject(statusNotification.timestamp, req);
     }
 
+    // add count property - this is necessary for SAC as it needs at least one numeric measure
+    statusNotification.count = 1;
+
     return statusNotification;
   }
 }
