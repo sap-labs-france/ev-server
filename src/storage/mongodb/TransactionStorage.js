@@ -416,21 +416,48 @@ class TransactionStorage {
       $unwind: {"path": "$stop.user", "preserveNullAndEmptyArrays": true}
     });
 
-    const facets = {
+    let facets = {
       "$facet":
         {
-          "noConsumption":
-            [{
-              $match: {
-                $and: [
-                  {"stop": {$exists: true}}, {"stop.totalConsumption": {$lte: 0}}
-                ]
-              }
-            },
-            { $addFields: {"errorCode": "noConsumption"} }
+          "no_consumption":
+            [
+              {
+                $match: {
+                  $and: [
+                    {"stop": {$exists: true}},
+                    {"stop.totalConsumption": {$lte: 0}}
+                  ]
+                }
+              },
+              {$addFields: {"errorCode": "no_consumption"}}
+            ],
+          "average_consumption_greater_than_connector_capacity":
+            [
+              {$match: {"stop": {$exists: true}}},
+              {$addFields: {activeDuration: {$subtract: ["$stop.totalDurationSecs", "$stop.totalInactivitySecs"]}}},
+              {$match: {"activeDuration": {$gt: 0}}},
+              {
+                $lookup: {
+                  "from": DatabaseUtils.getCollectionName(tenantID, "chargingstations"),
+                  "localField": "chargeBoxID",
+                  "foreignField": "_id",
+                  "as": "chargeBox"
+                }
+              },
+              {$unwind: {"path": "$chargeBox", "preserveNullAndEmptyArrays": true}},
+              {$addFields: {connector: {$arrayElemAt: ["$chargeBox.connectors", {$subtract: ["$connectorId", 1]}]}}},
+              {$addFields: {averagePower: {$multiply: [{$divide: ["$stop.totalConsumption", "$activeDuration"]}, 3600]}}},
+              {$addFields: {impossiblePower: {$lte: [{$subtract: ["$connector.power", "$averagePower"]}, 0]}}},
+              {$match: {"impossiblePower": {$eq: true}}},
+              {$addFields: {"errorCode": "average_consumption_greater_than_connector_capacity"}}
             ]
         }
     };
+    if (params.errorType) {
+      const newFacet = {};
+      newFacet[params.errorType] = facets.$facet[params.errorType];
+      facets.$facet = newFacet;
+    }
 
     // merge in each facet the join for sitearea and siteareaid
     const facetNames = [];
