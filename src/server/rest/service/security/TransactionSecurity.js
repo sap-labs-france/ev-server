@@ -77,6 +77,7 @@ class TransactionSecurity {
     filteredRequest.EndDateTime = sanitize(request.EndDateTime);
     filteredRequest.SiteID = sanitize(request.SiteID);
     filteredRequest.Search = sanitize(request.Search);
+    filteredRequest.ErrorType = sanitize(request.ErrorType);
     if (request.UserID) {
       filteredRequest.UserID = sanitize(request.UserID);
     }
