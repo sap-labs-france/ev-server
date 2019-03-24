@@ -1,5 +1,7 @@
 FROM node:lts-alpine as builder
 
+ARG build
+
 WORKDIR /usr/builder
 
 COPY package.json ./package.json
@@ -16,7 +18,7 @@ COPY build ./build
 COPY *.json ./
 COPY docker/config.json ./src/assets/config.json
 COPY webpack.config.js ./
-RUN npm run build:prod
+RUN npm run build:${build}
 
 FROM node:lts-alpine
 
