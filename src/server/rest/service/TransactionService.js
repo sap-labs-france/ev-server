@@ -618,6 +618,9 @@ class TransactionService {
       if (filteredRequest.EndDateTime) {
         filter.endDateTime = filteredRequest.EndDateTime;
       }
+      if (filteredRequest.ErrorType) {
+        filter.errorType = filteredRequest.ErrorType;
+      }
       if (filteredRequest.UserID) {
         filter.userId = filteredRequest.UserID;
       }
