@@ -504,7 +504,8 @@ class UserStorage {
         "lastChangedBy": 1,
         "eulaAcceptedOn": 1,
         "eulaAcceptedVersion": 1,
-        "tags": 1
+        "tags": 1,
+        "plateID": 1
       }
     });
     // Sort
