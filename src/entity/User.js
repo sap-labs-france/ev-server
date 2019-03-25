@@ -130,6 +130,14 @@ class User extends AbstractTenantEntity {
     this._model.tagIDs = tagIDs;
   }
 
+  getPlateID() {
+    return this._model.plateID;
+  }
+
+  setPlateID(plateID) {
+    this._model.plateID = plateID;
+  }
+
   addTagID(tagID) {
     if (!this._model.tagIDs) {
       this._model.tagIDs = [];
@@ -397,6 +405,12 @@ class User extends AbstractTenantEntity {
         }
       }
     }
+    if (filteredRequest.plateID && !User.isPlateIDValid(filteredRequest.plateID)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `The User Plate ${filteredRequest.plateID} is not valid`, 500,
+        'Users', 'checkIfUserValid');
+    }
   }
 
   // Check email
@@ -415,6 +429,10 @@ class User extends AbstractTenantEntity {
 
   static isINumberValid(iNumber) {
     return /^[A-Z]{1}[0-9]{6}$/.test(iNumber);
+  }
+
+  static isPlateIDValid(plateID) {
+    return /^[A-Z0-9-]*$/.test(plateID);
   }
 
   static hashPasswordBcrypt(password) {

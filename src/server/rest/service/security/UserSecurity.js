@@ -113,6 +113,9 @@ class UserSecurity {
       if (request.hasOwnProperty("tagIDs")) {
         filteredRequest.tagIDs = sanitize(request.tagIDs);
       }
+      if (request.hasOwnProperty("plateID")) {
+        filteredRequest.plateID = sanitize(request.plateID);
+      }
     }
     return filteredRequest;
   }
@@ -141,6 +144,7 @@ class UserSecurity {
         filteredUser.eulaAcceptedOn = user.eulaAcceptedOn;
         filteredUser.eulaAcceptedVersion = user.eulaAcceptedVersion;
         filteredUser.tagIDs = user.tagIDs;
+        filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
         if (user.address) {
           filteredUser.address = UtilsSecurity.filterAddressRequest(user.address, loggedUser);
