@@ -266,6 +266,9 @@ class Database {
     if (forFrontEnd && src.hasOwnProperty("tagIDs")) {
       dest.tagIDs = src.tagIDs;
     }
+    if (src.hasOwnProperty("plateID")) {
+      dest.plateID = src.plateID;
+    }
     if (src.hasOwnProperty("role")) {
       dest.role = src.role;
     }

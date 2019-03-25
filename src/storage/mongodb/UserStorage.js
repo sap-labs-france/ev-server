@@ -419,7 +419,8 @@ class UserStorage {
           {"name": {$regex: params.search, $options: 'i'}},
           {"firstName": {$regex: params.search, $options: 'i'}},
           {"tags._id": {$regex: params.search, $options: 'i'}},
-          {"email": {$regex: params.search, $options: 'i'}}
+          {"email": {$regex: params.search, $options: 'i'}},
+          {"plateID": {$regex: params.search, $options: 'i'}}
         ]
       });
     }
