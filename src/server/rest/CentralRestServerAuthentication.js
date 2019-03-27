@@ -83,6 +83,7 @@ module.exports = {
             // Delegate
             UtilsService.handleUnknownAction(action, req, res, next);
         }
+        break;
     }
   }
 };

@@ -419,7 +419,8 @@ class UserStorage {
           {"name": {$regex: params.search, $options: 'i'}},
           {"firstName": {$regex: params.search, $options: 'i'}},
           {"tags._id": {$regex: params.search, $options: 'i'}},
-          {"email": {$regex: params.search, $options: 'i'}}
+          {"email": {$regex: params.search, $options: 'i'}},
+          {"plateID": {$regex: params.search, $options: 'i'}}
         ]
       });
     }
@@ -503,7 +504,8 @@ class UserStorage {
         "lastChangedBy": 1,
         "eulaAcceptedOn": 1,
         "eulaAcceptedVersion": 1,
-        "tags": 1
+        "tags": 1,
+        "plateID": 1
       }
     });
     // Sort
