@@ -260,7 +260,7 @@ class OCPIClient {
    */
   async sendEVSEStatuses(processAllEVSEs = true) {
     // result
-    const sendResult = { success: 0, failure: 0, logs: [], chargeBoxIDsInFailure: [], chargeBoxIDsInSuccess: [] };
+    const sendResult = { success: 0, failure: 0, total: 0, logs: [], chargeBoxIDsInFailure: [], chargeBoxIDsInSuccess: [] };
 
     // read configuration to retrieve country_code and party_id
     const tenant = await this._ocpiEndpoint.getTenant();
@@ -316,6 +316,8 @@ class OCPIClient {
       if (location && location.evses) {
         // loop through EVSE
         for (const evse of location.evses) {
+          // total amount of EVSEs
+          sendResult.total++;
           // check if EVSE should be processed
           if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evse.chargeBoxId)) {
             continue;
@@ -358,9 +360,9 @@ class OCPIClient {
 
     // set result
     if (sendResult) {
-      this._ocpiEndpoint.setLastPatchJobResult(sendResult.success, sendResult.failure, _.uniq(sendResult.chargeBoxIDsInFailure), _.uniq(sendResult.chargeBoxIDsInSuccess));
+      this._ocpiEndpoint.setLastPatchJobResult(sendResult.success, sendResult.failure, sendResult.total, _.uniq(sendResult.chargeBoxIDsInFailure), _.uniq(sendResult.chargeBoxIDsInSuccess));
     } else {
-      this._ocpiEndpoint.setLastPatchJobResult(0, 0);
+      this._ocpiEndpoint.setLastPatchJobResult(0, 0, 0);
     }
 
     // save
