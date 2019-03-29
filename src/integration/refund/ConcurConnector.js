@@ -42,8 +42,12 @@ class ConcurConnector extends AbstractConnector {
     return moment(connection.getUpdatedAt()).add(connection.getData().expires_in, 'seconds').isBefore(moment.now());
   }
 
-  getUrl() {
-    return this.getSetting().url;
+  getAuthenticationUrl() {
+    return this.getSetting().authenticationUrl;
+  }
+
+  getApiUrl() {
+    return this.getSetting().apiUrl;
   }
 
   getClientId() {
@@ -75,7 +79,7 @@ class ConcurConnector extends AbstractConnector {
         module: MODULE_NAME, method: 'createConnection',
         action: 'getAccessToken', message: `request concur access token for ${userId}`
       });
-      const result = await axios.post(`${this.getUrl()}/oauth2/v0/token`,
+      const result = await axios.post(`${this.getAuthenticationUrl()}/oauth2/v0/token`,
         querystring.stringify({
           code: data.code,
           client_id: this.getClientId(),
@@ -105,10 +109,16 @@ class ConcurConnector extends AbstractConnector {
     } catch (e) {
       Logging.logError({
         tenantID: this.getTenantID(),
-        module: MODULE_NAME, method: 'createConnection',
-        action: 'getAccessToken', message: `Concur access token not granted for ${userId}`
+        module: MODULE_NAME,
+        method: 'createConnection',
+        action: 'getAccessToken',
+        message: `Concur access token not granted for ${userId} ${JSON.stringify(e.response.data)}`,
+        error: e
       });
-      throw e;
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Concur access token not granted for ${userId}`, 500,
+        'ConcurConnector', 'getAccessToken', userId);
     }
   }
 
@@ -119,7 +129,7 @@ class ConcurConnector extends AbstractConnector {
         module: MODULE_NAME, method: 'refreshToken',
         action: 'refreshAccessToken', message: `request concur refresh token for ${userId}`
       });
-      const result = await axios.post(`${this.getUrl()}/oauth2/v0/token`,
+      const result = await axios.post(`${this.getAuthenticationUrl()}/oauth2/v0/token`,
         querystring.stringify({
           client_id: this.getClientId(),
           client_secret: this.getClientSecret(),
@@ -147,7 +157,10 @@ class ConcurConnector extends AbstractConnector {
         module: MODULE_NAME, method: 'refreshToken',
         action: 'refreshAccessToken', message: `Concur access token not refreshed for ${userId}`
       });
-      throw e;
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Concur access token not refreshed for ${userId}`, 500,
+        'ConcurConnector', 'refreshToken', userId);
     }
   }
 
@@ -190,7 +203,7 @@ class ConcurConnector extends AbstractConnector {
         Logging.logError({
           tenantID: this.getTenantID(),
           user: user, actionOnUser: (transaction.getUser() ? transaction.getUser() : null),
-          module: 'TransactionService', method: 'handleRefundTransactions',
+          module: 'ConcurConnector', method: 'refund',
           message: e.message,
         });
       }
@@ -200,23 +213,42 @@ class ConcurConnector extends AbstractConnector {
 
 
   async getExpenseReports(connection) {
-    const response = await axios.get(`${this.getUrl()}/api/v3.0/expense/reports?approvalStatusCode=A_NOTF`, {
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${connection.getData().access_token}`
-      }
-    });
-    return response.data.Items;
+    try {
+
+      const response = await axios.get(`${this.getApiUrl()}/api/v3.0/expense/reports?approvalStatusCode=A_NOTF`, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${connection.getData().access_token}`
+        }
+      });
+      return response.data.Items;
+    } catch (e) {
+      Logging.logError({
+        tenantID: this.getTenantID(),
+        module: MODULE_NAME, method: 'getExpenseReports',
+        action: 'getExpenseReports', message: `Unable to get expense reports`
+      });
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Unable to get expense reports`, 500,
+        'ConcurConnector', 'getExpenseReports');
+    }
   }
 
   async getLocationId(connection, site) {
-    const response = await axios.get(`${this.getUrl()}/api/v3.0/common/locations?city=${site.getAddress().city}`, {
+    const response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${site.getAddress().city}`, {
       headers: {
         Accept: 'application/json',
         Authorization: `Bearer ${connection.getData().access_token}`
       }
     });
-    return response.data.Items[0].ID;
+    if (response.data.Items.length > 0) {
+      return response.data.Items[0].ID;
+    }
+    throw new AppError(
+      Constants.CENTRAL_SERVER,
+      `The city '${site.getAddress().city}' of the station is unknown to Concur`, 553,
+      'ConcurConnector', 'getLocationId');
   }
 
   /**
@@ -230,7 +262,7 @@ class ConcurConnector extends AbstractConnector {
   async createExpenseReportEntry(connection, expenseReportId, transaction, locationId) {
     try {
 
-      const response = await axios.post(`${this.getUrl()}/api/v3.0/expense/entries`, {
+      const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/entries`, {
         'Description': `Emobility reimbursement ${moment(transaction.getStartDate()).format("YYYY-MM-DD")}`,
         'Comment': `Session started the ${moment(transaction.getStartDate()).format("YYYY-MM-DDTHH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(), 'seconds').format(`h[h]mm`, {trim: false})}`,
         'VendorDescription': 'Charge At Home',
@@ -265,7 +297,7 @@ class ConcurConnector extends AbstractConnector {
    * @returns {Promise<void>}
    */
   async createExpenseReport(connection) {
-    const response = await axios.post(`${this.getUrl()}/api/v3.0/expense/reports`, {
+    const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/reports`, {
       'Name': REPORT_NAME,
     }, {
       headers: {
@@ -276,7 +308,6 @@ class ConcurConnector extends AbstractConnector {
     return response.data.ID;
   }
 
-//https://www-us.api.concursolutions.com/oauth2/v0/authorize?client_id=c524d36b-823f-4574-8c99-4b28dbb8f42c&redirect_uri=https://slfcah.cfapps.eu10.hana.ondemand.com&scope=EXPRPT&response_type=code
 }
 
 module.exports = ConcurConnector;
