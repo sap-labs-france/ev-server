@@ -383,7 +383,7 @@ class Database {
   }
 
   static updateConnection(src, dest, forFrontEnd = true) {
-    dest.connectorId = Utils.convertToInt(src.connectorId);
+    dest.connectorId = src.connectorId;
     dest.createdAt = Utils.convertToDate(src.createdAt);
     dest.updatedAt = Utils.convertToDate(src.updatedAt);
     dest.validUntil = Utils.convertToDate(src.validUntil);

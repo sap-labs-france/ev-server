@@ -11,7 +11,6 @@ const AppError = require('../../exception/AppError');
 
 const MODULE_NAME = 'ConcurConnector';
 const CONNECTOR_ID = 'concur';
-const REPORT_NAME = 'Charge At Home';
 
 /**
  * A concur connector creates connection with the following data attributes
@@ -60,6 +59,14 @@ class ConcurConnector extends AbstractConnector {
 
   getExpenseTypeCode() {
     return this.getSetting().expenseTypeCode;
+  }
+
+  getPolicyID() {
+    return this.getSetting().policyId;
+  }
+
+  getReportName() {
+    return this.getSetting().reportName;
   }
 
   getPaymentTypeID() {
@@ -184,7 +191,7 @@ class ConcurConnector extends AbstractConnector {
       connection = await this.refreshToken(user.getID(), connection)
     }
     const expenseReports = await this.getExpenseReports(connection);
-    const expenseReport = expenseReports.find(report => report.Name === REPORT_NAME);
+    const expenseReport = expenseReports.find(report => report.Name === this.getReportName());
     let expenseReportId;
     if (expenseReport) {
       expenseReportId = expenseReport.ID;
@@ -297,15 +304,28 @@ class ConcurConnector extends AbstractConnector {
    * @returns {Promise<void>}
    */
   async createExpenseReport(connection) {
-    const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/reports`, {
-      'Name': REPORT_NAME,
-    }, {
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${connection.getData().access_token}`
-      }
-    });
-    return response.data.ID;
+    try {
+      const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/reports`, {
+        'Name': this.getReportName(),
+        'PolicyID': this.getPolicyID()
+      }, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${connection.getData().access_token}`
+        }
+      });
+      return response.data.ID;
+    } catch (e) {
+      Logging.logError({
+        tenantID: this.getTenantID(),
+        module: MODULE_NAME, method: 'createExpenseReport',
+        action: 'createExpenseReport', message: `Unable to create expense report:  ${JSON.stringify(e.response.data)}`
+      });
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Unable to create expense reports`, 554,
+        'ConcurConnector', 'createExpenseReport');
+    }
   }
 
 }
