@@ -35,7 +35,7 @@
                         "active": { "type": "boolean" }
                     }
                 },
-                "chargeathome": {
+                "refund": {
                     "type": "object",
                     "properties": {
                         "active": { "type": "boolean" }

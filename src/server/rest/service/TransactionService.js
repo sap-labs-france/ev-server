@@ -84,7 +84,7 @@ class TransactionService {
           `The user with ID '${req.user.id}' cannot refund another user's transaction`, 551,
           'TransactionService', 'handleRefundTransactions', req.user);
       }
-      let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, 'chargeathome');
+      let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, 'refund');
       setting = setting.getContent()['concur'];
       const connector = new ConcurConnector(req.user.tenantID, setting);
       const refundedTransactions = await connector.refund(user, transactionsToRefund);
