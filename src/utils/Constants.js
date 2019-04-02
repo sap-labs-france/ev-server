@@ -214,7 +214,7 @@ module.exports = {
   // Components
   COMPONENTS: {
     OCPI_COMPONENT: "ocpi",
-    CHARGE_AT_HOME: "chargeathome",
+    REFUND: "refund",
     PRICING: "pricing",
     ORGANIZATION: "organization",
     SAC:"sac"
