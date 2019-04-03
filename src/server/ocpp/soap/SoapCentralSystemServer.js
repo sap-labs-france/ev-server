@@ -27,6 +27,11 @@ class SoapCentralSystemServer extends CentralSystemServer {
     // Call parent
     super(centralSystemConfig, chargingStationConfig);
 
+    // Cross origin headers
+    express.use(cors());
+    // Secure the application
+    express.use(helmet());
+
     // Body parser
     express.use(bodyParser.json());
     express.use(bodyParser.urlencoded({
@@ -34,6 +39,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
     }));
     express.use(bodyParser.xml());
 
+    // FIXME?: Should be useless now that helmet() is mounted at the beginning
     // Mount express-sanitizer middleware
     express.use(sanitize())
 
@@ -56,10 +62,6 @@ class SoapCentralSystemServer extends CentralSystemServer {
         })
       );
     }
-    // Cross origin headers
-    express.use(cors());
-    // Secure the application
-    express.use(helmet());
     // Check Cloud Foundry
     if (Configuration.isCloudFoundry()) {
       // Bind to express app

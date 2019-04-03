@@ -274,7 +274,7 @@ class Authorizations {
       // Site management inactive and badge access control and user identical to transaction
       ( !isOrganizationComponentActive && accessControlEnable && isSameUserAsTransaction) || 
       // Site management inactive and no badge access control
-      ( !isOrganizationComponentActive && !accessControlEnable);;
+      ( !isOrganizationComponentActive && !accessControlEnable);
     }
     return result;
   }

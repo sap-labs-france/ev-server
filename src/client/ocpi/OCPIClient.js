@@ -164,7 +164,7 @@ class OCPIClient {
     Logging.logInfo({
       tenantID: tenant.getID(),
       action: 'POST credentials',
-      message: `Post creadentials at ${credentialsUrl}`,
+      message: `Post credentials at ${credentialsUrl}`,
       source: 'OCPI Client',
       module: 'OCPI Client',
       method: `postCredentials`,

@@ -1,7 +1,7 @@
 const nodeExternals = require('webpack-node-externals');
 const commonPaths = require('./webpack.common.paths');
 const webpack = require('webpack');
-const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const JavaScriptObfuscator = require('webpack-obfuscator');
 const CopyPlugin = require('copy-webpack-plugin');
 
@@ -27,16 +27,22 @@ const config = {
   },
   plugins: [
     new webpack.ProgressPlugin(),
-    new UglifyJSPlugin({
-      sourceMap: true
-    }),
-    new JavaScriptObfuscator ({
+    new JavaScriptObfuscator({
       rotateUnicodeArray: true
     }, []),
     new CopyPlugin([
-      {from: 'src/assets/', to: 'assets/', ignore: ['**/configs/**']}
+      { from: 'src/assets/', to: 'assets/', ignore: ['**/configs/**'] }
     ])
-  ]
+  ],
+  optimization: {
+    minimizer: [
+      new TerserPlugin({
+        sourceMap: true,
+        parallel: true,
+        cache: true,
+      }),
+    ],
+  },
 };
 
 module.exports = config;

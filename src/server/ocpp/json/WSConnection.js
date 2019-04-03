@@ -183,10 +183,11 @@ class WSConnection {
   }
 
   sendMessage(messageId, command, messageType = Constants.OCPP_JSON_CALL_RESULT_MESSAGE, commandName = "") {
-    // send a message through webwsConnection
+    // Send a message through WSConnection
     const wsConnection = this.getWSConnection();
     const self = this;
     // Create a promise
+    // eslint-disable-next-line no-undef
     return new Promise((resolve, reject) => {
       let messageToSend;
       // Type of message
@@ -205,6 +206,7 @@ class WSConnection {
           // Error Message
         case Constants.OCPP_JSON_CALL_ERROR_MESSAGE:
           // Build Message
+          // eslint-disable-next-line no-case-declarations
           const {
             code,
             message,
@@ -219,7 +221,7 @@ class WSConnection {
         wsConnection.send(messageToSend);
       } else {
         // Reject it
-        return rejectCallback(`Socket closed for Message ID '${messageId}'`);
+        return rejectCallback(`Web socket closed for Message ID '${messageId}'`);
       }
       // Request?
       if (messageType !== Constants.OCPP_JSON_CALL_MESSAGE) {
@@ -227,7 +229,7 @@ class WSConnection {
         resolve();
       } else {
         // Send timeout
-        setTimeout(() => rejectCallback(`Timeout for Message ID ${messageId}`), Constants.OCPP_SOCKET_TIMEOUT);
+        setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}'`), Constants.OCPP_SOCKET_TIMEOUT);
       }
 
       // Function that will receive the request's response

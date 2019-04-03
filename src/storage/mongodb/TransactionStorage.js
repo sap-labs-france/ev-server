@@ -416,7 +416,7 @@ class TransactionStorage {
       $unwind: {"path": "$stop.user", "preserveNullAndEmptyArrays": true}
     });
 
-    let facets = {
+    const facets = {
       "$facet":
         {
           "no_consumption":
