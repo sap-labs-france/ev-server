@@ -37,15 +37,6 @@ class OCPIErrorHandler {
 
     next();
   }
-
-
-
-
-
-
-
-
-
 }
 
 module.exports = OCPIErrorHandler;

@@ -25,6 +25,10 @@ class ODataServer {
   constructor(oDataServerConfig) {
     // Keep params
     _oDataServerConfig = oDataServerConfig;
+    // Cross origin headers
+    express.use(cors());
+    // Secure the application
+    express.use(helmet());
     // Body parser
     express.use(bodyParser.json({
       limit: '1mb'
@@ -55,10 +59,6 @@ class ODataServer {
         })
       );
     }
-    // Cross origin headers
-    express.use(cors());
-    // Secure the application
-    express.use(helmet());
     // Use Compression
     // express.use(compression());
     // Check Cloud Foundry

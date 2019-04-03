@@ -23,6 +23,10 @@ class OCPIServer {
   constructor(ocpiRestConfig) {
     // Keep params
     _ocpiRestConfig = ocpiRestConfig;
+    // Secure the application
+    express.use(helmet());
+    // Cross origin headers
+    express.use(cors());
     // Body parser
     express.use(bodyParser.json({
       limit: '1mb'
@@ -53,10 +57,6 @@ class OCPIServer {
         })
       );
     }
-    // Cross origin headers
-    express.use(cors());
-    // Secure the application
-    express.use(helmet());
     // Check Cloud Foundry
     if (Configuration.isCloudFoundry()) {
       // Bind to express app
