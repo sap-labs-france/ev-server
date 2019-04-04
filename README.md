@@ -147,27 +147,17 @@ mongod --auth --port <port> --dbpath <path> --replSet <replcaSetName>
 
 ##### As a Windows service
 
-In the following, you will need to run Powershell as an administrator.
+Add to /path/to/mongod.cfg:  
+```
+...
+security:
+  authorization: enabled
+...  
+```
 
-* Stop the current MongoDB service:
+Restart the MongoDB service with Powershell as an administrator:
     ```
-    Stop-Service -Name "MongoDB"
-    ```
-* Remove the current MongoDB service:
-    ```
-    Get-CimInstance win32_service -filter "name='MongoDB'" | Remove-CimInstance
-    ```
-* Readd the MongoDB service with authentification enabled:
-    ```
-    New-Service -Name MongoDB -BinaryPathName '"C:\Program Files\MongoDB\Server\4.0\bin\mongod.exe" --config "C:\Program Files\MongoDB\Server\4.0\bin\mongod.cfg" --auth --service' -StartupType Automatic -DisplayName "MongoDB Server" -Description "MongoDB Database Server"
-    ```
-  
-  Change the path to *mongod* and *mongod.cfg* accordingly if needed.  
-  Open the **Services** application, search for the MongoDB service, open the service properties and Log on as **Network Service** user with empty password.
-
-* Start the MongoDB service:
-    ```
-    Start-Service -Name "MongoDB"
+    Restart-Service -Name "MongoDB"
     ```
 
 Now your database is ready to be used.

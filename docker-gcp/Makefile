@@ -15,11 +15,11 @@ server:
 
 all: local-env server
 
-clean-mongo-data:
-	-docker volume rm $(PROJECT_NAME)_mongo-data
-
 clean-containers:
 	docker stack rm $(PROJECT_NAME)
+
+clean-mongo-data:
+	-docker volume rm $(PROJECT_NAME)_mongo-data
 
 dist-clean-images:
 	docker image prune -a -f
