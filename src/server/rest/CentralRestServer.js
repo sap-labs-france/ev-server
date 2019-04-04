@@ -1,5 +1,6 @@
 const cors = require('cors');
 const helmet = require('helmet');
+const hpp = require('hpp');
 const morgan = require('morgan');
 const locale = require('locale');
 const express = require('express')();
@@ -50,6 +51,7 @@ class CentralRestServer {
       extended: false,
       limit: '2mb'
     }));
+    express.use(hpp());
     express.use(bodyParser.xml());
 
     // FIXME?: Should be useless now that helmet() is mounted at the beginning
