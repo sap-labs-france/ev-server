@@ -75,10 +75,6 @@ module.exports = {
             AuthService.handleVerifyEmail(action, req, res, next);
             break;
 
-          case "VerifyTenant":
-            TenantService.handleVerifyTenant(action, req, res, next);
-            break;
-
           default:
             // Delegate
             UtilsService.handleUnknownAction(action, req, res, next);
