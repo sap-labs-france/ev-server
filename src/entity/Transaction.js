@@ -538,9 +538,14 @@ class Transaction extends AbstractTenantEntity {
   }
 
   getChargerStatus() {
-    if (this.isActive() && this._model.chargeBox) {
-      return this._model.chargeBox.connectors[this.getConnectorId() - 1].status;
+    if (this.isActive() && this._model.chargeBox && this._model.chargeBox.connectors) {
+      for (const connector of this._model.chargeBox.connectors) {
+        if (connector.connectorId === this.getConnectorId()) {
+          return connector.status;
+        }
+      }
     }
+    return undefined;
   }
 
   isLoading() {
@@ -728,7 +733,7 @@ class Transaction extends AbstractTenantEntity {
   }
 
   static getActiveTransaction(tenantID, chargeBoxID, connectorId) {
-    return TransactionStorage.getActiveTransaction(tenantID, chargeBoxID, connectorId);    
+    return TransactionStorage.getActiveTransaction(tenantID, chargeBoxID, connectorId);
   }
 
   static cleanupRemainingActiveTransactions(tenantID, chargeBoxID, connectorId) {

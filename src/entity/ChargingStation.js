@@ -366,7 +366,14 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   getConnector(identifier) {
-    return this._model.connectors[identifier - 1];
+    if (identifier !== undefined && this._model.connectors) {
+      for (const connector of this._model.connectors) {
+        if (connector.connectorId === identifier) {
+          return connector;
+        }
+      }
+    }
+    return undefined;
   }
 
   setConnectors(connectors) {
