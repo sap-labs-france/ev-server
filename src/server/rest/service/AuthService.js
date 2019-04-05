@@ -87,12 +87,12 @@ class AuthService {
             const results = [];
             // check authorization for each connectors
             for (let index = 0; index < chargingStation.getConnectors().length; index++) {
-              const connector = chargingStation.getConnector(index+1);
+              const connector = chargingStation.getConnector(index + 1);
               const tempResult = {'IsAuthorized': false};
               if (connector.activeTransactionID) {
                 tempResult.IsAuthorized = await AuthService.isStopTransactionAuthorized(filteredRequest, chargingStation, connector.activeTransactionID, req.user);
               }
-              results.push(tempResult);  
+              results.push(tempResult);
             }
             // return table of result (will be in the connector order)
             result = results;
@@ -149,7 +149,7 @@ class AuthService {
     let siteArea;
     let site;
     if (isOrganizationComponentActive) {
-      // Get charging station site 
+      // Get charging station site
       // Site Area -----------------------------------------------
       siteArea = await chargingStation.getSiteArea();
       try {
@@ -161,7 +161,7 @@ class AuthService {
             `Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`, 525,
             "AuthService", "checkConnectorsActionAuthorizations");
         }
-        
+
         // Site -----------------------------------------------------
         site = await siteArea.getSite(null, true);
         if (!site) {
@@ -188,7 +188,7 @@ class AuthService {
     }
     // check authorization for each connectors
     for (let index = 0; index < chargingStation.getConnectors().length; index++) {
-      const connector = chargingStation.getConnector(index+1);
+      const connector = chargingStation.getConnector(index + 1);
       results.push(await Authorizations.getConnectorActionAuthorizations(tenantID, user, chargingStation, connector, siteArea, site));
     }
     return results;
@@ -220,13 +220,12 @@ class AuthService {
 
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
-      const error = new BadRequestError({
-        path: "tenant",
-        message: "The Tenant is mandatory"
+      Logging.logSecurityError({
+        tenantID: Constants.DEFAULT_TENANT, module: 'AuthService', method: 'handleLogIn',
+        message: `User with email '${filteredRequest.email}' tried to log in with an unknown tenant '${filteredRequest.tenant}'!`,
+        action: action
       });
-      // Log Error
-      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleLogIn', Constants.DEFAULT_TENANT);
-      next(error);
+      next(new AppError(Constants.CENTRAL_SERVER, 'Wrong email or password', 550, 'AuthService', 'handleLogIn'));
       return;
     }
     try {
@@ -373,7 +372,7 @@ class AuthService {
       // Set BadgeID (eg.: 'SF20170131')
       newUser.setTagIDs([newUser.getName()[0] + newUser.getFirstName()[0] + Utils.getRandomInt()])
       // Assign user to all sites
-      const sites = await Site.getSites(tenantID, { withAutoUserAssignment: true });
+      const sites = await Site.getSites(tenantID, {withAutoUserAssignment: true});
       // Set
       newUser.setSites(sites.result);
       // Get EULA
@@ -908,7 +907,7 @@ class AuthService {
       const tenant = await user.getTenant();
       payload.activeComponents = tenant.getActiveComponents();
     }
-        
+
     // Build token
     let token;
     // Role Demo?

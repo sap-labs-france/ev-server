@@ -303,26 +303,6 @@ class TenantService extends AbstractService {
       AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleUpdateTenant');
     }
   }
-
-  static async handleVerifyTenant(action, req, res, next) {
-    try {
-      // Filter
-      const filteredRequest = TenantSecurity.filterVerifyTenantRequest(req.headers);
-      // Check email
-      const tenant = await Tenant.getTenantBySubdomain(filteredRequest.tenant);
-      if (!tenant && filteredRequest.tenant !== '') {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Tenant with subdomain '${filteredRequest.tenant}' does not exist`, 550,
-          MODULE_NAME, 'handleVerifyTenant', req.user);
-      }
-      res.status(HttpStatusCodes.OK).send({});
-      next();
-    } catch (error) {
-      AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleVerifyTenant');
-    }
-  }
 }
 
 module.exports = TenantService;
