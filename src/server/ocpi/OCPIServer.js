@@ -1,5 +1,6 @@
 const cors = require('cors');
 const helmet = require('helmet');
+const hpp = require('hpp');
 const morgan = require('morgan');
 const locale = require('locale');
 const express = require('express')();
@@ -35,6 +36,7 @@ class OCPIServer {
       extended: false,
       limit: '1mb'
     }));
+    express.use(hpp());
     express.use(bodyParser.xml());
     // Use
     express.use(locale(Configuration.getLocalesConfig().supported));

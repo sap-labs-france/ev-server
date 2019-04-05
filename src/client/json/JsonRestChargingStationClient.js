@@ -2,7 +2,8 @@ const uuid = require('uuid/v4');
 const WebSocket = require('ws');
 const ChargingStationClient = require('../ChargingStationClient');
 const Logging = require('../../utils/Logging');
-const BackendError = require('../../exception/BackendError');
+const Configuration = require('../../utils/Configuration');
+// const BackendError = require('../../exception/BackendError');
 
 const MODULE_NAME = "JsonRestChargingStationClient";
 const OCPP_JSON_CALL_MESSAGE = 2;
@@ -101,12 +102,21 @@ class JsonRestChargingStationClient extends ChargingStationClient {
       message: `Try to connect to '${this._serverURL}', CF Instance '${this._chargingStation.getCFApplicationIDAndInstanceIndex()}'`
     });
     // Create Promise
+    // eslint-disable-next-line no-undef
     return new Promise((resolve, reject) => {
       // Create WS
-      this._wsConnection = new WebSocket(this._serverURL, {
-        protocol: 'rest',
-        headers: { 'X-CF-APP-INSTANCE': this._chargingStation.getCFApplicationIDAndInstanceIndex() }
-      });
+      let WSOptions = {};
+      if (Configuration.isCloudFoundry()) {
+        WSOptions =  {
+          protocol: 'rest',
+          headers: { 'X-CF-APP-INSTANCE': this._chargingStation.getCFApplicationIDAndInstanceIndex() }
+        }
+      } else {
+        WSOptions =  {
+          protocol: 'rest'
+        }
+      }
+      this._wsConnection = new WebSocket(this._serverURL, WSOptions);
       // Opened
       this._wsConnection.onopen = () => {
         // Log
