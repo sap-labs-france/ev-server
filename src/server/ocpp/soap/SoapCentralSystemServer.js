@@ -32,9 +32,6 @@ class SoapCentralSystemServer extends CentralSystemServer {
     express.use(cors());
     // Secure the application
     express.use(helmet());
-    // FIXME?: Should be useless now that helmet() is mounted at the beginning
-    // Mount express-sanitizer middleware
-    express.use(sanitize())
 
     // Body parser
     express.use(bodyParser.json());
@@ -43,6 +40,10 @@ class SoapCentralSystemServer extends CentralSystemServer {
     }));
     express.use(hpp());
     express.use(bodyParser.xml());
+
+    // FIXME?: Should be useless now that helmet() is mounted at the beginning
+    // Mount express-sanitizer middleware
+    express.use(sanitize())
 
     // Enable debug?
     if (centralSystemConfig.debug) {

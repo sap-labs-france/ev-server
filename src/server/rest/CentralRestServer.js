@@ -43,10 +43,6 @@ class CentralRestServer {
     // Secure the application
     express.use(helmet());
 
-    // FIXME?: Should be useless now that helmet() is mounted at the beginning
-    // Mount express-sanitizer middleware
-    express.use(sanitize())
-
     // Body parser
     express.use(bodyParser.json({
       limit: '2mb'
@@ -57,6 +53,10 @@ class CentralRestServer {
     }));
     express.use(hpp());
     express.use(bodyParser.xml());
+
+    // FIXME?: Should be useless now that helmet() is mounted at the beginning
+    // Mount express-sanitizer middleware
+    express.use(sanitize())
 
     // Use
     express.use(locale(Configuration.getLocalesConfig().supported));
