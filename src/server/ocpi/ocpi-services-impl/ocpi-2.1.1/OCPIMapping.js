@@ -210,6 +210,8 @@ class OCPIMapping {
     return {
       "id": `${evse_id}*${connector.connectorId}`,
       "type": Constants.MAPPING_CONNECTOR_TYPE[connector.type],
+      "voltage": connector.voltage,
+      "amperage": connector.amperage,
       "power_type": this.convertNumberofConnectedPhase2PowerType(chargingStation.getNumberOfConnectedPhase()),
       "last_update": chargingStation.getLastHeartBeat()
     }
@@ -221,6 +223,8 @@ class OCPIMapping {
    */
   static convertNumberofConnectedPhase2PowerType(numberOfConnectedPhase) {
     switch (numberOfConnectedPhase) {
+      case 0:
+        return Constants.CONNECTOR_POWER_TYPE.DC;
       case 1:
         return Constants.CONNECTOR_POWER_TYPE.AC_1_PHASE;
       case 3:

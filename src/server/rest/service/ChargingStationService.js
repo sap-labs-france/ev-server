@@ -222,6 +222,8 @@ class ChargingStationService {
           // Set
           chargerConnectors[connector.connectorId - 1].power = connector.power;
           chargerConnectors[connector.connectorId - 1].type = connector.type;
+          chargerConnectors[connector.connectorId - 1].voltage = connector.voltage;
+          chargerConnectors[connector.connectorId - 1].amperage = connector.amperage;
         }
       }
       // Update timestamp

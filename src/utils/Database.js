@@ -114,6 +114,8 @@ class Database {
             "vendorErrorCode": connector.vendorErrorCode,
             "power": Utils.convertToInt(connector.power),
             "type": connector.type,
+            "voltage": Utils.convertToInt(connector.voltage),
+            "amperage": Utils.convertToInt(connector.amperage),
             "activeTransactionID": Utils.convertToInt(connector.activeTransactionID)
           });
         } else {
