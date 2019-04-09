@@ -222,6 +222,8 @@ class ChargingStationService {
           // Set
           chargerConnectors[connector.connectorId - 1].power = connector.power;
           chargerConnectors[connector.connectorId - 1].type = connector.type;
+          chargerConnectors[connector.connectorId - 1].voltage = connector.voltage;
+          chargerConnectors[connector.connectorId - 1].amperage = connector.amperage;
         }
       }
       // Update timestamp
@@ -409,16 +411,20 @@ class ChargingStationService {
       }
       // Get it
       const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.ID);
-      if (chargingStation) {
-        // Return
-        res.json(
-          // Filter
-          ChargingStationSecurity.filterChargingStationResponse(
-            chargingStation.getModel(), req.user)
-        );
-      } else {
-        res.json({});
+      // Found?
+      if (!chargingStation) {
+        // Not Found!
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `Charging Station '${filteredRequest.ID}' does not exist`, 550,
+          'ChargingStationService', 'handleGetChargingStation', req.user);
       }
+      // Return
+      res.json(
+        // Filter
+        ChargingStationSecurity.filterChargingStationResponse(
+          chargingStation.getModel(), req.user)
+      );
       next();
     } catch (error) {
       // Log

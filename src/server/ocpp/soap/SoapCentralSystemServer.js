@@ -4,6 +4,7 @@ const http = require('http');
 const https = require('https');
 const cors = require('cors');
 const helmet = require('helmet');
+const hpp = require('hpp');
 const morgan = require('morgan');
 const express = require('express')();
 const CFLog = require('cf-nodejs-logging-support');
@@ -27,13 +28,20 @@ class SoapCentralSystemServer extends CentralSystemServer {
     // Call parent
     super(centralSystemConfig, chargingStationConfig);
 
+    // Cross origin headers
+    express.use(cors());
+    // Secure the application
+    express.use(helmet());
+
     // Body parser
     express.use(bodyParser.json());
     express.use(bodyParser.urlencoded({
       extended: false
     }));
+    express.use(hpp());
     express.use(bodyParser.xml());
 
+    // FIXME?: Should be useless now that helmet() is mounted at the beginning
     // Mount express-sanitizer middleware
     express.use(sanitize())
 
@@ -56,10 +64,6 @@ class SoapCentralSystemServer extends CentralSystemServer {
         })
       );
     }
-    // Cross origin headers
-    express.use(cors());
-    // Secure the application
-    express.use(helmet());
     // Check Cloud Foundry
     if (Configuration.isCloudFoundry()) {
       // Bind to express app

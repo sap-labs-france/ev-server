@@ -1,5 +1,6 @@
 const cors = require('cors');
 const helmet = require('helmet');
+const hpp = require('hpp');
 const morgan = require('morgan');
 const locale = require('locale');
 const express = require('express')();
@@ -25,6 +26,10 @@ class ODataServer {
   constructor(oDataServerConfig) {
     // Keep params
     _oDataServerConfig = oDataServerConfig;
+    // Cross origin headers
+    express.use(cors());
+    // Secure the application
+    express.use(helmet());
     // Body parser
     express.use(bodyParser.json({
       limit: '1mb'
@@ -33,6 +38,7 @@ class ODataServer {
       extended: false,
       limit: '1mb'
     }));
+    express.use(hpp());
     express.use(bodyParser.xml());
     // Use
     express.use(locale(Configuration.getLocalesConfig().supported));
@@ -55,10 +61,6 @@ class ODataServer {
         })
       );
     }
-    // Cross origin headers
-    express.use(cors());
-    // Secure the application
-    express.use(helmet());
     // Use Compression
     // express.use(compression());
     // Check Cloud Foundry

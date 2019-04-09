@@ -636,7 +636,7 @@ class UserService {
       } catch (e) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `An issue occured while creating the invoice`, 560,
+          `An issue occurred while creating the invoice`, 560,
           'UserService', 'handleGetUserInvoice', req.user);
       }
       if (!invoiceNumber) {

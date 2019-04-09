@@ -174,7 +174,7 @@ class ConcurConnector extends AbstractConnector {
   /**
    *
    * @param user {User}
-   * @param transaction {Transaction}
+   * @param transactions {Transaction}
    * @returns {Promise<Transaction[]>}
    */
   async refund(user, transactions) {
@@ -243,14 +243,25 @@ class ConcurConnector extends AbstractConnector {
   }
 
   async getLocationId(connection, site) {
-    const response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${site.getAddress().city}`, {
+    let response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${site.getAddress().city}`, {
       headers: {
         Accept: 'application/json',
         Authorization: `Bearer ${connection.getData().access_token}`
       }
     });
-    if (response.data.Items.length > 0) {
+    if (response.data && response.data.Items && response.data.Items.length > 0) {
       return response.data.Items[0].ID;
+    } else {
+      const company = await site.getCompany();
+      response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${company.getAddress().city}`, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${connection.getData().access_token}`
+        }
+      });
+      if (response.data && response.data.Items && response.data.Items.length > 0) {
+        return response.data.Items[0].ID;
+      }
     }
     throw new AppError(
       Constants.CENTRAL_SERVER,

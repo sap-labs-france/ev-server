@@ -1,5 +1,6 @@
 const cors = require('cors');
 const helmet = require('helmet');
+const hpp = require('hpp');
 const morgan = require('morgan');
 const locale = require('locale');
 const express = require('express')();
@@ -36,6 +37,12 @@ class CentralRestServer {
     Database.setChargingStationHeartbeatIntervalSecs(
       _chargingStationConfig.heartbeatIntervalSecs);
 
+    // Cross origin headers
+    express.use(cors());
+
+    // Secure the application
+    express.use(helmet());
+
     // Body parser
     express.use(bodyParser.json({
       limit: '2mb'
@@ -44,8 +51,10 @@ class CentralRestServer {
       extended: false,
       limit: '2mb'
     }));
+    express.use(hpp());
     express.use(bodyParser.xml());
 
+    // FIXME?: Should be useless now that helmet() is mounted at the beginning
     // Mount express-sanitizer middleware
     express.use(sanitize())
 
@@ -71,13 +80,7 @@ class CentralRestServer {
           }
         })
       );
-    }
-
-    // Cross origin headers
-    express.use(cors());
-
-    // Secure the application
-    express.use(helmet());
+    }   
 
     // Check Cloud Foundry
     if (Configuration.isCloudFoundry()) {
@@ -103,6 +106,7 @@ class CentralRestServer {
     // Check if the front-end has to be served also
     const centralSystemConfig = Configuration.getCentralSystemFrontEndConfig();
     // Server it?
+    // TODO: Remove distEnabled support
     if (centralSystemConfig.distEnabled) {
       // Serve all the static files of the front-end
       express.get(/^\/(?!client\/)(.+)$/, function(req, res, next) { // eslint-disable-line

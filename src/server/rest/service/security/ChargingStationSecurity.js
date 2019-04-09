@@ -60,6 +60,8 @@ class ChargingStationSecurity {
             'errorCode': connector.errorCode,
             'type': connector.type,
             'power': connector.power,
+            'voltage': connector.voltage,
+            'amperage': connector.amperage,
             'status': connector.status,
             'totalConsumption': connector.totalConsumption
           };
@@ -224,7 +226,9 @@ class ChargingStationSecurity {
         return { 
           connectorId: sanitize(connector.connectorId),
           power: sanitize(connector.power),
-          type: sanitize(connector.type)
+          type: sanitize(connector.type),
+          voltage: sanitize(connector.voltage),
+          amperage: sanitize(connector.amperage)
         };
       });
     }

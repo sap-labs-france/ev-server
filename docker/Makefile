@@ -15,19 +15,35 @@ server:
 
 all: local-env server
 
-clean-images:
-	docker image prune -f
+clean-server-container:
+	-docker-compose -p $(PROJECT_NAME) -f docker-compose-server.yml down
 
-clean-volumes:
-	docker volume prune -f
+clean-containers: clean-server-container
+	-docker-compose -p $(PROJECT_NAME) -f docker-compose-local-env.yml down
+	-docker-compose -p $(PROJECT_NAME) -f docker-compose-mongo-express.yml down
+
+clean-server-image:
+	-docker rmi $(PROJECT_NAME)_server
+
+clean-mongodb-images:
+	-docker rmi mongo:4.0
+	-docker rmi $(PROJECT_NAME)_enablereplset
+
+clean-images: clean-mongodb-images clean-server-image
+	-docker rmi djfarrelly/maildev
+	-docker rmi mongo-express
 
 clean-mongo-data:
 	-docker volume rm $(PROJECT_NAME)_mongo-data
 
-clean-containers:
-	-docker-compose -p $(PROJECT_NAME) -f docker-compose-local-env.yml down
-	-docker-compose -p $(PROJECT_NAME) -f docker-compose-server.yml down
-	-docker-compose -p $(PROJECT_NAME) -f docker-compose-mongo-express.yml down
+clean-server: clean-server-container clean-server-image
 
-dist-clean: clean-containers clean-mongo-data clean-volumes
+clean: clean-containers clean-mongo-data clean-images
+
+dist-clean-images:
 	docker image prune -a -f
+
+dist-clean-volumes:
+	docker volume prune -a
+
+dist-clean: clean-containers dist-clean-volumes dist-clean-images

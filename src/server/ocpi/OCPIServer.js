@@ -1,5 +1,6 @@
 const cors = require('cors');
 const helmet = require('helmet');
+const hpp = require('hpp');
 const morgan = require('morgan');
 const locale = require('locale');
 const express = require('express')();
@@ -23,6 +24,10 @@ class OCPIServer {
   constructor(ocpiRestConfig) {
     // Keep params
     _ocpiRestConfig = ocpiRestConfig;
+    // Secure the application
+    express.use(helmet());
+    // Cross origin headers
+    express.use(cors());
     // Body parser
     express.use(bodyParser.json({
       limit: '1mb'
@@ -31,6 +36,7 @@ class OCPIServer {
       extended: false,
       limit: '1mb'
     }));
+    express.use(hpp());
     express.use(bodyParser.xml());
     // Use
     express.use(locale(Configuration.getLocalesConfig().supported));
@@ -53,10 +59,6 @@ class OCPIServer {
         })
       );
     }
-    // Cross origin headers
-    express.use(cors());
-    // Secure the application
-    express.use(helmet());
     // Check Cloud Foundry
     if (Configuration.isCloudFoundry()) {
       // Bind to express app

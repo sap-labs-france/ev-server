@@ -1,6 +1,5 @@
 const AuthService = require('./service/AuthService');
 const UtilsService = require('./service/UtilsService');
-const TenantService = require('./service/TenantService');
 
 require('source-map-support').install();
 
@@ -73,10 +72,6 @@ module.exports = {
           case "VerifyEmail":
             // Delegate
             AuthService.handleVerifyEmail(action, req, res, next);
-            break;
-
-          case "VerifyTenant":
-            TenantService.handleVerifyTenant(action, req, res, next);
             break;
 
           default:
