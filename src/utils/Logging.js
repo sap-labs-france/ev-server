@@ -26,7 +26,7 @@ const obs = new PerformanceObserver((items) => {
     // eslint-disable-next-line no-console
     console.log(`Performance ${items.getEntries()[0].name}) ${items.getEntries()[0].duration} ms`);
   }
-  
+
   // Add statistics
   if (_traceStatistics === null) {
     _traceStatistics = {};
@@ -249,7 +249,7 @@ class Logging {
   }
 
   // Used to log exception in catch(...) only
-  static logActionExceptionMessageAndSendResponse(action, exception, req, res, next, tenantID) {
+  static logActionExceptionMessageAndSendResponse(action, exception, req, res, next, tenantID = Constants.DEFAULT_TENANT) {
     // Clear password
     if (action === "login" && req.body.password) {
       req.body.password = "####";
@@ -339,7 +339,7 @@ class Logging {
   }
 
   static _buildLog(error, action, source, module, method, tenantID, user) {
-    let tenant = tenantID ? tenantID : '';
+    let tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
     if (!tenantID && user) {
       // Check if the log can be attached to a tenant
       if (user.hasOwnProperty("tenantID")) {
