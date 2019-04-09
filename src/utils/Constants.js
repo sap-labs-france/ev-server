@@ -207,8 +207,9 @@ module.exports = {
 
   // CONNECTOR TYPE
   MAPPING_CONNECTOR_TYPE: {
-    "CHADEMO": "CHADEMO",
-    "T2": "IEC_62196_T2"
+    "C": "CHADEMO",
+    "T2": "IEC_62196_T2",
+    "CCS": "IEC_62196_T2_COMBO"
   },
 
   // Components
