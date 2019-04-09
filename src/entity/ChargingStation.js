@@ -17,6 +17,7 @@ const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const momentDurationFormatSetup = require("moment-duration-format");
 momentDurationFormatSetup(moment);
 const _configChargingStation = Configuration.getChargingStationConfig();
+const tzlookup = require("tz-lookup");
 
 class ChargingStation extends AbstractTenantEntity {
   constructor(tenantID, chargingStation) {
@@ -232,6 +233,12 @@ class ChargingStation extends AbstractTenantEntity {
 
   getLongitude() {
     return this._model.longitude;
+  }
+
+  getTimezone() {
+    if (this._model.latitude && this._model.longitude) {
+      return tzlookup(this._model.latitude, this._model.longitude);
+    }
   }
 
   canChargeInParallel() {
@@ -511,7 +518,7 @@ class ChargingStation extends AbstractTenantEntity {
           });
           // Stop
           await activeTransaction.stopTransaction(activeTransaction.getUserID(), activeTransaction.getTagID(),
-            activeTransaction.getLastMeterValue().value + 1, new Date());
+            activeTransaction.getLastMeterValue().value + 1, new Date(), this.getTimezone());
           // Save Transaction
           await activeTransaction.save();
         }
@@ -1049,7 +1056,7 @@ class ChargingStation extends AbstractTenantEntity {
       // Get the transaction
       const transaction = await Transaction.getTransaction(this.getTenantID(), meterValues.transactionId);
       // Handle Meter Values
-      await transaction.updateWithMeterValues(newMeterValues);
+      await transaction.updateWithMeterValues(newMeterValues, this.getTimezone());
       // Save Transaction
       await transaction.save();
       // Update Charging Station Consumption
@@ -1259,8 +1266,8 @@ class ChargingStation extends AbstractTenantEntity {
     }
     // Create
     let transaction = new Transaction(this.getTenantID(), startTransaction);
-    // Start Transaction
-    await transaction.startTransaction(user);
+    // Start Transactions
+    await transaction.startTransaction(user, this.getTimezone());
     // Cleanup old ongoing transactions
     await Transaction.cleanupRemainingActiveTransactions(this.getTenantID(), this.getID(), transaction.getConnectorId());
     // Save it
@@ -1435,7 +1442,7 @@ class ChargingStation extends AbstractTenantEntity {
       }
     }
     // Stop
-    await transaction.stopTransaction(user.getID(), tagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp));
+    await transaction.stopTransaction(user.getID(), tagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp), this.getTimezone());
     // Save the transaction
     transaction = await transaction.save();
     // Notify User

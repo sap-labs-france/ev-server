@@ -381,7 +381,7 @@ class Transaction extends AbstractTenantEntity {
     this._model.refundData = refundData;
   }
 
-  async startTransaction(user) {
+  async startTransaction(user, timezone) {
     // Init
     this.setNumberOfMeterValues(0);
     this.setLastMeterValue({value: this.getMeterStart(), timestamp: this.getStartDate()})
@@ -403,7 +403,7 @@ class Transaction extends AbstractTenantEntity {
     };
 
     // Build consumption
-    const consumption = await this.buildConsumption(this.getStartDate(), this.getStartDate(), meterValue);
+    const consumption = await this.buildConsumption(this.getStartDate(), this.getStartDate(), meterValue, timezone);
     // Update the price
     await this.computePricing(consumption, 'start');
   }
@@ -461,7 +461,7 @@ class Transaction extends AbstractTenantEntity {
     return lastMeterValue;
   }
 
-  async stopTransaction(userID, tagId, meterStop, timestamp) {
+  async stopTransaction(userID, tagId, meterStop, timestamp, timezone) {
     // Create Stop
     this._model.stop = {};
     this._model.stop.meterStop = meterStop;
@@ -512,7 +512,7 @@ class Transaction extends AbstractTenantEntity {
     };
 
     // Build final consumption
-    const consumption = await this.buildConsumption(lastMeterValue.timestamp, timestamp, meterValueData);
+    const consumption = await this.buildConsumption(lastMeterValue.timestamp, timestamp, meterValueData, timezone);
     // Update the price
     await this.computePricing(consumption, 'stop');
     // Save Consumption
@@ -556,7 +556,7 @@ class Transaction extends AbstractTenantEntity {
   }
 
 
-  async buildConsumption(startedAt, endedAt, meterValue) {
+  async buildConsumption(startedAt, endedAt, meterValue, timezone) {
     const consumption = {
       transactionId: this.getID(),
       connectorId: this.getConnectorId(),
@@ -564,8 +564,10 @@ class Transaction extends AbstractTenantEntity {
       siteAreaID: this.getSiteAreaID(),
       siteID: this.getSiteID(),
       userID: this.getUserID(),
-      endedAt: new Date(endedAt)
+      endedAt: new Date(endedAt),
+      timezone: timezone
     };
+
     // SoC?
     if (this.isSocMeterValue(meterValue)) {
       // Set SoC
@@ -614,7 +616,7 @@ class Transaction extends AbstractTenantEntity {
     return TransactionStorage.saveTransaction(this.getTenantID(), this.getModel());
   }
 
-  async updateWithMeterValues(meterValues) {
+  async updateWithMeterValues(meterValues, timezone) {
     // Save Meter Values
     await TransactionStorage.saveMeterValues(this.getTenantID(), meterValues);
     // Process consumption
@@ -623,7 +625,7 @@ class Transaction extends AbstractTenantEntity {
       // Update Transaction with Meter Values
       const lastMeterValue = await this.updateWithMeterValue(meterValue);
       // Compute consumption
-      let consumption = await this.buildConsumption(lastMeterValue.timestamp, meterValue.timestamp, meterValue);
+      let consumption = await this.buildConsumption(lastMeterValue.timestamp, meterValue.timestamp, meterValue, timezone);
       const consumptionToUpdateWith = consumptions.find(c => c.endedAt.getTime() === consumption.endedAt.getTime());
       consumption.toPrice = this.isConsumptionMeterValue(meterValue);
       if (consumptionToUpdateWith) {
