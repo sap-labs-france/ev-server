@@ -61,6 +61,7 @@
 		"urlencode": "^1.1.0",
 		"uuid": "^3.3.2",
 		"winston": "^3.2.1",
+		"ws": "^6.2.1",
 		"xml-formatter": "^1.1.0"
 	},
 	"devDependencies": {
