@@ -733,7 +733,7 @@ class TransactionStorage {
           });
           // Stop
           await activeTransaction.stopTransaction(activeTransaction.getUserID(), activeTransaction.getTagID(),
-            activeTransaction.getLastMeterValue().value + 1, new Date());
+            activeTransaction.getLastMeterValue().value + 1, new Date(), activeTransaction.timezone);
           // Save Transaction
           await TransactionStorage.saveTransaction(activeTransaction.getTenantID(), activeTransaction.getModel());
         }

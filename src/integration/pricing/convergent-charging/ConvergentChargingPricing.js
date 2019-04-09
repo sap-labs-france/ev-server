@@ -1,5 +1,5 @@
 const StatefulChargingService = require('./StatefulChargingService');
-const moment = require('moment');
+const moment = require('moment-timezone');
 const Logging = require('../../../utils/Logging');
 const Pricing = require('../Pricing');
 
@@ -16,14 +16,16 @@ class ConvergentChargingPricing extends Pricing {
   }
 
   consumptionToChargeableItemProperties(consumptionData) {
+    const startedAt = consumptionData.timezone ? moment.tz(consumptionData.startedAt,consumptionData.timezone) : moment.utc(consumptionData.startedAt).local();
+    const endedAt = consumptionData.timezone ? moment.tz(consumptionData.endedAt,consumptionData.timezone) : moment.utc(consumptionData.startedAt).local();
     return [
       new ChargeableItemProperty('userID', Type.string, consumptionData.userID),
       new ChargeableItemProperty('chargeBoxID', Type.string, consumptionData.chargeBoxID),
       new ChargeableItemProperty('siteID', Type.string, consumptionData.siteID),
       new ChargeableItemProperty('siteAreaID', Type.string, consumptionData.siteAreaID),
       new ChargeableItemProperty('connectorId', Type.number, consumptionData.connectorId),
-      new ChargeableItemProperty('startedAt', Type.date, moment(consumptionData.startedAt).format('YYYY-MM-DDTHH:mm:ss')),
-      new ChargeableItemProperty('endedAt', Type.date, moment(consumptionData.endedAt).format('YYYY-MM-DDTHH:mm:ss')),
+      new ChargeableItemProperty('startedAt', Type.date, startedAt.format('YYYY-MM-DDTHH:mm:ss')),
+      new ChargeableItemProperty('endedAt', Type.date, endedAt.format('YYYY-MM-DDTHH:mm:ss')),
       new ChargeableItemProperty('cumulatedConsumption', Type.number, consumptionData.cumulatedConsumption),
       new ChargeableItemProperty('consumption', Type.number, consumptionData.consumption),
       new ChargeableItemProperty('stateOfCharge', Type.number, consumptionData.stateOfCharge),
