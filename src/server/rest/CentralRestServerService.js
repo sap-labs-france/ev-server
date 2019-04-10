@@ -219,12 +219,12 @@ module.exports = {
           case "StatusNotifications":
             // Delegate
             ChargingStationService.handleGetStatusNotifications(action, req, res, next);
-            break;          
+            break;
           // Get all boot notifications
           case "BootNotifications":
             // Delegate
             ChargingStationService.handleGetBootNotifications(action, req, res, next);
-            break;        
+            break;
           // Get all the companies
           case "Companies":
             // Delegate
@@ -599,6 +599,9 @@ module.exports = {
           case "TransactionDelete":
             // Delegate
             TransactionService.handleDeleteTransaction(action, req, res, next);
+            break;
+          case "IntegrationConnectionDelete":
+            ConnectorService.handleDeleteConnection(action, req, res, next);
             break;
           // Setting
           case "SettingDelete":

@@ -222,6 +222,13 @@ class AuthorizationsDefinition {
 					{
 						"AuthObject": "Connection",
 						"AuthFieldValue": {
+							"UserID": [
+								{{#trim}}
+									{{#userID}}
+										"{{.}}",
+									{{/userID}}
+								{{/trim}}
+							],
 							"Action": ["Create", "Read", "Update", "Delete"]
 						}
 					}

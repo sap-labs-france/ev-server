@@ -7,8 +7,8 @@ class ConnectorSecurity {
   static filterConnectionDeleteRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
-    filteredRequest.ID = sanitize(request.ID);
-    filteredRequest.forced = sanitize(request.forced);
+    filteredRequest.userId = sanitize(request.userId);
+    filteredRequest.connectorId = sanitize(request.connectorId);
     return filteredRequest;
   }
 
