@@ -11,6 +11,7 @@ const User = require('../../../entity/User');
 const SettingStorage = require("../../../storage/mongodb/SettingStorage");
 const ConcurConnector = require("../../../integration/refund/ConcurConnector");
 const fs = require("fs");
+const crypto = require('crypto');
 
 class TransactionService {
   static async handleRefundTransactions(action, req, res, next) {
@@ -570,6 +571,12 @@ class TransactionService {
       transactions.result = TransactionSecurity.filterTransactionsResponse(
         transactions.result, req.user);
 
+      // Hash userId and tagId for confidentiality purposes
+      for (const transaction of transactions.result) {
+        transaction.user.id = transaction.user ? this.hashString(transaction.user.id) : '';
+        transaction.tagID = transaction.tagID ? this.hashString(transaction.tagID) : '';
+      }
+          
       const filename = "transactions_export.csv";
       fs.writeFile(filename, this.convertToCSV(transactions.result), (err) => {
         if (err) {
@@ -658,6 +665,10 @@ class TransactionService {
       csv += `${transaction.stop ? transaction.stop.priceUnit : ''}\r\n`;
     }
     return csv;
+  }
+
+  static hashString(data) {
+    return crypto.createHash('sha256').update(data).digest("hex");;
   }
 }
 
