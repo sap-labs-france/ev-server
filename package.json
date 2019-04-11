@@ -109,8 +109,8 @@
 	},
 	"scripts": {
 		"start": "npm run start:prod",
-		"start:dev": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development nodemon -w dist dist/start.js",
-		"start:dev:debug": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development nodemon --inspect-brk src/start.js",
+		"start:dev": "nodemon -w dist dist/start.js",
+		"start:dev:debug": "nodemon -w src --inspect-brk src/start.js",
 		"start:dev:prof": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development node --prof src/start.js",
 		"start:dev:doctorprof": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development clinic doctor -- node src/start.js",
 		"start:dev:flameprof": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development clinic flame -- node src/start.js",
