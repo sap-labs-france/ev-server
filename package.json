@@ -130,6 +130,7 @@
 		"test": "mocha test/**/*Test.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"test:parallel": "mocha-parallel-tests test/**/*Test.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"test:charging-station": "mocha test/**/OCPP*Test.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
+		"test:charging-station-specifics": "mocha test/**/OCPPSpecificsTest.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"test:tenant": "mocha test/**/TenantTest.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"clinic:clean": "clinic clean",
 		"start:email": "maildev --web 8888 --web-ip 127.0.0.1 --smtp 70 --verbose --incoming-user evse-mail-user --incoming-pass evse-mail-pwd"

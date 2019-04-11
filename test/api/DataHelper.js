@@ -15,7 +15,6 @@ const {mergeMap} = require('rxjs/operators');
 class DataHelper {
 
   constructor(ocppVersion, tenantID, ocppRequestHandler) {
-
     if (ocppVersion === '1.6') {
       this.ocpp = new OCPPJsonService16(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${tenantID}`, ocppRequestHandler);
     } else if (ocppVersion === '1.5') {
@@ -91,7 +90,6 @@ class DataHelper {
   }
 
   async destroyData() {
-
     await this.executeOnAll(this.context.users, user => CentralServerService.deleteEntity(
       CentralServerService.userApi, user));
     this.context.siteAreas.forEach(siteArea => CentralServerService.deleteEntity(
@@ -113,7 +111,6 @@ class DataHelper {
   async close() {
     this.ocpp.closeConnection();
   }
-
 
   async startTransaction(chargingStation, connectorId, tagId, meterStart, startDate) {
     const response = await this.ocpp.executeStartTransaction(chargingStation.id, {
