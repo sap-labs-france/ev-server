@@ -573,7 +573,9 @@ class TransactionService {
 
       // Hash userId and tagId for confidentiality purposes
       for (const transaction of transactions.result) {
-        transaction.user.id = transaction.user ? this.hashString(transaction.user.id) : '';
+        if (transaction.user) {
+          transaction.user.id = transaction.user ? this.hashString(transaction.user.id) : '';
+        }
         transaction.tagID = transaction.tagID ? this.hashString(transaction.tagID) : '';
       }
           
