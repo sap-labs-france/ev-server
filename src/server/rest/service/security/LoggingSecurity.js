@@ -9,6 +9,7 @@ class LoggingSecurity {
     const filteredRequest = {};
     // Get logs
     filteredRequest.DateFrom = sanitize(request.DateFrom);
+    filteredRequest.DateUntil = sanitize(request.DateUntil);
     filteredRequest.Level = sanitize(request.Level);
     filteredRequest.Source = sanitize(request.Source);
     filteredRequest.Search = sanitize(request.Search);

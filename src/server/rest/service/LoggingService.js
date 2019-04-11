@@ -22,7 +22,7 @@ class LoggingService {
       const filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query, req.user);
       // Get logs
       const loggings = await Logging.getLogs(req.user.tenantID, {
-        'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'userID': filteredRequest.UserID,
+        'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'userID': filteredRequest.UserID,
         'level': filteredRequest.Level, 'type': filteredRequest.Type, 'source': filteredRequest.Source,
         'action': filteredRequest.Action
       }, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
@@ -54,7 +54,7 @@ class LoggingService {
       const filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query, req.user);
       // Get logs
       const loggings = await Logging.getLogs(req.user.tenantID, {
-        'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'userID': filteredRequest.UserID,
+        'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'userID': filteredRequest.UserID,
         'level': filteredRequest.Level, 'type': filteredRequest.Type, 'source': filteredRequest.Source,
         'action': filteredRequest.Action
       }, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
