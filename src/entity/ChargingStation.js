@@ -437,8 +437,6 @@ class ChargingStation extends AbstractTenantEntity {
         if (connectors[i]) {
           // update message with proper connectorId
           statusNotification.connectorId = i + 1;
-          // update TS to avoid duplicates in case StatusNotification are also sent in parallel for other connectors
-          statusNotification.timestamp = new Date().toISOString();
           await this.updateConnectorStatus(statusNotification, true);
         }
       }
@@ -518,7 +516,7 @@ class ChargingStation extends AbstractTenantEntity {
           });
           // Stop
           await activeTransaction.stopTransaction(activeTransaction.getUserID(), activeTransaction.getTagID(),
-            activeTransaction.getLastMeterValue().value + 1, new Date(), this.getTimezone());
+            activeTransaction.getLastMeterValue().value + 1, new Date(statusNotification.timestamp), this.getTimezone());
           // Save Transaction
           await activeTransaction.save();
         }
