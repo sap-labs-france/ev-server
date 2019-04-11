@@ -10,19 +10,20 @@ const DataHelper = require('./DataHelper');
 const CentralServerService = require('../api/client/CentralServerService');
 const Factory = require('../factories/Factory');
 
-describe('ChargingStation Keba tests', function() {
+describe('Keba tests', function() {
   this.timeout(10000);
+  
   before(async () => {
     this.dataHelper = new DataHelper('1.6', this.tenantID);
     this.user = await this.dataHelper.createUser();
     this.company = await this.dataHelper.createCompany();
-    this.site = await this.dataHelper.createSite(company, [user]);
+    this.site = await this.dataHelper.createSite(this.company, [this.user]);
     this.chargingStation = await this.dataHelper.createChargingStation(
       Factory.chargingStation.build({
         chargePointVendor: 'Keba AG',
         id: faker.random.alphaNumeric(12)
       }), 1);
-    this.siteArea = await this.dataHelper.createSiteArea(site, [chargingStation]);
+    this.siteArea = await this.dataHelper.createSiteArea(this.site, [this.chargingStation]);
   });
 
   after(async () => {
