@@ -103,6 +103,18 @@ class ConnectionStorage {
     return connection;
   }
 
+  static async deleteConnectionById(tenantID, id) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ConnectionStorage', 'deleteConnection');
+    // Check
+    await Utils.checkTenant(tenantID);
+    // Delete
+    await global.database.getCollection(tenantID, 'connections')
+      .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
+    // Debug
+    Logging.traceEnd('ConnectionStorage', 'deleteConnection', uniqueTimerID, {id});
+  }
+
 }
 
 module.exports = ConnectionStorage;

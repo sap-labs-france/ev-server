@@ -18,8 +18,16 @@ class AbstractConnector extends AbstractTenantEntity {
     return ConnectionStorage.getConnectionsByUserId(tenantId, userId);
   }
 
+  static getConnectionByUserIdAndConnectorId(tenantId, connectorId, userId) {
+    return ConnectionStorage.getConnectionByUserId(tenantId, connectorId, userId);
+  }
+
   static getConnectionById(tenantId, id) {
     return ConnectionStorage.getConnectionById(tenantId, id);
+  }
+
+  static deleteConnectionById(tenantId, id) {
+    return ConnectionStorage.deleteConnectionById(tenantId, id);
   }
 
   getSetting() {
