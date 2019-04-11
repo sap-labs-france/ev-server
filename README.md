@@ -156,9 +156,8 @@ security:
 ```
 
 Restart the MongoDB service with Powershell as an administrator:
-    ```
+
     Restart-Service -Name "MongoDB"
-    ```
 
 Now your database is ready to be used.
 
