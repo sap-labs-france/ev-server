@@ -1,9 +1,9 @@
 {
-  "subject": "<%- chargeBoxID %> connected",
+  "subject": "<%- chargeBoxID %> rebooted or connected",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Charger Connected",
+      "title": "Charger Rebooted or Connected",
       "image": {
         "left": {
           "height": 60,
@@ -18,7 +18,7 @@
     "beforeActionLines": [
       "Hi Admin,",
       "",
-      "<b><%- chargeBoxID %></b> just got connected to the central server."
+      "<b><%- chargeBoxID %></b> just got rebooted or connected to the central server."
     ],
     "action": {
       "title": "View <%- chargeBoxID %>",

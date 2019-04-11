@@ -122,52 +122,33 @@ class Authorizations {
     return compiledAuths;
   }
 
-  static async getOrCreateUserByTagID(chargingStation, siteArea, tagID, action) {
-    let newUserCreated = false;
+  static async _checkUserTagIDOnChargingStation(chargingStation, tagID, isOrgCompActive, action) {
     // Get the user
     let user = await User.getUserByTagId(chargingStation.getTenantID(),tagID);
     // Found?
     if (!user) {
-      // No: Create an empty user
-      const newUser = new User(chargingStation.getTenantID(),{
-        name: (siteArea.isAccessControlEnabled() ? "Unknown" : "Anonymous"),
+      // Check if ACL is active for the charger's site
+      if (isOrgCompActive) {
+        // Get the Site
+        const site = await chargingStation.getSite();
+        // ACL enabled?
+        if (!site.isAccessControlEnabled()) {
+          // No ACL: no user
+          return null;
+        }
+      }
+      // Create an empty user
+      const newUser = new User(chargingStation.getTenantID(), {
+        name: "Unknown",
         firstName: "User",
-        status: (siteArea.isAccessControlEnabled() ? Constants.USER_STATUS_INACTIVE : Constants.USER_STATUS_ACTIVE),
+        status: Constants.USER_STATUS_INACTIVE,
         role: Constants.ROLE_BASIC,
         email: tagID + "@chargeangels.fr",
         tagIDs: [tagID],
         createdOn: new Date().toISOString()
       });
-      // Set the flag
-      newUserCreated = true;
       // Save the user
       user = await newUser.save();
-      // Check User Deleted?
-    } else if (user.getStatus() == Constants.USER_STATUS_DELETED) {
-      // Restore it
-      user.setDeleted(false);
-      // Set default user's value
-      user.setStatus((siteArea.isAccessControlEnabled() ? Constants.USER_STATUS_INACTIVE : Constants.USER_STATUS_ACTIVE));
-      user.setName((siteArea.isAccessControlEnabled() ? "Unknown" : "Anonymous"));
-      user.setFirstName("User");
-      user.setEMail(tagID + "@chargeangels.fr");
-      user.setPhone("");
-      user.setMobile("");
-      user.setImage("");
-      user.setINumber("");
-      user.setCostCenter("");
-      // Log
-      Logging.logSecurityInfo({
-        tenantID: user.getTenantID(),user: user,
-        module: "Authorizations", method: "getOrCreateUserByTagID",
-        message: `User with ID '${user.getID()}' has been restored`,
-        action: action
-      });
-      // Save
-      user = user.save();
-    }
-    // New User?
-    if (newUserCreated) {
       // Notify
       NotificationHandler.sendUnknownUserBadged(
         chargingStation.getTenantID(),
@@ -180,24 +161,45 @@ class Authorizations {
           "evseDashboardUserURL": await Utils.buildEvseUserURL(user)
         }
       );
-    }
-    // Access Control enabled?
-    if (newUserCreated && siteArea.isAccessControlEnabled()) {
-      // Yes
+      // Not authorized
       throw new AppError(
         chargingStation.getID(),
         `User with Tag ID '${tagID}' not found but saved as inactive user`, 500,
-        "Authorizations", "getOrCreateUserByTagID",
-        user.getModel()
+        "Authorizations", "_checkUserTagIDOnChargingStation", user.getModel()
       );
     }
+    // Check User Deleted?
+    if (user.getStatus() == Constants.USER_STATUS_DELETED) {
+      // Yes: Restore it!
+      user.setDeleted(false);
+      // Set default user's value
+      user.setStatus(Constants.USER_STATUS_INACTIVE);
+      user.setName("Unknown");
+      user.setFirstName("User");
+      user.setEMail(tagID + "@chargeangels.fr");
+      user.setPhone("");
+      user.setMobile("");
+      user.setImage("");
+      user.setINumber("");
+      user.setCostCenter("");
+      // Log
+      Logging.logSecurityInfo({
+        tenantID: user.getTenantID(),user: user,
+        module: "Authorizations", method: "_checkUserTagIDOnChargingStation",
+        message: `User with ID '${user.getID()}' has been restored`,
+        action: action
+      });
+      // Save
+      user = user.save();
+    }
+    // Authorized
     return user;
   }
 
   static async getConnectorActionAuthorizations(tenantID, user, chargingStation, connector, siteArea, site) {
     const tenant = await Tenant.getTenant(tenantID);
-    const isOrganizationComponentActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
-    if (isOrganizationComponentActive && (!siteArea || !site)) {
+    const isOrgCompActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+    if (isOrgCompActive && (!siteArea || !site)) {
       throw new AppError(
         chargingStation.getID(),
         `Site area and site not provided for Charging Station '${chargingStation.getID()}'!`, 500,
@@ -210,7 +212,7 @@ class Authorizations {
     let accessControlEnable = true;
     let userAllowedToStopAllTransactions = false;
     let isSameUserAsTransaction = false;
-    if (isOrganizationComponentActive) {
+    if (isOrgCompActive) {
       // Acces Control Enabled?
       accessControlEnable = siteArea.isAccessControlEnabled();
       // Allow to stop all transactions
@@ -240,14 +242,14 @@ class Authorizations {
       'isTransactionDisplayAuthorized': false};
     if (user.getRole() === Constants.ROLE_ADMIN) {
       // An admin has all authorizations except for site where he is not assigned and in case site management is not active
-      const defaultAuthorization = ( isOrganizationComponentActive && isUserAssignedToSite ) || ( !isOrganizationComponentActive );
+      const defaultAuthorization = ( isOrgCompActive && isUserAssignedToSite ) || ( !isOrgCompActive );
       result.isStartAuthorized = result.isStartAuthorized && defaultAuthorization;
       result.isStopAuthorized = result.isStopAuthorized && defaultAuthorization;
       result.isTransactionDisplayAuthorized = defaultAuthorization;
     }
     if (user.getRole() === Constants.ROLE_DEMO) {
       // Demon user can never start nor stop transaction and can display details only for assigned site
-      const defaultAuthorization = ( isOrganizationComponentActive && isUserAssignedToSite ) || ( !isOrganizationComponentActive );
+      const defaultAuthorization = ( isOrgCompActive && isUserAssignedToSite ) || ( !isOrgCompActive );
       result.isStartAuthorized = false;
       result.isStopAuthorized = false;
       result.isTransactionDisplayAuthorized = defaultAuthorization;
@@ -255,130 +257,116 @@ class Authorizations {
     if (user.getRole() === Constants.ROLE_BASIC) {
       // Basic user can start a transaction if he is assigned to the site or site management is not active
       result.isStartAuthorized =  result.isStartAuthorized &&
-        ( isOrganizationComponentActive && isUserAssignedToSite ) || ( !isOrganizationComponentActive );
+        ( isOrgCompActive && isUserAssignedToSite ) || ( !isOrgCompActive );
       // Basic user can start a transaction if he is assigned to the site or site management is not active
       result.isStopAuthorized = result.isStopAuthorized &&
         // Site Management is active  and user assigned to site and anyone allowed to stop or same user as transaction
         // or access control disable
-        ( isOrganizationComponentActive && isUserAssignedToSite &&
+        ( isOrgCompActive && isUserAssignedToSite &&
           (userAllowedToStopAllTransactions || isSameUserAsTransaction || !accessControlEnable) ) ||
         // Site management inactive and badge access control and user identical to transaction
-        ( !isOrganizationComponentActive && accessControlEnable && isSameUserAsTransaction) ||
+        ( !isOrgCompActive && accessControlEnable && isSameUserAsTransaction) ||
         // Site management inactive and no badge access control
-        ( !isOrganizationComponentActive && !accessControlEnable);
+        ( !isOrgCompActive && !accessControlEnable);
       result.isTransactionDisplayAuthorized =
       // Site Management is active  and user assigned to site and same user as transaction
       // or access control disable
-      ( isOrganizationComponentActive && isUserAssignedToSite &&
+      ( isOrgCompActive && isUserAssignedToSite &&
         (isSameUserAsTransaction || !accessControlEnable) ) ||
       // Site management inactive and badge access control and user identical to transaction
-      ( !isOrganizationComponentActive && accessControlEnable && isSameUserAsTransaction) ||
+      ( !isOrgCompActive && accessControlEnable && isSameUserAsTransaction) ||
       // Site management inactive and no badge access control
-      ( !isOrganizationComponentActive && !accessControlEnable);
+      ( !isOrgCompActive && !accessControlEnable);
     }
     return result;
   }
 
-  static async checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, tagID, alternateTagID) {
-    // Site Area -----------------------------------------------
-    const siteArea = await chargingStation.getSiteArea();
-    // Site is mandatory
-    if (!siteArea) {
-      // Reject Site Not Found
-      throw new AppError(
-        chargingStation.getID(),
-        `Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`, 525,
-        "Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation");
+  static async isTagIDAuthorizedOnChargingStation(chargingStation, tagID, action) {
+    // Get the Organization component
+    const isOrgCompActive = await chargingStation.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+    // Get user
+    let user = null
+    // Get the user
+    if (tagID) {
+      user = await Authorizations._checkUserTagIDOnChargingStation(
+        chargingStation, tagID, isOrgCompActive, action);
     }
-    // Acces Control Enabled?
-    if (!siteArea.isAccessControlEnabled()) {
-      // No control
-      return null;
+    // Found?
+    if (user) {
+      // Check Authorization
+      await Authorizations.checkUserOnChargingStation(
+        chargingStation, user, isOrgCompActive, action);
     }
-    let alternateUser;
-    // User -------------------------------------------------
-    const user = await Authorizations.getOrCreateUserByTagID(chargingStation, siteArea, tagID, action);
-    // Site -----------------------------------------------------
-    const site = await siteArea.getSite(null, true);
-    if (!site) {
-      // Reject Site Not Found
-      throw new AppError(
-        chargingStation.getID(),
-        `Site Area '${siteArea.getName()}' is not assigned to a Site!`, 525,
-        "Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
-        user.getModel());
+    return user;
+  }
+
+  static async checkUserOnChargingStation(chargingStation, user, isOrgCompActive, action) {
+    // Org component enabled?
+    if (isOrgCompActive) {
+      // Site Area -----------------------------------------------
+      const siteArea = await chargingStation.getSiteArea();
+      // Site is mandatory
+      if (!siteArea) {
+        // Reject Site Not Found
+        throw new AppError(
+          chargingStation.getID(),
+          `Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`, 525,
+          "Authorizations", "checkUserOnChargingStation",
+          user.getModel());
+      }
+      // Access Control Enabled?
+      if (!siteArea.isAccessControlEnabled()) {
+        // No control
+        return;
+      }
+      // Site -----------------------------------------------------
+      const site = await siteArea.getSite(null, true);
+      if (!site) {
+        // Reject Site Not Found
+        throw new AppError(
+          chargingStation.getID(),
+          `Site Area '${siteArea.getName()}' is not assigned to a Site!`, 525,
+          "Authorizations", "checkUserOnChargingStation",
+          user.getModel());
+      }
     }
-    // Get and Check Alternate User
-    if (alternateTagID) {
-      alternateUser = await Authorizations.getOrCreateUserByTagID(chargingStation, siteArea, alternateTagID, action);
-    }
-    // Set current user
-    const currentUser = (alternateUser ? alternateUser : user);
     // Check User status
-    if (currentUser.getStatus() !== Constants.USER_STATUS_ACTIVE) {
+    if (user.getStatus() !== Constants.USER_STATUS_ACTIVE) {
       // Reject but save ok
       throw new AppError(
         chargingStation.getID(),
-        `User with TagID '${tagID}' is '${User.getStatusDescription(currentUser.getStatus())}'`, 500,
-        "Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
+        `${Utils.buildUserFullName(user)} is '${User.getStatusDescription(user.getStatus())}'`, 500,
+        "Authorizations", "checkUserOnChargingStation",
         user.getModel());
     }
     // Build Authorizations -----------------------------------------------------
-    const auths = await Authorizations.buildAuthorizations(currentUser);
+    const auths = await Authorizations.buildAuthorizations(user);
     // Set
-    currentUser.setAuthorisations(auths);
+    user.setAuthorisations(auths);
     // Check if User belongs to a Site ------------------------------------------
-    const foundUser = await site.getUser(user.getID());
-    // User not found and Access Control Enabled?
-    if (!foundUser) {
-      // Yes: Reject the User
-      throw new AppError(
-        chargingStation.getID(),
-        `User is not assigned to the Site '${site.getName()}'!`, 525,
-        "Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
-        user.getModel());
-    }
-    // Check if Alternate User belongs to a Site --------------------------------
-    if (alternateUser) {
-      const foundAlternateUser = await site.getUser(alternateUser.getID());
-      // Alternate User not found and Access Control Enabled?
-      if (!foundAlternateUser) {
-        // Reject the User
+    // Org component enabled?
+    if (isOrgCompActive) {
+      const foundUser = await site.getUser(user.getID());
+      // User not found and Access Control Enabled?
+      if (!foundUser) {
+        // Yes: Reject the User
         throw new AppError(
           chargingStation.getID(),
           `User is not assigned to the Site '${site.getName()}'!`, 525,
-          "Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
-          alternateUser.getModel());
+          "Authorizations", "checkUserOnChargingStation",
+          user.getModel());
       }
     }
-    // Check if users are differents
-    if (alternateUser && (user.getID() !== alternateUser.getID()) &&
-      !Authorizations.isAdmin(alternateUser.getModel()) && !site.isAllowAllUsersToStopTransactionsEnabled()) {
-      // Reject the User
-      throw new AppError(
-        chargingStation.getID(),
-        `User '${alternateUser.getFullName()}' is not allowed to perform '${action}' on User '${user.getFullName()}' on Site '${site.getName()}'!`,
-        525, "Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
-        alternateUser.getModel(), user.getModel());
-    }
-    // Can perform action?
-    if (!Authorizations.canPerformActionOnChargingStation(
-      currentUser.getModel(),
-      chargingStation.getModel(),
-      action)) {
+    // Authorized?
+    if (!Authorizations.canPerformActionOnChargingStation(user.getModel(), chargingStation.getModel(), action)) {
       // Not Authorized!
       throw new AppAuthError(
         action,
         Constants.ENTITY_CHARGING_STATION,
         chargingStation.getID(),
-        500, "Authorizations", "checkAndGetIfUserIsAuthorizedForChargingStation",
-        currentUser.getModel());
+        500, "Authorizations", "checkUserOnChargingStation",
+        user.getModel());
     }
-    // Return
-    return {
-      "user": user,
-      "alternateUser": alternateUser
-    };
   }
 
   static canListLogging(loggedUser) {

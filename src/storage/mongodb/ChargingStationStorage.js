@@ -756,7 +756,8 @@ class ChargingStationStorage {
         tagID: authorize.idTag,
         chargeBoxID: authorize.chargeBoxID,
         userID: authorize.userID,
-        timestamp: Utils.convertToDate(authorize.timestamp)
+        timestamp: Utils.convertToDate(authorize.timestamp),
+        timezone: authorize.timezone
       });
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveAuthorize', uniqueTimerID);

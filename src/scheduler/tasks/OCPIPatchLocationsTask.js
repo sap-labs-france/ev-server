@@ -20,7 +20,7 @@ class OCPIPatchLocationsTask extends SchedulerTask {
   static async processTenant(tenant, config) {
     try {
       // check if OCPI component is active
-      if (!tenant.isComponentActive(Constants.COMPONENTS.OCPI_COMPONENT)) {
+      if (!tenant.isComponentActive(Constants.COMPONENTS.OCPI)) {
         Logging.logDebug({
           tenantID: tenant.getID(),
           module: "OCPIPatchLocationsTask",

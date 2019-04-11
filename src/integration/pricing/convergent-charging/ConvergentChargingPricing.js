@@ -5,19 +5,15 @@ const Pricing = require('../Pricing');
 
 
 class ConvergentChargingPricing extends Pricing {
-  /**
-   *
-   * @param tenantId {string}
-   * @param transaction {transaction}
-   */
   constructor(tenantId, setting, transaction) {
     super(tenantId, setting, transaction);
     this.statefulChargingService = new StatefulChargingService(this.setting.url, this.setting.user, this.setting.password);
   }
 
   consumptionToChargeableItemProperties(consumptionData) {
-    const startedAt = consumptionData.timezone ? moment.tz(consumptionData.startedAt,consumptionData.timezone) : moment.utc(consumptionData.startedAt).local();
-    const endedAt = consumptionData.timezone ? moment.tz(consumptionData.endedAt,consumptionData.timezone) : moment.utc(consumptionData.startedAt).local();
+    const timezone = this.transaction.getTimezone();
+    const startedAt = timezone ? moment.tz(timezone) : moment.utc(consumptionData.startedAt).local();
+    const endedAt = timezone ? moment.tz(consumptionData.endedAt, timezone) : moment.utc(consumptionData.startedAt).local();
     return [
       new ChargeableItemProperty('userID', Type.string, consumptionData.userID),
       new ChargeableItemProperty('chargeBoxID', Type.string, consumptionData.chargeBoxID),

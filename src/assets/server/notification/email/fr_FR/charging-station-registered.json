@@ -1,9 +1,9 @@
 {
-  "subject": "<%- chargeBoxID %> connectée",
+  "subject": "<%- chargeBoxID %> redémarrée ou connectée",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Borne Connectée",
+      "title": "Borne Redémarrée ou Connectée",
       "image": {
         "left": {
           "height": 60,
@@ -18,7 +18,7 @@
     "beforeActionLines": [
       "Bonjour Admin,",
       "",
-      "<b><%- chargeBoxID %></b> vient de se connecter au central serveur."
+      "<b><%- chargeBoxID %></b> vient de redémarrer ou de se connecter au serveur central."
     ],
     "action": {
       "title": "Voir <%- chargeBoxID %>",

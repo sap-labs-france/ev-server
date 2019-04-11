@@ -7,7 +7,7 @@ const Transaction = require('./Transaction');
 const SiteArea = require('./SiteArea');
 const Constants = require('../utils/Constants');
 const Database = require('../utils/Database');
-const moment = require('moment');
+const moment = require('moment-timezone');
 const Configuration = require('../utils/Configuration');
 const NotificationHandler = require('../notification/NotificationHandler');
 const Authorizations = require('../authorization/Authorizations');
@@ -15,9 +15,10 @@ const BackendError = require('../exception/BackendError');
 const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
 const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const momentDurationFormatSetup = require("moment-duration-format");
-momentDurationFormatSetup(moment);
 const _configChargingStation = Configuration.getChargingStationConfig();
 const tzlookup = require("tz-lookup");
+
+momentDurationFormatSetup(moment);
 
 class ChargingStation extends AbstractTenantEntity {
   constructor(tenantID, chargingStation) {
@@ -415,133 +416,97 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   async handleStatusNotification(statusNotification) {
-    // Set the Station ID
+    // Check props
+    this._checkStatusNotificationProps(statusNotification);
+    // Set Header
     statusNotification.chargeBoxID = this.getID();
-    if (!statusNotification.timestamp) {
-      statusNotification.timestamp = new Date().toISOString();
-    }
+    statusNotification.timezone = this.getTimezone();
     // Handle connectorId = 0 case => Currently status is distributed to each individual connectors
-    if (parseInt(statusNotification.connectorId) === 0) {
+    if (statusNotification.connectorId === 0) {
       // Log
       Logging.logWarning({
         tenantID: this.getTenantID(),
         source: this.getID(), module: 'ChargingStation',
         method: 'handleStatusNotification', action: 'StatusNotification',
-        message: `Connector '${statusNotification.connectorId}': '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
+        message: `Connector ID equals to '0' with status '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
       });
       // Get the connectors
       const connectors = this.getConnectors();
-      // Update ALL connectors -----------------------------------------
+      // Update ALL connectors
       for (let i = 0; i < connectors.length; i++) {
-        // Check if former connector can be set
-        if (connectors[i]) {
-          // update message with proper connectorId
-          statusNotification.connectorId = i + 1;
-          await this.updateConnectorStatus(statusNotification, true);
-        }
+        // update message with proper connectorId
+        statusNotification.connectorId = connectors[i].connectorId;
+        // Update
+        await this._updateConnectorStatus(statusNotification, true);
       }
     } else {
       // update only the given connectorId
-      await this.updateConnectorStatus(statusNotification, false);
+      await this._updateConnectorStatus(statusNotification, false);
     }
   }
 
-  async updateConnectorStatus(statusNotification, bothConnectorsUpdated) {
-    // Get the connectors
-    const connectors = this.getConnectors();
-    // Init previous connector status
-    for (let i = 0; i < statusNotification.connectorId; i++) {
-      // Check if former connector can be set
-      if (!connectors[i]) {
-        // Init
-        connectors[i] = {connectorId: i + 1, currentConsumption: 0, status: 'Unknown', power: 0};
-      }
+  _checkStatusNotificationProps(statusNotification) {
+    // Check non mandatory timestamp
+    if (!statusNotification.timestamp) {
+      // Create
+      statusNotification.timestamp = new Date().toISOString();
     }
-    // Set the status
-    connectors[statusNotification.connectorId - 1].connectorId = Utils.convertToInt(statusNotification.connectorId);
-    // Error Code?
-    connectors[statusNotification.connectorId - 1].status = statusNotification.status;
-    connectors[statusNotification.connectorId - 1].errorCode = statusNotification.errorCode;
-    connectors[statusNotification.connectorId - 1].info = (statusNotification.info ? statusNotification.info : '');
-    connectors[statusNotification.connectorId - 1].vendorErrorCode = (statusNotification.vendorErrorCode ? statusNotification.vendorErrorCode : '');
-    // Set
-    this.setConnectors(connectors);
-    if (!connectors[statusNotification.connectorId - 1].power) {
+    // Check
+    statusNotification.connectorId = Utils.convertToInt(statusNotification.connectorId);
+  }
+
+  async _updateConnectorStatus(statusNotification, bothConnectorsUpdated) {
+    // Get it
+    const connector = this.getConnector(statusNotification.connectorId);
+    if (!connector) {
+      // Does not exist: Create
+      connector = { connectorId: i + 1, currentConsumption: 0, status: 'Unknown', power: 0 };
+      // Add
+      this.getConnectors().push(connector);
       // Update Connector's Power
-      this.updateConnectorsPower();
+      this._updateConnectorsPower();
     }
-    // Save Status Notif
+    // Check if status has changed
+    if (connector.status === statusNotification.status &&
+        connector.errorCode === statusNotification.errorCode) {
+      // No Change: Do not save it
+      Logging.logWarning({
+        tenantID: this.getTenantID(), source: this.getID(),
+        module: 'ChargingStation', method: 'handleStatusNotification', action: 'StatusNotification',
+        message: `Status on Connector '${statusNotification.connectorId}' has not changed then not saved: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}''`
+      });
+      return;
+    }
+    // Set connector data
+    connector.connectorId = statusNotification.connectorId;
+    connector.status = statusNotification.status;
+    connector.errorCode = statusNotification.errorCode;
+    connector.info = (statusNotification.info ? statusNotification.info : '');
+    connector.vendorErrorCode = (statusNotification.vendorErrorCode ? statusNotification.vendorErrorCode : '');
+    // Save Status Notification
     await ChargingStationStorage.saveStatusNotification(this.getTenantID(), statusNotification);
     // Log
     Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(),
-      module: 'ChargingStation',
-      method: 'handleStatusNotification',
-      action: 'StatusNotification',
-      message: `'${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}' on Connector '${statusNotification.connectorId}' has been saved`
+      tenantID: this.getTenantID(), source: this.getID(),
+      module: 'ChargingStation', method: 'handleStatusNotification', action: 'StatusNotification',
+      message: `Connector '${statusNotification.connectorId}' status '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}' has been saved`
     });
-    // Check if connector is available and a transaction is ongoing (ABB fucking bitch bug)
-    if ((statusNotification.status === Constants.CONN_STATUS_AVAILABLE ||
-      statusNotification.status === Constants.CONN_STATUS_FINISHING) &&
-      !bothConnectorsUpdated &&
-      connectors[statusNotification.connectorId - 1].activeTransactionID > 0) {
-      // Clear
-      connectors[statusNotification.connectorId - 1].currentConsumption = 0;
-      connectors[statusNotification.connectorId - 1].totalConsumption = 0;
-      connectors[statusNotification.connectorId - 1].currentStateOfCharge = 0;
-      connectors[statusNotification.connectorId - 1].activeTransactionID = 0;
-      // Check transaction
-      const activeTransaction = await Transaction.getActiveTransaction(this.getTenantID(), this.getID(), statusNotification.connectorId);
-      // Found?
-      if (activeTransaction) {
-        // Has consumption?
-        if (activeTransaction.getCurrentTotalConsumption() <= 0) {
-          // No consumption: delete
-          Logging.logError({
-            tenantID: this.getTenantID(),
-            source: this.getID(), module: 'ChargingStation', method: 'updateConnectorStatus',
-            action: 'StartTransaction', actionOnUser: activeTransaction.getUserID(),
-            message: `Pending Transaction ID '${activeTransaction.getID()}' has been deleted on Connector '${activeTransaction.getConnectorId()}'`
-          });
-          // Delete
-          await activeTransaction.delete();
-        } else {
-          // Has consumption: close it!
-          Logging.logWarning({
-            tenantID: this.getTenantID(),
-            source: this.getID(), module: 'ChargingStation', method: 'updateConnectorStatus',
-            action: 'StatusNotification', actionOnUser: activeTransaction.getUserID(),
-            message: `Active Transaction ID '${activeTransaction.getID()}' has been closed on Connector '${activeTransaction.getConnectorId()}'`
-          });
-          // Stop
-          await activeTransaction.stopTransaction(activeTransaction.getUserID(), activeTransaction.getTagID(),
-            activeTransaction.getLastMeterValue().value + 1, new Date(statusNotification.timestamp), this.getTimezone());
-          // Save Transaction
-          await activeTransaction.save();
-        }
-        // Clean up connector
-        const otherConnectorsFreed = await this.freeConnector(activeTransaction.getConnectorId());
-        if (otherConnectorsFreed) {
-          // Save all other connectors
-          this.getConnectors().forEach(async (connector) => {
-            // Do not update Transaction's connector
-            if (connector.connectorId !== activeTransaction.getConnectorId()) {
-              // Save
-              await ChargingStationStorage.saveChargingStationConnector(this.getTenantID(), this.getModel(), connector.connectorId);
-            }
-          });
-        }
-      }
-    }
-    // Notify if error
+    // Handle connector is available but a transaction is ongoing (ABB bug)!!!
+    this._checkStatusNotificationOngoingTransaction(statusNotification, connector, bothConnectorsUpdated);
+    // Notify admins
+    this._notifyStatusNotification(statusNotification);
+    // Save Connector
+    await ChargingStationStorage.saveChargingStationConnector(this.getTenantID(), this.getModel(), statusNotification.connectorId);
+  }
+
+  async _notifyStatusNotification(statusNotification) {
+    // Faulted?
     if (statusNotification.status === Constants.CONN_STATUS_FAULTED) {
       // Log
       Logging.logError({
-        tenantID: this.getTenantID(),
-        source: this.getID(), module: 'ChargingStation',
-        method: 'handleStatusNotification', action: 'StatusNotification',
-        message: `Error on connector ${statusNotification.connectorId}: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : "N/A")}'`
+        tenantID: this.getTenantID(), source: this.getID(), module: 'ChargingStation',
+        method: '_notifyStatusNotification', action: 'StatusNotification',
+        message: `Error on Connector '${statusNotification.connectorId}': '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : "N/A")}'`
       });
       // Send Notification
       NotificationHandler.sendChargingStationStatusError(
@@ -561,11 +526,51 @@ class ChargingStation extends AbstractTenantEntity {
         }
       );
     }
-    // Save Connector
-    await ChargingStationStorage.saveChargingStationConnector(this.getTenantID(), this.getModel(), statusNotification.connectorId);
   }
 
-  async updateConnectorsPower() {
+  async _checkStatusNotificationOngoingTransaction(statusNotification, connector, bothConnectorsUpdated) {
+    // Check the status
+    if (!bothConnectorsUpdated &&
+        connector.activeTransactionID > 0 &&
+        (statusNotification.status === Constants.CONN_STATUS_AVAILABLE || statusNotification.status === Constants.CONN_STATUS_FINISHING)) {
+      // Cleanup connector transaction data
+      this._cleanupConnectorTransactionInfo(statusNotification.connectorId);
+      // Check transaction
+      const activeTransaction = await Transaction.getActiveTransaction(this.getTenantID(), this.getID(), statusNotification.connectorId);
+      // Found?
+      if (activeTransaction) {
+        // Has consumption?
+        if (activeTransaction.getCurrentTotalConsumption() <= 0) {
+          // No consumption: delete
+          Logging.logError({
+            tenantID: this.getTenantID(),
+            source: this.getID(), module: 'ChargingStation', method: '_checkStatusNotificationOngoingTransaction',
+            action: 'StartTransaction', actionOnUser: activeTransaction.getUserID(),
+            message: `Pending Transaction ID '${activeTransaction.getID()}' has been deleted on Connector '${activeTransaction.getConnectorId()}'`
+          });
+          // Delete
+          await activeTransaction.delete();
+        } else {
+          // Has consumption: close it!
+          Logging.logWarning({
+            tenantID: this.getTenantID(),
+            source: this.getID(), module: 'ChargingStation', method: '_checkStatusNotificationOngoingTransaction',
+            action: 'StatusNotification', actionOnUser: activeTransaction.getUserID(),
+            message: `Active Transaction ID '${activeTransaction.getID()}' has been closed on Connector '${activeTransaction.getConnectorId()}'`
+          });
+          // Stop
+          await activeTransaction.stopTransaction(activeTransaction.getUserID(), activeTransaction.getTagID(),
+            activeTransaction.getLastMeterValue().value + 1, new Date(statusNotification.timestamp));
+          // Save Transaction
+          await activeTransaction.save();
+        }
+        // Clean up connector
+        await this._checkAndFreeConnector(activeTransaction.getConnectorId(), true);
+      }
+    }
+  }
+
+  async _updateConnectorsPower() {
     let voltageRerefence = 0;
     let current = 0;
     let nbPhase = 0;
@@ -669,7 +674,7 @@ class ChargingStation extends AbstractTenantEntity {
     // Update Charger Max Power?
     if (!this.getMaximumPower()) {
       // Yes
-      await this.updateConnectorsPower();
+      await this._updateConnectorsPower();
       // Save Charger
       await this.save();
     }
@@ -771,7 +776,7 @@ class ChargingStation extends AbstractTenantEntity {
       message: `Configuration has been saved`
     });
     // Update connector power
-    await this.updateConnectorsPower();
+    await this._updateConnectorsPower();
     // Ok
     return {status: 'Accepted'};
   }
@@ -792,12 +797,8 @@ class ChargingStation extends AbstractTenantEntity {
       // Handle End Of charge
       this.checkNotificationEndOfCharge(transaction);
     } else {
-      // Set consumption
-      connector.currentConsumption = 0;
-      connector.totalConsumption = 0;
-      connector.currentStateOfCharge = 0;
-      // Reset Transaction ID
-      connector.activeTransactionID = 0;
+      // Cleanup connector transaction data
+      this._cleanupConnectorTransactionInfo(transaction.getConnectorId());
     }
     // Log
     Logging.logInfo({
@@ -904,7 +905,7 @@ class ChargingStation extends AbstractTenantEntity {
 
   async handleMeterValues(meterValues) {
     // Check params
-    this._checkMeterValuesJson(meterValues);
+    this._checkMeterValuesProps(meterValues);
     // Normalize Meter Values
     const newMeterValues = this._normalizeMeterValues(meterValues)
     // Handle charger specificities
@@ -947,19 +948,19 @@ class ChargingStation extends AbstractTenantEntity {
     }
   }
 
-  _checkMeterValuesJson(meterValues) {
+  _checkMeterValuesProps(meterValues) {
+    // Convert
+    meterValues.connectorId = Utils.convertToInt(meterValues.connectorId);
     // Check Connector ID
-    if (meterValues.connectorId == 0) {
+    if (meterValues.connectorId === 0) {
       // BUG KEBA: Connector ID must be > 0 according OCPP
       Logging.logWarning({
         tenantID: this.getTenantID(),
-        source: this.getID(), module: 'ChargingStation', method: 'checkMeterValues',
+        source: this.getID(), module: 'ChargingStation', method: '_checkMeterValuesProps',
         action: 'MeterValues', message: `Connector ID cannot be equal to '0' and has been reset to '1'`
       });
       // Set to 1 (KEBA has only one connector)
       meterValues.connectorId = 1;
-    } else {
-      meterValues.connectorId = Utils.convertToInt(meterValues.connectorId);
     }    
     // Check if the transaction ID matches
     const chargerTransactionId = this.getConnector(meterValues.connectorId).activeTransactionID;
@@ -972,7 +973,7 @@ class ChargingStation extends AbstractTenantEntity {
           // No: Log that the transaction ID will be reused
           Logging.logWarning({
             tenantID: this.getTenantID(), source: this.getID(),
-            module: 'ChargingStation', method: 'checkMeterValues', action: 'MeterValues',
+            module: 'ChargingStation', method: '_checkMeterValuesProps', action: 'MeterValues',
             message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
           });
         }
@@ -984,7 +985,7 @@ class ChargingStation extends AbstractTenantEntity {
       // Yes: Use Connector's Transaction ID
       Logging.logWarning({
         tenantID: this.getTenantID(), source: this.getID(),
-        module: 'ChargingStation', method: 'checkMeterValues', action: 'MeterValues',
+        module: 'ChargingStation', method: '_checkMeterValuesProps', action: 'MeterValues',
         message: `Transaction ID is not provided but retrieved from StartTransaction '${chargerTransactionId}'`
       });
       // Override it
@@ -995,7 +996,7 @@ class ChargingStation extends AbstractTenantEntity {
       // Wrong Transaction ID!
       throw new BackendError(this.getID(),
         `Transaction ID '${chargerTransactionId}' is invalid on Connector '${meterValues.connectorId}', Meter Values not saved`,
-        "ChargingStation", "checkMeterValues");
+        "ChargingStation", "_checkMeterValuesProps");
     }
   }
 
@@ -1018,7 +1019,7 @@ class ChargingStation extends AbstractTenantEntity {
       const newMeterValue = {};
       // Set the Meter Value header
       newMeterValue.chargeBoxID = newMeterValues.chargeBoxID;
-      newMeterValue.connectorId = Utils.convertToInt(meterValues.connectorId);
+      newMeterValue.connectorId = meterValues.connectorId;
       newMeterValue.transactionId = meterValues.transactionId;
       newMeterValue.timestamp = value.timestamp;
       // OCPP 1.6
@@ -1148,36 +1149,21 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   async handleAuthorize(authorize) {
-    // Set the charger ID
+    // Set header
     authorize.chargeBoxID = this.getID();
     authorize.timestamp = new Date();
-    // Execute
-    const users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
-      Constants.ACTION_AUTHORIZE, this, authorize.idTag);
+    authorize.timezone = this.getTimezone();
     // Check
-    if (users) {
-      // Set current user
-      authorize.user = users.user;
-    }
+    authorize.user = await Authorizations.isTagIDAuthorizedOnChargingStation(this, authorize.idTag, Constants.ACTION_AUTHORIZE);
     // Save
     await ChargingStationStorage.saveAuthorize(this.getTenantID(), authorize);
     // Log
-    if (authorize.user) {
-      // Log
-      Logging.logInfo({
-        tenantID: this.getTenantID(),
-        source: this.getID(), module: 'ChargingStation', method: 'handleAuthorize',
-        action: 'Authorize', user: authorize.user.getModel(),
-        message: `User has been authorized to use Charging Station`
-      });
-    } else {
-      // Log
-      Logging.logInfo({
-        tenantID: this.getTenantID(),
-        source: this.getID(), module: 'ChargingStation', method: 'handleAuthorize',
-        action: 'Authorize', message: `Anonymous user has been authorized to use the Charging Station`
-      });
-    }
+    Logging.logInfo({
+      tenantID: this.getTenantID(),
+      source: this.getID(), module: 'ChargingStation', method: 'handleAuthorize',
+      action: 'Authorize', user: (authorize.user ? authorize.user.getModel() : null),
+      message: `User has been authorized to use Charging Station`
+    });
   }
 
   /**
@@ -1208,80 +1194,79 @@ class ChargingStation extends AbstractTenantEntity {
     return company;
   }
 
-  async handleStartTransaction(startTransaction) {
-    let user;
+  _checkStartTransactionProps(startTransaction) {
     // Check the timestamp
     if (!startTransaction.hasOwnProperty("timestamp")) {
-      // Create one
-      startTransaction.timestamp = new Date().toISOString();
-      // BUG EBEE: Timestamp is mandatory according OCPP
-      Logging.logWarning({
-        tenantID: this.getTenantID(),
-        source: this.getID(),
-        module: 'ChargingStation',
-        method: 'handleStartTransaction',
-        action: 'StartTransaction',
-        message: `The 'timestamp' property has not been provided and has been set to '${startTransaction.timestamp}'`
-      });
+        // BUG EBEE: Timestamp is mandatory according OCPP
+      throw new BackendError(this.getID(),
+        `The 'timestamp' property has not been provided`,
+        "ChargingStation", "_checkStartTransactionProps", "StartTransaction");
     }
     // Check the meter start
     if (!startTransaction.hasOwnProperty("meterStart")) {
-      // Create one
-      startTransaction.meterStart = 0;
       // BUG EBEE: MeterStart is mandatory according OCPP
-      Logging.logWarning({
-        tenantID: this.getTenantID(),
-        source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
-        action: 'StartTransaction', message: `The 'meterStart' property has not been provided and has been set to '0'`
-      });
+      throw new BackendError(this.getID(),
+        `The 'meterStart' property has not been provided`,
+        "ChargingStation", "_checkStartTransactionProps", "StartTransaction");
     }
-    // Set the charger ID
-    startTransaction.chargeBoxID = this.getID();
     // Check Tag ID
     if (!startTransaction.idTag) {
       throw new BackendError(this.getID(),
         `The Badge ID is mandatory`,
-        "ChargingStation", "handleStartTransaction")
+        "ChargingStation", "_checkStartTransactionProps", "StartTransaction");
     }
+    // Check Connector ID
+    if (!this.getConnector(transaction.getConnectorId())) {
+      throw new BackendError(this.getID(),
+        `The Connector ID is invalid: '${transaction.getConnectorId()}'`,
+        "ChargingStation", "_checkStartTransactionProps", "StartTransaction");
+    }
+  }
+
+  async handleStartTransaction(startTransaction) {
+    // Check params
+    this._checkStartTransactionProps(startTransaction);
+    // Set the header
+    startTransaction.chargeBoxID = this.getID();
     startTransaction.tagID = startTransaction.idTag;
+    startTransaction.timezone = this.getTimezone();
+    // Get the Organization component
+    const isOrgCompActive = await this.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
     // Check Authorization with Tag ID
-    const users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
-      Constants.ACTION_START_TRANSACTION, this, startTransaction.tagID);
-    if (users) {
-      // Set current user
-      user = (users.alternateUser ? users.alternateUser : users.user);
+    const user = await Authorizations.isTagIDAuthorizedOnChargingStation(
+      this, startTransaction.tagID, Constants.ACTION_START_TRANSACTION);
+    if (user) {
       // Set the user
       startTransaction.user = user.getModel();
     }
-    // Set the Site ID
-    startTransaction.siteAreaID = this.getSiteAreaID();
-    // Get the Site
-    const site = await this.getSite();
-    // Set
-    if (site) {
-      startTransaction.siteID = site.getID();
+    // Check Org
+    if (isOrganizationComponentActive) {
+      // Set the Site ID
+      startTransaction.siteAreaID = this.getSiteAreaID();
+      // Get the Site
+      const site = await this.getSite();
+      // Set
+      if (site) {
+        startTransaction.siteID = site.getID();
+      }      
     }
     // Create
     let transaction = new Transaction(this.getTenantID(), startTransaction);
     // Start Transactions
-    await transaction.startTransaction(user, this.getTimezone());
-    // Cleanup old ongoing transactions
+    await transaction.startTransaction(user);
+    // Cleanup ongoing transactions
     await Transaction.cleanupRemainingActiveTransactions(this.getTenantID(), this.getID(), transaction.getConnectorId());
-    // Save it
+    // Save
     transaction = await transaction.save();
     // Lock the other connectors?
     if (!this.canChargeInParallel()) {
       // Yes
       this.lockAllConnectors();
     }
-    // Clean up connector info
-    // Get the connector
-    const connector = this.getConnector(transaction.getConnectorId());
-    // Set data
-    connector.currentConsumption = 0;
-    connector.totalConsumption = 0;
-    connector.currentStateOfCharge = 0;
-    connector.activeTransactionID = transaction.getID();
+    // Clean up connector transaction info
+    this._cleanupConnectorTransactionInfo(transaction.getConnectorId());
+    // Set active transaction
+    this.getConnector(transaction.getConnectorId()).activeTransactionID = transaction.getID();
     // Update Heartbeat
     this.setLastHeartBeat(new Date());
     // Save
@@ -1318,16 +1303,22 @@ class ChargingStation extends AbstractTenantEntity {
     } else {
       // Log
       Logging.logInfo({
-        tenantID: this.getTenantID(),
-        source: this.getID(),
-        module: 'ChargingStation',
-        method: 'handleStartTransaction',
-        action: 'StartTransaction',
+        tenantID: this.getTenantID(), source: this.getID(),
+        module: 'ChargingStation', method: 'handleStartTransaction', action: 'StartTransaction',
         message: `Transaction ID '${transaction.getID()}' has been started by an anonymous user on Connector '${transaction.getConnectorId()}'`
       });
     }
     // Return
     return transaction;
+  }
+
+  _cleanupConnectorTransactionInfo(connectorId) {
+    const connector = this.getConnector(connectorId);
+    // Clear
+    connector.currentConsumption = 0;
+    connector.totalConsumption = 0;
+    connector.currentStateOfCharge = 0;
+    connector.activeTransactionID = 0;
   }
 
   lockAllConnectors() {
@@ -1346,7 +1337,7 @@ class ChargingStation extends AbstractTenantEntity {
     });
   }
 
-  _getStoppingTransactionTagId(stopTransactionData, transaction) {
+  _getStopTransactionTagId(stopTransaction, transaction) {
     // Stopped Remotely?
     if (transaction.isRemotelyStopped()) {
       // Yes: Get the diff from now
@@ -1359,23 +1350,17 @@ class ChargingStation extends AbstractTenantEntity {
       }
     }
     // Already provided?
-    if (stopTransactionData.idTag) {
+    if (stopTransaction.idTag) {
       // Return tag that stopped the transaction
-      return stopTransactionData.idTag
+      return stopTransaction.idTag
     }
     // Default: return tag that started the transaction
     return transaction.getTagID();
   }
 
-  async freeConnector(connectorId) {
-    let otherConnectorsFreed = false;
-    // Get the connector
-    const connector = this.getConnector(connectorId);
-    // Cleanup
-    connector.currentConsumption = 0;
-    connector.totalConsumption = 0;
-    connector.activeTransactionID = 0;
-    connector.currentStateOfCharge = 0;
+  async _checkAndFreeConnector(connectorId, saveOtherConnectors = false) {
+    // Cleanup connector transaction data
+    this._cleanupConnectorTransactionInfo(connectorId);
     // Check if Charger can charge in //
     if (!this.canChargeInParallel()) {
       // Set all the other connectors to Available
@@ -1386,45 +1371,71 @@ class ChargingStation extends AbstractTenantEntity {
             connector.connectorId !== connectorId) {
           // Set connector Available again
           connector.status = Constants.CONN_STATUS_AVAILABLE;
-          // Updated other connectors
-          otherConnectorsFreed = true;
+          // Save other updated connectors?
+          if (saveOtherConnectors) {
+            await ChargingStationStorage.saveChargingStationConnector(this.getTenantID(), this.getModel(), connector.connectorId);
+          }
         }
       });
     }
-    return otherConnectorsFreed;
   }
 
-  async handleStopTransaction(stopTransactionData, isSoftStop = false) {
-    let user;
-    // Set the charger ID
-    stopTransactionData.chargeBoxID = this.getID();
-    // Get the transaction first (to get the connector id)
-    let transaction = await Transaction.getTransaction(this.getTenantID(), stopTransactionData.transactionId);
-    // Found?
+  async handleStopTransaction(stopTransaction, isSoftStop = false) {
+    // Check props
+    this._checkStopTransactionProps(stopTransaction);
+    // Set header
+    stopTransaction.chargeBoxID = this.getID();
+    // Get the transaction
+    let transaction = await Transaction.getTransaction(this.getTenantID(), stopTransaction.transactionId);
     if (!transaction) {
       // Wrong Transaction ID!
       throw new BackendError(this.getID(),
-        `Transaction ID '${stopTransactionData.transactionId}' does not exist`,
+        `Transaction ID '${stopTransaction.transactionId}' does not exist`,
         "ChargingStation", "handleStopTransaction", "StopTransaction");
     }
-    // Get the TagID
-    const tagId = this._getStoppingTransactionTagId(stopTransactionData, transaction);
-    // Check User
-    const users = await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(
-      Constants.ACTION_STOP_TRANSACTION, this, transaction.getTagID(), tagId);
-    if (users) {
-      // Set current user
-      user = (users.alternateUser ? users.alternateUser : users.user);
+    let user = null;
+    // Get the TagID that stopped the transaction
+    const tagId = this._getStopTransactionTagId(stopTransaction, transaction);
+    // Check if same user
+    if (tagId !== transaction.getTagID()) {
+      // Check alternate user
+      user = await Authorizations.isTagIDAuthorizedOnChargingStation(
+        this, tagId, Constants.ACTION_STOP_TRANSACTION);
+      // Not anonymous?
+      if (user) {
+        // Check if Alternate User belongs to a Site --------------------------------
+        // Organization component active?
+        const isOrgCompActive = await chargingStation.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+        if (isOrgCompActive) {
+          // Get the site (site existence is already checked by isTagIDAuthorizedOnChargingStation())
+          const site = await this.getSite();
+          // Check if the site allows to stop the transaction of another user
+          if (!Authorizations.isAdmin(user.getModel()) &&
+              !site.isAllowAllUsersToStopTransactionsEnabled()) {
+            // Get the Transaction user
+            transactionUser = transaction.getUser();
+              // Reject the User
+            throw new BackendError(
+              chargingStation.getID(),
+              `User '${user.getFullName()}' is not allowed to perform '${action}' on User '${transactionUser.getFullName()}' on Site '${site.getName()}'!`,
+              "ChargingStation", "handleStopTransaction", "StopTransaction",
+              user.getModel(), transactionUser.getModel());
+          }
+        }
+      }
+    } else {
+      // Check user
+      user = await Authorizations.isTagIDAuthorizedOnChargingStation(
+        this, transaction.getTagID(), Constants.ACTION_STOP_TRANSACTION);
     }
-    // Check if it still opened
+    // Check if the transaction has already been stopped
     if (!transaction.isActive()) {
-      // Wrong Transaction ID!
       throw new BackendError(this.getID(),
-        `Transaction ID '${stopTransactionData.transactionId}' has already been stopped`,
+        `Transaction ID '${stopTransaction.transactionId}' has already been stopped`,
         "ChargingStation", "handleStopTransaction", "StopTransaction", user.getModel());
     }
-    // Clean up connector
-    await this.freeConnector(transaction.getConnectorId());
+    // Check and free the connector
+    await this._checkAndFreeConnector(transaction.getConnectorId(), false);
     // Update Heartbeat
     this.setLastHeartBeat(new Date());
     // Save Charger
@@ -1433,16 +1444,33 @@ class ChargingStation extends AbstractTenantEntity {
     if (isSoftStop) {
       // Yes: Add the latest Meter Value
       if (transaction.getLastMeterValue()) {
-        stopTransactionData.meterStop = transaction.getLastMeterValue().value;
+        stopTransaction.meterStop = transaction.getLastMeterValue().value;
       } else {
-        stopTransactionData.meterStop = 0;
+        stopTransaction.meterStop = 0;
       }
     }
     // Stop
-    await transaction.stopTransaction(user.getID(), tagId, stopTransactionData.meterStop, new Date(stopTransactionData.timestamp), this.getTimezone());
+    await transaction.stopTransaction(user.getID(), tagId, stopTransaction.meterStop, new Date(stopTransaction.timestamp), this.getTimezone());
     // Save the transaction
     transaction = await transaction.save();
     // Notify User
+    this._notifyStopTransaction(user, users, transaction);
+    // Log
+    Logging.logInfo({
+      tenantID: this.getTenantID(),
+      source: this.getID(), module: 'ChargingStation', method: 'handleStopTransaction',
+      action: 'StopTransaction', user: user.getModel(), actionOnUser: users.user.getModel(),
+      message: `Transaction ID '${transaction.getID()}' has been stopped`
+    });
+    // Return
+    return transaction;
+  }
+
+  _checkStopTransactionProps(stopTransaction) {
+  }
+
+  async _notifyStopTransaction(user, users, transaction) {
+    // User provided?
     if (user) {
       // Send Notification
       NotificationHandler.sendEndOfSession(
@@ -1471,16 +1499,6 @@ class ChargingStation extends AbstractTenantEntity {
         }
       );
     }
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation', method: 'handleStopTransaction',
-      action: 'StopTransaction', user: user.getModel(),
-      actionOnUser: users.user.getModel(),
-      message: `Transaction ID '${transaction.getID()}' has been stopped`
-    });
-    // Return
-    return transaction;
   }
 
   // Restart the charger

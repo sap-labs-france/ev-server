@@ -207,7 +207,7 @@ class OCPIClient {
 
     // read configuration to retrieve country_code and party_id
     const tenant = await this._ocpiEndpoint.getTenant();
-    const ocpiSetting = await tenant.getSetting(Constants.COMPONENTS.OCPI_COMPONENT);
+    const ocpiSetting = await tenant.getSetting(Constants.COMPONENTS.OCPI);
 
     if (!ocpiSetting || !ocpiSetting.getContent()) {
       throw new Error('OCPI Settings not found');
@@ -265,7 +265,7 @@ class OCPIClient {
     // read configuration to retrieve country_code and party_id
     const tenant = await this._ocpiEndpoint.getTenant();
     // get ocpi service configuration
-    const ocpiSetting = await tenant.getSetting(Constants.COMPONENTS.OCPI_COMPONENT);
+    const ocpiSetting = await tenant.getSetting(Constants.COMPONENTS.OCPI);
     // define eMI3
     tenant._eMI3 = {};
 
