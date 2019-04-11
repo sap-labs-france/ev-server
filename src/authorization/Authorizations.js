@@ -62,7 +62,7 @@ class Authorizations {
     // Password OK
     const companies = [], users = [];
     let sites = []
-    
+
     // Check Admin
     if (!Authorizations.isAdmin(user.getModel())) {
       // Not Admin: Get Auth data
@@ -214,11 +214,11 @@ class Authorizations {
       // Acces Control Enabled?
       accessControlEnable = siteArea.isAccessControlEnabled();
       // Allow to stop all transactions
-      userAllowedToStopAllTransactions = site.isAllowAllUsersToStopTransactionsEnabled(); 
+      userAllowedToStopAllTransactions = site.isAllowAllUsersToStopTransactionsEnabled();
       // Check if User belongs to the charging station Site
       const foundUser = await site.getUser(user.getID());
       isUserAssignedToSite = (foundUser ? true : false);
-    } 
+    }
     if (connector.activeTransactionID > 0) {
       // Get Transaction
       const transaction = await Transaction.getTransaction(tenantID, connector.activeTransactionID);
@@ -228,7 +228,7 @@ class Authorizations {
           `Transaction ID '${connector.activeTransactionID}' does not exist`,
           560, 'Authorizations', 'getConnectorActionAuthorizations');
       }
-      // Check if transaction user is the same as request user 
+      // Check if transaction user is the same as request user
       isSameUserAsTransaction = transaction.getUserID() === user.getID();
     }
     // Add user authorisations
@@ -254,25 +254,25 @@ class Authorizations {
     }
     if (user.getRole() === Constants.ROLE_BASIC) {
       // Basic user can start a transaction if he is assigned to the site or site management is not active
-      result.isStartAuthorized =  result.isStartAuthorized && 
+      result.isStartAuthorized =  result.isStartAuthorized &&
         ( isOrganizationComponentActive && isUserAssignedToSite ) || ( !isOrganizationComponentActive );
       // Basic user can start a transaction if he is assigned to the site or site management is not active
       result.isStopAuthorized = result.isStopAuthorized &&
         // Site Management is active  and user assigned to site and anyone allowed to stop or same user as transaction
         // or access control disable
-        ( isOrganizationComponentActive && isUserAssignedToSite && 
-          (userAllowedToStopAllTransactions || isSameUserAsTransaction || !accessControlEnable) ) || 
+        ( isOrganizationComponentActive && isUserAssignedToSite &&
+          (userAllowedToStopAllTransactions || isSameUserAsTransaction || !accessControlEnable) ) ||
         // Site management inactive and badge access control and user identical to transaction
-        ( !isOrganizationComponentActive && accessControlEnable && isSameUserAsTransaction) || 
+        ( !isOrganizationComponentActive && accessControlEnable && isSameUserAsTransaction) ||
         // Site management inactive and no badge access control
         ( !isOrganizationComponentActive && !accessControlEnable);
       result.isTransactionDisplayAuthorized =
       // Site Management is active  and user assigned to site and same user as transaction
       // or access control disable
-      ( isOrganizationComponentActive && isUserAssignedToSite && 
-        (isSameUserAsTransaction || !accessControlEnable) ) || 
+      ( isOrganizationComponentActive && isUserAssignedToSite &&
+        (isSameUserAsTransaction || !accessControlEnable) ) ||
       // Site management inactive and badge access control and user identical to transaction
-      ( !isOrganizationComponentActive && accessControlEnable && isSameUserAsTransaction) || 
+      ( !isOrganizationComponentActive && accessControlEnable && isSameUserAsTransaction) ||
       // Site management inactive and no badge access control
       ( !isOrganizationComponentActive && !accessControlEnable);
     }
@@ -647,7 +647,7 @@ class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
       {"Action": Constants.ACTION_SEND_EVSE_STATUSE});
   }
-  
+
   static canRegisterOcpiendpoint(loggedUser, ocpiendpoint) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
@@ -834,6 +834,13 @@ class Authorizations {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION, {
       "Action": Constants.ACTION_CREATE
+    });
+  }
+
+  static canDeleteConnection(loggedUser) {
+    // Check
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION, {
+      "Action": Constants.ACTION_DELETE
     });
   }
 
