@@ -903,144 +903,12 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   async handleMeterValues(meterValues) {
-    // Create model
-    const newMeterValues = {};
-    // Init
-    newMeterValues.values = [];
-    // Set the charger ID
-    newMeterValues.chargeBoxID = this.getID();
-    // Check Connector ID
-    if (meterValues.connectorId == 0) {
-      // BUG KEBA: Connector ID must be > 0 according OCPP
-      Logging.logWarning({
-        tenantID: this.getTenantID(),
-        source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-        action: 'MeterValues', message: `Connector ID cannot be equal to '0' and has been reset to '1'`
-      });
-      // Set to 1 (KEBA has only one connector)
-      meterValues.connectorId = 1;
-    }
-    // Check if the transaction ID matches
-    const chargerTransactionId = this.getConnector(meterValues.connectorId).activeTransactionID;
-    // Transaction is provided in MeterValue?
-    if (meterValues.hasOwnProperty('transactionId')) {
-      // Yes: Check Transaction ID (ABB)
-      if (parseInt(meterValues.transactionId) !== parseInt(chargerTransactionId)) {
-        // Check if valid
-        if (parseInt(chargerTransactionId) > 0) {
-          // No: Log that the transaction ID will be reused
-          Logging.logWarning({
-            tenantID: this.getTenantID(),
-            source: this.getID(),
-            module: 'ChargingStation',
-            method: 'handleMeterValues',
-            action: 'MeterValues',
-            message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
-          });
-        }
-        // Always assign, even if equals to 0
-        meterValues.transactionId = chargerTransactionId;
-      }
-      // Transaction is not provided: check if there is a transaction assigned on the connector
-    } else if (parseInt(chargerTransactionId) > 0) {
-      // Yes: Use Connector's Transaction ID
-      Logging.logWarning({
-        tenantID: this.getTenantID(),
-        source: this.getID(),
-        module: 'ChargingStation',
-        method: 'handleMeterValues',
-        action: 'MeterValues',
-        message: `Transaction ID is not provided but retrieved from StartTransaction '${chargerTransactionId}'`
-      });
-      // Override it
-      meterValues.transactionId = chargerTransactionId;
-    }
-    // Check Transaction ID
-    if (!meterValues.hasOwnProperty('transactionId') || parseInt(meterValues.transactionId) === 0) {
-      // Wrong Transaction ID!
-      throw new BackendError(this.getID(),
-        `Transaction ID '${chargerTransactionId}' is invalid on Connector '${meterValues.connectorId}', Meter Values not saved`,
-        "ChargingStation", "handleMeterValues");
-    }
-    // Handle Values
-    // Check if OCPP 1.6
-    if (this.getOcppVersion() === Constants.OCPP_VERSION_16) { //meterValues.meterValue
-      // Set it to 'values'
-      meterValues.values = meterValues.meterValue;
-    }
-    // Only one value?
-    if (!Array.isArray(meterValues.values)) {
-      // Make it an array
-      meterValues.values = [meterValues.values];
-    }
-    // For each value
-    for (const value of meterValues.values) {
-      const newMeterValue = {};
-      // Set the ID
-      newMeterValue.chargeBoxID = newMeterValues.chargeBoxID;
-      newMeterValue.connectorId = Utils.convertToInt(meterValues.connectorId);
-      if (meterValues.transactionId) {
-        newMeterValue.transactionId = meterValues.transactionId;
-      }
-      newMeterValue.timestamp = value.timestamp;
-      // Check OCPP 1.6
-      if (this.getOcppVersion() === Constants.OCPP_VERSION_16) {
-        // Multiple Values?
-        if (Array.isArray(value.sampledValue)) {
-          // Create one record per value
-          for (const sampledValue of value.sampledValue) {
-            // Clone header
-            // eslint-disable-next-line prefer-const
-            let newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
-            // Normalize
-            newLocalMeterValue.attribute = {};
-            // Enrich with OCPP16 attributes
-            newLocalMeterValue.attribute.context = (sampledValue.context ? sampledValue.context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC);
-            newLocalMeterValue.attribute.format = (sampledValue.format ? sampledValue.format : Constants.METER_VALUE_FORMAT_RAW);
-            newLocalMeterValue.attribute.measurand = (sampledValue.measurand ? sampledValue.measurand : Constants.METER_VALUE_MEASURAND_IMPREG);
-            newLocalMeterValue.attribute.location = (sampledValue.location ? sampledValue.location : Constants.METER_VALUE_LOCATION_OUTLET);
-            newLocalMeterValue.attribute.unit = (sampledValue.unit ? sampledValue.unit : Constants.METER_VALUE_UNIT_WH);
-            newLocalMeterValue.attribute.phase = (sampledValue.phase ? sampledValue.phase : '');
-            newLocalMeterValue.value = parseInt(sampledValue.value);
-            // Add
-            newMeterValues.values.push(newLocalMeterValue);
-          }
-        } else {
-          // Clone header
-          // eslint-disable-next-line prefer-const
-          let newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
-          // Normalize
-          newLocalMeterValue.attribute = {};
-          // Enrich with OCPP16 attributes
-          newLocalMeterValue.attribute.context = (value.sampledValue.context ? value.sampledValue.context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC);
-          newLocalMeterValue.attribute.format = (value.sampledValue.format ? value.sampledValue.format : Constants.METER_VALUE_FORMAT_RAW);
-          newLocalMeterValue.attribute.measurand = (value.sampledValue.measurand ? value.sampledValue.measurand : Constants.METER_VALUE_MEASURAND_IMPREG);
-          newLocalMeterValue.attribute.location = (value.sampledValue.location ? value.sampledValue.location : Constants.METER_VALUE_LOCATION_OUTLET);
-          newLocalMeterValue.attribute.unit = (value.sampledValue.unit ? value.sampledValue.unit : Constants.METER_VALUE_UNIT_WH);
-          newLocalMeterValue.attribute.phase = (value.sampledValue.phase ? value.sampledValue.phase : '');
-          newLocalMeterValue.value = parseInt(value.sampledValue.value);
-          // Add
-          newMeterValues.values.push(newLocalMeterValue);
-        }
-        // Values provided?
-      } else if (value.value) {
-        // OCCP1.2: Set the values
-        if (value.value.$value) {
-          // Set
-          newMeterValue.value = value.value.$value;
-          newMeterValue.attribute = value.value.attributes;
-        } else {
-          newMeterValue.value = parseInt(value.value);
-        }
-        // Add
-        newMeterValues.values.push(newMeterValue);
-      }
-    }
-    // Clean up Sample.Clock meter value
-    if (this.getChargePointVendor() !== 'ABB' || this.getOcppVersion() !== Constants.OCPP_VERSION_15) {
-      // Filter Sample.Clock meter value for all chargers except ABB using OCPP 1.5
-      newMeterValues.values = newMeterValues.values.filter(value => value.attribute.context !== 'Sample.Clock');
-    }
+    // Check params
+    this._checkMeterValuesJson(meterValues);
+    // Normalize Meter Values
+    const newMeterValues = this._normalizeMeterValues(meterValues)
+    // Handle charger specificities
+    this._checkMeterValuesCharger(newMeterValues);
     // No Values
     if (newMeterValues.values.length == 0) {
       Logging.logDebug({
@@ -1063,14 +931,145 @@ class ChargingStation extends AbstractTenantEntity {
       await this.save();
       // Log
       Logging.logInfo({
-        tenantID: this.getTenantID(),
-        source: this.getID(),
-        module: 'ChargingStation',
-        method: 'handleMeterValues',
-        action: 'MeterValues',
+        tenantID: this.getTenantID(), source: this.getID(),
+        module: 'ChargingStation', method: 'handleMeterValues', action: 'MeterValues',
         message: `MeterValue have been saved for Transaction ID '${meterValues.transactionId}'`,
         detailedMessages: meterValues
       });
+    }
+  }
+
+  _checkMeterValuesCharger(newMeterValues) {
+    // Clean up Sample.Clock meter value
+    if (this.getChargePointVendor() !== 'ABB' || this.getOcppVersion() !== Constants.OCPP_VERSION_15) {
+      // Filter Sample.Clock meter value for all chargers except ABB using OCPP 1.5
+      newMeterValues.values = newMeterValues.values.filter(value => value.attribute.context !== 'Sample.Clock');
+    }
+  }
+
+  _checkMeterValuesJson(meterValues) {
+    // Check Connector ID
+    if (meterValues.connectorId == 0) {
+      // BUG KEBA: Connector ID must be > 0 according OCPP
+      Logging.logWarning({
+        tenantID: this.getTenantID(),
+        source: this.getID(), module: 'ChargingStation', method: 'checkMeterValues',
+        action: 'MeterValues', message: `Connector ID cannot be equal to '0' and has been reset to '1'`
+      });
+      // Set to 1 (KEBA has only one connector)
+      meterValues.connectorId = 1;
+    } else {
+      meterValues.connectorId = Utils.convertToInt(meterValues.connectorId);
+    }    
+    // Check if the transaction ID matches
+    const chargerTransactionId = this.getConnector(meterValues.connectorId).activeTransactionID;
+    // Transaction is provided in MeterValue?
+    if (meterValues.hasOwnProperty('transactionId')) {
+      // Yes: Check Transaction ID (ABB)
+      if (parseInt(meterValues.transactionId) !== parseInt(chargerTransactionId)) {
+        // Check if valid
+        if (parseInt(chargerTransactionId) > 0) {
+          // No: Log that the transaction ID will be reused
+          Logging.logWarning({
+            tenantID: this.getTenantID(), source: this.getID(),
+            module: 'ChargingStation', method: 'checkMeterValues', action: 'MeterValues',
+            message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
+          });
+        }
+        // Always assign, even if equals to 0
+        meterValues.transactionId = chargerTransactionId;
+      }
+      // Transaction is not provided: check if there is a transaction assigned on the connector
+    } else if (parseInt(chargerTransactionId) > 0) {
+      // Yes: Use Connector's Transaction ID
+      Logging.logWarning({
+        tenantID: this.getTenantID(), source: this.getID(),
+        module: 'ChargingStation', method: 'checkMeterValues', action: 'MeterValues',
+        message: `Transaction ID is not provided but retrieved from StartTransaction '${chargerTransactionId}'`
+      });
+      // Override it
+      meterValues.transactionId = chargerTransactionId;
+    }
+    // Check Transaction ID
+    if (!meterValues.hasOwnProperty('transactionId') || parseInt(meterValues.transactionId) === 0) {
+      // Wrong Transaction ID!
+      throw new BackendError(this.getID(),
+        `Transaction ID '${chargerTransactionId}' is invalid on Connector '${meterValues.connectorId}', Meter Values not saved`,
+        "ChargingStation", "checkMeterValues");
+    }
+  }
+
+  _normalizeMeterValues(meterValues) {
+    // Create the model
+    const newMeterValues = {};
+    newMeterValues.values = [];
+    newMeterValues.chargeBoxID = this.getID();
+    // OCPP 1.6
+    if (this.getOcppVersion() === Constants.OCPP_VERSION_16) {
+      meterValues.values = meterValues.meterValue;
+    }
+    // Only one value?
+    if (!Array.isArray(meterValues.values)) {
+      // Make it an array
+      meterValues.values = [meterValues.values];
+    }
+    // Process the Meter Values
+    for (const value of meterValues.values) {
+      const newMeterValue = {};
+      // Set the Meter Value header
+      newMeterValue.chargeBoxID = newMeterValues.chargeBoxID;
+      newMeterValue.connectorId = Utils.convertToInt(meterValues.connectorId);
+      newMeterValue.transactionId = meterValues.transactionId;
+      newMeterValue.timestamp = value.timestamp;
+      // OCPP 1.6
+      if (this.getOcppVersion() === Constants.OCPP_VERSION_16) {
+        // Multiple Values?
+        if (Array.isArray(value.sampledValue)) {
+          // Create one record per value
+          for (const sampledValue of value.sampledValue) {
+            // Clone
+            const newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
+            // Add Attributes
+            newLocalMeterValue.attribute = this._buildMeterValueAttributes(sampledValue);
+            // Set the value
+            newLocalMeterValue.value = parseInt(sampledValue.value);
+            // Add
+            newMeterValues.values.push(newLocalMeterValue);
+          }
+        } else {
+          // Clone
+          const newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
+          // Add Attributes
+          newLocalMeterValue.attribute = this._buildMeterValueAttributes(sampledValue);
+          // Add
+          newMeterValues.values.push(newLocalMeterValue);
+        }
+      // OCPP < 1.6
+      } else if (value.value) {
+        // OCPP 1.2
+        if (value.value.$value) {
+          // Set
+          newMeterValue.value = value.value.$value;
+          newMeterValue.attribute = value.value.attributes;
+      // OCPP 1.5
+      } else {
+          newMeterValue.value = parseInt(value.value);
+        }
+        // Add
+        newMeterValues.values.push(newMeterValue);
+      }
+    }
+    return newMeterValues;
+  }
+
+  _buildMeterValueAttributes(sampledValue) {
+    return {
+      context: (sampledValue.context ? sampledValue.context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC),
+      format: (sampledValue.format ? sampledValue.format : Constants.METER_VALUE_FORMAT_RAW),
+      measurand: (sampledValue.measurand ? sampledValue.measurand : Constants.METER_VALUE_MEASURAND_IMPREG),
+      location: (sampledValue.location ? sampledValue.location : Constants.METER_VALUE_LOCATION_OUTLET),
+      unit: (sampledValue.unit ? sampledValue.unit : Constants.METER_VALUE_UNIT_WH),
+      phase: (sampledValue.phase ? sampledValue.phase : '')
     }
   }
 
