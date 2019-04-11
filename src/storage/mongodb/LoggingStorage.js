@@ -88,12 +88,21 @@ class LoggingStorage {
     skip = Utils.checkRecordSkip(skip);
     // Set the filters
     const filters = {};
-    // Date from provided?
-    if (params.dateFrom) {
-      // Yes, add in filter
+    // Date provided?
+    if (params.dateFrom || params.dateUntil) {
       filters.timestamp = {};
-      filters.timestamp.$gte = new Date(params.dateFrom);
     }
+    // Start date
+    if (params.dateFrom) {
+      filters.timestamp.$gte = new Date(params.dateFrom);
+//      match.timestamp.$gte = Utils.convertToDate(params.dateFrom);
+    }
+    // End date
+    if (params.dateUntil) {
+      filters.timestamp.$lte = new Date(params.dateUntil);
+//      match.timestamp.$lte = Utils.convertToDate(params.dateUntil);
+    }
+
     // Log level
     switch (params.level) {
       // Error
