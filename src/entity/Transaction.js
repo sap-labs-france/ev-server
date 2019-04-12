@@ -250,13 +250,17 @@ class Transaction extends AbstractTenantEntity {
   }
 
   async getChargingStation() {
-    if (!this._model.chargeBox) {
+    const ChargingStation = require('./ChargingStation');
+    if (this._model.chargeBox) {
+      return new ChargingStation(this.getTenantID(), this._model.chargeBox);
+    } else if (this._model.chargeBoxID) {
       // Get from DB
       const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this._model.chargeBoxID);
       // Keep it
       this.setChargingStation(chargingStation);
+      // Return
+      return chargingStation;
     }
-    return this._model.chargeBox;
   }
 
   setChargingStation(chargingStation) {
@@ -748,8 +752,8 @@ class Transaction extends AbstractTenantEntity {
     return TransactionStorage.getActiveTransaction(tenantID, chargeBoxID, connectorId);
   }
 
-  static cleanupRemainingActiveTransactions(tenantID, chargeBoxID, connectorId) {
-    return TransactionStorage.cleanupRemainingActiveTransactions(tenantID, chargeBoxID, connectorId);
+  static stopOrDeleteActiveTransactions(tenantID, chargeBoxID, connectorId) {
+    return TransactionStorage.stopOrDeleteActiveTransactions(tenantID, chargeBoxID, connectorId);
   }
 }
 

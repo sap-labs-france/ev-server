@@ -9,7 +9,6 @@ const Constants = require('../utils/Constants');
 const Database = require('../utils/Database');
 const moment = require('moment-timezone');
 const Configuration = require('../utils/Configuration');
-const Authorizations = require('../authorization/Authorizations');
 const BackendError = require('../exception/BackendError');
 const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
 const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
@@ -564,7 +563,7 @@ class ChargingStation extends AbstractTenantEntity {
               this.getModel(),
               {
                 'user': transaction.getUserJson(),
-                'chargingBoxID': this.getID(),
+                'chargeBoxID': this.getID(),
                 'connectorId': transaction.getConnectorId(),
                 'totalConsumption': (transaction.getCurrentTotalConsumption() / 1000).toLocaleString(
                   (transaction.getUserJson().locale ? transaction.getUserJson().locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
@@ -594,7 +593,7 @@ class ChargingStation extends AbstractTenantEntity {
               this.getModel(),
               {
                 'user': transaction.getUserJson(),
-                'chargingBoxID': this.getID(),
+                'chargeBoxID': this.getID(),
                 'connectorId': transaction.getConnectorId(),
                 'totalConsumption': (transaction.getCurrentTotalConsumption() / 1000).toLocaleString(
                   (transaction.getUserJson().locale ? transaction.getUserJson().locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
@@ -833,44 +832,18 @@ class ChargingStation extends AbstractTenantEntity {
     }
   }
 
-  async handleDataTransfer(dataTransfer) {
-    // Set the charger ID
-    dataTransfer.chargeBoxID = this.getID();
-    dataTransfer.timestamp = new Date();
-    // Save it
-    await ChargingStationStorage.saveDataTransfer(this.getTenantID(), dataTransfer);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'CharingStation', method: 'handleDataTransfer',
-      action: 'DataTransfer', message: `Data Transfer has been saved`
-    });
-  }
-
-  async handleFirmwareStatusNotification(firmwareStatusNotification) {
-    // Set the charger ID
-    firmwareStatusNotification.chargeBoxID = this.getID();
-    firmwareStatusNotification.timestamp = new Date();
-    // Save it
-    await ChargingStationStorage.saveFirmwareStatusNotification(this.getTenantID(), firmwareStatusNotification);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation', method: 'handleFirmwareStatusNotification',
-      action: 'FirmwareStatusNotification', message: `Firmware Status Notification has been saved`
-    });
-  }
-
   async getSite() {
-    // Get Site Area
-    const siteArea = await this.getSiteArea();
-    // Check Site Area
-    if (!siteArea) {
-      return null;
+    if (!this.site) {
+      // Get Site Area
+      const siteArea = await this.getSiteArea();
+      // Check Site Area
+      if (!siteArea) {
+        return null;
+      }
+      // Get Site
+      this.site = await siteArea.getSite();
     }
-    // Get Site
-    const site = await siteArea.getSite();
-    return site;
+    return this.site;
   }
 
   async getCompany() {
@@ -883,282 +856,6 @@ class ChargingStation extends AbstractTenantEntity {
     // Get the Company
     const company = await site.getCompany();
     return company;
-  }
-
-  _checkStartTransactionProps(startTransaction) {
-    // Check the timestamp
-    if (!startTransaction.hasOwnProperty("timestamp")) {
-        // BUG EBEE: Timestamp is mandatory according OCPP
-      throw new BackendError(this.getID(),
-        `The 'timestamp' property has not been provided`,
-        "ChargingStation", "_checkStartTransactionProps", "StartTransaction");
-    }
-    // Check the meter start
-    if (!startTransaction.hasOwnProperty("meterStart")) {
-      // BUG EBEE: MeterStart is mandatory according OCPP
-      throw new BackendError(this.getID(),
-        `The 'meterStart' property has not been provided`,
-        "ChargingStation", "_checkStartTransactionProps", "StartTransaction");
-    }
-    // Check Tag ID
-    if (!startTransaction.idTag) {
-      throw new BackendError(this.getID(),
-        `The Badge ID is mandatory`,
-        "ChargingStation", "_checkStartTransactionProps", "StartTransaction");
-    }
-    // Check Connector ID
-    if (!this.getConnector(transaction.getConnectorId())) {
-      throw new BackendError(this.getID(),
-        `The Connector ID is invalid: '${transaction.getConnectorId()}'`,
-        "ChargingStation", "_checkStartTransactionProps", "StartTransaction");
-    }
-  }
-
-  async handleStartTransaction(startTransaction) {
-    // Check params
-    this._checkStartTransactionProps(startTransaction);
-    // Set the header
-    startTransaction.chargeBoxID = this.getID();
-    startTransaction.tagID = startTransaction.idTag;
-    startTransaction.timezone = this.getTimezone();
-    // Get the Organization component
-    const isOrgCompActive = await this.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
-    // Check Authorization with Tag ID
-    const user = await Authorizations.isTagIDAuthorizedOnChargingStation(
-      this, startTransaction.tagID, Constants.ACTION_START_TRANSACTION);
-    if (user) {
-      // Set the user
-      startTransaction.user = user.getModel();
-    }
-    // Check Org
-    if (isOrganizationComponentActive) {
-      // Set the Site ID
-      startTransaction.siteAreaID = this.getSiteAreaID();
-      // Get the Site
-      const site = await this.getSite();
-      // Set
-      if (site) {
-        startTransaction.siteID = site.getID();
-      }      
-    }
-    // Create
-    let transaction = new Transaction(this.getTenantID(), startTransaction);
-    // Start Transactions
-    await transaction.startTransaction(user);
-    // Cleanup ongoing transactions
-    await Transaction.cleanupRemainingActiveTransactions(this.getTenantID(), this.getID(), transaction.getConnectorId());
-    // Save
-    transaction = await transaction.save();
-    // Lock the other connectors?
-    if (!this.canChargeInParallel()) {
-      // Yes
-      this.lockAllConnectors();
-    }
-    // Clean up connector transaction info
-    this._cleanupConnectorTransactionInfo(transaction.getConnectorId());
-    // Set active transaction
-    this.getConnector(transaction.getConnectorId()).activeTransactionID = transaction.getID();
-    // Update Heartbeat
-    this.setLastHeartBeat(new Date());
-    // Save
-    await this.save();
-    // Log
-    if (user) {
-      // Notify
-      NotificationHandler.sendTransactionStarted(
-        this.getTenantID(),
-        transaction.getID(),
-        user.getModel(),
-        this.getModel(),
-        {
-          'user': user.getModel(),
-          'chargingBoxID': this.getID(),
-          'connectorId': transaction.getConnectorId(),
-          'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain()),
-          'evseDashboardChargingStationURL':
-            await Utils.buildEvseTransactionURL(this, transaction.getConnectorId(), transaction.getID())
-        },
-        user.getLocale(),
-        {
-          'transactionId': transaction.getID(),
-          'connectorId': transaction.getConnectorId()
-        }
-      );
-      // Log
-      Logging.logInfo({
-        tenantID: this.getTenantID(),
-        source: this.getID(), module: 'ChargingStation', method: 'handleStartTransaction',
-        action: 'StartTransaction', user: user.getModel(),
-        message: `Transaction ID '${transaction.getID()}' has been started on Connector '${transaction.getConnectorId()}'`
-      });
-    } else {
-      // Log
-      Logging.logInfo({
-        tenantID: this.getTenantID(), source: this.getID(),
-        module: 'ChargingStation', method: 'handleStartTransaction', action: 'StartTransaction',
-        message: `Transaction ID '${transaction.getID()}' has been started by an anonymous user on Connector '${transaction.getConnectorId()}'`
-      });
-    }
-    // Return
-    return transaction;
-  }
-
-  lockAllConnectors() {
-    this.getConnectors().forEach(async (connector) => {
-      // Check
-      if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
-        // Check OCPP Version
-        if (this.getOcppVersion() === Constants.OCPP_VERSION_15) {
-          // Set OCPP 1.5 Occupied
-          connector.status = Constants.CONN_STATUS_OCCUPIED;
-        } else {
-          // Set OCPP 1.6 Unavailable
-          connector.status = Constants.CONN_STATUS_UNAVAILABLE;
-        }
-      }
-    });
-  }
-
-  _getStopTransactionTagId(stopTransaction, transaction) {
-    // Stopped Remotely?
-    if (transaction.isRemotelyStopped()) {
-      // Yes: Get the diff from now
-      const secs = moment.duration(moment().diff(
-        moment(transaction.getRemoteStop().timestamp))).asSeconds();
-      // In a minute
-      if (secs < 60) {
-        // Return tag that remotely stopped the transaction
-        return transaction.getRemoteStop().tagID;
-      }
-    }
-    // Already provided?
-    if (stopTransaction.idTag) {
-      // Return tag that stopped the transaction
-      return stopTransaction.idTag
-    }
-    // Default: return tag that started the transaction
-    return transaction.getTagID();
-  }
-
-  async handleStopTransaction(stopTransaction, isSoftStop = false) {
-    // Check props
-    this._checkStopTransactionProps(stopTransaction);
-    // Set header
-    stopTransaction.chargeBoxID = this.getID();
-    // Get the transaction
-    let transaction = await Transaction.getTransaction(this.getTenantID(), stopTransaction.transactionId);
-    if (!transaction) {
-      // Wrong Transaction ID!
-      throw new BackendError(this.getID(),
-        `Transaction ID '${stopTransaction.transactionId}' does not exist`,
-        "ChargingStation", "handleStopTransaction", "StopTransaction");
-    }
-    let user = null;
-    // Get the TagID that stopped the transaction
-    const tagId = this._getStopTransactionTagId(stopTransaction, transaction);
-    // Check if same user
-    if (tagId !== transaction.getTagID()) {
-      // Check alternate user
-      user = await Authorizations.isTagIDAuthorizedOnChargingStation(
-        this, tagId, Constants.ACTION_STOP_TRANSACTION);
-      // Not anonymous?
-      if (user) {
-        // Check if Alternate User belongs to a Site --------------------------------
-        // Organization component active?
-        const isOrgCompActive = await chargingStation.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
-        if (isOrgCompActive) {
-          // Get the site (site existence is already checked by isTagIDAuthorizedOnChargingStation())
-          const site = await this.getSite();
-          // Check if the site allows to stop the transaction of another user
-          if (!Authorizations.isAdmin(user.getModel()) &&
-              !site.isAllowAllUsersToStopTransactionsEnabled()) {
-            // Get the Transaction user
-            transactionUser = transaction.getUser();
-              // Reject the User
-            throw new BackendError(
-              chargingStation.getID(),
-              `User '${user.getFullName()}' is not allowed to perform '${action}' on User '${transactionUser.getFullName()}' on Site '${site.getName()}'!`,
-              "ChargingStation", "handleStopTransaction", "StopTransaction",
-              user.getModel(), transactionUser.getModel());
-          }
-        }
-      }
-    } else {
-      // Check user
-      user = await Authorizations.isTagIDAuthorizedOnChargingStation(
-        this, transaction.getTagID(), Constants.ACTION_STOP_TRANSACTION);
-    }
-    // Check if the transaction has already been stopped
-    if (!transaction.isActive()) {
-      throw new BackendError(this.getID(),
-        `Transaction ID '${stopTransaction.transactionId}' has already been stopped`,
-        "ChargingStation", "handleStopTransaction", "StopTransaction", user.getModel());
-    }
-    // Check and free the connector
-    await this._checkAndFreeConnector(transaction.getConnectorId(), false);
-    // Update Heartbeat
-    this.setLastHeartBeat(new Date());
-    // Save Charger
-    await this.save();
-    // Soft Stop?
-    if (isSoftStop) {
-      // Yes: Add the latest Meter Value
-      if (transaction.getLastMeterValue()) {
-        stopTransaction.meterStop = transaction.getLastMeterValue().value;
-      } else {
-        stopTransaction.meterStop = 0;
-      }
-    }
-    // Stop
-    await transaction.stopTransaction(user.getID(), tagId, stopTransaction.meterStop, new Date(stopTransaction.timestamp), this.getTimezone());
-    // Save the transaction
-    transaction = await transaction.save();
-    // Notify User
-    this._notifyStopTransaction(user, users, transaction);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation', method: 'handleStopTransaction',
-      action: 'StopTransaction', user: user.getModel(), actionOnUser: users.user.getModel(),
-      message: `Transaction ID '${transaction.getID()}' has been stopped`
-    });
-    // Return
-    return transaction;
-  }
-
-  _checkStopTransactionProps(stopTransaction) {
-  }
-
-  async _notifyStopTransaction(user, users, transaction) {
-    // User provided?
-    if (user) {
-      // Send Notification
-      NotificationHandler.sendEndOfSession(
-        this.getTenantID(),
-        transaction.getID() + '-EOS',
-        user.getModel(),
-        this.getModel(),
-        {
-          'user': user.getModel(),
-          'alternateUser': (user.getID() != users.alternateUser.getID() ? users.alternateUser.getModel() : null),
-          'chargingBoxID': this.getID(),
-          'connectorId': transaction.getConnectorId(),
-          'totalConsumption': (transaction.getTotalConsumption() / 1000).toLocaleString(
-            (user.getLocale() ? user.getLocale().replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
-            {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
-          'totalDuration': this._buildTransactionDuration(transaction),
-          'totalInactivity': this._buildTransactionInactivity(transaction),
-          'stateOfCharge': transaction.getEndStateOfCharge(),
-          'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.getConnectorId(), transaction.getID()),
-          'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
-        },
-        user.getLocale(),
-        {
-          'transactionId': transaction.getID(),
-          'connectorId': transaction.getConnectorId()
-        }
-      );
-    }
   }
 
   // Restart the charger

@@ -145,7 +145,7 @@ class Authorizations {
         Utils.generateGUID(),
         chargingStation.getModel(),
         {
-          "chargingBoxID": chargingStation.getID(),
+          "chargeBoxID": chargingStation.getID(),
           "badgeId": tagID,
           "evseDashboardURL": Utils.buildEvseURL((await chargingStation.getTenant()).getSubdomain()),
           "evseDashboardUserURL": await Utils.buildEvseUserURL(user)

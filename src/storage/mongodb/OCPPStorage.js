@@ -92,7 +92,8 @@ class OCPPStorage {
         messageId: dataTransfer.messageId,
         data: dataTransfer.data,
         chargeBoxID: dataTransfer.chargeBoxID,
-        timestamp: Utils.convertToDate(dataTransfer.timestamp)
+        timestamp: Utils.convertToDate(dataTransfer.timestamp),
+        timezone: dataTransfer.timezone
       });
     // Debug
     Logging.traceEnd('OCPPStorage', 'saveDataTransfer', uniqueTimerID);
@@ -248,7 +249,8 @@ class OCPPStorage {
         _id: firmwareStatusNotification.id,
         chargeBoxID: firmwareStatusNotification.chargeBoxID,
         status: firmwareStatusNotification.status,
-        timestamp: Utils.convertToDate(firmwareStatusNotification.timestamp)
+        timestamp: Utils.convertToDate(firmwareStatusNotification.timestamp),
+        timezone: firmwareStatusNotification.timezone
       });
     // Debug
     Logging.traceEnd('OCPPStorage', 'saveFirmwareStatusNotification', uniqueTimerID);

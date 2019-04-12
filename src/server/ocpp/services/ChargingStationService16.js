@@ -132,10 +132,10 @@ class ChargingStationService16 extends ChargingStationService {
 
   async handleHeartbeat(heartbeat) {
     try {
-      // Check props
-      OCPPValidation.validateHeartbeat(heartbeat);
       // Get Charging Station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(heartbeat.chargeBoxIdentity, heartbeat.tenantID);
+      // Check props
+      OCPPValidation.validateHeartbeat(chargingStation, heartbeat);
       // Set Heartbeat
       chargingStation.setLastHeartBeat(new Date());
       // Save
@@ -165,10 +165,10 @@ class ChargingStationService16 extends ChargingStationService {
 
   async handleStatusNotification(statusNotification) {
     try {
-      // Check props
-      OCPPValidation.validateStatusNotification(statusNotification);
       // Get charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(statusNotification.chargeBoxIdentity, statusNotification.tenantID);
+      // Check props
+      OCPPValidation.validateStatusNotification(chargingStation, statusNotification);
       // Set Header
       statusNotification.chargeBoxID = chargingStation.getID();
       statusNotification.timezone = chargingStation.getTimezone();
@@ -253,40 +253,11 @@ class ChargingStationService16 extends ChargingStationService {
     if (!bothConnectorsUpdated &&
         connector.activeTransactionID > 0 &&
         (statusNotification.status === Constants.CONN_STATUS_AVAILABLE || statusNotification.status === Constants.CONN_STATUS_FINISHING)) {
-      // Cleanup connector transaction data
-      OCPPUtils.cleanupConnectorTransactionInfo(chargingStation, statusNotification.connectorId);
-      // Check transaction
-      const activeTransaction = await Transaction.getActiveTransaction(chargingStation.getTenantID(), chargingStation.getID(), statusNotification.connectorId);
-      // Found?
-      if (activeTransaction) {
-        // Has consumption?
-        if (activeTransaction.getCurrentTotalConsumption() <= 0) {
-          // No consumption: delete
-          Logging.logError({
-            tenantID: chargingStation.getTenantID(),
-            source: chargingStation.getID(), module: 'ChargingStationService16', method: '_checkStatusNotificationOngoingTransaction',
-            action: 'StartTransaction', actionOnUser: activeTransaction.getUserID(),
-            message: `Pending Transaction ID '${activeTransaction.getID()}' has been deleted on Connector '${activeTransaction.getConnectorId()}'`
-          });
-          // Delete
-          await activeTransaction.delete();
-        } else {
-          // Has consumption: close it!
-          Logging.logWarning({
-            tenantID: chargingStation.getTenantID(),
-            source: chargingStation.getID(), module: 'ChargingStationService16', method: '_checkStatusNotificationOngoingTransaction',
-            action: 'StatusNotification', actionOnUser: activeTransaction.getUserID(),
-            message: `Active Transaction ID '${activeTransaction.getID()}' has been closed on Connector '${activeTransaction.getConnectorId()}'`
-          });
-          // Stop
-          await activeTransaction.stopTransaction(activeTransaction.getUserID(), activeTransaction.getTagID(),
-            activeTransaction.getLastMeterValue().value + 1, new Date(statusNotification.timestamp));
-          // Save Transaction
-          await activeTransaction.save();
-        }
-        // Clean up connector
-        await OCPPUtils.checkAndFreeConnector(chargingStation, activeTransaction.getConnectorId(), true);
-      }
+      // Cleanup ongoing transactions on the connector
+      await Transaction.stopOrDeleteActiveTransactions(
+        chargingStation.getTenantID(), chargingStation.getID(), statusNotification.connectorId);
+      // Clean up connector
+      await OCPPUtils.checkAndFreeConnector(chargingStation, statusNotification.connectorId, true);
     }
   }
 
@@ -339,10 +310,10 @@ class ChargingStationService16 extends ChargingStationService {
 
   async handleAuthorize(authorize) {
     try {
-      // Check props
-      OCPPValidation.validateAuthorize(authorize);
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(authorize.chargeBoxIdentity, authorize.tenantID);
+      // Check props
+      OCPPValidation.validateAuthorize(chargingStation, authorize);
       // Set header
       authorize.chargeBoxID = chargingStation.getID();
       authorize.timestamp = new Date();
@@ -375,10 +346,10 @@ class ChargingStationService16 extends ChargingStationService {
 
   async handleDiagnosticsStatusNotification(diagnosticsStatusNotification) {
     try {
-      // Check props
-      OCPPValidation.validateDiagnosticsStatusNotification(diagnosticsStatusNotification);
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(diagnosticsStatusNotification.chargeBoxIdentity, diagnosticsStatusNotification.tenantID);
+      // Check props
+      OCPPValidation.validateDiagnosticsStatusNotification(chargingStation, diagnosticsStatusNotification);
       // Set the charger ID
       diagnosticsStatusNotification.chargeBoxID = chargingStation.getID();
       diagnosticsStatusNotification.timestamp = new Date();
@@ -402,27 +373,127 @@ class ChargingStationService16 extends ChargingStationService {
     }
   }
 
-  async handleFirmwareStatusNotification(payload) {
+  async handleFirmwareStatusNotification(firmwareStatusNotification) {
     try {
       // Get the charging station
-      const chargingStation = await OCPPUtils.checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenantID);
-      // Save
-      await chargingStation.handleFirmwareStatusNotification(payload);
+      const chargingStation = await OCPPUtils.checkAndGetChargingStation(firmwareStatusNotification.chargeBoxIdentity, firmwareStatusNotification.tenantID);
+      // Check props
+      OCPPValidation.validateFirmwareStatusNotification(chargingStation, firmwareStatusNotification);
+      // Set the charger ID
+      firmwareStatusNotification.chargeBoxID = chargingStation.getID();
+      firmwareStatusNotification.timestamp = new Date();
+      firmwareStatusNotification.timezone = chargingStation.getTimezone();
+      // Save it
+      await OCPPStorage.saveFirmwareStatusNotification(chargingStation.getTenantID(), firmwareStatusNotification);
+      // Log
+      Logging.logInfo({
+        tenantID: chargingStation.getTenantID(),
+        source: chargingStation.getID(), module: 'ChargingStationService16', method: 'handleFirmwareStatusNotification',
+        action: 'FirmwareStatusNotification', message: `Firmware Status Notification has been saved`
+      });
       // Return
       return {};
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(payload.tenantID, 'FirmwareStatusNotification', error);
+      Logging.logActionExceptionMessage(firmwareStatusNotification.tenantID, 'FirmwareStatusNotification', error);
       return {};
     }
   }
 
-  async handleStartTransaction(payload) {
+  async handleStartTransaction(startTransaction) {
     try {
       // Get the charging station
-      const chargingStation = await OCPPUtils.checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenantID);
+      const chargingStation = await OCPPUtils.checkAndGetChargingStation(startTransaction.chargeBoxIdentity, startTransaction.tenantID);
+      // Check props
+      OCPPValidation.validateStartTransaction(chargingStation, startTransaction);
+      // Check Connector ID
+      if (!chargingStation.getConnector(startTransaction.connectorId)) {
+        throw new BackendError(chargingStation.getID(),
+          `The Connector ID '${startTransaction.connectorId}' is invalid`,
+          "ChargingStationService16", "handleStartTransaction", "StartTransaction");
+      }
+      // Set the header
+      startTransaction.chargeBoxID = chargingStation.getID();
+      startTransaction.tagID = startTransaction.idTag;
+      startTransaction.timezone = chargingStation.getTimezone();
+      // Get the Organization component
+      const isOrgCompActive = await chargingStation.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+      // Check Authorization with Tag ID
+      const user = await Authorizations.isTagIDAuthorizedOnChargingStation(
+        chargingStation, startTransaction.tagID, Constants.ACTION_START_TRANSACTION);
+      if (user) {
+        // Set the user
+        startTransaction.user = user.getModel();
+      }
+      // Check Org
+      if (isOrgCompActive) {
+        // Set the Site Area ID
+        startTransaction.siteAreaID = chargingStation.getSiteAreaID();
+        // Set the Site ID
+        const site = await chargingStation.getSite();
+        if (site) {
+          startTransaction.siteID = site.getID();
+        }      
+      }
+      // Cleanup ongoing transactions
+      await Transaction.stopOrDeleteActiveTransactions(
+        chargingStation.getTenantID(), chargingStation.getID(), startTransaction.connectorId);
+      // Create the Transaction
+      let transaction = new Transaction(chargingStation.getTenantID(), startTransaction);
+      // Start Transactions
+      await transaction.startTransaction(user);
+      // Save it
+      transaction = await transaction.save();
+      // Lock the other connectors?
+      if (!chargingStation.canChargeInParallel()) {
+        // Yes
+        OCPPUtils.lockAllConnectors(chargingStation);
+      }
+      // Clean up connector transaction info
+      OCPPUtils.cleanupConnectorTransactionInfo(chargingStation, transaction.getConnectorId());
+      // Set the active transaction on the connector
+      chargingStation.getConnector(transaction.getConnectorId()).activeTransactionID = transaction.getID();
+      // Update Heartbeat
+      chargingStation.setLastHeartBeat(new Date());
       // Save
-      const transaction = await chargingStation.handleStartTransaction(payload);
+      await chargingStation.save();
+      // Log
+      if (user) {
+        // Notify
+        NotificationHandler.sendTransactionStarted(
+          chargingStation.getTenantID(),
+          transaction.getID(),
+          user.getModel(),
+          chargingStation.getModel(),
+          {
+            'user': user.getModel(),
+            'chargeBoxID': chargingStation.getID(),
+            'connectorId': transaction.getConnectorId(),
+            'evseDashboardURL': Utils.buildEvseURL((await chargingStation.getTenant()).getSubdomain()),
+            'evseDashboardChargingStationURL':
+              await Utils.buildEvseTransactionURL(chargingStation, transaction.getConnectorId(), transaction.getID())
+          },
+          user.getLocale(),
+          {
+            'transactionId': transaction.getID(),
+            'connectorId': transaction.getConnectorId()
+          }
+        );
+        // Log
+        Logging.logInfo({
+          tenantID: chargingStation.getTenantID(),
+          source: chargingStation.getID(), module: 'ChargingStationService16', method: 'handleStartTransaction',
+          action: 'StartTransaction', user: user.getModel(),
+          message: `Transaction ID '${transaction.getID()}' has been started on Connector '${transaction.getConnectorId()}'`
+        });
+      } else {
+        // Log
+        Logging.logInfo({
+          tenantID: chargingStation.getTenantID(), source: chargingStation.getID(),
+          module: 'ChargingStationService16', method: 'handleStartTransaction', action: 'StartTransaction',
+          message: `Transaction ID '${transaction.getID()}' has been started by an anonymous user on Connector '${transaction.getConnectorId()}'`
+        });
+      }
       // Return
       return {
         'transactionId': transaction.getID(),
@@ -430,9 +501,9 @@ class ChargingStationService16 extends ChargingStationService {
       };
     } catch (error) {
       // Set the source
-      error.source = payload.chargeBoxIdentity;
+      error.source = startTransaction.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(payload.tenantID, 'StartTransaction', error);
+      Logging.logActionExceptionMessage(startTransaction.tenantID, 'StartTransaction', error);
       return {
         'transactionId': 0,
         'status': 'Invalid'
@@ -440,46 +511,196 @@ class ChargingStationService16 extends ChargingStationService {
     }
   }
 
-  async handleDataTransfer(payload) {
+  async handleDataTransfer(dataTransfer) {
     try {
       // Get the charging station
-      const chargingStation = await OCPPUtils.checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenantID);
-      // Save
-      await chargingStation.handleDataTransfer(payload);
+      const chargingStation = await OCPPUtils.checkAndGetChargingStation(dataTransfer.chargeBoxIdentity, dataTransfer.tenantID);
+      // Check props
+      OCPPValidation.validateDataTransfer(chargingStation, dataTransfer);
+      // Set the charger ID
+      dataTransfer.chargeBoxID = chargingStation.getID();
+      dataTransfer.timestamp = new Date();
+      dataTransfer.timezone = chargingStation.getTimezone();
+      // Save it
+      await OCPPStorage.saveDataTransfer(chargingStation.getTenantID(), dataTransfer);
+      // Log
+      Logging.logInfo({
+        tenantID: chargingStation.getTenantID(),
+        source: chargingStation.getID(), module: 'ChargingStationService16', method: 'handleDataTransfer',
+        action: 'DataTransfer', message: `Data Transfer has been saved`
+      });
       // Return
       return {
         'status': 'Accepted'
       };
     } catch (error) {
       // Set the source
-      error.source = payload.chargeBoxIdentity;
+      error.source = dataTransfer.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(payload.tenantID, 'DataTransfer', error);
+      Logging.logActionExceptionMessage(dataTransfer.tenantID, 'DataTransfer', error);
       return {
         'status': 'Rejected'
       };
     }
   }
 
-  async handleStopTransaction(payload) {
+  async handleStopTransaction(stopTransaction, isSoftStop=false) {
     try {
       // Get the charging station
-      const chargingStation = await OCPPUtils.checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenantID);
-      // Handle
-      await chargingStation.handleStopTransaction(payload);
+      const chargingStation = await OCPPUtils.checkAndGetChargingStation(stopTransaction.chargeBoxIdentity, stopTransaction.tenantID);
+      // Check props
+      OCPPValidation.validateStopTransaction(chargingStation, stopTransaction);
+      // Set header
+      stopTransaction.chargeBoxID = chargingStation.getID();
+      // Get the transaction
+      let transaction = await Transaction.getTransaction(chargingStation.getTenantID(), stopTransaction.transactionId);
+      if (!transaction) {
+        // Wrong Transaction ID!
+        throw new BackendError(chargingStation.getID(),
+          `Transaction ID '${stopTransaction.transactionId}' does not exist`,
+          'ChargingStationService16', 'handleStopTransaction', 'StopTransaction');
+      }
+      let user, alternateUser;
+      // Get the TagID that stopped the transaction
+      const tagId = this._getStopTransactionTagId(stopTransaction, transaction);
+      // Check if same user
+      if (tagId !== transaction.getTagID()) {
+        // No: Check alternate user
+        alternateUser = await Authorizations.isTagIDAuthorizedOnChargingStation(
+          chargingStation, tagId, Constants.ACTION_STOP_TRANSACTION);
+        // Anonymous?
+        if (alternateUser) {
+          // Get the owner of the transaction
+          user = await transaction.getUser();
+          // Not Check if Alternate User belongs to a Site --------------------------------
+          // Organization component active?
+          const isOrgCompActive = await chargingStation.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+          if (isOrgCompActive) {
+            // Get the site (site existence is already checked by isTagIDAuthorizedOnChargingStation())
+            const site = await chargingStation.getSite();
+            // Check if the site allows to stop the transaction of another user
+            if (!Authorizations.isAdmin(alternateUser.getModel()) &&
+                !site.isAllowAllUsersToStopTransactionsEnabled()) {
+                // Reject the User
+              throw new BackendError(
+                chargingStation.getID(),
+                `User '${alternateUser.getFullName()}' is not allowed to perform 'Stop Transaction' on User '${user.getFullName()}' on Site '${site.getName()}'!`,
+                'ChargingStationService16', "handleStopTransaction", "StopTransaction",
+                (alternateUser ? alternateUser.getModel() : null), (user ? user.getModel() : null));
+            }
+          }
+        }
+      } else {
+        // Check user
+        user = await Authorizations.isTagIDAuthorizedOnChargingStation(
+          chargingStation, transaction.getTagID(), Constants.ACTION_STOP_TRANSACTION);
+      }
+      // Check if the transaction has already been stopped
+      if (!transaction.isActive()) {
+        throw new BackendError(chargingStation.getID(),
+          `Transaction ID '${stopTransaction.transactionId}' has already been stopped`,
+          'ChargingStationService16', "handleStopTransaction", "StopTransaction",
+          (alternateUser ? alternateUser.getID() : (user ? user.getID() : null)),
+          (alternateUser ? (user ? user.getID() : null) : null));
+      }
+      // Check and free the connector
+      await OCPPUtils.checkAndFreeConnector(chargingStation, transaction.getConnectorId(), false);
+      // Update Heartbeat
+      chargingStation.setLastHeartBeat(new Date());
+      // Save Charger
+      await chargingStation.save();
+      // Soft Stop?
+      if (isSoftStop) {
+        // Yes: Add the latest Meter Value
+        if (transaction.getLastMeterValue()) {
+          stopTransaction.meterStop = transaction.getLastMeterValue().value;
+        } else {
+          stopTransaction.meterStop = 0;
+        }
+      }
+      // Stop
+      await transaction.stopTransaction(
+        (alternateUser ? alternateUser.getID() : (user ? user.getID() : null)),
+        tagId, stopTransaction.meterStop, new Date(stopTransaction.timestamp));
+      // Save the transaction
+      transaction = await transaction.save();
+      // Notify User
+      this._notifyStopTransaction(chargingStation, user, alternateUser, transaction);
+      // Log
+      Logging.logInfo({
+        tenantID: chargingStation.getTenantID(),
+        source: chargingStation.getID(), module: 'ChargingStationService16', method: 'handleStopTransaction',
+        action: 'StopTransaction', 
+        user: (alternateUser ? alternateUser.getID() : (user ? user.getID() : null)),
+        actionOnUser: (alternateUser ? (user ? user.getID() : null) : null),
+        message: `Transaction ID '${transaction.getID()}' has been stopped successfully`
+      });
       // Success
       return {
         'status': 'Accepted'
       };
     } catch (error) {
       // Set the source
-      error.source = payload.chargeBoxIdentity;
+      error.source = stopTransaction.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(payload.tenantID, 'StopTransaction', error);
+      Logging.logActionExceptionMessage(stopTransaction.tenantID, 'StopTransaction', error);
       // Error
       return {
         'status': 'Invalid'
       };
+    }
+  }
+
+  _getStopTransactionTagId(stopTransaction, transaction) {
+    // Stopped Remotely?
+    if (transaction.isRemotelyStopped()) {
+      // Yes: Get the diff from now
+      const secs = moment.duration(moment().diff(
+        moment(transaction.getRemoteStop().timestamp))).asSeconds();
+      // In a minute
+      if (secs < 60) {
+        // Return tag that remotely stopped the transaction
+        return transaction.getRemoteStop().tagID;
+      }
+    }
+    // Already provided?
+    if (stopTransaction.idTag) {
+      // Return tag that stopped the transaction
+      return stopTransaction.idTag
+    }
+    // Default: return tag that started the transaction
+    return transaction.getTagID();
+  }
+
+  async _notifyStopTransaction(chargingStation, user, alternateUser, transaction) {
+    // User provided?
+    if (user) {
+      // Send Notification
+      NotificationHandler.sendEndOfSession(
+        chargingStation.getTenantID(),
+        transaction.getID() + '-EOS',
+        user.getModel(),
+        chargingStation.getModel(),
+        {
+          'user': user.getModel(),
+          'alternateUser': (alternateUser ? alternateUser.getModel() : null),
+          'chargeBoxID': chargingStation.getID(),
+          'connectorId': transaction.getConnectorId(),
+          'totalConsumption': (transaction.getTotalConsumption() / 1000).toLocaleString(
+            (user.getLocale() ? user.getLocale().replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+            {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
+          'totalDuration': chargingStation._buildTransactionDuration(transaction),
+          'totalInactivity': chargingStation._buildTransactionInactivity(transaction),
+          'stateOfCharge': transaction.getEndStateOfCharge(),
+          'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(chargingStation, transaction.getConnectorId(), transaction.getID()),
+          'evseDashboardURL': Utils.buildEvseURL((await chargingStation.getTenant()).getSubdomain())
+        },
+        user.getLocale(),
+        {
+          'transactionId': transaction.getID(),
+          'connectorId': transaction.getConnectorId()
+        }
+      );
     }
   }
 }

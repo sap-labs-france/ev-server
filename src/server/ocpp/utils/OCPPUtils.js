@@ -5,6 +5,22 @@ const Constants = require('../../../utils/Constants');
 require('source-map-support').install();
 
 class OCPPUtils {
+  static lockAllConnectors(chargingStation) {
+    chargingStation.getConnectors().forEach(async (connector) => {
+      // Check
+      if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+        // Check OCPP Version
+        if (chargingStation.getOcppVersion() === Constants.OCPP_VERSION_15) {
+          // Set OCPP 1.5 Occupied
+          connector.status = Constants.CONN_STATUS_OCCUPIED;
+        } else {
+          // Set OCPP 1.6 Unavailable
+          connector.status = Constants.CONN_STATUS_UNAVAILABLE;
+        }
+      }
+    });
+  }
+
   static async checkAndGetChargingStation(chargeBoxIdentity, tenantID) {
     // Get the charging station
     const chargingStation = await ChargingStation.getChargingStation(tenantID, chargeBoxIdentity);
@@ -48,10 +64,12 @@ class OCPPUtils {
   static cleanupConnectorTransactionInfo(chargingStation, connectorId) {
     const connector = chargingStation.getConnector(connectorId);
     // Clear
-    connector.currentConsumption = 0;
-    connector.totalConsumption = 0;
-    connector.currentStateOfCharge = 0;
-    connector.activeTransactionID = 0;
+    if (connector) {
+      connector.currentConsumption = 0;
+      connector.totalConsumption = 0;
+      connector.currentStateOfCharge = 0;
+      connector.activeTransactionID = 0;
+    }
   }
 
   static async updateConnectorsPower(chargingStation) {
