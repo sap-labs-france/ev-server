@@ -491,7 +491,7 @@ class ChargingStationService16 extends ChargingStationService {
         Logging.logInfo({
           tenantID: chargingStation.getTenantID(), source: chargingStation.getID(),
           module: 'ChargingStationService16', method: 'handleStartTransaction', action: 'StartTransaction',
-          message: `Transaction ID '${transaction.getID()}' has been started by an anonymous user on Connector '${transaction.getConnectorId()}'`
+          message: `Transaction ID '${transaction.getID()}' has been started on Connector '${transaction.getConnectorId()}'`
         });
       }
       // Return
@@ -585,6 +585,16 @@ class ChargingStationService16 extends ChargingStationService {
               throw new BackendError(
                 chargingStation.getID(),
                 `User '${alternateUser.getFullName()}' is not allowed to perform 'Stop Transaction' on User '${user.getFullName()}' on Site '${site.getName()}'!`,
+                'ChargingStationService16', "handleStopTransaction", "StopTransaction",
+                (alternateUser ? alternateUser.getModel() : null), (user ? user.getModel() : null));
+            }
+          } else {
+            // Only Admins can stop a transaction when org is not active
+            if (!Authorizations.isAdmin(alternateUser.getModel())) {
+                // Reject the User
+              throw new BackendError(
+                chargingStation.getID(),
+                `User '${alternateUser.getFullName()}' is not allowed to perform 'Stop Transaction' on User '${user.getFullName()}'!`,
                 'ChargingStationService16', "handleStopTransaction", "StopTransaction",
                 (alternateUser ? alternateUser.getModel() : null), (user ? user.getModel() : null));
             }
