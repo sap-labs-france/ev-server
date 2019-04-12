@@ -1,9 +1,9 @@
 {
-  "subject": "<%- chargeBoxID %> redémarrée ou connectée",
+  "subject": "<%- chargeBoxID %> s'est enregistrée",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Borne Redémarrée ou Connectée",
+      "title": "Borne Enregistrée",
       "image": {
         "left": {
           "height": 60,
@@ -18,7 +18,7 @@
     "beforeActionLines": [
       "Bonjour Admin,",
       "",
-      "<b><%- chargeBoxID %></b> vient de redémarrer ou de se connecter au serveur central."
+      "<b><%- chargeBoxID %></b> vient de s'enregistrer sur le serveur central."
     ],
     "action": {
       "title": "Voir <%- chargeBoxID %>",
@@ -26,7 +26,7 @@
     },
     "afterActionLines": [
       "Cordialement,",
-      "EV Admin."
+      "EV Admins."
     ],
     "footer": {
     }

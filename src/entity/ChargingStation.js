@@ -9,7 +9,6 @@ const Constants = require('../utils/Constants');
 const Database = require('../utils/Database');
 const moment = require('moment-timezone');
 const Configuration = require('../utils/Configuration');
-const NotificationHandler = require('../notification/NotificationHandler');
 const Authorizations = require('../authorization/Authorizations');
 const BackendError = require('../exception/BackendError');
 const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
@@ -376,7 +375,7 @@ class ChargingStation extends AbstractTenantEntity {
   getConnector(identifier) {
     if (identifier !== undefined && this._model.connectors) {
       for (const connector of this._model.connectors) {
-        if (connector.connectorId === identifier) {
+        if (connector && connector.connectorId === identifier) {
           return connector;
         }
       }
@@ -415,276 +414,8 @@ class ChargingStation extends AbstractTenantEntity {
     return ChargingStationStorage.saveChargingStationSiteArea(this.getTenantID(), this.getModel());
   }
 
-  async handleStatusNotification(statusNotification) {
-    // Check props
-    this._checkStatusNotificationProps(statusNotification);
-    // Set Header
-    statusNotification.chargeBoxID = this.getID();
-    statusNotification.timezone = this.getTimezone();
-    // Handle connectorId = 0 case => Currently status is distributed to each individual connectors
-    if (statusNotification.connectorId === 0) {
-      // Log
-      Logging.logWarning({
-        tenantID: this.getTenantID(),
-        source: this.getID(), module: 'ChargingStation',
-        method: 'handleStatusNotification', action: 'StatusNotification',
-        message: `Connector ID equals to '0' with status '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
-      });
-      // Get the connectors
-      const connectors = this.getConnectors();
-      // Update ALL connectors
-      for (let i = 0; i < connectors.length; i++) {
-        // update message with proper connectorId
-        statusNotification.connectorId = connectors[i].connectorId;
-        // Update
-        await this._updateConnectorStatus(statusNotification, true);
-      }
-    } else {
-      // update only the given connectorId
-      await this._updateConnectorStatus(statusNotification, false);
-    }
-  }
-
-  _checkStatusNotificationProps(statusNotification) {
-    // Check non mandatory timestamp
-    if (!statusNotification.timestamp) {
-      // Create
-      statusNotification.timestamp = new Date().toISOString();
-    }
-    // Check
-    statusNotification.connectorId = Utils.convertToInt(statusNotification.connectorId);
-  }
-
-  async _updateConnectorStatus(statusNotification, bothConnectorsUpdated) {
-    // Get it
-    const connector = this.getConnector(statusNotification.connectorId);
-    if (!connector) {
-      // Does not exist: Create
-      connector = { connectorId: i + 1, currentConsumption: 0, status: 'Unknown', power: 0 };
-      // Add
-      this.getConnectors().push(connector);
-      // Update Connector's Power
-      this._updateConnectorsPower();
-    }
-    // Check if status has changed
-    if (connector.status === statusNotification.status &&
-        connector.errorCode === statusNotification.errorCode) {
-      // No Change: Do not save it
-      Logging.logWarning({
-        tenantID: this.getTenantID(), source: this.getID(),
-        module: 'ChargingStation', method: 'handleStatusNotification', action: 'StatusNotification',
-        message: `Status on Connector '${statusNotification.connectorId}' has not changed then not saved: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}''`
-      });
-      return;
-    }
-    // Set connector data
-    connector.connectorId = statusNotification.connectorId;
-    connector.status = statusNotification.status;
-    connector.errorCode = statusNotification.errorCode;
-    connector.info = (statusNotification.info ? statusNotification.info : '');
-    connector.vendorErrorCode = (statusNotification.vendorErrorCode ? statusNotification.vendorErrorCode : '');
-    // Save Status Notification
-    await ChargingStationStorage.saveStatusNotification(this.getTenantID(), statusNotification);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(), source: this.getID(),
-      module: 'ChargingStation', method: 'handleStatusNotification', action: 'StatusNotification',
-      message: `Connector '${statusNotification.connectorId}' status '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}' has been saved`
-    });
-    // Handle connector is available but a transaction is ongoing (ABB bug)!!!
-    this._checkStatusNotificationOngoingTransaction(statusNotification, connector, bothConnectorsUpdated);
-    // Notify admins
-    this._notifyStatusNotification(statusNotification);
-    // Save Connector
-    await ChargingStationStorage.saveChargingStationConnector(this.getTenantID(), this.getModel(), statusNotification.connectorId);
-  }
-
-  async _notifyStatusNotification(statusNotification) {
-    // Faulted?
-    if (statusNotification.status === Constants.CONN_STATUS_FAULTED) {
-      // Log
-      Logging.logError({
-        tenantID: this.getTenantID(), source: this.getID(), module: 'ChargingStation',
-        method: '_notifyStatusNotification', action: 'StatusNotification',
-        message: `Error on Connector '${statusNotification.connectorId}': '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : "N/A")}'`
-      });
-      // Send Notification
-      NotificationHandler.sendChargingStationStatusError(
-        this.getTenantID(),
-        Utils.generateGUID(),
-        this.getModel(),
-        {
-          'chargeBoxID': this.getID(),
-          'connectorId': statusNotification.connectorId,
-          'error': `${statusNotification.status} - ${statusNotification.errorCode} - ${(statusNotification.info ? statusNotification.info : "N/A")}`,
-          'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain()),
-          'evseDashboardChargingStationURL': await Utils.buildEvseChargingStationURL(this, statusNotification.connectorId)
-        },
-        {
-          'connectorId': statusNotification.connectorId,
-          'error': `${statusNotification.status} - ${statusNotification.errorCode} - ${statusNotification.info}`,
-        }
-      );
-    }
-  }
-
-  async _checkStatusNotificationOngoingTransaction(statusNotification, connector, bothConnectorsUpdated) {
-    // Check the status
-    if (!bothConnectorsUpdated &&
-        connector.activeTransactionID > 0 &&
-        (statusNotification.status === Constants.CONN_STATUS_AVAILABLE || statusNotification.status === Constants.CONN_STATUS_FINISHING)) {
-      // Cleanup connector transaction data
-      this._cleanupConnectorTransactionInfo(statusNotification.connectorId);
-      // Check transaction
-      const activeTransaction = await Transaction.getActiveTransaction(this.getTenantID(), this.getID(), statusNotification.connectorId);
-      // Found?
-      if (activeTransaction) {
-        // Has consumption?
-        if (activeTransaction.getCurrentTotalConsumption() <= 0) {
-          // No consumption: delete
-          Logging.logError({
-            tenantID: this.getTenantID(),
-            source: this.getID(), module: 'ChargingStation', method: '_checkStatusNotificationOngoingTransaction',
-            action: 'StartTransaction', actionOnUser: activeTransaction.getUserID(),
-            message: `Pending Transaction ID '${activeTransaction.getID()}' has been deleted on Connector '${activeTransaction.getConnectorId()}'`
-          });
-          // Delete
-          await activeTransaction.delete();
-        } else {
-          // Has consumption: close it!
-          Logging.logWarning({
-            tenantID: this.getTenantID(),
-            source: this.getID(), module: 'ChargingStation', method: '_checkStatusNotificationOngoingTransaction',
-            action: 'StatusNotification', actionOnUser: activeTransaction.getUserID(),
-            message: `Active Transaction ID '${activeTransaction.getID()}' has been closed on Connector '${activeTransaction.getConnectorId()}'`
-          });
-          // Stop
-          await activeTransaction.stopTransaction(activeTransaction.getUserID(), activeTransaction.getTagID(),
-            activeTransaction.getLastMeterValue().value + 1, new Date(statusNotification.timestamp));
-          // Save Transaction
-          await activeTransaction.save();
-        }
-        // Clean up connector
-        await this._checkAndFreeConnector(activeTransaction.getConnectorId(), true);
-      }
-    }
-  }
-
-  async _updateConnectorsPower() {
-    let voltageRerefence = 0;
-    let current = 0;
-    let nbPhase = 0;
-    let power = 0;
-    let totalPower = 0;
-
-    // Only for Schneider
-    if (this.getChargePointVendor() === 'Schneider Electric') {
-      // Get the configuration
-      const configuration = await this.getConfiguration();
-      // Config Provided?
-      if (configuration && configuration.configuration) {
-        // Search for params
-        for (let i = 0; i < configuration.configuration.length; i++) {
-          // Check
-          switch (configuration.configuration[i].key) {
-            // Voltage
-            case 'voltagererefence':
-              // Get the meter interval
-              voltageRerefence = parseInt(configuration.configuration[i].value);
-              break;
-
-            // Current
-            case 'currentpb1':
-              // Get the meter interval
-              current = parseInt(configuration.configuration[i].value);
-              break;
-
-            // Nb Phase
-            case 'nbphase':
-              // Get the meter interval
-              nbPhase = parseInt(configuration.configuration[i].value);
-              break;
-          }
-        }
-        // Override?
-        if (this.getNumberOfConnectedPhase()) {
-          // Yes
-          nbPhase = this.getNumberOfConnectedPhase();
-        }
-        // Compute it
-        if (voltageRerefence && current && nbPhase) {
-          // One Phase?
-          if (nbPhase == 1) {
-            power = Math.floor(230 * current);
-          } else {
-            power = Math.floor(400 * current * Math.sqrt(nbPhase));
-          }
-        }
-      }
-      // Set Power
-      for (const connector of this.getConnectors()) {
-        if (connector) {
-          connector.power = power;
-          totalPower += power;
-        }
-      }
-      // Set total power
-      if (totalPower && !this.getMaximumPower()) {
-        // Set
-        this.setMaximumPower(totalPower);
-      }
-    }
-  }
-
-  async handleBootNotification(bootNotification) {
-    // Set the Station ID
-    bootNotification.chargeBoxID = this.getID();
-    // Send Notification
-    NotificationHandler.sendChargingStationRegistered(
-      this.getTenantID(),
-      Utils.generateGUID(),
-      this.getModel(),
-      {
-        'chargeBoxID': this.getID(),
-        'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain()),
-        'evseDashboardChargingStationURL': await Utils.buildEvseChargingStationURL(this)
-      }
-    );
-    // Save Boot Notification
-    await ChargingStationStorage.saveBootNotification(this.getTenantID(), bootNotification);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(),
-      module: 'ChargingStation', method: 'handleBootNotification',
-      action: 'BootNotification', message: `Boot notification saved`
-    });
-    // Handle the get of configuration later on
-    setTimeout(() => {
-      // Get config and save it
-      this.requestAndSaveConfiguration();
-    }, 3000);
-  }
-
-  async handleHeartBeat() {
-    // Set Heartbeat
-    this.setLastHeartBeat(new Date());
-    // Save
-    await this.saveHeartBeat();
-    // Update Charger Max Power?
-    if (!this.getMaximumPower()) {
-      // Yes
-      await this._updateConnectorsPower();
-      // Save Charger
-      await this.save();
-    }
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(),
-      module: 'ChargingStation', method: 'handleHeartBeat',
-      action: 'Heartbeat', message: `Heartbeat saved`
-    });
+  saveChargingStationConnector(connectorId) {
+    return ChargingStationStorage.saveChargingStationConnector(this.getTenantID(), this.getModel(), this.getConnector(connectorId));
   }
 
   async requestAndSaveConfiguration() {
@@ -766,8 +497,15 @@ class ChargingStation extends AbstractTenantEntity {
         configuration = existingConfiguration;
       }
     }
-    // Save it
-    await this.saveConfiguration(configuration);
+    // Set the charger ID
+    configuration.chargeBoxID = this.getID();
+    configuration.timestamp = new Date();
+    const OCPPStorage = require('../storage/mongodb/OCPPStorage');
+    const OCPPUtils = require('../server/ocpp/utils/OCPPUtils');
+        // Save config
+    await OCPPStorage.saveConfiguration(this.getTenantID(), configuration);
+    // Update connector power
+    await OCPPUtils.updateConnectorsPower(this);
     // Ok
     Logging.logInfo({
       tenantID: this.getTenantID(),
@@ -775,8 +513,6 @@ class ChargingStation extends AbstractTenantEntity {
       method: 'requestAndSaveConfiguration', action: 'RequestConfiguration',
       message: `Configuration has been saved`
     });
-    // Update connector power
-    await this._updateConnectorsPower();
     // Ok
     return {status: 'Accepted'};
   }
@@ -1074,15 +810,6 @@ class ChargingStation extends AbstractTenantEntity {
     }
   }
 
-  saveConfiguration(configuration) {
-    // Set the charger ID
-    configuration.chargeBoxID = this.getID();
-    configuration.timestamp = new Date();
-
-    // Save config
-    return ChargingStationStorage.saveConfiguration(this.getTenantID(), configuration);
-  }
-
   setDeleted(deleted) {
     this._model.deleted = deleted;
   }
@@ -1312,15 +1039,6 @@ class ChargingStation extends AbstractTenantEntity {
     return transaction;
   }
 
-  _cleanupConnectorTransactionInfo(connectorId) {
-    const connector = this.getConnector(connectorId);
-    // Clear
-    connector.currentConsumption = 0;
-    connector.totalConsumption = 0;
-    connector.currentStateOfCharge = 0;
-    connector.activeTransactionID = 0;
-  }
-
   lockAllConnectors() {
     this.getConnectors().forEach(async (connector) => {
       // Check
@@ -1356,28 +1074,6 @@ class ChargingStation extends AbstractTenantEntity {
     }
     // Default: return tag that started the transaction
     return transaction.getTagID();
-  }
-
-  async _checkAndFreeConnector(connectorId, saveOtherConnectors = false) {
-    // Cleanup connector transaction data
-    this._cleanupConnectorTransactionInfo(connectorId);
-    // Check if Charger can charge in //
-    if (!this.canChargeInParallel()) {
-      // Set all the other connectors to Available
-      this.getConnectors().forEach(async (connector) => {
-        // Only other Occupied connectors
-        if ((connector.status === Constants.CONN_STATUS_OCCUPIED ||
-             connector.status === Constants.CONN_STATUS_UNAVAILABLE) &&
-            connector.connectorId !== connectorId) {
-          // Set connector Available again
-          connector.status = Constants.CONN_STATUS_AVAILABLE;
-          // Save other updated connectors?
-          if (saveOtherConnectors) {
-            await ChargingStationStorage.saveChargingStationConnector(this.getTenantID(), this.getModel(), connector.connectorId);
-          }
-        }
-      });
-    }
   }
 
   async handleStopTransaction(stopTransaction, isSoftStop = false) {

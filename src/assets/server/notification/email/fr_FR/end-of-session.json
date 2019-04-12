@@ -34,7 +34,7 @@
       "<%- (alternateUser ? 'L&#39;utilisateur <b>' + (alternateUser.firstName ? alternateUser.name + ' ' + alternateUser.firstName : alternateUser.name) + '</b> a stoppé votre session.' : '') %>",
       "",
       "Cordialement,",
-      "EV Admin."
+      "EV Admins."
     ],
     "footer": {
     }
