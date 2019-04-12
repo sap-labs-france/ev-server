@@ -875,28 +875,6 @@ class ChargingStation extends AbstractTenantEntity {
     });
   }
 
-  async handleAuthorize(authorize) {
-    // Set header
-    authorize.chargeBoxID = this.getID();
-    authorize.timestamp = new Date();
-    authorize.timezone = this.getTimezone();
-    // Check
-    authorize.user = await Authorizations.isTagIDAuthorizedOnChargingStation(this, authorize.idTag, Constants.ACTION_AUTHORIZE);
-    // Save
-    await ChargingStationStorage.saveAuthorize(this.getTenantID(), authorize);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation', method: 'handleAuthorize',
-      action: 'Authorize', user: (authorize.user ? authorize.user.getModel() : null),
-      message: `User has been authorized to use Charging Station`
-    });
-  }
-
-  /**
-   *
-   * @returns {Promise<Site>}
-   */
   async getSite() {
     // Get Site Area
     const siteArea = await this.getSiteArea();

@@ -122,21 +122,11 @@ class Authorizations {
     return compiledAuths;
   }
 
-  static async _checkUserTagIDOnChargingStation(chargingStation, tagID, isOrgCompActive, action) {
+  static async _checkAndGetUserTagIDOnChargingStation(chargingStation, tagID, isOrgCompActive, site, action) {
     // Get the user
     let user = await User.getUserByTagId(chargingStation.getTenantID(),tagID);
     // Found?
     if (!user) {
-      // Check if ACL is active for the charger's site
-      if (isOrgCompActive) {
-        // Get the Site
-        const site = await chargingStation.getSite();
-        // ACL enabled?
-        if (!site.isAccessControlEnabled()) {
-          // No ACL: no user
-          return null;
-        }
-      }
       // Create an empty user
       const newUser = new User(chargingStation.getTenantID(), {
         name: "Unknown",
@@ -157,7 +147,7 @@ class Authorizations {
         {
           "chargingBoxID": chargingStation.getID(),
           "badgeId": tagID,
-          "evseDashboardURL": Utils.buildEvseURL((await user.getTenant()).getSubdomain()),
+          "evseDashboardURL": Utils.buildEvseURL((await chargingStation.getTenant()).getSubdomain()),
           "evseDashboardUserURL": await Utils.buildEvseUserURL(user)
         }
       );
@@ -165,34 +155,34 @@ class Authorizations {
       throw new AppError(
         chargingStation.getID(),
         `User with Tag ID '${tagID}' not found but saved as inactive user`, 500,
-        "Authorizations", "_checkUserTagIDOnChargingStation", user.getModel()
+        "Authorizations", "_checkAndGetUserTagIDOnChargingStation", user.getModel()
       );
+    } else {
+      // USer Exists: Check User Deleted?
+      if (user.getStatus() == Constants.USER_STATUS_DELETED) {
+        // Yes: Restore it!
+        user.setDeleted(false);
+        // Set default user's value
+        user.setStatus(Constants.USER_STATUS_INACTIVE);
+        user.setName("Unknown");
+        user.setFirstName("User");
+        user.setEMail(tagID + "@chargeangels.fr");
+        user.setPhone("");
+        user.setMobile("");
+        user.setImage("");
+        user.setINumber("");
+        user.setCostCenter("");
+        // Log
+        Logging.logSecurityInfo({
+          tenantID: user.getTenantID(),user: user,
+          module: "Authorizations", method: "_checkAndGetUserTagIDOnChargingStation",
+          message: `User with ID '${user.getID()}' has been restored`,
+          action: action
+        });
+        // Save
+        user = user.save();
+      }
     }
-    // Check User Deleted?
-    if (user.getStatus() == Constants.USER_STATUS_DELETED) {
-      // Yes: Restore it!
-      user.setDeleted(false);
-      // Set default user's value
-      user.setStatus(Constants.USER_STATUS_INACTIVE);
-      user.setName("Unknown");
-      user.setFirstName("User");
-      user.setEMail(tagID + "@chargeangels.fr");
-      user.setPhone("");
-      user.setMobile("");
-      user.setImage("");
-      user.setINumber("");
-      user.setCostCenter("");
-      // Log
-      Logging.logSecurityInfo({
-        tenantID: user.getTenantID(),user: user,
-        module: "Authorizations", method: "_checkUserTagIDOnChargingStation",
-        message: `User with ID '${user.getID()}' has been restored`,
-        action: action
-      });
-      // Save
-      user = user.save();
-    }
-    // Authorized
     return user;
   }
 
@@ -282,37 +272,20 @@ class Authorizations {
   }
 
   static async isTagIDAuthorizedOnChargingStation(chargingStation, tagID, action) {
+    let site, siteArea;
     // Get the Organization component
     const isOrgCompActive = await chargingStation.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
-    // Get user
-    let user = null
-    // Get the user
-    if (tagID) {
-      user = await Authorizations._checkUserTagIDOnChargingStation(
-        chargingStation, tagID, isOrgCompActive, action);
-    }
-    // Found?
-    if (user) {
-      // Check Authorization
-      await Authorizations.checkUserOnChargingStation(
-        chargingStation, user, isOrgCompActive, action);
-    }
-    return user;
-  }
-
-  static async checkUserOnChargingStation(chargingStation, user, isOrgCompActive, action) {
     // Org component enabled?
     if (isOrgCompActive) {
       // Site Area -----------------------------------------------
-      const siteArea = await chargingStation.getSiteArea();
+      siteArea = await chargingStation.getSiteArea();
       // Site is mandatory
       if (!siteArea) {
         // Reject Site Not Found
         throw new AppError(
           chargingStation.getID(),
           `Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`, 525,
-          "Authorizations", "checkUserOnChargingStation",
-          user.getModel());
+          "Authorizations", "_checkAndGetUserOnChargingStation");
       }
       // Access Control Enabled?
       if (!siteArea.isAccessControlEnabled()) {
@@ -320,23 +293,39 @@ class Authorizations {
         return;
       }
       // Site -----------------------------------------------------
-      const site = await siteArea.getSite(null, true);
+      site = await siteArea.getSite(null, true);
       if (!site) {
         // Reject Site Not Found
         throw new AppError(
           chargingStation.getID(),
           `Site Area '${siteArea.getName()}' is not assigned to a Site!`, 525,
-          "Authorizations", "checkUserOnChargingStation",
-          user.getModel());
+          "Authorizations", "_checkAndGetUserOnChargingStation");
       }
     }
+    // Get user
+    let user = null
+    // Get the user
+    if (tagID) {
+      user = await Authorizations._checkAndGetUserTagIDOnChargingStation(
+        chargingStation, tagID, isOrgCompActive, site, action);
+    }
+    // Found?
+    if (user) {
+      // Check Authorization
+      await Authorizations._checkAndGetUserOnChargingStation(
+        chargingStation, user, isOrgCompActive, site, action);
+    }
+    return user;
+  }
+
+  static async _checkAndGetUserOnChargingStation(chargingStation, user, isOrgCompActive, site, action) {
     // Check User status
     if (user.getStatus() !== Constants.USER_STATUS_ACTIVE) {
       // Reject but save ok
       throw new AppError(
         chargingStation.getID(),
-        `${Utils.buildUserFullName(user)} is '${User.getStatusDescription(user.getStatus())}'`, 500,
-        "Authorizations", "checkUserOnChargingStation",
+        `${Utils.buildUserFullName(user.getModel())} is '${User.getStatusDescription(user.getStatus())}'`, 500,
+        "Authorizations", "_checkAndGetUserOnChargingStation",
         user.getModel());
     }
     // Build Authorizations -----------------------------------------------------
@@ -352,8 +341,8 @@ class Authorizations {
         // Yes: Reject the User
         throw new AppError(
           chargingStation.getID(),
-          `User is not assigned to the Site '${site.getName()}'!`, 525,
-          "Authorizations", "checkUserOnChargingStation",
+          `User is not assigned to the site '${site.getName()}'!`, 525,
+          "Authorizations", "_checkAndGetUserOnChargingStation",
           user.getModel());
       }
     }
@@ -364,7 +353,7 @@ class Authorizations {
         action,
         Constants.ENTITY_CHARGING_STATION,
         chargingStation.getID(),
-        500, "Authorizations", "checkUserOnChargingStation",
+        500, "Authorizations", "_checkAndGetUserOnChargingStation",
         user.getModel());
     }
   }
@@ -438,64 +427,28 @@ class Authorizations {
       {"Action": Constants.ACTION_LIST});
   }
 
-  static checkChargingStationSite(loggedUser, chargingStation, action) {
-    // Check Site?
-    if (chargingStation.siteArea) {
-      // Yes
-      return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
-        {"Action": action, "SiteID": chargingStation.siteArea.siteID});
-    } else {
-      // Check
-      if (!Authorizations.isAdmin(loggedUser)) {
-        // Log
-        Logging.logSecurityWarning({
-          user: loggedUser,
-          source: chargingStation.id,
-          module: "Authorizations", method: "checkChargingStationSite",
-          message: `Cannot check Site authorization`,
-          action: action,
-          detailedMessages: {"stack": new Error().stack}
-        });
-      }
-      // No: Must be an admin
-      return Authorizations.isAdmin(loggedUser);
-    }
-  }
-
   static canPerformActionOnChargingStation(loggedUser, chargingStation, action) {
     // Check Charging Station
-    const result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
       {"Action": action, "ChargingStationID": chargingStation.id});
-
-    // Return
-    return result && Authorizations.checkChargingStationSite(loggedUser, chargingStation, Constants.ACTION_READ);
   }
 
   static canReadChargingStation(loggedUser, chargingStation) {
     // Check Charging Station
-    const result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
       {"Action": Constants.ACTION_READ, "ChargingStationID": chargingStation.id});
-
-    // Return
-    return result && Authorizations.checkChargingStationSite(loggedUser, chargingStation, Constants.ACTION_READ);
   }
 
   static canUpdateChargingStation(loggedUser, chargingStation) {
     // Check Charging Station
-    const result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
       {"Action": Constants.ACTION_UPDATE, "ChargingStationID": chargingStation.id});
-
-    // Return
-    return result && Authorizations.checkChargingStationSite(loggedUser, chargingStation, Constants.ACTION_UPDATE);
   }
 
   static canDeleteChargingStation(loggedUser, chargingStation) {
     // Check Charging Station
-    const result = Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
       {"Action": Constants.ACTION_DELETE, "ChargingStationID": chargingStation.id});
-
-    // Return
-    return result && Authorizations.checkChargingStationSite(loggedUser, chargingStation, Constants.ACTION_DELETE);
   }
 
   static canListUsers(loggedUser) {

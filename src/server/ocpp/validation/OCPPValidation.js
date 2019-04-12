@@ -15,6 +15,12 @@ class OCPPValidation {
     // Always integer
     statusNotification.connectorId = Utils.convertToInt(statusNotification.connectorId);
   }
+
+  static validateAuthorize(authorize) {
+  }
+
+  static validateBootNotification(bootNotification) {
+  }
 }
 
 module.exports = OCPPValidation;

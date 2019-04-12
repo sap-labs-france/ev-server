@@ -1,6 +1,7 @@
 const NotificationHandler = require('../../../notification/NotificationHandler');
 const ChargingStationService = require('./ChargingStationService');
 const ChargingStation = require('../../../entity/ChargingStation');
+const Authorizations = require('../../../authorization/Authorizations');
 const Transaction = require('../../../entity/Transaction');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
@@ -13,10 +14,6 @@ const OCPPStorage = require('../../../storage/mongodb/OCPPStorage');
 const SiteArea = require('../../../entity/SiteArea');
 require('source-map-support').install();
 
-/**
- * Implements basic functionnalities for OCPP 1.5 in regards to incoming request from Charge Box
- * @class CentralChargingStationService
- */
 class ChargingStationService16 extends ChargingStationService {
   // Common constructor for Central System Service
   constructor(centralSystemConfig, chargingStationConfig) {
@@ -25,6 +22,8 @@ class ChargingStationService16 extends ChargingStationService {
 
   async handleBootNotification(bootNotification) {
     try {
+      // Check props
+      OCPPValidation.validateBootNotification(bootNotification);
       // Set the endpoint
       if (bootNotification.From) {
         bootNotification.endpoint = bootNotification.From.Address;
@@ -35,7 +34,6 @@ class ChargingStationService16 extends ChargingStationService {
       bootNotification.lastReboot = new Date();
       bootNotification.lastHeartBeat = bootNotification.lastReboot;
       bootNotification.timestamp = bootNotification.lastReboot;
-
       // Get the charging station
       let chargingStation = await ChargingStation.getChargingStation(bootNotification.tenantID, bootNotification.chargeBoxIdentity);
       if (!chargingStation) {
@@ -134,9 +132,10 @@ class ChargingStationService16 extends ChargingStationService {
 
   async handleHeartbeat(heartbeat) {
     try {
-      const chargingStation = await OCPPUtils.checkAndGetChargingStation(heartbeat.chargeBoxIdentity, heartbeat.tenantID);
       // Check props
       OCPPValidation.validateHeartbeat(heartbeat);
+      // Get Charging Station
+      const chargingStation = await OCPPUtils.checkAndGetChargingStation(heartbeat.chargeBoxIdentity, heartbeat.tenantID);
       // Set Heartbeat
       chargingStation.setLastHeartBeat(new Date());
       // Save
@@ -166,13 +165,13 @@ class ChargingStationService16 extends ChargingStationService {
 
   async handleStatusNotification(statusNotification) {
     try {
+      // Check props
+      OCPPValidation.validateStatusNotification(statusNotification);
       // Get charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(statusNotification.chargeBoxIdentity, statusNotification.tenantID);
       // Set Header
       statusNotification.chargeBoxID = chargingStation.getID();
       statusNotification.timezone = chargingStation.getTimezone();
-      // Check props
-      OCPPValidation.validateStatusNotification(statusNotification);
       // Handle connectorId = 0 case => Currently status is distributed to each individual connectors
       if (statusNotification.connectorId === 0) {
         // Log
@@ -180,7 +179,7 @@ class ChargingStationService16 extends ChargingStationService {
           tenantID: chargingStation.getTenantID(),
           source: chargingStation.getID(), module: 'ChargingStationService16',
           method: 'handleStatusNotification', action: 'StatusNotification',
-          message: `Connector ID equals to '0' with status '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
+          message: `Connector ID is '0' with status '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
         });
         // Get the connectors
         const connectors = chargingStation.getConnectors();
@@ -338,21 +337,36 @@ class ChargingStationService16 extends ChargingStationService {
     }
   }
 
-  async handleAuthorize(payload) {
+  async handleAuthorize(authorize) {
     try {
+      // Check props
+      OCPPValidation.validateAuthorize(authorize);
       // Get the charging station
-      const chargingStation = await OCPPUtils.checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenantID);
-      // Handle
-      await chargingStation.handleAuthorize(payload);
+      const chargingStation = await OCPPUtils.checkAndGetChargingStation(authorize.chargeBoxIdentity, authorize.tenantID);
+      // Set header
+      authorize.chargeBoxID = chargingStation.getID();
+      authorize.timestamp = new Date();
+      authorize.timezone = chargingStation.getTimezone();
+      // Check
+      authorize.user = await Authorizations.isTagIDAuthorizedOnChargingStation(chargingStation, authorize.idTag, Constants.ACTION_AUTHORIZE);
+      // Save
+      await OCPPStorage.saveAuthorize(chargingStation.getTenantID(), authorize);
+      // Log
+      Logging.logInfo({
+        tenantID: chargingStation.getTenantID(),
+        source: chargingStation.getID(), module: 'ChargingStation', method: 'handleAuthorize',
+        action: 'Authorize', user: (authorize.user ? authorize.user.getModel() : null),
+        message: `User has been authorized with Badge ID '${authorize.idTag}'`
+      });
       // Return
       return {
         'status': 'Accepted'
       };
     } catch (error) {
       // Set the source
-      error.source = payload.chargeBoxIdentity;
+        error.source = authorize.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(payload.tenantID, 'Authorize', error);
+      Logging.logActionExceptionMessage(authorize.tenantID, 'Authorize', error);
       return {
         'status': 'Invalid'
       };
