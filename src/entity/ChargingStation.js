@@ -847,20 +847,6 @@ class ChargingStation extends AbstractTenantEntity {
     });
   }
 
-  async handleDiagnosticsStatusNotification(diagnosticsStatusNotification) {
-    // Set the charger ID
-    diagnosticsStatusNotification.chargeBoxID = this.getID();
-    diagnosticsStatusNotification.timestamp = new Date();
-    // Save it
-    await ChargingStationStorage.saveDiagnosticsStatusNotification(this.getTenantID(), diagnosticsStatusNotification);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation', method: 'handleDiagnosticsStatusNotification',
-      action: 'DiagnosticsStatusNotification', message: `Diagnostics Status Notification has been saved`
-    });
-  }
-
   async handleFirmwareStatusNotification(firmwareStatusNotification) {
     // Set the charger ID
     firmwareStatusNotification.chargeBoxID = this.getID();

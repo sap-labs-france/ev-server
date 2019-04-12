@@ -226,7 +226,8 @@ class OCPPStorage {
         _id: diagnosticsStatusNotification.id,
         chargeBoxID: diagnosticsStatusNotification.chargeBoxID,
         status: diagnosticsStatusNotification.status,
-        timestamp: Utils.convertToDate(diagnosticsStatusNotification.timestamp)
+        timestamp: Utils.convertToDate(diagnosticsStatusNotification.timestamp),
+        timezone: diagnosticsStatusNotification.timezone
       });
     // Debug
     Logging.traceEnd('OCPPStorage', 'saveDiagnosticsStatusNotification', uniqueTimerID);

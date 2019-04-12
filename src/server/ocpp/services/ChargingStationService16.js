@@ -354,7 +354,7 @@ class ChargingStationService16 extends ChargingStationService {
       // Log
       Logging.logInfo({
         tenantID: chargingStation.getTenantID(),
-        source: chargingStation.getID(), module: 'ChargingStation', method: 'handleAuthorize',
+        source: chargingStation.getID(), module: 'ChargingStationService16', method: 'handleAuthorize',
         action: 'Authorize', user: (authorize.user ? authorize.user.getModel() : null),
         message: `User has been authorized with Badge ID '${authorize.idTag}'`
       });
@@ -373,19 +373,31 @@ class ChargingStationService16 extends ChargingStationService {
     }
   }
 
-  async handleDiagnosticsStatusNotification(payload) {
+  async handleDiagnosticsStatusNotification(diagnosticsStatusNotification) {
     try {
+      // Check props
+      OCPPValidation.validateDiagnosticsStatusNotification(diagnosticsStatusNotification);
       // Get the charging station
-      const chargingStation = await OCPPUtils.checkAndGetChargingStation(payload.chargeBoxIdentity, payload.tenantID);
-      // Save
-      await chargingStation.handleDiagnosticsStatusNotification(payload);
+      const chargingStation = await OCPPUtils.checkAndGetChargingStation(diagnosticsStatusNotification.chargeBoxIdentity, diagnosticsStatusNotification.tenantID);
+      // Set the charger ID
+      diagnosticsStatusNotification.chargeBoxID = chargingStation.getID();
+      diagnosticsStatusNotification.timestamp = new Date();
+      diagnosticsStatusNotification.timezone = chargingStation.getTimezone();
+      // Save it
+      await OCPPStorage.saveDiagnosticsStatusNotification(chargingStation.getTenantID(), diagnosticsStatusNotification);
+      // Log
+      Logging.logInfo({
+        tenantID: chargingStation.getTenantID(),
+        source: chargingStation.getID(), module: 'ChargingStationService16', method: 'handleDiagnosticsStatusNotification',
+        action: 'DiagnosticsStatusNotification', message: `Diagnostics Status Notification has been saved`
+      });
       // Return
       return {};
     } catch (error) {
       // Set the source
-      error.source = payload.chargeBoxIdentity;
+      error.source = diagnosticsStatusNotification.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(payload.tenantID, 'DiagnosticsStatusNotification', error);
+      Logging.logActionExceptionMessage(chargingStation.getTenantID(), 'DiagnosticsStatusNotification', error);
       return {};
     }
   }

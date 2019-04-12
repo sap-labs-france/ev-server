@@ -21,6 +21,9 @@ class OCPPValidation {
 
   static validateBootNotification(bootNotification) {
   }
+
+  static validateDiagnosticsStatusNotification(diagnosticsStatusNotification) {
+  }
 }
 
 module.exports = OCPPValidation;
