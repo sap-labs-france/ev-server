@@ -38,7 +38,7 @@
 						},
 						{
 							"key": "password",
-							"value": "pass",
+							"value": "",
 							"type": "text"
 						},
 						{
@@ -105,7 +105,7 @@
 						},
 						{
 							"key": "password",
-							"value": "Admin.B3$",
+							"value": "",
 							"type": "text"
 						}
 					]
@@ -160,7 +160,7 @@
 						},
 						{
 							"key": "password",
-							"value": "DeM*Us$r3",
+							"value": "",
 							"type": "text"
 						},
 						{
@@ -222,7 +222,7 @@
 						},
 						{
 							"key": "password",
-							"value": "DeM*Us$r3",
+							"value": "",
 							"type": "text"
 						},
 						{
@@ -284,7 +284,7 @@
 						},
 						{
 							"key": "password",
-							"value": "DeM*Us$r1",
+							"value": "",
 							"type": "text"
 						},
 						{
@@ -3054,6 +3054,50 @@
 			"response": []
 		},
 		{
+			"name": "FE-ChargingStationDelete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{base_url}}/client/api/CompanyDelete?ID=5a7234df6a0b293d15ed02e1",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"client",
+						"api",
+						"CompanyDelete"
+					],
+					"query": [
+						{
+							"key": "ID",
+							"value": "5a7234df6a0b293d15ed02e1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "FE-SiteDelete",
 			"request": {
 				"auth": {
@@ -3428,6 +3472,33 @@
 			"response": []
 		},
 		{
+			"name": "AuthorizeUnknownTagID",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/Authorize</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\" mustUnderstand=\"true\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <authorizeRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <idTag>VTFE</idTag>\r\n    </authorizeRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+				},
+				"url": {
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
+					"host": [
+						"{{server_url}}"
+					],
+					"path": [
+						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "DataTransfer",
 			"event": [
 				{
@@ -3447,6 +3518,60 @@
 				"body": {
 					"mode": "raw",
 					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/DataTransfer</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\" mustUnderstand=\"true\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <dataTransferRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <vendorId>Schneider Electric</vendorId>\r\n      <messageId>Detection loop</messageId>\r\n      <data>{\\\"connectorId\\\":2,\\\"name\\\":\\\"Vehicle\\\",\\\"state\\\":\\\"0\\\",\\\"timestamp\\\":\\\"2018-08-08T10:21:11Z:\\\"}</data>\r\n      <chargeBoxID>{{chargingStation}}</chargeBoxID>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </dataTransferRequest>\r\n  </s:Body>\r\n</s:Envelope>\r\n"
+				},
+				"url": {
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
+					"host": [
+						"{{server_url}}"
+					],
+					"path": [
+						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DiagnosticStatusNotif",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/DiagnosticsStatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\" mustUnderstand=\"true\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <diagnosticsStatusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <Status>Uploaded</Status>\r\n    </diagnosticsStatusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+				},
+				"url": {
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
+					"host": [
+						"{{server_url}}"
+					],
+					"path": [
+						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FirmwareStatusNotif",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/FirmwareStatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\" mustUnderstand=\"true\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <firmwareStatusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <Status>Downloading</Status>\r\n    </firmwareStatusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
 					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
@@ -3500,7 +3625,85 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/BootNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">NEW_CHARGER</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <bootNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <chargePointVendor>Schneider Electric</chargePointVendor>\r\n      <chargePointModel>MONOBLOCK</chargePointModel>\r\n      <chargePointSerialNumber>1234</chargePointSerialNumber>\r\n      <chargeBoxSerialNumber>6789</chargeBoxSerialNumber>\r\n      <firmwareVersion>666</firmwareVersion>\r\n      <ocppVersion>1.5</ocppVersion>\r\n      <endpoint>http://192.168.0.110:8080</endpoint>\r\n    </bootNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/BootNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{newChargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <bootNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <chargePointVendor>Schneider Electric</chargePointVendor>\r\n      <chargePointModel>MONOBLOCK</chargePointModel>\r\n      <chargePointSerialNumber>1234</chargePointSerialNumber>\r\n      <chargeBoxSerialNumber>6789</chargeBoxSerialNumber>\r\n      <firmwareVersion>666</firmwareVersion>\r\n      <ocppVersion>1.5</ocppVersion>\r\n      <endpoint>http://192.168.0.110:8080</endpoint>\r\n    </bootNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+				},
+				"url": {
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
+					"host": [
+						"{{server_url}}"
+					],
+					"path": [
+						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "BootNotificationStatusNotificationConn1",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "fb7b3aa7-5660-443e-8c0a-f50731b0740a",
+						"exec": [
+							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{newChargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>2</connectorId>\r\n      <status>Available</status>\r\n      <errorCode>NoError</errorCode>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+				},
+				"url": {
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
+					"host": [
+						"{{server_url}}"
+					],
+					"path": [
+						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "BootNotificationStatusNotificationConn2",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "fb7b3aa7-5660-443e-8c0a-f50731b0740a",
+						"exec": [
+							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{newChargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>1</connectorId>\r\n      <status>Available</status>\r\n      <errorCode>NoError</errorCode>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
 					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
@@ -3569,6 +3772,317 @@
 				"body": {
 					"mode": "raw",
 					"raw": "\r\n<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StartTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2010/08/\" xmlns:h=\"urn://Ocpp/Cs/2010/08/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:eb0fa6dc-7f93-47c8-9774-ff3ed4a2baba</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <startTransactionRequest xmlns=\"urn://Ocpp/Cs/2010/08/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <idTag>{{tagId1}}</idTag>\r\n      <timestamp>{{dateStartTransaction}}</timestamp>\r\n      <meterStart>10000</meterStart>\r\n    </startTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>\r\n"
+				},
+				"url": {
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
+					"host": [
+						"{{server_url}}"
+					],
+					"path": [
+						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "StartTransactionABBLockConn",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2917529c-43d1-4b1f-acc0-2556fa01de67",
+						"exec": [
+							"var responseJson = xml2Json(responseBody);",
+							"var transactionId = responseJson[\"soap:Envelope\"][\"soap:Body\"][\"ns1:startTransactionResponse\"][\"ns1:transactionId\"];",
+							"postman.setEnvironmentVariable(\"transactionId\", transactionId);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "16a70974-08d9-4db2-8638-0a4f2b96d820",
+						"exec": [
+							"var dateTransaction = new Date();",
+							"",
+							"// Set Start Transaction",
+							"postman.setEnvironmentVariable(\"dateStartTransaction\", dateTransaction.toISOString());",
+							"",
+							"// Fill 6 transaction dates for the Meter Values",
+							"for(var i = 1; i <= 6; i++) {",
+							"    // Add 1 min",
+							"    dateTransaction = new Date(dateTransaction.getTime() + 60000);",
+							"    // Set",
+							"    postman.setEnvironmentVariable(\"dateTransaction\" + i, dateTransaction.toISOString());    ",
+							"}",
+							"",
+							"// Add 1 min",
+							"dateTransaction = new Date(dateTransaction.getTime() + 60000);",
+							"// Set Stop Transaction",
+							"postman.setEnvironmentVariable(\"dateStopTransaction\", dateTransaction.toISOString());",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "\r\n<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StartTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2010/08/\" xmlns:h=\"urn://Ocpp/Cs/2010/08/\">{{abbChargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:eb0fa6dc-7f93-47c8-9774-ff3ed4a2baba</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <startTransactionRequest xmlns=\"urn://Ocpp/Cs/2010/08/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <idTag>{{tagId1}}</idTag>\r\n      <timestamp>{{dateStartTransaction}}</timestamp>\r\n      <meterStart>10000</meterStart>\r\n    </startTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>\r\n"
+				},
+				"url": {
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
+					"host": [
+						"{{server_url}}"
+					],
+					"path": [
+						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "StatusNotificationOkAbb",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "fb7b3aa7-5660-443e-8c0a-f50731b0740a",
+						"exec": [
+							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{abbChargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <status>Available</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+				},
+				"url": {
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
+					"host": [
+						"{{server_url}}"
+					],
+					"path": [
+						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "StartTransactionWrongConnID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2917529c-43d1-4b1f-acc0-2556fa01de67",
+						"exec": [
+							"var responseJson = xml2Json(responseBody);",
+							"var transactionId = responseJson[\"soap:Envelope\"][\"soap:Body\"][\"ns1:startTransactionResponse\"][\"ns1:transactionId\"];",
+							"postman.setEnvironmentVariable(\"transactionId\", transactionId);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "16a70974-08d9-4db2-8638-0a4f2b96d820",
+						"exec": [
+							"var dateTransaction = new Date();",
+							"",
+							"// Set Start Transaction",
+							"postman.setEnvironmentVariable(\"dateStartTransaction\", dateTransaction.toISOString());",
+							"",
+							"// Fill 6 transaction dates for the Meter Values",
+							"for(var i = 1; i <= 6; i++) {",
+							"    // Add 1 min",
+							"    dateTransaction = new Date(dateTransaction.getTime() + 60000);",
+							"    // Set",
+							"    postman.setEnvironmentVariable(\"dateTransaction\" + i, dateTransaction.toISOString());    ",
+							"}",
+							"",
+							"// Add 1 min",
+							"dateTransaction = new Date(dateTransaction.getTime() + 60000);",
+							"// Set Stop Transaction",
+							"postman.setEnvironmentVariable(\"dateStopTransaction\", dateTransaction.toISOString());",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "\r\n<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StartTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2010/08/\" xmlns:h=\"urn://Ocpp/Cs/2010/08/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:eb0fa6dc-7f93-47c8-9774-ff3ed4a2baba</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <startTransactionRequest xmlns=\"urn://Ocpp/Cs/2010/08/\">\r\n      <connectorId>10</connectorId>\r\n      <idTag>{{tagId1}}</idTag>\r\n      <timestamp>{{dateStartTransaction}}</timestamp>\r\n      <meterStart>10000</meterStart>\r\n    </startTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>\r\n"
+				},
+				"url": {
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
+					"host": [
+						"{{server_url}}"
+					],
+					"path": [
+						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "StartTransaction NotStartMeterVal",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2917529c-43d1-4b1f-acc0-2556fa01de67",
+						"exec": [
+							"var responseJson = xml2Json(responseBody);",
+							"var transactionId = responseJson[\"soap:Envelope\"][\"soap:Body\"][\"ns1:startTransactionResponse\"][\"ns1:transactionId\"];",
+							"postman.setEnvironmentVariable(\"transactionId\", transactionId);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "16a70974-08d9-4db2-8638-0a4f2b96d820",
+						"exec": [
+							"var dateTransaction = new Date();",
+							"",
+							"// Set Start Transaction",
+							"postman.setEnvironmentVariable(\"dateStartTransaction\", dateTransaction.toISOString());",
+							"",
+							"// Fill 6 transaction dates for the Meter Values",
+							"for(var i = 1; i <= 6; i++) {",
+							"    // Add 1 min",
+							"    dateTransaction = new Date(dateTransaction.getTime() + 60000);",
+							"    // Set",
+							"    postman.setEnvironmentVariable(\"dateTransaction\" + i, dateTransaction.toISOString());    ",
+							"}",
+							"",
+							"// Add 1 min",
+							"dateTransaction = new Date(dateTransaction.getTime() + 60000);",
+							"// Set Stop Transaction",
+							"postman.setEnvironmentVariable(\"dateStopTransaction\", dateTransaction.toISOString());",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "\r\n<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StartTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2010/08/\" xmlns:h=\"urn://Ocpp/Cs/2010/08/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:eb0fa6dc-7f93-47c8-9774-ff3ed4a2baba</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <startTransactionRequest xmlns=\"urn://Ocpp/Cs/2010/08/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <idTag>{{tagId1}}</idTag>\r\n      <timestamp>{{dateStartTransaction}}</timestamp>\r\n    </startTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>\r\n"
+				},
+				"url": {
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
+					"host": [
+						"{{server_url}}"
+					],
+					"path": [
+						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "StartTransaction NoTimeStamp",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2917529c-43d1-4b1f-acc0-2556fa01de67",
+						"exec": [
+							"var responseJson = xml2Json(responseBody);",
+							"var transactionId = responseJson[\"soap:Envelope\"][\"soap:Body\"][\"ns1:startTransactionResponse\"][\"ns1:transactionId\"];",
+							"postman.setEnvironmentVariable(\"transactionId\", transactionId);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "16a70974-08d9-4db2-8638-0a4f2b96d820",
+						"exec": [
+							"var dateTransaction = new Date();",
+							"",
+							"// Set Start Transaction",
+							"postman.setEnvironmentVariable(\"dateStartTransaction\", dateTransaction.toISOString());",
+							"",
+							"// Fill 6 transaction dates for the Meter Values",
+							"for(var i = 1; i <= 6; i++) {",
+							"    // Add 1 min",
+							"    dateTransaction = new Date(dateTransaction.getTime() + 60000);",
+							"    // Set",
+							"    postman.setEnvironmentVariable(\"dateTransaction\" + i, dateTransaction.toISOString());    ",
+							"}",
+							"",
+							"// Add 1 min",
+							"dateTransaction = new Date(dateTransaction.getTime() + 60000);",
+							"// Set Stop Transaction",
+							"postman.setEnvironmentVariable(\"dateStopTransaction\", dateTransaction.toISOString());",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "\r\n<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StartTransaction</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2010/08/\" xmlns:h=\"urn://Ocpp/Cs/2010/08/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:eb0fa6dc-7f93-47c8-9774-ff3ed4a2baba</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <startTransactionRequest xmlns=\"urn://Ocpp/Cs/2010/08/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <idTag>{{tagId1}}</idTag>\r\n      <meterStart>10000</meterStart>\r\n    </startTransactionRequest>\r\n  </s:Body>\r\n</s:Envelope>\r\n"
 				},
 				"url": {
 					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
@@ -3696,6 +4210,45 @@
 			"response": []
 		},
 		{
+			"name": "StatusNotificationPreparingNoTimeStamp",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "fb7b3aa7-5660-443e-8c0a-f50731b0740a",
+						"exec": [
+							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId}}</connectorId>\r\n      <status>Preparing</status>\r\n      <errorCode>NoError</errorCode>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+				},
+				"url": {
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
+					"host": [
+						"{{server_url}}"
+					],
+					"path": [
+						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "StatusNotificationError",
 			"event": [
 				{
@@ -3793,6 +4346,84 @@
 				"body": {
 					"mode": "raw",
 					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>{{connectorId2}}</connectorId>\r\n      <status>Faulted</status>\r\n      <errorCode>PowerMeterFailure</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+				},
+				"url": {
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
+					"host": [
+						"{{server_url}}"
+					],
+					"path": [
+						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "StatusNotificationOk2Conns",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "fb7b3aa7-5660-443e-8c0a-f50731b0740a",
+						"exec": [
+							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>0</connectorId>\r\n      <status>Available</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
+				},
+				"url": {
+					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
+					"host": [
+						"{{server_url}}"
+					],
+					"path": [
+						"OCPP15"
+					],
+					"query": [
+						{
+							"key": "TenantID",
+							"value": "{{tenantID}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "StatusNotificationPrep2Conns",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "fb7b3aa7-5660-443e-8c0a-f50731b0740a",
+						"exec": [
+							"postman.setEnvironmentVariable(\"currentDate\", new Date().toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "<s:Envelope xmlns:a=\"http://www.w3.org/2005/08/addressing\" xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\">\r\n  <s:Header>\r\n    <a:Action s:mustUnderstand=\"1\">/StatusNotification</a:Action>\r\n    <h:chargeBoxIdentity xmlns=\"urn://Ocpp/Cs/2012/06/\" xmlns:h=\"urn://Ocpp/Cs/2012/06/\">{{chargingStation}}</h:chargeBoxIdentity>\r\n    <a:From>\r\n      <a:Address>{{base_url}}:8081/ChargeBox/Ocpp</a:Address>\r\n    </a:From>\r\n    <a:MessageID>urn:uuid:e88f0d17-2b60-454b-9939-f57b2c0746c0</a:MessageID>\r\n    <a:ReplyTo>\r\n      <a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address>\r\n    </a:ReplyTo>\r\n    <a:To>{{to}}</a:To>\r\n  </s:Header>\r\n  <s:Body xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <statusNotificationRequest xmlns=\"urn://Ocpp/Cs/2012/06/\">\r\n      <connectorId>0</connectorId>\r\n      <status>Preparing</status>\r\n      <errorCode>NoError</errorCode>\r\n      <timestamp>{{currentDate}}</timestamp>\r\n    </statusNotificationRequest>\r\n  </s:Body>\r\n</s:Envelope>"
 				},
 				"url": {
 					"raw": "{{server_url}}/OCPP15?TenantID={{tenantID}}",
@@ -4091,7 +4722,7 @@
 			"response": []
 		},
 		{
-			"name": "MeterValue1-KEBA",
+			"name": "MeterValue1-KEBA-NoTrID-Conn=0",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -4118,7 +4749,7 @@
 			"response": []
 		},
 		{
-			"name": "MeterValue2-ABB",
+			"name": "MeterValue2-ABB-WrongTrID",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -4145,7 +4776,7 @@
 			"response": []
 		},
 		{
-			"name": "MeterValue3-KEBA",
+			"name": "MeterValue3-KEBA-NoTrID-Conn=0",
 			"request": {
 				"method": "POST",
 				"header": [],
