@@ -9,6 +9,7 @@ const UpdateABBMeterValuesTask = require('./tasks/UpdateKebaMeterValuesTask');
 const NormalizeTransactionsTask = require('./tasks/NormalizeTransactionsTask');
 const CreateConsumptionsTask = require('./tasks/CreateConsumptionsTask');
 const CleanupTransactionTask = require('./tasks/CleanupTransactionTask');
+const TransactionsAddTimezoneTask = require('./tasks/TransactionsAddTimezoneTask');
 // const CleanupMeterValuesTask = require('./tasks/CleanupMeterValuesTask');
 
 
@@ -35,6 +36,7 @@ class MigrationHandler {
       currentMigrationTasks.push(new NormalizeTransactionsTask());
       currentMigrationTasks.push(new CleanupTransactionTask());
       currentMigrationTasks.push(new CreateConsumptionsTask());
+      currentMigrationTasks.push(new TransactionsAddTimezoneTask());
       // currentMigrationTasks.push(new CleanupMeterValuesTask()); // 02/2019: Takes too much time for only ~7000 meter values out of 2.2 millions
 
       // Get the already done migrations from the DB
