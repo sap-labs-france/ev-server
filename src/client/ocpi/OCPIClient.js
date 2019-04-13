@@ -1,6 +1,6 @@
 const axios = require('axios');
 const OCPIMapping = require('../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping');
-const ChargingStation = require('../../entity/ChargingStation');
+const OCPPStorage = require('../../storage/mongodb/OCPPStorage');
 const Constants = require('../../utils/Constants');
 const Logging = require('../../utils/Logging');
 const _ = require('lodash');
@@ -390,7 +390,7 @@ class OCPIClient {
     const params = { "dateFrom": lastPatchJobOn };
 
     // get last status notifications
-    const statusNotificationsResult = await ChargingStation.getStatusNotifications(tenant.getID(), params);
+    const statusNotificationsResult = await OCPPStorage.getStatusNotifications(tenant.getID(), params);
 
     // loop through notifications
     if (statusNotificationsResult.count > 0) {
