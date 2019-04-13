@@ -1,5 +1,5 @@
 const morgan = require('morgan');
-const expressTools = require('../ExpressInitialization')
+const expressTools = require('../ExpressTools')
 const path = require('path');
 const sanitize = require('express-sanitizer');
 const CentralRestServerAuthentication = require('./CentralRestServerAuthentication');

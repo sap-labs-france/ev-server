@@ -55,9 +55,9 @@ module.exports = {
     }
     let cb;
     if (listenCb !== null && typeof listenCb === 'function') {
-      cb = listenCb
+      cb = listenCb;
     } else {
-      cb = defaultListenCb
+      cb = defaultListenCb;
     }
     let server;
     // Log
@@ -91,14 +91,14 @@ module.exports = {
       server = http.createServer(expressApp);
     }
 
-    // Listen;
+    // Listen
     if (serverConfig.host && serverConfig.port) {
       server.listen(serverConfig.port, serverConfig.host, cb);
     } else if (!serverConfig.host && serverConfig.port) {
       server.listen(serverConfig.port, cb);
     } else {
       // eslint-disable-next-line no-console
-      console.log(`Fail to start the ${serverName} Server, missing required port configuration`)
+      console.log(`Fail to start the ${serverName} Server, missing required port configuration`);
     }
 
     return server;

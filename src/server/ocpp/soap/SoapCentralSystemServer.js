@@ -1,7 +1,7 @@
 const fs = require('fs');
 const soap = require('strong-soap').soap;
 const morgan = require('morgan');
-const expressTools = require('../../ExpressInitialization');
+const expressTools = require('../../ExpressTools');
 const CentralSystemServer = require('../CentralSystemServer');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
@@ -48,7 +48,8 @@ class SoapCentralSystemServer extends CentralSystemServer {
       );
     }
     // Default, serve the index.html
-    this._express.get(/^\/wsdl(.+)$/, function (req, res, next) { // eslint-disable-line
+    // eslint-disable-next-line no-unused-vars
+    this._express.get(/^\/wsdl(.+)$/, function (req, res, next) {
       // WDSL file?
       switch (req.params["0"]) {
         // Charge Point WSDL 1.2
