@@ -147,8 +147,6 @@ class JsonRestChargingStationClient extends ChargingStationClient {
       this._wsConnection.onerror = (error) => {
         // Log
         Logging.logException(error, "WSRestConnectionClosed", this._chargingStation.getID(), MODULE_NAME, "onError", this._chargingStation.getTenantID(),);
-        // Reject
-        reject();
       };
       // Handle Server Message
       this._wsConnection.onmessage = async (message) => {

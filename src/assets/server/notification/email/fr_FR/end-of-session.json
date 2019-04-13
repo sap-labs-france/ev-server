@@ -18,7 +18,7 @@
     "beforeActionLines": [
       "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Votre session sur <b><%- chargingBoxID %></b> est terminée."
+      "Votre session sur <b><%- chargeBoxID %></b> est terminée."
     ],
     "stats": [
       { "label": "Consommation", "value": "<%- totalConsumption %> kW.h" },
@@ -34,7 +34,7 @@
       "<%- (alternateUser ? 'L&#39;utilisateur <b>' + (alternateUser.firstName ? alternateUser.name + ' ' + alternateUser.firstName : alternateUser.name) + '</b> a stoppé votre session.' : '') %>",
       "",
       "Cordialement,",
-      "EV Admin."
+      "EV Admins."
     ],
     "footer": {
     }

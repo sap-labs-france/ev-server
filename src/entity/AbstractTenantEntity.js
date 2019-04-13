@@ -15,10 +15,6 @@ class AbstractTenantEntity {
     return this._tenantID;
   }
 
-  /**
-   *
-   * @returns {Promise<Tenant>}
-   */
   async getTenant() {
     if (!this._tenant) {
       this._tenant = await TenantStorage.getTenant(this._tenantID);
@@ -28,6 +24,13 @@ class AbstractTenantEntity {
 
   getModel() {
     return this._model;
+  }
+
+  async isComponentActive(identifier) {
+    // Get the tenant
+    const tenant = await this.getTenant();
+    // Check
+    return tenant.isComponentActive(identifier);
   }
 }
 

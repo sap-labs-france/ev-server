@@ -288,7 +288,7 @@ class OCPIMapping {
     const credential = {};
 
     // get ocpi service configuration
-    const ocpiSetting= await tenant.getSetting(Constants.COMPONENTS.OCPI_COMPONENT);
+    const ocpiSetting= await tenant.getSetting(Constants.COMPONENTS.OCPI);
 
     // define version url
     credential.url = (versionUrl?versionUrl:'https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/cpo/versions');

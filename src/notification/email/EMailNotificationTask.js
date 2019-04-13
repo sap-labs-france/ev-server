@@ -197,7 +197,7 @@ class EMailNotificationTask extends NotificationTask {
         // Error!
         try {
           Logging.logError({
-            tenantID: tenantID, source: (data.hasOwnProperty("chargingBoxID") ? data.chargingBoxID : undefined),
+            tenantID: tenantID, source: (data.hasOwnProperty("chargeBoxID") ? data.chargeBoxID : undefined),
             module: "EMailNotificationTask", method: "sendEmail",
             action: "SendEmail", message: err.toString(),
             detailedMessages: {
@@ -218,7 +218,7 @@ class EMailNotificationTask extends NotificationTask {
         // Email sent successfully
         Logging.logInfo({
           tenantID: tenantID,
-          source: (data.hasOwnProperty("chargingBoxID") ? data.chargingBoxID : undefined),
+          source: (data.hasOwnProperty("chargeBoxID") ? data.chargeBoxID : undefined),
           module: "EMailNotificationTask", method: "_prepareAndSendEmail",
           action: "SendEmail", actionOnUser: data.user,
           message: `Email has been sent successfully`,

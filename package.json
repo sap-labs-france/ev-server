@@ -14,6 +14,7 @@
 		"axios": "^0.18.0",
 		"babel-polyfill": "^6.26.0",
 		"bcrypt": "^3.0.5",
+		"bluebird": "^3.5.4",
 		"body-parser": "^1.18.3",
 		"body-parser-xml": "^1.1.0",
 		"cf-nodejs-logging-support": "^4.0.0",
@@ -110,7 +111,7 @@
 	"scripts": {
 		"start": "npm run start:prod",
 		"start:dev": "nodemon -w dist dist/start.js",
-		"start:dev:debug": "nodemon -w src --inspect-brk src/start.js",
+		"start:dev:debug": "nodemon -w src --trace-warnings --inspect-brk src/start.js",
 		"start:dev:prof": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development node --prof src/start.js",
 		"start:dev:doctorprof": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development clinic doctor -- node src/start.js",
 		"start:dev:flameprof": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development clinic flame -- node src/start.js",
@@ -130,6 +131,7 @@
 		"test": "mocha test/**/*Test.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"test:parallel": "mocha-parallel-tests test/**/*Test.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"test:charging-station": "mocha test/**/OCPP*Test.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
+		"test:charging-station-specifics": "mocha test/**/OCPPSpecificsTest.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"test:tenant": "mocha test/**/TenantTest.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"clinic:clean": "clinic clean",
 		"start:email": "maildev --web 8888 --web-ip 127.0.0.1 --smtp 70 --verbose --incoming-user evse-mail-user --incoming-pass evse-mail-pwd"

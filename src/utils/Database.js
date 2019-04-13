@@ -176,6 +176,9 @@ class Database {
     dest.chargeBoxID = src.chargeBoxID;
     dest.connectorId = Utils.convertToInt(src.connectorId);
     dest.timestamp = Utils.convertToDate(src.timestamp);
+    if (src.hasOwnProperty('timezone')) {
+      dest.timezone = src.timezone;
+    }
     dest.status = src.status;
     dest.errorCode = src.errorCode;
     dest.info = src.info;
@@ -566,6 +569,9 @@ class Database {
     }
     if (src.hasOwnProperty('currentTotalConsumption')) {
       dest.currentTotalConsumption = src.currentTotalConsumption;
+    }
+    if (src.hasOwnProperty('timezone')) {
+      dest.timezone = src.timezone;
     }
     dest.chargeBoxID = src.chargeBoxID;
     dest.connectorId = Utils.convertToInt(src.connectorId);

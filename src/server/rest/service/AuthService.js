@@ -201,11 +201,12 @@ class AuthService {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Transaction ID '${filteredRequest.Arg2}' does not exist`,
-        560, 'ChargingStationService', 'handleAction');
+        560, 'AuthService', 'isStopTransactionAuthorized');
     }
     try {
       // Check
-      await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(filteredRequest.Action, chargingStation, transaction.getTagID(), user.tagIDs[0]);
+      await Authorizations.checkUserOnChargingStation(
+        chargingStation, transaction.getTagID(), user.tagIDs[0], filteredRequest.Action);
       // Ok
       return true;
     } catch (e) {
