@@ -335,23 +335,34 @@ class OCPPService {
         });
         // Process values
       } else {
-        // Get the transaction
-        const transaction = await Transaction.getTransaction(chargingStation.getTenantID(), meterValues.transactionId);
-        // Handle Meter Values
-        await transaction.updateWithMeterValues(newMeterValues);
-        // Save Transaction
-        await transaction.save();
-        // Update Charging Station Consumption
-        await this._updateChargingStationConsumption(chargingStation, transaction);
-        // Save Charging Station
-        await chargingStation.save();
-        // Log
-        Logging.logInfo({
-          tenantID: chargingStation.getTenantID(), source: chargingStation.getID(),
-          module: 'OCPPService', method: 'handleMeterValues', action: 'MeterValues',
-          message: `MeterValue have been saved for Transaction ID '${meterValues.transactionId}'`,
-          detailedMessages: meterValues
-        });
+        // Handle Meter Value only for transaction
+        if (meterValues.transactionId) {
+          // Get the transaction
+          const transaction = await Transaction.getTransaction(chargingStation.getTenantID(), meterValues.transactionId);
+          // Handle Meter Values
+          await transaction.updateWithMeterValues(newMeterValues);
+          // Save Transaction
+          await transaction.save();
+          // Update Charging Station Consumption
+          await this._updateChargingStationConsumption(chargingStation, transaction);
+          // Save Charging Station
+          await chargingStation.save();
+          // Log
+          Logging.logInfo({
+            tenantID: chargingStation.getTenantID(), source: chargingStation.getID(),
+            module: 'OCPPService', method: 'handleMeterValues', action: 'MeterValues',
+            message: `MeterValue have been saved for Transaction ID '${meterValues.transactionId}'`,
+            detailedMessages: meterValues
+          });
+        } else {
+          // Log
+          Logging.logWarning({
+            tenantID: chargingStation.getTenantID(), source: chargingStation.getID(),
+            module: 'OCPPService', method: 'handleMeterValues', action: 'MeterValues',
+            message: `MeterValues is ignored as it is not linked to a transaction`,
+            detailedMessages: meterValues
+          });
+        }
       }
       // Return
       return {};

@@ -106,13 +106,6 @@ class OCPPValidation {
       // Override it
       meterValues.transactionId = chargerTransactionId;
     }
-    // Check Transaction ID
-    if (!meterValues.hasOwnProperty('transactionId') || meterValues.transactionId === 0) {
-      // Wrong Transaction ID!
-      throw new BackendError(chargingStation.getID(),
-        `Transaction ID '${chargerTransactionId}' is invalid on Connector '${meterValues.connectorId}', Meter Values not saved`,
-        "OCPPValidation", "validateMeterValues");
-    }
   }
 }
 
