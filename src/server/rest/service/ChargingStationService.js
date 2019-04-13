@@ -669,7 +669,7 @@ class ChargingStationService {
             'ChargingStationService', 'handleAction', req.user, null, action);
         }
         // Check if user is authorized
-        await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, transaction.getTagID(), req.user.tagIDs[0]);
+        await Authorizations.isTagIDAuthorizedOnChargingStation(chargingStation, req.user.tagIDs[0], action);
         // Set the tag ID to handle the Stop Transaction afterwards
         transaction.remoteStop(req.user.tagIDs[0], new Date().toISOString());
         // Save Transaction
@@ -685,7 +685,7 @@ class ChargingStationService {
             'ChargingStationService', 'handleAction', req.user, null, action);
         }
         // Check if user is authorized
-        await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, filteredRequest.args.tagID);
+        await Authorizations.isTagIDAuthorizedOnChargingStation(chargingStation, filteredRequest.args.tagID, action);
         // Ok: Execute it
         result = await chargingStation.handleAction(action, filteredRequest.args);
       } else if (action === 'GetCompositeSchedule') {
