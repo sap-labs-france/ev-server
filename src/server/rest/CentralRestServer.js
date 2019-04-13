@@ -1,17 +1,7 @@
-const cors = require('cors');
-const helmet = require('helmet');
-const hpp = require('hpp');
 const morgan = require('morgan');
-const locale = require('locale');
-const express = require('express')();
-const http = require('http');
-const https = require('https');
-const fs = require('fs');
+const expressTools = require('../ExpressInitialization')
 const path = require('path');
 const sanitize = require('express-sanitizer');
-const bodyParser = require("body-parser");
-const CFLog = require('cf-nodejs-logging-support');
-require('body-parser-xml')(bodyParser);
 const CentralRestServerAuthentication = require('./CentralRestServerAuthentication');
 const CentralRestServerService = require('./CentralRestServerService');
 const Database = require('../../utils/Database');
@@ -25,6 +15,7 @@ let _centralSystemRestConfig;
 let _chargingStationConfig;
 let _socketIO;
 const _currentNotifications = [];
+const MODULE_NAME = "CentralRestServer"
 
 class CentralRestServer {
   // Create the rest server
@@ -37,41 +28,24 @@ class CentralRestServer {
     Database.setChargingStationHeartbeatIntervalSecs(
       _chargingStationConfig.heartbeatIntervalSecs);
 
-    // Cross origin headers
-    express.use(cors());
-
-    // Secure the application
-    express.use(helmet());
-
-    // Body parser
-    express.use(bodyParser.json({
-      limit: '2mb'
-    }));
-    express.use(bodyParser.urlencoded({
-      extended: false,
-      limit: '2mb'
-    }));
-    express.use(hpp());
-    express.use(bodyParser.xml());
+    // Initialize express app
+    this._express = expressTools.expressCommonInit('2mb')
 
     // FIXME?: Should be useless now that helmet() is mounted at the beginning
     // Mount express-sanitizer middleware
-    express.use(sanitize())
-
-    // Use
-    express.use(locale(Configuration.getLocalesConfig().supported));
+    this._express.use(sanitize())
 
     // log to console
     if (centralSystemRestConfig.debug) {
       // Log
-      express.use(
+      this._express.use(
         morgan('combined', {
           'stream': {
             write: (message) => {
               // Log
               Logging.logDebug({
                 tenantID: Constants.DEFAULT_TENANT,
-                module: "CentralRestServer",
+                module: MODULE_NAME,
                 method: "constructor",
                 action: "HttpRequestLog",
                 message: message
@@ -80,36 +54,31 @@ class CentralRestServer {
           }
         })
       );
-    }   
-
-    // Check Cloud Foundry
-    if (Configuration.isCloudFoundry()) {
-      // Bind to express app
-      express.use(CFLog.logNetwork);
     }
 
     // Authentication
-    express.use(CentralRestServerAuthentication.initialize());
+    this._express.use(CentralRestServerAuthentication.initialize());
 
     // Auth services
-    express.use('/client/auth', CentralRestServerAuthentication.authService);
+    this._express.use('/client/auth', CentralRestServerAuthentication.authService);
 
     // Secured API
-    express.use('/client/api', CentralRestServerAuthentication.authenticate(), CentralRestServerService.restServiceSecured);
+    this._express.use('/client/api', CentralRestServerAuthentication.authenticate(), CentralRestServerService.restServiceSecured);
 
     // Util API
-    express.use('/client/util', CentralRestServerService.restServiceUtil);
+    this._express.use('/client/util', CentralRestServerService.restServiceUtil);
 
     // Register error handler
-    express.use(ErrorHandler.errorHandler);
+    this._express.use(ErrorHandler.errorHandler);
 
     // Check if the front-end has to be served also
     const centralSystemConfig = Configuration.getCentralSystemFrontEndConfig();
-    // Server it?
+    // Serve it?
     // TODO: Remove distEnabled support
     if (centralSystemConfig.distEnabled) {
       // Serve all the static files of the front-end
-      express.get(/^\/(?!client\/)(.+)$/, function(req, res, next) { // eslint-disable-line
+      // eslint-disable-next-line no-unused-vars
+      this._express.get(/^\/(?!client\/)(.+)$/, function (req, res, next) {
         // Filter to not handle other server requests
         if (!res.headersSent) {
           // Not already processed: serve the file
@@ -117,45 +86,18 @@ class CentralRestServer {
         }
       });
       // Default, serve the index.html
-      express.get('/', function(req, res, next) { // eslint-disable-line
+      // eslint-disable-next-line no-unused-vars
+      this._express.get('/', function (req, res, next) {
         // Return the index.html
         res.sendFile(path.join(__dirname, centralSystemConfig.distPath, 'index.html'));
       });
     }
   }
 
-  // Start the server (to be defined in sub-classes)
+  // Start the server
   start() {
-    let server;
-    // Log
-    console.log(`Starting REST Server...`); // eslint-disable-line
-    // Create the HTTP server
-    if (_centralSystemRestConfig.protocol == "https") {
-      // Create the options
-      const options = {};
-      // Set the keys
-      options.key = fs.readFileSync(_centralSystemRestConfig["ssl-key"]);
-      options.cert = fs.readFileSync(_centralSystemRestConfig["ssl-cert"]);
-      // Intermediate cert?
-      if (_centralSystemRestConfig["ssl-ca"]) {
-        // Array?
-        if (Array.isArray(_centralSystemRestConfig["ssl-ca"])) {
-          options.ca = [];
-          // Add all
-          for (let i = 0; i < _centralSystemRestConfig["ssl-ca"].length; i++) {
-            options.ca.push(fs.readFileSync(_centralSystemRestConfig["ssl-ca"][i]));
-          }
-        } else {
-          // Add one
-          options.ca = fs.readFileSync(_centralSystemRestConfig["ssl-ca"]);
-        }
-      }
-      // Https server
-      server = https.createServer(options, express);
-    } else {
-      // Http server
-      server = http.createServer(express);
-    }
+    const server = expressTools.expressStartServer(_centralSystemRestConfig, "REST", MODULE_NAME, this._express,
+      this._listenCb);
 
     // Init Socket IO
     _socketIO = require("socket.io")(server);
@@ -167,24 +109,14 @@ class CentralRestServer {
         // Nothing to do
       });
     });
-
-    // Listen
-    if (_centralSystemRestConfig.host && _centralSystemRestConfig.port) {
-      server.listen(_centralSystemRestConfig.port, _centralSystemRestConfig.host, this._listen_cb(_centralSystemRestConfig.protocol,
-        _centralSystemRestConfig.host,
-        _centralSystemRestConfig.port));
-    } else if (!_centralSystemRestConfig.host && _centralSystemRestConfig.port) {
-      server.listen(_centralSystemRestConfig.port, this._listen_cb(_centralSystemRestConfig.protocol,
-        '0.0.0.0',
-        _centralSystemRestConfig.port));
-    }  else {
-      console.log(`Fail to start the REST Server, missing required port configuration`) // eslint-disable-line
-    }
   }
 
   // Listen callback 
-  _listen_cb(protocol, address, port) {
-    // Check and send notif
+  _listenCb() {
+    let host = _centralSystemRestConfig.host;
+    if (!host)
+      host = '::';
+    // Check and send notification
     setInterval(() => {
       // Send
       for (let i = _currentNotifications.length - 1; i >= 0; i--) {
@@ -198,12 +130,13 @@ class CentralRestServer {
     // Log
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
-      module: "CentralserverRestserver",
+      module: MODULE_NAME,
       method: "start",
       action: "Startup",
-      message: `REST Server listening on '${protocol}://${address}:${port}'`
+      message: `REST Server listening on '${_centralSystemRestConfig.protocol}://${host}:${_centralSystemRestConfig.port}'`
     });
-    console.log(`REST Server listening on '${protocol}://${address}:${port}'`); // eslint-disable-line
+    // eslint-disable-next-line no-console
+    console.log(`REST Server listening on '${_centralSystemRestConfig.protocol}://${host}:${_centralSystemRestConfig.port}'`);
   }
 
   notifyUser(tenantID, action, data) {
@@ -356,14 +289,14 @@ class CentralRestServer {
     for (let i = 0; i < _currentNotifications.length; i++) {
       // Same Entity and Action?
       if (_currentNotifications[i].tenantID === notification.tenantID &&
-                _currentNotifications[i].entity === notification.entity &&
-                _currentNotifications[i].action === notification.action) {
+        _currentNotifications[i].entity === notification.entity &&
+        _currentNotifications[i].action === notification.action) {
         // Yes
         dups = true;
         // Data provided: Check Id and Type
         if (_currentNotifications[i].data &&
-                    (_currentNotifications[i].data.id !== notification.data.id ||
-                        _currentNotifications[i].data.type !== notification.data.type)) {
+          (_currentNotifications[i].data.id !== notification.data.id ||
+            _currentNotifications[i].data.type !== notification.data.type)) {
           dups = false;
         } else {
           break;

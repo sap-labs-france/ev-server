@@ -1,17 +1,10 @@
 const fs = require('fs');
 const soap = require('strong-soap').soap;
-const http = require('http');
-const https = require('https');
-const cors = require('cors');
-const helmet = require('helmet');
-const hpp = require('hpp');
 const morgan = require('morgan');
-const express = require('express')();
-const CFLog = require('cf-nodejs-logging-support');
+const expressTools = require('../../ExpressInitialization');
 const CentralSystemServer = require('../CentralSystemServer');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
-const Configuration = require('../../../utils/Configuration');
 const centralSystemService12 = require('./services/SoapCentralSystemService12');
 const centralSystemService15 = require('./services/SoapCentralSystemService15');
 const centralSystemService16 = require('./services/SoapCentralSystemService16');
@@ -19,43 +12,33 @@ const chargePointService12Wsdl = require('../../../client/soap/wsdl/OCPPChargePo
 const chargePointService15Wsdl = require('../../../client/soap/wsdl/OCPPChargePointService15.wsdl');
 const chargePointService16Wsdl = require('../../../client/soap/wsdl/OCPPChargePointService16.wsdl');
 const sanitize = require('express-sanitizer');
-const bodyParser = require('body-parser');
-require('body-parser-xml')(bodyParser);
 require('source-map-support').install();
+
+const MODULE_NAME = "SoapCentralSystemServer";
 
 class SoapCentralSystemServer extends CentralSystemServer {
   constructor(centralSystemConfig, chargingStationConfig) {
     // Call parent
     super(centralSystemConfig, chargingStationConfig);
 
-    // Cross origin headers
-    express.use(cors());
-    // Secure the application
-    express.use(helmet());
-
-    // Body parser
-    express.use(bodyParser.json());
-    express.use(bodyParser.urlencoded({
-      extended: false
-    }));
-    express.use(hpp());
-    express.use(bodyParser.xml());
+    // Initialize express app
+    this._express = expressTools.expressCommonInit()
 
     // FIXME?: Should be useless now that helmet() is mounted at the beginning
     // Mount express-sanitizer middleware
-    express.use(sanitize())
+    this._express.use(sanitize())
 
     // Enable debug?
     if (centralSystemConfig.debug) {
       // Log
-      express.use(
+      this._express.use(
         morgan('combined', {
           'stream': {
             write: (message) => {
               // Log
               Logging.logDebug({
                 tenantID: Constants.DEFAULT_TENANT,
-                module: "CentralSystemServer", method: "constructor",
+                module: MODULE_NAME, method: "constructor",
                 action: "HttpRequestLog",
                 message: message
               });
@@ -64,13 +47,8 @@ class SoapCentralSystemServer extends CentralSystemServer {
         })
       );
     }
-    // Check Cloud Foundry
-    if (Configuration.isCloudFoundry()) {
-      // Bind to express app
-      express.use(CFLog.logNetwork);
-    }
     // Default, serve the index.html
-    express.get(/^\/wsdl(.+)$/, function(req, res, next) { // eslint-disable-line
+    this._express.get(/^\/wsdl(.+)$/, function (req, res, next) { // eslint-disable-line
       // WDSL file?
       switch (req.params["0"]) {
         // Charge Point WSDL 1.2
@@ -97,39 +75,10 @@ class SoapCentralSystemServer extends CentralSystemServer {
   	Listen to external command to send request to charging stations
   */
   start() {
-    // Create the server
-    let server;
-    // Log
-    console.log(`Starting OCPP Soap Server...`); // eslint-disable-line
     // Make it global for SOAP Services
     global.centralSystemSoap = this;
-    // Create the HTTP server
-    if (this._centralSystemConfig.protocol === "https") {
-      // Create the options
-      const options = {};
-      // Set the keys
-      options.key = fs.readFileSync(this._centralSystemConfig["ssl-key"]);
-      options.cert = fs.readFileSync(this._centralSystemConfig["ssl-cert"]);
-      // Intermediate cert?
-      if (this._centralSystemConfig["ssl-ca"]) {
-        // Array?
-        if (Array.isArray(this._centralSystemConfig["ssl-ca"])) {
-          options.ca = [];
-          // Add all
-          for (let i = 0; i < this._centralSystemConfig["ssl-ca"].length; i++) {
-            options.ca.push(fs.readFileSync(this._centralSystemConfig["ssl-ca"][i]));
-          }
-        } else {
-          // Add one
-          options.ca = fs.readFileSync(this._centralSystemRestConfig["ssl-ca"]);
-        }
-      }
-      // Https server
-      server = https.createServer(options, express);
-    } else {
-      // Http server
-      server = http.createServer(express);
-    }
+
+    const server = expressTools.expressStartServer(this._centralSystemConfig, "OCPP Soap", MODULE_NAME, this._express);
 
     // Create Soap Servers
     // OCPP 1.2 -----------------------------------------
@@ -143,7 +92,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
           // Log
           Logging.logDebug({
             tenantID: Constants.DEFAULT_TENANT,
-            module: "SoapCentralSystemServer",
+            module: MODULE_NAME,
             method: "start", action: "SoapRequest",
             message: `OCPP 1.2 - Request Replied`,
             detailedMessages: data
@@ -155,7 +104,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
         // Log
         Logging.logDebug({
           tenantID: Constants.DEFAULT_TENANT,
-          module: "SoapCentralSystemServer",
+          module: MODULE_NAME,
           method: "start", action: "SoapRequest",
           message: `OCPP 1.2 - Request '${methodName}' Received`,
           detailedMessages: request
@@ -173,7 +122,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
           // Log
           Logging.logDebug({
             tenantID: Constants.DEFAULT_TENANT,
-            module: "SoapCentralSystemServer",
+            module: MODULE_NAME,
             method: "start", action: "SoapRequest",
             message: `OCPP 1.5 - Request Replied`,
             detailedMessages: data
@@ -185,7 +134,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
         // Log
         Logging.logDebug({
           tenantID: Constants.DEFAULT_TENANT,
-          module: "SoapCentralSystemServer",
+          module: MODULE_NAME,
           method: "start", action: "SoapRequest",
           message: `OCPP 1.5 - Request '${methodName}' Received`,
           detailedMessages: request
@@ -203,7 +152,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
           // Log
           Logging.logDebug({
             tenantID: Constants.DEFAULT_TENANT,
-            module: "SoapCentralSystemServer",
+            module: MODULE_NAME,
             method: "start", action: "SoapRequest",
             message: `OCPP 1.6 - Request Replied`,
             detailedMessages: data
@@ -215,25 +164,13 @@ class SoapCentralSystemServer extends CentralSystemServer {
         // Log
         Logging.logDebug({
           tenantID: Constants.DEFAULT_TENANT,
-          module: "SoapCentralSystemServer", method: "start",
+          module: MODULE_NAME, method: "start",
           action: "SoapRequest",
           message: `OCPP 1.6 - Request '${methodName}' Received`,
           detailedMessages: request
         });
       });
     }
-
-    // Listen
-    server.listen(this._centralSystemConfig.port, this._centralSystemConfig.host, () => {
-      // Log
-      Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        module: "SoapCentralSystemServer", method: "start",
-        action: "Startup",
-        message: `OCPP Soap Server listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`
-      });
-      console.log(`OCPP Soap Server listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`); // eslint-disable-line
-    });
   }
 
   readWsdl(filename) {
