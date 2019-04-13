@@ -1,5 +1,4 @@
 const NotificationHandler = require('../../../notification/NotificationHandler');
-const ChargingStationService = require('./ChargingStationService');
 const ChargingStation = require('../../../entity/ChargingStation');
 const Authorizations = require('../../../authorization/Authorizations');
 const Transaction = require('../../../entity/Transaction');
@@ -19,10 +18,31 @@ require('source-map-support').install();
 
 momentDurationFormatSetup(moment);
 const _configChargingStation = Configuration.getChargingStationConfig();
-class ChargingStationService16 extends ChargingStationService {
+
+class OCPPService {
   // Common constructor for Central System Service
   constructor(centralSystemConfig, chargingStationConfig) {
-    super(centralSystemConfig, chargingStationConfig);
+    // Keep params
+    this._centralSystemConfig = centralSystemConfig;
+    this._chargingStationConfig = chargingStationConfig;
+  }
+
+  async _checkAndGetChargingStation(chargeBoxIdentity, tenantID) {
+    // Get the charging station
+    const chargingStation = await ChargingStation.getChargingStation(tenantID, chargeBoxIdentity);
+    // Found?
+    if (!chargingStation) {
+      // Error
+      throw new BackendError(chargeBoxIdentity, `Charging Station does not exist`,
+        "OCPPService", "_checkAndGetChargingStation");
+    }
+    // Found?
+    if (chargingStation.isDeleted()) {
+      // Error
+      throw new BackendError(chargeBoxIdentity, `Charging Station is deleted`,
+        "OCPPService", "_checkAndGetChargingStation");
+    }
+    return chargingStation;
   }
 
   async handleBootNotification(bootNotification) {
@@ -56,7 +76,7 @@ class ChargingStationService16 extends ChargingStationService {
           throw new BackendError(
             chargingStation.getID(), 
             `Registration rejected: the Vendor '${bootNotification.chargePointVendor}' / Model '${bootNotification.chargePointModel}' are different! Expected Vendor '${chargingStation.getChargePointVendor()}' / Model '${chargingStation.getChargePointModel()}'`, 
-            "ChargingStationService16", "handleBootNotification", "BootNotification");
+            "OCPPService", "handleBootNotification", "BootNotification");
         }
         chargingStation.setChargePointVendor(bootNotification.chargePointVendor);
         chargingStation.setChargePointModel(bootNotification.chargePointModel);
@@ -95,7 +115,7 @@ class ChargingStationService16 extends ChargingStationService {
       Logging.logInfo({
         tenantID: updatedChargingStation.getTenantID(),
         source: updatedChargingStation.getID(),
-        module: 'ChargingStationService16', method: 'handleBootNotification',
+        module: 'OCPPService', method: 'handleBootNotification',
         action: 'BootNotification', message: `Boot notification saved`
       });
       // Handle the get of configuration later on
@@ -149,7 +169,7 @@ class ChargingStationService16 extends ChargingStationService {
       Logging.logInfo({
         tenantID: chargingStation.getTenantID(),
         source: chargingStation.getID(),
-        module: 'ChargingStationService16', method: 'handleHeartbeat',
+        module: 'OCPPService', method: 'handleHeartbeat',
         action: 'Heartbeat', message: `Heartbeat saved`
       }); 
       // Return
@@ -182,7 +202,7 @@ class ChargingStationService16 extends ChargingStationService {
         // Log
         Logging.logWarning({
           tenantID: chargingStation.getTenantID(),
-          source: chargingStation.getID(), module: 'ChargingStationService16',
+          source: chargingStation.getID(), module: 'OCPPService',
           method: 'handleStatusNotification', action: 'StatusNotification',
           message: `Connector ID is '0' with status '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
         });
@@ -226,7 +246,7 @@ class ChargingStationService16 extends ChargingStationService {
       // No Change: Do not save it
       Logging.logWarning({
         tenantID: chargingStation.getTenantID(), source: chargingStation.getID(),
-        module: 'ChargingStationService16', method: 'handleStatusNotification', action: 'StatusNotification',
+        module: 'OCPPService', method: 'handleStatusNotification', action: 'StatusNotification',
         message: `Status on Connector '${statusNotification.connectorId}' has not changed then not saved: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}''`
       });
       return;
@@ -242,7 +262,7 @@ class ChargingStationService16 extends ChargingStationService {
     // Log
     Logging.logInfo({
       tenantID: chargingStation.getTenantID(), source: chargingStation.getID(),
-      module: 'ChargingStationService16', method: 'handleStatusNotification', action: 'StatusNotification',
+      module: 'OCPPService', method: 'handleStatusNotification', action: 'StatusNotification',
       message: `Connector '${statusNotification.connectorId}' status '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}' has been saved`
     });
     // Handle connector is available but a transaction is ongoing (ABB bug)!!!
@@ -271,7 +291,7 @@ class ChargingStationService16 extends ChargingStationService {
     if (statusNotification.status === Constants.CONN_STATUS_FAULTED) {
       // Log
       Logging.logError({
-        tenantID: chargingStation.getTenantID(), source: chargingStation.getID(), module: 'ChargingStationService16',
+        tenantID: chargingStation.getTenantID(), source: chargingStation.getID(), module: 'OCPPService',
         method: '_notifyStatusNotification', action: 'StatusNotification',
         message: `Error on Connector '${statusNotification.connectorId}': '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : "N/A")}'`
       });
@@ -304,19 +324,19 @@ class ChargingStationService16 extends ChargingStationService {
       // Normalize Meter Values
       const newMeterValues = this._normalizeMeterValues(chargingStation, meterValues);
       // Handle charger's specificities
-      this._checkMeterValuesCharger(newMeterValues);
+      this._checkMeterValuesCharger(chargingStation, newMeterValues);
       // No Values?
       if (newMeterValues.values.length == 0) {
         Logging.logDebug({
-          tenantID: this.getTenantID(),
-          source: this.getID(), module: 'ChargingStationService16', method: 'handleMeterValues',
-          action: 'MeterValues', message: `No MeterValue to save (clocks only)`,
+          tenantID: chargingStation.getTenantID(),
+          source: chargingStation.getID(), module: 'OCPPService', method: 'handleMeterValues',
+          action: 'MeterValues', message: `No relevant MeterValues to save`,
           detailedMessages: meterValues
         });
         // Process values
       } else {
         // Get the transaction
-        const transaction = await Transaction.getTransaction(this.getTenantID(), meterValues.transactionId);
+        const transaction = await Transaction.getTransaction(chargingStation.getTenantID(), meterValues.transactionId);
         // Handle Meter Values
         await transaction.updateWithMeterValues(newMeterValues);
         // Save Transaction
@@ -324,11 +344,11 @@ class ChargingStationService16 extends ChargingStationService {
         // Update Charging Station Consumption
         await this._updateChargingStationConsumption(chargingStation, transaction);
         // Save Charging Station
-        await this.save();
+        await chargingStation.save();
         // Log
         Logging.logInfo({
-          tenantID: this.getTenantID(), source: this.getID(),
-          module: 'ChargingStation', method: 'handleMeterValues', action: 'MeterValues',
+          tenantID: chargingStation.getTenantID(), source: chargingStation.getID(),
+          module: 'OCPPService', method: 'handleMeterValues', action: 'MeterValues',
           message: `MeterValue have been saved for Transaction ID '${meterValues.transactionId}'`,
           detailedMessages: meterValues
         });
@@ -366,8 +386,8 @@ class ChargingStationService16 extends ChargingStationService {
     }
     // Log
     Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStationService16',
+      tenantID: chargingStation.getTenantID(),
+      source: chargingStation.getID(), module: 'OCPPService',
       method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
       message: `Connector '${connector.connectorId}' - Consumption ${connector.currentConsumption}, Total: ${connector.totalConsumption}, SoC: ${connector.currentStateOfCharge}`
     });
@@ -563,7 +583,7 @@ class ChargingStationService16 extends ChargingStationService {
       // Log
       Logging.logInfo({
         tenantID: chargingStation.getTenantID(),
-        source: chargingStation.getID(), module: 'ChargingStationService16', method: 'handleAuthorize',
+        source: chargingStation.getID(), module: 'OCPPService', method: 'handleAuthorize',
         action: 'Authorize', user: (authorize.user ? authorize.user.getModel() : null),
         message: `User has been authorized with Badge ID '${authorize.idTag}'`
       });
@@ -597,7 +617,7 @@ class ChargingStationService16 extends ChargingStationService {
       // Log
       Logging.logInfo({
         tenantID: chargingStation.getTenantID(),
-        source: chargingStation.getID(), module: 'ChargingStationService16', method: 'handleDiagnosticsStatusNotification',
+        source: chargingStation.getID(), module: 'OCPPService', method: 'handleDiagnosticsStatusNotification',
         action: 'DiagnosticsStatusNotification', message: `Diagnostics Status Notification has been saved`
       });
       // Return
@@ -626,7 +646,7 @@ class ChargingStationService16 extends ChargingStationService {
       // Log
       Logging.logInfo({
         tenantID: chargingStation.getTenantID(),
-        source: chargingStation.getID(), module: 'ChargingStationService16', method: 'handleFirmwareStatusNotification',
+        source: chargingStation.getID(), module: 'OCPPService', method: 'handleFirmwareStatusNotification',
         action: 'FirmwareStatusNotification', message: `Firmware Status Notification has been saved`
       });
       // Return
@@ -648,7 +668,7 @@ class ChargingStationService16 extends ChargingStationService {
       if (!chargingStation.getConnector(startTransaction.connectorId)) {
         throw new BackendError(chargingStation.getID(),
           `The Connector ID '${startTransaction.connectorId}' is invalid`,
-          "ChargingStationService16", "handleStartTransaction", "StartTransaction");
+          "OCPPService", "handleStartTransaction", "StartTransaction");
       }
       // Set the header
       startTransaction.chargeBoxID = chargingStation.getID();
@@ -720,7 +740,7 @@ class ChargingStationService16 extends ChargingStationService {
         // Log
         Logging.logInfo({
           tenantID: chargingStation.getTenantID(),
-          source: chargingStation.getID(), module: 'ChargingStationService16', method: 'handleStartTransaction',
+          source: chargingStation.getID(), module: 'OCPPService', method: 'handleStartTransaction',
           action: 'StartTransaction', user: user.getModel(),
           message: `Transaction ID '${transaction.getID()}' has been started on Connector '${transaction.getConnectorId()}'`
         });
@@ -728,7 +748,7 @@ class ChargingStationService16 extends ChargingStationService {
         // Log
         Logging.logInfo({
           tenantID: chargingStation.getTenantID(), source: chargingStation.getID(),
-          module: 'ChargingStationService16', method: 'handleStartTransaction', action: 'StartTransaction',
+          module: 'OCPPService', method: 'handleStartTransaction', action: 'StartTransaction',
           message: `Transaction ID '${transaction.getID()}' has been started on Connector '${transaction.getConnectorId()}'`
         });
       }
@@ -764,7 +784,7 @@ class ChargingStationService16 extends ChargingStationService {
       // Log
       Logging.logInfo({
         tenantID: chargingStation.getTenantID(),
-        source: chargingStation.getID(), module: 'ChargingStationService16', method: 'handleDataTransfer',
+        source: chargingStation.getID(), module: 'OCPPService', method: 'handleDataTransfer',
         action: 'DataTransfer', message: `Data Transfer has been saved`
       });
       // Return
@@ -796,7 +816,7 @@ class ChargingStationService16 extends ChargingStationService {
         // Wrong Transaction ID!
         throw new BackendError(chargingStation.getID(),
           `Transaction ID '${stopTransaction.transactionId}' does not exist`,
-          'ChargingStationService16', 'handleStopTransaction', 'StopTransaction');
+          'OCPPService', 'handleStopTransaction', 'StopTransaction');
       }
       let user, alternateUser;
       // Get the TagID that stopped the transaction
@@ -823,7 +843,7 @@ class ChargingStationService16 extends ChargingStationService {
               throw new BackendError(
                 chargingStation.getID(),
                 `User '${alternateUser.getFullName()}' is not allowed to perform 'Stop Transaction' on User '${user.getFullName()}' on Site '${site.getName()}'!`,
-                'ChargingStationService16', "handleStopTransaction", "StopTransaction",
+                'OCPPService', "handleStopTransaction", "StopTransaction",
                 (alternateUser ? alternateUser.getModel() : null), (user ? user.getModel() : null));
             }
           } else {
@@ -833,7 +853,7 @@ class ChargingStationService16 extends ChargingStationService {
               throw new BackendError(
                 chargingStation.getID(),
                 `User '${alternateUser.getFullName()}' is not allowed to perform 'Stop Transaction' on User '${user.getFullName()}'!`,
-                'ChargingStationService16', "handleStopTransaction", "StopTransaction",
+                'OCPPService', "handleStopTransaction", "StopTransaction",
                 (alternateUser ? alternateUser.getModel() : null), (user ? user.getModel() : null));
             }
           }
@@ -847,7 +867,7 @@ class ChargingStationService16 extends ChargingStationService {
       if (!transaction.isActive()) {
         throw new BackendError(chargingStation.getID(),
           `Transaction ID '${stopTransaction.transactionId}' has already been stopped`,
-          'ChargingStationService16', "handleStopTransaction", "StopTransaction",
+          'OCPPService', "handleStopTransaction", "StopTransaction",
           (alternateUser ? alternateUser.getID() : (user ? user.getID() : null)),
           (alternateUser ? (user ? user.getID() : null) : null));
       }
@@ -877,7 +897,7 @@ class ChargingStationService16 extends ChargingStationService {
       // Log
       Logging.logInfo({
         tenantID: chargingStation.getTenantID(),
-        source: chargingStation.getID(), module: 'ChargingStationService16', method: 'handleStopTransaction',
+        source: chargingStation.getID(), module: 'OCPPService', method: 'handleStopTransaction',
         action: 'StopTransaction', 
         user: (alternateUser ? alternateUser.getID() : (user ? user.getID() : null)),
         actionOnUser: (alternateUser ? (user ? user.getID() : null) : null),
@@ -953,4 +973,4 @@ class ChargingStationService16 extends ChargingStationService {
   }
 }
 
-module.exports = ChargingStationService16;
+module.exports = OCPPService;

@@ -10,7 +10,7 @@ const ChargingStation = require('../../../entity/ChargingStation');
 const User = require('../../../entity/User');
 const SettingStorage = require("../../../storage/mongodb/SettingStorage");
 const ConcurConnector = require("../../../integration/refund/ConcurConnector");
-const ChargingStationService16 = require("../../../server/ocpp/services/ChargingStationService16");
+const OCPPService = require("../../../server/ocpp/services/OCPPService");
 const fs = require("fs");
 const crypto = require('crypto');
 
@@ -238,7 +238,7 @@ class TransactionService {
       stopTransaction.timestamp = new Date().toISOString();
       stopTransaction.meterStop = 0;
       // Save
-      const result = await new ChargingStationService16().handleStopTransaction(stopTransaction, true);
+      const result = await new OCPPService().handleStopTransaction(stopTransaction, true);
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID, source: chargingStation.getID(),

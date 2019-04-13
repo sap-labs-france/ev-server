@@ -1,5 +1,6 @@
 const Utils = require('../../../utils/Utils');
 const BackendError = require('../../../exception/BackendError');
+const Logging = require('../../../utils/Logging');
 
 require('source-map-support').install();
 

@@ -28,13 +28,13 @@ class OCPPUtils {
     if (!chargingStation) {
       // Error
       throw new BackendError(chargeBoxIdentity, `Charging Station does not exist`,
-        "ChargingStationService", "_checkAndGetChargingStation");
+        "OCPPUtils", "_checkAndGetChargingStation");
     }
     // Found?
     if (chargingStation.isDeleted()) {
       // Error
       throw new BackendError(chargeBoxIdentity, `Charging Station is deleted`,
-        "ChargingStationService", "_checkAndGetChargingStation");
+        "OCPPUtils", "_checkAndGetChargingStation");
     }
     return chargingStation;
   }
