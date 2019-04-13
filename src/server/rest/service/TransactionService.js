@@ -10,6 +10,7 @@ const ChargingStation = require('../../../entity/ChargingStation');
 const User = require('../../../entity/User');
 const SettingStorage = require("../../../storage/mongodb/SettingStorage");
 const ConcurConnector = require("../../../integration/refund/ConcurConnector");
+const ChargingStationService16 = require("../../../server/ocpp/services/ChargingStationService16");
 const fs = require("fs");
 const crypto = require('crypto');
 
@@ -229,16 +230,18 @@ class TransactionService {
       }
       // Stop Transaction
       const stopTransaction = {};
+      stopTransaction.chargeBoxIdentity = chargingStation.getID();
+      stopTransaction.tenantID = chargingStation.getTenantID();
       stopTransaction.transactionId = transaction.getID();
       stopTransaction.user = req.user.id;
       stopTransaction.idTag = req.user.tagIDs[0];
       stopTransaction.timestamp = new Date().toISOString();
       stopTransaction.meterStop = 0;
       // Save
-      const result = await chargingStation.handleStopTransaction(stopTransaction, true);
+      const result = await new ChargingStationService16().handleStopTransaction(stopTransaction, true);
       // Log
       Logging.logSecurityInfo({
-        tenantID: req.user.tenantID,
+        tenantID: req.user.tenantID, source: chargingStation.getID(),
         user: req.user, actionOnUser: (user ? user.getModel() : null),
         module: 'TransactionService', method: 'handleTransactionSoftStop',
         message: `Transaction ID '${transaction.getID()}' on '${transaction.getChargeBoxID()}'-'${transaction.getConnectorId()}' has been stopped successfully`,
