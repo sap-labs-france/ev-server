@@ -6,6 +6,7 @@ const AppAuthError = require('../../../exception/AppAuthError');
 const Authorizations = require('../../../authorization/Authorizations');
 const ChargingStationSecurity = require('./security/ChargingStationSecurity');
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage');
+const OCPPStorage = require('../../../storage/mongodb/OCPPStorage');
 const ChargingStation = require('../../../entity/ChargingStation');
 const SiteArea = require('../../../entity/SiteArea');
 const fs = require("fs");
@@ -578,7 +579,7 @@ class ChargingStationService {
       // Filter
       const filteredRequest = ChargingStationSecurity.filterStatusNotificationsRequest(req.query, req.user);
       // Get all Status Notifications
-      const statusNotifications = await ChargingStation.getStatusNotifications(req.user.tenantID, { },
+      const statusNotifications = await OCPPStorage.getStatusNotifications(req.user.tenantID, { },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
       statusNotifications.result = ChargingStationSecurity.filterStatusNotificationsResponse(statusNotifications.result, req.user);
@@ -606,7 +607,7 @@ class ChargingStationService {
       // Filter
       const filteredRequest = ChargingStationSecurity.filterBootNotificationsRequest(req.query, req.user);
       // Get all Status Notifications
-      const bootNotifications = await ChargingStation.getBootNotifications(req.user.tenantID, { },
+      const bootNotifications = await OCPPStorage.getBootNotifications(req.user.tenantID, { },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
       bootNotifications.result = ChargingStationSecurity.filterBootNotificationsResponse(bootNotifications.result, req.user);

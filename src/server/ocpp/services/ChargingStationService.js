@@ -15,14 +15,6 @@ class ChargingStationService {
     this._chargingStationConfig = chargingStationConfig;
   }
 
-  /**
-   * Get the Charging Station object from ID
-   *
-   * @param {*} chargeBoxIdentity Charging Station ID 
-   * @param {*} tenantID Tenant ID
-   * @returns a Charging Station object
-   * @memberof ChargingStationService
-   */
   async _checkAndGetChargingStation(chargeBoxIdentity, tenantID) {
     // Get the charging station
     const chargingStation = await ChargingStation.getChargingStation(tenantID, chargeBoxIdentity);

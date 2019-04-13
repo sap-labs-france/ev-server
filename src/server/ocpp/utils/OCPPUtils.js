@@ -1,5 +1,4 @@
 const BackendError = require('../../../exception/BackendError');
-const ChargingStation = require('../../../entity/ChargingStation');
 const Constants = require('../../../utils/Constants');
 
 require('source-map-support').install();
@@ -22,6 +21,7 @@ class OCPPUtils {
   }
 
   static async checkAndGetChargingStation(chargeBoxIdentity, tenantID) {
+    const ChargingStation = require('../../../entity/ChargingStation');
     // Get the charging station
     const chargingStation = await ChargingStation.getChargingStation(tenantID, chargeBoxIdentity);
     // Found?

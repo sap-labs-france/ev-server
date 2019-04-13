@@ -1,20 +1,21 @@
 const AbstractTenantEntity = require('./AbstractTenantEntity');
 const ChargingStationClient = require('../client/ChargingStationClient');
-const Utils = require('../utils/Utils');
 const Logging = require('../utils/Logging');
 const User = require('./User');
 const Transaction = require('./Transaction');
 const SiteArea = require('./SiteArea');
 const Constants = require('../utils/Constants');
 const Database = require('../utils/Database');
-const moment = require('moment-timezone');
-const Configuration = require('../utils/Configuration');
 const BackendError = require('../exception/BackendError');
 const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
+const OCPPStorage = require('../storage/mongodb/OCPPStorage');
+const OCPPUtils = require('../server/ocpp/utils/OCPPUtils');
 const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
+const moment = require('moment-timezone');
 const momentDurationFormatSetup = require("moment-duration-format");
-const _configChargingStation = Configuration.getChargingStationConfig();
 const tzlookup = require("tz-lookup");
+
+require('source-map-support').install();
 
 momentDurationFormatSetup(moment);
 
@@ -43,14 +44,6 @@ class ChargingStation extends AbstractTenantEntity {
 
   static removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs) {
     return ChargingStationStorage.removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs);
-  }
-
-  static getStatusNotifications(tenantID, params, limit, skip, sort) {
-    return ChargingStationStorage.getStatusNotifications(tenantID, params, limit, skip, sort)
-  }
-
-  static getBootNotifications(tenantID, params, limit, skip, sort) {
-    return ChargingStationStorage.getBootNotifications(tenantID, params, limit, skip, sort)
   }
 
   handleAction(action, params = {}) {
@@ -499,9 +492,7 @@ class ChargingStation extends AbstractTenantEntity {
     // Set the charger ID
     configuration.chargeBoxID = this.getID();
     configuration.timestamp = new Date();
-    const OCPPStorage = require('../storage/mongodb/OCPPStorage');
-    const OCPPUtils = require('../server/ocpp/utils/OCPPUtils');
-        // Save config
+    // Save config
     await OCPPStorage.saveConfiguration(this.getTenantID(), configuration);
     // Update connector power
     await OCPPUtils.updateConnectorsPower(this);
@@ -514,299 +505,6 @@ class ChargingStation extends AbstractTenantEntity {
     });
     // Ok
     return {status: 'Accepted'};
-  }
-
-  async updateChargingStationConsumption(transaction) {
-    // Get the connector
-    const connector = this.getConnector(transaction.getConnectorId());
-    // Active transaction?
-    if (transaction.isActive()) {
-      // Set consumption
-      connector.currentConsumption = transaction.getCurrentConsumption();
-      connector.totalConsumption = transaction.getCurrentTotalConsumption();
-      connector.currentStateOfCharge = transaction.getCurrentStateOfCharge();
-      // Set Transaction ID
-      connector.activeTransactionID = transaction.getID();
-      // Update Heartbeat
-      this.setLastHeartBeat(new Date());
-      // Handle End Of charge
-      this.checkNotificationEndOfCharge(transaction);
-    } else {
-      // Cleanup connector transaction data
-      this._cleanupConnectorTransactionInfo(transaction.getConnectorId());
-    }
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation',
-      method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
-      message: `Connector '${connector.connectorId}' - Consumption ${connector.currentConsumption}, Total: ${connector.totalConsumption}, SoC: ${connector.currentStateOfCharge}`
-    });
-  }
-
-  async checkNotificationEndOfCharge(transaction) {
-    // Transaction in progress?
-    if (transaction && transaction.isActive()) {
-      // Has consumption?
-      if (transaction.hasMultipleConsumptions()) {
-        // --------------------------------------------------------------------
-        // Notification End of charge
-        // --------------------------------------------------------------------
-        if (_configChargingStation.notifEndOfChargeEnabled && (transaction.getCurrentTotalInactivitySecs() > 60 || transaction.getCurrentStateOfCharge() === 100)) {
-          // Notify User?
-          if (transaction.getUserJson()) {
-            // Send Notification
-            NotificationHandler.sendEndOfCharge(
-              this.getTenantID(),
-              transaction.getID() + '-EOC',
-              transaction.getUserJson(),
-              this.getModel(),
-              {
-                'user': transaction.getUserJson(),
-                'chargeBoxID': this.getID(),
-                'connectorId': transaction.getConnectorId(),
-                'totalConsumption': (transaction.getCurrentTotalConsumption() / 1000).toLocaleString(
-                  (transaction.getUserJson().locale ? transaction.getUserJson().locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
-                  {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
-                'stateOfCharge': transaction.getCurrentStateOfCharge(),
-                'totalDuration': this._buildCurrentTransactionDuration(transaction),
-                'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.getConnectorId(), transaction.getID()),
-                'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
-              },
-              transaction.getUserJson().locale,
-              {
-                'transactionId': transaction.getID(),
-                'connectorId': transaction.getConnectorId()
-              }
-            );
-          }
-          // Check the SoC (Optimal Charge)
-        } else if (_configChargingStation.notifBeforeEndOfChargeEnabled &&
-          transaction.getCurrentStateOfCharge() >= _configChargingStation.notifBeforeEndOfChargePercent) {
-          // Notify User?
-          if (transaction.getUserJson()) {
-            // Notifcation Before End Of Charge
-            NotificationHandler.sendOptimalChargeReached(
-              this.getTenantID(),
-              transaction.getID() + '-OCR',
-              transaction.getUserJson(),
-              this.getModel(),
-              {
-                'user': transaction.getUserJson(),
-                'chargeBoxID': this.getID(),
-                'connectorId': transaction.getConnectorId(),
-                'totalConsumption': (transaction.getCurrentTotalConsumption() / 1000).toLocaleString(
-                  (transaction.getUserJson().locale ? transaction.getUserJson().locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
-                  {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
-                'stateOfCharge': transaction.getCurrentStateOfCharge(),
-                'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(this, transaction.getConnectorId(), transaction.getID()),
-                'evseDashboardURL': Utils.buildEvseURL((await this.getTenant()).getSubdomain())
-              },
-              transaction.getUserJson().locale,
-              {
-                'transactionId': transaction.getID(),
-                'connectorId': transaction.getConnectorId()
-              }
-            );
-          }
-        }
-      }
-    }
-  }
-
-  // Build Inactivity
-  _buildTransactionInactivity(transaction, i18nHourShort = 'h') {
-    // Get total
-    const totalInactivitySecs = transaction.getTotalInactivitySecs()
-    // None?
-    if (totalInactivitySecs === 0) {
-      return `0${i18nHourShort}00 (0%)`;
-    }
-    // Build the inactivity percentage
-    const totalInactivityPercent = Math.round((totalInactivitySecs * 100) / transaction.getTotalDurationSecs());
-    // Format
-    return moment.duration(totalInactivitySecs, "s").format(`h[${i18nHourShort}]mm`, {trim: false}) + ` (${totalInactivityPercent}%)`;
-  }
-
-  // Build duration
-  _buildCurrentTransactionDuration(transaction) {
-    return moment.duration(transaction.getCurrentTotalDurationSecs(), "s").format(`h[h]mm`, {trim: false});
-  }
-
-  // Build duration
-  _buildTransactionDuration(transaction) {
-    return moment.duration(transaction.getTotalDurationSecs(), "s").format(`h[h]mm`, {trim: false});
-  }
-
-  async handleMeterValues(meterValues) {
-    // Check params
-    this._checkMeterValuesProps(meterValues);
-    // Normalize Meter Values
-    const newMeterValues = this._normalizeMeterValues(meterValues)
-    // Handle charger specificities
-    this._checkMeterValuesCharger(newMeterValues);
-    // No Values
-    if (newMeterValues.values.length == 0) {
-      Logging.logDebug({
-        tenantID: this.getTenantID(),
-        source: this.getID(), module: 'ChargingStation', method: 'handleMeterValues',
-        action: 'MeterValues', message: `No MeterValue to save (clocks only)`,
-        detailedMessages: meterValues
-      });
-      // Process values
-    } else {
-      // Get the transaction
-      const transaction = await Transaction.getTransaction(this.getTenantID(), meterValues.transactionId);
-      // Handle Meter Values
-      await transaction.updateWithMeterValues(newMeterValues, this.getTimezone());
-      // Save Transaction
-      await transaction.save();
-      // Update Charging Station Consumption
-      await this.updateChargingStationConsumption(transaction);
-      // Save Charging Station
-      await this.save();
-      // Log
-      Logging.logInfo({
-        tenantID: this.getTenantID(), source: this.getID(),
-        module: 'ChargingStation', method: 'handleMeterValues', action: 'MeterValues',
-        message: `MeterValue have been saved for Transaction ID '${meterValues.transactionId}'`,
-        detailedMessages: meterValues
-      });
-    }
-  }
-
-  _checkMeterValuesCharger(newMeterValues) {
-    // Clean up Sample.Clock meter value
-    if (this.getChargePointVendor() !== 'ABB' || this.getOcppVersion() !== Constants.OCPP_VERSION_15) {
-      // Filter Sample.Clock meter value for all chargers except ABB using OCPP 1.5
-      newMeterValues.values = newMeterValues.values.filter(value => value.attribute.context !== 'Sample.Clock');
-    }
-  }
-
-  _checkMeterValuesProps(meterValues) {
-    // Convert
-    meterValues.connectorId = Utils.convertToInt(meterValues.connectorId);
-    // Check Connector ID
-    if (meterValues.connectorId === 0) {
-      // BUG KEBA: Connector ID must be > 0 according OCPP
-      Logging.logWarning({
-        tenantID: this.getTenantID(),
-        source: this.getID(), module: 'ChargingStation', method: '_checkMeterValuesProps',
-        action: 'MeterValues', message: `Connector ID cannot be equal to '0' and has been reset to '1'`
-      });
-      // Set to 1 (KEBA has only one connector)
-      meterValues.connectorId = 1;
-    }    
-    // Check if the transaction ID matches
-    const chargerTransactionId = this.getConnector(meterValues.connectorId).activeTransactionID;
-    // Transaction is provided in MeterValue?
-    if (meterValues.hasOwnProperty('transactionId')) {
-      // Yes: Check Transaction ID (ABB)
-      if (parseInt(meterValues.transactionId) !== parseInt(chargerTransactionId)) {
-        // Check if valid
-        if (parseInt(chargerTransactionId) > 0) {
-          // No: Log that the transaction ID will be reused
-          Logging.logWarning({
-            tenantID: this.getTenantID(), source: this.getID(),
-            module: 'ChargingStation', method: '_checkMeterValuesProps', action: 'MeterValues',
-            message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
-          });
-        }
-        // Always assign, even if equals to 0
-        meterValues.transactionId = chargerTransactionId;
-      }
-      // Transaction is not provided: check if there is a transaction assigned on the connector
-    } else if (parseInt(chargerTransactionId) > 0) {
-      // Yes: Use Connector's Transaction ID
-      Logging.logWarning({
-        tenantID: this.getTenantID(), source: this.getID(),
-        module: 'ChargingStation', method: '_checkMeterValuesProps', action: 'MeterValues',
-        message: `Transaction ID is not provided but retrieved from StartTransaction '${chargerTransactionId}'`
-      });
-      // Override it
-      meterValues.transactionId = chargerTransactionId;
-    }
-    // Check Transaction ID
-    if (!meterValues.hasOwnProperty('transactionId') || parseInt(meterValues.transactionId) === 0) {
-      // Wrong Transaction ID!
-      throw new BackendError(this.getID(),
-        `Transaction ID '${chargerTransactionId}' is invalid on Connector '${meterValues.connectorId}', Meter Values not saved`,
-        "ChargingStation", "_checkMeterValuesProps");
-    }
-  }
-
-  _normalizeMeterValues(meterValues) {
-    // Create the model
-    const newMeterValues = {};
-    newMeterValues.values = [];
-    newMeterValues.chargeBoxID = this.getID();
-    // OCPP 1.6
-    if (this.getOcppVersion() === Constants.OCPP_VERSION_16) {
-      meterValues.values = meterValues.meterValue;
-    }
-    // Only one value?
-    if (!Array.isArray(meterValues.values)) {
-      // Make it an array
-      meterValues.values = [meterValues.values];
-    }
-    // Process the Meter Values
-    for (const value of meterValues.values) {
-      const newMeterValue = {};
-      // Set the Meter Value header
-      newMeterValue.chargeBoxID = newMeterValues.chargeBoxID;
-      newMeterValue.connectorId = meterValues.connectorId;
-      newMeterValue.transactionId = meterValues.transactionId;
-      newMeterValue.timestamp = value.timestamp;
-      // OCPP 1.6
-      if (this.getOcppVersion() === Constants.OCPP_VERSION_16) {
-        // Multiple Values?
-        if (Array.isArray(value.sampledValue)) {
-          // Create one record per value
-          for (const sampledValue of value.sampledValue) {
-            // Clone
-            const newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
-            // Add Attributes
-            newLocalMeterValue.attribute = this._buildMeterValueAttributes(sampledValue);
-            // Set the value
-            newLocalMeterValue.value = parseInt(sampledValue.value);
-            // Add
-            newMeterValues.values.push(newLocalMeterValue);
-          }
-        } else {
-          // Clone
-          const newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
-          // Add Attributes
-          newLocalMeterValue.attribute = this._buildMeterValueAttributes(sampledValue);
-          // Add
-          newMeterValues.values.push(newLocalMeterValue);
-        }
-      // OCPP < 1.6
-      } else if (value.value) {
-        // OCPP 1.2
-        if (value.value.$value) {
-          // Set
-          newMeterValue.value = value.value.$value;
-          newMeterValue.attribute = value.value.attributes;
-      // OCPP 1.5
-      } else {
-          newMeterValue.value = parseInt(value.value);
-        }
-        // Add
-        newMeterValues.values.push(newMeterValue);
-      }
-    }
-    return newMeterValues;
-  }
-
-  _buildMeterValueAttributes(sampledValue) {
-    return {
-      context: (sampledValue.context ? sampledValue.context : Constants.METER_VALUE_CTX_SAMPLE_PERIODIC),
-      format: (sampledValue.format ? sampledValue.format : Constants.METER_VALUE_FORMAT_RAW),
-      measurand: (sampledValue.measurand ? sampledValue.measurand : Constants.METER_VALUE_MEASURAND_IMPREG),
-      location: (sampledValue.location ? sampledValue.location : Constants.METER_VALUE_LOCATION_OUTLET),
-      unit: (sampledValue.unit ? sampledValue.unit : Constants.METER_VALUE_UNIT_WH),
-      phase: (sampledValue.phase ? sampledValue.phase : '')
-    }
   }
 
   setDeleted(deleted) {

@@ -59,6 +59,60 @@ class OCPPValidation {
 
   static validateStopTransaction(chargingStation, stopTransaction) {
   }
+
+  static validateMeterValues(chargingStation, meterValues) {
+    // Always integer
+    meterValues.connectorId = Utils.convertToInt(meterValues.connectorId);
+    // Check Connector ID
+    if (meterValues.connectorId === 0) {
+      // BUG KEBA: Connector ID must be > 0 according OCPP
+      Logging.logWarning({
+        tenantID: chargingStation.getTenantID(),
+        source: chargingStation.getID(), module: 'OCPPValidation', method: 'validateMeterValues',
+        action: 'MeterValues', message: `Connector ID cannot be equal to '0' and has been reset to '1'`
+      });
+      // Set to 1 (KEBA has only one connector)
+      meterValues.connectorId = 1;
+    }    
+    // Check if the transaction ID matches
+    const chargerTransactionId = Utils.convertToInt(chargingStation.getConnector(meterValues.connectorId).activeTransactionID);
+    // Transaction is provided in MeterValue?
+    if (meterValues.hasOwnProperty('transactionId')) {
+      // Always integer
+      meterValues.transactionId = Utils.convertToInt(meterValues.transactionId);
+      // Yes: Check Transaction ID (ABB)
+      if (meterValues.transactionId !== chargerTransactionId) {
+        // Check if valid
+        if (chargerTransactionId > 0) {
+          // No: Log that the transaction ID will be reused
+          Logging.logWarning({
+            tenantID: chargingStation.getTenantID(), source: chargingStation.getID(),
+            module: 'OCPPValidation', method: 'validateMeterValues', action: 'MeterValues',
+            message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
+          });
+        }
+        // Always assign, even if equals to 0
+        meterValues.transactionId = chargerTransactionId;
+      }
+      // Transaction is not provided: check if there is a transaction assigned on the connector
+    } else if (chargerTransactionId > 0) {
+      // Yes: Use Connector's Transaction ID
+      Logging.logWarning({
+        tenantID: chargingStation.getTenantID(), source: chargingStation.getID(),
+        module: 'OCPPValidation', method: 'validateMeterValues', action: 'MeterValues',
+        message: `Transaction ID is not provided but retrieved from StartTransaction '${chargerTransactionId}'`
+      });
+      // Override it
+      meterValues.transactionId = chargerTransactionId;
+    }
+    // Check Transaction ID
+    if (!meterValues.hasOwnProperty('transactionId') || meterValues.transactionId === 0) {
+      // Wrong Transaction ID!
+      throw new BackendError(chargingStation.getID(),
+        `Transaction ID '${chargerTransactionId}' is invalid on Connector '${meterValues.connectorId}', Meter Values not saved`,
+        "OCPPValidation", "validateMeterValues");
+    }
+  }
 }
 
 module.exports = OCPPValidation;
