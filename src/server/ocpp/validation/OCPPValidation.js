@@ -70,7 +70,7 @@ class OCPPValidation {
       Logging.logWarning({
         tenantID: chargingStation.getTenantID(),
         source: chargingStation.getID(), module: 'OCPPValidation', method: 'validateMeterValues',
-        action: 'MeterValues', message: `Connector ID cannot be equal to '0' and has been reset to '1'`
+        action: 'MeterValues', message: `Connector ID must not be '0' and has been reset to '1'`
       });
       // Set to 1 (KEBA has only one connector)
       meterValues.connectorId = 1;

@@ -335,7 +335,7 @@ class OCPPService {
       // Normalize Meter Values
       const newMeterValues = this._normalizeMeterValues(chargingStation, meterValues);
       // Handle charger's specificities
-      this._checkMeterValuesCharger(chargingStation, newMeterValues);
+      this._filterMeterValuesOnCharger(chargingStation, newMeterValues);
       // No Values?
       if (newMeterValues.values.length == 0) {
         Logging.logDebug({
@@ -509,11 +509,26 @@ class OCPPService {
     return moment.duration(transaction.getTotalDurationSecs(), "s").format(`h[h]mm`, {trim: false});
   }
   
-  _checkMeterValuesCharger(chargingStation, meterValues) {
+  _filterMeterValuesOnCharger(chargingStation, meterValues) {
     // Clean up Sample.Clock meter value
-    if (chargingStation.getChargePointVendor() !== 'ABB' || chargingStation.getOcppVersion() !== Constants.OCPP_VERSION_15) {
+    if (chargingStation.getChargePointVendor() !== Constants.CHARGER_VENDOR_ABB ||
+        chargingStation.getOcppVersion() !== Constants.OCPP_VERSION_15) {
       // Filter Sample.Clock meter value for all chargers except ABB using OCPP 1.5
-      meterValues.values = meterValues.values.filter(value => value.attribute.context !== 'Sample.Clock');
+      meterValues.values = meterValues.values.filter(meterValue => {
+        // Remove Sample Clock
+        if (meterValue.attribute.context === 'Sample.Clock') {
+          // Log
+          Logging.logWarning({
+            tenantID: chargingStation.getTenantID(),
+            source: chargingStation.getID(), module: 'OCPPService', method: '_filterMeterValuesOnCharger',
+            action: 'MeterValues',
+            message: `Removed Meter Value with attribute context 'Sample.Clock'`,
+            detailedMessages: meterValue
+          });
+          return false;
+        }
+        return true;
+      });
     }
   }
 
