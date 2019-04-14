@@ -199,21 +199,32 @@ class OCPPService {
       statusNotification.timezone = chargingStation.getTimezone();
       // Handle connectorId = 0 case => Currently status is distributed to each individual connectors
       if (statusNotification.connectorId === 0) {
-        // Log
-        Logging.logWarning({
-          tenantID: chargingStation.getTenantID(),
-          source: chargingStation.getID(), module: 'OCPPService',
-          method: 'handleStatusNotification', action: 'StatusNotification',
-          message: `Connector ID is '0' with status '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
-        });
-        // Get the connectors
-        const connectors = chargingStation.getConnectors();
-        // Update ALL connectors
-        for (let i = 0; i < connectors.length; i++) {
-          // update message with proper connectorId
-          statusNotification.connectorId = connectors[i].connectorId;
-          // Update
-          await this._updateConnectorStatus(chargingStation, statusNotification, true);
+        // Ignore EBEE charger
+        if (chargingStation.getChargePointVendor() !== Constants.CHARGER_VENDOR_EBEE) {
+          // Log
+          Logging.logInfo({
+            tenantID: chargingStation.getTenantID(),
+            source: chargingStation.getID(), module: 'OCPPService',
+            method: 'handleStatusNotification', action: 'StatusNotification',
+            message: `Connector ID '0' received with status '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
+          });
+          // Get the connectors
+          const connectors = chargingStation.getConnectors();
+          // Update ALL connectors
+          for (let i = 0; i < connectors.length; i++) {
+            // update message with proper connectorId
+            statusNotification.connectorId = connectors[i].connectorId;
+            // Update
+            await this._updateConnectorStatus(chargingStation, statusNotification, true);
+          }
+        } else {
+          // Do not take connector '0' into account for EBEE
+          Logging.logWarning({
+            tenantID: chargingStation.getTenantID(),
+            source: chargingStation.getID(), module: 'OCPPService',
+            method: 'handleStatusNotification', action: 'StatusNotification',
+            message: `Ignored EBEE with Connector ID '0' with status '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
+          });
         }
       } else {
         // update only the given connectorId

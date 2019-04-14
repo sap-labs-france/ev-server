@@ -122,6 +122,9 @@ module.exports = {
   METER_VALUE_LOCATION_OUTLET: 'Outlet',
   METER_VALUE_UNIT_WH: 'Wh',
 
+  CHARGER_VENDOR_EBEE: 'Bender GmbH Co. KG',
+  CHARGER_VENDOR_SCHNEIDER: 'Schneider Electric',
+  CHARGER_VENDOR_ABB: 'ABB',
 
   WS_UNSUPPORTED_DATA: 1007,
 
@@ -197,6 +200,7 @@ module.exports = {
     RESERVED: "RESERVED",
     UNKNOWN: "UNKNOWN"
   },
+
 
   // OCPI CONNECTOR POWER TYPE
   CONNECTOR_POWER_TYPE: {
