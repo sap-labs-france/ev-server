@@ -843,8 +843,8 @@ class OCPPService {
       // Get the TagID that stopped the transaction
       const tagId = this._getStopTransactionTagId(stopTransaction, transaction);
       // Check and get users
-      const { user, alternateUser } = 
-        await Authorizations.isTagIDsAuthorizedOnChargingStation(chargingStation, tagId, transaction.getTagID(), Constants.ACTION_STOP_TRANSACTION);
+      const { user, alternateUser } = await Authorizations.isTagIDsAuthorizedOnChargingStation(
+        chargingStation, tagId, transaction.getTagID(), Constants.ACTION_STOP_TRANSACTION);
       // Check if the transaction has already been stopped
       if (!transaction.isActive()) {
         throw new BackendError(chargingStation.getID(),
