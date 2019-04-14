@@ -275,7 +275,7 @@ class OCPIEndpointService {
       if (!Authorizations.canSendEVSEStatusesOcpiendpoint(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
-          Constants.ACTION_SEND_EVSE_STATUSE,
+          Constants.ACTION_SEND_EVSE_STATUSES,
           Constants.ENTITY_OCPIENDPOINT,
           null,
           560,

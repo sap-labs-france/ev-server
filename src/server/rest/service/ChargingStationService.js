@@ -669,7 +669,7 @@ class ChargingStationService {
             'ChargingStationService', 'handleAction', req.user, null, action);
         }
         // Check if user is authorized
-        await Authorizations.isTagIDAuthorizedOnChargingStation(chargingStation, req.user.tagIDs[0], action);
+        await Authorizations.isTagIDsAuthorizedOnChargingStation(chargingStation, req.user.tagIDs[0], transaction.getTagID(), action);
         // Set the tag ID to handle the Stop Transaction afterwards
         transaction.remoteStop(req.user.tagIDs[0], new Date().toISOString());
         // Save Transaction

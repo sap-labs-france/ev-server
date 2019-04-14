@@ -690,7 +690,7 @@ class OCPPService {
       if (!chargingStation.getConnector(startTransaction.connectorId)) {
         throw new BackendError(chargingStation.getID(),
           `The Connector ID '${startTransaction.connectorId}' is invalid`,
-          "OCPPService", "handleStartTransaction", "StartTransaction");
+          'OCPPService', 'handleStartTransaction', Constants.ACTION_START_TRANSACTION);
       }
       // Set the header
       startTransaction.chargeBoxID = chargingStation.getID();
@@ -763,14 +763,14 @@ class OCPPService {
         Logging.logInfo({
           tenantID: chargingStation.getTenantID(),
           source: chargingStation.getID(), module: 'OCPPService', method: 'handleStartTransaction',
-          action: 'StartTransaction', user: user.getModel(),
+          action: Constants.ACTION_START_TRANSACTION, user: user.getModel(),
           message: `Transaction ID '${transaction.getID()}' has been started on Connector '${transaction.getConnectorId()}'`
         });
       } else {
         // Log
         Logging.logInfo({
           tenantID: chargingStation.getTenantID(), source: chargingStation.getID(),
-          module: 'OCPPService', method: 'handleStartTransaction', action: 'StartTransaction',
+          module: 'OCPPService', method: 'handleStartTransaction', action: Constants.ACTION_START_TRANSACTION,
           message: `Transaction ID '${transaction.getID()}' has been started on Connector '${transaction.getConnectorId()}'`
         });
       }
@@ -783,7 +783,7 @@ class OCPPService {
       // Set the source
       error.source = startTransaction.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(startTransaction.tenantID, 'StartTransaction', error);
+      Logging.logActionExceptionMessage(startTransaction.tenantID, Constants.ACTION_START_TRANSACTION, error);
       return {
         'transactionId': 0,
         'status': 'Invalid'
@@ -807,7 +807,7 @@ class OCPPService {
       Logging.logInfo({
         tenantID: chargingStation.getTenantID(),
         source: chargingStation.getID(), module: 'OCPPService', method: 'handleDataTransfer',
-        action: 'DataTransfer', message: `Data Transfer has been saved`
+        action: Constants.ACTION_DATA_TRANSFER, message: `Data Transfer has been saved`
       });
       // Return
       return {
@@ -817,7 +817,7 @@ class OCPPService {
       // Set the source
       error.source = dataTransfer.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(dataTransfer.tenantID, 'DataTransfer', error);
+      Logging.logActionExceptionMessage(dataTransfer.tenantID, Constants.ACTION_DATA_TRANSFER, error);
       return {
         'status': 'Rejected'
       };
@@ -838,58 +838,18 @@ class OCPPService {
         // Wrong Transaction ID!
         throw new BackendError(chargingStation.getID(),
           `Transaction ID '${stopTransaction.transactionId}' does not exist`,
-          'OCPPService', 'handleStopTransaction', 'StopTransaction');
+          'OCPPService', 'handleStopTransaction', Constants.ACTION_STOP_TRANSACTION);
       }
-      let user, alternateUser;
       // Get the TagID that stopped the transaction
       const tagId = this._getStopTransactionTagId(stopTransaction, transaction);
-      // Check if same user
-      if (tagId !== transaction.getTagID()) {
-        // No: Check alternate user
-        alternateUser = await Authorizations.isTagIDAuthorizedOnChargingStation(
-          chargingStation, tagId, Constants.ACTION_STOP_TRANSACTION);
-        // Anonymous?
-        if (alternateUser) {
-          // Get the owner of the transaction
-          user = await transaction.getUser();
-          // Not Check if Alternate User belongs to a Site --------------------------------
-          // Organization component active?
-          const isOrgCompActive = await chargingStation.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
-          if (isOrgCompActive) {
-            // Get the site (site existence is already checked by isTagIDAuthorizedOnChargingStation())
-            const site = await chargingStation.getSite();
-            // Check if the site allows to stop the transaction of another user
-            if (!Authorizations.isAdmin(alternateUser.getModel()) &&
-                !site.isAllowAllUsersToStopTransactionsEnabled()) {
-                // Reject the User
-              throw new BackendError(
-                chargingStation.getID(),
-                `User '${alternateUser.getFullName()}' is not allowed to perform 'Stop Transaction' on User '${user.getFullName()}' on Site '${site.getName()}'!`,
-                'OCPPService', "handleStopTransaction", "StopTransaction",
-                (alternateUser ? alternateUser.getModel() : null), (user ? user.getModel() : null));
-            }
-          } else {
-            // Only Admins can stop a transaction when org is not active
-            if (!Authorizations.isAdmin(alternateUser.getModel())) {
-                // Reject the User
-              throw new BackendError(
-                chargingStation.getID(),
-                `User '${alternateUser.getFullName()}' is not allowed to perform 'Stop Transaction' on User '${user.getFullName()}'!`,
-                'OCPPService', "handleStopTransaction", "StopTransaction",
-                (alternateUser ? alternateUser.getModel() : null), (user ? user.getModel() : null));
-            }
-          }
-        }
-      } else {
-        // Check user
-        user = await Authorizations.isTagIDAuthorizedOnChargingStation(
-          chargingStation, transaction.getTagID(), Constants.ACTION_STOP_TRANSACTION);
-      }
+      // Check and get users
+      const { user, alternateUser } = 
+        await Authorizations.isTagIDsAuthorizedOnChargingStation(chargingStation, tagId, transaction.getTagID(), Constants.ACTION_STOP_TRANSACTION);
       // Check if the transaction has already been stopped
       if (!transaction.isActive()) {
         throw new BackendError(chargingStation.getID(),
           `Transaction ID '${stopTransaction.transactionId}' has already been stopped`,
-          'OCPPService', "handleStopTransaction", "StopTransaction",
+          'OCPPService', "handleStopTransaction", Constants.ACTION_STOP_TRANSACTION,
           (alternateUser ? alternateUser.getID() : (user ? user.getID() : null)),
           (alternateUser ? (user ? user.getID() : null) : null));
       }
@@ -920,7 +880,7 @@ class OCPPService {
       Logging.logInfo({
         tenantID: chargingStation.getTenantID(),
         source: chargingStation.getID(), module: 'OCPPService', method: 'handleStopTransaction',
-        action: 'StopTransaction', 
+        action: Constants.ACTION_STOP_TRANSACTION, 
         user: (alternateUser ? alternateUser.getID() : (user ? user.getID() : null)),
         actionOnUser: (alternateUser ? (user ? user.getID() : null) : null),
         message: `Transaction ID '${transaction.getID()}' has been stopped successfully`
@@ -933,7 +893,7 @@ class OCPPService {
       // Set the source
       error.source = stopTransaction.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(stopTransaction.tenantID, 'StopTransaction', error);
+      Logging.logActionExceptionMessage(stopTransaction.tenantID, Constants.ACTION_STOP_TRANSACTION, error);
       // Error
       return {
         'status': 'Invalid'

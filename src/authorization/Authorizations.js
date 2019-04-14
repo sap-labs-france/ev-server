@@ -318,6 +318,53 @@ class Authorizations {
     return user;
   }
 
+  static async isTagIDsAuthorizedOnChargingStation(chargingStation, tagId, transactionTagId, action) {
+    let user, alternateUser;
+    // Check if same user
+    if (tagId !== transactionTagId) {
+      // No: Check alternate user
+      alternateUser = await Authorizations.isTagIDAuthorizedOnChargingStation(
+        chargingStation, tagId, action);
+      // Anonymous?
+      if (alternateUser) {
+        // Get the user
+        user = await User.getUserByTagId(chargingStation.getTenantID(), transactionTagId);
+        // Not Check if Alternate User belongs to a Site --------------------------------
+        // Organization component active?
+        const isOrgCompActive = await chargingStation.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+        if (isOrgCompActive) {
+          // Get the site (site existence is already checked by isTagIDAuthorizedOnChargingStation())
+          const site = await chargingStation.getSite();
+          // Check if the site allows to stop the transaction of another user
+          if (!Authorizations.isAdmin(alternateUser.getModel()) &&
+              !site.isAllowAllUsersToStopTransactionsEnabled()) {
+              // Reject the User
+            throw new BackendError(
+              chargingStation.getID(),
+              `User '${alternateUser.getFullName()}' is not allowed to perform 'Stop Transaction' on User '${user.getFullName()}' on Site '${site.getName()}'!`,
+              'Authorizations', "isTagIDsAuthorizedOnChargingStation", action,
+              (alternateUser ? alternateUser.getModel() : null), (user ? user.getModel() : null));
+          }
+        } else {
+          // Only Admins can stop a transaction when org is not active
+          if (!Authorizations.isAdmin(alternateUser.getModel())) {
+              // Reject the User
+            throw new BackendError(
+              chargingStation.getID(),
+              `User '${alternateUser.getFullName()}' is not allowed to perform 'Stop Transaction' on User '${user.getFullName()}'!`,
+              'Authorizations', "isTagIDsAuthorizedOnChargingStation", action,
+              (alternateUser ? alternateUser.getModel() : null), (user ? user.getModel() : null));
+          }
+        }
+      }
+    } else {
+      // Check user
+      user = await Authorizations.isTagIDAuthorizedOnChargingStation(
+        chargingStation, transactionTagId, action);
+    }
+    return {user, alternateUser};
+  }
+
   static async _checkAndGetUserOnChargingStation(chargingStation, user, isOrgCompActive, site, action) {
     // Check User status
     if (user.getStatus() !== Constants.USER_STATUS_ACTIVE) {
@@ -586,7 +633,7 @@ class Authorizations {
   static canSendEVSEStatusesOcpiendpoint(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
-      {"Action": Constants.ACTION_SEND_EVSE_STATUSE});
+      {"Action": Constants.ACTION_SEND_EVSE_STATUSES});
   }
 
   static canRegisterOcpiendpoint(loggedUser, ocpiendpoint) {

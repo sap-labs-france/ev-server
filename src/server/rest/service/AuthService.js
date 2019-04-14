@@ -205,8 +205,8 @@ class AuthService {
     }
     try {
       // Check
-      await Authorizations.checkUserOnChargingStation(
-        chargingStation, transaction.getTagID(), user.tagIDs[0], filteredRequest.Action);
+      await Authorizations.isTagIDsAuthorizedOnChargingStation(
+        chargingStation, user.tagIDs[0], transaction.getTagID(), filteredRequest.Action);
       // Ok
       return true;
     } catch (e) {
