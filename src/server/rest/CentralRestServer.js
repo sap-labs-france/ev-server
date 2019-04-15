@@ -33,7 +33,7 @@ class CentralRestServer {
 
     // FIXME?: Should be useless now that helmet() is mounted at the beginning
     // Mount express-sanitizer middleware
-    express.use(sanitize());
+    this._express.use(sanitize());
 
     // log to console
     if (centralSystemRestConfig.debug) {
