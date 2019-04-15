@@ -2,9 +2,9 @@ const Logging = require('../../../../utils/Logging');
 const Constants = require('../../../../utils/Constants');
 const Configuration = require('../../../../utils/Configuration');
 
-const MODULE_NAME = "JsonChargingStationService16";
+const MODULE_NAME = "JsonChargingStationService";
 
-class JsonChargingStationService16 {
+class JsonChargingStationService {
   constructor(chargingStationConfig) {
     this._chargingStationConfig = chargingStationConfig;
     // Get the OCPP service
@@ -119,4 +119,4 @@ class JsonChargingStationService16 {
   }
 }
 
-module.exports = JsonChargingStationService16;
+module.exports = JsonChargingStationService;

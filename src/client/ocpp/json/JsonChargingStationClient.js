@@ -1,7 +1,7 @@
 const uuid = require('uuid/v4');
-const ChargingStationClient = require('../ChargingStationClient');
+const ChargingStationClient = require('../../ocpp/ChargingStationClient');
 
-class JsonChargingStationClient16 extends ChargingStationClient {
+class JsonChargingStationClient extends ChargingStationClient {
   constructor(wsConnection) {
     super();
     this._wsConnection = wsConnection;
@@ -93,4 +93,4 @@ class JsonChargingStationClient16 extends ChargingStationClient {
 
 }
 
-module.exports = JsonChargingStationClient16;
+module.exports = JsonChargingStationClient;

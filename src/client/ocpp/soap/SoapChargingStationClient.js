@@ -1,7 +1,7 @@
 const ChargingStationClient = require('../ChargingStationClient');
 const soap = require('strong-soap').soap;
-const Logging = require('../../utils/Logging');
-const Configuration = require('../../utils/Configuration');
+const Logging = require('../../../utils/Logging');
+const Configuration = require('../../../utils/Configuration');
 
 // Default Module name
 const _moduleName = "SoapChargingStationClient";
@@ -20,13 +20,13 @@ class SoapChargingStationClient extends ChargingStationClient {
       switch (this._chargingStation.getOcppVersion()) {
         // OCPP V1.2
         case "1.2":
-          chargingStationWdsl = _wsdlEndpointConfig.baseUrl + '/wsdl/OCPPChargePointService12.wsdl';
+          chargingStationWdsl = `${global.appRoot}/assets/server/ocpp/OCPPChargePointService12.wsdl`
           break;
         case "1.5":
-          chargingStationWdsl = _wsdlEndpointConfig.baseUrl + '/wsdl/OCPPChargePointService15.wsdl';
+          chargingStationWdsl = `${global.appRoot}/assets/server/ocpp/OCPPChargePointService15.wsdl`
           break;
         case "1.6":
-          chargingStationWdsl = _wsdlEndpointConfig.baseUrl + '/wsdl/OCPPChargePointService16.wsdl';
+          chargingStationWdsl = `${global.appRoot}/assets/server/ocpp/OCPPChargePointService16.wsdl`
           break;
         default:
           // Log

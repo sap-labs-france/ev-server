@@ -1,5 +1,5 @@
 const AbstractTenantEntity = require('./AbstractTenantEntity');
-const ChargingStationClient = require('../client/ChargingStationClient');
+const ChargingStationClient = require('../client/ocpp/ChargingStationClient');
 const Logging = require('../utils/Logging');
 const User = require('./User');
 const Transaction = require('./Transaction');
@@ -545,15 +545,16 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   async getCompany() {
-    // Get the Site
-    const site = await this.getSite();
-    // Check Site
-    if (!site) {
-      return null;
+    if (!this.company) {
+      // Get the Site
+      const site = await this.getSite();
+      // Check Site
+      if (site) {
+        // Get the Company
+        this.company = await site.getCompany();
+      }
     }
-    // Get the Company
-    const company = await site.getCompany();
-    return company;
+    return this.company;
   }
 
   // Restart the charger

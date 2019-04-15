@@ -8,9 +8,6 @@ const Constants = require('../../../utils/Constants');
 const centralSystemService12 = require('./services/SoapCentralSystemService12');
 const centralSystemService15 = require('./services/SoapCentralSystemService15');
 const centralSystemService16 = require('./services/SoapCentralSystemService16');
-const chargePointService12Wsdl = require('../../../client/soap/wsdl/OCPPChargePointService12.wsdl');
-const chargePointService15Wsdl = require('../../../client/soap/wsdl/OCPPChargePointService15.wsdl');
-const chargePointService16Wsdl = require('../../../client/soap/wsdl/OCPPChargePointService16.wsdl');
 const sanitize = require('express-sanitizer');
 require('source-map-support').install();
 
@@ -47,28 +44,6 @@ class SoapCentralSystemServer extends CentralSystemServer {
         })
       );
     }
-    // Default, serve the index.html
-    // eslint-disable-next-line no-unused-vars
-    this._express.get(/^\/wsdl(.+)$/, function (req, res, next) {
-      // WDSL file?
-      switch (req.params["0"]) {
-        // Charge Point WSDL 1.2
-        case '/OCPPChargePointService12.wsdl':
-          res.send(chargePointService12Wsdl);
-          break;
-        // Charge Point WSDL 1.5
-        case '/OCPPChargePointService15.wsdl':
-          res.send(chargePointService15Wsdl);
-          break;
-        // Charge Point WSDL 1.6
-        case '/OCPPChargePointService16.wsdl':
-          res.send(chargePointService16Wsdl);
-          break;
-        // Unknown
-        default:
-          res.status(500).send(`${req.sanitize(req.params["0"])} does not exist!`);
-      }
-    });
   }
 
   /*
@@ -87,95 +62,55 @@ class SoapCentralSystemServer extends CentralSystemServer {
     // Log
     if (this._centralSystemConfig.debug) {
       // Listen
-      soapServer12.log = (type, data) => {
-        // Do not log 'Info'
-        if (type === 'replied') {
-          // Log
-          Logging.logDebug({
-            tenantID: Constants.DEFAULT_TENANT,
-            module: MODULE_NAME,
-            method: "start", action: "SoapRequest",
-            message: `OCPP 1.2 - Request Replied`,
-            detailedMessages: data
-          });
-        }
-      };
+      soapServer12.log = (type, data) => { this._handleSoapServerLog('1.2', type, data); };
       // Log Request
-      soapServer12.on('request', (request, methodName) => {
-        // Log
-        Logging.logDebug({
-          tenantID: Constants.DEFAULT_TENANT,
-          module: MODULE_NAME,
-          method: "start", action: "SoapRequest",
-          message: `OCPP 1.2 - Request '${methodName}' Received`,
-          detailedMessages: request
-        });
-      });
+      soapServer12.on('request', (request, methodName) => { this._handleSoapServerMessage('1.2', request, methodName); });
     }
     // OCPP 1.5 -----------------------------------------
     const soapServer15 = soap.listen(server, '/OCPP15', centralSystemService15, this.readWsdl('OCPPCentralSystemService15.wsdl'));
     // Log
     if (this._centralSystemConfig.debug) {
       // Listen
-      soapServer15.log = (type, data) => {
-        // Do not log 'Info'
-        if (type === 'replied') {
-          // Log
-          Logging.logDebug({
-            tenantID: Constants.DEFAULT_TENANT,
-            module: MODULE_NAME,
-            method: "start", action: "SoapRequest",
-            message: `OCPP 1.5 - Request Replied`,
-            detailedMessages: data
-          });
-        }
-      };
+      soapServer15.log = (type, data) => { this._handleSoapServerLog('1.5', type, data); };
       // Log Request
-      soapServer15.on('request', (request, methodName) => {
-        // Log
-        Logging.logDebug({
-          tenantID: Constants.DEFAULT_TENANT,
-          module: MODULE_NAME,
-          method: "start", action: "SoapRequest",
-          message: `OCPP 1.5 - Request '${methodName}' Received`,
-          detailedMessages: request
-        });
-      });
+      soapServer15.on('request', (request, methodName) => { this._handleSoapServerMessage('1.5', request, methodName); });
     }
     // OCPP 1.6 -----------------------------------------
     const soapServer16 = soap.listen(server, '/OCPP16', centralSystemService16, this.readWsdl('OCPPCentralSystemService16.wsdl'));
     // Log
     if (this._centralSystemConfig.debug) {
       // Listen
-      soapServer16.log = (type, data) => {
-        // Do not log 'Info'
-        if (type === 'replied') {
-          // Log
-          Logging.logDebug({
-            tenantID: Constants.DEFAULT_TENANT,
-            module: MODULE_NAME,
-            method: "start", action: "SoapRequest",
-            message: `OCPP 1.6 - Request Replied`,
-            detailedMessages: data
-          });
-        }
-      };
+      soapServer16.log = (type, data) => { this._handleSoapServerLog('1.6', type, data); };
       // Log Request
-      soapServer16.on('request', (request, methodName) => {
-        // Log
-        Logging.logDebug({
-          tenantID: Constants.DEFAULT_TENANT,
-          module: MODULE_NAME, method: "start",
-          action: "SoapRequest",
-          message: `OCPP 1.6 - Request '${methodName}' Received`,
-          detailedMessages: request
-        });
-      });
+      soapServer16.on('request', (request, methodName) => { this._handleSoapServerMessage('1.6', request, methodName); });
     }
   }
 
   readWsdl(filename) {
     return fs.readFileSync(`${global.appRoot}/assets/server/ocpp/${filename}`, 'utf8');
+  }
+
+  _handleSoapServerMessage(ocppVersion, request, methodName) {
+    // Log
+    Logging.logDebug({
+      tenantID: Constants.DEFAULT_TENANT, module: MODULE_NAME,
+      method: "start", action: "StrongSoapDebug",
+      message: `OCPP ${ocppVersion} - Request '${methodName}' Received`,
+      detailedMessages: request
+    });
+  }
+
+  _handleSoapServerLog(ocppVersion, type, data) {
+    // Do not log 'Info'
+    if (type === 'replied') {
+      // Log
+      Logging.logDebug({
+        tenantID: Constants.DEFAULT_TENANT, module: MODULE_NAME,
+        method: "start", action: "StrongSoapDebug",
+        message: `OCPP ${ocppVersion} - Request Replied`,
+        detailedMessages: data
+      });
+    }
   }
 }
 

@@ -1,8 +1,8 @@
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const OCPPError = require('../../../exception/OcppError');
-const JsonChargingStationClient16 = require('../../../client/json/JsonChargingStationClient16');
-const JsonChargingStationService16 = require('./services/JsonChargingStationService16');
+const JsonChargingStationClient = require('../../../client/ocpp/json/JsonChargingStationClient');
+const JsonChargingStationService = require('./services/JsonChargingStationService');
 const WSConnection = require('./WSConnection');
 const BackendError = require('../../../exception/BackendError');
 
@@ -18,9 +18,9 @@ class JsonWSConnection extends WSConnection {
       // OCPP 1.6?
       case 'ocpp1.6':
         // Create the Json Client
-        this._chargingStationClient = new JsonChargingStationClient16(this);
+        this._chargingStationClient = new JsonChargingStationClient(this);
         // Create the Json Server Service
-        this._chargingStationService = new JsonChargingStationService16(chargingStationConfig);
+        this._chargingStationService = new JsonChargingStationService(chargingStationConfig);
         break;
       // Not Found
       default:
