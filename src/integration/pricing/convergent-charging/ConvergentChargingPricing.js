@@ -12,8 +12,8 @@ class ConvergentChargingPricing extends Pricing {
 
   consumptionToChargeableItemProperties(consumptionData) {
     const timezone = this.transaction.getTimezone();
-    const startedAt = timezone ? moment.tz(timezone) : moment.utc(consumptionData.startedAt).local();
-    const endedAt = timezone ? moment.tz(consumptionData.endedAt, timezone) : moment.utc(consumptionData.startedAt).local();
+    const startedAt = timezone ? moment.tz(consumptionData.startedAt, timezone) : moment.utc(consumptionData.startedAt).local();
+    const endedAt = timezone ? moment.tz(consumptionData.endedAt, timezone) : moment.utc(consumptionData.endedAt).local();
     return [
       new ChargeableItemProperty('userID', Type.string, consumptionData.userID),
       new ChargeableItemProperty('chargeBoxID', Type.string, consumptionData.chargeBoxID),
