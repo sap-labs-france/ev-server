@@ -25,7 +25,7 @@ class NotificationStorage {
       filters["$or"] = [
         { userID: Utils.convertToObjectID(params.userID) },
         { userID: null }
-      ]
+      ];
     }
     // Set Date From?
     if (params.dateFrom) {

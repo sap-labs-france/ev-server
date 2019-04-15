@@ -1,7 +1,7 @@
 const Logging = require('../utils/Logging');
 const Constants = require('../utils/Constants');
 const moment = require('moment');
-const MigrationStorage = require('../storage/mongodb/MigrationStorage')
+const MigrationStorage = require('../storage/mongodb/MigrationStorage');
 const UpdateTransactionInactivityTask = require('./tasks/UpdateTransactionInactivityTask');
 const TenantMigrationTask = require('./tasks/TenantMigrationTask');
 const UpdateTransactionSoCTask = require('./tasks/UpdateTransactionSoCTask');
@@ -48,7 +48,7 @@ class MigrationHandler {
         const migrationTaskDone = migrationTasksDone.find((migrationTaskDone) => {
           // Same name and version
           return ((currentMigrationTask.getName() == migrationTaskDone.name) &&
-            (currentMigrationTask.getVersion() == migrationTaskDone.version))
+            (currentMigrationTask.getVersion() == migrationTaskDone.version));
         });
         // Already processed?
         if (migrationTaskDone) {

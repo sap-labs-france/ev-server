@@ -126,7 +126,7 @@ class Company extends AbstractTenantEntity {
   }
 
   static getCompanies(tenantID, params, limit, skip, sort) {
-    return CompanyStorage.getCompanies(tenantID, params, limit, skip, sort)
+    return CompanyStorage.getCompanies(tenantID, params, limit, skip, sort);
   }
 
   static getCompanyLogo(tenantID, id) {

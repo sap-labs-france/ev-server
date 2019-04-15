@@ -153,7 +153,7 @@ class SiteSecurity {
       if (site.users) {
         filteredSite.users = site.users.map((user) => {
           return SiteSecurity.getUserSecurity().filterMinimalUserResponse(user, loggedUser);
-        })
+        });
       }
       if (site.hasOwnProperty("availableChargers")) {
         filteredSite.availableChargers = site.availableChargers;

@@ -59,7 +59,7 @@ class SiteAreaService {
           // Set
           chargingStation.setSiteArea(newSiteArea);
           // Save
-          chargingStation.saveChargingStationSiteArea()
+          chargingStation.saveChargingStationSiteArea();
         }
       }
       // Ok
@@ -301,7 +301,7 @@ class SiteAreaService {
             // Set
             chargingStation.setSiteArea(siteArea);
             // Save
-            await chargingStation.saveChargingStationSiteArea()
+            await chargingStation.saveChargingStationSiteArea();
           }
         }
       }

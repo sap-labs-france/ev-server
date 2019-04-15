@@ -33,7 +33,7 @@ class CentralRestServer {
 
     // FIXME?: Should be useless now that helmet() is mounted at the beginning
     // Mount express-sanitizer middleware
-    this._express.use(sanitize())
+    express.use(sanitize());
 
     // log to console
     if (centralSystemRestConfig.debug) {
@@ -111,7 +111,7 @@ class CentralRestServer {
     });
   }
 
-  // Listen callback 
+  // Listen callback
   _listenCb() {
     let host = _centralSystemRestConfig.host;
     if (!host)

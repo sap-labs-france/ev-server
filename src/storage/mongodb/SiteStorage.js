@@ -94,7 +94,7 @@ class SiteStorage {
         sitesMDB[0].users = sitesMDB[0].users.map((user) => {
           return new User(tenantID, user);
         });
-        site.setUsers(sitesMDB[0].users)
+        site.setUsers(sitesMDB[0].users);
       }
     }
     // Debug
@@ -495,7 +495,7 @@ class SiteStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Site Areas
-    const siteAreas = await SiteAreaStorage.getSiteAreas(tenantID, {'siteID': id})
+    const siteAreas = await SiteAreaStorage.getSiteAreas(tenantID, {'siteID': id});
     // Delete
     for (const siteArea of siteAreas.result) {
       //	Delete Site Area

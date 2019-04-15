@@ -46,7 +46,7 @@ class JsonWSConnection extends WSConnection {
         From: {
           Address: this.getIP()
         }
-      }
+      };
       // Ok
       this._initialized = true;
       // Log

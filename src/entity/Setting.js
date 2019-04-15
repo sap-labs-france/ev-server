@@ -99,7 +99,7 @@ class Setting extends AbstractTenantEntity {
   }
 
   static getSettings(tenantID, params, limit, skip, sort) {
-    return SettingStorage.getSettings(tenantID, params, limit, skip, sort)
+    return SettingStorage.getSettings(tenantID, params, limit, skip, sort);
   }
 
   static async getSettingByIdentifier(tenantID, identifier) {

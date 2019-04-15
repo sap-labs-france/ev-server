@@ -69,7 +69,7 @@ class AbstractSoapClient {
         }
       },
       data: payload
-    }
+    };
   }
 
   async _initSOAPClient() {

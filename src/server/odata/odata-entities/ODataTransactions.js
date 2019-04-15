@@ -66,7 +66,7 @@ class ODataTransactions extends AbstractODataEntities {
       }
 
       if (transaction.stop.hasOwnProperty('price')) {
-        transaction.stop.price = transaction.stop.price.toFixed(15)
+        transaction.stop.price = transaction.stop.price.toFixed(15);
       }
     }
     return transaction;

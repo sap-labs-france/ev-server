@@ -61,7 +61,7 @@ class Authorizations {
   static async buildAuthorizations(user) {
     // Password OK
     const companies = [], users = [];
-    let sites = []
+    let sites = [];
 
     // Check Admin
     if (!Authorizations.isAdmin(user.getModel())) {
@@ -110,7 +110,7 @@ class Authorizations {
           return (text, render) => {
             // trim trailing comma and whitespace
             return render(text).replace(/(,\s*$)/g, '');
-          }
+          };
         }
       }
     );
@@ -303,7 +303,7 @@ class Authorizations {
       }
     }
     // Get user
-    let user = null
+    let user = null;
     // Get the user
     if (tagID) {
       user = await Authorizations._checkAndGetUserTagIDOnChargingStation(
@@ -338,7 +338,7 @@ class Authorizations {
           // Check if the site allows to stop the transaction of another user
           if (!Authorizations.isAdmin(alternateUser.getModel()) &&
               !site.isAllowAllUsersToStopTransactionsEnabled()) {
-              // Reject the User
+            // Reject the User
             throw new BackendError(
               chargingStation.getID(),
               `User '${alternateUser.getFullName()}' is not allowed to perform 'Stop Transaction' on User '${user.getFullName()}' on Site '${site.getName()}'!`,
@@ -348,7 +348,7 @@ class Authorizations {
         } else {
           // Only Admins can stop a transaction when org is not active
           if (!Authorizations.isAdmin(alternateUser.getModel())) {
-              // Reject the User
+            // Reject the User
             throw new BackendError(
               chargingStation.getID(),
               `User '${alternateUser.getFullName()}' is not allowed to perform 'Stop Transaction' on User '${user.getFullName()}'!`,

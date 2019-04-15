@@ -124,7 +124,7 @@ class VehicleManufacturer extends AbstractTenantEntity {
   }
 
   static getVehicleManufacturers(tenantID, params, limit, skip, sort) {
-    return VehicleManufacturerStorage.getVehicleManufacturers(tenantID, params, limit, skip, sort)
+    return VehicleManufacturerStorage.getVehicleManufacturers(tenantID, params, limit, skip, sort);
   }
 
   static getVehicleManufacturerLogo(tenantID, id) {

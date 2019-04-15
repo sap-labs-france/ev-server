@@ -129,7 +129,7 @@ class OCPIMapping {
         "id": this.convert2evseid(`${evse_id}*${connector.connectorId}`),
         "status": this.convertStatus2OCPIStatus(connector.status),
         "connectors": [this.convertConnector2OCPIConnector(chargingStation, connector, evse_id)]
-      }
+      };
 
       // check addChargeBoxID flag
       if (options && options.addChargeBoxID) {
@@ -157,7 +157,7 @@ class OCPIMapping {
     // Get all connectors
     const connectors = chargingStation.getConnectors().map(connector => {
       return this.convertConnector2OCPIConnector(chargingStation, connector, evse_id);
-    })
+    });
 
     // build evse
     const evse = {
@@ -166,7 +166,7 @@ class OCPIMapping {
       "id": evse_id,
       "status": this.convertStatus2OCPIStatus(this.aggregateConnectorsStatus(connectors)),
       "connectors": connectors
-    }
+    };
 
     // check addChargeBoxID flag
     if (options && options.addChargeBoxID) {
@@ -214,7 +214,7 @@ class OCPIMapping {
       "amperage": connector.amperage,
       "power_type": this.convertNumberofConnectedPhase2PowerType(chargingStation.getNumberOfConnectedPhase()),
       "last_update": chargingStation.getLastHeartBeat()
-    }
+    };
   }
 
   /**

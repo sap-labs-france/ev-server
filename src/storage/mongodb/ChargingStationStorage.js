@@ -232,10 +232,10 @@ class ChargingStationStorage {
     // Create
     for (const chargingStationMDB of chargingStationsMDB) {
       // Create the Charger
-      const chargingStation = new ChargingStation(tenantID, chargingStationMDB)
+      const chargingStation = new ChargingStation(tenantID, chargingStationMDB);
       // Add the Site Area?
       if (chargingStationMDB.siteArea) {
-        const siteArea = new SiteArea(tenantID, chargingStationMDB.siteArea)
+        const siteArea = new SiteArea(tenantID, chargingStationMDB.siteArea);
         // Set
         chargingStation.setSiteArea(siteArea);
         if (chargingStationMDB.site) {
@@ -339,7 +339,7 @@ class ChargingStationStorage {
       { $unwind: {
         "path": "$siteArea",
         "preserveNullAndEmptyArrays": true
-      }}]
+      }}];
     }
     // Check Site ID
     if (params.siteID) {
@@ -361,7 +361,7 @@ class ChargingStationStorage {
           "path": "$site",
           "preserveNullAndEmptyArrays": true
         }}
-      ]
+      ];
     }
     if (params.chargeBoxId) {
       // Build filter
@@ -466,7 +466,7 @@ class ChargingStationStorage {
       chargingStation.getModel().uniqueId = chargingStationMDB.uniqueId;
       // Add the Site Area?
       if (chargingStationMDB.siteArea) {
-        const siteArea = new SiteArea(tenantID, chargingStationMDB.siteArea)
+        const siteArea = new SiteArea(tenantID, chargingStationMDB.siteArea);
         // Set
         chargingStation.setSiteArea(siteArea);
         if (chargingStationMDB.site) {
@@ -502,7 +502,7 @@ class ChargingStationStorage {
         ]}},
         {$addFields: {"errorCode":"missingSettings"}}
         ];
-      case 'connectionBroken': 
+      case 'connectionBroken':
       {
         const inactiveDate = new Date(new Date().getTime() - 3 * 60 * 1000);
         return [
@@ -514,12 +514,12 @@ class ChargingStationStorage {
         return [
           {$match:{$or:[{"connectors.errorCode": {$ne: "NoError"}}, {"connectors.status": {$eq: "Faulted"}}]}},
           {$addFields: {"errorCode":"connectorError"}}
-        ]
+        ];
       case 'missingSiteArea':
         return [
           {$match:{$or:[{"siteAreaID":{$exists:false}},{"siteAreaID":null}]}},
           {$addFields: {"errorCode":"missingSiteArea"}}
-        ]
+        ];
       default:
         return [];
     }
@@ -704,6 +704,82 @@ class ChargingStationStorage {
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getConfiguration', uniqueTimerID);
     return configuration;
+  }
+
+  static async removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'removeChargingStationsFromSiteArea');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Site provided?
+    if (siteAreaID) {
+      // At least one User
+      if (chargingStationIDs && chargingStationIDs.length > 0) {
+        // update all chargers
+        await global.database.getCollection(tenantID, 'chargingstations').updateMany({
+          $and: [{
+            "_id": {
+              $in: chargingStationIDs
+            }
+          },
+          {
+            "siteAreaID": Utils.convertToObjectID(siteAreaID)
+          }
+          ]
+        }, {
+          $set: {
+            siteAreaID: null
+          }
+        }, {
+          upsert: false,
+          new: true,
+          returnOriginal: false
+        });
+      }
+    }
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'removeChargingStationsFromSiteArea', uniqueTimerID, {
+      siteAreaID,
+      chargingStationIDs
+    });
+  }
+
+  static async addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'addChargingStationsToSiteArea');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Site provided?
+    if (siteAreaID) {
+      // At least one User
+      if (chargingStationIDs && chargingStationIDs.length > 0) {
+        // update all chargers
+        await global.database.getCollection(tenantID, 'chargingstations').updateMany({
+          $and: [{
+            "_id": {
+              $in: chargingStationIDs
+            }
+          },
+          {
+            "siteAreaID": null
+          }
+          ]
+        }, {
+          $set: {
+            siteAreaID: Utils.convertToObjectID(siteAreaID)
+          }
+        }, {
+          upsert: false,
+          new: true,
+          returnOriginal: false
+        });
+      }
+    }
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'addChargingStationsToSiteArea', uniqueTimerID, {
+      siteAreaID,
+      chargingStationIDs
+    });
   }
 }
 

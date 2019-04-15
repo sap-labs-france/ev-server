@@ -52,7 +52,7 @@ class ERPService extends AbstractSoapClient {
     const invoiceDocumentPrintRequest = new InvoiceDocumentPrintRequest(invoiceDocumentHeader, invoiceDocumentNumber);
     const result = await this.execute(invoiceDocumentPrintRequest);
     if (!result.data.INVDOCPDF2) {
-      return null
+      return null;
     }
     const hexPayload = result.data.INVDOCPDF2.map(doc => doc.detail.$attributes.value).join('');
     return Buffer.from(hexPayload, 'hex');
@@ -121,7 +121,7 @@ class InvoiceDocumentPrintRequest {
       TOTAL_CURRENCY_ISO: invoiceDocumentHeader.TOTAL_CURR,
       X_INVOICED: invoiceDocumentHeader.INVOICED,
     };
-    this.X_GETPDF = 'X'
+    this.X_GETPDF = 'X';
   }
 
   getName() {

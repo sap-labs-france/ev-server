@@ -103,7 +103,7 @@ class LocationsEndpoint extends AbstractEndpoint {
       res.set({
         'X-Total-Count': result.count,
         'X-Limit': RECORDS_LIMIT
-      })
+      });
 
       // return next link
       const nextUrl = OCPIUtils.buildNextUrl(req, offset, limit, result.count);
