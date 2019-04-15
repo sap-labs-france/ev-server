@@ -2,7 +2,7 @@ const uuid = require('uuid/v4');
 const OCPPService = require('../OCPPService');
 const WebSocket = require('ws');
 const config = require('../../../config');
-const {performance} = require('perf_hooks');
+const { performance } = require('perf_hooks');
 const OCPP_JSON_CALL_MESSAGE = 2;
 const OCPP_JSON_CALL_RESULT_MESSAGE = 3;
 
@@ -21,16 +21,18 @@ class OCPPJsonService16 extends OCPPService {
     return new Promise((resolve, reject) => {
       // Create WS
       const sentRequests = [];
-      const wsConnection = new WebSocket(`${this.serverUrl}/${chargeBoxIdentity}`,'ocpp1.6');
+      const wsConnection = new WebSocket(`${this.serverUrl}/${chargeBoxIdentity}`, 'ocpp1.6');
       // Opened
       wsConnection.onopen = () => {
         // connection is opened and ready to use
-        resolve({connection: wsConnection, requests: sentRequests});
+        resolve({ connection: wsConnection, requests: sentRequests });
       };
       // Handle Error Message
       wsConnection.onerror = (error) => {
         // An error occurred when sending/receiving data
+        // eslint-disable-next-line no-console
         console.log("WSError");
+        // eslint-disable-next-line no-console
         console.log(error);
         reject(error);
       };
@@ -63,7 +65,7 @@ class OCPPJsonService16 extends OCPPService {
           reject(error);
         }
       };
-    })
+    });
   }
 
   async handleRequest(chargeBoxIdentity, messageId, commandName, commandPayload) {
@@ -169,7 +171,7 @@ class OCPPJsonService16 extends OCPPService {
       // Return a promise
       return new Promise((resolve, reject) => {
         // Set the resolve function
-        this._wsSessions.get(chargeBoxIdentity).requests[message[1]] = {resolve, reject, t0: t0};
+        this._wsSessions.get(chargeBoxIdentity).requests[message[1]] = { resolve, reject, t0: t0 };
       });
     }
   }
