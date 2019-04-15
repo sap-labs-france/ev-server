@@ -359,6 +359,7 @@ class Logging {
       action: action,
       message: error.message,
       detailedMessages: [{
+        "details": error.detailedMessages,
         "stack": error.stack
       }]
     };
