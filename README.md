@@ -113,11 +113,10 @@ Create Admin User on Admin schema:
       "readWriteAnyDatabase",
       "userAdminAnyDatabase",
       "dbAdminAnyDatabase"
-    ]
+    ],
+    passwordDigestor: "server"
   })
 ```
-
-On MongoDB version >= 4, you will have to set **passwordDigestor: "server"** in createUser()
 
 #### Create the Application User
 
@@ -129,11 +128,10 @@ Create Application User on EVSE schema
     pwd: "<YourPassword>",
     roles: [
       "readWrite"
-    ]
+    ],
+    passwordDigestor: "server"
   })
 ```
-
-On MongoDB version >= 4, you will have to set **passwordDigestor: "server"** in createUser()
 
 #### Restart MongoDB with authentication enabled
 

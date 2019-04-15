@@ -20,7 +20,6 @@ class CentralSystemServer {
     this._chargingStationService = null;
   }
 
-
   /**
 	 * Starting the server==> Implemented in sub classes
 	 *

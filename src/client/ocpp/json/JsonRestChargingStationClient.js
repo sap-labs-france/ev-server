@@ -1,5 +1,5 @@
 const uuid = require('uuid/v4');
-const WebSocket = require('ws');
+const WSClient = require('../WSClient');
 const ChargingStationClient = require('../ChargingStationClient');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
@@ -84,11 +84,11 @@ class JsonRestChargingStationClient extends ChargingStationClient {
   getDiagnostics(params) {
     return this._sendMessage(this._buildRequest('GetDiagnostics', params));
   }
-  
+
   updateFirmware(params) {
     return this._sendMessage(this._buildRequest('UpdateFirmware', params));
   }
-  
+
   _openConnection() {
     // Log
     Logging.logInfo({
@@ -105,16 +105,16 @@ class JsonRestChargingStationClient extends ChargingStationClient {
       // Create WS
       let WSOptions = {};
       if (Configuration.isCloudFoundry()) {
-        WSOptions =  {
+        WSOptions = {
           protocol: 'rest',
           headers: { 'X-CF-APP-INSTANCE': this._chargingStation.getCFApplicationIDAndInstanceIndex() }
         };
       } else {
-        WSOptions =  {
+        WSOptions = {
           protocol: 'rest'
         };
       }
-      this._wsConnection = new WebSocket(this._serverURL, WSOptions);
+      this._wsConnection = new WSClient(this._serverURL, WSOptions);
       // Opened
       this._wsConnection.onopen = () => {
         // Log
@@ -144,7 +144,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
       // Handle Error Message
       this._wsConnection.onerror = (error) => {
         // Log
-        Logging.logException(error, "WSRestConnectionClosed", this._chargingStation.getID(), MODULE_NAME, "onError", this._chargingStation.getTenantID(),);
+        Logging.logException(error, "WSRestConnectionClosed", this._chargingStation.getID(), MODULE_NAME, "onError", this._chargingStation.getTenantID());
       };
       // Handle Server Message
       this._wsConnection.onmessage = async (message) => {
@@ -175,9 +175,9 @@ class JsonRestChargingStationClient extends ChargingStationClient {
                 message: `OCPP error response for '${JSON.stringify(messageJson[2])}'`,
                 detailedMessages: `Details: ${JSON.stringify(messageJson[3])}`
               });
-              
+
               // Resolve with error message
-              this._requests[messageJson[1]].reject({status: 'Rejected', error: messageJson });
+              this._requests[messageJson[1]].reject({ status: 'Rejected', error: messageJson });
             } else {
               // Respond to the request
               this._requests[messageJson[1]].resolve(messageJson[2]);
@@ -187,7 +187,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
           }
         } catch (error) {
           // Log
-          Logging.logException(error, "", this._chargingStation.getID(), MODULE_NAME, "onMessage", this._chargingStation.getTenantID(),);
+          Logging.logException(error, "", this._chargingStation.getID(), MODULE_NAME, "onMessage", this._chargingStation.getTenantID());
         }
       };
     });
@@ -207,7 +207,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
       // Open WS Connection
       await this._openConnection();
       // Check if wsConnection in ready
-      if (this._wsConnection.readyState === WebSocket.OPEN) {
+      if (this._wsConnection.isConnectionOpen()) {
         // Log
         Logging.logDebug({
           tenantID: this._chargingStation.getTenantID(),
@@ -229,7 +229,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
     });
   }
 
-  _buildRequest(command, params={}) {
+  _buildRequest(command, params = {}) {
     // Build the request
     return [
       Constants.OCPP_JSON_CALL_MESSAGE,
