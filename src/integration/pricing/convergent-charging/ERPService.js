@@ -1,6 +1,7 @@
 const soap = require('strong-soap').soap;
 const ConnectionStorage = require("../../../storage/mongodb/ConnectionStorage");
 const AbstractSoapClient = require('./AbstractSoapClient');
+const InternalError = require('../../../exception/InternalError');
 
 class ERPService extends AbstractSoapClient {
 
@@ -28,13 +29,21 @@ class ERPService extends AbstractSoapClient {
    */
   async createInvoice(tenantId, user) {
     const connection = await ConnectionStorage.getConnectionByUserId(tenantId, 'convergent-invoicing', user.getID());
+    if (!connection) {
+      throw new InternalError(`Convergent Invoicing connection is missing for user ${user.getID()}`);
+    }
     const invoiceCreateRequest = new InvoiceCreateRequest(connection.getData().gpart, connection.getData().vkont, 1, 'SDBC', 'YN');
     const result = await this.execute(invoiceCreateRequest);
     if (!result.data.InvoiceDocumentNumber) {
-      if (result.data.ReturnedMessage.detail[2].$attributes.value === '115') {
-        return null;
+      if (result.data.status === "error") {
+        throw new InternalError(result.data.message, result.data);
+      } else if (result.data.ReturnedMessage) {
+        if (result.data.ReturnedMessage.detail && result.data.ReturnedMessage.detail[2].$attributes.value === '115') {
+          return null;
+        }
+        throw new InternalError("Unable to create invoice", result.data.ReturnedMessage);
       }
-      throw  new Error(result.data.ReturnedMessage.detail.find(d => d.$attributes.name === 'MESSAGE').value);
+      throw new InternalError("Unable to create invoice", result.data);
     }
     return result.data.InvoiceDocumentNumber;
   }

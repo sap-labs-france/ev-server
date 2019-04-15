@@ -230,7 +230,7 @@ class OCPIClient {
     // log
     Logging.logInfo({
       tenantID: tenant.getID(),
-      action: 'PATCH locations',
+      action: 'OCPIPatchLocations',
       message: `Patch location at ${fullUrl}`,
       source: 'OCPI Client',
       module: 'OCPI Client',

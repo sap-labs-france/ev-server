@@ -627,13 +627,22 @@ class UserService {
       }
       let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, Constants.COMPONENTS.PRICING);
       setting = setting.getContent().convergentCharging;
+
+      if (!setting) {
+        Logging.logException({"message": "Convergent Charging setting is missing"}, "UserInvoice", Constants.CENTRAL_SERVER, "UserService", "handleGetUserInvoice", req.user.tenantID, req.user);
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `An issue occurred while creating the invoice`, 560,
+          'UserService', 'handleGetUserInvoice', req.user);
+      }
       const ratingService = new RatingService(setting.url, setting.user, setting.password);
       const erpService = new ERPService(setting.url, setting.user, setting.password);
       let invoiceNumber;
       try {
         await ratingService.loadChargedItemsToInvoicing();
         invoiceNumber = await erpService.createInvoice(req.user.tenantID, user);
-      } catch (e) {
+      } catch (exception) {
+        Logging.logException(exception, "UserInvoice", Constants.CENTRAL_SERVER, "UserService", "handleGetUserInvoice", req.user.tenantID, req.user);
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `An issue occurred while creating the invoice`, 560,
@@ -655,7 +664,7 @@ class UserService {
         if (!invoice) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `An error occured while requesting invoice ${invoiceNumber}`, 561,
+            `An error occurred while requesting invoice ${invoiceNumber}`, 561,
             'UserService', 'handleGetUserInvoice', req.user);
         }
         const filename = 'invoice.pdf';
@@ -677,7 +686,7 @@ class UserService {
       } catch (e) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `An error occured while requesting invoice ${invoiceNumber}`, 561,
+          `An error occurred while requesting invoice ${invoiceNumber}`, 561,
           'UserService', 'handleGetUserInvoice', req.user);
       }
     } catch (error) {
