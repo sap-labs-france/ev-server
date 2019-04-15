@@ -1,5 +1,5 @@
 const uuid = require('uuid/v4');
-const WSClient = require('../WSClient');
+const WSClient = require('../../WSClient');
 const ChargingStationClient = require('../ChargingStationClient');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
