@@ -15,9 +15,6 @@ const Configuration = require('../../../utils/Configuration');
 const centralSystemService12 = require('./services/SoapCentralSystemService12');
 const centralSystemService15 = require('./services/SoapCentralSystemService15');
 const centralSystemService16 = require('./services/SoapCentralSystemService16');
-const chargePointService12Wsdl = require('../../../client/soap/wsdl/OCPPChargePointService12.wsdl');
-const chargePointService15Wsdl = require('../../../client/soap/wsdl/OCPPChargePointService15.wsdl');
-const chargePointService16Wsdl = require('../../../client/soap/wsdl/OCPPChargePointService16.wsdl');
 const sanitize = require('express-sanitizer');
 const bodyParser = require('body-parser');
 require('body-parser-xml')(bodyParser);
@@ -69,27 +66,6 @@ class SoapCentralSystemServer extends CentralSystemServer {
       // Bind to express app
       express.use(CFLog.logNetwork);
     }
-    // Default, serve the index.html
-    express.get(/^\/wsdl(.+)$/, function(req, res, next) { // eslint-disable-line
-      // WDSL file?
-      switch (req.params["0"]) {
-        // Charge Point WSDL 1.2
-        case '/OCPPChargePointService12.wsdl':
-          res.send(chargePointService12Wsdl);
-          break;
-        // Charge Point WSDL 1.5
-        case '/OCPPChargePointService15.wsdl':
-          res.send(chargePointService15Wsdl);
-          break;
-        // Charge Point WSDL 1.6
-        case '/OCPPChargePointService16.wsdl':
-          res.send(chargePointService16Wsdl);
-          break;
-        // Unknown
-        default:
-          res.status(500).send(`${req.sanitize(req.params["0"])} does not exist!`);
-      }
-    });
   }
 
   /*

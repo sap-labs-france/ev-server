@@ -1,13 +1,11 @@
 const uuid = require('uuid/v4');
 const WebSocket = require('ws');
 const ChargingStationClient = require('../ChargingStationClient');
-const Logging = require('../../utils/Logging');
-const Configuration = require('../../utils/Configuration');
-// const BackendError = require('../../exception/BackendError');
+const Logging = require('../../../utils/Logging');
+const Constants = require('../../../utils/Constants');
+const Configuration = require('../../../utils/Configuration');
 
 const MODULE_NAME = "JsonRestChargingStationClient";
-const OCPP_JSON_CALL_MESSAGE = 2;
-const OCPP_JSON_ERROR_MESSAGE = 4;
 
 class JsonRestChargingStationClient extends ChargingStationClient {
   constructor(chargingStation) {
@@ -166,7 +164,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
           // Check if this corresponds to a request
           if (this._requests[messageJson[1]]) {
             // Check message type
-            if (messageJson[0] === OCPP_JSON_ERROR_MESSAGE) {
+            if (messageJson[0] === Constants.OCPP_JSON_CALL_ERROR_MESSAGE) {
               // Error message 
               Logging.logError({
                 tenantID: this._chargingStation.getTenantID(),
@@ -234,7 +232,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
   _buildRequest(command, params={}) {
     // Build the request
     return [
-      OCPP_JSON_CALL_MESSAGE,
+      Constants.OCPP_JSON_CALL_MESSAGE,
       uuid(),
       command,
       params];

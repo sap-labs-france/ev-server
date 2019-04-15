@@ -1,6 +1,4 @@
-const moment = require('moment');
 const Database = require('../utils/Database');
-const Utils = require('../utils/Utils');
 const AbstractTenantEntity = require('./AbstractTenantEntity');
 
 class Consumption extends AbstractTenantEntity {

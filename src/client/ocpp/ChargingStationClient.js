@@ -1,6 +1,5 @@
-const Constants = require('../utils/Constants');
-const Configuration = require('../utils/Configuration');
-const BackendError = require('../exception/BackendError');
+const Constants = require('../../utils/Constants');
+const BackendError = require('../../exception/BackendError');
 
 class ChargingStationClient {
   constructor() {
@@ -10,7 +9,6 @@ class ChargingStationClient {
   }
 
   /**
-   *
    * Return the proper Client instance interface to handle request actions
    * @static
    * @param {*} chargingStation: instance of ChargingStation
@@ -53,7 +51,6 @@ class ChargingStationClient {
 
   /**
    * Trigger a reset/reboot on a charging station
-   *
    * @param {*} type
    * @memberof ChargingStationClient
    */
