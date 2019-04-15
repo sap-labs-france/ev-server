@@ -8,7 +8,7 @@ class AuthenticatedApi extends BaseApi {
     this.password = password;
     this.tenant = tenant;
     this.token = null;
-    this.tenantID = null
+    this.tenantID = null;
   }
 
   async getTenantID() {
@@ -71,4 +71,4 @@ class AuthenticatedApi extends BaseApi {
 
 }
 
-module.exports = AuthenticatedApi
+module.exports = AuthenticatedApi;

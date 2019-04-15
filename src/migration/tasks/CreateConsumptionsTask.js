@@ -125,7 +125,7 @@ class CreateConsumptionsTask extends MigrationTask {
     let lastConsumption = null;
     const newConsumptions = [];
     // Get the consumption (old method)
-    const consumptions = await this.getConsumptions(transaction)
+    const consumptions = await this.getConsumptions(transaction);
     // Build the new consumptions
     for (const consumption of consumptions) {
       // Create the consumption
@@ -143,7 +143,7 @@ class CreateConsumptionsTask extends MigrationTask {
         "consumption" : consumption.valueWh,
         "instantPower" : Math.round(consumption.value),
         "totalInactivitySecs": (lastConsumption ? lastConsumption.totalInactivitySecs : 0)
-      }
+      };
       // Check that there is a duration
       if (newConsumption.startedAt.toString() === newConsumption.endedAt.toString()) {
         continue;

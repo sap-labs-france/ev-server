@@ -539,7 +539,7 @@ class UserStorage {
       const user = new User(tenantID, userMDB);
       // Set
       user.setTagIDs(userMDB.tags.map((tag) => {
-        return tag._id
+        return tag._id;
       }));
       // Add
       users.push(user);
@@ -692,7 +692,7 @@ class UserStorage {
       const user = new User(tenantID, userMDB);
       // Set
       user.setTagIDs(userMDB.tags.map((tag) => {
-        return tag._id
+        return tag._id;
       }));
       // Add
       users.push(user);

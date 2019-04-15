@@ -110,11 +110,11 @@ class JsonRestChargingStationClient extends ChargingStationClient {
         WSOptions =  {
           protocol: 'rest',
           headers: { 'X-CF-APP-INSTANCE': this._chargingStation.getCFApplicationIDAndInstanceIndex() }
-        }
+        };
       } else {
         WSOptions =  {
           protocol: 'rest'
-        }
+        };
       }
       this._wsConnection = new WebSocket(this._serverURL, WSOptions);
       // Opened
@@ -192,7 +192,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
           Logging.logException(error, "", this._chargingStation.getID(), MODULE_NAME, "onMessage", this._chargingStation.getTenantID(),);
         }
       };
-    })
+    });
   }
 
   _closeConnection() {

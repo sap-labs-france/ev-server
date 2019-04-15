@@ -232,10 +232,10 @@ class ChargingStationStorage {
     // Create
     for (const chargingStationMDB of chargingStationsMDB) {
       // Create the Charger
-      const chargingStation = new ChargingStation(tenantID, chargingStationMDB)
+      const chargingStation = new ChargingStation(tenantID, chargingStationMDB);
       // Add the Site Area?
       if (chargingStationMDB.siteArea) {
-        const siteArea = new SiteArea(tenantID, chargingStationMDB.siteArea)
+        const siteArea = new SiteArea(tenantID, chargingStationMDB.siteArea);
         // Set
         chargingStation.setSiteArea(siteArea);
         if (chargingStationMDB.site) {
@@ -339,7 +339,7 @@ class ChargingStationStorage {
       { $unwind: {
         "path": "$siteArea",
         "preserveNullAndEmptyArrays": true
-      }}]
+      }}];
     }
     // Check Site ID
     if (params.siteID) {
@@ -361,7 +361,7 @@ class ChargingStationStorage {
           "path": "$site",
           "preserveNullAndEmptyArrays": true
         }}
-      ]
+      ];
     }
     if (params.chargeBoxId) {
       // Build filter
@@ -466,7 +466,7 @@ class ChargingStationStorage {
       chargingStation.getModel().uniqueId = chargingStationMDB.uniqueId;
       // Add the Site Area?
       if (chargingStationMDB.siteArea) {
-        const siteArea = new SiteArea(tenantID, chargingStationMDB.siteArea)
+        const siteArea = new SiteArea(tenantID, chargingStationMDB.siteArea);
         // Set
         chargingStation.setSiteArea(siteArea);
         if (chargingStationMDB.site) {
@@ -514,12 +514,12 @@ class ChargingStationStorage {
         return [
           {$match:{$or:[{"connectors.errorCode": {$ne: "NoError"}}, {"connectors.status": {$eq: "Faulted"}}]}},
           {$addFields: {"errorCode":"connectorError"}}
-        ]
+        ];
       case 'missingSiteArea':
         return [
           {$match:{$or:[{"siteAreaID":{$exists:false}},{"siteAreaID":null}]}},
           {$addFields: {"errorCode":"missingSiteArea"}}
-        ]
+        ];
       default:
         return [];
     }

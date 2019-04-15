@@ -48,7 +48,7 @@ class AbstractODataEntities {
       dayOfTheWeek: parseInt(date.format("d")),
       hourOfTheDay: date.hours(),
       weekOfTheYear: parseInt(date.format("W"))
-    }
+    };
   }
 
   static returnResponse(response, query, req, cb) {
@@ -74,13 +74,13 @@ class AbstractODataEntities {
 
       if (fields.length != 0) {
         if (Array.isArray(result)) {
-          result = result.map((object)=> {return _.pick(this.convert(object,req),fields)});
+          result = result.map((object)=> {return _.pick(this.convert(object,req),fields);});
         } else {
           result = _.pick(this.convert(result,req), fields);
         }
       } else {
         if (Array.isArray(result)) {
-          result = result.map((object)=> {return this.convert(object,req)});
+          result = result.map((object)=> {return this.convert(object,req);});
         } else {
           result = this.convert(result,req);
         }

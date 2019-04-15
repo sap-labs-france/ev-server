@@ -58,12 +58,12 @@ const LogLevel = {
   "ERROR": 'E',
   "NONE": 'NONE',
   "DEFAULT": 'DEFAULT'
-}
+};
 
 const LoggingType = {
   "SECURITY": 'S',
   "REGULAR": 'R'
-}
+};
 
 class Logging {
 
@@ -72,7 +72,7 @@ class Logging {
     if (typeof log !== 'object') {
       log = {
         simpleMessage: log
-      }
+      };
     }
     // Log
     log.level = LogLevel.DEBUG;
@@ -117,7 +117,7 @@ class Logging {
     // Check
     if (_loggingConfig.trace) {
       performance.mark(`End ${module}.${method}(${uniqueID})`);
-      performance.measure(`${module}.${method}(${JSON.stringify(params)})`, `Start ${module}.${method}(${uniqueID})`, `End ${module}.${method}(${uniqueID})`)
+      performance.measure(`${module}.${method}(${JSON.stringify(params)})`, `Start ${module}.${method}(${uniqueID})`, `End ${module}.${method}(${uniqueID})`);
     }
   }
 
@@ -361,7 +361,7 @@ class Logging {
       detailedMessages: [{
         "stack": error.stack
       }]
-    }
+    };
   }
 
   // Used to check URL params (not in catch)
@@ -558,7 +558,7 @@ class Logging {
   }
 
   static getLogs(tenantID, params, limit, skip, sort) {
-    return LoggingStorage.getLogs(tenantID, params, limit, skip, sort)
+    return LoggingStorage.getLogs(tenantID, params, limit, skip, sort);
   }
 }
 

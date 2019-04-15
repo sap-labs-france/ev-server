@@ -63,7 +63,7 @@ class JsonCentralSystemServer extends CentralSystemServer {
         message: `Invalid connection URL ${info.req.url}`
       });
       return false;
-    }
+    };
     // Create the Web Socket Server
     this._wss = new WebSocket.Server({
       server: server,

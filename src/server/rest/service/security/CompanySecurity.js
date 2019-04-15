@@ -82,7 +82,7 @@ class CompanySecurity {
       if (company.sites) {
         filteredCompany.sites = company.sites.map((site) => {
           return CompanySecurity.getSiteSecurity().filterSiteResponse(site, loggedUser);
-        })
+        });
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(

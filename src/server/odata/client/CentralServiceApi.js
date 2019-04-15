@@ -71,4 +71,4 @@ class CentralServiceApi extends AuthenticatedApi {
 
 }
 
-module.exports = CentralServiceApi
+module.exports = CentralServiceApi;

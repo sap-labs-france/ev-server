@@ -90,7 +90,7 @@ class Transaction extends AbstractTenantEntity {
 
   getTotalInactivitySecs() {
     if (this.isFinished()) {
-      return this._model.stop.totalInactivitySecs
+      return this._model.stop.totalInactivitySecs;
     }
   }
 
@@ -355,7 +355,7 @@ class Transaction extends AbstractTenantEntity {
       && (meterValue.attribute.context === 'Sample.Periodic'
         || meterValue.attribute.context === 'Transaction.Begin'
         || meterValue.attribute.context === 'Transaction.End')
-      && meterValue.attribute.measurand === 'SoC'
+      && meterValue.attribute.measurand === 'SoC';
   }
 
   isConsumptionMeterValue(meterValue) {
@@ -399,7 +399,7 @@ class Transaction extends AbstractTenantEntity {
   async startTransaction(user) {
     // Init
     this.setNumberOfMeterValues(0);
-    this.setLastMeterValue({value: this.getMeterStart(), timestamp: this.getStartDate()})
+    this.setLastMeterValue({value: this.getMeterStart(), timestamp: this.getStartDate()});
     this.setCurrentTotalInactivitySecs(0);
     this.setCurrentStateOfCharge(0);
     this.setStateOfCharge(0);
@@ -745,7 +745,7 @@ class Transaction extends AbstractTenantEntity {
   }
 
   static getTransactions(tenantID, filter, limit) {
-    return TransactionStorage.getTransactions(tenantID, filter, limit)
+    return TransactionStorage.getTransactions(tenantID, filter, limit);
   }
 
   static getActiveTransaction(tenantID, chargeBoxID, connectorId) {

@@ -188,7 +188,7 @@ class ConcurConnector extends AbstractConnector {
     }
 
     if (ConcurConnector.isTokenExpired(connection)) {
-      connection = await this.refreshToken(user.getID(), connection)
+      connection = await this.refreshToken(user.getID(), connection);
     }
     const expenseReports = await this.getExpenseReports(connection);
     const expenseReport = expenseReports.find(report => report.Name === this.getReportName());

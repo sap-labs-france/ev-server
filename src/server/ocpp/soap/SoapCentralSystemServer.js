@@ -43,7 +43,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
 
     // FIXME?: Should be useless now that helmet() is mounted at the beginning
     // Mount express-sanitizer middleware
-    express.use(sanitize())
+    express.use(sanitize());
 
     // Enable debug?
     if (centralSystemConfig.debug) {

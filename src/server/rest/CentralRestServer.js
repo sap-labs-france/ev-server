@@ -56,7 +56,7 @@ class CentralRestServer {
 
     // FIXME?: Should be useless now that helmet() is mounted at the beginning
     // Mount express-sanitizer middleware
-    express.use(sanitize())
+    express.use(sanitize());
 
     // Use
     express.use(locale(Configuration.getLocalesConfig().supported));

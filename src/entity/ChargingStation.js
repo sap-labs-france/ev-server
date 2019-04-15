@@ -31,11 +31,11 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   static getChargingStations(tenantID, params, limit, skip, sort) {
-    return ChargingStationStorage.getChargingStations(tenantID, params, limit, skip, sort)
+    return ChargingStationStorage.getChargingStations(tenantID, params, limit, skip, sort);
   }
 
   static getChargingStationsInError(tenantID, params, limit, skip, sort) {
-    return ChargingStationStorage.getChargingStationsInError(tenantID, params, limit, skip, sort)
+    return ChargingStationStorage.getChargingStationsInError(tenantID, params, limit, skip, sort);
   }
 
   static addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs) {
@@ -426,7 +426,7 @@ class ChargingStation extends AbstractTenantEntity {
       // Override with Conf
       configuration = {
         'configuration': configuration.configurationKey
-      }
+      };
     } catch (error) {
       // Log error
       Logging.logActionExceptionMessage(this.getTenantID(), 'RequestConfiguration', error);
@@ -786,7 +786,7 @@ class ChargingStation extends AbstractTenantEntity {
     if (result.status !== 'Accepted') {
       // Error
       throw new BackendError(this.getID(), `Cannot set the configuration param ${params.key} with value ${params.value} to ${this.getID()}`,
-        "ChargingStation", "requestChangeConfiguration")
+        "ChargingStation", "requestChangeConfiguration");
     }
     // Update
     await this.requestAndSaveConfiguration();

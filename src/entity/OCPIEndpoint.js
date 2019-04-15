@@ -54,7 +54,7 @@ class OCPIEndpoint extends AbstractTenantEntity {
    * Set Ocpi version
    */
   getVersion() {
-    return this._model.version
+    return this._model.version;
   }
 
   setVersion(version) {
@@ -251,7 +251,7 @@ class OCPIEndpoint extends AbstractTenantEntity {
   }
   
   static getOcpiendpoints(tenantID, params, limit, skip, sort) {
-    return OCPIEndpointStorage.getOcpiEndpoints(tenantID, params, limit, skip, sort)
+    return OCPIEndpointStorage.getOcpiEndpoints(tenantID, params, limit, skip, sort);
   }
 
   // Get ocpiendpoints with token

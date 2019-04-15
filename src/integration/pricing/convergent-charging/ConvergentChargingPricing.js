@@ -25,7 +25,7 @@ class ConvergentChargingPricing extends Pricing {
       new ChargeableItemProperty('cumulatedConsumption', Type.number, consumptionData.cumulatedConsumption),
       new ChargeableItemProperty('consumption', Type.number, consumptionData.consumption),
       new ChargeableItemProperty('stateOfCharge', Type.number, consumptionData.stateOfCharge),
-    ]
+    ];
   }
 
   computeSessionId(consumptionData) {
@@ -58,7 +58,7 @@ class ConvergentChargingPricing extends Pricing {
         currencyCode: rateResult.transactionsToReserve.getCurrencyCode(),
         roundedAmount: 0,
         pricingSource: 'ConvergentCharging'
-      }
+      };
     } else {
       this.handleError(consumptionData, result);
       return {};
@@ -86,7 +86,7 @@ class ConvergentChargingPricing extends Pricing {
         currencyCode: rateResult.transactionsToConfirm.getCurrencyCode(),
         amount: rateResult.transactionsToConfirm.getTotalUnroundedAmount(),
         pricingSource: 'ConvergentCharging'
-      }
+      };
     } else {
       this.handleError(consumptionData, result);
       return {};
@@ -111,7 +111,7 @@ class ConvergentChargingPricing extends Pricing {
         currencyCode: rateResult.transactionsToConfirm.getCurrencyCode(),
         amount: rateResult.transactionsToConfirm.getTotalUnroundedAmount(),
         pricingSource: 'ConvergentCharging'
-      }
+      };
     } else {
       this.handleError(consumptionData, result);
       return {};
@@ -261,7 +261,7 @@ class RateResult {
       return {
         value: parseFloat(amount.substr(4)),
         currency: amount.substr(0, 3)
-      }
+      };
     }
     return null;
   }
@@ -377,7 +377,7 @@ class ChargeableItemProperty {
    */
   constructor(name, type, value) {
     this.name = name;
-    this[type + 'Value'] = value
+    this[type + 'Value'] = value;
   }
 }
 
