@@ -68,7 +68,6 @@ class OCPPCommonTests {
     await CentralServerService.chargingStationApi.checkConnector(
       this.context.newChargingStation, 1, this.chargingStationConnector1);
 
-
     // Update Status of Connector 2
     response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector2);
     // Check

@@ -108,11 +108,6 @@ class Tenant {
     }
   }
 
-  /**
-   * Return Setting entity
-   * @param {*} identifier
-   * @return Setting
-   */
   async getSetting(identifier) {
     return await Setting.getSettingByIdentifier(this.getID(), identifier);
   }

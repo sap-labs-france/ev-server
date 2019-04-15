@@ -18,7 +18,7 @@
     "beforeActionLines": [
       "Hi <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Your electric vehicle, which is connected to <b><%- chargingBoxID %></b>, has just finished charging."
+      "Your electric vehicle, which is connected to <b><%- chargeBoxID %></b>, has just finished charging."
     ],
     "stats": [
       { "label": "Consumption", "value": "<%- totalConsumption %> kW.h" },
@@ -33,7 +33,7 @@
       "You can now stop the session and move your vehicle.",
       "",
       "Best Regards,",
-      "EV Admin."
+      "EV Admins."
     ],
     "footer": {
     }

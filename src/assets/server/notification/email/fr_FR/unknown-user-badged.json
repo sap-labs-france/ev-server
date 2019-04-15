@@ -18,7 +18,7 @@
     "beforeActionLines": [
       "Bonjour Admin,",
       "",
-      "Un utilisateur inconnu vient juste de badger sur <b><%- chargingBoxID %></b> avec le badge ID <b><%- badgeId %></b>."
+      "Un utilisateur inconnu vient juste de badger sur <b><%- chargeBoxID %></b> avec le badge ID <b><%- badgeId %></b>."
     ],
     "action": {
       "title": "Editer Utilisateur",
@@ -26,7 +26,7 @@
     },
     "afterActionLines": [
       "Cordialement,",
-      "EV Admin."
+      "EV Admins."
     ],
     "footer": {
     }

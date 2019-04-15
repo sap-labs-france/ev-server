@@ -2,7 +2,6 @@ const Tenant = require('../../entity/Tenant');
 const PricingStorage = require('../../storage/mongodb/PricingStorage');
 const DatabaseUtils = require('../../storage/mongodb/DatabaseUtils');
 const moment = require('moment');
-const Utils = require('../../utils/Utils');
 const Logging = require('../../utils/Logging');
 const Constants = require('../../utils/Constants');
 const MigrationTask = require('../MigrationTask');

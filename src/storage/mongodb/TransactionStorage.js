@@ -701,7 +701,7 @@ class TransactionStorage {
     Logging.traceEnd('TransactionStorage', '_findAvailableID', uniqueTimerID);
   }
 
-  static async cleanupRemainingActiveTransactions(tenantID, chargeBoxId, connectorId) {
+  static async stopOrDeleteActiveTransactions(tenantID, chargeBoxId, connectorId) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'cleanupRemainingActiveTransactions');
     // Check
@@ -715,11 +715,11 @@ class TransactionStorage {
         // Has consumption?
         if (activeTransaction.getCurrentTotalConsumption() <= 0) {
           // No consumption: delete
-          Logging.logError({
+          Logging.logWarning({
             tenantID: tenantID,
             source: chargeBoxId, module: 'ChargingStation', method: 'cleanupRemainingActiveTransactions',
             action: 'StartTransaction', actionOnUser: activeTransaction.getUserID(),
-            message: `Active Transaction ID '${activeTransaction.getID()}' has been deleted on Connector '${activeTransaction.getConnectorId()}'`
+            message: `Pending Transaction ID '${activeTransaction.getID()}' has been deleted on Connector '${activeTransaction.getConnectorId()}'`
           });
           // Delete
           await this.deleteTransaction(tenantID, activeTransaction);
@@ -729,7 +729,7 @@ class TransactionStorage {
             tenantID: tenantID,
             source: chargeBoxId, module: 'ChargingStation', method: 'cleanupRemainingActiveTransactions',
             action: 'StartTransaction', actionOnUser: activeTransaction.getUserID(),
-            message: `Active Transaction ID '${activeTransaction.getID()}' has been closed on Connector '${activeTransaction.getConnectorId()}'`
+            message: `Pending Transaction ID '${activeTransaction.getID()}' has been stopped on Connector '${activeTransaction.getConnectorId()}'`
           });
           // Stop
           await activeTransaction.stopTransaction(activeTransaction.getUserID(), activeTransaction.getTagID(),

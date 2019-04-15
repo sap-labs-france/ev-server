@@ -6,6 +6,7 @@ const AppAuthError = require('../../../exception/AppAuthError');
 const Authorizations = require('../../../authorization/Authorizations');
 const ChargingStationSecurity = require('./security/ChargingStationSecurity');
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage');
+const OCPPStorage = require('../../../storage/mongodb/OCPPStorage');
 const ChargingStation = require('../../../entity/ChargingStation');
 const SiteArea = require('../../../entity/SiteArea');
 const fs = require("fs");
@@ -578,7 +579,7 @@ class ChargingStationService {
       // Filter
       const filteredRequest = ChargingStationSecurity.filterStatusNotificationsRequest(req.query, req.user);
       // Get all Status Notifications
-      const statusNotifications = await ChargingStation.getStatusNotifications(req.user.tenantID, { },
+      const statusNotifications = await OCPPStorage.getStatusNotifications(req.user.tenantID, { },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
       statusNotifications.result = ChargingStationSecurity.filterStatusNotificationsResponse(statusNotifications.result, req.user);
@@ -606,7 +607,7 @@ class ChargingStationService {
       // Filter
       const filteredRequest = ChargingStationSecurity.filterBootNotificationsRequest(req.query, req.user);
       // Get all Status Notifications
-      const bootNotifications = await ChargingStation.getBootNotifications(req.user.tenantID, { },
+      const bootNotifications = await OCPPStorage.getBootNotifications(req.user.tenantID, { },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
       bootNotifications.result = ChargingStationSecurity.filterBootNotificationsResponse(bootNotifications.result, req.user);
@@ -668,7 +669,7 @@ class ChargingStationService {
             'ChargingStationService', 'handleAction', req.user, null, action);
         }
         // Check if user is authorized
-        await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, transaction.getTagID(), req.user.tagIDs[0]);
+        await Authorizations.isTagIDsAuthorizedOnChargingStation(chargingStation, req.user.tagIDs[0], transaction.getTagID(), action);
         // Set the tag ID to handle the Stop Transaction afterwards
         transaction.remoteStop(req.user.tagIDs[0], new Date().toISOString());
         // Save Transaction
@@ -684,7 +685,7 @@ class ChargingStationService {
             'ChargingStationService', 'handleAction', req.user, null, action);
         }
         // Check if user is authorized
-        await Authorizations.checkAndGetIfUserIsAuthorizedForChargingStation(action, chargingStation, filteredRequest.args.tagID);
+        await Authorizations.isTagIDAuthorizedOnChargingStation(chargingStation, filteredRequest.args.tagID, action);
         // Ok: Execute it
         result = await chargingStation.handleAction(action, filteredRequest.args);
       } else if (action === 'GetCompositeSchedule') {

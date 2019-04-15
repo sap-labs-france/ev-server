@@ -1,5 +1,6 @@
 const path = require('path');
 global.appRoot = path.resolve(__dirname);
+global.Promise = require('bluebird');
 const MongoDBStorage = require('./storage/mongodb/MongoDBStorage');
 const MongoDBStorageNotification = require('./storage/mongodb/MongoDBStorageNotification');
 const Configuration = require('./utils/Configuration');
@@ -46,6 +47,17 @@ class Bootstrap {
         tenantID: Constants.DEFAULT_TENANT,
         module: 'Bootstrap', method: 'start', action: 'Startup',
         message: `Database connected to '${storageConfig.implementation}' successfully`
+      });
+
+      // Listen to promise failure
+      process.on('unhandledRejection', (reason, p) => {
+        console.log("Unhandled Rejection at Promise: ", p, " reason: ", reason);
+        Logging.logError({
+          tenantID: Constants.DEFAULT_TENANT,
+          source: 'BootStrap', module: 'BootStrap', method: 'start', action: 'UnhandledRejection',
+          message: `Reason: ${(reason ? reason.message : 'Not provided')}`,
+          detailedMessages: (reason ? reason.stack : null)
+        });
       });
 
       // Get all configs
@@ -126,7 +138,7 @@ class Bootstrap {
       console.error(error); // eslint-disable-line
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        source: 'BootStrap', module: 'start', method: '-', action: 'StartServer',
+        source: 'BootStrap', module: 'BootStrap', method: 'start', action: 'Start',
         message: `Unexpected exception: ${error.toString()}`
       });
     }

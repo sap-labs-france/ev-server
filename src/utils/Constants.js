@@ -86,13 +86,14 @@ module.exports = {
   ACTION_RESET: "Reset",
   ACTION_AUTHORIZE: "Authorize",
   ACTION_CLEAR_CACHE: "ClearCache",
+  ACTION_DATA_TRANSFER: "DataTransfer",
   ACTION_STOP_TRANSACTION: "StopTransaction",
   ACTION_START_TRANSACTION: "StartTransaction",
   ACTION_REFUND_TRANSACTION: "RefundTransaction",
   ACTION_UNLOCK_CONNECTOR: "UnlockConnector",
   ACTION_GET_CONFIGURATION: "GetConfiguration",
   ACTION_PING: "Ping",
-  ACTION_SEND_EVSE_STATUSE: "SendEVSEStatuses",
+  ACTION_SEND_EVSE_STATUSES: "SendEVSEStatuses",
   ACTION_REGISTER: "Register",
   ACTION_GENERATE_LOCAL_TOKEN: "GenerateLocalToken",
 
@@ -122,6 +123,9 @@ module.exports = {
   METER_VALUE_LOCATION_OUTLET: 'Outlet',
   METER_VALUE_UNIT_WH: 'Wh',
 
+  CHARGER_VENDOR_EBEE: 'Bender GmbH Co. KG',
+  CHARGER_VENDOR_SCHNEIDER: 'Schneider Electric',
+  CHARGER_VENDOR_ABB: 'ABB',
 
   WS_UNSUPPORTED_DATA: 1007,
 
@@ -198,6 +202,7 @@ module.exports = {
     UNKNOWN: "UNKNOWN"
   },
 
+
   // OCPI CONNECTOR POWER TYPE
   CONNECTOR_POWER_TYPE: {
     AC_1_PHASE: "AC_1_PHASE",
@@ -214,7 +219,7 @@ module.exports = {
 
   // Components
   COMPONENTS: {
-    OCPI_COMPONENT: "ocpi",
+    OCPI: "ocpi",
     REFUND: "refund",
     PRICING: "pricing",
     ORGANIZATION: "organization",

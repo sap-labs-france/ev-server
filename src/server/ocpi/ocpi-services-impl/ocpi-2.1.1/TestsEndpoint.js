@@ -1,6 +1,7 @@
 const AbstractEndpoint = require('../AbstractEndpoint');
 const OCPIEndpoint = require('../../../../entity/OCPIEndpoint');
 const Setting = require('../../../../entity/Setting');
+const Constants = require('../../../../utils/Constants');
 
 require('source-map-support').install();
 
@@ -39,10 +40,10 @@ class TestsEndpoint extends AbstractEndpoint {
    */
   async test(req, res, next, tenant) { // eslint-disable-line
     // test tenant service with 
-    let activeFlag = tenant.isComponentActive('ocpi');
-    tenant.activateComponent('ocpi');
-    activeFlag = tenant.isComponentActive('ocpi');
-    tenant.deactivateComponent('ocpi');
+    let activeFlag = tenant.isComponentActive(Constants.COMPONENTS.OCPI);
+    tenant.activateComponent(Constants.COMPONENTS.OCPI);
+    activeFlag = tenant.isComponentActive(Constants.COMPONENTS.OCPI);
+    tenant.deactivateComponent(Constants.COMPONENTS.OCPI);
     await tenant.save();
     activeFlag = tenant.isComponentActive('test');
     tenant.activateComponent('test');
@@ -50,11 +51,11 @@ class TestsEndpoint extends AbstractEndpoint {
 
 
     // test setting handling
-    let setting = await Setting.getSettingByIdentifier(tenant.getID(),'ocpi');
+    let setting = await Setting.getSettingByIdentifier(tenant.getID(),Constants.COMPONENTS.OCPI);
 
     if (!setting) {
       setting = new Setting(tenant.getID(), {});
-      setting.setIdentifier('ocpi');
+      setting.setIdentifier(Constants.COMPONENTS.OCPI);
     }
 
     setting.setContent({

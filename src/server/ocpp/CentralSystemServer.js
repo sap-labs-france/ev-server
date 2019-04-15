@@ -1,5 +1,5 @@
 require('source-map-support').install();
-const ChargingStationService16 = require('./services/ChargingStationService16');
+const OCPPService = require('./services/OCPPService');
 const Constants = require('../../utils/Constants');
 
 /**
@@ -43,7 +43,7 @@ class CentralSystemServer {
       default:
         if (!this._chargingStationService) {
           // OCCP 1.6 handles all protocols from 1.2 to 1.6
-          this._chargingStationService = new ChargingStationService16(this._centralSystemConfig, this._chargingStationConfig);
+          this._chargingStationService = new OCPPService(this._centralSystemConfig, this._chargingStationConfig);
         }
         return this._chargingStationService;
     }
