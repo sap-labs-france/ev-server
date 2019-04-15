@@ -18,7 +18,7 @@ class SchemaValidator {
         return {
           path: error.dataPath,
           message: error.message
-        }
+        };
       });
 
       throw new BadRequestError(errors);

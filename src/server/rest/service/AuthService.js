@@ -371,7 +371,7 @@ class AuthService {
       newUser.setLocale(req.locale.substring(0, 5));
       newUser.setCreatedOn(new Date());
       // Set BadgeID (eg.: 'SF20170131')
-      newUser.setTagIDs([newUser.getName()[0] + newUser.getFirstName()[0] + Utils.getRandomInt()])
+      newUser.setTagIDs([newUser.getName()[0] + newUser.getFirstName()[0] + Utils.getRandomInt()]);
       // Assign user to all sites
       const sites = await Site.getSites(tenantID, {withAutoUserAssignment: true});
       // Set

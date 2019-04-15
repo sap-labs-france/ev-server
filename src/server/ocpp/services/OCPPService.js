@@ -88,7 +88,7 @@ class OCPPService {
         chargingStation.setLastHeartBeat(new Date());
         // Set the charger URL?
         if (bootNotification.chargingStationURL) {
-          chargingStation.setChargingStationURL(bootNotification.chargingStationURL)
+          chargingStation.setChargingStationURL(bootNotification.chargingStationURL);
         }
         // Back again
         chargingStation.setDeleted(false);
@@ -132,7 +132,7 @@ class OCPPService {
           // Set
           chargingStation.setSiteArea(siteAreas.result[0]);
           // Save
-          await updatedChargingStation.saveChargingStationSiteArea()
+          await updatedChargingStation.saveChargingStationSiteArea();
         }
       }
       // Return the result
@@ -488,7 +488,7 @@ class OCPPService {
   // Build Inactivity
   _buildTransactionInactivity(transaction, i18nHourShort = 'h') {
     // Get total
-    const totalInactivitySecs = transaction.getTotalInactivitySecs()
+    const totalInactivitySecs = transaction.getTotalInactivitySecs();
     // None?
     if (totalInactivitySecs === 0) {
       return `0${i18nHourShort}00 (0%)`;
@@ -581,8 +581,8 @@ class OCPPService {
           // Set
           newMeterValue.value = value.value.$value;
           newMeterValue.attribute = value.value.attributes;
-      // OCPP 1.5
-      } else {
+          // OCPP 1.5
+        } else {
           newMeterValue.value = parseInt(value.value);
         }
         // Add
@@ -600,7 +600,7 @@ class OCPPService {
       location: (sampledValue.location ? sampledValue.location : Constants.METER_VALUE_LOCATION_OUTLET),
       unit: (sampledValue.unit ? sampledValue.unit : Constants.METER_VALUE_UNIT_WH),
       phase: (sampledValue.phase ? sampledValue.phase : '')
-    }
+    };
   }
 
   async handleAuthorize(authorize) {
@@ -630,7 +630,7 @@ class OCPPService {
       };
     } catch (error) {
       // Set the source
-        error.source = authorize.chargeBoxIdentity;
+      error.source = authorize.chargeBoxIdentity;
       // Log error
       Logging.logActionExceptionMessage(authorize.tenantID, 'Authorize', error);
       return {
@@ -931,7 +931,7 @@ class OCPPService {
     // Already provided?
     if (stopTransaction.idTag) {
       // Return tag that stopped the transaction
-      return stopTransaction.idTag
+      return stopTransaction.idTag;
     }
     // Default: return tag that started the transaction
     return transaction.getTagID();

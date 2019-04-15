@@ -119,7 +119,7 @@ class User extends AbstractTenantEntity {
   }
 
   getFullName(withID = false) {
-    return Utils.buildUserFullName(this.getModel(), withID)
+    return Utils.buildUserFullName(this.getModel(), withID);
   }
 
   getTagIDs() {
@@ -542,11 +542,11 @@ class User extends AbstractTenantEntity {
   }
 
   static getUsers(tenantID, params, limit, skip, sort) {
-    return UserStorage.getUsers(tenantID, params, limit, skip, sort)
+    return UserStorage.getUsers(tenantID, params, limit, skip, sort);
   }
 
   static getUsersInError(tenantID, params, limit, skip, sort) {
-    return UserStorage.getUsersInError(tenantID, params, limit, skip, sort)
+    return UserStorage.getUsersInError(tenantID, params, limit, skip, sort);
   }
 
   static getEndUserLicenseAgreement(tenantID, language) {

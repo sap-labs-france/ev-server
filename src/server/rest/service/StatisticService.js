@@ -106,7 +106,7 @@ class StatisticService {
       // Only for current user
       filter.userID = loggedUser.id;
     }
-    return filter
+    return filter;
   } 
 }
 

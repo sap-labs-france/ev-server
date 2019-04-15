@@ -18,7 +18,7 @@ class OCPIUtils {
       "status_code": Constants.OCPI_STATUS_CODE.CODE_1000_SUCCESS.status_code,
       "status_message": Constants.OCPI_STATUS_CODE.CODE_1000_SUCCESS.status_message,
       "timestamp": new Date().toISOString()
-    }
+    };
   }
 
   /**

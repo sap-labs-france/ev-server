@@ -204,7 +204,7 @@ class Database {
       Database.updateUser(src.user, dest.user);
     }
     // ChargeBox
-    dest.chargeBoxID = src.chargeBoxID
+    dest.chargeBoxID = src.chargeBoxID;
     if (forFrontEnd && !Utils.isEmptyJSon(src.chargeBox)) {
       dest.chargeBox = {};
       Database.updateChargingStation(src.chargeBox, dest.chargeBox);
@@ -215,7 +215,7 @@ class Database {
     if (forFrontEnd) {
       Database.updateID(src, dest);
     }
-    dest.chargeBoxID = src.chargeBoxID
+    dest.chargeBoxID = src.chargeBoxID;
     dest.connectorId = Utils.convertToInt(src.connectorId);
     dest.transactionId = Utils.convertToInt(src.transactionId);
     dest.timestamp = Utils.convertToDate(src.timestamp);
@@ -253,7 +253,7 @@ class Database {
     }
     dest.address = {};
     if (src.hasOwnProperty("address")) {
-      Database.updateAddress(src.address, dest.address)
+      Database.updateAddress(src.address, dest.address);
     }
     if (src.hasOwnProperty("status")) {
       dest.status = src.status;
@@ -304,7 +304,7 @@ class Database {
     dest.address = {};
     dest.allowAllUsersToStopTransactions = src.allowAllUsersToStopTransactions;
     dest.autoUserSiteAssignment = src.autoUserSiteAssignment;
-    Database.updateAddress(src.address, dest.address)
+    Database.updateAddress(src.address, dest.address);
     Database.updateCreatedAndLastChanged(src, dest);
   }
 
@@ -501,7 +501,7 @@ class Database {
     dest.address = {};
     dest.maximumPower = src.maximumPower;
     dest.accessControl = src.accessControl;
-    Database.updateAddress(src.address, dest.address)
+    Database.updateAddress(src.address, dest.address);
     Database.updateCreatedAndLastChanged(src, dest);
   }
 

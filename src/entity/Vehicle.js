@@ -223,7 +223,7 @@ class Vehicle extends AbstractTenantEntity {
   }
 
   static getVehicles(tenantID, params, limit, skip, sort) {
-    return VehicleStorage.getVehicles(tenantID, params, limit, skip, sort)
+    return VehicleStorage.getVehicles(tenantID, params, limit, skip, sort);
   }
 
   static getVehicleImage(tenantID, id) {
@@ -231,7 +231,7 @@ class Vehicle extends AbstractTenantEntity {
   }
 
   static getVehicleImages(tenantID) {
-    return VehicleStorage.getVehicleImages(tenantID)
+    return VehicleStorage.getVehicleImages(tenantID);
   }
 }
 

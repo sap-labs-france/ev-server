@@ -95,7 +95,7 @@ class AbstractOCPIService {
     const supportedEndpoints = registeredEndpointsArray.map(endpoint => {
       const identifier = endpoint.getIdentifier();
       return { "identifier": `${identifier}`, "url": `${fullUrl}${identifier}/` };
-    })
+    });
 
     // return payload
     res.json(OCPIUtils.success({ "version": this.getVersion(), "endpoints": supportedEndpoints }));

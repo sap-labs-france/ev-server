@@ -45,7 +45,7 @@ class SiteArea extends AbstractTenantEntity {
   }
 
   static getSiteAreas(tenantID, params, limit, skip, sort) {
-    return SiteAreaStorage.getSiteAreas(tenantID, params, limit, skip, sort)
+    return SiteAreaStorage.getSiteAreas(tenantID, params, limit, skip, sort);
   }
 
   static getSiteAreaImage(tenantID, id) {

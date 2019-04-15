@@ -673,7 +673,7 @@ class TransactionService {
   }
 
   static hashString(data) {
-    return crypto.createHash('sha256').update(data).digest("hex");;
+    return crypto.createHash('sha256').update(data).digest("hex");
   }
 }
 

@@ -29,7 +29,7 @@ class Utils {
       clientId: 'sb-revenue-cloud!b1122|revenue-cloud!b1532',
       clientSecret: 'BtuZkWlC/58HmEMoqBCHc0jBoVg=',
       accessTokenUri: 'https://seed-innovation.authentication.eu10.hana.ondemand.com/oauth/token'
-    })
+    });
     // Get the token
     const authResponse = await cloudRevenueAuth.credentials.getToken();
     // Send HTTP request
@@ -329,7 +329,7 @@ class Utils {
    */
   static duplicateJSON(src) {
     if (src === null || src === undefined || typeof src !== 'object') {
-      return src
+      return src;
     }
     // Recreate all of it
     return JSON.parse(JSON.stringify(src));

@@ -14,7 +14,7 @@ class Tenant {
 
   static getTenant(id) {
     // Get Tenant
-    return TenantStorage.getTenant(id)
+    return TenantStorage.getTenant(id);
   }
 
   static getTenantByName(name) {

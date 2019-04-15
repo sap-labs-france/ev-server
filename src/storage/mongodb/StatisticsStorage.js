@@ -537,7 +537,7 @@ class StatisticsStorage {
             //   if: '$chargingStation.cannotChargeInParallel',
             //   then: 1,
             //   else: { 
-                $size: '$chargingStation.connectors' 
+            $size: '$chargingStation.connectors' 
             //   }
             // }
             
@@ -747,7 +747,7 @@ class StatisticsStorage {
     companyStat.companyID = transactionStatMDB.company._id.toString();
     companyStat.address = [transactionStatMDB._id.address];
     if (Array.isArray(transactionStatMDB.company.logo) && transactionStatMDB.company.logo.length > 0) {
-      companyStat.image = transactionStatMDB.company.logo[0].logo
+      companyStat.image = transactionStatMDB.company.logo[0].logo;
     }
     companyStat.trends = { totalConsumption: {}, duration: {}, inactivity: {}};
     companyStat.trends.totalConsumption.min = transactionStatMDB.siteChargingTrendsMinConsumption;
