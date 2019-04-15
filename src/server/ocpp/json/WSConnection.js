@@ -1,7 +1,7 @@
 const uuid = require('uuid/v4');
 const Logging = require('../../../utils/Logging');
 const Utils = require('../../../utils/Utils');
-const WebSocket = require('ws');
+const { OPEN } = require('ws');
 const Constants = require('../../../utils/Constants');
 const OCPPError = require('../../../exception/OcppError');
 const BackendError = require('../../../exception/BackendError');
@@ -184,7 +184,6 @@ class WSConnection {
 
   sendMessage(messageId, command, messageType = Constants.OCPP_JSON_CALL_RESULT_MESSAGE, commandName = "") {
     // Send a message through WSConnection
-    const wsConnection = this.getWSConnection();
     const self = this;
     // Create a promise
     // eslint-disable-next-line no-undef
@@ -216,9 +215,9 @@ class WSConnection {
           break;
       }
       // Check if wsConnection in ready
-      if (wsConnection.readyState === WebSocket.OPEN) {
+      if (this.isWSConnectionOpen()) {
         // Yes: Send Message
-        wsConnection.send(messageToSend);
+        this._wsConnection.send(messageToSend);
       } else {
         // Reject it
         return rejectCallback(`Web socket closed for Message ID '${messageId}'`);
@@ -282,6 +281,10 @@ class WSConnection {
 
   isTenantValid() {
     return this.tenantIsValid;
+  }
+
+  isWSConnectionOpen() {
+    return this._wsConnection.readyState === OPEN;
   }
 }
 

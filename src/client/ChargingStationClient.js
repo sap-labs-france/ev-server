@@ -1,5 +1,5 @@
 const Constants = require('../utils/Constants');
-const Configuration = require('../utils/Configuration');
+// const Configuration = require('../utils/Configuration');
 const BackendError = require('../exception/BackendError');
 
 class ChargingStationClient {

@@ -1,5 +1,4 @@
 const Logging = require('../../../utils/Logging');
-const WebSocket = require('ws');
 const Constants = require('../../../utils/Constants');
 const OCPPError = require('../../../exception/OcppError');
 const JsonChargingStationClient16 = require('../../../client/json/JsonChargingStationClient16');
@@ -102,7 +101,7 @@ class JsonWSConnection extends WSConnection {
 
   getChargingStationClient() {
     // only return client if WS is open
-    if (this.getWSConnection().readyState === WebSocket.OPEN) {
+    if (this.isWSConnectionOpen()) {
       return this._chargingStationClient;
     }
   }

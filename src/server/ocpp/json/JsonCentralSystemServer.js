@@ -1,10 +1,7 @@
-const fs = require('fs');
 const uuid = require('uuid/v4');
-const WebSocket = require('ws');
-const https = require('https');
-const http = require('http');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
+const WSServer = require('./WSServer');
 const JsonWSConnection = require('./JsonWSConnection');
 const JsonRestWSConnection = require('./JsonRestWSConnection');
 const CentralSystemServer = require('../CentralSystemServer');
@@ -21,37 +18,14 @@ class JsonCentralSystemServer extends CentralSystemServer {
   }
 
   start() {
-    let server;
-    // Log
-    console.log(`Starting OCPP JSon Server...`); // eslint-disable-line
     // Keep it global
     global.centralSystemJson = this;
-    // Create HTTP server
-    // Secured protocol?
-    if (this._centralSystemConfig.protocol === "wss") {
-      // Create the options
-      const options = {};
-      // Set the keys
-      options.key = fs.readFileSync(this._centralSystemConfig["ssl-key"]);
-      options.cert = fs.readFileSync(this._centralSystemConfig["ssl-cert"]);
-      // Https server
-      server = https.createServer(options, (req, res) => {
-        res.writeHead(200);
-        res.end('No support\n');
-      });
-    } else {
-      // Http server
-      server = http.createServer((req, res) => {
-        res.writeHead(200);
-        res.end('No support\n');
-      });
-    }
 
     const verifyClient = (info) => {
       // Check the URI
       if (info.req.url.startsWith("/OCPP16")) {
         return true;
-      } 
+      }
       if (info.req.url.startsWith("/REST")) {
         return true;
       }
@@ -64,32 +38,31 @@ class JsonCentralSystemServer extends CentralSystemServer {
       });
       return false;
     };
-    // Create the Web Socket Server
-    this._wss = new WebSocket.Server({
-      server: server,
-      verifyClient: verifyClient,
-      handleProtocols: (protocols, request) => { // eslint-disable-line
-        // Check the protocols
-        // Ensure protocol used as ocpp1.6 or nothing (should create an error)
-        if (Array.isArray(protocols)) {
-          if (protocols.indexOf("ocpp1.6") >= 0) {
-            return "ocpp1.6"; 
-          } 
-          if (protocols.indexOf("rest") >= 0) {
-            return "rest"; 
-          } 
-          return false;
-        } else if (protocols === "ocpp1.6") {
-          return protocols;
-        } else if (protocols === "rest") {
-          return protocols;
-        } else {
-          return false;
+
+    // eslint-disable-next-line no-unused-vars
+    const handleProtocols = (protocols, request) => {
+      // Check the protocols
+      // Ensure protocol used as ocpp1.6 or nothing (should create an error)
+      if (Array.isArray(protocols)) {
+        if (protocols.indexOf("ocpp1.6") >= 0) {
+          return "ocpp1.6";
         }
+        if (protocols.indexOf("rest") >= 0) {
+          return "rest";
+        }
+        return false;
+      } else if (protocols === "ocpp1.6") {
+        return protocols;
+      } else if (protocols === "rest") {
+        return protocols;
+      } else {
+        return false;
       }
-    });
-    // Listen to new connections
-    this._wss.on('connection', async (ws, req) => {
+    };
+
+    // Create the WS server
+    this._wsServer = new WSServer(WSServer.createHttpServer(this._centralSystemConfig), "OCPP", this._centralSystemConfig, verifyClient, handleProtocols);
+    this._wsServer.on('connection', async (ws, req) => {
       try {
         // Set an ID
         ws.id = uuid();
@@ -108,7 +81,7 @@ class JsonCentralSystemServer extends CentralSystemServer {
           await wsConnection.initialize();
           // Add
           this.addJsonConnection(wsConnection);
-        } 
+        }
       } catch (error) {
         // Log
         Logging.logException(
@@ -117,17 +90,8 @@ class JsonCentralSystemServer extends CentralSystemServer {
         ws.close(Constants.WS_UNSUPPORTED_DATA, error.message);
       }
     });
-    // Start listening
-    server.listen(this._centralSystemConfig.port, this._centralSystemConfig.host, () => {
-      // Log
-      Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME,
-        method: "start", action: "Startup",
-        message: `OCPP Json Server listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`
-      });
-      console.log(`OCPP Json Server listening on '${this._centralSystemConfig.protocol}://${server.address().address}:${server.address().port}'`); // eslint-disable-line
-    });
+    // Start the WS server
+    this._wsServer.start();
   }
 
   addJsonConnection(wsConnection) {
@@ -137,8 +101,8 @@ class JsonCentralSystemServer extends CentralSystemServer {
 
   removeJsonConnection(wsConnection) {
     // Check first
-    if (this._jsonChargingStationClients[wsConnection.getID()] && 
-        this._jsonChargingStationClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection().id) {
+    if (this._jsonChargingStationClients[wsConnection.getID()] &&
+      this._jsonChargingStationClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection().id) {
       // Remove from cache    
       delete this._jsonChargingStationClients[wsConnection.getID()];
     }
@@ -152,7 +116,7 @@ class JsonCentralSystemServer extends CentralSystemServer {
   removeRestConnection(wsConnection) {
     // Check first
     if (this._jsonRestClients[wsConnection.getID()] &&
-        this._jsonRestClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection().id) {
+      this._jsonRestClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection().id) {
       // Remove from cache
       delete this._jsonRestClients[wsConnection.getID()];
     }
