@@ -62,7 +62,6 @@ class WSServer extends WebSocket.Server {
       console.log(`${this._serverName} Json ${MODULE_NAME} listening on '${this._serverConfig.protocol}://${this._httpServer.address().address}:${this._httpServer.address().port}'`);
     });
   }
-
 }
 
 module.exports = WSServer;
