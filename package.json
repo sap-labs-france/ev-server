@@ -53,7 +53,6 @@
 		"passport-local": "^1.0.0",
 		"passport-strategy": "^1.0.0",
 		"password-generator": "^2.2.0",
-		"promise": "^8.0.3",
 		"simple-odata-server": "^1.1.1",
 		"soap": "^0.26.0",
 		"socket.io": "^2.2.0",

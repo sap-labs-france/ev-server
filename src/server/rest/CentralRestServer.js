@@ -1,5 +1,5 @@
 const morgan = require('morgan');
-const expressTools = require('../ExpressTools')
+const expressTools = require('../ExpressTools');
 const path = require('path');
 const sanitize = require('express-sanitizer');
 const CentralRestServerAuthentication = require('./CentralRestServerAuthentication');
@@ -15,7 +15,7 @@ let _centralSystemRestConfig;
 let _chargingStationConfig;
 let _socketIO;
 const _currentNotifications = [];
-const MODULE_NAME = "CentralRestServer"
+const MODULE_NAME = "CentralRestServer";
 
 class CentralRestServer {
   // Create the rest server
@@ -29,7 +29,7 @@ class CentralRestServer {
       _chargingStationConfig.heartbeatIntervalSecs);
 
     // Initialize express app
-    this._express = expressTools.expressCommonInit('2mb')
+    this._express = expressTools.expressCommonInit('2mb');
 
     // FIXME?: Should be useless now that helmet() is mounted at the beginning
     // Mount express-sanitizer middleware

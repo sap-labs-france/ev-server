@@ -19,7 +19,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
     super(centralSystemConfig, chargingStationConfig);
 
     // Initialize express app
-    this._express = expressTools.expressCommonInit()
+    this._express = expressTools.expressCommonInit();
 
     // FIXME?: Should be useless now that helmet() is mounted at the beginning
     // Mount express-sanitizer middleware
