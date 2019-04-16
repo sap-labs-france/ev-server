@@ -184,7 +184,7 @@ class TransactionApi extends CrudApi {
         price: totalPrice,
         priceUnit: 'EUR',
         pricingSource: 'simple',
-        roundedPrice: totalPrice.toFixed(2),
+        roundedPrice: parseFloat(totalPrice.toFixed(2)),
         stateOfCharge: 0,
         tagID: userStop.tagIDs[0],
         timestamp: stopTime.toISOString(),

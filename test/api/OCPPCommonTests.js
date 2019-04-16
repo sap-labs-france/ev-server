@@ -243,7 +243,7 @@ class OCPPCommonTests {
       "stop": {
         "price": this.totalPrice,
         "pricingSource": "simple",
-        "roundedPrice": this.totalPrice.toFixed(2),
+        "roundedPrice": parseFloat(this.totalPrice.toFixed(2)),
         "tagID": this.newTransaction.tagID,
         "totalConsumption": this.transactionTotalConsumption,
         "totalInactivitySecs": this.transactionTotalInactivity,
