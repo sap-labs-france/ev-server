@@ -7,10 +7,20 @@ const Company = require('../../../entity/Company');
 const User = require('../../../entity/User');
 const Authorizations = require('../../../authorization/Authorizations');
 const CompanySecurity = require('./security/CompanySecurity');
+const UtilsService = require('./UtilsService');
+const OrganizationComponentInactiveError = require ('../../../exception/OrganizationComponentInactiveError');
 
 class CompanyService {
   static async handleDeleteCompany(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_DELETE,
+          Constants.ENTITY_COMPANY,
+          560, 'CompanyService', 'handleDeleteCompany');
+      }
+
       // Filter
       const filteredRequest = CompanySecurity.filterCompanyDeleteRequest(
         req.query, req.user);
@@ -61,6 +71,14 @@ class CompanyService {
 
   static async handleGetCompany(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_COMPANY,
+          560, 'CompanyService', 'handleGetCompany');
+      }
+
       // Filter
       const filteredRequest = CompanySecurity.filterCompanyRequest(req.query, req.user);
       // Charge Box is mandatory
@@ -104,6 +122,14 @@ class CompanyService {
 
   static async handleGetCompanyLogo(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_COMPANY,
+          560, 'CompanyService', 'handleGetCompanyLogo');
+      }
+
       // Filter
       const filteredRequest = CompanySecurity.filterCompanyRequest(req.query, req.user);
       // Charge Box is mandatory
@@ -145,6 +171,14 @@ class CompanyService {
 
   static async handleGetCompanyLogos(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_COMPANIES,
+          560, 'CompanyService', 'handleGetCompanyLogos');
+      }
+
       // Check auth
       if (!Authorizations.canListCompanies(req.user)) {
         // Not Authorized!
@@ -167,6 +201,14 @@ class CompanyService {
 
   static async handleGetCompanies(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_COMPANIES,
+          560, 'CompanyService', 'handleGetCompanies');
+      }
+
       // Check auth
       if (!Authorizations.canListCompanies(req.user)) {
         // Not Authorized!
@@ -199,6 +241,14 @@ class CompanyService {
 
   static async handleCreateCompany(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_CREATE,
+          Constants.ENTITY_COMPANY,
+          560, 'CompanyService', 'handleCreateCompany');
+      }      
+      
       // Check auth
       if (!Authorizations.canCreateCompany(req.user)) {
         // Not Authorized!
@@ -241,6 +291,14 @@ class CompanyService {
 
   static async handleUpdateCompany(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_COMPANY,
+          560, 'CompanyService', 'handleUpdateCompany');
+      }      
+
       // Filter
       const filteredRequest = CompanySecurity.filterCompanyUpdateRequest( req.body, req.user );
       // Check email
@@ -260,7 +318,7 @@ class CompanyService {
           Constants.ACTION_UPDATE,
           Constants.ENTITY_COMPANY,
           company.getID(),
-          560, 'CompanyService', 'handleCreateCompany',
+          560, 'CompanyService', 'handleUpdateCompany',
           req.user);
       }
       // Update
@@ -286,6 +344,8 @@ class CompanyService {
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
   }
+
+
 }
 
 module.exports = CompanyService;
