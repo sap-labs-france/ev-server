@@ -148,7 +148,7 @@ class Authorizations {
           "chargeBoxID": chargingStation.getID(),
           "badgeId": tagID,
           "evseDashboardURL": Utils.buildEvseURL((await chargingStation.getTenant()).getSubdomain()),
-          "evseDashboardUserURL": await Utils.buildEvseUserURL(user)
+          "evseDashboardUserURL": await Utils.buildEvseUserURL(user, '#inerror')
         }
       );
       // Not authorized
