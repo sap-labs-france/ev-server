@@ -2,7 +2,7 @@ const NotificationHandler = require('../../../notification/NotificationHandler')
 const ChargingStation = require('../../../entity/ChargingStation');
 const Authorizations = require('../../../authorization/Authorizations');
 const Transaction = require('../../../entity/Transaction');
-const Pricing = require('../../../integration/pricing/Pricing');
+const PricingFactory = require('../../../integration/pricing/PricingFactory');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const Utils = require('../../../utils/Utils');
@@ -479,7 +479,7 @@ class OCPPService {
     const consumptions = [];
     for (const meterValue of meterValues.values) {
       // Update Transaction with Meter Values
-      const lastMeterValue = await this._updateTransactionWithMeterValue(meterValue);
+      const lastMeterValue = await this._updateTransactionWithMeterValue(transaction, meterValue);
       // Compute consumption
       let consumption = await this._buildConsumptionFromMeterValue(
         transaction, lastMeterValue.timestamp, meterValue.timestamp, meterValue);
@@ -489,15 +489,16 @@ class OCPPService {
       const existingConsumptionIndex = consumptions.find(
         c => c.endedAt.getTime() === consumption.endedAt.getTime());
       if (existingConsumptionIndex) {
-        // Get the consumption to update
+        // Update latest
         const existingConsumption = consumptions[existingConsumptionIndex];
         // Update props
         for (const property in consumption) {
           existingConsumption[property] = consumption[property];
         }
+      } else {
+        // Add
+        consumptions.push(consumption);
       }
-      // Add
-      consumptions.push(consumption);
     }
     // Update the price
     for (const consumption of consumptions) {
@@ -572,7 +573,7 @@ class OCPPService {
   async _computePricingFromConsumption(transaction, consumption, action) {
     let pricedConsumption;
     // Get the pricing impl
-    const pricingImpl = await Pricing.getPricingImpl();
+    const pricingImpl = await PricingFactory.getPricingImpl(transaction);
     switch (action) {
       // Start Transaction
       case 'start':
@@ -609,9 +610,9 @@ class OCPPService {
           if (pricedConsumption.cumulatedAmount) {
             consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
           } else {
-            consumption.cumulatedAmount = parseFloat((transaction.getCurrentCumulatedPrice() + consumptionData.amount).toFixed(6));
+            consumption.cumulatedAmount = parseFloat((transaction.getCurrentCumulatedPrice() + consumption.amount).toFixed(6));
           }
-          transaction.getCurrentCumulatedPrice(consumption.cumulatedAmount);
+          transaction.setCurrentCumulatedPrice(consumption.cumulatedAmount);
         }
         break;
       // Stop Transaction
@@ -630,7 +631,7 @@ class OCPPService {
           } else {
             consumption.cumulatedAmount = parseFloat((transaction.getCurrentCumulatedPrice() + consumption.amount).toFixed(6));
           }
-          transaction.getCurrentCumulatedPrice(consumption.cumulatedAmount);
+          transaction.setCurrentCumulatedPrice(consumption.cumulatedAmount);
           // Update Transaction
           transaction.setPrice(parseFloat(transaction.getCurrentCumulatedPrice().toFixed(6)));
           transaction.setRoundedPrice(parseFloat((transaction.getCurrentCumulatedPrice()).toFixed(2)));
@@ -1015,8 +1016,6 @@ class OCPPService {
       );
       // Update the price
       await this._computePricingFromConsumption(transaction, consumption, 'start');
-
-    await transaction.startTransaction(user);
       // Save it
       transaction = await transaction.save();
       // Lock the other connectors?

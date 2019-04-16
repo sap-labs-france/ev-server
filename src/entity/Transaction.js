@@ -201,6 +201,10 @@ class Transaction extends AbstractTenantEntity {
     this._model.userID = userID;
   }
 
+  getUserJson() {
+    return this._model.user;
+  }
+
   async getUser() {
     const User = require('./User');
     if (this._model.user) {
@@ -252,6 +256,12 @@ class Transaction extends AbstractTenantEntity {
       this._model.stop.userID = user.getID();
     } else {
       this._model.stop.user = null;
+    }
+  }
+
+  getStoppedUserJson() {
+    if (this.isFinished()) {
+      return this._model.stop.user;
     }
   }
 
