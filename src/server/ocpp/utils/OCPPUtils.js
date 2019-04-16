@@ -39,39 +39,6 @@ class OCPPUtils {
     return chargingStation;
   }
 
-  static async checkAndFreeConnector(chargingStation, connectorId, saveOtherConnectors = false) {
-    // Cleanup connector transaction data
-    OCPPUtils.cleanupConnectorTransactionInfo(chargingStation, connectorId);
-    // Check if Charger can charge in //
-    if (!chargingStation.canChargeInParallel()) {
-      // Set all the other connectors to Available
-      chargingStation.getConnectors().forEach(async (connector) => {
-        // Only other Occupied connectors
-        if ((connector.status === Constants.CONN_STATUS_OCCUPIED ||
-             connector.status === Constants.CONN_STATUS_UNAVAILABLE) &&
-            connector.connectorId !== connectorId) {
-          // Set connector Available again
-          connector.status = Constants.CONN_STATUS_AVAILABLE;
-          // Save other updated connectors?
-          if (saveOtherConnectors) {
-            await chargingStation.saveChargingStationConnector(connector.connectorId);
-          }
-        }
-      });
-    }
-  }
-
-  static cleanupConnectorTransactionInfo(chargingStation, connectorId) {
-    const connector = chargingStation.getConnector(connectorId);
-    // Clear
-    if (connector) {
-      connector.currentConsumption = 0;
-      connector.totalConsumption = 0;
-      connector.currentStateOfCharge = 0;
-      connector.activeTransactionID = 0;
-    }
-  }
-
   static async updateConnectorsPower(chargingStation) {
     let voltageRerefence = 0;
     let current = 0;

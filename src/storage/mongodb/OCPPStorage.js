@@ -412,6 +412,41 @@ class OCPPStorage {
       chargingStationIDs
     });
   }
+
+  static async getMeterValues(tenantID, transactionID) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getMeterValues');
+    // Check
+    await Utils.checkTenant(tenantID);
+    // Create Aggregation
+    const aggregation = [];
+    // Filters
+    aggregation.push({
+      $match: {transactionId: Utils.convertToInt(transactionID)}
+    });
+    // Read DB
+    const meterValuesMDB = await global.database.getCollection(tenantID, 'metervalues')
+      .aggregate(aggregation)
+      .toArray();
+    // Convert to date
+    for (const meterValueMDB of meterValuesMDB) {
+      meterValueMDB.timestamp = new Date(meterValueMDB.timestamp);
+    }
+    // Sort
+    meterValuesMDB.sort((meterValue1, meterValue2) => meterValue1.timestamp.getTime() - meterValue2.timestamp.getTime());
+    // Create
+    const meterValues = [];
+    for (const meterValueMDB of meterValuesMDB) {
+      const meterValue = {};
+      // Copy
+      Database.updateMeterValue(meterValueMDB, meterValue);
+      // Add
+      meterValues.push(meterValue);
+    }
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'getMeterValues', uniqueTimerID, {transactionID});
+    return meterValues;
+  }
 }
 
 module.exports = OCPPStorage;
