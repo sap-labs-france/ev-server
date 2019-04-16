@@ -20,6 +20,20 @@ class OCPPUtils {
     });
   }
 
+  static isSocMeterValue(meterValue) {
+    return meterValue.attribute
+      && (meterValue.attribute.context === 'Sample.Periodic'
+        || meterValue.attribute.context === 'Transaction.Begin'
+        || meterValue.attribute.context === 'Transaction.End')
+      && meterValue.attribute.measurand === 'SoC';
+  }
+
+  static isConsumptionMeterValue(meterValue) {
+    return !meterValue.attribute ||
+      (meterValue.attribute.measurand === 'Energy.Active.Import.Register'
+        && (meterValue.attribute.context === "Sample.Periodic" || meterValue.attribute.context === "Sample.Clock"));
+  }
+
   static async checkAndGetChargingStation(chargeBoxIdentity, tenantID) {
     const ChargingStation = require('../../../entity/ChargingStation');
     // Get the charging station

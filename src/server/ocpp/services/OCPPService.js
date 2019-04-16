@@ -396,25 +396,11 @@ class OCPPService {
     }
   }
 
-  _isSocMeterValue(meterValue) {
-    return meterValue.attribute
-      && (meterValue.attribute.context === 'Sample.Periodic'
-        || meterValue.attribute.context === 'Transaction.Begin'
-        || meterValue.attribute.context === 'Transaction.End')
-      && meterValue.attribute.measurand === 'SoC';
-  }
-
-  _isConsumptionMeterValue(meterValue) {
-    return !meterValue.attribute ||
-      (meterValue.attribute.measurand === 'Energy.Active.Import.Register'
-        && (meterValue.attribute.context === "Sample.Periodic" || meterValue.attribute.context === "Sample.Clock"));
-  }
-
   async _updateTransactionWithMeterValue(transaction, meterValue) {
     // Get the last one
     const lastMeterValue = transaction.getLastMeterValue();
     // State of Charge?
-    if (transaction.isSocMeterValue(meterValue)) {
+    if (OCPPUtils.isSocMeterValue(meterValue)) {
       // Check for first SoC
       if (transaction.getStateOfCharge() === 0) {
         // Set First
@@ -423,7 +409,7 @@ class OCPPService {
       // Set current
       transaction.setCurrentStateOfCharge(meterValue.value);
       // Consumption?
-    } else if (this._isConsumptionMeterValue(meterValue)) {
+    } else if (OCPPUtils.isConsumptionMeterValue(meterValue)) {
       // Update
       transaction.setNumberOfMeterValues(transaction.getNumberOfMeterValues() + 1);
       transaction.setLastMeterValue({
@@ -469,7 +455,7 @@ class OCPPService {
     };
 
     // SoC?
-    if (transaction.isSocMeterValue(meterValue)) {
+    if (OCPPUtils.isSocMeterValue(meterValue)) {
       // Set SoC
       consumption.stateOfCharge = transaction.getCurrentStateOfCharge();
     } else {
@@ -498,7 +484,7 @@ class OCPPService {
       let consumption = await this._buildConsumptionFromMeterValue(
         transaction, lastMeterValue.timestamp, meterValue.timestamp, meterValue);
       // Price the consumption
-      consumption.toPrice = this._isConsumptionMeterValue(meterValue);
+      consumption.toPrice = OCPPUtils.isConsumptionMeterValue(meterValue);
       // Existing Consumption?
       const existingConsumptionIndex = consumptions.find(
         c => c.endedAt.getTime() === consumption.endedAt.getTime());
