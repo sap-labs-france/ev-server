@@ -413,6 +413,30 @@ class OCPPStorage {
     });
   }
 
+  static async saveMeterValues(tenantID, meterValuesToSave) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'saveMeterValues');
+    // Check
+    await Utils.checkTenant(tenantID);
+    const meterValuesMDB = [];
+    // Save all
+    for (const meterValueToSave of meterValuesToSave.values) {
+      const meterValue = {};
+      // Id
+      meterValue._id = crypto.createHash('sha256')
+        .update(`${meterValueToSave.chargeBoxID}~${meterValueToSave.connectorId}~${meterValueToSave.timestamp}~${meterValueToSave.value}~${JSON.stringify(meterValueToSave.attribute)}`)
+        .digest("hex");
+      // Set
+      Database.updateMeterValue(meterValueToSave, meterValue, false);
+      // Add
+      meterValuesMDB.push(meterValue);
+    }
+    // Execute
+    await global.database.getCollection(tenantID, 'metervalues').insertMany(meterValuesMDB);
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'saveMeterValues', uniqueTimerID, {meterValuesToSave});
+  }
+
   static async getMeterValues(tenantID, transactionID) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getMeterValues');

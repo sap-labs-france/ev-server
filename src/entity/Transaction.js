@@ -276,6 +276,11 @@ class Transaction extends AbstractTenantEntity {
     }
   }
 
+  setMeterStop(meterStop) {
+    this._checkAndCreateStop();
+    this._model.stop.meterStop = meterStop;
+  }
+
   getChargeBoxID() {
     return this._model.chargeBoxID;
   }
@@ -396,6 +401,28 @@ class Transaction extends AbstractTenantEntity {
     this._model.remotestop = remotestop;
   }
 
+  setRemoteStopTagID(tagID) {
+    this._checkAndCreateRemoteStop();
+    this._model.remotestop.tagID = tagID;
+  }
+
+  getRemoteStopTagID() {
+    if (this.isRemotelyStopped()) {
+      return this._model.remotestop.tagID;
+    }
+  }
+
+  setRemoteStopDate(timestamp) {
+    this._checkAndCreateRemoteStop();
+    this._model.remotestop.timestamp = timestamp;
+  }
+
+  getRemoteStopDate() {
+    if (this.isRemotelyStopped()) {
+      return this._model.remotestop.timestamp;
+    }
+  }
+
   getRefundData() {
     return this._model.refundData;
   }
@@ -481,6 +508,28 @@ class Transaction extends AbstractTenantEntity {
     this._model.stop.timestamp = timestamp;
   }
 
+  clearRuntimeData() {
+    delete this._model.currentConsumption;
+    delete this._model.currentStateOfCharge;
+    delete this._model.currentTotalConsumption;
+    delete this._model.currentTotalInactivitySecs;
+    delete this._model.currentCumulatedPrice;
+    delete this._model.lastMeterValue;
+    delete this._model.numberOfMeterValues;
+  }
+
+  _checkAndCreateStop() {
+    if (!this._model.stop) {
+      this._model.stop = {};
+    }
+  }
+
+  _checkAndCreateRemoteStop() {
+    if (!this._model.remotestop) {
+      this._model.remotestop = {};
+    }
+  }
+
   delete() {
     return TransactionStorage.deleteTransaction(this.getTenantID(), this);
   }
@@ -511,12 +560,6 @@ class Transaction extends AbstractTenantEntity {
 
   static stopOrDeleteActiveTransactions(tenantID, chargeBoxID, connectorId) {
     return TransactionStorage.stopOrDeleteActiveTransactions(tenantID, chargeBoxID, connectorId);
-  }
-
-  _checkAndCreateStop() {
-    if (!this._model.stop) {
-      this._model.stop = {};
-    }
   }
 }
 

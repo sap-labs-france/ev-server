@@ -2,6 +2,7 @@ const NotificationHandler = require('../../../notification/NotificationHandler')
 const ChargingStation = require('../../../entity/ChargingStation');
 const Authorizations = require('../../../authorization/Authorizations');
 const Transaction = require('../../../entity/Transaction');
+const Pricing = require('../../../integration/pricing/Pricing');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 const Utils = require('../../../utils/Utils');
@@ -359,7 +360,7 @@ class OCPPService {
           // Get the transaction
           const transaction = await Transaction.getTransaction(chargingStation.getTenantID(), meterValues.transactionId);
           // Handle Meter Values
-          await transaction.updateWithMeterValues(newMeterValues);
+          await this._updateTransactionWithMeterValues(transaction, newMeterValues);
           // Save Transaction
           await transaction.save();
           // Update Charging Station Consumption
@@ -395,7 +396,6 @@ class OCPPService {
     }
   }
 
-  // TODO: 
   _isSocMeterValue(meterValue) {
     return meterValue.attribute
       && (meterValue.attribute.context === 'Sample.Periodic'
@@ -404,31 +404,29 @@ class OCPPService {
       && meterValue.attribute.measurand === 'SoC';
   }
 
-  // TODO: 
   _isConsumptionMeterValue(meterValue) {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === 'Energy.Active.Import.Register'
         && (meterValue.attribute.context === "Sample.Periodic" || meterValue.attribute.context === "Sample.Clock"));
   }
 
-  // TODO:
-  async updateWithMeterValue(meterValue) {
+  async _updateTransactionWithMeterValue(transaction, meterValue) {
     // Get the last one
-    const lastMeterValue = this.getLastMeterValue();
+    const lastMeterValue = transaction.getLastMeterValue();
     // State of Charge?
-    if (this.isSocMeterValue(meterValue)) {
+    if (transaction.isSocMeterValue(meterValue)) {
       // Check for first SoC
-      if (this.getStateOfCharge() === 0) {
+      if (transaction.getStateOfCharge() === 0) {
         // Set First
-        this.setStateOfCharge(meterValue.value);
+        transaction.setStateOfCharge(meterValue.value);
       }
       // Set current
-      this.setCurrentStateOfCharge(meterValue.value);
+      transaction.setCurrentStateOfCharge(meterValue.value);
       // Consumption?
-    } else if (this.isConsumptionMeterValue(meterValue)) {
+    } else if (this._isConsumptionMeterValue(meterValue)) {
       // Update
-      this.setNumberOfMeterValues(this.getNumberOfMeterValues() + 1);
-      this.setLastMeterValue({
+      transaction.setNumberOfMeterValues(transaction.getNumberOfMeterValues() + 1);
+      transaction.setLastMeterValue({
         value: Utils.convertToInt(meterValue.value),
         timestamp: Utils.convertToDate(meterValue.timestamp).toISOString()
       });
@@ -441,101 +439,99 @@ class OCPPService {
         const consumption = meterValue.value - lastMeterValue.value;
         const currentConsumption = consumption * sampleMultiplier;
         // Update current consumption
-        this.setCurrentConsumption(currentConsumption);
-        this.setCurrentConsumptionWh(consumption);
-        this.getModel().lastUpdate = meterValue.timestamp;
-        this.setCurrentTotalConsumption(this.getCurrentTotalConsumption() + consumption);
+        transaction.setCurrentConsumption(currentConsumption);
+        transaction.setCurrentConsumptionWh(consumption);
+        transaction.setLastUpdateDate(meterValue.timestamp);
+        transaction.setCurrentTotalConsumption(transaction.getCurrentTotalConsumption() + consumption);
         // Inactivity?
         if (consumption === 0) {
-          this.setCurrentTotalInactivitySecs(this.getCurrentTotalInactivitySecs() + diffSecs);
+          transaction.setCurrentTotalInactivitySecs(transaction.getCurrentTotalInactivitySecs() + diffSecs);
         }
       } else {
         // Update current consumption
-        this.setCurrentConsumption(0);
-        this.setCurrentTotalInactivitySecs(this.getCurrentTotalInactivitySecs() + diffSecs);
+        transaction.setCurrentConsumption(0);
+        transaction.setCurrentTotalInactivitySecs(transaction.getCurrentTotalInactivitySecs() + diffSecs);
       }
     }
     // Return the last meter value
     return lastMeterValue;
   }
 
-  // TODO:
-  remoteStop(tagId, timestamp) {
-    this._model.remotestop = {};
-    this._model.remotestop.tagID = tagId;
-    this._model.remotestop.timestamp = timestamp;
-  }
-
-  // TODO:
-  async buildConsumption(startedAt, endedAt, meterValue) {
+  async _buildConsumptionFromMeterValue(transaction, startedAt, endedAt, meterValue) {
     const consumption = {
-      transactionId: this.getID(),
-      connectorId: this.getConnectorId(),
-      chargeBoxID: this.getChargeBoxID(),
-      siteAreaID: this.getSiteAreaID(),
-      siteID: this.getSiteID(),
-      userID: this.getUserID(),
+      transactionId: transaction.getID(),
+      connectorId: transaction.getConnectorId(),
+      chargeBoxID: transaction.getChargeBoxID(),
+      siteAreaID: transaction.getSiteAreaID(),
+      siteID: transaction.getSiteID(),
+      userID: transaction.getUserID(),
       endedAt: new Date(endedAt)
     };
 
     // SoC?
-    if (this.isSocMeterValue(meterValue)) {
+    if (transaction.isSocMeterValue(meterValue)) {
       // Set SoC
-      consumption.stateOfCharge = this.getCurrentStateOfCharge();
+      consumption.stateOfCharge = transaction.getCurrentStateOfCharge();
     } else {
       // Set Consumption
       consumption.startedAt = new Date(startedAt);
-      consumption.consumption = this.getCurrentConsumptionWh();
-      consumption.instantPower = this.getCurrentConsumption();
-      consumption.cumulatedConsumption = this.getCurrentTotalConsumption();
-      consumption.totalInactivitySecs = this.getCurrentTotalInactivitySecs();
-      consumption.totalDurationSecs = this.getCurrentTotalDurationSecs();
-      consumption.stateOfCharge = this.getCurrentStateOfCharge();
+      consumption.consumption = transaction.getCurrentConsumptionWh();
+      consumption.instantPower = transaction.getCurrentConsumption();
+      consumption.cumulatedConsumption = transaction.getCurrentTotalConsumption();
+      consumption.totalInactivitySecs = transaction.getCurrentTotalInactivitySecs();
+      consumption.totalDurationSecs = transaction.getCurrentTotalDurationSecs();
+      consumption.stateOfCharge = transaction.getCurrentStateOfCharge();
     }
     // Return
     return consumption;
   }
 
-  // TODO:
-  async updateWithMeterValues(meterValues) {
+  async _updateTransactionWithMeterValues(transaction, meterValues) {
     // Save Meter Values
-    await TransactionStorage.saveMeterValues(this.getTenantID(), meterValues);
+    await OCPPStorage.saveMeterValues(transaction.getTenantID(), meterValues);
     // Process consumption
     const consumptions = [];
     for (const meterValue of meterValues.values) {
       // Update Transaction with Meter Values
-      const lastMeterValue = await this.updateWithMeterValue(meterValue);
+      const lastMeterValue = await this._updateTransactionWithMeterValue(meterValue);
       // Compute consumption
-      let consumption = await this.buildConsumption(lastMeterValue.timestamp, meterValue.timestamp, meterValue);
-      const consumptionToUpdateWith = consumptions.find(c => c.endedAt.getTime() === consumption.endedAt.getTime());
-      consumption.toPrice = this.isConsumptionMeterValue(meterValue);
-      if (consumptionToUpdateWith) {
-        consumptions.slice(consumptions.indexOf(consumptionToUpdateWith, 1));
-        consumption = {...consumptionToUpdateWith, ...consumption};
+      let consumption = await this._buildConsumptionFromMeterValue(
+        transaction, lastMeterValue.timestamp, meterValue.timestamp, meterValue);
+      // Price the consumption
+      consumption.toPrice = this._isConsumptionMeterValue(meterValue);
+      // Existing Consumption?
+      const existingConsumptionIndex = consumptions.find(
+        c => c.endedAt.getTime() === consumption.endedAt.getTime());
+      if (existingConsumptionIndex) {
+        // Get the consumption to update
+        const existingConsumption = consumptions[existingConsumptionIndex];
+        // Update props
+        for (const property in consumption) {
+          existingConsumption[property] = consumption[property];
+        }
       }
+      // Add
       consumptions.push(consumption);
     }
+    // Update the price
     for (const consumption of consumptions) {
       if (consumption.toPrice) {
-        // Update the price
-        await this.computePricing(consumption, 'update');
+        await this._computePricingFromConsumption(transaction, consumption, 'update');
       }
       // Save Consumption
-      await this.saveConsumption(consumption);
+      await transaction.saveConsumption(consumption);
     }
   }
 
-  // TODO:
-  async stopTransaction(userID, tagId, meterStop, timestamp) {
+  async _stopTransaction(transaction, userID, tagId, meterStop, timestamp) {
     // Create Stop
-    this._model.stop = {};
-    this._model.stop.meterStop = meterStop;
-    this._model.stop.timestamp = timestamp;
-    this._model.stop.userID = userID;
-    this._model.stop.tagID = tagId;
-    this._model.stop.stateOfCharge = this.getCurrentStateOfCharge();
+    transaction.setMeterStop(meterStop);
+    transaction.setEndDate(timestamp);
+    transaction.setStoppedUserID(userID);
+    transaction.setStoppedTagID(tagId);
+    transaction.setEndStateOfCharge(transaction.getCurrentStateOfCharge());
     // Get the last one
-    const lastMeterValue = this.getLastMeterValue();
+    const lastMeterValue = transaction.getLastMeterValue();
     // Compute duration
     const diffSecs = moment(timestamp).diff(lastMeterValue.timestamp, 'milliseconds') / 1000;
     // Check if the new value is greater
@@ -545,58 +541,52 @@ class OCPPService {
       const sampleMultiplier = diffSecs > 0 ? 3600 / diffSecs : 0;
       const currentConsumption = consumption * sampleMultiplier;
       // Update current consumption
-      this.setCurrentConsumption(currentConsumption);
-      this.setCurrentTotalConsumption(this.getCurrentTotalConsumption() + consumption);
-      this.setCurrentConsumptionWh(consumption);
+      transaction.setCurrentConsumption(currentConsumption);
+      transaction.setCurrentTotalConsumption(transaction.getCurrentTotalConsumption() + consumption);
+      transaction.setCurrentConsumptionWh(consumption);
       // Inactivity?
       if (consumption === 0) {
-        this.setCurrentTotalInactivitySecs(this.getCurrentTotalInactivitySecs() + diffSecs);
+        transaction.setCurrentTotalInactivitySecs(transaction.getCurrentTotalInactivitySecs() + diffSecs);
       }
     } else {
       // Update current consumption
-      this.setCurrentConsumption(0);
-      this.setCurrentTotalInactivitySecs(this.getCurrentTotalInactivitySecs() + diffSecs);
+      transaction.setCurrentConsumption(0);
+      transaction.setCurrentTotalInactivitySecs(transaction.getCurrentTotalInactivitySecs() + diffSecs);
     }
     // Set Total data
-    this._model.stop.totalConsumption = this.getCurrentTotalConsumption();
-    this._model.stop.totalInactivitySecs = this.getCurrentTotalInactivitySecs();
-    this._model.stop.totalDurationSecs = Math.round(moment.duration(moment(timestamp).diff(moment(this.getStartDate()))).asSeconds());
+    transaction.setTotalConsumption(transaction.getCurrentTotalConsumption());
+    transaction.setTotalInactivitySecs(transaction.getCurrentTotalInactivitySecs());
+    transaction.setTotalDurationSecs(Math.round(moment.duration(moment(timestamp).diff(moment(transaction.getStartDate()))).asSeconds()));
     // No Duration?
-    if (this._model.stop.totalDurationSecs === 0) {
+    if (transaction.getTotalDurationSecs() === 0) {
       // Compute it from now
-      this._model.stop.totalDurationSecs = Math.round(moment.duration(moment().diff(moment(this.getStartDate()))).asSeconds());
-      this._model.stop.totalInactivitySecs = this._model.stop.totalDurationSecs;
+      transaction.setTotalDurationSecs(Math.round(moment.duration(moment().diff(moment(transaction.getStartDate()))).asSeconds()));
+      transaction.setTotalInactivitySecs(transaction.getTotalDurationSecs());
     }
     const meterValueData = {
       id: '6969',
-      connectorId: this.getConnectorId(),
-      transactionId: this.getID(),
+      connectorId: transaction.getConnectorId(),
+      transactionId: transaction.getID(),
       timestamp: timestamp,
       value: meterStop,
       attribute: DEFAULT_CONSUMPTION_ATTRIBUTE
     };
 
     // Build final consumption
-    const consumption = await this.buildConsumption(lastMeterValue.timestamp, timestamp, meterValueData);
+    const consumption = await this._buildConsumptionFromMeterValue(
+      transaction, lastMeterValue.timestamp, timestamp, meterValueData);
     // Update the price
-    await this.computePricing(consumption, 'stop');
+    await this._computePricingFromConsumption(transaction, consumption, 'stop');
     // Save Consumption
-    await this.saveConsumption(consumption);
+    await transaction.saveConsumption(consumption);
     // Remove runtime data
-    delete this._model.currentConsumption;
-    delete this._model.currentStateOfCharge;
-    delete this._model.currentTotalConsumption;
-    delete this._model.currentTotalInactivitySecs;
-    delete this._model.currentCumulatedPrice;
-    delete this._model.lastMeterValue;
-    delete this._model.numberOfMeterValues;
+    transaction.clearRuntimeData();
   }
 
-  // TODO:
-  async computePricing(consumption, action) {
+  async _computePricingFromConsumption(transaction, consumption, action) {
     let pricedConsumption;
     // Get the pricing impl
-    const pricingImpl = await this.getPricingImpl();
+    const pricingImpl = await Pricing.getPricingImpl();
     switch (action) {
       // Start Transaction
       case 'start':
@@ -605,18 +595,18 @@ class OCPPService {
           // Set
           pricedConsumption = await pricingImpl.startSession(consumption);
           // Set the initial pricing
-          this._model.price = pricedConsumption.amount;
-          this._model.roundedPrice = pricedConsumption.roundedAmount;
-          this._model.priceUnit = pricedConsumption.currencyCode;
-          this._model.pricingSource = pricedConsumption.pricingSource;
+          transaction.setStartPrice(pricedConsumption.amount);
+          transaction.setStartRoundedPrice(pricedConsumption.roundedAmount);
+          transaction.setStartPriceUnit(pricedConsumption.currencyCode);
+          transaction.setStartPricingSource(pricedConsumption.pricingSource);
           // Init the cumulated price
-          this._model.currentCumulatedPrice = pricedConsumption.amount;
+          transaction.setCurrentCumulatedPrice(pricedConsumption.amount);
         } else {
           // Default
-          this._model.price = 0;
-          this._model.roundedPrice = 0;
-          this._model.priceUnit = "";
-          this._model.pricingSource = "";
+          transaction.setStartPrice(0);
+          transaction.setStartRoundedPrice(0);
+          transaction.setStartPriceUnit("");
+          transaction.setStartPricingSource("");
         }
         break;
       // Meter Values
@@ -633,10 +623,9 @@ class OCPPService {
           if (pricedConsumption.cumulatedAmount) {
             consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
           } else {
-            consumption.cumulatedAmount = parseFloat((this.getCurrentCumulatedPrice() + consumptionData.amount).toFixed(6));
+            consumption.cumulatedAmount = parseFloat((transaction.getCurrentCumulatedPrice() + consumptionData.amount).toFixed(6));
           }
-          // Keep latest
-          this._model.currentCumulatedPrice = consumption.cumulatedAmount;
+          transaction.getCurrentCumulatedPrice(consumption.cumulatedAmount);
         }
         break;
       // Stop Transaction
@@ -653,14 +642,14 @@ class OCPPService {
           if (pricedConsumption.cumulatedAmount) {
             consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
           } else {
-            consumption.cumulatedAmount = parseFloat((this.getCurrentCumulatedPrice() + consumption.amount).toFixed(6));
+            consumption.cumulatedAmount = parseFloat((transaction.getCurrentCumulatedPrice() + consumption.amount).toFixed(6));
           }
-          this._model.currentCumulatedPrice = consumption.cumulatedAmount;
+          transaction.getCurrentCumulatedPrice(consumption.cumulatedAmount);
           // Update Transaction
-          this._model.stop.price = parseFloat(this.getCurrentCumulatedPrice().toFixed(6));
-          this._model.stop.roundedPrice = (this.getCurrentCumulatedPrice()).toFixed(2);
-          this._model.stop.priceUnit = pricedConsumption.currencyCode;
-          this._model.stop.pricingSource = pricedConsumption.pricingSource;
+          transaction.setPrice(parseFloat(transaction.getCurrentCumulatedPrice().toFixed(6)));
+          transaction.setRoundedPrice(parseFloat((transaction.getCurrentCumulatedPrice()).toFixed(2)));
+          transaction.setPriceUnit(pricedConsumption.currencyCode);
+          transaction.setPricingSource(pricedConsumption.pricingSource);
         }
         break;
     }
@@ -1016,7 +1005,10 @@ class OCPPService {
       let transaction = new Transaction(chargingStation.getTenantID(), startTransaction);
       // Init
       transaction.setNumberOfMeterValues(0);
-      transaction.setLastMeterValue({value: this.getMeterStart(), timestamp: this.getStartDate()});
+      transaction.setLastMeterValue({
+        value: transaction.getMeterStart(),
+        timestamp: transaction.getStartDate()
+      });
       transaction.setCurrentTotalInactivitySecs(0);
       transaction.setCurrentStateOfCharge(0);
       transaction.setStateOfCharge(0);
@@ -1025,16 +1017,18 @@ class OCPPService {
       transaction.setCurrentConsumptionWh(0);
       transaction.setUser(user);
       // Build consumption
-      const consumption = await this.buildConsumption(this.getStartDate(), this.getStartDate(), {
-        id: '666',
-        connectorId: this.getConnectorId(),
-        transactionId: this.getID(),
-        timestamp: this.getStartDate(),
-        value: this.getMeterStart(),
-        attribute: DEFAULT_CONSUMPTION_ATTRIBUTE
-      });
-    // Update the price
-    await this.computePricing(consumption, 'start');
+      const consumption = await this._buildConsumptionFromMeterValue(
+        transaction, transaction.getStartDate(), transaction.getStartDate(), {
+          id: '666',
+          connectorId: transaction.getConnectorId(),
+          transactionId: transaction.getID(),
+          timestamp: transaction.getStartDate(),
+          value: transaction.getMeterStart(),
+          attribute: DEFAULT_CONSUMPTION_ATTRIBUTE
+        }
+      );
+      // Update the price
+      await this._computePricingFromConsumption(transaction, consumption, 'start');
 
     await transaction.startTransaction(user);
       // Save it
@@ -1184,7 +1178,7 @@ class OCPPService {
         }
       }
       // Stop
-      await transaction.stopTransaction(
+      await this._stopTransaction(transaction,
         (alternateUser ? alternateUser.getID() : (user ? user.getID() : null)),
         tagId, stopTransaction.meterStop, new Date(stopTransaction.timestamp));
       // Save the transaction
@@ -1221,11 +1215,11 @@ class OCPPService {
     if (transaction.isRemotelyStopped()) {
       // Yes: Get the diff from now
       const secs = moment.duration(moment().diff(
-        moment(transaction.getRemoteStop().timestamp))).asSeconds();
+        moment(transaction.getRemoteStopDate()))).asSeconds();
       // In a minute
       if (secs < 60) {
         // Return tag that remotely stopped the transaction
-        return transaction.getRemoteStop().tagID;
+        return transaction.getRemoteStopTagID();
       }
     }
     // Already provided?
