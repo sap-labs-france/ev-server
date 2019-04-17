@@ -150,7 +150,6 @@ class OCPPJsonService16 extends OCPPService {
   }
 
   async _send(chargeBoxIdentity, message) {
-
     // WS Opened?
     if (!this._wsSessions.get(chargeBoxIdentity)) {
       // Open WS

@@ -64,7 +64,7 @@
 		"baseUrl": "http://server:8000"
 	},
 	"JsonEndpoint": {
-		"baseUrl": "http://server:8000"
+		"baseUrl": "ws://server:8000"
 	},
 	"Storage": {
 		"implementation": "mongodb",

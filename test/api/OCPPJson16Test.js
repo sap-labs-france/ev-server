@@ -11,7 +11,7 @@ describe('OCPP 1.6 JSON Tests', function () {
   before(async () => {
     // Get Tenant ID
     const tenantID = await CentralServerService.authenticatedApi.getTenantID();
-    // Create OCPP 1.5
+    // Create OCPP 1.6
     this.ocpp = new OCPPJsonService16(
       `${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${tenantID}`);
     // Init Common tests

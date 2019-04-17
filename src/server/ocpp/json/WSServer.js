@@ -18,6 +18,19 @@ class WSServer extends WebSocket.Server {
     this._httpServer = httpServer;
     this._serverName = serverName;
     this._serverConfig = serverConfig;
+    this._keepAliveIntervalValue = (this._serverConfig.hasOwnProperty('keepaliveinterval') ? this._serverConfig.keepaliveinterval : 30) * 1000; // ms
+    this.on('connection', (ws) => {
+      ws.isAlive = true;
+      ws.on('pong', () => { ws.isAlive = true; });
+    });
+    this._keepAliveInterval = setInterval(() => {
+      this.clients.forEach((ws) => {
+        if (ws.isAlive === false)
+          return ws.terminate();
+        ws.isAlive = false;
+        ws.ping(() => { });
+      });
+    }, this._keepAliveIntervalValue);
   }
 
   static createHttpServer(serverConfig) {
@@ -43,6 +56,14 @@ class WSServer extends WebSocket.Server {
       });
     }
     return httpServer;
+  }
+
+  broadcastToClients(message) {
+    this.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
   }
 
   start() {

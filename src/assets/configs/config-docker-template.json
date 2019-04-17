@@ -40,6 +40,9 @@
 	"WSDLEndpoint": {
 		"baseUrl": "http://localhost:8000"
 	},
+	"JsonEndpoint": {
+		"baseUrl": "ws://localhost:8000"
+	},
 	"Storage": {
 		"implementation": "mongodb",
 		"uri": null,

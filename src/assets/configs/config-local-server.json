@@ -41,7 +41,7 @@
 		"baseUrl": "https://localhost:8000"
 	},
 	"JsonEndpoint":{
-		"baseUrl": "ws://192.168.0.152:8010"
+		"baseUrl": "ws://localhost:8010"
 	},
 	"Storage": {
 		"implementation": "mongodb",

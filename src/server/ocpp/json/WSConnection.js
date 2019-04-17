@@ -74,7 +74,7 @@ class WSConnection {
           await chargingStation.save();
         }
       }
-    } catch(error) {
+    } catch (error) {
       // Custom Error
       throw new BackendError(this.getChargingStationID(), `Invalid Tenant '${this._tenantID}' in URL '${this.getURL()}'`,
         "WSConnection", "initialize");
@@ -102,7 +102,7 @@ class WSConnection {
           // Process the call
           await this.handleRequest(messageId, commandName, commandPayload);
           break;
-          // Outcome Message
+        // Outcome Message
         case Constants.OCPP_JSON_CALL_RESULT_MESSAGE:
           // Respond
           const [responseCallback] = this._requests[messageId];
@@ -114,11 +114,11 @@ class WSConnection {
           delete this._requests[messageId];
           responseCallback(commandName);
           break;
-          // Error Message
+        // Error Message
         case Constants.OCPP_JSON_CALL_ERROR_MESSAGE:
           // Log
           Logging.logError({
-            tenantID:this.getTenantID(),
+            tenantID: this.getTenantID(),
             module: MODULE_NAME,
             method: "sendMessage",
             action: "WSError",
@@ -136,7 +136,7 @@ class WSConnection {
           delete this._requests[messageId];
           rejectCallback(new OCPPError(commandName, commandPayload, errorDetails));
           break;
-          // Error
+        // Error
         default:
           // Error
           throw new BackendError(this.getChargingStationID(), `Wrong message type ${messageType}`,
@@ -197,12 +197,12 @@ class WSConnection {
           this._requests[messageId] = [responseCallback, rejectCallback];
           messageToSend = JSON.stringify([messageType, messageId, commandName, command]);
           break;
-          // Response
+        // Response
         case Constants.OCPP_JSON_CALL_RESULT_MESSAGE:
           // Build response
           messageToSend = JSON.stringify([messageType, messageId, command]);
           break;
-          // Error Message
+        // Error Message
         case Constants.OCPP_JSON_CALL_ERROR_MESSAGE:
           // Build Message
           // eslint-disable-next-line no-case-declarations
@@ -240,7 +240,7 @@ class WSConnection {
       // Function that will receive the request's rejection
       function rejectCallback(reason) {
         // Build Exception
-        self._requests[messageId] = () => {};
+        self._requests[messageId] = () => { };
         const error = reason instanceof OCPPError ? reason : new Error(reason);
         // Send error
         reject(error);

@@ -126,7 +126,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
           action: "WSRestClientConnectionOpened",
           message: `Connection opened to '${this._serverURL}'`
         });
-        // connection is opened and ready to use
+        // Connection is opened and ready to use
         resolve();
       };
       // Closed
