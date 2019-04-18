@@ -45,6 +45,10 @@ class OCPPCommonTests {
       min: 200,
       max: 500
     })).concat([0, 0, 0, 0]);
+    this.transactionMeterSoCValues = Array.from({length: 10}, () => faker.random.number({
+      min: 0,
+      max: 100
+    })).concat([100, 100, 100, 100]).sort((a, b) => (a - b));
     this.transactionMeterValueIntervalSecs = 60;
     this.transactionStartTime = moment().subtract(this.transactionMeterValues.length * this.transactionMeterValueIntervalSecs, "seconds");
     this.transactionTotalConsumption = this.transactionMeterValues.reduce((sum, meterValue) => sum + meterValue);
@@ -181,7 +185,7 @@ class OCPPCommonTests {
     expect(this.newTransaction.id).to.not.equal(transactionId);
   }
 
-  async testSendMeterValues() {
+  async testSendMeterValues(withSoC = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     // Current Time matches Transaction one
@@ -194,16 +198,39 @@ class OCPPCommonTests {
       transactionCurrentMeterValue += this.transactionMeterValues[index];
       // Add time
       this.transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, "s");
-      // Send Meter Values
-      await CentralServerService.transactionApi.sendTransactionMeterValue(
-        this.ocpp,
-        this.newTransaction,
-        this.context.newChargingStation,
-        this.transactionStartUser,
-        transactionCurrentMeterValue,
-        this.transactionCurrentTime,
-        this.transactionMeterValues[index] * this.transactionMeterValueIntervalSecs,
-        transactionCurrentMeterValue - this.transactionStartMeterValue);
+      if (withSoC) {
+        let context = "Sample.Periodic";
+        // First Meter Value: Transaction.Begin
+        if (index === 0) {
+          // First Meter Value: Transaction.Begin
+          context = "Transaction.Begin"
+        } else if (index === this.transactionMeterValues.length - 2) {
+          // Last Meter Value: Transaction.End
+          context = "Transaction.End"
+        }
+        // Send Meter Values
+        await CentralServerService.transactionApi.sendTransactionWithSoCMeterValue(
+          this.ocpp,
+          this.newTransaction,
+          this.context.newChargingStation,
+          this.transactionStartUser,
+          transactionCurrentMeterValue,
+          this.transactionMeterSoCValues[index],
+          this.transactionCurrentTime,
+          this.transactionMeterValues[index] * this.transactionMeterValueIntervalSecs,
+          transactionCurrentMeterValue - this.transactionStartMeterValue,
+          context);
+      } else {
+        await CentralServerService.transactionApi.sendTransactionMeterValue(
+          this.ocpp,
+          this.newTransaction,
+          this.context.newChargingStation,
+          this.transactionStartUser,
+          transactionCurrentMeterValue,
+          this.transactionCurrentTime,
+          this.transactionMeterValues[index] * this.transactionMeterValueIntervalSecs,
+          transactionCurrentMeterValue - this.transactionStartMeterValue);
+      }
     }
   }
 

@@ -25,7 +25,7 @@ class Transaction extends AbstractTenantEntity {
     return this._model.lastMeterValue;
   }
 
-  setLastMeterValue(lastMeterValue) {
+  setLastConsumptionMeterValue(lastMeterValue) {
     this._model.lastMeterValue = lastMeterValue;
   }
 
@@ -45,7 +45,7 @@ class Transaction extends AbstractTenantEntity {
     return this._model.numberOfMeterValues;
   }
 
-  setNumberOfMeterValues(numberOfMeterValues) {
+  setNumberOfConsumptionMeterValues(numberOfMeterValues) {
     this._model.numberOfMeterValues = numberOfMeterValues;
   }
 

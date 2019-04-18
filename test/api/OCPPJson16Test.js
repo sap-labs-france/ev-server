@@ -53,32 +53,48 @@ describe('OCPP 1.6 JSON Tests', function () {
       await this.ocppCommonTests.testChangeConnectorStatus();
     });
 
-    it('Start User should be able to start a new transaction', async () => {
+    // it('Start User should be able to start a new transaction', async () => {
+    //   // Delegate
+    //   await this.ocppCommonTests.testStartTransaction();
+    // });
+    // it('Start User should be able to start a second time a new transaction', async () => {
+    //   // Delegate
+    //   await this.ocppCommonTests.testStartAgainTransaction();
+    // });
+    // it('Charging Station should send meter values', async () => {
+    //   // Delegate
+    //   await this.ocppCommonTests.testSendMeterValues();
+    // });
+    // it('User should stop the transaction', async () => {
+    //   // Delegate
+    //   await this.ocppCommonTests.testStopTransaction();
+    // });
+    // it('Transaction must have the right consumption metrics and inactivity', async () => {
+    //   // Delegate
+    //   await this.ocppCommonTests.testTransactionMetrics();
+    // });
+    // it('User should delete his transaction', async () => {
+    //   // Delegate
+    //   await this.ocppCommonTests.testDeleteTransaction();
+    // });
+
+    it('Start User should be able to start a new transaction (with SoC)', async () => {
       // Delegate
       await this.ocppCommonTests.testStartTransaction();
     });
-
-    it('Start User should be able to start a second time a new transaction', async () => {
+    it('Charging Station should send meter values (with SoC)', async () => {
       // Delegate
-      await this.ocppCommonTests.testStartAgainTransaction();
+      await this.ocppCommonTests.testSendMeterValues(true);
     });
-
-    it('Charging Station should send meter values', async () => {
-      // Delegate
-      await this.ocppCommonTests.testSendMeterValues();
-    });
-
-    it('User should stop the transaction', async () => {
+    it('User should stop the transaction (with SoC)', async () => {
       // Delegate
       await this.ocppCommonTests.testStopTransaction();
     });
-
-    it('Transaction must have the right consumption metrics and inactivity', async () => {
+    it('Transaction must have the right consumption metrics and inactivity (with SoC)', async () => {
       // Delegate
       await this.ocppCommonTests.testTransactionMetrics();
     });
-
-    it('User should delete his transaction', async () => {
+    it('User should delete his transaction (with SoC)', async () => {
       // Delegate
       await this.ocppCommonTests.testDeleteTransaction();
     });

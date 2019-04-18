@@ -10,6 +10,7 @@ const BackendError = require('../exception/BackendError');
 const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
 const OCPPStorage = require('../storage/mongodb/OCPPStorage');
 const OCPPUtils = require('../server/ocpp/utils/OCPPUtils');
+const OCPPConstants = require('../server/ocpp/utils/OCPPConstants');
 const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const moment = require('moment-timezone');
 const momentDurationFormatSetup = require("moment-duration-format");

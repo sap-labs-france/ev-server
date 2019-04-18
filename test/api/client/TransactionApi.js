@@ -145,6 +145,59 @@ class TransactionApi extends CrudApi {
     })
   }
 
+  async sendTransactionWithSoCMeterValue(ocpp, transaction, chargingStation, user, 
+      meterValue, meterSocValue, currentTime, currentConsumption, totalConsumption, context) {
+    let response;
+    // OCPP 1.6?
+    if (ocpp.getVersion() === "1.6") {
+      // Yes
+      response = await ocpp.executeMeterValues(chargingStation.id, {
+        connectorId: transaction.connectorId,
+        transactionId: transaction.id,
+        meterValue: {
+          timestamp: currentTime.toISOString(),
+          sampledValue: [
+            {
+              "unit": "Wh",
+              "context": context,
+              "value": meterValue
+            }, {
+              "unit": "Percent",
+              "context": context,
+              "measurand": "SoC",
+              "location": "EV",
+              "value": meterSocValue        
+            }
+          ]
+        },
+      });
+      // OCPP 1.5
+    } else {
+      throw new Error("sendTransactionWithBatteryMeterValue - OCPP 1.5 Not Supported");
+    }
+    // Check
+    expect(response.data).to.eql({});
+    // Check the Transaction
+    response = await this.readById(transaction.id);
+    // Check Consumption
+    expect(response.status).to.equal(200);
+    expect(response.data).to.deep.include({
+      id: transaction.id,
+      timestamp: transaction.timestamp,
+      connectorId: transaction.connectorId,
+      tagID: transaction.tagID,
+      chargeBoxID: transaction.chargeBoxID,
+      meterStart: transaction.meterStart,
+      currentConsumption: currentConsumption,
+      currentTotalConsumption: totalConsumption,
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        name: user.name,
+      }
+    })
+  }
+
   async stopTransaction(ocpp, transaction, userStart, userStop, meterStop, stopTime, chargingStationConnector, totalConsumption, totalInactivity, totalPrice) {
     // Stop the transaction
     let response = await ocpp.executeStopTransaction(transaction.chargeBoxID, {
