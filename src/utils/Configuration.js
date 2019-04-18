@@ -189,10 +189,20 @@ class Configuration {
     return Configuration.getConfig().Logging;
   }
 
-  // Logging
+  // Testing
   static getTestConfig() {
     // Read conf
     return Configuration.getConfig().Test;
+  }
+
+  // WSClient
+  static getWSClientConfig() {
+    // Read conf and set defaults values
+    if (!Configuration.getConfig().WSClient.hasOwnProperty('autoReconnectMaxRetries'))
+      Configuration.getConfig().WSClient.autoReconnectMaxRetries = -1;
+    if (!Configuration.getConfig().WSClient.hasOwnProperty('autoReconnectInterval'))
+      Configuration.getConfig().WSClient.autoReconnectInterval = 30;
+    return Configuration.getConfig().WSClient;
   }
 }
 

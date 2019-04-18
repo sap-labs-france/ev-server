@@ -30,8 +30,12 @@
     "password": "",
     "tenant": "slf"
   },
-  "server": {
-    "logs": "none",
-    "port": 80
+  "mailServer": {
+    "host": "127.0.0.1",
+    "port": 8888
+  },
+  "wsClient": {
+    "autoReconnectMaxRetries": 0,
+    "autoReconnectInterval": 60
   }
 }

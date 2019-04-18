@@ -53,7 +53,7 @@
 		"protocol": "http",
 		"host": "localhost",
 		"port": 80
-  },
+	},
 	"ODataService": {
 		"protocol": "http",
 		"host": "localhost",
@@ -66,6 +66,10 @@
 	},
 	"JsonEndpoint": {
 		"baseUrl": ""
+	},
+	"WSClient": {
+		"autoReconnectMaxRetries": 10,
+		"autoReconnectInterval": 60
 	},
 	"Storage": {
 		"implementation": "mongodb",

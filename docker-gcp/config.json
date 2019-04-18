@@ -68,6 +68,10 @@
     "JsonEndpoint": {
         "baseUrl": "ws://server:8000"
     },
+    "WSClient": {
+		"autoReconnectMaxRetries": 10,
+		"autoReconnectInterval": 60
+	},
     "Storage": {
         "implementation": "mongodb",
         "uri": null,
