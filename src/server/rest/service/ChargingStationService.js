@@ -371,7 +371,8 @@ class ChargingStationService {
           req.user);
       }
       // Check no active transaction
-      if (chargingStation.getConnectors().findIndex((connector) => connector.activeTransactionID > 0) >= 0) {
+      const foundIndex = chargingStation.getConnectors().findIndex((connector) => (connector ? connector.activeTransactionID > 0 : false));
+      if (foundIndex >= 0) {
         // Can' t be deleted
         throw new AppError(
           Constants.CENTRAL_SERVER,

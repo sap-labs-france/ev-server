@@ -23,7 +23,8 @@ class Bootstrap {
       const storageConfig = Configuration.getStorageConfig();
 
       const nodejs_env = process.env.NODE_ENV || 'dev';
-      console.log(`NodeJS is started in '${nodejs_env}' mode`); // eslint-disable-line
+      // eslint-disable-next-line no-console
+      console.log(`NodeJS is started in '${nodejs_env}' mode`);
 
       // Check implementation
       let database;
@@ -35,7 +36,8 @@ class Bootstrap {
           break;
 
         default:
-          console.log(`Storage Server implementation '${storageConfig.implementation}' not supported!`); // eslint-disable-line
+          // eslint-disable-next-line no-console
+          console.log(`Storage Server implementation '${storageConfig.implementation}' not supported!`);
       }
 
       global.database = database;
@@ -51,6 +53,7 @@ class Bootstrap {
 
       // Listen to promise failure
       process.on('unhandledRejection', (reason, p) => {
+        // eslint-disable-next-line no-console
         console.log("Unhandled Rejection at Promise: ", p, " reason: ", reason);
         Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,

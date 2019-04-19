@@ -40,7 +40,7 @@ class JsonRestWSConnection extends WSConnection {
       message: error
     });
   }
-  
+
   onClose(code, reason) {
     // Log
     Logging.logInfo({
@@ -74,7 +74,7 @@ class JsonRestWSConnection extends WSConnection {
         "JsonRestWSConnection", "handleRequest", commandName);
     }
     // Call the client
-    let result; 
+    let result;
     // Build the method
     const actionMethod = commandName[0].toLowerCase() + commandName.substring(1);
     // Call

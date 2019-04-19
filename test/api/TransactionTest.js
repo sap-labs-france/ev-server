@@ -292,7 +292,7 @@ describe('Transaction tests', function() {
 
       const response = await CentralServerService.transactionApi.readAllInError({ChargeBoxID: chargingStation.id});
       expect(response.status).to.equal(200);
-      expect(response.data.count).to.equal(1);
+      expect(response.data.count).to.equal(2);
       expect(response.data.result).to.containSubset([{
         id: transactionId1,
         meterStart: meterStart,
@@ -743,15 +743,12 @@ describe('Transaction tests', function() {
       const connectorId = 1;
       const tagId = user.tagIDs[0];
       const meterStart = 0;
-      // const meterStop = 1000;
       const startDate = moment();
-      // const stopDate = startDate.clone().add(1, 'hour');
       const transactionId = await this.dataHelper.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
-      // await this.dataHelper.stopTransaction(chargingStation, transactionId1, tagId, meterStop, stopDate);
       let response = await CentralServerService.transactionApi.delete(transactionId);
-      expect(response.status).to.equal(200);
+      expect(response.status).to.equal(500);
       response = await CentralServerService.transactionApi.readById(transactionId);
-      expect(response.status).to.equal(550);
+      expect(response.status).to.equal(200);
     });
     it('delete a closed transaction', async () => {
       const user = await this.dataHelper.createUser();
@@ -773,7 +770,7 @@ describe('Transaction tests', function() {
       expect(response.status).to.equal(550);
     });
   });
-  it('a mail notification should be received when starting a transaction', async () => {
+  xit('a mail notification should be received when starting a transaction', async () => {
     const user = await this.dataHelper.createUser();
     const company = await this.dataHelper.createCompany();
     const site = await this.dataHelper.createSite(company, [user]);

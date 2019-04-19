@@ -86,7 +86,7 @@ class JsonChargingStationClient extends ChargingStationClient {
   getDiagnostics(params) {
     return this._wsConnection.sendMessage(uuid(), params, 2, "GetDiagnostics");
   }
-  
+
   updateFirmware(params) {
     return this._wsConnection.sendMessage(uuid(), params, 2, "UpdateFirmware");
   }

@@ -34,16 +34,6 @@ class TenantApi extends CrudApi {
       }
     });
   }
-
-  verify(tenant) {
-    return this.baseApi.send({
-      method: 'GET',
-      url: '/client/auth/VerifyTenant',
-      headers: {
-        tenant
-      }
-    });
-  }
 }
 
 module.exports = TenantApi;

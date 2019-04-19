@@ -56,49 +56,49 @@ class MongoDBStorage {
     const collections = await this._db.listCollections(filter).toArray();
     // Users
     await this.checkAndCreateCollection(collections, tenantID, 'users', [
-      {fields: {email: 1}, options: {unique: true}}
+      { fields: { email: 1 }, options: { unique: true } }
     ]);
     await this.checkAndCreateCollection(collections, tenantID, 'eulas');
     // Logs
     await this.checkAndCreateCollection(collections, tenantID, 'logs', [
-      {fields: {timestamp: 1}},
-      {fields: {level: 1}},
-      {fields: {type: 1}}
+      { fields: { timestamp: 1 } },
+      { fields: { level: 1 } },
+      { fields: { type: 1 } }
     ]);
     // MeterValues
     await this.checkAndCreateCollection(collections, tenantID, 'metervalues', [
-      {fields: {timestamp: 1}},
-      {fields: {transactionId: 1}}
+      { fields: { timestamp: 1 } },
+      { fields: { transactionId: 1 } }
     ]);
     // Tags
     await this.checkAndCreateCollection(collections, tenantID, 'tags', [
-      {fields: {userID: 1}}
+      { fields: { userID: 1 } }
     ]);
     // Sites/Users
     await this.checkAndCreateCollection(collections, tenantID, 'siteusers', [
-      {fields: {siteID: 1}},
-      {fields: {userID: 1}}
+      { fields: { siteID: 1 } },
+      { fields: { userID: 1 } }
     ]);
     // Transactions
     await this.checkAndCreateCollection(collections, tenantID, 'transactions', [
-      {fields: {timestamp: 1}},
-      {fields: {chargeBoxID: 1}},
-      {fields: {userID: 1}}
+      { fields: { timestamp: 1 } },
+      { fields: { chargeBoxID: 1 } },
+      { fields: { userID: 1 } }
     ]);
     // Settings
     await this.checkAndCreateCollection(collections, tenantID, 'settings', [
-      {fields: {identifier: 1}, options: {unique: true}}
+      { fields: { identifier: 1 }, options: { unique: true } }
     ]);
     await this.checkAndCreateCollection(collections, tenantID, 'connections', [
-      {fields: {connectorId: 1, userId: 1}, options: {unique: true}}
+      { fields: { connectorId: 1, userId: 1 }, options: { unique: true } }
     ]);
     await this.checkAndCreateCollection(collections, tenantID, 'consumptions', [
-      {fields: {siteID: 1}},
-      {fields: {transactionId: 1, endedAt: 1}},
-      {fields: {siteAreaID: 1}},
-      {fields: {transactionId: 1}},
-      {fields: {chargeBoxID: 1, connectorId: 1}},
-      {fields: {userID: 1}}
+      { fields: { siteID: 1 } },
+      { fields: { transactionId: 1, endedAt: 1 } },
+      { fields: { siteAreaID: 1 } },
+      { fields: { transactionId: 1 } },
+      { fields: { chargeBoxID: 1, connectorId: 1 } },
+      { fields: { userID: 1 } }
     ]);
 
   }
@@ -140,23 +140,23 @@ class MongoDBStorage {
     // Check only collections with indexes
     // Tenants
     await this.checkAndCreateCollection(collections, Constants.DEFAULT_TENANT, 'tenants', [
-      {fields: {subdomain: 1}, options: {unique: true}},
-      {fields: {name: 1}, options: {unique: true}}
+      { fields: { subdomain: 1 }, options: { unique: true } },
+      { fields: { name: 1 }, options: { unique: true } }
     ]);
     // Users
     await this.checkAndCreateCollection(collections, Constants.DEFAULT_TENANT, 'users', [
-      {fields: {email: 1}, options: {unique: true}}
+      { fields: { email: 1 }, options: { unique: true } }
     ]);
     // Logs
     await this.checkAndCreateCollection(collections, Constants.DEFAULT_TENANT, 'logs', [
-      {fields: {timestamp: 1}},
-      {fields: {level: 1}},
-      {fields: {type: 1}}
+      { fields: { timestamp: 1 } },
+      { fields: { level: 1 } },
+      { fields: { type: 1 } }
     ]);
 
     for (const collection of collections) {
       if (collection.name === 'migrations') {
-        await this._db.collection(collection.name).rename(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, collection.name), {dropTarget: true});
+        await this._db.collection(collection.name).rename(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, collection.name), { dropTarget: true });
       }
     }
 

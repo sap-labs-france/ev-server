@@ -8,7 +8,7 @@ const chai = require('chai');
 const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
 
-describe('OCPI Servce Tests', function () {
+describe('OCPI Service Tests', function () {
   this.timeout(100000);
 
 

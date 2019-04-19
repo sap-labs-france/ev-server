@@ -130,13 +130,15 @@ describe('Authentication Service', function() {
 
     it('should not allow authentication without tenant', async () => {
       const response = await CentralServerService.authenticationApi.login('unkown@sap.com', this.adminPassword, true, null);
-      expect(response.status).to.be.eql(400);
+      expect(response.status).to.be.eql(550);
+      expect(response.data).to.have.property('message', 'Wrong email or password');
       expect(response.data).to.not.have.property('token');
     });
 
     it('should not allow authentication of unknown tenant', async () => {
       const response = await CentralServerService.authenticationApi.login('unkown@sap.com', this.adminPassword, true, 'unkown');
-      expect(response.status).to.be.eql(400);
+      expect(response.status).to.be.eql(550);
+      expect(response.data).to.have.property('message', 'Wrong email or password');
       expect(response.data).to.not.have.property('token');
     });
   });
