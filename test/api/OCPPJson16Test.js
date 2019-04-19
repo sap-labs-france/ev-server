@@ -100,5 +100,5 @@ describe('OCPP 1.6 JSON Tests', function () {
   });
 
   describe('Error cases', () => {
-    });
+  });
 });

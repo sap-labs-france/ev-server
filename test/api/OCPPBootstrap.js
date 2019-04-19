@@ -18,9 +18,9 @@ class OCPPBootstrap {
   async createContext() {
     const context = {};
     try {
-      // Create
-      this.tenantNoOrg = await CentralServerService.createEntity(
-        CentralServerService.tenantApi, TenantFactory.buildTenantCreate());
+      // // Create
+      // this.tenantNoOrg = await CentralServerService.createEntity(
+      //   CentralServerService.tenantApi, TenantFactory.buildTenantCreate());
 
       // Create User
       context.newUser = await CentralServerService.createEntity(
@@ -107,11 +107,11 @@ class OCPPBootstrap {
   }
 
   async destroyContext(context) {
-    if (this.tenantNoOrg) {
-      // Check if the deleted entity cannot be retrieved with its id
-      await CentralServerService.checkDeletedEntityById(
-        CentralServerService.tenantApi, this.tenantNoOrg);
-    }    
+    // if (this.tenantNoOrg) {
+    //   // Check if the deleted entity cannot be retrieved with its id
+    //   await CentralServerService.checkDeletedEntityById(
+    //     CentralServerService.tenantApi, this.tenantNoOrg);
+    // }    
 
     // Delete User?
     if (context.newUser) {
