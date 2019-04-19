@@ -38,7 +38,7 @@ class TransactionApi extends CrudApi {
     return super.delete('/client/api/TransactionDelete', id);
   }
 
-  async startTransaction(ocpp, chargingStation, chargingStationConnector, user, meterStart, startTime) {
+  async startTransaction(ocpp, chargingStation, chargingStationConnector, user, meterStart, startTime, withSoC = false) {
     // Start the transaction
     let response = await ocpp.executeStartTransaction(chargingStation.id, {
       connectorId: chargingStationConnector.connectorId,
@@ -53,7 +53,6 @@ class TransactionApi extends CrudApi {
     expect(response.data.transactionId).to.not.equal(0);
     // Keep it
     let transactionId = response.data.transactionId;
-
     // Set Connector Status to Occupied
     chargingStationConnector.status = 'Occupied';
     chargingStationConnector.timestamp = new Date().toISOString();
@@ -70,11 +69,18 @@ class TransactionApi extends CrudApi {
       id: transactionId,
       timestamp: startTime.toISOString(),
       connectorId: chargingStationConnector.connectorId,
+      currentConsumption: 0,
+      currentCumulatedPrice: 0,
+      currentStateOfCharge: 0,
+      currentTotalConsumption: 0,
+      currentTotalInactivitySecs: 0,
+      isLoading: false,
+      meterStart: meterStart,
+      price: 0,
+      roundedPrice: 0,
       tagID: user.tagIDs[0],
       chargeBoxID: chargingStation.id,
-      currentConsumption: 0,
-      currentTotalConsumption: 0,
-      meterStart: meterStart,
+      stateOfCharge: 0,
       user: {
         id: user.id,
         firstName: user.firstName,

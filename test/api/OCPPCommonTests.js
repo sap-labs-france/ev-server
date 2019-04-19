@@ -160,7 +160,8 @@ class OCPPCommonTests {
       this.chargingStationConnector1,
       this.transactionStartUser,
       this.transactionStartMeterValue,
-      this.transactionStartTime);
+      this.transactionStartTime,
+      withSoC);
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
   }
@@ -181,7 +182,8 @@ class OCPPCommonTests {
       this.chargingStationConnector1,
       this.transactionStartUser,
       this.transactionStartMeterValue,
-      this.transactionStartTime);
+      this.transactionStartTime,
+      withSoC);
     // Check
     expect(this.newTransaction).to.not.be.null;
     expect(this.newTransaction.id).to.not.equal(transactionId);
@@ -268,7 +270,7 @@ class OCPPCommonTests {
       this.chargingStationConnector1,
       this.transactionTotalConsumption,
       this.transactionTotalInactivity,
-      this.totalPrice
+      this.totalPrice,
       (withSoC ? this.transactionEndSoC : 0));
   }
 
@@ -283,6 +285,7 @@ class OCPPCommonTests {
     expect(response.data).to.deep.containSubset({
       "chargeBoxID": this.newTransaction.chargeBoxID,
       "connectorId": this.newTransaction.connectorId,
+      "stateOfCharge": (withSoC ? this.transactionStartSoC : 0),
       "stop": {
         "price": this.totalPrice,
         "pricingSource": "simple",
@@ -290,6 +293,7 @@ class OCPPCommonTests {
         "tagID": this.newTransaction.tagID,
         "totalConsumption": this.transactionTotalConsumption,
         "totalInactivitySecs": this.transactionTotalInactivity,
+        "stateOfCharge": (withSoC ? this.transactionEndSoC : 0),
         "user": {
           "id": this.transactionStartUser.id,
           "name": this.transactionStartUser.name,
@@ -316,10 +320,18 @@ class OCPPCommonTests {
       transactionCumulatedConsumption += this.transactionMeterValues[i];
       // Check
       expect(value).to.include({
+        "chargeBoxID": this.newTransaction.chargeBoxID,
+        "connectorId": this.newTransaction.connectorId,
         "date": transactionCurrentTime.toISOString(),
         "value": this.transactionMeterValues[i] * this.transactionMeterValueIntervalSecs,
         "cumulated": transactionCumulatedConsumption
       });
+      if (withSoC) {
+        // Check
+        expect(value).to.include({
+          "stateOfCharge": this.transactionMeterSoCValues[i]
+        });
+      }
     }
   }
 
