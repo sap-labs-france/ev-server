@@ -166,7 +166,7 @@ class OCPPCommonTests {
     expect(this.newTransaction).to.not.be.null;
   }
 
-  async testStartAgainTransaction(withSoC = false) {
+  async testStartSecondTransaction(withSoC = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     // Set
@@ -197,16 +197,15 @@ class OCPPCommonTests {
     // Start Meter Value matches Transaction one
     let transactionCurrentMeterValue = this.transactionStartMeterValue;
     // Send Transaction.Begin
-    if (withSoC) {
-      await CentralServerService.transactionApi.sendBeginWithSoCMeterValue(
-        this.ocpp,
-        this.newTransaction,
-        this.context.newChargingStation,
-        this.transactionStartUser,
-        transactionCurrentMeterValue,
-        this.transactionStartSoC,
-        this.transactionCurrentTime);
-    }
+    await CentralServerService.transactionApi.sendBeginMeterValue(
+      this.ocpp,
+      this.newTransaction,
+      this.context.newChargingStation,
+      this.transactionStartUser,
+      transactionCurrentMeterValue,
+      this.transactionStartSoC,
+      this.transactionCurrentTime,
+      withSoC);
     // Send Meter Values (except the last one which will be used in Stop Transaction)
     for (let index = 0; index <= this.transactionMeterValues.length - 2; index++) {
       // Set new meter value
@@ -238,17 +237,15 @@ class OCPPCommonTests {
       }
     }
     // Send Transaction.End
-    if (withSoC) {
-      // Send Meter Values
-      await CentralServerService.transactionApi.sendEndWithSoCMeterValue(
-        this.ocpp,
-        this.newTransaction,
-        this.context.newChargingStation,
-        this.transactionStartUser,
-        this.transactionEndMeterValue,
-        this.transactionEndSoC,
-        moment(this.transactionCurrentTime));
-    }
+    await CentralServerService.transactionApi.sendEndMeterValue(
+      this.ocpp,
+      this.newTransaction,
+      this.context.newChargingStation,
+      this.transactionStartUser,
+      this.transactionEndMeterValue,
+      this.transactionEndSoC,
+      moment(this.transactionCurrentTime),
+      withSoC);
   }
 
   async testStopTransaction(withSoC = false) {

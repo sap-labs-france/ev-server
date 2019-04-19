@@ -153,54 +153,66 @@ class TransactionApi extends CrudApi {
     });
   }
 
-  async sendBeginWithSoCMeterValue(ocpp, transaction, chargingStation, user,
-    meterValue, meterSocValue, currentTime) {
+  async sendBeginMeterValue(ocpp, transaction, chargingStation, user,
+    meterValue, meterSocValue, currentTime, withSoC = false) {
     let response;
     // OCPP 1.6?
     if (ocpp.getVersion() === "1.6") {
       // Yes
-      response = await ocpp.executeMeterValues(chargingStation.id, {
-        connectorId: transaction.connectorId,
-        transactionId: transaction.id,
-        meterValue: {
-          timestamp: currentTime.toISOString(),
-          sampledValue: [{
-            "unit": "Wh",
-            "context": "Transaction.Begin",
-            "value": meterValue
-          }, {
-            "unit": "Percent",
-            "context": "Transaction.Begin",
-            "measurand": "SoC",
-            "location": "EV",
-            "value": meterSocValue
-          }]
-        },
-      });
-      // OCPP 1.5
-    } else {
-      throw new Error("sendTransactionWithBatteryMeterValue - OCPP 1.5 Not Supported");
-    }
-    // Check
-    expect(response.data).to.eql({});
-    // Check the Transaction
-    response = await this.readById(transaction.id);
-    // Check Consumption
-    expect(response.status).to.equal(200);
-    expect(response.data).to.deep.include({
-      id: transaction.id,
-      timestamp: transaction.timestamp,
-      connectorId: transaction.connectorId,
-      tagID: transaction.tagID,
-      chargeBoxID: transaction.chargeBoxID,
-      meterStart: transaction.meterStart,
-      stateOfCharge: meterSocValue,
-      user: {
-        id: user.id,
-        firstName: user.firstName,
-        name: user.name,
+      if (withSoC) {
+        response = await ocpp.executeMeterValues(chargingStation.id, {
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          meterValue: {
+            timestamp: currentTime.toISOString(),
+            sampledValue: [{
+              "unit": "Wh",
+              "context": "Transaction.Begin",
+              "value": meterValue
+            }, {
+              "unit": "Percent",
+              "context": "Transaction.Begin",
+              "measurand": "SoC",
+              "location": "EV",
+              "value": meterSocValue
+            }]
+          },
+        });
+      } else {
+        response = await ocpp.executeMeterValues(chargingStation.id, {
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          meterValue: {
+            timestamp: currentTime.toISOString(),
+            sampledValue: [{
+              "unit": "Wh",
+              "context": "Transaction.Begin",
+              "value": meterValue
+            }]
+          },
+        });
       }
-    });
+      // Check
+      expect(response.data).to.eql({});
+      // Check the Transaction
+      response = await this.readById(transaction.id);
+      // Check Consumption
+      expect(response.status).to.equal(200);
+      expect(response.data).to.deep.include({
+        id: transaction.id,
+        timestamp: transaction.timestamp,
+        connectorId: transaction.connectorId,
+        tagID: transaction.tagID,
+        chargeBoxID: transaction.chargeBoxID,
+        meterStart: transaction.meterStart,
+        stateOfCharge: meterSocValue,
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          name: user.name,
+        }
+      });
+    }
   }
 
   async sendTransactionWithSoCMeterValue(ocpp, transaction, chargingStation, user,
@@ -227,86 +239,100 @@ class TransactionApi extends CrudApi {
           }]
         },
       });
-      // OCPP 1.5
-    } else {
-      throw new Error("sendTransactionWithBatteryMeterValue - OCPP 1.5 Not Supported");
+      // Check
+      expect(response.data).to.eql({});
+      // Check the Transaction
+      response = await this.readById(transaction.id);
+      // Check Consumption
+      expect(response.status).to.equal(200);
+      expect(response.data).to.deep.include({
+        id: transaction.id,
+        timestamp: transaction.timestamp,
+        connectorId: transaction.connectorId,
+        tagID: transaction.tagID,
+        chargeBoxID: transaction.chargeBoxID,
+        meterStart: transaction.meterStart,
+        currentConsumption: currentConsumption,
+        currentTotalConsumption: totalConsumption,
+        currentStateOfCharge: meterSocValue,
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          name: user.name,
+        }
+      })
     }
-    // Check
-    expect(response.data).to.eql({});
-    // Check the Transaction
-    response = await this.readById(transaction.id);
-    // Check Consumption
-    expect(response.status).to.equal(200);
-    expect(response.data).to.deep.include({
-      id: transaction.id,
-      timestamp: transaction.timestamp,
-      connectorId: transaction.connectorId,
-      tagID: transaction.tagID,
-      chargeBoxID: transaction.chargeBoxID,
-      meterStart: transaction.meterStart,
-      currentConsumption: currentConsumption,
-      currentTotalConsumption: totalConsumption,
-      currentStateOfCharge: meterSocValue,
-      user: {
-        id: user.id,
-        firstName: user.firstName,
-        name: user.name,
-      }
-    })
   }
 
-  async sendEndWithSoCMeterValue(ocpp, transaction, chargingStation, user,
-    meterValue, meterSocValue, currentTime) {
+  async sendEndMeterValue(ocpp, transaction, chargingStation, user,
+    meterValue, meterSocValue, currentTime, withSoC = false) {
     let response;
     // OCPP 1.6?
     if (ocpp.getVersion() === "1.6") {
-      // Yes
-      response = await ocpp.executeMeterValues(chargingStation.id, {
-        connectorId: transaction.connectorId,
-        transactionId: transaction.id,
-        meterValue: {
-          timestamp: currentTime.toISOString(),
-          sampledValue: [{
-            "unit": "Wh",
-            "context": "Transaction.End",
-            "value": meterValue
-          }, {
-            "unit": "Percent",
-            "context": "Transaction.End",
-            "measurand": "SoC",
-            "location": "EV",
-            "value": meterSocValue
-          }]
-        },
-      });
-      // OCPP 1.5
-    } else {
-      throw new Error("sendTransactionWithBatteryMeterValue - OCPP 1.5 Not Supported");
-    }
-    // Check
-    expect(response.data).to.eql({});
-    // Check the Transaction
-    response = await this.readById(transaction.id);
-    // Check Consumption
-    expect(response.status).to.equal(200);
-    expect(response.data).to.deep.include({
-      id: transaction.id,
-      timestamp: transaction.timestamp,
-      connectorId: transaction.connectorId,
-      tagID: transaction.tagID,
-      chargeBoxID: transaction.chargeBoxID,
-      meterStart: transaction.meterStart,
-      stateOfCharge: transaction.stateOfCharge,
-      currentStateOfCharge: meterSocValue,
-      user: {
-        id: user.id,
-        firstName: user.firstName,
-        name: user.name,
+      if (withSoC) {
+        response = await ocpp.executeMeterValues(chargingStation.id, {
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          meterValue: {
+            timestamp: currentTime.toISOString(),
+            sampledValue: [{
+              "unit": "Wh",
+              "context": "Transaction.End",
+              "value": meterValue
+            }, {
+              "unit": "Percent",
+              "context": "Transaction.End",
+              "measurand": "SoC",
+              "location": "EV",
+              "value": meterSocValue
+            }]
+          },
+        });
+      } else {
+        response = await ocpp.executeMeterValues(chargingStation.id, {
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          meterValue: {
+            timestamp: currentTime.toISOString(),
+            sampledValue: [{
+              "unit": "Wh",
+              "context": "Transaction.End",
+              "value": meterValue
+            }]
+          },
+        });
       }
-    })
+      // Check
+      expect(response.data).to.eql({});
+      // Check the Transaction
+      response = await this.readById(transaction.id);
+      // Check Consumption
+      expect(response.status).to.equal(200);
+      expect(response.data).to.deep.include({
+        id: transaction.id,
+        timestamp: transaction.timestamp,
+        connectorId: transaction.connectorId,
+        tagID: transaction.tagID,
+        chargeBoxID: transaction.chargeBoxID,
+        meterStart: transaction.meterStart,
+        stateOfCharge: transaction.stateOfCharge,
+        stateOfCharge: transaction.stateOfCharge,
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          name: user.name,
+        }
+      });
+      if (withSoC) {
+        expect(response.data).to.deep.include({
+          currentStateOfCharge: meterSocValue
+        });
+      }
+    }
   }
 
-  async stopTransaction(ocpp, transaction, userStart, userStop, meterStop, stopTime, chargingStationConnector, totalConsumption, totalInactivity, totalPrice, stateOfCharge) {
+  async stopTransaction(ocpp, transaction, userStart, userStop, meterStop, stopTime, 
+      chargingStationConnector, totalConsumption, totalInactivity, totalPrice, stateOfCharge) {
     // Stop the transaction
     let response = await ocpp.executeStopTransaction(transaction.chargeBoxID, {
       transactionId: transaction.id,
@@ -333,10 +359,12 @@ class TransactionApi extends CrudApi {
     expect(response.data).to.deep.include({
       id: transaction.id,
       timestamp: transaction.timestamp,
+      chargeBoxID: transaction.chargeBoxID,
       connectorId: transaction.connectorId,
       tagID: transaction.tagID,
-      chargeBoxID: transaction.chargeBoxID,
+      isLoading: false,
       meterStart: transaction.meterStart,
+      stateOfCharge: transaction.stateOfCharge,
       stop: {
         meterStop: meterStop,
         totalConsumption: totalConsumption,

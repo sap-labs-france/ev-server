@@ -59,7 +59,7 @@ describe('OCPP 1.6 JSON Tests', function () {
     });
     it('Start User should be able to start a second time a new transaction', async () => {
       // Delegate
-      await this.ocppCommonTests.testStartAgainTransaction();
+      await this.ocppCommonTests.testStartSecondTransaction();
     });
     it('Charging Station should send meter values', async () => {
       // Delegate
