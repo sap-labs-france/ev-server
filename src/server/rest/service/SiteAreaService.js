@@ -9,10 +9,20 @@ const User = require('../../../entity/User');
 const ChargingStation = require('../../../entity/ChargingStation');
 const Site = require('../../../entity/Site');
 const SiteArea = require('../../../entity/SiteArea');
+const UtilsService = require('./UtilsService');
+const OrganizationComponentInactiveError = require ('../../../exception/OrganizationComponentInactiveError');
 
 class SiteAreaService {
   static async handleCreateSiteArea(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_CREATE,
+          Constants.ENTITY_SITE_AREA,
+          560, 'SiteAreaService', 'handleCreateSiteArea');
+      }
+
       // Check auth
       if (!Authorizations.canCreateSite(req.user)) {
         // Not Authorized!
@@ -79,6 +89,14 @@ class SiteAreaService {
 
   static async handleGetSiteAreas(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_SITE_AREAS,
+          560, 'SiteAreaService', 'handleGetSiteAreas');
+      }
+
       // Check auth
       if (!Authorizations.canListSiteAreas(req.user)) {
         // Not Authorized!
@@ -115,6 +133,14 @@ class SiteAreaService {
 
   static async handleDeleteSiteArea(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_DELETE,
+          Constants.ENTITY_SITE_AREA,
+          560, 'SiteAreaService', 'handleDeleteSiteArea');
+      }
+
       // Filter
       const filteredRequest = SiteAreaSecurity.filterSiteAreaDeleteRequest(req.query, req.user);
       // Check Mandatory fields
@@ -165,6 +191,14 @@ class SiteAreaService {
 
   static async handleGetSiteArea(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_SITE_AREA,
+          560, 'SiteAreaService', 'handleGetSiteArea');
+      }
+
       // Filter
       const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query, req.user);
       // Charge Box is mandatory
@@ -212,6 +246,14 @@ class SiteAreaService {
 
   static async handleGetSiteAreaImage(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_SITE_AREA,
+          560, 'SiteAreaService', 'handleGetSiteAreaImage');
+      }
+
       // Filter
       const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query, req.user);
       // Charge Box is mandatory
@@ -253,6 +295,14 @@ class SiteAreaService {
 
   static async handleUpdateSiteArea(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_SITE_AREA,
+          560, 'SiteAreaService', 'handleUpdateSiteArea');
+      }
+
       // Filter
       const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest( req.body, req.user );
       // Check
