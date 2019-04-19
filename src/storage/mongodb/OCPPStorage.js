@@ -237,7 +237,7 @@ class OCPPStorage {
         ]
       }]
     };
-      
+
     if (params.chargeBoxId) {
       // Build filter
       filters.$and.push({

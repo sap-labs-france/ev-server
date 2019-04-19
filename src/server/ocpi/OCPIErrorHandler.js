@@ -10,11 +10,11 @@ class OCPIErrorHandler {
     let detailedMessages = {};
 
     // check instance of error
-    if (!( err instanceof OCPIServerError || err instanceof OCPIClientError ) ) {
+    if (!(err instanceof OCPIServerError || err instanceof OCPIClientError)) {
       error = new OCPIServerError(
         '-',
         err.message, 500,
-        'OCPI Server', `${req.method} ${req.originalUrl}`,Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR);
+        'OCPI Server', `${req.method} ${req.originalUrl}`, Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR);
       detailedMessages = err.stack;
 
     } else {

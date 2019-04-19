@@ -335,11 +335,14 @@ class ChargingStationStorage {
           localField: "siteAreaID",
           foreignField: "_id",
           as: "siteArea"
-        }},
-      { $unwind: {
-        "path": "$siteArea",
-        "preserveNullAndEmptyArrays": true
-      }}];
+        }
+      },
+      {
+        $unwind: {
+          "path": "$siteArea",
+          "preserveNullAndEmptyArrays": true
+        }
+      }];
     }
     // Check Site ID
     if (params.siteID) {
@@ -356,11 +359,13 @@ class ChargingStationStorage {
           localField: "siteArea.siteID",
           foreignField: "_id",
           as: "site"
-        }}, {
+        }
+      }, {
         $unwind: {
           "path": "$site",
           "preserveNullAndEmptyArrays": true
-        }}
+        }
+      }
       ];
     }
     if (params.chargeBoxId) {
@@ -411,11 +416,11 @@ class ChargingStationStorage {
     }
     aggregation.push(facets);
     // Manipulate the results to convert it to an array of document on root level
-    aggregation.push({$project: { "allItems": { $concatArrays: project } } });
-    aggregation.push({"$unwind":{"path":"$allItems"}});
-    aggregation.push({$replaceRoot:{newRoot:"$allItems"}});
+    aggregation.push({ $project: { "allItems": { $concatArrays: project } } });
+    aggregation.push({ "$unwind": { "path": "$allItems" } });
+    aggregation.push({ $replaceRoot: { newRoot: "$allItems" } });
     // Add a unique identifier as we may have the same charger several time
-    aggregation.push({$addFields: {"uniqueId":{$concat:["$_id","#", "$errorCode"]}}});
+    aggregation.push({ $addFields: { "uniqueId": { $concat: ["$_id", "#", "$errorCode"] } } });
 
     // Count Records
     const chargingStationsCountMDB = await global.database.getCollection(tenantID, 'chargingstations')
@@ -489,36 +494,40 @@ class ChargingStationStorage {
   static builChargerInErrorFacet(errorType) {
     switch (errorType) {
       case 'missingSettings':
-        return [{$match:{$or:[
-          {"maximumPower":{$exists:false}},{"maximumPower":{$lte:0}},{"maximumPower":null},
-          {"chargePointModel":{$exists:false}},{"chargePointModel":{$eq:""}},
-          {"chargePointVendor":{$exists:false}},{"chargePointVendor":{$eq:""}},
-          {"numberOfConnectedPhase":{$exists:false}},{"numberOfConnectedPhase":null},{"numberOfConnectedPhase":{$nin:[1,3]}},
-          {"powerLimitUnit":{$exists:false}},{"powerLimitUnit":null},{"powerLimitUnit":{$nin:["A","W"]}},
-          {"chargingStationURL":{$exists:false}},{"chargingStationURL":null},{"chargingStationURL":{$eq:""}},
-          {"cannotChargeInParallel":{$exists:false}},{"cannotChargeInParallel":null},
-          {"connectors.type":{$exists:false}},{"connectors.type":null},{"connectors.type":{$eq:""}},
-          {"connectors.power":{$exists:false}},{"connectors.power":null},{"connectors.power":{$lte:0}}
-        ]}},
-        {$addFields: {"errorCode":"missingSettings"}}
+        return [{
+          $match: {
+            $or: [
+              { "maximumPower": { $exists: false } }, { "maximumPower": { $lte: 0 } }, { "maximumPower": null },
+              { "chargePointModel": { $exists: false } }, { "chargePointModel": { $eq: "" } },
+              { "chargePointVendor": { $exists: false } }, { "chargePointVendor": { $eq: "" } },
+              { "numberOfConnectedPhase": { $exists: false } }, { "numberOfConnectedPhase": null }, { "numberOfConnectedPhase": { $nin: [1, 3] } },
+              { "powerLimitUnit": { $exists: false } }, { "powerLimitUnit": null }, { "powerLimitUnit": { $nin: ["A", "W"] } },
+              { "chargingStationURL": { $exists: false } }, { "chargingStationURL": null }, { "chargingStationURL": { $eq: "" } },
+              { "cannotChargeInParallel": { $exists: false } }, { "cannotChargeInParallel": null },
+              { "connectors.type": { $exists: false } }, { "connectors.type": null }, { "connectors.type": { $eq: "" } },
+              { "connectors.power": { $exists: false } }, { "connectors.power": null }, { "connectors.power": { $lte: 0 } }
+            ]
+          }
+        },
+        { $addFields: { "errorCode": "missingSettings" } }
         ];
       case 'connectionBroken':
       {
         const inactiveDate = new Date(new Date().getTime() - 3 * 60 * 1000);
         return [
-          {$match:{"lastHeartBeat":{$lte:inactiveDate}}},
-          {$addFields: {"errorCode":"connectionBroken"}}
+          { $match: { "lastHeartBeat": { $lte: inactiveDate } } },
+          { $addFields: { "errorCode": "connectionBroken" } }
         ];
       }
       case 'connectorError':
         return [
-          {$match:{$or:[{"connectors.errorCode": {$ne: "NoError"}}, {"connectors.status": {$eq: "Faulted"}}]}},
-          {$addFields: {"errorCode":"connectorError"}}
+          { $match: { $or: [{ "connectors.errorCode": { $ne: "NoError" } }, { "connectors.status": { $eq: "Faulted" } }] } },
+          { $addFields: { "errorCode": "connectorError" } }
         ];
       case 'missingSiteArea':
         return [
-          {$match:{$or:[{"siteAreaID":{$exists:false}},{"siteAreaID":null}]}},
-          {$addFields: {"errorCode":"missingSiteArea"}}
+          { $match: { $or: [{ "siteAreaID": { $exists: false } }, { "siteAreaID": null }] } },
+          { $addFields: { "errorCode": "missingSiteArea" } }
         ];
       default:
         return [];

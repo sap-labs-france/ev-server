@@ -35,14 +35,14 @@ class AbstractOCPIService {
   getServiceUrl(req) {
     const baseUrl = this.getBaseUrl(req);
     const path = this.getPath();
- 
+
     // return Service url
     return `${baseUrl}${path}`;
   }
 
   // Get BaseUrl ${protocol}://${host}
   getBaseUrl(req) {
-    const protocol = (this._ocpiRestConfig.externalProtocol?this._ocpiRestConfig.externalProtocol:"https");
+    const protocol = (this._ocpiRestConfig.externalProtocol ? this._ocpiRestConfig.externalProtocol : "https");
 
     // get host from the req
     const host = req.get('host');
@@ -152,7 +152,7 @@ class AbstractOCPIService {
       }
 
       // get tenant from the called URL - TODO: review this handle tenant and tid in decoded token
-      const tenantSubdomain = (decodedToken.tenant?decodedToken.tenant:decodedToken.tid);
+      const tenantSubdomain = (decodedToken.tenant ? decodedToken.tenant : decodedToken.tid);
 
       // get tenant from database
       const tenant = await Tenant.getTenantBySubdomain(tenantSubdomain);

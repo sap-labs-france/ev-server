@@ -40,6 +40,13 @@
 	"WSDLEndpoint": {
 		"baseUrl": "http://localhost:8000"
 	},
+	"JsonEndpoint": {
+		"baseUrl": "ws://localhost:8000"
+	},
+	"WSClient": {
+		"autoReconnectMaxRetries": 10,
+		"autoReconnectInterval": 60
+	},
 	"Storage": {
 		"implementation": "mongodb",
 		"uri": null,

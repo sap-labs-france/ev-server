@@ -15,7 +15,7 @@ class SiteAreaStorage {
     await Utils.checkTenant(tenantID);
     // Read DB
     const siteAreaImagesMDB = await global.database.getCollection(tenantID, 'siteareaimages')
-      .find({_id: Utils.convertToObjectID(id)})
+      .find({ _id: Utils.convertToObjectID(id) })
       .limit(1)
       .toArray();
     let siteAreaImage = null;
@@ -27,7 +27,7 @@ class SiteAreaStorage {
       };
     }
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'getSiteAreaImage', uniqueTimerID, {id});
+    Logging.traceEnd('SiteAreaStorage', 'getSiteAreaImage', uniqueTimerID, { id });
     return siteAreaImage;
   }
 
@@ -43,10 +43,10 @@ class SiteAreaStorage {
     const aggregation = [];
     // Filters
     aggregation.push({
-      $match: {_id: Utils.convertToObjectID(id)}
+      $match: { _id: Utils.convertToObjectID(id) }
     });
     // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Charging Station
     if (withChargeBoxes) {
       // Add
@@ -72,7 +72,7 @@ class SiteAreaStorage {
       });
       // Add
       aggregation.push({
-        $unwind: {"path": "$site", "preserveNullAndEmptyArrays": true}
+        $unwind: { "path": "$site", "preserveNullAndEmptyArrays": true }
       });
     }
     // Read DB
@@ -106,7 +106,7 @@ class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'getSiteArea', uniqueTimerID, {id, withChargeBoxes, withSite});
+    Logging.traceEnd('SiteAreaStorage', 'getSiteArea', uniqueTimerID, { id, withChargeBoxes, withSite });
     return siteArea;
   }
 
@@ -140,10 +140,10 @@ class SiteAreaStorage {
     // Modify
     const result = await global.database.getCollection(tenantID, 'siteareas').findOneAndUpdate(
       siteAreaFilter,
-      {$set: siteArea},
-      {upsert: true, new: true, returnOriginal: false});
+      { $set: siteArea },
+      { upsert: true, new: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'saveSiteArea', uniqueTimerID, {siteAreaToSave});
+    Logging.traceEnd('SiteAreaStorage', 'saveSiteArea', uniqueTimerID, { siteAreaToSave });
     // Create
     return new SiteArea(tenantID, result.value);
   }
@@ -163,9 +163,9 @@ class SiteAreaStorage {
     }
     // Modify
     await global.database.getCollection(tenantID, 'siteareaimages').findOneAndUpdate(
-      {'_id': Utils.convertToObjectID(siteAreaImageToSave.id)},
-      {$set: {image: siteAreaImageToSave.image}},
-      {upsert: true, new: true, returnOriginal: false});
+      { '_id': Utils.convertToObjectID(siteAreaImageToSave.id) },
+      { $set: { image: siteAreaImageToSave.image } },
+      { upsert: true, new: true, returnOriginal: false });
     // Debug
     Logging.traceEnd('SiteAreaStorage', 'saveSiteAreaImage', uniqueTimerID);
   }
@@ -188,7 +188,7 @@ class SiteAreaStorage {
     if (params.search) {
       // Build filter
       filters.$or = [
-        {"name": {$regex: params.search, $options: 'i'}}
+        { "name": { $regex: params.search, $options: 'i' } }
       ];
     }
     // Set Site?
@@ -205,7 +205,7 @@ class SiteAreaStorage {
     }
     // Count Records
     const siteAreasCountMDB = await global.database.getCollection(tenantID, 'siteareas')
-      .aggregate([...aggregation, {$count: "count"}])
+      .aggregate([...aggregation, { $count: "count" }])
       .toArray();
     // Sites
     if (params.withSite) {
@@ -220,7 +220,7 @@ class SiteAreaStorage {
       });
       // Single Record
       aggregation.push({
-        $unwind: {"path": "$site", "preserveNullAndEmptyArrays": true}
+        $unwind: { "path": "$site", "preserveNullAndEmptyArrays": true }
       });
     }
     // Charging Stations
@@ -236,7 +236,7 @@ class SiteAreaStorage {
       });
     }
     // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (sort) {
       // Sort
@@ -246,7 +246,7 @@ class SiteAreaStorage {
     } else {
       // Default
       aggregation.push({
-        $sort: {name: 1}
+        $sort: { name: 1 }
       });
     }
     // Skip
@@ -259,7 +259,7 @@ class SiteAreaStorage {
     });
     // Read DB
     const siteAreasMDB = await global.database.getCollection(tenantID, 'siteareas')
-      .aggregate(aggregation, {collation: {locale: Constants.DEFAULT_LOCALE, strength: 2}})
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     const siteAreas = [];
     // Check
@@ -320,7 +320,7 @@ class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'getSiteAreas', uniqueTimerID, {params, limit, skip, sort});
+    Logging.traceEnd('SiteAreaStorage', 'getSiteAreas', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
       count: (siteAreasCountMDB.length > 0 ? siteAreasCountMDB[0].count : 0),
@@ -335,17 +335,17 @@ class SiteAreaStorage {
     await Utils.checkTenant(tenantID);
     // Remove Charging Station's Site Area
     await global.database.getCollection(tenantID, 'chargingstations').updateMany(
-      {siteAreaID: Utils.convertToObjectID(id)},
-      {$set: {siteAreaID: null}},
-      {upsert: false, new: true, returnOriginal: false});
+      { siteAreaID: Utils.convertToObjectID(id) },
+      { $set: { siteAreaID: null } },
+      { upsert: false, new: true, returnOriginal: false });
     // Delete Site
     await global.database.getCollection(tenantID, 'siteareas')
-      .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
+      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Delete Image
     await global.database.getCollection(tenantID, 'sitesareaimages')
-      .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
+      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'deleteSiteArea', uniqueTimerID, {id});
+    Logging.traceEnd('SiteAreaStorage', 'deleteSiteArea', uniqueTimerID, { id });
   }
 }
 

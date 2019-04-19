@@ -57,7 +57,7 @@ class MigrationHandler {
             tenantID: Constants.DEFAULT_TENANT,
             source: "Migration", action: "Migration",
             module: "MigrationHandler", method: "migrate",
-            message: `${currentMigrationTask.isAsynchronous()?'Asynchronous':'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has already been processed`
+            message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has already been processed`
           });
           // Continue
           continue;
@@ -65,7 +65,7 @@ class MigrationHandler {
         // Check if async
         if (currentMigrationTask.isAsynchronous()) {
           // Execute async
-          setTimeout(() => { 
+          setTimeout(() => {
             // Execute Migration Task sync
             MigrationHandler.executeTask(currentMigrationTask);
           }, 1000);
@@ -103,7 +103,7 @@ class MigrationHandler {
       tenantID: Constants.DEFAULT_TENANT,
       source: "Migration", action: "Migration",
       module: "MigrationHandler", method: "migrate",
-      message: `${currentMigrationTask.isAsynchronous()?'Asynchronous':'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`
+      message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`
     });
     // Log in the console also
     // eslint-disable-next-line no-console
@@ -123,7 +123,7 @@ class MigrationHandler {
       tenantID: Constants.DEFAULT_TENANT,
       source: "Migration", action: "Migration",
       module: "MigrationHandler", method: "migrate",
-      message: `${currentMigrationTask.isAsynchronous()?'Asynchronous':'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`
+      message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`
     });
     // Log in the console also
     // eslint-disable-next-line no-console

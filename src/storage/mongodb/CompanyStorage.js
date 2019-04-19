@@ -19,10 +19,10 @@ class CompanyStorage {
     const aggregation = [];
     // Filters
     aggregation.push({
-      $match: {_id: Utils.convertToObjectID(id)}
+      $match: { _id: Utils.convertToObjectID(id) }
     });
     // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Read DB
     const companiesMDB = await global.database.getCollection(tenantID, 'companies')
       .aggregate(aggregation)
@@ -35,7 +35,7 @@ class CompanyStorage {
       company = new Company(tenantID, companiesMDB[0]);
     }
     // Debug
-    Logging.traceEnd('CompanyStorage', 'getCompany', uniqueTimerID, {id});
+    Logging.traceEnd('CompanyStorage', 'getCompany', uniqueTimerID, { id });
     return company;
   }
 
@@ -46,7 +46,7 @@ class CompanyStorage {
     await Utils.checkTenant(tenantID);
     // Read DB
     const companyLogosMDB = await global.database.getCollection(tenantID, 'companylogos')
-      .find({_id: Utils.convertToObjectID(id)})
+      .find({ _id: Utils.convertToObjectID(id) })
       .limit(1)
       .toArray();
     let companyLogo = null;
@@ -117,10 +117,10 @@ class CompanyStorage {
     // Modify
     const result = await global.database.getCollection(tenantID, 'companies').findOneAndUpdate(
       companyFilter,
-      {$set: company},
-      {upsert: true, new: true, returnOriginal: false});
+      { $set: company },
+      { upsert: true, new: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd('CompanyStorage', 'saveCompany', uniqueTimerID, {companyToSave});
+    Logging.traceEnd('CompanyStorage', 'saveCompany', uniqueTimerID, { companyToSave });
     return new Company(tenantID, result.value);
   }
 
@@ -139,9 +139,9 @@ class CompanyStorage {
     }
     // Modify
     await global.database.getCollection(tenantID, 'companylogos').findOneAndUpdate(
-      {'_id': Utils.convertToObjectID(companyLogoToSave.id)},
-      {$set: {logo: companyLogoToSave.logo}},
-      {upsert: true, new: true, returnOriginal: false});
+      { '_id': Utils.convertToObjectID(companyLogoToSave.id) },
+      { $set: { logo: companyLogoToSave.logo } },
+      { upsert: true, new: true, returnOriginal: false });
     // Debug
     Logging.traceEnd('CompanyStorage', 'saveCompanyLogo', uniqueTimerID, {});
   }
@@ -164,9 +164,9 @@ class CompanyStorage {
     if (params.search) {
       // Build filter
       filters.$or = [
-        {"name": {$regex: params.search, $options: 'i'}},
-        {"address.city": {$regex: params.search, $options: 'i'}},
-        {"address.country": {$regex: params.search, $options: 'i'}}
+        { "name": { $regex: params.search, $options: 'i' } },
+        { "address.city": { $regex: params.search, $options: 'i' } },
+        { "address.country": { $regex: params.search, $options: 'i' } }
       ];
     }
     // Create Aggregation
@@ -201,10 +201,10 @@ class CompanyStorage {
     }
     // Count Records
     const companiesCountMDB = await global.database.getCollection(tenantID, 'companies')
-      .aggregate([...aggregation, {$count: "count"}])
+      .aggregate([...aggregation, { $count: "count" }])
       .toArray();
     // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (sort) {
       // Sort
@@ -214,7 +214,7 @@ class CompanyStorage {
     } else {
       // Default
       aggregation.push({
-        $sort: {name: 1}
+        $sort: { name: 1 }
       });
     }
     // Skip
@@ -227,7 +227,7 @@ class CompanyStorage {
     });
     // Read DB
     const companiesMDB = await global.database.getCollection(tenantID, 'companies')
-      .aggregate(aggregation, {collation: {locale: Constants.DEFAULT_LOCALE, strength: 2}})
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     const companies = [];
     // Check
@@ -250,7 +250,7 @@ class CompanyStorage {
       }
     }
     // Debug
-    Logging.traceEnd('CompanyStorage', 'getCompanies', uniqueTimerID, {params, limit, skip, sort});
+    Logging.traceEnd('CompanyStorage', 'getCompanies', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
       count: (companiesCountMDB.length > 0 ? companiesCountMDB[0].count : 0),
@@ -264,7 +264,7 @@ class CompanyStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Sites
-    const sites = await SiteStorage.getSites(tenantID, {'companyID': id});
+    const sites = await SiteStorage.getSites(tenantID, { 'companyID': id });
     // Delete
     for (const site of sites.result) {
       //	Delete Site
@@ -272,12 +272,12 @@ class CompanyStorage {
     }
     // Delete the Company
     await global.database.getCollection(tenantID, 'companies')
-      .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
+      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Delete Logo
     await global.database.getCollection(tenantID, 'companylogos')
-      .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
+      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd('CompanyStorage', 'deleteCompany', uniqueTimerID, {id});
+    Logging.traceEnd('CompanyStorage', 'deleteCompany', uniqueTimerID, { id });
   }
 }
 
