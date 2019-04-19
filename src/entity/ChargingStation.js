@@ -1,6 +1,7 @@
 const AbstractTenantEntity = require('./AbstractTenantEntity');
 const ChargingStationClient = require('../client/ocpp/ChargingStationClient');
 const Logging = require('../utils/Logging');
+const Utils = require('../utils/Utils');
 const User = require('./User');
 const Transaction = require('./Transaction');
 const SiteArea = require('./SiteArea');
@@ -10,6 +11,7 @@ const BackendError = require('../exception/BackendError');
 const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
 const OCPPStorage = require('../storage/mongodb/OCPPStorage');
 const OCPPUtils = require('../server/ocpp/utils/OCPPUtils');
+const OCPPConstants = require('../server/ocpp/utils/OCPPConstants');
 const SiteAreaStorage = require('../storage/mongodb/SiteAreaStorage');
 const moment = require('moment-timezone');
 const momentDurationFormatSetup = require("moment-duration-format");
@@ -22,7 +24,6 @@ momentDurationFormatSetup(moment);
 class ChargingStation extends AbstractTenantEntity {
   constructor(tenantID, chargingStation) {
     super(tenantID);
-    // Set it
     Database.updateChargingStation(chargingStation, this._model);
   }
 
@@ -47,57 +48,12 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   handleAction(action, params = {}) {
-    // Handle Client Requests
-    switch (action) {
-      // Reset
-      case 'Reset':
-        return this.requestReset(params);
-
-      // Clear cache
-      case 'ClearCache':
-        return this.requestClearCache();
-
-      // Get Configuration
-      case 'GetConfiguration':
-        return this.requestGetConfiguration(params);
-
-      // Set Configuration
-      case 'ChangeConfiguration':
-        // Change the config
-        return this.requestChangeConfiguration(params);
-
-      // Unlock Connector
-      case 'UnlockConnector':
-        return this.requestUnlockConnector(params);
-
-      // Start Transaction
-      case 'StartTransaction':
-        return this.requestStartTransaction(params);
-
-      // Stop Transaction
-      case 'StopTransaction':
-        return this.requestStopTransaction(params);
-
-      case 'SetChargingProfile':
-        return this.requestSetChargingProfile(params);
-      case 'GetCompositeSchedule':
-        return this.requestGetCompositeSchedule(params);
-
-      case 'GetDiagnostics':
-        return this.requestGetDiagnostics(params);
-
-      case 'UpdateFirmware':
-        return this.requestUpdateFirmware(params);
-
-      case 'ChangeAvailability':
-        return this.requestChangeAvailability(params);
-
-      case 'ClearChargingProfile':
-        return this.requestClearChargingProfile(params);
-
-      // Not Exists!
-      default:
-        throw new BackendError(this.getID(), `Unhandled action ${action}`, "ChargingStation", "handleAction");
+    // Handle requests to charger
+    if (typeof this["request" + action] === 'function') {
+      // Call it
+      return this["request" + action](params);
+    } else {
+      throw new BackendError(this.getID(), `Action '${action}' is not implemented in the backend`, "ChargingStation", "handleAction");
     }
   }
 
@@ -417,11 +373,9 @@ class ChargingStation extends AbstractTenantEntity {
       configuration = await this.requestGetConfiguration({});
       // Log
       Logging.logInfo({
-        tenantID: this.getTenantID(),
-        source: this.getID(), module: 'ChargingStation',
+        tenantID: this.getTenantID(), source: this.getID(), module: 'ChargingStation',
         method: 'requestAndSaveConfiguration', action: 'RequestConfiguration',
-        message: `Command sent with success`,
-        detailedMessages: configuration
+        message: `Command sent with success`, detailedMessages: configuration
       });
       // Override with Conf
       configuration = {
@@ -437,53 +391,7 @@ class ChargingStation extends AbstractTenantEntity {
       const existingConfiguration = await this.getConfiguration();
       if (!existingConfiguration) {
         // No config at all: Set default OCCP configuration
-        configuration = {
-          'configuration': [
-            {'key': 'AllowOfflineTxForUnknownId', 'readonly': false, 'value': null},
-            {'key': 'AuthorizationCacheEnabled', 'readonly': false, 'value': null},
-            {'key': 'AuthorizeRemoteTxRequests', 'readonly': false, 'value': null},
-            {'key': 'BlinkRepeat', 'readonly': false, 'value': null},
-            {'key': 'ClockAlignedDataInterval', 'readonly': false, 'value': null},
-            {'key': 'ConnectionTimeOut', 'readonly': false, 'value': null},
-            {'key': 'GetConfigurationMaxKeys', 'readonly': false, 'value': null},
-            {'key': 'HeartbeatInterval', 'readonly': false, 'value': null},
-            {'key': 'LightIntensity', 'readonly': false, 'value': null},
-            {'key': 'LocalAuthorizeOffline', 'readonly': false, 'value': null},
-            {'key': 'LocalPreAuthorize', 'readonly': false, 'value': null},
-            {'key': 'MaxEnergyOnInvalidId', 'readonly': false, 'value': null},
-            {'key': 'MeterValuesAlignedData', 'readonly': false, 'value': null},
-            {'key': 'MeterValuesAlignedDataMaxLength', 'readonly': false, 'value': null},
-            {'key': 'MeterValuesSampledData', 'readonly': false, 'value': null},
-            {'key': 'MeterValuesSampledDataMaxLength', 'readonly': false, 'value': null},
-            {'key': 'MeterValueSampleInterval', 'readonly': false, 'value': null},
-            {'key': 'MinimumStatusDuration', 'readonly': false, 'value': null},
-            {'key': 'NumberOfConnectors', 'readonly': false, 'value': null},
-            {'key': 'ResetRetries', 'readonly': false, 'value': null},
-            {'key': 'ConnectorPhaseRotation', 'readonly': false, 'value': null},
-            {'key': 'ConnectorPhaseRotationMaxLength', 'readonly': false, 'value': null},
-            {'key': 'StopTransactionOnEVSideDisconnect', 'readonly': false, 'value': null},
-            {'key': 'StopTransactionOnInvalidId', 'readonly': false, 'value': null},
-            {'key': 'StopTxnAlignedData', 'readonly': false, 'value': null},
-            {'key': 'StopTxnAlignedDataMaxLength', 'readonly': false, 'value': null},
-            {'key': 'StopTxnSampledData', 'readonly': false, 'value': null},
-            {'key': 'StopTxnSampledDataMaxLength', 'readonly': false, 'value': null},
-            {'key': 'SupportedFeatureProfiles', 'readonly': false, 'value': null},
-            {'key': 'SupportedFeatureProfilesMaxLength', 'readonly': false, 'value': null},
-            {'key': 'TransactionMessageAttempts', 'readonly': false, 'value': null},
-            {'key': 'TransactionMessageRetryInterval', 'readonly': false, 'value': null},
-            {'key': 'UnlockConnectorOnEVSideDisconnect', 'readonly': false, 'value': null},
-            {'key': 'WebSocketPingInterval', 'readonly': false, 'value': null},
-            {'key': 'LocalAuthListEnabled', 'readonly': false, 'value': null},
-            {'key': 'LocalAuthListMaxLength', 'readonly': false, 'value': null},
-            {'key': 'SendLocalListMaxLength', 'readonly': false, 'value': null},
-            {'key': 'ReserveConnectorZeroSupported', 'readonly': false, 'value': null},
-            {'key': 'ChargeProfileMaxStackLevel', 'readonly': false, 'value': null},
-            {'key': 'ChargingScheduleAllowedChargingRateUnit', 'readonly': false, 'value': null},
-            {'key': 'ChargingScheduleMaxPeriods', 'readonly': false, 'value': null},
-            {'key': 'ConnectorSwitch3to1PhaseSupported', 'readonly': false, 'value': null},
-            {'key': 'MaxChargingProfilesInstalled', 'readonly': false, 'value': null}
-          ]
-        };
+        configuration = OCPPConstants.DEFAULT_OCPP_CONFIGURATION;
       } else {
         // Set default
         configuration = existingConfiguration;
@@ -498,13 +406,12 @@ class ChargingStation extends AbstractTenantEntity {
     await OCPPUtils.updateConnectorsPower(this);
     // Ok
     Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation',
+      tenantID: this.getTenantID(), source: this.getID(), module: 'ChargingStation',
       method: 'requestAndSaveConfiguration', action: 'RequestConfiguration',
       message: `Configuration has been saved`
     });
     // Ok
-    return {status: 'Accepted'};
+    return { status: 'Accepted' };
   }
 
   setDeleted(deleted) {
@@ -557,145 +464,69 @@ class ChargingStation extends AbstractTenantEntity {
     return this.company;
   }
 
-  // Restart the charger
-  async requestReset(params) {
-    // Get the client
-    const chargingStationClient = await this.getChargingStationClient();
-    // Restart
-    const result = await chargingStationClient.reset(params);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation',
-      method: 'requestReset', action: 'Reset',
-      message: `Command sent with success`,
-      detailedMessages: result
-    });
-    // Return
-    return result;
+  async checkAndFreeConnector(connectorId, saveOtherConnectors = false) {
+    // Cleanup connector transaction data
+    this.cleanupConnectorTransactionInfo(connectorId);
+    // Check if Charger can charge in //
+    if (!this.canChargeInParallel()) {
+      // Set all the other connectors to Available
+      this.getConnectors().forEach(async (connector) => {
+        // Only other Occupied connectors
+        if ((connector.status === Constants.CONN_STATUS_OCCUPIED ||
+             connector.status === Constants.CONN_STATUS_UNAVAILABLE) &&
+            connector.connectorId !== connectorId) {
+          // Set connector Available again
+          connector.status = Constants.CONN_STATUS_AVAILABLE;
+          // Save other updated connectors?
+          if (saveOtherConnectors) {
+            await this.saveChargingStationConnector(connector.connectorId);
+          }
+        }
+      });
+    }
   }
 
-  // Stop Transaction
-  async requestStopTransaction(params) {
-    // Get the client
-    const chargingStationClient = await this.getChargingStationClient();
-    // Stop Transaction
-    const result = await chargingStationClient.remoteStopTransaction(params);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation',
-      method: 'requestStopTransaction', action: 'StopTransaction',
-      message: `Command sent with success`,
-      detailedMessages: result
-    });
-    // Return
-    return result;
+  cleanupConnectorTransactionInfo(connectorId) {
+    const connector = this.getConnector(connectorId);
+    // Clear
+    if (connector) {
+      connector.currentConsumption = 0;
+      connector.totalConsumption = 0;
+      connector.currentStateOfCharge = 0;
+      connector.activeTransactionID = 0;
+    }
   }
 
-  // Start Transaction
-  async requestStartTransaction(params) {
-    // Get the client
-    const chargingStationClient = await this.getChargingStationClient();
-    // Start Transaction
-    const result = await chargingStationClient.startTransaction(params);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation',
-      method: 'requestStartTransaction', action: 'StartTransaction',
-      message: `Command sent with success`,
-      detailedMessages: result
-    });
-    // Return
-    return result;
+  requestReset(params) {
+    return this._requestExecuteCommand('reset', params);
   }
 
-  // Set Charging Profile
-  async requestSetChargingProfile(params) {
-    // Get the client
-    const chargingStationClient = await this.getChargingStationClient();
-    // Set Charging Profile
-    const result = await chargingStationClient.setChargingProfile(params);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation',
-      method: 'requestSetChargingProfile', action: 'SetChargingProfile',
-      message: `Command sent with success`,
-      detailedMessages: result
-    });
-    // Return
-    return result;
+  requestStopTransaction(params) {
+    return this._requestExecuteCommand('remoteStopTransaction', params);
   }
 
-  // Clear Profiles
-  async requestClearChargingProfile(params) {
-    // Get the client
-    const chargingStationClient = await this.getChargingStationClient();
-    // Clear Profiles
-    const result = await chargingStationClient.clearChargingProfile(params);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation',
-      method: 'requestClearChargingProfiles', action: 'ClearChargingProfile',
-      message: `Command sent with success`,
-      detailedMessages: result
-    });
-    // Return
-    return result;
+  requestStartTransaction(params) {
+    return this._requestExecuteCommand('startTransaction', params);
   }
 
-  async requestGetDiagnostics(params) {
-    // Get the client
-    const chargingStationClient = await this.getChargingStationClient();
-    // Get Diagnostics
-    const result = await chargingStationClient.getDiagnostics(params);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation',
-      method: 'requestGetDiagnostics', action: 'GetDiagnostics',
-      message: `Command sent with success`,
-      detailedMessages: result
-    });
-    // Return
-    return result;
+  requestSetChargingProfile(params) {
+    return this._requestExecuteCommand('setChargingProfile', params);
   }
 
-  async requestUpdateFirmware(params) {
-    // Get the client
-    const chargingStationClient = await this.getChargingStationClient();
-    // Update Firmware
-    const result = await chargingStationClient.updateFirmware(params);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation',
-      method: 'requestUpdateFirmware', action: 'UpdateFirmware',
-      message: `Command sent with success`,
-      detailedMessages: result
-    });
-    // Return
-    return result;
+  requestClearChargingProfile(params) {
+    return this._requestExecuteCommand('clearChargingProfile', params);
   }
 
-  async requestChangeAvailability(params) {
-    // Get the client
-    const chargingStationClient = await this.getChargingStationClient();
-    // Change Availibility
-    const result = await chargingStationClient.changeAvailability(params);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation',
-      method: 'requestChangeAvailability', action: 'ChangeAvailability',
-      message: `Command sent with success`,
-      detailedMessages: result
-    });
-    // Return
-    return result;
+  requestGetDiagnostics(params) {
+    return this._requestExecuteCommand('getDiagnostics', params);
+  }
+
+  requestUpdateFirmware(params) {
+    return this._requestExecuteCommand('updateFirmware', params);
+  }
+
+  requestChangeAvailability(params) {
+    return this._requestExecuteCommand('changeAvailability', params);
   }
 
   async requestGenericOCPPCommand(commandName, params) {
@@ -705,107 +536,55 @@ class ChargingStation extends AbstractTenantEntity {
     const result = await chargingStationClient.genericOCPPCommand(commandName, params);
     // Log
     Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation',
-      method: 'requestGenericOCPPCommand', action: 'GenericOCPPCommand',
-      message: `Command sent with success`,
-      detailedMessages: result
+      tenantID: this.getTenantID(), source: this.getID(),
+      module: 'ChargingStation', method: 'requestGenericOCPPCommand', action: 'GenericOCPPCommand',
+      message: `Command sent with success`, detailedMessages: result
     });
     // Return
     return result;
   }
 
-  // Retrieve Composite Schedule (Charging power limitation)
-  async requestGetCompositeSchedule(params) {
-    // Get the client
-    const chargingStationClient = await this.getChargingStationClient();
-    // Set Charging Profile
-    const result = await chargingStationClient.getCompositeSchedule(params);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation',
-      method: 'requestSetChargingProfile', action: 'SetChargingProfile',
-      message: `Command sent with success`,
-      detailedMessages: result
-    });
-    // Return
-    return result;
+  requestGetCompositeSchedule(params) {
+    return this._requestExecuteCommand('getCompositeSchedule', params);
   }
 
-  // Clear the cache
-  async requestClearCache() {
-    // Get the client
-    const chargingStationClient = await this.getChargingStationClient();
-    // Clear
-    const result = await chargingStationClient.clearCache();
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation',
-      method: 'requestClearCache', action: 'ClearCache',
-      message: `Command sent with success`,
-      detailedMessages: result
-    });
-    // Return
-    return result;
+  requestClearCache() {
+    return this._requestExecuteCommand('clearCache', params);
   }
 
-  // Get the configuration for the EVSE
-  async requestGetConfiguration(params) {
-    // Get the client
-    const chargingStationClient = await this.getChargingStationClient();
-    // Get config
-    const result = await chargingStationClient.getConfiguration(params);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation',
-      method: 'requestGetConfiguration', action: 'GetConfiguration',
-      message: `Command sent with success`,
-      detailedMessages: result
-    });
-    // Return
-    return result;
+  requestGetConfiguration(params) {
+    return this._requestExecuteCommand('getConfiguration', params);
   }
 
-  // Get the configuration for the EVSE
   async requestChangeConfiguration(params) {
-    // Get the client
-    const chargingStationClient = await this.getChargingStationClient();
-    // Get config
-    const result = await chargingStationClient.changeConfiguration(params);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation',
-      method: 'requestChangeConfiguration', action: 'ChangeConfiguration',
-      message: `Command sent with success`,
-      detailedMessages: result
-    });
+    const result = await this._requestExecuteCommand('changeConfiguration', params);
     // Request the new Configuration?
     if (result.status !== 'Accepted') {
       // Error
       throw new BackendError(this.getID(), `Cannot set the configuration param ${params.key} with value ${params.value} to ${this.getID()}`,
         "ChargingStation", "requestChangeConfiguration");
     }
-    // Update
+    // Retrieve and Save it in the DB
     await this.requestAndSaveConfiguration();
     // Return
     return result;
   }
 
   // Unlock connector
-  async requestUnlockConnector(params) {
+  requestUnlockConnector(params) {
+    return this._requestExecuteCommand('unlockConnector', params);
+  }
+
+  async _requestExecuteCommand(method, params) {
     // Get the client
     const chargingStationClient = await this.getChargingStationClient();
-    // Get config
-    const result = await chargingStationClient.unlockConnector(params);
+    // Set Charging Profile
+    const result = await chargingStationClient[method](params);
     // Log
     Logging.logInfo({
-      tenantID: this.getTenantID(),
-      source: this.getID(), module: 'ChargingStation',
-      method: 'requestUnlockConnector', action: 'UnlockConnector',
+      tenantID: this.getTenantID(), source: this.getID(),
+      module: 'ChargingStation', method: '_requestCommand',
+      action: Utils.firstLetterInUpperCase(method),
       message: `Command sent with success`,
       detailedMessages: result
     });

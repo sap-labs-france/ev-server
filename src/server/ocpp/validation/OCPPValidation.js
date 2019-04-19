@@ -1,4 +1,5 @@
 const Utils = require('../../../utils/Utils');
+const Constants = require('../../../utils/Constants');
 const BackendError = require('../../../exception/BackendError');
 const Logging = require('../../../utils/Logging');
 
@@ -36,23 +37,29 @@ class OCPPValidation {
       // BUG EBEE: Timestamp is mandatory according OCPP
       throw new BackendError(chargingStation.getID(),
         `The 'timestamp' property has not been provided`,
-        "OCPPValidation", "validateStartTransaction", "StartTransaction");
+        "OCPPValidation", "validateStartTransaction", Constants.ACTION_START_TRANSACTION);
     }
     // Check the meter start
     if (!startTransaction.hasOwnProperty("meterStart")) {
       // BUG EBEE: MeterStart is mandatory according OCPP
       throw new BackendError(chargingStation.getID(),
         `The 'meterStart' property has not been provided`,
-        "OCPPValidation", "validateStartTransaction", "StartTransaction");
+        "OCPPValidation", "validateStartTransaction", Constants.ACTION_START_TRANSACTION);
     }
     // Check Tag ID
     if (!startTransaction.idTag) {
       throw new BackendError(chargingStation.getID(),
         `The 'idTag' property has not been provided`,
-        "OCPPValidation", "validateStartTransaction", "StartTransaction");
+        "OCPPValidation", "validateStartTransaction", Constants.ACTION_START_TRANSACTION);
     }
     // Always integer
     startTransaction.connectorId = Utils.convertToInt(startTransaction.connectorId);
+    // Check Connector ID
+    if (!chargingStation.getConnector(startTransaction.connectorId)) {
+      throw new BackendError(chargingStation.getID(),
+        `The Connector ID '${startTransaction.connectorId}' is invalid`,
+        'OCPPService', 'handleStartTransaction', Constants.ACTION_START_TRANSACTION);
+    }
   }
 
   static validateDataTransfer(chargingStation, dataTransfer) {

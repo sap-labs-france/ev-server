@@ -5,6 +5,7 @@ const BackendError = require('../../exception/BackendError');
 const Configuration = require('../../utils/Configuration');
 const Logging = require('../../utils/Logging');
 const Utils = require('../../utils/Utils');
+const Constants = require('../../utils/Constants');
 const NotificationTask = require('../NotificationTask');
 
 require('source-map-support').install();
@@ -88,6 +89,11 @@ class EMailNotificationTask extends NotificationTask {
   }
 
   async _prepareAndSendEmail(templateName, data, locale, tenantID) {
+    // Check locale
+    if (!locale) {
+      // Default
+      locale = Constants.DEFAULT_LOCALE;
+    }
     // Check users
     if (!data.user && !data.users && !data.adminUsers) {
       // Error

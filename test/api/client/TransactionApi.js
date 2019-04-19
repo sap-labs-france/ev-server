@@ -1,7 +1,9 @@
 const CrudApi = require('./utils/CrudApi');
 const Constants = require('./utils/Constants');
 const moment = require('moment');
-const {expect} = require('chai');
+const {
+  expect
+} = require('chai');
 
 class TransactionApi extends CrudApi {
   constructor(authenticatedApi) {
@@ -36,7 +38,7 @@ class TransactionApi extends CrudApi {
     return super.delete('/client/api/TransactionDelete', id);
   }
 
-  async startTransaction(ocpp, chargingStation, chargingStationConnector, user, meterStart, startTime) {
+  async startTransaction(ocpp, chargingStation, chargingStationConnector, user, meterStart, startTime, withSoC = false) {
     // Start the transaction
     let response = await ocpp.executeStartTransaction(chargingStation.id, {
       connectorId: chargingStationConnector.connectorId,
@@ -51,7 +53,6 @@ class TransactionApi extends CrudApi {
     expect(response.data.transactionId).to.not.equal(0);
     // Keep it
     let transactionId = response.data.transactionId;
-
     // Set Connector Status to Occupied
     chargingStationConnector.status = 'Occupied';
     chargingStationConnector.timestamp = new Date().toISOString();
@@ -68,11 +69,18 @@ class TransactionApi extends CrudApi {
       id: transactionId,
       timestamp: startTime.toISOString(),
       connectorId: chargingStationConnector.connectorId,
+      currentConsumption: 0,
+      currentCumulatedPrice: 0,
+      currentStateOfCharge: 0,
+      currentTotalConsumption: 0,
+      currentTotalInactivitySecs: 0,
+      isLoading: false,
+      meterStart: meterStart,
+      price: 0,
+      roundedPrice: 0,
       tagID: user.tagIDs[0],
       chargeBoxID: chargingStation.id,
-      currentConsumption: 0,
-      currentTotalConsumption: 0,
-      meterStart: meterStart,
+      stateOfCharge: 0,
       user: {
         id: user.id,
         firstName: user.firstName,
@@ -142,10 +150,189 @@ class TransactionApi extends CrudApi {
         firstName: user.firstName,
         name: user.name,
       }
-    })
+    });
   }
 
-  async stopTransaction(ocpp, transaction, userStart, userStop, meterStop, stopTime, chargingStationConnector, totalConsumption, totalInactivity, totalPrice) {
+  async sendBeginMeterValue(ocpp, transaction, chargingStation, user,
+    meterValue, meterSocValue, currentTime, withSoC = false) {
+    let response;
+    // OCPP 1.6?
+    if (ocpp.getVersion() === "1.6") {
+      // Yes
+      if (withSoC) {
+        response = await ocpp.executeMeterValues(chargingStation.id, {
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          meterValue: {
+            timestamp: currentTime.toISOString(),
+            sampledValue: [{
+              "unit": "Wh",
+              "context": "Transaction.Begin",
+              "value": meterValue
+            }, {
+              "unit": "Percent",
+              "context": "Transaction.Begin",
+              "measurand": "SoC",
+              "location": "EV",
+              "value": meterSocValue
+            }]
+          },
+        });
+      } else {
+        response = await ocpp.executeMeterValues(chargingStation.id, {
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          meterValue: {
+            timestamp: currentTime.toISOString(),
+            sampledValue: [{
+              "unit": "Wh",
+              "context": "Transaction.Begin",
+              "value": meterValue
+            }]
+          },
+        });
+      }
+      // Check
+      expect(response.data).to.eql({});
+      // Check the Transaction
+      response = await this.readById(transaction.id);
+      // Check Consumption
+      expect(response.status).to.equal(200);
+      expect(response.data).to.deep.include({
+        id: transaction.id,
+        timestamp: transaction.timestamp,
+        connectorId: transaction.connectorId,
+        tagID: transaction.tagID,
+        chargeBoxID: transaction.chargeBoxID,
+        meterStart: transaction.meterStart,
+        stateOfCharge: meterSocValue,
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          name: user.name,
+        }
+      });
+    }
+  }
+
+  async sendTransactionWithSoCMeterValue(ocpp, transaction, chargingStation, user,
+    meterValue, meterSocValue, currentTime, currentConsumption, totalConsumption) {
+    let response;
+    // OCPP 1.6?
+    if (ocpp.getVersion() === "1.6") {
+      // Yes
+      response = await ocpp.executeMeterValues(chargingStation.id, {
+        connectorId: transaction.connectorId,
+        transactionId: transaction.id,
+        meterValue: {
+          timestamp: currentTime.toISOString(),
+          sampledValue: [{
+            "unit": "Wh",
+            "context": "Sample.Periodic",
+            "value": meterValue
+          }, {
+            "unit": "Percent",
+            "context": "Sample.Periodic",
+            "measurand": "SoC",
+            "location": "EV",
+            "value": meterSocValue
+          }]
+        },
+      });
+      // Check
+      expect(response.data).to.eql({});
+      // Check the Transaction
+      response = await this.readById(transaction.id);
+      // Check Consumption
+      expect(response.status).to.equal(200);
+      expect(response.data).to.deep.include({
+        id: transaction.id,
+        timestamp: transaction.timestamp,
+        connectorId: transaction.connectorId,
+        tagID: transaction.tagID,
+        chargeBoxID: transaction.chargeBoxID,
+        meterStart: transaction.meterStart,
+        currentConsumption: currentConsumption,
+        currentTotalConsumption: totalConsumption,
+        currentStateOfCharge: meterSocValue,
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          name: user.name,
+        }
+      })
+    }
+  }
+
+  async sendEndMeterValue(ocpp, transaction, chargingStation, user,
+    meterValue, meterSocValue, currentTime, withSoC = false) {
+    let response;
+    // OCPP 1.6?
+    if (ocpp.getVersion() === "1.6") {
+      if (withSoC) {
+        response = await ocpp.executeMeterValues(chargingStation.id, {
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          meterValue: {
+            timestamp: currentTime.toISOString(),
+            sampledValue: [{
+              "unit": "Wh",
+              "context": "Transaction.End",
+              "value": meterValue
+            }, {
+              "unit": "Percent",
+              "context": "Transaction.End",
+              "measurand": "SoC",
+              "location": "EV",
+              "value": meterSocValue
+            }]
+          },
+        });
+      } else {
+        response = await ocpp.executeMeterValues(chargingStation.id, {
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          meterValue: {
+            timestamp: currentTime.toISOString(),
+            sampledValue: [{
+              "unit": "Wh",
+              "context": "Transaction.End",
+              "value": meterValue
+            }]
+          },
+        });
+      }
+      // Check
+      expect(response.data).to.eql({});
+      // Check the Transaction
+      response = await this.readById(transaction.id);
+      // Check Consumption
+      expect(response.status).to.equal(200);
+      expect(response.data).to.deep.include({
+        id: transaction.id,
+        timestamp: transaction.timestamp,
+        connectorId: transaction.connectorId,
+        tagID: transaction.tagID,
+        chargeBoxID: transaction.chargeBoxID,
+        meterStart: transaction.meterStart,
+        stateOfCharge: transaction.stateOfCharge,
+        stateOfCharge: transaction.stateOfCharge,
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          name: user.name,
+        }
+      });
+      if (withSoC) {
+        expect(response.data).to.deep.include({
+          currentStateOfCharge: meterSocValue
+        });
+      }
+    }
+  }
+
+  async stopTransaction(ocpp, transaction, userStart, userStop, meterStop, stopTime, 
+      chargingStationConnector, totalConsumption, totalInactivity, totalPrice, stateOfCharge) {
     // Stop the transaction
     let response = await ocpp.executeStopTransaction(transaction.chargeBoxID, {
       transactionId: transaction.id,
@@ -172,10 +359,12 @@ class TransactionApi extends CrudApi {
     expect(response.data).to.deep.include({
       id: transaction.id,
       timestamp: transaction.timestamp,
+      chargeBoxID: transaction.chargeBoxID,
       connectorId: transaction.connectorId,
       tagID: transaction.tagID,
-      chargeBoxID: transaction.chargeBoxID,
+      isLoading: false,
       meterStart: transaction.meterStart,
+      stateOfCharge: transaction.stateOfCharge,
       stop: {
         meterStop: meterStop,
         totalConsumption: totalConsumption,
@@ -184,8 +373,8 @@ class TransactionApi extends CrudApi {
         price: totalPrice,
         priceUnit: 'EUR',
         pricingSource: 'simple',
-        roundedPrice: totalPrice.toFixed(2),
-        stateOfCharge: 0,
+        roundedPrice: parseFloat(totalPrice.toFixed(2)),
+        stateOfCharge: stateOfCharge,
         tagID: userStop.tagIDs[0],
         timestamp: stopTime.toISOString(),
         user: {

@@ -296,6 +296,14 @@ class Utils {
     return recordLimit;
   }
 
+  static roundTo(number, scale) {
+    return parseFloat(number.toFixed(scale));
+  }
+
+  static firstLetterInUpperCase(value) {
+    return value[0].toUpperCase() + value.substring(1);
+  }
+
   static checkRecordSkip(recordSkip) {
     // String?
     if (typeof recordSkip == "string") {

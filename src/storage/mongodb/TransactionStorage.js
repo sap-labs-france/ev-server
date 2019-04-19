@@ -50,30 +50,6 @@ class TransactionStorage {
     return new Transaction(tenantID, result.value);
   }
 
-  static async saveMeterValues(tenantID, meterValuesToSave) {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'saveMeterValues');
-    // Check
-    await Utils.checkTenant(tenantID);
-    const meterValuesMDB = [];
-    // Save all
-    for (const meterValueToSave of meterValuesToSave.values) {
-      const meterValue = {};
-      // Id
-      meterValue._id = crypto.createHash('sha256')
-        .update(`${meterValueToSave.chargeBoxID}~${meterValueToSave.connectorId}~${meterValueToSave.timestamp}~${meterValueToSave.value}~${JSON.stringify(meterValueToSave.attribute)}`)
-        .digest("hex");
-      // Set
-      Database.updateMeterValue(meterValueToSave, meterValue, false);
-      // Add
-      meterValuesMDB.push(meterValue);
-    }
-    // Execute
-    await global.database.getCollection(tenantID, 'metervalues').insertMany(meterValuesMDB);
-    // Debug
-    Logging.traceEnd('TransactionStorage', 'saveMeterValues', uniqueTimerID, { meterValuesToSave });
-  }
-
   static async getTransactionYears(tenantID) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactionYears');
@@ -592,47 +568,6 @@ class TransactionStorage {
       return new Transaction(tenantID, transactionsMDB[0]);
     }
     return null;
-  }
-
-  /**
-   *
-   * @param tenantID
-   * @param transactionID
-   * @returns {Promise<Array>}
-   */
-  static async getMeterValues(tenantID, transactionID) {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getMeterValues');
-    // Check
-    await Utils.checkTenant(tenantID);
-    // Create Aggregation
-    const aggregation = [];
-    // Filters
-    aggregation.push({
-      $match: { transactionId: Utils.convertToInt(transactionID) }
-    });
-    // Read DB
-    const meterValuesMDB = await global.database.getCollection(tenantID, 'metervalues')
-      .aggregate(aggregation)
-      .toArray();
-    // Convert to date
-    for (const meterValueMDB of meterValuesMDB) {
-      meterValueMDB.timestamp = new Date(meterValueMDB.timestamp);
-    }
-    // Sort
-    meterValuesMDB.sort((meterValue1, meterValue2) => meterValue1.timestamp.getTime() - meterValue2.timestamp.getTime());
-    // Create
-    const meterValues = [];
-    for (const meterValueMDB of meterValuesMDB) {
-      const meterValue = {};
-      // Copy
-      Database.updateMeterValue(meterValueMDB, meterValue);
-      // Add
-      meterValues.push(meterValue);
-    }
-    // Debug
-    Logging.traceEnd('TransactionStorage', 'getMeterValues', uniqueTimerID, { transactionID });
-    return meterValues;
   }
 
   static async getActiveTransaction(tenantID, chargeBoxID, connectorId) {
