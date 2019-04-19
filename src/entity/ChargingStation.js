@@ -549,7 +549,7 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   requestClearCache() {
-    return this._requestExecuteCommand('clearCache', params);
+    return this._requestExecuteCommand('clearCache');
   }
 
   requestGetConfiguration(params) {
