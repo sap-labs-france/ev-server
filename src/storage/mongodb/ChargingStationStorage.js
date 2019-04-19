@@ -512,13 +512,13 @@ class ChargingStationStorage {
         { $addFields: { "errorCode": "missingSettings" } }
         ];
       case 'connectionBroken':
-        {
-          const inactiveDate = new Date(new Date().getTime() - 3 * 60 * 1000);
-          return [
-            { $match: { "lastHeartBeat": { $lte: inactiveDate } } },
-            { $addFields: { "errorCode": "connectionBroken" } }
-          ];
-        }
+      {
+        const inactiveDate = new Date(new Date().getTime() - 3 * 60 * 1000);
+        return [
+          { $match: { "lastHeartBeat": { $lte: inactiveDate } } },
+          { $addFields: { "errorCode": "connectionBroken" } }
+        ];
+      }
       case 'connectorError':
         return [
           { $match: { $or: [{ "connectors.errorCode": { $ne: "NoError" } }, { "connectors.status": { $eq: "Faulted" } }] } },
@@ -556,12 +556,12 @@ class ChargingStationStorage {
     const result = await global.database.getCollection(tenantID, 'chargingstations').findOneAndUpdate({
       "_id": chargingStationToSave.id
     }, {
-        $set: chargingStation
-      }, {
-        upsert: true,
-        new: true,
-        returnOriginal: false
-      });
+      $set: chargingStation
+    }, {
+      upsert: true,
+      new: true,
+      returnOriginal: false
+    });
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStation', uniqueTimerID);
     return new ChargingStation(tenantID, result.value);
@@ -579,12 +579,12 @@ class ChargingStationStorage {
     const result = await global.database.getCollection(tenantID, 'chargingstations').findOneAndUpdate({
       "_id": chargingStation.id
     }, {
-        $set: updatedFields
-      }, {
-        upsert: true,
-        new: true,
-        returnOriginal: false
-      });
+      $set: updatedFields
+    }, {
+      upsert: true,
+      new: true,
+      returnOriginal: false
+    });
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStationConnector', uniqueTimerID);
     return new ChargingStation(tenantID, result.value);
@@ -602,12 +602,12 @@ class ChargingStationStorage {
     const result = await global.database.getCollection(tenantID, 'chargingstations').findOneAndUpdate({
       "_id": chargingStation.id
     }, {
-        $set: updatedFields
-      }, {
-        upsert: true,
-        new: true,
-        returnOriginal: false
-      });
+      $set: updatedFields
+    }, {
+      upsert: true,
+      new: true,
+      returnOriginal: false
+    });
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStationHeartBeat', uniqueTimerID);
     return new ChargingStation(tenantID, result.value);
@@ -631,12 +631,12 @@ class ChargingStationStorage {
     const result = await global.database.getCollection(tenantID, 'chargingstations').findOneAndUpdate({
       "_id": chargingStation.id
     }, {
-        $set: updatedFields
-      }, {
-        upsert: true,
-        new: true,
-        returnOriginal: false
-      });
+      $set: updatedFields
+    }, {
+      upsert: true,
+      new: true,
+      returnOriginal: false
+    });
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStationSiteArea', uniqueTimerID);
     // Create
@@ -736,14 +736,14 @@ class ChargingStationStorage {
           }
           ]
         }, {
-            $set: {
-              siteAreaID: null
-            }
-          }, {
-            upsert: false,
-            new: true,
-            returnOriginal: false
-          });
+          $set: {
+            siteAreaID: null
+          }
+        }, {
+          upsert: false,
+          new: true,
+          returnOriginal: false
+        });
       }
     }
     // Debug
@@ -774,14 +774,14 @@ class ChargingStationStorage {
           }
           ]
         }, {
-            $set: {
-              siteAreaID: Utils.convertToObjectID(siteAreaID)
-            }
-          }, {
-            upsert: false,
-            new: true,
-            returnOriginal: false
-          });
+          $set: {
+            siteAreaID: Utils.convertToObjectID(siteAreaID)
+          }
+        }, {
+          upsert: false,
+          new: true,
+          returnOriginal: false
+        });
       }
     }
     // Debug

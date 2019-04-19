@@ -143,15 +143,15 @@ class OCPPStorage {
     await global.database.getCollection(tenantID, 'configurations').findOneAndUpdate({
       "_id": configuration.chargeBoxID
     }, {
-        $set: {
-          configuration: configuration.configuration,
-          timestamp: Utils.convertToDate(configuration.timestamp)
-        }
-      }, {
-        upsert: true,
-        new: true,
-        returnOriginal: false
-      });
+      $set: {
+        configuration: configuration.configuration,
+        timestamp: Utils.convertToDate(configuration.timestamp)
+      }
+    }, {
+      upsert: true,
+      new: true,
+      returnOriginal: false
+    });
     // Debug
     Logging.traceEnd('OCPPStorage', 'saveConfiguration', uniqueTimerID);
   }
@@ -358,14 +358,14 @@ class OCPPStorage {
           }
           ]
         }, {
-            $set: {
-              siteAreaID: null
-            }
-          }, {
-            upsert: false,
-            new: true,
-            returnOriginal: false
-          });
+          $set: {
+            siteAreaID: null
+          }
+        }, {
+          upsert: false,
+          new: true,
+          returnOriginal: false
+        });
       }
     }
     // Debug
@@ -396,14 +396,14 @@ class OCPPStorage {
           }
           ]
         }, {
-            $set: {
-              siteAreaID: Utils.convertToObjectID(siteAreaID)
-            }
-          }, {
-            upsert: false,
-            new: true,
-            returnOriginal: false
-          });
+          $set: {
+            siteAreaID: Utils.convertToObjectID(siteAreaID)
+          }
+        }, {
+          upsert: false,
+          new: true,
+          returnOriginal: false
+        });
       }
     }
     // Debug
