@@ -8,10 +8,19 @@ const Site = require('../../../entity/Site');
 const Company = require('../../../entity/Company');
 const User = require('../../../entity/User');
 const SiteSecurity = require('./security/SiteSecurity');
-
+const UtilsService = require('./UtilsService');
+const OrganizationComponentInactiveError = require ('../../../exception/OrganizationComponentInactiveError');
 class SiteService {
   static async handleAddUsersToSite(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_SITE,
+          560, 'SiteService', 'handleAddUsersToSite');
+      }
+
       // Filter
       const filteredRequest = SiteSecurity.filterAddUsersToSiteRequest(req.body, req.user);
       // Check Mandatory fields
@@ -87,6 +96,14 @@ class SiteService {
 
   static async handleRemoveUsersFromSite(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_SITE,
+          560, 'SiteService', 'handleRemoveUsersFromSite');
+      }
+
       // Filter
       const filteredRequest = SiteSecurity.filterRemoveUsersFromSiteRequest(req.body, req.user);
       // Check Mandatory fields
@@ -95,14 +112,14 @@ class SiteService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Site's ID must be provided`, 500,
-          'SiteService', 'handleAddUsersToSite', req.user);
+          'SiteService', 'handleRemoveUsersFromSite', req.user);
       }
       if (!filteredRequest.userIDs || (filteredRequest.userIDs && filteredRequest.userIDs.length <= 0)) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Site's IDs must be provided`, 500,
-          'SiteService', 'handleAddUsersToSite', req.user);
+          'SiteService', 'handleRemoveUsersFromSite', req.user);
       }
       // Get the Site
       const site = await Site.getSite(req.user.tenantID, filteredRequest.siteID);
@@ -110,7 +127,7 @@ class SiteService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Site with ID '${filteredRequest.siteID}' does not exist anymore`, 550,
-          'SiteService', 'handleAddUsersToSite', req.user);
+          'SiteService', 'handleRemoveUsersFromSite', req.user);
       }
       // Check auth
       if (!Authorizations.canUpdateSite(req.user, site.getModel())) {
@@ -119,7 +136,7 @@ class SiteService {
           Constants.ENTITY_SITE,
           site.getID(),
           560,
-          'SiteService', 'handleAddUsersToSite',
+          'SiteService', 'handleRemoveUsersFromSite',
           req.user);
       }
       // Get Users
@@ -130,7 +147,7 @@ class SiteService {
           throw new AppError(
             Constants.CENTRAL_SERVER,
             `The User with ID '${userID}' does not exist anymore`, 550,
-            'SiteService', 'handleAddUsersToSite', req.user);
+            'SiteService', 'handleRemoveUsersFromSite', req.user);
         }
         // Check auth
         if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
@@ -139,7 +156,7 @@ class SiteService {
             Constants.ENTITY_USER,
             userID,
             560,
-            'SiteService', 'handleAddUsersToSite',
+            'SiteService', 'handleRemoveUsersFromSite',
             req.user, user);
         }
       }
@@ -148,7 +165,7 @@ class SiteService {
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
-        user: req.user, module: 'SiteService', method: 'handleAddUsersToSite',
+        user: req.user, module: 'SiteService', method: 'handleRemoveUsersFromSite',
         message: `Site's Users have been removed successfully`, action: action
       });
       // Ok
@@ -162,6 +179,14 @@ class SiteService {
 
   static async handleDeleteSite(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_DELETE,
+          Constants.ENTITY_SITE,
+          560, 'SiteService', 'handleDeleteSite');
+      }
+
       // Filter
       const filteredRequest = SiteSecurity.filterSiteDeleteRequest(req.query, req.user);
       // Check Mandatory fields
@@ -212,6 +237,14 @@ class SiteService {
 
   static async handleGetSite(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_SITE,
+          560, 'SiteService', 'handleGetSite');
+      }
+
       // Filter
       const filteredRequest = SiteSecurity.filterSiteRequest(req.query, req.user);
       // Charge Box is mandatory
@@ -245,6 +278,14 @@ class SiteService {
 
   static async handleGetSites(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_SITES,
+          560, 'SiteService', 'handleGetSites');
+      }
+
       // Check auth
       if (!Authorizations.canListSites(req.user)) {
         // Not Authorized!
@@ -288,6 +329,14 @@ class SiteService {
 
   static async handleGetSiteImage(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_SITE,
+          560, 'SiteService', 'handleGetSiteImage');
+      }
+
       // Filter
       const filteredRequest = SiteSecurity.filterSiteRequest(req.query, req.user);
       // Charge Box is mandatory
@@ -330,6 +379,14 @@ class SiteService {
 
   static async handleCreateSite(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_CREATE,
+          Constants.ENTITY_SITE,
+          560, 'SiteService', 'handleCreateSite');
+      }
+
       // Check auth
       if (!Authorizations.canCreateSite(req.user)) {
         // Not Authorized!
@@ -396,6 +453,14 @@ class SiteService {
 
   static async handleUpdateSite(action, req, res, next) {
     try {
+      // check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_SITE,
+          560, 'SiteService', 'handleUpdateSite');
+      }
+
       // Filter
       const filteredRequest = SiteSecurity.filterSiteUpdateRequest(req.body, req.user);
       // Get Site
