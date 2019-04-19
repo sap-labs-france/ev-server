@@ -58,7 +58,7 @@
 		"socket.io": "^2.2.0",
 		"source-map-support": "^0.5.12",
 		"strong-soap": "^1.18.0",
-		"tz-lookup": "^6.1.16",
+		"tz-lookup": "^6.1.18",
 		"urlencode": "^1.1.0",
 		"uuid": "^3.3.2",
 		"winston": "^3.2.1",

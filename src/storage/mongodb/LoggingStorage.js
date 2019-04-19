@@ -66,7 +66,7 @@ class LoggingStorage {
     await Utils.checkTenant(tenantID);
     // Read DB
     const loggingMDB = await global.database.getCollection(tenantID, 'logs')
-      .find({_id: Utils.convertToObjectID(id)})
+      .find({ _id: Utils.convertToObjectID(id) })
       .limit(1)
       .toArray();
     let logging = null;
@@ -110,11 +110,11 @@ class LoggingStorage {
         break;
       // Warning
       case 'W':
-        filters.level = {$in: ['E', 'W']};
+        filters.level = { $in: ['E', 'W'] };
         break;
       // Info
       case 'I':
-        filters.level = {$in: ['E', 'W', 'I']};
+        filters.level = { $in: ['E', 'W', 'I'] };
         break;
     }
     // Charging Station
@@ -136,23 +136,23 @@ class LoggingStorage {
     if (params.userID) {
       // Yes, add in filter
       filters.$or = [
-        {'userID': Utils.convertToObjectID(params.userID)},
-        {'actionOnUserID': Utils.convertToObjectID(params.userID)}
+        { 'userID': Utils.convertToObjectID(params.userID) },
+        { 'actionOnUserID': Utils.convertToObjectID(params.userID) }
       ];
     }
     // Source?
     if (params.search) {
       // Set
       const searchArray = [
-        {'message': {$regex: params.search, $options: 'i'}},
-        {'action': {$regex: params.search, $options: 'i'}}
+        { 'message': { $regex: params.search, $options: 'i' } },
+        { 'action': { $regex: params.search, $options: 'i' } }
       ];
       // Already exists?
       if (filters.$or) {
         // Add them all
         filters.$and = [
-          {$or: [...filters.$or]},
-          {$or: [...searchArray]},
+          { $or: [...filters.$or] },
+          { $or: [...searchArray] },
         ];
       } else {
         // Only one
@@ -169,7 +169,7 @@ class LoggingStorage {
     }
     // Count Records
     const loggingsCountMDB = await global.database.getCollection(tenantID, 'logs')
-      .aggregate([...aggregation, {$count: 'count'}], {collation: {locale: Constants.DEFAULT_LOCALE, strength: 2}})
+      .aggregate([...aggregation, { $count: 'count' }], { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     // Sort
     if (sort) {
@@ -180,7 +180,7 @@ class LoggingStorage {
     } else {
       // Default
       aggregation.push({
-        $sort: {timestamp: -1}
+        $sort: { timestamp: -1 }
       });
     }
     // Skip
@@ -202,7 +202,7 @@ class LoggingStorage {
     });
     // Single Record
     aggregation.push({
-      $unwind: {'path': '$user', 'preserveNullAndEmptyArrays': true}
+      $unwind: { 'path': '$user', 'preserveNullAndEmptyArrays': true }
     });
     // Action on User
     aggregation.push({
@@ -215,7 +215,7 @@ class LoggingStorage {
     });
     // Single Record
     aggregation.push({
-      $unwind: {'path': '$actionOnUser', 'preserveNullAndEmptyArrays': true}
+      $unwind: { 'path': '$actionOnUser', 'preserveNullAndEmptyArrays': true }
     });
     // Read DB
     const loggingsMDB = await global.database.getCollection(tenantID, 'logs')

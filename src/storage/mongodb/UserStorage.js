@@ -34,7 +34,7 @@ class UserStorage {
       }
     );
     // Debug
-    Logging.traceEnd('UserStorage', 'getLatestEndUserLicenseAgreement', uniqueTimerID, {language});
+    Logging.traceEnd('UserStorage', 'getLatestEndUserLicenseAgreement', uniqueTimerID, { language });
     // Parse
     return eulaText;
   }
@@ -62,8 +62,8 @@ class UserStorage {
     const currentEula = await UserStorage.getLatestEndUserLicenseAgreement(tenantID, language);
     // Read DB
     const eulasMDB = await global.database.getCollection(tenantID, 'eulas')
-      .find({'language': language})
-      .sort({'version': -1})
+      .find({ 'language': language })
+      .sort({ 'version': -1 })
       .limit(1)
       .toArray();
     // Found?
@@ -89,7 +89,7 @@ class UserStorage {
         eula = {};
         Database.updateEula(result.ops[0], eula);
         // Debug
-        Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID, {language});
+        Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID, { language });
         // Return
         return eula;
       } else {
@@ -97,7 +97,7 @@ class UserStorage {
         eula = {};
         Database.updateEula(eulaMDB, eula);
         // Debug
-        Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID, {language});
+        Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID, { language });
         return eula;
       }
     } else {
@@ -116,7 +116,7 @@ class UserStorage {
       eula = {};
       Database.updateEula(result.ops[0], eula);
       // Debug
-      Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID, {language});
+      Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID, { language });
       // Return
       return eula;
     }
@@ -130,7 +130,7 @@ class UserStorage {
     await Utils.checkTenant(tenantID);
     // Read DB
     const tagsMDB = await global.database.getCollection(tenantID, 'tags')
-      .find({'_id': tagID})
+      .find({ '_id': tagID })
       .limit(1)
       .toArray();
     // Check
@@ -139,7 +139,7 @@ class UserStorage {
       user = await UserStorage.getUser(tenantID, tagsMDB[0].userID);
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUserByTagId', uniqueTimerID, {tagID});
+    Logging.traceEnd('UserStorage', 'getUserByTagId', uniqueTimerID, { tagID });
     return user;
   }
 
@@ -151,7 +151,7 @@ class UserStorage {
     await Utils.checkTenant(tenantID);
     // Read DB
     const usersMDB = await global.database.getCollection(tenantID, 'users')
-      .find({'email': email})
+      .find({ 'email': email })
       .limit(1)
       .toArray();
     // Check deleted
@@ -160,7 +160,7 @@ class UserStorage {
       user = await UserStorage._createUser(tenantID, usersMDB[0]);
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUserByEmail', uniqueTimerID, {email});
+    Logging.traceEnd('UserStorage', 'getUserByEmail', uniqueTimerID, { email });
     return user;
   }
 
@@ -174,7 +174,7 @@ class UserStorage {
     const aggregation = [];
     // Filters
     aggregation.push({
-      $match: {'_id': Utils.convertToObjectID(id)}
+      $match: { '_id': Utils.convertToObjectID(id) }
     });
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
@@ -189,7 +189,7 @@ class UserStorage {
       user = await UserStorage._createUser(tenantID, usersMDB[0]);
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUser', uniqueTimerID, {id});
+    Logging.traceEnd('UserStorage', 'getUser', uniqueTimerID, { id });
     return user;
   }
 
@@ -200,7 +200,7 @@ class UserStorage {
     await Utils.checkTenant(tenantID);
     // Read DB
     const userImagesMDB = await global.database.getCollection(tenantID, 'userimages')
-      .find({'_id': Utils.convertToObjectID(id)})
+      .find({ '_id': Utils.convertToObjectID(id) })
       .limit(1)
       .toArray();
     let userImage = null;
@@ -213,7 +213,7 @@ class UserStorage {
       };
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUserImage', uniqueTimerID, {id});
+    Logging.traceEnd('UserStorage', 'getUserImage', uniqueTimerID, { id });
     return userImage;
   }
 
@@ -259,7 +259,7 @@ class UserStorage {
       }
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'removeSitesFromUser', uniqueTimerID, {userID, siteIDs});
+    Logging.traceEnd('UserStorage', 'removeSitesFromUser', uniqueTimerID, { userID, siteIDs });
   }
 
   static async addSitesToUser(tenantID, userID, siteIDs) {
@@ -285,7 +285,7 @@ class UserStorage {
       }
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'addSitesToUser', uniqueTimerID, {userID, siteIDs});
+    Logging.traceEnd('UserStorage', 'addSitesToUser', uniqueTimerID, { userID, siteIDs });
   }
 
   static async saveUser(tenantID, userToSave) {
@@ -318,15 +318,15 @@ class UserStorage {
     // Modify and return the modified document
     const result = await global.database.getCollection(tenantID, 'users').findOneAndUpdate(
       userFilter,
-      {$set: user},
-      {upsert: true, new: true, returnOriginal: false});
+      { $set: user },
+      { upsert: true, new: true, returnOriginal: false });
     // Create
     const updatedUser = new User(tenantID, result.value);
     // Add tags
     if (userToSave.hasOwnProperty("tagIDs")) {
       // Delete Tag IDs
       await global.database.getCollection(tenantID, 'tags')
-        .deleteMany({'userID': Utils.convertToObjectID(updatedUser.getID())});
+        .deleteMany({ 'userID': Utils.convertToObjectID(updatedUser.getID()) });
       // At least one tag
       if (userToSave.tagIDs.length > 0) {
         // Create the list
@@ -336,9 +336,9 @@ class UserStorage {
           }
           // Modify
           await global.database.getCollection(tenantID, 'tags').findOneAndUpdate(
-            {'_id': tag},
-            {$set: {'userID': Utils.convertToObjectID(updatedUser.getID())}},
-            {upsert: true, new: true, returnOriginal: false});
+            { '_id': tag },
+            { $set: { 'userID': Utils.convertToObjectID(updatedUser.getID()) } },
+            { upsert: true, new: true, returnOriginal: false });
         }
       }
     }
@@ -346,7 +346,7 @@ class UserStorage {
     if (userToSave.sites) {
       // Delete first
       await global.database.getCollection(tenantID, 'siteusers')
-        .deleteMany({'userID': Utils.convertToObjectID(updatedUser.getID())});
+        .deleteMany({ 'userID': Utils.convertToObjectID(updatedUser.getID()) });
       // At least one?
       if (userToSave.sites.length > 0) {
         const siteUsersMDB = [];
@@ -363,7 +363,7 @@ class UserStorage {
       }
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'saveUser', uniqueTimerID, {userToSave});
+    Logging.traceEnd('UserStorage', 'saveUser', uniqueTimerID, { userToSave });
     return updatedUser;
   }
 
@@ -382,11 +382,11 @@ class UserStorage {
     }
     // Modify and return the modified document
     await global.database.getCollection(tenantID, 'userimages').findOneAndUpdate(
-      {'_id': Utils.convertToObjectID(userImageToSave.id)},
-      {$set: {image: userImageToSave.image}},
-      {upsert: true, new: true, returnOriginal: false});
+      { '_id': Utils.convertToObjectID(userImageToSave.id) },
+      { $set: { image: userImageToSave.image } },
+      { upsert: true, new: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd('UserStorage', 'saveUserImage', uniqueTimerID, {userImageToSave});
+    Logging.traceEnd('UserStorage', 'saveUserImage', uniqueTimerID, { userImageToSave });
   }
 
   static async getUsers(tenantID, params = {}, limit, skip, sort) {
@@ -403,9 +403,9 @@ class UserStorage {
       "$and": [
         {
           "$or": [
-            {"deleted": {$exists: false}},
-            {deleted: false},
-            {deleted: null}
+            { "deleted": { $exists: false } },
+            { deleted: false },
+            { deleted: null }
           ]
         }
       ]
@@ -415,12 +415,12 @@ class UserStorage {
       // Build filter
       filters.$and.push({
         "$or": [
-          {"_id": {$regex: params.search, $options: 'i'}},
-          {"name": {$regex: params.search, $options: 'i'}},
-          {"firstName": {$regex: params.search, $options: 'i'}},
-          {"tags._id": {$regex: params.search, $options: 'i'}},
-          {"email": {$regex: params.search, $options: 'i'}},
-          {"plateID": {$regex: params.search, $options: 'i'}}
+          { "_id": { $regex: params.search, $options: 'i' } },
+          { "name": { $regex: params.search, $options: 'i' } },
+          { "firstName": { $regex: params.search, $options: 'i' } },
+          { "tags._id": { $regex: params.search, $options: 'i' } },
+          { "email": { $regex: params.search, $options: 'i' } },
+          { "plateID": { $regex: params.search, $options: 'i' } }
         ]
       });
     }
@@ -477,17 +477,17 @@ class UserStorage {
       // check which filter to use
       if (params.siteID) {
         aggregation.push({
-          $match: {"siteusers.siteID": Utils.convertToObjectID(params.siteID)}
+          $match: { "siteusers.siteID": Utils.convertToObjectID(params.siteID) }
         });
       } else if (params.excludeSiteID) {
         aggregation.push({
-          $match: {"siteusers.siteID": {$ne: Utils.convertToObjectID(params.excludeSiteID)}}
+          $match: { "siteusers.siteID": { $ne: Utils.convertToObjectID(params.excludeSiteID) } }
         });
       }
     }
     // Count Records
     const usersCountMDB = await global.database.getCollection(tenantID, 'users')
-      .aggregate([...aggregation, {$count: "count"}])
+      .aggregate([...aggregation, { $count: "count" }])
       .toArray();
     // Project
     aggregation.push({
@@ -517,7 +517,7 @@ class UserStorage {
     } else {
       // Default
       aggregation.push({
-        $sort: {status: -1, name: 1, firstName: 1}
+        $sort: { status: -1, name: 1, firstName: 1 }
       });
     }
     // Skip
@@ -530,7 +530,7 @@ class UserStorage {
     });
     // Read DB
     const usersMDB = await global.database.getCollection(tenantID, 'users')
-      .aggregate(aggregation, {collation: {locale: "en_US", strength: 2}})
+      .aggregate(aggregation, { collation: { locale: "en_US", strength: 2 } })
       .toArray();
     const users = [];
     // Create
@@ -545,7 +545,7 @@ class UserStorage {
       users.push(user);
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, {params, limit, skip, sort});
+    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
       count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
@@ -567,9 +567,9 @@ class UserStorage {
       "$and": [
         {
           "$or": [
-            {"deleted": {$exists: false}},
-            {deleted: false},
-            {deleted: null}
+            { "deleted": { $exists: false } },
+            { deleted: false },
+            { deleted: null }
           ]
         }
       ]
@@ -579,11 +579,11 @@ class UserStorage {
       // Build filter
       filters.$and.push({
         "$or": [
-          {"_id": {$regex: params.search, $options: 'i'}},
-          {"name": {$regex: params.search, $options: 'i'}},
-          {"firstName": {$regex: params.search, $options: 'i'}},
-          {"tags._id": {$regex: params.search, $options: 'i'}},
-          {"email": {$regex: params.search, $options: 'i'}}
+          { "_id": { $regex: params.search, $options: 'i' } },
+          { "name": { $regex: params.search, $options: 'i' } },
+          { "firstName": { $regex: params.search, $options: 'i' } },
+          { "tags._id": { $regex: params.search, $options: 'i' } },
+          { "email": { $regex: params.search, $options: 'i' } }
         ]
       });
     }
@@ -602,7 +602,7 @@ class UserStorage {
     }
 
     filters.$and.push({
-      'status': {$in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING]}
+      'status': { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] }
     });
 
     // Create Aggregation
@@ -636,12 +636,12 @@ class UserStorage {
         }
       });
       aggregation.push({
-        $match: {"siteusers.siteID": Utils.convertToObjectID(params.siteID)}
+        $match: { "siteusers.siteID": Utils.convertToObjectID(params.siteID) }
       });
     }
     // Count Records
     const usersCountMDB = await global.database.getCollection(tenantID, 'users')
-      .aggregate([...aggregation, {$count: "count"}])
+      .aggregate([...aggregation, { $count: "count" }])
       .toArray();
     // Project
     aggregation.push({
@@ -670,7 +670,7 @@ class UserStorage {
     } else {
       // Default
       aggregation.push({
-        $sort: {status: -1, name: 1, firstName: 1}
+        $sort: { status: -1, name: 1, firstName: 1 }
       });
     }
     // Skip
@@ -683,7 +683,7 @@ class UserStorage {
     });
     // Read DB
     const usersMDB = await global.database.getCollection(tenantID, 'users')
-      .aggregate(aggregation, {collation: {locale: "en_US", strength: 2}})
+      .aggregate(aggregation, { collation: { locale: "en_US", strength: 2 } })
       .toArray();
     const users = [];
     // Create
@@ -698,7 +698,7 @@ class UserStorage {
       users.push(user);
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, {params, limit, skip, sort});
+    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
       count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
@@ -713,15 +713,15 @@ class UserStorage {
     await Utils.checkTenant(tenantID);
     // Delete User
     await global.database.getCollection(tenantID, 'users')
-      .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
+      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Delete Image
     await global.database.getCollection(tenantID, 'userimages')
-      .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
+      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Delete Tags
     await global.database.getCollection(tenantID, 'tags')
-      .deleteMany({'userID': Utils.convertToObjectID(id)});
+      .deleteMany({ 'userID': Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd('UserStorage', 'deleteUser', uniqueTimerID, {id});
+    Logging.traceEnd('UserStorage', 'deleteUser', uniqueTimerID, { id });
   }
 
   static async _createUser(tenantID, userMDB) {
@@ -733,7 +733,7 @@ class UserStorage {
       user = new User(tenantID, userMDB);
       // Get the Tags
       const tagsMDB = await global.database.getCollection(tenantID, 'tags')
-        .find({"userID": Utils.convertToObjectID(user.getID())})
+        .find({ "userID": Utils.convertToObjectID(user.getID()) })
         .toArray();
       // Check
       if (tagsMDB) {

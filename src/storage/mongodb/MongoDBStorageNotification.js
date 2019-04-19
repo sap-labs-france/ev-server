@@ -93,7 +93,7 @@ class MongoDBStorageNotification {
             break;
         }
         // Notify
-        this.centralRestServer.notifyTenant(Constants.DEFAULT_TENANT, action, {id: tenantID});
+        this.centralRestServer.notifyTenant(Constants.DEFAULT_TENANT, action, { id: tenantID });
       } else {
         MongoDBStorageNotification.handleInvalidChange(Constants.DEFAULT_TENANT, "tenants", change);
       }

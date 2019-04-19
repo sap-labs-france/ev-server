@@ -45,7 +45,7 @@ class DatabaseUtils {
     });
     // Single Record
     aggregation.push({
-      $unwind: {"path": "$createdBy", "preserveNullAndEmptyArrays": true}
+      $unwind: { "path": "$createdBy", "preserveNullAndEmptyArrays": true }
     });
     // Filter
     aggregation.push({
@@ -64,7 +64,7 @@ class DatabaseUtils {
     });
     // Single Record
     aggregation.push({
-      $unwind: {"path": "$lastChangedBy", "preserveNullAndEmptyArrays": true}
+      $unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
     });
     // Filter
     aggregation.push({
