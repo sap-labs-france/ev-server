@@ -150,7 +150,7 @@ class TransactionService {
             'TransactionService', 'handleDeleteTransaction', req.user);
         }
         if (transaction.getID() === chargingStation.getConnector(transaction.getConnectorId()).activeTransactionID) {
-          await chargingStation.freeConnector(transaction.getConnectorId());
+          await chargingStation.checkAndFreeConnector(transaction.getConnectorId());
           await chargingStation.save();
         }
       }

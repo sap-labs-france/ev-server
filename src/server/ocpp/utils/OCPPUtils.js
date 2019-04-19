@@ -22,9 +22,7 @@ class OCPPUtils {
 
   static isSocMeterValue(meterValue) {
     return meterValue.attribute
-      && (meterValue.attribute.context === 'Sample.Periodic'
-        || meterValue.attribute.context === 'Transaction.Begin'
-        || meterValue.attribute.context === 'Transaction.End')
+      && meterValue.attribute.context === 'Sample.Periodic'
       && meterValue.attribute.measurand === 'SoC';
   }
 

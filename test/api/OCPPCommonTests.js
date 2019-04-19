@@ -41,6 +41,7 @@ class OCPPCommonTests {
     this.transactionStartUser = this.context.newUser;
     this.transactionStopUser = this.context.newUser;
     this.transactionStartMeterValue = 0;
+    this.transactionStartSoC = 0;
     this.transactionMeterValues = Array.from({length: 10}, () => faker.random.number({
       min: 200,
       max: 500
@@ -53,6 +54,7 @@ class OCPPCommonTests {
     this.transactionStartTime = moment().subtract(this.transactionMeterValues.length * this.transactionMeterValueIntervalSecs, "seconds");
     this.transactionTotalConsumption = this.transactionMeterValues.reduce((sum, meterValue) => sum + meterValue);
     this.transactionEndMeterValue = this.transactionStartMeterValue + this.transactionTotalConsumption;
+    this.transactionEndSoC = 100;
     this.transactionTotalInactivity = this.transactionMeterValues.reduce(
       (sum, meterValue) => (meterValue === 0 ? sum + this.transactionMeterValueIntervalSecs : sum), 0);
     this.totalPrice =  this.priceKWH * (this.transactionTotalConsumption / 1000);
@@ -150,7 +152,7 @@ class OCPPCommonTests {
     expect(response.data.idTagInfo.status).to.equal('Accepted');
   }
 
-  async testStartTransaction() {
+  async testStartTransaction(withSoC = false) {
     // Start a new Transaction
     this.newTransaction = await CentralServerService.transactionApi.startTransaction(
       this.ocpp,
@@ -163,7 +165,7 @@ class OCPPCommonTests {
     expect(this.newTransaction).to.not.be.null;
   }
 
-  async testStartAgainTransaction() {
+  async testStartAgainTransaction(withSoC = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     // Set
@@ -192,6 +194,17 @@ class OCPPCommonTests {
     this.transactionCurrentTime = moment(this.newTransaction.timestamp);
     // Start Meter Value matches Transaction one
     let transactionCurrentMeterValue = this.transactionStartMeterValue;
+    // Send Transaction.Begin
+    if (withSoC) {
+      await CentralServerService.transactionApi.sendBeginWithSoCMeterValue(
+        this.ocpp,
+        this.newTransaction,
+        this.context.newChargingStation,
+        this.transactionStartUser,
+        transactionCurrentMeterValue,
+        this.transactionStartSoC,
+        this.transactionCurrentTime);
+    }
     // Send Meter Values (except the last one which will be used in Stop Transaction)
     for (let index = 0; index <= this.transactionMeterValues.length - 2; index++) {
       // Set new meter value
@@ -199,15 +212,6 @@ class OCPPCommonTests {
       // Add time
       this.transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, "s");
       if (withSoC) {
-        let context = "Sample.Periodic";
-        // First Meter Value: Transaction.Begin
-        if (index === 0) {
-          // First Meter Value: Transaction.Begin
-          context = "Transaction.Begin"
-        } else if (index === this.transactionMeterValues.length - 2) {
-          // Last Meter Value: Transaction.End
-          context = "Transaction.End"
-        }
         // Send Meter Values
         await CentralServerService.transactionApi.sendTransactionWithSoCMeterValue(
           this.ocpp,
@@ -218,8 +222,7 @@ class OCPPCommonTests {
           this.transactionMeterSoCValues[index],
           this.transactionCurrentTime,
           this.transactionMeterValues[index] * this.transactionMeterValueIntervalSecs,
-          transactionCurrentMeterValue - this.transactionStartMeterValue,
-          context);
+          transactionCurrentMeterValue - this.transactionStartMeterValue);
       } else {
         await CentralServerService.transactionApi.sendTransactionMeterValue(
           this.ocpp,
@@ -232,9 +235,21 @@ class OCPPCommonTests {
           transactionCurrentMeterValue - this.transactionStartMeterValue);
       }
     }
+    // Send Transaction.End
+    if (withSoC) {
+      // Send Meter Values
+      await CentralServerService.transactionApi.sendEndWithSoCMeterValue(
+        this.ocpp,
+        this.newTransaction,
+        this.context.newChargingStation,
+        this.transactionStartUser,
+        this.transactionEndMeterValue,
+        this.transactionEndSoC,
+        moment(this.transactionCurrentTime));
+    }
   }
 
-  async testStopTransaction() {
+  async testStopTransaction(withSoC = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     expect(this.transactionCurrentTime).to.not.be.null;
@@ -253,10 +268,11 @@ class OCPPCommonTests {
       this.chargingStationConnector1,
       this.transactionTotalConsumption,
       this.transactionTotalInactivity,
-      this.totalPrice);
+      this.totalPrice
+      (withSoC ? this.transactionEndSoC : 0));
   }
 
-  async testTransactionMetrics() {
+  async testTransactionMetrics(withSoC = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
 

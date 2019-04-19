@@ -1,6 +1,7 @@
 const AbstractTenantEntity = require('./AbstractTenantEntity');
 const ChargingStationClient = require('../client/ocpp/ChargingStationClient');
 const Logging = require('../utils/Logging');
+const Utils = require('../utils/Utils');
 const User = require('./User');
 const Transaction = require('./Transaction');
 const SiteArea = require('./SiteArea');
