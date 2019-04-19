@@ -98,4 +98,7 @@ describe('OCPP 1.6 JSON Tests', function () {
       await this.ocppCommonTests.testDeleteTransaction();
     });
   });
+
+  describe('Error cases', () => {
+    });
 });

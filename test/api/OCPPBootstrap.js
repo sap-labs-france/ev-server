@@ -8,49 +8,20 @@ chai.use(chaiSubset);
 
 const CentralServerService = require('./client/CentralServerService');
 const Factory = require('../factories/Factory');
+const TenantFactory = require('../factories/TenantFactory');
 
 class OCPPBootstrap {
-
   constructor(ocpp) {
     this.ocpp = ocpp;
-  }
-
-  async destroyContext(context) {
-    // Delete User?
-    if (context.newUser) {
-      // Delete
-      await CentralServerService.deleteEntity(
-        CentralServerService.userApi, context.newUser);
-    }
-    // Delete Site Area?
-    if (context.newSiteArea) {
-      // Delete
-      await CentralServerService.deleteEntity(
-        CentralServerService.siteAreaApi, context.newSiteArea);
-    }
-    // Delete Site?
-    if (context.newSite) {
-      // Delete
-      await CentralServerService.deleteEntity(
-        CentralServerService.siteApi, context.newSite);
-    }
-    // Delete Company?
-    if (context.newCompany) {
-      // Delete
-      await CentralServerService.deleteEntity(
-        CentralServerService.companyApi, context.newCompany);
-    }
-    // Delete Charging Station?
-    if (context.newChargingStation) {
-      // Delete
-      await CentralServerService.deleteEntity(
-        CentralServerService.chargingStationApi, context.newChargingStation);
-    }
   }
 
   async createContext() {
     const context = {};
     try {
+      // Create
+      this.tenantNoOrg = await CentralServerService.createEntity(
+        CentralServerService.tenantApi, TenantFactory.buildTenantCreate());
+
       // Create User
       context.newUser = await CentralServerService.createEntity(
         CentralServerService.userApi, Factory.user.build());
@@ -133,6 +104,45 @@ class OCPPBootstrap {
     
     // Ok
     return context;
+  }
+
+  async destroyContext(context) {
+    if (this.tenantNoOrg) {
+      // Check if the deleted entity cannot be retrieved with its id
+      await CentralServerService.checkDeletedEntityById(
+        CentralServerService.tenantApi, this.tenantNoOrg);
+    }    
+
+    // Delete User?
+    if (context.newUser) {
+      // Delete
+      await CentralServerService.deleteEntity(
+        CentralServerService.userApi, context.newUser);
+    }
+    // Delete Site Area?
+    if (context.newSiteArea) {
+      // Delete
+      await CentralServerService.deleteEntity(
+        CentralServerService.siteAreaApi, context.newSiteArea);
+    }
+    // Delete Site?
+    if (context.newSite) {
+      // Delete
+      await CentralServerService.deleteEntity(
+        CentralServerService.siteApi, context.newSite);
+    }
+    // Delete Company?
+    if (context.newCompany) {
+      // Delete
+      await CentralServerService.deleteEntity(
+        CentralServerService.companyApi, context.newCompany);
+    }
+    // Delete Charging Station?
+    if (context.newChargingStation) {
+      // Delete
+      await CentralServerService.deleteEntity(
+        CentralServerService.chargingStationApi, context.newChargingStation);
+    }
   }
 
 }
