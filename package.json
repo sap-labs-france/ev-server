@@ -90,7 +90,7 @@
 		"json-schema-faker": "^0.5.0-rc16",
 		"maildev": "^1.0.0",
 		"mocha": "^5.2.0",
-		"mocha-parallel-tests": "^2.0.6-alpha.3",
+		"mocha-parallel-tests": "^2.1.0",
 		"mochawesome": "^3.1.2",
 		"node-sass": "^4.11.0",
 		"nodemon": "^1.18.11",
