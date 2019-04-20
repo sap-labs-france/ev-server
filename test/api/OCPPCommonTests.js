@@ -48,8 +48,8 @@ class OCPPCommonTests {
     })).concat([0, 0, 0, 0]);
     this.transactionMeterSoCValues = Array.from({length: 10}, () => faker.random.number({
       min: 0,
-      max: 100
-    })).concat([100, 100, 100, 100]).sort((a, b) => (a - b));
+      max: 90
+    })).concat([95, 97, 99, 100]).sort((a, b) => (a - b));
     this.transactionMeterValueIntervalSecs = 60;
     this.transactionStartTime = moment().subtract(this.transactionMeterValues.length * this.transactionMeterValueIntervalSecs, "seconds");
     this.transactionTotalConsumption = this.transactionMeterValues.reduce((sum, meterValue) => sum + meterValue);
