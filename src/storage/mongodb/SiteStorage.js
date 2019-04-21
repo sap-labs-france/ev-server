@@ -347,10 +347,23 @@ class SiteStorage {
         $match: filters
       });
     }
+    // Limit records?
+    if (!params.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+    }
     // Count Records
     const sitesCountMDB = await global.database.getCollection(tenantID, 'sites')
       .aggregate([...aggregation, { $count: "count" }])
       .toArray();
+    // Check if only the total count is requested
+    if (params.onlyRecordCount) {
+      // Return only the count
+      return {
+        count: (sitesCountMDB.length > 0 ? sitesCountMDB[0].count : 0),
+        result: []
+      };
+    }
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Add Company?

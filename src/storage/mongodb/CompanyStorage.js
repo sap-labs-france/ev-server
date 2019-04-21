@@ -199,10 +199,23 @@ class CompanyStorage {
         }
       });
     }
+    // Limit records?
+    if (!params.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+    }
     // Count Records
     const companiesCountMDB = await global.database.getCollection(tenantID, 'companies')
       .aggregate([...aggregation, { $count: "count" }])
       .toArray();
+    // Check if only the total count is requested
+    if (params.onlyRecordCount) {
+      // Return only the count
+      return {
+        count: (companiesCountMDB.length > 0 ? companiesCountMDB[0].count : 0),
+        result: []
+      };
+    }
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort

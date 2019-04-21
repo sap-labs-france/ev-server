@@ -1,7 +1,6 @@
 const Constants = require('../../utils/Constants');
 const Utils = require('../../utils/Utils');
 const Database = require('../../utils/Database');
-const crypto = require('crypto');
 const DatabaseUtils = require('./DatabaseUtils');
 const Logging = require('../../utils/Logging');
 const BackendError = require('../../exception/BackendError');
@@ -189,12 +188,23 @@ class ChargingStationStorage {
     aggregation.push({
       $match: filters
     });
+    // Limit records?
+    if (!params.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+    }
     // Count Records
     const chargingStationsCountMDB = await global.database.getCollection(tenantID, 'chargingstations')
-      .aggregate([...aggregation, {
-        $count: "count"
-      }])
+      .aggregate([...aggregation, {$count: "count"}])
       .toArray();
+    // Check if only the total count is requested
+    if (params.onlyRecordCount) {
+      // Return only the count
+      return {
+        count: (chargingStationsCountMDB.length > 0 ? chargingStationsCountMDB[0].count : 0),
+        result: []
+      };
+    }
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
@@ -422,12 +432,23 @@ class ChargingStationStorage {
     // Add a unique identifier as we may have the same charger several time
     aggregation.push({ $addFields: { "uniqueId": { $concat: ["$_id", "#", "$errorCode"] } } });
 
+    // Limit records?
+    if (!params.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+    }
     // Count Records
     const chargingStationsCountMDB = await global.database.getCollection(tenantID, 'chargingstations')
-      .aggregate([...aggregation, {
-        $count: "count"
-      }])
+      .aggregate([...aggregation, { $count: "count" }])
       .toArray();
+    // Check if only the total count is requested
+    if (params.onlyRecordCount) {
+      // Return only the count
+      return {
+        count: (chargingStationsCountMDB.length > 0 ? chargingStationsCountMDB[0].count : 0),
+        result: []
+      };
+    }
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort

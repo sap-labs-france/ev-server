@@ -465,7 +465,7 @@ class TransactionService {
       }
       // Get Transactions
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-        {...filter, 'withChargeBoxes': true},
+        {...filter, 'withChargeBoxes': true, 'onlyRecordCount': filteredRequest.OnlyRecordCount},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       transactions.result = TransactionSecurity.filterTransactionsResponse(
@@ -518,7 +518,8 @@ class TransactionService {
         filter.siteAreaID = filteredRequest.SiteAreaID;
       }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-        {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID},
+        {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
+        'onlyRecordCount': filteredRequest.OnlyRecordCount},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       transactions.result = TransactionSecurity.filterTransactionsResponse(
@@ -568,7 +569,8 @@ class TransactionService {
         filter.siteAreaID = filteredRequest.SiteAreaID;
       }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-        {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID},
+        {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
+        'onlyRecordCount': filteredRequest.OnlyRecordCount},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       transactions.result = TransactionSecurity.filterTransactionsResponse(
@@ -637,7 +639,8 @@ class TransactionService {
         filter.userId = filteredRequest.UserID;
       }
       const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
-        {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID},
+        {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
+        'onlyRecordCount': filteredRequest.OnlyRecordCount},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       transactions.result = TransactionSecurity.filterTransactionsResponse(
