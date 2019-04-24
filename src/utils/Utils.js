@@ -262,7 +262,7 @@ class Utils {
     return _evseBaseURL + "/charging-stations?ChargingStationID=" + chargingStation.getID() + hash;
   }
 
-  static async buildEvseTransactionURL(chargingStation, transactionId, hash = "") {
+  static async buildEvseTransactionURL(chargingStation, transactionId, hash = '') {
     const tenant = await chargingStation.getTenant();
     const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
     // Add

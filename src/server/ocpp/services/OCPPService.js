@@ -640,7 +640,7 @@ class OCPPService {
           {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
         'stateOfCharge': transaction.getCurrentStateOfCharge(),
         'totalDuration': this._buildCurrentTransactionDuration(transaction),
-        'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(chargingStation, transaction.getConnectorId(), transaction.getID()),
+        'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(chargingStation, transaction.getID(), '#inprogress'),
         'evseDashboardURL': Utils.buildEvseURL((await chargingStation.getTenant()).getSubdomain())
       },
       transaction.getUserJson().locale,
@@ -666,7 +666,7 @@ class OCPPService {
           (transaction.getUserJson().locale ? transaction.getUserJson().locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
           {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
         'stateOfCharge': transaction.getCurrentStateOfCharge(),
-        'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(chargingStation, transaction.getConnectorId(), transaction.getID()),
+        'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(chargingStation, transaction.getID(), '#inprogress'),
         'evseDashboardURL': Utils.buildEvseURL((await chargingStation.getTenant()).getSubdomain())
       },
       transaction.getUserJson().locale,
@@ -1034,7 +1034,7 @@ class OCPPService {
         'connectorId': transaction.getConnectorId(),
         'evseDashboardURL': Utils.buildEvseURL((await chargingStation.getTenant()).getSubdomain()),
         'evseDashboardChargingStationURL':
-          await Utils.buildEvseTransactionURL(chargingStation, transaction.getConnectorId(), transaction.getID())
+          await Utils.buildEvseTransactionURL(chargingStation, transaction.getID(), '#inprogress')
       },
       user.getLocale(),
       {
