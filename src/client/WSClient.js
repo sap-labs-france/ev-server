@@ -4,27 +4,38 @@ const Logging = require('../utils/Logging');
 
 const MODULE_NAME = "WSClient";
 
-class WSClient extends WebSocket {
-  constructor(url, protocols, options, WSClientConfig, retryCount = null, dbLogging = true) {
-    super(url, protocols, options);
-    this._protocols = protocols;
-    this._options = options;
-    this._wsConfig = WSClientConfig;
-    if (!retryCount)
-      this._autoReconnectRetryCount = 0;
-    else
-      this._autoReconnectRetryCount = retryCount;
+class WSClient {
+  // options = {
+  //   autoReconnectTimeout: 10,
+  //   autoReconnectMaxRetries: 10,
+  //   protocols: '' or []
+  //   WSOptions = {}
+  // }
+  constructor(url, options, dbLogging = true) {
+    this._url = url;
+    this._options = options || {};
+    this._callbacks = {
+      onreconnect: () => { },
+      onmaximum: () => { }
+    };
     this._dbLogging = dbLogging;
-    this._autoReconnectMaxRetries = WSClientConfig.autoReconnectMaxRetries; // -1 for unlimited retries
-    this._autoReconnectInterval = WSClientConfig.autoReconnectInterval * 1000; // ms, 0 to disable
-    // Handle Socket open
-    this.on('open', this.onOpen.bind(this));
-    // Handle Socket error
-    this.on('error', this.onError.bind(this));
-    // Handle Socket close
-    this.on('close', this.onClose.bind(this));
-    // Handle Socket send
-    this.on('send', this.onSend.bind(this));
+    this._autoReconnectRetryCount = 0;
+    this._autoReconnectMaxRetries = options.autoReconnectMaxRetries; // -1 for unlimited retries
+    this._autoReconnectTimeout = options.autoReconnectTimeout * 1000; // ms, 0 to disable
+    this.open();
+  }
+
+  get CONNECTING() {
+    return WebSocket.CONNECTING;
+  }
+  get CLOSING() {
+    return WebSocket.CLOSING;
+  }
+  get CLOSED() {
+    return WebSocket.CLOSED;
+  }
+  get OPEN() {
+    return WebSocket.OPEN;
   }
 
   onOpen() {
@@ -41,13 +52,13 @@ class WSClient extends WebSocket {
             module: MODULE_NAME,
             method: "onError",
             action: "WSClientError",
-            message: `Connection refused to '${this.url}': ${error}`
+            message: `Connection refused to '${this._url}': ${error}`
           });
         } else {
           // eslint-disable-next-line no-console
-          console.log(`Connection refused to '${this.url}':`, error);
+          console.log(`Connection refused to '${this._url}':`, error);
         }
-        this._reconnect();
+        this.reconnect();
         break;
       default:
         if (this._dbLogging) {
@@ -57,11 +68,11 @@ class WSClient extends WebSocket {
             module: MODULE_NAME,
             method: "onError",
             action: "WSClientError",
-            message: `Connection error to '${this.url}': ${error}`
+            message: `Connection error to '${this._url}': ${error}`
           });
         } else {
           // eslint-disable-next-line no-console
-          console.log(`Connection error to '${this.url}':`, error);
+          console.log(`Connection error to '${this._url}':`, error);
         }
         break;
     }
@@ -80,33 +91,29 @@ class WSClient extends WebSocket {
             module: MODULE_NAME,
             method: "onClose",
             action: "WSClientError",
-            message: `Connection closing error to '${this.url}': ${error}`
+            message: `Connection closing error to '${this._url}': ${error}`
           });
         } else {
           // eslint-disable-next-line no-console
-          console.log(`Connection closing error to '${this.url}':`, error);
+          console.log(`Connection closing error to '${this._url}':`, error);
         }
-        this._reconnect();
+        this.reconnect();
         break;
     }
   }
 
-  /**
-   * Callback function of Web Socket default send() function to ensure an error is returned in
-   * case of failure.
-   * @param {*} data
-   * @param {*} options
-   */
-  async onSend(data, options) {
-    try {
-      this.send(data, options);
-    } catch (error) {
-      this.emit('error', error);
-    }
+  open() {
+    this._ws = new WebSocket(this._url, this._options.protocols || [], this._options.WSOptions || {});
+    // Handle Socket open
+    this._ws.on('open', this.onOpen.bind(this));
+    // Handle Socket error
+    this._ws.on('error', this.onError.bind(this));
+    // Handle Socket close
+    this._ws.on('close', this.onClose.bind(this));
   }
 
-  _reconnect() {
-    if (this._autoReconnectInterval !== 0 &&
+  reconnect(error) {
+    if (this._autoReconnectTimeout !== 0 &&
       (this._autoReconnectRetryCount < this._autoReconnectMaxRetries || this._autoReconnectMaxRetries === -1)) {
       this._autoReconnectRetryCount++;
       setTimeout(() => {
@@ -115,36 +122,92 @@ class WSClient extends WebSocket {
           Logging.logInfo({
             tenantID: Constants.DEFAULT_TENANT,
             module: MODULE_NAME,
-            method: "_reconnect",
+            method: "reconnect",
             action: "WSClientInfo",
-            message: `Re-connection try #${this._autoReconnectRetryCount} to '${this.url}' each ${this._autoReconnectInterval}ms`
+            message: `Re-connection try #${this._autoReconnectRetryCount} to '${this._url}' with timeout ${this._autoReconnectTimeout}ms`
           });
         } else {
           // eslint-disable-next-line no-console
-          console.log(`Re-connection try #${this._autoReconnectRetryCount} to '${this.url}' each ${this._autoReconnectInterval}ms`);
+          console.log(`Re-connection try #${this._autoReconnectRetryCount} to '${this._url}' with timeout ${this._autoReconnectTimeout}ms`);
         }
-        Object.assign(this, new WSClient(this.url, this._protocols, this._options, this._wsConfig, this._autoReconnectRetryCount, this._dbLogging));
-      }, this._autoReconnectInterval);
-    } else {
+        this.onreconnect(error);
+        this.open();
+      }, this._autoReconnectTimeout);
+    } else if (this._autoReconnectTimeout !== 0 || this._autoReconnectMaxRetries === -1) {
       if (this._dbLogging) {
         // Informational message
         Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
           module: MODULE_NAME,
-          method: "_reconnect",
+          method: "reconnect",
           action: "WSClientInfo",
-          message: `Re-connection maximum retries reached (${this._autoReconnectRetryCount}) or disabled (${this._autoReconnectInterval}) to '${this.url}'`
+          message: `Re-connection maximum retries reached (${this._autoReconnectRetryCount}) or disabled (${this._autoReconnectTimeout}) to '${this._url}'`
         });
       } else {
         // eslint-disable-next-line no-console
-        console.log(`Re-connection maximum retries reached (${this._autoReconnectRetryCount}) or disabled (${this._autoReconnectInterval}) to '${this.url}'`);
+        console.log(`Re-connection maximum retries reached (${this._autoReconnectRetryCount}) or disabled (${this._autoReconnectTimeout}) to '${this._url}'`);
       }
+      this.onmaximum(error);
     }
   }
 
+  send(data, options, callback) {
+    this._ws.send(data, options, callback);
+  }
+
+  close(code, reason) {
+    return this._ws.close(code, reason);
+  }
+
+  ping(data, mask, callback) {
+    this._ws.ping(data, mask, callback);
+  }
+
+  pong(data, mask, callback) {
+    this._ws.pong(data, mask, callback);
+  }
+
+  terminate() {
+    return this._ws.terminate();
+  }
+
   isConnectionOpen() {
-    return this.readyState === WebSocket.OPEN;
+    return this._ws.readyState === WebSocket.OPEN;
   }
 }
+
+//
+// Add the `onopen`, `onerror`, `onclose`, `onmessage`, `onreconnect`
+// and `onmaximum` attributes.
+//
+['onopen', 'onerror', 'onclose', 'onmessage'].forEach((method) => {
+  Object.defineProperty(WSClient.prototype, method, {
+    get() {
+      return this._ws[method];
+    },
+    set(callback) {
+      this._ws[method] = callback;
+    }
+  });
+});
+['onreconnect', 'onmaximum'].forEach((method) => {
+  Object.defineProperty(WSClient.prototype, method, {
+    get() {
+      return this._callbacks[method];
+    },
+    set(callback) {
+      this._callbacks[method] = callback;
+    }
+  });
+});
+
+/*
+ * Add `readyState` property
+ */
+Object.defineProperty(WSClient.prototype, 'readyState', {
+  get() {
+    return this._ws.readyState;
+  }
+});
 
 module.exports = WSClient;

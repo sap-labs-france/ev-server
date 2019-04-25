@@ -186,12 +186,12 @@ const config = convict({
     autoReconnectMaxRetries: {
       doc: 'Web Socket client re-connection max retries.',
       format: 'int',
-      default: 0,
+      default: 10,
     },
-    autoReconnectInterval: {
-      doc: 'Web Socket client re-connection interval.',
+    autoReconnectTimeout: {
+      doc: 'Web Socket client re-connection timeout.',
       format: 'int',
-      default: 60,
+      default: 0,
     },
   }
 });

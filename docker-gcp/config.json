@@ -70,7 +70,7 @@
     },
     "WSClient": {
 		"autoReconnectMaxRetries": 10,
-		"autoReconnectInterval": 60
+		"autoReconnectTimeout": 60
 	},
     "Storage": {
         "implementation": "mongodb",

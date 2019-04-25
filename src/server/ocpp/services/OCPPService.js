@@ -437,7 +437,7 @@ class OCPPService {
     // Compute consumption
     return this._buildConsumptionFromTransactionAndMeterValue(
       transaction, lastMeterValue.timestamp, meterValue.timestamp, meterValue);
- }
+  }
 
   async _buildConsumptionFromTransactionAndMeterValue(transaction, startedAt, endedAt, meterValue) {
     // Only Consumption and SoC (No consumption for Transaction Begin/End: scenario already handled in Start/Stop Transaction)
