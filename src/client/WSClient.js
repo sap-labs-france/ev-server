@@ -133,7 +133,7 @@ class WSClient {
         this.onreconnect(error);
         this.open();
       }, this._autoReconnectTimeout);
-    } else if (this._autoReconnectTimeout !== 0 || this._autoReconnectMaxRetries === -1) {
+    } else if (this._autoReconnectTimeout !== 0 || this._autoReconnectMaxRetries !== -1) {
       if (this._dbLogging) {
         // Informational message
         Logging.logInfo({
