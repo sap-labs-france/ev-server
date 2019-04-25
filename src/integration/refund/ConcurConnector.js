@@ -8,6 +8,8 @@ const TransactionStorage = require('../../storage/mongodb/TransactionStorage');
 const ChargingStation = require("../../entity/ChargingStation");
 const Constants = require('../../utils/Constants');
 const AppError = require('../../exception/AppError');
+const InternalError = require('../../exception/InternalError');
+const jwt = require('jsonwebtoken');
 
 const MODULE_NAME = 'ConcurConnector';
 const CONNECTOR_ID = 'concur';
@@ -177,7 +179,7 @@ class ConcurConnector extends AbstractConnector {
    * @param transactions {Transaction}
    * @returns {Promise<Transaction[]>}
    */
-  async refund(user, transactions) {
+  async refund(user, transactions, quickRefund = true) {
     const refundedTransactions = [];
     let connection = await this.getConnectionByUserId(user.getID());
     if (connection === undefined) {
@@ -190,31 +192,34 @@ class ConcurConnector extends AbstractConnector {
     if (ConcurConnector.isTokenExpired(connection)) {
       connection = await this.refreshToken(user.getID(), connection);
     }
-    const expenseReports = await this.getExpenseReports(connection);
-    const expenseReport = expenseReports.find(report => report.Name === this.getReportName());
     let expenseReportId;
-    if (expenseReport) {
-      expenseReportId = expenseReport.ID;
-    } else {
-      expenseReportId = await this.createExpenseReport(connection);
+    if (!quickRefund) {
+      const expenseReports = await this.getExpenseReports(connection);
+      const expenseReport = expenseReports.find(report => report.Name === this.getReportName());
+      if (expenseReport) {
+        expenseReportId = expenseReport.ID;
+      } else {
+        expenseReportId = await this.createExpenseReport(connection);
+      }
     }
     for (const transaction of transactions) {
       try {
         const chargingStation = await ChargingStation.getChargingStation(transaction.getTenantID(), transaction.getChargeBoxID());
-        const locationId = await this.getLocationId(connection, await chargingStation.getSite());
-        const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, locationId);
-        transaction.setRefundData({refundId: entryId, refundedAt: new Date()});
+        const locationId = await this.getLocation(connection, await chargingStation.getSite());
+        if (quickRefund) {
+          const entryId = await this.createQuickExpense(connection, transaction, locationId);
+          transaction.setRefundData({refundId: entryId, type: 'quick', refundedAt: new Date()});
+        } else {
+          const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, locationId);
+          transaction.setRefundData({refundId: entryId, type: 'report', refundedAt: new Date()});
+        }
         await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
         refundedTransactions.push(transaction);
-      } catch (e) {
-        Logging.logError({
-          tenantID: this.getTenantID(),
-          user: user, actionOnUser: (transaction.getUser() ? transaction.getUser() : null),
-          module: 'ConcurConnector', method: 'refund',
-          message: e.message,
-        });
+      } catch (exception) {
+        Logging.logException(exception, "Refund", Constants.CENTRAL_SERVER, "ConcurConnector", "refund", this.getTenantID(), user);
       }
     }
+
     return refundedTransactions;
   }
 
@@ -242,7 +247,7 @@ class ConcurConnector extends AbstractConnector {
     }
   }
 
-  async getLocationId(connection, site) {
+  async getLocation(connection, site) {
     let response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${site.getAddress().city}`, {
       headers: {
         Accept: 'application/json',
@@ -250,7 +255,7 @@ class ConcurConnector extends AbstractConnector {
       }
     });
     if (response.data && response.data.Items && response.data.Items.length > 0) {
-      return response.data.Items[0].ID;
+      return response.data.Items[0];
     } else {
       const company = await site.getCompany();
       response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${company.getAddress().city}`, {
@@ -260,13 +265,47 @@ class ConcurConnector extends AbstractConnector {
         }
       });
       if (response.data && response.data.Items && response.data.Items.length > 0) {
-        return response.data.Items[0].ID;
+        return response.data.Items[0];
       }
     }
     throw new AppError(
       Constants.CENTRAL_SERVER,
       `The city '${site.getAddress().city}' of the station is unknown to Concur`, 553,
-      'ConcurConnector', 'getLocationId');
+      'ConcurConnector', 'getLocation');
+  }
+
+  /**
+   *
+   * @param connection {Connection}
+   * @param transaction {Transaction}
+   * @param location
+   * @returns {Promise<string>}
+   */
+  async createQuickExpense(connection, transaction, location) {
+    try {
+      const response = await axios.post(`${this.getAuthenticationUrl()}/quickexpense/v4/users/${jwt.decode(connection.getData().access_token).sub}/context/TRAVELER/quickexpenses`, {
+        'comment': `Session started the ${moment(transaction.getStartDate()).format("YYYY-MM-DDTHH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(), 'seconds').format(`h[h]mm`, {trim: false})}`,
+        'vendor': this.getReportName(),
+        'entryDetails': `Refund of transaction ${transaction.getID}`,
+        'expenseTypecode': this.getExpenseTypeCode(),
+        'location': {
+          'name': location.Name
+        },
+        'transactionAmount': {
+          'currencyCode': transaction.getPriceUnit(),
+          'value': transaction.getPrice()
+        },
+        'transactionDate': transaction.getStartDate()
+      }, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${connection.getData().access_token}`
+        }
+      });
+      return response.data.quickExpenseIdUri;
+    } catch (e) {
+      throw new InternalError("Unable to create quickExpense", e.response.data);
+    }
   }
 
   /**
@@ -274,12 +313,11 @@ class ConcurConnector extends AbstractConnector {
    * @param connection {Connection}
    * @param expenseReportId {string}
    * @param transaction {Transaction}
-   * @param site {Site}
+   * @param location {Location}
    * @returns {Promise<string>}
    */
-  async createExpenseReportEntry(connection, expenseReportId, transaction, locationId) {
+  async createExpenseReportEntry(connection, expenseReportId, transaction, location) {
     try {
-
       const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/entries`, {
         'Description': `Emobility reimbursement ${moment(transaction.getStartDate()).format("YYYY-MM-DD")}`,
         'Comment': `Session started the ${moment(transaction.getStartDate()).format("YYYY-MM-DDTHH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(), 'seconds').format(`h[h]mm`, {trim: false})}`,
@@ -295,7 +333,7 @@ class ConcurConnector extends AbstractConnector {
         'TransactionCurrencyCode': transaction.getPriceUnit(),
         'TransactionDate': transaction.getStartDate(),
         'SpendCategoryCode': 'COCAR',
-        'LocationID': locationId
+        'LocationID': location.ID
 
       }, {
         headers: {
@@ -305,7 +343,7 @@ class ConcurConnector extends AbstractConnector {
       });
       return response.data.ID;
     } catch (e) {
-      throw e;
+      throw new InternalError("Unable to create expense entry", e.response.data);
     }
   }
 
