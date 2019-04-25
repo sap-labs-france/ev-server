@@ -22,7 +22,12 @@ class OCPPJsonService16 extends OCPPService {
     return new Promise((resolve, reject) => {
       // Create WS
       const sentRequests = [];
-      const wsConnection = new WSClient(`${this.serverUrl}/${chargeBoxIdentity}`, 'ocpp1.6', '', config.get('wsClient'), null, false);
+      const wsClientOptions = {
+        protocols: 'ocpp1.6',
+        autoReconnectTimeout: config.get('wsClient').autoReconnectTimeout,
+        autoReconnectMaxRetries: config.get('wsClient').autoReconnectMaxRetries
+      };
+      const wsConnection = new WSClient(`${this.serverUrl}/${chargeBoxIdentity}`, wsClientOptions, false);
       // Opened
       wsConnection.onopen = () => {
         // connection is opened and ready to use
