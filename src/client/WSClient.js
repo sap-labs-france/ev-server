@@ -15,6 +15,10 @@ class WSClient {
     this._url = url;
     this._options = options || {};
     this._callbacks = {
+      onopen: () => { },
+      onerror: () => { },
+      onclose: () => { },
+      onmessage: () => { },
       onreconnect: () => { },
       onmaximum: () => { }
     };
@@ -132,6 +136,10 @@ class WSClient {
         }
         this.onreconnect(error);
         this.open();
+        // A new WS have just been created, reinstate the saved callbacks on it
+        ['onopen', 'onerror', 'onclose', 'onmessage'].forEach((method) => {
+          this[method] = this._callbacks[method];
+        });
       }, this._autoReconnectTimeout);
     } else if (this._autoReconnectTimeout !== 0 || this._autoReconnectMaxRetries !== -1) {
       if (this._dbLogging) {
@@ -186,6 +194,8 @@ class WSClient {
       return this._ws[method];
     },
     set(callback) {
+      // Save the callback in an object attribute
+      this._callbacks[method] = callback;
       this._ws[method] = callback;
     }
   });
