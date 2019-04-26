@@ -5,12 +5,17 @@ const Logging = require('../utils/Logging');
 const MODULE_NAME = "WSClient";
 
 class WSClient {
-  // options = {
-  //   autoReconnectTimeout: 10,
-  //   autoReconnectMaxRetries: 10,
-  //   protocols: '' or []
-  //   WSOptions = {}
-  // }
+  /**
+   * Create a new `WSClient`.
+   *
+   * @param {String|url.URL} url
+   * @param {Object} options
+   * @param {Number} options.autoReconnectTimeout must be an integer
+   * @param {Number} options.autoReconnectMaxRetries must be an integer
+   * @param {String|String[]} options.protocols
+   * @param {Object} options.WSOptions
+   * @param {Boolean} dbLogging
+   */
   constructor(url, options, dbLogging = true) {
     this._url = url;
     this._options = options || {};
@@ -46,7 +51,12 @@ class WSClient {
     this._autoReconnectRetryCount = 0;
   }
 
-  _reinstanteCbs() {
+  /**
+   * Reinstantiate callbacks.
+   *
+   * @private
+   */
+  _reinstantiateCbs() {
     ['onopen', 'onerror', 'onclose', 'onmessage'].forEach((method) => {
       if ('' + this._callbacks[method] !== '' + (() => { }))
         this._ws[method] = this._callbacks[method];
@@ -113,6 +123,11 @@ class WSClient {
     }
   }
 
+  /**
+   * Open the web socket.
+   *
+   * @public
+   */
   open() {
     this._ws = new WebSocket(this._url, this._options.protocols || [], this._options.WSOptions || {});
     // Handle Socket open
@@ -122,9 +137,15 @@ class WSClient {
     // Handle Socket close
     this._ws.on('close', this.onClose.bind(this));
     // A new WS have just been created, reinstantiate the saved callbacks on it
-    this._reinstanteCbs();
+    this._reinstantiateCbs();
   }
 
+  /**
+   * Reconnect the web socket.
+   *
+   * @param {Error} error
+   * @public
+   */
   reconnect(error) {
     if (this._autoReconnectTimeout !== 0 &&
       (this._autoReconnectRetryCount < this._autoReconnectMaxRetries || this._autoReconnectMaxRetries === -1)) {
@@ -164,22 +185,74 @@ class WSClient {
     }
   }
 
+  /**
+   * Send a data message.
+   *
+   * @param {*} data The message to send
+   * @param {Object} options Options object
+   * @param {Boolean} options.compress Specifies whether or not to compress `data`
+   * @param {Boolean} options.binary Specifies whether `data` is binary or text
+   * @param {Boolean} options.fin Specifies whether the fragment is the last one
+   * @param {Boolean} options.mask Specifies whether or not to mask `data`
+   * @param {Function} cb Callback which is executed when data is written out
+   * @public
+   */
   send(data, options, callback) {
     this._ws.send(data, options, callback);
   }
 
+  /**
+   * Start a closing handshake.
+   *
+   *          +----------+   +-----------+   +----------+
+   *     - - -|ws.close()|-->|close frame|-->|ws.close()|- - -
+   *    |     +----------+   +-----------+   +----------+     |
+   *          +----------+   +-----------+         |
+   * CLOSING  |ws.close()|<--|close frame|<--+-----+       CLOSING
+   *          +----------+   +-----------+   |
+   *    |           |                        |   +---+        |
+   *                +------------------------+-->|fin| - - - -
+   *    |         +---+                      |   +---+
+   *     - - - - -|fin|<---------------------+
+   *              +---+
+   *
+   * @param {Number} code Status code explaining why the connection is closing
+   * @param {String} data A string explaining why the connection is closing
+   * @public
+   */
   close(code, reason) {
     return this._ws.close(code, reason);
   }
 
+  /**
+   * Send a ping.
+   *
+   * @param {*} data The data to send
+   * @param {Boolean} mask Indicates whether or not to mask `data`
+   * @param {Function} cb Callback which is executed when the ping is sent
+   * @public
+   */
   ping(data, mask, callback) {
     this._ws.ping(data, mask, callback);
   }
 
+  /**
+   * Send a pong.
+   *
+   * @param {*} data The data to send
+   * @param {Boolean} mask Indicates whether or not to mask `data`
+   * @param {Function} cb Callback which is executed when the pong is sent
+   * @public
+   */
   pong(data, mask, callback) {
     this._ws.pong(data, mask, callback);
   }
 
+  /**
+   * Forcibly close the connection.
+   *
+   * @public
+   */
   terminate() {
     return this._ws.terminate();
   }

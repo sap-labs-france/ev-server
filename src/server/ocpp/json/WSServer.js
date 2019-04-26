@@ -8,7 +8,16 @@ const Constants = require('../../../utils/Constants');
 const MODULE_NAME = "WSServer";
 
 class WSServer extends WebSocket.Server {
-  constructor(httpServer, serverName, serverConfig, verifyClientCb, handleProtocolsCb) {
+  /**
+   * Create a new `WSServer`.
+   *
+   * @param {Object} httpServer
+   * @param {String} serverName
+   * @param {Object} serverConfig
+   * @param {Function} verifyClientCb
+   * @param {Function} handleProtocolsCb
+   */
+  constructor(httpServer, serverName, serverConfig, verifyClientCb = () => { }, handleProtocolsCb = () => { }) {
     // Create the Web Socket Server
     super({
       server: httpServer,
