@@ -20,7 +20,7 @@ class ODataServer {
     // Initialize express app
     this._express = expressTools.expressCommonInit();
     // log to console
-    if (oDataServerConfig.debug) {
+    if (_oDataServerConfig.debug) {
       // Log
       this._express.use(
         morgan('combined', {

@@ -26,7 +26,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
     this._express.use(sanitize());
 
     // Enable debug?
-    if (centralSystemConfig.debug) {
+    if (this._centralSystemConfig.debug) {
       // Log
       this._express.use(
         morgan('combined', {
