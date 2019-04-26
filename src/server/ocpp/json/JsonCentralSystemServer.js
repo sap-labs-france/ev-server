@@ -7,6 +7,7 @@ const JsonRestWSConnection = require('./JsonRestWSConnection');
 const CentralSystemServer = require('../CentralSystemServer');
 
 const MODULE_NAME = "JsonCentralSystemServer";
+
 class JsonCentralSystemServer extends CentralSystemServer {
 
   constructor(centralSystemConfig, chargingStationConfig) {

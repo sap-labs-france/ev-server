@@ -68,7 +68,7 @@ class JsonWSConnection extends WSConnection {
       message: error
     });
   }
-  
+
   onClose(code, reason) {
     // Log
     Logging.logInfo({

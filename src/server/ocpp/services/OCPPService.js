@@ -256,7 +256,7 @@ class OCPPService {
     let connector = chargingStation.getConnector(statusNotification.connectorId);
     if (!connector) {
       // Does not exist: Create
-      connector = { connectorId: statusNotification.connectorId, currentConsumption: 0, status: 'Unknown', power: 0 };
+      connector = { connectorId: statusNotification.connectorId, currentConsumption: 0, status: 'Unknown', power: 0, type: Constants.CONNECTOR_TYPES.UNKNOWN };
       // Add
       chargingStation.getConnectors().push(connector);
     }
@@ -437,7 +437,7 @@ class OCPPService {
     // Compute consumption
     return this._buildConsumptionFromTransactionAndMeterValue(
       transaction, lastMeterValue.timestamp, meterValue.timestamp, meterValue);
- }
+  }
 
   async _buildConsumptionFromTransactionAndMeterValue(transaction, startedAt, endedAt, meterValue) {
     // Only Consumption and SoC (No consumption for Transaction Begin/End: scenario already handled in Start/Stop Transaction)

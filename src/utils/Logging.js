@@ -44,7 +44,7 @@ const obs = new PerformanceObserver((items) => {
     }
   }
   Logging.addStatistic(items.getEntries()[0].name, items.getEntries()[0].duration);
-  if (typeof performance.hasOwnProperty === 'function') {
+  if (performance.hasOwnProperty('clearMeasures')) {
     performance.clearMeasures(); // does not seem to exist in node 10. It's stragen because then we have no way to remove measures and we will reach the maximum quickly
   }
   performance.clearMarks();

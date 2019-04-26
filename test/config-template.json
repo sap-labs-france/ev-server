@@ -35,7 +35,7 @@
     "port": 8888
   },
   "wsClient": {
-    "autoReconnectMaxRetries": 0,
-    "autoReconnectInterval": 60
+    "autoReconnectMaxRetries": 10,
+    "autoReconnectTimeout": 0
   }
 }
