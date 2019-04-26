@@ -36,7 +36,7 @@ class CentralRestServer {
     this._express.use(sanitize());
 
     // log to console
-    if (centralSystemRestConfig.debug) {
+    if (_centralSystemRestConfig.debug) {
       // Log
       this._express.use(
         morgan('combined', {

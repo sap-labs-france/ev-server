@@ -50,8 +50,8 @@ class WSServer extends WebSocket.Server {
       // Create the options
       const options = {};
       // Set the keys
-      options.key = fs.readFileSync(this._serverConfig["ssl-key"]);
-      options.cert = fs.readFileSync(this._serverConfig["ssl-cert"]);
+      options.key = fs.readFileSync(serverConfig["ssl-key"]);
+      options.cert = fs.readFileSync(serverConfig["ssl-cert"]);
       // Https server
       httpServer = https.createServer(options, (req, res) => {
         res.writeHead(200);
@@ -78,7 +78,7 @@ class WSServer extends WebSocket.Server {
   start() {
     // Log
     // eslint-disable-next-line no-console
-    console.log(`Starting ${this._serverName} JSon ${MODULE_NAME}...`);
+    console.log(`Starting ${this._serverName} Json ${MODULE_NAME}...`);
     // Start listening
     this._httpServer.listen(this._serverConfig.port, this._serverConfig.host, () => {
       // Log
