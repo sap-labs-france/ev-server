@@ -217,6 +217,17 @@ module.exports = {
     "CCS": "IEC_62196_T2_COMBO"
   },
 
+  CONNECTOR_TYPES: {
+    "UNKNOWN": "U",
+    "CHADEMO": "C",
+    "IEC_62196_T2": "T2",
+    "IEC_62196_T2_COMBO": "CCS",
+    "DOMESTIC": "D",
+    "TYPE_1": "T1",
+    "TYPE_1_CCS": "T1CCS",
+    "TYPE_3C": "T3C",
+  },
+
   // Components
   COMPONENTS: {
     OCPI: "ocpi",
