@@ -256,7 +256,7 @@ class OCPPService {
     let connector = chargingStation.getConnector(statusNotification.connectorId);
     if (!connector) {
       // Does not exist: Create
-      connector = { connectorId: statusNotification.connectorId, currentConsumption: 0, status: 'Unknown', power: 0 };
+      connector = { connectorId: statusNotification.connectorId, currentConsumption: 0, status: 'Unknown', power: 0, type: Constants.CONNECTOR_TYPES.UNKNOWN };
       // Add
       chargingStation.getConnectors().push(connector);
     }
