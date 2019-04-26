@@ -46,6 +46,13 @@ class WSClient {
     this._autoReconnectRetryCount = 0;
   }
 
+  _reinstanteCbs() {
+    ['onopen', 'onerror', 'onclose', 'onmessage'].forEach((method) => {
+      if ('' + this._callbacks[method] !== '' + (() => { }))
+        this._ws[method] = this._callbacks[method];
+    });
+  }
+
   onError(error) {
     switch (error.code) {
       case 'ECONNREFUSED':
@@ -114,6 +121,8 @@ class WSClient {
     this._ws.on('error', this.onError.bind(this));
     // Handle Socket close
     this._ws.on('close', this.onClose.bind(this));
+    // A new WS have just been created, reinstantiate the saved callbacks on it
+    this._reinstanteCbs();
   }
 
   reconnect(error) {
@@ -136,10 +145,6 @@ class WSClient {
         }
         this.onreconnect(error);
         this.open();
-        // A new WS have just been created, reinstate the saved callbacks on it
-        ['onopen', 'onerror', 'onclose', 'onmessage'].forEach((method) => {
-          this[method] = this._callbacks[method];
-        });
       }, this._autoReconnectTimeout);
     } else if (this._autoReconnectTimeout !== 0 || this._autoReconnectMaxRetries !== -1) {
       if (this._dbLogging) {
@@ -184,10 +189,10 @@ class WSClient {
   }
 }
 
-//
-// Add the `onopen`, `onerror`, `onclose`, `onmessage`, `onreconnect`
-// and `onmaximum` attributes.
-//
+/**
+ * Add the `onopen`, `onerror`, `onclose`, `onmessage`, `onreconnect`
+ * and `onmaximum` attributes.
+ */
 ['onopen', 'onerror', 'onclose', 'onmessage'].forEach((method) => {
   Object.defineProperty(WSClient.prototype, method, {
     get() {
@@ -211,7 +216,7 @@ class WSClient {
   });
 });
 
-/*
+/**
  * Add `readyState` property
  */
 Object.defineProperty(WSClient.prototype, 'readyState', {
