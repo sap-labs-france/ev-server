@@ -25,7 +25,7 @@ const SOURCE_TRANSACTION_STARTED = "NotifyTransactionStarted";
 const SOURCE_VERIFICATION_EMAIL = "NotifyVerificationEmail";
 
 class NotificationHandler {
-  static async saveNotification(tenantID, channel, sourceId, sourceDescr, user, chargingStation, data={}) {
+  static async saveNotification(tenantID, channel, sourceId, sourceDescr, user, chargingStation, data = {}) {
     const Notification = require('../entity/Notification');
     // Create the object
     const notification = new Notification(tenantID, {
@@ -66,14 +66,14 @@ class NotificationHandler {
     // Found
     if (adminUsers.count > 0) {
       // Convert to JSon
-      return adminUsers.result.map((adminUser) => adminUser.getModel()); 
+      return adminUsers.result.map((adminUser) => adminUser.getModel());
     }
   }
 
   static async hasNotifiedSource(tenantID, sourceId) {
     try {
       // Save it
-      const notifications = await NotificationStorage.getNotifications(tenantID, {sourceId});
+      const notifications = await NotificationStorage.getNotifications(tenantID, { sourceId });
       // return
       return notifications.count > 0;
     } catch (error) {
@@ -127,7 +127,6 @@ class NotificationHandler {
       Logging.logActionExceptionMessage(tenantID, SOURCE_OPTIMAL_CHARGE_REACHED, error);
     }
   }
- 
 
   static async sendEndOfSession(tenantID, sourceId, user, chargingStation, sourceData, locale, data) {
     try {
