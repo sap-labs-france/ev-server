@@ -41,7 +41,7 @@ class OCPIMapping {
    * @param {SiteArea} siteArea 
    * @return Array of OCPI EVSES
    */
-  static async getEvsesFromSiteaArea(tenant, siteArea,options) {
+  static async getEvsesFromSiteaArea(tenant, siteArea, options) {
     // build evses array
     const evses = [];
 
@@ -51,9 +51,9 @@ class OCPIMapping {
     // convert charging stations to evse(s)
     chargingStations.forEach(chargingStation => {
       if (chargingStation.canChargeInParallel()) {
-        evses.push(...this.convertCharginStation2MultipleEvses(tenant, chargingStation,options));
+        evses.push(...this.convertCharginStation2MultipleEvses(tenant, chargingStation, options));
       } else {
-        evses.push(...this.convertChargingStation2UniqueEvse(tenant, chargingStation,options));
+        evses.push(...this.convertChargingStation2UniqueEvse(tenant, chargingStation, options));
       }
     });
 
@@ -86,9 +86,9 @@ class OCPIMapping {
    * Get All OCPI Locations from given tenant
    * @param {Tenant} tenant 
    */
-  static async getAllLocations(tenant,limit,skip, options) {
+  static async getAllLocations(tenant, limit, skip, options) {
     // result
-    const result = { count: 0, locations: []};
+    const result = { count: 0, locations: [] };
 
     // Get all sites
     const sites = await Site.getSites(
@@ -288,10 +288,10 @@ class OCPIMapping {
     const credential = {};
 
     // get ocpi service configuration
-    const ocpiSetting= await tenant.getSetting(Constants.COMPONENTS.OCPI);
+    const ocpiSetting = await tenant.getSetting(Constants.COMPONENTS.OCPI);
 
     // define version url
-    credential.url = (versionUrl?versionUrl:'https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/cpo/versions');
+    credential.url = (versionUrl ? versionUrl : 'https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/cpo/versions');
 
     // check if available
     if (ocpiSetting && ocpiSetting.getContent()) {
