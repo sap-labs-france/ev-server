@@ -1,6 +1,6 @@
 const soap = require('strong-soap').soap;
 const AbstractSoapClient = require('./AbstractSoapClient');
-const {performance} = require('perf_hooks');
+const { performance } = require('perf_hooks');
 
 class StatefulChargingService extends AbstractSoapClient {
 
@@ -15,7 +15,7 @@ class StatefulChargingService extends AbstractSoapClient {
       new soap.ClientSSLSecurity(
         `${global.appRoot}/assets/convergent-charging/ssl/hybris-access.key`,
         `${global.appRoot}/assets/convergent-charging/ssl/hybris-access.crt`,
-        {rejectUnauthorized: false, strictSSL: false}
+        { rejectUnauthorized: false, strictSSL: false }
       )
     );
   }
