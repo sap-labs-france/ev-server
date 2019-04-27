@@ -205,6 +205,8 @@ class TransactionStorage {
         result: []
       };
     }
+    // Remove the limit
+    aggregation.pop();
     // Sort
     if (sort) {
       if (!sort.hasOwnProperty('timestamp')) {
@@ -274,7 +276,8 @@ class TransactionStorage {
     Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
-      count: (transactionsCountMDB.length > 0 ? transactionsCountMDB[0].count : 0),
+      count: (transactionsCountMDB.length > 0 ?
+        (transactionsCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : transactionsCountMDB[0].count) : 0),
       result: transactions
     };
   }
@@ -480,6 +483,8 @@ class TransactionStorage {
         result: []
       };
     }
+    // Remove the limit
+    aggregation.pop();
     // Sort
     if (sort) {
       // Sort
@@ -520,7 +525,8 @@ class TransactionStorage {
     Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
-      count: (transactionsCountMDB.length > 0 ? transactionsCountMDB[0].count : 0),
+      count: (transactionsCountMDB.length > 0 ?
+        (transactionsCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : transactionsCountMDB[0].count) : 0),
       result: transactions
     };
   }

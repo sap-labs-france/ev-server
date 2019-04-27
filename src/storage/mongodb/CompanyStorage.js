@@ -216,6 +216,8 @@ class CompanyStorage {
         result: []
       };
     }
+    // Remove the limit
+    aggregation.pop();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
@@ -266,7 +268,8 @@ class CompanyStorage {
     Logging.traceEnd('CompanyStorage', 'getCompanies', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
-      count: (companiesCountMDB.length > 0 ? companiesCountMDB[0].count : 0),
+      count: (companiesCountMDB.length > 0 ?
+        (companiesCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : companiesCountMDB[0].count) : 0),
       result: companies
     };
   }

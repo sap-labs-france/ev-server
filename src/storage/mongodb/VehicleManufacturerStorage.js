@@ -211,6 +211,8 @@ class VehicleManufacturerStorage {
         result: []
       };
     }
+    // Remove the limit
+    aggregation.pop();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
     // Sort
@@ -261,7 +263,8 @@ class VehicleManufacturerStorage {
     Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturers', uniqueTimerID, {params, limit, skip, sort});
     // Ok
     return {
-      count: (vehiclemanufacturersCountMDB.length > 0 ? vehiclemanufacturersCountMDB[0].count : 0),
+      count: (vehiclemanufacturersCountMDB.length > 0 ?
+        (vehiclemanufacturersCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : vehiclemanufacturersCountMDB[0].count) : 0),
       result: vehicleManufacturers
     };
   }

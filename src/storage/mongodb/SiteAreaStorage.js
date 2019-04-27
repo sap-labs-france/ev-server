@@ -220,6 +220,8 @@ class SiteAreaStorage {
         result: []
       };
     }
+    // Remove the limit
+    aggregation.pop();
     // Sites
     if (params.withSite) {
       // Add Sites
@@ -336,7 +338,8 @@ class SiteAreaStorage {
     Logging.traceEnd('SiteAreaStorage', 'getSiteAreas', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
-      count: (siteAreasCountMDB.length > 0 ? siteAreasCountMDB[0].count : 0),
+      count: (siteAreasCountMDB.length > 0 ?
+        (siteAreasCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : siteAreasCountMDB[0].count) : 0),
       result: siteAreas
     };
   }

@@ -184,6 +184,8 @@ class LoggingStorage {
         result: []
       };
     }
+    // Remove the limit
+    aggregation.pop();
     // Sort
     if (sort) {
       // Sort
@@ -244,8 +246,9 @@ class LoggingStorage {
     }
     // Ok
     return {
-      count: (loggingsCountMDB.length > 0 ? loggingsCountMDB[0].count : 0),
-      result: loggings
+      count: (loggingsCountMDB.length > 0 ?
+        (loggingsCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : loggingsCountMDB[0].count) : 0),
+    result: loggings
     };
   }
 }

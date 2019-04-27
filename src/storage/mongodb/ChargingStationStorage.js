@@ -205,6 +205,8 @@ class ChargingStationStorage {
         result: []
       };
     }
+    // Remove the limit
+    aggregation.pop();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
@@ -260,7 +262,8 @@ class ChargingStationStorage {
     Logging.traceEnd('ChargingStationStorage', 'getChargingStations', uniqueTimerID);
     // Ok
     return {
-      count: (chargingStationsCountMDB.length > 0 ? chargingStationsCountMDB[0].count : 0),
+      count: (chargingStationsCountMDB.length > 0 ?
+        (chargingStationsCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : chargingStationsCountMDB[0].count) : 0),
       result: chargingStations
     };
   }
@@ -449,6 +452,8 @@ class ChargingStationStorage {
         result: []
       };
     }
+    // Remove the limit
+    aggregation.pop();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
@@ -507,7 +512,8 @@ class ChargingStationStorage {
     Logging.traceEnd('ChargingStationStorage', 'getChargingStations', uniqueTimerID);
     // Ok
     return {
-      count: (chargingStationsCountMDB.length > 0 ? chargingStationsCountMDB[0].count : 0),
+      count: (chargingStationsCountMDB.length > 0 ?
+        (chargingStationsCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : chargingStationsCountMDB[0].count) : 0),
       result: chargingStations
     };
   }

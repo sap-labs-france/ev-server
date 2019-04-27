@@ -364,6 +364,8 @@ class SiteStorage {
         result: []
       };
     }
+    // Remove the limit
+    aggregation.pop();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Add Company?
@@ -497,7 +499,8 @@ class SiteStorage {
     Logging.traceEnd('SiteStorage', 'getSites', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
-      count: (sitesCountMDB.length > 0 ? sitesCountMDB[0].count : 0),
+      count: (sitesCountMDB.length > 0 ?
+        (sitesCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : sitesCountMDB[0].count) : 0),
       result: sites
     };
   }
